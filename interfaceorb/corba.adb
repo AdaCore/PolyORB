@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.21 $
+--                            $Revision: 1.22 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -36,8 +36,6 @@
 with AdaBroker.Exceptions; use AdaBroker.Exceptions;
 
 with System;
-
-with Ada.Unchecked_Conversion;
 
 with AdaBroker.Debug;
 pragma Elaborate_All (AdaBroker.Debug);
@@ -92,15 +90,6 @@ package body CORBA is
       return Ada.Strings.Unbounded.To_String
         (Ada.Strings.Unbounded.Unbounded_String (S));
    end To_Standard_String;
-
-   procedure SetAny (A : out Any;
-                     V : in System.Address;
-                     T : in CORBA.TypeCode.Object) is
-   begin
-      A.The_Value := V;
-      A.The_Type := T;
-   end SetAny;
-
 
    package body TypeCode is
 
@@ -196,89 +185,81 @@ package body CORBA is
 
    function To_Any (From : in CORBA.Octet)
                     return CORBA.Any is
-      SysAdr : System.Address := From'Address;
       The_Any : CORBA.Any;
       Tco : CORBA.TypeCode.Object;
    begin
       CORBA.TypeCode.Set (Tco, Tk_Octet);
-      CORBA.SetAny (The_Any, SysAdr, Tco);
+      The_Any := (new C_Octet' (Value => From), Tco);
       return The_Any;
    end To_Any;
 
    function To_Any (From : in CORBA.Short)
                     return CORBA.Any is
-      SysAdr : System.Address := From'Address;
       The_Any : CORBA.Any;
       Tco : CORBA.TypeCode.Object;
    begin
       CORBA.TypeCode.Set (Tco, Tk_Short);
-      CORBA.SetAny (The_Any, SysAdr, Tco);
+      The_Any := (new C_Short' (Value => From), Tco);
       return The_Any;
    end To_Any;
 
    function To_Any (From : in CORBA.Long)
                     return CORBA.Any is
-      SysAdr : System.Address := From'Address;
       The_Any : CORBA.Any;
       Tco : CORBA.TypeCode.Object;
    begin
       CORBA.TypeCode.Set (Tco, Tk_Long);
-      CORBA.SetAny (The_Any, SysAdr, Tco);
+      The_Any := (new C_Long' (Value => From), Tco);
       return The_Any;
    end To_Any;
 
    function To_Any (From : in CORBA.Unsigned_Short)
                     return CORBA.Any is
-      SysAdr : System.Address := From'Address;
       The_Any : CORBA.Any;
       Tco : CORBA.TypeCode.Object;
    begin
       CORBA.TypeCode.Set (Tco, Tk_Ushort);
-      CORBA.SetAny (The_Any, SysAdr, Tco);
+      The_Any := (new C_UShort' (Value => From), Tco);
       return The_Any;
    end To_Any;
 
    function To_Any (From : in CORBA.Unsigned_Long)
                     return CORBA.Any is
-      SysAdr : System.Address := From'Address;
       The_Any : CORBA.Any;
       Tco : CORBA.TypeCode.Object;
    begin
       CORBA.TypeCode.Set (Tco, Tk_Ulong);
-      CORBA.SetAny (The_Any, SysAdr, Tco);
+      The_Any := (new C_ULong' (Value => From), Tco);
       return The_Any;
    end To_Any;
 
    function To_Any (From : in CORBA.Boolean)
                     return CORBA.Any is
-      SysAdr : System.Address := From'Address;
       The_Any : CORBA.Any;
       Tco : CORBA.TypeCode.Object;
    begin
       CORBA.TypeCode.Set (Tco, Tk_Boolean);
-      CORBA.SetAny (The_Any, SysAdr, Tco);
+      The_Any := (new C_Boolean' (Value => From), Tco);
       return The_Any;
    end To_Any;
 
    function To_Any (From : in CORBA.Char)
                     return CORBA.Any is
-      SysAdr : System.Address := From'Address;
       The_Any : CORBA.Any;
       Tco : CORBA.TypeCode.Object;
    begin
       CORBA.TypeCode.Set (Tco, Tk_Char);
-      CORBA.SetAny (The_Any, SysAdr, Tco);
+      The_Any := (new C_Char' (Value => From), Tco);
       return The_Any;
    end To_Any;
 
    function To_Any (From : in CORBA.String)
                     return CORBA.Any is
-      SysAdr : System.Address := From'Address;
       The_Any : CORBA.Any;
       Tco : CORBA.TypeCode.Object;
    begin
       CORBA.TypeCode.Set (Tco, Tk_String);
-      CORBA.SetAny (The_Any, SysAdr, Tco);
+      The_Any := (new C_String' (Value => From), Tco);
       return The_Any;
    end To_Any;
 
@@ -289,86 +270,79 @@ package body CORBA is
 
    function From_Any (From : in CORBA.Any)
                       return CORBA.Octet is
-      Ptr : CORBA_Octet_Ptr;
-      begin
-         if (TypeCode.Kind (From.The_Type) /= Tk_Octet) then
-            raise Bad_Typecode;
-         end if;
-         Ptr := To_CORBA_Octet
-           (Address_To_CORBA_Octet.To_Pointer (From.The_Value));
-         return Ptr.all;
-      end From_Any;
+      Tmp : C_Octet_Ptr;
+   begin
+      if (TypeCode.Kind (From.The_Type) /= Tk_Octet) then
+         raise Bad_Typecode;
+      end if;
+      Tmp := C_Octet_Ptr (From.The_Value);
+      return Tmp.Value;
+   end From_Any;
 
    function From_Any (From : in CORBA.Any)
                       return CORBA.Short is
-      Ptr : CORBA_Short_Ptr;
-      begin
-         if (TypeCode.Kind (From.The_Type) /= Tk_Short) then
-            raise Bad_Typecode;
-         end if;
-         Ptr := To_CORBA_Short
-           (Address_To_CORBA_Short.To_Pointer (From.The_Value));
-         return Ptr.all;
-      end From_Any;
+      Tmp : C_Short_Ptr;
+   begin
+      if (TypeCode.Kind (From.The_Type) /= Tk_Short) then
+         raise Bad_Typecode;
+      end if;
+      Tmp := C_Short_Ptr (From.The_Value);
+      return Tmp.Value;
+   end From_Any;
 
    function From_Any (From : in CORBA.Any)
                       return CORBA.Unsigned_Short is
-      Ptr : CORBA_U_Short_Ptr;
-      begin
-         if (TypeCode.Kind (From.The_Type) /= Tk_Ushort) then
-            raise Bad_Typecode;
-         end if;
-         Ptr := To_CORBA_U_Short
-           (Address_To_CORBA_U_Short.To_Pointer (From.The_Value));
-         return Ptr.all;
-      end From_Any;
+      Tmp : C_UShort_Ptr;
+   begin
+      if (TypeCode.Kind (From.The_Type) /= Tk_Ushort) then
+         raise Bad_Typecode;
+      end if;
+      Tmp := C_UShort_Ptr (From.The_Value);
+      return Tmp.Value;
+   end From_Any;
 
    function From_Any (From : in CORBA.Any)
                       return CORBA.Unsigned_Long is
-      Ptr : CORBA_U_Long_Ptr;
-      begin
-         if (TypeCode.Kind (From.The_Type) /= Tk_Ulong) then
-            raise Bad_Typecode;
-         end if;
-         Ptr := To_CORBA_U_Long
-              (Address_To_CORBA_U_Long.To_Pointer (From.The_Value));
-         return Ptr.all;
-      end From_Any;
+      Tmp : C_ULong_Ptr;
+   begin
+      if (TypeCode.Kind (From.The_Type) /= Tk_Ulong) then
+         raise Bad_Typecode;
+      end if;
+      Tmp := C_ULong_Ptr (From.The_Value);
+      return Tmp.Value;
+   end From_Any;
 
    function From_Any (From : in CORBA.Any)
                       return CORBA.Boolean is
-      Ptr : CORBA_Boolean_Ptr;
-      begin
-         if (TypeCode.Kind (From.The_Type) /= Tk_Boolean) then
-            raise Bad_Typecode;
-         end if;
-         Ptr := To_CORBA_Boolean
-           (Address_To_CORBA_Boolean.To_Pointer (From.The_Value));
-         return Ptr.all;
-      end From_Any;
+      Tmp : C_Boolean_Ptr;
+   begin
+      if (TypeCode.Kind (From.The_Type) /= Tk_Boolean) then
+         raise Bad_Typecode;
+      end if;
+      Tmp := C_Boolean_Ptr (From.The_Value);
+      return Tmp.Value;
+   end From_Any;
 
    function From_Any (From : in CORBA.Any)
                       return CORBA.Char is
-      Ptr : CORBA_Char_Ptr;
-      begin
-         if (TypeCode.Kind (From.The_Type) /= Tk_Char) then
-            raise Bad_Typecode;
-         end if;
-         Ptr := To_CORBA_Char
-           (Address_To_CORBA_Char.To_Pointer (From.The_Value));
-         return Ptr.all;
-      end From_Any;
+      Tmp : C_Char_Ptr;
+   begin
+      if (TypeCode.Kind (From.The_Type) /= Tk_Char) then
+         raise Bad_Typecode;
+      end if;
+      Tmp := C_Char_Ptr (From.The_Value);
+      return Tmp.Value;
+   end From_Any;
 
    function From_Any (From : in CORBA.Any)
                       return CORBA.String is
-      Ptr : CORBA_String_Ptr;
-      begin
-         if (TypeCode.Kind (From.The_Type) /= Tk_String) then
-            raise Bad_Typecode;
-         end if;
-         Ptr := To_CORBA_String
-           (Address_To_CORBA_String.To_Pointer (From.The_Value));
-         return Ptr.all;
-      end From_Any;
+      Tmp : C_String_Ptr;
+   begin
+      if (TypeCode.Kind (From.The_Type) /= Tk_String) then
+         raise Bad_Typecode;
+      end if;
+      Tmp := C_String_Ptr (From.The_Value);
+      return Tmp.Value;
+   end From_Any;
 
 end CORBA;

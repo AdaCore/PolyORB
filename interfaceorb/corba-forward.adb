@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.23 $
+--                            $Revision: 1.24 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -76,17 +76,18 @@ package body CORBA.Forward is
    ---------------
    --  From_Any --
    ---------------
+
+   type C_Forward_Ptr is access all C_Forward;
+
    function From_Any (From : in Any)
                       return Ref is
-      Ptr : CORBA_Forward_Ref_Ptr;
+      Tmp : C_Forward_Ptr;
    begin
       if (TypeCode.Kind (From.The_Type) /= Tk_Objref) then
          raise CORBA.Bad_Typecode;
       end if;
-      Ptr := To_CORBA_Forward_Ref
-        (Address_To_CORBA_Forward_Ref.To_Pointer (From.The_Value));
-      return Ptr.all;
-
+      Tmp := C_Forward_Ptr (From.The_Value);
+      return Tmp.Value;
    end From_Any;
 
 

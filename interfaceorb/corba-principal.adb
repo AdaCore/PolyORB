@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.2 $
+--                            $Revision: 1.3 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -41,12 +41,11 @@ package body CORBA.Principal is
 
    function To_Any (From : in Object) return Any
    is
-      SysAdr : System.Address := From'Address;
       The_Any : CORBA.Any;
       Tco : CORBA.TypeCode.Object;
    begin
       CORBA.TypeCode.Set (Tco, Tk_Principal);
-      CORBA.SetAny (The_Any, SysAdr, Tco);
+      The_Any := (new C_Principal' (Value => From), Tco);
       return The_Any;
    end To_Any;
 
@@ -55,13 +54,13 @@ package body CORBA.Principal is
    ----------------
 
    function From_Any (From : in Any) return Object is
-      Ptr : CORBA_Principal_Ptr;
+      Tmp : C_Principal_Ptr;
    begin
       if (TypeCode.Kind (From.The_Type) /= Tk_Principal) then
          raise CORBA.Bad_Typecode;
       end if;
-      --  to be fixed
-      return Ptr.all;
+      Tmp := C_Principal_Ptr (From.The_Value);
+      return Tmp.Value;
    end From_Any;
 
    --------------------

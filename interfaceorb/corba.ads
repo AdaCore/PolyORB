@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.48 $
+--                            $Revision: 1.49 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -39,8 +39,6 @@ with Ada.Strings.Unbounded;
 with Interfaces;
 
 with System;
-with System.Address_To_Access_Conversions;
-with Ada.Unchecked_Conversion;
 
 package CORBA is
 
@@ -286,11 +284,6 @@ package CORBA is
 
    function Get_Type (The_Any : in CORBA.Any) return CORBA.TypeCode.Object;
 
-   procedure SetAny
-     (A : out Any;
-      V : in System.Address;
-      T : in CORBA.TypeCode.Object);
-
    function To_Any (From : in CORBA.Octet)          return CORBA.Any;
    function To_Any (From : in CORBA.Short)          return CORBA.Any;
    function To_Any (From : in CORBA.Long)           return CORBA.Any;
@@ -387,66 +380,62 @@ package CORBA is
 
 private
 
+   type Content is abstract tagged null record;
+   type Any_Content_Ptr is access Content'Class;
+
+   type C_Octet is new Content with
+      record
+         Value : CORBA.Octet;
+      end record;
+   type C_Octet_Ptr is access all C_Octet;
+
+   type C_Short is new Content with
+      record
+         Value : CORBA.Short;
+      end record;
+   type C_Short_Ptr is access all C_Short;
+
+   type C_Long is new Content with
+      record
+         Value : CORBA.Long;
+      end record;
+   type C_Long_Ptr is access all C_Long;
+
+   type C_UShort is new Content with
+      record
+         Value : CORBA.Unsigned_Short;
+      end record;
+   type C_UShort_Ptr is access all C_UShort;
+
+   type C_ULong is new Content with
+      record
+         Value : CORBA.Unsigned_Long;
+      end record;
+   type C_ULong_Ptr is access all C_ULong;
+
+   type C_Boolean is new Content with
+      record
+         Value : CORBA.Boolean;
+      end record;
+   type C_Boolean_Ptr is access all C_Boolean;
+
+   type C_Char is new Content with
+      record
+         Value : CORBA.Char;
+      end record;
+   type C_Char_Ptr is access all C_Char;
+
+   type C_String is new Content with
+      record
+         Value : CORBA.String;
+      end record;
+   type C_String_Ptr is access all C_String;
+
+
    type Any is
      record
-        The_Value : System.Address;
+        The_Value : Any_Content_Ptr;
         The_Type  : CORBA.TypeCode.Object;
      end record;
-
-   type CORBA_Octet_Ptr is access all CORBA.Octet;
-   package Address_To_CORBA_Octet is
-      new System.Address_To_Access_Conversions (CORBA.Octet);
-   function To_CORBA_Octet is
-     new Ada.Unchecked_Conversion
-     (Address_To_CORBA_Octet.Object_Pointer, CORBA_Octet_Ptr);
-
-   type CORBA_Short_Ptr is access all CORBA.Short;
-   package Address_To_CORBA_Short is
-      new System.Address_To_Access_Conversions (CORBA.Short);
-   function To_CORBA_Short is
-     new Ada.Unchecked_Conversion
-     (Address_To_CORBA_Short.Object_Pointer, CORBA_Short_Ptr);
-
-   type CORBA_Long_Ptr is access all CORBA.Long;
-   package Address_To_CORBA_Long is
-      new System.Address_To_Access_Conversions (CORBA.Long);
-   function To_CORBA_Long is
-     new Ada.Unchecked_Conversion
-     (Address_To_CORBA_Long.Object_Pointer, CORBA_Long_Ptr);
-
-   type CORBA_U_Short_Ptr is access all CORBA.Unsigned_Short;
-   package Address_To_CORBA_U_Short is
-      new System.Address_To_Access_Conversions (CORBA.Unsigned_Short);
-   function To_CORBA_U_Short is
-     new Ada.Unchecked_Conversion
-     (Address_To_CORBA_U_Short.Object_Pointer, CORBA_U_Short_Ptr);
-
-   type CORBA_U_Long_Ptr is access all CORBA.Unsigned_Long;
-   package Address_To_CORBA_U_Long is
-      new System.Address_To_Access_Conversions (CORBA.Unsigned_Long);
-   function To_CORBA_U_Long is
-     new Ada.Unchecked_Conversion
-     (Address_To_CORBA_U_Long.Object_Pointer, CORBA_U_Long_Ptr);
-
-   type CORBA_Boolean_Ptr is access all CORBA.Boolean;
-   package Address_To_CORBA_Boolean is
-      new System.Address_To_Access_Conversions (CORBA.Boolean);
-   function To_CORBA_Boolean is
-     new Ada.Unchecked_Conversion
-     (Address_To_CORBA_Boolean.Object_Pointer, CORBA_Boolean_Ptr);
-
-   type CORBA_Char_Ptr is access all CORBA.Char;
-   package Address_To_CORBA_Char is
-      new System.Address_To_Access_Conversions (CORBA.Char);
-   function To_CORBA_Char is
-     new Ada.Unchecked_Conversion
-     (Address_To_CORBA_Char.Object_Pointer, CORBA_Char_Ptr);
-
-   type CORBA_String_Ptr is access all CORBA.String;
-   package Address_To_CORBA_String is
-      new System.Address_To_Access_Conversions (CORBA.String);
-   function To_CORBA_String is
-     new Ada.Unchecked_Conversion
-     (Address_To_CORBA_String.Object_Pointer, CORBA_String_Ptr);
 
 end CORBA;

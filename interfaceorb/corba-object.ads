@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.71 $
+--                            $Revision: 1.72 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -88,9 +88,9 @@ package CORBA.Object is
    --  DII related functions  --
    -----------------------------
 
-   function To_Any (From : in Ref) return Any;
+   function To_Any (From : in CORBA.Object.Ref) return CORBA.Any;
 
-   function From_any (From : in Any) return Ref;
+   function From_any (From : in CORBA.Any) return CORBA.Object.Ref;
 
 
    --  the 2 following functions will be implemented later
@@ -137,15 +137,14 @@ private
    Nil_Ref : constant Ref
      := (Ada.Finalization.Controlled with OmniObj => null);
 
-   -----------------
-   --  DII stuff  --
-   -----------------
+   -----------
+   --  DII  --
+   -----------
 
-   type CORBA_Object_Ref_Ptr is access all CORBA.Object.Ref;
-   package Address_To_CORBA_Object_Ref is
-     new System.Address_To_Access_Conversions (CORBA.Object.Ref);
-   function To_CORBA_Object_Ref is
-     new Ada.Unchecked_Conversion
-     (Address_To_CORBA_Object_Ref.Object_Pointer, CORBA_Object_Ref_Ptr);
+   type C_Object_Ref is new Content with
+      record
+         Value : CORBA.Object.Ref;
+      end record;
+   type C_Object_Ref_Ptr is access all C_Object_Ref;
 
 end CORBA.Object;

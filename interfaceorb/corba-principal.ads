@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.5 $
+--                            $Revision: 1.6 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -51,12 +51,11 @@ private
          Dummy : Integer;
       end record;
 
-   type CORBA_Principal_Ptr is access all CORBA.Principal.Object;
-   package Address_To_CORBA_Principal is
-     new System.Address_To_Access_Conversions (CORBA.Principal.Object);
-   function To_CORBA_Principal is
-     new Ada.Unchecked_Conversion
-     (Address_To_CORBA_Principal.Object_Pointer, CORBA_Principal_Ptr);
+   type C_Principal is new CORBA.Content with
+     record
+        Value : Object;
+     end record;
+   type C_Principal_Ptr is access all C_Principal;
 
 end CORBA.Principal;
 
