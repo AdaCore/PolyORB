@@ -1,15 +1,12 @@
 --  $Id$
 
-with Unchecked_Deallocation;
 
 with Droopi.Log;
 with Droopi.Jobs;
 
---  with Droopi.Soft_Links;
-with Droopi.Locks;
---  ??? : Since we use only writers locks, we could use a lighter
---        implementation.
+with Locked_Queue;
 
+pragma Elaborate_All (Locked_Queue);
 pragma Elaborate_All (Droopi.Log);
 
 package body Droopi.ORB.Thread_Pool is
@@ -29,7 +26,6 @@ package body Droopi.ORB.Thread_Pool is
    ------------------------
 
    use Droopi.Log;
-   use Droopi.Locks;
    use Droopi.Soft_Links;
    use Droopi.Components;
 
@@ -52,129 +48,9 @@ package body Droopi.ORB.Thread_Pool is
       Job : Jobs.Job_Access;
    end record;
 
-   type Request_Queue_Node;
-   type Request_Queue_Node_Access is access Request_Queue_Node;
+   package Request_Queue is new Locked_Queue (Request_Info);
 
-   type Request_Queue_Node is record
-      Request : Request_Info;
-      Next    : Request_Queue_Node_Access;
-   end record;
-
-   procedure Free is new Unchecked_Deallocation
-     (Request_Queue_Node, Request_Queue_Node_Access);
-
-   type Request_Queue is record
-      Max_Count  : Positive;
-
-      State_Lock : Rw_Lock_Access;
-      --  This locks the global state of the queue, and should be
-      --  taken when modifying First, Last and Count fields.
-
-      Full_Lock  : Rw_Lock_Access;
-      --  This lock is taken when the queue is full.
-
-      Empty_Lock : Rw_Lock_Access;
-      --  This lock is taken when the queue is empty.
-
-      First      : Request_Queue_Node_Access := null;
-      Last       : Request_Queue_Node_Access := null;
-      Count      : Natural := 0;
-   end record;
-
-   type Request_Queue_Access is access Request_Queue;
-
-   The_Request_Queue : Request_Queue_Access := null;
-
-   procedure Add
-     (Queue   : Request_Queue_Access;
-      Element : in Request_Info);
-   --  Appends an element to the end of the queue.
-   --  This call is blocking when the queue is full.
-   --
-   --  ??? : This is the only function that needs to be modified when
-   --        adding the notion of priority to tasks : request should be
-   --        inserted in the queue with regard to their priority and
-   --        not necessarily at the end.
-
-   procedure Get_Head
-     (Queue   : Request_Queue_Access;
-      Element : out Request_Info);
-   --  Removes the first element in the queue and returns it.
-   --  This call is blocking when the queue is empty.
-
-   --------------
-   -- Get_Head --
-   --------------
-
-   procedure Get_Head
-     (Queue   : Request_Queue_Access;
-      Element : out Request_Info)
-   is
-   begin
-      Lock_W (Queue.Empty_Lock);
-
-      --  When execution reaches this, necessarily Queue.First /= null.
-
-      Lock_W (Queue.State_Lock);
-
-      declare
-         --  Old_First : Request_Queue_Node_Access := Queue.First;
-      begin
-         Element := Queue.First.Request;
-         Queue.First := Queue.First.Next;
-
-         --  ??? Should free old elements.
-         --  Free (Old_First);
-      end;
-
-      Queue.Count := Queue.Count - 1;
-      Unlock_W (Queue.State_Lock);
-
-      --  When execution reaches this, necessarily the queue is not full.
-
-      if Queue.Count = Queue.Max_Count - 1 then
-         Unlock_W (Queue.Full_Lock);
-      end if;
-
-      if Queue.Count > 0 then
-         Unlock_W (Queue.Empty_Lock);
-      end if;
-   end Get_Head;
-
-   ---------
-   -- Add --
-   ---------
-
-   procedure Add
-     (Queue   : Request_Queue_Access;
-      Element : in Request_Info)
-   is
-   begin
-      Lock_W (Queue.Full_Lock);
-
-      Lock_W (Queue.State_Lock);
-      if Queue.Last = null then
-         Queue.Last := new Request_Queue_Node'
-           (Request => Element,
-            Next    => null);
-         Queue.First := Queue.Last;
-      else
-         Queue.Last.Next := new Request_Queue_Node'
-           (Request => Element,
-            Next    => null);
-         Queue.Last := Queue.Last.Next;
-      end if;
-      Queue.Count := Queue.Count + 1;
-      Unlock_W (Queue.State_Lock);
-
-      if Queue.Count = 1 then
-         Unlock_W (Queue.Empty_Lock);
-      end if;
-
-      if Queue.Count /= Queue.Max_Count then
-         Unlock_W (Queue.Full_Lock);
-      end if;
-   end Add;
+   The_Request_Queue : Request_Queue.Queue;
 
    -----------------
    -- Pool_Thread --
@@ -190,7 +66,7 @@ package body Droopi.ORB.Thread_Pool is
          pragma Debug (O ("Thread"  & Integer'Image (Number) & " starts"));
       end Start;
       loop
-         Get_Head (The_Request_Queue, Request);
+         Request_Queue.Get_Head (The_Request_Queue, Request);
 
          pragma Debug (O ("Thread Pool : Thread"
                           & Integer'Image (Number)
@@ -246,7 +122,7 @@ package body Droopi.ORB.Thread_Pool is
    is
    begin
       pragma Debug (O ("Thread_Pool: handle request execution"));
-      Add (The_Request_Queue, Request_Info'(Job => RJ));
+      Request_Queue.Add (The_Request_Queue, Request_Info'(Job => RJ));
    end Handle_Request_Execution;
 
    ----------
@@ -277,14 +153,8 @@ package body Droopi.ORB.Thread_Pool is
    begin
       pragma Debug (O ("Initialize : enter"));
       The_Thread_Pool := new Thread_Array (1 .. Number_Of_Threads);
-      The_Request_Queue := new Request_Queue;
-      The_Request_Queue.Max_Count := Queue_Size;
 
-      Create (The_Request_Queue.State_Lock);
-      Create (The_Request_Queue.Full_Lock);
-      Create (The_Request_Queue.Empty_Lock);
-
-      Lock_W (The_Request_Queue.Empty_Lock);
+      Request_Queue.Create (The_Request_Queue, Queue_Size);
 
       for J in The_Thread_Pool'Range loop
          Dummy_Task := new Pool_Thread;
