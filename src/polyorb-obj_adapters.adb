@@ -151,41 +151,16 @@ package body PolyORB.Obj_Adapters is
       pragma Warnings (On);
    end Proxy_To_Ref;
 
-   --------------
-   -- Set_Note --
-   --------------
+   ----------------
+   -- Notepad_Of --
+   ----------------
 
-   procedure Set_Note
-     (OA : access Obj_Adapter;
-      N  : in     Annotations.Note'Class)
+   function Notepad_Of
+     (OA : access Obj_Adapter)
+     return Annotations.Notepad_Access
    is
    begin
-      Annotations.Set_Note (OA.Notepad, N);
-   end Set_Note;
-
-   --------------
-   -- Get_Note --
-   --------------
-
-   procedure Get_Note
-     (OA : access Obj_Adapter;
-      N  :    out Annotations.Note'Class)
-   is
-   begin
-      Annotations.Get_Note (OA.Notepad, N);
-   end Get_Note;
-
-   --------------
-   -- Get_Note --
-   --------------
-
-   procedure Get_Note
-     (OA      : access Obj_Adapter;
-      N       :    out Annotations.Note'Class;
-      Default : in     Annotations.Note'Class)
-   is
-   begin
-      Annotations.Get_Note (OA.Notepad, N, Default);
-   end Get_Note;
+      return OA.Notepad'Access;
+   end Notepad_Of;
 
 end PolyORB.Obj_Adapters;

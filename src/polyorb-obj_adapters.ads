@@ -190,18 +190,9 @@ package PolyORB.Obj_Adapters is
    -- Annotations management --
    ----------------------------
 
-   procedure Set_Note
-     (OA : access Obj_Adapter;
-      N  : in     Annotations.Note'Class);
-
-   procedure Get_Note
-     (OA : access Obj_Adapter;
-      N  :    out Annotations.Note'Class);
-
-   procedure Get_Note
-     (OA      : access Obj_Adapter;
-      N       :    out Annotations.Note'Class;
-      Default : in     Annotations.Note'Class);
+   function Notepad_Of
+     (OA : access Obj_Adapter)
+     return Annotations.Notepad_Access;
 
 private
 
@@ -211,7 +202,9 @@ private
          --  The ORB the OA is attached to. Needs to be cast into an
          --  ORB_Access when used.
 
-         Notepad : Annotations.Notepad;
+         Notepad : aliased Annotations.Notepad;
+         --  OA's notepad. The user must ensure there is no race
+         --  condition when accessing it.
       end record;
 
 end PolyORB.Obj_Adapters;
