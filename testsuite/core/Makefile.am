@@ -11,7 +11,6 @@ srp_dir   =
 
 SUBDIRS = \
 	any \
-	calendar \
 	chained_lists \
 	dynamic_dict \
 	fixed_point \

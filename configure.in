@@ -526,7 +526,6 @@ AC_OUTPUT([
 	testsuite/corba/portableserver/Makefile
 	testsuite/core/Makefile
 	testsuite/core/any/Makefile
-	testsuite/core/calendar/Makefile
 	testsuite/core/chained_lists/Makefile
 	testsuite/core/dynamic_dict/Makefile
 	testsuite/core/fixed_point/Makefile

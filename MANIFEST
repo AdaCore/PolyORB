@@ -670,8 +670,6 @@ src/polyorb-binding_objects.adb
 src/polyorb-binding_objects.ads
 src/polyorb-buffers.adb
 src/polyorb-buffers.ads
-src/polyorb-calendar.adb
-src/polyorb-calendar.ads
 src/polyorb-call_back.adb
 src/polyorb-call_back.ads
 src/polyorb-components.adb
@@ -913,8 +911,6 @@ src/polyorb-tasking-profiles-full_tasking-threads.ads
 src/polyorb-tasking-profiles-full_tasking-threads_dynamic_priorities.adb
 src/polyorb-tasking-profiles-full_tasking-threads_dynamic_priorities.ads
 src/polyorb-tasking-profiles-full_tasking.ads
-src/polyorb-tasking-profiles-no_tasking-calendar.adb
-src/polyorb-tasking-profiles-no_tasking-calendar.ads
 src/polyorb-tasking-profiles-no_tasking-condition_variables.adb
 src/polyorb-tasking-profiles-no_tasking-condition_variables.ads
 src/polyorb-tasking-profiles-no_tasking-mutexes.adb
@@ -975,8 +971,6 @@ src/polyorb-utils-random.adb
 src/polyorb-utils-random.ads
 src/polyorb-utils-report.adb
 src/polyorb-utils-report.ads
-src/polyorb-utils-rt_calendar.adb
-src/polyorb-utils-rt_calendar.ads
 src/polyorb-utils-simple_flags.adb
 src/polyorb-utils-simple_flags.ads
 src/polyorb-utils-sockets.adb
