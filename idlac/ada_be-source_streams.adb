@@ -108,6 +108,7 @@ package body Ada_Be.Source_Streams is
    procedure Add_Elaborate_Body (Unit : in out Compilation_Unit) is
    begin
       pragma Assert (Unit.Kind = Unit_Spec);
+      Unit.Empty := False;
       Unit.Elaborate_Body := True;
    end Add_Elaborate_Body;
 
@@ -285,7 +286,7 @@ package body Ada_Be.Source_Streams is
 
          if Unit.Elaborate_Body then
             New_Line (File);
-            Put_Line ("   pragma Elaborate_Body;");
+            Put_Line (File, "   pragma Elaborate_Body;");
          end if;
 
          Put (File, To_String (Unit.Library_Item));
