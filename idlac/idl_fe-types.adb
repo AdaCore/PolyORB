@@ -59,6 +59,11 @@ package body Idl_Fe.Types is
    --  Add the definition to Scope storage table.
    --  It is done at the end of the scope parsing (called by pop_scope)
 
+   procedure Add_Identifier_Definition
+     (Scope      : Node_Id;
+      Definition : in Identifier_Definition_Acc);
+   --  Add an identifier definition to a scope.
+
    --------------------------------------
    -- Root of the tree parsed from IDL --
    --------------------------------------
@@ -518,26 +523,30 @@ package body Idl_Fe.Types is
    ---------------------------------
    --  Add_Identifier_Definition  --
    ---------------------------------
+
    procedure Add_Identifier_Definition
      (Scope : Node_Id;
-      Identifier : in Identifier_Definition_Acc)
+      Definition : in Identifier_Definition_Acc)
    is
       List : Identifier_Definition_List;
    begin
       pragma Debug (O2 ("Add_Identifier_Definition : enter"));
+      pragma Assert (Scope /= No_Node);
+
       List := new Identifier_Definition_Cell'
-        (Definition => Identifier,
+        (Definition => Definition,
          Next => Identifier_List (Scope));
       Set_Identifier_List (Scope, List);
-      Add_Definition_To_Storage (Scope, Identifier);
+      Add_Definition_To_Storage (Scope, Definition);
       pragma Debug (O2 ("Add_Identifier_Definition : end"));
    end Add_Identifier_Definition;
 
-   ----------------------------
-   --  scope handling types  --
-   ----------------------------
+   --------------------
+   -- Scope handling --
+   --------------------
 
-   --  Definition of a stack of scopes.
+   --  A stack of active scopes
+
    type Scope_Stack;
    type Scope_Stack_Acc is access Scope_Stack;
    type Scope_Stack is record
@@ -545,22 +554,22 @@ package body Idl_Fe.Types is
       Scope : Node_Id;
    end record;
 
-   --  To deallocate a Scope_Stack
-   procedure Unchecked_Deallocation is new Ada.Unchecked_Deallocation
+   procedure Unchecked_Deallocation is
+     new Ada.Unchecked_Deallocation
      (Object => Scope_Stack,
       Name => Scope_Stack_Acc);
 
-   --  The top of the stack is kept in Current_Scope,
-   --  the bottom in Root_Scope
    Current_Scope : Scope_Stack_Acc := null;
+   --  Top of the scope stack
    Root_Scope : Scope_Stack_Acc := null;
+   --  Bottom of the scope stack
 
-   ------------------------------------------------
-   --  The Gnat_Table type implemented functions --
-   ------------------------------------------------
+   -----------------------------------------------
+   -- The Gnat_Table type implemented functions --
+   -----------------------------------------------
 
    Initial : constant Positive := 37;
-   --  The size allocated at the creation of the table
+   --  Initial table size
 
    Min : constant Integer := Integer (Nil_Uniq_Id + 1);
    --  Subscript of the minimum entry in the currently allocated table
@@ -583,9 +592,7 @@ package body Idl_Fe.Types is
       if T.Last_Val > T.Max then
          Reallocate (T);
       end if;
-
       Result := Uniq_Id (Old_Last + 1);
-      return;
    end Allocate;
 
    procedure Decrement_Last (T : in out Table) is
@@ -836,7 +843,8 @@ package body Idl_Fe.Types is
    --  return it
 
    function Create_Identifier_In_Storage
-     (Identifier : String)
+     (Identifier : String;
+      Scope      : Node_Id)
      return Uniq_Id;
    --  Create the uniq_id entry for an identifier in the storage table
    --  at the end of the scope parsing
@@ -1389,18 +1397,19 @@ package body Idl_Fe.Types is
    -----------------------------------
 
    function Create_Identifier_In_Storage
-     (Identifier : String)
+     (Identifier : String;
+      Scope : Node_Id)
      return Uniq_Id
    is
       use Idl_Fe.Lexer;
 
       IT : Storage
-        := Identifier_Table (Current_Scope.Scope);
+        := Identifier_Table (Scope);
       Index : Uniq_Id;
    begin
       Create_Identifier_Index
         (Identifier, IT.Hash_Table, IT.Content_Table, Index);
-      Set_Identifier_Table (Current_Scope.Scope, IT);
+      Set_Identifier_Table (Scope, IT);
       return Index;
    end Create_Identifier_In_Storage;
 
@@ -1415,8 +1424,12 @@ package body Idl_Fe.Types is
       Index : Uniq_Id;
    begin
       pragma Debug (O2 ("Add_Definition_To_Storage : enter"));
-      Index := Create_Identifier_In_Storage (Definition.Name.all);
-      --  their shouldn't be any redefinition
+      pragma Assert (Scope /= No_Node);
+
+      pragma Debug (O ("Name = " & Definition.Name.all));
+      Index := Create_Identifier_In_Storage (Definition.Name.all, Scope);
+
+      --  There should be no redefinitions.
       pragma Assert (Identifier_Table
                      (Scope).Content_Table.
                      Table (Index).Definition = null);
