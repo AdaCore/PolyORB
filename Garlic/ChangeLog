@@ -8,6 +8,8 @@
 
 	* s-garnam.adb: Likewise.
 
+	* s-rpc.adb: Likewise.
+
 1998-02-19  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-gardeb.adb: Use GNAT.OS_Lib.String_Access and remove
