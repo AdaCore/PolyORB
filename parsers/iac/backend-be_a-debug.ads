@@ -36,6 +36,6 @@ package Backend.BE_A.Debug is
    function Image (N : Int) return String;
 
    procedure wabi (N : Node_Id);
-   pragma Export (C, wabi, "wabi");
+   pragma Export (C, wabi, "wbi");
 
 end Backend.BE_A.Debug;
