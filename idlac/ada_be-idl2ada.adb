@@ -991,32 +991,6 @@ package body Ada_Be.Idl2Ada is
    begin
       case Kind (Node) is
 
-         --  Scopes
-
-         when
-           K_Repository |
-           K_Module     |
-           K_Interface  =>
-            null;
-
-         when K_Forward_Interface =>
-            null; --  ??? XXX
-
-         -----------------
-         -- Value types --
-         -----------------
-
-         when K_ValueType =>
-            null;
-         when K_Forward_ValueType =>
-            null;
-         when K_Boxed_ValueType =>
-            null;
-         when K_State_Member =>
-            null;
-         when K_Initializer =>
-            null;
-
          ----------------
          -- Operations --
          ----------------
@@ -1027,9 +1001,6 @@ package body Ada_Be.Idl2Ada is
                Gen_Operation_Profile (CU, "access Object", Node);
                PL (CU, ";");
             end if;
-
-            --        when K_Attribute =>
-            --  null;
 
          when others =>
             null;
@@ -1043,32 +1014,6 @@ package body Ada_Be.Idl2Ada is
       Node : Node_Id) is
    begin
       case Kind (Node) is
-
-         --  Scopes
-
-         when
-           K_Repository |
-           K_Module     |
-           K_Interface  =>
-            null;
-
-         when K_Forward_Interface =>
-            null; --  ??? XXX
-
-         -----------------
-         -- Value types --
-         -----------------
-
-         when K_ValueType =>
-            null;
-         when K_Forward_ValueType =>
-            null;
-         when K_Boxed_ValueType =>
-            null;
-         when K_State_Member =>
-            null;
-         when K_Initializer =>
-            null;
 
          ----------------
          -- Operations --

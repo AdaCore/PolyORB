@@ -3661,7 +3661,11 @@ package body Idl_Fe.Parser is
                           | K_Fixed
                           | K_Enum
                           | K_Struct
-                          | K_Union =>
+                          | K_Union
+                          | K_Interface
+                          | K_Forward_Interface
+                          | K_ValueType
+                          | K_Forward_ValueType =>
                            null;
                         when others =>
                            Not_A_Type := True;
@@ -5824,7 +5828,11 @@ package body Idl_Fe.Parser is
                           | K_Wide_String
                           | K_Enum
                           | K_Struct
-                          | K_Union =>
+                          | K_Union
+                          | K_Interface
+                          | K_Forward_Interface
+                          | K_ValueType
+                          | K_Forward_ValueType =>
                            null;
                         when others =>
                            Not_A_Type := True;

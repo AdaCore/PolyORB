@@ -154,6 +154,6 @@ module MyModule {
 };
 
 typedef MyModule::complexNumber2 rootCplx;
-// typedef ::MyModule::Complex rootCplx1;
+typedef ::MyModule::Complex rootCplx1;
 typedef MyModule::MyInterface rootRef;
 typedef long rootLong;
