@@ -1945,7 +1945,7 @@ package body XE_Parse is
      (Subprogram_Node : in Subprogram_Id;
       Convention      : in Convention_Type;
       Formal_Name     : in out Name_Id;
-      Formal_Type     : in out Type_Id;
+      Formal_Type     :    out Type_Id;
       Parameter_Node  : in out Parameter_Id) is
    begin
       First_Subprogram_Parameter (Subprogram_Node, Parameter_Node);
