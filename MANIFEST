@@ -913,7 +913,6 @@ support/ltmain.sh
 support/missing
 support/mkdep
 support/mkinstalldirs
-support/native-adacompiler.in
 support/reconfig
 testsuite/Makefile.am
 testsuite/Makefile.common

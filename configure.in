@@ -352,7 +352,6 @@ AC_OUTPUT([
 	testsuite/acats/CXE4006/Makefile
 	testsuite/utils/Makefile
 	support/adacompiler
-	support/native-adacompiler
 	support/linker
 	polyorb-config
 ])
@@ -386,4 +385,5 @@ for a in linker adacompiler
 do
   chmod a+x support/$a
 done
+ln support/adacompiler support/native-adacompiler
 
