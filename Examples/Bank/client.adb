@@ -48,6 +48,7 @@ begin
       New_Line;
       Put_Line ("   Balance");
       Put_Line ("   Deposit");
+      Put_Line ("   Quit");
       Put_Line ("   Transfer");
       Put_Line ("   Withdraw");
       New_Line;
@@ -59,7 +60,6 @@ begin
       if Length > 0 then
          Shortcut := Request (1);
 
-         exit when Shortcut = 'Q' or Shortcut = 'q';
          case Shortcut is
             when 'B' | 'b' =>
                null;
@@ -103,6 +103,7 @@ begin
          end case;
 
       end if;
+      exit when Shortcut = 'Q' or else Shortcut = 'q';
 
    end loop;
 

@@ -1,0 +1,128 @@
+To play with this example, you have to do the following :
+
+% gnatdist simcity
+
+Open (at least) 3 sessions.
+
+[On session 1, starts the scenario]
+
+% bank_server
+bank_server     
+
+Menu :
+
+   Create
+   Load
+   Print
+   Quit
+   Save
+
+Request : l
+
+=> Load
+Filename : example
+
+Menu :
+
+   Create
+   Load
+   Print
+   Quit
+   Save
+
+Request : p
+
+=> Print
+
+   Customer : poor
+   Password : xxxx
+   Customer :  25
+
+   Customer : middle
+   Password : yyyy
+   Customer :  250
+
+   Customer : rich
+   Password : zzzz
+   Customer :  2500
+
+
+Menu :
+
+   Create
+   Load
+   Print
+   Quit
+   Save
+
+[On session 2, start the poor client]
+
+% bank_client
+Customer : poor
+Password : xxxx
+
+Balance : 25
+
+Menu :
+
+   Balance
+   Deposit
+   Transfer
+   Withdraw
+
+bank_client
+Customer : tardieu
+Password : useless
+
+Balance : 35
+
+Menu :
+
+   Balance
+   Deposit
+   Transfer
+   Withdraw
+
+Request : q
+
+[On session 3, start the rich client and transfer money from poor to rich]
+
+% bank_client
+Customer : rich
+Password : zzzz
+
+Balance : 2500
+
+Menu :
+
+   Balance
+   Deposit
+   Transfer
+   Withdraw
+
+Request : t
+
+=> Transfer
+
+   Amount : 1000
+   Customer : poor
+
+Balance : 1500
+
+Menu :
+
+   Balance
+   Deposit
+   Transfer
+   Withdraw
+
+[and then you will realize that on session 2, poor has been notified
+of the donation]
+
+=> Receive 1000 from rich
+
+
+
+
+
+
