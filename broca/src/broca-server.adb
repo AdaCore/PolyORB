@@ -899,16 +899,25 @@ package body Broca.Server is
       POA : Broca.POA.POA_Object_Ptr;
       POA_State : Broca.POA.Processing_State_Type;
       Key : Buffer_Descriptor;
+      Nothing : Buffer_Type (1 .. 0);
+
    begin
       Unmarshall_GIOP_Header (Buffer, Message_Type, Message_Size);
 
       --  Receive body of the message.
       Allocate_Buffer_And_Clear_Pos
         (Buffer, Buffer_Index_Type (Message_Size) + Message_Header_Size);
-      Skip_Bytes (Buffer, Message_Header_Size);
 
+      Skip_Bytes (Buffer, Message_Header_Size);
+      Log ("before Receive: Full_Size = "
+         & Buffer_Index_Type'Image (Full_Size (Buffer))
+         & ", Size_Left = "
+         & Buffer_Index_Type'Image (Size_Left (Buffer)));
       Receive (Stream, Buffer);
       Unlock_Receive (Stream);
+
+      Read (Buffer, Nothing);
+      Skip_Bytes (Buffer, Message_Header_Size);
 
       case Message_Type is
          when Broca.GIOP.Request =>

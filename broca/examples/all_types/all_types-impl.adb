@@ -109,7 +109,7 @@ package body all_types.Impl is
       return arg;
    end echoColor;
 
-   function EchoArray
+   function echoArray
      (Self : access Object;
       Arg : in Simple_Array)
       return Simple_Array
@@ -117,6 +117,15 @@ package body all_types.Impl is
    begin
       return Arg;
    end EchoArray;
+
+   function echoMatrix
+     (Self : access Object;
+      arg : in matrix)
+      return matrix
+   is
+   begin
+      return Arg;
+   end echoMatrix;
 
    procedure testException
      (Self : access Object;

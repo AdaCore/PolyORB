@@ -77,10 +77,15 @@ private
       arg  : in Color)
       return Color;
 
-   function EchoArray
+   function echoArray
      (Self : access Object;
       Arg : in Simple_Array)
       return Simple_Array;
+
+   function echoMatrix
+     (Self : access Object;
+      arg : in matrix)
+      return matrix;
 
    procedure testException
      (Self : access Object;

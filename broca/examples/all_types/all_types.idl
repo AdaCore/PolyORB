@@ -45,6 +45,10 @@ interface all_types {
   typedef long simple_array[5];
   simple_array echoArray (in simple_array arg);
 
+  // Multi-dimensional arrays
+  typedef long matrix[3][3];
+  matrix echoMatrix (in matrix arg);
+
   // Structs
   //--------
   struct simple_struct {

@@ -223,6 +223,11 @@ package body Broca.Buffers is
       Length : constant Buffer_Index_Type := Buffer_Index_Type (Bytes'Length);
    begin
       Set_Write_Mode (Buffer, False);
+
+      if Length = 0 then
+         return;
+      end if;
+
       pragma Assert (Buffer.Pos + Length - 1 <= Buffer.Buffer'Last);
       Bytes := Buffer.Buffer (Buffer.Pos .. Buffer.Pos + Length - 1);
       Buffer.Pos := Buffer.Pos + Length;
@@ -257,10 +262,12 @@ package body Broca.Buffers is
       Write  : in Boolean)
    is
    begin
-      if Buffer.Write /= Write then
+      if Buffer.Write and not Write then
+         --  If reading after writing, then
+         --  rewind buffer.
          Buffer.Pos := 0;
-         Buffer.Write := Write;
       end if;
+      Buffer.Write := Write;
    end Set_Write_Mode;
 
    ---------------

@@ -70,9 +70,10 @@ package body Broca.Stream is
       if Result /=  Interfaces.C.int (Length) then
          raise Connection_Closed;
       end if;
+
       Write (Buffer, Bytes);
 
-      pragma Debug (O ("Dump incoming buffer of length" & Length'Img));
+      pragma Debug (O ("Receive: got " & Length'Img & " bytes"));
       Broca.Buffers.Dump (Bytes);
    end Receive;
 

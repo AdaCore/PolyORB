@@ -41,8 +41,7 @@ begin
    Output ("test char", EchoChar (MyAll_Types, 'A') = 'A');
    Output ("test octet", EchoOctet (MyAll_Types, 5) = 5);
    Output ("test string",
-           EchoString (MyAll_Types, To_CORBA_String ("hello")) =
-           To_CORBA_String ("hello"));
+           To_Standard_String (EchoString (MyAll_Types, To_CORBA_String ("hello"))) = "hello");
    Output ("test enum", EchoColor (MyAll_Types, Blue) = Blue);
 
    declare
@@ -81,12 +80,18 @@ begin
 --      Output ("test union", Echo1 (MyAll_Types, X) = X);
 --   end;
 
---   declare
---      X : Simple_Array := (0,1,2,3,4,5,6,7,8,9);
---   begin
---      Output ("test simple array", EchoArray (MyAll_Types, X) = X);
---   end;
---
+   declare
+      X : Simple_Array := (2,3,5,7,11);
+   begin
+      Output ("test simple array", EchoArray (MyAll_Types, X) = X);
+   end;
+
+   declare
+      M : Matrix := ((165, 252, 375), (377, 145, 222), (202, 477, 147));
+   begin
+      Output ("test multi-dimensional array", EchoMatrix (MyAll_Types, M) = M);
+   end;
+
 --   declare
 --      X : Simple_Struct := (A => (0,1,2,3,4,5,6,7,8,9), B => 10);
 --   begin

@@ -338,6 +338,7 @@ package body Broca.GIOP is
       Service_Context : CORBA.Unsigned_Long;
       Reply_Status    : ReplyStatusType;
       Request_Id      : CORBA.Unsigned_Long;
+      Nothing         : Buffer_Type (1 .. 0);
    begin
       --  1.3 Send request.
       IOP.Send (Handler.Connection, Handler.Buffer);
@@ -369,6 +370,8 @@ package body Broca.GIOP is
       IOP.Release_Connection (Handler.Connection);
 
       --  Service context
+      Read (Handler.Buffer, Nothing);
+      Skip_Bytes (Handler.Buffer, Message_Header_Size);
       Unmarshall (Handler.Buffer, Service_Context);
       if Service_Context /= No_Context then
          pragma Debug
