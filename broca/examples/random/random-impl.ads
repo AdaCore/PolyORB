@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.4 $
+--                            $LastChangedRevision$
 --                                                                          --
 --            Copyright (C) 1999 ENST Paris University, France.             --
 --                                                                          --
@@ -29,17 +29,15 @@
 with CORBA;
 with PortableServer;
 
-package Echo.Impl is
-   --  My own implementation of echo object.
-   --  This is simply used to define the operations.
+package Random.Impl is
 
-   type Object is new PortableServer.Servant_Base with record
-      Msg : CORBA.String;
-   end record;
+   type Object is new PortableServer.Servant_Base with null record;
 
    type Object_Acc is access Object;
 
-   function EchoString (Self : access Object; Mesg : in CORBA.String)
-                        return CORBA.String;
+   function lrand48 (Self : access Object)
+     return CORBA.Long;
+   function mrand48 (Self : access Object)
+     return CORBA.Long;
 
-end Echo.Impl;
+end Random.Impl;

@@ -52,6 +52,14 @@ examples/echo/server.adb
 examples/generic/genericserver.adb
 examples/generic/genericserver.ads
 examples/generic/header.txt
+examples/random/IOR
+examples/random/broca.opt
+examples/random/client.adb
+examples/random/header.txt
+examples/random/random-impl.adb
+examples/random/random-impl.ads
+examples/random/random.idl
+examples/random/server.adb
 examples/report.adb
 examples/report.ads
 idlac/Makefile.am

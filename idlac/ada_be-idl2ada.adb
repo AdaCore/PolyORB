@@ -751,7 +751,7 @@ package body Ada_Be.Idl2Ada is
             NL (CU);
             PL (CU, Ada_Name (Node) & " : exception;");
             PL (CU, Ada_Name (Node) & "_" & T_Repository_Id
-                & " : constant CORBA.Repository_Id");
+                & " : constant CORBA.RepositoryId");
             PL (CU, "  := CORBA.To_CORBA_String ("""
                 & Idl_Repository_Id (Node) & """);");
             NL (CU);
@@ -1274,9 +1274,9 @@ package body Ada_Be.Idl2Ada is
                NL (CU);
                PL (CU, "--  Marshall exception");
                PL (CU, "Marshall");
-               PL (CU, "  (Reply_Buffer,");
+               PL (CU, "  (Reply_Buffer, CORBA.String (");
                PL (CU, "   " & Ada_Full_Name (E_Node)
-                   & "_" & T_Repository_Id & ");");
+                   & "_" & T_Repository_Id & "));");
                Add_With_Stream (CU, Members_Type (E_Node));
                PL (CU, "Marshall (Reply_Buffer, " & T_Members & ");");
                PL (CU, "return;");
@@ -1556,10 +1556,12 @@ package body Ada_Be.Idl2Ada is
 
                         PL (CU, "declare");
                         II (CU);
-                        PL (CU,
-                            T_Exception_Repo_Id & " : constant CORBA.String");
-                        PL (CU, "  := Unmarshall (" & T_Handler &
-                            ".Buffer'Access);");
+                        PL (CU, T_Exception_Repo_Id
+                            & " : constant CORBA.RepositoryId");
+                        PL (CU, "  := CORBA.RepositoryId");
+                        PL (CU, "      (CORBA.String'");
+                        PL (CU, "       (Unmarshall (" & T_Handler &
+                            ".Buffer'Access)));");
                         DI (CU);
                         PL (CU, "begin");
                         II (CU);
@@ -1571,7 +1573,7 @@ package body Ada_Be.Idl2Ada is
                      PL (CU, "if CORBA.""="" ("
                          & T_Exception_Repo_Id & ",");
                      PL (CU, "  " & Ada_Full_Name (E_Node)
-                         & "_" & T_Repository_Id & " then");
+                         & "_" & T_Repository_Id & ") then");
                      II (CU);
                      PL (CU, "declare");
                      II (CU);

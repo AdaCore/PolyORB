@@ -4,9 +4,9 @@
 --                                                                          --
 --                            E C H O . I M P L                             --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.4 $
+--                            $LastChangedRevision$
 --                                                                          --
 --            Copyright (C) 1999 ENST Paris University, France.             --
 --                                                                          --
@@ -26,20 +26,36 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA;
-with PortableServer;
+with Ada.Text_IO;
+with Ada.Numerics.Discrete_Random;
+pragma Elaborate (Ada.Numerics.Discrete_Random);
+with Random.Skel;
+pragma Elaborate (Random.Skel);
 
-package Echo.Impl is
-   --  My own implementation of echo object.
-   --  This is simply used to define the operations.
+package body Random.Impl is
 
-   type Object is new PortableServer.Servant_Base with record
-      Msg : CORBA.String;
-   end record;
+   type l48 is range 0 .. 2 ** 31 - 1;
+   package l48_Random is new Ada.Numerics.Discrete_Random (l48);
+   l48_Gen : l48_Random.Generator;
 
-   type Object_Acc is access Object;
+   function lrand48 (Self : access Object)
+     return CORBA.Long is
+   begin
+      return CORBA.Long (l48_Random.Random (l48_Gen));
+   end lrand48;
 
-   function EchoString (Self : access Object; Mesg : in CORBA.String)
-                        return CORBA.String;
+   type m48 is range - 2 ** 31 .. 2 ** 31 - 1;
+   package m48_Random is new Ada.Numerics.Discrete_Random (m48);
+   m48_Gen : m48_Random.Generator;
 
-end Echo.Impl;
+   function mrand48 (Self : access Object)
+     return CORBA.Long is
+   begin
+      return CORBA.Long (m48_Random.Random (m48_Gen));
+   end mrand48;
+
+begin
+   l48_Random.Reset (l48_Gen);
+   m48_Random.Reset (m48_Gen);
+end Random.Impl;
+
