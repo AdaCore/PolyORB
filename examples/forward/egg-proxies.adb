@@ -58,9 +58,6 @@ package body Egg.Proxies is
       Self.Private_Result := new Chicken.Ref'(Result) ;
       Output(True, "***********INITOK unmarshall2 : "
              & Boolean'Image(Sys_Dep.Boolean_C_To_Ada(Self.Private_Result.all.Omniobj.all.Init_Ok))) ;
-      Chicken.Adjust(Self.Private_Result.all) ;
-      Output(True, "***********INITOK unmarshall3 : "
-             & Boolean'Image(Sys_Dep.Boolean_C_To_Ada(Self.Private_Result.all.Omniobj.all.Init_Ok))) ;
       Chicken.Finalize(Result) ;
       Output(True, "***********INITOK unmarshall5 : "
              & Boolean'Image(Sys_Dep.Boolean_C_To_Ada(Self.Private_Result.all.Omniobj.all.Init_Ok))) ;

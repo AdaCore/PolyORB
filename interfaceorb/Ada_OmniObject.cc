@@ -199,6 +199,7 @@ ADABROKER_TRY
     // DO NOT UNCOMMENT THIS DEBUG INFO
     // cerr << "Ada_OmniObject::objectDuplicate : exiting ... OK" << endl ;
 #endif
+    return result ;
   } else {
 #ifdef DEBUG
     cerr << "Ada_OmniObject::objectDuplicate : Init_Ok = FALSE !!!!!!!! raising fatalException" << endl ;
