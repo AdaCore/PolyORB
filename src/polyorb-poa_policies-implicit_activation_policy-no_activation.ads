@@ -34,9 +34,11 @@
 package PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation is
 
    type No_Activation_Policy is new ImplicitActivationPolicy with null record;
+
    type No_Activation_Policy_Access is access all No_Activation_Policy;
 
-   function Create return No_Activation_Policy_Access;
+   function Create
+     return No_Activation_Policy_Access;
 
    procedure Check_Compatibility
      (Self           :        No_Activation_Policy;
@@ -54,9 +56,5 @@ package PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation is
       Hint      :        Object_Id_Access;
       Oid       :    out Object_Id_Access;
       Error     : in out PolyORB.Exceptions.Error_Container);
-
-   function Is_Implicit_Activation_Allowed
-     (Self : No_Activation_Policy)
-     return Boolean;
 
 end PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation;

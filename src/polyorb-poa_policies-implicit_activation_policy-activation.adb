@@ -43,7 +43,8 @@ package body PolyORB.POA_Policies.Implicit_Activation_Policy.Activation is
    -- Create --
    ------------
 
-   function Create return Activation_Policy_Access is
+   function Create
+     return Activation_Policy_Access is
    begin
       return new Activation_Policy;
    end Create;
@@ -134,21 +135,5 @@ package body PolyORB.POA_Policies.Implicit_Activation_Policy.Activation is
 
       Oid := U_Oid_To_Oid (U_Oid);
    end Implicit_Activate_Servant;
-
-   ------------------------------------
-   -- Is_Implicit_Activation_Allowed --
-   ------------------------------------
-
-   function Is_Implicit_Activation_Allowed
-     (Self : Activation_Policy)
-     return Boolean
-   is
-      pragma Warnings (Off);  --  WAG:3.15
-      pragma Unreferenced (Self);
-      pragma Warnings (On); --  WAG:3.15
-
-   begin
-      return True;
-   end Is_Implicit_Activation_Allowed;
 
 end PolyORB.POA_Policies.Implicit_Activation_Policy.Activation;

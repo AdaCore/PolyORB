@@ -37,7 +37,8 @@ package body PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation is
    -- Create --
    ------------
 
-   function Create return No_Activation_Policy_Access is
+   function Create
+     return No_Activation_Policy_Access is
    begin
       return new No_Activation_Policy;
    end Create;
@@ -47,8 +48,8 @@ package body PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation is
    -------------------------
 
    procedure Check_Compatibility
-     (Self           : No_Activation_Policy;
-      Other_Policies : AllPolicies;
+     (Self           :        No_Activation_Policy;
+      Other_Policies :        AllPolicies;
       Error          : in out PolyORB.Exceptions.Error_Container)
    is
       pragma Warnings (Off);
@@ -107,21 +108,5 @@ package body PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation is
          ServantNotActive_E,
          Null_Member);
    end Implicit_Activate_Servant;
-
-   ------------------------------------
-   -- Is_Implicit_Activation_Allowed --
-   ------------------------------------
-
-   function Is_Implicit_Activation_Allowed
-     (Self : No_Activation_Policy)
-     return Boolean
-   is
-      pragma Warnings (Off); --  WAG:3.15
-      pragma Unreferenced (Self);
-      pragma Warnings (On);  --  WAG:3.15
-
-   begin
-      return False;
-   end Is_Implicit_Activation_Allowed;
 
 end PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation;

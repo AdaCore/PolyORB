@@ -31,17 +31,17 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.POA_Types;     use PolyORB.POA_Types;
+with PolyORB.POA_Types;
 with PolyORB.Servants;
 
 package PolyORB.POA_Policies.Implicit_Activation_Policy is
 
+   use PolyORB.POA_Types;
+
    type ImplicitActivationPolicy is abstract new Policy with null record;
-   subtype Implicit_Activation_Policy is ImplicitActivationPolicy;
+
    type ImplicitActivationPolicy_Access is
      access all ImplicitActivationPolicy'Class;
-   subtype Implicit_Activation_Policy_Access is
-     ImplicitActivationPolicy_Access;
 
    procedure Implicit_Activate_Servant
      (Self      :        ImplicitActivationPolicy;
@@ -51,11 +51,5 @@ package PolyORB.POA_Policies.Implicit_Activation_Policy is
       Oid       :    out Object_Id_Access;
       Error     : in out PolyORB.Exceptions.Error_Container)
       is abstract;
-
-   function Is_Implicit_Activation_Allowed
-     (Self : ImplicitActivationPolicy)
-     return Boolean
-     is abstract;
-   --  Return true if we can
 
 end PolyORB.POA_Policies.Implicit_Activation_Policy;
