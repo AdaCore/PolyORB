@@ -66,10 +66,9 @@ DIR_CPPFLAGS += -g
 
 lib = $(patsubst %,$(LibPattern),adabroker)
 
-all:: previous_check $(lib)
+all:: $(lib)
 
-
-$(lib): $(CXXOBJS) $(ADAOBJS)
+$(lib): Ada_Sys_Dep $(CXXOBJS) $(ADAOBJS)
 	@$(StaticLinkLibrary)
 
 clean::
@@ -82,14 +81,14 @@ previous_check: Ada_Sys_Dep
 	fi
 
 Ada_Sys_Dep: Ada_Sys_Dep.cc
-	$(CXX) $(DIR_CPPFLAGS) Ada_Sys_Dep.cc -o Ada_Sys_Dep 
+	@$(CXX) $(DIR_CPPFLAGS) Ada_Sys_Dep.cc -o Ada_Sys_Dep 
 
 
 $(ADAOBJS): adabroker-sysdep.ads
-	gnatmake -g -gnata -i all_adabroker.ads -gnatg
+	@gnatmake -g -gnata -i all_adabroker.ads -gnatg
 
 adabroker-sysdep.ads : adabroker-sysdep.ads.in
-	sed -f $(ADABROKER_PLATFORM)/$(platform) \
+	@sed -f $(ADABROKER_PLATFORM)/$(platform) \
 	  adabroker-sysdep.ads.in > adabroker-sysdep.ads
 
 export:: $(lib)
