@@ -27,6 +27,7 @@
 ------------------------------------------------------------------------------
 
 with ALI;              use ALI;
+with ALI.Util;         use ALI.Util;
 with Fname;            use Fname;
 with GNAT.OS_Lib;      use GNAT.OS_Lib;
 with Make;             use Make;
@@ -565,7 +566,7 @@ package body XE_Check is
 
       Unmask_Object_Consistency_Check;
 
-      A := Scan_ALI (Afile, Text);
+      A := Scan_ALI (Afile, Text, False, True);
       Free (Text);
       ALIs.Table (A).Ofile_Full_Name := Full_Lib_File_Name (Afile);
       Set_Source_Table (A);
@@ -664,7 +665,7 @@ package body XE_Check is
          Compilation_Error (S);
       end if;
 
-      A := Scan_ALI (L, T);
+      A := Scan_ALI (L, T, False, True);
       Free (T);
       ALIs.Table (A).Ofile_Full_Name := Full_Lib_File_Name (L);
       Set_Source_Table (A);
@@ -737,7 +738,7 @@ package body XE_Check is
          Compilation_Error (Withs.Table (W).Sfile);
       end if;
 
-      A := Scan_ALI (L, T);
+      A := Scan_ALI (L, T, False, True);
       Free (T);
       ALIs.Table (A).Ofile_Full_Name := Full_Lib_File_Name (L);
       Set_Source_Table (A);

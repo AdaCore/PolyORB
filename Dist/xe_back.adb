@@ -27,6 +27,7 @@
 ------------------------------------------------------------------------------
 
 with ALI;              use ALI;
+with ALI.Util;         use ALI.Util;
 with GNAT.OS_Lib;      use GNAT.OS_Lib;
 with Namet;            use Namet;
 with Osint;            use Osint;

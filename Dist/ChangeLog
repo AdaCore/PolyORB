@@ -1,3 +1,7 @@
+1999-04-07  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* xe_check.adb, xe_back.adb: Update in regard to gnat changes.
+
 1999-03-23  Pascal Obry <obry@gnat.com>
 
 	* xe_reg.ads, xe_reg.adb: New package to handle the NT registry.
