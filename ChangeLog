@@ -1,5 +1,9 @@
 1998-02-12  Laurent Guerby  <guerby@gnat.com>
 
+	* configure.in: Remove -O0 for Digital Unix, no longer needed.
+
+	* configure: Ditto.
+
 	* MANIFEST: Add Garlic/DALL and Garlic/DOFF to the distribution.
 
 1998-02-11  Laurent Guerby  <guerby@gnat.com>
