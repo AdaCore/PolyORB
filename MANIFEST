@@ -139,6 +139,7 @@ Garlic/Makefile.am
 Garlic/Makefile.in
 Garlic/Makefile.zip
 Garlic/constants.sh
+Garlic/recompile-gnatlib
 Garlic/s-gafizi.adb
 Garlic/s-ganobl.adb
 Garlic/rfc1832.txt
