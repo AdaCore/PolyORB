@@ -1,38 +1,43 @@
+with Ada.Text_IO;          use Ada.Text_IO;
 with System.RPC;           use System.RPC;
 with System.RPC.Stream_IO; use System.RPC.Stream_IO;
-with Ada.Streams;          use Ada.Streams;
+with Pure;                 use Pure;
 
 package body RCI is
 
-   task Anonymous is
-      entry Start (PID : Partition_ID);
-   end Anonymous;
+   task type Robot_Type is
+      entry Start (I : Partition_ID);
+   end Robot_Type;
 
-
-   task body Anonymous is
-      Partner : Partition_ID;
-      Message : String := "xxxx";
+   task body Robot_Type is
+      M : Message_Type;
+      P : Partition_Id;
+      S : aliased Partition_Stream_Type;
    begin
-      accept Start (PID : Partition_ID) do
-         Partner := PID;
+      accept Start (I : Partition_ID) do
+         P := I;
       end Start;
-      declare
-         Stream : aliased Partition_Stream_Type (Partner);
-      begin
-         String'Read (Stream'Access, Message);
-         if Message = "ping" then
-            String'Write (Stream'Access, "pong");
-         end if;
-      end;
-   end Anonymous;
+      Ada.Text_IO.Put_Line ("Listen to" & P'Img);
+      while M.Count < N_Counts loop
+         Open (S, Any_Partition, In_Mode);
+         Message_Type'Read  (S'Access, M);
+         Ada.Text_IO.Put_Line ("Received message" & M.Value'Img &
+                               " with count" & M.Count'Img);
+         Close (S);
+         M.Count := M.Count + 1;
+         Open (S, P, Out_Mode);
+         Message_Type'Write (S'Access, M);
+         Close (S);
+      end loop;
+   end Robot_Type;
 
-   procedure Exchange
-     (Client : in  Partition_ID;
-      Server : out Partition_ID) is
+   Robots : array (1 .. N_Robots) of Robot_Type;
+
+   procedure Start (P : Partition_ID) is
    begin
-      Server := RCI'Partition_ID;
-      Anonymous.Start (Client);
-   end Exchange;
+      for N in Robots'Range loop
+         Robots (N).Start (P);
+      end loop;
+   end Start;
 
 end RCI;
-
