@@ -8183,7 +8183,7 @@ package body Idl_Fe.Parser is
                  or else N.Integer_Value > Idl_ULongLong_Max then
                   Integer_Precision_Exceeded;
                end if;
-               pragma Warnings (Off);
+               pragma Warnings (On);
             end if;
          when C_UShort =>
             if Full then
@@ -8216,10 +8216,13 @@ package body Idl_Fe.Parser is
                   Integer_Precision_Exceeded;
                end if;
             else
+               pragma Warnings (Off);
+               --  Condition is always false.
                if N.Integer_Value < Idl_LongLong_Min
                  or else N.Integer_Value > Idl_ULongLong_Max then
                   Integer_Precision_Exceeded;
                end if;
+               pragma Warnings (On);
             end if;
          when C_Float =>
             if N.Float_Value < Idl_Float_Min
