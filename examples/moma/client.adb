@@ -100,7 +100,7 @@ procedure Client is
 
    Ok : Boolean;
 
-   type Scenario_T is (Full, Stor, Retr);
+   type Scenario_T is (Full, Stor, Retr, Sub);
    Scenario : Scenario_T;
 
    type Kind_T is (Pool, Topic);
@@ -190,7 +190,7 @@ procedure Client is
             end;
          end if;
 
-         if Scenario /= Stor then
+         if Scenario = Full or Scenario = Retr then
             --  Print result.
             Ok := Get_Payload (MByte_Message_Sent)
               = Get_Payload (MByte_Message_Rcvd);
@@ -376,6 +376,8 @@ begin
       Scenario := Stor;
    elsif Ada.Command_Line.Argument (1) = "retr" then
       Scenario := Retr;
+   elsif Ada.Command_Line.Argument (1) = "sub" then
+      Scenario := Sub;
    end if;
 
    --  Get a reference on the message pool to use.
@@ -395,9 +397,11 @@ begin
       Router_Ref := PolyORB.References.IOR.String_To_Object
         (To_PolyORB_String
          (Ada.Command_Line.Argument (3)));
-      Pool_Ref := PolyORB.References.IOR.String_To_Object
-        (To_PolyORB_String
+      if Scenario = Sub then
+         Pool_Ref := PolyORB.References.IOR.String_To_Object
+            (To_PolyORB_String
          (Ada.Command_Line.Argument (4)));
+      end if;
       Kind := Topic;
    end if;
 
@@ -421,7 +425,6 @@ begin
          (To_MOMA_String ("Test"),
           Router_Ref,
           MOMA.Types.Topic);
-
    end if;
 
    --  Create Session.
@@ -438,7 +441,7 @@ begin
    MOMA_Consumer := Create_Receiver (MOMA_Session, MOMA_Dest_Pool);
 
    --  Subscribe to the "Test" topic.
-   if Kind = Topic and then Scenario in Full .. Stor then
+   if Kind = Topic and then Scenario = Sub then
       MOMA.Sessions.Subscribe (MOMA_Dest_Router, MOMA_Dest_Pool);
    end if;
 

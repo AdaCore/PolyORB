@@ -61,35 +61,34 @@ procedure Router is
    use MOMA.Configuration.Server;
    use MOMA.Types;
 
-   MOMA_Ref : PolyORB.References.Ref;
-   Pool_1   : Message_Pool;
-   Router_1 : PolyORB.References.Ref;
+   Other_Router   : PolyORB.References.Ref := PolyORB.References.Nil_Ref;
+   Router         : PolyORB.References.Ref;
 
 begin
 
    --  Argument check.
-   if Argument_Count >= 1 then
-      Put_Line ("usage : router");
+   if Argument_Count < 1 or Argument_Count > 2 then
+      Put_Line ("usage : router <router_id> [IOR]");
+      Put_Line ("where :");
+      Put_Line ("-- 'router_id' is a the id of the router");
+      Put_Line ("-- 'IOR'       is the IOR of another router");
       return;
    end if;
 
-   --  Load Configuration File.
-   Load_Configuration_File ("destinations.conf");
-
-   --  Get information about destination #1.
-   Pool_1 := MOMA.Configuration.Get_Message_Pool (1);
-
-   --  Create one message pool and output its reference.
-   MOMA.Configuration.Server.Create_Message_Pool (Pool_1, MOMA_Ref);
-   Put_Line ("Pool IOR :");
-   Put_Line (PolyORB.Types.To_Standard_String
-             (PolyORB.References.IOR.Object_To_String (MOMA_Ref)));
+   --  Find reference to other router if needed.
+   if Argument_Count = 2 then
+      Other_Router := PolyORB.References.IOR.String_To_Object
+        (PolyORB.Types.To_PolyORB_String (Ada.Command_Line.Argument (2)));
+   end if;
 
    --  Create one router and output its reference.
-   MOMA.Configuration.Server.Create_Router (Router_1);
+   MOMA.Configuration.Server.Create_Router
+      (To_MOMA_String (Ada.Command_Line.Argument (1)),
+       Router,
+       Other_Router);
    Put_Line ("Router IOR :");
    Put_Line (PolyORB.Types.To_Standard_String
-             (PolyORB.References.IOR.Object_To_String (Router_1)));
+             (PolyORB.References.IOR.Object_To_String (Router)));
 
    --  Run the server.
    Run_Server;

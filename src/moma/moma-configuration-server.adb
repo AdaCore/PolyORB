@@ -43,6 +43,7 @@ package body MOMA.Configuration.Server is
    use PolyORB.Configuration;
    use PolyORB.Minimal_Servant.Tools;
    use PolyORB.Log;
+   use PolyORB.References;
 
    use MOMA.Types;
 
@@ -74,17 +75,22 @@ package body MOMA.Configuration.Server is
    -- Create_Router --
    -------------------
 
-   procedure Create_Router (Ref : out PolyORB.References.Ref)
+   procedure Create_Router (Id         : MOMA.Types.String;
+                            Ref        : out PolyORB.References.Ref;
+                            Router_Ref : PolyORB.References.Ref :=
+                                            PolyORB.References.Nil_Ref)
    is
       Router : constant MOMA.Provider.Routers.Router_Acc
        := new MOMA.Provider.Routers.Router;
    begin
       pragma Debug (O ("Creating Router"));
+      MOMA.Provider.Routers.Set_Id (Router.all, Id);
       Initiate_Servant (Router,
                         MOMA.Provider.Routers.If_Desc,
                         MOMA_Type_Id,
                         Ref);
-      MOMA.Provider.Routers.Initialize (Router);
+      MOMA.Provider.Routers.Set_Self_Ref (Router.all, Ref);
+      MOMA.Provider.Routers.Initialize (Router, Router_Ref);
    end Create_Router;
 
 end MOMA.Configuration.Server;

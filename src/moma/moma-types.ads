@@ -197,6 +197,7 @@ package MOMA.Types is
 
    type Destination_Type is (Unknown,
                              Pool,
+                             Router,
                              Topic);
 
    TC_Destination_Type : TypeCode.Object := TypeCode.TC_Enum;
