@@ -67,13 +67,11 @@ package body PolyORB.ORB.Thread_Per_Session is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-   N : Natural := 0;
    --  For debugging purposes.
 
    A_W   : Watcher_Access := null;
    A_S   : Session_Access := null;
    A_ORB : ORB_Access     := null;
-   A_N   : Natural        := 0;
    --  This variables are used to initialized the threads local variables.
    --  They are used to replaced the accept statement
 
@@ -97,13 +95,11 @@ package body PolyORB.ORB.Thread_Per_Session is
       S   : Session_Access;
       Q   : Request_Info;
       ORB : ORB_Access;
-      Id  : Natural;
    begin
          pragma Debug (O ("Session Thread number "
-                          & Integer'Image (N)
+                          & Image (Current_Task)
                           & " is starting"));
          --  initialisation of local variables of the thread
-         Id := A_N;
          ORB := A_ORB;
          W := A_W;
          S := A_S;
@@ -113,22 +109,29 @@ package body PolyORB.ORB.Thread_Per_Session is
          Lookup (W, V);
          --  release of the watcher
          Update (Thread_Init_Watcher);
-      loop
-         pragma Debug (O ("Thread number"
-                          & Integer'Image (Id)
-                          & " is waiting"));
-         Differ (W, V);
-         Lookup (W, V);
-         Get_First_Request (S, Q);
-         pragma Debug (O ("Thread number"
-                          & Integer'Image (Id)
-                          & " is executing Job"));
-         Run_Request (Request_Job (Q.Job.all)'Access);
-         Jobs.Free (Q.Job);
-         pragma Debug (O ("Thread number"
-                          & Integer'Image (Id)
-                          & " has executed Job"));
-      end loop;
+         loop
+            pragma Debug (O ("Thread number"
+                             & Image (Current_Task)
+                             & " is waiting"));
+            Differ (W, V);
+            if not Is_Open (S) then
+               exit;
+            end if;
+            Lookup (W, V);
+            Get_First_Request (S, Q);
+            pragma Debug (O ("Thread number"
+                             & Image (Current_Task)
+                             & " is executing Job"));
+            Run_Request (Request_Job (Q.Job.all)'Access);
+            Jobs.Free (Q.Job);
+            pragma Debug (O ("Thread number"
+                             & Image (Current_Task)
+                             & " has executed Job"));
+         end loop;
+         Can_Close_Session (S);
+         pragma Debug (O ("Thread "
+                          & Image (Current_Task)
+                          & " stopped"));
    end Main_Session_Thread;
 
 
@@ -236,11 +239,9 @@ package body PolyORB.ORB.Thread_Per_Session is
             if W = null then
                --  Session request watcher is null : create task to
                --  handle this session.
-               N := N + 1;
                A_W := W;
                A_S := S;
                A_ORB := ORB;
-               A_N := N;
                Create_Task (Main_Session_Thread'Access);
                Differ (Thread_Init_Watcher, Thread_Init_Version_Id);
                Lookup (Thread_Init_Watcher, Thread_Init_Version_Id);

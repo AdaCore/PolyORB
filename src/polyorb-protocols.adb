@@ -60,11 +60,20 @@ package body PolyORB.Protocols is
    -- Finalize --
    --------------
 
-   procedure Finalize (S : in out Session) is
+   procedure Finalize (S : in out Session)
+   is
+      V : Version_Id;
    begin
       pragma Debug (O ("Finalizing Session."));
       if S.Request_Watcher /= null then
+         Create (S.Finalize_Watcher);
+         Lookup (S.Finalize_Watcher, V);
+         S.Is_Open := False;
+         Update (S.Request_Watcher);
+         Differ (S.Finalize_Watcher, V);
          Destroy (S.Request_Watcher);
+         Destroy (S.Finalize_Watcher);
+         Deallocate (S.Request_List);
       end if;
    end Finalize;
 
@@ -254,5 +263,26 @@ package body PolyORB.Protocols is
                        & Integer'Image (Length (S.Request_List))));
       Update (S.Request_Watcher);
    end Add_Request;
+
+   -------------
+   -- Is_Open --
+   -------------
+   function Is_Open
+     (S : in Session_Access)
+     return Boolean
+   is
+   begin
+      return S.Is_Open;
+   end Is_Open;
+
+   -----------------------
+   -- Can_Close_Session --
+   -----------------------
+   procedure Can_Close_Session
+     (S : Session_Access)
+   is
+   begin
+      Update (S.Finalize_Watcher);
+   end Can_Close_Session;
 
 end PolyORB.Protocols;

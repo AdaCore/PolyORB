@@ -99,6 +99,14 @@ package PolyORB.Protocols is
       RI : Request_Info);
    --  Add a request RI at the end of the list associated with the session.
 
+   function Is_Open
+     (S : in Session_Access)
+      return Boolean;
+   --  return false if the session is about to be closed
+
+   procedure Can_Close_Session
+     (S : in Session_Access);
+
    -----------------------------------------------------
    -- Protocol primitives (interface to upper layers) --
    -----------------------------------------------------
@@ -169,6 +177,8 @@ private
       Server          : Components.Component_Access;
       Request_Watcher : PolyORB.Soft_Links.Watcher_Access := null;
       Request_List    : Request_Queue.List;
+      Is_Open         : Boolean := True;
+      Finalize_Watcher : PolyORB.Soft_Links.Watcher_Access := null;
    end record;
 
 end PolyORB.Protocols;
