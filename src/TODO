@@ -6,6 +6,11 @@ $Id$
 Items still requiring attention
 -------------------------------
 
+* Portableserver: Instead of using a flat list All_Skeletons, add
+  a primitive operation to PortableServer.Servant_Base that returns
+  a Skeleton_Info access. This removes the need for a critical section
+  list traversal in Find_Info.
+
 * Implement CORBA bounded strings
 
 * Implement CORBA fixed-point types
