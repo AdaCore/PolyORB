@@ -1,3 +1,7 @@
+2002-11-26  Laurent Pautet  <pautet@arlequin.enst.fr>
+
+	* aclocal.m4: Fix BB23-001 (test concerning gnatgcc).
+
 2002-11-23  Pascal Obry  <p.obry@wanadoo.fr>
 
 	* MANIFEST: Remove ctrl_c.c it was a wrong entry after all.
