@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.adb#52 $
+--  $Id$
 
 with Ada.Exceptions;
 with Ada.Tags;
@@ -934,7 +934,7 @@ package body PolyORB.Any is
                   pragma Debug (O ("Member_Type_With_Label : default label"));
                   Default_Nb := Default_Nb + 1;
                   --  else if it has the right label, add one to the count
-               elsif Get_Parameter (Self, 3 * Current_Member + 4) = Label then
+               elsif Member_Label (Self, Current_Member) = Label then
                   pragma Debug (O ("Member_Type_With_Label : matching label"));
                   Member_Nb := Member_Nb + 1;
                end if;
@@ -993,7 +993,7 @@ package body PolyORB.Any is
             pragma Debug (O ("Member_Count_With_Label : Member_Count = "
                              & Unsigned_Long'Image (Member_Count (Self))));
             for I in 0 .. Member_Count (Self) - 1 loop
-               if Get_Parameter (Self, 3 * I + 4) = Label then
+               if Member_Label (Self, I) = Label then
                   Result := Result + 1;
                end if;
                if Default_Index (Self) = Long (I) then
