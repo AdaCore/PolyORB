@@ -43,6 +43,17 @@ package Locked_Queue is
    --  Removes the first element from the queue and returns it.
    --  This call is blocking when the queue is empty.
 
+
+   function Get_Count
+     (Q : Queue)
+     return Natural;
+   --  Returns the number of elements currently in the queue.
+
+   function Get_Max_Count
+     (Q : Queue)
+     return Positive;
+   --  Returns the total size of the queue.
+
 private
 
    type Queue_Element_Access is access Queue_Element;

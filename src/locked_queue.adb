@@ -18,6 +18,34 @@ package body Locked_Queue is
    procedure Free is new Unchecked_Deallocation
      (Queue_Node, Queue_Node_Access);
 
+   ---------------
+   -- Get_Count --
+   ---------------
+
+   function Get_Count
+     (Q : Queue)
+     return Natural
+   is
+      N : Natural;
+   begin
+      Enter (Q.State_Lock);
+      N := Q.Count;
+      Leave (Q.State_Lock);
+      return N;
+   end Get_Count;
+
+   -------------------
+   -- Get_Max_Count --
+   -------------------
+
+   function Get_Max_Count
+     (Q : Queue)
+     return Positive
+   is
+   begin
+      return Q.Max_Count;
+   end Get_Max_Count;
+
    -------------
    -- Destroy --
    -------------
