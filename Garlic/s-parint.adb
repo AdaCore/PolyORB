@@ -314,6 +314,18 @@ package body System.Partition_Interface is
    end Get_Local_Partition_ID;
 
    ------------------------------
+   -- Get_Passive_Partition_ID --
+   ------------------------------
+
+   function Get_Passive_Partition_ID
+     (RCI_Unit : Unit_Name)
+      return Partition_ID is
+   begin
+      raise Program_Error; --  XXXXX Not implemented
+      return Get_Passive_Partition_ID (RCI_Unit);
+   end Get_Passive_Partition_ID;
+
+   ------------------------------
    -- Get_RCI_package_Receiver --
    ------------------------------
 
@@ -507,6 +519,45 @@ package body System.Partition_Interface is
 
       end case;
    end Public_RPC_Receiver;
+
+   --------------
+   -- RCI_Info --
+   --------------
+
+   package body RCI_Info is
+
+      Elaboration : System.Partition_Interface.Elaboration_Access;
+      RCI_Access  : System.Partition_Interface.Unit_Name_Access;
+
+      -----------------------------
+      -- Get_Active_Partition_ID --
+      -----------------------------
+
+      function Get_Active_Partition_ID return System.Rpc.Partition_ID is
+      begin
+         if Elaboration = null then
+            Elaboration := new System.Partition_Interface.Elaboration_Type;
+            RCI_Access  := new System.Partition_Interface.Unit_Name'(RCI_Name);
+         end if;
+         return System.Partition_Interface.Get_Active_Partition_ID
+           (RCI_Access, Elaboration);
+      end Get_Active_Partition_ID;
+
+      ------------------------------
+      -- Get_RCI_Package_Receiver --
+      ------------------------------
+
+      function Get_RCI_Package_Receiver return System.Rpc.Rpc_Receiver is
+      begin
+         if Elaboration = null then
+            Elaboration := new System.Partition_Interface.Elaboration_Type;
+            RCI_Access  := new System.partition_interface.unit_name'(RCI_Name);
+         end if;
+         return System.Partition_Interface.Get_Rci_Package_Receiver
+           (RCI_Access, Elaboration);
+      end Get_RCI_Package_Receiver;
+
+   end RCI_Info;
 
    --------------------
    -- Read_Unit_Info --
