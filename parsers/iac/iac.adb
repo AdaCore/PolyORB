@@ -16,9 +16,11 @@ with Frontend.Debug;
 
 procedure IAC is
    Preprocessed_File : File_Descriptor;
+
 begin
 
    --  Initialization step
+
    Namet.Initialize;
    Errors.Initialize;
    Backend.Config.Initialize;

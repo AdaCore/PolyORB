@@ -2,6 +2,7 @@ with GNAT.Command_Line; use GNAT.Command_Line;
 
 with Namet;     use Namet;
 with Output;    use Output;
+with Utils;     use Utils;
 with Types;     use Types;
 with Values;    use Values;
 
@@ -15,7 +16,7 @@ with Backend.BE_Ada.Runtime;   use Backend.BE_Ada.Runtime;
 
 package body Backend.BE_Ada is
 
-   D_Tree   : Boolean := False;
+   Print_Ada_Tree : Boolean := False;
 
    type Parameter_Id is
      (P_Returns,
@@ -98,12 +99,15 @@ package body Backend.BE_Ada is
    procedure Configure is
    begin
       loop
-         case Getopt ("t") is
+         case Getopt ("t l:") is
             when ASCII.NUL =>
                exit;
 
             when 't' =>
-               D_Tree := True;
+               Print_Ada_Tree := True;
+
+            when 'l' =>
+               Var_Name_Len := Natural'Value (Parameter);
 
             when others =>
                raise Program_Error;
@@ -119,7 +123,7 @@ package body Backend.BE_Ada is
    begin
       Initialize;
       Visit_Specification (E);
-      if D_Tree then
+      if Print_Ada_Tree then
          W_Node_Id (BE_Node (E));
 
       else
@@ -137,12 +141,14 @@ package body Backend.BE_Ada is
       for P in Parameter_Id loop
          Set_Str_To_Name_Buffer (Parameter_Id'Image (P));
          Set_Str_To_Name_Buffer (Name_Buffer (3 .. Name_Len));
+         Capitalize (Name_Buffer (1 .. Name_Len));
          PN (P) := Name_Find;
       end loop;
       for V in Variable_Id loop
          Set_Str_To_Name_Buffer (Variable_Id'Image (V));
          Set_Str_To_Name_Buffer (Name_Buffer (3 .. Name_Len));
          Add_Str_To_Name_Buffer ("_U");
+         Capitalize (Name_Buffer (1 .. Name_Len));
          VN (V) := Name_Find;
       end loop;
 
