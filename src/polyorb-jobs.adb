@@ -41,19 +41,6 @@ package body PolyORB.Jobs is
    procedure Free is new Ada.Unchecked_Deallocation
      (Queue_Element, Queue_Element_Access);
 
-   -------------
-   -- Any_Job --
-   -------------
-
-   function Any_Job (J : access Job'Class) return Boolean
-   is
-      pragma Warnings (Off);
-      pragma Unreferenced (J);
-      pragma Warnings (On);
-   begin
-      return True;
-   end Any_Job;
-
    ------------------
    -- Create_Queue --
    ------------------
@@ -74,7 +61,7 @@ package body PolyORB.Jobs is
 
    function Fetch_Job
      (Q        : access Job_Queue;
-      Selector :        Job_Selector := Any_Job'Access)
+      Selector :        Job_Selector := Any_Job)
       return Job_Access
    is
       This : Queue_Element_Access := Q.First;
@@ -117,7 +104,9 @@ package body PolyORB.Jobs is
    -- Is_Empty --
    --------------
 
-   function Is_Empty (Q : access Job_Queue) return Boolean is
+   function Is_Empty
+     (Q : access Job_Queue)
+     return Boolean is
    begin
       return Q.First = null;
    end Is_Empty;
