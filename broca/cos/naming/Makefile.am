@@ -12,9 +12,6 @@ GNATMAKE_FLAGS = -I$(srcdir) \
 
 PROGS= ab_names test_naming
 
-bin_PROGRAMS = ab_names
-ab_names_SOURCES =
-
 COS_DIRS=../../idls/cos/naming
 COS_IMPL=\
   cosnaming-bindingiterator-impl.adb \
@@ -55,3 +52,7 @@ naming_tools.o:
 
 naming_tools.o: naming_tools.ads naming_tools.adb cosnaming.ads
 naming_tools.o: cosnaming-namingcontext.ads cosnaming-namingcontext-helper.ads
+
+install-exec-local:
+	$(INSTALL) -d $(DESTDIR)$(exec_prefix)/bin
+	$(INSTALL_PROGRAM) ab_names $(DESTDIR)$(exec_prefix)/bin/ab_names
