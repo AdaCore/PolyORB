@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/idl_fe-parser.ads#6 $
+--  $Id: //droopi/main/compilers/idlac/idl_fe-parser.ads#7 $
 
 with Idl_Fe.Lexer; use Idl_Fe.Lexer;
 with Idl_Fe.Types; use Idl_Fe.Types;
@@ -40,27 +40,23 @@ with Ada.Unchecked_Deallocation;
 
 package Idl_Fe.Parser is
 
-   ---------------------
-   --  Initialization --
-   ---------------------
+   --------------------
+   -- Initialization --
+   --------------------
 
-   procedure Initialize
-     (Filename : in String;
-      Preprocess : in Boolean;
-      Keep_Temporary_Files : in Boolean);
+   procedure Initialize (Filename : String);
 
-   --------------------------
-   --  Parsing of the idl  --
-   --------------------------
+   ---------------------------------------------------------------------------
+   -- Parsing of an IDL specification (root nonterminal of the IDL grammar) --
+   ---------------------------------------------------------------------------
 
-   --  CORVA V3.0, 3.4
+   function Parse_Specification return Node_Id;
+   --  CORBA V3.0, 3.4
    --
    --  Rule 1 :
    --  <specification> ::= <import>* <definition>+
    --
    --  <import>* not implemented
-   function Parse_Specification return Node_Id;
-
 private
 
    --------------------------------------

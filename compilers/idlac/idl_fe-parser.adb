@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/idl_fe-parser.adb#18 $
+--  $Id: //droopi/main/compilers/idlac/idl_fe-parser.adb#19 $
 
 with Ada.Characters.Latin_1;
 with Ada.Unchecked_Deallocation;
@@ -67,22 +67,18 @@ package body Idl_Fe.Parser is
      := Idl_Fe.Debug.Is_Active ("idl_fe.parser_method_trace");
    procedure O2 is new Idl_Fe.Debug.Output (Flag2);
 
-   ---------------------
-   --  Initialization --
-   ---------------------
+   ----------------
+   -- Initialize --
+   ----------------
 
-   procedure Initialize
-     (Filename : in String;
-      Preprocess : in Boolean;
-      Keep_Temporary_Files : in Boolean) is
+   procedure Initialize (Filename : String) is
    begin
-      Idl_Fe.Lexer.Initialize
-        (Filename, Preprocess, Keep_Temporary_Files);
+      Idl_Fe.Lexer.Initialize (Filename);
    end Initialize;
 
-   --------------------------------------
-   --  management of the token stream  --
-   --------------------------------------
+   ------------------------------------
+   -- Management of the token stream --
+   ------------------------------------
 
    --  This is a little buffer to put tokens if we have
    --  to look a bit further than the current_token.

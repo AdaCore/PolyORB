@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/idl_fe-lexer.ads#3 $
+--  $Id: //droopi/main/compilers/idlac/idl_fe-lexer.ads#4 $
 
 with Errors;
 
@@ -158,27 +158,30 @@ package Idl_Fe.Lexer is
        T_Line
        );
 
+   ------------------------------------------------------------
+   -- Main lexer entry points: Initialize and Get_Next_Token --
+   ------------------------------------------------------------
 
-   ----------------------------------------------------
-   --  The main methods : initialize and next_token  --
-   ----------------------------------------------------
-
-   procedure Initialize
-     (Filename : in String;
-      Preprocess : in Boolean;
-      Keep_Temporary_Files : in Boolean);
-   --  Initializes the lexer by opening the file to process
+   procedure Initialize (Filename : String);
+   --  Initialize the lexer by opening the file to process
    --  and by preprocessing it if necessary
-
-   procedure Preprocess_File (Filename : in String);
-   --  Preprocess a file and output the result on standard out.
-
-   procedure Remove_Temporary_Files;
-   --  Remove temporary files.
 
    function Get_Next_Token return Idl_Token;
    --  Analyse forward and return the next token.
    --  Returns T_Error if the entry is invalid.
+
+   ---------------------------------------
+   -- Entry points for the idlac driver --
+   ---------------------------------------
+
+   procedure Add_Argument (Str : String);
+   --  Append Str to the list of preprocessor arguments
+
+   procedure Preprocess_File (Filename : in String);
+   --  Preprocess a file and output the result to a temporary file
+
+   procedure Remove_Temporary_Files;
+   --  Remove temporary files created by the preprocessor
 
    ------------------------------------------
    -- Current state of the lexer.          --
@@ -197,11 +200,13 @@ package Idl_Fe.Lexer is
 
    end Lexer_State;
 
-   -----------------------------
-   --  idl string processing  --
-   -----------------------------
+   ---------------------------
+   -- IDL string processing --
+   ---------------------------
 
-   --  compares two idl identifiers. The result is either DIFFER, if they
+   type Ident_Equality is (Differ, Case_Differ, Equal);
+   function Idl_Identifier_Equal (Left, Right : String) return Ident_Equality;
+   --  Compare two IDL identifiers. The result is either DIFFER, if they
    --  are different identifiers, or CASE_DIFFER if it is the same identifier
    --  but with a different case on some letters, or at last EQUAL if it is
    --  the same word.
@@ -210,153 +215,129 @@ package Idl_Fe.Lexer is
    --  When comparing two identifiers to see if they collide :
    --    - Upper- and lower-case letters are treated as the same letter. (...)
    --    - all characters are significant
-   type Ident_Equality is (Differ, Case_Differ, Equal);
-   function Idl_Identifier_Equal (Left, Right : String)
-                                  return Ident_Equality;
-
-
-
-
-   -----------------------------------------------------
-   --  Tools and constants for the preprocessor call  --
-   -----------------------------------------------------
-
-   --  Adds an argument to be given to the preprocessor
-   procedure Add_Argument (Str : String);
-
-
-
 
 private
 
    -----------------------------------
-   --  low level string processing  --
+   --  Low-level string processing  --
    -----------------------------------
 
-   --  sets the location of the current token
-   --  actually only sets the line and column number
    procedure Set_Token_Location;
+   --  Set the line and column number of the current token
 
-   --  returns the real location in the parsed file. The word real
-   --  means that the column number was changed to take the
-   --  tabulations into account
    function Get_Real_Location return Errors.Location;
+   --  Return the real location in the parsed file, with corrections
+   --  for tabs taken into account.
 
-   --  Reads the next line
    procedure Read_Line;
+   --  Read in the next input line
 
-   --  skips current char
    procedure Skip_Char;
+   --  Skip over the current character
 
-   --  skips the current line
    procedure Skip_Line;
+   --  Skip over the current line
 
-   --  Gets the next char and consume it
    function Next_Char return Character;
+   --  Read and consume one character
 
-   --  returns the next char without consuming it
-   --  warning : if it is the end of a line, returns
-   --  LF and not the first char of the next line
    function View_Next_Char return Character;
+   --  Look ahead the next char without consuming it.
+   --  Warning: if it is the end of a line, returns
+   --  LF and not the first char of the next line
 
-   --  returns the next next char without consuming it
-   --  warning : if it is the end of a line, returns
-   --  LF and not the first or second char of the next line
    function View_Next_Next_Char return Character;
+   --  Look ahead the next next char without consuming it.
+   --  Warning: if it is the end of a line, returns
+   --  LF and not the first or second char of the next line
 
-   --  returns the current char
    function Get_Current_Char return Character;
+   --  Return the current character
 
-   --  calculates the new offset of the column when a tabulation
-   --  occurs.
    procedure Refresh_Offset;
+   --  Compute the new offset of the column when a tab is seen
 
-   --  Skips all spaces.
-   --  Actually, only used in scan_preprocessor
    procedure Skip_Spaces;
+   --  Skip over whitespace
 
-   --  Skips a /* ... */ comment
    procedure Skip_Comment;
+   --  Skip over a /* ... */ comment
 
-   --  Sets a mark in the text.
-   --  If the line changes, the mark is replaced at the beginning
-   --  of the new line
    procedure Set_Mark;
+   --  Set the mark in the text.
+   --  If the line changes, the mark is repositioned at the beginning
+   --  of the new line
 
-   --  Sets the mark on the char following the current one.
    procedure Set_Mark_On_Next_Char;
+   --  Set the mark on the char following the current one.
 
-   --  Sets another mark in the text.
+   procedure Set_End_Mark;
+   --  Set the end mark in the text.
    --  If the line changes, the mark is replaced at the beginning
    --  of the new line
-   procedure Set_End_Mark;
 
-   --  Sets the second mark on the char before the current one.
    procedure Set_End_Mark_On_Previous_Char;
+   --  Sets the end mark on the char before the current one.
 
-   --  gets the text from the mark to the current position
    function Get_Marked_Text return String;
+   --  Return the text from the mark to the current position
 
-   --  skips the characters until the next ' or the end of the line
    procedure Go_To_End_Of_Char;
+   --  Skip over the characters until the next ' or the end of the line
 
-   --  skips the characters until the next " or the end of the file
    procedure Go_To_End_Of_String;
+   --  skip over the characters until the next " or the end of the file
 
+   -------------------------------
+   -- Low-level char processing --
+   -------------------------------
 
-   ---------------------------------
-   --  low level char processing  --
-   ---------------------------------
-
-   --  returns true if C is an idl alphabetic character
    function Is_Alphabetic_Character (C : Standard.Character) return Boolean;
+   --  True if C is an IDL alphabetic character
 
-   --  returns true if C is a digit
    function Is_Digit_Character (C : Standard.Character) return Boolean;
+   --  True if C is a decimal digit
 
-   --  returns true if C is an octal digit
    function Is_Octal_Digit_Character (C : Standard.Character) return Boolean;
+   --  True if C is an octal digit
 
-   --  returns true if C is an hexadecimal digit
    function Is_Hexa_Digit_Character (C : Standard.Character) return Boolean;
+   --  True if C is an hexadecimal digit
 
-   --  returns true if C is an idl identifier character, ie either an
-   --  alphabetic character or a digit or the character '_'
    function Is_Identifier_Character (C : Standard.Character) return Boolean;
+   --  True if C is an IDL identifier character, i.e. either an
+   --  alphabetic character, a digit, or an underscore.
 
+   ---------------------------
+   -- IDL string processing --
+   ---------------------------
 
-   -----------------------------
-   --  idl string processing  --
-   -----------------------------
-
-   --  the three kinds of identifiers : keywords, true
-   --  identifiers or miscased keywords.
    type Idl_Keyword_State is
      (Is_Keyword, Is_Identifier, Bad_Case);
+   --  The three kinds of identifiers: keywords, true
+   --  identifiers or miscased keywords.
 
-   --  checks whether s is an Idl keyword or not
-   --  the result can be Is_Keyword if it is,
-   --  Is_Identifier if it is not and Bad_Case if
-   --  it is one but with bad case
-   --  Is_escaped says if the identifier was preceeded
-   --  by an underscore or not
+   procedure Is_Idl_Keyword
+     (S            :     String;
+      Is_Escaped   :     Boolean;
+      Is_A_Keyword : out Idl_Keyword_State;
+      Tok          : out Idl_Token);
+   --  Check whether S is an IDL keyword.
+   --  Is_Escaped indicates whether the identifier was preceeded
+   --  by an underscore.
    --
    --  IDL Syntax and semantics, CORBA V2.3 § 3.2.4
    --
    --  keywords must be written exactly as in the above list. Identifiers
    --  that collide with keywords (...) are illegal.
-   procedure Is_Idl_Keyword (S : in String;
-                             Is_Escaped : in Boolean;
-                             Is_A_Keyword : out Idl_Keyword_State;
-                             Tok : out Idl_Token);
 
+   --------------------------------------
+   -- Scanners for chars, identifiers, --
+   --  numerics, string literals and   --
+   --      preprocessor directives.    --
+   --------------------------------------
 
-   ----------------------------------------
-   --  scanners for chars, identifiers,  --
-   --    numeric, string literals and    --
-   --      preprocessor directives.      --
-   ----------------------------------------
-
+   function Scan_Char (Wide : Boolean) return Idl_Token;
    --  Called when the current character is a '.
    --  This procedure sets Current_Token and returns.
    --  The get_marked_text function returns then the
@@ -384,9 +365,8 @@ private
    --  character or not. If not and the character looks like
    --  '/u...' then an error is raised and the function returns
    --  T_Error
-   function Scan_Char (Wide : Boolean) return Idl_Token;
 
-
+   function Scan_String (Wide : Boolean) return Idl_Token;
    --  Called when the current character is a ".
    --  This procedure sets Current_Token and returns.
    --  The get_marked_text function returns then the
@@ -407,9 +387,8 @@ private
    --  Wide is used to say if the scanner should scan a wide
    --  string or not. If not and a character looks like
    --  '/u...' then an error is raised
-   function Scan_String (Wide : Boolean) return Idl_Token;
 
-
+   function Scan_Identifier (Is_Escaped : Boolean) return Idl_Token;
    --  Called when the current character is a letter.
    --  This procedure sets TOKEN and returns.
    --  The get_marked_text function returns then the
@@ -438,9 +417,8 @@ private
    --  that collide with keywords (...) are illegal. For example,
    --  "boolean" is a valid keyword, "Boolean" and "BOOLEAN" are
    --  illegal identifiers.
-   function Scan_Identifier (Is_Escaped : Boolean) return Idl_Token;
 
-
+   function Scan_Numeric return Idl_Token;
    --  Called when the current character is a digit.
    --  This procedure sets Current_Token and returns.
    --  The get_marked_text function returns then the
@@ -472,9 +450,8 @@ private
    --  consist of a sequence of decimal (base ten) digits. Either the integer
    --  part or the fraction part (but not both) may be missing; the decimal
    --  point (but not the letter d (or D)) may be missing
-   function Scan_Numeric return Idl_Token;
 
-
+   function Scan_Underscore return Idl_Token;
    --  Called when the current character is a _.
    --  This procedure sets Current_Token and returns.
    --  The get_marked_text function returns then the
@@ -484,9 +461,8 @@ private
    --
    --  "users may lexically "escape" identifiers by prepending an
    --  underscore (_) to an identifier.
-   function Scan_Underscore return Idl_Token;
 
-
+   function Scan_Preprocessor return Boolean;
    --  Called when the current character is a #.
    --  Deals with the preprocessor directives.
    --  Actually, most of these are processed by gcc in a former
@@ -495,24 +471,5 @@ private
    --  it returns true if it produced a token, false else
    --
    --  IDL Syntax and semantics, CORBA V2.3 § 3.3
-   function Scan_Preprocessor return Boolean;
-
-
-
-   -------------------------
-   --  Maybe useless ???  --
-   -------------------------
-
---    subtype Idl_Keywords is Idl_Token range T_Any .. T_Wstring;
-
---    function Idl_Compare (Left, Right : String) return Boolean;
-
-
---    --  Return the idl_token TOK as a string.
---    --  Format is "`keyword'", "`+'" (for symbols), "identifier `id'"
---    function Image (Tok : Idl_Token) return String;
-
 
 end Idl_Fe.Lexer;
-
-

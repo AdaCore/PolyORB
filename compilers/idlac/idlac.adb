@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -183,17 +183,10 @@ begin
          end loop;
       end;
 
-      if not Keep_Temporary_Files then
-         Idl_Fe.Lexer.Remove_Temporary_Files;
-      end if;
-
    else
 
       --  Setup parser
-      Idl_Fe.Parser.Initialize
-        (File_Name.all,
-         True,
-         Keep_Temporary_Files);
+      Idl_Fe.Parser.Initialize (File_Name.all);
 
       --  Parse input
       Rep := Idl_Fe.Parser.Parse_Specification;
@@ -211,30 +204,34 @@ begin
          end if;
          Put_Line (Current_Error, " during parsing.");
 
-         return;
-
-      elsif Verbose then
-         if Errors.Is_Warning then
-            Put_Line
-              (Current_Error,
-               Natural'Image (Errors.Warning_Number)
-               & " warning(s) during parsing.");
-         else
-            Put_Line (Current_Error, "Successfully parsed.");
+      else
+         if Verbose then
+            if Errors.Is_Warning then
+               Put_Line
+                 (Current_Error,
+                  Natural'Image (Errors.Warning_Number)
+                  & " warning(s) during parsing.");
+            else
+               Put_Line (Current_Error, "Successfully parsed.");
+            end if;
          end if;
+
+         --  Expand tree. This should not cause any errors!
+         Ada_Be.Expansion.Expand_Repository (Rep);
+         pragma Assert (not Errors.Is_Error);
+
+         --  Generate code
+         Ada_Be.Idl2Ada.Generate
+           (Use_Mapping => Ada_Be.Mappings.CORBA.The_CORBA_Mapping,
+            Node        => Rep,
+            Implement   => Generate_Impl_Template,
+            Intf_Repo   => Generate_IR,
+            To_Stdout   => To_Stdout);
       end if;
+   end if;
 
-      --  Expand tree. This should not cause any errors!
-      Ada_Be.Expansion.Expand_Repository (Rep);
-      pragma Assert (not Errors.Is_Error);
-
-      --  Generate code
-      Ada_Be.Idl2Ada.Generate
-        (Use_Mapping => Ada_Be.Mappings.CORBA.The_CORBA_Mapping,
-         Node        => Rep,
-         Implement   => Generate_Impl_Template,
-         Intf_Repo   => Generate_IR,
-         To_Stdout   => To_Stdout);
+   if not Keep_Temporary_Files then
+      Idl_Fe.Lexer.Remove_Temporary_Files;
    end if;
 
 end Idlac;

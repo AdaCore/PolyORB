@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/idl_fe-lexer.adb#14 $
+--  $Id: //droopi/main/compilers/idlac/idl_fe-lexer.adb#15 $
 
 with Ada.Command_Line;
 with Ada.Text_IO;
@@ -55,9 +55,9 @@ with Platform;
 
 package body Idl_Fe.Lexer is
 
-   --------------
-   --   Debug  --
-   --------------
+   -----------
+   -- Debug --
+   -----------
 
    Flag : constant Natural := Idl_Fe.Debug.Is_Active ("idl_fe.lexer");
    procedure O is new Idl_Fe.Debug.Output (Flag);
@@ -131,42 +131,42 @@ package body Idl_Fe.Lexer is
       T_Wchar       => new String'("wchar"),
       T_Wstring     => new String'("wstring"));
 
-   -----------------------------------
-   --  A state for pragma scanning  --
-   -----------------------------------
+   ---------------------------------
+   -- A state for pragma scanning --
+   ---------------------------------
 
-   --  True when the lexer is scanning a pragma line
    Pragma_State : Boolean := False;
+   --  True when the lexer is scanning a pragma line
 
-   -----------------------------------
-   --  low level string processing  --
-   -----------------------------------
+   ---------------------------------
+   -- Low-level string processing --
+   ---------------------------------
 
-   --  The current location in the parsed file
    Current_Location : Errors.Location;
+   --  The current location in the parsed file
 
-   --  The current_token location
    Current_Token_Location : Errors.Location;
+   --  The current_token location
 
-   --  The length of the current line
    Current_Line_Len : Natural;
+   --  The length of the current line
 
-   --  The current line in the parsed file
    Line : String (1 .. 2047);
+   --  The current line in the parsed file
 
-   --  The current offset on the line. (The offset is due to
-   --  tabulations)
    Offset : Natural;
+   --  The current offset on the line (the offset is due to tabs)
 
+   Mark_Pos : Natural;
+   End_Mark_Pos : Natural;
    --  The current position of the marks in the line. The marks
    --  are used to memorize the begining and the end of an
    --  identifier for example.
-   Mark_Pos : Natural;
-   End_Mark_Pos : Natural;
 
-   -------------------------
-   --  Set_Token_Location --
-   -------------------------
+   ------------------------
+   -- Set_Token_Location --
+   ------------------------
+
    procedure Set_Token_Location is
    begin
       Current_Token_Location.Filename := Current_Location.Filename;
@@ -175,9 +175,10 @@ package body Idl_Fe.Lexer is
       Current_Token_Location.Col := Current_Location.Col + Offset - Line'First;
    end Set_Token_Location;
 
-   ------------------------
-   --  Get_Real_Location --
-   ------------------------
+   -----------------------
+   -- Get_Real_Location --
+   -----------------------
+
    function Get_Real_Location return Errors.Location is
    begin
       pragma Debug (O ("Get_Real_Location: Line = " &
@@ -193,9 +194,10 @@ package body Idl_Fe.Lexer is
               Col => Current_Location.Col + Offset - Line'First);
    end Get_Real_Location;
 
-   ----------------
-   --  Read_Line --
-   ----------------
+   ---------------
+   -- Read_Line --
+   ---------------
+
    procedure Read_Line is
    begin
       --  Get next line and append a LF at the end.
@@ -209,9 +211,10 @@ package body Idl_Fe.Lexer is
       End_Mark_Pos := Current_Location.Col;
    end Read_Line;
 
-   -----------------
-   --  Skip_Char  --
-   -----------------
+   ---------------
+   -- Skip_Char --
+   ---------------
+
    procedure Skip_Char is
    begin
       Current_Location.Col := Current_Location.Col + 1;
@@ -220,27 +223,30 @@ package body Idl_Fe.Lexer is
       end if;
    end Skip_Char;
 
-   ----------------
-   --  Skip_Line --
-   ----------------
+   ---------------
+   -- Skip_Line --
+   ---------------
+
    procedure Skip_Line is
    begin
       Read_Line;
       Current_Location.Col := Current_Location.Col - 1;
    end Skip_Line;
 
-   -----------------
-   --  Next_Char  --
-   -----------------
+   ---------------
+   -- Next_Char --
+   ---------------
+
    function Next_Char return Character is
    begin
       Skip_Char;
       return Line (Current_Location.Col);
    end Next_Char;
 
-   ----------------------
-   --  View_Next_Char  --
-   ----------------------
+   --------------------
+   -- View_Next_Char --
+   --------------------
+
    function View_Next_Char return Character is
    begin
       if Current_Location.Col = Current_Line_Len then
@@ -250,9 +256,10 @@ package body Idl_Fe.Lexer is
       end if;
    end View_Next_Char;
 
-   ---------------------------
-   --  View_Next_Next_Char  --
-   ---------------------------
+   -------------------------
+   -- View_Next_Next_Char --
+   -------------------------
+
    function View_Next_Next_Char return Character is
    begin
       if Current_Location.Col > Current_Line_Len - 2 then
@@ -262,26 +269,29 @@ package body Idl_Fe.Lexer is
       end if;
    end View_Next_Next_Char;
 
-   ------------------------
-   --  Get_Current_Char  --
-   ------------------------
+   ----------------------
+   -- Get_Current_Char --
+   ----------------------
+
    function Get_Current_Char return Character is
    begin
       return Line (Current_Location.Col);
    end Get_Current_Char;
 
-   ----------------------
-   --  Refresh_Offset  --
-   ----------------------
+   --------------------
+   -- Refresh_Offset --
+   --------------------
+
    procedure Refresh_Offset is
    begin
       Offset :=
         ((Current_Location.Col + Offset + 7) / 8) * 8 - Current_Location.Col;
    end Refresh_Offset;
 
-   -------------------
-   --  Skip_Spaces  --
-   -------------------
+   -----------------
+   -- Skip_Spaces --
+   -----------------
+
    procedure Skip_Spaces is
    begin
       loop
@@ -294,13 +304,14 @@ package body Idl_Fe.Lexer is
       end loop;
    end Skip_Spaces;
 
-   -------------------
-   --  Skip_Comment --
-   -------------------
+   ------------------
+   -- Skip_Comment --
+   ------------------
+
    procedure Skip_Comment is
    begin
+      pragma Debug (O ("Skip_Comment: enter"));
       loop
-         pragma Debug (O ("Skip_Comment: enter"));
          while Next_Char /= '*' loop
             null;
          end loop;
@@ -309,70 +320,75 @@ package body Idl_Fe.Lexer is
             null;
          end loop;
          pragma Debug (O ("Skip_Comment: no more '*'s"));
-         if Get_Current_Char = '/' then
-            pragma Debug (O ("Skip_Comment: end"));
-            return;
-         end if;
-         pragma Debug (O ("Skip_Comment: back to entry"));
+         exit when Get_Current_Char = '/';
       end loop;
+      pragma Debug (O ("Skip_Comment: end"));
    end Skip_Comment;
 
-   ----------------
-   --  Set_Mark  --
-   ----------------
+   --------------
+   -- Set_Mark --
+   --------------
+
    procedure Set_Mark is
    begin
       Mark_Pos := Current_Location.Col;
       End_Mark_Pos := Mark_Pos;
    end Set_Mark;
 
-   -----------------------------
-   --  Set_Mark_On_Next_Char  --
-   -----------------------------
+   ---------------------------
+   -- Set_Mark_On_Next_Char --
+   ---------------------------
+
    procedure Set_Mark_On_Next_Char is
    begin
       Mark_Pos := Current_Location.Col + 1;
       End_Mark_Pos := Mark_Pos;
    end Set_Mark_On_Next_Char;
 
-   --------------------
-   --  Set_End_Mark  --
-   --------------------
+   ------------------
+   -- Set_End_Mark --
+   ------------------
+
    procedure Set_End_Mark is
    begin
       End_Mark_Pos := Current_Location.Col;
    end Set_End_Mark;
 
-   -------------------------------------
-   --  Set_End_Mark_On_Previous_Char  --
-   -------------------------------------
+   -----------------------------------
+   -- Set_End_Mark_On_Previous_Char --
+   -----------------------------------
+
    procedure Set_End_Mark_On_Previous_Char is
    begin
       End_Mark_Pos := Current_Location.Col - 1;
    end Set_End_Mark_On_Previous_Char;
 
-   -----------------------
-   --  Get_Marked_Text  --
-   -----------------------
+   ---------------------
+   -- Get_Marked_Text --
+   ---------------------
+
    function Get_Marked_Text return String is
    begin
       return Line (Mark_Pos .. End_Mark_Pos);
    end Get_Marked_Text;
 
-   -------------------------
-   --  Go_To_End_Of_Char  --
-   -------------------------
+   -----------------------
+   -- Go_To_End_Of_Char --
+   -----------------------
+
    procedure Go_To_End_Of_Char is
    begin
       while View_Next_Char /= '''
-        and View_Next_Char /= LF loop
+        and then View_Next_Char /= LF
+      loop
          Skip_Char;
       end loop;
    end Go_To_End_Of_Char;
 
-   ---------------------------
-   --  Go_To_End_Of_String  --
-   ---------------------------
+   -------------------------
+   -- Go_To_End_Of_String --
+   -------------------------
+
    procedure Go_To_End_Of_String is
    begin
       while View_Next_Char /= Quotation loop
@@ -381,14 +397,14 @@ package body Idl_Fe.Lexer is
       Skip_Char;
    end Go_To_End_Of_String;
 
-
-   ---------------------------------
-   --  low level char processing  --
-   ---------------------------------
-
    -------------------------------
-   --  Is_Alphabetic_Character  --
+   -- Low-level char processing --
    -------------------------------
+
+   -----------------------------
+   -- Is_Alphabetic_Character --
+   -----------------------------
+
    function Is_Alphabetic_Character (C : Standard.Character) return Boolean is
    begin
       case C is
@@ -408,35 +424,28 @@ package body Idl_Fe.Lexer is
       end case;
    end Is_Alphabetic_Character;
 
-   --------------------------
-   --  Is_Digit_Character  --
-   --------------------------
+   ------------------------
+   -- Is_Digit_Character --
+   ------------------------
+
    function Is_Digit_Character (C : Standard.Character) return Boolean is
    begin
-      case C is
-         when '0' .. '9' =>
-            return True;
-         when others =>
-            return False;
-      end case;
+      return C in '0' .. '9';
    end Is_Digit_Character;
 
-   --------------------------------
-   --  Is_Octal_Digit_Character  --
-   --------------------------------
+   ------------------------------
+   -- Is_Octal_Digit_Character --
+   ------------------------------
+
    function Is_Octal_Digit_Character (C : Standard.Character) return Boolean is
    begin
-      case C is
-         when '0' .. '7' =>
-            return True;
-         when others =>
-            return False;
-      end case;
+      return C in '0' .. '7';
    end Is_Octal_Digit_Character;
 
-   -------------------------------
-   --  Is_Hexa_Digit_Character  --
-   -------------------------------
+   -----------------------------
+   -- Is_Hexa_Digit_Character --
+   -----------------------------
+
    function Is_Hexa_Digit_Character (C : Standard.Character) return Boolean is
    begin
       case C is
@@ -447,9 +456,10 @@ package body Idl_Fe.Lexer is
       end case;
    end Is_Hexa_Digit_Character;
 
-   -------------------------------
-   --  Is_Identifier_Character  --
-   -------------------------------
+   -----------------------------
+   -- Is_Identifier_Character --
+   -----------------------------
+
    function Is_Identifier_Character (C : Standard.Character) return Boolean is
    begin
       case C is
@@ -472,16 +482,17 @@ package body Idl_Fe.Lexer is
       end case;
    end Is_Identifier_Character;
 
+   ---------------------------
+   -- IDL string processing --
+   ---------------------------
 
-   -----------------------------
-   --  idl string processing  --
-   -----------------------------
+   --------------------------
+   -- Idl_Identifier_Equal --
+   --------------------------
 
-   ----------------------------
-   --  Idl_Identifier_Equal  --
-   ----------------------------
-   function Idl_Identifier_Equal (Left, Right : String)
-                                  return Ident_Equality is
+   function Idl_Identifier_Equal
+     (Left, Right : String) return Ident_Equality
+   is
       use GNAT.Case_Util;
    begin
       if Left'Length /= Right'Length then
@@ -501,13 +512,16 @@ package body Idl_Fe.Lexer is
       end if;
    end Idl_Identifier_Equal;
 
-   ----------------------
-   --  Is_Idl_Keyword  --
-   ----------------------
-   procedure Is_Idl_Keyword (S : in String;
-                             Is_Escaped : in Boolean;
-                             Is_A_Keyword : out Idl_Keyword_State;
-                             Tok : out Idl_Token) is
+   --------------------
+   -- Is_Idl_Keyword --
+   --------------------
+
+   procedure Is_Idl_Keyword
+     (S            :     String;
+      Is_Escaped   :     Boolean;
+      Is_A_Keyword : out Idl_Keyword_State;
+      Tok          : out Idl_Token)
+   is
       Result : Ident_Equality;
    begin
       for I in All_Idl_Keywords'Range loop
@@ -539,19 +553,19 @@ package body Idl_Fe.Lexer is
       end loop;
       Is_A_Keyword := Is_Identifier;
       Tok := T_Error;
-      return;
    end Is_Idl_Keyword;
 
 
-   ----------------------------------------
-   --  scanners for chars, identifiers,  --
-   --    numeric, string literals and    --
-   --      preprocessor directives.      --
-   ----------------------------------------
+   --------------------------------------
+   -- Scanners for chars, identifiers, --
+   --  numerics, string literals, and  --
+   --     preprocessor directives.     --
+   --------------------------------------
 
-   -----------------
-   --  Scan_Char  --
-   -----------------
+   ---------------
+   -- Scan_Char --
+   ---------------
+
    function Scan_Char (Wide : Boolean) return Idl_Token is
       Result : Idl_Token;
    begin
@@ -565,9 +579,9 @@ package body Idl_Fe.Lexer is
             when ''' =>
                if View_Next_Next_Char /= ''' then
                   Errors.Error ("Invalid character: '\', "
-                                             & "it should probably be '\\'",
-                                             Errors.Error,
-                                             Get_Real_Location);
+                                & "it should probably be '\\'",
+                                Errors.Error,
+                                Get_Real_Location);
                   Result := T_Error;
                else
                   Skip_Char;
@@ -585,12 +599,12 @@ package body Idl_Fe.Lexer is
                   Go_To_End_Of_Char;
                   Set_End_Mark;
                   Errors.Error ("Too much octal digits in "
-                                             & "character "
-                                             & Get_Marked_Text
-                                             & ", maximum is 3 in a char "
-                                             & "definition",
-                                             Errors.Error,
-                                             Get_Real_Location);
+                                & "character "
+                                & Get_Marked_Text
+                                & ", maximum is 3 in a char "
+                                & "definition",
+                                Errors.Error,
+                                Get_Real_Location);
                   Result := T_Error;
                else
                   Result := T_Lit_Char;
@@ -605,12 +619,12 @@ package body Idl_Fe.Lexer is
                      Go_To_End_Of_Char;
                      Set_End_Mark;
                      Errors.Error ("Too much hexadecimal digits "
-                                                & "in character "
-                                                & Get_Marked_Text
-                                                & ", maximum is 2 in a char "
-                                                & "definition",
-                                                Errors.Error,
-                                                Get_Real_Location);
+                                   & "in character "
+                                   & Get_Marked_Text
+                                   & ", maximum is 2 in a char "
+                                   & "definition",
+                                   Errors.Error,
+                                   Get_Real_Location);
                      Result := T_Error;
                   else
                      Result := T_Lit_Char;
@@ -619,10 +633,10 @@ package body Idl_Fe.Lexer is
                   Go_To_End_Of_Char;
                   Set_End_Mark;
                   Errors.Error ("Invalid hexadecimal character " &
-                                             "code: "
-                                             & Get_Marked_Text,
-                                             Errors.Error,
-                                             Get_Real_Location);
+                                "code: "
+                                & Get_Marked_Text,
+                                Errors.Error,
+                                Get_Real_Location);
                   Result := T_Error;
                end if;
             when 'u' =>
@@ -642,12 +656,12 @@ package body Idl_Fe.Lexer is
                      Set_End_Mark;
                      if Wide then
                         Errors.Error ("Too much hexadecimal "
-                                                   & "digits in character "
-                                                   & Get_Marked_Text
-                                                   & ", maximum is 4 in a "
-                                                   & "unicode char definition",
-                                                   Errors.Error,
-                                                   Get_Real_Location);
+                                      & "digits in character "
+                                      & Get_Marked_Text
+                                      & ", maximum is 4 in a "
+                                      & "unicode char definition",
+                                      Errors.Error,
+                                      Get_Real_Location);
                      end if;
                      Result := T_Error;
                   else
@@ -658,10 +672,10 @@ package body Idl_Fe.Lexer is
                   Set_End_Mark;
                   if Wide then
                      Errors.Error ("Invalid unicode character " &
-                                                "code: "
-                                                & Get_Marked_Text,
-                                                Errors.Error,
-                                                Get_Real_Location);
+                                   "code: "
+                                   & Get_Marked_Text,
+                                   Errors.Error,
+                                   Get_Real_Location);
                   end if;
                   Result := T_Error;
                end if;
@@ -677,32 +691,32 @@ package body Idl_Fe.Lexer is
                Go_To_End_Of_Char;
                Set_End_Mark;
                Errors.Error ("Invalid octal character code: "
-                                          & Get_Marked_Text
-                                          & ". For hexadecimal codes, " &
-                                          "use \xhh",
-                                          Errors.Error,
-                                          Get_Real_Location);
+                             & Get_Marked_Text
+                             & ". For hexadecimal codes, " &
+                             "use \xhh",
+                             Errors.Error,
+                             Get_Real_Location);
                Result := T_Error;
             when others =>
                Go_To_End_Of_Char;
                Set_End_Mark;
                Errors.Error ("Invalid definition of character: "
-                                          & Get_Marked_Text,
-                                          Errors.Error,
-                                          Get_Real_Location);
+                             & Get_Marked_Text,
+                             Errors.Error,
+                             Get_Real_Location);
                Result := T_Error;
          end case;
       elsif Get_Current_Char = ''' then
          if View_Next_Char = ''' then
             Errors.Error ("Invalid character: ''', "
-                                       & "it should probably be '\''",
-                                       Errors.Error,
-                                       Get_Real_Location);
+                          & "it should probably be '\''",
+                          Errors.Error,
+                          Get_Real_Location);
             Result := T_Error;
          else
             Errors.Error ("Invalid character: ''",
-                                       Errors.Error,
-                                       Get_Real_Location);
+                          Errors.Error,
+                          Get_Real_Location);
             return T_Error;
          end if;
       else
@@ -712,18 +726,19 @@ package body Idl_Fe.Lexer is
       if Next_Char /= ''' then
          Go_To_End_Of_Char;
          Errors.Error ("Invalid character: '"
-                                    & Get_Marked_Text & "'",
-                                    Errors.Error,
-                                    Get_Real_Location);
+                       & Get_Marked_Text & "'",
+                       Errors.Error,
+                       Get_Real_Location);
          Result := T_Error;
       end if;
       return Result;
    end Scan_Char;
 
 
-   -------------------
-   --  Scan_String  --
-   -------------------
+   -----------------
+   -- Scan_String --
+   -----------------
+
    function Scan_String (Wide : Boolean) return Idl_Token is
       Several_Lines : Boolean := False;
    begin
@@ -820,19 +835,21 @@ package body Idl_Fe.Lexer is
    exception
       when Ada.Text_IO.End_Error =>
          Errors.Error ("unexpected end of file in the middle "
-                                    & "of a string, you probably forgot the "
-                                    & Quotation
-                                    & " at the end of a string",
-                                    Errors.Fatal,
-                                    Get_Real_Location);
-         --  This last line will never be reached
+                       & "of a string, you probably forgot the "
+                       & Quotation
+                       & " at the end of a string",
+                       Errors.Fatal,
+                       Get_Real_Location);
+
+         --  Not reached
+
          raise Errors.Fatal_Error;
    end Scan_String;
 
+   ---------------------
+   -- Scan_Identifier --
+   ---------------------
 
-   -----------------------
-   --  Scan_Identifier  --
-   -----------------------
    function Scan_Identifier (Is_Escaped : Boolean) return Idl_Token is
       Is_A_Keyword : Idl_Keyword_State;
       Tok : Idl_Token;
@@ -881,8 +898,7 @@ package body Idl_Fe.Lexer is
                return T_Identifier;
             when Bad_Case =>
                Errors.Error
-                 ("Bad identifier or bad case for IDL keyword."
-                  & " I Supposed you meant the keyword.",
+                 ("Bad identifier or bad case for IDL keyword.",
                   Errors.Error,
                   Get_Real_Location);
                return Tok;
@@ -890,10 +906,10 @@ package body Idl_Fe.Lexer is
       end if;
    end Scan_Identifier;
 
+   ------------------
+   -- Scan_Numeric --
+   ------------------
 
-   --------------------
-   --  Scan_Numeric  --
-   --------------------
    function Scan_Numeric return Idl_Token is
    begin
       Set_Mark;
@@ -915,7 +931,7 @@ package body Idl_Fe.Lexer is
            or else View_Next_Char = 'E' or else View_Next_Char = 'e' then
             null;
          else
-            --  This is only a digit.
+            --  This is only a digit
             return T_Lit_Decimal_Integer;
          end if;
       end if;
@@ -969,27 +985,26 @@ package body Idl_Fe.Lexer is
       end if;
    end Scan_Numeric;
 
+   ---------------------
+   -- Scan_Underscore --
+   ---------------------
 
-   -----------------------
-   --  Scan_Underscore  --
-   -----------------------
    function Scan_Underscore return Idl_Token is
    begin
       if Is_Alphabetic_Character (View_Next_Char) then
          Skip_Char;
          return Scan_Identifier (True);
       else
-         Errors.Error ("Invalid character '_'",
-                                    Errors.Error,
-                                    Get_Real_Location);
+         Errors.Error ("Invalid character '_' in identifier",
+                       Errors.Error, Get_Real_Location);
          return T_Error;
       end if;
    end Scan_Underscore;
 
+   -----------------------
+   -- Scan_Preprocessor --
+   -----------------------
 
-   -------------------------
-   --  Scan_Preprocessor  --
-   -------------------------
    function Scan_Preprocessor return Boolean is
       use Ada.Characters.Handling;
    begin
@@ -1041,7 +1056,9 @@ package body Idl_Fe.Lexer is
                Skip_Line;
             end if;
          when  '0' .. '9' =>
-            --  here line number and maybe file name must be changed
+
+            --  Line number and maybe file name must be updated
+
             declare
                New_Line_Number : Natural;
                Last : Positive;
@@ -1055,7 +1072,9 @@ package body Idl_Fe.Lexer is
                Skip_Spaces;
                case View_Next_Char is
                   when Quotation =>
-                     --  there is a filename
+
+                     --  A filename is present
+
                      Skip_Char;
                      Set_Mark_On_Next_Char;
                      Go_To_End_Of_String;
@@ -1079,13 +1098,13 @@ package body Idl_Fe.Lexer is
                            goto Ignore_Location;
                         end if;
 
-                        --  verifies the name ends with ".idl"
+                        --  Verify that the name ends with ".idl"
+
                         if Text'Length < 4
-                          or else
-                          Text (Text'Last - 3 .. Text'Last) /= ".idl"
+                          or else Text (Text'Last - 3 .. Text'Last) /= ".idl"
                         then
                            Errors.Error
-                             ("An idl file name should have a " &
+                             ("An IDL file name must have a " &
                               Ada.Characters.Latin_1.Quotation &
                               ".idl" &
                               Ada.Characters.Latin_1.Quotation &
@@ -1107,31 +1126,33 @@ package body Idl_Fe.Lexer is
                              (Base_Name (Text));
                         end;
                      end;
+
                   <<Ignore_Location>>
                      Skip_Spaces;
                      while View_Next_Char /= LF loop
-                        --  there is a flag
+
+                        --  A flag is present
+
                         case Next_Char is
                            when '1' | '2' | '3' | '4' =>
-                              --  not taken into account
+                              --  Expected, ignore
                               null;
                            when others =>
-                              --  the preprocessor should not
-                              --  give anything else
+                              --  Unexpected preprocessor output, bail out
                               raise Errors.Internal_Error;
                         end case;
                         Skip_Spaces;
                      end loop;
                   when LF =>
-                     --  end of preprocessor directive
+                     --  End of preprocessor directive
                      null;
                   when others =>
-                     --  the preprocessor should not give anything else
+                     --  Unexpected preprocessor output, bail out
                      raise Errors.Internal_Error;
                end case;
             end;
          when LF =>
-            --  This is an end of line.
+            --  End of line
             return False;
          when others =>
             pragma Debug (O ("Scan_Preprocessor: bad preprocessor line"));
@@ -1143,24 +1164,16 @@ package body Idl_Fe.Lexer is
       return False;
    end Scan_Preprocessor;
 
+   ----------------------------------------------------
+   -- Tools and constants for preprocessor execution --
+   ----------------------------------------------------
 
-
-   -----------------------------------------------------
-   --  Tools and constants for the preprocessor call  --
-   -----------------------------------------------------
-
-   --  If true then keep temporary files;
-   Keep_Temporary_Files : Boolean := False;
-
-   --  Name of the temporary file to be created if the
-   --  preprocessor is used.
    Tmp_File_Name : GNAT.OS_Lib.Temp_File_Name;
+   --  Name of the temporary file to which preprocessor output is sent
 
-   --  Manipulation of an array of strings for
-   --  the arguments to be given to the preprocessor
-   Args : GNAT.OS_Lib.Argument_List (1 .. 64);
-   Arg_Count : Positive := 1;
-
+   Args : GNAT.OS_Lib.Argument_List (1 .. 128);
+   Arg_Count : Natural := Args'First - 1;
+   --  Arguments to be passed to the preprocessor
 
    ------------------
    -- Add_Argument --
@@ -1168,33 +1181,22 @@ package body Idl_Fe.Lexer is
 
    procedure Add_Argument (Str : String) is
    begin
-      Args (Arg_Count) := new String'(Str);
       Arg_Count := Arg_Count + 1;
+      Args (Arg_Count) := new String'(Str);
    end Add_Argument;
 
-   ----------------------------------------------------
-   --  The main methods : initialize and next_token  --
-   ----------------------------------------------------
+   ----------------
+   -- Initialize --
+   ----------------
 
-   ------------------
-   --  Initialize  --
-   ------------------
-
-   procedure Initialize
-     (Filename : in String;
-      Preprocess : in Boolean;
-      Keep_Temporary_Files : in Boolean)
-   is
+   procedure Initialize (Filename : String) is
       use GNAT.OS_Lib;
-
-      Idl_File : Ada.Text_IO.File_Type;
    begin
       if Filename'Length = 0 then
-         Errors.Error ("Missing idl file as argument",
-                                    Errors.Fatal,
-                                    Get_Real_Location);
+         Errors.Error ("Missing IDL file as argument",
+                       Errors.Fatal,
+                       Get_Real_Location);
       end if;
-      Lexer.Keep_Temporary_Files := Keep_Temporary_Files;
       Current_Location.Line := 0;
       Current_Location.Col := 0;
 
@@ -1223,21 +1225,14 @@ package body Idl_Fe.Lexer is
          end if;
       end;
 
-      if Preprocess then
-         Preprocess_File (Filename);
-      else
-         Ada.Text_IO.Open
-           (Idl_File,
-            Ada.Text_IO.In_File,
-            Filename);
-         Ada.Text_IO.Set_Input (Idl_File);
-      end if;
+      Preprocess_File (Filename);
       pragma Debug (O ("Initialize: end"));
    end Initialize;
 
-   ----------------------
-   --  Get_Next_Token  --
-   ----------------------
+   --------------------
+   -- Get_Next_Token --
+   --------------------
+
    function Get_Next_Token return Idl_Token is
    begin
       loop
@@ -1318,10 +1313,10 @@ package body Idl_Fe.Lexer is
                return T_Star;
             when '/' =>
                if View_Next_Char = '/' then
-                  --  This is a line comment.
+                  --  Line comment
                   Skip_Line;
                elsif View_Next_Char = '*' then
-                  --  This is the beginning of a comment
+                  --  Start of a multi-line comment
                   Skip_Char;
                   Skip_Comment;
                else
@@ -1375,10 +1370,10 @@ package body Idl_Fe.Lexer is
             when others =>
                if Get_Current_Char >= ' ' then
                   Errors.Error ("Invalid character '"
-                                             & Get_Current_Char
-                                             & "'",
-                                             Errors.Error,
-                                             Get_Real_Location);
+                                & Get_Current_Char
+                                & "'",
+                                Errors.Error,
+                                Get_Real_Location);
                else
                   Errors.Error
                     ("Invalid character, ASCII code "
@@ -1391,9 +1386,6 @@ package body Idl_Fe.Lexer is
       end loop;
    exception
       when Ada.Text_IO.End_Error =>
-         if not Keep_Temporary_Files then
-            Remove_Temporary_Files;
-         end if;
          return T_Eof;
    end Get_Next_Token;
 
@@ -1434,6 +1426,7 @@ package body Idl_Fe.Lexer is
       CPP_Arg_List : constant Argument_List_Access
         := Argument_String_To_List
           (Platform.CXX_Preprocessor);
+
    begin
       for J in CPP_Arg_List'First + 1 .. CPP_Arg_List'Last loop
          Add_Argument (CPP_Arg_List (J).all);
@@ -1461,13 +1454,13 @@ package body Idl_Fe.Lexer is
             Get_Real_Location);
       end if;
 
-      --  We don't need the fd.
+      --  We don't need the file descriptor
 
       Close (Fd);
 
       Add_Argument ("-o");
       Add_Argument (Tmp_File_Name & Platform.CXX_Preprocessor_Suffix);
-      Args (Arg_Count) := new String'(Filename);
+      Add_Argument (Filename);
 
       declare
          Preprocessor_Full_Pathname : constant String_Access
@@ -1486,19 +1479,16 @@ package body Idl_Fe.Lexer is
                 Spawn_Result);
       end;
 
-      pragma Debug (O ("Initialize: preprocessing done"));
+      pragma Debug (O ("Preprocess_File: preprocessing done"));
       if not Spawn_Result then
-         pragma Debug (O ("Initialize: preprocessing failed"));
+         pragma Debug (O ("Preprocess_File: preprocessing failed"));
          Errors.Error
            (Ada.Command_Line.Command_Name &
             ": preprocessor failed",
             Errors.Fatal,
             Errors.No_Location);
       end if;
-      Ada.Text_IO.Open
-        (Idl_File,
-         Ada.Text_IO.In_File,
-         Tmp_File_Name);
+      Ada.Text_IO.Open (Idl_File, Ada.Text_IO.In_File, Tmp_File_Name);
       Ada.Text_IO.Set_Input (Idl_File);
    end Preprocess_File;
 
@@ -1513,4 +1503,3 @@ package body Idl_Fe.Lexer is
    end Remove_Temporary_Files;
 
 end Idl_Fe.Lexer;
-
