@@ -26,6 +26,7 @@ package body Prime is
          else
             if not Ready then
                Next := Controller.Next (Index);
+               Ready := True;
             end if;
             Current := Current + 1;
             Test_Number
