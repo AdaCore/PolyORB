@@ -2,14 +2,6 @@ include $(top_srcdir)/cos/Makefile.common
 
 alidir = $(includedir)/polyorb/corba/cos
 
-#
-# Compiling the IR is a bit complex, here is a summary of the different steps
-# 1. Generate code for ir.idl
-# 2. Patch the generated code, see sed command line below
-# 3. Compile the library
-# 4. Compile the different executables
-#
-
 IMPL_SPECS_WITH_BODY= \
   corba-repository_root-abstractinterfacedef-impl.ads \
   corba-repository_root-aliasdef-impl.ads \
@@ -152,11 +144,9 @@ GEN_BODIES = $(GEN_SPECS_WITH_BODY:.ads=.adb)
 GEN= \
 	$(GEN_SPECS_WITH_BODY)
 
-$(GEN): $(top_srcdir)/idls/CORBA_IDL/orb.idl $(top_srcdir)/idls/CORBA_IDL/CORBA_InterfaceRepository.idl $(top_srcdir)/idls/CORBA_IDL/CORBA_TypeCode.idl $(srcdir)/typecode.sh $(IDLAC)
+$(GEN): $(top_srcdir)/idls/CORBA_IDL/orb.idl $(top_srcdir)/idls/CORBA_IDL/CORBA_InterfaceRepository.idl $(top_srcdir)/idls/CORBA_IDL/CORBA_TypeCode.idl $(IDLAC)
 	$(IDLAC) -I$(top_srcdir)/idls/CORBA_IDL orb.idl
 	$(RM) corba-repository_root.ads
-	@chmod +x $(srcdir)/typecode.sh
-	$(srcdir)/typecode.sh $(SED) $(RM) $(GEN) $(GEN_BODIES)
 
 $(GEN_BODIES): $(GEN)
 
