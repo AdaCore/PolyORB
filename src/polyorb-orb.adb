@@ -430,6 +430,10 @@ package body PolyORB.ORB is
          end loop Check_Condition;
 
          --  ORB_Lock is held.
+         pragma Debug (O ("# of monitors:"
+                          & Integer'Image
+                          (Monitor_Seqs.Length (ORB.Monitors))));
+
 
          if May_Poll
            and then not ORB.Polling
