@@ -175,7 +175,7 @@ package body System.Garlic.Physical_Location is
             return L (First .. I - 1);
          end if;
       end loop;
-      return "";
+      return L;
    end Get_Support_Name;
 
    ------------------

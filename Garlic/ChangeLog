@@ -1,3 +1,8 @@
+2000-09-12  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-gaphlo.adb: (Get_Support_Name): return the full name as being
+	the protocol name if no column is found. Bug found by code reading.
+
 2000-09-12  Laurent Pautet  <pautet@inf.enst.fr>
 
 	* s-gastdf.adb, s-gastdf.ads, s-garsto.ads, s-garsto.adb,
