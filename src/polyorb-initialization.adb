@@ -469,7 +469,7 @@ package body PolyORB.Initialization is
    procedure Raise_Unresolved_Dependency
      (From, Upon : String) is
    begin
-      O ("Unsresolved dependency: " & From & " -> " & Upon, Critical);
+      O ("Unresolved dependency: " & From & " -> " & Upon, Critical);
       raise Unresolved_Dependency;
    end Raise_Unresolved_Dependency;
 
