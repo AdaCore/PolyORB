@@ -33,6 +33,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Exceptions;
 with Interfaces;
 with System.RPC;
 
@@ -130,6 +131,10 @@ package System.Partition_Interface is
    --  Raise Program_Error with an error message explaining why it has been
    --  raised. The rule in E.4 (18) is tricky and misleading for most users
    --  of the distributed systems annex.
+
+   procedure Raise_Program_Error_Unknown_Tag
+     (E : in Ada.Exceptions.Exception_Occurrence);
+   --  Raise Program_Error with the same message as E one
 
    generic
       RCI_Name : String;

@@ -33,12 +33,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Exceptions;           use Ada.Exceptions;
 with Ada.Unchecked_Deallocation;
 with Ada.Unchecked_Conversion;
 with GNAT.HTable;              use GNAT.HTable;
 with GNAT.Table;
-with Interfaces;               use Interfaces;
 with System.Garlic.Debug;      use System.Garlic.Debug;
 with System.Garlic.Heart;      use System.Garlic.Heart;
 with System.Garlic.Options;    use System.Garlic.Options;
@@ -54,9 +52,10 @@ with System.Garlic.Streams;    use System.Garlic.Streams;
 with System.Garlic.Types;      use System.Garlic.Types;
 with System.Garlic.Units;      use System.Garlic.Units;
 with System.Garlic.Utils;      use System.Garlic.Utils;
-with System.RPC;
 
 package body System.Partition_Interface is
+
+   use Ada.Exceptions, Interfaces;
 
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("S_PARINT", "(s-parint): ");
@@ -411,16 +410,6 @@ package body System.Partition_Interface is
       end if;
    end Launch;
 
-   ------------------------------------
-   -- Raise_Program_Error_For_E_4_18 --
-   ------------------------------------
-
-   procedure Raise_Program_Error_For_E_4_18 is
-   begin
-      Ada.Exceptions.Raise_Exception (Program_Error'Identity,
-        "Illegal usage of remote access to class-wide type. See RM E.4(18)");
-   end Raise_Program_Error_For_E_4_18;
-
    -------------------------------
    -- Raise_Communication_Error --
    -------------------------------
@@ -438,6 +427,28 @@ package body System.Partition_Interface is
    begin
       Raise_Communication_Error (Content (E));
    end Raise_Communication_Error;
+
+   ------------------------------------
+   -- Raise_Program_Error_For_E_4_18 --
+   ------------------------------------
+
+   procedure Raise_Program_Error_For_E_4_18 is
+   begin
+      Ada.Exceptions.Raise_Exception (Program_Error'Identity,
+        "Illegal usage of remote access to class-wide type. See RM E.4(18)");
+   end Raise_Program_Error_For_E_4_18;
+
+   -------------------------------------
+   -- Raise_Program_Error_Unknown_Tag --
+   -------------------------------------
+
+   procedure Raise_Program_Error_Unknown_Tag
+     (E : in Ada.Exceptions.Exception_Occurrence)
+   is
+   begin
+      Ada.Exceptions.Raise_Exception
+        (Program_Error'Identity, Ada.Exceptions.Exception_Message (E));
+   end Raise_Program_Error_Unknown_Tag;
 
    ------------------------------
    -- Register_Passive_Package --
