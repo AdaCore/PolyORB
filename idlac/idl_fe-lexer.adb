@@ -462,7 +462,7 @@ package body Idl_Fe.Lexer is
    -----------------
    --  Scan_Char  --
    -----------------
-   function Scan_Char (Wide : Boolean) return Idl_Token is
+   function Scan_Char return Idl_Token is
       Result : Idl_Token;
    begin
       Set_Mark_On_Next_Char;
@@ -471,7 +471,7 @@ package body Idl_Fe.Lexer is
             when 'n' | 't' | 'v' | 'b' | 'r' | 'f'
               | 'a' | '\' | '?' | Quotation =>
                Skip_Char;
-               Result := T_Lit_Char;
+               Result := T_Lit_Escape_Char;
             when ''' =>
                if View_Next_Next_Char /= ''' then
                   Idl_Fe.Errors.Lexer_Error ("Invalid character : '\', "
@@ -481,7 +481,7 @@ package body Idl_Fe.Lexer is
                   Result := T_Error;
                else
                   Skip_Char;
-                  Result := T_Lit_Char;
+                  Result := T_Lit_Escape_Char;
                end if;
             when '0' .. '7' =>
                Skip_Char;
@@ -503,7 +503,7 @@ package body Idl_Fe.Lexer is
                                              Get_Real_Location);
                   Result := T_Error;
                else
-                  Result := T_Lit_Char;
+                  Result := T_Lit_Octal_Char;
                end if;
             when 'x' =>
                Skip_Char;
@@ -523,7 +523,7 @@ package body Idl_Fe.Lexer is
                                                 Get_Real_Location);
                      Result := T_Error;
                   else
-                     Result := T_Lit_Char;
+                     Result := T_Lit_Hexa_Char;
                   end if;
                else
                   Go_To_End_Of_Char;
@@ -550,35 +550,23 @@ package body Idl_Fe.Lexer is
                   if Is_Hexa_Digit_Character (View_Next_Char) then
                      Go_To_End_Of_Char;
                      Set_End_Mark;
-                     if Wide then
-                        Idl_Fe.Errors.Lexer_Error ("Too much hexadecimal "
-                                                   & "digits in character "
-                                                   & Get_Marked_Text
-                                                   & ", maximum is 4 in a "
-                                                   & "unicode char definition",
-                                                   Idl_Fe.Errors.Error,
-                                                   Get_Real_Location);
-                     end if;
+                     Idl_Fe.Errors.Lexer_Error ("Too much hexadecimal digits "
+                                                & "in character "
+                                                & Get_Marked_Text
+                                                & ", maximum is 4 in a "
+                                                & "unicode char definition",
+                                                Idl_Fe.Errors.Error,
+                                                Get_Real_Location);
                      Result := T_Error;
                   else
-                     Result := T_Lit_Char;
+                     Result := T_Lit_Unicode_Char;
                   end if;
                else
                   Go_To_End_Of_Char;
                   Set_End_Mark;
-                  if Wide then
-                     Idl_Fe.Errors.Lexer_Error ("Invalid unicode character " &
-                                                "code : "
-                                                & Get_Marked_Text,
-                                                Idl_Fe.Errors.Error,
-                                                Get_Real_Location);
-                  end if;
-                  Result := T_Error;
-               end if;
-               if not Wide then
-                  Idl_Fe.Errors.Lexer_Error ("Unicode character is not " &
-                                             "allowed in a non wide " &
-                                             "character.",
+                  Idl_Fe.Errors.Lexer_Error ("Invalid unicode character " &
+                                             "code : "
+                                             & Get_Marked_Text,
                                              Idl_Fe.Errors.Error,
                                              Get_Real_Location);
                   Result := T_Error;
@@ -616,7 +604,7 @@ package body Idl_Fe.Lexer is
             return T_Error;
          end if;
       else
-         Result := T_Lit_Char;
+         Result := T_Lit_Simple_Char;
       end if;
       Set_End_Mark;
       if Next_Char /= ''' then
@@ -634,7 +622,7 @@ package body Idl_Fe.Lexer is
    -------------------
    --  Scan_String  --
    -------------------
-   function Scan_String (Wide : Boolean) return Idl_Token is
+   function Scan_String return Idl_Token is
       Several_Lines : Boolean := False;
    begin
       Set_Mark_On_Next_Char;
@@ -685,27 +673,11 @@ package body Idl_Fe.Lexer is
                         Skip_Char;
                      else
                         Go_To_End_Of_String;
-                        if Wide then
-                           Idl_Fe.Errors.Lexer_Error
-                             ("bad unicode character in string",
-                              Idl_Fe.Errors.Error,
-                              Get_Real_Location);
-                        else
-                           Idl_Fe.Errors.Lexer_Error
-                             ("bad unicode character in string. " &
-                              "Anyway, it is not allowed in a non " &
-                              "wide string.",
-                              Idl_Fe.Errors.Error,
-                              Get_Real_Location);
-                        end if;
-                        return T_Error;
-                     end if;
-                     if not Wide then
                         Idl_Fe.Errors.Lexer_Error
-                          ("Unicode characters are not allowed " &
-                           "in a non wide string.",
+                          ("bad unicode character in string",
                            Idl_Fe.Errors.Error,
                            Get_Real_Location);
+                        return T_Error;
                      end if;
                   when others =>
                      Go_To_End_Of_String;
@@ -752,9 +724,17 @@ package body Idl_Fe.Lexer is
         and View_Next_Char = ''' then
          Skip_Char;
          Set_End_Mark;
-         case Scan_Char (True) is
-            when T_Lit_Char =>
-               return T_Lit_Wide_Char;
+         case Scan_Char is
+            when T_Lit_Simple_Char =>
+               return T_Lit_Wide_Simple_Char;
+            when T_Lit_Escape_Char =>
+               return T_Lit_Wide_Escape_Char;
+            when T_Lit_Octal_Char =>
+               return T_Lit_Wide_Octal_Char;
+            when T_Lit_Hexa_Char =>
+               return T_Lit_Wide_Hexa_Char;
+            when T_Lit_Unicode_Char =>
+               return T_Lit_Wide_Unicode_Char;
             when T_Error  =>
                return T_Error;
             when others =>
@@ -764,7 +744,7 @@ package body Idl_Fe.Lexer is
         and View_Next_Char = Quotation then
          Skip_Char;
          Set_End_Mark;
-         case Scan_String (True) is
+         case Scan_String is
             when T_Lit_String =>
                return T_Lit_Wide_String;
             when T_Error  =>
@@ -1338,10 +1318,10 @@ package body Idl_Fe.Lexer is
                return Scan_Underscore;
             when ''' =>
                Set_Token_Location;
-               return Scan_Char (False);
+               return Scan_Char;
             when Quotation =>
                Set_Token_Location;
-               return Scan_String (False);
+               return Scan_String;
             when Number_Sign =>
                Set_Token_Location;
                if Scan_Preprocessor then

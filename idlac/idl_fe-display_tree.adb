@@ -24,7 +24,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Wide_Text_IO;
 with Ada.Text_IO; use Ada.Text_IO;
 with Ada.Characters.Latin_1;
 
@@ -75,8 +74,8 @@ package body Idl_Fe.Display_Tree is
                           Full : Boolean;
                           Op : String) is
    begin
-      Put_Line ("binary operator : " & Op);
-      Disp_Const_Value (Expr_Value (N), Indent);
+      Put_Line ("binary operator " & Op & ", value = ");
+--                Long_Long_Integer'Image (Value.all (N)));
       Disp_Indent (Indent, "left:");
       Disp_Tree (Left (N), Indent, Full);
       Disp_Indent (Indent, "right:");
@@ -88,108 +87,11 @@ package body Idl_Fe.Display_Tree is
                          Full : Boolean;
                          Op : String) is
    begin
-      Put_Line ("unary operator : " & Op);
-      Disp_Const_Value (Expr_Value (N), Indent);
+      Put_Line ("unary operator " & Op & ", value = ");
+--                Long_Long_Integer'Image (Value.all (N)));
       Disp_Indent (Indent, "operand:");
       Disp_Tree (Operand (N), Indent, Full);
    end Disp_Unary;
-
-   procedure Disp_Const_Value (Expr : Constant_Value_Ptr;
-                               Indent : Natural) is
-   begin
-      Disp_Indent (Indent);
-      Put ("value : ");
-      if Expr /= null then
-         case Expr.Kind is
-            when C_Octet =>
-               Put_Line ("octet " &
-                         Idl_Integer'Image (Expr.Integer_Value));
-            when C_Short =>
-               Put_Line ("short " &
-                         Idl_Integer'Image (Expr.Integer_Value));
-            when C_Long =>
-               Put_Line ("long " &
-                         Idl_Integer'Image (Expr.Integer_Value));
-            when C_LongLong =>
-               Put_Line ("long long " &
-                         Idl_Integer'Image (Expr.Integer_Value));
-            when C_UShort =>
-               Put_Line ("unsigned short " &
-                         Idl_Integer'Image (Expr.Integer_Value));
-            when C_ULong =>
-               Put_Line ("unsigned long " &
-                         Idl_Integer'Image (Expr.Integer_Value));
-            when C_ULongLong =>
-               Put_Line ("unsigned long long " &
-                         Idl_Integer'Image (Expr.Integer_Value));
-            when C_General_Integer =>
-               Put_Line ("general integer " &
-                         Idl_Integer'Image (Expr.Integer_Value));
-            when C_String =>
-               Put_Line ("string " &
-                         Ada.Characters.Latin_1.Quotation &
-                         Expr.String_Value.all &
-                         Ada.Characters.Latin_1.Quotation);
-            when C_WString =>
-               Put ("wide string literal : " &
-                         Ada.Characters.Latin_1.Quotation);
-               Ada.Wide_Text_IO.Put (Expr.WString_Value.all);
-               Put_Line ("" & Ada.Characters.Latin_1.Quotation);
-            when C_Char =>
-               Put_Line ("character " &
-                         Idl_Character'Image
-                         (Expr.Char_Value));
-            when C_WChar =>
-               Put_Line ("wide character " &
-                         Idl_Wide_Character'Image
-                         (Expr.WChar_Value));
-            when C_Fixed =>
-               Put_Line ("fixed point " &
-                         "<" &
-                         Idl_Integer'Image
-                         (Expr.Digits_Nb) &
-                         "," &
-                         Idl_Integer'Image
-                         (Expr.Scale) &
-                         "> " &
-                         Idl_Integer'Image (Expr.Fixed_Value));
-            when C_General_Fixed =>
-               Put_Line ("general fixed point " &
-                         "<" &
-                         Idl_Integer'Image
-                         (Expr.Digits_Nb) &
-                         "," &
-                         Idl_Integer'Image
-                         (Expr.Scale) &
-                         "> " &
-                         Idl_Integer'Image (Expr.Fixed_Value));
-            when C_Float =>
-               Put_Line ("float " &
-                    Idl_Float'Image (Expr.Float_Value));
-            when C_Double =>
-               Put_Line ("double " &
-                    Idl_Float'Image (Expr.Float_Value));
-            when C_LongDouble =>
-               Put_Line ("long double " &
-                    Idl_Float'Image (Expr.Float_Value));
-            when C_General_Float =>
-               Put_Line ("general float " &
-                    Idl_Float'Image (Expr.Float_Value));
-            when C_Boolean =>
-               Put_Line ("boolean " &
-                         Idl_Boolean'Image (Expr.Boolean_Value));
-            when C_Enum =>
-               Put_Line ("enum " &
-                         Name (Expr.Enum_Name) &
-                         " : " &
-                         Name (Expr.Enum_Value));
-            when C_No_Kind =>
-               Put_Line ("no_kind");
-         end case;
-      else
-         Put_Line ("no correct value.");
-      end if;
-   end Disp_Const_Value;
 
    --  Disp tree procedure
    procedure Disp_Tree (N : Node_Id; Indent : Natural; Full : Boolean) is
@@ -236,7 +138,7 @@ package body Idl_Fe.Display_Tree is
                Disp_Indent (Indent + 2);
                Put_Line
                  ("repository id: """
-                  & String_Value (Repository_Id (N))
+                  & String_Value (Repository_Id (N)).all
                   & """");
             end if;
             if Full then
@@ -467,7 +369,7 @@ package body Idl_Fe.Display_Tree is
                Disp_Indent (Indent + 2);
                Put_Line
                  ("repository id: """
-                  & String_Value (Repository_Id (N))
+                  & String_Value (Repository_Id (N)).all
                   & """");
             end if;
             if Full then
@@ -551,46 +453,53 @@ package body Idl_Fe.Display_Tree is
 
          when K_Primary_Expr =>
             Put_Line ("primary expression");
-            Disp_Const_Value (Expr_Value (N), N_Indent + Offset);
             Disp_Tree (Operand (N),
                        N_Indent,
                        Full);
 
-         when K_Lit_Integer =>
-            Put_Line ("integer literal : ");
-            Disp_Const_Value (Expr_Value (N), N_Indent + Offset);
-
-         when K_Lit_String =>
-            Put_Line ("string literal : ");
-            Disp_Const_Value (Expr_Value (N), N_Indent + Offset);
-
-         when K_Lit_Wide_String =>
-            Put_Line ("wide string literal : ");
-            Disp_Const_Value (Expr_Value (N), N_Indent + Offset);
-
-         when K_Lit_Character =>
-            Put_Line ("character literal : ");
-            Disp_Const_Value (Expr_Value (N), N_Indent + Offset);
-
-         when K_Lit_Wide_Character =>
-            Put_Line ("wide character literal : ");
-            Disp_Const_Value (Expr_Value (N), N_Indent + Offset);
-
-         when K_Lit_Fixed_Point =>
-            Put_Line ("fixed point literal : ");
-            Disp_Const_Value (Expr_Value (N), N_Indent + Offset);
-
-         when K_Lit_Floating_Point =>
-            Put_Line ("floating point literal : ");
-            Disp_Const_Value (Expr_Value (N), N_Indent + Offset);
+--          when K_Lit_Char =>
+--             raise Errors.Internal_Error;
 
          when K_Lit_Boolean =>
-            Put_Line ("boolean literal : ");
-            Disp_Const_Value (Expr_Value (N), N_Indent + Offset);
+            Put_Line ("boolean literal : " &
+                      Boolean'Image (Bool_Value (N)));
 
-         when K_Lit_Enum =>
-            Put_Line ("enum literal : ");
-            Disp_Const_Value (Expr_Value (N), N_Indent + Offset);
+         when K_Lit_String =>
+            declare
+               S : String_Cacc;
+            begin
+               S := String_Value (N);
+               Put ("string literal : " &
+                    Ada.Characters.Latin_1.Quotation);
+               if S = null then
+                  Put ("*null*");
+               else
+                  Put (S.all);
+               end if;
+               Put_Line ("" & Ada.Characters.Latin_1.Quotation);
+            end;
+
+--          when K_Lit_Integer =>
+--             Put_Line ("integer literal: " & Lit (N));
+
+--          when K_Lit_Floating_Point =>
+--             Put_Line ("floating point: "
+--                       & Lit (N));
+
+--          when K_Lit_Fixed_Point =>
+--             raise Errors.Internal_Error;
+
+--          when K_Lit_True =>
+--             Put_Line ("true");
+
+--          when K_Lit_False =>
+--             Put_Line ("false");
+
+--          when K_Lit_Wchar =>
+--             raise Errors.Internal_Error;
+
+--          when K_Lit_Wstring =>
+--             raise Errors.Internal_Error;
 
          when K_Struct =>
             Put ("struct " & Name (N));

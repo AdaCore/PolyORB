@@ -25,7 +25,6 @@
 ------------------------------------------------------------------------------
 
 with Ada.Characters.Latin_1;
-with Ada.Characters.Wide_Latin_1;
 with Ada.Unchecked_Deallocation;
 
 with GNAT.Case_Util;
@@ -133,8 +132,16 @@ package body Idl_Fe.Parser is
          when T_Lit_Decimal_Integer |
            T_Lit_Octal_Integer |
            T_Lit_Hexa_Integer |
-           T_Lit_Char |
-           T_Lit_Wide_Char |
+           T_Lit_Simple_Char |
+           T_Lit_Escape_Char |
+           T_Lit_Octal_Char |
+           T_Lit_Hexa_Char |
+           T_Lit_Unicode_Char |
+           T_Lit_Wide_Simple_Char |
+           T_Lit_Wide_Escape_Char |
+           T_Lit_Wide_Octal_Char |
+           T_Lit_Wide_Hexa_Char |
+           T_Lit_Wide_Unicode_Char |
            T_Lit_Simple_Floating_Point |
            T_Lit_Exponent_Floating_Point |
            T_Lit_Pure_Exponent_Floating_Point |
@@ -216,7 +223,7 @@ package body Idl_Fe.Parser is
 
    function Get_Token_Location return Idl_Fe.Errors.Location is
    begin
-      pragma Debug (O ("Get_Token_Location : enter & end"));
+      pragma Debug (O ("Get_Token_Location : enter"));
       return Location_Buffer (Current_Index);
    end Get_Token_Location;
 
@@ -424,13 +431,13 @@ package body Idl_Fe.Parser is
 
       if Prefix_Node /= No_Node then
          Set_String_Value
-           (Name_Node,
-            "IDL:" & String_Value (Prefix_Node) & "/"
-             & Default_Repository_Id (Node) & ":1.0");
+           (Name_Node, new String'
+            ("IDL:" & String_Value (Prefix_Node).all & "/"
+             & Default_Repository_Id (Node) & ":1.0"));
       else
          Set_String_Value
-           (Name_Node,
-            "IDL:" & Default_Repository_Id (Node) & ":1.0");
+           (Name_Node, new String'
+            ("IDL:" & Default_Repository_Id (Node) & ":1.0"));
       end if;
       Set_Repository_Id (Node, Name_Node);
    end Set_Default_Repository_Id;
@@ -985,13 +992,11 @@ package body Idl_Fe.Parser is
          return;
       end if;
       if Get_Token /= T_Semi_Colon then
-         Idl_Fe.Errors.Parser_Error ("';' expected",
+         Idl_Fe.Errors.Parser_Error ("`;' expected",
                                      Idl_Fe.Errors.Error,
                                      Get_Token_Location);
-         Go_To_End_Of_Export;
-      else
-         Next_Token;
       end if;
+      Next_Token;
    end Parse_Export;
 
    -------------------------------
@@ -2548,6 +2553,7 @@ package body Idl_Fe.Parser is
       declare
          Node : Node_Id;
       begin
+         Node := Constant_Type (Result);
          Parse_Const_Type (Node,
                            Success);
          Set_Constant_Type (Result, Node);
@@ -2604,8 +2610,16 @@ package body Idl_Fe.Parser is
               | T_Lit_Decimal_Integer
               | T_Lit_Octal_Integer
               | T_Lit_Hexa_Integer
-              | T_Lit_Char
-              | T_Lit_Wide_Char
+              | T_Lit_Simple_Char
+              | T_Lit_Escape_Char
+              | T_Lit_Octal_Char
+              | T_Lit_Hexa_Char
+              | T_Lit_Unicode_Char
+              | T_Lit_Wide_Simple_Char
+              | T_Lit_Wide_Escape_Char
+              | T_Lit_Wide_Octal_Char
+              | T_Lit_Wide_Hexa_Char
+              | T_Lit_Wide_Unicode_Char
               | T_Lit_Simple_Floating_Point
               | T_Lit_Exponent_Floating_Point
               | T_Lit_Pure_Exponent_Floating_Point
@@ -2745,96 +2759,80 @@ package body Idl_Fe.Parser is
                               Constant_Type : in Node_Id;
                               Success : out Boolean) is
       Loc : Idl_Fe.Errors.Location;
-      C_Type : Constant_Value_Ptr;
+      C_Type : Const_Type_Ptr;
    begin
       pragma Debug (O2 ("Parse_Const_Exp : enter"));
       Loc := Get_Token_Location;
       if Constant_Type /= No_Node then
          case Kind (Constant_Type) is
-            when K_Short =>
-               C_Type := new Constant_Value (Kind => C_Short);
-            when K_Unsigned_Short =>
-               C_Type := new Constant_Value (Kind => C_UShort);
-            when K_Long =>
-               C_Type := new Constant_Value (Kind => C_Long);
-            when K_Unsigned_Long =>
-               C_Type := new Constant_Value (Kind => C_ULong);
-            when K_Long_Long =>
-               C_Type := new Constant_Value (Kind => C_LongLong);
-            when K_Unsigned_Long_Long =>
-               C_Type := new Constant_Value (Kind => C_ULongLong);
+            when K_Short
+              | K_Unsigned_Short =>
+               C_Type := new Const_Type (Kind => C_Short);
+            when K_Long
+              | K_Unsigned_Long =>
+               C_Type := new Const_Type (Kind => C_Long);
+            when K_Long_Long
+              | K_Unsigned_Long_Long =>
+               C_Type := new Const_Type (Kind => C_LongLong);
             when K_Char =>
-               C_Type := new Constant_Value (Kind => C_Char);
+               C_Type := new Const_Type (Kind => C_Char);
             when K_Wide_Char =>
-               C_Type := new Constant_Value (Kind => C_WChar);
+               C_Type := new Const_Type (Kind => C_WChar);
             when K_Boolean =>
-               C_Type := new Constant_Value (Kind => C_Boolean);
+               C_Type := new Const_Type (Kind => C_Boolean);
             when K_Float =>
-               C_Type := new Constant_Value (Kind => C_Float);
+               C_Type := new Const_Type (Kind => C_Float);
             when K_Double =>
-               C_Type := new Constant_Value (Kind => C_Double);
+               C_Type := new Const_Type (Kind => C_Double);
             when K_Long_Double =>
-               C_Type := new Constant_Value (Kind => C_LongDouble);
+               C_Type := new Const_Type (Kind => C_LongDouble);
             when K_Fixed =>
-               --  FIXME : verify the values of digits_nb and scale
-               C_Type := new Constant_Value (Kind => C_Fixed);
-               C_Type.Digits_Nb := Expr_Value
-                 (Digits_Nb (Constant_Type)).Integer_Value;
-               C_Type.Scale := Expr_Value
-                 (Scale (Constant_Type)).Integer_Value;
+               C_Type := new Const_Type (Kind => C_Fixed);
+               C_Type.Digits_Nb := 0;
+               C_Type.Scale := 0;
             when K_String =>
-               C_Type := new Constant_Value (Kind => C_String);
+               C_Type := new Const_Type (Kind => C_String);
             when K_Wide_String =>
-               C_Type := new Constant_Value (Kind => C_WString);
+               C_Type := new Const_Type (Kind => C_WString);
             when K_Octet =>
-               C_Type := new Constant_Value (Kind => C_Octet);
+               C_Type := new Const_Type (Kind => C_Octet);
             when K_Enum =>
-               C_Type := new Constant_Value (Kind => C_Enum);
-               C_Type.Enum_Name := Constant_Type;
+               C_Type := new Const_Type (Kind => C_Enum);
             when K_Scoped_Name =>
                case Kind (S_Type (Constant_Type)) is
-                  when K_Short =>
-                     C_Type := new Constant_Value (Kind => C_Short);
-                  when K_Unsigned_Short =>
-                     C_Type := new Constant_Value (Kind => C_UShort);
-                  when K_Long =>
-                     C_Type := new Constant_Value (Kind => C_Long);
-                  when K_Unsigned_Long =>
-                     C_Type := new Constant_Value (Kind => C_ULong);
-                  when K_Long_Long =>
-                     C_Type := new Constant_Value (Kind => C_LongLong);
-                  when K_Unsigned_Long_Long =>
-                     C_Type := new Constant_Value (Kind => C_ULongLong);
+                  when K_Short
+                    | K_Unsigned_Short =>
+                     C_Type := new Const_Type (Kind => C_Short);
+                  when K_Long
+                    | K_Unsigned_Long =>
+                     C_Type := new Const_Type (Kind => C_Long);
+                  when K_Long_Long
+                    | K_Unsigned_Long_Long =>
+                     C_Type := new Const_Type (Kind => C_LongLong);
                   when K_Char =>
-                     C_Type := new Constant_Value (Kind => C_Char);
+                     C_Type := new Const_Type (Kind => C_Char);
                   when K_Wide_Char =>
-                     C_Type := new Constant_Value (Kind => C_WChar);
+                     C_Type := new Const_Type (Kind => C_WChar);
                   when K_Boolean =>
-                     C_Type := new Constant_Value (Kind => C_Boolean);
+                     C_Type := new Const_Type (Kind => C_Boolean);
                   when K_Float =>
-                     C_Type := new Constant_Value (Kind => C_Float);
+                     C_Type := new Const_Type (Kind => C_Float);
                   when K_Double =>
-                     C_Type := new Constant_Value (Kind => C_Double);
+                     C_Type := new Const_Type (Kind => C_Double);
                   when K_Long_Double =>
-                     C_Type := new Constant_Value (Kind => C_LongDouble);
+                     C_Type := new Const_Type (Kind => C_LongDouble);
                   when K_Fixed =>
-                     --  FIXME : verify the values of digits_nb and scale
-                     C_Type := new Constant_Value (Kind => C_Fixed);
-                     C_Type.Digits_Nb :=
-                       Expr_Value (Digits_Nb (S_Type (Constant_Type)))
-                       .Integer_Value;
-                     C_Type.Scale :=
-                       Expr_Value (Scale (S_Type (Constant_Type)))
-                       .Integer_Value;
+                     C_Type := new Const_Type (Kind => C_Fixed);
+                     C_Type.Digits_Nb := 0;
+                     C_Type.Scale := 0;
                   when K_String =>
-                     C_Type := new Constant_Value (Kind => C_String);
+                     C_Type := new Const_Type (Kind => C_String);
                   when K_Wide_String =>
-                     C_Type := new Constant_Value (Kind => C_WString);
+                     C_Type := new Const_Type (Kind => C_WString);
                   when K_Octet =>
-                     C_Type := new Constant_Value (Kind => C_Octet);
+                     C_Type := new Const_Type (Kind => C_Octet);
                   when K_Enum =>
-                     C_Type := new Constant_Value (Kind => C_Enum);
-                     C_Type.Enum_Name := S_Type (Constant_Type);
+                     C_Type := new Const_Type (Kind => C_Enum);
                   when others =>
                      raise Idl_Fe.Errors.Internal_Error;
                end case;
@@ -2842,13 +2840,46 @@ package body Idl_Fe.Parser is
                raise Idl_Fe.Errors.Internal_Error;
          end case;
       else
-         C_Type := new Constant_Value (Kind => C_No_Kind);
+         C_Type := new Const_Type (Kind => C_No_Kind);
       end if;
       Parse_Or_Expr (Result, Success, C_Type);
-      if Result /= No_Node then
-         Check_Value_Range (Result, True);
+      if not Success then
+         return;
       end if;
-      Free (C_Type);
+      --  check compatibility between the constant expression
+      --  and its supposed type in the case of short and long
+--       if (Kind (Constant_Type) = K_Short and
+--         Expr_Type (Result).Kind = C_Short) and then
+--         Value (Result) > Idl_Short_Max then
+--          Errors.Parser_Error ("this value exceed the range " &
+--                               "of type short.",
+--                               Errors.Error,
+--                               Loc);
+--       end if;
+--       if (Kind (Constant_Type) = K_Unsigned_Short and
+--         Expr_Type (Result).Kind = C_Short) and then
+--         Value (Result) < Idl_UShort_Min then
+--          Errors.Parser_Error ("this value exceed the range " &
+--                             "of type unsigned short since it is negative.",
+--                               Errors.Error,
+--                               Loc);
+--       end if;
+--       if (Kind (Constant_Type) = K_Long and
+--         Expr_Type (Result).Kind = C_Long) and then
+--         Value (Result) > Idl_Long_Max then
+--          Errors.Parser_Error ("this value exceed the range " &
+--                               "of type long.",
+--                               Errors.Error,
+--                               Loc);
+--       end if;
+--       if (Kind (Constant_Type) = K_Unsigned_Long and
+--         Expr_Type.Kind (Result) = C_Long) and then
+--         Value (Result) < Idl_ULong_Min then
+--          Errors.Parser_Error ("this value exceed the range " &
+--                               "of type unsigned long since it is negative.",
+--                               Errors.Error,
+--                               Loc);
+--       end if;
       pragma Debug (O2 ("Parse_Const_Exp : end"));
    end Parse_Const_Exp;
 
@@ -2857,76 +2888,191 @@ package body Idl_Fe.Parser is
    ---------------------
    procedure Parse_Or_Expr (Result : out Node_Id;
                             Success : out Boolean;
-                            Expr_Type : in Constant_Value_Ptr) is
+                            Expr_Type : in Const_Type_Ptr) is
+      Xor_Exp : Node_Id;
+      Loc : Idl_Fe.Errors.Location;
    begin
-      pragma Debug (O2 ("Parse_Or_Expr : enter"));
-      Parse_Xor_Expr (Result, Success, Expr_Type);
+      Loc := Get_Token_Location;
+      Parse_Xor_Expr (Xor_Exp, Success, Expr_Type);
       if not Success then
          return;
       end if;
-      while Get_Token = T_Bar loop
-         declare
-            Res : Node_Id;
-            Res_Right : Node_Id;
-            Loc : Idl_Fe.Errors.Location;
-         begin
-            pragma Debug (O ("Parse_Or_Expr : '|' detected"));
-            Loc := Get_Token_Location;
-            Next_Token;
-            pragma Debug (O ("Parse_Or_Expr : making the or node"));
-            Res := Make_Or_Expr;
-            pragma Debug (O ("Parse_Or_Expr : setting the location"));
-            Set_Location (Res, Loc);
-            pragma Debug (O ("Parse_Or_Expr : setting the first term"));
-            Set_Left (Res, Result);
-            pragma Debug (O ("Parse_Or_Expr : parsing of the second term"));
-            Parse_Xor_Expr (Res_Right, Success, Expr_Type);
-            if not Success or Res_Right = No_Node then
-               Set_Right (Res, No_Node);
-               Set_Expr_Value
-                 (Res, new Constant_Value (Kind => C_No_Kind));
-               Result := Res;
-               return;
-            end if;
-            Set_Right (Res, Res_Right);
-            if Left (Res) = No_Node then
-               Set_Expr_Value
-                 (Res, new Constant_Value (Kind => C_No_Kind));
-               Result := Res;
-               return;
-            end if;
-            --  test if the types are ok for the or operation
-            if Expr_Type.Kind = C_Short or
-              Expr_Type.Kind = C_Long or
-              Expr_Type.Kind = C_LongLong or
-              Expr_Type.Kind = C_UShort or
-              Expr_Type.Kind = C_ULong or
-              Expr_Type.Kind = C_ULongLong or
-              Expr_Type.Kind = C_General_Integer then
-               --  test if both sons have a type
-               if Expr_Value (Left (Res)).Kind /= C_No_Kind and
-                 Expr_Value (Right (Res)).Kind /= C_No_Kind then
-                  Set_Expr_Value (Res, Duplicate (Expr_Type));
-                  Expr_Value (Res).Integer_Value :=
-                    Expr_Value (Left (Res)).Integer_Value or
-                    Expr_Value (Right (Res)).Integer_Value;
-                  Check_Value_Range (Res, False);
-               else
-                  Set_Expr_Value
-                    (Res, new Constant_Value (Kind => C_No_Kind));
-               end if;
-            else
-               Errors.Parser_Error ("The | operation is not defined " &
-                                    "on this type.",
-                                    Errors.Error,
-                                    Loc);
-               Set_Expr_Value
-                 (Res, new Constant_Value (Kind => C_No_Kind));
-            end if;
-            Result := Res;
-         end;
-      end loop;
-      pragma Debug (O2 ("Parse_Or_Expr : end"));
+      if Get_Token = T_Bar then
+         Errors.Parser_Error ("only simple constants are " &
+                              "implemented for the moment",
+                              Errors.Error,
+                              Loc);
+      end if;
+--          declare
+--             Res : Node_Id;
+--          begin
+--             Next_Token;
+--             Res := Make_Or_Expr;
+--             Set_Location (Result, Loc);
+--             Set_Expr_Type (Res, Duplicate (Expr_Type));
+--             Set_Left (Res, Xor_Exp);
+--             Parse_Or_Expr (Right (Res), Success, Duplicate (Expr_Type));
+--             if not Success then
+--                Result := Res;
+--                return;
+--             end;
+--             case Expr_Type is
+--                when C_Short =>
+--                   if (Right.Value (Res) < Idl_UShort_min and
+--                       Left.Value (Res) > Idl_Short_max) or
+--                     (Left.Value (Res) < Idl_UShort_min and
+--                      Right.Value (Res) > Idl_Short_max) then
+--                      Errors.Parser_Error ("the result of this operation " &
+--                                           "exceed the range of short " &
+--                                           "types.",
+--                                           Errors.Error,
+--                                           Loc);
+--                      Value (Res) = 0;
+--                   else
+--                      Set_Value (Res, Left.Value (Res) or Right.Value (Res));
+--                   end if;
+--                when C_Long =>
+--                   if (Right.Value (Res) < Idl_ULong_min and
+--                       Left.Value (Res) > Idl_Long_max) or
+--                     (Left.Value (Res) < Idl_ULong_min and
+--                      Right.Value (Res) > Idl_Long_max) then
+--                      Errors.Parser_Error ("the result of this operation " &
+--                                           "exceed the range of long " &
+--                                           "types.",
+--                                           Errors.Error,
+--                                           Loc);
+--                      Value (Res) = 0;
+--                   else
+--                      Set_Value (Res, Left.Value (Res) or Right.Value (Res));
+--                   end if;
+--                when C_LongLong =>
+--                   case Right.Expr_Type.Kind (Res) is
+--                      when C_LongLong =>
+--                         case Left.Expr_Type.Kind (Res) is
+--                            when C_LongLong =>
+--                             Set_Value (Res, Left.Value (Res) or
+--                                        Right.Value (Res));
+--                            when C_ULongLong =>
+--                               if Left.Value (Res) > Idl_LongLong.Max then
+--                                Errors.Parser_Error ("the result of this " &
+--                                                       "operation exceed " &
+--                                                       "the range of long " &
+--                                                       "long types.",
+--                                                       Errors.Error,
+--                                                       Loc);
+--                                  Value (Res) = 0;
+--                               else
+--                                  Value (Res) := Right.Value (Res) or
+--                                    Left.Value (Res);
+--                               end if;
+--                            when others =>
+--                               raise Errors.Internal_Error;
+--                         end case;
+--                      when C_ULongLong =>
+--                         case Left.Expr_Type.Kind (Res) is
+--                            when C_LongLong =>
+--                               if Right.Value (Res) > Idl_LongLong.Max then
+--                               Errors.Parser_Error ("the result of this " &
+--                                                       "operation exceed " &
+--                                                       "the range of long " &
+--                                                       "long types.",
+--                                                       Errors.Error,
+--                                                       Loc);
+--                                  Value (Res) = 0;
+--                               else
+--                                  Value (Res) := Right.Value (Res) or
+--                                    Left.Value (Res);
+--                               end if;
+--                            when C_ULongLong =>
+--                               Value (Res) := Right.Value (Res) or
+--                                 Left.Value (Res);
+--                               if Value (Res) > Idl_LongLong.Max then
+--                               Errors.Parser_Error ("the result of this " &
+--                                                       "operation exceed " &
+--                                                       "the range of long " &
+--                                                       "long types.",
+--                                                       Errors.Error,
+--                                                       Loc);
+--                                  Value (Res) = 0;
+--                               else
+--                                  Free (Expr_Type (Result));
+--                                  Expr_Type (Result) := new Const_Type
+--                                    (Kind => C_ULongLong);
+--                               end if;
+--                            when others =>
+--                               raise Errors.Internal_Error;
+--                         end case;
+--                      when others =>
+--                         raise Errors.Internal_Error;
+--                   end case;
+--                when C_ULongLong =>
+--                   case Right.Expr_Type.Kind (Res) is
+--                      when C_LongLong =>
+--                         case Left.Expr_Type.Kind (Res) is
+--                            when C_LongLong =>
+--                               Value (Res) := Right.Value (Res) or
+--                                 Left.Value (Res);
+--                               if Value (Res) > Idl_LongLong.Max then
+--                                Errors.Parser_Error ("the result of this " &
+--                                                       "operation exceed " &
+--                                                       "the range of long " &
+--                                                       "long types.",
+--                                                       Errors.Error,
+--                                                       Loc);
+--                                  Value (Res) = 0;
+--                               else
+--                                  Free (Expr_Type (Result));
+--                                  Expr_Type (Result) := new Const_Type
+--                                    (Kind => C_LongLong);
+--                               end if;
+--                            when C_ULongLong =>
+--                               if Right.Value (Res) > Idl_LongLong.Max then
+--                                Errors.Parser_Error ("the result of this " &
+--                                                       "operation exceed " &
+--                                                       "the range of long " &
+--                                                       "long types.",
+--                                                       Errors.Error,
+--                                                       Loc);
+--                                  Value (Res) = 0;
+--                               else
+--                                  Value (Res) := Right.Value (Res) or
+--                                    Left.Value (Res);
+--                               end if;
+--                            when others =>
+--                               raise Errors.Internal_Error;
+--                         end case;
+--                      when C_ULongLong =>
+--                         case Left.Expr_Type.Kind (Res) is
+--                            when C_LongLong =>
+--                               if Left.Value (Res) > Idl_LongLong.Max then
+--                                Errors.Parser_Error ("the result of this " &
+--                                                       "operation exceed " &
+--                                                       "the range of long " &
+--                                                       "long types.",
+--                                                       Errors.Error,
+--                                                       Loc);
+--                                  Value (Res) = 0;
+--                               else
+--                                  Value (Res) := Right.Value (Res) or
+--                                    Left.Value (Res);
+--                               end if;
+--                            when C_ULongLong =>
+--                               Value (Res) := Right.Value (Res) or
+--                                 Left.Value (Res);
+--                            when others =>
+--                               raise Errors.Internal_Error;
+--                         end case;
+--                      when others =>
+--                         raise Errors.Internal_Error;
+--                   end case;
+--                when others =>
+--                   Value (Res) = 0;
+--             end case;
+--             Result := Res;
+--          end;
+--       else
+      Result := Xor_Exp;
+--       end if;
       return;
    end Parse_Or_Expr;
 
@@ -2935,71 +3081,40 @@ package body Idl_Fe.Parser is
    ---------------------
    procedure Parse_Xor_Expr (Result : out Node_Id;
                              Success : out Boolean;
-                             Expr_Type : in Constant_Value_Ptr) is
+                             Expr_Type : in Const_Type_Ptr) is
+      And_Exp : Node_Id;
+      Loc : Idl_Fe.Errors.Location;
    begin
-      pragma Debug (O2 ("Parse_Xor_Expr : enter"));
-      Parse_And_Expr (Result, Success, Expr_Type);
+      Loc := Get_Token_Location;
+      Parse_And_Expr (And_Exp, Success, Expr_Type);
       if not Success then
          return;
       end if;
-      while Get_Token = T_Circumflex loop
-         declare
-            Res : Node_Id;
-            Res_Right : Node_Id;
-            Loc : Idl_Fe.Errors.Location;
-         begin
-            Loc := Get_Token_Location;
-            Next_Token;
-            Res := Make_Xor_Expr;
-            Set_Location (Res, Loc);
-            Set_Left (Res, Result);
-            Parse_And_Expr (Res_Right, Success, Expr_Type);
-            if not Success or Res_Right = No_Node then
-               Set_Right (Res, No_Node);
-               Set_Expr_Value
-                 (Res, new Constant_Value (Kind => C_No_Kind));
-               Result := Res;
-               return;
-            end if;
-            Set_Right (Res, Res_Right);
-            if Left (Res) = No_Node then
-               Set_Expr_Value
-                 (Res, new Constant_Value (Kind => C_No_Kind));
-               Result := Res;
-               return;
-            end if;
-            --  test if the types are ok for the or operation
-            if Expr_Type.Kind = C_Short or
-              Expr_Type.Kind = C_Long or
-              Expr_Type.Kind = C_LongLong or
-              Expr_Type.Kind = C_UShort or
-              Expr_Type.Kind = C_ULong or
-              Expr_Type.Kind = C_ULongLong or
-              Expr_Type.Kind = C_General_Integer then
-               --  test if both sons have a type
-               if Expr_Value (Left (Res)).Kind /= C_No_Kind and
-                 Expr_Value (Right (Res)).Kind /= C_No_Kind then
-                  Set_Expr_Value (Res, Duplicate (Expr_Type));
-                  Expr_Value (Res).Integer_Value :=
-                    Expr_Value (Left (Res)).Integer_Value xor
-                    Expr_Value (Right (Res)).Integer_Value;
-                  Check_Value_Range (Res, False);
-               else
-                  Set_Expr_Value
-                    (Res, new Constant_Value (Kind => C_No_Kind));
-               end if;
-            else
-               Errors.Parser_Error ("The ^ operation is not defined " &
-                                    "on this type.",
-                                    Errors.Error,
-                                    Loc);
-               Set_Expr_Value
-                 (Res, new Constant_Value (Kind => C_No_Kind));
-            end if;
-            Result := Res;
-         end;
-      end loop;
-      pragma Debug (O2 ("Parse_Xor_Expr : end"));
+      if Get_Token = T_Circumflex then
+         Errors.Parser_Error ("only simple constants are " &
+                              "implemented for the moment",
+                              Errors.Error,
+                              Loc);
+      end if;
+--          declare
+--             Res : Node_Id;
+--          begin
+--             Next_Token;
+--             Res := Make_Xor_Expr;
+--             Set_Location (Result, Loc);
+--             Set_Left (Res, And_Exp);
+--             Parse_Xor_Expr (Right (Res), Success, Expr_Type);
+--             if Success then
+--                Eval_Xor_Expr (Left.Value (Res),
+--                               Right.Value (Res),
+--                               Value (Res),
+--                               Loc);
+--             end if;
+--             Result := Res;
+--          end;
+--       else
+      Result := And_Exp;
+--       end if;
       return;
    end Parse_Xor_Expr;
 
@@ -3008,71 +3123,40 @@ package body Idl_Fe.Parser is
    ---------------------
    procedure Parse_And_Expr (Result : out Node_Id;
                              Success : out Boolean;
-                             Expr_Type : in Constant_Value_Ptr) is
+                             Expr_Type : in Const_Type_Ptr) is
+      Shift_Exp : Node_Id;
+      Loc : Idl_Fe.Errors.Location;
    begin
-      pragma Debug (O2 ("Parse_And_Expr : enter"));
-      Parse_Shift_Expr (Result, Success, Expr_Type);
+      Loc := Get_Token_Location;
+      Parse_Shift_Expr (Shift_Exp, Success, Expr_Type);
       if not Success then
          return;
       end if;
-      while Get_Token = T_Ampersand loop
-         declare
-            Res : Node_Id;
-            Res_Right : Node_Id;
-            Loc : Idl_Fe.Errors.Location;
-         begin
-            Loc := Get_Token_Location;
-            Next_Token;
-            Res := Make_And_Expr;
-            Set_Location (Res, Loc);
-            Set_Left (Res, Result);
-            Parse_Shift_Expr (Res_Right, Success, Expr_Type);
-            if not Success or Res_Right = No_Node then
-               Set_Right (Res, No_Node);
-               Set_Expr_Value
-                 (Res, new Constant_Value (Kind => C_No_Kind));
-               Result := Res;
-               return;
-            end if;
-            Set_Right (Res, Res_Right);
-            if Left (Res) = No_Node then
-               Set_Expr_Value
-                 (Res, new Constant_Value (Kind => C_No_Kind));
-               Result := Res;
-               return;
-            end if;
-            --  test if the types are ok for the or operation
-            if Expr_Type.Kind = C_Short or
-              Expr_Type.Kind = C_Long or
-              Expr_Type.Kind = C_LongLong or
-              Expr_Type.Kind = C_UShort or
-              Expr_Type.Kind = C_ULong or
-              Expr_Type.Kind = C_ULongLong or
-              Expr_Type.Kind = C_General_Integer then
-               --  test if both sons have a type
-               if Expr_Value (Left (Res)).Kind /= C_No_Kind and
-                 Expr_Value (Right (Res)).Kind /= C_No_Kind then
-                  Set_Expr_Value (Res, Duplicate (Expr_Type));
-                  Expr_Value (Res).Integer_Value :=
-                    Expr_Value (Left (Res)).Integer_Value and
-                    Expr_Value (Right (Res)).Integer_Value;
-                  Check_Value_Range (Res, False);
-               else
-                  Set_Expr_Value
-                    (Res, new Constant_Value (Kind => C_No_Kind));
-               end if;
-            else
-               Errors.Parser_Error ("The & operation is not defined " &
-                                    "on this type.",
-                                    Errors.Error,
-                                    Loc);
-               Set_Expr_Value
-                 (Res, new Constant_Value (Kind => C_No_Kind));
-            end if;
-            Result := Res;
-         end;
-      end loop;
-      pragma Debug (O2 ("Parse_And_Expr : end"));
+      if Get_Token = T_Ampersand then
+         Errors.Parser_Error ("only simple constants are " &
+                              "implemented for the moment",
+                              Errors.Error,
+                              Loc);
+      end if;
+--          declare
+--             Res : Node_Id;
+--          begin
+--             Next_Token;
+--             Res := Make_And_Expr;
+--             Set_Location (Result, Loc);
+--             Set_Left (Res, Shift_Exp);
+--             Parse_And_Expr (Right (Res), Success);
+--             if Success then
+--                Eval_And_Expr (Left.Value (Res),
+--                               Right.Value (Res),
+--                               Value (Res),
+--                               Loc);
+--             end if;
+--             Result := Res;
+--          end;
+--       else
+      Result := Shift_Exp;
+--       end if;
       return;
    end Parse_And_Expr;
 
@@ -3081,128 +3165,69 @@ package body Idl_Fe.Parser is
    -----------------------
    procedure Parse_Shift_Expr (Result : out Node_Id;
                                Success : out Boolean;
-                               Expr_Type : in Constant_Value_Ptr) is
+                               Expr_Type : in Const_Type_Ptr) is
+      Add_Exp : Node_Id;
+      Loc : Idl_Fe.Errors.Location;
    begin
-      pragma Debug (O2 ("Parse_Shift_Expr : enter"));
-      Parse_Add_Expr (Result, Success, Expr_Type);
+      Loc := Get_Token_Location;
+      Parse_Add_Expr (Add_Exp, Success, Expr_Type);
       if not Success then
          return;
       end if;
-      While_Loop :
-      while Get_Token = T_Greater_Greater or
-        Get_Token = T_Less_Less loop
-         declare
-            Res : Node_Id;
-            Res_Right : Node_Id;
-            Loc : Idl_Fe.Errors.Location;
-            Shl : Boolean;
-         begin
-            --  if we have a t_greater_greater and no expression
-            --  after it, it is likely to be a double sequence
-            --  end, so we exit from the loop
-            if Get_Token = T_Greater_Greater then
-               case View_Next_Token is
-                  when T_Left_Paren
-                    | T_Plus
-                    | T_Minus
-                    | T_Tilde
-                    | T_Lit_Decimal_Integer
-                    | T_Lit_Octal_Integer
-                    | T_Lit_Hexa_Integer =>
-                     null;
-                  when T_Identifier =>
-                     --  FIXME : not always exit
-                     exit While_Loop;
-                  when others =>
-                     exit While_Loop;
-               end case;
-            end if;
-            Loc := Get_Token_Location;
-            Next_Token;
-            if View_Previous_Token = T_Greater_Greater then
-               Shl := False;
-               Res := Make_Shr_Expr;
-            else
-               Shl := True;
-               Res := Make_Shl_Expr;
-            end if;
-            Set_Location (Res, Loc);
-            Set_Left (Res, Result);
-            Parse_Add_Expr (Res_Right, Success, Expr_Type);
-            if not Success or Res_Right = No_Node then
-               Set_Right (Res, No_Node);
-               Set_Expr_Value
-                 (Res, new Constant_Value (Kind => C_No_Kind));
-               Result := Res;
-               return;
-            end if;
-            Set_Right (Res, Res_Right);
-            if Left (Res) = No_Node then
-               Set_Expr_Value
-                 (Res, new Constant_Value (Kind => C_No_Kind));
-               Result := Res;
-               return;
-            end if;
-            --  test if the types are ok for the or operation
-            if Expr_Type.Kind = C_Short or
-              Expr_Type.Kind = C_Long or
-              Expr_Type.Kind = C_LongLong or
-              Expr_Type.Kind = C_UShort or
-              Expr_Type.Kind = C_ULong or
-              Expr_Type.Kind = C_ULongLong or
-              Expr_Type.Kind = C_General_Integer then
-               --  test if both sons have a type
-               if Expr_Value (Left (Res)).Kind /= C_No_Kind and
-                 Expr_Value (Right (Res)).Kind /= C_No_Kind then
-                  Set_Expr_Value (Res, Duplicate (Expr_Type));
-                  --  check the value of the right operand
-                  if Expr_Value (Right (Res)).Integer_Value < 0 or
-                    Expr_Value (Right (Res)).Integer_Value > 63
-                  then
-                     if Expr_Value (Right (Res)).Integer_Value < 0 then
-                        Errors.Parser_Error ("The right operand must be " &
-                                             "positive. The shift operation " &
-                                             "will be ignored.",
-                                             Errors.Error,
-                                             Loc);
-                        Expr_Value (Res).Integer_Value :=
-                          Expr_Value (Left (Res)).Integer_Value;
-                     else
-                        Errors.Parser_Error ("The right operand must be " &
-                                             "less than 64. The result will " &
-                                             "be put to 0.",
-                                             Errors.Error,
-                                             Loc);
-                        Expr_Value (Res).Integer_Value := 0;
-                     end if;
-                  else
-                     if Shl then
-                        Expr_Value (Res).Integer_Value := Shift_Left
-                          (Expr_Value (Left (Res)).Integer_Value,
-                           Natural (Expr_Value (Right (Res)).Integer_Value));
-                     else
-                        Expr_Value (Res).Integer_Value := Shift_Right
-                          (Expr_Value (Left (Res)).Integer_Value,
-                           Natural (Expr_Value (Right (Res)).Integer_Value));
-                     end if;
-                  end if;
-                  Check_Value_Range (Res, False);
-               else
-                  Set_Expr_Value
-                    (Res, new Constant_Value (Kind => C_No_Kind));
-               end if;
-            else
-               Errors.Parser_Error ("The << and >> operations are not " &
-                                    "defined on this type.",
+      --  a T_Greater_Greater can be the end of a sequence
+      if Get_Token = T_Greater_Greater then
+         case View_Next_Token is
+            when T_Lit_Decimal_Integer
+              | T_Lit_Octal_Integer
+              | T_Lit_Hexa_Integer =>
+               Errors.Parser_Error ("only simple constants are " &
+                                    "implemented for the moment",
                                     Errors.Error,
                                     Loc);
-               Set_Expr_Value
-                 (Res, new Constant_Value (Kind => C_No_Kind));
-            end if;
-            Result := Res;
-         end;
-      end loop While_Loop;
-      pragma Debug (O2 ("Parse_Shift_Expr : end"));
+            when others =>
+               null;
+         end case;
+--          declare
+--             Res : Node_Id;
+--          begin
+--             Next_Token;
+--             Res := Make_Shr_Expr;
+--             Set_Location (Result, Loc);
+--             Set_Left (Res, Add_Exp);
+--             Parse_Shift_Expr (Right (Res), Success);
+--             if Success then
+--                Eval_Shr_Expr (Left.Value (Res),
+--                               Right.Value (Res),
+--                               Value (Res),
+--                               Loc);
+--             end if;
+--             Result := Res;
+--          end;
+      elsif Get_Token = T_Less_Less then
+         Errors.Parser_Error ("only simple constants are " &
+                              "implemented for the moment",
+                              Errors.Error,
+                              Loc);
+      end if;
+--          declare
+--             Res : Node_Id;
+--          begin
+--             Next_Token;
+--             Res := Make_Shl_Expr;
+--             Set_Location (Result, Loc);
+--             Set_Left (Res, Add_Exp);
+--             Parse_Shift_Expr (Right (Res), Success);
+--             if Success then
+--                Eval_Shl_Expr (Left.Value (Res),
+--                               Right.Value (Res),
+--                               Value (Res),
+--                               Loc);
+--             end if;
+--             Result := Res;
+--          end;
+--       else
+      Result := Add_Exp;
+--       end if;
       return;
    end Parse_Shift_Expr;
 
@@ -3211,154 +3236,61 @@ package body Idl_Fe.Parser is
    ---------------------
    procedure Parse_Add_Expr (Result : out Node_Id;
                              Success : out Boolean;
-                             Expr_Type : in Constant_Value_Ptr) is
+                             Expr_Type : in Const_Type_Ptr) is
+      Mult_Exp : Node_Id;
+      Loc : Idl_Fe.Errors.Location;
    begin
-      pragma Debug (O2 ("Parse_Add_Expr : enter"));
-      Parse_Mult_Expr (Result, Success, Expr_Type);
+      Loc := Get_Token_Location;
+      Parse_Mult_Expr (Mult_Exp, Success, Expr_Type);
       if not Success then
          return;
       end if;
-      while Get_Token = T_Plus or
-        Get_Token = T_Minus loop
-         declare
-            Res : Node_Id;
-            Res_Right : Node_Id;
-            Loc : Idl_Fe.Errors.Location;
-            Plus : Boolean;
-         begin
-            Loc := Get_Token_Location;
-            Next_Token;
-            if View_Previous_Token = T_Plus then
-               Plus := True;
-               Res := Make_Add_Expr;
-            else
-               Plus := False;
-               Res := Make_Sub_Expr;
-            end if;
-            Set_Location (Res, Loc);
-            Set_Left (Res, Result);
-            Parse_Mult_Expr (Res_Right, Success, Expr_Type);
-            if not Success or Res_Right = No_Node then
-               Set_Right (Res, No_Node);
-               Set_Expr_Value
-                 (Res, new Constant_Value (Kind => C_No_Kind));
-               Result := Res;
-               return;
-            end if;
-            Set_Right (Res, Res_Right);
-            if Left (Res) = No_Node then
-               Set_Expr_Value
-                 (Res, new Constant_Value (Kind => C_No_Kind));
-               Result := Res;
-               return;
-            end if;
-            --  test if the types are ok for the or operation
-            if Expr_Type.Kind = C_Short or
-              Expr_Type.Kind = C_Long or
-              Expr_Type.Kind = C_LongLong or
-              Expr_Type.Kind = C_UShort or
-              Expr_Type.Kind = C_ULong or
-              Expr_Type.Kind = C_ULongLong or
-              Expr_Type.Kind = C_General_Integer or
-              Expr_Type.Kind = C_Float or
-              Expr_Type.Kind = C_Double or
-              Expr_Type.Kind = C_LongDouble or
-              Expr_Type.Kind = C_General_Float or
-              Expr_Type.Kind = C_Fixed or
-              Expr_Type.Kind = C_General_Fixed then
-               --  test if both sons have a type
-               if Expr_Value (Left (Res)).Kind /= C_No_Kind and
-                 Expr_Value (Right (Res)).Kind /= C_No_Kind then
-                  Set_Expr_Value (Res, Duplicate (Expr_Type));
-                  if Expr_Type.Kind = C_Short or
-                    Expr_Type.Kind = C_Long or
-                    Expr_Type.Kind = C_LongLong or
-                    Expr_Type.Kind = C_UShort or
-                    Expr_Type.Kind = C_ULong or
-                    Expr_Type.Kind = C_ULongLong or
-                    Expr_Type.Kind = C_General_Integer then
-                     if Plus then
-                        Expr_Value (Res).Integer_Value :=
-                          Expr_Value (Left (Res)).Integer_Value +
-                          Expr_Value (Right (Res)).Integer_Value;
-                     else
-                        Expr_Value (Res).Integer_Value :=
-                          Expr_Value (Left (Res)).Integer_Value -
-                          Expr_Value (Right (Res)).Integer_Value;
-                     end if;
-                  elsif Expr_Type.Kind = C_Float or
-                    Expr_Type.Kind = C_Double or
-                    Expr_Type.Kind = C_LongDouble or
-                    Expr_Type.Kind = C_General_Float then
-                     if Plus then
-                        Expr_Value (Res).Float_Value :=
-                          Expr_Value (Left (Res)).Float_Value +
-                          Expr_Value (Right (Res)).Float_Value;
-                     else
-                        Expr_Value (Res).Float_Value :=
-                          Expr_Value (Left (Res)).Float_Value -
-                          Expr_Value (Right (Res)).Float_Value;
-                     end if;
-                  else
-                     declare
-                        Res_Expr : Constant_Value_Ptr := Expr_Value (Res);
-                     begin
-                        if Plus then
-                           Fixed_Add (Res_Expr,
-                                      Expr_Value (Left (Res)),
-                                      Expr_Value (Right (Res)));
-                        else
-                           Fixed_Sub (Res_Expr,
-                                      Expr_Value (Left (Res)),
-                                      Expr_Value (Right (Res)));
-                        end if;
-                        Set_Expr_Value (Res, Res_Expr);
-                     end;
-                  end if;
-                  Check_Value_Range (Res, False);
-                  if Expr_Value (Res).Kind = C_Fixed and
-                    Expr_Type.Kind = C_Fixed then
-                     --  checks precision of the fixed value after
-                     --  the possible simplifications in
-                     --  check_value_range
-                     if Expr_Value (Res).Digits_Nb - Expr_Value (Res).Scale >
-                       Expr_Type.Digits_Nb - Expr_Type.Scale or
-                       Expr_Value (Res).Scale > Expr_Type.Scale then
-                        Idl_Fe.Errors.Parser_Error
-                          ("The specified type for this fixed point " &
-                           "constant is not enough precise for its value. " &
-                           "A more precise type will be used.",
-                           Idl_Fe.Errors.Error,
-                           Get_Token_Location);
-                        declare
-                           Value : Constant_Value_Ptr := Expr_Value (Res);
-                        begin
-                           Set_Expr_Value
-                             (Res,
-                              new Constant_Value (Kind => C_General_Fixed));
-                           Expr_Value (Res).Fixed_Value := Value.Fixed_Value;
-                           Expr_Value (Res).Digits_Nb := Value.Digits_Nb;
-                           Expr_Value (Res).Scale := Value.Scale;
-                           Free (Value);
-                        end;
-                     end if;
-                  end if;
-               else
-                  Set_Expr_Value
-                    (Res, new Constant_Value (Kind => C_No_Kind));
-               end if;
-            else
-               Errors.Parser_Error ("The + and - operations are not defined " &
-                                    "on this type.",
-                                    Errors.Error,
-                                    Loc);
-               Set_Expr_Value
-                 (Res, new Constant_Value (Kind => C_No_Kind));
-            end if;
-            Result := Res;
-         end;
-      end loop;
-      pragma Debug (O2 ("Parse_Add_Expr : end"));
+      if Get_Token = T_Plus then
+         Errors.Parser_Error ("only simple constants are " &
+                              "implemented for the moment",
+                              Errors.Error,
+                              Loc);
+--          declare
+--             Res : Node_Id;
+--          begin
+--             Next_Token;
+--             Res := Make_Add_Expr;
+--             Set_Location (Result, Loc);
+--             Set_Left (Res, Mult_Exp);
+--             Parse_Add_Expr (Right (Res), Success);
+--             if Success then
+--                Eval_Add_Expr (Left.Value (Res),
+--                               Right.Value (Res),
+--                               Value (Res),
+--                               Loc);
+--             end if;
+--             Result := Res;
+--          end;
+      elsif Get_Token = T_Minus then
+         Errors.Parser_Error ("only simple constants are " &
+                              "implemented for the moment",
+                              Errors.Error,
+                              Loc);
+      end if;
+--          declare
+--             Res : Node_Id;
+--          begin
+--             Next_Token;
+--             Res := Make_Sub_Expr;
+--             Set_Location (Result, Loc);
+--             Set_Left (Res, Mult_Exp);
+--             Parse_Add_Expr (Right (Res), Success);
+--             if Success then
+--                Eval_Sub_Expr (Left.Value (Res),
+--                               Right.Value (Res),
+--                               Value (Res),
+--                               Loc);
+--             end if;
+--             Result := Res;
+--          end;
+--       else
+      Result := Mult_Exp;
+--       end if;
       return;
    end Parse_Add_Expr;
 
@@ -3367,210 +3299,82 @@ package body Idl_Fe.Parser is
    ----------------------
    procedure Parse_Mult_Expr (Result : out Node_Id;
                               Success : out Boolean;
-                              Expr_Type : in Constant_Value_Ptr) is
+                              Expr_Type : in Const_Type_Ptr) is
+      Unary_Exp : Node_Id;
+      Loc : Idl_Fe.Errors.Location;
    begin
-      pragma Debug (O2 ("Parse_Mult_Expr : enter"));
-      Parse_Unary_Expr (Result, Success, Expr_Type);
+      Loc := Get_Token_Location;
+      Parse_Unary_Expr (Unary_Exp, Success, Expr_Type);
       if not Success then
          return;
       end if;
-      while Get_Token = T_Star or
-        Get_Token = T_Slash or
-        Get_Token = T_Percent loop
-         declare
-            Res : Node_Id;
-            Res_Right : Node_Id;
-            Loc : Idl_Fe.Errors.Location;
-            type Operator_Type is (Mul, Div, Modulo);
-            Op : Operator_Type;
-         begin
-            Loc := Get_Token_Location;
-            Next_Token;
-            if View_Previous_Token = T_Star then
-               Op := Mul;
-               Res := Make_Mul_Expr;
-            elsif View_Previous_Token = T_Slash then
-               Op := Div;
-               Res := Make_Div_Expr;
-            else
-               Op := Modulo;
-               Res := Make_Mod_Expr;
-            end if;
-            Set_Location (Res, Loc);
-            Set_Left (Res, Result);
-            Parse_Unary_Expr (Res_Right, Success, Expr_Type);
-            if not Success or Res_Right = No_Node then
-               Set_Right (Res, No_Node);
-               Set_Expr_Value
-                 (Res, new Constant_Value (Kind => C_No_Kind));
-               Result := Res;
-               return;
-            end if;
-            Set_Right (Res, Res_Right);
-            if Left (Res) = No_Node then
-               Set_Expr_Value
-                 (Res, new Constant_Value (Kind => C_No_Kind));
-               Result := Res;
-               return;
-            end if;
-            --  test if the types are ok for the or operation
-            if Expr_Type.Kind = C_Short or
-              Expr_Type.Kind = C_Long or
-              Expr_Type.Kind = C_LongLong or
-              Expr_Type.Kind = C_UShort or
-              Expr_Type.Kind = C_ULong or
-              Expr_Type.Kind = C_ULongLong or
-              Expr_Type.Kind = C_General_Integer or
-              ((Expr_Type.Kind = C_Float or
-                Expr_Type.Kind = C_Double or
-                Expr_Type.Kind = C_LongDouble or
-                Expr_Type.Kind = C_General_Float or
-                Expr_Type.Kind = C_Fixed or
-                Expr_Type.Kind = C_General_Fixed) and
-               Op /= Modulo) then
-               --  test if both sons have a type
-               if Expr_Value (Left (Res)).Kind /= C_No_Kind and
-                 Expr_Value (Right (Res)).Kind /= C_No_Kind then
-                  Set_Expr_Value (Res, Duplicate (Expr_Type));
-                  if Expr_Type.Kind = C_Short or
-                    Expr_Type.Kind = C_Long or
-                    Expr_Type.Kind = C_LongLong or
-                    Expr_Type.Kind = C_UShort or
-                    Expr_Type.Kind = C_ULong or
-                    Expr_Type.Kind = C_ULongLong or
-                    Expr_Type.Kind = C_General_Integer then
-                     if Op = Mul then
-                        Expr_Value (Res).Integer_Value :=
-                          Expr_Value (Left (Res)).Integer_Value *
-                          Expr_Value (Right (Res)).Integer_Value;
-                     elsif Op = Div then
-                        if Expr_Value (Right (Res)).Integer_Value = 0 then
-                           Idl_Fe.Errors.Parser_Error
-                             ("The second operand of the division is 0. " &
-                              "The operation will be ignored.",
-                              Idl_Fe.Errors.Error,
+      if Get_Token = T_Star then
+         Errors.Parser_Error ("only simple constants are " &
+                              "implemented for the moment",
+                              Errors.Error,
                               Loc);
-                           Expr_Value (Res).Integer_Value :=
-                             Expr_Value (Left (Res)).Integer_Value;
-                        else
-                           Expr_Value (Res).Integer_Value :=
-                             Expr_Value (Left (Res)).Integer_Value /
-                             Expr_Value (Right (Res)).Integer_Value;
-                        end if;
-                     else
-                        if Expr_Value (Right (Res)).Integer_Value = 0 then
-                           Idl_Fe.Errors.Parser_Error
-                             ("The second operand of the modulo is 0. " &
-                              "The modulo operation will be ignored.",
-                              Idl_Fe.Errors.Error,
+--          declare
+--             Res : Node_Id;
+--          begin
+--             Next_Token;
+--             Res := Make_Mul_Expr;
+--             Set_Location (Result, Loc);
+--             Set_Left (Res, Unary_Exp);
+--             Parse_Mult_Expr (Right (Res), Success);
+--             if Success then
+--                Eval_Mul_Expr (Left.Value (Res),
+--                               Right.Value (Res),
+--                               Value (Res),
+--                               Loc);
+--             end if;
+--             Result := Res;
+--          end;
+      elsif Get_Token = T_Slash then
+         Errors.Parser_Error ("only simple constants are " &
+                              "implemented for the moment",
+                              Errors.Error,
                               Loc);
-                           Expr_Value (Res).Integer_Value :=
-                             Expr_Value (Left (Res)).Integer_Value;
-                        else
-                           Expr_Value (Res).Integer_Value :=
-                             Expr_Value (Left (Res)).Integer_Value mod
-                             Expr_Value (Right (Res)).Integer_Value;
-                        end if;
-                     end if;
-                  elsif Expr_Type.Kind = C_Float or
-                    Expr_Type.Kind = C_Double or
-                    Expr_Type.Kind = C_LongDouble or
-                    Expr_Type.Kind = C_General_Float then
-                     if Op = Mul then
-                        Expr_Value (Res).Float_Value :=
-                          Expr_Value (Left (Res)).Float_Value *
-                          Expr_Value (Right (Res)).Float_Value;
-                     else
-                        if Expr_Value (Right (Res)).Float_Value = 0.0 then
-                           Idl_Fe.Errors.Parser_Error
-                             ("The second operand of the division is 0. " &
-                              "The operation will be ignored.",
-                              Idl_Fe.Errors.Error,
+--          declare
+--             Res : Node_Id;
+--          begin
+--             Next_Token;
+--             Res := Make_Div_Expr;
+--             Set_Location (Result, Loc);
+--             Set_Left (Res, Unary_Exp);
+--             Parse_Mult_Expr (Right (Res), Success);
+--             if Success then
+--                Eval_Div_Expr (Left.Value (Res),
+--                               Right.Value (Res),
+--                               Value (Res),
+--                               Loc);
+--             end if;
+--             Result := Res;
+--          end;
+      elsif Get_Token = T_Percent then
+         Errors.Parser_Error ("only simple constants are " &
+                              "implemented for the moment",
+                              Errors.Error,
                               Loc);
-                           Expr_Value (Res).Float_Value :=
-                             Expr_Value (Left (Res)).Float_Value;
-                        else
-                           Expr_Value (Res).Float_Value :=
-                             Expr_Value (Left (Res)).Float_Value /
-                             Expr_Value (Right (Res)).Float_Value;
-                        end if;
-                     end if;
-                  else
-                     declare
-                        Res_Expr : Constant_Value_Ptr := Expr_Value (Res);
-                     begin
-                        if Op = Mul then
-                           Fixed_Mul (Res_Expr,
-                                      Expr_Value (Left (Res)),
-                                      Expr_Value (Right (Res)));
-                        else
-                           if Expr_Value (Right (Res)).Fixed_Value = 0 then
-                              Idl_Fe.Errors.Parser_Error
-                                ("The second operand of the division is 0. " &
-                                 "The operation will be ignored.",
-                                 Idl_Fe.Errors.Error,
-                                 Loc);
-                              Expr_Value (Res).Fixed_Value :=
-                                Expr_Value (Left (Res)).Fixed_Value;
-                           else
-                              Fixed_Div (Res_Expr,
-                                         Expr_Value (Left (Res)),
-                                         Expr_Value (Right (Res)));
-                           end if;
-                        end if;
-                     end;
-                  end if;
-                  Check_Value_Range (Res, False);
-                  if Expr_Value (Res).Kind = C_Fixed and
-                    Expr_Type.Kind = C_Fixed then
-                     --  checks precision of the fixed value after
-                     --  the possible simplifications in
-                     --  check_value_range
-                     if Expr_Value (Res).Digits_Nb - Expr_Value (Res).Scale >
-                       Expr_Type.Digits_Nb - Expr_Type.Scale or
-                       Expr_Value (Res).Scale > Expr_Type.Scale then
-                        Idl_Fe.Errors.Parser_Error
-                          ("The specified type for this fixed point " &
-                           "constant is not enough precise for its value. " &
-                           "A more precise type will be used.",
-                           Idl_Fe.Errors.Error,
-                           Get_Token_Location);
-                        declare
-                           Value : Constant_Value_Ptr := Expr_Value (Res);
-                        begin
-                           Set_Expr_Value
-                             (Res,
-                              new Constant_Value (Kind => C_General_Fixed));
-                           Expr_Value (Res).Fixed_Value := Value.Fixed_Value;
-                           Expr_Value (Res).Digits_Nb := Value.Digits_Nb;
-                           Expr_Value (Res).Scale := Value.Scale;
-                           Free (Value);
-                        end;
-                     end if;
-                  end if;
-               else
-                  Set_Expr_Value
-                    (Res, new Constant_Value (Kind => C_No_Kind));
-               end if;
-            else
-               if Op = Modulo then
-                  Errors.Parser_Error ("The % operation is not defined " &
-                                       "on this type.",
-                                       Errors.Error,
-                                       Loc);
-               else
-                  Errors.Parser_Error ("The * and / operations are not " &
-                                       "defined on this type.",
-                                       Errors.Error,
-                                       Loc);
-               end if;
-               Set_Expr_Value
-                 (Res, new Constant_Value (Kind => C_No_Kind));
-            end if;
-            Result := Res;
-         end;
-      end loop;
-      pragma Debug (O2 ("Parse_Mult_Expr : end"));
+      end if;
+--          declare
+--             Res : Node_Id;
+--          begin
+--             Next_Token;
+--             Res := Make_Mod_Expr;
+--             Set_Location (Result, Loc);
+--             Set_Left (Res, Unary_Exp);
+--             Parse_Mult_Expr (Right (Res), Success);
+--             if Success then
+--                Eval_Mod_Expr (Left.Value (Res),
+--                               Right.Value (Res),
+--                               Value (Res),
+--                               Loc);
+--             end if;
+--             Result := Res;
+--          end;
+--       else
+      Result := Unary_Exp;
+--       end if;
       return;
    end Parse_Mult_Expr;
 
@@ -3580,124 +3384,69 @@ package body Idl_Fe.Parser is
 
    procedure Parse_Unary_Expr (Result : out Node_Id;
                                Success : out Boolean;
-                               Expr_Type : in Constant_Value_Ptr) is
-      type Operator_Type is (Plus, Minus, Tilde);
-      Op : Operator_Type;
-      Loc : Idl_Fe.Errors.Location;
+                               Expr_Type : in Const_Type_Ptr) is
    begin
-      pragma Debug (O2 ("Parse_Unary_Expr : enter"));
       case Get_Token is
-         when T_Plus
-           | T_Minus
-           | T_Tilde =>
-            Loc := Get_Token_Location;
-            if Get_Token = T_Plus then
-               Op := Plus;
-               Result := Make_Id_Expr;
-            elsif Get_Token = T_Minus then
-               Op := Minus;
-               Result := Make_Neg_Expr;
-            else
-               Op := Tilde;
-               Result := Make_Not_Expr;
-            end if;
-            Set_Location (Result, Get_Token_Location);
-            Next_Token;
-            declare
-               Operand : Node_Id;
-            begin
-               Parse_Primary_Expr (Operand, Success, Expr_Type);
-               if not Success or Operand = No_Node then
-                  Set_Operand (Result, No_Node);
-                  Set_Expr_Value
-                    (Result, new Constant_Value (Kind => C_No_Kind));
-                  return;
-               end if;
-               Set_Operand (Result, Operand);
-            end;
-            --  test if the types are ok for the or operation
-            if Expr_Type.Kind = C_Short or
-              Expr_Type.Kind = C_Long or
-              Expr_Type.Kind = C_LongLong or
-              Expr_Type.Kind = C_UShort or
-              Expr_Type.Kind = C_ULong or
-              Expr_Type.Kind = C_ULongLong or
-              Expr_Type.Kind = C_General_Integer or
-              ((Expr_Type.Kind = C_Float or
-                Expr_Type.Kind = C_Double or
-                Expr_Type.Kind = C_LongDouble or
-                Expr_Type.Kind = C_General_Float or
-                Expr_Type.Kind = C_Fixed or
-                Expr_Type.Kind = C_General_Fixed) and
-               Op /= Tilde) then
-               --  test if the operand has a type
-               if Expr_Value (Operand (Result)).Kind /= C_No_Kind then
-                  Set_Expr_Value (Result, Duplicate (Expr_Type));
-                  if Expr_Type.Kind = C_Short or
-                    Expr_Type.Kind = C_Long or
-                    Expr_Type.Kind = C_LongLong or
-                    Expr_Type.Kind = C_UShort or
-                    Expr_Type.Kind = C_ULong or
-                    Expr_Type.Kind = C_ULongLong or
-                    Expr_Type.Kind = C_General_Integer then
-                     if Op = Plus then
-                        Expr_Value (Result).Integer_Value :=
-                          Expr_Value (Operand (Result)).Integer_Value;
-                     elsif Op = Minus then
-                        Expr_Value (Result).Integer_Value :=
-                          -Expr_Value (Operand (Result)).Integer_Value;
-                     else
-                        Expr_Value (Result).Integer_Value :=
-                          not Expr_Value (Operand (Result)).Integer_Value;
-                     end if;
-                  elsif Expr_Type.Kind = C_Float or
-                    Expr_Type.Kind = C_Double or
-                    Expr_Type.Kind = C_LongDouble or
-                    Expr_Type.Kind = C_General_Float then
-                     if Op = Plus then
-                        Expr_Value (Result).Float_Value :=
-                          Expr_Value (Operand (Result)).Float_Value;
-                     else
-                        Expr_Value (Result).Float_Value :=
-                          -Expr_Value (Operand (Result)).Float_Value;
-                     end if;
-                  else
-                     declare
-                        Res_Expr : Constant_Value_Ptr := Expr_Value (Result);
-                     begin
-                        if Op = Plus then
-                           Fixed_Id (Res_Expr,
-                                     Expr_Value (Operand (Result)));
-                        else
-                           Fixed_Neg (Res_Expr,
-                                      Expr_Value (Operand (Result)));
-                        end if;
-                        Set_Expr_Value (Result, Res_Expr);
-                     end;
-                  end if;
-               else
-                  Set_Expr_Value
-                    (Result, new Constant_Value (Kind => C_No_Kind));
-               end if;
-            else
-               if Op = Tilde then
-                  Errors.Parser_Error ("The ~ operation is not defined " &
-                                       "on this type.",
-                                       Errors.Error,
-                                       Loc);
-               else
-                  Errors.Parser_Error ("The unary + and - operations are " &
-                                       "not defined on this type.",
-                                       Errors.Error,
-                                       Loc);
-               end if;
-               Set_Expr_Value
-                 (Result, new Constant_Value (Kind => C_No_Kind));
-            end if;
-            Check_Value_Range (Result, False);
+         when T_Minus =>
+            Errors.Parser_Error ("only simple constants are " &
+                                 "implemented for the moment",
+                                 Errors.Error,
+                                 Get_Token_Location);
+--             declare
+--                Res : Node_Id;
+--             begin
+--                Next_Token;
+--                Res := Make_Neg_Expr;
+--                Set_Location (Res, Get_Previous_Token_Location);
+--                Parse_Primary_Expr (Operand (Res), Success, Expr_Type);
+--                if Success then
+--                   Eval_Neg_Expr (Operand.Value (Res),
+--                                  Value (Res),
+--                                  Get_Previous_Token_Location);
+--                end if;
+--                Result := Res;
+--             end;
+         when T_Plus =>
+            Errors.Parser_Error ("only simple constants are " &
+                                 "implemented for the moment",
+                                 Errors.Error,
+                                 Get_Token_Location);
+--             declare
+--                Res : Node_Id;
+--             begin
+--                Next_Token;
+--                Res := Make_Id_Expr;
+--                Set_Location (Res, Get_Previous_Token_Location);
+--                Parse_Primary_Expr (Operand (Res), Success, Expr_Type);
+--                if Success then
+--                   Set_Value (Res, Operand.Value (Res));
+--                end if;
+--                Result := Res;
+--             end;
+         when T_Tilde =>
+            Errors.Parser_Error ("only simple constants are " &
+                                 "implemented for the moment",
+                                 Errors.Error,
+                                 Get_Token_Location);
+--             declare
+--                Res : Node_Id;
+--             begin
+--                Next_Token;
+--                Res := Make_Not_Expr;
+--                Set_Location (Res, Get_Previous_Token_Location);
+--                Parse_Primary_Expr (Operand (Res), Success, Expr_Type);
+--                if Success then
+--                   Eval_Not_Expr (Operand.Value (Res),
+--                                  Value (Res),
+--                                  Get_Previous_Token_Location);
+--                end if;
+--                Result := Res;
+--             end;
          when others =>
             Parse_Primary_Expr (Result, Success, Expr_Type);
+            return;
       end case;
+      Success := False;
       return;
    end Parse_Unary_Expr;
 
@@ -3707,86 +3456,49 @@ package body Idl_Fe.Parser is
 
    procedure Parse_Primary_Expr (Result : out Node_Id;
                                  Success : out Boolean;
-                                 Expr_Type : in Constant_Value_Ptr) is
+                                 Expr_Type : in Const_Type_Ptr) is
+      Res : Node_Id;
    begin
+      Res := Make_Primary_Expr;
+      Set_Location (Res, Get_Token_Location);
+      Set_Expr_Type (Res, Expr_Type);
       case Get_Token is
-         when  T_Colon_Colon
-           | T_Identifier =>
-            declare
-               Local_Res : Node_Id;
-            begin
-               Parse_Scoped_Name (Local_Res, Success);
-               if Success then
-                  --  this scoped name must denote a previously
-                  --  defined constant or enum value
-                  if Local_Res /= No_Node then
-                     --  If it is a constant, check its type and
-                     --  duplicate its value
-                     if Kind (Value (Local_Res)) = K_Const_Dcl then
-                        Check_Expr_Value
-                          (Expr_Value (Expression (Value (Local_Res))),
-                           Expr_Type);
-                        Result := Expression (Value (Local_Res));
-                     elsif Kind (Value (Local_Res)) = K_Enumerator then
-                        --  If it is an enum value, check the specified type
-                        Result := Make_Lit_Enum;
-                        Set_Location (Result, Get_Token_Location);
-                        if Expr_Type.Kind = C_Enum then
-                           --  checks that the value is of the right type
-                           pragma Debug (O ("Parse_Primary_Expr : Kind " &
-                                            "(Expr_Type.Enum_Name) is " &
-                                            Node_Kind'Image
-                                            (Kind (Expr_Type.Enum_Name))));
-                           if not Is_In_List
-                             (Enumerators (Expr_Type.Enum_Name),
-                              Value (Local_Res)) then
-                              Idl_Fe.Errors.Parser_Error
-                                ("The specified type for this constant " &
-                                 "does not match with its value.",
-                                 Idl_Fe.Errors.Error,
-                                 Get_Token_Location);
-                              Set_Expr_Value
-                                (Result,
-                                 new Constant_Value (Kind => C_No_Kind));
-                           else
-                              Set_Expr_Value
-                                (Result, new Constant_Value (Kind => C_Enum));
-                              Expr_Value (Result).Enum_Name :=
-                                Expr_Type.Enum_Name;
-                              Expr_Value (Result).Enum_Value :=
-                                Value (Local_Res);
-                           end if;
-                        else
-                           Set_Expr_Value
-                             (Result, new Constant_Value (Kind => C_No_Kind));
+            when  T_Colon_Colon
+              | T_Identifier =>
+               declare
+                  Local_Res : Node_Id;
+               begin
+                  Parse_Scoped_Name (Local_Res, Success);
+                  if Success then
+                     --  this scoped name must denote a previously
+                     --  defined constant
+                     if Local_Res /= No_Node then
+                        if Kind (Value (Local_Res)) /= K_Const_Dcl and
+                          Kind (Value (Local_Res)) /= K_Enumerator then
                            Idl_Fe.Errors.Parser_Error
-                             ("The specified type for this constant " &
-                              "does not match with its value.",
+                             ("This scoped name must denote a constant value",
                               Idl_Fe.Errors.Error,
                               Get_Token_Location);
                         end if;
-                     else
-                        --  If no constant and no enum value, error
-                        Idl_Fe.Errors.Parser_Error
-                          ("This scoped name must denote a constant value",
-                           Idl_Fe.Errors.Error,
-                           Get_Token_Location);
-                        Result := No_Node;
                      end if;
-                  else
-                     Result := No_Node;
+                     Set_Operand (Res, Local_Res);
                   end if;
-               else
-                  Result := No_Node;
-               end if;
-            end;
+               end;
          when T_Lit_Decimal_Integer
            | T_Lit_Octal_Integer
            | T_Lit_Hexa_Integer
            | T_Lit_String
            | T_Lit_Wide_String
-           | T_Lit_Char
-           | T_Lit_Wide_Char
+           | T_Lit_Simple_Char
+           | T_Lit_Escape_Char
+           | T_Lit_Octal_Char
+           | T_Lit_Hexa_Char
+           | T_Lit_Unicode_Char
+           | T_Lit_Wide_Simple_Char
+           | T_Lit_Wide_Escape_Char
+           | T_Lit_Wide_Octal_Char
+           | T_Lit_Wide_Hexa_Char
+           | T_Lit_Wide_Unicode_Char
            | T_Lit_Simple_Floating_Point
            | T_Lit_Exponent_Floating_Point
            | T_Lit_Pure_Exponent_Floating_Point
@@ -3794,12 +3506,22 @@ package body Idl_Fe.Parser is
            | T_Lit_Floating_Fixed_Point
            | T_True
            | T_False =>
-            Parse_Literal (Result,
-                           Success,
-                           Expr_Type);
+            declare
+               Node : Node_Id;
+            begin
+               Node := Operand (Res);
+               Parse_Literal (Node,
+                              Success);
+               Set_Operand (Res, Node);
+            end;
          when T_Left_Paren =>
             Next_Token;
-            Parse_Or_Expr (Result, Success, Expr_Type);
+            declare
+               Local_Res : Node_Id;
+            begin
+               Parse_Or_Expr (Local_Res, Success, Expr_Type);
+               Set_Operand (Res, Local_Res);
+            end;
             if not Success then
                return;
             end if;
@@ -3811,7 +3533,6 @@ package body Idl_Fe.Parser is
                Success := False;
                return;
             end if;
-            Next_Token;
          when others =>
             Errors.Parser_Error ("primary expression expected.",
                                  Errors.Error,
@@ -3820,6 +3541,7 @@ package body Idl_Fe.Parser is
             Success := False;
             return;
       end case;
+      Result := Res;
       return;
    end Parse_Primary_Expr;
 
@@ -3827,19 +3549,17 @@ package body Idl_Fe.Parser is
    --  Parse_Literal  --
    ---------------------
    procedure Parse_Literal (Result : out Node_Id;
-                            Success : out Boolean;
-                            Expr_Type : in Constant_Value_Ptr) is
+                            Success : out Boolean) is
    begin
       pragma Debug (O2 ("Parse_Literal : enter"));
       case Get_Token is
          when T_Lit_Decimal_Integer
               | T_Lit_Octal_Integer
               | T_Lit_Hexa_Integer =>
-            pragma Debug (O ("Parse_Literal : literal is an integer"));
             declare
                Res : Node_Id;
             begin
-               Parse_Integer_Literal (Res, Success, Expr_Type);
+               Parse_Integer_Literal (Res, Success);
                Result := Res;
             end;
          when T_Lit_String =>
@@ -3847,7 +3567,7 @@ package body Idl_Fe.Parser is
             declare
                Res : Node_Id;
             begin
-               Parse_String_Literal (Res, Success, Expr_Type);
+               Parse_String_Literal (Res, Success);
                Result := Res;
             end;
          when T_Lit_Wide_String =>
@@ -3855,21 +3575,29 @@ package body Idl_Fe.Parser is
             declare
                Res : Node_Id;
             begin
-               Parse_Wide_String_Literal (Res, Success, Expr_Type);
+               Parse_Wide_String_Literal (Res, Success);
                Result := Res;
             end;
-         when T_Lit_Char =>
+         when T_Lit_Simple_Char
+           | T_Lit_Escape_Char
+           | T_Lit_Octal_Char
+           | T_Lit_Hexa_Char
+           | T_Lit_Unicode_Char =>
             declare
                Res : Node_Id;
             begin
-               Parse_Char_Literal (Res, Success, Expr_Type);
+               Parse_Char_Literal (Res, Success);
                Result := Res;
             end;
-         when T_Lit_Wide_Char =>
+         when T_Lit_Wide_Simple_Char
+           | T_Lit_Wide_Escape_Char
+           | T_Lit_Wide_Octal_Char
+           | T_Lit_Wide_Hexa_Char
+           | T_Lit_Wide_Unicode_Char =>
             declare
                Res : Node_Id;
             begin
-               Parse_Wide_Char_Literal (Res, Success, Expr_Type);
+               Parse_Wide_Char_Literal (Res, Success);
                Result := Res;
             end;
          when T_Lit_Simple_Floating_Point
@@ -3878,7 +3606,7 @@ package body Idl_Fe.Parser is
             declare
                Res : Node_Id;
             begin
-               Parse_Floating_Pt_Literal (Res, Success, Expr_Type);
+               Parse_Floating_Pt_Literal (Res, Success);
                Result := Res;
             end;
          when T_Lit_Simple_Fixed_Point
@@ -3886,7 +3614,7 @@ package body Idl_Fe.Parser is
             declare
                Res : Node_Id;
             begin
-               Parse_Fixed_Pt_Literal (Res, Success, Expr_Type);
+               Parse_Fixed_Pt_Literal (Res, Success);
                Result := Res;
             end;
          when T_True
@@ -3894,42 +3622,27 @@ package body Idl_Fe.Parser is
             declare
                Res : Node_Id;
             begin
-               Parse_Boolean_Literal (Res, Success, Expr_Type);
+               Parse_Boolean_Literal (Res, Success);
                Result := Res;
             end;
          when others =>
             raise Errors.Internal_Error;
       end case;
-      pragma Debug (O2 ("Parse_Literal : end"));
+      pragma Debug (O2 ("Parse_Literal : enter"));
    end Parse_Literal;
 
    -----------------------------
    --  Parse_Boolean_Literal  --
    -----------------------------
    procedure Parse_Boolean_Literal (Result : out Node_Id;
-                                    Success : out Boolean;
-                                    Expr_Type : in Constant_Value_Ptr) is
+                                    Success : out Boolean) is
    begin
       Result := Make_Lit_Boolean;
       Set_Location (Result, Get_Token_Location);
-      if Expr_Type.Kind = C_Boolean then
-         if Get_Token = T_True then
-            Set_Expr_Value (Result,
-                            new Constant_Value (Kind => C_Boolean));
-            Expr_Value (Result).Boolean_Value := True;
-         else
-            Set_Expr_Value (Result,
-                            new Constant_Value (Kind => C_Boolean));
-            Expr_Value (Result).Boolean_Value := False;
-         end if;
+      if Get_Token = T_True then
+         Set_Bool_Value (Result, True);
       else
-         Set_Expr_Value (Result,
-                         new Constant_Value (Kind => C_No_Kind));
-         Idl_Fe.Errors.Parser_Error
-           ("The specified type for this constant " &
-            "does not match with its value.",
-            Idl_Fe.Errors.Error,
-            Get_Token_Location);
+         Set_Bool_Value (Result, False);
       end if;
       Next_Token;
       Success := true;
@@ -3941,18 +3654,8 @@ package body Idl_Fe.Parser is
    --------------------------------
    procedure Parse_Positive_Int_Const (Result : out Node_Id;
                                        Success : out Boolean) is
-      C_Type : Constant_Value_Ptr
-        := new Constant_Value (Kind => C_ULongLong);
    begin
-      --  here we can not call parse_const_exp directly since we
-      --  don't have a node specifying the type of the constant
-      --  So, we call parse_or_exp and check the result as in
-      --  parse_const_exp
-      Parse_Or_Expr (Result, Success, C_Type);
-      if Result /= No_Node then
-         Check_Value_Range (Result, True);
-      end if;
-      Free (C_Type);
+      Parse_Or_Expr (Result, Success, new Const_Type (Kind => C_ULongLong));
    end Parse_Positive_Int_Const;
 
    ----------------------
@@ -4985,6 +4688,7 @@ package body Idl_Fe.Parser is
       declare
          Node : Node_Id;
       begin
+         Node := Switch_Type (Result);
          Parse_Switch_Type_Spec (Node,
                                  Success);
          Set_Switch_Type (Result, Node);
@@ -5417,7 +5121,7 @@ package body Idl_Fe.Parser is
                   return;
                end if;
                Count := Count + 1;
-               if Count = Idl_Enum_Max + 1 then
+               if Count = Long_Long_Integer (Idl_Enum_Max) + 1 then
                   Idl_Fe.Errors.Parser_Error
                     ("two much possible values in this " &
                      "enumeration : maximum is 2^32.",
@@ -6256,34 +5960,24 @@ package body Idl_Fe.Parser is
       end if;
       declare
          Name : Node_Id;
-         String_Type : Constant_Value_Ptr :=
-          new Constant_Value (Kind => C_String);
       begin
-         Parse_String_Literal (Name,
-                               Success,
-                               String_Type);
-         Free (String_Type);
+         Parse_String_Literal (Name, Success);
          if not Success then
             return;
          end if;
-         Check_Context_String (Expr_Value (Name).String_Value.all);
+         Check_Context_String (String_Value (Name).all);
          Append_Node (Result, Name);
       end;
       while Get_Token = T_Comma loop
          Next_Token;
          declare
             Name : Node_Id;
-            String_Type : Constant_Value_Ptr :=
-             new Constant_Value (Kind => C_String);
          begin
-            Parse_String_Literal (Name,
-                                  Success,
-                                  String_Type);
-            Free (String_Type);
+            Parse_String_Literal (Name, Success);
             if not Success then
                return;
             end if;
-            Check_Context_String (Expr_Value (Name).String_Value.all);
+            Check_Context_String (String_Value (Name).all);
             Append_Node (Result, Name);
          end;
       end loop;
@@ -6427,15 +6121,16 @@ package body Idl_Fe.Parser is
          Parse_Positive_Int_Const (Node, Success);
          Set_Digits_Nb (Result, Node);
       end;
-      if Expr_Value (Digits_Nb (Result)).Integer_Value < 0 or
-        Expr_Value (Digits_Nb (Result)).Integer_Value > 31 then
-         Idl_Fe.Errors.Parser_Error
-           ("invalid number of digits in fixed point " &
-            "type definition : it should be in range " &
-            "0 .. 31.",
-            Idl_Fe.Errors.Error,
-            Get_Token_Location);
-      end if;
+      --  FIXME
+--       if Digits_Nb.Value (Result) < 0
+--         or Digits_Nb.Value (Result) > 31 then
+--          Idl_Fe.Errors.Parser_Error
+--            ("invalid number of digits in fixed point " &
+--                               "type definition : it should be in range " &
+--                               "0 .. 31.",
+--                               Idl_Fe.Errors.Error,
+--                               Get_Token_Location);
+--       end if;
       if not Success then
          return;
       end if;
@@ -6455,6 +6150,21 @@ package body Idl_Fe.Parser is
          Parse_Positive_Int_Const (Node, Success);
          Set_Scale (Result, Node);
       end;
+      --  FIXME
+--       if Scale.Value (Result) < 0 then
+--          Idl_Fe.Errors.Parser_Error
+--             ("invalid scale factor in fixed point " &
+--                               "type definition : it may not be negative.",
+--                               Idl_Fe.Errors.Error,
+--                               Get_Token_Location);
+--       elsif Digits_Nb.Value (Result) >= Scale.Value (Result) then
+--          Idl_Fe.Errors.Parser_Error
+--             ("invalid scale factor in fixed point " &
+--                               "type definition : it should not exceed" &
+--                               "the number of digits.",
+--                               Idl_Fe.Errors.Error,
+--                               Get_Token_Location);
+--       end if;
       if not Success then
          return;
       end if;
@@ -6556,6 +6266,43 @@ package body Idl_Fe.Parser is
       end loop;
       Result := El;
    end Parse_Attr_Dcl;
+
+
+--    --  Rule 35:
+--    --  <declarator> ::= <simple_declarator>
+--    --               |   <complex_declarator>
+--    --
+--    --  Rule 36:
+--    --  <simple_declarator> ::= <identifier>
+--    --
+--    --  Rule 37:
+--    --  <complex_declarator> ::= <array_declarator>
+--    --
+--    --  Rule 68:
+--    --  <array_declarator> ::= <identifier> <fixed_array_size>+
+--    --
+--    --  Rule 69:
+--    --  <fixed_array_size> ::= "[" <positive_int_const> "]"
+
+--    --  Rule 55:
+--    --  <member_list> ::= <member>+
+--    --
+--    --  Rule 56:
+--    --  <member> ::= <type_spec> <declarators> ";"
+--    procedure Parse_Member_List (List : in out Node_List) is
+--       Res : Node_Id;
+--    begin
+--       loop
+--          Res := Make_Member;
+--          Set_Location (Res, Get_Location);
+--          Set_M_Type (Res, Parse_Type_Spec);
+--          Parse_Declarators (Decl (Res));
+--          Expect (T_Semi_Colon);
+--          Append_Node (List, Res);
+--          Next_Token;
+--          exit when Token = T_Right_Cbracket;
+--       end loop;
+--    end Parse_Member_List;
 
 
    ------------------------------
@@ -6663,6 +6410,7 @@ package body Idl_Fe.Parser is
          Go_To_End_Of_Pragma;
          return;
       end if;
+
       declare
          Pragma_Id : constant String
            := Get_Token_String;
@@ -6680,8 +6428,6 @@ package body Idl_Fe.Parser is
                Name_Node : Node_Id;
                String_Lit_Node : Node_Id;
                Res_Success : Boolean;
-               String_Constant_Type : Constant_Value_Ptr :=
-                 new Constant_Value (Kind => C_String);
             begin
                Next_Token;
                Parse_Scoped_Name (Name_Node, Res_Success);
@@ -6689,10 +6435,8 @@ package body Idl_Fe.Parser is
                   Go_To_End_Of_Pragma;
                   return;
                end if;
-               Parse_String_Literal (String_Lit_Node,
-                                     Res_Success,
-                                     String_Constant_Type);
-               Free (String_Constant_Type);
+
+               Parse_String_Literal (String_Lit_Node, Res_Success);
                if not Res_Success then
                   Idl_Fe.Errors.Parser_Error
                     ("Repository ID expected.",
@@ -6731,13 +6475,10 @@ package body Idl_Fe.Parser is
             declare
                String_Lit_Node : Node_Id;
                Res_Success : Boolean;
-               Val : constant Constant_Value_Ptr
-                 := new Constant_Value (Kind => C_String);
             begin
                Next_Token;
 
-               Parse_String_Literal
-                 (String_Lit_Node, Res_Success, Val);
+               Parse_String_Literal (String_Lit_Node, Res_Success);
                if not Res_Success then
                   Idl_Fe.Errors.Parser_Error
                     ("Repository ID prefix expected.",
@@ -6780,347 +6521,35 @@ package body Idl_Fe.Parser is
       pragma Debug (O2 ("Parse_Pragma: leave"));
    end Parse_Pragma;
 
-
    ---------------------------
    --  Parsing of literals  --
    ---------------------------
-
-   --------------------------
-   --  Hexa_Char_To_Digit  --
-   --------------------------
-   function Hexa_Char_To_Digit (C : in Character)
-                                return Integer is
-      Result : Integer;
-      use Ada.Characters.Latin_1;
-   begin
-      Result := Character'Pos (C);
-      if Result >= Character'Pos ('0') and
-        Result <= Character'Pos ('9') then
-         Result := Result - Character'Pos ('0');
-      elsif Result >= Character'Pos (LC_A) and
-        Result <= Character'Pos (LC_F) then
-         Result := Result + 10 - Character'Pos ('a');
-      else
-         Result := Result + 10 - Character'Pos ('A');
-      end if;
-      return Integer (Result);
-   end Hexa_Char_To_Digit;
-
-   ------------------------
-   --  Get_Char_Literal  --
-   ------------------------
-   procedure Get_Char_Literal (S : in String;
-                               Result : out Idl_Character;
-                               Offset : out Integer) is
-      use Ada.Characters.Latin_1;
-   begin
-      if S (S'First) = '\' then
-         Offset := 2;
-         case S (S'First + 1) is
-            when LC_N =>
-               Result := LF;
-            when LC_T =>
-               Result := HT;
-            when LC_V =>
-               Result := VT;
-            when LC_B =>
-               Result := BS;
-            when LC_R =>
-               Result := CR;
-            when LC_F =>
-               Result := FF;
-            when LC_A =>
-               Result := BEL;
-            when '\' =>
-               Result := '\';
-            when '?' =>
-               Result := '?';
-            when ''' =>
-               Result := ''';
-            when Quotation =>
-               Result := Quotation;
-            when '0' .. '7' =>
-               declare
-                  Pos : Integer;
-               begin
-                  Pos := Character'Pos (S (S'First + 1)) -
-                    Character'Pos ('0');
-                  for G in 2 .. 3 loop
-                     if G < S'Length then
-                        case S (S'First + G) is
-                           when '0' .. '7' =>
-                              Pos := 8 * Pos +
-                                Character'Pos (S (S'First + G)) -
-                                Character'Pos ('0');
-                              Offset := G + 1;
-                           when others => exit;
-                        end case;
-                     end if;
-                  end loop;
-                  Result := Character'Val (Pos);
-               end;
-            when LC_X =>
-               declare
-                  Pos : Integer;
-               begin
-                  Pos := Hexa_Char_To_Digit (S (S'First + 2));
-                  Offset := 3;
-                  pragma Debug (O ("Get_Char_Literal : Pos = " &
-                                   Integer'Image (Pos)));
-                  if S'Length > 3 then
-                     case S (S'First + 3) is
-                        when '0' .. '9' | 'A' .. 'F' | LC_A .. LC_F =>
-                           Pos := (16 * Pos) +
-                             Hexa_Char_To_Digit (S (S'First + 3));
-                           Offset := 4;
-                        when others => null;
-                     end case;
-                  end if;
-                  pragma Debug (O ("Get_Char_Literal : Pos = " &
-                                   Integer'Image (Pos)));
-                  Result := Character'Val (Pos);
-               end;
-            when others =>
-               raise Idl_Fe.Errors.Internal_Error;
-         end case;
-      else
-         Result := S (S'First);
-         Offset := 1;
-      end if;
-   end Get_Char_Literal;
-
-   -----------------------------
-   --  Get_Wide_Char_Literal  --
-   -----------------------------
-   procedure Get_Wide_Char_Literal (S : in String;
-                                    Result : out Idl_Wide_Character;
-                                    Offset : out Integer) is
-      use Ada.Characters.Latin_1;
-   begin
-      if S (S'First) = '\' then
-         Offset := 2;
-         case S (S'First + 1) is
-            when LC_N =>
-               Result := Ada.Characters.Wide_Latin_1.LF;
-            when LC_T =>
-               Result := Ada.Characters.Wide_Latin_1.HT;
-            when LC_V =>
-               Result := Ada.Characters.Wide_Latin_1.VT;
-            when LC_B =>
-               Result := Ada.Characters.Wide_Latin_1.BS;
-            when LC_R =>
-               Result := Ada.Characters.Wide_Latin_1.CR;
-            when LC_F =>
-               Result := Ada.Characters.Wide_Latin_1.FF;
-            when LC_A =>
-               Result := Ada.Characters.Wide_Latin_1.BEL;
-            when '\' =>
-               Result := '\';
-            when '?' =>
-               Result := '?';
-            when ''' =>
-               Result := ''';
-            when Quotation =>
-               Result := Ada.Characters.Wide_Latin_1.Quotation;
-            when '0' .. '7' =>
-               declare
-                  Pos : Integer;
-               begin
-                  Pos := Character'Pos (S (S'First + 1)) -
-                    Character'Pos ('0');
-                  for G in 2 .. 3 loop
-                     if G < S'Length then
-                        case S (S'First + G) is
-                           when '0' .. '7' =>
-                              Pos := 8 * Pos +
-                                Character'Pos (S (S'First + G)) -
-                                Character'Pos ('0');
-                              Offset := G + 1;
-                           when others => exit;
-                        end case;
-                     end if;
-                  end loop;
-                  Result := Wide_Character'Val (Pos);
-               end;
-            when LC_X =>
-               declare
-                  Pos : Integer;
-               begin
-                  Pos := Hexa_Char_To_Digit (S (S'First + 2));
-                  Offset := 3;
-                  pragma Debug (O ("Get_Char_Literal : Pos = " &
-                                   Integer'Image (Pos)));
-                  if S'Length > 3 then
-                     case S (S'First + 3) is
-                        when '0' .. '9' | 'A' .. 'F' | LC_A .. LC_F =>
-                           Pos := (16 * Pos) +
-                             Hexa_Char_To_Digit (S (S'First + 3));
-                           Offset := 4;
-                        when others => null;
-                     end case;
-                  end if;
-                  pragma Debug (O ("Get_Char_Literal : Pos = " &
-                                   Integer'Image (Pos)));
-                  Result := Wide_Character'Val (Pos);
-               end;
-            when LC_U =>
-               declare
-                  Pos : Integer;
-               begin
-                  Pos := Hexa_Char_To_Digit (S (S'First + 2));
-                  Offset := 3;
-                  for G in 3 .. 5 loop
-                     if G < S'Length then
-                        case S (S'First + G) is
-                           when '0' .. '9' | 'A' .. 'F' | LC_A .. LC_F =>
-                              Pos := 16 * Pos +
-                                Hexa_Char_To_Digit (S (S'First + G));
-                              Offset := G + 1;
-                           when others => exit;
-                        end case;
-                     end if;
-                  end loop;
-                  Result := Wide_Character'Val (Pos);
-               end;
-            when others =>
-               raise Idl_Fe.Errors.Internal_Error;
-         end case;
-      else
-         Result :=  Wide_Character'Val
-           (Character'Pos (S (S'First)));
-         Offset := 1;
-      end if;
-   end Get_Wide_Char_Literal;
 
    -----------------------------
    --  Parse_Integer_Literal  --
    -----------------------------
    procedure Parse_Integer_Literal (Result : out Node_Id;
-                                    Success : out Boolean;
-                                    Expr_Type : in Constant_Value_Ptr) is
-
-      function Get_Integer_Literal return Idl_Integer;
-
-      function Get_Integer_Literal return Idl_Integer is
-         S : String := Get_Token_String;
-         Result : Idl_Integer := 0;
-         I : Natural := 0;
-      begin
-         pragma Debug (O2 ("Get_Integer_Literal : enter"));
-         case Get_Token is
-            when T_Lit_Decimal_Integer =>
-               while I < S'Length loop
-                  Result := Result * 10 +
-                    (Character'Pos (S (S'First + I)) - Character'Pos ('0'));
-                  I := I + 1;
-               end loop;
-            when T_Lit_Octal_Integer =>
-               I := 1;
-               while I < S'Length loop
-                  Result := Result * 8 +
-                    (Character'Pos (S (S'First + I)) - Character'Pos ('0'));
-                  I := I + 1;
-               end loop;
-            when T_Lit_Hexa_Integer =>
-               I := 2;
-               while I < S'Length loop
-                  Result := Result * 16 +
-                    Idl_Integer (Hexa_Char_To_Digit (S (S'First + I)));
-                  I := I + 1;
-               end loop;
-            when others =>
-               raise Idl_Fe.Errors.Internal_Error;
-         end case;
-         pragma Debug (O2 ("Get_Integer_Literal : end"));
-         return Result;
-      end Get_Integer_Literal;
-
+                                    Success : out Boolean) is
    begin
-      pragma Debug (O2 ("Parse_Integer_Literal : enter"));
-      Result := Make_Lit_Integer;
+      Result := Make_Lit_String;
       Set_Location (Result, Get_Token_Location);
-      case Expr_Type.Kind is
-         when C_Octet
-           | C_Short
-           | C_Long
-           | C_LongLong
-           | C_UShort
-           | C_ULong
-           | C_ULongLong
-           | C_General_Integer =>
-            Set_Expr_Value (Result,
-                            new Constant_Value (Kind => Expr_Type.Kind));
-            Expr_Value (Result).Integer_Value := Get_Integer_Literal;
-            Check_Value_Range (Result, False);
-         when others =>
-            Set_Expr_Value (Result,
-                            new Constant_Value (Kind => C_No_Kind));
-            Idl_Fe.Errors.Parser_Error
-              ("The specified type for this constant " &
-               "does not match with its value.",
-               Idl_Fe.Errors.Error,
-               Get_Token_Location);
-      end case;
+      Set_String_Value (Result, new String'(Get_Token_String));
       Next_Token;
       Success := true;
-      pragma Debug (O2 ("Parse_Integer_Literal : end"));
       return;
    end Parse_Integer_Literal;
 
    ----------------------------
    --  Parse_String_Literal  --
    ----------------------------
-
-   procedure Parse_String_Literal
-     (Result : out Node_Id;
-      Success : out Boolean;
-      Expr_Type : in Constant_Value_Ptr) is
-
-      function Get_String_Literal return Idl_String;
-
-      function Get_String_Literal return Idl_String is
-         S : String := Get_Token_String;
-         Result : String (1 .. S'Length);
-         L : Natural := 0;
-         I : Natural := 0;
-         Offset : Integer;
-         C : Character;
-         use Ada.Characters.Latin_1;
-      begin
-         while I < S'Length loop
-            if S (S'First + I) = Quotation then
-               I := I + 2;
-            else
-               L := L + 1;
-               Get_Char_Literal
-                 (S (S'First + I .. S'Last), C, Offset);
-               Result (L) := C;
-               I := I + Offset;
-            end if;
-         end loop;
-         return new String'(Result (1 .. L));
-      end Get_String_Literal;
-
+   procedure Parse_String_Literal (Result : out Node_Id;
+                                   Success : out Boolean) is
    begin
-      pragma Debug (O2 ("Parse_String_Literal : enter"));
       Result := Make_Lit_String;
       Set_Location (Result, Get_Token_Location);
-      if Expr_Type.Kind = C_String then
-         Set_Expr_Value (Result,
-                         new Constant_Value (Kind => C_String));
-         Expr_Value (Result).String_Value := Get_String_Literal;
-      else
-         Set_Expr_Value (Result,
-                         new Constant_Value (Kind => C_No_Kind));
-         Idl_Fe.Errors.Parser_Error
-           ("The specified type for this constant " &
-            "does not match with its value.",
-            Idl_Fe.Errors.Error,
-            Get_Token_Location);
-      end if;
+      Set_String_Value (Result, new String'(Get_Token_String));
       Next_Token;
       Success := true;
-      pragma Debug (O2 ("Parse_String_Literal : end"));
       return;
    end Parse_String_Literal;
 
@@ -7128,50 +6557,11 @@ package body Idl_Fe.Parser is
    --  Parse_Wide_String_Literal  --
    ---------------------------------
    procedure Parse_Wide_String_Literal (Result : out Node_Id;
-                                        Success : out Boolean;
-                                        Expr_Type : in Constant_Value_Ptr) is
-
-      function Get_WString_Literal return Idl_Wide_String;
-
-      function Get_WString_Literal return Idl_Wide_String is
-         S : String := Get_Token_String;
-         Result : Wide_String (1 .. S'Length);
-         L : Natural := 0;
-         I : Natural := 0;
-         Offset : Integer;
-         C : Wide_Character;
-         use Ada.Characters.Latin_1;
-      begin
-         while I < S'Length loop
-            if S (S'First + I) = Quotation then
-               I := I + 2;
-            else
-               L := L + 1;
-               Get_Wide_Char_Literal
-                 (S (S'First + I .. S'Last), C, Offset);
-               Result (L) := C;
-               I := I + Offset;
-            end if;
-         end loop;
-         return new Wide_String'(Result (1 .. L));
-      end Get_WString_Literal;
-
+                                        Success : out Boolean) is
    begin
-      Result := Make_Lit_Wide_String;
+      Result := Make_Lit_String;
       Set_Location (Result, Get_Token_Location);
-      if Expr_Type.Kind = C_WString then
-         Set_Expr_Value (Result,
-                         new Constant_Value (Kind => C_WString));
-         Expr_Value (Result).WString_Value := Get_WString_Literal;
-      else
-         Set_Expr_Value (Result,
-                         new Constant_Value (Kind => C_No_Kind));
-         Idl_Fe.Errors.Parser_Error
-           ("The specified type for this constant " &
-            "does not match with its value.",
-            Idl_Fe.Errors.Error,
-            Get_Token_Location);
-      end if;
+      Set_String_Value (Result, new String'(Get_Token_String));
       Next_Token;
       Success := true;
       return;
@@ -7181,32 +6571,11 @@ package body Idl_Fe.Parser is
    --  Parse_Char_Literal  --
    --------------------------
    procedure Parse_Char_Literal (Result : out Node_Id;
-                                 Success : out Boolean;
-                                 Expr_Type : in Constant_Value_Ptr) is
+                                 Success : out Boolean) is
    begin
-      Result := Make_Lit_Character;
+      Result := Make_Lit_String;
       Set_Location (Result, Get_Token_Location);
-      if Expr_Type.Kind = C_Char then
-         declare
-            Useless : Integer;
-            C : Character;
-         begin
-            Set_Expr_Value (Result,
-                            new Constant_Value (Kind => C_Char));
-            Get_Char_Literal (Get_Token_String,
-                              C,
-                              Useless);
-            Expr_Value (Result).Char_Value := C;
-         end;
-      else
-         Set_Expr_Value (Result,
-                         new Constant_Value (Kind => C_No_Kind));
-         Idl_Fe.Errors.Parser_Error
-           ("The specified type for this constant " &
-            "does not match with its value.",
-            Idl_Fe.Errors.Error,
-            Get_Token_Location);
-      end if;
+      Set_String_Value (Result, new String'(Get_Token_String));
       Next_Token;
       Success := true;
       return;
@@ -7216,32 +6585,11 @@ package body Idl_Fe.Parser is
    --  Parse_Wide_Char_Literal  --
    -------------------------------
    procedure Parse_Wide_Char_Literal (Result : out Node_Id;
-                                      Success : out Boolean;
-                                      Expr_Type : in Constant_Value_Ptr) is
+                                      Success : out Boolean) is
    begin
-      Result := Make_Lit_Wide_Character;
+      Result := Make_Lit_String;
       Set_Location (Result, Get_Token_Location);
-      if Expr_Type.Kind = C_WChar then
-         declare
-            Useless : Integer;
-            C : Wide_Character;
-         begin
-            Set_Expr_Value (Result,
-                            new Constant_Value (Kind => C_WChar));
-            Get_Wide_Char_Literal (Get_Token_String,
-                                   C,
-                                   Useless);
-            Expr_Value (Result).WChar_Value := C;
-         end;
-      else
-         Set_Expr_Value (Result,
-                         new Constant_Value (Kind => C_No_Kind));
-         Idl_Fe.Errors.Parser_Error
-           ("The specified type for this constant " &
-            "does not match with its value.",
-            Idl_Fe.Errors.Error,
-            Get_Token_Location);
-      end if;
+      Set_String_Value (Result, new String'(Get_Token_String));
       Next_Token;
       Success := true;
       return;
@@ -7251,79 +6599,11 @@ package body Idl_Fe.Parser is
    --  Parse_Floating_Pt_Literal  --
    ---------------------------------
    procedure Parse_Floating_Pt_Literal (Result : out Node_Id;
-                                        Success : out Boolean;
-                                        Expr_Type : in Constant_Value_Ptr) is
-
-      function Get_Float_Literal return Idl_Float;
-
-      function Get_Float_Literal return Idl_Float is
-         S : String := Get_Token_String;
-         Result : Idl_Float := 0.0;
-         I : Natural := 0;
-      begin
-         while S (S'First + I) /= '.' and
-           S (S'First + I) /= 'e' and
-           S (S'First + I) /= 'E' loop
-            Result := Result * 10.0 +
-              Idl_Float (Character'Pos (S (S'First + I)) -
-                         Character'Pos ('0'));
-            I := I + 1;
-         end loop;
-         if Get_Token = T_Lit_Simple_Floating_Point or
-           Get_Token = T_Lit_Exponent_Floating_Point then
-            I := I + 1;
-            declare
-               Offset : Idl_Float := 0.1;
-            begin
-               while I < S'Length and then
-                 (S (S'First + I) /= 'e' and
-                 S (S'First + I) /= 'E') loop
-                  Result := Result + Offset *
-                    Idl_Float (Character'Pos (S (S'First + I)) -
-                               Character'Pos ('0'));
-                  I := I + 1;
-                  Offset := Offset / 10.0;
-               end loop;
-            end;
-         end if;
-         if Get_Token = T_Lit_Exponent_Floating_Point or
-           Get_Token = T_Lit_Pure_Exponent_Floating_Point then
-            declare
-               Exponent : Integer := 0;
-            begin
-               I := I + 1;
-               while I < S'Length loop
-                  Exponent := Exponent * 10 +
-                    (Character'Pos (S (S'First + I)) - Character'Pos ('0'));
-                  I := I + 1;
-               end loop;
-               Result := Result * (10.0 ** Exponent);
-            end;
-         end if;
-         return Result;
-      end Get_Float_Literal;
-
+                                        Success : out Boolean) is
    begin
-      Result := Make_Lit_Floating_Point;
+      Result := Make_Lit_String;
       Set_Location (Result, Get_Token_Location);
-      case Expr_Type.Kind is
-         when C_Float
-           | C_Double
-           | C_LongDouble
-           | C_General_Float =>
-            Set_Expr_Value (Result,
-                            new Constant_Value (Kind => Expr_Type.Kind));
-            Expr_Value (Result).Float_Value := Get_Float_Literal;
-            Check_Value_Range (Result, False);
-         when others =>
-            Set_Expr_Value (Result,
-                            new Constant_Value (Kind => C_No_Kind));
-            Idl_Fe.Errors.Parser_Error
-              ("The specified type for this constant " &
-               "does not match with its value.",
-               Idl_Fe.Errors.Error,
-               Get_Token_Location);
-      end case;
+      Set_String_Value (Result, new String'(Get_Token_String));
       Next_Token;
       Success := true;
       return;
@@ -7333,398 +6613,15 @@ package body Idl_Fe.Parser is
    --  Parse_Fixed_Pt_Literal  --
    ------------------------------
    procedure Parse_Fixed_Pt_Literal (Result : out Node_Id;
-                                     Success : out Boolean;
-                                     Expr_Type : in Constant_Value_Ptr) is
-
-      procedure Get_Fixed_Literal;
-
-      procedure Get_Fixed_Literal is
-         S : String := Get_Token_String;
-         Res : Idl_Integer := 0;
-         I : Natural := 0;
-         L1, L2 : Natural := 0;
-         Last_Zeros_Nb : Natural := 0;
-      begin
-         --  first remove leading zeros
-         while S (S'First + I) = '0' loop
-            I := I + 1;
-         end loop;
-         --  parse the integer part
-         while S (S'First + I) /= '.' and
-           S (S'First + I) /= 'd' and
-           S (S'First + I) /= 'D' loop
-            Res := Res * 10 +
-              Idl_Integer (Character'Pos (S (S'First + I)) -
-                           Character'Pos ('0'));
-            if S (S'First + I) = '0' then
-               Last_Zeros_Nb := Last_Zeros_Nb + 1;
-            else
-               Last_Zeros_Nb := 0;
-            end if;
-            I := I + 1;
-            L1 := L1 + 1;
-         end loop;
-         --  parse fractionnal part
-         if Get_Token = T_Lit_Floating_Fixed_Point then
-            I := I + 1;
-            while S (S'First + I) /= 'd' and
-              S (S'First + I) /= 'D' loop
-               Res := Res * 10 +
-                 Idl_Integer (Character'Pos (S (S'First + I)) -
-                              Character'Pos ('0'));
-               if S (S'First + I) = '0' then
-                  Last_Zeros_Nb := Last_Zeros_Nb + 1;
-               else
-                  Last_Zeros_Nb := 0;
-               end if;
-               I := I + 1;
-               L2 := L2 + 1;
-            end loop;
-         end if;
-         Res := Res / 10 ** Last_Zeros_Nb;
-         --  check type precision
-         if (Idl_Integer (L1) > Expr_Type.Digits_Nb - Expr_Type.Scale) or
-           (Idl_Integer (L2 - Last_Zeros_Nb) > Expr_Type.Scale) then
-            Idl_Fe.Errors.Parser_Error
-              ("The specified type for this constant " &
-               "is not enough precise for this value. " &
-               "A more precise type will be used.",
-               Idl_Fe.Errors.Error,
-               Get_Token_Location);
-            Set_Expr_Value (Result,
-                            new Constant_Value (Kind => C_General_Fixed));
-         else
-            Set_Expr_Value (Result,
-                            new Constant_Value (Kind => C_Fixed));
-         end if;
-         --  stores results
-         Expr_Value (Result).Fixed_Value := Res;
-         Expr_Value (Result).Digits_Nb :=
-           Idl_Integer (L1 + L2 - Last_Zeros_Nb);
-         Expr_Value (Result).Scale :=
-           Idl_Integer (L2 - Last_Zeros_Nb);
-      end Get_Fixed_Literal;
-
+                                     Success : out Boolean) is
    begin
-      Result := Make_Lit_Fixed_Point;
+      Result := Make_Lit_String;
       Set_Location (Result, Get_Token_Location);
-      if Expr_Type.Kind = C_Fixed then
-         Get_Fixed_Literal;
-      else
-         Set_Expr_Value (Result,
-                         new Constant_Value (Kind => C_No_Kind));
-         Idl_Fe.Errors.Parser_Error
-           ("The specified type for this constant " &
-            "does not match with its value.",
-            Idl_Fe.Errors.Error,
-            Get_Token_Location);
-      end if;
+      Set_String_Value (Result, new String'(Get_Token_String));
       Next_Token;
       Success := true;
       return;
    end Parse_Fixed_Pt_Literal;
-
-   -------------------------
-   --  Check_Value_Range  --
-   -------------------------
-   procedure Check_Value_Range (Node : in out Node_Id;
-                                Full : in Boolean) is
-      N : Constant_Value_Ptr renames Expr_Value (Node);
-
-      procedure Integer_Precision_Exceeded;
-      procedure Float_Precision_Exceeded;
-      procedure Fixed_Precision_Exceeded;
-
-      procedure Integer_Precision_Exceeded is
-         Old_Value : Constant_Value_Ptr := Expr_Value (Node);
-      begin
-         pragma Debug (O2 ("Integer_Precision_Exceeded : enter"));
-         Idl_Fe.Errors.Parser_Error
-           ("The specified type for this integer constant " &
-            "does not allow this value",
-            Idl_Fe.Errors.Error,
-            Get_Token_Location);
-         Set_Expr_Value
-           (Node,
-            new Constant_Value (Kind => C_General_Integer));
-         Expr_Value (Node).Integer_Value := Old_Value.Integer_Value;
-         Free (Old_Value);
-         pragma Debug (O2 ("Integer_Precision_Exceeded : end"));
-      end Integer_Precision_Exceeded;
-
-      procedure Float_Precision_Exceeded is
-         Old_Value : Constant_Value_Ptr := Expr_Value (Node);
-      begin
-         pragma Debug (O2 ("Float_Precision_Exceeded : enter"));
-         Idl_Fe.Errors.Parser_Error
-           ("The specified type for this floating point constant " &
-            "does not allow this value",
-            Idl_Fe.Errors.Error,
-            Get_Token_Location);
-         Set_Expr_Value
-           (Node,
-            new Constant_Value (Kind => C_General_Float));
-         Expr_Value (Node).Float_Value := Old_Value.Float_Value;
-         Free (Old_Value);
-         pragma Debug (O2 ("Float_Precision_Exceeded : end"));
-      end Float_Precision_Exceeded;
-
-      procedure Fixed_Precision_Exceeded is
-         Old_Value : Constant_Value_Ptr := Expr_Value (Node);
-      begin
-         pragma Debug (O2 ("Fixed_Precision_Exceeded : enter"));
-         Idl_Fe.Errors.Parser_Error
-           ("invalid number of digits in fixed point " &
-            "type definition : it should be in range " &
-            "0 .. 31.",
-            Idl_Fe.Errors.Error,
-            Get_Token_Location);
-         Set_Expr_Value
-           (Node,
-            new Constant_Value (Kind => C_General_Fixed));
-         Expr_Value (Node).Fixed_Value := Old_Value.Fixed_Value;
-         Expr_Value (Node).Digits_Nb := Old_Value.Digits_Nb;
-         Expr_Value (Node).Scale := Old_Value.Scale;
-         Free (Old_Value);
-         pragma Debug (O2 ("Float_Precision_Exceeded : end"));
-      end Fixed_Precision_Exceeded;
-
-   begin
-      pragma Debug (O2 ("Check_Value_Range : enter"));
-      pragma Debug (O ("Check_Value_Range : Kind (Node) is " &
-                       Node_Kind'Image (Kind (Node)) &
-                       ", Full = " & Boolean'Image (Full)));
-      pragma Debug (O ("Check_Value_Range : N.kind is " &
-                       Const_Kind'Image (N.Kind)));
-      pragma Assert (Kind (Node) = K_Add_Expr
-                     or else Kind (Node) = K_And_Expr
-                     or else Kind (Node) = K_Binary_Expr
-                     or else Kind (Node) = K_Div_Expr
-                     or else Kind (Node) = K_Expr
-                     or else Kind (Node) = K_Id_Expr
-                     or else Kind (Node) = K_Lit_Boolean
-                     or else Kind (Node) = K_Lit_Character
-                     or else Kind (Node) = K_Lit_Enum
-                     or else Kind (Node) = K_Lit_Fixed_Point
-                     or else Kind (Node) = K_Lit_Floating_Point
-                     or else Kind (Node) = K_Lit_Integer
-                     or else Kind (Node) = K_Lit_String
-                     or else Kind (Node) = K_Lit_Wide_Character
-                     or else Kind (Node) = K_Lit_Wide_String
-                     or else Kind (Node) = K_Literal
-                     or else Kind (Node) = K_Mod_Expr
-                     or else Kind (Node) = K_Mul_Expr
-                     or else Kind (Node) = K_Neg_Expr
-                     or else Kind (Node) = K_Not_Expr
-                     or else Kind (Node) = K_Or_Expr
-                     or else Kind (Node) = K_Shl_Expr
-                     or else Kind (Node) = K_Shr_Expr
-                     or else Kind (Node) = K_Sub_Expr
-                     or else Kind (Node) = K_Unary_Expr
-                     or else Kind (Node) = K_Xor_Expr);
-      case N.Kind is
-         when C_Octet =>
-            if N.Integer_Value < Idl_Octet_Min or
-              N.Integer_Value > Idl_Octet_Max then
-               Integer_Precision_Exceeded;
-            end if;
-         when C_Short =>
-            if Full then
-               if N.Integer_Value < Idl_Short_Min or
-                 N.Integer_Value > Idl_Short_Max then
-                  Integer_Precision_Exceeded;
-               end if;
-            else
-               if N.Integer_Value < Idl_Short_Min or
-                 N.Integer_Value > Idl_UShort_Max then
-                  Integer_Precision_Exceeded;
-               end if;
-            end if;
-         when C_Long =>
-            if Full then
-               if N.Integer_Value < Idl_Long_Min or
-                 N.Integer_Value > Idl_Long_Max then
-                  Integer_Precision_Exceeded;
-               end if;
-            else
-               if N.Integer_Value < Idl_Long_Min or
-                 N.Integer_Value > Idl_ULong_Max then
-                  Integer_Precision_Exceeded;
-               end if;
-            end if;
-         when C_LongLong =>
-            if Full then
-               if N.Integer_Value < Idl_LongLong_Min or
-                 N.Integer_Value > Idl_LongLong_Max then
-                  Integer_Precision_Exceeded;
-               end if;
-            else
-               if N.Integer_Value < Idl_LongLong_Min or
-                 N.Integer_Value > Idl_ULongLong_Max then
-                  Integer_Precision_Exceeded;
-               end if;
-            end if;
-         when C_UShort =>
-            if Full then
-               if N.Integer_Value < Idl_UShort_Min
-                 or N.Integer_Value > Idl_UShort_Max then
-                  Integer_Precision_Exceeded;
-               end if;
-            else
-               if N.Integer_Value < Idl_Short_Min
-                 or N.Integer_Value > Idl_UShort_Max then
-                  Integer_Precision_Exceeded;
-               end if;
-            end if;
-         when C_ULong =>
-            if Full then
-               if N.Integer_Value < Idl_ULong_Min or
-                 N.Integer_Value > Idl_ULong_Max then
-                  Integer_Precision_Exceeded;
-               end if;
-            else
-               if N.Integer_Value < Idl_Long_Min or
-                 N.Integer_Value > Idl_ULong_Max then
-                  Integer_Precision_Exceeded;
-               end if;
-            end if;
-         when C_ULongLong =>
-            if Full then
-               if N.Integer_Value < Idl_ULongLong_Min or
-                 N.Integer_Value > Idl_ULongLong_Max then
-                  Integer_Precision_Exceeded;
-               end if;
-            else
-               if N.Integer_Value < Idl_LongLong_Min or
-                 N.Integer_Value > Idl_ULongLong_Max then
-                  Integer_Precision_Exceeded;
-               end if;
-            end if;
-         when C_Float =>
-            if N.Float_Value < Idl_Float_Min or
-              N.Float_Value > Idl_Float_Max then
-               Float_Precision_Exceeded;
-            end if;
-         when C_Double =>
-            if N.Float_Value < Idl_Double_Min or
-              N.Float_Value > Idl_Double_Max then
-               Float_Precision_Exceeded;
-            end if;
-         when C_LongDouble =>
-            if N.Float_Value < Idl_Long_Double_Min or
-              N.Float_Value > Idl_Long_Double_Max then
-               Float_Precision_Exceeded;
-            end if;
-         when C_Fixed
-           | C_General_Fixed =>
-            --  simplification of a fixed point literal
-            if N.Fixed_Value /= 0 then
-               --  first remove the trailing zeros
-               while N.Fixed_Value mod 10 = 0 loop
-                  N.Fixed_Value := N.Fixed_Value / 10;
-                  N.Digits_Nb := N.Digits_Nb - 1;
-                  N.Scale := N.Scale + 1;
-               end loop;
-               --  then remove the leading zeros
-               while N.Fixed_Value / 10 ** Natural (N.Digits_Nb - 1) = 0 loop
-                  N.Digits_Nb := N.Digits_Nb - 1;
-               end loop;
-            else
-               N.Digits_Nb := 0;
-               N.Scale := 0;
-            end if;
-            --  Checks the number of digits
-            if N.Digits_Nb > 31 then
-               Fixed_Precision_Exceeded;
-            end if;
-         when others =>
-            null;
-      end case;
-      pragma Debug (O2 ("Check_Value_Range : end"));
-   end Check_Value_Range;
-
-   ------------------------
-   --  Check_Expr_Value  --
-   ------------------------
-
-   procedure Check_Expr_Value
-     (Value : in Constant_Value_Ptr;
-      Value_Type : in Constant_Value_Ptr) is
-      Types_Ok : Boolean := True;
-   begin
-      case Value.Kind is
-         when C_General_Integer =>
-            case Value_Type.Kind is
-               when C_Octet
-                 | C_Short
-                 | C_Long
-                 | C_LongLong
-                 | C_UShort
-                 | C_ULong
-                 | C_ULongLong =>
-                  null;
-               when others =>
-                  Types_Ok := False;
-            end case;
-         when C_General_Float =>
-            case Value_Type.Kind is
-               when C_Float
-                 | C_Double
-                 | C_LongDouble =>
-                  null;
-               when others =>
-                  Types_Ok := False;
-            end case;
-         when C_General_Fixed =>
-            if Value_Type.Kind /= C_Fixed then
-               Types_Ok := False;
-            end if;
-         when others =>
-            if Value.Kind /= Value_Type.Kind then
-               Types_Ok := False;
-            end if;
-      end case;
-      if Types_Ok then
-         case Value.Kind is
-            when C_Fixed =>
-               if Value.Digits_Nb > 31 then
-                  Idl_Fe.Errors.Parser_Error
-                    ("invalid number of digits in fixed point " &
-                     "value : it should be less than 32.",
-                     Idl_Fe.Errors.Error,
-                     Get_Token_Location);
-               else
-                  if Value.Digits_Nb - Value.Scale >
-                    Value_Type.Digits_Nb - Value_Type.Scale or
-                    Value.Scale > Value_Type.Scale then
-                     Idl_Fe.Errors.Parser_Error
-                       ("The specified type for this fixed point " &
-                        "constant is not enough precise for its value. " &
-                        "A more precise type will be used.",
-                        Idl_Fe.Errors.Error,
-                        Get_Token_Location);
-                  end if;
-               end if;
-            when C_Enum =>
-               if Value.Enum_Name /= Value_Type.Enum_Name then
-                  Idl_Fe.Errors.Parser_Error
-                    ("The specified type for this enum constant " &
-                     "does not match with its value.",
-                     Idl_Fe.Errors.Error,
-                     Get_Token_Location);
-               end if;
-            when others =>
-               null;
-         end case;
-      else
-         Idl_Fe.Errors.Parser_Error
-           ("The specified type for this constant " &
-            "does not match with its value.",
-            Idl_Fe.Errors.Error,
-            Get_Token_Location);
-      end if;
-      null;
-   end Check_Expr_Value;
 
    ----------------------------
    --  Check_Context_String  --
@@ -7733,9 +6630,6 @@ package body Idl_Fe.Parser is
       use GNAT.Case_Util;
       use Ada.Characters.Latin_1;
    begin
-      if S'Length = 0 then
-         return;
-      end if;
       if To_Lower (S (S'First)) not in LC_A .. LC_Z then
          Idl_Fe.Errors.Parser_Error ("invalid string for context " &
                               "declaration : the first character " &
@@ -7777,249 +6671,667 @@ package body Idl_Fe.Parser is
    ---------------------------------
    --  evaluation of expressions  --
    ---------------------------------
+--    --------------------
+--    --  Eval_Or_Expr  --
+--    --------------------
+--    procedure Eval_Or_Expr (Left : in Value_Ptr;
+--                            Right : in Value_Ptr;
+--                            Result : out Value_Ptr;
+--                            Loc : in Idl_Fe.Errors.Location) is
+--    begin
+--       if Left = No_Node or Right = No_Node then
+--          Result := No_Node;
+--          return;
+--       end if;
+--       case Left.Const_Type.Kind is
+--          when C_Short
+--            | C_UShort
+--            | C_Long
+--            | C_ULong
+--            | C_LongLong
+--            | C_ULongLong =>
+--             No_Node;
+--          when others =>
+--             Idl_Fe.Errors.Parser_Error
+--               ("invalid type in the left term of this " &
+--                "expression. Or expression is only " &
+--                "applicable to integer expressions.",
+--                Idl_Fe.Errors.Error,
+--                Loc);
+--             Result := No_Node;
+--             return;
+--       end case;
+--       case Right.Const_Type.Kind is
+--          when C_Short
+--            | C_UShort
+--            | C_Long
+--            | C_ULong
+--            | C_LongLong
+--            | C_ULongLong =>
+--             No_Node;
+--          when others =>
+--             Idl_Fe.Errors.Parser_Error
+--               ("invalid type in the right term of this " &
+--                "expression. Or expression is only " &
+--                "applicable to integer expressions.",
+--                Idl_Fe.Errors.Error,
+--                Loc);
+--             Result := No_Node;
+--             return;
+--       end case;
+--       case Right.Const_Type.Kind is
+--          when C_Short =>
+--             case Left.Const_Type.Kind is
+--                when C_Short =>
+--                   Result := new Short_Value;
+--                   Set_Const_Type (Result, new Const_Type'(Kind => C_Short));
+--                   Short_Value_Ptr (Result).Value :=
+--                     Short_Value_Ptr (Right).Value or
+--                     Short_Value_Ptr (Left).Value;
+--                when C_UShort =>
+--                   if UShort_Value_Ptr (Left).Value <=
+--                     Idl_UShort (Idl_Short'Last) then
+--                      Result := new Short_Value;
+--                      Set_Const_Type (Result,
+--                                      new Const_Type'(Kind => C_Short));
+--                      Short_Value_Ptr (Result).Value :=
+--                        Short_Value_Ptr (Right).Value or
+--                        Idl_Short (UShort_Value_Ptr (Left).Value);
+--                   else
+--                      Result := new Long_Value;
+--                      Set_Const_Type (Result,
+--                                      new Const_Type'(Kind => C_Long));
+--                      Long_Value_Ptr (Result).Value :=
+--                        Idl_Long (Short_Value_Ptr (Right).Value) or
+--                        Idl_Long (UShort_Value_Ptr (Left).Value);
+--                   end if;
+--                when C_Long =>
+--                   Result := new Long_Value;
+--                   Set_Const_Type (Result, new Const_Type'(Kind => C_Long));
+--                   Long_Value_Ptr (Result).Value :=
+--                     Idl_Long (Short_Value_Ptr (Right).Value) or
+--                     Long_Value_Ptr (Left).Value;
+--                when C_ULong =>
+--                   if ULong_Value_Ptr (Left).Value <=
+--                     Idl_ULong (Idl_Long'Last) then
+--                      Result := new Long_Value;
+--                   Set_Const_Type (Result, new Const_Type'(Kind => C_Long));
+--                      Long_Value_Ptr (Result).Value :=
+--                        Idl_Long (Short_Value_Ptr (Right).Value) or
+--                        Idl_Long (ULong_Value_Ptr (Left).Value);
+--                   else
+--                      Result := new LongLong_Value;
+--                Set_Const_Type (Result, new Const_Type'(Kind => C_LongLong));
+--                      LongLong_Value_Ptr (Result).Value :=
+--                        Idl_LongLong (Short_Value_Ptr (Right).Value) or
+--                        Idl_LongLong (ULong_Value_Ptr (Left).Value);
+--                   end if;
+--                when C_LongLong =>
+--                   Result := new LongLong_Value;
+--                Set_Const_Type (Result, new Const_Type'(Kind => C_LongLong));
+--                   LongLong_Value_Ptr (Result).Value :=
+--                     Idl_LongLong (Short_Value_Ptr (Right).Value) or
+--                     LongLong_Value_Ptr (Left).Value;
+--                when C_ULongLong =>
+--                   if ULongLong_Value_Ptr (Left).Value <=
+--                     Idl_ULongLong (Idl_LongLong'Last) then
+--                      Result := new LongLong_Value;
+--                Set_Const_Type (Result, new Const_Type'(Kind => C_LongLong));
+--                      LongLong_Value_Ptr (Result).Value :=
+--                        Idl_LongLong (Short_Value_Ptr (Right).Value) or
+--                        Idl_LongLong (ULongLong_Value_Ptr (Left).Value);
+--                   else
+--                      Result := No_Node;
+--                      Idl_Fe.Errors.Parser_Error
+--                        ("incompatible type between the two terms : the " &
+--                         "first one is negative and the other one is " &
+--                         "unsigned long long.",
+--                         Idl_Fe.Errors.Error,
+--                         Loc);
+--                      return;
+--                   end if;
+--                when others =>
+--                   raise Idl_Fe.Errors.Internal_Error;
+--             end case;
+--          when C_UShort =>
+--             case Left.Const_Type.Kind is
+--                when C_UShort =>
+--                   Result := new UShort_Value;
+--                Set_Const_Type (Result, new Const_Type'(Kind => C_UShort));
+--                   UShort_Value_Ptr (Result).Value :=
+--                     UShort_Value_Ptr (Right).Value or
+--                     UShort_Value_Ptr (Left).Value;
+--                when C_Short =>
+--                   if UShort_Value_Ptr (Right).Value <=
+--                     Idl_UShort (Idl_Short'Last) then
+--                      Result := new Short_Value;
+--                   Set_Const_Type (Result, new Const_Type'(Kind => C_Short));
+--                      Short_Value_Ptr (Result).Value :=
+--                        Idl_Short (UShort_Value_Ptr (Right).Value) or
+--                        Short_Value_Ptr (Left).Value;
+--                   else
+--                      Result := new Long_Value;
+--                   Set_Const_Type (Result, new Const_Type'(Kind => C_Long));
+--                      Long_Value_Ptr (Result).Value :=
+--                        Idl_Long (UShort_Value_Ptr (Right).Value) or
+--                        Idl_Long (Short_Value_Ptr (Left).Value);
+--                   end if;
+--                when C_Long =>
+--                   Result := new Long_Value;
+--                   Set_Const_Type (Result, new Const_Type'(Kind => C_Long));
+--                   Long_Value_Ptr (Result).Value :=
+--                     Idl_Long (UShort_Value_Ptr (Right).Value) or
+--                     Long_Value_Ptr (Left).Value;
+--                when C_ULong =>
+--                   Result := new ULong_Value;
+--                   Set_Const_Type (Result, new Const_Type'(Kind => C_ULong));
+--                   ULong_Value_Ptr (Result).Value :=
+--                     Idl_ULong (UShort_Value_Ptr (Right).Value) or
+--                     ULong_Value_Ptr (Left).Value;
+--                when C_LongLong =>
+--                   Result := new LongLong_Value;
+--                Set_Const_Type (Result, new Const_Type'(Kind => C_LongLong));
+--                   LongLong_Value_Ptr (Result).Value :=
+--                     Idl_LongLong (UShort_Value_Ptr (Right).Value) or
+--                     LongLong_Value_Ptr (Left).Value;
+--                when C_ULongLong =>
+--                   Result := new ULongLong_Value;
+--             Set_Const_Type (Result, new Const_Type'(Kind => C_ULongLong));
+--                   ULongLong_Value_Ptr (Result).Value :=
+--                     Idl_ULongLong (UShort_Value_Ptr (Right).Value) or
+--                     ULongLong_Value_Ptr (Left).Value;
+--                when others =>
+--                   raise Idl_Fe.Errors.Internal_Error;
+--             end case;
+--          when C_Long =>
+--             case Left.Const_Type.Kind is
+--                when C_Short =>
+--                   Result := new Long_Value;
+--                   Set_Const_Type (Result, new Const_Type'(Kind => C_Long));
+--                   Long_Value_Ptr (Result).Value :=
+--                     Long_Value_Ptr (Right).Value or
+--                     Idl_Long (Short_Value_Ptr (Left).Value);
+--                when C_UShort =>
+--                   Result := new Long_Value;
+--                   Set_Const_Type (Result, new Const_Type'(Kind => C_Long));
+--                   Long_Value_Ptr (Result).Value :=
+--                     Long_Value_Ptr (Right).Value or
+--                     Idl_Long (UShort_Value_Ptr (Left).Value);
+--                when C_Long =>
+--                   Result := new Long_Value;
+--                   Set_Const_Type (Result, new Const_Type'(Kind => C_Long));
+--                   Long_Value_Ptr (Result).Value :=
+--                     Long_Value_Ptr (Right).Value or
+--                     Long_Value_Ptr (Left).Value;
+--                when C_ULong =>
+--                   if ULong_Value_Ptr (Left).Value <=
+--                     Idl_ULong (Idl_Long'Last) then
+--                      Result := new Long_Value;
+--                   Set_Const_Type (Result, new Const_Type'(Kind => C_Long));
+--                      Long_Value_Ptr (Result).Value :=
+--                        Long_Value_Ptr (Right).Value or
+--                        Idl_Long (ULong_Value_Ptr (Left).Value);
+--                   else
+--                      Result := new LongLong_Value;
+--                Set_Const_Type (Result, new Const_Type'(Kind => C_LongLong));
+--                      LongLong_Value_Ptr (Result).Value :=
+--                        Idl_LongLong (Long_Value_Ptr (Right).Value) or
+--                        Idl_LongLong (ULong_Value_Ptr (Left).Value);
+--                   end if;
+--                when C_LongLong =>
+--                   Result := new LongLong_Value;
+--                Set_Const_Type (Result, new Const_Type'(Kind => C_LongLong));
+--                   LongLong_Value_Ptr (Result).Value :=
+--                     Idl_LongLong (Long_Value_Ptr (Right).Value) or
+--                     LongLong_Value_Ptr (Left).Value;
+--                when C_ULongLong =>
+--                   if ULongLong_Value_Ptr (Left).Value <=
+--                     Idl_ULongLong (Idl_LongLong'Last) then
+--                      Result := new LongLong_Value;
+--                Set_Const_Type (Result, new Const_Type'(Kind => C_LongLong));
+--                      LongLong_Value_Ptr (Result).Value :=
+--                        Idl_LongLong (Long_Value_Ptr (Right).Value) or
+--                        Idl_LongLong (ULongLong_Value_Ptr (Left).Value);
+--                   else
+--                      Result := No_Node;
+--                      Idl_Fe.Errors.Parser_Error
+--                        ("incompatible type between the two terms : the " &
+--                         "first one is negative and the other one is " &
+--                         "unsigned long long.",
+--                         Idl_Fe.Errors.Error,
+--                         Loc);
+--                      return;
+--                   end if;
+--                when others =>
+--                   raise Idl_Fe.Errors.Internal_Error;
+--             end case;
+--          when C_ULong =>
+--             case Left.Const_Type.Kind is
+--                when C_UShort =>
+--                   Result := new ULong_Value;
+--                  Set_Const_Type (Result, new Const_Type'(Kind => C_ULong));
+--                   ULong_Value_Ptr (Result).Value :=
+--                     ULong_Value_Ptr (Right).Value or
+--                     Idl_ULong (UShort_Value_Ptr (Left).Value);
+--                when C_Short =>
+--                   if ULong_Value_Ptr (Right).Value <=
+--                     Idl_ULong (Idl_Long'Last) then
+--                      Result := new Long_Value;
+--                   Set_Const_Type (Result, new Const_Type'(Kind => C_Long));
+--                      Long_Value_Ptr (Result).Value :=
+--                        Idl_Long (ULong_Value_Ptr (Right).Value) or
+--                        Idl_Long (Short_Value_Ptr (Left).Value);
+--                   else
+--                      Result := new LongLong_Value;
+--                Set_Const_Type (Result, new Const_Type'(Kind => C_LongLong));
+--                      LongLong_Value_Ptr (Result).Value :=
+--                        Idl_LongLong (ULong_Value_Ptr (Right).Value) or
+--                        Idl_LongLong (Short_Value_Ptr (Left).Value);
+--                   end if;
+--                when C_ULong =>
+--                   Result := new ULong_Value;
+--                   Set_Const_Type (Result, new Const_Type'(Kind => C_ULong));
+--                   ULong_Value_Ptr (Result).Value :=
+--                     ULong_Value_Ptr (Right).Value or
+--                     ULong_Value_Ptr (Left).Value;
+--                when C_Long =>
+--                   if ULong_Value_Ptr (Right).Value <=
+--                     Idl_ULong (Idl_Long'Last) then
+--                      Result := new Long_Value;
+--                   Set_Const_Type (Result, new Const_Type'(Kind => C_Long));
+--                      Long_Value_Ptr (Result).Value :=
+--                        Idl_Long (ULong_Value_Ptr (Right).Value) or
+--                        Long_Value_Ptr (Left).Value;
+--                   else
+--                      Result := new LongLong_Value;
+--               Set_Const_Type (Result, new Const_Type'(Kind => C_LongLong));
+--                      LongLong_Value_Ptr (Result).Value :=
+--                        Idl_LongLong (ULong_Value_Ptr (Right).Value) or
+--                        Idl_LongLong (Long_Value_Ptr (Left).Value);
+--                   end if;
+--                when C_ULongLong =>
+--                   Result := new ULongLong_Value;
+--             Set_Const_Type (Result, new Const_Type'(Kind => C_ULongLong));
+--                   ULongLong_Value_Ptr (Result).Value :=
+--                     Idl_ULongLong (ULong_Value_Ptr (Right).Value) or
+--                     ULongLong_Value_Ptr (Left).Value;
+--                when C_LongLong =>
+--                   Result := new LongLong_Value;
+--                Set_Const_Type (Result, new Const_Type'(Kind => C_LongLong));
+--                   LongLong_Value_Ptr (Result).Value :=
+--                     Idl_LongLong (ULong_Value_Ptr (Right).Value) or
+--                     LongLong_Value_Ptr (Left).Value;
+--                when others =>
+--                   raise Idl_Fe.Errors.Internal_Error;
+--             end case;
+--          when C_LongLong =>
+--             case Left.Const_Type.Kind is
+--                when C_Short =>
+--                   Result := new LongLong_Value;
+--                Set_Const_Type (Result, new Const_Type'(Kind => C_LongLong));
+--                   LongLong_Value_Ptr (Result).Value :=
+--                     LongLong_Value_Ptr (Right).Value or
+--                     Idl_LongLong (Short_Value_Ptr (Left).Value);
+--                when C_UShort =>
+--                   Result := new LongLong_Value;
+--                Set_Const_Type (Result, new Const_Type'(Kind => C_LongLong));
+--                   LongLong_Value_Ptr (Result).Value :=
+--                     LongLong_Value_Ptr (Right).Value or
+--                     Idl_LongLong (UShort_Value_Ptr (Left).Value);
+--                when C_Long =>
+--                   Result := new LongLong_Value;
+--                Set_Const_Type (Result, new Const_Type'(Kind => C_LongLong));
+--                   LongLong_Value_Ptr (Result).Value :=
+--                     LongLong_Value_Ptr (Right).Value or
+--                     Idl_LongLong (Long_Value_Ptr (Left).Value);
+--                when C_ULong =>
+--                   Result := new LongLong_Value;
+--                Set_Const_Type (Result, new Const_Type'(Kind => C_LongLong));
+--                   LongLong_Value_Ptr (Result).Value :=
+--                     LongLong_Value_Ptr (Right).Value or
+--                     Idl_LongLong (ULong_Value_Ptr (Left).Value);
+--                when C_LongLong =>
+--                   Result := new LongLong_Value;
+--                Set_Const_Type (Result, new Const_Type'(Kind => C_LongLong));
+--                   LongLong_Value_Ptr (Result).Value :=
+--                     LongLong_Value_Ptr (Right).Value or
+--                     LongLong_Value_Ptr (Left).Value;
+--                when C_ULongLong =>
+--                   if ULongLong_Value_Ptr (Left).Value <=
+--                     Idl_ULongLong (Idl_LongLong'Last) then
+--                      Result := new LongLong_Value;
+--                Set_Const_Type (Result, new Const_Type'(Kind => C_LongLong));
+--                      LongLong_Value_Ptr (Result).Value :=
+--                        LongLong_Value_Ptr (Right).Value or
+--                        Idl_LongLong (ULongLong_Value_Ptr (Left).Value);
+--                   else
+--                      Result := No_Node;
+--                      Idl_Fe.Errors.Parser_Error
+--                        ("incompatible type between the two terms : the " &
+--                         "first one is negative and the other one is " &
+--                         "unsigned long long.",
+--                         Idl_Fe.Errors.Error,
+--                         Loc);
+--                      return;
+--                   end if;
+--                when others =>
+--                   raise Idl_Fe.Errors.Internal_Error;
+--             end case;
+--          when C_ULongLong =>
+--             case Left.Const_Type.Kind is
+--                when C_UShort =>
+--                   Result := new ULongLong_Value;
+--             Set_Const_Type (Result, new Const_Type'(Kind => C_ULongLong));
+--                   ULongLong_Value_Ptr (Result).Value :=
+--                     ULongLong_Value_Ptr (Right).Value or
+--                     Idl_ULongLong (UShort_Value_Ptr (Left).Value);
+--                when C_Short =>
+--                   if ULongLong_Value_Ptr (Right).Value <=
+--                     Idl_ULongLong (Idl_LongLong'Last) then
+--                      Result := new LongLong_Value;
+--                Set_Const_Type (Result, new Const_Type'(Kind => C_LongLong));
+--                      LongLong_Value_Ptr (Result).Value :=
+--                        Idl_LongLong (ULongLong_Value_Ptr (Right).Value) or
+--                        Idl_LongLong (Short_Value_Ptr (Left).Value);
+--                   else
+--                      Result := No_Node;
+--                      Idl_Fe.Errors.Parser_Error
+--                        ("incompatible type between the two terms : the " &
+--                         "first one is unsigned long long and the other " &
+--                         "one is negative.",
+--                         Idl_Fe.Errors.Error,
+--                         Loc);
+--                      return;
+--                   end if;
+--                when C_ULong =>
+--                   Result := new ULongLong_Value;
+--             Set_Const_Type (Result, new Const_Type'(Kind => C_ULongLong));
+--                   ULongLong_Value_Ptr (Result).Value :=
+--                     ULongLong_Value_Ptr (Right).Value or
+--                     Idl_ULongLong (ULong_Value_Ptr (Left).Value);
+--                when C_Long =>
+--                   if ULongLong_Value_Ptr (Right).Value <=
+--                     Idl_ULongLong (Idl_LongLong'Last) then
+--                      Result := new LongLong_Value;
+--             Set_Const_Type (Result, new Const_Type'(Kind => C_LongLong));
+--                      LongLong_Value_Ptr (Result).Value :=
+--                        Idl_LongLong (ULongLong_Value_Ptr (Right).Value) or
+--                        Idl_LongLong (Long_Value_Ptr (Left).Value);
+--                   else
+--                      Result := No_Node;
+--                      Idl_Fe.Errors.Parser_Error
+--                        ("incompatible type between the two terms : the " &
+--                         "first one is unsigned long long and the other " &
+--                         "one is negative.",
+--                         Idl_Fe.Errors.Error,
+--                         Loc);
+--                      return;
+--                   end if;
+--                when C_ULongLong =>
+--                   Result := new ULongLong_Value;
+--             Set_Const_Type (Result, new Const_Type'(Kind => C_ULongLong));
+--                   ULongLong_Value_Ptr (Result).Value :=
+--                     ULongLong_Value_Ptr (Right).Value or
+--                     ULongLong_Value_Ptr (Left).Value;
+--                when C_LongLong =>
+--                   if ULongLong_Value_Ptr (Right).Value <=
+--                     Idl_ULongLong (Idl_LongLong'Last) then
+--                      Result := new LongLong_Value;
+--              Set_Const_Type (Result, new Const_Type'(Kind => C_LongLong));
+--                      LongLong_Value_Ptr (Result).Value :=
+--                        Idl_LongLong (ULongLong_Value_Ptr (Right).Value) or
+--                        Idl_LongLong (LongLong_Value_Ptr (Left).Value);
+--                   else
+--                      Result := No_Node;
+--                      Idl_Fe.Errors.Parser_Error
+--                        ("incompatible type between the two terms : the " &
+--                         "first one is unsigned long long and the other " &
+--                         "one is negative.",
+--                         Idl_Fe.Errors.Error,
+--                         Loc);
+--                      return;
+--                   end if;
+--                when others =>
+--                   raise Idl_Fe.Errors.Internal_Error;
+--             end case;
+--          when others =>
+--             raise Idl_Fe.Errors.Internal_Error;
+--       end case;
+--       --  if positive, then use unsigned types
+--       case Const_Type.Kind (Result) is
+--          when C_Short =>
+--             if Short_Value_Ptr (Result).Value > 0 then
+--                declare
+--                   Value : Idl_Short;
+--                begin
+--                   Value := Short_Value_Ptr (Result).Value;
+--                   Free (Const_Type (Result));
+--                   Free (Short_Value_Ptr (Result));
+--                   Result := new UShort_Value;
+--                Set_Const_Type (Result, new Const_Type'(Kind => C_UShort));
+--                   UShort_Value_Ptr (Result).Value := Idl_UShort (Value);
+--                end;
+--             end if;
+--          when C_Long =>
+--             if Long_Value_Ptr (Result).Value > 0 then
+--                declare
+--                   Value : Idl_Long;
+--                begin
+--                   Value := Long_Value_Ptr (Result).Value;
+--                   Free (Const_Type (Result));
+--                   Free (Long_Value_Ptr (Result));
+--                   Result := new ULong_Value;
+--                   Set_Const_Type (Result, new Const_Type'(Kind => C_ULong));
+--                   ULong_Value_Ptr (Result).Value := Idl_ULong (Value);
+--                end;
+--             end if;
+--          when C_LongLong =>
+--             if LongLong_Value_Ptr (Result).Value > 0 then
+--                declare
+--                   Value : Idl_LongLong;
+--                begin
+--                   Value := LongLong_Value_Ptr (Result).Value;
+--                   Free (Const_Type (Result));
+--                   Free (LongLong_Value_Ptr (Result));
+--                   Result := new ULongLong_Value;
+--             Set_Const_Type (Result, new Const_Type'(Kind => C_ULongLong));
+--                ULongLong_Value_Ptr (Result).Value := Idl_ULongLong (Value);
+--                end;
+--             end if;
+--          when C_ULong
+--            | C_UShort
+--            | C_ULongLong =>
+--             No_Node;
+--          when others =>
+--             raise Idl_Fe.Errors.Internal_Error;
+--       end case;
+--    end Eval_Or_Expr;
+
+--    ---------------------
+--    --  Eval_Xor_Expr  --
+--    ---------------------
+--    procedure Eval_Xor_Expr (Left : in Value_Ptr;
+--                             Right : in Value_Ptr;
+--                             Result : out Value_Ptr;
+--                             Loc : in Idl_Fe.Errors.Location) is
+--    begin
+--       Result := No_Node;
+--       return;
+--    end Eval_Xor_Expr;
+
+--    ---------------------
+--    --  Eval_And_Expr  --
+--    ---------------------
+--    procedure Eval_And_Expr (Left : in Value_Ptr;
+--                             Right : in Value_Ptr;
+--                             Result : out Value_Ptr;
+--                             Loc : in Idl_Fe.Errors.Location) is
+--    begin
+--       Result := No_Node;
+--       return;
+--    end Eval_And_Expr;
+
+--    ---------------------
+--    --  Eval_Shr_Expr  --
+--    ---------------------
+--    procedure Eval_Shr_Expr (Left : in Value_Ptr;
+--                             Right : in Value_Ptr;
+--                             Result : out Value_Ptr;
+--                             Loc : in Idl_Fe.Errors.Location) is
+--    begin
+--       Result := No_Node;
+--       return;
+--    end Eval_Shr_Expr;
+
+--    ---------------------
+--    --  Eval_Shl_Expr  --
+--    ---------------------
+--    procedure Eval_Shl_Expr (Left : in Value_Ptr;
+--                             Right : in Value_Ptr;
+--                             Result : out Value_Ptr;
+--                             Loc : in Idl_Fe.Errors.Location) is
+--    begin
+--       Result := No_Node;
+--       return;
+--    end Eval_Shl_Expr;
+
+--    ---------------------
+--    --  Eval_Add_Expr  --
+--    ---------------------
+--    procedure Eval_Add_Expr (Left : in Value_Ptr;
+--                             Right : in Value_Ptr;
+--                             Result : out Value_Ptr;
+--                             Loc : in Idl_Fe.Errors.Location) is
+--    begin
+--       Result := No_Node;
+--       return;
+--    end Eval_Add_Expr;
+
+--    ---------------------
+--    --  Eval_Sub_Expr  --
+--    ---------------------
+--    procedure Eval_Sub_Expr (Left : in Value_Ptr;
+--                             Right : in Value_Ptr;
+--                             Result : out Value_Ptr;
+--                             Loc : in Idl_Fe.Errors.Location) is
+--    begin
+--       Result := No_Node;
+--       return;
+--    end Eval_Sub_Expr;
+
+--    ---------------------
+--    --  Eval_Mul_Expr  --
+--    ---------------------
+--    procedure Eval_Mul_Expr (Left : in Value_Ptr;
+--                             Right : in Value_Ptr;
+--                             Result : out Value_Ptr;
+--                             Loc : in Idl_Fe.Errors.Location) is
+--    begin
+--       Result := No_Node;
+--       return;
+--    end Eval_Mul_Expr;
+
+--    ---------------------
+--    --  Eval_Div_Expr  --
+--    ---------------------
+--    procedure Eval_Div_Expr (Left : in Value_Ptr;
+--                             Right : in Value_Ptr;
+--                             Result : out Value_Ptr;
+--                             Loc : in Idl_Fe.Errors.Location) is
+--    begin
+--       Result := No_Node;
+--       return;
+--    end Eval_Div_Expr;
+
+--    ---------------------
+--    --  Eval_Mod_Expr  --
+--    ---------------------
+--    procedure Eval_Mod_Expr (Left : in Value_Ptr;
+--                             Right : in Value_Ptr;
+--                             Result : out Value_Ptr;
+--                             Loc : in Idl_Fe.Errors.Location) is
+--    begin
+--       Result := No_Node;
+--       return;
+--    end Eval_Mod_Expr;
+
+--    ---------------------
+--    --  Eval_Neg_Expr  --
+--    ---------------------
+--    procedure Eval_Neg_Expr (Operand : in Value_Ptr;
+--                             Result : out Value_Ptr;
+--                             Loc : in Idl_Fe.Errors.Location) is
+--    begin
+--       Result := No_Node;
+--       return;
+--    end Eval_Neg_Expr;
+
+--    ---------------------
+--    --  Eval_Not_Expr  --
+--    ---------------------
+--    procedure Eval_Not_Expr (Operand : in Value_Ptr;
+--                             Result : out Value_Ptr;
+--                             Loc : in Idl_Fe.Errors.Location) is
+--    begin
+--       Result := No_Node;
+--       return;
+--    end Eval_Not_Expr;
+
+--    ----------
+--    --  or  --
+--    ----------
+--    function "or" (X, Y : Idl_Short) return Idl_Short is
+--    begin
+--       return X;
+--    end "or";
+
+--    ----------
+--    --  or  --
+--    ----------
+--    function "or" (X, Y : Idl_Long) return Idl_Long is
+--    begin
+--       return X;
+--    end "or";
+
+--    ----------
+--    --  or  --
+--    ----------
+--    function "or" (X, Y : Idl_LongLong) return Idl_LongLong is
+--    begin
+--       return X;
+--    end "or";
+
+--    ----------
+--    --  or  --
+--    ----------
+--    function "or" (X, Y : Idl_UShort) return Idl_UShort is
+--    begin
+--       return X;
+--    end "or";
+
+--    ----------
+--    --  or  --
+--    ----------
+--    function "or" (X, Y : Idl_ULong) return Idl_ULong is
+--    begin
+--       return X;
+--    end "or";
+
+--    ----------
+--    --  or  --
+--    ----------
+--    function "or" (X, Y : Idl_ULongLong) return Idl_ULongLong is
+--    begin
+--       return X;
+--    end "or";
 
    ----------
-   --  Or  --
+   --  or  --
    ----------
-   function "or" (X, Y : Idl_Integer) return Idl_Integer is
-      I : Idl_Integer := 0;
-      Res : Idl_Integer := 0;
-      Exp : Idl_Integer := 1;
-      XX : Idl_Integer := abs X;
-      YY : Idl_Integer := abs Y;
+   function "or" (X, Y : Idl_Value) return Idl_Value is
    begin
-      while XX > 0 or YY > 0 loop
-         if (XX mod 2 = 1) or (YY mod 2 = 1) then
-            Res := Res + Exp;
-         end if;
-         I := I + 1;
-         Exp := Exp * 2;
-         XX := XX / 2;
-         YY := YY / 2;
-      end loop;
-      if X < 0 or Y < 0 then
-         return -Res;
-      else
-         return Res;
-      end if;
+      return X;
    end "or";
-
-   -----------
-   --  Xor  --
-   -----------
-   function "xor" (X, Y : Idl_Integer) return Idl_Integer is
-      I : Idl_Integer := 0;
-      Res : Idl_Integer := 0;
-      Exp : Idl_Integer := 1;
-      XX : Idl_Integer := abs X;
-      YY : Idl_Integer := abs Y;
-   begin
-      while XX > 0 or YY > 0 loop
-         if XX mod 2 + YY mod 2 = 1 then
-            Res := Res + Exp;
-         end if;
-         I := I + 1;
-         Exp := Exp * 2;
-         XX := XX / 2;
-         YY := YY / 2;
-      end loop;
-      if (X < 0 and Y < 0) or
-        (X > 0 and Y > 0) then
-         return Res;
-      else
-         return -Res;
-      end if;
-   end "xor";
-
-   -----------
-   --  And  --
-   -----------
-   function "and" (X, Y : Idl_Integer) return Idl_Integer is
-      I : Idl_Integer := 0;
-      Res : Idl_Integer := 0;
-      Exp : Idl_Integer := 1;
-      XX : Idl_Integer := abs X;
-      YY : Idl_Integer := abs Y;
-   begin
-      while XX > 0 or YY > 0 loop
-         if (XX mod 2 = 1) and (YY mod 2 = 1) then
-            Res := Res + Exp;
-         end if;
-         I := I + 1;
-         Exp := Exp * 2;
-         XX := XX / 2;
-         YY := YY / 2;
-      end loop;
-      if X < 0 and Y < 0 then
-         return -Res;
-      else
-         return Res;
-      end if;
-   end "and";
-
-   ------------------
-   --  Shift_Left  --
-   ------------------
-   function Shift_Left (X : Idl_Integer; Y : Natural) return Idl_Integer is
-   begin
-      return X * 2 ** Y;
-   end Shift_Left;
-
-   -------------------
-   --  Shift_Right  --
-   -------------------
-   function Shift_Right (X : Idl_Integer; Y : Natural) return Idl_Integer is
-   begin
-      return X / 2 ** Y;
-   end Shift_Right;
-
-   -----------
-   --  Max  --
-   -----------
-   function Max (X, Y : Idl_Integer) return Idl_Integer is
-   begin
-      if X > Y then
-         return X;
-      else
-         return Y;
-      end if;
-   end Max;
-
-   -----------------
-   --  Fixed_Add  --
-   -----------------
-   procedure Fixed_Add (Res : in out Constant_Value_Ptr;
-                        Left, Right : in Constant_Value_Ptr) is
-   begin
-      pragma Assert (Res.Kind = C_Fixed);
-      pragma Assert (Left.Kind = C_Fixed);
-      pragma Assert (Right.Kind = C_Fixed);
-      Res.Digits_Nb :=
-        Max (Left.Digits_Nb - Left.Scale,
-             Right.Digits_Nb - Right.Scale) +
-        Max (Left.Scale, Right.Scale) + 1;
-      Res.Scale := Max (Left.Scale, Right.Scale);
-      Res.Fixed_Value :=
-        Left.Fixed_Value * 10 ** Natural (Res.Scale - Left.Scale) +
-        Right.Fixed_Value * 10 ** Natural (Res.Scale - Right.Scale);
-   end Fixed_Add;
-
-   -----------------
-   --  Fixed_Sub  --
-   -----------------
-   procedure Fixed_Sub (Res : in out Constant_Value_Ptr;
-                        Left, Right : in Constant_Value_Ptr) is
-      pragma Assert (Res.Kind = C_Fixed);
-      pragma Assert (Left.Kind = C_Fixed);
-      pragma Assert (Right.Kind = C_Fixed);
-   begin
-      Res.Digits_Nb :=
-        Max (Left.Digits_Nb - Left.Scale,
-             Right.Digits_Nb - Right.Scale) +
-        Max (Left.Scale, Right.Scale) + 1;
-      Res.Scale := Max (Left.Scale, Right.Scale);
-      Res.Fixed_Value :=
-        Left.Fixed_Value * 10 ** Natural (Res.Scale - Left.Scale) -
-        Right.Fixed_Value * 10 ** Natural (Res.Scale - Right.Scale);
-   end Fixed_Sub;
-
-   -----------------
-   --  Fixed_Mul  --
-   -----------------
-   procedure Fixed_Mul (Res : in out Constant_Value_Ptr;
-                        Left, Right : in Constant_Value_Ptr) is
-      pragma Assert (Res.Kind = C_Fixed);
-      pragma Assert (Left.Kind = C_Fixed);
-      pragma Assert (Right.Kind = C_Fixed);
-   begin
-      Res.Digits_Nb := Left.Digits_Nb + Right.Digits_Nb;
-      Res.Scale := Left.Scale + Right.Scale;
-      Res.Fixed_Value := Left.Fixed_Value * Right.Fixed_Value;
-   end Fixed_Mul;
-
-   -----------------
-   --  Fixed_Div  --
-   -----------------
-   procedure Fixed_Div (Res : in out Constant_Value_Ptr;
-                        Left, Right : in Constant_Value_Ptr) is
-      pragma Assert (Res.Kind = C_Fixed);
-      pragma Assert (Left.Kind = C_Fixed);
-      pragma Assert (Right.Kind = C_Fixed);
-      Dn, S, Fv : Idl_Integer := 0;
-      Remainder : Idl_Integer;
-   begin
-      Fv := Left.Fixed_Value / Right.Fixed_Value;
-      Remainder := Left.Fixed_Value mod Right.Fixed_Value;
-      declare
-         Ffvv : Idl_Integer := Fv;
-      begin
-         while Ffvv /= 0 loop
-            Dn := Dn + 1;
-            Ffvv := Ffvv / 10;
-         end loop;
-      end;
-      S := Left.Scale - Right.Scale;
-      while Remainder /= 0 and Dn < 31 loop
-         Fv := Fv * 10 + (Remainder * 10) / Right.Fixed_Value;
-         Dn := Dn + 1;
-         S := S + 1;
-         Remainder := (Remainder * 10) mod Right.Fixed_Value;
-      end loop;
-      Res.Fixed_Value := Fv;
-      Res.Digits_Nb := Dn;
-      Res.Scale := S;
-   end Fixed_Div;
-
-   ----------------
-   --  Fixed_Id  --
-   ----------------
-   procedure Fixed_Id (Res : in out Constant_Value_Ptr;
-                       Operand : in Constant_Value_Ptr) is
-      pragma Assert (Res.Kind = C_Fixed);
-      pragma Assert (Operand.Kind = C_Fixed);
-   begin
-      Res.Digits_Nb := Operand.Digits_Nb;
-      Res.Scale := Operand.Scale;
-      Res.Fixed_Value := Operand.Fixed_Value;
-   end Fixed_Id;
-
-   -----------------
-   --  Fixed_Neg  --
-   -----------------
-   procedure Fixed_Neg (Res : in out Constant_Value_Ptr;
-                        Operand : in Constant_Value_Ptr) is
-      pragma Assert (Res.Kind = C_Fixed);
-      pragma Assert (Operand.Kind = C_Fixed);
-   begin
-      Res.Digits_Nb := Operand.Digits_Nb;
-      Res.Scale := Operand.Scale;
-      Res.Fixed_Value := -Operand.Fixed_Value;
-   end Fixed_Neg;
-
-   -----------
-   --  not  --
-   -----------
-   function "not" (X : Idl_Integer) return Idl_Integer is
-      I : Idl_Integer := 0;
-      Res : Idl_Integer := 0;
-      Exp : Idl_Integer := 1;
-      XX : Idl_Integer := abs X;
-   begin
-      while XX > 0 loop
-         if XX mod 2 = 0 then
-            Res := Res + Exp;
-         end if;
-         I := I + 1;
-         Exp := Exp * 2;
-         XX := XX / 2;
-      end loop;
-      if X < 0 then
-         return Res;
-      else
-         return -Res;
-      end if;
-   end "not";
-
 
    ------------------------------
    --  To resume after errors  --
@@ -8049,7 +7361,6 @@ package body Idl_Fe.Parser is
                  | T_Custom
                  | T_Abstract
                  | T_ValueType
-                 | T_Const
                  | T_Right_Cbracket =>
                   return;
                when others =>
@@ -8067,64 +7378,6 @@ package body Idl_Fe.Parser is
       pragma Debug (O ("Go_To_Next_Definition : end"));
    end Go_To_Next_Definition;
 
-   ---------------------------
-   --  Go_To_End_Of_Export  --
-   ---------------------------
-   --  Tries to reach the end of en export.
-   --  Called when the parser encounters an error during the
-   --  parsing of an export in order to try to continue the
-   --  parsing after the bad export.
-   procedure Go_To_End_Of_Export is
-      Num : Natural := 0;
-   begin
-      pragma Debug (O ("Go_To_Next_Definition : enter"));
-      while Get_Token /= T_Eof loop
-         if Num = 0 then
-            case Get_Token is
-               when T_Readonly
-                 | T_Attribute
-                 | T_Oneway
-                 | T_Void
-                 | T_String
-                 | T_Wstring
-                 | T_Float
-                 | T_Double
-                 | T_Long
-                 | T_Short
-                 | T_Unsigned
-                 | T_Char
-                 | T_Wchar
-                 | T_Boolean
-                 | T_Octet
-                 | T_Any
-                 | T_Object
-                 | T_ValueBase
-                 | T_Colon_Colon
-                 | T_Identifier
-                 | T_Exception
-                 | T_Union
-                 | T_Struct
-                 | T_Enum
-                 | T_Typedef
-                 | T_Custom
-                 | T_Abstract
-                 | T_Const
-                 | T_Right_Cbracket =>
-                  return;
-               when others =>
-                  null;
-            end case;
-         end if;
-         if Get_Token = T_Left_Cbracket then
-            Num := Num + 1;
-         end if;
-         if Get_Token = T_Right_Cbracket and Num > 0 then
-            Num := Num - 1;
-         end if;
-         Next_Token;
-      end loop;
-      pragma Debug (O ("Go_To_Next_Definition : end"));
-   end Go_To_End_Of_Export;
 
    --------------------------------
    --  Go_To_Next_Left_Cbracket  --
