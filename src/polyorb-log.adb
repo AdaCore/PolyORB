@@ -46,9 +46,8 @@ package body PolyORB.Log is
    -- Get_Log_Level --
    -------------------
 
-   Log_Section : constant String := "log";
-
-   Default_Log_Level : constant Log_Level := Notice;
+   function Get_Log_Level (Facility : in String) return Log_Level;
+   --  Returns the user-requested log level for facility Flag.
 
    function Get_Log_Level (Facility : in String) return Log_Level
    is
