@@ -169,8 +169,8 @@ begin
      (Tasking_Policy_Access'(new Thread_Pool.Thread_Pool_Policy));
 
    Droopi.ORB.Create (Setup.The_ORB.all);
-
    Thread_Pool.Initialize (Setup.The_ORB.all, 4, 10);
+   --  XXX Is it OK to Create the ORB /before/ the TP is initialized?
 
    Put (" ORB");
 

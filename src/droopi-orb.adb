@@ -208,8 +208,14 @@ package body Droopi.ORB is
                     and then Exit_Condition.Condition.all)
            or else ORB.Shutdown;
 
+         --  ORB_Lock is held.
+
          if Try_Perform_Work (ORB, ORB.Job_Queue) then
+            --  Try_Perform_Work has released ORB_Lock and
+            --  executed a job from the queue. Reassert ORB_Lock.
+
             Enter (ORB.ORB_Lock.all);
+
          elsif May_Poll then
             pragma Debug (O ("About to poll external event sources."));
             declare

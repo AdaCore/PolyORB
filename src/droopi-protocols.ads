@@ -55,6 +55,12 @@ package Droopi.Protocols is
      (S : in Session_Access)
      return ORB.Interface.Queue_Request;
    --  Return the request watcher associated with session.
+   --  XXX The comment above is wrong, please update it.
+   --  XXX The use of the term 'Pending_Request' is inappropriate
+   --      in this context. A pending request is a request object
+   --      on the client side of a connection which has been
+   --      sent to the target object and for which a response
+   --      is expected. Please find another, more explicit term.
 
    -----------------------------------------------------
    -- Protocol primitives (interface to upper layers) --
@@ -140,6 +146,11 @@ private
       Server          : Components.Component_Access;
       Request_Watcher : Droopi.Soft_Links.Watcher_Access := null;
       Pending_Request : ORB.Interface.Queue_Request;
+      --  XXX Change 'Pending' to something else (see above).
+      --  XXX Storage of a Message'Class is questionable (Messages
+      --    are supposed to be synchronously delivered, as per the
+      --    documentation in the spec of Droopi.Components.
+      --    Store-and-forward behaviour is not expected.)
    end record;
 
    procedure Expect_Data
