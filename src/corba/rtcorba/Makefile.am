@@ -32,7 +32,7 @@ libpolyorb_corba_rtcorba_la_LDFLAGS = -no-undefined -version-info $(LIBVERSIONIN
 
 CLEANFILES = *.ali
 
-LINK = $(LIBTOOL) $(ADA) -o libpolyorb-corba-rtcorba.la
+LINK = $(LIBTOOL) --mode=link $(ADA) -o libpolyorb-corba-rtcorba.la
 
 ADAFLAGS = -I. -I$(srcdir) -I.. -I$(srcdir)/.. -I../../ -I$(srcdir)/../.. $(GNATFLAGS)
 
@@ -42,11 +42,11 @@ SUFFIXES = .adb .ads .lo .ali
 
 .adb.lo:
 	@chmod a+x $(ADACOMPILER)
-	$(LIBTOOL) --mode=compile $(ADACOMPILER) -c $(ADAFLAGS) $<
+	$(LIBTOOL) --mode=compile --tag=CXX $(ADACOMPILER) -c $(ADAFLAGS) $<
 
 .ads.lo:
 	@chmod a+x $(ADACOMPILER)
-	$(LIBTOOL) --mode=compile $(ADACOMPILER) -c $(ADAFLAGS) $<
+	$(LIBTOOL) --mode=compile --tag=CXX $(ADACOMPILER) -c $(ADAFLAGS) $<
 
 install-data-local:
 	$(INSTALL) -d $(DESTDIR)$(alidir)
