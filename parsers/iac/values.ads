@@ -26,8 +26,15 @@ package Values is
             when K_Char .. K_Wide_Char =>
                CVal : Unsigned_Short;
 
-            when K_String .. K_Wide_String =>
+            when K_String .. K_Wide_String
+              | K_Enumerator =>
                SVal : Name_Id;
+               case K is
+                  when K_Enumerator =>
+                     Pos : Unsigned_Long_Long;
+                  when others =>
+                     null;
+               end case;
 
             when K_Void =>
                null;
@@ -40,14 +47,18 @@ package Values is
    Bad_Value : constant Value_Type;
    No_Value  : constant Value_Id;
 
-   function New_Integer_Value
-     (Value : Unsigned_Long_Long;
-      Sign  : Short_Short;
-      Base  : Unsigned_Short_Short)
-     return Value_Id;
-
    function New_Boolean_Value
      (Value : Boolean)
+     return Value_Id;
+
+   function New_Character_Value
+     (Value : Unsigned_Short;
+      Wide  : Boolean)
+     return Value_Id;
+
+   function New_Enumerator
+     (Img : Name_Id;
+      Pos : Unsigned_Long_Long)
      return Value_Id;
 
    function New_Fixed_Point_Value
@@ -61,9 +72,10 @@ package Values is
      (Value : Long_Double)
      return Value_Id;
 
-   function New_Character_Value
-     (Value : Unsigned_Short;
-      Wide  : Boolean)
+   function New_Integer_Value
+     (Value : Unsigned_Long_Long;
+      Sign  : Short_Short;
+      Base  : Unsigned_Short_Short)
      return Value_Id;
 
    function New_String_Value
@@ -106,6 +118,9 @@ package Values is
    function "xor" (L, R : Value_Type) return Value_Type;
    function Shift_Left  (L, R : Value_Type) return Value_Type;
    function Shift_Right (L, R : Value_Type) return Value_Type;
+
+   function "<"   (L, R : Value_Type) return Boolean;
+   --  Assume L and R have the same type.
 
 private
 

@@ -127,6 +127,9 @@ package body Values is
                Add_Char_To_Name_Buffer ('"'); -- "
             end if;
 
+         when K_Enumerator =>
+            Get_Name_String (V.SVal);
+
          when others =>
             raise Program_Error;
       end case;
@@ -160,6 +163,18 @@ package body Values is
          return New_Value (Value_Type'(K_Char, Value));
       end if;
    end New_Character_Value;
+
+   --------------------
+   -- New_Enumerator --
+   --------------------
+
+   function New_Enumerator
+     (Img : Name_Id;
+      Pos : Unsigned_Long_Long)
+      return Value_Id is
+   begin
+      return New_Value (Value_Type'(K_Enumerator, Img, Pos));
+   end New_Enumerator;
 
    ---------------------------
    -- New_Fixed_Point_Value --
@@ -613,6 +628,46 @@ package body Values is
       end case;
       return LV;
    end "xor";
+
+   ---------
+   -- "<" --
+   ---------
+
+   function "<" (L, R : Value_Type) return Boolean is
+   begin
+      case R.K is
+         when K_Short .. K_Unsigned_Long_Long
+           |  K_Octet
+           |  K_Boolean =>
+            if L.Sign > 0 then
+               if R.Sign > 0 then
+                  return L.IVal < R.IVal;
+               else
+                  return False;
+               end if;
+            elsif R.Sign > 0 then
+               return True;
+            else
+               return L.IVal > R.IVal;
+            end if;
+
+         when K_Enumerator =>
+            return L.Pos < R.Pos;
+
+         when K_Fixed_Point_Type =>
+            raise Program_Error;
+
+         when K_Float .. K_Long_Double =>
+            raise Program_Error;
+
+         when K_Char .. K_Wide_Char =>
+            return L.CVal < R.CVal;
+
+         when others =>
+            return False;
+
+      end case;
+   end "<";
 
    -------------
    -- Convert --

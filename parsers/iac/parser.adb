@@ -942,6 +942,7 @@ package body Parser is
       Set_Enumerators (Node, Enumerators);
 
       loop
+
          --  Save lexer state in order to skip the enumerator list on error
 
          Save_Lexer (State);
@@ -959,7 +960,7 @@ package body Parser is
          Position := Position + 1;
          Set_Value
            (Enumerator,
-            New_Integer_Value (Position, 1, 10));
+            New_Enumerator (IDL_Name (Identifier), Position));
 
          Save_Lexer (State);
          Scan_Token ((T_Comma, T_Right_Brace));
@@ -2402,7 +2403,7 @@ package body Parser is
       end Is_Switch_Type_Spec;
 
       Identifier         : Node_Id;
-      Node             : Node_Id;
+      Node               : Node_Id;
       Switch_Type_Spec   : Node_Id;
       Switch_Type_Body   : List_Id;
       Switch_Alt_Decl    : Node_Id;
@@ -2411,9 +2412,15 @@ package body Parser is
       Element            : Node_Id;
       Case_Labels        : List_Id;
       Case_Label         : Node_Id;
+      Expression         : Node_Id;
       State              : Location;
 
    begin
+
+      --  (72) <union_type> ::= "union" <identifier> "switch"
+      --                        "(" <switch_type_spec> ")"
+      --                        "{" <switch_body> "}"
+
       Scan_Token; --  past "union"
       Node := New_Node (K_Union_Type, Token_Location);
 
@@ -2432,6 +2439,12 @@ package body Parser is
       if Token = T_Error then
          return No_Node;
       end if;
+
+      --  (73) <switch_type_spec> ::= <integer_type>
+      --                            | <char_type>
+      --                            | <boolean_type>
+      --                            | <enum_type>
+      --                            | <scoped_name>
 
       Save_Lexer (State);
       Switch_Type_Spec := P_Type_Spec;
@@ -2469,46 +2482,60 @@ package body Parser is
       loop
          Save_Lexer (State);
          Scan_Token ((T_Default, T_Case));
-         Switch_Alt_Decl := New_Node (K_Switch_Alternative, Token_Location);
-         Case_Labels := New_List (K_Case_Label_List, Token_Location);
-         Set_Labels (Switch_Alt_Decl, Case_Labels);
          if Token = T_Error then
             Restore_Lexer (State);
             Skip_Declaration (T_Right_Brace);
             exit Switch_Alternative_Declaration;
          end if;
 
+         Switch_Alt_Decl := New_Node (K_Switch_Alternative, Token_Location);
+         Case_Labels := New_List (K_Case_Label_List, Token_Location);
+         Set_Labels (Switch_Alt_Decl, Case_Labels);
+
+         --  (74) <switch_body> ::= <case> +
+
          Case_Label_List :
          loop
+            Save_Lexer (State);
+            Case_Label := New_Node (K_Case_Label, Token_Location);
+            Set_Declaration (Case_Label, Switch_Alt_Decl);
+
+            --  (75) <case> ::= <case_label> + <element_spec> ";"
+
+            Expression := No_Node;
             if Token = T_Case then
-               Save_Lexer (State);
-               Case_Label := P_Constant_Expression;
-               if No (Case_Label) then
+               Expression := P_Constant_Expression;
+               if No (Expression) then
                   Restore_Lexer (State);
                   Skip_Declaration (T_Right_Brace);
                   exit Switch_Alternative_Declaration;
                end if;
-               Append_Node_To_List (Case_Label, Case_Labels);
             end if;
+
+            Scan_Token (T_Colon);
+            if Token = T_Error then
+               Restore_Lexer (State);
+               Skip_Declaration (T_Right_Brace);
+               exit Switch_Alternative_Declaration;
+            end if;
+
+            Set_Expression (Case_Label, Expression);
+            Append_Node_To_List (Case_Label, Case_Labels);
+
+            --  (76) <case_label> ::= "case" <const_exp> ":"
+            --                      | "default" ":"
 
             case Next_Token is
                when T_Case
                  | T_Default =>
                   Scan_Token;
-                  exit Case_Label_List when Token = T_Default;
 
                when others =>
                   exit Case_Label_List;
             end case;
          end loop Case_Label_List;
 
-         Save_Lexer (State);
-         Scan_Token (T_Colon);
-         if Token = T_Error then
-            Restore_Lexer (State);
-            Skip_Declaration (T_Right_Brace);
-            exit Switch_Alternative_Declaration;
-         end if;
+         --  (77) <element_spec> ::= <type_spec> <declarator>
 
          Save_Lexer (State);
          Element_Type_Spec := P_Type_Spec;
@@ -2525,12 +2552,16 @@ package body Parser is
             Skip_Declaration (T_Right_Brace);
             exit Switch_Alternative_Declaration;
          end if;
+
+         --  Assemble Element and append it to Switch Alternative
+
          Element := New_Node (K_Element, Loc (Element_Type_Spec));
          Set_Type_Spec  (Element, Element_Type_Spec);
          Set_Declarator (Element, Element_Declarator);
          Bind_Declarator_To_Entity (Element_Declarator, Element);
 
-         Set_Element   (Switch_Alt_Decl, Element);
+         Set_Element     (Switch_Alt_Decl, Element);
+         Set_Declaration (Switch_Alt_Decl, Node);
 
          Append_Node_To_List (Switch_Alt_Decl, Switch_Type_Body);
 
@@ -2542,10 +2573,11 @@ package body Parser is
             exit Switch_Alternative_Declaration;
          end if;
 
-         exit Switch_Alternative_Declaration when Next_Token = T_Right_Brace;
+         if Next_Token = T_Right_Brace then
+            Scan_Token; --  past '}'
+            exit Switch_Alternative_Declaration;
+         end if;
       end loop Switch_Alternative_Declaration;
-
-      Scan_Token; --  past '}'
 
       return Node;
    end P_Union_Type;

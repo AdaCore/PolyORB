@@ -23,9 +23,12 @@ package body Backend.BE_IDL is
    procedure Write_Line (T : Token_Type);
    procedure Write_Space;
 
+   procedure Generate (V : Value_Id);
+
    procedure Generate_Abstract_Value_Declaration (E : Node_Id);
    procedure Generate_Attribute_Declaration (E : Node_Id);
    procedure Generate_Base_Type (E : Node_Id);
+   procedure Generate_Case_Label (E : Node_Id);
    procedure Generate_Complex_Declarator (E : Node_Id);
    procedure Generate_Constant_Declaration (E : Node_Id);
    procedure Generate_Element (E : Node_Id);
@@ -96,9 +99,34 @@ package body Backend.BE_IDL is
       N_Space := N_Space + Space_Increment;
    end Increment_Indentation;
 
-   -------------
+   --------------
    -- Generate --
-   -------------
+   --------------
+
+   procedure Generate (V : Value_Id)
+   is
+      Val  : Value_Type := Value (V);
+      Base : Unsigned_Short_Short := 0;
+   begin
+      if Val.K in K_Short .. K_Unsigned_Long_Long
+        or else Val.K = K_Octet
+      then
+         Base := Val.Base;
+         if Default_Base /= 0 then
+            Val.Base := Unsigned_Short_Short (Default_Base);
+         end if;
+         Set_Value (V, Val);
+      end if;
+      Write_Str (Image (V));
+      if Base /= 0 then
+         Val.Base := Base;
+         Set_Value (V, Val);
+      end if;
+   end Generate;
+
+   --------------
+   -- Generate --
+   --------------
 
    procedure Generate (E : Node_Id) is
    begin
@@ -108,6 +136,9 @@ package body Backend.BE_IDL is
 
          when K_Attribute_Declaration =>
             Generate_Attribute_Declaration (E);
+
+         when K_Case_Label =>
+            Generate_Case_Label (E);
 
          when K_Complex_Declarator =>
             Generate_Complex_Declarator (E);
@@ -248,6 +279,26 @@ package body Backend.BE_IDL is
       end loop;
    end Generate_Attribute_Declaration;
 
+   -------------------------
+   -- Generate_Case_Label --
+   -------------------------
+
+   procedure Generate_Case_Label (E : Node_Id)
+   is
+      X : constant Node_Id := Expression (E);
+   begin
+      Write_Indentation;
+      if No (X) then
+         Write (T_Default);
+      else
+         Write (T_Case);
+         Write_Space;
+         Write_Str (Image (Value (E)));
+      end if;
+      Write (T_Colon);
+      Write_Eol;
+   end Generate_Case_Label;
+
    ---------------------------------
    -- Generate_Complex_Declarator --
    ---------------------------------
@@ -273,61 +324,22 @@ package body Backend.BE_IDL is
       Write (T_Right_Bracket);
    end Generate_Complex_Declarator;
 
-   ----------------------------------
+   -----------------------------------
    -- Generate_Constant_Declaration --
-   ----------------------------------
+   -----------------------------------
 
-   procedure Generate_Constant_Declaration (E : Node_Id)
-   is
-      Typ : Node_Id  := Type_Spec (E);
-      Val : constant Value_Id := Value (E);
-      Pos : Unsigned_Long_Long;
-      Enu : Node_Id;
+   procedure Generate_Constant_Declaration (E : Node_Id) is
    begin
       Write_Indentation;
       Write (T_Const);
       Write_Space;
-      Generate (Typ);
+      Generate (Type_Spec (E));
       Write_Space;
       Generate (Identifier (E));
       Write_Space;
       Write (T_Equal);
       Write_Space;
-      if Kind (Typ) = K_Scoped_Name then
-         Typ := Reference (Typ);
-      end if;
-      if Kind (Typ) = K_Enumeration_Type then
-         Pos   := Value (Val).IVal;
-         Enu := First_Node (Enumerators (Typ));
-         while Pos /= 1 loop
-            Enu := Next_Node (Enu);
-            Pos := Pos - 1;
-         end loop;
-         Write_Name (IDL_Name (Identifier (Enu)));
-      else
-         --  Switch to base 10 to have a common output with other
-         --  CORBA environments.
-
-         declare
-            Data : Value_Type := Value (Val);
-            Base : Unsigned_Short_Short := 0;
-         begin
-            if Data.K in K_Short .. K_Unsigned_Long_Long
-              or else Data.K = K_Octet
-            then
-               Base := Data.Base;
-               if Default_Base /= 0 then
-                  Data.Base := Unsigned_Short_Short (Default_Base);
-               end if;
-               Set_Value (Val, Data);
-            end if;
-            Write_Str (Image (Val));
-            if Base /= 0 then
-               Data.Base := Base;
-               Set_Value (Val, Data);
-            end if;
-         end;
-      end if;
+      Generate (Value (E));
    end Generate_Constant_Declaration;
 
    ----------------------
@@ -757,7 +769,10 @@ package body Backend.BE_IDL is
 
    procedure Generate_Sequence_Type (E : Node_Id) is
    begin
+      Write (T_Sequence);
+      Write (T_Less);
       Generate (Type_Spec (E));
+      Write (T_Greater);
    end Generate_Sequence_Type;
 
    -------------------------------
@@ -833,7 +848,9 @@ package body Backend.BE_IDL is
       Write_Indentation;
       Generate (Type_Spec (C));
       Write_Space;
-      Generate (Identifier (Declarator (E)));
+      Generate (Identifier (Declarator (C)));
+      Write (T_Semi_Colon);
+      Write_Eol;
    end Generate_Switch_Alternative;
 
    ------------------------------
@@ -878,6 +895,7 @@ package body Backend.BE_IDL is
       Write (T_Right_Paren);
       Write_Space;
       Write (T_Left_Brace);
+      Write_Eol;
       Increment_Indentation;
       while Present (N) loop
          Generate (N);

@@ -1,3 +1,6 @@
+with GNAT.Table;
+with GNAT.Bubble_Sort;
+
 with Debug;     use Debug;
 with Errors;    use Errors;
 with Flags;     use Flags;
@@ -41,19 +44,28 @@ package body Analyzer is
    procedure Analyze_State_Member (E : Node_Id);
    procedure Analyze_String (E : Node_Id);
    procedure Analyze_Structure_Type (E : Node_Id);
-   procedure Analyze_Switch_Alternative (E : Node_Id);
    procedure Analyze_Type_Declaration (E : Node_Id);
    procedure Analyze_Union_Type (E : Node_Id);
    procedure Analyze_Value_Declaration (E : Node_Id);
    procedure Analyze_Value_Box_Declaration (E : Node_Id);
    procedure Analyze_Value_Forward_Declaration (E : Node_Id);
 
-   procedure Resolve (E : Node_Id; T : Node_Id);
+   procedure Resolve_Expr (E : Node_Id; T : Node_Id);
+   function  Resolve_Type (N : Node_Id) return Node_Id;
 
    procedure Display_Incorrect_Value
      (L  : Location;
       K1 : Node_Kind;
       K2 : Node_Kind := K_Void);
+
+   package Labels is new GNAT.Table (Node_Id, Natural, 1, 10, 10);
+
+   procedure Exchange (Op1, Op2 : Natural);
+   function  Less_Than (Op1, Op2 : Natural) return Boolean;
+   --  Sort the nodes by applying the following rules. A node with a
+   --  wrong value is always the least value. A node representing
+   --  "default" is always the greatest value. Otherwise, compare as
+   --  usual.
 
    -------------
    -- Analyze --
@@ -61,6 +73,10 @@ package body Analyzer is
 
    procedure Analyze (E : Node_Id) is
    begin
+      if No (E) then
+         return;
+      end if;
+
       if Kind (E) in K_Float .. K_Value_Base then
          return;
       end if;
@@ -147,9 +163,6 @@ package body Analyzer is
          when K_Structure_Type =>
             Analyze_Structure_Type (E);
 
-         when K_Switch_Alternative =>
-            Analyze_Switch_Alternative (E);
-
          when K_Type_Declaration =>
             Analyze_Type_Declaration (E);
 
@@ -233,30 +246,14 @@ package body Analyzer is
       --  limited to integer types, character types, string types,
       --  floating point types, fixed point types.
 
-      while Present (T) loop
-         K := Kind (T);
-         exit when K = K_Fixed_Point_Type
-           or else K in K_Float .. K_Octet;
-
-         if K = K_Simple_Declarator then
-            T := Type_Spec (Declaration (T));
-
-         elsif K = K_Scoped_Name then
-            T := Reference (T);
-
-         --  This is in fact an enumerator
-
-         elsif K = K_Enumeration_Type then
-            exit;
-
-         else
-            Error_Loc (1) := Loc (Type_Spec (E));
-            DE ("invalid type for constant");
-            T := No_Node;
-         end if;
-      end loop;
-
-      if No (T) then
+      T := Resolve_Type (T);
+      K := Kind (T);
+      if K /= K_Fixed_Point_Type
+        and then K not in K_Float .. K_Octet
+        and then K /= K_Enumeration_Type
+      then
+         Error_Loc (1) := Loc (Type_Spec (E));
+         DE ("invalid type for constant");
          return;
       end if;
 
@@ -264,7 +261,7 @@ package body Analyzer is
 
       Enter_Name_In_Scope (Identifier (E));
       Analyze (Expression (E));
-      Resolve (E, T);
+      Resolve_Expr (E, T);
    end Analyze_Constant_Declaration;
 
    ---------------------
@@ -286,7 +283,6 @@ package body Analyzer is
       C : Node_Id;
       N : Node_Id;
       I : Node_Id;
-      L : Node_Id := E;
    begin
       Enter_Name_In_Scope (Identifier (E));
 
@@ -310,8 +306,7 @@ package body Analyzer is
 
          --  This declaration is already analyzed as reference is set
 
-         Insert_After_Node (N, L);
-         L := N;
+         Enter_Name_In_Scope (I);
          C := Next_Node (C);
       end loop;
    end Analyze_Enumeration_Type;
@@ -744,22 +739,6 @@ package body Analyzer is
       end if;
    end Analyze_Structure_Type;
 
-   --------------------------------
-   -- Analyze_Switch_Alternative --
-   --------------------------------
-
-   procedure Analyze_Switch_Alternative (E : Node_Id)
-   is
-      Label : Node_Id;
-   begin
-      Label := First_Node (Labels (E));
-      while Present (Label) loop
-         Analyze (Label);
-         Label := Next_Node (Label);
-      end loop;
-      Analyze (Element (E));
-   end Analyze_Switch_Alternative;
-
    ------------------------------
    -- Analyze_Type_Declaration --
    ------------------------------
@@ -781,14 +760,82 @@ package body Analyzer is
 
    procedure Analyze_Union_Type (E : Node_Id)
    is
-      Alt : Node_Id;
+      Alternative : Node_Id;
+      Label       : Node_Id;
+      Switch_Type : Node_Id := Switch_Type_Spec (E);
    begin
       Enter_Name_In_Scope (Identifier (E));
-      Analyze (Switch_Type_Spec (E));
-      Alt := First_Node (Switch_Type_Body (E));
-      while Present (Alt) loop
-         Analyze (Alt);
-         Alt := Next_Node (Alt);
+      Analyze (Switch_Type);
+
+      --  Check that switch type is a discrete type
+
+      Switch_Type := Resolve_Type (Switch_Type);
+      case Kind (Switch_Type) is
+         when K_Short .. K_Wide_Char
+           |  K_Boolean
+           |  K_Octet
+           |  K_Enumeration_Type =>
+            null;
+
+         when others =>
+            Error_Loc (1) := Loc (Switch_Type);
+            DE ("switch must have a discrete type");
+            return;
+      end case;
+
+      --  Resolve labels and elements
+
+      Alternative := First_Node (Switch_Type_Body (E));
+      while Present (Alternative) loop
+         Label := First_Node (Nodes.Labels (Alternative));
+         while Present (Label) loop
+            Analyze (Expression (Label));
+            Resolve_Expr (Label, Switch_Type);
+            Label := Next_Node (Label);
+         end loop;
+         Analyze (Element (Alternative));
+         Alternative := Next_Node (Alternative);
+      end loop;
+
+      --  Check there is no duplicated choice
+
+      Labels.Init;
+      Alternative := First_Node (Switch_Type_Body (E));
+      while Present (Alternative) loop
+         Label := First_Node (Nodes.Labels (Alternative));
+         while Present (Label) loop
+            Labels.Append (Label);
+            Label := Next_Node (Label);
+         end loop;
+         Alternative := Next_Node (Alternative);
+      end loop;
+
+      GNAT.Bubble_Sort.Sort (Labels.Last, Exchange'Access, Less_Than'Access);
+
+      for I in 1 .. Labels.Last - 1 loop
+
+         --  If this comparison is false once sorted, it means that
+         --  the two nodes are equal. This is not an issue when these
+         --  nodes are already incorrect (No_Value).
+
+         if not Less_Than (I, I + 1)
+           and then Value (Labels.Table (I)) /= No_Value
+         then
+
+            --  Reorder nodes in order to output the error message on
+            --  the second node in the file.
+
+            if Loc (Labels.Table (I + 1)) < Loc (Labels.Table (I)) then
+               Error_Loc (1) := Loc (Labels.Table (I));
+               Error_Loc (2) := Loc (Labels.Table (I + 1));
+
+            else
+               Error_Loc (1) := Loc (Labels.Table (I + 1));
+               Error_Loc (2) := Loc (Labels.Table (I));
+            end if;
+            DE ("duplication of choice value at line!");
+            exit;
+         end if;
       end loop;
    end Analyze_Union_Type;
 
@@ -839,11 +886,61 @@ package body Analyzer is
       end if;
    end Display_Incorrect_Value;
 
-   -------------
-   -- Resolve --
-   -------------
+   --------------
+   -- Exchange --
+   --------------
 
-   procedure Resolve (E : Node_Id; T : Node_Id) is
+   procedure Exchange (Op1, Op2 : Natural) is
+      N : constant Node_Id := Labels.Table (Op1);
+   begin
+      Labels.Table (Op1) := Labels.Table (Op2);
+      Labels.Table (Op2) := N;
+   end Exchange;
+
+   ---------------
+   -- Less_Than --
+   ---------------
+
+   function  Less_Than (Op1, Op2 : Natural) return Boolean
+   is
+      N1, N2 : Node_Id;
+      V1, V2 : Value_Id;
+
+   begin
+
+      --  N1 is default
+
+      N1 := Labels.Table (Op1);
+      if No (N1) then
+         return False;
+      end if;
+      V1 := Value (N1);
+
+      --  N2 is default
+
+      N2 := Labels.Table (Op2);
+      if No (N2) then
+         return True;
+      end if;
+      V2 := Value (N2);
+
+      --  N1 is an incorrect node
+
+      if V1 = No_Value then
+         return V2 /= No_Value;
+
+      elsif V2 = No_Value then
+         return False;
+      end if;
+
+      return Value (V1) < Value (V2);
+   end Less_Than;
+
+   ------------------
+   -- Resolve_Expr --
+   ------------------
+
+   procedure Resolve_Expr (E : Node_Id; T : Node_Id) is
 
       procedure Cannot_Interpret
         (E : Node_Id;
@@ -1195,13 +1292,15 @@ package body Analyzer is
       --  and if the evaluation has been successful, set the constant
       --  value to it.
 
-      if KE = K_Constant_Declaration then
+      if KE = K_Constant_Declaration
+        or else KE = K_Case_Label
+      then
          RE := Expression (E);
          if Present (RE) then
-            Resolve (RE, T);
+            Resolve_Expr (RE, T);
             RV := Convert (RE, T, KE);
             if RV = Bad_Value then
-               Set_Value (RE, No_Value);
+               Set_Value (E, No_Value);
                return;
             end if;
             Set_Value (E, New_Value (RV));
@@ -1219,7 +1318,7 @@ package body Analyzer is
 
             --  Resolve and convert a possible left subexpression
 
-            Resolve (LE, T);
+            Resolve_Expr (LE, T);
             LV := Convert (LE, T, KE);
             if LV = Bad_Value then
                Set_Value (E, No_Value);
@@ -1235,7 +1334,7 @@ package body Analyzer is
 
          --  Resolve and convert a right subexpression
 
-         Resolve (RE, T);
+         Resolve_Expr (RE, T);
          RV := Convert (RE, T, KE);
          if RV = Bad_Value then
             Set_Value (E, No_Value);
@@ -1301,7 +1400,7 @@ package body Analyzer is
          end case;
 
          --  XXXXX: Check whether anything goes wrong. We should
-         --  probably take of overflows here.
+         --  probably take care of overflows here.
 
          if RV = Bad_Value then
             Set_Value (E, No_Value);
@@ -1310,6 +1409,29 @@ package body Analyzer is
 
          Set_Value (E, New_Value (RV));
       end if;
-   end Resolve;
+   end Resolve_Expr;
+
+   ------------------
+   -- Resolve_Type --
+   ------------------
+
+   function Resolve_Type (N : Node_Id) return Node_Id is
+      T : Node_Id := N;
+   begin
+      while Present (T) loop
+         case Kind (T) is
+            when K_Simple_Declarator =>
+               T := Type_Spec (Declaration (T));
+
+            when K_Scoped_Name =>
+               T := Reference (T);
+
+            when others =>
+               exit;
+         end case;
+      end loop;
+
+      return T;
+   end Resolve_Type;
 
 end Analyzer;
