@@ -24,10 +24,10 @@ package RCIBank is
       return Integer;
 
    procedure Transfer
-     (Donator  : in Customer_Type;
+     (Payer    : in Customer_Type;
       Password : in Password_Type;
       Amount   : in Positive;
-      Customer : in Customer_Type);
+      Payee    : in Customer_Type);
 
    procedure Deposit
      (Customer : in Customer_Type;
@@ -112,7 +112,7 @@ package Terminal is
 
    procedure Notify
      (MyTerm   : access Term_Type;
-      Donator  : in Customer_Type;
+      Payer    : in Customer_Type;
       Amount   : in Integer) is abstract;
 
 private
@@ -140,7 +140,7 @@ package NewTerminal is
 
    procedure Notify
      (MyTerm   : access New_Term_Type;
-      Donator  : in Customer_Type;
+      Payer    : in Customer_Type;
       Amount   : in Integer);
 
    function Current return Term_Access;
@@ -157,12 +157,12 @@ end Term1Client;
 with NewTerminal, RACWBank, Types; use NewTerminal, RACWBank, Types;
 procedure Term2Client is
    MyTerm   : Term_Access   := Current;
-   Donator  : Customer_Type := "rich";
+   Payer    : Customer_Type := "rich";
    Password : Password_Type := "xxxx";
-   Customer : Customer_Type := "poor";
+   Payee    : Customer_Type := "poor";
 begin
-   Register (MyTerm, Donator, Password);
-   Transfer (Donator, Password, 100, Customer);
+   Register (MyTerm, Payer, Password);
+   Transfer (Payer, Password, 100, Payee);
 end Term2Client;
 with Types; use Types;
 package body RACWBank is
@@ -175,20 +175,20 @@ package body RACWBank is
    end Register;
 
    procedure Transfer
-     (Donator  : in Customer_Type;
+     (Payer    : in Customer_Type;
       Password : in Password_Type;
       Amount   : in Positive;
-      Customer : in Customer_Type)
+      Payee    : in Customer_Type)
    is
       --  Find Customer terminal.
       Term : Term_Access
-        := Find_In_Local_Table (Customer);
+        := Find_In_Local_Table (Payee);
    begin
-      Withdraw (Donator, Amount);
-      Deposit  (Customer, Amount);
+      Withdraw (Payer, Amount);
+      Deposit  (Payee, Amount);
       if Term /= null then
-         --  Notify on Customer terminal.
-         Notify (Term, Donator, Amount);
+         --  Notify on Payee terminal.
+         Notify (Term, Payer, Amount);
       end if;
    end Transfer;
 

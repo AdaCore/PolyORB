@@ -36,7 +36,7 @@ to the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 @node Top, About This Guide, (dir), (dir)
 @top GLADE User Guide
 
-GLADE is the GNAT implementation of Distributed Systems Annex.
+GLADE is the GNAT implementation of the Ada95 Distributed Systems Annex.
 
 @end ifinfo
 
@@ -64,22 +64,22 @@ This guide contains the following chapters:
 @itemize @bullet
 @item
 @ref{Introduction to Distributed Systems}, describes different ways to
-develop distributed systems.
+develop systems that must run on networks of computers.
 
 @item
-@ref{The Distributed Systems Annex}, describes the different features
-available in Annex E of Ada 95. This chapter provides a tutorial for
-beginners and includes several useful examples for more advanced
+@ref{The Distributed Systems Annex}, discusses the features presented
+in Annex E of the Ada 95 language reference. This chapter provides a tutorial 
+for beginners and includes several useful examples for more advanced
 programmers.
 
 @item
 @ref{Getting Started With GLADE}, describes how to use the configuration 
-tool @t{gnatdist}. It also provides several useful information on GLADE
+tool @t{gnatdist}. It also describes in detail the GLADE
 Partition Communication Subsystem, GARLIC.
 
 @item
-@ref{DSA and CORBA}, is a quite fair comparison between CORBA and the
-Distributed System Annex.
+@ref{DSA and CORBA}, is a detailed comparison between the capabilities of
+ CORBA and those of the Distributed System Annex.
 
 @end itemize
 
@@ -87,11 +87,12 @@ Distributed System Annex.
 @chapter Introduction to Distributed Systems
 
 A distributed system architecture comprises a network of computers and the
-software components that execute on the computers. Such architectures are
+software components that execute on those computers. Such architectures are
 commonly used to improve the performance, reliability, and reusability of
-complex applications. Typically, when there is no shared address space
-available to remotely-located components, components must communicate using
-some form of message-passing abstraction.
+complex applications. Typically, there is no shared address space
+available to remotely-located components (that is to say, components running
+on different nodes of the network), and therefore these components must
+communicate using some form of message-passing.
 
 
 @menu
@@ -110,46 +111,48 @@ have to perform calls to operating system services, a task that can be
 tedious and error-prone. This includes initializing socket connection
 and determining peer location, marshaling and unmarshaling data
 structures, sending and receiving messages, debugging and testing
-several programs at the same time and porting on several platforms to
-hide subtle differences between various network interfaces.
+several programs at the same time, and porting the application to several
+platforms to uncover subtle differences between various network interfaces.
 
-Of course, this code can be encapsulated in wrappers to reduce its
-complexity but it is clear that most of it can be automatically
+Of course, this communication code can be encapsulated in wrappers to reduce 
+its complexity, but it is clear that most of it can be automatically
 generated. Message passing diverts developer's attention from the
 application domain. The query and reply scenario is a classical scheme
-in distributed applications; using message passing in such a situation
-could be compared to using a ``goto'' mechanism in a non-distributed
-application.  This is known to be a significant problem in the domain of
-modern programming languages. A more robust design would be to use a
-structured approach based on procedure call.
+in distributed applications; using message passing for such a scheme
+can be compared to using a ``goto'' mechanism in a non-distributed
+application.  This is considered unacceptable methodology in modern software 
+engineering. A more robust design is be to use a
+structured approach based on procedure calls.
 
-In some respects, this network programming issue can be compared to the
+In some respects, network programming can be compared to the
 multi-threading programming issue. The user can decide to split his code
-in several pieces and to multiplex the thread executions himself using a
-table-driven model. The scheduling code would be embedded into the user
+into several pieces and to multiplex the thread executions himself, using a
+table-driven model. The scheduling code ends up embedded into the user
 code. This solution is error-prone and fragile in regard to any future
-modification.
+modification. Relying on an implementation of threads such as provided in
+POSIX is a better solution. Relying on language primitives that support
+concurrency, such as Ada tasks, is best.
 
 @node Using a Middleware Environment, Using a Distributed Language, Using OS Network Services, Introduction to Distributed Systems
 @section Using a Middleware Environment
 
 A middleware environment is intended to provide high level abstractions
 in order to easily develop user applications.  Environments like CORBA
-or Distributed Computing Environment (DCE) propose an approach to
-develop client/server applications using the Remote Procedure Call model
+or Distributed Computing Environment (DCE) provide a framework to
+develop client/server applications based on the Remote Procedure Call model
 (RPC). The RPC model is inspired from the query and reply
-scheme. Compared to a regular procedure call, arguments are pushed into
-a stream along with some data pointing out which remote procedure is to
-be used and the stream is transmitted over the network to the
-server. The server decodes the stream, does the regular subprogram call,
-then put the output parameters into another stream along with the
-exception (if any) raised by the subprogram and sends this stream back
-to the caller. The caller decodes the stream and raises the exception if
-needed.
+scheme. In rough analogy with a regular procedure call, arguments are pushed
+onto a stream, along with some data specifying the remote procedure to
+be executed. The stream is transmitted over the network to the
+server. The server decodes the stream, performs the regular subprogram call
+locally, and then puts the output parameters into another stream, along with the
+exception (if any) raised by the subprogram execution. The server then
+sends this stream back to the caller. The caller decodes the stream and raises
+locally the exception if needed.
 
 CORBA provides the same enhancements to the remote procedure model that
-object languages provide to classical procedural languages.  This also
-includes encapsulation, inheritance, type checking, and
+object-oriented languages provide to classical procedural languages.  These
+enhancements include encapsulation, inheritance, type checking, and
 exceptions. These features are offered through an Interface Definition
 Language (IDL).
 
@@ -158,61 +161,63 @@ perform, somewhat transparently, remote procedure calls or remote object
 method invocations. For instance, each CORBA interface communicates
 through an Object Request Broker (ORB). A communication subsystem such
 as an ORB is intended to allow applications to use objects without being
-aware of their underlying message passing implementation. But the user
-may also require a large number of complex services to develop the
-distributed application. Some of them are definitively needed like a
-location service that allows clients to reference remote services via
-higher level names instead of a traditional scheme for addressing remote
-services involving Internet host addresses and communication port
-number. Other services provide domain independent interfaces that are
+aware of their underlying message-passing implementation. In addition. the user
+may also require a number of more complex services to develop his
+distributed application. Some of these services are indispensable, for example
+a location service that allows clients to reference remote services via
+higher level names, instead of a traditional scheme for addressing remote
+services that use Internet host addresses and communication port
+numbers. Other services provide domain-independent interfaces that are
 frequently used by distributed applications.
 
-If we get back to the multi-thread programming comparison, the
+If we return to the multi-thread programming comparison, the
 middleware solution is close to what a POSIX library or a language like
 Esterel@footnote{@t{ESTEREL} is an imperative synchronous language
 designed for the specification and the development of reactive systems.}
-would propose to develop a concurrent application. A middleware
+would provide for developing concurrent applications. A middleware
 framework like DCE is close to a POSIX library in terms of abstraction
 levels. Functionalities are very low-level and very complex. CORBA is
 closer to Esterel in terms of development process.  The control part of
 the application can be specified in a description language. The
-developer then has to fill in automatically generated source code (stub
-and skeletons) to call the computation part of the application. The
+developer then has to fill-in automatically generated source code templates
+(stub and skeletons) to build the computational part of the application. The
 distribution is a pre-compilation process and the distributed boundaries
 are always explicit. Using CORBA, the distributed part is written in IDL
-and the core of the application is written in a host language.
+and the core of the application is written in a host language such as C++.
 
 @node Using a Distributed Language,  , Using a Middleware Environment, Introduction to Distributed Systems
 @section Using a Distributed Language
 
-Rather than defining a new language like an IDL, an alternative idea is
-to extend a programming language in order to provide distributed
+Rather than defining a new language like the CORBA IDL, an alternative is
+to extend an existing programming language with the addition of distributed
 features. The distributed object paradigm provides a more
 object-oriented approach to programming distributed systems. The notion
 of a distributed object is an extension to the abstract data type that
-permits the services provided in the type interface to be called
+allows the services provided in the type interface to be called
 independently of where the actual service is executed. When combined
 with object-oriented features such as inheritance and polymorphism,
-distributed objects promote a more dynamic and structured computational
+distributed objects offer a more dynamic and structured computational
 environment for distributed applications.
 
-Ada95 includes a Distributed Systems Annex (DSA) which defines several
-extensions allowing the user to write a distributed system entirely in
-Ada, using Ada packages as the definition of remote procedure call or
-remote method call on distributed objects. Java/RMI's model is similar
-to Ada95's one. In these languages, the IDL is replaced by a subset of
-the language. Therefore, the language supports both remote procedure
-calls and remote object method invocations transparently.
+The Distributed Systems Annex (DSA) of Ada95 defines several
+extensions that allow the user to write a distributed system entirely in
+Ada.  The types of distributed objects, the services they provide, and
+the bodies of the remote methods to be executed are all defined in conventional
+Ada packages. The Ada95 model is analogous the Java/RMI model.
+In both languages, the IDL is replaced by  well-defined language constructs. 
+Therefore, the language supports both remote procedure
+calls and remote object method invocations transparently, and the semantics
+of distribution are consistent with the rest of the language.
 
-A program written in such a language is supposed to communicate with a
-program written in the same language, but this restriction gives rise to
+A program written in such a language is intended to communicate with a
+program written in the same language, but this apparent restriction has
 several useful consequences. The language can provide more powerful
 features because it is not constrained by the common features available
 in all host languages. In Ada95, the user will define a specification of
 remote services and implement them exactly as he would for ordinary,
 non-distributed services. His Ada95 environment will compile them to
 produce a stub file (on the caller side) and a skeleton file that
-automatically includes the services body (on the receiver
+automatically includes the body of the services (on the receiver
 side). Creating objects, obtaining or registering object references or
 adapting the object skeleton to the user object implementation are made
 transparent because the language environment has a full control on the
@@ -223,68 +228,67 @@ extension solution is equivalent to the solution adopted for tasking
 facilities in Ada.  Writing a distributed application is as simple as
 writing a concurrent application: there is no binding consideration and
 no code to wrap.  The language and its run-time system take care of
-every issue that would divert the programmer's attention from the
+most issues that would divert the programmer's attention from the
 application domain.
 
 @node The Distributed Systems Annex, Getting Started With GLADE, Introduction to Distributed Systems, Top
 @chapter The Distributed Systems Annex
 
-The basic idea of the Distributed Systems Annex (DSA) is to allow the
+A critical feature of the Distributed Systems Annex (DSA) is that it allows the
 user to develop his application the same way whether this application is
-going to be executed as several programs on a distributed system or as a
-whole program on a non-distributed system. The DSA has been designed so
-as to minimize the changes required to the source code of a program, in
-converting it from an ordinary non-distributed program, to a distributed
-program.
+going to be executed as several programs on a distributed system, or as a
+single program on a non-distributed system. The DSA has been designed
+to minimize the source changes needed to convert
+an ordinary non-distributed program into a distributed program.
 
-The easiest way to start with DSA is certainly to develop the
+The simplest way to start with DSA is to develop the
 application on a non-distributed system. Of course, the design of the
 application should take into account the fact that some units are going
 to be accessed remotely. In order to write an Ada95 distributed program,
-it is necessary for the user to categorize certain library level
-compilation units of the application program, by inserting
-categorization pragmas into their specification. The units which require
-categorization are typically those which are called remotely, or ones
-which provide types used in remote calls.
+it is necessary for the user to label by means of categorization pragmas
+some of library level compilation units of the application program. The units
+which require
+categorization are typically those that are called remotely, and those
+that provide the types used in remote invocations.
 
-Therefore, these units must contain only a restricted set of Ada
-entities. For instance, if the distributed system has no shared memory,
-shared variables should be forbidden. To ensure such restrictions, the
-DSA provides several categorization pragmas in order to reduce the set
-of entities one can declare in a given unit.
+In order to insure that distributed execution is possible, these units are
+restricted to contain only a limited set of Ada constructs.
+For instance, if the distributed system has no shared memory,
+shared variables must be forbidden. To specify the nature of these restrictions,
+the DSA provides different categorization pragmas, each of which excludes some
+language constructs from the categorized package.
 
 Of course, the user can develop the non-distributed application with his
-usual software engineering environment. This is very important to note
+usual software engineering environment. It is critical to note
 that the user needs no specialized tools to develop his/her distributed
-application. For instance, he can debug his/her application with his/her
-usual debugger. A non-distributed program is not to be confused with a
+application. For instance, he can debug his application with the
+usual debugger. Note that a non-distributed program is not to be confused with a
 distributed application composed of only one program. The later is built
 with the help of the configuration tool and includes the communication
 library.
 
-The last step is to partition and to configure the non-distributed
-application into a distributed application, that means multiple
-partitions working cooperatively as part of a single Ada program. The
-process of mapping the partitions of a program to the nodes in a
-distributed system is called configuring the partitions of the
-program. This is what GLADE is for.
+Once the non-distributed version of the program is complete, it has to be
+configured into separate partitions, This step is surprisingly simple,
+compared to that of developing the application itself. The configuration
+step consists in mapping sets of compilation units into individual partitions,
+and specifying the mapping between partitions and nodes in the computer
+network. This mapping is specified and managed by means of GLADE.
 
 The distributed version of the user application should work as is, but
-even when a program can be built either as a non-distributed or a
+even when a program can be built both as a non-distributed or a
 distributed program using the same source code, there may still be
 differences in program execution between the distributed and
-non-distributed versions. These differences will be presented in others
+non-distributed versions. These differences are  discussed in subsequent
 sections (see @ref{Pragma Asynchronous} and @ref{Pragma
 All_Calls_Remote}).
 
 Developping a non-distributed application in order to distribute it
-later on is the natural approach for a novice. Of course, it is not
+later is the natural approach for a novice. Of course, it is not
 always possible to write a distributed application as a non-distributed
 application. For instance, a client/server application does not belong
 to this category because several instances of the client can be active
 at the same time. It is very easy to develop such an application using
-GLADE and we shall present to the expert how to do that in the following
-sections.
+GLADE; we shall describe how to do this in the following sections.
 
 
 
@@ -313,9 +317,9 @@ threads of control and has to be configured on a processing node.
 
 The library unit is the core component of an Ada95 distributed
 application. The user can explicitly assign library units to a
-partition. The partitioning is a post-compilation process. The user
-identifies at compile time interface packages. These packages are
-categorized using pragmas. Each of these pragmas allows to use one of
+partition. Partitioning is a post-compilation process. The user
+identifies interface packages at compile-time. These packages are
+categorized using pragmas. Each of these pragmas supports the use of one of
 the following classical paradigms:
 
 @itemize @bullet
@@ -327,16 +331,16 @@ mostly declared in library units categorized as remote call interface
 (RCI).
   
 @item Distributed objects:
-Particular access types can be defined, which designate remote
+Special-purpose access types can be defined which designate remote
 objects. When a primitive dispatching operation is invoked on an object
-designated by a remote access, a remote call is performed transparently
-on the partition on which the object was created. These distributed
+designated by such a remote access, a remote call is performed transparently
+on the partition on which the object resides. The types of these distributed
 objects are declared in library units categorized as remote types (RT).
   
 @item Shared objects:
 Global data can be shared between active partitions, providing a
 repository similar to a shared memory, a shared file system or a
-database. Entry-less protected objects allow safe access and update on
+database. Entry-less protected objects allow safe concurrent access and update
 shared objects. This feature is orthogonal to the notion of distributed
 objects, which are only accessed through exported services. These shared 
 objects are declared in library units categorized as shared passive (SP).
@@ -346,11 +350,11 @@ objects are declared in library units categorized as shared passive (SP).
 The remotely-called subprograms declared in a library unit categorized
 as remote call interface (RCI) or remote types (RT) may be either
 statically or dynamically bound. The partition on which a statically
-bound remote subprogram is executed can be determine before the
-call. This is a regular remote subprogram call. A remote method or a
-dereference of access to remote subprogram are dynamically bound remote
-calls because the partition on which the remote subprogram is executed
-is determined by the parameters of the call.
+bound remote subprogram is executed can be determined before the
+call. This is a static remote subprogram call. In contrast, A remote method or 
+a dereference of an access to remote subprogram are dynamically bound remote
+calls, because the partition on which the remote subprogram is executed
+is determined at runtime, by the actuals of the call.
 
 In the following example, Data_1 and Data_2 are shared passive (SP)
 library units. Data_1 is configured on a passive partition mapped on a
@@ -369,8 +373,9 @@ remote call between the two instances of Unit_2.
 
 Library units can be categorized according to the role they play in a
 distributed program. A categorization pragma is a library unit pragma
-that restricts declarations, child units or semantic dependences of the
-library unit to which it applies. There are several categorization
+that restricts the kinds of declarations that can appear in a library unit
+and possibly in its child units, as well as the legal semantic dependences
+that the categorized unit can have. There are several categorization
 pragmas :
 
 @itemize @bullet
@@ -381,29 +386,31 @@ pragmas :
 @end itemize
 
 The following paragraphs do not present the detailed semantics of these
-pragmas. Their purpose is to give to the reader an intuitive overview of
-what these pragmas are for. When a library unit is not categorized, this
-unit is called a normal unit and cannot play a role in the distributed
+pragmas (formal details will be found in the Ada95 Reference Manual).
+Their purpose is to give the reader an intuitive overview of
+the purpose of these pragmas. If a library unit is not categorized, this
+unit is called a normal unit and plays no special role in the distributed
 application. Such a unit is duplicated on any partition in which it is
-involved.
+mentioned.
 
-As a general remark, to avoid the development of a specific run-time
-library for the DSA, the notion of remote rendez-vous has not been
-introduced in Ada95. Therefore, task types and general protected types
-are not allowed in the following Ada library units.
+A parenthetical remark: to avoid the need for specific run-time
+libraries for the DSA, the notion of remote rendez-vous has not been
+introduced in Ada95: tasks cannot be invoked directly from one partition
+to another. Therefore, declarations of task types and general protected types
+with entries are not allowed in categorized Ada library units.
 
 
 @node Pragma Declared Pure, Pragma Remote_Call_Interface, Categorization Pragmas, The Distributed Systems Annex
 @section Pragma Declared Pure
 
 This pragma is not specific to the Distributed Systems Annex. A pure
-package can be withed in the specification of any of the other
-categorized packages. A pure package is a preelaborable package that
+package can appear in the context of any package, categorized or not. 
+A pure package is a preelaborable package that
 does not contain the declaration of any variable or named access
 type. It is particularly useful to define types, constants and
-subprograms shared by several categorized packages. Remember that normal
-packages cannot be withed in categorized package declarations. A pure
-package can be duplicated on several partitions.
+subprograms shared by several categorized packages. In contrast, normal
+packages cannot appear in the context of categorized package declarations.
+Because a pure package has no state, it can be duplicated on several partitions.
 
 @node Pragma Remote_Call_Interface, Pragma Remote_Types, Pragma Declared Pure, The Distributed Systems Annex
 @section Pragma Remote_Call_Interface
@@ -419,28 +426,38 @@ package can be duplicated on several partitions.
 @node Overview of Pragma Remote_Call_Interface, Regular Remote Subprograms (RCI), Pragma Remote_Call_Interface, Pragma Remote_Call_Interface
 @subsection Overview of Pragma Remote_Call_Interface
 
-Library units categorized with this pragma can declare subprograms to be
-called and executed remotely. This classical RPC operation is a
-statically bound operation. In these units, clients and servers do not
-share their memory space.
+Library units categorized with this pragma declare subprograms that can be
+called and executed remotely. An RCI unit acts as a server for remote calls.
+There is no memory space shared between server and clients.
+A subprogram call that invokes one such
+subprogram is a classical RPC operation; it is a
+statically bound operation, because the compiler can determine the identity
+of the subprogram being called.
 
-Dynamically bound calls are integrated with Ada capabilities to
-dereference subprograms (remote access to subprogram - RAS) and to
-dispatch on access-to-class-wide operands (remote access on class wide
+Dynamically bound calls are provided through two mechanisms:
+@itemize bullet
+@item
+
+The dereference of an access_to_subprogram value, i.e. a value whose type is 
+a remote_access_to_subprogram (RAS).
+
+@item
+A dispatching call whose controlling argument is 
+an access-to-class-wide operand,  (remote access on class wide
 types - RACW). These remote access types can be declared in a RCI
 package as well.
 
-A remote access type (RAS or RACW) can be viewed as a fat pointer or a
-structure with a remote address and a local address (like an URL:
+A remote access type (RAS or RACW) can be viewed as a fat pointer, that is 
+to say a structure with a remote address and a local address (like an URL:
 @t{<protocol>}://@-@t{<remote@code{-}machine>}/@-@t{<local@code{-}directory>}). The
-remote address describes for instance the host on which the entity has
-been created; the local address describes the classical local memory
-address.
+remote address must denote the host of the partition on which the entity has
+been created; the local address describes the local memory
+address within the host.
 
 It is very unlikely that RCI units can be duplicated in the distributed
 system. An implementation may allow separate copies of a RCI unit as
-long as it ensures that the copies present a consistent state. In the
-general case, these operations are very costly. For this reason, the
+long as it ensures that the copies present a consistent state to all clients.
+In the general case, preserving consistency is very costly. For this reason, the
 implementation may require a RCI unit to be unique in the distributed
 system.
 
@@ -449,8 +466,8 @@ system.
 
 In the following example, a RCIBank offers several remote services:
 Balance, Transfert, Deposit and Withdraw. On the caller side, the bank
-client will use the stub files of unit RCIBank. On the receiver side,
-the bank receiver will use the skeleton files of unit RCIBank including
+client uses the stub files of unit RCIBank. On the receiver side,
+the bank receiver uses the skeleton files of unit RCIBank including
 the body of this package.
 
 @include types.ads.texi
@@ -462,13 +479,14 @@ the body of this package.
 
 In the following example, several mirroring banks offer their services
 through the same database. Each bank registers a reference to each of
-its services to a central bank. A central bank client asks for a service
-of one of the mirroring banks. In this purpose, the RCI unit RASBank
-defines Balance_Type, a remote access to subprogram. An access type in a
-remote unit has to be either remote access to subprogram or remote
-access to class wide type.
+its services with a central bank. A client of the central bank requests a service
+from one of the mirroring banks. To satisfiy requests, the RCI unit RASBank
+defines Balance_Type, a remote access to subprogram (Recall that an access
+type declared in a remote unit has to be either remote access to subprogram or
+remote access to class wide type).
 
-Note that to get a remote access to subprogram the subprogram has to be
+Note that to obtain a remote access to subprogram, the subprogram that delivers
+the remote access must be
 remote itself. Therefore, MirrorBank is a RCI library unit.
 
 @include rasbank.ads.texi
@@ -490,8 +508,8 @@ type.
 @subsection Remote Access to Class Wide Types (RACW)
 
 A bank client is now connected to a bank through a terminal. The bank
-wants to notify a connected client with a message on its terminal when
-another client grants him with a given amount of money. In the following
+wants to notify a connected client, bu means of a message on its terminal, when
+another client transfers a given amount of money to his account. In the following
 example, a terminal is designed as a distributed object. Each bank
 client will register its terminal object to the bank server for further
 use. In the code below, Term_Type is the root type of the distributed
@@ -501,7 +519,7 @@ terminal hierarchy.
 
 In the code below, the RCI unit RACWBank defines Term_Access, a remote
 access to class wide type. Term_Access becomes a reference to a
-distributed object. In the next section, we will see how to derive
+distributed object. In the next section, we will see how to derive and extend
 Term_Type, how to create a distributed object and how to use a reference
 to it.
 
@@ -548,7 +566,7 @@ Prevent specification from depending on normal units
 
 Unlike RCI units, library units categorized with this pragma can define
 distributed objects and remote methods on them. Both RCI and RT units
-can define a remote access type described above (RACW). A subprogram
+can define a remote access type as described above (RACW). A subprogram
 defined in a RT unit is not a remote subprogram. Unlike RCI units, a RT
 unit can be duplicated on several partitions in which case all its
 entities are different with each other. This unit is different on each
@@ -567,23 +585,23 @@ Types (RACW)}).
 
 @include newterminal.ads.texi
 
-In the code below, a client registers his name and his terminal to
-RACWBank. Therefore, when any donator grants him with a given amount of
-money, RACWBank is able to notify this client of the granting operation.
+In the code below, a client registers his name and his terminal with
+RACWBank. Therefore, when any payer transfers some
+money to him, RACWBank is able to notify the client of the transfer of funds.
 
 @include term1client.adb.texi
 
-In the code below, a second client, the donator, registers his terminal
+In the code below, a second client, the payer, registers his terminal
 to the bank and executes a transfer to the first client.
 
 @include term2client.adb.texi
 
 In the code below, we describe the general design of Transfer. Classical
 operations of Withdraw and Deposit are performed. Then, RACWBank
-retrieves the terminal of the granted client (if present) and invoke a
+retrieves the terminal of the payee (if present) and invokes a
 dispatching operation by dereferencing a distributed object Term. The
-reference is analyzed and the execution of this operation occurs on the
-partition to which the distributed object belongs.
+reference is examined at run-time, and the execution of this operation takes
+place on the partition on  which the distributed object resides.
 
 @include racwbank.adb.texi
 
@@ -592,10 +610,11 @@ partition to which the distributed object belongs.
 
 @include stringarraystream.ads.texi
 
-Non-remote access types are forbidden in public part of a remote types
-unit. But it is possible to define private non-remote access types as
-long as the user provides its marshalling procedures. The code below
-describes how to transmit a linked structure.
+Non-remote access types cannot be declared in the public part of a remote types
+unit. However, it is possible to define private non-remote access types as
+long as the user provides its marshalling procedures, that is to say the
+mechanism needed to place a value of the type into a communication stream.
+The code below describes how to transmit a linked structure.
 
 The package declaration provides a type definition of single-linked
 lists of unbounded strings. An implementation of the marshalling
@@ -611,16 +630,16 @@ Remote types units:
 
 @itemize @bullet
 @item
-Allow to define distributed objects
+Support the definition of distributed objects
 
 @item
-Allow dynamically bound remote calls (remote access type)
+Allow dynamically bound remote calls (via remote access types)
 
 @item
 Allow non-remote access type (with marshalling subprograms)
 
 @item
-Prevent specification from depending on normal units
+Cannot have a specification that depends on normal units
 
 @end itemize
 
@@ -637,12 +656,13 @@ Prevent specification from depending on normal units
 @node Overview of Pragma Shared_Passive, Summary on Pragma Shared_Passive, Pragma Shared_Passive, Pragma Shared_Passive
 @subsection Overview of Pragma Shared_Passive
 
-The entities declared in such categorized unit library are to be mapped
-on a virtual shared address space (file, memory, database).When two
+The entities declared in such a categorized library unit are intended to be
+mapped on a virtual shared address space (file, memory, database). When two
 partitions use such a library unit, they can communicate by reading or
-writing the same variable. This supports the shared variables
-paradigm. Entryless protected objects declared in these units provide an
-atomic access to some shared data, thus implementing some kind of
+writing the same variable in the shared unit. This supports the conventional
+shared variables paradigm.
+Entryless protected objects can be declared in these units, to provide an
+atomic access to shared data, thus implementing a  simple
 transaction mechanism. When the address space is a file or a database,
 the user can take advantage of the persistency features provided by
 these storage nodes.
@@ -663,13 +683,13 @@ allowed in a shared passive unit.
 
 @itemize @bullet
 @item
-Allow direct access to data among different partitions
+Allow direct access to data from different partitions
 
 @item
-Allow support on shared (distributed) memory
+Provide support for shared (distributed) memory
 
 @item
-Allow memory protection use for entryless protected objects
+Support memory protection by means of entryless protected objects
 
 @item
 Prevent specification from depending on normal units
@@ -694,14 +714,14 @@ Prevent specification from depending on normal units
 @node Variables and Non-Remote Access Types, RPC Failures, More About Categorization Pragmas, More About Categorization Pragmas
 @subsection Variables and Non-Remote Access Types
 
-In RT or RCI package declarations, variables are forbidden and
+In RT or RCI package declarations, variable declarations are forbidden, and
 non-remote access types are allowed as long as their marshaling
-subprograms are provided (see @ref{Transmitting Dynamic Structure})..
+subprograms are explicitly provided (see @ref{Transmitting Dynamic Structure})..
 
 @node RPC Failures, Exceptions, Variables and Non-Remote Access Types, More About Categorization Pragmas
 @subsection RPC Failures
 
-Calls are made at most one time: they are made exactly one time or they
+Calls are executed at most once: they are made exactly one time or they
 fail with an exception. When a communication error occurs,
 @i{System.RPC.Communication_Error} is raised.
 
@@ -726,9 +746,9 @@ partition Partition_1 and that RemPkg1 is on partition Partition_2.
 When RemPkg1.Subprogram on Partition_1 raises Internal.Exc, this
 exception is propagated back to Partition_2. As Internal.Exc is not defined
 on Partition_2, it is not possible to catch this exception without an
-exception handler @b{when others}. When we reraise this exception in
-RemPkg1.Subprogram, it is propagated on Partition_1. But this time,
-Internal.Exc is defined and can be handled as we would in a regular Ada
+exception handler @b{when others}. When this exception is reraised in
+RemPkg1.Subprogram, it is propagated to Partition_1. But this time,
+Internal.Exc is visible and can be handled as we would in a single-partition Ada
 program. Of course, the exception message is also preserved.
   
 @c XXXX Schema Sam exceptions
@@ -736,24 +756,26 @@ program. Of course, the exception message is also preserved.
 @node Pragma Asynchronous, Pragma All_Calls_Remote, Exceptions, More About Categorization Pragmas
 @subsection Pragma Asynchronous
 
-A pragma Asynchronous allows statically and dynamically bound remote
-calls to be executed asynchronously. An asynchronous procedure doesn't
-wait for the completion of the remote call and lets the caller continue
-its execution path. This allows a calling task to proceed without
-waiting for callee procedure to complete. The procedure must have only
-@b{in} parameters and any exception raised during the execution of the
-remote procedure is lost. Of course, this precludes exception
-propagation of remotely called procedure.
+By default, a remote call is blocking: the caller waits until the remote
+call is complete and the output stream is received. By contrast.
+a remote subprogram labelled with pragma Asynchronous allows statically and
+dynamically bound remote calls to it
+to be executed asynchronously. A call to an asynchronous procedure doesn't
+wait for the completion of the remote call, and lets the caller continue
+its execution. The remote procedure must have only
+@b{in} parameters, and any exception raised during the execution of the
+remote procedure is lost. 
 
 When pragma Asynchronous applies to a regular subprogram with @b{in}
 parameters, any call to this subprogram will be executed
-asynchronously. Declaration of AsynchronousRCI.Asynchronous gives an
-example.
+asynchronously. The following declaration of AsynchronousRCI.Asynchronous gives
+an example.
 
 @include asynchronousrci.ads.texi
 @include asynchronousrt.ads.texi
 
-A pragma Asynchronous applies to a RAS. An asynchronous RAS can be both
+A pragma Asynchronous applies to a Remote Access_to_Subprogram (RAS).
+An asynchronous RAS can be both
 asynchronous and synchronous depending on the designated subprogram. For
 instance, in the code below, remote call (1) is asynchronous but remote
 call (2) is synchronous.
@@ -765,23 +787,23 @@ method invocation (4) is synchronous.
 
 @include asynchronousmain.adb.texi
 
-This feature allows message passing programming. But the user has to
-realize that message passing programming, and asynchronous remote calls
+This feature supports the conventional message passing paradigm. The user must
+be aware that this paradigm, and asynchronous remote calls
 in particular, has several drawbacks:
 
 @itemize @bullet
 
 @item
-Violate original (remote) procedure semantics
+It violates original (remote) procedure semantics
 
 @item
-Allow some kind of remote GOTO mechanism
+It allows the equivalent of a remote GOTO mechanism
 
 @item
-Prevent easy development and debugging in a non-distributed context
+It prevents easy development and debugging in a non-distributed context
 
 @item
-Introduce potential race conditions
+It can introduce potential race conditions
 
 @end itemize
 
@@ -813,12 +835,14 @@ which sets V to 1.
 
 A pragma All_Calls_Remote in a RCI unit forces remote procedure
 calls to be routed through the communication subsystem even for a local
-call. This eases the debugging an application in a non-distributed
-situation that is very close to the distributed one.
+call. This eases the debugging of an application in a non-distributed
+situation that is very close to the distributed one, because the communication
+subsystem (including marshalling and unmarshalling procedures) can be
+exercised on a single node.
 
 In some circumstances, a non-distributed application can behave
 differently than an application distributed on only one partition. This
-can happen in some circumstance where both All_Calls_Remote and
+can happen when both All_Calls_Remote and
 Asynchronous features are used at the same time (see @ref{Pragma
 Asynchronous} for an example). Another circumstance occur when the
 marshalling operations raise an exception. In the following example,
@@ -839,10 +863,11 @@ then the program completes silently.
 @include rciinstantiation.ads.texi
 @include normalinstantiation.ads.texi
 
-Any of these categorized units can be generic. Instances of these
-generic packages can be either categorized or not. In the latter, such a
-unit loses its categorization property. Like any categorized unit, the
-generic categorized unit can only be instantiated at the library level
+Any of these categorized units can be generic. Instances do not automatically
+inherit the categorization of their generic units, and they can be categorized
+explicitly, If they are not, instances are normal compilation units.
+Like any other categorized unit, a categorized instance
+must be at the library level,
 and regular restrictions of categorized units apply on instantiation (in
 particular on generic formal parameters).
 
@@ -850,7 +875,8 @@ particular on generic formal parameters).
 @subsection Categorization Unit Dependencies
 
 Each categorization pragma has very specific visibility rules. As a
-general rule, RCI > RT > SP > Pure. That means that a
+general rule, RCI > RT > SP > Pure, where the comparison indicates allowed
+semantic dependencies. This means that a
 Remote_Types package can make visible in its specification only
 Remote_Types, Shared_Passive and Pure units.
 
@@ -869,7 +895,8 @@ Remote_Types, Shared_Passive and Pure units.
 @node Marshalling and Unmarshalling Operations, Incorrect Remote Dispatching, Partition Communication Subsystem, Partition Communication Subsystem
 @subsection Marshalling and Unmarshalling Operations
 
-The PCS marshalls and unmarshalls users data into a stream of type
+The Partition Communication Subsystem  (PCS) marshalls and unmarshalls
+caller and server data into a stream of type
 @i{System.@-RPC.@-Params_Stream_Type}:
 
 @smallexample
@@ -903,11 +930,12 @@ if needed
 @end itemize
 
 An Ada compiler provides default 'Read and 'Write operations. But it is
-up to the compiler to provide default 'Read and 'Write to ensure proper
+up to the implementation of the PCS to provide default 'Read and 'Write
+to ensure proper
 operation between heterogeneous architectures (see @ref{Heterogeneous
 System}).
 
-The user can overload these operations except for predefined
+The user can overload these operations, except for predefined
 types. Overloading with a textual version provides the user with a way
 to debug its application (even outside of the Distributed Systems
 Annex).
@@ -915,8 +943,8 @@ Annex).
 @include new_integers.ads.texi
 @include new_integers.adb.texi
 
-The language forces the user to provide read and write opertions for non
-remote access types. Transmitting an access value by dumping its content
+The language forces the user to provide read and write opertions for non-remote
+access types. Transmitting an access value by dumping its content
 into a stream makes no sense when it is going to be transmitted to
 another partition (different memory spaces). To transmit non remote
 access types see @ref{Transmitting Dynamic Structure}.
