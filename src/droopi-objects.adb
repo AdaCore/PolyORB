@@ -39,7 +39,7 @@ package body Droopi.Objects is
          'E' => 14,
          'e' => 14,
          'F' => 15,
-         'f' => 16,
+         'f' => 15,
          others => -1);
 
    function To_String (Oid : Object_Id) return String
