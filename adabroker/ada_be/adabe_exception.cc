@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.31 $
+//                            $Revision: 1.32 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -145,8 +145,9 @@ adabe_exception::produce_skel_adb (dep_list & with,
   // Name of the package containing the interface.
   string pack = full_name.substr (0, full_name.find_last_of ('.'));
 
-  // Add the package in which the exception is defined.
+  // Add the package in which the exception is defined and the marshall package.
   with.add (pack);
+  with.add (pack + ".Stream");
 
   // We now map the interface
   body += "            when E : ";
@@ -213,7 +214,10 @@ adabe_exception::produce_proxy_adb (dep_list & with,
   string pack = full_name.substr (0, full_name.find_last_of ('.'));
 
   // Prepare the dispatch of the exception.
-  with.add (pack);
+  with.add ("AdaBroker.Exceptions");
+  with.add ("Ada.Exceptions");
+  with.add (pack);  
+  with.add (pack + ".Stream");
   body += "      if RepoID = \"";
   body += repositoryID ();
   body += "\" then \n";

@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.25 $
+//                            $Revision: 1.26 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -151,7 +151,8 @@ adabe_module::produce_adb (dep_list & with,
 			   string   & previousdefinition)
   // does nothing except lauching produce adb for the interfaces
 {
-   UTL_ScopeActiveIterator module_activator (this, UTL_Scope::IK_decls);
+  UTL_ScopeActiveIterator module_activator (this, UTL_Scope::IK_decls);
+  bool need_body = false;
   while (!module_activator.is_done ())
     {
       AST_Decl *d = module_activator.item ();
@@ -159,11 +160,12 @@ adabe_module::produce_adb (dep_list & with,
       adabe_global::set_adabe_current_file (this);
       switch (d->node_type ())
 	{
+	case AST_Decl::NT_except:
+	  need_body = true;
 	case AST_Decl::NT_array:
 	case AST_Decl::NT_interface_fwd:
 	case AST_Decl::NT_pre_defined:
 	case AST_Decl::NT_const:
-	case AST_Decl::NT_except:
 	case AST_Decl::NT_union:
 	case AST_Decl::NT_struct:
 	case AST_Decl::NT_enum:
@@ -208,6 +210,27 @@ adabe_module::produce_adb (dep_list & with,
 	default:
 	  break;
 	}
+    }
+  if (need_body)
+    {
+      body = "package body " + get_ada_full_name () + " is\n";
+      UTL_ScopeActiveIterator module_activator (this, UTL_Scope::IK_decls);
+      while (!module_activator.is_done ())
+	{
+	  AST_Decl *d = module_activator.item ();
+	  module_activator.next ();
+	  adabe_global::set_adabe_current_file (this);
+	  switch (d->node_type ())
+	    {
+	    case AST_Decl::NT_except:
+	      dynamic_cast<adabe_exception *>(d)->produce_adb
+		(with, body, previousdefinition);
+	      break;
+	    default:
+	      break;
+	    }
+	}
+      body += "end " + get_ada_full_name () + ";";    
     }
 }
 

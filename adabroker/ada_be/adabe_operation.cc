@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.61 $
+//                            $Revision: 1.62 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -430,8 +430,26 @@ adabe_operation::produce_impl_adb (dep_list & with,
       body += "      -- Insert user code\n";
       body += "   end " + get_ada_local_name () + ";\n\n";      
     }
+  
+  // add the package in which the exceptions are defined...
+  UTL_ExceptlistActiveIterator except_iterator (exceptions ());
+  bool user_exceptions = (! except_iterator.is_done ());
+  if (user_exceptions) {
+    with.add ("AdaBroker.Exceptions");
+    with.add ("Ada.Exceptions");
+    while (!except_iterator.is_done ())
+      {
+	AST_Decl *d = except_iterator.item ();
+	
+	// Dispatch them and catch them at the end.
+	string full_name = dynamic_cast<adabe_exception *>(d)->get_ada_full_name ();
+	string pack = full_name.substr (0, full_name.find_last_of ('.'));
+	with.add(pack);
+	except_iterator.next ();
+      }  
+  }
 }
-
+  
 ////////////////////////////////////////////////////////////////////////
 ////////////////     produce_proxy_ads     ///////////////////////////
 ////////////////////////////////////////////////////////////////////////

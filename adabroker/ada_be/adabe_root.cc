@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.28 $
+//                            $Revision: 1.29 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -246,7 +246,7 @@ adabe_root::produce () {
     // this time, only interface file will be created
     {
       UTL_ScopeActiveIterator body_activator (this, UTL_Scope::IK_decls);
-
+      bool need_body = false;
       // loop over the scope to find the interface (a module  may
       // contain an interface)
       while (!body_activator.is_done ())
@@ -263,7 +263,7 @@ adabe_root::produce () {
 		    adabe_module *module = adabe_module::narrow_from_decl (d);
 
 		    // dummy variables given to the produce adb from the module :
-		    // they won't be modified (can be suppressed in future version)
+		    // they will only be modified if a body is required
 		    string body_module_previous = "";
 		    string body_module_body = "";
 		    dep_list body_module_with;
@@ -271,9 +271,27 @@ adabe_root::produce () {
 		    module->produce_adb (body_module_with, body_module_body,
 					body_module_previous);
 		    
+		    // check whether body was actually produced
+		    if (body_module_body.size () != 0)
+		      {
+			// computing the file name:
+			string body_file_name =
+			  remove_dot (module->get_ada_full_name ())+".adb";
+			char *lower_case_name = lower (body_file_name.c_str ());
+			
+			
+			ofstream body_file (lower_case_name); 
+			delete[] lower_case_name;
+			
+			// and writing in the file :
+			body_file << *body_module_with.produce ("with ");
+			body_file << body_module_previous;
+			body_file << body_module_body;
+			body_file.close ();
+		      }		    
 		  }
-		  break;
-		  
+		break;
+		
 		case AST_Decl::NT_interface:
 		  {
 		    adabe_interface *interface = adabe_interface::narrow_from_decl (d);
@@ -302,7 +320,9 @@ adabe_root::produce () {
 		    interface_file << interface_body;
 		    interface_file.close ();
 		  }
-		  
+		break;
+		case AST_Decl::NT_except:
+		  need_body = true;		  
 		default:
 		  // nothing to be done in the other cases
 		  break;
@@ -310,7 +330,48 @@ adabe_root::produce () {
 		} // end of the switch
 	    } 
 	  body_activator.next ();
-	} //end of the loop in the scope 
+	} //end of the loop in the scope
+
+      // if there is an exception defined in the root, we have to produce a body
+      if (need_body)
+	{
+	  // they will only be modified if a body is required
+	  string body_root_previous = "";
+	  string body_root_body = "";
+	  dep_list body_root_with;
+	  body_root_body = "package body " + get_ada_full_name () + " is\n";
+	  UTL_ScopeActiveIterator body_activator2 (this, UTL_Scope::IK_decls);
+	  while (!body_activator2.is_done ())
+	    {
+	      AST_Decl *d = body_activator2.item ();
+	      body_activator2.next ();
+	      adabe_global::set_adabe_current_file (this);
+	      switch (d->node_type ())
+		{
+		case AST_Decl::NT_except:
+		  dynamic_cast<adabe_exception *>(d)->produce_adb
+		    (body_root_with, body_root_body, body_root_previous);
+		  break;
+		default:
+		  break;
+		}
+	    }
+	  body_root_body += "end " + get_ada_full_name () + ";";    
+	  string body_file_name =
+	    remove_dot (get_ada_full_name ())+".adb";
+	  char *lower_case_name = lower (body_file_name.c_str ());
+	  
+	  
+	  ofstream body_file (lower_case_name); 
+	  delete[] lower_case_name;
+	  
+	  // and writing in the file :
+	  body_file << *body_root_with.produce ("with ");
+	  body_file << body_root_previous;
+	  body_file << body_root_body;
+	  body_file.close ();
+	}
+      
     }
     
     // Preparing for a second scan
@@ -785,7 +846,7 @@ adabe_root::produce () {
       marshal_header_with.add ("AdaBroker.NetBufferedStream");
       marshal_header_with.add ("AdaBroker.MemBufferedStream");
 
-      marshal_header_previous += "Package " + get_ada_full_name () + ".marshal is\n";
+      marshal_header_previous += "Package " + get_ada_full_name () + ".Stream is\n";
 		  
       UTL_ScopeActiveIterator marshal_header_activator (this, UTL_Scope::IK_decls);
       while (!marshal_header_activator.is_done ())
@@ -902,7 +963,7 @@ adabe_root::produce () {
 	  marshal_header << marshal_header_includes;
 	  marshal_header << marshal_header_previous;
 	  marshal_header << marshal_header_body;
-	  marshal_header << "end " << get_ada_full_name () << ".marshal;" << endl;
+	  marshal_header << "end " << get_ada_full_name () << ".Stream;" << endl;
 	  marshal_header.close ();
 	}
     }
@@ -926,7 +987,7 @@ adabe_root::produce () {
     
       marshal_body_with.add ("AdaBroker.NetBufferedStream");
       marshal_body_with.add ("AdaBroker.MemBufferedStream");
-      marshal_body_previous = "Package body " + get_ada_full_name () + ".marshal is \n";
+      marshal_body_previous = "Package body " + get_ada_full_name () + ".Stream is \n";
 
       while (!marshal_body_activator.is_done ())
 	{
@@ -1050,7 +1111,7 @@ adabe_root::produce () {
 	  marshal_body << marshal_body_use;
 	  marshal_body << marshal_body_previous;
 	  marshal_body << marshal_body_body;
-	  marshal_body << "end " << get_ada_full_name () << ".marshal;" << endl;
+	  marshal_body << "end " << get_ada_full_name () << ".Stream;" << endl;
 	  marshal_body.close ();
 	}
     }
