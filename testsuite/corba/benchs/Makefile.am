@@ -9,7 +9,7 @@ giop_dir  =
 soap_dir  =
 srp_dir   =
 
-SUBDIRS = all_exceptions benchs code_sets cos harness local location_forwarding orb_init portableinterceptor portableserver rtcorba
+SUBDIRS = test000
 
 CLEANFILES = config-stamp
 

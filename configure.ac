@@ -534,6 +534,8 @@ AC_OUTPUT([
 	testsuite/Makefile
 	testsuite/corba/Makefile
 	testsuite/corba/all_exceptions/Makefile
+	testsuite/corba/benchs/Makefile
+	testsuite/corba/benchs/test000/Makefile
 	testsuite/corba/code_sets/Makefile
 	testsuite/corba/code_sets/test000/Makefile
 	testsuite/corba/cos/Makefile
