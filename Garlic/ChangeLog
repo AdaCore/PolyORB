@@ -1,3 +1,7 @@
+1998-09-01  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* s-garfil.adb: Fix a warning.
+
 1998-08-31  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-garfil.adb: Fix the same problem as below which appears in

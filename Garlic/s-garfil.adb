@@ -504,8 +504,12 @@ package body System.Garlic.Filters is
          Request : Request_Type;
          Filter  : Filter_Access;
 
+         pragma Warnings (Off);
+
          --  This is a hack to force partition_data update.
          PName   : String := Name (Partition);
+
+         pragma Warnings (On);
 
       begin
          Request_Id'Read (P, Request.Command);
