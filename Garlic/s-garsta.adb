@@ -72,7 +72,7 @@ pragma Elaborate_All (System.Garlic.Elaboration);
 package body System.Garlic.Startup is
 
    Private_Debug_Key : constant Debug_Key :=
-     Debug_Initialize ("STARTUP", "(s-garsta): ");
+     Debug_Initialize ("S_GARSTA", "(s-garsta): ");
    procedure D
      (Level   : in Debug_Level;
       Message : in String;

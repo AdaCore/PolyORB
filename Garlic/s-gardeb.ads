@@ -127,6 +127,11 @@ package System.Garlic.Debug is
    pragma Inline (Debug_Mode);
    --  Return true if this level is active.
 
+   procedure Create_Termination_Sanity_File;
+   procedure Delete_Termination_Sanity_File;
+   --  These two procedures allow to check the correct termination of a
+   --  partition. This feature is available only in developper mode.
+
 private
 
    type Debug_Key is new Natural;

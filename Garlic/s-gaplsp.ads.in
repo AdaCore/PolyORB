@@ -42,4 +42,7 @@ package System.Garlic.Platform_Specific is
 
    Supports_Local_Launch : constant Boolean := @SUPPORTS_LOCAL_LAUNCH@;
 
+   RTS_Sanity_Directory  : constant String
+      := "@RTS_SANITY_DIR@";
+
 end System.Garlic.Platform_Specific;

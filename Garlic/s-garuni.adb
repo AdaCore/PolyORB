@@ -34,13 +34,14 @@
 ------------------------------------------------------------------------------
 
 with System.Garlic.Debug; use System.Garlic.Debug;
+pragma Elaborate_All (System.Garlic.Debug);
 with System.Garlic.Heart; use System.Garlic.Heart;
 with System.Garlic.Types; use System.Garlic.Types;
 
 package body System.Garlic.Units is
 
    Private_Debug_Key : constant Debug_Key :=
-     Debug_Initialize ("UNITS", "(s-garuni): ");
+     Debug_Initialize ("S_GARUNI", "(s-garuni): ");
 
    procedure D
      (Level   : in Debug_Level;

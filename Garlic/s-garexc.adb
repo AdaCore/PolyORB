@@ -39,31 +39,6 @@ package body System.Garlic.Exceptions is
 
    use Ada.Exceptions;
 
-   ---------------
-   -- Different --
-   ---------------
-
-   function Different (V1, V2 : String) return Boolean is
-
-      function Not_Null_Version (V : in String) return Boolean;
-      --  Return true when V is not a string of blank characters
-
-      ----------------------
-      -- Not_Null_Version --
-      ----------------------
-
-      function Not_Null_Version (V : in String) return Boolean is
-         Null_String : constant String (V'Range) := (others => ' ');
-      begin
-         return V /= Null_String;
-      end Not_Null_Version;
-
-   begin
-      return     Not_Null_Version (V1)
-        and then Not_Null_Version (V2)
-        and then V1 /= V2;
-   end Different;
-
    -------------------------------
    -- Raise_Communication_Error --
    -------------------------------

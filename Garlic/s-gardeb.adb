@@ -33,12 +33,21 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  This file should be compiled with assertion flag only in developper
+--  mode for a very special case which allows to track non-termination
+--  partitions.
+
 with GNAT.IO;
-pragma Warnings (Off);
-with System.Assertions;
-pragma Elaborate_All (System.Assertions);  --  ??? Used by expansion
-pragma Warnings (On);
-with GNAT.OS_Lib;   use GNAT.OS_Lib;
+pragma Elaborate_All (GNAT.IO);
+
+with GNAT.OS_Lib;                     use GNAT.OS_Lib;
+pragma Elaborate_All (GNAT.OS_Lib);
+
+with Interfaces.C;                    use Interfaces.C;
+pragma Elaborate_All (Interfaces.C);
+
+with System.Garlic.Platform_Specific; use System.Garlic.Platform_Specific;
+pragma Elaborate_All (System.Garlic.Platform_Specific);
 
 package body System.Garlic.Debug is
 
@@ -63,10 +72,6 @@ package body System.Garlic.Debug is
      of String_Access;
    --  Map of banners.
 
-   Assertions_Turned_On : Boolean := False;
-   --  This boolean will be set to true by the elaboration if assertions
-   --  are turned on.
-
    Reverse_Character_Map : array (Character) of Debug_Level
      := (others => No_Debug);
    --  Map characters on debug levels.
@@ -79,27 +84,13 @@ package body System.Garlic.Debug is
    end Semaphore;
    --  The semaphore object which protects outputs from being mixed.
 
-   function Return_True return Boolean;
-   --  Return True and set Assertions_Turned_On to True.
+   Termination_Filename : String_Access;
+   --  Termination temp filename
 
-   function Real_Debug_Initialize
-     (Variable : String;
-      Banner   : String)
-     return Debug_Key;
-   --  This program is the real Debug_Initialize.
-
-   procedure Real_Print_Debug_Info
-     (Level   : in Debug_Level;
-      Message : in String;
-      Key     : in Debug_Key);
-   --  This program is the real Print_Debug_Info.
-
-   function Real_Debug_Mode
-     (Level : Debug_Level;
-      Key   : Debug_Key)
-      return Boolean;
-   pragma Inline (Real_Debug_Mode);
-   --  This program is the real Debug_Mode.
+   Termination_Sanity_FD : File_Descriptor := Invalid_FD;
+   --  This file is created at elaboration time and deleted once the
+   --  partition has cleanly terminated. This feature is used to detect
+   --  incorrect termination.
 
    ---------------
    -- Semaphore --
@@ -127,19 +118,6 @@ package body System.Garlic.Debug is
 
    end Semaphore;
 
-   ---------------------
-   -- Real_Debug_Mode --
-   ---------------------
-
-   function Real_Debug_Mode
-     (Level : Debug_Level;
-      Key   : Debug_Key)
-      return Boolean
-   is
-   begin
-      return Key /= Not_Debugging and then Flags_Map (Key, Level);
-   end Real_Debug_Mode;
-
    ----------------
    -- Debug_Mode --
    ----------------
@@ -150,34 +128,8 @@ package body System.Garlic.Debug is
       return Boolean
    is
    begin
-      return Assertions_Turned_On and then Real_Debug_Mode (Level, Key);
+      return Key /= Not_Debugging and then Flags_Map (Key, Level);
    end Debug_Mode;
-
-   -----------------
-   -- Return_True --
-   -----------------
-
-   function Return_True return Boolean is
-   begin
-      Assertions_Turned_On := True;
-      return True;
-   end Return_True;
-
-   ----------------------
-   -- Debug_Initialize --
-   ----------------------
-
-   function Debug_Initialize
-     (Variable : String;
-      Banner   : String)
-      return Debug_Key
-   is
-   begin
-      if Assertions_Turned_On then
-         return Real_Debug_Initialize (Variable, Banner);
-      end if;
-      return Not_Debugging;
-   end Debug_Initialize;
 
    ----------------------
    -- Print_Debug_Info --
@@ -186,24 +138,10 @@ package body System.Garlic.Debug is
    procedure Print_Debug_Info
      (Level   : in Debug_Level;
       Message : in String;
-      Key     : in Debug_Key)
-   is
-   begin
-      pragma Debug (Real_Print_Debug_Info (Level, Message, Key));
-      null;
-   end Print_Debug_Info;
-
-   ---------------------------
-   -- Real_Print_Debug_Info --
-   ---------------------------
-
-   procedure Real_Print_Debug_Info
-     (Level   : in Debug_Level;
-      Message : in String;
-      Key     : in Debug_Key)
-   is
+      Key     : in Debug_Key) is
       Banner : String_Access;
       Flag   : Boolean;
+
    begin
       if Key /= Not_Debugging then
          Banner := Banner_Map (Key);
@@ -216,26 +154,28 @@ package body System.Garlic.Debug is
             Semaphore.V;
          end if;
       end if;
-   end Real_Print_Debug_Info;
+   end Print_Debug_Info;
 
-   ---------------------------
-   -- Real_Debug_Initialize --
-   ---------------------------
+   ----------------------
+   -- Debug_Initialize --
+   ----------------------
 
-   function Real_Debug_Initialize
+   function Debug_Initialize
      (Variable : String;
       Banner   : String)
-      return Debug_Key
-   is
+      return Debug_Key is
       Value : constant String_Access := Getenv (Variable);
       C     : Character;
       L     : Debug_Level;
+
    begin
       if Value = null or else Value.all = "" then
          return Not_Debugging;
       end if;
-      pragma Assert (Current < Max_Debugs,
-                     "Increase Max_Debugs'value in s-gardeb.adb");
+      if Current < Max_Debugs then
+         GNAT.IO.Put_Line ("Increase Max_Debugs'value in s-gardeb.adb");
+         raise Program_Error;
+      end if;
       Current := Current + 1;
       Banner_Map (Current) := new String'(Banner);
       for Index in 1 .. Value'Length loop
@@ -250,12 +190,83 @@ package body System.Garlic.Debug is
          end if;
       end loop;
       return Current;
-   end Real_Debug_Initialize;
+   end Debug_Initialize;
+
+   -------------------------------------
+   --  Create_Termination_Sanity_File --
+   -------------------------------------
+
+   procedure Create_Termination_Sanity_File is
+
+      Dir : String renames RTS_Sanity_Directory;
+
+      function Getpid return int;
+      pragma Import (C, Getpid, "getpid");
+
+      Name : String (1 .. 32);
+      Last : Natural := 0;
+
+      procedure Write_Pid (Pid : int);
+      procedure Write_Pid (Pid : int)
+      is
+      begin
+         if Pid > 9 then
+            Write_Pid (Pid / 10);
+         end if;
+
+         Last := Last + 1;
+         Name (Last) := Character'Val ((Pid mod 10) + Character'Pos ('0'));
+      end Write_Pid;
+
+   begin
+
+      if Dir (Dir'Last) /= Directory_Separator then
+         Last := Last + 1;
+         Name (Last) := Directory_Separator;
+      end if;
+
+      Write_Pid (Getpid);
+
+      Last := Last + 4;
+      Name (Last - 3 .. Last) := ".dsa";
+
+      Last := Last + 1;
+      Name (Last) := Ascii.NUL;
+
+      Termination_Filename := new String'(Dir & Name (1 .. Last));
+
+      Termination_Sanity_FD :=
+        Create_New_File (Termination_Filename.all'Address, Binary);
+
+      if Termination_Sanity_FD = Invalid_FD then
+         GNAT.IO.Put_Line
+           ("Cannot create termination sanity file " &
+            Termination_Filename.all);
+         raise Program_Error;
+      end if;
+
+      Close (Termination_Sanity_FD);
+   end Create_Termination_Sanity_File;
+
+   ------------------------------------
+   -- Delete_Termination_Sanity_File --
+   ------------------------------------
+
+   procedure Delete_Termination_Sanity_File is
+      Success : Boolean;
+
+   begin
+      if Termination_Sanity_FD /= Invalid_FD then
+         Delete_File (Termination_Filename.all'Address, Success);
+      end if;
+   end Delete_Termination_Sanity_File;
+
 
 begin
-   pragma Assert (Return_True);
    for Level in Debug_Level loop
-      pragma Assert (Reverse_Character_Map (Debug_Letters (Level)) = No_Debug);
       Reverse_Character_Map (Debug_Letters (Level)) := Level;
    end loop;
+   if RTS_Sanity_Directory'Length /= 0 then
+      Create_Termination_Sanity_File;
+   end if;
 end System.Garlic.Debug;

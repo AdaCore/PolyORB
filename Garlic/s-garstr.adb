@@ -35,6 +35,7 @@
 
 with Ada.Streams;         use Ada.Streams;
 with System.Garlic.Debug; use System.Garlic.Debug;
+pragma Elaborate_All (System.Garlic.Debug);
 
 package body System.Garlic.Streams is
 

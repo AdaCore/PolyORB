@@ -1,3 +1,23 @@
+1998-08-03  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* s-gaplsp.ads.in: Add a new variable RTS_Sanity_Directory which
+	is used when --with-sanity=dir is activated.
+
+	* s-gardeb.adb: Check RTS_Sanity_Dir and create termination sanity
+ 	file. Two new procedures have been created:
+ 	Create_Termination_Sanity_File and Delete_Termination_Sanity_File.
+  	Create_Termination_Sanity_File is executed during s-gardeb
+ 	elaboration.
+
+	* s-garhea.adb: Execute Delete_Termination_Sanity_File when the
+	termination is completed (shutdown).
+
+	* all files: With System.Garlic.Debug when needed and elaborate it
+ 	first to ensure that the sanity files are created at the very
+ 	beginning of the elaboration. Change also debugging env. variable
+	to adopt a standard naming. A package s-abcdef has now a debugging 
+	env. variable of S_ABCDEF.
+
 1998-07-31  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-parint.adb, s-parint.ads: Major cleanup which comes from the

@@ -36,7 +36,18 @@
 with System.Garlic.Table;
 with System.Garlic.Utils; use System.Garlic.Utils;
 
+with System.Garlic.Debug; use System.Garlic.Debug;
+pragma Elaborate_All (System.Garlic.Debug);
+
 package body System.Garlic.Name_Table is
+
+   Private_Debug_Key : constant Debug_Key :=
+     Debug_Initialize ("S_GANATA", "(s-ganata): ");
+   procedure D
+     (Level   : in Debug_Level;
+      Message : in String;
+      Key     : in Debug_Key := Private_Debug_Key)
+     renames Print_Debug_Info;
 
    use Ascii, Ada.Streams;
 

@@ -37,13 +37,14 @@ with Ada.Real_Time;         use Ada.Real_Time;
 with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 with System.Garlic.Options; use System.Garlic.Options;
 with System.Garlic.Debug;   use System.Garlic.Debug;
+pragma Elaborate_All (System.Garlic.Debug);
 with System.Garlic.Heart;   use System.Garlic.Heart;
 with System.Garlic.Types;   use System.Garlic.Types;
 
 package body System.Garlic.Trace is
 
    Private_Debug_Key : constant Debug_Key :=
-     Debug_Initialize ("GARTRA", "(s-gartra): ");
+     Debug_Initialize ("S_GARTRA", "(s-gartra): ");
    procedure D
      (Level   : in Debug_Level;
       Message : in String;

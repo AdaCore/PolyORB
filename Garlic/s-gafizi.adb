@@ -41,10 +41,21 @@ with System.Garlic.Filters;
 pragma Elaborate (System.Garlic.Filters);
 pragma Warnings (On);
 
+with System.Garlic.Debug; use System.Garlic.Debug;
+pragma Elaborate_All (System.Garlic.Debug);
+
 with System.Garlic.Streams; use System.Garlic.Streams;
 pragma Elaborate (System.Garlic.Streams);
 
 package body System.Garlic.Filters.Zip is
+
+   Private_Debug_Key : constant Debug_Key :=
+     Debug_Initialize ("S_GAFIZI", "(s-gafizi): ");
+   procedure D
+     (Level   : in Debug_Level;
+      Message : in String;
+      Key     : in Debug_Key := Private_Debug_Key)
+     renames Print_Debug_Info;
 
    package C renames Interfaces.C;
    use C;

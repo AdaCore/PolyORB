@@ -37,6 +37,7 @@ with Ada.Exceptions;                  use Ada.Exceptions;
 pragma Warnings (Off, Ada.Exceptions);
 with Ada.Unchecked_Deallocation;
 with System.Garlic.Debug;             use System.Garlic.Debug;
+pragma Elaborate_All (System.Garlic.Debug);
 with System.Garlic.Filters;           use System.Garlic.Filters;
 with System.Garlic.Name_Table;        use System.Garlic.Name_Table;
 pragma Elaborate_All (System.Garlic.Name_Table);
@@ -65,7 +66,7 @@ package body System.Garlic.Heart is
    --   - <SHUTDOWN>
 
    Private_Debug_Key : constant Debug_Key :=
-     Debug_Initialize ("HEART", "(s-garhea): ");
+     Debug_Initialize ("S_GARHEA", "(s-garhea): ");
    procedure D
      (Level   : in Debug_Level;
       Message : in String;
@@ -1229,6 +1230,7 @@ package body System.Garlic.Heart is
       Free (Partition_Map);
       Free (Partition_ID_Allocation);
       Free (Receiver_Map);
+      Delete_Termination_Sanity_File;
    end Shutdown;
 
    ---------------------

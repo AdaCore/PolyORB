@@ -40,6 +40,7 @@ with Interfaces.C.Strings;
 pragma Warnings (Off, Interfaces.C.Strings);
 with System.Garlic.Constants;             use System.Garlic.Constants;
 with System.Garlic.Debug;                 use System.Garlic.Debug;
+pragma Elaborate_All (System.Garlic.Debug);
 with System.Garlic.Exceptions;            use System.Garlic.Exceptions;
 with System.Garlic.Heart;                 use System.Garlic.Heart;
 with System.Garlic.Naming;                use System.Garlic.Naming;

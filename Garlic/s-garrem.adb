@@ -36,6 +36,8 @@
 with GNAT.IO;
 with Interfaces.C.Strings;
 with System.Garlic.Constants;         use System.Garlic.Constants;
+with System.Garlic.Debug;             use System.Garlic.Debug;
+pragma Elaborate_All (System.Garlic.Debug);
 with System.Garlic.Heart;             use System.Garlic.Heart;
 with System.Garlic.Naming;            use System.Garlic.Naming;
 with System.Garlic.Platform_Specific; use System.Garlic.Platform_Specific;
@@ -45,6 +47,14 @@ package body System.Garlic.Remote is
 
    use Interfaces.C;
    --  Shortcuts
+
+   Private_Debug_Key : constant Debug_Key :=
+     Debug_Initialize ("S_GARREM", "(s-garrem): ");
+   procedure D
+     (Level   : in Debug_Level;
+      Message : in String;
+      Key     : in Debug_Key := Private_Debug_Key)
+     renames Print_Debug_Info;
 
    Current_Launcher : Launcher_Type := Rsh_Launcher'Access;
    --  The current launcher

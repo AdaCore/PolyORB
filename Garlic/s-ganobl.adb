@@ -38,6 +38,7 @@ with Ada.Interrupts.Names;
 with GNAT.OS_Lib;                         use GNAT.OS_Lib;
 with System.Garlic.Constants;             use System.Garlic.Constants;
 with System.Garlic.Debug;                 use System.Garlic.Debug;
+pragma Elaborate_All (System.Garlic.Debug);
 with System.Garlic.Priorities;
 with System.Garlic.Soft_Links;
 with System.Garlic.TCP;
@@ -51,7 +52,7 @@ package body System.Garlic.Non_Blocking is
    --  and using protected types (with entry families).
 
    Private_Debug_Key : constant Debug_Key :=
-     Debug_Initialize ("NONBLOCKING", "(s-ganobl): ");
+     Debug_Initialize ("S_GANOBL", "(s-ganobl): ");
    procedure D
      (Level   : in Debug_Level;
       Message : in String;

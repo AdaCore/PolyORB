@@ -36,6 +36,7 @@
 with Ada.Streams;           use Ada.Streams;
 with System.Garlic;         use System.Garlic;
 with System.Garlic.Debug;   use System.Garlic.Debug;
+pragma Elaborate_All (System.Garlic.Debug);
 with System.Garlic.Heart;   use System.Garlic.Heart;
 with System.Garlic.Streams;
 with System.Garlic.Types;
@@ -46,7 +47,7 @@ package body System.RPC.Stream_IO is
    --  This package needs comments ???
 
    Private_Debug_Key : constant Debug_Key :=
-     Debug_Initialize ("STREAMIO", "(s-rpstio): ");
+     Debug_Initialize ("S_RPSTIO", "(s-rpstio): ");
    procedure D
      (Level   : in Debug_Level;
       Message : in String;

@@ -38,6 +38,8 @@ with GNAT.OS_Lib;             use GNAT.OS_Lib;
 with Interfaces.C;            use Interfaces.C;
 with Interfaces.C.Strings;    use Interfaces.C.Strings;
 with System.Garlic.Constants; use System.Garlic.Constants;
+with System.Garlic.Debug;     use System.Garlic.Debug;
+pragma Elaborate_All (System.Garlic.Debug);
 with System.Garlic.Utils;     use System.Garlic.Utils;
 with Unchecked_Conversion;
 with Unchecked_Deallocation;
@@ -45,6 +47,14 @@ with Unchecked_Deallocation;
 package body System.Garlic.Naming is
 
    use System.Garlic.Thin;
+
+   Private_Debug_Key : constant Debug_Key :=
+     Debug_Initialize ("S_GARNAM", "(s-garnam): ");
+   procedure D
+     (Level   : in Debug_Level;
+      Message : in String;
+      Key     : in Debug_Key := Private_Debug_Key)
+     renames Print_Debug_Info;
 
    Default_Buffer_Size : constant := 16384;
 

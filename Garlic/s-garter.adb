@@ -34,6 +34,7 @@
 ------------------------------------------------------------------------------
 
 with System.Garlic.Debug;         use System.Garlic.Debug;
+pragma Elaborate_All (System.Garlic.Debug);
 with System.Garlic.Heart;         use System.Garlic.Heart;
 with System.Garlic.Options;
 with System.Garlic.Soft_Links;    use System.Garlic.Soft_Links;
@@ -48,7 +49,7 @@ pragma Elaborate_All (System.Tasking.Utilities);
 package body System.Garlic.Termination is
 
    Private_Debug_Key : constant Debug_Key :=
-     Debug_Initialize ("TERMINATION", "(s-garter): ");
+     Debug_Initialize ("S_GARTER", "(s-garter): ");
    procedure D
      (Level   : in Debug_Level;
       Message : in String;

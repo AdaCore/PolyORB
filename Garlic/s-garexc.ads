@@ -48,8 +48,4 @@ package System.Garlic.Exceptions is
    --  Idem, but with the specific exception System.RPC.Communication_Error.
    --  If an alternate message is given, it will be used instead.
 
-   function Different (V1, V2 : String) return Boolean;
-   --  Compare two version ids. If one of these version ids is a string
-   --  of blank characters then they will be considered as identical.
-
 end System.Garlic.Exceptions;

@@ -36,6 +36,7 @@
 with Ada.Command_Line;         use Ada.Command_Line;
 with Ada.Exceptions;           use Ada.Exceptions;
 with System.Garlic.Debug;      use System.Garlic.Debug;
+pragma Elaborate_All (System.Garlic.Debug);
 with System.Garlic.Types;      use System.Garlic.Types;
 with System.Garlic.Utils;      use System.Garlic.Utils;
 with GNAT.OS_Lib;
@@ -46,7 +47,7 @@ package body System.Garlic.Options is
    use System.Garlic.Types;
 
    Private_Debug_Key : constant Debug_Key :=
-     Debug_Initialize ("GAROPT", "(s-garopt): ");
+     Debug_Initialize ("S_GAROPT", "(s-garopt): ");
    procedure D
      (Level   : in Debug_Level;
       Message : in String;

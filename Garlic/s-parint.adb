@@ -41,9 +41,7 @@ with GNAT.HTable;           use GNAT.HTable;
 with GNAT.Table;
 
 with System.Garlic.Debug;   use System.Garlic.Debug;
-
-with System.Garlic.Exceptions;   use System.Garlic.Exceptions;
-pragma Elaborate (System.Garlic.Exceptions);
+pragma Elaborate_All (System.Garlic.Debug);
 
 with System.Garlic.Heart;   use System.Garlic.Heart;
 pragma Elaborate (System.Garlic.Heart);
@@ -76,7 +74,7 @@ with System.RPC;
 package body System.Partition_Interface is
 
    Private_Debug_Key : constant Debug_Key :=
-     Debug_Initialize ("INTERFACE", "(s-parint): ");
+     Debug_Initialize ("S_PARINT", "(s-parint): ");
 
    procedure D
      (Level   : in Debug_Level;
@@ -94,6 +92,10 @@ package body System.Partition_Interface is
 
    procedure Complete_Termination (Termination : Termination_Type);
    --  Select the correct soft link
+
+   function Different (V1, V2 : String) return Boolean;
+   --  Compare two version ids. If one of these version ids is a string
+   --  of blank characters then they will be considered as identical.
 
    procedure Process
      (N       : in Unit_Id;
@@ -200,6 +202,31 @@ package body System.Partition_Interface is
          when others => null;
       end case;
    end Complete_Termination;
+
+   ---------------
+   -- Different --
+   ---------------
+
+   function Different (V1, V2 : String) return Boolean is
+
+      function Not_Null_Version (V : in String) return Boolean;
+      --  Return true when V is not a string of blank characters
+
+      ----------------------
+      -- Not_Null_Version --
+      ----------------------
+
+      function Not_Null_Version (V : in String) return Boolean is
+         Null_String : constant String (V'Range) := (others => ' ');
+      begin
+         return V /= Null_String;
+      end Not_Null_Version;
+
+   begin
+      return     Not_Null_Version (V1)
+        and then Not_Null_Version (V2)
+        and then V1 /= V2;
+   end Different;
 
    -----------------------------
    -- Get_Active_Partition_ID --

@@ -38,6 +38,7 @@ with Ada.Exceptions;
 with Ada.Unchecked_Deallocation;
 with System.Garlic;              use System.Garlic;
 with System.Garlic.Debug;        use System.Garlic.Debug;
+pragma Elaborate_All (System.Garlic.Debug);
 with System.Garlic.Heart;        use System.Garlic.Heart;
 with System.Garlic.Options;
 with System.Garlic.Priorities;   use System.Garlic.Priorities;
@@ -51,7 +52,7 @@ package body System.RPC.Pool is
    use type System.Garlic.Streams.Params_Stream_Type;
 
    Private_Debug_Key : constant Debug_Key :=
-     Debug_Initialize ("RPCPOO", "(s-rpcpoo): ");
+     Debug_Initialize ("S_RPCPOO", "(s-rpcpoo): ");
    procedure D
      (Level   : in Debug_Level;
       Message : in String;

@@ -39,6 +39,7 @@ with Ada.Finalization;
 with Ada.Unchecked_Deallocation;
 with System.Garlic;              use System.Garlic;
 with System.Garlic.Debug;        use System.Garlic.Debug;
+pragma Elaborate_All (System.Garlic.Debug);
 with System.Garlic.Heart;        use System.Garlic.Heart;
 pragma Elaborate_All (System.Garlic.Heart);
 with System.Garlic.Soft_Links;    use System.Garlic.Soft_Links;
@@ -64,7 +65,7 @@ package body System.RPC is
    --  This package needs extra comments ???
 
    Private_Debug_Key : constant Debug_Key :=
-     Debug_Initialize ("RPC", "(s-rpc   ): ");
+     Debug_Initialize ("S_RPC", "(s-rpc   ): ");
    procedure D
      (Level   : in Debug_Level;
       Message : in String;

@@ -34,6 +34,7 @@
 ------------------------------------------------------------------------------
 
 with System.Garlic.Debug;    use System.Garlic.Debug;
+pragma Elaborate_All (System.Garlic.Debug);
 with System.Garlic.Types;    use System.Garlic.Types;
 with System.Garlic.Utils;    use System.Garlic.Utils;
 with Unchecked_Deallocation;
@@ -41,7 +42,7 @@ with Unchecked_Deallocation;
 package body System.Garlic.Physical_Location is
 
    Private_Debug_Key : constant Debug_Key :=
-     Debug_Initialize ("PHYSICAL", "(s-gaphlo): ");
+     Debug_Initialize ("S_GAPHLO", "(s-gaphlo): ");
    procedure D
      (Level   : in Debug_Level;
       Message : in String;
