@@ -1,0 +1,84 @@
+Demo plan for PolyORB features as of 2002-07-26
+-----------------------------------------------
+
+$Id$
+
+0. Preparation
+--------------
+
+0.0 Prerequisites
+-----------------
+
+GNAT 3.15a1 compiler
+GNAT 3.16w baseline sources
+XmlAda wavefront sources
+
+0.1 Native platforms
+--------------------
+
+From the designated PolyORB and GNAT baselines, perform a build of
+a native GNAT 3.16w. Install it.
+
+Using that compiler, build XmlAda wavefront and install it.
+
+Using that compiler, build PolyORB with the following options:
+  --with-xmlada
+  --enable-ir
+  --enable-debug
+  --disable-shared
+
+Finally, build the examples/dsa directory.
+
+0.2 Cross platform
+------------------
+
+XXX TBD (JG)
+
+1. Naming service
+-----------------
+
+Launch ir_ab_names. Set naming service IOR on all nodes.
+
+2. DSA server
+-------------
+
+Launch DSA server: the server registers itself with naming,
+and waits for incoming calls.
+
+3. DSA client
+-------------
+
+DEMO-1: native DSA.
+
+Launch DSA client. The client performs various calls onto the
+DSA server. Exhibit debug traces, including GIOP messages.
+
+4. Naming client
+----------------
+
+Use test_naming to look up DSA server IOR in Naming Service.
+(Bonus points if this is done with AdaBroker test_naming.
+Extra bonus points if this is done with omniORB or ORBit
+naming client).
+
+5. CORBA GIOP client
+--------------------
+
+DEMO-2: CORBA/DSA interoperability
+
+Using IOR retrieved in 4, launch examples/echo/dynclient.
+Exhibit messages on CORBA dynclient and DSA server.
+
+6. MOMA client
+--------------
+
+DEMO-3: MOM/dist. obj. interoperability
+
+Using IOR retrieved in 4, [XXX TBD (JH)]
+
+7. CORBA SOAP client
+--------------------
+
+DEMO-4: SOAP/GIOP interoperability with inline dynamic proxy.
+
+XXX TBD (TQ)
