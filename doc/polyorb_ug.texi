@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#18 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#19 $
 
 @setfilename polyorb_ug.info
 @settitle PolyORB User's Guide
@@ -201,6 +201,7 @@ Tools
 @unnumbered About This Guide
 @c -------------------------------------------------------------------
 
+@noindent
 This guide describes the use of PolyORB, a middleware that enables
 the constriction of Ada 95 distributed applications.
 
@@ -236,6 +237,8 @@ personalities, or distribution mechanisms, provided by PolyORB.
 protocol defined as part of CORBA.
 
 @item @ref{SOAP} describes PolyORB's implementation of SOAP.
+
+@item @ref{Tools} describes PolyORB's tools.
 
 @item
 @ref{GNU Free Documentation License}, contains the text of the license
