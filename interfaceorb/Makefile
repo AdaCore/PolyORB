@@ -35,7 +35,7 @@ ADA_LIBS_NAME_NO_ADB = rope
 all : sys_dep.o Ada_Rope.o rope.o Ada_OmniRopeAndKey.o omniropeandkey.o \
 omniobjectmanager.o omniObject_C2Ada.o Ada_OmniObject.o omniobject.o \
 giop.o Ada_Giop_s.o giop_s.o Ada_Giop_c.o giop_c.o Ada_netBufferedStream.o \
-netbufferedstream.o
+netbufferedstream.o corba-boa.o
 
 clean :
 	rm *.ali *.o 
@@ -89,6 +89,9 @@ Ada_netBufferedStream.o : Ada_netBufferedStream.hh Ada_netBufferedStream.cc
 
 netbufferedstream.o : netbufferedstream.ads netbufferedstream.adb
 	$(GNATGCC) $(DO_NOT_LINK) $(ORB_LIBS) $(FLAGS) netbufferedstream.adb
+
+corba-boa.o : corba-boa.ads corba-boa.adb
+	$(GNATGCC) $(DO_NOT_LINK) $(ORB_LIBS) $(FLAGS) corba-boa.adb
 
 
 ################################################

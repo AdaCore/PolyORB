@@ -179,7 +179,7 @@ package Corba is
     -- raised when a C Value must be converted into an Ada Value
     -- and when the C value is out of range
 
-    subtype Repository_Id is new Standard.String ;
+    subtype Repository_Id is Standard.String ;
     -- the type of Repository Ids
     -- maybe it shoiuld not be here, but where else ?
 

@@ -53,7 +53,7 @@ package Corba.Object is
   -- returns true if this object is of this Logical_Type_Id
    -- or one of its descendants
 
-   function Non_Existent(Self : in Ref) return Coba.Boolean ;
+   function Non_Existent(Self : in Ref) return Corba.Boolean ;
 
    function Is_Equivalent(Self : in Ref ;
                           Other : in Ref)

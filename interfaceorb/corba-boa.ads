@@ -2,55 +2,80 @@
 ----                                                               ----
 ----                  AdaBroker                                    ----
 ----                                                               ----
-----                  package CORBA.Boa                            ----
+----     This package is wrapped around a C++ class whose name     ----
+----   is BOA declared in file CORBA.h.                            ----
+----     It provides two types of methods : the C functions        ----
+----   of the BOA class and their equivalent in                    ----
+----   Ada. (the first ones have a C_ prefix.)                     ----
+----                                                               ----
+----                                                               ----
+----                  package boa                                  ----
+----                                                               ----
 ----                                                               ----
 ----   authors : Sebastien Ponce, Fabien Azavant                   ----
-----   date    :                                                   ----
+----   date    : 02/24/99                                          ----
 ----                                                               ----
 ----                                                               ----
 -----------------------------------------------------------------------
 
-
+with Interfaces.CPP ;
+with System ;
 with Corba.Object ;
 
 package Corba.Boa is
 
+   type Object is tagged record
+      Table : Interfaces.CPP.Vtable_Ptr ;
+   end record ;
 
-   --------------------------------------------------
-   ---        not specified in CORBA2.2          ----
-   --------------------------------------------------
+   pragma CPP_Class (Object);
+   pragma CPP_Vtable (Object,Table,1);
+   -- This object is wrapped around BOA (see CORBA.h)
 
-   procedure Init(Orb_Name : in Standard.String) ;
-   -- wrapper around BOA_ptr CORBA::ORB::BOA_init(int& argc, char** argv,
-   --                               const char* boa_identifier);
-   -- in CORBA.h L 2092
-
-
-   procedure Object_Is_Ready(The_Object : in Corba.Object.Object'Class) ;
-   -- wrapper around void
-   -- CORBA::
-   --BOA::obj_is_ready(Object_ptr op, ImplementationDef_ptr ip /* ignored */)
-   --{
-   --  omniObject *obj = op->PR_getobj();
-   --  omni::objectIsReady(obj);
-   --  return;
-   --} corbaBOA.cc L355
-   -- which is useless
-   -- so wrapper around void
-   -- omni::objectIsReady(omniObject* obj)
-   -- in objectRef.CC L 230
-   --
-   -- NONONONONONO
-   -- keep the same strcture as in omniORB
-   -- this procedure really maps  omniORB's boa::objectIsReady
+   type Object_Access is access Object ;
+   -- just to give a name to pointers on Object
 
 
-   procedure Impl_Is_Ready(The_Object : in Corba.Object.Object'Class) ;
-   -- wrapper around impl_is_ready() ;
+   procedure C_Obj_Is_Ready (Self: in Object'Class ;
+                             object: in System.Address ;
+                             p: in System.Address) ;
+   pragma Import (C,C_Obj_Is_Ready,"toto") ;
+   -- wrapper around BOA function obj_is_ready
+   -- (see CORBA.h)
+
+   procedure Obj_Is_Ready(Self: in Object'Class ;
+                          object: in Corba.Object.Ref'Class ;
+                          p: in Corba.Object.Object) ;
+   -- Ada equivalent of C procedure C_Obj_Is_Ready
 
 
-  private
+   function C_Get_Boa (Self: in Object'Class)
+                      return System.Address ;
+   pragma Import (C,C_Get_Boa,"toto") ;
+   -- wrapper around BOA function getBOA
+   -- (see CORBA.h)
+
+   function Get_Boa (Self: in Object'Class)
+                     return Object'Class ;
+   -- Ada equivalent to C function C_Get_Boa
 
 
+   procedure C_Dispose (Self : in Object'Class ;
+                        object : in System.Address) ;
+   pragma Import (C,C_Dispose,"toto") ;
+   -- wrapper around BOA function dispose
+   -- (see CORBA.h)
+
+   procedure Dispose(Self: in Object'Class ;
+                     Obj : in Corba.Object.Ref'Class) ;
+   -- Ada equivalent of C procedure C_Dispose
+
+
+private
+
+   function Init return Object'Class;
+   pragma CPP_Constructor (Init);
+   pragma Import (CPP,Init,"__3Boa");
+   -- wrapped around the C constructor of BOA
 
 end Corba.Boa ;
