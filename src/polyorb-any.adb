@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.adb#44 $
+--  $Id: //droopi/main/src/polyorb-any.adb#45 $
 
 with Ada.Exceptions;
 with Ada.Tags;
@@ -1037,6 +1037,9 @@ package body PolyORB.Any is
                                Param : in Any) is
          C_Ptr : Cell_Ptr := Self.Parameters;
       begin
+         pragma Debug (O ("Add_Parameter: enter"));
+         pragma Debug (O ("Add_Parameter: adding " & Image (Param)));
+
          if C_Ptr = null then
             Self.Parameters := new Cell'(Param, null);
          else
@@ -1045,6 +1048,7 @@ package body PolyORB.Any is
             end loop;
             C_Ptr.Next := new Cell'(Param, null);
          end if;
+         pragma Debug (O ("Add_Parameter: end"));
       end Add_Parameter;
 
       --------------
