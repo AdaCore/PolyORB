@@ -245,6 +245,8 @@ cos/naming/polyorb-services-naming-tools.ads
 cos/naming/polyorb-services-naming.ads
 cos/naming/polyorb-services.ads
 cos/naming/test_naming.adb
+cos/naming/test_naming_corba.adb
+cos/naming/test_naming_generic.adb
 cos/time/Makefile.am
 cos/time/Makefile.in
 cos/time/costime-timeservice-impl.adb
