@@ -47,7 +47,6 @@ Dist/xe_usage.ads
 Dist/xe_utils.adb
 Dist/xe_utils.ads
 Doc/install_guide.txt
-Doc/user_guide.txt
 Examples/Makefile.am
 Examples/Makefile.in
 Examples/check-config.in
