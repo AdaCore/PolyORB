@@ -41,11 +41,12 @@ package body Test_Suite.Test_Case is
 
    function Create
      (Command : Unbounded_String;
-      Conf    : Unbounded_String)
+      Conf    : Unbounded_String;
+      Args    : GNAT.OS_Lib.Argument_List_Access)
      return Executable
    is
    begin
-      return Executable'(Command, Conf);
+      return Executable'(Command, Conf, Args);
    end Create;
 
    --------------

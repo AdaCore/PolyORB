@@ -32,12 +32,12 @@
 ------------------------------------------------------------------------------
 
 with GNAT.Expect;
-with GNAT.OS_Lib;
+with Test_Suite.Run;
 
 package body Test_Suite.Test_Case.Local is
 
    use GNAT.Expect;
-   use GNAT.OS_Lib;
+   use Test_Suite.Run;
 
    --------------
    -- Run_Test --
@@ -48,129 +48,23 @@ package body Test_Suite.Test_Case.Local is
       Output      : Test_Suite_Output'Class)
      return Boolean
    is
-
-      function Run_Local return Boolean;
-
-      ---------------
-      -- Run_Local --
-      ---------------
-
-      function Run_Local return Boolean is
-         Fd       : Process_Descriptor;
-
-         Command  : constant String
-           := "./" & To_String (Test_To_Run.Exec.Command);
-
-         Env : constant String := To_String (Test_To_Run.Exec.Conf);
-
-         Argument_List : GNAT.OS_Lib.Argument_List := (1 => new String'(""));
-
-         Result : Expect_Match;
-
-         Item_To_Match : constant Regexp_Array
-           := Regexp_Array'(+"END TESTS(.*)FAILED",
-                            +"END TESTS(.*)PASSED");
-
-         Test_Result : Boolean;
-
-      begin
-         --  Setting environment
-
-         if Env = "" then
-            Log (Output, "No environment to set.");
-            Setenv ("POLYORB_CONF", Env);
-         else
-            Log (Output, "Setting environment: " & Env);
-            Setenv ("POLYORB_CONF", Env);
-         end if;
-
-         --  Test the executable actually exists
-
-         if not Is_Regular_File (Command) then
-            Log (Output, Command & " does not exist !");
-            Log (Output, "Aborting test");
-
-            Test_Result := False;
-
-            return Test_Result;
-         end if;
-
-         --  Launch Test
-
-         Log (Output, "Running: " & Command);
-         Separator (Output);
-
-         --  Spawn Executable
-
-         Non_Blocking_Spawn
-           (Descriptor  => Fd,
-            Command     => Command,
-            Args        => Argument_List,
-            Buffer_Size => 4096,
-            Err_To_Out  => True);
-
-         --  Redirect Output
-
-         Initialize_Filter (Output);
-         Add_Filter (Fd, Output_Filter'Access, GNAT.Expect.Output);
-
-         --  Parse output
-
-         Expect (Fd, Result, Item_To_Match, Test_To_Run.Timeout);
-
-         case Result is
-            when 1 =>
-               Log (Output, "==> Test failed <==");
-               Test_Result := False;
-
-            when 2 =>
-               Log (Output, "==> Test finished <==");
-               Test_Result := True;
-
-            when Expect_Timeout =>
-               Log (Output, "==> Time out ! <==");
-               Test_Result := False;
-
-            when others =>
-               Log (Output, "==> Unexpected output ! <==");
-               Test_Result := False;
-         end case;
-
-         --  Clean up
-
-         Free (Argument_List (1));
-         Close (Fd);
-
-         return Test_Result;
-
-      exception
-         when GNAT.Expect.Process_Died =>
-
-            --  If we catch this exception before the test program
-            --  produces expected output then the test failed.
-
-            Log (Output, "==> Process terminated abnormally <==");
-            Test_Result := False;
-
-            Free (Argument_List (1));
-            Close (Fd);
-
-            return Test_Result;
-
-         when others =>
-            Free (Argument_List (1));
-            Close (Fd);
-
-            raise;
-      end Run_Local;
-
       Test_Result : Boolean;
 
    begin
       Log (Output, "Launching test: " & To_String (Test_To_Run.Id));
       Separator (Output);
 
-      Test_Result := Run_Local;
+      Test_Result
+        := Run.Run
+           (Output,
+            Test_To_Run.Exec,
+            "",
+            Regexp_Array'(+"END TESTS(.*)FAILED",
+                          +"END TESTS(.*)PASSED"),
+            Analyze_CB_Array'(Parse_Failure'Access,
+                              Parse_Success'Access),
+            Test_To_Run.Timeout);
+
       Close_Test_Output_Context (Output, Test_Result);
 
       return Test_Result;

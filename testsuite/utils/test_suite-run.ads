@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                 T E S T _ S U I T E . T E S T _ C A S E                  --
+--                       T E S T _ S U I T E . R U N                        --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
+--            Copyright (C) 2004 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,61 +31,40 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  This package provides support for different test types and their
---  associated execution process.
-
---  $Id$
-
-with Ada.Strings.Unbounded;
-with GNAT.OS_Lib;
-
+with GNAT.Expect;
+with Test_Suite.Test_Case;
 with Test_Suite.Output;
 
-package Test_Suite.Test_Case is
+package Test_Suite.Run is
 
+   use GNAT.Expect;
+   use Test_Suite.Test_Case;
    use Test_Suite.Output;
 
-   use Ada.Strings.Unbounded;
+   type Analyze_CB is access function (First_Arg : String) return Boolean;
 
-   type Test is abstract tagged record
-      Id         : Unbounded_String;
-      Timeout    : Integer := 0;
-   end record;
-   --  Base type for all test
+   type Analyze_CB_Array is array (Positive range <>) of Analyze_CB;
 
-   function Run_Test
-     (Test_To_Run : Test;
-      Output      : Test_Suite_Output'Class)
-      return Boolean is abstract;
-   --  Test process associated to a test
-
-   type Null_Test is new Test with private;
-
-   function Run_Test
-     (Test_To_Run : Null_Test;
-      Output      : Test_Suite_Output'Class)
+   function Run
+     (Output        : Test_Suite_Output'Class;
+      Exe           : Executable;
+      First_Arg     : String;
+      Item_To_Match : Regexp_Array;
+      Call_Backs    : Analyze_CB_Array;
+      Timeout       : Integer)
      return Boolean;
-   --  Null_Test does nothing; raises 'Program_Error' if run
+   --  Run executable Exe and output information through
+   --  Output. First_Arg is the first argument to be specified when
+   --  launching Exe, prior to its other arguments. If the output of
+   --  Exe matches the ith item in Item_To_Match, then run the ith
+   --  call backs in Call_Backs.
 
-   type Executable is record
-      Command  : Unbounded_String;
-      --  Command to run
+   --  Helper functions
 
-      Conf     : Unbounded_String;
-      --  Associated PolyORB's configuration file, if required
+   function Parse_Success (First_Arg : String) return Boolean;
+   --  Always return True
 
-      Args : GNAT.OS_Lib.Argument_List_Access;
+   function Parse_Failure (First_Arg : String) return Boolean;
+   --  Always return False
 
-   end record;
-
-   function Create
-     (Command : Unbounded_String;
-      Conf    : Unbounded_String;
-      Args    : GNAT.OS_Lib.Argument_List_Access)
-     return Executable;
-
-private
-
-   type Null_Test is new Test with null record;
-
-end Test_Suite.Test_Case;
+end Test_Suite.Run;

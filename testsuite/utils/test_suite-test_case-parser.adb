@@ -119,8 +119,9 @@ package body Test_Suite.Test_Case.Parser is
 
             --  Test executable
 
-            Result.Exec.Command := To_Unbounded_String (Command_S);
-            Result.Exec.Conf := To_Unbounded_String (Config_S);
+            Result.Exec := Create (To_Unbounded_String (Command_S),
+                                   To_Unbounded_String (Config_S),
+                                   null);
 
             return Result;
          end;
@@ -159,11 +160,13 @@ package body Test_Suite.Test_Case.Parser is
 
             --  Test executables
 
-            Result.Server.Command := To_Unbounded_String (Server_S);
-            Result.Server.Conf := To_Unbounded_String (Server_Config_S);
+            Result.Server := Create (To_Unbounded_String (Server_S),
+                                     To_Unbounded_String (Server_Config_S),
+                                     null);
 
-            Result.Client.Command := To_Unbounded_String (Client_S);
-            Result.Client.Conf := To_Unbounded_String (Client_Config_S);
+            Result.Client := Create (To_Unbounded_String (Client_S),
+                                     To_Unbounded_String (Client_Config_S),
+                                     null);
 
             return Result;
          end;
