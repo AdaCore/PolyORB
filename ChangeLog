@@ -1,3 +1,9 @@
+
+	* configure.in: Add zip filtering. Z library is now included in
+ 	the release. By default, it is not installed but with
+ 	--with-filters="zip", the Z library is included in garlic library
+ 	and Z binding and filter are also included.
+
 Fri Feb 14 11:36:11 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* configure.in: Use \${top_srcdir}/dir when building with VPATH

@@ -13,6 +13,7 @@ AC_SUBST(VERSION)
 # Various programs
 #
 AC_PROG_CC
+AC_PROG_RANLIB
 AC_CHECK_PROGS(SED, [gnused gsed sed])
 AC_CHECK_PROGS(AWK, [gnuawk gawk awk])
 AC_CHECK_PROGS(UNZIP, [gunzip])
@@ -126,54 +127,24 @@ AC_ARG_WITH(filters,
 [  --with-filters          Enumerate filter list],
 [
   AC_MSG_CHECKING([default filters])
-  LIST="";
+  FILTERLIST="";
+  FILTERFILE=Garlic/Makefile.fil;
+  echo "" >${FILTERFILE}
   for F in "${withval}"; do
-     case ${F} in
-     zip|ZIP)
-        LIST="${LIST} zip";
-        FILTERSSOURCES="${FILTERSSOURCES} \$(ZIPSOURCES)";
-        FILTERSOBJECTS="${FILTERSOBJECTS} \$(ZIPOBJECTS)";
-	ZIP_LIBRARY="\$(ZIP_LIBRARY)";
-        ZIP_INCLUDED="zlib";;
-     *)
-        AC_MSG_ERROR([unknown protocol ${P}])
-        ;;
-      esac;
+    if test -f Garlic/Makefile.${F}; then
+      FILTERLIST="${FILTERLIST} ${F}";
+      cat Garlic/Makefile.${F} >>${FILTERFILE}
+      echo "" >>${FILTERFILE}
+    fi;
   done
-  AC_MSG_RESULT([${LIST}])
+  AC_MSG_RESULT([${FILTERLIST}])
 ],
 [
 AC_MSG_CHECKING([default filters])
-FILTERSSOURCES="";
-FILTERSOBJECTS="";
-ZIP_LIBRARY="";
-ZIP_INCLUDED="";
+FILTERFILE="";
 AC_MSG_RESULT([none])
 ])
-if test "$ZIP_INCLUDED" = "zlib"; then
-  AC_MSG_CHECKING([configure zlib])
-  cd Garlic;
-  if test -f ${ZIP_INCLUDED}.tar.gz; then
-     ${UNZIP} ${ZIP_INCLUDED}.tar.gz;
-  fi;
-  if test -f ${ZIP_INCLUDED}.tar; then
-     ${TAR} xf ${ZIP_INCLUDED}.tar;
-  fi;
-  if test -d ${ZIP_INCLUDED}; then
-     (cd ${ZIP_INCLUDED}; ./configure) 2>&1 >/dev/null;
-     if test "$?" = "0"; then
-        AC_MSG_RESULT([done])
-     else
-        AC_MSG_RESULT([failed])
-     fi
-  else
-     AC_MSG_RESULT([failed])
-  fi
-  cd ..
-fi
-AC_SUBST(FILTERSSOURCES)
-AC_SUBST(FILTERSOBJECTS)
-AC_SUBST(ZIP_LIBRARY)
+AC_SUBST_FILE(FILTERFILE)
 #
 # Protocol list
 #
