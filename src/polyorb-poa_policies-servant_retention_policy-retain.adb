@@ -198,8 +198,12 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
       U_Oid : Unmarshalled_Oid_Access)
      return Servant_Access
    is
+      use PolyORB.POA_Policies.Lifespan_Policy;
       use PolyORB.POA_Policies.Id_Assignment_Policy;
    begin
+      Ensure_Lifespan
+        (POA.Obj_Adapter_Access (OA).Lifespan_Policy.all,
+         OA, U_Oid);
       return Id_To_Servant
         (POA.Obj_Adapter_Access (OA).Id_Assignment_Policy.all,
          OA, U_Oid);

@@ -205,6 +205,7 @@ package PolyORB.POA is
    Bad_Param : exception;
    Object_Already_Active : exception;
    Object_Not_Active : exception;
+   Object_Not_Exist : exception;
    --  Inspired from equivalent CORBA POA exceptions.
 
 end PolyORB.POA;

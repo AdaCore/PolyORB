@@ -93,7 +93,7 @@ package body PolyORB.POA_Policies.Lifespan_Policy.Transient is
       if U_Oid.Persistency_Flag
         /= PolyORB.POA.Obj_Adapter_Access (OA).Boot_Time
       then
-         raise PolyORB.POA.Bad_Param;
+         raise PolyORB.POA.Object_Not_Exist;
       end if;
    end Ensure_Lifespan;
 
