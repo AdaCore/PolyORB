@@ -94,12 +94,25 @@ with Menu; use Menu;
 with Ada.Text_IO;
 with Ada.Exceptions; use Ada.Exceptions;
 
+with PolyORB.Tasking.Threads;
+with PolyORB.Tasking.Mutexes;
+with PolyORB.Tasking.Condition_Variables;
+
+with Auto_Print;
+
 procedure Test_Event is
+
+   use Auto_Print;
+
+   use PolyORB.Tasking.Condition_Variables;
+   use PolyORB.Tasking.Mutexes;
+   use PolyORB.Tasking.Threads;
 
    use  PolyORB.Log;
    package L is new PolyORB.Log.Facility_Log ("testevent");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+
 
    type Command is
      (Help,
@@ -151,51 +164,6 @@ procedure Test_Event is
 
    Ctx : NamingContext.Ref;
 
-   --------------------
-   -- Task Auto_Print --
-   --------------------
-
-   task Auto_Display is
-      entry Activate (O : CORBA.Impl.Object_Ptr);
-      entry DesActivate;
-   end Auto_Display;
-
-
-   task body Auto_Display is
-   begin
-      declare
-         B : CORBA.Boolean;
-         A : CORBA.Any;
-         Ptr : PushConsumer.Impl.Object_Ptr;
-         EndDisplay : Boolean;
-      begin
-         loop
-            EndDisplay := False;
-            select
-               accept Activate (O : CORBA.Impl.Object_Ptr) do
-                  Ptr := PushConsumer.Impl.Object_Ptr (O);
-               end Activate;
-               loop
-                  exit when EndDisplay = True;
-                  select
-                     accept DesActivate do
-                        EndDisplay := True;
-                     end DesActivate;
-                  else
-                     Try_Pull (Ptr, B, A);
-                     if B then
-                        Ada.Text_IO.Put_Line (
-                                     To_Standard_String (From_Any (A)));
-                     else
-                        Ada.Text_IO.Put ("");
-                     end if;
-                  end select;
-               end loop;
-            or terminate;
-            end select;
-         end loop;
-      end;
-   end Auto_Display;
 
    --------------------
    -- Connect_Entity --
@@ -753,13 +721,20 @@ begin
                      Find_Entity (Argument (2), Entity, Kind);
                      if Kind /= K_PushConsumer then
                         Ada.Text_IO.Put_Line (
-                              "Can be called only with a PushSupplier");
+                                     "Can be called only with a PushSupplier");
                      else
                         C := PushConsumer.Helper.To_Ref (Entity);
                         Reference_To_Servant (C, Servant (O));
-                        Auto_Display.Activate (O);
+                        Ensure_Initialization;
+                        Enter (Session_Mutex);
+                        A_S := O;
+                        Create_Task (Auto_Display'Access);
+                        Wait (Session_Taken, Session_Mutex);
+                        --  wait A_S initialization in Priority_Queue_Engine
+                        Leave (Session_Mutex);
+
                         Ada.Text_IO.Get_Line (Item, Last);
-                        Auto_Display.DesActivate;
+                        EndDisplay := True;
                      end if;
                   end;
             end case;
@@ -777,3 +752,4 @@ begin
    end loop;
 
 end Test_Event;
+
