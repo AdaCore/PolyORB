@@ -11,6 +11,7 @@
 ------------------------------------------------------------------------------
 
 with CORBA;
+with CORBA.Abstractbase;
 
 with Droopi.Buffers; use Droopi.Buffers;
 
@@ -215,9 +216,6 @@ package Droopi.Representations.CDR is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : access CORBA.ValueModifier);
-   procedure Marshall
-     (Buffer : access Buffer_Type;
       Data   : in CORBA.ValueModifier);
    function Unmarshall (Buffer : access Buffer_Type)
      return CORBA.ValueModifier;
@@ -306,8 +304,7 @@ package Droopi.Representations.CDR is
 
    function Unmarshall
      (Buffer : access Buffer_Type)
-      return CORBA.Object.Ref;
-
+     return CORBA.Object.Ref;
 
    --  Marshalling and unmarshalling of system exceptions
 
