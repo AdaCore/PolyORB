@@ -1,3 +1,21 @@
+2004-07-15  Saber Souli  <souli@neraka.enst.fr>
+
+	* backend-be_ada.adb: Reformatting.  
+	
+	* backend-be_ada-impls.adb: New file, generate implementations Ada
+	subtree. 	
+
+	* backend-be_ada-helpers.adb: New file, generate helpers Ada
+	subtree. 
+
+	* backend-be_ada-stubs.adb: New file, generate client stubs  
+	Ada  subtree.
+
+	* backend-be_ada-stubs.adb, backend-be_ada-helpers.adb,
+	backend-be_ada-impls.adb : They contains two sub-packages,
+	Package_Spec generate package specification, and Package_Body
+	generate the correponding body. 
+
 2004-07-10  Saber Souli  <souli@neraka.enst.fr>
 
 	* backend-be_ada.adb: Minor reformatting. 

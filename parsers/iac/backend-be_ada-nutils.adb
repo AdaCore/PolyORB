@@ -893,6 +893,34 @@ package body Backend.BE_Ada.Nutils is
       end if;
    end Remove_Node_From_List;
 
+   ---------------------
+   -- Set_Helper_Body --
+   ---------------------
+
+   procedure Set_Helper_Body (N : Node_Id := No_Node) is
+      X : Node_Id := N;
+   begin
+      if No (X) then
+         X := Table (Last).Current_Entity;
+      end if;
+      Table (Last).Current_Package :=
+        Package_Implementation (Helper_Package (X));
+   end Set_Helper_Body;
+
+   ---------------------
+   -- Set_Helper_Spec --
+   ---------------------
+
+   procedure Set_Helper_Spec (N : Node_Id := No_Node) is
+      X : Node_Id := N;
+   begin
+      if No (X) then
+         X := Table (Last).Current_Entity;
+      end if;
+      Table (Last).Current_Package :=
+        Package_Specification (Helper_Package (X));
+   end Set_Helper_Spec;
+
    -------------------
    -- Set_Impl_Body --
    -------------------

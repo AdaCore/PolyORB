@@ -336,6 +336,9 @@ package Backend.BE_Ada.Nutils is
      (P : Node_Id)
      return Node_Id;
 
+   procedure Set_Helper_Body (N : Node_Id := No_Node);
+   procedure Set_Helper_Spec (N : Node_Id := No_Node);
+
    procedure Set_Impl_Body (N : Node_Id := No_Node);
    procedure Set_Impl_Spec (N : Node_Id := No_Node);
 

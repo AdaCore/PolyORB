@@ -25,6 +25,7 @@ package Backend.BE_Ada.Runtime is
       RE_To_Any_1,                  --  CORBA.To_Any
       RE_Get_Empty_Any_1,           --  CORBA.Get_Empty_Any
       RE_Exception_Occurrence,      --  Ada.Exceptions.Exception_Occurrence
+      RE_TC_Void,                   --  CORBA.TC_Void
       RE_Any,                       --  CORBA.Any
       RE_To_Any_0,                  --  CORBA.To_Any
       RE_Get_Empty_Any_0,           --  CORBA.Get_Empty_Any
@@ -64,6 +65,7 @@ package Backend.BE_Ada.Runtime is
          RE_To_Any_1              => RU_Null,
          RE_Get_Empty_Any_1       => RU_Null,
          RE_Exception_Occurrence  => RU_Ada_Exceptions,
+         RE_TC_Void               => RU_CORBA,
          RE_Any                   => RU_CORBA,
          RE_To_Any_0              => RU_CORBA,
          RE_Get_Empty_Any_0       => RU_CORBA,
