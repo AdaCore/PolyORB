@@ -32,29 +32,26 @@
 
 --  $Id: //droopi/main/src/moma/moma-message_consumers-queues.adb#3
 
-with MOMA.Messages;
-with MOMA.Messages.MBytes;
-with MOMA.Messages.MTexts;
-
 with PolyORB.Any;
 with PolyORB.Any.NVList;
-with PolyORB.Log;
+--  with PolyORB.Log;
 with PolyORB.Requests;
 with PolyORB.Types;
 
+with MOMA.Messages;
+
 package body MOMA.Message_Consumers.Queues is
 
-   use PolyORB.Any;
-   use PolyORB.Log;
-   use PolyORB.Types;
    use MOMA.Messages;
-   use MOMA.Messages.MBytes;
-   use MOMA.Messages.MTexts;
 
-   package L is
-     new PolyORB.Log.Facility_Log ("moma.message_consumers.queues");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
-     renames L.Output;
+   use PolyORB.Any;
+   --  use PolyORB.Log;
+   use PolyORB.Types;
+
+   --  package L is
+   --    new PolyORB.Log.Facility_Log ("moma.message_consumers.queues");
+   --  procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   --    renames L.Output;
 
    ------------------------
    -- Get_Queue Function --
@@ -74,37 +71,29 @@ package body MOMA.Message_Consumers.Queues is
    function Receive (Self : Queue)
                      return MOMA.Messages.Message'Class
    is
-      Arg_Name_Mesg : PolyORB.Types.Identifier
-       := PolyORB.Types.To_PolyORB_String ("Message");
-
       Argument_Mesg : PolyORB.Any.Any := PolyORB.Any.To_Any
         (To_PolyORB_String (""));
       --  XXX Temporary hack, should pass message filter ... or not ?
 
-      Operation_Name : constant Standard.String := "Get";
-
-      Request       : PolyORB.Requests.Request_Access;
-      Arg_List      : PolyORB.Any.NVList.Ref;
-      Result        : PolyORB.Any.NamedValue;
-      Result_Name   : PolyORB.Types.String := To_PolyORB_String ("Result");
-      Result_Any    : PolyORB.Any.Any;
-      TypeCode_Kind : PolyORB.Any.TCKind;
-
+      Request        : PolyORB.Requests.Request_Access;
+      Arg_List       : PolyORB.Any.NVList.Ref;
+      Result         : PolyORB.Any.NamedValue;
+      Result_Name    : PolyORB.Types.String := To_PolyORB_String ("Result");
    begin
       PolyORB.Any.NVList.Create (Arg_List);
 
       PolyORB.Any.NVList.Add_Item (Arg_List,
-                                   Arg_Name_Mesg,
+                                   To_PolyORB_String ("Message"),
                                    Argument_Mesg,
                                    PolyORB.Any.ARG_IN);
 
       Result := (Name      => PolyORB.Types.Identifier (Result_Name),
-                 Argument  => PolyORB.Any.Get_Empty_Any (PolyORB.Any.TC_Any),
+                 Argument  => PolyORB.Any.Get_Empty_Any (TC_MOMA_Message),
                  Arg_Modes => 0);
 
       PolyORB.Requests.Create_Request
         (Target    => Get_Ref (Self),
-         Operation => Operation_Name,
+         Operation => "Get",
          Arg_List  => Arg_List,
          Result    => Result,
          Req       => Request);
@@ -113,36 +102,7 @@ package body MOMA.Message_Consumers.Queues is
 
       PolyORB.Requests.Destroy_Request (Request);
 
-      Result_Any := MOMA.Messages.From_Any (Result.Argument);
-      pragma Debug (O ("Received " & PolyORB.Any.Image (Result_Any)));
-
-      TypeCode_Kind := TypeCode.Kind (Get_Type (Result_Any));
-      if TypeCode_Kind = Tk_String then
-         declare
-            Rcvd_Message : MOMA.Messages.MTexts.MText := Create_Text_Message;
-         begin
-            Set_Payload (Rcvd_Message, Result_Any);
-            return Rcvd_Message;
-         end;
-
-      elsif TypeCode_Kind = Tk_Boolean or
-        TypeCode_Kind = Tk_Octet or
-        TypeCode_Kind = Tk_Char or
-        TypeCode_Kind = Tk_Double or
-        TypeCode_Kind = Tk_Float or
-        TypeCode_Kind = Tk_Long or
-        TypeCode_Kind = Tk_Short or
-        TypeCode_Kind = Tk_Ulong or
-        TypeCode_Kind = Tk_Ushort
-      then
-         declare
-            Rcvd_Message : MOMA.Messages.MBytes.MByte := Create_Byte_Message;
-         begin
-            Set_Payload (Rcvd_Message, Result_Any);
-            return Rcvd_Message;
-         end;
-      end if;
-      raise Program_Error;
+      return MOMA.Messages.From_Any (Result.Argument);
    end Receive;
 
    function Receive (Timeout : Time) return MOMA.Messages.Message is

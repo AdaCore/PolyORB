@@ -44,6 +44,8 @@ with PolyORB.Opaque;
 with PolyORB.Representations.CDR;
 with PolyORB.Utils.HTables.Perfect;
 
+with MOMA.Messages;
+
 package body MOMA.Provider.Warehouse is
 
    use Ada.Streams;
@@ -55,6 +57,7 @@ package body MOMA.Provider.Warehouse is
    use PolyORB.Opaque;
    use PolyORB.Representations.CDR;
 
+   use MOMA.Messages;
    use MOMA.Types;
 
    ---------------------------
@@ -111,7 +114,7 @@ package body MOMA.Provider.Warehouse is
          Unuse_Allocation (Buffer, 1024 - Received);
          Ada.Streams.Stream_IO.Close (Stream_File);
 
-         Set_Type (Result, TypeCode.TC_Any);
+         Set_Type (Result, TC_MOMA_Message);
          Rewind (Buffer);
          Unmarshall_To_Any (Buffer, Result);
       end if;

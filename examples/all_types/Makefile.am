@@ -1,7 +1,7 @@
 EXAMPLES_ROOT=..
 EXAMPLE = all_types
 
-EXTRA = dynclient $(IR_SERVER)
+EXTRA = dynclient client_moma $(IR_SERVER)
 
 ADACOMPILER=../../support/adacompiler
 # This example might use the IR: some source files need to be processed

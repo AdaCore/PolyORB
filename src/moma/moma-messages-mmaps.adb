@@ -2,9 +2,9 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---        M O M A . M E S S A G E _ P R O D U C E R S . Q U E U E S         --
+--                  M O M A . M E S S A G E S . M M A P S                   --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
 --             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
@@ -32,33 +32,57 @@
 
 --  $Id$
 
-with MOMA.Connections.Queues;
-with MOMA.Destinations.Queues;
-with MOMA.Messages;
 with MOMA.Types;
+with PolyORB.Any;
 
-package MOMA.Message_Producers.Queues is
+package body MOMA.Messages.MMaps is
 
-   type Queue is new Message_Producer with null record;
+   use MOMA.Types;
 
-   function Get_Queue return MOMA.Destinations.Queues.Queue;
+   --------------
+   -- Get_Map --
+   --------------
 
-   procedure Send (Self    : Queue;
-                   Message : MOMA.Messages.Message'Class);
-   --  XXX should send asynchronous message !!!
+   function Get_Map (Self : MMap)
+                     return MOMA.Types.Map is
+   begin
+      return MOMA.Types.From_Any (Get_Payload (Self));
+   end Get_Map;
 
-   function Send_Receive (Self : MOMA.Connections.Queues.Queue;
-                          Operation_Name : String;
-                          Message : MOMA.Messages.Message'Class)
-                          return MOMA.Messages.Message'Class;
+   --------------
+   -- Set_Map --
+   --------------
 
-   --  Send 'Message' to remote queue 'Self', should run
-   --  'Operation_Name' on data in Message.
-   --  XXX Warning, use carefully.
+   procedure Set_Map (Self : in out MMap;
+                      Value : MOMA.Types.Map) is
+   begin
+      Set_Payload (Self, MOMA.Types.To_Any (Value));
+   end Set_Map;
 
-   procedure Send (Message        : MOMA.Messages.Message'Class;
-                   Persistent     : Boolean;
-                   Priority_Value : MOMA.Types.Priority;
-                   TTL            : Time);
+   -------------------------
+   -- Create_Map_Message --
+   -------------------------
 
-end MOMA.Message_Producers.Queues;
+   function Create_Map_Message
+            return MMap
+   is
+      Result : MMap;
+   begin
+      Set_Type (Result, Map_M);
+      --  XXX should initialize other fields as well ???
+      return Result;
+   end Create_Map_Message;
+
+   -----------
+   -- Image --
+   -----------
+
+   function Image (Self : MMap) return String
+   is
+      use PolyORB.Any;
+   begin
+      return Image (Get_Payload (Self));
+   end Image;
+
+end MOMA.Messages.MMaps;
+

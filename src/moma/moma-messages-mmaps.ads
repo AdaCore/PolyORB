@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---        M O M A . M E S S A G E _ P R O D U C E R S . Q U E U E S         --
+--                  M O M A . M E S S A G E S . M M A P S                   --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -30,35 +30,30 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  MMap message type.
+--
+--  A MMap message contains a sequence of named value, similar to a bag
+--  container.
+
 --  $Id$
 
-with MOMA.Connections.Queues;
-with MOMA.Destinations.Queues;
-with MOMA.Messages;
 with MOMA.Types;
 
-package MOMA.Message_Producers.Queues is
+package MOMA.Messages.MMaps is
 
-   type Queue is new Message_Producer with null record;
+   type MMap is new Message with private;
 
-   function Get_Queue return MOMA.Destinations.Queues.Queue;
+   function Get_Map (Self : MMap)
+                     return MOMA.Types.Map;
 
-   procedure Send (Self    : Queue;
-                   Message : MOMA.Messages.Message'Class);
-   --  XXX should send asynchronous message !!!
+   procedure Set_Map (Self : in out MMap;
+                      Value : MOMA.Types.Map);
 
-   function Send_Receive (Self : MOMA.Connections.Queues.Queue;
-                          Operation_Name : String;
-                          Message : MOMA.Messages.Message'Class)
-                          return MOMA.Messages.Message'Class;
+   function Create_Map_Message return Messages.MMaps.MMap;
 
-   --  Send 'Message' to remote queue 'Self', should run
-   --  'Operation_Name' on data in Message.
-   --  XXX Warning, use carefully.
+   function Image (Self : MMap) return String;
 
-   procedure Send (Message        : MOMA.Messages.Message'Class;
-                   Persistent     : Boolean;
-                   Priority_Value : MOMA.Types.Priority;
-                   TTL            : Time);
+private
+   type MMap is new Message with null record;
 
-end MOMA.Message_Producers.Queues;
+end MOMA.Messages.MMaps;

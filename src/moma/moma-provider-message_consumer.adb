@@ -34,14 +34,18 @@
 
 --  $Id$
 
+with MOMA.Types;
+with MOMA.Messages;
+
 with PolyORB.Any;
 with PolyORB.Any.NVList;
 with PolyORB.Log;
 with PolyORB.Types;
 with PolyORB.Requests;
-with MOMA.Types;
 
 package body MOMA.Provider.Message_Consumer is
+
+   use MOMA.Messages;
 
    use PolyORB.Any;
    use PolyORB.Any.NVList;
@@ -146,7 +150,8 @@ package body MOMA.Provider.Message_Consumer is
    begin
       pragma Debug (O ("Result profile for " & Method & " requested."));
       if Method = "Get" then
-         return Get_Empty_Any (TypeCode.TC_Any);
+         --  return Get_Empty_Any (TypeCode.TC_Any);
+         return Get_Empty_Any (TC_MOMA_Message);
       else
          raise Program_Error;
       end if;
@@ -193,7 +198,7 @@ package body MOMA.Provider.Message_Consumer is
                                    PolyORB.Any.ARG_IN);
 
       Result := (Name      => PolyORB.Types.Identifier (Result_Name),
-                 Argument  => PolyORB.Any.Get_Empty_Any (PolyORB.Any.TC_Any),
+                 Argument  => PolyORB.Any.Get_Empty_Any (TC_MOMA_Message),
                  Arg_Modes => 0);
 
       PolyORB.Requests.Create_Request

@@ -41,7 +41,11 @@ with PolyORB.Any;
 
 package MOMA.Messages is
 
+   use PolyORB.Any;
+
    type Message is tagged private;
+
+   TC_MOMA_Message : TypeCode.Object := TypeCode.TC_Struct;
 
    procedure Acknowledge;
 
@@ -155,14 +159,15 @@ package MOMA.Messages is
    pragma Inline (Get_Property);
 
    --
-   --  Various functions
+   --  Message Marshalling/Unmarshalling functions
    --
 
    function To_Any (Self : Message) return PolyORB.Any.Any;
 
-   function From_Any (Self : PolyORB.Any.Any) return PolyORB.Any.Any;
+   function From_Any (Self : PolyORB.Any.Any) return Message'Class;
 
 private
+
    type Message is tagged record
       Type_Of_Message : MOMA.Types.Message_Type;
       Message_Id      : MOMA.Types.String;

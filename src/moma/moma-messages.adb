@@ -32,7 +32,20 @@
 
 --  $Id$
 
+with MOMA.Types;
+with MOMA.Messages.MAnys;
+with MOMA.Messages.MBytes;
+with MOMA.Messages.MMaps;
+with MOMA.Messages.MTexts;
+
+with PolyORB.Initialization;
+with PolyORB.Types;
+with PolyORB.Utils.Strings;
+
 package body MOMA.Messages is
+
+   use MOMA.Types;
+   use PolyORB.Any;
 
    -----------------
    -- Acknowledge --
@@ -324,18 +337,123 @@ package body MOMA.Messages is
    -- To_Any --
    ------------
 
-   function To_Any (Self : Message) return PolyORB.Any.Any is
+   function To_Any (Self : Message) return PolyORB.Any.Any
+   is
+      Result : Any := Get_Empty_Any_Aggregate (TC_MOMA_Message);
+
    begin
-      return PolyORB.Any.To_Any (Self.Payload);
+      Add_Aggregate_Element (Result, To_Any
+                             (Short
+                              (Message_Type'Pos (Self.Type_Of_Message))));
+
+      Add_Aggregate_Element (Result, To_Any (Self.Payload));
+
+      return Result;
    end To_Any;
 
    --------------
    -- From_Any --
    --------------
 
-   function From_Any (Self : PolyORB.Any.Any) return PolyORB.Any.Any is
+   function From_Any (Self : PolyORB.Any.Any) return Message'Class
+   is
+      use MOMA.Messages.MAnys;
+      use MOMA.Messages.MBytes;
+      use MOMA.Messages.MMaps;
+      use MOMA.Messages.MTexts;
+
+      Index  : Any;
+      Type_Of_Message : Message_Type;
+      Pos : MOMA.Types.Short;
+      Payload : Any;
    begin
-      return PolyORB.Any.From_Any (Self);
+      Index := Get_Aggregate_Element (Self,
+                                      TypeCode.TC_Short,
+                                      Unsigned_Long (0));
+      Pos := PolyORB.Any.From_Any (Index);
+      Type_Of_Message := Message_Type'Val (Pos);
+
+      Payload := From_Any (Get_Aggregate_Element (Self,
+                                                  TypeCode.TC_Any,
+                                                  Unsigned_Long (1)));
+
+      if Type_Of_Message = Any_M then
+         declare
+            Rcvd_Message : MOMA.Messages.MAnys.MAny := Create_Any_Message;
+         begin
+            Set_Payload (Rcvd_Message, Payload);
+            return Rcvd_Message;
+         end;
+
+      elsif Type_Of_Message = Byte_M then
+         declare
+            Rcvd_Message : MOMA.Messages.MBytes.MByte := Create_Byte_Message;
+         begin
+            Set_Payload (Rcvd_Message, Payload);
+            return Rcvd_Message;
+         end;
+
+      elsif Type_Of_Message = Map_M then
+         declare
+            Rcvd_Message : MOMA.Messages.MMaps.MMap := Create_Map_Message;
+         begin
+            Set_Payload (Rcvd_Message, Payload);
+            return Rcvd_Message;
+         end;
+
+      elsif Type_Of_Message = Text_M then
+         declare
+            Rcvd_Message : MOMA.Messages.MTexts.MText := Create_Text_Message;
+         begin
+            Set_Payload (Rcvd_Message, Payload);
+            return Rcvd_Message;
+         end;
+
+      end if;
+      raise Program_Error;
+      --  Should not come to this point.
+
    end From_Any;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize;
+
+   procedure Initialize
+   is
+      use PolyORB.Utils.Strings;
+      use PolyORB.Types;
+   begin
+      TypeCode.Add_Parameter (TC_MOMA_Message,
+                              To_Any (To_PolyORB_String ("moma_message")));
+      TypeCode.Add_Parameter (TC_MOMA_Message,
+                              To_Any (To_PolyORB_String
+                                      ("MOMA:messages/moma_message:1.0")));
+
+      TypeCode.Add_Parameter (TC_MOMA_Message, To_Any (TC_Short));
+      TypeCode.Add_Parameter (TC_MOMA_Message,
+                              To_Any (To_PolyORB_String ("type")));
+
+      TypeCode.Add_Parameter (TC_MOMA_Message, To_Any (TC_Any));
+      TypeCode.Add_Parameter (TC_MOMA_Message,
+                              To_Any (To_PolyORB_String ("payload")));
+   end Initialize;
+
+begin
+   declare
+      use PolyORB.Initialization;
+      use PolyORB.Initialization.String_Lists;
+      use PolyORB.Utils.Strings;
+   begin
+      Register_Module
+        (Module_Info'
+         (Name      => +"MOMA.Message",
+          Conflicts => Empty,
+          Depends   => +"soft_links",
+          Provides  => Empty,
+          Init      => Initialize'Access));
+   end;
 
 end MOMA.Messages;

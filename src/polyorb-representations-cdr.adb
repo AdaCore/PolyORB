@@ -1755,6 +1755,7 @@ package body PolyORB.Representations.CDR is
                S : constant PolyORB.Types.String := Unmarshall (Buffer);
             begin
                Set_Any_Value (Result, S);
+               --  Result := To_Any (S);
             end;
 
          when Tk_Sequence =>

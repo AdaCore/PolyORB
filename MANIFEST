@@ -498,12 +498,12 @@ src/moma/moma-message_producers-topics.adb
 src/moma/moma-message_producers-topics.ads
 src/moma/moma-message_producers.adb
 src/moma/moma-message_producers.ads
-src/moma/moma-messages-marrays.adb
-src/moma/moma-messages-marrays.ads
+src/moma/moma-messages-manys.adb
+src/moma/moma-messages-manys.ads
 src/moma/moma-messages-mbytes.adb
 src/moma/moma-messages-mbytes.ads
-src/moma/moma-messages-mrecords.adb
-src/moma/moma-messages-mrecords.ads
+src/moma/moma-messages-mmaps.adb
+src/moma/moma-messages-mmaps.ads
 src/moma/moma-messages-mstreams.adb
 src/moma/moma-messages-mstreams.ads
 src/moma/moma-messages-mtexts.adb
@@ -525,6 +525,7 @@ src/moma/moma-sessions-topics.adb
 src/moma/moma-sessions-topics.ads
 src/moma/moma-sessions.adb
 src/moma/moma-sessions.ads
+src/moma/moma-types.adb
 src/moma/moma-types.ads
 src/moma/moma.ads
 src/moma/polyorb-minimal_servant.adb

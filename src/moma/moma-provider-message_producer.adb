@@ -34,6 +34,8 @@
 
 --  $Id$
 
+with MOMA.Messages;
+
 with PolyORB.Any;
 with PolyORB.Any.NVList;
 with PolyORB.Log;
@@ -41,6 +43,8 @@ with PolyORB.Types;
 with PolyORB.Requests;
 
 package body MOMA.Provider.Message_Producer is
+
+   use MOMA.Messages;
 
    use PolyORB.Any;
    use PolyORB.Any.NVList;
@@ -78,7 +82,7 @@ package body MOMA.Provider.Message_Producer is
 
          Add_Item (Args,
                    (Name => To_PolyORB_String ("Message"),
-                    Argument => Get_Empty_Any (TypeCode.TC_Any),
+                    Argument => Get_Empty_Any (TC_MOMA_Message),
                     Arg_Modes => PolyORB.Any.ARG_IN));
          Arguments (Req, Args);
 
@@ -120,7 +124,7 @@ package body MOMA.Provider.Message_Producer is
       if Method = "Publish" then
          Add_Item (Result,
                    (Name      => To_PolyORB_String ("Message"),
-                    Argument  => Get_Empty_Any (TypeCode.TC_Any),
+                    Argument  => Get_Empty_Any (TC_MOMA_Message),
                     Arg_Modes => ARG_IN));
       else
          raise Program_Error;
@@ -176,27 +180,28 @@ package body MOMA.Provider.Message_Producer is
       Result      : PolyORB.Any.NamedValue;
 
    begin
-      PolyORB.Any.NVList.Create (Arg_List);
+      pragma Debug (O ("Publishing Message " & Image (Message)));
 
+      PolyORB.Any.NVList.Create (Arg_List);
+      pragma Debug (O ("plop1"));
       PolyORB.Any.NVList.Add_Item (Arg_List,
                                    To_PolyORB_String ("Message"),
                                    Message,
                                    PolyORB.Any.ARG_IN);
-
+      pragma Debug (O ("plop2"));
       Result := (Name      => To_PolyORB_String ("Result"),
                  Argument  => PolyORB.Any.Get_Empty_Any (PolyORB.Any.TC_Void),
                  Arg_Modes => 0);
-
+      pragma Debug (O ("plop3"));
       PolyORB.Requests.Create_Request
         (Target    => Self,
          Operation => "Publish",
          Arg_List  => Arg_List,
          Result    => Result,
          Req       => Request);
-
+      pragma Debug (O ("plop4" & PolyORB.Requests.Image (Request.all)));
       PolyORB.Requests.Invoke (Request);
-
+      pragma Debug (O ("plop5"));
       PolyORB.Requests.Destroy_Request (Request);
-
    end Publish;
 end MOMA.Provider.Message_Producer;

@@ -40,10 +40,13 @@ with PolyORB.Log;
 with PolyORB.Types;
 with PolyORB.Requests;
 
+with MOMA.Messages;
 with MOMA.Types;
 with MOMA.Provider.Warehouse;
 
 package body MOMA.Provider.Message_Pool is
+
+   use MOMA.Messages;
 
    use PolyORB.Any;
    use PolyORB.Any.NVList;
@@ -84,7 +87,7 @@ package body MOMA.Provider.Message_Pool is
 
          Add_Item (Args,
                    (Name      => To_PolyORB_String ("Message"),
-                    Argument  => Get_Empty_Any (TypeCode.TC_Any),
+                    Argument  => Get_Empty_Any (TC_MOMA_Message),
                     Arg_Modes => PolyORB.Any.ARG_IN));
          Arguments (Req, Args);
 
@@ -144,19 +147,23 @@ package body MOMA.Provider.Message_Pool is
    begin
       PolyORB.Any.NVList.Create (Result);
       pragma Debug (O ("Parameter profile for " & Method & " requested."));
+
       if Method = "Publish" then
          Add_Item (Result,
                    (Name => To_PolyORB_String ("Message"),
-                    Argument => Get_Empty_Any (TypeCode.TC_Any),
+                    Argument => Get_Empty_Any (TC_MOMA_Message),
                     Arg_Modes => ARG_IN));
+
       elsif Method = "Get" then
          Add_Item (Result,
                    (Name => To_PolyORB_String ("Message_Id"),
                     Argument => Get_Empty_Any (TypeCode.TC_String),
                     Arg_Modes => ARG_IN));
+
       else
          raise Program_Error;
       end if;
+
       return Result;
    end Get_Parameter_Profile;
 
@@ -176,10 +183,14 @@ package body MOMA.Provider.Message_Pool is
 
    begin
       pragma Debug (O ("Result profile for " & Method & " requested."));
+
       if Method = "Publish" then
          return Get_Empty_Any (TypeCode.TC_Void);
+
       elsif Method = "Get" then
-         return Get_Empty_Any (TypeCode.TC_Any);
+         --  return Get_Empty_Any (TypeCode.TC_Any);
+         return Get_Empty_Any (TC_MOMA_Message);
+
       else
          raise Program_Error;
       end if;
@@ -224,8 +235,7 @@ package body MOMA.Provider.Message_Pool is
       --  Dummy Key construction, should be analyzed from message
    begin
       pragma Debug (O ("Got new message " & Image (Message)
-                       & " with Key " & Key
-                       & " with Content " & Image (From_Any (Message))));
+                       & " with Key " & Key));
 
       Self.Message_Id := Self.Message_Id + 1;
 
@@ -255,8 +265,7 @@ package body MOMA.Provider.Message_Pool is
       Self.Last_Read_Id := Self.Last_Read_Id + 1;
 
       pragma Debug (O ("Sending back message " & Image (Result)
-                       & " with Key " & Key
-                       & " with Content " & Image (From_Any (Result))));
+                       & " with Key " & Key));
       return Result;
    end Get;
 
