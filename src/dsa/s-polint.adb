@@ -1547,6 +1547,37 @@ package body System.PolyORB_Interface is
       PolyORB.Buffers.Release (Stream.Buf);
    end Release_Buffer;
 
+   --------------------
+   -- Request_Create --
+   --------------------
+
+   procedure Request_Create
+     (Target    : in     PolyORB.References.Ref;
+      Operation : in     String;
+      Arg_List  : in     PolyORB.Any.NVList.Ref;
+      Result    : in out PolyORB.Any.NamedValue;
+      Exc_List  : in     PolyORB.Any.ExceptionList.Ref
+        := PolyORB.Any.ExceptionList.Nil_Ref;
+      Req       :    out PolyORB.Requests.Request_Access;
+      Req_Flags : in     PolyORB.Requests.Flags := 0;
+      Deferred_Arguments_Session :
+        in PolyORB.Components.Component_Access := null
+     )
+   is
+   begin
+      PolyORB.Requests.Create_Request
+        (Target         => Target,
+         Operation      => Operation,
+         Arg_List       => Arg_List,
+         Result         => Result,
+         Exc_List       => Exc_List,
+         Req            => Req,
+         Req_Flags      => Req_Flags,
+         Deferred_Arguments_Session => Deferred_Arguments_Session,
+         Identification => PolyORB.Requests.Ident_By_Position);
+   end Request_Create;
+
+
    -----------------------
    -- Request_Arguments --
    -----------------------
