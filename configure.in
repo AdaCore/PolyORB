@@ -86,7 +86,7 @@ AC_SUBST(PLATFORM_SPECIFIC)
     u) PSNAME="SunOS";;
     a) PSNAME="OSF";;
     l) PSNAME="Linux";;
-    w) PSNAME="Windows NT";;
+    w) PSNAME="Windows/NT";;
     g) PSNAME="SGI";;
     h) PSNAME="HP";;
     b) PSNAME="AIX";;
