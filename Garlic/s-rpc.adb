@@ -254,6 +254,7 @@ package body System.RPC is
          raise Constraint_Error;
       end if;
       Any_Priority'Read (Params, Prio);
+      D (D_Debug, "Recv Priority =" & Prio'Img);
       if not Prio'Valid then
          D (D_Debug, "Invalid priority received");
          raise Constraint_Error;
@@ -369,6 +370,7 @@ package body System.RPC is
       end if;
       Insert_Request (Params, Header);
       Partition_ID'Write (Params, Partition);
+      Any_Priority'Write (Params, Ada.Dynamic_Priorities.Get_Priority);
       Send (Partition, Remote_Call, Params);
    end Do_APC;
 
@@ -846,6 +848,8 @@ package body System.RPC is
       Length  : constant Stream_Element_Count := Item'Length;
       Current : Node_Ptr renames Stream.Current;
    begin
+      --  XXXXX
+      D (D_Debug, "processing write attribute");
       if Current = null then
          if Stream.First.Size = 0 then
 
@@ -901,6 +905,11 @@ package body System.RPC is
       Current.Content (Current.Last .. Current.Last + Length - 1) :=
         Item;
       Current.Last := Current.Last + Length;
+
+   --  XXXXX
+   exception when others =>
+      D (D_Exception, "exception raise in Write");
+      raise;
    end Write;
 
 end System.RPC;
