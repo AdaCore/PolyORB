@@ -31,7 +31,7 @@
 --  XXX The latter should be moved away to a Ada_Be.Idl2Ada.Stubs
 --  child unit one day.
 
---  $Id: //droopi/main/compilers/idlac/ada_be-idl2ada.adb#21 $
+--  $Id: //droopi/main/compilers/idlac/ada_be-idl2ada.adb#22 $
 
 with Ada.Characters.Handling;
 with Ada.Strings.Unbounded;
@@ -2312,8 +2312,9 @@ package body Ada_Be.Idl2Ada is
       Node : Node_Id)
    is
       Unit, Typ : Ada.Strings.Unbounded.Unbounded_String;
+      NK : constant Node_Kind := Kind (Node);
    begin
-      case Kind (Node) is
+      case NK is
 
          when K_Scoped_Name =>
 
@@ -2405,7 +2406,7 @@ package body Ada_Be.Idl2Ada is
             Error
               ("ada_be-idl2ada.Gen_Node_Default: "
                & "Don't know what to do with a "
-               & Kind (Node)'Img & " node.",
+               & Node_Kind'Image (NK) & " node.",
                Fatal, Get_Location (Node));
       end case;
    end Gen_Node_Default;
@@ -2445,8 +2446,8 @@ package body Ada_Be.Idl2Ada is
             --  Interface or ValueType.
 
             Error
-              ("Improper call of Ada_Type_Defining_Name with a " & NK'Img,
-               Fatal, Get_Location (Node));
+              ("Improper call of Ada_Type_Defining_Name with a "
+               & Node_Kind'Image (NK), Fatal, Get_Location (Node));
 
             --  Keep the compiler happy.
             raise Program_Error;
@@ -2590,7 +2591,7 @@ package body Ada_Be.Idl2Ada is
             --  mapped to an Ada type.
 
             Error
-              ("This is TC_Name : A " & NK'Img
+              ("This is TC_Name : A " & Node_Kind'Image (NK)
                & " does not denote a type.",
                Fatal, Get_Location (Node));
 
@@ -2663,8 +2664,8 @@ package body Ada_Be.Idl2Ada is
             --  Improper use: Node is not mapped to an Ada type.
 
             Error
-              ("Helper_Unit: Node" & Node'Img & " (a "
-               & NK'Img & ") does not denote a type.",
+              ("Helper_Unit: Node" & Node_Id'Image (Node) & " (a "
+               & Node_Kind'Image (NK) & ") does not denote a type.",
                Fatal, Get_Location (Node));
 
             --  Keep the compiler happy.

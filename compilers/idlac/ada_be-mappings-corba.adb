@@ -96,7 +96,7 @@ package body Ada_Be.Mappings.CORBA is
 
          when others =>
             Error
-              ("A " & NK'Img
+              ("A " & Node_Kind'Image (NK)
                & " is not a mapped entity.",
                Fatal, Get_Location (Node));
       end case;
@@ -216,7 +216,7 @@ package body Ada_Be.Mappings.CORBA is
             --  mapped to an Ada type.
 
             Error
-              ("This Ada_Type_Name : A " & NK'Img
+              ("This Ada_Type_Name : A " & Node_Kind'Image (NK)
                & " does not denote a type.",
                Fatal, Get_Location (Node));
 

@@ -2549,7 +2549,7 @@ package body Ada_Be.Idl2Ada.Helper is
             --  mapped to an Ada type.
 
             Error
-              ("No TypeCode for " & NK'Img & " nodes.",
+              ("No TypeCode for " & Node_Kind'Image (NK) & " nodes.",
                Fatal, Get_Location (Node));
 
             --  Keep the compiler happy.
@@ -2618,7 +2618,7 @@ package body Ada_Be.Idl2Ada.Helper is
             --  mapped to an Ada type.
 
             Error
-              ("No helpers for " & NK'Img & " nodes.",
+              ("No helpers for " & Node_Kind'Image (NK) & " nodes.",
                Fatal, Get_Location (Node));
 
             --  Keep the compiler happy.

@@ -97,7 +97,7 @@ package body Ada_Be.Source_Streams is
       end if;
 
       pragma Debug (O ("Adding depend of " & LU_Name
-                       & " (" & Unit.Kind'Img & ")"
+                       & " (" & Unit_Kind'Image (Unit.Kind) & ")"
                        & " upon " & Dep));
 
       if True

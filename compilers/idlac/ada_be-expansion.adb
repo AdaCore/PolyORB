@@ -247,14 +247,15 @@ package body Ada_Be.Expansion is
    -----------------
 
    procedure Expand_Node (Node : in Node_Id) is
+      NK : constant Node_Kind := Kind (Node);
    begin
       pragma Debug (O ("Expanding node : "
-                       & Node_Kind'Image (Kind (Node))));
+                       & Node_Kind'Image (NK)));
 
       --  If node has already been expanded, this is a bug
 
       if Expanded (Node) then
-         Error ("Node " & Kind (Node)'Img & " already expanded",
+         Error ("Node " & Node_Kind'Image (NK) & " already expanded",
                 Fatal, Get_Location (Node));
       end if;
 
@@ -1336,7 +1337,7 @@ package body Ada_Be.Expansion is
 
          if Kind (D_Node) /= K_Declarator then
             Error
-              ("Unexpected " & Kind (D_Node)'Img,
+              ("Unexpected " & Node_Kind'Image (Kind (D_Node)),
                Fatal, Get_Location (D_Node));
          end if;
 
@@ -1638,7 +1639,7 @@ package body Ada_Be.Expansion is
             --  Improper use: node N is not
             --  mapped to an Ada type.
 
-            Error ("A " & NK'Img
+            Error ("A " & Node_Kind'Image (NK)
                    & " cannot be used in a sequence.",
                    Fatal,
                    Get_Location (Node));
