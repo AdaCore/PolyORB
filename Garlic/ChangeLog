@@ -1,3 +1,19 @@
+2002-09-29  Laurent Pautet  <pautet@arlequin.enst.fr>
+
+	* s-gastds.adb, s-gastds.ads: Check that a passive partition is
+	not using DSM as a storage support. We do not support such a
+	configuration as the partition has to be active in order to
+	execute the distributed shared memory algorithm.
+	
+	* s-garsto.adb, s-garsto.ads: Export Lookup_Package which returns
+	the storage support assigned to a unit.
+	
+	* s-garpar.adb, s-garpar.ads: Add accessor Get_Is_Active_Partition.
+ 
+	* s-parint.adb, s-parint.ads: Check that passive units are
+	correctly setup on passive partitions. In particular, check that
+	passive units have been assigned a correct storage support.
+
 2002-07-11  Pascal Obry <obry@gnat.com>
 
 	* s-garhea.adb:
