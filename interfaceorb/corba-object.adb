@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.65 $
+--                            $Revision: 1.66 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -40,7 +40,7 @@
 with Ada.Exceptions;
 
 with AdaBroker.OmniORB;        use AdaBroker.OmniORB;
-with AdaBroker.OmniRopeAndKey; use AdaBroker.OmniRopeAndKey;
+--  with AdaBroker.OmniRopeAndKey; use AdaBroker.OmniRopeAndKey;
 
 with AdaBroker.Debug;
 pragma Elaborate_All (AdaBroker.Debug);
@@ -104,8 +104,9 @@ package body CORBA.Object is
       Other : in Ref)
       return CORBA.Boolean
    is
-      W1, W2 : Controlled_Wrapper;
-      S1, S2 : CORBA.Boolean;
+      --  Buggy version:
+      --  W1, W2 : Controlled_Wrapper;
+      --  S1, S2 : CORBA.Boolean;
    begin
       --  This is a copy from corbaObject.cc L160. Refs are proxy objects.
 
@@ -115,10 +116,11 @@ package body CORBA.Object is
          return False;
       end if;
 
-      Get_Rope_And_Key (Self.OmniObj.all, W1.Real, S1);
-      Get_Rope_And_Key (Other.OmniObj.all, W2.Real, S2);
+      --  Get_Rope_And_Key (Self.OmniObj.all, W1.Real, S1);
+      --  Get_Rope_And_Key (Other.OmniObj.all, W2.Real, S2);
 
-      return W1.Real = W2.Real;
+      --  return W1.Real = W2.Real;
+      return Is_Equivalent (Self.OmniObj.all, Other.OmniObj);
    end Is_Equivalent;
 
    ----------
