@@ -634,6 +634,8 @@ package body System.Garlic.Units is
       Previous_Unit : Unit_Id;
       Previous_Info : Unit_Info;
       New_Unit_Info : Unit_Info;
+      Reconnection  : Reconnection_Type;
+      Error         : Error_Type;
    begin
       New_Unit_Info := Units.Get_Component (Unit);
 
@@ -650,10 +652,20 @@ package body System.Garlic.Units is
       --  If the status is Declared when it is already set to Defined on
       --  this partition, then a partition tries to register twice an unit.
 
-      if Status = Declared
-        and then New_Unit_Info.Status = Defined
-      then
-         return;
+      if Status = Declared then
+         if New_Unit_Info.Status = Defined then
+            return;
+         elsif New_Unit_Info.Status = Invalid then
+            Get_Reconnection_Policy
+              (New_Unit_Info.Partition, Reconnection, Error);
+            if Found (Error) then
+               Catch (Error);
+               return;
+            end if;
+            if Reconnection = Rejected_On_Restart then
+               return;
+            end if;
+         end if;
       end if;
 
       --  If the unit is already registered as a unit of a given partition,

@@ -1,3 +1,8 @@
+1998-12-13  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* s-garuni.adb: Discard definition of an unit mapped on a
+	partition with Failed_On_Restart reconnection mode (0004-G13).
+
 1998-12-11  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-garuni.adb: Once invalidate an unit status can be either
