@@ -1,3 +1,10 @@
+Tue Sep  2 21:51:34 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-garrem.ads: Added an Exchange_Launcher procedure as well as a
+	  Local_Launcher. Exported Rsh_Launcher in the spec.
+
+	* s-garrem.adb: Implemented what is described below.
+
 Fri Aug 29 20:58:30 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-rpcpoo.adb: Use new flag to avoid starting the whole runtime

@@ -35,6 +35,8 @@
 
 package System.Garlic.Remote is
 
+   pragma Elaborate_Body;
+
    --  This package implements calls to the 'rsh' Unix command to
    --  launch other partitions.
 
@@ -48,8 +50,24 @@ package System.Garlic.Remote is
    --  partition.
    --  A default launcher using rsh is also provided by the implementation.
 
+   procedure Rsh_Launcher
+     (Launcher : in String;
+      Host     : in String;
+      Command  : in String);
+   --  RSH launcher. This is used as the default launcher.
+
+   procedure Local_Launcher
+     (Launcher : in String;
+      Host     : in String;
+      Command  : in String);
+   --  Local launcher. This one can only launch partitions on the same machine.
+
    procedure Install_Launcher (Launcher : in Launcher_Type);
    --  Install the launcher
+
+   procedure Exchange_Launcher (Launcher     : in Launcher_Type;
+                                Old_Launcher : out Launcher_Type);
+   --  Install a launcher and return the previous one.
 
    procedure Launch
      (Launcher : in String;

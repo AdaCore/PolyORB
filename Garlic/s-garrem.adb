@@ -44,12 +44,6 @@ package body System.Garlic.Remote is
    use Interfaces.C, System.RPC;
    --  Shortcuts
 
-   procedure Rsh_Launcher
-     (Launcher : in String;
-      Host     : in String;
-      Command  : in String);
-   --  Build full launcher command.
-
    Current_Launcher : Launcher_Type := Rsh_Launcher'Access;
    --  The current launcher
 
@@ -77,57 +71,17 @@ package body System.Garlic.Remote is
       C.Strings.Free (Dev_Null_Name);
    end Detach;
 
-   ----------------------
-   -- Install_Launcher --
-   ----------------------
+   -----------------------
+   -- Exchange_Launcher --
+   -----------------------
 
-   procedure Install_Launcher (Launcher : in Launcher_Type) is
+   procedure Exchange_Launcher (Launcher     : in Launcher_Type;
+                                Old_Launcher : out Launcher_Type)
+   is
    begin
+      Old_Launcher := Current_Launcher;
       Current_Launcher := Launcher;
-   end Install_Launcher;
-
-   ------------
-   -- Launch --
-   ------------
-
-   procedure Launch
-     (Launcher : in String;
-      Host     : in String;
-      Command  : in String)
-   is
-   begin
-      Current_Launcher (Launcher, Host, Command);
-   end Launch;
-
-   ------------------
-   -- Rsh_Launcher --
-   ------------------
-
-   procedure Rsh_Launcher
-     (Launcher : in String;
-      Host     : in String;
-      Command  : in String)
-   is
-
-      Rsh_Full_Command : constant String :=
-        Launcher & " " & Host & " -n """ & Command & """ >/dev/null";
-
-      C_Command : C.Strings.chars_ptr :=
-        C.Strings.New_String (Rsh_Full_Command);
-
-      function System (Command : C.Strings.chars_ptr) return int;
-      pragma Import (C, System);
-
-      Return_Code : int;
-
-   begin
-      Return_Code := System (C_Command);
-      C.Strings.Free (C_Command);
-      if Return_Code = -1 then
-         raise Program_Error;
-         --  This is allowed because any exception may be raised.
-      end if;
-   end Rsh_Launcher;
+   end Exchange_Launcher;
 
    -----------------
    -- Full_Launch --
@@ -158,5 +112,80 @@ package body System.Garlic.Remote is
       GNAT.IO.Get_Line (Buffer, Last);
       return Buffer (1 .. Last);
    end Get_Host;
+
+   ----------------------
+   -- Install_Launcher --
+   ----------------------
+
+   procedure Install_Launcher (Launcher : in Launcher_Type) is
+   begin
+      Current_Launcher := Launcher;
+   end Install_Launcher;
+
+   ------------
+   -- Launch --
+   ------------
+
+   procedure Launch
+     (Launcher : in String;
+      Host     : in String;
+      Command  : in String)
+   is
+   begin
+      Current_Launcher (Launcher, Host, Command);
+   end Launch;
+
+   --------------------
+   -- Local_Launcher --
+   --------------------
+
+   procedure Local_Launcher
+     (Launcher : in String;
+      Host     : in String;
+      Command  : in String)
+   is
+
+      C_Command : C.Strings.chars_ptr :=
+        C.Strings.New_String (Command);
+
+      function System (Command : C.Strings.chars_ptr) return int;
+      pragma Import (C, System);
+
+      Return_Code : int;
+
+   begin
+      Return_Code := System (C_Command);
+      C.Strings.Free (C_Command);
+   end Local_Launcher;
+
+   ------------------
+   -- Rsh_Launcher --
+   ------------------
+
+   procedure Rsh_Launcher
+     (Launcher : in String;
+      Host     : in String;
+      Command  : in String)
+   is
+
+      Rsh_Full_Command : constant String :=
+        Launcher & " " & Host & " -n """ & Command & """ >/dev/null";
+
+      C_Command : C.Strings.chars_ptr :=
+        C.Strings.New_String (Rsh_Full_Command);
+
+      function System (Command : C.Strings.chars_ptr) return int;
+      pragma Import (C, System);
+
+      Return_Code : int;
+
+   begin
+      Return_Code := System (C_Command);
+      C.Strings.Free (C_Command);
+      if Return_Code = -1 then
+         raise Program_Error;
+         --  This is allowed because any exception may be raised.
+      end if;
+   end Rsh_Launcher;
 
 end System.Garlic.Remote;
