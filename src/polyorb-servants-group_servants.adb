@@ -120,6 +120,7 @@ package body PolyORB.Servants.Group_Servants is
                Reply : constant Message'Class := Emit (Self.Args_Src, Msg);
                Req_Args : Ref;
                It : PolyORB.Any.NVList.Internals.NV_Lists.Iterator;
+
             begin
                pragma Assert (Reply in Unmarshalled_Arguments);
                pragma Debug (O ("Arguments unmarshalled, copying it..."));
@@ -133,6 +134,8 @@ package body PolyORB.Servants.Group_Servants is
                end loop;
 
                pragma Debug (O ("Send arguments to first"));
+               --  XXX first what ?
+
                Self.State := Wait_Other;
                Leave (Self.Mutex);
 
@@ -225,6 +228,7 @@ package body PolyORB.Servants.Group_Servants is
       if Self.State = Wait_Other then
          Free (Self.Args);
       end if;
+
       Self.State := Wait_First;
       Self.Args_Src := Request.Deferred_Arguments_Session;
 
@@ -269,6 +273,7 @@ package body PolyORB.Servants.Group_Servants is
          Self.Counter := 0;
          Leave (Self.Mutex);
       end loop;
+
       pragma Debug (O ("Request dispatched."));
       return Executed_Request'(Req => Request);
    end Execute_Servant;
@@ -286,16 +291,18 @@ package body PolyORB.Servants.Group_Servants is
       use PolyORB.Protocols.Interface;
 
       Res : PolyORB.Components.Null_Message;
+
    begin
       if Msg in Unmarshall_Arguments then
          return Handle_Unmarshall_Arguments (Self, Msg);
 
       elsif Msg in Executed_Request then
          Enter (Self.Mutex);
+
          declare
             use PolyORB.Requests;
-
             Req : Request_Access := Executed_Request (Msg).Req;
+
          begin
             Destroy_Request (Req);
          end;
@@ -332,10 +339,11 @@ package body PolyORB.Servants.Group_Servants is
                        & PolyORB.Objects.Image (Self.Oid.all)));
       pragma Debug (O ("Ref : "
                        & PolyORB.References.IOR.Object_To_String (Ref)));
+
       Enter (Self.Group_Lock);
       TPL.Append (Self.Target_List, Ref);
-      Leave (Self.Group_Lock);
       pragma Debug (O ("Group Length :" & TPL.Length (Self.Target_List)'Img));
+      Leave (Self.Group_Lock);
    end Register;
 
    ----------------
@@ -353,6 +361,7 @@ package body PolyORB.Servants.Group_Servants is
                        & PolyORB.Objects.Image (Self.Oid.all)));
       pragma Debug (O ("Ref : "
                        & PolyORB.References.IOR.Object_To_String (Ref)));
+
       Enter (Self.Group_Lock);
       TPL.Remove (Self.Target_List, Ref);
       pragma Debug (O ("Group Length :" & TPL.Length (Self.Target_List)'Img));
@@ -389,10 +398,12 @@ package body PolyORB.Servants.Group_Servants is
      return PolyORB.Servants.Servant_Access
    is
       GS : constant Group_Servant_Access := new Group_Servant;
+
    begin
       pragma Debug (O ("Create group servant : "
                        & PolyORB.Objects.Image (Oid.all)));
       GS.Oid := Oid;
+
       return PolyORB.Servants.Servant_Access (GS);
    end Create_Group_Servant;
 
@@ -403,12 +414,14 @@ package body PolyORB.Servants.Group_Servants is
    procedure Get_Group_Object_Id
      (Group : PolyORB.Servants.Servant_Access;
       Oid   :    out Object_Id_Access;
-      Error : in out PolyORB.Exceptions.Error_Container) is
+      Error : in out PolyORB.Exceptions.Error_Container)
+   is
    begin
       if not (Group.all in Group_Servant) then
          Throw (Error, NotAGroupObject_E, Null_Members'(Null_Member));
          return;
       end if;
+
       Oid := Group_Servant_Access (Group).Oid;
    end Get_Group_Object_Id;
 
@@ -419,12 +432,14 @@ package body PolyORB.Servants.Group_Servants is
    procedure Get_Group_Length
      (Group :        PolyORB.Servants.Servant_Access;
       L     :    out Natural;
-      Error : in out PolyORB.Exceptions.Error_Container) is
+      Error : in out PolyORB.Exceptions.Error_Container)
+   is
    begin
       if not (Group.all in Group_Servant) then
          Throw (Error, NotAGroupObject_E, Null_Members'(Null_Member));
          return;
       end if;
+
       L := TPL.Length (Group_Servant_Access (Group).Target_List);
    end Get_Group_Length;
 
@@ -435,12 +450,14 @@ package body PolyORB.Servants.Group_Servants is
    procedure Associate
      (Group : PolyORB.Servants.Servant_Access;
       Ref   : PolyORB.References.Ref;
-      Error : in out PolyORB.Exceptions.Error_Container) is
+      Error : in out PolyORB.Exceptions.Error_Container)
+   is
    begin
       if not (Group.all in Group_Servant) then
          Throw (Error, NotAGroupObject_E, Null_Members'(Null_Member));
          return;
       end if;
+
       Register (Group_Servant_Access (Group), Ref);
    end Associate;
 
@@ -451,12 +468,14 @@ package body PolyORB.Servants.Group_Servants is
    procedure Disassociate
      (Group : PolyORB.Servants.Servant_Access;
       Ref   : PolyORB.References.Ref;
-      Error : in out PolyORB.Exceptions.Error_Container) is
+      Error : in out PolyORB.Exceptions.Error_Container)
+   is
    begin
       if not (Group.all in Group_Servant) then
          Throw (Error, NotAGroupObject_E, Null_Members'(Null_Member));
          return;
       end if;
+
       Unregister (Group_Servant_Access (Group), Ref);
    end Disassociate;
 
@@ -471,7 +490,8 @@ package body PolyORB.Servants.Group_Servants is
    procedure First
      (Group :        PolyORB.Servants.Servant_Access;
       It    :    out Iterator;
-      Error : in out PolyORB.Exceptions.Error_Container) is
+      Error : in out PolyORB.Exceptions.Error_Container)
+   is
    begin
       if not (Group.all in Group_Servant) then
          Throw (Error, NotAGroupObject_E, Null_Members'(Null_Member));
