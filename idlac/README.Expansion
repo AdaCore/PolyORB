@@ -79,3 +79,8 @@ that designates the newly-inserted N_Forward_Interface node.).
   };
   exception E { members... };
 
+- Repository IDs for all interfaces:
+  interface I { exports ... };
+-> 
+  interface I{RepositoryID="IDL:/.../I:1.0"} { exports ... };
+(where {RepositoryID} is a new attribute of N_Interface).
