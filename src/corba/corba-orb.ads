@@ -2,7 +2,8 @@ with Sequences.Unbounded;
 with CORBA.Object;
 with CORBA.NVList;
 with CORBA.Context;
-with CORBA.Policy;
+
+with Droopi.References;
 
 package CORBA.ORB is
 
@@ -27,6 +28,7 @@ package CORBA.ORB is
 
    package IDL_Sequence_ObjectId is new
      Sequences.Unbounded (ObjectId);
+
    type ObjectIdList is new IDL_Sequence_ObjectId.Sequence;
 
    function  Object_To_String
@@ -103,30 +105,30 @@ package CORBA.ORB is
      return CORBA.TypeCode.Object;
 
    function  create_string_tc
-     (Bound : in CORBA.Unsigned_long)
+     (Bound : in CORBA.Unsigned_Long)
      return CORBA.TypeCode.Object;
 
    function  create_wstring_tc
-     (Bound : in CORBA.Unsigned_long)
+     (Bound : in CORBA.Unsigned_Long)
      return CORBA.TypeCode.Object;
 
    function  create_fixed_tc
-     (IDL_Digits : in CORBA.Unsigned_short;
+     (IDL_Digits : in CORBA.Unsigned_Short;
       scale      : in CORBA.Short)
      return CORBA.TypeCode.Object;
 
    function  create_sequence_tc
-     (Bound        : in CORBA.Unsigned_long;
+     (Bound        : in CORBA.Unsigned_Long;
       Element_Type : in CORBA.TypeCode.Object)
      return CORBA.TypeCode.Object;
 
    function  create_recursive_sequence_tc
-     (Bound  : in CORBA.Unsigned_long;
-      Offset : in CORBA.Unsigned_long)
+     (Bound  : in CORBA.Unsigned_Long;
+      Offset : in CORBA.Unsigned_Long)
      return CORBA.TypeCode.Object;
 
    function create_array_tc
-     (Length       : in CORBA.Unsigned_long;
+     (Length       : in CORBA.Unsigned_Long;
       Element_Type : in CORBA.TypeCode.Object)
      return CORBA.TypeCode.Object;
 
@@ -150,11 +152,15 @@ package CORBA.ORB is
      (The_Type : in PolicyType;
       Val      : Any);
 
-private
+   --  The following subprograms are not in CORBA spec.
 
-   -- type ORB_Policy is new CORBA.Policy.Ref with null record;
+   procedure Initialize
+     (ORB_Name : in Standard.String);
 
-
+   function Create_Reference (Object : in CORBA.Object.Ref)
+     return Droopi.References.Ref;
+   --  Create an object reference that designates object Oid
+   --  within this ORB.
 
 end CORBA.ORB;
 

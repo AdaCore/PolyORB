@@ -1,8 +1,6 @@
 with CORBA;
-with CORBA.Request;
-with CORBA.Context;
-with CORBA.NVList;
 with CORBA.Policy;
+with Droopi.Objects;
 with Droopi.Smart_Pointers;
 
 package CORBA.Object is
@@ -35,15 +33,6 @@ package CORBA.Object is
      (Self    : Ref;
       Maximum : CORBA.Unsigned_Long) return CORBA.Unsigned_Long;
 
-   procedure Create_Request
-     (Self      : in     Ref;
-      Ctx       : in     CORBA.Context.Ref;
-      Operation : in     Identifier;
-      Arg_List  : in     CORBA.NVList.Ref;
-      Result    : access NamedValue;
-      Request   :    out CORBA.Request.Object;
-      Req_Flags : in     Flags);
-
    --  ??? The following subprogram is declared a function in
    --  the Ada Language Mapping specification.
 
@@ -58,6 +47,14 @@ package CORBA.Object is
    --     function Get_Domain_Managers
    --       (Self : Ref)
    --       return CORBA.DomainManager.DomainManagerList;
+
+   function To_CORBA_Object
+     (O : in Droopi.Objects.Object_Id)
+     return Ref;
+
+   function To_Droopi_Object
+     (R : in Ref)
+     return Droopi.Objects.Object_Id;
 
 private
 

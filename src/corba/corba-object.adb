@@ -5,27 +5,19 @@
 --     Non_Existent
 
 with GNAT.HTable;
-with Corba.ORB;
-with Droopi.Smart_Pointers; use Droopi.Smart_Pointers;
+with CORBA.ORB;
+with Droopi.Smart_Pointers;
+
+with CORBA.ORB;
 
 package body CORBA.Object is
 
-   --------------------
-   -- Create_Request --
-   --------------------
+   use Droopi.Smart_Pointers;
 
-   procedure Create_Request
-      (Self      : in     Ref;
-       Ctx       : in     CORBA.Context.Ref;
-       Operation : in     Identifier;
-       Arg_List  : in     CORBA.NVList.Ref;
-       Result    : access NamedValue;
-       Request   :    out CORBA.Request.Object;
-       Req_Flags : in     Flags)
-   is
-   begin
-      null;
-   end;
+   type Internal_Object is new Droopi.Smart_Pointers.Entity with record
+      The_Object : Droopi.Objects.Object_Id_Access;
+   end record;
+   type Internal_Object_Access is access all Internal_Object;
 
    ----------
    -- Hash --
@@ -36,7 +28,7 @@ package body CORBA.Object is
       Maximum : CORBA.Unsigned_Long)
       return CORBA.Unsigned_Long
    is
-      type My_Range is new Long Range 0 .. Long (Maximum);
+      type My_Range is new Long range 0 .. Long (Maximum);
       function My_Hash is new GNAT.HTable.Hash (My_Range);
    begin
       return CORBA.Unsigned_Long
@@ -109,5 +101,37 @@ package body CORBA.Object is
    begin
       null;
    end Set_Policy_Overrides;
+
+   ---------------------
+   -- To_CORBA_Object --
+   ---------------------
+
+   function To_CORBA_Object
+     (O : in Droopi.Objects.Object_Id)
+     return Ref
+   is
+      Result : Ref;
+      Internal : Internal_Object_Access;
+   begin
+      Internal := new Internal_Object;
+      Internal.The_Object := new Droopi.Objects.Object_Id'(O);
+
+      Droopi.Smart_Pointers.Set
+        (Droopi.Smart_Pointers.Ref (Result),
+         Entity_Ptr (Internal));
+      return Result;
+   end To_CORBA_Object;
+
+   ----------------------
+   -- To_Droopi_Object --
+   ----------------------
+
+   function To_Droopi_Object
+     (R : in Ref)
+     return Droopi.Objects.Object_Id
+   is
+   begin
+      return Internal_Object_Access (Entity_Of (R)).The_Object.all;
+   end To_Droopi_Object;
 
 end CORBA.Object;

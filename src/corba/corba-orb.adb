@@ -1,4 +1,4 @@
--- The following subprograms still have to be implemented :
+--  The following subprograms still have to be implemented :
 --
 -- create_alias_tc --
 -- create_array_tc --
@@ -22,7 +22,30 @@
 -- String_To_Object --
 -- Work_Pending --
 
+with Sequences.Unbounded;
+
+with Droopi.ORB;
+with Droopi.ORB.Task_Policies;
+with Droopi.Objects;
+
+with Droopi.Setup;
+
 package body CORBA.ORB is
+
+   use Droopi.ORB.Task_Policies;
+   use Droopi.ORB;
+   use Droopi.Setup;
+
+   type Referenced_Object is record
+      Identifier : ObjectId;
+      Reference  : CORBA.Object.Ref;
+   end record;
+
+   package Referenced_Objects is new
+     Sequences.Unbounded (Referenced_Object);
+
+   Identifiers : Referenced_Objects.Sequence
+     := Referenced_Objects.Null_Sequence;
 
    ---------------------
    -- create_alias_tc --
@@ -43,7 +66,7 @@ package body CORBA.ORB is
    ---------------------
 
    function create_array_tc
-     (Length       : in CORBA.Unsigned_long;
+     (Length       : in CORBA.Unsigned_Long;
       Element_Type : in CORBA.TypeCode.Object)
       return CORBA.TypeCode.Object
    is
@@ -56,7 +79,7 @@ package body CORBA.ORB is
    ---------------------
 
    function create_fixed_tc
-     (IDL_Digits : in CORBA.Unsigned_short;
+     (IDL_Digits : in CORBA.Unsigned_Short;
       scale      : in CORBA.Short)
       return CORBA.TypeCode.Object
    is
@@ -119,8 +142,8 @@ package body CORBA.ORB is
    ----------------------------------
 
    function create_recursive_sequence_tc
-     (Bound  : in CORBA.Unsigned_long;
-      Offset : in CORBA.Unsigned_long)
+     (Bound  : in CORBA.Unsigned_Long;
+      Offset : in CORBA.Unsigned_Long)
       return CORBA.TypeCode.Object
    is
    begin
@@ -132,7 +155,7 @@ package body CORBA.ORB is
    ------------------------
 
    function create_sequence_tc
-     (Bound        : in CORBA.Unsigned_long;
+     (Bound        : in CORBA.Unsigned_Long;
       Element_Type : in CORBA.TypeCode.Object)
       return CORBA.TypeCode.Object
    is
@@ -145,7 +168,7 @@ package body CORBA.ORB is
    ----------------------
 
    function create_string_tc
-     (Bound : in CORBA.Unsigned_long)
+     (Bound : in CORBA.Unsigned_Long)
       return CORBA.TypeCode.Object
    is
    begin
@@ -157,7 +180,7 @@ package body CORBA.ORB is
    -----------------------
 
    function create_wstring_tc
-     (Bound : in CORBA.Unsigned_long)
+     (Bound : in CORBA.Unsigned_Long)
       return CORBA.TypeCode.Object
    is
    begin
@@ -197,25 +220,13 @@ package body CORBA.ORB is
       return List_Initial_Services;
    end List_Initial_Services;
 
-   ----------------------
-   -- Object_To_String --
-   ----------------------
-
-   function Object_To_String
-     (Obj : in CORBA.Object.Ref'Class)
-      return CORBA.String
-   is
-   begin
-      return Object_To_String (Obj);
-   end Object_To_String;
-
    ------------------
    -- Perform_Work --
    ------------------
 
    procedure Perform_Work is
    begin
-      null;
+      Perform_Work (The_ORB);
    end Perform_Work;
 
    --------------------------------
@@ -226,8 +237,19 @@ package body CORBA.ORB is
      (Identifier : ObjectId)
       return CORBA.Object.Ref
    is
+      Result : CORBA.Object.Ref;
    begin
-      return Resolve_Initial_References (Identifier);
+      --  ??? Must treat the case of special objects (like RootPOA etc)
+
+      for J in 1 .. Referenced_Objects.Length (Identifiers) loop
+         if Referenced_Objects.Element_Of (Identifiers, J).Identifier
+           = Identifier
+         then
+            return Referenced_Objects.Element_Of (Identifiers, J).Reference;
+         end if;
+      end loop;
+
+      raise CORBA.InvalidName;
    end Resolve_Initial_References;
 
    ---------
@@ -236,7 +258,7 @@ package body CORBA.ORB is
 
    procedure Run is
    begin
-      null;
+      Droopi.ORB.Run (The_ORB);
    end Run;
 
    --------------
@@ -245,8 +267,20 @@ package body CORBA.ORB is
 
    procedure Shutdown (Wait_For_Completion : in Boolean) is
    begin
-      null;
+      Shutdown (The_ORB, Wait_For_Completion);
    end Shutdown;
+
+   ----------------------
+   -- Object_To_String --
+   ----------------------
+
+   function Object_To_String
+     (Obj : in CORBA.Object.Ref'Class)
+      return CORBA.String
+   is
+   begin
+      return To_CORBA_String ("");
+   end Object_To_String;
 
    ----------------------
    -- String_To_Object --
@@ -266,8 +300,52 @@ package body CORBA.ORB is
 
    function Work_Pending return Boolean is
    begin
-      return Work_Pending;
+      return Work_Pending (The_ORB);
    end Work_Pending;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize
+     (ORB_Name : in Standard.String)
+   is
+      My_Policy : Tasking_Policy_Access;
+   begin
+      if The_ORB /= null then
+         raise Initialization_Failure;
+      end if;
+      My_Policy := new No_Tasking;
+      --  ??? Must implement other policies !!
+
+      The_ORB := new Droopi.ORB.ORB_Type (My_Policy);
+      Droopi.ORB.Create (The_ORB.all);
+   end Initialize;
+
+   ----------------------
+   -- Create_Reference --
+   ----------------------
+
+   function Create_Reference (Object : in CORBA.Object.Ref)
+                             return Droopi.References.Ref
+   is
+      Result : Droopi.References.Ref;
+
+      Oid    : Droopi.Objects.Object_Id_Access
+        := new Droopi.Objects.Object_Id'
+        (CORBA.Object.To_Droopi_Object (Object));
+   begin
+      if The_ORB = null then
+         raise Internal;
+      end if;
+
+      Droopi.ORB.Create_Reference
+        (The_ORB,
+         Oid,
+         Result);
+
+      return Result;
+   end Create_Reference;
 
 end CORBA.ORB;
 
