@@ -1,10 +1,11 @@
 EXAMPLES_ROOT=..
-EXAMPLE = dsa-dummy
+#EXAMPLE = dsa-dummy
+EXAMPLE = bbs
 
 DSA_SRC=$(srcdir)/../../src/dsa
 
-#corba_exe=evolutedp_corba
-corba_exe=
+corba_exe=evolutedp_corba
+#corba_exe=
 dsa_exe=simplep evolutedp serverp
 moma_exe=
 
@@ -36,7 +37,7 @@ clean: clean-stubs
 clean-stubs:
 	rm -fr server.stubs client.stubs
 
-dsa-dummy.ads: ;
+#dsa-dummy.ads: ;
 
 include $(srcdir)/../Makefile.common
 
