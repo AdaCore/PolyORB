@@ -138,6 +138,16 @@ package body Ada_Be.Idl2Ada.Helper is
       Node      : in     Node_Id);
    --  Generate the body of the helper package for a sequence declaration
 
+   procedure Gen_Fixed_Spec
+     (CU        : in out Compilation_Unit;
+      Node      : in     Node_Id);
+   --  Generate the spec of the helper package for a fixed type declaration
+
+   procedure Gen_Fixed_Body
+     (CU        : in out Compilation_Unit;
+      Node      : in     Node_Id);
+   --  Generate the body of the helper package for a fixed type declaration
+
    procedure Gen_Array_TC
      (CU        : in out Compilation_Unit;
       Type_Node : in     Node_Id;
@@ -182,8 +192,7 @@ package body Ada_Be.Idl2Ada.Helper is
             if Is_Interface_Type (T_Type (Node)) then
                null;
             elsif Kind (T_Type (Node)) = K_Fixed then
-               --  FIXME : to be done
-               null;
+               Gen_Fixed_Spec (CU, Node);
             else
                declare
                   It   : Node_Iterator;
@@ -242,8 +251,7 @@ package body Ada_Be.Idl2Ada.Helper is
             if Is_Interface_Type (T_Type (Node)) then
                null;
             elsif Kind (T_Type (Node)) = K_Fixed then
-               --  FIXME : to be done
-               null;
+               Gen_Fixed_Body (CU, Node);
             else
                declare
                   It   : Node_Iterator;
@@ -1845,7 +1853,7 @@ package body Ada_Be.Idl2Ada.Helper is
             Add_With (CU, Ada_Helper_Name (Type_Node));
             PL (CU, "Result : "
                 & Ada_Type_Name (Type_Node)
-                & ":= "
+                & " := "
                 & Ada_Helper_Name (Type_Node)
                 & ".From_Any (Item);");
             DI (CU);
@@ -2150,6 +2158,80 @@ package body Ada_Be.Idl2Ada.Helper is
          Divert (CU, Visible_Declarations);
       end if;
    end Gen_Sequence_Body;
+
+   --------------------
+   -- Gen_Fixed_Spec --
+   --------------------
+
+   procedure Gen_Fixed_Spec
+     (CU        : in out Compilation_Unit;
+      Node      : in     Node_Id) is
+      Decl_Node : Node_Id := Head (Declarators (Node));
+   begin
+      if Generate_Dyn then
+         --  TypeCode
+         NL (CU);
+         Add_With (CU, "CORBA");
+         PL (CU, Ada_TC_Name (Decl_Node)
+             & " : CORBA.TypeCode.Object :="
+             & " CORBA.TypeCode.TC_Fixed;");
+         --  From_Any
+         NL (CU);
+         Gen_From_Any_Profile (CU, Decl_Node);
+         PL (CU, ";");
+         --  To_Any
+         NL (CU);
+         Gen_To_Any_Profile (CU, Decl_Node);
+         PL (CU, ";");
+         --  Fill in typecode TC_<name of the type>
+         Add_Elaborate_Body (CU);
+      end if;
+   end Gen_Fixed_Spec;
+
+   --------------------
+   -- Gen_Fixed_Body --
+   --------------------
+
+   procedure Gen_Fixed_Body
+     (CU        : in out Compilation_Unit;
+      Node      : in     Node_Id) is
+      Decl_Node : Node_Id := Head (Declarators (Node));
+      Type_Name : constant String := Ada_Name (Decl_Node);
+   begin
+      if Generate_Dyn then
+         NL (CU);
+         Add_With (CU, "CORBA");
+         PL (CU, "package CDR_"
+             & Type_Name & " is");
+         Add_With (CU, "CORBA.Fixed_Point");
+         PL (CU, "  new CORBA.Fixed_Point ("
+             & Ada_Full_Name (Decl_Node) & ");");
+         --  From_Any
+         Gen_From_Any_Profile
+           (CU, Decl_Node);
+         PL (CU, " renames CDR_" & Type_Name
+             & ".From_Any;");
+         --  To_Any
+         Gen_To_Any_Profile
+           (CU, Decl_Node);
+         PL (CU, " renames CDR_" & Type_Name
+             & ".To_Any;");
+         --  Fill in typecode TC_<name of the type>
+         Divert (CU, Elaboration);
+         NL (CU);
+         Put (CU, "CORBA.TypeCode.Add_Parameter ("
+             & Ada_TC_Name (Decl_Node)
+             & ", CORBA.To_Any (CORBA.Unsigned_Short (");
+         Gen_Constant_Value (CU, Digits_Nb (T_Type (Node)));
+         PL (CU, ")));");
+         Put (CU, "CORBA.TypeCode.Add_Parameter ("
+             & Ada_TC_Name (Decl_Node)
+             & ", CORBA.To_Any (CORBA.Short (");
+         Gen_Constant_Value (CU, Scale (T_Type (Node)));
+         PL (CU, ")));");
+         Divert (CU, Visible_Declarations);
+      end if;
+   end Gen_Fixed_Body;
 
    ------------------
    -- Gen_Array_TC --

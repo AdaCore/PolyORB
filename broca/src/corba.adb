@@ -1497,8 +1497,27 @@ package body CORBA is
                pragma Debug (O ("Equal (Any, Sequence or Array) : end"));
                return True;
             end;
-         when Tk_Fixed
-           | Tk_Value
+         when Tk_Fixed =>
+            --  first compare the number of octets needed to code the value
+            if (CORBA.Unsigned_Long'(Get_Aggregate_Count (Left)) =
+                CORBA.Unsigned_Long'(Get_Aggregate_Count (Right))) then
+               --  then compare the octets, one by one
+               for I in 0 .. CORBA.Unsigned_Long'
+                 (Get_Aggregate_Count (Left)) - 1 loop
+                  if not Equal
+                    (Get_Aggregate_Element (Left, TC_Octet, I),
+                     Get_Aggregate_Element (Right, TC_Octet, I)) then
+                     pragma Debug (O ("Equal (Any, Fixed) : end"));
+                     return False;
+                  end if;
+               end loop;
+               pragma Debug (O ("Equal (Any, Fixed) : end"));
+               return True;
+            else
+               pragma Debug (O ("Equal (Any, Fixed) : end"));
+               return False;
+            end if;
+         when Tk_Value
            | Tk_Valuebox
            | Tk_Abstract_Interface =>
             --  FIXME : to be done
@@ -1750,6 +1769,7 @@ package body CORBA is
       Inc_Usage (Result);
       return Result;
    end To_Any;
+
 
    -------------------------------------
    --  From_Any conversion functions  --
@@ -2337,6 +2357,7 @@ package body CORBA is
         and CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Sequence
         and CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Array
         and CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Except
+        and CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Fixed
       then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;

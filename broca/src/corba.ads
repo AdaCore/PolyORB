@@ -1139,6 +1139,7 @@ private
    function Duplicate (Object : access Content_Any)
                        return Any_Content_Ptr;
 
+
    --  the content_TypeCode type is defined inside the TypeCode package
    --  However, the corresponding deallocate function is here
    --  This is due to the fact that the TypeCode.Object type is private
@@ -1177,7 +1178,8 @@ private
    --     - for Array : all the elements of the array, one by one.
    --     - for Sequence : the length first and then all the elements
    --  of the sequence, one by one.
-   --     - for Fixed : FIXME
+   --     - for Fixed : a list of octets defining the value of the
+   --  fixed. These octets are exactly the ones as when it is marshalled
    --     - for Value : FIXME
    --     - for Valuebox : FIXME
    --     - for Abstract_Interface : FIXME

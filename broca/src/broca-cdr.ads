@@ -36,6 +36,7 @@ with CORBA.AbstractBase;
 with CORBA.Object;
 
 with Broca.Buffers; use Broca.Buffers;
+with Broca.Opaque;  use Broca.Opaque;
 
 package Broca.CDR is
 
@@ -335,6 +336,8 @@ package Broca.CDR is
      (Buffer : access Buffer_Type);
    pragma No_Return (Unmarshall_And_Raise);
 
+   --  a special subpackage for marshalling/unmarshalling of fixed type
+
    generic
       type F is delta <> digits <>;
    package Fixed_Point is
@@ -347,7 +350,14 @@ package Broca.CDR is
          Data   : in F);
 
       function Unmarshall (Buffer : access Buffer_Type)
-                           return F;
+        return F;
+
+      function Fixed_To_Octets (Data : in F)
+        return Octet_Array;
+
+      function Octets_To_Fixed (Octets : Octet_Array)
+        return F;
+
    end Fixed_Point;
 
 end Broca.CDR;

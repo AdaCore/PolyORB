@@ -78,11 +78,10 @@ begin
               To_Standard_String
               (echoString (Myall_types, To_CORBA_String ("hello"))) = "hello");
       Output ("test enum", echoColor (Myall_types, Blue) = Blue);
-      Output ("test fixed point", False);
-      --  These cause a compiler abort in GNAT 3.12p.
-      --  and then echoMoney (Myall_Types, 6423.50) = 6423.50
-      --  and then echoMoney (Myall_Types, 0.0) = 0.0
-      --  and then echoMoney (Myall_Types, 3.14) = 3.14);
+      Output ("test fixed point",
+              echoMoney (Myall_Types, 6423.50) = 6423.50
+              and then echoMoney (Myall_Types, 0.0) = 0.0
+        and then echoMoney (Myall_Types, 3.14) = 3.14);
 
       --  Structs
       declare

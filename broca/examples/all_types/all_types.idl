@@ -86,12 +86,8 @@ interface all_types {
 
   // Fixed point
   // -----------
-#if 0
   typedef fixed<18,2> Money;
-#else
-  typedef double Money;
-#endif
-  // Money echoMoney (in Money arg);
+  Money echoMoney (in Money arg);
 
   // Attributes
   // ----------

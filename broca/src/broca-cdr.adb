@@ -40,7 +40,6 @@ with Broca.Exceptions;
 with Broca.Exceptions.Stack;
 with Ada.Exceptions;
 with Broca.Object;
-with Broca.Opaque;            use Broca.Opaque;
 
 with CORBA.Impl;
 with CORBA.Object.Helper;
@@ -651,10 +650,20 @@ package body Broca.CDR is
             Marshall (Buffer, CORBA.Wide_String'(From_Any (Data)));
 
          when Tk_Fixed =>
-            --  FIXME : to be done
-               pragma Debug (O ("Marshall_From_Any : dealing with a fixed"));
-            null;
-
+            pragma Debug (O ("Marshall_From_Any : dealing with a fixed"));
+            declare
+               Nb : constant CORBA.Unsigned_Long :=
+                 CORBA.Get_Aggregate_Count (Data);
+               Value : CORBA.Any;
+            begin
+               for I in 0 .. Nb - 1 loop
+                  Value := CORBA.Get_Aggregate_Element
+                    (Data,
+                     CORBA.TypeCode.TC_Octet,
+                     I);
+                  Marshall_From_Any (Buffer, Value);
+               end loop;
+            end;
          when Tk_Value =>
             --  FIXME : to be done
                pragma Debug (O ("Marshall_From_Any : dealing with a value"));
@@ -1715,8 +1724,42 @@ package body Broca.CDR is
                Set_Any_Value (Result, Ws);
             end;
          when Tk_Fixed =>
-            --  FIXME : to be done
-            null;
+            declare
+               --  31 is the maximum number of digits for a fixed type
+               Octets : Octet_Array (1 .. 31) := (others => 0);
+               I : Index_Type := 0;
+               Arg : CORBA.Any;
+               use Interfaces;
+            begin
+               pragma Debug (O ("Umarshall_To_Any : Fixed"));
+               loop
+                  I := I + 1;
+                  Octets (I) := BO_Octet (CORBA.Octet'(Unmarshall (Buffer)));
+                  if Octets (I) mod 16 > 9 then
+                     exit;
+                  end if;
+               end loop;
+               pragma Debug (O ("Umarshall_To_Any : Octets unmarshalled"));
+               Set_Any_Aggregate_Value (Result);
+               for J in 1 .. I loop
+                  pragma Debug
+                    (O ("Umarshall_To_Any : create new octet element"));
+                  if Is_Empty then
+                     Arg := Get_Empty_Any (TypeCode.TC_Octet);
+                  else
+                     Arg := Get_Aggregate_Element
+                       (Result,
+                        TypeCode.TC_Octet,
+                        CORBA.Unsigned_Long (J));
+                  end if;
+                  pragma Debug
+                    (O ("Umarshall_To_Any : set element value"));
+                  Set_Any_Value (Arg, CORBA.Octet (Octets (J)));
+                  if Is_Empty then
+                     Add_Aggregate_Element (Result, Arg);
+                  end if;
+               end loop;
+            end;
          when Tk_Value =>
             --  FIXME : to be done
             null;
@@ -2431,27 +2474,28 @@ package body Broca.CDR is
 
       procedure Marshall
         (Buffer : access Buffer_Type;
-         Data   : in F)
-      is
-         N_Digits : Integer
-           := 0;
+         Data   : in F) is
+      begin
+         Align_Marshall_Copy (Buffer, Fixed_To_Octets (Data), 1);
+      end Marshall;
 
+      function Fixed_To_Octets (Data : in F)
+        return Octet_Array  is
+         N_Digits : Integer := 0;
          Val : F := Data;
       begin
-
+         --  counts the actual number of digits of Data
          loop
             N_Digits := N_Digits + 1;
             Val := Val * 0.1;
             exit when Val = 0.0;
          end loop;
-
          declare
             Octets : Octet_Array
-              (0 .. Index_Type ((N_Digits + 2) / 2 - 1))
+              (1 .. Index_Type ((N_Digits + 2) / 2))
               := (others => 0);
             --  The size of the representation is
             --  at least 1, plus 1 nibble for the sign.
-
             Offset : Integer;
             Bias : F;
          begin
@@ -2460,20 +2504,24 @@ package body Broca.CDR is
             else
                Offset := 1;
             end if;
-
             Val := Data;
-            Bias := F (10.0 ** (N_Digits - F'Scale + 1));
-
-            for I in Offset .. Offset + N_Digits loop
+            Bias := F (10.0 ** (N_Digits - F'Scale - 1));
+            for I in Offset .. Offset + N_Digits - 1 loop
                declare
-                  Digit : constant BO_Octet
-                    := BO_Octet (Val / Bias);
+                  F_Digit : F;
+                  Digit : BO_Octet;
                begin
-                  if I mod 2 = 0 then
-                     Octets (Index_Type (I / 2)) := Digit * 16;
+                  F_Digit := Val / Bias;
+                  if F_Digit < F (1) then
+                     Digit := 0;
                   else
-                     Octets (Index_Type (I / 2))
-                       := Octets (Index_Type (I / 2)) + Digit;
+                     Digit :=  BO_Octet (F_Digit - 0.5);
+                  end if;
+                  if I mod 2 = 0 then
+                     Octets (Index_Type (I / 2 + 1)) := Digit * 16;
+                  else
+                     Octets (Index_Type (I / 2 + 1))
+                       := Octets (Index_Type (I / 2 + 1)) + Digit;
                   end if;
                   Val := Val - F (Digit) * Bias;
                   Bias := 0.1 * Bias;
@@ -2486,42 +2534,56 @@ package body Broca.CDR is
                Octets (Octets'Last) :=
                  Octets (Octets'Last) + Fixed_Negative;
             end if;
-            Align_Marshall_Copy (Buffer, Octets, 1);
+            return Octets;
          end;
-      end Marshall;
+      end Fixed_To_Octets;
+
+      function Octets_To_Fixed (Octets : Octet_Array)
+        return F is
+         Result : F := 0.0;
+      begin
+         for I in Octets'Range loop
+            if Octets (I) / 16 > 9
+              or else
+              (Octets (I) mod 16 > 9 and then I < Octets'Last)
+              or else
+              (Octets (I) mod 16 > 9 and then I = Octets'Last
+              and then (Octets (I) mod 16 /= Fixed_Positive_Zero)
+              and then (Octets (I) mod 16 /= Fixed_Negative))
+            then
+               pragma Debug
+                 (O ("Octets_To_Fixed : exception raised, " &
+                     "Octets (I) = " &
+                     Broca.Opaque.Octet'Image (Octets (I))));
+               Broca.Exceptions.Raise_Marshal;
+            end if;
+            Result := Result * 10 + F (Octets (I) / 16) * F'Delta;
+            if I < Octets'Last then
+               Result := Result * 10 + F (Octets (I) mod 16) * F'Delta;
+            else
+               if Octets (I) mod 16 = Fixed_Negative then
+                  Result := -Result;
+               end if;
+            end if;
+         end loop;
+         return Result;
+      end Octets_To_Fixed;
 
       function Unmarshall
         (Buffer : access Buffer_Type)
-         return F
-      is
-         use CORBA;
-
-         O : CORBA.Octet;
-         Result : F := 0.0;
+         return F  is
+         --  31 is the maximum number of digits for a fixed type
+         Octets : Octet_Array (1 .. 31) := (others => 0);
+         I : Index_Type := 0;
       begin
          loop
-            O := Unmarshall (Buffer);
-            if O / 16 > 9
-              or else
-              (O mod 16 > 9
-               and then O mod 16 /= CORBA.Octet (Fixed_Positive_Zero)
-               and then O mod 16 /= CORBA.Octet (Fixed_Negative))
-            then
-               Broca.Exceptions.Raise_Marshal;
-            end if;
-
-            Result := Result * 10 + F (O / 16) * F'Delta;
-            if O mod 16 < 10 then
-               Result := Result * 10 + F (O mod 16) * F'Delta;
-            else
-               if O mod 16 = CORBA.Octet (Fixed_Negative) then
-                  Result := -Result;
-               end if;
+            I := I + 1;
+            Octets (I) := BO_Octet (CORBA.Octet'(Unmarshall (Buffer)));
+            if Octets (I) mod 16 > 9 then
                exit;
             end if;
          end loop;
-
-         return Result;
+         return Octets_To_Fixed (Octets (1 .. I));
       end Unmarshall;
 
    end Fixed_Point;

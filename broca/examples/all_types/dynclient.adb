@@ -512,6 +512,45 @@ procedure DynClient is
         (Result.Argument);
    end EchoColor;
 
+   function EchoMoney
+     (Self : in CORBA.Object.Ref;
+      Arg : in All_Types.Money)
+      return All_Types.Money is
+      Operation_Name : CORBA.Identifier := To_CORBA_String ("echoMoney");
+      Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
+      Request : CORBA.Request.Object;
+      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
+      Argument : CORBA.Any;
+      Arg_List : CORBA.NVList.Ref;
+      Result : CORBA.NamedValue;
+      Result_Name : CORBA.String := To_CORBA_String ("Result");
+   begin
+      --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
+      Argument := All_Types.Helper.To_Any (Arg);
+      CORBA.NVList.Add_Item (Arg_List,
+                             Arg_Name,
+                             Argument,
+                             CORBA.ARG_IN);
+      --  setting the result type
+      Result := (Name => Identifier (Result_Name),
+                 Argument => CORBA.Get_Empty_Any (All_Types.Helper.TC_Money),
+                 Arg_Modes => 0);
+      --  creating a request
+      CORBA.Object.Create_Request (Myall_Types,
+                                   Ctx,
+                                   Operation_Name,
+                                   Arg_List,
+                                   Result,
+                                   Request,
+                                   0);
+      --  sending message
+      CORBA.Request.Invoke (Request, 0);
+      --  getting the answer
+      return All_Types.Helper.From_Any
+        (Result.Argument);
+   end EchoMoney;
+
    function EchoArray
      (Self : in CORBA.Object.Ref;
       Arg : in All_Types.Simple_Array)
@@ -1099,7 +1138,12 @@ begin
       --  enum
       Output ("test enum", echoColor (Myall_types, All_Types.Blue) =
               All_Types.Blue);
-      Output ("test fixed point", False);
+
+      --  fixed
+      Output ("test fixed point",
+              echoMoney (Myall_Types, 6423.50) = 6423.50
+              and then echoMoney (Myall_Types, 0.0) = 0.0
+        and then echoMoney (Myall_Types, 3.14) = 3.14);
 
       --  array
       declare
