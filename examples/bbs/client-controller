@@ -21,15 +21,15 @@ serverp_pid=$!
 Revolutedp_pids=""
 clinumber=0
 
-host_0=merlin
-host_1=marius
-host_2=ubu
-nmax=3
+hosts=fadette:valjean:cyrano:esmeralda2:lantier:donjuan:blizzard:candide:gavroche:aurelien:elvire:cosette:folcoche:roland:quasimodo:chimene:arsene:isengrin:
+#nadja:goriot:esmeralda:javert:fracasse:
+nmax=`echo $hosts | tr -cd : | wc -c`
 
-while [ $clinumber -lt $nmax ]; do
+while [ "$hosts" != "" ]; do
   ctl=/tmp/cli${clinumber}_ctl
   rm -f $ctl
   mkfifo $ctl
+  eval `echo $hosts | sed 's/^\([^:]*\):\(.*\)$/host=\1;hosts=\2/'`
   host=`eval echo \\\$host_$clinumber`
   ssh $host "POLYORB_CORBA_NAMING_IOR=$POLYORB_CORBA_NAMING_IOR \
     LD_LIBRARY_PATH=/usr/local/lib \
