@@ -38,6 +38,7 @@ with PolyORB.Binding_Data.Local;
 with PolyORB.Buffers;
 with PolyORB.Components;
 with PolyORB.Configuration;
+with PolyORB.Exceptions;
 with PolyORB.Filters;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
@@ -46,6 +47,7 @@ with PolyORB.Log;
 with PolyORB.Objects;
 with PolyORB.Obj_Adapters;
 with PolyORB.ORB.Interface;
+with PolyORB.References.Binding;
 with PolyORB.Representations.CDR;
 with PolyORB.Utils.Strings;
 
@@ -776,13 +778,41 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       pragma Debug (O ("Locate_Request, Request_Id :"
                        & Request_Id'Img));
 
+      --  Check if object is on this node
 
-      Result := Object_Here;
+      declare
+         ORB  : constant PolyORB.ORB.ORB_Access :=
+           PolyORB.ORB.ORB_Access (S.Server);
+
+         Component : PolyORB.Components.Component_Access;
+         Profile : PolyORB.Binding_Data.Profile_Access;
+
+         Error : PolyORB.Exceptions.Error_Container;
+      begin
+         PolyORB.References.Binding.Bind
+           (Target,
+            ORB,
+            Component,
+            Profile,
+            True,
+            Error);
+
+         if PolyORB.Exceptions.Found (Error) then
+            PolyORB.Exceptions.Catch (Error);
+
+            Result := Unknown_Object;
+
+         else
+            Result := Object_Here;
+         end if;
+
+      end;
+      pragma Debug (O ("Locate_Request: result is "
+                       & Locate_Reply_Type'Image (Result)));
 
       Free (Target_Ref);
 
       --  XXX double check Target_Ref deallocation
-
 
       Ctx.Fragmented := False;
       Ctx.Message_Type := Locate_Reply;
