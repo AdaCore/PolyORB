@@ -15,7 +15,7 @@
 
 echo "VERSION.INFO: s=$s, 1=$1"
 
-if $s; then
+if ! $s; then
   adabroker_version=`echo $1 | sed -e 's/^[^-]*-//'`
 else
   #gnat_version=`sed -n -e '/Gnat_Vers/s/[^"]*"\([^" ]*\).*/\1/p' ada/gnatvsn.ads`
