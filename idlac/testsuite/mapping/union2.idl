@@ -1,7 +1,0 @@
-
-// Unusual place for default case.
-union Example switch (long) {
-    case 1: case 3: long Counter;
-    default: long Unknown;
-    case 2: boolean Flags [4] [8];
-};

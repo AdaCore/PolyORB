@@ -1,4 +1,0 @@
-./client $IOR >& /dev/null &
-./client $IOR >& /dev/null &
-
-while true; do ls -l sl; sleep 1;done
