@@ -68,6 +68,7 @@ with CosEventComm.PullSupplier.Impl;
 with CosEventComm.PushConsumer.Impl;
 with CosEventComm.PushSupplier.Impl;
 
+use CosEventComm.PushConsumer.Impl;
 --  with PolyORB.Setup.No_Tasking_Server;
 --  pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
 --  pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
@@ -108,6 +109,7 @@ procedure Test_Event is
       Connect,
       Consume,
       Produce,
+      Display,
       Create);
 
    Syntax_Error : exception;
@@ -126,6 +128,7 @@ procedure Test_Event is
          Create  => M ("create <kind> <entity>"),
          Connect => M ("connect <entity> to <channel>"),
          Consume => M ("consume in <entity>"),
+         Display => M ("display <pushconsumer>"),
          Produce => M ("produce <string> in <entity>"));
 
    type Entity_Kind is
@@ -143,6 +146,51 @@ procedure Test_Event is
          K_PushSupplier => CosNaming.To_CORBA_String (K_PushSupplier'Img));
 
    Ctx : NamingContext.Ref;
+
+   --------------------
+   -- Task Auto_Print --
+   --------------------
+
+   task Auto_Display is
+      entry Activate (O : CORBA.Impl.Object_Ptr);
+      entry DesActivate;
+   end Auto_Display;
+
+
+   task body Auto_Display is
+   begin
+      select
+         accept Activate (O : CORBA.Impl.Object_Ptr) do
+            declare
+               B : CORBA.Boolean;
+               A : CORBA.Any;
+               Ptr : PushConsumer.Impl.Object_Ptr;
+               EndDisplay : Boolean := False;
+            begin
+               Ptr := PushConsumer.Impl.Object_Ptr (O);
+               loop
+                  exit when EndDisplay = True;
+                  select
+                     accept DesActivate do
+                        EndDisplay := True;
+                     end DesActivate;
+                  else
+                     Try_Pull (Ptr, B, A);
+                     if B then
+                        Ada.Text_IO.Put_Line (
+                             To_Standard_String (From_Any (A)));
+                     else
+                        Ada.Text_IO.Put ("");
+                     end if;
+                  end select;
+               end loop;
+               null;
+            end;
+         end Activate;
+      or
+         terminate;
+      end select;
+   end Auto_Display;
 
    --------------------
    -- Connect_Entity --
@@ -257,7 +305,6 @@ procedure Test_Event is
          when K_PushConsumer =>
             declare
                C : PushConsumer.Ref;
-
             begin
                C := PushConsumer.Helper.To_Ref (Entity);
                Reference_To_Servant (C, Servant (O));
@@ -463,6 +510,9 @@ procedure Test_Event is
       Ada.Text_IO.New_Line;
    end Usage;
 
+   ----------------
+   -- Test_Event --
+   ----------------
    Argc    : Natural;
    Entity  : CORBA.Object.Ref;
    Channel : EventChannel.Ref;
@@ -494,6 +544,9 @@ begin
    end if;
 
    pragma Debug (O ("naming service created"));
+
+   --  print menu
+   Usage;
 
    loop
       Argc := Count;
@@ -591,6 +644,31 @@ begin
                      N : constant Natural := Natural'Value (Argument (2).all);
                   begin
                      delay Duration (N);
+                  end;
+
+               when Display =>
+                  if Argc /= 2 then
+                     raise Syntax_Error;
+                  end if;
+
+                  declare
+                     Item : String (1 .. 255);
+                     Last : Natural;
+                     C : PushConsumer.Ref;
+                     O : CORBA.Impl.Object_Ptr;
+
+                  begin
+                     Find_Entity (Argument (2), Entity, Kind);
+                     if Kind /= K_PushConsumer then
+                        Ada.Text_IO.Put_Line (
+                              "Can be called only with a PushSupplier");
+                     else
+                        C := PushConsumer.Helper.To_Ref (Entity);
+                        Reference_To_Servant (C, Servant (O));
+                        Auto_Display.Activate (O);
+                        Ada.Text_IO.Get_Line (Item, Last);
+                        Auto_Display.DesActivate;
+                     end if;
                   end;
             end case;
 
