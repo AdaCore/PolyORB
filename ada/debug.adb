@@ -89,7 +89,7 @@ package body Debug is
    --  dS   Never convert numbers to machine numbers in Sem_Eval
    --  dT   Convert to machine numbers only for constant declarations
    --  dU   Enable garbage collection of unreachable entities
-   --  dV
+   --  dV   Enable viewing of all symbols in debugger
    --  dW
    --  dX   Enable Frontend ZCX even when it is not supported
    --  dY
@@ -391,6 +391,14 @@ package body Debug is
    --  dU   Enable garbage collection of unreachable entities. This enables
    --       both the reachability analysis and changing the Is_Public and
    --       Is_Eliminated flags.
+
+   --  dV   Enable viewing of all symbols in debugger. Causes debug information
+   --       to be generated for all symbols, including internal symbols. This
+   --       is enabled by default for -gnatD, but this switch allows this to
+   --       be enabled without generating modified source files. Note that the
+   --       use of -gnatdV ensures in the dwarf/elf case that all symbols that
+   --       are present in the elf tables are also in the dwarf tables (which
+   --       seems to be required by some tools).
 
    --  dX   Enable frontend ZCX even when it is not supported. Equivalent to
    --       -gnatZ but without verifying that System.Front_End_ZCX_Support

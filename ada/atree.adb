@@ -816,6 +816,15 @@ package body Atree is
 
    end Fix_Parent;
 
+   -----------------------------------
+   -- Get_Comes_From_Source_Default --
+   -----------------------------------
+
+   function Get_Comes_From_Source_Default return Boolean is
+   begin
+      return Default_Node.Comes_From_Source;
+   end Get_Comes_From_Source_Default;
+
    -------------------
    -- Has_Extension --
    -------------------

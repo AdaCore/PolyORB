@@ -78,6 +78,12 @@ package body Prj is
       Location           => No_Location,
       Directory          => No_Name,
       File_Name          => No_Name,
+      Library            => False,
+      Library_Dir        => No_Name,
+      Library_Name       => No_Name,
+      Library_Kind       => Static,
+      Lib_Internal_Name  => No_Name,
+      Lib_Elaboration    => False,
       Sources            => Nil_String,
       Source_Dirs        => Nil_String,
       Object_Directory   => No_Name,
@@ -91,7 +97,10 @@ package body Prj is
       Config_File_Name   => No_Name,
       Config_File_Temp   => False,
       Config_Checked     => False,
-      Checked            => False);
+      Checked            => False,
+      Seen               => False,
+      Flag1              => False,
+      Flag2              => False);
 
    -------------------
    -- Empty_Project --
@@ -122,6 +131,44 @@ package body Prj is
          Error_Msg ("""" & Token_Image & """ expected", Token_Ptr);
       end if;
    end Expect;
+
+   --------------------------------
+   -- For_Every_Project_Imported --
+   --------------------------------
+
+   procedure For_Every_Project_Imported
+     (By         : Project_Id;
+      With_State : in out State)
+   is
+
+      procedure Check (Project : Project_Id);
+      --  Check if a project has already been seen.
+      --  If not seen, mark it as seen, call Action,
+      --  and check all its imported projects.
+
+      procedure Check (Project : Project_Id) is
+         List : Project_List;
+
+      begin
+         if not Projects.Table (Project).Seen then
+            Projects.Table (Project).Seen := False;
+            Action (Project, With_State);
+
+            List := Projects.Table (Project).Imported_Projects;
+            while List /= Empty_Project_List loop
+               Check (Project_Lists.Table (List).Project);
+               List := Project_Lists.Table (List).Next;
+            end loop;
+         end if;
+      end Check;
+
+   begin
+      for Project in Projects.First .. Projects.Last loop
+         Projects.Table (Project).Seen := False;
+      end loop;
+
+      Check (Project => By);
+   end For_Every_Project_Imported;
 
    -----------
    -- Image --

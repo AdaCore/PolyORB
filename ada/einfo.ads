@@ -2482,6 +2482,12 @@ package Einfo is
 --       full views of these subtypes are constructed when the full view of
 --       the incomplete type is processed.
 
+--       In addition, if the incomplete type is the designated type in an
+--       access definition for an access parameter, the operation may be
+--       a dispatching primitive operation, which is only known when the full
+--       declaration of the type is seen. Subprograms that have such an
+--       access parameter are also placed in the list of private_dependents.
+
 --    Prival (Node17)
 --       Present in components. Used for representing private declarations
 --       of protected objects (private formal: by analogy to Discriminal_Link).

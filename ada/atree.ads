@@ -351,6 +351,10 @@ package Atree is
    --  New_Node and New_Entity calls until another call to this procedure
    --  changes the default.
 
+   function Get_Comes_From_Source_Default return Boolean;
+   pragma Inline (Get_Comes_From_Source_Default);
+   --  Gets the current value of the Comes_From_Source flag
+
    procedure Preserve_Comes_From_Source (NewN, OldN : Node_Id);
    pragma Inline (Preserve_Comes_From_Source);
    --  When a node is rewritten, it is sometimes appropriate to preserve the

@@ -49,6 +49,8 @@ package Prj is
    --  Medium is more verbose.
    --  High is extremely verbose.
 
+   type Lib_Kind is (Static, Dynamic, Relocatable);
+
    function Empty_String return String_Id;
 
    type String_List_Id is new Nat;
@@ -293,6 +295,25 @@ package Prj is
       File_Name          : Name_Id        := No_Name;
       --  The file name of the project file.
 
+      Library            : Boolean        := False;
+      --  True if this is a library project
+
+      Library_Dir        : Name_Id        := No_Name;
+      --  If a library project, directory where resides the library
+
+      Library_Name       : Name_Id        := No_Name;
+      --  If a library project, name of the library
+
+      Library_Kind       : Lib_Kind       := Static;
+      --  If a library project, kind of library
+
+      Lib_Internal_Name  : Name_Id        := No_Name;
+      --  If a library project, internal name store inside the library
+
+      Lib_Elaboration    : Boolean        := False;
+      --  If a library project, indicate if <lib>init and <lib>final
+      --  procedures need to be defined.
+
       Sources            : String_List_Id := Nil_String;
       --  The list of all the source file names.
 
@@ -340,6 +361,12 @@ package Prj is
       --  A flag to avoid checking repetively the naming scheme of
       --  this project file.
 
+      --  Various flags that are used in an ad hoc manner
+
+      Seen               : Boolean        := False;
+      Flag1              : Boolean        := False;
+      Flag2              : Boolean        := False;
+
    end record;
    --  Project File representation.
 
@@ -366,6 +393,20 @@ package Prj is
    procedure Reset;
    --  This procedure resets all the tables that are used when processing a
    --  project file tree. Initialize must be called before the call to Reset.
+
+   generic
+      type State is limited private;
+      with procedure Action
+        (Project    : Project_Id;
+         With_State : in out State);
+   procedure For_Every_Project_Imported
+     (By         : Project_Id;
+      With_State : in out State);
+   --  Call Action for each project imported directly or indirectly by project
+   --  By.--  Action is called according to the order of importation: if A
+   --  imports B, directly or indirectly, Action will be called for A before
+   --  it is called for B. With_State may be used by Action to choose a
+   --  behavior or to report some global result.
 
 private
 

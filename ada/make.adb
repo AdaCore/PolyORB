@@ -40,6 +40,9 @@ with Fname.UF;         use Fname.UF;
 with Gnatvsn;          use Gnatvsn;
 with Hostparm;         use Hostparm;
 with Makeusg;
+with MLib.Prj;
+with MLib.Tgt;
+with MLib.Utl;
 with Namet;            use Namet;
 with Opt;              use Opt;
 with Osint;            use Osint;
@@ -338,20 +341,22 @@ package body Make is
    --  table for this directory. Then check if an Ada lib mark has been set.
 
    procedure Mark_Dir_Path
-     (Path : in String_Access;
-      Mark : in Lib_Mark_Type);
+     (Path : String_Access;
+      Mark : Lib_Mark_Type);
    --  Invoke Mark_Directory on each directory of the path.
 
    procedure Mark_Directory
-     (Dir  : in String;
-      Mark : in Lib_Mark_Type);
+     (Dir  : String;
+      Mark : Lib_Mark_Type);
    --  Store Dir in name table and set lib mark as name info to identify
    --  Ada libraries.
 
    function Object_File_Name (Source : String) return String;
    --  Returns the object file name suitable for switch -o.
 
-   procedure Set_Ada_Paths (For_Project         : Prj.Project_Id);
+   procedure Set_Ada_Paths
+     (For_Project         : Prj.Project_Id;
+      Including_Libraries : Boolean);
    --  Set, if necessary, env. variables ADA_INCLUDE_PATH and
    --  ADA_OBJECTS_PATH.
    --
@@ -360,6 +365,17 @@ package body Make is
    --  (invocations of the compiler, the binder and the linker).
    --  The caller process ADA_INCLUDE_PATH and ADA_OBJECTS_PATH are
    --  not affected.
+
+   procedure Set_Library_For
+     (Project             : Project_Id;
+      There_Are_Libraries : in out Boolean);
+   --  If Project is a library project, add the correct
+   --  -L and -l switches to the linker invocation.
+
+   procedure Set_Libraries is
+      new For_Every_Project_Imported (Boolean, Set_Library_For);
+   --  Add the -L and -l switches to the linker for all
+   --  of the library projects.
 
    ----------------------------------------------------
    -- Compiler, Binder & Linker Data and Subprograms --
@@ -868,7 +884,7 @@ package body Make is
    begin
       pragma Assert (Lib_File /= No_File);
 
-      Text := Read_Library_Info (Lib_File);
+      Text          := Read_Library_Info (Lib_File);
       Full_Lib_File := Full_Library_Info_Name;
       Full_Obj_File := Full_Object_File_Name;
       Lib_Stamp     := Current_Library_File_Stamp;
@@ -906,7 +922,7 @@ package body Make is
             return;
 
          elsif ALIs.Table (ALI).Ver (1 .. ALIs.Table (ALI).Ver_Len) /=
-           Library_Version
+                                                          Library_Version
          then
             Verbose_Msg (Full_Lib_File, "compiled with old GNAT version");
             ALI := No_ALI_Id;
@@ -934,7 +950,7 @@ package body Make is
 
             for J in 1 .. Special_Args.Last loop
                if Special_Args.Table (J).File.all =
-                 Name_Buffer (1 .. Name_Len)
+                                        Name_Buffer (1 .. Name_Len)
                then
                   Special_Arg := Special_Args.Table (J).Args;
                   exit;
@@ -947,6 +963,7 @@ package body Make is
 
             if Special_Arg = null then
                for J in Gcc_Switches.First .. Gcc_Switches.Last loop
+
                   --  Skip non switches, -I and -o switches
 
                   if (Gcc_Switches.Table (J) (1) = '-'
@@ -1040,7 +1057,7 @@ package body Make is
 
             if Num_Args /=
               Integer (Units.Table (ALIs.Table (ALI).First_Unit).Last_Arg -
-                Units.Table (ALIs.Table (ALI).First_Unit).First_Arg + 1)
+                       Units.Table (ALIs.Table (ALI).First_Unit).First_Arg + 1)
             then
                if Opt.Verbose_Mode then
                   Verbose_Msg (ALIs.Table (ALI).Sfile,
@@ -1557,19 +1574,39 @@ package body Make is
                --  We now know the project of the current source
 
                else
-               --  Set ADA_INCLUDE_PATH and ADA_OBJECTS_PATH if the project
-               --  has changed.
+                  --  Set ADA_INCLUDE_PATH and ADA_OBJECTS_PATH if the project
+                  --  has changed.
 
-               --  Note: this will modify these environment variables only
-               --  for the current gnatmake process and all of its children
-               --  (invocations of the compiler, the binder and the linker).
+                  --  Note: this will modify these environment variables only
+                  --  for the current gnatmake process and all of its children
+                  --  (invocations of the compiler, the binder and the linker).
 
-               --  The caller's ADA_INCLUDE_PATH and ADA_OBJECTS_PATH are
-               --  not affected.
+                  --  The caller's ADA_INCLUDE_PATH and ADA_OBJECTS_PATH are
+                  --  not affected.
 
-                  Set_Ada_Paths (Current_Project);
+                  Set_Ada_Paths (Current_Project, True);
 
                   Data := Projects.Table (Current_Project);
+
+                  --  Check if it is a library project that needs to be
+                  --  processed, only if it is not the main project.
+
+                  if MLib.Tgt.Libraries_Are_Supported
+                    and then Current_Project /= Main_Project
+                    and then Data.Library
+                    and then not Data.Flag1
+                  then
+                     --  Add to the Q all sources of the project that have
+                     --  not been marked
+
+                     Insert_Project_Sources
+                       (The_Project => Current_Project, Into_Q => True);
+
+                     --  Now mark the project as processed
+
+                     Data.Flag1 := True;
+                     Projects.Table (Current_Project).Flag1 := True;
+                  end if;
 
                   Get_Name_String (Data.Object_Directory);
 
@@ -1697,7 +1734,6 @@ package body Make is
                      --  We add to Args the saved gcc switches.
 
                      when Undefined =>
-
                         if Opt.Verbose_Mode then
                            Write_Str ("There are no switches.");
                            Write_Eol;
@@ -1819,7 +1855,6 @@ package body Make is
             Comp_Args (Comp_Last) := Output_Flag;
             Comp_Last := Comp_Last + 1;
             Comp_Args (Comp_Last) := new String'(Name_Buffer (1 .. Name_Len));
-
          end if;
 
          Get_Name_String (S);
@@ -1858,7 +1893,6 @@ package body Make is
          else
             return (1 .. 0 => null);
          end if;
-
       end Configuration_Pragmas_Switch;
 
       ---------------
@@ -2960,6 +2994,25 @@ package body Make is
                raise Compilation_Failed;
             end if;
 
+            --  Regenerate libraries, if any and if object files
+            --  have been regenerated
+
+            if Main_Project /= No_Project
+              and then MLib.Tgt.Libraries_Are_Supported
+            then
+
+               for Proj in Projects.First .. Projects.Last loop
+
+                  if Proj /= Main_Project
+                    and then Projects.Table (Proj).Flag1
+                  then
+                     MLib.Prj.Build_Library (For_Project => Proj);
+                  end if;
+
+               end loop;
+
+            end if;
+
             if Opt.List_Dependencies then
                if First_Compiled_File /= No_File then
                   Inform
@@ -3043,7 +3096,6 @@ package body Make is
                --  and otherwise motivate the relink/rebind.
 
                if not Executable_Obsolete then
-
                   if not Opt.Quiet_Output then
                      Inform (Executable, "up to date.");
                   end if;
@@ -3122,20 +3174,56 @@ package body Make is
                --  Put all the source directories in ADA_INCLUDE_PATH,
                --  and all the object directories in ADA_OBJECTS_PATH
 
-               Set_Ada_Paths (Main_Project);
+               Set_Ada_Paths (Main_Project, False);
             end if;
 
             Bind (Main_ALI_File, Args);
          end Bind_Step;
 
-         Link_Step :
+         Link_Step : declare
+            There_Are_Libraries  : Boolean := False;
+            Linker_Switches_Last : constant Integer := Linker_Switches.Last;
+
          begin
 
             if Main_Project /= No_Project then
 
+               if MLib.Tgt.Libraries_Are_Supported then
+                  Set_Libraries (Main_Project, There_Are_Libraries);
+               end if;
+
+               if There_Are_Libraries then
+
+                  --  Add -L<lib_dir> -lgnarl -lgnat -Wl,-rpath,<lib_dir>
+
+                  Linker_Switches.Increment_Last;
+                  Linker_Switches.Table (Linker_Switches.Last) :=
+                    new String'("-L" & MLib.Utl.Lib_Directory);
+                  Linker_Switches.Increment_Last;
+                  Linker_Switches.Table (Linker_Switches.Last) :=
+                    new String'("-lgnarl");
+                  Linker_Switches.Increment_Last;
+                  Linker_Switches.Table (Linker_Switches.Last) :=
+                    new String'("-lgnat");
+
+                  declare
+                     Option : constant String_Access :=
+                                MLib.Tgt.Linker_Library_Path_Option
+                                  (MLib.Utl.Lib_Directory);
+
+                  begin
+                     if Option /= null then
+                        Linker_Switches.Increment_Last;
+                        Linker_Switches.Table (Linker_Switches.Last) := Option;
+                     end if;
+
+                  end;
+
+               end if;
+
                --  Put the object directories in ADA_OBJECTS_PATH
 
-               Set_Ada_Paths (Main_Project);
+               Set_Ada_Paths (Main_Project, False);
             end if;
 
             declare
@@ -3164,6 +3252,8 @@ package body Make is
                end if;
 
             end;
+
+            Linker_Switches.Set_Last (Linker_Switches_Last);
          end Link_Step;
 
          --  We go to here when we skip the bind and link steps.
@@ -3181,11 +3271,13 @@ package body Make is
 
                declare
                   Main_Source_File_Name : constant String :=
-                    Get_Name_String (Main_Source_File);
-                  Main_Unit_File_Name   : constant String :=
-                    Prj.Env.File_Name_Of_Library_Unit_Body
-                    (Name    => Main_Source_File_Name,
-                     Project => Main_Project);
+                                            Get_Name_String (Main_Source_File);
+
+                  Main_Unit_File_Name : constant String :=
+                                          Prj.Env.
+                                            File_Name_Of_Library_Unit_Body
+                                              (Name => Main_Source_File_Name,
+                                               Project => Main_Project);
 
                begin
                   --  We fail if we cannot find the main source file
@@ -3218,7 +3310,6 @@ package body Make is
                           (Pos + 1 .. Main_Unit_File_Name'Last);
 
                         Main_Source_File := Name_Find;
-
                      end;
                   end if;
                end;
@@ -3495,9 +3586,7 @@ package body Make is
 
             Osint.Add_File (Get_Name_String (Sfile));
          end if;
-
       end loop;
-
    end Insert_Project_Sources;
 
    --------------
@@ -3696,8 +3785,8 @@ package body Make is
    -------------------
 
    procedure Mark_Dir_Path
-     (Path : in String_Access;
-      Mark : in Lib_Mark_Type)
+     (Path : String_Access;
+      Mark : Lib_Mark_Type)
    is
       Dir : String_Access;
 
@@ -3718,8 +3807,8 @@ package body Make is
    --------------------
 
    procedure Mark_Directory
-     (Dir  : in String;
-      Mark : in Lib_Mark_Type)
+     (Dir  : String;
+      Mark : Lib_Mark_Type)
    is
       N : Name_Id;
       B : Byte;
@@ -3735,7 +3824,7 @@ package body Make is
          Name_Buffer (Name_Len) := Directory_Separator;
       end if;
 
-      --  Add flags to the alredy existing flags.
+      --  Add flags to the already existing flags
 
       N := Name_Find;
       B := Get_Name_Table_Byte (N);
@@ -3786,7 +3875,7 @@ package body Make is
          else
             Add_Switch ("-o", Linker, And_Save => And_Save);
 
-            --  add automatically the executable suffix if it has not been
+            --  Automatically add the executable suffix if it has not been
             --  specified explicitly.
 
             if Executable_Suffix'Length /= 0
@@ -3927,7 +4016,6 @@ package body Make is
 
          else
             Fail ("unknown switch: ", Argv);
-
          end if;
 
       --  If we have seen a regular switch process it
@@ -4175,12 +4263,16 @@ package body Make is
    -- Set_Ada_Paths --
    -------------------
 
-   procedure Set_Ada_Paths (For_Project : Prj.Project_Id) is
+   procedure Set_Ada_Paths
+     (For_Project         : Prj.Project_Id;
+      Including_Libraries : Boolean)
+   is
       New_Ada_Include_Path : constant String_Access :=
                                Prj.Env.Ada_Include_Path (For_Project);
 
       New_Ada_Objects_Path : constant String_Access :=
-                               Prj.Env.Ada_Objects_Path (For_Project);
+                               Prj.Env.Ada_Objects_Path
+                                 (For_Project, Including_Libraries);
 
    begin
       --  If ADA_INCLUDE_PATH needs to be changed (we are not using the same
@@ -4256,6 +4348,59 @@ package body Make is
       end if;
 
    end Set_Ada_Paths;
+
+   ---------------------
+   -- Set_Library_For --
+   ---------------------
+
+   procedure Set_Library_For
+     (Project             : Project_Id;
+      There_Are_Libraries : in out Boolean)
+   is
+   begin
+      --  Case of library project
+
+      if Projects.Table (Project).Library then
+         There_Are_Libraries := True;
+
+         --  Add the -L switch
+
+         Linker_Switches.Increment_Last;
+         Linker_Switches.Table (Linker_Switches.Last) :=
+           new String'("-L" &
+                       Get_Name_String
+                       (Projects.Table (Project).Library_Dir));
+
+         --  Add the -l switch
+
+         Linker_Switches.Increment_Last;
+         Linker_Switches.Table (Linker_Switches.Last) :=
+           new String'("-l" &
+                       Get_Name_String
+                       (Projects.Table (Project).Library_Name));
+
+         --  Add the Wl,-rpath switch if library non static
+
+         if Projects.Table (Project).Library_Kind /= Static then
+            declare
+               Option : constant String_Access :=
+                          MLib.Tgt.Linker_Library_Path_Option
+                            (Get_Name_String
+                              (Projects.Table (Project).Library_Dir));
+
+            begin
+               if Option /= null then
+                  Linker_Switches.Increment_Last;
+                  Linker_Switches.Table (Linker_Switches.Last) :=
+                    Option;
+               end if;
+
+            end;
+
+         end if;
+
+      end if;
+   end Set_Library_For;
 
    ------------
    -- Unmark --
