@@ -374,12 +374,10 @@ package body PortableServer is
    procedure Raise_ForwardRequest
      (Excp_Memb : in ForwardRequest_Members)
    is
-      pragma Warnings (Off); --  WAG:3.15
-      pragma Unreferenced (Excp_Memb);
-      pragma Warnings (On); --  WAG:3.15
-
    begin
-      raise Program_Error;
+      PolyORB.Exceptions.User_Raise_Exception
+        (PortableServer.ForwardRequest'Identity,
+         Excp_Memb);
    end Raise_ForwardRequest;
 
    ---------------------------
