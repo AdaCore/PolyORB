@@ -1,7 +1,7 @@
 2004-04-16  Samuel Tardieu  <sam@rfc1149.net>
 
-	* s-gartas.ads, s-gartas.adb: Do not create useless procedure
-	List_Tasks. Update copyright notice.
+	* s-garprma.adb: Add missing function headers. Update copyright
+	notice.
 
 2004-04-03  Pascal Obry  <obry@gnat.com>
 
