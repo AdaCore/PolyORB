@@ -304,18 +304,21 @@ package body XE_Stubs is
       for U in ALIs.Table (A).First_Unit .. ALIs.Table (A).Last_Unit loop
          case Unit.Table (U).Utype is
             when Is_Spec =>
-               RCI_Spec := Unit.Table (U).Sfile;
+               RCI_Spec      := Unit.Table (U).Sfile;
+               Full_RCI_Spec := Full_Source_Name (RCI_Spec);
             when Is_Spec_Only =>
-               RCI_Spec := Unit.Table (U).Sfile;
+               RCI_Spec      := Unit.Table (U).Sfile;
+               Full_RCI_Spec := Full_Source_Name (RCI_Spec);
+               RCI_Body      := RCI_Spec;
+               Full_RCI_Body := Full_RCI_Spec;
             when Is_Body =>
-               RCI_Body := Unit.Table (U).Sfile;
+               RCI_Body      := Unit.Table (U).Sfile;
+               Full_RCI_Body := Full_Source_Name (RCI_Body);
             when Is_Body_Only =>
                raise Program_Error;
          end case;
       end loop;
 
-      Full_RCI_Spec   := Full_Source_Name (RCI_Spec);
-      Full_RCI_Body   := Full_Source_Name (RCI_Body);
       Full_ALI_File   := ALIs.Table (A).Ofile_Full_Name;
 
       --  Caller and receiver object filenames can be different because
@@ -435,6 +438,9 @@ package body XE_Stubs is
       for U in ALIs.Table (A).First_Unit .. ALIs.Table (A).Last_Unit loop
          case Unit.Table (U).Utype is
             when Is_Body =>
+               ADB_Src := Source_Dir & Dir_Sep_Id & Unit.Table (U).Sfile;
+               ADB_Tgt := Target_Dir & Dir_Sep_Id & Unit.Table (U).Sfile;
+            when Is_Spec_Only =>
                ADB_Src := Source_Dir & Dir_Sep_Id & Unit.Table (U).Sfile;
                ADB_Tgt := Target_Dir & Dir_Sep_Id & Unit.Table (U).Sfile;
             when others =>
@@ -944,7 +950,7 @@ package body XE_Stubs is
          Dwrite_Eol  (FD);
 
       end loop;
-      
+
       Dwrite_Str  (FD, "      raise;");
       Dwrite_Eol  (FD);
       Dwrite_Str  (FD, "end ");
