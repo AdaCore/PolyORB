@@ -108,14 +108,12 @@ package body PolyORB.Transport.Connected.Sockets is
 
       else
 
-         --  Use specified address IP for SAP
+         --  Use specified IP address for SAP
 
          SAP.Addr := Address;
       end if;
 
-      if SAP.Addr.Port = Any_Port then
-         SAP.Addr.Port := Get_Socket_Name (Socket).Port;
-      end if;
+      SAP.Addr.Port := Get_Socket_Name (Socket).Port;
    end Create;
 
    -------------------------

@@ -54,7 +54,7 @@ package PolyORB.Transport.Connected.Sockets is
       Address : in out Sock_Addr_Type);
    --  Initialise SAP: bind Socket to Address, listen on it,
    --  and set up the corresponding Socket_Access_Point.
-   --  On entry, Address.Port may be 0, in which case the system
+   --  On entry, Address.Port may be Any_Port, in which case the system
    --  will assign an available port number itself. On return,
    --  Address is always set to the actual address used.
 
