@@ -31,10 +31,10 @@ package Types is
    --  all the possible kinds of node
    type Node_Kind is
       (K_Repository,
---        K_Scoped_Name,
-       K_Module  --  ,
---        K_Interface,
---        K_Forward_Interface,
+       K_Scoped_Name,
+       K_Module,
+       K_Interface,
+       K_Forward_Interface --  ,
 --        K_Operation,
 --        K_Attribute,
 --        K_Void,
@@ -92,6 +92,13 @@ package Types is
        );
 
 
+
+   --  Identifiers are numbered, in order to make comparaison
+   --  easier and static. Each number is unique.
+   type Uniq_Id is new Natural;
+   Nil_Uniq_Id : constant Uniq_Id;
+
+
    --  The basic type of the tree. Every Node type is a descendant
    --  of this one.
    --  In all this file, N_ means that the type is a node type
@@ -119,17 +126,24 @@ package Types is
    type N_Scope_Acc is access all N_Scope'Class;
 
 
-   --  this type represents an identifier definition
-   type Identifier_Definition is private;
+   --  An identifier definition contains the following :
+   --    - the name of the identifier
+   --    - the uniq_id of the identifier
+   --    - the node in which it was defined
+   --    - the previous definition of the same identifier (if overloaded)
+   --    - a pointer on the parent scope of the node
+   type Identifier_Definition;
    type Identifier_Definition_Acc is access Identifier_Definition;
+   type Identifier_Definition is record
+      Name : String_Cacc := null;
+      Id : Uniq_Id;
+      Node : N_Named_Acc;
+      Previous_Definition : Identifier_Definition_Acc;
+      Parent_Scope : N_Scope_Acc;
+   end record;
 
    --  Definition of a list of identifier_definition
    type Identifier_Definition_List is private;
-
-   --  Identifiers are numbered, in order to make comparaison
-   --  easier and static. Each number is unique.
-   type Uniq_Id is new Natural;
-   Nil_Uniq_Id : constant Uniq_Id;
 
 
 
@@ -234,20 +248,6 @@ private
    --  identifiers
    type N_Scope is abstract new N_Named with record
       Identifier_List : Identifier_Definition_List;
-   end record;
-
-   --  An identifier definition contains the following :
-   --    - the name of the identifier
-   --    - the uniq_id of the identifier
-   --    - the node in which it was defined
-   --    - the previous definition of the same identifier (if overloaded)
-   --    - a pointer on the parent scope of the node
-   type Identifier_Definition is record
-      Name : String_Cacc := null;
-      Id : Uniq_Id;
-      Node : N_Named_Acc;
-      Previous_Definition : Identifier_Definition_Acc;
-      Parent_Scope : N_Scope_Acc;
    end record;
 
    --  classical definition of a list for the identifier_definition_list

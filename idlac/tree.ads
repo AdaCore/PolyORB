@@ -14,6 +14,8 @@
 --  Public License  distributed with IDLAC;  see file COPYING.  If not, write
 --  to  the Free Software Foundation,  59 Temple Place - Suite 330,  Boston,
 --  MA 02111-1307, USA.
+--  59 Temple Place - Suite 330,  Boston,
+--  MA 02111-1307, USA.
 --
 
 with Types; use Types;
@@ -84,30 +86,31 @@ package Tree is
    type N_Module_Acc is access all N_Module;
    function Get_Kind (N : N_Module) return Node_Kind;
 
---    --  A scoped name.
---    type N_Scoped_Name is new N_Root with record
---       Value : N_Named_Acc;
---    end record;
---    type N_Scoped_Name_Acc is access all N_Scoped_Name;
---    function Get_Kind (N : N_Scoped_Name) return Node_Kind;
+   --  An interface.
+   type N_Forward_Interface;
+   type N_Forward_Interface_Acc is access all N_Forward_Interface;
 
---    --  An interface.
---    type N_Forward_Interface;
---    type N_Forward_Interface_Acc is access all N_Forward_Interface;
+   type N_Interface is new N_Scope with record
+      Parents : Node_List := Nil_List;
+      Contents : Node_List;
+      Forward : N_Forward_Interface_Acc;
+      Abst : Boolean;
+   end record;
+   type N_Interface_Acc is access all N_Interface;
+   function Get_Kind (N : N_Interface) return Node_Kind;
 
---    type N_Interface is new N_Scope with record
---       Parents : Node_List := Nil_List;
---       Contents : Node_List;
---       Forward : N_Forward_Interface_Acc;
---    end record;
---    type N_Interface_Acc is access all N_Interface;
---    function Get_Kind (N : N_Interface) return Node_Kind;
+   --  Forward declaration of an interface.
+   type N_Forward_Interface is new N_Named with record
+      Forward : N_Interface_Acc;
+   end record;
+   function Get_Kind (N : N_Forward_Interface) return Node_Kind;
 
---    --  Forward declaration of an interface.
---    type N_Forward_Interface is new N_Named with record
---       Forward : N_Interface_Acc;
---    end record;
---    function Get_Kind (N : N_Forward_Interface) return Node_Kind;
+   --  A scoped name.
+   type N_Scoped_Name is new N_Root with record
+      Value : N_Named_Acc;
+   end record;
+   type N_Scoped_Name_Acc is access all N_Scoped_Name;
+   function Get_Kind (N : N_Scoped_Name) return Node_Kind;
 
 --    --  Declaration of an operation.
 --    type N_Operation is new N_Scope with record

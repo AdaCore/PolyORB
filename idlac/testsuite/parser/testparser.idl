@@ -1,0 +1,8 @@
+/***  Test of rule 3 ***/
+
+module
+module toto
+module toto {}
+module toto {};
+
+

@@ -199,7 +199,6 @@ package Tokens is
    function Get_Next_Token return Idl_Token;
 
 
-
    -------------------------------------
    --  methods useful for the parser  --
    -------------------------------------

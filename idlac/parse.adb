@@ -102,11 +102,12 @@ package body Parse is
 --    --  <scoped_name> ::= <identifier>
 --    --                    | "::" <identifier>
 --    --                    | <scoped_name> "::" <identifier>
---    function Parse_Scoped_Name return N_Scoped_Name_Acc is
+   function Parse_Scoped_Name return N_Scoped_Name_Acc is
 --       Res, Prev : N_Scoped_Name_Acc;
 --       Scope : N_Scope_Acc;
 --       Name : N_Named_Acc;
---    begin
+   begin
+      return null;
 --       Prev := null;
 --       Res := new N_Scoped_Name;
 --       Set_Location (Res.all, Get_Location);
@@ -141,7 +142,7 @@ package body Parse is
 --       end if;
 --       Res.Value := Name;
 --       return Res;
---    end Parse_Scoped_Name;
+   end Parse_Scoped_Name;
 
 --    --  Rule 24:
 --    --  <literal> ::= <integer_literal>
@@ -1170,90 +1171,150 @@ package body Parse is
 
 --    --  Rule 8:
 --    --  <interface_body> ::= <export>*
---    procedure Parse_Interface_Body (List : in out Node_List) is
---    begin
+   procedure Parse_Interface_Body (List : in out Node_List) is
+      Ite : Node_Iterator;
+   begin
+      Init (Ite, List);
 --       loop
 --          exit when Token = T_Right_Cbracket;
 --          Parse_Export (List);
 --       end loop;
---    end Parse_Interface_Body;
+   end Parse_Interface_Body;
 
---    --  Rule 5:
---    --  <interface_dcl> ::= <interface_header> "{" <interface_body "}"
---    --
---    --  Rule 10:
---    --  <inheritance_spec> ::= ":" <scoped_name> { "," <scoped_name> }*
---    function Parse_Interface_Dcl (Res : N_Interface_Acc)
---                                  return N_Interface_Acc is
---    begin
---       --  interface header.
---       if Token = T_Colon then
---          --  inheritance_spec
---          loop
---             Next_Token;
---             Append_Node (Res.Parents, N_Root_Acc (Parse_Scoped_Name));
---             exit when Token /= T_Comma;
---          end loop;
---       end if;
---       Expect (T_Left_Cbracket);
---       Next_Token;
---       --  Create a scope for the interface.
---       Push_Scope (Res);
---       Parse_Interface_Body (Res.Contents);
---       Expect (T_Right_Cbracket);
---       Next_Token;
---       Pop_Scope;
---       return Res;
---    end Parse_Interface_Dcl;
+   --  <interface_dcl_end> ::= [<interface_inheritance_spec>] "{"
+   --                          <interface_body> "}"
+   --
+   --  Rule 10:
+   --  <inheritance_spec> ::= ":" <scoped_name> { "," <scoped_name> }*
+   function Parse_Interface_Dcl_End (Res : N_Interface_Acc)
+                                     return N_Interface_Acc is
+   begin
+      --  interface header.
+      if Get_Token = T_Colon then
+         --  inheritance_spec
+         loop
+            Next_Token;
+            Append_Node (Res.Parents, N_Root_Acc (Parse_Scoped_Name));
+            exit when Get_Token /= T_Comma;
+         end loop;
+      end if;
 
---    --  Rule 4:
---    --  <interface> ::= <interface_dcl> | <forward_dcl>
---    --
---    --  Rule 6:
---    --  <forward_dcl> ::= "interface" <identifier>
---    function Parse_Interface return N_Root_Acc is
---       Res : N_Interface_Acc;
---       Fd_Res : N_Forward_Interface_Acc;
---       Name : Identifier_Definition_Acc;
---    begin
---       --  interface header.
---       Res := new N_Interface;
---       Set_Location (Res.all, Get_Location);
---       Next_Token;
---       Expect (T_Identifier);
---       Name := Find_Identifier_Definition;
---       if Name /= null then
---          --  There is a forward declaration for this interface.
---          --  FIXME: check for redefinition.
---          Fd_Res := N_Forward_Interface_Acc (Get_Node (Name));
---          Fd_Res.Forward := Res;
---          Res.Forward := Fd_Res;
---          Redefine_Identifier (Name, Res);
---       else
---          Fd_Res := null;
---          Res.Forward := null;
---          Add_Identifier (Res);
---          Name := Find_Identifier_Definition;
---       end if;
---       Next_Token;
---       if Token = T_Semi_Colon then
---          --  Hups, this was just a forward declaration.
---          if Fd_Res /= null then
---             --  FIXME.
---             Errors.Parser_Error
---               ("forward declaration after interface declaration",
---                Errors.Error);
---          end if;
---          Fd_Res := new N_Forward_Interface;
---          Set_Location (Fd_Res.all, Get_Location (Res.all));
---          Fd_Res.Forward := null;
---          Redefine_Identifier (Name, Fd_Res);
---          --  Free (Res);
---          return N_Root_Acc (Fd_Res);
---       else
---          return N_Root_Acc (Parse_Interface_Dcl (Res));
---       end if;
---    end Parse_Interface;
+      if Get_Token = T_Left_Cbracket then
+         Next_Token;
+      else
+         Errors.Parser_Error
+           ("you should have a bracket on the beginning of an interface",
+            Errors.Error);
+      end if;
+      --  Create a scope for the interface.
+      Push_Scope (Res);
+      Parse_Interface_Body (Res.Contents);
+      --  consume the right bracket at the end of the interface body
+      --  verification of the presence of this bracket was done
+      --  in Parse_Interface_Body
+      Next_Token;
+      Pop_Scope;
+      return Res;
+   end Parse_Interface_Dcl_End;
+
+   --  Rule 4:
+   --  <interface> ::= <interface_dcl> | <forward_dcl>
+   --
+   --  Rule 5:
+   --  <interface_decl> ::= <interface_header> "{" <interface_body> "}"
+   --
+   --  Rule 6:
+   --  <forward_dcl> ::= ["abstract"] "interface" <identifier>
+   --
+   --  Rule 7:
+   --  <interface_header> ::= ["abstract"] "interface" <identifier>
+   --                         [ <interface_inheritance_spec> ]
+   --
+   --
+   --  These rules are equivalent to
+   --
+   --  <interface> ::= ["abstract"] "interface" <identifier>
+   --                  <interface_end>
+   --
+   --  <interface_end> ::= <forward_dcl_end>
+   --                  |   <interface_dcl_end>
+   --
+   --  <forward_dcl_end> ::=
+   --
+   --  <interface_dcl_end> ::= [<interface_inheritance_spec>] "{"
+   --                          <interface_body> "}"
+   --  this last will be used in Parse_Interface_Dcl_End
+   function Parse_Interface return N_Root_Acc is
+      Res : N_Interface_Acc;
+      Fd_Res : N_Forward_Interface_Acc;
+      Definition : Identifier_Definition_Acc;
+   begin
+      --  interface header.
+      Res := new N_Interface;
+      --  is the interface abstracted
+      if Get_Token = T_Abstract then
+         Res.Abst := True;
+         --  the T_Interface token should "interface"
+         --  (it is already checked)
+         Next_Token;
+      else
+         Res.Abst := False;
+      end if;
+      Set_Location (Res.all, Get_Location);
+      Next_Token;
+      --  Expect an identifier
+      if Get_Token = T_Identifier then
+         Definition := Find_Identifier_Definition;
+         --  Is there a previous definition and in the same scope !
+         if Definition /= null
+           and then Definition.Parent_Scope = Get_Current_Scope then
+            --  is it a forward declaration
+            if Get_Kind (Definition.Node.all) = K_Forward_Interface then
+               Fd_Res := N_Forward_Interface_Acc (Get_Node (Definition));
+               Fd_Res.Forward := Res;
+               Res.Forward := Fd_Res;
+               Redefine_Identifier (Definition, Res);
+            else
+               Errors.Parser_Error
+                 ("The identifier used for the interface is already "
+                  & "defined in the same scope",
+                  Errors.Error);
+               Fd_Res := null;
+            end if;
+         else
+            Fd_Res := null;
+            Res.Forward := null;
+            if not Add_Identifier (Res) then
+               raise Errors.Internal_Error;
+            end if;
+            Definition := Find_Identifier_Definition;
+         end if;
+      else
+         Errors.Parser_Error
+           ("you should have an identifier after 'interface'",
+            Errors.Error);
+      end if;
+      Next_Token;
+      --  Hups, this was just a forward declaration.
+      if Get_Token = T_Semi_Colon then
+         if Fd_Res /= null then
+            Errors.Parser_Error
+              ("forward declaration after another one",
+               Errors.Error);
+            return null;
+         else
+            Fd_Res := new N_Forward_Interface;
+            Set_Location (Fd_Res.all, Get_Location (Res.all));
+            Fd_Res.Forward := null;
+            Redefine_Identifier (Definition, Fd_Res);
+            --  Free (Res); ???????????????????
+            return N_Root_Acc (Fd_Res);
+         end if;
+      else
+         return N_Root_Acc (Parse_Interface_Dcl_End (Res));
+      end if;
+      return null;
+   end Parse_Interface;
 
 --    --  Rule 13:
 --    --  <const_type> ::= <integer_type>
@@ -1307,37 +1368,9 @@ package body Parse is
 
 
    --  Rule 2:
-   --  <definition> ::= <type_dcl> ";"
---                 |   <const_dcl> ";"
---                 |   <except_dcl> ";"
---                 |   <interface> ";"
---                 |   <module> ";"
+   --  see complete definiton further
    procedure Parse_Definition (Result : out N_Root_Acc;
-                               Success : out Boolean) is
---       Res : N_Root_Acc;
-   begin
-      Result := null;
-      Success := False;
---       case Token is
---          when T_Typedef | T_Struct | T_Union | T_Enum | T_Native =>
---             Res := N_Root_Acc (Parse_Type_Dcl);
---          when T_Const =>
---             Res := N_Root_Acc (Parse_Const_Dcl);
---          when T_Exception =>
---             Res := N_Root_Acc (Parse_Except_Dcl);
---          when T_Interface =>
---             Res := N_Root_Acc (Parse_Interface);
---          when T_Module =>
---             Res := N_Root_Acc (Parse_Module);
---          when others =>
---             Errors.Parser_Error ("definition expected",
---                                  Errors.Error);
---             raise Parse_Error;
---       end case;
---       Expect (T_Semi_Colon);
---       Next_Token;
---       return Res;
-   end Parse_Definition;
+                               Success : out Boolean);
 
    procedure Go_To_Next_Definition is
    begin
@@ -1391,7 +1424,6 @@ package body Parse is
                         if Definition_Result then
                            --  successfull
                            Append_Node (Result.Contents, Definition);
-                           Next_Token;
                         else
                            --  failed
                            Go_To_Next_Definition;
@@ -1420,6 +1452,53 @@ package body Parse is
             Success := False;
       end case;
    end Parse_Module;
+
+
+   --  Rule 2:
+   --  <definition> ::= <type_dcl> ";"
+   --               |   <const_dcl> ";"
+   --               |   <except_dcl> ";"
+   --               |   <interface> ";"
+   --               |   <module> ";"
+   --               |   <value> ";"
+   procedure Parse_Definition (Result : out N_Root_Acc;
+                               Success : out Boolean) is
+   begin
+      case Get_Token is
+--          when T_Typedef | T_Struct | T_Union | T_Enum | T_Native =>
+--             Res := N_Root_Acc (Parse_Type_Dcl);
+--          when T_Const =>
+--             Res := N_Root_Acc (Parse_Const_Dcl);
+--          when T_Exception =>
+--             Res := N_Root_Acc (Parse_Except_Dcl);
+         when T_Interface =>
+            Result := N_Root_Acc (Parse_Interface);
+            Success := True;
+         when T_Module =>
+            declare
+               Module : N_Module_Acc;
+               Module_Result : Boolean;
+            begin
+               Parse_Module (Module, Module_Result);
+               if Module_Result then
+                  Result := N_Root_Acc (Module);
+                  Success := True;
+               else
+                  Result := null;
+                  Success := False;
+               end if;
+            end;
+         when others =>
+            Errors.Parser_Error ("definition expected",
+                                 Errors.Fatal);
+            Success := False;
+      end case;
+      if Get_Token /= T_Semi_Colon then
+         Errors.Parser_Error ("; expected", Errors.Error);
+      else
+         Next_Token;
+      end if;
+   end Parse_Definition;
 
 
    --  Rule 1 :

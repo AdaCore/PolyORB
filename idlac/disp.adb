@@ -84,9 +84,10 @@ package body Disp is
       Disp_Indent (Indent);
 
       case Get_Kind (N) is
---          when K_Scoped_Name =>
+         when K_Scoped_Name =>
 --             Put_Line
 --               ("scoped name: " & Get_Name (N_Scoped_Name (N).Value.all));
+            Put_Line ("Scoped Name");
 
          when K_Repository =>
             Put_Line ("repository");
@@ -97,7 +98,7 @@ package body Disp is
             Disp_Indent (Nindent, "content:");
             Disp_List (N_Module (N).Contents, Nindent + Offset, Full);
 
---          when K_Interface =>
+         when K_Interface =>
 --             Put_Line ("interface " & Get_Name (N_Interface (N)));
 --             if Full then
 --                if N_Interface (N).Parents /= Nil_List then
@@ -107,8 +108,9 @@ package body Disp is
 --                end if;
 --                Disp_List (N_Interface (N).Contents, Nindent, Full);
 --             end if;
+            Put_Line ("Interface");
 
---          when K_Forward_Interface =>
+         when K_Forward_Interface =>
 --             if N_Forward_Interface (N).Forward /= null then
 --                Put_Line ("forward interface "
 --                          & Get_Name (N_Forward_Interface (N).Forward.all));
@@ -116,6 +118,7 @@ package body Disp is
 --                Put_Line ("forward interface (not declared!!) "
 --                          & Get_Name (N_Forward_Interface (N)));
 --             end if;
+            Put_Line ("Interface_Forward");
 
 --          when K_Operation =>
 --             declare

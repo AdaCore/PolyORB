@@ -73,20 +73,20 @@ package body Tree is
       return K_Module;
    end Get_Kind;
 
---    function Get_Kind (N : N_Scoped_Name) return Node_Kind is
---    begin
---       return K_Scoped_Name;
---    end Get_Kind;
+   function Get_Kind (N : N_Interface) return Node_Kind is
+   begin
+      return K_Interface;
+   end Get_Kind;
 
---    function Get_Kind (N : N_Interface) return Node_Kind is
---    begin
---       return K_Interface;
---    end Get_Kind;
+   function Get_Kind (N : N_Forward_Interface) return Node_Kind is
+   begin
+      return K_Forward_Interface;
+   end Get_Kind;
 
---    function Get_Kind (N : N_Forward_Interface) return Node_Kind is
---    begin
---       return K_Forward_Interface;
---    end Get_Kind;
+   function Get_Kind (N : N_Scoped_Name) return Node_Kind is
+   begin
+      return K_Scoped_Name;
+   end Get_Kind;
 
 --    function Get_Kind (N : N_Operation) return Node_Kind is
 --    begin

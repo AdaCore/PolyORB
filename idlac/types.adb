@@ -110,11 +110,11 @@ package body Types is
    --    - a pointer on the entry correponding to the definition
    --  of an identifier with the same hash value.
    type Hash_Entry is record
-      Next : Uniq_Id;
       Definition : Identifier_Definition_Acc := null;
+      Next : Uniq_Id;
    end record;
 
-   --  The id_table. It is actually an variablr size table. If it
+   --  The id_table. It is actually an variable size table. If it
    --  becomes to little, it grows automatically.
    package Id_Table is new Gnat.Table
      (Table_Component_Type => Hash_Entry, Table_Index_Type => Uniq_Id,
@@ -294,6 +294,7 @@ package body Types is
          raise Errors.Internal_Error;
       end if;
       Definition.Node.Definition := null;
+      --  free????????
       Definition.Node := N_Named_Acc (Node);
       Node.Definition := Definition;
    end Redefine_Identifier;
@@ -345,39 +346,39 @@ package body Types is
 --
 --
 --
---    function Add_Identifier (Id : String_Cacc) return Uniq_Id is
---       use Tokens;
---       Hash_Index : Hash_Value_Type := Hash (Id.all) mod Hash_Mod;
---       Index : Uniq_Id := Hash_Table (Hash_Index);
---    begin
---       if Index = Nil_Uniq_Id then
---          Id_Table.Increment_Last;
---          Index := Id_Table.Last;
---          Hash_Table (Hash_Index) := Index;
---       else
---          while Id_Table.Table (Index).Str /= null loop
---             if Idl_Identifier_Equal (Id_Table.Table (Index).Str.all,
+--   function Add_Identifier (Id : String_Cacc) return Uniq_Id is
+--      use Tokens;
+--      Hash_Index : Hash_Value_Type := Hash (Id.all) mod Hash_Mod;
+--      Index : Uniq_Id := Hash_Table (Hash_Index);
+--   begin
+--      if Index = Nil_Uniq_Id then
+--         Id_Table.Increment_Last;
+--         Index := Id_Table.Last;
+--         Hash_Table (Hash_Index) := Index;
+--      else
+--         while Id_Table.Table (Index).Str /= null loop
+--            if Idl_Identifier_Equal (Id_Table.Table (Index).Str.all,
 --                                      Id.all) /= Differ
---             then
---                return Index;
---             end if;
---             if Id_Table.Table (Index).Next = Nil_Uniq_Id then
---                Id_Table.Increment_Last;
---                Id_Table.Table (Index).Next := Id_Table.Last;
---                Index := Id_Table.Last;
---                exit;
---             end if;
---             Index := Id_Table.Table (Index).Next;
---          end loop;
---       end if;
---       --  Add an entry in INDEX.
---       Id_Table.Table (Index) := (Str => Id,
---                                  Next => Nil_Uniq_Id,
---                                  Cell => null,
---                                  List => null);
---       return Index;
---    end Add_Identifier;
---
+--            then
+--               return Index;
+--            end if;
+--            if Id_Table.Table (Index).Next = Nil_Uniq_Id then
+--               Id_Table.Increment_Last;
+--               Id_Table.Table (Index).Next := Id_Table.Last;
+--               Index := Id_Table.Last;
+--               exit;
+--            end if;
+--            Index := Id_Table.Table (Index).Next;
+--         end loop;
+--      end if;
+--      --         Add an entry in INDEX.
+--      Id_Table.Table (Index) := (Str => Id,
+--                                 Next => Nil_Uniq_Id,
+--                                 Cell => null,
+--                                 List => null);
+--      return Index;
+--   end Add_Identifier;
+
 --
 --    function Is_Identifier_Imported (Cell : Identifier_Definition_Acc)
 --                                     return Boolean is
