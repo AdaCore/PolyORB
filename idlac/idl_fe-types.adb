@@ -1697,7 +1697,9 @@ package body Idl_Fe.Types is
    begin
       pragma Debug (O2 ("Set_Default_Repository_Id : enter"));
       pragma Assert (not Is_Explicit_Repository_Id (Node));
-      if Prefix_Node /= No_Node then
+      if Prefix_Node /= No_Node
+        and then String_Value (Prefix_Node) /= ""
+      then
          Set_String_Value
            (Name_Node,
             "IDL:" & String_Value (Prefix_Node) & "/"
