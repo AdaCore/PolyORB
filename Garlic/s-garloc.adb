@@ -33,11 +33,46 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with GNAT.Task_Lock;
 with System.Garlic.Soft_Links;
+with System.Garlic.Utils; use System.Garlic.Utils;
+with System.Garlic.Debug; use System.Garlic.Debug;
 
 package body System.Garlic.Locking is
+
+   Private_Debug_Key : constant Debug_Key :=
+     Debug_Initialize ("S_GARLOC", "(s-garloc): ");
+   procedure D
+     (Message : in String;
+      Key     : in Debug_Key := Private_Debug_Key)
+     renames Print_Debug_Info;
+
+   Critical_Section : Adv_Mutex_Type;
+
+   procedure Enter_Critical_Section;
+
+   procedure Leave_Critical_Section;
+   --  Procedures that will be registered through the soft-links mechanism
+
+   ----------------------------
+   -- Enter_Critical_Section --
+   ----------------------------
+
+   procedure Enter_Critical_Section is
+   begin
+      Enter (Critical_Section);
+   end Enter_Critical_Section;
+
+   ----------------------------
+   -- Leave_Critical_Section --
+   ----------------------------
+
+   procedure Leave_Critical_Section is
+   begin
+      Leave (Critical_Section);
+   end Leave_Critical_Section;
+
 begin
-   Soft_Links.Register_Enter_Critical_Section (GNAT.Task_Lock.Lock'Access);
-   Soft_Links.Register_Leave_Critical_Section (GNAT.Task_Lock.Unlock'Access);
+   Create (Critical_Section);
+   Soft_Links.Register_Enter_Critical_Section (Enter_Critical_Section'Access);
+   Soft_Links.Register_Leave_Critical_Section (Leave_Critical_Section'Access);
 end System.Garlic.Locking;
