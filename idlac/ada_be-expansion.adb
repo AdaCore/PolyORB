@@ -82,8 +82,9 @@ package body Ada_Be.Expansion is
 
    procedure Expand_State_Member
      (Node : in Node_Id);
-   --  Expand a State_Member into the corresponding _get_
-   --  and _set_ operations.
+   --  Expand a State_Member :
+   --  1. splits it if there are several declarators
+   --  2. Creates the corresponding _get_ and _set_ operations.
 
    procedure Expand_Attribute_And_State_Member
      (Node : in Node_Id;
@@ -463,6 +464,8 @@ package body Ada_Be.Expansion is
       Parent : in Node_Id;
       From : Node_Id;
       Implicit_Inherited : Boolean;
+      Directly_Supported : Boolean;
+      Oldest_ValueType_That_Has_It : Node_Id;
       Parents_Seen : in out Node_List);
    --  Recursively copy all operations from K_Interface
    --  node From and all its ancestors into Into.
@@ -478,6 +481,8 @@ package body Ada_Be.Expansion is
       Parent : in Node_Id;
       From : Node_Id;
       Implicit_Inherited : Boolean;
+      Directly_Supported : Boolean;
+      Oldest_ValueType_That_Has_It : Node_Id;
       Parents_Seen : in out Node_List)
    is
       Ops_It : Node_Iterator;
@@ -506,6 +511,12 @@ package body Ada_Be.Expansion is
             Set_Parent_Scope (New_O_Node, Parent);
             Set_Is_Implicit_Inherited
               (New_O_Node, Implicit_Inherited);
+            Set_Is_Directly_Supported
+              (New_O_Node, Directly_Supported);
+            if (Oldest_ValueType_That_Has_It /= No_Node) then
+               Set_Oldest_ValueType_That_Has_It
+                 (New_O_Node, Oldest_ValueType_That_Has_It);
+            end if;
             Append_Node (Into, New_O_Node);
          end if;
       end loop;
@@ -518,7 +529,10 @@ package body Ada_Be.Expansion is
 
          Recursive_Copy_Operations
            (Into, Parent, Value (I_Node),
-            Implicit_Inherited, Parents_Seen);
+            Implicit_Inherited,
+            Directly_Supported,
+            Oldest_ValueType_That_Has_It,
+            Parents_Seen);
       end loop;
    end Recursive_Copy_Operations;
 
@@ -549,6 +563,8 @@ package body Ada_Be.Expansion is
             Parent => Node,
             From => Value (Primary_Parent),
             Implicit_Inherited => True,
+            Directly_Supported => False,
+            Oldest_ValueType_That_Has_It => No_Node,
             Parents_Seen => Parents_Seen);
       end if;
 
@@ -561,6 +577,8 @@ package body Ada_Be.Expansion is
             Parent => Node,
             From => Value (I_Node),
             Implicit_Inherited => False,
+            Directly_Supported => False,
+            Oldest_ValueType_That_Has_It => No_Node,
             Parents_Seen => Parents_Seen);
       end loop;
 
@@ -596,6 +614,8 @@ package body Ada_Be.Expansion is
             Parent => Node,
             From => Value (Primary_Parent),
             Implicit_Inherited => True,
+            Directly_Supported => False,
+            Oldest_ValueType_That_Has_It => No_Node,
             Parents_Seen => Parents_Seen);
       end if;
 
@@ -608,6 +628,8 @@ package body Ada_Be.Expansion is
             Parent => Node,
             From => Value (I_Node),
             Implicit_Inherited => False,
+            Directly_Supported => False,
+            Oldest_ValueType_That_Has_It => No_Node,
             Parents_Seen => Parents_Seen);
       end loop;
 
@@ -620,6 +642,8 @@ package body Ada_Be.Expansion is
             Parent => Node,
             From => Value (I_Node),
             Implicit_Inherited => False,
+            Directly_Supported => True,
+            Oldest_ValueType_That_Has_It => Node,
             Parents_Seen => Interfaces_Seen);
       end loop;
 
@@ -646,14 +670,55 @@ package body Ada_Be.Expansion is
    --------------------------
    --  Expand_State_Member --
    --------------------------
-
-   procedure Expand_State_Member (Node : in Node_Id) is
+   procedure Expand_State_Member
+     (Node : in Node_Id) is
+      Declarators : Node_List;
+      It : Node_Iterator;
+      Current_Decl : Node_Id;
+      Parent_List : Node_List;
    begin
       pragma Assert (Kind (Node) = K_State_Member);
+      Declarators := State_Declarators (Node);
+
+      Init (It, Declarators);
+      pragma Assert (not Is_End (It));
+      Get_Next_Node (It, Current_Decl);
+      Parent_List := Contents (Parent_Scope (Current_Decl));
+
+      while not Is_End (It) loop
+         pragma Debug (O ("Expand_State_Member:"));
+         declare
+            New_State_Member : Node_Id
+              := Make_State_Member;
+            Decls : Node_List := Nil_List;
+         begin
+            Get_Next_Node (It, Current_Decl);
+            Append_Node (Decls, Current_Decl);
+            --  create node State_Member
+            Set_Original_Node (New_State_Member, Node);
+            Set_State_Type (New_State_Member, State_Type (Node));
+            Set_Is_Public (New_State_Member, Is_Public (Node));
+            Set_State_Declarators (New_State_Member, Decls);
+            Insert_After
+              (List => Parent_List,
+               Node => New_State_Member,
+               After => Node);
+            Remove_Node (Declarators, Current_Decl);
+
+            Expand_Attribute_And_State_Member
+              (Node => New_State_Member,
+               The_Type => State_Type (New_State_Member),
+               Declarators => State_Declarators (New_State_Member),
+               Is_Readable => Is_Public (New_State_Member),
+               Is_Writable => Is_Public (New_State_Member));
+         end;
+      end loop;
+
+      --  and now expand the first declarator
       Expand_Attribute_And_State_Member
-        (Node,
-         State_Type (Node),
-         State_Declarators (Node),
+        (Node => Node,
+         The_Type => State_Type (Node),
+         Declarators => State_Declarators (Node),
          Is_Readable => Is_Public (Node),
          Is_Writable => Is_Public (Node));
    end Expand_State_Member;
@@ -692,7 +757,8 @@ package body Ada_Be.Expansion is
             pragma Assert (Exports_List /= Nil_List);
          end if;
 
-         pragma Debug (O ("Expanding attribute declarator "
+         pragma Debug (O ("Expanding attribute or state member "
+                          & "declarator with name : "
                           & Ada_Name (Current_Declarator)));
 
          if Is_Readable then
@@ -702,6 +768,7 @@ package body Ada_Be.Expansion is
                  := Make_Operation;
                Success : Boolean;
             begin
+               pragma Debug (O ("Creating _get_ method"));
                Success := Add_Identifier
                  (Get_Method, "_get_"
                   & Ada_Name (Current_Declarator));
@@ -714,6 +781,11 @@ package body Ada_Be.Expansion is
                Set_Raises (Get_Method, Nil_List);
                Set_Contexts (Get_Method, Nil_List);
                Set_Original_Node (Get_Method, Node);
+
+               if Kind (Node) = K_State_Member then
+                  Set_Oldest_ValueType_That_Has_It
+                    (Get_Method, Parent_Scope (Current_Declarator));
+               end if;
 
                Insert_After
                  (List => Exports_List,
@@ -733,6 +805,7 @@ package body Ada_Be.Expansion is
                  := Make_Void;
                Success : Boolean;
             begin
+               pragma Debug (O ("Creating _set_ method"));
                Success := Add_Identifier
                  (Set_Method, "_set_"
                   & Ada_Name (Current_Declarator));
@@ -762,6 +835,10 @@ package body Ada_Be.Expansion is
                Set_Contexts (Set_Method, Nil_List);
                Set_Original_Node (Set_Method, Node);
 
+               if Kind (Node) = K_State_Member then
+                  Set_Oldest_ValueType_That_Has_It
+                    (Set_Method, Parent_Scope (Current_Declarator));
+               end if;
                --  add the node to the node list
                Insert_After
                  (List => Exports_List,
@@ -810,6 +887,13 @@ package body Ada_Be.Expansion is
             --  Insert it in the operation parameter list
             --  and make the operation void.
          end;
+      end if;
+
+      --  If this operation is defined in valuetype,
+      --  set its "Oldest_ValueType_That_Has_It" attribute
+      if Kind (Parent_Scope (Node)) = K_ValueType then
+         Set_Oldest_ValueType_That_Has_It
+           (Node, Parent_Scope (Node));
       end if;
 
    end Expand_Operation;
@@ -1485,6 +1569,9 @@ package body Ada_Be.Expansion is
       end if;
    end Add_Identifier_With_Renaming;
 
+   -----------------------------
+   --  Insert_Before_Current  --
+   -----------------------------
    procedure Insert_Before_Current
      (Node : Node_Id)
    is

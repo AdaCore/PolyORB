@@ -142,6 +142,20 @@ package body Ada_Be.Idl2Ada is
    --  and Sr_No_Reply alternatives of the subsequent
    --  case on the returned status.
 
+   procedure Gen_Skel_Body_Common_Start
+     (Skel_Body : in out Compilation_Unit;
+        Object_Name : in String);
+   --  generates code for skel_body that is common
+   --  for interfaces and valuetypes supporting interfaces
+   --  at the beginning of the package.
+
+   procedure Gen_Skel_Body_Common_End
+     (Skel_Body : in out Compilation_Unit;
+        Package_Name : in String);
+   --  generates code for skel_body that is common
+   --  for interfaces and valuetypes supporting interfaces
+   --  at the end of the package.
+
    ------------------------
    -- Helper subprograms --
    ------------------------
@@ -227,6 +241,8 @@ package body Ada_Be.Idl2Ada is
         := Stubs_Name & Helper.Suffix;
       Value_Skel_Name : constant String
         := Stubs_Name & Value_Skel.Suffix;
+      Skel_Name : constant String
+        := Stubs_Name & Skel_Suffix;
 
       Stubs_Spec : Compilation_Unit
         := New_Package (Stubs_Name, Unit_Spec);
@@ -252,6 +268,11 @@ package body Ada_Be.Idl2Ada is
         := New_Package (Value_Skel_Name, Unit_Spec);
       Value_Skel_Body : Compilation_Unit
         := New_Package (Value_Skel_Name, Unit_Body);
+
+      Skel_Spec : Compilation_Unit
+        := New_Package (Skel_Name, Unit_Spec);
+      Skel_Body : Compilation_Unit
+        := New_Package (Skel_Name, Unit_Body);
    begin
       --  ValueType reference type.
       Gen_Object_Reference_Declaration
@@ -285,6 +306,13 @@ package body Ada_Be.Idl2Ada is
       Helper.Gen_Node_Spec (Helper_Spec, Node);
       Helper.Gen_Node_Body (Helper_Body, Node);
 
+      --  skel package
+      if Supports (Node) /= Nil_List then
+         Add_Elaborate_Body (Skel_Spec);
+         Gen_Skel_Body_Common_Start (Skel_Body,
+                                     Stubs_Name & ".Helper.Servant'Class");
+      end if;
+
       declare
          It   : Node_Iterator;
          Export_Node : Node_Id;
@@ -299,22 +327,36 @@ package body Ada_Be.Idl2Ada is
             if Is_Gen_Scope (Export_Node) then
                Gen_Scope (Export_Node, Implement, To_Stdout);
             else
+               pragma Debug (O ("Gen_Node_Stubs_Spec"));
                Gen_Node_Stubs_Spec (Stubs_Spec, Export_Node);
+               pragma Debug (O ("Gen_ValueType_Stubs_Body"));
                Gen_ValueType_Stubs_Body (Stubs_Body,
-                                              Export_Node);
+                                         Export_Node);
+               pragma Debug (O ("Stream.Gen_Node_Spec"));
 
                Stream.Gen_Node_Spec (Stream_Spec, Export_Node);
                Stream.Gen_Node_Body (Stream_Body, Export_Node);
 
                --  Value_Skel packages
+               pragma Debug (O ("Value_Skel.Gen_Node_Spec"));
                Value_Skel.Gen_Node_Spec (Value_Skel_Spec, Export_Node);
 
                if not Abst (Node) then
+                  pragma Debug (O ("Value_Skel.Gen_Node_Body"));
                   Value_Skel.Gen_Node_Body (Value_Skel_Body, Export_Node);
+                  pragma Debug (O ("Value_Impl.Gen_Node_Spec"));
                   Value_Impl.Gen_Node_Spec (Value_Impl_Spec, Export_Node);
+                  pragma Debug (O ("Value_Impl.Gen_Node_Body"));
                   Value_Impl.Gen_Node_Body (Value_Impl_Body, Export_Node);
+                  --  skel package
+                  if Kind (Export_Node) = K_Operation
+                    and then Is_Directly_Supported (Export_Node) then
+                     pragma Debug (O ("Gen_Node_Skel_Body"));
+                     Gen_Node_Skel_Body (Skel_Body, Export_Node);
+                  end if;
                end if;
 
+               pragma Debug (O ("Helper.Gen_Node_Spec"));
                Helper.Gen_Node_Spec (Helper_Spec, Export_Node);
                Helper.Gen_Node_Body (Helper_Body, Export_Node);
             end if;
@@ -325,6 +367,11 @@ package body Ada_Be.Idl2Ada is
 
          end loop;
       end;
+
+      if Supports (Node) /= Nil_List then
+         Gen_Skel_Body_Common_End (Skel_Body,
+                                   Stubs_Name);
+      end if;
 
       if Implement then
          Generate (Value_Impl_Spec, False, To_Stdout);
@@ -338,6 +385,8 @@ package body Ada_Be.Idl2Ada is
          Generate (Helper_Body, False, To_Stdout);
          Generate (Value_Skel_Spec, False, To_Stdout);
          Generate (Value_Skel_Body, False, To_Stdout);
+         Generate (Skel_Spec, False, To_Stdout);
+         Generate (Skel_Body, False, To_Stdout);
       end if;
 
    end Gen_Value_Scope;
@@ -357,16 +406,14 @@ package body Ada_Be.Idl2Ada is
                  := Ada_Operation_Name (Node);
                Is_Function : constant Boolean
                  := Kind (Operation_Type (Node)) /= K_Void;
-               Original_Operation : Node_Id
-                 := Original_Node (Node);
+               Original_VT_Name : constant String
+                 := Ada_Full_Name
+                 (Oldest_ValueType_That_Has_It (Node));
             begin
                if not Is_Implicit_Inherited (Node) then
                   Add_With (CU, Parent_Scope_Name (Node)
                             & Value_Skel.Suffix);
                   Add_With (CU, "CORBA.Impl");
-                  if Original_Operation = No_Node then
-                     Original_Operation := Node;
-                  end if;
                   Gen_Operation_Profile
                     (CU,
                      Ada_Type_Defining_Name
@@ -375,12 +422,12 @@ package body Ada_Be.Idl2Ada is
                   PL (CU, " is");
                   II (CU);
                   Add_With (CU,
-                            Parent_Scope_Name (Original_Operation)
+                            Original_VT_Name
                             & Value_Skel.Suffix);
                   PL (CU,
                       Ada_Be.Temporaries.T_Value_Operation
                       & " : "
-                      & Parent_Scope_Name (Original_Operation)
+                      & Original_VT_Name
                       & Value_Skel.Suffix
                       & "."
                       & Ada_Operation_Name (Node)
@@ -405,7 +452,7 @@ package body Ada_Be.Idl2Ada is
                   PL (CU,
                       Ada_Be.Temporaries.T_Value_Operation
                       & " := "
-                      & Parent_Scope_Name (Original_Operation)
+                      & Original_VT_Name
                       & Value_Skel.Suffix
                       & "."
                       & Op_Name
@@ -456,9 +503,48 @@ package body Ada_Be.Idl2Ada is
                                         "Value_Ref",
                                         Node);
                PL (CU, " is");
+               II (CU);
+               PL (CU, "Result : Value_Ref;");
+               DI (CU);
                PL (CU, "begin");
                II (CU);
-               PL (CU, "null;");
+               Add_With (CU,
+                         Parent_Scope_Name (Node)
+                         & ".Value_Impl");
+               PL (CU, "Set");
+               PL (CU, "  (Result,");
+               PL (CU, "   CORBA.Impl.Object_Ptr");
+               Put (CU, "   ("
+                    & Parent_Scope_Name (Node)
+                    & ".Value_Impl."
+                    & Ada_Name (Node));
+
+               --  The formal parameters
+               declare
+                  It : Node_Iterator;
+                  Param_Node : Node_Id;
+                  Is_First : Boolean := True;
+               begin
+                  Init (It, Param_Decls (Node));
+                  while not Is_End (It) loop
+                     Get_Next_Node (It, Param_Node);
+                     if Is_First then
+                        NL (CU);
+                        Put (CU, "    (");
+                        Is_First := False;
+                     else
+                        PL (CU, ",");
+                        Put (CU, "     ");
+                     end if;
+                     Put (CU, Ada_Name (Declarator (Param_Node)));
+                  end loop;
+                  if not Is_First then
+                     Put (CU, ")");
+                  end if;
+                  PL (CU, "));");
+               end;
+
+               PL (CU, "return Result;");
                DI (CU);
                PL (CU, "end "
                    & Ada_Name (Node)
@@ -627,47 +713,9 @@ package body Ada_Be.Idl2Ada is
                NL (Skel_Body);
                PL (Skel_Body, "type Object_Ptr is access all "
                    & Impl_Name & ".Object'Class;");
-               NL (Skel_Body);
-               PL (Skel_Body, "--  Skeleton subprograms");
-               NL (Skel_Body);
-               PL (Skel_Body, "function Servant_Is_A");
-               PL (Skel_Body, "  (Obj : PortableServer.Servant)");
-               PL (Skel_Body, "  return Boolean;");
-               PL (Skel_Body, "procedure GIOP_Dispatch");
-               PL (Skel_Body, "  (Obj : PortableServer.Servant;");
-               II (Skel_Body);
-               PL (Skel_Body, "Operation : Standard.String;");
-               PL (Skel_Body, "Request_Id : CORBA.Unsigned_Long;");
-               PL (Skel_Body, "Response_Expected : CORBA.Boolean;");
-               PL (Skel_Body,
-                   "Request_Buffer : access Broca.Buffers.Buffer_Type;");
-               PL (Skel_Body,
-                   "Reply_Buffer   : access Broca.Buffers.Buffer_Type);");
-               DI (Skel_Body);
-               NL (Skel_Body);
-               PL (Skel_Body, "function Servant_Is_A");
-               PL (Skel_Body, "  (Obj : PortableServer.Servant)");
-               PL (Skel_Body, "  return Boolean is");
-               PL (Skel_Body, "begin");
-               II (Skel_Body);
-               PL (Skel_Body, "return Obj.all in "
-                   & Impl_Name & ".Object'Class;");
-               DI (Skel_Body);
-               PL (Skel_Body, "end Servant_Is_A;");
-               NL (Skel_Body);
-               PL (Skel_Body, "procedure GIOP_Dispatch");
-               PL (Skel_Body, "  (Obj : PortableServer.Servant;");
-               II (Skel_Body);
-               PL (Skel_Body, "Operation : Standard.String;");
-               PL (Skel_Body, "Request_Id : CORBA.Unsigned_Long;");
-               PL (Skel_Body, "Response_Expected : CORBA.Boolean;");
-               PL (Skel_Body,
-                   "Request_Buffer : access Broca.Buffers.Buffer_Type;");
-               PL (Skel_Body,
-                   "Reply_Buffer   : access Broca.Buffers.Buffer_Type) is");
-               DI (Skel_Body);
-               PL (Skel_Body, "begin");
-               II (Skel_Body);
+
+               Gen_Skel_Body_Common_Start
+                 (Skel_Body, Impl_Name & ".Object'Class");
 
                Gen_Is_A_Skel (Node, Skel_Body);
 
@@ -742,18 +790,7 @@ package body Ada_Be.Idl2Ada is
             end;
 
             if not Abst (Node) then
-               NL (Skel_Body);
-               PL (Skel_Body, "Broca.Exceptions.Raise_Bad_Operation;");
-               DI (Skel_Body);
-               PL (Skel_Body, "end GIOP_Dispatch;");
-
-               Divert (Skel_Body, Elaboration);
-
-               PL (Skel_Body, "PortableServer.Register_Skeleton");
-               PL (Skel_Body, "  (" & Stubs_Name
-                   & "." & T_Repository_Id &",");
-               PL (Skel_Body, "   Servant_Is_A'Access,");
-               PL (Skel_Body, "   GIOP_Dispatch'Access);");
+               Gen_Skel_Body_Common_End (Skel_Body, Stubs_Name);
             end if;
 
          when others =>
@@ -793,10 +830,84 @@ package body Ada_Be.Idl2Ada is
       end;
    end Gen_Interface_Module_Scope;
 
+   ---------------------------------
+   --  Gen_Skel_Body_Common_Start --
+   ---------------------------------
+   procedure Gen_Skel_Body_Common_Start
+     (Skel_Body : in out Compilation_Unit;
+        Object_Name : in String) is
+   begin
+      Add_With (Skel_Body, "PortableServer");
+      Add_With (Skel_Body, "CORBA");
+      Add_With (Skel_Body, "Broca.Buffers");
+      NL (Skel_Body);
+      PL (Skel_Body, "--  Skeleton subprograms");
+      NL (Skel_Body);
+      PL (Skel_Body, "function Servant_Is_A");
+      PL (Skel_Body, "  (Obj : PortableServer.Servant)");
+      PL (Skel_Body, "  return Boolean;");
+      PL (Skel_Body, "procedure GIOP_Dispatch");
+      PL (Skel_Body, "  (Obj : PortableServer.Servant;");
+      II (Skel_Body);
+      PL (Skel_Body, "Operation : Standard.String;");
+      PL (Skel_Body, "Request_Id : CORBA.Unsigned_Long;");
+      PL (Skel_Body, "Response_Expected : CORBA.Boolean;");
+      PL (Skel_Body,
+          "Request_Buffer : access Broca.Buffers.Buffer_Type;");
+      PL (Skel_Body,
+          "Reply_Buffer   : access Broca.Buffers.Buffer_Type);");
+      DI (Skel_Body);
+      NL (Skel_Body);
+      PL (Skel_Body, "function Servant_Is_A");
+      PL (Skel_Body, "  (Obj : PortableServer.Servant)");
+      PL (Skel_Body, "  return Boolean is");
+      PL (Skel_Body, "begin");
+      II (Skel_Body);
+      PL (Skel_Body, "return Obj.all in "
+          & Object_Name
+          & ";");
+      DI (Skel_Body);
+      PL (Skel_Body, "end Servant_Is_A;");
+      NL (Skel_Body);
+      PL (Skel_Body, "procedure GIOP_Dispatch");
+      PL (Skel_Body, "  (Obj : PortableServer.Servant;");
+      II (Skel_Body);
+      PL (Skel_Body, "Operation : Standard.String;");
+      PL (Skel_Body, "Request_Id : CORBA.Unsigned_Long;");
+      PL (Skel_Body, "Response_Expected : CORBA.Boolean;");
+      PL (Skel_Body,
+          "Request_Buffer : access Broca.Buffers.Buffer_Type;");
+      PL (Skel_Body,
+          "Reply_Buffer   : access Broca.Buffers.Buffer_Type) is");
+      DI (Skel_Body);
+      PL (Skel_Body, "begin");
+      II (Skel_Body);
+   end Gen_Skel_Body_Common_Start;
+
+   --------------------------------
+   --  Gen_Skel_Body_Common_End  --
+   --------------------------------
+   procedure Gen_Skel_Body_Common_End
+     (Skel_Body : in out Compilation_Unit;
+      Package_Name : in String) is
+   begin
+      NL (Skel_Body);
+      PL (Skel_Body, "Broca.Exceptions.Raise_Bad_Operation;");
+      DI (Skel_Body);
+      PL (Skel_Body, "end GIOP_Dispatch;");
+      Divert (Skel_Body, Elaboration);
+
+      PL (Skel_Body, "PortableServer.Register_Skeleton");
+      PL (Skel_Body, "  (" & Package_Name
+          & "." & T_Repository_Id &",");
+      PL (Skel_Body, "   Servant_Is_A'Access,");
+      PL (Skel_Body, "   GIOP_Dispatch'Access);");
+   end Gen_Skel_Body_Common_End;
+
+
    --------------------
    -- Gen_Is_A_Stubs --
    --------------------
-
    procedure Gen_Is_A_Stubs
      (Node       : in Node_Id;
       Stubs_Spec : in out Compilation_Unit;
@@ -871,6 +982,7 @@ package body Ada_Be.Idl2Ada is
           "  --  an actual request invocation on Self).");
       NL (Stubs_Body);
       PL (Stubs_Body, "end Is_A;");
+      DI (Stubs_Body);
 
       NL (Stubs_Body);
       PL (Stubs_Body, "--  The internal Is_A implementation for");
@@ -929,6 +1041,7 @@ package body Ada_Be.Idl2Ada is
       NL (Stubs_Body);
 
       PL (Stubs_Body, "end Is_A;");
+      DI (Stubs_Body);
    end Gen_Is_A_Stubs;
 
    -------------------
@@ -1005,7 +1118,10 @@ package body Ada_Be.Idl2Ada is
             when K_Interface =>
                if Abst (Node) then
                   Add_With (CU, "CORBA.AbstractBase");
-                  Put (CU, "CORBA.AbstractBase");
+                  --  unconsistent spec, we must discuss this
+                  Add_With (CU, "CORBA.Object");
+                  Put (CU, "CORBA.Object.Ref");
+                  --  Put (CU, "CORBA.AbstractBase.Ref");
                else
                   Add_With (CU, "CORBA.Object");
                   Put (CU, "CORBA.Object.Ref");
@@ -1524,14 +1640,17 @@ package body Ada_Be.Idl2Ada is
       declare
          I_Node : constant Node_Id
            := Parent_Scope (Node);
-         --  The Interface node that contains
+         --  The Interface Or valuetype node that contains
          --  this operation.
          Is_Function : constant Boolean
            := Kind (Operation_Type (Node)) /= K_Void;
+         Is_Supported : constant Boolean
+           := Kind (I_Node) = K_ValueType;
       begin
          pragma Debug (O ("Node is a " & Kind (Node)'Img));
          pragma Debug (O ("Its parent scope is a " & Kind (I_Node)'Img));
-         pragma Assert (Kind (I_Node) = K_Interface);
+         pragma Assert (Kind (I_Node) = K_Interface
+                        or else Kind (I_Node) = K_ValueType);
 
          NL (CU);
          PL (CU, "if Operation = """ & Idl_Operation_Id (Node) & """ then");
@@ -1575,6 +1694,21 @@ package body Ada_Be.Idl2Ada is
                 & ";");
          end if;
 
+         if Is_Supported then
+            Add_With (CU,
+                      Ada_Full_Name (I_Node)
+                      & Value_Skel.Suffix);
+            PL (CU,
+                Ada_Be.Temporaries.T_Value_Operation
+                & " : "
+                & Ada_Full_Name (I_Node)
+                & Value_Skel.Suffix
+                & "."
+                & Ada_Operation_Name (Node)
+                & "_Type;");
+
+         end if;
+
          DI (CU);
          PL (CU, "begin");
          II (CU);
@@ -1611,16 +1745,41 @@ package body Ada_Be.Idl2Ada is
 
          NL (CU);
          PL (CU, "begin");
+         --  This begin is for the "exception" statement below
+         --  to catch exceptions that can be raised during invocation
+         --  of the servant's method.
          II (CU);
+
+         if Is_Supported then
+            PL (CU, "--  Get the operation");
+            PL (CU,
+                Ada_Be.Temporaries.T_Value_Operation
+                & " := "
+                & Ada_Full_Name (I_Node)
+                & Value_Skel.Suffix
+                & "."
+                & Ada_Operation_Name (Node)
+                & "_Store.Get_Operation");
+            PL (CU, "  (Obj.Value.all'Tag);");
+            NL (CU);
+         end if;
+
          PL (CU, "--  Call implementation");
 
          if Is_Function then
             Put (CU, T_Returns & " := ");
          end if;
-         PL (CU, Ada_Full_Name (I_Node) & Impl.Suffix
-             & "." & Ada_Name (Node));
-         Put (CU, "  (Object_Ptr (Obj)");
+
+         if Is_Supported then
+            PL (CU, Ada_Be.Temporaries.T_Value_Operation);
+            Put (CU, "  (Obj");
+         else
+            PL (CU, Ada_Full_Name (I_Node) & Impl.Suffix
+                & "." & Ada_Name (Node));
+            Put (CU, "  (Object_Ptr (Obj)");
+         end if;
          II (CU);
+
          declare
             It   : Node_Iterator;
             P_Node : Node_Id;

@@ -150,7 +150,58 @@ package body Ada_Be.Idl2Ada.Value_Impl is
       case Kind (Node) is
 
          when K_Operation =>
-            Ada_Be.Idl2Ada.Impl.Gen_Node_Body (CU, Node);
+            --  for public state members, the operation body is
+            --  fully generated.
+            if Original_Node (Node) = No_Node
+              or else Kind (Original_Node (Node)) /= K_State_Member then
+               Ada_Be.Idl2Ada.Impl.Gen_Node_Body (CU, Node);
+            else
+               pragma Debug (O ("Generating .value_impl for state member"));
+               declare
+                  Is_Get : constant Boolean
+                    := Kind (Operation_Type (Node)) /= K_Void;
+               begin
+                  NL (CU);
+                  Gen_Operation_Profile (CU, "access Object", Node);
+                  PL (CU, " is");
+                  PL (CU, "begin");
+                  II (CU);
+                  if Is_Get then
+                     Put (CU,
+                          "return Self.all.");
+                     Put (CU,
+                          Ada_Name (Head (State_Declarators
+                                          (Original_Node (Node)))));
+                     PL (CU, ";");
+                  else
+                     Put (CU,
+                          "Self.all.");
+                     Put (CU,
+                          Ada_Name (Head (State_Declarators
+                                          (Original_Node (Node)))));
+                     PL (CU, " := To;");
+                  end if;
+                  DI (CU);
+                  PL (CU, "end " & Ada_Operation_Name (Node) & ";");
+               end;
+            end if;
+
+         when K_Initializer =>
+            Gen_Initializer_Profile (CU,
+                                     "Object_Ptr",
+                                     Node);
+            PL (CU, " is");
+            II (CU);
+            PL (CU, "Result : Object_Ptr := new Object;");
+            DI (CU);
+            PL (CU, "begin");
+            II (CU);
+            NL (CU);
+            PL (CU, "--  Insert implementation of " & Ada_Name (Node));
+            NL (CU);
+            PL (CU, "return Result;");
+            DI (CU);
+            PL (CU, "end " & Ada_Name (Node) & ";");
 
          when others =>
             null;

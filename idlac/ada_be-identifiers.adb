@@ -78,6 +78,9 @@ package body Ada_Be.Identifiers is
       end case;
    end Ada_Full_Name;
 
+   ----------------
+   --  Ada_Name  --
+   ----------------
    function Ada_Name
      (Node : Node_Id)
      return String

@@ -54,9 +54,8 @@ package body Ada_Be.Idl2Ada.Value_Skel is
             end if;
 
             --  Write the store only if the operation
-            --  is not inherited from somewhere else
-
-            if Original_Node (Node) = No_Node then
+            --  is not inherited from another valuetype.
+            if Oldest_ValueType_That_Has_It (Node) = Parent_Scope (Node) then
                declare
                   Opname : constant String
                     := Ada_Operation_Name (Node);
@@ -154,24 +153,15 @@ package body Ada_Be.Idl2Ada.Value_Skel is
                --  Register this operation in the proper Operation_Store.
                Divert (CU, Elaboration);
                declare
-                  Original_Operation : Node_Id
-                    := Original_Node (Node);
+                  Original_VT_Name : constant String
+                    := Ada_Full_Name
+                    (Oldest_ValueType_That_Has_It (Node));
                begin
-
-                  if Original_Operation /= No_Node then
-                     Put (CU,
-                          Parent_Scope_Name (Original_Operation));
-                     Add_With (CU,
-                               Parent_Scope_Name (Original_Operation)
-                               & ".Value_Skel");
-                  else
-                     Put (CU,
-                          Parent_Scope_Name (Node));
-                     Add_With (CU,
-                               Parent_Scope_Name (Node)
-                               & ".Value_Skel");
-                  end if;
-
+                  Put (CU,
+                       Original_VT_Name);
+                  Add_With (CU,
+                            Original_VT_Name
+                            & ".Value_Skel");
                   PL (CU,
                       ".Value_Skel."
                       & Opname

@@ -458,14 +458,52 @@ package body Ada_Be.Idl2Ada.Helper is
 
       Type_Full_Name : constant String
         := Ada_Type_Name (Node);
+      V_Impl_Name : constant String
+        := Ada_Name (Node) & ".Value_Impl.Object'Class";
    begin
       pragma Assert (Kind (Node) = K_ValueType);
-
+      Add_With (CU, "CORBA.Value");
       NL (CU);
       PL (CU, "function To_" & Type_Name);
       PL (CU, "  (The_Ref : in CORBA.Value.Base'Class)");
       PL (CU, "  return " & Type_Full_Name & ";");
 
+      --  generate code for supported interfaces
+      --  generate this portion of code iff there is a non abstract
+      --  supported interface.
+      declare
+         It : Node_Iterator;
+         Interface : Node_Id;
+      begin
+         Init (It, Supports (Node));
+         while not Is_End (It) loop
+            Get_Next_Node (It, Interface);
+            --  we get a K_Scoped_Name that we must transform into K_Interface
+            Interface := Value (Interface);
+            if not Abst (Interface) then
+               Add_With (CU, Ada_Full_Name (Node) & ".Value_Impl");
+               NL (CU);
+               PL (CU, "type Servant");
+               II (CU);
+               PL (CU,
+                   "(Value : access "
+                   & V_Impl_Name
+                   & ")");
+               Add_With (CU, "PortableServer");
+               PL (CU, "is new PortableServer.Servant_Base with null record;");
+               DI (CU);
+               PL (CU,
+                   "type Servant_Ref is access all Servant'Class;");
+               NL (CU);
+               PL (CU, "function To_Servant");
+               PL (CU, "  (Self : access "
+                   & V_Impl_Name
+                   & ")");
+               PL (CU, "  return Servant_Ref;");
+               exit;
+            end if;
+         end loop;
+      end;
    end Gen_ValueType_Spec;
 
    ------------------------
