@@ -487,6 +487,21 @@ package body OmniObject is
    --          miscellaneous                    --
    -----------------------------------------------
 
+
+   -- C_Non_Existent
+   -----------------
+   function C_Non_Existent(Self : in Object'Class) return Sys_Dep.C_Boolean;
+   pragma Import(CPP, C_Non_Existent, "non_existent__14Ada_OmniObject") ;
+   -- calls Ada_OmniObject::non_existent
+
+   -- Non_Existent
+   ---------------
+   function Non_Existent(Self : in Object'Class) return Corba.Boolean is
+   begin
+      return Sys_Dep.Boolean_C_To_Ada(C_Non_Existent(Self)) ;
+   end ;
+
+
    -- C_Get_Rope_And_Key
    ---------------------
    procedure C_Get_Rope_And_Key (Self : in Object'Class ;

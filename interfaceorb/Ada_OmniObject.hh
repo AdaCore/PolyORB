@@ -110,6 +110,11 @@ public:
   // it has to be done only for local object
   // to tell the ORB they cannot receive connexions any longer
 
+  bool non_existent() ;
+  // returns true if the ORB is sure that the
+  // implementation referenced by this proxy object
+  // does not exist
+  
   void setRopeAndKey(const Ada_OmniRopeAndKey& l,_CORBA_Boolean keepIOP=1);
   // calls the setRopeAndKey function of C_Object
 

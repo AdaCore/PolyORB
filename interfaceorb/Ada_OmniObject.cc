@@ -50,7 +50,7 @@
 
 
 #include "Ada_OmniObject.hh"
-
+#include <omniORB2/CORBA.h>
 // DEBUG is defined at the beginning of each file
 // and undefined at the end of each file
 //#define DEBUG
@@ -143,17 +143,6 @@ Ada_OmniObject::initProxyObject (const char *repoId,
 };
 
 
-// Init
-//-----
-/*void
-  Ada_OmniObject::Init (omniObject_C2Ada *omniobj)
-  {
-  C_Object = omniobj;
-  Init_Ok = true;
-  return;
-  }*/
-
- 
 // objectDuplicate
 //-----------------
 Ada_OmniObject*
@@ -191,6 +180,22 @@ Ada_OmniObject::disposeObject() {
   omni::disposeObject(C_Object) ;
   } else {
     raise_ada_exception("Ada_OmniObject::disposeObject cannot be called on a non-initialized object") ;
+  }
+}
+
+
+// non_existent
+//-------------
+bool
+Ada_OmniObject::non_existent() {
+  if (Init_Ok) {
+    CORBA::Object_ptr tmp = new CORBA::Object ;
+    tmp->PR_setobj(C_Object) ;
+    _CORBA_Boolean result = tmp->_non_existent() ;
+    delete tmp ;
+    return result ;
+  } else {
+    raise_ada_exception("Ada_OmniObject::non_existent cannot be called on a non-initialized object") ;
   }
 }
 

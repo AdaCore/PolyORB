@@ -325,6 +325,10 @@ package OmniObject is
    --          miscellaneous                    --
    -----------------------------------------------
 
+   function Non_Existent(Self : in Object'Class) return Corba.Boolean ;
+   -- returns true if the ORB is sure that this object
+   -- does not exist
+
    procedure Assert_Object_Existent(Self : in Object'Class) ;
    pragma Import (CPP, Assert_Object_Existent, "assertObjectExistent__14Ada_OmniObject") ;
    -- checks that this object really exists

@@ -100,9 +100,8 @@ package Corba.Object is
 
 
    function Non_Existent(Self : in Ref) return Corba.Boolean ;
-   -- returns false if this reference is nil
-   -- it could be smarter and call omniORB's non_existent
-   -- in corbaObject.cc
+   -- returns true if the ORB knows that the implementation
+   -- referenced by this proxy object does not exist
 
 
    function Is_Equivalent(Self : in Ref ;

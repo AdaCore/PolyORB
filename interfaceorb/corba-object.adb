@@ -101,7 +101,7 @@ package body Corba.Object is
       if Is_Nil(self) then
          return True ;
       end if ;
-      return False ;
+      return Omniobject.Non_Existent(Self.Omniobj.all) ;
    end ;
 
 

@@ -161,7 +161,7 @@ Ada_OmniRopeAndKey::equals(Ada_OmniRopeAndKey other) {
 // assertInit_Ok
 //--------------
 bool
-Ada_OmniRopeAndKey::assertInit_Ok () {
+Ada_OmniRopeAndKey::assertInit_Ok () const {
   return Init_Ok;
 }
 
