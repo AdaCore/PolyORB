@@ -90,8 +90,6 @@ package body PolyORB.Parameters.File is
       Line : String (1 .. 1_024);
       Last : Integer;
 
-      Success : Boolean := False;
-
       use PolyORB.Utils;
 
    begin
@@ -99,15 +97,14 @@ package body PolyORB.Parameters.File is
 
       begin
          Open (Conf_File, In_File, Conf_File_Name);
-         Success := True;
       exception
          when Name_Error =>
             --  No configuration file.
             pragma Debug (O ("No " & Conf_File_Name & " configuration file."));
-            null;
+            return;
       end;
 
-      while Success and then not End_Of_File (Conf_File) loop
+      while not End_Of_File (Conf_File) loop
          Get_Line (Conf_File, Line, Last);
          Current_Line := Current_Line + 1;
 
@@ -164,6 +161,8 @@ package body PolyORB.Parameters.File is
             end case;
          end if;
       end loop;
+
+      Close (Conf_File);
    end Load_Configuration_File;
 
    -----------------------------
