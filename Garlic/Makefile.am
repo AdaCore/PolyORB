@@ -24,10 +24,10 @@ s-garrem.o
 TCP_OBJECTS = \
 s-ganobl.o\
 s-gtplsp.o\
-s-gartcp.o\
-s-garthi.o
+s-gartcp.o
 
 COMMON_OBJECTS = \
+s-garthi.o\
 s-gaphlo.o\
 s-gaosli.o\
 s-garcon.o\
@@ -57,11 +57,11 @@ ${srcdir}/s-garrem.ads ${srcdir}/s-garrem.adb
 TCP_SOURCES = \
 ${srcdir}/s-ganobl.ads ${srcdir}/s-ganobl.adb \
         ./s-gtplsp.ads                        \
-${srcdir}/s-gartcp.ads ${srcdir}/s-gartcp.adb \
-${srcdir}/s-garthi.ads
+${srcdir}/s-gartcp.ads ${srcdir}/s-gartcp.adb
 
 COMMON_SOURCES = \
 ${srcdir}/rci_info.ads ${srcdir}/rci_info.adb \
+${srcdir}/s-garthi.ads \
 $(srcdir)/s-gaosli.ads ${srcdir}/s-gaosli.adb \
 ${srcdir}/s-gaphlo.ads ${srcdir}/s-gaphlo.adb \
 ${srcdir}/s-garcac.ads ${srcdir}/s-garcac.adb \
