@@ -1,3 +1,8 @@
+2004-11-22  Pascal Obry  <obry@adacore.com>
+
+	* 5wgarrem.adb, s-garrem.ads:
+	Minor reformatting.
+
 2004-09-05  Pascal Obry  <obry@gnat.com>
 
 	* s-gaprtc.ads, s-gardeb.ads, s-garpar.adb, s-garpar.ads,
