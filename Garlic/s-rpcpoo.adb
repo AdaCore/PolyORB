@@ -44,7 +44,7 @@ package body System.RPC.Pool is
    use System.RPC.Util;
 
    Private_Debug_Key : constant Debug_Key :=
-     Debug_Initialize ("RPPOO", "(s-rpcpoo): ");
+     Debug_Initialize ("RPCPOO", "(s-rpcpoo): ");
    procedure D
      (Level   : in Debug_Level;
       Message : in String;
