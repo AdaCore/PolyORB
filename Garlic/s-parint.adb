@@ -51,6 +51,9 @@ pragma Elaborate (System.Garlic.Heart);
 with System.Garlic.Options; use System.Garlic.Options;
 with System.Garlic.Remote;  use System.Garlic.Remote;
 
+with System.Garlic.Soft_Links;
+pragma Elaborate (System.Garlic.Soft_Links);
+
 pragma Warnings (Off);
 with System.Garlic.Startup;
 pragma Elaborate (System.Garlic.Startup);
@@ -88,6 +91,9 @@ package body System.Partition_Interface is
    function Convert is
      new Ada.Unchecked_Conversion
      (RPC.RPC_Receiver, RPC_Receiver);
+
+   procedure Complete_Termination (Termination : Termination_Type);
+   --  Select the correct soft link
 
    procedure Process
      (N       : in Unit_Id;
@@ -144,6 +150,31 @@ package body System.Partition_Interface is
                       Table_Initial        => 16,
                       Table_Increment      => 100);
 
+   type Caller_Node;
+   type Caller_List is access Caller_Node;
+   type Caller_Node is
+      record
+         Name    : String_Access;
+         Version : String_Access;
+         Next    : Caller_List;
+      end record;
+   Callers : Caller_List;
+
+   procedure Free is new Ada.Unchecked_Deallocation (Caller_Node, Caller_List);
+
+   -----------
+   -- Check --
+   -----------
+
+   procedure Check (Name : in Unit_Name; Version : in String) is
+      Caller : Caller_List := new Caller_Node;
+   begin
+      Caller.Name    := new String'(Name);
+      Caller.Version := new String'(Version);
+      Caller.Next    := Callers;
+      Callers        := Caller;
+   end Check;
+
    ---------------------
    -- Compare_Content --
    ---------------------
@@ -155,6 +186,20 @@ package body System.Partition_Interface is
       return Left /= null and then Right /= null and then Left.all = Right.all;
    end Compare_Content;
 
+   --------------------------
+   -- Complete_Termination --
+   --------------------------
+
+   procedure Complete_Termination (Termination : Termination_Type) is
+   begin
+      case Termination is
+         when Local_Termination  =>
+            System.Garlic.Soft_Links.Local_Termination;
+         when Global_Termination =>
+            System.Garlic.Soft_Links.Global_Termination;
+         when others => null;
+      end case;
+   end Complete_Termination;
 
    -----------------------------
    -- Get_Active_Partition_ID --
@@ -574,19 +619,61 @@ package body System.Partition_Interface is
    -- Run --
    ---------
 
-   procedure Run (Main : in Main_Subprogram_Type) is
+   procedure Run
+     (Main : in Main_Subprogram_Type := null) is
       What    : Ada.Exceptions.Exception_Id;
       Message : String_Access;
+      Caller  : Caller_List := Callers;
+      Dummy   : Caller_List;
 
    begin
-      select
-         Fatal_Error.Occurred (What, Message);
-         Soft_Shutdown;
-         Ada.Exceptions.Raise_Exception (What, Message.all);
-      then abort
-         Main.all;
-      end select;
+
+      pragma Debug (D (D_Debug, "Complete elaboration"));
+      System.Garlic.Heart.Complete_Elaboration;
+
+      pragma Debug (D (D_Debug, "Establish RPC Receiver"));
+      System.RPC.Establish_RPC_Receiver
+        (System.RPC.Partition_ID (Local_Partition), null);
+
+      while Caller /= null loop
+         pragma Debug (D (D_Debug, "Check " & Caller.Name.all &
+                          " version consistency"));
+         if Different (Caller.Version.all,
+                       Get_Active_Version (Caller.Name.all)) then
+            Soft_Shutdown;
+            Ada.Exceptions.Raise_Exception
+              (Program_Error'Identity,
+               "Versions differ for RCI unit """ &
+               Caller.Name.all & """");
+         end if;
+         Free (Caller.Version);
+         Free (Caller.Name);
+         Dummy  := Caller;
+         Caller := Caller.Next;
+         Free (Dummy);
+      end loop;
+
+      pragma Debug (D (D_Debug, "Execute main suprogram"));
+      if Main /= null then
+         select
+            Fatal_Error.Occurred (What, Message);
+            Soft_Shutdown;
+            Ada.Exceptions.Raise_Exception (What, Message.all);
+         then abort
+            Main.all;
+         end select;
+      end if;
       Free (Message);
+
+      pragma Debug (D (D_Debug, "Complete termination"));
+      Complete_Termination (Garlic.Options.Termination);
+
+   exception when others =>
+      pragma Debug (D (D_Debug,
+                       "Complete termination after handling exception"));
+      Complete_Termination (Garlic.Options.Termination);
+      raise;
+
    end Run;
 
    ----------
@@ -617,21 +704,6 @@ package body System.Partition_Interface is
 
       Send (Partition, Name_Service, Params'Access);
    end Send;
-
-   -----------
-   -- Check --
-   -----------
-
-   procedure Check (Name : in Unit_Name; Version : in String) is
-   begin
-      if Different (Version, Get_Active_Version (Name)) then
-         Soft_Shutdown;
-         Ada.Exceptions.Raise_Exception
-           (Program_Error'Identity,
-            "Versions differ for RCI unit """ &
-            Name & """");
-      end if;
-   end Check;
 
 begin
    Receive (Name_Service, Public_Message_Receiver'Access);

@@ -360,16 +360,16 @@ package body System.Garlic.Heart is
       D (D_Debug, "  Alive:       " & Boolean'Image (Public.Alive));
    end Dump_Partition_Information;
 
-   -------------------------------
-   -- Elaboration_Is_Terminated --
-   -------------------------------
+   --------------------------
+   -- Complete_Elaboration --
+   --------------------------
 
-   procedure Elaboration_Is_Terminated is
+   procedure Complete_Elaboration is
    begin
       pragma Debug
         (D (D_Elaborate, "Signaling that elaboration is terminated"));
       Elaboration_Barrier.Signal_All (Permanent => True);
-   end Elaboration_Is_Terminated;
+   end Complete_Elaboration;
 
    -----------------
    -- Fatal_Error --

@@ -127,7 +127,7 @@ package System.Partition_Interface is
    function Get_Address (Handle : Natural) return System.Address;
    --  Get the address associated to this handle
 
-   procedure Run (Main : in Main_Subprogram_Type);
+   procedure Run (Main : in Main_Subprogram_Type := null);
    --  Run the main subprogram
 
 end System.Partition_Interface;

@@ -94,7 +94,7 @@ package System.Garlic.Heart is
    -- Elaboration control --
    -------------------------
 
-   procedure Elaboration_Is_Terminated;
+   procedure Complete_Elaboration;
    --  This procedure must be called as the first instruction of the
    --  main procedure.
 

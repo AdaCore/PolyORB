@@ -388,6 +388,13 @@ package body System.Garlic.Termination is
    procedure Global_Termination is
    begin
 
+      --  This partition is involved in the global termination algorithm.
+      --  But only the main partition will have something to do.
+
+      if Get_My_Partition_ID /= Get_Boot_Server then
+         return;
+      end if;
+
       Main_Loop : loop
 
          --  Wait for a given time
