@@ -1,4 +1,13 @@
-corba_exe=server_no_tasking server_thread_pool server_thread_per_request server_thread_per_session client
+corba_exe= \
+	server_no_tasking \
+	server_no_tasking2 \
+	server_thread_pool \
+	server_thread_pool_hahs \
+	server_thread_pool_lf \
+	server_thread_per_request \
+	server_thread_per_session \
+	client
+
 idl=harness
 include $(srcdir)/../../Makefile.common
 
