@@ -14,12 +14,12 @@ CFGFILE = filters.cfg
 CLEANFILES = -r dsa *.o *.ali bin $(EXTRA_PROGS)
 DISTCLEANFILES = $(CLEANFILES)
 
-all-local: ../../check-stamp ${EXTRA_PROGS}
+all-local: ${top_srcdir}/Examples/check-stamp ${EXTRA_PROGS}
 
-../../check-stamp:
-	IN_MAKE=yes ${SHELL} ../../check-config
-	echo "It worked on `date`" > ../../check-stamp
+${top_srcdir}/Examples/check-stamp:
+	IN_MAKE=yes ${SHELL} ${top_srcdir}/Examples/check-config
+	echo "It worked on `date`" > ${top_srcdir}/Examples/check-stamp
 
 $(EXTRA_PROGS):
-	${GNATDIST} -I${srcdir} $(CFGFILE)
+	${GNATDIST} -a -I${srcdir} $(CFGFILE)
 
