@@ -2,7 +2,7 @@
 --                                                                          --
 --                          ADABROKER COMPONENTS                            --
 --                                                                          --
---                         C O R B A . A B S T R A C T B A S E              --
+--                   C O R B A . A B S T R A C T B A S E                    --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --

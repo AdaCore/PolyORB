@@ -1,6 +1,6 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                          ADABROKER COMPONENTS                            --
+--                           ADABROKER SERVICES                             --
 --                                                                          --
 --             C O S T I M E . T I M E S E R V I C E . I M P L              --
 --                                                                          --

@@ -2,7 +2,7 @@
 --                                                                          --
 --                          ADABROKER COMPONENTS                            --
 --                                                                          --
--- PORTABLESERVER . SERVANTRETENTIONPOLICY  --
+-- P O R T A B L E S E R V E R . S E R V A N T R E T E N T I O N P O L I C Y  --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --

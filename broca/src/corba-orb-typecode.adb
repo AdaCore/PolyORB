@@ -2,7 +2,7 @@
 --                                                                          --
 --                          ADABROKER COMPONENTS                            --
 --                                                                          --
---                    C O R B A . O R B . T Y P E C O D E                   --
+--                   C O R B A . O R B . T Y P E C O D E                    --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --

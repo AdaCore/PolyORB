@@ -2,7 +2,7 @@
 --                                                                          --
 --                          ADABROKER COMPONENTS                            --
 --                                                                          --
---                         C O R B A . V A L U E                            --
+--                          C O R B A . V A L U E                           --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --

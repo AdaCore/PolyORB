@@ -2,7 +2,7 @@
 --                                                                          --
 --                          ADABROKER COMPONENTS                            --
 --                                                                          --
---                       C O R B A . R E Q U E S T                          --
+--                        C O R B A . R E Q U E S T                         --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
