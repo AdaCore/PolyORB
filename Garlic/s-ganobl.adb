@@ -40,6 +40,8 @@ with System.Garlic.Constants;   use System.Garlic.Constants;
 with System.Garlic.Debug;       use System.Garlic.Debug;
 with System.Garlic.Heart;       use System.Garlic.Heart;
 with System.Garlic.Priorities;
+with System.Garlic.TCP;
+pragma Elaborate (System.Garlic.TCP);
 with System.Garlic.Termination;
 
 package body System.Garlic.Non_Blocking is
@@ -57,16 +59,18 @@ package body System.Garlic.Non_Blocking is
 
    use C, Strings;
 
-   Safety_Delay : constant Duration := 0.5;
+   Safety_Delay : constant Duration := 1.0;
    --  A SIGIO will be simulated every Safety_Delay seconds, to make
    --  sure we do not get stuned because we have missed one of them.
 
-   subtype Descriptors is int range 0 .. 63;
+   subtype Descriptors is int range 0 .. 127;
    --  At most 128 file descriptors are available. This is used to limit
    --  the size of entry families.
 
    type Desc_Set is array (Descriptors) of Boolean;
-   pragma Pack (Desc_Set);
+
+   In_Use   : Desc_Set := (others => False);
+   Shutdown : Boolean  := False;
 
    protected type Asynchronous_Type is
 
@@ -126,14 +130,6 @@ package body System.Garlic.Non_Blocking is
    pragma Inline (Set_Non_Blocking);
    --  Set a file descriptor to be non-blocking
 
-   protected Sigio_Keeper is
-      entry Wait;
-      procedure Signal;
-      pragma Attach_Handler (Signal, Ada.Interrupts.Names.SIGIO);
-   private
-      Occurred : Boolean := False;
-   end Sigio_Keeper;
-
    task Sigio_Simulation is
       pragma Priority (Priorities.Polling_Priority);
    end Sigio_Simulation;
@@ -160,8 +156,7 @@ package body System.Garlic.Non_Blocking is
       procedure Get_Masks
         (Read_M  : out Desc_Set;
          Write_M : out Desc_Set;
-         Max     : out int)
-      is
+         Max     : out int) is
       begin
          Read_M := Read_Mask;
          Write_M := Write_Mask;
@@ -177,13 +172,19 @@ package body System.Garlic.Non_Blocking is
          Nbyte  : in int;
          Result : out int)
       when True is
+         Dummy : int;
       begin
-         Read_Mask (RFD) := True;
-         if RFD > Max_FD then
-            Max_FD := RFD;
-         end if;
          Set_Asynchronous (RFD);
-         requeue Read_Requeue (RFD) with abort;
+         Dummy := Thin.C_Read (RFD, Buf, Nbyte);
+         if Dummy = Thin.Failure and then Errno = Eagain then
+            Read_Mask (RFD) := True;
+            if RFD > Max_FD then
+               Max_FD := RFD;
+            end if;
+            requeue Read_Requeue (RFD) with abort;
+         else
+            Result := Dummy;
+         end if;
       end Read;
 
       ------------------
@@ -204,6 +205,7 @@ package body System.Garlic.Non_Blocking is
          Read_Mask (RRFD) := False;
          Ready_Read_Mask (RRFD) := False;
          if Max_FD = RRFD then
+            Max_FD := -1;
             for I in reverse Descriptors'First .. RRFD loop
                if Read_Mask (I) or Write_Mask (I) then
                   Max_FD := I;
@@ -241,13 +243,19 @@ package body System.Garlic.Non_Blocking is
          Nbyte  : in int;
          Result : out int)
       when True is
+         Dummy : int;
       begin
-         Write_Mask (WFD) := True;
-         if WFD > Max_FD then
-            Max_FD := WFD;
-         end if;
          Set_Asynchronous (WFD);
-         requeue Write_Requeue (WFD) with abort;
+         Dummy := Thin.C_Write (WFD, Buf, Nbyte);
+         if Dummy = Thin.Failure and then Errno = Eagain then
+            Write_Mask (WFD) := True;
+            if WFD > Max_FD then
+               Max_FD := WFD;
+            end if;
+            requeue Write_Requeue (WFD) with abort;
+         else
+            Result := Dummy;
+         end if;
       end Write;
 
       -------------------
@@ -268,6 +276,7 @@ package body System.Garlic.Non_Blocking is
          Write_Mask (RWFD) := False;
          Ready_Write_Mask (RWFD) := False;
          if Max_FD = RWFD then
+            Max_FD := -1;
             for I in reverse Descriptors'First .. RWFD loop
                if Read_Mask (I) or Write_Mask (I) then
                   Max_FD := I;
@@ -301,6 +310,17 @@ package body System.Garlic.Non_Blocking is
       return Thin.C_Accept (S, Addr, Addrlen);
    end C_Accept;
 
+   -------------
+   -- C_Close --
+   -------------
+
+   function C_Close (Fildes : C.int) return C.int is
+   begin
+      In_Use (Fildes) := False;
+      pragma Debug (D (D_Debug, "Close on " & Fildes'Img));
+      return Thin.C_Close (Fildes);
+   end C_Close;
+
    ---------------
    -- C_Connect --
    ---------------
@@ -331,8 +351,10 @@ package body System.Garlic.Non_Blocking is
             "Connect return code is" & C.int'Image (Dummy) &
             " and errno is" & Integer'Image (Errno)));
       if Dummy = Thin.Failure and then Errno = Eisconn then
+         In_Use (S) := True;
          return Thin.Success;
       else
+         In_Use (S) := False;
          return Dummy;
       end if;
    end C_Connect;
@@ -342,14 +364,15 @@ package body System.Garlic.Non_Blocking is
    ------------
 
    function C_Read
-     (Filedes : int;
-      Buf     : chars_ptr;
-      Nbyte   : int)
-     return int
-   is
+     (Fildes : int;
+      Buf    : chars_ptr;
+      Nbyte  : int)
+     return int is
       Count : int;
    begin
-      Asynchronous.Read (Filedes) (Buf, Nbyte, Count);
+      pragma Debug (D (D_Debug, "Read on " & Fildes'Img));
+      In_Use (Fildes) := True;
+      Asynchronous.Read (Fildes) (Buf, Nbyte, Count);
       return Count;
    end C_Read;
 
@@ -361,10 +384,11 @@ package body System.Garlic.Non_Blocking is
      (Fildes : C.int;
       Buf    : Strings.chars_ptr;
       Nbyte  : C.int)
-     return C.int
-   is
+     return C.int is
       Count : int;
    begin
+      pragma Debug (D (D_Debug, "Write on " & Fildes'Img));
+      In_Use (Fildes) := True;
       Asynchronous.Write (Fildes) (Buf, Nbyte, Count);
       return Count;
    end C_Write;
@@ -374,26 +398,20 @@ package body System.Garlic.Non_Blocking is
    ---------------
 
    task body Selection is
-      Read_Fd_Set,
       RFD, WFD     : Desc_Set;
       Max          : aliased int;
       Dummy        : int;
       Pfd          : aliased Thin.Pollfd;
+      Continue     : Boolean := True;
    begin
       Termination.Add_Non_Terminating_Task;
-      loop
-         select
-            Shutdown_Keeper.Wait;
-            pragma Debug
-              (D (D_Debug, "Selection exiting because of Shutdown_Keeper"));
-            exit;
-         else
-            null;
-         end select;
-         pragma Debug (D (D_Debug, "Waiting for SIGIO"));
-         Sigio_Keeper.Wait;
-         pragma Debug (D (D_Debug, "SIGIO (or pseudo SIGIO) received"));
+      while Continue loop
+         pragma Debug (D (D_Debug, "Before SIGIO"));
+         Sigio.Wait;
+         pragma Debug (D (D_Debug, "After  SIGIO"));
+
          Asynchronous.Get_Masks (RFD, WFD, Max);
+
          if Max > -1 then
             for I in RFD'First .. Max loop
 
@@ -421,14 +439,26 @@ package body System.Garlic.Non_Blocking is
 
             end loop;
             Asynchronous.Set_Masks (RFD, WFD);
+
+         elsif TCP.Shutdown_Completed then
+            Continue := False;
+            for FD in In_Use'Range loop
+               if In_Use (FD) then
+                  pragma Debug (D (D_Debug, "Use " & FD'Img));
+                  Continue := True;
+                  exit;
+               end if;
+            end loop;
+            Shutdown := not Continue;
          end if;
       end loop;
+      pragma Debug (D (D_Debug, "Selection terminated"));
       Termination.Sub_Non_Terminating_Task;
 
    exception
       when E : others =>
-         pragma Debug (D (D_Debug, Exception_Name (E) & " received in " &
-                          "Selection"));
+         pragma Debug
+           (D (D_Debug, Exception_Name (E) & " received in Selection"));
          Termination.Sub_Non_Terminating_Task;
    end Selection;
 
@@ -464,11 +494,11 @@ package body System.Garlic.Non_Blocking is
       Dummy := Thin.C_Fcntl (FD, F_Setfl, Fndelay);
    end Set_Non_Blocking;
 
-   ------------------
-   -- Sigio_Keeper --
-   ------------------
+   -----------
+   -- Sigio --
+   -----------
 
-   protected body Sigio_Keeper is
+   protected body Sigio is
 
       ------------
       -- Signal --
@@ -488,7 +518,7 @@ package body System.Garlic.Non_Blocking is
          Occurred := False;
       end Wait;
 
-   end Sigio_Keeper;
+   end Sigio;
 
    ----------------------
    -- Sigio_Simulation --
@@ -497,23 +527,17 @@ package body System.Garlic.Non_Blocking is
    task body Sigio_Simulation is
    begin
       Termination.Add_Non_Terminating_Task;
-      loop
-         Sigio_Keeper.Signal;
-         select
-            Shutdown_Keeper.Wait;
-            pragma Debug
-              (D (D_Debug, "Simulation exiting because of Shutdown_Keeper"));
-            exit;
-         else
-            delay Safety_Delay;
-         end select;
+      while not Shutdown loop
+         delay Safety_Delay;
+         pragma Debug (D (D_Debug, "Simulate SIGIO"));
+         Sigio.Signal;
       end loop;
       Termination.Sub_Non_Terminating_Task;
 
    exception
       when E : others =>
-         pragma Debug (D (D_Debug, Exception_Name (E) & " received in " &
-                          "Sigio_Simulation"));
+         pragma Debug
+           (D (D_Debug, Exception_Name (E) & " received in Sigio_Simulation"));
          Termination.Sub_Non_Terminating_Task;
    end Sigio_Simulation;
 

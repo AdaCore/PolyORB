@@ -35,6 +35,7 @@
 
 with Interfaces.C.Strings;
 with System.Garlic.Thin;
+with Ada.Interrupts.Names;
 
 package System.Garlic.Non_Blocking is
 
@@ -53,6 +54,8 @@ package System.Garlic.Non_Blocking is
      return C.int;
    --  Thread blocking accept
 
+   function C_Close (Fildes : C.int) return C.int;
+
    function C_Connect
      (S       : C.int;
       Name    : Thin.Sockaddr_Access;
@@ -61,9 +64,9 @@ package System.Garlic.Non_Blocking is
    --  Thread blocking connect
 
    function C_Read
-     (Filedes : C.int;
-      Buf     : Strings.chars_ptr;
-      Nbyte   : C.int)
+     (Fildes : C.int;
+      Buf    : Strings.chars_ptr;
+      Nbyte  : C.int)
      return C.int;
    --  Thread blocking read
 
@@ -73,6 +76,14 @@ package System.Garlic.Non_Blocking is
       Nbyte  : C.int)
      return C.int;
    --  Thread blocking write
+
+   protected Sigio is
+      procedure Signal;
+      entry Wait;
+      pragma Attach_Handler (Signal, Ada.Interrupts.Names.SIGIO);
+   private
+      Occurred : Boolean := False;
+   end Sigio;
 
 end System.Garlic.Non_Blocking;
 

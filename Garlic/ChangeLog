@@ -1,3 +1,22 @@
+1998-03-03  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* s-ganobl.adb: Fix a termination problem. Task Selection was
+ 	blocked on an entry and no task to unblock it (Task
+ 	Sigio_Simulation was already dead). Now, these tasks keep going
+ 	until all the sockets are closed. Change C_Read, C_Write and
+	C_Close to trace active sockets.
+
+	* s-ganobl.ads: Add a new procedure C_Close to track sockets in
+ 	use.
+
+	* s-gartcp.adb: Add several C_Close calls and set
+ 	TCP_Shutdown_Completed to true when TCP.Shutdown is executed in
+ 	order to let task Selection from System.Garlic.Non_Blocking know
+ 	that when the set of sockets in use is empty, this task can safely
+ 	terminate.
+
+	* s-gartcp.ads: Add a flag TCP_Shutdown_Completed.
+
 1998-02-23  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* constants.sh: Generate a cleaner entry when a constant is not

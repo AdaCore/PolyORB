@@ -248,6 +248,7 @@ package body System.Garlic.TCP is
             FD     : C.int;
             NT     : Incoming_Connection_Handler_Access;
             Code   : Operation_Code;
+            Result : C.int;
          begin
             Sin.Sin_Family := Constants.Af_Inet;
             Add_Non_Terminating_Task;
@@ -266,10 +267,12 @@ package body System.Garlic.TCP is
                null;
             elsif Code = Quit_Code then
                pragma Debug (D (D_Debug, "Quitting accept handler"));
+               Result := Net.C_Close (FD);
                Raise_Communication_Error ("Quit code received");
             else
                pragma Debug (D (D_Debug,
                                 "Unknown code received: " & Code));
+               Result := Net.C_Close (FD);
                Raise_Communication_Error ("Unkown code received: " & Code);
             end if;
             NT :=
@@ -337,7 +340,7 @@ package body System.Garlic.TCP is
       Code := Net.C_Connect (FD,
                              To_Sockaddr_Access (Sin), Sin.all'Size / 8);
       if Code = Failure then
-         Code := C_Close (FD);
+         Code := Net.C_Close (FD);
          Free (Sin);
          Raise_Communication_Error;
       end if;
@@ -581,7 +584,7 @@ package body System.Garlic.TCP is
          declare
             Dummy : C.int;
          begin
-            Dummy := C_Close (FD);
+            Dummy := Net.C_Close (FD);
          end;
 
          --  Signal to the heart that we got an error on this partition
@@ -609,7 +612,7 @@ package body System.Garlic.TCP is
          declare
             Dummy : C.int;
          begin
-            Dummy := C_Close (FD);
+            Dummy := Net.C_Close (FD);
          end;
    end Incoming_Connection_Handler;
 
@@ -734,6 +737,7 @@ package body System.Garlic.TCP is
 
          Code := Net.C_Read (FD, To_Chars_Ptr (Current), Rest);
          if Code <= 0 then
+            Code := Net.C_Close (FD);
             Raise_Communication_Error ("Read error");
          end if;
 
@@ -757,6 +761,7 @@ package body System.Garlic.TCP is
       while Rest > 0 loop
          Code := Net.C_Write (FD, To_Chars_Ptr (Current), Rest);
          if Code <= 0 then
+            Code := Net.C_Close (FD);
             Raise_Communication_Error ("Write error");
          end if;
 
@@ -1003,11 +1008,13 @@ package body System.Garlic.TCP is
          FD : C.int;
       begin
          FD := Establish_Connection (Self_Host.Location, Quit_Code);
+         FD := Net.C_Close (FD);
       exception
          when Communication_Error => null;
       end;
 
       Free (Partition_Map);
+      Shutdown_Completed := True;
 
       pragma Debug (D (D_Debug, "Shutdown completed"));
    end Shutdown;

@@ -62,6 +62,8 @@ package System.Garlic.TCP is
 
    procedure Shutdown (Protocol : access TCP_Protocol);
 
+   Shutdown_Completed : Boolean := False;
+
 private
 
    type TCP_Protocol is new System.Garlic.Protocols.Protocol_Type
