@@ -736,10 +736,10 @@ package body Ada_Be.Idl2Ada is
                   Suppress_Warning_Message (Impl_Spec);
                   Suppress_Warning_Message (Impl_Body);
 
-                  --  XXX For now, with PolyORB, no more skels.
---                   Add_With (Impl_Body, Skel_Name,
---                             Use_It => False,
---                             Elab_Control => None);
+                  Add_With (Impl_Body, Skel_Name,
+                            Use_It => False,
+                            Elab_Control => Elaborate,
+                            No_Warnings => True);
                end if;
             end if;
 
@@ -814,8 +814,6 @@ package body Ada_Be.Idl2Ada is
             --  Gen_Local_Is_A (Stubs_Body, Node);
             --  XXX Disabled for use with PolyORB (uses Broca.Repository).
 
-
-
             --  CORBA 2.3
             Helper.Gen_Node_Spec (Helper_Spec, Node);
             Helper.Gen_Node_Body (Helper_Body, Node);
@@ -823,98 +821,10 @@ package body Ada_Be.Idl2Ada is
             Gen_Convert_Forward_Declaration (Stubs_Spec, Node);
 
             if not Abst (Node) then
-
                Skel.Gen_Body_Common_End (Skel_Body, Skeleton, Node);
-
                if Generate_Delegate then
                   Skel.Gen_Body_Common_End (Delegate_Body, Delegate, Node);
                end if;
-
-               ----------------------*****************************
-               if Implement then
-
-                  NL (Impl_Spec);
---                   PL (Impl_Spec, "procedure Invoke");
---                   PL (Impl_Spec, "  (Self : access Object;");
---                   PL (Impl_Spec,
---                       "   Request : in CORBA.ServerRequest.Object_ptr);");
---                   NL (Impl_Spec);
---                   PL (Impl_Spec, "function Primary_Interface");
---                   PL (Impl_Spec, "  (Self    : access Object;");
---                   PL (Impl_Spec, "   POA_Ptr : PortableServer.POA.Ref)");
---                   PL (Impl_Spec, "  return String;");
-
-                  Add_With (Impl_Spec, "CORBA.ServerRequest");
---                   Add_With (Impl_Spec, "PortableServer.POA");
-
-                  Add_With (Impl_Body, "CORBA",
-                            Use_It    => True,
-                            Elab_Control => Elaborate_All);
-
-                  Add_With (Impl_Body, "PolyORB.CORBA_P.Exceptions");
-
-                  Add_With (Impl_Body, "CORBA.Object");
-                  Add_With (Impl_Body, "CORBA.Context");
-                  Add_With (Impl_Body, "CORBA.NVList");
-                  Add_With (Impl_Body, "CORBA.ContextList");
-                  Add_With (Impl_Body, "CORBA.ExceptionList");
-                  Add_With (Impl_Body, "CORBA.ORB");
-
---                   NL (Impl_Body);
---                   PL (Impl_Body, "procedure Invoke");
---                   PL (Impl_Body, "  (Self : access Object;");
---                   PL (Impl_Body,
---                       "   Request : in CORBA.ServerRequest.Object_ptr)");
---                   PL (Impl_Body, "is");
---                   II (Impl_Body);
---                   PL (Impl_Body, "Operation : constant Standard.String");
---                   PL (Impl_Body, "   := CORBA.To_Standard_String");
---                   PL (Impl_Body, "        (CORBA.ServerRequest.Operation");
---                   PL (Impl_Body, "         (Request.all));");
---                   DI (Impl_Body);
---                   PL (Impl_Body, "begin");
---                   II (Impl_Body);
-
---                   declare
---                      It   : Node_Iterator;
---                      Export_Node : Node_Id;
---                   begin
---                      Init (It, Contents (Node));
---                      while not Is_End (It) loop
---                         Get_Next_Node (It, Export_Node);
-
---                         if Is_Gen_Scope (Export_Node) then
---                            Put_Line ("mmmmmmmmmmmmmm");
---                            --  XXX What's that???
---                         else
---                            Gen_Invoke
---                              (Impl_Body, Export_Node);
---                         end if;
-
---                      end loop;
---                   end;
-
---                   PL (Impl_Body,
---                       "PolyORB.CORBA_P.Exceptions.Raise_Bad_Operation;");
---                   DI (Impl_Body);
---                   PL (Impl_Body, "end Invoke;");
---                   NL (Impl_Body);
---                   PL (Impl_Body, "function Primary_Interface");
---                   PL (Impl_Body, "  (Self    : access Object;");
---                   PL (Impl_Body, "   POA_Ptr : PortableServer.POA.Ref)");
---                   PL (Impl_Body, "  return String is ");
---                   PL (Impl_Body, "begin");
---                   II (Impl_Body);
---                   PL (Impl_Body, "return """
---                       & Idl_Repository_Id (Node)  & """;");
---                   DI (Impl_Body);
---                   PL (Impl_Body, "end Primary_Interface;");
-
-               end if;
-
-               ----------------------*****************************
-
-
             end if;
 
          when others =>

@@ -29,14 +29,17 @@
 with Ada.Text_IO;
 with Echo.Skel;
 pragma Elaborate (Echo.Skel);
+pragma Warnings (Off, Echo.Skel);
+--  No entity from Echo.Skel is referenced.
 
 package body Echo.Impl is
 
    function EchoString (Self : access Object; Mesg : in CORBA.String)
                         return CORBA.String is
    begin
-      --  Ada.Text_IO.Put_Line ("Echoing string: « "
-      --            & CORBA.To_Standard_String (Mesg) & " »");
+      Ada.Text_IO.Put_Line
+        ("Echoing string: « " & CORBA.To_Standard_String (Mesg)
+         & " »");
       return Mesg;
    end EchoString;
 

@@ -46,8 +46,9 @@ package body Ada_Be.Source_Streams is
 
    type Dependency_Node is record
       Library_Unit : String_Ptr;
-      Use_It : Boolean := False;
+      Use_It : Boolean;
       Elab_Control : Elab_Control_Pragma := None;
+      No_Warnings : Boolean;
       Next : Dependency;
    end record;
 
@@ -76,10 +77,11 @@ package body Ada_Be.Source_Streams is
    end Is_Ancestor;
 
    procedure Add_With
-     (Unit   : in out Compilation_Unit;
-      Dep    : String;
-      Use_It : Boolean := False;
-      Elab_Control : Elab_Control_Pragma := None)
+     (Unit         : in out Compilation_Unit;
+      Dep          :        String;
+      Use_It       :        Boolean             := False;
+      Elab_Control :        Elab_Control_Pragma := None;
+      No_Warnings  :        Boolean             := False)
    is
       Dep_Node : Dependency := Unit.Context_Clause;
       LU_Name : constant String
@@ -118,10 +120,14 @@ package body Ada_Be.Source_Streams is
            (Library_Unit => new String'(Dep),
             Use_It => Use_It,
             Elab_Control => Elab_Control,
+            No_Warnings => No_Warnings,
             Next => Unit.Context_Clause);
          Unit.Context_Clause := Dep_Node;
       else
-         Dep_Node.Use_It := Dep_Node.Use_It or else Use_It;
+         Dep_Node.Use_It
+           := Dep_Node.Use_It or else Use_It;
+         Dep_Node.No_Warnings
+           := Dep_Node.No_Warnings and then No_Warnings;
          if Elab_Control = Elaborate_All
            or else Dep_Node.Elab_Control = Elaborate_All then
             Dep_Node.Elab_Control := Elaborate_All;
@@ -318,6 +324,10 @@ package body Ada_Be.Source_Streams is
                when None =>
                   null;
             end case;
+            if Dep_Node.No_Warnings then
+               Put_Line (File, "pragma Warnings (Off, "
+                         & Dep_Node.Library_Unit.all & ");");
+            end if;
             Dep_Node := Dep_Node.Next;
          end loop;
 

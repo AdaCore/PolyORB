@@ -89,15 +89,28 @@ package Ada_Be.Source_Streams is
    --  position. D is emptied and unused after Undivert returns.
 
    procedure Add_With
-     (Unit      : in out Compilation_Unit;
-      Dep       : String;
-      Use_It    : Boolean := False;
-      Elab_Control : Elab_Control_Pragma := None);
+     (Unit         : in out Compilation_Unit;
+      Dep          :        String;
+      Use_It       :        Boolean             := False;
+      Elab_Control :        Elab_Control_Pragma := None;
+      No_Warnings  :        Boolean             := False);
    --  Add Dep to the semantic dependecies of Unit,
    --  if it is not already present. If Use_It is true,
    --  a "use" clause will be added for that unit.
    --  Additionnally, an elaboration control pragma may
    --  be inserted according to Elab_Control.
+   --  If No_Warnings is True, also emit a
+   --    pragma Warnings (Off, Withed_Unit) (useful e.g.
+   --  when no entities from the withed unit are referenced.)
+
+   --  If Add_With is called several times for the same unit:
+   --    - the unit is use'd if at least one call was made with
+   --      Use_It set to True;
+   --    - the elab control is set to Elaborate_All if any call
+   --      was made with Elab_Control = Elaborate_All,
+   --    - else the elab control is set to Elaborate if any call
+   --      was made with Elab_Control = Elaborate,
+   --    - else the elab control is set to None.
 
    procedure Add_Elaborate_Body (Unit : in out Compilation_Unit);
    --  Add a pragma Elaborate_Body to the spec denoted by Unit.
