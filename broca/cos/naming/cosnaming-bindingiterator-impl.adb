@@ -118,7 +118,7 @@ package body CosNaming.BindingIterator.Impl is
       Last := Self.Index + Natural (How_Many) - 1;
       if Last <= Self.Table'Last then
          BL := BindingList (Bindings.To_Sequence (Self.Table (First .. Last)));
-         Self.Index := Last;
+         Self.Index := Last + 1;
          Returns := True;
 
       else

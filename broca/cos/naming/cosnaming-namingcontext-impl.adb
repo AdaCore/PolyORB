@@ -568,7 +568,7 @@ package body CosNaming.NamingContext.Impl is
       end if;
 
       Iter       := BindingIterator.Impl.Create;
-      Iter.Index := Size + 1;
+      Iter.Index := 1;
       Iter.Table := new Bindings.Element_Array (1 .. Len);
 
       --  Copy the remaining bound objects into the iterator.
