@@ -78,6 +78,13 @@ package body Namet is
    pragma Inline (Hash);
    --  Compute hash code for name stored in Name_Buffer (length in Name_Len)
 
+   procedure Strip_Qualification_And_Package_Body_Suffix;
+   --  Given an encoded entity name in Name_Buffer, remove package body
+   --  suffix as described for Strip_Package_Body_Suffix, and also remove
+   --  all qualification, i.e. names followed by two underscores. The
+   --  contents of Name_Buffer is modified by this call, and on return
+   --  Name_Buffer and Name_Len reflect the stripped name.
+
    -----------------------------
    -- Add_Char_To_Name_Buffer --
    -----------------------------
@@ -718,6 +725,26 @@ package body Namet is
       return Name_Entries.Table (Id).Int_Info;
    end Get_Name_Table_Info;
 
+   -----------------------------------------
+   -- Get_Unqualified_Decoded_Name_String --
+   -----------------------------------------
+
+   procedure Get_Unqualified_Decoded_Name_String (Id : Name_Id) is
+   begin
+      Get_Decoded_Name_String (Id);
+      Strip_Qualification_And_Package_Body_Suffix;
+   end Get_Unqualified_Decoded_Name_String;
+
+   ---------------------------------
+   -- Get_Unqualified_Name_String --
+   ---------------------------------
+
+   procedure Get_Unqualified_Name_String (Id : Name_Id) is
+   begin
+      Get_Name_String (Id);
+      Strip_Qualification_And_Package_Body_Suffix;
+   end Get_Unqualified_Name_String;
+
    ----------------
    -- Initialize --
    ----------------
@@ -1044,6 +1071,38 @@ package body Namet is
       end if;
 
    end Store_Encoded_Character;
+
+   -------------------------------------------------
+   -- Strip_Qualification_And_Package_Body_Suffix --
+   -------------------------------------------------
+
+   procedure Strip_Qualification_And_Package_Body_Suffix is
+   begin
+      --  Strip package body qualification string off end
+
+      for J in reverse 2 .. Name_Len loop
+         if Name_Buffer (J) = 'X' then
+            Name_Len := J - 1;
+            exit;
+         end if;
+
+         exit when Name_Buffer (J) /= 'b'
+           and then Name_Buffer (J) /= 'n'
+           and then Name_Buffer (J) /= 'p';
+      end loop;
+
+      --  Find rightmost __ separator if one exists and strip it
+      --  and everything that precedes it from the name.
+
+      for J in reverse 2 .. Name_Len - 2 loop
+         if Name_Buffer (J) = '_' and then Name_Buffer (J + 1) = '_' then
+            Name_Buffer (1 .. Name_Len - J - 1) :=
+              Name_Buffer (J + 2 .. Name_Len);
+            Name_Len := Name_Len - J - 1;
+            exit;
+         end if;
+      end loop;
+   end Strip_Qualification_And_Package_Body_Suffix;
 
    ---------------
    -- Tree_Read --

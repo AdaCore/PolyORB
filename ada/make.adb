@@ -26,6 +26,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Command_Line; use Ada.Command_Line;
+with GNAT.OS_Lib;      use GNAT.OS_Lib;
+
 with ALI;      use ALI;
 with ALI.Util; use ALI.Util;
 with Csets;
@@ -43,9 +46,6 @@ with Table;
 with Types;    use Types;
 with Switch;   use Switch;
 
-with Ada.Command_Line; use Ada.Command_Line;
-
-with GNAT.OS_Lib; use GNAT.OS_Lib;
 
 package body Make is
 
@@ -168,33 +168,16 @@ package body Make is
    procedure List_Bad_Compilations;
    --  Prints out the list of all files for which the compilation failed.
 
-   No_Indent : constant Boolean := False;
    procedure Verbose_Msg
-     (N1  : Name_Id;
-      S1  : String;
-      N2  : Name_Id := No_Name;
-      S2  : String  := "";
-      Ind : Boolean := True);
-   --  If the verbose flag is set prints the corresponding message.
-   --  If Ind is set to No_Indent (False) the message is not,
-   --  otherwise it is.
-   --  What are the parameters here ???
-
-   procedure Verbose_Msg
-     (N1  : Name_Id;
-      S1a : String;
-      S1b : String;
-      S1c : String;
-      N2  : Name_Id;
-      S2a : String;
-      S2b : String;
-      S2c : String);
-   --  If the verbose flag is set prints the corresponding message.
-   --  Created to print longer messages with time stamps information.
-   --  What are the parameters here ???
-
-   function "&" (Left, Right : String) return String;
-   --  Concatenation routine
+     (N1     : Name_Id;
+      S1     : String;
+      N2     : Name_Id := No_Name;
+      S2     : String  := "";
+      Prefix : String := "  -> ");
+   --  If the verbose flag (Verbose_Mode) is set then print Prefix to standard
+   --  output followed by N1 and S1. If N2 /= No_Name then N2 is then printed
+   --  after S1. S2 is printed last. Both N1 and N2 are printed in quotation
+   --  marks.
 
    -----------------------
    -- Gnatmake Routines --
@@ -259,7 +242,8 @@ package body Make is
    GNAT_Flag         : constant String_Access := new String'("-gnatpg");
    Do_Not_Check_Flag : constant String_Access := new String'("-x");
 
-   Object_Suffix   : constant String := Get_Object_Suffix.all;
+   Object_Suffix     : constant String := Get_Object_Suffix.all;
+   Executable_Suffix : constant String := Get_Executable_Suffix.all;
 
    Display_Executed_Programs : Boolean := True;
    --  Set to True if name of commands should be output on stderr.
@@ -280,29 +264,16 @@ package body Make is
    --  Used in Scan_Make_Arg only, but must be a global variable.
 
    procedure Add_Switch
-     (S   : String;
-      T   : Make_Program_Type);
-   procedure Add_Switch
-     (S1  : String;
-      S2  : String;
-      T   : Make_Program_Type;
-      Pos : Integer);
-   procedure Add_Switch
-     (S1  : String;
-      S2  : String;
-      T   : Make_Program_Type);
+     (S             : String;
+      Program       : Make_Program_Type;
+      Append_Switch : Boolean := True);
    --  Make invokes one of three programs (the compiler, the binder or the
    --  linker). For the sake of convenience, some program specific switches
-   --  can be passed directly on the gnatmake commande line, hence they need
-   --  to be recorded so that gnamake can pass them to the right program.
-   --  In the above calls, S is a switch to be added, or S1 and S2 are two
-   --  separate switches to be added at the end of the command line for T.
-   --  If Pos is set then the switch is inserted in position Pos in the
-   --  command line (thus shifting the position of all other switches).
-   --  Pos must be a valid switch position).
-   --
-   --  Note from RBKD, it would be cleaner to have one procedure with some
-   --  default parameters (null for S2 and -1 for Pos for example) ???
+   --  can be passed directly on the gnatmake commande line. This procedure
+   --  records these switches so that gnamake can pass them to the right
+   --  program.  S is the switch to be added at the end of the command line
+   --  for Program if Append_Switch is True. If Append_Switch is False S is
+   --  added at the beginning of the command line.
 
    procedure Check
      (Lib_File  : File_Name_Type;
@@ -332,108 +303,58 @@ package body Make is
    --  Displays Program followed by the arguments in Args if variable
    --  Display_Executed_Programs is set. The lower bound of Args must be 1.
 
-   ---------
-   -- "&" --
-   ---------
-
-   function "&" (Left, Right : String) return String is
-      Result : String (1 .. Left'Length + Right'Length);
-
-   begin
-      Result (1 .. Left'Length) := Left;
-      Result (Left'Length + 1 .. Result'Last) := Right;
-      return Result;
-   end "&";
-
    ----------------
    -- Add_Switch --
    ----------------
 
-   procedure Add_Switch (S : String; T : Make_Program_Type) is
+   procedure Add_Switch
+     (S             : String;
+      Program       : Make_Program_Type;
+      Append_Switch : Boolean := True)
+   is
+      generic
+         with package T is new Table.Table (<>);
+      function Generic_Position return Integer;
+      --  Generic procedure that adds S at the end or beginning of T depending
+      --  of the value of the boolean Append_Switch.
+
+      ----------------------
+      -- Generic_Position --
+      ----------------------
+
+      function Generic_Position return Integer is
+      begin
+         T.Increment_Last;
+
+         if Append_Switch then
+            return Integer (T.Last);
+         else
+            for J in reverse T.Table_Index_Type'Succ (T.First) .. T.Last loop
+               T.Table (J) := T.Table (T.Table_Index_Type'Pred (J));
+            end loop;
+            return Integer (T.First);
+         end if;
+      end Generic_Position;
+
+      function Gcc_Switches_Pos    is new Generic_Position (Gcc_Switches);
+      function Binder_Switches_Pos is new Generic_Position (Binder_Switches);
+      function Linker_Switches_Pos is new Generic_Position (Linker_Switches);
+
    begin
-      case T is
+      case Program is
          when Compiler =>
-            Gcc_Switches.Increment_Last;
-            Gcc_Switches.Table (Gcc_Switches.Last) := new String'(S);
+            Gcc_Switches.Table (Gcc_Switches_Pos) := new String'(S);
 
          when Binder   =>
-            Binder_Switches.Increment_Last;
-            Binder_Switches.Table (Binder_Switches.Last) := new String'(S);
+            Binder_Switches.Table (Binder_Switches_Pos) := new String'(S);
 
          when Linker   =>
-            Linker_Switches.Increment_Last;
-            Linker_Switches.Table (Linker_Switches.Last) := new String'(S);
+            Linker_Switches.Table (Linker_Switches_Pos) := new String'(S);
 
          when None =>
             pragma Assert (False);
             raise Program_Error;
       end case;
-   end Add_Switch;
-
-   ----------------
-   -- Add_Switch --
-   ----------------
-
-   procedure Add_Switch
-     (S1  : String;
-      S2  : String;
-      T   : Make_Program_Type;
-      Pos : Integer)
-   is
-      Tmp : String (1 .. S1'Length + S2'Length);
-
-   begin
-      Tmp (1 .. S1'Length) := S1;
-      Tmp (S1'Length + 1 .. S1'Length + S2'Length) := S2;
-
-      case T is
-         when Compiler =>
-            pragma Assert (Pos in Gcc_Switches.First .. Gcc_Switches.Last);
-
-            Gcc_Switches.Increment_Last;
-            for J in reverse Pos + 1 .. Gcc_Switches.Last loop
-               Gcc_Switches.Table (J) := Gcc_Switches.Table (J - 1);
-            end loop;
-
-            Gcc_Switches.Table (Pos) := new String'(Tmp);
-
-         when Binder   =>
-            pragma Assert
-              (Binder_Switches.First <= Pos
-               and Pos <= Binder_Switches.Last);
-
-            Binder_Switches.Increment_Last;
-            for J in reverse Pos + 1 .. Binder_Switches.Last loop
-               Binder_Switches.Table (J) := Binder_Switches.Table (J - 1);
-            end loop;
-
-            Binder_Switches.Table (Pos) := new String'(Tmp);
-
-            --  For the time being this facility is not available for the
-            --  linker but can be trivially implemented.
-
-         when others =>
-            pragma Assert (False);
-            raise Program_Error;
-      end case;
-
-   end Add_Switch;
-
-   ----------------
-   -- Add_Switch --
-   ----------------
-
-   procedure Add_Switch
-     (S1 : String;
-      S2 : String;
-      T  : Make_Program_Type)
-   is
-      Tmp : String (1 .. S1'Length + S2'Length);
-
-   begin
-      Tmp (1 .. S1'Length) := S1;
-      Tmp (S1'Length + 1 .. S1'Length + S2'Length) := S2;
-      Add_Switch (Tmp, T);
    end Add_Switch;
 
    ----------
@@ -638,9 +559,9 @@ package body Make is
       Obj_Stamp     := Current_Object_File_Stamp;
 
       if Full_Lib_File = No_File then
-         Verbose_Msg (Lib_File, "being checked ...", Ind => No_Indent);
+         Verbose_Msg (Lib_File, "being checked ...", Prefix => "  ");
       else
-         Verbose_Msg (Full_Lib_File, "being checked ...", Ind => No_Indent);
+         Verbose_Msg (Full_Lib_File, "being checked ...", Prefix => "  ");
       end if;
 
       ALI     := No_ALI_Id;
@@ -656,8 +577,8 @@ package body Make is
 
          else
             Verbose_Msg
-              (Full_Lib_File, "(", String (Lib_Stamp), ") newer than",
-               Full_Obj_File, "(", String (Obj_Stamp), ")");
+              (Full_Lib_File, "(" & String (Lib_Stamp) & ") newer than",
+               Full_Obj_File, "(" & String (Obj_Stamp) & ")");
          end if;
 
       else
@@ -1343,8 +1264,7 @@ package body Make is
             if Full_Lib_File /= No_File
               and then In_Ada_Lib_Dir (Full_Lib_File)
             then
-               Verbose_Msg
-                 (Lib_File, "is in an Ada library", Ind => No_Indent);
+               Verbose_Msg (Lib_File, "is in an Ada library", Prefix => "  ");
 
             --  If the library file is a read-only library skip it
 
@@ -1353,7 +1273,7 @@ package body Make is
               and then Is_Readonly_Library (Full_Lib_File)
             then
                Verbose_Msg
-                 (Lib_File, "is a read-only library", Ind => No_Indent);
+                 (Lib_File, "is a read-only library", Prefix => "  ");
 
             --  The source file that we are checking cannot be located
 
@@ -1368,7 +1288,7 @@ package body Make is
               and then Is_Internal_File_Name (Source_File)
             then
                Verbose_Msg
-                 (Lib_File, "is an internal library", Ind => No_Indent);
+                 (Lib_File, "is an internal library", Prefix => "  ");
 
             --  The source file that we are checking can be located
 
@@ -1472,12 +1392,12 @@ package body Make is
                Record_Failure (Full_Source_File, Source_Unit);
 
             else
-               --  Re-read the updated library file.
+               --  Re-read the updated library file
 
                Text := Read_Library_Info (Lib_File);
 
                --  If no ALI file was generated by this compilation nothing
-               --  more to do, otherwise scan the ali file and record it
+               --  more to do, otherwise scan the ali file and record it.
 
                if Text /= null then
                   ALI :=
@@ -1485,13 +1405,17 @@ package body Make is
                   Free (Text);
                   Record_Good_ALI (ALI);
 
-               --  This should probably just be Assert (False) now. It is
-               --  almost certainly junk code, dating from the time when
-               --  generics could produce junk objects (with no error
-               --  indication) but still did not generate an ali file ???
+               --  If we could not read the ALI file that was just generated
+               --  then there could be a problem reading either the ALI or the
+               --  corresponding object file (if Opt.Check_Object_Consistency
+               --  is set Read_Library_Info checks that the time stamp of the
+               --  object file is more recent than that of the ALI). For an
+               --  example of problems caught by this test see [6625-009].
 
                else
-                  Inform (Lib_File, "WARNING file not found after compile");
+                  Inform
+                    (Lib_File,
+                     "WARNING: ALI or object file not found after compile");
                   Record_Failure (Full_Source_File, Source_Unit);
                end if;
             end if;
@@ -1683,25 +1607,17 @@ package body Make is
       Next_Arg : Positive;
 
    begin
-      --  Default initialization of the flags affecting gnatmake
+      --  Override default initialization of Check_Object_Consistency
+      --  since this is normally False for GNATBIND, but is True for
+      --  GNATMAKE since we do not need to check source consistency
+      --  again once GNATMAKE has looked at the sources to check.
 
-      Opt.Check_Readonly_Files     := False;
       Opt.Check_Object_Consistency := True;
-      Opt.Compile_Only             := False;
-      Opt.Do_Not_Execute           := False;
-      Opt.Force_Compilations       := False;
-      Opt.Quiet_Output             := False;
-      Opt.Minimal_Recompilation    := False;
-      Opt.Verbose_Mode             := False;
 
       --  Package initializations. The order of calls is important here.
 
       Output.Set_Standard_Error;
-      Osint.Initialize (Osint.Make); --  reads gnatmake switches
-
-      if Usage_Requested then
-         Makeusg;
-      end if;
+      Osint.Initialize (Osint.Make);
 
       Gcc_Switches.Init;
       Binder_Switches.Init;
@@ -1716,6 +1632,10 @@ package body Make is
          Scan_Make_Arg (Argument (Next_Arg));
          Next_Arg := Next_Arg + 1;
       end loop Scan_Args;
+
+      if Usage_Requested then
+         Makeusg;
+      end if;
 
       Osint.Add_Default_Search_Dirs;
 
@@ -1746,31 +1666,17 @@ package body Make is
       --  The ali file corresponding to Main_Source_File
 
    begin
+      Make.Initialize;
+
       if Hostparm.Java_VM then
          Gcc := new String'("jgnat");
          Gnatbind := new String'("jgnatbind");
          Gnatlink := new String '("jgnatlink");
-      end if;
-
-      Make.Initialize;
-
-      if Hostparm.Java_VM then
 
          --  Do not check for an object file (".o") when compiling to
          --  Java bytecode since ".class" files are generated instead.
 
          Opt.Check_Object_Consistency := False;
-
-         --  ??? temporary message
-
-         Write_Eol;
-         Write_Str ("JGNAT: ");
-         Write_Str ("The GNAT Ada 95 toolchain for the Java Virtual Machine");
-         Write_Eol;
-         Write_Str ("   http://www.gnat.com - http://www.act-europe.fr");
-         Write_Eol;
-         Write_Str ("Early Beta version");
-         Write_Eol;
       end if;
 
       if Opt.Verbose_Mode then
@@ -1781,7 +1687,7 @@ package body Make is
          Write_Eol;
       end if;
 
-      --  Output usage information if more than one file
+      --  Output usage information if no files
 
       if Osint.Number_Of_Files = 0 then
          Makeusg;
@@ -1808,17 +1714,12 @@ package body Make is
       if Opt.Look_In_Primary_Dir then
 
          Add_Switch
-           ("-I",
+           ("-I" &
             Normalize_Directory_Name
               (Get_Primary_Src_Search_Directory.all).all,
-            Compiler,
-            Pos => Gcc_Switches.First);
+            Compiler, Append_Switch => False);
 
-         Add_Switch
-           ("-aO",
-            Normalized_CWD,
-            Binder,
-            Pos => Binder_Switches.First);
+         Add_Switch ("-aO" & Normalized_CWD, Binder, Append_Switch => False);
       end if;
 
       --  If the user wants a program without a main subprogram, add the
@@ -1865,7 +1766,24 @@ package body Make is
                Name_Buffer (1 .. Name_Len) :=
                  Linker_Switches.Table (J + 1).all;
 
+               --  if target has an executable suffix and it has not been
+               --  specified then it is added here.
+
+               if Executable_Suffix'Length /= 0
+                 and then Linker_Switches.Table (J + 1)
+                    (Name_Len - Executable_Suffix'Length + 1
+                     .. Name_Len) /= Executable_Suffix
+               then
+                  Name_Buffer (Name_Len + 1 ..
+                               Name_Len + Executable_Suffix'Length) :=
+                    Executable_Suffix;
+                  Name_Len := Name_Len + Executable_Suffix'Length;
+               end if;
+
                Executable := Name_Enter;
+
+               Verbose_Msg (Executable, "final executable");
+
             end if;
          end loop;
 
@@ -1973,17 +1891,15 @@ package body Make is
             end if;
 
             if Executable_Stamp (1) = ' ' then
-               Verbose_Msg (Executable, "missing.", Ind => No_Indent);
+               Verbose_Msg (Executable, "missing.", Prefix => "  ");
 
             elsif Youngest_Obj_Stamp (1) = ' ' then
-               Verbose_Msg (Youngest_Obj_File, "missing.", Ind => No_Indent);
+               Verbose_Msg (Youngest_Obj_File, "missing.", Prefix => "  ");
 
             else
                Verbose_Msg (Youngest_Obj_File,
-                            "(", String (Youngest_Obj_Stamp),
-                            ") newer than",
-                            Executable,
-                            "(", String (Executable_Stamp), ")");
+                            "(" & String (Youngest_Obj_Stamp) & ") newer than",
+                            Executable, "(" & String (Executable_Stamp) & ")");
             end if;
          end if;
       end Recursive_Compilation_Step;
@@ -2298,7 +2214,18 @@ package body Make is
             Fail ("Output filename missing after -o");
          else
             Add_Switch ("-o", Linker);
-            Add_Switch (Argv, Linker);
+
+            --  add automatically the executable suffix if it has not been
+            --  specified explicitly.
+
+            if Executable_Suffix'Length /= 0
+              and then Argv (Argv'Last - Executable_Suffix'Length + 1
+                             .. Argv'Last) /= Executable_Suffix
+            then
+               Add_Switch (Argv & Executable_Suffix, Linker);
+            else
+               Add_Switch (Argv, Linker);
+            end if;
          end if;
 
       --  Then check if we are dealing with a -cargs, -bargs or -largs
@@ -2419,7 +2346,7 @@ package body Make is
             Add_Src_Search_Dir (Argv (3 .. Argv'Last));
             Add_Lib_Search_Dir (Argv (3 .. Argv'Last));
             Add_Switch (Argv, Compiler);
-            Add_Switch ("-aO", Argv (3 .. Argv'Last), Binder);
+            Add_Switch ("-aO" & Argv (3 .. Argv'Last), Binder);
 
             --  No need to pass any source dir to the binder
             --  since gnatmake call it with the -x flag
@@ -2429,7 +2356,7 @@ package body Make is
 
          elsif Argv'Length >= 3 and then Argv (2 .. 3) = "aI" then
             Add_Src_Search_Dir (Argv (4 .. Argv'Last));
-            Add_Switch ("-I", Argv (4 .. Argv'Last), Compiler);
+            Add_Switch ("-I" & Argv (4 .. Argv'Last), Compiler);
 
          --  -aOdir
 
@@ -2442,7 +2369,7 @@ package body Make is
          elsif Argv'Length >= 3 and then Argv (2 .. 3) = "aL" then
             Mark_Directory (Argv (4 .. Argv'Last), Ada_Lib_Dir);
             Add_Lib_Search_Dir (Argv (4 .. Argv'Last));
-            Add_Switch ("-aO", Argv (4 .. Argv'Last), Binder);
+            Add_Switch ("-aO" & Argv (4 .. Argv'Last), Binder);
 
          --  -Adir (to gnatbind this is like a -aO switch, to gcc like a -I)
 
@@ -2450,8 +2377,8 @@ package body Make is
             Mark_Directory (Argv (3 .. Argv'Last), Ada_Lib_Dir);
             Add_Src_Search_Dir (Argv (3 .. Argv'Last));
             Add_Lib_Search_Dir (Argv (3 .. Argv'Last));
-            Add_Switch ("-I", Argv (3 .. Argv'Last), Compiler);
-            Add_Switch ("-aO", Argv (3 .. Argv'Last), Binder);
+            Add_Switch ("-I"  & Argv (3 .. Argv'Last), Compiler);
+            Add_Switch ("-aO" & Argv (3 .. Argv'Last), Binder);
 
          --  -Ldir
 
@@ -2483,6 +2410,13 @@ package body Make is
          then
             Opt.Check_Object_Consistency := False;
             Add_Switch (Argv, Compiler);
+
+         --  If -gnath is present, then generate the usage information
+         --  right now for the compiler, and do not pass this option
+         --  on to the compiler calls.
+
+         elsif Argv = "-gnath" then
+            null;
 
          --  By default all switches with more than one character
          --  or one character switches which are not in 'a' .. 'z'
@@ -2533,23 +2467,18 @@ package body Make is
    -----------------
 
    procedure Verbose_Msg
-     (N1  : Name_Id;
-      S1  : String;
-      N2  : Name_Id := No_Name;
-      S2  : String  := "";
-      Ind : Boolean := True)
+     (N1     : Name_Id;
+      S1     : String;
+      N2     : Name_Id := No_Name;
+      S2     : String  := "";
+      Prefix : String := "  -> ")
    is
    begin
       if not Opt.Verbose_Mode then
          return;
       end if;
 
-      Write_Str ("  ");
-
-      if Ind then
-         Write_Str ("-> ");
-      end if;
-
+      Write_Str (Prefix);
       Write_Str ("""");
       Write_Name (N1);
       Write_Str (""" ");
@@ -2562,44 +2491,6 @@ package body Make is
       end if;
 
       Write_Str (S2);
-      Write_Eol;
-   end Verbose_Msg;
-
-   -----------------
-   -- Verbose_Msg --
-   -----------------
-
-   procedure Verbose_Msg
-     (N1  : Name_Id;
-      S1a : String;
-      S1b : String;
-      S1c : String;
-      N2  : Name_Id;
-      S2a : String;
-      S2b : String;
-      S2c : String)
-   is
-   begin
-      if not Opt.Verbose_Mode then
-         return;
-      end if;
-
-      Write_Str ("  -> ");
-
-      Write_Str ("""");
-      Write_Name (N1);
-      Write_Str (""" ");
-      Write_Str (S1a);
-      Write_Str (S1b);
-      Write_Str (S1c);
-
-      Write_Str (" """);
-      Write_Name (N2);
-      Write_Str (""" ");
-      Write_Str (S2a);
-      Write_Str (S2b);
-      Write_Str (S2c);
-
       Write_Eol;
    end Verbose_Msg;
 

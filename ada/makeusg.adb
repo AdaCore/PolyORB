@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision$                              --
+--                            $Revision$
 --                                                                          --
 --          Copyright (C) 1992-1999 Free Software Foundation, Inc.          --
 --                                                                          --
@@ -26,8 +26,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Osint;    use Osint;
-with Output;   use Output;
+with Osint;  use Osint;
+with Output; use Output;
+with Usage;
 
 procedure Makeusg is
 
@@ -132,8 +133,7 @@ begin
    --  Line for -v
 
    Write_Switch_Char;
-   Write_Str ("v       Motivate all (re)compilations");
-   Write_Eol;
+   Write_Str ("v       Display reasons for all (re)compilations");
    Write_Eol;
 
    --  Line for -z
@@ -153,16 +153,9 @@ begin
    Write_Eol;
    Write_Eol;
 
-   --  GCC switches (passed to gcc by gnatmake)
+   --  Source and Library search path switches
 
-   Write_Str ("Gnat/Gcc switches such as -g, -O, -gnato, etc.");
-   Write_Str ("are directly passed to gcc");
-   Write_Eol;
-   Write_Eol;
-
-   --  Source & Library search path switches
-
-   Write_Str ("Source & Library search path switches:");
+   Write_Str ("Source and Library search path switches:");
    Write_Eol;
 
    --  Line for -aL
@@ -246,5 +239,9 @@ begin
    Write_Switch_Char;
    Write_Str ("largs opts   opts are passed to the linker");
    Write_Eol;
+
+   --  Add usage information for gcc
+
+   Usage;
 
 end Makeusg;

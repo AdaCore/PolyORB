@@ -85,7 +85,7 @@ package body Debug is
    --  dO
    --  dP   Do not check for controlled objects in preelaborable packages
    --  dQ
-   --  dR
+   --  dR   Bypass check for correct vesion of s-rpc
    --  dS   Never convert numbers to machine numbers in Sem_Eval
    --  dT   Convert to machine numbers only for constant declarations
    --  dU
@@ -326,6 +326,11 @@ package body Debug is
    --       RM 10.2.1(9) forbids the use of library level controlled objects
    --       in preelaborable packages, but this restriction is a huge pain,
    --       especially in the predefined library units.
+
+   --  dR   Bypass the check for a proper version of s-rpc being present
+   --       to use the -gnatz? switch. This allows debugging of the use
+   --       of stubs generation without needing to have GLADE (or some
+   --       other PCS  installed).
 
    --  dS   Omit conversion of fpt numbers to exact machine numbers in
    --       non-static evaluation contexts (see Check_Non_Static_Context).

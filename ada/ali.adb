@@ -1052,18 +1052,28 @@ package body ALI is
             end loop;
 
             if Ctr = 8 and then At_End_Of_Field then
-               Sdep.Table (Sdep.Last).Checksum_Present := True;
-               Sdep.Table (Sdep.Last).Checksum         := Chk;
+               Sdep.Table (Sdep.Last).Checksum := Chk;
             else
-               Sdep.Table (Sdep.Last).Checksum_Present := False;
+               Fatal_Error;
             end if;
          end;
 
-         --  Skip comments after stamp
+         --  Acquire subunit name if present
 
-         while not At_Eol loop
-            P := P + 1;
-         end loop;
+         if At_Eol then
+            Sdep.Table (Sdep.Last).Subunit_Name := No_Name;
+
+         else
+            Name_Len := 0;
+            Skip_Space;
+
+            while not At_Eol loop
+               Name_Len := Name_Len + 1;
+               Name_Buffer (Name_Len) := Getc;
+            end loop;
+
+            Sdep.Table (Sdep.Last).Subunit_Name := Name_Enter;
+         end if;
 
          Skip_Eol;
          C := Getc;

@@ -142,6 +142,15 @@ package Namet is
    --  and Name_Len is set. It is an error to call Get_Name_String with one
    --  of the special name Id values (No_Name or Error_Name).
 
+   procedure Get_Unqualified_Name_String (Id : Name_Id);
+   --  Similar to the above except that qualification (as defined in unit
+   --  Exp_Dbug) is removed (including both preceding __ delimited names,
+   --  and also the suffix used to indicate package body entities). Note
+   --  that names are not qualified until just before the call to gigi, so
+   --  this routine is only needed by processing that occurs after gigi has
+   --  been called. This includes all ASIS processing, since ASIS works on
+   --  the tree written after gigi has been called.
+
    procedure Get_Name_String_And_Append (Id : Name_Id);
    --  Like Get_Name_String but the resulting characters are appended to
    --  the current contents of the entry stored in Name_Buffer, and Name_Len
@@ -153,6 +162,15 @@ package Namet is
    --  appear as originally found in the source program text, operators have
    --  their source forms (special characters and enclosed in quotes), and
    --  character literals appear surrounded by apostrophes.
+
+   procedure Get_Unqualified_Decoded_Name_String (Id : Name_Id);
+   --  Similar to the above except that qualification (as defined in unit
+   --  Exp_Dbug) is removed (including both preceding __ delimited names,
+   --  and also the suffix used to indicate package body entities). Note
+   --  that names are not qualified until just before the call to gigi, so
+   --  this routine is only needed by processing that occurs after gigi has
+   --  been called. This includes all ASIS processing, since ASIS works on
+   --  the tree written after gigi has been called.
 
    procedure Get_Decoded_Name_String_With_Brackets (Id : Name_Id);
    --  This routine is similar to Decoded_Name, except that the brackets

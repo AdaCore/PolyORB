@@ -44,15 +44,15 @@ with System.WCh_Con; use System.WCh_Con;
 
 package Opt is
 
+   ----------------------------------------------
+   -- Settings of Modes for Current Processing --
+   ----------------------------------------------
+
+   --  The following mode values represent the current state of processing
+
    Ada_Bind_File : Boolean := True;
    --  GNATBIND
    --  Set True if binder file to be generated in Ada rather than C
-
-   Ada_83_Switch : Boolean := False;
-   --  GNAT
-   --  This is the value of the command line switch for Ada 83 mode. At the
-   --  start of compiling a unit, Ada_95 and Ada_83 are set from this value
-   --  but then they can be subsequently modified by pragmas Ada_83, Ada_95.
 
    Ada_95 : Boolean := True;
    --  GNAT
@@ -106,6 +106,9 @@ package Opt is
    --  with its corresponding ada library information (ali) file. An object
    --  file is inconsistent with the corresponding ali file if the object
    --  file does not exist or if it has an older time stamp than the ali file.
+   --  Default above is for GNATBIND. GNATMAKE overrides this default to
+   --  True (see Make.Initialize) since we do not need to check source
+   --  consistencies in gnatmake in this sense.
 
    Check_Only : Boolean := False;
    --  GNATBIND
@@ -199,13 +202,30 @@ package Opt is
    Extensions_Allowed : Boolean := False;
    --  GNAT
 
-   Force_Compilations : Boolean := False;
-   --  GNATMAKE
-   --  Set to force recompilations even when the objects are up-to-date.
+   type External_Casing_Type is (
+     As_Is,       -- External names cased as they appear in the Ada source
+     Uppercase,   -- External names forced to all uppercase letters
+     Lowercase);  -- External names forced to all lowercase letters
 
-   Full_List : Boolean := False;
-   --  GNAT
-   --  Set True to generate full source listing with embedded errors
+   External_Name_Imp_Casing : External_Casing_Type := Lowercase;
+   --  The setting of this switch determines the casing of external names
+   --  when the name is implicitly derived from an entity name (i.e. either
+   --  no explicit External_Name or Link_Name argument is used, or, in the
+   --  case of extended DEC pragmas, the external name is given using an
+   --  identifier. The As_Is setting is not permitted here (since this would
+   --  create Ada source programs that were case sensitive).
+
+   External_Name_Exp_Casing : External_Casing_Type := As_Is;
+   --  The setting of this switch determines the casing of an external name
+   --  specified explicitly with a string literal. As_Is means the string
+   --  literal is used as given with no modification to the casing. If
+   --  Lowercase or Uppercase is set, then the string is forced to all
+   --  lowercase or all uppercase letters as appropriate. Note that this
+   --  setting has no effect if the external name is given using an identifier
+   --  in the case of extended DEC import/export pragmas (in this case the
+   --  casing is controlled by External_Name_Imp_Casing), and also has no
+   --  effect if an explicit Link_Name is supplied (a link name is always
+   --  used exactly as given).
 
    Float_Format : Character := ' ';
    --  GNAT
@@ -221,9 +241,17 @@ package Opt is
    --  of GNAT), in which case this variable is set to D or G for
    --  D_Float or G_Float.
 
+   Force_Compilations : Boolean := False;
+   --  GNATMAKE
+   --  Set to force recompilations even when the objects are up-to-date.
+
    Full_Elaboration_Semantics : Boolean := False;
    --  GNATBIND
    --  True if binding with full Ada elaboration semantics (-f switch set)
+
+   Full_List : Boolean := False;
+   --  GNAT
+   --  Set True to generate full source listing with embedded errors
 
    Global_Discard_Names : Boolean := False;
    --  GNAT
@@ -308,9 +336,9 @@ package Opt is
 
    Locking_Policy : Character := ' ';
    --  GNAT
-   --  Set to ' ' for the default case (no locking policy specified). Reset to
-   --  first character (upper case) of locking policy name if a valid pragma
-   --  Locking_Policy is encountered.
+   --  Set to ' ' for the default case (no locking policy specified).
+   --  Reset to first character (uppercase) of locking policy name if a
+   --  valid pragma Locking_Policy is encountered.
 
    Look_In_Primary_Dir : Boolean := True;
    --  GNAT, GNATBIND, GNATMAKE
@@ -402,7 +430,7 @@ package Opt is
    Queuing_Policy : Character := ' ';
    --  GNAT
    --  Set to ' ' for the default case (no queuing policy specified). Reset to
-   --  Reset to first character (upper case) of locking policy name if a valid
+   --  Reset to first character (uppercase) of locking policy name if a valid
    --  Queuing_Policy pragma is encountered.
 
    Quiet_Output : Boolean := False;
@@ -428,8 +456,7 @@ package Opt is
    --  True means that the switch is set, so that stack checking is enabled.
    --  False means that the switch is not set (no stack checking). This
    --  value is obtained from the external imported value flag_stack_check
-   --  in the gcc backend using Sem_Util.Set_Stack_Check_Flags. This value
-   --  is set at the start of compilation, and may be referenced throughout
+   --  in the gcc backend (see Frontend) and may be referenced throughout
    --  the compilation phases.
 
    Stack_Check_Probes_Val : Boolean;
@@ -485,7 +512,7 @@ package Opt is
    Task_Dispatching_Policy : Character := ' ';
    --  GNAT
    --  Set to ' ' for the default case (no task dispatching policy specified).
-   --  Reset to first character (upper case) of task dispatching policy name
+   --  Reset to first character (uppercase) of task dispatching policy name
    --  if a valid Task_Dispatching_Policy pragma is encountered.
 
    Tasking_Used : Boolean := False;
@@ -600,13 +627,94 @@ package Opt is
    --  that when Gigi is called, this switch always has the value True
    --  as a result of the Frontend call to Sem_Util.Zero_Cost_Exceptions.
 
-   -----------------
-   -- Subprograms --
-   -----------------
+   ----------------------------
+   -- Configuration Settings --
+   ----------------------------
 
-   function Check_Ada_95 (File_Name : File_Name_Type) return Boolean;
-   --  Set Ada_95 mode for predefined and internal units, otherwise set
-   --  mode from switches. Return former Ada_83 mode.
+   --  These are settings that are used to establish the mode at the start
+   --  of each unit. The values defined below can be affected either by
+   --  command line switches, or by the use of appropriate configuration
+   --  pragmas in the gnat.adc file.
+
+   Ada_83_Config : Boolean;
+   --  GNAT
+   --  This is the value of the configuration switch for Ada 83 mode, as set
+   --  by the command line switch -gnat83, and possibly modified by the use
+   --  of configuration pragmas Ada_95 and Ada_83 in the gnat.adc file. This
+   --  switch is used to set the initial value for Ada_83 mode at the start
+   --  of analysis of a unit. Note however, that the setting of this switch
+   --  is ignored for internal and predefined units (which are always compiled
+   --  in Ada 95 mode).
+
+   Extensions_Allowed_Config : Boolean;
+   --  GNAT
+   --  This is the switch that indicates whether extensions are allowed.
+   --  It can be set True either by use of the -gnatX switch, or by use
+   --  of the configuration pragma Extensions_Allowed (On). It is always
+   --  set to True for internal GNAT units, since extensions are always
+   --  permitted in such units.
+
+   External_Name_Exp_Casing_Config : External_Casing_Type;
+   --  GNAT
+   --  This is the value of the configuration switch that controls casing
+   --  of external symbols for which an explicit external name is given. It
+   --  can be set to Uppercase by the command line switch -gnatF, and further
+   --  modified by the use of the configuration pragma External_Name_Casing
+   --  in the gnat.adc file. This switch is used to set the initial value
+   --  for External_Name_Exp_Casing at the start of analyzing each unit.
+   --  Note however that the setting of this switch is ignored for internal
+   --  and predefined units (which are always compiled with As_Is mode).
+
+   External_Name_Imp_Casing_Config : External_Casing_Type;
+   --  GNAT
+   --  This is the value of the configuration switch that controls casing
+   --  of external symbols where the external name is implicitly given. It
+   --  can be set to Uppercase by the command line switch -gnatF, and further
+   --  modified by the use of the configuration pragma External_Name_Casing
+   --  in the gnat.adc file. This switch is used to set the initial value
+   --  for External_Name_Imp_Casing at the start of analyzing each unit.
+   --  Note however that the setting of this switch is ignored for internal
+   --  and predefined units (which are always compiled with Lowercase mode).
+
+   Polling_Required_Config : Boolean;
+   --  GNAT
+   --  This is the value of the configuration switch that controls polling
+   --  mode. It can be set True by the command line switch -gnatP, and then
+   --  further modified by the use of pragma Polling in the gnat.adc file.
+   --  This switch is used to set the initial value for Polling_Required
+   --  at the start of analyzing each unit.
+
+   Use_VADS_Size_Config : Boolean;
+   --  GNAT
+   --  This is the value of the configuration switch that controls the use
+   --  of VADS_Size instead of Size whereever the attribute Size is used.
+   --  It can be set True by the use of the pragma Use_VADS_Size in the
+   --  gnat.adc file. This switch is used to set the initial value for
+   --  Use_VADS_Size at the start of analyzing each unit. Note however that
+   --  the setting of this switch is ignored for internal and predefined
+   --  units (which are always compiled with the standard Size semantics).
+
+   type Config_Switches_Type is private;
+   --  Type used to save values of the switches set from Config values
+
+   procedure Save_Opt_Config_Switches (Save : out Config_Switches_Type);
+   --  This procedure saves the current values of the switches which are
+   --  initialized from the above Config values, and then resets these
+   --  switches according to the Config value settings.
+
+   procedure Set_Opt_Config_Switches (Internal_Unit : Boolean);
+   --  This procedure sets the switches to the appropriate initial values.
+   --  The parameter Internal_Unit is True for an internal or predefined
+   --  unit, and affects the way the switches are set (see above).
+
+   procedure Restore_Opt_Config_Switches (Save : Config_Switches_Type);
+   --  This procedure restores a set of swich values previously saved
+   --  by a call to Save_Opt_Switches.
+
+   procedure Register_Opt_Config_Switches;
+   --  This procedure is called after processing the gnat.adc file to record
+   --  the values of the Config switches, as possibly modified by the use
+   --  of command line switches and configuration pragmas.
 
    -----------------------
    -- Tree I/O Routines --
@@ -617,5 +725,15 @@ package Opt is
 
    procedure Tree_Write;
    --  Writes out switch settings to current tree file using Tree_Write
+
+private
+   type Config_Switches_Type is record
+      Ada_83                   : Boolean;
+      Extensions_Allowed       : Boolean;
+      External_Name_Exp_Casing : External_Casing_Type;
+      External_Name_Imp_Casing : External_Casing_Type;
+      Polling_Required         : Boolean;
+      Use_VADS_Size            : Boolean;
+   end record;
 
 end Opt;

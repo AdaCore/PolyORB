@@ -60,6 +60,7 @@ package Rident is
       No_Dynamic_Interrupts,                   -- GNAT
       No_Dynamic_Priorities,                   -- (RM D.9(9))
       No_Enumeration_Maps,                     -- GNAT
+      No_Entry_Calls_In_Elaboration_Code,      -- GNAT
       No_Exception_Handlers,                   -- GNAT
       No_Exceptions,                           -- (RM H.4(12))
       No_Fixed_Point,                          -- (RM H.4(15))

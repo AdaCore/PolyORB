@@ -290,6 +290,18 @@ package body Switch is
                raise Bad_Switch;
             end if;
 
+         --  Processing for F switch
+
+         elsif C = 'F' then
+            Ptr := Ptr + 1;
+
+            if Program = Compiler then
+               External_Name_Exp_Casing := Uppercase;
+               External_Name_Imp_Casing := Uppercase;
+            else
+               raise Bad_Switch;
+            end if;
+
          --  Processing for g switch
 
          elsif C = 'g' then
@@ -606,13 +618,6 @@ package body Switch is
                raise Bad_Switch;
             end if;
 
-         elsif C = 'S' then
-            Ptr := Ptr + 1;
-
-            if Program = Compiler or else Program = Binder then
-               Time_Slice_Value := Scan_Pos;
-            end if;
-
          --  Processing for t switch
 
          elsif C = 't' then
@@ -866,7 +871,6 @@ package body Switch is
                   raise Bad_Switch;
                else
                   Ptr := Ptr + 1;
-                  Ada_83_Switch := True;
                   Ada_95 := False;
                   Ada_83 := True;
                end if;

@@ -35,7 +35,6 @@
 
 with Ada.Exceptions; use Ada.Exceptions;
 with Gnatvsn; use Gnatvsn;
-with Fname;   use Fname;
 with System;  use System;
 with Tree_IO; use Tree_IO;
 
@@ -48,33 +47,73 @@ package body Opt is
    --  Gnatvsn. If the length of the version string stored in the three is
    --  different, then versions are for sure different.
 
-   ------------------
-   -- Check_Ada_95 --
-   ------------------
+   ----------------------------------
+   -- Register_Opt_Config_Switches --
+   ----------------------------------
 
-   function Check_Ada_95 (File_Name : File_Name_Type) return Boolean is
-      Save_Ada_83_Mode : constant Boolean := Ada_83;
-
+   procedure Register_Opt_Config_Switches is
    begin
-      --  If internal unit, set Ada 95 mode.
+      Ada_83_Config                   := Ada_83;
+      Extensions_Allowed_Config       := Extensions_Allowed;
+      External_Name_Exp_Casing_Config := External_Name_Exp_Casing;
+      External_Name_Imp_Casing_Config := External_Name_Imp_Casing;
+      Polling_Required_Config         := Polling_Required;
+      Use_VADS_Size_Config            := Use_VADS_Size;
+   end Register_Opt_Config_Switches;
 
-      if Is_Internal_File_Name
-           (Fname => File_Name,
-            Renamings_Included => True)
-      then
-         Ada_83 := False;
-         Ada_95 := True;
+   ---------------------------------
+   -- Restore_Opt_Config_Switches --
+   ---------------------------------
 
-      --  Otherwise Initialize Ada_83 mode from compiler switches
+   procedure Restore_Opt_Config_Switches (Save : Config_Switches_Type) is
+   begin
+      Ada_83                   := Save.Ada_83;
+      Extensions_Allowed       := Save.Extensions_Allowed;
+      External_Name_Exp_Casing := Save.External_Name_Exp_Casing;
+      External_Name_Imp_Casing := Save.External_Name_Imp_Casing;
+      Polling_Required         := Save.Polling_Required;
+      Use_VADS_Size            := Save.Use_VADS_Size;
+   end Restore_Opt_Config_Switches;
+
+   ------------------------------
+   -- Save_Opt_Config_Switches --
+   ------------------------------
+
+   procedure Save_Opt_Config_Switches (Save : out Config_Switches_Type) is
+   begin
+      Save.Ada_83                   := Ada_83;
+      Save.Extensions_Allowed       := Extensions_Allowed;
+      Save.External_Name_Exp_Casing := External_Name_Exp_Casing;
+      Save.External_Name_Imp_Casing := External_Name_Imp_Casing;
+      Save.Polling_Required         := Polling_Required;
+      Save.Use_VADS_Size            := Use_VADS_Size;
+   end Save_Opt_Config_Switches;
+
+   -----------------------------
+   -- Set_Opt_Config_Switches --
+   -----------------------------
+
+   procedure Set_Opt_Config_Switches (Internal_Unit : Boolean) is
+   begin
+      if Internal_Unit then
+         Ada_83                   := False;
+         Ada_95                   := True;
+         Extensions_Allowed       := True;
+         External_Name_Exp_Casing := As_Is;
+         External_Name_Imp_Casing := Lowercase;
+         Use_VADS_Size            := False;
 
       else
-         Ada_83 := Ada_83_Switch;
-         Ada_95 := not Ada_83;
+         Ada_83                   := Ada_83_Config;
+         Ada_95                   := not Ada_83_Config;
+         Extensions_Allowed       := Extensions_Allowed_Config;
+         External_Name_Exp_Casing := External_Name_Exp_Casing_Config;
+         External_Name_Imp_Casing := External_Name_Imp_Casing_Config;
+         Use_VADS_Size            := Use_VADS_Size_Config;
       end if;
 
-      return Save_Ada_83_Mode;
-
-   end Check_Ada_95;
+      Polling_Required := Polling_Required_Config;
+   end Set_Opt_Config_Switches;
 
    ---------------
    -- Tree_Read --
@@ -93,7 +132,7 @@ package body Opt is
       Tree_Read_Bool (Verbose_Mode);
       Tree_Read_Data (Warning_Mode'Address,
                       Warning_Mode_Type'Object_Size / Storage_Unit);
-      Tree_Read_Bool (Ada_83_Switch);
+      Tree_Read_Bool (Ada_83_Config);
       Tree_Read_Bool (All_Errors_Mode);
       Tree_Read_Bool (Assertions_Enabled);
       Tree_Read_Bool (Full_List);
@@ -147,7 +186,7 @@ package body Opt is
       Tree_Write_Bool (Verbose_Mode);
       Tree_Write_Data (Warning_Mode'Address,
                        Warning_Mode_Type'Object_Size / Storage_Unit);
-      Tree_Write_Bool (Ada_83_Switch);
+      Tree_Write_Bool (Ada_83_Config);
       Tree_Write_Bool (All_Errors_Mode);
       Tree_Write_Bool (Assertions_Enabled);
       Tree_Write_Bool (Full_List);

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision$                             --
+--                            $Revision$
 --                                                                          --
 --          Copyright (C) 1992-1999 Free Software Foundation, Inc.          --
 --                                                                          --
@@ -263,7 +263,7 @@ package ALI is
 
       Is_Generic : Boolean;
       --  True for generic unit (i.e. a generic declaration, or a generic
-      --  body). False for a non-geneic unit.
+      --  body). False for a non-generic unit.
 
       Unit_Kind : Character;
       --  Indicates the nature of the unit. 'p' for Packages and 's' for
@@ -459,12 +459,11 @@ package ALI is
       Stamp : Time_Stamp_Type;
       --  Time stamp value
 
-      Checksum_Present : Boolean;
-      --  Indicates if checksum is present. This can eventually be removed
-      --  when we always have checksums present (i.e. from 3.08 on) ???
-
       Checksum : Word;
-      --  Checksum value if present
+      --  Checksum value
+
+      Subunit_Name : Name_Id;
+      --  Name_Id for subunit name if present, else No_Name
 
    end record;
 
@@ -510,7 +509,7 @@ package ALI is
    --    to be ignored.
    --
    --    Err determines the action taken on an incorrectly formatted file.
-   --    If Err is False, then an error message is putput, and the program
+   --    If Err is False, then an error message is output, and the program
    --    is terminated. If Err is True, then no error message is output,
    --    and No_ALI_Id is returned.
 

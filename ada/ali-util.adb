@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision$                              --
+--                            $Revision$
 --                                                                          --
 --          Copyright (C) 1992-1999 Free Software Foundation, Inc.          --
 --                                                                          --
@@ -354,10 +354,8 @@ package body ALI.Util is
 
             --  Initialize checksum fields
 
-            Source.Table (S).Checksum :=
-              Sdep.Table (D).Checksum;
-            Source.Table (S).All_Checksums_Match :=
-              Sdep.Table (D).Checksum_Present;
+            Source.Table (S).Checksum := Sdep.Table (D).Checksum;
+            Source.Table (S).All_Checksums_Match := True;
 
             --  In check source files mode, try to get time stamp from file
 
@@ -404,9 +402,7 @@ package body ALI.Util is
 
             --  Update checksum flag
 
-            if not Sdep.Table (D).Checksum_Present
-              or else Sdep.Table (D).Checksum /= Source.Table (S).Checksum
-            then
+            if Sdep.Table (D).Checksum /= Source.Table (S).Checksum then
                Source.Table (S).All_Checksums_Match := False;
             end if;
 
@@ -449,12 +445,10 @@ package body ALI.Util is
             end if;
          end if;
 
-         --  Here to set the checksum value in the source table if necessary
+         --  Set the checksum value in the source table
 
-         if Sdep.Table (D).Checksum_Present then
-            S := Source_Id (Get_Name_Table_Info (F));
-            Source.Table (S).Checksum := Sdep.Table (D).Checksum;
-         end if;
+         S := Source_Id (Get_Name_Table_Info (F));
+         Source.Table (S).Checksum := Sdep.Table (D).Checksum;
 
       end loop Sdep_Loop;
 
@@ -494,9 +488,8 @@ package body ALI.Util is
             --  ??? It is probably worth updating the ALI file with a new
             --  field to avoid recomputing it each time.
 
-            if Sdep.Table (D).Checksum_Present
-              and then Get_File_Checksum (Sdep.Table (D).Sfile) =
-              Source.Table (Src).Checksum
+            if Get_File_Checksum (Sdep.Table (D).Sfile) =
+                                             Source.Table (Src).Checksum
             then
                Sdep.Table (D).Stamp := Source.Table (Src).Stamp;
             end if;

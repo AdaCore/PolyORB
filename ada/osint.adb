@@ -83,10 +83,6 @@ package body Osint is
    --  The Fmode parameter is set to either Text or Binary (see description
    --  of GNAT.OS_Lib.Create_File).
 
-   procedure Find_Program_Name;
-   --  Put in Buffer_Name the name of the current program being run
-   --  excluding the directory path
-
    procedure Set_Library_Info_Name;
    --  Sets a default ali file name from the main compiler source name.
    --  This is used by Create_Output_Library_Info, and by the version of
@@ -2223,12 +2219,17 @@ package body Osint is
       pragma Import (C, To_Canonical_Dir_List_Next,
                      "to_canonical_dir_list_next");
 
-      Num_Files : Integer;
+      Num_Files           : Integer;
+      C_Wildcard_Host_Dir : String (1 .. Wildcard_Host_Dir'Length + 1);
    begin
+      C_Wildcard_Host_Dir (1 .. Wildcard_Host_Dir'Length)
+        := Wildcard_Host_Dir;
+      C_Wildcard_Host_Dir (C_Wildcard_Host_Dir'Last)
+        := Ascii.NUL;
 
       --  Do the expansion and say how many there are
 
-      Num_Files := To_Canonical_Dir_List_Init (Wildcard_Host_Dir'Address);
+      Num_Files := To_Canonical_Dir_List_Init (C_Wildcard_Host_Dir'Address);
 
       declare
          Canonical_Dir_List : String_Access_List (1 .. Num_Files);

@@ -153,13 +153,17 @@ package Osint is
    procedure Scan_Compiler_Args;
    --  Scans and processes the arguments passed to the compiler.
 
+   procedure Find_Program_Name;
+   --  Put simple name of current program being run (excluding the directory
+   --  path) in Name_Buffer, with the length in Name_Len.
+
    function Program_Name (Nam : String) return String_Access;
    --  In the native compilation case, Create a string containing Nam. In
    --  the cross compilation case, looks at the prefix of the current
    --  program being run and prepend it to Nam. For instance if the program
    --  being run is <target>-gnatmake and Nam is "gcc", the returned value
    --  will be a pointer to "<target>-gcc". This function clobbers
-   --  Buffer_Name.
+   --  Name_Buffer and Name_Len.
 
    procedure Write_Program_Name;
    --  Writes name of program as invoked to standard output
