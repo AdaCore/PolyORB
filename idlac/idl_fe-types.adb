@@ -85,7 +85,7 @@ package body Idl_Fe.Types is
 
    procedure Append_Node
      (List : in out Node_List;
-      Node : Node_Id)
+      Node : in Node_Id)
    is
       Cell, Last : Node_List;
    begin
@@ -98,6 +98,29 @@ package body Idl_Fe.Types is
             Last := Last.Cdr;
          end loop;
          Last.Cdr := Cell;
+      end if;
+   end Append_Node;
+
+   -------------------
+   --  Append_Node  --
+   -------------------
+
+   function Append_Node
+     (List : Node_List;
+      Node : Node_Id) return Node_List
+   is
+      Result, Cell, Last : Node_List;
+   begin
+      Cell := new Node_List_Cell'(Car => Node, Cdr => null);
+      if List = null then
+         return Cell;
+      else
+         Last := List;
+         while Last.Cdr /= null loop
+            Last := Last.Cdr;
+         end loop;
+         Last.Cdr := Cell;
+         return List;
       end if;
    end Append_Node;
 

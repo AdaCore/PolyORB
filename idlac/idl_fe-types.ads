@@ -144,7 +144,12 @@ package Idl_Fe.Types is
    function Is_End (It : Node_Iterator) return Boolean;
 
    --  Appends a node at the end of a list.
-   procedure Append_Node (List : in out Node_List; Node : Node_Id);
+   procedure Append_Node (List : in out Node_List;
+                          Node : in Node_Id);
+
+   --  Appends a node at the end of a list.
+   function Append_Node (List : in Node_List;
+                         Node : Node_Id) return Node_List;
 
    --  Look whether node is in list or not
    function Is_In_List (List : Node_List; Node : Node_Id) return Boolean;
@@ -173,7 +178,17 @@ package Idl_Fe.Types is
    --  usefull for the inheritance treatement
    function Simplify_Node_List (In_List : Node_List) return Node_List;
 
-   ----------------------------------------
+
+   ---------------------------------------------------
+   --  Named nodes in the tree parsed from the IDL  --
+   ---------------------------------------------------
+
+   --  get the name of a named node.
+   --  return "*null*" if it is not defined
+   function Get_Name (Node : in Node_Id) return String;
+
+
+    ----------------------------------------
    --  Type of an identifier definition  --
    ----------------------------------------
 

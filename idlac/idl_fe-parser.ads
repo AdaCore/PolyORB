@@ -102,14 +102,14 @@ private
    procedure Free is new Ada.Unchecked_Deallocation
      (Set, Set_Ptr);
 
-   --  try to add a value to the set of already used values.
-   --  if this value was already there, it return false, else true
-   function Add_Used_Value
-     (C : Node_Id)
-     return Boolean;
+--    --  try to add a value to the set of already used values.
+--    --  if this value was already there, it return false, else true
+--    function Add_Used_Value
+--      (C : Node_Id)
+--      return Boolean;
 
-   --  Frees all the set of already used values
-   procedure Release_All_Used_Values;
+--    --  Frees all the set of already used values
+--    procedure Release_All_Used_Values;
 
 
    --------------------------
@@ -183,8 +183,8 @@ private
    --
    --  Rule 10:
    --  <inheritance_spec> ::= ":" <scoped_name> { "," <scoped_name> }*
-   procedure Parse_Interface_Dcl_End (Result : in Node_Id;
-                                     Success : out Boolean);
+   procedure Parse_Interface_Dcl_End (Result : out Node_Id;
+                                      Success : out Boolean);
 
    --  Rule 12:
    --  <scoped_name> ::= <identifier>

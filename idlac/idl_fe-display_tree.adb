@@ -4,16 +4,6 @@ with Ada.Characters.Latin_1;
 package body Idl_Fe.Display_Tree is
    Blanks : constant String (1 .. 80) := (others => ' ');
 
-   function Get_Name (N : Node_Id) return String is
-      S : String_Cacc := Definition (N).Name;
-   begin
-      if S = null then
-         return "*null*";
-      else
-         return S.all;
-      end if;
-   end;
-
    procedure Disp_Tree (N : Node_Id; Indent : Natural; Full : Boolean);
 
    procedure Disp_Indent (Indent : Natural; S : String := "") is
