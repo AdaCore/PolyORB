@@ -191,7 +191,8 @@ Type_Declarator
   Declarators : Node_List
 
 Expr
-  Expr_Value : Constant_Value_Ptr
+  Expr_Value : Idl_Value
+  Expr_Type : Const_Type_Ptr
 
 Binary_Expr <-- Expr
   Left : Node_Id
@@ -229,25 +230,31 @@ Id_Expr <-- Unary_Expr
 
 Not_Expr <-- Unary_Expr
 
-Literal <-- Expr
+Literal
 
 Lit_Integer <-- Literal
+  Int_Value : String_Cacc
 
 Lit_String <-- Literal
+  String_Value : String_Cacc
 
 Lit_Wide_String <-- Literal
+  Wide_String_Value : String_Cacc
 
 Lit_Character <-- Literal
+  Character_Value : String_Cacc
 
 Lit_Wide_Character <-- Literal
+  Wide_Character_Value : String_Cacc
 
 Lit_Fixed_Point <-- Literal
+  Fixed_Point_Value : String_Cacc
 
 Lit_Floating_Point <-- Literal
+  Floating_Point_Value : String_Cacc
 
 Lit_Boolean <-- Literal
-
-Lit_Enum <-- Literal
+  Bool_Value : Boolean
 
 Const_Dcl <-- Named
   Constant_Type : Node_Id

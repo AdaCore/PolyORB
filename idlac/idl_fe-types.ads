@@ -38,25 +38,6 @@ package Idl_Fe.Types is
 
    --  used for the identifiers
    type String_Cacc is access constant String;
-
-   --  Identifiers are numbered, in order to make comparaison
-   --  easier and static. Each number is unique.
-   type Uniq_Id is new Natural;
-   Nil_Uniq_Id : constant Uniq_Id := 0;
-
-   type Param_Mode is (Mode_In, Mode_Inout, Mode_Out);
-
-   --  To manipulate the location of a node
-   subtype Location is Idl_Fe.Errors.Location;
-   procedure Set_Location (N : Node_Id;
-                           Loc : Location);
-   function Get_Location (N : Node_Id) return Location;
-
-
-   ----------------------------------
-   --  Management of const values  --
-   ----------------------------------
-
    --  all the possible kind of constants
    --  These types are used in the evaluation of constants to check
    --  that each subexpression of an expression does not exceed the
@@ -64,15 +45,15 @@ package Idl_Fe.Types is
    --  no use to distinguish signed and unsigned integers (see CORBA
    --  V2.3 - 3.9.2), so C_Short for example could be a short or an
    --  unsigned short.
-   --  In case a subexpression exceeds its supposed precision, the
-   --  types C_general_... can be used to avoid further precision
-   --  checking.
+   --  The distinction is kept for long long due to the special way
+   --  to code it : see idl_fe.tree.ads.
+
    type Const_Kind is
      (C_Short,
       C_Long,
       C_LongLong,
-      C_UShort,
-      C_ULong,
+--      C_UShort,
+--      C_ULong,
       C_ULongLong,
       C_Char,
       C_WChar,
@@ -85,106 +66,68 @@ package Idl_Fe.Types is
       C_WString,
       C_Octet,
       C_Enum,
-      C_No_Kind,
-      C_General_Integer,
-      C_General_Float,
-      C_General_Fixed);
+      C_No_Kind);
 
-   --  Idl types.
-   --  No distinction between intergers or floats here, the same
-   --  type will be used for a short and a long long or for a float
-   --  and a long double. However, the value will be checked and
-   --  correspond to the type of the constant
-   subtype Idl_Integer is Long_Long_Integer;
-   type Idl_String is access String;
-   type Idl_Wide_String is access Wide_String;
-   subtype Idl_Character is Character;
-   subtype Idl_Wide_Character is Wide_Character;
-   subtype Idl_Float is Long_Long_Float;
-   subtype Idl_Boolean is Boolean;
-
-   --  To deallocate Idl strings
-   procedure Free_Idl_String is new Ada.Unchecked_Deallocation
-     (String, Idl_String);
-   procedure Free_Idl_Wide_String is new Ada.Unchecked_Deallocation
-     (Wide_String, Idl_Wide_String);
-
-   --  These are the limits for each Idl type.
-   --  This time, the different integer types are distinguished
-   Idl_Octet_Min : constant Idl_Integer := 0;
-   Idl_Octet_Max : constant Idl_Integer := (2 ** 8) - 1;
-   Idl_Short_Min : constant Idl_Integer := (-2 ** 15);
-   Idl_Short_Max : constant Idl_Integer := (2 ** 15) - 1;
-   Idl_Long_Min : constant Idl_Integer := (-2 ** 31);
-   Idl_Long_Max : constant Idl_Integer := (2 ** 31) - 1;
-   Idl_LongLong_Min : constant Idl_Integer := (-2 ** 63);
-   Idl_LongLong_Max : constant Idl_Integer := (2 ** 63) - 1;
-   Idl_UShort_Min : constant Idl_Integer := 0;
-   Idl_UShort_Max : constant Idl_Integer := (2 ** 16) - 1;
-   Idl_ULong_Min : constant Idl_Integer := 0;
-   Idl_ULong_Max : constant Idl_Integer := (2 ** 32) - 1;
-   Idl_ULongLong_Min : constant Idl_Integer := 0;
-   Idl_ULongLong_Max : constant Idl_Integer := Idl_ULong_Max
-; --  (2 ** 64) - 1;
-   Idl_Float_Min : constant Idl_Float := Long_Long_Float (Float'First);
-   Idl_Float_Max : constant Idl_Float := Long_Long_Float (Float'Last);
-   Idl_Double_Min : constant Idl_Float := Long_Long_Float (Long_Float'First);
-   Idl_Double_Max : constant Idl_Float := Long_Long_Float (Long_Float'Last);
-   Idl_Long_Double_Min : constant Idl_Float := Long_Long_Float'First;
-   Idl_Long_Double_Max : constant Idl_Float := Long_Long_Float'Last;
-   Idl_Enum_Max : constant Long_Long_Integer := (2 ** 32) - 1;
-
-   --  definition of a constant, depending on its kind
-   --  This type is also used to specify a constant type
-   type Constant_Value (Kind : Const_Kind) is record
+   --  type of a constant
+   type Idl_Fixed_Digits_Nb is new Long_Long_Integer range 0 .. 31;
+   type Idl_Fixed_Scale is new Long_Long_Integer range 0 .. 31;
+   type Const_Type (Kind : Const_Kind) is record
       case Kind is
-         when C_Octet
-           | C_Short
-           | C_Long
-           | C_LongLong
-           | C_UShort
-           | C_ULong
-           | C_ULongLong
-           | C_General_Integer =>
-            Integer_Value : Idl_Integer;
-         when C_Char =>
-            Char_Value : Idl_Character;
-         when C_WChar =>
-            WChar_Value : Idl_Wide_Character;
-         when C_Boolean =>
-            Boolean_Value : Idl_Boolean;
-         when C_Float
-           | C_Double
-           | C_LongDouble
-           | C_General_Float =>
-            Float_Value : Idl_Float;
-         when C_String =>
-            String_Length : Idl_Integer;
-            String_Value : Idl_String;
-         when C_WString =>
-            WString_Length : Idl_Integer;
-            WString_Value : Idl_Wide_String;
-         when C_Fixed
-           | C_General_Fixed =>
-            Fixed_Value : Idl_Integer;
-            Digits_Nb : Idl_Integer;
-            Scale : Idl_Integer;
-         when C_Enum =>
-            Enum_Name : Node_Id;
-            Enum_Value : Node_Id;
-         when C_No_Kind =>
+         when C_Fixed =>
+            Digits_Nb : Idl_Fixed_Digits_Nb;
+            Scale : Idl_Fixed_Scale;
+         when others =>
             null;
       end case;
    end record;
-   type Constant_Value_Ptr is access Constant_Value;
+   type Const_Type_Ptr is access Const_Type;
 
-   --  to duplicate a constant_value_ptr
-   function Duplicate (C : in Constant_Value_Ptr)
-                       return Constant_Value_Ptr;
+   --  to deallocate a const_type_ptr
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Const_Type, Const_Type_Ptr);
 
-   --  to deallocate a constant_value_ptr
-   procedure Free (C : in out Constant_Value_Ptr);
 
+   --  Identifiers are numbered, in order to make comparaison
+   --  easier and static. Each number is unique.
+   type Uniq_Id is new Natural;
+   Nil_Uniq_Id : constant Uniq_Id := 0;
+
+   type Param_Mode is (Mode_In, Mode_Inout, Mode_Out);
+
+   ----------------------------------
+   --  Management of const values  --
+   ----------------------------------
+
+   --  generic type for constant values (except floating ones)
+   --  This type is used for all values (short as well as long long)
+   --  in order to have operations between longs and shorts for
+   --  example. The way it is used for long long and unsigned long
+   --  long is a bit strange : both use the whole 64 bits and you
+   --  can not add a long long and an unsigned long long without
+   --  care.
+   type Idl_Value is mod (2 ** 64);
+
+   --  These are the limits for each Idl type.
+   Idl_Short_Min : constant Idl_Value := (-2 ** 15);
+   Idl_Short_Max : constant Idl_Value := (2 ** 15) - 1;
+   Idl_Long_Min : constant Idl_Value := (-2 ** 31);
+   Idl_Long_Max : constant Idl_Value := (2 ** 31) - 1;
+   Idl_LongLong_Min : constant Idl_Value := (-2 ** 63);
+   Idl_LongLong_Max : constant Idl_Value := (2 ** 63) - 1;
+   Idl_UShort_Min : constant Idl_Value := 0;
+   Idl_UShort_Max : constant Idl_Value := (2 ** 16) - 1;
+   Idl_ULong_Min : constant Idl_Value := 0;
+   Idl_ULong_Max : constant Idl_Value := (2 ** 32) - 1;
+   Idl_ULongLong_Min : constant Idl_Value := 0;
+   Idl_ULongLong_Max : constant Idl_Value := (2 ** 64) - 1;
+
+   Idl_Enum_Max : constant Idl_Value := (2 ** 32) - 1;
+
+   --  To manipulate the location of a node
+   subtype Location is Idl_Fe.Errors.Location;
+   procedure Set_Location (N : Node_Id;
+                           Loc : Location);
+   function Get_Location (N : Node_Id) return Location;
 
    ---------------------------------
    -- A useful list of root nodes --
@@ -282,8 +225,8 @@ package Idl_Fe.Types is
    --  node is supposed to be a scoped name and the list must be
    --  a list of scoped names. What is compared here is not the nodes
    --  themselves but the node they are pointing to
-   function Is_In_Pointed_List (List : Node_List; Node : Node_Id)
-                                return Boolean;
+   function Is_In_Parent_List (List : Node_List; Node : Node_Id)
+                               return Boolean;
 
    --  Frees all the list
    procedure Free (List : in out Node_List);
