@@ -38,6 +38,11 @@ with Interfaces.C.Strings;
 
 package System.Garlic.Thin is
 
+   --  This package is intended for hosts implementing BSD sockets with a
+   --  standard interface. Although it is named using GNAT conventions for
+   --  Linux, it will be used as a default for all the platforms that do not
+   --  have a specific version of this file.
+
    package C renames Interfaces.C;
    package Strings renames C.Strings;
    generic package Pointers renames C.Pointers;

@@ -21,6 +21,9 @@ PLATFORM           = @PLATFORM_SPECIFIC@
 TCP_PLATFORM       = 5${PLATFORM}gtplsp.ads
 CONSTANTS_PLATFORM = ${srcdir}/5${PLATFORM}garcon.ads
 
+THIN_PLATFORM      = ${srcdir}/5${PLATFORM}garthi.ads
+THIN_GENERIC       = ${srcdir}/5lgarthi.ads
+
 EXTRA_LIBS = @EXTRA_LIBS@
 
 LAUNCHINGOBJECTS = \
@@ -173,6 +176,13 @@ s-galiop.ads:
 
 s-gtplsp.ads: ${srcdir}/${TCP_PLATFORM}
 	cp ${srcdir}/${TCP_PLATFORM} s-gtplsp.ads
+
+s-garthi.ads: Makefile
+	if test -f ${THIN_PLATFORM}; then \
+	  cp ${THIN_PLATFORM} s-garthi.ads; \
+	else \
+	  cp ${THIN_GENERIC} s-garthi.ads; \
+	fi
 
 split: ${srcdir}/split.adb
 	$(GNATMAKE) -m -o split ${srcdir}/split.adb

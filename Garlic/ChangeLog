@@ -1,3 +1,12 @@
+1998-04-09  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* Makefile.am: Use the target specific System.Garlic.Thin or the
+	generic one if there is no specialization.
+
+	* s-garthi.ads: Renamed into 5lgarthi.ads.
+
+	* 5wgarthi.ads: Windows NT specific file, provided by Pascal Obry.
+
 1998-04-07  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* 5wgtplsp.ads: Add Winsock initialization provided by Pascal Obry.
