@@ -39,6 +39,9 @@ with System.Storage_Elements;
 package System.RPC is
 
    type Partition_ID is range 0 .. 63;
+   --  This type must not be modified without checking the code in
+   --  a-except.adb, since it expects a Partition_ID whose string
+   --  representation fits on two characters.
 
    Communication_Error : exception;
 
