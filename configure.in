@@ -54,4 +54,9 @@ AC_OUTPUT([Makefile
 	   compilers/idlac/testsuite/Makefile
 	   compilers/idlac/platform.ads
 	   src/Makefile src/corba/Makefile support/adacompiler])
+for a in src/gnat.adc
+do
+  echo "creating $a"
+  cp $srcdir/$a $a
+done
 # src/polyorb-config])
