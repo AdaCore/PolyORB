@@ -491,6 +491,10 @@ src/corba/polyorb-corba_p-poa_config.adb
 src/corba/polyorb-corba_p-poa_config.ads
 src/corba/polyorb-corba_p-policy.adb
 src/corba/polyorb-corba_p-policy.ads
+src/corba/polyorb-sequences-bounded-corba_helper.adb
+src/corba/polyorb-sequences-bounded-corba_helper.ads
+src/corba/polyorb-sequences-unbounded-corba_helper.adb
+src/corba/polyorb-sequences-unbounded-corba_helper.ads
 src/corba/polyorb-corba_p-servantactivator.adb
 src/corba/polyorb-corba_p-servantactivator.ads
 src/corba/polyorb-corba_p-servantlocator.adb

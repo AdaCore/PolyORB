@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/corba.adb#26 $
+--  $Id: //droopi/main/src/corba/corba.adb#27 $
 
 with Ada.Characters.Handling;
 
@@ -46,41 +46,61 @@ with PolyORB.Utils.Strings;
 
 package body CORBA is
 
-   use PolyORB.Any;
+   function To_PolyORB_NV (NV : NamedValue) return PolyORB.Any.NamedValue;
+
+   function To_PolyORB_NV (NV : NamedValue) return PolyORB.Any.NamedValue is
+   begin
+      return PolyORB.Any.NamedValue'
+        (Name      => PolyORB.Types.Identifier (NV.Name),
+         Argument  => Internals.To_PolyORB_Any (NV.Argument),
+         Arg_Modes => PolyORB.Any.Flags (NV.Arg_Modes));
+   end To_PolyORB_NV;
+
+   function To_CORBA_NV (NV : PolyORB.Any.NamedValue) return NamedValue is
+   begin
+      return CORBA.NamedValue'
+        (Name      => CORBA.Identifier (NV.Name),
+         Argument  => CORBA.Any'(The_Any => NV.Argument),
+         Arg_Modes => Flags (NV.Arg_Modes));
+   end To_CORBA_NV;
 
    --------------------------
    -- TC_Completion_Status --
    --------------------------
 
    function TC_Completion_Status
-     return PolyORB.Any.TypeCode.Object;
+     return CORBA.TypeCode.Object;
    --  The typecode for standard enumeration type completion_status.
 
-   TC_Completion_Status_Cache : TypeCode.Object;
+   TC_Completion_Status_Cache : CORBA.TypeCode.Object;
 
    function TC_Completion_Status
-     return PolyORB.Any.TypeCode.Object
+     return CORBA.TypeCode.Object
    is
       use type PolyORB.Types.Unsigned_Long;
 
-      TC : TypeCode.Object renames TC_Completion_Status_Cache;
+      TC : CORBA.TypeCode.Object renames TC_Completion_Status_Cache;
 
    begin
-      if TypeCode.Parameter_Count (TC) /= 0 then
+      if PolyORB.Any.TypeCode.Parameter_Count
+        (CORBA.TypeCode.Internals.To_PolyORB_Object (TC)) /= 0
+      then
          return TC_Completion_Status_Cache;
       end if;
 
-      TC := TypeCode.TC_Enum;
-      TypeCode.Add_Parameter
+      TC := CORBA.TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.TypeCode.TC_Enum);
+      TypeCode.Internals.Add_Parameter
         (TC, To_Any (To_PolyORB_String ("completion_status")));
-      TypeCode.Add_Parameter
+      TypeCode.Internals.Add_Parameter
         (TC, To_Any (To_PolyORB_String
                      ("IDL:omg.org/CORBA/completion_status:1.0")));
 
       for C in Completion_Status'Range loop
-         TypeCode.Add_Parameter
+         TypeCode.Internals.Add_Parameter
            (TC, To_Any (To_PolyORB_String (Completion_Status'Image (C))));
       end loop;
+
       return TC;
    end TC_Completion_Status;
 
@@ -636,107 +656,659 @@ package body CORBA is
         (Bad_Qos'Identity, Excp_Memb);
    end Raise_Bad_Qos;
 
+   package body TypeCode is
+
+      -----------------
+      -- Get_Members --
+      -----------------
+
+      procedure Get_Members
+        (From : in     Ada.Exceptions.Exception_Occurrence;
+         To   :    out Bounds_Members)
+      is
+         use Ada.Exceptions;
+
+      begin
+         if Exception_Identity (From) /= InvalidName'Identity then
+            Raise_Bad_Param (Default_Sys_Member);
+         end if;
+
+         To := Bounds_Members'
+           (IDL_Exception_Members with null record);
+      end Get_Members;
+
+      procedure Get_Members
+        (From : in     Ada.Exceptions.Exception_Occurrence;
+         To   :    out BadKind_Members)
+      is
+         use Ada.Exceptions;
+
+      begin
+         if Exception_Identity (From) /= InvalidName'Identity then
+            Raise_Bad_Param (Default_Sys_Member);
+         end if;
+
+         To := BadKind_Members'
+           (IDL_Exception_Members with null record);
+      end Get_Members;
+
+      ---------
+      -- "=" --
+      ---------
+
+      function "=" (Left, Right : in Object) return Boolean is
+      begin
+         return PolyORB.Any.TypeCode."="
+           (Internals.To_PolyORB_Object (Left),
+            Internals.To_PolyORB_Object (Right));
+      end "=";
+
+      ----------------
+      -- Equivalent --
+      ----------------
+
+      function Equivalent (Left, Right : in Object) return Boolean is
+      begin
+         return PolyORB.Any.TypeCode.Equivalent
+           (Internals.To_PolyORB_Object (Left),
+            Internals.To_PolyORB_Object (Right));
+      end Equivalent;
+
+      -------------------------
+      -- Get_Compact_TypeCod --
+      -------------------------
+
+      function Get_Compact_TypeCode (Self : in Object) return Object is
+      begin
+         return CORBA.TypeCode.Object
+           (PolyORB.Any.TypeCode.Get_Compact_TypeCode
+            (Internals.To_PolyORB_Object (Self)));
+      end Get_Compact_TypeCode;
+
+      ----------
+      -- Kind --
+      ----------
+
+      function Kind (Self : in Object) return TCKind is
+      begin
+         return PolyORB.Any.TypeCode.Kind (Internals.To_PolyORB_Object (Self));
+      end Kind;
+
+      --------
+      -- Id --
+      --------
+
+      function Id (Self : in Object) return RepositoryId is
+      begin
+         return CORBA.RepositoryId
+           (PolyORB.Any.TypeCode.Id (Internals.To_PolyORB_Object (Self)));
+      end Id;
+
+      ----------
+      -- Name --
+      ----------
+
+      function Name (Self : in Object) return Identifier is
+      begin
+         return CORBA.Identifier
+           (PolyORB.Any.TypeCode.Name (Internals.To_PolyORB_Object (Self)));
+      end Name;
+
+      ------------------
+      -- Member_Count --
+      ------------------
+
+      function Member_Count (Self : in Object) return Unsigned_Long is
+      begin
+         return CORBA.Unsigned_Long
+           (PolyORB.Any.TypeCode.Member_Count
+            (Internals.To_PolyORB_Object (Self)));
+      end Member_Count;
+
+      -----------------
+      -- Member_Name --
+      -----------------
+
+      function Member_Name
+        (Self  : in Object;
+         Index : in Unsigned_Long)
+        return Identifier
+      is
+      begin
+         return CORBA.Identifier
+           (PolyORB.Any.TypeCode.Member_Name
+            (Internals.To_PolyORB_Object (Self),
+             PolyORB.Types.Unsigned_Long (Index)));
+      end Member_Name;
+
+      -----------------
+      -- Member_Type --
+      -----------------
+
+      function Member_Type
+        (Self  : in Object;
+         Index : in Unsigned_Long)
+        return Object
+      is
+      begin
+         return CORBA.TypeCode.Object
+           (PolyORB.Any.TypeCode.Member_Type
+            (Internals.To_PolyORB_Object (Self),
+             PolyORB.Types.Unsigned_Long (Index)));
+      end Member_Type;
+
+      ------------------
+      -- Member_Label --
+      ------------------
+
+      function Member_Label
+        (Self  : in Object;
+         Index : in Unsigned_Long)
+        return Any
+      is
+      begin
+         return CORBA.Any'
+           (The_Any => PolyORB.Any.TypeCode.Member_Label
+            (Internals.To_PolyORB_Object (Self),
+             PolyORB.Types.Unsigned_Long (Index)));
+      end Member_Label;
+
+      ------------------------
+      -- Discriminator_Type --
+      ------------------------
+
+      function Discriminator_Type (Self : in Object) return Object is
+      begin
+         return CORBA.TypeCode.Object
+           (PolyORB.Any.TypeCode.Discriminator_Type
+            (Internals.To_PolyORB_Object (Self)));
+      end Discriminator_Type;
+
+      -------------------
+      -- Default_Index --
+      -------------------
+
+      function Default_Index (Self : in Object) return Long is
+      begin
+         return CORBA.Long
+           (PolyORB.Any.TypeCode.Default_Index
+            (Internals.To_PolyORB_Object (Self)));
+      end Default_Index;
+
+      ------------
+      -- Length --
+      ------------
+
+      function Length (Self : in Object) return Unsigned_Long is
+      begin
+         return CORBA.Unsigned_Long
+           (PolyORB.Any.TypeCode.Length
+            (Internals.To_PolyORB_Object (Self)));
+      end Length;
+
+      ------------------
+      -- Content_Type --
+      ------------------
+
+      function Content_Type (Self : in Object) return Object is
+      begin
+         return CORBA.TypeCode.Object
+           (PolyORB.Any.TypeCode.Content_Type
+            (Internals.To_PolyORB_Object (Self)));
+      end Content_Type;
+
+      ------------------
+      -- Fixed_Digits --
+      ------------------
+
+      function Fixed_Digits (Self : in Object) return Unsigned_Short is
+      begin
+         return CORBA.Unsigned_Short
+           (PolyORB.Any.TypeCode.Fixed_Digits
+            (Internals.To_PolyORB_Object (Self)));
+      end Fixed_Digits;
+
+      -----------------
+      -- Fixed_Scale --
+      -----------------
+
+      function Fixed_Scale (Self : in Object) return Short is
+      begin
+         return CORBA.Short
+           (PolyORB.Any.TypeCode.Fixed_Scale
+            (Internals.To_PolyORB_Object (Self)));
+      end Fixed_Scale;
+
+      -----------------------
+      -- Member_Visibility --
+      -----------------------
+
+      function Member_Visibility
+        (Self  : in Object;
+         Index : in Unsigned_Long)
+        return Visibility
+      is
+      begin
+         return CORBA.Visibility
+           (PolyORB.Any.TypeCode.Member_Visibility
+            (Internals.To_PolyORB_Object (Self),
+             PolyORB.Types.Unsigned_Long (Index)));
+      end Member_Visibility;
+
+      -------------------
+      -- Type_Modifier --
+      -------------------
+
+      function Type_Modifier (Self : in Object) return ValueModifier is
+      begin
+         return PolyORB.Any.TypeCode.Type_Modifier
+           (Internals.To_PolyORB_Object (Self));
+      end Type_Modifier;
+
+      ------------------------
+      -- Concrete_Base_Type --
+      ------------------------
+
+      function Concrete_Base_Type (Self : in Object) return Object is
+      begin
+         return CORBA.TypeCode.Object
+           (PolyORB.Any.TypeCode.Concrete_Base_Type
+            (Internals.To_PolyORB_Object (Self)));
+      end Concrete_Base_Type;
+
+      package body Internals is
+
+         --------------
+         -- Set_Kind --
+         --------------
+
+         procedure Set_Kind (Self : out Object; Kind : in TCKind) is
+            P_Self : PolyORB.Any.TypeCode.Object;
+         begin
+            PolyORB.Any.TypeCode.Set_Kind (P_Self, Kind);
+            Self := Internals.To_CORBA_Object (P_Self);
+         end Set_Kind;
+
+         -------------------
+         -- Add_Parameter --
+         -------------------
+
+         procedure Add_Parameter (Self : in out Object; Param : in Any) is
+            P_Self : PolyORB.Any.TypeCode.Object := To_PolyORB_Object (Self);
+         begin
+            PolyORB.Any.TypeCode.Add_Parameter
+              (P_Self, CORBA.Internals.To_PolyORB_Any (Param));
+            Self := To_CORBA_Object (P_Self);
+         end Add_Parameter;
+
+         -----------------------
+         -- To_PolyORB_Object --
+         -----------------------
+
+         function To_PolyORB_Object
+           (Self : in CORBA.TypeCode.Object)
+           return PolyORB.Any.TypeCode.Object
+         is
+         begin
+            return PolyORB.Any.TypeCode.Object (Self);
+         end To_PolyORB_Object;
+
+         ---------------------
+         -- To_CORBA_Object --
+         ---------------------
+
+         function To_CORBA_Object
+           (Self : in PolyORB.Any.TypeCode.Object)
+           return CORBA.TypeCode.Object
+         is
+         begin
+            return CORBA.TypeCode.Object (Self);
+         end To_CORBA_Object;
+
+      end Internals;
+
+   end TypeCode;
+
+   -------------
+   -- TC_Null --
+   -------------
+
+   function TC_Null return TypeCode.Object is
+   begin
+      return TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.TypeCode.TC_Null);
+   end TC_Null;
+
+   -------------
+   -- TC_Void --
+   -------------
+
+   function TC_Void return TypeCode.Object is
+   begin
+      return TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.TypeCode.TC_Void);
+   end TC_Void;
+
+   --------------
+   -- TC_Short --
+   --------------
+
+   function TC_Short return TypeCode.Object is
+   begin
+      return TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.TypeCode.TC_Short);
+   end TC_Short;
+
+   -------------
+   -- TC_Long --
+   -------------
+
+   function TC_Long return TypeCode.Object is
+   begin
+      return TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.TypeCode.TC_Long);
+   end TC_Long;
+
+   ------------------
+   -- TC_Long_Long --
+   ------------------
+
+   function TC_Long_Long return TypeCode.Object is
+   begin
+      return TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.TypeCode.TC_Long_Long);
+   end TC_Long_Long;
+
+   -----------------------
+   -- TC_Unsigned_Short --
+   -----------------------
+
+   function TC_Unsigned_Short return TypeCode.Object is
+   begin
+      return TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.TypeCode.TC_Unsigned_Short);
+   end TC_Unsigned_Short;
+
+   ----------------------
+   -- TC_Unsigned_Long --
+   ----------------------
+
+   function TC_Unsigned_Long return TypeCode.Object is
+   begin
+      return TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.TypeCode.TC_Unsigned_Long);
+   end TC_Unsigned_Long;
+
+   ---------------------------
+   -- TC_Unsigned_Long_Long --
+   ---------------------------
+
+   function TC_Unsigned_Long_Long return TypeCode.Object is
+   begin
+      return TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.TypeCode.TC_Unsigned_Long_Long);
+   end TC_Unsigned_Long_Long;
+
+   --------------
+   -- TC_Float --
+   --------------
+
+   function TC_Float return TypeCode.Object is
+   begin
+      return TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.TypeCode.TC_Float);
+   end TC_Float;
+
+   ---------------
+   -- TC_Double --
+   ---------------
+
+   function TC_Double return TypeCode.Object is
+   begin
+      return TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.TypeCode.TC_Double);
+   end TC_Double;
+
+   --------------------
+   -- TC_Long_Double --
+   --------------------
+
+   function TC_Long_Double return TypeCode.Object is
+   begin
+      return TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.TypeCode.TC_Long_Double);
+   end TC_Long_Double;
+
+   ----------------
+   -- TC_Boolean --
+   ----------------
+
+   function TC_Boolean return TypeCode.Object is
+   begin
+      return TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.TypeCode.TC_Boolean);
+   end TC_Boolean;
+
+   -------------
+   -- TC_Char --
+   -------------
+
+   function TC_Char return TypeCode.Object is
+   begin
+      return TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.TypeCode.TC_Char);
+   end TC_Char;
+
+   --------------
+   -- TC_Wchar --
+   --------------
+
+   function TC_Wchar return TypeCode.Object is
+   begin
+      return TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.TypeCode.TC_Wchar);
+   end TC_Wchar;
+
+   --------------
+   -- TC_Octet --
+   --------------
+
+   function TC_Octet return TypeCode.Object is
+   begin
+      return TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.TypeCode.TC_Octet);
+   end TC_Octet;
+
+   ------------
+   -- TC_Any --
+   ------------
+
+   function TC_Any return TypeCode.Object is
+   begin
+      return TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.TypeCode.TC_Any);
+   end TC_Any;
+
+   -----------------
+   -- TC_TypeCode --
+   -----------------
+
+   function TC_TypeCode return TypeCode.Object is
+   begin
+      return TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.TypeCode.TC_TypeCode);
+   end TC_TypeCode;
+
+   ---------------
+   -- TC_String --
+   ---------------
+
+   function TC_String return TypeCode.Object is
+   begin
+      return TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.TypeCode.TC_String);
+   end TC_String;
+
+   --------------------
+   -- TC_Wide_String --
+   --------------------
+
+   function TC_Wide_String  return TypeCode.Object is
+   begin
+      return TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.TypeCode.TC_Wide_String);
+   end TC_Wide_String;
+
+   ------------------
+   -- TC_Principal --
+   ------------------
+
+   function TC_Principal return TypeCode.Object is
+   begin
+      return TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.TypeCode.TC_Principal);
+   end TC_Principal;
+
+   --------------
+   -- TC_Value --
+   --------------
+
+   function TC_Value return TypeCode.Object is
+   begin
+      return TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.TypeCode.TC_Value);
+   end TC_Value;
+
    ---------
    -- "=" --
    ---------
 
-   function "=" (Left, Right : in Any) return Boolean
-     renames PolyORB.Any."=";
+   function "=" (Left, Right : in Any) return Boolean is
+   begin
+      return PolyORB.Any."="
+        (Internals.To_PolyORB_Any (Left),
+         Internals.To_PolyORB_Any (Right));
+   end "=";
 
    ------------
    -- To_Any --
    ------------
 
-   function To_Any (Item : in Short) return Any is
+   function To_Any (Item : in Short) return CORBA.Any is
    begin
-      return PolyORB.Any.To_Any (PolyORB.Types.Short (Item));
+      return CORBA.Any'
+        (The_Any => PolyORB.Any.To_Any (PolyORB.Types.Short (Item)));
    end To_Any;
 
    function To_Any (Item : in Long) return Any is
    begin
-      return PolyORB.Any.To_Any (PolyORB.Types.Long (Item));
+      return CORBA.Any'
+        (The_Any => PolyORB.Any.To_Any (PolyORB.Types.Long (Item)));
    end To_Any;
 
    function To_Any (Item : in Long_Long) return Any is
    begin
-      return PolyORB.Any.To_Any (PolyORB.Types.Long_Long (Item));
+      return CORBA.Any'
+        (The_Any => PolyORB.Any.To_Any (PolyORB.Types.Long_Long (Item)));
    end To_Any;
 
    function To_Any (Item : in Unsigned_Short) return Any is
    begin
-      return PolyORB.Any.To_Any (PolyORB.Types.Unsigned_Short (Item));
+      return CORBA.Any'
+        (The_Any => PolyORB.Any.To_Any (PolyORB.Types.Unsigned_Short (Item)));
    end To_Any;
 
    function To_Any (Item : in Unsigned_Long) return Any is
    begin
-      return PolyORB.Any.To_Any (PolyORB.Types.Unsigned_Long (Item));
+      return CORBA.Any'
+        (The_Any => PolyORB.Any.To_Any (PolyORB.Types.Unsigned_Long (Item)));
    end To_Any;
 
    function To_Any (Item : in Unsigned_Long_Long) return Any is
    begin
-      return PolyORB.Any.To_Any (PolyORB.Types.Unsigned_Long_Long (Item));
+      return CORBA.Any'
+        (The_Any => PolyORB.Any.To_Any
+         (PolyORB.Types.Unsigned_Long_Long (Item)));
    end To_Any;
 
    function To_Any (Item : in CORBA.Float) return Any is
    begin
-      return PolyORB.Any.To_Any (PolyORB.Types.Float (Item));
+      return CORBA.Any'
+        (The_Any => PolyORB.Any.To_Any (PolyORB.Types.Float (Item)));
+
    end To_Any;
 
    function To_Any (Item : in Double) return Any is
    begin
-      return PolyORB.Any.To_Any (PolyORB.Types.Double (Item));
+      return CORBA.Any '
+        (The_Any => PolyORB.Any.To_Any (PolyORB.Types.Double (Item)));
    end To_Any;
 
    function To_Any (Item : in Long_Double) return Any is
    begin
-      return PolyORB.Any.To_Any (PolyORB.Types.Long_Double (Item));
+      return CORBA.Any'
+        (The_Any => PolyORB.Any.To_Any (PolyORB.Types.Long_Double (Item)));
    end To_Any;
 
    function To_Any (Item : in Boolean) return Any is
    begin
-      return PolyORB.Any.To_Any (PolyORB.Types.Boolean (Item));
+      return CORBA.Any'
+        (The_Any => PolyORB.Any.To_Any (PolyORB.Types.Boolean (Item)));
    end To_Any;
 
    function To_Any (Item : in Char) return Any is
    begin
-      return PolyORB.Any.To_Any (PolyORB.Types.Char (Item));
+      return CORBA.Any'
+        (The_Any => PolyORB.Any.To_Any (PolyORB.Types.Char (Item)));
    end To_Any;
 
    function To_Any (Item : in Wchar) return Any is
    begin
-      return PolyORB.Any.To_Any (PolyORB.Types.Wchar (Item));
+      return CORBA.Any'
+        (The_Any => PolyORB.Any.To_Any (PolyORB.Types.Wchar (Item)));
    end To_Any;
 
    function To_Any (Item : in Octet) return Any is
    begin
-      return PolyORB.Any.To_Any (PolyORB.Types.Octet (Item));
+      return CORBA.Any'
+        (The_Any => PolyORB.Any.To_Any (PolyORB.Types.Octet (Item)));
    end To_Any;
 
-   function To_Any (Item : in Any) return Any
-     renames PolyORB.Any.To_Any;
+   function To_Any (Item : in Any) return Any is
+   begin
+      return CORBA.Any'(The_Any => PolyORB.Any.To_Any
+                        (Internals.To_PolyORB_Any (Item)));
+   end To_Any;
 
-   function To_Any (Item : in TypeCode.Object) return Any
-     renames PolyORB.Any.To_Any;
+   function To_Any (Item : in TypeCode.Object) return Any is
+   begin
+      return CORBA.Any'
+        (The_Any => PolyORB.Any.To_Any
+         (CORBA.TypeCode.Internals.To_PolyORB_Object (Item)));
+   end To_Any;
 
    function To_Any (Item : in CORBA.String) return Any is
    begin
-      return PolyORB.Any.To_Any (PolyORB.Types.String (Item));
+      return CORBA.Any'
+        (The_Any => PolyORB.Any.To_Any (PolyORB.Types.String (Item)));
    end To_Any;
 
    function To_Any (Item : in CORBA.Wide_String) return Any is
    begin
-      return PolyORB.Any.To_Any (PolyORB.Types.Wide_String (Item));
+      return CORBA.Any'
+        (The_Any => PolyORB.Any.To_Any (PolyORB.Types.Wide_String (Item)));
    end To_Any;
 
    function To_Any
      (Item : Completion_Status)
-     return PolyORB.Any.Any
+     return CORBA.Any
    is
-      Result : PolyORB.Any.Any
-        := Get_Empty_Any_Aggregate (TC_Completion_Status);
+      Result : CORBA.Any := Get_Empty_Any_Aggregate (TC_Completion_Status);
+
    begin
       Add_Aggregate_Element
         (Result, To_Any (Unsigned_Long (Completion_Status'Pos (Item))));
+
       return Result;
    end To_Any;
 
@@ -747,122 +1319,146 @@ package body CORBA is
    function From_Any (Item : in Any) return Short is
    begin
       return Short
-        (PolyORB.Types.Short'(PolyORB.Any.From_Any (Item)));
+        (PolyORB.Types.Short'(PolyORB.Any.From_Any
+                              (Internals.To_PolyORB_Any (Item))));
    end From_Any;
 
    function From_Any (Item : in Any) return Long is
    begin
       return Long
-        (PolyORB.Types.Long'(PolyORB.Any.From_Any (Item)));
+        (PolyORB.Types.Long'(PolyORB.Any.From_Any
+                             (Internals.To_PolyORB_Any (Item))));
    end From_Any;
 
    function From_Any (Item : in Any) return Long_Long is
    begin
       return Long_Long
-        (PolyORB.Types.Long_Long'(PolyORB.Any.From_Any (Item)));
+        (PolyORB.Types.Long_Long'(PolyORB.Any.From_Any
+                                  (Internals.To_PolyORB_Any (Item))));
    end From_Any;
 
    function From_Any (Item : in Any) return Unsigned_Short is
    begin
       return Unsigned_Short
-        (PolyORB.Types.Unsigned_Short'(PolyORB.Any.From_Any (Item)));
+        (PolyORB.Types.Unsigned_Short'(PolyORB.Any.From_Any
+                                       (Internals.To_PolyORB_Any (Item))));
    end From_Any;
 
    function From_Any (Item : in Any) return Unsigned_Long is
    begin
       return Unsigned_Long
-        (PolyORB.Types.Unsigned_Long'(PolyORB.Any.From_Any (Item)));
+        (PolyORB.Types.Unsigned_Long'(PolyORB.Any.From_Any
+                                      (Internals.To_PolyORB_Any (Item))));
    end From_Any;
 
    function From_Any (Item : in Any) return Unsigned_Long_Long is
    begin
       return Unsigned_Long_Long
-        (PolyORB.Types.Unsigned_Long_Long'(PolyORB.Any.From_Any (Item)));
+        (PolyORB.Types.Unsigned_Long_Long'(PolyORB.Any.From_Any
+                                           (Internals.To_PolyORB_Any (Item))));
    end From_Any;
 
    function From_Any (Item : in Any) return CORBA.Float is
    begin
       return CORBA.Float
-        (PolyORB.Types.Float'(PolyORB.Any.From_Any (Item)));
+        (PolyORB.Types.Float'(PolyORB.Any.From_Any
+                              (Internals.To_PolyORB_Any (Item))));
    end From_Any;
 
    function From_Any (Item : in Any) return Double is
    begin
       return Double
-        (PolyORB.Types.Double'(PolyORB.Any.From_Any (Item)));
+        (PolyORB.Types.Double'(PolyORB.Any.From_Any
+                               (Internals.To_PolyORB_Any (Item))));
    end From_Any;
 
    function From_Any (Item : in Any) return Long_Double is
    begin
       return Long_Double
-        (PolyORB.Types.Long_Double'(PolyORB.Any.From_Any (Item)));
+        (PolyORB.Types.Long_Double'(PolyORB.Any.From_Any
+                                    (Internals.To_PolyORB_Any (Item))));
    end From_Any;
 
    function From_Any (Item : in Any) return Boolean is
    begin
       return Boolean
-        (PolyORB.Types.Boolean'(PolyORB.Any.From_Any (Item)));
+        (PolyORB.Types.Boolean'(PolyORB.Any.From_Any
+                                (Internals.To_PolyORB_Any (Item))));
    end From_Any;
 
    function From_Any (Item : in Any) return Char is
    begin
       return Char
-        (PolyORB.Types.Char'(PolyORB.Any.From_Any (Item)));
+        (PolyORB.Types.Char'(PolyORB.Any.From_Any
+                             (Internals.To_PolyORB_Any (Item))));
    end From_Any;
 
    function From_Any (Item : in Any) return Wchar is
    begin
       return Wchar
-        (PolyORB.Types.Wchar'(PolyORB.Any.From_Any (Item)));
+        (PolyORB.Types.Wchar'(PolyORB.Any.From_Any
+                              (Internals.To_PolyORB_Any (Item))));
    end From_Any;
 
    function From_Any (Item : in Any) return Octet is
    begin
       return Octet
-        (PolyORB.Types.Octet'(PolyORB.Any.From_Any (Item)));
+        (PolyORB.Types.Octet'(PolyORB.Any.From_Any
+                              (Internals.To_PolyORB_Any (Item))));
    end From_Any;
 
-   function From_Any (Item : in Any) return Any
-     renames PolyORB.Any.From_Any;
+   function From_Any (Item : in Any) return Any is
+   begin
+      return CORBA.Any'
+        (The_Any => PolyORB.Any.From_Any (Internals.To_PolyORB_Any (Item)));
+   end From_Any;
 
-   function From_Any (Item : in Any) return TypeCode.Object
-     renames PolyORB.Any.From_Any;
+   function From_Any (Item : in Any) return TypeCode.Object is
+   begin
+      return CORBA.TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.From_Any (Internals.To_PolyORB_Any (Item)));
+   end From_Any;
 
    function From_Any (Item : in Any) return CORBA.String is
    begin
       return CORBA.String
-        (PolyORB.Types.String'(PolyORB.Any.From_Any (Item)));
+        (PolyORB.Types.String'(PolyORB.Any.From_Any
+                               (Internals.To_PolyORB_Any (Item))));
    end From_Any;
 
    function From_Any (Item : in Any) return CORBA.Wide_String is
    begin
       return CORBA.Wide_String
-        (PolyORB.Types.Wide_String'(PolyORB.Any.From_Any (Item)));
+        (PolyORB.Types.Wide_String'(PolyORB.Any.From_Any
+                                    (Internals.To_PolyORB_Any (Item))));
    end From_Any;
 
-   function From_Any
-     (Item : PolyORB.Any.Any)
-     return Completion_Status is
+   function From_Any (Item : CORBA.Any) return Completion_Status is
    begin
-      return Completion_Status'Val
-        (Unsigned_Long'
-         (From_Any (PolyORB.Any.Get_Aggregate_Element
-                    (Item, TC_Unsigned_Long, 0))));
+      return From_Any (PolyORB.Any.Get_Aggregate_Element
+                       (Internals.To_PolyORB_Any (Item),
+                        PolyORB.Any.TypeCode.TC_Unsigned_Long, 0));
    end From_Any;
 
    --------------
    -- Get_Type --
    --------------
 
-   function Get_Type (The_Any : in Any) return TypeCode.Object
-     renames PolyORB.Any.Get_Type;
+   function Get_Type (The_Any : in Any) return TypeCode.Object is
+   begin
+      return CORBA.TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.Get_Type (Internals.To_PolyORB_Any (The_Any)));
+   end Get_Type;
 
    ----------------------
    -- Get_Unwound_Type --
    ----------------------
 
-   function Get_Unwound_Type (The_Any : in Any) return TypeCode.Object
-     renames PolyORB.Any.Get_Unwound_Type;
+   function Get_Unwound_Type (The_Any : in Any) return TypeCode.Object is
+   begin
+      return CORBA.TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.Get_Unwound_Type (Internals.To_PolyORB_Any (The_Any)));
+   end Get_Unwound_Type;
 
    --------------
    -- Set_Type --
@@ -871,11 +1467,17 @@ package body CORBA is
    procedure Set_Type
      (The_Any  : in out Any;
       The_Type : in     TypeCode.Object)
-     renames PolyORB.Any.Set_Type;
+   is
+   begin
+      PolyORB.Any.Set_Type
+        (The_Any.The_Any,
+         CORBA.TypeCode.Internals.To_PolyORB_Object (The_Type));
+   end Set_Type;
 
    -------------------------------
    -- Iterate_Over_Any_Elements --
    -------------------------------
+
    procedure Iterate_Over_Any_Elements (In_Any : in Any) is
    begin
       --  null;
@@ -886,157 +1488,164 @@ package body CORBA is
    -- Get_Empty_Any --
    -------------------
 
-   function Get_Empty_Any (Tc : TypeCode.Object) return Any
-     renames PolyORB.Any.Get_Empty_Any;
+   function Get_Empty_Any (Tc : TypeCode.Object) return Any is
+   begin
+      return CORBA.Any'
+        (The_Any => PolyORB.Any.Get_Empty_Any
+         (CORBA.TypeCode.Internals.To_PolyORB_Object (Tc)));
+   end Get_Empty_Any;
 
    --------------
    -- Is_Empty --
    --------------
 
-   function Is_Empty (Any_Value : in Any) return Boolean
-     renames PolyORB.Any.Is_Empty;
+   function Is_Empty (Any_Value : in Any) return Boolean is
+   begin
+      return PolyORB.Any.Is_Empty (Internals.To_PolyORB_Any (Any_Value));
+   end Is_Empty;
 
    -------------------
    -- Set_Any_Value --
    -------------------
 
-   procedure Set_Any_Value
-     (Any_Value : in out CORBA.Any;
-      Value     :        Short) is
-   begin
-      PolyORB.Any.Set_Any_Value
-        (Any_Value, PolyORB.Types.Short (Value));
-   end Set_Any_Value;
+--     procedure Set_Any_Value
+--       (Any_Value : in out CORBA.Any;
+--        Value     :        Short) is
+--     begin
+--        PolyORB.Any.Set_Any_Value
+--          (Any_Value, PolyORB.Types.Short (Value));
+--     end Set_Any_Value;
 
-   procedure Set_Any_Value
-     (Any_Value : in out CORBA.Any;
-      Value : Long) is
-   begin
-      PolyORB.Any.Set_Any_Value
-        (Any_Value, PolyORB.Types.Long (Value));
-   end Set_Any_Value;
+--     procedure Set_Any_Value
+--       (Any_Value : in out CORBA.Any;
+--        Value : Long) is
+--     begin
+--        PolyORB.Any.Set_Any_Value
+--          (Any_Value, PolyORB.Types.Long (Value));
+--     end Set_Any_Value;
 
-   procedure Set_Any_Value
-     (Any_Value : in out CORBA.Any;
-      Value : Long_Long) is
-   begin
-      PolyORB.Any.Set_Any_Value
-        (Any_Value, PolyORB.Types.Long_Long (Value));
-   end Set_Any_Value;
+--     procedure Set_Any_Value
+--       (Any_Value : in out CORBA.Any;
+--        Value : Long_Long) is
+--     begin
+--        PolyORB.Any.Set_Any_Value
+--          (Any_Value, PolyORB.Types.Long_Long (Value));
+--     end Set_Any_Value;
 
-   procedure Set_Any_Value
-     (Any_Value : in out CORBA.Any;
-      Value : Unsigned_Short) is
-   begin
-      PolyORB.Any.Set_Any_Value
-        (Any_Value, PolyORB.Types.Unsigned_Short (Value));
-   end Set_Any_Value;
+--     procedure Set_Any_Value
+--       (Any_Value : in out CORBA.Any;
+--        Value : Unsigned_Short) is
+--     begin
+--        PolyORB.Any.Set_Any_Value
+--          (Any_Value, PolyORB.Types.Unsigned_Short (Value));
+--     end Set_Any_Value;
 
-   procedure Set_Any_Value
-     (Any_Value : in out CORBA.Any;
-      Value : Unsigned_Long) is
-   begin
-      PolyORB.Any.Set_Any_Value
-        (Any_Value, PolyORB.Types.Unsigned_Long (Value));
-   end Set_Any_Value;
+--     procedure Set_Any_Value
+--       (Any_Value : in out CORBA.Any;
+--        Value : Unsigned_Long) is
+--     begin
+--        PolyORB.Any.Set_Any_Value
+--          (Any_Value, PolyORB.Types.Unsigned_Long (Value));
+--     end Set_Any_Value;
 
-   procedure Set_Any_Value
-     (Any_Value : in out CORBA.Any;
-      Value : Unsigned_Long_Long) is
-   begin
-      PolyORB.Any.Set_Any_Value
-        (Any_Value, PolyORB.Types.Unsigned_Long_Long (Value));
-   end Set_Any_Value;
+--     procedure Set_Any_Value
+--       (Any_Value : in out CORBA.Any;
+--        Value : Unsigned_Long_Long) is
+--     begin
+--        PolyORB.Any.Set_Any_Value
+--          (Any_Value, PolyORB.Types.Unsigned_Long_Long (Value));
+--     end Set_Any_Value;
 
-   procedure Set_Any_Value
-     (Any_Value : in out CORBA.Any;
-      Value : CORBA.Float) is
-   begin
-      PolyORB.Any.Set_Any_Value
-        (Any_Value, PolyORB.Types.Float (Value));
-   end Set_Any_Value;
+--     procedure Set_Any_Value
+--       (Any_Value : in out CORBA.Any;
+--        Value : CORBA.Float) is
+--     begin
+--        PolyORB.Any.Set_Any_Value
+--          (Any_Value, PolyORB.Types.Float (Value));
+--     end Set_Any_Value;
 
-   procedure Set_Any_Value
-     (Any_Value : in out CORBA.Any;
-      Value : Double) is
-   begin
-      PolyORB.Any.Set_Any_Value
-        (Any_Value, PolyORB.Types.Double (Value));
-   end Set_Any_Value;
+--     procedure Set_Any_Value
+--       (Any_Value : in out CORBA.Any;
+--        Value : Double) is
+--     begin
+--        PolyORB.Any.Set_Any_Value
+--          (Any_Value, PolyORB.Types.Double (Value));
+--     end Set_Any_Value;
 
-   procedure Set_Any_Value
-     (Any_Value : in out CORBA.Any;
-      Value : Long_Double) is
-   begin
-      PolyORB.Any.Set_Any_Value
-        (Any_Value, PolyORB.Types.Long_Double (Value));
-   end Set_Any_Value;
+--     procedure Set_Any_Value
+--       (Any_Value : in out CORBA.Any;
+--        Value : Long_Double) is
+--     begin
+--        PolyORB.Any.Set_Any_Value
+--          (Any_Value, PolyORB.Types.Long_Double (Value));
+--     end Set_Any_Value;
 
-   procedure Set_Any_Value
-     (Any_Value : in out CORBA.Any;
-      Value : Boolean) is
-   begin
-      PolyORB.Any.Set_Any_Value
-        (Any_Value, PolyORB.Types.Boolean (Value));
-   end Set_Any_Value;
+--     procedure Set_Any_Value
+--       (Any_Value : in out CORBA.Any;
+--        Value : Boolean) is
+--     begin
+--        PolyORB.Any.Set_Any_Value
+--          (Any_Value, PolyORB.Types.Boolean (Value));
+--     end Set_Any_Value;
 
-   procedure Set_Any_Value
-     (Any_Value : in out CORBA.Any;
-      Value : Char) is
-   begin
-      PolyORB.Any.Set_Any_Value
-        (Any_Value, PolyORB.Types.Char (Value));
-   end Set_Any_Value;
+--     procedure Set_Any_Value
+--       (Any_Value : in out CORBA.Any;
+--        Value : Char) is
+--     begin
+--        PolyORB.Any.Set_Any_Value
+--          (Any_Value, PolyORB.Types.Char (Value));
+--     end Set_Any_Value;
 
-   procedure Set_Any_Value
-     (Any_Value : in out CORBA.Any;
-      Value : Wchar) is
-   begin
-      PolyORB.Any.Set_Any_Value
-        (Any_Value, PolyORB.Types.Wchar (Value));
-   end Set_Any_Value;
+--     procedure Set_Any_Value
+--       (Any_Value : in out CORBA.Any;
+--        Value : Wchar) is
+--     begin
+--        PolyORB.Any.Set_Any_Value
+--          (Any_Value, PolyORB.Types.Wchar (Value));
+--     end Set_Any_Value;
 
-   procedure Set_Any_Value
-     (Any_Value : in out CORBA.Any;
-      Value : Octet) is
-   begin
-      PolyORB.Any.Set_Any_Value
-        (Any_Value, PolyORB.Types.Octet (Value));
-   end Set_Any_Value;
+--     procedure Set_Any_Value
+--       (Any_Value : in out CORBA.Any;
+--        Value : Octet) is
+--     begin
+--        PolyORB.Any.Set_Any_Value
+--          (Any_Value, PolyORB.Types.Octet (Value));
+--     end Set_Any_Value;
 
-   procedure Set_Any_Value
-     (Any_Value : in out CORBA.Any;
-      Value : Any)
-     renames PolyORB.Any.Set_Any_Value;
+--     procedure Set_Any_Value
+--       (Any_Value : in out CORBA.Any;
+--        Value : Any)
+--       renames PolyORB.Any.Set_Any_Value;
 
-   procedure Set_Any_Value
-     (Any_Value : in out CORBA.Any;
-      Value : TypeCode.Object)
-     renames PolyORB.Any.Set_Any_Value;
+--     procedure Set_Any_Value
+--       (Any_Value : in out CORBA.Any;
+--        Value : TypeCode.Object)
+--       renames PolyORB.Any.Set_Any_Value;
 
-   procedure Set_Any_Value
-     (Any_Value : in out CORBA.Any;
-      Value : CORBA.String) is
-   begin
-      PolyORB.Any.Set_Any_Value
-        (Any_Value, PolyORB.Types.String (Value));
-   end Set_Any_Value;
+--     procedure Set_Any_Value
+--       (Any_Value : in out CORBA.Any;
+--        Value : CORBA.String) is
+--     begin
+--        PolyORB.Any.Set_Any_Value
+--          (Any_Value, PolyORB.Types.String (Value));
+--     end Set_Any_Value;
 
-   procedure Set_Any_Value
-     (Any_Value : in out CORBA.Any;
-      Value : CORBA.Wide_String) is
-   begin
-      PolyORB.Any.Set_Any_Value
-        (Any_Value, PolyORB.Types.Wide_String (Value));
-   end Set_Any_Value;
+--     procedure Set_Any_Value
+--       (Any_Value : in out CORBA.Any;
+--        Value : CORBA.Wide_String) is
+--     begin
+--        PolyORB.Any.Set_Any_Value
+--          (Any_Value, PolyORB.Types.Wide_String (Value));
+--     end Set_Any_Value;
 
    -----------------------------
    -- Set_Any_Aggregate_Value --
    -----------------------------
 
-   procedure Set_Any_Aggregate_Value
-     (Any_Value : in out CORBA.Any)
-     renames PolyORB.Any.Set_Any_Aggregate_Value;
+   procedure Set_Any_Aggregate_Value (Any_Value : in out CORBA.Any) is
+   begin
+      PolyORB.Any.Set_Any_Aggregate_Value (Any_Value.The_Any);
+   end Set_Any_Aggregate_Value;
 
    -------------------------
    -- Get_Aggregate_Count --
@@ -1044,17 +1653,20 @@ package body CORBA is
 
    function Get_Aggregate_Count (Value : Any) return Unsigned_Long is
    begin
-      return Unsigned_Long (PolyORB.Any.Get_Aggregate_Count (Value));
+      return Unsigned_Long (PolyORB.Any.Get_Aggregate_Count
+                            (Internals.To_PolyORB_Any (Value)));
    end Get_Aggregate_Count;
 
    ---------------------------
    -- Add_Aggregate_Element --
    ---------------------------
 
-   procedure Add_Aggregate_Element
-     (Value   : in out Any;
-      Element : in     Any)
-     renames PolyORB.Any.Add_Aggregate_Element;
+   procedure Add_Aggregate_Element (Value : in out Any; Element : in Any) is
+   begin
+      PolyORB.Any.Add_Aggregate_Element
+        (Value.The_Any,
+         Internals.To_PolyORB_Any (Element));
+   end Add_Aggregate_Element;
 
    ---------------------------
    -- Get_Aggregate_Element --
@@ -1062,22 +1674,25 @@ package body CORBA is
 
    function Get_Aggregate_Element
      (Value : Any;
-      Tc : CORBA.TypeCode.Object;
+      Tc    : CORBA.TypeCode.Object;
       Index : CORBA.Unsigned_Long)
      return Any is
    begin
-      return PolyORB.Any.Get_Aggregate_Element
-        (Value, Tc, PolyORB.Types.Unsigned_Long (Index));
+      return CORBA.Any'(The_Any => PolyORB.Any.Get_Aggregate_Element
+                        (Internals.To_PolyORB_Any (Value),
+                         CORBA.TypeCode.Internals.To_PolyORB_Object (Tc),
+                         PolyORB.Types.Unsigned_Long (Index)));
    end Get_Aggregate_Element;
 
    -----------------------------
    -- Get_Empty_Any_Aggregate --
    -----------------------------
 
-   function Get_Empty_Any_Aggregate
-     (Tc : CORBA.TypeCode.Object)
-     return Any
-     renames PolyORB.Any.Get_Empty_Any_Aggregate;
+   function Get_Empty_Any_Aggregate (Tc : CORBA.TypeCode.Object) return Any is
+   begin
+      return CORBA.Any'(The_Any => PolyORB.Any.Get_Empty_Any_Aggregate
+                        (CORBA.TypeCode.Internals.To_PolyORB_Object (Tc)));
+   end Get_Empty_Any_Aggregate;
 
    -----------
    -- Image --
@@ -1085,7 +1700,7 @@ package body CORBA is
 
    function Image (NV : NamedValue) return Standard.String is
    begin
-      return Image (To_PolyORB_NV (NV));
+      return PolyORB.Any.Image (To_PolyORB_NV (NV));
    end Image;
 
    -------------------
@@ -1248,6 +1863,37 @@ package body CORBA is
          end case;
       end;
    end Raise_From_Error;
+
+   package body Internals is
+
+      --------------------
+      -- To_PolyORB_Any --
+      --------------------
+
+      function To_PolyORB_Any (Self : in CORBA.Any) return PolyORB.Any.Any is
+      begin
+         return Self.The_Any;
+      end To_PolyORB_Any;
+
+      ------------------
+      -- To_CORBA_Any --
+      ------------------
+
+      function To_CORBA_Any (Self : in PolyORB.Any.Any) return CORBA.Any is
+      begin
+         return CORBA.Any'(The_Any => Self);
+      end To_CORBA_Any;
+
+      --------------------
+      -- Copy_Any_Value --
+      --------------------
+
+      procedure Copy_Any_Value (Dest : in Any; Src : in Any) is
+      begin
+         PolyORB.Any.Copy_Any_Value (Dest.The_Any, Src.The_Any);
+      end Copy_Any_Value;
+
+   end Internals;
 
    ------------------------
    -- Initialize_Package --

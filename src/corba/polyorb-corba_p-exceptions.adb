@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions.adb#22 $
+--  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions.adb#23 $
 
 with CORBA;
 
@@ -200,8 +200,13 @@ package body PolyORB.CORBA_P.Exceptions is
       end;
 
       Result := Get_Empty_Any_Aggregate (TC);
-      Add_Aggregate_Element (Result, CORBA.To_Any (Members.Minor));
-      Add_Aggregate_Element (Result, CORBA.To_Any (Members.Completed));
+      Add_Aggregate_Element
+        (Result,
+         CORBA.Internals.To_PolyORB_Any (CORBA.To_Any (Members.Minor)));
+
+      Add_Aggregate_Element
+        (Result,
+         CORBA.Internals.To_PolyORB_Any (CORBA.To_Any (Members.Completed)));
 
       pragma Debug (O ("System_Exception_To_Any: leave"));
       return Result;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -36,12 +36,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/corba.ads#32 $
+--  $Id: //droopi/main/src/corba/corba.ads#33 $
 
 with Ada.Exceptions;
 with Ada.Strings.Unbounded;
 with Ada.Strings.Wide_Unbounded;
-with Ada.Unchecked_Conversion;
 with Ada.Unchecked_Deallocation;
 
 with Interfaces;
@@ -222,13 +221,12 @@ package CORBA is
    --      Completed_Maybe);
    --  Type used for characterize the state of an exception.
 
-   function From_Any
-     (Item : PolyORB.Any.Any)
-     return CORBA.Completion_Status;
-
-   function To_Any
-     (Item : CORBA.Completion_Status)
-     return PolyORB.Any.Any;
+   --  Implementation Note: the following functions are defined at the
+   --  end of this package specification: they require the Any type to
+   --  be defined.
+   --
+   --  function From_Any (Item : CORBA.Any) return CORBA.Completion_Status;
+   --  function To_Any (Item : CORBA.Completion_Status) return CORBA.Any;
 
    type Exception_Type is (No_Exception, System_Exception, User_Exception);
    --  Type used for characterize exceptions.
@@ -275,8 +273,8 @@ package CORBA is
    Bad_Qos                 : exception; --  bad quality of service
 
    Initialization_Failure  : exception renames Initialize;
-   --  Note: this exception is defined in Ada mapping specification,
-   --  not in CORBA specification.
+   --  Implementation Note: this exception is defined in Ada mapping
+   --  specification, not in CORBA specification.
 
    type System_Exception_Members is new PolyORB.Exceptions.Exception_Members
      with record
@@ -545,6 +543,7 @@ package CORBA is
    --------------------
 
    --  exception PolicyError
+
    PolicyError : exception;
 
    type PolicyError_Members is new CORBA.IDL_Exception_Members with record
@@ -556,6 +555,7 @@ package CORBA is
       To   : out PolicyError_Members);
 
    --  exception InvalidName
+
    InvalidName : exception;
 
    type InvalidName_Members is new CORBA.IDL_Exception_Members
@@ -566,6 +566,7 @@ package CORBA is
       To   : out InvalidName_Members);
 
    --  exception InconsistentTypeCode
+
    InconsistentTypeCode : exception;
 
    type InconsistentTypeCode_Members is new CORBA.IDL_Exception_Members
@@ -589,10 +590,7 @@ package CORBA is
    -- Any --
    ---------
 
-   subtype Any is PolyORB.Any.Any;
-   subtype Any_Ptr is PolyORB.Any.Any;
-   function Image (A : Any) return Standard.String
-     renames PolyORB.Any.Image;
+   type Any is private;
 
    ---------------
    -- TypeCodes --
@@ -603,6 +601,9 @@ package CORBA is
    subtype TCKind is PolyORB.Any.TCKind;
 
    --  Accessors functions on TCKind values
+   --
+   --  Implementation Note: these function are defined to allow
+   --  visibility on the different TCKind values.
 
    function Tk_Null return TCKind renames PolyORB.Any.Tk_Null;
    function Tk_Void return TCKind renames PolyORB.Any.Tk_Void;
@@ -650,51 +651,138 @@ package CORBA is
    PRIVATE_MEMBER : constant Visibility;
    PUBLIC_MEMBER  : constant Visibility;
 
-   package TypeCode renames PolyORB.Any.TypeCode;
-   --  XXX This is not actually correct, because D.A.TypeCode
-   --  uses 'pure' (member-less) Ada exceptions, while CORBA.TypeCode
-   --  is expected to use CORBA exceptions (with members).
+   package TypeCode is
 
-   --  pre-defined TypeCode "constants"
-   function TC_Null               return TypeCode.Object
-     renames TypeCode.TC_Null;
-   function TC_Void               return TypeCode.Object
-     renames TypeCode.TC_Void;
-   function TC_Short              return TypeCode.Object
-     renames TypeCode.TC_Short;
-   function TC_Long               return TypeCode.Object
-     renames TypeCode.TC_Long;
-   function TC_Long_Long          return TypeCode.Object
-     renames TypeCode.TC_Long_Long;
-   function TC_Unsigned_Short     return TypeCode.Object
-     renames TypeCode.TC_Unsigned_Short;
-   function TC_Unsigned_Long      return TypeCode.Object
-     renames TypeCode.TC_Unsigned_Long;
-   function TC_Unsigned_Long_Long return TypeCode.Object
-     renames TypeCode.TC_Unsigned_Long_Long;
-   function TC_Float              return TypeCode.Object
-     renames TypeCode.TC_Float;
-   function TC_Double             return TypeCode.Object
-     renames TypeCode.TC_Double;
-   function TC_Long_Double        return TypeCode.Object
-     renames TypeCode.TC_Long_Double;
-   function TC_Boolean            return TypeCode.Object
-     renames TypeCode.TC_Boolean;
-   function TC_Char               return TypeCode.Object
-     renames TypeCode.TC_Char;
-   function TC_Wchar              return TypeCode.Object
-     renames TypeCode.TC_Wchar;
-   function TC_Octet              return TypeCode.Object
-     renames TypeCode.TC_Octet;
-   function TC_Any                return TypeCode.Object
-     renames TypeCode.TC_Any;
-   function TC_TypeCode           return TypeCode.Object
-     renames TypeCode.TC_TypeCode;
-   function TC_String             return TypeCode.Object
-     renames TypeCode.TC_String;
-   function TC_Wide_String        return TypeCode.Object
-     renames TypeCode.TC_Wide_String;
+      --   XXX to be implemented: proper management of CORBA-specific
+      --   exceptions.
+
+      type Object is private;
+
+      --  exception Bounds
+
+      Bounds : exception;
+
+      type Bounds_Members is new CORBA.IDL_Exception_Members with null record;
+
+      procedure Get_Members
+        (From : in     Ada.Exceptions.Exception_Occurrence;
+         To   :    out Bounds_Members);
+
+      --  exception BadKind
+
+      BadKind : exception;
+
+      type BadKind_Members is new CORBA.IDL_Exception_Members with null record;
+
+      procedure Get_Members
+        (From : in     Ada.Exceptions.Exception_Occurrence;
+         To   :    out BadKind_Members);
+
+      function "=" (Left, Right : in Object) return Boolean;
+      function Equal (Left, Right : in Object) return Boolean
+        renames "=";
+
+      function Equivalent (Left, Right : in Object) return Boolean;
+
+      function Get_Compact_TypeCode (Self : in Object) return Object;
+      --  XXX not implemented
+
+      function Kind (Self : in Object) return TCKind;
+
+      function Id (Self : in Object) return RepositoryId;
+
+      function Name (Self : in Object) return Identifier;
+
+      function Member_Count (Self : in Object) return Unsigned_Long;
+
+      function Member_Name
+        (Self  : in Object;
+         Index : in Unsigned_Long)
+        return Identifier;
+
+      function Member_Type
+        (Self  : in Object;
+         Index : in Unsigned_Long)
+        return Object;
+
+      function Member_Label
+        (Self  : in Object;
+         Index : in Unsigned_Long)
+        return Any;
+
+      function Discriminator_Type (Self : in Object) return Object;
+
+      function Default_Index (Self : in Object) return Long;
+
+      function Length (Self : in Object) return Unsigned_Long;
+
+      function Content_Type (Self : in Object) return Object;
+
+      function Fixed_Digits (Self : in Object) return Unsigned_Short;
+
+      function Fixed_Scale (Self : in Object) return Short;
+
+      function Member_Visibility
+        (Self  : in Object;
+         Index : in Unsigned_Long)
+        return Visibility;
+
+      function Type_Modifier (Self : in Object) return ValueModifier;
+
+      function Concrete_Base_Type (Self : in Object) return Object;
+
+      package Internals is
+
+         --  Implementation Note: This package defines procedures
+         --  specific to PolyORB. You must not use them.
+
+         procedure Set_Kind (Self : out Object; Kind : in TCKind);
+         --  Return a typecode of kind Kind, with an empty parameter list
+
+         procedure Add_Parameter (Self : in out Object; Param : in Any);
+         --  Add the parameter Param in the list of Self's parameters.
+
+         function To_PolyORB_Object
+           (Self : in CORBA.TypeCode.Object)
+           return PolyORB.Any.TypeCode.Object;
+
+         function To_CORBA_Object
+           (Self : in PolyORB.Any.TypeCode.Object)
+           return CORBA.TypeCode.Object;
+      end Internals;
+
+   private
+      type Object is new PolyORB.Any.TypeCode.Object;
+
+   end TypeCode;
+
+   --  Pre-defined TypeCode "constants"
+
+   function TC_Null               return TypeCode.Object;
+   function TC_Void               return TypeCode.Object;
+   function TC_Short              return TypeCode.Object;
+   function TC_Long               return TypeCode.Object;
+   function TC_Long_Long          return TypeCode.Object;
+   function TC_Unsigned_Short     return TypeCode.Object;
+   function TC_Unsigned_Long      return TypeCode.Object;
+   function TC_Unsigned_Long_Long return TypeCode.Object;
+   function TC_Float              return TypeCode.Object;
+   function TC_Double             return TypeCode.Object;
+   function TC_Long_Double        return TypeCode.Object;
+   function TC_Boolean            return TypeCode.Object;
+   function TC_Char               return TypeCode.Object;
+   function TC_Wchar              return TypeCode.Object;
+   function TC_Octet              return TypeCode.Object;
+   function TC_Any                return TypeCode.Object;
+   function TC_TypeCode           return TypeCode.Object;
+   function TC_String             return TypeCode.Object;
+   function TC_Wide_String        return TypeCode.Object;
    --  function TC_Object is in CORBA.Object.
+
+   --  XXX these functions are here for the IR to compile, to be
+   --  investigated
+   function TC_Principal return TypeCode.Object;
+   function TC_Value return TypeCode.Object;
 
    --  This is the returned exception in case of dynamic invocation
    UnknownUserException : exception;
@@ -712,7 +800,7 @@ package CORBA is
    function Equal (Left, Right : in Any) return Boolean
      renames "=";
 
-   function To_Any (Item : in Short)              return Any;
+   function To_Any (Item : in Short)              return CORBA.Any;
    function To_Any (Item : in Long)               return Any;
    function To_Any (Item : in Long_Long)          return Any;
    function To_Any (Item : in Unsigned_Short)     return Any;
@@ -783,40 +871,40 @@ package CORBA is
    --  XXX investigate the last comment, does it means these functions
    --  are useless for the CORBA personality ???
 
-   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
-                            Value : in CORBA.Octet);
-   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
-                            Value : in CORBA.Short);
-   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
-                            Value : in CORBA.Long);
-   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
-                            Value : in CORBA.Long_Long);
-   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
-                            Value : in CORBA.Unsigned_Short);
-   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
-                            Value : in CORBA.Unsigned_Long);
-   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
-                            Value : in CORBA.Unsigned_Long_Long);
-   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
-                            Value : in CORBA.Boolean);
-   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
-                            Value : in CORBA.Char);
-   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
-                            Value : in CORBA.Wchar);
-   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
-                            Value : in CORBA.String);
-   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
-                            Value : in CORBA.Wide_String);
-   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
-                            Value : in CORBA.Float);
-   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
-                            Value : in CORBA.Double);
-   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
-                            Value : in CORBA.Long_Double);
-   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
-                            Value : in CORBA.TypeCode.Object);
-   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
-                            Value : in CORBA.Any);
+--     procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+--                              Value : in CORBA.Octet);
+--     procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+--                              Value : in CORBA.Short);
+--     procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+--                              Value : in CORBA.Long);
+--     procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+--                              Value : in CORBA.Long_Long);
+--     procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+--                              Value : in CORBA.Unsigned_Short);
+--     procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+--                              Value : in CORBA.Unsigned_Long);
+--     procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+--                              Value : in CORBA.Unsigned_Long_Long);
+--     procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+--                              Value : in CORBA.Boolean);
+--     procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+--                              Value : in CORBA.Char);
+--     procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+--                              Value : in CORBA.Wchar);
+--     procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+--                              Value : in CORBA.String);
+--     procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+--                              Value : in CORBA.Wide_String);
+--     procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+--                              Value : in CORBA.Float);
+--     procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+--                              Value : in CORBA.Double);
+--     procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+--                              Value : in CORBA.Long_Double);
+--     procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+--                              Value : in CORBA.TypeCode.Object);
+--     procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+--                              Value : in CORBA.Any);
 
    --  This one is a bit special : it doesn't put any value but
    --  create the aggregate value if it does not exist.
@@ -837,8 +925,8 @@ package CORBA is
    --  This element is given as a typecode but only its value is
    --  added to the aggregate
    procedure Add_Aggregate_Element
-     (Value : in out Any;
-      Element : in Any);
+     (Value   : in out CORBA.Any;
+      Element : in     CORBA.Any);
 
    --  Gets an element in an any agregate
    --  returns an any made of the typecode Tc and the value read in
@@ -874,17 +962,6 @@ package CORBA is
       Arg_Modes : Flags;
    end record;
 
---    function To_PolyORB_NV (CNV : NamedValue)
---      return PolyORB.Any.NamedValue;
-
---    function To_CORBA_NV (PNV : PolyORB.Any.NamedValue)
---      return NamedValue;
-
-   function To_PolyORB_NV is new Ada.Unchecked_Conversion
-     (NamedValue, PolyORB.Any.NamedValue);
-   function To_CORBA_NV is new Ada.Unchecked_Conversion
-     (PolyORB.Any.NamedValue, NamedValue);
-
    function Image (NV : NamedValue) return Standard.String;
    --  For debugging purposes.
 
@@ -892,13 +969,31 @@ package CORBA is
    -- RepositoryId --
    ------------------
 
-   function Is_Equivalent (RI1, RI2 : RepositoryId)
-     return Boolean;
+   function Is_Equivalent (RI1, RI2 : RepositoryId) return Boolean;
 
-   function Is_Equivalent (RI1, RI2 : Standard.String)
-     return Boolean;
+   function Is_Equivalent (RI1, RI2 : Standard.String) return Boolean;
    --  Return True if, and only if, RI1 and RI2 denote the same
    --  repository entity (a case-insensitive string match).
+
+   --  Helper function for CORBA.Completion_Status
+
+   function From_Any (Item : CORBA.Any) return CORBA.Completion_Status;
+   function To_Any (Item : CORBA.Completion_Status) return CORBA.Any;
+
+   package Internals is
+
+      --  Implementation Note: This package defines procedures
+      --  specific to PolyORB. You must not use them.
+
+      function To_PolyORB_Any (Self : in CORBA.Any) return PolyORB.Any.Any;
+      pragma Inline (To_PolyORB_Any);
+
+      function To_CORBA_Any (Self : in PolyORB.Any.Any) return CORBA.Any;
+      pragma Inline (To_CORBA_Any);
+
+      procedure Copy_Any_Value (Dest : in Any; Src : in Any);
+
+   end Internals;
 
 private
 
@@ -910,18 +1005,21 @@ private
    PRIVATE_MEMBER : constant Visibility := PolyORB.Any.PRIVATE_MEMBER;
    PUBLIC_MEMBER  : constant Visibility := PolyORB.Any.PUBLIC_MEMBER;
 
-   pragma Inline (To_Any);
+   type Any is record
+      The_Any : PolyORB.Any.Any;
+   end record;
+
+   function To_CORBA_NV (NV : PolyORB.Any.NamedValue) return NamedValue;
+
    pragma Inline (From_Any);
+   pragma Inline (To_Any);
    pragma Inline (To_CORBA_String);
-   pragma Inline (Set_Any_Value);
    pragma Inline (Get_Aggregate_Count);
    pragma Inline (Get_Aggregate_Element);
-   pragma Inline (To_PolyORB_NV);
-   pragma Inline (To_CORBA_NV);
 
-   -----------------
-   -- Named_Value --
-   -----------------
+   ----------------
+   -- NamedValue --
+   ----------------
 
    ARG_IN :        constant Flags := Flags (PolyORB.Any.ARG_IN);
    ARG_OUT :       constant Flags := Flags (PolyORB.Any.ARG_OUT);

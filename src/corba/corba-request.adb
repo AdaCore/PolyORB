@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -62,7 +62,7 @@ package body CORBA.Request is
       pragma Warnings (On);
       PResult : PolyORB.Any.NamedValue
         := (Name      => PolyORB.Types.Identifier (Result.Name),
-            Argument  => Result.Argument,
+            Argument  => Internals.To_PolyORB_Any (Result.Argument),
             Arg_Modes => PolyORB.Any.Flags (Result.Arg_Modes));
    begin
       PolyORB.Requests.Create_Request
@@ -91,7 +91,7 @@ package body CORBA.Request is
       pragma Warnings (On);
       PResult : PolyORB.Any.NamedValue
         := (Name      => PolyORB.Types.Identifier (Result.Name),
-            Argument  => Result.Argument,
+            Argument  => Internals.To_PolyORB_Any (Result.Argument),
             Arg_Modes => PolyORB.Any.Flags (Result.Arg_Modes));
    begin
       PolyORB.Requests.Create_Request
@@ -119,7 +119,7 @@ package body CORBA.Request is
       PolyORB.Requests.Invoke
         (Self.The_Request, PolyORB.Requests.Flags (Invoke_Flags));
 
-      if not Is_Empty (Self.The_Request.Exception_Info) then
+      if not PolyORB.Any.Is_Empty (Self.The_Request.Exception_Info) then
          --  XXX warning, should verify that the raised exception
          --  is either a system exception or a declared user
          --  exception before propagating it: if an unknown

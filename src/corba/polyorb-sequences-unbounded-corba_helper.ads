@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                  C O R B A . E X C E P T I O N L I S T                   --
+--   P O L Y O R B . S E Q U E N C E S . U N B O U N D E D . H E L P E R    --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--            Copyright (C) 2003 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,87 +33,22 @@
 
 --  $Id$
 
-package body CORBA.ExceptionList is
+--  Any conversion subprograms for unbounded sequences.
 
-   function To_PolyORB_Ref
-     (Self : Ref)
-     return PolyORB.Any.ExceptionList.Ref
-   is
-      Result : PolyORB.Any.ExceptionList.Ref;
-   begin
-      PolyORB.Any.ExceptionList.Set (Result, Entity_Of (Self));
-      return Result;
-   end To_PolyORB_Ref;
+with CORBA;
 
-   function To_CORBA_Ref
-     (Self : PolyORB.Any.ExceptionList.Ref)
-     return Ref
-   is
-      Result : Ref;
-   begin
-      Set (Result, PolyORB.Any.ExceptionList.Entity_Of (Self));
-      return Result;
-   end To_CORBA_Ref;
+generic
 
-   ---------------
-   -- Shortcuts --
-   ---------------
+   with function Element_From_Any (Item : CORBA.Any) return Element;
+   with function Element_To_Any   (Item : Element) return CORBA.Any;
 
-   function "+" (Self : Ref) return PolyORB.Any.ExceptionList.Ref
-     renames To_PolyORB_Ref;
-   function "+" (Self : PolyORB.Any.ExceptionList.Ref) return Ref
-     renames To_CORBA_Ref;
+package PolyORB.Sequences.Unbounded.CORBA_Helper is
 
-   use PolyORB.Any.ExceptionList;
+   function From_Any (Item : CORBA.Any) return Sequence;
+   function To_Any   (Item : Sequence) return CORBA.Any;
 
-   function Get_Count
-     (Self : in Ref)
-     return CORBA.Unsigned_Long is
-   begin
-      return CORBA.Unsigned_Long (Get_Count (+Self));
-   end Get_Count;
+   function Sequence_TC return CORBA.TypeCode.Object;
 
-   procedure Add
-     (Self : in Ref;
-      Exc : in CORBA.TypeCode.Object)
-   is
-   begin
-      Add (+Self, CORBA.TypeCode.Internals.To_PolyORB_Object (Exc));
-   end Add;
+   procedure Initialize (Element_TC : CORBA.TypeCode.Object);
 
-   function Item
-     (Self : in Ref;
-      Index : in CORBA.Unsigned_Long)
-      return CORBA.TypeCode.Object
-   is
-   begin
-      return CORBA.TypeCode.Internals.To_CORBA_Object
-        (Item (+Self, PolyORB.Types.Unsigned_Long (Index)));
-   end Item;
-
-   procedure Remove
-     (Self : in Ref;
-      Index : in CORBA.Unsigned_Long)
-   is
-   begin
-      Remove (+Self, PolyORB.Types.Unsigned_Long (Index));
-   end Remove;
-
-   procedure Create_List (Self : out Ref) is
-      Result : PolyORB.Any.ExceptionList.Ref;
-   begin
-      Create_List (Result);
-      Self := +Result;
-   end Create_List;
-
-   function Search_Exception_Id
-     (Self : in Ref;
-      Name : in CORBA.RepositoryId)
-     return CORBA.Unsigned_Long
-   is
-   begin
-      return CORBA.Unsigned_Long
-        (Search_Exception_Id (+Self, PolyORB.Types.String (Name)));
-   end Search_Exception_Id;
-
-end CORBA.ExceptionList;
+end PolyORB.Sequences.Unbounded.CORBA_Helper;

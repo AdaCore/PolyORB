@@ -29,6 +29,8 @@ ADA_SPECS_WITH_BODY = \
 	polyorb-corba_p-poa_config.ads \
 	polyorb-corba_p-policy.ads \
 	polyorb-corba_p-servantactivator.ads \
+	polyorb-sequences-bounded-corba_helper.ads \
+	polyorb-sequences-unbounded-corba_helper.ads \
 	polyorb-corba_p-servantlocator.ads \
 	polyorb-corba_p-server_tools.ads \
 	portableserver-adapteractivator.ads \

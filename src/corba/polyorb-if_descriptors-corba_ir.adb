@@ -170,7 +170,8 @@ package body PolyORB.If_Descriptors.CORBA_IR is
          Any.NVList.Add_Item
            (Result, PolyORB.Any.NamedValue'
             (Name      => PolyORB.Types.Identifier (Args (I).name),
-             Argument  => Any.Get_Empty_Any (Args (I).IDL_type),
+             Argument  => Any.Get_Empty_Any
+             (CORBA.TypeCode.Internals.To_PolyORB_Object (Args (I).IDL_type)),
              Arg_Modes => Mode_Map (Args (I).mode)));
       end loop;
       return Result;
@@ -194,8 +195,10 @@ package body PolyORB.If_Descriptors.CORBA_IR is
       pragma Debug
         (O ("Get_Empty_Result: TC is of kind "
             & PolyORB.Any.TCKind'Image
-            (PolyORB.Any.TypeCode.Kind (Oper.result))));
-      return Any.Get_Empty_Any (Oper.result);
+            (PolyORB.Any.TypeCode.Kind
+             (CORBA.TypeCode.Internals.To_PolyORB_Object (Oper.result)))));
+      return Any.Get_Empty_Any
+        (CORBA.TypeCode.Internals.To_PolyORB_Object (Oper.result));
    end Get_Empty_Result;
 
 end PolyORB.If_Descriptors.CORBA_IR;

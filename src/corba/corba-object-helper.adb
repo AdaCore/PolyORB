@@ -49,7 +49,7 @@ package body CORBA.Object.Helper is
      return Any
    is
    begin
-      --  To_Any operation not defined on local objects.
+      --  To_Any operation are not defined on local objects
 
       if PolyORB.CORBA_P.Local.Is_Local (Item) then
          Raise_Marshal (Marshal_Members'(Minor     => 4,
@@ -57,8 +57,9 @@ package body CORBA.Object.Helper is
       end if;
 
       declare
-         A : Any := PolyORB.Any.ObjRef.To_Any (To_PolyORB_Ref (Item));
+         A : Any;
       begin
+         A.The_Any := PolyORB.Any.ObjRef.To_Any (To_PolyORB_Ref (Item));
          Set_Type (A, CORBA.Object.TC_Object);
 
          return A;
@@ -75,8 +76,9 @@ package body CORBA.Object.Helper is
       Result : CORBA.Object.Ref;
    begin
       Convert_To_CORBA_Ref
-        (PolyORB.Any.ObjRef.From_Any (Item),
+        (PolyORB.Any.ObjRef.From_Any (Item.The_Any),
          Result);
+
       return Result;
    end From_Any;
 
@@ -89,7 +91,8 @@ package body CORBA.Object.Helper is
       Value     : in     CORBA.Object.Ref) is
    begin
       PolyORB.Any.ObjRef.Set_Any_Value
-        (Any_Value, To_PolyORB_Ref (Value));
+        (Any_Value.The_Any,
+         To_PolyORB_Ref (Value));
    end Set_Any_Value;
 
 end CORBA.Object.Helper;

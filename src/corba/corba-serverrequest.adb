@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -93,7 +93,8 @@ package body CORBA.ServerRequest is
       Val :        Any) is
    begin
       PolyORB.Requests.Set_Result
-        (PolyORB.Requests.Request_Access (O), Val);
+        (PolyORB.Requests.Request_Access (O),
+         CORBA.Internals.To_PolyORB_Any (Val));
    end Set_Result;
 
    -------------------
@@ -105,8 +106,9 @@ package body CORBA.ServerRequest is
       Val :        Any) is
    begin
       pragma Debug
-        (O ("Server notifies exception: " & Image (Val)));
-      Obj.Exception_Info := Val;
+        (O ("Server notifies exception: "
+            & PolyORB.Any.Image (CORBA.Internals.To_PolyORB_Any (Val))));
+      Obj.Exception_Info := CORBA.Internals.To_PolyORB_Any (Val);
    end Set_Exception;
 
 end CORBA.ServerRequest;

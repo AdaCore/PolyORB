@@ -76,7 +76,7 @@ package body CORBA.ORB is
    --  through the configuration subsystem.
 
    ---------------------
-   -- Create_Alias_TC --
+   -- Create_Alias_Tc --
    ---------------------
 
    function Create_Alias_Tc
@@ -85,13 +85,17 @@ package body CORBA.ORB is
       Original_Type : in CORBA.TypeCode.Object)
       return CORBA.TypeCode.Object
    is
-      Result : CORBA.TypeCode.Object := TypeCode.TC_Alias;
+      Result : CORBA.TypeCode.Object
+        := CORBA.TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.TypeCode.TC_Alias);
+
    begin
-      CORBA.TypeCode.Add_Parameter
+      CORBA.TypeCode.Internals.Add_Parameter
         (Result, CORBA.To_Any (CORBA.String (Name)));
-      CORBA.TypeCode.Add_Parameter
+      CORBA.TypeCode.Internals.Add_Parameter
         (Result, CORBA.To_Any (CORBA.String (Id)));
-      CORBA.TypeCode.Add_Parameter (Result, CORBA.To_Any (Original_Type));
+      CORBA.TypeCode.Internals.Add_Parameter
+        (Result, CORBA.To_Any (Original_Type));
 
       return Result;
    end Create_Alias_Tc;
@@ -105,10 +109,14 @@ package body CORBA.ORB is
       Element_Type : in CORBA.TypeCode.Object)
       return CORBA.TypeCode.Object
    is
-      Result : CORBA.TypeCode.Object := TypeCode.TC_Array;
+      Result : CORBA.TypeCode.Object
+        := CORBA.TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.TypeCode.TC_Array);
+
    begin
-      CORBA.TypeCode.Add_Parameter (Result, CORBA.To_Any (Length));
-      CORBA.TypeCode.Add_Parameter (Result, CORBA.To_Any (Element_Type));
+      CORBA.TypeCode.Internals.Add_Parameter (Result, CORBA.To_Any (Length));
+      CORBA.TypeCode.Internals.Add_Parameter
+        (Result, CORBA.To_Any (Element_Type));
 
       return Result;
    end Create_Array_Tc;
@@ -138,11 +146,14 @@ package body CORBA.ORB is
       Name : in CORBA.Identifier)
       return CORBA.TypeCode.Object
    is
-      Result : TypeCode.Object := TypeCode.TC_Object;
+      Result : TypeCode.Object
+        := CORBA.TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.TypeCode.TC_Object);
+
    begin
-      CORBA.TypeCode.Add_Parameter
+      CORBA.TypeCode.Internals.Add_Parameter
         (Result, CORBA.To_Any (CORBA.String (Name)));
-      CORBA.TypeCode.Add_Parameter
+      CORBA.TypeCode.Internals.Add_Parameter
         (Result, CORBA.To_Any (CORBA.String (Id)));
       return Result;
    end Create_Interface_Tc;
@@ -209,10 +220,14 @@ package body CORBA.ORB is
       Element_Type : in CORBA.TypeCode.Object)
       return CORBA.TypeCode.Object
    is
-      Result : CORBA.TypeCode.Object := TypeCode.TC_Sequence;
+      Result : CORBA.TypeCode.Object
+        := CORBA.TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.TypeCode.TC_Sequence);
+
    begin
-      CORBA.TypeCode.Add_Parameter (Result, CORBA.To_Any (Bound));
-      CORBA.TypeCode.Add_Parameter (Result, CORBA.To_Any (Element_Type));
+      CORBA.TypeCode.Internals.Add_Parameter (Result, CORBA.To_Any (Bound));
+      CORBA.TypeCode.Internals.Add_Parameter
+        (Result, CORBA.To_Any (Element_Type));
 
       return Result;
    end Create_Sequence_Tc;
@@ -225,9 +240,9 @@ package body CORBA.ORB is
      (Bound : in CORBA.Unsigned_Long)
       return CORBA.TypeCode.Object
    is
-      Result : CORBA.TypeCode.Object := TypeCode.TC_String;
+      Result : CORBA.TypeCode.Object := CORBA.TC_String;
    begin
-      CORBA.TypeCode.Add_Parameter (Result, CORBA.To_Any (Bound));
+      CORBA.TypeCode.Internals.Add_Parameter (Result, CORBA.To_Any (Bound));
 
       return Result;
    end Create_String_Tc;
@@ -240,9 +255,9 @@ package body CORBA.ORB is
      (Bound : in CORBA.Unsigned_Long)
       return CORBA.TypeCode.Object
    is
-      Result : CORBA.TypeCode.Object := TypeCode.TC_Wide_String;
+      Result : CORBA.TypeCode.Object := CORBA.TC_Wide_String;
    begin
-      CORBA.TypeCode.Add_Parameter (Result, CORBA.To_Any (Bound));
+      CORBA.TypeCode.Internals.Add_Parameter (Result, CORBA.To_Any (Bound));
 
       return Result;
    end Create_Wstring_Tc;

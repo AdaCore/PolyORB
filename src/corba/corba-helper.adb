@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/corba-helper.adb#4 $
+--  $Id: //droopi/main/src/corba/corba-helper.adb#5 $
 
 with PolyORB.Initialization;
 with PolyORB.Utils.Strings;
@@ -161,14 +161,17 @@ package body CORBA.Helper is
         (Name : Standard.String)
          return CORBA.TypeCode.Object
       is
-         TC : CORBA.TypeCode.Object := TC_Alias;
+         TC : CORBA.TypeCode.Object
+           := TypeCode.Internals.To_CORBA_Object
+           (PolyORB.Any.TypeCode.TC_Alias);
+
       begin
-         Add_Parameter
+         TypeCode.Internals.Add_Parameter
            (TC, CORBA.To_Any (To_CORBA_String (Name)));
-         Add_Parameter
+         TypeCode.Internals.Add_Parameter
            (TC, CORBA.To_Any (To_CORBA_String
                               ("IDL:omg.org/CORBA/" & Name & ":1.0")));
-         Add_Parameter
+         TypeCode.Internals.Add_Parameter
            (TC, CORBA.To_Any (CORBA.TC_String));
          return TC;
       end Build_TC_Alias_String;

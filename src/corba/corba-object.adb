@@ -494,12 +494,12 @@ package body CORBA.Object is
    procedure Initialize;
 
    procedure Initialize is
-      use PolyORB.Any.TypeCode;
    begin
-      TC_Object_Cache := PolyORB.Any.TypeCode.TC_Object;
-      Add_Parameter
+      TC_Object_Cache := CORBA.TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.TypeCode.TC_Object);
+      CORBA.TypeCode.Internals.Add_Parameter
         (TC_Object_Cache, To_Any (To_CORBA_String ("Object")));
-      Add_Parameter
+      CORBA.TypeCode.Internals.Add_Parameter
         (TC_Object_Cache, To_Any (To_CORBA_String ("IDL:CORBA/Object:1.0")));
    end Initialize;
 

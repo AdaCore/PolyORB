@@ -1,35 +1,42 @@
-pragma Style_Checks (Off);
 ------------------------------------------------------------------------------
 --                                                                          --
---                          ADABROKER COMPONENTS                            --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
---                               C L I E N T                                --
+--                                P R I N T                                 --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 1999 ENST Paris University, France.             --
+--         Copyright (C) 1999-2004 Free Software Foundation, Inc.           --
 --                                                                          --
--- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
 -- Software Foundation;  either version 2,  or (at your option)  any  later --
--- version. AdaBroker  is distributed  in the hope that it will be  useful, --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
 -- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
--- General Public License distributed with AdaBroker; see file COPYING. If  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
 -- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
 -- Boston, MA 02111-1307, USA.                                              --
 --                                                                          --
---             AdaBroker is maintained by ENST Paris University.            --
---                     (email: broker@inf.enst.fr)                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---   echo client.
-with Ada.Text_IO; use Ada.Text_IO;
-with CORBA; --  use CORBA;
+--  $Id$
+
+with Ada.Text_IO;
+
 with CORBA.ORB;
-with CORBA.Repository_Root; use CORBA.Repository_Root;
+with CORBA.Repository_Root;
 with CORBA.Repository_Root.Helper;
 with CORBA.Repository_Root.Repository;
 with CORBA.Repository_Root.Repository.Helper;
@@ -42,17 +49,18 @@ with CORBA.Repository_Root.InterfaceDef.Helper;
 with CORBA.Repository_Root.ExceptionDef.Helper;
 with CORBA.Repository_Root.ValueDef.Helper;
 with CORBA.Repository_Root.ModuleDef.Helper;
+
 with PolyORB.CORBA_P.Naming_Tools;
-with PolyORB.Types;
-use PolyORB.Types;
-with PolyORB.Any;
-use PolyORB.Any;
 
 with PolyORB.Setup.Client;
 pragma Elaborate_All (PolyORB.Setup.Client);
 pragma Warnings (Off, PolyORB.Setup.Client);
 
 procedure Print is
+
+   use Ada.Text_IO;
+   use CORBA;
+   use CORBA.Repository_Root;
 
    procedure Print_TypeCode
      (TC  : CORBA.TypeCode.Object;
@@ -66,11 +74,15 @@ procedure Print is
      (In_Seq : ContainedSeq;
       Inc : Standard.String);
 
+   procedure Print_Description
+     (Des : Contained.Description;
+      Inc : Standard.String);
+
    procedure Print_TypeCode (TC  : CORBA.TypeCode.Object;
                             Inc : Standard.String)
    is
    begin
-      case TypeCode.Kind (TC) is
+      case CORBA.TypeCode.Kind (TC) is
          when Tk_Null =>
             Put ("Null");
          when Tk_Void =>
@@ -103,8 +115,8 @@ procedure Print is
             Put ("ObjRef");
          when Tk_Struct =>
             declare
-               L : constant PolyORB.Types.Unsigned_Long
-                 := TypeCode.Member_Count (TC);
+               L : constant CORBA.Unsigned_Long
+                 := CORBA.TypeCode.Member_Count (TC);
             begin
                Put ("Struct  :");
                if L /= 0 then
@@ -186,9 +198,9 @@ procedure Print is
             Put ("Wstring");
          when Tk_Fixed =>
             Put ("Fixed");
-         when Tk_value =>
+         when Tk_Value =>
             Put ("value");
-         when Tk_valuebox =>
+         when Tk_Valuebox =>
             Put ("valueBox");
             Print_TypeCode (CORBA.TypeCode.Content_Type (TC),
                             Inc & "    ");
@@ -212,12 +224,12 @@ procedure Print is
       for I in A'Range loop
          Put_Line (Inc & "Param " & Integer'Image (I) & " : ");
          Put (Inc & "    type   : ");
-         Print_TypeCode (A (I).IDL_Type, Inc & "        ");
+         Print_TypeCode (A (I).IDL_type, Inc & "        ");
          Put_Line (" ");
          Put_Line (Inc & "    name   : " &
-                   CORBA.To_Standard_String (CORBA.String ((A (I).Name))));
+                   CORBA.To_Standard_String (CORBA.String ((A (I).name))));
          Put_Line (Inc & "    mode   : " &
-                   ParameterMode'Image (A (I).Mode));
+                   ParameterMode'Image (A (I).mode));
       end loop;
    end Print_ParDescriptionSeq;
 
@@ -225,7 +237,7 @@ procedure Print is
    procedure Print_Description (Des : Contained.Description;
                                 Inc : Standard.String) is
    begin
-      case Des.Kind is
+      case Des.kind is
          when
            dk_Repository |
            dk_Primitive  |
@@ -236,7 +248,7 @@ procedure Print is
            dk_Fixed      |
            dk_Typedef    |
            dk_all        |
-           dk_None       =>
+           dk_none       =>
             null;
          when
            dk_Attribute  =>
@@ -245,15 +257,15 @@ procedure Print is
                  Helper.From_Any (Des.value);
             begin
                Put (Inc & "Type     :");
-               Print_TypeCode (D.IDL_Type, Inc & "    ");
+               Print_TypeCode (D.IDL_type, Inc & "    ");
                Put_Line (" ");
                Put_Line (Inc & "Mode     :" &
-                         AttributeMode'Image (D.Mode));
+                         AttributeMode'Image (D.mode));
             end;
 
          when
            dk_Constant   |
-           dk_valueMember =>
+           dk_ValueMember =>
             null;
          when
            dk_Operation =>
@@ -262,16 +274,16 @@ procedure Print is
                  Helper.From_Any (Des.value);
             begin
                Put (Inc & "Result_type : ");
-               Print_TypeCode (D.Result, Inc & "    ");
+               Print_TypeCode (D.result, Inc & "    ");
                Put_Line (" ");
-               Print_ParDescriptionSeq (D.Parameters, Inc);
+               Print_ParDescriptionSeq (D.parameters, Inc);
             end;
          when
            dk_Alias      |
            dk_Struct     |
            dk_Union      |
            dk_Enum       |
-           dk_valueBox   |
+           dk_ValueBox   |
            dk_Native =>
             declare
                D : constant TypeDescription :=
@@ -279,7 +291,7 @@ procedure Print is
             begin
                Put_Line (Inc & "TC_Type : " &
                          TCKind'Image
-                         (TypeCode.Kind (D.IDL_Type)));
+                         (TypeCode.Kind (D.IDL_type)));
             end;
 --          when
 --            dk_Exception  =>
@@ -378,7 +390,7 @@ procedure Print is
                      Print_Contents
                        (Container.contents (R, dk_all, True), Inc & "     ");
                   end;
-               when dk_value =>
+               when dk_Value =>
                   declare
                      R : Container.Ref := Container.Helper.To_Ref
                        (ValueDef.Helper.To_Ref (The_Ref));

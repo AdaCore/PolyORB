@@ -2242,7 +2242,8 @@ package body Ada_Be.Idl2Ada is
                                  PL (CU, "  (" & T_Arg_List & ",");
                                  II (CU);
                                  PL (CU, T_Arg_Name & Arg_Name & ",");
-                                 PL (CU, T_Argument & Arg_Name & ",");
+                                 PL (CU, "CORBA.Internals.To_PolyORB_Any ("
+                                     & T_Argument & Arg_Name & "),");
                               end;
 
                               case Mode (P_Node) is
@@ -2292,9 +2293,10 @@ package body Ada_Be.Idl2Ada is
                      PL (CU, T_Result);
                      PL (CU, "  := (Name => PolyORB.Types.Identifier ("
                          & T_Result_Name & "),");
-                     PL (CU, "      Argument => Get_Empty_Any");
-                     PL (CU, "  ("
-                         & TC_Name (Original_Operation_Type (Node)) & "),");
+                     PL (CU, "      Argument => "
+                         & "CORBA.Internals.To_PolyORB_Any ");
+                     PL (CU, "  (Get_Empty_Any ("
+                         & TC_Name (Original_Operation_Type (Node)) & ")),");
                      II (CU);
                      PL (CU, "Arg_Modes => 0);");
                      DI (CU);
@@ -2329,7 +2331,7 @@ package body Ada_Be.Idl2Ada is
                      PL (CU, "PolyORB.Requests.Invoke ("
                          & T_Request & ");");
 
-                     PL (CU, "if not Is_Empty (" & T_Request
+                     PL (CU, "if not PolyORB.Any.Is_Empty (" & T_Request
                          & ".Exception_Info) then");
                      II (CU);
                      PL (CU, T_Result & ".Argument := "
@@ -2377,8 +2379,9 @@ package body Ada_Be.Idl2Ada is
                                    (CU, Original_Operation_Type (Node),
                                     "To_Forward",
                                     Prefix & ".From_Any"
-                                    & ASCII.LF & "  ("
-                                    & T_Result & ".Argument)");
+                                    & ASCII.LF
+                                    & "  (CORBA.Internals.To_CORBA_Any ("
+                                    & T_Result & ".Argument))");
                                  PL (CU, ";");
                               end;
                            end if;

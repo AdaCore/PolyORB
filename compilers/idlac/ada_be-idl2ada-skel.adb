@@ -363,7 +363,8 @@ package body Ada_Be.Idl2Ada.Skel is
       PL (CU, "CORBA.ServerRequest.Set_Exception");
       PL (CU, "  (Request,");
       II (CU);
-      PL (CU, "PolyORB.CORBA_P.Exceptions.System_Exception_To_Any (E));");
+      PL (CU, "CORBA.Internals.To_CORBA_Any "
+          & "(PolyORB.CORBA_P.Exceptions.System_Exception_To_Any (E)));");
       DI (CU);
       PL (CU, "return;");
       DI (CU);
@@ -719,8 +720,8 @@ package body Ada_Be.Idl2Ada.Skel is
                                  end if;
 
                                  Add_With (CU, Helper_Name);
-                                 Add_With (CU, "PolyORB.Any");
-                                 PL (CU, "PolyORB.Any.Copy_Any_Value");
+                                 Add_With (CU, "CORBA");
+                                 PL (CU, "CORBA.Internals.Copy_Any_Value");
                                  PL (CU, "  (" & T_Argument & Arg_Name & ",");
                                  II (CU);
                                  PL (CU, Helper_Name & ".To_Any");

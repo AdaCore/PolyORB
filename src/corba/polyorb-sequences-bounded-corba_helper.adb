@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                         C O R B A . N V L I S T                          --
+--     P O L Y O R B . S E Q U E N C E S . B O U N D E D . H E L P E R      --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,105 +33,95 @@
 
 --  $Id$
 
-package body CORBA.NVList is
+--  Any conversion subprograms for bounded sequences.
+
+with PolyORB.Any;
+
+package body PolyORB.Sequences.Bounded.CORBA_Helper is
+
+   use CORBA;
+
+   The_Element_TC, The_Sequence_TC : CORBA.TypeCode.Object;
+   Initialized : Boolean := False;
 
    --------------
-   -- Add_Item --
+   -- From_Any --
    --------------
 
-   procedure Add_Item
-     (Self       :    Ref;
-      Item_Name  : in Identifier;
-      Item       : in CORBA.Any;
-      Item_Flags : in Flags) is
+   function From_Any (Item : CORBA.Any) return Sequence is
+      Len : constant Integer
+        := Integer
+        (CORBA.Unsigned_Long'
+         (CORBA.From_Any (CORBA.Get_Aggregate_Element
+                          (Item, TC_Unsigned_Long, CORBA.Unsigned_Long'(0)))));
+
+      Result : Sequence;
+
    begin
-      PolyORB.Any.NVList.Add_Item
-        (To_PolyORB_Ref (Self),
-         PolyORB.Types.Identifier (Item_Name),
-         CORBA.Internals.To_PolyORB_Any (Item),
-         PolyORB.Any.Flags (Item_Flags));
-   end Add_Item;
+      if Len > Max then
+         raise Constraint_Error;
+      end if;
 
-   procedure Add_Item
-     (Self :    Ref;
-      Item : in CORBA.NamedValue) is
+      Result.Length := Len;
+
+      for J in Result.Content'First .. Result.Content'First + Len - 1 loop
+         Result.Content (J) := Element_From_Any
+           (Get_Aggregate_Element
+            (Item, The_Element_TC,
+             CORBA.Unsigned_Long (1 + J - Result.Content'First)));
+      end loop;
+      return Result;
+   end From_Any;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize (Element_TC : CORBA.TypeCode.Object) is
    begin
-      Add_Item (Self, Item.Name, Item.Argument, Item.Arg_Modes);
-   end Add_Item;
+      if Initialized then
+         return;
+      end if;
 
-   ---------------
-   -- Get_Count --
-   ---------------
+      The_Element_TC  := Element_TC;
+      The_Sequence_TC := CORBA.TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.TypeCode.TC_Sequence);
 
-   function Get_Count (Self : Ref) return CORBA.Long is
+      TypeCode.Internals.Add_Parameter
+        (The_Sequence_TC, To_Any (CORBA.Unsigned_Long (Max)));
+
+      TypeCode.Internals.Add_Parameter
+        (The_Sequence_TC, To_Any (The_Element_TC));
+      --  Element type
+
+      Initialized := True;
+   end Initialize;
+
+   -----------------
+   -- Sequence_TC --
+   -----------------
+
+   function Sequence_TC return CORBA.TypeCode.Object is
    begin
-      return CORBA.Long (PolyORB.Any.NVList.Get_Count (To_PolyORB_Ref (Self)));
-   end Get_Count;
-
-   ----------
-   -- Free --
-   ----------
-
-   procedure Free (Self : Ref)
-   is
-      pragma Warnings (Off);
-      pragma Unreferenced (Self);
-      pragma Warnings (On);
-   begin
-      null;
-   end Free;
-
-   --------------------
-   -- To_PolyORB_Ref --
-   --------------------
-
-   function To_PolyORB_Ref (Self : Ref) return PolyORB.Any.NVList.Ref
-   is
-      Res : PolyORB.Any.NVList.Ref;
-   begin
-      PolyORB.Any.NVList.Set (Res, Entity_Of (Self));
-      return Res;
-   end To_PolyORB_Ref;
-
-   ------------------
-   -- To_CORBA_Ref --
-   ------------------
-
-   function To_CORBA_Ref (Self : PolyORB.Any.NVList.Ref) return Ref
-   is
-      Res : Ref;
-   begin
-      Set (Res, PolyORB.Any.NVList.Entity_Of (Self));
-      return Res;
-   end To_CORBA_Ref;
+      pragma Assert (Initialized);
+      return The_Sequence_TC;
+   end Sequence_TC;
 
    ------------
-   -- Create --
+   -- To_Any --
    ------------
 
-   procedure Create (Self : out Ref)
-   is
-      Res : PolyORB.Any.NVList.Ref;
-   begin
-      PolyORB.Any.NVList.Create (Res);
-      Self := To_CORBA_Ref (Res);
-   end Create;
-
-   ----------
-   -- Item --
-   ----------
-
-   function Item (Self : Ref; Index : CORBA.Long)
-     return CORBA.NamedValue
-   is
-      use PolyORB.Any.NVList.Internals;
-      use PolyORB.Any.NVList.Internals.NV_Lists;
+   function To_Any (Item : Sequence) return CORBA.Any is
+      Result : CORBA.Any := Get_Empty_Any_Aggregate (Sequence_TC);
 
    begin
-      return
-        To_CORBA_NV
-        (Element
-         (List_Of (To_PolyORB_Ref (Self)).all, Integer (Index)).all);
-   end Item;
+      Add_Aggregate_Element
+        (Result, To_Any (CORBA.Unsigned_Long (Item.Length)));
 
-end CORBA.NVList;
+      for J in Item.Content'First .. Item.Content'First + Item.Length - 1 loop
+         Add_Aggregate_Element (Result, Element_To_Any (Item.Content (J)));
+      end loop;
+      return Result;
+   end To_Any;
+
+end PolyORB.Sequences.Bounded.CORBA_Helper;

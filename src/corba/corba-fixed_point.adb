@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -58,20 +58,20 @@ package body CORBA.Fixed_Point is
    -- this is to help --
    ---------------------
 
-   package CDR_Fixed_F is
-      new PolyORB.Representations.CDR.Fixed_Point (F);
+   package CDR_Fixed_F is new PolyORB.Representations.CDR.Fixed_Point (F);
 
    ------------
    -- To_Any --
    ------------
 
-   function To_Any (Item : in F) return Any is
+   function To_Any (Item : in F) return CORBA.Any is
       Tco : CORBA.TypeCode.Object;
    begin
-      CORBA.TypeCode.Set_Kind (Tco, PolyORB.Any.Tk_Fixed);
-      CORBA.TypeCode.Add_Parameter
-        (Tco, To_Any (CORBA.Unsigned_Short (F'Digits)));
-      CORBA.TypeCode.Add_Parameter (Tco, To_Any (CORBA.Short (F'Scale)));
+      CORBA.TypeCode.Internals.Set_Kind (Tco, PolyORB.Any.Tk_Fixed);
+      CORBA.TypeCode.Internals.Add_Parameter
+        (Tco, CORBA.To_Any (CORBA.Unsigned_Short (F'Digits)));
+      CORBA.TypeCode.Internals.Add_Parameter
+        (Tco, CORBA.To_Any (CORBA.Short (F'Scale)));
       declare
          Result : Any := CORBA.Get_Empty_Any_Aggregate (Tco);
          Octets : constant Ada.Streams.Stream_Element_Array
