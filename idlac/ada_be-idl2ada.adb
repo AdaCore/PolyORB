@@ -890,11 +890,12 @@ package body Ada_Be.Idl2Ada is
 
          when K_Struct =>
             NL (CU);
-            Put (CU, "type " & Ada_Name (Node) & " is ");
+            Put (CU, "type " & Ada_Name (Node) & " is");
             if Is_Exception_Members (Node) then
                NL (CU);
-               PL (CU, "  new CORBA.IDL_Exception_Members");
-               Put (CU, "  with ");
+               PL (CU, "  new CORBA.IDL_Exception_Members with");
+            else
+               Put (CU, " ");
             end if;
 
             if Is_Empty (Members (Node)) then
