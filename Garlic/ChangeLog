@@ -1,3 +1,9 @@
+1998-08-04  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* Makefile.am (COMMONSOURCES): Get s-gatcop.ads from the build
+	directory instead of the source directory (it won't be present
+	there if VPATH is used).
+
 1998-08-04  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* 5egtplsp.ads, 5sgtplsp.ads, 5wgtplsp.adb, 5wgtplsp.ads,

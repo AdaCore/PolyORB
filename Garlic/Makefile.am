@@ -114,7 +114,7 @@ ${srcdir}/s-garrep.ads ${srcdir}/s-garrep.adb \
 ${srcdir}/s-garser.ads           s-garser.adb \
 ${srcdir}/s-garsta.ads ${srcdir}/s-garsta.adb \
 ${srcdir}/s-garstr.ads $(srcdir)/s-garstr.adb \
-${srcdir}/s-garthi.ads \
+${srcdir}/s-garthi.ads                        \
 ${srcdir}/s-gartra.ads ${srcdir}/s-gartra.adb \
 ${srcdir}/s-gaprco.ads           s-gaprco.adb \
 ${srcdir}/s-garela.ads ${srcdir}/s-garela.adb \
@@ -124,7 +124,7 @@ ${srcdir}/s-gartyp.ads ${srcdir}/s-gartyp.adb \
 ${srcdir}/s-garuni.ads ${srcdir}/s-garuni.adb \
 ${srcdir}/s-garuti.ads ${srcdir}/s-garuti.adb \
 ${srcdir}/s-gasoli.ads ${srcdir}/s-gasoli.adb \
-${srcdir}/s-gatcop.ads \
+          s-gatcop.ads                        \
 ${srcdir}/s-gastha.ads ${srcdir}/s-gastha.adb \
 ${srcdir}/s-parint.ads ${srcdir}/s-parint.adb \
 ${srcdir}/s-rpc.ads    ${srcdir}/s-rpc.adb    \
