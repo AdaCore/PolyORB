@@ -12,7 +12,6 @@ with CORBA.Repository_Root.StringDef;
 with CORBA.Repository_Root.PrimitiveDef;
 with CORBA.Repository_Root.Contained;
 with CORBA.Repository_Root.Container.Impl;
-pragma Elaborate_All (CORBA.Repository_Root.Container.Impl);
 
 package CORBA.Repository_Root.Repository.Impl is
 
@@ -75,8 +74,7 @@ package CORBA.Repository_Root.Repository.Impl is
 private
 
    type Object is
-     new CORBA.Repository_Root.Container.Impl.Object with record
-      null;
-   end record;
+     new CORBA.Repository_Root.Container.Impl.Object with null record;
 
 end CORBA.Repository_Root.Repository.Impl;
+

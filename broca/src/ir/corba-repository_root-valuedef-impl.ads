@@ -10,11 +10,8 @@ with CORBA.Repository_Root.AttributeDef;
 with CORBA.Repository_Root.ValueMemberDef;
 with CORBA.Repository_Root.IDLType;
 with CORBA.Repository_Root.IDLType.Impl;
-pragma Elaborate_All (CORBA.Repository_Root.IDLType.Impl);
 with CORBA.Repository_Root.Contained.Impl;
-pragma Elaborate_All (CORBA.Repository_Root.Contained.Impl);
 with CORBA.Repository_Root.Container.Impl;
-pragma Elaborate_All (CORBA.Repository_Root.Container.Impl);
 
 package CORBA.Repository_Root.ValueDef.Impl is
 

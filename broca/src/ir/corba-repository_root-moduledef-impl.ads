@@ -6,9 +6,7 @@
 with CORBA.Repository_Root.Contained;
 with CORBA.Repository_Root.IRObject.Impl;
 with CORBA.Repository_Root.Contained.Impl;
-pragma Elaborate_All (CORBA.Repository_Root.Contained.Impl);
 with CORBA.Repository_Root.Container.Impl;
-pragma Elaborate_All (CORBA.Repository_Root.Container.Impl);
 
 package CORBA.Repository_Root.ModuleDef.Impl is
 

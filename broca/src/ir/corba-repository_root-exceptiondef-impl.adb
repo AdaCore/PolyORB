@@ -3,7 +3,7 @@
 --  by AdaBroker (http://adabroker.eu.org/)
 ----------------------------------------------
 
-with CORBA.Impl;
+with CORBA.ORB.Typecode;
 
 with CORBA.Repository_Root; use CORBA.Repository_Root;
 with CORBA.Repository_Root.Contained;
@@ -12,6 +12,9 @@ with CORBA.Repository_Root.Container.Impl;
 with CORBA.Repository_Root.Contained.Impl;
 with CORBA.Repository_Root.IRObject.Impl;
 with CORBA.Repository_Root.Helper;
+
+with Broca.Server_Tools;
+with PortableServer;
 
 package body CORBA.Repository_Root.ExceptionDef.Impl is
 
@@ -32,7 +35,6 @@ package body CORBA.Repository_Root.ExceptionDef.Impl is
                    Contents :
                      CORBA.Repository_Root.Contained.Impl.Contained_Seq.Sequence;
                    Contained_View :  CORBA.Repository_Root.Contained.Impl.Object_Ptr;
-                   IDL_Type : CORBA.Typecode.Object;
                    Members : CORBA.Repository_Root.StructMemberSeq) is
    begin
       Container.Impl.Init (Container.Impl.Object_Ptr (Self),
@@ -47,7 +49,6 @@ package body CORBA.Repository_Root.ExceptionDef.Impl is
                            Version,
                            Defined_In);
       Self.Contained_View := Contained_View;
-      Self.Idl_Type := Idl_Type;
       Initialize_Members (Self, Members);
    end Init;
 
@@ -70,7 +71,8 @@ package body CORBA.Repository_Root.ExceptionDef.Impl is
                         return ExceptionDef_Forward.Ref is
       Ref : ExceptionDef.Ref;
    begin
-      Set (Ref, CORBA.Impl.Object_Ptr (Obj));
+      Broca.Server_Tools.Initiate_Servant (PortableServer.Servant (Obj),
+                                           Ref);
       return ExceptionDef.Convert_Forward.To_Forward (Ref);
    end To_Forward;
 
@@ -89,16 +91,21 @@ package body CORBA.Repository_Root.ExceptionDef.Impl is
    --------------------------
    procedure Initialize_Members (Self : access Object;
                                  Seq : in StructMemberSeq) is
-      package SMS renames
-        IDL_SEQUENCE_CORBA_Repository_Root_StructMember;
-      Memb_Array : SMS.Element_Array
-        := SMS.To_Element_Array (SMS.Sequence (Seq));
+--      package SMS renames
+--        IDL_SEQUENCE_CORBA_Repository_Root_StructMember;
+--      Memb_Array : SMS.Element_Array
+--        := SMS.To_Element_Array (SMS.Sequence (Seq));
    begin
-      --  when setting the members, type should be set to TC_Void
-      for I in Memb_Array'Range loop
-         Memb_Array (I).IDL_Type := CORBA.TC_Void;
-      end loop;
-      Self.Members := StructMemberSeq (SMS.To_Sequence (Memb_Array));
+      --  FIXME>>>>>>>>>>>>>>>>>
+      --  if we set the typecodes to TC_Void, we will loose
+      --  the type of the members...
+
+--      for I in Memb_Array'Range loop
+--         Memb_Array (I).IDL_Type := CORBA.TC_Void;
+--      end loop;
+--      Self.Members := StructMemberSeq (SMS.To_Sequence (Memb_Array));
+
+      Self.Members := Seq;
    end Initialize_Members;
 
 
@@ -106,9 +113,10 @@ package body CORBA.Repository_Root.ExceptionDef.Impl is
      (Self : access Object)
      return CORBA.TypeCode.Object
    is
-      Result : CORBA.TypeCode.Object;
    begin
-      return Self.IDL_Type;
+      return CORBA.ORB.TypeCode.Create_Exception_TC (Get_Id (Self),
+                                                     Get_Name (Self),
+                                                     Self.Members);
    end get_type;
 
 
@@ -223,7 +231,7 @@ package body CORBA.Repository_Root.ExceptionDef.Impl is
                Defined_In => Contained.Impl.Get_Defined_In
                (Self.Contained_View),
                Version => Get_Version (Self),
-               IDL_Type => Self.IDL_Type);
+               IDL_Type => Get_Type (Self));
       Result := (Kind => Get_Def_Kind (Self),
                  Value => CORBA.Repository_Root.Helper.To_Any (Desc));
       return Result;

@@ -5,9 +5,7 @@
 
 with CORBA.Repository_Root.IRObject.Impl;
 with CORBA.Repository_Root.IDLType.Impl;
-pragma Elaborate_All (CORBA.Repository_Root.IDLType.Impl);
 with CORBA.Repository_Root.Contained.Impl;
-pragma Elaborate_All (CORBA.Repository_Root.Contained.Impl);
 
 package CORBA.Repository_Root.TypedefDef.Impl is
 

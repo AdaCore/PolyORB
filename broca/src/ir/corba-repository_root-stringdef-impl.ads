@@ -6,7 +6,6 @@
 with CORBA.Repository_Root.IDLType.Impl;
 with CORBA.Repository_Root.IRObject.Impl;
 
-pragma Elaborate_All (CORBA.Repository_Root.IDLType.Impl);
 
 package CORBA.Repository_Root.StringDef.Impl is
 

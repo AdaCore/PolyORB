@@ -3,7 +3,6 @@
 --  by AdaBroker (http://adabroker.eu.org/)
 ----------------------------------------------
 
-with CORBA.Impl;
 with CORBA.ORB.Typecode;
 
 with CORBA.Repository_Root; use CORBA.Repository_Root;
@@ -13,6 +12,9 @@ with CORBA.Repository_Root.Container.Impl;
 with CORBA.Repository_Root.Contained;
 with CORBA.Repository_Root.StructDef.Skel;
 with CORBA.Repository_Root.IDLType.Impl;
+
+with Broca.Server_Tools;
+with PortableServer;
 
 package body CORBA.Repository_Root.StructDef.Impl is
 
@@ -35,7 +37,8 @@ package body CORBA.Repository_Root.StructDef.Impl is
                         return StructDef_Forward.Ref is
       Ref : StructDef.Ref;
    begin
-      Set (Ref, CORBA.Impl.Object_Ptr (Obj));
+      Broca.Server_Tools.Initiate_Servant (PortableServer.Servant (Obj),
+                                           Ref);
       return StructDef.Convert_Forward.To_Forward (Ref);
    end To_Forward;
 
@@ -90,16 +93,21 @@ package body CORBA.Repository_Root.StructDef.Impl is
    --------------------------
    procedure Initialize_Members (Self : access Object;
                                  Seq : in StructMemberSeq) is
-      package SMS renames
-        IDL_SEQUENCE_CORBA_Repository_Root_StructMember;
-      Memb_Array : SMS.Element_Array
-        := SMS.To_Element_Array (SMS.Sequence (Seq));
+--      package SMS renames
+--        IDL_SEQUENCE_CORBA_Repository_Root_StructMember;
+--      Memb_Array : SMS.Element_Array
+--        := SMS.To_Element_Array (SMS.Sequence (Seq));
    begin
-      --  when setting the members, type should be set to TC_Void
-      for I in Memb_Array'Range loop
-         Memb_Array (I).IDL_Type := CORBA.TC_Void;
-      end loop;
-      Self.Members := StructMemberSeq (SMS.To_Sequence (Memb_Array));
+      --  FIXME>>>>>>>>>>>>>>>>>
+      --  if we set the typecodes to TC_Void, we will loose
+      --  the type of the members...
+
+      --  for I in Memb_Array'Range loop
+      --         Memb_Array (I).IDL_Type := CORBA.TC_Void;
+      --  end loop;
+      --  Self.Members := StructMemberSeq (SMS.To_Sequence (Memb_Array));
+
+      Self.Members := Seq;
    end Initialize_Members;
 
    ----------------

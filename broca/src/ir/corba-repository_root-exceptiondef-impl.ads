@@ -6,9 +6,7 @@
 with CORBA.Repository_Root.IRObject.Impl;
 with CORBA.Repository_Root.Contained;
 with CORBA.Repository_Root.Contained.Impl;
-pragma Elaborate_All (CORBA.Repository_Root.Contained.Impl);
 with CORBA.Repository_Root.Container.Impl;
-pragma Elaborate_All (CORBA.Repository_Root.Container.Impl);
 
 package CORBA.Repository_Root.ExceptionDef.Impl is
 
@@ -29,7 +27,6 @@ package CORBA.Repository_Root.ExceptionDef.Impl is
                    Contents :
                      CORBA.Repository_Root.Contained.Impl.Contained_Seq.Sequence;
                    Contained_View :  CORBA.Repository_Root.Contained.Impl.Object_Ptr;
-                   IDL_Type : CORBA.Typecode.Object;
                    Members : CORBA.Repository_Root.StructMemberSeq);
 
    --  Transform the forward to an impl.object.ptr.
@@ -116,7 +113,7 @@ private
    type Object is
      new CORBA.Repository_Root.Container.Impl.Object with record
         Contained_View :  CORBA.Repository_Root.Contained.Impl.Object_Ptr;
-        IDL_Type : CORBA.Typecode.Object;
+        --  the Type will be computed dynamically ...
         Members : CORBA.Repository_Root.StructMemberSeq;
    end record;
 

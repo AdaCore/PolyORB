@@ -3,7 +3,6 @@
 --  by AdaBroker (http://adabroker.eu.org/)
 ----------------------------------------------
 
-with CORBA.Impl;
 with CORBA.ORB.Typecode;
 
 with CORBA.Repository_Root; use CORBA.Repository_Root;
@@ -13,6 +12,9 @@ with CORBA.Repository_Root.Contained;
 with CORBA.Repository_Root.IDLType;
 with CORBA.Repository_Root.UnionDef.Skel;
 with CORBA.Repository_Root.IDLType.Impl;
+
+with Broca.Server_Tools;
+with PortableServer;
 
 package body CORBA.Repository_Root.UnionDef.Impl is
 
@@ -35,7 +37,8 @@ package body CORBA.Repository_Root.UnionDef.Impl is
                         return UnionDef_Forward.Ref is
       Ref : UnionDef.Ref;
    begin
-      Set (Ref, CORBA.Impl.Object_Ptr (Obj));
+      Broca.Server_Tools.Initiate_Servant (PortableServer.Servant (Obj),
+                                           Ref);
       return UnionDef.Convert_Forward.To_Forward (Ref);
    end To_Forward;
 
@@ -89,16 +92,21 @@ package body CORBA.Repository_Root.UnionDef.Impl is
    --------------------------
    procedure Initialize_Members (Self : access Object;
                                  Seq : in UnionMemberSeq) is
-      package UMS renames
-        IDL_SEQUENCE_CORBA_Repository_Root_UnionMember;
-      Memb_Array : UMS.Element_Array
-        := UMS.To_Element_Array (UMS.Sequence (Seq));
+--      package UMS renames
+--        IDL_SEQUENCE_CORBA_Repository_Root_UnionMember;
+--      Memb_Array : UMS.Element_Array
+--        := UMS.To_Element_Array (UMS.Sequence (Seq));
    begin
-      --  when setting the members, type should be set to TC_Void
-      for I in Memb_Array'Range loop
-         Memb_Array (I).IDL_Type := CORBA.TC_Void;
-      end loop;
-      Self.Members := UnionMemberSeq (UMS.To_Sequence (Memb_Array));
+      --  FIXME>>>>>>>>>>>>>>>>>
+      --  if we set the typecodes to TC_Void, we will loose
+      --  the type of the members...
+
+      --      for I in Memb_Array'Range loop
+      --         Memb_Array (I).IDL_Type := CORBA.TC_Void;
+      --      end loop;
+      --      Self.Members := UnionMemberSeq (UMS.To_Sequence (Memb_Array));
+
+       Self.Members := Seq;
    end Initialize_Members;
 
 

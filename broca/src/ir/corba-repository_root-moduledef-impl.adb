@@ -3,14 +3,29 @@
 --  by AdaBroker (http://adabroker.eu.org/)
 ----------------------------------------------
 
-with CORBA.Impl;
-
 with CORBA.Repository_Root; use CORBA.Repository_Root;
 with CORBA.Repository_Root.Contained;
 with CORBA.Repository_Root.ModuleDef.Skel;
 with CORBA.Repository_Root.Helper;
 
+with Broca.Debug;
+with Broca.Server_Tools;
+with PortableServer;
+
 package body CORBA.Repository_Root.ModuleDef.Impl is
+
+
+   -----------
+   -- Debug --
+   -----------
+
+   Flag : constant Natural
+     := Broca.Debug.Is_Active ("moduledef.impl");
+   procedure O is new Broca.Debug.Output (Flag);
+
+   Flag2 : constant Natural
+     := Broca.Debug.Is_Active ("moduledef.impl_method_trace");
+   procedure O2 is new Broca.Debug.Output (Flag2);
 
 
    -----------------
@@ -19,6 +34,7 @@ package body CORBA.Repository_Root.ModuleDef.Impl is
    function To_Object (Fw_Ref : ModuleDef_Forward.Ref)
                        return Object_Ptr is
    begin
+      pragma Debug (O2 ("to_object (moduledef)"));
       return Object_Ptr
         (ModuleDef.Object_Of
          (ModuleDef.Convert_Forward.To_Ref
@@ -32,7 +48,10 @@ package body CORBA.Repository_Root.ModuleDef.Impl is
                         return ModuleDef_Forward.Ref is
       Ref : ModuleDef.Ref;
    begin
-      Set (Ref, CORBA.Impl.Object_Ptr (Obj));
+      pragma Debug (O2 ("to_forward (moduledef)"));
+      Broca.Server_Tools.Initiate_Servant (PortableServer.Servant (Obj),
+                                           Ref);
+      pragma Debug (O ("befor return (to_forward)"));
       return ModuleDef.Convert_Forward.To_Forward (Ref);
    end To_Forward;
 
@@ -52,6 +71,7 @@ package body CORBA.Repository_Root.ModuleDef.Impl is
                    Contained_View :  CORBA.Repository_Root.Contained.Impl.Object_Ptr)
    is
    begin
+      pragma Debug (O2 ("init (moduledef)"));
       Container.Impl.Init (Container.Impl.Object_Ptr (Self),
                            Real_Object,
                            Def_Kind,

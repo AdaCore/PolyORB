@@ -3,8 +3,6 @@
 --  by AdaBroker (http://adabroker.eu.org/)
 ----------------------------------------------
 
-with CORBA.Impl;
-
 with Corba.Repository_Root; use Corba.Repository_Root;
 with CORBA.Repository_Root.IDLType.Skel;
 with CORBA.Repository_Root.IRObject.Impl;
@@ -24,6 +22,8 @@ with CORBA.Repository_Root.NativeDef.Impl;
 with CORBA.Repository_Root.ValueBoxDef.Impl;
 
 with Broca.Exceptions;
+with Broca.Server_Tools;
+with PortableServer;
 
 package body CORBA.Repository_Root.IDLType.Impl is
 
@@ -46,7 +46,8 @@ package body CORBA.Repository_Root.IDLType.Impl is
                         return IDLType_Forward.Ref is
       Ref : IDLType.Ref;
    begin
-      Set (Ref, CORBA.Impl.Object_Ptr (Obj));
+      Broca.Server_Tools.Initiate_Servant (PortableServer.Servant (Obj),
+                                           Ref);
       return IDLType.Convert_Forward.To_Forward (Ref);
    end To_Forward;
 

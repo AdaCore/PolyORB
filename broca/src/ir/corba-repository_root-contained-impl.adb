@@ -5,9 +5,6 @@
 
 with Ada.Unchecked_Deallocation;
 with Ada.Strings.Unbounded;
-with Broca.Repository;
-with CORBA.AbstractBase;
-with CORBA.Impl;
 
 with Corba.Repository_Root; use Corba.Repository_Root;
 with CORBA.Repository_Root.Contained.Skel;
@@ -23,6 +20,9 @@ with CORBA.Repository_Root.Repository.Impl;
 
 with Broca.Exceptions;
 with Broca.Debug;
+with Broca.Repository;
+with Broca.Server_Tools;
+with PortableServer;
 with Sequences;
 
 
@@ -53,6 +53,7 @@ package body CORBA.Repository_Root.Contained.Impl is
                    Version : CORBA.Repository_Root.VersionSpec;
                    Defined_In : CORBA.Repository_Root.Container_Forward.Ref) is
    begin
+      pragma Debug (O2 ("init (contained)"));
       IRObject.Impl.Init (IRObject.Impl.Object_Ptr (Self), Real_Object, Def_Kind);
       Self.Id := Id;
       Self.Name := Name;
@@ -67,6 +68,7 @@ package body CORBA.Repository_Root.Contained.Impl is
    function To_Object (Fw_Ref : Contained_Forward.Ref)
                        return Object_Ptr is
    begin
+      pragma Debug (O2 ("to_object (contained)"));
       return Contained.Impl.Object_Ptr
         (Contained.Object_Of
          (Contained.Convert_Forward.To_Ref
@@ -80,7 +82,9 @@ package body CORBA.Repository_Root.Contained.Impl is
                         return Contained_Forward.Ref is
       Ref : Contained.Ref;
    begin
-      Set (Ref, CORBA.Impl.Object_Ptr (Obj));
+      pragma Debug (O2 ("to_forward (contained)"));
+      Broca.Server_Tools.Initiate_Servant (PortableServer.Servant (Obj),
+                                           Ref);
       return Contained.Convert_Forward.To_Forward (Ref);
    end To_Forward;
 
@@ -93,6 +97,7 @@ package body CORBA.Repository_Root.Contained.Impl is
       Result : out Object_ptr)
    is
    begin
+      pragma Debug (O2 ("to_contained (contained)"));
       Success := True;
       case IRObject.Impl.Get_Def_Kind
         (Self) is
@@ -165,6 +170,7 @@ package body CORBA.Repository_Root.Contained.Impl is
      return  Object_ptr
    is
    begin
+      pragma Debug (O2 ("to_contained (contained)"));
       case IRObject.Impl.Get_Def_Kind
         (Self) is
          when

@@ -3,10 +3,12 @@
 --  by AdaBroker (http://adabroker.eu.org/)
 ----------------------------------------------
 
-with CORBA.Impl;
 with CORBA.ORB.Typecode;
 
 with CORBA.Repository_Root.EnumDef.Skel;
+
+with Broca.Server_Tools;
+with PortableServer;
 
 package body CORBA.Repository_Root.EnumDef.Impl is
 
@@ -30,7 +32,8 @@ package body CORBA.Repository_Root.EnumDef.Impl is
                         return EnumDef_Forward.Ref is
       Ref : EnumDef.Ref;
    begin
-      Set (Ref, CORBA.Impl.Object_Ptr (Obj));
+      Broca.Server_Tools.Initiate_Servant (PortableServer.Servant (Obj),
+                                           Ref);
       return EnumDef.Convert_Forward.To_Forward (Ref);
    end To_Forward;
 

@@ -3,8 +3,10 @@
 --  by AdaBroker (http://adabroker.eu.org/)
 ----------------------------------------------
 
-with CORBA.Impl;
 with CORBA.ORB.Typecode;
+
+with Broca.Server_Tools;
+with PortableServer;
 
 package body CORBA.Repository_Root.NativeDef.Impl is
 
@@ -27,7 +29,8 @@ package body CORBA.Repository_Root.NativeDef.Impl is
                         return NativeDef_Forward.Ref is
       Ref : NativeDef.Ref;
    begin
-      Set (Ref, CORBA.Impl.Object_Ptr (Obj));
+      Broca.Server_Tools.Initiate_Servant (PortableServer.Servant (Obj),
+                                           Ref);
       return NativeDef.Convert_Forward.To_Forward (Ref);
    end To_Forward;
 

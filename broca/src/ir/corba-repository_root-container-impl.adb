@@ -6,7 +6,6 @@
 with Ada.Strings.Unbounded;
 with CORBA.AbstractBase;
 with CORBA.Impl;
-with CORBA.ORB.Typecode;
 
 with CORBA.Repository_Root; use CORBA.Repository_Root;
 with CORBA.Repository_Root.Contained;
@@ -28,6 +27,8 @@ with CORBA.Repository_Root.ConstantDef.Impl;
 
 with Broca.Exceptions;
 with Broca.Debug;
+with Broca.Server_Tools;
+with PortableServer;
 
 package body CORBA.Repository_Root.Container.Impl is
 
@@ -53,6 +54,7 @@ package body CORBA.Repository_Root.Container.Impl is
                    Contents :
                      CORBA.Repository_Root.Contained.Impl.Contained_Seq.Sequence) is
    begin
+      pragma Debug (O2 ("init (container)"));
       IRObject.Impl.Init (IRObject.Impl.Object_Ptr (Self), Real_Object, Def_Kind);
       Self.Contents := Contents;
    end Init;
@@ -64,6 +66,7 @@ package body CORBA.Repository_Root.Container.Impl is
    function To_Object (Fw_Ref : Container_Forward.Ref)
                        return Object_Ptr is
    begin
+      pragma Debug (O2 ("to_object (container)"));
       return Object_Ptr
         (Container.Object_Of
          (Container.Convert_Forward.To_Ref
@@ -77,7 +80,9 @@ package body CORBA.Repository_Root.Container.Impl is
                         return Container_Forward.Ref is
       Ref : Container.Ref;
    begin
-      Set (Ref, CORBA.Impl.Object_Ptr (Obj));
+      pragma Debug (O2 ("to_forward (container)"));
+      Broca.Server_Tools.Initiate_Servant (PortableServer.Servant (Obj),
+                                           Ref);
       return Container.Convert_Forward.To_Forward (Ref);
    end To_Forward;
 
@@ -102,6 +107,7 @@ package body CORBA.Repository_Root.Container.Impl is
                                  Element : Contained.Impl.Object_Ptr)
    is
    begin
+      pragma Debug (O2 ("Append_To_Contents (container)"));
       Contained.Impl.Contained_Seq.Append (Self.Contents,
                                            Element);
    end Append_To_Contents;
@@ -130,6 +136,7 @@ package body CORBA.Repository_Root.Container.Impl is
       Result : out Object_ptr)
    is
    begin
+      pragma Debug (O2 ("to_container (container)"));
       Success := True;
       case IRObject.Impl.Get_Def_Kind
         (Self) is
@@ -188,6 +195,7 @@ package body CORBA.Repository_Root.Container.Impl is
       return Object_ptr
    is
    begin
+      pragma Debug (O2 ("to_container (container)"));
       case IRObject.Impl.Get_Def_Kind
         (Self) is
          when
@@ -292,6 +300,7 @@ package body CORBA.Repository_Root.Container.Impl is
    is
       Not_Allowed : Boolean := False;
    begin
+      pragma Debug (O2 ("Check_Structure (container)"));
       --  the move or creation should comply with p10-8 of the IR spec.
       --  (structure and navigation in the IR)
       case Kind is
@@ -379,9 +388,17 @@ package body CORBA.Repository_Root.Container.Impl is
          Result_Obj := Lookup_ScopedName (Self.Contents,
                                           Search_Name);
       end if;
-      --  return a Nil_ref if result_obj is null.
-      Contained.Set (Result,
-                     CORBA.Impl.Object_Ptr (Result_Obj));
+
+      --  return a nil_ref if not found
+      if Result_Obj = null then
+         Contained.Set (Result,
+                        CORBA.Impl.Object_Ptr (Result_Obj));
+         return Result;
+      end if;
+
+      --  create the ref
+      Broca.Server_Tools.Initiate_Servant (PortableServer.Servant (Result_Obj),
+                                           Result);
       return Result;
    end lookup;
 
@@ -725,8 +742,10 @@ package body CORBA.Repository_Root.Container.Impl is
       begin
          for I in Cont_Array'Range loop
             Des := Contained.Impl.Describe (Cont_Array (I));
-            Contained.Set (Ref,
-                           CORBA.Impl.Object_Ptr (Cont_Array (I)));
+            --  get a reference of the object
+            Broca.Server_Tools.Initiate_Servant
+              (PortableServer.Servant (Cont_Array (I)),
+               Ref);
             --  Create the container.description ...
             Res_Des := (Contained_Object => Ref,
                         Kind => Des.Kind,
@@ -750,28 +769,38 @@ package body CORBA.Repository_Root.Container.Impl is
       version : in CORBA.Repository_Root.VersionSpec)
      return CORBA.Repository_Root.ModuleDef_Forward.Ref
    is
-      Obj : ModuleDef.Impl.Object_Ptr := new ModuleDef.Impl.Object;
-      Cont_Obj : Contained.Impl.Object_Ptr := new Contained.Impl.Object;
+      Result : ModuleDef_Forward.Ref;
    begin
-      --  is the new structure allowed?
-      if Check_Structure (Self, Dk_Module) then
-         --  initialization of the object
-         ModuleDef.Impl.Init (Obj,
-                              IRObject.Impl.Object_Ptr (Obj),
-                              Dk_Module,
-                              Id,
-                              Name,
-                              Version,
-                              To_Forward (Object_Ptr (Self)),
-                              Contained.Impl.Contained_Seq.Null_Sequence,
-                              Cont_Obj);
-         --  add it to the contents field of this container
-         Append_To_Contents
-           (Self,
-            Contained.Impl.To_Contained (IRObject.Impl.Object_Ptr (Obj)));
-      end if;
-
-      return ModuleDef.Impl.To_Forward (Obj);
+      declare
+         Obj : ModuleDef.Impl.Object_Ptr := new ModuleDef.Impl.Object;
+         Cont_Obj : Contained.Impl.Object_Ptr := new Contained.Impl.Object;
+      begin
+         pragma Debug (O2 ("Create_Module (container)"));
+         --  is the new structure allowed?
+         if Check_Structure (Self, Dk_Module) then
+            --  initialization of the object
+            pragma Debug (O ("before_init (create_module)"));
+            ModuleDef.Impl.Init (Obj,
+                                 IRObject.Impl.Object_Ptr (Obj),
+                                 Dk_Module,
+                                 Id,
+                                 Name,
+                                 Version,
+                                 To_Forward (Object_Ptr (Self)),
+                                 Contained.Impl.Contained_Seq.Null_Sequence,
+                                 Cont_Obj);
+            pragma Debug (O ("after_init (create_module)"));
+            --  add it to the contents field of this container
+            Append_To_Contents
+              (Self,
+               Contained.Impl.To_Contained (IRObject.Impl.Object_Ptr (Obj)));
+         end if;
+         pragma Debug (O ("after append_to_contents (create_module)"));
+         Result := ModuleDef.Impl.To_Forward (Obj);
+         pragma Debug (O ("after to_forward (create_module)"));
+      end;
+      pragma Debug (O ("end (create_module)"));
+      return Result;
    end create_module;
 
 
@@ -1105,10 +1134,6 @@ package body CORBA.Repository_Root.Container.Impl is
                                  To_Forward (Object_Ptr (Self)),
                                  Contained.Impl.Contained_Seq.Null_Sequence,
                                  Cont_Obj,
-                                 CORBA.ORB.TypeCode.Create_Exception_TC
-                                 (Id,
-                                  Name,
-                                  Members),
                                  Members);
          --  add it to the contents field of this container
          Append_To_Contents

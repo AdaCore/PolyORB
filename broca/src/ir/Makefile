@@ -1,6 +1,7 @@
 SHELL=/bin/sh
 SOURCE = corba-repository_root-irobject-impl.adb \
 corba-repository_root-contained-impl.adb \
+corba-repository_root-container-impl.adb \
 corba-repository_root-moduledef-impl.adb \
 corba-repository_root-interfacedef-impl.adb \
 corba-repository_root-valuedef-impl.adb \
@@ -21,7 +22,9 @@ corba-repository_root-aliasdef-impl.adb \
 corba-repository_root-constantdef-impl.adb \
 corba-repository_root-attributedef-impl.adb \
 corba-repository_root-operationdef-impl.adb \
-corba-repository_root-valuememberdef-impl.adb 
+corba-repository_root-valuememberdef-impl.adb \
+corba-repository_root-nativedef-impl.adb 
+
 
 
 
@@ -30,6 +33,8 @@ corba-repository_root-valuememberdef-impl.adb
 CC = gnatmake
 FLAGS = -c -g -gnata -gnatf 
 LIB = -I. -I/home/niebel/adabroker/example/generic -I/home/niebel/adabroker/src -I/home/niebel/adabroker/adasockets/src
+
+first: all server client
 
 all: ${SOURCE}
 	for file in ${SOURCE}; do ${CC} ${FLAGS} ${LIB} $$file; done
@@ -43,7 +48,10 @@ impl:
 clean :
 	rm -f *.ads *.adb *.o *.ali
 
+server: server.adb ${SOURCE}
+	${CC}  -g -gnata -gnatf  ${LIB} server.adb
 
-
+client: client.adb ${SOURCE}
+	${CC}  -g -gnata -gnatf  ${LIB} client.adb
 
 

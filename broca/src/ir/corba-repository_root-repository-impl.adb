@@ -3,7 +3,6 @@
 --  by AdaBroker (http://adabroker.eu.org/)
 ----------------------------------------------
 
-with CORBA.AbstractBase;
 with CORBA.Impl;
 
 with CORBA.Repository_Root; use CORBA.Repository_Root;
@@ -26,8 +25,24 @@ with CORBA.Repository_Root.Contained.Impl;
 with CORBA.Repository_Root.Repository.Skel;
 with CORBA.Repository_Root.IRObject.Impl;
 
+with Broca.Debug;
+with Broca.Server_Tools;
+with PortableServer;
+
 package body CORBA.Repository_Root.Repository.Impl is
 
+
+   -----------
+   -- Debug --
+   -----------
+
+   Flag : constant Natural
+     := Broca.Debug.Is_Active ("repository.impl");
+   procedure O is new Broca.Debug.Output (Flag);
+
+   Flag2 : constant Natural
+     := Broca.Debug.Is_Active ("repository.impl_method_trace");
+   procedure O2 is new Broca.Debug.Output (Flag2);
 
    -----------------
    --  To_Object  --
@@ -35,6 +50,7 @@ package body CORBA.Repository_Root.Repository.Impl is
    function To_Object (Fw_Ref : Repository_Forward.Ref)
      return Object_Ptr is
    begin
+      pragma Debug (O2 ("to_object (repository)"));
       return Object_Ptr
         (Repository.Object_Of
          (Repository.Convert_Forward.To_Ref
@@ -48,7 +64,9 @@ package body CORBA.Repository_Root.Repository.Impl is
                         return Repository_Forward.Ref is
       Ref : Repository.Ref;
    begin
-      Set (Ref, CORBA.Impl.Object_Ptr (Obj));
+      pragma Debug (O2 ("to_forward (repository)"));
+      Broca.Server_Tools.Initiate_Servant (PortableServer.Servant (Obj),
+                                           Ref);
       return Repository.Convert_Forward.To_Forward (Ref);
    end To_Forward;
 
@@ -64,9 +82,20 @@ package body CORBA.Repository_Root.Repository.Impl is
    begin
       Result_Object := Contained.Impl.Lookup_Id (Get_Contents (Self),
                                                  Search_Id);
-      Contained.Set (Result_Ref,
-                     CORBA.Impl.Object_Ptr (Result_Object));
-      --  it's a nil ref if Result_Object is null
+
+
+      --  return a nil_ref if not found
+      if Result_Object = null then
+         Contained.Set (Result_Ref,
+                        CORBA.Impl.Object_Ptr (Result_Object));
+         return Result_Ref;
+       end if;
+
+      --  create the ref
+      Broca.Server_Tools.Initiate_Servant
+        (PortableServer.Servant (Result_Object),
+         Result_Ref);
+
       return Result_Ref;
    end lookup_id;
 
@@ -151,9 +180,13 @@ package body CORBA.Repository_Root.Repository.Impl is
                               Dk_Primitive,
                               IDL_Type,
                               Kind);
-      --  create the ref
-      PrimitiveDef.Set (Result,
-                        CORBA.Impl.Object_Ptr (Obj));
+
+
+
+      --  activate it
+      Broca.Server_Tools.Initiate_Servant (PortableServer.Servant (Obj),
+                                           Result);
+
       return Result;
    end get_primitive;
 
@@ -171,9 +204,10 @@ package body CORBA.Repository_Root.Repository.Impl is
                            IRObject.Impl.Object_Ptr (Obj),
                            Dk_String,
                            Bound);
-      --  create the ref
-      StringDef.Set (Result,
-                     CORBA.Impl.Object_Ptr (Obj));
+
+      --  activate it
+      Broca.Server_Tools.Initiate_Servant (PortableServer.Servant (Obj),
+                                           Result);
 
       return Result;
    end create_string;
@@ -192,9 +226,10 @@ package body CORBA.Repository_Root.Repository.Impl is
                             IRObject.Impl.Object_Ptr (Obj),
                             Dk_Wstring,
                             Bound);
-      --  create the ref
-      WstringDef.Set (Result,
-                      CORBA.Impl.Object_Ptr (Obj));
+
+      --  activate it
+      Broca.Server_Tools.Initiate_Servant (PortableServer.Servant (Obj),
+                                           Result);
 
       return Result;
    end create_wstring;
@@ -217,9 +252,10 @@ package body CORBA.Repository_Root.Repository.Impl is
                              Dk_Sequence,
                              Bound,
                              Element_Type);
-      --  create the ref
-      SequenceDef.Set (Result,
-                       CORBA.Impl.Object_Ptr (Obj));
+
+      --  activate it
+      Broca.Server_Tools.Initiate_Servant (PortableServer.Servant (Obj),
+                                           Result);
 
       return Result;
    end create_sequence;
@@ -242,9 +278,10 @@ package body CORBA.Repository_Root.Repository.Impl is
                           Dk_Array,
                           length,
                           Element_Type);
-      --  create the ref
-      ArrayDef.Set (Result,
-                    CORBA.Impl.Object_Ptr (Obj));
+
+      --  activate it
+      Broca.Server_Tools.Initiate_Servant (PortableServer.Servant (Obj),
+                                           Result);
 
       return Result;
    end create_array;
@@ -265,9 +302,10 @@ package body CORBA.Repository_Root.Repository.Impl is
                           Dk_Fixed,
                           IDL_digits,
                           Scale);
-      --  create the ref
-      FixedDef.Set (Result,
-                    CORBA.Impl.Object_Ptr (Obj));
+
+      --  activate it
+      Broca.Server_Tools.Initiate_Servant (PortableServer.Servant (Obj),
+                                           Result);
 
       return Result;
    end create_fixed;

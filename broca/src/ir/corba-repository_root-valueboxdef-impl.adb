@@ -3,12 +3,14 @@
 --  by AdaBroker (http://adabroker.eu.org/)
 ----------------------------------------------
 
-with CORBA.Impl;
 with CORBA.ORB.Typecode;
 
 with CORBA.Repository_Root.IDLType;
 with CORBA.Repository_Root.IDLType.Impl;
 with CORBA.Repository_Root.ValueBoxDef.Skel;
+
+with Broca.Server_Tools;
+with PortableServer;
 
 package body CORBA.Repository_Root.ValueBoxDef.Impl is
 
@@ -32,7 +34,8 @@ package body CORBA.Repository_Root.ValueBoxDef.Impl is
                         return ValueBoxDef_Forward.Ref is
       Ref : ValueBoxDef.Ref;
    begin
-      Set (Ref, CORBA.Impl.Object_Ptr (Obj));
+      Broca.Server_Tools.Initiate_Servant (PortableServer.Servant (Obj),
+                                           Ref);
       return ValueBoxDef.Convert_Forward.To_Forward (Ref);
    end To_Forward;
 

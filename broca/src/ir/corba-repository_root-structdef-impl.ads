@@ -9,9 +9,7 @@ with CORBA.Repository_Root.Contained.Impl;
 with CORBA.Repository_Root.IRObject.Impl;
 with CORBA.Repository_Root.IDLType.Impl;
 with CORBA.Repository_Root.Container.Impl;
-pragma Elaborate_All (CORBA.Repository_Root.Container.Impl);
 with CORBA.Repository_Root.TypedefDef.Impl;
-pragma Elaborate_All (CORBA.Repository_Root.TypedefDef.Impl);
 
 package CORBA.Repository_Root.StructDef.Impl is
 
@@ -195,3 +193,4 @@ private
    end record;
 
 end CORBA.Repository_Root.StructDef.Impl;
+

@@ -3,17 +3,21 @@
 --  by AdaBroker (http://adabroker.eu.org/)
 ----------------------------------------------
 
-with CORBA.Impl;
 with CORBA.ORB.Typecode;
 
 with CORBA.Repository_Root; use CORBA.Repository_Root;
 with CORBA.Repository_Root.IRObject.Impl;
 with CORBA.Repository_Root.Contained;
 with CORBA.Repository_Root.OperationDef;
+with CORBA.Repository_Root.OperationDef.Impl;
 with CORBA.Repository_Root.AttributeDef;
+with CORBA.Repository_Root.AttributeDef.Impl;
 with CORBA.Repository_Root.IDLType;
 with CORBA.Repository_Root.InterfaceDef.Skel;
 with CORBA.Repository_Root.Helper;
+
+with Broca.Server_Tools;
+with PortableServer;
 
 package body CORBA.Repository_Root.InterfaceDef.Impl is
 
@@ -78,7 +82,8 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
                         return InterfaceDef_Forward.Ref is
       Ref : InterfaceDef.Ref;
    begin
-      Set (Ref, CORBA.Impl.Object_Ptr (Obj));
+      Broca.Server_Tools.Initiate_Servant (PortableServer.Servant (Obj),
+                                           Ref);
       return InterfaceDef.Convert_Forward.To_Forward (Ref);
    end To_Forward;
 
@@ -104,12 +109,8 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
      (Self : access Object)
      return CORBA.Repository_Root.InterfaceDefSeq
    is
-      Result : CORBA.Repository_Root.InterfaceDefSeq;
    begin
-
-      --  Insert implementation of get_base_interfaces
-
-      return Result;
+      return Self.Base_Interfaces;
    end get_base_interfaces;
 
 
@@ -117,10 +118,7 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
      (Self : access Object;
       To : in CORBA.Repository_Root.InterfaceDefSeq) is
    begin
-
-      --  Insert implementation of set_base_interfaces
-
-      null;
+      Self.Base_Interfaces := To;
    end set_base_interfaces;
 
 
@@ -128,12 +126,8 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
      (Self : access Object)
      return CORBA.Boolean
    is
-      Result : CORBA.Boolean;
    begin
-
-      --  Insert implementation of get_is_abstract
-
-      return Result;
+      return Self.Is_Abstract;
    end get_is_abstract;
 
 
@@ -141,10 +135,7 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
      (Self : access Object;
       To : in CORBA.Boolean) is
    begin
-
-      --  Insert implementation of set_is_abstract
-
-      null;
+      Self.Is_Abstract := To;
    end set_is_abstract;
 
 
@@ -185,11 +176,30 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
      return CORBA.Repository_Root.AttributeDef.Ref
    is
       Result : CORBA.Repository_Root.AttributeDef.Ref;
+      Obj : AttributeDef.Impl.Object_Ptr := new AttributeDef.Impl.Object;
    begin
+      --  initialization of the object
+      AttributeDef.Impl.Init (Obj,
+                              IRObject.Impl.Object_Ptr (Obj),
+                              Dk_Attribute,
+                              Id,
+                              Name,
+                              Version,
+                              Container.Impl.To_Forward
+                              (Container.Impl.Object_Ptr (Self)),
+                              IDL_Type,
+                              Mode);
 
-      --  Insert implementation of create_attribute
+      --  add it to the contents field of this container
+      Container.Impl.Append_To_Contents
+        (Container.Impl.Object_Ptr (Self),
+         Contained.Impl.To_Contained (IRObject.Impl.Object_Ptr (Obj)));
 
+      --  activate it
+      Broca.Server_Tools.Initiate_Servant (PortableServer.Servant (Obj),
+                                           Result);
       return Result;
+
    end create_attribute;
 
 
@@ -206,24 +216,43 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
      return CORBA.Repository_Root.OperationDef.Ref
    is
       Result : CORBA.Repository_Root.OperationDef.Ref;
+      Obj : OperationDef.Impl.Object_Ptr := new OperationDef.Impl.Object;
    begin
+      --  initialization of the object
+      OperationDef.Impl.Init (Obj,
+                              IRObject.Impl.Object_Ptr (Obj),
+                              Dk_Operation,
+                              Id,
+                              Name,
+                              Version,
+                              Container.Impl.To_Forward
+                              (Container.Impl.Object_Ptr (Self)),
+                              IDL_Result,
+                              Params,
+                              Mode,
+                              Contexts,
+                              Exceptions);
 
-      --  Insert implementation of create_operation
+      --  add it to the contents field of this container
+      Container.Impl.Append_To_Contents
+        (Container.Impl.Object_Ptr (Self),
+         Contained.Impl.To_Contained (IRObject.Impl.Object_Ptr (Obj)));
 
+      --  activate it
+      Broca.Server_Tools.Initiate_Servant (PortableServer.Servant (Obj),
+                                           Result);
       return Result;
    end create_operation;
 
-
+   --------------------------------
+   --  inherited from contained  --
+   --------------------------------
    function get_id
      (Self : access Object)
      return CORBA.RepositoryId
    is
-      Result : CORBA.RepositoryId;
    begin
-
-      --  Insert implementation of get_id
-
-      return Result;
+      return Contained.Impl.Get_Id (Self.Contained_View);
    end get_id;
 
 
@@ -231,10 +260,7 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
      (Self : access Object;
       To : in CORBA.RepositoryId) is
    begin
-
-      --  Insert implementation of set_id
-
-      null;
+      Contained.Impl.Set_Id (Self.Contained_View, To);
    end set_id;
 
 
@@ -242,12 +268,8 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
      (Self : access Object)
      return CORBA.Identifier
    is
-      Result : CORBA.Identifier;
    begin
-
-      --  Insert implementation of get_name
-
-      return Result;
+      return Contained.Impl.Get_Name (Self.Contained_View);
    end get_name;
 
 
@@ -255,10 +277,7 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
      (Self : access Object;
       To : in CORBA.Identifier) is
    begin
-
-      --  Insert implementation of set_name
-
-      null;
+      Contained.Impl.Set_Name (Self.Contained_View, To);
    end set_name;
 
 
@@ -266,12 +285,8 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
      (Self : access Object)
      return CORBA.Repository_Root.VersionSpec
    is
-      Result : CORBA.Repository_Root.VersionSpec;
    begin
-
-      --  Insert implementation of get_version
-
-      return Result;
+      return Contained.Impl.Get_Version (Self.Contained_View);
    end get_version;
 
 
@@ -279,10 +294,7 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
      (Self : access Object;
       To : in CORBA.Repository_Root.VersionSpec) is
    begin
-
-      --  Insert implementation of set_version
-
-      null;
+      Contained.Impl.Set_Version (Self.Contained_View, To);
    end set_version;
 
 
@@ -290,25 +302,17 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
      (Self : access Object)
      return CORBA.Repository_Root.Container_Forward.Ref
    is
-      Result : CORBA.Repository_Root.Container_Forward.Ref;
    begin
-
-      --  Insert implementation of get_defined_in
-
-      return Result;
+       return Contained.Impl.Get_Defined_In (Self.Contained_View);
    end get_defined_in;
 
 
    function get_absolute_name
      (Self : access Object)
-     return CORBA.ScopedName
+      return CORBA.ScopedName
    is
-      Result : CORBA.ScopedName;
    begin
-
-      --  Insert implementation of get_absolute_name
-
-      return Result;
+      return Contained.Impl.Get_Absolute_Name (Self.Contained_View);
    end get_absolute_name;
 
 
@@ -316,12 +320,8 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
      (Self : access Object)
      return CORBA.Repository_Root.Repository_Forward.Ref
    is
-      Result : CORBA.Repository_Root.Repository_Forward.Ref;
    begin
-
-      --  Insert implementation of get_containing_repository
-
-      return Result;
+      return Contained.Impl.Get_Containing_Repository (Self.Contained_View);
    end get_containing_repository;
 
 
@@ -351,13 +351,16 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
       new_name : in CORBA.Identifier;
       new_version : in CORBA.Repository_Root.VersionSpec) is
    begin
-
-      --  Insert implementation of move
-
-      null;
+      Contained.Impl.Move (Self.Contained_View,
+                           New_Container,
+                           New_Name,
+                           New_Version);
    end move;
 
 
+   ------------------------------
+   --  inherited from IDLType  --
+   ------------------------------
    function get_type
      (Self : access Object)
      return CORBA.TypeCode.Object
