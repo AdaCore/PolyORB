@@ -944,6 +944,15 @@ package body System.Garlic.Heart is
 
    protected body Shutdown_Keeper is
 
+      --------------------
+      -- Is_In_Progress --
+      --------------------
+
+      function Is_In_Progress return Boolean is
+      begin
+         return In_Progress;
+      end Is_In_Progress;
+
       ------------
       -- Signal --
       ------------

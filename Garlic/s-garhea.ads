@@ -95,6 +95,7 @@ package System.Garlic.Heart is
    protected Shutdown_Keeper is
       entry Wait;
       procedure Signal;
+      function Is_In_Progress return Boolean;
    private
       In_Progress : Boolean := False;
    end Shutdown_Keeper;

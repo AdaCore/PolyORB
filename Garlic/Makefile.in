@@ -66,20 +66,23 @@ CONSTANTS_SH = ${srcdir}/constants.sh
 CP           = cp
 GARLIC       = ${prefix}/lib/garlic
 GNATFLAGS    = -gnatg @GNATFLAGS@
-INCFLAGS     = -I. -I${srcdir}
+INCFLAGS           = -I. -I${srcdir}
 
-PLATFORM     = @PLATFORM_SPECIFIC@
+PLATFORM           = @PLATFORM_SPECIFIC@
 
-TCP_PLATFORM = 2${PLATFORM}gtplsp.ads
+TCP_PLATFORM       = 2${PLATFORM}gtplsp.ads
+CONSTANTS_PLATFORM = ${srcdir}/2${PLATFORM}garcon.ads
 
 LAUNCHINGOBJECTS = \
 s-garnam.o\
 s-garrem.o
 
 TCPOBJECTS = \
-s-ganobl.o\
 s-gtplsp.o\
 s-gartcp.o
+
+NOBLTCPOBJECTS = \
+s-ganobl.o
 
 COMMONOBJECTS = \
 s-garthi.o\
@@ -109,9 +112,11 @@ ${srcdir}/s-garnam.ads ${srcdir}/s-garnam.adb \
 ${srcdir}/s-garrem.ads ${srcdir}/s-garrem.adb
 
 TCPSOURCES = \
-${srcdir}/s-ganobl.ads ${srcdir}/s-ganobl.adb \
         ./s-gtplsp.ads                        \
 ${srcdir}/s-gartcp.ads ${srcdir}/s-gartcp.adb
+
+NOBLTCPSOURCES = \
+${srcdir}/s-ganobl.ads ${srcdir}/s-ganobl.adb
 
 COMMONSOURCES = \
 ${srcdir}/s-garthi.ads \
@@ -249,7 +254,11 @@ mostlyclean distclean maintainer-clean
 	${CC} -c ${CFLAGS} ${INCFLAGS} ${GNATFLAGS} $<
 
 s-garcon.ads: ${CONSTANTS_SH}
-	${SHELL} ${CONSTANTS_SH} System.Garlic.Constants
+	if test -f ${CONSTANTS_PLATFORM}; then \
+	  cp ${CONSTANTS_PLATFORM} s-garcon.ads; \
+	else \
+	  ${SHELL} ${CONSTANTS_SH} System.Garlic.Constants; \
+	fi
 
 s-gtplsp.ads: ${srcdir}/${TCP_PLATFORM}
 	cp ${srcdir}/${TCP_PLATFORM} s-gtplsp.ads

@@ -552,15 +552,24 @@ package body System.Garlic.TCP is
       when Communication_Error =>
 
          --  The remote end has closed the socket or a communication error
-         --  occurred.
+         --  occurred. In the case, the entry will be freed, except if we
+         --  are terminating since this is not worth freeing anything.
 
-         if Partition /= Null_Partition_ID then
+         if Partition /= Null_Partition_ID and then
+           not Shutdown_Keeper.Is_In_Progress then
+
+            --  Set the entry in the table correctly only we are not
+            --  executing a shutdown operation. If we are, then
+            --  it is likely that Partition_Map is already deallocated.
+
             Partition_Map.Lock (Partition);
             Data := Partition_Map.Get_Immediate (Partition);
             Data.Connected := False;
             Partition_Map.Set_Locked (Partition, Data);
             Partition_Map.Unlock (Partition);
+
          end if;
+
          declare
             Dummy : C.int;
          begin
