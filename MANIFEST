@@ -319,6 +319,10 @@ cos/notification/cosnotifyfilter-filter-impl.adb
 cos/notification/cosnotifyfilter-filter-impl.ads
 cos/notification/cosnotifyfilter-filteradmin-impl.adb
 cos/notification/cosnotifyfilter-filteradmin-impl.ads
+cos/notification/cosnotifyfilter-filterfactory-impl.adb
+cos/notification/cosnotifyfilter-filterfactory-impl.adb
+cos/notification/cosnotifyfilter-mappingfilter-impl.adb
+cos/notification/cosnotifyfilter-mappingfilter-impl.ads
 cos/time/Makefile.am
 cos/time/Makefile.in
 cos/time/costime-timeservice-impl.adb
