@@ -16,25 +16,4 @@
 --  full-tasking applications, so the same set of compiled objects can
 --  be used in both cases.
 
-@DISABLE_RESTRICTION_WARNINGS@@DISABLE_PROFILE_WARNINGS@pragma Profile_Warnings (Ravenscar);
-@DISABLE_RESTRICTION_WARNINGS@pragma Restriction_Warnings (
-@DISABLE_RESTRICTION_WARNINGS@  Boolean_Entry_Barriers,
-@DISABLE_RESTRICTION_WARNINGS@  No_Abort_Statements,
-@DISABLE_RESTRICTION_WARNINGS@  No_Select_Statements,
-@DISABLE_RESTRICTION_WARNINGS@  No_Task_Hierarchy,
-@DISABLE_RESTRICTION_WARNINGS@  No_Task_Allocators,
-@DISABLE_RESTRICTION_WARNINGS@  No_Dynamic_Priorities,
-@DISABLE_RESTRICTION_WARNINGS@  No_Terminate_Alternatives,
-@DISABLE_RESTRICTION_WARNINGS@  No_Dynamic_Interrupts,
-@DISABLE_RESTRICTION_WARNINGS@  No_Implicit_Heap_Allocations,
-@DISABLE_RESTRICTION_WARNINGS@  No_Protected_Type_Allocators,
-@DISABLE_RESTRICTION_WARNINGS@  No_Local_Protected_Objects,
-@DISABLE_RESTRICTION_WARNINGS@  No_Requeue_Statements,
-@DISABLE_RESTRICTION_WARNINGS@  No_Calendar,
-@DISABLE_RESTRICTION_WARNINGS@  No_Relative_Delay,
-@DISABLE_RESTRICTION_WARNINGS@  No_Task_Attributes_Package,
-@DISABLE_RESTRICTION_WARNINGS@  Max_Asynchronous_Select_Nesting => 0,
-@DISABLE_RESTRICTION_WARNINGS@  Max_Task_Entries => 0,
-@DISABLE_RESTRICTION_WARNINGS@  Max_Protected_Entries => 1,
-@DISABLE_RESTRICTION_WARNINGS@  Max_Select_Alternatives => 0,
-@DISABLE_RESTRICTION_WARNINGS@  No_Task_Termination);
+@DISABLE_PROFILE_WARNINGS@pragma Profile_Warnings (Ravenscar);

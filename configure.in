@@ -306,20 +306,6 @@ then
 fi
 
 ##########################################
-# Warn on restrictions violations
-##########################################
-
-AC_ARG_ENABLE(restriction-warnings,
-[  --enable-restrictions-warnings  Warn on violation of restrictions],
-[if [[ "$enableval" = "yes" ]]; then
-  DISABLE_RESTRICTION_WARNINGS=""
-else
-  DISABLE_RESTRICTION_WARNINGS="--  "
-fi],
-[DISABLE_RESTRICTION_WARNINGS="--  "])
-AC_SUBST(DISABLE_RESTRICTION_WARNINGS)
-
-##########################################
 # Check for maintainer (debug) mode.
 ##########################################
 
