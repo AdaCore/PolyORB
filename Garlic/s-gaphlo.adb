@@ -39,12 +39,13 @@ package body System.Garlic.Physical_Location is
 
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("S_GAPHLO", "(s-gaphlo): ");
+
    procedure D
      (Message : in String;
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
-   use Ada.Finalization, System.Garlic.Protocols, System.Garlic.Utils;
+   use System.Garlic.Protocols, System.Garlic.Utils;
 
    function Lookup_Protocol (P : String) return Protocol_Access;
    --  Return a protocol or null if no protocol with this name was found
@@ -107,52 +108,27 @@ package body System.Garlic.Physical_Location is
       Destroy (Data);
    end Add_Missing_Locations;
 
-   ------------
-   -- Adjust --
-   ------------
-
-   procedure Adjust (O : in out Location_Type) is
-   begin
-      if O.Data /= null then
-         O.Data := new String'(O.Data.all);
-      end if;
-   end Adjust;
-
    -------------
    -- Destroy --
    -------------
 
    procedure Destroy (Location : in out Location_Type) is
    begin
-      if Location.Data /= null then
-         Destroy (Location.Data);
-      end if;
       Location := Null_Location;
    end Destroy;
 
    --------------
-   -- Finalize --
-   --------------
-
-   procedure Finalize (O : in out Location_Type) is
-   begin
-      Destroy (O.Data);
-   end Finalize;
-
-   --------------
    -- Get_Data --
    --------------
 
-   function Get_Data
-     (L : Location_Type)
-     return String_Access is
+   function Get_Data (L : Location_Type) return String is
    begin
-      return L.Data;
+      return L.Data_Str (1 .. L.Data_Len);
    end Get_Data;
 
-   --------------
-   -- Get_Data --
-   --------------
+   ----------------------
+   -- Get_Support_Data --
+   ----------------------
 
    function Get_Support_Data
      (L : String)
@@ -231,29 +207,30 @@ package body System.Garlic.Physical_Location is
    -- To_Location --
    -----------------
 
-   function To_Location (L : String) return Location_Type is
+   function To_Location (L : String) return Location_Type
+   is
+      Result : Location_Type := Null_Location;
+
    begin
-      for Look_For_Colon in L'Range loop
-         if L (Look_For_Colon) = ':' then
-            if Look_For_Colon = L'Last then
-               return (Controlled with
-                       Protocol => Lookup_Protocol (L (L'First ..
-                                                       Look_For_Colon - 1)),
-                       Data     => new String'(Null_String));
+      for Colon in L'Range loop
+         if L (Colon) = ':' then
+            if Colon = L'Last then
+               Result.Protocol := Lookup_Protocol (L (L'First .. Colon - 1));
+               return Result;
             end if;
-            if Look_For_Colon + 2 > L'Last or else
-              L (Look_For_Colon + 1 .. Look_For_Colon + 2) /= "//" then
+            if Colon + 2 > L'Last
+              or else L (Colon + 1 .. Colon + 2) /= "//"
+            then
                raise Malformed_Location;
             end if;
-            return (Controlled with
-                    Protocol => Lookup_Protocol (L (L'First ..
-                                                    Look_For_Colon - 1)),
-                    Data     => new String'(L (Look_For_Colon + 3 .. L'Last)));
+            Result.Protocol := Lookup_Protocol (L (L'First .. Colon - 1));
+            Result.Data_Len := L'Last - Colon - 2;
+            Result.Data_Str (1 .. Result.Data_Len) := L (Colon + 3 .. L'Last);
+            return Result;
          end if;
       end loop;
-      return (Controlled with
-              Protocol => Lookup_Protocol (L),
-              Data     => new String'(Null_String));
+      Result.Protocol := Lookup_Protocol (L);
+      return Result;
    end To_Location;
 
    -----------------
@@ -263,11 +240,14 @@ package body System.Garlic.Physical_Location is
    function To_Location
      (P : Protocols.Protocol_Access;
       D : String)
-     return Location_Type is
+     return Location_Type
+   is
+      Result : Location_Type := Null_Location;
    begin
-      return (Controlled with
-              Protocol => P,
-              Data => new String'(D));
+      Result.Protocol := P;
+      Result.Data_Len := D'Length;
+      Result.Data_Str (1 .. Result.Data_Len) := D;
+      return Result;
    end To_Location;
 
    -----------------
@@ -288,7 +268,7 @@ package body System.Garlic.Physical_Location is
 
    function To_String (L : Location_Type) return String is
    begin
-      return Get_Name (Get_Protocol (L)) & "://" & Get_Data (L).all;
+      return Get_Name (Get_Protocol (L)) & "://" & Get_Data (L);
    end To_String;
 
 end System.Garlic.Physical_Location;

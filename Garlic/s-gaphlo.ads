@@ -33,7 +33,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Finalization;
 with System.Garlic.Protocols;
 with System.Garlic.Utils;
 
@@ -75,7 +74,7 @@ package System.Garlic.Physical_Location is
 
    function Get_Data
      (L : Location_Type)
-     return Utils.String_Access;
+     return String;
    --  Return the additionnal data (used by protocols)
 
    function Get_Support_Data
@@ -124,20 +123,21 @@ package System.Garlic.Physical_Location is
 
 private
 
-   type Location_Type is new Ada.Finalization.Controlled with record
-      Protocol : Protocols.Protocol_Access;
-      Data     : Utils.String_Access;
-   end record;
+   Max : constant := 64;
 
-   procedure Adjust   (O : in out Location_Type);
-   procedure Finalize (O : in out Location_Type);
+   type Location_Type is
+      record
+         Protocol : Protocols.Protocol_Access;
+         Data_Str : String (1 .. Max);
+         Data_Len : Natural;
+      end record;
 
    pragma Stream_Convert (Entity => Location_Type,
                           Read   => String_To_Location,
                           Write  => To_String);
 
-   Null_Location : constant Location_Type := (Ada.Finalization.Controlled with
-                                              Protocol => null,
-                                              Data     => null);
+   Null_Location : constant Location_Type := (Protocol => null,
+                                              Data_Str => (others => ' '),
+                                              Data_Len => 0);
 
 end System.Garlic.Physical_Location;
