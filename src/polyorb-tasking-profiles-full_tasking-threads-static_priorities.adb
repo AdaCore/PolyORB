@@ -53,7 +53,7 @@ is
       pragma Unreferenced (P);
 
    begin
-      raise PolyORB.Tasking.Tasking_Profile_Error;
+      raise Tasking_Error;
    end Set_Priority;
 
    ------------------
@@ -69,7 +69,7 @@ is
       pragma Unreferenced (T);
 
    begin
-      raise PolyORB.Tasking.Tasking_Profile_Error;
+      raise Tasking_Error;
 
       return 0;
    end Get_Priority;

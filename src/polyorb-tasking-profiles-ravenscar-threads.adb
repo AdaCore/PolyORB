@@ -432,7 +432,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
       pragma Unreferenced (P);
       pragma Warnings (On);
    begin
-      raise Tasking.Tasking_Profile_Error;
+      raise Tasking_Error;
    end Set_Priority;
 
    ------------------
@@ -623,7 +623,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
             if J = Thread_Index_Type'Last then
                --  Tis is not managed by this pool
 
-               raise Tasking_Profile_Error;
+               raise Tasking_Error;
             end if;
 
             J := J + 1;

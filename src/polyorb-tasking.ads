@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -52,17 +52,7 @@
 --  $Id$
 
 package PolyORB.Tasking is
+
    pragma Pure;
-
-   Tasking_Error : exception;
-   --  The functionalities of PolyORB.Tasking's children must only be
-   --  used by tasks that have been created through this API.  If this
-   --  functionalities are used by tasks that have not been created
-   --  through it, a Tasking_Error is raised.
-
-   Tasking_Profile_Error : exception;
-   --  Some functionnalities may have no sense for some profile.
-   --  In that case, any call to this functionnalities raise
-   --  a Tasking_Profile_Error.
 
 end PolyORB.Tasking;

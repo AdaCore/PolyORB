@@ -106,7 +106,7 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Threads is
       pragma Unreferenced (C);
       pragma Warnings (On);
    begin
-      raise Tasking.Tasking_Profile_Error;
+      raise Tasking_Error;
       return null;
    end Run_In_Task;
 
@@ -126,7 +126,7 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Threads is
       pragma Unreferenced (P);
       pragma Warnings (On);
    begin
-      raise Tasking.Tasking_Profile_Error;
+      raise Tasking_Error;
       return null;
    end Run_In_Task;
 
@@ -145,7 +145,7 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Threads is
       pragma Unreferenced (P);
       pragma Warnings (On);
    begin
-      raise Tasking.Tasking_Profile_Error;
+      raise Tasking_Error;
    end Set_Priority;
 
    ------------------
@@ -162,7 +162,7 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Threads is
       pragma Unreferenced (T);
       pragma Warnings (On);
    begin
-      raise Tasking.Tasking_Profile_Error;
+      raise Tasking_Error;
 
       return 0;
    end Get_Priority;
