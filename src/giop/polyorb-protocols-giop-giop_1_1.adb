@@ -289,7 +289,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
             raise GIOP_Error;
 
          when others =>
-            raise Not_Implemented;
+            raise Program_Error;
       end case;
    end Process_Message;
 
@@ -710,7 +710,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
       Message_Size := Types.Unsigned_Long (Length (Buffer));
       if Message_Size > Implem.Max_GIOP_Message_Size then
          pragma Debug (O ("Fragment_Mode"));
-         raise Not_Implemented;
+         raise Program_Error;
       end if;
    end Marshall_Argument_List;
 

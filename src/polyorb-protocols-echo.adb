@@ -300,7 +300,7 @@ package body PolyORB.Protocols.Echo is
 
    procedure Handle_Flush (S : access Echo_Session) is
    begin
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
    end Handle_Flush;
 
 end PolyORB.Protocols.Echo;

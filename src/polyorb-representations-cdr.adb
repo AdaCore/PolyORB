@@ -661,7 +661,7 @@ package body PolyORB.Representations.CDR is
          when Tk_Principal =>
             --  FIXME : to be done
             pragma Debug (O ("Marshall_From_Any : dealing with a principal"));
-            raise PolyORB.Not_Implemented;
+            raise Program_Error;
 
          when Tk_Objref =>
             pragma Debug (O ("Marshall_From_Any : dealing with an objRef"));
@@ -931,7 +931,7 @@ package body PolyORB.Representations.CDR is
                --        end case;
                --     end;
                --  end loop;
-               raise PolyORB.Not_Implemented;
+               raise Program_Error;
             end;
 
          when Tk_Valuebox =>
@@ -948,13 +948,13 @@ package body PolyORB.Representations.CDR is
          when Tk_Native =>
             pragma Debug (O ("Marshall_From_Any : dealing with a native"));
             --  FIXME : to be done
-            raise PolyORB.Not_Implemented;
+            raise Program_Error;
 
          when Tk_Abstract_Interface =>
             pragma Debug (O
                  ("Marshall_From_Any : dealing with an abstract interface"));
             --  FIXME : to be done
-            raise PolyORB.Not_Implemented;
+            raise Program_Error;
 
          when Tk_Local_Interface =>
             Throw
@@ -966,15 +966,15 @@ package body PolyORB.Representations.CDR is
 
          when Tk_Component =>
             --  FIXME : to be done
-            raise PolyORB.Not_Implemented;
+            raise Program_Error;
 
          when Tk_Home =>
             --  FIXME : to be done
-            raise PolyORB.Not_Implemented;
+            raise Program_Error;
 
          when Tk_Event =>
             --  FIXME : to be done
-            raise PolyORB.Not_Implemented;
+            raise Program_Error;
       end case;
       pragma Debug (O ("Marshall_From_Any : end"));
    end Marshall_From_Any;
@@ -1726,7 +1726,7 @@ package body PolyORB.Representations.CDR is
 
          when Tk_Principal =>
             --  FIXME : to be done
-            raise PolyORB.Not_Implemented;
+            raise Program_Error;
 
          when Tk_Objref =>
             PolyORB.Any.ObjRef.Set_Any_Value
@@ -2034,7 +2034,7 @@ package body PolyORB.Representations.CDR is
             --    end loop;
             --   end if;
             --   end;
-            raise PolyORB.Not_Implemented;
+            raise Program_Error;
 
          when Tk_Valuebox =>
             --  declare
@@ -2055,15 +2055,15 @@ package body PolyORB.Representations.CDR is
             --       Add_Aggregate_Element(Result, Arg);
             --     end if;
             --  end;
-            raise PolyORB.Not_Implemented;
+            raise Program_Error;
 
          when Tk_Native =>
             --  FIXME : to be done
-            raise PolyORB.Not_Implemented;
+            raise Program_Error;
 
          when Tk_Abstract_Interface =>
             --  FIXME : to be done
-            raise PolyORB.Not_Implemented;
+            raise Program_Error;
 
          when Tk_Local_Interface =>
             Throw
@@ -2074,13 +2074,13 @@ package body PolyORB.Representations.CDR is
                   Completed => Completed_No));
 
          when Tk_Component =>
-            raise PolyORB.Not_Implemented;
+            raise Program_Error;
 
          when Tk_Home =>
-            raise PolyORB.Not_Implemented;
+            raise Program_Error;
 
          when Tk_Event =>
-            raise PolyORB.Not_Implemented;
+            raise Program_Error;
       end case;
       pragma Debug (O ("Unmarshall_To_Any: end"));
    end Unmarshall_To_Any;

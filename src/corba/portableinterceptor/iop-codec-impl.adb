@@ -104,7 +104,7 @@ package body IOP.Codec.Impl is
 
       if Found (Error) then
          Catch (Error);
-         raise PolyORB.Not_Implemented;
+         raise Program_Error;
          --  XXX Handling of errors must be ivestigated.
       end if;
 
@@ -159,7 +159,7 @@ package body IOP.Codec.Impl is
       if Found (Error) then
          Release (Buffer);
          Catch (Error);
-         raise PolyORB.Not_Implemented;
+         raise Program_Error;
          --  XXX Handling of errors must be ivestigated.
       end if;
 

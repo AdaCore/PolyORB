@@ -152,7 +152,7 @@ package body CORBA.PolicyCurrent is
       Check_Compatibility (Note.Overrides, Indexes);
 
       if Indexes /= 0 then
-         raise PolyORB.Not_Implemented;
+         raise Program_Error;
          --  XXX We must raise CORBA.InvalidPolicies exception, but it
          --  is not (yet) defined in CORBA package.
       end if;

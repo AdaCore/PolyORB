@@ -183,7 +183,7 @@ package body CORBA.Repository_Root.Container.Impl is
                  (Container.Helper.To_Ref (The_Ref));
             end;
          when dk_AbstractInterface .. dk_Event =>
-            raise PolyORB.Not_Implemented;
+            raise Program_Error;
       end case;
    end To_Forward;
 
@@ -289,7 +289,7 @@ package body CORBA.Repository_Root.Container.Impl is
                Result := UnionDef.Impl.Get_Container_View (Interm);
             end;
          when dk_AbstractInterface .. dk_Event =>
-            raise PolyORB.Not_Implemented;
+            raise Program_Error;
       end case;
       return;
    end To_Container;
@@ -350,7 +350,7 @@ package body CORBA.Repository_Root.Container.Impl is
             end;
          when
            dk_AbstractInterface .. dk_Event =>
-            raise PolyORB.Not_Implemented;
+            raise Program_Error;
       end case;
    end To_Container;
 

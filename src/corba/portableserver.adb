@@ -147,7 +147,7 @@ package body PortableServer is
                Set_Out_Args (R, Error);
 
                if Found (Error) then
-                  raise PolyORB.Unknown;
+                  raise Program_Error;
                   --  XXX We should do something if we find a PolyORB exception
 
                end if;
@@ -339,7 +339,7 @@ package body PortableServer is
       pragma Warnings (On); --  WAG:3.15
 
    begin
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
    end Raise_ForwardRequest;
 
    ---------------------------

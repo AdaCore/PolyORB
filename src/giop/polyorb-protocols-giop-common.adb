@@ -306,7 +306,7 @@ package body PolyORB.Protocols.GIOP.Common is
             end;
 
          when others =>
-            raise Not_Implemented;
+            raise Program_Error;
       end case;
 
       --  Marshall Header
@@ -747,7 +747,7 @@ package body PolyORB.Protocols.GIOP.Common is
                (Req => Current_Req.Req));
 
          when others =>
-            raise Not_Implemented;
+            raise Program_Error;
       end case;
 
       Expect_GIOP_Header (Sess);

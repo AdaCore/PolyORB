@@ -45,7 +45,7 @@ package body PolyORB.Representations.Test is
       Error  : in out Exceptions.Error_Container)
    is
    begin
-      raise Not_Implemented;
+      raise Program_Error;
    end Marshall_From_Any;
 
    procedure Unmarshall_To_Any
@@ -55,7 +55,7 @@ package body PolyORB.Representations.Test is
       Error  : in out Exceptions.Error_Container)
    is
    begin
-      raise Not_Implemented;
+      raise Program_Error;
    end Unmarshall_To_Any;
 
    procedure Marshall_Char

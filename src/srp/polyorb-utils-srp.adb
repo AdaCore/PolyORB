@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -173,7 +173,7 @@ package body PolyORB.Utils.SRP is
       --  Current_Arg : Arg_Info_Ptr := Data.Args;
    begin
       Append (URL, Data.Method.all & " " & To_String (Data.Oid.all) & "?");
-      raise Not_Implemented;
+      raise Program_Error;
 --      while Current_Arg /= null loop
 --          Append (URL, Current_Arg.all.Name.all & "=" &
 --                  Current_Arg.all.Value.all);

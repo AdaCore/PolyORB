@@ -297,7 +297,7 @@ package body CORBA.ORB is
       scale      : in CORBA.Short)
       return CORBA.TypeCode.Object is
    begin
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
       pragma Warnings (Off);
       return Create_Fixed_Tc (IDL_Digits, scale);
       --  "Possible infinite recursion".
@@ -353,7 +353,7 @@ package body CORBA.ORB is
       Name : in Identifier)
       return CORBA.TypeCode.Object is
    begin
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
       pragma Warnings (Off);
       return Create_Native_Tc (Id, Name);
       --  "Possible infinite recursion".
@@ -369,7 +369,7 @@ package body CORBA.ORB is
       Offset : in CORBA.Unsigned_Long)
       return CORBA.TypeCode.Object is
    begin
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
       pragma Warnings (Off);
       return Create_Recursive_Sequence_Tc (Bound, Offset);
       --  "Possible infinite recursion".
@@ -434,7 +434,7 @@ package body CORBA.ORB is
    function Get_Default_Context
       return CORBA.Context.Ref is
    begin
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
       pragma Warnings (Off);
       return Get_Default_Context;
       --  "Possible infinite recursion".

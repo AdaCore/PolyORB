@@ -127,7 +127,7 @@ package body PolyORB.MOMA_P.Provider.Warehouse is
 --           Rewind (Buffer);
 --           Unmarshall_To_Any (Buffer, Result);
 
-         raise PolyORB.Not_Implemented;
+         raise Program_Error;
          --  XXX This code is now deactivated (as of 9/17/04): We
          --  cannot rely on the Rewind primitive which is
          --  deprecated. Besides, we need to find an efficient way to
@@ -187,7 +187,7 @@ package body PolyORB.MOMA_P.Provider.Warehouse is
          --  deprecated. Besides, we need to find an efficient way to
          --  store a buffer into a file.
 
-         raise PolyORB.Not_Implemented;
+         raise Program_Error;
       end if;
 
    end Register;

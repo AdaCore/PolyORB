@@ -171,7 +171,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
             Arguments (Request, Arg_List, Exception_Error);
 
             if Found (Exception_Error) then
-               raise PolyORB.Unknown;
+               raise Program_Error;
                --  XXX We should do something more constructive
 
             end if;
@@ -213,7 +213,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
             Arguments (Request, Arg_List, Exception_Error);
 
             if Found (Exception_Error) then
-               raise PolyORB.Unknown;
+               raise Program_Error;
                --  XXX We should do something more constructive
 
             end if;
@@ -254,7 +254,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
             Arguments (Request, Arg_List, Exception_Error);
 
             if Found (Exception_Error) then
-               raise PolyORB.Unknown;
+               raise Program_Error;
                --  XXX We should do something more constructive
 
             end if;
@@ -296,7 +296,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
             --  Convert arguments from their Any
 
             if Found (Exception_Error) then
-               raise PolyORB.Unknown;
+               raise Program_Error;
                --  XXX We should do something more constructive
 
             end if;
@@ -338,7 +338,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
             --  Convert arguments from their Any
 
             if Found (Exception_Error) then
-               raise PolyORB.Unknown;
+               raise Program_Error;
                --  XXX We should do something more constructive
 
             end if;
@@ -375,7 +375,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
             --  Convert arguments from their Any
 
             if Found (Exception_Error) then
-               raise PolyORB.Unknown;
+               raise Program_Error;
                --  XXX We should do something more constructive
 
             end if;
@@ -410,7 +410,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
             Arguments (Request, Arg_List, Exception_Error);
 
             if Found (Exception_Error) then
-               raise PolyORB.Unknown;
+               raise Program_Error;
                --  XXX We should do something more constructive
 
             end if;
@@ -436,7 +436,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
             Arguments (Request, Arg_List, Exception_Error);
 
             if Found (Exception_Error) then
-               raise PolyORB.Unknown;
+               raise Program_Error;
                --  XXX We should do something more constructive
 
             end if;
@@ -470,7 +470,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
             Arguments (Request, Arg_List, Exception_Error);
 
             if Found (Exception_Error) then
-               raise PolyORB.Unknown;
+               raise Program_Error;
                --  XXX We should do something more constructive
 
             end if;

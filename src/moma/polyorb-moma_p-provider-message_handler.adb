@@ -110,7 +110,7 @@ package body PolyORB.MOMA_P.Provider.Message_Handler is
       PolyORB.Requests.Arguments (Req, Args, Error);
 
       if Found (Error) then
-         raise PolyORB.Unknown;
+         raise Program_Error;
          --  XXX We should do something more contructive
       end if;
 

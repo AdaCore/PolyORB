@@ -1123,7 +1123,7 @@ package body PolyORB.Filters.HTTP is
             --  for Types.String!)
 
          when others =>
-            raise PolyORB.Not_Implemented;
+            raise Program_Error;
       end case;
 
    end Prepare_Request;

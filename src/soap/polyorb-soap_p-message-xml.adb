@@ -975,7 +975,7 @@ package body PolyORB.SOAP_P.Message.XML is
                end if;
             end;
          when others =>
-            raise PolyORB.Not_Implemented;
+            raise Program_Error;
       end case;
 
       return NV;

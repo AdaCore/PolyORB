@@ -95,7 +95,7 @@ package body PortableInterceptor.RequestInfo.Impl is
 
       Result : Dynamic.ContextList;
    begin
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
       return Result;
    end Get_Contexts;
 
@@ -173,7 +173,7 @@ package body PortableInterceptor.RequestInfo.Impl is
 
       Result : Dynamic.RequestContext;
    begin
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
       return Result;
    end Get_Operation_Context;
 
@@ -248,7 +248,7 @@ package body PortableInterceptor.RequestInfo.Impl is
       return CORBA.Unsigned_Long
    is
    begin
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
       return 0;
    end Get_Request_Id;
 
@@ -306,7 +306,7 @@ package body PortableInterceptor.RequestInfo.Impl is
          return True;
 
       else
-         raise PolyORB.Not_Implemented;
+         raise Program_Error;
       end if;
    end Get_Response_Expected;
 
@@ -362,7 +362,7 @@ package body PortableInterceptor.RequestInfo.Impl is
          return Messaging.Sync_With_Target;
 
       else
-         raise PolyORB.Not_Implemented;
+         raise Program_Error;
       end if;
    end Get_Sync_Scope;
 
@@ -417,7 +417,7 @@ package body PortableInterceptor.RequestInfo.Impl is
 
       else
          --  PolyORB.Any.IN_COPY_VALUE and others
-         raise PolyORB.Not_Implemented;
+         raise Program_Error;
 
       end if;
    end To_CORBA_ParameterMode;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -597,7 +597,7 @@ package body PolyORB.Representations.SRP is
                  (Result, To_Any (Id));
             end;
          when 15 =>
-            raise Not_Implemented;
+            raise Program_Error;
 --             Result := PolyORB.Any.TypeCode.TC_Struct;
 --             declare
 --                Complex_Encap :  aliased Encapsulation
@@ -629,7 +629,7 @@ package body PolyORB.Representations.SRP is
 --                end if;
 --             end;
          when 16 =>
-            raise Not_Implemented;
+            raise Program_Error;
 --             Result := PolyORB.Any.TypeCode.TC_Union;
 --             declare
 --                Complex_Encap : aliased Encapsulation
@@ -671,7 +671,7 @@ package body PolyORB.Representations.SRP is
 --                end if;
 --             end;
          when 17 =>
-            raise Not_Implemented;
+            raise Program_Error;
 --             Result := PolyORB.Any.TypeCode.TC_Enum;
 --             declare
 --                Complex_Encap :  aliased Encapsulation
@@ -706,7 +706,7 @@ package body PolyORB.Representations.SRP is
                  (Result, To_Any (Length));
             end;
          when 19 =>
-            raise Not_Implemented;
+            raise Program_Error;
 --             Result := PolyORB.Any.TypeCode.TC_Sequence;
 --             declare
 --                Complex_Encap :  aliased Encapsulation
@@ -724,7 +724,7 @@ package body PolyORB.Representations.SRP is
 --                  (Result, To_Any (Content_Type));
 --             end;
          when 20 =>
-            raise Not_Implemented;
+            raise Program_Error;
 --             Result := PolyORB.Any.TypeCode.TC_Array;
 --             declare
 --                Complex_Encap : aliased Encapsulation
@@ -742,7 +742,7 @@ package body PolyORB.Representations.SRP is
 --                  (Result, To_Any (Content_Type));
 --             end;
          when 21 =>
-            raise Not_Implemented;
+            raise Program_Error;
 --             Result := PolyORB.Any.TypeCode.TC_Alias;
 --             declare
 --                Complex_Encap : aliased Encapsulation
@@ -763,7 +763,7 @@ package body PolyORB.Representations.SRP is
 --                  (Result, To_Any (Content_Type));
 --             end;
          when 22 =>
-            raise Not_Implemented;
+            raise Program_Error;
 --             Result := PolyORB.Any.TypeCode.TC_Except;
 --             declare
 --                Complex_Encap : aliased Encapsulation
@@ -823,7 +823,7 @@ package body PolyORB.Representations.SRP is
                  (Result, To_Any (Fixed_Scale));
             end;
          when 29 =>
-            raise Not_Implemented;
+            raise Program_Error;
 --             Result := PolyORB.Any.TypeCode.TC_Value;
 --             declare
 --                Complex_Encap : aliased Encapsulation
@@ -864,7 +864,7 @@ package body PolyORB.Representations.SRP is
 --                end if;
 --             end;
          when 30 =>
-            raise Not_Implemented;
+            raise Program_Error;
 --             Result := PolyORB.Any.TypeCode.TC_Valuebox;
 --             declare
 --                Complex_Encap :  aliased Encapsulation
@@ -885,7 +885,7 @@ package body PolyORB.Representations.SRP is
 --                  (Result, To_Any (Content_Type));
 --             end;
          when 31 =>
-            raise Not_Implemented;
+            raise Program_Error;
 --             Result := PolyORB.Any.TypeCode.TC_Native;
 --             declare
 --                Complex_Encap :  aliased Encapsulation
@@ -902,7 +902,7 @@ package body PolyORB.Representations.SRP is
 --                  (Result, To_Any (Id));
 --             end;
          when 32 =>
-            raise Not_Implemented;
+            raise Program_Error;
 --             Result := PolyORB.Any.TypeCode.TC_Abstract_Interface;
 --             declare
 --                Complex_Encap :  aliased Encapsulation
@@ -1149,16 +1149,16 @@ package body PolyORB.Representations.SRP is
             Marshall (Buffer, PolyORB.Types.Unsigned_Long'(3));
          when Tk_Ushort =>
 --            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(4));
-            raise Not_Implemented;
+            raise Program_Error;
          when Tk_Ulong =>
 --            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(5));
-            raise Not_Implemented;
+            raise Program_Error;
          when Tk_Float =>
 --            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(6));
-            raise Not_Implemented;
+            raise Program_Error;
          when Tk_Double =>
 --            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(7));
-            raise Not_Implemented;
+            raise Program_Error;
          when Tk_Boolean =>
             Marshall (Buffer, PolyORB.Types.Unsigned_Long'(8));
          when Tk_Char =>
@@ -1172,7 +1172,7 @@ package body PolyORB.Representations.SRP is
             Marshall (Buffer, PolyORB.Types.Unsigned_Long'(12));
          when Tk_Principal =>
 --            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(13));
-            raise Not_Implemented;
+            raise Program_Error;
          when Tk_Objref =>
 --           pragma Debug (O ("Marshall (TypeCode) : dealing with an ObjRef"));
 --             Marshall (Buffer, PolyORB.Types.Unsigned_Long'(14));
@@ -1182,9 +1182,9 @@ package body PolyORB.Representations.SRP is
 --                              & " parameters"));
 --             Marshall (Buffer, PolyORB.Any.TypeCode.Id (Data));
 --             Marshall (Buffer, PolyORB.Any.TypeCode.Name (Data));
-            raise Not_Implemented;
+            raise Program_Error;
          when Tk_Struct =>
-            raise Not_Implemented;
+            raise Program_Error;
 --           pragma Debug (O ("Marshall (TypeCode) : dealing with a struct"));
 --             Marshall (Buffer, PolyORB.Types.Unsigned_Long'(15));
 --             Start_Encapsulation (Complex_Buffer);
@@ -1226,7 +1226,7 @@ package body PolyORB.Representations.SRP is
 --             Marshall (Buffer, Encapsulate (Complex_Buffer));
 --             Release (Complex_Buffer);
          when Tk_Union =>
-            raise Not_Implemented;
+            raise Program_Error;
 --             Marshall (Buffer, PolyORB.Types.Unsigned_Long'(16));
 --             Start_Encapsulation (Complex_Buffer);
 --             Marshall
@@ -1263,7 +1263,7 @@ package body PolyORB.Representations.SRP is
 --             Marshall (Buffer, Encapsulate (Complex_Buffer));
 --             Release (Complex_Buffer);
          when Tk_Enum =>
-            raise Not_Implemented;
+            raise Program_Error;
 --             Marshall (Buffer, PolyORB.Types.Unsigned_Long'(17));
 --             Start_Encapsulation (Complex_Buffer);
 --             Marshall (Complex_Buffer,
@@ -1294,7 +1294,7 @@ package body PolyORB.Representations.SRP is
             Marshall (Buffer, PolyORB.Any.TypeCode.Length (Data));
             pragma Debug (O ("marshall (typecode) : length marshalled"));
          when Tk_Sequence =>
-            raise Not_Implemented;
+            raise Program_Error;
 --             Marshall (Buffer, PolyORB.Types.Unsigned_Long'(19));
 --             Start_Encapsulation (Complex_Buffer);
 --             Marshall (Complex_Buffer,
@@ -1304,7 +1304,7 @@ package body PolyORB.Representations.SRP is
 --             Marshall (Buffer, Encapsulate (Complex_Buffer));
 --             Release (Complex_Buffer);
          when Tk_Array =>
-            raise Not_Implemented;
+            raise Program_Error;
 --             Marshall (Buffer, PolyORB.Types.Unsigned_Long'(20));
 --             Start_Encapsulation (Complex_Buffer);
 --             Marshall (Complex_Buffer,
@@ -1314,7 +1314,7 @@ package body PolyORB.Representations.SRP is
 --             Marshall (Buffer, Encapsulate (Complex_Buffer));
 --             Release (Complex_Buffer);
          when Tk_Alias =>
-            raise Not_Implemented;
+            raise Program_Error;
 --             Marshall (Buffer, PolyORB.Types.Unsigned_Long'(21));
 --             Start_Encapsulation (Complex_Buffer);
 --             Marshall (Complex_Buffer,
@@ -1326,7 +1326,7 @@ package body PolyORB.Representations.SRP is
 --             Marshall (Buffer, Encapsulate (Complex_Buffer));
 --             Release (Complex_Buffer);
          when Tk_Except =>
-            raise Not_Implemented;
+            raise Program_Error;
 --             Marshall (Buffer, PolyORB.Types.Unsigned_Long'(22));
 --             Start_Encapsulation (Complex_Buffer);
 --             Marshall (Complex_Buffer,
@@ -1350,28 +1350,28 @@ package body PolyORB.Representations.SRP is
 --             Marshall (Buffer, Encapsulate (Complex_Buffer));
 --             Release (Complex_Buffer);
          when Tk_Longlong =>
-            raise Not_Implemented;
+            raise Program_Error;
 --            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(23));
          when Tk_Ulonglong =>
-            raise Not_Implemented;
+            raise Program_Error;
 --            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(24));
          when Tk_Longdouble =>
-            raise Not_Implemented;
+            raise Program_Error;
 --            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(25));
          when Tk_Widechar =>
-            raise Not_Implemented;
+            raise Program_Error;
 --            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(26));
          when Tk_Wstring =>
-            raise Not_Implemented;
+            raise Program_Error;
 --            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(27));
 --            Marshall (Buffer, PolyORB.Any.TypeCode.Length (Data));
          when Tk_Fixed =>
-            raise Not_Implemented;
+            raise Program_Error;
 --             Marshall (Buffer, PolyORB.Types.Unsigned_Long'(28));
 --             Marshall (Buffer, PolyORB.Any.TypeCode.Fixed_Digits (Data));
 --             Marshall (Buffer, PolyORB.Any.TypeCode.Fixed_Scale (Data));
          when Tk_Value =>
-            raise Not_Implemented;
+            raise Program_Error;
 --             Marshall (Buffer, PolyORB.Types.Unsigned_Long'(29));
 --             Start_Encapsulation (Complex_Buffer);
 --             Marshall
@@ -1408,7 +1408,7 @@ package body PolyORB.Representations.SRP is
 --             Marshall (Buffer, Encapsulate (Complex_Buffer));
 --             Release (Complex_Buffer);
          when Tk_Valuebox =>
-            raise Not_Implemented;
+            raise Program_Error;
 --          Marshall (Buffer, PolyORB.Types.Unsigned_Long'(30));
 --             Start_Encapsulation (Complex_Buffer);
 --             Marshall (Complex_Buffer,
@@ -1420,7 +1420,7 @@ package body PolyORB.Representations.SRP is
 --             Marshall (Buffer, Encapsulate (Complex_Buffer));
 --             Release (Complex_Buffer);
          when Tk_Native =>
-            raise Not_Implemented;
+            raise Program_Error;
 --             Marshall (Buffer, PolyORB.Types.Unsigned_Long'(31));
 --             Start_Encapsulation (Complex_Buffer);
 --             Marshall (Complex_Buffer,
@@ -1430,7 +1430,7 @@ package body PolyORB.Representations.SRP is
 --             Marshall (Buffer, Encapsulate (Complex_Buffer));
 --             Release (Complex_Buffer);
          when Tk_Abstract_Interface =>
-            raise Not_Implemented;
+            raise Program_Error;
 --             Marshall (Buffer, PolyORB.Types.Unsigned_Long'(32));
 --             Start_Encapsulation (Complex_Buffer);
 --             Marshall (Complex_Buffer,
@@ -1440,13 +1440,13 @@ package body PolyORB.Representations.SRP is
 --             Marshall (Buffer, Encapsulate (Complex_Buffer));
 --             Release (Complex_Buffer);
          when Tk_Local_Interface =>
-            raise Not_Implemented;
+            raise Program_Error;
          when Tk_Component =>
-            raise Not_Implemented;
+            raise Program_Error;
          when Tk_Home =>
-            raise Not_Implemented;
+            raise Program_Error;
          when Tk_Event =>
-            raise Not_Implemented;
+            raise Program_Error;
       end case;
       pragma Debug (O ("Marshall (Typecode) : end"));
    end Marshall;
@@ -1462,7 +1462,7 @@ package body PolyORB.Representations.SRP is
       Error  : in out Exceptions.Error_Container)
    is
    begin
-      raise Not_Implemented;
+      raise Program_Error;
    end Marshall_From_Any;
 
    procedure Marshall_From_Any
@@ -1502,12 +1502,12 @@ package body PolyORB.Representations.SRP is
          when Tk_Float =>
             pragma Debug (O ("Marshall_From_Any : dealing with a float"));
 --            Marshall (Buffer, PolyORB.Types.Float'(From_Any (Data)));
-            raise Not_Implemented;
+            raise Program_Error;
 
          when Tk_Double =>
             pragma Debug (O ("Marshall_From_Any : dealing with a double"));
 --            Marshall (Buffer, PolyORB.Types.Double'(From_Any (Data)));
-            raise Not_Implemented;
+            raise Program_Error;
 
          when Tk_Boolean =>
             pragma Debug (O ("Marshall_From_Any : dealing with a boolean"));
@@ -1528,17 +1528,17 @@ package body PolyORB.Representations.SRP is
          when Tk_TypeCode =>
             pragma Debug (O ("Marshall_From_Any : dealing with a typecode"));
 --            Marshall (Buffer, PolyORB.Any.TypeCode.Object'(From_Any (Data)));
-            raise Not_Implemented;
+            raise Program_Error;
 
          when Tk_Principal =>
             --  FIXME : to be done
             pragma Debug (O ("Marshall_From_Any : dealing with a principal"));
-            raise Not_Implemented;
+            raise Program_Error;
 
          when Tk_Objref =>
             pragma Debug (O ("Marshall_From_Any : dealing with an objRef"));
             --  Marshall (Buffer, PolyORB.Types.Object.Helper.From_Any (Data));
-            raise Not_Implemented;
+            raise Program_Error;
 
          when Tk_Struct =>
 --             declare
@@ -1553,7 +1553,7 @@ package body PolyORB.Representations.SRP is
 --                   Marshall_From_Any (Buffer, Value);
 --                end loop;
 --             end;
-            raise Not_Implemented;
+            raise Program_Error;
 
          when Tk_Union =>
 --             declare
@@ -1586,7 +1586,7 @@ package body PolyORB.Representations.SRP is
 --                   end loop;
 --                end if;
 --             end;
-            raise Not_Implemented;
+            raise Program_Error;
 
          when Tk_Enum =>
             pragma Debug (O ("Marshall_From_Any : dealing with an enum"));
@@ -1596,7 +1596,7 @@ package body PolyORB.Representations.SRP is
 --                (Data,
 --                 PolyORB.Any.TypeCode.TC_Unsigned_Long,
 --                 PolyORB.Types.Unsigned_Long (0)));
-            raise Not_Implemented;
+            raise Program_Error;
 
          when Tk_String =>
             pragma Debug (O ("Marshall_From_Any : dealing with a string"));
@@ -1625,7 +1625,7 @@ package body PolyORB.Representations.SRP is
 --                   end loop;
 --                end if;
 --             end;
-            raise Not_Implemented;
+            raise Program_Error;
 
          when Tk_Array =>
 --             declare
@@ -1656,7 +1656,7 @@ package body PolyORB.Representations.SRP is
 --                   Marshall_From_Any (Buffer, Value);
 --                end loop;
 --             end;
-            raise Not_Implemented;
+            raise Program_Error;
 
          when Tk_Alias =>
             --  we should never reach this point
@@ -1680,36 +1680,36 @@ package body PolyORB.Representations.SRP is
 --                   Marshall_From_Any (Buffer, Value);
 --                end loop;
 --             end;
-            raise Not_Implemented;
+            raise Program_Error;
 
          when Tk_Longlong =>
             pragma Debug (O ("Marshall_From_Any : dealing with a long long"));
 --            Marshall (Buffer, PolyORB.Types.Long_Long'(From_Any (Data)));
-            raise Not_Implemented;
+            raise Program_Error;
 
          when Tk_Ulonglong =>
             pragma Debug (O ("Marshall_From_Any : dealing with a ULongLong"));
 --             Marshall
 --               (Buffer,
 --                PolyORB.Types.Unsigned_Long_Long'(From_Any (Data)));
-            raise Not_Implemented;
+            raise Program_Error;
 
          when Tk_Longdouble =>
             pragma Debug
               (O ("Marshall_From_Any : dealing with a long double"));
 --            Marshall (Buffer, PolyORB.Types.Long_Double'(From_Any (Data)));
-            raise Not_Implemented;
+            raise Program_Error;
 
          when Tk_Widechar =>
             pragma Debug (O ("Marshall_From_Any : dealing with a Wchar"));
 --            Marshall (Buffer, PolyORB.Types.Wchar'(From_Any (Data)));
-            raise Not_Implemented;
+            raise Program_Error;
 
          when Tk_Wstring =>
             pragma Debug
               (O ("Marshall_From_Any : dealing with a wide string"));
 --            Marshall (Buffer, PolyORB.Types.Wide_String'(From_Any (Data)));
-            raise Not_Implemented;
+            raise Program_Error;
 
          when Tk_Fixed =>
             --  declare
@@ -1728,7 +1728,7 @@ package body PolyORB.Representations.SRP is
             --            PolyORB.Types.Unsigned_Long(1));
             --   Marshall_From_Any(Buffer,Scale);
             --   end;
-            raise Not_Implemented;
+            raise Program_Error;
 
          when Tk_Value =>
             --  declare
@@ -1763,7 +1763,7 @@ package body PolyORB.Representations.SRP is
             --     end loop;
             --    end if;
             --   end;
-            raise Not_Implemented;
+            raise Program_Error;
 
          when Tk_Valuebox =>
             pragma Debug (O ("Marshall_From_Any : dealing with a valuebox"));
@@ -1771,14 +1771,14 @@ package body PolyORB.Representations.SRP is
 --                  (Data, PolyORB.Any.TypeCode.Member_Type (Data_Type,
 --                  PolyORB.Types.Unsigned_Long (0)),
 --                  PolyORB.Types.Unsigned_Long (0)));
-            raise Not_Implemented;
+            raise Program_Error;
 
          when Tk_Native =>
             pragma Debug (O ("Marshall_From_Any : dealing with a native"));
             --  FIXME : to be done
             --  pragma Debug (O ("Marshall_From_Any : dealing with a native"));
 
-            raise Not_Implemented;
+            raise Program_Error;
 
          when Tk_Abstract_Interface =>
             pragma Debug (O
@@ -1786,19 +1786,19 @@ package body PolyORB.Representations.SRP is
             --  FIXME : to be done
             --  pragma Debug (O ("Marshall_From_Any : dealing with "
             --                 & "an abstract interface"));
-            raise Not_Implemented;
+            raise Program_Error;
 
          when Tk_Local_Interface =>
-            raise Not_Implemented;
+            raise Program_Error;
 
          when Tk_Component =>
-            raise Not_Implemented;
+            raise Program_Error;
 
          when Tk_Home =>
-            raise Not_Implemented;
+            raise Program_Error;
 
          when Tk_Event =>
-            raise Not_Implemented;
+            raise Program_Error;
 
       end case;
       pragma Debug (O ("Marshall_From_Any : end"));
@@ -1839,7 +1839,7 @@ package body PolyORB.Representations.SRP is
       Encoded_URL : String_Ptr;
       Decoded_URL : String_Ptr;
    begin
-      raise Not_Implemented;
+      raise Program_Error;
 --       Encoded_URL := new Types.String'(Unmarshall_String (R, Buffer));
 --       Decoded_URL := new Types.String'(Decode_URL (Encoded_URL.all));
 --       Data := Any.To_Any
@@ -1881,14 +1881,14 @@ package body PolyORB.Representations.SRP is
                Set_Any_Value (Result, L);
             end;
          when Tk_Ushort =>
-            raise Not_Implemented;
+            raise Program_Error;
 --             declare
 --                Us : Unsigned_Short := Unmarshall (Buffer);
 --             begin
 --                Set_Any_Value (Result, Us);
 --             end;
          when Tk_Ulong =>
-            raise Not_Implemented;
+            raise Program_Error;
 --             declare
 --                Ul : Unsigned_Long := Unmarshall (Buffer);
 --             begin
@@ -1896,14 +1896,14 @@ package body PolyORB.Representations.SRP is
 --                Set_Any_Value (Result, Ul);
 --             end;
          when Tk_Float =>
-            raise Not_Implemented;
+            raise Program_Error;
 --             declare
 --                F : PolyORB.Types.Float := Unmarshall (Buffer);
 --             begin
 --                Set_Any_Value (Result, F);
 --             end;
          when Tk_Double =>
-            raise Not_Implemented;
+            raise Program_Error;
 --             declare
 --                D : Double := Unmarshall (Buffer);
 --             begin
@@ -1943,16 +1943,16 @@ package body PolyORB.Representations.SRP is
             end;
          when Tk_Principal =>
             --  FIXME : to be done
-            raise Not_Implemented;
+            raise Program_Error;
          when Tk_Objref =>
             --  declare
             --     O : PolyORB.Types.Object.Ref := Unmarshall (Buffer);
             --  begin
             --     PolyORB.Types.Object.Helper.Set_Any_Value (Result, O);
             --  end;
-            raise Not_Implemented;
+            raise Program_Error;
          when Tk_Struct =>
-            raise Not_Implemented;
+            raise Program_Error;
 --             declare
 --                Nb : Unsigned_Long :=
 --                  TypeCode.Member_Count (Tc);
@@ -1984,7 +1984,7 @@ package body PolyORB.Representations.SRP is
 --                end if;
 --             end;
          when Tk_Union =>
-            raise Not_Implemented;
+            raise Program_Error;
 --             declare
 --                Nb : Unsigned_Long;
 --                Label, Arg : PolyORB.Any.Any;
@@ -2027,7 +2027,7 @@ package body PolyORB.Representations.SRP is
 --                end if;
 --             end;
          when Tk_Enum =>
-            raise Not_Implemented;
+            raise Program_Error;
 --          declare
 --                Arg : PolyORB.Any.Any;
 --             begin
@@ -2052,7 +2052,7 @@ package body PolyORB.Representations.SRP is
                Set_Any_Value (Result, S);
             end;
          when Tk_Sequence =>
-            raise Not_Implemented;
+            raise Program_Error;
 --             declare
 --                Nb : Unsigned_Long := Unmarshall (Buffer);
 --                Max_Nb : Unsigned_Long := TypeCode.Length (Tc);
@@ -2092,7 +2092,7 @@ package body PolyORB.Representations.SRP is
 --                end if;
 --             end;
          when Tk_Array =>
-            raise Not_Implemented;
+            raise Program_Error;
 --             declare
 --                Nb : Unsigned_Long := TypeCode.Length (Tc);
 --                Content_True_Type : PolyORB.Any.TypeCode.Object :=
@@ -2127,7 +2127,7 @@ package body PolyORB.Representations.SRP is
             --  we should never reach this point
             raise Program_Error;
          when Tk_Except =>
-            raise Not_Implemented;
+            raise Program_Error;
 --             declare
 --                Nb : Unsigned_Long :=
 --                  TypeCode.Member_Count (Tc);
@@ -2153,35 +2153,35 @@ package body PolyORB.Representations.SRP is
 --                end if;
 --             end;
          when Tk_Longlong =>
-            raise Not_Implemented;
+            raise Program_Error;
 --             declare
 --                Ll : Long_Long := Unmarshall (Buffer);
 --             begin
 --                Set_Any_Value (Result, Ll);
 --             end;
          when Tk_Ulonglong =>
-            raise Not_Implemented;
+            raise Program_Error;
 --             declare
 --                Ull : Unsigned_Long_Long := Unmarshall (Buffer);
 --             begin
 --                Set_Any_Value (Result, Ull);
 --             end;
          when Tk_Longdouble =>
-            raise Not_Implemented;
+            raise Program_Error;
 --             declare
 --                Ld : Long_Double := Unmarshall (Buffer);
 --             begin
 --                Set_Any_Value (Result, Ld);
 --             end;
          when Tk_Widechar =>
-            raise Not_Implemented;
+            raise Program_Error;
 --             declare
 --                Wc : Wchar := Unmarshall (Buffer);
 --             begin
 --                Set_Any_Value (Result, Wc);
 --             end;
          when Tk_Wstring =>
-            raise Not_Implemented;
+            raise Program_Error;
 --             declare
 --                Ws : PolyORB.Types.Wide_String := Unmarshall (Buffer);
 --             begin
@@ -2220,7 +2220,7 @@ package body PolyORB.Representations.SRP is
             --      Add_Aggregate_Element(Result,Arg2);
             --    end if;
             --   end;
-            raise Not_Implemented;
+            raise Program_Error;
 
 
          when Tk_Value =>

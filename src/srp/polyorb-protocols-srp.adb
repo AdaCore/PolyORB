@@ -148,7 +148,7 @@ package body PolyORB.Protocols.SRP is
       pragma Unreferenced (S);
 
    begin
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
    end Handle_Flush;
 
    ----------------------

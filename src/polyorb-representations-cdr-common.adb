@@ -387,7 +387,7 @@ package body PolyORB.Representations.CDR.Common is
       --  FIXME LONG DOUBLE
       --   Buf : Long_Double_Buf := To_Long_Double_Buf (Data);
    begin
-      raise Not_Implemented;
+      raise Program_Error;
       --      pragma Debug (O ("Marshall (LongDouble) : enter"));
       --      Align_Marshall_Host_Endian_Copy (Buffer, Buf, 8);
       --      pragma Debug (O ("Marshall (LongDouble) : end"));
@@ -835,7 +835,7 @@ package body PolyORB.Representations.CDR.Common is
    begin
       --  pragma Debug (O ("Unmarshall (LongDouble) : enter & end"));
       --  return To_Long_Double (Long_Double_Buf (Octets));
-      raise Not_Implemented;
+      raise Program_Error;
       pragma Warnings (Off);
       return Unmarshall (Buffer);
       --  "Possible infinite recursion".

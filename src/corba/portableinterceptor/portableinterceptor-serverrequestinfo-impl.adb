@@ -336,7 +336,7 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
                                         Completed => CORBA.Completed_No));
       end if;
 
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
       return Result;
    end Get_ORB_Id;
 
@@ -427,7 +427,7 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
                                         Completed => CORBA.Completed_No));
       end if;
 
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
       return Result;
    end Get_Server_Id;
 
@@ -445,7 +445,7 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
 
       Result : CORBA.Policy.Ref;
    begin
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
       return Result;
    end Get_Server_Policy;
 
@@ -465,7 +465,7 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
                                         Completed => CORBA.Completed_No));
       end if;
 
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
       return Result;
    end Get_Target_Most_Derived_Interface;
 
@@ -549,7 +549,7 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
                                         Completed => CORBA.Completed_No));
       end if;
 
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
       return Result;
    end Target_Is_A;
 

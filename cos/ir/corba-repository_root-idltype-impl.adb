@@ -80,7 +80,7 @@ package body CORBA.Repository_Root.IDLType.Impl is
             end;
          when
            Dk_AbstractInterface .. Dk_Event =>
-            raise PolyORB.Not_Implemented;
+            raise Program_Error;
       end case;
    end To_IDLType;
 

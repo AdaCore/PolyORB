@@ -392,7 +392,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
             raise GIOP_Error;
 
          when others =>
-            raise Not_Implemented;
+            raise Program_Error;
       end case;
    end Process_Message;
 

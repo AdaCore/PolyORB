@@ -1518,7 +1518,7 @@ package body PolyORB.POA is
 --        if S.If_Desc.RP_Desc /= null then
 --           return S.If_Desc.RP_Desc (Method);
 --        end if;
-      raise Not_Implemented;
+      raise Program_Error;
       pragma Warnings (Off);
       return Get_Empty_Result (OA, Oid, Method);
       pragma Warnings (On);

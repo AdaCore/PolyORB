@@ -113,7 +113,7 @@ package body MOMA.Message_Consumers is
       Message_Selector : MOMA.Types.String)
      return Message_Consumer_Acc is
    begin
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
       pragma Warnings (Off);
       return Create_Consumer (Session, Dest, Message_Selector);
       pragma Warnings (On);
@@ -125,7 +125,7 @@ package body MOMA.Message_Consumers is
 
    function Get_Message_Selector return String is
    begin
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
       pragma Warnings (Off);
       return Get_Message_Selector;
       pragma Warnings (On);
@@ -199,7 +199,7 @@ package body MOMA.Message_Consumers is
                     return MOMA.Messages.Message
    is
    begin
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
       pragma Warnings (Off);
       return Receive (Timeout);
       pragma Warnings (On);
@@ -211,7 +211,7 @@ package body MOMA.Message_Consumers is
 
    function Receive_No_Wait return MOMA.Messages.Message is
    begin
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
       pragma Warnings (Off);
       return Receive_No_Wait;
       pragma Warnings (On);

@@ -331,7 +331,7 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
                                         Completed => CORBA.Completed_No));
       end if;
 
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
       return Result;
    end Get_Request_Policy;
 

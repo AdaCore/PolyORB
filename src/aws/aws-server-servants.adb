@@ -422,7 +422,7 @@ package body AWS.Server.Servants is
             Set_Out_Args (R, Error);
 
             if Found (Error) then
-               raise PolyORB.Unknown;
+               raise Program_Error;
             end if;
 
             pragma Debug (O ("Execute_Servant: leave"));
@@ -457,7 +457,7 @@ package body AWS.Server.Servants is
             Set_Out_Args (R, Error);
 
             if Found (Error) then
-               raise PolyORB.Unknown;
+               raise Program_Error;
             end if;
 
             pragma Debug (O ("Execute_Servant: leave"));

@@ -187,7 +187,7 @@ package body PortableInterceptor.ORBInitInfo.Impl is
       Result : CORBA.String;
 
    begin
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
       return Result;
    end Get_ORB_Id;
 
@@ -267,7 +267,7 @@ package body PortableInterceptor.ORBInitInfo.Impl is
 --
 --      PCIR.Register_Initial_Reference (To_String (Id), Obj);
 
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
    end Register_Initial_Reference;
 
    -----------------------------
@@ -314,7 +314,7 @@ package body PortableInterceptor.ORBInitInfo.Impl is
 --
 --      return Result;
 
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
       return Result;
    end Resolve_Initial_References;
 

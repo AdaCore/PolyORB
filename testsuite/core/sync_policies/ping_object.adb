@@ -92,7 +92,7 @@ package body Ping_Object is
                Arguments (Req, Args, Error);
 
                if Found (Error) then
-                  raise PolyORB.Unknown;
+                  raise Program_Error;
                   --  XXX We should do something more constructive
 
                end if;

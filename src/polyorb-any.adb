@@ -599,7 +599,7 @@ package body PolyORB.Any is
         (Self : in Object)
         return Object is
       begin
-         raise Not_Implemented;
+         raise Program_Error;
          return Self;
       end Get_Compact_TypeCode;
 
@@ -2653,7 +2653,7 @@ package body PolyORB.Any is
    procedure Iterate_Over_Any_Elements
      (In_Any : in Any) is
    begin
-      raise Not_Implemented;
+      raise Program_Error;
    end Iterate_Over_Any_Elements;
 
    -------------------

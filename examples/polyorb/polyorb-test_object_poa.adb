@@ -119,7 +119,7 @@ package body PolyORB.Test_Object_POA is
                Arguments (Req, Args, Error);
 
                if Found (Error) then
-                  raise PolyORB.Unknown;
+                  raise Program_Error;
                   --  XXX We should do something more constructive
 
                end if;
@@ -138,7 +138,7 @@ package body PolyORB.Test_Object_POA is
                Arguments (Req, Args, Error);
 
                if Found (Error) then
-                  raise PolyORB.Unknown;
+                  raise Program_Error;
                   --  XXX We should do something more constructive
 
                end if;

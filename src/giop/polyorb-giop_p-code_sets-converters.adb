@@ -803,7 +803,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
 
             elsif Length = 4 then
                if Code = Reverse_BOM then
-                  raise Not_Implemented;
+                  raise Program_Error;
                   --  XXX Value marshalled in reverse endian-ness
 
                elsif Code = BOM then
@@ -821,7 +821,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
       else
          Code := Unmarshall (Buffer, 2);
          if Code = Reverse_BOM then
-            raise Not_Implemented;
+            raise Program_Error;
             --  XXX Value marshalled in reverse endian-ness
 
          elsif Code = BOM then
@@ -877,7 +877,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
       Code := Unmarshall (Buffer, Align);
 
       if Code = Reverse_BOM then
-         raise Not_Implemented;
+         raise Program_Error;
          --  Value encoded in reverse endian-ness.
 
       elsif Code = BOM then

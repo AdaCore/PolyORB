@@ -147,7 +147,7 @@ package body PolyORB.Protocols.SOAP_Pr is
       R : Requests.Request_Access)
    is
    begin
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
    end Abort_Request;
 
    procedure Send_Reply
@@ -435,7 +435,7 @@ package body PolyORB.Protocols.SOAP_Pr is
 
    procedure Handle_Flush (S : access SOAP_Session) is
    begin
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
    end Handle_Flush;
 
    function Handle_Message

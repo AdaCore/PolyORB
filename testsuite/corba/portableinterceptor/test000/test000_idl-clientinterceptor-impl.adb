@@ -34,7 +34,6 @@
 with CORBA;
 with PortableInterceptor.Interceptor;
 with PortableInterceptor.ClientRequestInterceptor;
-with PolyORB;
 
 with Test000_Globals;
 
@@ -131,7 +130,7 @@ package body Test000_Idl.ClientInterceptor.Impl is
             CORBA.Raise_No_Permission (CORBA.Default_Sys_Member);
 
          when others =>
-            raise PolyORB.Not_Implemented;
+            raise Program_Error;
       end case;
    end Receive_Exception;
 
@@ -157,7 +156,7 @@ package body Test000_Idl.ClientInterceptor.Impl is
             null;
 
          when others =>
-            raise PolyORB.Not_Implemented;
+            raise Program_Error;
       end case;
    end Receive_Other;
 
@@ -186,7 +185,7 @@ package body Test000_Idl.ClientInterceptor.Impl is
             CORBA.Raise_No_Permission (CORBA.Default_Sys_Member);
 
          when others =>
-            raise PolyORB.Not_Implemented;
+            raise Program_Error;
       end case;
    end Receive_Reply;
 
@@ -215,7 +214,7 @@ package body Test000_Idl.ClientInterceptor.Impl is
             CORBA.Raise_No_Permission (CORBA.Default_Sys_Member);
 
          when others =>
-            raise PolyORB.Not_Implemented;
+            raise Program_Error;
       end case;
    end Send_Request;
 
@@ -241,7 +240,7 @@ package body Test000_Idl.ClientInterceptor.Impl is
             null;
 
          when others =>
-            raise PolyORB.Not_Implemented;
+            raise Program_Error;
       end case;
    end Send_Poll;
 

@@ -97,7 +97,7 @@ package body MOMA.Destinations is
    function Create_Temporary
      return Destination is
    begin
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
       pragma Warnings (Off);
       return Create_Temporary;
       pragma Warnings (On);

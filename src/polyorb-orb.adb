@@ -464,7 +464,7 @@ package body PolyORB.ORB is
 
          --  XXX TBD
 
-         raise Not_Implemented;
+         raise Program_Error;
       end if;
 
       --  Shutdown the ORB
