@@ -12,6 +12,7 @@ with GNAT.HTable;
 with CORBA.Object;
 with PolyORB.CORBA_P.Naming_Tools;
 with CosNaming.Helper;
+with CosNaming.NamingContext;
 --  RCI package references are managed through the CORBA
 --  naming service. RCIs also act as naming contexts themselves
 --  for the purpose of providing access to each of their subprograms
@@ -115,6 +116,8 @@ package body System.PolyORB_Interface is
    end record;
 
    No_RCI_Info : RCI_Info;
+   pragma Warnings (Off, No_RCI_Info);
+   --  Never assigned a value.
 
    package Known_RCIs is new PolyORB.Dynamic_Dict (RCI_Info, No_RCI_Info);
 
@@ -338,13 +341,15 @@ package body System.PolyORB_Interface is
                   --  For exception names
 
                   n             : CosNaming.Name;
+                  pragma Warnings (Off, n);
+                  --  Accessed before it has a value (by To_Any).
+
                   Arg_Name_n  : constant PolyORB.Types.Identifier :=
                     To_PolyORB_String ("n");
                   Argument_n  : Any :=
                     CosNaming.Helper.To_Any (n);
 
                   Result      : Object_Ref;
-                  Argument_Result : Any;
                   Arg_List    : NVList_Ref;
                begin
                   --  Create argument list
@@ -358,6 +363,9 @@ package body System.PolyORB_Interface is
 
                   Request_Arguments (EMsg.Req, Arg_List);
 
+                  declare
+                     package ISNC renames
+                       IDL_SEQUENCE_CosNaming_NameComponent;
                   begin
                      --  Convert arguments from their Any
 
@@ -366,7 +374,8 @@ package body System.PolyORB_Interface is
                      --  Call implementation
                      Get_RAS_Ref
                        (Receiving_Stub (Self.Impl_Info.all).Name.all,
-                        n.Name, Result);
+                        CosNaming.To_Standard_String
+                          (ISNC.Element_Of (ISNC.Sequence (n), 1).id), Result);
 
 --                 exception
 --                    when E : NotFound =>
@@ -376,7 +385,7 @@ package body System.PolyORB_Interface is
 --                          Get_Members (E, Members);
 --                          CORBA.ServerRequest.Set_Exception
 --                            (EMsg.Req,
---                             CosNaming.NamingContext.Helper.To_Any (Members));
+--                        CosNaming.NamingContext.Helper.To_Any (Members));
 --                          return;
 --                       end;
 --                    when E : CannotProceed =>
@@ -386,7 +395,7 @@ package body System.PolyORB_Interface is
 --                          Get_Members (E, Members);
 --                          CORBA.ServerRequest.Set_Exception
 --                            (EMsg.Req,
---                             CosNaming.NamingContext.Helper.To_Any (Members));
+--                        CosNaming.NamingContext.Helper.To_Any (Members));
 --                          return;
 --                       end;
 --                    when E : InvalidName =>
@@ -396,17 +405,18 @@ package body System.PolyORB_Interface is
 --                          Get_Members (E, Members);
 --                          CORBA.ServerRequest.Set_Exception
 --                            (Request,
---                             CosNaming.NamingContext.Helper.To_Any (Members));
+--                         CosNaming.NamingContext.Helper.To_Any (Members));
 --                          return;
 --                       end;
                   end;
 
-                  -- Set Result
+                  --  Set Result
 
-                  CORBA.ServerRequest.Set_Result
-                    (Request,
-                     CORBA.Object.Helper.To_Any (Result));
-                  return;
+                  EMsg.Req.Result :=
+                    (Name      => PolyORB.Types.To_PolyORB_String
+                       ("result"),
+                     Arg_Modes => ARG_OUT,
+                     Argument  => PolyORB.Any.ObjRef.To_Any (Result));
                end;
 
             else
@@ -631,6 +641,7 @@ package body System.PolyORB_Interface is
                      end loop;
                   end if;
                end;
+               Next (It);
             end loop All_Stubs;
 
             pragma Assert (Addr /= System.Null_Address);
@@ -807,6 +818,8 @@ package body System.PolyORB_Interface is
    function Retrieve_RCI_Info (Name : String) return RCI_Info
    is
       Info : RCI_Info;
+      pragma Warnings (Off, Info);
+      --  The default initialization value is meaningful.
    begin
       Info := Known_RCIs.Lookup (Name, Info);
       if PolyORB.References.Is_Nil (Info.Base_Ref) then

@@ -369,7 +369,7 @@ package System.PolyORB_Interface is
 
    procedure Request_Create
      (Target    : in     PolyORB.References.Ref;
-      Operation : in     PolyORB.Requests.Operation_Id;
+      Operation : in     String;
       Arg_List  : in     PolyORB.Any.NVList.Ref;
       Result    : in out PolyORB.Any.NamedValue;
       Exc_List  : in     PolyORB.Any.ExceptionList.Ref
