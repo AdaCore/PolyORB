@@ -32,9 +32,69 @@ package body Corba.Object is
    ----------
    procedure Release (Self : in out Ref'class) is
    begin
-      null ;
+      -- to be implemented
    end ;
 
+
+   -- Is_A
+   -------
+   function Is_A(Self: in Ref ;
+                 Logical_Type_Id : in Corba.Repository_Id)
+                 return Corba.Boolean is
+   begin
+      -- this is a translation of the C+ code of omniORB
+      if Is_Nil(Ref) then
+         if Logical_Type_Id = "" then
+            return True ;
+         else return False ;
+         end if ;
+      else
+         return Real_Is_A(Self, Logical_Type_Id) ;
+      end if ;
+   end;
+
+
+   -- Non_Existent
+   ---------------
+   function Non_Existent(Self : in Ref) return Coba.Boolean is
+   begin
+      if Is_Nil(Ref) then
+         return True ;
+      end if ;
+      return Real_Non_Existent(Self) ;
+      -- in our omniobject C to Ada, copy paste the code for non_existent
+      -- that can be found in corbaObject.cc
+   end ;
+
+
+   -- Is_Equivalent
+   ----------------
+   function Is_Equivalent(Self : in Ref ;
+                          Other : in Ref)
+                          return Corba.Boolean is
+      Rak : Ropeandkey.Object ;
+      Other_Rak : Ropeandkey.Object ;
+   begin
+      -- this is copied from corbaObject.cc L160.
+      -- Here, Refs are proxy objects
+      Rak := Get_Rope_And_Key(Self) ;
+      Other_Rak := Get_Rope_And_Key(Other) ;
+      if Rak = Other_Rak then
+         return True ;
+      else return False ;
+      end if ;
+   end;
+
+
+   -- Hash
+   -------
+   function Hash(Self : in Ref ;
+                 Maximum : in Corba.Unsigned_long)
+                 return Corba.Unsigned_Long is
+   begin
+      -- Copy Paste The C++ code
+      return Real_Hash(Self, Maximum) ;
+   end ;
 
    --------------------------------------------------
    ---        AdaBroker  specific                 ---

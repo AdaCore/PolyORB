@@ -47,6 +47,24 @@ package Corba.Object is
    --I Object duplicate();
    -- use assignment
 
+   function Is_A(Self: in Ref ;
+                 Logical_Type_Id : in Corba.Repository_Id)
+                 return Corba.Boolean ;
+  -- returns true if this object is of this Logical_Type_Id
+   -- or one of its descendants
+
+   function Non_Existent(Self : in Ref) return Coba.Boolean ;
+
+   function Is_Equivalent(Self : in Ref ;
+                          Other : in Ref)
+                          return Corba.Boolean ;
+
+   function Hash(Self : in Ref ;
+                 Maximum : in Corba.Unsigned_long)
+                 return Corba.Unsigned_Long ;
+
+   -- get_implementation and get_interface
+   -- are not supported
 
    --------------------------------------------------
    ---        AdaBroker  specific                 ---
@@ -64,6 +82,14 @@ package Corba.Object is
    --------------------------------------------------
    ---        omniORB specific                    ---
    --------------------------------------------------
+
+   -- procedure AdaBroker_Dispatch (Self : in out Corba.Object.Object ;
+   --                             Orls : in Giop_S.Object ;
+   --                             Orl_Op : in Corba.String ;
+   --                             Orl_Response_Expected : in Corba.Boolean ;
+   --                             Returns : out Corba.Boolean ) ;
+   -- dispatches a call received by the Orb to invoke
+   -- the right function on a Corba.Object
 
    -- The five following subprograms are marshalling operators
    -- they will be inherited by all the descedants of Corba.Object.Ref
