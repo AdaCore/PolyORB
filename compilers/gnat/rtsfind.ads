@@ -1055,6 +1055,7 @@ package Rtsfind is
      RE_Inc_Usage,                       -- System.PolyORB_Interface
      RE_Set_Ref,                         -- System.PolyORB_Interface
      RE_Get_Local_Address,               -- System.PolyORB_Interface
+     RE_Get_Reference,                   -- System.PolyORB_Interface
      RE_Local_Oid_To_Address,            -- System.PolyORB_Interface
      RE_RCI_Info,                        -- System.PolyORB_Interface
      RE_RACW_Stub_Type,                  -- System.PolyORB_Interface
@@ -1103,6 +1104,7 @@ package Rtsfind is
      RE_TA_U,                            -- System.PolyORB_Interface
      RE_TA_WC,                           -- System.PolyORB_Interface
      RE_TA_String,                       -- System.PolyORB_Interface
+     RE_TA_ObjRef,                       -- System.PolyORB_Interface
      RE_TA_TC,                           -- System.PolyORB_Interface
 
      RE_TC_Alias,                        -- System.PolyORB_Interface
@@ -2072,6 +2074,7 @@ package Rtsfind is
      RE_Inc_Usage                        => System_PolyORB_Interface,
      RE_Set_Ref                          => System_PolyORB_Interface,
      RE_Get_Local_Address                => System_PolyORB_Interface,
+     RE_Get_Reference                    => System_PolyORB_Interface,
      RE_Local_Oid_To_Address             => System_PolyORB_Interface,
      RE_RCI_Info                         => System_PolyORB_Interface,
      RE_RACW_Stub_Type                   => System_PolyORB_Interface,
@@ -2120,6 +2123,7 @@ package Rtsfind is
      RE_TA_U                             => System_PolyORB_Interface,
      RE_TA_WC                            => System_PolyORB_Interface,
      RE_TA_String                        => System_PolyORB_Interface,
+     RE_TA_ObjRef                        => System_PolyORB_Interface,
      RE_TA_TC                            => System_PolyORB_Interface,
 
      RE_TC_Alias                         => System_PolyORB_Interface,

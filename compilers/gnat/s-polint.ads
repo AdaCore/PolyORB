@@ -141,6 +141,7 @@ package System.PolyORB_Interface is
 
    procedure Get_Reference
      (Addr     :        System.Address;
+      Typ      :        String;
       Receiver : access Servant;
       Ref      :    out PolyORB.References.Ref);
    --  Create a reference that can be used to desginate the

@@ -255,6 +255,13 @@ package body Exp_Dist is
    --  Return True if the current parameter is a controlling formal argument
    --  of type Stub_Type or access to Stub_Type.
 
+   procedure Set_Renaming_TSS
+     (Typ     : Entity_Id;
+      Nam     : Entity_Id;
+      TSS_Nam : Name_Id);
+   --  Create a renaming declaration of subprogram Nam,
+   --  and register it as a TSS for Typ with name TSS_Nam.
+
    procedure Declare_Create_NVList
      (Loc    : Source_Ptr;
       NVList : Entity_Id;
@@ -389,6 +396,14 @@ package body Exp_Dist is
       Stub_Type_Access    : in Entity_Id;
       Declarations        : in List_Id);
    --  Add the From_Any TSS for this RACW type.
+
+   procedure Add_RACW_To_Any
+     (Designated_Type  : in Entity_Id;
+      RACW_Type        : in Entity_Id;
+      Stub_Type        : in Entity_Id;
+      Stub_Type_Access : in Entity_Id;
+      Declarations     : in List_Id);
+   --  Add the To_Any TSS for this RACW type.
 
    function RCI_Package_Locator
      (Loc          : Source_Ptr;
@@ -634,6 +649,13 @@ package body Exp_Dist is
          Stub_Type_Access    => Stub_Type_Access,
          Declarations        => Decls);
 
+      Add_RACW_To_Any
+        (Designated_Type     => Desig,
+         RACW_Type           => RACW_Type,
+         Stub_Type           => Stub_Type,
+         Stub_Type_Access    => Stub_Type_Access,
+         Declarations        => Decls);
+
       if not Same_Scope and then not Existing then
 
          --  The RACW has been declared in another scope than the designated
@@ -838,19 +860,6 @@ package body Exp_Dist is
               Parameter_Type =>
                 New_Occurrence_Of (RTE (RE_Any), Loc))),
           Subtype_Mark => New_Occurrence_Of (RACW_Type, Loc));
-
---        Func_Body_Spec :=
---          Make_Function_Specification (Loc,
---            Defining_Unit_Name =>
---              Make_Defining_Identifier (Loc,
---                Chars (Defining_Unit_Name (Func_Spec))),
---            Parameter_Specifications => New_List (
---              Make_Parameter_Specification (Loc,
---                Defining_Identifier =>
---                  Make_Defining_Identifier (Loc, Chars (Any_Parameter)),
---                Parameter_Type =>
---                  New_Occurrence_Of (RTE (RE_Any), Loc))),
---            Subtype_Mark => New_Occurrence_Of (RACW_Type, Loc));
 
       Body_Node :=
         Make_Subprogram_Body (Loc,
@@ -1398,6 +1407,166 @@ package body Exp_Dist is
          Stub_Type_Access => Stub_Type_Access,
          Declarations     => Declarations);
    end Add_RACW_Read_Write_Attributes;
+
+   -----------------------
+   -- Add_RACW_To_Any --
+   -----------------------
+
+   procedure Add_RACW_To_Any
+     (Designated_Type  : in Entity_Id;
+      RACW_Type        : in Entity_Id;
+      Stub_Type        : in Entity_Id;
+      Stub_Type_Access : in Entity_Id;
+      Declarations     : in List_Id)
+   is
+      Loc : constant Source_Ptr := Sloc (RACW_Type);
+
+      Fnam : Entity_Id;
+
+      Stub_Elements : constant Stub_Structure :=
+        Stubs_Table.Get (Designated_Type);
+      pragma Assert (Stub_Elements /= Empty_Stub_Structure);
+
+      Func_Spec : Node_Id;
+      --  Specification and body of the currently built function
+
+      Func_Decl : Node_Id;
+      Body_Node : Node_Id;
+
+      Decls             : List_Id;
+      Statements        : List_Id;
+      Null_Statements   : List_Id;
+      Local_Statements  : List_Id;
+      Remote_Statements : List_Id;
+      --  Various parts of the procedure
+
+      RACW_Parameter : constant Entity_Id
+        := Make_Defining_Identifier (Loc, Name_R);
+
+      Reference         : constant Entity_Id :=
+                            Make_Defining_Identifier
+                              (Loc, New_Internal_Name ('R'));
+   begin
+
+      --  Object declarations
+
+      Decls := New_List (
+        Make_Object_Declaration (Loc,
+          Defining_Identifier =>
+            Reference,
+          Object_Definition =>
+            New_Occurrence_Of (RTE (RE_Object_Ref), Loc)));
+      --  We first convert the RACW into an object reference,
+      --  then we call To_Any on that reference.
+      --  XXX and last we possibly fix the TypeCode on that Any?
+
+      --  If the reference denotes an object created on
+      --  the current partition, then Local_Statements
+      --  will be executed.
+
+      Local_Statements := New_List (
+        Make_Procedure_Call_Statement (Loc,
+          Name =>
+            New_Occurrence_Of (RTE (RE_Get_Reference), Loc),
+          Parameter_Associations => New_List (
+            Unchecked_Convert_To (
+              RTE (RE_Address),
+              New_Occurrence_Of (RACW_Parameter, Loc)),
+            Make_String_Literal (Loc,
+              Full_Qualified_Name (Designated_Type)),
+            Make_Attribute_Reference (Loc,
+              Prefix =>
+                New_Occurrence_Of (Stub_Elements.Object_RPC_Receiver, Loc),
+              Attribute_Name =>
+                Name_Access),
+            New_Occurrence_Of (Reference, Loc))));
+
+      --  If the object is located on another partition, use the
+      --  reference from the stub type.
+
+      Remote_Statements := New_List (
+        Make_Procedure_Call_Statement (Loc,
+          Name =>
+            New_Occurrence_Of (RTE (RE_Set_Ref), Loc),
+          Parameter_Associations => New_List (
+            New_Occurrence_Of (Reference, Loc),
+            Make_Selected_Component (Loc,
+              Prefix        => Unchecked_Convert_To (Stub_Type_Access,
+                New_Occurrence_Of (RACW_Parameter, Loc)),
+              Selector_Name =>
+                Make_Identifier (Loc, Name_Target)))));
+
+      --  If the object is null, nothing to do (Reference is already
+      --  a Nil ref.)
+
+      Null_Statements := New_List (Make_Null_Statement (Loc));
+
+      --  Distinguish between the null, local and remote cases,
+      --  and execute the appropriate piece of code.
+
+      Statements := New_List (
+        Make_Implicit_If_Statement (RACW_Type,
+          Condition       =>
+            Make_Op_Eq (Loc,
+              Left_Opnd  => New_Occurrence_Of (RACW_Parameter, Loc),
+              Right_Opnd => Make_Null (Loc)),
+          Then_Statements => Null_Statements,
+          Elsif_Parts     => New_List (
+            Make_Elsif_Part (Loc,
+              Condition       =>
+                Make_Op_Eq (Loc,
+                  Left_Opnd  =>
+                    Make_Attribute_Reference (Loc,
+                      Prefix         =>
+                        New_Occurrence_Of (RACW_Parameter, Loc),
+                      Attribute_Name => Name_Tag),
+                  Right_Opnd =>
+                    Make_Attribute_Reference (Loc,
+                      Prefix         => New_Occurrence_Of (Stub_Type, Loc),
+                      Attribute_Name => Name_Tag)),
+              Then_Statements => Remote_Statements)),
+          Else_Statements => Local_Statements),
+        Make_Return_Statement (Loc,
+          Expression =>
+            Make_Function_Call (Loc,
+              Name => New_Occurrence_Of (RTE (RE_TA_ObjRef), Loc),
+              Parameter_Associations => New_List (
+                New_Occurrence_Of (Reference, Loc)))));
+
+      Fnam := Make_Defining_Identifier (
+        Loc, New_Internal_Name ('T'));
+
+      Func_Spec :=
+        Make_Function_Specification (Loc,
+          Defining_Unit_Name =>
+            Fnam,
+          Parameter_Specifications => New_List (
+            Make_Parameter_Specification (Loc,
+              Defining_Identifier =>
+                RACW_Parameter,
+              Parameter_Type =>
+                New_Occurrence_Of (RACW_Type, Loc))),
+          Subtype_Mark => New_Occurrence_Of (RTE (RE_Any), Loc));
+
+      Func_Decl := Make_Subprogram_Declaration (Loc, Func_Spec);
+      --  NOTE: The usage occurrences of RACW_Parameter must
+      --  refer to the entity in the declaration spec, not those
+      --  of the body spec.
+
+      Body_Node :=
+        Make_Subprogram_Body (Loc,
+          Specification              =>
+            Copy_Specification (Loc, Func_Spec),
+          Declarations               => Decls,
+          Handled_Statement_Sequence =>
+            Make_Handled_Sequence_Of_Statements (Loc,
+              Statements => Statements));
+
+      Insert_After (Declaration_Node (RACW_Type), Func_Decl);
+      Append_To (Declarations, Body_Node);
+
+      Set_Renaming_TSS (RACW_Type, Fnam, Name_uTo_Any);
+   end Add_RACW_To_Any;
 
    ------------------------------
    -- Add_RACW_Write_Attribute --
@@ -2349,7 +2518,7 @@ package body Exp_Dist is
                       Defining_Identifier =>
                         Make_Defining_Identifier (Loc, Name_Asynchronous),
                       Subtype_Indication  =>
-                        New_Occurrence_Of (Standard_Boolean, Loc))))));
+                        New_Reference_To (Standard_Boolean, Loc))))));
 
       Append_To (Decls, Stub_Type_Declaration);
       Analyze (Stub_Type_Declaration);
@@ -4170,14 +4339,14 @@ package body Exp_Dist is
 --           Append_Elmt (Node => Object_Type, To => Map);
 --           Append_Elmt (Node => Stub_Type,   To => Map);
 --        end if;
---  
+--
 --        if New_Name /= No_Name then
 --           Append_Elmt (Node => Defining_Unit_Name (Spec), To => Map);
 --           Append_Elmt (
 --             Node => Make_Defining_Identifier (Loc, New_Name),
 --             To   => Map);
 --        end if;
---  
+--
 --        return Copy_Tree_Redefining_Entities (Spec, Map, Loc);
 --     end Copy_Specification;
 
@@ -4694,5 +4863,33 @@ package body Exp_Dist is
 
       return Unit_Name;
    end Scope_Of_Spec;
+
+   procedure Set_Renaming_TSS
+     (Typ     : Entity_Id;
+      Nam     : Entity_Id;
+      TSS_Nam : Name_Id)
+   is
+      Loc : constant Source_Ptr := Sloc (Nam);
+      Spec : constant Node_Id := Parent (Nam);
+
+      TSS_Node : constant Node_Id
+        := Make_Subprogram_Renaming_Declaration (Loc,
+          Specification =>
+            Copy_Specification (Loc,
+               Spec     => Spec,
+               New_Name => TSS_Nam),
+          Name => New_Occurrence_Of (Nam, Loc));
+      Snam : constant Entity_Id
+        := Defining_Unit_Name (Specification (TSS_Node));
+   begin
+      if Nkind (Spec) = N_Function_Specification then
+         Set_Ekind (Snam, E_Function);
+         Set_Etype (Snam, Entity (Subtype_Mark (Spec)));
+      else
+         Set_Ekind (Snam, E_Procedure);
+         Set_Etype (Snam, Standard_Void_Type);
+      end if;
+      Set_TSS (Typ, Snam);
+   end Set_Renaming_TSS;
 
 end Exp_Dist;

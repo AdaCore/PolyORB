@@ -102,8 +102,8 @@ package body System.PolyORB_Interface is
    use type Ada.Streams.Stream_Element_Offset;
    subtype Local_Oid is PolyORB.Objects.Object_Id
      (1 .. System.Address'Size / 8);
---     function To_Local_Oid is
---        new Ada.Unchecked_Conversion (System.Address, Local_Oid);
+   function To_Local_Oid is
+      new Ada.Unchecked_Conversion (System.Address, Local_Oid);
    function To_Address is
       new Ada.Unchecked_Conversion (Local_Oid, System.Address);
 
@@ -409,13 +409,31 @@ package body System.PolyORB_Interface is
 
    procedure Get_Reference
      (Addr     :        System.Address;
+      Typ      :        String;
       Receiver : access Servant;
       Ref      :    out PolyORB.References.Ref)
    is
-      Nil : PolyORB.References.Ref;
    begin
-      Ref := Nil;
-      --  XXX TBD;
+      pragma Assert (Typ'Length > 0
+                     and then Typ (Typ'Last) = ASCII.NUL);
+
+      if Addr /= Null_Address then
+         declare
+            Key : aliased PolyORB.Objects.Object_Id
+              := To_Local_Oid (Addr);
+
+            Oid : aliased PolyORB.Objects.Object_Id
+              := PolyORB.Obj_Adapters.Export
+              (OA  => Servant_Access (Receiver).Object_Adapter,
+               Obj => null,
+               Key => Key'Unchecked_Access);
+
+         begin
+            PolyORB.ORB.Create_Reference
+              (PolyORB.Setup.The_ORB, Oid'Access,
+               "DSA:" & Typ (Typ'First .. Typ'Last - 1), Ref);
+         end;
+      end if;
    end Get_Reference;
 
    -------------------------------
