@@ -2632,7 +2632,7 @@ package body Ada_Be.Idl2Ada is
            K_Sequence_Instance |
            K_String_Instance =>
 
-            return Helper_Unit (Node) & ".TC_" & Ada_Name (Node);
+            return Ada_Helper_Name (Node) & ".TC_" & Ada_Name (Node);
 
          when K_Declarator =>
             declare
@@ -2651,12 +2651,12 @@ package body Ada_Be.Idl2Ada is
                           K_Forward_ValueType =>
                            return TC_Name (T_Node);
                         when others =>
-                           return Helper_Unit (Node) & ".TC_"
+                           return Ada_Helper_Name (Node) & ".TC_"
                              & Ada_Name (Node);
                      end case;
                   end;
                else
-                  return Helper_Unit (Node) & ".TC_" & Ada_Name (Node);
+                  return Ada_Helper_Name (Node) & ".TC_" & Ada_Name (Node);
                end if;
             end;
 
