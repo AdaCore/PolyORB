@@ -1,3 +1,7 @@
+Wed Sep 11 19:26:16 1996  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* xe_parse.adb: Give proper error message on undeclared variable.
+
 Wed Sep 11 15:57:44 1996  Laurent Pautet  <pautet@quasimodo.enst.fr>
 
 	* xe_scan.adb, xe.ads : Don't tolerate reserved keywords anymore.

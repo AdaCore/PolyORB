@@ -987,6 +987,13 @@ package body XE_Parse is
 
       else
          Search_Declaration (Expr_Name, Expr_Node);
+         if Expr_Node = Null_Node then
+            Write_Location (Get_Token_Location);
+            Write_Name (Expr_Name);
+            Write_Str (" has not been declared");
+            Write_Eol;
+            Exit_On_Parsing_Error;
+         end if;
       end if;
 
       Attr_Type := Get_Component_Type (Component_Id (Attr_Node));
