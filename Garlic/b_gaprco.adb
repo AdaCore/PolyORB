@@ -34,12 +34,22 @@
 ------------------------------------------------------------------------------
 
 with Ada.Command_Line; use Ada.Command_Line;
-with Ada.Text_IO;
+with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 
 procedure B_GaPrCo is
    Up_To_Low : constant Natural := Character'Pos ('a') - Character'Pos ('A');
    Protocol  : String := Argument (1);
    SGP       : constant String := "System.Garlic.Protocols";
+   Outfile   : File_Type;
+
+   procedure Put_Line (S : String);
+   --  Local version of Put_Line ensures Unix style line endings
+
+   procedure Put_Line (S : String) is
+   begin
+      String'Write (Stream (Outfile), S);
+      Character'Write (Stream (Outfile), ASCII.LF);
+   end Put_Line;
 
 begin
    if Protocol (1) in 'a' .. 'z' then
@@ -51,20 +61,24 @@ begin
            := Character'Val (Character'Pos (Protocol (I)) + Up_To_Low);
       end if;
    end loop;
+
+   Create (File => Outfile, Name => "s-gaproc.adb");
+
    declare
       P : constant String := SGP & "." & Protocol;
       S : constant String := P & ".Server";
    begin
-      Ada.Text_IO.Put_Line ("with " & P & ";");
-      Ada.Text_IO.Put_Line ("with " & S & ";");
-      Ada.Text_IO.Put_Line ("pragma Elaborate_All (" & S & ");");
-      Ada.Text_IO.Put_Line ("pragma Warnings (Off, " & S & ");");
-      Ada.Text_IO.Put_Line ("package body " & SGP & ".Config is");
-      Ada.Text_IO.Put_Line ("   procedure Initialize is");
-      Ada.Text_IO.Put_Line ("   begin");
-      Ada.Text_IO.Put_Line ("      Register (" & P & ".Create);");
-      Ada.Text_IO.Put_Line ("   end Initialize;");
-      Ada.Text_IO.Put_Line ("end " & SGP & ".Config;");
+      Put_Line ("with " & P & ";");
+      Put_Line ("with " & S & ";");
+      Put_Line ("pragma Elaborate_All (" & S & ");");
+      Put_Line ("pragma Warnings (Off, " & S & ");");
+      Put_Line ("package body " & SGP & ".Config is");
+      Put_Line ("   procedure Initialize is");
+      Put_Line ("   begin");
+      Put_Line ("      Register (" & P & ".Create);");
+      Put_Line ("   end Initialize;");
+      Put_Line ("end " & SGP & ".Config;");
    end;
 
+   Close (Outfile);
 end B_GaPrCo;
