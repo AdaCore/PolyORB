@@ -93,6 +93,12 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-sequences-unbounded-search.ads \
 		polyorb-servants.ads \
 		polyorb-servants-group_servants.ads \
+		polyorb-services-naming-helper.ads \
+		polyorb-services-naming-namingcontext.ads \
+		polyorb-services-naming-namingcontext-client.ads \
+		polyorb-services-naming-namingcontext-helper.ads \
+		polyorb-services-naming-namingcontext-servant.ads \
+		polyorb-services-naming-tools.ads \
 		polyorb-setup-proxies_poa.ads \
 		polyorb-setup-tasking-full_tasking.ads \
 		polyorb-setup-tasking-no_tasking.ads \
@@ -158,6 +164,8 @@ ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
 		polyorb-representations.ads \
 		polyorb-sequences.ads \
 		polyorb-servants-interface.ads \
+		polyorb-services.ads \
+		polyorb-services-naming.ads \
 		polyorb-setup.ads \
 		polyorb-setup-access_points.ads \
 		polyorb-setup-tasking.ads \
