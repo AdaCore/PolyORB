@@ -5,7 +5,6 @@
 
 	* xe_back.adb: New procedure Show_Partition (extracted from
  	Show_Configuration).
-	
 
 1998-02-16  Laurent Pautet  <pautet@scapin.enst.fr>
 
@@ -16,7 +15,6 @@
  	procedure of the distributed application. Declare it twice
 	caused gnatdist to yell.
 
-	
 1998-02-16  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* xe_build.adb: Remove useless with clauses.
