@@ -38,7 +38,6 @@ with PolyORB.Log;
 with PolyORB.Filters;
 with PolyORB.Filters.Interface;
 with PolyORB.ORB.Interface;
-with PolyORB.Smart_Pointers;
 with PolyORB.Transport.Handlers;
 
 package body PolyORB.Transport.Datagram is
