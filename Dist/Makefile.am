@@ -10,7 +10,7 @@ RSH_OPT = @RSH_OPT@
 srcdir = @srcdir@
 
 bin_PROGRAMS = gnatdist
-gnatdist_DEPENDENCIES = xe_defs.o xe_sysdep.adb sdefault.o
+gnatdist_DEPENDENCIES = xe_defs.o xe_sysdep.adb sdefault.adb
 gnatdist_SOURCES =
 gnatdist_LDADD =
 
@@ -95,6 +95,3 @@ sdefault.adb: $(srcdir)/config.sdefault
 	  cp $(GNATSRC)/sdefault.adb .; else \
 	  echo Generating sdefault.adb; \
 	  $(SHELL) $(srcdir)/config.sdefault; fi
-
-sdefault.o: sdefault.adb $(GNATSRC)/sdefault.ads
-	$(ADA) -c -g -O2 -gnatp -I$(GNATSRC) sdefault.adb
