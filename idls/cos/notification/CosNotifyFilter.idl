@@ -101,8 +101,8 @@ module CosNotifyFilter {
 	interface MappingFilter {
 
 		readonly attribute string constraint_grammar;
-      //TO BE FIXED : the idl does not compile when this line is included
-		//readonly attribute CORBA::TypeCode value_type;
+
+		readonly attribute CORBA::TypeCode value_type;
 
 		readonly attribute any default_value;
 
