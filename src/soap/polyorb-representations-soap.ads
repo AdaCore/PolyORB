@@ -1,36 +1,15 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                           POLYORB COMPONENTS                             --
+--                          DROOPI COMPONENTS                               --
 --                                                                          --
---         P O L Y O R B . R E P R E S E N T A T I O N S . S O A P          --
+--                        SOAP Representations                              --
 --                                                                          --
---                                 S p e c                                  --
---                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
---                                                                          --
--- PolyORB is free software; you  can  redistribute  it and/or modify it    --
--- under terms of the  GNU General Public License as published by the  Free --
--- Software Foundation;  either version 2,  or (at your option)  any  later --
--- version. PolyORB is distributed  in the hope that it will be  useful,    --
--- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
--- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
--- License  for more details.  You should have received  a copy of the GNU  --
--- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
---                                                                          --
--- As a special exception,  if other files  instantiate  generics from this --
--- unit, or you link  this unit with other files  to produce an executable, --
--- this  unit  does not  by itself cause  the resulting  executable  to  be --
--- covered  by the  GNU  General  Public  License.  This exception does not --
--- however invalidate  any other reasons why  the executable file  might be --
--- covered by the  GNU Public License.                                      --
---                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                               S p e c                                    --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
+
+
 
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
@@ -66,8 +45,15 @@ package PolyORB.Representations.SOAP is
    type Container_Element is private;
    type Container_Element_Access is access all Container_Element;
 
-   type Stream_Char is private;
+   type Stream_Char is record
+      Current_Pos   : Integer := 0;
+      Chars         : XML_String;
+   end record;
+
    type Stream_Char_Access is access all Stream_Char;
+
+   type Name_Array is array (Positive range <>) of XML_String;
+   type Name_Array_Access is access Name_Array;
 
    type Xsd_Types is (Xsd_Simple, Xsd_Struct, Xsd_Array);
 
@@ -110,7 +96,26 @@ package PolyORB.Representations.SOAP is
          others => To_PolyORB_String ("undefined"));
 
    SOAP_Error : exception;
+   SOAP_Syntax_Fault : exception;
    Unexpected_Token : exception;
+
+   --------------------------------
+   ---    Utility functions
+   ----------------------------
+
+
+   function Split_Name (Name : XML_String)
+      return Name_Array_Access;
+
+   function First_Name (Name : XML_String)
+      return XML_String;
+
+   function Last_Name (Name : XML_String)
+      return XML_String;
+
+   function Erase_Space (S : String)
+      return String;
+
 
    ---------------------------------------------
    --   Function to handle incoming XML strings
@@ -192,13 +197,13 @@ package PolyORB.Representations.SOAP is
        Arg  : Types.String;
        XML_Comp : out XML_Component_Access);
 
-
    function To_XML_String
       (XML_Comp : XML_Component_Access)
       return XML_String;
 
-   function Erase_Space (S : String)
-     return String;
+
+   -----------------------------------
+   ----------------------------------
 
    procedure Set_Parent (Child : in out XML_Component_Access;
                           Pt : XML_Component_Access);
@@ -215,6 +220,23 @@ package PolyORB.Representations.SOAP is
       (Comp : in XML_Component_Access;
        Container : in out Container_Element_Access);
 
+   ------------------------------------
+   --   Primitives to manipulating and extracting information
+   --   from the XML_Component type
+   -------------------------------------------
+
+   function Tag
+       (Comp : XML_Component_Access)
+      return XML_String;
+
+   function Content_Value
+      (Comp : XML_Component_Access)
+      return XML_String;
+
+   function Content_Type
+       (Comp : XML_Component_Access)
+      return Xsd_Types;
+
    procedure Add_Attributes
        (Comp :  in out XML_Component_Access;
         Id   :  XML_String;
@@ -224,12 +246,41 @@ package PolyORB.Representations.SOAP is
        (Comp : XML_Component_Access)
        return Attributes_Seq.Sequence;
 
+   function Attributes
+       (Comp : XML_Component_Access;
+        Attr_Tag : XML_String)
+      return XML_String;
+
+   function XMLNS
+       (Comp : XML_Component_Access;
+        Name : XML_String)
+      return XML_String;
+
    procedure Initialize
      (Comp : XML_Component_Access;
       Tag  : XML_String;
       Value : XML_String := XML_Null_String;
       Comp_Type : Xsd_Types := Xsd_Simple;
       Is_Method : Boolean := False);
+
+   function Nieme_Child
+        (Comp : XML_Component_Access;
+         N    : Positive)
+     return XML_Component_Access;
+
+   function First_Element
+       (Comp : XML_Component_Access)
+     return XML_Component_Access;
+
+   procedure Element_Header
+    (Parent : XML_Component_Access;
+     Tag    : XML_String;
+     Head   : out XML_Component_Access);
+
+   procedure Element_Body
+    (Parent : XML_Component_Access;
+     Tag    : XML_String;
+     Head   : out XML_Component_Access);
 
    ----------------------------------
    --  Parse XML Incoming Strings
@@ -249,6 +300,25 @@ package PolyORB.Representations.SOAP is
    procedure XML_Parse
       (XML_Comp : in out XML_Component_Access;
        Str      : Stream_Char_Access);
+
+   ----------------------------------------
+   --- Get a XML_Component from XML String
+   ---------------------------------------
+   function Get (this : XML_Component_Access;
+                name : in XML_String)
+      return XML_Component_Access;
+
+   --------------------------------
+   --   Release functions
+   ---------------------------------
+
+   procedure Release (Rec : in out Child_List_Access);
+
+   procedure Release
+      (Container : in out Container_Element_Access);
+
+   procedure Release
+      (Comp : in out XML_Component_Access);
 
 
 private
@@ -288,10 +358,6 @@ private
    end record;
 
 
-   type Stream_Char is record
-      Current_Pos   : Integer := 0;
-      Chars         : XML_String;
-   end record;
 
    Name_Space_Uri : XML_String;
 

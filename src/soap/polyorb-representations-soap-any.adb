@@ -1,40 +1,8 @@
-------------------------------------------------------------------------------
---                                                                          --
---                           POLYORB COMPONENTS                             --
---                                                                          --
---    P O L Y O R B . R E P R E S E N T A T I O N S . S O A P . A N Y       --
---                                                                          --
---                                 B o d y                                  --
---                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
---                                                                          --
--- PolyORB is free software; you  can  redistribute  it and/or modify it    --
--- under terms of the  GNU General Public License as published by the  Free --
--- Software Foundation;  either version 2,  or (at your option)  any  later --
--- version. PolyORB is distributed  in the hope that it will be  useful,    --
--- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
--- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
--- License  for more details.  You should have received  a copy of the GNU  --
--- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
---                                                                          --
--- As a special exception,  if other files  instantiate  generics from this --
--- unit, or you link  this unit with other files  to produce an executable, --
--- this  unit  does not  by itself cause  the resulting  executable  to  be --
--- covered  by the  GNU  General  Public  License.  This exception does not --
--- however invalidate  any other reasons why  the executable file  might be --
--- covered by the  GNU Public License.                                      --
---                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
---                                                                          --
-------------------------------------------------------------------------------
 
---  $Id$
+
 
 with PolyORB.Any;
 with PolyORB.Types;
-
 
 package body PolyORB.Representations.SOAP.Any  is
 
@@ -46,6 +14,7 @@ package body PolyORB.Representations.SOAP.Any  is
        XML_Comp :  out XML_Component_Access)
    is
       Tc :  TCKind := TypeCode.Kind (Get_Precise_Type (Param));
+
    begin
       case Tc is
          when Tk_Short =>
@@ -200,6 +169,192 @@ package body PolyORB.Representations.SOAP.Any  is
       end;
 
    end Struct_To_XML_Components;
+
+
+   procedure XML_Component_To_Any
+     (XML_Comp : XML_Component_Access;
+      Result    : in out PolyORB.Any.Any)
+   is
+      Tc       : constant TypeCode.Object
+        := Get_Precise_Type (Result);
+      Is_Empty : constant Boolean
+        := PolyORB.Any.Is_Empty (Result);
+   begin
+      case TypeCode.Kind (Tc) is
+         when Tk_Short =>
+            declare
+               S : Types.Short := Types.Short'Value (To_Standard_String
+                    (Content_Value (XML_Comp)));
+            begin
+               Set_Any_Value (Result, S);
+            end;
+
+         when Tk_Long =>
+            declare
+               S : Types.Long := Types.Long'Value
+                     (To_Standard_String (Content_Value (XML_Comp)));
+            begin
+               Set_Any_Value (Result, S);
+            end;
+
+         when Tk_Ushort =>
+            declare
+               S : Types.Unsigned_Short := Types.Unsigned_Short'Value
+                     (To_Standard_String (Content_Value (XML_Comp)));
+            begin
+               Set_Any_Value (Result, S);
+            end;
+
+         when Tk_Ulong =>
+            declare
+               S : Types.Unsigned_Long := Types.Unsigned_Long'Value
+                     (To_Standard_String (Content_Value (XML_Comp)));
+            begin
+               Set_Any_Value (Result, S);
+            end;
+
+         when Tk_Float =>
+            declare
+               S : Types.Float := Types.Float'Value
+                     (To_Standard_String (Content_Value (XML_Comp)));
+            begin
+               Set_Any_Value (Result, S);
+            end;
+
+         when Tk_Double =>
+            declare
+               S : Types.Double := Types.Double'Value
+                     (To_Standard_String (Content_Value (XML_Comp)));
+            begin
+               Set_Any_Value (Result, S);
+            end;
+
+         when Tk_Boolean =>
+            declare
+               S : Types.Boolean := Types.Boolean'Value
+                      (To_Standard_String (Content_Value (XML_Comp)));
+            begin
+               Set_Any_Value (Result, S);
+            end;
+
+         when Tk_Char =>
+            declare
+               S : Types.Char := Element (Content_Value (XML_Comp), 1);
+            begin
+               Set_Any_Value (Result, S);
+            end;
+
+         when Tk_Octet =>
+            declare
+               S : Types.Octet := Types.Octet'Value
+                      (To_Standard_String (Content_Value (XML_Comp)));
+            begin
+               Set_Any_Value (Result, S);
+            end;
+
+         when Tk_Struct =>
+            declare
+               Nb : Unsigned_Long :=
+                 TypeCode.Member_Count (Tc);
+               Arg : PolyORB.Any.Any;
+               Current_Comp : XML_Component_Access;
+            begin
+               PolyORB.Any.Set_Any_Aggregate_Value (Result);
+               if Nb /= 0 then
+                  for I in 0 .. Nb - 1 loop
+                     if Is_Empty then
+                        Arg := Get_Empty_Any (TypeCode.Member_Type (Tc, I));
+                     else
+                        Arg := Get_Aggregate_Element
+                          (Result,
+                           TypeCode.Member_Type (Tc, I),
+                           I);
+                     end if;
+
+                     Current_Comp := Nieme_Child (XML_Comp, Positive (Nb + 1));
+                     if Current_Comp /= null then
+                        XML_Component_To_Any (Current_Comp, Arg);
+                     else
+                        raise SOAP_Error;
+                     end if;
+
+                     if Is_Empty then
+                        Add_Aggregate_Element (Result, Arg);
+                     end if;
+                  end loop;
+               end if;
+            end;
+
+         when Tk_Array =>
+            declare
+               Nb : Unsigned_Long := TypeCode.Length (Tc);
+               Content_True_Type : PolyORB.Any.TypeCode.Object :=
+                    TypeCode.Content_Type (Tc);
+               Arg : PolyORB.Any.Any;
+               Current_Comp : XML_Component_Access;
+            begin
+               while PolyORB.Any.TypeCode.Kind (Content_True_Type) = Tk_Array
+               loop
+                  Nb := Nb * TypeCode.Length (Content_True_Type);
+                  Content_True_Type :=
+                    TypeCode.Content_Type (Content_True_Type);
+               end loop;
+
+               Set_Any_Aggregate_Value (Result);
+               if Nb /= 0 then
+                  for I in 0 .. Nb - 1 loop
+                     if Is_Empty then
+                        Arg := Get_Empty_Any (Content_True_Type);
+                     else
+                        Arg := Get_Aggregate_Element
+                          (Result, Content_True_Type, I);
+                     end if;
+
+
+                     Current_Comp := Nieme_Child (XML_Comp, Positive (Nb + 1));
+                     if Current_Comp /= null then
+                        XML_Component_To_Any (Current_Comp, Arg);
+                     else
+                        raise SOAP_Error;
+                     end if;
+
+                     if Is_Empty then
+                        Add_Aggregate_Element (Result, Arg);
+                     end if;
+                  end loop;
+               end if;
+            end;
+
+         when Tk_Longlong =>
+            declare
+               Ll : Types.Long_Long := Types.Long_Long'Value
+                      (To_Standard_String (Content_Value (XML_Comp)));
+            begin
+               Set_Any_Value (Result, Ll);
+            end;
+         when Tk_Ulonglong =>
+            declare
+               Ull : Types.Unsigned_Long_Long := Types.Unsigned_Long_Long'Value
+                      (To_Standard_String (Content_Value (XML_Comp)));
+            begin
+               Set_Any_Value (Result, Ull);
+            end;
+         when Tk_Longdouble =>
+            declare
+               Ld : Types.Long_Double :=  Types.Long_Double'Value
+                      (To_Standard_String (Content_Value (XML_Comp)));
+            begin
+               Set_Any_Value (Result, Ld);
+            end;
+
+         when others =>
+            null;
+      end case;
+
+
+
+   end XML_Component_To_Any;
+
 
 
 

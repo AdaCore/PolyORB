@@ -1,40 +1,17 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                           POLYORB COMPONENTS                             --
+--                          DROOPI COMPONENTS                               --
 --                                                                          --
---         P O L Y O R B . R E P R E S E N T A T I O N S . S O A P          --
+--                        SOAP Representations                              --
 --                                                                          --
---                                 B o d y                                  --
---                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
---                                                                          --
--- PolyORB is free software; you  can  redistribute  it and/or modify it    --
--- under terms of the  GNU General Public License as published by the  Free --
--- Software Foundation;  either version 2,  or (at your option)  any  later --
--- version. PolyORB is distributed  in the hope that it will be  useful,    --
--- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
--- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
--- License  for more details.  You should have received  a copy of the GNU  --
--- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
---                                                                          --
--- As a special exception,  if other files  instantiate  generics from this --
--- unit, or you link  this unit with other files  to produce an executable, --
--- this  unit  does not  by itself cause  the resulting  executable  to  be --
--- covered  by the  GNU  General  Public  License.  This exception does not --
--- however invalidate  any other reasons why  the executable file  might be --
--- covered by the  GNU Public License.                                      --
---                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                               B O D Y                                    --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 
---  $Id$
-
-with Ada.Strings.Unbounded;
-with Ada.Characters.Handling;      use Ada.Characters.Handling;
+with Ada.Strings.Unbounded;    use Ada.Strings.Unbounded;
+with Ada.Characters.Handling;  use Ada.Characters.Handling;
+with Ada.Unchecked_Deallocation;
 
 with PolyORB.Types;
 with PolyORB.Any;
@@ -48,7 +25,7 @@ package body PolyORB.Representations.SOAP is
    use PolyORB.Any;
    use PolyORB.Log;
 
-   package L is new PolyORB.Log.Facility_Log ("polyorb.protocols.soap");
+   package L is new PolyORB.Log.Facility_Log ("droopi.protocols.soap");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -85,6 +62,61 @@ package body PolyORB.Representations.SOAP is
       end if;
    end End_Of_Input;
 
+
+   --------------------------------
+   --- Utility functions
+   ----------------------------
+
+   function Split_Name (Name : XML_String)
+      return Name_Array_Access
+   is
+      Result       : Name_Array_Access := null;
+      Nbr_Elements : Natural  := 1;
+      Current      : Positive := 1;
+   begin
+
+      for i in 1 .. Length (Name) loop
+         if Element (Name, i) = '.' then
+            Nbr_Elements := Nbr_Elements + 1;
+         end if;
+      end loop;
+      Result := new Name_Array (1 .. Nbr_Elements);
+
+      for i in 1 .. Length (Name) loop
+         if Element (Name, i) /= '.' then
+            Result (Current) := Result (Current) & Element (Name, i);
+         else
+            Current := Current + 1;
+            Result (Current) := XML_Null_String;
+         end if;
+      end loop;
+      return Result;
+   end Split_Name;
+
+
+   function First_Name (Name : XML_String)
+       return XML_String
+   is
+      Offset : Natural := Index (Name, ":");
+   begin
+      if Offset > 1 then
+         return Head (Name, Offset - 1);
+      else
+         return Name;
+      end if;
+   end First_Name;
+
+   function Last_Name (Name : in XML_String)
+         return XML_String
+   is
+      Offset : Natural := Index (Name, ":");
+   begin
+      if Offset in 1 .. Length (Name) - 1 then
+         return Tail (Name, Length (Name) - Offset);
+      else
+         return Name;
+      end if;
+   end Last_Name;
 
 
    function Erase_Space (S : String)
@@ -328,6 +360,8 @@ package body PolyORB.Representations.SOAP is
    end To_XML_String;
 
 
+   -----------------------------------------------
+   -----------------------------------------------
 
    procedure Set_Parent
         (Child  : in out XML_Component_Access;
@@ -399,6 +433,32 @@ package body PolyORB.Representations.SOAP is
       end if;
    end Tree_Course;
 
+
+   function Tag
+       (Comp : XML_Component_Access)
+      return XML_String
+   is
+   begin
+      return Comp.Tag;
+   end Tag;
+
+   function Content_Value
+      (Comp : XML_Component_Access)
+      return XML_String
+   is
+   begin
+      return Comp.Value;
+   end Content_Value;
+
+   function Content_Type
+       (Comp : XML_Component_Access)
+      return Xsd_Types
+   is
+   begin
+      return Comp.Component_Type;
+   end Content_Type;
+
+
    procedure Add_Attributes
        (Comp :  in out XML_Component_Access;
         Id   :  XML_String;
@@ -420,6 +480,56 @@ package body PolyORB.Representations.SOAP is
       return Comp.Attributes;
    end Get_Attributes;
 
+   function Attributes
+       (Comp : XML_Component_Access;
+        Attr_Tag : XML_String)
+      return XML_String
+   is
+      use Attributes_Seq;
+      Result : XML_String := XML_Null_String;
+   begin
+
+      for I in 1 .. Length (Comp.Attributes) loop
+         if Element_Of (Comp.Attributes, I).Tag_Id = Attr_Tag then
+            Result := Element_Of (Comp.Attributes, I).Value;
+            exit;
+         end if;
+      end loop;
+      return Result;
+   end Attributes;
+
+
+   function XMLNS
+       (Comp : XML_Component_Access;
+        Name : XML_String)
+      return XML_String
+   is
+      use Attributes_Seq;
+      Data : XML_Component_Access := Comp;
+      Result : XML_String := XML_Null_String;
+      Found : Boolean := False;
+   begin
+      while Data /= null loop
+            for I in 1 .. Length (Comp.Attributes) loop
+               if Element_Of (Comp.Attributes, I).Tag_Id =
+                  Namespace_Tag & Name then
+                  Result := Element_Of (Comp.Attributes, I).Value;
+                  Found := True;
+                  exit;
+               end if;
+            end loop;
+
+            if Found = True then
+               exit;
+            else
+               Data := Data.Parent;
+            end if;
+      end loop;
+      return Result;
+   end XMLNS;
+
+
+
    procedure Initialize
      (Comp : XML_Component_Access;
       Tag  : XML_String;
@@ -433,6 +543,88 @@ package body PolyORB.Representations.SOAP is
       Comp.Component_Type := Comp_Type;
       Comp.Is_Method := Is_Method;
    end Initialize;
+
+
+   -------------------------------------------------
+   --   function to return first child of XML component
+   --------------------------------------------------
+
+   function First_Element
+       (Comp : XML_Component_Access)
+     return XML_Component_Access
+   is
+
+   begin
+      if Comp.Childs.Nbr_Of_Items > 0 then
+         return Comp.Childs.Head.Item;
+      else
+         return null;
+      end if;
+   end First_Element;
+
+
+   function Nieme_Child
+        (Comp : XML_Component_Access;
+         N    : Positive)
+     return XML_Component_Access
+   is
+      Current_List : Child_List_Access;
+      Current_Container  : Container_Element_Access := Comp.Childs;
+   begin
+      if Current_Container.Nbr_Of_Items >=  N then
+         if N = 1 then
+            return Current_Container.Head.Item;
+         else
+            Current_List := Current_Container.Head;
+            for I in 1 .. N loop
+               Current_List := Current_List.Next;
+            end loop;
+            return Current_List.Item;
+         end if;
+      else
+         return null;
+      end if;
+
+   end Nieme_Child;
+
+
+
+   procedure Element_Header
+    (Parent : XML_Component_Access;
+     Tag    : XML_String;
+     Head   : out XML_Component_Access)
+   is
+      Current_Elt : Child_List_Access := null;
+   begin
+      Head := null;
+      if Parent.Childs.Nbr_Of_Items > 0 then
+         Current_Elt := Parent.Childs.Head;
+         if Current_Elt.Item.Tag = Tag then
+            Head := Current_Elt.Item;
+         end if;
+      end if;
+   end Element_Header;
+
+   procedure Element_Body
+    (Parent : XML_Component_Access;
+     Tag    : XML_String;
+     Head   : out XML_Component_Access)
+   is
+      Current_Elt : Child_List_Access := null;
+   begin
+      Head := null;
+      if Parent.Childs.Nbr_Of_Items > 0 then
+         Current_Elt := Parent.Childs.Head;
+         if Current_Elt.Item.Tag = Tag then
+            Head := Current_Elt.Item;
+         else
+            Current_Elt := Current_Elt.Next;
+            if Current_Elt.Item.Tag = Tag then
+               Head := Current_Elt.Item;
+            end if;
+         end if;
+      end if;
+   end Element_Body;
 
 
    ----------------------------------
@@ -594,6 +786,83 @@ package body PolyORB.Representations.SOAP is
       end if;
       Parse_Component (XML_Comp, Str);
    end XML_Parse;
+
+   -------------------------------------
+   --
+   ---------------------------------------
+
+   function Get (this : XML_Component_Access;
+                 name : in XML_String)
+      return XML_Component_Access
+   is
+      Names  : Name_Array_Access := Split_Name (name);
+      Cl     : Container_Element_Access := this.Childs;
+      Current_Comp : Child_List_Access;
+      Result : XML_Component_Access;
+   begin
+      if this.Tag = Names (1) then
+         for i in 2 .. Names'Length loop
+            exit when Cl = null;
+            Current_Comp := Cl.Head;
+            while Current_Comp /= null loop
+                  exit when Current_Comp.Item.Tag = Names (i);
+                  Current_Comp := Current_Comp.Next;
+            end loop;
+            Result := Current_Comp.Item;
+            Cl := Current_Comp.Item.Childs;
+         end loop;
+      end if;
+      return Result;
+   end Get;
+
+
+   procedure Release
+     (Rec : in out Child_List_Access)
+   is
+      procedure Free is
+         new Ada.Unchecked_Deallocation
+        (Child_List_Record, Child_List_Access);
+   begin
+      if Rec = null then return;
+      end if;
+      Release (Rec.Item);
+      Release (Rec.Next);
+      Free (Rec);
+   end Release;
+
+   procedure Release
+      (Container : in out Container_Element_Access)
+   is
+      procedure Free is
+         new Ada.Unchecked_Deallocation
+        (Container_Element, Container_Element_Access);
+   begin
+      if Container = null then return;
+      end if;
+      Container.Nbr_Of_Items := 0;
+      Release (Container.Head);
+      Free (Container);
+   end Release;
+
+   procedure Release
+      (Comp : in out XML_Component_Access)
+   is
+      --   procedure Free is
+      --   new Ada.Unchecked_Deallocation
+      --   (XML_Component, XML_Component_Access);
+   begin
+      Comp.Value := XML_Null_String;
+      Comp.Empty := False;
+      Comp.Tag := XML_Null_String;
+      Comp.Component_Type := Xsd_Simple;
+      Comp.Is_Method := False;
+      if Comp.Parent /= null then
+         Release (Comp.Parent);
+      end if;
+      Release (Comp.Childs);
+      --  Free (Comp);
+   end Release;
+
 
 
 
