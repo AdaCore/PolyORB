@@ -145,7 +145,7 @@ adabe_exception::produce_skel_adb (dep_list &with, string &body)
   body += "                  -- inform the orb\n";
   body += "                  Giop_S.Reply_Completed (Orls) ;\n";
 
-  body += "                  Returns := True ;\n";
+  body += "                  Dispatch_Returns := True ;\n";
   body += "               end ;\n\n";
 }
 

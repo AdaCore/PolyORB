@@ -231,10 +231,3 @@ adabe_typedef::marshal_name(dep_list& with, string &previous)
 IMPL_NARROW_METHODS1(adabe_typedef, AST_Typedef)
 IMPL_NARROW_FROM_DECL(adabe_typedef)
 
-
-
-
-
-
-
-

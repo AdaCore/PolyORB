@@ -58,8 +58,7 @@ adabe_array::local_type()
 	  break;
 	case AST_Decl::NT_typedef:
 	  if (dynamic_cast<AST_Typedef *>(decl)->base_type() == this)
-	    find =true;
-	  break;
+	    return decl->get_ada_local_name ();
 		       
 	default:
 	  break;
@@ -254,7 +253,12 @@ adabe_array::produce_marshal_adb(dep_list& with,string &body, string &previous)
   if (b->has_fixed_size())
     {
       // if the size is fiwed, ther no problem
-      align_size += "      Tmp := Align_Size (A(A'First), Initial_Offset, N * ";
+      align_size += "      Tmp := Align_Size (A(1";
+      for (unsigned int i = 1; i < n_dims() ; i++ )
+	{
+	  align_size += ",1";
+	}
+      align_size += "), Initial_Offset, N * ";
       align_size += Size;
       align_size += ") ;\n";
     } 
