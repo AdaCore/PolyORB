@@ -956,8 +956,6 @@ package body Ada_Be.Idl2Ada.IR_Info is
    is
       IRN : constant String := Ada_IR_Name (Node);
    begin
-      Add_With (CU, CRR & ".ModuleDef.Helper");
-
       Gen_IR_Function_Prologue (CU, Node, For_Body => True);
       Gen_Parent_Container_Lookup (CU, Node);
 
