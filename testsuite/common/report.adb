@@ -19,11 +19,10 @@ package body Report is
          Last := Max;
       end if;
       Line (1 .. Last) := Message (Message'First .. Message'First + Last - 1);
-      Ada.Text_IO.Put (Line);
       if Result then
-         Ada.Text_IO.Put_Line (": PASSED");
+         Ada.Text_IO.Put_Line (Line & ": PASSED");
       else
-         Ada.Text_IO.Put_Line (": FAILED");
+         Ada.Text_IO.Put_Line (Line & ": FAILED");
       end if;
    end Output;
 
