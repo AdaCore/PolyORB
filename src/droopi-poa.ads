@@ -21,17 +21,16 @@ with Droopi.POA_Policies.Id_Uniqueness_Policy;
 with Droopi.POA_Policies.Servant_Retention_Policy;
 with Droopi.POA_Policies.Lifespan_Policy;
 with Droopi.POA_Policies.Implicit_Activation_Policy;
-use Droopi.POA_Policies.Thread_Policy;
-use Droopi.POA_Policies.Request_Processing_Policy;
-use Droopi.POA_Policies.Id_Assignment_Policy;
-use Droopi.POA_Policies.Id_Uniqueness_Policy;
-use Droopi.POA_Policies.Servant_Retention_Policy;
-use Droopi.POA_Policies.Lifespan_Policy;
-use Droopi.POA_Policies.Implicit_Activation_Policy;
-
-with POA_Configuration;
 
 package Droopi.POA is
+
+   use Droopi.POA_Policies.Thread_Policy;
+   use Droopi.POA_Policies.Request_Processing_Policy;
+   use Droopi.POA_Policies.Id_Assignment_Policy;
+   use Droopi.POA_Policies.Id_Uniqueness_Policy;
+   use Droopi.POA_Policies.Servant_Retention_Policy;
+   use Droopi.POA_Policies.Lifespan_Policy;
+   use Droopi.POA_Policies.Implicit_Activation_Policy;
 
    --  Unit has no proper body: no elab control necessary.
 
@@ -45,9 +44,6 @@ package Droopi.POA is
          Boot_Time                  : Time_Stamp;
          Absolute_Address           : Types.String;
          Active_Object_Map          : CORBA.Object_Map.Object_Map_Access;
-
-         --  Configuration
-         Configuration              : POA_Configuration.Configuration_Access;
 
          --  Policies (one of each is required)
          Thread_Policy              : ThreadPolicy_Access             := null;
@@ -92,48 +88,6 @@ package Droopi.POA is
       is abstract;
    --  Destroys recursively the POA and all his descendants
 
---    function Create_Thread_Policy
---      (Self  : access Obj_Adapter;
---       Value :        ThreadPolicyValue)
---      return ThreadPolicy_Access
---       is abstract;
-
---    function Create_Lifespan_Policy
---      (Self  : access Obj_Adapter;
---       Value :        LifespanPolicyValue)
---      return LifespanPolicy_Access
---       is abstract;
-
---    function Create_Id_Uniqueness_Policy
---      (Self  : access Obj_Adapter;
---       Value :        IdUniquenessPolicyValue)
---      return IdUniquenessPolicy_Access
---       is abstract;
-
---    function Create_Id_Assignment_Policy
---      (Self  : access Obj_Adapter;
---       Value :        IdAssignmentPolicyValue)
---      return IdAssignmentPolicy_Access
---      is abstract;
-
---    function Create_Servant_Retention_Policy
---      (Self  : access Obj_Adapter;
---       Value :        ServantRetentionPolicyValue)
---      return ServantRetentionPolicy_Access
---      is abstract;
-
---    function Create_Request_Processing_Policy
---      (Self  : access Obj_Adapter;
---       Value :        RequestProcessingPolicyValue)
---      return RequestProcessingPolicy_Access
---      is abstract;
-
---    function Create_Implicit_Activation_Policy
---      (Self  : access Obj_Adapter;
---       Value :        ImplicitActivationPolicyValue)
---      return ImplicitActivationPolicy_Access
---       is abstract;
-
    function Activate_Object
      (Self      : access Obj_Adapter;
       P_Servant : in     Servant_Access)
@@ -156,7 +110,7 @@ package Droopi.POA is
    --  policy). In case a ServantManager is used, calls its etherealize
    --  method.
    --  Active requests should be completed before the object is removed
-   --  ??? How do we implement that? How do we implement the queue?
+   --  XXX ??? How do we implement that? How do we implement the queue?
 
    function Servant_To_Id
      (Self      : access Obj_Adapter;

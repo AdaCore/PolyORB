@@ -16,8 +16,6 @@ with Droopi.Types;
 
 with Droopi.POA_Types;
 with Droopi.POA_Manager.Basic_Manager;
-
-with POA_Configuration.Minimum;
 with POA_Configuration;
 
 package body Droopi.POA.Basic_POA is
@@ -25,8 +23,6 @@ package body Droopi.POA.Basic_POA is
    use Droopi.Types;
 
    use POA_Types;
-   use POA_Configuration;
-   use POA_Configuration.Minimum;
 
    use Droopi.Locks;
    use Droopi.Log;
@@ -52,19 +48,21 @@ package body Droopi.POA.Basic_POA is
    --  The function doesn't take care of locking the list of children!
 
    procedure Init_With_User_Policies
-     (OA       : Basic_Obj_Adapter_Access;
+     (OA       : access Basic_Obj_Adapter;
       Policies : Droopi.POA_Policies.PolicyList_Access);
 
    procedure Init_With_Default_Policies
-     (OA : Basic_Obj_Adapter_Access);
+     (OA : access Basic_Obj_Adapter);
    --  Initialize OA with a default set of policies provided by
    --  the currently active POA configuration.
 
-   procedure Check_Policies_Compatibility (OA : Basic_Obj_Adapter_Access);
+   procedure Check_Policies_Compatibility
+     (OA : Basic_Obj_Adapter_Access);
 
-   function Register_Child (Self  : access Basic_Obj_Adapter;
-                            Child :        Basic_Obj_Adapter_Access)
-                           return Positive;
+   function Register_Child
+     (Self  : access Basic_Obj_Adapter;
+      Child :        Basic_Obj_Adapter_Access)
+     return Positive;
    --  Add a child to the current POA
    --  The procedure doesn't take care of locking the list of children!
 
@@ -135,7 +133,7 @@ package body Droopi.POA.Basic_POA is
    ------------------
 
    procedure Set_Policies
-     (OA       : Basic_Obj_Adapter_Access;
+     (OA       : access Basic_Obj_Adapter;
       Policies : Droopi.POA_Policies.PolicyList_Access;
       Default  : Boolean);
    --  Set OA policies from the values in Policies.
@@ -144,7 +142,7 @@ package body Droopi.POA.Basic_POA is
    --  set all policies, and warn for duplicates.
 
    procedure Set_Policies
-     (OA       : Basic_Obj_Adapter_Access;
+     (OA       : access Basic_Obj_Adapter;
       Policies : Droopi.POA_Policies.PolicyList_Access;
       Default  : Boolean)
    is
@@ -246,7 +244,7 @@ package body Droopi.POA.Basic_POA is
    -----------------------------
 
    procedure Init_With_User_Policies
-     (OA       : Basic_Obj_Adapter_Access;
+     (OA       : access Basic_Obj_Adapter;
       Policies : Droopi.POA_Policies.PolicyList_Access) is
    begin
       pragma Debug (O ("Init Basic_POA with user provided policies"));
@@ -258,12 +256,12 @@ package body Droopi.POA.Basic_POA is
    --------------------------------
 
    procedure Init_With_Default_Policies
-     (OA : Basic_Obj_Adapter_Access) is
+     (OA : access Basic_Obj_Adapter) is
    begin
       pragma Debug (O ("Init Basic_POA with default policies"));
       Set_Policies
         (OA, POA_Configuration.Default_Policies
-         (OA.Configuration.all),
+         (POA_Configuration.Configuration.all),
          Default => True);
    end Init_With_Default_Policies;
 
@@ -410,40 +408,37 @@ package body Droopi.POA.Basic_POA is
    -- Create_Root_POA --
    ---------------------
 
-   function Create_Root_POA
-     return Obj_Adapter_Access
-   is
-      New_Obj_Adapter : Basic_Obj_Adapter_Access;
+   procedure Create_Root_POA
+     (New_Obj_Adapter : access Basic_Obj_Adapter);
+
+   procedure Create_Root_POA
+     (New_Obj_Adapter : access Basic_Obj_Adapter) is
    begin
       pragma Debug (O ("Create a new Root_POA"));
 
       --  Create new Obj Adapter
-      New_Obj_Adapter                  := new Basic_Obj_Adapter;
       New_Obj_Adapter.Boot_Time        := Get_Boot_Time;
       New_Obj_Adapter.Name             := To_Droopi_String ("RootPOA");
       New_Obj_Adapter.Absolute_Address := To_Droopi_String ("");
-      New_Obj_Adapter.Configuration
-        := new POA_Configuration.Minimum.Minimum_Configuration;
-      --  XXX hardcoded configuration!!!!
+
       Create (New_Obj_Adapter.Children_Lock);
       Create (New_Obj_Adapter.Map_Lock);
 
       New_Obj_Adapter.POA_Manager      := new Basic_POA_Manager;
       Create (New_Obj_Adapter.POA_Manager);
-      Register_POA (New_Obj_Adapter.POA_Manager,
-                    Droopi.POA_Types.Obj_Adapter_Access (New_Obj_Adapter));
+      Register_POA
+        (New_Obj_Adapter.POA_Manager,
+         POA_Types.Obj_Adapter_Access (New_Obj_Adapter));
 
       --  Create and initialize policies factory
       New_Obj_Adapter.P_Factory
         := Droopi.POA_Policies.Policy_Repository_Pkg.New_Dict;
-      Initialize
-        (New_Obj_Adapter.Configuration.all,
+      POA_Configuration.Initialize
+        (POA_Configuration.Configuration.all,
          New_Obj_Adapter.P_Factory);
 
       --  Use default policies
       Init_With_Default_Policies (New_Obj_Adapter);
-
-      return Obj_Adapter_Access (New_Obj_Adapter);
    end Create_Root_POA;
 
    -------------------------------------------------
@@ -500,10 +495,7 @@ package body Droopi.POA.Basic_POA is
             Droopi.POA_Types.Obj_Adapter_Access (New_Obj_Adapter));
       end if;
 
-      --  Inherit configuration and policy repository from the Root POA.
-      New_Obj_Adapter.Configuration
-        := Basic_Obj_Adapter_Access
-        (New_Obj_Adapter.Father).Configuration;
+      --  Inherit policy repository from the Root POA.
       New_Obj_Adapter.P_Factory
         := Basic_Obj_Adapter_Access
         (New_Obj_Adapter.Father).P_Factory;
@@ -597,111 +589,6 @@ package body Droopi.POA.Basic_POA is
          Unlock_W (Self.Children_Lock);
          raise;
    end Destroy;
-
---    --------------------------
---    -- Create_Thread_Policy --
---    --------------------------
-
---    function Create_Thread_Policy
---      (Self  : access Basic_Obj_Adapter;
---       Value :        ThreadPolicyValue)
---      return ThreadPolicy_Access
---    is
---    begin
---       return ThreadPolicy_Access
---         (Droopi.POA_Policies.Policy_Repository_Pkg.Lookup
---          (Self.P_Factory.all, Value));
---    end Create_Thread_Policy;
-
---    ----------------------------
---    -- Create_Lifespan_Policy --
---    ----------------------------
-
---    function Create_Lifespan_Policy
---      (Self  : access Basic_Obj_Adapter;
---       Value :        LifespanPolicyValue)
---      return LifespanPolicy_Access
---    is
---    begin
---       return LifespanPolicy_Access
---         (Droopi.POA_Policies.Policy_Repository_Pkg.Lookup
---          (Self.P_Factory.all, Value));
---    end Create_Lifespan_Policy;
-
---    ---------------------------------
---    -- Create_Id_Uniqueness_Policy --
---    ---------------------------------
-
---    function Create_Id_Uniqueness_Policy
---      (Self  : access Basic_Obj_Adapter;
---       Value :        IdUniquenessPolicyValue)
---      return IdUniquenessPolicy_Access
---    is
---    begin
---       return IdUniquenessPolicy_Access
---         (Droopi.POA_Policies.Policy_Repository_Pkg.Lookup
---          (Self.P_Factory.all, Value));
---    end Create_Id_Uniqueness_Policy;
-
---    ----------------------------------
---    -- Create_Id_Assignment_Policy --
---    ----------------------------------
-
---    function Create_Id_Assignment_Policy
---      (Self  : access Basic_Obj_Adapter;
---       Value :        IdAssignmentPolicyValue)
---      return IdAssignmentPolicy_Access
---    is
---    begin
---       return IdAssignmentPolicy_Access
---         (Droopi.POA_Policies.Policy_Repository_Pkg.Lookup
---          (Self.P_Factory.all, Value));
---    end Create_Id_Assignment_Policy;
-
---    -------------------------------------
---    -- Create_Servent_Retention_Policy --
---    -------------------------------------
-
---    function Create_Servant_Retention_Policy
---      (Self  : access Basic_Obj_Adapter;
---       Value :        ServantRetentionPolicyValue)
---      return ServantRetentionPolicy_Access
---    is
---    begin
---       return ServantRetentionPolicy_Access
---         (Droopi.POA_Policies.Policy_Repository_Pkg.Lookup
---          (Self.P_Factory.all, Value));
---    end Create_Servant_Retention_Policy;
-
---    --------------------------------------
---    -- Create_Request_Processing_Policy --
---    --------------------------------------
-
---    function Create_Request_Processing_Policy
---      (Self  : access Basic_Obj_Adapter;
---       Value :        RequestProcessingPolicyValue)
---      return RequestProcessingPolicy_Access
---    is
---    begin
---       return RequestProcessingPolicy_Access
---         (Droopi.POA_Policies.Policy_Repository_Pkg.Lookup
---          (Self.P_Factory.all, Value));
---    end Create_Request_Processing_Policy;
-
---    ---------------------------------------
---    -- Create_Implicit_Activation_Policy --
---    ---------------------------------------
-
---    function Create_Implicit_Activation_Policy
---      (Self  : access Basic_Obj_Adapter;
---       Value :        ImplicitActivationPolicyValue)
---      return ImplicitActivationPolicy_Access
---    is
---    begin
---       return ImplicitActivationPolicy_Access
---         (Droopi.POA_Policies.Policy_Repository_Pkg.Lookup
---          (Self.P_Factory.all, Value));
---    end Create_Implicit_Activation_Policy;
 
    ---------------------
    -- Activate_Object --
@@ -899,12 +786,9 @@ package body Droopi.POA.Basic_POA is
    -- Create --
    ------------
 
-   procedure Create (OA : access Basic_Obj_Adapter)
-   is
-      Result : Basic_Obj_Adapter_Access
-        := Basic_Obj_Adapter_Access (Create_Root_POA);
+   procedure Create (OA : access Basic_Obj_Adapter) is
    begin
-      Copy_Obj_Adapter (Result.all, OA);
+      Create_Root_POA (OA);
    end Create;
 
    -------------

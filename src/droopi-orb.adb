@@ -319,7 +319,10 @@ package body Droopi.ORB is
       Leave (ORB.ORB_Lock.all);
 
    exception
-      when others =>
+      when E : others =>
+         pragma Debug (O ("ORB main loop got exception:"));
+         pragma Debug (O (Ada.Exceptions.Exception_Information (E)));
+
          if Exit_Condition.Task_Info /= null then
             Exit_Condition.Task_Info.all := null;
          end if;
