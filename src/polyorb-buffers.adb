@@ -227,7 +227,7 @@ package body PolyORB.Buffers is
      := (Zone   => Null_Data,
          Offset => Null_Data'First);
 
-   procedure Align
+   procedure Pad_Align
      (Buffer    : access Buffer_Type;
       Alignment : Alignment_Type)
    is
@@ -235,11 +235,18 @@ package body PolyORB.Buffers is
          := (Alignment - Buffer.CDR_Position) mod Alignment;
       Padding_Space : Opaque_Pointer;
    begin
-
       if Padding = 0 then
          --  Buffer is already aligned.
          return;
       end if;
+
+      pragma Debug
+        (O ("Pad_Align: pos = " & Stream_Element_Offset'Image
+            (Buffer.CDR_Position)));
+      pragma Debug
+        (O ("Aligning on" & Alignment_Type'Image (Alignment)));
+      pragma Debug (O ("Padding by"
+                       & Stream_Element_Count'Image (Padding)));
 
       Grow_Shrink (Buffer.Contents'Access, Padding, Padding_Space);
       --  Try to extend Buffer.Content's last Iovec
@@ -261,14 +268,44 @@ package body PolyORB.Buffers is
          end;
       end if;
 
+      Buffer.Length := Buffer.Length + Padding;
+      Align_Position (Buffer, Alignment);
+   end Pad_Align;
+
+   procedure Align_Position
+     (Buffer    : access Buffer_Type;
+      Alignment : Alignment_Type)
+   is
+      Padding : constant Stream_Element_Count
+         := (Alignment - Buffer.CDR_Position) mod Alignment;
+   begin
+      if Padding = 0 then
+         --  Buffer is already aligned.
+         return;
+      end if;
+
+      pragma Debug
+        (O ("Align_Position: pos = " & Stream_Element_Offset'Image
+            (Buffer.CDR_Position)));
+      pragma Debug
+        (O ("Aligning on" & Alignment_Type'Image (Alignment)));
+      pragma Debug
+        (O ("Padding by" & Stream_Element_Count'Image (Padding)));
+
+      pragma Assert
+        (Buffer.CDR_Position + Padding
+         <= Buffer.Initial_CDR_Position + Buffer.Length);
+
       Buffer.CDR_Position := Buffer.CDR_Position + Padding;
       --  Advance the CDR position to the new alignment.
 
-      Buffer.Length := Buffer.Length + Padding;
-
       pragma Assert (Buffer.CDR_Position mod Alignment = 0);
       --  Post-condition: the buffer is aligned as requested.
-   end Align;
+      pragma Debug
+        (O ("Align_Position: now at"
+            & Stream_Element_Offset'Image
+            (Buffer.CDR_Position)));
+   end Align_Position;
 
    --  Inserting data into a buffer
 

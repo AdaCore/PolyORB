@@ -32,7 +32,7 @@
 
 --  Buffer management
 
---  $Id: //droopi/main/src/polyorb-buffers.ads#10 $
+--  $Id: //droopi/main/src/polyorb-buffers.ads#11 $
 
 with System;
 --  For bit-order information.
@@ -169,14 +169,22 @@ package PolyORB.Buffers is
    --  of Buffer to Position. No data must have
    --  been inserted into Buffer yet.
 
-   procedure Align
+   procedure Pad_Align
      (Buffer    : access Buffer_Type;
       Alignment : Alignment_Type);
-   --  Aligns Buffer on specified Alignment.
-   --  This subprogram must be called before data is
-   --  inserted into or retrieved from Buffer.
-   --  The effect of this operation is to advance the
-   --  current CDR position to a multiple of Alignment.
+   --  Aligns Buffer on specified Alignment before inserting
+   --  aligned data. A padding chunk is inserted into Buffer
+   --  if necessary.
+
+   procedure Align_Position
+     (Buffer    : access Buffer_Type;
+      Alignment : Alignment_Type);
+   --  Aligns Buffer on specified Alignment before retrieving
+   --  aligned data.
+
+   --  After execution of either of the two above operations,
+   --  the current CDR position of Buffer is advanced to a
+   --  multiple of Alignment.
 
    --  Inserting data into a buffer
 

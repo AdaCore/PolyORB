@@ -78,7 +78,7 @@ begin
       Output ("test unsigned_short", echoUShort (Myall_types, 456) = 456);
       Output ("test unsigned_long", echoULong (Myall_types, 123) = 123);
       Output ("test float", echoFloat (Myall_types, 2.7) = 2.7);
-      Output ("test double", echoDouble (Myall_types, 3.14) = 3.14);
+      Output ("test double", echoDouble (Myall_types, 1.5) = 1.5);
       begin
          Output ("test char", echoChar (Myall_types, 'A') = 'A');
       exception

@@ -315,11 +315,12 @@ package body PolyORB.Representations.CDR is
      (Buffer : access Buffer_Type;
       Data   :        PolyORB.Types.Double)
    is
-      Buf : Double_Buf := To_Double_Buf (Data);
+      Buf : constant Double_Buf := To_Double_Buf (Data);
    begin
-      pragma Debug (O ("Marshall (Double) : enter"));
+      pragma Debug (O ("Marshall (Double): enter, Data = "
+                       & PolyORB.Types.Double'Image (Data)));
       Align_Marshall_Host_Endian_Copy (Buffer, Buf, 8);
-      pragma Debug (O ("Marshall (Double) : end"));
+      pragma Debug (O ("Marshall (Double): end"));
    end Marshall;
 
    --  Marshalling of a long double
@@ -1390,7 +1391,7 @@ package body PolyORB.Representations.CDR is
       Octets : constant Stream_Element_Array
         := Align_Unmarshall_Host_Endian_Copy (Buffer, 8, 8);
    begin
-      pragma Debug (O ("Unmarshall (Double) : enter & end"));
+      pragma Debug (O ("Unmarshall (Double): enter & end"));
       return To_Double (Double_Buf (Octets));
    end Unmarshall;
 
@@ -1540,7 +1541,7 @@ package body PolyORB.Representations.CDR is
             null;
          when Tk_Short =>
             declare
-               S : Short := Unmarshall (Buffer);
+               S : constant Short := Unmarshall (Buffer);
             begin
                pragma Debug (O ("Unmarshall_To_Any : dealing with a short"));
                pragma Debug (O ("Unmarshall_To_Any : its value is "
@@ -1549,65 +1550,68 @@ package body PolyORB.Representations.CDR is
             end;
          when Tk_Long =>
             declare
-               L : Long := Unmarshall (Buffer);
+               L : constant Long := Unmarshall (Buffer);
             begin
                pragma Debug (O ("Unmarshall_To_Any : dealing with a long"));
                Set_Any_Value (Result, L);
             end;
          when Tk_Ushort =>
             declare
-               Us : Unsigned_Short := Unmarshall (Buffer);
+               Us : constant Unsigned_Short := Unmarshall (Buffer);
             begin
                Set_Any_Value (Result, Us);
             end;
          when Tk_Ulong =>
             declare
-               Ul : Unsigned_Long := Unmarshall (Buffer);
+               Ul : constant Unsigned_Long := Unmarshall (Buffer);
             begin
-               pragma Debug (O ("Unmarshall_To_Any : dealing with an Ulong"));
+               pragma Debug (O ("Unmarshall_To_Any: dealing with an ulong"));
                Set_Any_Value (Result, Ul);
             end;
          when Tk_Float =>
             declare
-               F : PolyORB.Types.Float := Unmarshall (Buffer);
+               F : constant PolyORB.Types.Float := Unmarshall (Buffer);
             begin
                Set_Any_Value (Result, F);
             end;
          when Tk_Double =>
             declare
-               D : Double := Unmarshall (Buffer);
+               D : constant Double := Unmarshall (Buffer);
             begin
+               pragma Debug
+                 (O ("Unmarshall_To_Any: dealing with a double = "
+                     & Double'Image (D)));
                Set_Any_Value (Result, D);
             end;
          when Tk_Boolean =>
             declare
-               B : PolyORB.Types.Boolean := Unmarshall (Buffer);
+               B : constant PolyORB.Types.Boolean := Unmarshall (Buffer);
             begin
                Set_Any_Value (Result, B);
             end;
          when Tk_Char =>
             declare
-               C : Char := Unmarshall (Buffer);
+               C : constant Char := Unmarshall (Buffer);
             begin
                Set_Any_Value (Result, C);
             end;
          when Tk_Octet =>
             declare
-               O : PolyORB.Types.Octet := Unmarshall (Buffer);
+               O : constant PolyORB.Types.Octet := Unmarshall (Buffer);
             begin
                Set_Any_Value (Result, O);
             end;
          when Tk_Any =>
             declare
-               A : Any.Any := Unmarshall (Buffer);
+               A : constant Any.Any := Unmarshall (Buffer);
             begin
                Set_Any_Value (Result, A);
             end;
          when Tk_TypeCode =>
             declare
-               T : TypeCode.Object := Unmarshall (Buffer);
+               T : constant TypeCode.Object := Unmarshall (Buffer);
             begin
-               pragma Debug (O ("Unmarshall_To_Any : "
+               pragma Debug (O ("Unmarshall_To_Any: "
                                 & "dealing with a TypeCode"));
                Set_Any_Value (Result, T);
             end;
@@ -1617,7 +1621,7 @@ package body PolyORB.Representations.CDR is
 
          when Tk_Objref =>
             declare
-               O : CORBA.Object.Ref := Unmarshall (Buffer);
+               O : constant CORBA.Object.Ref := Unmarshall (Buffer);
             begin
                CORBA.Object.Helper.Set_Any_Value (Result, O);
             end;
@@ -1695,7 +1699,7 @@ package body PolyORB.Representations.CDR is
 
          when Tk_String =>
             declare
-               S : PolyORB.Types.String := Unmarshall (Buffer);
+               S : constant PolyORB.Types.String := Unmarshall (Buffer);
             begin
                Set_Any_Value (Result, S);
             end;
@@ -1767,35 +1771,35 @@ package body PolyORB.Representations.CDR is
 
          when Tk_Longlong =>
             declare
-               Ll : Long_Long := Unmarshall (Buffer);
+               Ll : constant Long_Long := Unmarshall (Buffer);
             begin
                Set_Any_Value (Result, Ll);
             end;
 
          when Tk_Ulonglong =>
             declare
-               Ull : Unsigned_Long_Long := Unmarshall (Buffer);
+               Ull : constant Unsigned_Long_Long := Unmarshall (Buffer);
             begin
                Set_Any_Value (Result, Ull);
             end;
 
          when Tk_Longdouble =>
             declare
-               Ld : Long_Double := Unmarshall (Buffer);
+               Ld : constant Long_Double := Unmarshall (Buffer);
             begin
                Set_Any_Value (Result, Ld);
             end;
 
          when Tk_Widechar =>
             declare
-               Wc : Wchar := Unmarshall (Buffer);
+               Wc : constant Wchar := Unmarshall (Buffer);
             begin
                Set_Any_Value (Result, Wc);
             end;
 
          when Tk_Wstring =>
             declare
-               Ws : PolyORB.Types.Wide_String := Unmarshall (Buffer);
+               Ws : constant PolyORB.Types.Wide_String := Unmarshall (Buffer);
             begin
                Set_Any_Value (Result, Ws);
             end;

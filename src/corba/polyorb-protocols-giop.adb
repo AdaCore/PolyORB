@@ -474,7 +474,11 @@ package body PolyORB.Protocols.GIOP is
                        & "." & Ses.Minor_Version'Img));
 
       Success := True;
-      Release_Contents (Buffer.all);
+
+      --  At this point, do /not/ Release_Contents on
+      --  Buffer_In: we need to keep the current CDR position
+      --  value so the remainder of the message is correctly
+      --  aligned.
    end Unmarshall_GIOP_Header;
 
    --------------------------------
@@ -661,14 +665,11 @@ package body PolyORB.Protocols.GIOP is
 
       --  Marshall the reply Body
 
---       if Ses.Minor_Version >= 2 then
---          Align (Ses.Buffer_Out, 8);
---          --  For GIOP 1.2 and higher, reply bodies are
---          --  aligned on an 8-byte boundary.
---       end if;
-
-      --  XXX For some reason this does not seem to work right now.
-      --  See also corresponding code in procedure Reply_Received.
+      if Ses.Minor_Version >= 2 then
+         Pad_Align (Ses.Buffer_Out, 8);
+         --  For GIOP 1.2 and higher, reply bodies are
+         --  aligned on an 8-byte boundary.
+      end if;
 
       Marshall_From_Any (Ses.Buffer_Out, Request.Result.Argument);
 
@@ -1514,14 +1515,11 @@ package body PolyORB.Protocols.GIOP is
 
             --  Unmarshall reply body.
 
---             if Ses.Minor_Version >= 2 then
---                Align (Ses.Buffer_In, 8);
---                --  For GIOP 1.2 and higher, reply bodies are
---                --  aligned on an 8-byte boundary.
---             end if;
-
-            --  XXX For some reason this does not seem to work right now.
-            --  See also corresponding code in procedure No_Exception_Reply.
+            if Ses.Minor_Version >= 2 then
+               Align_Position (Ses.Buffer_In, 8);
+               --  For GIOP 1.2 and higher, reply bodies are
+               --  aligned on an 8-byte boundary.
+            end if;
 
             Unmarshall_To_Any
               (Ses.Buffer_In, Current_Req.Req.Result.Argument);
