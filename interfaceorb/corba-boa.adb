@@ -49,46 +49,46 @@ package body Corba.Boa is
    -- needed to convert System.Address into Object
 
 
-   -- C_Get_Boa
-   ----------
-   function C_Get_Boa (Self: in Object'Class)
-                      return System.Address ;
-   pragma Import (C,C_Get_Boa,"toto") ;
-   -- wrapper around BOA function getBOA
-   -- (see CORBA.h)
-
-   -- Get_Boa
-   ----------
-   function Get_Boa (Self: in Object'Class)
-                    return Object'Class is
-      C_Result : System.Address ;
-   begin
-      -- calls the C function ...
-      C_Result := C_Get_Boa (Self) ;
-      -- ... and transforms the result into an Ada type
-      return Address_To_Object.To_Pointer(C_result).All ;
-   end ;
-
-
-   -- C_Dispose
-   ------------
-   procedure C_Dispose (Self : in Object'Class ;
-                        object : in System.Address) ;
-   pragma Import (C,C_Dispose,"toto") ;
-   -- wrapper around BOA function dispose
-   -- (see CORBA.h)
-
-   -- Dispose
-   ----------
-   procedure Dispose(Self: in Object'Class ;
-                     Obj : in Corba.Object.Ref'Class) is
-      C_Obj : System.Address ;
-   begin
-      -- transforms the arguments into a C type ...
-      C_Obj := Obj'Address ;
-      -- ... and calls the C procedure
-      C_Dispose (Self,C_Obj);
-   end ;
+--   -- C_Get_Boa
+--   ----------
+--   function C_Get_Boa (Self: in Object'Class)
+--                      return System.Address ;
+--   pragma Import (C,C_Get_Boa,"toto") ;
+--   -- wrapper around BOA function getBOA
+--   -- (see CORBA.h)
+--
+--   -- Get_Boa
+--   ----------
+--   function Get_Boa (Self: in Object'Class)
+--                    return Object'Class is
+--      C_Result : System.Address ;
+--   begin
+--      -- calls the C function ...
+--      C_Result := C_Get_Boa (Self) ;
+--      -- ... and transforms the result into an Ada type
+--      return Address_To_Object.To_Pointer(C_result).All ;
+--   end ;
+--
+--
+--   -- C_Dispose
+--   ------------
+--   procedure C_Dispose (Self : in Object'Class ;
+--                        object : in System.Address) ;
+--   pragma Import (C,C_Dispose,"toto") ;
+--   -- wrapper around BOA function dispose
+--   -- (see CORBA.h)
+--
+--   -- Dispose
+--   ----------
+--   procedure Dispose(Self: in Object'Class ;
+--                     Obj : in Corba.Object.Ref'Class) is
+--      C_Obj : System.Address ;
+--   begin
+--      -- transforms the arguments into a C type ...
+--      C_Obj := Obj'Address ;
+--      -- ... and calls the C procedure
+--      C_Dispose (Self,C_Obj);
+--   end ;
 
 
 end Corba.Boa ;
