@@ -37,6 +37,8 @@ with Ada.Strings.Maps;
 
 --  with AWS.Messages;
 with AWS.Utils;
+pragma Elaborate_All (AWS.Utils); --  WAG:3.15
+
 with AWS.URL.Raise_URL_Error;
 
 with PolyORB.Utils;
