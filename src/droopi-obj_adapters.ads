@@ -17,7 +17,7 @@ package Droopi.Obj_Adapters is
    procedure Create (OA : access Obj_Adapter) is abstract;
    --  Initialize.
 
-   procedure Destroy (OA : in out Obj_Adapter) is abstract;
+   procedure Destroy (OA : access Obj_Adapter) is abstract;
    --  Finalize.
 
    Invalid_Object_Id : exception;

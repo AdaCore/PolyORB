@@ -34,7 +34,7 @@ package CORBA.POA_Types is
    --  Base types for CORBA
 
    type Obj_Adapter is abstract new Droopi.Obj_Adapters.Obj_Adapter
-     with null record;
+      with null record;
    type Obj_Adapter_Access is access all Obj_Adapter'Class;
 
    type Parameter_Profile_Description is
@@ -77,7 +77,8 @@ package CORBA.POA_Types is
 
    function "=" (Left, Right : in Unmarshalled_Oid) return Standard.Boolean;
 
-   function Image (Oid : Object_Id) return String;
+   function Image
+     (Oid : Object_Id) return String;
    --  For debugging purposes.
 
    function Create_Id
@@ -96,14 +97,18 @@ package CORBA.POA_Types is
      return Object_Id_Access;
    --  Create an Unmarshalled_Oid, and then marshall it into an Object_Id
 
-   function Oid_To_U_Oid (Oid : Object_Id_Access)
-                         return Unmarshalled_Oid_Access;
-   function Oid_To_U_Oid (Oid : Object_Id)
-                         return Unmarshalled_Oid_Access;
+   function Oid_To_U_Oid
+     (Oid : Object_Id_Access)
+     return Unmarshalled_Oid_Access;
+
+   function Oid_To_U_Oid
+     (Oid : Object_Id)
+     return Unmarshalled_Oid_Access;
    --  Unmarshall an Object_Id into a Unmarshalled_Oid
 
-   function U_Oid_To_Oid (U_Oid : Unmarshalled_Oid_Access)
-                         return Object_Id_Access;
+   function U_Oid_To_Oid
+     (U_Oid : Unmarshalled_Oid_Access)
+     return Object_Id_Access;
    --  Marshall an Unmarshalled_Oid into an Object_Id
 
    procedure Free (X : in out CORBA.POA_Types.Object_Id_Access);

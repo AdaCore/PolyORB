@@ -102,65 +102,50 @@ package CORBA.POA.Basic_POA is
    --------------------------------------------------------
    --  Functions and procedures to interface with Droopi --
    --------------------------------------------------------
-   procedure Create (OA : access Basic_Obj_Adapter);
-   --  Initialize.
+   procedure Create
+     (OA : access Basic_Obj_Adapter);
 
-   procedure Destroy (OA : in out Basic_Obj_Adapter);
-   --  Finalize.
+   procedure Destroy
+     (OA : access Basic_Obj_Adapter);
 
    function Export
      (OA  : access Basic_Obj_Adapter;
       Obj :        Droopi.Objects.Servant_Access)
      return Droopi.Objects.Object_Id;
-   --  Create an identifier for Obj within OA.
 
    procedure Unexport
      (OA : access Basic_Obj_Adapter;
       Id :        Droopi.Objects.Object_Id);
-   --  Id is an object identifier attributed by OA.
-   --  The corresponding association is suppressed.
-
-   ----------------------------------------------------
-   -- Interface to ORB (acting on behalf of clients) --
-   ----------------------------------------------------
 
    function Get_Empty_Arg_List
      (OA     : access Basic_Obj_Adapter;
       Oid    : Droopi.Objects.Object_Id;
       Method : Droopi.Requests.Operation_Id)
      return Droopi.Any.NVList.Ref;
-   --  Returns the parameter profile of the given method, so the
-   --  protocol layer can unmarshall the message into a Request object.
 
    function Get_Empty_Result
      (OA     : access Basic_Obj_Adapter;
       Oid    : Droopi.Objects.Object_Id;
       Method : Droopi.Requests.Operation_Id)
      return Droopi.Any.Any;
-   --  Return the result profile of the given method.
 
    function Find_Servant
      (OA : access Basic_Obj_Adapter;
       Id :        Droopi.Objects.Object_Id)
      return Droopi.Objects.Servant_Access;
-   --  Retrieve the servant managed by OA for logical object Id.
-   --  The servant that incarnates the object is return.
 
    procedure Release_Servant
      (OA      : access Basic_Obj_Adapter;
       Id      :        Droopi.Objects.Object_Id;
       Servant : in out Droopi.Objects.Servant_Access);
-   --  Signal to OA that a Servant previously obtained using
-   --  Find_Servant won't be used by the client anymore. This
-   --  may cause the servant to be destroyed if so is OA's
-   --  policy.
 
    -------------------------------------------------
    --  Utilities, neither in CORBA nor in Droopi  --
    -------------------------------------------------
 
-   procedure Copy_Obj_Adapter (From : in     Basic_Obj_Adapter;
-                               To   : access Basic_Obj_Adapter);
+   procedure Copy_Obj_Adapter
+     (From : in     Basic_Obj_Adapter;
+      To   : access Basic_Obj_Adapter);
 
    function Create_Root_POA
      return Obj_Adapter_Access;
@@ -174,8 +159,8 @@ package CORBA.POA.Basic_POA is
    --  name is Name. Returns null if not found.
    --  ??? Should be private
 
-   procedure Free is new Ada.Unchecked_Deallocation (Basic_Obj_Adapter,
-                                                     Basic_Obj_Adapter_Access);
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Basic_Obj_Adapter, Basic_Obj_Adapter_Access);
 
 private
    type Check_State is (CHECK, NO_CHECK);

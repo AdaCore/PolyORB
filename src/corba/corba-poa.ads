@@ -64,23 +64,6 @@ package CORBA.POA is
    --  Create a POA given its name and a list of policies
    --  Policies are optionnal : defaults values are provided
 
---    function Find_POA
---      (Self         : access CORBA.POA_Types.Obj_Adapter;
---       Adapter_Name : in CORBA.String;
---       Activate_It  : in CORBA.Boolean)
---      return CORBA.POA_Types.Obj_Adapter is abstract;
---    --  Given a POA name, looks for the poa and return it if found
-
---    procedure Destroy
---      (Self                : access CORBA.POA_Types.Obj_Adapter;
---       Etherealize_Objects : in CORBA.Boolean;
---       Wait_For_Completion : in CORBA.Boolean)
---       is abstract;
-
---    --  Add here the factories for the policies
-
---    --  Add the procedures for default servant and servant manager
-
    function Activate_Object
      (Self      : access Obj_Adapter;
       P_Servant : in     Servant_Access)

@@ -15,7 +15,7 @@ package Droopi.Obj_Adapters.Simple is
 
    procedure Create (OA : access Simple_Obj_Adapter);
 
-   procedure Destroy (OA : in out Simple_Obj_Adapter);
+   procedure Destroy (OA : access Simple_Obj_Adapter);
 
    function Export
      (OA  : access Simple_Obj_Adapter;

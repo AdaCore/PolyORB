@@ -11,7 +11,9 @@ package body CORBA.POA_Types is
    -- Left --
    ----------
 
-   function "=" (Left, Right : in Unmarshalled_Oid) return Standard.Boolean
+   function "="
+     (Left, Right : in Unmarshalled_Oid)
+     return Standard.Boolean
    is
    begin
       if Left.Id = Right.Id
@@ -27,7 +29,9 @@ package body CORBA.POA_Types is
    -- Image --
    -----------
 
-   function Image (Oid : Object_Id) return String
+   function Image
+     (Oid : Object_Id)
+     return String
    is
    begin
       return To_CORBA_String (Droopi.Objects.To_String
@@ -75,8 +79,9 @@ package body CORBA.POA_Types is
    -- Oid_To_U_Oid --
    ------------------
 
-   function Oid_To_U_Oid (Oid : Object_Id_Access)
-                         return Unmarshalled_Oid_Access
+   function Oid_To_U_Oid
+     (Oid : Object_Id_Access)
+     return Unmarshalled_Oid_Access
    is
       U_Oid            : Unmarshalled_Oid_Access;
       Stream           : aliased Stream_Element_Array
@@ -107,8 +112,9 @@ package body CORBA.POA_Types is
    -- Oid_To_U_Oid --
    ------------------
 
-   function Oid_To_U_Oid (Oid : Object_Id)
-                         return Unmarshalled_Oid_Access
+   function Oid_To_U_Oid
+     (Oid : Object_Id)
+     return Unmarshalled_Oid_Access
    is
       Oid_Access : Object_Id_Access;
       U_Oid      : Unmarshalled_Oid_Access;
@@ -125,8 +131,9 @@ package body CORBA.POA_Types is
    -- U_Oid_To_Oid --
    ------------------
 
-   function U_Oid_To_Oid (U_Oid : Unmarshalled_Oid_Access)
-                         return Object_Id_Access
+   function U_Oid_To_Oid
+     (U_Oid : Unmarshalled_Oid_Access)
+     return Object_Id_Access
    is
       Buffer             : Buffer_Access := new Buffer_Type;
       Oid                : Object_Id_Access;
@@ -147,7 +154,8 @@ package body CORBA.POA_Types is
    -- Free --
    ----------
 
-   procedure Free (X : in out CORBA.POA_Types.Object_Id_Access)
+   procedure Free
+     (X : in out CORBA.POA_Types.Object_Id_Access)
    is
       Y : Droopi.Objects.Object_Id_Access
         := Droopi.Objects.Object_Id_Access (X);

@@ -68,9 +68,10 @@ package body CORBA.POA.Basic_POA is
    -- Get_Child --
    ---------------
 
-   function Get_Child (Adapter : access Basic_Obj_Adapter;
-                       Name    : in     String)
-                      return POA_Types.Obj_Adapter_Access
+   function Get_Child
+     (Adapter : access Basic_Obj_Adapter;
+      Name    : in     String)
+     return POA_Types.Obj_Adapter_Access
    is
       use POA_Sequences;
       A_Child : POA_Types.Obj_Adapter_Access;
@@ -110,8 +111,9 @@ package body CORBA.POA.Basic_POA is
    -- Init_With_User_Policies --
    -----------------------------
 
-   procedure Init_With_User_Policies (OA       : Basic_Obj_Adapter_Access;
-                                      Policies : Policy.PolicyList_Access)
+   procedure Init_With_User_Policies
+     (OA       : Basic_Obj_Adapter_Access;
+      Policies : Policy.PolicyList_Access)
    is
       A_Policy : Policy_Access;
    begin
@@ -196,7 +198,8 @@ package body CORBA.POA.Basic_POA is
    -- Init_With_Default_Policies --
    --------------------------------
 
-   procedure Init_With_Default_Policies (OA : Basic_Obj_Adapter_Access)
+   procedure Init_With_Default_Policies
+     (OA : Basic_Obj_Adapter_Access)
    is
       use CORBA.Policy_Values;
    begin
@@ -242,7 +245,8 @@ package body CORBA.POA.Basic_POA is
    -- Check_Policies_Compatibility --
    ----------------------------------
 
-   procedure Check_Policies_Compatibility (OA : Basic_Obj_Adapter_Access)
+   procedure Check_Policies_Compatibility
+     (OA : Basic_Obj_Adapter_Access)
    is
    begin
       pragma Debug (O ("Check compatibilities between policies"));
@@ -273,8 +277,9 @@ package body CORBA.POA.Basic_POA is
    -- Register_Child --
    --------------------
 
-   function Register_Child (Self  : access Basic_Obj_Adapter;
-                            Child :        Basic_Obj_Adapter_Access)
+   function Register_Child
+     (Self  : access Basic_Obj_Adapter;
+      Child :        Basic_Obj_Adapter_Access)
      return Positive
    is
       use CORBA.POA_Types.POA_Sequences;
@@ -301,7 +306,8 @@ package body CORBA.POA.Basic_POA is
    -- Destroy_Policies --
    ----------------------
 
-   procedure Destroy_Policies (OA : in out Basic_Obj_Adapter)
+   procedure Destroy_Policies
+     (OA : in out Basic_Obj_Adapter)
    is
    begin
       if OA.Thread_Policy /= null then
@@ -338,7 +344,8 @@ package body CORBA.POA.Basic_POA is
    -- Destroy_Locks --
    -------------------
 
-   procedure Destroy_Locks (OA : in out Basic_Obj_Adapter)
+   procedure Destroy_Locks
+     (OA : in out Basic_Obj_Adapter)
    is
       use Droopi.Locks;
    begin
@@ -517,9 +524,10 @@ package body CORBA.POA.Basic_POA is
    -- Create_Thread_Policy --
    --------------------------
 
-   function Create_Thread_Policy (Self  : access Basic_Obj_Adapter;
-                                  Value :        ThreadPolicyValue)
-                                 return ThreadPolicy_Access
+   function Create_Thread_Policy
+     (Self  : access Basic_Obj_Adapter;
+      Value :        ThreadPolicyValue)
+     return ThreadPolicy_Access
    is
    begin
       return ThreadPolicy_Access
@@ -530,9 +538,10 @@ package body CORBA.POA.Basic_POA is
    -- Create_Lifespan_Policy --
    ----------------------------
 
-   function Create_Lifespan_Policy (Self  : access Basic_Obj_Adapter;
-                                    Value :        LifespanPolicyValue)
-                                 return LifespanPolicy_Access
+   function Create_Lifespan_Policy
+     (Self  : access Basic_Obj_Adapter;
+      Value :        LifespanPolicyValue)
+     return LifespanPolicy_Access
    is
    begin
       return LifespanPolicy_Access
@@ -740,8 +749,9 @@ package body CORBA.POA.Basic_POA is
    -- Copy_Obj_Adapter --
    ----------------------
 
-   procedure Copy_Obj_Adapter (From : in     Basic_Obj_Adapter;
-                               To   : access Basic_Obj_Adapter)
+   procedure Copy_Obj_Adapter
+     (From : in     Basic_Obj_Adapter;
+      To   : access Basic_Obj_Adapter)
    is
    begin
       To.Name              := From.Name;
@@ -770,12 +780,11 @@ package body CORBA.POA.Basic_POA is
    -- Destroy --
    -------------
 
-   procedure Destroy (OA : in out Basic_Obj_Adapter)
+   procedure Destroy
+     (OA : access Basic_Obj_Adapter)
    is
    begin
-      --  Destroy_OA (OA);
-      null;
-      --  ??? change "in out" into "access" in droopi-obj_adapters.ad?
+      Destroy_OA (OA);
    end Destroy;
 
    ------------

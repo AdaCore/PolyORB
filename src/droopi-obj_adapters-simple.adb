@@ -57,7 +57,7 @@ package body Droopi.Obj_Adapters.Simple is
       Create (OA.Lock);
    end Create;
 
-   procedure Destroy (OA : in out Simple_Obj_Adapter) is
+   procedure Destroy (OA : access Simple_Obj_Adapter) is
    begin
       Destroy (OA.Lock);
    end Destroy;
