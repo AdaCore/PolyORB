@@ -15,7 +15,7 @@ package body Lexer is
    --  Once preprocessed, the idl file is loaded in Buffer and
    --  Token_Location.Scan is used to scan the source file.
 
-   Display_Error : constant Boolean := True;
+   Display_Error : Boolean := True;
    pragma Unreferenced (Display_Error);
 
    Token_Image   : array (Token_Type) of Name_Id;
@@ -47,21 +47,29 @@ package body Lexer is
    --
    --  NOTE: all characters will be converted to lower case (when possible)
 
-   procedure Scan_Decimal_Integer_Value;
+   procedure Scan_Based_Fraction_Value (Base : Short_Short_Unsigned);
    --
-   --  Scan an integer in the conventional decimal notation.
-   --  This procedure is used in Scan_Numeric_Literal_Value because of two
-   --  reasons:
-   --     1. all numeric literal begins with a decimal integer literal
-   --     2. Scan_Based_Integer_Value (Base) checks digits for validity
-   --        which is more complex (so less efficient)
+   --  Scan a fraction in the given base notation.
+   --  This procedure checks digits for validity
 
    procedure Scan_Based_Integer_Value (Base : Short_Short_Unsigned);
    --
    --  Scan an integer in the given base notation.
    --  This procedure checks digits for validity.
    --  Example:  1234 is an invalid number in base 4
-   pragma Unreferenced (Scan_Based_Integer_Value);
+
+   procedure Scan_Decimal_Fraction_Value;
+   --  Scan a fraction in  the conventional decimal notation.
+
+   procedure Scan_Decimal_Integer_Value;
+   --
+   --  Scan an integer in the conventional decimal notation.
+   --  This procedure is used in Scan_Numeric_Literal_Value because of three
+   --  reasons:
+   --     1. all numeric literal begins with a decimal integer literal
+   --     2. exponent value is always in decimal format
+   --     3. Scan_Based_Integer_Value (Base) checks digits for validity
+   --        which is more complex (so less efficient)
 
    procedure Scan_Numeric_Literal_Value;
    --
@@ -97,6 +105,40 @@ package body Lexer is
    begin
       return Get_Name_String (Token_Image (T));
    end Image;
+
+   -------------------------
+   -- Image_Current_Token --
+   -------------------------
+
+   function Image_Current_Token return String is
+   begin
+      case Token is
+         when T_Error =>
+            return "[ERROR]";
+
+         when T_Identifier =>
+            return Get_Name_String (Identifier_Name);
+
+         when T_Access .. T_Units =>
+            return "'" & Image (Token) & "'";
+
+         when T_Real_Literal =>
+            return "[F " & Long_Long_Float'Image (Float_Literal_Value) & "]";
+
+         when T_Integer_Literal =>
+            return "[I " & Long_Long_Unsigned'Image (Integer_Literal_Value)
+              & "]";
+
+         when T_String_Literal =>
+            return """" & Get_Name_String (String_Literal_Value) & """";
+
+         when T_EOF =>
+            return "EOF";
+
+         when others =>
+            return (Image (Token));
+      end case;
+   end Image_Current_Token;
 
    --------------
    -- New_Line --
@@ -313,37 +355,57 @@ package body Lexer is
       New_Token (T_EOF, "<end of file>");
    end Process;
 
-   ---------------------
-   -- Scan_Identifier --
-   ---------------------
+   -------------------------------
+   -- Scan_Based_Fraction_Value --
+   ------------------------------
 
-   procedure Scan_Identifier is
-      B : Byte;
+   procedure Scan_Based_Fraction_Value (Base : Short_Short_Unsigned) is
+      Ch     : Character;
+      Size   : Integer := 0;  --  number of scanned digits
+      Digit  : Short_Short_Unsigned;
+      Factor : Long_Long_Float;
    begin
-      --  The first character of identifier is an alphabetic character.
-      --  Buffer (Token_Location.Scan) is tested in Scan_Token before
-      --  procedure call.
+      Float_Literal_Value := 0.0;
+      Factor := Long_Long_Float (1.0 / Long_Long_Float (Base));
+      Token := T_Real_Literal;
 
-      Name_Len := 0;   --  initialize string buffer
-      Add_Char_To_Name_Buffer (Buffer (Token_Location.Scan));
-      Token_Location.Scan := Token_Location.Scan + 1;
+      loop
+         Ch := Ada.Characters.Handling.To_Upper (Buffer (Token_Location.Scan));
+         if Ch in '0' .. '9' then
+            Digit := Character'Pos (Ch) - Character'Pos ('0');
+         elsif Ch in 'A' .. 'F' then
+            Digit := Character'Pos (Ch) - Character'Pos ('A') + 10;
+         elsif Ch = '_' then
+            Token_Location.Scan := Token_Location.Scan + 1;
+         else
+            exit;
+         end if;
 
-      while Is_Identifier_Character (Buffer (Token_Location.Scan)) loop
-         Add_Char_To_Name_Buffer (To_Lower (Buffer (Token_Location.Scan)));
-         Token_Location.Scan := Token_Location.Scan + 1;
+         if Ch /= '_' then
+            if Digit >= Base then
+               Error_Loc (1) := Token_Location;
+               DE ("digit '|" & Ch & "' is invalid in base " &
+                   Short_Short_Unsigned'Image (Base));
+               Token := T_Error;
+               Float_Literal_Value := 0.0;
+               return;
+            end if;
+
+            Size := Size + 1;
+            Token_Location.Scan := Token_Location.Scan + 1;
+
+            Float_Literal_Value :=
+              Float_Literal_Value + Long_Long_Float (Digit) * Factor;
+            Factor := Factor / Long_Long_Float (Base);
+         end if;
       end loop;
 
-      --  check whether it is a reserved word
-
-      B := Get_Name_Table_Byte (Name_Find);
-      if B in First_Reserved_Word_Pos .. Last_Reserved_Word_Pos then
-         Token := Token_Type'Val (B);
-         --  Identifier_Name is not necessairy here
-      else
-         Token := T_Identifier;
-         Identifier_Name := Name_Find;
+      if Size = 0 then
+         Error_Loc (1) := Token_Location;
+         DE ("invalid digit '|" & Ch & "'");
+         Token := T_Error;
       end if;
-   end Scan_Identifier;
+   end Scan_Based_Fraction_Value;
 
    ------------------------------
    -- Scan_Based_Integer_Value --
@@ -363,32 +425,73 @@ package body Lexer is
             Digit := Character'Pos (Ch) - Character'Pos ('0');
          elsif Ch in 'A' .. 'F' then
             Digit := Character'Pos (Ch) - Character'Pos ('A') + 10;
+         elsif Ch = '_' then
+            Token_Location.Scan := Token_Location.Scan + 1;
          else
             exit;
          end if;
 
-         if Digit >= Base then
-            Error_Loc (1) := Token_Location;
-            DE ("digit '" & Ch & "' is invalid in base " &
-                Short_Short_Unsigned'Image (Base));
-            Token := T_Error;
-            Integer_Literal_Value := 0;
-            return;
+         if Ch /= '_' then
+            if Digit >= Base then
+               Error_Loc (1) := Token_Location;
+               DE ("digit '|" & Ch & "' is invalid in base " &
+                   Short_Short_Unsigned'Image (Base));
+               Token := T_Error;
+               Integer_Literal_Value := 0;
+               return;
+            end if;
+
+            Size := Size + 1;
+            Token_Location.Scan := Token_Location.Scan + 1;
+
+            Integer_Literal_Value :=
+              Integer_Literal_Value * LLU (Base) + LLU (Digit);
          end if;
-
-         Size := Size + 1;
-         Token_Location.Scan := Token_Location.Scan + 1;
-
-         Integer_Literal_Value :=
-           Integer_Literal_Value * LLU (Base) + LLU (Digit);
       end loop;
 
       if Size = 0 then
          Error_Loc (1) := Token_Location;
-         DE ("invalid digit '" & Ch & "'");
+         DE ("invalid digit '|" & Ch & "'");
          Token := T_Error;
       end if;
    end Scan_Based_Integer_Value;
+
+   ---------------------------------
+   -- Scan_Decimal_Fraction_Value --
+   ---------------------------------
+
+   procedure Scan_Decimal_Fraction_Value is
+      Ch     : Character;
+      Size   : Integer := 0;  --  number of scanned digits
+      Digit  : Short_Short_Unsigned;
+      Factor : Long_Long_Float;
+   begin
+      Float_Literal_Value := 0.0;
+      Factor := 0.1;
+      Token := T_Real_Literal;
+
+      loop
+         Ch := Buffer (Token_Location.Scan);
+         if Ch in '0' .. '9' then
+            Digit := Character'Pos (Ch) - Character'Pos ('0');
+            Float_Literal_Value := Float_Literal_Value +
+              Long_Long_Float (Digit) *  Factor;
+            Factor := Factor / 10.0;
+            Size   := Size + 1;
+            Token_Location.Scan := Token_Location.Scan + 1;
+         elsif Ch = '_' then
+            Token_Location.Scan := Token_Location.Scan + 1;  --  '_' ignored
+         else
+            exit;
+         end if;
+      end loop;
+
+      if Size = 0 then
+         Error_Loc (1) := Token_Location;
+         DE ("invalid decimal digit '|" & Ch & "'");
+         Token := T_Error;
+      end if;
+   end Scan_Decimal_Fraction_Value;
 
    --------------------------------
    -- Scan_Decimal_Integer_Value --
@@ -413,6 +516,8 @@ package body Lexer is
                Size := Size + 1;
             end if;
             Token_Location.Scan := Token_Location.Scan + 1;
+         elsif Ch = '_' then
+            Token_Location.Scan := Token_Location.Scan + 1;  --  '_' ignored
          else
             exit;
          end if;
@@ -420,18 +525,178 @@ package body Lexer is
 
       if Size = 0 then
          Error_Loc (1) := Token_Location;
-         DE ("invalid decimal digit '" & Ch & "'");
+         DE ("invalid decimal digit '|" & Ch & "'");
          Token := T_Error;
       end if;
    end Scan_Decimal_Integer_Value;
+
+   ---------------------
+   -- Scan_Identifier --
+   ---------------------
+
+   procedure Scan_Identifier is
+      B : Byte;
+   begin
+      --  The first character of identifier is an alphabetic character.
+      --  Buffer (Token_Location.Scan) is tested in Scan_Token before
+      --  procedure call.
+
+      Name_Len := 0;   --  initialize string buffer
+      Add_Char_To_Name_Buffer (Buffer (Token_Location.Scan));
+      Token_Location.Scan := Token_Location.Scan + 1;
+
+      while Is_Identifier_Character (Buffer (Token_Location.Scan)) loop
+         Add_Char_To_Name_Buffer (To_Lower (Buffer (Token_Location.Scan)));
+         Token_Location.Scan := Token_Location.Scan + 1;
+      end loop;
+
+      --  check whether it is a reserved word
+
+      Identifier_Name := Name_Find;
+
+      B := Get_Name_Table_Byte (Name_Find);
+      if B in First_Reserved_Word_Pos .. Last_Reserved_Word_Pos then
+         Token := Token_Type'Val (B);
+         --  Identifier_Name is not necessairy here
+      else
+         Token := T_Identifier;
+      end if;
+   end Scan_Identifier;
 
    --------------------------------
    -- Scan_Numeric_Literal_Value --
    --------------------------------
 
    procedure Scan_Numeric_Literal_Value is
+      Ch       : Character;
+      Is_Real  : Boolean := False;   --  scanned number is a real number
+      Int_Save : Long_Long_Unsigned; --  temporary value
+      Exp_Sign : Boolean;            --  sign of exponent (True >0 / False <0)
    begin
       Scan_Decimal_Integer_Value;
+      Numeric_Literal_Base := 10;  --  by default, base is ten
+
+      if Token /= T_Error then
+         Ch := Buffer (Token_Location.Scan);
+
+         if Ch = '#' then          --  based number
+            Token_Location.Scan := Token_Location.Scan + 1;
+
+            if Integer_Literal_Value < 2 then
+               Error_Loc (1) := Token_Location;
+               DE ("numeric base " & LLU'Image (Integer_Literal_Value) &
+                   " is too small, must be at least 2");
+               Token := T_Error;
+               return;
+            elsif Integer_Literal_Value > 16 then
+               Error_Loc (1) := Token_Location;
+               DE ("numeric base " & LLU'Image (Integer_Literal_Value) &
+                   " is too big, must be at most 16");
+               Token := T_Error;
+               return;
+            else            --  base is OK
+               Numeric_Literal_Base := SSU (Integer_Literal_Value);
+               --  scan for integer part
+               Scan_Based_Integer_Value (Numeric_Literal_Base);
+
+               if Token /= T_Error then
+                  Ch := Buffer (Token_Location.Scan);
+
+                  if Ch = '.' then     --  based real number
+                     Is_Real := True;
+                     Token_Location.Scan := Token_Location.Scan + 1;
+                     Scan_Based_Fraction_Value (Numeric_Literal_Base);
+
+                     if Token /= T_Error then
+                        --  mixe two parts
+                        Float_Literal_Value := Float_Literal_Value +
+                          Long_Long_Float (Integer_Literal_Value);
+                     else
+                        return;
+                     end if;
+                  end if;
+               else
+                  return;
+               end if;
+
+               Ch := Buffer (Token_Location.Scan);
+               if Ch /= '#' then
+                  Error_Loc (1) := Token_Location;
+                  DE ("'|#' is expected at the end of based number");
+                  return;
+               else
+                  Token_Location.Scan := Token_Location.Scan + 1;
+               end if;
+            end if;
+
+         elsif Ch = '.' then   --  decimal real number
+            Is_Real := True;
+            Token_Location.Scan := Token_Location.Scan + 1;
+            Scan_Decimal_Fraction_Value;
+
+            if Token /= T_Error then
+               --  mixe two parts
+               Float_Literal_Value := Float_Literal_Value +
+                 Long_Long_Float (Integer_Literal_Value);
+            else
+               return;
+            end if;
+         end if;
+
+         --  Scan exponent  --
+
+         Ch := Buffer (Token_Location.Scan);
+
+         if Ch = 'E' then
+            Token_Location.Scan := Token_Location.Scan + 1;
+            Ch := Buffer (Token_Location.Scan);
+
+            if Ch = '-' then
+               Exp_Sign := False;
+               Token_Location.Scan := Token_Location.Scan + 1;
+            else
+               Exp_Sign := True;
+               if Ch = '+' then   --  ignore '+'
+                  Token_Location.Scan := Token_Location.Scan + 1;
+               end if;
+            end if;
+
+            Int_Save := Integer_Literal_Value;  --  save before scan
+            Scan_Decimal_Integer_Value;
+
+            if Token /= T_Error then
+               if Is_Real then
+                  if Exp_Sign then
+                     Float_Literal_Value := Float_Literal_Value *
+                       Long_Long_Float (Integer (Numeric_Literal_Base) **
+                                        Integer (Integer_Literal_Value));
+                  else
+                     Float_Literal_Value := Float_Literal_Value /
+                       Long_Long_Float (Integer (Numeric_Literal_Base) **
+                                        Integer (Integer_Literal_Value));
+                  end if;
+               else
+                  if Exp_Sign then
+                     Integer_Literal_Value := Int_Save *
+                       LLU (Integer (Numeric_Literal_Base) **
+                            Integer (Integer_Literal_Value));
+                  else
+                     Integer_Literal_Value := Int_Save /
+                       LLU (Integer (Numeric_Literal_Base) **
+                            Integer (Integer_Literal_Value));
+                  end if;
+               end if;
+            else
+               return;
+            end if;
+         end if;
+
+         if Is_Real then
+            Token := T_Real_Literal;
+         else
+            Token := T_Integer_Literal;
+         end if;
+      end if;
    end Scan_Numeric_Literal_Value;
 
    -------------------------------
@@ -462,7 +727,7 @@ package body Lexer is
                   Add_Char_To_Name_Buffer (Ch);
                else
                   Error_Loc (1) := Token_Location;
-                  DE ("non graphic character '" & Ch &
+                  DE ("non graphic character '|" & Ch &
                       "' is not allowed in string lateral, ignored");
                   if Ch = EOF then
                      DE ("scanning string, end of file reached, exit");
@@ -667,7 +932,7 @@ package body Lexer is
                   Scan_Identifier;
                else
                   Error_Loc (1) := Token_Location;
-                  DE ("character '" & Buffer (Token_Location.Scan) &
+                  DE ("character '|" & Buffer (Token_Location.Scan) &
                       "' is invalid, ignored");
                   Token_Location.Scan := Token_Location.Scan + 1;
                end if;

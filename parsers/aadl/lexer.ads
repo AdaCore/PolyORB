@@ -197,7 +197,10 @@ package Lexer is
    --  for Tokens : T_Integer_Literal, T_Real_Literal
 
    function Image (T : Token_Type) return String;
-   --  Returns an image of token T
+   --  Return an image of token T
+
+   function Image_Current_Token return String;
+   --  Return an image of the current token
 
    procedure Preprocess
      (Source : Name_Id;

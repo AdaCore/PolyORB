@@ -17,7 +17,6 @@ begin
    Namet.Initialize;
    Errors.Initialize;
 
-
    Set_Str_To_Name_Buffer (GNAT.Command_Line.Get_Argument);
    if Name_Len /= 0 then
       Source_File := Name_Find;
@@ -31,7 +30,7 @@ begin
 
    loop
       Scan_Token;
-      Put (Image (Token));
+      Put (Image_Current_Token);
       Put (' ');
       if Token = T_EOF then
          exit;
