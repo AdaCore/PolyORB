@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-1999 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2000 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -40,14 +40,20 @@ package System.Garlic.Platform_Specific is
 
    pragma Pure;
 
-   Supports_Local_Launch : constant Boolean := @SUPPORTS_LOCAL_LAUNCH@;
+   Supports_Local_Launch  : constant Boolean := @SUPPORTS_LOCAL_LAUNCH@;
 
-   Platform_Name         : constant String  := "@PSNAME@";
+   Platform_Name          : constant String  := "@PSNAME@";
 
-   Default_Protocol_Name : constant String  :=
+   Default_Protocol_Name  : constant String  :=
    "@DEFPROTOCOLNAME@";
 
-   Default_Protocol_Data : constant String  :=
+   Default_Protocol_Data  : constant String  :=
    "@DEFPROTOCOLDATA@";
+
+   Default_Storage_Data : constant String  :=
+   "@DEFSTORAGEDATA@";
+
+   Default_Storage_Name : constant String  :=
+   "@DEFSTORAGENAME@";
 
 end System.Garlic.Platform_Specific;
