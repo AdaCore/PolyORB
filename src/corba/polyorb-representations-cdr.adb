@@ -43,6 +43,7 @@ with PolyORB.CORBA_P.Exceptions;
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Opaque;  use PolyORB.Opaque;
+with PolyORB.References;
 with PolyORB.References.IOR;
 with PolyORB.Types;
 with PolyORB.Utils.Buffers; use PolyORB.Utils.Buffers;
@@ -2356,6 +2357,7 @@ package body PolyORB.Representations.CDR is
 --         --  4. Call the interface marshalling function
 --      else
       declare
+         use PolyORB.References;
          use PolyORB.References.IOR;
          IOR : IOR_Type;
       begin
@@ -2373,6 +2375,7 @@ package body PolyORB.Representations.CDR is
      (Buffer : access Buffer_Type;
       Data   : in out CORBA.AbstractBase.Ref'Class)
    is
+      use PolyORB.References;
       use PolyORB.References.IOR;
       IOR : constant IOR_Type := Unmarshall (Buffer);
    begin

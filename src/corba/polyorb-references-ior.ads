@@ -41,9 +41,10 @@
 
 --  $Id$
 
-with CORBA;
+with Ada.Streams;
 
 with PolyORB.Buffers;      use PolyORB.Buffers;
+with PolyORB.Types;
 
 with Sequences.Unbounded;
 
@@ -71,7 +72,7 @@ package PolyORB.References.IOR is
    --  reflected by its Ada type) and the associated type information
    --  (within the PolyORB typing model).
 
-   type IOR_Type is new PolyORB.References.Ref with null record;
+   subtype IOR_Type is PolyORB.References.Ref;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
@@ -81,12 +82,24 @@ package PolyORB.References.IOR is
      (Buffer : access Buffer_Type)
    return  IOR_Type;
 
-   function Object_To_String
-     (IOR : IOR_Type)
-      return CORBA.String;
+   --------------------------------------
+   -- Object reference <-> opaque data --
+   --------------------------------------
 
-   function  String_To_Object
-     (Str : CORBA.String)
+   function Object_To_Opaque (IOR : IOR_Type)
+     return Ada.Streams.Stream_Element_Array;
+
+   function Opaque_To_Object (Opaque : Ada.Streams.Stream_Element_Array)
+     return IOR_Type;
+
+   ------------------------------------------
+   -- Object reference <-> stringified IOR --
+   ------------------------------------------
+
+   function Object_To_String (IOR : IOR_Type)
+      return Types.String;
+
+   function  String_To_Object (Str : Types.String)
      return IOR_Type;
 
    procedure Register

@@ -57,6 +57,7 @@ with Ada.Exceptions;
 with Sequences.Unbounded;
 
 with PolyORB.Configuration;
+with PolyORB.CORBA_P.Exceptions;
 with PolyORB.Dynamic_Dict;
 pragma Elaborate_All (PolyORB.Dynamic_Dict);
 with PolyORB.Log;
@@ -392,9 +393,9 @@ package body CORBA.ORB is
    is
       use PolyORB.References.IOR;
    begin
-      return Object_To_String
-        (IOR_Type'(CORBA.Object.To_PolyORB_Ref (CORBA.Object.Ref (Obj))
-                   with null record));
+      return CORBA.String
+        (Object_To_String
+         (CORBA.Object.To_PolyORB_Ref (CORBA.Object.Ref (Obj))));
    end Object_To_String;
 
    ----------------------
@@ -405,10 +406,18 @@ package body CORBA.ORB is
      (From : in     CORBA.String;
       To   : in out CORBA.Object.Ref'Class)
    is
-      use PolyORB.References.IOR;
-      IOR : constant IOR_Type := String_To_Object (From);
    begin
-      CORBA.Object.Set (To, Entity_Of (IOR));
+      declare
+         use PolyORB.References;
+         use PolyORB.References.IOR;
+         IOR : constant IOR_Type
+           := String_To_Object (PolyORB.Types.String (From));
+      begin
+         CORBA.Object.Set (To, Entity_Of (IOR));
+      end;
+   exception
+      when Constraint_Error =>
+         PolyORB.CORBA_P.Exceptions.Raise_Bad_Param;
    end String_To_Object;
 
    ------------------

@@ -38,21 +38,17 @@ with Sequences.Unbounded;
 
 with PolyORB.Binding_Data;
 with PolyORB.Buffers; use PolyORB.Buffers;
-with PolyORB.CORBA_P.Exceptions;
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Representations.CDR;
 with PolyORB.Types;
 with PolyORB.Utils;
 
-with CORBA;
-
 package body PolyORB.References.IOR is
 
    use PolyORB.Log;
    use PolyORB.Utils;
    use PolyORB.Representations.CDR;
-   use PolyORB.CORBA_P.Exceptions;
    use PolyORB.Binding_Data;
    use Profile_Record_Seq;
 
@@ -138,15 +134,14 @@ package body PolyORB.References.IOR is
    return  IOR_Type
    is
       use PolyORB.Types;
-      use CORBA;
       use Profile_Seqs;
 
       Result     : IOR_Type;
 
-      CORBA_Type_Id : constant CORBA.String
-        := CORBA.String (Types.String'(Unmarshall (Buffer)));
+      CORBA_Type_Id : constant Types.String
+        := Types.String (Types.String'(Unmarshall (Buffer)));
       Type_Id : constant String
-        := CORBA.To_Standard_String (CORBA_Type_Id);
+        := To_Standard_String (CORBA_Type_Id);
 
       N_Profiles : constant Types.Unsigned_Long
         := Unmarshall (Buffer);
@@ -187,73 +182,59 @@ package body PolyORB.References.IOR is
       return Result;
    end Unmarshall;
 
-
-   -------------------------------------------------------
-   --  Stringfiecation of an IOR: from an Object to String
-   -------------------------------------------------------
-
-   function Object_To_String
-     (IOR : IOR_Type)
-     return CORBA.String
+   function Object_To_Opaque (IOR : IOR_Type)
+     return Stream_Element_Array
    is
-      use CORBA;
       Buf : Buffer_Access := new Buffer_Type;
-
    begin
-
-      pragma Debug (O ("Object to string : Enter"));
-
       Start_Encapsulation (Buf);
       Marshall (Buf, IOR);
 
       declare
-            Octets : constant Encapsulation := Encapsulate (Buf);
-            S      : constant String :=  "IOR:"
-              & To_String (Stream_Element_Array (Octets));
+         Octets : constant Encapsulation := Encapsulate (Buf);
       begin
-         pragma Debug (O ("Object to string : Leave"));
          Release (Buf);
-         return CORBA.To_CORBA_String (S);
+         return Stream_Element_Array (Octets);
       end;
+   end Object_To_Opaque;
 
+   function Opaque_To_Object (Opaque : Stream_Element_Array)
+     return IOR_Type
+   is
+      Buf     : Buffer_Access := new Buffer_Type;
+   begin
+      declare
+         Octets : aliased Encapsulation := Opaque;
+      begin
+         Decapsulate (Octets'Access, Buf);
+         return Unmarshall (Buf);
+      end;
+   end Opaque_To_Object;
+
+   function Object_To_String (IOR : IOR_Type)
+     return Types.String is
+   begin
+      return Types.To_PolyORB_String
+        ("IOR:" & To_String (Object_To_Opaque (IOR)));
    end Object_To_String;
 
-
-
-   -----------------------------------------------------------
-   --  Destringfiecation of an IOR: from an String to an Object
-   -----------------------------------------------------------
-
-   function String_To_Object
-     (Str : CORBA.String)
-      return IOR_Type
+   function String_To_Object (Str : Types.String)
+     return IOR_Type
    is
-      use CORBA;
       use PolyORB.Buffers;
-      Buf     : Buffer_Access := new Buffer_Type;
-      IOR     : IOR_Type;
       S       : constant String
-        := CORBA.To_Standard_String (Str);
+        := Types.To_Standard_String (Str);
       Length  : constant Natural := S'Length;
 
    begin
-
       if Length <= 4
         or else Length mod 2 /= 0
-        or else S (S'First .. S'First + 3) /= "IOR:" then
-         CORBA_P.Exceptions.Raise_Bad_Param;
+        or else S (S'First .. S'First + 3) /= "IOR:"
+      then
+         raise Constraint_Error;
       end if;
-
-      declare
-         Octets : aliased Encapsulation
-           := Encapsulation
-           (To_Stream_Element_Array (S (S'First + 4 .. S'Last)));
-      begin
-         Decapsulate (Octets'Access, Buf);
-         IOR := Unmarshall (Buf);
-         return IOR;
-      end;
-
+      return Opaque_To_Object
+        (To_Stream_Element_Array (S (S'First + 4 .. S'Last)));
    end String_To_Object;
 
    --------------

@@ -42,6 +42,7 @@ with PolyORB.Objects;
 with PolyORB.POA_Config;
 with PolyORB.POA_Manager.Basic_Manager;
 with PolyORB.POA_Types;
+--  with PolyORB.References.IOR;
 with PolyORB.Smart_Pointers;
 with PolyORB.Types;
 
@@ -1096,6 +1097,7 @@ package body PolyORB.POA.Basic_POA is
       R  :        References.Ref)
      return Object_Id_Access
    is
+
 --       Oid_Data : Object_Id_Access
 --         := To_Object_Id (IOR (R));
    begin
