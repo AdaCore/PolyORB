@@ -6,7 +6,7 @@ AUTOMAKE_OPTIONS = no-dependencies foreign
 
 SED = @SED@
 
-GNATDIST = ${exec_prefix}/bin/gnatdist
+GNATDIST = $(exec_prefix)/bin/gnatdist
 
 EXTRA_PROGS = mainloop
 CFGFILE = dynamic.cfg
@@ -14,11 +14,11 @@ CFGFILE = dynamic.cfg
 CLEANFILES = -r dsa *.o *.ali bin $(EXTRA_PROGS)
 DISTCLEANFILES = $(CLEANFILES)
 
-all-local: ../../check-stamp ${EXTRA_PROGS}
+all-local: ../../check-stamp $(EXTRA_PROGS)
 
 ../../check-stamp:
-	IN_MAKE=yes ${SHELL} ../../check-config
+	IN_MAKE=yes $(SHELL) ../../check-config
 	echo "It worked on `date`" > ../../check-stamp
 
 $(EXTRA_PROGS):
-	${GNATDIST} -I${srcdir} $(CFGFILE)
+	$(GNATDIST) -I$(srcdir) $(CFGFILE)
