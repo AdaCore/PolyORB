@@ -62,6 +62,7 @@ host_triplet = @host@
 target_alias = @target_alias@
 target_triplet = @target@
 ADA_FOR_TARGET = @ADA_FOR_TARGET@
+AR = @AR@
 AWK = @AWK@
 CC = @CC@
 CP_PRESERVE = @CP_PRESERVE@
@@ -87,6 +88,7 @@ PROTOCOLSOBJECTS = @PROTOCOLSOBJECTS@
 PROTOCOLSSOURCES = @PROTOCOLSSOURCES@
 PSNAME = @PSNAME@
 RANLIB = @RANLIB@
+RM = @RM@
 SED = @SED@
 SUPPORTS_LOCAL_LAUNCH = @SUPPORTS_LOCAL_LAUNCH@
 S_GTPLSP_ADB = @S_GTPLSP_ADB@
@@ -295,7 +297,7 @@ xe_sysdep.adb: xe_sysdep-std.adb xe_sysdep-nt.adb
 
 xe_defs.adb: Makefile
 	@echo Generating xe_defs.adb
-	@$(RM) xe_defs.adb
+	@$(RM) -f xe_defs.adb
 	@if [ "$(PSNAME)" = "Windows NT" ]; then \
 	   echo "with XE_Reg;" >>xe_defs.adb;\
 	fi

@@ -66,6 +66,7 @@ host_triplet = @host@
 target_alias = @target_alias@
 target_triplet = @target@
 ADA = @ADA@
+AR = @AR@
 AWK = @AWK@
 CC = @CC@
 CP_PRESERVE = @CP_PRESERVE@
@@ -89,6 +90,7 @@ PROTOCOLSOBJECTS = @PROTOCOLSOBJECTS@
 PROTOCOLSSOURCES = @PROTOCOLSSOURCES@
 PSNAME = @PSNAME@
 RANLIB = @RANLIB@
+RM = @RM@
 RSH_CMD = @RSH_CMD@
 RSH_OPT = @RSH_OPT@
 SED = @SED@
@@ -158,6 +160,10 @@ SUFFIXES = .adb .ads .ali .o .xrb
 mkinstalldirs = $(SHELL) $(top_srcdir)/support/mkinstalldirs
 CONFIG_HEADER = config.h
 CONFIG_CLEAN_FILES =  s-gaplsp.ads s-gaprco.adb s-garser.adb
+CFLAGS = @CFLAGS@
+COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+CCLD = $(CC)
+LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(LDFLAGS) -o $@
 DIST_COMMON =  ./stamp-h.in ChangeLog Makefile.am Makefile.in TODO \
 config.h.in s-gaplsp.ads.in s-gaprco.adb.in s-garser.adb.in
 
@@ -308,16 +314,16 @@ s-gtplsp.o: $(TCP_PLATFORM_SOURCES)
 	$(ADA_FOR_TARGET) -c $(CFLAGS) $(INCFLAGS) $(GNATFLAGS) \
 		`echo $(TCP_PLATFORM_SOURCES) | $(SED) -e 's/ .*$$//'`
 
-%.o: %.adb
+.adb.o:
 	$(ADA_FOR_TARGET) -c $(CFLAGS) $(INCFLAGS) $(GNATFLAGS) $<
 
-%.o: %.ads
+.ads.o:
 	$(ADA_FOR_TARGET) -c $(CFLAGS) $(INCFLAGS) $(GNATFLAGS) $<
 
-%.ali: %.adb
+.adb.ali:
 	$(ADA_FOR_TARGET) -c $(CFLAGS) $(INCFLAGS) $(GNATFLAGS) $<
 
-%.ali: %.ads
+.ads.ali:
 	$(ADA_FOR_TARGET) -c $(CFLAGS) $(INCFLAGS) $(GNATFLAGS) $<
 
 constants_nodef: $(srcdir)/constants.c config.h
@@ -390,7 +396,7 @@ all-local: $(SOURCES) $(OBJECTS) $(LINKTEST) $(FILTERSINSTALL)
 install-dirs-local:
 	-rm -rf $(GARLIC)
 	-$(mkinstalldirs) $(GARLIC)
-	echo $(GARLIC) created
+	@echo $(GARLIC) created
 
 inlining: all-local
 	@-if test ! -f inlining; then\
@@ -422,7 +428,7 @@ inlining: all-local
 	          if test $$? = 0; then\
 	             echo $$o >>gnatlib/rebuild;\
 	          else\
-	             $(RM) gnatlib/tocheck;\
+	             $(RM) -f gnatlib/tocheck;\
 	             break;\
 	          fi;\
 	      fi;\
