@@ -2,7 +2,7 @@
 --                                                                          --
 --                           ADABROKER SERVICES                             --
 --                                                                          --
--- C O S E V E N T C H A N N E L A D M I N . P R O X Y P U L L S U P P L I E R . I M P L  --
+--                COSEVENTCHANNELADMIN.PROXYPULLSUPPLIER.IMPL               --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -37,8 +37,8 @@ with CosEventComm.PullConsumer;
 
 with CosEventChannelAdmin; use CosEventChannelAdmin;
 
-with CosEventChannelAdmin.ProxyPullSupplier.Helper;
-with CosEventChannelAdmin.ProxyPullSupplier.Skel;
+--  with CosEventChannelAdmin.ProxyPullSupplier.Helper;
+--  with CosEventChannelAdmin.ProxyPullSupplier.Skel;
 
 with CosEventChannelAdmin.ConsumerAdmin.Impl;
 
@@ -49,7 +49,7 @@ with PolyORB.Tasking.Watchers; use PolyORB.Tasking.Watchers;
 
 with PortableServer; use PortableServer;
 
-with CORBA.Object;
+--  with CORBA.Object;
 
 with PolyORB.Log;
 
@@ -59,7 +59,7 @@ package body CosEventChannelAdmin.ProxyPullSupplier.Impl is
    package L is new PolyORB.Log.Facility_Log ("proxypullsupplier");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
- 
+
    type Proxy_Pull_Supplier_Record is
       record
          This    : Object_Ptr;
@@ -132,7 +132,7 @@ package body CosEventChannelAdmin.ProxyPullSupplier.Impl is
       Leave_Critical_Section;
 
       if not PullConsumer.Is_Nil (Peer) then
-         PullConsumer.Disconnect_Pull_Consumer (Peer);
+         PullConsumer.disconnect_pull_consumer (Peer);
       end if;
    end Disconnect_Pull_Supplier;
 

@@ -39,8 +39,8 @@ with CosEventChannelAdmin; use CosEventChannelAdmin;
 
 with CosEventChannelAdmin.ConsumerAdmin;
 
-with CosEventChannelAdmin.ProxyPushSupplier.Helper;
-with CosEventChannelAdmin.ProxyPushSupplier.Skel;
+--  with CosEventChannelAdmin.ProxyPushSupplier.Helper;
+--  with CosEventChannelAdmin.ProxyPushSupplier.Skel;
 
 with PolyORB.CORBA_P.Server_Tools; use  PolyORB.CORBA_P.Server_Tools;
 with PolyORB.Tasking.Soft_Links; use PolyORB.Tasking.Soft_Links;
@@ -48,7 +48,7 @@ with PolyORB.Tasking.Soft_Links; use PolyORB.Tasking.Soft_Links;
 
 with PortableServer; use PortableServer;
 
-with CORBA.Object;
+--  with CORBA.Object;
 
 with PolyORB.Log;
 
@@ -58,13 +58,13 @@ package body CosEventChannelAdmin.ProxyPushSupplier.Impl is
    package L is new PolyORB.Log.Facility_Log ("proxypushsupplier");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
-    
-    type Proxy_Push_Supplier_Record is
-       record
-          This   : Object_Ptr;
-          Peer   : PushConsumer.Ref;
-          Admin  : ConsumerAdmin.Impl.Object_Ptr;
-       end record;
+
+   type Proxy_Push_Supplier_Record is
+      record
+         This   : Object_Ptr;
+         Peer   : PushConsumer.Ref;
+         Admin  : ConsumerAdmin.Impl.Object_Ptr;
+      end record;
 
    ---------------------------
    -- Connect_Push_Consumer --
@@ -124,7 +124,7 @@ package body CosEventChannelAdmin.ProxyPushSupplier.Impl is
       Leave_Critical_Section;
 
       if PushConsumer.Is_Nil (Peer) then
-         PushConsumer.Disconnect_Push_Consumer (Peer);
+         PushConsumer.disconnect_push_consumer (Peer);
       end if;
    end Disconnect_Push_Supplier;
 
@@ -140,7 +140,7 @@ package body CosEventChannelAdmin.ProxyPushSupplier.Impl is
         (O ("post new data from proxy push supplier to push consumer"));
 
       begin
-         PushConsumer.Push (Self.X.Peer, Data);
+         PushConsumer.push (Self.X.Peer, Data);
       exception when others =>
          null;
       end;

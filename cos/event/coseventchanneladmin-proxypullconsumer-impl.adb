@@ -39,8 +39,8 @@ with CosEventChannelAdmin; use CosEventChannelAdmin;
 
 with CosEventChannelAdmin.SupplierAdmin.Impl;
 
-with CosEventChannelAdmin.ProxyPullConsumer.Helper;
-with CosEventChannelAdmin.ProxyPullConsumer.Skel;
+--  with CosEventChannelAdmin.ProxyPullConsumer.Helper;
+--  with CosEventChannelAdmin.ProxyPullConsumer.Skel;
 
 with CosEventChannelAdmin.SupplierAdmin.Impl;
 
@@ -49,17 +49,17 @@ with PolyORB.Tasking.Soft_Links; use PolyORB.Tasking.Soft_Links;
 
 with PortableServer; use PortableServer;
 
-with CORBA.Object;
+--  with CORBA.Object;
 
 with PolyORB.Log;
 
 package body CosEventChannelAdmin.ProxyPullConsumer.Impl is
 
- use  PolyORB.Log;
- package L is new PolyORB.Log.Facility_Log ("proxypullconsumer");
- procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   use  PolyORB.Log;
+   package L is new PolyORB.Log.Facility_Log ("proxypullconsumer");
+   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
-   
+
    task type Proxy_Pull_Consumer_Engin is
       entry Connect (Consumer : in Object_Ptr);
    end Proxy_Pull_Consumer_Engin;
@@ -107,7 +107,7 @@ package body CosEventChannelAdmin.ProxyPullConsumer.Impl is
               (O ("pull new data from proxy pull consumer engin"));
 
             begin
-               Event := PullSupplier.Pull (Peer);
+               Event := PullSupplier.pull (Peer);
             exception when others =>
                exit;
             end;
@@ -185,7 +185,7 @@ package body CosEventChannelAdmin.ProxyPullConsumer.Impl is
       Leave_Critical_Section;
 
       if not PullSupplier.Is_Nil (Peer) then
-         PullSupplier.Disconnect_Pull_Supplier (Peer);
+         PullSupplier.disconnect_pull_supplier (Peer);
       end if;
    end Disconnect_Pull_Consumer;
 

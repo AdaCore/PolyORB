@@ -2,7 +2,7 @@
 --                                                                          --
 --                           ADABROKER SERVICES                             --
 --                                                                          --
--- C O S E V E N T C H A N N E L A D M I N . P R O X Y P U L L C O N S U M E R . I M P L  --
+--                COSEVENTCHANNELADMIN.PROXYPULLCONSUMER.IMPL               --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --

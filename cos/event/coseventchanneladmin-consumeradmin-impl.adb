@@ -34,31 +34,31 @@
 with CosEventChannelAdmin; use CosEventChannelAdmin;
 
 with CosEventChannelAdmin.ProxyPullSupplier;
-with CosEventChannelAdmin.ProxyPullSupplier.Helper;
+--  with CosEventChannelAdmin.ProxyPullSupplier.Helper;
 with CosEventChannelAdmin.ProxyPullSupplier.Impl;
 
 with CosEventChannelAdmin.ProxyPushSupplier;
-with CosEventChannelAdmin.ProxyPushSupplier.Helper;
+--  with CosEventChannelAdmin.ProxyPushSupplier.Helper;
 with CosEventChannelAdmin.ProxyPushSupplier.Impl;
 
-with CosEventChannelAdmin.ConsumerAdmin.Helper;
-with CosEventChannelAdmin.ConsumerAdmin.Skel;
+--  with CosEventChannelAdmin.ConsumerAdmin.Helper;
+--  with CosEventChannelAdmin.ConsumerAdmin.Skel;
 
 with PolyORB.CORBA_P.Server_Tools; use  PolyORB.CORBA_P.Server_Tools;
 with PolyORB.Tasking.Soft_Links; use PolyORB.Tasking.Soft_Links;
 
 with PolyORB.Sequences.Unbounded;
 
-with CORBA.Impl;
+--  with CORBA.Impl;
 
 with PortableServer; use PortableServer;
 with PolyORB.Log;
 
 package body CosEventChannelAdmin.ConsumerAdmin.Impl is
- 
- use  PolyORB.Log;
- package L is new PolyORB.Log.Facility_Log ("consumeradmin");
- procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+
+   use  PolyORB.Log;
+   package L is new PolyORB.Log.Facility_Log ("consumeradmin");
+   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
    package PushSuppliers is

@@ -34,7 +34,7 @@
 with CosEventChannelAdmin.SupplierAdmin;
 with CosEventChannelAdmin.ConsumerAdmin;
 
-with CosEventChannelAdmin.EventChannel;
+--  with CosEventChannelAdmin.EventChannel;
 
 with PortableServer;
 

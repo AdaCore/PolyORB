@@ -32,10 +32,10 @@
 ------------------------------------------------------------------------------
 
 with CORBA;
-with CORBA.Impl;
+--  with CORBA.Impl;
 
-with CosEventComm.PullSupplier.Helper;
-with CosEventComm.PullSupplier.Skel;
+--  with CosEventComm.PullSupplier.Helper;
+--  with CosEventComm.PullSupplier.Skel;
 
 with CosEventChannelAdmin; use CosEventChannelAdmin;
 
@@ -43,8 +43,8 @@ with CosEventChannelAdmin.ProxyPullConsumer;
 
 with PolyORB.CORBA_P.Server_Tools; use  PolyORB.CORBA_P.Server_Tools;
 with PolyORB.Tasking.Soft_Links; use PolyORB.Tasking.Soft_Links;
-with PolyORB.Log; 
-with Polyorb.Tasking.Watchers; use Polyorb.Tasking.Watchers;
+with PolyORB.Log;
+with PolyORB.Tasking.Watchers; use PolyORB.Tasking.Watchers;
 
 with PortableServer; use PortableServer;
 
@@ -53,9 +53,9 @@ package body CosEventComm.PullSupplier.Impl is
 
 
 
- use  PolyORB.Log;
- package L is new PolyORB.Log.Facility_Log ("pullsupplier");
- procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   use  PolyORB.Log;
+   package L is new PolyORB.Log.Facility_Log ("pullsupplier");
+   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
    type Pull_Supplier_Record is
@@ -89,7 +89,7 @@ package body CosEventComm.PullSupplier.Impl is
       Leave_Critical_Section;
 
       Servant_To_Reference (Servant (Self.X.This), My_Ref);
-      ProxyPullConsumer.Connect_Pull_Supplier (Proxy, My_Ref);
+      ProxyPullConsumer.connect_pull_supplier (Proxy, My_Ref);
    end Connect_Proxy_Pull_Consumer;
 
    ------------
@@ -133,7 +133,7 @@ package body CosEventComm.PullSupplier.Impl is
       Leave_Critical_Section;
 
       if not ProxyPullConsumer.Is_Nil (Peer) then
-         ProxyPullConsumer.Disconnect_Pull_Consumer (Peer);
+         ProxyPullConsumer.disconnect_pull_consumer (Peer);
       end if;
    end Disconnect_Pull_Supplier;
 

@@ -37,18 +37,17 @@ with CosEventChannelAdmin.SupplierAdmin.Impl;
 with CosEventChannelAdmin.ConsumerAdmin;
 with CosEventChannelAdmin.ConsumerAdmin.Impl;
 
-with CosEventChannelAdmin.EventChannel.Helper;
-with CosEventChannelAdmin.EventChannel.Skel;
+with CosEventChannelAdmin.EventChannel;
+
+--  with CosEventChannelAdmin.EventChannel.Helper;
+--  with CosEventChannelAdmin.EventChannel.Skel;
 
 with PolyORB.CORBA_P.Server_Tools;
---  with Broca.Soft_Links;    use  Broca.Soft_Links;
 
 with PortableServer; use PortableServer;
 
-with CORBA.Impl;
+--  with CORBA.Impl;
 
---  with Broca.Debug;
---  pragma Elaborate_All (Broca.Debug);
 
 with PolyORB.Log;
 

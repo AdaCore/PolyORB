@@ -31,8 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CosEventComm.PushSupplier.Helper;
-with CosEventComm.PushSupplier.Skel;
+--  with CosEventComm.PushSupplier.Helper;
+--  with CosEventComm.PushSupplier.Skel;
 
 with CosEventChannelAdmin; use CosEventChannelAdmin;
 
@@ -42,7 +42,7 @@ with CosEventChannelAdmin.ProxyPushConsumer;
 with PolyORB.CORBA_P.Server_Tools; use  PolyORB.CORBA_P.Server_Tools;
 with PolyORB.Tasking.Soft_Links; use PolyORB.Tasking.Soft_Links;
 
-with CORBA.Impl;
+--  with CORBA.Impl;
 
 with PortableServer; use PortableServer;
 
@@ -50,12 +50,11 @@ with PolyORB.Log;
 
 package body CosEventComm.PushSupplier.Impl is
 
- use  PolyORB.Log;
- package L is new PolyORB.Log.Facility_Log ("pushsupplier");
- 
- procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   use  PolyORB.Log;
+   package L is new PolyORB.Log.Facility_Log ("pushsupplier");
+   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
- 
+
    type Push_Supplier_Record is
       record
          This  : Object_Ptr;
@@ -84,7 +83,7 @@ package body CosEventComm.PushSupplier.Impl is
       Leave_Critical_Section;
 
       Servant_To_Reference (Servant (Self.X.This), My_Ref);
-      ProxyPushConsumer.Connect_Push_Supplier (Proxy, My_Ref);
+      ProxyPushConsumer.connect_push_supplier (Proxy, My_Ref);
    end Connect_Proxy_Push_Consumer;
 
    ------------
@@ -110,7 +109,7 @@ package body CosEventComm.PushSupplier.Impl is
    -- Disconnect_Push_Supplier --
    ------------------------------
 
-   procedure Disconnect_Push_Supplier
+   procedure disconnect_push_supplier
      (Self : access Object)
    is
       Peer    : ProxyPushConsumer.Ref;
@@ -125,9 +124,9 @@ package body CosEventComm.PushSupplier.Impl is
       Leave_Critical_Section;
 
       if not ProxyPushConsumer.Is_Nil (Peer) then
-         ProxyPushConsumer.Disconnect_Push_Consumer (Peer);
+         ProxyPushConsumer.disconnect_push_consumer (Peer);
       end if;
-   end Disconnect_Push_Supplier;
+   end disconnect_push_supplier;
 
    ----------
    -- Push --
@@ -150,7 +149,7 @@ package body CosEventComm.PushSupplier.Impl is
          raise Disconnected;
       end if;
 
-      ProxyPushConsumer.Push (Peer, Data);
+      ProxyPushConsumer.push (Peer, Data);
    end Push;
 
 end CosEventComm.PushSupplier.Impl;

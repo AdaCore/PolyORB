@@ -2,7 +2,7 @@
 --                                                                          --
 --                           ADABROKER SERVICES                             --
 --                                                                          --
--- C O S E V E N T C H A N N E L A D M I N . P R O X Y P U S H C O N S U M E R . I M P L  --
+--                COSEVENTCHANNELADMIN.PROXYPUSHCONSUMER.IMPL               --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -37,8 +37,8 @@ with CosEventComm.PushSupplier;
 
 with CosEventChannelAdmin; use CosEventChannelAdmin;
 
-with CosEventChannelAdmin.ProxyPushConsumer.Helper;
-with CosEventChannelAdmin.ProxyPushConsumer.Skel;
+--  with CosEventChannelAdmin.ProxyPushConsumer.Helper;
+--  with CosEventChannelAdmin.ProxyPushConsumer.Skel;
 
 with CosEventChannelAdmin.SupplierAdmin.Impl;
 
@@ -47,16 +47,16 @@ with PolyORB.Tasking.Soft_Links; use PolyORB.Tasking.Soft_Links;
 
 with PortableServer; use PortableServer;
 
-with CORBA.Object;
+--  with CORBA.Object;
 with PolyORB.Log;
 
 package body CosEventChannelAdmin.ProxyPushConsumer.Impl is
- 
+
    use PolyORB.Log;
    package L is new PolyORB.Log.Facility_Log ("proxypushconsumer");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
-  
+
    type Proxy_Push_Consumer_Record is
       record
          This   : Object_Ptr;
@@ -122,7 +122,7 @@ package body CosEventChannelAdmin.ProxyPushConsumer.Impl is
       Leave_Critical_Section;
 
       if not PushSupplier.Is_Nil (Peer) then
-         PushSupplier.Disconnect_Push_Supplier (Peer);
+         PushSupplier.disconnect_push_supplier (Peer);
       end if;
    end Disconnect_Push_Consumer;
 

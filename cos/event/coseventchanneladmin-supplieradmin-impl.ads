@@ -2,7 +2,7 @@
 --                                                                          --
 --                           ADABROKER SERVICES                             --
 --                                                                          --
--- C O S E V E N T C H A N N E L A D M I N . S U P P L I E R A D M I N . I M P L  --
+--                    COSEVENTCHANNELADMIN.SUPPLIERADMINIMPL                --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --

@@ -74,10 +74,12 @@ with CORBA.Object;
 with CORBA.Impl;
 with CORBA.ORB;
 
---with Broca.Server_Tools; use Broca.Server_Tools;
---modification apportée pour passer de Adabrocker à PolyORB
+--  with Broca.Server_Tools; use Broca.Server_Tools;
+--  modification apportée pour passer de Adabrocker à PolyORB
 with PolyORB.CORBA_P.Server_Tools;
 use  PolyORB.CORBA_P.Server_Tools;
+
+with PolyORB.Log;
 
 with PortableServer; use PortableServer;
 
@@ -87,6 +89,11 @@ with Ada.Text_IO;
 with Ada.Exceptions; use Ada.Exceptions;
 
 procedure Test_Event is
+
+   use  PolyORB.Log;
+   package L is new PolyORB.Log.Facility_Log ("testevent");
+   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+     renames L.Output;
 
    type Command is
      (Help,
@@ -135,7 +142,10 @@ procedure Test_Event is
    --------------------
    -- Connect_Entity --
    --------------------
-
+   procedure Connect_Entity
+     (Entity  : in CORBA.Object.Ref;
+      Kind    : in Entity_Kind;
+      Channel : in EventChannel.Ref);
    procedure Connect_Entity
      (Entity  : in CORBA.Object.Ref;
       Kind    : in Entity_Kind;
@@ -152,8 +162,8 @@ procedure Test_Event is
                E : PullConsumer.Ref;
 
             begin
-               A := EventChannel.For_Consumers (Channel);
-               P := ConsumerAdmin.Obtain_Pull_Supplier (A);
+               A := EventChannel.for_consumers (Channel);
+               P := ConsumerAdmin.obtain_pull_supplier (A);
                E := PullConsumer.Helper.To_Ref (Entity);
                Reference_To_Servant (E, Servant (O));
                PullConsumer.Impl.Connect_Proxy_Pull_Supplier
@@ -167,8 +177,8 @@ procedure Test_Event is
                E : PullSupplier.Ref;
 
             begin
-               A := EventChannel.For_Suppliers (Channel);
-               P := SupplierAdmin.Obtain_Pull_Consumer (A);
+               A := EventChannel.for_suppliers (Channel);
+               P := SupplierAdmin.obtain_pull_consumer (A);
                E := PullSupplier.Helper.To_Ref (Entity);
                Reference_To_Servant (E, Servant (O));
                PullSupplier.Impl.Connect_Proxy_Pull_Consumer
@@ -182,8 +192,8 @@ procedure Test_Event is
                E : PushConsumer.Ref;
 
             begin
-               A := EventChannel.For_Consumers (Channel);
-               P := ConsumerAdmin.Obtain_Push_Supplier (A);
+               A := EventChannel.for_consumers (Channel);
+               P := ConsumerAdmin.obtain_push_supplier (A);
                E := PushConsumer.Helper.To_Ref (Entity);
                Reference_To_Servant (E, Servant (O));
                PushConsumer.Impl.Connect_Proxy_Push_Supplier
@@ -197,8 +207,8 @@ procedure Test_Event is
                E : PushSupplier.Ref;
 
             begin
-               A := EventChannel.For_Suppliers (Channel);
-               P := SupplierAdmin.Obtain_Push_Consumer (A);
+               A := EventChannel.for_suppliers (Channel);
+               P := SupplierAdmin.obtain_push_consumer (A);
                E := PushSupplier.Helper.To_Ref (Entity);
                Reference_To_Servant (E, Servant (O));
                PushSupplier.Impl.Connect_Proxy_Push_Consumer
@@ -213,6 +223,10 @@ procedure Test_Event is
    -------------------
    -- Consume_Event --
    -------------------
+   function Consume_Event
+     (Entity : CORBA.Object.Ref;
+      Kind   : Entity_Kind)
+     return String;
 
    function Consume_Event
      (Entity : CORBA.Object.Ref;
@@ -255,6 +269,9 @@ procedure Test_Event is
    -------------------
    -- Create_Entity --
    -------------------
+   procedure Create_Entity
+     (Entity : out CORBA.Object.Ref;
+      Kind   : in Entity_Kind);
 
    procedure Create_Entity
      (Entity : out CORBA.Object.Ref;
@@ -311,6 +328,10 @@ procedure Test_Event is
    -----------------
    -- Find_Entity --
    -----------------
+   procedure Find_Entity
+     (Name   : in String_Access;
+      Entity : out CORBA.Object.Ref;
+      Kind   : out Entity_Kind);
 
    procedure Find_Entity
      (Name   : in String_Access;
@@ -326,17 +347,17 @@ procedure Test_Event is
       NC   : NameComponent;
 
    begin
-      NamingContext.List (Ctx, 0, BL, BI);
+      NamingContext.list (Ctx, 0, BL, BI);
       Iter := BindingIterator.Convert_Forward.To_Ref (BI);
       loop
-         BindingIterator.Next_One (Iter, B, Done);
+         BindingIterator.next_one (Iter, B, Done);
          exit when not Done;
-         NC := Element_Of (B.Binding_Name, 1);
-         if NC.Id = Id then
+         NC := Element_Of (B.binding_name, 1);
+         if NC.id = Id then
             for K in Image'Range loop
-               if NC.Kind = Image (K) then
+               if NC.kind = Image (K) then
                   Kind   := K;
-                  Entity := NamingContext.Resolve (Ctx, B.Binding_Name);
+                  Entity := NamingContext.resolve (Ctx, B.binding_name);
                   return;
                end if;
             end loop;
@@ -349,6 +370,10 @@ procedure Test_Event is
    -------------------
    -- Produce_Event --
    -------------------
+   procedure Produce_Event
+     (Entity : CORBA.Object.Ref;
+      Kind   : Entity_Kind;
+      Event  : String_Access);
 
    procedure Produce_Event
      (Entity : CORBA.Object.Ref;
@@ -388,6 +413,10 @@ procedure Test_Event is
    -------------
    -- To_Name --
    -------------
+   function To_Name
+     (S   : String_Access;
+      K   : Entity_Kind)
+     return Name;
 
    function To_Name
      (S   : String_Access;
@@ -398,8 +427,8 @@ procedure Test_Event is
       Result  : Name;
 
    begin
-      Element.Id   := CosNaming.To_CORBA_String (S.all);
-      Element.Kind := CosNaming.To_CORBA_String (K'Img);
+      Element.id   := CosNaming.To_CORBA_String (S.all);
+      Element.kind := CosNaming.To_CORBA_String (K'Img);
       Append (Result, Element);
       return Result;
    end To_Name;
@@ -407,14 +436,14 @@ procedure Test_Event is
    -----------
    -- Usage --
    -----------
-
+   procedure Usage;
    procedure Usage is
    begin
       for C in Help_Messages'Range loop
          Ada.Text_IO.Put_Line
-           (C'Img & Ascii.HT & Help_Messages (C).all);
+           (C'Img & ASCII.HT & Help_Messages (C).all);
          if C = Create then
-            Ada.Text_IO.Put (Ascii.HT & "<kind> in");
+            Ada.Text_IO.Put (ASCII.HT & "<kind> in");
             for E in Entity_Kind'Range loop
                declare
                   I : String := E'Img;
@@ -434,7 +463,9 @@ procedure Test_Event is
    Kind    : Entity_Kind;
 
 begin
-   Initiate_Server;
+   Initiate_Server (False);
+
+   pragma Debug (O ("Initiate_Server completed"));
 
    if Count ("enter naming IOR [otherwise create one]: ") = 0 then
       Servant_To_Reference (Servant (NamingContext.Impl.Create), Ctx);
@@ -453,6 +484,8 @@ begin
          Ctx := NamingContext.Helper.To_Ref (Obj);
       end;
    end if;
+
+   pragma Debug (O ("naming service created"));
 
    loop
       Argc := Count;
@@ -489,7 +522,7 @@ begin
                   exception
                      when NamingContext.NotFound =>
                         Create_Entity (Entity, Kind);
-                        NamingContext.Bind
+                        NamingContext.bind
                           (Ctx, To_Name (Argument (3), Kind), Entity);
                   end;
 

@@ -31,8 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CosEventComm.PullConsumer.Helper;
-with CosEventComm.PullConsumer.Skel;
+--  with CosEventComm.PullConsumer.Helper;
+--  with CosEventComm.PullConsumer.Skel;
 
 with CosEventChannelAdmin; use CosEventChannelAdmin;
 
@@ -40,7 +40,7 @@ with CosEventChannelAdmin.ProxyPullSupplier;
 
 with PolyORB.CORBA_P.Server_Tools; use  PolyORB.CORBA_P.Server_Tools;
 with PolyORB.Tasking.Soft_Links;   use PolyORB.Tasking.Soft_Links;
-with CORBA.Impl;
+--  with CORBA.Impl;
 
 with PortableServer; use PortableServer;
 
@@ -48,9 +48,9 @@ with PolyORB.Log;
 
 package body CosEventComm.PullConsumer.Impl is
 
- use PolyORB.Log;
- package L is new PolyORB.Log.Facility_Log ("pullconsumer");
- procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   use PolyORB.Log;
+   package L is new PolyORB.Log.Facility_Log ("pullconsumer");
+   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
    type Pull_Consumer_Record is
@@ -81,7 +81,7 @@ package body CosEventComm.PullConsumer.Impl is
       Leave_Critical_Section;
 
       Servant_To_Reference (Servant (Self.X.This), My_Ref);
-      ProxyPullSupplier.Connect_Pull_Consumer (Proxy, My_Ref);
+      ProxyPullSupplier.connect_pull_consumer (Proxy, My_Ref);
    end Connect_Proxy_Pull_Supplier;
 
    ------------
@@ -122,7 +122,7 @@ package body CosEventComm.PullConsumer.Impl is
       Leave_Critical_Section;
 
       if not ProxyPullSupplier.Is_Nil (Peer) then
-         ProxyPullSupplier.Disconnect_Pull_Supplier (Peer);
+         ProxyPullSupplier.disconnect_pull_supplier (Peer);
       end if;
    end Disconnect_Pull_Consumer;
 
@@ -145,7 +145,7 @@ package body CosEventComm.PullConsumer.Impl is
          raise Disconnected;
       end if;
 
-      return ProxyPullSupplier.Pull (Peer);
+      return ProxyPullSupplier.pull (Peer);
    end Pull;
 
    --------------
@@ -170,7 +170,7 @@ package body CosEventComm.PullConsumer.Impl is
          raise Disconnected;
       end if;
 
-      ProxyPullSupplier.Try_Pull (Peer, Done, Returns);
+      ProxyPullSupplier.try_pull (Peer, Done, Returns);
    end Try_Pull;
 
 end CosEventComm.PullConsumer.Impl;
