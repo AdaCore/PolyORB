@@ -39,6 +39,7 @@ with System.Garlic;         use System.Garlic;
 with System.Garlic.Debug;   use System.Garlic.Debug;
 with System.Garlic.Heart;   use System.Garlic.Heart;
 with System.Garlic.Streams;
+with System.Garlic.Table;
 with System.Garlic.Types;
 with System.Garlic.Utils;   use System.Garlic.Utils;
 
@@ -53,6 +54,8 @@ package body System.RPC.Stream_IO is
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
+   Msgcode : constant Any_Opcode := User_Message;
+
    type Partition_Stream_Record is
       record
          Mode      : Stream_Mode;
@@ -64,14 +67,19 @@ package body System.RPC.Stream_IO is
       end record;
    type Partition_Stream_Access is access Partition_Stream_Record;
 
-   Msgcode : constant Any_Opcode := User_Message;
+   First_Partition_Id : constant Partition_ID := Any_Partition + 1;
 
-   Streams : array (Partition_ID'Range) of Partition_Stream_Access;
+   package Streams is
+      new System.Garlic.Table.Complex
+        (Partition_ID,
+         Any_Partition,
+         Any_Partition,
+         Types.Partition_ID_Increment,
+         Types.Partition_ID_Increment,
+         Partition_Stream_Access,
+         null);
 
-   Any : Partition_Stream_Access renames Streams (Any_Partition);
-
-   First_Partition : Partition_ID := Partition_ID'Last;
-   Last_Partition  : Partition_ID := Partition_ID'First;
+   Any : Partition_Stream_Access;
 
    function Fetch
      (Partition : in Partition_ID)
@@ -92,23 +100,40 @@ package body System.RPC.Stream_IO is
      (Stream : in out Partition_Stream_Type)
    is
       Err : aliased Error_Type;
-      Str : Partition_Stream_Access := Fetch (Stream.PID);
+      Str : Partition_Stream_Access;
    begin
+
+      if not Stream.Open then
+         raise Stream_Error;
+      end if;
+
+      Str := Streams.Get_Component (Stream.PID);
+
       pragma Debug (D ("Close stream" & Stream.PID'Img));
+
+      --  When Out_Mode, procedure Close is in charge of sending the
+      --  outgoing stream element array.
 
       if Str.Mode = Out_Mode then
          Send (Types.Partition_ID (Stream.PID),
                Msgcode,
                Str.Outgoing'Access,
                Err);
-         if Found (Err) then
-            Raise_Exception (Communication_Error'Identity,
-                             Content (Err'Access));
-         end if;
       end if;
 
+
       pragma Debug (D ("Close - Unlock stream" & Stream.PID'Img));
+      Stream.Open := False;
       Leave (Str.Available);
+
+      if Found (Err) then
+         Raise_Exception
+           (Communication_Error'Identity,
+            Content (Err'Access));
+      end if;
+   exception when others =>
+      pragma Debug (D ("exception raised in Close"));
+      null;
    end Close;
 
    -----------
@@ -117,31 +142,24 @@ package body System.RPC.Stream_IO is
 
    function Fetch
      (Partition : in Partition_ID)
-     return Partition_Stream_Access is
+     return Partition_Stream_Access
+   is
+      Stream : Partition_Stream_Access := Streams.Get_Component (Partition);
    begin
-      if Streams (Partition) = null then
-         pragma Debug (D ("Allocate stream" & Partition'Img));
-         Enter (Any.Critical);
-         if Streams (Partition) = null then
-            Streams (Partition) := new Partition_Stream_Record;
-            Create (Streams (Partition).Consumer);
-            Create (Streams (Partition).Available);
-            Create (Streams (Partition).Critical);
-            if First_Partition = Partition_ID'Last
-              or else First_Partition > Partition
-            then
-               First_Partition := Partition;
-            end if;
-            if Last_Partition = Partition_ID'First
-              or else Last_Partition < Partition
-            then
-               Last_Partition := Partition;
-            end if;
-
+      if Stream = null then
+         Streams.Enter;
+         Stream := Streams.Get_Component (Partition);
+         if Stream = null then
+            pragma Debug (D ("Allocate stream" & Partition'Img));
+            Stream := new Partition_Stream_Record;
+            Create (Stream.Consumer);
+            Create (Stream.Available);
+            Create (Stream.Critical);
+            Streams.Set_Component (Partition, Stream);
          end if;
-         Leave (Any.Critical);
+         Streams.Leave;
       end if;
-      return Streams (Partition);
+      return Stream;
    end Fetch;
 
    ----------------
@@ -150,9 +168,11 @@ package body System.RPC.Stream_IO is
 
    procedure Initialize is
    begin
-      Streams (Any_Partition) := new Partition_Stream_Record;
-      Create (Streams (Any_Partition).Available);
-      Create (Streams (Any_Partition).Critical);
+      Any := new Partition_Stream_Record;
+      Create (Any.Consumer);
+      Create (Any.Available);
+      Create (Any.Critical);
+      Streams.Set_Component (Any_Partition, Any);
       Register_Handler (Msgcode, Handle_Request'Access);
    end Initialize;
 
@@ -163,11 +183,18 @@ package body System.RPC.Stream_IO is
    procedure Open
      (Stream    : in out Partition_Stream_Type;
       Partition : in     Partition_ID;
-      Mode      : in     Stream_Mode) is
+      Mode      : in     Stream_Mode)
+   is
       Str : Partition_Stream_Access;
    begin
-      pragma Debug (D ("Open stream" & Partition'Img));
 
+      if Stream.Open then
+         raise Stream_Error;
+      end if;
+
+      Stream.Open := True;
+
+      pragma Debug (D ("Open stream" & Partition'Img));
       if Mode = Out_Mode
         and then Partition = Any_Partition
       then
@@ -178,11 +205,16 @@ package body System.RPC.Stream_IO is
       Str := Fetch (Partition);
       Stream.PID := Partition;
 
+      --  Only one task at a time
+
       pragma Debug (D ("Open - Lock stream" & Partition'Img));
       Enter (Str.Available);
       Str.Mode := Mode;
 
       pragma Debug (D ("Open - Resume stream" & Partition'Img));
+   exception when others =>
+      pragma Debug (D ("exception raised in Open"));
+      null;
    end Open;
 
    ----------
@@ -193,11 +225,18 @@ package body System.RPC.Stream_IO is
      (Stream : in out Partition_Stream_Type;
       Item   : out    Ada.Streams.Stream_Element_Array;
       Last   : out    Ada.Streams.Stream_Element_Offset) is
-      FID : Partition_ID;
-      LID : Partition_ID;
-      Len : Stream_Element_Offset := 0;
-      Str : Partition_Stream_Access := Fetch (Stream.PID);
+      FID  : Partition_ID;
+      LID  : Partition_ID;
+      Len  : Stream_Element_Offset := 0;
+      Str  : Partition_Stream_Access;
+      From : Partition_Stream_Access;
    begin
+
+      if not Stream.Open then
+         raise Stream_Error;
+      end if;
+
+      Str := Streams.Get_Component (Stream.PID);
 
       if Str.Mode /= In_Mode then
          pragma Debug (D ("Mode should be In_Mode"));
@@ -205,42 +244,59 @@ package body System.RPC.Stream_IO is
       end if;
 
       pragma Debug (D ("Read new message"));
-
       while Len = 0 loop
+
+         --  Is there something to read ?
+
          pragma Debug (D ("Read - Wait for stream" & Stream.PID'Img));
          Wait (Str.Consumer);
 
+         --  For Any_Partition, look at all the partitions.
+
          if Stream.PID = Any_Partition then
-            FID := First_Partition;
-            LID := Last_Partition;
+            FID := First_Partition_Id;
+            LID := Streams.Last;
          else
             FID := Stream.PID;
             LID := Stream.PID;
          end if;
 
          for P in FID .. LID loop
-            pragma Debug (D ("Read - Lock stream" & P'Img));
-            Enter (Streams (P).Critical);
+            From := Streams.Get_Component (P);
+            if From /= null then
 
-            pragma Debug (D ("Read from stream" & P'Img));
-            System.Garlic.Streams.Read (Streams (P).Incoming, Item, Len);
+               pragma Debug (D ("Read - Lock stream" & P'Img));
+               Enter (From.Critical);
 
-            pragma Debug (D ("Read - Unlock stream" & P'Img));
-            Leave (Streams (P).Critical);
+               pragma Debug (D ("Read from stream" & P'Img));
+               System.Garlic.Streams.Read (From.Incoming, Item, Len);
 
-            if Len /= 0 then
-               if Streams (P).Incoming.Count /= 0 then
-                  pragma Debug (D ("Read - Signal stream" & P'Img));
-                  Signal (Streams (P).Consumer);
-                  Signal (Any.Consumer);
+               pragma Debug (D ("Read - Unlock stream" & P'Img));
+               Leave (From.Critical);
+
+               if Len /= 0 then
+
+                  pragma Debug (D ("Read" & Len'Img & " bytes"));
+
+                  --  There are elements left. Signal to potential
+                  --  consumers.
+
+                  if From.Incoming.Count /= 0 then
+                     pragma Debug (D ("Read - Signal stream" & P'Img));
+                     Signal (From.Consumer);
+                     Signal (Any.Consumer);
+                  end if;
+                  exit;
                end if;
-               exit;
             end if;
          end loop;
 
          exit when Len /= 0;
       end loop;
       Last := Len;
+   exception when others =>
+      pragma Debug (D ("exception raised in Read"));
+      null;
    end Read;
 
    --------------------
@@ -267,6 +323,9 @@ package body System.RPC.Stream_IO is
       pragma Debug (D ("Receive - Unlock stream" & Partition'Img));
       Leave (Str.Critical);
 
+      --  Signal to consumer connected to Partition and to
+      --  Any_Partition.
+
       pragma Debug (D ("Signal to all streams"));
       Signal (Str.Consumer);
       Signal (Any.Consumer);
@@ -279,8 +338,17 @@ package body System.RPC.Stream_IO is
    procedure Write
      (Stream : in out Partition_Stream_Type;
       Item   : in     Ada.Streams.Stream_Element_Array) is
-      Str : Partition_Stream_Access := Fetch (Stream.PID);
+      Str : Partition_Stream_Access;
    begin
+      if not Stream.Open then
+         raise Stream_Error;
+      end if;
+
+      Str := Fetch (Stream.PID);
+
+      --  Procedure Write just buffers the stream element
+      --  array. Procedure Close really sends them.
+
       pragma Debug (D ("Send new message"));
 
       if Str.Mode /= Out_Mode then
@@ -296,6 +364,9 @@ package body System.RPC.Stream_IO is
 
       pragma Debug (D ("Write - Unlock stream" & Stream.PID'Img));
       Leave (Str.Critical);
+   exception when others =>
+      pragma Debug (D ("exception raised in Write"));
+      null;
    end Write;
 
 end System.RPC.Stream_IO;

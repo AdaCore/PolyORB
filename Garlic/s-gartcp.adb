@@ -50,6 +50,7 @@ with System.Garlic.Physical_Location;     use System.Garlic.Physical_Location;
 with System.Garlic.Priorities;
 with System.Garlic.Soft_Links;            use System.Garlic.Soft_Links;
 with System.Garlic.Streams;               use System.Garlic.Streams;
+with System.Garlic.Table;
 with System.Garlic.Thin;                  use System.Garlic.Thin;
 with System.Garlic.Types;                 use System.Garlic.Types;
 with System.Garlic.Utils;                 use System.Garlic.Utils;
@@ -88,17 +89,24 @@ package body System.Garlic.TCP is
    function Split_Data (Data : String) return Host_Location;
    --  Split a data given as <machine> or <machine>:<port>
 
-   type Socket_Type is record
+   type Socket_Info is record
       Location : Host_Location;
-      Socket   : C.int   := Failure;
-      Locked   : Boolean := False;
+      Socket   : C.int;
+      Locked   : Boolean;
    end record;
+   Null_Socket : constant Socket_Info := (Null_Location, Failure, False);
 
-   Socket_Table : array (Valid_Partition_ID) of Socket_Type;
-   Socket_Table_Mutex   : Mutex_Type;
-   Socket_Table_Watcher : Watcher_Type;
+   package Sockets is
+      new System.Garlic.Table.Complex
+        (Partition_ID,
+         Null_PID,
+         First_PID,
+         Partition_ID_Increment,
+         Partition_ID_Increment,
+         Socket_Info,
+         Null_Socket);
 
-   Self : Socket_Type;
+   Self : Socket_Info := Null_Socket;
 
    type Banner_Kind is (Junk_Banner, Data_Banner, Quit_Banner);
    --  Various headers that can be performed on a communication link
@@ -349,13 +357,25 @@ package body System.Garlic.TCP is
 
                if Old_PID = Null_PID then
                   Enter (New_PID);
-                  Socket_Table (New_PID).Socket := Peer;
+                  declare
+                     New_Info : Socket_Info;
+                  begin
+                     New_Info := Sockets.Get_Component (New_PID);
+                     New_Info.Socket := Peer;
+                     Sockets.Set_Component (New_PID, New_Info);
+                  end;
                   Leave (New_PID);
                else
                   Enter (Old_PID);
                   Enter (New_PID);
-                  Socket_Table (New_PID) := Socket_Table (Old_PID);
-                  Socket_Table (Old_PID).Socket := Failure;
+                  declare
+                     Old_Info : Socket_Info;
+                  begin
+                     Old_Info := Sockets.Get_Component (Old_PID);
+                     Sockets.Set_Component (New_PID, Old_Info);
+                     Old_Info.Socket := Failure;
+                     Sockets.Set_Component (Old_PID, Old_Info);
+                  end;
                   Leave (New_PID);
                   Leave (Old_PID);
                end if;
@@ -388,7 +408,13 @@ package body System.Garlic.TCP is
 
          if not Shutdown_In_Progress then
             Enter (New_PID);
-            Socket_Table (New_PID).Socket := Failure;
+            declare
+               New_Info : Socket_Info;
+            begin
+               New_Info := Sockets.Get_Component (New_PID);
+               New_Info.Socket := Failure;
+               Sockets.Set_Component (New_PID, New_Info);
+            end;
             Leave (New_PID);
          end if;
 
@@ -445,7 +471,7 @@ package body System.Garlic.TCP is
      (Connection : in out Connection_Access)
    is
    begin
-      Enter (Socket_Table_Mutex);
+      Sockets.Enter;
       if Connection_List = null then
          pragma Debug (D ("Create a new connection handler"));
          Connection      := new Connection_Record;
@@ -455,7 +481,7 @@ package body System.Garlic.TCP is
          Connection      := Connection_List;
          Connection_List := Connection.Next;
       end if;
-      Leave (Socket_Table_Mutex);
+      Sockets.Leave;
    end Dequeue_Connection;
 
    ----------------
@@ -553,10 +579,10 @@ package body System.Garlic.TCP is
    is
    begin
       pragma Debug (D ("Queue an old connection handler"));
-      Enter (Socket_Table_Mutex);
+      Sockets.Enter;
       Connection.Next := Connection_List;
       Connection_List := Connection;
-      Leave (Socket_Table_Mutex);
+      Sockets.Leave;
    end Enqueue_Connection;
 
    -----------
@@ -565,18 +591,20 @@ package body System.Garlic.TCP is
 
    procedure Enter (PID : Partition_ID) is
       Version : Version_Id;
+      Info    : Socket_Info;
    begin
       loop
-         Enter (Socket_Table_Mutex);
-         if not Socket_Table (PID).Locked then
-            Socket_Table (PID).Locked := True;
-            Leave (Socket_Table_Mutex);
+         Sockets.Enter;
+         Info := Sockets.Get_Component (PID);
+         if not Info.Locked then
+            Info.Locked := True;
+            Sockets.Set_Component (PID, Info);
+            Sockets.Leave;
             exit;
          end if;
          pragma Debug (D ("Postpone lock of partition" & PID'Img));
-         Lookup (Socket_Table_Watcher, Version);
-         Leave  (Socket_Table_Mutex);
-         Differ (Socket_Table_Watcher, Version);
+         Sockets.Leave (Version);
+         Sockets.Differ (Version);
       end loop;
       pragma Debug (D ("Lock partition" & PID'Img));
    end Enter;
@@ -621,9 +649,6 @@ package body System.Garlic.TCP is
       pragma Debug (D ("Initialize protocol TCP"));
 
       if Acceptor = null then
-         Create (Socket_Table_Mutex);
-         Create (Socket_Table_Watcher);
-
          if Self_Data /= null
            and then Self_Data.all /= ""
          then
@@ -662,19 +687,24 @@ package body System.Garlic.TCP is
          --  the real boot server, that means during initialization.
 
          Enter (Boot_PID);
-         if Boot_Data /= null
-           and then Boot_Data.all /= ""
-         then
-            Socket_Table (Boot_PID).Location := Split_Data (Boot_Data.all);
-         end if;
+         declare
+            Boot_Info : Socket_Info := Sockets.Get_Component (Boot_PID);
+         begin
+            if Boot_Data /= null
+              and then Boot_Data.all /= ""
+            then
+               Boot_Info.Location := Split_Data (Boot_Data.all);
+            end if;
 
-         --  If this partition is the lead partition, then the bootmode is
-         --  a normal mode. The default should be also used for the local
-         --  connection.
+            --  If this partition is the lead partition, then the
+            --  bootmode is a normal mode. The default should be also
+            --  used for the local connection.
 
-         if Options.Is_Boot_Server then
-            Self.Location.Port := Socket_Table (Boot_PID).Location.Port;
-         end if;
+            if Options.Is_Boot_Server then
+               Self.Location.Port := Boot_Info.Location.Port;
+            end if;
+            Sockets.Set_Component (Boot_PID, Boot_Info);
+         end;
          Leave (Boot_PID);
       end if;
 
@@ -705,12 +735,15 @@ package body System.Garlic.TCP is
    -----------
 
    procedure Leave (PID : in Partition_ID) is
+      Info : Socket_Info;
    begin
-      Enter (Socket_Table_Mutex);
+      Sockets.Enter;
       pragma Debug (D ("Unlock partition" & PID'Img));
-      Socket_Table (PID).Locked := False;
-      Update (Socket_Table_Watcher);
-      Leave (Socket_Table_Mutex);
+      Info := Sockets.Get_Component (PID);
+      Info.Locked := False;
+      Sockets.Set_Component (PID, Info);
+      Sockets.Update;
+      Sockets.Leave;
    end Leave;
 
    ----------------------
@@ -830,7 +863,7 @@ package body System.Garlic.TCP is
       Data      : access Stream_Element_Array;
       Error     : in out Error_Type)
    is
-      Peer     : Socket_Type renames Socket_Table (Partition);
+      Peer     : Socket_Info;
       Hits     : Natural := 1;
       First    : Stream_Element_Count := Data'First + Unused_Space;
       Count    : Stream_Element_Count;
@@ -838,6 +871,7 @@ package body System.Garlic.TCP is
    begin
       pragma Debug (D ("Send to partition" & Partition'Img));
       Enter (Partition);
+      Peer := Sockets.Get_Component (Partition);
       if Peer.Socket = Failure then
          Get_Location (Partition, Location, Error);
          if Found (Error) then
@@ -848,6 +882,7 @@ package body System.Garlic.TCP is
          Peer.Location := Split_Data (Get_Data (Location).all);
 
          if Peer.Location = Null_Location then
+            Sockets.Set_Component (Partition, Peer);
             Throw (Error, "Send: Cannot connect with peer without location");
             return;
          end if;
@@ -863,6 +898,8 @@ package body System.Garlic.TCP is
             delay 2.0;
             Hits := Hits - 1;
          end loop;
+
+         Sockets.Set_Component (Partition, Peer);
 
          if Hits = 0 then
             Leave (Partition);
@@ -915,6 +952,7 @@ package body System.Garlic.TCP is
    procedure Shutdown (Protocol : access TCP_Protocol) is
       Peer  : C.int;
       Error : Error_Type;
+      Info  : Socket_Info;
    begin
       if Shutdown_Completed then
          return;
@@ -926,19 +964,20 @@ package body System.Garlic.TCP is
       --  partition so that it releases its socket to be able to perform
       --  the shutdown operation on its end.
 
-      Enter (Socket_Table_Mutex);
+      Sockets.Enter;
 
-      for P in Socket_Table'Range loop
-         if Socket_Table (P).Socket /= Failure then
+      for P in First_PID .. Sockets.Last loop
+         Info := Sockets.Get_Component (P);
+         if Info.Socket /= Failure then
             pragma Debug (D ("Partition" & P'Img & " peer is still alive"));
-            Peer := Socket_Table (P).Socket;
+            Peer := Info.Socket;
             Physical_Send (Peer, Quit_Stream'Access, Quit_Stream'First, Error);
             Catch (Error);
             Peer := Net.C_Close (Peer);
          end if;
       end loop;
 
-      Leave (Socket_Table_Mutex);
+      Sockets.Leave;
 
       if Found (Error) then
          return;

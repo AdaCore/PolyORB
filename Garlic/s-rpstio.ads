@@ -84,7 +84,8 @@ private
    type Partition_Stream_Type is
      new Ada.Streams.Root_Stream_Type with
       record
-         PID : System.RPC.Partition_ID;
+         PID  : System.RPC.Partition_ID;
+         Open : Boolean := False;
       end record;
 
 end System.RPC.Stream_IO;

@@ -1,3 +1,13 @@
+1999-07-15  Laurent Pautet  <pautet@dorine.enst.fr>
+
+        * s-gartyp.ads: Partition_ID'Last is now Natural'Last.
+
+        * s-rpstio.adb, s-rpstio.ads: Redefine Streams not to be an array
+        with Partition_ID as index.
+
+        * s-gartcp.adb: Redefine Sockets not to be an array with
+        Partition_ID as index.
+
 1999-07-14  Laurent Pautet  <pautet@scapin.enst.fr>
 
         * s-gaphlo.adb, s-gaphlo.ads: Remove a lot of unused tables and
