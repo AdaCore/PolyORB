@@ -242,7 +242,9 @@ package body PolyORB.Protocols.SRP is
       Set_SRP_Method (To_PolyORB_String ("Reply"), SRP_Info);
       Set_SRP_Oid (To_Oid ("00000000"), SRP_Info);
       Set_SRP_Arg (To_PolyORB_String ("Data"),
-                   To_Any (To_PolyORB_String ("200 OK" & Image (R.all))),
+                   To_Any (To_PolyORB_String
+                           ("200 OK" & Image (R.all)
+                            & " " & PolyORB.Any.Image (R.Result))),
                    SRP_Info);
 
       --  Data := Join (SRP_Info);
