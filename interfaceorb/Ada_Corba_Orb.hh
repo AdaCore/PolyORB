@@ -2,7 +2,10 @@
 
 
 CORBA::ORB_ptr
-Ada_ORB_init(int argc, char **argv, const char *orb_identifier) ;
+Ada_ORB_init(int           argc,
+             char       ** argv,
+             const char *  orb_identifier,
+             int           traceLevel);
 // this function is a wrapper around CORBA::ORB_init
 //in corbaOrb.cc L170
 // it is called by Ada (Corba.Orb.adb)
@@ -12,10 +15,10 @@ Ada_ORB_init(int argc, char **argv, const char *orb_identifier) ;
 
 
 CORBA::BOA_ptr
-Ada_BOA_init(CORBA::ORB_ptr orb,
-	     int argc,
-	     char **argv,
-	     const char *boa_identifier)
+Ada_BOA_init(CORBA::ORB_ptr  orb,
+	     int             argc,
+	     char         ** argv,
+	     const char    * boa_identifier)
 // this function is a wrapper around CORBA::BOA_init
 //in corbaBoa.cc L180
 // it is called by Ada (Corba.Orb.adb)

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.24 $
+--                            $Revision: 1.25 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -47,7 +47,8 @@ package CORBA.ORB is
       To   : out CORBA.Object.Ref'Class);
    --  Return a Ref'Class out of an IOR.
 
-   procedure Init (Identifier : in Standard.String);
+   procedure Init
+     (Identifier  : in Standard.String);
    --  Initialize ORB with command line arguments.
 
    type ObjectId is new CORBA.String;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.22 $
+--                            $Revision: 1.23 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -33,7 +33,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Interfaces.C;
 with Interfaces.C.Strings;
+
+with GNAT.OS_Lib; use GNAT.OS_Lib;
 
 with AdaBroker.Debug;
 pragma Elaborate_All (AdaBroker.Debug);
@@ -51,10 +54,11 @@ package body CORBA.ORB is
    function C_ORB_Init
      (Argc    : in Interfaces.C.int;
       Argv    : in System.Address;
-      ORBname : in Interfaces.C.Strings.chars_ptr)
+      ORBname : in Interfaces.C.Strings.chars_ptr;
+      Level   : in Interfaces.C.int)
       return System.Address;
 
-   pragma Import (CPP, C_ORB_Init, "Ada_ORB_init__FiPPcPCc");
+   pragma Import (CPP, C_ORB_Init, "Ada_ORB_init__FiPPcPCci");
    --  Wrapper around Ada_ORB_init. See Ada_CORBA_ORB.hh.
 
    ----------
@@ -62,9 +66,11 @@ package body CORBA.ORB is
    ----------
 
    procedure Init
-     (Identifier : in Standard.String)
+     (Identifier  : in Standard.String)
    is
       C_Identifier : Interfaces.C.Strings.chars_ptr;
+      Env_Variable : String_Access;
+      Trace_Level  : Interfaces.C.int := 0;
    begin
       pragma Debug (O ("Init : enter"));
       pragma Debug (O ("ORB name is " & Identifier));
@@ -73,9 +79,20 @@ package body CORBA.ORB is
 
       pragma Debug (O ("ORB_Init : invoke CORBA::ORB_init"));
 
-      CORBA.ORB.OmniORB.The_ORB := C_ORB_Init (CORBA.Command_Line.Argc,
-                                               CORBA.Command_Line.Argv,
-                                               C_Identifier);
+      Env_Variable := Getenv ("TRACELEVEL");
+      if Env_Variable /= null then
+         begin
+            Trace_Level := Interfaces.C.int'Value (Env_Variable.all);
+         exception when others =>
+            null;
+         end;
+      end if;
+
+      CORBA.ORB.OmniORB.The_ORB := C_ORB_Init
+        (CORBA.Command_Line.Argc,
+         CORBA.Command_Line.Argv,
+         C_Identifier,
+         Trace_Level);
 
       pragma Debug (O ("Init : leave"));
 
