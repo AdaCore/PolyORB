@@ -1820,6 +1820,7 @@ package body Ada_Be.Idl2Ada is
                      Add_With_Entity (CU, E_Node);
 
                      if First then
+                        Add_With (CU, "Broca.CDR", Use_It => True);
                         Add_With (CU, "Broca.Exceptions");
 
                         PL (CU, "declare");

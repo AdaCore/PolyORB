@@ -8,6 +8,11 @@ Delegations are now implemented. See the Echo example, which has one
 variant with delegation. Use idlac -d flag if you want to have the
 Delegate package generated.
 
+Bugs fixed include:
+  A missing dependency of generated client stubs on Broca.CDR when an
+  operation may raise an exception has been added.
+  (Problem reported by Mehtap Kologlu of Eurocontrol, PR #43).
+
 New features in version 1.0pre3
 ===============================
 
