@@ -242,10 +242,12 @@ doc/NOTES
 examples/Makefile.am
 examples/Makefile.common
 examples/Makefile.in
+examples/README
 examples/common/report.adb
 examples/common/report.ads
 examples/corba/Makefile.am
 examples/corba/Makefile.in
+examples/corba/README
 examples/corba/all_functions/Makefile.am
 examples/corba/all_functions/Makefile.in
 examples/corba/all_functions/all_functions-impl.adb
@@ -256,6 +258,7 @@ examples/corba/all_functions/dynclient.adb
 examples/corba/all_functions/server.adb
 examples/corba/all_types/Makefile.am
 examples/corba/all_types/Makefile.in
+examples/corba/all_types/README
 examples/corba/all_types/all_types-impl.adb
 examples/corba/all_types/all_types-impl.ads
 examples/corba/all_types/all_types.idl
@@ -278,6 +281,7 @@ examples/corba/echo/echo.idl
 examples/corba/echo/server.adb
 examples/moma/Makefile.am
 examples/moma/Makefile.in
+examples/moma/README
 examples/moma/client.adb
 examples/moma/server.adb
 examples/polyorb/Makefile.am
