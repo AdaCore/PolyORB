@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.29 $
+--                            $Revision: 1.30 $
 --                                                                          --
 --         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
@@ -1140,14 +1140,12 @@ package body Broca.Server is
    procedure Serv;
 
    procedure Serv is
-      --  FIXME: This Buffer is certainly not right.
-      Buffer : aliased Buffer_Type;
       Server : Server_Ptr;
    begin
       Ada.Text_IO.Put_Line ("Starting server loop");
       loop
          Server_Table.Get_Server (Server);
-         Perform_Work (Server, Buffer'Access);
+         Perform_Work (Server);
       end loop;
    exception
       when E : others =>
