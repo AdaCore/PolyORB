@@ -36,6 +36,12 @@
 
 	* Makefile.am, Makefile.in: See above.
 	
+1998-04-21  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* configure.in: AC_GNAT_SOURCE is now in support/gnatsrc.m4.
+
+	* MANIFEST: Add Garlic/5pgtplsp.adb to distribution.
+
 1998-04-20  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* configure, configure.in, Makefile.in: Add platform Open NT.
@@ -66,7 +72,15 @@
 
 1998-04-05  Samuel Tardieu  <sam@inf.enst.fr>
 
+	* configure.in: Check for specific header files.
+
 	* INSTALL: Add a note on LinuxThreads/FSU threads issue.
+
+1998-03-31  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* MANIFEST: Add Garlic/s-gamuin.ad[bs] and Garlic/s-ganeut.ad[bs]
+	to the distribution, as well as Garlic/constants.c,
+	Garlic/config.h.in and support/acconfig.h.
 
 1998-03-24  Samuel Tardieu  <sam@inf.enst.fr>
 
@@ -77,6 +91,22 @@
 1998-03-23  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* configure.in, configure: Add some platform configurations.
+
+1998-02-27  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* TODO: Remove obsolete entry concerning stubs compilation using
+	-gnatn (this is not a concern with the new stubs model).
+	Add a new entry to remember RACW extra conversions bug.
+
+	* MANIFEST: Add Garlic/zlib/trees.h.
+
+1998-02-24  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* MANIFEST: Change aux into support to avoid a name clash on NT.
+
+	* Makefile.am (ACLOCAL_AMFLAGS): Likewise.
+
+	* configure.in: Likewise.
 
 1998-02-19  Laurent Pautet  <pautet@scapin.enst.fr>
 
@@ -94,6 +124,10 @@
 	* configure.in: Do not test for Errno anymore since it is
 	available in GNAT.OS_Lib.
 
+1998-02-17  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* MANIFEST: Update list of files for new zlib.
+
 1998-02-12  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* configure.in: Correct typo.
@@ -102,21 +136,25 @@
 
 1998-02-12  Laurent Guerby  <guerby@gnat.com>
 
-	* MANIFEST: Replace Garlic/DOFF by Garlic/UNDALL.
-
 	* configure.in: Remove -O0 for Digital Unix, no longer needed.
 
 	* configure: Ditto.
 
-	* MANIFEST: Add Garlic/DALL and Garlic/DOFF to the distribution.
+	* MANIFEST: Add Garlic/DALL and Garlic/UNDALL to the distribution.
 
 1998-02-11  Laurent Guerby  <guerby@gnat.com>
 
 	* README: Fix typos.
 
+1998-02-09  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* configure.in: Use new Ada macros
+
+	* prereq: Not needed anymore
+	
 1998-01-26  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* NEWS: Updated NEWS file.
+	* NEWS: Updated NEWS file
 
 	* prereq: Bumped to 980126
 

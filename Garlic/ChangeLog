@@ -170,10 +170,21 @@
 	* 5wgarcon.ads: Install new version from Pascal Obry corresponding 
 	to mingwin32.
 
+	* s-gadiob.ads, s-gadiob.adb: Move declaration of Container_Type
+	from the body to the private part of the spec to be able to
+	compile with GNAT's new check on derivation in generic bodies.
+
 1998-04-02  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* Makefile.am (inlining): Use a form that is less likely to make
 	grep bomb because too long an argument line.
+
+1998-03-31  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* constants.sh: Use new constants.c program to compute constants,
+	since some of them are not defines but enums.
+
+	* constants.c: New program, works for defines as well as enums.
 
 1998-03-24  Laurent Pautet  <pautet@dorine.enst.fr>
 
@@ -212,13 +223,19 @@
 	* Makefile.am, Makefile.in: Add output infos. Update
 	dependencies. Fix a small bug of re-installation.
 
+1998-03-22  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-parint.ads (Register_Address, Get_Address): New functions.
+
+	* s-parint.adb (Register_Address, Get_Address): Likewise.
+
 1998-03-20  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-painst.adb, s-painst.ads: New package that contains few
- 	subprograms used in the partition main subprogram.
+	subprograms used in the partition main subprogram.
 
 	* s-garopt.adb, s-garopt.adb: Add Set_Task_Pool_Bounds. Used in
- 	s-garela.
+	s-garela.
 
 	* Makefile.am, Makefile.in: Add s-painst.ad[bs].
 
@@ -226,7 +243,7 @@
 	Partition_Interface to Garlic.Head. Change needed for an ACVC.
 
 	* s-garrem.adb, s-garrem.adb: Remove a parameter in
- 	Full_Launch. This parameter was always a call to the same function 
+	Full_Launch. This parameter was always a call to the same function 
 	(get_boot_server).
 
 1998-03-09  Samuel Tardieu  <sam@inf.enst.fr>
@@ -234,6 +251,8 @@
 	* s-garhea.adb: Surround with of System.Garlic.Linker_Options with 
 	pragma Warnings (Off) and (On) since we do not reference anything
 	from this package.
+
+	* s-garobj.adb: Remove unused entities.
 
 	* s-garela.ads: Likewise.
 
@@ -250,19 +269,19 @@
 1998-03-03  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-ganobl.adb: Fix a termination problem. Task Selection was
- 	blocked on an entry and no task to unblock it (Task
- 	Sigio_Simulation was already dead). Now, these tasks keep going
- 	until all the sockets are closed. Change C_Read, C_Write and
+	blocked on an entry and no task to unblock it (Task
+	Sigio_Simulation was already dead). Now, these tasks keep going
+	until all the sockets are closed. Change C_Read, C_Write and
 	C_Close to trace active sockets.
 
 	* s-ganobl.ads: Add a new procedure C_Close to track sockets in
- 	use.
+	use.
 
 	* s-gartcp.adb: Add several C_Close calls and set
- 	TCP_Shutdown_Completed to true when TCP.Shutdown is executed in
- 	order to let task Selection from System.Garlic.Non_Blocking know
- 	that when the set of sockets in use is empty, this task can safely
- 	terminate.
+	TCP_Shutdown_Completed to true when TCP.Shutdown is executed in
+	order to let task Selection from System.Garlic.Non_Blocking know
+	that when the set of sockets in use is empty, this task can safely
+	terminate.
 
 	* s-gartcp.ads: Add a flag TCP_Shutdown_Completed.
 
@@ -349,6 +368,11 @@
 
 	* s-gaosli.ads: Replace s-gaosli.ads.in now that C_Errno is gone.
 
+1998-02-18  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* s-garfil.adb: Comment out code that prevents GARLIC from
+	compiling.
+	
 1998-02-16  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-rpcpoo.adb: Move with clause from s-rpcpoo.ads to here.

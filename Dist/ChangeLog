@@ -48,6 +48,10 @@
  	suffix. (Initialize) Add include GARLIC flag before -largs, -cargs 
 	and -bargs but after other flags.
 
+1998-03-31  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* xe_utils.ads: Remove useless with of ALI.
+
 1998-03-30  Laurent Pautet  <pautet@dorine.enst.fr>
 
 	* xe_check.adb: Two major problems have been detected. First,
@@ -86,45 +90,45 @@ Sat Mar 21 22:38:35 1998  Laurent Pautet  <pautet@paris.act-europe.fr>
 	* xe_usage.adb: Update usage.
 
 	* xe_stubs.adb: Rename object file when RCI spec and body file
- 	name are different (gnat.adc).
+	name are different (gnat.adc).
 
 1998-03-20  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* xe_utils.ads, xe_utils.adb: Add Dir to build concatenate several
- 	strings and name_ids with directory separator in between. Change
- 	way of handling time stamps. Remove some variables that were not
+	strings and name_ids with directory separator in between. Change
+	way of handling time stamps. Remove some variables that were not
 	very usefull.
 
 	* xe_stubs.adb: Store configuration and executable file stamps
- 	into glade.sta. Use XE_Utils.Dir. Add several procedures to help
- 	the partition main subprogram generation. Same for elaboration
- 	package body. Use of new unit System.Partition_Interface.Startup.
+	into glade.sta. Use XE_Utils.Dir. Add several procedures to help
+	the partition main subprogram generation. Same for elaboration
+	package body. Use of new unit System.Partition_Interface.Startup.
 
 	* xe_back.ads, xe_back.adb: Remove Load_All_Units (no longer
 	used).
 
 	* xe_check.adb: Improve recompilation mode especially to handle
- 	non regular filenames (from gnat.adc). Use the fact that u%[bs]
- 	info contains the index into Unit table. Load distributed
- 	application main subprogram first to take into account gnat.adc
- 	informations using main subprogram ali. Use XE_Utils.Dir.
+	non regular filenames (from gnat.adc). Use the fact that u%[bs]
+	info contains the index into Unit table. Load distributed
+	application main subprogram first to take into account gnat.adc
+	informations using main subprogram ali. Use XE_Utils.Dir.
 
 	* xe_parse.adb, xe_stdcnf.adb: Use XE_Utils.Dir.
 
 1998-03-11  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* xe_check.adb: Some units are explicitly loaded (comes from
- 	configuration file). If its library is a readonly library, it
- 	won't be loaded by gnatmake. So, we have to load this library
- 	ourself in the ALI table.
+	configuration file). If its library is a readonly library, it
+	won't be loaded by gnatmake. So, we have to load this library
+	ourself in the ALI table.
 
 1998-03-09  Laurent Pautet  <pautet@scapin.enst.fr>
 
-        * xe_utils.adb: Use Scan_Make_Arg from Make unit. Re-organize
-        Initialize to use a copy of Make.Initialize which includes
-        -A<GARLIC> flag.
+	* xe_utils.adb: Use Scan_Make_Arg from Make unit. Re-organize
+	Initialize to use a copy of Make.Initialize which includes
+	-A<GARLIC> flag.
 
-        * xe_build.adb: Re-organize code because of changes above.
+	* xe_build.adb: Re-organize code because of changes above.
 
 1998-03-08  Laurent Pautet  <pautet@scapin.enst.fr>
 
@@ -164,12 +168,15 @@ Sat Mar 21 22:38:35 1998  Laurent Pautet  <pautet@paris.act-europe.fr>
 
 1998-02-17  Laurent Pautet  <pautet@scapin.enst.fr>
 
+	* xe_back.adb: Remove trailing spaces in configuration screen
+ 	output.
+
 	* xe_check.adb: Add units already configured on partition type
 	(default_partition) to every partition.
 
 	* xe_back.adb: New procedure Show_Partition (extracted from
  	Show_Configuration).
-
+	
 1998-02-16  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* xe_back.adb: Declare Default_Partition as a normal
