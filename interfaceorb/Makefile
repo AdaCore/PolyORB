@@ -32,12 +32,9 @@ DO_NOT_LINK = -c
 # write here a path to omniORB :
 OMNIORB_PATH = ../omniORB_2.7.0
 
-# the following flags are system-dependant,
-# they must be set to compile a program which uses omiORB
-# see omniORB's user's guide chapter one for information
-
-#linux
-OMNIORB_SYSDEP_FLAGS = -D __x86__ -D __linux__ -D __OSVERSION__=2
+#This file should contain system dependant variables to
+# compile omniORB2 programs
+include Makefile.sys_dep
 
 # paths to omniORB's libraries
 OMNIORB_LIBS = -I $(OMNIORB_PATH)/include/

@@ -91,35 +91,8 @@ package body Corba.Forward is
       -------------
       function To_Forward(The_Ref : in Ref_Type)
                           return Ref is
-         Intermediate_Result : Corba.Object.Ref ;
-         Toto : Corba.Object.Ref ;
-         Result : Ref ;
       begin
-         pragma Debug(Output(Forward,"*** Corba.Forward.To_Forward : start")) ;
-
-         if Is_Nil(Result) then
-            Output(True, "*********** Is nil") ;
-         else
-            Output(True, "************ Is not nil") ;
-         end if ;
-
-         Result := ( Toto with null record);
-         Output(True,"TOTOTOTOOTOTOTOTOOTOTOOTOTTOOTOTOOTOTOTOOTOTOOTOTOTO") ;
-
-
-
-
-
-
-
-         Intermediate_Result :=  Corba.Object.Ref(The_Ref) ;
-         pragma Debug(Output(Forward, "*** Corba.Forward.To_Forward : object cast to Corba.Object.Ref")) ;
-         Result := ( Toto with null record);
-         Output(True, "*** coucoucoucoucoucouocuocuocuoucoucucoucoucouocuocuouc") ;
-         Result := (Intermediate_Result with null record) ;
-         pragma Debug(Output(Forward,"*** Corba.Forward.To_Forward : Got the object")) ;
-         Output(True, "**** " & To_Standard_String(Get_Repository_Id(The_Ref))) ;
-         return Result ;
+         return (Corba.Object.Ref(The_Ref) with null record) ;
       end ;
 
 
