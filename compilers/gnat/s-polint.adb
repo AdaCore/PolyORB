@@ -16,6 +16,8 @@ with PolyORB.Log;
 with PolyORB.Setup;
 with PolyORB.Obj_Adapters;
 with PolyORB.ORB;
+with PolyORB.POA;
+with PolyORB.POA_Config;
 with PolyORB.References;
 with PolyORB.References.IOR;
 with PolyORB.Soft_Links;
@@ -382,6 +384,21 @@ package body System.PolyORB_Interface is
       Is_Local := False;
    end Get_Local_Address;
 
+   -------------------
+   -- Get_Reference --
+   -------------------
+
+   procedure Get_Reference
+     (Addr     :        System.Address;
+      Receiver : access Servant;
+      Ref      :    out PolyORB.References.Ref)
+   is
+      Nil : PolyORB.References.Ref;
+   begin
+      Ref := Nil;
+      --  XXX TBD;
+   end Get_Reference;
+
    -------------------------------
    -- Get_Unique_Remote_Pointer --
    -------------------------------
@@ -423,6 +440,32 @@ package body System.PolyORB_Interface is
             Receiver => Receiver,
             Version  => +Version));
    end Register_Receiving_Stub;
+
+   --------------------------
+   -- Setup_Object_Adapter --
+   --------------------------
+
+   function Setup_Object_Adapter
+     (Name            : String;
+      Configuration   : PolyORB.POA_Config.Configuration_Access;
+      Default_Servant : Servant_Access)
+     return PolyORB.Obj_Adapters.Obj_Adapter_Access
+   is
+      use PolyORB.POA;
+      use PolyORB.POA_Config;
+      use PolyORB.POA_Manager;
+
+      POA : constant Obj_Adapter_Access
+        := Create_POA
+        (Self         => Root_POA_Object,
+         Adapter_Name => PolyORB.Types.To_PolyORB_String (Name),
+         A_POAManager => null,
+         Policies     => Default_Policies (Configuration.all));
+   begin
+      POA.Default_Servant := Default_Servant;
+      Activate (POAManager_Access (Entity_Of (POA.POA_Manager)));
+      return PolyORB.Obj_Adapters.Obj_Adapter_Access (POA);
+   end Setup_Object_Adapter;
 
    ------------
    -- To_Any --

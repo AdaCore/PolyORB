@@ -6,8 +6,10 @@ with PolyORB.Any.ExceptionList;
 with PolyORB.Any.NVList;
 with PolyORB.Any.ObjRef;
 with PolyORB.Components;
+with PolyORB.Obj_Adapters;
 with PolyORB.Objects;
 with PolyORB.Objects.Interface;
+with PolyORB.POA_Config;
 with PolyORB.References;
 with PolyORB.Requests;
 with PolyORB.Smart_Pointers;
@@ -17,28 +19,69 @@ package System.PolyORB_Interface is
 
    pragma Elaborate_Body;
 
-   procedure Adjust_Ref
-     (The_Ref : in out PolyORB.References.Ref)
-     renames PolyORB.References.Adjust;
+   --------------------------
+   -- RPC receiver objects --
+   --------------------------
+
+   --  One RPC receiver is created for each supported interface,
+   --  i.e. one for each RCI library unit, and one for each
+   --  type that is the designated type of one or more RACW type.
+
+   type Message_Handler_Access is access
+     function (M : PolyORB.Components.Message'Class)
+               return PolyORB.Components.Message'Class;
+
+   type Servant is new PolyORB.Objects.Servant with record
+      Handler        : Message_Handler_Access;
+      --  The dispatching routine.
+
+      Object_Adapter : PolyORB.Obj_Adapters.Obj_Adapter_Access;
+      --  Null for RCI servants (the root POA will be used in
+      --  this case.)
+   end record;
+   subtype Servant_Access is PolyORB.Objects.Servant_Access;
+
+   function Handle_Message
+     (Self : access Servant;
+      Msg  : PolyORB.Components.Message'Class)
+      return PolyORB.Components.Message'Class;
+
+   procedure Register_Receiving_Stub
+     (Name     : in String;
+      Receiver : in Servant_Access;
+      Version  : in String := "");
+   --  Register the fact that the Name receiving stub is now elaborated.
+   --  Register the access value to the package RPC_Receiver procedure.
+
+   --------------------------------------------
+   -- Support for RACWs as object references --
+   --------------------------------------------
+
+   subtype Entity_Ptr is PolyORB.Smart_Pointers.Entity_Ptr;
+
+   procedure Inc_Usage (E : PolyORB.Smart_Pointers.Entity_Ptr)
+     renames PolyORB.Smart_Pointers.Inc_Usage;
+   --  In stubs for remote objects, the object reference
+   --  information is stored as a naked Entity_Ptr. We therefore
+   --  need to account for this reference by hand.
 
    procedure Set_Ref
      (The_Ref    : in out PolyORB.References.Ref;
       The_Entity :        PolyORB.Smart_Pointers.Entity_Ptr)
      renames PolyORB.References.Set;
-
    function Entity_Of
      (R : PolyORB.References.Ref)
       return PolyORB.Smart_Pointers.Entity_Ptr
      renames PolyORB.References.Entity_Of;
+   --  Conversion from Entity_Ptr to Ref and reverse
 
-   subtype Entity_Ptr is PolyORB.Smart_Pointers.Entity_Ptr;
-
-   type RACW_Stub_Type is tagged record
+   type RACW_Stub_Type is tagged limited record
       Origin       : System.RPC.Partition_ID;
       Receiver     : Interfaces.Unsigned_64;
       Addr         : Interfaces.Unsigned_64;
       --  XXX the 2 fields above are placeholders and must not
-      --  be used.
+      --  be used (they are kept here only while Exp_Dist is
+      --  not completely updated for PolyORB).
 
       Target       : Entity_Ptr;
       --  Target cannot be a References.Ref (a controlled type)
@@ -88,6 +131,14 @@ package System.PolyORB_Interface is
    --  If Ref denotes a local object, Is_Local is set to True,
    --  and Addr is set to the object's actual address, else
    --  Is_Local is set to False and the state of Addr is undefined.
+
+   procedure Get_Reference
+     (Addr     :        System.Address;
+      Receiver : access Servant;
+      Ref      :    out PolyORB.References.Ref);
+   --  Create a reference that can be used to desginate the
+   --  object whose address is Addr, whose type is the designated
+   --  type of a RACW type associated with Servant.
 
    function Get_Empty_Any
      (Tc : PolyORB.Any.TypeCode.Object)
@@ -265,28 +316,6 @@ package System.PolyORB_Interface is
       Val  : PolyORB.Any.Any)
      renames PolyORB.Requests.Set_Result;
 
-   --  RPC receiver objets are specialized PolyORB components
-
-   type Message_Handler_Access is access
-     function (M : PolyORB.Components.Message'Class)
-               return PolyORB.Components.Message'Class;
-
-   type Servant is new PolyORB.Objects.Servant with record
-      Handler : Message_Handler_Access;
-   end record;
-   subtype Servant_Access is PolyORB.Objects.Servant_Access;
-
-   function Handle_Message
-     (Self : access Servant;
-      Msg  : PolyORB.Components.Message'Class)
-      return PolyORB.Components.Message'Class;
-
-   procedure Register_Receiving_Stub
-     (Name     : in String;
-      Receiver : in Servant_Access;
-      Version  : in String := "");
-   --  Register the fact that the Name receiving stub is now elaborated.
-   --  Register the access value to the package RPC_Receiver procedure.
 
    subtype Message is PolyORB.Components.Message;
    subtype Null_Message is PolyORB.Components.Null_Message;
@@ -308,15 +337,21 @@ package System.PolyORB_Interface is
    Result_Name : constant PolyORB.Types.Identifier
      := PolyORB.Types.To_PolyORB_String ("Result");
 
---  private
+   function Setup_Object_Adapter
+     (Name            : String;
+      Configuration   : PolyORB.POA_Config.Configuration_Access;
+      Default_Servant : Servant_Access)
+      return PolyORB.Obj_Adapters.Obj_Adapter_Access;
 
---     pragma Inline
---       (FA_B, FA_C, FA_F, FA_I, FA_LF, FA_LI, FA_LLF, FA_LLI,
---        FA_SF, FA_SI, FA_SSI, FA_WC, FA_String,
+private
 
---        TA_B, TA_C, TA_F, TA_I, TA_LF, TA_LI, TA_LLF, TA_LLI,
---        TA_SF, TA_SI, TA_SSI, TA_WC, TA_String);
+   pragma Inline
+     (FA_B, FA_C, FA_F, FA_I, FA_LF, FA_LI, FA_LLF, FA_LLI,
+      FA_SF, FA_SI, FA_SSI, FA_WC, FA_String,
 
---     pragma Inline (Caseless_String_Eq);
+      TA_B, TA_C, TA_F, TA_I, TA_LF, TA_LI, TA_LLF, TA_LLI,
+      TA_SF, TA_SI, TA_SSI, TA_WC, TA_String);
+
+   pragma Inline (Caseless_String_Eq);
 
 end System.PolyORB_Interface;

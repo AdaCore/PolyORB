@@ -764,12 +764,6 @@ package body Exp_Dist is
             Make_Allocator (Loc,
               New_Occurrence_Of (Stub_Type, Loc))),
 
-        Make_Procedure_Call_Statement (Loc,
-          Name =>
-            New_Occurrence_Of (RTE (RE_Adjust_Ref), Loc),
-          Parameter_Associations => New_List (
-            New_Occurrence_Of (Reference, Loc))),
-
         Make_Assignment_Statement (Loc,
           Name       => Make_Selected_Component (Loc,
             Prefix        => New_Occurrence_Of (Stubbed_Result, Loc),
@@ -780,6 +774,14 @@ package body Exp_Dist is
                 New_Occurrence_Of (RTE (RE_Entity_Of), Loc),
               Parameter_Associations => New_List (
                 New_Occurrence_Of (Reference, Loc)))),
+
+        Make_Procedure_Call_Statement (Loc,
+          Name =>
+            New_Occurrence_Of (RTE (RE_Inc_Usage), Loc),
+          Parameter_Associations => New_List (
+            Make_Selected_Component (Loc,
+              Prefix        => New_Occurrence_Of (Stubbed_Result, Loc),
+              Selector_Name => Make_Identifier (Loc, Name_Target)))),
 
         Make_Assignment_Statement (Loc,
           Name       => Make_Selected_Component (Loc,
