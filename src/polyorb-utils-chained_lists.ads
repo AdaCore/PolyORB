@@ -47,13 +47,11 @@ package PolyORB.Utils.Chained_Lists is
    function Length (L : List) return Natural;
    function Element (L : List; Index : Natural) return Element_Access;
 
-   procedure Extract_Element
+   procedure Extract_First
      (L      : in out List;
-      Index  : Natural;
       Result : out T);
-   --  Return the element number Index from the list L,
-   --  put it in Result, and remove the element from
-   --  the list
+   --  Return the first element of L into Result,
+   --  and remove it from the list.
 
    function First (L : List) return Iterator;
    function Value (I : Iterator) return Element_Access;

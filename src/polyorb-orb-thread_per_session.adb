@@ -336,7 +336,7 @@ package body PolyORB.ORB.Thread_Per_Session is
                              & " is waiting"));
 
             Down (Sem);
-            Request_Queues.Extract_Element (L.all, 0, Q);
+            Request_Queues.Extract_First (L.all, Q);
             pragma Debug (O ("Thread number"
                              & Image (Current_Task)
                              & " is executing Job"));

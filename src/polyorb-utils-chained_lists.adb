@@ -98,43 +98,28 @@ package body PolyORB.Utils.Chained_Lists is
       raise Constraint_Error;
    end Element;
 
-   ---------------------
-   -- Extract_Element --
-   ---------------------
+   -------------------
+   -- Extract_First --
+   -------------------
 
-   procedure Extract_Element
+   procedure Extract_First
      (L      : in out List;
-      Index  : Natural;
       Result : out T)
    is
-      N      : Node_Access := L.First;
-      M      : Node_Access := L.First;
-      C      : Natural := 0;
+      First : Node_Access := L.First;
    begin
-      while N /= null loop
-         if C = Index then
-            if N = M then
-               L.First := M.Next;
-            else
-               M.Next := N.Next;
-            end if;
-            if N = L.Last then
-               if N = M then
-                  L.Last := null;
-               else
-                  L.Last := M;
-               end if;
-            end if;
-            Result := N.Value;
-            Free (N);
-            return;
-         end if;
-         M := N;
-         N := N.Next;
-         C := C + 1;
-      end loop;
-      raise Constraint_Error;
-   end Extract_Element;
+      if First = null then
+         raise Constraint_Error;
+      end if;
+
+      L.First := First.Next;
+      if L.First = null then
+         L.Last := null;
+      end if;
+
+      Result := First.Value;
+      Free (First);
+   end Extract_First;
 
    -----------
    -- First --
