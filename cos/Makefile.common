@@ -4,7 +4,7 @@ IDLAC=		$(IDLAC_DIR)/idlac
 LINKER=		$(COS_ROOT)/../support/linker
 
 corba_lib=$(COS_ROOT)/../src/corba/libpolyorb-corba.la
-giop_lib=$(COS_ROOT)/../src/giop/libpolyorb-giop.la $(COS_ROOT)/../src/giop/iiop/libpolyorb-iiop.la $(COS_ROOT)/../src/giop/diop/libpolyorb-diop.la $(COS_ROOT)/../src/giop/miop/libpolyorb-miop.la
+giop_lib=$(COS_ROOT)/../src/giop/libpolyorb-giop.la $(COS_ROOT)/../src/giop/iiop/libpolyorb-giop-iiop.la $(COS_ROOT)/../src/giop/diop/libpolyorb-giop-diop.la $(COS_ROOT)/../src/giop/miop/libpolyorb-giop-miop.la
 moma_lib=$(COS_ROOT)/../src/moma/libpolyorb-moma.la
 soap_lib=$(COS_ROOT)/../src/soap/libpolyorb-soap.la 
 srp_lib=$(COS_ROOT)/../src/srp/libpolyorb-srp.la
