@@ -147,6 +147,7 @@ examples/random/random.idl
 examples/random/server.adb
 examples/valuetypes/ExampleA.idl
 examples/valuetypes/Makefile.am
+examples/valuetypes/cycle/Makefile.am
 examples/valuetypes/cycle/client.adb
 examples/valuetypes/cycle/cycle-node-value_impl.adb
 examples/valuetypes/cycle/cycle-node-value_impl.ads
@@ -154,6 +155,7 @@ examples/valuetypes/cycle/cycle-nodemanipulator-impl.adb
 examples/valuetypes/cycle/cycle-nodemanipulator-impl.ads
 examples/valuetypes/cycle/cycle.idl
 examples/valuetypes/cycle/server.adb
+examples/valuetypes/forward/Makefile.am
 examples/valuetypes/forward/client.adb
 examples/valuetypes/forward/server.adb
 examples/valuetypes/forward/tvtforward-first-value_impl.adb
@@ -338,6 +340,8 @@ src/broca-task_attributes.adb
 src/broca-task_attributes.ads
 src/broca-value-operation_store.adb
 src/broca-value-operation_store.ads
+src/broca-value-stream.adb
+src/broca-value-stream.ads
 src/broca-value-value_skel.adb
 src/broca-value-value_skel.ads
 src/broca-value.ads
