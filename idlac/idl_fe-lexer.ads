@@ -160,6 +160,7 @@ package Idl_Fe.Lexer is
        T_Lit_Floating_Fixed_Point,
        T_Identifier,                 --  Identifier
        T_Eof,                        --  Misc
+       T_End_Pragma,
        T_Pragma,
        T_Line
        );

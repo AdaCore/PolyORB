@@ -1047,4 +1047,7 @@ private
    --  Goes to the end of a scoped name (see rule 12)
    procedure Go_To_End_Of_Scoped_Name;
 
+   --  Goes to the next T_End_Pragma token and consumes it
+   procedure Go_To_End_Of_Pragma;
+
 end Idl_Fe.Parser;
