@@ -566,7 +566,7 @@ package body Broca.Server is
       Request_Id        : CORBA.Unsigned_Long;
       Response_Expected : CORBA.Boolean;
       Operation         : CORBA.String;
-      Principal         : CORBA.String;
+      Principal         : Broca.GIOP.Principal;
       POA               : Broca.POA.Ref;
       POA_State         : Broca.POA.Processing_State_Type;
 
@@ -631,7 +631,8 @@ package body Broca.Server is
 
                --  Principal
                pragma Debug (O ("Handle_Request : unmarshalling principal"));
-               Principal := Unmarshall (Buffer);
+               Principal := Broca.GIOP.Principal
+                 (Broca.Sequences.Unmarshall (Buffer));
 
                begin
                   --  This Unlock_R the POA.

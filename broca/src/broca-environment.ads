@@ -73,8 +73,8 @@ package Broca.Environment is
    --  is used unless it is "0", in which case an system-assigned
    --  one will be used.
 
-   Principal           : constant String := "ADABROKER_PRINCIPAL";
-   Principal_Default   : constant String := "";
-   --  Default principle file to use. Useful for gnome.
+   Requesting_Principal         : constant String := "ADABROKER_PRINCIPAL";
+   Requesting_Principal_Default : constant String := "nobody";
+   --  Default principle file to use. Useful for GNOME.
 
 end Broca.Environment;

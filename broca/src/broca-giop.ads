@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Strings.Unbounded;
-
 with CORBA;
 with CORBA.Object;
 with CORBA.AbstractBase;
@@ -40,6 +38,7 @@ with CORBA.AbstractBase;
 with Broca.Opaque;
 with Broca.Buffers;
 with Broca.IOP;
+with Broca.Sequences;
 
 package Broca.GIOP is
    --  Declare a few constants for GIOP version 1.0.
@@ -67,6 +66,15 @@ package Broca.GIOP is
      (Unknown_Object,
       Object_Here,
       Object_Forward);
+
+   type Principal is new Broca.Sequences.Octet_Sequence;
+   --  sequence<octet> GIOP::Principal
+
+   function To_Principal
+     (S : String)
+     return Principal;
+   --  Convert string S into a Principal containing the characters that
+   --  constitute S, followed by an ASCII NUL.
 
    --  Size (in bytes) of struct MessageHeader, major version 1.
    Message_Header_Size : constant := 12;
@@ -141,11 +149,8 @@ package Broca.GIOP is
    --  Free the resources associated with a request
    --  handler after use.
 
-   Nobody_Principal : constant Ada.Strings.Unbounded.Unbounded_String;
-
    procedure Set_Default_Principal
-     (Principal : Ada.Strings.Unbounded.Unbounded_String
-     := Nobody_Principal);
+     (P : Principal);
    --  Set the value that will be used as the requesting_principal
    --  component in a GIOP 1.0 or 1.1 request header.
    --  This interface is exposed to allow the user to contact
@@ -177,8 +182,5 @@ private
    type Request_Handler_Data is limited record
      Message_Body : Broca.Opaque.Octet_Array_Ptr := null;
    end record;
-
-   Nobody_Principal : constant Ada.Strings.Unbounded.Unbounded_String
-     := Ada.Strings.Unbounded.To_Unbounded_String ("nobody");
 
 end Broca.GIOP;
