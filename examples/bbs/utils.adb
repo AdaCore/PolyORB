@@ -33,8 +33,8 @@
 
 --  $Id$
 
-with Ada.IO_Exceptions;
-with Interfaces.C.Strings; use Interfaces.C, Interfaces.C.Strings;
+with Ada.Text_IO;
+use  Ada.Text_IO;
 
 package body Utils is
 
@@ -43,24 +43,12 @@ package body Utils is
    --------------
 
    function Get_Line (Prompt : String := "") return String is
-      function readline (Prompt : chars_ptr := Null_Ptr) return chars_ptr;
-      pragma Import (C, readline, "readline");
-      pragma Linker_Options ("-lreadline");
-      pragma Linker_Options ("-lncurses");
-      C_Prompt : chars_ptr;
-      Result   : chars_ptr;
+      Line : String (1 .. 256);
+      Last : Natural;
    begin
-      if Prompt = "" then
-         Result := readline;
-      else
-         C_Prompt := New_String (Prompt);
-         Result := readline (C_Prompt);
-         Free (C_Prompt);
-      end if;
-      if Result = Null_Ptr then
-         raise Ada.IO_Exceptions.End_Error;
-      end if;
-      return Value (Result);
+      Put (Prompt);
+      Get_Line (Line, Last);
+      return Line (1 .. Last);
    end Get_Line;
 
    -----------------------
