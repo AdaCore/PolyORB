@@ -115,6 +115,7 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-utils-buffers.ads \
 		polyorb-utils-chained_lists.ads \
 		polyorb-utils-dynamic_tables.ads \
+		polyorb-utils-hfunctions-mul.ads \
 		polyorb-utils-htables-perfect.ads \
 		polyorb-utils-simple_flags.ads \
 		polyorb-utils-strings.ads \
@@ -150,6 +151,7 @@ ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
 		polyorb-tasking-profiles-ravenscar.ads \
 		polyorb-tasking-profiles-full_tasking.ads \
 		polyorb-tasking-profiles-no_tasking.ads \
+		polyorb-utils-hfunctions.ads \
 		polyorb-utils-htables.ads
 
 ADA_BODIES = $(ADA_SPECS_WITH_BODY:.ads=.adb)
@@ -330,8 +332,6 @@ polyorb-utils-chained_lists.lo:polyorb.ads polyorb-utils.ads polyorb-utils-chain
 polyorb-utils-dynamic_tables.lo:polyorb.ads polyorb-utils.ads polyorb-utils-dynamic_tables.adb polyorb-utils-dynamic_tables.ads 
 polyorb-utils-hfunctions.lo:polyorb.ads polyorb-utils.ads polyorb-utils-hfunctions.ads 
 polyorb-utils-hfunctions-mul.lo:polyorb.ads polyorb-utils.ads polyorb-utils-hfunctions.ads polyorb-utils-hfunctions-mul.adb polyorb-utils-hfunctions-mul.ads 
-polyorb-utils-hfunctions-sax.lo:polyorb.ads polyorb-utils.ads polyorb-utils-hfunctions.ads polyorb-utils-hfunctions-sax.adb polyorb-utils-hfunctions-sax.ads 
-polyorb-utils-hfunctions-tx.lo:polyorb.ads polyorb-utils.ads polyorb-utils-hfunctions.ads polyorb-utils-hfunctions-tx.adb polyorb-utils-hfunctions-tx.ads 
 polyorb-utils-htables.lo:polyorb.ads polyorb-utils.ads polyorb-utils-htables.ads 
 polyorb-utils-htables-perfect.lo:polyorb.ads polyorb-utils.ads polyorb-utils-dynamic_tables.adb polyorb-utils-dynamic_tables.ads polyorb-utils-hfunctions.ads polyorb-utils-hfunctions-mul.ads polyorb-utils-htables.ads polyorb-utils-htables-perfect.adb polyorb-utils-htables-perfect.ads polyorb-utils-strings.ads 
 polyorb-utils-simple_flags.lo:polyorb.ads polyorb-log.adb polyorb-log.ads polyorb-types.ads polyorb-utils.ads polyorb-utils-simple_flags.adb polyorb-utils-simple_flags.ads 
