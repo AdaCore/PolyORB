@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                              Ada Web Server                              --
 --                                                                          --
---                            Copyright (C) 2003                            --
+--                         Copyright (C) 2000-2001                          --
 --                                ACT-Europe                                --
 --                                                                          --
 --  Authors: Dmitriy Anisimkov - Pascal Obry                                --
@@ -30,17 +30,33 @@
 
 --  $Id$
 
-function AWS.Status.Translate_Table
-  (Status : in Data)
-   return Templates.Translate_Table
-is
-   use Templates;
-begin
-   return (Assoc ("PEERNAME",     To_String (Status.Peername)),
-           Assoc ("METHOD",       Request_Method'Image (Status.Method)),
-           Assoc ("URI",          URL.URL (Status.URI)),
-           Assoc ("HTTP_VERSION", To_String (Status.HTTP_Version)),
-           Assoc ("AUTH_MODE",    Authorization_Type'Image (Status.Auth_Mode)),
-           Assoc ("SOAP_ACTION",  Status.SOAP_Action),
-           Assoc ("PAYLOAD",      "soap_payload"));
-end AWS.Status.Translate_Table;
+with AWS.Client;
+with SOAP.Message.Payload;
+with SOAP.Message.Response;
+
+package SOAP.Client is
+
+   Not_Specified : constant String;
+
+   function Call
+     (URL        : in String;
+      P          : in Message.Payload.Object;
+      SOAPAction : in String         := Not_Specified)
+      return Message.Response.Object'Class;
+   --  Send a SOAP HTTP request to URL address. The P is the Payload and
+   --  SOAPAction is the required HTTP field. If it is not specified then the
+   --  URI (URL resource) will be used for the SOAPAction field. The complete
+   --  format is "URL & '#' & Procedure_Name" (Procedure_Name is retrieved
+   --  from the Payload object.
+
+   function Call
+     (Connection : access AWS.Client.HTTP_Connection;
+      P          : in     Message.Payload.Object)
+      return Message.Response.Object'Class;
+   --  Idem as above, but use an already opened connection.
+
+private
+
+   Not_Specified : constant String := "";
+
+end SOAP.Client;

@@ -42,7 +42,7 @@ function AWS.Server.Get_Status (Server : in HTTP) return String is
    use Ada;
    use AWS.Templates;
 
-   function Slot_Table return Translate_Table;
+--   function Slot_Table return Translate_Table;
    --  returns the information for each slot
 
    function Session_Table return Translate_Table;
@@ -152,63 +152,63 @@ function AWS.Server.Get_Status (Server : in HTTP) return String is
    -- Slot_Table --
    ----------------
 
-   function Slot_Table return Translate_Table is
+--     function Slot_Table return Translate_Table is
 
-      Sock                  : Vector_Tag;
-      Phase                 : Vector_Tag;
-      Abortable             : Vector_Tag;
-      Activity_Counter      : Vector_Tag;
-      Slot_Activity_Counter : Vector_Tag;
-      Activity_Time_Stamp   : Vector_Tag;
-      Peer_Name             : Vector_Tag;
+--        Sock                  : Vector_Tag;
+--        Phase                 : Vector_Tag;
+--        Abortable             : Vector_Tag;
+--        Activity_Counter      : Vector_Tag;
+--        Slot_Activity_Counter : Vector_Tag;
+--        Activity_Time_Stamp   : Vector_Tag;
+--        Peer_Name             : Vector_Tag;
 
-      --  Avoid : may be referenced before it has a value
-      pragma Warnings (Off, Sock);
-      pragma Warnings (Off, Phase);
-      pragma Warnings (Off, Abortable);
-      pragma Warnings (Off, Activity_Counter);
-      pragma Warnings (Off, Slot_Activity_Counter);
-      pragma Warnings (Off, Activity_Time_Stamp);
-      pragma Warnings (Off, Peer_Name);
+--        --  Avoid : may be referenced before it has a value
+--        pragma Warnings (Off, Sock);
+--        pragma Warnings (Off, Phase);
+--        pragma Warnings (Off, Abortable);
+--        pragma Warnings (Off, Activity_Counter);
+--        pragma Warnings (Off, Slot_Activity_Counter);
+--        pragma Warnings (Off, Activity_Time_Stamp);
+--        pragma Warnings (Off, Peer_Name);
 
-      Slot_Data             : Slot;
+--        Slot_Data             : Slot;
 
-   begin
-      for K in 1 .. CNF.Max_Connection (Server.Properties) loop
-         Slot_Data := Server.Slots.Get (Index => K);
+--     begin
+--        for K in 1 .. CNF.Max_Connection (Server.Properties) loop
+--           Slot_Data := Server.Slots.Get (Index => K);
 
-         declare
-            SD : constant Socket_Data
-              := Server.Slots.Get_Socket_Info (Index => K);
-         begin
-            Sock      := Sock      & SD.FD;
-            Peer_Name := Peer_Name & SD.Peername;
-         end;
+--           declare
+--              SD : constant Socket_Data
+--                := Server.Slots.Get_Socket_Info (Index => K);
+--           begin
+--              Sock      := Sock      & SD.FD;
+--              Peer_Name := Peer_Name & SD.Peername;
+--           end;
 
-         Phase     := Phase & Slot_Phase'Image (Slot_Data.Phase);
+--           Phase     := Phase & Slot_Phase'Image (Slot_Data.Phase);
 
-         Abortable := Abortable
-           & Server.Slots.Is_Abortable (Index => K, Mode => Force);
+--           Abortable := Abortable
+--             & Server.Slots.Is_Abortable (Index => K, Mode => Force);
 
-         Activity_Counter := Activity_Counter & Slot_Data.Activity_Counter;
+--           Activity_Counter := Activity_Counter & Slot_Data.Activity_Counter;
 
-         Slot_Activity_Counter := Slot_Activity_Counter
-           & Slot_Data.Slot_Activity_Counter;
+--           Slot_Activity_Counter := Slot_Activity_Counter
+--             & Slot_Data.Slot_Activity_Counter;
 
-         Activity_Time_Stamp := Activity_Time_Stamp &
-           GNAT.Calendar.Time_IO.Image (Slot_Data.Phase_Time_Stamp,
-                                        "%a %D %T");
-      end loop;
+--           Activity_Time_Stamp := Activity_Time_Stamp &
+--             GNAT.Calendar.Time_IO.Image (Slot_Data.Phase_Time_Stamp,
+--                                          "%a %D %T");
+--        end loop;
 
-      return Translate_Table'
-        (Assoc ("SOCK_V",                  Sock),
-         Assoc ("PEER_NAME_V",             Peer_Name),
-         Assoc ("PHASE_V",                 Phase),
-         Assoc ("ABORTABLE_V",             Abortable),
-         Assoc ("SLOT_ACTIVITY_COUNTER_V", Slot_Activity_Counter),
-         Assoc ("ACTIVITY_COUNTER_V",      Activity_Counter),
-         Assoc ("ACTIVITY_TIME_STAMP_V",   Activity_Time_Stamp));
-   end Slot_Table;
+--        return Translate_Table'
+--          (Assoc ("SOCK_V",                  Sock),
+--           Assoc ("PEER_NAME_V",             Peer_Name),
+--           Assoc ("PHASE_V",                 Phase),
+--           Assoc ("ABORTABLE_V",             Abortable),
+--           Assoc ("SLOT_ACTIVITY_COUNTER_V", Slot_Activity_Counter),
+--           Assoc ("ACTIVITY_COUNTER_V",      Activity_Counter),
+--           Assoc ("ACTIVITY_TIME_STAMP_V",   Activity_Time_Stamp));
+--     end Slot_Table;
 
    use type Templates.Translate_Table;
 
@@ -231,8 +231,8 @@ function AWS.Server.Get_Status (Server : in HTTP) return String is
          Assoc ("SECURITY",
                 CNF.Security (Server.Properties)),
 
-         Assoc ("SERVER_SOCK",
-                Integer (Net.Std.Get_FD (Server.Sock))),
+--         Assoc ("SERVER_SOCK",
+--                Integer (Net.Std.Get_FD (Server.Sock))),
 
          Assoc ("VERSION",
                 Version),
@@ -307,7 +307,7 @@ function AWS.Server.Get_Status (Server : in HTTP) return String is
 
          Assoc ("UPLOAD_DIRECTORY",
                 CNF.Upload_Directory (Server.Properties)))
-   & Slot_Table
+--   & Slot_Table
    & Session_Table
    & Hotplug.Get_Status (Server.Filters);
 

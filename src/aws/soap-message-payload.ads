@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                              Ada Web Server                              --
 --                                                                          --
---                            Copyright (C) 2003                            --
+--                         Copyright (C) 2000-2001                          --
 --                                ACT-Europe                                --
 --                                                                          --
 --  Authors: Dmitriy Anisimkov - Pascal Obry                                --
@@ -30,17 +30,28 @@
 
 --  $Id$
 
-function AWS.Status.Translate_Table
-  (Status : in Data)
-   return Templates.Translate_Table
-is
-   use Templates;
-begin
-   return (Assoc ("PEERNAME",     To_String (Status.Peername)),
-           Assoc ("METHOD",       Request_Method'Image (Status.Method)),
-           Assoc ("URI",          URL.URL (Status.URI)),
-           Assoc ("HTTP_VERSION", To_String (Status.HTTP_Version)),
-           Assoc ("AUTH_MODE",    Authorization_Type'Image (Status.Auth_Mode)),
-           Assoc ("SOAP_ACTION",  Status.SOAP_Action),
-           Assoc ("PAYLOAD",      "soap_payload"));
-end AWS.Status.Translate_Table;
+with SOAP.Parameters;
+
+package SOAP.Message.Payload is
+
+   type Object is new Message.Object with private;
+
+   function Procedure_Name (P : in Object'Class) return String;
+   --  Retruns the Payload procedure name.
+
+   procedure Set_Procedure_Name (P : in out Object'Class; Name : in String);
+   --  Set the payload procedure name.
+
+   function Build
+     (Procedure_Name : in String;
+      P_Set          : in SOAP.Parameters.List;
+      Name_Space     : in String               := Default_Name_Space)
+      return Object;
+   --  Retruns a Payload object initialized with the procedure name,
+   --  parameters and name space.
+
+private
+
+   type Object is new Message.Object with null record;
+
+end SOAP.Message.Payload;

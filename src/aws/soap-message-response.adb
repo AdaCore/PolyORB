@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                              Ada Web Server                              --
 --                                                                          --
---                            Copyright (C) 2003                            --
+--                         Copyright (C) 2000-2001                          --
 --                                ACT-Europe                                --
 --                                                                          --
 --  Authors: Dmitriy Anisimkov - Pascal Obry                                --
@@ -30,17 +30,37 @@
 
 --  $Id$
 
-function AWS.Status.Translate_Table
-  (Status : in Data)
-   return Templates.Translate_Table
-is
-   use Templates;
-begin
-   return (Assoc ("PEERNAME",     To_String (Status.Peername)),
-           Assoc ("METHOD",       Request_Method'Image (Status.Method)),
-           Assoc ("URI",          URL.URL (Status.URI)),
-           Assoc ("HTTP_VERSION", To_String (Status.HTTP_Version)),
-           Assoc ("AUTH_MODE",    Authorization_Type'Image (Status.Auth_Mode)),
-           Assoc ("SOAP_ACTION",  Status.SOAP_Action),
-           Assoc ("PAYLOAD",      "soap_payload"));
-end AWS.Status.Translate_Table;
+--  with AWS.MIME;
+
+--  with SOAP.Message.XML;
+
+package body SOAP.Message.Response is
+
+
+   ----------
+   -- From --
+   ----------
+
+   function From (P : in Message.Payload.Object) return Object is
+      NP : Object;
+   begin
+      Set_Wrapper_Name (NP, Payload.Procedure_Name (P) & "Response");
+
+      Set_Parameters   (NP, Parameters (P));
+
+      Set_Name_Space (NP, Name_Space (P));
+
+      return NP;
+   end From;
+
+   --------------
+   -- Is_Error --
+   --------------
+
+   function Is_Error (R : in Object) return Boolean is
+      pragma Warnings (Off, R);
+   begin
+      return False;
+   end Is_Error;
+
+end SOAP.Message.Response;

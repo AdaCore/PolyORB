@@ -30,12 +30,48 @@
 
 --  $Id$
 
-package AWS is
+with SOAP.Message.Payload;
+with SOAP.Message.Response;
 
-   pragma Pure;
+package SOAP.Message.Response.Error is
 
-   Version      : constant String := "1.3";
+   type Object is new Message.Response.Object with private;
 
-   HTTP_Version : constant String := "HTTP/1.1";
+   type Faultcode is new String;
 
-end AWS;
+   function From (P : in Message.Payload.Object) return Object;
+   --  Build an Error response from a Payload object.
+
+   function XML_Image (E : in Object) return Unbounded_String;
+   --  Returns the Fault env and associated data (faultcode, faultstring...).
+
+   function Build
+     (Faultcode   : in Error.Faultcode;
+      Faultstring : in String)
+      return Object;
+   --  Returns an Error object built using Faultcode and Faultstring.
+
+   function Is_Error (E : in Object) return Boolean;
+   --  Always returns True. This overrides  Response.Object's method.
+
+   -----------------
+   -- Fault Codes --
+   -----------------
+
+   function Version_Mismatch (Subname : in String := "") return Faultcode;
+   --  Returns the Version_Mismatch faultcode.
+
+   function Must_Understand (Subname : in String := "") return Faultcode;
+   --  Returns the Must_Understand faultcode.
+
+   function Client (Subname : in String := "") return Faultcode;
+   --  Returns the Client faultcode.
+
+   function Server (Subname : in String := "") return Faultcode;
+   --  Returns the Server faultcode.
+
+private
+
+   type Object is new Message.Response.Object with null record;
+
+end SOAP.Message.Response.Error;

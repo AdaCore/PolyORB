@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                              Ada Web Server                              --
 --                                                                          --
---                            Copyright (C) 2003                            --
+--                         Copyright (C) 2000-2001                          --
 --                                ACT-Europe                                --
 --                                                                          --
 --  Authors: Dmitriy Anisimkov - Pascal Obry                                --
@@ -30,17 +30,54 @@
 
 --  $Id$
 
-function AWS.Status.Translate_Table
-  (Status : in Data)
-   return Templates.Translate_Table
-is
-   use Templates;
-begin
-   return (Assoc ("PEERNAME",     To_String (Status.Peername)),
-           Assoc ("METHOD",       Request_Method'Image (Status.Method)),
-           Assoc ("URI",          URL.URL (Status.URI)),
-           Assoc ("HTTP_VERSION", To_String (Status.HTTP_Version)),
-           Assoc ("AUTH_MODE",    Authorization_Type'Image (Status.Auth_Mode)),
-           Assoc ("SOAP_ACTION",  Status.SOAP_Action),
-           Assoc ("PAYLOAD",      "soap_payload"));
-end AWS.Status.Translate_Table;
+with Ada.Strings.Unbounded;
+
+with SOAP.Parameters;
+
+package SOAP.Message is
+
+   use Ada.Strings.Unbounded;
+
+   type Object is tagged private;
+
+   Default_Name_Space : constant String := "http://mns.org/";
+   --  Default name space used by AWS if none as been specified.
+
+   function XML_Image (M : in Object) return Unbounded_String;
+   --  Returns the XML image for the wrapper and parameters. This is designed
+   --  to be used by Payload and Response object.
+
+   function Name_Space   (M : in Object'Class) return String;
+   --  Returns message Namespace.
+
+   function Wrapper_Name (M : in Object'class) return String;
+   --  Returns wrapper name.
+
+   function Parameters   (M : in Object'class) return SOAP.Parameters.List;
+   --  Returns the parameter.
+
+   procedure Set_Name_Space
+     (M    : in out Object'Class;
+      Name : in     String);
+   --  Set message's Namespace.
+
+   procedure Set_Wrapper_Name
+     (M     : in out Object'Class;
+      Name  : in     String);
+   --  Set message's wrapper name.
+
+   procedure Set_Parameters
+     (M     : in out Object'Class;
+      P_Set : in     SOAP.Parameters.List);
+   --  Set message's parameters.
+
+private
+
+   type Object is tagged record
+      Name_Space   : Unbounded_String
+        := To_Unbounded_String (Default_Name_Space);
+      Wrapper_Name : Unbounded_String;
+      P            : SOAP.Parameters.List;
+   end record;
+
+end SOAP.Message;

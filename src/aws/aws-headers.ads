@@ -33,7 +33,7 @@
 --  to be changed, as we use aws.net
 
 with AWS.Containers.Tables;
-with AWS.Net;
+--  with AWS.Net;
 
 package AWS.Headers is
 
@@ -50,9 +50,9 @@ package AWS.Headers is
    Format_Error : exception;
    --  Raised when header line format is wrong
 
-   procedure Send_Header
-     (Socket  : in Net.Socket_Type'Class;
-      Headers : in List);
+--     procedure Send_Header
+--       (Socket  : in Net.Socket_Type'Class;
+--        Headers : in List);
    --  Send all header lines in Headers list to the socket
 
    function Get_Line

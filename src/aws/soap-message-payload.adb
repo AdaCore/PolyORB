@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                              Ada Web Server                              --
 --                                                                          --
---                            Copyright (C) 2003                            --
+--                         Copyright (C) 2000-2001                          --
 --                                ACT-Europe                                --
 --                                                                          --
 --  Authors: Dmitriy Anisimkov - Pascal Obry                                --
@@ -30,17 +30,39 @@
 
 --  $Id$
 
-function AWS.Status.Translate_Table
-  (Status : in Data)
-   return Templates.Translate_Table
-is
-   use Templates;
-begin
-   return (Assoc ("PEERNAME",     To_String (Status.Peername)),
-           Assoc ("METHOD",       Request_Method'Image (Status.Method)),
-           Assoc ("URI",          URL.URL (Status.URI)),
-           Assoc ("HTTP_VERSION", To_String (Status.HTTP_Version)),
-           Assoc ("AUTH_MODE",    Authorization_Type'Image (Status.Auth_Mode)),
-           Assoc ("SOAP_ACTION",  Status.SOAP_Action),
-           Assoc ("PAYLOAD",      "soap_payload"));
-end AWS.Status.Translate_Table;
+package body SOAP.Message.Payload is
+
+   -----------
+   -- Build --
+   -----------
+
+   function Build
+     (Procedure_Name : in String;
+      P_Set          : in SOAP.Parameters.List;
+      Name_Space     : in String               := Default_Name_Space)
+      return Object is
+   begin
+      return (To_Unbounded_String (Name_Space),
+              To_Unbounded_String (Procedure_Name),
+              P_Set);
+   end Build;
+
+   --------------------
+   -- Procedure_Name --
+   --------------------
+
+   function Procedure_Name (P : in Object'Class) return String is
+   begin
+      return Wrapper_Name (P);
+   end Procedure_Name;
+
+   ------------------------
+   -- Set_Procedure_Name --
+   ------------------------
+
+   procedure Set_Procedure_Name (P : in out Object'Class; Name : in String) is
+   begin
+      Set_Wrapper_Name (P, Name);
+   end Set_Procedure_Name;
+
+end SOAP.Message.Payload;

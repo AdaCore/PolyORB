@@ -303,8 +303,17 @@ package body AWS.Status is
    -------------
 
    function Payload (D : in Data) return String is
+      pragma Warnings (Off);
+      pragma Unreferenced (D);
+      pragma Warnings (On);
    begin
-      return To_String (D.Payload);
+      return "SOAP Payload";
+--      return To_String (D.Payload);
+   end Payload;
+
+   function Payload (D : in Data) return SOAP.Message.Payload.Object is
+   begin
+      return D.SOAP_Payload;
    end Payload;
 
    --------------
@@ -365,10 +374,10 @@ package body AWS.Status is
    -- Socket --
    ------------
 
-   function Socket (D : in Data) return Net.Socket_Type'Class is
-   begin
-      return D.Socket.all;
-   end Socket;
+--     function Socket (D : in Data) return Net.Socket_Type'Class is
+--     begin
+--        return D.Socket.all;
+--     end Socket;
 
    ---------
    -- URI --
