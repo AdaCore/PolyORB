@@ -4,6 +4,9 @@
 
 	* s-ganata.adb: Implementation of an hash table.
 
+	* s-garuni.adb, s-garuni.ads: Instanciation of Garlic.Table for
+ 	Units.
+
 	* s-gartab.adb, s-gartab.ads: Implementation of two generic
  	tables. Concurrent is a generic table which allows atomic
  	operations on items in the table. Sequential table is a more
