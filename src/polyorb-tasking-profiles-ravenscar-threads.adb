@@ -105,7 +105,6 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
       --  Casing of To_Task_ID has changed.
       return STID_To_ATID (System.Tasking.To_Task_Id (PTT.To_Address (TID)));
    end P_To_A_Task_Id;
-   pragma Style_Checks (On);  -- WAG: 5.02
 
    --------------------
    -- A_To_P_Task_Id --
@@ -120,6 +119,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
       return PTT.To_Thread_Id
         (System.Tasking.To_Address (ATID_To_STID (ATID)));
    end A_To_P_Task_Id;
+   pragma Style_Checks (On);  -- WAG: 5.02
 
    -------------------
    -- Tasking Types --
