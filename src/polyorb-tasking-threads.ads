@@ -169,6 +169,15 @@ package PolyORB.Tasking.Threads is
    --  In some profiles, this function ensure that no dynamic allocation
    --  is done.
 
+   procedure Set_Priority
+     (TF : access Thread_Factory_Type;
+      T  : Thread_Id'Class;
+      P  : System.Any_Priority)
+     is abstract;
+   --  This function change the priority of the current task,
+   --  if it is allowed by the profile. If it is not,
+   --  it raises a PolyORB.Tasking.Tasking_Profile_Error.
+
    function Get_Current_Thread_Id
      (TF : access Thread_Factory_Type)
      return Thread_Id'Class

@@ -162,6 +162,23 @@ package body PolyORB.No_Tasking.Threads is
       return null;
    end Run_In_Task;
 
+   ------------------
+   -- Set_Priority --
+   ------------------
+
+   procedure Set_Priority
+     (TF : access No_Tasking_Thread_Factory_Type;
+      T  : Thread_Id'Class;
+      P  : System.Any_Priority) is
+      pragma Warnings (Off);
+      pragma Unreferenced (TF);
+      pragma Unreferenced (T);
+      pragma Unreferenced (P);
+      pragma Warnings (On);
+   begin
+      null;
+   end Set_Priority;
+
    use PolyORB.Initialization;
    use PolyORB.Initialization.String_Lists;
    use PolyORB.Utils.Strings;

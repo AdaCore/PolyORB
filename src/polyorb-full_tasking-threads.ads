@@ -104,6 +104,11 @@ package PolyORB.Full_Tasking.Threads is
       P                : PTT.Parameterless_Procedure)
      return PTT.Thread_Access;
 
+   procedure Set_Priority
+     (TF : access Full_Tasking_Thread_Factory_Type;
+      T  : PTT.Thread_Id'Class;
+      P  : System.Any_Priority);
+
    function Get_Current_Thread_Id
      (TF : access Full_Tasking_Thread_Factory_Type)
      return PTT.Thread_Id'Class;

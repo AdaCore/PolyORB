@@ -73,7 +73,9 @@ package PolyORB.No_Tasking.Threads is
    function Get_Thread_Id
      (T : access No_Tasking_Thread_Type)
      return PTT.Thread_Id_Access;
-
+   --  This function has no sense in No_Tasking profile,
+   --  as this profile provides no way to manipulate a Thread_Type.
+   --  It simply raises a Tasking.Tasking_Profile_Error.
 
    type No_Tasking_Thread_Access
       is access all No_Tasking_Thread_Type'Class;
@@ -101,6 +103,8 @@ package PolyORB.No_Tasking.Threads is
       Default_Priority : System.Any_Priority := System.Default_Priority;
       R                : Runnable'Class)
      return Thread_Access;
+   --  This function has no sense in No_Tasking profile.
+   --  It simply raises a Tasking.Tasking_Profile_Error.
 
    function Run_In_Task
      (TF               : access No_Tasking_Thread_Factory_Type;
@@ -108,6 +112,14 @@ package PolyORB.No_Tasking.Threads is
       Default_Priority : System.Any_Priority := System.Default_Priority;
       P                : Parameterless_Procedure)
      return Thread_Access;
+   --  This function has no sense in No_Tasking profile.
+   --  It simply raises a Tasking.Tasking_Profile_Error.
+
+   procedure Set_Priority
+     (TF : access No_Tasking_Thread_Factory_Type;
+      T  : Thread_Id'Class;
+      P  : System.Any_Priority);
+   --  This procedure does nothing in this profile.
 
    function Get_Current_Thread_Id
      (TF : access No_Tasking_Thread_Factory_Type)

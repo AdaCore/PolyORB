@@ -36,6 +36,7 @@
 
 with System;
 with Ada.Task_Identification;
+with Ada.Dynamic_Priorities;
 with Unchecked_Deallocation;
 with PolyORB.Configuration;
 
@@ -267,6 +268,23 @@ package body PolyORB.Full_Tasking.Threads is
    begin
       return Image (T.Tid);
    end Image;
+
+   ------------------
+   -- Set_Priority --
+   ------------------
+
+   procedure Set_Priority
+     (TF : access Full_Tasking_Thread_Factory_Type;
+      T  : PTT.Thread_Id'Class;
+      P  : System.Any_Priority) is
+      pragma Warnings (Off);
+      pragma Unreferenced (TF);
+      pragma Warnings (On);
+   begin
+      Ada.Dynamic_Priorities.Set_Priority
+        (P, Full_Tasking_Thread_Id (T).Tid);
+   end Set_Priority;
+
 
    use PolyORB.Initialization;
    use PolyORB.Initialization.String_Lists;

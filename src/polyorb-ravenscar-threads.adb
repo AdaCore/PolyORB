@@ -260,68 +260,6 @@ package body PolyORB.Ravenscar.Threads is
       Result.Id := Content.Id;
    end Copy_Thread_Id;
 
-   -----------------
-   -- Run_In_Task --
-   -----------------
-
-   function Run_In_Task
-     (TF               : access Ravenscar_Thread_Factory_Type;
-      Name             : String := "";
-      Default_Priority : System.Any_Priority := System.Default_Priority;
-      P                : Parameterless_Procedure)
-     return Thread_Access is
-      pragma Warnings (Off);
-      pragma Unreferenced (TF);
-      pragma Unreferenced (Name);
-      pragma Unreferenced (Default_Priority);
-      pragma Warnings (On);
-      --  XXX The use of names and priorities is not implemented yet.
-      Id : Thread_Index_Type;
-      T  : Thread_Access;
-   begin
-      --  The following call should not be executed in a protected
-      --  object, because it can be blocking.
-      My_Index_Manager.Get (Id);
-      Pool_Manager.Create_Thread (Id, P, T);
-      declare
-         RT : constant Ravenscar_Thread_Access
-           := Ravenscar_Thread_Access (T);
-      begin
-         pragma Assert (RT.Id.Id /= Main_Task_Id);
-         Sync_Pool (RT.Id.Id).Signal;
-         return T;
-      end;
-   end Run_In_Task;
-
-   function Run_In_Task
-     (TF               : access Ravenscar_Thread_Factory_Type;
-      Name             : String := "";
-      Default_Priority : System.Any_Priority := System.Default_Priority;
-      R                : Runnable'Class)
-     return Thread_Access is
-      pragma Warnings (Off);
-      pragma Unreferenced (TF);
-      pragma Unreferenced (Name);
-      pragma Unreferenced (Default_Priority);
-      pragma Warnings (On);
-      --  XXX The use of names and priorities is not implemented yet.
-      Id : Thread_Index_Type;
-      T  : Thread_Access;
-   begin
-      --  The following call should not be executed in a protected
-      --  object, because it can be blocking.
-      My_Index_Manager.Get (Id);
-      Pool_Manager.Create_Thread (Id, R, T);
-      declare
-         RT : constant Ravenscar_Thread_Access
-           := Ravenscar_Thread_Access (T);
-      begin
-         pragma Assert (RT.Id.Id /= Main_Task_Id);
-         Sync_Pool (RT.Id.Id).Signal;
-         return T;
-      end;
-   end Run_In_Task;
-
    ---------------------------
    -- Get_Current_Thread_Id --
    ---------------------------
@@ -461,6 +399,85 @@ package body PolyORB.Ravenscar.Threads is
       end Lookup;
 
    end Pool_Manager;
+
+   -----------------
+   -- Run_In_Task --
+   -----------------
+
+   function Run_In_Task
+     (TF               : access Ravenscar_Thread_Factory_Type;
+      Name             : String := "";
+      Default_Priority : System.Any_Priority := System.Default_Priority;
+      P                : Parameterless_Procedure)
+     return Thread_Access is
+      pragma Warnings (Off);
+      pragma Unreferenced (TF);
+      pragma Unreferenced (Name);
+      pragma Unreferenced (Default_Priority);
+      pragma Warnings (On);
+      --  XXX The use of names and priorities is not implemented yet.
+      Id : Thread_Index_Type;
+      T  : Thread_Access;
+   begin
+      --  The following call should not be executed in a protected
+      --  object, because it can be blocking.
+      My_Index_Manager.Get (Id);
+      Pool_Manager.Create_Thread (Id, P, T);
+      declare
+         RT : constant Ravenscar_Thread_Access
+           := Ravenscar_Thread_Access (T);
+      begin
+         pragma Assert (RT.Id.Id /= Main_Task_Id);
+         Sync_Pool (RT.Id.Id).Signal;
+         return T;
+      end;
+   end Run_In_Task;
+
+   function Run_In_Task
+     (TF               : access Ravenscar_Thread_Factory_Type;
+      Name             : String := "";
+      Default_Priority : System.Any_Priority := System.Default_Priority;
+      R                : Runnable'Class)
+     return Thread_Access is
+      pragma Warnings (Off);
+      pragma Unreferenced (TF);
+      pragma Unreferenced (Name);
+      pragma Unreferenced (Default_Priority);
+      pragma Warnings (On);
+      --  XXX The use of names and priorities is not implemented yet.
+      Id : Thread_Index_Type;
+      T  : Thread_Access;
+   begin
+      --  The following call should not be executed in a protected
+      --  object, because it can be blocking.
+      My_Index_Manager.Get (Id);
+      Pool_Manager.Create_Thread (Id, R, T);
+      declare
+         RT : constant Ravenscar_Thread_Access
+           := Ravenscar_Thread_Access (T);
+      begin
+         pragma Assert (RT.Id.Id /= Main_Task_Id);
+         Sync_Pool (RT.Id.Id).Signal;
+         return T;
+      end;
+   end Run_In_Task;
+
+   ------------------
+   -- Set_Priority --
+   ------------------
+
+   procedure Set_Priority
+     (TF : access Ravenscar_Thread_Factory_Type;
+      T  : Thread_Id'Class;
+      P  : System.Any_Priority) is
+      pragma Warnings (Off);
+      pragma Unreferenced (TF);
+      pragma Unreferenced (T);
+      pragma Unreferenced (P);
+      pragma Warnings (On);
+   begin
+      raise Tasking.Tasking_Profile_Error;
+   end Set_Priority;
 
    -----------------
    -- Simple_Task --

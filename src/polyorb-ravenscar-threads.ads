@@ -99,6 +99,13 @@ package PolyORB.Ravenscar.Threads is
       P                : Parameterless_Procedure)
      return Thread_Access;
 
+   procedure Set_Priority
+     (TF : access Ravenscar_Thread_Factory_Type;
+      T  : Thread_Id'Class;
+      P  : System.Any_Priority);
+   --  This function has no sense in Ravenscar profile,
+   --  It simply raises a Tasking.Tasking_Profile_Error.
+
    function Get_Current_Thread_Id
      (TF : access Ravenscar_Thread_Factory_Type)
      return Thread_Id'Class;
