@@ -38,7 +38,16 @@ with Make;             use Make;
 with GNAT.Os_Lib;      use GNAT.Os_Lib;
 package body XE_Check is
 
-   --  Once this procedure has been executed we have the following properties:
+   --  Once this procedure called, we have the following properties:
+   --
+   --  * Key of CUnit.Table (U).CUname corresponds to its ALI_Id
+   --    ie ali index corresponding to ada unit CUnit.Table (U).CUname.
+   --
+   --  * Key of Unit.Table  (U).Uname  corresponds to its CUID_Id
+   --    ie mapped unit index corresponding to ada unit Unit.Table (U).Uname
+   --    if this unit has been mapped.
+   --
+   --  * Key of Partitions.Table (P).Name correpsonds to its PID.
 
    procedure Check is
 
@@ -48,7 +57,10 @@ package body XE_Check is
 
    begin
 
+      --  Recompile the non-distributed application.
+
       if not No_Recompilation then
+
          if not Quiet_Output then
             Write_Program_Name;
             Write_Str (": recompiling");
@@ -69,8 +81,15 @@ package body XE_Check is
             for Switch in Gcc_Switches.First .. Gcc_Switches.Last loop
                Args (Switch) := Gcc_Switches.Table (Switch);
             end loop;
+
+            --  Recompile all the configured units to check that
+            --  they are present. It is also a way to load the ali files
+            --  in the ALIs table.
+
             for CUID in CUnit.First .. CUnit.Last loop
                Name := CUnit.Table (CUID).CUname;
+
+               --  Taken from Gnatmake.
 
                Look_For_Full_File_Name :
                begin
@@ -89,6 +108,8 @@ package body XE_Check is
                   Internal := Is_Predefined_File_Name (Full_Name);
                end Look_For_Full_File_Name;
 
+               --  Taken from Gnatmake.
+
                Compile_Sources
                  (Main_Source           => Full_Name,
                   Args                  => Args,
@@ -103,18 +124,22 @@ package body XE_Check is
                   Initialize_Ali_Data   => False,
                   Max_Process           => 1);
 
+               --  Use later on to avoid unnecessary bind + link phases.
+
                if Compiled = No_File then
                   Maybe_Most_Recent_Stamp (Stamp);
-               else
-                  --  Sources_Modified := True;
-                  null;
                end if;
+
             end loop;
          end;
       else
+
+         --  We except ali files to be present. Load them.
+
          for U in CUnit.First .. CUnit.Last loop
             Load_All_Units (CUnit.Table (U).CUname);
          end loop;
+
       end if;
 
       if not Quiet_Output then
@@ -124,12 +149,14 @@ package body XE_Check is
       end if;
 
       --  Set configured unit name key to No_Ali_Id.       (1)
+
       for U in CUnit.First .. CUnit.Last loop
          Set_ALI_Id (CUnit.Table (U).CUname, No_ALI_Id);
       end loop;
 
-      --  Set unit name key to null.                       (2)
+      --  Set ada unit name key to null.                   (2)
       --  Set configured unit name key to the ali file id. (3)
+
       for U in Unit.First .. Unit.Last loop
          Set_CUID (Unit.Table (U).Uname, Null_CUID);
          Get_Name_String (Unit.Table (U).Uname);
@@ -138,17 +165,20 @@ package body XE_Check is
       end loop;
 
       --  Set partition name key to Null_PID.              (4)
+
       for P in Partitions.First .. Partitions.Last loop
          Set_PID (Partitions.Table (P).Name, Null_PID);
       end loop;
 
-      --  Check configured name key to detect non-Ada unit.
+      --  Check mapped unit name key to detect non-Ada unit.
+
       for U in CUnit.First .. CUnit.Last loop
          Ali := Get_ALI_Id (CUnit.Table (U).CUname);
 
          --  Use (3) and (1). If null, then there is no ali
          --  file associated to this configured unit name.
          --  The configured unit is not an Ada unit.
+
          if Ali = No_ALI_Id then
             Write_Program_Name;
             Write_Str (": unit from configuration file ");
@@ -156,8 +186,8 @@ package body XE_Check is
             Write_Str (" is not an Ada unit");
             Write_Eol;
             Inconsistent := True;
-         else
 
+         else
             for I in ALIs.Table (Ali).First_Unit ..
                      ALIs.Table (Ali).Last_Unit loop
 
@@ -165,8 +195,8 @@ package body XE_Check is
 
                   --  If not null, we have already set this
                   --  configured rci unit name to a partition.
-                  if CUnit.Table (U).My_ALI /= No_ALI_Id then
 
+                  if CUnit.Table (U).My_ALI /= No_ALI_Id then
                      Write_Program_Name;
                      Write_Str  (": RCI unit ");
                      Write_Name (CUnit.Table (U).CUname);
@@ -174,13 +204,15 @@ package body XE_Check is
                      Write_Eol;
                      Inconsistent := True;
 
-                  else
-                     --  This RCI has been assigned.              (5)
-                     Set_CUID (Unit.Table (I).Uname, U);
+                  --  Confirm that this RCI has been assigned.     (5)
 
+                  else
+                     Set_CUID (Unit.Table (I).Uname, U);
                   end if;
 
                end if;
+
+               --  If there is no body, reference the spec.
 
                if Unit.Table (I).Utype /= Is_Body then
                   CUnit.Table (U).My_Unit := I;
@@ -190,7 +222,10 @@ package body XE_Check is
 
             CUnit.Table (U).My_ALI := Ali;
 
-            --  Set partition name to some value.                 (7)
+            --  Set partition name to its index value.             (7)
+            --  This way we confirm that the partition is not
+            --  empty as it contains at least one unit.
+
             PID := CUnit.Table (U).Partition;
             Set_PID (Partitions.Table (PID).Name, PID);
 
@@ -198,6 +233,7 @@ package body XE_Check is
       end loop;
 
       --  Use (5) and (2). To check all RCI units are configured.
+
       for U in Unit.First .. Unit.Last loop
          if Unit.Table (U).RCI and then
             Get_CUID (Unit.Table (U).Uname) = Null_CUID then
@@ -210,10 +246,10 @@ package body XE_Check is
          end if;
       end loop;
 
+      --  Use (7). Check that no partition is empty.
+
       for P in Partitions.First .. Partitions.Last loop
          PID := Get_PID (Partitions.Table (P).Name);
-
-         --  Use (7). Check that no partition is empty.
          if PID = Null_PID and then
            Partitions.Table (P).Main_Subprogram = No_Name then
             Write_Program_Name;
@@ -229,12 +265,18 @@ package body XE_Check is
          Set_PID (Unit.Table (U).Uname, Null_PID);
       end loop;
 
-      --  At this level, we have the following properties:
-      --  Info (Partitions.Table (PID).Name) = PID
-      --  Info (Unit.Table (UID).Uname)      = Null_PID
-      --  Info (CUnits.Table (CUID).CUname)  = ALI
-
       if Inconsistent then
+         raise Partitioning_Error;
+      end if;
+
+      --  Check that the main program is really a main program.
+
+      if ALIs.Table (Get_ALI_Id (Main_Subprogram)).Main_Program = None then
+         Write_Program_Name;
+         Write_Str (": ");
+         Write_Name (Main_Subprogram);
+         Write_Str (" is not a main program");
+         Write_Eol;
          raise Partitioning_Error;
       end if;
 

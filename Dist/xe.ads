@@ -160,19 +160,21 @@ package XE is
 
    type Predefined_Type is
       (Pre_Type_Unknown,
-       Pre_Type_Partition,      --  (1) Partition
-       Pre_Type_Boolean,        --  (2) Boolean
-       Pre_Type_String,         --  (3) String
-       Pre_Type_Starter,        --  (4) Type__Starter
-       Pre_Type_Entity,         --  (5) Type__Entity
-       Pre_Type_Convention,     --  (6) Type__Convention
-       Pre_Type_Ada_Unit,       --  (7) Type__Ada_Unit
-       Pre_Type_Subprogram      --  (8) Type__Subprogram
+       Pre_Type_Partition,      --  (1)  Partition
+       Pre_Type_Boolean,        --  (2)  Boolean
+       Pre_Type_String,         --  (3)  String
+       Pre_Type_Starter,        --  (4)  Type__Starter
+       Pre_Type_Entity,         --  (5)  Type__Entity
+       Pre_Type_Convention,     --  (6)  Type__Convention
+       Pre_Type_Ada_Unit,       --  (7)  Type__Ada_Unit
+       Pre_Type_Subprogram,     --  (8)  Type__Subprogram
+       Pre_Type_Function,       --  (9)  Type__*_Function
+       Pre_Type_Procedure       --  (10) Type__*_Procedure
        );
 
    Pre_Type_Wrong : constant Int := 400;
    Pre_Type_First : constant Int := Pre_Type_Wrong + 1;
-   Pre_Type_Last  : constant Int := Pre_Type_Wrong + 8;
+   Pre_Type_Last  : constant Int := Pre_Type_Wrong + 10;
    --  Should match Predefined_Type length
 
    type Pre_Type_Id is new Int range Pre_Type_Wrong .. Pre_Type_Last;
@@ -213,13 +215,15 @@ package XE is
 
    Configuration_Node   : Configuration_Id;
 
-   Partition_Type_Node  : Type_Id;
-   Boolean_Type_Node    : Type_Id;
-   String_Type_Node     : Type_Id;
-   Starter_Type_Node    : Type_Id;
-   Convention_Type_Node : Type_Id;
-   Ada_Unit_Type_Node   : Type_Id;
-   Subprogram_Type_Node : Type_Id;
+   Partition_Type_Node      : Type_Id;
+   Boolean_Type_Node        : Type_Id;
+   String_Type_Node         : Type_Id;
+   Starter_Type_Node        : Type_Id;
+   Convention_Type_Node     : Type_Id;
+   Ada_Unit_Type_Node       : Type_Id;
+   Subprogram_Type_Node     : Type_Id;
+   Main_Procedure_Type_Node : Type_Id;
+   Host_Function_Type_Node  : Type_Id;
 
    Pragma_Starter_Node    : Subprogram_Id;
    Pragma_Import_Node     : Subprogram_Id;
@@ -487,6 +491,17 @@ package XE is
      (Statement_Node  : in Statement_Id)
       return Subprogram_Id;
 
+   ------------------------------
+   -- Parser Convention Naming --
+   ------------------------------
+
+   Conf_Ada_Unit  : Name_Id;
+   Part_Main_Unit : Name_Id;
+   Returned_Param : Name_Id;
+   Procedure_Unit : Name_Id;
+   Sub_Prog_Param : Name_Id;
+   Procedure_Call : Name_Id;
+
    --------------
    -- PID_Type --
    --------------
@@ -681,10 +696,11 @@ package XE is
    procedure Maybe_Most_Recent_Stamp (Stamp : Time_Stamp_Type);
    --  Maybe set Most_Recent_Stamp.
 
-   Verbose_Mode       : Boolean renames Opt.Verbose_Mode;
-   Quiet_Output       : Boolean renames Opt.Quiet_Output;
-   No_Recompilation   : Boolean renames Opt.Dont_Execute;
-   Building_Script    : Boolean renames Opt.List_Dependencies;
+   Verbose_Mode       : Boolean;
+   Debug_Mode         : Boolean;
+   Quiet_Output       : Boolean;
+   No_Recompilation   : Boolean;
+   Building_Script    : Boolean;
 
    Fatal_Error         : exception;   --  Operating system error
    Scanning_Error      : exception;   --  Error during scanning

@@ -140,7 +140,7 @@ procedure XE_Lead is
       end;
 
       if Partition /= Main_Partition then
-         Write_Str (FD, " --detach &""");
+         Write_Str (FD, " --detach --slave &""");
       end if;
       Write_Eol (FD);
    end Set_Launcher;

@@ -65,13 +65,13 @@ package body XE_Parse is
    procedure Print
      (Node : in Type_Id;
       Head : in String);
-   --  Print a type node with its attributes. Attributes are printed
-   --  with their values.
+   --  Print a type node with its component and attributes.
+   --  Attributes are printed with their values.
 
    procedure Print
      (Node : in Variable_Id;
       Head : in String);
-   --  Print a variable node with its value and its attributes.
+   --  Print a variable node with its values and its attributes.
    --  Attributes are printed with their values.
 
    procedure Print
@@ -104,7 +104,7 @@ package body XE_Parse is
 
    procedure Has_Not_Been_Already_Declared
      (Declaration_Name : in  Name_Id);
-   --  Check that this declaration has not been already done.
+   --  Check that this declaration is not already present.
 
    procedure Search_Declaration
      (Declaration_Name : in  Name_Id;
@@ -223,6 +223,15 @@ package body XE_Parse is
    --  of name Variable_Name has a corresponding type, indicated by the
    --  type node Variable_Type.
 
+   procedure Declare_Component
+     (Type_Node          : in Type_Id;
+      Component_Name     : in Name_Id;
+      Comp_Type_Node     : in Type_Id;
+      Component_Node     : out Component_Id);
+   --  Declare a component for a given type. This procedure creates
+   --  a component of type Comp_Type_Node and includes it in the type
+   --  component list.
+
    procedure Declare_Attribute
      (Type_Node          : in Type_Id;
       Attribute_Name     : in Name_Id;
@@ -322,7 +331,7 @@ package body XE_Parse is
    procedure P_Configuration_Declaration;
    procedure P_Configuration_Body;
    procedure P_Configuration_End;
-   procedure P_Main_Declaration;
+   procedure P_Procedure_Declaration;
    procedure P_Function_Declaration;
    procedure P_Pragma;
    procedure P_Representation_Clause;
@@ -618,10 +627,12 @@ package body XE_Parse is
       --  where <F> and <X> are to be defined.
 
       --  Token FUNCTION has already been parsed.
+
       T_Identifier;
       Function_Name := Token_Name;
 
       --  Create a new subprogram node for this newly declared function.
+
       Declare_Subprogram
         (Function_Name,
          False,
@@ -630,18 +641,21 @@ package body XE_Parse is
       T_Left_Paren;
 
       --  Get parameter <X>.
+
       T_Identifier;
       Parameter_Name := Token_Name;
 
       T_Colon;
 
       --  Get parameter type.
+
       T_Identifier;
       Para_Type_Name := Token_Name;
 
       Search_Type (Para_Type_Name, Para_Type_Kind, Para_Type_Node);
 
       --  String is the only expected type.
+
       if Para_Type_Node /= String_Type_Node then
          Write_Location (Get_Token_Location);
          Write_Str  (": ");
@@ -652,6 +666,7 @@ package body XE_Parse is
       end if;
 
       --  Declare <X> as a formal parameter.
+
       Declare_Subprogram_Parameter
         (Parameter_Name,
          Para_Type_Node,
@@ -662,12 +677,14 @@ package body XE_Parse is
       T_Return;
 
       --  Get returned parameter type.
+
       T_Identifier;
       Para_Type_Name := Token_Name;
 
       Search_Type (Para_Type_Name, Para_Type_Kind, Para_Type_Node);
 
-      --  String is the only
+      --  String is the only type allowed at this level.
+
       if Para_Type_Node /= String_Type_Node then
          Write_Location (Get_Token_Location);
          Write_Str  (": ");
@@ -678,9 +695,10 @@ package body XE_Parse is
       end if;
 
       --  Declare returned parameter type. As a naming convention
-      --  we use reserved keyword "return" for this anonymous parameter.
+      --  we use keyword Returned_Param as the anonymous parameter.
+
       Declare_Subprogram_Parameter
-        (Str_To_Id ("return"),
+        (Returned_Param,
          Para_Type_Node,
          Function_Node,
          Parameter_Node);
@@ -700,6 +718,7 @@ package body XE_Parse is
 
       --  Check that the configuration name is matching the current
       --  configuration name.
+
       if Token = Tok_Identifier then
          Search_Declaration (Token_Name, Conf);
          if not Is_Configuration (Conf) then
@@ -724,12 +743,15 @@ package body XE_Parse is
    begin
 
       --  Token PRAGMA has already been parsed.
+
       T_Identifier;
 
       --  Known pragmas are prefixed by Pragma_Prefix.
+
       Pragma_Name := Pragma_Prefix & Token_Name;
 
       --  Is this pragma a legal pragma.
+
       Search_Pragma (Pragma_Name, Pragma_Kind, Pragma_Node);
       if Pragma_Kind = Pragma_Unknown then
          Write_Location (Get_Token_Location);
@@ -741,26 +763,30 @@ package body XE_Parse is
       end if;
 
       --  Parse a pragma as a procedure call.
+
       Associate_Actual_To_Formal (Pragma_Node);
 
       --  When successful, declare the procedure call node.
+
       Declare_Procedure_Call (Pragma_Node);
 
    end P_Pragma;
 
-   -----------------------
-   -- P_Main_Subprogram --
-   -----------------------
+   -----------------------------
+   -- P_Procedure_Declaration --
+   -----------------------------
 
-   procedure P_Main_Declaration is
+   procedure P_Procedure_Declaration is
       Unit_Name      : Name_Id;
       Unit_Node      : Variable_Id;
       Partition_Name : Name_Id;
       Partition_Node : Variable_Id;
       Component_Node : Component_Id;
+      Procedure_Node : Subprogram_Id;
    begin
 
       --  Token PROCEDURE has already been parsed.
+
       T_Identifier;
 
       Unit_Name := Token_Name;
@@ -769,7 +795,11 @@ package body XE_Parse is
          Unit_Node);
 
       --  Is this unit already declared ?
+
       if Unit_Node /= Null_Variable then
+
+         --  If yes, then it has to be an ada unit.
+
          if Get_Variable_Type (Unit_Node) /= Ada_Unit_Type_Node then
             Write_Location (Get_Token_Location);
             Write_Str  (": variable is not declared as an Ada unit");
@@ -777,52 +807,75 @@ package body XE_Parse is
             raise Parsing_Error;
          end if;
 
-      --  Ada_Unit_Type is a extensible enumeration type. Declares
-      --  a new enumeration litteral for this special type.
-      else
-         Declare_Variable
-           (Configuration_Node,
-            Unit_Name,
-            Ada_Unit_Type_Node,
-            Unique,
-            Unit_Node);
       end if;
 
-      T_Is;
-      T_In;
+      Take_Token ((Tok_Is, Tok_Semicolon));
 
-      --  This should be an already declared variable.
-      T_Identifier;
-      Partition_Name := Token_Name;
-      Search_Variable
-        (Partition_Name,
-         Partition_Node);
+      case Token is
 
-      --  This variable has to be already declared. Its type has to be
-      --  of the predefined type Partition_Type_Node.
-      if Partition_Node = Null_Variable or else
-         Get_Variable_Type (Partition_Node) /= Partition_Type_Node then
-         Write_Location (Get_Token_Location);
-         Write_Str  ("variable has not been declared as a partition");
-         Write_Eol;
-         raise Parsing_Error;
-      end if;
+         when Tok_Is =>
 
-      --  Partition_Type_Node is an unconstraint array type. In this
-      --  context, Partition_Node has a new element Unit_Node.
-      --  As a naming convention, we use the reserved keyword "others"
-      --  to indicate a main subprogram.
-      Declare_Component
-        (Variable_Node      => Partition_Node,
-         Component_Name     => Str_To_Id ("others"),
-         Component_Type     => Ada_Unit_Type_Node,
-         Component_Value    => Unit_Node,
-         Is_An_Attribute    => False,
-         Component_Node     => Component_Node);
+            --  Ada_Unit_Type is a extensible enumeration type. Declares
+            --  a new enumeration litteral for this special type.
 
-      T_Semicolon;
+            Declare_Variable
+              (Configuration_Node,
+               Unit_Name,
+               Ada_Unit_Type_Node,
+               Unique,
+               Unit_Node);
 
-   end P_Main_Declaration;
+            T_In;
+
+            --  This should be an already declared variable.
+
+            T_Identifier;
+            Partition_Name := Token_Name;
+            Search_Variable
+              (Partition_Name,
+               Partition_Node);
+
+            --  This variable has to be already declared. Its type has to be
+            --  of the predefined type Partition_Type_Node.
+
+            if Partition_Node = Null_Variable or else
+              Get_Variable_Type (Partition_Node) /= Partition_Type_Node then
+               Write_Location (Get_Token_Location);
+               Write_Str  ("variable has not been declared as a partition");
+               Write_Eol;
+               raise Parsing_Error;
+            end if;
+
+            --  Partition_Type_Node is an unconstraint array type. In this
+            --  context, Partition_Node has a new element Unit_Node.
+            --  As a naming convention, we use the keyword Procedure_Unit
+            --  to indicate a main subprogram.
+
+            Declare_Component
+              (Variable_Node      => Partition_Node,
+               Component_Name     => Procedure_Unit,
+               Component_Type     => Ada_Unit_Type_Node,
+               Component_Value    => Unit_Node,
+               Is_An_Attribute    => False,
+               Component_Node     => Component_Node);
+
+            T_Semicolon;
+
+         when Tok_Semicolon =>
+
+            --  This is just a parameterless procedure declaration.
+
+            Declare_Subprogram
+              (Unit_Name,
+               True,
+               Procedure_Node);
+
+         when others =>
+            null;
+
+      end case;
+
+   end P_Procedure_Declaration;
 
    -----------------------------
    -- P_Representation_Clause --
@@ -842,14 +895,17 @@ package body XE_Parse is
    begin
 
       --  Token FOR has already been parsed.
+
       T_Identifier;
       Direct_Name := Token_Name;
       Search_Declaration (Direct_Name, Direct_Node);
 
       --  This identifier has to be already declared.
+
       if Direct_Node /= Null_Node then
 
          --  If legal, retrieve variable Direct_Node type.
+
          if Is_Variable (Direct_Node) then
             Direct_Type := Get_Variable_Type (Variable_Id (Direct_Node));
             Is_A_Type := False;
@@ -859,6 +915,7 @@ package body XE_Parse is
             Is_A_Type := True;
 
          --  Only variables and types are subject to representation clause.
+
          else
             Write_Location (Get_Token_Location);
             Write_Str (": identifier is neither a variable");
@@ -877,16 +934,19 @@ package body XE_Parse is
       T_Apostrophe;
 
       --  Get the attribute name.
+
       T_Identifier;
       Attr_Name := Token_Name;
 
       --  Attributes are always prefixed by Attribute_Prefix.
+
       Search_Component
         (Attribute_Prefix & Attr_Name,
          Direct_Type,
          Comp_Node);
 
       --  Check that this attribute is a legal attribute for the given type.
+
       if Comp_Node = Null_Component or else
          not Is_Component_An_Attribute (Comp_Node) then
          Write_Location (Get_Token_Location);
@@ -896,6 +956,7 @@ package body XE_Parse is
       end if;
 
       --  If variable, duplicate attribute for the variable only.
+
       if not Is_A_Type then
          Declare_Attribute
            (Variable_Id (Direct_Node),
@@ -910,6 +971,7 @@ package body XE_Parse is
       Expr_Name := Token_Name;
 
       --  If string literal, declare an anonymous variable.
+
       if Token = Tok_String_Literal then
          Declare_Variable
            (Configuration_Node,
@@ -918,21 +980,26 @@ package body XE_Parse is
             Unique,
             Variable_Id (Expr_Node));
 
+      --  Otherwise, retrieve the declaration.
+
       else
          Search_Declaration (Expr_Name, Expr_Node);
       end if;
 
       Attr_Type := Get_Component_Type (Component_Id (Attr_Node));
 
-      --  Only string literal or function returning string are allowed.
+      --  Check that the expression has the correct type.
+
       if not Is_Expression_Of_Type (Expr_Node, Attr_Type) then
          Write_Location (Get_Token_Location);
-         Write_Str (": invalid expression");
+         Write_Name (Get_Node_Name (Node_Id (Expr_Node)));
+         Write_Str (" is an invalid expression here");
          Write_Eol;
          raise Parsing_Error;
       end if;
 
       --  Set attribute to the given value.
+
       Set_Component_Value (Component_Id (Attr_Node), Expr_Node);
 
       T_Semicolon;
@@ -952,9 +1019,13 @@ package body XE_Parse is
          Next_Token;
 
          --  If token is '.' then continue ...
+
          if Token = Tok_Dot then
             T_Identifier;
             Identifier := Identifier & Dot_Sep_Id & Token_Name;
+
+         --  If not, then this is the identifier end.
+
          else
             Set_Token_Location (Location);
             Token_Name := Identifier;
@@ -980,10 +1051,12 @@ package body XE_Parse is
          exit when Token = Tok_Right_Paren;
 
          --  Ada unit names are allowed.
+
          P_Full_Ada_Identifier;
          Expression_Name := Token_Name;
 
          --  Increase the ada unit enumeration type.
+
          Declare_Variable
            (Configuration_Node,
             Expression_Name,
@@ -991,11 +1064,12 @@ package body XE_Parse is
             Unique,
             Expression_Node);
 
-         --  As a naming convention, we use the reserved keyword "record"
+         --  As a naming convention, we use the keyword Conf_Ada_Unit
          --  as a anonymous component name.
+
          Declare_Component
            (Variable_Node      => Variable_Node,
-            Component_Name     => Str_To_Id ("record"),
+            Component_Name     => Conf_Ada_Unit,
             Component_Type     => Ada_Unit_Type_Node,
             Component_Value    => Expression_Node,
             Is_An_Attribute    => False,
@@ -1027,26 +1101,30 @@ package body XE_Parse is
       Take_Token ((Tok_Comma, Tok_Colon));
 
       --  Is it a list of identifiers ?
+
       if Token = Tok_Comma then
 
          T_Identifier;
          Variable_Name := Token_Name;
 
          --  Declare a temporary variable of any type.
+
          Declare_Variable
            (Configuration_Node,
             Previous_Name,
-            Partition_Type_Node, --  Temporary
+            Partition_Type_Node,
             Unique,
             Previous_Node);
 
          --  Call recursively P_Variable_List_Declaration until the
          --  end of list. Variable_Node is a node to the next
          --  declared variable.
+
          P_Variable_List_Declaration (Variable_Name);
          Search_Variable (Variable_Name, Variable_Node);
 
          --  Update the temporary variable type with variable_node type
+
          Update_Variable
            (Conf_Node          => Configuration_Node,
             Variable_Name      => Previous_Name,
@@ -1055,15 +1133,18 @@ package body XE_Parse is
 
          --  If previous variable has been initialized, initialize
          --  this newly declared variable as well.
+
          Assign_Variable (Variable_Node, Previous_Node);
 
       else
 
          --  The following identifier is a type.
+
          T_Identifier;
          Var_Type_Name := Token_Name;
 
          --  Has this type been declared ?
+
          Search_Type
            (Var_Type_Name,
             Var_Type_Kind,
@@ -1077,6 +1158,7 @@ package body XE_Parse is
          end if;
 
          --  Declare this new variable of type Var_Type_Node.
+
          Declare_Variable
            (Configuration_Node,
             Previous_Name,
@@ -1086,7 +1168,8 @@ package body XE_Parse is
 
          Take_Token ((Tok_Semicolon, Tok_Colon_Equal));
 
-         --  Is there an initilization ?
+         --  Is there an initialization ?
+
          if Token = Tok_Colon_Equal then
             P_Aggregate_Assignement (Previous_Node);
          end if;
@@ -1112,6 +1195,7 @@ package body XE_Parse is
 
                --  This is an assignement. Includes a list of ada units
                --  into a partition.
+
                declare
                   Variable_Node : Variable_Id;
                begin
@@ -1127,6 +1211,7 @@ package body XE_Parse is
                   T_Colon_Equal;
 
                   --  Read the ada units aggregate.
+
                   P_Aggregate_Assignement (Variable_Node);
 
                end;
@@ -1159,45 +1244,63 @@ package body XE_Parse is
       List_Location  : Location_Type;
    begin
 
-      --  There are no matching (marked) parameters. When a formal
+      --  Look for the matching (marked) parameters. When a formal
       --  parameter has an associated actual parameter, mark the
       --  formal parameter and set the formal parameter value to
       --  the actual parameter.
+
       Unmark_Subprogram_Parameters (Subprogram_Node, N_Parameter);
 
       List_Location := Get_Token_Location;
 
       --  At the beginning, convention is unknown.
+
       if N_Parameter > 0 then
          T_Left_Paren;
          loop
             Param_Location := Get_Token_Location;
+
+            --  After passes, we know the convention.
+
             if Convention = Named then
                T_Identifier;
+
             else
                Take_Token ((Tok_Identifier, Tok_String_Literal));
+
+               --  If this is a string litteral then we know the convention.
+
                if Token = Tok_String_Literal then
                   Convention := Positional;
+
+                  --  Create a dummy declaration that contains the literal.
+
                   Declare_Variable
                     (Configuration_Node,
                      Token_Name,
                      String_Type_Node,
                      Unique,
                      Literal_Node);
+
                end if;
+
             end if;
 
             --  Note that this formal parameter could be a actual parameter
             --  if convention is positional, or if convention is unknown
             --  and no arrow is following.
+
             Formal_Name := Token_Name;
+
             case Convention is
+
                when Unknown =>
                   Take_Token ((Tok_Arrow, Tok_Comma, Tok_Right_Paren));
-                  if Token = Tok_Arrow then
 
-                     --  This is definitively a named convention.
-                     --  Formal_Name is correct, read Actual_Name.
+                  --  This is definitively a named convention.
+                  --  Formal_Name is correct, read Actual_Name.
+
+                  if Token = Tok_Arrow then
                      Convention := Named;
                      Take_Token ((Tok_String_Literal, Tok_Identifier));
                      Actual_Name := Token_Name;
@@ -1210,10 +1313,11 @@ package body XE_Parse is
                            Literal_Node);
                      end if;
                      Take_Token ((Tok_Comma, Tok_Right_Paren));
-                  else
 
-                     --  This is definitively a positional convention.
-                     --  Ignore Formal_Name, actually we read Actual_Name.
+                  --  This is definitively a positional convention.
+                  --  Ignore Formal_Name, actually we read Actual_Name.
+
+                  else
                      Convention  := Positional;
                      Actual_Name := Formal_Name;
                   end if;
@@ -1222,12 +1326,14 @@ package body XE_Parse is
 
                   --  This is a positional convention and Formal_Name
                   --  should be reassigned to Actual_Name.
+
                   Actual_Name := Formal_Name;
                   Take_Token ((Tok_Comma, Tok_Right_Paren));
 
                when Named =>
 
                   --  This is a named convention. We need to read Actual_Name.
+
                   T_Arrow;
                   Take_Token ((Tok_String_Literal, Tok_Identifier));
                   Actual_Name := Token_Name;
@@ -1240,12 +1346,14 @@ package body XE_Parse is
                         Literal_Node);
                   end if;
                   Take_Token ((Tok_Comma, Tok_Right_Paren));
+
             end case;
 
             --  If convention = named, check that such a formal parameter
             --     belongs to the subprogram parameter list.
             --  If convention = positional, retrieve the first unmarked
             --     (unmatched) parameter (name and node).
+
             Search_Matching_Parameter
               (Subprogram_Node,
                Convention,
@@ -1259,7 +1367,8 @@ package body XE_Parse is
                raise Parsing_Error;
             end if;
 
-            --  Is there a constant of formal parameter type ?
+            --  Does this actual parameter really exist ?
+
             Search_Actual_Parameter
               (Actual_Name,
                Get_Parameter_Type (Formal_Node),
@@ -1274,10 +1383,12 @@ package body XE_Parse is
 
             --  Mark the matching parameter and set its value to actual
             --  parameter value.
+
             Set_Parameter_Mark (Formal_Node, 1);
             Assign_Variable (Actual_Node, Variable_Id (Formal_Node));
 
             --  There is one less parameter to match.
+
             N_Parameter := N_Parameter - 1;
 
             if Token = Tok_Right_Paren then
@@ -1305,17 +1416,23 @@ package body XE_Parse is
       Conf_Node : Configuration_Id;
    begin
 
-      --  Nothing very specific here.
+      --  Use "standard" configuration to start.
+
       T_Configuration;
       T_Identifier;
       Conf_Name := Token_Name;
       T_Is;
+
+      --  We have the real configuration node. Let's use this one.
+
       Create_Configuration (Conf_Node, Conf_Name);
 
-      --  Append the root configuration to the new one.
+      --  Append the "standard" root configuration to the new one.
+
       Append_Declaration   (Conf_Node, Node_Id (Configuration_Node));
 
       --  Now, the new configuration is the root configuration.
+
       Configuration_Node := Conf_Node;
 
    end P_Configuration_Declaration;
@@ -1350,7 +1467,7 @@ package body XE_Parse is
                P_Function_Declaration;
 
             when Tok_Procedure  =>
-               P_Main_Declaration;
+               P_Procedure_Declaration;
 
             when Tok_For        =>
                P_Representation_Clause;
@@ -1376,7 +1493,7 @@ package body XE_Parse is
 
       T_EOF;
 
-      if Verbose_Mode then
+      if Debug_Mode then
          Print_Configuration;
       end if;
 
@@ -1391,6 +1508,7 @@ package body XE_Parse is
       Attribute_Node : Attribute_Id;
       Variable_Node  : Variable_Id;
       Parameter_Node : Parameter_Id;
+      Component_Node : Component_Id;
 
    begin
 
@@ -1398,21 +1516,22 @@ package body XE_Parse is
       Pragma_Prefix    := Str_To_Id ("pragma__");
       Type_Prefix      := Str_To_Id ("type__");
 
-      --  As a naming convention, we use the reserved keyword "private"
+      Conf_Ada_Unit  := Str_To_Id ("_any__ada__unit");
+      Part_Main_Unit := Str_To_Id ("_main_procedure");
+      Procedure_Unit := Str_To_Id ("_appl_procedure");
+      Returned_Param := Str_To_Id ("_returned_param");
+      Sub_Prog_Param := Str_To_Id ("_sub_prog_param");
+      Procedure_Call := Str_To_Id ("_procedure_call");
+
+      --  As a naming convention, we use the rserved keyword "private"
       --  for the standard configuration name.
+
       Create_Configuration
         (Configuration_Node,
          Str_To_Id ("private"));
 
-      --  type type__subprogram
-      Declare_Type
-        (Conf_Node    => Configuration_Node,
-         Type_Name    => Type_Prefix & Str_To_Id ("subprogram"),
-         Type_Kind    => Pre_Type_Subprogram,
-         Structure    => False,
-         Type_Node    => Subprogram_Type_Node);
+      --  type string (standard)
 
-      --  type string is ...
       Declare_Type
         (Conf_Node    => Configuration_Node,
          Type_Name    => Str_To_Id ("string"),
@@ -1420,7 +1539,40 @@ package body XE_Parse is
          Structure    => False,
          Type_Node    => String_Type_Node);
 
-      --  type Partition is (<configuration dependent>);
+      --  type type__host_function (standard)
+      --     function F (...: String) return String;
+
+      Declare_Type
+        (Conf_Node    => Configuration_Node,
+         Type_Name    => Type_Prefix & Str_To_Id ("host_function"),
+         Type_Kind    => Pre_Type_Function,
+         Structure    => True,
+         Type_Node    => Host_Function_Type_Node);
+
+      Declare_Component
+        (Type_Node        => Host_Function_Type_Node,
+         Component_Name   => Sub_Prog_Param,
+         Comp_Type_Node   => String_Type_Node,
+         Component_Node   => Component_Node);
+
+      Declare_Component
+        (Type_Node        => Host_Function_Type_Node,
+         Component_Name   => Returned_Param,
+         Comp_Type_Node   => String_Type_Node,
+         Component_Node   => Component_Node);
+
+      --  type type__main_procedure (standard)
+      --     procedure P
+
+      Declare_Type
+        (Conf_Node    => Configuration_Node,
+         Type_Name    => Type_Prefix & Str_To_Id ("main_procedure"),
+         Type_Kind    => Pre_Type_Procedure,
+         Structure    => False,
+         Type_Node    => Main_Procedure_Type_Node);
+
+      --  type Partition (standard)
+
       Declare_Type
         (Conf_Node    => Configuration_Node,
          Type_Name    => Str_To_Id ("partition"),
@@ -1428,17 +1580,22 @@ package body XE_Parse is
          Structure    => True,
          Type_Node    => Partition_Type_Node);
 
+      --  Legal attribute : 'Main
+      --  Legal attribute : 'Host
+      --  Legal attribute : 'Storage_Dir
+      --  Legal attribute : 'Command_Line
+
       Declare_Attribute
         (Type_Node      => Partition_Type_Node,
          Attribute_Name => Str_To_Id ("main"),
-         Attr_Type_Node => String_Type_Node,
+         Attr_Type_Node => Main_Procedure_Type_Node,
          Attribute_Kind => Attribute_Main,
          Attribute_Node => Attribute_Node);
 
       Declare_Attribute
         (Type_Node      => Partition_Type_Node,
          Attribute_Name => Str_To_Id ("host"),
-         Attr_Type_Node => String_Type_Node,
+         Attr_Type_Node => Host_Function_Type_Node,
          Attribute_Kind => Attribute_Host,
          Attribute_Node => Attribute_Node);
 
@@ -1456,6 +1613,8 @@ package body XE_Parse is
          Attribute_Kind => Attribute_Command_Line,
          Attribute_Node => Attribute_Node);
 
+      --  type type__ada_unit (standard)
+
       Declare_Type
         (Conf_Node    => Configuration_Node,
          Type_Name    => Type_Prefix & Str_To_Id ("ada_unit"),
@@ -1463,7 +1622,7 @@ package body XE_Parse is
          Structure    => False,
          Type_Node    => Ada_Unit_Type_Node);
 
-      --  type Starter_Type is (Ada, Shell, None);
+      --  type Starter_Type is (Ada, Shell, None); (standard)
       Declare_Type
         (Conf_Node    => Configuration_Node,
          Type_Name    => Type_Prefix & Str_To_Id ("starter"),
@@ -1501,7 +1660,8 @@ package body XE_Parse is
       --  To easily retrieve the enumeration literal.
       Set_Variable_Mark (Variable_Node, Convert (None_Starter));
 
-      --  type Boolean_Type is (False, True);
+      --  type Boolean_Type is (False, True); (standard)
+
       Declare_Type
         (Conf_Node    => Configuration_Node,
          Type_Name    => Str_To_Id ("boolean"),
@@ -1523,7 +1683,8 @@ package body XE_Parse is
          Unique,
          Variable_Node);
 
-      --  type Convention_Type is (Ada, Shell);
+      --  type Convention_Type is (Ada, Shell); (standard)
+
       Declare_Type
         (Conf_Node    => Configuration_Node,
          Type_Name    => Type_Prefix & Str_To_Id ("convention"),
@@ -1627,7 +1788,7 @@ package body XE_Parse is
          Pragma_Invocation_Node,
          Parameter_Node);
 
-      if Verbose_Mode then
+      if Debug_Mode then
          Print_Configuration;
       end if;
 
@@ -1672,11 +1833,13 @@ package body XE_Parse is
 
       --  We create a variable of type Subprogram_Type_Node to handle
       --  a pragma statement like a procedure call. The variable value is
-      --  a reference to the previous subprogram node.
+      --  a reference to the previous subprogram node. It is an ada unit
+      --  in order to allow further configuration operations.
+
       Declare_Variable
         (Configuration_Node,
          Subprogram_Name,
-         Subprogram_Type_Node,
+         Ada_Unit_Type_Node,
          Not_Unique,
          Junk);
 
@@ -1763,9 +1926,11 @@ package body XE_Parse is
    begin
 
       --  Attributes are always prefixed by Attribute_Prefix.
+
       N := Attribute_Prefix & Attribute_Name;
 
       --  Is this attribute a legal attribute for varaible type ?
+
       T := Get_Variable_Type (Variable_Node);
       Search_Component (N, T, A);
       if A = Null_Component then
@@ -1776,6 +1941,7 @@ package body XE_Parse is
       end if;
 
       --  Make a copy of the type attribute.
+
       T := Get_Component_Type   (A);
       K := Get_Component_Mark   (A);
       Create_Component          (A, N);
@@ -1788,6 +1954,26 @@ package body XE_Parse is
    end Declare_Attribute;
 
    -----------------------
+   -- Declare_Component --
+   -----------------------
+
+   procedure Declare_Component
+     (Type_Node          : in Type_Id;
+      Component_Name     : in Name_Id;
+      Comp_Type_Node     : in Type_Id;
+      Component_Node     : out Component_Id) is
+      C : Component_Id;
+   begin
+
+      Create_Component        (C, Component_Name);
+      Set_Component_Type      (C, Comp_Type_Node);
+      Component_Is_An_Attribute (C, False);
+      Add_Type_Component      (Type_Node, C);
+      Component_Node          := C;
+
+   end Declare_Component;
+
+   -----------------------
    -- Declare_Attribute --
    -----------------------
 
@@ -1797,19 +1983,17 @@ package body XE_Parse is
       Attr_Type_Node     : in Type_Id;
       Attribute_Kind     : in Attribute_Type;
       Attribute_Node     : out Attribute_Id) is
-      A : Component_Id;
-      N : Name_Id;
+      A : Attribute_Id;
    begin
 
-      --  Attributes are always prefixed bt Attribute_Prefix.
-      N := Attribute_Prefix & Attribute_Name;
-
-      Create_Component        (A, N);
-      Set_Component_Type      (A, Attr_Type_Node);
-      Component_Is_An_Attribute (A, True);
-      Add_Type_Component      (Type_Node, A);
-      Set_Component_Mark      (Component_Id (A), Convert (Attribute_Kind));
-      Attribute_Node          := Attribute_Id (A);
+      Declare_Component
+        (Type_Node,
+         Attribute_Prefix & Attribute_Name,
+         Attr_Type_Node,
+         Component_Id (A));
+      Component_Is_An_Attribute (Component_Id (A), True);
+      Set_Component_Mark        (Component_Id (A), Convert (Attribute_Kind));
+      Attribute_Node := A;
 
    end Declare_Attribute;
 
@@ -1851,13 +2035,15 @@ package body XE_Parse is
 
       Old_Subprogram := Subprogram_Node;
 
-      --  As a naming convention, the reserved keyword "do" indicates
-      --  a procedure call.
+      --  As a parser naming convention, the keyword Procedure_Call
+      --  indicates a procedure call.
+
       Create_Statement
         (New_Statement,
-         Str_To_Id ("do"));
+         Procedure_Call);
 
       --  Make a entire copy of subprogram node.
+
       Create_Subprogram
         (New_Subprogram,
          Get_Node_Name (Node_Id (Old_Subprogram)));
@@ -1869,12 +2055,14 @@ package body XE_Parse is
          Is_Subprogram_A_Procedure (Old_Subprogram));
 
       --  ... even parameter nodes ...
+
       First_Subprogram_Parameter
         (Old_Subprogram,
          Old_Parameter);
       while Old_Parameter /= Null_Parameter loop
 
          --  Make a copy of parameters.
+
          Declare_Subprogram_Parameter
            (Get_Node_Name (Node_Id (Old_Parameter)),
             Get_Parameter_Type (Old_Parameter),
@@ -1883,6 +2071,7 @@ package body XE_Parse is
 
          --  and assign the formal parameters as they were during
          --  the parameter matching phase.
+
          Assign_Variable
            (Get_Variable_Value (Variable_Id (Old_Parameter)),
             Variable_Id (New_Parameter));
@@ -1916,15 +2105,18 @@ package body XE_Parse is
 
       T := Get_Variable_Type (Source);
 
-      --  Do we need to assign a list or a single element ?
+      --  Do we need to assign a element list or a single element ?
+
       if Is_Type_A_Structure (T) then
 
          --  Assign a list ...
+
          First_Variable_Component (Source, C);
 
-         --  As a naming convention, we use the reserved keyword "record"
+         --  As a naming convention, we use the keyword
          --  for a anonymous component name.
-         N := Str_To_Id ("record");
+
+         N := Conf_Ada_Unit;
          while C /= Null_Component loop
             if not Is_Component_An_Attribute (C) then
                V := Variable_Id (Get_Component_Value (C));
@@ -1933,11 +2125,11 @@ package body XE_Parse is
             end if;
             Next_Variable_Component (C);
          end loop;
+
+      --  Assign a single element.
+
       else
-
-         --  Assign a single element.
          Set_Variable_Value (Target, Source);
-
       end if;
 
    end Assign_Variable;
@@ -1950,21 +2142,42 @@ package body XE_Parse is
      (Expr_Node : in Node_Id;
       Type_Node : in Type_Id)
       return Boolean is
-      Parameter : Parameter_Id;
-      Func_Node : Subprogram_Id;
+      P : Parameter_Id;
+      C : Component_Id;
    begin
 
       --  If variable, check the variable type with the given type.
+
       if Is_Variable (Expr_Node) then
          return Get_Variable_Type (Variable_Id (Expr_Node)) = Type_Node;
 
-      --  If subprogram, check the subprogram is a function
-      --  and the returned value type with the given type.
-      elsif Is_Subprogram (Expr_Node) and then
-        not Is_Subprogram_A_Procedure (Subprogram_Id (Expr_Node)) then
-         Func_Node := Subprogram_Id (Expr_Node);
-         Search_Function_Returned_Parameter (Func_Node, Parameter);
-         return Get_Variable_Type (Variable_Id (Parameter)) = Type_Node;
+      elsif Is_Subprogram (Expr_Node) then
+
+         --  Is the expression a function when the type is a function type
+         --  or a procedure when the type is a procedure type ?
+
+         if (Is_Subprogram_A_Procedure (Subprogram_Id (Expr_Node)) and then
+             Convert (Get_Type_Mark (Type_Node)) /= Pre_Type_Procedure) or else
+            (not Is_Subprogram_A_Procedure (Subprogram_Id (Expr_Node)) and then
+             Convert (Get_Type_Mark (Type_Node)) /= Pre_Type_Function) then
+            return False;
+         end if;
+
+         --  Check also type of parameters ...
+
+         First_Type_Component (Type_Node, C);
+         First_Subprogram_Parameter (Subprogram_Id (Expr_Node), P);
+         while C /= Null_Component and then P /= Null_Parameter loop
+            if Get_Component_Type (C) /= Get_Parameter_Type (P) then
+               return False;
+            end if;
+            Next_Type_Component (C);
+            Next_Subprogram_Parameter (P);
+         end loop;
+
+         --  Check we have the same number of parameters ...
+
+         return C = Null_Component and P = Null_Parameter;
 
       else
          return False;
@@ -2027,6 +2240,10 @@ package body XE_Parse is
       Actual_Node : out Variable_Id) is
       Actual : Node_Id;
    begin
+
+      --  Scan the configuration to retrieve a possible variable of
+      --  name Actual_Name ...
+
       First_Configuration_Declaration (Configuration_Node, Actual);
       while Actual /= Null_Node loop
          if Is_Variable       (Actual) and then
@@ -2057,6 +2274,7 @@ package body XE_Parse is
       Node : Node_Id;
       Name : Name_Id;
    begin
+
       First_Configuration_Declaration (Configuration_Node, Node);
       while Node /= Null_Node loop
          Name := Get_Node_Name (Node);
@@ -2064,6 +2282,7 @@ package body XE_Parse is
          Next_Configuration_Declaration (Node);
       end loop;
       Declaration_Node := Node;
+
    end Search_Declaration;
 
    ----------------------
@@ -2324,6 +2543,9 @@ package body XE_Parse is
       C : Component_Id;
       H : String (1 .. Head'Length + 6) := (others => ' ');
    begin
+      Write_Str  ("Mark : ");
+      Write_Int (Get_Type_Mark (Node));
+      Write_Eol;
       First_Type_Component (Node, C);
       if C /= Null_Component then
          Write_Str  (Head);
@@ -2331,6 +2553,16 @@ package body XE_Parse is
          Write_Eol;
          while C /= Null_Component loop
             Print (C, H, False);
+            Next_Type_Component (C);
+         end loop;
+      end if;
+      First_Type_Component (Node, C);
+      if C /= Null_Component then
+         Write_Str  (Head);
+         Write_Str  ("   Data : ");
+         Write_Eol;
+         while C /= Null_Component loop
+            Print (C, H, True);
             Next_Type_Component (C);
          end loop;
       end if;
@@ -2420,6 +2652,14 @@ package body XE_Parse is
       Write_Str (Head);
       Write_Str  ("    Mark : ");
       Write_Int (Get_Subprogram_Mark (Node));
+      Write_Eol;
+      Write_Str (Head);
+      Write_Str  ("    Proc : ");
+      if Is_Subprogram_A_Procedure (Node) then
+         Write_Str ("true");
+      else
+         Write_Str ("false");
+      end if;
       Write_Eol;
       Write_Str  (Head);
       Write_Str  ("    Para :");

@@ -255,7 +255,7 @@ procedure XE_Stubs is
       Write_Eol (FD);
       Write_Str (FD, "pragma elaborate_all (system.garlic.startup);");
       Write_Eol (FD);
-      Write_Str (FD, "with system.garlic.heart");
+      Write_Str (FD, "with system.garlic.heart;");
       Write_Eol (FD);
       Write_Str (FD, "with system.partition_interface;");
       Write_Eol (FD);
@@ -309,7 +309,7 @@ procedure XE_Stubs is
                      Write_Name (FD, Partitions.Table (Partition) .Name);
                      Write_Str  (FD, """),");
                   else
-                     Write_Str  (FD, "         (host            => ");
+                     Write_Str  (FD, "         (Host            => ");
                      if not Hosts.Table (Host).Static then
                         if Hosts.Table (Host).Import = Shell_Import then
                            Write_Str (FD, """`");

@@ -47,11 +47,18 @@ package body XE_Back is
    procedure Set_Host
      (Node : in Node_Id;
       Host : in Host_Id);
+   --  Set Node Mark component to Host.
 
-   function Get_Host (Node : Node_Id)
+   function Get_Host
+     (Node : Node_Id)
      return Host_Id;
+   --  Retrieve Node Mark component.
 
-   procedure Build_New_Partition (Partition : Node_Id);
+   procedure Build_New_Partition
+     (Partition : Node_Id);
+   --  Retrieve ada units and attributes previously parsed in order to
+   --  build the partition.
+
    procedure Build_New_Host
      (Subprogram : in Subprogram_Id;
       Host_Entry : out Host_Id);
@@ -114,41 +121,72 @@ package body XE_Back is
       Ada_Unit_Node  : Node_Id;
       Component_Node : Component_Id;
       Partition_PID  : PID_Type;
+      Parser_Naming  : Name_Id;
    begin
+
+      --  Create a new entry into Partitions.Table.
+
       Create_Partition (Partition_Name, Partition_PID);
+
+      --  Scan Partition_Name ada unit list and Partition_Name attributes.
+
       First_Variable_Component (Variable_Id (Partition), Component_Node);
       while Component_Node /= Null_Component loop
+
+         --  This is a configured ada unit.
+
          if not Is_Component_An_Attribute (Component_Node) then
+
+            --  Append this unit to the partition list.
             Ada_Unit_Node := Get_Component_Value (Component_Node);
             Ada_Unit_Name := Get_Node_Name (Ada_Unit_Node);
             Add_Conf_Unit (Ada_Unit_Name, Partition_PID);
-            if Get_Node_Name (Node_Id (Component_Node)) =
-               Str_To_Id ("others") then
+
+            --  Is this ada unit a main procedure or THE main program ?
+            Parser_Naming := Get_Node_Name (Node_Id (Component_Node));
+            if Parser_Naming /= Conf_Ada_Unit then
+
+               --  Is it at least a main procedure ?
                Partitions.Table (Partition_PID).Main_Subprogram
                  := Ada_Unit_Name;
-               if Main_Partition /= Null_PID then
-                  Write_Program_Name;
-                  Write_Str (": ");
-                  Write_Name (Main_Subprogram);
-                  Write_Str  (" and ");
-                  Write_Name (Ada_Unit_Name);
-                  Write_Str  (" are declared");
-                  Write_Eol;
-                  Write_Program_Name;
-                  Write_Str  (": as non-distributed application main");
-                  Write_Str  (" procedures at the same time");
-                  Write_Eol;
-                  raise Parsing_Error;
+
+               --  Is it also a main program ?
+               if Parser_Naming = Procedure_Unit then
+
+                  --  Has the main program already been declared ?
+                  if Main_Partition /= Null_PID then
+                     Write_Program_Name;
+                     Write_Str (": ");
+                     Write_Name (Main_Subprogram);
+                     Write_Str  (" and ");
+                     Write_Name (Ada_Unit_Name);
+                     Write_Str  (" are declared");
+                     Write_Eol;
+                     Write_Program_Name;
+                     Write_Str  (": as non-distributed application main");
+                     Write_Str  (" procedures at the same time");
+                     Write_Eol;
+                     raise Parsing_Error;
+                  end if;
+
+                  Main_Partition := Partition_PID;
+                  Main_Subprogram := Ada_Unit_Name;
+
                end if;
-               Main_Partition := Partition_PID;
-               Main_Subprogram := Ada_Unit_Name;
+
             end if;
+
+         --  This information is a partition attribute.
+
          else
             Set_Partition_Attribute
               (Attribute_Id (Component_Node), Partition_PID);
          end if;
+
          Next_Variable_Component (Component_Node);
+
       end loop;
+
    end Build_New_Partition;
 
    --------------------
@@ -161,20 +199,22 @@ package body XE_Back is
       Host : Host_Id := Null_Host;
       Name : Name_Id;
    begin
-      if not Is_Subprogram_A_Procedure (Subprogram) then
-         Host := Get_Host (Node_Id (Subprogram));
-         if Host = Wrong_Host then
-            Hosts.Increment_Last;
-            Host := Hosts.Last;
-            Name := Get_Node_Name (Node_Id (Subprogram));
-            Hosts.Table (Host).Name     := Name;
-            Hosts.Table (Host).Static   := False;
-            Hosts.Table (Host).Import   := None_Import;
-            Hosts.Table (Host).External := Name;
-            Set_Host (Node_Id (Subprogram), Host);
-         end if;
+
+      Host := Get_Host (Node_Id (Subprogram));
+
+      if Host = Wrong_Host then
+         Hosts.Increment_Last;
+         Host := Hosts.Last;
+         Name := Get_Node_Name (Node_Id (Subprogram));
+         Hosts.Table (Host).Name     := Name;
+         Hosts.Table (Host).Static   := False;
+         Hosts.Table (Host).Import   := None_Import;
+         Hosts.Table (Host).External := Name;
+         Set_Host (Node_Id (Subprogram), Host);
       end if;
+
       Host_Entry := Host;
+
    end Build_New_Host;
 
    ------------------------
@@ -185,9 +225,14 @@ package body XE_Back is
      (Pre_Type : Type_Id) is
       Component_Node : Component_Id;
    begin
+
+      --  Some attribute apply to type ... in our case, Partition is
+      --  the only type concerned.
+
       if Pre_Type /= Partition_Type_Node then
          return;
       end if;
+
       First_Type_Component (Pre_Type, Component_Node);
       while Component_Node /= Null_Component loop
          if Is_Component_An_Attribute (Component_Node) then
@@ -195,6 +240,7 @@ package body XE_Back is
          end if;
          Next_Type_Component (Component_Node);
       end loop;
+
    end Set_Type_Attribute;
 
    -----------------------------
@@ -206,16 +252,27 @@ package body XE_Back is
       Partition : PID_Type) is
       Attribute_Kind : Attribute_Type;
       Attribute_Item : Variable_Id;
+      Ada_Unit_Name  : Name_Id;
    begin
+
+      --  Apply attribute to a partition.
+
       Attribute_Kind :=
         Convert (Get_Component_Mark (Component_Id (Attribute)));
       Attribute_Item :=
         Variable_Id (Get_Component_Value (Component_Id (Attribute)));
+
+      --  No attribute was really assigned.
+
       if Attribute_Item = Null_Variable then
          return;
       end if;
+
       case Attribute_Kind is
          when Attribute_Storage_Dir =>
+
+            --  Only strings are allowed here.
+
             if Get_Variable_Type (Attribute_Item) /= String_Type_Node then
                Write_Program_Name;
                Write_Name (Partitions.Table (Partition).Name);
@@ -223,69 +280,175 @@ package body XE_Back is
                Write_Eol;
                raise Parsing_Error;
             end if;
-            if Partition = Null_PID then
+
+            --  Does it apply to all partitions ? Therefore, check
+            --  that this has not already been done.
+
+            if Partition = Null_PID and then
+               Default_Storage_Dir = No_Storage_Dir then
                Default_Storage_Dir := Get_Node_Name (Node_Id (Attribute_Item));
-            else
+
+            --  Apply to one partition. Check that it has not already
+            --  been done.
+
+            elsif Default_Storage_Dir = No_Storage_Dir and then
+               Partitions.Table (Partition).Storage_Dir = No_Storage_Dir then
                Partitions.Table (Partition).Storage_Dir
                  := Get_Node_Name (Node_Id (Attribute_Item));
+
+            --  This operation has already been done !
+
+            else
+               Write_Program_Name;
+               Write_Str (": ");
+               if Partition = Null_PID then
+                  Write_Str ("type partition");
+               else
+                  Write_Name (Partitions.Table (Partition).Name);
+               end if;
+               Write_Str ("'s command_line has been assigned twice");
+               Write_Eol;
+               raise Parsing_Error;
             end if;
+
          when Attribute_Host =>
+
             declare
                Host : Host_Id;
             begin
+
                if Is_Subprogram (Node_Id (Attribute_Item)) then
                   Build_New_Host (Subprogram_Id (Attribute_Item), Host);
+
+               --  Create an entry for this host string.
+
                elsif Get_Variable_Type (Attribute_Item) = String_Type_Node then
                   Hosts.Increment_Last;
                   Host := Hosts.Last;
                   Hosts.Table (Host).Name
                     := Get_Node_Name (Node_Id (Attribute_Item));
                   Hosts.Table (Host).Static := True;
+
                else
                   Write_Program_Name;
+                  Write_Str (": ");
                   Write_Name (Partitions.Table (Partition).Name);
                   Write_Str  ("'s host attribute is not a string value");
                   Write_Eol;
                   raise Parsing_Error;
                end if;
-               if Partition = Null_PID then
+
+               --  Does it apply to all partitions ? Therefore, check
+               --  that this has not already been done.
+
+               if Partition = Null_PID and then Default_Host = Null_Host then
                   Default_Host := Host;
-               else
+
+               --  Apply to one partition. Check that it has not already
+               --  been done.
+
+               elsif Default_Host = Null_Host and then
+                 Partitions.Table (Partition).Host = Null_Host then
                   Partitions.Table (Partition).Host := Host;
+
+               else
+                  Write_Program_Name;
+                  Write_Str (": ");
+                  if Partition = Null_PID then
+                     Write_Str ("type partition");
+                  else
+                     Write_Name (Partitions.Table (Partition).Name);
+                  end if;
+                  Write_Str ("'s host has been assigned twice");
+                  Write_Eol;
+                  raise Parsing_Error;
                end if;
+
             end;
          when Attribute_Main =>
-            if Partition = Null_PID then
+
+            --  Does it apply to all partitions ? Therefore, check
+            --  that this has not already been done.
+
+            if Partition = Null_PID and then
+              Default_Main = No_Main_Subprogram then
                Default_Main := Get_Node_Name (Node_Id (Attribute_Item));
-            elsif Partitions.Table (Partition).Main_Subprogram /=
-                  No_Main_Subprogram then
+
+            --  Apply to one partition. Check that it has not already
+            --  been done.
+
+            elsif Default_Main = No_Main_Subprogram and then
+              Partitions.Table (Partition).Main_Subprogram =
+              No_Main_Subprogram then
+               Partitions.Table (Partition).Main_Subprogram
+                 := Get_Node_Name (Node_Id (Attribute_Item));
+
+               --  We are not sure at this point that this unit
+               --  has been configured on partition.
+
+               Ada_Unit_Name := Get_Node_Name (Node_Id (Attribute_Item));
+               Add_Conf_Unit (Ada_Unit_Name, Partition);
+
+            else
                Write_Program_Name;
-               Write_Name (Partitions.Table (Partition).Name);
+               Write_Str (": ");
+               if Partition = Null_PID then
+                  Write_Str ("type partition");
+               else
+                  Write_Name (Partitions.Table (Partition).Name);
+               end if;
                Write_Str ("'s main has been assigned twice");
                Write_Eol;
                raise Parsing_Error;
-            else
-               Partitions.Table (Partition).Main_Subprogram
-                 := Get_Node_Name (Node_Id (Attribute_Item));
             end if;
+
          when Attribute_Command_Line =>
+
+            --  Only strings are allowed.
+
             if Get_Variable_Type (Attribute_Item) /= String_Type_Node then
                Write_Program_Name;
+               Write_Str (": ");
                Write_Name (Partitions.Table (Partition).Name);
                Write_Str  ("'s command line attribute is not a string value");
                Write_Eol;
                raise Parsing_Error;
             end if;
-            if Partition = Null_PID then
+
+            --  Does it apply to all partitions ? Therefore, check
+            --  that this has not already been done.
+
+            if Partition = Null_PID and then
+              Default_Command_Line = No_Command_Line then
                Default_Command_Line
                  := Get_Node_Name (Node_Id (Attribute_Item));
-            else
+
+            --  Apply to one partition. Check that it has not already
+            --  been done.
+
+            elsif Default_Command_Line = No_Command_Line and then
+              Partitions.Table (Partition).Command_Line = No_Command_Line then
                Partitions.Table (Partition).Command_Line
                  := Get_Node_Name (Node_Id (Attribute_Item));
+
+            else
+               Write_Program_Name;
+               Write_Str (": ");
+               if Partition = Null_PID then
+                  Write_Str ("type partition");
+               else
+                  Write_Name (Partitions.Table (Partition).Name);
+               end if;
+               Write_Str ("'s command_line has been assigned twice");
+               Write_Eol;
+               raise Parsing_Error;
             end if;
+
          when Attribute_Unknown =>
             null;
+
       end case;
+
    end Set_Partition_Attribute;
 
    --------------------------
@@ -300,16 +463,27 @@ package body XE_Back is
       Value     : Variable_Id;
       Host      : Host_Id;
    begin
+
+      --  Apply pragma statement.
+
       Pragma_Kind := Convert (Get_Subprogram_Mark (Subprogram));
       First_Subprogram_Parameter (Subprogram, Parameter);
+
       case Pragma_Kind is
+
          when Pragma_Import =>
             Value := Get_Variable_Value (Variable_Id (Parameter));
             Method := Convert (Get_Variable_Mark (Value));
             Next_Subprogram_Parameter (Parameter);
             Value := Get_Variable_Value (Variable_Id (Parameter));
             Value := Get_Variable_Value (Variable_Id (Value));
+
+            --  We are not sure that this function has been already
+            --  declared as an host function.
+
             Build_New_Host (Subprogram_Id (Value), Host);
+
+            --  Apply Import pragma ...
 
             Hosts.Table (Host).Import := Method;
             Next_Subprogram_Parameter (Parameter);
@@ -329,6 +503,7 @@ package body XE_Back is
 
          when Pragma_Unknown =>
             null;
+
       end case;
 
    end Set_Pragma_Statement;
@@ -342,20 +517,23 @@ package body XE_Back is
       Host : Host_Id;
    begin
       Hosts.Increment_Last;
-      Default_Host := Hosts.Last;
 
       First_Configuration_Declaration (Configuration_Node, Node);
       while Node /= Null_Node loop
          if Is_Variable (Node) and then
             Get_Variable_Type (Variable_Id (Node)) = Partition_Type_Node then
             Build_New_Partition (Node);
+
          elsif Is_Configuration (Node) then
             Configuration := Get_Node_Name (Node);
+
          elsif Is_Type (Node) then
             Set_Type_Attribute (Type_Id (Node));
+
          elsif Is_Statement (Node) then
             Set_Pragma_Statement
               (Get_Subprogram_Call (Statement_Id (Node)));
+
          elsif Is_Subprogram (Node) then
             Build_New_Host (Subprogram_Id (Node), Host);
          end if;
@@ -364,3 +542,9 @@ package body XE_Back is
    end Back;
 
 end XE_Back;
+
+
+
+
+
+

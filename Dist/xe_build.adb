@@ -26,6 +26,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 with Csets;
+with Debug;
 with ALI;              use ALI;
 with Namet;            use Namet;
 with Osint;            use Osint;
@@ -44,15 +45,36 @@ with XE;               use XE;
 with Opt;
 procedure XE_Build is
 
-   Prefix    : constant String := ".cfg";
+   Suffix    : constant String := ".cfg";
    File_Name : File_Name_Type;
 
 begin
+
+   --  Dont'ask me why : Done this in Make.Gnatmake.
+   Opt.Check_Internal_Files     := False;
+   Opt.Check_Object_Consistency := True;
+   Opt.Compile_Only             := False;
+   Opt.Dont_Execute             := False;
+   Opt.Force_Compilations       := False;
+   Opt.Quiet_Output             := False;
+   Opt.Smart_Compilations       := False;
+   Opt.Verbose_Mode             := False;
 
    Initialize (Make);
    Namet.Initialize;
    Csets.Initialize;
 
+   --  Use Gnatmake already defined switches.
+   Verbose_Mode       := Opt.Verbose_Mode;
+   Debug_Mode         := Debug.Debug_Flag_Q;
+   Quiet_Output       := Opt.Quiet_Output;
+   No_Recompilation   := Opt.Dont_Execute;
+   Building_Script    := Opt.List_Dependencies;
+
+   --  Use -dq for Gnatdist internal debugging.
+   Debug.Debug_Flag_Q := False;
+
+   --  Don't want log messages that would corrupt scripts.
    if Building_Script then
       Verbose_Mode := False;
       Quiet_Output := True;
@@ -65,37 +87,54 @@ begin
       XE_Usage;
 
    else
+
+      --  Initialization of differents modules.
+
       XE_Utils.Initialize;
       XE_Scan.Initialize;
       XE_Parse.Initialize;
       XE_Check.Initialize;
 
+      --  Look for the configuration file :
+      --     Next_Main_Source or Next_Main_Source + ".cfg" if the latter
+      --     does not exist.
+
       File_Name := Next_Main_Source;
       Get_Name_String (File_Name);
+
       declare
          L1 : Natural := Name_Len;
-         L2 : Natural := Name_Len + Prefix'Length;
+         L2 : Natural := Name_Len + Suffix'Length;
          N1 : String (1 .. L1);
          N2 : String (1 .. L2);
+
       begin
          N1 := Name_Buffer (N1'Range);
          N2 (N1'Range) := N1;
-         N2 (L1 + 1 .. L2) := Prefix;
+         N2 (L1 + 1 .. L2) := Suffix;
+
+         --  If the filename is not already correct.
          if not Is_Regular_File (N1) then
+
+            --  Try filename + suffix.
             if Is_Regular_File (N2) then
                Name_Len := L2;
                Name_Buffer (N2'Range) := N2;
                File_Name := Name_Find;
+
+            --  No configuration file can be found. Extract the suffix
+            --  if any and output an error message.
+
             else
-               if L1 > Prefix'Length and then
-                 N1 (L1 - Prefix'Length + 1 .. L1) = Prefix then
-                  L1 := L1 - Prefix'Length;
+               if L1 > Suffix'Length and then
+                 N1 (L1 - Suffix'Length + 1 .. L1) = Suffix then
+                  L1 := L1 - Suffix'Length;
                end if;
                Write_Program_Name;
                Write_Str (": ");
                Write_Str (N1 (1 .. L1));
                Write_Str ("[");
-               Write_Str (Prefix);
+               Write_Str (Suffix);
                Write_Str ("] not found ");
                Write_Eol;
                Exit_Program (E_Fatal);
@@ -107,6 +146,8 @@ begin
 
       Parse;
       Back;
+
+      --  The configuration name and the configuration file name don't match.
 
       Get_Name_String (Configuration_File);
       Name_Len := Name_Len - 4;
@@ -129,11 +170,19 @@ begin
          Show_Configuration;
       end if;
 
+      --  Look for a partition list on the command line. Only those
+      --  partitions are going to be generated. If no partition list is
+      --  given, then generate all of them.
+
       if More_Source_Files then
          for P in Partitions.First .. Partitions.Last loop
             Partitions.Table (P).To_Build := False;
          end loop;
          while More_Source_Files loop
+
+            --  At this level, the key associated to a partition name is
+            --  its table index.
+
             declare
                N : Name_Id  := Next_Main_Source;
                P : PID_Type := Get_PID (N);
@@ -146,11 +195,11 @@ begin
                end if;
                Partitions.Table (P).To_Build := True;
             end;
+
          end loop;
       end if;
 
       XE_Stubs;
-
       XE_Lead;
 
       Exit_Program (E_Success);
