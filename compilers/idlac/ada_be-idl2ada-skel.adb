@@ -52,9 +52,6 @@ package body Ada_Be.Idl2Ada.Skel is
       Node : in Node_Id);
    --  Generate server-side support for the Is_A
    --  operation.
-   pragma Warnings (Off);
-   pragma Unreferenced (Gen_Is_A);
-   pragma Warnings (On);
 
    procedure Gen_Body_Common_Start
      (CU   : in out Compilation_Unit;
@@ -120,7 +117,7 @@ package body Ada_Be.Idl2Ada.Skel is
             pragma Assert (SK = Skeleton);
             if Supports (Node) /= Nil_List then
                Gen_Body_Common_Start (CU, SK, Node);
-               --  Gen_Is_A (CU, SK, Node);
+               Gen_Is_A (CU, SK, Node);
                Gen_Invoke (CU, Node);
 
                declare
@@ -157,7 +154,7 @@ package body Ada_Be.Idl2Ada.Skel is
 --                end if;
 
                Gen_Body_Common_Start (CU, SK, Node);
-               --  Gen_Is_A (CU, SK, Node);
+               Gen_Is_A (CU, SK, Node);
                Gen_Invoke (CU, Node);
             end if;
 
@@ -175,8 +172,6 @@ package body Ada_Be.Idl2Ada.Skel is
    -- Gen_Is_A --
    --------------
 
-   --  XXX To be reimplemented for PolyORB.
-
    procedure Gen_Is_A
      (CU   : in out Compilation_Unit;
       SK   : in Skel_Kind;
@@ -188,20 +183,46 @@ package body Ada_Be.Idl2Ada.Skel is
                      or else (NK = K_ValueType));
       --  FIXME: Hard-coded string constant.
 
-      pragma Assert (False);
-      --  XXX this subprogram must be reimplemented.
-
-      Add_With (CU, "Broca.GIOP");
-      Add_With (CU, "Broca.CDR", Use_It => True);
-
       PL (CU, "if Operation = ""_is_a"" then");
       II (CU);
+
       PL (CU, "declare");
       II (CU);
-      PL (CU, "IDL_Logical_Type_Id : constant Standard.String");
-      PL (CU, "  := Unmarshall (Request_Buffer);");
-      PL (CU, T_Returns & " : constant CORBA.Boolean");
-      Put (CU, "  := ");
+
+      PL (CU, "Type_Id            : CORBA.String;");
+      PL (CU, "Arg_Name_Ü_Type_Id : constant CORBA.Identifier");
+      PL (CU, ":= CORBA.To_CORBA_String (""Type_Id"");");
+      PL (CU, "Argument_Ü_Type_Id : CORBA.Any := CORBA.To_Any (Type_Id);");
+      PL (CU, "");
+      PL (CU, "Result_Ü           : CORBA.Boolean;");
+      PL (CU, "Argument_Ü_Result_Ü : CORBA.Any;");
+      PL (CU, "Ctx_Ü              : CORBA.Context.Ref");
+      PL (CU, "  := CORBA.Context.Nil_Ref;");
+      PL (CU, "Arg_List_Ü         : CORBA.NVList.Ref;");
+      DI (CU);
+      PL (CU, "begin");
+      II (CU);
+      PL (CU, "--  Create argument list");
+      NL (CU);
+      PL (CU, "CORBA.ORB.Create_List (0, Arg_List_Ü);");
+      PL (CU, "CORBA.NVList.Add_Item");
+      PL (CU, "(Arg_List_Ü,");
+      PL (CU, "Arg_Name_Ü_Type_Id,");
+      PL (CU, "Argument_Ü_Type_Id,");
+      PL (CU, "CORBA.ARG_IN);");
+      NL (CU);
+
+      PL (CU, "CORBA.ServerRequest.Arguments (Request, Arg_List_Ü);");
+      NL (CU);
+      PL (CU, "begin");
+      II (CU);
+      PL (CU, "--  Convert arguments from their Any");
+      NL (CU);
+      PL (CU, "Type_Id :=");
+      PL (CU, "  CORBA.From_Any (Argument_Ü_Type_Id);");
+      PL (CU, "--  Call implementation");
+      Put (CU, "Result_Ü := ");
+
       if NK = K_Interface then
          Put (CU, Ada_Full_Name (Node));
       else
@@ -213,28 +234,18 @@ package body Ada_Be.Idl2Ada.Skel is
               Ada_Full_Name (Node)
               & Ada_Be.Idl2Ada.Value_Skel.Suffix);
       end if;
-      PL (CU, ".Is_A (IDL_Logical_Type_Id);");
+      PL (CU, ".Is_A (To_Standard_String (Type_Id));");
       DI (CU);
-      PL (CU, "begin");
-      II (CU);
 
-      --  FIXME: The following code fragment is duplicated
-      --    (from Skel.Gen_Node_Body).
-      PL (CU, "--  Marshall service context");
-      PL (CU, "Marshall");
-      PL (CU, "  (Reply_Buffer,");
-      PL (CU, "   CORBA.Unsigned_Long (Broca.GIOP.No_Context));");
+      PL (CU, "end;");
       NL (CU);
-      PL (CU, "--  Marshall request ID");
-      PL (CU, "Marshall (Reply_Buffer, Request_Id);");
+      PL (CU, "-- Set Result");
       NL (CU);
-      PL (CU, "--  Marshall reply status");
-      PL (CU, "Broca.GIOP.Marshall");
-      PL (CU, "  (Reply_Buffer,");
-      PL (CU, "   Broca.GIOP.No_Exception);");
-      NL (CU);
-      PL (CU, "--  Marshall return value");
-      PL (CU, "Marshall (Reply_Buffer, " & T_Returns & ");");
+      PL (CU, "CORBA.ServerRequest.Set_Result");
+      PL (CU, "(Request,");
+      PL (CU, "CORBA.To_Any (");
+      PL (CU, "Result_Ü));");
+      PL (CU, "return;");
       DI (CU);
       PL (CU, "end;");
       DI (CU);
@@ -568,7 +579,8 @@ package body Ada_Be.Idl2Ada.Skel is
                            if Mode (P_Node) = Mode_In
                              or else Mode (P_Node) = Mode_Inout
                            then
-                              PL (CU, Arg_Name & " := ");
+                              PL (CU, Arg_Name & " :=");
+                              Put (CU, "  ");
                               Gen_Forward_Conversion
                                 (CU, PT_Node, "To_Forward",
                                  Helper_Name & ".From_Any ("

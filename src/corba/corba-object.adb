@@ -83,6 +83,61 @@ package body CORBA.Object is
    -- Is_A --
    ----------
 
+   function RPC_Is_A
+     (Self            : in Ref;
+      Logical_Type_Id : in Standard.String)
+     return CORBA.Boolean;
+   --  Perform a remote call on Self (a reference that designates
+   --  a CORBA object) for class membership determination.
+   --  Note: the body of RPC_Is_A is a copy of generated code.
+
+   function RPC_Is_A
+     (Self            : in Ref;
+      Logical_Type_Id : in Standard.String)
+     return CORBA.Boolean
+   is
+      Operation_Name   : constant CORBA.Identifier
+        := CORBA.To_CORBA_String ("_is_a");
+
+      Arg_Name_Type_Id : CORBA.Identifier
+        := To_CORBA_String ("Type_Id");
+      Request          : CORBA.Request.Object;
+      Ctx              : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
+      Argument_Type_Id : CORBA.Any := CORBA.To_Any
+        (To_CORBA_String (Logical_Type_Id));
+      Arg_List         : CORBA.NVList.Ref;
+      Result           : CORBA.NamedValue;
+      Result_Name      : CORBA.String := To_CORBA_String ("Result");
+   begin
+      if Is_Nil (Self) then
+         raise Constraint_Error;
+      end if;
+
+      --  Create argument list
+      CORBA.ORB.Create_List (0, Arg_List);
+      CORBA.NVList.Add_Item
+        (Arg_List,
+         Arg_Name_Type_Id,
+         Argument_Type_Id,
+         CORBA.ARG_IN);
+      --  Set result type (maybe void)
+      Result
+        := (Name => CORBA.Identifier (Result_Name),
+            Argument => Get_Empty_Any
+        (CORBA.TC_Boolean),
+         Arg_Modes => 0);
+
+      CORBA.Object.Create_Request
+        (Self, Ctx, Operation_Name, Arg_List, Result, Request, 0);
+
+      CORBA.Request.Invoke (Request, 0);
+
+      --  Request has been synchronously invoked.
+
+      --  Retrieve return value.
+      return CORBA.From_Any (Result.Argument);
+   end RPC_Is_A;
+
    function Is_A
      (Self            : in Ref;
       Logical_Type_Id : in Standard.String)
@@ -108,9 +163,10 @@ package body CORBA.Object is
       --  If class membership cannot be determined locally,
       --  perform a remote call on the object.
 
-      --  XXX this is not implemented yet.
-      return False;
-
+      return RPC_Is_A (Self, Logical_Type_Id);
+   exception
+      when others =>
+         return False;
    end Is_A;
 
    -------------------
