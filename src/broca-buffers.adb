@@ -44,9 +44,6 @@ with Ada.Unchecked_Conversion;
 --  For conversions between Opaque_Pointer and Caddr_T.
 --  For conversions between System.Address and Interfaces.C.int.
 
-with System.Address_To_Access_Conversions;
---  For Dump.
-
 with System.Storage_Elements; use System.Storage_Elements;
 
 with CORBA;

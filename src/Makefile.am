@@ -18,20 +18,24 @@ ADA_FULL = \
            broca-object.ads \
            broca-orb.ads \
            broca-poa.ads \
+           broca-policy.ads \
            broca-refs.ads \
            broca-repository.ads \
            broca-rootpoa.ads \
            broca-sequences.ads \
            broca-server.ads \
            broca-stream.ads \
+           broca-task_attributes.ads \
            broca-vararray.ads \
            corba-forward.ads \
            corba-object.ads \
            corba-orb.ads \
+           corba-sequences-bounded.ads \
            corba-sequences-unbounded.ads \
            corba.ads \
            portableserver-adapteractivator-impl.ads \
            portableserver-adapteractivator.ads \
+           portableserver-current.ads \
            portableserver-poa.ads \
            portableserver-poamanager.ads \
            portableserver-servantactivator.ads \
@@ -41,8 +45,9 @@ ADA_FULL = \
 
 ADA_SPECS = $(ADA_FULL) \
            broca.ads \
-	   broca-opaque.ads \
+           broca-opaque.ads \
            broca-iop.ads \
+           corba-current.ads \
            corba-sequences.ads \
            portableserver-servantactivator-impl.ads \
            portableserver-servantlocator-impl.ads \
