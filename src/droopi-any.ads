@@ -615,6 +615,8 @@ package Droopi.Any is
       Arg_Modes : Flags;
    end record;
 
+   type NamedValue_Access is access all NamedValue;
+
    function Image (NV : NamedValue) return Standard.String;
    --  For debugging purposes.
 
