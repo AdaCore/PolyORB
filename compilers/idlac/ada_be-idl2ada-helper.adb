@@ -24,7 +24,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Perforce: //droopi/main/compilers/idlac/ada_be-idl2ada-helper.adb#25 $
+--  $Id$
 
 with Idlac_Flags;           use Idlac_Flags;
 with Idl_Fe.Types;          use Idl_Fe.Types;

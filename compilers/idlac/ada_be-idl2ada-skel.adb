@@ -24,7 +24,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Perforce: //droopi/main/compilers/idlac/ada_be-idl2ada-skel.adb#20 $
+--  $Id$
 
 with Idl_Fe.Types;          use Idl_Fe.Types;
 with Idl_Fe.Tree;           use Idl_Fe.Tree;

@@ -31,7 +31,7 @@
 --  XXX The latter should be moved away to a Ada_Be.Idl2Ada.Stubs
 --  child unit one day.
 
---  $Perforce: //droopi/main/compilers/idlac/ada_be-idl2ada.adb#43 $
+--  $Id$
 
 with Ada.Characters.Handling;
 with Ada.Strings.Unbounded;
