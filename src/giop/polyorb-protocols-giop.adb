@@ -89,8 +89,9 @@ package body PolyORB.Protocols.GIOP is
       pragma Warnings (On);
 
       F : constant Flags :=
-        Sync_With_Transport +
-        Sync_With_Server +
+        Sync_None or
+        Sync_With_Transport or
+        Sync_With_Server or
         Sync_With_Target;
    begin
       Session := new GIOP_Session;
@@ -284,9 +285,9 @@ package body PolyORB.Protocols.GIOP is
       Binding_Object : Components.Component_Access;
       Profile        : Binding_Data.Profile_Access;
    begin
-      if ((Sess.Req_Flags_Mask and R.Req_Flags) = 0)
-        or ((Sess.Implem.Req_Flags_Mask and R.Req_Flags)) = 0 then
-         pragma Debug (O ("Request not allowed"));
+      if (Sess.Permitted_Sync_Scopes and R.Req_Flags) = 0
+        or else (Sess.Implem.Permitted_Sync_Scopes and R.Req_Flags) = 0 then
+         pragma Debug (O ("Requested sync scope not supported"));
          raise GIOP_Error;
       end if;
 
@@ -295,7 +296,6 @@ package body PolyORB.Protocols.GIOP is
       References.Get_Binding_Info (R.Target, Binding_Object, Profile);
       Current_Req.Req := R;
       Current_Req.Target_Profile := Profile;
-
 
       if Profile = null then
          Current_Req.Target_Profile := Profile_Access (Pro);
@@ -671,12 +671,12 @@ package body PolyORB.Protocols.GIOP is
    ----------------
 
    procedure Initialize
-     (Sess                : in out GIOP_Session;
-      Version             : in     GIOP_Version;
-      Req_Flags_Mask      : in     PolyORB.Requests.Flags;
-      Locate_Then_Request : in     Boolean;
-      Section             : in     String;
-      Prefix              : in     String)
+     (Sess                  : in out GIOP_Session;
+      Version               : in     GIOP_Version;
+      Permitted_Sync_Scopes : in     PolyORB.Requests.Flags;
+      Locate_Then_Request   : in     Boolean;
+      Section               : in     String;
+      Prefix                : in     String)
    is
       use PolyORB.Configuration;
       use PolyORB.Utils;
@@ -688,8 +688,8 @@ package body PolyORB.Protocols.GIOP is
 
       Protocols.Initialize (Protocols.Session (Sess));
 
-      pragma Debug (O ("Requests Flags Mask" & Req_Flags_Mask'Img));
-      Sess.Req_Flags_Mask := Req_Flags_Mask;
+      pragma Debug (O ("Permitted sync scope" & Permitted_Sync_Scopes'Img));
+      Sess.Permitted_Sync_Scopes := Permitted_Sync_Scopes;
 
       Sess.GIOP_Def_Ver.Minor :=
         Types.Octet

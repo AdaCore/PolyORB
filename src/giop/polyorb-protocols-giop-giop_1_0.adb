@@ -63,9 +63,9 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       new Ada.Unchecked_Deallocation
      (GIOP_Ctx_1_0, GIOP_Ctx_1_0_Access);
 
-   --  In GIOP 1.0, one way is not allowed
-   Req_Flags_Mask : constant PolyORB.Requests.Flags :=
-     Sync_With_Server +
+   Permitted_Sync_Scopes : constant PolyORB.Requests.Flags :=
+     Sync_None or
+     Sync_With_Transport or
      Sync_With_Target;
 
    --  Msg_Type
@@ -111,7 +111,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       use PolyORB.Types;
    begin
       Implem.Data_Alignment := Data_Alignment_1_0;
-      Implem.Req_Flags_Mask := Req_Flags_Mask;
+      Implem. Permitted_Sync_Scopes := Permitted_Sync_Scopes;
    end Initialize_Implem;
 
    procedure Initialize_Session
@@ -272,11 +272,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
          Req_Flags := Sync_With_Target;
       else
          Req_Flags := Sync_None;
-      end if;
-
-      if (S.Req_Flags_Mask and Req_Flags) = 0 then
-         pragma Debug (O ("Request not allowed"));
-         raise GIOP_Error;
       end if;
 
       pragma Debug (O ("Object Key : "
