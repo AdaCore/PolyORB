@@ -1,3 +1,25 @@
+2002-05-11  Pascal Obry  <p.obry@wanadoo.fr>
+
+	* xe_sysdep.ads, xe_sysdep-nt.adb, xe_sysdep-std.adb: Force_Remove
+	removed. This code is not anymore platform dependant. 
+	Work for B509-009.
+
+	* xe_utils.ads:
+	(Delete): Add comment.
+	(Unlink_File): Removed, same as Delete.
+	Work for B509-009.
+	
+	* xe_utils.adb:
+	(Copy_With_File_Stamp): Use OS_Lib.Delete_File. Raise Fatal_Error if
+	the file cannot be copied.
+	(Delete): Minor code clean-up.
+	(Unlink_File): Removed, same as Delete above.
+	Work for B509-009.
+
+	* xe_lead.adb:
+	(XE_Lead): Call Delete_File instead of Unlink_File.
+	Work for B509-009.
+
 2002-05-09  Pascal Obry  <p.obry@wanadoo.fr>
 
 	* xe_sysdep.ads, xe_sysdep-nt.adb, xe_sysdep-std.adb: Copy_File
