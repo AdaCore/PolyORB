@@ -5,7 +5,7 @@ pragma Elaborate (System.Garlic.Filters);
 
 with System.Garlic.Streams; use System.Garlic.Streams;
 
-package body System.Garlic.Filters.Doubling is
+package body System.Garlic.Filters.Double is
 
    New_Filter : aliased New_Filter_Type;
 
@@ -25,7 +25,6 @@ package body System.Garlic.Filters.Doubling is
          D (D'First + (I - D'First) * 2)     := Stream_Element'First;
          D (D'First + (I - D'First) * 2 + 1) := R (I);
       end loop;
-      Free (R);
       return D;
    end Filter_Outgoing;
 
@@ -36,16 +35,18 @@ package body System.Garlic.Filters.Doubling is
    function Filter_Incoming
      (Filter : in New_Filter_Type;
       Params : in Filter_Params_Access;
-      Stream : in Ada.Streams.Stream_Element_Array)
-      return Stream_Element_Access is
-      F : Stream_Element_Count := Stream'First;
-      L : Stream_Element_Count := (Stream'First + Stream'Last) / 2;
-      R : Stream_Element_Access := new Stream_Element_Array (F .. L);
+      Stream : in Stream_Element_Access;
+      Offset : in Stream_Element_Offset)
+      return Stream_Element_Access
+   is
+      F : constant Stream_Element_Offset := Stream'First + Offset;
+      L : constant Stream_Element_Offset := Stream'Last;
+      R : Stream_Element_Access := new Stream_Element_Array'(Stream (F .. L));
    begin
-      for I in Stream'Range loop
-         R ((I - F) / 2 + F) := Stream (I);
+      for I in R'Range loop
+         R ((I - R'First) / 2 + R'First) := R (I);
       end loop;
-      return R;
+      return new Stream_Element_Array'(R (R'First .. (R'First + R'Last) / 2));
    end Filter_Incoming;
 
    ---------------------
@@ -88,5 +89,5 @@ package body System.Garlic.Filters.Doubling is
    end Filter_Params_Write;
 
 begin
-   Register_Filter (New_Filter'Access, "doubling");
-end System.Garlic.Filters.Doubling;
+   Register_Filter (New_Filter'Access, "double");
+end System.Garlic.Filters.Double;

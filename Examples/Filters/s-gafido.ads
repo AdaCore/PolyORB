@@ -1,7 +1,7 @@
 with Ada.Streams;
 with System.Garlic.Streams;
 
-package System.Garlic.Filters.Doubling is
+package System.Garlic.Filters.Double is
 
 private
 
@@ -18,7 +18,8 @@ private
    function Filter_Incoming
      (Filter : in New_Filter_Type;
       Params : in Filter_Params_Access;
-      Stream : in Ada.Streams.Stream_Element_Array)
+      Stream : in Streams.Stream_Element_Access;
+      Offset : in Ada.Streams.Stream_Element_Offset)
       return Streams.Stream_Element_Access;
 
    procedure Generate_Params
@@ -37,4 +38,4 @@ private
       Params : Filter_Params_Access)
       return Streams.Stream_Element_Access;
 
-end System.Garlic.Filters.Doubling;
+end System.Garlic.Filters.Double;

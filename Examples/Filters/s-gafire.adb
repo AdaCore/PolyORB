@@ -33,14 +33,18 @@ package body System.Garlic.Filters.Reversing is
    function Filter_Incoming
      (Filter : in New_Filter_Type;
       Params : in Filter_Params_Access;
-      Stream : in Ada.Streams.Stream_Element_Array)
-      return Stream_Element_Access is
-      Result  : Stream_Element_Access := new Stream_Element_Array'(Stream);
+      Stream : in Stream_Element_Access;
+      Offset : in Stream_Element_Offset)
+      return Stream_Element_Access
+   is
+      F : constant Stream_Element_Offset := Stream'First + Offset;
+      L : constant Stream_Element_Offset := Stream'Last;
+      R : Stream_Element_Access := new Stream_Element_Array'(Stream (F .. L));
    begin
-      for I in Result'Range loop
-         Result (I) := Stream_Element'Last - Result (I);
+      for I in R'Range loop
+         R (I) := Stream_Element'Last - R (I);
       end loop;
-      return Result;
+      return R;
    end Filter_Incoming;
 
    ---------------------
