@@ -146,8 +146,7 @@ package body System.RPC.Server is
    --  handle a list of free tasks very easily.
 
    procedure Free is
-      new Ada.Unchecked_Deallocation
-     (Task_Identifier, Task_Identifier_Access);
+      new Ada.Unchecked_Deallocation (Task_Identifier, Task_Identifier_Access);
 
    Low_Mark  : Positive renames System.Garlic.Options.Task_Pool_Low_Bound;
    High_Mark : Positive renames System.Garlic.Options.Task_Pool_High_Bound;

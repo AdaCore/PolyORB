@@ -100,11 +100,6 @@ package body System.RPC is
      (RPC    : in  RPC_Id;
       Stream : out Streams.Stream_Element_Access);
 
-   procedure Send_Abort_Message
-     (PID   : in Types.Partition_ID;
-      RPC   : in RPC_Id);
-   --  Send an abort message for a request
-
    procedure Handle_Request
      (Partition : in Types.Partition_ID;
       Opcode    : in External_Opcode;
@@ -271,16 +266,29 @@ package body System.RPC is
       if Wait then
          System.Garlic.Soft_Links.Enter_Critical_Section;
          if Callers (RPC).Status = Running then
-            pragma Debug
-              (D ("Forward local abortion of RPC number" & RPC'Img &
-                  " to partition" & PID'Img));
-            Send_Abort_Message (PID, RPC);
-            Callers (RPC).Status := Aborted;
-         elsif Callers (RPC).Status = Aborted then
-            Callers (RPC).Status := Unknown;
+            declare
+               Params : aliased Streams.Params_Stream_Type (0);
+               Header : constant RPC_Header := (Abortion_Query, RPC);
+               Error  : Error_Type;
+            begin
+               pragma Debug
+                 (D ("Forward local abortion of RPC number" & RPC'Img &
+                     " to partition" & PID'Img));
+               Insert_RPC_Header (Params'Access, Header);
+               Callers (RPC).Status := Aborted;
+               System.Garlic.Soft_Links.Update (Callers_Watcher);
+               System.Garlic.Soft_Links.Leave_Critical_Section;
+
+               Send (PID, Remote_Call, Params'Access, Error);
+               Catch (Error);
+            end;
+         else
+            if Callers (RPC).Status = Aborted then
+               Callers (RPC).Status := Unknown;
+            end if;
+            System.Garlic.Soft_Links.Update (Callers_Watcher);
+            System.Garlic.Soft_Links.Leave_Critical_Section;
          end if;
-         System.Garlic.Soft_Links.Update (Callers_Watcher);
-         System.Garlic.Soft_Links.Leave_Critical_Section;
       end if;
    end Finalize;
 
@@ -424,23 +432,6 @@ package body System.RPC is
       Initialize_Task_Pool := Initialize;
       Shutdown_Task_Pool   := Shutdown;
    end Register_Task_Pool;
-
-   ------------------------
-   -- Send_Abort_Message --
-   ------------------------
-
-   procedure Send_Abort_Message
-     (PID   : in Types.Partition_ID;
-      RPC   : in RPC_Id)
-   is
-      Params : aliased Streams.Params_Stream_Type (0);
-      Header : constant RPC_Header := (Abortion_Query, RPC);
-      Error  : Error_Type;
-   begin
-      Insert_RPC_Header (Params'Access, Header);
-      Send (PID, Remote_Call, Params'Access, Error);
-      Catch (Error);
-   end Send_Abort_Message;
 
    --------------
    -- Shutdown --
