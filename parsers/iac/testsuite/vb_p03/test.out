@@ -1,16 +1,16 @@
 typedef sequence<long> LongSeq;
 valuetype LongSeqValue LongSeq;
 valuetype AnyValue any;
-union FixU switch(long) {
+union FixU switch (long) {
  case 1 :
  long x;
  case 2 :
  short v;
 };
 valuetype FixUValue FixU;
-typedef sequence< string > StringSeq;
+typedef sequence<string> StringSeq;
 valuetype StringSeqValue StringSeq;
-union VarU switch(boolean) {
+union VarU switch (boolean) {
  case TRUE :
  string strMbr;
  case FALSE :

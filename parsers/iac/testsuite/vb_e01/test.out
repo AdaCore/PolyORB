@@ -1,4 +1,3 @@
-interface Inf;
 valuetype ShortValue short;
 valuetype LongValue long;
 typedef float FloatType;
@@ -18,23 +17,23 @@ struct FixS {
  short shortMbr;
 };
 valuetype FixSvalue FixS;
-typedef long LongArray[ 2 ][ 3 ];
+typedef long LongArray[2][3];
 valuetype ArrayValue LongArray;
 valuetype StringValue string;
 valuetype WStringValue wstring;
-typedef sequence< long > LongSeq;
+typedef sequence<long> LongSeq;
 valuetype LongSeqValue LongSeq;
 valuetype AnyValue any;
-union FixU switch(long) {
+union FixU switch (long) {
  case 1 :
  long x;
  case 2 :
  short v;
 };
 valuetype FixUValue FixU;
-typedef sequence< string > StringSeq;
+typedef sequence<string> StringSeq;
 valuetype StringSeqValue StringSeq;
-union VarU switch(boolean) {
+union VarU switch (boolean) {
  case TRUE :
  string strMbr;
  case FALSE :
@@ -58,6 +57,5 @@ interface Inf {
  StringSeqValue ex_StringSeqValue;
  VarUValue ex_VarUValue;
  };
- ShortValue op2()
- raises(::Inf::ValExcpt);
+ ShortValue op2() raises (Inf::ValExcpt);
 };
