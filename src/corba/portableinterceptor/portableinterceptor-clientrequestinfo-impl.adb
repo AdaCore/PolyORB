@@ -88,13 +88,11 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
      (Self : access Object)
       return CORBA.Object.Ref
    is
-      pragma Unreferenced (Self);
       Result : CORBA.Object.Ref;
 
    begin
---      CORBA.Object.Convert_To_CORBA_Ref (Self.Request.Target, Result);
+      CORBA.Object.Convert_To_CORBA_Ref (Self.Request.Target, Result);
 
-      raise PolyORB.Not_Implemented;
       return Result;
    end Get_Effective_Target;
 
