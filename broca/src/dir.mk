@@ -8,6 +8,7 @@ ADA_FULL = \
            broca-ior.ads \
            broca-locks.ads \
            broca-marshalling.ads \
+           broca-marshalling-refs.ads \
            broca-object.ads \
            broca-orb.ads \
            broca-poa.ads \

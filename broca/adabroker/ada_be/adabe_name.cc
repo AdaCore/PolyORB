@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.5 $
+//                            $Revision: 1.6 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -717,7 +717,7 @@ adabe_name::new_is_marshal_imported (dep_list& with)
   // this function is the same as the previous one
   // except, that the added file is the same
   // with a ".marshal" at the end
-  if ((!in_main_file ()) && (node_type () != AST_Decl::NT_interface))
+  if (node_type () == AST_Decl::NT_pre_defined)
     {
       return "";
     }
@@ -745,7 +745,6 @@ adabe_name::new_is_marshal_imported (dep_list& with)
       with.add (result);
       return result;
     }
-   if (defined_in () == NULL) return "";
    return (dynamic_cast<adabe_name *>(defined_in ()))->new_is_marshal_imported (with); 
 }
 

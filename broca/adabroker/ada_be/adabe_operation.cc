@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.3 $
+//                            $Revision: 1.4 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -219,6 +219,7 @@ adabe_operation::produce_adb (dep_list & with,
   with.add ("Broca.Giop");
   with.add ("Broca.Object");
   with.add ("Broca.Marshalling");
+  with.add ("Broca.Marshalling.Refs");
 
   // Create a CORBA string containing the name of the operation.
   string operation_name = get_ada_local_name () + "_Operation";
@@ -269,6 +270,7 @@ adabe_operation::produce_adb (dep_list & with,
   // FIXME: name conflict
   body +=
     "      use Broca.Marshalling;\n"
+    "      use Broca.Marshalling.Refs;\n"
     "      Handler : Broca.Giop.Request_Handler;\n"
     "      Sr_Res : Broca.Giop.Send_Request_Result_Type;\n"
     "   begin\n"
