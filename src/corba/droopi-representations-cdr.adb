@@ -2603,6 +2603,50 @@ package body droopi.Representations.CDR is
    end Unmarshall;
 
 
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : in Objects.Object_Id)
+   is
+
+   begin
+      Marshall (Buffer, Stream_Element_Array(Data));
+   end Marshall;
+
+
+
+   --------------------------------
+   --  Marshalling of Objects Ids
+   ---------------------------------
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : access Objects.Object_Id)
+   is
+   begin
+      Marshall (Buffer, Data.all);
+   end Marshall;
+
+
+   function Unmarshall
+     (Buffer : access Buffer_Type)
+     return Objects.Object_Id
+   is
+     Octets : Stream_Element_Array;
+   begin
+      return  Objects.Object_Id(Octets);
+   end Unmarshall;
+
+   function Unmarshall
+     (Buffer : access Buffer_Type)
+     return Objects.Object_Id_Access
+   is
+     Obj : aliased Objects.Object_Id
+   begin
+     Obj := Unmarshall(Buffer);
+     return Obj'Access;
+   end
+
+
    -----------------
    -- Fixed_Point --
    -----------------

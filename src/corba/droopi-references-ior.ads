@@ -16,15 +16,15 @@ package Droopi.References.IOR is
       Type_Id  : CORBA.String;
    end record;
 
-   type IOR_Ptr is access all IOR_Type;
+   type IOR_Access is access all IOR_Type;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
       Value  : in IOR_Type);
 
-   procedure Unmarshall
-     (Buffer : access Buffer_Type;
-      Result : out IOR_Type);
+   function  Unmarshall
+     (Buffer : access Buffer_Type)
+   return IOR_Type;
 
    type Marshall_Profile_Body_Type is access procedure
      (Buffer  : access Buffers.Buffer_Type;

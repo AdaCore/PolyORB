@@ -11,22 +11,33 @@
 ------------------------------------------------------------------------------
 
 
+
 with Ada.Streams; use Ada.Streams;
 
 with CORBA;
-with CORBA.Object;
-with CORBA.AbstractBase;
 
 with Droopi.Opaque;
 with Droopi.Buffers;
+with Droopi.References;
+with Droopi.References.IOR;
 with Droopi.Binding_Data;
+with Droopi.Binding_Data.IIOP;
+with Ada.Streams; use Ada.Streams;
+with Ada.Unchecked_Deallocation;
+with Ada.Strings;
+with Ada.Strings.Unbounded;
 
-with Droopi.Protocols.GIOP;
+
 
 
 package Droopi.Protocols.GIOP.GIOP_1_2 is
 
    pragma Elaborate_Body;
+
+   type Service_Id_Array is array (Integer range <>) of ServiceId;
+   Service_Context_List_1_2 : constant Service_Id_Array;
+
+
 
    procedure Marshall_GIOP_Header
      (Buffer       : access Buffers.Buffer_Type;
@@ -38,9 +49,9 @@ package Droopi.Protocols.GIOP.GIOP_1_2 is
     procedure Marshall_Request_Message
      (Buffer             : access Buffers.Buffer_Type;
       Request_Id         : in CORBA.Unsigned_Long;
-      Operation          : in Requests.Operation_Id;
       Target_Ref         : in Target_Address;
-      Sync_Type          : in CORBA.SyncScope);
+      Sync_Type          : in Sync_Scope;
+      Operation          : in Requests.Operation_Id);
 
 
     procedure Marshall_No_Exception
@@ -50,70 +61,61 @@ package Droopi.Protocols.GIOP.GIOP_1_2 is
 
     procedure Marshall_Exception
     ( Buffer      : access Buffers.Buffer_Type;
-      Request_Id   : access CORBA.Unsigned_Long ;
+      Request_Id  : CORBA.Unsigned_Long;
       Reply_Type  : in Reply_Status_Type;
       Occurence   : in CORBA.Exception_Occurrence);
 
 
     procedure Marshall_Location_Forward
-    ( Buffer        :   access Buffers.Buffer_Type;
-      Request_Id    :   access CORBA.Unsigned_Long;
-      Reply_Type  : in Reply_Status_Type;
-      Target_Ref  : in out Droopi.References.Ref);
+    ( Buffer        : access Buffers.Buffer_Type;
+      Request_Id    : CORBA.Unsigned_Long;
+      Reply_Type    : in Reply_Status_Type;
+      Target_Ref    : in  Droopi.References.IOR.IOR_Type);
 
     procedure Marshall_Needs_Addressing_Mode
     ( Buffer              : access Buffers.Buffer_Type;
       Request_Id          : in CORBA.Unsigned_Long;
       Address_Type        : in Addressing_Disposition);
 
-    procedure Marshall_Cancel_Request
-    (Buffer     : access Buffers.Buffer_Type;
-     Request_Id : in CORBA.Unsigned_Long);
-
 
     procedure Marshall_Locate_Request
     (Buffer            : access Buffers.Buffer_Type;
-     Request_Id        : in CORBA.Unsigned-Long;
+     Request_Id        : in CORBA.Unsigned_Long;
      Target_Ref        : in Target_Address);
 
 
     procedure Marshall_Fragment
     ( Buffer   : access Buffers.Buffer_Type;
-      Req_Id   : in CORBA.Unsigned_Long);
+      Request_Id   : in CORBA.Unsigned_Long);
 
     -------------------------------------
     --  Unmarshall procedures
     --------------------------------------
 
     procedure Unmarshall_Request_Message
-     ( Buffer            : access Buffer_Type;
+     ( Buffer            : access Buffers.Buffer_Type;
        Request_Id        : out CORBA.Unsigned_Long;
        Response_Expected : out Boolean;
        Target_Ref        : out Target_Address;
        Operation         : out Requests.Operation_Id);
 
     procedure Unmarshall_Reply_Message
-      (Buffer       : access Buffer_Type;
+      (Buffer       : access Buffers.Buffer_Type;
        Request_Id   : out CORBA.Unsigned_Long;
        Reply_Status : out Reply_Status_Type);
 
 private
 
 
-   Service_Context_List_1_2 : constant array (Integer range <>) of ServiceId
-       := (0 => Transaction_Service, CodeSets, ChainByPassCheck,
-            ChainByPassInfo, LogicalThreadId, Bi_Dir_Iiop,
-            SendingContextRunTime, Invocation_Policies,
-            Forwarded_Identity, UnknownExceptionInfo);
+   Service_Context_List_1_2 : constant Service_Id_Array
+       := ( 0 => Transaction_Service, 1=>Code_Sets, 2=>Chain_By_Pass_Check,
+           3=>Chain_By_Pass_Info, 4=>Logical_Thread_Id, 5=>Bi_Dir_Iiop,
+           6=>Sending_Context_Run_Time, 7=>Invocation_Policies,
+           8=>Forwarded_Identity, 9=>Unknown_Exception_Info);
 
    Major_Version : constant CORBA.Octet
      := 1;
    Minor_Version : constant CORBA.Octet
      := 2;
-
-   Response_Flags: constant array(Integer range 0..3) of CORBA.Octet:=
-                   (0,16#1#, 16#2#, 16#3#);
-   --  XXX useless as is.
-
 
 end Droopi.Protocols.GIOP.GIOP_1_2;

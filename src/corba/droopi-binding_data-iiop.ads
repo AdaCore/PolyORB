@@ -11,6 +11,7 @@ package Droopi.Binding_Data.IIOP is
 
    type IIOP_Profile_Type is new Profile_Type with private;
 
+
    procedure Initialize (P : in out IIOP_Profile_Type);
    procedure Adjust     (P : in out IIOP_Profile_Type);
    procedure Finalize   (P : in out IIOP_Profile_Type);
@@ -52,11 +53,11 @@ package Droopi.Binding_Data.IIOP is
 
    procedure Marshall_IIOP_Profile_Body
      (IOR     : access Buffer_Type;
-      Profile : access Profile_Type'Class);
+      Profile : Profile_Access);
 
-   procedure Unmarshall_IIOP_Profile_Body
-     (Buffer   : access Buffer_Type;
-      Profile  : out Profile_Access);
+   function Unmarshall_IIOP_Profile_Body
+     (Buffer   : access Buffer_Type)
+    return Profile_Access;
 
 private
 

@@ -3,34 +3,34 @@
 --  $Id$
 
 with Droopi.Transport.Sockets;
-with Droopi.Protocols.Giop;
+with Droopi.Protocols.GIOP;
 with Droopi.Protocols;
 with Droopi.Filters.Slicers;
 --  The IIOP protocol is defined upon TCP/IP.
 
-package body Droopi.Binding_Data.Iiop is
+package body Droopi.Binding_Data.IIOP is
 
    use Droopi.Objects;
 
-   procedure Initialize (P : in out Iiop_Profile_Type) is
+   procedure Initialize (P : in out IIOP_Profile_Type) is
    begin
       P.Object_Id := null;
    end Initialize;
 
-   procedure Adjust (P : in out Iiop_Profile_Type) is
+   procedure Adjust (P : in out IIOP_Profile_Type) is
    begin
       if P.Object_Id /= null then
          P.Object_Id := new Object_Id'(P.Object_Id.all);
       end if;
    end Adjust;
 
-   procedure Finalize (P : in out Iiop_Profile_Type) is
+   procedure Finalize (P : in out IIOP_Profile_Type) is
    begin
       Free (P.Object_Id);
    end Finalize;
 
    function Get_Object_Key
-     (Profile : Iiop_Profile_Type)
+     (Profile : IIOP_Profile_Type)
      return Objects.Object_Id is
    begin
       return Profile.Object_Id.all;
@@ -38,46 +38,53 @@ package body Droopi.Binding_Data.Iiop is
 
 
    procedure Bind_Profile
-     (Profile : Iiop_Profile_Type;
+     (Profile : IIOP_Profile_Type;
       TE      : out Transport.Transport_Endpoint_Access;
       Session : out Components.Component_Access)
    is
-      use Droopi.Protocols.Giop;
+      use Droopi.Protocols.GIOP;
       use Droopi.Sockets;
       use Droopi.Transport.Sockets;
 
+
       S : Socket_Type;
       Remote_Addr : Sock_Addr_Type := Profile.Address;
-      P : aliased Giop_Protocol;
-      ORB : constant ORB_Access := ORB_Access (S.Server);
+      Pro : aliased GIOP_Protocol;
       Slicer_Fact :  Factory_Access  := new Factory_Slicer;
+      Sli_Filt    : access Slicer_Filter;
+      ORB         : ORB_Access;
 
    begin
+
       Create_Socket (S);
       Connect_Socket (S, Remote_Addr);
       TE := new Transport.Sockets.Socket_Endpoint;
       Create (Socket_Endpoint (TE.all), S);
-      Create (P'Access, Filters.Filter_Access (Session));
+      Create (Pro'Access, Filters.Filter_Access (Session));
+
+
+      ORB := ORB_Access(Session.Server)
 
       Register_Endpoint
         (ORB, TE, Slicer_Fact, Session.Role);
 
-      -- Connect  to filter slicer
-      Connect_Lower(Session, Component_Access(Upper(TE)));
-      Connect(Upper(TE).Upper,  Component_Access(Session));
+      -- Connect Session to Slicer
+      Sli_Filter := TE.Upper;
+      Connect_Lower(Session, Component_Access(Sli_Filter));
+      Connect(Sli_Filter.Upper,  Component_Access(Session));
 
    end Bind_Profile;
 
 
    function Get_Profile_Tag
-     (Profile : Iiop_Profile_Type)
+     (Profile : IIOP_Profile_Type)
      return Profile_Tag is
    begin
       return Tag_Internet_Iop;
    end Get_Profile_Tag;
 
    function Get_Profile_Preference
-     (Profile : Iiop_Profile_Type)
+     (Profile : IIOP_Profile_Type)
      return Profile_Preference is
    begin
       return Preference_Default;
@@ -91,7 +98,7 @@ package body Droopi.Binding_Data.Iiop is
    end Create_Factory;
 
    function Create_Profile
-     (PF  : access Iiop_Profile_Factory;
+     (PF  : access IIOP_Profile_Factory;
       TAP : Transport.Transport_Access_Point_Access;
       Oid : Objects.Object_Id)
      return Profile_Access
@@ -99,10 +106,10 @@ package body Droopi.Binding_Data.Iiop is
       use Droopi.Transport.Sockets;
 
       Result : constant Profile_Access
-        := new Iiop_Profile_Type;
+        := new IIOP_Profile_Type;
 
-      TResult : Iiop_Profile_Type
-        renames Iiop_Profile_Type (Result.all);
+      TResult : IIOP_Profile_Type
+        renames IIOP_Profile_Type (Result.all);
    begin
       TResult.Object_Id := new Object_Id'(Oid);
       TResult.Address   := Address_Of
@@ -124,7 +131,7 @@ package body Droopi.Binding_Data.Iiop is
 
    procedure Marshall_IIOP_Profile_Body
      (IOR     : access Buffer_Type;
-      Profile : access Profile_Type'Class)
+      Profile : Profile_Access)
    is
       use Representations.CDR;
 
@@ -156,17 +163,18 @@ package body Droopi.Binding_Data.Iiop is
    -- Marshall_IIOP_Profile_Body --
    --------------------------------
 
-   procedure Unmarshall_IIOP_Profile_Body
-     (Buffer   : access Buffer_Type;
-      Profile  : out Profile_Ptr)
+   function Unmarshall_IIOP_Profile_Body
+     (Buffer   : access Buffer_Type)
+     return Profile_Access
    is
 
    begin
 
+    raise Not_Implemented;
     -- not yet implemnted
 
    end Unmarshall_IIOP_Profile_Body;
 
 
 
-end Droopi.Binding_Data.Iiop;
+end Droopi.Binding_Data.IIOP;

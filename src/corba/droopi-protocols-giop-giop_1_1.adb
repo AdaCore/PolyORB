@@ -12,17 +12,23 @@
 
 with Ada.Streams; use Ada.Streams;
 with Ada.Unchecked_Deallocation;
+with Ada.Strings;
+with Ada.Strings.Unbounded;
 
-with CORBA;
+with CORBA; use CORBA;
+with CORBA.Exceptions;
+with CORBA.Exceptions.Stack;
 
-with CORBA.CDR;         use CORBA.CDR;
-with Droopi.Exceptions;
+with Droopi.Opaque;              use Droopi.Opaque;
+with Droopi.Buffers;             use Droopi.Buffers;
+with Droopi.Binding_Data;        use Droopi.Binding_Data;
+
+with Droopi.Protocols;           use Droopi.Protocols;
+with Droopi.References;          use Droopi.References;
+with Droopi.Representations.CDR; use Droopi.Representations.CDR;
+with Droopi.Log;
+
 with Sequences.Unbounded;
-with Droopi.Opaque; use Droopi.Opaque;
-with Droopi.Buffers;use Droopi.Buffers;
-with Droopi.Binding_Data; use Droopi.Binding_Data;
-with Droopi.Protocols; use Droopi.Protocols;
-
 
 pragma Elaborate_All (Droopi.Log);
 
@@ -32,10 +38,10 @@ package body Droopi.Protocols.GIOP.GIOP_1_1 is
    Endianess_Bit: constant Integer:=1;
    Fragment_Bit: constant Integer:=2;
 
-   Response_Flags: constant array(range 0..3) of CORBA.Octet:=
-                   (0,16#1#, 16#2#, 16#3#) ;
+   --Response_Flags: constant array(range 0..3) of CORBA.Octet:=
+   --                (0,16#1#, 16#2#, 16#3#) ;
 
-   type Bits_8 is CORBA.Octet;
+   --type Bits_8 is CORBA.Octet;
 
    Nobody_Principal : constant Ada.Strings.Unbounded.Unbounded_String
       := Ada.Strings.Unbounded.To_Unbounded_String ("nobody");
@@ -53,9 +59,10 @@ package body Droopi.Protocols.GIOP.GIOP_1_1 is
        Fragment_Next : in Boolean)
 
    is
+
       use representations.CDR;
       use Droopi.Buffers;
-      Flags: Bits_8:=0;
+      Flags: CORBA.Octet:=0;
    begin
 
       --  Magic
@@ -69,11 +76,11 @@ package body Droopi.Protocols.GIOP.GIOP_1_1 is
 
       --  Flags
       if Endianness(Buffer.all) = Little_Endian then
-         Flags = Flags or 2**Endianess_bit;
+         Flags := Flags or 2**Endianess_bit;
       end if;
 
       if Fragment_Next = True then
-         Flags = Flags or 2**Fragment_bit;
+         Flags := Flags or 2**Fragment_bit;
       end if;
 
       Marshall (Buffer, Flags);
@@ -95,20 +102,20 @@ package body Droopi.Protocols.GIOP.GIOP_1_1 is
 
    procedure Marshall_Request_Message
      (Buffer             : access Buffers.Buffer_Type;
-      Request_Id         : in CORBA.Unsigned_Long
-      Profile_Ref        : in Binding_Data.Profile_Type;
+      Request_Id         : in CORBA.Unsigned_Long;
+      Target_Profile     : in Binding_Data.IIOP.IIOP_Profile_Type;
       Response_Expected  : in Boolean;
       Operation          : in Requests.Operation_Id)
 
     is
-      use representations.CDR;
+      use Representations.CDR;
       Reserved: constant CORBA.Octet:=0;
 
     begin
 
-
       -- Service context
-      Marshall(Buffer,  Stream_Element_Array'(Service_Context_List_1_1));
+      Marshall(Buffer, CORBA.Octet(ServiceId'Pos(Service_Context_List_1_1(0))));
+      Marshall(Buffer, CORBA.Octet(ServiceId'Pos(Service_Context_List_1_1(1))));
 
 
       --  Request id
@@ -119,20 +126,20 @@ package body Droopi.Protocols.GIOP.GIOP_1_1 is
 
       -- Reserved
       for I in 1..3 loop
-       Marshall(Buffer_Out, Reserved);
+       Marshall(Buffer, Reserved);
       end loop;
 
        --  Object key
       Marshall
-        (Buffer,Binding_Data.Get_Object_Key(Profile_Ref));
+        (Buffer, Binding_Data.IIOP.Get_Object_Key(Target_Profile));
 
       --  Operation
-      Marshall (Buffer, CORBA.String(Operation));
+      Marshall (Buffer, Operation);
 
 
       --  Principal
-      Marshall(Ses.Buffer_Out,
-               CORBA.String'(Nobody_Principal));
+      Marshall(Buffer,
+               CORBA.String(Nobody_Principal));
 
     end Marshall_Request_Message;
 
@@ -151,7 +158,8 @@ package body Droopi.Protocols.GIOP.GIOP_1_1 is
 
 
      --  Service context
-     Marshall(Buffer,  Stream_Element_Array'(Service_Context_List_1_1));
+     Marshall(Buffer, CORBA.Octet(ServiceId'Pos(Service_Context_List_1_1(0))));
+     Marshall(Buffer, CORBA.Octet(ServiceId'Pos(Service_Context_List_1_1(1))));
 
      -- Request id
      Marshall(Buffer, Request_Id);
@@ -170,16 +178,17 @@ package body Droopi.Protocols.GIOP.GIOP_1_1 is
    procedure Marshall_Exception
     ( Buffer           : access Buffer_Type;
       Request_Id       : in CORBA.Unsigned_long;
-      Exception_Type   : in Reply_Status;
+      Exception_Type   : in Reply_Status_Type;
       Occurence        : in CORBA.Exception_Occurrence)
    is
      use representations.CDR;
    begin
 
-      pragma Assert (Reply_Type in User_Exception .. System_Exception);
+      pragma Assert (Exception_Type in User_Exception .. System_Exception);
 
       --  Service context
-      Marshall(Buffer,  Stream_Element_Array'(Service_Context_List_1_1));
+      Marshall(Buffer, CORBA.Octet(ServiceId'Pos(Service_Context_List_1_1(0))));
+      Marshall(Buffer, CORBA.Octet(ServiceId'Pos(Service_Context_List_1_1(1))));
 
       -- Request id
       Marshall(Buffer, Request_Id);
@@ -200,14 +209,14 @@ package body Droopi.Protocols.GIOP.GIOP_1_1 is
     procedure Marshall_Location_Forward
     ( Buffer           : access Buffer_Type;
       Request_Id       : in  CORBA.Unsigned_Long;
-      Forward_Ref      : in  Droopi.References.Ior.Ior_Type)
+      Forward_Ref      : in  Droopi.References.IOR.IOR_Type)
     is
       use References.IOR;
     begin
 
-
       --  Service context
-      Marshall(Buffer,  Stream_Element_Array'(Service_Context_List_1_1));
+      Marshall(Buffer, CORBA.Octet(ServiceId'Pos(Service_Context_List_1_1(0))));
+      Marshall(Buffer, CORBA.Octet(ServiceId'Pos(Service_Context_List_1_1(1))));
 
       -- Request id
       Marshall(Buffer, Request_Id);
@@ -259,13 +268,12 @@ package body Droopi.Protocols.GIOP.GIOP_1_1 is
 
       --  Service context
       Service_Context1 := Unmarshall (Buffer);
-      Service_Context1 := Unmarshall (Buffer);
+      Service_Context2 := Unmarshall (Buffer);
 
-      if Service_Context /= ServiceId'Pos( Service_Context_List_1_1(0)) or
-          Service_Context /= ServiceId'Pos( Service_Context_List_1_1(1)
-
-         pragma Debug (O (" Request_Message_Unmarshall : incorrect context"
-                             & Service_Context'Img));
+      if Service_Context1 /= ServiceId'Pos(Service_Context_List_1_1(0)) or
+          Service_Context2 /= ServiceId'Pos(Service_Context_List_1_1(1))
+      then
+         pragma Debug (O (" Request_Message_Unmarshall : incorrect context"));
          raise GIOP_Error;
       end if;
 
@@ -277,7 +285,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_1 is
 
       -- Reserved
       for I in 1..3 loop
-       Reserved := Marshall(Buffer);
+       Reserved := UnMarshall(Buffer);
       end loop;
 
       --  Object Key
@@ -289,7 +297,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_1 is
       -- Principal
       Principal :=  Unmarshall (Buffer);
 
-   end Unmarshal_Request_Message;
+   end Unmarshall_Request_Message;
 
 
    -----------------------------------------
@@ -307,11 +315,10 @@ package body Droopi.Protocols.GIOP.GIOP_1_1 is
    begin
 
       --  Service context
-      if Service_Context /= ServiceId'Pos( Service_Context_List_1_1(0)) or
-          Service_Context /= ServiceId'Pos( Service_Context_List_1_1(1)) then
+      if Service_Context1 /= ServiceId'Pos( Service_Context_List_1_1(0)) or
+          Service_Context1 /= ServiceId'Pos( Service_Context_List_1_1(1)) then
 
-         pragma Debug (O (" Request_Message_Unmarshall : incorrect context"
-                             & Service_Context'Img));
+         pragma Debug (O (" Request_Message_Unmarshall : incorrect context");
          raise GIOP_Error;
       end if;
 

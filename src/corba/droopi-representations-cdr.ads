@@ -17,6 +17,7 @@ with CORBA.Abstractbase;
 with CORBA.Object;
 
 with Droopi.Buffers; use Droopi.Buffers;
+with Droopi.Objects;
 
 package Droopi.Representations.CDR is
 
@@ -329,6 +330,17 @@ package Droopi.Representations.CDR is
 
    function Unmarshall (Buffer : access Buffer_Type)
      return Stream_Element_Array;
+
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : in Objects.Object_Id);
+
+   function Unmarshall (Buffer : access Buffer_Type)
+      return Objects.Object_Id;
+
+   function Unmarshall (Buffer : access Buffer_Type)
+     return Objects.Object_Id_Access;
 
    generic
       type F is delta <> digits <>;
