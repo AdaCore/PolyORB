@@ -94,6 +94,7 @@ AC_ARG_WITH(platform,
   *-opennt*)           PLATFORM_SPECIFIC=p;;
   alpha*-*-osf*)       PLATFORM_SPECIFIC=a;;
   i?86-*-cygwin32*)    PLATFORM_SPECIFIC=w;;
+  i?86-*-mingw32*)     PLATFORM_SPECIFIC=w;;
   mips*-sgi-irix*)     PLATFORM_SPECIFIC=g;;
   mips*-sni-sysv4*)    PLATFORM_SPECIFIC=x;;
   hppa*-hp-hpux*)      PLATFORM_SPECIFIC=h;;
