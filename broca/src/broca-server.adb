@@ -89,6 +89,15 @@ package body Broca.Server is
    --  is contained in the object_key and can be used to find the new entry
    --  (or to create a POA). To avoid to decode the full reference, a
    --  locationForward message can be sent.
+   --
+   --  FIXME: I am not sure that this is the right thing to do. I wonder
+   --  what will happen if a client has a lifetime which spans over
+   --  a persistent POA stop/restart. If a location forward has been sent,
+   --  then this client will not be able to use services of the POA anymore
+   --  because the new location does not exist anymore. If we do not use
+   --  location forward, then this case is handled gracefully but
+   --  performances may be slightly degraded.
+
    type POA_Entry_Type is
       record
          POA : Broca.POA.POA_Object_Ptr := null;
