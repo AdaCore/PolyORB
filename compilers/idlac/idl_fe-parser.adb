@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/idl_fe-parser.adb#16 $
+--  $Id: //droopi/main/compilers/idlac/idl_fe-parser.adb#17 $
 
 with Ada.Characters.Latin_1;
 with Ada.Unchecked_Deallocation;
@@ -831,15 +831,19 @@ package body Idl_Fe.Parser is
 
    procedure Parse_Interface
      (Result : out  Node_Id;
-      Success : out Boolean) is
+      Success : out Boolean)
+   is
       Res : Node_Id;
-      Fd_Res : Node_Id;
+      Prev_Decl : Node_Id;
       Definition : Identifier_Definition_Acc;
+
    begin
       pragma Debug (O2 ("Parse_Interface: enter"));
-      --  interface header.
+
       Res := Make_Interface (Get_Token_Location);
+
       --  is the interface abstracted
+
       if Get_Token = T_Abstract then
          Set_Abst (Res, True);
          Set_Local (Res, False);
@@ -856,19 +860,28 @@ package body Idl_Fe.Parser is
          Set_Abst (Res, False);
          Set_Local (Res, False);
       end if;
+
       Set_Location (Res, Get_Token_Location);
       Set_Initial_Current_Prefix (Res);
       Next_Token;
+
       --  Expect an identifier
       if Get_Token = T_Identifier then
+
          Definition := Find_Identifier_Definition
            (Get_Token_String, Get_Lexer_Location);
-         --  Is there a previous definition and in the same scope !
+         --  Retrieve previous definition
+
          if not Is_Redefinable (Get_Token_String, Get_Lexer_Location) then
-            --  is it a forward declaration
-            if Definition.Parent_Scope = Get_Current_Scope and
-              Kind (Definition.Node) = K_Forward_Interface then
-               --  Check if they are both of the same abstract kind
+
+            --  Is previous definition a forward declaration?
+
+            if Definition.Parent_Scope = Get_Current_Scope
+              and then Kind (Definition.Node) = K_Forward_Interface
+            then
+
+               --  Check consistency of the 'abstract' property
+
                if Abst (Definition.Node) /= Abst (Res) then
                   declare
                      Loc : Errors.Location;
@@ -883,14 +896,15 @@ package body Idl_Fe.Parser is
                            Get_Previous_Token_Location);
                   end;
                end if;
-               Fd_Res := Get_Node (Definition);
+
+               Prev_Decl := Get_Node (Definition);
                if View_Next_Token /= T_Semi_Colon then
-                  Set_Forward (Fd_Res, Res);
-                  Set_Forward (Res, Fd_Res);
+                  Set_Forward (Prev_Decl, Res);
+                  Set_Forward (Res, Prev_Decl);
                   Redefine_Identifier (Definition, Res);
                   --  The forward declaration is now implemented.
-                  Add_Int_Val_Definition (Fd_Res);
-                  Set_Repository_Id (Res, Repository_Id (Fd_Res));
+                  Add_Int_Val_Definition (Prev_Decl);
+                  Set_Repository_Id (Res, Repository_Id (Prev_Decl));
                end if;
             else
                declare
@@ -907,13 +921,14 @@ package body Idl_Fe.Parser is
                      Get_Token_Location);
                   Success := False;
                   Result := No_Node;
-                  Fd_Res := No_Node;
+                  Prev_Decl := No_Node;
                   return;
                end;
             end if;
+
          else
             pragma Debug (O ("Parse_Interface : identifier not defined"));
-            Fd_Res := No_Node;
+            Prev_Decl := No_Node;
             Set_Forward (Res, No_Node);
             if not Add_Identifier (Res, Get_Token_String) then
                raise Errors.Internal_Error;
@@ -922,6 +937,7 @@ package body Idl_Fe.Parser is
             Definition := Find_Identifier_Definition
               (Get_Token_String, Get_Lexer_Location);
          end if;
+
       else
          declare
             Loc : Errors.Location;
@@ -939,17 +955,23 @@ package body Idl_Fe.Parser is
       end if;
       pragma Debug (O ("Parse_Interface : identifier parsed"));
       Next_Token;
-      --  Hups, this was just a forward declaration.
+
       if Get_Token = T_Semi_Colon then
-         --  is it another forward declaration
-         if Fd_Res /= No_Node then
+
+         --  Forward declaration
+
+         Set_Kind (Res, K_Forward_Interface);
+         Success := True;
+         Result := Res;
+
+         if Prev_Decl /= No_Node then
             declare
                Loc : Errors.Location;
             begin
-               Loc := Types.Get_Location (Fd_Res);
+               Loc := Types.Get_Location (Prev_Decl);
                Errors.Error
                  ("interface already forward declared in" &
-                  " this scope : " &
+                  " this scope: " &
                   Errors.Location_To_String (Loc),
                   Errors.Warning,
                   Get_Token_Location);
@@ -957,51 +979,35 @@ package body Idl_Fe.Parser is
                --  allows multiple forward declarations of an
                --  interface.
 
-               Fd_Res := Make_Forward_Interface (Get_Location (Res));
-               Set_Forward (Fd_Res, No_Node);
-               Set_Abst (Fd_Res, Abst (Res));
-               Set_Local (Fd_Res, Local (Res));
-               Set_Repository_Id (Fd_Res, Repository_Id (Res));
-
-               --  FIXME : we must deallocate this node : Free (Res);
-               Success := True;
-               Result := Fd_Res;
-               return;
             end;
          else
-            Fd_Res := Make_Forward_Interface (Get_Location (Res));
-            Set_Forward (Fd_Res, No_Node);
-            Set_Abst (Fd_Res, Abst (Res));
-            Set_Local (Fd_Res, Local (Res));
-            Redefine_Identifier (Definition, Fd_Res);
-            Set_Repository_Id (Fd_Res, Repository_Id (Res));
-
             --  Add a forward declaration
-            Add_Int_Val_Forward (Fd_Res);
-            --  FIXME : we must deallocate this node : Free (Res);
-            Result := Fd_Res;
-            Success := True;
-            return;
+            Add_Int_Val_Forward (Res);
          end if;
+
       else
-         --  use the Interface4 rule
+
+         --  Full interface declaration, parse remainder
+
          Parse_Interface_Dcl_End (Res, Success);
          if not Success then
             Result := No_Node;
          else
             Result := Res;
          end if;
-         return;
       end if;
-      return;
+
       pragma Debug (O2 ("Parse_Interface: end"));
    end Parse_Interface;
 
-   --------------------
-   --  Parse_Export  --
-   --------------------
-   procedure Parse_Export (Result : out Node_Id;
-                           Success : out Boolean) is
+   ------------------
+   -- Parse_Export --
+   ------------------
+
+   procedure Parse_Export
+     (Result : out Node_Id;
+      Success : out Boolean)
+   is
    begin
       case Get_Token is
          when T_Readonly | T_Attribute =>
