@@ -34,7 +34,7 @@
 --  $Id$
 
 with GNAT.Directory_Operations.Iteration;
-with PolyORB.Parameters;
+with PolyORB.Parameters.File;
 
 with Test_Suite.Test_Case.Parser;
 
@@ -51,6 +51,7 @@ package body Test_Suite.Scenarios is
      return String
    is
       use PolyORB.Parameters;
+      use PolyORB.Parameters.File;
 
    begin
       Load_Configuration_File (Scenario_File);
