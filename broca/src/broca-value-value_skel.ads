@@ -1,5 +1,6 @@
 with Broca.Value.Operation_Store;
-with Corba;
+with CORBA;
+pragma Elaborate_All (Broca.Value.Operation_Store);
 
 package Broca.Value.Value_Skel is
 

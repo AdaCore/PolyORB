@@ -1,3 +1,6 @@
+with Broca.Value.Value_Skel;
+with Broca.Exceptions;
+
 package body Corba.Value is
 
    ------------
@@ -15,7 +18,7 @@ package body Corba.Value is
       Type_Id : CORBA.RepositoryId)
       return CORBA.Boolean
    is
-      Is_A_Operation : TestValueType.v_vt.Value_Skel.get_vt_mb_Type;
+      Is_A_Operation : Broca.Value.Value_Skel.Is_A_Type;
       Precise_Object : constant CORBA.Impl.Object_Ptr
         := CORBA.Impl.Object_Ptr (Object_Of (Self));
    begin
