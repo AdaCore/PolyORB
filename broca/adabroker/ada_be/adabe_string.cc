@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.2 $
+//                            $Revision: 1.3 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -185,7 +185,35 @@ adabe_string::produce_stream_adb (dep_list & with,
 				  string   & body,
 				  string   & previous)
 {
-  gen_marshalling_declarations (body, get_ada_local_name ());
+  
+  body +=
+    "   procedure Marshall\n"
+    "      (Stream : in out Broca.Types.Buffer_descriptor;\n"
+    "       Val : " + get_ada_local_name () + ")\n"
+    "   is\n"
+    "   begin\n"
+    "      Marshall (Stream, CORBA.String (Val));\n"
+    "   end Marshall;\n"
+    "\n"
+    "   procedure Unmarshall\n"
+    "      (Stream : in out Broca.Types.Buffer_descriptor;\n"
+    "       Res : out " + get_ada_local_name () + ")\n"
+    "   is\n"
+    "      Tmp : CORBA.String;\n"
+    "   begin\n"
+    "      Unmarshall (Stream, Tmp);\n"
+    "      Res := " + get_ada_local_name () +" (Tmp);\n"
+    "   end Unmarshall;\n"
+    "\n"
+    "   procedure Marshall_Size\n"
+    "      (Stream : in out Broca.Types.Buffer_descriptor;\n"
+    "       Val : " + get_ada_local_name () + ")\n"
+    "   is\n"
+    "   begin\n"
+    "      Marshall_Size (Stream, CORBA.String (Val));\n"
+    "   end Marshall_Size;\n"
+    "\n";
+
   set_already_defined ();
 }
 

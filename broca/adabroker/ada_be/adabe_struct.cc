@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.2 $
+//                            $Revision: 1.3 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -50,7 +50,7 @@ adabe_structure::produce_ads (dep_list & with,
 			      string   & previous)
 {
   // This library will be needed for the Free function
-  with.add ("Ada.Unchecked_Deallocation");
+  // with.add ("Ada.Unchecked_Deallocation");
   
   // beginning of the declaration
   body += "   type " + get_ada_local_name () + " is record\n";

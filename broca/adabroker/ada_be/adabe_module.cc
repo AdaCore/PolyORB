@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.2 $
+//                            $Revision: 1.3 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -57,9 +57,9 @@ adabe_module::produce_ads (dep_list & with,
   // before doing anything compute the ada name
   
   compute_ada_name (); 
-  with.add ("Ada.Unchecked_Deallocation");
+  // with.add ("Ada.Unchecked_Deallocation");
   with.add ("CORBA");
-  with.add ("AdaBroker");
+  with.add ("Broca");
   body = "package " + get_ada_full_name ()+ " is\n";
   
   // For each declaration in the node produce the code
@@ -627,6 +627,7 @@ adabe_module::produce_stream_ads (dep_list & with,
   bool first = true;
   body += "use type CORBA.Unsigned_Long; \n";
   with.add ("CORBA");
+  with.add ("Broca.Types"); // XXX Needed!
 
   body += "package " + get_ada_full_name () + ".Stream is\n";
   
@@ -724,6 +725,8 @@ adabe_module::produce_stream_adb (dep_list & with,
   bool first = true;
 
   UTL_ScopeActiveIterator module_activator (this, UTL_Scope::IK_decls);
+  with.add ("Broca.Marshalling");
+
   body += "package body " + get_ada_full_name () + ".Stream is\n";
   while (!module_activator.is_done ())
     {

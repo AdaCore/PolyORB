@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.2 $
+//                            $Revision: 1.3 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -710,6 +710,48 @@ adabe_name::is_marshal_imported (dep_list& with)
     }
    if (defined_in () == NULL) return 0;
    return (dynamic_cast<adabe_name *>(defined_in ()))->is_marshal_imported (with); 
+}
+
+//////////////////////////////////////
+////// new_is_marshal_imported ///////
+//////////////////////////////////////
+string
+adabe_name::new_is_marshal_imported (dep_list& with)
+{
+  string result = "";
+  // this function is the same as the previous one
+  // except, that the added file is the same
+  // with a ".marshal" at the end
+  if ((!in_main_file ()) && (node_type () != AST_Decl::NT_interface))
+    {
+      return "";
+    }
+  if (this == adabe_global::adabe_current_file ()) 
+    return "";
+  AST_Decl::NodeType NT = node_type ();
+  if (NT == AST_Decl::NT_interface)
+    {
+      if ((string) local_name ()->get_string () == "Object")  result = "" ;
+      else {
+        result = get_ada_full_name () + ".Stream";
+	with.add (result);
+      }
+      return result;
+    }
+  if (NT == AST_Decl::NT_module)
+    {
+      result = get_ada_full_name () + ".Stream";
+      with.add (result);
+      return result;
+    }
+   if (NT == AST_Decl::NT_root)
+    {
+      result = get_ada_full_name () + ".Stream";
+      with.add (result);
+      return result;
+    }
+   if (defined_in () == NULL) return "";
+   return (dynamic_cast<adabe_name *>(defined_in ()))->new_is_marshal_imported (with); 
 }
 
 ///////////////////////////////////////

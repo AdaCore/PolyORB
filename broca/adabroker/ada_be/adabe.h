@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.2 $
+//                            $Revision: 1.3 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -131,6 +131,10 @@ public:
   bool is_marshal_imported(dep_list &with);
   // if the node is imported and include the corresponding marshal file in "with"; 
   
+  string new_is_marshal_imported(dep_list &with);
+  // if the node is imported and include the corresponding marshal file in "with"; 
+  // the name of the marshal package is returned, if any.
+
   virtual void produce_ads(dep_list&, string&, string&);  
   virtual void produce_adb(dep_list&, string&, string&);
   // functions used to produce the body and specification for the main files

@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.2 $
+//                            $Revision: 1.3 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -238,7 +238,9 @@ adabe_argument::produce_proxy_adb (dep_list & with,
   AST_Decl *d = field_type ();
   string type_name = 
     dynamic_cast<adabe_name *>(d)->dump_name (with, previous);
-  dynamic_cast<adabe_name *>(d)->is_marshal_imported (with);
+  string marshal_pkg =
+    dynamic_cast<adabe_name *>(d)->new_is_marshal_imported (with);
+  // dynamic_cast<adabe_name *>(d)->is_marshal_imported (with);
   // in order to include the marshal files
 
 
@@ -246,10 +248,14 @@ adabe_argument::produce_proxy_adb (dep_list & with,
   
   if ((direction () == AST_Argument::dir_IN) ||
       (direction () == AST_Argument::dir_INOUT)) {
+    if (marshal_pkg != "")
+      marshall_size += "         --  Marshalling function from " + marshal_pkg + "\n";
     marshall_size += "         Marshall_Size (Handler.Buffer, ";
     marshall_size += get_ada_local_name ();
     marshall_size += ");\n";
 
+    if (marshal_pkg != "")
+      marshall += "         --  Marshalling function from " + marshal_pkg + "\n";
     marshall += "         Marshall (Handler.Buffer, ";
     marshall += get_ada_local_name ();
     marshall += ");\n";
@@ -257,7 +263,11 @@ adabe_argument::produce_proxy_adb (dep_list & with,
 
   if ((direction () == AST_Argument::dir_OUT) ||
       (direction () == AST_Argument::dir_INOUT)) {
-    dynamic_cast<adabe_name *>(d)->is_marshal_imported (with);
+    // XXX Is this necessary? Thomas 1999-08-05
+    // (we already call it right above)
+    // dynamic_cast<adabe_name *>(d)->is_marshal_imported (with);
+    if (marshal_pkg != "")
+      unmarshall += "            --  Marshalling function from " + marshal_pkg + "\n";
     unmarshall += "            Unmarshall (handler.Buffer, ";
     unmarshall += get_ada_local_name ();
     unmarshall += ");\n";
@@ -282,7 +292,8 @@ adabe_argument::produce_impl_adb (dep_list & with,
   AST_Decl *d = field_type ();
   adabe_name *e = dynamic_cast<adabe_name *>(d);
   string type_name = e->dump_name (with, previous);
-  e->is_marshal_imported (with);
+  string marshal_pkg = e->new_is_marshal_imported (with);
+  // e->is_marshal_imported (with);
 
   in_decls += "            ";
   in_decls += get_ada_local_name ();
@@ -294,6 +305,8 @@ adabe_argument::produce_impl_adb (dep_list & with,
       (direction () == AST_Argument::dir_INOUT))
     {
       no_in = false;
+      if (marshal_pkg != "")
+        unmarshall += "            --  Marshalling function from " + marshal_pkg + "\n";
       unmarshall += "            Unmarshall (Stream, ";
       unmarshall += get_ada_local_name ();
       unmarshall += ");\n";
@@ -306,9 +319,13 @@ adabe_argument::produce_impl_adb (dep_list & with,
       || (direction () == AST_Argument::dir_INOUT))
     {
       no_out = false;
+      if (marshal_pkg != "")
+        marshall += "            --  Marshalling function from " + marshal_pkg + "\n";
       marshall += "            Marshall (Stream, ";
       marshall += get_ada_local_name ();
       marshall += ");\n";
+      if (marshal_pkg != "")
+        align_size += "            --  Marshalling function from " + marshal_pkg + "\n";
       align_size += "            Size := Marshall_Size (Stream, ";
       align_size += get_ada_local_name ();
       align_size += ");\n";
@@ -322,10 +339,3 @@ adabe_argument::produce_impl_adb (dep_list & with,
 ////////////////////////////////////////////////////////////////////////
 IMPL_NARROW_METHODS1 (adabe_argument, AST_Argument)
 IMPL_NARROW_FROM_DECL (adabe_argument)
-  
-
-
-
-
-
-

@@ -50,6 +50,10 @@ package Broca.Marshalling is
    procedure Unmarshall
      (Stream : in out Buffer_Descriptor; Res : out CORBA.Unsigned_Long);
    procedure Unmarshall
+     (Stream : in out Buffer_Descriptor; Res : out CORBA.Short);
+   procedure Unmarshall
+     (Stream : in out Buffer_Descriptor; Res : out CORBA.Long);
+   procedure Unmarshall
      (Stream : in out Buffer_Descriptor; Res : out CORBA.String);
 
    --  Size procedure
@@ -73,6 +77,12 @@ package Broca.Marshalling is
      (Stream : in out Buffer_Descriptor; Val : String);
    procedure Marshall_Size
      (Stream : in out Buffer_Descriptor; Val : CORBA.Unsigned_Long);
+   procedure Marshall_Size
+     (Stream : in out Buffer_Descriptor; Val : CORBA.Unsigned_Short);
+   procedure Marshall_Size
+     (Stream : in out Buffer_Descriptor; Val : CORBA.Long);
+   procedure Marshall_Size
+     (Stream : in out Buffer_Descriptor; Val : CORBA.Short);
 
    --  For an outcoming stream, allocate the buffer and clear pos.
    procedure Allocate_Buffer (Stream : in out Buffer_Descriptor);
@@ -97,6 +107,10 @@ package Broca.Marshalling is
      (Stream : in out Buffer_Descriptor; Val : CORBA.Unsigned_Short);
    procedure Marshall
      (Stream : in out Buffer_Descriptor; Val : CORBA.Unsigned_Long);
+   procedure Marshall
+     (Stream : in out Buffer_Descriptor; Val : CORBA.Short);
+   procedure Marshall
+     (Stream : in out Buffer_Descriptor; Val : CORBA.Long);
    procedure Marshall
      (Stream : in out Buffer_Descriptor; Val : CORBA.String);
    procedure Marshall

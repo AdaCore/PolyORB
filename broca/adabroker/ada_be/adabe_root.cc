@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.2 $
+//                            $Revision: 1.3 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -83,12 +83,12 @@ adabe_root::produce () {
       dep_list header_with;             // list of dependencies
       
       // addition of some usefull file 
-      header_with.add ("Ada.Unchecked_Deallocation");
+      // header_with.add ("Ada.Unchecked_Deallocation");
       header_with.add ("CORBA");
       //header_with.add ("AdaBroker");
       
       UTL_ScopeActiveIterator header_activator (this, UTL_Scope::IK_decls);
-      header_body = "Package " + get_ada_full_name ()+" is\n";
+      header_body = "package " + get_ada_full_name ()+" is\n";
       
       // loop over the scope to find the node to output
       while (!header_activator.is_done ())
@@ -487,7 +487,7 @@ adabe_root::produce () {
       marshal_header_previous += "use type CORBA.Unsigned_Long; \n";
       marshal_header_with.add ("CORBA");
 
-      marshal_header_previous += "Package " + get_ada_full_name () + ".marshal is\n";
+      marshal_header_previous += "package " + get_ada_full_name () + ".Marshal is\n";
 		  
       UTL_ScopeActiveIterator marshal_header_activator (this, UTL_Scope::IK_decls);
       while (!marshal_header_activator.is_done ())
@@ -604,7 +604,7 @@ adabe_root::produce () {
 	  marshal_header << marshal_header_includes;
 	  marshal_header << marshal_header_previous;
 	  marshal_header << marshal_header_body;
-	  marshal_header << "end " << get_ada_full_name () << ".marshal;" << endl;
+	  marshal_header << "end " << get_ada_full_name () << ".Marshal;" << endl;
 	  marshal_header.close ();
 	}
     }
@@ -626,7 +626,7 @@ adabe_root::produce () {
       string marshal_body_body          = "";
       dep_list marshal_body_with;
     
-      marshal_body_previous = "Package body " + get_ada_full_name () + ".marshal is \n";
+      marshal_body_previous = "package body " + get_ada_full_name () + ".Marshal is \n";
 
       while (!marshal_body_activator.is_done ())
 	{
@@ -752,7 +752,7 @@ adabe_root::produce () {
 	  marshal_body << marshal_body_use;
 	  marshal_body << marshal_body_previous;
 	  marshal_body << marshal_body_body;
-	  marshal_body << "end " << get_ada_full_name () << ".marshal;" << endl;
+	  marshal_body << "end " << get_ada_full_name () << ".Marshal;" << endl;
 	  marshal_body.close ();
 	}
     }

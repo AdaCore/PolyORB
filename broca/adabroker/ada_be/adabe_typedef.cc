@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.2 $
+//                            $Revision: 1.3 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -169,7 +169,7 @@ adabe_typedef::produce_stream_adb (dep_list & with,
     "      Tmp : " + name + ";\n"
     "   begin\n"
     "      Unmarshall (Stream, Tmp);\n"
-    "      Res := " + name + "(Tmp);\n"
+    "      Res := " + get_ada_local_name () + "(Tmp);\n"
     "   end Unmarshall;\n"
     "\n"
     "   procedure Marshall_Size\n"
