@@ -35,7 +35,7 @@
 
 with Interfaces.C;
 
-private package System.Garlic.Network_Utilities is
+package System.Garlic.Network_Utilities is
 
    function Port_To_Network (Port : Interfaces.C.unsigned_short)
       return Interfaces.C.unsigned_short;

@@ -1,5 +1,8 @@
 2000-01-19  Samuel Tardieu  <sam@inf.enst.fr>
 
+	* s-ganeut.ads: Make this package public so that it can be used
+	by performance measurements programs.
+
 	* s-garthi.ads: Default address family for Sockaddr_In is AF_INET.
 
 	* constants.sh (constants): Add PF_INET constant.
