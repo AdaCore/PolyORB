@@ -35,6 +35,7 @@ with Ada.Tags;
 
 with Broca.CDR;
 with Broca.Debug;
+pragma Elaborate_All (Broca.Debug);
 with Broca.Locks; use Broca.Locks;
 with System;
 

@@ -33,6 +33,7 @@
 
 with Broca.Buffers.IO_Operations;
 with Broca.Debug;
+pragma Elaborate_All (Broca.Debug);
 with Broca.Sockets;
 
 package body Broca.Stream is

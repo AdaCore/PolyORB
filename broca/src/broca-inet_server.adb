@@ -59,6 +59,7 @@ with Broca.Sequences;
 with Broca.Sockets;
 
 with Broca.Debug;
+pragma Elaborate_All (Broca.Debug);
 
 with Broca.Exceptions;
 pragma Elaborate_All (Broca.Exceptions);

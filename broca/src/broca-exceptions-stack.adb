@@ -35,6 +35,8 @@ with Ada.Unchecked_Deallocation;
 --  with System.Storage_Elements;
 
 with Broca.Debug;
+pragma Elaborate_All (Broca.Debug);
+
 with Broca.Soft_Links; use Broca.Soft_Links;
 
 package body Broca.Exceptions.Stack is

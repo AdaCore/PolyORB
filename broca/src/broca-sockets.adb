@@ -32,6 +32,7 @@
 ------------------------------------------------------------------------------
 
 with Broca.Debug;
+pragma Elaborate_All (Broca.Debug);
 with Sockets.Thin; use Sockets.Thin;
 with System.Storage_Elements;        use System, System.Storage_Elements;
 

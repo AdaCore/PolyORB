@@ -35,6 +35,7 @@ with Broca.GIOP;
 with Broca.CDR;
 with Broca.Exceptions;
 with Broca.Debug;
+pragma Elaborate_All (Broca.Debug);
 with Broca.Locks; use Broca.Locks;
 
 package body CORBA.Request is

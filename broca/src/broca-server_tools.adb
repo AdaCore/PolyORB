@@ -40,9 +40,10 @@ with PortableServer.POAManager;
 with Broca.Inet_Server;
 with Broca.Parameters;
 
-pragma Elaborate_All (PortableServer.POA);
-
 with Broca.Debug;
+
+pragma Elaborate_All (Broca.Debug);
+pragma Elaborate_All (PortableServer.POA);
 
 package body Broca.Server_Tools is
 

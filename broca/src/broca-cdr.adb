@@ -35,6 +35,7 @@ with Ada.Unchecked_Conversion;
 with System.Address_To_Access_Conversions;
 with Interfaces;
 with Broca.Debug;
+pragma Elaborate_All (Broca.Debug);
 
 with Broca.Exceptions;
 with Broca.Exceptions.Stack;

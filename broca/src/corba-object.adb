@@ -35,6 +35,7 @@ with Broca.IOR;
 with Broca.Buffers; use Broca.Buffers;
 with Broca.CDR;     use Broca.CDR;
 with Broca.Debug;
+pragma Elaborate_All (Broca.Debug);
 
 with Broca.Names;
 with Broca.Repository;

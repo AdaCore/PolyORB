@@ -46,7 +46,7 @@ with Broca.Repository;
 with Broca.Sequences;
 
 with Broca.Debug;
-pragma Elaborate (Broca.Debug);
+pragma Elaborate_All (Broca.Debug);
 
 with Broca.IOP;
 with Broca.IIOP;

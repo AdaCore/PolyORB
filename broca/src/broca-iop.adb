@@ -35,7 +35,7 @@ with CORBA;             use CORBA;
 with Broca.Buffers;     use Broca.Buffers;
 
 with Broca.Debug;
-pragma Elaborate (Broca.Debug);
+pragma Elaborate_All (Broca.Debug);
 
 package body Broca.IOP is
 

@@ -34,6 +34,7 @@
 with Sequences.Unbounded.Search;
 
 with Broca.Debug;
+pragma Elaborate_All (Broca.Debug);
 
 package body CORBA.ExceptionList is
 

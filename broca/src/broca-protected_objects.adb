@@ -121,7 +121,7 @@ package body Broca.Protected_Objects is
             if Permanent then
                Perm := True;
             else
-               Free := Free + Wait'Count;
+               Free := Free + Barrier_PO.Wait'Count;
             end if;
          end if;
       end Signal_All;

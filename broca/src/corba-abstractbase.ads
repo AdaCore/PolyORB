@@ -32,6 +32,8 @@
 ------------------------------------------------------------------------------
 
 with Broca.Refs;
+pragma Elaborate_All (Broca.Refs);
+
 with CORBA.Impl;
 
 package CORBA.AbstractBase is

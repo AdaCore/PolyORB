@@ -37,6 +37,7 @@ with CORBA;
 
 with Broca.CDR;         use Broca.CDR;
 with Broca.Environment; use Broca.Environment;
+pragma Elaborate_All (Broca.Environment);
 with Broca.Exceptions;
 with Broca.Sequences;
 with Broca.Opaque;      use Broca.Opaque;

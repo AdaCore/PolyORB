@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---          Copyright (C) 1999-2000 ENST Paris University, France.          --
+--          Copyright (C) 1999-2001 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,6 +30,7 @@ with Idl_Fe.Tree.Synthetic;           use Idl_Fe.Tree.Synthetic;
 
 with Ada_Be.Identifiers;    use Ada_Be.Identifiers;
 with Ada_Be.Debug;
+pragma Elaborate_All (Ada_Be.Debug);
 
 with Ada_Be.Idl2Ada.Impl;
 with Ada_Be.Idl2Ada.Skel;

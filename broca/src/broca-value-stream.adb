@@ -42,6 +42,7 @@ with Broca.Buffers;  use Broca.Buffers;
 with Broca.CDR; use Broca.CDR;
 
 with Broca.Debug;
+pragma Elaborate_All (Broca.Debug);
 
 package body Broca.Value.Stream is
 

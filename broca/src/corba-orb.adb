@@ -45,7 +45,7 @@ with CORBA.NVList;
 with CORBA.Impl;
 
 with Broca.Debug;
-pragma Elaborate (Broca.Debug);
+pragma Elaborate_All (Broca.Debug);
 
 package body CORBA.ORB is
 

@@ -289,19 +289,26 @@ package body Broca.IIOP is
       return Tag_Internet_IOP;
    end Get_Profile_Tag;
 
-   procedure Finalization
-     (Profile : in out Profile_IIOP_1_1_Type)
+   procedure Initialize (P : in out Profile_IIOP_1_1_Type) is
+   begin
+      P.Components := null;
+   end Initialize;
+
+   procedure Finalize   (P : in out Profile_IIOP_1_1_Type)
    is
       procedure Free is new Ada.Unchecked_Deallocation
         (Tagged_Component_Type, Tagged_Component_Access);
+
       procedure Free is new Ada.Unchecked_Deallocation
         (Tagged_Component_Array, Tagged_Components_Ptr);
    begin
-      for I in Profile.Components'Range loop
-         Free (Profile.Components (I));
-      end loop;
-      Free (Profile.Components);
-   end Finalization;
+      if P.Components /= null then
+         for I in P.Components'Range loop
+            Free (P.Components (I));
+         end loop;
+         Free (P.Components);
+      end if;
+   end Finalize;
 
    --------------------------
    -- Get_Profile_Priority --
@@ -397,6 +404,7 @@ package body Broca.IIOP is
             Host   := Unmarshall (Profile_Buffer'Access);
             Port   := Unmarshall (Profile_Buffer'Access);
             ObjKey := Unmarshall (Profile_Buffer'Access);
+
             case Version.Minor is
                when 0 =>
                   declare
@@ -413,9 +421,17 @@ package body Broca.IIOP is
 
                      Result := Profile_Ptr (R);
                   end;
-               when 1 =>
+
+               when others =>
+
+                  --  Minor 1 and higher are processed as 1 -- extra
+                  --  information is ignored, as allowed by the CORBA
+                  --  standards (changes within a major version are
+                  --  constrained to be backward-compatible.)
+
                   Tagged_Components := Broca.Profiles.TC.Unmarshall
                     (Profile_Buffer'Access);
+
                   declare
                      R : Profile_IIOP_1_1_Access
                        := new Profile_IIOP_1_1_Type;
@@ -431,20 +447,22 @@ package body Broca.IIOP is
 
                      Result := Profile_Ptr (R);
                   end;
-               when others =>
-                  declare
-                     R : Unknown_Profile_Access := new Unknown_Profile_Type;
-                  begin
-                     R.Tag := Tag_Internet_IOP;
-                     R.Data := new Encapsulation'(Profile_Body);
+--                when others =>
+--                   declare
+--                      R : Unknown_Profile_Access := new Unknown_Profile_Type;
+--                   begin
+--                      R.Tag := Tag_Internet_IOP;
+--                      R.Data := new Encapsulation'(Profile_Body);
 
-                     pragma Debug
-                       (O ("Created internet profile of unknown type"));
+--                      pragma Debug
+--                        (O ("Created internet profile of unknown type"));
 
-                     Result := Profile_Ptr (R);
-                  end;
+--                      Result := Profile_Ptr (R);
+--                   end;
             end case;
          when others =>
+            --  An IIOP profile with major > 1.
+
 --          pragma Debug (O ("Unmarshall_IIOP_Profile_Body : "
 --                           & "Invalid IIOP version number"));
             declare

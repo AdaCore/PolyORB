@@ -107,8 +107,8 @@ package Broca.IIOP is
 
    type Profile_IIOP_1_1_Access is access Profile_IIOP_1_1_Type;
 
-   procedure Finalization
-     (Profile : in out Profile_IIOP_1_1_Type);
+   procedure Initialize (P : in out Profile_IIOP_1_1_Type);
+   procedure Finalize   (P : in out Profile_IIOP_1_1_Type);
 
    function Get_Profile_Priority
      (Profile : in Profile_IIOP_1_1_Type)

@@ -38,6 +38,7 @@ with Broca.Profiles; use Broca.Profiles;
 with Broca.Buffers; use Broca.Buffers;
 with Broca.Exceptions;
 with Broca.Debug;
+pragma Elaborate_All (Broca.Debug);
 
 package body Broca.Object is
 

@@ -32,6 +32,8 @@
 ------------------------------------------------------------------------------
 
 with Broca.Debug;
+pragma Elaborate_All (Broca.Debug);
+
 with System; use System;
 
 with Ada.Unchecked_Deallocation;

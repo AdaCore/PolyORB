@@ -44,6 +44,7 @@ with Broca.Configuration;
 pragma Warnings (Off, Broca.Configuration);
 pragma Elaborate (Broca.Configuration);
 with Broca.Debug;
+pragma Elaborate_All (Broca.Debug);
 
 with PortableServer.POA;
 

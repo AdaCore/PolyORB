@@ -32,6 +32,7 @@
 ------------------------------------------------------------------------------
 
 with Broca.Debug;
+pragma Elaborate_All (Broca.Debug);
 with Broca.CDR;
 with Broca.Opaque;            use Broca.Opaque;
 

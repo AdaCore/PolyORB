@@ -35,7 +35,7 @@ with CORBA; use CORBA;
 with Ada.Characters.Handling;
 
 with Broca.Debug;
-pragma Elaborate (Broca.Debug);
+pragma Elaborate_All (Broca.Debug);
 
 package body Broca.Repository is
 

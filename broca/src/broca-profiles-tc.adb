@@ -31,13 +31,20 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+
 with Ada.Unchecked_Deallocation;
 
 with Broca.Sequences;
 with Broca.CDR; use Broca.CDR;
 with Broca.Exceptions;
 
+with Broca.Debug;
+pragma Elaborate_All (Broca.Debug);
+
 package body Broca.Profiles.TC is
+
+   Flag : constant Natural := Broca.Debug.Is_Active ("broca.profiles.tc");
+   procedure O is new Broca.Debug.Output (Flag);
 
    ---------------------
    -- Find_Connection --
@@ -127,6 +134,7 @@ package body Broca.Profiles.TC is
    begin
       Marshall (Buffer, CORBA.Unsigned_Long (Components'Length));
       for I in Components'Range loop
+         pragma Assert (Components (I) /= null);
          Marshall (Buffer, Components (I).all);
       end loop;
    end Marshall;
@@ -139,6 +147,7 @@ package body Broca.Profiles.TC is
      (Buffer  : access Buffers.Buffer_Type;
       Profile : Multiple_Component_Profile_Type) is
    begin
+      pragma Assert (Profile.Components /= null);
       Marshall (Buffer, Profile.Components.all);
    end Marshall_Profile_Body;
 
@@ -150,13 +159,15 @@ package body Broca.Profiles.TC is
      (Buffer  : access Buffers.Buffer_Type)
       return Tagged_Component_Access
    is
-      Tag : CORBA.Unsigned_Long := Unmarshall (Buffer);
-      Data : Octet_Array := Unmarshall (Buffer);
+      Tag  : constant CORBA.Unsigned_Long
+        := Unmarshall (Buffer);
+      Data : constant Octet_Array
+        := Unmarshall (Buffer);
    begin
       return new Tagged_Component_Type'
         (Encapsulation_Size => Data'Length,
-         Tag => Component_Id (Tag),
-         Component_Data => Data);
+         Tag                => Component_Id (Tag),
+         Component_Data     => Data);
    end Unmarshall;
 
    ----------------
@@ -172,7 +183,12 @@ package body Broca.Profiles.TC is
       Result : Tagged_Components_Ptr;
    begin
       Length := Unmarshall (Buffer);
+      pragma Debug
+        (O ("Unmarshalling" & Length'Img & " tagged components."));
+
       Result := new Tagged_Component_Array (0 .. Length - 1);
+      pragma Assert (Result /= null);
+
       for I in Result'Range loop
          Result (I) := Unmarshall (Buffer);
       end loop;
