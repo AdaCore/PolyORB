@@ -931,7 +931,7 @@ package body Exp_Hlpr is
    begin
       Start_String;
       Store_String_Chars ("DSA:");
-      Get_Pkg_Name_String (Scope (E));
+      Get_Library_Unit_Name_String (Scope (E));
       Store_String_Chars (
         Name_Buffer (Name_Buffer'First .. Name_Buffer'First + Name_Len - 1));
       Store_String_Char ('.');

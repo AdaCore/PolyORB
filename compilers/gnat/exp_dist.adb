@@ -33,6 +33,7 @@ with Exp_Tss;     use Exp_Tss;
 with Exp_Util;    use Exp_Util;
 with GNAT.HTable; use GNAT.HTable;
 with Lib;         use Lib;
+with Namet;       use Namet;
 with Nlists;      use Nlists;
 with Nmake;       use Nmake;
 with Opt;         use Opt;
