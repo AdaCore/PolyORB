@@ -31,9 +31,7 @@ with Osint;          use Osint;
 with Output;         use Output;
 
 procedure XE_Usage is
-
 begin
-
    if Verbose_Mode then
       Write_Str ("GNATDIST __glade_version__ / GNAT __gnat_version__");
       Write_Str (" Copyright 1996-2000 Free Software Foundation, Inc.");
@@ -114,5 +112,4 @@ begin
    Write_Eol;
 
    Exit_Program (E_Fatal);
-
 end XE_Usage;

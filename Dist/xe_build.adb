@@ -92,7 +92,7 @@ begin
          --  If the filename is not already correct.
          if not Is_Regular_File (N) then
 
-            Message ("", To_String (N), "not found");
+            Message ("", Quote (N), "not found");
             Exit_Program (E_Fatal);
          else
             Configuration_File := N;
@@ -114,7 +114,7 @@ begin
       if Configuration /= Name_Find then
          if not Quiet_Mode then
             Message ("configuration file name should be",
-                     To_String (Configuration & Str_To_Id (Suffix)));
+                     Quote (Configuration & Str_To_Id (Suffix)));
          end if;
          raise Fatal_Error;
       end if;

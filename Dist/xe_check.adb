@@ -298,7 +298,7 @@ package body XE_Check is
             --  The configured unit is not an Ada unit.
 
             if A = No_ALI_Id then
-               Message ("configured unit", To_String (CUname),
+               Message ("configured unit", Quote (CUname),
                         "is not an Ada unit");
                Error := True;
 
@@ -309,7 +309,7 @@ package body XE_Check is
                   Uname := Units.Table (I).Uname;
 
                   if Units.Table (I).Is_Generic then
-                     Message ("generic unit", To_String (CUname),
+                     Message ("generic unit", Quote (CUname),
                               "cannot be assigned to a partition");
                      Error := True;
 
@@ -321,11 +321,11 @@ package body XE_Check is
                      if Get_CUID (Uname) /= Null_CUID  then
                         if Units.Table (I).RCI then
                            Message ("RCI Ada unit",
-                                    To_String (CUname),
+                                    Quote (CUname),
                                     "has been assigned twice");
                         else
                            Message ("Shared passive Ada unit",
-                                    To_String (CUname),
+                                    Quote (CUname),
                                     "has been assigned twice");
                         end if;
                         Error := True;
@@ -379,11 +379,11 @@ package body XE_Check is
               and then Get_CUID (Uname) = Null_CUID then
                if Units.Table (U).RCI then
                   Message ("RCI Ada unit",
-                           To_String (U_To_N (Uname)),
+                           Quote (U_To_N (Uname)),
                            "has not been assigned to a partition");
                else
                   Message ("Shared passive Ada unit",
-                           To_String (U_To_N (Uname)),
+                           Quote (U_To_N (Uname)),
                            "has not been assigned to a partition");
                end if;
                Error := True;
@@ -423,8 +423,8 @@ package body XE_Check is
                         --  The child has to be on its parent partition
                         PPID := CUnits.Table (CUID).Partition;
                         if PPID /= CPID then
-                           Message ("", To_String (Parent),
-                                    "and", To_String (Child),
+                           Message ("", Quote (Parent),
+                                    "and", Quote (Child),
                                     "are not on the same partition");
                            Error := True;
                         end if;
@@ -449,7 +449,7 @@ package body XE_Check is
          if Partitions.Table (P).To_Build
            and then Get_PID (Partitions.Table (P).Name) = Null_PID
          then
-            Message ("partition", To_String (Partitions.Table (P).Name),
+            Message ("partition", Quote (Partitions.Table (P).Name),
                      "is empty");
             Error := True;
          end if;
@@ -461,7 +461,7 @@ package body XE_Check is
         and then
         ALIs.Table (Get_ALI_Id (Main_Subprogram)).Main_Program = None
       then
-         Message ("", To_String (Main_Subprogram), "is not a main program");
+         Message ("", Quote (Main_Subprogram), "is not a main program");
          Error := True;
       end if;
 
@@ -473,7 +473,7 @@ package body XE_Check is
          for C in Channels.First + 1 .. Channels.Last loop
             if Channels.Table (C).Upper.My_Partition =
               Channels.Table (C).Lower.My_Partition then
-               Message ("channel", To_String (Channels.Table (C).Name),
+               Message ("channel", Quote (Channels.Table (C).Name),
                         "is an illegal pair of partitions");
                Error := True;
             end if;
@@ -489,8 +489,8 @@ package body XE_Check is
             Upper :=
               Partitions.Table (Channels.Table (C).Upper.My_Partition).Name;
             if Get_CID (Dir (Lower, Upper)) /= Null_CID then
-               Message ("two channels define", To_String (Lower),
-                        "and", To_String (Upper), "pair");
+               Message ("two channels define", Quote (Lower),
+                        "and", Quote (Upper), "pair");
                Error := True;
             end if;
             Set_CID (Dir (Lower, Upper), C);
@@ -520,7 +520,8 @@ package body XE_Check is
 
    procedure Compile_RCI_Spec_Only
      (Uname : in Unit_Name_Type;
-      Ufile : in File_Name_Type) is
+      Ufile : in File_Name_Type)
+   is
       Source : File_Name_Type;
       Afile  : File_Name_Type;
       Text   : Text_Buffer_Ptr;
@@ -547,8 +548,8 @@ package body XE_Check is
       end if;
 
       if Verbose_Mode then
-         Message ("compile", To_String (Source),
-                  "instead of", To_String (Ufile));
+         Message ("compile", Quote (Source),
+                  "instead of", Quote (Ufile));
       end if;
 
       Execute_Gcc (Source, No_File, Arguments.all, False);
@@ -625,7 +626,8 @@ package body XE_Check is
 
    procedure Load_Unit
      (Uname : in Unit_Name_Type;
-      Afile : in File_Name_Type := No_File) is
+      Afile : in File_Name_Type := No_File)
+   is
       A : ALI_Id;
       L : File_Name_Type;
       S : File_Name_Type;
@@ -707,7 +709,8 @@ package body XE_Check is
    ----------------------
 
    procedure Load_Withed_Unit
-     (W : in With_Id) is
+     (W : in With_Id)
+   is
       A : ALI_Id;
       T : Text_Buffer_Ptr;
       L : File_Name_Type := Withs.Table (W).Afile;
@@ -812,7 +815,8 @@ package body XE_Check is
 
    procedure Push
      (Uname : in Unit_Name_Type;
-      Fatal : in Boolean) is
+      Fatal : in Boolean)
+   is
       N : Name_Id := U_To_N (Uname);
 
    begin
@@ -831,8 +835,8 @@ package body XE_Check is
 
    procedure Recompile
      (Uname : in Unit_Name_Type;
-      Fatal : in Boolean) is
-
+      Fatal : in Boolean)
+   is
       File  : File_Name_Type;
       Unit  : Unit_Name_Type;
 
