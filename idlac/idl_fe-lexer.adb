@@ -9,6 +9,7 @@ with GNAT.Case_Util;
 with GNAT.OS_Lib;
 with Idl_Fe.Debug;
 pragma Elaborate_All (Idl_Fe.Debug);
+with Platform;
 
 package body Idl_Fe.Lexer is
 
@@ -1107,7 +1108,7 @@ package body Idl_Fe.Lexer is
             Add_Argument ("-o");
             Add_Argument (Tmp_File_Name);
             Args (Arg_Count) := new String'(Filename);
-            Spawn (Locate_Exec_On_Path ("gnatgcc").all,
+            Spawn (Locate_Exec_On_Path (Platform.Ada_Compiler).all,
                    Args (1 .. Arg_Count),
                    Spawn_Result);
             pragma Debug (O ("Initialize : preprocessing done"));
