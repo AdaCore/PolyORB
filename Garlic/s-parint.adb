@@ -51,7 +51,7 @@ package body System.Partition_Interface is
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("INTERFACE", "(s-parint): ");
    procedure D
-     (Level   : in Debug_Levels;
+     (Level   : in Debug_Level;
       Message : in String;
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
@@ -333,7 +333,8 @@ package body System.Partition_Interface is
       Low_Name : constant Unit_Name := To_Lower (Name);
    begin
 
-      D (D_RNS, "I am being asked information about package " & Low_Name);
+      pragma Debug
+        (D (D_RNS, "I am being asked information about package " & Low_Name));
 
       if not Partition_RPC_Receiver_Installed then
          Establish_RPC_Receiver (Get_Local_Partition_ID,
@@ -349,7 +350,7 @@ package body System.Partition_Interface is
          declare
             Params : aliased Params_Stream_Type (0);
          begin
-            D (D_RNS, "Querying info for package " & Low_Name);
+            pragma Debug (D (D_RNS, "Querying info for package " & Low_Name));
             Name_Opcode'Write (Params'Access, Get_Unit_Info);
             Unit_Name'Output (Params'Access, Low_Name);
             Send (Get_Boot_Server, Name_Service, Params'Access);
@@ -360,7 +361,8 @@ package body System.Partition_Interface is
          Unit_Map.Get (Low_Name, Result_P);
       end if;
 
-      D (D_RNS, "Info for package " & Low_Name & " is available");
+      pragma Debug
+         (D (D_RNS, "Info for package " & Low_Name & " is available"));
       if Elaboration /= null then
          Elaboration.Set_RCI_Data (Result_P.Name,
                                    Result_P.Receiver,
@@ -436,12 +438,12 @@ package body System.Partition_Interface is
       Code : Name_Opcode;
    begin
 
-      D (D_Debug,
-         "Got something from partition" & Partition_ID'Image (Partition));
+      pragma Debug
+         (D (D_Debug, "Got something from partition" & Partition'Img));
 
       Name_Opcode'Read (Params, Code);
       if not Code'Valid then
-         D (D_Debug, "Invalid name code received");
+         pragma Debug (D (D_Debug, "Invalid name code received"));
          raise Constraint_Error;
       end if;
 
@@ -454,9 +456,10 @@ package body System.Partition_Interface is
             begin
                Name := new Unit_Name'(Unit_Name'Input (Params));
                Info := Get_Unit_Info (Name.all);
-               D (D_RNS,
-                  "Answering unit info request for package " & Name.all &
-                  " from partition" & Partition_ID'Image (Partition));
+               pragma Debug
+                 (D (D_RNS,
+                     "Answering unit info request for package " & Name.all &
+                     " from partition" & Partition'Img));
                Send_Unit_Info (Partition, Info);
                Free (Name);
             end;
@@ -467,15 +470,16 @@ package body System.Partition_Interface is
                Info : Unit_Info_Access;
             begin
                Name := new Unit_Name'(Unit_Name'Input (Params));
-               D (D_RNS,
-                  "Got unit info for package " & Name.all);
+               pragma Debug
+                 (D (D_RNS, "Got unit info for package " & Name.all));
                Unit_Map.Lock;
                Info := Unit_Map.Get_Immediate (Name.all);
                Read_Unit_Info (Params, Info);
                Info.Known := True;
                Info.Queried := False;
                Unit_Map.Unlock;
-               D (D_RNS, "Registered unit info for package " & Name.all);
+               pragma Debug
+                 (D (D_RNS, "Registered unit info for package " & Name.all));
                Free (Name);
             end;
 
@@ -493,7 +497,7 @@ package body System.Partition_Interface is
    begin
       Partition_ID'Read (Params, Info.Id);
       if not Info.Id'Valid then
-         D (D_Debug, "Invalid partition ID received");
+         pragma Debug (D (D_Debug, "Invalid partition ID received"));
          raise Constraint_Error;
       end if;
       Info.Version := new String'(String'Input (Params));
@@ -575,7 +579,8 @@ package body System.Partition_Interface is
    begin
       System.Garlic.Termination.Add_Non_Terminating_Task;
       Shutdown_Keeper.Wait;
-      D (D_Debug, "Shutdown_Waiter exiting because of Shutdown_Keeper");
+      pragma Debug
+        (D (D_Debug, "Shutdown_Waiter exiting because of Shutdown_Keeper"));
       Shutdown;
       System.Garlic.Termination.Sub_Non_Terminating_Task;
    end Shutdown_Waiter;

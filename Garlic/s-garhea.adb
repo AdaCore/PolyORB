@@ -52,7 +52,7 @@ package body System.Garlic.Heart is
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("HEART", "(s-garhea): ");
    procedure D
-     (Level   : in Debug_Levels;
+     (Level   : in Debug_Level;
       Message : in String;
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
@@ -242,7 +242,7 @@ package body System.Garlic.Heart is
       Partition : Partition_ID;
    begin
       Partition_ID_Allocation.Allocate (Partition);
-      D (D_Server, "Allocating partition" & Partition_ID'Image (Partition));
+      pragma Debug (D (D_Server, "Allocating partition" & Partition'Img));
       return Partition;
    end Allocate_Partition_ID;
 
@@ -252,7 +252,8 @@ package body System.Garlic.Heart is
 
    procedure Elaboration_Is_Terminated is
    begin
-      D (D_Elaborate, "Signaling that elaboration is terminated");
+      pragma Debug
+        (D (D_Elaborate, "Signaling that elaboration is terminated"));
       Elaboration_Barrier.Signal_All (Permanent => True);
    end Elaboration_Is_Terminated;
 
@@ -371,9 +372,9 @@ package body System.Garlic.Heart is
      return Physical_Location.Location is
       Data : Partition_Data;
    begin
-      D (D_Table,
-         "Looking in my tables for location of partition" &
-         Partition_ID'Image (Partition));
+      pragma Debug
+        (D (D_Table,
+            "Looking in my tables for location of partition" & Partition'Img));
 
       --  If the partition location is in the cache, then get it from
       --  there instead of using the protected type.
@@ -390,18 +391,18 @@ package body System.Garlic.Heart is
          declare
             Params : aliased Params_Stream_Type (0);
          begin
-            D (D_Garlic,
-               "Asking for location of partition" &
-               Partition_ID'Image (Partition));
+            pragma Debug
+              (D (D_Garlic,
+                  "Asking for location of partition" & Partition'Img));
             Partition_ID'Write (Params'Access, Partition);
             Send (Server_Partition_ID, Query_Location, Params'Access);
          end;
 
          Partition_Map.Wait_For_Data (Partition) (Data);
 
-         D (D_Table,
-            "Can now serve location of partition" &
-            Partition_ID'Image (Partition));
+         pragma Debug
+           (D (D_Table,
+               "Can now serve location of partition" & Partition'Img));
       end if;
       return Data.Location;
    end Get_Partition_Location;
@@ -447,13 +448,14 @@ package body System.Garlic.Heart is
                Loc  : Physical_Location.Location;
                Data : Partition_Data;
             begin
-               D (D_Server,
-                  "I received location of partition" &
-                  Partition_ID'Image (Partition));
+               pragma Debug
+                 (D (D_Server,
+                     "I received location of partition" & Partition'Img));
                Physical_Location.Location'Read (Params, Loc);
-               D (D_Server,
-                  "Partition" & Partition_ID'Image (Partition) &
-                  " is at " & Physical_Location.To_String (Loc));
+               pragma Debug
+                 (D (D_Server,
+                     "Partition" & Partition'Img &
+                     " is at " & Physical_Location.To_String (Loc)));
                Data := (Location => Loc,
                         Known    => True,
                         Queried  => False);
@@ -468,17 +470,19 @@ package body System.Garlic.Heart is
             begin
                Partition_ID'Read (Params, Asked);
                if not Asked'Valid then
-                  D (D_Debug, "Received invalid partition ID");
+                  pragma Debug
+                    (D (D_Debug, "Received invalid partition ID"));
                   raise Constraint_Error;
                end if;
-               D (D_Server,
-                  "Partition" & Partition_ID'Image (Partition) &
-                  " asked me for location of partition" &
-                  Partition_ID'Image (Asked));
+               pragma Debug
+                 (D (D_Server,
+                     "Partition" & Partition'Img &
+                     " asked me for location of partition" & Asked'Img));
                Loc := Get_Partition_Location (Asked);
-               D (D_Server,
-                  "Giving location of partition" & Partition_ID'Image (Asked) &
-                  " to partition" & Partition_ID'Image (Partition));
+               pragma Debug
+                 (D (D_Server,
+                     "Giving location of partition" & Asked'Img &
+                     " to partition" & Partition'Img));
                Partition_ID'Write (Ans'Access, Asked);
                Physical_Location.Location'Write (Ans'Access, Loc);
                Send (Partition, Query_Location_Answer, Ans'Access);
@@ -492,12 +496,13 @@ package body System.Garlic.Heart is
             begin
                Partition_ID'Read (Params, Asked);
                if not Asked'Valid then
-                  D (D_Debug, "Received invalid partition ID");
+                  pragma Debug (D (D_Debug, "Received invalid partition ID"));
                   raise Constraint_Error;
                end if;
-               D (D_Garlic,
-                  "I received the answer for location of partition" &
-                  Partition_ID'Image (Asked));
+               pragma Debug
+                 (D (D_Garlic,
+                     "I received the answer for location of partition" &
+                     Asked'Img));
                Physical_Location.Location'Read (Params, Loc);
                Data := (Location => Loc,
                         Known    => True,
@@ -506,16 +511,17 @@ package body System.Garlic.Heart is
             end;
 
          when Shutdown =>
-            D (D_Garlic,
-               "I received a shutdown request from partition" &
-               Partition_ID'Image (Partition));
+            pragma Debug
+              (D (D_Garlic,
+                  "I received a shutdown request from partition" &
+                  Partition'Img));
             Heart.Shutdown;
 
       end case;
 
       exception
          when others =>
-            D (D_Garlic, "Handle internal: fatal error");
+            pragma Debug (D (D_Garlic, "Handle internal: fatal error"));
             raise Communication_Error;
    end Handle_Internal;
 
@@ -551,16 +557,19 @@ package body System.Garlic.Heart is
       To_Params_Stream_Type (Data, Params'Access);
       Opcode'Read (Params'Access, Operation);
       if not Operation'Valid then
-         D (D_Debug, "Received unknown opcode");
+         pragma Debug
+           (D (D_Debug, "Received unknown opcode"));
          raise Constraint_Error;
       end if;
-      D (D_Debug, "Received request with opcode " & Opcode'Image (Operation));
+      pragma Debug
+        (D (D_Debug,
+            "Received request with opcode " & Operation'Img));
       if Operation in Internal_Opcode then
          Handle_Internal (Partition, Operation, Params'Access);
       elsif Operation in Public_Opcode then
          Handle_Public (Partition, Operation, Params'Access);
       else
-         D (D_Debug, "Aborting due to invalid opcode");
+         pragma Debug (D (D_Debug, "Aborting due to invalid opcode"));
          raise Constraint_Error;
       end if;
    end Has_Arrived;
@@ -747,9 +756,9 @@ package body System.Garlic.Heart is
 
    procedure Receive (Operation : in Opcode; Receiver : in Public_Receiver) is
    begin
-      D (D_Garlic,
-         "Receiver for operation " & Opcode'Image (Operation) &
-         " is now registered");
+      pragma Debug
+        (D (D_Garlic,
+            "Receiver for operation " & Operation'Img & " is now registered"));
       Receiver_Map.Set (Operation, Receiver);
    end Receive;
 
@@ -801,19 +810,19 @@ package body System.Garlic.Heart is
 
    procedure Remote_Partition_Error (Partition : in Partition_ID) is
    begin
-      D (D_Communication,
-         "It seems that partition" & Partition_ID'Image (Partition) &
-         " is dead");
+      pragma Debug
+        (D (D_Communication,
+            "It seems that partition" & Partition'Img & " is dead"));
       if Is_Boot_Partition and then
         Shutdown_Policy = Shutdown_On_Any_Partition_Error then
-         D (D_Communication,
-            "Due to the policy, I will shutdown");
+         pragma Debug
+            (D (D_Communication, "Due to the policy, I will shutdown"));
          Soft_Shutdown;
       end if;
       if Partition = Server_Partition_ID and then
         Shutdown_Policy = Shutdown_On_Boot_Partition_Error then
-         D (D_Communication,
-            "I cannot live without a boot partition, calling shutdown");
+         pragma Debug
+           (D (D_Communication, "I cannot live without a boot partition"));
          Soft_Shutdown;
       end if;
    end Remote_Partition_Error;
@@ -833,7 +842,7 @@ package body System.Garlic.Heart is
       use type Ada.Streams.Stream_Element_Array;
    begin
       --  if Partition = Get_My_Partition_ID_Immediately then
-      --     D (D_Garlic, "Cannot send to myself, huh ?");
+      --     pragma Debug (D (D_Garlic, "Cannot send to myself, huh ?"));
       --     raise Communication_Error;
       --  end if;
       Opcode'Write (Op_Params'Access, Operation);

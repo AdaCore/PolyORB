@@ -2,11 +2,11 @@
 --                                                                          --
 --                           GARLIC COMPONENTS                              --
 --                                                                          --
---                 S Y S T E M . G A R L I C . D E B U G                    --
+--                  S Y S T E M . G A R L I C . D E B U G                   --
 --                                                                          --
 --                                S p e c                                   --
 --                                                                          --
---                           $Revision$                              --
+--                            $Revision$                              --
 --                                                                          --
 --           Copyright (C) 1996 Free Software Foundation, Inc.              --
 --                                                                          --
@@ -56,7 +56,7 @@ package System.Garlic.Debug is
    --  Since this package may be used during elaboration, the body must
    --  be elaborated as soon as possible.
 
-   type Debug_Levels is
+   type Debug_Level is
       (D_Communication,         --  Communication stuff,
        D_Debug,                 --  Misc
        D_Dump,                  --  Dump packets
@@ -78,7 +78,7 @@ package System.Garlic.Debug is
        No_Debug);               --  Internal -- do NOT use
    --  Debug levels.
 
-   Debug_Letters : constant array (Debug_Levels) of Character :=
+   Debug_Letters : constant array (Debug_Level) of Character :=
      (D_Communication => 'C',
       D_Debug         => 'D',
       D_Dump          => 'X',
@@ -113,7 +113,7 @@ package System.Garlic.Debug is
    --  banner to use when printing debugging information.
 
    procedure Print_Debug_Info
-     (Level   : in Debug_Levels;
+     (Level   : in Debug_Level;
       Message : in String;
       Key     : in Debug_Key);
    pragma Inline (Print_Debug_Info);
@@ -121,7 +121,7 @@ package System.Garlic.Debug is
    --  set in the right environment variable.
 
    function Debug_Mode
-     (Level : Debug_Levels;
+     (Level : Debug_Level;
       Key   : Debug_Key)
       return Boolean;
    pragma Inline (Debug_Mode);

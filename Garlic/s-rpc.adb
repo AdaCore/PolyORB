@@ -46,7 +46,7 @@ package body System.RPC is
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("RPC", "(s-rpc   ): ");
    procedure D
-     (Level   : in Debug_Levels;
+     (Level   : in Debug_Level;
       Message : in String;
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
@@ -245,17 +245,17 @@ package body System.RPC is
       Cancelled : Boolean := False;
       Prio      : Any_Priority;
    begin
-      D (D_Debug, "Anonymous task starting");
+      pragma Debug (D (D_Debug, "Anonymous task starting"));
       Task_Pool.Get_One;
       Task_Pool.Unabort_One (Partition, Id);
       Partition_ID'Read (Params, Dest);
       if not Dest'Valid then
-         D (D_Debug, "Invalid destination received");
+         pragma Debug (D (D_Debug, "Invalid destination received"));
          raise Constraint_Error;
       end if;
       Any_Priority'Read (Params, Prio);
       if not Prio'Valid then
-         D (D_Debug, "Invalid priority received");
+         pragma Debug (D (D_Debug, "Invalid priority received"));
          raise Constraint_Error;
       end if;
       Ada.Dynamic_Priorities.Set_Priority (Prio);
@@ -302,11 +302,12 @@ package body System.RPC is
          end;
       end if;
       Task_Pool.Free_One;
-      D (D_Debug, "Anonymous task finishing");
+      pragma Debug (D (D_Debug, "Anonymous task finishing"));
 
    exception
       when others =>
-         D (D_Debug, "Error in anonymous task");
+         pragma Debug (D (D_Debug, "Error in anonymous task"));
+         null;
 
    end Anonymous_Task;
 
@@ -357,14 +358,15 @@ package body System.RPC is
    is
       Header : constant Request_Header := (Kind => APC_Request);
    begin
-      D (D_Debug,
-         "Doing a APC for partition" & Partition_ID'Image (Partition));
+      pragma Debug
+        (D (D_Debug, "Doing a APC for partition" & Partition'Img));
       --  if Partition = Get_My_Partition_ID then
-      --     D (D_Debug, "Cannot yet handle All_Calls_Remote");
+      --     pragma Debug (D (D_Debug, "Cannot yet handle All_Calls_Remote");
       --     raise Communication_Error;
       --  end if;
       if not Public_Receiver_Is_Installed then
-         D (D_Debug, "Checking the the GARLIC receiver is installed");
+         pragma Debug
+           (D (D_Debug, "Checking the the GARLIC receiver is installed"));
          Public_Receiver_Installed.Check;
       end if;
       Insert_Request (Params, Header);
@@ -390,14 +392,15 @@ package body System.RPC is
       Keeper : Abort_Keeper;
 
    begin
-      D (D_Debug,
-         "Doing a RPC for partition" & Partition_ID'Image (Partition));
+      pragma Debug
+        (D (D_Debug, "Doing a RPC for partition" & Partition'Img));
       --  if Partition = Get_My_Partition_ID then
-      --     D (D_Debug, "Cannot yet handle All_Calls_Remote");
+      --     pragma Debug (D (D_Debug, "Cannot yet handle All_Calls_Remote");
       --     raise Communication_Error;
       --  end if;
       if not Public_Receiver_Is_Installed then
-         D (D_Debug, "Checking the the GARLIC receiver is installed");
+         pragma Debug
+           (D (D_Debug, "Checking the the GARLIC receiver is installed"));
          Public_Receiver_Installed.Check;
       end if;
       begin
@@ -412,19 +415,19 @@ package body System.RPC is
          Keeper.Partition := Partition;
          Keeper.Sent      := True;
       end;
-      D (D_Debug, "Waiting for the result");
+      pragma Debug (D (D_Debug, "Waiting for the result"));
       Result_Watcher.Wait (Id);
-      D (D_Debug, "The result is available");
+      pragma Debug (D (D_Debug, "The result is available"));
       begin
          pragma Abort_Defer;
          Result_Watcher.Get (Id, Res);
          Keeper.Sent := False;
          Request_Id_Server.Free (Id);
-         D (D_Debug, "Copying the result");
+         pragma Debug (D (D_Debug, "Copying the result"));
          Copy (Res.Result.all, Result);
          Free (Res.Result);
       end;
-      D (D_Debug, "Returning from Do_RPC");
+      pragma Debug (D (D_Debug, "Returning from Do_RPC"));
    end Do_RPC;
 
    ----------------------------
@@ -437,12 +440,12 @@ package body System.RPC is
    is
    begin
       if not Public_Receiver_Is_Installed then
-         D (D_Debug, "Checking installation of GARLIC receiver");
+         pragma Debug
+           (D (D_Debug, "Checking installation of GARLIC receiver"));
          Public_Receiver_Installed.Check;
       end if;
-      D (D_Debug,
-         "Setting RPC receiver for partition" &
-         Partition_ID'Image (Partition));
+      pragma Debug
+        (D (D_Debug, "Setting RPC receiver for partition" & Partition'Img));
       Receiver_Map.Set (Partition, Receiver);
    end Establish_RPC_Receiver;
 
@@ -532,9 +535,10 @@ package body System.RPC is
                Id           : Request_Id := Request_Id'First;
                Asynchronous : constant Boolean := Header.Kind = APC_Request;
             begin
-               D (D_Debug,
-                  "RPC or APC request received from partition" &
-                  Partition_ID'Image (Partition));
+               pragma Debug
+                 (D (D_Debug,
+                     "RPC or APC request received from partition" &
+                     Partition'Img));
                Copy (Params.all, Params_Copy);
                if not Asynchronous then
                   Id := Header.Id;
@@ -549,28 +553,32 @@ package body System.RPC is
             declare
                Result : Result_Type;
             begin
-               D (D_Debug,
-                  "RPC answer received from partition" &
-                  Partition_ID'Image (Partition));
+               pragma Debug
+                 (D (D_Debug,
+                     "RPC answer received from partition" &
+                     Partition'Img));
                Result.Result := new Params_Stream_Type (Params.Initial_Size);
                Copy (Params.all, Result.Result);
-               D (D_Debug, "Signaling that the result is available");
+               pragma Debug
+                 (D (D_Debug, "Signaling that the result is available"));
                Result_Watcher.Set (Header.Id, Result);
             end;
 
          when RPC_Request_Cancellation =>
-            D (D_Debug,
-               "RPC cancellation request received from partition" &
-               Partition_ID'Image (Partition));
+            pragma Debug
+                  (D (D_Debug,
+                      "RPC cancellation request received from partition" &
+                      Partition'Img));
             Task_Pool.Abort_One (Partition, Header.Id);
 
          when RPC_Cancellation_Accepted =>
             declare
                Result : Result_Type;
             begin
-               D (D_Debug,
-                  "RPC cancellation ack received from partition" &
-                  Partition_ID'Image (Partition));
+               pragma Debug
+                  (D (D_Debug,
+                      "RPC cancellation ack received from partition" &
+                      Partition'Img));
                Result.Cancelled := True;
                Result_Watcher.Set (Header.Id, Result);
             end;
@@ -704,7 +712,7 @@ package body System.RPC is
       Params : aliased Params_Stream_Type (0);
       Header : constant Request_Header := (RPC_Request_Cancellation, Id);
    begin
-      D (D_Debug, "Sending abortion message");
+      pragma Debug (D (D_Debug, "Sending abortion message"));
       Insert_Request (Params'Access, Header);
       Send (Partition, Remote_Call, Params'Access);
    end Send_Abort_Message;
@@ -729,7 +737,8 @@ package body System.RPC is
    begin
       select
          Shutdown_Keeper.Wait;
-         D (D_Debug, "Shutdown Waiter exiting because of Shutdown_Keeper");
+         pragma Debug
+           (D (D_Debug, "Shutdown Waiter exiting because of Shutdown_Keeper"));
          raise Communication_Error;
       then abort
          Public_Receiver_Installed.Wait;

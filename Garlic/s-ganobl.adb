@@ -48,7 +48,7 @@ package body System.Garlic.Non_Blocking is
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("NONBLOCKING", "(s-ganobl): ");
    procedure D
-     (Level   : in Debug_Levels;
+     (Level   : in Debug_Level;
       Message : in String;
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
@@ -288,9 +288,11 @@ package body System.Garlic.Non_Blocking is
       Dummy_CP : chars_ptr := Null_Ptr;
    begin
       Set_Non_Blocking (S);
-      D (D_Debug, "Blocking until there is something to accept");
+      pragma Debug
+        (D (D_Debug, "Blocking until there is something to accept"));
       Asynchronous.Read (S) (Dummy_CP, 0, Dummy);
-      D (D_Debug, "There is something to accept");
+      pragma Debug
+        (D (D_Debug, "There is something to accept"));
       return Thin.C_Accept (S, Addr, Addrlen);
    end C_Accept;
 
@@ -309,16 +311,20 @@ package body System.Garlic.Non_Blocking is
    begin
       Set_Non_Blocking (S);
       Dummy := Thin.C_Connect (S, Name, Namelen);
-      D (D_Debug, "Connect (first) return code is" & C.int'Image (Dummy) &
-         " and errno is" & C.int'Image (Thin.C_Errno));
+      pragma Debug
+        (D (D_Debug,
+            "Connect (first) return code is" & C.int'Image (Dummy) &
+            " and errno is" & C.int'Image (Thin.C_Errno)));
       if Dummy /= Thin.Failure or else
         Thin.C_Errno /= Einprogress then
          return Dummy;
       end if;
       Asynchronous.Write (S) (Dummy_CP, 0, Dummy);
       Dummy := Thin.C_Connect (S, Name, Namelen);
-      D (D_Debug, "Connect return code is" & C.int'Image (Dummy) &
-         " and errno is" & C.int'Image (Thin.C_Errno));
+      pragma Debug
+        (D (D_Debug,
+            "Connect return code is" & C.int'Image (Dummy) &
+            " and errno is" & C.int'Image (Thin.C_Errno)));
       if Dummy = Thin.Failure and then Thin.C_Errno = Eisconn then
          return Thin.Success;
       else
@@ -373,14 +379,15 @@ package body System.Garlic.Non_Blocking is
       loop
          select
             Shutdown_Keeper.Wait;
-            D (D_Debug, "Selection exiting because of Shutdown_Keeper");
+            pragma Debug
+              (D (D_Debug, "Selection exiting because of Shutdown_Keeper"));
             exit;
          else
             null;
          end select;
-         D (D_Debug, "Waiting for SIGIO");
+         pragma Debug (D (D_Debug, "Waiting for SIGIO"));
          Sigio_Keeper.Wait;
-         D (D_Debug, "SIGIO (or pseudo SIGIO) received");
+         pragma Debug (D (D_Debug, "SIGIO (or pseudo SIGIO) received"));
          Asynchronous.Get_Masks (RFD, WFD, Max);
          if Max > -1 then
             for I in RFD'First .. Max loop
@@ -473,7 +480,8 @@ package body System.Garlic.Non_Blocking is
          Sigio_Keeper.Signal;
          select
             Shutdown_Keeper.Wait;
-            D (D_Debug, "Simulation exiting because of Shutdown_Keeper");
+            pragma Debug
+              (D (D_Debug, "Simulation exiting because of Shutdown_Keeper"));
             exit;
          else
             null;

@@ -68,7 +68,7 @@ package body System.Garlic.Startup is
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("STARTUP", "(s-garsta): ");
    procedure D
-     (Level   : in Debug_Levels;
+     (Level   : in Debug_Level;
       Message : in String;
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
@@ -77,12 +77,13 @@ package body System.Garlic.Startup is
 
 begin
 
-   D (D_Elaborate, "Entering partition startup phase");
+   pragma Debug (D (D_Elaborate, "Entering partition startup phase"));
 
    --  Phase (1) (see s-garlic.ads)
 
    if Get_Detach then
-      D (D_Elaborate, "Detaching, you won't see any more debug messages");
+      pragma Debug
+        (D (D_Elaborate, "Detaching, you won't see any more debug messages"));
       Detach;
    end if;
 
@@ -100,7 +101,7 @@ begin
    begin
 
       if Boot_Protocol = null then
-         D (D_Elaborate, "No boot protocol, aborting");
+         pragma Debug (D (D_Elaborate, "No boot protocol, aborting"));
          raise System.RPC.Communication_Error;
       end if;
 
@@ -142,6 +143,6 @@ begin
       null;
    end;
 
-   D (D_Elaborate, "Startup phase terminated");
+   pragma Debug (D (D_Elaborate, "Startup phase terminated"));
 
 end System.Garlic.Startup;

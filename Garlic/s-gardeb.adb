@@ -52,7 +52,7 @@ package body System.Garlic.Debug is
    --  The current debug key.
 
    Flags_Map : array (Debug_Key range 1 .. Max_Debugs,
-                      Debug_Levels) of Boolean :=
+                      Debug_Level) of Boolean :=
      (others => (others => False));
    --  Map of flags.
 
@@ -64,7 +64,7 @@ package body System.Garlic.Debug is
    --  This boolean will be set to true by the elaboration if assertions
    --  are turned on.
 
-   Reverse_Character_Map : array (Character) of Debug_Levels
+   Reverse_Character_Map : array (Character) of Debug_Level
      := (others => No_Debug);
    --  Map characters on debug levels.
 
@@ -86,13 +86,13 @@ package body System.Garlic.Debug is
    --  This program is the real Debug_Initialize.
 
    procedure Real_Print_Debug_Info
-     (Level   : in Debug_Levels;
+     (Level   : in Debug_Level;
       Message : in String;
       Key     : in Debug_Key);
    --  This program is the real Print_Debug_Info.
 
    function Real_Debug_Mode
-     (Level : Debug_Levels;
+     (Level : Debug_Level;
       Key   : Debug_Key)
       return Boolean;
    pragma Inline (Real_Debug_Mode);
@@ -129,7 +129,7 @@ package body System.Garlic.Debug is
    ---------------------
 
    function Real_Debug_Mode
-     (Level : Debug_Levels;
+     (Level : Debug_Level;
       Key   : Debug_Key)
       return Boolean
    is
@@ -142,7 +142,7 @@ package body System.Garlic.Debug is
    ----------------
 
    function Debug_Mode
-     (Level : Debug_Levels;
+     (Level : Debug_Level;
       Key   : Debug_Key)
       return Boolean
    is
@@ -181,7 +181,7 @@ package body System.Garlic.Debug is
    ----------------------
 
    procedure Print_Debug_Info
-     (Level   : in Debug_Levels;
+     (Level   : in Debug_Level;
       Message : in String;
       Key     : in Debug_Key)
    is
@@ -195,7 +195,7 @@ package body System.Garlic.Debug is
    ---------------------------
 
    procedure Real_Print_Debug_Info
-     (Level   : in Debug_Levels;
+     (Level   : in Debug_Level;
       Message : in String;
       Key     : in Debug_Key)
    is
@@ -229,7 +229,7 @@ package body System.Garlic.Debug is
       Value : constant GNAT.Os_Lib.String_Access :=
         GNAT.Os_Lib.Getenv (Variable);
       C     : Character;
-      L     : Debug_Levels;
+      L     : Debug_Level;
    begin
       if Value = null or else Value.all = "" then
          return Not_Debugging;
@@ -254,7 +254,7 @@ package body System.Garlic.Debug is
 
 begin
    pragma Assert (Return_True);
-   for Level in Debug_Levels loop
+   for Level in Debug_Level loop
       pragma Assert (Reverse_Character_Map (Debug_Letters (Level)) = No_Debug);
       Reverse_Character_Map (Debug_Letters (Level)) := Level;
    end loop;

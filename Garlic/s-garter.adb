@@ -45,7 +45,7 @@ package body System.Garlic.Termination is
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("TERMINATION", "(s-garter): ");
    procedure D
-     (Level   : in Debug_Levels;
+     (Level   : in Debug_Level;
       Message : in String;
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
@@ -196,9 +196,9 @@ package body System.Garlic.Termination is
          declare
             Params : aliased Params_Stream_Type (0);
          begin
-            D (D_Debug,
-               "Sending shutdown query to partition" &
-               Partition_ID'Image (Partition));
+            pragma Debug
+              (D (D_Debug,
+                  "Sending shutdown query to partition" & Partition'Img));
             Termination_Code'Write (Params'Access, Set_Stamp);
             Stamp'Write (Params'Access, Id);
             Send (Partition, Shutdown_Synchronization, Params'Access);
@@ -207,8 +207,7 @@ package body System.Garlic.Termination is
             when Communication_Error => null;
          end;
       end loop;
-      D (D_Debug,
-         "Sent" & Natural'Image (Count) & " messages");
+      pragma Debug (D (D_Debug, "Sent" & Count'Img & " messages"));
       Termination_Watcher.Messages_Sent (Count);
       for Partition in Get_Boot_Server + 1 .. Latest loop
          declare
@@ -251,19 +250,18 @@ package body System.Garlic.Termination is
       Termination_Code'Read (Params, Termination_Operation);
 
       if not Termination_Operation'Valid then
-         D (D_Debug, "Received invalid termination operation");
+         pragma Debug (D (D_Debug, "Received invalid termination operation"));
          raise Constraint_Error;
       end if;
 
       Stamp'Read (Params, Id);
       if not Id'Valid then
-         D (D_Debug, "Received invalid stamp");
+         pragma Debug (D (D_Debug, "Received invalid stamp"));
          raise Constraint_Error;
       end if;
 
-      D (D_Debug,
-         "Received operation of " &
-         Termination_Code'Image (Termination_Operation));
+      pragma Debug
+        (D (D_Debug, "Received operation of " & Termination_Operation'Img));
 
       case Termination_Operation is
 
@@ -350,12 +348,12 @@ package body System.Garlic.Termination is
                   Success := False;
                then abort
                   Termination_Watcher.Termination_Accepted (Id, Success);
-                  D (D_Debug,
-                     "Termination accepted => " & Boolean'Image (Success));
+                  pragma Debug
+                    (D (D_Debug, "Termination accepted => " & Success'Img));
                end select;
-               D (D_Debug,
-                  "Get_Active_Task_Count is" &
-                  Natural'Image (Get_Active_Task_Count));
+               pragma Debug
+                 (D (D_Debug,
+                     "Get_Active_Task_Count is" & Get_Active_Task_Count'Img));
 
                --  XXXXX At this point, it appears that Get_Active_Task_Count
                --  may sometimes return 2 instead of 1. The result is not

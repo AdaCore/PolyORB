@@ -61,7 +61,7 @@ package body System.Garlic.TCP is
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("TCP", "(s-gartcp): ");
    procedure D
-     (Level   : in Debug_Levels;
+     (Level   : in Debug_Level;
       Message : in String;
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
@@ -196,8 +196,8 @@ package body System.Garlic.TCP is
 
       select
          Shutdown_Keeper.Wait;
-         D (D_Debug,
-            "Accept_Handler exiting because of Shutdown_Keeper");
+         pragma Debug
+           (D (D_Debug, "Accept_Handler exiting because of Shutdown_Keeper"));
          raise Communication_Error;
       then abort
          loop
@@ -208,10 +208,10 @@ package body System.Garlic.TCP is
                NT     : Incoming_Connection_Handler_Access;
             begin
                Add_Non_Terminating_Task;
-               D (D_Debug, "Before Net.C_Accept");
+               pragma Debug (D (D_Debug, "Before Net.C_Accept"));
                FD := Net.C_Accept (Self_Host.FD, To_Sockaddr_Access (Sin),
                                    Length'Access);
-               D (D_Debug, "After Net.C_Accept");
+               pragma Debug (D (D_Debug, "After Net.C_Accept"));
                Sub_Non_Terminating_Task;
                if FD = Failure then
                   raise Communication_Error;
@@ -235,17 +235,17 @@ package body System.Garlic.TCP is
       Result_P  : Stream_Element_Array (1 .. Partition_ID_Length);
       Partition : Partition_ID;
    begin
-      D (D_Garlic, "Asking for a Partition_ID");
+      pragma Debug (D (D_Garlic, "Asking for a Partition_ID"));
       Partition_ID'Write (Params'Access, Null_Partition_ID);
       Physical_Send (FD, To_Stream_Element_Array (Params'Access));
       Physical_Receive (FD, Result_P);
       To_Params_Stream_Type (Result_P, Result'Access);
       Partition_ID'Read (Result'Access, Partition);
       if not Partition'Valid then
-         D (D_Garlic, "Invalid partition ID");
+         pragma Debug (D (D_Garlic, "Invalid partition ID"));
          raise Constraint_Error;
       end if;
-      D (D_Garlic, "My Partition_ID is" & Partition_ID'Image (Partition));
+      pragma Debug (D (D_Garlic, "My Partition_ID is" & Partition'Img));
       return Partition;
    end Ask_For_Partition_ID;
 
@@ -339,8 +339,9 @@ package body System.Garlic.TCP is
       end if;
       Free (Check);
       Self_Host.Connected := True;
-      D (D_Communication,
-         "Listening on port" & C.unsigned_short'Image (Port));
+      pragma Debug
+        (D (D_Communication,
+            "Listening on port" & C.unsigned_short'Image (Port)));
    end Establish_Listening_Socket;
 
    --------------
@@ -388,7 +389,8 @@ package body System.Garlic.TCP is
                Stream_P  : Stream_Element_Array (1 .. Partition_ID_Length);
                Stream    : aliased Params_Stream_Type (Partition_ID_Length);
             begin
-               D (D_Communication, "New communication task started");
+               pragma Debug
+                 (D (D_Communication, "New communication task started"));
 
                --  We do not call Add_Non_Terminating_Task since we want to
                --  receive the whole partition ID. Moreover, we will signal
@@ -399,7 +401,7 @@ package body System.Garlic.TCP is
                To_Params_Stream_Type (Stream_P, Stream'Access);
                Partition_ID'Read (Stream'Access, Partition);
                if not Partition'Valid then
-                  D (D_Debug, "Invalid partition ID");
+                  pragma Debug (D (D_Debug, "Invalid partition ID"));
                   raise Constraint_Error;
                end if;
                if Partition = Null_Partition_ID then
@@ -420,9 +422,9 @@ package body System.Garlic.TCP is
                      Sub_Non_Terminating_Task;
                   end;
                end if;
-               D (D_Communication,
-                  "This task is in charge of partition" &
-                  Partition_ID'Image (Partition));
+               pragma Debug
+                 (D (D_Communication,
+                     "This task is in charge of partition" & Partition'Img));
                Partition_Map.Lock (Partition);
                Data           := Partition_Map.Get_Immediate (Partition);
                Data.FD        := FD;
@@ -434,9 +436,9 @@ package body System.Garlic.TCP is
          else
 
             Partition := Remote;
-            D (D_Communication,
-               "New task to handle partition" &
-               Partition_ID'Image (Partition));
+            pragma Debug
+              (D (D_Communication,
+                  "New task to handle partition" & Partition'Img));
 
          end if;
 
@@ -453,9 +455,11 @@ package body System.Garlic.TCP is
             begin
                Add_Non_Terminating_Task;
                begin
-                  D (D_Debug, "Physical receive will be called");
+                  pragma Debug
+                    (D (D_Debug, "Physical receive will be called"));
                   Physical_Receive (FD, Header_P);
-                  D (D_Debug, "Physical receive has been called");
+                  pragma Debug
+                    (D (D_Debug, "Physical receive has been called"));
                exception
                   when Communication_Error =>
                      Sub_Non_Terminating_Task;
@@ -465,12 +469,12 @@ package body System.Garlic.TCP is
                To_Params_Stream_Type (Header_P, Header'Access);
                Stream_Element_Count'Read (Header'Access, Length);
                if not Length'Valid then
-                  D (D_Debug, "Invalid Length");
+                  pragma Debug (D (D_Debug, "Invalid Length"));
                   raise Constraint_Error;
                end if;
-               D (D_Debug,
-                  "Will receive a packet of length" &
-                  Stream_Element_Count'Image (Length));
+               pragma Debug
+                 (D (D_Debug,
+                     "Will receeive a packet of length" & Length'Img));
 
                declare
                   Request_P : Stream_Element_Array (1 .. Length);
@@ -506,16 +510,20 @@ package body System.Garlic.TCP is
          --  Signal to the heart that we got an error on this partition.
 
          if Partition = Null_Partition_ID then
-            D (D_Garlic, "Task dying before determining remote Partition_ID");
+            pragma Debug
+              (D (D_Garlic,
+                  "Task dying before determining remote Partition_ID"));
+            null;
          else
-            D (D_Garlic,
-               "Signaling that partition" & Partition_ID'Image (Partition) &
-               " is now unavailable");
+            pragma Debug
+              (D (D_Garlic,
+                  "Signaling that partition" & Partition'Img &
+                  " is now unavailable"));
             Remote_Partition_Error (Partition);
          end if;
 
       when others =>
-         D (D_Garlic, "Fatal error in connection handler");
+         pragma Debug (D (D_Garlic, "Fatal error in connection handler"));
          declare
             Dummy : C.int;
          begin
@@ -693,10 +701,11 @@ package body System.Garlic.TCP is
          begin
             if not Remote_Data.Connected then
 
-               D (D_Communication,
-                  "Willing to connect to " &
-                  Image (Remote_Data.Location.Addr) & " port" &
-                  C.unsigned_short'Image (Remote_Data.Location.Port));
+               pragma Debug
+                 (D (D_Communication,
+                     "Willing to connect to " &
+                     Image (Remote_Data.Location.Addr) & " port" &
+                     C.unsigned_short'Image (Remote_Data.Location.Port)));
 
                declare
                   Retries : Natural := 1;
@@ -706,9 +715,10 @@ package body System.Garlic.TCP is
                   end if;
                   for I in 1 .. Retries loop
                      begin
-                        D (D_Communication,
-                           "Trying to connect to partition" &
-                           Partition_ID'Image (Partition));
+                        pragma Debug
+                          (D (D_Communication,
+                              "Trying to connect to partition" &
+                              Partition'Img));
                         Remote_Data.FD :=
                           Establish_Connection (Remote_Data.Location);
                         Remote_Data.Connected := True;
@@ -716,18 +726,19 @@ package body System.Garlic.TCP is
                      exception
                         when Communication_Error =>
                            if I = Retries then
-                              D (D_Communication,
-                                 "Cannot connect to partition" &
-                                 Partition_ID'Image (Partition));
+                              pragma Debug
+                                (D (D_Communication,
+                                    "Cannot connect to partition" &
+                                    Partition'Img));
                               raise Communication_Error;
                            else
                               delay 2.0;
                            end if;
                      end;
                   end loop;
-                  D (D_Communication,
-                     "Connected to partition" &
-                     Partition_ID'Image (Partition));
+                  pragma Debug
+                    (D (D_Communication,
+                        "Connected to partition" & Partition'Img));
                end;
 
                Partition_Map.Set_Locked (Partition, Remote_Data);
@@ -755,18 +766,19 @@ package body System.Garlic.TCP is
                                            Data'Length - Unused_Space);
                Data (Offset .. Offset + Header_Length - 1) :=
                  To_Stream_Element_Array (Header'Access);
-               D (D_Debug,
-                  "Sending packet of length" &
-                  Stream_Element_Count'Image (Data'Last - Offset + 1) &
-                  " (content of" &
-                  Stream_Element_Count'Image (Data'Length - Unused_Space) &
-                  ")");
+               pragma Debug
+                 (D (D_Debug,
+                     "Sending packet of length" &
+                     Stream_Element_Count'Image (Data'Last - Offset + 1) &
+                     " (content of" &
+                     Stream_Element_Count'Image (Data'Length - Unused_Space) &
+                     ")"));
                Physical_Send (Remote_Data.FD, Data (Offset .. Data'Last));
             end;
             Partition_Map.Unlock (Partition);
          exception
             when Communication_Error =>
-               D (D_Debug, "Error detected in Send");
+               pragma Debug (D (D_Debug, "Error detected in Send"));
                Partition_Map.Unlock (Partition);
                raise Communication_Error;
          end;

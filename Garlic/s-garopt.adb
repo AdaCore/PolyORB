@@ -42,7 +42,7 @@ package body System.Garlic.Options is
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("GAROPT", "(s-garopt): ");
    procedure D
-     (Level   : in Debug_Levels;
+     (Level   : in Debug_Level;
       Message : in String;
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
@@ -76,7 +76,8 @@ package body System.Garlic.Options is
    begin
       for Index in 1 .. Argument_Count - 1 loop
          if Argument (Index) = "--connection_hits" then
-            D (D_Debug, "--connection_hits available on command line");
+            pragma Debug
+              (D (D_Debug, "--connection_hits available on command line"));
             return Natural'Value (Argument (Index + 1));
          end if;
       end loop;
@@ -84,10 +85,10 @@ package body System.Garlic.Options is
       if EV = null  or else EV.all = "" then
          return Default;
       end if;
-      D (D_Debug, "CONNECTION_HITS env. variable available");
+      pragma Debug (D (D_Debug, "CONNECTION_HITS env. variable available"));
       return Natural'Value (EV.all);
    exception when others =>
-      D (D_Exception, "(get_connection_hits) Get lost ...");
+      pragma Debug (D (D_Exception, "(get_connection_hits) Get lost ..."));
       raise;
    end Get_Connection_Hits;
 
@@ -99,7 +100,7 @@ package body System.Garlic.Options is
    begin
       for Index in 1 .. Argument_Count loop
          if Argument (Index) = "--detach" then
-            D (D_Debug, "--detach available on command line");
+            pragma Debug (D (D_Debug, "--detach available on command line"));
             return True;
          end if;
       end loop;
@@ -110,7 +111,7 @@ package body System.Garlic.Options is
       end;
    exception
       when others =>
-         D (D_Exception, "(get_detach) Get lost ...");
+         pragma Debug (D (D_Exception, "(get_detach) Get lost ..."));
          raise;
    end Get_Detach;
 
@@ -122,7 +123,7 @@ package body System.Garlic.Options is
    begin
       for Index in 1 .. Argument_Count loop
          if Argument (Index) = "--slave" then
-            D (D_Debug, "--slave available on command line");
+            pragma Debug (D (D_Debug, "--slave available on command line"));
             return True;
          end if;
       end loop;
@@ -133,7 +134,7 @@ package body System.Garlic.Options is
       end;
    exception
       when others =>
-         D (D_Exception, "(get_is_slave) Get lost ...");
+         pragma Debug (D (D_Exception, "(get_is_slave) Get lost ..."));
          raise;
    end Get_Is_Slave;
 
@@ -145,7 +146,7 @@ package body System.Garlic.Options is
    begin
       for Index in 1 .. Argument_Count loop
          if Argument (Index) = "--nolaunch" then
-            D (D_Debug, "--nolaunch available on command line");
+            pragma Debug (D (D_Debug, "--nolaunch available on command line"));
             return True;
          end if;
       end loop;
@@ -156,12 +157,8 @@ package body System.Garlic.Options is
       end;
    exception
       when others =>
-         D (D_Exception, "(get_nolaunch) Get lost ...");
+         pragma Debug (D (D_Exception, "(get_nolaunch) Get lost ..."));
          raise;
    end Get_Nolaunch;
-
-begin
-
-   D (D_Elaborate, "Elaboration ... done");
 
 end System.Garlic.Options;
