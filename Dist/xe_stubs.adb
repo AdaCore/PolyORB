@@ -1043,12 +1043,12 @@ package body XE_Stubs is
    procedure Create_Storage_Config_File
      (PID : in PID_Type)
    is
-      Filename   : File_Name_Type;
-      File       : File_Descriptor;
-      Empty_File : Boolean := True;
-      No_Default : Boolean := True;
-      CUID       : CUID_Type;
-      Directory  : File_Name_Type
+      Filename    : File_Name_Type;
+      File        : File_Descriptor;
+      Empty_File  : Boolean := True;
+      Use_Default : Boolean := False;
+      CUID        : CUID_Type;
+      Directory   : File_Name_Type
         renames Partitions.Table (PID).Partition_Dir;
 
    begin
@@ -1081,7 +1081,7 @@ package body XE_Stubs is
                   Dwrite_With_Clause (File, False, M);
                   Dwrite_Call (File, 0, "pragma Elaborate_All", M);
                else
-                  No_Default := False;
+                  Use_Default := True;
                end if;
             end;
          end if;
@@ -1105,7 +1105,7 @@ package body XE_Stubs is
                   Dwrite_With_Clause (File, False, M);
                   Dwrite_Call (File, 0, "pragma Elaborate_All", M);
                else
-                  No_Default := False;
+                  Use_Default := True;
                end if;
             end;
          end if;
@@ -1113,7 +1113,7 @@ package body XE_Stubs is
          CUID := CUnits.Table (CUID).Next;
       end loop;
 
-      if not No_Default then
+      if Use_Default then
          declare
             M : Name_Id;
          begin
@@ -1149,18 +1149,24 @@ package body XE_Stubs is
          end if;
       end loop;
 
-      declare
-         L : LID_Type;
-         M : Name_Id;
-      begin
-         L := Get_Storage (PID);
-         if L /= Null_LID then
-            M := C (Locations.Table (L).Major);
-            Dwrite_Call (File, 2, SGS_Initialize (M));
+      CUID := Partitions.Table (PID).First_Unit;
+      while CUID /= Null_CUID loop
+         if Units.Table (CUnits.Table (CUID).My_Unit).Shared_Passive then
+            declare
+               L : LID_Type;
+               M : Name_Id;
+            begin
+               L := Get_Storage (PID);
+               if L /= Null_LID then
+                  M := C (Locations.Table (L).Major);
+                  Dwrite_Call (File, 2, SGS_Initialize (M));
+               end if;
+            end;
          end if;
-      end;
+         CUID := CUnits.Table (CUID).Next;
+      end loop;
 
-      if not No_Default then
+      if Use_Default then
          declare
             M : Name_Id;
          begin
