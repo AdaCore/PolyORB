@@ -37,7 +37,7 @@ begin
    exception
       when E : Unknown =>
          CORBA.Get_Members (E, Member);
-         Ok := (Member.Minor = 100);
+         Ok := (Member.Completed = Completed_No) and then (Member.Minor = 100);
       when others =>
          null;
    end;
@@ -50,7 +50,7 @@ begin
    exception
       when E : Bad_Param =>
          CORBA.Get_Members (E, Member);
-         Ok := (Member.Minor = 101);
+         Ok := (Member.Completed = Completed_Maybe) and then (Member.Minor = 101);
       when others =>
          null;
    end;
@@ -63,7 +63,7 @@ begin
    exception
       when E : No_Memory =>
          CORBA.Get_Members (E, Member);
-         Ok := (Member.Minor = 102);
+         Ok := (Member.Completed = Completed_Yes) and then (Member.Minor = 102);
       when others =>
          null;
    end;
@@ -76,7 +76,7 @@ begin
    exception
       when E : Imp_Limit =>
          CORBA.Get_Members (E, Member);
-         Ok := (Member.Minor = 103);
+         Ok := (Member.Completed = Completed_Yes) and then (Member.Minor = 103);
       when others =>
          null;
    end;
@@ -89,7 +89,7 @@ begin
    exception
       when E : Inv_Objref =>
          CORBA.Get_Members (E, Member);
-         Ok := (Member.Minor = 105);
+         Ok := (Member.Completed = Completed_Yes) and then (Member.Minor = 105);
       when others =>
          null;
    end;
@@ -102,7 +102,7 @@ begin
    exception
       when E : No_Permission =>
          CORBA.Get_Members (E, Member);
-         Ok := (Member.Minor = 106);
+         Ok := (Member.Completed = Completed_Yes) and then (Member.Minor = 106);
       when others =>
          null;
    end;
@@ -115,7 +115,7 @@ begin
    exception
       when E : Internal =>
          CORBA.Get_Members (E, Member);
-         Ok := (Member.Minor = 107);
+         Ok := (Member.Completed = Completed_Yes) and then (Member.Minor = 107);
       when others =>
          null;
    end;
@@ -130,7 +130,7 @@ begin
          Ok := True;
       when E : Marshal =>
          CORBA.Get_Members (E, Member);
-         Ok := (Member.Minor = 108);
+         Ok := (Member.Completed = Completed_Yes) and then (Member.Minor = 108);
       when others =>
          null;
    end;
@@ -143,7 +143,7 @@ begin
    exception
       when E : Initialization_Failure =>
          CORBA.Get_Members (E, Member);
-         Ok := (Member.Minor = 109);
+         Ok := (Member.Completed = Completed_Yes) and then (Member.Minor = 109);
       when others =>
          null;
    end;
@@ -156,7 +156,7 @@ begin
    exception
       when E : No_Implement =>
          CORBA.Get_Members (E, Member);
-         Ok := (Member.Minor = 110);
+         Ok := (Member.Completed = Completed_Yes) and then (Member.Minor = 110);
       when others =>
          null;
    end;
@@ -169,7 +169,7 @@ begin
    exception
       when E : Bad_Typecode =>
          CORBA.Get_Members (E, Member);
-         Ok := (Member.Minor = 111);
+         Ok := (Member.Completed = Completed_Yes) and then (Member.Minor = 111);
       when others =>
          null;
    end;
@@ -182,7 +182,7 @@ begin
    exception
       when E : Bad_Operation =>
          CORBA.Get_Members (E, Member);
-         Ok := (Member.Minor = 112);
+         Ok := (Member.Completed = Completed_Yes) and then (Member.Minor = 112);
       when others =>
          null;
    end;
@@ -197,7 +197,7 @@ begin
          Ok := True;
       when E : No_Resources =>
          CORBA.Get_Members (E, Member);
-         Ok := (Member.Minor = 113);
+         Ok := (Member.Completed = Completed_Yes) and then (Member.Minor = 113);
       when others =>
          null;
    end;
@@ -212,7 +212,7 @@ begin
          Ok := True;
       when E : No_Response =>
          CORBA.Get_Members (E, Member);
-         Ok := (Member.Minor = 114);
+         Ok := (Member.Completed = Completed_Yes) and then (Member.Minor = 114);
       when others =>
          null;
    end;
@@ -225,7 +225,7 @@ begin
    exception
       when E : Persist_Store =>
          CORBA.Get_Members (E, Member);
-         Ok := (Member.Minor = 115);
+         Ok := (Member.Completed = Completed_Yes) and then (Member.Minor = 115);
       when others =>
          null;
    end;
@@ -238,7 +238,7 @@ begin
    exception
       when E : Bad_Inv_Order =>
          CORBA.Get_Members (E, Member);
-         Ok := (Member.Minor = 116);
+         Ok := (Member.Completed = Completed_Yes) and then (Member.Minor = 116);
       when others =>
          null;
    end;
@@ -251,7 +251,7 @@ begin
    exception
       when E : Free_Mem =>
          CORBA.Get_Members (E, Member);
-         Ok := (Member.Minor = 118);
+         Ok := (Member.Completed = Completed_Yes) and then (Member.Minor = 118);
       when others =>
          null;
    end;
@@ -264,7 +264,7 @@ begin
    exception
       when E : Inv_Ident =>
          CORBA.Get_Members (E, Member);
-         Ok := (Member.Minor = 119);
+         Ok := (Member.Completed = Completed_Yes) and then (Member.Minor = 119);
       when others =>
          null;
    end;
@@ -277,7 +277,7 @@ begin
    exception
       when E : Inv_Flag =>
          CORBA.Get_Members (E, Member);
-         Ok := (Member.Minor = 120);
+         Ok := (Member.Completed = Completed_Yes) and then (Member.Minor = 120);
       when others =>
          null;
    end;
@@ -290,7 +290,7 @@ begin
    exception
       when E : Intf_Repos =>
          CORBA.Get_Members (E, Member);
-         Ok := (Member.Minor = 121);
+         Ok := (Member.Completed = Completed_Yes) and then (Member.Minor = 121);
       when others =>
          null;
    end;
@@ -303,7 +303,7 @@ begin
    exception
       when E : Bad_Context =>
          CORBA.Get_Members (E, Member);
-         Ok := (Member.Minor = 122);
+         Ok := (Member.Completed = Completed_Yes) and then (Member.Minor = 122);
       when others =>
          null;
    end;
@@ -316,7 +316,7 @@ begin
    exception
       when E : Obj_Adapter =>
          CORBA.Get_Members (E, Member);
-         Ok := (Member.Minor = 123);
+         Ok := (Member.Completed = Completed_Yes) and then (Member.Minor = 123);
       when others =>
          null;
    end;
@@ -329,7 +329,7 @@ begin
    exception
       when E : Data_Conversion =>
          CORBA.Get_Members (E, Member);
-         Ok := (Member.Minor = 124);
+         Ok := (Member.Completed = Completed_Yes) and then (Member.Minor = 124);
       when others =>
          null;
    end;
@@ -341,11 +341,9 @@ begin
       Object_Not_Exist_Exception_Test (MyAll_Exceptions);
    exception
       when E : Object_Not_Exist =>
-         Put_Line ("caught Object_Not_Exist" & Member.Minor'Img);
          CORBA.Get_Members (E, Member);
-         Ok := (Member.Minor = 125);
+         Ok := (Member.Completed = Completed_Yes) and then (Member.Minor = 125);
       when others =>
-         Put_Line ("caught others");
          null;
    end;
    Output ("test Object_Not_Exist exception", Ok);
@@ -357,7 +355,7 @@ begin
    exception
       when E : Transaction_Required =>
          CORBA.Get_Members (E, Member);
-         Ok := (Member.Minor = 126);
+         Ok := (Member.Completed = Completed_Yes) and then (Member.Minor = 126);
       when others =>
          null;
    end;
@@ -370,7 +368,7 @@ begin
    exception
       when E : Transaction_Rolledback =>
          CORBA.Get_Members (E, Member);
-         Ok := (Member.Minor = 127);
+         Ok := (Member.Completed = Completed_Yes) and then (Member.Minor = 127);
       when others =>
          null;
    end;
@@ -385,7 +383,7 @@ begin
          Ok := True;
       when E : Invalid_Transaction =>
          CORBA.Get_Members (E, Member);
-         Ok := (Member.Minor = 128);
+         Ok := (Member.Completed = Completed_Yes) and then (Member.Minor = 128);
       when others =>
          null;
    end;
@@ -398,7 +396,7 @@ begin
    exception
       when E : Wrong_Transaction =>
          CORBA.Get_Members (E, Member);
-         Ok := (Member.Minor = 129);
+         Ok := (Member.Completed = Completed_Yes) and then (Member.Minor = 129);
       when others =>
          null;
    end;

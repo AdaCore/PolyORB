@@ -52,13 +52,13 @@ interface all_exceptions {
 
   void AdaBroker_Fatal_Error_exception_test ();
 
-  void AdaBroker_Not_Implemented_Yet_exception_test ();
+  void Not_Implemented_Yet_exception_test ();
 
-  void No_Initialisation_Error_exception_test ();
+  void Not_Initialized_Yet_exception_test ();
 
   void C_Out_Of_Range_exception_test ();
 
-  void Dummy_User_exception_test ();
+  void Wrong_Union_Case_exception_test ();
 
   void Object_Not_Exist_exception_test ();
   
