@@ -47,6 +47,12 @@ private
    function Ada_Type_Name (Node : Node_Id) return String;
    --  The name of the Ada type that maps Node.
 
+   function Ada_Type_Defining_Name
+     (Node : Node_Id)
+     return String;
+   --  The defining name of the Ada type that maps Node
+   --  (a K_Interface or K_ValueType).
+
    function Ada_Operation_Name
      (Node : Node_Id)
      return String;
