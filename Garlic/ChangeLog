@@ -1,3 +1,12 @@
+1998-04-16  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* s-garopt.ads: Add Checksum variable.
+
+	* s-gartyp.ads: Add a new type Word (checksum).
+
+	* s-garopt.adb: Use String_Access from System.Garlic.Types rather
+	than the one from GNAT.OS_Lib.
+
 1998-04-09  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* Makefile.am: Use the target specific System.Garlic.Thin or the

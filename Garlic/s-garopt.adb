@@ -36,7 +36,8 @@
 with Ada.Command_Line;         use Ada.Command_Line;
 with System.Garlic.Debug;      use System.Garlic.Debug;
 with System.Garlic.Heart;      use System.Garlic.Heart;
-with GNAT.OS_Lib;              use GNAT.OS_Lib;
+with System.Garlic.Types;      use System.Garlic.Types;
+with GNAT.OS_Lib;
 with Unchecked_Deallocation;
 
 package body System.Garlic.Options is
@@ -52,7 +53,8 @@ package body System.Garlic.Options is
 
    function Value (S : String) return Termination_Type;
 
-   procedure Free is new Unchecked_Deallocation (String, String_Access);
+   procedure Free is
+     new Unchecked_Deallocation (String, GNAT.OS_Lib.String_Access);
 
    ----------------
    -- Initialize --
@@ -60,11 +62,11 @@ package body System.Garlic.Options is
 
    procedure Initialize is
       Index : Natural := 1;
-      EV    : String_Access;
+      EV    : GNAT.OS_Lib.String_Access;
    begin
       Execution_Mode := Normal_Mode;
 
-      EV := Getenv ("BOOT_SERVER");
+      EV := GNAT.OS_Lib.Getenv ("BOOT_SERVER");
       if EV.all /= "" then
          Set_Boot_Server (EV.all);
       else
@@ -72,7 +74,7 @@ package body System.Garlic.Options is
       end if;
       Free (EV);
 
-      EV := Getenv ("CONNECTION_HITS");
+      EV := GNAT.OS_Lib.Getenv ("CONNECTION_HITS");
       if EV.all /= "" then
          Set_Connection_Hits (Natural'Value (EV.all));
       else
@@ -80,7 +82,7 @@ package body System.Garlic.Options is
       end if;
       Free (EV);
 
-      EV := Getenv ("DETACH");
+      EV := GNAT.OS_Lib.Getenv ("DETACH");
       if EV.all /= "" then
          Set_Detach (True);
       else
@@ -88,7 +90,7 @@ package body System.Garlic.Options is
       end if;
       Free (EV);
 
-      EV := Getenv ("SLAVE");
+      EV := GNAT.OS_Lib.Getenv ("SLAVE");
       if EV.all /= "" then
          Set_Is_Slave (True);
       else
@@ -96,7 +98,7 @@ package body System.Garlic.Options is
       end if;
       Free (EV);
 
-      EV := Getenv ("TERMINATE");
+      EV := GNAT.OS_Lib.Getenv ("TERMINATE");
       if EV.all /= "" then
          Set_Termination (Value (EV.all));
       else
@@ -104,7 +106,7 @@ package body System.Garlic.Options is
       end if;
       Free (EV);
 
-      EV := Getenv ("NOLAUNCH");
+      EV := GNAT.OS_Lib.Getenv ("NOLAUNCH");
       if EV.all /= "" then
          Set_Nolaunch (True);
       else

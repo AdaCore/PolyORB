@@ -51,6 +51,9 @@ package System.Garlic.Types is
       new Ada.Unchecked_Deallocation (String, String_Access);
    --  Access on string and deallocation procedure
 
+   type Word is mod 2 ** 32;
+   --  Unsigned 32-bit integer
+
    type Portable_Address is mod 2 ** 64;
    --  This type can contain an object of type System.Address on any platform
    --  where GNAT is supported. It is made public on purpose so that it is
