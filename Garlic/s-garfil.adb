@@ -69,15 +69,6 @@ package body System.Garlic.Filters is
    Default_Filter_Name       : constant String := "others'filter";
    Registration_Filter_Name  : constant String := "declare'filter";
 
-   Null_Partition    : constant Partition_ID
-     := Null_PID;
-   First_Partition   : constant Partition_ID
-     := Partition_ID'Succ (Null_Partition);
-   Last_Partition    : constant Partition_ID
-     := Partition_ID'Last;
-   Partition_ID_Size : constant Natural
-     := Natural (Last_Partition) - Natural (First_Partition) + 1;
-
    Filter_ID_Increment : constant := 10;
 
    type Filter_Id is new Natural;
@@ -139,8 +130,8 @@ package body System.Garlic.Filters is
 
    package Channels is new Complex
      (Index_Type     => Partition_ID,
-      Null_Index     => Null_Partition,
-      First_Index    => First_Partition,
+      Null_Index     => Types.Null_PID,
+      First_Index    => Types.First_PID,
       Initial_Size   => Natural (Partition_ID_Increment),
       Increment_Size => Natural (Partition_ID_Increment),
       Component_Type => Channel_Type,
@@ -210,16 +201,19 @@ package body System.Garlic.Filters is
        Result    : out Stream_Element_Access;
        Error     : in out Error_Type)
    is
-      F : constant Stream_Element_Offset := Stream'First + Offset;
-      L : constant Stream_Element_Offset := Stream'Last;
+      First   : constant Stream_Element_Offset := Stream'First + Offset;
+      Last    : constant Stream_Element_Offset := Stream'Last;
+      Channel : Channel_Type;
    begin
       --  Only remote calls are filtered
 
       if Opcode = Remote_Call then
 
+         Channel := Channels.Get_Component (Partition);
+
          --  Check that this half channel is initialized
 
-         if Channels.Table (Partition).Incoming.Status /= Done then
+         if Channel.Incoming.Status /= Done then
             Get_Params_For_Incoming (Partition, Init, Error);
             if Found (Error) then
                return;
@@ -228,23 +222,20 @@ package body System.Garlic.Filters is
 
          --  Check whether stream management is needed
 
-         if Channels.Table (Partition).Filter /= null then
+         if Channel.Filter /= null then
             pragma Debug
               (D ("Partition " & Name (Partition) &
                   " incoming filter non null"));
 
             Result := Filter_Incoming
-              (Channels.Table (Partition).Filter.all,
-               Channels.Table (Partition).Incoming.Local,
-               Stream,
-               Offset);
+              (Channel.Filter.all, Channel.Incoming.Local, Stream, Offset);
             return;
          end if;
       end if;
 
       --  When possible, avoid unnecessary buffer copies
 
-      Result := new Stream_Element_Array'(Stream (F .. L));
+      Result := new Stream_Element_Array'(Stream (First .. Last));
    end Filter_Incoming;
 
    ---------------------
@@ -258,14 +249,17 @@ package body System.Garlic.Filters is
        Result    : out    Stream_Element_Access;
        Error     : in out Error_Type)
    is
+      Channel : Channel_Type;
    begin
       --  Only remote calls are filtered
 
       if Opcode = Remote_Call then
 
+         Channel := Channels.Get_Component (Partition);
+
          --  Check  that this half channel is initialized
 
-         if Channels.Table (Partition).Outgoing.Status /= Done then
+         if Channel.Outgoing.Status /= Done then
             Get_Params_For_Outgoing (Partition, Init, Error);
             if Found (Error) then
                return;
@@ -274,15 +268,13 @@ package body System.Garlic.Filters is
 
          --  Check whether stream management is needed
 
-         if Channels.Table (Partition).Filter /= null then
+         if Channel.Filter /= null then
             pragma Debug
               (D ("Partition " & Name (Partition) &
                   " outgoing filter non null"));
 
             Result := Filter_Outgoing
-              (Channels.Table (Partition).Filter.all,
-               Channels.Table (Partition).Outgoing.Local,
-               Stream);
+              (Channel.Filter.all, Channel.Outgoing.Local, Stream);
             return;
          end if;
       end if;

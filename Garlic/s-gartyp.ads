@@ -41,16 +41,19 @@ package System.Garlic.Types is
 
    type Status_Type is (None, Busy, Done, Dead);
 
-   type Partition_ID is range 0 .. 63;
+   Null_Partition_ID : constant := 0;
+   Last_Partition_ID : constant := 1024;
 
-   Null_PID : constant Partition_ID := Partition_ID'First;
+   type Partition_ID is range Null_Partition_ID .. Last_Partition_ID;
+
+   Null_PID : constant Partition_ID := Null_Partition_ID;
 
    First_PID : constant Partition_ID := Null_PID + 1;
+   Last_PID  : constant Partition_ID := Last_Partition_ID;
    Boot_PID  : Partition_ID := First_PID;
    Self_PID  : Partition_ID := Null_PID;
 
-   subtype Valid_Partition_ID is
-     Partition_ID range First_PID .. Partition_ID'Last;
+   subtype Valid_Partition_ID is Partition_ID range First_PID .. Last_ID;
    --  A partition whose ID fits in Valid_Partition_ID is a real partition
 
    Partition_ID_Increment : constant Valid_Partition_ID := 10;

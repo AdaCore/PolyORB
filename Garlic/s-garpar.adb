@@ -102,20 +102,24 @@ package body System.Garlic.Partitions is
 
    function Allocate (From : Partition_ID) return Partition_ID
    is
-      Partition : Partition_ID;
+      Info : Partition_Info;
+      PID  : Partition_ID := First_PID;
    begin
       Enter_Critical_Section;
-      for PID in Partitions.Table'Range loop
-         if not Partitions.Table (PID).Allocated then
-            Partitions.Table (PID).Allocated      := True;
-            Partitions.Table (PID).Boot_Partition := From;
-            Partition := PID;
-            exit;
-         end if;
+      loop
+         Info := Partitions.Get_Component (PID);
+         exit when not Info.Allocated or else PID = Last_Partition_ID;
+         PID := PID + 1;
       end loop;
+      if not Info.Allocated then
+         Info.Allocated      := True;
+         Info.Boot_Partition := From;
+         Partitions.Set_Component (PID, Info);
+      else
+         PID := Null_PID;
+      end if;
       Leave_Critical_Section;
-
-      return Partition;
+      return PID;
    end Allocate;
 
    ------------------
