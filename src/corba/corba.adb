@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/corba.adb#12 $
+--  $Id: //droopi/main/src/corba/corba.adb#13 $
 
 with Ada.Characters.Handling;
 
@@ -60,13 +60,17 @@ package body CORBA is
 
    function To_CORBA_String
      (Source : Standard.String)
-     return CORBA.String
-     renames PolyORB.Types.To_PolyORB_String;
+     return CORBA.String is
+   begin
+      return To_PolyORB_String (Source);
+   end To_CORBA_String;
 
-   function To_Standard_String
-     (Source : CORBA.String)
-     return Standard.String
-     renames PolyORB.Types.To_Standard_String;
+   function To_CORBA_String
+     (Source : Standard.String)
+     return CORBA.Identifier is
+   begin
+      return To_PolyORB_String (Source);
+   end To_CORBA_String;
 
    function To_CORBA_Wide_String
      (Source : Standard.Wide_String)
@@ -86,37 +90,10 @@ package body CORBA is
          (Source));
    end To_Standard_Wide_String;
 
-   -----------------------------------------
-   -- Derived string conversion functions --
-   -----------------------------------------
+   ---------------------------------------
+   -- Get_Members for system exceptions --
+   ---------------------------------------
 
-   function To_CORBA_String
-     (S : Standard.String)
-     return CORBA.RepositoryId
-     renames PolyORB.Types.To_PolyORB_String;
-
-   function To_Standard_String
-     (S : CORBA.RepositoryId)
-     return Standard.String
-     renames PolyORB.Types.To_Standard_String;
-
-   function To_Standard_String
-     (S : ScopedName)
-     return Standard.String is
-   begin
-      return To_Standard_String (CORBA.String (S));
-   end To_Standard_String;
-
-   function To_CORBA_String
-     (S : Standard.String)
-     return ScopedName is
-   begin
-      return ScopedName (CORBA.String'(To_CORBA_String (S)));
-   end To_CORBA_String;
-
-   ----------------------------------------
-   --  Get_Members for system exceptions --
-   ----------------------------------------
    procedure Get_Members
      (From : in Ada.Exceptions.Exception_Occurrence;
       To   : out System_Exception_Members)
@@ -600,8 +577,10 @@ package body CORBA is
      return Any
      renames PolyORB.Any.Get_Empty_Any_Aggregate;
 
-   function Image (NV : NamedValue) return Standard.String
-     renames PolyORB.Any.Image;
+   function Image (NV : NamedValue) return Standard.String is
+   begin
+      return Image (To_PolyORB_NV (NV));
+   end Image;
 
    ------------------
    -- RepositoryId --

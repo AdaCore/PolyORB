@@ -1,0 +1,46 @@
+COS_ROOT=	..
+IDLAC_DIR=	$(COS_ROOT)/../compilers/idlac
+IDLAC=		$(IDLAC_DIR)/idlac
+LINKER=		 $(COS_ROOT)/../support/linker
+
+GNATMAKE_FLAGS = \
+	-I$(srcdir) \
+	-I$(srcdir)/$(COS_ROOT)/../src \
+	-I$(srcdir)/$(COS_ROOT)/../src/corba \
+	-I$(srcdir)/$(COS_ROOT)/../src/soap \
+	-I$(COS_ROOT)/../src \
+	-I$(COS_ROOT)/../src/corba \
+	-I$(COS_ROOT)/../src/soap \
+	-I$(COS_DIRS) \
+	$(XMLADA_INCLUDE) \
+	-m \
+	$(COS_GNATMAKE_FLAGS) \
+	-cargs $(GNATFLAGS) -bargs $(BARGS) \
+	-largs $(LDFLAGS) --LINK=$(LINKER) \
+	../../src/libpolyorb.la \
+	../../src/corba/libpolyorb-corba.la \
+	../../src/soap/libpolyorb-soap.la \
+	$(XMLADA_LIBS) 
+
+CLEANFILES = b~*.* *.o *.ali
+
+DISTCLEANFILES = $(PROGS)
+
+SUFFIXES = .idl .ads .adb
+
+all-local:: $(PROGS)
+
+.idl.ads .idl.adb:
+	$(IDLAC) -I$(srcdir) $<
+
+.PHONY: force
+
+$(IDLAC): force
+	cd $(IDLAC_DIR) && $(MAKE)
+
+force::
+	cd ../../src && $(MAKE)
+	for dir in $(COS_DIRS);\
+	do\
+	  (cd $$dir && $(MAKE));\
+	done

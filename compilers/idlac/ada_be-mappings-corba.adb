@@ -39,6 +39,8 @@ package body Ada_Be.Mappings.CORBA is
 
    use Idl_Fe.Types;
 
+   Skel_Suffix : constant String := ".Skel";
+
    function Library_Unit_Name
      (Self : access CORBA_Mapping_Type;
       Node : Node_Id)
@@ -101,6 +103,22 @@ package body Ada_Be.Mappings.CORBA is
       return "";
    end Library_Unit_Name;
 
+   function Client_Stubs_Unit_Name
+     (Self : access CORBA_Mapping_Type;
+      Node : Idl_Fe.Types.Node_Id)
+     return String is
+   begin
+      return Library_Unit_Name (Self, Node);
+   end Client_Stubs_Unit_Name;
+
+   function Server_Skel_Unit_Name
+     (Self : access CORBA_Mapping_Type;
+      Node : Idl_Fe.Types.Node_Id)
+     return String is
+   begin
+      return Client_Stubs_Unit_Name (Self, Node) & Skel_Suffix;
+   end Server_Skel_Unit_Name;
+
    procedure Map_Type_Name
      (Self : access CORBA_Mapping_Type;
       Node : Node_Id;
@@ -114,10 +132,14 @@ package body Ada_Be.Mappings.CORBA is
       case NK is
          when
            K_Interface         |
+           K_ValueType         =>
+            Typ := +(Library_Unit_Name (Self, Node)
+                     & "." & Ada_Type_Defining_Name (Node));
+         when
            K_Forward_Interface |
-           K_ValueType         |
            K_Forward_ValueType =>
             Typ := +(Library_Unit_Name (Self, Node)
+                     & "." & Ada_Name (Node)
                      & "." & Ada_Type_Defining_Name (Node));
 
          when K_Sequence_Instance =>

@@ -76,8 +76,8 @@ package body PolyORB.References.IOR is
 
    begin
       Marshall
-        (Buffer,
-         CORBA.String'(CORBA.To_CORBA_String (Type_Id_Of (Value))));
+        (Buffer, PolyORB.Types.String'
+         (To_PolyORB_String (Type_Id_Of (Value))));
       Marshall (Buffer, Types.Unsigned_Long (Length (Callbacks)));
 
       pragma Debug (O ("Marshall: enter"));

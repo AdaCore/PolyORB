@@ -39,6 +39,16 @@ package Ada_Be.Mappings.CORBA is
       Node : Idl_Fe.Types.Node_Id)
      return String;
 
+   function Client_Stubs_Unit_Name
+     (Self : access CORBA_Mapping_Type;
+      Node : Idl_Fe.Types.Node_Id)
+     return String;
+
+   function Server_Skel_Unit_Name
+     (Self : access CORBA_Mapping_Type;
+      Node : Idl_Fe.Types.Node_Id)
+     return String;
+
    procedure Map_Type_Name
      (Self : access CORBA_Mapping_Type;
       Node : Idl_Fe.Types.Node_Id;

@@ -155,11 +155,12 @@ package body CORBA.ExceptionList is
       begin
          pragma Debug
            (O ("Match : Id (Item) = """ &
-               CORBA.To_Standard_String (CORBA.TypeCode.Id (Item)) &
+               To_Standard_String (CORBA.TypeCode.Id (Item)) &
                """ and Needle = """ &
-               CORBA.To_Standard_String (Needle) &
+               To_Standard_String (Needle) &
                """"));
-         return CORBA.TypeCode.Id (Item) = Needle;
+         return CORBA.TypeCode.Id (Item)
+           = PolyORB.Types.RepositoryId (Needle);
       end Match;
 
       package Exception_Search is new Exception_Sequence.Search
@@ -169,9 +170,9 @@ package body CORBA.ExceptionList is
       pragma Debug (O ("Search_Exception_Id : Obj.list length is " &
                        CORBA.Unsigned_Long'Image (Get_Count (Self))));
       pragma Debug (O ("Search_Exception_Id : Name = """ &
-                       CORBA.To_Standard_String (Name) & """"));
+                       To_Standard_String (Name) & """"));
       pragma Debug (O ("Search_Exception_Id : first excpt id = """ &
-                       CORBA.To_Standard_String
+                       To_Standard_String
                        (TypeCode.Id
                         (Exception_Sequence.Element_Of
                          (Obj.List, 1))) & """"));

@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poa.adb#14 $
+--  $Id: //droopi/main/src/corba/portableserver-poa.adb#15 $
 
 with Ada.Exceptions;
 
@@ -138,7 +138,7 @@ package body PortableServer.POA is
 
    function Get_The_Name (Self : Ref) return CORBA.String is
    begin
-      return To_POA (Self).Name;
+      return CORBA.String (To_POA (Self).Name);
    end Get_The_Name;
 
    function Get_The_Parent (Self : Ref) return Ref'Class is

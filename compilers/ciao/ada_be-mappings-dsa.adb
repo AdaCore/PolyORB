@@ -122,6 +122,14 @@ package body Ada_Be.Mappings.DSA is
       return "";
    end Library_Unit_Name;
 
+   function Client_Stubs_Unit_Name
+     (Self : access DSA_Mapping_Type;
+      Node : Idl_Fe.Types.Node_Id)
+     return String is
+   begin
+      return Library_Unit_Name (Self, Node) & ".Stubs";
+   end Client_Stubs_Unit_Name;
+
    procedure Map_Type_Name
      (Self : access DSA_Mapping_Type;
       Node : Node_Id;

@@ -52,7 +52,12 @@ package body CORBA.NVList is
      (Self : Ref;
       Item : in CORBA.NamedValue) is
    begin
-      PolyORB.Any.NVList.Add_Item (To_PolyORB_Ref (Self), Item);
+      PolyORB.Any.NVList.Add_Item
+        (To_PolyORB_Ref (Self),
+         PolyORB.Any.NamedValue'
+         (Name      => PolyORB.Types.Identifier (Item.Name),
+          Argument  => Item.Argument,
+          Arg_Modes => Item.Arg_Modes));
    end Add_Item;
 
    function Get_Count (Self : Ref) return CORBA.Long is
@@ -95,8 +100,10 @@ package body CORBA.NVList is
       use PolyORB.Any.NVList.Internals;
       use PolyORB.Any.NVList.Internals.NV_Sequence;
    begin
-      return Element_Of (List_Of (To_PolyORB_Ref (Self)).all,
-                         Integer (Index));
+      return
+        To_CORBA_NV
+        (Element_Of
+         (List_Of (To_PolyORB_Ref (Self)).all, Integer (Index)));
    end Item;
 
 end CORBA.NVList;

@@ -88,7 +88,7 @@ begin
                              CORBA.ARG_IN);
 
       --  setting the result type
-      Result := (Name => Identifier (Result_Name),
+      Result := (Name => CORBA.Identifier (Result_Name),
                  Argument => Get_Empty_Any (CORBA.TC_String),
                  Arg_Modes => 0);
 

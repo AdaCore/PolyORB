@@ -1,0 +1,16 @@
+//File: CosPersistencePID.idl
+//Part of the Persistence Service
+
+#ifndef _COS_PERSISTENCE_PID_IDL_
+#define _COS_PERSISTENCE_PID_IDL_
+#pragma prefix "omg.org"
+
+module CosPersistencePID {
+
+	interface PID {
+		attribute string datastore_type;
+		string get_PIDString();
+	};
+
+};
+#endif /* ifndef _COS_PERSISTENCE_PID_IDL_ */

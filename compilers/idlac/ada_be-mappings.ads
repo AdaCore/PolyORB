@@ -57,6 +57,22 @@ package Ada_Be.Mappings is
    --  Return the name of the library unit that contains the
    --  entity mapping Node.
 
+   function Client_Stubs_Unit_Name
+     (Self : access Mapping_Type;
+      Node : Idl_Fe.Types.Node_Id)
+     return String
+     is abstract;
+   --  Return the name of the library unit that contains the
+   --  client stubs for interface or valuetype Node.
+
+   function Server_Skel_Unit_Name
+     (Self : access Mapping_Type;
+      Node : Idl_Fe.Types.Node_Id)
+     return String
+     is abstract;
+   --  Return the name of the library unit that contains the
+   --  server skeleton for interface or valuetype Node.
+
    procedure Map_Type_Name
      (Self : access Mapping_Type;
       Node : Idl_Fe.Types.Node_Id;

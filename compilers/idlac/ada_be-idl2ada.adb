@@ -31,7 +31,7 @@
 --  XXX The latter should be moved away to a Ada_Be.Idl2Ada.Stubs
 --  child unit one day.
 
---  $Id: //droopi/main/compilers/idlac/ada_be-idl2ada.adb#18 $
+--  $Id: //droopi/main/compilers/idlac/ada_be-idl2ada.adb#19 $
 
 with Ada.Characters.Handling;
 with Ada.Strings.Unbounded;
@@ -112,9 +112,9 @@ package body Ada_Be.Idl2Ada is
    --  to do it now.
 
    procedure Gen_Repository_Id
-     (Node : in Node_Id;
-      Spec : in out Compilation_Unit);
-   --  Generate the RepositoryId for an interface or valuetype
+     (Node : in     Node_Id;
+      CU   : in out Compilation_Unit);
+   --  Generate the RepositoryId for an entity.
 
    procedure Gen_Is_A
      (Node       : in Node_Id;
@@ -235,27 +235,21 @@ package body Ada_Be.Idl2Ada is
       To_Stdout : Boolean)
    is
       Stubs_Name : constant String
-        := Ada_Full_Name (Node);
---       Stream_Name : constant String
---         := Stubs_Name & Stream.Suffix;
+        := Client_Stubs_Unit_Name (Mapping, Node);
+      Skel_Name : constant String
+        := Server_Skel_Unit_Name (Mapping, Node);
+
       Value_Impl_Name : constant String
         := Stubs_Name & Value_Impl.Suffix;
       Helper_Name : constant String
         := Stubs_Name & Helper.Suffix;
       Value_Skel_Name : constant String
         := Stubs_Name & Value_Skel.Suffix;
-      Skel_Name : constant String
-        := Stubs_Name & Skel.Suffix (Skeleton);
 
       Stubs_Spec : Compilation_Unit
         := New_Package (Stubs_Name, Unit_Spec);
       Stubs_Body : Compilation_Unit
         := New_Package (Stubs_Name, Unit_Body);
-
---       Stream_Spec : Compilation_Unit
---         := New_Package (Stream_Name, Unit_Spec);
---       Stream_Body : Compilation_Unit
---         := New_Package (Stream_Name, Unit_Body);
 
       Value_Impl_Spec : Compilation_Unit
         := New_Package (Value_Impl_Name, Unit_Spec);
@@ -582,18 +576,18 @@ package body Ada_Be.Idl2Ada is
       Implement : Boolean;
       To_Stdout : Boolean)
    is
-      Stubs_Name    : constant String := Ada_Full_Name (Node);
-      --  Stream_Name   : constant String := Stubs_Name & Stream.Suffix;
-      Skel_Name     : constant String := Stubs_Name & Skel.Suffix (Skeleton);
+      Stubs_Name    : constant String
+        := Client_Stubs_Unit_Name (Mapping, Node);
+
+      Skel_Name     : constant String
+        := Server_Skel_Unit_Name (Mapping, Node);
+
       Impl_Name     : constant String := Stubs_Name & Impl.Suffix;
       Helper_Name   : constant String := Stubs_Name & Helper.Suffix;
       Delegate_Name : constant String := Stubs_Name & Skel.Suffix (Delegate);
 
       Stubs_Spec : Compilation_Unit := New_Package (Stubs_Name, Unit_Spec);
       Stubs_Body : Compilation_Unit := New_Package (Stubs_Name, Unit_Body);
-
---    Stream_Spec : Compilation_Unit := New_Package (Stream_Name, Unit_Spec);
---    Stream_Body : Compilation_Unit := New_Package (Stream_Name, Unit_Body);
 
       Skel_Spec : Compilation_Unit := New_Package (Skel_Name, Unit_Spec);
       Skel_Body : Compilation_Unit := New_Package (Skel_Name, Unit_Body);
@@ -900,17 +894,14 @@ package body Ada_Be.Idl2Ada is
    -------------------------
 
    procedure Gen_Repository_Id
-     (Node : in Node_Id;
-      Spec : in out Compilation_Unit) is
-      NK : constant Node_Kind
-        := Kind (Node);
+     (Node : in     Node_Id;
+      CU   : in out Compilation_Unit)
+   is
    begin
-      pragma Assert ((NK = K_Interface)
-                     or else (NK = K_ValueType));
-      NL (Spec);
-      PL (Spec, Repository_Id_Name (Node)
+      NL (CU);
+      PL (CU, Repository_Id_Name (Node)
           & " : constant Standard.String");
-      PL (Spec, "  := """ & Idl_Repository_Id (Node) & """;");
+      PL (CU, "  := """ & Idl_Repository_Id (Node) & """;");
    end Gen_Repository_Id;
 
    --------------
@@ -1300,7 +1291,8 @@ package body Ada_Be.Idl2Ada is
             null;
 
          when K_Forward_Interface =>
-            Add_With (CU, "CORBA.Forward");
+            Add_With
+              (CU, "CORBA.Forward", Elab_Control => Elaborate_All);
             NL (CU);
             PL (CU, "package " & Ada_Name (Node)
                 & " is new CORBA.Forward;");
@@ -1383,10 +1375,11 @@ package body Ada_Be.Idl2Ada is
             Add_With (CU, "CORBA", Elab_Control => Elaborate_All);
             NL (CU);
             PL (CU, Ada_Name (Node) & " : exception;");
-            PL (CU, Repository_Id_Name (Node)
-                & " : constant CORBA.RepositoryId");
-            PL (CU, "  := CORBA.To_CORBA_String ("""
-                & Idl_Repository_Id (Node) & """);");
+--             PL (CU, Repository_Id_Name (Node)
+--                 & " : constant CORBA.RepositoryId");
+--             PL (CU, "  := CORBA.To_CORBA_String ("""
+--                 & Idl_Repository_Id (Node) & """);");
+            Gen_Repository_Id (Node, CU);
             NL (CU);
             PL (CU, "procedure Get_Members");
             PL (CU, "  (From : Ada.Exceptions.Exception_Occurrence;");
@@ -1710,8 +1703,8 @@ package body Ada_Be.Idl2Ada is
             Prefix : constant String := Ada_Full_Name (Forward (NT));
          begin
             Add_With (CU, Prefix);
-            Put (CU, Prefix & ".Convert_Forward." & Direction
-                 & " (" & What & ")");
+            PL (CU, Prefix & ".Convert_Forward." & Direction);
+            Put (CU, "  (" & What & ")");
          end;
       else
          Put (CU, What);
@@ -1841,7 +1834,8 @@ package body Ada_Be.Idl2Ada is
                              := Ada_Name (Declarator (P_Node));
                         begin
                            PL (CU, Justify (T_Arg_Name & Arg_Name, Max_Len)
-                               & " : CORBA.Identifier := To_CORBA_String ("""
+                               & " : CORBA.Identifier");
+                           PL (CU, "  := To_CORBA_String ("""
                                & Arg_Name & """);");
                         end;
                      end if;
@@ -1870,9 +1864,10 @@ package body Ada_Be.Idl2Ada is
                         begin
                            Add_With (CU, Prefix);
 
-                           Put (CU, Justify (T_Argument & Arg_Name, Max_Len)
-                                & " : CORBA.Any := " & Prefix & ".To_Any"
-                                & " (");
+                           PL (CU, Justify (T_Argument & Arg_Name, Max_Len)
+                                & " : CORBA.Any");
+                           PL (CU, "  := " & Prefix & ".To_Any");
+                           Put (CU, "  (");
                            Gen_Forward_Conversion
                              (CU, Param_Type (P_Node),
                               "From_Forward", Arg_Name);
@@ -1891,7 +1886,7 @@ package body Ada_Be.Idl2Ada is
 
                PL (CU, Justify (T_Result, Max_Len) & " : CORBA.NamedValue;");
                PL (CU, Justify (T_Result_Name, Max_Len)
-                 & " : CORBA.String := To_CORBA_String (""Result"");");
+                   & " : CORBA.String := To_CORBA_String (""Result"");");
 
                DI (CU);
                PL (CU, "begin");
@@ -1969,15 +1964,18 @@ package body Ada_Be.Idl2Ada is
                      --  Add_With (CU, Helper_Unit (E_Node));
                      --  Is this necessary?
 
-                     PL (CU, "CORBA.ExceptionList.Add (" & T_Excp_List & ",");
-                     PL (CU, "                         "
-                       & TC_Name (E_Node) & ");");
+                     PL (CU, "CORBA.ExceptionList.Add");
+                     PL (CU, "  (" & T_Excp_List & ",");
+                     II (CU);
+                     PL (CU, TC_Name (E_Node) & ");");
+                     DI (CU);
 
                   end loop;
                end;
 
-               PL (CU, "--  Set result type");
-               PL (CU, T_Result & " := (Name => Identifier ("
+               PL (CU, "--  Set result type (maybe void)");
+               PL (CU, T_Result);
+               PL (CU, "  := (Name => CORBA.Identifier ("
                  & T_Result_Name & "),");
                PL (CU, "      Argument => Get_Empty_Any");
                PL (CU, "  ("
@@ -2053,7 +2051,9 @@ package body Ada_Be.Idl2Ada is
                            then
                               if First then
                                  NL (CU);
-                                 PL (CU, "--  Retrive out argument values.");
+                                 PL (CU,
+                                     "--  Retrieve 'out' argument values.");
+                                 NL (CU);
                                  First := False;
                               end if;
 

@@ -42,7 +42,7 @@ package body CORBA.ServerRequest is
 
    function Operation (O : Object) return Identifier is
    begin
-      return O.Operation;
+      return Identifier (O.Operation);
    end Operation;
 
    procedure Arguments (O : access Object; NV : in out NVList.Ref) is

@@ -1,0 +1,91 @@
+//File: CosLicensingManager.idl
+//The only module of the Licensing Service
+
+#ifndef _COS_LICENSING_MANAGER_IDL_
+#define _COS_LICENSING_MANAGER_IDL_
+
+#include <CosEventComm.idl>
+#include <CosPropertyService.idl>
+#include <CosEventComm.idl>
+
+#pragma prefix "omg.org"
+
+module CosLicensingManager {
+	exception InvalidProducer{}; 
+	exception InvalidParameter{};
+	exception ComponentNotRegistered{};
+
+	typedef Object ProducerSpecificNotification;
+
+	enum ActionRequired { continue, terminate}; 
+
+	enum Answer { yes, no };
+
+	struct Action {
+		ActionRequired action ;		
+		Answer notification_required ;
+		Answer wait_for_user_confirmation_after_notification ;
+		unsigned long notification_duration;	
+		ProducerSpecificNotification producer_notification; 
+		string notification_text; 
+	};
+
+	struct ChallengeData {
+		unsigned long challenge_index; 
+		unsigned long random_number; 
+		string digest; 
+	};
+
+
+	enum ChallengeProtocol { default_protocol, producer_defined };	
+	struct Challenge {
+		ChallengeProtocol challenge_protocol;
+		unsigned long challenge_data_size;
+		any challenge_data; 
+	};
+
+	typedef any LicenseHandle;
+	
+	interface ProducerSpecificLicenseService {
+
+	readonly attribute   string producer_contact_info;
+	readonly attribute   string producer_specific_license_service_info;
+
+	LicenseHandle start_use ( 
+		in CORBA::Principal aPrincipal,
+		in string component_name, 
+		in string component_version,
+		in CosPropertyService::PropertySet license_use_context,
+		in CosEventComm::PushConsumer call_back, 
+		inout CosLicensingManager::Challenge Challenge)
+
+		raises ( InvalidParameter, ComponentNotRegistered);
+
+  		void check_use (
+			in LicenseHandle handle, 
+			in CosPropertyService::PropertySet license_use_context,
+			out unsigned long recommended_check_interval,
+			out Action action_to_be_taken, 
+			inout CosLicensingManager::Challenge Challenge)
+
+			raises ( InvalidParameter );
+
+		void end_use (
+			in LicenseHandle handle, 
+			in CosPropertyService::PropertySet license_use_context,
+			inout CosLicensingManager::Challenge Challenge)
+
+			raises ( InvalidParameter );
+	};
+
+	interface LicenseServiceManager {
+		ProducerSpecificLicenseService
+		obtain_producer_specific_license_service (
+			in string producer_name, 
+			inout CosLicensingManager::Challenge Challenge)
+
+			raises ( InvalidProducer, InvalidParameter ) ; 
+	};
+};
+
+#endif /* ifndef _COS_LICENSING_MANAGER_IDL_ */

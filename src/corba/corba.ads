@@ -30,11 +30,12 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/corba.ads#14 $
+--  $Id: //droopi/main/src/corba/corba.ads#15 $
 
 with Ada.Exceptions;
 with Ada.Strings.Unbounded;
 with Ada.Strings.Wide_Unbounded;
+with Ada.Unchecked_Conversion;
 with Ada.Unchecked_Deallocation;
 
 with Interfaces;
@@ -68,7 +69,9 @@ package CORBA is
    subtype Boolean            is Standard.Boolean;
    --  type    String             is
    --    new Ada.Strings.Unbounded.Unbounded_String;
-   subtype String is PolyORB.Types.String;
+   --  subtype String is PolyORB.Types.String;
+   type String is new PolyORB.Types.String;
+
    type    Wide_String        is
      new Ada.Strings.Wide_Unbounded.Unbounded_Wide_String;
 
@@ -131,10 +134,6 @@ package CORBA is
      (Source : Standard.String)
      return CORBA.String;
 
-   function To_Standard_String
-     (Source : CORBA.String)
-     return Standard.String;
-
    Null_String : constant CORBA.String := CORBA.String
      (Ada.Strings.Unbounded.To_Unbounded_String (""));
 
@@ -155,39 +154,43 @@ package CORBA is
    -------------
 
    --  type Identifier is new CORBA.String;
-   subtype Identifier is PolyORB.Types.Identifier;
+   type Identifier is new PolyORB.Types.Identifier;
+   function To_CORBA_String
+     (Source : Standard.String)
+     return Identifier;
+
    Null_Identifier : constant Identifier := Identifier (Null_String);
 
-   function "=" (X, Y : Identifier) return Boolean
-     renames PolyORB.Types."=";
+--    function "=" (X, Y : Identifier) return Boolean
+--      renames PolyORB.Types."=";
 
-   function To_Standard_String (S : Identifier) return Standard.String
-     renames PolyORB.Types.To_Standard_String;
-   function To_CORBA_String (S : Standard.String) return Identifier
-     renames PolyORB.Types.To_PolyORB_String;
+--    function To_Standard_String (S : Identifier) return Standard.String
+--      renames PolyORB.Types.To_Standard_String;
+--    function To_CORBA_String (S : Standard.String) return Identifier
+--      renames PolyORB.Types.To_PolyORB_String;
 
-   subtype RepositoryId is PolyORB.Types.RepositoryId;
+   type RepositoryId is new CORBA.String;
    Null_RepositoryId : constant RepositoryId := RepositoryId (Null_String);
 
-   function "=" (X, Y : RepositoryId) return Boolean
-     renames PolyORB.Types."=";
+--    function "=" (X, Y : RepositoryId) return Boolean
+--      renames PolyORB.Types."=";
 
-   function To_Standard_String
-     (S : RepositoryId)
-     return Standard.String;
-   function To_CORBA_String
-     (S : Standard.String)
-     return RepositoryId;
+--    function To_Standard_String
+--      (S : RepositoryId)
+--      return Standard.String;
+--    function To_CORBA_String
+--      (S : Standard.String)
+--      return RepositoryId;
 
    type ScopedName is new CORBA.String;
    Null_ScopedName : constant ScopedName := ScopedName (Null_String);
 
-   function To_Standard_String
-     (S : ScopedName)
-     return Standard.String;
-   function To_CORBA_String
-     (S : Standard.String)
-     return ScopedName;
+--    function To_Standard_String
+--      (S : ScopedName)
+--      return Standard.String;
+--    function To_CORBA_String
+--      (S : Standard.String)
+--      return ScopedName;
 
    ----------------
    -- Exceptions --
@@ -620,7 +623,23 @@ package CORBA is
    ARG_INOUT :     constant Flags;
    IN_COPY_VALUE : constant Flags;
 
-   subtype NamedValue is PolyORB.Any.NamedValue;
+   --  subtype NamedValue is PolyORB.Any.NamedValue;
+   type NamedValue is record
+      Name      : Identifier;
+      Argument  : Any;
+      Arg_Modes : Flags;
+   end record;
+
+--    function To_PolyORB_NV (CNV : NamedValue)
+--      return PolyORB.Any.NamedValue;
+
+--    function To_CORBA_NV (PNV : PolyORB.Any.NamedValue)
+--      return NamedValue;
+
+   function To_PolyORB_NV is new Ada.Unchecked_Conversion
+     (NamedValue, PolyORB.Any.NamedValue);
+   function To_CORBA_NV is new Ada.Unchecked_Conversion
+     (PolyORB.Any.NamedValue, NamedValue);
 
    function Image (NV : NamedValue) return Standard.String;
    --  For debugging purposes.
@@ -637,11 +656,12 @@ private
 
    pragma Inline (To_Any);
    pragma Inline (From_Any);
-   pragma Inline (To_Standard_String);
    pragma Inline (To_CORBA_String);
    pragma Inline (Set_Any_Value);
    pragma Inline (Get_Aggregate_Count);
    pragma Inline (Get_Aggregate_Element);
+   pragma Inline (To_PolyORB_NV);
+   pragma Inline (To_CORBA_NV);
 
    -----------------
    -- Named_Value --

@@ -283,6 +283,19 @@ package body CORBA.ORB is
    end Perform_Work;
 
    --------------------------------
+   -- Register_Initial_Reference --
+   --------------------------------
+
+   procedure Register_Initial_Reference
+     (Identifier : ObjectId;
+      Ref        : CORBA.Object.Ref)
+   is
+   begin
+      Referenced_Objects.Register
+        (To_Standard_String (Identifier), Ref);
+   end Register_Initial_Reference;
+
+   --------------------------------
    -- Resolve_Initial_References --
    --------------------------------
 

@@ -1,0 +1,15 @@
+IDLAC_DIR=	../../../compilers/idlac
+IDLAC=		$(IDLAC_DIR)/idlac
+
+CLEANFILES = *.ads *.adb
+
+DISTCLEANFILES =
+
+SUFFIXES = .idl .ads .adb
+
+all-local:: $(DEPS)
+
+$(IDLAC): force
+	cd $(IDLAC_DIR) && $(MAKE)
+
+force::

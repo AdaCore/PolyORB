@@ -49,16 +49,22 @@ package body CORBA.Request is
       Arg_List  : in     CORBA.NVList.Ref;
       Result    : in out NamedValue;
       Request   :    out Object;
-      Req_Flags : in     Flags) is
+      Req_Flags : in     Flags)
+   is
+      PResult : PolyORB.Any.NamedValue;
+      for PResult'Address use Result'Address;
+      pragma Import (Ada, PResult);
+      --  This is ugly but required because we want Result
+      --  to be strictly passed by reference, with no intervening
+      --  assignments.
    begin
       PolyORB.Requests.Create_Request
         (Target    => CORBA.Object.To_PolyORB_Ref
          (CORBA.Object.Ref (CORBA.AbstractBase.Ref'Class (Self))),
          Operation => To_Standard_String (Operation),
          Arg_List  => CORBA.NVList.To_PolyORB_Ref (Arg_List),
-         Result    => Result,
+         Result    => PResult,
          Req       => Request.The_Request);
-      --  XXX Some arguments are not taken into account!
    end Create_Request;
 
    procedure Create_Request

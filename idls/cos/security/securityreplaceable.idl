@@ -1,0 +1,79 @@
+//File: SecurityReplaceable.idl
+//Part of the Security Service
+
+#ifndef _SECURITY_REPLACEABLE_IDL
+#define _SECURITY_REPLACEABLE_IDL
+
+#include <SecurityLevel2.idl>
+
+#pragma prefix "omg.org"
+
+module SecurityReplaceable {
+
+    interface SecurityContext;
+
+
+    interface Vault {   // Locality Constrained
+
+        Security::AssociationStatus init_security_context (
+            in   SecurityLevel2::CredentialsList    creds_list,
+            in   Security::SecurityName             target_security_name,
+            in   Object                             target,
+            in   Security::DelegationMode           delegation_mode,
+            in   Security::OptionsDirectionPairList association_options,
+            in   Security::MechanismType            mechanism,
+            in   Security::Opaque                   mech_data, //from IOR
+            in   Security::Opaque                   chan_binding,
+            out  Security::Opaque                   security_token,
+            out  SecurityContext                    security_context
+        );
+
+        Security::AssociationStatus accept_security_context (
+            in   SecurityLevel2::CredentialsList    creds_list,
+            in   Security::Opaque                   chan_bindings,
+            in   Security::Opaque                   in_token,
+            out  Security::Opaque                   out_token
+        );
+
+        Security::MechandOptionsList get_supported_mechs ();
+    };
+
+
+    interface SecurityContext {   // Locality Constrained
+
+        readonly attribute SecurityLevel2::CredentialsList
+                                                 received_credentials;
+
+        readonly attribute Security::SecurityFeatureValueList
+                                                security_features;
+
+        Security::AssociationStatus continue_security_context (
+            in   Security::Opaque      in_token,
+            out  Security::Opaque      out_token
+        );
+
+        void protect_message (
+            in   Security::Opaque      message,
+            in   Security::QOP         qop,
+            out  Security::Opaque      text_buffer,
+            out  Security::Opaque      token
+        );
+
+        boolean reclaim_message (
+            in   Security::Opaque      text_buffer,
+            in   Security::Opaque      token,
+            out  Security::QOP         qop,
+            out  Security::Opaque      message
+        );
+
+        boolean is_valid (
+            out  Security::UtcT        expiry_time
+        );
+
+        boolean refresh ();
+    };
+
+
+};
+
+#endif /* _SECURITY_REPLACEABLE_IDL */

@@ -1,0 +1,128 @@
+//File: CosStream.idl
+//Part of the Externalization Service
+// Modified from version 1.0 to include the previous CosCompoundExternalization module
+
+#ifndef _COS_STREAM_IDL_
+#define _COS_STREAM_IDL_
+
+#include <CosLifeCycle.idl>
+#include <CosObjectIdentity.idl>
+#include <CosGraphs.idl>
+
+#pragma prefix "omg.org"
+
+module CosStream {
+	exception ObjectCreationError{};
+	exception StreamDataFormatError{};
+
+	interface StreamIO;
+	interface Node;
+	interface Role;
+	interface Relationship;
+
+	interface Streamable: 
+	  CosObjectIdentity::IdentifiableObject {
+		readonly attribute CosLifeCycle::Key external_form_id;
+		void externalize_to_stream(
+			in StreamIO		targetStreamIO);
+		void internalize_from_stream(
+			in StreamIO		sourceStreamIO,
+			in CosLifeCycle::FactoryFinder there) 
+			raises(	CosLifeCycle::NoFactory,
+					ObjectCreationError,
+					StreamDataFormatError );
+	};
+
+	interface StreamableFactory {
+		Streamable create_uninitialized();
+	};
+
+
+	interface StreamIO {
+ 		void write_string(in string aString);
+ 		void write_char(in char aChar);
+ 		void write_octet(in octet anOctet);
+ 		void write_unsigned_long(
+			in unsigned long anUnsignedLong);
+ 		void write_unsigned_short(
+			in unsigned short anUnsignedShort);
+ 		void write_long(in long aLong);
+ 		void write_short(in short aShort);
+ 		void write_float(in float aFloat);
+ 		void write_double(in double aDouble);
+ 		void write_boolean(in boolean aBoolean);
+ 		void write_object(in Streamable aStreamable);
+	 	void write_graph(in Node aNode);
+		string read_string() 
+			raises(StreamDataFormatError);
+		char read_char() 			
+			raises(StreamDataFormatError );
+		octet read_octet()
+			raises(StreamDataFormatError );
+		unsigned long read_unsigned_long() 
+			raises(StreamDataFormatError );
+		unsigned short read_unsigned_short()
+			raises(		StreamDataFormatError );
+		long read_long() 		
+			raises(StreamDataFormatError );
+		short read_short()
+			raises(StreamDataFormatError );
+		float read_float()
+			raises(StreamDataFormatError );
+		double read_double()
+			raises(StreamDataFormatError );
+		boolean read_boolean()
+			raises(StreamDataFormatError );
+		Streamable read_object(
+			in CosLifeCycle::FactoryFinder there,
+			in Streamable aStreamable)
+			raises(StreamDataFormatError );
+ 		void read_graph(
+	 		in Node starting_node,
+			in CosLifeCycle::FactoryFinder there)
+			raises(StreamDataFormatError );
+	};
+
+    // the following are required for compound externalization
+
+	struct RelationshipHandle {
+		CosRelationships::Relationship theRelationship;
+		CosObjectIdentity::ObjectIdentifier constantRandomId;
+	};
+
+	interface Node : CosGraphs::Node, CosStream::Streamable{
+		void externalize_node (in CosStream::StreamIO sio);
+		void internalize_node (in CosStream::StreamIO sio,
+			in CosLifeCycle::FactoryFinder there,
+			out Roles rolesOfNode)
+				raises ( CosLifeCycle::NoFactory);
+	};
+
+	interface Role : CosGraphs::Role {
+		void externalize_role (in CosStream::StreamIO sio); 
+		void internalize_role (in CosStream::StreamIO sio); 
+		CosGraphs::PropagationValue externalize_propagation (
+			in RelationshipHandle rel,
+			in CosRelationships::RoleName toRoleName,
+			out boolean sameForAll);
+	};
+
+	interface Relationship : CosRelationships::Relationship {
+		void externalize_relationship (
+			in CosStream::StreamIO sio);
+		void internalize_relationship(
+			in CosStream::StreamIO sio,
+			in CosGraphs::NamedRoles newRoles);
+		CosGraphs::PropagationValue externalize_propagation (
+		in CosRelationships::RoleName fromRoleName,
+		in CosRelationships::RoleName toRoleName,
+		out boolean sameForAll);
+	};
+
+	interface PropagationCriteriaFactory {
+	       CosGraphs::TraversalCriteria create_for_externalize( );
+	};
+
+
+};
+#endif  /* ifndef _COS_STREAM_IDL_  */

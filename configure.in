@@ -78,8 +78,12 @@ AC_OUTPUT([Makefile
 	   compilers/idlac/testsuite/Makefile
 	   compilers/idlac/platform.ads
 	   src/Makefile src/corba/Makefile src/soap/Makefile
+	   idls/Makefile idls/cos/Makefile idls/cos/event/Makefile
+	   idls/cos/naming/Makefile idls/cos/time/Makefile
+	   cos/Makefile cos/event/Makefile cos/naming/Makefile cos/time/Makefile
 	   examples/Makefile examples/echo/Makefile examples/all_types/Makefile
 	   support/adacompiler support/linker])
+
 # src/polyorb-config
 #
 #

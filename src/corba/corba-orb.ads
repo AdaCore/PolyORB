@@ -110,6 +110,10 @@ package CORBA.ORB is
 
    function List_Initial_Services return ObjectIdList;
 
+   procedure Register_Initial_Reference
+     (Identifier : ObjectId;
+      Ref        : CORBA.Object.Ref);
+
    function Resolve_Initial_References
      (Identifier : ObjectId)
      return CORBA.Object.Ref;

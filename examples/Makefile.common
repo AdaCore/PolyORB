@@ -10,9 +10,9 @@ GNATMAKE_FLAGS = \
 	-I$(srcdir)/$(EXAMPLES_ROOT)/../src/soap \
 	-I$(EXAMPLES_ROOT) \
 	-I$(EXAMPLES_ROOT)/generic \
-	-I$(EXAMPLES_ROOT)/src \
-	-I$(EXAMPLES_ROOT)/src/corba \
-	-I$(EXAMPLES_ROOT)/src/soap \
+	-I$(EXAMPLES_ROOT)/../src \
+	-I$(EXAMPLES_ROOT)/../src/corba \
+	-I$(EXAMPLES_ROOT)/../src/soap \
 	$(XMLADA_INCLUDE) \
 	-m \
 	$(EXAMPLE_GNATMAKE_FLAGS) \
