@@ -40,7 +40,6 @@
 with GNAT.IO;
 with GNAT.OS_Lib;                     use GNAT.OS_Lib;
 with Interfaces.C;                    use Interfaces.C;
-with System.Garlic.Platform_Specific; use System.Garlic.Platform_Specific;
 
 package body System.Garlic.Debug is
 
@@ -61,7 +60,8 @@ package body System.Garlic.Debug is
    end Semaphore;
    --  The semaphore object which protects outputs from being mixed
 
-   Termination_Filename : String_Access;
+   Termination_Directory : String_Access;
+   Termination_Filename  : String_Access;
    --  Termination temp filename
 
    Termination_Sanity_FD : File_Descriptor := Invalid_FD;
@@ -75,7 +75,7 @@ package body System.Garlic.Debug is
 
    procedure Create_Termination_Sanity_File
    is
-      Dir : String renames RTS_Sanity_Directory;
+      Dir : String renames Termination_Directory.all;
 
       function Get_PID return int;
       pragma Import (C, Get_PID, "getpid");
@@ -221,7 +221,8 @@ package body System.Garlic.Debug is
    end Semaphore;
 
 begin
-   if RTS_Sanity_Directory'Length /= 0 then
+   Termination_Directory := GNAT.OS_Lib.Getenv ("GLADE_SANITY_DIR");
+   if Termination_Directory.all /= "" then
       Create_Termination_Sanity_File;
    end if;
 end System.Garlic.Debug;
