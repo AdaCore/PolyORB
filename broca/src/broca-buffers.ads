@@ -66,6 +66,10 @@ package Broca.Buffers is
    -- General operations --
    ------------------------
 
+   function Length (Buffer : access Buffer_Type) return Index_Type;
+   pragma Inline (Length);
+   --  Return the length of Buffer.
+
    function Endianness
      (Buffer : Buffer_Type)
      return Endianness_Type;
@@ -256,11 +260,6 @@ package Broca.Buffers is
    --  On return, Data contains an access to the retrieved
    --  Data, and the CDR current position is advanced by Size.
 
-   function Length
-     (Buffer : access Buffer_Type)
-     return Index_Type;
-   --  Return the length of the data marshalled in Buffer.
-
    -------------------------
    -- Utility subprograms --
    -------------------------
@@ -375,14 +374,19 @@ private
       -- stream of an Iovec_Pool.          --
       ---------------------------------------
 
+      procedure Dump
+        (Iovec_Pool : Iovec_Pool_Type;
+         Into       : Opaque_Pointer);
+      --  Dump the content of an Iovec_Pool into Into.
+
       function Dump
-        (Iovec_Pool : in Iovec_Pool_Type)
+        (Iovec_Pool : Iovec_Pool_Type)
         return Octet_Array_Ptr;
       --  Dump the contents of Iovec_Pool into an array of octets. The result
       --  must be deallocated when not used anymore.
 
       procedure Write_To_FD
-        (FD : in Interfaces.C.int;
+        (FD : Interfaces.C.int;
          Iovec_Pool : access Iovec_Pool_Type);
       --  Write the contents of Iovec_Pool to
       --  the system file descriptor Fd. On
@@ -451,6 +455,9 @@ private
       Storage      : aliased Buffer_Chunk_Pools.Pool_Type;
       --  A set of memory chunks used to store data
       --  marshalled by copy.
+
+      Length       : Index_Type := 0;
+      --  Length of stored data.
    end record;
 
 end Broca.Buffers;
