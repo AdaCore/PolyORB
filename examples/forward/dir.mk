@@ -2,8 +2,8 @@
 FLAGS = $(ADABROKER_FLAGS) $(CORBA_LIB) $(IMPORT_LIBRARY_FLAGS)
 
 all:: $(CORBA_LIB_DEPEND) $(ADABROKER_LIB_DEPEND) ada
-	gnatmake -gnatf -gnata -m -i client.adb $(FLAGS)
-	gnatmake -gnatf -gnata -m -i server.adb $(FLAGS)
+	gnatmake -g -I.. -gnatf -gnata -m -i client.adb $(FLAGS)
+	gnatmake -g -I.. -gnatf -gnata -m -i server.adb $(FLAGS)
 
 
 clean::

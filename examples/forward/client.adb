@@ -1,80 +1,65 @@
-with Ada.Command_Line ;
-with Text_Io ; use Text_Io ;
-with CORBA, CORBA.Orb, CORBA.Boa, CORBA.Object ;
-with AdaBroker.Exceptions ;
-with Chicken ; use Chicken ;
-with Chicken_Forward ;
-with Egg ; use Egg ;
-with Egg_Forward ;
+with Ada.Command_Line;
+with Text_IO; use Text_IO;
+with CORBA; use CORBA;
+with CORBA.ORB;
+with CORBA.BOA;
+with CORBA.Object;
+with AdaBroker.Exceptions;
+with Chicken; use Chicken;
+with Chicken_Forward;
+with Egg; use Egg;
+with Egg_Forward;
+with Report; use Report;
 
 procedure Client is
-   Orb : CORBA.Orb.Object := CORBA.Orb.Orb_Init("omniORB2") ;
-   Boa : CORBA.Boa.Object := CORBA.Orb.Boa_Init(Orb, "omniORB2_BOA") ;
-   Egg1, Egg2, Egg3, Egg4 : Egg.Ref ;
-   Chicken1, Chicken2, Chicken3, Chicken4 : Chicken.Ref ;
-   Ef : Egg_Forward.Ref ;
-   Ior : CORBA.String ;
-   I : CORBA.Unsigned_Short := 0 ;
+   ORB : CORBA.ORB.Object := CORBA.ORB.ORB_Init ("omniORB2");
+   BOA : CORBA.BOA.Object := CORBA.ORB.BOA_Init (ORB, "omniORB2_BOA");
+
+   ER : Egg.Ref;
+   CR : Chicken.Ref;
+   EF : Egg_Forward.Ref;
+   IOR : CORBA.String;
+   N : CORBA.Unsigned_Short := 0;
+   Ok : Boolean;
 begin
 
-   Put_Line("MAIN : Starting client") ;
-
    if Ada.Command_Line.Argument_Count < 1 then
-      Put_Line ("usage : client <egg_IOR>") ;
-      return ;
-   end if ;
+      Put_Line ("usage : client <egg_IOR>");
+      return;
+   end if;
 
-   Ior := CORBA.To_Corba_String(Ada.Command_Line.Argument(1)) ;
+   IOR := CORBA.To_Corba_String (Ada.Command_Line.Argument (1));
 
-   CORBA.Orb.String_To_Object(IOR, Egg1) ;
+   CORBA.ORB.String_To_Object (IOR, ER);
 
-   Put_Line("MAIN : Got the Egg 1") ;
-   Put_Line("") ;
-   Put_Line("") ;
+   CR := Chicken.Convert_Forward.From_Forward (Hatch (ER));
+   Output ("a new chicken is born", not Is_Nil (CR));
 
-   Put_Line("######### Trying to hatch  ###########") ;
-   Chicken1 := Chicken.Convert_Forward.From_Forward(Hatch(Egg1)) ;
-   Put_Line("---> A new chicken is born") ;
-   Put_Line("") ;
+   for I in 1 .. 3 loop
+      Lay (CR, N, EF);
+      ER := Egg.Convert_Forward.From_Forward (EF);
+      Output ("the new chicken has laid an egg",
+              N = 1 and then not Is_Nil (ER));
+      CR := Chicken.Convert_Forward.From_Forward (Hatch (ER));
+      Output ("a new chicken is born", not Is_Nil (CR));
+   end loop;
 
-   Put_Line("######### Trying to lay  ###########") ;
-   Lay(Chicken1, I, Ef) ;
-   Egg2 := Egg.Convert_Forward.From_Forward(Ef) ;
-   Put_Line("---> This chicken has laid its egg number " & CORBA.Unsigned_Short'Image(I)) ;
-   Lay(Chicken1, I, Ef) ;
-   Egg3 := Egg.Convert_Forward.From_Forward(Ef) ;
-   Put_Line("---> This chicken has laid its egg number " & CORBA.Unsigned_Short'Image(I)) ;
-   Egg4 := Egg.Convert_Forward.From_Forward(Ef) ;
-   Lay(Chicken1, I, Ef) ;
-   Put_Line("---> This chicken has laid its egg number " & CORBA.Unsigned_Short'Image(I)) ;
-   Put_Line("") ;
-
-   Put_Line("######### Freshly laid eggs are going to hatch ###########") ;
-   Chicken2 := Chicken.Convert_Forward.From_Forward(Hatch(Egg2)) ;
-   Put_Line("---> A new chicken is born") ;
-   Chicken3 := Chicken.Convert_Forward.From_Forward(Hatch(Egg3)) ;
-   Put_Line("---> A new chicken is born") ;
-   Put_Line("") ;
-
-   Put_Line("######### Can an egg hatch twice ?? ###########") ;
    begin
-      Chicken4 := Chicken.Convert_Forward.From_Forward(Hatch(Egg2)) ;
-      Put_Line("-->>> Ouups,  Yes, there is a problem !!!") ;
-      return ;
+      Ok := False;
+      CR := Chicken.Convert_Forward.From_Forward (Hatch (ER));
    exception
       when Already_Hatched =>
-         Put_Line("---> Of course not !! I caught an Already_Hatched exception.") ;
-   end ;
-   Put_Line("") ;
+         Ok := True;
+      when others =>
+         null;
+   end;
+   Output ("detect illegal forward operation", Ok);
 
-   Put_Line("######### Can an old chicken still lay ?  ###########") ;
-   Lay(Chicken1, I, Ef) ;
-   Egg4 :=  Egg.Convert_Forward.From_Forward(Ef) ;
-   Put_Line("---> Yes, this chicken has laid its egg number " & CORBA.Unsigned_Short'Image(I)) ;
-   Put_Line("") ;
-
-   Put_Line("Everything is all right in the henhouse, let's go and do something else ...") ;
-end ;
+   Lay (CR, N, EF);
+   ER :=  Egg.Convert_Forward.From_Forward (EF);
+   Output ("the old chicken can still lay an egg",
+           N = 1 and then not Is_Nil (ER));
+end;
 
 
 
