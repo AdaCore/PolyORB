@@ -32,7 +32,6 @@
 ------------------------------------------------------------------------------
 
 with Ada.Streams;
-with Ada.Unchecked_Deallocation;
 
 with PolyORB.Buffers;
 with PolyORB.Log;
@@ -71,9 +70,6 @@ package body PolyORB.Binding_Data.GIOP.INET is
    is
       use PolyORB.Utils;
 
-      procedure Free is
-        new Ada.Unchecked_Deallocation (Profile_Type'Class, Profile_Access);
-
       TResult : GIOP_Profile_Type'Class
         renames GIOP_Profile_Type'Class (Profile.all);
       S       : constant String
@@ -86,8 +82,7 @@ package body PolyORB.Binding_Data.GIOP.INET is
 
       Index2 := Find (S, Index, '.');
       if Index2 = S'Last + 1 then
-         Release (Profile.all);
-         Free (Profile);
+         Destroy_Profile (Profile);
          return;
       end if;
       TResult.Version_Major := Octet'Value (S (Index .. Index2 - 1));
@@ -95,8 +90,7 @@ package body PolyORB.Binding_Data.GIOP.INET is
 
       Index2 := Find (S, Index, '@');
       if Index2 = S'Last + 1 then
-         Release (Profile.all);
-         Free (Profile);
+         Destroy_Profile (Profile);
          return;
       end if;
       TResult.Version_Minor := Octet'Value (S (Index .. Index2 - 1));
@@ -104,8 +98,7 @@ package body PolyORB.Binding_Data.GIOP.INET is
 
       Index2 := Find (S, Index, ':');
       if Index2 = S'Last + 1 then
-         Release (Profile.all);
-         Free (Profile);
+         Destroy_Profile (Profile);
          return;
       end if;
       pragma Debug (O ("Address = " & S (Index .. Index2 - 1)));
@@ -115,8 +108,7 @@ package body PolyORB.Binding_Data.GIOP.INET is
 
       Index2 := Find (S, Index, '/');
       if Index2 = S'Last + 1 then
-         Release (Profile.all);
-         Free (Profile);
+         Destroy_Profile (Profile);
          return;
       end if;
       pragma Debug (O ("Port = " & S (Index .. Index2 - 1)));
@@ -127,8 +119,7 @@ package body PolyORB.Binding_Data.GIOP.INET is
       TResult.Object_Id := new Object_Id'(To_Oid (S (Index .. S'Last)));
 
       if TResult.Object_Id = null then
-         Release (Profile.all);
-         Free (Profile);
+         Destroy_Profile (Profile);
          return;
       end if;
 
