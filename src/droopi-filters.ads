@@ -1,5 +1,21 @@
 --  A communication filter (a transport Data_Unit handler/forwarder).
 
+--  A protocol implementation can be considered as a stack of layers.
+--  Each layer exchanges messages with its immediate neighbours.
+--  Variations on the protocol, and adaptation and optimizations
+--  according to various environment an application constraints,
+--  can be implemented in a very modular and configurable fasion
+--  by adding or removing layers in the stack. This design was
+--  used for protocol implementation in the x-kernel. This unit
+--  defines abstract 'filter' components that can be used in such
+--  a stacked configuration.
+
+--  For further information, see:
+--    N. C. Hutchinson and L. L. Peterson
+--    "The x-kernel: An Architecture for Implementing Network Protocols",
+--    IEEE Transactions on Software Engineering,
+--    vol. 17, pp. 64--76, January 1991.
+
 --  $Id$
 
 with Droopi.Components; use Droopi.Components;
