@@ -4,23 +4,21 @@ with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree.Synthetic;
 with Idl_Fe.Errors; use Idl_Fe.Errors;
 with Ada_Be.Debug;
 
---  with Idl_Fe.Display_Tree;
-
 with GNAT.HTable;
 
 package body Ada_Be.Expansion is
 
-   --------------
-   --   Debug  --
-   --------------
+   -----------
+   -- Debug --
+   -----------
 
    Flag : constant Natural := Ada_Be.Debug.Is_Active ("ada_be.expansion");
    procedure O is new Ada_Be.Debug.Output (Flag);
 
 
    -----------------
-   --  Expand_Node --
-   ------------------
+   -- Expand_Node --
+   -----------------
 
    procedure Expand_Node (Node : in Node_Id) is
    begin
@@ -179,6 +177,7 @@ package body Ada_Be.Expansion is
    -----------------------
    --  Expand_Attribute --
    -----------------------
+
    procedure Expand_Attribute (Node : in Node_Id) is
       New_Node : Node_Id;
       Old_Node : Node_Id;

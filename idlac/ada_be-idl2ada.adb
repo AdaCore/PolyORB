@@ -128,7 +128,8 @@ package body Ada_Be.Idl2Ada is
       Object_Type : in String;
       Node : Node_Id);
    --  Generate the profile for an K_Operation node,
-   --  with the Self formal parameter of type Object_Type.
+   --  with the Self formal parameter mode and type taken
+   --  from the Object_Type string.
 
    procedure Gen_To_Ref
      (Stubs_Spec : in out Compilation_Unit;
@@ -145,6 +146,14 @@ package body Ada_Be.Idl2Ada is
      (Node : Node_Id)
      return String;
    --  The name of the Ada type that maps Node.
+
+   procedure Add_With_Stream
+     (CU : in out Compilation_Unit;
+      Node : Node_Id);
+   --  Add a semantic dependency of CU on the
+   --  package that contains the marshalling and
+   --  unmarshalling subprograms for the type defined
+   --  by Node.
 
    ---------------
    -- Shortcuts --
@@ -275,13 +284,10 @@ package body Ada_Be.Idl2Ada is
                   NL (Stubs_Spec);
                   PL (Stubs_Spec, "package Convert_Forward is");
                   PL (Stubs_Spec, "  new "
-                      & Ada_Full_Name (Forward_Node)
-                      & ".Convert (Ref_Type => Ref);");
+                      & Ada_Full_Name (Forward (Forward_Node))
+                      & "_Forward.Convert (Ref_Type => Ref);");
                end if;
             end;
-
-            Add_With (Skel_Body, "CORBA");
-            Add_With (Skel_Body, "Broca.GIOP");
 
             NL (Skel_Body);
             PL (Skel_Body, "type Object_Ptr is access all Object'Class;");
@@ -362,6 +368,8 @@ package body Ada_Be.Idl2Ada is
             PL (Skel_Spec, "private");
             II (Skel_Spec);
 
+            Add_With (Skel_Spec, "Broca.Buffers");
+
             NL (Skel_Spec);
             PL (Skel_Spec, "function Get_Type_Id");
             PL (Skel_Spec, "  (Obj : Object)");
@@ -376,6 +384,8 @@ package body Ada_Be.Idl2Ada is
                 "   Request_Buffer : access Broca.Buffers.Buffer_Type;");
             PL (Skel_Spec,
                 "   Reply_Buffer   : access Broca.Buffers.Buffer_Type);");
+
+            Add_With (Skel_Body, "Broca.Exceptions");
 
             NL (Skel_Body);
             PL (Skel_Body, "Broca.Exceptions.Raise_Bad_Operation;");
@@ -416,7 +426,7 @@ package body Ada_Be.Idl2Ada is
 
             NL (CU);
             if Parents (Node) = Nil_List then
-               Add_With (CU, "CORBA");
+               Add_With (CU, "CORBA.Object");
                Put (CU, "type Ref is new CORBA.Object.Ref with ");
             else
                declare
@@ -454,17 +464,17 @@ package body Ada_Be.Idl2Ada is
          when K_Interface =>
 
             NL (CU);
+            PL (CU, "type Object is");
             if Parents (Node) = Nil_List then
                Add_With (CU, "PortableServer");
-               Put (CU, "type Object is new PortableServer.Servant_Base");
+               Put (CU, "  abstract new PortableServer.Servant_Base");
             else
                declare
                   First_Parent_Name : constant String
                     := Ada_Full_Name (Head (Parents (Node)));
                begin
                   Add_With (CU, First_Parent_Name & ".Skel");
-                  Put (CU,
-                       "type Ref is new "
+                  Put (CU, "  abstract new "
                        & First_Parent_Name
                        & ".Skel.Object");
                end;
@@ -553,16 +563,9 @@ package body Ada_Be.Idl2Ada is
             null;
 
          when K_Forward_Interface =>
-            declare
-               Forward_Instanciation : Compilation_Unit
-                 := New_Package (Ada_Full_Name (Node), Unit_Spec);
-            begin
-               DI (Forward_Instanciation);
-               PL (Forward_Instanciation, "  new CORBA.Forward;");
-               Generate
-                 (Forward_Instanciation,
-                  Is_Generic_Instanciation => True);
-            end;
+            NL (CU);
+            PL (CU, "package " & Ada_Name (Forward (Node))
+                & "_Forward is new CORBA.Forward;");
 
          -----------------
          -- Value types --
@@ -585,24 +588,26 @@ package body Ada_Be.Idl2Ada is
 
          when K_Operation =>
 
-            Gen_Operation_Profile (CU, "Ref", Node);
+            Gen_Operation_Profile (CU, "in Ref", Node);
             PL (CU, ";");
 
             --        when K_Attribute =>
             --  null;
 
          when K_Exception =>
-            Add_With (CU, "Ada.Exceptions");
 
-            NL (CU);
-            PL (CU, Ada_Name (Node) & " : exception;");
-            NL (CU);
-            PL (CU, "procedure Get_Members");
-            PL (CU, "  (From : Ada.Exceptions.Exception_Occurrence;");
-            --  XXX FIXME & Ada_Name (Members_Type (Node))
-            PL (CU, "   To   : out "
-                & Ada_Name (Node) & "_Members"
-                & ");");
+            --  XXX Wait for expansion.
+            null;
+--              Add_With (CU, "Ada.Exceptions");
+--              NL (CU);
+--              PL (CU, Ada_Name (Node) & " : exception;");
+--              NL (CU);
+--              PL (CU, "procedure Get_Members");
+--              PL (CU, "  (From : Ada.Exceptions.Exception_Occurrence;");
+--              --  XXX FIXME & Ada_Name (Members_Type (Node))
+--              PL (CU, "   To   : out "
+--                  & Ada_Name (Node) & "_Members"
+--                  & ");");
 
          when K_Member =>
 
@@ -861,7 +866,7 @@ package body Ada_Be.Idl2Ada is
 
          when K_Operation =>
 
-            Gen_Operation_Profile (CU, "Object", Node);
+            Gen_Operation_Profile (CU, "access Object", Node);
             PL (CU, " is abstract;");
 
             --        when K_Attribute =>
@@ -881,6 +886,9 @@ package body Ada_Be.Idl2Ada is
       if Kind (Node) /= K_Operation then
          return;
       end if;
+
+      Add_With (CU, "Broca.CDR", Use_It => True);
+      Add_With (CU, "Broca.GIOP");
 
       declare
          Is_Function : constant Boolean
@@ -911,7 +919,8 @@ package body Ada_Be.Idl2Ada is
          end;
 
          if Is_Function then
-            PL (CU, "Returns : " & Ada_Type_Name (Operation_Type (Node))
+            PL (CU, "Returns : "
+                & Ada_Type_Name (Operation_Type (Node))
                 & ";");
          end if;
 
@@ -939,6 +948,8 @@ package body Ada_Be.Idl2Ada is
                   when
                     Mode_In    |
                     Mode_Inout =>
+                     Add_With_Stream (CU, Param_Type (P_Node));
+
                      PL (CU, "IDL_"
                          & Ada_Name (Declarator (P_Node))
                          & " := Unmarshall (Request_Buffer);");
@@ -1041,6 +1052,8 @@ package body Ada_Be.Idl2Ada is
                NL (CU);
                PL (CU, "--  Marshall exception");
                PL (CU, "Marshall (Reply_Buffer, Repository_Id);");
+               --  XXX Wait for expansion
+               --  XXX Add_With_Stream (CU, Members_Type (E_Node));
                PL (CU, "Marshall (Reply_Buffer, Members);");
                PL (CU, "return;");
                DI (CU);
@@ -1072,7 +1085,9 @@ package body Ada_Be.Idl2Ada is
          if Is_Function then
             NL (CU);
             PL (CU, "--  Marshall return value");
-            PL (CU, "Marshall (Reply_Buffer, Returns");
+            Add_With_Stream (CU, Operation_Type (Node));
+
+            PL (CU, "Marshall (Reply_Buffer, Returns);");
          end if;
 
          declare
@@ -1095,6 +1110,8 @@ package body Ada_Be.Idl2Ada is
                   when
                     Mode_Inout |
                     Mode_Out   =>
+                     Add_With_Stream (CU, Param_Type (P_Node));
+
                      PL (CU, "Marshall (Reply_Buffer, IDL_"
                          & Ada_Name (Declarator (P_Node)) & ");");
                   when others =>
@@ -1158,8 +1175,11 @@ package body Ada_Be.Idl2Ada is
                Response_Expected : constant Boolean
                  := not Is_Oneway (Node);
             begin
-               Add_With (CU, "CORBA");
+               Add_With (CU, "CORBA",
+                         Use_It    => False,
+                         Elaborate => True);
                Add_With (CU, "Broca.GIOP");
+               Add_With (CU, "Broca.Object");
 
                NL (CU);
                PL (CU, O_Name
@@ -1167,7 +1187,7 @@ package body Ada_Be.Idl2Ada is
                PL (CU, "  := CORBA.To_CORBA_String ("""
                          & O_Name & """);");
 
-               Gen_Operation_Profile (CU, "Ref", Node);
+               Gen_Operation_Profile (CU, "in Ref", Node);
                NL (CU);
                PL (CU, "is");
                II (CU);
@@ -1175,9 +1195,8 @@ package body Ada_Be.Idl2Ada is
                PL (CU, "Send_Request_Result : "
                          & "Broca.GIOP.Send_Request_Result_Type;");
                if Kind (O_Type) /= K_Void then
-                  --  XXX Add_With (O_Type.Stream)
-
-                  PL (CU, "Returns : " & Ada_Type_Name (O_Type));
+                  Add_With_Stream (CU, O_Type);
+                  PL (CU, "Returns : " & Ada_Type_Name (O_Type) & ";");
                end if;
                DI (CU);
                PL (CU, "begin");
@@ -1200,7 +1219,7 @@ package body Ada_Be.Idl2Ada is
                      P_Node := Get_Node (It);
                      Next (It);
 
-                     --  XXX Add_With (Param_Type (Node).Stream).
+                     Add_With_Stream (CU, Param_Type (P_Node));
 
                      case Mode (P_Node) is
                         when Mode_In | Mode_Inout =>
@@ -1211,8 +1230,8 @@ package body Ada_Be.Idl2Ada is
                               First := False;
                            end if;
                            PL
-                             (CU, "Marshall (Stream, " & Ada_Name
-                              (Declarator (P_Node)) & ");");
+                             (CU, "Marshall (Handler.Buffer'Access, "
+                              & Ada_Name (Declarator (P_Node)) & ");");
                         when others =>
                            null;
                      end case;
@@ -1234,7 +1253,7 @@ package body Ada_Be.Idl2Ada is
                if Kind (O_Type) /= K_Void then
                   NL (CU);
                   PL (CU, "--  Unmarshall return value.");
-                  PL (CU, "Returns := Unmarshall (Stream);");
+                  PL (CU, "Returns := Unmarshall (Handler.Buffer'Access);");
                end if;
 
                declare
@@ -1256,9 +1275,8 @@ package body Ada_Be.Idl2Ada is
                                  "--  Unmarshall inout and out parameters.");
                               First := False;
                            end if;
-                           PL (CU, Ada_Name
-                                     (Declarator (P_Node))
-                                     & ":= Unmarshall (Stream);");
+                           PL (CU, Ada_Name (Declarator (P_Node))
+                               & ":= Unmarshall (Handler.Buffer'Access);");
                         when others =>
                            null;
                      end case;
@@ -1280,17 +1298,12 @@ package body Ada_Be.Idl2Ada is
                DI (CU);
                PL (CU, "when Broca.GIOP.Sr_User_Exception =>");
                II (CU);
-               PL (CU, "declare");
-               II (CU);
-               PL (CU, "Exception_Repository_Id : constant CORBA.String");
-               PL (CU, "  := Unmarshall (Handler.Buffer'Access);");
-               DI (CU);
-               PL (CU, "begin");
-               II (CU);
+
                declare
                   It : Node_Iterator;
                   R_Node : Node_Id;
                   E_Node : Node_Id;
+                  First : Boolean := True;
                begin
                   Init (It, Raises (Node));
                   while not Is_End (It) loop
@@ -1300,21 +1313,38 @@ package body Ada_Be.Idl2Ada is
                      --  Each R_Node is a scoped name
                      --  that denotes an exception.
 
+                     if First then
+                        Add_With (CU, "Broca.Exceptions");
+
+                        PL (CU, "declare");
+                        II (CU);
+                        PL (CU,
+                            "Exception_Repository_Id : constant String");
+                        PL (CU, "  := CORBA.To_Standard_String");
+                        PL (CU, "  (Unmarshall (Handler.Buffer'Access));");
+                        DI (CU);
+                        PL (CU, "begin");
+                        II (CU);
+
+                        First := False;
+                     end if;
+
                      NL (CU);
                      PL (CU, "if Exception_Repository_Id");
-                     PL (CU, "  = """ & "XXXexcRepIdXXX" & """ then");
+                     PL (CU, "  = """
+                         & "XXXexcRepIdXXX" & """ then");
                      II (CU);
                      PL (CU, "declare");
                      II (CU);
                      PL (CU, "Members : constant "
                          & Ada_Full_Name (E_Node) & "_Members");
                      --  & Ada_Full_Name (Members_Type (E_Node)));
-                     --  XXX Add_With (E_Node.Marshall)
+                     --  XXX Add_With_Stream (Members_Type (E_Node))
                      PL (CU, "  := Unmarshall (Handler.Buffer'Access);");
                      DI (CU);
                      PL (CU, "begin");
                      II (CU);
-                     PL (CU, "User_Raise_Exception");
+                     PL (CU, "Broca.Exceptions.User_Raise_Exception");
                      PL (CU, "  (" & Ada_Full_Name (E_Node)
                          & "'Identity,");
                      PL (CU, "   Members);");
@@ -1325,8 +1355,12 @@ package body Ada_Be.Idl2Ada is
                   end loop;
                end;
                PL (CU, "raise Program_Error;");
-               DI (CU);
-               PL (CU, "end;");
+
+               if not Is_Empty (Raises (Node)) then
+                  DI (CU);
+                  PL (CU, "end;");
+               end if;
+
                DI (CU);
                PL (CU, "when Broca.GIOP.Sr_Forward =>");
                II (CU);
@@ -1341,20 +1375,23 @@ package body Ada_Be.Idl2Ada is
             end;
 
          when K_Exception =>
-            Add_With (CU, "Broca.Exceptions");
+            --  XXX Wait for expansion
+            null;
 
-            NL (CU);
-            PL (CU, "procedure Get_Members");
-            PL (CU, "  (From : Ada.Exceptions.Exception_Occurrence;");
-            --  XXX FIXME & Ada_Name (Members_Type (Node))
-            PL (CU, "   To   : out "
-                & Ada_Name (Node) & "_Members"
-                & ") is");
-            PL (CU, "begin");
-            II (CU);
-            PL (CU, "Broca.Exceptions.User_Get_Members (From, To);");
-            DI (CU);
-            PL (CU, "end Get_Members;");
+--              Add_With (CU, "Broca.Exceptions");
+--
+--              NL (CU);
+--              PL (CU, "procedure Get_Members");
+--              PL (CU, "  (From : Ada.Exceptions.Exception_Occurrence;");
+--              --  XXX FIXME & Ada_Name (Members_Type (Node))
+--              PL (CU, "   To   : out "
+--                  & Ada_Name (Node) & "_Members"
+--                  & ") is");
+--              PL (CU, "begin");
+--              II (CU);
+--              PL (CU, "Broca.Exceptions.User_Get_Members (From, To);");
+--              DI (CU);
+--              PL (CU, "end Get_Members;");
 
 
          when others =>
@@ -1445,7 +1482,7 @@ package body Ada_Be.Idl2Ada is
             --  Formals
 
             NL (CU);
-            Put (CU, "  (Self : in " & Object_Type);
+            Put (CU, "  (Self : " & Object_Type);
             II (CU);
 
             declare
@@ -1491,7 +1528,18 @@ package body Ada_Be.Idl2Ada is
             --  XXX Add_With for Param_Type (Node)
             Gen_Operation_Profile
               (CU, Object_Type, Param_Type (Node));
+            if Is_Interface_Type (Node) then
+               --  An operation of an interface is a
+               --  primitive operation of the tagged type
+               --  that maps this interface. If it has
+               --  other formal parameters that are object
+               --  references as well, the operation cannot
+               --  be a primitive operation of their tagged
+               --  types as well.
+               --  (Ada RTF issue #2459).
 
+               Put (CU, "'Class");
+            end if;
          when others =>
             Gen_Node_Default (CU, Node);
 
@@ -1505,6 +1553,8 @@ package body Ada_Be.Idl2Ada is
       Stmt_Template    : String)
    is
       Indices_Pos : Natural := Stmt_Template'Last + 1;
+      Prefix_End, Suffix_Start : Natural;
+
    begin
       for I in Stmt_Template'Range loop
          if Stmt_Template (I) = '%' then
@@ -1515,13 +1565,21 @@ package body Ada_Be.Idl2Ada is
 
       pragma Assert (Indices_Pos in Stmt_Template'Range);
 
+      Prefix_End := Indices_Pos - 1;
+      while Prefix_End >= Stmt_Template'First and then
+        Stmt_Template (Prefix_End) = ' ' loop
+         Prefix_End := Prefix_End - 1;
+      end loop;
+
+      Suffix_Start := Indices_Pos + 1;
+
       declare
          Stmt_Prefix : constant String
            := Stmt_Template
-           (Stmt_Template'First .. Indices_Pos - 1);
+           (Stmt_Template'First .. Prefix_End);
          Stmt_Suffix : constant String
            := Stmt_Template
-           (Indices_Pos + 1 .. Stmt_Template'Last);
+           (Suffix_Start .. Stmt_Template'Last);
       begin
          for Dimen in 1 .. Array_Dimensions loop
             declare
@@ -1553,7 +1611,7 @@ package body Ada_Be.Idl2Ada is
                Put (CU, "I_" & D);
             end;
          end loop;
-         PL (CU, ") " & Stmt_Suffix);
+         PL (CU, ")" & Stmt_Suffix);
          for Dimen in 1 .. Array_Dimensions loop
             DI (CU);
             PL (CU, "end loop;");
@@ -1575,7 +1633,7 @@ package body Ada_Be.Idl2Ada is
 
             declare
                S_Name : constant String
-                 := Ada_Name (Node);
+                 := Ada_Type_Name (Node);
             begin
                NL (CU);
                Gen_Marshall_Profile (CU, S_Name);
@@ -1592,8 +1650,7 @@ package body Ada_Be.Idl2Ada is
                      Member_Node := Get_Node (It);
                      Next (It);
 
-                     --  XXX Add_With for M_Type (Member_Node)
-                     --  marshalling subprograms.
+                     Add_With_Stream (CU, M_Type (Member_Node));
 
                      declare
                         DIt   : Node_Iterator;
@@ -1604,7 +1661,7 @@ package body Ada_Be.Idl2Ada is
                            Decl_Node := Get_Node (DIt);
                            Next (DIt);
 
-                           PL (CU, "Marshall (Stream, Val."
+                           PL (CU, "Marshall (Buffer, Val."
                                      & Ada_Name (Decl_Node)
                                      & ");");
                         end loop;
@@ -1645,7 +1702,7 @@ package body Ada_Be.Idl2Ada is
 
                            PL (CU, "Returns."
                                      & Ada_Name (Decl_Node)
-                                     & " := Unmarshall (Stream);");
+                                     & " := Unmarshall (Buffer);");
                         end loop;
                      end;
 
@@ -1660,7 +1717,7 @@ package body Ada_Be.Idl2Ada is
 
             declare
                U_Name : constant String
-                 := Ada_Name (Node);
+                 := Ada_Type_Name (Node);
             begin
                NL (CU);
                Gen_Marshall_Profile (CU, U_Name);
@@ -1668,10 +1725,8 @@ package body Ada_Be.Idl2Ada is
                PL (CU, "begin");
                II (CU);
 
-               --  XXX Add_With for marshalling of
-               --  Switch_Type (Node).
-
-               PL (CU, "Marshall (Stream, Val.Switch);");
+               Add_With_Stream (CU, Switch_Type (Node));
+               PL (CU, "Marshall (Buffer, Val.Switch);");
                PL (CU, "case Val.Switch is");
                II (CU);
 
@@ -1688,9 +1743,8 @@ package body Ada_Be.Idl2Ada is
                      NL (CU);
                      Gen_When_Clause (CU, Case_Node, Has_Default);
                      II (CU);
-                     --  XXX Add_With for marshalling of
-                     --  Case_Type (Case_Node);
-                     PL (CU, "Marshall (Stream, Val."
+                     Add_With_Stream (CU, Case_Type (Case_Node));
+                     PL (CU, "Marshall (Buffer, Val."
                                & Ada_Name
                                (Case_Decl (Case_Node))
                                & ");");
@@ -1718,7 +1772,7 @@ package body Ada_Be.Idl2Ada is
                DI (CU);
                PL (CU, "begin");
                II (CU);
-               PL (CU, "Switch := Unmarshall (Stream);");
+               PL (CU, "Switch := Unmarshall (Buffer);");
                NL (CU);
                PL (CU, "declare");
                II (CU);
@@ -1726,7 +1780,7 @@ package body Ada_Be.Idl2Ada is
                DI (CU);
                PL (CU, "begin");
                II (CU);
-               PL (CU, "case Val.Switch is");
+               PL (CU, "case Switch is");
                II (CU);
 
                declare
@@ -1744,7 +1798,7 @@ package body Ada_Be.Idl2Ada is
                      II (CU);
                      PL (CU, "Returns."
                          & Ada_Name (Case_Decl (Case_Node))
-                         & " := Unmarshall (Stream);");
+                         & " := Unmarshall (Buffer);");
                      DI (CU);
 
                   end loop;
@@ -1767,7 +1821,7 @@ package body Ada_Be.Idl2Ada is
 
             declare
                E_Name : constant String
-                 := Ada_Name (Node);
+                 := Ada_Type_Name (Node);
             begin
                Add_With (CU, "CORBA");
                Add_With (CU, "Broca.CDR", Use_It => True);
@@ -1778,7 +1832,7 @@ package body Ada_Be.Idl2Ada is
                PL (CU, "begin");
                II (CU);
                PL (CU, "Marshall");
-               PL (CU, "  (Stream,");
+               PL (CU, "  (Buffer,");
                PL (CU, "   CORBA.Unsigned_Long ("
                          & E_Name & "'Pos (Val)));");
                DI (CU);
@@ -1793,7 +1847,7 @@ package body Ada_Be.Idl2Ada is
                          &"'Val");
                PL
                  (CU,
-                  "  (CORBA.Unsigned_Long'(Unmarshall (Stream));");
+                  "  (CORBA.Unsigned_Long'(Unmarshall (Buffer)));");
                DI (CU);
                PL (CU, "end Unmarshall;");
             end;
@@ -1813,9 +1867,7 @@ package body Ada_Be.Idl2Ada is
                      It   : Node_Iterator;
                      Decl_Node : Node_Id;
                   begin
-                     --  XXX Add_With for
-                     --  <Scope (Base_Type_Node)>.Stream;
-
+                     Add_With_Stream (CU, T_Type (Node));
                      Init (It, Declarators (Node));
                      while not Is_End (It) loop
                         Decl_Node := Get_Node (It);
@@ -1823,7 +1875,7 @@ package body Ada_Be.Idl2Ada is
 
                         declare
                            Type_Name : constant String
-                             := Ada_Name (Decl_Node);
+                             := Ada_Type_Name (Decl_Node);
                            Array_Dimensions : constant Natural
                              := Length (Array_Bounds (Decl_Node));
                         begin
@@ -1835,14 +1887,14 @@ package body Ada_Be.Idl2Ada is
                            II (CU);
                            if Array_Dimensions = 0 then
                               PL (CU, "Marshall");
-                              PL (CU, "  (Stream,");
+                              PL (CU, "  (Buffer,");
                               PL (CU, "   "
                                         & Base_Type_Name
                                         & " (Val));");
                            else
                               Gen_Array_Iterator
                                 (CU, "Val", Array_Dimensions,
-                                 "Marshall (Stream, Val %);");
+                                 "Marshall (Buffer, Val %);");
                            end if;
                            DI (CU);
                            PL (CU, "end Marshall;");
@@ -1856,7 +1908,7 @@ package body Ada_Be.Idl2Ada is
                               II (CU);
                               PL (CU, "return " & Type_Name);
                               PL (CU, "  (" & Base_Type_Name & "'");
-                              PL (CU, "   (Unmarshall (Stream)));");
+                              PL (CU, "   (Unmarshall (Buffer)));");
                            else
                               NL (CU);
                               PL (CU, "is");
@@ -1868,7 +1920,7 @@ package body Ada_Be.Idl2Ada is
 
                               Gen_Array_Iterator
                                 (CU, "Returns", Array_Dimensions,
-                                 "Returns % := Unmarshall (Stream);");
+                                 "Returns % := Unmarshall (Buffer);");
                            end if;
                            PL (CU, "return Returns;");
 
@@ -1883,14 +1935,14 @@ package body Ada_Be.Idl2Ada is
          when K_Interface =>
             declare
                I_Name : constant String
-                 := Ada_Name (Node);
+                 := Ada_Type_Name (Node);
             begin
                NL (CU);
                Gen_Marshall_Profile (CU, I_Name);
                PL (CU, " is");
                PL (CU, "begin");
                II (CU);
-               PL (CU, "Marshall_Reference (Stream, Val);");
+               PL (CU, "Marshall_Reference (Buffer, Val);");
                DI (CU);
                PL (CU, "end Marshall;");
 
@@ -1902,7 +1954,7 @@ package body Ada_Be.Idl2Ada is
                DI (CU);
                PL (CU, "begin");
                II (CU);
-               PL (CU, "Unmarshall_Reference (Stream, New_Ref);");
+               PL (CU, "Unmarshall_Reference (Buffer, New_Ref);");
                PL (CU, "return New_Ref;");
                DI (CU);
                PL (CU, "end Unmarshall;");
@@ -2109,6 +2161,60 @@ package body Ada_Be.Idl2Ada is
       end case;
    end Ada_Type_Name;
 
+   procedure Add_With_Stream
+     (CU : in out Compilation_Unit;
+      Node : Node_Id)
+   is
+      NK : constant Node_Kind
+        := Kind (Node);
+   begin
+      case NK is
+         when K_Interface =>
+            Add_With (CU, Ada_Full_Name (Node) & Stream_Suffix,
+                      Use_It => True);
+
+         when
+           K_Enum   |
+           K_Union  |
+           K_Struct |
+           K_Declarator =>
+            Add_With (CU, Ada_Full_Name (Parent_Scope (Node))
+                      & Stream_Suffix,
+                      Use_It => True);
+
+         when K_Scoped_Name =>
+            Add_With_Stream (CU, Value (Node));
+
+         when
+           K_Short              |
+           K_Long               |
+           K_Long_Long          |
+           K_Unsigned_Short     |
+           K_Unsigned_Long      |
+           K_Unsigned_Long_Long |
+           K_Char               |
+           K_Wide_Char          |
+           K_Boolean            |
+           K_Float              |
+           K_Double             |
+           K_Long_Double        |
+           K_String             |
+           K_Wide_String        |
+           K_Octet              =>
+            Add_With (CU, "Broca.CDR",
+                      Use_It => True);
+
+         when others =>
+            --  Improper use: node N is not
+            --  mapped to an Ada type.
+
+            Ada.Text_IO.Put_Line ("Error: A "
+                                  & NK'Img
+                                  & " does not denote a type.");
+            raise Program_Error;
+      end case;
+   end Add_With_Stream;
+
    procedure Gen_To_Ref
      (Stubs_Spec : in out Compilation_Unit;
       Stubs_Body : in out Compilation_Unit) is
@@ -2120,6 +2226,9 @@ package body Ada_Be.Idl2Ada is
       PL (Stubs_Spec, "function To_Ref");
       PL (Stubs_Spec, "  (The_Ref : in CORBA.Object.Ref'Class)");
       PL (Stubs_Spec, "  return Ref;");
+
+      Add_With (Stubs_Body, "Broca.Refs");
+      Add_With (Stubs_Body, "Broca.Exceptions");
 
       NL (Stubs_Body);
       PL (Stubs_Body, "function Unchecked_To_Ref");

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.15 $
+--                            $Revision: 1.16 $
 --                                                                          --
 --            Copyright (C) 1999 ENST Paris University, France.             --
 --                                                                          --
@@ -26,21 +26,15 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with All_Types.Skel;
---  with All_Types_IDL_FILE;
+with all_types.Skel;
+--  with all_types_IDL_FILE;
 with CORBA;
 
 package all_types.Impl is
    --  My own implementation of echo object.
    --  This is simply used to define the operations.
 
-   type Object is new All_Types.Skel.Object with private;
-
-   type Object_Acc is access all Object;
-
-private
-
-   type Object is new All_Types.Skel.Object with record
+   type Object is new all_types.Skel.Object with record
       Attr_My_Color : Color := Blue;
       Attr_Counter  : CORBA.Long := 0;
    end record;
@@ -97,8 +91,8 @@ private
 
    function echoRef
      (Self : access Object;
-      arg : in All_Types.Ref)
-      return All_Types.Ref;
+      arg : in all_types.Ref)
+      return all_types.Ref;
 
    function echoColor
      (Self : access Object;
@@ -107,8 +101,8 @@ private
 
    function echoArray
      (Self : access Object;
-      Arg : in Simple_Array)
-      return Simple_Array;
+      Arg : in simple_array)
+      return simple_array;
 
    function echoMatrix
      (Self : access Object;
@@ -121,19 +115,18 @@ private
 
    function echoStruct
      (Self : access Object;
-      arg  : in Simple_Struct)
-      return Simple_Struct;
-
+      arg  : in simple_struct)
+      return simple_struct;
 
    function echoUnion
      (Self : access Object;
       arg : in myUnion)
      return myUnion;
 
-   function echoUsequence
-     (Self : access Object;
-      arg : in U_sequence)
-      return U_sequence;
+--     function echoUsequence
+--       (Self : access Object;
+--        arg : in U_sequence)
+--        return U_sequence;
 
    procedure Set_MyColor
      (Self : access Object;

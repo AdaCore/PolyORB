@@ -1,5 +1,5 @@
 --  A stream type suitable for generation of Ada source code.
---  $Id: //depot/adabroker/main/idlac/ada_be-source_streams.adb#3 $
+--  $Id: //depot/adabroker/main/idlac/ada_be-source_streams.adb#4 $
 
 with Ada.Characters.Handling; use Ada.Characters.Handling;
 with Ada.Characters.Latin_1; use Ada.Characters.Latin_1;
@@ -56,7 +56,8 @@ package body Ada_Be.Source_Streams is
    procedure Add_With
      (Unit   : in out Compilation_Unit;
       Dep    : String;
-      Use_It : Boolean := False)
+      Use_It : Boolean := False;
+      Elaborate : Boolean := False)
    is
       Dep_Node : Dependency := Unit.Context_Clause;
    begin
@@ -68,10 +69,12 @@ package body Ada_Be.Source_Streams is
          Dep_Node := new Dependency_Node'
            (Library_Unit => new String'(Dep),
             Use_It => Use_It,
+            Elaborate => Elaborate,
             Next => Unit.Context_Clause);
          Unit.Context_Clause := Dep_Node;
       else
          Dep_Node.Use_It := Dep_Node.Use_It or else Use_It;
+         Dep_Node.Elaborate := Dep_Node.Elaborate or else Elaborate;
       end if;
 
    end Add_With;
@@ -133,9 +136,15 @@ package body Ada_Be.Source_Streams is
 
       Create (File, Out_File, File_Name);
       while Dep_Node /= null loop
-         Put_Line (File, "with " & Dep_Node.Library_Unit.all & ";");
+         Put (File, "with " & Dep_Node.Library_Unit.all & ";");
          if Dep_Node.Use_It then
-            Put_Line (File, "use " & Dep_Node.Library_Unit.all & ";");
+            Put_Line (File, " use " & Dep_Node.Library_Unit.all & ";");
+         else
+            New_Line (File);
+         end if;
+         if Dep_Node.Elaborate then
+            Put_Line (File, "pragma Elaborate_All ("
+                      & Dep_Node.Library_Unit.all & ");");
          end if;
          Dep_Node := Dep_Node.Next;
       end loop;

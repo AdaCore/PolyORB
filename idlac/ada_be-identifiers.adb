@@ -17,7 +17,7 @@ package body Ada_Be.Identifiers is
 
          when K_Repository =>
             --  XXX Should be an error.
-            return "REPOSITORY";
+            return "";
 
          when others =>
             declare
@@ -25,35 +25,30 @@ package body Ada_Be.Identifiers is
                  := Parent_Scope (Node);
             begin
                if P_Node = No_Node then
-                  return "ANONYMOUS_Parent." & Name (Node);
+                  return "NO_PARENT." & Name (Node);
                end if;
 
                if Kind (P_Node) = K_Ben_IDL_File
                  and then Is_Gen_Scope (Node) then
                   return Name (Node);
                else
-                  return Ada_Full_Name (Parent_Scope (Node))
-                    & "." & Name (Node);
+                  --  return Ada_Full_Name (Parent_Scope (Node))
+                  --    & "." & Name (Node);
+                  --  XXX TEMPORARY WORKAROUND
+                  declare
+                     FN : constant String
+                       := Ada_Full_Name (Parent_Scope (Node));
+                  begin
+                     if FN'Length = 0 then
+                        return Name (Node);
+                     else
+                        return FN & "." & Name (Node);
+                     end if;
+                  end;
                end if;
             end;
       end case;
    end Ada_Full_Name;
-
---     function Ada_Name
---       (Node : Node_Id)
---       return String
---     is
---        Full_Name : constant String
---          := Ada_Full_Name (Node);
---        Last_Dot : Integer := Full_Name'First - 1;
---     begin
---        for I in Full_Name'Range loop
---           if Full_Name (I) = '.' then
---              Last_Dot := Integer (I);
---           end if;
---        end loop;
---        return Full_Name (Last_Dot + 1 .. Full_Name'Last);
---     end Ada_Name;
 
    function Ada_Name
      (Node : Node_Id)

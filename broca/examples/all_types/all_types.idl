@@ -12,7 +12,7 @@ interface all_types {
   char echoChar(in char arg) ;
   octet echoOctet (in octet arg) ;
   string echoString (in string arg) ;
-  all_types echoRef (in all_types arg);
+  // all_types echoRef (in all_types arg);
 
   // Enum
   //-----
@@ -24,7 +24,6 @@ interface all_types {
   exception my_exception {long info;};
 
   void testException (in long arg) raises (my_exception);
-
 
   // Unions
   //-------
@@ -48,12 +47,17 @@ interface all_types {
   // Structs
   //--------
   struct simple_struct {
+      long a;
+      string s;
+  };
+  simple_struct echoStruct (in simple_struct arg);
+
+#if 0
+  struct array_struct {
       long a[10];
       string s;
   };
-
-  simple_struct echoStruct (in simple_struct arg);
-
+  array_struct echoArrayStruct (in array_struct arg);
 
   // Sequences
   //----------
@@ -65,4 +69,5 @@ interface all_types {
   //-----------
   readonly attribute long Counter;
   attribute Color myColor;
+#endif
 };
