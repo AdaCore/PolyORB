@@ -133,7 +133,7 @@ package Corba.Object is
    ---        AdaBroker  specific                 ---
    --------------------------------------------------
 
-   Repository_Id : Corba.String := Corba.To_Corba_String("IDL:omg.org/CORBA/Object:1.0") ;
+   Repository_Id : Corba.String := Corba.To_Corba_String(Standard.String'("IDL:omg.org/CORBA/Object:1.0")) ;
    -- Repository Id for Corba.Object.Ref
 
    function Get_Repository_Id(Self : in Ref) return Corba.String ;

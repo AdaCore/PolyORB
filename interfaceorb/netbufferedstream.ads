@@ -298,7 +298,7 @@ package NetBufferedStream is
    -- UnMarshalls a Corba system exception from a netbufferedstream object
 
 
-   function Align_Size (A : in Corba.Ex_Body ;
+   function Align_Size (A : in Corba.Ex_Body'Class ;
                         Initial_Offset : in Corba.Unsigned_Long ;
                         N : in Corba.Unsigned_Long := 1)
                         return Corba.Unsigned_Long ;

@@ -57,8 +57,13 @@ with Ada.Unchecked_Deallocation ;
 with Interfaces ;
 with Interfaces.C.Strings ;
 
+with Constants ;
+with Adabroker_Debug ;
+pragma Elaborate(Adabroker_Debug) ;
+
 package Corba is
 
+   Corba_debug : constant Boolean := Adabroker_Debug.Is_Active("corba") ;
    -----------------------------------------------------------
    ----           base types in spec                       ---
    -----------------------------------------------------------
@@ -266,8 +271,13 @@ package Corba is
     function To_Corba_String(S: in Standard.String) return Corba.String ;
     -- transforms a standard string into the correponding corba string
 
-
     function To_Standard_String(S: in Corba.String) return Standard.String ;
+    -- transforms a corba string into the correponding standard string
+
+    function To_Corba_String(S: in Constants.Exception_Id) return Corba.String ;
+    -- transforms a standard string into the correponding corba string
+
+    function To_Exception_Id(S: in Corba.String) return Constants.Exception_Id ;
     -- transforms a corba string into the correponding standard string
 
 

@@ -270,9 +270,9 @@ adabe_interface::produce_ads(dep_list &with, string &body, string &previous)
   body += "   -----------------------------\n\n";
   
   // Repository ID : it is string that designate this interface
-  body += "   Repository_Id : constant Corba.String := Corba.To_Corba_String(\"";
+  body += "   Repository_Id : constant Corba.String := Corba.To_Corba_String(Standard.String'(\"";
   body += repositoryID();
-  body += "\") ;\n\n";
+  body += "\")) ;\n\n";
 
   // function Get_Repository_ID : return the repository ID
   body += "   function Get_Repository_Id(Self : in Ref)\n";

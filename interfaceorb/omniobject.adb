@@ -57,7 +57,7 @@ with System ;
 use type System.Address ;
 
 with Corba ;
-with Corba.Constants ;
+with Constants ;
 use type Corba.String ;
 use type Corba.Unsigned_Long ;
 with Corba.Exceptions ;
@@ -779,19 +779,19 @@ package body OmniObject is
                       Orl_Response_Expected : in Corba.Boolean ;
                       Success : out Corba.Boolean) is
 
-      procedure MarshallSystemException(repoid : in Corba.String ;
-                                        Exbd : in Corba.Ex_Body ;
+      procedure MarshallSystemException(repoid : in Constants.Exception_ID ;
+                                        Exbd : in Corba.Ex_Body'Class ;
                                         Orls : in out Giop_S.Object) is
          Msgsize : Corba.Unsigned_Long := 0 ;
       begin
          pragma Debug(Output(Omniobject,"Dispatch : Marshalling System Exception : "
-                             & Corba.To_Standard_String(Repoid))) ;
+                             & Constants.To_Standard_String(Repoid))) ;
          pragma Debug(Output(Omniobject,"Dispatch : Marshalling System Exception : "
                              & " msgsize = " & Corba.Unsigned_Long'Image(Msgsize))) ;
          Msgsize := Giop_S.Reply_Header_Size ;
          pragma Debug(Output(Omniobject,"Dispatch : Marshalling System Exception : "
                              & " msgsize = " & Corba.Unsigned_Long'Image(Msgsize))) ;
-         Msgsize := Netbufferedstream.Align_size(repoid, Msgsize) ;
+         Msgsize := Netbufferedstream.Align_size(Corba.To_Corba_String(Repoid), Msgsize) ;
          pragma Debug(Output(Omniobject,"Dispatch : Marshalling System Exception : "
                              & " msgsize = " & Corba.Unsigned_Long'Image(Msgsize))) ;
          Msgsize := Netbufferedstream.Align_size(Exbd, Msgsize) ;
@@ -799,8 +799,8 @@ package body OmniObject is
                              & " msgsize = " & Corba.Unsigned_Long'Image(Msgsize))) ;
          Giop_S.Initialize_Reply(Orls,Giop.SYSTEM_EXCEPTION, Msgsize) ;
          pragma Debug(Output(Omniobject,"Dispatch : Marshalling System Exception : "
-                             & " Initialize reply OK")) ;
-         Netbufferedstream.Marshall(Repoid, Orls) ;
+                             & " Initialize reply OK ")) ;
+         Netbufferedstream.Marshall(Corba.To_Corba_String(Repoid), Orls) ;
          pragma Debug(Output(Omniobject,"Dispatch : Marshalling System Exception : "
                              & " repoid marhshalled OK")) ;
          Netbufferedstream.Marshall(Exbd, Orls) ;
@@ -811,7 +811,6 @@ package body OmniObject is
                              & " reply completed OK")) ;
       end ;
 
-      Exbd : Corba.Ex_Body ;
    begin
       pragma Debug(Output(Omniobject,
                           "Omniobject.Dispatch : about to make dispatching call")) ;
@@ -836,98 +835,221 @@ package body OmniObject is
             return ;
          exception
             when E : Corba.Unknown =>
-              Corba.Get_Members(E, Exbd) ;
-              MarshallSystemException(Corba.Constants.Unknown_Repoid, Exbd, Orls) ;
+               declare
+                  Exbd : Corba.Unknown_Members ;
+               begin
+                  Corba.Get_Members(E, Exbd) ;
+                  MarshallSystemException(Constants.Unknown_Repoid, Exbd, Orls) ;
+               end ;
             when E : Corba.Bad_param =>
-              Corba.Get_Members(E, Exbd) ;
-              MarshallSystemException(Corba.Constants.Bad_param_Repoid, Exbd, Orls) ;
+               declare
+                  Exbd : Corba.Bad_Param_Members ;
+               begin
+                  Corba.Get_Members(E, Exbd) ;
+                  MarshallSystemException(Constants.Bad_param_Repoid, Exbd, Orls) ;
+               end ;
             when E : Corba.No_memory =>
-              Corba.Get_Members(E, Exbd) ;
-              MarshallSystemException(Corba.Constants.No_memory_Repoid, Exbd, Orls) ;
+               declare
+                  Exbd : Corba.No_Memory_Members ;
+               begin
+                  Corba.Get_Members(E, Exbd) ;
+                  MarshallSystemException(Constants.No_memory_Repoid, Exbd, Orls) ;
+               end ;
             when E : Corba.Imp_limit =>
-              Corba.Get_Members(E, Exbd) ;
-              MarshallSystemException(Corba.Constants.Imp_limit_Repoid, Exbd, Orls) ;
+               declare
+                  Exbd : Corba.Imp_Limit_Members ;
+               begin
+                  Corba.Get_Members(E, Exbd) ;
+                  MarshallSystemException(Constants.Imp_limit_Repoid, Exbd, Orls) ;
+               end ;
             when E : Corba.Comm_failure =>
-              Corba.Get_Members(E, Exbd) ;
-              MarshallSystemException(Corba.Constants.Comm_failure_Repoid, Exbd, Orls) ;
+               declare
+                  Exbd : Corba.Comm_Failure_Members ;
+               begin
+                  Corba.Get_Members(E, Exbd) ;
+                  MarshallSystemException(Constants.Comm_failure_Repoid, Exbd, Orls) ;
+               end ;
             when E : Corba.Inv_Objref =>
-              Corba.Get_Members(E, Exbd) ;
-              MarshallSystemException(Corba.Constants.Inv_objref_Repoid, Exbd, Orls) ;
+               declare
+                  Exbd : Corba.Inv_Objref_Members ;
+               begin
+                  Corba.Get_Members(E, Exbd) ;
+                  MarshallSystemException(Constants.Inv_objref_Repoid, Exbd, Orls) ;
+               end ;
             when E : Corba.No_permission =>
-              Corba.Get_Members(E, Exbd) ;
-              MarshallSystemException(Corba.Constants.No_permission_Repoid, Exbd, Orls) ;
+               declare
+                  Exbd : Corba.No_permission_Members ;
+               begin
+                  Corba.Get_Members(E, Exbd) ;
+                  MarshallSystemException(Constants.No_permission_Repoid, Exbd, Orls) ;
+               end ;
             when E : Corba.internal =>
-              Corba.Get_Members(E, Exbd) ;
-              MarshallSystemException(Corba.Constants.internal_Repoid, Exbd, Orls) ;
+               declare
+                  Exbd : Corba.Internal_Members ;
+               begin
+                  Corba.Get_Members(E, Exbd) ;
+                  MarshallSystemException(Constants.internal_Repoid, Exbd, Orls) ;
+               end ;
             when E : Corba.marshal =>
-              Corba.Get_Members(E, Exbd) ;
-              MarshallSystemException(Corba.Constants.Unknown_Repoid, Exbd, Orls) ;
+               declare
+                  Exbd : Corba.Marshal_Members ;
+               begin
+                  Corba.Get_Members(E, Exbd) ;
+                  MarshallSystemException(Constants.Unknown_Repoid, Exbd, Orls) ;
+               end ;
             when E : Corba.Initialization_failure =>
-              Corba.Get_Members(E, Exbd) ;
-              MarshallSystemException(Corba.Constants.Initialization_failure_Repoid, Exbd, Orls) ;
+               declare
+                  Exbd : Corba.Initialization_failure_Members ;
+               begin
+                  Corba.Get_Members(E, Exbd) ;
+                  MarshallSystemException(Constants.Initialization_failure_Repoid, Exbd, Orls) ;
+               end ;
             when E : Corba.No_implement =>
-              Corba.Get_Members(E, Exbd) ;
-              MarshallSystemException(Corba.Constants.No_implement_Repoid, Exbd, Orls) ;
+               declare
+                  Exbd : Corba.No_implement_Members ;
+               begin
+                  Corba.Get_Members(E, Exbd) ;
+                  MarshallSystemException(Constants.No_implement_Repoid, Exbd, Orls) ;
+               end ;
             when E : Corba.Bad_typecode =>
-              Corba.Get_Members(E, Exbd) ;
-              MarshallSystemException(Corba.Constants.Bad_typecode_Repoid, Exbd, Orls) ;
+               declare
+                  Exbd : Corba.Bad_typecode_Members ;
+               begin
+                  Corba.Get_Members(E, Exbd) ;
+                  MarshallSystemException(Constants.Bad_typecode_Repoid, Exbd, Orls) ;
+               end ;
             when E : Corba.Bad_operation =>
-              Corba.Get_Members(E, Exbd) ;
-              MarshallSystemException(Corba.Constants.Bad_operation_Repoid, Exbd, Orls) ;
+               declare
+                  Exbd : Corba.Bad_operation_Members ;
+               begin
+                  Corba.Get_Members(E, Exbd) ;
+                  MarshallSystemException(Constants.Bad_operation_Repoid, Exbd, Orls) ;
+               end ;
             when E : Corba.No_resources =>
-              Corba.Get_Members(E, Exbd) ;
-              MarshallSystemException(Corba.Constants.No_Resources_Repoid, Exbd, Orls) ;
+               declare
+                  Exbd : Corba.No_resources_Members ;
+               begin
+                  Corba.Get_Members(E, Exbd) ;
+                  MarshallSystemException(Constants.No_Resources_Repoid, Exbd, Orls) ;
+               end ;
             when E : Corba.Persist_store =>
-              Corba.Get_Members(E, Exbd) ;
-              MarshallSystemException(Corba.Constants.Persist_store_Repoid, Exbd, Orls) ;
+               declare
+                  Exbd : Corba.Persist_store_Members ;
+               begin
+                  Corba.Get_Members(E, Exbd) ;
+                  MarshallSystemException(Constants.Persist_store_Repoid, Exbd, Orls) ;
+               end ;
             when E : Corba.Bad_Inv_order =>
-              Corba.Get_Members(E, Exbd) ;
-              MarshallSystemException(Corba.Constants.Bad_Inv_order_Repoid, Exbd, Orls) ;
-            when E : Corba.transient =>
-              Corba.Get_Members(E, Exbd) ;
-              MarshallSystemException(Corba.Constants.transient_Repoid, Exbd, Orls) ;
-            when E : Corba.Free_mem =>
-              Corba.Get_Members(E, Exbd) ;
-              MarshallSystemException(Corba.Constants.Free_mem_Repoid, Exbd, Orls) ;
+               declare
+                  Exbd : Corba.Bad_Inv_order_Members ;
+               begin
+                  Corba.Get_Members(E, Exbd) ;
+                  MarshallSystemException(Constants.Bad_Inv_order_Repoid, Exbd, Orls) ;
+               end ;
+            when E : Corba.Transient =>
+               declare
+                  Exbd : Corba.Transient_Members ;
+               begin
+                  Corba.Get_Members(E, Exbd) ;
+                  MarshallSystemException(Constants.transient_Repoid, Exbd, Orls) ;
+               end ;
+            when E : Corba.Free_Mem =>
+               declare
+                  Exbd : Corba.Free_Mem_Members ;
+               begin
+                  Corba.Get_Members(E, Exbd) ;
+                  MarshallSystemException(Constants.Free_mem_Repoid, Exbd, Orls) ;
+               end ;
             when E : Corba.Inv_ident =>
-              Corba.Get_Members(E, Exbd) ;
-              MarshallSystemException(Corba.Constants.Inv_ident_Repoid, Exbd, Orls) ;
+               declare
+                  Exbd : Corba.Inv_ident_Members ;
+               begin
+                  Corba.Get_Members(E, Exbd) ;
+                  MarshallSystemException(Constants.Inv_ident_Repoid, Exbd, Orls) ;
+               end ;
             when E : Corba.Inv_flag =>
-              Corba.Get_Members(E, Exbd) ;
-              MarshallSystemException(Corba.Constants.Inv_flag_Repoid, Exbd, Orls) ;
+               declare
+                  Exbd : Corba.Inv_flag_Members ;
+               begin
+                  Corba.Get_Members(E, Exbd) ;
+                  MarshallSystemException(Constants.Inv_flag_Repoid, Exbd, Orls) ;
+               end ;
             when E : Corba.Intf_repos =>
-              Corba.Get_Members(E, Exbd) ;
-              MarshallSystemException(Corba.Constants.Intf_repos_Repoid, Exbd, Orls) ;
+               declare
+                  Exbd : Corba.Intf_repos_Members ;
+               begin
+                  Corba.Get_Members(E, Exbd) ;
+                  MarshallSystemException(Constants.Intf_repos_Repoid, Exbd, Orls) ;
+               end ;
             when E : Corba.Bad_context =>
-              Corba.Get_Members(E, Exbd) ;
-              MarshallSystemException(Corba.Constants.Bad_context_Repoid, Exbd, Orls) ;
+               declare
+                  Exbd : Corba.Bad_context_Members ;
+               begin
+                  Corba.Get_Members(E, Exbd) ;
+                  MarshallSystemException(Constants.Bad_context_Repoid, Exbd, Orls) ;
+               end ;
             when E : Corba.Obj_adapter =>
-              Corba.Get_Members(E, Exbd) ;
-              MarshallSystemException(Corba.Constants.Obj_adapter_Repoid, Exbd, Orls) ;
+               declare
+                  Exbd : Corba.Obj_adapter_Members ;
+               begin
+                  Corba.Get_Members(E, Exbd) ;
+                  MarshallSystemException(Constants.Obj_adapter_Repoid, Exbd, Orls) ;
+               end ;
             when E : Corba.Data_conversion =>
-              Corba.Get_Members(E, Exbd) ;
-              MarshallSystemException(Corba.Constants.Data_conversion_Repoid, Exbd, Orls) ;
+               declare
+                  Exbd : Corba.Data_conversion_Members ;
+               begin
+                  Corba.Get_Members(E, Exbd) ;
+                  MarshallSystemException(Constants.Data_conversion_Repoid, Exbd, Orls) ;
+               end ;
             when E : Corba.Object_Not_exist =>
-              Corba.Get_Members(E, Exbd) ;
-              MarshallSystemException(Corba.Constants.Object_Not_exist_Repoid, Exbd, Orls) ;
+               declare
+                  Exbd : Corba.Object_Not_Exist_Members ;
+               begin
+                  Corba.Get_Members(E, Exbd) ;
+                  MarshallSystemException(Constants.Object_Not_exist_Repoid, Exbd, Orls) ;
+               end ;
             when E : Corba.Transaction_Required =>
-              Corba.Get_Members(E, Exbd) ;
-              MarshallSystemException(Corba.Constants.Transaction_Required_Repoid, Exbd, Orls) ;
+               declare
+                  Exbd : Corba.Transaction_Required_Members ;
+               begin
+                  Corba.Get_Members(E, Exbd) ;
+                  MarshallSystemException(Constants.Transaction_Required_Repoid, Exbd, Orls) ;
+               end ;
             when E : Corba.Transaction_Rolledback =>
-              Corba.Get_Members(E, Exbd) ;
-              MarshallSystemException(Corba.Constants.Transaction_Rolledback_Repoid, Exbd, Orls) ;
+               declare
+                  Exbd : Corba.Transaction_Rolledback_Members ;
+               begin
+                  Corba.Get_Members(E, Exbd) ;
+                  MarshallSystemException(Constants.Transaction_Rolledback_Repoid, Exbd, Orls) ;
+               end ;
             when E : Corba.Wrong_Transaction =>
-              Corba.Get_Members(E, Exbd) ;
-              MarshallSystemException(Corba.Constants.Wrong_Transaction_Repoid, Exbd, Orls) ;
-            when Corba.Adabroker_Fatal_Error
+               declare
+                  Exbd : Corba.Wrong_Transaction_Members ;
+               begin
+                  Corba.Get_Members(E, Exbd) ;
+                  MarshallSystemException(Constants.Wrong_Transaction_Repoid, Exbd, Orls) ;
+               end ;
+            when E : Corba.Adabroker_Fatal_Error
               | Corba.No_Initialisation_Error
               | Corba.C_Out_Of_Range
               | Corba.OmniORB_Fatal_Error =>
-               pragma Debug(Output(Omniobject,"Omniobject.Dispatch : caught a serious error : re-raising it !!")) ;
-               raise ;
+               declare
+                  Exbd : Corba.Internal_Members ;
+               begin
+                  pragma Debug(Output(Omniobject, "Omniobject.Dispatch : caught "
+                                      & Ada.Exceptions.Exception_Name(E))) ;
+                  Exbd := (0, Corba.COMPLETED_MAYBE) ;
+                  MarshallSystemException(Constants.Internal_Repoid, Exbd, Orls) ;
+                  end ;
             when others =>
+               declare
+                  Exbd : Corba.Unknown_Members ;
+               begin
+               pragma Debug(Output(Omniobject, "Omniobject.Dispatch : caught other exception")) ;
                Exbd := (0, Corba.COMPLETED_MAYBE) ;
-               MarshallSystemException(Corba.Constants.Unknown_Repoid, Exbd, Orls) ;
+               MarshallSystemException(Constants.Unknown_Repoid, Exbd, Orls) ;
+               end ;
          end ;
          Success := True ;
       end if ;

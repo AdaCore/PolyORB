@@ -55,7 +55,12 @@ with Interfaces.C.Strings ;
 
 with Corba ;
 
+with Adabroker_Debug ;
+pragma Elaborate(Adabroker_Debug) ;
+
 package Exceptions is
+
+   Exceptions : constant Boolean := Adabroker_Debug.Is_Active("exceptions") ;
 
    ---------------------------------
    -- Handling of Fatal exception --

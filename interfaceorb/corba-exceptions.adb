@@ -50,8 +50,12 @@
 with Ada.Unchecked_Conversion ;
 with Interfaces.C ;
 with System ;
-
 with Text_IO ; use Text_IO ;
+with Ada.Tags ;
+
+with Constants ;
+use type Constants.Exception_Id ;
+with Adabroker_Debug ; use Adabroker_Debug ;
 
 package body Corba.Exceptions is
 
@@ -106,6 +110,7 @@ package body Corba.Exceptions is
                      ID_V : in Standard.String) is
          Temp : Cell_Ptr ;
       begin
+         pragma Debug(Output(Corba_Exceptions_Debug,"corba-exception put, member type : " & Ada.Tags.External_Tag(V'Tag)));
          -- makes a new cell ...
          Temp := new Cell'(N => ID_V'Length,
                            Value => new Idl_Exception_Members'Class'(V),
@@ -129,6 +134,7 @@ package body Corba.Exceptions is
          if Temp = null
          then
             -- raise an Ada Exception AdaBroker_Fatal_Error
+            pragma Debug(Output(Corba_Exceptions_Debug,"corba.exceptions.get temp = null ****")) ;
             Ada.Exceptions.Raise_Exception (AdaBroker_Fatal_Error'Identity,
                                             "Corba.exceptions.Get (Standard.String)"
                                             & Corba.CRLF
@@ -137,12 +143,14 @@ package body Corba.Exceptions is
                                             & " not found.") ;
          else
             loop
+               pragma Debug(Output(Corba_Exceptions_Debug,"corba.exceptions.get another loop")) ;
                if Temp.all.ID = ID
                then
                   declare
                      -- we found the member associated to From
                      Member : Idl_Exception_Members'Class := Temp.all.Value.all ;
                   begin
+                     pragma Debug(Output(Corba_Exceptions_Debug,"corba.exceptions.get found the right member")) ;
                      -- we can suppress the correponding cell
                      if Old_Temp = null
                      then
@@ -153,10 +161,16 @@ package body Corba.Exceptions is
                         Old_Temp.all.Next := Temp.all.Next ;
                      end if ;
                      -- and free the memory
+                     pragma Debug(Output(Corba_Exceptions_Debug,"corba.exceptions.get frees temp.all.value")) ;
                      Free (Temp.all.Value) ;
+                     pragma Debug(Output(Corba_Exceptions_Debug,"corba.exceptions.get frees temp")) ;
                      Free (Temp) ;
+                     pragma Debug(Output(Corba_Exceptions_Debug,"corba.exceptions.get frees completed")) ;
+                     pragma Debug(Output(Corba_Exceptions_Debug,"result type : " & Ada.Tags.External_Tag(Result'Tag))) ;
+                     pragma Debug(Output(Corba_Exceptions_Debug,"member type : " & Ada.Tags.External_Tag(Member'Tag))) ;
                      -- at last, return the result
                      Result := Member ;
+                     pragma Debug(Output(Corba_Exceptions_Debug,"corba.exceptions.get goes out")) ;
                      return ;
                   end ;
                else
@@ -164,6 +178,7 @@ package body Corba.Exceptions is
                   if Temp.all.Next = null
                   then
                   -- raise an Ada Exception AdaBroker_Fatal_Error
+                  pragma Debug(Output(Corba_Exceptions_Debug,"corba.exceptions.get member not found ****")) ;
                   Ada.Exceptions.Raise_Exception (AdaBroker_Fatal_Error'Identity,
                                                   "Corba.exceptions.Get (Standard.String)"
                                                   & Corba.CRLF
@@ -187,8 +202,10 @@ package body Corba.Exceptions is
    procedure Get_Members (From : in Ada.Exceptions.Exception_Occurrence;
                           To : out Idl_Exception_Members'Class) is
    begin
+      pragma Debug(Output(Corba_Exceptions_Debug,"corba.exceptions.get_member calls get")) ;
 --      Member_List.
       Get (From, To) ;
+      pragma Debug(Output(Corba_Exceptions_Debug,"corba.exceptions.get_member goes out")) ;
    end ;
 
 
@@ -206,6 +223,288 @@ package body Corba.Exceptions is
    end ;
 
 
+   -- Raise_Corba_exception
+   ------------------------
+   procedure Raise_Corba_Exception(Repoid : in Constants.Exception_ID ;
+                                   Minor : in Corba.Unsigned_Long ;
+                                   Completed : in Completion_Status) is
+      ID : Standard.String := ID_Num'Image(ID_Number) ;
+   begin
+      -- unknown exception
+      if (Repoid = Constants.Unknown_Repoid) then
+         declare
+            Excp_Memb : Corba.Unknown_Members := (Minor, Completed) ;
+         begin
+            Raise_Corba_Exception (Corba.Unknown'Identity, Excp_Memb) ;
+         end ;
+      end if ;
+
+      -- Bad_Param exception
+      if (Repoid = Constants.Bad_Param_Repoid) then
+         declare
+            Excp_Memb : Corba.Bad_Param_Members := (Minor, Completed) ;
+         begin
+            Raise_Corba_Exception (Corba.Bad_Param'Identity, Excp_Memb) ;
+         end ;
+      end if ;
+
+      -- No_Memory exception
+      if (Repoid = Constants.No_Memory_Repoid) then
+         declare
+            Excp_Memb : Corba.No_Memory_Members := (Minor, Completed) ;
+         begin
+            Raise_Corba_Exception (Corba.No_Memory'Identity, Excp_Memb) ;
+         end ;
+      end if ;
+
+      -- Imp_Limit exception
+      if (Repoid = Constants.Imp_Limit_Repoid) then
+         declare
+            Excp_Memb : Corba.Imp_Limit_Members := (Minor, Completed) ;
+         begin
+            Raise_Corba_Exception (Corba.Imp_Limit'Identity, Excp_Memb) ;
+         end ;
+      end if ;
+
+      -- Comm_Failure exception
+      if (Repoid = Constants.Comm_Failure_Repoid) then
+         declare
+            Excp_Memb : Corba.Comm_Failure_Members := (Minor, Completed) ;
+         begin
+            Raise_Corba_Exception (Corba.Comm_Failure'Identity, Excp_Memb) ;
+         end ;
+      end if ;
+
+      -- Inv_ObjRef exception
+      if (Repoid = Constants.Inv_ObjRef_Repoid) then
+         declare
+            Excp_Memb : Corba.Inv_ObjRef_Members := (Minor, Completed) ;
+         begin
+            Raise_Corba_Exception (Corba.Inv_ObjRef'Identity, Excp_Memb) ;
+         end ;
+      end if ;
+
+      -- No_Permission exception
+      if (Repoid = Constants.No_Permission_Repoid) then
+         declare
+            Excp_Memb : Corba.No_Permission_Members := (Minor, Completed) ;
+         begin
+            Raise_Corba_Exception (Corba.No_Permission'Identity, Excp_Memb) ;
+         end ;
+      end if ;
+
+      -- Internal exception
+      if (Repoid = Constants.Internal_Repoid) then
+         declare
+            Excp_Memb : Corba.Internal_Members := (Minor, Completed) ;
+         begin
+            Raise_Corba_Exception (Corba.Internal'Identity, Excp_Memb) ;
+         end ;
+      end if ;
+
+      -- Marshal exception
+      if (Repoid = Constants.Marshal_Repoid) then
+         declare
+            Excp_Memb : Corba.Marshal_Members := (Minor, Completed) ;
+         begin
+            Raise_Corba_Exception (Corba.Marshal'Identity, Excp_Memb) ;
+         end ;
+      end if ;
+
+      -- Initialization_Failure exception
+      if (Repoid = Constants.Initialization_Failure_Repoid) then
+         declare
+            Excp_Memb : Corba.Initialization_Failure_Members := (Minor, Completed) ;
+         begin
+            Raise_Corba_Exception (Corba.Initialization_Failure'Identity, Excp_Memb) ;
+         end ;
+      end if ;
+
+      -- No_Implement exception
+      if (Repoid = Constants.No_Implement_Repoid) then
+         declare
+            Excp_Memb : Corba.No_Implement_Members := (Minor, Completed) ;
+         begin
+            Raise_Corba_Exception (Corba.No_Implement'Identity, Excp_Memb) ;
+         end ;
+      end if ;
+
+      -- Bad_TypeCode exception
+      if (Repoid = Constants.Bad_TypeCode_Repoid) then
+         declare
+            Excp_Memb : Corba.Bad_TypeCode_Members := (Minor, Completed) ;
+         begin
+            Raise_Corba_Exception (Corba.Bad_TypeCode'Identity, Excp_Memb) ;
+         end ;
+      end if ;
+
+      -- Bad_Operation exception
+      if (Repoid = Constants.Bad_Operation_Repoid) then
+         declare
+            Excp_Memb : Corba.Bad_Operation_Members := (Minor, Completed) ;
+         begin
+            Raise_Corba_Exception (Corba.Bad_Operation'Identity, Excp_Memb) ;
+         end ;
+      end if ;
+
+      -- No_Ressources exception
+      if (Repoid = Constants.No_Resources_Repoid) then
+         declare
+            Excp_Memb : Corba.No_Resources_Members := (Minor, Completed) ;
+         begin
+            Raise_Corba_Exception (Corba.No_Resources'Identity, Excp_Memb) ;
+         end ;
+      end if ;
+
+      -- No_Response exception
+      if (Repoid = Constants.No_Response_Repoid) then
+         declare
+            Excp_Memb : Corba.No_Response_Members := (Minor, Completed) ;
+         begin
+            Raise_Corba_Exception (Corba.No_Response'Identity, Excp_Memb) ;
+         end ;
+      end if ;
+
+      -- Persist_Store exception
+      if (Repoid = Constants.Persist_Store_Repoid) then
+         declare
+            Excp_Memb : Corba.Persist_Store_Members := (Minor, Completed) ;
+         begin
+            Raise_Corba_Exception (Corba.Persist_Store'Identity, Excp_Memb) ;
+         end ;
+      end if ;
+
+      -- Bad_Inv_Order exception
+      if (Repoid = Constants.Bad_Inv_Order_Repoid) then
+         declare
+            Excp_Memb : Corba.Bad_Inv_Order_Members := (Minor, Completed) ;
+         begin
+            Raise_Corba_Exception (Corba.Bad_Inv_Order'Identity, Excp_Memb) ;
+         end ;
+      end if ;
+
+      -- Transient exception
+      if (Repoid = Constants.Transient_Repoid) then
+         declare
+            Excp_Memb : Corba.Transient_Members := (Minor, Completed) ;
+         begin
+            Raise_Corba_Exception (Corba.Transient'Identity, Excp_Memb) ;
+         end ;
+      end if ;
+
+      -- Free_Mem exception
+      if (Repoid = Constants.Free_Mem_Repoid) then
+         declare
+            Excp_Memb : Corba.Free_Mem_Members := (Minor, Completed) ;
+         begin
+            Raise_Corba_Exception (Corba.Free_Mem'Identity, Excp_Memb) ;
+         end ;
+      end if ;
+
+      -- Inv_Ident exception
+      if (Repoid = Constants.Inv_Ident_Repoid) then
+         declare
+            Excp_Memb : Corba.Inv_Ident_Members := (Minor, Completed) ;
+         begin
+            Raise_Corba_Exception (Corba.Inv_Ident'Identity, Excp_Memb) ;
+         end ;
+      end if ;
+
+      -- Inv_Flag exception
+      if (Repoid = Constants.Inv_Flag_Repoid) then
+         declare
+            Excp_Memb : Corba.Inv_Flag_Members := (Minor, Completed) ;
+         begin
+            Raise_Corba_Exception (Corba.Inv_Flag'Identity, Excp_Memb) ;
+         end ;
+      end if ;
+
+      -- Intf_Repos exception
+      if (Repoid = Constants.Intf_Repos_Repoid) then
+         declare
+            Excp_Memb : Corba.Intf_Repos_Members := (Minor, Completed) ;
+         begin
+            Raise_Corba_Exception (Corba.Intf_Repos'Identity, Excp_Memb) ;
+         end ;
+      end if ;
+
+      -- Bad_Context exception
+      if (Repoid = Constants.Bad_Context_Repoid) then
+         declare
+            Excp_Memb : Corba.Bad_Context_Members := (Minor, Completed) ;
+         begin
+            Raise_Corba_Exception (Corba.Bad_Context'Identity, Excp_Memb) ;
+         end ;
+      end if ;
+
+      -- Obj_Adapter exception
+      if (Repoid = Constants.Obj_Adapter_Repoid) then
+         declare
+            Excp_Memb : Corba.Obj_Adapter_Members := (Minor, Completed) ;
+         begin
+            Raise_Corba_Exception (Corba.Obj_Adapter'Identity, Excp_Memb) ;
+         end ;
+      end if ;
+
+      -- Data_Conversion exception
+      if (Repoid = Constants.Data_Conversion_Repoid) then
+         declare
+            Excp_Memb : Corba.Data_Conversion_Members := (Minor, Completed) ;
+         begin
+            Raise_Corba_Exception (Corba.Data_Conversion'Identity, Excp_Memb) ;
+         end ;
+      end if ;
+
+      -- Object_Not_Exist exception
+      if (Repoid = Constants.Object_Not_Exist_Repoid) then
+         declare
+            Excp_Memb : Corba.Object_Not_Exist_Members := (Minor, Completed) ;
+         begin
+            Raise_Corba_Exception (Corba.Object_Not_Exist'Identity, Excp_Memb) ;
+         end ;
+      end if ;
+
+      -- Transaction_Required exception
+      if (Repoid = Constants.Transaction_Required_Repoid) then
+         declare
+            Excp_Memb : Corba.Transaction_Required_Members := (Minor, Completed) ;
+         begin
+            Raise_Corba_Exception (Corba.Transaction_Required'Identity, Excp_Memb) ;
+         end ;
+      end if ;
+
+      -- Transation_RolledBack exception
+      if (Repoid = Constants.Transaction_RolledBack_Repoid) then
+         declare
+            Excp_Memb : Corba.Transaction_RolledBack_Members := (Minor, Completed) ;
+         begin
+            Raise_Corba_Exception (Corba.Transaction_RolledBack'Identity, Excp_Memb) ;
+         end ;
+      end if ;
+
+      -- Invalid_Transation exception
+      if (Repoid = Constants.Invalid_Transaction_Repoid) then
+         declare
+            Excp_Memb : Corba.Invalid_Transaction_Members := (Minor, Completed) ;
+         begin
+            Raise_Corba_Exception (Corba.Invalid_Transaction'Identity, Excp_Memb) ;
+         end ;
+      end if ;
+
+      -- Wrong_Transation exception
+      if (Repoid = Constants.Wrong_Transaction_Repoid) then
+         declare
+            Excp_Memb : Corba.Wrong_Transaction_Members := (Minor, Completed) ;
+         begin
+            Raise_Corba_Exception (Corba.Wrong_Transaction'Identity, Excp_Memb) ;
+         end ;
+      end if ;
+
+      -- never reach here
+      Ada.Exceptions.Raise_Exception (Corba.AdaBroker_Fatal_Error'Identity,
+                                      "corba.exception.raise_corba_exception, unknown Repo_id : "
+                                      & Constants.To_Standard_String (RepoId)) ;
+   end ;
 
 
 end Corba.Exceptions ;

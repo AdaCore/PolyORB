@@ -167,6 +167,10 @@ package OmniObject is
                               return Corba.String ;
    -- return the repository_id of the C++ object
 
+
+   Repository_Id : Corba.String
+     := Corba.To_Corba_String(Standard.String'("IDL:omg.org/CORBA/Object:1.0")) ;
+
    function Hash(Self : in Implemented_Object ;
                  Maximum : in Corba.Unsigned_Long) return Corba.Unsigned_Long ;
    -- returns a hash value for this object

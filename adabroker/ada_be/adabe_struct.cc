@@ -30,12 +30,20 @@ adabe_structure::adabe_structure(UTL_ScopedName *n, UTL_StrList *p)
 {
 }
 
+//////////////////////////////////////////////////////////////////
+/////////////////        produce_ads          ////////////////////
+//////////////////////////////////////////////////////////////////
+
 void
 adabe_structure::produce_ads(dep_list& with, string &body, string &previous)
 {
+  // This library will be needed for the Free function
   with.add ("Ada.Unchecked_Deallocation");
-  compute_ada_name();
+  
+  // beginning of the declaration
   body += "   type " + get_ada_local_name() + " is record\n";
+
+  // we must now look in the scope and name all the fields
   UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
   while (!i.is_done())
     {
@@ -43,57 +51,30 @@ adabe_structure::produce_ads(dep_list& with, string &body, string &previous)
       adabe_field *e = dynamic_cast<adabe_field *>(d);
       if (d->node_type() == AST_Decl::NT_field)
 	{
+	  // the currrent field is beeing produced
 	  e->produce_ads(with, body, previous);
 	}
       else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in structure");
       if (!(dynamic_cast<adabe_name *>(e->field_type()))->has_fixed_size()) no_fixed_size();
       i.next();      
     }
+
+  // the end of the Structure
   body += "   end record ;\n";
+  
+  // the pointer  which will access the structure
   body += "   type " + get_ada_local_name() + "_Ptr is access ";
   body += get_ada_local_name() + " ;\n\n";
+
+  // the free function
   body += "   procedure Free is new Ada.Unchecked_Deallocation(";
   body += get_ada_local_name() + ", " + get_ada_local_name ()+ "_Ptr) ;\n\n\n";
   set_already_defined();
 }
 
-/*
-  void
-  adabe_structure::produce_adb(dep_list& with,string &body, string &previous)
-  {
-  if (!is_imported(with)) return get_ada_local_name();
-  else return get_ada_full_name();
-  }
-  void
-  adabe_structure::produce_impl_ads(dep_list& with,string &body, string &previous)
-  {
-  INDENT(body);
-  body += "type " + get_ada_local_name() + "is record\n";
-  INC_INDENT();
-  UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
-  while (!i.is_done())
-  {
-  INDENT(body);
-  AST_Decl *d = i.item();
-  if (d->node_type() == AST_Decl::NT_field)
-  dynamic_cast<adabe_name *>(d)->produce_impl_ads(with, body, previous);
-  else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in structure");
-  i.next();
-  }
-  DEC_INDENT();
-  INDENT(body);
-  body += "end record;\n";
-  
-  }
-
-
-  void  
-  adabe_structure::produce_impl_adb(dep_list& with,string &body, string &previous)
-  {
-  if (!is_imported(with)) return get_ada_local_name();
-  else return get_ada_full_name();
-  }
-*/
+//////////////////////////////////////////////////////////////////
+///////////////       produce_marshal_ads      ///////////////////
+//////////////////////////////////////////////////////////////////
 
 void
 adabe_structure::produce_marshal_ads(dep_list &with, string &body, string &previous)
@@ -115,6 +96,10 @@ adabe_structure::produce_marshal_ads(dep_list &with, string &body, string &previ
 
   set_already_defined();
 }
+
+//////////////////////////////////////////////////////////////////
+///////////////       produce_marshal_adb         ////////////////
+//////////////////////////////////////////////////////////////////
 
 void
 adabe_structure::produce_marshal_adb(dep_list &with, string &body, string &previous)
@@ -143,7 +128,9 @@ adabe_structure::produce_marshal_adb(dep_list &with, string &body, string &previ
   align_size += "      Tmp : Corba.Unsigned_Long := Initial_Offset ;\n";
   align_size += "   begin\n";
   align_size += "      for I in 1..N loop\n";
-  
+
+  // for all of the field we must lauch his
+  // produce_marshall adb
   UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
   while (!i.is_done())
     {
@@ -168,6 +155,10 @@ adabe_structure::produce_marshal_adb(dep_list &with, string &body, string &previ
   set_already_defined();
 }
 
+//////////////////////////////////////////////////////////////////
+//////////////////        dump_name       ////////////////////////
+//////////////////////////////////////////////////////////////////
+
 string
 adabe_structure::dump_name(dep_list& with, string &previous)
 {
@@ -175,14 +166,23 @@ adabe_structure::dump_name(dep_list& with, string &previous)
     {
       if (!is_already_defined())
 	{
+	  // has this exception already been defined ?
 	  string tmp = "";
 	  produce_ads(with, tmp, previous);
 	  previous += tmp;
 	}
+      // this exception is defined in this file, so
+      // a local name is enough
       return get_ada_local_name();
     }
+  // because the exception is defined in another file
+  // we need to use a full name
   return get_ada_full_name();	   
 }
+
+//////////////////////////////////////////////////////////////////
+////////////////       marshal_name       ////////////////////////
+//////////////////////////////////////////////////////////////////
 
 string
 adabe_structure::marshal_name(dep_list& with, string &previous)
@@ -191,12 +191,17 @@ adabe_structure::marshal_name(dep_list& with, string &previous)
     {
       if (!is_already_defined())
 	{
+	  // has this exception already been defined ?
 	  string tmp = "";
 	  produce_marshal_adb(with, tmp, previous);
 	  previous += tmp;
 	}
+      // this exception is defined in this file, so
+      // a local name is enough
       return get_ada_local_name();
     }
+  // because the exception is defined in another file
+  // we need to use a full name
   return get_ada_full_name();	   
 }  
 IMPL_NARROW_METHODS1(adabe_structure, AST_Structure)

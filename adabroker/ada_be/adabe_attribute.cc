@@ -218,7 +218,7 @@ adabe_attribute::produce_proxies_adb(dep_list &with, string &body, string &priva
   body += "   function Operation(Self : in Get_" + get_ada_local_name() + "_Proxy)\n";
   body += "                      return Corba.String is\n";
   body += "   begin\n";
-  body += "      return Corba.To_Corba_String(\"_get_" + get_ada_local_name() + "\") ;\n";
+  body += "      return Corba.To_Corba_String(Standard.String'(\"_get_" + get_ada_local_name() + "\")) ;\n";
   body += "   end ;\n\n\n";
   body += "   -- Unmarshal_Returned_Values\n" ;
   body += "   ----------------------------\n" ;
@@ -261,7 +261,7 @@ adabe_attribute::produce_proxies_adb(dep_list &with, string &body, string &priva
       body += "   function Operation(Self : in Set_" + get_ada_local_name() + "_Proxy)\n";
       body += "                      return Corba.String is\n";
       body += "   begin\n";
-      body += "      return Corba.To_Corba_String(\"_set_" + get_ada_local_name() + "\") ;\n";
+      body += "      return Corba.To_Corba_String(Standard.String'(\"_set_" + get_ada_local_name() + "\")) ;\n";
       body += "   end ;\n\n\n";
       body += "   -- Align_Size\n" ;
       body += "   -------------\n" ;

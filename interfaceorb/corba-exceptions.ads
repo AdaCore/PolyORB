@@ -49,8 +49,12 @@
 
 with Sys_Dep ;
 
+with Adabroker_Debug ;
+pragma Elaborate(Adabroker_Debug) ;
+
 package Corba.Exceptions is
 
+   Corba_Exceptions_debug : constant Boolean := Adabroker_Debug.Is_Active("corba-exceptions") ;
    procedure Get_Members (From : in Ada.Exceptions.Exception_Occurrence ;
                           To : out Idl_Exception_Members'Class) ;
    -- This method finds the member object associated to a given exception.
@@ -61,5 +65,10 @@ package Corba.Exceptions is
    -- This method raises a Corba exception associated to the member object
    -- Excp_Memb.
 
+   procedure Raise_Corba_Exception(Repoid : in Constants.Exception_Id ;
+                                   Minor : in Corba.Unsigned_Long ;
+                                   Completed : in Completion_Status) ;
+   -- This method raises a Corba exception associated to the Repo_ID
+   -- with (minor, completed) as member
 
 end Corba.Exceptions ;

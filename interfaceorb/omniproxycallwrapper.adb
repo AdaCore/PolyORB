@@ -51,7 +51,10 @@ with Interfaces.C ;
 with System ;
 use type System.Address ;
 
-with Corba, Corba.Object, Corba.Exceptions ;
+with Corba ;
+with Corba.Object ;
+with Corba.Exceptions ;
+with Constants ;
 use type Corba.Unsigned_Long ;
 with Giop ;
 with Omniropeandkey ;
@@ -263,17 +266,24 @@ package body omniProxyCallWrapper is
                   end ;
 
                when Giop.SYSTEM_EXCEPTION =>
-                  -- inform the ORB that the message was skiped
-                  Giop_C.Request_Completed(Giop_Client.Real, True) ;
-                  -- and raise a fatal exception
-                  Ada.Exceptions.Raise_Exception(Corba.AdaBroker_Fatal_Error'Identity,
-                                                 "Giop.SYSTEM_EXCEPTION should not be returned"
-                                                 & Corba.CRLF
-                                                 & "by Giop_C.Receive_Reply"
-                                                 & Corba.CRLF
-                                                 & "in omniproxycallwrapper.adb"
-                                                 & Corba.CRLF
-                                                 & "procedure invoke, when giop.SYSTEM_EXCEPTION") ;
+                  declare
+                     Minor : Corba.Unsigned_Long ;
+                     Completed : Corba.Completion_Status ;
+                     RepoID : Corba.String ;
+                  begin
+                     -- unmarshals the returned exception
+                     Netbufferedstream.UnMarshall (RepoID,Giop_Client.Real) ;
+                     -- unmarshalls arguments
+                     Netbufferedstream.UnMarshall(Minor, Giop_Client.Real) ;
+                     Netbufferedstream.Unmarshall(Completed, Giop_Client.Real) ;
+                     -- change state
+                     Giop_C.Request_Completed(Giop_Client.Real) ;
+                     -- reraise exception
+                     pragma Debug(Output(Debug, "omniproxycallwrapper.invoke : repoID = " & Corba.To_Standard_String (RepoId))) ;
+                     Corba.Exceptions.Raise_Corba_Exception (Corba.To_Exception_Id (RepoId),
+                                                             Minor,
+                                                             Completed) ;
+                  end ;
 
                when Giop.LOCATION_FORWARD =>
                   pragma Debug(Output(Debug, "omniproxycallwrapper.invoke : Reply is LOCATION_FORWARD")) ;

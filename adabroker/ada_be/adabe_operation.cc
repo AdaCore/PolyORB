@@ -482,7 +482,7 @@ adabe_operation::produce_proxies_adb(dep_list& with,string &body,
   body += "   function Operation(Self : in " + get_ada_local_name() + "_Proxy )\n";
   body += "                      return Corba.String is\n";
   body += "   begin\n";
-  body += "      return Corba.To_Corba_String(\"" + get_ada_local_name() + "\") ;\n";
+  body += "      return Corba.To_Corba_String(Standard.String'(\"" + get_ada_local_name() + "\")) ;\n";
   body += "   end ;\n\n\n";
   
   if (!no_in) {

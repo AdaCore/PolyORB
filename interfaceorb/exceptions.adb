@@ -50,6 +50,8 @@
 
 with Text_Io ; use Text_Io ;
 
+with Adabroker_Debug ; use Adabroker_Debug ;
+
 package body Exceptions is
 
 
@@ -89,7 +91,6 @@ package body Exceptions is
                                           Line : in Interfaces.C.Int ;
                                           Err_msg : in Interfaces.C.Strings.Chars_Ptr) is
    begin
-      Put_Line ("tototototototototototototototo") ;
       Ada.Exceptions.Raise_Exception (Corba.OmniORB_Fatal_Error'Identity,
                                       "In " &
                                       Interfaces.C.Strings.Value (File) &
@@ -113,6 +114,7 @@ package body Exceptions is
       Ada_Pd_Status : Corba.Completion_Status ;
    begin
       -- transforms the arguments in a Ada type ...
+      pragma Debug(Output(exceptions,"exceptions.C_Raise_Ada_UNKNOWN_Exception")) ;
       Ada_Pd_Minor := Corba.Unsigned_Long (Pd_Minor) ;
       Ada_Pd_Status := Int_To_Status (Pd_Status) ;
       -- ... and raises the exception

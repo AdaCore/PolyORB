@@ -95,9 +95,9 @@ adabe_exception::produce_ads (dep_list& with,string &body, string &previous)
   // designate it
   body += "   ";
   body += get_ada_local_name();
-  body += "_Repository_Id : Corba.String := Corba.To_Corba_String(\"";
+  body += "_Repository_Id : Corba.String := Corba.To_Corba_String(Standard.String'(\"";
   body += repositoryID();
-  body += "\") ;\n";
+  body += "\")) ;\n";
 
   // We need a function to get the memebers of the exception
   body += "   procedure Get_Members(From : in Ada.Exceptions.Exception_Occurrence ;\n";

@@ -53,6 +53,7 @@
 with Corba.Exceptions ;
 
 with Text_Io ; use Text_Io ;
+with Adabroker_Debug ; use Adabroker_Debug ;
 
 package body Corba is
 
@@ -66,7 +67,9 @@ package body Corba is
                           To : out Ex_Body) is
    begin
       -- calls the correponding procedure in Corba.Exception
+      pragma Debug(Output(Corba_debug,"corba.get_members begin")) ;
       Corba.Exceptions.Get_Members (From,To) ;
+      pragma Debug(Output(Corba_debug,"corba.get_members end")) ;
    end ;
 
 
@@ -98,6 +101,21 @@ package body Corba is
     begin
        return Ada.Strings.Unbounded.To_String(Ada.Strings.Unbounded.Unbounded_String(S)) ;
     end;
+
+
+    -- To_Corba_String
+    ------------------
+    function To_Corba_String(S: in Constants.Exception_Id) return Corba.String is
+    begin
+       return Corba.String(Ada.Strings.Unbounded.To_Unbounded_String(Standard.String(S))) ;
+    end ;
+
+    -- To_Exception_Id
+    ------------------
+    function To_Exception_Id(S: in Corba.String) return Constants.Exception_Id is
+    begin
+       return Constants.Exception_Id(To_Standard_String(S)) ;
+    end ;
 
 
     -- Length
