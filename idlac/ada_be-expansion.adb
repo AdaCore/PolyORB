@@ -2,7 +2,10 @@ with Idl_Fe.Types; use Idl_Fe.Types;
 with Idl_Fe.Tree; use Idl_Fe.Tree;
 with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree.Synthetic;
 with Idl_Fe.Errors; use Idl_Fe.Errors;
+
+with Ada_Be.Identifiers; use Ada_Be.Identifiers;
 with Ada_Be.Debug;
+pragma Elaborate (Ada_Be.Debug);
 
 with GNAT.HTable;
 
@@ -14,6 +17,40 @@ package body Ada_Be.Expansion is
 
    Flag : constant Natural := Ada_Be.Debug.Is_Active ("ada_be.expansion");
    procedure O is new Ada_Be.Debug.Output (Flag);
+
+   ------------------------------------
+   -- Internal expansion subprograms --
+   ------------------------------------
+
+   procedure Expand_Node (Node : in Node_Id);
+   --  Generic function that calls the more specific ones
+   --  according to the type of the node
+
+   --  Specific expansion subprograms
+
+   procedure Expand_Module
+     (Node : in Node_Id);
+   procedure Expand_Ben_Idl_File
+     (Node : in Node_Id);
+   procedure Expand_Interface
+     (Node : in Node_Id);
+   procedure Expand_Attribute
+     (Node : in Node_Id);
+   procedure Expand_Exception
+     (Node : in Node_Id);
+
+   ----------------------
+   -- Utility routines --
+   ----------------------
+
+   procedure Expand_Node_List
+     (List : in Node_List);
+   --  Expand a whole list of nodes
+
+   procedure Append_Node_To_Contents
+     (Parent : Node_Id;
+      Child : Node_Id);
+   --  Append a node to the contents node_list of parent
 
    -----------------
    -- Expand_Node --
@@ -32,6 +69,8 @@ package body Ada_Be.Expansion is
             Expand_Interface (Node);
          when K_Attribute =>
             Expand_Attribute (Node);
+         when K_Exception =>
+            Expand_Exception (Node);
          when K_Ben_Idl_File =>
             Expand_Ben_Idl_File (Node);
          when others =>
@@ -209,16 +248,18 @@ package body Ada_Be.Expansion is
          end if;
 
          pragma Debug (O ("Expanding attribute declarator "
-                          & Name (Current_Declarator)));
+                          & Ada_Name (Current_Declarator)));
 
          --  create the get_method
          declare
-            Get_Method : Node_Id := Make_Operation;
+            Get_Method : constant Node_Id
+              := Make_Operation;
             Success : Boolean;
          begin
-            Success := Add_Identifier (Get_Method, "_get_"
-                                       & Name (Current_Declarator));
-            pragma Assert (Success = True);
+            Success := Add_Identifier
+              (Get_Method, "_get_"
+               & Ada_Name (Current_Declarator));
+            pragma Assert (Success);
             Push_Scope (Get_Method);
             Set_Is_Oneway (Get_Method, False);
             Set_Operation_Type (Get_Method, A_Type (Node));
@@ -241,13 +282,16 @@ package body Ada_Be.Expansion is
          --  create the Set method
          if not Is_Readonly (Node) then
             declare
-               Set_Method : Node_Id := Make_Operation;
+               Set_Method : constant Node_Id
+                 := Make_Operation;
+               Void_Node : constant Node_Id
+                 := Make_Void;
                Success : Boolean;
-               Void_Node : Node_Id := Make_Void;
             begin
-               Success := Add_Identifier (Set_Method, "_set_"
-                                          & Name (Current_Declarator));
-               pragma Assert (Success = True);
+               Success := Add_Identifier
+                 (Set_Method, "_set_"
+                  & Ada_Name (Current_Declarator));
+               pragma Assert (Success);
                Push_Scope (Set_Method);
                Set_Is_Oneway (Set_Method, False);
                Set_Operation_Type (Set_Method, Void_Node);
@@ -283,6 +327,35 @@ package body Ada_Be.Expansion is
          end if;
       end loop;
    end Expand_Attribute;
+
+   procedure Expand_Exception
+     (Node : in Node_Id) is
+   begin
+      pragma Assert (Kind (Node) = K_Exception);
+
+      declare
+         Members_Struct : constant Node_Id
+           := Make_Struct;
+         Enclosing_Scope : constant Node_Id
+           := Parent_Scope (Node);
+         Enclosing_List : Node_List
+           := Contents (Enclosing_Scope);
+         Success : Boolean;
+      begin
+         Success := Add_Identifier
+           (Members_Struct, Ada_Name (Node) & "_Members");
+         pragma Assert (Success);
+
+         Set_Members (Members_Struct, Members (Node));
+         Insert_Before
+           (List => Enclosing_List,
+            Node => Members_Struct,
+            Before => Node);
+         Set_Members_Type (Node, Members_Struct);
+
+         Set_Contents (Enclosing_Scope, Enclosing_List);
+      end;
+   end Expand_Exception;
 
    -----------------------------------------
    --          private utilities          --
