@@ -169,10 +169,10 @@ begin
 --         Is_Equivalent (Echo12 (MyAll_Types, X), X));
 --   end;
 
---   declare
---      X : All_Types.Ref;
---   begin
---      X := Get_Myself (MyAll_Types);
---      Output ("test self reference", Is_Equivalent (Get_Myself (X), X));
---   end;
+   declare
+      X : All_Types.Ref;
+   begin
+      X := EchoRef (MyAll_Types, MyAll_Types);
+      Output ("test self reference", EchoLong (X, 16#dead#) = 16#dead#);
+   end;
 end Client;

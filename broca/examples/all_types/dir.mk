@@ -1,4 +1,5 @@
 IDL_INTERFACE = all_types
+ADA_FLAGS+=-gnatao
 
 GENERATED_FILES =\
 all_types_idl_file.ads\
