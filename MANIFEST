@@ -361,6 +361,8 @@ ada/elists.adb
 ada/elists.ads
 ada/errout.adb
 ada/errout.ads
+ada/fmap.adb
+ada/fmap.ads
 ada/fname-sf.adb
 ada/fname-sf.ads
 ada/fname-uf.adb
