@@ -1,3 +1,28 @@
+2004-06-01  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* flags.adb: Scan command line in two phases. First, detect the
+	backend language if there is one. Second, use Getopt by setting
+	cpparg and backend language as sections (see GNAT.Command_Line).
+	In command like 'iac -ds tin.idl -idl -b 8', '-ds' is considered
+	as a general flag and '-b 8' is considered as an IDL backend flag.
+
+	* backend-be_idl.adb, backend-be_idl.ads: Add Configure
+	procedure. Fix generation of members (readonly missing),
+	operations (oneway missing), of values (base to use). Start
+	generating union type.
+	
+	* backend-be_ada.adb, backend-be_ada.ads: Add Configure procedure.
+
+	* backend.adb, backend.ads: Define Configure procedure for
+	backends and add it as Register parameter. This configure
+	procedure is supposed to read flags specific to backend using
+	GNAT.Command_Line.Getopt.
+
+	* backend-config.adb: Initialize configure procedure for backends
+	IDL and Ada.
+
+	
+
 2004-05-31  Laurent Pautet  <pautet@dorine.enst.fr>
 
 	* analyzer.adb: Do not try to analyze predefined types. Add
