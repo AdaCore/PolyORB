@@ -83,9 +83,12 @@ package PolyORB.Any.NVList is
 
 private
 
-   type Object is new PolyORB.Smart_Pointers.Entity with record
-      List : aliased Internals.NV_Lists.List;
-   end record;
+   type Object is
+     new PolyORB.Smart_Pointers.Non_Controlled_Entity
+     with record
+         List : aliased Internals.NV_Lists.List;
+     end record;
+   procedure Finalize (X : in out Object);
 
    type Object_Ptr is access all Object;
 

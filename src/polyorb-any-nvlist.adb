@@ -93,6 +93,15 @@ package body PolyORB.Any.NVList is
       pragma Debug (O ("Add_Item (2 params) : end"));
    end Add_Item;
 
+   --------------
+   -- Finalize --
+   --------------
+
+   procedure Finalize (X : in out Object) is
+   begin
+      Internals.NV_Lists.Deallocate (X.List);
+   end Finalize;
+
    ----------
    -- Free --
    ----------
