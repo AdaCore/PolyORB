@@ -213,8 +213,30 @@ package body Ada_Be.Source_Streams is
 
       use Ada.Text_IO;
 
+      procedure Emit_Standard_Header
+        (File        : in File_Type;
+         User_Edited : in Boolean := False);
+
       procedure Emit_Source_Code
         (File : in File_Type);
+
+      procedure Emit_Standard_Header
+        (File        : in File_Type;
+         User_Edited : in Boolean := False)
+      is
+      begin
+         Put_Line (File, "----------------------------------------------");
+         Put_Line (File, "--  This file has been generated automatically");
+         Put_Line (File, "--  by AdaBroker (http://adabroker.eu.org/)");
+         if not User_Edited then
+            Put_Line (File, "--");
+            Put_Line (File, "--  Do NOT hand-modify this file, as your");
+            Put_Line (File, "--  changes will be lost when you re-run the");
+            Put_Line (File, "--  IDL to Ada compiler.");
+         end if;
+         Put_Line (File, "----------------------------------------------");
+         New_Line (File);
+      end Emit_Standard_Header;
 
       procedure Emit_Source_Code
         (File : in File_Type)
@@ -263,6 +285,7 @@ package body Ada_Be.Source_Streams is
       end if;
 
       if To_Stdout then
+         Emit_Standard_Header (Current_Output);
          Emit_Source_Code (Current_Output);
       else
          declare
@@ -271,6 +294,7 @@ package body Ada_Be.Source_Streams is
             File : File_Type;
          begin
             Create (File, Out_File, File_Name);
+            Emit_Standard_Header (File);
             Emit_Source_Code (File);
             Close (File);
          end;
