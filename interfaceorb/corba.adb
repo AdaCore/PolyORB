@@ -25,19 +25,30 @@ package body Corba is
    procedure Get_Members (From : in Ada.Exceptions.Exception_Occurrence;
                           To : out System_Exception_Members) is
    begin
-      raise Not_Implemented_Yet ;
+      Ada.Exceptions.Raise_Exception(Corba.AdaBroker_Not_Implemented_Yet'Identity,
+                                     "Corba.Get_Members");
+   end ;
+
+   -- Raise_Corba_Exception
+   ------------------------
+   procedure Raise_Corba_Exception(Excp : in Ada.Exceptions.Exception_Id ;
+                                   Excp_Memb: in Idl_Exception_Members'class) is
+   begin
+      Ada.Exceptions.Raise_Exception(Corba.AdaBroker_Not_Implemented_Yet'Identity,
+                                     "Raise_Corba_Exception") ;
    end ;
 
 
-    -----------------------------------------------------------
-    ----        not in spec, AdaBroker specific             ---
-    -----------------------------------------------------------
+   -----------------------------------------------------------
+   ----        not in spec, AdaBroker specific             ---
+   -----------------------------------------------------------
 
    -- To_Corba_String
    ------------------
     function To_Corba_String(S: in Standard.String) return Corba.String is
+
     begin
-      raise Not_Implemented_Yet ;
+       return Corba.String(Ada.Strings.Unbounded.To_Unbounded_String(S)) ;
     end ;
 
 
@@ -45,8 +56,18 @@ package body Corba is
     ---------------------
     function To_Standard_String(S: in Corba.String) return Standard.String is
     begin
-      raise Not_Implemented_Yet ;
+       return Ada.Strings.Unbounded.To_String(Ada.Strings.Unbounded.Unbounded_String(S)) ;
     end;
+
+    -- Length
+    ---------
+    function Length(Str : in Corba.String) return Corba.Unsigned_Long is
+    begin
+       return Corba.Unsigned_Long(Ada.Strings.Unbounded.
+                                  Length(Ada.Strings.Unbounded.
+                                         Unbounded_String(Str))) ;
+    end ;
+
 
 
    -----------------------------------------------------------
@@ -56,19 +77,25 @@ package body Corba is
 
     function Omni_CallTransientExceptionHandler return CORBA.Boolean is
     begin
-      raise Not_Implemented_Yet ;
+      Ada.Exceptions.Raise_Exception(Corba.AdaBroker_Not_Implemented_Yet'Identity,
+                                     "Omni_CallTransientExceptionHandler") ;
+      return False ;
     end ;
 
 
     function Omni_CallCommFailureExceptionHandler return CORBA.Boolean is
     begin
-       raise Not_Implemented_Yet ;
+       Ada.Exceptions.Raise_Exception(Corba.AdaBroker_Not_Implemented_Yet'Identity,
+                                      "Omni_CallCommFailureExceptionHandler") ;
+       return False ;
     end ;
 
 
     function Omni_CallSystemExceptionHandler return CORBA.Boolean is
     begin
-       raise Not_Implemented_Yet ;
+       Ada.Exceptions.Raise_Exception(Corba.AdaBroker_Not_Implemented_Yet'Identity,
+                                      "Omni_CallSystemExceptionHandler") ;
+       return False ;
     end ;
 
 

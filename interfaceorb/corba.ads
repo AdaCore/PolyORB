@@ -167,6 +167,10 @@ package Corba is
     -- raised when there is an error
     -- in the AdaBroker runtime
 
+    AdaBroker_Not_Implemented_Yet : exception ;
+    -- thos exception is raised in each function
+    -- which has not been implemented yet
+
     No_Initialisation_Error : exception ;
     -- raised when a C object is used before being initialised
     -- via an Ada Init function
@@ -182,10 +186,6 @@ package Corba is
     function To_Standard_String(S: in Corba.String) return Standard.String ;
 
     function Length(Str : in Corba.String) return Corba.Unsigned_Long ;
-
-    Not_Implemented_Yet : exception ;
-    -- thos exception is raised in each function
-    -- which has not been implemented yet
 
 
    -----------------------------------------------------------

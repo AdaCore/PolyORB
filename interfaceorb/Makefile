@@ -65,3 +65,30 @@ Ada_OmniObject.o : Ada_OmniObject.hh Ada_OmniObject.cc
 omniobject.o : omniobject.ads omniobject.adb
 	$(GNATGCC) $(DO_NOT_LINK) $(ORB_LIBS) $(FLAGS) omniobject.adb
 
+
+################################################
+# compilation of files that do not depend on C++
+################################################
+adaonly: corba.ali corba-object.ali giop_s.ali giop.ali omni.ali \
+bufferedstream.ali netbufferedstream.ali 
+
+.SUFFIXES: .adb .ali
+
+.adb.ali:
+	$(GNATGCC) $(DO_NOT_LINK) $<
+
+corba.ali: corba.ads corba.adb
+
+corba-object.ali: corba-object.ads corba-object.adb
+
+giop_s.ali: giop_s.ads giop_s.adb
+
+giop.ali: giop.ads
+
+omni.ali: omni.ads omni.adb
+
+bufferedstream.ali: bufferedstream.ads bufferedstream.adb
+
+netbufferedstream.ali: netbufferedstream.ads netbufferedstream.adb
+
+membufferedstream.ali: membufferedstream.ads membufferedstream.adb

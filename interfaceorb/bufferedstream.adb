@@ -10,84 +10,96 @@
 ----                                                               ----
 -----------------------------------------------------------------------
 
-with Corba ;
-with Omni ;
+with Ada.Exceptions ;
 
-package BufferedStream is
-
-   type Object is abstract tagged private ;
-
+package body BufferedStream is
 
    --------------------------------------------------------
    ----   marshalling objects into buffered streams    ----
    --------------------------------------------------------
 
+   -- Marshal
+   ----------
    procedure Marshal (Len : in CORBA.Unsigned_Long ;
-                      Buff_Str : in out Object);
-   -- marshalling Objects into BufferedStream
-   -- has to be defined for all CORBA Objects
-   -- corresponds to operator>>=
-   -- in bufferedStream.h L 203
+                      Buff_Str : in out Object) is
+   begin
+      Ada.Exceptions.Raise_Exception(Corba.AdaBroker_Not_Implemented_Yet'Identity,
+                                     "BufferedStream.Marshal") ;
+   end ;
 
+   -- Marshal
+   ----------
    procedure Marshal (obj : in CORBA.Char ;
-                      Buff_Str : in out Object) ;
-
-
+                      Buff_Str : in out Object) is
+   begin
+      Ada.Exceptions.Raise_Exception(Corba.AdaBroker_Not_Implemented_Yet'Identity,
+                                     "BufferedStream.Marshal") ;
+   end ;
 
 
    --------------------------------------------------------
    ---- unmarshalling objects from buffered streams    ----
    --------------------------------------------------------
 
+   -- UnMarshal
+   ------------
    function UnMarshal (Buff_Str : in Object)
-                        return CORBA.Char ;
-   -- marshalling Objects into BufferedStream
-   -- has to be defined for all CORBA Objects
+                        return CORBA.Char is
+   begin
+      Ada.Exceptions.Raise_Exception(Corba.AdaBroker_Not_Implemented_Yet'Identity,
+                                     "BufferedStream.UnMarshal") ;
+      return 'A' ;
+   end ;
 
+   -- UnMarshal
+   ------------
    function UnMarshal (Buff_Str : in Object)
-                        return CORBA.Unsigned_Long ;
+                        return CORBA.Unsigned_Long is
+   begin
+      Ada.Exceptions.Raise_Exception(Corba.AdaBroker_Not_Implemented_Yet'Identity,
+                                     "BufferedStream.UnMarshal") ;
+      return Corba.Unsigned_Long(0) ;
+   end ;
 
+   -- UnMarshal
+   ------------
    function UnMarshal (Buff_Str : in Object)
-                        return CORBA.String ;
+                        return CORBA.String is
+   begin
+      Ada.Exceptions.Raise_Exception(Corba.AdaBroker_Not_Implemented_Yet'Identity,
+                                     "BufferedStream.UnMarshal") ;
+      return Corba.To_Corba_String("") ;
+   end ;
 
 
    -------------------------------------------------------
    ----           others                              ----
    -------------------------------------------------------
 
+   -- Put_Char_Array
+   -----------------
    procedure Put_Char_Array (Self: in Object ;
                              B: in Corba.String ;
                              Size: in Corba.Unsigned_Long ;
                              Align: in Omni.Alignment_T := Omni.ALIGN_1 ;
                              StartMTU: in Corba.Boolean := False ;
-                             At_Most_One: in Corba.Boolean := False ) ;
-   -- wrapper around NetBufferedStream::put_char_array(const CORBA::Char* b,
-   --                             int size,
-   --                             omni::alignment_t align,
-   --                             CORBA::Boolean startMTU,
-   --                             CORBA::Boolean at_most_once)
-   -- in nbufferedStream.cc L 154
+                             At_Most_One: in Corba.Boolean := False ) is
+   begin
+      Ada.Exceptions.Raise_Exception(Corba.AdaBroker_Not_Implemented_Yet'Identity,
+                                     "BufferedStream.Put_Char_Array") ;
+   end ;
 
+   -- Get_Char_Array
+   -----------------
    procedure Get_Char_Array (Self : in Object ;
                              B : in Corba.String ;
                              Size : in Corba.Unsigned_Long ;
                              Align : in Omni.Alignment_T := Omni.ALIGN_1 ;
-                             StartMTU : in Corba.Boolean := False) ;
-   -- wrapper around void NetBufferedStream::get_char_array(CORBA::Char* b,
-   --                                               int size,
-   --                                               omni::alignment_t align,
-   --                                               CORBA::Boolean startMTU)
-   -- in nbufferedStream.cc L 121
+                             StartMTU : in Corba.Boolean := False) is
+   begin
+      Ada.Exceptions.Raise_Exception(Corba.AdaBroker_Not_Implemented_Yet'Identity,
+                                     "BufferedStream.Get_Char_Array") ;
+   end ;
 
-private
-
-   type Object is abstract tagged null record ;
 
 end BufferedStream ;
-
-
-
-
-
-
-
