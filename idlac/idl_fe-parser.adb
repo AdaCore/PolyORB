@@ -599,7 +599,10 @@ package body Idl_Fe.Parser is
             Parse_Pragma (Result, Success);
             if not Success then
                --  here the pragma is ignored and no node created
-               --  so we parse the next definition
+               --  so we parse the next definition (if it exists)
+               pragma Debug (O ("Parse_Definition : parse definition " &
+                                "after pragma, current token is " &
+                                Idl_Token'Image (Get_Token)));
                Parse_Definition (Result, Success);
                pragma Debug (O2 ("Parse_Definition : end"));
                return;
@@ -608,7 +611,8 @@ package body Idl_Fe.Parser is
                return;
             end if;
 
-         when T_Eof =>
+         when T_Eof
+           | T_Right_Cbracket =>
             Result := No_Node;
             Success := False;
             pragma Debug (O2 ("Parse_Definition : end"));
@@ -2879,9 +2883,9 @@ package body Idl_Fe.Parser is
       pragma Debug (O2 ("Parse_Const_Exp : end"));
    end Parse_Const_Exp;
 
-   --------------------
-   --  Parse_Or_Exp  --
-   --------------------
+   ---------------------
+   --  Parse_Or_Expr  --
+   ---------------------
    procedure Parse_Or_Expr (Result : out Node_Id;
                             Success : out Boolean;
                             Expr_Type : in Const_Type_Ptr) is
