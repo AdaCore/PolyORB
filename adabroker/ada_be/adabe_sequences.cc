@@ -141,7 +141,7 @@ adabe_sequence::produce_stream_adb (dep_list & with,
   body += "         Marshall\n";
   body += "            (" + inter_name + ".Element_Of (A, Integer (I)), S);\n";
   body += "      end loop;\n";
-  body += "   end;\n\n";
+  body += "   end Marshall;\n\n";
   
   body += "   procedure Unmarshall\n";
   body += "     (A : out " + type_name + ";\n"; 
@@ -158,7 +158,7 @@ adabe_sequence::produce_stream_adb (dep_list & with,
   body += "            A := " + inter_name + ".\"&\" (A, Val);\n";
   body += "         end loop;\n";
   body += "      end;\n";
-  body += "   end;\n\n";
+  body += "   end Unmarshall;\n\n";
 
   body += "   function Align_Size\n";
   body += "     (A              : in " + type_name + ";\n"; 
@@ -179,7 +179,7 @@ adabe_sequence::produce_stream_adb (dep_list & with,
   body += "         end loop;\n";
   body += "      end loop;\n";
   body += "      return Tmp;\n";
-  body += "   end;\n\n";
+  body += "   end Align_Size;\n\n";
   set_already_defined ();
 }
 

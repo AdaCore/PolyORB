@@ -318,11 +318,11 @@ adabe_exception::produce_stream_adb (dep_list & with,
 	    }      
 	  activator.next ();
 	}
-      marshall += "   end;\n\n";
-      unmarshall += "   end;\n\n";
+      marshall   += "   end Marshall;\n\n";
+      unmarshall += "   end Unmarshall;\n\n";
       align_size += "      end loop;\n";
       align_size += "      return Tmp;\n";
-      align_size += "   end;\n\n\n";
+      align_size += "   end Align_Size;\n\n";
       
       body += marshall;
       body += unmarshall;

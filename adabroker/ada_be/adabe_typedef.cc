@@ -136,14 +136,14 @@ adabe_typedef::produce_stream_adb (dep_list & with,
   body += "      S : in out AdaBroker.NetBufferedStream.Object'Class) is\n";
   body += "   begin\n";
   body += "      Marshall (" + name + "(A), S);\n";
-  body += "   end;\n\n";
+  body += "   end Marshall;\n\n";
 	    
   body += "   procedure Unmarshall\n";
   body += "     (A : out " + get_ada_local_name () + ";\n";
   body += "     S : in out AdaBroker.NetBufferedStream.Object'Class) is\n";
   body += "   begin\n";
   body += "      Unmarshall (" + name + "(A), S);\n";
-  body += "   end;\n\n";
+  body += "   end Unmarshall;\n\n";
   
   body += "   function Align_Size\n";
   body += "     (A              : in " + get_ada_local_name () + ";\n";
@@ -155,7 +155,7 @@ adabe_typedef::produce_stream_adb (dep_list & with,
   body += "   begin\n";
   body += "      Tmp := Align_Size (" + name + "(A), Tmp);\n";
   body += "      return Tmp;\n";
-  body += "   end;\n\n";
+  body += "   end Align_Size;\n\n";
 
   set_already_defined ();
 }

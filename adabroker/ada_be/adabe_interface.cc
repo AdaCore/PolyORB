@@ -1183,8 +1183,8 @@ adabe_interface::produce_proxy_adb (dep_list & with,
 ////////////////////////////////////////////////////////////////////////
 void
 adabe_interface::produce_stream_ads (dep_list & with,
-				      string   & body,
-				      string   & previous)
+				     string   & body,
+				     string   & previous)
   // Produce marshal.ads file for a given interface.
 {
   // Remember file on which we are working.
@@ -1267,9 +1267,10 @@ adabe_interface::produce_stream_adb (dep_list & with,
 
   // Add some packages to the with clauses.
   with.add ("CORBA.Object");
+  with.add ("CORBA.Object.OmniORB");
   with.add ("AdaBroker.NetBufferedStream");
   with.add ("AdaBroker.MemBufferedStream");
-
+  
   // Header of the package
   body += "package body ";
   body += get_ada_full_name ();
