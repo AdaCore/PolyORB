@@ -2,13 +2,13 @@
 --                                                                          --
 --                            GLADE COMPONENTS                              --
 --                                                                          --
---                 S Y S T E M . G A R L I C . F I L T E R S                --
+--                S Y S T E M . G A R L I C . F I L T E R S                 --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision$                              --
+--                            $Revision$                             --
 --                                                                          --
---         Copyright (C) 1996,1997 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-1998 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -34,6 +34,7 @@
 ------------------------------------------------------------------------------
 
 with Ada.Streams;
+with Ada.Unchecked_Deallocation;
 with System.Garlic.Heart;
 with System.Garlic.Name_Table;
 with System.Garlic.Streams;
@@ -56,7 +57,7 @@ package System.Garlic.Filters is
       return Streams.Stream_Element_Access;
 
    procedure Initialize;
-   --  Elaboration code.
+   --  Elaboration code
 
    procedure Set_Channel_Filter (Partition, Filter : in String);
    --  The current partition uses Filter to communication with any
@@ -100,9 +101,8 @@ private
        Params : Filter_Params_Access)
       return Streams.Stream_Element_Access is abstract;
 
-   procedure Free
-     (Params  : Filter_Params_Type;
-      Pointer : in out Filter_Params_Access) is abstract;
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Filter_Params_Type'Class, Filter_Params_Access);
 
    procedure Generate_Params
       (Filter          : in  Filter_Type;
@@ -110,10 +110,8 @@ private
        Private_Params  : out Filter_Params_Access;
        Exchange_Params : out Boolean) is abstract;
 
-   function Get_Name
-      (Filter : Filter_Type)
-      return String is abstract;
-
-   procedure Register_Filter (Filter : in Filter_Access);
+   procedure Register_Filter
+     (Filter : in Filter_Access;
+      Name   : in String);
 
 end System.Garlic.Filters;

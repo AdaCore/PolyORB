@@ -1,14 +1,14 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                           GLADE COMPONENTS                               --
+--                            GLADE COMPONENTS                              --
 --                                                                          --
---               S Y S T E M . G A R L I C . F I L T E R S                  --
+--                S Y S T E M . G A R L I C . F I L T E R S                 --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision$                              --
+--                            $Revision$                             --
 --                                                                          --
---         Copyright (C) 1996,1997 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-1998 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -34,6 +34,7 @@
 ------------------------------------------------------------------------------
 
 with Ada.Streams;              use Ada.Streams;
+with Interfaces.C;
 with System.Garlic.Debug;      use System.Garlic.Debug;
 with System.Garlic.Heart;      use System.Garlic.Heart;
 with System.Garlic.Name_Table; use System.Garlic.Name_Table;
@@ -113,10 +114,10 @@ package body System.Garlic.Filters is
          Null_Half_Channel);
 
    Default  : Filter_Access := null;
-   --  Default filter. To use when no filter is assigned to a channel.
+   --  Default filter to be used when no filter is assigned to a channel
 
    Register : Channel_Type  := Null_Channel;
-   --  Registration filter. To use when filter params are exchanged.
+   --  Registration filter to be used when filter params are exchanged
 
    type Request_Id is (Initialize, Get_Params, Set_Params);
    type Request_Type is record
@@ -182,30 +183,28 @@ package body System.Garlic.Filters is
        Operation : in System.Garlic.Heart.Opcode;
        Stream    : in Ada.Streams.Stream_Element_Array)
       return Streams.Stream_Element_Access is
-
    begin
-
-      --  Only remote calls are filtered.
+      --  Only remote calls are filtered
 
       if Operation = Remote_Call then
 
-         --  Check that this half channel is initialized.
+         --  Check that this half channel is initialized
 
          if not Channels.Table (Partition).Incoming.Ready then
             pragma Debug
               (D (D_Debug,
-                  "Partition" & Partition'Img &
+                  "Partition " & Get (Get_Partition_Data (Partition).Name) &
                   " incoming filter not initialized"));
 
             Channels.Apply (Partition, Init_Request, Incoming'Access);
          end if;
 
-         --  Check whether stream management is needed.
+         --  Check whether stream management is needed
 
          if Channels.Table (Partition).Filter /= null then
             pragma Debug
               (D (D_Debug,
-                  "Partition" & Partition'Img &
+                  "Partition " & Get (Get_Partition_Data (Partition).Name) &
                   " incoming filter non null"));
 
             return Filter_Incoming
@@ -215,7 +214,8 @@ package body System.Garlic.Filters is
          end if;
       end if;
 
-      --  When possible, avoid unnecessary buffer copies.
+      --  When possible, avoid unnecessary buffer copies
+      --  What does the previous comment mean, a copy is made right below ???
 
       return new Stream_Element_Array'(Stream);
    end Filter_Incoming;
@@ -229,30 +229,28 @@ package body System.Garlic.Filters is
        Operation : in     System.Garlic.Heart.Opcode;
        Stream    : access System.RPC.Params_Stream_Type)
       return Streams.Stream_Element_Access is
-
    begin
-
-      --  Only remote calls are filtered.
+      --  Only remote calls are filtered
 
       if Operation = Remote_Call then
 
-         --  Check  that this half channel is initialized.
+         --  Check  that this half channel is initialized
 
          if not Channels.Table (Partition).Outgoing.Ready then
             pragma Debug
               (D (D_Debug,
-                  "Partition" & Partition'Img &
+                  "Partition " & Get (Get_Partition_Data (Partition).Name) &
                   " outgoing filter not initialized"));
 
             Channels.Apply (Partition, Init_Request, Outgoing'Access);
          end if;
 
-         --  Check whether stream management is needed.
+         --  Check whether stream management is needed
 
          if Channels.Table (Partition).Filter /= null then
             pragma Debug
               (D (D_Debug,
-                  "Partition" & Partition'Img &
+                  "Partition " & Get (Get_Partition_Data (Partition).Name) &
                   " outgoing filter non null"));
 
             return Filter_Outgoing
@@ -262,7 +260,8 @@ package body System.Garlic.Filters is
          end if;
       end if;
 
-      --  When possible, avoid unnecessary buffer copies.
+      --  When possible, avoid unnecessary buffer copies
+      --  What does the previous comment mean, a copy is made right below ???
 
       return To_Stream_Element_Access (Stream);
    end Filter_Outgoing;
@@ -309,15 +308,15 @@ package body System.Garlic.Filters is
      (Partition : in Partition_ID;
       Request   : in Request_Type;
       Channel   : in out Channel_Type;
-      Status    : out Status_Type) is
-
+      Status    : out Status_Type)
+   is
    begin
       Status := Unmodified;
 
       if not Channel.Installed then
          pragma Debug
            (D (D_Debug,
-               "Partition" & Partition'Img &
+               "Partition " & Get (Get_Partition_Data (Partition).Name) &
                " filter initialized"));
 
          Channel.Filter    := Get_Partition_Filter (Partition);
@@ -334,7 +333,8 @@ package body System.Garlic.Filters is
       if not Channel.Incoming.Ready then
          pragma Debug
            (D (D_Debug,
-               "Generate params for partition" & Partition'Img &
+               "Generate params for partition " &
+               Get (Get_Partition_Data (Partition).Name) &
                " incoming filter"));
 
          --  Always generate params. An incoming channel will always use
@@ -357,7 +357,8 @@ package body System.Garlic.Filters is
       if Request.Command = Get_Params then
          pragma Debug
            (D (D_Debug,
-               "Provide params for partition" & Partition'Img &
+               "Provide params for partition " &
+               Get (Get_Partition_Data (Partition).Name) &
                " incoming filter"));
 
          Send_Message (Partition, Set_Params, Channel);
@@ -370,10 +371,8 @@ package body System.Garlic.Filters is
 
    procedure Initialize is
       F : Name_Id;
-
    begin
-
-      --  Initialize default filter.
+      --  Initialize default filter
 
       F := Name_Id (Get_Info (Get (Default_Filter_Name)));
       if F /= Null_Name then
@@ -413,15 +412,15 @@ package body System.Garlic.Filters is
      (Partition : in Partition_ID;
       Request   : in Request_Type;
       Channel   : in out Channel_Type;
-      Status    : out Status_Type) is
-
+      Status    : out Status_Type)
+   is
    begin
       Status := Unmodified;
 
       if not Channel.Installed then
          pragma Debug
            (D (D_Debug,
-               "Partition" & Partition'Img &
+               "Partition " & Get (Get_Partition_Data (Partition).Name) &
                " filter initialized"));
 
          Channel.Filter    := Get_Partition_Filter (Partition);
@@ -445,7 +444,8 @@ package body System.Garlic.Filters is
          if Request.Command = Set_Params then
             pragma Debug
               (D (D_Debug,
-                  "Save params for partition" & Partition'Img &
+                  "Save params for partition " &
+                  Get (Get_Partition_Data (Partition).Name) &
                   " outgoing filter"));
 
             Channel.Outgoing.Ready := True;
@@ -467,7 +467,8 @@ package body System.Garlic.Filters is
             if not Channel.Exchange then
                pragma Debug
                  (D (D_Debug,
-                     "Exchange no params for partition" & Partition'Img &
+                     "Exchange no params for partition " &
+                     Get (Get_Partition_Data (Partition).Name) &
                      " outgoing filter"));
 
                Channel.Outgoing.Ready := True;
@@ -479,12 +480,13 @@ package body System.Garlic.Filters is
                --  ask the other partition for its remote parameter (pull
                --  method). Previous remote and local params are discarded.
 
-               Free (Channel.Outgoing.Remote.all, Channel.Outgoing.Remote);
-               Free (Channel.Outgoing.Local.all, Channel.Outgoing.Local);
+               Free (Channel.Outgoing.Remote);
+               Free (Channel.Outgoing.Local);
 
                pragma Debug
                  (D (D_Debug,
-                     "Query params for partition" & Partition'Img &
+                     "Query params for partition " &
+                     Get (Get_Partition_Data (Partition).Name) &
                      " outgoing filter"));
 
                Send_Message (Partition, Get_Params, Channel);
@@ -501,8 +503,8 @@ package body System.Garlic.Filters is
    procedure Receive_Message
      (Partition : in Partition_ID;
       Operation : in Public_Opcode;
-      Params    : access Params_Stream_Type) is
-
+      Params    : access Params_Stream_Type)
+   is
       --  We may have to filter the original stream. We will interpret the
       --  message once the stream has been filtered. That's why the job is
       --  done in Internal_Receive.
@@ -559,10 +561,11 @@ package body System.Garlic.Filters is
    -- Register_Filter --
    ---------------------
 
-   procedure Register_Filter (Filter : in Filter_Access) is
+   procedure Register_Filter
+     (Filter : in Filter_Access;
+      Name   : in String) is
    begin
-      Filters.Set_Component
-        (Filters.Get_Index (Get_Name (Filter.all)), Filter);
+      Filters.Set_Component (Filters.Get_Index (Name), Filter);
    end Register_Filter;
 
    ------------------
@@ -572,10 +575,10 @@ package body System.Garlic.Filters is
    procedure Send_Message
      (Partition : in Partition_ID;
       Request   : in Request_Id;
-      Channel   : in Channel_Type) is
+      Channel   : in Channel_Type)
+   is
       Stream : aliased Params_Stream_Type (0);
       Params : Stream_Element_Access;
-
    begin
       pragma Debug
         (D (D_RNS,
@@ -590,15 +593,30 @@ package body System.Garlic.Filters is
          Free (Params);
       end if;
 
-      --  When parameters are exchanged, stream may have to be filtered.
+      --  When parameters are exchanged, stream may have to be filtered
 
       if Register.Filter /= null then
-         Params := Filter_Outgoing
-           (Register.Filter.all,
-            Register.Outgoing.Local,
-            Stream'Access);
-         Write (Stream, Params.all);
-         Free (Params);
+
+         --  The call to Filter_Outgoing makes GNAT crash. For this reason,
+         --  it is replaced by a block that aborts the current program if
+         --  we go through this piece of code ???
+         --  When uncommenting this code and removing the hack, remove the
+         --  "with" of Interfaces.C in this file ???
+
+         --          Params := Filter_Outgoing
+         --            (Register.Filter.all,
+         --             Register.Outgoing.Local,
+         --             Stream'Access);
+         --          Write (Stream, Params.all);
+         --          Free (Params);
+
+         declare
+            procedure C_Exit (Code : Interfaces.C.int);
+            pragma Import (C, C_Exit, "exit");
+         begin
+            C_Exit (1);
+         end;
+
       end if;
 
       Send (Partition, Filtering, Stream'Access);
