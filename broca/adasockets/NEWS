@@ -11,7 +11,7 @@ demonstrate this feature.
 
 ** New procedure Receive_Some.
 
-A new Receive_Some procedure, suggested by Laurent Gerby, allows the user
+A new Receive_Some procedure, suggested by Laurent Guerby, allows the user
 to get the first data available instead of waiting for the buffer to be
 filled.
 
