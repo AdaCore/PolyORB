@@ -166,12 +166,12 @@ package body XE_Check is
       --  Initialize parameters for Compile_Sources
       if not No_Recompilation then
          Arguments
-           := new Argument_List (Osint.Gcc_Switches.First ..
-                                 Osint.Gcc_Switches.Last);
+           := new Argument_List (Gcc_Switches.First ..
+                                 Gcc_Switches.Last);
          Display_Commands (Verbose_Mode or Building_Script);
-         for Switch in Osint.Gcc_Switches.First ..
-                       Osint.Gcc_Switches.Last loop
-            Arguments (Switch) := Osint.Gcc_Switches.Table (Switch);
+         for Switch in Gcc_Switches.First ..
+                       Gcc_Switches.Last loop
+            Arguments (Switch) := Gcc_Switches.Table (Switch);
          end loop;
       end if;
 
