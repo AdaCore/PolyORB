@@ -50,12 +50,10 @@ with Interfaces.C ;
 
 package Sys_Dep is
 
-   type C_Boolean is range 0..1 ;
-
 #if BOOLEAN_ON_1_BYTE
-  for C_Boolean'Size use 1 ;
+  type C_Boolean is new Interfaces.C.Unsigned_Char ;
 #elsif BOOLEAN_ON_4_BYTES
-  for C_Boolean'Size use 4 ;
+  type C_Boolean is new Interfaces.C.Unsigned_Long ;
 #else
   ::::::::::::::::::::::::::::::::::::::
   ::::::::::::::::::::::::::::::::::::::
