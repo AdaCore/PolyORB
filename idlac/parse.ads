@@ -659,10 +659,62 @@ private
    procedure Parse_Array_Declarator (Result : out N_Declarator_Acc;
                                      Success : out Boolean);
 
+   --  Rule 84
+   --  <fixed_array_size> ::= "[" <positive_int_const> "]"
+   procedure Parse_Fixed_Array_Size (Result : out N_Const_Acc;
+                                     Success : out Boolean);
+
    --  Rule 86
    --  <except_dcl> ::= "exception" <identifier> "{" <member>* "}"
    procedure Parse_Except_Dcl (Result : out N_Exception_Acc;
                                Success : out Boolean);
+
+   --  Rule 87
+   --  <op_dcl> ::= [ <op_attribute> ] <op_type_spec> <identifier>
+   --               <parameters_dcls> [ <raises_expr> ]
+   --               [ <context_expr> ]
+   procedure Parse_Op_Dcl (Result : out N_Operation_Acc;
+                           Success : out Boolean);
+
+   --  Rule 88
+   --  <op_attribute> ::= "oneway"
+   --  no parsing mathod needed here
+
+   --  Rule 89
+   --  <op_type_spec> ::= <param_type_spec>
+   --                 |   "void"
+   procedure Parse_Op_Type_Spec (Result : out N_Root_Acc;
+                                 Success : out Boolean);
+
+   --  Rule 90
+   --  <parameter_dcls> ::= "(" <param_dcl> { "," <param_dcl> }* ")"
+   --                   |   "(" ")"
+   procedure Parse_Parameter_Dcls (Result : out Node_List;
+                                   Success : out Boolean);
+
+   --  Rule 91
+   --  <param_dcl> ::= <param_attribute> <param_type_spec> <simple_declarator>
+   procedure Parse_Param_Dcl (Result : out N_Param_Acc;
+                              Success : out boolean);
+
+   --  Rule 92
+   --  <param_attribute> ::= "in"
+   --                    |   "out"
+   --                    |   "inout"
+   procedure Parse_Param_Attribute (Result : out Param_Mode;
+                                    Success : out Boolean);
+
+   --  Rule 93
+   --  <raises_expr> ::= "raises" "(" <scoped_name> { ","
+   --                                 <scoped_name" }* ")"
+   procedure Parse_Raises_Expr (Result : out Node_List;
+                                Success : out Boolean);
+
+   --  Rule 94
+   --  <context_expr> ::= "context" "(" <string_literal> { ","
+   --                                   <string_literal> }* ")"
+   procedure Parse_Context_Expr (Result : out Node_List;
+                                 Success : out Boolean);
 
    --  Rule 95
    --  <param_type_spec> ::= <base_type_spec>
@@ -683,6 +735,25 @@ private
    procedure Parse_Value_Base_Type (Result : in out N_ValueBase_Acc;
                                     Success : out Boolean);
 
+   ---------------------------
+   --  Parsing of literals  --
+   ---------------------------
+
+   --  parsing of a string
+   procedure Parse_String_Literal (Result : out N_Lit_String_Acc;
+                                   Success : out Boolean);
+
+   --  CORBA V2.3 - 3.12.4
+   --
+   --  "Each String_literal is an arbitrary long sequence of
+   --  alphabetic, digit, period ("."), underscore ("_") and
+   --  asterisk ("*") characters. The first character of the string
+   --  must be an alphabetic character. An asterisk may only be
+   --  used at the last character of the string. "
+   --
+   --  This procedure raises an error if S does not respect these
+   --  constraints.
+   procedure Check_Context_String (S : in String);
 
    ------------------------------
    --  To resume after errors  --
@@ -742,36 +813,8 @@ private
 --    --            | <boolean_literal>
 --    function Parse_Literal return N_Root_Acc is
 
---    --  Rule 74:
---    --  <op_type_spec> ::= <param_type_spec>
---    --                 |   "void"
---    function Parse_Op_Type_Spec return N_Root_Acc is
 
---    --  Rule 76:
---  --  <param_dcl> ::= <param_attribute> <param_type_spec> <simple_declarator>
---    --
---    --  Rule 77:
---    --  <param_attribute> ::= "in"
---    --                    |   "out"
---    --                    |   "inout"
---    procedure Parse_Param_Dcl (List : in out Node_List) is
 
---    --  Rule 75:
---    --  <parameter_dcls> ::= "(" <param_dcl> { "," <param_dcl> }* ")"
---    --                   |   "(" ")"
---    function Parse_Parameter_Dcls return Node_List is
-
---    --  Rule 72:
---    --  <op_dcl> ::= [ <op_attribute> ] <op_type_spec> <identifier>
---    --               <parameters_dcls> [ <raises_expr> ] [ <context_expr> ]
---    --
---    --  Rule 78:
---  --  <raises_expr> ::= "raises" "(" <scoped_name> { "," <scoped_name" }* ")"
---    --
---    --  Rule 79:
---    --  <context_expr> ::= "context" "(" <string_literal> { ","
---    --                                   <string_literal> }* ")"
---    function Parse_Op_Dcl return N_Operation_Acc is
 
 --    --  Rule 23:
 --    --  <primary_expr> ::= <scoped_name>
@@ -826,13 +869,6 @@ private
 --    --  <attr_dcl> ::= [ "readonly" ] "attribute" <param_type_spec>
 --    --                 <simple_declarator> { "," <simple_declarator> }*
 --    procedure Parse_Attr_Dcl (List : in out Node_List) is
-
---    --
-
-
---    --  Rule 69:
---    --  <fixed_array_size> ::= "[" <positive_int_const> "]"
---    function Parse_Declarator return N_Declarator_Acc is
 
 --    --
 

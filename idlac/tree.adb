@@ -101,10 +101,10 @@ package body Tree is
    ----------------
    --  Get_Kind  --
    ----------------
---    function Get_Kind (N : N_Operation) return Types.Node_Kind is
---    begin
---       return Types.K_Operation;
---    end Get_Kind;
+   function Get_Kind (N : N_Operation) return Types.Node_Kind is
+   begin
+      return Types.K_Operation;
+   end Get_Kind;
 
    ----------------
    --  Get_Kind  --
@@ -117,10 +117,10 @@ package body Tree is
    ----------------
    --  Get_Kind  --
    ----------------
---    function Get_Kind (N : N_Void) return Types.Node_Kind is
---    begin
---       return Types.K_Void;
---    end Get_Kind;
+   function Get_Kind (N : N_Void) return Types.Node_Kind is
+   begin
+      return Types.K_Void;
+   end Get_Kind;
 
    ----------------
    --  Get_Kind  --
@@ -409,6 +409,14 @@ package body Tree is
 --    begin
 --       return Types.K_Not;
 --    end Get_Kind;
+
+   ----------------
+   --  Get_Kind  --
+   ----------------
+   function Get_Kind (N : N_Lit_String) return Types.Node_Kind is
+   begin
+      return Types.K_Lit_String;
+   end Get_Kind;
 
    ----------------
    --  Get_Kind  --

@@ -232,7 +232,54 @@ typedef string <10 string1;
 /* Test of rule 82 */
 typedef wstring <10 wstring1;
 
+/* Test of rule 83 */
+typedef boolean array1[2];
+typedef boolean array1[2];
+
+/* Test of rule 84 */
+typedef boolean array2[3;
+
+/* Test of rule 87 */
+boolean;
+oneway boolean;
+boolean op1 ();
+boolean op1 ();
+
+/* Test of rule 89 */
+oneway error;
+
+/* Test of rule 90 */
+boolean op2;
+boolean op3 (;
+
+/* Test of rule 91 */
+boolean op4 (boolean);
+boolean op5 (error);
+
+/* Test of rule 92 */
+boolean op6 (boolean b);
+
+/* Test of rule 93 */
+boolean op7 () raises;
+boolean op8 () raises ();
+boolean op9 raises (;
+
+/* Test of rule 94 */
+boolean op10 () context;
+boolean op11 () context ();
+boolean op12 context (;
+
+/* Test of rule 95 */
+boolean op13 (inout error);
+
 /* Test of rule 96 */
 typedef fixed fixed1;
 typedef fixed <6> fixed2;
 typedef fixed <6,7 fixed3;
+
+
+/* Test of check_context_string */
+boolean op14 () context ("0error");
+boolean op15 () context ("eréror");
+boolean op16 () context ("err*or");
+boolean op17 () context ("erroré");

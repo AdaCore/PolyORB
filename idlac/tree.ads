@@ -120,16 +120,15 @@ package Tree is
    type N_Scoped_Name_Acc is access all N_Scoped_Name;
    function Get_Kind (N : N_Scoped_Name) return Types.Node_Kind;
 
---    --  Declaration of an operation.
---    type N_Operation is new Types.N_Scope with record
---       Is_Oneway : Boolean;
---       Op_Type : Types.N_Root_Acc;
---       Parameters : Types.Node_List;
---       Raises : Types.Node_List;
---       Contexts : Types.Node_List;
---    end record;
---    type N_Operation_Acc is access all N_Operation;
---    function Get_Kind (N : N_Operation) return Types.Node_Kind;
+   type N_Operation is new Types.N_Scope with record
+      Is_Oneway : Boolean;
+      Operation_Type : Types.N_Root_Acc;
+      Parameters : Types.Node_List;
+      Raises : Types.Node_List;
+      Contexts : Types.Node_List;
+   end record;
+   type N_Operation_Acc is access all N_Operation;
+   function Get_Kind (N : N_Operation) return Types.Node_Kind;
 
 --    type N_Attribute is new Types.N_Named with record
 --       Is_Readonly : Boolean;
@@ -138,10 +137,9 @@ package Tree is
 --    type N_Attribute_Acc is access all N_Attribute;
 --    function Get_Kind (N : N_Attribute) return Types.Node_Kind;
 
---    --  Void type.
---    type N_Void is new Types.N_Root with null record;
---    type N_Void_Acc is access all N_Void;
---    function Get_Kind (N : N_Void) return Types.Node_Kind;
+   type N_Void is new Types.N_Root with null record;
+   type N_Void_Acc is access all N_Void;
+   function Get_Kind (N : N_Void) return Types.Node_Kind;
 
    --  float type.
    type N_Float is new Types.N_Root with null record;
@@ -345,11 +343,15 @@ package Tree is
 --    type N_Not_Expr_Acc is access N_Not_Expr;
 --    function Get_Kind (N : N_Not_Expr) return Types.Node_Kind;
 
---    type N_Literal is abstract new Types.N_Root with record
---       Lit : String_Cacc;
---    end record;
---    type N_Literal_Acc is access all N_Literal'Class;
---    function Get_Kind (N : N_Literal) return Types.Node_Kind is abstract;
+   type N_Literal is abstract new Types.N_Root with null record;
+   type N_Literal_Acc is access all N_Literal'Class;
+   function Get_Kind (N : N_Literal) return Types.Node_Kind is abstract;
+
+   type N_Lit_String is new N_Literal with record
+     Value : Types.String_Cacc;
+   end record;
+   type N_Lit_String_Acc is access all N_Lit_String;
+   function Get_Kind (N : N_Lit_String) return Types.Node_Kind;
 
 --    type N_Lit_Integer is new N_Literal with null record;
 --    type N_Lit_Integer_Acc is access all N_Lit_Integer;

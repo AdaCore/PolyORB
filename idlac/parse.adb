@@ -19,6 +19,7 @@
 --  with Ada.Text_IO; use Ada.Text_IO;
 with Ada.Characters.Latin_1;
 with Ada.Unchecked_Deallocation;
+with GNAT.Case_Util;
 with Tokens; use Tokens;
 with Types; use Types;
 with Errors;
@@ -3500,10 +3501,69 @@ package body Parse is
    ------------------------------
    procedure Parse_Array_Declarator (Result : out N_Declarator_Acc;
                                      Success : out Boolean) is
+      Definition : Identifier_Definition_Acc;
    begin
-      Result := null;
-      Success := False;
+      Result := new N_Declarator;
+      Set_Location (Result.all, Get_Token_Location);
+      --  try to find a previous definition
+      Definition := Find_Identifier_Definition (Get_Token_String);
+      --  Is there a previous definition and in the same scope ?
+      if Definition /= null
+        and then Definition.Parent_Scope = Get_Current_Scope then
+         Errors.Parser_Error
+           ("This identifier is already used in this scope : " &
+            Errors.Display_Location (Get_Location (Definition.Node.all)),
+            Errors.Error,
+            Get_Token_Location);
+      else
+         --  no previous definition
+         if not Add_Identifier (Result,
+                                Get_Token_String) then
+            raise Errors.Internal_Error;
+         end if;
+      end if;
+      Result.Array_Bounds := Nil_List;
+      while Get_Next_Token = T_Left_Sbracket loop
+         declare
+            Const : N_Const_Acc;
+         begin
+            Parse_Fixed_Array_Size (Const, Success);
+            if not Success then
+               return;
+            end if;
+            Append_Node (Result.Array_Bounds, N_Root_Acc (Const));
+         end;
+      end loop;
+      return;
    end Parse_Array_Declarator;
+
+   ------------------------------
+   --  Parse_Fixed_Array_Size  --
+   ------------------------------
+   procedure Parse_Fixed_Array_Size (Result : out N_Const_Acc;
+                                     Success : out Boolean) is
+   begin
+      Next_Token;
+      Parse_Positive_Int_Const (Result, Success);
+      if not Success then
+         return;
+      end if;
+      if Get_Token /= T_Right_Sbracket then
+         declare
+            Loc : Errors.Location;
+         begin
+            Loc := Get_Previous_Token_Location;
+            Loc.Col := Loc.Col + Get_Previous_Token_String'Length;
+            Errors.Parser_Error ("']' expected in array definition.",
+                                 Errors.Error,
+                                 Loc);
+         end;
+         Success := False;
+         return;
+      end if;
+      Next_Token;
+      return;
+   end Parse_Fixed_Array_Size;
 
    ------------------------
    --  Parse_Except_Dcl  --
@@ -3530,31 +3590,421 @@ package body Parse is
 --       return Res;
    end Parse_Except_Dcl;
 
+   --------------------
+   --  parse_op_dcl  --
+   --------------------
+   procedure Parse_Op_Dcl (Result : out N_Operation_Acc;
+                           Success : out Boolean) is
+   begin
+      Result := new N_Operation;
+      Set_Location (Result.all, Get_Token_Location);
+      if Get_Token = T_Oneway then
+         Result.Is_Oneway := True;
+         Next_Token;
+      else
+         Result.Is_Oneway := True;
+      end if;
+      Parse_Op_Type_Spec (Result.Operation_Type, Success);
+      if not Success then
+         return;
+      end if;
+      if Get_Token /= T_Identifier then
+         Errors.Parser_Error ("Identifier expected in operation declaration.",
+                              Errors.Error,
+                              Get_Token_Location);
+         Success := False;
+         return;
+      else
+         declare
+            Definition : Identifier_Definition_Acc;
+         begin
+            --  try to find a previous definition
+            Definition := Find_Identifier_Definition (Get_Token_String);
+            --  Is there a previous definition and in the same scope ?
+            if Definition /= null
+              and then Definition.Parent_Scope = Get_Current_Scope then
+               Errors.Parser_Error
+                 ("This identifier is already used in this scope : " &
+                  Errors.Display_Location (Get_Location (Definition.Node.all)),
+                  Errors.Error,
+                  Get_Token_Location);
+            else
+               --  no previous definition
+               if not Add_Identifier (Result,
+                                      Get_Token_String) then
+                  raise Errors.Internal_Error;
+               end if;
+            end if;
+         end;
+      end if;
+      Next_Token;
+      Parse_Parameter_Dcls (Result.Parameters, Success);
+      if not Success then
+         return;
+      end if;
+      if Get_Token = T_Raises then
+         Parse_Raises_Expr (Result.Raises, Success);
+         if not Success then
+            return;
+         end if;
+      else
+         Result.Raises := Nil_List;
+      end if;
+      if Get_Token = T_Context then
+         Parse_Context_Expr (Result.Contexts, Success);
+         if not Success then
+            return;
+         end if;
+      else
+         Result.Contexts := Nil_List;
+      end if;
+      return;
+   end Parse_Op_Dcl;
+
+   --------------------------
+   --  Parse_Op_Type_Spec  --
+   --------------------------
+   procedure Parse_Op_Type_Spec (Result : out N_Root_Acc;
+                                 Success : out Boolean) is
+   begin
+      case Get_Token is
+         when T_Void =>
+            Result := new N_Void;
+            Set_Location (Result.all, Get_Token_Location);
+            Next_Token;
+            Success := True;
+            return;
+         when T_Float
+           | T_Double
+           | T_Long
+           | T_Short
+           | T_Unsigned
+           | T_Char
+           | T_Wchar
+           | T_Boolean
+           | T_Octet
+           | T_Any
+           | T_Object
+           | T_ValueBase
+           | T_String
+           | T_Colon_Colon
+           | T_Identifier =>
+            Parse_Param_Type_Spec (Result, Success);
+            return;
+         when others =>
+            Errors.Parser_Error ("void" &
+                                 " or type specification expected.",
+                                 Errors.Error,
+                                 Get_Token_Location);
+            Success := False;
+            Result := null;
+            return;
+      end case;
+   end Parse_Op_Type_Spec;
+
+   ----------------------------
+   --  Parse_Parameter_Dcls  --
+   ----------------------------
+   procedure Parse_Parameter_Dcls (Result : out  Node_List;
+                                   Success : out Boolean) is
+   begin
+      Result := Nil_List;
+      if Get_Token /= T_Left_Paren then
+         declare
+            Loc : Errors.Location;
+         begin
+            Loc := Get_Previous_Token_Location;
+            Loc.Col := Loc.Col + Get_Previous_Token_String'Length;
+            Errors.Parser_Error ("'(' expected in operation definition.",
+                                 Errors.Error,
+                                 Loc);
+         end;
+         Success := False;
+         return;
+      end if;
+      Next_Token;
+      if Get_Token /= T_Right_Paren then
+         declare
+            Param : N_Param_Acc;
+         begin
+            Parse_Param_Dcl (Param, Success);
+            if not Success then
+               return;
+            end if;
+            Append_Node (Result, N_Root_Acc (Param));
+         end;
+      end if;
+      while Get_Token = T_Comma loop
+         Next_Token;
+         declare
+            Param : N_Param_Acc;
+         begin
+            Parse_Param_Dcl (Param, Success);
+            if not Success then
+               return;
+            end if;
+            Append_Node (Result, N_Root_Acc (Param));
+         end;
+      end loop;
+      if Get_Token /= T_Right_Paren then
+         Errors.Parser_Error ("')' expected at the end of the " &
+                              "parameters definition.",
+                              Errors.Error,
+                              Get_Token_Location);
+         Success := False;
+         return;
+      end if;
+      Success := True;
+      return;
+   end Parse_Parameter_Dcls;
+
+   -----------------------
+   --  Parse_Param_Dcl  --
+   -----------------------
+   procedure Parse_Param_Dcl (Result : out N_Param_Acc;
+                              Success : out boolean) is
+   begin
+      Result := new N_Param;
+      Set_Location (Result.all, Get_Token_Location);
+      Parse_Param_Attribute (Result.Mode, Success);
+      if not Success then
+         case Get_Token is
+            when T_Float
+              | T_Double
+              | T_Long
+              | T_Short
+              | T_Unsigned
+              | T_Char
+              | T_Wchar
+              | T_Boolean
+              | T_Octet
+              | T_Any
+              | T_Object
+              | T_ValueBase
+              | T_String
+              | T_Colon_Colon
+              | T_Identifier =>
+               null;
+            when others =>
+               Success := False;
+               return;
+         end case;
+      end if;
+      Parse_Param_Type_Spec (Result.Param_Type, Success);
+      if not Success then
+         return;
+      end if;
+      Parse_Simple_Declarator (Result.Declarator, Success);
+      return;
+   end Parse_Param_Dcl;
+
+   -----------------------------
+   --  Parse_Param_Attribute  --
+   -----------------------------
+   procedure Parse_Param_Attribute (Result : out Param_Mode;
+                                    Success : out Boolean) is
+   begin
+      case Get_Token is
+         when T_In =>
+            Result := Mode_In;
+         when T_Out =>
+            Result := Mode_Out;
+         when T_Inout =>
+            Result := Mode_Inout;
+         when others =>
+            Errors.Parser_Error ("mode expected (in, out or inout).",
+                                 Errors.Error,
+                                 Get_Token_Location);
+            Result := Mode_In;
+            Success := False;
+            return;
+      end case;
+      Next_Token;
+      Success := True;
+      return;
+   end Parse_Param_Attribute;
+
+   -------------------------
+   --  Parse_Raises_Expr  --
+   -------------------------
+   procedure Parse_Raises_Expr (Result : out Node_List;
+                                Success : out Boolean) is
+   begin
+      Result := Nil_List;
+      Next_Token;
+      if Get_Token /= T_Left_Paren then
+         declare
+            Loc : Errors.Location;
+         begin
+            Loc := Get_Previous_Token_Location;
+            Loc.Col := Loc.Col + 7;
+            Errors.Parser_Error ("'(' expected in raises statement.",
+                                 Errors.Error,
+                                 Loc);
+         end;
+         Success := False;
+         return;
+      end if;
+      Next_Token;
+      if Get_Token = T_Right_Paren then
+         declare
+            Loc : Errors.Location;
+         begin
+            Loc := Get_Previous_Token_Location;
+            Loc.Col := Loc.Col + 1;
+            Errors.Parser_Error ("scoped_name expected : a raise statement " &
+                                 "may not be empty.",
+                                 Errors.Error,
+                                 Loc);
+         end;
+         Next_Token;
+         Success := True;
+         return;
+      end if;
+      declare
+         Name : N_Scoped_Name_Acc;
+      begin
+         Parse_Scoped_Name (Name, Success);
+         if not Success then
+            return;
+         end if;
+         Append_Node (Result, N_Root_Acc (Name));
+      end;
+      while Get_Token = T_Comma loop
+         Next_Token;
+         declare
+            Name : N_Scoped_Name_Acc;
+         begin
+            Parse_Scoped_Name (Name, Success);
+            if not Success then
+               return;
+            end if;
+            Append_Node (Result, N_Root_Acc (Name));
+         end;
+      end loop;
+      if Get_Token /= T_Right_Paren then
+         Errors.Parser_Error ("')' expected at the end of the " &
+                              "raises statement.",
+                              Errors.Error,
+                              Get_Token_Location);
+         Success := False;
+         return;
+      end if;
+      return;
+   end Parse_Raises_Expr;
+
+   --------------------------
+   --  Parse_Context_Expr  --
+   --------------------------
+   procedure Parse_Context_Expr (Result : out Node_List;
+                                 Success : out Boolean) is
+   begin
+      Result := Nil_List;
+      Next_Token;
+      if Get_Token /= T_Left_Paren then
+         declare
+            Loc : Errors.Location;
+         begin
+            Loc := Get_Previous_Token_Location;
+            Loc.Col := Loc.Col + 7;
+            Errors.Parser_Error ("'(' expected in context statement.",
+                                 Errors.Error,
+                                 Loc);
+         end;
+         Success := False;
+         return;
+      end if;
+      Next_Token;
+      if Get_Token = T_Right_Paren then
+         declare
+            Loc : Errors.Location;
+         begin
+            Loc := Get_Previous_Token_Location;
+            Loc.Col := Loc.Col + 1;
+            Errors.Parser_Error ("string literal expected : a context " &
+                                 "statement may not be empty.",
+                                 Errors.Error,
+                                 Loc);
+         end;
+         Next_Token;
+         Success := True;
+         return;
+      end if;
+      declare
+         Name : N_Lit_String_Acc;
+      begin
+         Parse_String_Literal (Name, Success);
+         if not Success then
+            return;
+         end if;
+         Check_Context_String (Name.Value.all);
+         Append_Node (Result, N_Root_Acc (Name));
+      end;
+      while Get_Token = T_Comma loop
+         Next_Token;
+         declare
+            Name : N_Lit_String_Acc;
+         begin
+            Parse_String_Literal (Name, Success);
+            if not Success then
+               return;
+            end if;
+            Check_Context_String (Name.Value.all);
+            Append_Node (Result, N_Root_Acc (Name));
+         end;
+      end loop;
+      if Get_Token /= T_Right_Paren then
+         Errors.Parser_Error ("')' expected at the end of the " &
+                              "context statement.",
+                              Errors.Error,
+                              Get_Token_Location);
+         Success := False;
+         return;
+      end if;
+      return;
+   end Parse_Context_Expr;
+
    -----------------------------
    --  Parse_Param_Type_Spec  --
    -----------------------------
    procedure Parse_Param_Type_Spec (Result : out N_Root_Acc;
                                     Success : out Boolean) is
    begin
-      Result := null;
-      Success := False;
---       case Token is
---          when T_String =>
---             return N_Root_Acc (Parse_String_Type);
---          when T_Wstring =>
---             return Parse_Wide_String_Type;
---          when T_Fixed =>
---             return Parse_Fixed_Pt_Type;
---          when T_Colon_Colon | T_Identifier =>
---             return N_Root_Acc (Parse_Scoped_Name);
---          when T_Float | T_Double | T_Long | T_Short | T_Unsigned | T_Char
---            | T_Wchar | T_Boolean | T_Octet | T_Any | T_Object =>
---             return Parse_Base_Type_Spec;
---          when others =>
---             Errors.Parser_Error ("param type specifier expected",
---                                   Errors.Error);
---             raise Errors.Internal_Error;
---       end case;
+      case Get_Token is
+         when T_Float
+           | T_Double
+           | T_Long
+           | T_Short
+           | T_Unsigned
+           | T_Char
+           | T_Wchar
+           | T_Boolean
+           | T_Octet
+           | T_Any
+           | T_Object
+           | T_ValueBase =>
+            Parse_Base_Type_Spec (Result, Success);
+         when T_String =>
+            declare
+               Res : N_String_Acc;
+            begin
+               Parse_String_Type (Res, Success);
+               Result := N_Root_Acc (Res);
+            end;
+         when T_Colon_Colon | T_Identifier =>
+            declare
+               Res : N_Scoped_Name_Acc;
+            begin
+               Parse_Scoped_Name (Res, Success);
+               Result := N_Root_Acc (Res);
+            end;
+         when others =>
+            Errors.Parser_Error ("param type specifier expected.",
+                                 Errors.Error,
+                                 Get_Token_Location);
+            Success := False;
+      end case;
+      return;
    end Parse_Param_Type_Spec;
 
    ---------------------------
@@ -3562,6 +4012,7 @@ package body Parse is
    ---------------------------
    procedure Parse_Fixed_Pt_Type (Result : out N_Fixed_Acc;
                                   Success : out Boolean) is
+      Digits_Nb, Scale : Value_Ptr;
    begin
       Next_Token;
       Result := new N_Fixed;
@@ -3575,6 +4026,14 @@ package body Parse is
       end if;
       Next_Token;
       Parse_Positive_Int_Const (Result.Digits_Nb, Success);
+      Digits_Nb := Eval (Result.Digits_Nb);
+      if Digits_Nb.all < 0 or Digits_Nb.all > 31 then
+         Errors.Parser_Error ("invalid number of digits in fixed point " &
+                              "type definition : it should be in range " &
+                              "0 .. 31.",
+                              Errors.Error,
+                              Get_Token_Location);
+      end if;
       if not Success then
          return;
       end if;
@@ -3587,6 +4046,19 @@ package body Parse is
       end if;
       Next_Token;
       Parse_Positive_Int_Const (Result.Scale, Success);
+      Scale := Eval (Result.Scale);
+      if Scale.all < 0 then
+         Errors.Parser_Error ("invalid scale factor in fixed point " &
+                              "type definition : it may not be negative.",
+                              Errors.Error,
+                              Get_Token_Location);
+      elsif Digits_Nb.all >= Scale.all then
+         Errors.Parser_Error ("invalid scale factor in fixed point " &
+                              "type definition : it should not exceed" &
+                              "the number of digits.",
+                              Errors.Error,
+                              Get_Token_Location);
+      end if;
       if not Success then
          return;
       end if;
@@ -3658,144 +4130,6 @@ package body Parse is
 --       end case;
 --    end Parse_Literal;
 
---    --  Rule 74:
---    --  <op_type_spec> ::= <param_type_spec>
---    --                 |   "void"
---    function Parse_Op_Type_Spec return N_Root_Acc is
---       Res : N_Root_Acc;
---    begin
---       if Token = T_Void then
---          Res := N_Root_Acc'(new N_Void);
---          Set_Location (Res.all, Get_Location);
---          Next_Token;
---          return Res;
---       else
---          return N_Root_Acc (Parse_Param_Type_Spec);
---       end if;
---    end Parse_Op_Type_Spec;
-
---    --  Rule 76:
---  --  <param_dcl> ::= <param_attribute> <param_type_spec> <simple_declarator>
---    --
---    --  Rule 77:
---    --  <param_attribute> ::= "in"
---    --                    |   "out"
---    --                    |   "inout"
---    procedure Parse_Param_Dcl (List : in out Node_List) is
---       Res : N_Param_Acc;
---    begin
---       Res := new N_Param;
---       Set_Location (Res.all, Get_Location);
---       case Token is
---          when T_In =>
---             Res.Mode := Mode_In;
---             Next_Token;
---             if Token = T_Out then
---                Errors.Parser_Error ("`in out' must be `inout'",
---                                      Errors.Error);
---                Res.Mode := Mode_Inout;
---                Next_Token;
---             end if;
---          when T_Out =>
---             Res.Mode := Mode_Out;
---             Next_Token;
---          when T_Inout =>
---             Res.Mode := Mode_Inout;
---             Next_Token;
---          when others =>
---             Errors.Parser_Error ("mode `in', `out' or `inout' expected",
---                                   Errors.Error);
---             Errors.Parser_Error ("assume `in'",
---                                   Errors.Error);
---             Res.Mode := Mode_In;
---       end case;
---       Res.P_Type := Parse_Param_Type_Spec;
---       Expect (T_Identifier);
---       Add_Identifier (N_Param_Acc (Res));
---       Next_Token;
---       Append_Node (List, N_Root_Acc (Res));
---    end Parse_Param_Dcl;
-
---    --  Rule 75:
---    --  <parameter_dcls> ::= "(" <param_dcl> { "," <param_dcl> }* ")"
---    --                   |   "(" ")"
---    function Parse_Parameter_Dcls return Node_List is
---       Res : Node_List := Nil_List;
---    begin
---       Expect (T_Left_Paren);
---       Next_Token;
---       if Token = T_Right_Paren then
---          Next_Token;
---          return Nil_List;
---       else
---          loop
---             Parse_Param_Dcl (Res);
---             exit when Token = T_Right_Paren;
---             Expect (T_Comma);
---             Next_Token;
---          end loop;
---          Next_Token;
---          return Res;
---       end if;
---    end Parse_Parameter_Dcls;
-
---    --  Rule 72:
---    --  <op_dcl> ::= [ <op_attribute> ] <op_type_spec> <identifier>
---    --               <parameters_dcls> [ <raises_expr> ] [ <context_expr> ]
---    --
---    --  Rule 78:
---  --  <raises_expr> ::= "raises" "(" <scoped_name> { "," <scoped_name" }* ")"
---    --
---    --  Rule 79:
---    --  <context_expr> ::= "context" "(" <string_literal> { ","
---    --                                   <string_literal> }* ")"
---    function Parse_Op_Dcl return N_Operation_Acc is
---       Res : N_Operation_Acc;
---    begin
---       Res := new N_Operation;
---       Set_Location (Res.all, Get_Location);
-
---       --  Rule 73
---       --  <op_attribute> ::= "oneway"
---       if Token = T_Oneway then
---          Res.Is_Oneway := True;
---          Next_Token;
---       else
---          Res.Is_Oneway := False;
---       end if;
-
---       Res.Op_Type := Parse_Op_Type_Spec;
---       Expect (T_Identifier);
---       Add_Identifier (Res);
---       Next_Token;
---       Push_Scope (Res);
---       Res.Parameters := Parse_Parameter_Dcls;
---       Pop_Scope;
---       if Token = T_Raises then
---          Scan_Expect (T_Left_Paren);
---          Next_Token;
---          loop
---             Append_Node (Res.Raises, N_Root_Acc (Parse_Scoped_Name));
---             exit when Token = T_Right_Paren;
---             Expect (T_Comma);
---             Next_Token;
---          end loop;
---          Next_Token;
---       end if;
---       if Token = T_Context then
---          Scan_Expect (T_Left_Paren);
---          Next_Token;
---          loop
---             Expect (T_Lit_String);
---             Append_Node (Res.contexts, N_Root_Acc (Parse_Literal));
---             exit when Token = T_Right_Paren;
---             Expect (T_Comma);
---             Next_Token;
---          end loop;
---          Next_Token;
---       end if;
---       return Res;
---    end Parse_Op_Dcl;
 
 --    --  Rule 23:
 --    --  <primary_expr> ::= <scoped_name>
@@ -4184,6 +4518,65 @@ package body Parse is
    begin
       null;
    end Go_To_End_Of_Case_Label;
+
+
+   ---------------------------
+   --  Parsing of literals  --
+   ---------------------------
+
+   ----------------------------
+   --  Parse_String_Literal  --
+   ----------------------------
+   procedure Parse_String_Literal (Result : out N_Lit_String_Acc;
+                                   Success : out Boolean) is
+   begin
+      Result := null;
+      Success := False;
+   end Parse_String_Literal;
+
+   ----------------------------
+   --  Check_Context_String  --
+   ----------------------------
+   procedure Check_Context_String (S : in String) is
+      use GNAT.Case_Util;
+      use Ada.Characters.Latin_1;
+   begin
+      if To_Lower (S (S'First)) not in LC_A .. LC_Z then
+         Errors.Parser_Error ("invalid string for context " &
+                              "declaration : the first character " &
+                              "must be an alphabetic one.",
+                              Errors.Error,
+                              Get_Token_Location);
+         return;
+      end if;
+      for I in S'First + 1 .. S'Last - 1 loop
+         if To_Lower (S (I)) not in LC_A .. LC_Z
+           and S (I) not in '0' .. '9'
+           and S (I) /= '.'
+           and S (I) /= '_' then
+            Errors.Parser_Error ("invalid string for context " &
+                                 "declaration : it may only content " &
+                                 "alphabetic, digit, period, underscore " &
+                                 "characters plus an asterisk at the end.",
+                                 Errors.Error,
+                                 Get_Token_Location);
+            return;
+         end if;
+      end loop;
+      if To_Lower (S (S'Last)) not in LC_A .. LC_Z
+        and S (S'Last) not in '0' .. '9'
+        and S (S'Last) /= '.'
+        and S (S'Last) /= '_'
+        and S (S'Last) /= '*' then
+         Errors.Parser_Error ("invalid string for context " &
+                              "declaration : the last character may only " &
+                              "be an alphabetic, digit, period, " &
+                              "underscore or asterisk character.",
+                              Errors.Error,
+                              Get_Token_Location);
+         return;
+      end if;
+   end Check_Context_String;
 
    --
    --  INUTILE ?????

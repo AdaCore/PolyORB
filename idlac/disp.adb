@@ -17,6 +17,7 @@
 --
 
 with Ada.Text_IO; use Ada.Text_IO;
+with Ada.Characters.Latin_1;
 --  with Errors;
 
 package body Disp is
@@ -169,28 +170,28 @@ package body Disp is
 
 
 
---          when K_Operation =>
---             declare
---                Op : N_Operation renames N_Operation (N);
---             begin
---                Put ("operation ");
---                if Op.Is_Oneway then
---                   Put ("oneway ");
---                end if;
---                Put_Line (Get_Name (Op));
---                Disp_Indent (N_Indent, "type:");
---                Disp_Tree (Op.Op_Type.all, N_Indent + Offset, Full);
---                Disp_Indent (N_Indent, "parameters:");
---                Disp_List (Op.Parameters, N_Indent + Offset, Full);
---                if Op.Raises /= Nil_List then
---                   Disp_Indent (N_Indent, "raises:");
---                   Disp_List (Op.Raises, N_Indent + Offset, Full);
---                end if;
---                if Op.Contexts /= Nil_List then
---                   Disp_Indent (N_Indent, "contexts:");
---                   Disp_List (Op.Contexts, N_Indent + Offset, Full);
---                end if;
---             end;
+         when K_Operation =>
+            declare
+               Op : N_Operation renames N_Operation (N);
+            begin
+               Put ("operation ");
+               if Op.Is_Oneway then
+                  Put ("oneway ");
+               end if;
+               Put_Line (Get_Name (Op));
+               Disp_Indent (N_Indent, "type:");
+               Disp_Tree (Op.Operation_Type.all, N_Indent + Offset, Full);
+               Disp_Indent (N_Indent, "parameters:");
+               Disp_List (Op.Parameters, N_Indent + Offset, Full);
+               if Op.Raises /= Nil_List then
+                  Disp_Indent (N_Indent, "raises:");
+                  Disp_List (Op.Raises, N_Indent + Offset, Full);
+               end if;
+               if Op.Contexts /= Nil_List then
+                  Disp_Indent (N_Indent, "contexts:");
+                  Disp_List (Op.Contexts, N_Indent + Offset, Full);
+               end if;
+            end;
 
 --          when K_Attribute =>
 --             Put ("attribute ");
@@ -201,8 +202,8 @@ package body Disp is
 --             Disp_Indent (N_Indent, "type:");
 --             Disp_Tree (N_Attribute (N).A_Type.all, N_Indent, Full);
 
---          when K_Void =>
---             Put_Line ("void");
+         when K_Void =>
+            Put_Line ("void");
 
          when K_Float =>
             Put_Line ("float");
@@ -364,8 +365,11 @@ package body Disp is
 --          when K_Lit_Char =>
 --             raise Errors.Internal_Error;
 
---          when K_Lit_String =>
---             raise Errors.Internal_Error;
+         when K_Lit_String =>
+            Put_Line ("string literal : " &
+                      Ada.Characters.Latin_1.Quotation &
+                      N_Lit_String (N).Value.all &
+                      Ada.Characters.Latin_1.Quotation);
 
 --          when K_Lit_Integer =>
 --             Put_Line ("integer literal: " & N_Lit_Integer (N).Lit.all);
