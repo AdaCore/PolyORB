@@ -2342,7 +2342,9 @@ package body Exp_Dist is
                    Object_Definition   =>
                      New_Occurrence_Of (RTE (RE_Any), Loc),
                    Expression          =>
-                     Build_To_Any_Call (Current_Parameter)));
+                     Build_To_Any_Call (Loc,
+                       New_Occurrence_Of (
+                         Defining_Identifier (Current_Parameter), Loc))));
 
                Get_Name_String (Chars (Defining_Identifier
                                          (Current_Parameter)));

@@ -45,7 +45,6 @@ with Stringt;  use Stringt;
 with Tbuild;   use Tbuild;
 --  with Ttypes;   use Ttypes;
 with Exp_Tss;  use Exp_Tss;
---  with Uintp;    use Uintp;
 
 package body Exp_Hlpr is
 
@@ -89,10 +88,223 @@ package body Exp_Hlpr is
    -- Build_To_Any_Call --
    -----------------------
 
-   function Build_To_Any_Call (E : Entity_Id) return Node_Id is
+   function Build_To_Any_Call
+     (Loc : Source_Ptr;
+      N   : Node_Id)
+      return Node_Id
+   is
+      Typ : constant Entity_Id := Etype (N);
+      U_Type  : constant Entity_Id  := Underlying_Type (Typ);
+      --  The full view, if Typ is private; the completion,
+      --  if Typ is incomplete.
+
+      --  Rt_Type : constant Entity_Id  := Root_Type (U_Type);
+      --  FST     : constant Entity_Id  := First_Subtype (U_Type);
+      --  P_Size  : constant Uint       := Esize (FST);
+
+      Fnam : Entity_Id := Empty;
+      Lib_RE  : RE_Id := RE_Null;
+
    begin
       return Empty;
+      pragma Warnings (Off);
+      --  First simple case where the To_Any function is present
+      --  in the type's TSS.
+
+      Fnam := Find_Inherited_TSS (U_Type, Name_uTo_Any);
+
+      --  Check first for Boolean and Character. These are enumeration types,
+      --  but we treat them specially, since they may require special handling
+      --  in the transfer protocol. However, this special handling only applies
+      --  if they have standard representation, otherwise they are treated like
+      --  any other enumeration type.
+
+      if Present (Fnam) then
+         null;
+
+      elsif U_Type = Standard_Boolean then
+         Lib_RE := RE_TA_B;
+
+      elsif U_Type = Standard_Character then
+         Lib_RE := RE_TA_C;
+
+      elsif U_Type = Standard_Wide_Character then
+         Lib_RE := RE_TA_WC;
+
+      --  Floating point types
+
+      elsif U_Type = Standard_Short_Float then
+         Lib_RE := RE_TA_SF;
+
+      elsif U_Type = Standard_Float then
+         Lib_RE := RE_TA_F;
+
+      elsif U_Type = Standard_Long_Float then
+         Lib_RE := RE_TA_LF;
+
+      elsif U_Type = Standard_Long_Long_Float then
+         Lib_RE := RE_TA_LLF;
+
+      --  Integer types
+
+      elsif U_Type = Standard_Short_Short_Integer then
+            Lib_RE := RE_TA_SSI;
+
+      elsif U_Type = Standard_Short_Integer then
+         Lib_RE := RE_TA_SI;
+
+      elsif U_Type = Standard_Integer then
+         Lib_RE := RE_TA_I;
+
+      elsif U_Type = Standard_Long_Integer then
+         Lib_RE := RE_TA_LI;
+
+      elsif U_Type = Standard_Long_Long_Integer then
+         Lib_RE := RE_TA_LLI;
+
+      --  Unsigned integer types
+
+--        elsif U_Type = Standard_Short_Short_Integer then
+--           Lib_RE := RE_TA_SSU;
+
+--        elsif U_Type = Standard_Short_Integer then
+--           Lib_RE := RE_TA_SU;
+
+--        elsif U_Type = Standard_Integer then
+--           Lib_RE := RE_TA_U;
+
+--        elsif U_Type = Standard_Long_Integer then
+--           Lib_RE := RE_TA_LU;
+
+--        elsif U_Type = Standard_Long_Long_Integer then
+--           Lib_RE := RE_TA_LLU;
+
+      --  Access types
+
+--        elsif Is_Access_Type (U_Type) then
+--           if P_Size > System_Address_Size then
+--              Lib_RE := RE_TA_AD;
+--           else
+--              Lib_RE := RE_TA_AS;
+--           end if;
+
+      --  Other (non-primitive) types
+
+      else
+         declare
+            Decl : Entity_Id;
+         begin
+            Build_To_Any_Function (Loc, U_Type, Decl, Fnam);
+            Insert_Action (Declaration_Node (Typ), Decl);
+         end;
+      end if;
+
+      --  Call the function
+
+      if Lib_RE /= RE_Null then
+         pragma Assert (No (Fnam));
+         Fnam := RTE (Lib_RE);
+      end if;
+
+      return
+          Make_Function_Call (Loc,
+            Name => New_Occurrence_Of (Fnam, Loc),
+            Parameter_Associations => New_List (N));
+      pragma Warnings (On);
    end Build_To_Any_Call;
+
+   -----------------------------
+   -- Build_To_Any_Function --
+   -----------------------------
+
+   procedure Build_To_Any_Function
+     (Loc  :     Source_Ptr;
+      Typ  :     Entity_Id;
+      Decl : out Node_Id;
+      Fnam : out Entity_Id)
+   is
+      Spec : Node_Id;
+      Decls : constant List_Id := New_List;
+      Stms : constant List_Id := New_List;
+      Expr_Parameter : constant Entity_Id
+        := Make_Defining_Identifier (Loc, Name_E);
+   begin
+      Fnam := Make_Stream_Procedure_Function_Name (Loc, Typ, Name_uTo_Any);
+
+      Spec :=
+        Make_Function_Specification (Loc,
+          Defining_Unit_Name => Fnam,
+          Parameter_Specifications => New_List (
+            Make_Parameter_Specification (Loc,
+              Defining_Identifier =>
+                Expr_Parameter,
+              Parameter_Type =>
+                New_Occurrence_Of (Typ, Loc))),
+          Subtype_Mark => New_Occurrence_Of (RTE (RE_Any), Loc));
+
+      if Is_Derived_Type (Typ)
+        and then not Is_Tagged_Type (Typ)
+      then
+         declare
+            Rt_Type : constant Entity_Id
+              := Root_Type (Typ);
+            pragma Unreferenced (Rt_Type);
+            Any_Parameter : constant Entity_Id
+              := Make_Defining_Identifier (Loc,
+                   New_Internal_Name ('A'));
+         begin
+            Append_To (Decls,
+             Make_Object_Declaration (Loc,
+               Defining_Identifier =>
+                 Any_Parameter,
+               Aliased_Present     => False,
+               Object_Definition   =>
+                 New_Occurrence_Of (RTE (RE_Any), Loc)));
+            --  XXX SHOULD BUILD A ROOT TYPE To_Any call.
+            Append_To (Stms,
+              Make_Procedure_Call_Statement (Loc,
+                Name => New_Occurrence_Of (RTE (RE_Set_TC), Loc),
+                Parameter_Associations => New_List (
+                  New_Occurrence_Of (Any_Parameter, Loc),
+                  Build_TypeCode_Call (Loc, Typ))));
+            Append_To (Stms,
+              Make_Return_Statement (Loc,
+                Expression => New_Occurrence_Of (Any_Parameter, Loc)));
+         end;
+      else
+         declare
+            Any_Parameter : constant Entity_Id
+              := Make_Defining_Identifier (Loc,
+                   New_Internal_Name ('A'));
+         begin
+            --  XXX dummy placeholder (the any is not initialised).
+            Append_To (Decls,
+             Make_Object_Declaration (Loc,
+               Defining_Identifier =>
+                 Any_Parameter,
+               Aliased_Present     => False,
+               Object_Definition   =>
+                 New_Occurrence_Of (RTE (RE_Any), Loc)));
+            Append_To (Stms,
+              Make_Procedure_Call_Statement (Loc,
+                Name => New_Occurrence_Of (RTE (RE_Set_TC), Loc),
+                Parameter_Associations => New_List (
+                  New_Occurrence_Of (Any_Parameter, Loc),
+                  Build_TypeCode_Call (Loc, Typ))));
+            Append_To (Stms,
+              Make_Return_Statement (Loc,
+                Expression => New_Occurrence_Of (Any_Parameter, Loc)));
+         end;
+      end if;
+
+      Decl :=
+        Make_Subprogram_Body (Loc,
+          Specification => Spec,
+          Declarations => Decls,
+          Handled_Statement_Sequence =>
+            Make_Handled_Sequence_Of_Statements (Loc,
+              Statements => Stms));
+   end Build_To_Any_Function;
 
    -------------------------
    -- Build_TypeCode_Call --
@@ -172,20 +384,20 @@ package body Exp_Hlpr is
 
       --  Unsigned integer types
 
-      elsif U_Type = Standard_Short_Short_Integer then
-         Lib_RE := RE_TC_SSU;
+--        elsif U_Type = Standard_Short_Short_Integer then
+--           Lib_RE := RE_TC_SSU;
 
-      elsif U_Type = Standard_Short_Integer then
-         Lib_RE := RE_TC_SU;
+--        elsif U_Type = Standard_Short_Integer then
+--           Lib_RE := RE_TC_SU;
 
-      elsif U_Type = Standard_Integer then
-         Lib_RE := RE_TC_U;
+--        elsif U_Type = Standard_Integer then
+--           Lib_RE := RE_TC_U;
 
-      elsif U_Type = Standard_Long_Integer then
-         Lib_RE := RE_TC_LU;
+--        elsif U_Type = Standard_Long_Integer then
+--           Lib_RE := RE_TC_LU;
 
-      elsif U_Type = Standard_Long_Long_Integer then
-         Lib_RE := RE_TC_LLU;
+--        elsif U_Type = Standard_Long_Long_Integer then
+--           Lib_RE := RE_TC_LLU;
 
       --  Access types
 

@@ -32,10 +32,18 @@ with Types; use Types;
 
 package Exp_Hlpr is
 
-   function Build_To_Any_Call (E : Entity_Id) return Node_Id;
-   --  Build call to To_Any attribute function for type Etyp (E).
-   --  E must declare an object, and is passed as argument to
-   --  To_Any.
+   function Build_To_Any_Call
+     (Loc : Source_Ptr;
+      N   : Node_Id)
+      return Node_Id;
+   --  Build call to To_Any attribute function for expression N.
+
+   procedure Build_To_Any_Function
+     (Loc : Source_Ptr;
+      Typ : Entity_Id;
+      Decl : out Node_Id;
+      Fnam : out Entity_Id);
+   --  Build To_Any attribute function for Typ.
 
    function Build_TypeCode_Call
      (Loc : Source_Ptr;

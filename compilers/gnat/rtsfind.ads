@@ -1083,6 +1083,7 @@ package Rtsfind is
 
      RE_TC_Alias,                        -- System.PolyORB_Interface
      RE_TC_Build,                        -- System.PolyORB_Interface
+     RE_Set_TC,                          -- System.PolyORB_Interface
      RE_TC_AD,                           -- System.PolyORB_Interface
      RE_TC_AS,                           -- System.PolyORB_Interface
      RE_TC_B,                            -- System.PolyORB_Interface
@@ -2071,6 +2072,7 @@ package Rtsfind is
 
      RE_TC_Alias                         => System_PolyORB_Interface,
      RE_TC_Build                         => System_PolyORB_Interface,
+     RE_Set_TC                           => System_PolyORB_Interface,
      RE_TC_AD                            => System_PolyORB_Interface,
      RE_TC_AS                            => System_PolyORB_Interface,
      RE_TC_B                             => System_PolyORB_Interface,

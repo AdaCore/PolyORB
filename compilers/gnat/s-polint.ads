@@ -20,6 +20,10 @@ package System.PolyORB_Interface is
    Mode_Inout : PolyORB.Any.Flags renames PolyORB.Any.ARG_INOUT;
    subtype NamedValue is PolyORB.Any.NamedValue;
    subtype TypeCode is PolyORB.Any.TypeCode.Object;
+   procedure Set_TC
+     (A : in out PolyORB.Any.Any;
+      T : PolyORB.Any.TypeCode.Object)
+      renames PolyORB.Any.Set_Type;
 
    subtype Object_Ref is PolyORB.References.Ref;
 
@@ -69,25 +73,26 @@ package System.PolyORB_Interface is
 --       function FA_U (Item : PolyORB.Any.Any) return X renames PolyORB.Any.From_Any;
 --       function FA_WC (Item : PolyORB.Any.Any) return X renames PolyORB.Any.From_Any;
 
---       function TA_AD (X) return PolyORB.Any.Any renames PolyORB.Any.To_Any;
---       function TA_AS (X) return PolyORB.Any.Any renames PolyORB.Any.To_Any;
---       function TA_B (X) return PolyORB.Any.Any renames PolyORB.Any.To_Any;
---       function TA_C (X) return PolyORB.Any.Any renames PolyORB.Any.To_Any;
---       function TA_F (X) return PolyORB.Any.Any renames PolyORB.Any.To_Any;
---       function TA_I (X) return PolyORB.Any.Any renames PolyORB.Any.To_Any;
---       function TA_LF (X) return PolyORB.Any.Any renames PolyORB.Any.To_Any;
---       function TA_LI (X) return PolyORB.Any.Any renames PolyORB.Any.To_Any;
---       function TA_LLF (X) return PolyORB.Any.Any renames PolyORB.Any.To_Any;
---       function TA_LLI (X) return PolyORB.Any.Any renames PolyORB.Any.To_Any;
---       function TA_LLU (X) return PolyORB.Any.Any renames PolyORB.Any.To_Any;
---       function TA_LU (X) return PolyORB.Any.Any renames PolyORB.Any.To_Any;
---       function TA_SF (X) return PolyORB.Any.Any renames PolyORB.Any.To_Any;
---       function TA_SI (X) return PolyORB.Any.Any renames PolyORB.Any.To_Any;
---       function TA_SSI (X) return PolyORB.Any.Any renames PolyORB.Any.To_Any;
---       function TA_SSU (X) return PolyORB.Any.Any renames PolyORB.Any.To_Any;
---       function TA_SU (X) return PolyORB.Any.Any renames PolyORB.Any.To_Any;
---       function TA_U (X) return PolyORB.Any.Any renames PolyORB.Any.To_Any;
---       function TA_WC (X) return PolyORB.Any.Any renames PolyORB.Any.To_Any;
+--     function TA_AD (X) return PolyORB.Any.Any;
+--     function TA_AS (X) return PolyORB.Any.Any;
+   function TA_B (Item : Boolean) return PolyORB.Any.Any;
+   function TA_C (Item : Character) return PolyORB.Any.Any;
+   function TA_F (Item : Float) return PolyORB.Any.Any;
+   function TA_I (Item : Integer) return PolyORB.Any.Any;
+   function TA_LF (Item : Long_Float) return PolyORB.Any.Any;
+   function TA_LI (Item : Long_Integer) return PolyORB.Any.Any;
+   function TA_LLF (Item : Long_Long_Float) return PolyORB.Any.Any;
+   function TA_LLI (Item : Long_Long_Integer) return PolyORB.Any.Any;
+--     function TA_LLU (X) return PolyORB.Any.Any;
+--     function TA_LU (X) return PolyORB.Any.Any;
+   function TA_SF (Item : Short_Float) return PolyORB.Any.Any;
+   function TA_SI (Item : Short_Integer) return PolyORB.Any.Any;
+   function TA_SSI (Item : Short_Short_Integer) return PolyORB.Any.Any;
+--     function TA_SSU (X) return PolyORB.Any.Any;
+--     function TA_SU (X) return PolyORB.Any.Any;
+--     function TA_U (X) return PolyORB.Any.Any;
+   function TA_WC (Item : Wide_Character) return PolyORB.Any.Any;
+
    function TA_String (S : String) return PolyORB.Any.Any;
    function TA_TC (TC : PolyORB.Any.TypeCode.Object) return PolyORB.Any.Any
      renames PolyORB.Any.To_Any;
