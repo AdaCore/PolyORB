@@ -12,7 +12,7 @@ fname=`gnatkr ${name}`.ads
 
 # List of include files to look for (from /usr/include)
 
-incfiles="stdio.h sys/types.h sys/socket.h errno.h netdb.h netinet/in.h signal.h fcntl.h termio.h termios.h sys/file.h linux/fcntl.h sys/ioctl.h netinet/tcp.h sys/systeminfo.h poll.h"
+incfiles="stdio.h sys/types.h sys/socket.h errno.h netdb.h netinet/in.h signal.h fcntl.h termio.h termios.h sys/file.h sys/ioctl.h netinet/tcp.h sys/systeminfo.h poll.h"
 
 # List of constants we need to know
 
@@ -26,7 +26,7 @@ debug=$1
 
 tmph=./tmph$$.c
 tmpe=./tmpe$$
-trap "rm -f ${tmpe} ${tmph}" 0 1 2 3 15
+# trap "rm -f ${tmpe} ${tmph}" 0 1 2 3 15
 for i in ${incfiles}; do
   if [ -f "/usr/include/$i" ]; then
     echo "#include <$i>" >> ${tmph}
