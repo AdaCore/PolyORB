@@ -63,12 +63,4 @@ package Broca.Object is
      return IOP.Profile_Ptr;
    --  Find a profile for a message
 
-   procedure Encapsulate_IOR
-     (Buffer : access Broca.Buffers.Buffer_Type;
-      Object : in Object_Type'Class);
-
-   procedure Decapsulate_IOR
-     (Buffer : access Broca.Buffers.Buffer_Type;
-      Object : out Object_Type'Class);
-
 end Broca.Object;

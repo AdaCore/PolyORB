@@ -60,14 +60,12 @@ package body CORBA.Object is
    begin
       Start_Encapsulation (Ref_Buffer'Access);
 
-      Broca.CDR.Marshall
-        (Ref_Buffer'Access, Obj);
+      Broca.CDR.Marshall (Ref_Buffer'Access, Obj);
       Marshall (IOR_Buffer'Access, Encapsulate (Ref_Buffer'Access));
-      --  Marshall_Reference (Buffer'Access, Obj);
+
       declare
          Result : constant CORBA.String
-           := Broca.IOR.Buffer_To_IOR_String
-           (IOR_Buffer'Access);
+           := Broca.IOR.Buffer_To_IOR_String (IOR_Buffer'Access);
       begin
          Release (IOR_Buffer);
          Release (Ref_Buffer);

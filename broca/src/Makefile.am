@@ -40,6 +40,7 @@ ADA_SPECS_WITH_BODY = \
 	   corba.ads \
 	   corba-abstractbase.ads \
 	   corba-impl.ads \
+	   corba-context.ads \
 	   corba-value-forward.ads \
 	   portableserver-adapteractivator-impl.ads \
 	   portableserver-adapteractivator.ads \

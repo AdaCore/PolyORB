@@ -51,12 +51,27 @@ package body CORBA.Context is
    procedure Get_Values
      (Self        : in     Ref;
       Start_Scope : in     Identifier;
-      This_Object : in     Boolean := TRUE;
+      This_Object : in     Boolean := True;
       Prop_Name   : in     Identifier;
+>>>> ORIGINAL corba-context.adb#1
+      Values      :    out CORBA.NVList.Ref) is
+==== THEIRS corba-context.adb#2
       Values      :    out CORBA.NVList.Ref) is
       Result : CORBA.NVList.Ref;
+==== YOURS corba-context.adb
+      Values      :    out CORBA.NVList.Ref)
+   is
+      Dummy : CORBA.NVList.Ref;
+      pragma Warnings (Off, Dummy);
+<<<<
    begin
+>>>> ORIGINAL corba-context.adb#1
+      null;
+==== THEIRS corba-context.adb#2
       Values := Result;
+==== YOURS corba-context.adb
+      Values := Dummy;
+<<<<
    end Get_Values;
 
    procedure Delete_Values
@@ -69,9 +84,18 @@ package body CORBA.Context is
    procedure Create_Child
      (Self      : in     Ref;
       Ctx_Name  : in     Identifier;
-      Child_Ctx :    out Ref) is
+      Child_Ctx :    out Ref)
+   is
+      Dummy : Ref;
+      pragma Warnings (Off, Dummy);
    begin
+>>>> ORIGINAL corba-context.adb#1
+      null;
+==== THEIRS corba-context.adb#2
       Child_Ctx := Self;
+==== YOURS corba-context.adb
+      Child_Ctx := Dummy;
+<<<<
    end Create_Child;
 
    procedure Delete

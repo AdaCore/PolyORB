@@ -49,8 +49,10 @@ package Broca.Sequences is
    function To_CORBA_Octet_Array
      (Data : Octet_Array)
      return CORBA_Octet_Array;
-   --  Return an array of CORBA.Octet (suitable for
-   --  creation of an Octet_Sequence) from an Octet_Array.
+
+   function To_Octet_Array
+     (Data : CORBA_Octet_Array)
+     return Octet_Array;
 
    procedure Marshall
      (Buffer : access Buffer_Type;

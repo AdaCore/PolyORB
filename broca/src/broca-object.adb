@@ -45,13 +45,7 @@ package body Broca.Object is
      (Buffer : access Buffer_Type;
       Value  : in Broca.Object.Object_Type) is
    begin
-      --  FIXME
-      --  Check:
-      --  Value of "From" parameter (0);
-      --  Potential exception (if Get (Value) cannot be
-      --  narrowed to Object_Type)
-
-      Encapsulate_IOR (Buffer, Value);
+      Broca.IOP.Encapsulate_IOR (Buffer, Value.Type_Id, Value.Profiles);
    end Marshall;
 
    ----------------
@@ -63,7 +57,7 @@ package body Broca.Object is
       Result : out Broca.Object.Object_Type)
    is
    begin
-      Decapsulate_IOR (Buffer, Result);
+      Broca.IOP.Decapsulate_IOR (Buffer, Result.Type_Id, Result.Profiles);
    end Unmarshall;
 
    ------------------
@@ -75,30 +69,5 @@ package body Broca.Object is
       pragma Assert (Object /= null);
       return Object.Profiles (Object.Profiles'First);
    end Find_Profile;
-
-   ---------------------
-   -- Encapsulate_IOR --
-   ---------------------
-
-   procedure Encapsulate_IOR
-     (Buffer : access Buffer_Type;
-      --  From   : in Buffer_Index_Type;
-      Object : in Object_Type'Class)
-   is
-   begin
-      IOP.Encapsulate_IOR (Buffer, Object.Type_Id, Object.Profiles);
-   end Encapsulate_IOR;
-
-   ---------------------
-   -- Decapsulate_IOR --
-   ---------------------
-
-   procedure Decapsulate_IOR
-     (Buffer : access Buffer_Type;
-      Object : out Object_Type'Class)
-   is
-   begin
-      IOP.Decapsulate_IOR (Buffer, Object.Type_Id, Object.Profiles);
-   end Decapsulate_IOR;
 
 end Broca.Object;
