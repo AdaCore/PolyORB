@@ -516,14 +516,14 @@ package System.PolyORB_Interface is
       renames PolyORB.Any.ExceptionList.Nil_Ref;
 
    procedure Request_Create
-     (Target    : in     PolyORB.References.Ref;
-      Operation : in     String;
-      Arg_List  : in     PolyORB.Any.NVList.Ref;
+     (Target    :        PolyORB.References.Ref;
+      Operation :        String;
+      Arg_List  :        PolyORB.Any.NVList.Ref;
       Result    : in out PolyORB.Any.NamedValue;
-      Exc_List  : in     PolyORB.Any.ExceptionList.Ref
+      Exc_List  :        PolyORB.Any.ExceptionList.Ref
         := PolyORB.Any.ExceptionList.Nil_Ref;
       Req       :    out PolyORB.Requests.Request_Access;
-      Req_Flags : in     PolyORB.Requests.Flags := 0;
+      Req_Flags :        PolyORB.Requests.Flags;
       Deferred_Arguments_Session :
         in PolyORB.Components.Component_Access := null;
       Identification : in PolyORB.Requests.Arguments_Identification
