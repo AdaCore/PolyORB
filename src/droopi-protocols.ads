@@ -44,6 +44,37 @@ package Droopi.Protocols is
    procedure Abort_Request (S : access Session; R : Request)
       is abstract;
 
+   --  XXX
+   --  Primitives of Session might be derived from the primitives
+   --  of AdaBroker type Broca.IOP.Connection_Type.
+
+--     -----------------------------------
+--     -- Abstract GIOP connection type --
+--     -----------------------------------
+--
+--     type Connection_Type is abstract tagged private;
+--     type Connection_Ptr is access all Connection_Type'Class;
+--
+--     function Get_Request
+--       (Connection : access Connection_Type)
+--       return CORBA.Unsigned_Long;
+--     --  Get a new request id for this connection.
+--
+--     procedure Release
+--       (Connection : access Connection_Type) is abstract;
+--     --  Release a previously suspended connection.
+--
+--     procedure Send
+--       (Connection : access Connection_Type;
+--        Buffer     : access Buffers.Buffer_Type) is abstract;
+--     --  Send a buffer to a connection. Raise Comm_Failure on error.
+--
+--     function Receive
+--       (Connection : access Connection_Type;
+--        Length     : Opaque.Index_Type)
+--       return Opaque.Octet_Array_Ptr is abstract;
+--     --  Receive data from a connection. Raise Comm_Failure on error.
+
    ------------------------------------------------
    -- Callback point (interface to lower layers) --
    ------------------------------------------------
