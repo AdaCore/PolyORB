@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -68,7 +68,7 @@ package body System.Garlic.Termination is
    --  should be removed from the active task count.
 
    Serialized_Replies         : Mutex_Access;
-   Last_Task_To_Process_Reply : Task_ID := Null_Task;
+   Last_Task_To_Process_Reply : Task_Id := Null_Task;
    --  When we ask N neighbors whether they can terminate, we shall
    --  receive N positive replies in case of distributed
    --  termination. During the Nth reply processing, we check whether

@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2001 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -58,13 +58,13 @@ package body System.Garlic.Tasking is
      renames Print_Debug_Info_Nolock;
 
    use Ada.Task_Identification;
-   use type System.Tasking.Task_ID;
+   use type System.Tasking.Task_Id;
 
 --    package Stamp_Task_Attributes is
 --       new Ada.Task_Attributes (Stamp_Type, No_Stamp);
 --    use Stamp_Task_Attributes;
 
-   Environment_Task : constant System.Tasking.Task_ID := System.Tasking.Self;
+   Environment_Task : constant System.Tasking.Task_Id := System.Tasking.Self;
    --  The environment task. Self will be set to it at elaboration time.
 
    type Protected_Mutex_Access is access all Protected_Mutex_Type;
@@ -292,7 +292,7 @@ package body System.Garlic.Tasking is
 
    function Is_Environment_Task return Boolean
    is
-      Self : constant System.Tasking.Task_ID := System.Tasking.Self;
+      Self : constant System.Tasking.Task_Id := System.Tasking.Self;
    begin
       return Self = Environment_Task;
    end Is_Environment_Task;
