@@ -52,7 +52,7 @@ package body Broca.Value.Value_Skel is
    begin
       return Broca.Repository.Is_Equivalent
         (Type_Id,
-         Broca.Names.OMG_RepositoyId ("ValueBase"));
+         Broca.Names.OMG_RepositoryId ("ValueBase"));
    end Is_A;
 
 begin
