@@ -58,5 +58,5 @@ pragma Warnings (Off, AdaBroker.OmniRopeAndKey);
 pragma Warnings (Off, AdaBroker.Rope);
 pragma Warnings (Off, AdaBroker.Sysdep);
 
-package Main is
-end Main;
+package All_AdaBroker is
+end All_AdaBroker;
