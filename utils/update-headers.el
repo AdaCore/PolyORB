@@ -1,5 +1,5 @@
 ;;;
-;;; $Id: //droopi/main/utils/update-headers.el#12 $
+;;; $Id: //droopi/main/utils/update-headers.el#13 $
 ;;;
 ;;; Emacs macros to update Ada source files headers.
 ;;;
@@ -18,14 +18,14 @@
   "Update headers."
   (interactive)
   (let (name spec)
-
+    
     ; compute base copyright year
-   (goto-char (point-min))
-   (if (re-search-forward "\\(.*\\) \\([0-9]+\\)\\(.*\\)" nil t)
-       (setq base_date (buffer-substring (match-beginning 2) (match-end 2)))
-       (setq base_date "")
-     )
-
+    (goto-char (point-min))
+    (if (re-search-forward "\\(--.*Copyright.*([C])\\) \\([0-9]+\\)\\(.*\\)" nil t)
+	(setq base_date (buffer-substring (match-beginning 2) (match-end 2)))
+      (setq base_date "")
+      )
+    
     ; delete previous header box, if any.
     (goto-char (point-min))
     (next-line 1)
