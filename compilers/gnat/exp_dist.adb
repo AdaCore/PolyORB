@@ -2124,10 +2124,6 @@ package body Exp_Dist is
       Append_To (Decls, Pkg_RPC_Receiver_Object);
       Analyze (Last (Decls));
 
-      --  Construction of the dummy package used to initialize the
-      --  Handler field of the Pkg_Receiver_Object, and then register
-      --  the package receiving stubs on the nameserver.
-
       Get_Library_Unit_Name_String (Pkg_Spec);
       Append_To (Register_Pkg_Actuals,
          --  Name
@@ -2186,6 +2182,7 @@ package body Exp_Dist is
             New_Occurrence_Of (RTE (RE_Register_Pkg_Receiving_Stub), Loc),
           Parameter_Associations => Register_Pkg_Actuals));
       Analyze (Last (Decls));
+
    end Add_Receiving_Stubs_To_Declarations;
 
    -------------------
