@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -117,7 +117,7 @@ package body PolyORB.Filters.Slicers is
             if F.In_Buf = null
               or else Data_Received > F.Data_Expected
             then
-               raise Unexpected_Data;
+               raise Program_Error;
                --  This exception will be propagated to the ORB.
             end if;
 
