@@ -504,6 +504,7 @@ AC_OUTPUT([
 	examples/corba/rtcorba/server_declared/Makefile
 	examples/corba/send/Makefile
 	examples/dsa/Makefile
+	examples/dsa/gnat.adc
 	examples/bbs/Makefile
 	examples/moma/Makefile
 	examples/aws/Makefile
