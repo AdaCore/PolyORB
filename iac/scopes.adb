@@ -37,119 +37,6 @@ package body Scopes is
       end if;
    end Current_Scope;
 
-   ------------------
-   -- Visible_Node --
-   ------------------
-
-   function Visible_Node (N : Node_Id) return Node_Id
-   is
-      H : Node_Id := First_Homonym (N);
-      E : Node_Id;
-   begin
-      if Present (H) then
-         E := Node (H);
-
-         --  The current visible entity has already been entered in the scope
-
-         if Kind (E) = K_Scoped_Name then
-            return Reference (E);
-         end if;
-
-         if Explicitely_Visible (H) then
-            return Node (H);
-
-         elsif Implicitely_Visible (H) then
-            H := Homonym (H);
-
-            if Present (H) and then Implicitely_Visible (H) then
-               Error_Loc  (1)  := Loc      (N);
-               Error_Name (1)  := IDL_Name (N);
-               DE ("multiple#declarations");
-
-               H := First_Homonym (N);
-               while Present (H) and then Implicitely_Visible (H) loop
-                  Error_Loc  (1)  := Loc (N);
-                  Error_Loc  (2)  := Loc (H);
-                  DE ("found declaration!", K_None);
-                  H := Homonym (H);
-               end loop;
-
-               return No_Node;
-
-            else
-               return Node (First_Homonym (N));
-            end if;
-         end if;
-      end if;
-
-      Error_Loc  (1) := Loc      (N);
-      Error_Name (1) := IDL_Name (N);
-      DE ("#is undefined");
-
-      return No_Node;
-   end Visible_Node;
-
-   ---------------------------
-   -- Node_Implicitly_In_Scope --
-   ---------------------------
-
-   function Node_Implicitly_In_Scope (N : Node_Id; S : Node_Id) return Node_Id
-   is
-      H : Node_Id := First_Homonym (N);
-      X : Node_Id;
-   begin
-      while Present (H) loop
-         X := Node (H);
-
-         if Scope (H) = S then
-            return X;
-
-         elsif X = S then
-
-            --  The name of an interface, value type, struct, union,
-            --  exception or a module may not be redefined within the
-            --  immediate scope of the interface, value type, struct,
-            --  union, exception, or the module.
-
-            case Kind (S) is
-               when K_Interface_Declaration
-                 | K_Value_Declaration
-                 | K_Structure_Type
-                 | K_Union_Type
-                 | K_Exception_Declaration
-                 | K_Module =>
-                  return X;
-               when others =>
-                  null;
-            end case;
-         end if;
-         H := Homonym (H);
-      end loop;
-
-      return No_Node;
-   end Node_Implicitly_In_Scope;
-
-   ------------------------------
-   -- Node_Explicitly_In_Scope --
-   ------------------------------
-
-   function Node_Explicitly_In_Scope (N : Node_Id; S : Node_Id) return Node_Id
-   is
-      C : Node_Id := Scoped_Identifiers (S);
-      X : constant Name_Id := Name (N);
-   begin
-      while Present (C) loop
-         if Scope (C) = S
-           and then Name (C) = X
-         then
-            return Node (C);
-         end if;
-         C := Next_Node (C);
-      end loop;
-
-      return No_Node;
-   end Node_Explicitly_In_Scope;
-
    -------------------------
    -- Enter_Name_In_Scope --
    -------------------------
@@ -297,6 +184,67 @@ package body Scopes is
       end if;
    end Make_Node_Visible;
 
+   ------------------------------
+   -- Node_Explicitly_In_Scope --
+   ------------------------------
+
+   function Node_Explicitly_In_Scope (N : Node_Id; S : Node_Id) return Node_Id
+   is
+      C : Node_Id := Scoped_Identifiers (S);
+      X : constant Name_Id := Name (N);
+   begin
+      while Present (C) loop
+         if Scope (C) = S
+           and then Name (C) = X
+         then
+            return Node (C);
+         end if;
+         C := Next_Node (C);
+      end loop;
+
+      return No_Node;
+   end Node_Explicitly_In_Scope;
+
+   ------------------------------
+   -- Node_Implicitly_In_Scope --
+   ------------------------------
+
+   function Node_Implicitly_In_Scope (N : Node_Id; S : Node_Id) return Node_Id
+   is
+      H : Node_Id := First_Homonym (N);
+      X : Node_Id;
+   begin
+      while Present (H) loop
+         X := Node (H);
+
+         if Scope (H) = S then
+            return X;
+
+         elsif X = S then
+
+            --  The name of an interface, value type, struct, union,
+            --  exception or a module may not be redefined within the
+            --  immediate scope of the interface, value type, struct,
+            --  union, exception, or the module.
+
+            case Kind (S) is
+               when K_Interface_Declaration
+                 | K_Value_Declaration
+                 | K_Structure_Type
+                 | K_Union_Type
+                 | K_Exception_Declaration
+                 | K_Module =>
+                  return X;
+               when others =>
+                  null;
+            end case;
+         end if;
+         H := Homonym (H);
+      end loop;
+
+      return No_Node;
+   end Node_Implicitly_In_Scope;
+
    ---------------
    -- Pop_Scope --
    ---------------
@@ -393,6 +341,58 @@ package body Scopes is
          W_Eol;
       end if;
    end Remove_From_Homonyms;
+
+   ------------------
+   -- Visible_Node --
+   ------------------
+
+   function Visible_Node (N : Node_Id) return Node_Id
+   is
+      H : Node_Id := First_Homonym (N);
+      E : Node_Id;
+   begin
+      if Present (H) then
+         E := Node (H);
+
+         --  The current visible entity has already been entered in the scope
+
+         if Kind (E) = K_Scoped_Name then
+            return Reference (E);
+         end if;
+
+         if Explicitely_Visible (H) then
+            return Node (H);
+
+         elsif Implicitely_Visible (H) then
+            H := Homonym (H);
+
+            if Present (H) and then Implicitely_Visible (H) then
+               Error_Loc  (1)  := Loc      (N);
+               Error_Name (1)  := IDL_Name (N);
+               DE ("multiple#declarations");
+
+               H := First_Homonym (N);
+               while Present (H) and then Implicitely_Visible (H) loop
+                  Error_Loc  (1)  := Loc (N);
+                  Error_Loc  (2)  := Loc (H);
+                  DE ("found declaration!", K_None);
+                  H := Homonym (H);
+               end loop;
+
+               return No_Node;
+
+            else
+               return Node (First_Homonym (N));
+            end if;
+         end if;
+      end if;
+
+      Error_Loc  (1) := Loc      (N);
+      Error_Name (1) := IDL_Name (N);
+      DE ("#is undefined");
+
+      return No_Node;
+   end Visible_Node;
 
    ----------------
    -- W_Homonyms --

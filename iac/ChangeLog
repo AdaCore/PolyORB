@@ -1,5 +1,7 @@
 2004-05-24  Laurent Pautet  <pautet@dorine.enst.fr>
 
+	* utils.adb: Protect To_Lower against No_Name.
+	
 	* nodes.idl: Replace immediately with explicitely and potentially
 	with implicitely. Define specification as a definition to follow
 	CORBA 2.6 3.15.1.
