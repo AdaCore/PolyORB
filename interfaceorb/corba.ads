@@ -55,7 +55,7 @@ package Corba is
 
     type Idl_Exception_Members is abstract tagged null record;
 
-    procedure Get_Members (From : in Ada.Exceptions.Exception_Id;
+    procedure Get_Members (From : in Ada.Exceptions.Exception_Occurrence;
                            To : out Idl_Exception_Members) is abstract;
 
     -- Standard Exceptions:
@@ -136,7 +136,7 @@ package Corba is
     ----        not in spec, AdaBroker specific             ---
     -----------------------------------------------------------
 
-    CRLF : constant String := (Ada.Characters.Latin_1.LF, Ada.Characters.Latin_1.CR) ;
+    CRLF : constant Standard.String := (Ada.Characters.Latin_1.LF, Ada.Characters.Latin_1.CR) ;
     -- when we want to split a string into sevral lines:
     -- "first line" & Corba.CRLF & "second line"
 
@@ -165,6 +165,7 @@ package Corba is
    ----           not in spec  omniORB2 specific           ---
    -----------------------------------------------------------
 
+    Object_Not_Exist : exception ;
 
     function Omni_CallTransientExceptionHandler return CORBA.Boolean;
     -- wrapper around extern CORBA::Boolean

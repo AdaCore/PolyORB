@@ -10,13 +10,13 @@
 ----                                                               ----
 -----------------------------------------------------------------------
 
-with Omniproxycalldesc, omniobject ;
+
+with Corba.Object ;
+with Omniproxycalldesc ;
 
 package omniProxyCallWrapper is
 
-   type Object is limited private;
-
-   procedure Invoke (The_Obj : in OmniObject.Object ;
+   procedure Invoke (The_Obj : in Corba.Object.Ref'Class ;
                      Call_Desc : in out OmniProxyCallDesc.Object'Class ) ;
    -- reimplemented in Ada to call the C++ ORB
    -- (modified by Fabien)
@@ -26,14 +26,18 @@ package omniProxyCallWrapper is
    -- in proxyCall.cc L 46
 
 
-   procedure One_Way(The_Obj : in OmniObject.Object'Class ;
+   procedure One_Way(The_Obj : in Corba.Object.Ref'Class ;
                      Call_Desc : in out OmniProxyCallDesc.Object) ;
    -- reimplemented in Ada to call the C++ ORB
    -- see proxyCall.cc L181
 
 
 
-private
-
-
 end omniproxyCallWrapper ;
+
+
+
+
+
+
+

@@ -1,2 +1,2 @@
-opcd: omniproxycallwrapper.ads omniproxycallwrapper.adb
+opcw: omniproxycallwrapper.ads omniproxycallwrapper.adb
 	gnatgcc -c omniproxycallwrapper.adb

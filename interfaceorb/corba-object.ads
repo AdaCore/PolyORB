@@ -10,7 +10,8 @@
 ----                                                               ----
 -----------------------------------------------------------------------
 
-with Omniobject, NetBufferedStream, MemBufferedStream ;
+with Omniobject, Omniobjectmanager, Omniropeandkey ;
+with NetBufferedStream, MemBufferedStream ;
 with Ada.Finalization ;
 
 package Corba.Object is
@@ -34,13 +35,17 @@ package Corba.Object is
    ---        omniORB specific                    ---
    --------------------------------------------------
 
-   procedure PR_Setobj(The_Object : in OmniObject.Object) ;
+   -- procedure PR_Setobj(The_Object : in OmniObject.Object) ;
    -- wrapper around void CORBA::Object::PR_setobj(omniObject *obj)
    -- in corbaObject.cc L121
+   --
+   -- should not be useful any longer
 
-   function PR_Getobj return OmniObject.Object ;
+   -- function PR_Getobj return OmniObject.Object ;
    -- wrapper around omniObject* CORBA::Object::PR_getobj()
    -- in corbaObject.cc L128
+   --
+   -- should not be useful any longer
 
    --------------------------------------------------
    ---        AdaBroker  specific                 ---
@@ -49,8 +54,8 @@ package Corba.Object is
 
 
    procedure Marshal_Obj_Ref(The_Object: Ref'Class ;
-                           RepoID : String ;
-                           Nbs : NetBufferedStream.Object) ;
+                             RepoID : String ;
+                             Nbs : NetBufferedStream.Object) ;
    -- wrapper around void CORBA::MarshalObjRef(CORBA::Object_ptr obj,
    --        const char* repoId,
    --        size_t repoIdSize,
@@ -67,7 +72,7 @@ package Corba.Object is
    -- defined in objectRef.cc L850
 
    function UnMarshal_Obj_Ref(Repoid : in String ;
-                            Nbs : in NetBufferedStream.Object
+                            Nbs : in NetBufferedStream.Object'Class
                            ) return Ref'Class ;
    -- return ???
    -- wrapper around CORBA::Object_ptr
@@ -77,7 +82,7 @@ package Corba.Object is
    -- in objectRef.cc L637
 
    function UnMarshal_Obj_Ref(Repoid : in String ;
-                            Mbs : in MemBufferedStream.Object
+                            Mbs : in MemBufferedStream.Object'Class
                            ) return Ref'Class ;
    -- return ???
    -- wrapper around CORBA::Object_ptr
@@ -85,6 +90,16 @@ package Corba.Object is
    --                           const char* repoId,
    --                           MemBufferedStream& s)
    -- in objectRef.cc L765
+
+   function UnMarshal_Obj_Ref(Nbs : in NetBufferedStream.Object'Class)
+                              return Ref'Class ;
+   function UnMarshal_Obj_Ref(Nbs : in MemBufferedStream.Object'Class)
+                              return Ref'Class ;
+   -- wrappers around
+   -- static Object_ptr unmarshalObjRef(NetBufferedStream& s);
+   -- static Object_ptr unmarshalObjRef(MemBufferedStream& s);
+   -- CORBA.H, L1344
+
 
    function Aligned_Obj_Ref(The_Object : Ref'Class ;
                           RepoID : String ;
@@ -107,21 +122,21 @@ package Corba.Object is
 
    procedure PR_IRRepositoryId(RepositoryId : in String ) ;
 
-   procedure Init (Self : in out Object ;
+   procedure Init (Self : in out Corba.Object.Ref'Class ;
                    Manager : in OmniObjectManager.Object);
 
-   procedure Set_Rope_And_Key (Self : in out Object ;
+   procedure Set_Rope_And_Key (Self : in out Corba.Object.Ref'Class ;
                             L : in out Omniropeandkey.Object ;
-                            KeepIOP : Corba.boolean
+                            KeepIOP : Corba.Boolean := True
                            ) ;
 
-   procedure Get_Rope_And_Key (Self : in Object ;
-                           L : in out Omniropeandkey.Object ;
-                           Result : out Corba.Boolean) ;
+   procedure Get_Rope_And_Key (Self : in Corba.Object.Ref'Class ;
+                               L : in out Omniropeandkey.Object ;
+                               Result : out Corba.Boolean) ;
 
-   procedure Assert_Object_Existent (Self : in Object) ;
+   procedure Assert_Object_Existent (Self : in Corba.Object.Ref'Class) ;
 
-   procedure Reset_Rope_And_Key (Self : in Object);
+   procedure Reset_Rope_And_Key (Self : in Corba.Object.Ref'Class);
 
 
 private
@@ -131,7 +146,7 @@ private
 
    type Ref is new Ada.Finalization.Controlled with record
       Dynamic_Object : Dynamic_Type := null ;
-      Omniobject : Omniobject.Object ;
+      Wrapped_Omniobject : Omniobject.Object ;
    end record ;
 
    procedure Initialize (Self: in out Ref'Class);

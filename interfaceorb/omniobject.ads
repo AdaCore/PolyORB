@@ -15,7 +15,7 @@ with Corba, OmniObjectManager, Omniropeandkey ;
 
 package OmniObject is
 
-   type Object is limited private ;
+   type Object is private ;
 
    function Is_Proxy return Boolean ;
    -- wrapper around   inline _CORBA_Boolean is_proxy()
@@ -55,7 +55,7 @@ package OmniObject is
 
 private
 
-   type Object is limited null record ;
+   type Object is null record ;
 
    function Dispatch (Self : in System.address ;
                         Orls : in System.Address ;

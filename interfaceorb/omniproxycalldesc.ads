@@ -51,10 +51,15 @@ package omniProxyCallDesc is
 
 private
 
+   type String_Access is access Standard.String ;
+
    type Object is abstract tagged limited record
       Pd_Has_User_Exception : Corba.Boolean ;
-      Pd_Operation : Standard.String ;
+      Operation_Name :  String_Access ;
    end record ;
+   -- operation_name has to be a string access
+   -- because a record component cannot be of unconstrained type
+   -- (undefined length)
 
 end omniproxyCallDesc ;
 

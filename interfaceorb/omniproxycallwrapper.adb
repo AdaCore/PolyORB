@@ -14,7 +14,7 @@ with Ada.Exceptions ;
 
 with Corba, Corba.Object ;
 with Giop, Giop_C ;
-with Omniobject, Omniropeandkey, Omniproxycalldesc ;
+with Omniropeandkey, Omniproxycalldesc ;
 with BufferedStream, Netbufferedstream ;
 use Omniproxycalldesc ;
 
@@ -41,8 +41,9 @@ package body omniProxyCallWrapper is
    -- pb with Giop_C.Request_Completed
    -- 0 or 1 parameter
    ----------------
-   procedure Invoke (The_Obj : in OmniObject.Object ;
+   procedure Invoke (The_Obj : in Corba.Object.Ref'Class ;
                      Call_Desc : in out OmniProxyCallDesc.Object'Class ) is
+      The_Parameter_Obj : Corba.Object.Ref'Class := The_Obj ;
       Retries : Corba.Unsigned_Long := 0 ;
       Rope_And_Key : Omniropeandkey.Object ;
       Is_Fwd : Corba.Boolean ;
@@ -54,9 +55,9 @@ package body omniProxyCallWrapper is
       -- sould start infinite loop
       -- to be done when exceptions are handled
 
-      Omniobject.Assert_Object_Existent(The_Obj) ;
+      Corba.Object.Assert_Object_Existent(The_Parameter_Obj) ;
 
-      Omniobject.Get_Rope_And_Key(The_Obj, Rope_And_Key, Is_Fwd) ;
+      Corba.Object.Get_Rope_And_Key(The_Parameter_Obj, Rope_And_Key, Is_Fwd) ;
 
       -- Get a GIOP driven strand
       Giop_C.Init(Giop_Client, Omniropeandkey.Rope(Rope_And_Key)) ;
@@ -137,11 +138,12 @@ package body omniProxyCallWrapper is
 
          when Giop.LOCATION_FORWARD =>
             declare
-               Obj : Corba.Object.Ref ;
+               Obj : Corba.Object.Ref'Class :=
+                 Corba.Object.UnMarshal_Obj_Ref(Giop_Client) ;
                Excpt_Members : Corba.Comm_Failure_Members ;
                R : Omniropeandkey.Object ;
+               Unneeded_Result : Corba.Boolean ;
             begin
-               Obj := Corba.Object.UnMarshal_Obj_Ref(Giop_Client) ;
                Giop_C.Request_Completed(Giop_Client) ;
                if Corba.Object.Is_Nil(Obj) then
                   -- omniORB's log info : omitted
@@ -149,8 +151,8 @@ package body omniProxyCallWrapper is
                   Corba.Raise_Corba_Exception(Corba.Comm_Failure'Identity,
                                               Excpt_Members) ;
                end if;
-               Corba.Object.Get_Rope_And_Key(Obj, R) ;
-               Corba.Object.Set_Rope_And_Key(The_Obj, R) ;
+               Corba.Object.Get_Rope_And_Key(Obj, R, Unneeded_result) ;
+               Corba.Object.Set_Rope_And_Key(The_Parameter_Obj, R) ;
                -- omniORB's log info : omitted
 
                -- we go back to the beginning of the infinite loop
@@ -200,7 +202,7 @@ package body omniProxyCallWrapper is
 
    -- One_Way
    ----------
-   procedure One_Way(The_Obj : in OmniObject.Object'Class ;
+   procedure One_Way(The_Obj : in Corba.Object.Ref'Class ;
                      Call_Desc : in out OmniProxyCallDesc.Object) is
    begin
       return ;
