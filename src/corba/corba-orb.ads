@@ -79,7 +79,9 @@ package CORBA.ORB is
 
    type ObjectIdList is new IDL_Sequence_ObjectId.Sequence;
 
-   function  Object_To_String
+   InvalideName : exception;
+
+   function Object_To_String
      (Obj : in CORBA.Object.Ref'Class)
      return CORBA.String;
 
@@ -96,7 +98,7 @@ package CORBA.ORB is
    procedure Create_List
      (New_List : out CORBA.ExceptionList.Ref);
 
-   --  ??? Requires CORBA.OperationDef
+   --  XXX Requires CORBA.OperationDef defined in COS IR
 
    --    procedure Create_Operation_List
    --      (Oper     : in     CORBA.OperationDef.Ref'Class;
@@ -112,9 +114,9 @@ package CORBA.ORB is
       Service_Information :    out ServiceInformation;
       Returns             :    out CORBA.Boolean);
 
-   --  initial reference operations
-
    function List_Initial_Services return ObjectIdList;
+
+   --  Initial reference operations
 
    procedure Register_Initial_Reference
      (Identifier : ObjectId;
@@ -124,36 +126,38 @@ package CORBA.ORB is
      (Identifier : ObjectId)
      return CORBA.Object.Ref;
 
-   function  Create_Alias_Tc
+   --  Type code creation operations
+
+   function Create_Alias_Tc
      (Id            : in CORBA.RepositoryId;
       Name          : in CORBA.Identifier;
       Original_Type : in CORBA.TypeCode.Object)
      return CORBA.TypeCode.Object;
 
-   function  Create_Interface_Tc
+   function Create_Interface_Tc
      (Id   : in CORBA.RepositoryId;
       Name : in CORBA.Identifier)
      return CORBA.TypeCode.Object;
 
-   function  Create_String_Tc
+   function Create_String_Tc
      (Bound : in CORBA.Unsigned_Long)
      return CORBA.TypeCode.Object;
 
-   function  Create_Wstring_Tc
+   function Create_Wstring_Tc
      (Bound : in CORBA.Unsigned_Long)
      return CORBA.TypeCode.Object;
 
-   function  Create_Fixed_Tc
+   function Create_Fixed_Tc
      (IDL_Digits : in CORBA.Unsigned_Short;
       scale      : in CORBA.Short)
      return CORBA.TypeCode.Object;
 
-   function  Create_Sequence_Tc
+   function Create_Sequence_Tc
      (Bound        : in CORBA.Unsigned_Long;
       Element_Type : in CORBA.TypeCode.Object)
      return CORBA.TypeCode.Object;
 
-   function  Create_Recursive_Sequence_Tc
+   function Create_Recursive_Sequence_Tc
      (Bound  : in CORBA.Unsigned_Long;
       Offset : in CORBA.Unsigned_Long)
      return CORBA.TypeCode.Object;
@@ -178,9 +182,12 @@ package CORBA.ORB is
    --  Thread related operations
 
    function Work_Pending return Boolean;
+
    procedure Perform_Work;
-   procedure Shutdown (Wait_For_Completion : in Boolean);
+
    procedure Run;
+
+   procedure Shutdown (Wait_For_Completion : in Boolean);
 
    --  Policy related operations
 
@@ -196,9 +203,26 @@ package CORBA.ORB is
 
    function Create_Reference
      (Object : in CORBA.Object.Ref;
-      Typ : in Standard.String)
+      Typ    : in Standard.String)
      return PolyORB.References.Ref;
    --  Create an object reference that designates object Oid
    --  of type Typ within this ORB.
+
+   -------------------------------------
+   -- CORBA.ORB Exceptions Management --
+   -------------------------------------
+
+   --  InvalidName_Members
+
+   type InvalidName_Members is new CORBA.IDL_Exception_Members
+     with null record;
+
+   procedure Get_Members
+     (From : in  Ada.Exceptions.Exception_Occurrence;
+      To   : out InvalidName_Members);
+
+   procedure Raise_InvalidName
+     (Excp_Memb : in InvalidName_Members);
+   pragma No_Return (Raise_InvalidName);
 
 end CORBA.ORB;

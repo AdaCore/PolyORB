@@ -36,9 +36,6 @@
 -- Get_Default_Context --
 -- Get_Service_Information --
 -- List_Initial_Services --
--- Perform_Work --
--- Shutdown --
--- Work_Pending --
 
 --  $Id$
 
@@ -97,6 +94,7 @@ package body CORBA.ORB is
       CORBA.TypeCode.Add_Parameter
         (Result, CORBA.To_Any (CORBA.String (Id)));
       CORBA.TypeCode.Add_Parameter (Result, CORBA.To_Any (Original_Type));
+
       return Result;
    end Create_Alias_Tc;
 
@@ -113,6 +111,7 @@ package body CORBA.ORB is
    begin
       CORBA.TypeCode.Add_Parameter (Result, CORBA.To_Any (Length));
       CORBA.TypeCode.Add_Parameter (Result, CORBA.To_Any (Element_Type));
+
       return Result;
    end Create_Array_Tc;
 
@@ -123,8 +122,7 @@ package body CORBA.ORB is
    function Create_Fixed_Tc
      (IDL_Digits : in CORBA.Unsigned_Short;
       scale      : in CORBA.Short)
-      return CORBA.TypeCode.Object
-   is
+      return CORBA.TypeCode.Object is
    begin
       raise PolyORB.Not_Implemented;
       pragma Warnings (Off);
@@ -159,13 +157,13 @@ package body CORBA.ORB is
      (Count    : in     CORBA.Long;
       New_List :    out CORBA.NVList.Ref)
    is
-   begin
       pragma Warnings (Off);
       --  Parameter 'Count' below is only a hint.
       --  In this implementation, it is ignored.
       pragma Unreferenced (Count);
       pragma Warnings (On);
 
+   begin
       CORBA.NVList.Create (New_List);
    end Create_List;
 
@@ -179,8 +177,7 @@ package body CORBA.ORB is
    function Create_Native_Tc
      (Id   : in RepositoryId;
       Name : in Identifier)
-      return CORBA.TypeCode.Object
-   is
+      return CORBA.TypeCode.Object is
    begin
       raise PolyORB.Not_Implemented;
       pragma Warnings (Off);
@@ -196,8 +193,7 @@ package body CORBA.ORB is
    function Create_Recursive_Sequence_Tc
      (Bound  : in CORBA.Unsigned_Long;
       Offset : in CORBA.Unsigned_Long)
-      return CORBA.TypeCode.Object
-   is
+      return CORBA.TypeCode.Object is
    begin
       raise PolyORB.Not_Implemented;
       pragma Warnings (Off);
@@ -219,6 +215,7 @@ package body CORBA.ORB is
    begin
       CORBA.TypeCode.Add_Parameter (Result, CORBA.To_Any (Bound));
       CORBA.TypeCode.Add_Parameter (Result, CORBA.To_Any (Element_Type));
+
       return Result;
    end Create_Sequence_Tc;
 
@@ -233,6 +230,7 @@ package body CORBA.ORB is
       Result : CORBA.TypeCode.Object := TypeCode.TC_String;
    begin
       CORBA.TypeCode.Add_Parameter (Result, CORBA.To_Any (Bound));
+
       return Result;
    end Create_String_Tc;
 
@@ -247,6 +245,7 @@ package body CORBA.ORB is
       Result : CORBA.TypeCode.Object := TypeCode.TC_Wide_String;
    begin
       CORBA.TypeCode.Add_Parameter (Result, CORBA.To_Any (Bound));
+
       return Result;
    end Create_Wstring_Tc;
 
@@ -255,8 +254,7 @@ package body CORBA.ORB is
    -------------------------
 
    function Get_Default_Context
-      return CORBA.Context.Ref
-   is
+      return CORBA.Context.Ref is
    begin
       raise PolyORB.Not_Implemented;
       pragma Warnings (Off);
@@ -272,8 +270,7 @@ package body CORBA.ORB is
    procedure Get_Service_Information
      (Service_Type        : in     CORBA.ServiceType;
       Service_Information :    out ServiceInformation;
-      Returns             :    out CORBA.Boolean)
-   is
+      Returns             :    out CORBA.Boolean) is
    begin
       raise PolyORB.Not_Implemented;
    end Get_Service_Information;
@@ -308,8 +305,7 @@ package body CORBA.ORB is
      (Identifier : ObjectId;
       Ref        : CORBA.Object.Ref) is
    begin
-      Referenced_Objects.Register
-        (To_Standard_String (Identifier), Ref);
+      Referenced_Objects.Register (To_Standard_String (Identifier), Ref);
    end Register_Initial_Reference;
 
    procedure Register_Initial_Reference
@@ -330,8 +326,8 @@ package body CORBA.ORB is
      (Identifier : ObjectId)
      return CORBA.Object.Ref
    is
-      Id : constant Standard.String
-        := To_Standard_String (Identifier);
+      Id : constant Standard.String := To_Standard_String (Identifier);
+
    begin
       return Referenced_Objects.Lookup (Id);
    exception
@@ -381,18 +377,18 @@ package body CORBA.ORB is
 
    procedure String_To_Object
      (From : in     CORBA.String;
-      To   : in out CORBA.Object.Ref'Class)
-   is
+      To   : in out CORBA.Object.Ref'Class) is
    begin
       declare
          use PolyORB.References;
          use PolyORB.References.IOR;
 
-         IOR : constant IOR_Type
-           := String_To_Object (PolyORB.Types.String (From));
+         IOR : constant IOR_Type :=
+           String_To_Object (PolyORB.Types.String (From));
       begin
          CORBA.Object.Set (To, Entity_Of (IOR));
       end;
+
    exception
       when Constraint_Error =>
          CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
@@ -430,23 +426,25 @@ package body CORBA.ORB is
 
    function Create_Reference
      (Object : in CORBA.Object.Ref;
-      Typ : in Standard.String)
-     return PolyORB.References.Ref
-   is
-      Result : PolyORB.References.Ref;
-
-      Oid    : constant PolyORB.Objects.Object_Id_Access
-        := new PolyORB.Objects.Object_Id'
-        (CORBA.Object.To_PolyORB_Object (Object));
+      Typ    : in Standard.String)
+     return PolyORB.References.Ref is
    begin
       if The_ORB = null then
-         raise Internal;
+         Raise_Internal (CORBA.Default_Sys_Member);
       end if;
 
-      PolyORB.ORB.Create_Reference
-        (The_ORB, Oid, Typ, Result);
+      declare
+         Result : PolyORB.References.Ref;
 
-      return Result;
+         Oid : constant PolyORB.Objects.Object_Id_Access :=
+           new PolyORB.Objects.Object_Id'
+           (CORBA.Object.To_PolyORB_Object (Object));
+      begin
+         PolyORB.ORB.Create_Reference
+           (The_ORB, Oid, Typ, Result);
+
+         return Result;
+      end;
    end Create_Reference;
 
    -------------------
@@ -464,6 +462,7 @@ package body CORBA.ORB is
 
       Entity : constant PolyORB.Smart_Pointers.Entity_Ptr :=
         new Policy_Object_Type;
+
    begin
       Set_Policy_Type (Policy_Object_Type (Entity.all), The_Type);
       Set_Policy_Value (Policy_Object_Type (Entity.all), Val);
@@ -473,6 +472,39 @@ package body CORBA.ORB is
       return Result;
    end Create_Policy;
 
+   -----------------
+   -- Get_Members --
+   -----------------
+
+   procedure Get_Members
+     (From : in  Ada.Exceptions.Exception_Occurrence;
+      To   : out InvalidName_Members)
+   is
+      use Ada.Exceptions;
+
+   begin
+      if Exception_Identity (From) /= InvalidName'Identity then
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
+      end if;
+
+      To := InvalidName_Members'
+        (CORBA.IDL_Exception_Members with null record);
+   end Get_Members;
+
+   -----------------------
+   -- Raise_InvalidName --
+   -----------------------
+
+   procedure Raise_InvalidName
+     (Excp_Memb : in InvalidName_Members)
+   is
+      pragma Warnings (Off); --  WAG:3.15
+      pragma Unreferenced (Excp_Memb);
+      pragma Warnings (On); --  WAG:3.15
+   begin
+      raise InvalidName;
+   end Raise_InvalidName;
+
    ----------------
    -- Initialize --
    ----------------
@@ -481,12 +513,13 @@ package body CORBA.ORB is
 
    procedure Initialize
    is
-      Naming_IOR : constant Standard.String
-        := PolyORB.Configuration.Get_Conf
+      Naming_IOR : constant Standard.String :=
+        PolyORB.Configuration.Get_Conf
         (Section => "corba", Key => "naming_ior", Default => "");
    begin
 
-      --  Register initial reference for "NamingService".
+      --  Register initial reference for NamingService
+
       if Naming_IOR /= "" then
          Register_Initial_Reference
            (To_CORBA_String ("NamingService"),
@@ -502,9 +535,10 @@ package body CORBA.ORB is
 begin
    Register_Module
      (Module_Info'
-      (Name => +"corba.orb",
+      (Name      => +"corba.orb",
        Conflicts => Empty,
-       Depends => +"orb",
-       Provides => +"corba.initial_references",
-       Init => Initialize'Access));
+       Depends   => +"orb",
+       Provides  => +"corba.initial_references",
+       Init      => Initialize'Access));
+
 end CORBA.ORB;
