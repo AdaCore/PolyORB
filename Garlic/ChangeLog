@@ -1,3 +1,8 @@
+Mon Apr  7 12:46:42 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* constants.sh: Output aligned constants & use hexa instead of
+	  decimal.
+
 Wed Mar 26 23:07:31 1997  Laurent Pautet  <pautet@esmeralda.enst.fr>
 
 	* Makefile.am, Makefile.in: Add s-garrep and s-gartra in

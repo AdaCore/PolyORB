@@ -88,7 +88,7 @@ void loosecase(char *s)
 main()
 {
   struct cons *i; for (i=list;i->name;i++) {loosecase(i->name);
-  printf("   %s : constant := %d;\n", i->name, i->value);}
+  printf("   %-20s : constant := 16#%04X#;\n", i->name, i->value);}
 }
 EOF
 if [ "${debug}" = "-d" ]; then
