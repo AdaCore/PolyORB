@@ -48,6 +48,8 @@ interface all_functions {
   
   oneway void oneway_void_proc() ;
   
-  oneway void oneway_in_proc(in short a, in short b, in short c) ;
+  oneway void oneway_in_proc(in short a, in short b) ;
+
+  short oneway_checker() ;
 
 };
