@@ -74,7 +74,10 @@ with CORBA.Object;
 with CORBA.Impl;
 with CORBA.ORB;
 
-with Broca.Server_Tools; use Broca.Server_Tools;
+--with Broca.Server_Tools; use Broca.Server_Tools;
+--modification apportée pour passer de Adabrocker à PolyORB
+with PolyORB.CORBA_P.Server_Tools;
+use  PolyORB.CORBA_P.Server_Tools;
 
 with PortableServer; use PortableServer;
 

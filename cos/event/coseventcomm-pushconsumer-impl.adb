@@ -40,20 +40,23 @@ with CosEventChannelAdmin.ProxyPushSupplier;
 with CosEventComm.PushConsumer.Helper;
 with CosEventComm.PushConsumer.Skel;
 
-with Broca.Server_Tools; use  Broca.Server_Tools;
-with Broca.Soft_Links;    use  Broca.Soft_Links;
+with PolyORB.CORBA_P.Server_Tools; use  PolyORB.CORBA_P.Server_Tools;
+with PolyORB.Tasking.Soft_Links; use PolyORB.Tasking.Soft_Links;
+with PolyORB.Log;
+with PolyORB.Tasking.Watchers; use PolyORB.Tasking.Watchers;
 
 with CORBA.Impl;
 
 with PortableServer; use PortableServer;
 
-with Broca.Debug;
-pragma Elaborate_All (Broca.Debug);
 
 package body CosEventComm.PushConsumer.Impl is
 
-   Flag : constant Natural := Broca.Debug.Is_Active ("pushconsumer");
-   procedure O is new Broca.Debug.Output (Flag);
+ 
+ use PolyORB.Log;
+ package L is new PolyORB.Log.Facility_Log ("pushconsumer");
+ procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+     renames L.Output;
 
    type Push_Consumer_Record is
       record

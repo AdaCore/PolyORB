@@ -41,18 +41,22 @@ with CosEventChannelAdmin; use CosEventChannelAdmin;
 
 with CosEventChannelAdmin.ProxyPullConsumer;
 
-with Broca.Server_Tools; use  Broca.Server_Tools;
-with Broca.Soft_Links;    use  Broca.Soft_Links;
+with PolyORB.CORBA_P.Server_Tools; use  PolyORB.CORBA_P.Server_Tools;
+with PolyORB.Tasking.Soft_Links; use PolyORB.Tasking.Soft_Links;
+with PolyORB.Log; 
+with Polyorb.Tasking.Watchers; use Polyorb.Tasking.Watchers;
 
 with PortableServer; use PortableServer;
 
-with Broca.Debug;
-pragma Elaborate_All (Broca.Debug);
 
 package body CosEventComm.PullSupplier.Impl is
 
-   Flag : constant Natural := Broca.Debug.Is_Active ("pullsupplier");
-   procedure O is new Broca.Debug.Output (Flag);
+
+
+ use  PolyORB.Log;
+ package L is new PolyORB.Log.Facility_Log ("pullsupplier");
+ procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+     renames L.Output;
 
    type Pull_Supplier_Record is
       record

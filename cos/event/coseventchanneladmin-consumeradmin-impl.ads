@@ -2,7 +2,7 @@
 --                                                                          --
 --                           ADABROKER SERVICES                             --
 --                                                                          --
--- C O S E V E N T C H A N N E L A D M I N . C O N S U M E R A D M I N . I M P L  --
+-- C O S E V E N T C H A N N E L A D M I N.C O N S U M E R A D M I N.I M P L--
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --

@@ -2,7 +2,7 @@
 --                                                                          --
 --                           ADABROKER SERVICES                             --
 --                                                                          --
--- C O S E V E N T C H A N N E L A D M I N . P R O X Y P U L L C O N S U M E R . I M P L  --
+-- COSEVENTCHANNEL A D M I N . P R O X Y P U L L C O N S U M E R . I M P L  --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -44,21 +44,22 @@ with CosEventChannelAdmin.ProxyPullConsumer.Skel;
 
 with CosEventChannelAdmin.SupplierAdmin.Impl;
 
-with Broca.Server_Tools; use Broca.Server_Tools;
-with Broca.Soft_Links;    use  Broca.Soft_Links;
+with PolyORB.CORBA_P.Server_Tools; use  PolyORB.CORBA_P.Server_Tools;
+with PolyORB.Tasking.Soft_Links; use PolyORB.Tasking.Soft_Links;
 
 with PortableServer; use PortableServer;
 
 with CORBA.Object;
 
-with Broca.Debug;
-pragma Elaborate_All (Broca.Debug);
+with PolyORB.Log;
 
 package body CosEventChannelAdmin.ProxyPullConsumer.Impl is
 
-   Flag : constant Natural := Broca.Debug.Is_Active ("proxypullconsumer");
-   procedure O is new Broca.Debug.Output (Flag);
-
+ use  PolyORB.Log;
+ package L is new PolyORB.Log.Facility_Log ("proxypullconsumer");
+ procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+     renames L.Output;
+   
    task type Proxy_Pull_Consumer_Engin is
       entry Connect (Consumer : in Object_Ptr);
    end Proxy_Pull_Consumer_Engin;
