@@ -22,23 +22,6 @@ package body Droopi.Representations.SOAP is
    use Droopi.Types;
    use Droopi.Any;
 
-
-   Droopi_Types_To_Xml_Types :
-    constant array (TCKind'Range) of Xml_String
-     := (Tk_Short => To_Droopi_String ("short"),
-         Tk_Long  => To_Droopi_String ("int"),
-         Tk_Ushort => To_Droopi_String ("unsigned short"),
-         Tk_Ulong => To_Droopi_String ("unsigned int"),
-         Tk_Float => To_Droopi_String ("float"),
-         Tk_Double => To_Droopi_String ("double"),
-         Tk_Boolean => To_Droopi_String ("boolean"),
-         Tk_Octet => To_Droopi_String ("byte"),
-         Tk_String =>  To_Droopi_String ("string"),
-         Tk_Longlong => To_Droopi_String ("long"),
-         Tk_Ulonglong => To_Droopi_String ("unsigned long"),
-         others => To_Droopi_String ("undefined"));
-
-
    function Erase_Space (S : String)
     return String;
 
@@ -173,6 +156,31 @@ package body Droopi.Representations.SOAP is
 
    function To_Xml_String
      (Name : Types.Identifier;
+      Arg : Types.Unsigned_Long_Long)
+         return Xml_String
+   is
+      S : Xml_String;
+      S_Val : Xml_String;
+      Str : String := Types.Unsigned_Long_Long'Image (Arg);
+   begin
+      if Arg > 0 then
+         S_Val := To_Droopi_String (Erase_Space (Str));
+      else
+         S_Val := To_Droopi_String (Str);
+      end if;
+      Append (S, "<");
+      Append (S, Types.String (Name));
+      Append (S, ">");
+      Append (S, S_Val);
+      Append (S, "</");
+      Append (S, Types.String (Name));
+      Append (S, ">");
+      return S;
+   end To_Xml_String;
+
+
+   function To_Xml_String
+     (Name : Types.Identifier;
       Arg : Types.Float)
         return Xml_String
    is
@@ -244,6 +252,22 @@ package body Droopi.Representations.SOAP is
       return S;
    end To_Xml_String;
 
+   function To_Xml_String
+      (Name : Types.Identifier;
+       Arg  : Types.Char)
+       return Xml_String
+   is
+      S : Xml_String;
+   begin
+      Append (S, "<");
+      Append (S, Types.String (Name));
+      Append (S, ">");
+      Append (S, Arg);
+      Append (S, "</");
+      Append (S, Types.String (Name));
+      Append (S, ">");
+      return S;
+   end To_Xml_String;
 
    function To_Xml_String
       (Name : Types.Identifier;
@@ -318,6 +342,97 @@ package body Droopi.Representations.SOAP is
       return S;
 
    end  Array_To_Xml_String;
+
+   function Any_To_Xml_String
+      (Data_Struct  :  XML_Struct_Element)
+     return Xml_String
+   is
+      S : Xml_String;
+      Tc :  Xsd_Simple_Types := Droopi_Types_To_Xml_Types
+           (Any.TypeCode.Kind (Get_Precise_Type (Data_Struct.Value)));
+   begin
+
+      --   Tc := Droopi_Types_To_Xml_Types (Any.TypeCode.Kind
+      --          (Get_Precise_Type (Cp.Value)));
+      if Tc  /=  Xsd_Undefined then
+         raise SOAP_Error;
+      end if;
+
+
+      case Tc is
+        when Xsd_Short =>
+           S := To_Xml_String (Data_Struct.Name,
+                Types.Short'(From_Any (Data_Struct.Value)));
+        when Xsd_Int =>
+           S := To_Xml_String (Data_Struct.Name,
+                Types.Short'(From_Any (Data_Struct.Value)));
+        when Xsd_Ushort =>
+           S := To_Xml_String (Data_Struct.Name,
+                Types.Unsigned_Short'(From_Any (Data_Struct.Value)));
+        when Xsd_Uint =>
+           S := To_Xml_String (Data_Struct.Name,
+                Types.Unsigned_Long'(From_Any (Data_Struct.Value)));
+        when Xsd_Float  =>
+           S := To_Xml_String (Data_Struct.Name,
+                Types.Float'(From_Any (Data_Struct.Value)));
+        when Xsd_Double  =>
+           S := To_Xml_String (Data_Struct.Name,
+                Types.Double'(From_Any (Data_Struct.Value)));
+        when Xsd_Boolean =>
+           S := To_Xml_String (Data_Struct.Name,
+                Types.Boolean'(From_Any (Data_Struct.Value)));
+        when Xsd_Char =>
+           S := To_Xml_String (Data_Struct.Name,
+                Types.Char'(From_Any (Data_Struct.Value)));
+        when Xsd_Byte =>
+           S := To_Xml_String (Data_Struct.Name,
+                Types.Octet'(From_Any (Data_Struct.Value)));
+        when Xsd_String =>
+           S := To_Xml_String (Data_Struct.Name,
+                Types.String'(From_Any (Data_Struct.Value)));
+        when Xsd_Longlong  =>
+           S := To_Xml_String (Data_Struct.Name,
+                Types.Long_Long'(From_Any (Data_Struct.Value)));
+        when Xsd_ULonglong  =>
+           S := To_Xml_String (Data_Struct.Name,
+                Types.Unsigned_Long_Long'(From_Any (Data_Struct.Value)));
+        when Xsd_Undefined =>
+             raise SOAP_Error;
+
+      end case;
+
+      return S;
+
+   end Any_To_Xml_String;
+
+
+
+   function Struct_To_Xml_String
+      (Stc            : Xml_Struct;
+       NameSpace_Uri : Xml_String)
+        return Xml_String
+   is
+      S : Xml_String;
+      Cp : Xml_Struct_Element;
+      use Struct_Seq;
+   begin
+      Append (S, "<");
+      Append (S, Struct_Car);
+      Append (S, ":");
+      Append (S, Types.String (Stc.Name));
+      Append (S, " ");
+      Append (S, Struct_Car);
+      Append (S, "=""");
+      Append (S, NameSpace_Uri);
+      Append (S, """>");
+
+      for I in 1 .. Length (Stc.Components) loop
+          Cp := Element_Of (Stc.Components, I);
+          Append (S, Any_To_Xml_String (Cp));
+      end loop;
+
+      return S;
+    end Struct_To_Xml_String;
 
 
 end Droopi.Representations.SOAP;
