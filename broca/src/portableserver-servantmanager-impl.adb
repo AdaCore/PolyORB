@@ -31,18 +31,17 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  with Broca.Refs;
 with CORBA.Impl;
-with Broca.POA;
 
 package body PortableServer.ServantManager.Impl is
-   function To_Ref (Self : Object_Ptr)
-                    return PortableServer.ServantManager.Ref is
-      Res : PortableServer.ServantManager.Ref;
+
+   function To_Ref
+     (Self : Object_Ptr)
+     return Ref is
+      The_Ref : Ref;
    begin
-      Set (Res,
-           CORBA.Impl.Object_Ptr
-           (Broca.POA.Create_Internal_Skeleton (Servant (Self))));
-      return Res;
+      Set (The_Ref, CORBA.Impl.Object_Ptr (Self));
+      return The_Ref;
    end To_Ref;
+
 end PortableServer.ServantManager.Impl;

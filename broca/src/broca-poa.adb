@@ -96,32 +96,6 @@ package body Broca.POA is
       return Skeleton_Ptr (Res);
    end To_Skeleton;
 
-   --------------------------
-   -- To_Internal_Skeleton --
-   --------------------------
-
-   --  XXX Rename to Internal_Skeleton_Of
-   --  and make it consistent with Object_Of.
-
-   function To_Internal_Skeleton
-     (Ref : CORBA.Object.Ref'Class)
-     return Internal_Skeleton_Ptr
-   is
-      use CORBA.Impl;
-
-      Res : constant Object_Ptr
-        := CORBA.Object.Object_Of (Ref);
-
-   begin
-      --  FIXME: Creating uncontrolled reference to
-      --    a reference-counted object.
-      if Res = null or else Res.all not in Internal_Skeleton'Class then
-         Broca.Exceptions.Raise_Bad_Param;
-      end if;
-
-      return Internal_Skeleton_Ptr (Res);
-   end To_Internal_Skeleton;
-
    ---------------------
    -- Skeleton_To_Ref --
    ---------------------
@@ -147,23 +121,6 @@ package body Broca.POA is
       Release (B);
       return R;
    end Skeleton_To_Ref;
-
-   ------------------------------
-   -- Create_Internal_Skeleton --
-   ------------------------------
-
-   function Create_Internal_Skeleton
-     (P_Servant : PortableServer.Servant)
-     return Internal_Skeleton_Ptr
-   is
-      Res : Internal_Skeleton_Ptr;
-
-   begin
-      Res := new Internal_Skeleton;
-      Res.P_Servant := P_Servant;
-      Broca.Refs.Inc_Usage (Broca.Refs.Ref_Ptr (Res));
-      return Res;
-   end Create_Internal_Skeleton;
 
    -------------------
    -- POA_Object_Of --

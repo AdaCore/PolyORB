@@ -112,29 +112,6 @@ package Broca.POA is
    function Is_Inactive (Self : in POAManager_Object) return Boolean
       is abstract;
 
-   -------------------------
-   --  Internal_Skeleton  --
-   -------------------------
-
-   --  An internal seleton is the internal object for an object implementation.
-
-   type Internal_Skeleton is new CORBA.Impl.Object with
-      record
-         P_Servant : PortableServer.Servant;
-      end record;
-
-   type Internal_Skeleton_Ptr is access all Internal_Skeleton;
-
-   --  Can raise Bad_Param.
-   function To_Internal_Skeleton
-     (Ref : CORBA.Object.Ref'Class)
-     return Internal_Skeleton_Ptr;
-
-   --  Also set usage counter to 1.
-   function Create_Internal_Skeleton
-     (P_Servant : PortableServer.Servant)
-     return Internal_Skeleton_Ptr;
-
    ----------------
    --  Skeleton  --
    ----------------
@@ -201,19 +178,21 @@ package Broca.POA is
          Index : POA_Index_Type;
 
          --  Internal data.
-         POA_Manager : POAManager_Object_Ptr;
-         Name : CORBA.String;
-         Activator : PortableServer.AdapterActivator.Ref;
+         --  FIXME: POA_Manager should be a Ref.
+         POA_Manager     : POAManager_Object_Ptr;
+         Name            : CORBA.String;
+         Activator       : PortableServer.AdapterActivator.Ref;
+         --  FIXME: Default_Servant should be a Ref.
          Default_Servant : PortableServer.Servant := null;
          Servant_Manager : PortableServer.ServantManager.Ref;
 
          --  Policies
-         Thread_Policy : ThreadPolicyValue;
-         Lifespan_Policy : LifespanPolicyValue;
+         Thread_Policy     : ThreadPolicyValue;
+         Lifespan_Policy   : LifespanPolicyValue;
          Uniqueness_Policy : IdUniquenessPolicyValue;
-         Id_Assign_Policy : IdAssignmentPolicyValue;
-         Servant_Policy : ServantRetentionPolicyValue;
-         Request_Policy : RequestProcessingPolicyValue;
+         Id_Assign_Policy  : IdAssignmentPolicyValue;
+         Servant_Policy    : ServantRetentionPolicyValue;
+         Request_Policy    : RequestProcessingPolicyValue;
          Activation_Policy : ImplicitActivationPolicyValue;
 
          --  When link_lock is taken for read immediate children cannot be
@@ -230,16 +209,17 @@ package Broca.POA is
          --  CHILDREN is protected by LINK_LOCK.
          Children : POA_Object_Ptr := null;
          --  BROTHER is under the control of the parent.
-         Brother : POA_Object_Ptr := null;
+         Brother  : POA_Object_Ptr := null;
          --  PARENT can't be changed, it is assigned at initialisation.
-         Parent : POA_Object_Ptr := null;
+         Parent   : POA_Object_Ptr := null;
       end record;
 
    --  Note: for all primitives of POA_Object, policies checking is done
    --  by PortableServer operations.
 
-   function Activate_Object (Self : access POA_Object; P_Servant : Servant)
-                             return ObjectId is abstract;
+   function Activate_Object
+     (Self : access POA_Object; P_Servant : Servant)
+     return ObjectId is abstract;
 
    procedure Activate_Object_With_Id
      (Self : access POA_Object;

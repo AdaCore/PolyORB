@@ -35,6 +35,7 @@ with Ada.Exceptions;
 
 with Broca.Exceptions;
 with Broca.POA;
+with PortableServer.ServantManager.Impl;
 with PortableServer.ServantActivator.Impl;
 with PortableServer.ServantLocator.Impl;
 
@@ -158,38 +159,41 @@ package body Portableserver.POA is
    end Get_Servant_Manager;
 
    procedure Set_Servant_Manager
-     (Self : in Ref; Imgr : in PortableServer.ServantManager.Ref)
+     (Self : in Ref;
+      Imgr : in PortableServer.ServantManager.Ref)
    is
+      package PSSM renames PortableServer.ServantManager;
+      package PSSA renames PortableServer.ServantActivator;
+      package PSSL renames PortableServer.ServantLocator;
+
       POA : constant Broca.POA.POA_Object_Ptr
         := To_POA (Self);
-      Skel : Broca.POA.Internal_Skeleton_Ptr;
+      Servant_Manager : constant PSSM.Impl.Object_Ptr
+        := PSSM.Impl.Object_Ptr (PSSM.Object_Of (Imgr));
 
    begin
       if POA.Request_Policy /= USE_SERVANT_MANAGER then
          raise WrongPolicy;
       end if;
-      Skel := Broca.POA.To_Internal_Skeleton (Imgr);
-      if Skel.P_Servant /= null then
-         case POA.Servant_Policy is
-            when RETAIN =>
-               if Skel.P_Servant.all not in
-                 PortableServer.ServantActivator.Impl.Object'Class
-               then
-                  Broca.Exceptions.Raise_Bad_Param;
-               end if;
-            when NON_RETAIN =>
-               if Skel.P_Servant.all not in
-                 PortableServer.ServantLocator.Impl.Object'Class
-               then
-                  Broca.Exceptions.Raise_Bad_Param;
-               end if;
-         end case;
+
+      if True
+        and then not PSSM.Is_Nil (Imgr)
+        and then
+        ((POA.Servant_Policy = RETAIN
+          and then Servant_Manager.all not in PSSA.Impl.Object'Class)
+        or else
+         (POA.Servant_Policy = NON_RETAIN
+          and then Servant_Manager.all not in PSSL.Impl.Object'Class))
+      then
+         Broca.Exceptions.Raise_Bad_Param;
       end if;
+
       POA.Servant_Manager := Imgr;
    end Set_Servant_Manager;
 
-   function Get_The_Activator (Self : Ref)
-                               return PortableServer.AdapterActivator.Ref is
+   function Get_The_Activator
+     (Self : Ref)
+     return PortableServer.AdapterActivator.Ref is
    begin
       return To_POA (Self).Activator;
    end Get_The_Activator;

@@ -32,7 +32,6 @@
 ------------------------------------------------------------------------------
 
 with PortableServer.AdapterActivator.Impl;
-with Broca.POA;
 
 package body PortableServer.AdapterActivator is
 
@@ -45,9 +44,9 @@ package body PortableServer.AdapterActivator is
       Res : Boolean;
    begin
       Impl.Unknown_Adapter
-        (Impl.Object'Class
-         (Broca.POA.To_Internal_Skeleton (Self).P_Servant.all),
+        (Impl.Object'Class (Object_Of (Self).all),
          Parent, Name, Res);
       return Res;
    end Unknown_Adapter;
+
 end PortableServer.AdapterActivator;

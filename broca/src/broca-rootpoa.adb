@@ -42,8 +42,9 @@ with CORBA.Impl;
 
 with PortableServer; use PortableServer;
 with PortableServer.POA;
-with PortableServer.AdapterActivator;
 with PortableServer.ServantManager;
+with PortableServer.AdapterActivator;
+with PortableServer.ServantManager.Impl;
 with PortableServer.ServantActivator.Impl;
 with PortableServer.ServantLocator.Impl;
 
@@ -305,9 +306,15 @@ package body Broca.RootPOA is
    --  find_POA before calling an AdapterActivator.
    Ghost_POA_Manager : POAManager_Object_Ptr;
 
-   ----------------------------------
-   --  An implementation of a POA  --
-   ----------------------------------
+   --  FIXME: These should be Refs.
+
+   --------------------------------
+   -- An implementation of a POA --
+   --------------------------------
+
+   package PSSM renames PortableServer.ServantManager;
+   package PSSA renames PortableServer.ServantActivator;
+   package PSSL renames PortableServer.ServantLocator;
 
    type POA_Task_Attribute is record
       Current_Object    : PortableServer.ObjectId;
@@ -1061,12 +1068,11 @@ package body Broca.RootPOA is
    --  Try to free a slot.
    --  Return true if cleanup should be called.
    --  The Object Map must be locked.
-   function Clean_Slot (Self : access Object; Slot : Slot_Index)
-                        return Boolean is
-      --  use Broca.Refs;
+   function Clean_Slot
+     (Self : access Object; Slot : Slot_Index)
+     return Boolean is
    begin
-      --  if PortableServer.ServantManager.Get (Self.Servant_Manager) /= null
-      if not PortableServer.ServantManager.Is_Nil (Self.Servant_Manager)
+      if not PSSM.Is_Nil (Self.Servant_Manager)
         and then Self.Object_Map (Slot).State = Active
       then
          Self.Object_Map (Slot).State := To_Be_Destroyed;
@@ -1080,10 +1086,21 @@ package body Broca.RootPOA is
       end if;
    end Clean_Slot;
 
+   --  FIXME:
+   --  procedure Cleanup seems to be written with the assumption that
+   --  Self.Servant_Manager is always a ServantActivator, and never
+   --  a ServantLocator. Why is it so?
+   --     Thomas, 2000-05-27.
+
    procedure Cleanup (Self : access Object)
    is
       Slot : Slot_Index;
-      Sm : Broca.POA.Internal_Skeleton_Ptr;
+      Servant_Manager : constant PSSA.Impl.Object_Ptr
+        := PSSA.Impl.Object_Ptr
+        (PSSM.Object_Of (Self.Servant_Manager));
+      --  FIXME: Constraint_Error will be raised if
+      --  Self.Servant_Manager is not a PS.ServantActivator.
+
       A_Servant : PortableServer.Servant;
       A_POA : PortableServer.POA.Ref;
       Is_Cleanup : Boolean;
@@ -1095,13 +1112,9 @@ package body Broca.RootPOA is
         or else Self.POA_Manager = null
         or else Broca.POA.Is_Inactive (Self.POA_Manager.all);
 
-      if not PortableServer.ServantManager.Is_Nil
-        (Self.Servant_Manager)
-      then
-         Sm := To_Internal_Skeleton (Self.Servant_Manager);
+      if not PSSM.Is_Nil (Self.Servant_Manager) then
          PortableServer.POA.Set
            (A_POA, CORBA.Impl.Object_Ptr (Self));
-         --  FIXME: Should not need to see Broca.Refs.Ref_Ptr
 
          loop
             Slot := Get_Slot_To_Destroy (Self);
@@ -1117,9 +1130,8 @@ package body Broca.RootPOA is
             --  Serialization of calls to incarnate/etherealize.
 
             begin
-               PortableServer.ServantActivator.Impl.Etherealize
-                 (PortableServer.ServantActivator.Impl.Object'Class
-                  (Sm.P_Servant.all),
+               PSSA.Impl.Etherealize
+                 (Servant_Manager.all,
                   Self.Object_Map (Slot).Skeleton.Object_Id,
                   PortableServer.POA.Convert.To_Forward (A_POA),
                   A_Servant,
@@ -1203,13 +1215,14 @@ package body Broca.RootPOA is
       Message    : access Buffer_Type;
       Reply      : access Buffer_Type)
    is
-      use PortableServer;
       Slot            : Slot_Index;
       A_Servant       : Servant := null;
-      Skel            : Internal_Skeleton_Ptr;
+      Servant_Manager : constant PSSM.Impl.Object_Ptr
+        := PSSM.Impl.Object_Ptr
+        (PSSM.Object_Of (Self.Servant_Manager));
       A_POA           : PortableServer.POA.Ref;
       Oid             : ObjectId;
-      The_Cookie      : PortableServer.ServantLocator.Cookie;
+      The_Cookie      : PSSL.Cookie;
       Key_Buffer      : aliased Buffer_Type;
       Need_Postinvoke : Boolean := False;
    begin
@@ -1260,26 +1273,25 @@ package body Broca.RootPOA is
 
             when USE_SERVANT_MANAGER =>
                pragma Debug (O ("GIOP_Invoke: USE_SERVANT_MANAGER policy"));
-               if PortableServer.ServantManager.Is_Nil
-                 (Self.Servant_Manager)
-               then
+               if PSSM.Is_Nil (Self.Servant_Manager) then
                   Release (Key_Buffer);
                   Broca.Exceptions.Raise_Obj_Adapter;
                end if;
 
-               Skel := To_Internal_Skeleton (Self.Servant_Manager);
                Oid := Key_To_ObjectId (Key_Buffer'Access);
                Release (Key_Buffer);
                if Self.Servant_Policy = RETAIN then
                   Release (Key_Buffer);
                   Self.Servant_Lock.Lock;
                   begin
-                     PortableServer.ServantActivator.Impl.Incarnate
-                       (PortableServer.ServantActivator.Impl.Object'Class
-                        (Skel.P_Servant.all),
+                     PSSA.Impl.Incarnate
+                       (PSSA.Impl.Object'Class
+                        (Servant_Manager.all),
                         Oid,
                         A_POA,
                         A_Servant);
+                     --  FIXME: Constraint_Error will be raised if
+                     --     Self.Servant_Manager is not a PS.ServantActivator
                      Self.Servant_Lock.Unlock;
                   exception
                      when others =>
@@ -1298,10 +1310,12 @@ package body Broca.RootPOA is
 
                   Self.Object_Map (Slot).Skeleton.P_Servant := A_Servant;
                else
-                  PortableServer.ServantLocator.Impl.Preinvoke
-                    (PortableServer.ServantLocator.Impl.Object'Class
-                     (Skel.P_Servant.all),
+                  PSSL.Impl.Preinvoke
+                    (PSSL.Impl.Object'Class
+                     (Servant_Manager.all),
                      Oid, A_POA, Operation, The_Cookie, A_Servant);
+                  --  FIXME: Constraint_Error will be raised if
+                  --     Self.Servant_Manager is not a PS.ServantLocator.
 
                   Need_Postinvoke := True;
                end if;
@@ -1359,9 +1373,9 @@ package body Broca.RootPOA is
          end if;
 
          if Need_Postinvoke then
-            PortableServer.ServantLocator.Impl.Postinvoke
-              (PortableServer.ServantLocator.Impl.Object'Class
-               (Skel.P_Servant.all),
+            PSSL.Impl.Postinvoke
+              (PSSL.Impl.Object'Class
+               (Servant_Manager.all),
                Oid, A_POA, Operation, The_Cookie, A_Servant);
          end if;
 
@@ -1520,8 +1534,7 @@ package body Broca.RootPOA is
          PortableServer.AdapterActivator.Set
            (Self.Activator, CORBA.Impl.Object_Ptr'(null));
          Broca.Refs.Dec_Usage (Broca.Refs.Ref_Ptr (Self.POA_Manager));
-         PortableServer.ServantManager.Set
-           (Self.Servant_Manager, CORBA.Impl.Object_Ptr'(null));
+         PSSM.Set (Self.Servant_Manager, CORBA.Impl.Object_Ptr'(null));
          if Etherealize_Objects and then Self.Servant_Policy = RETAIN then
             Deactivate (Self);
          end if;
