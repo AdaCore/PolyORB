@@ -69,15 +69,15 @@ package body XE_Utils is
 
    EOL : constant String := (1 => ASCII.LF);
 
-   Output_Flag           : constant String_Access := new String' ("-o");
-   Symbolic              : constant String_Access := new String' ("-s");
-   Compile_Flag          : constant String_Access := new String' ("-c");
-   Exclude_File_Flag     : constant String_Access := new String' ("-x");
-   Receiver_Compile_Flag : constant String_Access := new String' ("-gnatzr");
-   Caller_Compile_Flag   : constant String_Access := new String' ("-gnatzc");
+   Output_Flag           : constant String_Access := new String'("-o");
+   Symbolic              : constant String_Access := new String'("-s");
+   Compile_Flag          : constant String_Access := new String'("-c");
+   Exclude_File_Flag     : constant String_Access := new String'("-x");
+   Receiver_Compile_Flag : constant String_Access := new String'("-gnatzr");
+   Caller_Compile_Flag   : constant String_Access := new String'("-gnatzc");
 
-   Special_File_Flag     : constant String_Access := new String' ("-x");
-   Ada_File_Flag         : constant String_Access := new String' ("ada");
+   Special_File_Flag     : constant String_Access := new String'("-x");
+   Ada_File_Flag         : constant String_Access := new String'("ada");
 
    System_Tasking        : constant String  := "system.tasking";
    System_Tasking_Length : constant Natural := System_Tasking'Length;
@@ -1019,9 +1019,9 @@ package body XE_Utils is
       Opt.All_Sources        := False;
 
       if Verbose_Mode then
-         GNAT_Verbose := new String' ("-v");
+         GNAT_Verbose := new String'("-v");
       else
-         GNAT_Verbose := new String' ("-q");
+         GNAT_Verbose := new String'("-q");
       end if;
 
       --  Read gnat.adc file to initialize Fname.UF
