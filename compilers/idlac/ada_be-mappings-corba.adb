@@ -288,41 +288,27 @@ package body Ada_Be.Mappings.CORBA is
    is
       pragma Unreferenced (Mapping);
 
-      function Have_Prefix
+      function Has_Period_Delimited_Prefix
         (Name   : in String;
-         Prefix : in String)
-         return Boolean;
-      --  Return True iff Name has Prefix
+         Prefix : in String) return Boolean;
+      --  Return True iff Name has Prefix, matching only complete
+      --  period-separated elements.
 
-      -----------------
-      -- Have_Prefix --
-      -----------------
+      ---------------------------------
+      -- Has_Period_Delimited_Prefix --
+      ---------------------------------
 
-      function Have_Prefix
+      function Has_Period_Delimited_Prefix
         (Name   : in String;
-         Prefix : in String)
-         return Boolean
+         Prefix : in String) return Boolean
       is
          Length : constant Natural := Prefix'Length;
       begin
-         if Name'Length < Length then
-            return False;
-         end if;
-
-         if Name (Name'First .. Name'First + Length - 1) /= Prefix then
-            return False;
-         end if;
-
-         if Name'Length = Length then
-            return True;
-         end if;
-
-         if Name (Name'First + Length) = '.' then
-            return True;
-         end if;
-
-         return False;
-      end Have_Prefix;
+         return Name'Length >= Length
+           and then Name (Name'First .. Name'First + Length - 1) = Prefix
+           and then (Name'Length = Length
+                     or else Name (Name'First + Length) = '.');
+      end Has_Period_Delimited_Prefix;
 
    begin
       pragma Assert (Kind (Node) = K_Ben_Idl_File
@@ -333,21 +319,13 @@ package body Ada_Be.Mappings.CORBA is
          Name : constant String := Ada_Full_Name (Node);
 
       begin
-         if Have_Prefix (Name, "CORBA") then
-            --  By default all CORBA modules are predefined, except
-            --  for the following:
+         --  By default all CORBA modules are predefined, except
+         --  for CORBA.Repository_Root.
 
-            --  CORBA.Repository_Root
-
-            if Have_Prefix (Name, "CORBA.Repository_Root") then
-               return False;
-            end if;
-
-            return True;
-         end if;
+         return Has_Period_Delimited_Prefix (Name, "CORBA")
+           and then not Has_Period_Delimited_Prefix (Name,
+                          "CORBA.Repository_Root");
       end;
-
-      return False;
    end Code_Generation_Suppressed;
 
    -------------------
@@ -452,15 +430,15 @@ package body Ada_Be.Mappings.CORBA is
             Typ := +"CORBA.Any";
 
          when others =>
-            --  Improper use: node N is not
-            --  mapped to an Ada type.
+            --  Improper use: node N is not mapped to an Ada type
 
             Error
               ("This Ada_Type_Name : A " & Node_Kind'Image (NK)
                & " does not denote a type.",
                Fatal, Get_Location (Node));
 
-            --  Keep the compiler happy.
+            --  Keep the compiler happy
+
             raise Program_Error;
 
       end case;
@@ -496,9 +474,10 @@ package body Ada_Be.Mappings.CORBA is
       pragma Warnings (On);
    begin
       pragma Assert (Is_Gen_Scope (Node));
+
+      --  For CORBA, all Gen_Scopes are generated in child packages
+
       return True;
-      --  For CORBA, all Gen_Scopes are generated in
-      --  separate child packages.
    end Generate_Scope_In_Child_Package;
 
 end Ada_Be.Mappings.CORBA;
