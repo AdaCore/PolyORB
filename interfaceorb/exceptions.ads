@@ -39,8 +39,10 @@ package Exceptions is
 
    procedure C_Raise_Ada_UNKNOWN_Exception (Pd_Minor : in Interfaces.C.Unsigned_Long ;
                                             Pd_Status : in Interfaces.C.Int) ;
-   pragma Export (Cpp,C_Raise_Ada_UNKNOWN_Exception,"Raise_Ada_UNKNOWN_Exception__FUlQ25CORBA16CompletionStatus");
-   -- Wrapped around C function Raise_Ada_UNKNOWN_Exception
+   pragma Export (Cpp,
+                  C_Raise_Ada_UNKNOWN_Exception,
+                  "Raise_Ada_UNKNOWN_Exception__FUlQ25CORBA16CompletionStatus");
+  -- Wrapped around C function Raise_Ada_UNKNOWN_Exception
    -- declared in Ada_exceptions.hh
    -- Called by C code.
    -- Handles in Ada a Corba exception that was raised in C.

@@ -124,10 +124,9 @@ package body Corba.Object is
    begin
       if Corba.Object.Is_Nil(Self) then
          declare
-            Excp_Members : Corba.Bad_Param_Members ;
          begin
-            Excp_Members := (0, Corba.Completed_No) ;
-            Corba.Raise_Corba_Exception(Corba.Bad_Operation'Identity, Excp_Members) ;
+            Corba.Raise_Corba_Exception(Corba.Bad_Operation'Identity,
+                                        new Corba.Bad_Param_Members'(0, Corba.Completed_No)) ;
          end ;
       end if ;
    end ;

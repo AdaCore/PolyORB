@@ -11,9 +11,9 @@
 -----------------------------------------------------------------------
 
 
+with Corba.Exceptions ;
 
 package body Corba is
-
 
 
    -----------------------------------------------------------
@@ -23,20 +23,17 @@ package body Corba is
    -- GetMembers
    -------------
    procedure Get_Members (From : in Ada.Exceptions.Exception_Occurrence;
-                          To : out System_Exception_Members) is
+                          To : out Ex_Body) is
    begin
-      To := (0,COMPLETED_NO ) ;
---      Ada.Exceptions.Raise_Exception(Corba.AdaBroker_Not_Implemented_Yet'Identity,
---                                     "Corba.Get_Members");
+      Corba.Exceptions.Get_Members (From,To) ;
    end ;
 
    -- Raise_Corba_Exception
    ------------------------
    procedure Raise_Corba_Exception(Excp : in Ada.Exceptions.Exception_Id ;
-                                   Excp_Memb: in Idl_Exception_Members'class) is
+                                   Excp_Memb: in Idl_Exception_Members_Ptr) is
    begin
-      Ada.Exceptions.Raise_Exception(Excp,
-                                     "Raise_Corba_Exception") ;
+      Corba.Exceptions.Raise_Corba_Exception(Excp, Excp_Memb) ;
    end ;
 
 
@@ -124,3 +121,9 @@ package body Corba is
 
 
 end Corba ;
+
+
+
+
+
+

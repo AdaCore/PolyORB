@@ -79,13 +79,12 @@ package body Exceptions is
    ------------------------------
    procedure Raise_Ada_UNKNOWN_Exception (Pd_Minor : in Corba.Unsigned_Long ;
                                           Pd_Status : in Corba.Completion_Status) is
-      Member : Corba.Unknown_Members ;
    begin
-      -- creates a new exception member with parameters ...
-      Member.Minor := Pd_Minor ;
-      Member.Completed := Pd_Status ;
-      -- ... and raise the exception
-      Corba.Raise_Corba_Exception (Corba.Unknown'Identity, Member) ;
+      -- creates a new exception member with parameters
+      -- and raises the exception
+      Corba.Raise_Corba_Exception (Corba.Unknown'Identity,
+                                   new Corba.Unknown_Members'(Minor => Pd_Minor ,
+                                                              Completed => Pd_Status)) ;
    end ;
 
 

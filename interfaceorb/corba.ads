@@ -77,88 +77,100 @@ package Corba is
    ----           Exceptions in spec                       ---
    -----------------------------------------------------------
 
-    type Idl_Exception_Members is abstract tagged null record;
+    type Idl_Exception_Members is abstract tagged null record ;
 
-    procedure Get_Members (From : in Ada.Exceptions.Exception_Occurrence;
-                           To : out Idl_Exception_Members) is abstract;
+    procedure Get_Members (From : in Ada.Exceptions.Exception_Occurrence ;
+                           To : out Idl_Exception_Members) is abstract ;
 
     -- Standard Exceptions:
     --I #define ex_body{ unsigned long minor, completion_status completed;}
-    --I enum completion_status{COMPLETED_YES, COMPLETED_NO, COMPLETED_MAYBE};
-    type Completion_Status is (Completed_Yes, Completed_No, Completed_Maybe);
+    --I enum completion_status{COMPLETED_YES, COMPLETED_NO, COMPLETED_MAYBE} ;
+    type Completion_Status is (Completed_Yes, Completed_No, Completed_Maybe) ;
 
+    --I enum exception_type{ NO_EXCEPTION, USER_EXCEPTION, SYSTEM_EXCEPTION} ;
+    type Exception_Type is (No_Exception, System_Exception, User_Exception) ;
 
-    --I enum exception_type{ NO_EXCEPTION, USER_EXCEPTION, SYSTEM_EXCEPTION};
-    type Exception_Type is (No_Exception, System_Exception, User_Exception);
-
-
-    type System_Exception_Members is new Corba.Idl_Exception_Members with
+    type Ex_Body is new Corba.Idl_Exception_Members with
         record
-            Minor : Corba.Unsigned_Long;
-            Completed : Completion_Status;
-        end record;
+            Minor : Corba.Unsigned_Long ;
+            Completed : Completion_Status ;
+        end record ;
+
+    procedure Get_Members (From : in Ada.Exceptions.Exception_Occurrence ;
+                           To : out Ex_Body) ;
+
+    Unknown : exception ;  -- the unknown exception
+    Bad_Param : exception ;  -- an invalid parameter was passed
+    No_Memory : exception ;  -- dynamic memory allocation failure
+    Imp_Limit : exception ;  -- violated implementation limit
+    Comm_Failure : exception ;  -- communication failure
+    Inv_Objref : exception ;  -- invalid object reference
+    No_Permission : exception ;  -- no permission for attempted op.
+    Internal : exception ;  -- ORB internal error
+    Marshal : exception ;  -- error marshalling param/result
+    Initialization_Failure : exception ;  -- ORB initialization failure
+    No_Implement : exception ;  -- operation implementation unavailable
+    Bad_Typecode : exception ;  -- bad typecode
+    Bad_Operation : exception ;  -- inavlid operation
+    No_Resources : exception ;  -- insufficient resources for req.
+    No_Response : exception ;  -- response to request not yet available
+    Persist_Store : exception ;  -- persistent storage failure
+    Bad_Inv_Order : exception ;  -- routine invocations out of order
+    Transient : exception ;  -- transient failure - reissue request
+    Free_Mem : exception ;  -- cannot free memory
+    Inv_Ident : exception ;  -- invalid identifier syntax
+    Inv_Flag : exception ;  -- invalid flag was specified
+    Intf_Repos : exception ;  -- error accessing interface repository
+    Bad_Context : exception ;  -- error processing context object
+    Obj_Adapter : exception ;  -- failure detected by object adapter
+    Data_Conversion : exception ;  -- data conversion error
 
 
-    procedure Get_Members (From : in Ada.Exceptions.Exception_Occurrence;
-                           To : out System_Exception_Members);
-
-    Unknown : exception;  -- the unknown exception
-    Bad_Param : exception;  -- an invalid parameter was passed
-    No_Memory : exception;  -- dynamic memory allocation failure
-    Imp_Limit : exception;  -- violated implementation limit
-    Comm_Failure : exception;  -- communication failure
-    Inv_Objref : exception;  -- invalid object reference
-    No_Permission : exception;  -- no permission for attempted op.
-    Internal : exception;  -- ORB internal error
-    Marshal : exception;  -- error marshalling param/result
-    Initialization_Failure : exception;  -- ORB initialization failure
-    No_Implement : exception;  -- operation implementation unavailable
-    Bad_Typecode : exception;  -- bad typecode
-    Bad_Operation : exception;  -- inavlid operation
-    No_Resources : exception;  -- insufficient resources for req.
-    No_Response : exception;  -- response to request not yet available
-    Persist_Store : exception;  -- persistent storage failure
-    Bad_Inv_Order : exception;  -- routine invocations out of order
-    Transient : exception;  -- transient failure - reissue request
-    Free_Mem : exception;  -- cannot free memory
-    Inv_Ident : exception;  -- invalid identifier syntax
-    Inv_Flag : exception;  -- invalid flag was specified
-    Intf_Repos : exception;  -- error accessing interface repository
-    Bad_Context : exception;  -- error processing context object
-    Obj_Adapter : exception;  -- failure detected by object adapter
-    Data_Conversion : exception;  -- data conversion error
-
-
-    type Unknown_Members is new System_Exception_Members with null record;
-    type Bad_Param_Members is new System_Exception_Members with null record;
-    type No_Memory_Members is new System_Exception_Members with null record;
-    type Imp_Limit_Members is new System_Exception_Members with null record;
-    type Comm_Failure_Members is new System_Exception_Members with null record;
-    type Inv_Objref_Members is new System_Exception_Members with null record;
-    type No_Permission_Members is new System_Exception_Members with null record;
-    type Internal_Members is new System_Exception_Members with null record;
-    type Marshal_Members is new System_Exception_Members with null record;
-    type Initialization_Failure_Members is new System_Exception_Members with null record;
-    type No_Implement_Members is new System_Exception_Members with null record;
-    type Bad_Typecode_Members is new System_Exception_Members with null record;
-    type Bad_Operation_Members is new System_Exception_Members with null record;
-    type No_Resources_Members is new System_Exception_Members with null record;
-    type No_Response_Members is new System_Exception_Members with null record;
-    type Persist_Store_Members is new System_Exception_Members with null record;
-    type Bad_Inv_Order_Members is new System_Exception_Members with null record;
-    type Transient_Members is new System_Exception_Members with null record;
-    type Free_Mem_Members is new System_Exception_Members with null record;
-    type Inv_Ident_Members is new System_Exception_Members with null record;
-    type Inv_Flag_Members is new System_Exception_Members with null record;
-    type Intf_Repos_Members is new System_Exception_Members with null record;
-    type Bad_Context_Members is new System_Exception_Members with null record;
-    type Obj_Adapter_Members is new System_Exception_Members with null record;
-    type Data_Conversion_Members is new System_Exception_Members with null record;
+    type Unknown_Members is new Ex_Body with null record ;
+    type Bad_Param_Members is new Ex_Body with null record ;
+    type No_Memory_Members is new Ex_Body with null record ;
+    type Imp_Limit_Members is new Ex_Body with null record ;
+    type Comm_Failure_Members is new Ex_Body with null record ;
+    type Inv_Objref_Members is new Ex_Body with null record ;
+    type No_Permission_Members is new Ex_Body with null record ;
+    type Internal_Members is new Ex_Body with null record ;
+    type Marshal_Members is new Ex_Body with null record ;
+    type Initialization_Failure_Members is new Ex_Body with Null record ;
+    type No_Implement_Members is new Ex_Body with null record ;
+    type Bad_Typecode_Members is new Ex_Body with null record ;
+    type Bad_Operation_Members is new Ex_Body with null record ;
+    type No_Resources_Members is new Ex_Body with null record ;
+    type No_Response_Members is new Ex_Body with null record ;
+    type Persist_Store_Members is new Ex_Body with null record ;
+    type Bad_Inv_Order_Members is new Ex_Body with null record;
+    type Transient_Members is new Ex_Body with null record ;
+    type Free_Mem_Members is new Ex_Body with null record ;
+    type Inv_Ident_Members is new Ex_Body with null record ;
+    type Inv_Flag_Members is new Ex_Body with null record ;
+    type Intf_Repos_Members is new Ex_Body with null record ;
+    type Bad_Context_Members is new Ex_Body with null record ;
+    type Obj_Adapter_Members is new Ex_Body with null record ;
+    type Data_Conversion_Members is new Ex_Body with null record ;
 
 
     -----------------------------------------------------------
     ----        not in spec, AdaBroker specific             ---
     -----------------------------------------------------------
+
+    type Idl_Exception_Members_Ptr is access all Idl_Exception_Members'Class ;
+
+    procedure Free (Pointer : in out Idl_Exception_Members_Ptr) is abstract ;
+
+    procedure Raise_Corba_Exception(Excp : in Ada.Exceptions.Exception_Id ;
+                                    Excp_Memb: in Idl_Exception_Members_Ptr) ;
+    -- raises the corresponding exception
+    -- and stores the Except_Member so
+    -- that it can be retrieved with Get_Members
+
+    type Ex_Body_Ptr is access all Ex_Body ;
+
+    procedure Free is new Ada.Unchecked_Deallocation(Ex_Body,
+                                                     Ex_Body_Ptr) ;
 
     CRLF : constant Standard.String := (Ada.Characters.Latin_1.LF, Ada.Characters.Latin_1.CR) ;
     -- when we want to split a string into sevral lines:
@@ -180,13 +192,6 @@ package Corba is
     -- raised when a C Value must be converted into an Ada Value
     -- and when the C value is out of range
 
-    procedure Raise_Corba_Exception(Excp : in Ada.Exceptions.Exception_Id ;
-                                    Excp_Memb: in Idl_Exception_Members'class) ;
-    -- raises the corresponding exception
-    -- and stores the Except_Member so
-    -- that it can be retrieved with Get_Members
-
-
     procedure C_Raise_Ada_Exception (Msg : in Interfaces.C.Strings.Chars_Ptr) ;
     pragma Export (CPP,C_Raise_Ada_Exception,"raise_ada_exception__FPCc") ;
     -- This function allows C code to raise AdaBroker specific exceptions
@@ -207,15 +212,15 @@ package Corba is
    ----           not in spec  omniORB2 specific           ---
    -----------------------------------------------------------
 
-    Transaction_Required : exception;  -- data conversion error
-    Transaction_Rolledback : exception;  -- data conversion error
-    Invalid_Transaction : exception;  -- data conversion error
-    Wrong_Transaction : exception;  -- data conversion error
+    Transaction_Required : exception ;  -- data conversion error
+    Transaction_Rolledback : exception ;  -- data conversion error
+    Invalid_Transaction : exception ;  -- data conversion error
+    Wrong_Transaction : exception ;  -- data conversion error
 
-    type Transaction_Required_Members is new System_Exception_Members with null record;
-    type Transaction_Rolledback_Members is new System_Exception_Members with null record;
-    type Invalid_Transaction_Members is new System_Exception_Members with null record;
-    type Wrong_Transaction_Members is new System_Exception_Members with null record;
+    type Transaction_Required_Members is new Ex_Body with null record ;
+    type Transaction_Rolledback_Members is new Ex_Body with null record ;
+    type Invalid_Transaction_Members is new Ex_Body with null record ;
+    type Wrong_Transaction_Members is new Ex_Body with null record ;
 
     Object_Not_Exist : exception ;
 
