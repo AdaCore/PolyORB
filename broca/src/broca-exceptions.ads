@@ -54,11 +54,11 @@ package Broca.Exceptions is
    --  Extract members from an exception occurence.
    procedure User_Get_Members
      (Occurrence : in CORBA.Exception_Occurrence;
-      Members : out CORBA.IDL_Exception_Members'Class);
+      Members    : out CORBA.IDL_Exception_Members'Class);
 
    --  Raise an user exception.
    procedure User_Raise_Exception
-     (Id : in Ada.Exceptions.Exception_Id;
+     (Id      : in Ada.Exceptions.Exception_Id;
       Members : in CORBA.IDL_Exception_Members'Class);
    pragma No_Return (User_Raise_Exception);
 
