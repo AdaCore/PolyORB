@@ -1,11 +1,10 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                         GNAT COMPILER COMPONENTS                         --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
---            P o l y O R B . U t i l s . D y n a m i c _ T a b l e s       --
+--         P O L Y O R B . U T I L S . D Y N A M I C _ T A B L E S          --
 --                                                                          --
 --                                 B o d y                                  --
---                                                                          --
 --                                                                          --
 --             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
@@ -30,14 +29,17 @@
 --              PolyORB is maintained by ENST Paris University.             --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+--  This package provides XXX.
+
+--  $Id$
+
 with Ada.Unchecked_Deallocation;
 
 package body PolyORB.Utils.Dynamic_Tables is
 
    Min : constant Integer := Integer (Table_Low_Bound);
    --  Subscript of the minimum entry in the currently allocated table
-
-   type size_t is new Integer;
 
    -----------------------
    -- Local Subprograms --

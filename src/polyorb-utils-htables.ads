@@ -33,8 +33,9 @@
 --  This package provides dynamic perfect hash tables.
 
 --  $Id$
-with PolyORB.Utils.Dynamic_Tables;
 
+with PolyORB.Utils.Dynamic_Tables;
+with PolyORB.Utils.Strings;
 
 package PolyORB.Utils.HTables is
 
@@ -42,16 +43,19 @@ package PolyORB.Utils.HTables is
 
 private
 
-
-
-   type String_Access is access all String;
+   subtype String_Access is PolyORB.Utils.Strings.String_Ptr;
+   function "=" (L, R : String_Access) return Boolean
+     renames PolyORB.Utils.Strings."=";
 
    type What_To_Do is (Reorder_SubTable,
                        Reorder_Table,
                        Do_Nothing,
                        Insert_Item);
-   --  What_To_Do is en enum type used by Insert in order to indicates
-   --  what to do after
+   --  What_To_Do is used by Insert in order to indicates
+   --  what to do after.
+   --  XXX After what? What is the meaning of each value of
+   --      the type? If it is documented with the spec of Insert,
+   --      say it.
 
    type Element is record
       Key        : String_Access;
@@ -97,6 +101,7 @@ private
    --  in the table. When Count = High, the algorithm can't add
    --  more elements. K is a table attribute that
    --  ensures : h (Key) = ((K * Key) mod Prime) mod N_Subtables.
+
    package Dynamic_Element_Array is new
      PolyORB.Utils.Dynamic_Tables (Element, Natural, 0, 10, 50);
    use Dynamic_Element_Array;
@@ -174,7 +179,5 @@ private
    --  ignores deletion. Key is the string to hash.
    --  When a Key is deleted, it's not physically. Indeed it puts just
    --  the tag Used to False
-
-
 
 end PolyORB.Utils.HTables;

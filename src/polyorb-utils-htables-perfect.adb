@@ -4,7 +4,7 @@
 --                                                                          --
 --        P O L Y O R B . U T I L S . H T A B L E S . P E R F E C T         --
 --                                                                          --
---                         I m p l e m e n t a t i o n                      --
+--                                 B o d y                                  --
 --                                                                          --
 --             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
@@ -33,6 +33,8 @@
 --  This package provides fonctions to use the package
 --  PolyORB.Utils.HTables with a generic type. Each Item is associated with
 --  an element. When hashing a key, Lookup returns this Item.
+
+--  $Id$
 
 with Ada.Unchecked_Deallocation;
 with PolyORB.Utils.Dynamic_Tables;

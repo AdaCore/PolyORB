@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,9 +34,8 @@
 
 --  $Id$
 
---  with GNAT.HTable;
---  with PolyORB.Utils.Strings; use PolyORB.Utils.Strings;
 with PolyORB.Utils.HTables.Perfect;
+
 package body PolyORB.Dynamic_Dict is
 
    --------------------------------------------------------
@@ -44,10 +43,10 @@ package body PolyORB.Dynamic_Dict is
    -- a String key.                                      --
    --------------------------------------------------------
 
-   package Perfect_Htable is new PolyORB.Utils.HTables.Perfect (Value);
-   use Perfect_Htable;
+   package Perfect_Htable is
+      new PolyORB.Utils.HTables.Perfect (Value);
 
-   type Hash_Val is new Integer range 0 .. 32;
+   use Perfect_Htable;
 
    T : Table_Instance;
 

@@ -34,6 +34,8 @@
 --  PolyORB.Utils.HTables with a generic type. Each Item is associated with
 --  an element. When hashing a key, Lookup returns this Item.
 
+--  $Id$
+
 with PolyORB.Utils.Dynamic_Tables;
 
 generic

@@ -4,7 +4,7 @@
 --                                                                          --
 --                P O L Y O R B . U T I L S . H T A B L E S                 --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
 --             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
@@ -30,88 +30,94 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  This package provides dynamic perfect hash tables.
+
+--  $Id$
+
 with Ada.Unchecked_Deallocation;
+
 with PolyORB.Utils.Dynamic_Tables;
-
-
 
 package body PolyORB.Utils.HTables is
 
-   ---------------------------------------
-   --  Local procedures specifications  --
-   ---------------------------------------
+   -------------------------------------
+   -- Local procedures specifications --
+   -------------------------------------
 
-   --  The Add_Key2Subtable procedure inserts the Key on an unused Element
-   --  part of the subtable ST_Index
-   procedure Add_Key2Subtable
+   procedure Add_Key_To_Subtable
      (Key      : String;
       ST_Index : Natural;
       T        : in out Hash_Table);
+   --  Insert the Key on an unused Element in subtable ST_Index
 
-   --  The Find_k procedure is used to find the K parameter of the subtable
-   --  ST_Index in order to have an injectiv hash function
    procedure Find_K
      (ST_Index : Natural;
       T        : Hash_Table);
+   --  The Find_k procedure is used to find the K parameter of the subtable
+   --  ST_Index in order to have an injectiv hash function
 
-   --  Hashcode function returns the hashcode associated with S
-   --  h(S) = (( K * S ) mod Prime) mod Size
    function Hashcode
      (S     : String;
       K     : Natural;
       Size  : Natural;
       Prime : Natural)
       return Natural;
+   --  Hashcode function returns the hashcode associated with S
+   --  h(S) = (( K * S ) mod Prime) mod Size
 
-   --  This function indicates if the hash function associated with the
-   --  subtable ST_Index is injectiv
    function Is_Injective
      (ST_Index : Natural;
       T        : Hash_Table)
       return Boolean;
+   --  This function indicates if the hash function associated with the
+   --  subtable ST_Index is injectiv
 
-   --  the Max function returns the max of two integers
    function Max (X : Integer; Y : Integer) return Integer;
+   pragma Warnings (Off);
+   pragma Unreferenced (Max);
+   --  XXX Where is this supposed to be used?
+   pragma Warnings (On);
+   --  Returns the greater of two integers
 
-   --  the Process_Subtable procedure is used to find the K parameter of the
-   --  subtable ST_Index in order to have an injectiv hash function and to
-   --  reorder the subtable
    procedure Process_Subtable
      (ST_Index : Natural;
       T : Hash_Table);
+   --  Find the K parameter of subtable ST_Index in order to have
+   --  an injective hash function and to reorder the subtable.
 
-   --  the Process_Subtable_Hashcode applies hashcode function to all the
-   --  the elements of the subtable ST_Index, and the stores the results in
-   --  the field ST_Offset of the elements
    procedure Process_Subtable_Hashcode
      (ST_Index : Natural;
       T        : Hash_Table);
+   --  Apply the Hashcode function to each element of subtable
+   --  ST_Index, and the stores the results in the ST_Offset component
+   --  of the component.
 
-
-   --  the ReHash_All procedure is used to reorganize all the table when it
-   --  is necessary
-   procedure ReHash_All
+   procedure Rehash_All
      (Key : String;
       T   : in out Hash_Table);
+   --  Reorganize all the table when it is necessary.
 
-   -----------------------------
-   --  Deallocation Function --
-   -----------------------------
+   ---------------------------
+   -- Deallocation Function --
+   ---------------------------
+
    procedure Free_String is
      new Ada.Unchecked_Deallocation (String, String_Access);
 
-   -------------------------------------------
-   --  Internal procedures implementations  --
-   -------------------------------------------
+   -----------------------------------------
+   -- Internal procedures implementations --
+   -----------------------------------------
 
-   ----------------
-   --  Hashcode  --
-   ----------------
-   function Hashcode (S     : String;
-                      K     : Natural;
-                      Size  : Natural;
-                      Prime : Natural)
-                      return Natural
+   --------------
+   -- Hashcode --
+   --------------
+
+   function Hashcode
+     (S     : String;
+      K     : Natural;
+      Size  : Natural;
+      Prime : Natural)
+      return Natural
    is
       Result : Natural := 0;
    begin
@@ -122,9 +128,10 @@ package body PolyORB.Utils.HTables is
       return Result;
    end Hashcode;
 
-   --------------------
-   --  Max function  --
-   --------------------
+   ------------------
+   -- Max function --
+   ------------------
+
    function Max (X : Integer; Y : Integer) return Integer is
    begin
       if Y > X then
@@ -134,11 +141,13 @@ package body PolyORB.Utils.HTables is
       end if;
    end Max;
 
-   ---------------------------------
-   --  Process_Subtable_Hashcode  --
-   ---------------------------------
-   procedure Process_Subtable_Hashcode (ST_Index : Natural;
-                                        T        : Hash_Table)
+   -------------------------------
+   -- Process_Subtable_Hashcode --
+   -------------------------------
+
+   procedure Process_Subtable_Hashcode
+     (ST_Index : Natural;
+      T        : Hash_Table)
    is
       Temp_Str_Ptr : String_Access := null;
    begin
@@ -156,12 +165,14 @@ package body PolyORB.Utils.HTables is
       end loop;
    end Process_Subtable_Hashcode;
 
-   --------------------
-   --  Is_Injective  --
-   --------------------
-   function Is_Injective (ST_Index : Natural;
-                          T        : Hash_Table)
-                          return Boolean
+   ------------------
+   -- Is_Injective --
+   ------------------
+
+   function Is_Injective
+     (ST_Index : Natural;
+      T        : Hash_Table)
+      return Boolean
    is
    begin
       for I in T.Subtables.Table.all (ST_Index).First ..
@@ -179,11 +190,13 @@ package body PolyORB.Utils.HTables is
       return True;
    end Is_Injective;
 
-   --------------
-   --  Find_K  --
-   --------------
-   procedure Find_K (ST_Index : Natural;
-                     T        : Hash_Table)
+   ------------
+   -- Find_K --
+   ------------
+
+   procedure Find_K
+     (ST_Index : Natural;
+      T        : Hash_Table)
    is
    begin
       for K in 1 .. T.Info.Prime - 1 loop
@@ -195,12 +208,14 @@ package body PolyORB.Utils.HTables is
       end loop;
    end Find_K;
 
-   ------------------------
-   --  Add_Key2Subtable  --
-   ------------------------
-   procedure Add_Key2Subtable (Key      : String;
-                               ST_Index : Natural;
-                               T        : in out Hash_Table) is
+   -------------------------
+   -- Add_Key_To_Subtable --
+   -------------------------
+
+   procedure Add_Key_To_Subtable
+     (Key      : String;
+      ST_Index : Natural;
+      T        : in out Hash_Table) is
    begin
       for I in T.Subtables.Table.all (ST_Index).First ..
         T.Subtables.Table.all (ST_Index).Last - 1 loop
@@ -216,13 +231,15 @@ package body PolyORB.Utils.HTables is
             exit;
          end if;
       end loop;
-   end Add_Key2Subtable;
+   end Add_Key_To_Subtable;
 
-   ------------------
-   --  ReHash_All  --
-   ------------------
-   procedure ReHash_All (Key : String;
-                         T   : in out Hash_Table)
+   ----------------
+   -- Rehash_All --
+   ----------------
+
+   procedure Rehash_All
+     (Key : String;
+      T   : in out Hash_Table)
    is
       Max_Sum : Natural  := 0;
       Step    : Natural  := 0;
@@ -236,6 +253,7 @@ package body PolyORB.Utils.HTables is
       Swap_Index2 : Natural := Last (T.Elements);
       --     Mon_Count : Natural := 0;
       --     boo : Boolean := False;
+      --  XXX what's that?
    begin
       --  Add the new element at the end of the table of elements
       --  and deallocate unused element if necessary
@@ -326,7 +344,7 @@ package body PolyORB.Utils.HTables is
 
 
       --  Maximisation of each subtables if possible
-      --  XXXXX Can be ameliorated
+      --  XXXXX Can be improved
 
       for I in 0 .. Last (T.Subtables) loop
          if T.Subtables.Table.all (I).Max = 1 then
@@ -356,7 +374,6 @@ package body PolyORB.Utils.HTables is
             exit;
          end if;
       end loop;
-      --------------------------------------------
 
       --  Fix the begin and the end of the subtables
 
@@ -433,8 +450,6 @@ package body PolyORB.Utils.HTables is
          end if;
       end loop;
 
-
-
       --  Apply the Process_Subtable procedure to all the subtables
       --  that have more than two elements
 
@@ -446,11 +461,12 @@ package body PolyORB.Utils.HTables is
          end if;
       end loop;
 
-   end ReHash_All;
+   end Rehash_All;
 
-   -----------------------
-   -- Process_Subtable  --
-   -----------------------
+   ----------------------
+   -- Process_Subtable --
+   ----------------------
+
    procedure Process_Subtable (ST_Index : Natural; T : Hash_Table)
    is
       Swap  : Element := Empty;
@@ -496,16 +512,17 @@ package body PolyORB.Utils.HTables is
       end if;
    end Process_Subtable;
 
+   ----------------------------------------
+   -- Private procedures implementations --
+   ----------------------------------------
 
-   ------------------------------------------
-   --  Private procedures implementations  --
-   ------------------------------------------
+   ------------
+   -- Delete --
+   ------------
 
-   --------------
-   --  Delete  --
-   --------------
-   procedure Delete (T   : in out Hash_Table;
-                     Key : String)
+   procedure Delete
+     (T   : in out Hash_Table;
+      Key : String)
    is
       ST_Index  : Natural := 0;
       ST_Offset : Natural := 0;
@@ -521,9 +538,10 @@ package body PolyORB.Utils.HTables is
       end if;
    end Delete;
 
-   --------------
-   --  Lookup  --
-   --------------
+   ------------
+   -- Lookup --
+   ------------
+
    procedure Lookup
      (T         : Hash_Table;
       Key       : String;
@@ -549,13 +567,11 @@ package body PolyORB.Utils.HTables is
       end if;
    end Lookup;
 
-   ----------------
-   --  Finalize  --
-   ----------------
-   procedure Finalize
-     (T : in out Hash_Table)
-   is
+   --------------
+   -- Finalize --
+   --------------
 
+   procedure Finalize (T : in out Hash_Table) is
    begin
       for I in 0 .. Last (T.Elements) loop
          if T.Elements.Table.all (I).Key /= null then
@@ -567,9 +583,10 @@ package body PolyORB.Utils.HTables is
       Deallocate (T.Elements);
    end Finalize;
 
-   ------------------
-   --  Initialize  --
-   ------------------
+   ----------------
+   -- Initialize --
+   ----------------
+
    procedure Initialize
      (T      : out Hash_Table;
       Prime  : Natural;
@@ -577,13 +594,17 @@ package body PolyORB.Utils.HTables is
    is
       Temp : Natural;
    begin
+
       --  Initialization of the Hash_Table.Info
+
       T.Info.Prime        := Prime;
       T.Info.Count        := 0;
       T.Info.High         := Integer ((1.0 + 0.1) * Float (Max));
       T.Info.N_Subtables  := T.Info.High * 3;
       T.Info.K            := 1;
+
       --  Allocation of the Hash_Table.Elements
+
       Init (T.Elements);
       Dynamic_Element_Array.Set_Last (T.Elements, 15 * T.Info.High);
       for I in 0 .. Last (T.Elements) loop
@@ -592,6 +613,7 @@ package body PolyORB.Utils.HTables is
       end loop;
 
       --  Allocation of the Hash_Table.Subtables
+
       Init (T.Subtables);
       Set_Last (T.Subtables, T.Info.N_Subtables - 1);
       if  ((T.Info.High * 21) / 8) +1 + ((T.Info.High * 3) / 8) >
@@ -621,9 +643,10 @@ package body PolyORB.Utils.HTables is
       end loop;
    end Initialize;
 
-   --------------
-   --  Insert  --
-   --------------
+   ------------
+   -- Insert --
+   ------------
+
    procedure Insert
      (T         : in out Hash_Table;
       Key       : String;
@@ -638,7 +661,10 @@ package body PolyORB.Utils.HTables is
    begin
 
       if T.Info.Count = T.Info.High then
-         --  when  T.Info.Count > T.Info.high, extend the table and rehashall
+
+         --  When  T.Info.Count > T.Info.high, extend the table and
+         --  Rehash_All.
+
          Old_Last := Last (T.Elements);
          T.Info.Count := T.Info.Count + 1;
          T.Info.High         := Integer ((1.0 + 0.5) * Float (T.Info.Count));
@@ -650,17 +676,23 @@ package body PolyORB.Utils.HTables is
          end loop;
 
          Set_Last (T.Subtables, T.Info.N_Subtables - 1);
-         ReHash_All (Key, T);
+         Rehash_All (Key, T);
          Lookup (T, Key, ST_Index, ST_Offset, Found);
          To_Do := Reorder_Table;
+
       else
-         --  else search if the key is already in the table
+         --  ...else search if the key is already in the table
+
          Lookup (T, Key, ST_Index, ST_Offset, Found);
          if Found = True then
-            --  if key in table and is used don't insert
+            --  If key in table and is used, don't insert
+
             To_Do := Do_Nothing;
          else
+
             --  Temp_Index is the a priori position of the new key
+            --  XXX What does that mean????
+
             Temp_Index := T.Subtables.Table.all (ST_Index).First + ST_Offset;
 
             T.Subtables.Table.all (ST_Index).Count :=
@@ -669,27 +701,39 @@ package body PolyORB.Utils.HTables is
             T.Info.Count := T.Info.Count + 1;
 
             if T.Subtables.Table.all (ST_Index).Count >
-              T.Subtables.Table.all  (ST_Index).High then
-               --  when Count > High must Rehash_all
-               ReHash_All (Key, T);
+              T.Subtables.Table.all  (ST_Index).High
+            then
+
+               --  When Count > High, must Rehash_all
+
+               Rehash_All (Key, T);
                Lookup (T, Key, ST_Index, ST_Offset, Found);
                To_Do := Reorder_Table;
+
             elsif T.Elements.Table.all (Temp_Index).Key = null then
-               --  when the positon is empty insert directly
+
+               --  When the positon is empty insert directly
+
                New_Key_Ptr := new String'(Key);
                T.Elements.Table.all (Temp_Index).Key := New_Key_Ptr;
                T.Elements.Table.all (Temp_Index).Used := True;
                T.Elements.Table.all (Temp_Index).ST_Index := ST_Index;
                T.Elements.Table.all (Temp_Index).ST_Offset := ST_Offset;
                To_Do := Insert_Item;
+
             elsif T.Elements.Table.all (Temp_Index).Key.all = Key then
-               --  when the position contains the same key but unused
-               --  just change the flag Used
+
+               --  When the position contains the same key but unused
+               --  just change the flag Used.
+
                T.Elements.Table.all (Temp_Index).Used := True;
                To_Do := Insert_Item;
+
             elsif T.Elements.Table.all (Temp_Index).Used = False then
-               --  if the position contains a key that is unused
+
+               --  If the position contains a key that is unused,
                --  deallocate the string and insert the new key
+
                Free_String (T.Elements.Table.all (Temp_Index).Key);
                New_Key_Ptr := new String'(Key);
                T.Elements.Table.all (Temp_Index).Key := New_Key_Ptr;
@@ -697,9 +741,12 @@ package body PolyORB.Utils.HTables is
                T.Elements.Table.all (Temp_Index).ST_Index := ST_Index;
                T.Elements.Table.all (Temp_Index).ST_Offset := ST_Offset;
                To_Do := Insert_Item;
+
             else
-               --  worst case -> reorganize the subtable
-               Add_Key2Subtable (Key, ST_Index, T);
+
+               --  Worst case -> reorganize the subtable
+
+               Add_Key_To_Subtable (Key, ST_Index, T);
                Process_Subtable (ST_Index, T);
                Lookup (T, Key, ST_Index, ST_Offset, Found);
                To_Do := Reorder_SubTable;

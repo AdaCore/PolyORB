@@ -87,6 +87,9 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-utils.ads \
 		polyorb-utils-buffers.ads \
 		polyorb-utils-chained_lists.ads \
+		polyorb-utils-dynamic_tables.ads \
+		polyorb-utils-htables.ads \
+		polyorb-utils-htables-perfect.ads \
 		polyorb-utils-srp.ads \
 		polyorb-utils-strings.ads \
 		polyorb-utils-strings-lists.ads \

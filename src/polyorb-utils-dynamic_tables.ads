@@ -1,25 +1,23 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                         GNAT COMPILER COMPONENTS                         --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
---                   G N A T . D y n a m i c _ T a b l e s                  --
+--         P O L Y O R B . U T I L S . D Y N A M I C _ T A B L E S          --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $LastChangedRevision$
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
---              Copyright (C) 2000 Ada Core Technologies, Inc.              --
---                                                                          --
--- GNAT is free software;  you can  redistribute it  and/or modify it under --
--- terms of the  GNU General Public License as published  by the Free Soft- --
--- ware  Foundation;  either version 2,  or (at your option) any later ver- --
--- sion.  GNAT is distributed in the hope that it will be useful, but WITH- --
--- OUT ANY WARRANTY;  without even the  implied warranty of MERCHANTABILITY --
--- or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License --
--- for  more details.  You should have  received  a copy of the GNU General --
--- Public License  distributed with GNAT;  see file COPYING.  If not, write --
--- to  the Free Software Foundation,  59 Temple Place - Suite 330,  Boston, --
--- MA 02111-1307, USA.                                                      --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
+-- Boston, MA 02111-1307, USA.                                              --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -32,9 +30,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Resizable one dimensional array support
---  this package has got the same specification than Gnat.Dynamic_Dict
---  but il don't use the package system so that it can be preelaborate
+--  This package provides one-dimensional, variable-size arrays support
+
+--  It has the same specification as GNAT.Dynamic_Table, but in addition
+--  it is Preelaborate (GNAT.Dynamic_Table can't, because it uses
+--  System.Memory).
 
 --  This package provides an implementation of dynamically resizable one
 --  dimensional arrays. The idea is to mimic the normal Ada semantics for
@@ -48,6 +48,8 @@
 
 --  Note controlled types are not supported by this package. In particular
 --  the type provided for Table_Component_Type may not be a controlled type.
+
+--  $Id$
 
 generic
    type Table_Component_Type is private;
