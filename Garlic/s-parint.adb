@@ -379,6 +379,7 @@ package body System.Partition_Interface is
 
          when Invalidate =>
             Partition_ID'Read (Params, R.Partition);
+            U := Partition_RCI_List (R.Partition);
 
             pragma Debug
               (D (D_RNS,

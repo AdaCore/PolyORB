@@ -1,3 +1,12 @@
+1998-09-15  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* s-rpc.adb: Reject any partition error notification when shutdown 
+	in progress.
+
+	* s-garhea.adb: Minor reformatting.
+
+	* s-parint.adb: Fix an uninitialized variable.
+
 1998-09-14  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-gartcp.adb: Fix a strange bug which occurs during

@@ -318,6 +318,10 @@ package body System.RPC is
      (Partition : in Types.Partition_ID)
    is
    begin
+      if Shutdown_In_Progress then
+         return;
+      end if;
+
       Invalidate_RCI_Units (Partition);
       Raise_Partition_Error (Partition);
    end Partition_Error_Notification;

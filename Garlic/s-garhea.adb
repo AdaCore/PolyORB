@@ -338,7 +338,6 @@ package body System.Garlic.Heart is
    function Get_My_Partition_ID return Partition_ID is
       Set  : Request_Type (Set_Partition_Info);
       Info : Partition_Info;
-
    begin
       if Self_PID = Null_PID then
 
@@ -384,7 +383,7 @@ package body System.Garlic.Heart is
    ------------------------
 
    function Get_Partition_Info (Partition : Partition_ID)
-     return Partition_Info is
+      return Partition_Info is
    begin
       --  If partition info is availablein the cache, then get it from
       --  there. Otherwise, send a request to boot partition to update
@@ -404,9 +403,7 @@ package body System.Garlic.Heart is
    -- Get_Protocol --
    ------------------
 
-   function Get_Protocol
-     (Partition : Partition_ID)
-      return Protocol_Access is
+   function Get_Protocol (Partition : Partition_ID) return Protocol_Access is
    begin
       --  If the partition is the boot server, then the protocol is
       --  already known even when Partition_Info is only partially
@@ -444,7 +441,8 @@ package body System.Garlic.Heart is
    procedure Handle_Internal
      (Partition : in Partition_ID;
       Operation : in Internal_Opcode;
-      Params    : access Params_Stream_Type) is
+      Params    : access Params_Stream_Type)
+   is
    begin
       Soft_Links.Activity_Detected;
 
@@ -464,12 +462,12 @@ package body System.Garlic.Heart is
 
       end case;
 
-      exception
-         when E : others =>
-            pragma Warnings (Off, E);
-            pragma Debug (D (D_Garlic, "Handle_Internal: fatal exception"));
-            pragma Debug (D (D_Debug, Exception_Information (E)));
-            raise Communication_Error;
+   exception
+      when E : others =>
+         pragma Warnings (Off, E);
+         pragma Debug (D (D_Garlic, "Handle_Internal: fatal exception"));
+         pragma Debug (D (D_Debug, Exception_Information (E)));
+         raise Communication_Error;
    end Handle_Internal;
 
    -------------------
@@ -493,6 +491,12 @@ package body System.Garlic.Heart is
       pragma Assert (Receiver /= null);
 
       Receiver (Partition, Operation, Params);
+   exception
+      when E : others =>
+         pragma Warnings (Off, E);
+         pragma Debug (D (D_Garlic, "Handle_Public: fatal exception"));
+         pragma Debug (D (D_Debug, Exception_Information (E)));
+         raise Communication_Error;
    end Handle_Public;
 
    ----------------
@@ -686,7 +690,8 @@ package body System.Garlic.Heart is
 
    procedure Partition_RPC_Receiver
      (Params : access Streams.Params_Stream_Type;
-      Result : access Streams.Params_Stream_Type) is
+      Result : access Streams.Params_Stream_Type)
+   is
       Receiver : RPC_Receiver;
    begin
       RPC_Receiver'Read (Params, Receiver);
@@ -702,7 +707,6 @@ package body System.Garlic.Heart is
       Request   : in Request_Type;
       Partition : in out Partition_Info;
       Status    : out Status_Type) is
-
    begin
       pragma Debug
         (D (D_Warning,
@@ -714,7 +718,6 @@ package body System.Garlic.Heart is
       case Request.Kind is
          when Get_Partition_Info =>
             case Partition.Status is
-
                when Undefined =>
                   --  Change status and send request to boot partition
 
@@ -864,7 +867,9 @@ package body System.Garlic.Heart is
    -- Remote_Partition_Error --
    ----------------------------
 
-   procedure Remote_Partition_Error (Partition : in Partition_ID) is
+   procedure Remote_Partition_Error
+     (Partition : in Partition_ID)
+   is
       Info : Partition_Info;
    begin
       pragma Debug
@@ -894,9 +899,10 @@ package body System.Garlic.Heart is
    -- Send --
    ----------
 
-   procedure Send (Partition : in Partition_ID;
-                   Operation : in Opcode;
-                   Params    : access Params_Stream_Type)
+   procedure Send
+     (Partition : in Partition_ID;
+      Operation : in Opcode;
+      Params    : access Params_Stream_Type)
    is
       Filtered : Stream_Element_Access;
       Length   : Stream_Element_Offset;
@@ -989,7 +995,8 @@ package body System.Garlic.Heart is
    -- Set_Boot_Location --
    -----------------------
 
-   procedure Set_Boot_Location (Location : in Location_Type)
+   procedure Set_Boot_Location
+     (Location : in Location_Type)
    is
       Info : Partition_Info :=
         (Allocated    => True,
@@ -1016,7 +1023,6 @@ package body System.Garlic.Heart is
    -------------------------
 
    procedure Set_My_Partition_ID (Partition : in Partition_ID) is
-      use System.Garlic.Trace;
    begin
       pragma Debug
         (D (D_Debug, "Got my partition ID, I am partition" & Partition'Img));
@@ -1046,11 +1052,11 @@ package body System.Garlic.Heart is
    -- Set_Self_Location --
    -----------------------
 
-   procedure Set_Self_Location (Location : in Location_Type)
+   procedure Set_Self_Location
+     (Location : in Location_Type)
    is
       PID  : Partition_ID := Self_PID;
       Info : Partition_Info;
-
    begin
       pragma Debug
         (D (D_Debug, "Setting my location to " & To_String (Location)));
