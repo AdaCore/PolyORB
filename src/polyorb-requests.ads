@@ -34,8 +34,6 @@
 
 --  $Id$
 
-with Ada.Unchecked_Deallocation;
-
 with PolyORB.Annotations;
 with PolyORB.Any;
 with PolyORB.Any.ExceptionList;
@@ -49,9 +47,6 @@ with PolyORB.Utils.Simple_Flags;
 
 package PolyORB.Requests is
 
-   subtype Operation_Id is String;
-   --  XXX or Types.Identifier??
-
    type Flags is new PolyORB.Utils.Simple_Flags.Flags;
 
    ------------------------------------------
@@ -62,6 +57,7 @@ package PolyORB.Requests is
    Sync_With_Transport : constant Flags;
    Sync_With_Server    : constant Flags;
    Sync_With_Target    : constant Flags;
+   Sync_Call_Back      : constant Flags;
    --  Flags to be used for member Req_Flags of request.
 
    --  When a request is not synchronised, the middleware returns
@@ -134,7 +130,7 @@ package PolyORB.Requests is
       --      on a proxy object?
 
       Exception_Info : Any.Any;
-      --  If non-empty, information relatuve to an exception
+      --  If non-empty, information relative to an exception
       --  raised during execution of this request.
 
       --  Ctxt_List  : CORBA.ContextList.Ref;
@@ -142,7 +138,7 @@ package PolyORB.Requests is
       Req_Flags : Flags;
 
       Completed : aliased Boolean := False;
-      Requesting_Task : aliased Task_Info.Task_Info_Access;
+      Requesting_Task : aliased PolyORB.Task_Info.Task_Info_Access;
       Requesting_Component : Components.Component_Access;
 
       Notepad : Annotations.Notepad;
@@ -176,7 +172,7 @@ package PolyORB.Requests is
      (Target    : in     References.Ref;
       --  May or may not be local!
       --  Ctx       : in     CORBA.Context.Ref;
-      Operation : in     Operation_Id;
+      Operation : in     String;
       Arg_List  : in     Any.NVList.Ref;
       Result    : in out Any.NamedValue;
       Exc_List  : in     Any.ExceptionList.Ref
@@ -210,8 +206,7 @@ package PolyORB.Requests is
    --  Copy back the values of out and inout arguments
    --  from Out_Args to Args.
 
-   procedure Destroy_Request is new Ada.Unchecked_Deallocation
-     (Request, Request_Access);
+   procedure Destroy_Request (R : in out Request_Access);
 
    function Image (Req : Request) return String;
    --  For debugging purposes.
@@ -230,5 +225,6 @@ private
    Sync_With_Transport : constant Flags := 2;
    Sync_With_Server    : constant Flags := 4;
    Sync_With_Target    : constant Flags := 8;
+   Sync_Call_Back      : constant Flags := 16;
    Default_Flags       : constant Flags := Sync_With_Target;
 end PolyORB.Requests;

@@ -38,8 +38,8 @@ package PolyORB.Configuration is
 
    pragma Elaborate_Body;
 
-   Default_Filename  : constant String := "polyorb.conf";
-   Filename_Variable : constant String := "POLYORB_CONF";
+   PolyORB_Conf_Default_Filename  : constant String := "polyorb.conf";
+   PolyORB_Conf_Filename_Variable : constant String := "POLYORB_CONF";
    Syntax_Error      : exception;
 
    --  PolyORB supports a global runtime configuration file.
@@ -75,6 +75,9 @@ package PolyORB.Configuration is
 
    Environment_Configuration_Section : constant String
      := "environment";
+
+   procedure Load_Configuration_File (Conf_File_Name : String);
+   --  Load 'Conf_File_Name' configuration file.
 
    function Get_Conf (Section, Key : String; Default : String := "")
      return String;

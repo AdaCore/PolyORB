@@ -52,6 +52,25 @@ package Rtsfind is
    --    delays; eventually, packages implementing delays will be found
    --    relative to the package that declares the time type.
 
+   --    Names of the form Ada_Finalization_xxx are second level children
+   --    of Ada.Finalization.
+
+   --    Names of the form Ada_Interrupts_xxx are second level children
+   --    of Ada.Interrupts. This is needed for Ada.Interrupts.Names which
+   --    is used by pragma Interrupt_State.
+
+   --    Names of the form Ada_Real_Time_xxx are second level children
+   --    of Ada.Real_Time.
+
+   --    Names of the form Ada_Streams_xxx are second level children
+   --    of Ada.Streams.
+
+   --    Names of the form Ada_Text_IO_xxx are second level children
+   --    of Ada.Text_IO.
+
+   --    Names of the form Ada_Wide_Text_IO_xxx are second level children
+   --    of Ada.Wide_Text_IO.
+
    --    Names of the form Interfaces_xxx are first level children of
    --    Interfaces_CPP refers to package Interfaces.CPP
 
@@ -109,6 +128,10 @@ package Rtsfind is
 
       Ada_Finalization_List_Controller,
 
+      --  Children of Ada.Interrupts
+
+      Ada_Interrupts_Names,
+
       --  Children of Ada.Real_Time
 
       Ada_Real_Time_Delays,
@@ -155,7 +178,16 @@ package Rtsfind is
       System_Assertions,
       System_Aux_DEC,
       System_Bit_Ops,
+      System_Boolean_Array_Operations,
       System_Checked_Pools,
+      System_Compare_Array_Signed_16,
+      System_Compare_Array_Signed_32,
+      System_Compare_Array_Signed_64,
+      System_Compare_Array_Signed_8,
+      System_Compare_Array_Unsigned_16,
+      System_Compare_Array_Unsigned_32,
+      System_Compare_Array_Unsigned_64,
+      System_Compare_Array_Unsigned_8,
       System_Exception_Table,
       System_Exceptions,
       System_Exn_Flt,
@@ -334,6 +366,10 @@ package Rtsfind is
      Ada_Finalization_List_Controller .. Ada_Finalization_List_Controller;
    --  Range of values for children of Ada.Finalization
 
+   subtype Ada_Interrupts_Child is Ada_Child range
+     Ada_Interrupts_Names .. Ada_Interrupts_Names;
+   --  Range of values for children of Ada.Interrupts
+
    subtype Ada_Real_Time_Child is Ada_Child
      range Ada_Real_Time_Delays .. Ada_Real_Time_Delays;
    --  Range of values for children of Ada.Real_Time
@@ -459,7 +495,9 @@ package Rtsfind is
      RE_Simple_List_Controller,          -- Ada.Finalization.List_Controller
      RE_List_Controller,                 -- Ada.Finalization.List_Controller
 
-     RE_Interrupt_Id,                    -- Ada.Interrupts
+     RE_Interrupt_ID,                    -- Ada.Interrupts
+
+     RE_Names,                           -- Ada.Interupts.Names
 
      RE_Root_Stream_Type,                -- Ada.Streams
      RE_Stream_Element,                  -- Ada.Streams
@@ -586,7 +624,34 @@ package Rtsfind is
      RE_Bit_Or,                          -- System.Bit_Ops
      RE_Bit_Xor,                         -- System.Bit_Ops
 
+     RE_Boolean_Array,                   -- System_Boolean_Array_Operations,
+     RE_Vector_Not,                      -- System_Boolean_Array_Operations,
+     RE_Vector_And,                      -- System_Boolean_Array_Operations,
+     RE_Vector_Or,                       -- System_Boolean_Array_Operations,
+     RE_Vector_Nand,                     -- System_Boolean_Array_Operations,
+     RE_Vector_Nor,                      -- System_Boolean_Array_Operations,
+     RE_Vector_Nxor,                     -- System_Boolean_Array_Operations,
+     RE_Vector_Xor,                      -- System_Boolean_Array_Operations,
+
      RE_Checked_Pool,                    -- System.Checked_Pools
+
+     RE_Compare_Array_S8,                -- System.Compare_Array_Signed_8
+     RE_Compare_Array_S8_Unaligned,      -- System.Compare_Array_Signed_8
+
+     RE_Compare_Array_S16,               -- System.Compare_Array_Signed_16
+
+     RE_Compare_Array_S32,               -- System.Compare_Array_Signed_16
+
+     RE_Compare_Array_S64,               -- System.Compare_Array_Signed_16
+
+     RE_Compare_Array_U8,                -- System.Compare_Array_Unsigned_8
+     RE_Compare_Array_U8_Unaligned,      -- System.Compare_Array_Unsigned_8
+
+     RE_Compare_Array_U16,               -- System.Compare_Array_Unsigned_16
+
+     RE_Compare_Array_U32,               -- System.Compare_Array_Unsigned_16
+
+     RE_Compare_Array_U64,               -- System.Compare_Array_Unsigned_16
 
      RE_Register_Exception,              -- System.Exception_Table
 
@@ -1031,6 +1096,9 @@ package Rtsfind is
      RE_Result_Name,                     -- System.PolyORB_Interface
      RE_Object_Ref,                      -- System.PolyORB_Interface
      RE_Get_Empty_Any,                   -- System.PolyORB_Interface
+     RE_Any_Aggregate_Build,             -- System.PolyORB_Interface
+     RE_Add_Aggregate_Element,           -- System.PolyORB_Interface
+     RE_Get_Aggregate_Element,           -- System.PolyORB_Interface
      RE_NVList_Ref,                      -- System.PolyORB_Interface
      RE_NVList_Create,                   -- System.PolyORB_Interface
      RE_NVList_Add_Item,                 -- System.PolyORB_Interface
@@ -1053,10 +1121,13 @@ package Rtsfind is
      RE_Get_Local_Address,               -- System.PolyORB_Interface
      RE_Get_Reference,                   -- System.PolyORB_Interface
      RE_Local_Oid_To_Address,            -- System.PolyORB_Interface
-     RE_RCI_Info,                        -- System.PolyORB_Interface
+     RE_RCI_Locator,                     -- System.PolyORB_Interface
+     RE_RCI_Subp_Info,                   -- System.PolyORB_Interface
+     RE_RCI_Subp_Info_Array,             -- System.PolyORB_Interface
      RE_RACW_Stub_Type,                  -- System.PolyORB_Interface
      RE_RACW_Stub_Type_Access,           -- System.PolyORB_Interface
      RE_Get_Unique_Remote_Pointer,       -- System.PolyORB_Interface
+     RE_Get_RAS_Ref,                     -- System.PolyORB_Interface
 
      RE_FA_AD,                           -- System.PolyORB_Interface
      RE_FA_AS,                           -- System.PolyORB_Interface
@@ -1127,6 +1198,7 @@ package Rtsfind is
      RE_TC_Void,                         -- System.PolyORB_Interface
      RE_TC_WC,                           -- System.PolyORB_Interface
      RE_TC_String,                       -- System.PolyORB_Interface,
+     RE_TC_Struct,                       -- System.PolyORB_Interface,
 
      RE_IS_Is1,                          -- System.Scalar_Values
      RE_IS_Is2,                          -- System.Scalar_Values
@@ -1210,7 +1282,6 @@ package Rtsfind is
      RE_Str_Concat_CC,                   -- System.String_Ops
      RE_Str_Concat_CS,                   -- System.String_Ops
      RE_Str_Concat_SC,                   -- System.String_Ops
-     RE_Str_Equal,                       -- System.String_Ops
      RE_Str_Normalize,                   -- System.String_Ops
      RE_Wide_Str_Normalize,              -- System.String_Ops
 
@@ -1488,7 +1559,9 @@ package Rtsfind is
      RE_Simple_List_Controller           => Ada_Finalization_List_Controller,
      RE_List_Controller                  => Ada_Finalization_List_Controller,
 
-     RE_Interrupt_Id                     => Ada_Interrupts,
+     RE_Interrupt_ID                     => Ada_Interrupts,
+
+     RE_Names                            => Ada_Interrupts_Names,
 
      RE_Root_Stream_Type                 => Ada_Streams,
      RE_Stream_Element                   => Ada_Streams,
@@ -1614,6 +1687,33 @@ package Rtsfind is
      RE_Bit_Xor                          => System_Bit_Ops,
 
      RE_Checked_Pool                     => System_Checked_Pools,
+
+     RE_Boolean_Array                    => System_Boolean_Array_Operations,
+     RE_Vector_Not                       => System_Boolean_Array_Operations,
+     RE_Vector_And                       => System_Boolean_Array_Operations,
+     RE_Vector_Or                        => System_Boolean_Array_Operations,
+     RE_Vector_Nand                      => System_Boolean_Array_Operations,
+     RE_Vector_Nor                       => System_Boolean_Array_Operations,
+     RE_Vector_Nxor                      => System_Boolean_Array_Operations,
+     RE_Vector_Xor                       => System_Boolean_Array_Operations,
+
+     RE_Compare_Array_S8                 => System_Compare_Array_Signed_8,
+     RE_Compare_Array_S8_Unaligned       => System_Compare_Array_Signed_8,
+
+     RE_Compare_Array_S16                => System_Compare_Array_Signed_16,
+
+     RE_Compare_Array_S32                => System_Compare_Array_Signed_32,
+
+     RE_Compare_Array_S64                => System_Compare_Array_Signed_64,
+
+     RE_Compare_Array_U8                 => System_Compare_Array_Unsigned_8,
+     RE_Compare_Array_U8_Unaligned       => System_Compare_Array_Unsigned_8,
+
+     RE_Compare_Array_U16                => System_Compare_Array_Unsigned_16,
+
+     RE_Compare_Array_U32                => System_Compare_Array_Unsigned_32,
+
+     RE_Compare_Array_U64                => System_Compare_Array_Unsigned_64,
 
      RE_Register_Exception               => System_Exception_Table,
 
@@ -2046,6 +2146,9 @@ package Rtsfind is
      RE_Result_Name                      => System_PolyORB_Interface,
      RE_Object_Ref                       => System_PolyORB_Interface,
      RE_Get_Empty_Any                    => System_PolyORB_Interface,
+     RE_Any_Aggregate_Build              => System_PolyORB_Interface,
+     RE_Add_Aggregate_Element            => System_PolyORB_Interface,
+     RE_Get_Aggregate_Element            => System_PolyORB_Interface,
      RE_NVList_Ref                       => System_PolyORB_Interface,
      RE_NVList_Create                    => System_PolyORB_Interface,
      RE_NVList_Add_Item                  => System_PolyORB_Interface,
@@ -2068,10 +2171,13 @@ package Rtsfind is
      RE_Get_Local_Address                => System_PolyORB_Interface,
      RE_Get_Reference                    => System_PolyORB_Interface,
      RE_Local_Oid_To_Address             => System_PolyORB_Interface,
-     RE_RCI_Info                         => System_PolyORB_Interface,
+     RE_RCI_Locator                      => System_PolyORB_Interface,
+     RE_RCI_Subp_Info                    => System_PolyORB_Interface,
+     RE_RCI_Subp_Info_Array              => System_PolyORB_Interface,
      RE_RACW_Stub_Type                   => System_PolyORB_Interface,
      RE_RACW_Stub_Type_Access            => System_PolyORB_Interface,
      RE_Get_Unique_Remote_Pointer        => System_PolyORB_Interface,
+     RE_Get_RAS_Ref                      => System_PolyORB_Interface,
 
      RE_FA_AD                            => System_PolyORB_Interface,
      RE_FA_AS                            => System_PolyORB_Interface,
@@ -2142,6 +2248,7 @@ package Rtsfind is
      RE_TC_Void                          => System_PolyORB_Interface,
      RE_TC_WC                            => System_PolyORB_Interface,
      RE_TC_String                        => System_PolyORB_Interface,
+     RE_TC_Struct                        => System_PolyORB_Interface,
 
      RE_Global_Pool_Object               => System_Pool_Global,
 
@@ -2234,7 +2341,6 @@ package Rtsfind is
      RE_W_WC                             => System_Stream_Attributes,
 
      RE_Str_Concat                       => System_String_Ops,
-     RE_Str_Equal                        => System_String_Ops,
      RE_Str_Normalize                    => System_String_Ops,
      RE_Wide_Str_Normalize               => System_String_Ops,
      RE_Str_Concat_CC                    => System_String_Ops,
@@ -2545,6 +2651,12 @@ package Rtsfind is
    --  with this possibility if the call to RTE may occur in high integrity
    --  mode (often this will have been ruled out by specific checks for
    --  high integrity mode prior to the RTE call).
+   --
+   --  Note: In the case of a package, RTE can return either an entity that
+   --  is declared at the top level of the package, or the package entity
+   --  itself. If an entity within the package has the same simple name as
+   --  the package, then the entity within the package is returned rather
+   --  than the package entity itself.
 
    function Is_RTE (Ent : Entity_Id; E : RE_Id) return Boolean;
    --  This function determines if the given entity corresponds to the entity

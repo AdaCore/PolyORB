@@ -47,20 +47,36 @@ package body PolyORB.Filters is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
+   -------------------
+   -- Connect_Lower --
+   -------------------
+
    procedure Connect_Lower (F : access Filter; Lower : Component_Access) is
    begin
       Connect (F.Lower, Lower);
    end Connect_Lower;
+
+   -----------
+   -- Lower --
+   -----------
 
    function Lower (F : access Filter) return Component_Access is
    begin
       return F.Lower;
    end Lower;
 
+   -----------
+   -- Upper --
+   -----------
+
    function Upper (F : access Filter) return Component_Access is
    begin
       return F.Upper;
    end Upper;
+
+   --------------
+   -- Finalize --
+   --------------
 
    procedure Finalize (F : in out Filter) is
    begin
@@ -72,6 +88,10 @@ package body PolyORB.Filters is
          --  XXX WHAT IF F.Upper has not been dynamically allocated?
       end if;
    end Finalize;
+
+   --------------------
+   -- Handle_Message --
+   --------------------
 
    function Handle_Message
      (F : access Factory;
@@ -86,21 +106,29 @@ package body PolyORB.Filters is
       end if;
    end Handle_Message;
 
+   ---------------------
+   -- Chain_Factories --
+   ---------------------
+
    procedure Chain_Factories (Factories : Factory_Array) is
    begin
-      for I in Factories'First .. Factories'Last - 1 loop
+      for J in Factories'First .. Factories'Last - 1 loop
          pragma Debug
            (O ("Chaining "
-               & Ada.Tags.External_Tag (Factories (I)'Tag)
+               & Ada.Tags.External_Tag (Factories (J)'Tag)
                & " to "
-               & Ada.Tags.External_Tag (Factories (I + 1)'Tag)));
+               & Ada.Tags.External_Tag (Factories (J + 1)'Tag)));
          Connect
-           (Factories (I).Upper,
-            Component_Access (Factories (I + 1)));
+           (Factories (J).Upper,
+            Component_Access (Factories (J + 1)));
       end loop;
 
       Factories (Factories'Last).Upper := null;
    end Chain_Factories;
+
+   -------------------------
+   -- Create_Filter_Chain --
+   -------------------------
 
    function Create_Filter_Chain (FChain : access Factory)
      return Filter_Access

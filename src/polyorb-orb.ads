@@ -38,6 +38,7 @@
 --  $Id$
 
 with PolyORB.Asynch_Ev;
+with PolyORB.Annotations;
 with PolyORB.Binding_Data;
 with PolyORB.Components;
 with PolyORB.Filters;
@@ -47,7 +48,9 @@ with PolyORB.Objects;
 with PolyORB.References;
 with PolyORB.Requests;
 with PolyORB.Sequences.Unbounded;
-with PolyORB.Soft_Links;
+with PolyORB.Tasking.Advanced_Mutexes;
+with PolyORB.Tasking.Mutexes;
+with PolyORB.Tasking.Watchers;
 with PolyORB.Task_Info;
 with PolyORB.Transport;
 
@@ -56,6 +59,8 @@ package PolyORB.ORB is
    use PolyORB.Asynch_Ev;
    use PolyORB.Transport;
    use PolyORB.Components;
+
+   type Request_Job is new Jobs.Job with private;
 
    ----------------------------------
    -- Abstract tasking policy type --
@@ -72,9 +77,12 @@ package PolyORB.ORB is
    type Tasking_Policy_Type is abstract tagged limited private;
    type Tasking_Policy_Access is access all Tasking_Policy_Type'Class;
 
+   ----------------------------------------
+   -- Utility routines for jobs handling --
+   ----------------------------------------
+
    procedure Run_And_Free_Job
-     (P : access Tasking_Policy_Type;
-      J : in out Jobs.Job_Access);
+     (J : in out Jobs.Job_Access);
    --  Execute job J in the context of tasking policy P.
    --  J is ran in the context of the calling task, except in
    --  cases where the policy mandates otherwise.
@@ -104,12 +112,20 @@ package PolyORB.ORB is
       TE  : Transport_Endpoint_Access;
    end record;
 
+   --  Abstract primitives of Tasking_Policy_Type (need to
+   --  be visible, RM 3.9.3(10)).
+
    procedure Handle_New_Server_Connection
      (P   : access Tasking_Policy_Type;
       ORB : ORB_Access;
       C   : Active_Connection) is abstract;
    --  Create the necessary processing resources for newly-created
    --  communication endpoint AS on server side.
+
+   procedure Handle_Close_Server_Connection
+     (P   : access Tasking_Policy_Type;
+      TE  :        Transport_Endpoint_Access) is abstract;
+   --  Do necessary processing when a connection is closed
 
    procedure Handle_New_Client_Connection
      (P   : access Tasking_Policy_Type;
@@ -121,7 +137,7 @@ package PolyORB.ORB is
    procedure Handle_Request_Execution
      (P   : access Tasking_Policy_Type;
       ORB : ORB_Access;
-      RJ  : access Jobs.Job'Class)
+      RJ  : access Request_Job'Class)
       is abstract;
    --  Create the necessary processing resources for the execution
    --  of request execution job RJ, and start this execution.
@@ -137,6 +153,8 @@ package PolyORB.ORB is
      (P   : access Tasking_Policy_Type;
       ORB : ORB_Access;
       Msg : Message'Class) is abstract;
+   --  Assign the handling of a Request (i.e. an upcall to
+   --  an application object) to the appropriate task.
 
    ------------------------------
    -- Server object operations --
@@ -243,6 +261,60 @@ package PolyORB.ORB is
 
 private
 
+   --------------------------------------------
+   -- Job type for method execution requests --
+   --------------------------------------------
+
+   type Request_Job is new Jobs.Job with record
+      ORB       : ORB_Access;
+      Request   : Requests.Request_Access;
+      Requestor : Components.Component_Access;
+   end record;
+
+   procedure Run (J : access Request_Job);
+   --  Overload the abstract Run primitive for Job:
+   --  dispatch through tasking policy.
+
+   procedure Run_Request (J : access Request_Job);
+   --  Execute the request associated with J within the
+   --  current task.
+
+   -------------------------------------
+   -- Reactor for asynchronous events --
+   -------------------------------------
+
+   --  The middleware core implements the Reactor pattern
+   --  to handle event occurring on asynchronous event sources.
+
+   type AES_Event_Handler is abstract tagged limited null record;
+   --  An event handler is associated with each asynchronous
+   --  event source.
+
+   procedure Handle_Event
+     (H   : access AES_Event_Handler;
+      ORB :        ORB_Access;
+      AES : in out Asynch_Ev.Asynch_Ev_Source_Access)
+      is abstract;
+   --  Handle an event that has occurred on this asynchronous
+   --  event source. If AES is null on exit, then the asynchronous
+   --  event source has been destroyed, and the handler must be
+   --  deallocated.
+
+   type AES_Event_Handler_Access is
+     access all AES_Event_Handler'Class;
+
+   --  In this implementation of the Reactor pattern, the
+   --  association between an event source and its event
+   --  handler is made using an Annotation on the event source.
+
+   type AES_Note is new Annotations.Note with record
+      Handler : AES_Event_Handler_Access;
+   end record;
+
+   ---------------------------------------
+   -- Tasking policy abstract interface --
+   ---------------------------------------
+
    type Tasking_Policy_Type is abstract tagged limited null record;
 
    package Monitor_Seqs is new PolyORB.Sequences.Unbounded
@@ -260,7 +332,7 @@ private
       -- Mutex for access to ORB state --
       -----------------------------------
 
-      ORB_Lock : Soft_Links.Adv_Mutex_Access;
+      ORB_Lock : PolyORB.Tasking.Advanced_Mutexes.Adv_Mutex_Access;
 
       ------------------
       -- Server state --
@@ -272,8 +344,14 @@ private
       Job_Queue  : Jobs.Job_Queue_Access;
       --  The queue of jobs to be processed by ORB tasks.
 
-      Idle_Tasks : Soft_Links.Watcher_Access;
+      Idle_Tasks : PolyORB.Tasking.Watchers.Watcher_Access;
       --  Idle ORB task wait on this watcher.
+
+      Idle_Counter : Natural;
+      --  Number of thread in the Idle State
+
+      Idle_Lock : PolyORB.Tasking.Mutexes.Mutex_Access;
+      --  Protect the access to Idle_Counter;
 
       Monitors : Monitor_Seq;
       --  The set of asynchronous event monitors to be watched
@@ -285,6 +363,20 @@ private
       Polling : Boolean;
       --  True if, and only if, one task is blocked waiting
       --  for external events on ORB_Sockets.
+
+      Source_Deleted : Boolean;
+      --  Signals whether Delete_Source has been called while
+      --  another task was polling.
+
+      Polling_Watcher : PolyORB.Tasking.Watchers.Watcher_Access;
+      Polling_Version : PolyORB.Tasking.Watchers.Version_Id;
+      --  This watcher is looked up before one task goes into
+      --  external event polling, and updated after polling
+      --  is completed and events have been processed.
+      --  Notionally, Polling_Version is the version of the
+      --  set of AESs supported by Monitors that is being
+      --  considered, and while it is being considered
+      --  no AES may be destroyed.
 
       Selector : Asynch_Ev.Asynch_Ev_Monitor_Access;
       --  The asynchronous event monitor on which this ORB is
@@ -312,20 +404,8 @@ private
 
    procedure Delete_Source
      (ORB : access ORB_Type;
-      AES : Asynch_Ev_Source_Access);
+      AES : in out Asynch_Ev_Source_Access);
    --  Delete AES from the set of asynchronous event sources
-   --  monitored by ORB.
-
-   --------------------------------------------
-   -- Job type for method execution requests --
-   --------------------------------------------
-
-   type Request_Job is new Jobs.Job with record
-      ORB       : ORB_Access;
-      Request   : Requests.Request_Access;
-      Requestor : Components.Component_Access;
-   end record;
-
-   procedure Run (J : access Request_Job);
+   --  monitored by ORB. AES is destroyed.
 
 end PolyORB.ORB;

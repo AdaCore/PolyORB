@@ -30,20 +30,21 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.adb#32 $
+--  $Id: //droopi/main/src/polyorb-any.adb#44 $
 
 with Ada.Exceptions;
 with Ada.Tags;
 
-with PolyORB.Locks;
 with PolyORB.Log;
+with PolyORB.Tasking.Rw_Locks;
+with PolyORB.Utils.Chained_Lists;
 
 with System.Address_Image;
 
 package body PolyORB.Any is
 
-   use PolyORB.Locks;
    use PolyORB.Log;
+   use PolyORB.Tasking.Rw_Locks;
    use PolyORB.Types;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.any");
@@ -54,25 +55,243 @@ package body PolyORB.Any is
    procedure O2 (Message : in Standard.String; Level : Log_Level := Debug)
      renames L2.Output;
 
+   -----------------------------------------------
+   -- Local declarations: Any contents wrappers --
+   -----------------------------------------------
+
+   type Content_Octet is new Content with
+      record
+         Value : Types.Octet_Ptr;
+      end record;
+   type Content_Octet_Ptr is access all Content_Octet;
+   procedure Deallocate (Object : access Content_Octet);
+   function Duplicate
+     (Object : access Content_Octet)
+     return Any_Content_Ptr;
+
+   type Content_Short is new Content with
+      record
+         Value : Types.Short_Ptr;
+      end record;
+   type Content_Short_Ptr is access all Content_Short;
+   procedure Deallocate (Object : access Content_Short);
+   function Duplicate
+     (Object : access Content_Short)
+     return Any_Content_Ptr;
+
+   type Content_Long is new Content with
+      record
+         Value : Types.Long_Ptr;
+      end record;
+   type Content_Long_Ptr is access all Content_Long;
+   procedure Deallocate (Object : access Content_Long);
+   function Duplicate
+     (Object : access Content_Long)
+     return Any_Content_Ptr;
+
+   type Content_Long_Long is new Content with
+      record
+         Value : Types.Long_Long_Ptr;
+      end record;
+   type Content_Long_Long_Ptr is access all Content_Long_Long;
+   procedure Deallocate (Object : access Content_Long_Long);
+   function Duplicate
+     (Object : access Content_Long_Long)
+     return Any_Content_Ptr;
+
+   type Content_UShort is new Content with
+      record
+         Value : Types.Unsigned_Short_Ptr;
+      end record;
+   type Content_UShort_Ptr is access all Content_UShort;
+   procedure Deallocate (Object : access Content_UShort);
+   function Duplicate
+     (Object : access Content_UShort)
+     return Any_Content_Ptr;
+
+   type Content_ULong is new Content with
+      record
+         Value : Types.Unsigned_Long_Ptr;
+      end record;
+   type Content_ULong_Ptr is access all Content_ULong;
+   procedure Deallocate (Object : access Content_ULong);
+   function Duplicate
+     (Object : access Content_ULong)
+     return Any_Content_Ptr;
+
+   type Content_ULong_Long is new Content with
+      record
+         Value : Types.Unsigned_Long_Long_Ptr;
+      end record;
+   type Content_ULong_Long_Ptr is access all Content_ULong_Long;
+   procedure Deallocate (Object : access Content_ULong_Long);
+   function Duplicate
+     (Object : access Content_ULong_Long)
+     return Any_Content_Ptr;
+
+   type Content_Boolean is new Content with
+      record
+         Value : Types.Boolean_Ptr;
+      end record;
+   type Content_Boolean_Ptr is access all Content_Boolean;
+   procedure Deallocate (Object : access Content_Boolean);
+   function Duplicate
+     (Object : access Content_Boolean)
+     return Any_Content_Ptr;
+
+   type Content_Char is new Content with
+      record
+         Value : Types.Char_Ptr;
+      end record;
+   type Content_Char_Ptr is access all Content_Char;
+   procedure Deallocate (Object : access Content_Char);
+   function Duplicate
+     (Object : access Content_Char)
+     return Any_Content_Ptr;
+
+   type Content_Wchar is new Content with
+      record
+         Value : Types.Wchar_Ptr;
+      end record;
+   type Content_Wchar_Ptr is access all Content_Wchar;
+   procedure Deallocate (Object : access Content_Wchar);
+   function Duplicate
+     (Object : access Content_Wchar)
+     return Any_Content_Ptr;
+
+   type Content_String is new Content with
+      record
+         Value : Types.String_Ptr;
+      end record;
+   type Content_String_Ptr is access all Content_String;
+   procedure Deallocate (Object : access Content_String);
+   function Duplicate
+     (Object : access Content_String)
+     return Any_Content_Ptr;
+
+   type Content_Wide_String is new Content with
+      record
+         Value : Types.Wide_String_Ptr;
+      end record;
+   type Content_Wide_String_Ptr is access all Content_Wide_String;
+   procedure Deallocate (Object : access Content_Wide_String);
+   function Duplicate
+     (Object : access Content_Wide_String)
+     return Any_Content_Ptr;
+
+   type Content_Float is new Content with
+      record
+         Value : Types.Float_Ptr;
+      end record;
+   type Content_Float_Ptr is access all Content_Float;
+   procedure Deallocate (Object : access Content_Float);
+   function Duplicate
+     (Object : access Content_Float)
+     return Any_Content_Ptr;
+
+   type Content_Double is new Content with
+      record
+         Value : Types.Double_Ptr;
+      end record;
+   type Content_Double_Ptr is access all Content_Double;
+   procedure Deallocate (Object : access Content_Double);
+   function Duplicate
+     (Object : access Content_Double)
+     return Any_Content_Ptr;
+
+   type Content_Long_Double is new Content with
+      record
+         Value : Types.Long_Double_Ptr;
+      end record;
+   type Content_Long_Double_Ptr is access all Content_Long_Double;
+   procedure Deallocate (Object : access Content_Long_Double);
+   function Duplicate
+     (Object : access Content_Long_Double)
+     return Any_Content_Ptr;
+
+   type Content_TypeCode is new Content with
+      record
+         Value : TypeCode.Object_Ptr;
+      end record;
+   type Content_TypeCode_Ptr is access all Content_TypeCode;
+   procedure Deallocate (Object : access Content_TypeCode);
+   function Duplicate
+     (Object : access Content_TypeCode)
+     return Any_Content_Ptr;
+
+   type Content_Any is new Content with
+      record
+         Value : Any_Ptr;
+      end record;
+   type Content_Any_Ptr is access all Content_Any;
+   procedure Deallocate (Object : access Content_Any);
+   function Duplicate
+     (Object : access Content_Any)
+     return Any_Content_Ptr;
+
+   --  A list of Any contents (for construction of aggregates).
+   package Content_Lists is new PolyORB.Utils.Chained_Lists
+     (Any_Content_Ptr);
+   subtype Content_List is Content_Lists.List;
+
+   function Duplicate (List : in Content_List) return Content_List;
+   procedure Deep_Deallocate (List : in out Content_List);
+   --  procedure Deallocate (L : in out Content_List)
+
+   function Get_Content_List_Length (List : in Content_List)
+     return Types.Unsigned_Long;
+
+   --  for complex types that could be defined in Idl
+   --  content_aggregate will be used.
+   --  complex types include Struct, Union, Enum, Sequence,
+   --  Array, Except, Fixed, Value, Valuebox, Abstract_Interface.
+   --  Here is the way the content_list is used in each case
+   --  (See CORBA V2.3 - 15.3) :
+   --     - for Struct, Except : the elements are the values of each
+   --  field in the order of the declaration
+   --     - for Union : the value of the switch element comes
+   --  first. Then come all the values of the corresponding fields
+   --     - for Enum : an unsigned_long corresponding to the position
+   --  of the value in the declaration is the only element
+   --     - for Array : all the elements of the array, one by one.
+   --     - for Sequence : the length first and then all the elements
+   --  of the sequence, one by one.
+   --     - for Fixed : FIXME
+   --     - for Value : FIXME
+   --     - for Valuebox : FIXME
+   --     - for Abstract_Interface : FIXME
+   type Content_Aggregate is new Content with record
+      Value : Content_List := Content_Lists.Empty;
+   end record;
+   type Content_Aggregate_Ptr is access all Content_Aggregate;
+   function Duplicate
+     (Object : access Content_Aggregate)
+     return Any_Content_Ptr;
+   procedure Deallocate (Object : access Content_Aggregate);
+
    ---------------
    -- TypeCodes --
    ---------------
 
    package body TypeCode is
 
-      -----------
-      --  "="  --
-      -----------
+      ---------
+      -- "=" --
+      ---------
+
       function "=" (Left, Right : in Object) return Boolean is
          Nb_Param : Unsigned_Long;
          Res : Boolean := True;
       begin
          pragma Debug (O ("Equal (TypeCode) : enter"));
+
          if Right.Kind /= Left.Kind then
             pragma Debug (O ("Equal (TypeCode) : end"));
             return False;
          end if;
+
          pragma Debug (O ("Equal (TypeCode) : parameter number comparison"));
+
          Nb_Param := Parameter_Count (Right);
          if Nb_Param /= Parameter_Count (Left) then
             pragma Debug (O ("Equal (TypeCode) : end"));
@@ -82,8 +301,10 @@ package body PolyORB.Any is
             pragma Debug (O ("Equal (TypeCode) : end"));
             return True;
          end if;
+
          --  recursive comparison
          pragma Debug (O ("Equal (TypeCode) : recursive comparison"));
+
          for I in 0 .. Nb_Param - 1 loop
             Res := Res and
               Equal (Get_Parameter (Left, I), Get_Parameter (Right, I));
@@ -96,9 +317,10 @@ package body PolyORB.Any is
          return Res;
       end "=";
 
-      ------------------
-      --  Equivalent  --
-      ------------------
+      ----------------
+      -- Equivalent --
+      ----------------
+
       function Equivalent (Left, Right : in Object)
                            return Boolean is
          Nb_Param : Unsigned_Long := Member_Count (Left);
@@ -272,27 +494,29 @@ package body PolyORB.Any is
       end Equivalent;
 
 
-      ----------------------------
-      --  Get_Compact_TypeCode  --
-      ----------------------------
+      --------------------------
+      -- Get_Compact_TypeCode --
+      --------------------------
+
       function Get_Compact_TypeCode (Self : in Object)
                                      return Object is
       begin
          return Self;
       end Get_Compact_TypeCode;
 
-      ------------
-      --  Kind  --
-      ------------
+      ----------
+      -- Kind --
+      ----------
+
       function Kind (Self : in Object)
                      return TCKind is
       begin
          return Self.Kind;
       end Kind;
 
-      ----------
-      --  Id  --
-      ----------
+      --------
+      -- Id --
+      --------
 
       function Id
         (Self : in Object)
@@ -320,9 +544,10 @@ package body PolyORB.Any is
          end case;
       end Id;
 
-      ------------
-      --  Name  --
-      ------------
+      ----------
+      -- Name --
+      ----------
+
       function Name (Self : in Object)
                      return Identifier is
       begin
@@ -348,9 +573,10 @@ package body PolyORB.Any is
          end case;
       end Name;
 
-      --------------------
-      --  Member_Count  --
-      --------------------
+      ------------------
+      -- Member_Count --
+      ------------------
+
       function Member_Count (Self : in Object)
                              return Unsigned_Long is
          Param_Nb : constant Unsigned_Long := Parameter_Count (Self);
@@ -373,9 +599,10 @@ package body PolyORB.Any is
          end case;
       end Member_Count;
 
-      -------------------
-      --  Member_Name  --
-      -------------------
+      -----------------
+      -- Member_Name --
+      -----------------
+
       function Member_Name
         (Self  : in Object;
          Index : in Unsigned_Long)
@@ -483,9 +710,10 @@ package body PolyORB.Any is
          end case;
       end Member_Label;
 
-      --------------------------
-      --  Discriminator_Type  --
-      --------------------------
+      ------------------------
+      -- Discriminator_Type --
+      ------------------------
+
       function Discriminator_Type
         (Self : in Object)
         return Object is
@@ -501,9 +729,10 @@ package body PolyORB.Any is
          end case;
       end Discriminator_Type;
 
-      ---------------------
-      --  Default_Index  --
-      ---------------------
+      -------------------
+      -- Default_Index --
+      -------------------
+
       function Default_Index
         (Self : in Object)
         return Types.Long is
@@ -519,9 +748,10 @@ package body PolyORB.Any is
          end case;
       end Default_Index;
 
-      --------------
-      --  Length  --
-      --------------
+      ------------
+      -- Length --
+      ------------
+
       function Length
         (Self : in Object)
         return Unsigned_Long is
@@ -538,9 +768,10 @@ package body PolyORB.Any is
          end case;
       end Length;
 
-      --------------------
-      --  Content_Type  --
-      --------------------
+      ------------------
+      -- Content_Type --
+      ------------------
+
       function Content_Type (Self : in Object) return Object is
       begin
          case Kind (Self) is
@@ -555,9 +786,10 @@ package body PolyORB.Any is
          end case;
       end Content_Type;
 
-      --------------------
-      --  Fixed_Digits  --
-      --------------------
+      ------------------
+      -- Fixed_Digits --
+      ------------------
+
       function Fixed_Digits
         (Self : in Object)
         return Unsigned_Short is
@@ -570,9 +802,10 @@ package body PolyORB.Any is
          end case;
       end Fixed_Digits;
 
-      -------------------
-      --  Fixed_Scale  --
-      -------------------
+      -----------------
+      -- Fixed_Scale --
+      -----------------
+
       function Fixed_Scale
         (Self : in Object)
         return Short is
@@ -585,9 +818,10 @@ package body PolyORB.Any is
          end case;
       end Fixed_Scale;
 
-      -------------------------
-      --  Member_Visibility  --
-      -------------------------
+      -----------------------
+      -- Member_Visibility --
+      -----------------------
+
       function Member_Visibility
         (Self  : in Object;
          Index : in Unsigned_Long)
@@ -614,9 +848,10 @@ package body PolyORB.Any is
          end case;
       end Member_Visibility;
 
-      ---------------------
-      --  Type_Modifier  --
-      ---------------------
+      -------------------
+      -- Type_Modifier --
+      -------------------
+
       function Type_Modifier
         (Self : in Object)
         return ValueModifier is
@@ -634,9 +869,10 @@ package body PolyORB.Any is
          end case;
       end Type_Modifier;
 
-      --------------------------
-      --  Concrete_Base_Type  --
-      --------------------------
+      ------------------------
+      -- Concrete_Base_Type --
+      ------------------------
+
       function Concrete_Base_Type
         (Self : in Object)
         return Object is
@@ -727,9 +963,10 @@ package body PolyORB.Any is
          end if;
       end Member_Type_With_Label;
 
-      -------------------------------
-      --  Member_Count_With_Label  --
-      -------------------------------
+      -----------------------------
+      -- Member_Count_With_Label --
+      -----------------------------
+
       function Member_Count_With_Label
         (Self : in Object;
          Label : in Any)
@@ -767,9 +1004,10 @@ package body PolyORB.Any is
          end if;
       end Member_Count_With_Label;
 
-      ---------------------
-      --  Get_Parameter  --
-      ---------------------
+      -------------------
+      -- Get_Parameter --
+      -------------------
+
       function Get_Parameter (Self : in Object;
                               Index : in Unsigned_Long)
                               return Any is
@@ -791,26 +1029,28 @@ package body PolyORB.Any is
          return Ptr.Parameter;
       end Get_Parameter;
 
-      ---------------------
-      --  Add_Parameter  --
-      ---------------------
+      -------------------
+      -- Add_Parameter --
+      -------------------
+
       procedure Add_Parameter (Self  : in out Object;
                                Param : in Any) is
          C_Ptr : Cell_Ptr := Self.Parameters;
       begin
          if C_Ptr = null then
-            Self.Parameters := new Cell' (Param, null);
+            Self.Parameters := new Cell'(Param, null);
          else
             while C_Ptr.Next /= null loop
                C_Ptr := C_Ptr.Next;
             end loop;
-            C_Ptr.Next := new Cell' (Param, null);
+            C_Ptr.Next := new Cell'(Param, null);
          end if;
       end Add_Parameter;
 
-      ----------------
-      --  Set_Kind  --
-      ----------------
+      --------------
+      -- Set_Kind --
+      --------------
+
       procedure Set_Kind (Self : out Object;
                           Kind : in TCKind) is
       begin
@@ -818,145 +1058,163 @@ package body PolyORB.Any is
          Self.Parameters := null;
       end Set_Kind;
 
-      ---------------
-      --  TC_Null  --
-      ---------------
+      -------------
+      -- TC_Null --
+      -------------
+
       function TC_Null return TypeCode.Object is
       begin
          return PTC_Null;
       end TC_Null;
 
-      ---------------
-      --  TC_Void  --
-      ---------------
+      -------------
+      -- TC_Void --
+      -------------
+
       function TC_Void return TypeCode.Object is
       begin
          return PTC_Void;
       end TC_Void;
 
-      ----------------
-      --  TC_Short  --
-      ----------------
+      --------------
+      -- TC_Short --
+      --------------
+
       function TC_Short return TypeCode.Object is
       begin
          return PTC_Short;
       end TC_Short;
 
-      ---------------
-      --  TC_Long  --
-      ---------------
+      -------------
+      -- TC_Long --
+      -------------
+
       function TC_Long return TypeCode.Object is
       begin
          return PTC_Long;
       end TC_Long;
 
-      --------------------
-      --  TC_Long_Long  --
-      --------------------
+      ------------------
+      -- TC_Long_Long --
+      ------------------
+
       function TC_Long_Long return TypeCode.Object is
       begin
          return PTC_Long_Long;
       end TC_Long_Long;
 
-      -------------------------
-      --  TC_Unsigned_Short  --
-      -------------------------
+      -----------------------
+      -- TC_Unsigned_Short --
+      -----------------------
+
       function TC_Unsigned_Short return TypeCode.Object is
       begin
          return PTC_Unsigned_Short;
       end TC_Unsigned_Short;
 
-      ------------------------
-      --  TC_Unsigned_Long  --
-      ------------------------
+      ----------------------
+      -- TC_Unsigned_Long --
+      ----------------------
+
       function TC_Unsigned_Long return TypeCode.Object is
       begin
          return PTC_Unsigned_Long;
       end TC_Unsigned_Long;
 
-      -----------------------------
-      --  TC_Unsigned_Long_Long  --
-      -----------------------------
+      ---------------------------
+      -- TC_Unsigned_Long_Long --
+      ---------------------------
+
       function TC_Unsigned_Long_Long return TypeCode.Object is
       begin
          return PTC_Unsigned_Long_Long;
       end TC_Unsigned_Long_Long;
 
-      ----------------
-      --  TC_Float  --
-      ----------------
+      --------------
+      -- TC_Float --
+      --------------
+
       function TC_Float return TypeCode.Object is
       begin
          return PTC_Float;
       end TC_Float;
 
-      -----------------
-      --  TC_Double  --
-      -----------------
+      ---------------
+      -- TC_Double --
+      ---------------
+
       function TC_Double return TypeCode.Object is
       begin
          return PTC_Double;
       end TC_Double;
 
-      ----------------------
-      --  TC_Long_Double  --
-      ----------------------
+      --------------------
+      -- TC_Long_Double --
+      --------------------
+
       function TC_Long_Double return TypeCode.Object is
       begin
          return PTC_Long_Double;
       end TC_Long_Double;
 
-      ------------------
-      --  TC_Boolean  --
-      ------------------
+      ----------------
+      -- TC_Boolean --
+      ----------------
+
       function TC_Boolean return TypeCode.Object is
       begin
          return PTC_Boolean;
       end TC_Boolean;
 
-      ---------------
-      --  TC_Char  --
-      ---------------
+      -------------
+      -- TC_Char --
+      -------------
+
       function TC_Char return TypeCode.Object is
       begin
          return PTC_Char;
       end TC_Char;
 
-      ----------------
-      --  TC_WChar  --
-      ----------------
+      --------------
+      -- TC_WChar --
+      --------------
+
       function TC_Wchar return TypeCode.Object is
       begin
          return PTC_Wchar;
       end TC_Wchar;
 
-      ----------------
-      --  TC_Octet  --
-      ----------------
+      --------------
+      -- TC_Octet --
+      --------------
+
       function TC_Octet return TypeCode.Object is
       begin
          return PTC_Octet;
       end TC_Octet;
 
-      --------------
-      --  TC_Any  --
-      --------------
+      ------------
+      -- TC_Any --
+      ------------
+
       function TC_Any return TypeCode.Object is
       begin
          return PTC_Any;
       end TC_Any;
 
-      -------------------
-      --  TC_TypeCode  --
-      -------------------
+      -----------------
+      -- TC_TypeCode --
+      -----------------
+
       function TC_TypeCode return TypeCode.Object is
       begin
          return PTC_TypeCode;
       end TC_TypeCode;
 
-      -----------------
-      --  TC_String  --
-      -----------------
+      ---------------
+      -- TC_String --
+      ---------------
+
       function TC_String return TypeCode.Object is
          Result : TypeCode.Object := PTC_String;
       begin
@@ -964,49 +1222,55 @@ package body PolyORB.Any is
          return Result;
       end TC_String;
 
-      ----------------------
-      --  TC_Wide_String  --
-      ----------------------
+      --------------------
+      -- TC_Wide_String --
+      --------------------
+
       function TC_Wide_String return TypeCode.Object is
       begin
          return PTC_Wide_String;
       end TC_Wide_String;
 
-      --------------------
-      --  TC_Principal  --
-      --------------------
+      ------------------
+      -- TC_Principal --
+      ------------------
+
       function TC_Principal return TypeCode.Object is
       begin
          return PTC_Principal;
       end TC_Principal;
 
-      -----------------
-      --  TC_Struct  --
-      -----------------
+      ---------------
+      -- TC_Struct --
+      ---------------
+
       function TC_Struct return TypeCode.Object is
       begin
          return PTC_Struct;
       end TC_Struct;
 
-      ----------------
-      --  TC_Union  --
-      ----------------
+      --------------
+      -- TC_Union --
+      --------------
+
       function TC_Union return TypeCode.Object is
       begin
          return PTC_Union;
       end TC_Union;
 
-      ---------------
-      --  TC_Enum  --
-      ---------------
+      -------------
+      -- TC_Enum --
+      -------------
+
       function TC_Enum return TypeCode.Object is
       begin
          return PTC_Enum;
       end TC_Enum;
 
-      ----------------
-      --  TC_Alias  --
-      ----------------
+      --------------
+      -- TC_Alias --
+      --------------
+
       function TC_Alias return TypeCode.Object is
       begin
          return PTC_Alias;
@@ -1020,73 +1284,82 @@ package body PolyORB.Any is
          return PTC_Except;
       end TC_Except;
 
-      -----------------
-      --  TC_Object  --
-      -----------------
+      ---------------
+      -- TC_Object --
+      ---------------
+
       function TC_Object return TypeCode.Object is
       begin
          return PTC_Object;
       end TC_Object;
 
-      ----------------
-      --  TC_Fixed  --
-      ----------------
+      --------------
+      -- TC_Fixed --
+      --------------
+
       function TC_Fixed return TypeCode.Object is
       begin
          return PTC_Fixed;
       end TC_Fixed;
 
-      -------------------
-      --  TC_Sequence  --
-      -------------------
+      -----------------
+      -- TC_Sequence --
+      -----------------
+
       function TC_Sequence return TypeCode.Object is
       begin
          return PTC_Sequence;
       end TC_Sequence;
 
-      ----------------
-      --  TC_Array  --
-      ----------------
+      --------------
+      -- TC_Array --
+      --------------
+
       function TC_Array return TypeCode.Object is
       begin
          return PTC_Array;
       end TC_Array;
 
-      ----------------
-      --  TC_Value  --
-      ----------------
+      --------------
+      -- TC_Value --
+      --------------
+
       function TC_Value return TypeCode.Object is
       begin
          return PTC_Value;
       end TC_Value;
 
-      -------------------
-      --  TC_Valuebox  --
-      -------------------
+      -----------------
+      -- TC_Valuebox --
+      -----------------
+
       function TC_Valuebox return TypeCode.Object is
       begin
          return PTC_Valuebox;
       end TC_Valuebox;
 
-      -----------------
-      --  TC_Native  --
-      -----------------
+      ---------------
+      -- TC_Native --
+      ---------------
+
       function TC_Native return TypeCode.Object is
       begin
          return PTC_Native;
       end TC_Native;
 
-      -----------------------------
-      --  TC_Abstract_Interface  --
-      -----------------------------
+      ---------------------------
+      -- TC_Abstract_Interface --
+      ---------------------------
+
       function TC_Abstract_Interface return TypeCode.Object is
       begin
          return PTC_Abstract_Interface;
       end TC_Abstract_Interface;
 
-      -----------------------
-      --  Parameter_Count  --
-      -----------------------
+      ---------------------
+      -- Parameter_Count --
+      ---------------------
+
       function Parameter_Count (Self : in Object)
                                 return Unsigned_Long is
          N : Unsigned_Long := 0;
@@ -1102,12 +1375,16 @@ package body PolyORB.Any is
 
    end TypeCode;
 
-
    -----------
    --  Any  --
    -----------
 
+   -----------
+   -- Image --
+   -----------
+
    function Image (TC : TypeCode.Object) return Standard.String;
+
    function Image (TC : TypeCode.Object) return Standard.String is
       use TypeCode;
 
@@ -1167,7 +1444,7 @@ package body PolyORB.Any is
    end Image;
 
    function Image (A : Any) return Standard.String is
-      Kind : constant TCKind := TypeCode.Kind (A.The_Type);
+      Kind : constant TCKind := TypeCode.Kind (Get_Unwound_Type (A));
    begin
       case Kind is
          when Tk_Short =>
@@ -1194,14 +1471,21 @@ package body PolyORB.Any is
             return Long_Long'Image (From_Any (A));
          when Tk_Ulonglong =>
             return Unsigned_Long_Long'Image (From_Any (A));
+         when Tk_Value =>
+            return "<Any:" & Image (A.The_Type) & ":"
+                   & System.Address_Image (A.The_Value.all'Address) & ">";
+         when Tk_Any =>
+            return "<Any:" & Image (Content_Any_Ptr (Get_Value (A)).Value.all)
+                    & ">";
          when others =>
             return "<Any:" & Image (A.The_Type) & ">";
       end case;
    end Image;
 
-   -----------
-   --  "="  --
-   -----------
+   ---------
+   -- "=" --
+   ---------
+
    function "=" (Left, Right : in Any) return Boolean is
    begin
       pragma Debug (O ("Equal (Any) : enter"));
@@ -1299,8 +1583,21 @@ package body PolyORB.Any is
                L : constant TypeCode.Object := From_Any (Left);
                R : constant TypeCode.Object := From_Any (Right);
             begin
-               pragma Debug (O ("Equal (Any, TypeCode) : end"));
-               return TypeCode.Equal (R, L);
+               if TypeCode.Kind (R) = Tk_Value then
+                  pragma Debug (O ("Equal (Any, TypeCode) :" &
+                                   " Skipping Tk_Value" &
+                                   " typecode comparison"));
+                  --  TODO Call a different equality procedure
+                  --  to accomodate eventual circular references in
+                  --  typecodes
+                  pragma Debug (O ("Equal (Any, TypeCode) :" &
+                                   " Tk_Value NOT IMPLEMENTED"));
+                  raise Program_Error;
+                  return True;
+               else
+                  pragma Debug (O ("Equal (Any, TypeCode) : end"));
+                  return TypeCode.Equal (R, L);
+               end if;
             end;
          when Tk_Principal =>
             --  FIXME : to be done
@@ -1475,14 +1772,31 @@ package body PolyORB.Any is
       end case;
    end "=";
 
-   -----------------------------------
-   --  To_Any conversion functions  --
-   -----------------------------------
+   --------------------------
+   -- Compare_Any_Contents --
+   --------------------------
+
+   function Compare_Any_Contents (Left : in Any; Right : in Any)
+     return Boolean
+   is
+      C_Left, C_Right : Any_Content_Ptr_Ptr;
+   begin
+      C_Left := Get_Value_Ptr (Left);
+      C_Right := Get_Value_Ptr (Right);
+      pragma Debug (O ("Compare: " & System.Address_Image (C_Left.all'Address)
+                    & " = " & System.Address_Image (C_Right.all'Address)));
+
+      return C_Left = C_Right;
+   end Compare_Any_Contents;
+
+   ------------
+   -- To_Any --
+   ------------
 
    function To_Any (Item : in Short) return Any is
       Result : Any;
    begin
-      Set_Value (Result, new Content_Short' (Value => new Short' (Item)));
+      Set_Value (Result, new Content_Short'(Value => new Short'(Item)));
       Set_Type (Result, TypeCode.TC_Short);
       return Result;
    end To_Any;
@@ -1490,7 +1804,7 @@ package body PolyORB.Any is
    function To_Any (Item : in Long) return Any is
       Result : Any;
    begin
-      Set_Value (Result, new Content_Long' (Value => new Long' (Item)));
+      Set_Value (Result, new Content_Long'(Value => new Long'(Item)));
       Set_Type (Result, TypeCode.TC_Long);
       return Result;
    end To_Any;
@@ -1499,7 +1813,7 @@ package body PolyORB.Any is
       Result : Any;
    begin
       Set_Value (Result, new Content_Long_Long'
-                 (Value => new Long_Long' (Item)));
+                 (Value => new Long_Long'(Item)));
       Set_Type (Result, TypeCode.TC_Long_Long);
       return Result;
    end To_Any;
@@ -1508,7 +1822,7 @@ package body PolyORB.Any is
       Result : Any;
    begin
       Set_Value (Result, new Content_UShort'
-                 (Value => new Unsigned_Short' (Item)));
+                 (Value => new Unsigned_Short'(Item)));
       Set_Type (Result, TypeCode.TC_Unsigned_Short);
       return Result;
    end To_Any;
@@ -1518,7 +1832,7 @@ package body PolyORB.Any is
    begin
       pragma Debug (O ("To_Any (ULong) : enter"));
       Set_Value (Result, new Content_ULong'
-                 (Value => new Unsigned_Long' (Item)));
+                 (Value => new Unsigned_Long'(Item)));
       Set_Type (Result, TypeCode.TC_Unsigned_Long);
       pragma Debug (O ("To_Any (ULong) : end"));
       return Result;
@@ -1528,7 +1842,7 @@ package body PolyORB.Any is
       Result : Any;
    begin
       Set_Value (Result, new Content_ULong_Long'
-                 (Value => new Unsigned_Long_Long' (Item)));
+                 (Value => new Unsigned_Long_Long'(Item)));
       Set_Type (Result, TypeCode.TC_Unsigned_Long_Long);
       return Result;
    end To_Any;
@@ -1537,7 +1851,7 @@ package body PolyORB.Any is
       Result : Any;
    begin
       Set_Value (Result, new Content_Float'
-                 (Value => new Types.Float' (Item)));
+                 (Value => new Types.Float'(Item)));
       Set_Type (Result, TypeCode.TC_Float);
       return Result;
    end To_Any;
@@ -1546,7 +1860,7 @@ package body PolyORB.Any is
       Result : Any;
    begin
       Set_Value (Result, new Content_Double'
-                 (Value => new Double' (Item)));
+                 (Value => new Double'(Item)));
       Set_Type (Result, TypeCode.TC_Double);
       return Result;
    end To_Any;
@@ -1555,7 +1869,7 @@ package body PolyORB.Any is
       Result : Any;
    begin
       Set_Value (Result, new Content_Long_Double'
-                 (Value => new Long_Double' (Item)));
+                 (Value => new Long_Double'(Item)));
       Set_Type (Result, TypeCode.TC_Long_Double);
       return Result;
    end To_Any;
@@ -1564,7 +1878,7 @@ package body PolyORB.Any is
       Result : Any;
    begin
       Set_Value (Result, new Content_Boolean'
-                 (Value => new Boolean' (Item)));
+                 (Value => new Boolean'(Item)));
       Set_Type (Result, TypeCode.TC_Boolean);
       return Result;
    end To_Any;
@@ -1573,7 +1887,7 @@ package body PolyORB.Any is
       Result : Any;
    begin
       Set_Value (Result, new Content_Char'
-                 (Value => new Char' (Item)));
+                 (Value => new Char'(Item)));
       Set_Type (Result, TypeCode.TC_Char);
       return Result;
    end To_Any;
@@ -1582,7 +1896,7 @@ package body PolyORB.Any is
       Result : Any;
    begin
       Set_Value (Result, new Content_Wchar'
-                 (Value => new Wchar' (Item)));
+                 (Value => new Wchar'(Item)));
       Set_Type (Result, TypeCode.TC_Wchar);
       return Result;
    end To_Any;
@@ -1591,7 +1905,7 @@ package body PolyORB.Any is
       Result : Any;
    begin
       Set_Value (Result, new Content_Octet'
-                 (Value => new Octet' (Item)));
+                 (Value => new Octet'(Item)));
       Set_Type (Result, TypeCode.TC_Octet);
       return Result;
    end To_Any;
@@ -1600,7 +1914,7 @@ package body PolyORB.Any is
       Result : Any;
    begin
       Set_Value (Result, new Content_Any'
-                 (Value => new Any' (Item)));
+                 (Value => new Any'(Item)));
       Set_Type (Result, TypeCode.TC_Any);
       return Result;
    end To_Any;
@@ -1609,7 +1923,7 @@ package body PolyORB.Any is
       Result : Any;
    begin
       Set_Value (Result, new Content_TypeCode'
-                 (Value => new TypeCode.Object' (Item)));
+                 (Value => new TypeCode.Object'(Item)));
       Set_Type (Result, TypeCode.TC_TypeCode);
       return Result;
    end To_Any;
@@ -1623,7 +1937,7 @@ package body PolyORB.Any is
       TypeCode.Add_Parameter (Tco, To_Any (Unsigned_Long (0)));
       --  the string is supposed to be unbounded
       Set_Value (Result, new Content_String'
-                 (Value => new PolyORB.Types.String' (Item)));
+                 (Value => new PolyORB.Types.String'(Item)));
       Set_Type (Result, Tco);
       pragma Debug (O ("To_Any (String) : end"));
       return Result;
@@ -1637,14 +1951,14 @@ package body PolyORB.Any is
       TypeCode.Add_Parameter (Tco, To_Any (Unsigned_Long (0)));
       --  the string is supposed to be unbounded
       Set_Value (Result, new Content_Wide_String'
-                 (Value => new Types.Wide_String' (Item)));
+                 (Value => new Types.Wide_String'(Item)));
       Set_Type (Result, Tco);
       return Result;
    end To_Any;
 
-   -------------------------------------
-   --  From_Any conversion functions  --
-   -------------------------------------
+   --------------
+   -- From_Any --
+   --------------
 
    function From_Any (Item : in Any) return Short is
    begin
@@ -1805,18 +2119,19 @@ package body PolyORB.Any is
       return Content_Wide_String_Ptr (Get_Value (Item)).Value.all;
    end From_Any;
 
-   ----------------
-   --  Get_Type  --
-   ----------------
+   --------------
+   -- Get_Type --
+   --------------
+
    function Get_Type (The_Any : in Any) return  TypeCode.Object is
    begin
       pragma Debug (O ("Get_Type : enter & end"));
       return The_Any.The_Type;
    end Get_Type;
 
-   ------------------------
-   --  Get_Unwound_Type  --
-   ------------------------
+   ---------------------
+   -- Unwind_Typedefs --
+   ---------------------
 
    function Unwind_Typedefs
      (TC : in TypeCode.Object)
@@ -1830,58 +2145,63 @@ package body PolyORB.Any is
       return Result;
    end Unwind_Typedefs;
 
+   ----------------------
+   -- Get_Unwound_Type --
+   ----------------------
+
    function Get_Unwound_Type (The_Any : in Any) return  TypeCode.Object is
    begin
       return Unwind_Typedefs (Get_Type (The_Any));
    end Get_Unwound_Type;
 
-   ----------------
-   --  Set_Type  --
-   ----------------
+   --------------
+   -- Set_Type --
+   --------------
+
    procedure Set_Type (The_Any : in out Any;
                        The_Type : in TypeCode.Object) is
    begin
+      pragma Debug (O ("Set_Type: enter"));
       The_Any.The_Type := The_Type;
+      pragma Debug (O ("Set_Type: leave"));
    end Set_Type;
 
-   ---------------------------------
-   --  Iterate_Over_Any_Elements  --
-   ---------------------------------
+   -------------------------------
+   -- Iterate_Over_Any_Elements --
+   -------------------------------
+
    procedure Iterate_Over_Any_Elements (In_Any : in Any) is
    begin
       null;
    end Iterate_Over_Any_Elements;
 
-   ---------------------
-   --  Get_Empty_Any  --
-   ---------------------
+   -------------------
+   -- Get_Empty_Any --
+   -------------------
+
    function Get_Empty_Any (Tc : TypeCode.Object) return Any is
       Result : Any;
    begin
       pragma Debug (O ("Get_Empty_Any : enter"));
       Set_Type (Result, Tc);
       pragma Debug (O ("Get_Empty_Any : type set"));
-      Inc_Usage (Result);
-      pragma Debug (O ("Get_Empty_Any : usage incremented"));
       return Result;
    end Get_Empty_Any;
 
-   -----------
-   --  Any  --
-   -----------
+   --------------
+   -- Is_Empty --
+   --------------
 
-   ----------------
-   --  Is_Empty  --
-   ----------------
    function Is_Empty (Any_Value : in Any) return Boolean is
    begin
       pragma Debug (O ("Is_empty : enter & end"));
       return Get_Value (Any_Value) = null;
    end Is_Empty;
 
-   ---------------------
-   --  Set_Any_Value  --
-   ---------------------
+   -------------------
+   -- Set_Any_Value --
+   -------------------
+
    procedure Set_Any_Value (Any_Value : in out Any;
                             Value : Octet) is
       use TypeCode;
@@ -1894,14 +2214,11 @@ package body PolyORB.Any is
          Content_Octet_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
-           new Content_Octet'(Value => new Octet' (Value));
+           new Content_Octet'(Value => new Octet'(Value));
       end if;
       Unlock_W (Any_Value.Any_Lock);
    end Set_Any_Value;
 
-   ---------------------
-   --  Set_Any_Value  --
-   ---------------------
    procedure Set_Any_Value (Any_Value : in out Any;
                             Value : in Short) is
       use TypeCode;
@@ -1914,7 +2231,7 @@ package body PolyORB.Any is
          Content_Short_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
-           new Content_Short'(Value => new Short' (Value));
+           new Content_Short'(Value => new Short'(Value));
       end if;
       Unlock_W (Any_Value.Any_Lock);
       pragma Debug (O ("Set_Any_Value : the any value is "
@@ -1923,9 +2240,6 @@ package body PolyORB.Any is
                         (Get_Value (Any_Value)).Value.all)));
    end Set_Any_Value;
 
-   ---------------------
-   --  Set_Any_Value  --
-   ---------------------
    procedure Set_Any_Value (Any_Value : in out Any;
                             Value : in Types.Long) is
       use TypeCode;
@@ -1942,14 +2256,11 @@ package body PolyORB.Any is
          Content_Long_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
-           new Content_Long'(Value => new Types.Long' (Value));
+           new Content_Long'(Value => new Types.Long'(Value));
       end if;
       Unlock_W (Any_Value.Any_Lock);
    end Set_Any_Value;
 
-   ---------------------
-   --  Set_Any_Value  --
-   ---------------------
    procedure Set_Any_Value (Any_Value : in out Any;
                             Value : in Types.Long_Long) is
       use TypeCode;
@@ -1962,14 +2273,11 @@ package body PolyORB.Any is
          Content_Long_Long_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
-           new Content_Long_Long'(Value => new Types.Long_Long' (Value));
+           new Content_Long_Long'(Value => new Types.Long_Long'(Value));
       end if;
       Unlock_W (Any_Value.Any_Lock);
    end Set_Any_Value;
 
-   ---------------------
-   --  Set_Any_Value  --
-   ---------------------
    procedure Set_Any_Value (Any_Value : in out Any;
                             Value : in Unsigned_Short) is
       use TypeCode;
@@ -1982,14 +2290,11 @@ package body PolyORB.Any is
          Content_UShort_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
-           new Content_UShort'(Value => new Unsigned_Short' (Value));
+           new Content_UShort'(Value => new Unsigned_Short'(Value));
       end if;
       Unlock_W (Any_Value.Any_Lock);
    end Set_Any_Value;
 
-   ---------------------
-   --  Set_Any_Value  --
-   ---------------------
    procedure Set_Any_Value (Any_Value : in out Any;
                             Value : in Unsigned_Long) is
       use TypeCode;
@@ -2002,14 +2307,11 @@ package body PolyORB.Any is
          Content_ULong_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
-           new Content_ULong'(Value => new Unsigned_Long' (Value));
+           new Content_ULong'(Value => new Unsigned_Long'(Value));
       end if;
       Unlock_W (Any_Value.Any_Lock);
    end Set_Any_Value;
 
-   ---------------------
-   --  Set_Any_Value  --
-   ---------------------
    procedure Set_Any_Value (Any_Value : in out Any;
                             Value : in Unsigned_Long_Long) is
       use TypeCode;
@@ -2024,14 +2326,11 @@ package body PolyORB.Any is
       else
          Any_Value.The_Value.all :=
            new Content_ULong_Long'(Value =>
-                                     new Unsigned_Long_Long' (Value));
+                                     new Unsigned_Long_Long'(Value));
       end if;
       Unlock_W (Any_Value.Any_Lock);
    end Set_Any_Value;
 
-   ---------------------
-   --  Set_Any_Value  --
-   ---------------------
    procedure Set_Any_Value (Any_Value : in out Any;
                             Value : in Boolean) is
       use TypeCode;
@@ -2044,14 +2343,11 @@ package body PolyORB.Any is
          Content_Boolean_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
-           new Content_Boolean'(Value => new Boolean' (Value));
+           new Content_Boolean'(Value => new Boolean'(Value));
       end if;
       Unlock_W (Any_Value.Any_Lock);
    end Set_Any_Value;
 
-   ---------------------
-   --  Set_Any_Value  --
-   ---------------------
    procedure Set_Any_Value (Any_Value : in out Any;
                             Value : in Char) is
       use TypeCode;
@@ -2064,14 +2360,11 @@ package body PolyORB.Any is
          Content_Char_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
-           new Content_Char'(Value => new Char' (Value));
+           new Content_Char'(Value => new Char'(Value));
       end if;
       Unlock_W (Any_Value.Any_Lock);
    end Set_Any_Value;
 
-   ---------------------
-   --  Set_Any_Value  --
-   ---------------------
    procedure Set_Any_Value (Any_Value : in out Any;
                             Value : in Wchar) is
       use TypeCode;
@@ -2084,14 +2377,11 @@ package body PolyORB.Any is
          Content_Wchar_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
-           new Content_Wchar'(Value => new Wchar' (Value));
+           new Content_Wchar'(Value => new Wchar'(Value));
       end if;
       Unlock_W (Any_Value.Any_Lock);
    end Set_Any_Value;
 
-   ---------------------
-   --  Set_Any_Value  --
-   ---------------------
    procedure Set_Any_Value (Any_Value : in out Any;
                             Value : in PolyORB.Types.String) is
       use TypeCode;
@@ -2104,14 +2394,11 @@ package body PolyORB.Any is
          Content_String_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
-           new Content_String'(Value => new PolyORB.Types.String' (Value));
+           new Content_String'(Value => new PolyORB.Types.String'(Value));
       end if;
       Unlock_W (Any_Value.Any_Lock);
    end Set_Any_Value;
 
-   ---------------------
-   --  Set_Any_Value  --
-   ---------------------
    procedure Set_Any_Value (Any_Value : in out Any;
                             Value : in Types.Wide_String) is
       use TypeCode;
@@ -2124,14 +2411,11 @@ package body PolyORB.Any is
          Content_Wide_String_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
-           new Content_Wide_String'(Value => new Types.Wide_String' (Value));
+           new Content_Wide_String'(Value => new Types.Wide_String'(Value));
       end if;
       Unlock_W (Any_Value.Any_Lock);
    end Set_Any_Value;
 
-   ---------------------
-   --  Set_Any_Value  --
-   ---------------------
    procedure Set_Any_Value (Any_Value : in out Any;
                             Value : in Types.Float) is
       use TypeCode;
@@ -2144,14 +2428,11 @@ package body PolyORB.Any is
          Content_Float_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
-           new Content_Float'(Value => new Types.Float' (Value));
+           new Content_Float'(Value => new Types.Float'(Value));
       end if;
       Unlock_W (Any_Value.Any_Lock);
    end Set_Any_Value;
 
-   ---------------------
-   --  Set_Any_Value  --
-   ---------------------
    procedure Set_Any_Value (Any_Value : in out Any;
                             Value : in Double) is
       use TypeCode;
@@ -2164,14 +2445,11 @@ package body PolyORB.Any is
          Content_Double_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
-           new Content_Double'(Value => new Double' (Value));
+           new Content_Double'(Value => new Double'(Value));
       end if;
       Unlock_W (Any_Value.Any_Lock);
    end Set_Any_Value;
 
-   ---------------------
-   --  Set_Any_Value  --
-   ---------------------
    procedure Set_Any_Value (Any_Value : in out Any;
                             Value : in Types.Long_Double) is
       use TypeCode;
@@ -2185,14 +2463,11 @@ package body PolyORB.Any is
          Content_Long_Double_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
-           new Content_Long_Double'(Value => new Types.Long_Double' (Value));
+           new Content_Long_Double'(Value => new Types.Long_Double'(Value));
       end if;
       Unlock_W (Any_Value.Any_Lock);
    end Set_Any_Value;
 
-   ---------------------
-   --  Set_Any_Value  --
-   ---------------------
    procedure Set_Any_Value (Any_Value : in out Any;
                             Value : in TypeCode.Object) is
       use TypeCode;
@@ -2205,14 +2480,11 @@ package body PolyORB.Any is
          Content_TypeCode_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
-           new Content_TypeCode'(Value => new TypeCode.Object' (Value));
+           new Content_TypeCode'(Value => new TypeCode.Object'(Value));
       end if;
       Unlock_W (Any_Value.Any_Lock);
    end Set_Any_Value;
 
-   ---------------------
-   --  Set_Any_Value  --
-   ---------------------
    procedure Set_Any_Value (Any_Value : in out Any;
                             Value : in Any) is
       use TypeCode;
@@ -2225,14 +2497,15 @@ package body PolyORB.Any is
          Content_Any_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
-           new Content_Any'(Value => new Any' (Value));
+           new Content_Any'(Value => new Any'(Value));
       end if;
       Unlock_W (Any_Value.Any_Lock);
    end Set_Any_Value;
 
-   -------------------------------
-   --  Set_Any_Aggregate_Value  --
-   -------------------------------
+   -----------------------------
+   -- Set_Any_Aggregate_Value --
+   -----------------------------
+
    procedure Set_Any_Aggregate_Value (Any_Value : in out Any) is
       use TypeCode;
    begin
@@ -2318,7 +2591,6 @@ package body PolyORB.Any is
         := Duplicate
         (Content_Lists.Element (Ptr, Integer (Index)).all);
       Unlock_R (Value.Any_Lock);
-      Inc_Usage (Result);
       Set_Type (Result, Tc);
       pragma Debug (O ("Get_Aggregate_Element : end"));
       return Result;
@@ -2336,10 +2608,13 @@ package body PolyORB.Any is
       pragma Debug (O ("Get_Empty_Any_Aggregate : begin"));
       Set_Value (Result, new Content_Aggregate);
       Set_Type (Result, Tc);
-      Inc_Usage (Result);
       pragma Debug (O ("Get_Empty_Any_Aggregate : end"));
       return Result;
    end Get_Empty_Any_Aggregate;
+
+   --------------------
+   -- Copy_Any_Value --
+   --------------------
 
    procedure Copy_Any_Value (Dest : Any; Src : Any)
    is
@@ -2366,7 +2641,7 @@ package body PolyORB.Any is
          if Dest.The_Value.all /= null then
             Deallocate (Dest.The_Value.all);
             --  We can do a simple deallocate/replacement here
-            --  because The_Value.all.all is not alised (ie
+            --  because The_Value.all.all is not aliased (ie
             --  it is pointed to only by the Any_Content_Ptr
             --  The_Value.all).
          end if;
@@ -2375,27 +2650,10 @@ package body PolyORB.Any is
       Unlock_W (Dest.Any_Lock);
    end Copy_Any_Value;
 
-   -----------------
-   --  Duplicate  --
-   -----------------
-   function Duplicate (List : in Content_List) return Content_List is
-      use Content_Lists;
+   ---------------------
+   -- Deep_Deallocate --
+   ---------------------
 
-      R : Content_List;
-      I : Iterator := First (List);
-   begin
-      pragma Debug (O ("Duplicate (Content_List): enter"));
-      while not Last (I) loop
-         Append (R, Duplicate (Value (I).all));
-         Next (I);
-      end loop;
-      pragma Debug (O ("Duplicate (Content_List): leave"));
-      return R;
-   end Duplicate;
-
-   -----------------------
-   --  Deep_Deallocate  --
-   -----------------------
    procedure Deep_Deallocate (List : in out Content_List) is
       use Content_Lists;
       I : Iterator := First (List);
@@ -2422,9 +2680,10 @@ package body PolyORB.Any is
       return Unsigned_Long (Content_Lists.Length (List));
    end Get_Content_List_Length;
 
-   ------------------
-   --  Deallocate  --
-   ------------------
+   ----------------
+   -- Deallocate --
+   ----------------
+
    procedure Deallocate (Object : access Content) is
    begin
       pragma Debug (O2 ("Deallocate (generic) : enter & end"));
@@ -2436,10 +2695,6 @@ package body PolyORB.Any is
       raise Program_Error;
    end Deallocate;
 
-   ------------------
-   --  Deallocate  --
-   ------------------
-
    procedure Deallocate (Object : access Content_Octet) is
       Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
    begin
@@ -2449,9 +2704,6 @@ package body PolyORB.Any is
       pragma Debug (O2 ("Deallocate (Octet) : end"));
    end Deallocate;
 
-   ------------------
-   --  Deallocate  --
-   ------------------
    procedure Deallocate (Object : access Content_Short) is
       Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
    begin
@@ -2461,9 +2713,6 @@ package body PolyORB.Any is
       pragma Debug (O2 ("Deallocate (Short) : end"));
    end Deallocate;
 
-   ------------------
-   --  Deallocate  --
-   ------------------
    procedure Deallocate (Object : access Content_Long) is
       Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
    begin
@@ -2473,9 +2722,6 @@ package body PolyORB.Any is
       pragma Debug (O2 ("Deallocate (Long) : end"));
    end Deallocate;
 
-   ------------------
-   --  Deallocate  --
-   ------------------
    procedure Deallocate (Object : access Content_Long_Long) is
       Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
    begin
@@ -2485,9 +2731,6 @@ package body PolyORB.Any is
       pragma Debug (O2 ("Deallocate (Long_Long) : end"));
    end Deallocate;
 
-   ------------------
-   --  Deallocate  --
-   ------------------
    procedure Deallocate (Object : access Content_UShort) is
       Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
    begin
@@ -2497,9 +2740,6 @@ package body PolyORB.Any is
       pragma Debug (O2 ("Deallocate (UShort) : end"));
    end Deallocate;
 
-   ------------------
-   --  Deallocate  --
-   ------------------
    procedure Deallocate (Object : access Content_ULong) is
       Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
    begin
@@ -2509,9 +2749,6 @@ package body PolyORB.Any is
       pragma Debug (O2 ("Deallocate (ULong) : end"));
    end Deallocate;
 
-   ------------------
-   --  Deallocate  --
-   ------------------
    procedure Deallocate (Object : access Content_ULong_Long) is
       Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
    begin
@@ -2521,9 +2758,6 @@ package body PolyORB.Any is
       pragma Debug (O2 ("Deallocate (ULongLong) : end"));
    end Deallocate;
 
-   ------------------
-   --  Deallocate  --
-   ------------------
    procedure Deallocate (Object : access Content_Boolean) is
       Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
    begin
@@ -2533,9 +2767,6 @@ package body PolyORB.Any is
       pragma Debug (O2 ("Deallocate (Boolean) : end"));
    end Deallocate;
 
-   ------------------
-   --  Deallocate  --
-   ------------------
    procedure Deallocate (Object : access Content_Char) is
       Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
    begin
@@ -2545,9 +2776,6 @@ package body PolyORB.Any is
       pragma Debug (O2 ("Deallocate (Char) : end"));
    end Deallocate;
 
-   ------------------
-   --  Deallocate  --
-   ------------------
    procedure Deallocate (Object : access Content_Wchar) is
       Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
    begin
@@ -2557,9 +2785,6 @@ package body PolyORB.Any is
       pragma Debug (O2 ("Deallocate (Wchar) : end"));
    end Deallocate;
 
-   ------------------
-   --  Deallocate  --
-   ------------------
    procedure Deallocate (Object : access Content_String) is
       Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
    begin
@@ -2569,9 +2794,6 @@ package body PolyORB.Any is
       pragma Debug (O2 ("Deallocate (String) : end"));
    end Deallocate;
 
-   ------------------
-   --  Deallocate  --
-   ------------------
    procedure Deallocate (Object : access Content_Wide_String) is
       Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
    begin
@@ -2581,9 +2803,6 @@ package body PolyORB.Any is
       pragma Debug (O2 ("Deallocate (Wide_String) : end"));
    end Deallocate;
 
-   ------------------
-   --  Deallocate  --
-   ------------------
    procedure Deallocate (Object : access Content_Float) is
       Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
    begin
@@ -2593,9 +2812,6 @@ package body PolyORB.Any is
       pragma Debug (O2 ("Deallocate (Float) : end"));
    end Deallocate;
 
-   ------------------
-   --  Deallocate  --
-   ------------------
    procedure Deallocate (Object : access Content_Double) is
       Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
    begin
@@ -2605,9 +2821,6 @@ package body PolyORB.Any is
       pragma Debug (O2 ("Deallocate (Double) : end"));
    end Deallocate;
 
-   ------------------
-   --  Deallocate  --
-   ------------------
    procedure Deallocate (Object : access Content_Long_Double) is
       Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
    begin
@@ -2617,9 +2830,6 @@ package body PolyORB.Any is
       pragma Debug (O2 ("Deallocate (Long_Double) : end"));
    end Deallocate;
 
-   ------------------
-   --  Deallocate  --
-   ------------------
    procedure Deallocate (Object : access Content_TypeCode) is
       Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
    begin
@@ -2629,9 +2839,6 @@ package body PolyORB.Any is
       pragma Debug (O2 ("Deallocate (TypeCode) : end"));
    end Deallocate;
 
-   ------------------
-   --  Deallocate  --
-   ------------------
    procedure Deallocate (Object : access Content_Any) is
       Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
    begin
@@ -2641,231 +2848,6 @@ package body PolyORB.Any is
       pragma Debug (O2 ("Deallocate (Any) : end"));
    end Deallocate;
 
-   ------------------
-   --  Deallocate  --
-   ------------------
-
-   procedure Deallocate (Object : access Content_ObjRef) is
-      Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
-   begin
-      pragma Debug (O2 ("Deallocate (ObjRef) : enter"));
-      PolyORB.References.Deallocate (Object.Value);
-      Deallocate_Any_Content (Obj);
-      pragma Debug (O2 ("Deallocate (ObjRef) : end"));
-   end Deallocate;
-
-   -----------------
-   --  Duplicate  --
-   -----------------
-   function Duplicate (Object : access Content_Octet)
-                       return Any_Content_Ptr is
-   begin
-      return new Content_Octet'
-        (Value => new Octet' (Content_Octet_Ptr (Object).Value.all));
-   end Duplicate;
-
-   -----------------
-   --  Duplicate  --
-   -----------------
-   function Duplicate (Object : access Content_Short)
-                       return Any_Content_Ptr is
-   begin
-      return new Content_Short'
-        (Value => new Short' (Content_Short_Ptr (Object).Value.all));
-   end Duplicate;
-
-   -----------------
-   --  Duplicate  --
-   -----------------
-   function Duplicate (Object : access Content_Long)
-                       return Any_Content_Ptr is
-   begin
-      pragma Debug (O ("Duplicate (Long) : enter & end"));
-      return new Content_Long'
-        (Value => new Types.Long' (Content_Long_Ptr (Object).Value.all));
-   end Duplicate;
-
-   -----------------
-   --  Duplicate  --
-   -----------------
-   function Duplicate (Object : access Content_Long_Long)
-                       return Any_Content_Ptr is
-   begin
-      return new Content_Long_Long'
-        (Value => new Types.Long_Long'
-         (Content_Long_Long_Ptr (Object).Value.all));
-   end Duplicate;
-
-   -----------------
-   --  Duplicate  --
-   -----------------
-   function Duplicate (Object : access Content_UShort)
-                       return Any_Content_Ptr is
-   begin
-      return new Content_UShort'
-        (Value => new Unsigned_Short'
-         (Content_UShort_Ptr (Object).Value.all));
-   end Duplicate;
-
-   -----------------
-   --  Duplicate  --
-   -----------------
-   function Duplicate (Object : access Content_ULong)
-                       return Any_Content_Ptr is
-   begin
-      pragma Debug (O ("Duplicate (ULong) : enter & end"));
-      return new Content_ULong'
-        (Value => new Unsigned_Long'
-         (Content_ULong_Ptr (Object).Value.all));
-   end Duplicate;
-
-   -----------------
-   --  Duplicate  --
-   -----------------
-   function Duplicate (Object : access Content_ULong_Long)
-                       return Any_Content_Ptr is
-   begin
-      return new Content_ULong_Long'
-        (Value => new Unsigned_Long_Long'
-         (Content_ULong_Long_Ptr (Object).Value.all));
-   end Duplicate;
-
-   -----------------
-   --  Duplicate  --
-   -----------------
-   function Duplicate (Object : access Content_Boolean)
-                       return Any_Content_Ptr is
-   begin
-      return new Content_Boolean'
-        (Value => new Boolean'
-         (Content_Boolean_Ptr (Object).Value.all));
-   end Duplicate;
-
-   -----------------
-   --  Duplicate  --
-   -----------------
-   function Duplicate (Object : access Content_Char)
-                       return Any_Content_Ptr is
-   begin
-      return new Content_Char'
-        (Value => new Char'
-         (Content_Char_Ptr (Object).Value.all));
-   end Duplicate;
-
-   -----------------
-   --  Duplicate  --
-   -----------------
-   function Duplicate (Object : access Content_Wchar)
-                       return Any_Content_Ptr is
-   begin
-      return new Content_Wchar'
-        (Value => new Wchar'
-         (Content_Wchar_Ptr (Object).Value.all));
-   end Duplicate;
-
-   -----------------
-   --  Duplicate  --
-   -----------------
-   function Duplicate (Object : access Content_String)
-                       return Any_Content_Ptr is
-   begin
-      return new Content_String'
-        (Value => new PolyORB.Types.String'
-         (Content_String_Ptr (Object).Value.all));
-   end Duplicate;
-
-   -----------------
-   --  Duplicate  --
-   -----------------
-   function Duplicate (Object : access Content_Wide_String)
-                       return Any_Content_Ptr is
-   begin
-      return new Content_Wide_String'
-        (Value => new Types.Wide_String'
-         (Content_Wide_String_Ptr (Object).Value.all));
-   end Duplicate;
-
-   -----------------
-   --  Duplicate  --
-   -----------------
-   function Duplicate (Object : access Content_Float)
-                       return Any_Content_Ptr is
-   begin
-      return new Content_Float'
-        (Value => new Types.Float'
-         (Content_Float_Ptr (Object).Value.all));
-   end Duplicate;
-
-   -----------------
-   --  Duplicate  --
-   -----------------
-   function Duplicate (Object : access Content_Double)
-                       return Any_Content_Ptr is
-   begin
-      return new Content_Double'
-        (Value => new Double'
-         (Content_Double_Ptr (Object).Value.all));
-   end Duplicate;
-
-   -----------------
-   --  Duplicate  --
-   -----------------
-   function Duplicate (Object : access Content_Long_Double)
-                       return Any_Content_Ptr is
-   begin
-      return new Content_Long_Double'
-        (Value => new Types.Long_Double'
-         (Content_Long_Double_Ptr (Object).Value.all));
-   end Duplicate;
-
-   -----------------
-   --  Duplicate  --
-   -----------------
-   function Duplicate (Object : access Content_TypeCode)
-                       return Any_Content_Ptr is
-   begin
-      return new Content_TypeCode'
-        (Value => new TypeCode.Object'
-         (Content_TypeCode_Ptr (Object).Value.all));
-   end Duplicate;
-
-   -----------------
-   --  Duplicate  --
-   -----------------
-   function Duplicate (Object : access Content_Any)
-                       return Any_Content_Ptr is
-   begin
-      return new Content_Any'
-        (Value => new Any'
-         (Content_Any_Ptr (Object).Value.all));
-   end Duplicate;
-
-   -----------------
-   --  Duplicate  --
-   -----------------
-   function Duplicate (Object : access Content_ObjRef)
-                       return Any_Content_Ptr is
-   begin
-      return new Content_ObjRef'
-        (Value => new PolyORB.References.Ref'
-         (Content_ObjRef_Ptr (Object).Value.all));
-   end Duplicate;
-
-   -----------------
-   --  Duplicate  --
-   -----------------
-   function Duplicate (Object : access Content_Aggregate)
-                       return Any_Content_Ptr is
-   begin
-      pragma Debug (O ("Duplicate (Content_Aggregate) : enter & end"));
-      return new Content_Aggregate'
-        (Value => Duplicate
-         (Content_Aggregate_Ptr (Object).Value));
-   end Duplicate;
-
-   ------------------
-   --  Deallocate  --
-   ------------------
    procedure Deallocate (Object : access Content_Aggregate) is
       Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
    begin
@@ -2877,24 +2859,190 @@ package body PolyORB.Any is
       pragma Debug (O2 ("Deallocate (Aggregate) : end"));
    end Deallocate;
 
-   ------------------
-   --  Initialize  --
-   ------------------
+   ---------------
+   -- Duplicate --
+   ---------------
+
+   function Duplicate (List : in Content_List) return Content_List is
+      use Content_Lists;
+
+      R : Content_List;
+      I : Iterator := First (List);
+   begin
+      pragma Debug (O ("Duplicate (Content_List): enter"));
+      while not Last (I) loop
+         Append (R, Duplicate (Value (I).all));
+         Next (I);
+      end loop;
+      pragma Debug (O ("Duplicate (Content_List): leave"));
+      return R;
+   end Duplicate;
+
+   function Duplicate (Object : access Content_Octet)
+                       return Any_Content_Ptr is
+   begin
+      return new Content_Octet'
+        (Value => new Octet'(Content_Octet_Ptr (Object).Value.all));
+   end Duplicate;
+
+   function Duplicate (Object : access Content_Short)
+                       return Any_Content_Ptr is
+   begin
+      return new Content_Short'
+        (Value => new Short'(Content_Short_Ptr (Object).Value.all));
+   end Duplicate;
+
+   function Duplicate (Object : access Content_Long)
+                       return Any_Content_Ptr is
+   begin
+      pragma Debug (O ("Duplicate (Long) : enter & end"));
+      return new Content_Long'
+        (Value => new Types.Long'(Content_Long_Ptr (Object).Value.all));
+   end Duplicate;
+
+   function Duplicate (Object : access Content_Long_Long)
+                       return Any_Content_Ptr is
+   begin
+      return new Content_Long_Long'
+        (Value => new Types.Long_Long'
+         (Content_Long_Long_Ptr (Object).Value.all));
+   end Duplicate;
+
+   function Duplicate (Object : access Content_UShort)
+                       return Any_Content_Ptr is
+   begin
+      return new Content_UShort'
+        (Value => new Unsigned_Short'
+         (Content_UShort_Ptr (Object).Value.all));
+   end Duplicate;
+
+   function Duplicate (Object : access Content_ULong)
+                       return Any_Content_Ptr is
+   begin
+      pragma Debug (O ("Duplicate (ULong) : enter & end"));
+      return new Content_ULong'
+        (Value => new Unsigned_Long'
+         (Content_ULong_Ptr (Object).Value.all));
+   end Duplicate;
+
+   function Duplicate (Object : access Content_ULong_Long)
+                       return Any_Content_Ptr is
+   begin
+      return new Content_ULong_Long'
+        (Value => new Unsigned_Long_Long'
+         (Content_ULong_Long_Ptr (Object).Value.all));
+   end Duplicate;
+
+   function Duplicate (Object : access Content_Boolean)
+                       return Any_Content_Ptr is
+   begin
+      return new Content_Boolean'
+        (Value => new Boolean'
+         (Content_Boolean_Ptr (Object).Value.all));
+   end Duplicate;
+
+   function Duplicate (Object : access Content_Char)
+                       return Any_Content_Ptr is
+   begin
+      return new Content_Char'
+        (Value => new Char'
+         (Content_Char_Ptr (Object).Value.all));
+   end Duplicate;
+
+   function Duplicate (Object : access Content_Wchar)
+                       return Any_Content_Ptr is
+   begin
+      return new Content_Wchar'
+        (Value => new Wchar'
+         (Content_Wchar_Ptr (Object).Value.all));
+   end Duplicate;
+
+   function Duplicate (Object : access Content_String)
+                       return Any_Content_Ptr is
+   begin
+      return new Content_String'
+        (Value => new PolyORB.Types.String'
+         (Content_String_Ptr (Object).Value.all));
+   end Duplicate;
+
+   function Duplicate (Object : access Content_Wide_String)
+                       return Any_Content_Ptr is
+   begin
+      return new Content_Wide_String'
+        (Value => new Types.Wide_String'
+         (Content_Wide_String_Ptr (Object).Value.all));
+   end Duplicate;
+
+   function Duplicate (Object : access Content_Float)
+                       return Any_Content_Ptr is
+   begin
+      return new Content_Float'
+        (Value => new Types.Float'
+         (Content_Float_Ptr (Object).Value.all));
+   end Duplicate;
+
+   function Duplicate (Object : access Content_Double)
+                       return Any_Content_Ptr is
+   begin
+      return new Content_Double'
+        (Value => new Double'
+         (Content_Double_Ptr (Object).Value.all));
+   end Duplicate;
+
+   function Duplicate (Object : access Content_Long_Double)
+                       return Any_Content_Ptr is
+   begin
+      return new Content_Long_Double'
+        (Value => new Types.Long_Double'
+         (Content_Long_Double_Ptr (Object).Value.all));
+   end Duplicate;
+
+   function Duplicate (Object : access Content_TypeCode)
+                       return Any_Content_Ptr is
+   begin
+      return new Content_TypeCode'
+        (Value => new TypeCode.Object'
+         (Content_TypeCode_Ptr (Object).Value.all));
+   end Duplicate;
+
+   function Duplicate (Object : access Content_Any)
+                       return Any_Content_Ptr is
+   begin
+      return new Content_Any'
+        (Value => new Any'
+         (Content_Any_Ptr (Object).Value.all));
+   end Duplicate;
+
+   function Duplicate (Object : access Content_Aggregate)
+                       return Any_Content_Ptr is
+   begin
+      pragma Debug (O ("Duplicate (Content_Aggregate) : enter & end"));
+      return new Content_Aggregate'
+        (Value => Duplicate
+         (Content_Aggregate_Ptr (Object).Value));
+   end Duplicate;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
    procedure Initialize (Object : in out Any) is
    begin
       pragma Debug (O2 ("Initialize: enter, Object = "
                         & System.Address_Image (Object'Address)));
       Object.Ref_Counter := new Natural'(1);
-      PolyORB.Locks.Create (Object.Any_Lock);
+      Create (Object.Any_Lock);
       pragma Debug
         (O2 ("  Lck = "
              & System.Address_Image (Object.Any_Lock.all'Address)));
       Object.The_Value := new Any_Content_Ptr'(null);
+      pragma Debug (O2 ("Initialize: end"));
    end Initialize;
 
-   --------------
-   --  Adjust  --
-   --------------
+   ------------
+   -- Adjust --
+   ------------
+
    procedure Adjust (Object : in out Any) is
    begin
       pragma Debug (O2 ("Adjust : enter, Object = "
@@ -2909,9 +3057,10 @@ package body PolyORB.Any is
       pragma Debug (O2 ("Adjust : end"));
    end Adjust;
 
-   ----------------
-   --  Finalize  --
-   ----------------
+   --------------
+   -- Finalize --
+   --------------
+
    procedure Finalize (Object : in out Any) is
    begin
       pragma Debug (O2 ("Finalize: enter, Object = "
@@ -2925,19 +3074,24 @@ package body PolyORB.Any is
          raise;
    end Finalize;
 
-   -----------------
-   --  Set_Value  --
-   -----------------
+   ---------------
+   -- Set_Value --
+   ---------------
+
    procedure Set_Value (Obj : in out Any; The_Value : in Any_Content_Ptr) is
    begin
       Lock_W (Obj.Any_Lock);
+      if Obj.The_Value.all /= null then
+         Deallocate (Obj.The_Value.all);
+      end if;
       Obj.The_Value.all := The_Value;
       Unlock_W (Obj.Any_Lock);
    end Set_Value;
 
-   ---------------------
-   --  Get_Value_Ptr  --
-   ---------------------
+   -------------------
+   -- Get_Value_Ptr --
+   -------------------
+
    function Get_Value_Ptr (Obj : Any) return Any_Content_Ptr_Ptr is
       Content_Ptr : Any_Content_Ptr_Ptr;
    begin
@@ -2947,9 +3101,10 @@ package body PolyORB.Any is
       return Content_Ptr;
    end Get_Value_Ptr;
 
-   -----------------
-   --  Get_Value  --
-   -----------------
+   ---------------
+   -- Get_Value --
+   ---------------
+
    function Get_Value (Obj : Any) return Any_Content_Ptr is
    begin
       return Get_Value_Ptr (Obj).all;
@@ -3012,16 +3167,22 @@ package body PolyORB.Any is
          end if;
          pragma Debug (O2 ("Dec_Usage: content released"));
          Deallocate_Any_Content_Ptr (Obj.The_Value);
-         pragma Debug (O2 ("Dec_Usage: content_Ptr released"));
+         pragma Debug (O2 ("Dec_Usage: content_ptr released"));
+
          Deallocate (Obj.Ref_Counter);
          pragma Debug (O2 ("Dec_Usage: counter deallocated"));
+
          Unlock_W (Obj.Any_Lock);
          pragma Debug (O2 ("Dec_Usage: lock released, DESTROYING Lck = "
                            & System.Address_Image (Obj.Any_Lock.all'Address)));
-         PolyORB.Locks.Destroy (Obj.Any_Lock);
+         Destroy (Obj.Any_Lock);
       end if;
-      pragma Debug (O2 ("Dec_Usage : end"));
+      pragma Debug (O2 ("Dec_Usage: end"));
    end Dec_Usage;
+
+   -----------
+   -- Image --
+   -----------
 
    function Image (NV : NamedValue) return Standard.String
    is

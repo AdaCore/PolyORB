@@ -35,5 +35,5 @@ package Idlac_Flags is
    Verbose                : Boolean := True;
    Generate_Delegate      : Boolean := False;
    Generate_Dyn           : Boolean := True;
-
+   Generate_IR            : Boolean := True;
 end Idlac_Flags;

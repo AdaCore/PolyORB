@@ -1,0 +1,27 @@
+--  Set up a simple ORB to act as a client.
+--  The user must take care of also setting up a tasking policy.
+--  XXX inconsistent commentary !!
+
+with PolyORB.Initialization;
+
+with PolyORB.ORB;
+pragma Elaborate_All (PolyORB.ORB);
+pragma Warnings (Off, PolyORB.ORB);
+
+with PolyORB.Profiles.No_Tasking;
+pragma Warnings (Off, PolyORB.Profiles.No_Tasking);
+pragma Elaborate_All (PolyORB.Profiles.No_Tasking);
+
+with PolyORB.ORB.No_Tasking;
+pragma Warnings (Off, PolyORB.ORB.No_Tasking);
+pragma Elaborate_All (PolyORB.ORB.No_Tasking);
+
+with PolyORB.Tasking.Soft_Links;
+pragma Warnings (Off, PolyORB.Tasking.Soft_Links);
+pragma Elaborate_All (PolyORB.Tasking.Soft_Links);
+@PROTO_CLIENT_WITHS@
+
+package body PolyORB.Setup.Client is
+begin
+   PolyORB.Initialization.Initialize_World;
+end PolyORB.Setup.Client;

@@ -1,39 +1,17 @@
-SUBDIRS=	echo all_types all_functions
-
 LINKER=	../support/linker
 
-TESTS=  polyorb-test-no_tasking \
-        polyorb-test-thread_pool \
-        polyorb-test-no_tasking_poa \
-        polyorb-test-thread_pool_poa
+corba_dir = corba
+dsa_dir   = dsa
+moma_dir  = moma
+giop_dir  =
+soap_dir  = 
+srp_dir   =
 
-CLEANFILES=	*.o *.ali
+SUBDIRS=  polyorb @PROTO_DIRS@ @APPLI_DIRS@
 
-all: orb $(TESTS)
+all: orb 
 
-all-local: $(TESTS)
+orb:
+	(cd $(top_builddir)/src && $(MAKE) all)
 
-$(TESTS): force
-	$(GNATMAKE) \
-	-I$(srcdir) \
-	-I$(srcdir)/../src \
-	-I$(srcdir)/../src/corba \
-	-I$(srcdir)/../src/soap \
-	-I../src \
-	-I../src/corba \
-	-I../src/soap \
-	$(XMLADA_INCLUDE) \
-	-m $@ \
-	-cargs $(GNATFLAGS) -bargs $(BARGS) \
-	-largs $(LDFLAGS) --LINK=$(LINKER) \
-	../src/libpolyorb.la \
-	../src/corba/libpolyorb-corba.la \
-	../src/soap/libpolyorb-soap.la \
-	$(XMLADA_LIBS)
 
-orb:	force
-	(cd ../src && $(MAKE) all)
-
-force:
-
-clean:

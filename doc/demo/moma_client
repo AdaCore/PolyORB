@@ -1,0 +1,3 @@
+#!/bin/sh
+cd ../../examples/all_types
+./client_moma $*

@@ -61,6 +61,8 @@ procedure Idlac is
       Put_Line (Current_Error, "  -k     Keep temporary files.");
       Put_Line (Current_Error, "  -p     Produce source on standard output.");
       Put_Line (Current_Error, "  -q     Be quiet.");
+      Put_Line (Current_Error, "  -noir  Don't generate code for "
+                & "interface repository.");
       Put_Line (Current_Error, "  -cppargs ARGS");
       Put_Line (Current_Error, "         Pass ARGS to the C++ preprocessor.");
       Put_Line (Current_Error, "  -I dir is a shortcut for -cppargs -I dir.");
@@ -76,7 +78,7 @@ begin
         ('-', False, "cppargs");
 
       loop
-         case Getopt ("E I: d i k p q nodyn") is
+         case Getopt ("E I: d i k p q nodyn noir") is
             when ASCII.Nul => exit;
 
             when 'E' =>
@@ -93,7 +95,11 @@ begin
                Generate_Impl_Template := True;
 
             when 'n' =>
-               Generate_Dyn := False;
+               if Full_Switch = "nodyn" then
+                  Generate_Dyn := False;
+               elsif Full_Switch = "noir" then
+                  Generate_IR := False;
+               end if;
 
             when 'k' =>
                Keep_Temporary_Files := True;
@@ -211,7 +217,7 @@ begin
         (Use_Mapping => Ada_Be.Mappings.CORBA.The_CORBA_Mapping,
          Node        => Rep,
          Implement   => Generate_Impl_Template,
-         Intf_Repo   => True,
+         Intf_Repo   => Generate_IR,
          To_Stdout   => To_Stdout);
    end if;
 

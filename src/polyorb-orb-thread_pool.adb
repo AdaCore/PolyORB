@@ -32,99 +32,73 @@
 
 --  $Id$
 
-with Ada.Exceptions;
-
 with PolyORB.Components;
 with PolyORB.Configuration;
 with PolyORB.Initialization;
 with PolyORB.Filters.Interface;
-with PolyORB.Jobs;
-with PolyORB.Locked_Queue;
 with PolyORB.Log;
 with PolyORB.Setup;
+with PolyORB.Tasking.Threads;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.ORB.Thread_Pool is
-
-   --  The tread pool works in the following manner :
-   --
-   --  Initialize spawns a fixed number of pool threads that will
-   --  execute client requests.
-   --
-   --  Whenever a request comes, it is enqueued in The_Request_Queue.
-   --
-   --  Whenever a pool thread has nothing to do, it gets the first
-   --  request in The_Request_Queue and executes it.
 
    ------------------------
    -- Local declarations --
    ------------------------
 
    use PolyORB.Components;
+   use PolyORB.Configuration;
+   use PolyORB.Components;
    use PolyORB.Filters.Interface;
    use PolyORB.Log;
-   use PolyORB.Soft_Links;
-   use PolyORB.Components;
+   use PolyORB.Tasking.Mutexes;
+   use PolyORB.Tasking.Threads;
+   use PolyORB.Tasking.Watchers;
 
-   package L is new PolyORB.Log.Facility_Log
-     ("polyorb.orb.thread_pool");
+   package L is new PolyORB.Log.Facility_Log ("polyorb.orb.thread_pool");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-   task type Pool_Thread is
-      entry Start (N : in Natural);
-      pragma Storage_Size (131072);
-   end Pool_Thread;
-   type Pool_Thread_Access is access Pool_Thread;
+   Default_Threads : constant := 4;
+   --  default number of threads in thread pool
+   --  XXX should check compatibility with ravenscar, which also defines
+   --  a number of threads ...
 
-   type Thread_Array is array (Integer range <>) of Pool_Thread;
-   type Thread_Array_Access is access Thread_Array;
+   procedure Main_Thread_Pool;
+   --  Main procedure for threads in the pool
 
-   The_Thread_Pool : Thread_Array_Access := null;
+   ----------------------
+   -- Main_Thread_Pool --
+   ----------------------
 
-   type Request_Info is record
-      Job : Jobs.Job_Access;
-   end record;
-
-   package Request_Queue is new Locked_Queue (Request_Info);
-
-   The_Request_Queue : Request_Queue.Queue;
-
-   -----------------
-   -- Pool_Thread --
-   -----------------
-
-   task body Pool_Thread
+   procedure Main_Thread_Pool
    is
-      Request : Request_Info;
-      Number  : Natural;
    begin
-      accept Start (N : in Natural) do
-         Number := N;
-         pragma Debug (O ("Thread"  & Integer'Image (Number) & " starts"));
-      end Start;
-      loop
-         Request_Queue.Get_Head (The_Request_Queue, Request);
+      pragma Debug (O ("Thread "
+                       & Image (Current_Task)
+                       & " is initialized"));
+      PolyORB.ORB.Run (Setup.The_ORB, May_Poll => True);
+      pragma Debug (O ("Thread "
+                       & Image (Current_Task)
+                       & " is released"));
+   end Main_Thread_Pool;
 
-         pragma Debug (O ("Thread Pool : Thread"
-                          & Integer'Image (Number)
-                          & " is executing request"));
+   ------------------------------------
+   -- Handle_Close_Server_Connection --
+   ------------------------------------
 
-         Jobs.Run (Request.Job);
-         Jobs.Free (Request.Job);
-
-         pragma Debug (O ("Thread Pool : Thread"
-                          & Integer'Image (Number)
-                          & " has executed request"));
-      end loop;
-   exception
-      when E : others =>
-         pragma Debug (O ("Thread_Pool: Thread" & Number'Img
-                          & " caught an exception:"));
-         pragma Debug (O (Ada.Exceptions.Exception_Information
-                          (E)));
-         null;
-   end Pool_Thread;
+   procedure Handle_Close_Server_Connection
+     (P   : access Thread_Pool_Policy;
+      TE  :        Transport_Endpoint_Access)
+   is
+   begin
+      pragma Warnings (Off);
+      pragma Unreferenced (P);
+      pragma Unreferenced (TE);
+      pragma Warnings (On);
+      null;
+   end Handle_Close_Server_Connection;
 
    ----------------------------------
    -- Handle_New_Server_Connection --
@@ -179,18 +153,17 @@ package body PolyORB.ORB.Thread_Pool is
    procedure Handle_Request_Execution
      (P   : access Thread_Pool_Policy;
       ORB : ORB_Access;
-      RJ  : access Jobs.Job'Class)
+      RJ  : access Request_Job'Class)
    is
    begin
       pragma Warnings (Off);
       pragma Unreferenced (P);
       pragma Unreferenced (ORB);
       pragma Warnings (On);
-      pragma Debug (O ("Thread_Pool: handle request execution"));
-      Request_Queue.Add
-        (The_Request_Queue,
-         Request_Info'(Job => PolyORB.ORB.Duplicate_Request_Job (RJ)));
-      --  Must copy now, because the caller will free RJ soon.
+      pragma Debug (O ("Thread "
+                       & Image (Current_Task)
+                         & " handles request execution"));
+      Run_Request (RJ);
    end Handle_Request_Execution;
 
    ----------
@@ -201,22 +174,28 @@ package body PolyORB.ORB.Thread_Pool is
      (P : access Thread_Pool_Policy;
       ORB : ORB_Access)
    is
-      use PolyORB.Soft_Links;
       V : Version_Id;
    begin
       pragma Warnings (Off);
       pragma Unreferenced (P);
       pragma Warnings (On);
-      pragma Debug (O ("Going idle."));
+      pragma Debug (O ("Thread "
+                       & Image (Current_Task)
+                       & " is going idle."));
+      Enter (ORB.Idle_Lock);
+      ORB.Idle_Counter := ORB.Idle_Counter + 1;
+      Leave (ORB.Idle_Lock);
 
       Lookup (ORB.Idle_Tasks, V);
       Differ (ORB.Idle_Tasks, V);
 
-      --  raise Program_Error;
-      --  When in Thread_Pool mode, threads should not be allowed
-      --  to go idle, but should be blocked when the request queue
-      --  is empty. XXX *But* application threads that are not part
-      --  of the thread pool may need to idle!
+      Enter (ORB.Idle_Lock);
+      ORB.Idle_Counter := ORB.Idle_Counter - 1;
+      Leave (ORB.Idle_Lock);
+
+      pragma Debug (O ("Thread "
+                       & Image (Current_Task)
+                       & " is leaving Idle state"));
    end Idle;
 
    ------------------------------
@@ -235,49 +214,35 @@ package body PolyORB.ORB.Thread_Pool is
       Emit_No_Reply (Component_Access (ORB), Msg);
    end Queue_Request_To_Handler;
 
-   ----------------
-   -- Initialize --
-   ----------------
+   --------------------------------------
+   -- Initialize_Tasking_Policy_Thread --
+   --------------------------------------
+   procedure Initialize_Tasking_Policy_Access;
 
-   Initialized : Boolean := False;
-   Default_Threads : constant := 4;
-   Default_Queue_Size : constant := 10;
-
-   procedure Initialize
-     (Number_Of_Threads : Positive;
-      Queue_Size        : Positive)
-   is
-      Dummy_Task : Pool_Thread_Access;
-   begin
-      pragma Debug (O ("Initialize : enter"));
-      if Initialized then
-         pragma Debug (O ("Thread_Pool: already initialized!"));
-         return;
-      end if;
-      Initialized := True;
-      The_Thread_Pool := new Thread_Array (1 .. Number_Of_Threads);
-
-      Request_Queue.Create (The_Request_Queue, Queue_Size);
-
-      for J in The_Thread_Pool'Range loop
-         Dummy_Task := new Pool_Thread;
-         Dummy_Task.Start (J);
-      end loop;
-   end Initialize;
-
-   procedure Auto_Initialize;
-
-   procedure Auto_Initialize is
-      use PolyORB.Configuration;
+   procedure Initialize_Tasking_Policy_Access is
    begin
       Setup.The_Tasking_Policy := new Thread_Pool_Policy;
+   end Initialize_Tasking_Policy_Access;
 
-      Initialize
-        (Get_Conf ("tasking", "polyorb.orb.thread_pool.threads",
-                   Default_Threads),
-         Get_Conf ("tasking", "polyorb.orb.thread_pool.queue_size",
-                   Default_Queue_Size));
-   end Auto_Initialize;
+   ------------------------
+   -- Initialize_Threads --
+   ------------------------
+   procedure Initialize_Threads;
+
+   procedure Initialize_Threads is
+      use PolyORB.Configuration;
+      Number_Of_Threads : Positive;
+   begin
+      pragma Debug (O ("Initialize_threads : enter"));
+      Number_Of_Threads := Get_Conf
+        ("tasking",
+         "polyorb.orb.thread_pool.threads",
+         Default_Threads);
+      for J in 1 .. Number_Of_Threads loop
+         Create_Task (Main_Thread_Pool'Access);
+      end loop;
+      pragma Debug (O ("Initialize_threads : leave"));
+   end Initialize_Threads;
 
    use PolyORB.Initialization;
    use PolyORB.Initialization.String_Lists;
@@ -290,5 +255,20 @@ begin
        Conflicts => +"no_tasking",
        Depends => +"soft_links",
        Provides => +"orb.tasking_policy",
-       Init => Auto_Initialize'Access));
+       Init => Initialize_Tasking_Policy_Access'Access));
+
+   Register_Module
+     (Module_Info'
+      (Name => +"orb.threads_init",
+       Conflicts => +"no_tasking",
+       Depends => +"orb",
+       Provides => +"orb.tasking_policy_init",
+       Init => Initialize_Threads'Access));
+
+   --  two Register_Module are needed because, on one hand, the variable
+   --  Setup.The_Tasking_Policy must be initialized before ORB creation
+   --  and on the other hand, the variable Setup.The_ORB must be initialized
+   --  in order to run threads from the thread_pool. This breaks the
+   --  circular dependecy at initialisation
+
 end PolyORB.ORB.Thread_Pool;

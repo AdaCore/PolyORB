@@ -187,6 +187,8 @@ package body SOAP.Message.XML is
       S        : in State;
       Expected_Type : in PolyORB.Any.TypeCode.Object)
      return PolyORB.Any.NamedValue;
+   --  Parse any parameter. This is notionally the Unmashall_To_Any
+   --  representation operation.
 
 --    function Parse_Array
 --      (N : in DOM.Core.Node;

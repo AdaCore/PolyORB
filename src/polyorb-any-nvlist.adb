@@ -101,6 +101,8 @@ package body PolyORB.Any.NVList is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
+
+      pragma Debug (O ("Free"));
       null;
    end Free;
 
@@ -122,40 +124,18 @@ package body PolyORB.Any.NVList is
       end if;
    end Get_Count;
 
-   -------------------
-   -- Create_Object --
-   -------------------
-
-   function Create_Object return Object_Ptr;
-   --  Create a new and empty Object
-
-   function Create_Object return Object_Ptr
-   is
-      Res : constant Object_Ptr := new Object;
-   begin
-      return Res;
-   end Create_Object;
-
-   procedure Initialize (X : in out Object) is
-   begin
-      X.List := NV_Sequence.Null_Sequence;
-   end Initialize;
-
-   procedure Finalize (X : in out Object) is
-   begin
-      Initialize (X);
-   end Finalize;
-
    ------------
    -- Create --
    ------------
 
-   procedure Create (NVList : out Ref)
-   is
-      Object : constant Object_Ptr := Create_Object;
+   procedure Create (NVList : out Ref) is
    begin
-      Set (NVList, PolyORB.Smart_Pointers.Entity_Ptr (Object));
+      Set (NVList, PolyORB.Smart_Pointers.Entity_Ptr'(new Object));
    end Create;
+
+   -----------
+   -- Image --
+   -----------
 
    function Image (NVList : Ref) return Standard.String
    is
@@ -181,6 +161,10 @@ package body PolyORB.Any.NVList is
          return ("(null list)");
       end if;
    end Image;
+
+   --------------------------------
+   -- Package body for Internals --
+   --------------------------------
 
    package body Internals is
 

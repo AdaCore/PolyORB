@@ -43,17 +43,21 @@ package PolyORB.Binding_Data.SOAP is
    pragma Elaborate_Body;
 
    type SOAP_Profile_Type is new Profile_Type with private;
-
-   procedure Initialize;
+   --  A profile that designates an object accessible through
+   --  SOAP RPC over HTTP.
 
    procedure Initialize (P : in out SOAP_Profile_Type);
    procedure Adjust     (P : in out SOAP_Profile_Type);
    procedure Finalize   (P : in out SOAP_Profile_Type);
 
-   procedure Bind_Non_Local_Profile
-     (Profile   : SOAP_Profile_Type;
-      TE        : out Transport.Transport_Endpoint_Access;
-      Filter    : out Components.Component_Access);
+   ----------------------------------------------------
+   -- Overloaded abstract operations of Profile_Type --
+   ----------------------------------------------------
+
+   function Bind_Profile
+     (Profile : SOAP_Profile_Type;
+      The_ORB : Components.Component_Access)
+     return Components.Component_Access;
 
    function Get_Profile_Tag
      (Profile : SOAP_Profile_Type)
@@ -65,9 +69,25 @@ package PolyORB.Binding_Data.SOAP is
      return Profile_Preference;
    pragma Inline (Get_Profile_Preference);
 
-   function Get_URI_Path
-     (Profile : SOAP_Profile_Type)
-     return Types.String;
+   -----------------------------------------------
+   -- Supplementary operations of SOAP profiles --
+   -----------------------------------------------
+
+   function Get_URI_Path (Profile : SOAP_Profile_Type) return Types.String;
+   --  Return the 'path' component of the object URI.
+
+   function Create_Profile (URI : Types.String) return Profile_Access;
+   --  Create a SOAP RPC/HTTP profile from an absolute URI.
+
+   function To_URI (Prof : SOAP_Profile_Type) return String;
+   --  Convert a SOAP profile to an equivalent URI.
+
+   function Image (Prof : SOAP_Profile_Type) return String;
+   --  Represent Prof as a string, for debugging purposes.
+
+   ----------------------------
+   -- SOAP profile factories --
+   ----------------------------
 
    type SOAP_Profile_Factory is new Profile_Factory with private;
 
@@ -78,18 +98,18 @@ package PolyORB.Binding_Data.SOAP is
 
    function Create_Profile
      (PF  : access SOAP_Profile_Factory;
-      TAP : Transport.Transport_Access_Point_Access;
       Oid : Objects.Object_Id)
-     return Profile_Access;
-
-   function Create_Profile
-     (URI : Types.String)
      return Profile_Access;
 
    function Is_Local_Profile
      (PF : access SOAP_Profile_Factory;
       P  : access Profile_Type'Class)
       return Boolean;
+
+   -------------------------------------------
+   --  Profile representation subprograms   --
+   --  (used for the construction of IORs). --
+   -------------------------------------------
 
    procedure Marshall_SOAP_Profile_Body
      (Buf     : access Buffers.Buffer_Type;
@@ -98,9 +118,6 @@ package PolyORB.Binding_Data.SOAP is
    function   Unmarshall_SOAP_Profile_Body
      (Buffer   : access Buffers.Buffer_Type)
     return  Profile_Access;
-
-   function Image (Prof : SOAP_Profile_Type) return String;
-   function To_URI (Prof : SOAP_Profile_Type) return String;
 
 private
 

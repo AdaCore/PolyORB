@@ -76,18 +76,21 @@ build the SOAP protocol personality.
 Build instructions
 ------------------
 
-See file INSTALL.
-
 Developers building PolyORB from the version control repository
 who need to rebuild the configure and Makefile.in files should
 use the script support/reconfig for this purpose.
 
 Available options for the 'configure' script include:
-  --enable-xmlada: set if you have XmlAda and you want to build the
-                   SOAP protocol personality.
-  --enable-shared: build shared libraries.
-  --enable-debug:  enable debugging information generation and supplementary
-                   runtime checks.
+  --with-appli-perso=".." : application personalities to build, among
+                            CORBA, DSA, MOMA
+  --with-proto-perso=".." : personalities to build, among
+                            GIOP, SOAP, SRP
+  --with-services=".." : services to build : naming, ir
+  --enable-shared : build shared libraries.
+  --enable-debug  : enable debugging information generation and supplementary
+                    runtime checks.
+
+By default, only the CORBA and GIOP personalities are built.
 
 Documentation overview
 ----------------------
@@ -133,7 +136,7 @@ Usage of PolyORB
 
 See examples of simple CORBA clients and servers in subdirectory 'examples/'.
 Basically, a simple non-tasking CORBA client should have a dependency
-and a pragma Elaborate_All on PolyORB.Setup.CORBA_Client. A CORBA+SOAP
+and a pragma Elaborate_All on PolyORB.Setup.Client. A CORBA+SOAP
 server should have a dependcy and pragma Elaborate_All on one of
 PolyORB.Setup.No_Tasking_Server, PolyORB.Setup.Thread_Pool_Server or
 PolyORB.Setup.Thread_Per_Session_Server.

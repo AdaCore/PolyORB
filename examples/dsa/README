@@ -1,0 +1,14 @@
+README for the PolyORB Ada 95 Distributed Systems Annex example
+---------------------------------------------------------------
+
+$Id$
+
+To run this demo, you need to:
+
+1. run PolyORB's CORBA COS Naming 'ab_names' located in the cos/naming
+  directory.
+
+2. export the POLYORB_CORBA_NAMING_IOR environment variable returned
+   by 'ab_names' in every terminal session in which you plan to run the demo.
+
+3. then run 'server' and 'client' programs.

@@ -49,6 +49,10 @@ package body PolyORB.Transport.Sockets is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
+   ------------
+   -- Create --
+   ------------
+
    procedure Create
      (SAP     : in out Socket_Access_Point;
       Socket  :        Socket_Type;
@@ -65,12 +69,20 @@ package body PolyORB.Transport.Sockets is
       Address := SAP.Addr;
    end Create;
 
+   -------------------------
+   -- Create_Event_Source --
+   -------------------------
+
    function Create_Event_Source
      (TAP : Socket_Access_Point)
      return Asynch_Ev_Source_Access is
    begin
       return Create_Event_Source (TAP.Socket);
    end Create_Event_Source;
+
+   -----------------------
+   -- Accept_Connection --
+   -----------------------
 
    procedure Accept_Connection
      (TAP : Socket_Access_Point;
@@ -87,11 +99,19 @@ package body PolyORB.Transport.Sockets is
       TE := New_TE;
    end Accept_Connection;
 
+   ----------------
+   -- Address_Of --
+   ----------------
+
    function Address_Of (SAP : Socket_Access_Point)
      return Sock_Addr_Type is
    begin
       return SAP.Addr;
    end Address_Of;
+
+   ------------
+   -- Create --
+   ------------
 
    procedure Create
      (TE : in out Socket_Endpoint;
@@ -100,12 +120,20 @@ package body PolyORB.Transport.Sockets is
       TE.Socket := S;
    end Create;
 
+   -------------------------
+   -- Create_Event_Source --
+   -------------------------
+
    function Create_Event_Source
      (TE : Socket_Endpoint)
      return Asynch_Ev_Source_Access is
    begin
       return Create_Event_Source (TE.Socket);
    end Create_Event_Source;
+
+   -----------
+   -- Read --
+   -----------
 
    procedure Read
      (TE     : in out Socket_Endpoint;
@@ -127,6 +155,10 @@ package body PolyORB.Transport.Sockets is
       Size := Data_Received;
    end Read;
 
+   -----------
+   -- Write --
+   -----------
+
    procedure Write
      (TE     : in out Socket_Endpoint;
       Buffer : Buffers.Buffer_Access)
@@ -134,6 +166,10 @@ package body PolyORB.Transport.Sockets is
    begin
       PolyORB.Buffers.Send_Buffer (Buffer, TE.Socket);
    end Write;
+
+   -----------
+   -- Close --
+   -----------
 
    procedure Close (TE : in out Socket_Endpoint) is
    begin

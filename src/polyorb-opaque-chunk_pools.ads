@@ -32,9 +32,11 @@
 
 --  Pools of memory chunks, with associated client metadata.
 
---  $Id: //droopi/main/src/polyorb-opaque-chunk_pools.ads#5 $
+--  $Id: //droopi/main/src/polyorb-opaque-chunk_pools.ads#6 $
 
 with Ada.Finalization;
+
+with PolyORB.Utils.Chained_Lists;
 
 generic
 
@@ -79,18 +81,6 @@ package PolyORB.Opaque.Chunk_Pools is
    --  Signals that Pool will not be used anymore.
    --  The associated storage is returned to the system.
 
-   function First
-     (Pool : Pool_Type)
-     return Chunk_Access;
-   --  Returns an access to the first chunk in Pool.
-
-   function Next
-     (A_Chunk : Chunk_Access)
-     return Chunk_Access;
-   --  Returns the chunk that follows A_Chunk in its
-   --  pool. Returns a null access if A_Chunk designates
-   --  the last chunk in a pool.
-
    function Metadata
      (A_Chunk : Chunk_Access)
      return Metadata_Access;
@@ -105,9 +95,6 @@ private
 
    type Chunk (Size : Ada.Streams.Stream_Element_Count) is
      new Ada.Finalization.Limited_Controlled with record
-        Next     : Chunk_Access;
-         --  The next chunk in the pool.
-
         Metadata : aliased Chunk_Metadata;
          --  Metadata associated by a client to this chunk.
 
@@ -118,6 +105,8 @@ private
    procedure Initialize (X : in out Chunk);
    procedure Finalize (X : in out Chunk);
 
+   package Chunk_Lists is new Utils.Chained_Lists (Chunk_Access);
+
    type Pool_Type is limited record
       Prealloc : aliased Chunk (Default_Chunk_Size);
       --  A pre-allocated chunk.
@@ -125,10 +114,8 @@ private
       Prealloc_Used : Boolean := False;
       --  The pre-allocated chunk has been used.
 
-      First    : Chunk_Access;
-      Last     : Chunk_Access;
-      --  The first and last elements of the list
-      --  of dynamically-allocated chunks.
+      Chunks   : Chunk_Lists.List;
+      --  The list of all dynamically allocated chunks in this pool.
    end record;
 
 end PolyORB.Opaque.Chunk_Pools;

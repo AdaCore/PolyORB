@@ -51,11 +51,19 @@ package body PolyORB.Transport is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
+   ----------------
+   -- Notepad_Of --
+   ----------------
+
    function Notepad_Of (TAP : Transport_Access_Point_Access)
      return Annotations.Notepad_Access is
    begin
       return TAP.Notepad'Access;
    end Notepad_Of;
+
+   -------------------
+   -- Handle_Mesage --
+   -------------------
 
    function Handle_Message
      (TAP : access Transport_Access_Point;
@@ -75,6 +83,10 @@ package body PolyORB.Transport is
       pragma Warnings (On);
    end Handle_Message;
 
+   -------------------
+   -- Connect_Upper --
+   -------------------
+
    procedure Connect_Upper
      (TE    : access Transport_Endpoint;
       Upper : Components.Component_Access) is
@@ -82,11 +94,19 @@ package body PolyORB.Transport is
       Components.Connect (TE.Upper, Upper);
    end Connect_Upper;
 
+   ----------------
+   -- Notepad_Of --
+   ----------------
+
    function Notepad_Of (TE : Transport_Endpoint_Access)
      return Annotations.Notepad_Access is
    begin
       return TE.Notepad'Access;
    end Notepad_Of;
+
+   -------------
+   -- Destroy --
+   -------------
 
    procedure Destroy (TE : in out Transport_Endpoint_Access)
    is
@@ -96,6 +116,10 @@ package body PolyORB.Transport is
       Destroy (TE.Upper);
       Free (TE);
    end Destroy;
+
+   --------------------
+   -- Handle_Message --
+   --------------------
 
    function Handle_Message
      (TE  : access Transport_Endpoint;
@@ -108,6 +132,7 @@ package body PolyORB.Transport is
    begin
       if Msg in Connect_Indication then
          return Emit (TE.Upper, Msg);
+
       elsif Msg in Data_Expected then
          declare
             DE : Data_Expected renames Data_Expected (Msg);
@@ -141,7 +166,7 @@ package body PolyORB.Transport is
                raise Connection_Closed;
                --  Notify the ORB that the socket was disconnected.
                --  The sender of the Data_Indication message is
-               --  reponsible for handling this exception and ckisubg
+               --  reponsible for handling this exception and closing
                --  the transport endpoint, if necessary.
             end if;
 
@@ -150,23 +175,39 @@ package body PolyORB.Transport is
             --  only receive Data_Indications with a non-zero Data_Amount.
 
          end;
+
       elsif Msg in Data_Out then
          Write (Transport_Endpoint'Class (TE.all), Data_Out (Msg).Out_Buf);
+
       elsif Msg in Set_Server then
          TE.Server := Set_Server (Msg).Server;
          return Emit (TE.Upper, Msg);
+
       elsif Msg in Connect_Confirmation then
          return Emit (TE.Upper, Msg);
+
       elsif Msg in Disconnect_Request then
          Close (Transport_Endpoint'Class (TE.all));
          return Emit
            (TE.Server, ORB.Interface.Unregister_Endpoint'
             (TE => Transport_Endpoint_Access (TE)));
+
       else
          --  Must not happen.
          raise Components.Unhandled_Message;
       end if;
       return Nothing;
    end Handle_Message;
+
+   -----------
+   -- Upper --
+   -----------
+
+   function Upper (TE : Transport_Endpoint_Access)
+                   return Components.Component_Access
+   is
+   begin
+      return TE.Upper;
+   end Upper;
 
 end PolyORB.Transport;

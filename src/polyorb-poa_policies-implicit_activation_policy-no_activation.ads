@@ -39,7 +39,7 @@ package PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation is
 
    procedure Check_Compatibility
      (Self : No_Activation_Policy;
-      OA   : PolyORB.POA_Types.Obj_Adapter_Access);
+      Other_Policies   : AllPolicies);
 
    function Policy_Id
      (Self : No_Activation_Policy)
@@ -48,7 +48,7 @@ package PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation is
    function Implicit_Activate_Servant
      (Self      : No_Activation_Policy;
       OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Objects.Servant_Access)
+      P_Servant : Servants.Servant_Access)
      return Object_Id_Access;
 
 end PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation;

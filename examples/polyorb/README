@@ -1,0 +1,9 @@
+README for the PolyORB examples
+-------------------------------------
+
+$Id$
+
+This directory contains examples of servants built directly on top
+of the PolyORB neutral core layer.
+
+To access them remotely, you can use the CORBA 'echo' client.

@@ -48,6 +48,10 @@ package body PolyORB.Binding_Data is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
+   ---------------------
+   -- Destroy_Profile --
+   ---------------------
+
    procedure Destroy_Profile (P : in out Profile_Access)
    is
       procedure Free is new Ada.Unchecked_Deallocation
@@ -62,11 +66,19 @@ package body PolyORB.Binding_Data is
       Free (P);
    end Destroy_Profile;
 
+   --------------------
+   -- Get_Object_Key --
+   --------------------
+
    function Get_Object_Key (Profile : Profile_Type)
      return Objects.Object_Id_Access is
    begin
       return Profile.Object_Id;
    end Get_Object_Key;
+
+   ----------------------
+   -- Set_Continuation --
+   ----------------------
 
    procedure Set_Continuation
      (Prof         : access Profile_Type;

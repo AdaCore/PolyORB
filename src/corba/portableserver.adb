@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -40,19 +40,23 @@ with PolyORB.CORBA_P.Names;
 with PolyORB.Log;
 with PolyORB.Requests;
 with PolyORB.Objects.Interface;
-with PolyORB.Soft_Links;
+with PolyORB.Tasking.Soft_Links;
 with PolyORB.Utils.Chained_Lists;
 
 package body PortableServer is
 
    use PolyORB.Log;
-   use PolyORB.Soft_Links;
+   use PolyORB.Tasking.Soft_Links;
 
    package L is new PolyORB.Log.Facility_Log ("portableserver");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
-   function Handle_Message
+   ---------------------
+   -- Execute_Servant --
+   ---------------------
+
+   function Execute_Servant
      (Self : access DynamicImplementation;
       Msg  : PolyORB.Components.Message'Class)
      return PolyORB.Components.Message'Class
@@ -79,7 +83,11 @@ package body PortableServer is
       else
          raise PolyORB.Components.Unhandled_Message;
       end if;
-   end Handle_Message;
+   end Execute_Servant;
+
+   ------------
+   -- Invoke --
+   ------------
 
    procedure Invoke
      (Self    : access Servant_Base;
@@ -92,6 +100,10 @@ package body PortableServer is
       --  Self's primitive operations to that skeleton.
    end Invoke;
 
+   ---------------------
+   -- Get_Default_POA --
+   ---------------------
+
    function Get_Default_POA
      (For_Servant : Servant_Base)
      return POA_Forward.Ref is
@@ -102,6 +114,10 @@ package body PortableServer is
       --  "Possible infinite recursion".
       pragma Warnings (On);
    end Get_Default_POA;
+
+   -----------------
+   -- Get_Members --
+   -----------------
 
    procedure Get_Members
      (From : in CORBA.Exception_Occurrence;
@@ -171,14 +187,14 @@ package body PortableServer is
       use Skeleton_Lists;
    begin
       pragma Debug (O ("Register_Skeleton enter"));
-      Enter_Critical_Section;
+
       Prepend (All_Skeletons,
                (Type_Id    => Type_Id,
                 Is_A       => Is_A,
                 Dispatcher => Dispatcher));
       pragma Debug (O ("Registered : type_id = " &
                        CORBA.To_Standard_String (Type_Id)));
-      Leave_Critical_Section;
+
    end Register_Skeleton;
 
    -----------------

@@ -35,15 +35,27 @@
 --  $Id$
 
 with PolyORB.Initialization;
-with PolyORB.ORB.No_Tasking;
-with PolyORB.Setup.Server;
-
-pragma Elaborate_All (PolyORB.ORB.No_Tasking);
-pragma Elaborate_All (PolyORB.Setup.Server);
-
 pragma Warnings (Off, PolyORB.Initialization);
+
+with PolyORB.ORB;
+pragma Elaborate_All (PolyORB.ORB);
+pragma Warnings (Off, PolyORB.ORB);
+
+with PolyORB.Profiles.No_Tasking;
+pragma Warnings (Off, PolyORB.Profiles.No_Tasking);
+pragma Elaborate_All (PolyORB.Profiles.No_Tasking);
+
+with PolyORB.ORB.No_Tasking;
 pragma Warnings (Off, PolyORB.ORB.No_Tasking);
+pragma Elaborate_All (PolyORB.ORB.No_Tasking);
+
+with PolyORB.Setup.Server;
+pragma Elaborate_All (PolyORB.Setup.Server);
 pragma Warnings (Off, PolyORB.Setup.Server);
+
+with PolyORB.Tasking.Soft_Links;
+pragma Warnings (Off, PolyORB.Tasking.Soft_Links);
+pragma Elaborate_All (PolyORB.Tasking.Soft_Links);
 
 package body PolyORB.Setup.No_Tasking_Server is
 

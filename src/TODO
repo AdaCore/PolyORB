@@ -1,4 +1,4 @@
-TODO for Droopi
+TODO for PolyORB
 ---------------
 
 $Id$
@@ -6,56 +6,84 @@ $Id$
 Items still requiring attention
 -------------------------------
 
-* Fix memory leaks.
+* When registering a profile tag, the associated representation
+  subprograms should be To_Any and From_Any, not CDR marshalling
+  subprograms.
+  
+* Clarify the uniform interface of representations:
+  either create a PolyORB.Representations.CDR.CDR_Representation
+  type (derived from P.R.Representation) or remove P.R.Representation
+  altogether.
+
+* Fix memory leaks (to be checked with Debug_Pools disabled!)
+
+* Extend Transport framework with a new abstract class
+  Transport_Access_Point_Name with a bind() primitive operation
+  that returns a Transport_Endpoint.
 
 * Factor out common code between different versions of
-  Droopi.Binding_Data.*
+  PolyORB.Binding_Data.*.
 
-* Exception support
+* Incorporate Transport_Access_Point_Name usage as a
+  Binding_Object_Fragment_Factory (extension of the notion of
+  Filter_Factory to fragments of binding objects that
+  are not filter). Think Netgraph.
 
-* Dynamic Task Pool threading policy.
-
-* Architecture and documentation:
-  Define a typical usage case for the interoperability
-  feature, demonstrating how DROOPI allows to do the same
-  as CIAO *and more* (ie the case must include a cross-model
-  callback).
+* Exception support: separate personality-specific (CORBA)
+  code from generic code. Check proper implementation of
+  DSA exceptions. Document mapping between both models.
 
 * Ada 95 DSA personality:
-  -> define targets and milestones (RCI support, partial RT
-     support (eg only constrained types), full RT support,
-     SP support)
-  -> define an interface with the compiler and with user code
-     (ie the interface of stub and skeleton objects).
+  -> Asynchronous
+  -> RACW 'Read/'Write
+  -> From_Any and To_Any for tagged records and variant records.
+  -> map system exceptions to System.RPC.Communication_Error.
+  -> map user exceptions to appropriate Exception_Occurrences.
    
-* General run-time configuration mechanism (config file, eg to
-  set the preference for each profile type, and to integrate the
-  configuration of the logging subsystem into a more general config
-  manager).
-
 * Bind-time configuration tool (to help the user generate a configuration
   package suited to his needs.)
+
+* Run-time configuration of loaded functionality (using Adaplugins ?)
 
 * See whether Buffers.Set_Initial_Position can be made private
   or moved to unit body.
 
 * Support logging to syslog (also for Java ?)
 
-* Droopi.Buffers: remove mentions of CDR.
-* Droopi.Buffers: remove mention of sockets.
+* PolyORB.Buffers: remove mentions of CDR (most notably, the Endianness
+  property of a buffer and all endianness considerations are irrelevant
+  to PolyORB.Buffers).
 
-* Different tasking configurations
-  -> A single-task client configuration.
-  -> A multi-tasking server configuration.
-  -> A multi-tasking client configuration.
+* PolyORB.Buffers: remove mention of sockets.
+
+* PolyORB.Buffers: Zero-copy buffers.
 
 * Configuration of memory allocation:
+  -> real-time allocator?
   -> usage of Storage_Pools?
   -> static allocation?
-  -> real-time allocator?
   -> smart resource management (garbage collection, system audit...)?
 
   See Allocator abstract class in Quarterware.
+
+* HTTP as a Protocol (to be used with Minimal_Servant to compose a
+  web server).
+
+* Remove SOAP-specific stuff from the HTTP filter
+  (SOAPAction handling), move that to a SOAP/HTTP binding filter,
+  with the following resulting architecture:
+
+       SOAP
+        ^
+        |
+        v
+   SOAP/HTTP binding
+        ^
+        |
+        v
+       HTTP
+
+* CSTA protocol (for telephony applications.)
 
 * Alternative implementations of transport endpoints:
 
@@ -82,7 +110,7 @@ Items processed
   chunk, and advance the current position by the exact
   size of the received data (2770).
 
-* Rework Droopi.ORB event handling:
+* Rework PolyORB.ORB event handling:
   The event handling loop must occur within the critical
   section (because it must mask certain sockets).
   Jobs should be created for each event, which will be
@@ -102,9 +130,9 @@ Items processed
   For a profile to be used when creating and parsing IORs,
   its tag must be registered.
 
-* Move CORBA.POA to Droopi.<something> (3329).
+* Move CORBA.POA to PolyORB.<something> (3329).
 
-* Make Droopi.References.Ref a Smart_Pointers.Entity
+* Make PolyORB.References.Ref a Smart_Pointers.Entity
   so the list of profiles can be free'd when not used
   anymore.
 

@@ -30,16 +30,16 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Locks;
 with PolyORB.Object_Maps;
 with PolyORB.POA;
 with PolyORB.POA_Policies.Implicit_Activation_Policy;
+with PolyORB.Tasking.Rw_Locks;
 
 package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique is
 
-   use PolyORB.Locks;
    use PolyORB.Object_Maps;
    use PolyORB.POA_Policies.Implicit_Activation_Policy;
+   use PolyORB.Tasking.Rw_Locks;
 
    ------------
    -- Create --
@@ -55,12 +55,12 @@ package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique is
    -------------------------
 
    procedure Check_Compatibility
-     (Self : Unique_Id_Policy;
-      OA   : PolyORB.POA_Types.Obj_Adapter_Access) is
+     (Self           : Unique_Id_Policy;
+      Other_Policies : AllPolicies)
+   is
    begin
       pragma Warnings (Off);
-      pragma Unreferenced (Self);
-      pragma Unreferenced (OA);
+      pragma Unreferenced (Self, Other_Policies);
       pragma Warnings (On);
       null;
    end Check_Compatibility;
@@ -86,7 +86,7 @@ package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique is
    procedure Ensure_Servant_Uniqueness
      (Self      : Unique_Id_Policy;
       OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Objects.Servant_Access)
+      P_Servant : Servants.Servant_Access)
    is
       POA : constant PolyORB.POA.Obj_Adapter_Access
         := PolyORB.POA.Obj_Adapter_Access (OA);
@@ -110,7 +110,7 @@ package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique is
    function Activate_Again
      (Self      : Unique_Id_Policy;
       OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Objects.Servant_Access;
+      P_Servant : Servants.Servant_Access;
       Oid       : Object_Id_Access)
      return Object_Id_Access
    is

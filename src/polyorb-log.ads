@@ -65,12 +65,11 @@ package PolyORB.Log is
       --  to resume normal operation.
       );
 
-   function Get_Log_Level (Facility : in String) return Log_Level;
-   --  Returns the user-requested log level for facility Flag.
-
    generic
       Facility :  String;
    package Facility_Log is
+
+      --  NOTE: these procedures are not thread safe.
 
       procedure Output
         (Message : in String;
@@ -78,12 +77,31 @@ package PolyORB.Log is
       --  Log Message when Level is at least equal to the user-requested
       --  level for Facility.
 
+      procedure Increment;
+      --  Increment an internal counter and prints its value;
+
+      procedure Decrement;
+      --  Decrement an internal counter and prints its value;
+
    end Facility_Log;
+
+   ------------------------------------------------------
+   -- Integration with runtime configuration subsystem --
+   ------------------------------------------------------
+
+   Log_Section       : constant String    := "log";
+   Default_Log_Level : constant Log_Level := Notice;
 
    type Configuration_Hook is access
      function (Section, Key, Default : String)
                return String;
 
    Get_Conf_Hook : Configuration_Hook := null;
+   --  When a configuration subsystem is initialized, it may
+   --  set this pointer to a function allowing the logging subsystem
+   --  to retrieve the logging level associated with a given
+   --  facility. The configuration values must be in the
+   --  section named by Log_Section, and the keys used are
+   --  the facility names.
 
 end PolyORB.Log;

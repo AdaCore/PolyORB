@@ -535,8 +535,8 @@ package body Ada_Be.Idl2Ada is
                   PL (CU, "--  Sanity check");
                   PL (CU, "if Is_Nil (" & Self_Expr & ") then");
                   II (CU);
-                  Add_With (CU, "PolyORB.CORBA_P.Exceptions");
-                  PL (CU, "PolyORB.CORBA_P.Exceptions.Raise_Inv_Objref;");
+                  Add_With (CU, "PolyORB.Exceptions");
+                  PL (CU, "PolyORB.Exceptions.Raise_Inv_Objref;");
                   DI (CU);
                   PL (CU, "end if;");
                   NL (CU);
@@ -784,6 +784,9 @@ package body Ada_Be.Idl2Ada is
             Gen_Client_Stub_Type_Declaration
               (S.Stubs (Unit_Spec), Node);
 
+            Helper.Gen_Node_Spec (S.Helper (Unit_Spec), Node);
+            Helper.Gen_Node_Body (S.Helper (Unit_Body), Node);
+
             if not Abst (Node) then
 
                Skel.Gen_Node_Spec
@@ -930,10 +933,6 @@ package body Ada_Be.Idl2Ada is
             Gen_Repository_Id (Node, S.Stubs (Unit_Spec));
             Gen_Is_A (Node, S.Stubs (Unit_Spec), S.Stubs (Unit_Body));
             Gen_Local_Is_A (S.Stubs (Unit_Body), Node);
-
-            --  CORBA 2.3
-            Helper.Gen_Node_Spec (S.Helper (Unit_Spec), Node);
-            Helper.Gen_Node_Body (S.Helper (Unit_Body), Node);
 
             if Intf_Repo then
                IR_Info.Gen_Node_Spec (S.IR_Info (Unit_Spec), Node);
@@ -1937,6 +1936,7 @@ package body Ada_Be.Idl2Ada is
                          Use_It    => True,
                          Elab_Control => Elaborate_All);
 
+               Add_With (CU, "PolyORB.Exceptions");
                Add_With (CU, "PolyORB.CORBA_P.Exceptions");
                Add_With (CU, "PolyORB.Any.NVList");
                Add_With (CU, "PolyORB.Requests");
@@ -2015,7 +2015,7 @@ package body Ada_Be.Idl2Ada is
                NL (CU);
                PL (CU, "if CORBA.Object.Is_Nil (" & T_Self_Ref & ") then");
                II (CU);
-               PL (CU, "PolyORB.CORBA_P.Exceptions.Raise_Inv_Objref;");
+               PL (CU, "PolyORB.Exceptions.Raise_Inv_Objref;");
                DI (CU);
                PL (CU, "end if;");
                NL (CU);
@@ -2220,7 +2220,7 @@ package body Ada_Be.Idl2Ada is
             end;
 
          when K_Exception =>
-            Add_With (CU, "PolyORB.CORBA_P.Exceptions");
+            Add_With (CU, "PolyORB.Exceptions");
             NL (CU);
             PL (CU, "procedure Get_Members");
             PL (CU, "  (From : Ada.Exceptions.Exception_Occurrence;");
@@ -2229,7 +2229,7 @@ package body Ada_Be.Idl2Ada is
                 & ") is");
             PL (CU, "begin");
             II (CU);
-            PL (CU, "PolyORB.CORBA_P.Exceptions.User_Get_Members (From, To);");
+            PL (CU, "PolyORB.Exceptions.User_Get_Members (From, To);");
             DI (CU);
             PL (CU, "end Get_Members;");
 
@@ -2920,8 +2920,8 @@ package body Ada_Be.Idl2Ada is
          when
            K_Interface         |
            K_Forward_Interface |
-            --          K_ValueType         |
-            --          K_Forward_ValueType |
+           K_ValueType         |
+           K_Forward_ValueType |
            K_Sequence_Instance |
            K_String_Instance   |
            K_Enum              |

@@ -30,8 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Abstract transport service access points and
---  communication endpoints.
+--  Abstract transport service access points and transport endpoints.
 
 --  $Id$
 
@@ -49,9 +48,8 @@ package PolyORB.Transport is
 
    -------------------------------------------------------------
    -- A transport service access point:                       --
-   --                                                         --
-   -- an object that has an address within a communcation     --
-   -- domain, on which connections can be established by      --
+   -- An object that has an address within a communication    --
+   -- domain, to which connections can be established by      --
    -- remote entities that wish to communicate with this ORB. --
    -------------------------------------------------------------
 
@@ -79,12 +77,11 @@ package PolyORB.Transport is
       Msg : Components.Message'Class)
      return Components.Message'Class;
 
-   ----------------------------------------------------------------
-   -- A transport service endpoint:                              --
-   --                                                            --
-   -- an object that represent a connection that was established --
-   -- when a transport access point was contacted.               --
-   ----------------------------------------------------------------
+   -----------------------------------------------------------------
+   -- A transport service endpoint:                               --
+   -- An object that represents a connection that was established --
+   -- when a transport access point was contacted.                --
+   -----------------------------------------------------------------
 
    type Transport_Endpoint
       is abstract new Components.Component with private;
@@ -109,6 +106,10 @@ package PolyORB.Transport is
       Msg : Components.Message'Class)
      return Components.Message'Class;
 
+   function Upper (TE : Transport_Endpoint_Access)
+                   return Components.Component_Access;
+   --  Return a component access to the upper layer of TE
+
    ----------------------------------------------------
    -- Primitive operations of Transport_Access_Point --
    -- and Transport_Endpoint.                        --
@@ -124,9 +125,6 @@ package PolyORB.Transport is
       is abstract;
    --  Accept a pending new connection on TAP and create
    --  a new associated TE.
-
-   --  function Address (TAP : Transport_Access_Point)
-   --    return Binding_Data is abstract;
 
    Connection_Closed : exception;
 

@@ -30,8 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Locks;
 with PolyORB.Object_Maps;
+with PolyORB.Tasking.Rw_Locks;
 with PolyORB.Types;
 with PolyORB.POA;
 with PolyORB.POA_Policies.Id_Uniqueness_Policy;
@@ -39,7 +39,7 @@ with PolyORB.POA_Policies.Lifespan_Policy;
 
 package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
 
-   use PolyORB.Locks;
+   use PolyORB.Tasking.Rw_Locks;
    use PolyORB.Object_Maps;
 
    ------------
@@ -57,12 +57,12 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
 
    procedure Check_Compatibility
      (Self : Retain_Policy;
-      OA   : PolyORB.POA_Types.Obj_Adapter_Access)
+      Other_Policies   : AllPolicies)
    is
    begin
       pragma Warnings (Off);
       pragma Unreferenced (Self);
-      pragma Unreferenced (OA);
+      pragma Unreferenced (Other_Policies);
       pragma Warnings (On);
       null;
    end Check_Compatibility;
@@ -88,14 +88,13 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
    procedure Retain_Servant_Association
      (Self      : Retain_Policy;
       OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Objects.Servant_Access;
+      P_Servant : Servants.Servant_Access;
       U_Oid     : Unmarshalled_Oid)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
 
-      use PolyORB.Locks;
       use PolyORB.Object_Maps;
       use PolyORB.POA_Policies.Id_Uniqueness_Policy;
 
@@ -169,7 +168,7 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
    function Retained_Servant_To_Id
      (Self      : Retain_Policy;
       OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Objects.Servant_Access)
+      P_Servant : Servants.Servant_Access)
      return Object_Id_Access
    is
       use PolyORB.POA_Policies.Id_Uniqueness_Policy;
@@ -203,7 +202,7 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
      (Self  : Retain_Policy;
       OA    : PolyORB.POA_Types.Obj_Adapter_Access;
       U_Oid : Unmarshalled_Oid)
-     return Objects.Servant_Access
+     return Servants.Servant_Access
    is
       use PolyORB.POA_Policies.Lifespan_Policy;
 

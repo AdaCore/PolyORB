@@ -87,6 +87,14 @@ package body PolyORB.Initialization is
    is
       M : Module;
    begin
+      if Initialized then
+         pragma Debug (O ("Initialization already done, cannot register "
+                          & Info.Name.all));
+         raise Program_Error;
+         --  If we call Register_Module after Initialization is done,
+         --  then there is a deep problem.
+      end if;
+
       if not Configuration.Get_Conf ("modules", Info.Name.all, True) then
          pragma Debug (O (Info.Name.all & " is disabled."));
          return;

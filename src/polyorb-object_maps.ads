@@ -39,14 +39,14 @@
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Sequences.Unbounded;
-with PolyORB.Objects;
+with PolyORB.Servants;
 with PolyORB.POA_Types;
 
 package PolyORB.Object_Maps is
 
    type Object_Map_Entry is limited record
       Oid     : PolyORB.POA_Types.Unmarshalled_Oid_Access;
-      Servant : PolyORB.Objects.Servant_Access;
+      Servant : PolyORB.Servants.Servant_Access;
    end record;
 
    type Object_Map_Entry_Access is access all Object_Map_Entry;
@@ -71,7 +71,7 @@ package PolyORB.Object_Maps is
 
    function Is_Servant_In
      (O_Map : in Object_Map;
-      Item  : in PolyORB.Objects.Servant_Access)
+      Item  : in PolyORB.Servants.Servant_Access)
      return Boolean;
    --  Checks if a servant is already in the map
    --  (and return True if it is the case)
@@ -92,7 +92,7 @@ package PolyORB.Object_Maps is
 
    function Get_By_Servant
      (O_Map  : in Object_Map;
-      Item   : in PolyORB.Objects.Servant_Access)
+      Item   : in PolyORB.Servants.Servant_Access)
      return Object_Map_Entry_Access;
    --  Given a servant, looks for the corresponding map entry
    --  Doesn't check that the servant is only once in the map

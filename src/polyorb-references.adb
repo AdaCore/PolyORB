@@ -136,6 +136,7 @@ package body PolyORB.References is
       pragma Debug (O ("Finalizing binding object"));
       Components.Emit_No_Reply
         (X.BO_Component, M);
+      X.BO_Component := null;
    end Finalize;
 
    ----------------------

@@ -51,13 +51,12 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.User is
    -------------------------
 
    procedure Check_Compatibility
-     (Self : User_Id_Policy;
-      OA   : PolyORB.POA_Types.Obj_Adapter_Access)
+     (Self           : User_Id_Policy;
+      Other_Policies : AllPolicies)
    is
    begin
       pragma Warnings (Off);
-      pragma Unreferenced (Self);
-      pragma Unreferenced (OA);
+      pragma Unreferenced (Self, Other_Policies);
       pragma Warnings (On);
 
       null;

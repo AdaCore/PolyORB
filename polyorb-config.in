@@ -1,0 +1,90 @@
+#!/bin/sh
+# @configure_input@
+
+prefix=@prefix@
+appli="@APPLI_LIST@"
+proto="@PROTO_LIST@"
+services="@SERVICE_LIST@"
+
+polyorb_dir="@XMLADA_INCS@ -I${prefix}/lib/polyorb"
+polyorb_lib="@XMLADA_LIBS@ "
+
+for P in $appli $proto
+do
+ polyorb_dir="$polyorb_dir -I${prefix}/lib/polyorb-${P}"
+ polyorb_lib="$polyorb_lib ${prefix}/lib/libpolyorb-${P}.a"
+done
+
+# Place this line here to have libpolyorb.a at the end of the 
+# linking command (man ld for more details on link order)
+polyorb_lib="$polyorb_lib ${prefix}/lib/libpolyorb.a"
+
+MAJOR=@POLYORB_MAJOR_VERSION@
+MINOR=@POLYORB_MINOR_VERSION@
+
+usage()
+{
+   cat <<EOF
+Usage: polyorb-config [OPTIONS]
+Options:
+        No option:
+            Output all the flags (compiler and linker) required
+            to compiler your program
+        [--prefix]
+            Output the directory in which PolyORB is installed.
+        [--version|-v]
+            Output the version of PolyORB
+        [--config]
+            Output PolyORB's configuration parameters.
+        [--libs]
+            Output the linker flags to use for PolyORB.
+        [--cflags]
+            Output the compiler flags to use for PolyORB.
+EOF
+}
+
+output_type=full
+
+while test $# -gt 0; do
+  case "$1" in
+  -*=*) optarg=`echo "$1" | sed 's/[-_a-zA-Z0-9]*=//'` ;;
+  *) optarg= ;;
+  esac
+
+  case $1 in
+    --help|-h)
+      usage 1>&2
+      exit 1
+      ;;
+    --prefix)
+      echo $prefix
+      exit 0
+      ;;
+    --version|-v)
+      echo PolyORB ${MAJOR}.${MINOR}
+      exit 0
+      ;;
+    --config)
+      echo "Personalities built :" 
+      echo "* Application personalities : " $appli
+      echo "* Protocol    personalities : " $proto
+      echo "* Services                  : " $services
+      exit 0
+      ;;  
+    --libs)
+      echo $polyorb_lib
+      exit 0
+      ;;
+    --cflags)
+      echo $polyorb_dir
+      exit 0
+      ;;
+    *)
+      usage 1>&2
+      exit 1
+      ;;
+  esac
+  shift
+done
+
+echo $polyorb_dir -largs $polyorb_lib

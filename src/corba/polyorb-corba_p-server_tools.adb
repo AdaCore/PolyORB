@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -42,7 +42,7 @@ with PolyORB.POA_Config;
 with PolyORB.POA_Manager;
 with PolyORB.Setup;
 with PolyORB.Smart_Pointers;
-with PolyORB.Soft_Links;
+with PolyORB.Tasking.Threads;
 with PolyORB.Types;
 
 with PolyORB.POA_Config.Minimum;
@@ -152,7 +152,7 @@ package body PolyORB.CORBA_P.Server_Tools is
       end if;
 
       if Start_New_Task then
-         PolyORB.Soft_Links.Create_Task (CORBA.ORB.Run'Access);
+         PolyORB.Tasking.Threads.Create_Task (CORBA.ORB.Run'Access);
       else
          CORBA.ORB.Run;
       end if;

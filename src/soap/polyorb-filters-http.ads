@@ -283,6 +283,13 @@ private
       SOAP_Action : PolyORB.Types.String;
       --  The contents of a received SOAPAction HTTP header
       --  (server-side only, optional).
+      --  XXX Having that here is a violation of abstraction.
+      --  Instead, we should keep a dictionnary of (key, value)
+      --  pairs consisting of all the headers (or all the headers
+      --  not interpreted by the HTTP filter itself).
+      --  The burden would then be shifted onto the message
+      --  consumer to retrieve whatever information he needs
+      --  from the headers.
    end record;
 
    procedure Clear_Message_State (F : in out HTTP_Filter);

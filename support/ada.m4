@@ -95,3 +95,44 @@ AC_DEFUN(AM_CROSS_PROG_WORKING_ADA,
    ADA=$OLDADA
  fi
 ])
+
+dnl Usage: AM_PROG_GNATMAKE
+dnl Look for an Ada make
+
+AC_DEFUN(AM_PROG_GNATMAKE,
+[AC_REQUIRE([AC_PROG_CC])
+AC_CHECK_PROGS(GNATMAKE, gnatmake gnatgcc adagcc gcc)
+if test -z "$GNATMAKE"; then
+  AC_MSG_RESULT([  Tentatively using $ADA as a make])
+  GNATMAKE="$ADA"
+fi])
+
+
+dnl Usage: AM_CROSS_PROG_GNATMAKE
+dnl Look for gnatmake for the target (same as the host one if host and
+dnl target are equal)
+
+AC_DEFUN(AM_CROSS_PROG_GNATMAKE,
+[AC_REQUIRE([AM_PROG_WORKING_ADA])
+ if test $host = $target; then
+   GNATMAKE_FOR_TARGET=$GNATMAKE
+   AC_SUBST(GNAMAKE_FOR_TARGET)
+ else
+   AC_CHECK_PROGS(GNATMAKE_FOR_TARGET, [$target_alias-$GNATMAKE $target-$GNATMAKE])
+ fi
+])
+
+
+dnl Usage: AM_CROSS_PROG_CC
+dnl Look for CC for the target (same as the host one if host and
+dnl target are equal)
+
+AC_DEFUN(AM_CROSS_PROG_CC,
+[AC_REQUIRE([AC_PROG_CC])
+ if test $host = $target; then
+   CC_FOR_TARGET=$CC
+   AC_SUBST(CC_FOR_TARGET)
+ else
+   AC_CHECK_PROGS(CC_FOR_TARGET, [$target_alias-$CC $target-$CC])
+ fi
+])

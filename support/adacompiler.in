@@ -3,7 +3,7 @@
 # Replaces "-o .libs/foobar.lo" by "-o tmp/foobar.o" then does a move
 #
 
-ADA="@ADA@"
+ADA="@ADA_FOR_TARGET@"
 
 while [ $# -gt 1 ]; do
     first=$1

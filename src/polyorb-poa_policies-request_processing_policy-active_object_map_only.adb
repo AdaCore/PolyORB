@@ -53,17 +53,23 @@ is
 
    procedure Check_Compatibility
      (Self : Active_Map_Only_Policy;
-      OA   : PolyORB.POA_Types.Obj_Adapter_Access) is
+      Other_Policies   : AllPolicies) is
    begin
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
-      if not
-        (POA.Obj_Adapter_Access (OA).Servant_Retention_Policy.all in
-         POA_Policies.Servant_Retention_Policy.Retain.Retain_Policy)
-      then
-         raise PolyORB.POA.Invalid_Policy;
-      end if;
+      for I in Other_Policies'Range loop
+         if Other_Policies (I).all in
+           POA_Policies.Servant_Retention_Policy.ServantRetentionPolicy
+         then
+            if not
+              (Other_Policies (I).all in
+               POA_Policies.Servant_Retention_Policy.Retain.Retain_Policy)
+            then
+               raise PolyORB.POA.Invalid_Policy;
+            end if;
+         end if;
+      end loop;
    end Check_Compatibility;
 
    ---------------
@@ -106,12 +112,12 @@ is
      (Self  : Active_Map_Only_Policy;
       OA    : PolyORB.POA_Types.Obj_Adapter_Access;
       U_Oid : Unmarshalled_Oid)
-     return Objects.Servant_Access
+     return Servants.Servant_Access
    is
       use PolyORB.POA_Policies.Servant_Retention_Policy;
-      use type PolyORB.Objects.Servant_Access;
+      use type PolyORB.Servants.Servant_Access;
 
-      Servant : Objects.Servant_Access;
+      Servant : Servants.Servant_Access;
    begin
       pragma Warnings (Off);
       pragma Unreferenced (Self);

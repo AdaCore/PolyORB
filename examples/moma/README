@@ -1,0 +1,30 @@
+README for the PolyORB MOMA example
+-----------------------------------
+
+$Id$
+
+This demo displays first possibilities of MOMA.
+
+The server setup one message pool according to data found in
+'destinations.conf'. The only pertinent parameter is 'persistent' that
+determine which persistence is to be used.
+
+The client sends and receives messages to the message pool created.
+MText and MBytes messages are tested.
+
+To test persistence, you must setup a persistent destination, then
+
+To run the test, without using a naming service :
+
+- launch the server : ./server, it will outputs its IOR string.
+- run the client to store messages : ./client stor pool <IOR>
+- kill the server, then re-launch it
+- run the client to retrieve messages : ./client retr pool <IOR>
+
+To run the test, wusing a naming service :
+
+- launch the server with the IOR string of the Naming Service : 
+./server IOR:... , it will outputs its IOR string.
+- run the client to store messages : ./client stor naming <IOR>
+- kill the server, then re-launch it
+- run the client to retrieve messages : ./client retr naming <IOR>

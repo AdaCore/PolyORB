@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poa.adb#22 $
+--  $Id: //droopi/main/src/corba/portableserver-poa.adb#24 $
 
 with Ada.Exceptions;
 
@@ -45,8 +45,9 @@ with PolyORB.References;
 with PolyORB.References.Binding;
 with PolyORB.Setup;
 with PolyORB.Smart_Pointers;
+with PolyORB.Servants;
 
-with PolyORB.CORBA_P.Exceptions;
+with PolyORB.Exceptions;
 
 --  with PortableServer.ServantManager.Impl;
 --  with PortableServer.ServantActivator.Impl;
@@ -79,7 +80,7 @@ package body PortableServer.POA is
       use Ada.Exceptions;
    begin
       if Exception_Identity (From) /= AdapterAlreadyExists'Identity then
-         PolyORB.CORBA_P.Exceptions.Raise_Bad_Param;
+         PolyORB.Exceptions.Raise_Bad_Param;
       end if;
       To := AdapterAlreadyExists_Members'
         (CORBA.IDL_Exception_Members with null record);
@@ -91,7 +92,7 @@ package body PortableServer.POA is
       use Ada.Exceptions;
    begin
       if Exception_Identity (From) /= AdapterNonExistent'Identity then
-         PolyORB.CORBA_P.Exceptions.Raise_Bad_Param;
+         PolyORB.Exceptions.Raise_Bad_Param;
       end if;
       To := AdapterNonExistent_Members'
         (CORBA.IDL_Exception_Members with null record);
@@ -101,7 +102,7 @@ package body PortableServer.POA is
    begin
       if CORBA.Object.Entity_Of (Self).all
         not in PolyORB.POA.Obj_Adapter'Class then
-         PolyORB.CORBA_P.Exceptions.Raise_Bad_Param;
+         PolyORB.Exceptions.Raise_Bad_Param;
       end if;
       return Create_Ref (CORBA.Object.Entity_Of (Self));
    end To_Ref;
@@ -121,7 +122,7 @@ package body PortableServer.POA is
 
    begin
       if Res = null or else Res.all not in PolyORB.POA.Obj_Adapter'Class then
-         PolyORB.CORBA_P.Exceptions.Raise_Bad_Param;
+         PolyORB.Exceptions.Raise_Bad_Param;
       end if;
 
       declare
@@ -131,7 +132,7 @@ package body PortableServer.POA is
            := PolyORB.POA.Obj_Adapter_Access (Res);
       begin
          if Is_Nil (The_POA.POA_Manager) then
-            PolyORB.CORBA_P.Exceptions.Raise_Object_Not_Exist;
+            PolyORB.Exceptions.Raise_Object_Not_Exist;
          end if;
 
          return The_POA;
@@ -217,7 +218,7 @@ package body PortableServer.POA is
 --          (POA.Servant_Policy = NON_RETAIN
 --           and then Servant_Manager.all not in PSSL.Impl.Object'Class))
 --       then
---          PolyORB.CORBA_P.Exceptions.Raise_Bad_Param;
+--          PolyORB.Exceptions.Raise_Bad_Param;
 --       end if;
 
 --       POA.Servant_Manager := Imgr;
@@ -289,7 +290,7 @@ package body PortableServer.POA is
          (Ap = IMPLICIT_ACTIVATION
           and then (Ip /= SYSTEM_ID or else Sp /= RETAIN))
       then
-         PolyORB.CORBA_P.Exceptions.Raise_Bad_Param;
+         PolyORB.Exceptions.Raise_Bad_Param;
       end if;
 
 --       begin
@@ -442,7 +443,7 @@ package body PortableServer.POA is
 --       end if;
 
       return ObjectId (PolyORB.POA.Activate_Object
-        (POA, PolyORB.Objects.Servant_Access
+        (POA, PolyORB.Servants.Servant_Access
          (To_PolyORB_Servant (P_Servant))));
 --       raise PolyORB.Not_Implemented;
 --       pragma Warnings (Off);
@@ -467,7 +468,7 @@ package body PortableServer.POA is
       pragma Warnings (Off);
       R_Oid : constant PolyORB.POA_Types.Object_Id
         := PolyORB.POA.Activate_Object
-        (POA, PolyORB.Objects.Servant_Access
+        (POA, PolyORB.Servants.Servant_Access
          (To_PolyORB_Servant (P_Servant)), A_Oid'Unchecked_Access);
       pragma Unreferenced (R_Oid);
       pragma Warnings (On);
@@ -662,10 +663,10 @@ package body PortableServer.POA is
          The_Servant, The_Profile, Local_Only => True);
 
       --  Using 'Local_Only' should guarantee that The_Servant
-      --  is castable to PolyORB.Objects.Servant_Access.
+      --  is castable to PolyORB.Servants.Servant_Access.
 
       return Servant (CORBA.Impl.To_CORBA_Servant
-        (PolyORB.Objects.Servant_Access (The_Servant)));
+        (PolyORB.Servants.Servant_Access (The_Servant)));
 
 --       Skel := PolyORB.POA.Ref_To_Skeleton (Reference);
 --       if POA_Object_Of (Skel.POA) /= POA_Object_Ptr (POA) then

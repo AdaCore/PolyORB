@@ -52,12 +52,12 @@ package body PolyORB.POA_Policies.Lifespan_Policy.Persistent is
 
    procedure Check_Compatibility
      (Self : Persistent_Policy;
-      OA   : PolyORB.POA_Types.Obj_Adapter_Access)
+      Other_Policies   : AllPolicies)
    is
    begin
       pragma Warnings (Off);
       pragma Unreferenced (Self);
-      pragma Unreferenced (OA);
+      pragma Unreferenced (Other_Policies);
       pragma Warnings (On);
       null;
       --  XXX Is this OK for policy PERSISTENT??

@@ -33,13 +33,14 @@
 --  Management of binding data, i. e. the elements of information
 --  that designate a remote middleware TSAP.
 
---  $Id: //droopi/main/src/polyorb-binding_data.ads#9 $
+--  $Id: //droopi/main/src/polyorb-binding_data.ads#13 $
 
 with Ada.Finalization;
 
 with PolyORB.Components;
 with PolyORB.Objects;
 with PolyORB.Smart_Pointers;
+pragma Elaborate_All (PolyORB.Smart_Pointers);
 with PolyORB.Transport;
 with PolyORB.Types;
 
@@ -54,7 +55,6 @@ package PolyORB.Binding_Data is
    type Profile_Type is abstract
      new Ada.Finalization.Limited_Controlled with private;
    type Profile_Access is access all Profile_Type'Class;
-
    --  A profile is an element of information that contains:
    --    - a profile tag identifying a communication system and a
    --      method invocation protocol stack;
@@ -66,7 +66,6 @@ package PolyORB.Binding_Data is
    --      expressed by the user for the choice of a profile type
    --      among a set of profiles.
 
-   --  subtype Profile_Tag is CORBA.Unsigned_Long;
    subtype Profile_Tag is Types.Unsigned_Long;
 
    Tag_Internet_IOP        : constant Profile_Tag;
@@ -77,7 +76,7 @@ package PolyORB.Binding_Data is
    Tag_Test                : constant Profile_Tag;
 
    type Profile_Preference is new Integer range 0 .. Integer'Last;
-   --  Profile_Preference'First means "unsupported profile type"
+   --  Profile_Preference'First means "unsupported profile type".
 
    Preference_Default : constant Profile_Preference;
    --  Default value for profile preference.
@@ -87,26 +86,25 @@ package PolyORB.Binding_Data is
      return Objects.Object_Id_Access;
    --  Retrieve the opaque object key from Profile.
 
-   procedure Bind_Non_Local_Profile
+   function Bind_Profile
      (Profile : Profile_Type;
-      TE      : out Transport.Transport_Endpoint_Access;
-      Filter  : out Components.Component_Access)
+      The_ORB : Components.Component_Access)
+     return Components.Component_Access
       is abstract;
-   --  Find or create a transport endpoint and an attached protocol
+   --  Retrieve a transport endpoint and an attached protocol
    --  stack instance (or create new ones) that match this profile,
-   --  in order to send a message to the designated middleware.
-   --  The Transport_Endpoint at the bottom of the transport stack
-   --  and the Filter just above (ie the base of the protocol stack).
+   --  in order to send a message to the middleware that hosts the
+   --  designated object.
+   --  The Filter at the top of the protocol stack (i.e. the Session)
+   --  is returned. Concrete implementations are responsible for
+   --  registering the TE with the ORB if necessary.
 
-   function Get_Profile_Tag
-     (Profile : Profile_Type)
-     return Profile_Tag
+   function Get_Profile_Tag (Profile : Profile_Type) return Profile_Tag
       is abstract;
    pragma Inline (Get_Profile_Tag);
    --  Return the profile tag associated with this profile type.
 
-   function Get_Profile_Preference
-     (Profile : Profile_Type)
+   function Get_Profile_Preference (Profile : Profile_Type)
      return Profile_Preference
       is abstract;
    pragma Inline (Get_Profile_Preference);
@@ -125,12 +123,11 @@ package PolyORB.Binding_Data is
 
    function Create_Profile
      (PF  : access Profile_Factory;
-      TAP : Transport.Transport_Access_Point_Access;
       Oid : Objects.Object_Id)
      return Profile_Access
       is abstract;
    --  Create a profile of the type determined by PF, using
-   --  the address of TAP, and Oid as the object specification.
+   --  Oid as the object specification.
 
    procedure Destroy_Profile (P : in out Profile_Access);
    pragma Inline (Destroy_Profile);

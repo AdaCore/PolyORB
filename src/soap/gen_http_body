@@ -1,0 +1,113 @@
+#!/bin/sh
+
+# gen_http_body
+# $Id$
+
+# Generate a perfect hash function in an Ada body from a specially
+# formatted Ada spec that defines an enumerated type and a list
+# of corresponding strings.
+
+usage() {
+	echo "Usage: $0 <path-to-gnatprfh> <src-dir> <unit-name>"
+	exit 1
+}
+
+if [ $# != 3 ]
+then
+	usage
+fi
+
+GNATPRFH=$1
+SRCDIR=$2
+NAME=$3
+name=`echo ${NAME} | tr 'A-Z' 'a-z'`
+SPEC=${SRCDIR}/polyorb-http_${name}s.ads
+BODY=polyorb-http_${name}s.adb
+UNIT=PolyORB.HTTP_${NAME}s
+
+AWK=${AWK:-awk}
+
+${AWK} '
+BEGIN{FS="\"";enum=0}
+/ENUM>/{enum=1-enum;next}
+/--  >>/{if (enum == 1) {print $2}}
+' ${SPEC} | ${GNATPRFH} -
+
+rm -f ${BODY}
+cat >${BODY} <<EOF
+--  THIS IS A GENERATED FILE, DO NOT EDIT!
+with Interfaces; use Interfaces;
+
+with PolyORB.Initialization;
+with PolyORB.Utils.Strings;
+
+package body ${UNIT} is
+
+   type String_Access is access String;
+
+   Table : array (${NAME}) of String_Access;
+
+   function Hash (S : String) return Natural;
+   pragma Inline (Hash);
+
+   procedure Initialize;
+
+   procedure Set (N : ${NAME}; S : String);
+EOF
+
+${AWK} '
+BEGIN{doprint=0}
+/^package/{doprint=1; next}
+/^end/{doprint=0;next}
+{if (doprint == 1) {print $0}}
+' perfect_hash.adb >>${BODY}
+
+cat >>${BODY} <<EOF
+   function In_Word_Set (S : String) return ${NAME} is
+      N : constant ${NAME} := ${NAME}'Val (Hash (S));
+   begin
+      if Table (N).all = S then
+         return N;
+      else
+         return Extension_${NAME};
+      end if;
+   end In_Word_Set;
+
+   procedure Initialize is
+   begin
+EOF
+
+${AWK} '
+BEGIN{enum=0}
+/ENUM>/{enum=1-enum;next}
+/--  >>/{if (enum == 1) {print "      Set (" $1 " " $4 ");"}}
+' ${SPEC} >>${BODY}
+
+cat >>${BODY} <<EOF
+   end Initialize;
+
+   procedure Set (N : ${NAME}; S : String) is
+   begin
+      Table (N) := new String'(S);
+   end Set;
+
+   function To_String (Id : ${NAME}) return String is
+   begin
+      return Table (Id).all;
+   end To_String;
+
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
+   use PolyORB.Utils.Strings;
+
+begin
+   Register_Module
+     (Module_Info'
+      (Name => +"http_${name}s",
+       Conflicts => Empty,
+       Depends => Empty,
+       Provides => Empty,
+       Init => Initialize'Access));
+end ${UNIT};
+EOF
+chmod -w ${BODY}

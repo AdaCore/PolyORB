@@ -39,7 +39,7 @@ package PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique is
 
    procedure Check_Compatibility
      (Self : Unique_Id_Policy;
-      OA   : PolyORB.POA_Types.Obj_Adapter_Access);
+      Other_Policies   : AllPolicies);
 
    function Policy_Id
      (Self : Unique_Id_Policy)
@@ -48,12 +48,12 @@ package PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique is
    procedure Ensure_Servant_Uniqueness
      (Self      : Unique_Id_Policy;
       OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Objects.Servant_Access);
+      P_Servant : Servants.Servant_Access);
 
    function Activate_Again
      (Self      : Unique_Id_Policy;
       OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Objects.Servant_Access;
+      P_Servant : Servants.Servant_Access;
       Oid       : Object_Id_Access)
      return Object_Id_Access;
 

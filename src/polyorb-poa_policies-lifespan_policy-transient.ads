@@ -39,7 +39,7 @@ package PolyORB.POA_Policies.Lifespan_Policy.Transient is
 
    procedure Check_Compatibility
      (Self : Transient_Policy;
-      OA   : PolyORB.POA_Types.Obj_Adapter_Access);
+      Other_Policies   : AllPolicies);
 
    function Policy_Id
      (Self : Transient_Policy)

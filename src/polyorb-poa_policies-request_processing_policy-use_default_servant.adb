@@ -51,11 +51,11 @@ is
 
    procedure Check_Compatibility
      (Self : Use_Default_Servant_Policy;
-      OA   : PolyORB.POA_Types.Obj_Adapter_Access)
+      Other_Policies   : AllPolicies)
    is
    begin
       pragma Warnings (Off);
-      pragma Unreferenced (Self, OA);
+      pragma Unreferenced (Self, Other_Policies);
       pragma Warnings (On);
 
       null;
@@ -103,7 +103,7 @@ is
      (Self  : Use_Default_Servant_Policy;
       OA    : PolyORB.POA_Types.Obj_Adapter_Access;
       U_Oid : Unmarshalled_Oid)
-     return Objects.Servant_Access
+     return Servants.Servant_Access
    is
    begin
       pragma Warnings (Off);

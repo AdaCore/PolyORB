@@ -46,7 +46,6 @@ package PolyORB.Asynch_Ev is
    --  asynchronous fashion, i.e. independently of middleware actions
    --  currently in progress. A typical example of such components is a
    --  connection to the outside world.
-   --  outside world.)
 
    --  Such components are represented within PolyORB as Asynch_Ev_Source
    --  objects. These objects are registered in collections called
@@ -73,13 +72,12 @@ package PolyORB.Asynch_Ev is
    --  An Asynch_Ev_Source is an annotable object (cf. PolyORB.Annotations),
    --  so clients can associate it with any information that is necessary
    --  to process events that occur on it.
-   --  This functions returns an access to AES' Notepad component.
+   --  This functions returns an access to AES' Notepad attribute.
 
    function AEM_Factory_Of (AES : Asynch_Ev_Source)
      return AEM_Factory is abstract;
    pragma Inline (AEM_Factory_Of);
-   --  Return a factory capable of creating an AEM that can
-   --  monitor AES.
+   --  Return a factory capable of creating an AEM that can monitor AES.
 
    procedure Create (AEM : out Asynch_Ev_Monitor)
      is abstract;
@@ -119,10 +117,11 @@ package PolyORB.Asynch_Ev is
       Timeout : Duration)
      return AES_Array
       is abstract;
-   --  Wait for events on sources monitored by AEM, and prepare Job
-   --  structures for their processing.
+   --  Wait for events on sources monitored by AEM.
    --  Return when one event source in AEM has had an event.
    --  If no event happened within Timeout, an empty array is returned.
+   --  Otherwise, the returned array contains those sources on which
+   --  events have occurred, and these sources are removed from AEM.
    --  Note that a Timeout of 0.0 returns immediatly.
    --  A Timeout of PolyORB.Constants.Forever means to not return
    --  until an event occurs.

@@ -32,7 +32,7 @@
 
 --  $Id$
 
-with PolyORB.POA_Types;
+with PolyORB.Components;
 
 package PolyORB.POA_Policies.Thread_Policy is
 
@@ -43,7 +43,18 @@ package PolyORB.POA_Policies.Thread_Policy is
 
    procedure Check_Compatibility
      (Self : ThreadPolicy;
-      OA   : PolyORB.POA_Types.Obj_Adapter_Access)
+      Other_Policies   : AllPolicies)
      is abstract;
+
+   function Policy_Id
+     (Self : ThreadPolicy)
+      return String is abstract;
+
+   function Handle_Request_Execution
+     (Self      : access ThreadPolicy;
+      Msg       : PolyORB.Components.Message'Class;
+      Requestor : PolyORB.Components.Component_Access)
+      return PolyORB.Components.Message'Class
+      is abstract;
 
 end PolyORB.POA_Policies.Thread_Policy;

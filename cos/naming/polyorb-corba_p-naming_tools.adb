@@ -79,6 +79,19 @@ package body PolyORB.CORBA_P.Naming_Tools is
    ------------
 
    function Locate
+     (Context : CosNaming.NamingContext.Ref;
+      Name    : CosNaming.Name)
+     return CORBA.Object.Ref
+   is
+   begin
+      return resolve (Context, Name);
+   end Locate;
+
+   ------------
+   -- Locate --
+   ------------
+
+   function Locate
      (IOR_Or_Name : String;
       Sep : Character := '/')
      return CORBA.Object.Ref is
@@ -94,6 +107,29 @@ package body PolyORB.CORBA_P.Naming_Tools is
       end if;
 
       return Locate (Parse_Name (IOR_Or_Name, Sep));
+   end Locate;
+
+   ------------
+   -- Locate --
+   ------------
+
+   function Locate
+     (Context     : CosNaming.NamingContext.Ref;
+      IOR_Or_Name : String;
+      Sep         : Character                   := '/')
+     return CORBA.Object.Ref is
+   begin
+      if IOR_Or_Name (IOR_Or_Name'First .. IOR_Or_Name'First + 3) = "IOR:" then
+         declare
+            Obj : CORBA.Object.Ref;
+         begin
+            CORBA.ORB.String_To_Object
+              (CORBA.To_CORBA_String (IOR_Or_Name), Obj);
+            return Obj;
+         end;
+      end if;
+
+      return Locate (Context, Parse_Name (IOR_Or_Name, Sep));
    end Locate;
 
    ----------------------

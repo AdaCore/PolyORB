@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -32,6 +32,11 @@
 
 --  $Id$
 
+with PolyORB.Annotations;
+with PolyORB.Jobs;
+with PolyORB.Utils.Chained_Lists;
+with PolyORB.Tasking.Semaphores;
+
 package PolyORB.ORB.Thread_Per_Session is
 
    pragma Elaborate_Body;
@@ -42,10 +47,20 @@ package PolyORB.ORB.Thread_Per_Session is
 
    type Thread_Per_Session_Policy is new Tasking_Policy_Type with private;
 
+   type End_Thread_Job is new Jobs.Job with null record;
+   --  this job is used to indicates to a thread associated with a session
+   --  that it has to exit its main loop
+
+   type End_Thread_Job_Access is access all End_Thread_Job;
+
    procedure Handle_New_Server_Connection
      (P   : access Thread_Per_Session_Policy;
       ORB : ORB_Access;
       C   : Active_Connection);
+
+   procedure Handle_Close_Server_Connection
+     (P   : access Thread_Per_Session_Policy;
+      TE  :        Transport_Endpoint_Access);
 
    procedure Handle_New_Client_Connection
      (P   : access Thread_Per_Session_Policy;
@@ -55,7 +70,7 @@ package PolyORB.ORB.Thread_Per_Session is
    procedure Handle_Request_Execution
      (P   : access Thread_Per_Session_Policy;
       ORB : ORB_Access;
-      RJ  : access Jobs.Job'Class);
+      RJ  : access Request_Job'Class);
 
    procedure Idle
      (P : access Thread_Per_Session_Policy;
@@ -66,9 +81,37 @@ package PolyORB.ORB.Thread_Per_Session is
       ORB : ORB_Access;
       Msg : Message'Class);
 
+   procedure Run (J : access End_Thread_Job);
+
 private
+
+   type Request_Info is record
+      Job : Jobs.Job_Access;
+   end record;
+   --  Request_Info is the type of the elements stored in the threads queues
+
+   package Request_Queues is new PolyORB.Utils.Chained_Lists (Request_Info);
+
+   subtype Request_Queue is Request_Queues.List;
+
+   type Request_Queue_Access is access all Request_Queue;
+   --  This queues store the jobs that a thread has to execute
+
+   type Session_Thread_Info is new PolyORB.Annotations.Note with record
+      Request_Semaphore : Tasking.Semaphores.Semaphore_Access := null;
+      Request_List      : Request_Queue_Access := null;
+   end record;
+   --  This structure is used in order to be able to retrieve the queue
+   --  and the semaphore associated with a thread, with the knownledge of
+   --  of a session access
+
+   type Session_Thread_Info_Access is access all Session_Thread_Info;
+
+   procedure Add_Request
+     (S : in Session_Thread_Info;
+      RI : Request_Info);
+   --  add a job to a job queue
 
    type Thread_Per_Session_Policy is new Tasking_Policy_Type with null record;
 
 end PolyORB.ORB.Thread_Per_Session;
-

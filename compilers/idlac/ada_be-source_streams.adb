@@ -200,6 +200,8 @@ package body Ada_Be.Source_Streams is
    is
       Div : Diversion_Data renames CU.Diversions (D);
       Empty_Diversion : Diversion_Data;
+      pragma Warnings (Off, Empty_Diversion);
+      --  Use default initialization.
    begin
       if not Diversions_Allocation (D) then
          raise Program_Error;
@@ -312,6 +314,8 @@ package body Ada_Be.Source_Streams is
             Put_Line (File, "--  IDL to Ada compiler.");
          end if;
          Put_Line (File, "----------------------------------------------");
+         --  XXXXX To be removed later on
+         Put_Line (File, "pragma Warnings (Off);");
          New_Line (File);
       end Emit_Standard_Header;
 

@@ -43,4 +43,4 @@ coseventchanneladmin-eventchannel-impl.adb \
 coseventchanneladmin-eventchannel-impl.ads
 
 $(PROGS): force $(IMP_1) $(IMP_2)
-	$(GNATMAKE) $@ $(GNATMAKE_FLAGS)
+	$(GNATMAKE_FOR_TARGET) $@ $(GNATMAKE_FLAGS)

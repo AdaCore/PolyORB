@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -37,6 +37,7 @@
 with Ada.Exceptions;
 with Ada.Real_Time;
 with Ada.Tags;
+with Ada.Unchecked_Deallocation;
 
 with PolyORB.Annotations;
 with PolyORB.Binding_Data;
@@ -51,7 +52,7 @@ with PolyORB.ORB.Interface;
 with PolyORB.References;
 with PolyORB.References.Binding;
 with PolyORB.Setup;
-with PolyORB.Soft_Links;
+with PolyORB.Tasking.Threads;
 with PolyORB.Task_Info;
 with PolyORB.Transport;
 with PolyORB.Types;
@@ -61,17 +62,19 @@ package body PolyORB.ORB is
 
    use PolyORB.Annotations;
    use PolyORB.Asynch_Ev;
+   use PolyORB.Binding_Data;
    use PolyORB.Components;
    use PolyORB.Filters;
    use PolyORB.Jobs;
    use PolyORB.Log;
-   use PolyORB.Requests;
-   use PolyORB.Soft_Links;
-   use PolyORB.Transport;
-
-   use PolyORB.Binding_Data;
-   use PolyORB.Types;
    use PolyORB.References;
+   use PolyORB.Requests;
+   use PolyORB.Tasking.Advanced_Mutexes;
+   use PolyORB.Tasking.Mutexes;
+   use PolyORB.Tasking.Threads;
+   use PolyORB.Tasking.Watchers;
+   use PolyORB.Transport;
+   use PolyORB.Types;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.orb");
    procedure O (Message : in String; Level : Log_Level := Debug)
@@ -86,20 +89,10 @@ package body PolyORB.ORB is
    ----------------------
 
    procedure Run_And_Free_Job
-     (P : access Tasking_Policy_Type;
-      J : in out Jobs.Job_Access) is
+     (J : in out Jobs.Job_Access) is
    begin
-      if J.all in Request_Job then
-         Handle_Request_Execution
-           (P   => Tasking_Policy_Access (P),
-            ORB => Request_Job (J.all).ORB,
-            RJ  => J);
-      else
-         Run (J);
-      end if;
-
+      Run (J);
       Free (J);
-
    exception
       when others =>
          if J /= null then
@@ -126,46 +119,54 @@ package body PolyORB.ORB is
       return NJ;
    end Duplicate_Request_Job;
 
-   -----------------------------------------
-   -- Private annotations used by the ORB --
-   -----------------------------------------
+   --------------------------------------------------
+   -- Event handlers used for the various kinds of --
+   -- asynchronous event sources.                  --
+   --------------------------------------------------
 
-   type AES_Note_Kind is
-     (A_TAP_AES,
-      --  Annotation for an asynchronous event source
-      --  associated with a transport access point.
+   procedure Free is new Ada.Unchecked_Deallocation
+     (AES_Event_Handler'Class, AES_Event_Handler_Access);
 
-      A_TE_AES
-      --  Annotation for an asynchronous event source
-      --  associated with a transport endpoint.
-      );
+   package Event_Handlers is
 
-   type AES_Note_Data (Kind : AES_Note_Kind := AES_Note_Kind'First)
-   is record
-      case Kind is
-         when A_TAP_AES =>
-            TAP : Transport_Access_Point_Access;
-            --  Factory of Transport_Endpoint components.
+      --  Handler for AES associated with a Transport Access Point
 
-            Filter_Factory_Chain : Filters.Factory_Access;
-            --  Factory of Filter (protocol stack) components.
+      type TAP_AES_Event_Handler is new AES_Event_Handler with record
+         TAP : Transport_Access_Point_Access;
+         --  Factory of Transport_Endpoint components.
 
-            Profile_Factory : Binding_Data.Profile_Factory_Access;
-            --  Factory of profiles capable of associating the
-            --  address of TAP and the specification of the
-            --  protocol implemented by Filter_Factory_Chain
-            --  with an object id.
+         Filter_Factory_Chain : Filters.Factory_Access;
+         --  Factory of Filter (protocol stack) components.
 
-         when A_TE_AES =>
-            TE : Transport_Endpoint_Access;
-            --  Transport_Endpoint component (connected to a
-            --  protocol stack).
-      end case;
-   end record;
+         Profile_Factory : Binding_Data.Profile_Factory_Access;
+         --  Factory of profiles capable of associating the
+         --  address of TAP and the specification of the
+         --  protocol implemented by Filter_Factory_Chain
+         --  with an object id.
+      end record;
 
-   type AES_Note is new Note with record
-      D : AES_Note_Data;
-   end record;
+      procedure Handle_Event
+        (H   : access TAP_AES_Event_Handler;
+         ORB :        ORB_Access;
+         AES : in out Asynch_Ev_Source_Access);
+
+      --  Handler for AES associated with a Transport Endpoint
+
+      type TE_AES_Event_Handler is new AES_Event_Handler with record
+         TE : Transport_Endpoint_Access;
+         --  Transport_Endpoint component (connected to a
+         --  protocol stack).
+      end record;
+
+      procedure Handle_Event
+        (H   : access TE_AES_Event_Handler;
+         ORB :        ORB_Access;
+         AES : in out Asynch_Ev_Source_Access);
+   end Event_Handlers;
+
+   --------------------------------------------
+   -- Annotations used by the ORB internally --
+   --------------------------------------------
 
    type TAP_Note is new Note with record
       Profile_Factory : Binding_Data.Profile_Factory_Access;
@@ -188,14 +189,18 @@ package body PolyORB.ORB is
       Create (ORB.ORB_Lock);
       --  From now on access to ORB state is protected by this mutex.
 
-      Enter (ORB.ORB_Lock.all);
+      Enter (ORB.ORB_Lock);
 
       Create (ORB.Idle_Tasks);
-
       ORB.Job_Queue := PolyORB.Jobs.Create_Queue;
       ORB.Shutdown := False;
       ORB.Polling  := False;
-      Leave (ORB.ORB_Lock.all);
+      Create (ORB.Polling_Watcher);
+      Leave (ORB.ORB_Lock);
+      Create (ORB.Idle_Lock);
+      Enter (ORB.Idle_Lock);
+      ORB.Idle_Counter := 0;
+      Leave (ORB.Idle_Lock);
    end Create;
 
    ----------------------
@@ -223,10 +228,10 @@ package body PolyORB.ORB is
          declare
             Job : Job_Access := Fetch_Job (Q);
          begin
-            Leave (ORB.ORB_Lock.all);
+            Leave (ORB.ORB_Lock);
 
             pragma Assert (Job /= null);
-            Run_And_Free_Job (ORB.Tasking_Policy, Job);
+            Run_And_Free_Job (Job);
             return True;
          end;
       else
@@ -241,6 +246,7 @@ package body PolyORB.ORB is
    procedure Handle_Event
      (ORB : access ORB_Type;
       AES : in out Asynch_Ev_Source_Access);
+   pragma Inline (Handle_Event);
    --  Process an event that occurred on AES.
 
    procedure Handle_Event
@@ -248,78 +254,105 @@ package body PolyORB.ORB is
       AES : in out Asynch_Ev_Source_Access)
    is
       Note : AES_Note;
-
    begin
 
       pragma Debug (O ("Handle_Event: enter"));
 
       Get_Note (Notepad_Of (AES).all, Note);
-      case Note.D.Kind is
-         when A_TAP_AES =>
-            pragma Debug (O ("A_TAP_AES"));
-            declare
-               New_TE     : Transport_Endpoint_Access;
-               New_Filter : Filter_Access;
-            begin
-               Accept_Connection (Note.D.TAP.all, New_TE);
-               --  Create transport endpoint.
+      Handle_Event (Note.Handler, ORB_Access (ORB), AES);
+      if AES = null then
+         Free (Note.Handler);
+      end if;
+   end Handle_Event;
 
-               New_Filter := Create_Filter_Chain
-                 (Note.D.Filter_Factory_Chain);
-               Register_Endpoint (ORB, New_TE, New_Filter, Server);
-            end;
+   package body Event_Handlers is
+
+      ------------------
+      -- Handle_Event --
+      ------------------
+
+      procedure Handle_Event
+        (H   : access TAP_AES_Event_Handler;
+         ORB :        ORB_Access;
+         AES : in out Asynch_Ev_Source_Access)
+      is
+      begin
+         pragma Debug (O ("Handle_Event: TAP AES"));
+         declare
+            New_TE     : Transport_Endpoint_Access;
+            New_Filter : Filter_Access;
+         begin
+            Accept_Connection (H.TAP.all, New_TE);
+            --  Create transport endpoint.
+
+            New_Filter := Create_Filter_Chain
+              (H.Filter_Factory_Chain);
+            Register_Endpoint (ORB, New_TE, New_Filter, Server);
+         end;
+
+         Insert_Source (ORB, AES);
+         --  Continue monitoring the TAP's AES.
+      end Handle_Event;
+
+      ------------------
+      -- Handle_Event --
+      ------------------
+
+      procedure Handle_Event
+        (H   : access TE_AES_Event_Handler;
+         ORB :        ORB_Access;
+         AES : in out Asynch_Ev_Source_Access) is
+      begin
+         pragma Debug (O ("Handle_Event: TE AES"));
+
+         begin
+            Emit_No_Reply
+              (Component_Access (H.TE),
+               Filters.Interface.Data_Indication'
+                 (Data_Amount => 0));
+            --  The size of the data received is not known yet.
 
             Insert_Source (ORB, AES);
-            --  Continue monitoring the TAP's AES.
+            --  Continue monitoring this source.
 
-         when A_TE_AES =>
-            pragma Debug (O ("A_TE_AES"));
+         exception
+            when Connection_Closed =>
+               O ("Connection closed.");
 
-            begin
-               Emit_No_Reply
-                 (Component_Access (Note.D.TE),
-                  Filters.Interface.Data_Indication'
-                    (Data_Amount => 0));
-               --  The size of the data received is not known yet.
+               --  Close has been called on the transport endpoint.
+               --  Both the Endpoint and the associated AES must
+               --  now be destroyed.
+               Handle_Close_Server_Connection
+                 (ORB.Tasking_Policy, H.TE);
 
-               Insert_Source (ORB, AES);
-               --  Continue monitoring this source.
+               Destroy (H.TE);
+               --  Destroy the transport endpoint and the associated
+               --  protocol stack.
 
-            exception
-               when Connection_Closed =>
-                  O ("Connection closed.");
+               Destroy (AES);
+               --  No need to Unregister_Source, because the AES
+               --  is already unregistered while an event is being
+               --  processed.
 
-                  --  Close has been called on the transport endpoint.
-                  --  Both the Endpoint and the associated AES must
-                  --  now be destroyed.
+            when E : others =>
+               O ("Got exception while sending Data_Indication:", Error);
+               O (Ada.Exceptions.Exception_Information (E), Error);
+               Close (H.TE.all);
 
-                  Destroy (Note.D.TE);
-                  --  Destroy the transport endpoint and the associated
-                  --  protocol stack.
-
-                  Destroy (AES);
-                  --  No need to Unregister_Source, because the AES
-                  --  is already unregistered while an event is being
-                  --  processed.
-
-               when E : others =>
-                  O ("Got exception while sending Data_Indication:", Error);
-                  O (Ada.Exceptions.Exception_Information (E), Error);
-                  Close (Note.D.TE.all);
-
-                  Destroy (Note.D.TE);
-                  Destroy (AES);
-            end;
-      end case;
-   end Handle_Event;
+               Destroy (H.TE);
+               Destroy (AES);
+         end;
+      end Handle_Event;
+   end Event_Handlers;
 
    -----------------------
    -- The ORB main loop --
    -----------------------
 
    --  This is the main loop for all general-purpose
-   --  ORB tasks. This function MUST NOT be called
-   --  recursively.
+   --  ORB tasks. This function MUST NOT be called recursively.
+   --  Exceptions may not be propagated from within a critical
+   --  section (i.e. with ORB_Lock held).
 
    procedure Run
      (ORB            : access ORB_Type;
@@ -340,7 +373,7 @@ package body PolyORB.ORB is
       Do_Idle : Boolean;
 
    begin
-      Enter (ORB.ORB_Lock.all);
+      Enter (ORB.ORB_Lock);
       if Exit_Condition.Task_Info /= null then
          Exit_Condition.Task_Info.all
            := This_Task'Unchecked_Access;
@@ -363,7 +396,7 @@ package body PolyORB.ORB is
             exit Check_Condition
             when not Try_Perform_Work (ORB, ORB.Job_Queue);
 
-            Enter (ORB.ORB_Lock.all);
+            Enter (ORB.ORB_Lock);
             --  Try_Perform_Work has released ORB_Lock and
             --  executed a job from the queue. Reassert ORB_Lock.
          end loop Check_Condition;
@@ -396,23 +429,41 @@ package body PolyORB.ORB is
                   ORB.Selector := Monitors (I);
                   Set_Status_Blocked (This_Task, Monitors (I));
 
-                  Leave (ORB.ORB_Lock.all);
+                  <<Retry>>
+                  ORB.Source_Deleted := False;
+                  Lookup (ORB.Polling_Watcher, ORB.Polling_Version);
+                  Leave (ORB.ORB_Lock);
 
                   pragma Debug (O ("Run: task " & Image (Current_Task)
-                                   & " about to Check_Sources."));
+                                        & " about to Check_Sources."));
                   declare
                      Events : AES_Array
                        := Check_Sources (Monitors (I), Timeout);
                   begin
                      pragma Debug (O ("Run: task " & Image (Current_Task)
-                                      & " returned from Check_Sources."));
-                     Enter (ORB.ORB_Lock.all);
+                                        & " returned from Check_Sources."));
+                     Enter (ORB.ORB_Lock);
+                     Update (ORB.Polling_Watcher);
+                     if ORB.Source_Deleted then
+                        --  An asynchronous event source was unregistered while
+                        --  we were blocking, and may now have been destroyed.
+                        goto Retry;
+                     end if;
+
+                     for J in Events'Range loop
+                        Unregister_Source (Monitors (I).all, Events (J));
+                     end loop;
+
                      ORB.Polling := False;
                      ORB.Selector := null;
                      Set_Status_Running (This_Task);
 
-                     for I in Events'Range loop
-                        Handle_Event (ORB, Events (I));
+                     for J in Events'Range loop
+                        Handle_Event (ORB, Events (J));
+                        --  XXX here one task will do *all*
+                        --  the I/O on events, this is not
+                        --  optimal. Rather, I/O jobs should
+                        --  be scheduled.
                      end loop;
                   end;
                end loop;
@@ -431,9 +482,9 @@ package body PolyORB.ORB is
                      Poll_Expire : constant Time
                        := Clock + To_Time_Span (Poll_Interval);
                   begin
-                     Leave (ORB.ORB_Lock.all);
+                     Leave (ORB.ORB_Lock);
                      delay until Poll_Expire;
-                     Enter (ORB.ORB_Lock.all);
+                     Enter (ORB.ORB_Lock);
                   end;
                end if;
             end;
@@ -446,7 +497,7 @@ package body PolyORB.ORB is
             --  ORB_Lock at this point.
 
             Set_Status_Idle (This_Task, ORB.Idle_Tasks);
-            Leave (ORB.ORB_Lock.all);
+            Leave (ORB.ORB_Lock);
 
             begin
                Idle (ORB.Tasking_Policy, ORB_Access (ORB));
@@ -454,11 +505,11 @@ package body PolyORB.ORB is
                --  between ORB and TP for idling.
             exception
                when others =>
-                  Enter (ORB.ORB_Lock.all);
+                  Enter (ORB.ORB_Lock);
                   raise;
             end;
 
-            Enter (ORB.ORB_Lock.all);
+            Enter (ORB.ORB_Lock);
             Set_Status_Running (This_Task);
 
             --  XXX memo for selves:
@@ -475,18 +526,19 @@ package body PolyORB.ORB is
       if Exit_Condition.Task_Info /= null then
          Exit_Condition.Task_Info.all := null;
       end if;
-      Leave (ORB.ORB_Lock.all);
+      Leave (ORB.ORB_Lock);
 
    exception
       when E : others =>
-         pragma Debug (O ("ORB main loop got exception:"));
-         pragma Debug (O (Ada.Exceptions.Exception_Information (E)));
+         --  XXX at this point it is assumed that ORB_Lock is
+         --  not being held by this task.
+
+         O ("ORB main loop got exception:", Error);
+         O (Ada.Exceptions.Exception_Information (E), Error);
 
          if Exit_Condition.Task_Info /= null then
             Exit_Condition.Task_Info.all := null;
          end if;
-         Leave (ORB.ORB_Lock.all);
-
          raise;
    end Run;
 
@@ -498,9 +550,9 @@ package body PolyORB.ORB is
    is
       Result : Boolean;
    begin
-      Enter (ORB.ORB_Lock.all);
+      Enter (ORB.ORB_Lock);
       Result := not Is_Empty (ORB.Job_Queue);
-      Leave (ORB.ORB_Lock.all);
+      Leave (ORB.ORB_Lock);
       return Result;
    end Work_Pending;
 
@@ -510,9 +562,9 @@ package body PolyORB.ORB is
 
    procedure Perform_Work (ORB : access ORB_Type) is
    begin
-      Enter (ORB.ORB_Lock.all);
+      Enter (ORB.ORB_Lock);
       if not Try_Perform_Work (ORB, ORB.Job_Queue) then
-         Leave (ORB.ORB_Lock.all);
+         Leave (ORB.ORB_Lock);
       end if;
    end Perform_Work;
 
@@ -533,9 +585,9 @@ package body PolyORB.ORB is
          raise Not_Implemented;
       end if;
 
-      Enter (ORB.ORB_Lock.all);
+      Enter (ORB.ORB_Lock);
       ORB.Shutdown := True;
-      Leave (ORB.ORB_Lock.all);
+      Leave (ORB.ORB_Lock);
 
    end Shutdown;
 
@@ -569,26 +621,30 @@ package body PolyORB.ORB is
       PF    : Binding_Data.Profile_Factory_Access)
    is
       New_AES : Asynch_Ev_Source_Access;
+      Handler : constant AES_Event_Handler_Access
+        := new Event_Handlers.TAP_AES_Event_Handler;
+      TAP_Handler : Event_Handlers.TAP_AES_Event_Handler
+        renames Event_Handlers.TAP_AES_Event_Handler (Handler.all);
    begin
       New_AES := Create_Event_Source (TAP.all);
       --  Create associated asynchronous event source.
 
+      TAP_Handler.TAP := TAP;
+      TAP_Handler.Filter_Factory_Chain := Chain;
+      TAP_Handler.Profile_Factory := PF;
+
       Set_Note (Notepad_Of (New_AES).all,
-                AES_Note'(Annotations.Note with D =>
-                            (Kind   => A_TAP_AES,
-                             TAP    => TAP,
-                             Filter_Factory_Chain => Chain,
-                             Profile_Factory => PF)));
+                AES_Note'(Annotations.Note with Handler => Handler));
       --  Set link from AES to TAP, Chain and PF.
 
       Set_Note (Notepad_Of (TAP).all,
                 TAP_Note'(Note with Profile_Factory => PF));
       --  Set link from TAP to PF.
 
-      Enter (ORB.ORB_Lock.all);
+      Enter (ORB.ORB_Lock);
       Insert_Source (ORB, New_AES);
       TAP_Seqs.Append (ORB.Transport_Access_Points, TAP);
-      Leave (ORB.ORB_Lock.all);
+      Leave (ORB.ORB_Lock);
    end Register_Access_Point;
 
    ----------------------
@@ -604,14 +660,14 @@ package body PolyORB.ORB is
          return True;
       end if;
 
-      Enter (ORB.ORB_Lock.all);
+      Enter (ORB.ORB_Lock);
       declare
          TAPs : constant TAP_Seqs.Element_Array
            := TAP_Seqs.To_Element_Array
            (ORB.Transport_Access_Points);
          Found : Boolean := False;
       begin
-         Leave (ORB.ORB_Lock.all);
+         Leave (ORB.ORB_Lock);
          for I in TAPs'Range loop
             if Binding_Data.Is_Local_Profile
               (Profile_Factory_Of (TAPs (I)), P)
@@ -636,6 +692,10 @@ package body PolyORB.ORB is
       Role         :        Endpoint_Role)
    is
       New_AES    : Asynch_Ev_Source_Access;
+      Handler : constant AES_Event_Handler_Access
+        := new Event_Handlers.TE_AES_Event_Handler;
+      TE_Handler : Event_Handlers.TE_AES_Event_Handler
+        renames Event_Handlers.TE_AES_Event_Handler (Handler.all);
    begin
       New_AES := Create_Event_Source (TE.all);
       --  Create associated asynchronous event source.
@@ -649,11 +709,10 @@ package body PolyORB.ORB is
          Filters.Interface.Set_Server'
          (Server => Component_Access (ORB)));
 
+      TE_Handler.TE := TE;
       Set_Note
         (Notepad_Of (New_AES).all,
-         AES_Note'(Annotations.Note with D =>
-                     (Kind => A_TE_AES,
-                      TE   => TE)));
+         AES_Note'(Annotations.Note with Handler => Handler));
       --  Register link from AES to TE.
 
       Set_Note
@@ -713,7 +772,7 @@ package body PolyORB.ORB is
 
       pragma Assert (AES /= null);
 
-      Enter (ORB.ORB_Lock.all);
+      Enter (ORB.ORB_Lock);
 
       declare
          use Monitor_Seqs;
@@ -745,7 +804,7 @@ package body PolyORB.ORB is
          pragma Assert (ORB.Selector /= null);
          Abort_Check_Sources (ORB.Selector.all);
       end if;
-      Leave (ORB.ORB_Lock.all);
+      Leave (ORB.ORB_Lock);
    end Insert_Source;
 
    -------------------
@@ -754,17 +813,47 @@ package body PolyORB.ORB is
 
    procedure Delete_Source
      (ORB : access ORB_Type;
-      AES : Asynch_Ev_Source_Access) is
+      AES : in out Asynch_Ev_Source_Access)
+   is
+      Polling : Boolean;
+      Polling_Version : Version_Id;
    begin
-      Enter (ORB.ORB_Lock.all);
+      Enter (ORB.ORB_Lock);
 
       Unregister_Source (AES);
 
+      --  After this point we know that this source won't be
+      --  considered in a call for Check_Sources, unless Polling
+      --  is true already.
+
+      Polling := ORB.Polling;
       if ORB.Polling then
          pragma Assert (ORB.Selector /= null);
+
+         --  The current Check_Sources might consider
+         --  this event source, so we need to cause it
+         --  to be restarted:
+
          Abort_Check_Sources (ORB.Selector.all);
+         --  1. abort it
+
+         ORB.Source_Deleted := True;
+         --  2. invalidate its result (this value will
+         --  be tested with ORB_Lock held).
+
+         Polling_Version := ORB.Polling_Version;
+         --  3. prepare for notification by the Check_Sources
+         --  task that we can safely destroy the AES.
+
       end if;
-      Leave (ORB.ORB_Lock.all);
+
+      Leave (ORB.ORB_Lock);
+      if Polling then
+         Differ (ORB.Polling_Watcher.all, ORB.Polling_Version);
+         --  Need to wait for the blocked task to complete its
+         --  call to Check_Sources before destroying the AES.
+      end if;
+      Destroy (AES);
    end Delete_Source;
 
    ----------------------------------
@@ -776,6 +865,16 @@ package body PolyORB.ORB is
    ---------
 
    procedure Run (J : access Request_Job) is
+   begin
+      Handle_Request_Execution
+        (P => J.ORB.Tasking_Policy, ORB => J.ORB, RJ => J);
+   end Run;
+
+   -----------------
+   -- Run_Request --
+   -----------------
+
+   procedure Run_Request (J : access Request_Job) is
    begin
       pragma Debug (O ("Run Request_Job: enter"));
       pragma Assert (J.Request /= null);
@@ -842,10 +941,11 @@ package body PolyORB.ORB is
                --  servant: send it back to the requesting party
                --  iff it is required.
 
-               if Is_Set (Sync_With_Target, J.Request.Req_Flags) then
+               if Is_Set (Sync_With_Target, J.Request.Req_Flags)
+                 or else Is_Set (Sync_Call_Back, J.Request.Req_Flags)
+               then
                   Emit_No_Reply (J.Requestor, Result);
                end if;
-
             end if;
 
             --  XXX Should that be Emit? Should there be a reply
@@ -862,7 +962,7 @@ package body PolyORB.ORB is
                           & Ada.Exceptions.Exception_Information (E)));
          raise;
 
-   end Run;
+   end Run_Request;
 
    ----------------------
    -- Create_Reference --
@@ -874,7 +974,7 @@ package body PolyORB.ORB is
       Typ : in String;
       Ref : out References.Ref) is
    begin
-      Enter (ORB.ORB_Lock.all);
+      Enter (ORB.ORB_Lock);
       declare
          use PolyORB.Binding_Data;
          use TAP_Seqs;
@@ -885,7 +985,7 @@ package body PolyORB.ORB is
          Profiles : References.Profile_Array (TAPs'Range);
          Last_Profile : Integer := Profiles'First - 1;
       begin
-         Leave (ORB.ORB_Lock.all);
+         Leave (ORB.ORB_Lock);
          for I in TAPs'Range loop
             declare
                PF : constant Profile_Factory_Access
@@ -897,7 +997,7 @@ package body PolyORB.ORB is
                   --  data information.
                   Last_Profile := Last_Profile + 1;
                   Profiles (Last_Profile) := Create_Profile
-                    (Profile_Factory_Of (TAPs (I)), TAPs (I), Oid.all);
+                    (Profile_Factory_Of (TAPs (I)), Oid.all);
                   pragma Assert (Profiles (Last_Profile) /= null);
                end if;
             end;
@@ -925,15 +1025,35 @@ package body PolyORB.ORB is
                        & Ada.Tags.External_Tag (Msg'Tag)));
 
       if Msg in Interface.Queue_Job then
+         Enter (ORB.ORB_Lock);
+
          Queue_Job (ORB.Job_Queue,
                     Interface.Queue_Job (Msg).Job);
 
+         --  Ensure that one ORB task will process this job.
+
+         if ORB.Idle_Counter /= 0 then
+            Update (ORB.Idle_Tasks);
+         elsif ORB.Polling then
+            pragma Assert (ORB.Selector /= null);
+            Abort_Check_Sources (ORB.Selector.all);
+         else
+            null;
+            --  No task is blocked: assume that one will
+            --  eventually loop in ORB.Run and process this job.
+         end if;
+
+         Leave (ORB.ORB_Lock);
+
       elsif Msg in Interface.Queue_Request then
          declare
-            J : constant Job_Access := new Request_Job;
             QR : Interface.Queue_Request
               renames Interface.Queue_Request (Msg);
             Req : Requests.Request_Access renames QR.Request;
+
+            QJ : constant Interface.Queue_Job :=
+              (Job => new Request_Job);
+            J  : Job_Access renames QJ.Job;
          begin
             pragma Debug (O ("Queue_Request: enter"));
             Request_Job (J.all).ORB       := ORB_Access (ORB);
@@ -950,7 +1070,7 @@ package body PolyORB.ORB is
                Request_Job (J.all).Requestor := QR.Requestor;
             end if;
             Req.Requesting_Component := Request_Job (J.all).Requestor;
-            Queue_Job (ORB.Job_Queue, J);
+            return Handle_Message (ORB, QJ);
             pragma Debug (O ("Queue_Request: leave"));
          end;
 
@@ -1031,7 +1151,6 @@ package body PolyORB.ORB is
 
             if AES /= null then
                Delete_Source (ORB, AES);
-               Destroy (AES);
             end if;
             Destroy (TE);
          end;
@@ -1050,6 +1169,7 @@ package body PolyORB.ORB is
    ----------------
 
    procedure Initialize;
+
    procedure Initialize is
    begin
       Setup.The_ORB := new ORB_Type (Setup.The_Tasking_Policy);

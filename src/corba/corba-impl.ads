@@ -33,7 +33,7 @@
 --  $Id$
 
 with PolyORB.Components;
-with PolyORB.Objects;
+with PolyORB.Servants;
 with PolyORB.Smart_Pointers;
 
 package CORBA.Impl is
@@ -48,27 +48,27 @@ package CORBA.Impl is
    --  (a CORBA.Impl.Object'Class), or a surrogate thereof
    --  (a D.SP.Entity'Class not derived from CORBA.Impl.Object).
 
-   function Handle_Message
+   function Execute_Servant
      (Self : access Object;
       Msg  : PolyORB.Components.Message'Class)
      return PolyORB.Components.Message'Class;
 
    function To_PolyORB_Servant (S : access Object)
-     return PolyORB.Objects.Servant_Access;
+     return PolyORB.Servants.Servant_Access;
 
-   function To_CORBA_Servant (S : PolyORB.Objects.Servant_Access)
+   function To_CORBA_Servant (S : PolyORB.Servants.Servant_Access)
      return Object_Ptr;
 
 private
 
    type Implementation (As_Object : access Object'Class)
-   is new PolyORB.Objects.Servant with null record;
+   is new PolyORB.Servants.Servant with null record;
    --  The CORBA personality is based on the Portable Object Adapter.
 
    function "=" (X, Y : Implementation) return Boolean;
    --  ??? XXX Why does the compiler require the presence of this operator?
    --  As a descendant of Component, Implementation is a limited type!
-   function Handle_Message
+   function Execute_Servant
      (Self : access Implementation;
       Msg  : PolyORB.Components.Message'Class)
      return PolyORB.Components.Message'Class;
@@ -77,6 +77,7 @@ private
    record
       Neutral_View : aliased Implementation (Object'Access);
       --  The PolyORB (personality-neutral) view of this servant.
+      --  See also PolyORB.Minimal_Servant.
    end record;
 
 end CORBA.Impl;

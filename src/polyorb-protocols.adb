@@ -35,7 +35,6 @@
 --  $Id$
 
 with Ada.Tags;
-with Ada.Unchecked_Deallocation;
 
 with PolyORB.Filters.Interface;
 with PolyORB.If_Descriptors;
@@ -50,24 +49,24 @@ package body PolyORB.Protocols is
    use PolyORB.Filters.Interface;
    use PolyORB.Log;
    use PolyORB.Objects.Interface;
-   use PolyORB.ORB.Interface;
    use PolyORB.Protocols.Interface;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.protocols");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-   procedure Free is new Ada.Unchecked_Deallocation
-     (Session'Class, Session_Access);
+   --------------
+   -- Finalize --
+   --------------
 
-   ---------------------
-   -- Destroy_Session --
-   ---------------------
-
-   procedure Destroy_Session (S : in out Session_Access) is
+   procedure Finalize (S : in out Session) is
    begin
-      Free (S);
-   end Destroy_Session;
+      pragma Warnings (Off);
+      pragma Unreferenced (S);
+      pragma Warnings (On);
+      pragma Debug (O ("Finalizing Session."));
+      null;
+   end Finalize;
 
    ---------------------------------
    -- Handle_Unmarshall_Arguments --
@@ -78,8 +77,9 @@ package body PolyORB.Protocols is
       Args : in out Any.NVList.Ref) is
    begin
       raise Program_Error;
-      --  By default: no support for deferred arguments
-      --  unmarshalling.
+      --  By default: no support for deferred arguments unmarshalling.
+      --  Concrete Session implementations may override this operation
+      --  to provide this functionality.
    end Handle_Unmarshall_Arguments;
 
    --------------------
@@ -126,19 +126,21 @@ package body PolyORB.Protocols is
             --  This session object participates in a proxy
             --  construct: now is the last place we can determine
             --  the signature of the called method in order to
-            --  translate the request.
-
-            --  XXX this may require an interface repository lookup,
-            --      which is not implemented. For now we do our best,
-            --      hoping that the protocol on the server session
-            --      can make sense of the args without an arg list.
+            --  translate the request. As we do not possess the
+            --  actual servant on the local node, we need another
+            --  way of retrieving an interface description (i.e.
+            --  a parameter and result profile). This is typically
+            --  achieved by looking up the target interface in an
+            --  interface repository. In PolyORB, such operations
+            --  are abstracted by the If_Descriptor interface.
 
             declare
                use Protocols.Interface;
                use PolyORB.If_Descriptors;
 
-               Desc : If_Descriptor_Access
-                 renames Default_If_Descriptor;
+               Desc : If_Descriptor_Access renames Default_If_Descriptor;
+               --  Delegate the decision and lookup process to
+               --  the default interface descriptor objet.
 
                Args : Any.NVList.Ref
                  := Get_Empty_Arg_List
@@ -163,13 +165,14 @@ package body PolyORB.Protocols is
 
          end if;
 
-         Invoke_Request
-           (Session_Access (Sess), Req, Execute_Request (S).Pro);
+         Invoke_Request (Session_Access (Sess), Req, Execute_Request (S).Pro);
 
          --  At this point, the request has been sent to the server
          --  'With_Transport' synchronisation policy has been completed.
 
-         if Is_Set (Sync_With_Transport, Req.Req_Flags) then
+         if Is_Set (Sync_With_Transport, Req.Req_Flags)
+           or else Is_Set (Sync_Call_Back, Req.Req_Flags)
+         then
             Req.Completed := True;
          end if;
 
@@ -179,14 +182,17 @@ package body PolyORB.Protocols is
               := Executed_Request (S).Req;
          begin
             --  Send reply only if expected.
-            if Is_Set (Sync_With_Target, Req.Req_Flags) then
+            if Is_Set (Sync_With_Target, Req.Req_Flags) or
+              Is_Set (Sync_Call_Back, Req.Req_Flags) then
                Send_Reply (Session_Access (Sess), Req);
                Destroy_Request (Req);
 
             elsif Is_Set (Sync_With_Server, Req.Req_Flags) then
                Send_Reply (Session_Access (Sess), Req);
 
-               --   XXX The request has been deleted otherwise
+               --  When using the 'Sync_With_Server' policy,
+               --  the request is destroyed when the acknowledgment
+               --  message has been received.
             end if;
          end;
 
@@ -198,40 +204,28 @@ package body PolyORB.Protocols is
       return Nothing;
    end Handle_Message;
 
-   -------------------------
-   -- Get_Request_Watcher --
-   -------------------------
+   -------------------
+   -- Get_Task_Info --
+   -------------------
 
-   function Get_Request_Watcher
+   function Get_Task_Info
      (S : in Session_Access)
-     return PolyORB.Soft_Links.Watcher_Access
+     return PolyORB.Annotations.Notepad_Access
    is
    begin
-      return S.Request_Watcher;
-   end Get_Request_Watcher;
+      return S.N;
+   end Get_Task_Info;
 
-   -------------------------
-   -- Set_Request_Watcher --
-   -------------------------
+   -------------------
+   -- Set_Task_Info --
+   -------------------
 
-   procedure Set_Request_Watcher
+   procedure Set_Task_Info
      (S : in Session_Access;
-      W : PolyORB.Soft_Links.Watcher_Access)
+      N : PolyORB.Annotations.Notepad_Access)
    is
    begin
-      S.Request_Watcher := W;
-   end Set_Request_Watcher;
-
-   -------------------------
-   -- Get_Pending_Request --
-   -------------------------
-
-   function Get_Pending_Request
-     (S : in Session_Access)
-     return ORB.Interface.Queue_Request
-   is
-   begin
-      return S.Pending_Request;
-   end Get_Pending_Request;
+      S.N := N;
+   end Set_Task_Info;
 
 end PolyORB.Protocols;

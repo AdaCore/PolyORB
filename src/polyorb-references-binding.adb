@@ -39,13 +39,11 @@ with Ada.Tags;
 
 with PolyORB.Binding_Data.Local;
 with PolyORB.Components;
-with PolyORB.Filters;
 with PolyORB.Log;
 with PolyORB.Obj_Adapters;
 with PolyORB.Objects;
 with PolyORB.ORB;
 with PolyORB.Setup;
-with PolyORB.Transport;
 with PolyORB.Types;
 
 package body PolyORB.References.Binding is
@@ -160,7 +158,7 @@ package body PolyORB.References.Binding is
                --  ==> When binding a local reference, an OA
                --      is needed. Where do we obtain it from?
                --      PolyORB.References cannot depend on Obj_Adapters!
-               --      ... but D.R.Binding can depend on anything.
+               --      ... but P.R.Binding can depend on anything.
                --      We also need to know what profiles are local,
                --      presumably by sending the ORB an Is_Local_Profile
                --      query for each profile (for the condition below).
@@ -195,7 +193,8 @@ package body PolyORB.References.Binding is
                end;
             exception
                when E : others =>
-                  pragma Debug (O ("Argh! Got exception:"));
+                  pragma Debug (O ("Got exception while recursively "
+                                   & "binding proxy ref:"));
                   pragma Debug
                     (O (Ada.Exceptions.Exception_Information (E)));
                   null;
@@ -213,39 +212,19 @@ package body PolyORB.References.Binding is
 
          declare
             use PolyORB.Components;
-            use PolyORB.Filters;
-
-            New_TE      : Transport.Transport_Endpoint_Access;
-            New_Filter  : Filter_Access;
-            FU : Filter_Access;
          begin
             pragma Debug (O ("Binding non-local profile"));
             pragma Debug (O ("Creating new binding object"));
 
-            PolyORB.Binding_Data.Bind_Non_Local_Profile
-              (Selected_Profile.all, New_TE,
-               Component_Access (New_Filter));
-
-            pragma Debug (O ("Registering endpoint"));
-            ORB.Register_Endpoint
-              (Local_ORB, New_TE, New_Filter, Client);
-            pragma Debug (O ("... done"));
-
-            loop
-               FU := Filter_Access (Upper (New_Filter));
-               exit when FU = null;
-               New_Filter := FU;
-            end loop;
-
-            pragma Debug (O ("Cacheing binding info"));
-            Servant := Components.Component_Access (New_Filter);
-            Pro := Selected_Profile;
-            Set_Binding_Info (R, Servant, Selected_Profile);
-            pragma Debug (O ("... done"));
-
+            Servant := PolyORB.Binding_Data.Bind_Profile
+              (Selected_Profile.all, Component_Access (Local_ORB));
             --  The Session itself acts as a remote surrogate
             --  of the designated object.
 
+            pragma Debug (O ("Cacheing binding info"));
+            Pro := Selected_Profile;
+            Set_Binding_Info (R, Servant, Selected_Profile);
+            pragma Debug (O ("... done"));
          end;
       end;
    end Bind;

@@ -34,6 +34,7 @@ with Exp_Strm;    use Exp_Strm;
 with Exp_Tss;     use Exp_Tss;
 with Exp_Util;    use Exp_Util;
 with GNAT.HTable; use GNAT.HTable;
+with Sinput;       use Sinput;
 with Lib;         use Lib;
 with Namet;       use Namet;
 with Nlists;      use Nlists;
@@ -46,7 +47,6 @@ with Sem_Ch8;     use Sem_Ch8;
 with Sem_Dist;    use Sem_Dist;
 with Sem_Util;    use Sem_Util;
 with Sinfo;       use Sinfo;
-with Sinput;      use Sinput;
 with Snames;      use Snames;
 with Stand;       use Stand;
 with Stringt;     use Stringt;
@@ -115,7 +115,7 @@ package body Exp_Dist is
 
    function Build_Subprogram_Calling_Stubs
      (Vis_Decl                 : Node_Id;
-      Subp_Id                  : Int;
+      Subp_Id                  : Node_Id;
       Asynchronous             : Boolean;
       Dynamically_Asynchronous : Boolean   := False;
       Stub_Type                : Entity_Id := Empty;
@@ -185,10 +185,10 @@ package body Exp_Dist is
       Decls    : in List_Id);
    --  Add receiving stubs to the declarative part
 
-   procedure Add_RAS_Dereference_Attribute (N : in Node_Id);
+   procedure Add_RAS_Dereference_TSS (N : in Node_Id);
    --  Add a subprogram body for RAS dereference
 
-   procedure Add_RAS_Access_Attribute (N : in Node_Id);
+   procedure Add_RAS_Access_TSS (N : in Node_Id);
    --  Add a subprogram body for RAS Access attribute
 
    function Could_Be_Asynchronous (Spec : Node_Id) return Boolean;
@@ -227,18 +227,6 @@ package body Exp_Dist is
       Etyp   : Entity_Id)
       return   Node_Id;
    --  Similar to above, with Stream instead of Stream'Access
-
-   function Copy_Specification
-     (Loc         : Source_Ptr;
-      Spec        : Node_Id;
-      Object_Type : Entity_Id := Empty;
-      Stub_Type   : Entity_Id := Empty;
-      New_Name    : Name_Id   := No_Name)
-      return        Node_Id;
-   --  Build a specification from another one. If Object_Type is not Empty
-   --  and any access to Object_Type is found, then it is replaced by an
-   --  access to Stub_Type. If New_Name is given, then it will be used as
-   --  the name for the newly created spec.
 
    function Scope_Of_Spec (Spec : Node_Id) return Entity_Id;
    --  Return the scope represented by a given spec
@@ -306,8 +294,9 @@ package body Exp_Dist is
    Empty_Stub_Structure : constant Stub_Structure :=
      (Empty, Empty, Empty, Empty);
 
-   type Hash_Index is range 0 .. 50;
+   type Hash_Index is range 0 .. 46;
    function Hash (F : Entity_Id) return Hash_Index;
+   function Hash (F : Name_Id) return Hash_Index;
 
    package Stubs_Table is
       new Simple_HTable (Header_Num => Hash_Index,
@@ -336,7 +325,7 @@ package body Exp_Dist is
                          Hash       => Hash,
                          Equal      => "=");
    --  Mapping between a RCI package on which All_Calls_Remote applies and
-   --  the generic instantiation of RCI_Info for this package.
+   --  the generic instantiation of RCI_Locator for this package.
 
    package RCI_Calling_Stubs_Table is
       new Simple_HTable (Header_Num => Hash_Index,
@@ -346,6 +335,27 @@ package body Exp_Dist is
                          Hash       => Hash,
                          Equal      => "=");
    --  Mapping between a RCI subprogram and the corresponding calling stubs
+
+   package Subprogram_Identifier_Table is
+      new Simple_HTable (Header_Num => Hash_Index,
+                         Element    => String_Id,
+                         No_Element => No_String,
+                         Key        => Entity_Id,
+                         Hash       => Hash,
+                         Equal      => "=");
+   --  Mapping between a remote subprogram and the corresponding
+   --  subprogram identifier.
+
+   package Overload_Counter_Table is
+      new Simple_HTable (Header_Num => Hash_Index,
+                         Element    => Int,
+                         No_Element => 0,
+                         Key        => Name_Id,
+                         Hash       => Hash,
+                         Equal      => "=");
+   --  Mapping between a subprogram name and an integer that
+   --  counts the number of defining subprogram names with that
+   --  Name_Id encountered so far in a given context (an interface).
 
    procedure Add_Stub_Type
      (Designated_Type     : in Entity_Id;
@@ -406,17 +416,45 @@ package body Exp_Dist is
    procedure Add_RACW_TypeCode
      (Designated_Type  : in Entity_Id;
       RACW_Type        : in Entity_Id;
-      Stub_Type        : in Entity_Id;
-      Stub_Type_Access : in Entity_Id;
       Declarations     : in List_Id);
    --  Add the TypeCode TSS for this RACW type.
+
+   procedure Add_RAS_From_Any
+     (RAS_Type     : in Entity_Id;
+      Declarations : in List_Id);
+   --  Add the From_Any TSS for this RAS type.
+
+   procedure Add_RAS_To_Any
+     (RAS_Type        : in Entity_Id;
+      Declarations    : in List_Id);
+   --  Add the To_Any TSS for this RAS type.
+
+   procedure Add_RAS_TypeCode
+     (RAS_Type        : in Entity_Id;
+      Declarations    : in List_Id);
+   --  Add the TypeCode TSS for this RAS type.
+
+   procedure Assign_Subprogram_Identifier
+     (Def :     Entity_Id;
+      Id  : out String_Id);
+   --  Determine the distribution subprogram identifier to
+   --  be used for remote subprogram Def, return it in Id and
+   --  store it in a hash table for later retrieval by
+   --  Get_Subprogram_Identifier.
+
+   procedure Reserve_NamingContext_Methods;
+   --  Mark the method names for interface NamingContext as
+   --  already used in the overload table, so no clashes
+   --  occur with user code (RCIs implement the NamingContext
+   --  interface to allow their methods to be accessed as
+   --  objects (RAS)).
 
    function RCI_Package_Locator
      (Loc          : Source_Ptr;
       Package_Spec : Node_Id)
       return         Node_Id;
-   --  Instantiate the generic package RCI_Info in order to locate the
-   --  RCI package whose spec is given as argument.
+   --  Instantiate the generic package RCI_Locator in order to locate
+   --  the RCI package whose spec is given as argument.
 
    function Make_Tag_Check (Loc : Source_Ptr; N : Node_Id) return Node_Id;
    --  Surround a node N by a tag check, as in:
@@ -444,13 +482,60 @@ package body Exp_Dist is
    --                            Exception_Message (E));
    --    end R;
 
-   procedure Get_Subprogram_Name
-     (Def : Entity_Id);
-   --  Fill the name buffer with the non-qualified name
-   --  of subprogram Def. If Def is a defining identifier,
-   --  return the name as it appears in source code; if
-   --  Def is a defining operator name, return the same
-   --  result as Get_Name_String.
+   ----------------------------------
+   -- Assign_Subprogram_Identifier --
+   ----------------------------------
+
+   procedure Assign_Subprogram_Identifier
+     (Def :     Entity_Id;
+      Id  : out String_Id)
+   is
+      Sdef : Source_Ptr := Sloc (Def);
+      Tdef : Source_Buffer_Ptr;
+      N    : constant Name_Id := Chars (Def);
+
+      Overload_Order : constant Int :=
+        Overload_Counter_Table.Get (N) + 1;
+   begin
+      Overload_Counter_Table.Set (N, Overload_Order);
+
+      Get_Name_String (N);
+
+      if False and then not Is_Operator_Symbol_Name (N) then
+
+         --  XXX THIS IS BORKEN because it gets called
+         --  with a def that does not come_from_source.
+
+         --  Not a defining_operator_name
+
+         Tdef := Source_Text (Get_Source_File_Index (Sdef));
+         for J in 1 .. Name_Len loop
+            Name_Buffer (J) := Tdef (Sdef + Source_Ptr (J) - 1);
+         end loop;
+
+         if Name_Buffer (1) = 'O' then
+            --  Do not risk a clash with a defining operator name.
+            --  XXX this is an approximation, actually this change
+            --  should be made /only/ if there is an actual clash.
+            Name_Buffer (1) := 'o';
+         end if;
+
+      end if;
+
+      --  Homonym handling: as in Exp_Dbug, but much simpler,
+      --  because the only entities for which we have to generate
+      --  names here need only to be disambiguated within their
+      --  own scope.
+
+      if Overload_Order > 1 then
+         Name_Buffer (Name_Len + 1 .. Name_Len + 2) := "__";
+         Name_Len := Name_Len + 2;
+         Add_Nat_To_Name_Buffer (Overload_Order);
+      end if;
+
+      Id := String_From_Name_Buffer;
+      Subprogram_Identifier_Table.Set (Def, Id);
+   end Assign_Subprogram_Identifier;
 
    ------------------------------------
    -- Local variables and structures --
@@ -474,7 +559,6 @@ package body Exp_Dist is
      (Pkg_Spec : in Node_Id;
       Decls    : in List_Id)
    is
-      Current_Subprogram_Number : Int := 0;
       Current_Declaration       : Node_Id;
 
       Loc                       : constant Source_Ptr := Sloc (Pkg_Spec);
@@ -482,10 +566,10 @@ package body Exp_Dist is
       RCI_Instantiation         : Node_Id;
 
       Subp_Stubs                : Node_Id;
-
+      Subp_Str                  : String_Id;
    begin
       --  The first thing added is an instantiation of the generic package
-      --  System.Partition_interface.RCI_Info with the name of the (current)
+      --  System.PolyORB_Interface.RCI_Locator with the name of the (current)
       --  remote package. This will act as an interface with the name server
       --  to determine the Partition_ID and the RPC_Receiver for the
       --  receiver of this package.
@@ -502,6 +586,9 @@ package body Exp_Dist is
       --  do use the same mechanism and will thus assign the same Id and
       --  do the correct dispatching.
 
+      Overload_Counter_Table.Reset;
+      Reserve_NamingContext_Methods;
+
       Current_Declaration := First (Visible_Declarations (Pkg_Spec));
 
       while Current_Declaration /= Empty loop
@@ -509,14 +596,15 @@ package body Exp_Dist is
          if Nkind (Current_Declaration) = N_Subprogram_Declaration
            and then Comes_From_Source (Current_Declaration)
          then
-            pragma Assert (Current_Subprogram_Number =
-              Get_Subprogram_Id (Defining_Unit_Name (Specification (
-                Current_Declaration))));
+            Assign_Subprogram_Identifier (
+              Defining_Unit_Name (Specification (
+                Current_Declaration)),
+              Subp_Str);
 
             Subp_Stubs :=
               Build_Subprogram_Calling_Stubs (
                 Vis_Decl     => Current_Declaration,
-                Subp_Id      => Current_Subprogram_Number,
+                Subp_Id      => Make_String_Literal (Loc, Subp_Str),
                 Asynchronous =>
                   Nkind (Specification (Current_Declaration)) =
                     N_Procedure_Specification
@@ -526,8 +614,6 @@ package body Exp_Dist is
 
             Append_To (Decls, Subp_Stubs);
             Analyze (Subp_Stubs);
-
-            Current_Subprogram_Number := Current_Subprogram_Number + 1;
          end if;
 
          Next (Current_Declaration);
@@ -665,8 +751,6 @@ package body Exp_Dist is
       Add_RACW_TypeCode
         (Designated_Type     => Desig,
          RACW_Type           => RACW_Type,
-         Stub_Type           => Stub_Type,
-         Stub_Type_Access    => Stub_Type_Access,
          Declarations        => Decls);
 
       if not Same_Scope and then not Existing then
@@ -698,6 +782,7 @@ package body Exp_Dist is
       Declarations        : in List_Id)
    is
       Loc : constant Source_Ptr := Sloc (RACW_Type);
+      Is_RAS : constant Boolean := not Comes_From_Source (RACW_Type);
 
       Fnam : constant Entity_Id
         := Make_Defining_Identifier (Loc, New_Internal_Name ('F'));
@@ -708,6 +793,7 @@ package body Exp_Dist is
 
       Decls             : List_Id;
       Statements        : List_Id;
+      Stub_Statements   : List_Id;
       Local_Statements  : List_Id;
       Remote_Statements : List_Id;
       --  Various parts of the subprogram
@@ -781,10 +867,6 @@ package body Exp_Dist is
               Expression =>
                 Make_Null (Loc)))));
 
-      --  If the reference denotes an object created on
-      --  the current partition, then Local_Statements
-      --  will be executed: the real object will be used.
-
       Append_To (Statements,
         Make_Procedure_Call_Statement (Loc,
           Name =>
@@ -794,17 +876,13 @@ package body Exp_Dist is
             New_Occurrence_Of (Is_Local, Loc),
             New_Occurrence_Of (Addr, Loc))));
 
-      Local_Statements := New_List (
-        Make_Return_Statement (Loc,
-          Expression =>
-            Unchecked_Convert_To (RACW_Type,
-              New_Occurrence_Of (Addr, Loc))));
-
       --  If the object is located on another partition, then a stub
       --  object will be created with all the information needed to
-      --  rebuild the real object at the other end.
+      --  rebuild the real object at the other end. This stanza
+      --  is always used in the case of RAS types, for which a
+      --  stub is required even for local subprograms.
 
-      Remote_Statements := New_List (
+      Stub_Statements := New_List (
 
         Make_Assignment_Statement (Loc,
           Name       => New_Occurrence_Of (Stubbed_Result, Loc),
@@ -845,14 +923,46 @@ package body Exp_Dist is
           Parameter_Associations => New_List (
             Unchecked_Convert_To (RTE (RE_RACW_Stub_Type_Access),
               New_Occurrence_Of (Stubbed_Result, Loc)))));
-
-      Append_To (Remote_Statements,
-        Make_Return_Statement (Loc,
-          Expression => Unchecked_Convert_To (RACW_Type,
-            New_Occurrence_Of (Stubbed_Result, Loc))));
+      --  XXX Houston we have a problem. Here, the Asynchronous flag
+      --  in the stub type is set if, and only if, the RACW type has
+      --  a pragma Asynchronous. This is incorrect for RACWs that
+      --  implement RAS types, because in that case the /designated
+      --  subprogram/ (not the type) might be asynchronous, and
+      --  that causes the stub to need to be asynchronous too.
+      --  The solution is to transport a RAS as a struct containing
+      --  a Ref and an asynchronous flag, and to properly alter
+      --  the Asynchronous component in the stub type in the RAS's
+      --  _From_Any TSS.
 
       --  Distinguish between the local and remote cases, and execute the
       --  appropriate piece of code.
+
+      if Is_RAS then
+         Append_List_To (Statements, Stub_Statements);
+         --  Always instanciate a stub.
+
+         Local_Statements := New_List (
+           Make_Assignment_Statement (Loc,
+             Name =>
+               Make_Selected_Component (Loc,
+                 Prefix =>
+                   New_Occurrence_Of (Stubbed_Result, Loc),
+                 Selector_Name =>
+                   Make_Identifier (Loc, Name_Addr)),
+             Expression =>
+               New_Occurrence_Of (Addr, Loc)));
+
+         Remote_Statements := New_List (Make_Null_Statement (Loc));
+
+      else
+         Local_Statements := New_List (
+           Make_Return_Statement (Loc,
+             Expression =>
+               Unchecked_Convert_To (RACW_Type,
+                 New_Occurrence_Of (Addr, Loc))));
+
+         Remote_Statements := Stub_Statements;
+      end if;
 
       Append_To (Statements,
         Make_Implicit_If_Statement (RACW_Type,
@@ -860,6 +970,11 @@ package body Exp_Dist is
             New_Occurrence_Of (Is_Local, Loc),
           Then_Statements => Local_Statements,
           Else_Statements => Remote_Statements));
+
+      Append_To (Statements,
+        Make_Return_Statement (Loc,
+          Expression => Unchecked_Convert_To (RACW_Type,
+            New_Occurrence_Of (Stubbed_Result, Loc))));
 
       Func_Spec :=
         Make_Function_Specification (Loc,
@@ -911,6 +1026,8 @@ package body Exp_Dist is
       Stub_Elements : constant Stub_Structure :=
         Stubs_Table.Get (Designated_Type);
       pragma Assert (Stub_Elements /= Empty_Stub_Structure);
+      Is_RAS : constant Boolean :=
+        not Comes_From_Source (Stub_Elements.RACW_Type);
 
       Current_Insertion_Node : Node_Id := Insertion_Node;
 
@@ -922,7 +1039,7 @@ package body Exp_Dist is
       RPC_Receiver_Request           : Entity_Id;
       RPC_Receiver_Subp_Id           : Entity_Id;
 
-      Subp_Val : Node_Id;
+      Subp_Str : String_Id;
 
       Current_Primitive_Elmt   : Elmt_Id;
       Current_Primitive        : Entity_Id;
@@ -948,14 +1065,18 @@ package body Exp_Dist is
       --  Build callers, receivers for every primitive operations and a RPC
       --  receiver for this type.
 
-      Build_RPC_Receiver_Body (
-        RPC_Receiver => RPC_Receiver,
-        Request      => RPC_Receiver_Request,
-        Subp_Id      => RPC_Receiver_Subp_Id,
-        Stmts        => RPC_Receiver_Statements,
-        Decl         => RPC_Receiver_Decl);
+      if not Is_RAS then
+         Build_RPC_Receiver_Body (
+           RPC_Receiver => RPC_Receiver,
+           Request      => RPC_Receiver_Request,
+           Subp_Id      => RPC_Receiver_Subp_Id,
+           Stmts        => RPC_Receiver_Statements,
+           Decl         => RPC_Receiver_Decl);
+      end if;
 
       if Present (Primitive_Operations (Designated_Type)) then
+
+         Overload_Counter_Table.Reset;
 
          Current_Primitive_Elmt :=
            First_Elmt (Primitive_Operations (Designated_Type));
@@ -1003,10 +1124,15 @@ package body Exp_Dist is
                  Nkind (Current_Primitive_Spec) = N_Procedure_Specification
                  and then Could_Be_Asynchronous (Current_Primitive_Spec);
 
+               Assign_Subprogram_Identifier (
+                 Defining_Unit_Name (Current_Primitive_Spec),
+                 Subp_Str);
+
                Current_Primitive_Body :=
                  Build_Subprogram_Calling_Stubs
                    (Vis_Decl                 => Current_Primitive_Decl,
-                    Subp_Id                  => Current_Primitive_Number,
+                    Subp_Id                  =>
+                      Make_String_Literal (Loc, Subp_Str),
                     Asynchronous             => Possibly_Asynchronous,
                     Dynamically_Asynchronous => Possibly_Asynchronous,
                     Stub_Type                => Stub_Elements.Stub_Type,
@@ -1018,23 +1144,22 @@ package body Exp_Dist is
                --  For this reason, it will be analyzed later in the
                --  regular flow.
 
-               --  Build the receiver stubs
+               --  Build the receiver stubs (only for RACWs that correspond
+               --  to real objects, not for RAS).
 
-               Current_Receiver_Body :=
-                 Build_Subprogram_Receiving_Stubs
-                   (Vis_Decl                 => Current_Primitive_Decl,
-                    Asynchronous             => Possibly_Asynchronous,
-                    Dynamically_Asynchronous => Possibly_Asynchronous,
-                    Stub_Type                => Stub_Elements.Stub_Type,
-                    RACW_Type                => Stub_Elements.RACW_Type,
-                    Parent_Primitive         => Current_Primitive);
+               if not Is_RAS then
+                  Current_Receiver_Body :=
+                    Build_Subprogram_Receiving_Stubs
+                      (Vis_Decl                 => Current_Primitive_Decl,
+                       Asynchronous             => Possibly_Asynchronous,
+                       Dynamically_Asynchronous => Possibly_Asynchronous,
+                       Stub_Type                => Stub_Elements.Stub_Type,
+                       RACW_Type                => Stub_Elements.RACW_Type,
+                       Parent_Primitive         => Current_Primitive);
 
-               Current_Receiver :=
-                  Defining_Unit_Name (Specification (Current_Receiver_Body));
+                  Append_To (Decls, Current_Receiver_Body);
 
-               Append_To (Decls, Current_Receiver_Body);
-
-               --  Add a case alternative to the receiver
+                  --  Add a case alternative to the receiver
 
 --                 Append_To (RPC_Receiver_Case_Alternatives,
 --                   Make_Case_Statement_Alternative (Loc,
@@ -1049,29 +1174,27 @@ package body Exp_Dist is
 --                           New_Occurrence_Of (
 --                             RPC_Receiver_Request, Loc))))));
 
-               Get_Name_String (Chars (
-                 Defining_Unit_Name (Current_Primitive_Spec)));
-
-               Subp_Val := Make_String_Literal (Loc,
-                 Strval => String_From_Name_Buffer);
-
-               Append_To (RPC_Receiver_Case_Alternatives,
-                 Make_Implicit_If_Statement (Designated_Type,
-                   Condition =>
-                     Make_Function_Call (Loc,
-                       Name =>
-                         New_Occurrence_Of (RTE (RE_Caseless_String_Eq), Loc),
-                       Parameter_Associations => New_List (
-                         New_Occurrence_Of (RPC_Receiver_Subp_Id, Loc),
-                         Subp_Val)),
-                   Then_Statements => New_List (
-                     Make_Procedure_Call_Statement (Loc,
-                       Name                   =>
-                         New_Occurrence_Of (Current_Receiver, Loc),
-                       Parameter_Associations => New_List (
-                         New_Occurrence_Of (
-                           RPC_Receiver_Request, Loc))))));
-
+                  Current_Receiver :=
+                     Defining_Unit_Name (
+                       Specification (Current_Receiver_Body));
+                  Append_To (RPC_Receiver_Case_Alternatives,
+                    Make_Implicit_If_Statement (Designated_Type,
+                      Condition =>
+                        Make_Function_Call (Loc,
+                          Name =>
+                            New_Occurrence_Of (
+                              RTE (RE_Caseless_String_Eq), Loc),
+                          Parameter_Associations => New_List (
+                            New_Occurrence_Of (RPC_Receiver_Subp_Id, Loc),
+                            Make_String_Literal (Loc, Subp_Str))),
+                      Then_Statements => New_List (
+                        Make_Procedure_Call_Statement (Loc,
+                          Name                   =>
+                            New_Occurrence_Of (Current_Receiver, Loc),
+                          Parameter_Associations => New_List (
+                            New_Occurrence_Of (
+                              RPC_Receiver_Request, Loc))))));
+               end if;
                --  Increment the index of current primitive
 
                Current_Primitive_Number := Current_Primitive_Number + 1;
@@ -1094,10 +1217,11 @@ package body Exp_Dist is
 --              New_Occurrence_Of (RPC_Receiver_OLD_Subp_Id, Loc),
 --            Alternatives => RPC_Receiver_Case_Alternatives));
 
-      Append_List_To (RPC_Receiver_Statements,
-        RPC_Receiver_Case_Alternatives);
+      if not Is_RAS then
+         Append_List_To (RPC_Receiver_Statements,
+           RPC_Receiver_Case_Alternatives);
 
-      Append_To (Decls, RPC_Receiver_Decl);
+         Append_To (Decls, RPC_Receiver_Decl);
 --        Append_To (Decls,
 --          Make_Assignment_Statement (Loc,
 --            Name =>
@@ -1117,37 +1241,38 @@ package body Exp_Dist is
 --                  Name_Access)));
 
 --        Append_Freeze_Action (Designated_Type,
-      Append_To (Decls,
-        Make_Procedure_Call_Statement (Loc,
-           Name =>
-             New_Occurrence_Of (
-               RTE (RE_Register_Obj_Receiving_Stub), Loc),
-
-           Parameter_Associations => New_List (
-               --  Name
-             Make_String_Literal (Loc,
-               Full_Qualified_Name (Designated_Type)),
-
-               --  Handler
-             Make_Attribute_Reference (Loc,
-               Prefix =>
-                 New_Occurrence_Of (
-                   Defining_Unit_Name (
-                     Specification (RPC_Receiver_Decl)), Loc),
-               Attribute_Name =>
-                 Name_Access),
-
-               --  Receiver
-             Make_Attribute_Reference (Loc,
-               Prefix =>
+         Append_To (Decls,
+           Make_Procedure_Call_Statement (Loc,
+              Name =>
                 New_Occurrence_Of (
-                  Stub_Elements.Object_RPC_Receiver, Loc),
-               Attribute_Name =>
-                 Name_Access))));
+                  RTE (RE_Register_Obj_Receiving_Stub), Loc),
 
-      --  Do not analyze RPC receiver at this stage since it will otherwise
-      --  reference subprograms that have not been analyzed yet. It will
-      --  be analyzed in the regular flow.
+              Parameter_Associations => New_List (
+                  --  Name
+                Make_String_Literal (Loc,
+                  Full_Qualified_Name (Designated_Type)),
+
+                  --  Handler
+                Make_Attribute_Reference (Loc,
+                  Prefix =>
+                    New_Occurrence_Of (
+                      Defining_Unit_Name (
+                        Specification (RPC_Receiver_Decl)), Loc),
+                  Attribute_Name =>
+                    Name_Access),
+
+                  --  Receiver
+                Make_Attribute_Reference (Loc,
+                  Prefix =>
+                   New_Occurrence_Of (
+                     Stub_Elements.Object_RPC_Receiver, Loc),
+                  Attribute_Name =>
+                    Name_Access))));
+
+         --  Do not analyze RPC receiver at this stage since it will otherwise
+         --  reference subprograms that have not been analyzed yet. It will
+         --  be analyzed in the regular flow.
+      end if;
 
    end Add_RACW_Primitive_Declarations_And_Bodies;
 
@@ -1326,14 +1451,15 @@ package body Exp_Dist is
             Prefix        => New_Occurrence_Of (Stubbed_Result, Loc),
             Selector_Name => Make_Identifier (Loc, Name_Receiver)),
           Expression =>
-            New_Occurrence_Of (Source_Receiver, Loc)),
+            New_Occurrence_Of (Source_Receiver, Loc)));
 
-        Make_Assignment_Statement (Loc,
-          Name       => Make_Selected_Component (Loc,
-            Prefix        => New_Occurrence_Of (Stubbed_Result, Loc),
-            Selector_Name => Make_Identifier (Loc, Name_Addr)),
-          Expression =>
-            New_Occurrence_Of (Source_Address, Loc)));
+--          Make_Assignment_Statement (Loc,
+--            Name       => Make_Selected_Component (Loc,
+--              Prefix        => New_Occurrence_Of (Stubbed_Result, Loc),
+--              Selector_Name => Make_Identifier (Loc, Name_Addr)),
+--            Expression =>
+--              New_Occurrence_Of (Source_Address, Loc)));
+--  XXX
 
       Append_To (Remote_Statements,
         Make_Assignment_Statement (Loc,
@@ -1432,6 +1558,7 @@ package body Exp_Dist is
       Declarations     : in List_Id)
    is
       Loc : constant Source_Ptr := Sloc (RACW_Type);
+      Is_RAS : constant Boolean := not Comes_From_Source (RACW_Type);
 
       Fnam : Entity_Id;
 
@@ -1448,6 +1575,7 @@ package body Exp_Dist is
       Null_Statements   : List_Id;
       Local_Statements  : List_Id;
       Remote_Statements : List_Id;
+      If_Node           : Node_Id;
       --  Various parts of the subprogram
 
       RACW_Parameter : constant Entity_Id
@@ -1479,27 +1607,6 @@ package body Exp_Dist is
       --  then we call To_Any on that reference and fix the
       --  Any's TypeCode.
 
-      --  If the reference denotes an object created on
-      --  the current partition, then Local_Statements
-      --  will be executed.
-
-      Local_Statements := New_List (
-        Make_Procedure_Call_Statement (Loc,
-          Name =>
-            New_Occurrence_Of (RTE (RE_Get_Reference), Loc),
-          Parameter_Associations => New_List (
-            Unchecked_Convert_To (
-              RTE (RE_Address),
-              New_Occurrence_Of (RACW_Parameter, Loc)),
-            Make_String_Literal (Loc,
-              Full_Qualified_Name (Designated_Type)),
-            Make_Attribute_Reference (Loc,
-              Prefix =>
-                New_Occurrence_Of (Stub_Elements.Object_RPC_Receiver, Loc),
-              Attribute_Name =>
-                Name_Access),
-            New_Occurrence_Of (Reference, Loc))));
-
       --  If the object is located on another partition, use the
       --  reference from the stub type.
 
@@ -1523,17 +1630,41 @@ package body Exp_Dist is
       --  Distinguish between the null, local and remote cases,
       --  and execute the appropriate piece of code.
 
-      Statements := New_List (
+      If_Node :=
         Make_Implicit_If_Statement (RACW_Type,
           Condition       =>
             Make_Op_Eq (Loc,
               Left_Opnd  => New_Occurrence_Of (RACW_Parameter, Loc),
               Right_Opnd => Make_Null (Loc)),
           Then_Statements => Null_Statements,
-          Elsif_Parts     => New_List (
+          Else_Statements => Remote_Statements);
+
+      if not Is_RAS then
+
+         --  If this is a real RACW, handle the case where it
+         --  designates a local object.
+
+         Local_Statements := New_List (
+           Make_Procedure_Call_Statement (Loc,
+             Name =>
+               New_Occurrence_Of (RTE (RE_Get_Reference), Loc),
+             Parameter_Associations => New_List (
+               Unchecked_Convert_To (
+                 RTE (RE_Address),
+                 New_Occurrence_Of (RACW_Parameter, Loc)),
+               Make_String_Literal (Loc,
+                 Full_Qualified_Name (Designated_Type)),
+               Make_Attribute_Reference (Loc,
+                 Prefix =>
+                   New_Occurrence_Of (Stub_Elements.Object_RPC_Receiver, Loc),
+                 Attribute_Name =>
+                   Name_Access),
+               New_Occurrence_Of (Reference, Loc))));
+
+         Set_Elsif_Parts (If_Node, New_List (
             Make_Elsif_Part (Loc,
               Condition       =>
-                Make_Op_Eq (Loc,
+                Make_Op_Ne (Loc,
                   Left_Opnd  =>
                     Make_Attribute_Reference (Loc,
                       Prefix         =>
@@ -1543,8 +1674,11 @@ package body Exp_Dist is
                     Make_Attribute_Reference (Loc,
                       Prefix         => New_Occurrence_Of (Stub_Type, Loc),
                       Attribute_Name => Name_Tag)),
-              Then_Statements => Remote_Statements)),
-          Else_Statements => Local_Statements),
+              Then_Statements => Local_Statements)));
+      end if;
+
+      Statements := New_List (
+        If_Node,
         Make_Assignment_Statement (Loc,
           Name =>
             New_Occurrence_Of (Any, Loc),
@@ -1585,8 +1719,8 @@ package body Exp_Dist is
 
       Func_Decl := Make_Subprogram_Declaration (Loc, Func_Spec);
       --  NOTE: The usage occurrences of RACW_Parameter must
-      --  refer to the entity in the declaration spec, not those
-      --  of the body spec.
+      --  refer to the entity in the declaration spec, not in
+      --  the body spec.
 
       Func_Body :=
         Make_Subprogram_Body (Loc,
@@ -1603,15 +1737,13 @@ package body Exp_Dist is
       Set_Renaming_TSS (RACW_Type, Fnam, Name_uTo_Any);
    end Add_RACW_To_Any;
 
-   ---------------------
-   -- Add_RACW_To_Any --
-   ---------------------
+   -----------------------
+   -- Add_RACW_TypeCode --
+   -----------------------
 
    procedure Add_RACW_TypeCode
      (Designated_Type  : in Entity_Id;
       RACW_Type        : in Entity_Id;
-      Stub_Type        : in Entity_Id;
-      Stub_Type_Access : in Entity_Id;
       Declarations     : in List_Id)
    is
       Loc : constant Source_Ptr := Sloc (RACW_Type);
@@ -1768,17 +1900,17 @@ package body Exp_Dist is
                 Object),
               Selector_Name =>
                 Make_Identifier (Loc, Name_Receiver)),
-         Etyp   => RTE (RE_Unsigned_64)),
-
-        Pack_Node_Into_Stream_Access (Loc,
-         Stream => Stream_Parameter,
-         Object =>
-            Make_Selected_Component (Loc,
-              Prefix        => Unchecked_Convert_To (Stub_Type_Access,
-                Object),
-              Selector_Name =>
-                Make_Identifier (Loc, Name_Addr)),
          Etyp   => RTE (RE_Unsigned_64)));
+
+--          Pack_Node_Into_Stream_Access (Loc,
+--           Stream => Stream_Parameter,
+--           Object =>
+--              Make_Selected_Component (Loc,
+--                Prefix        => Unchecked_Convert_To (Stub_Type_Access,
+--                  Object),
+--                Selector_Name =>
+--                  Make_Identifier (Loc, Name_Addr)),
+--           Etyp   => RTE (RE_Unsigned_64)));
 
       --  Build the code fragment corresponding to the marshalling of a null
       --  object.
@@ -1845,17 +1977,32 @@ package body Exp_Dist is
       Append_To (Declarations, Body_Node);
    end Add_RACW_Write_Attribute;
 
-   ------------------------------
-   -- Add_RAS_Access_Attribute --
-   ------------------------------
+   ------------------------
+   -- Add_RAS_Access_TSS --
+   ------------------------
 
-   procedure Add_RAS_Access_Attribute (N : in Node_Id) is
-      Ras_Type : constant Entity_Id := Defining_Identifier (N);
-      Fat_Type : constant Entity_Id := Equivalent_Type (Ras_Type);
+   procedure Add_RAS_Access_TSS (N : in Node_Id) is
+      Loc : constant Source_Ptr := Sloc (N);
+
+      Ras_Type  : constant Entity_Id := Defining_Identifier (N);
+      Fat_Type  : constant Entity_Id := Equivalent_Type (Ras_Type);
+      RACW_Type : constant Entity_Id :=
+        Underlying_RACW_Type (Ras_Type);
+
+      Desig     : constant Entity_Id :=
+        Etype (Designated_Type (RACW_Type));
+
+      Stub_Elements : constant Stub_Structure :=
+        Stubs_Table.Get (Desig);
+      pragma Assert (Stub_Elements /= Empty_Stub_Structure);
+
+      Stub_Ptr : constant Entity_Id :=
+        Make_Defining_Identifier (Loc, New_Internal_Name ('S'));
+
       --  Ras_Type is the access to subprogram type while Fat_Type points to
       --  the record type corresponding to a remote access to subprogram type.
 
-      Proc_Decls        : constant List_Id := New_List;
+      Proc_Decls        : List_Id;
       Proc_Statements   : constant List_Id := New_List;
 
       Proc_Spec : Node_Id;
@@ -1863,13 +2010,23 @@ package body Exp_Dist is
 
       Proc : Node_Id;
 
-      Param        : Node_Id;
       Package_Name : Node_Id;
       Subp_Id      : Node_Id;
-      Asynchronous : Node_Id;
       Return_Value : Node_Id;
 
-      Loc : constant Source_Ptr := Sloc (N);
+      Asynch_P     : Entity_Id;
+      --  Is the procedure to which the 'Access applies asynchronous?
+      Asynch_T     : Node_Id;
+      --  Is the RAS type asynchronous?
+
+      All_Calls_Remote : Entity_Id;
+      --  True if an All_Calls_Remote pragma applies to the RCI unit
+      --  that contains the procedure.
+
+      Subp_Ref : Entity_Id;
+
+      Is_Local : Entity_Id;
+      --  For the call to Get_Local_Address
 
       procedure Set_Field (Field_Name : in Name_Id; Value : in Node_Id);
       --  Set a field name for the return value
@@ -1881,7 +2038,7 @@ package body Exp_Dist is
            Make_Assignment_Statement (Loc,
              Name       =>
                Make_Selected_Component (Loc,
-                 Prefix        => New_Occurrence_Of (Return_Value, Loc),
+                 Prefix        => New_Occurrence_Of (Stub_Ptr, Loc),
                  Selector_Name => Make_Identifier (Loc, Field_Name)),
              Expression => Value));
       end Set_Field;
@@ -1889,47 +2046,124 @@ package body Exp_Dist is
    --  Start of processing for Add_RAS_Access_Attribute
 
    begin
-      Param := Make_Defining_Identifier (Loc, New_Internal_Name ('P'));
-      Package_Name := Make_Defining_Identifier (Loc, New_Internal_Name ('S'));
+      Is_Local := Make_Defining_Identifier (Loc, New_Internal_Name ('L'));
+      Package_Name := Make_Defining_Identifier (Loc, New_Internal_Name ('P'));
       Subp_Id := Make_Defining_Identifier (Loc, New_Internal_Name ('N'));
-      Asynchronous := Make_Defining_Identifier (Loc, New_Internal_Name ('B'));
-      Return_Value := Make_Defining_Identifier (Loc, New_Internal_Name ('P'));
+      Asynch_P := Make_Defining_Identifier (Loc, New_Internal_Name ('B'));
+      Return_Value := Make_Defining_Identifier (Loc, New_Internal_Name ('R'));
+      All_Calls_Remote :=
+        Make_Defining_Identifier (Loc, New_Internal_Name ('A'));
+      Subp_Ref := Make_Defining_Identifier (Loc, New_Internal_Name ('R'));
 
       --  Create the object which will be returned of type Fat_Type
 
-      Append_To (Proc_Decls,
+      Proc_Decls := New_List (
+        Make_Object_Declaration (Loc,
+          Defining_Identifier =>
+            Stub_Ptr,
+          Constant_Present    => True,
+          Object_Definition   =>
+            New_Occurrence_Of (Stub_Elements.Stub_Type_Access, Loc),
+          Expression          =>
+            Make_Allocator (Loc,
+              New_Occurrence_Of (
+                Stub_Elements.Stub_Type, Loc))),
+
         Make_Object_Declaration (Loc,
           Defining_Identifier => Return_Value,
           Object_Definition   =>
-            New_Occurrence_Of (Fat_Type, Loc)));
+            New_Occurrence_Of (Fat_Type, Loc),
+          Expression =>
+            Make_Aggregate (Loc,
+              Component_Associations => New_List (
+                Make_Component_Association (Loc,
+                  Choices =>
+                    New_List (Make_Identifier (Loc, Name_Ras)),
+                  Expression =>
+                    Unchecked_Convert_To (RACW_Type,
+                       New_Occurrence_Of (
+                         Stub_Ptr, Loc)))))),
+
+        Make_Object_Declaration (Loc,
+          Defining_Identifier => Subp_Ref,
+          Object_Definition   =>
+            New_Occurrence_Of (RTE (RE_Object_Ref), Loc)),
+
+        Make_Object_Declaration (Loc,
+          Defining_Identifier => Is_Local,
+          Object_Definition   =>
+            New_Occurrence_Of (Standard_Boolean, Loc)));
 
       --  Initialize the fields of the record type with the appropriate data
 
-      Set_Field (Name_Ras,
-        OK_Convert_To (RTE (RE_Unsigned_64), New_Occurrence_Of (Param, Loc)));
-
-      Set_Field (Name_Origin,
-        Unchecked_Convert_To (Standard_Integer,
-          Make_Function_Call (Loc,
-            Name                   =>
-              New_Occurrence_Of (RTE (RE_Get_Active_Partition_Id), Loc),
-            Parameter_Associations => New_List (
-              New_Occurrence_Of (Package_Name, Loc)))));
-
-      Set_Field (Name_Receiver,
-        Make_Function_Call (Loc,
-          Name                   =>
-            New_Occurrence_Of (RTE (RE_Get_RCI_Package_Receiver), Loc),
+      Append_To (Proc_Statements,
+        Make_Procedure_Call_Statement (Loc,
+          Name =>
+            New_Occurrence_Of (RTE (RE_Get_RAS_Ref), Loc),
           Parameter_Associations => New_List (
-            New_Occurrence_Of (Package_Name, Loc))));
+            New_Occurrence_Of (Package_Name, Loc),
+            New_Occurrence_Of (Subp_Id, Loc),
+            New_Occurrence_Of (Subp_Ref, Loc))));
 
-      Set_Field (Name_Subp_Id,
-        New_Occurrence_Of (Subp_Id, Loc));
+      Set_Field (Name_Target,
+        Make_Function_Call (Loc,
+          Name =>
+            New_Occurrence_Of (RTE (RE_Entity_Of), Loc),
+          Parameter_Associations => New_List (
+            New_Occurrence_Of (Subp_Ref, Loc))));
 
-      Set_Field (Name_Async,
-        New_Occurrence_Of (Asynchronous, Loc));
+      Append_To (Proc_Statements,
+        Make_Procedure_Call_Statement (Loc,
+          Name =>
+            New_Occurrence_Of (RTE (RE_Inc_Usage), Loc),
+          Parameter_Associations => New_List (
+            Make_Selected_Component (Loc,
+              Prefix        => New_Occurrence_Of (Stub_Ptr, Loc),
+              Selector_Name => Make_Identifier (Loc, Name_Target)))));
 
-      --  Return the newly created value
+      Append_To (Proc_Statements,
+        Make_Procedure_Call_Statement (Loc,
+          Name =>
+            New_Occurrence_Of (RTE (RE_Get_Local_Address), Loc),
+          Parameter_Associations => New_List (
+            New_Occurrence_Of (Subp_Ref, Loc),
+            New_Occurrence_Of (Is_Local, Loc),
+            Make_Selected_Component (Loc,
+              Prefix        => New_Occurrence_Of (Stub_Ptr, Loc),
+              Selector_Name => Make_Identifier (Loc, Name_Addr)))));
+      --  At this point Addr is Null_Address if the reference is remote,
+      --  and the local address of the real subprogram otherwise.
+
+      Append_To (Proc_Statements,
+        Make_Implicit_If_Statement (N,
+          Condition =>
+            New_Occurrence_Of (All_Calls_Remote, Loc),
+          Then_Statements => New_List (
+            Make_Assignment_Statement (Loc,
+              Name       =>
+                Make_Selected_Component (Loc,
+                  Prefix        => New_Occurrence_Of (Stub_Ptr, Loc),
+                  Selector_Name => Make_Identifier (Loc, Name_Addr)),
+              Expression => New_Occurrence_Of (RTE (RE_Null_Address), Loc)))));
+      --  If this is an All_Calls_Remote local subprogram, then do not
+      --  store the local subprogram address here, to prevent it from
+      --  being called directly when the RAS is dereferenced.
+
+      if Is_Asynchronous (Ras_Type) then
+         Asynch_T := New_Occurrence_Of (Standard_True, Loc);
+      else
+         Asynch_T := New_Occurrence_Of (Standard_False, Loc);
+      end if;
+
+      Set_Field (Name_Asynchronous,
+        Make_Or_Else (Loc,
+          New_Occurrence_Of (Asynch_P, Loc),
+          Asynch_T));
+      --  E.4.1(9) A remote call is asynchronous if it is a call to
+      --  a procedure, or a call through a value of an access-to-procedure
+      --  type, to which a pragma Asynchronous applies.
+      --  Parameter Asynch_P is true when the procedure is asynchronous;
+      --  Expression Asynch_T is true when the type is asynchronous.
 
       Append_To (Proc_Statements,
         Make_Return_Statement (Loc,
@@ -1942,10 +2176,6 @@ package body Exp_Dist is
         Make_Function_Specification (Loc,
           Defining_Unit_Name       => Proc,
           Parameter_Specifications => New_List (
-            Make_Parameter_Specification (Loc,
-              Defining_Identifier => Param,
-              Parameter_Type      =>
-                New_Occurrence_Of (RTE (RE_Address), Loc)),
 
             Make_Parameter_Specification (Loc,
               Defining_Identifier => Package_Name,
@@ -1955,10 +2185,15 @@ package body Exp_Dist is
             Make_Parameter_Specification (Loc,
               Defining_Identifier => Subp_Id,
               Parameter_Type      =>
-                New_Occurrence_Of (Standard_Natural, Loc)),
+                New_Occurrence_Of (Standard_String, Loc)),
 
             Make_Parameter_Specification (Loc,
-              Defining_Identifier => Asynchronous,
+              Defining_Identifier => Asynch_P,
+              Parameter_Type      =>
+                New_Occurrence_Of (Standard_Boolean, Loc)),
+
+            Make_Parameter_Specification (Loc,
+              Defining_Identifier => All_Calls_Remote,
               Parameter_Type      =>
                 New_Occurrence_Of (Standard_Boolean, Loc))),
 
@@ -1981,28 +2216,34 @@ package body Exp_Dist is
 
       Set_TSS (Fat_Type, Proc);
 
-   end Add_RAS_Access_Attribute;
+   end Add_RAS_Access_TSS;
 
-   -----------------------------------
-   -- Add_RAS_Dereference_Attribute --
-   -----------------------------------
+   -----------------------------
+   -- Add_RAS_Dereference_TSS --
+   -----------------------------
 
-   procedure Add_RAS_Dereference_Attribute (N : in Node_Id) is
+   procedure Add_RAS_Dereference_TSS (N : in Node_Id) is
       Loc : constant Source_Ptr := Sloc (N);
 
       Type_Def : constant Node_Id   := Type_Definition (N);
 
-      Ras_Type : constant Entity_Id := Defining_Identifier (N);
+      RAS_Type : constant Entity_Id := Defining_Identifier (N);
+      Fat_Type : constant Entity_Id := Equivalent_Type (RAS_Type);
 
-      Fat_Type : constant Entity_Id := Equivalent_Type (Ras_Type);
+      RACW_Type : constant Entity_Id := Underlying_RACW_Type (RAS_Type);
+      Desig : constant Entity_Id :=
+        Etype (Designated_Type (RACW_Type));
+      Stub_Elements : constant Stub_Structure := Stubs_Table.Get (Desig);
+      pragma Assert (Stub_Elements /= Empty_Stub_Structure);
 
       Proc_Decls      : constant List_Id := New_List;
       Proc_Statements : constant List_Id := New_List;
 
-      Inner_Decls      : constant List_Id := New_List;
-      Inner_Statements : constant List_Id := New_List;
-
       Direct_Statements : constant List_Id := New_List;
+
+      Inner_Decls      : constant List_Id := New_List;
+      Remote_Statements : constant List_Id := New_List;
+      RACW_Primitive_Name : Node_Id;
 
       Proc : Node_Id;
 
@@ -2010,14 +2251,13 @@ package body Exp_Dist is
       Proc_Body : Node_Id;
 
       Param_Specs : constant List_Id := New_List;
-      Param_Assoc : constant List_Id := New_List;
+      Param_Assoc_Direct : constant List_Id := New_List;
+      Param_Assoc_Remote : constant List_Id := New_List;
 
-      Pointer : Node_Id;
+      RAS_Parameter : Node_Id;
 
+      RACW_Parameter   : Entity_Id;
       Converted_Ras    : Node_Id;
-      Target_Object    : Node_Id;
-      Subprogram_Id    : Node_Id;
-      Asynchronous     : Node_Id;
 
       Is_Function : constant Boolean :=
         Nkind (Type_Def) = N_Access_Function_Definition;
@@ -2033,61 +2273,23 @@ package body Exp_Dist is
       --  is safe to dereference the Ras field directly rather than
       --  performing a remote call.
 
-      Pointer :=
+      RAS_Parameter :=
         Make_Defining_Identifier (Loc, New_Internal_Name ('P'));
 
---        Target_Partition :=
---          Make_Defining_Identifier (Loc, New_Internal_Name ('P'));
+      RACW_Parameter :=
+        Make_Defining_Identifier (Loc, New_Internal_Name ('P'));
 
---        Append_To (Proc_Decls,
---          Make_Object_Declaration (Loc,
---            Defining_Identifier => Target_Partition,
---            Constant_Present    => True,
---            Object_Definition   =>
---              New_Occurrence_Of (RTE (RE_Partition_ID), Loc),
---            Expression          =>
---              Unchecked_Convert_To (RTE (RE_Partition_ID),
---                Make_Selected_Component (Loc,
---                  Prefix        =>
---                    New_Occurrence_Of (Pointer, Loc),
---                  Selector_Name =>
---                    Make_Identifier (Loc, Name_Origin)))));
-
---        RPC_Receiver :=
---          Make_Selected_Component (Loc,
---            Prefix        =>
---              New_Occurrence_Of (Pointer, Loc),
---            Selector_Name =>
---              Make_Identifier (Loc, Name_Receiver));
-      Target_Object := Empty;
-      --  XXX TBD (RAS) rewrite for PolyORB!
-
-      Subprogram_Id :=
-        Unchecked_Convert_To (RTE (RE_Subprogram_Id),
-          Make_Selected_Component (Loc,
-            Prefix        =>
-              New_Occurrence_Of (Pointer, Loc),
-            Selector_Name =>
-              Make_Identifier (Loc, Name_Subp_Id)));
-
-      --  A function is never asynchronous. A procedure may or may not be
-      --  asynchronous depending on whether a pragma Asynchronous applies
-      --  on it. Since a RAST may point onto various subprograms, this is
-      --  only known at runtime so both versions (synchronous and asynchronous)
-      --  must be built every times it is not a function.
-
-      if Is_Function then
-         Asynchronous := Empty;
-
-      else
-         Asynchronous :=
-           Make_Selected_Component (Loc,
-             Prefix        =>
-               New_Occurrence_Of (Pointer, Loc),
-             Selector_Name =>
-               Make_Identifier (Loc, Name_Async));
-
-      end if;
+      Append_To (Proc_Decls,
+        Make_Object_Renaming_Declaration (Loc,
+          Defining_Identifier => RACW_Parameter,
+          Subtype_Mark        =>
+            New_Occurrence_Of (RACW_Type, Loc),
+          Name                =>
+            Make_Selected_Component (Loc,
+              Prefix        =>
+                New_Occurrence_Of (RAS_Parameter, Loc),
+              Selector_Name =>
+                Make_Identifier (Loc, Name_Ras))));
 
       if Present (Parameter_Specifications (Type_Def)) then
          Current_Parameter := First (Parameter_Specifications (Type_Def));
@@ -2106,13 +2308,81 @@ package body Exp_Dist is
                 Expression        =>
                   New_Copy_Tree (Expression (Current_Parameter))));
 
-            Append_To (Param_Assoc,
+            Append_To (Param_Assoc_Direct,
+              Make_Identifier (Loc,
+                Chars => Chars (Defining_Identifier (Current_Parameter))));
+            Append_To (Param_Assoc_Remote,
               Make_Identifier (Loc,
                 Chars => Chars (Defining_Identifier (Current_Parameter))));
 
             Next (Current_Parameter);
          end loop;
       end if;
+
+      --  In the case of a call to a local subprogram, for
+      --  a library unit to which no pragma All_Calls_Remote
+      --  applies: call the real subprogram directly.
+
+      Converted_Ras :=
+        Unchecked_Convert_To (RAS_Type,
+          Make_Selected_Component (Loc,
+            Prefix        =>
+              Unchecked_Convert_To (Stub_Elements.Stub_Type_Access,
+                New_Occurrence_Of (RACW_Parameter, Loc)),
+            Selector_Name => Make_Identifier (Loc, Name_Addr)));
+
+      if Is_Function then
+         Append_To (Direct_Statements,
+           Make_Return_Statement (Loc,
+             Expression =>
+               Make_Function_Call (Loc,
+                 Name                   =>
+                   Make_Explicit_Dereference (Loc,
+                     Prefix => Converted_Ras),
+                 Parameter_Associations => Param_Assoc_Direct)));
+
+      else
+         Append_To (Direct_Statements,
+           Make_Procedure_Call_Statement (Loc,
+             Name                   =>
+               Make_Explicit_Dereference (Loc,
+                 Prefix => Converted_Ras),
+             Parameter_Associations => Param_Assoc_Direct));
+      end if;
+
+      --  In the remote case, perform the call through the
+      --  underlying RACW.
+
+      Prepend_To (Param_Specs,
+        Make_Parameter_Specification (Loc,
+          Defining_Identifier => RAS_Parameter,
+          In_Present          => True,
+          Parameter_Type      =>
+            New_Occurrence_Of (Fat_Type, Loc)));
+
+      RACW_Primitive_Name :=
+        Make_Selected_Component (Loc,
+          Prefix =>
+            New_Occurrence_Of (Scope (RACW_Type), Loc),
+          Selector_Name =>
+            Make_Identifier (Loc, Name_Call));
+
+      if Is_Function then
+         Append_To (Remote_Statements,
+           Make_Return_Statement (Loc,
+             Expression =>
+               Make_Function_Call (Loc,
+                 Name                   => RACW_Primitive_Name,
+                 Parameter_Associations => Param_Assoc_Remote)));
+
+      else
+         Append_To (Remote_Statements,
+           Make_Procedure_Call_Statement (Loc,
+             Name                   => RACW_Primitive_Name,
+             Parameter_Associations => Param_Assoc_Remote));
+      end if;
+
+      --  Build the complete subprogram.
 
       Proc := Make_Defining_Identifier (Loc, Name_uRAS_Dereference);
 
@@ -2126,7 +2396,6 @@ package body Exp_Dist is
                  Entity (Subtype_Mark (Spec)), Loc));
 
          Set_Ekind (Proc, E_Function);
-
          Set_Etype (Proc,
            New_Occurrence_Of (Entity (Subtype_Mark (Spec)), Loc));
 
@@ -2140,75 +2409,25 @@ package body Exp_Dist is
          Set_Etype (Proc, Standard_Void_Type);
       end if;
 
-      --  Build the calling stubs for the dereference of the RAS
-
-      Build_General_Calling_Stubs
-        (Decls                     => Inner_Decls,
-         Statements                => Inner_Statements,
-         Target_Object             => Target_Object,
-         Subprogram_Id             => Subprogram_Id,
-         Asynchronous              => Asynchronous,
-         Is_Known_Non_Asynchronous => Is_Function,
-         Is_Function               => Is_Function,
-         Spec                      => Proc_Spec,
-         Nod                       => N);
-
-      Converted_Ras :=
-        Unchecked_Convert_To (Ras_Type,
-          OK_Convert_To (RTE (RE_Address),
-            Make_Selected_Component (Loc,
-              Prefix        => New_Occurrence_Of (Pointer, Loc),
-              Selector_Name => Make_Identifier (Loc, Name_Ras))));
-
-      if Is_Function then
-         Append_To (Direct_Statements,
-           Make_Return_Statement (Loc,
-             Expression =>
-               Make_Function_Call (Loc,
-                 Name                   =>
-                   Make_Explicit_Dereference (Loc,
-                     Prefix => Converted_Ras),
-                 Parameter_Associations => Param_Assoc)));
-
-      else
-         Append_To (Direct_Statements,
-           Make_Procedure_Call_Statement (Loc,
-             Name                   =>
-               Make_Explicit_Dereference (Loc,
-                 Prefix => Converted_Ras),
-             Parameter_Associations => Param_Assoc));
-      end if;
-
-      Prepend_To (Param_Specs,
-        Make_Parameter_Specification (Loc,
-          Defining_Identifier => Pointer,
-          In_Present          => True,
-          Parameter_Type      =>
-            New_Occurrence_Of (Fat_Type, Loc)));
+      Prepend_To (Param_Assoc_Remote,
+        Make_Selected_Component (Loc,
+          Prefix =>
+            New_Occurrence_Of (RAS_Parameter, Loc),
+          Selector_Name =>
+            Make_Identifier (Loc, Name_Ras)));
 
       Append_To (Proc_Statements,
         Make_Implicit_If_Statement (N,
           Condition =>
-            Make_And_Then (Loc,
+            Make_Op_Ne (Loc,
               Left_Opnd  =>
-                Make_Op_Ne (Loc,
-                  Left_Opnd  =>
-                    Make_Selected_Component (Loc,
-                      Prefix        => New_Occurrence_Of (Pointer, Loc),
-                      Selector_Name => Make_Identifier (Loc, Name_Ras)),
-                  Right_Opnd =>
-                    Make_Integer_Literal (Loc, Uint_0)),
-
-              Right_Opnd => New_Occurrence_Of (Standard_False, Loc)),
---                  Make_Op_Eq (Loc,
---                    Left_Opnd  =>
---                      New_Occurrence_Of (Target_Partition, Loc),
---                    Right_Opnd =>
---                      Make_Function_Call (Loc,
---                        New_Occurrence_Of (
---                          RTE (RE_Get_Local_Partition_Id), Loc)))),
-         --  XXX TBD (RAS) Rewrite locality condition
-         --  for PolyORB (Is_Local (Target_Object)?)
+                Make_Selected_Component (Loc,
+                  Prefix        =>
+                    Unchecked_Convert_To (Stub_Elements.Stub_Type_Access,
+                      New_Occurrence_Of (RACW_Parameter, Loc)),
+                  Selector_Name => Make_Identifier (Loc, Name_Addr)),
+              Right_Opnd =>
+                New_Occurrence_Of (RTE (RE_Null_Address), Loc)),
           Then_Statements =>
             Direct_Statements,
 
@@ -2217,7 +2436,7 @@ package body Exp_Dist is
               Declarations               => Inner_Decls,
               Handled_Statement_Sequence =>
                 Make_Handled_Sequence_Of_Statements (Loc,
-                  Statements => Inner_Statements)))));
+                  Statements => Remote_Statements)))));
 
       Proc_Body :=
         Make_Subprogram_Body (Loc,
@@ -2227,28 +2446,288 @@ package body Exp_Dist is
             Make_Handled_Sequence_Of_Statements (Loc,
               Statements => Proc_Statements));
 
-      Set_TSS (Fat_Type, Defining_Unit_Name (Proc_Spec));
+      Set_TSS (Fat_Type, Proc);
+   end Add_RAS_Dereference_TSS;
 
-   end Add_RAS_Dereference_Attribute;
+   procedure Add_RAS_From_Any
+     (RAS_Type     : in Entity_Id;
+      Declarations : in List_Id)
+   is
+      Loc : constant Source_Ptr := Sloc (RAS_Type);
+
+      Fnam : constant Entity_Id
+        := Make_Defining_Identifier (Loc, New_Internal_Name ('F'));
+
+      Func_Spec : Node_Id;
+      Func_Decl : Node_Id;
+      Func_Body : Node_Id;
+
+      Statements : List_Id;
+
+      Any_Parameter : constant Entity_Id
+        := Make_Defining_Identifier (Loc, Name_A);
+
+   begin
+
+      Statements := New_List (
+        Make_Return_Statement (Loc,
+          Expression =>
+            Make_Aggregate (Loc,
+              Component_Associations => New_List (
+                Make_Component_Association (Loc,
+                  Choices => New_List (
+                    Make_Identifier (Loc, Name_Ras)),
+                  Expression =>
+                    Build_From_Any_Call (
+                      Underlying_RACW_Type (RAS_Type),
+                      New_Occurrence_Of (Any_Parameter, Loc),
+                      No_List))))));
+
+      Func_Spec :=
+        Make_Function_Specification (Loc,
+          Defining_Unit_Name =>
+            Fnam,
+          Parameter_Specifications => New_List (
+            Make_Parameter_Specification (Loc,
+              Defining_Identifier =>
+                Any_Parameter,
+              Parameter_Type =>
+                New_Occurrence_Of (RTE (RE_Any), Loc))),
+          Subtype_Mark => New_Occurrence_Of (RAS_Type, Loc));
+
+      Func_Decl := Make_Subprogram_Declaration (Loc, Func_Spec);
+      --  NOTE: The usage occurrences of RACW_Parameter must
+      --  refer to the entity in the declaration spec, not those
+      --  of the body spec.
+
+      Func_Body :=
+        Make_Subprogram_Body (Loc,
+          Specification              =>
+            Copy_Specification (Loc, Func_Spec),
+          Declarations               => No_List,
+          Handled_Statement_Sequence =>
+            Make_Handled_Sequence_Of_Statements (Loc,
+              Statements => Statements));
+
+      Insert_After (Declaration_Node (RAS_Type), Func_Decl);
+      Append_To (Declarations, Func_Body);
+
+      Set_Renaming_TSS (RAS_Type, Fnam, Name_uFrom_Any);
+   end Add_RAS_From_Any;
+
+   procedure Add_RAS_To_Any
+     (RAS_Type        : in Entity_Id;
+      Declarations    : in List_Id)
+   is
+      Loc : constant Source_Ptr := Sloc (RAS_Type);
+
+      Fnam : Entity_Id;
+
+      Decls : List_Id;
+      Statements : List_Id;
+
+      Func_Spec : Node_Id;
+      Func_Decl : Node_Id;
+      Func_Body : Node_Id;
+
+      Any : constant Entity_Id :=
+        Make_Defining_Identifier (Loc, New_Internal_Name ('A'));
+
+      RAS_Parameter : constant Entity_Id :=
+        Make_Defining_Identifier (Loc, New_Internal_Name ('R'));
+
+      RACW_Parameter : constant Node_Id :=
+        Make_Selected_Component (Loc,
+          Prefix =>
+            New_Occurrence_Of (RAS_Parameter, Loc),
+          Selector_Name =>
+            Make_Identifier (Loc, Name_Ras));
+
+   begin
+
+      --  Object declarations
+
+      Set_Etype (RACW_Parameter, Underlying_RACW_Type (RAS_Type));
+      Decls := New_List (
+        Make_Object_Declaration (Loc,
+          Defining_Identifier =>
+            Any,
+          Object_Definition =>
+            New_Occurrence_Of (RTE (RE_Any), Loc),
+          Expression =>
+            Build_To_Any_Call (RACW_Parameter, No_List)));
+
+      Statements := New_List (
+        Make_Procedure_Call_Statement (Loc,
+          Name =>
+            New_Occurrence_Of (RTE (RE_Set_TC), Loc),
+          Parameter_Associations => New_List (
+            New_Occurrence_Of (Any, Loc),
+            Build_TypeCode_Call (Loc, RAS_Type, Decls))),
+        Make_Return_Statement (Loc,
+          Expression =>
+            New_Occurrence_Of (Any, Loc)));
+
+      Fnam := Make_Defining_Identifier (
+        Loc, New_Internal_Name ('T'));
+
+      Func_Spec :=
+        Make_Function_Specification (Loc,
+          Defining_Unit_Name =>
+            Fnam,
+          Parameter_Specifications => New_List (
+            Make_Parameter_Specification (Loc,
+              Defining_Identifier =>
+                RAS_Parameter,
+              Parameter_Type =>
+                New_Occurrence_Of (RAS_Type, Loc))),
+          Subtype_Mark => New_Occurrence_Of (RTE (RE_Any), Loc));
+
+      Func_Decl := Make_Subprogram_Declaration (Loc, Func_Spec);
+      --  NOTE: The usage occurrences of RAS_Parameter must
+      --  refer to the entity in the declaration spec, not in
+      --  the body spec.
+
+      Func_Body :=
+        Make_Subprogram_Body (Loc,
+          Specification              =>
+            Copy_Specification (Loc, Func_Spec),
+          Declarations               => Decls,
+          Handled_Statement_Sequence =>
+            Make_Handled_Sequence_Of_Statements (Loc,
+              Statements => Statements));
+
+      Insert_After (Declaration_Node (RAS_Type), Func_Decl);
+      Append_To (Declarations, Func_Body);
+
+      Set_Renaming_TSS (RAS_Type, Fnam, Name_uTo_Any);
+   end Add_RAS_To_Any;
+
+   ----------------------
+   -- Add_RAS_TypeCode --
+   ----------------------
+
+   procedure Add_RAS_TypeCode
+     (RAS_Type        : in Entity_Id;
+      Declarations    : in List_Id)
+   is
+      Loc : constant Source_Ptr := Sloc (RAS_Type);
+
+      Fnam : Entity_Id;
+
+      Func_Spec : Node_Id;
+      Func_Decl : Node_Id;
+      Func_Body : Node_Id;
+
+      Decls : constant List_Id := New_List;
+      Name_String : String_Id;
+      Repo_Id_String : String_Id;
+
+      RAS_Parameter : constant Entity_Id
+        := Make_Defining_Identifier (Loc, Name_R);
+
+   begin
+
+      Fnam := Make_Defining_Identifier (
+        Loc, New_Internal_Name ('T'));
+
+      Func_Spec :=
+        Make_Function_Specification (Loc,
+          Defining_Unit_Name =>
+            Fnam,
+          Parameter_Specifications => New_List (
+            Make_Parameter_Specification (Loc,
+              Defining_Identifier =>
+                RAS_Parameter,
+              Parameter_Type =>
+                Make_Access_Definition (Loc,
+                  New_Occurrence_Of (RAS_Type, Loc)))),
+          Subtype_Mark => New_Occurrence_Of (RTE (RE_TypeCode), Loc));
+      --  Dummy 'access RAS' argument, just over overload.
+
+      Func_Decl := Make_Subprogram_Declaration (Loc, Func_Spec);
+      --  NOTE: The usage occurrences of RAS_Parameter must
+      --  refer to the entity in the declaration spec, not those
+      --  of the body spec.
+
+      --  XXX the following is heavily borrowed from Exp_Hlpr
+      --  and should be factored out.
+
+      Get_Name_String (Chars
+        (Defining_Identifier (Declaration_Node (RAS_Type))));
+      Name_String := String_From_Name_Buffer;
+      Repo_Id_String := Name_String;
+      --  XXX should compute a proper repository id!
+
+      Func_Body :=
+        Make_Subprogram_Body (Loc,
+          Specification              =>
+            Copy_Specification (Loc, Func_Spec),
+          Declarations               => Decls,
+          Handled_Statement_Sequence =>
+            Make_Handled_Sequence_Of_Statements (Loc,
+              Statements => New_List (
+                Make_Return_Statement (Loc,
+                  Expression =>
+                    Make_Function_Call (Loc,
+                      Name =>
+                        New_Occurrence_Of (RTE (RE_TC_Build), Loc),
+                      Parameter_Associations => New_List (
+                        New_Occurrence_Of (RTE (RE_TC_Alias), Loc),
+                        Make_Aggregate (Loc,
+                          Expressions =>
+                            New_List (
+                              Make_Function_Call (Loc,
+                                Name =>
+                                  New_Occurrence_Of (RTE (RE_TA_String), Loc),
+                                Parameter_Associations => New_List (
+                                  Make_String_Literal (Loc, Name_String))),
+                              Make_Function_Call (Loc,
+                                Name =>
+                                  New_Occurrence_Of (RTE (RE_TA_String), Loc),
+                                Parameter_Associations => New_List (
+                                  Make_String_Literal (Loc, Repo_Id_String))),
+                              Make_Function_Call (Loc,
+                                Name =>
+                                  New_Occurrence_Of (RTE (RE_TA_TC), Loc),
+                                Parameter_Associations => New_List (
+                                  Build_TypeCode_Call (Loc,
+                                    Underlying_RACW_Type (RAS_Type),
+                                    Decls)))))))))));
+
+      Insert_After (Declaration_Node (RAS_Type), Func_Decl);
+      Append_To (Declarations, Func_Body);
+
+      Set_Renaming_TSS (RAS_Type, Fnam, Name_uTypeCode);
+   end Add_RAS_TypeCode;
 
    -----------------------
    -- Add_RAST_Features --
    -----------------------
 
    procedure Add_RAST_Features (Vis_Decl : Node_Id) is
-   begin
-      --  Do not add attributes more than once in any case. This should
-      --  be replaced by an assert or this comment removed if we decide
-      --  that this is normal to be called several times ???
+      RAS_Type : constant Entity_Id :=
+        Equivalent_Type (Defining_Identifier (Vis_Decl));
 
-      if Present (TSS (Equivalent_Type (Defining_Identifier
-           (Vis_Decl)), Name_uRAS_Access))
-      then
-         return;
+      Spec : constant Node_Id :=
+        Specification (Unit (Enclosing_Lib_Unit_Node (Vis_Decl)));
+      Decls : List_Id := Private_Declarations (Spec);
+
+   begin
+      pragma Assert (No (TSS (RAS_Type, Name_uRAS_Access)));
+
+      Add_RAS_Dereference_TSS (Vis_Decl);
+      Add_RAS_Access_TSS (Vis_Decl);
+
+      if No (Decls) then
+         Decls := Visible_Declarations (Spec);
       end if;
 
-      Add_RAS_Dereference_Attribute (Vis_Decl);
-      Add_RAS_Access_Attribute (Vis_Decl);
+      Add_RAS_From_Any (RAS_Type, Decls);
+      Add_RAS_TypeCode (RAS_Type, Decls);
+      Add_RAS_To_Any (RAS_Type, Decls);
+      --  To_Any uses TypeCode, and therefore needs to
+      --  be generated last.
    end Add_RAST_Features;
 
    -----------------------------------------
@@ -2265,25 +2744,51 @@ package body Exp_Dist is
       Pkg_RPC_Receiver_Object      : Node_Id;
 
       Pkg_RPC_Receiver_Body        : Node_Id;
-      Pkg_RPC_Receiver_Stmts  : List_Id;
+      Pkg_RPC_Receiver_Decls       : List_Id;
+      Pkg_RPC_Receiver_Stmts       : List_Id;
       Pkg_RPC_Receiver_Cases       : constant List_Id := New_List;
       --  A Pkg_RPC_Receiver is built to decode the request
-
 
       Request                     : Node_Id;
       --  Request object received from neutral layer
 
       Subp_Id                     : Node_Id;
-      --  Subprogram_Id as read from the incoming stream
+      --  Subprogram identifier as received from the neutral
+      --  distribution core.
+
+      Is_Local : constant Entity_Id :=
+        Make_Defining_Identifier (Loc, New_Internal_Name ('L'));
+      Local_Address : constant Entity_Id :=
+        Make_Defining_Identifier (Loc, New_Internal_Name ('A'));
+      --  Address of a local subprogram designated by a
+      --  reference corresponding to a RAS.
+
+      Subp_Index : constant Entity_Id :=
+        Make_Defining_Identifier (Loc, New_Internal_Name ('I'));
+      --  Internal index as determined by matching either the
+      --  method name from the request structure, or the local
+      --  subprogram address (in case of a RAS).
+
+      Dispatch_On_Address : constant List_Id := New_List;
+      Dispatch_On_Name    : constant List_Id := New_List;
 
       Current_Declaration       : Node_Id;
-      Current_Subprogram_Number : Int := 0;
       Current_Stubs             : Node_Id;
+      Current_Subprogram_Number : Int := 0;
+
+      Subp_Info_Array : constant Entity_Id :=
+        Make_Defining_Identifier (Loc, New_Internal_Name ('I'));
+
+      Subp_Info_List : constant List_Id := New_List;
+
+      Register_Pkg_Actuals : constant List_Id := New_List;
 
       Dummy_Register_Name : Name_Id;
       Dummy_Register_Spec : Node_Id;
       Dummy_Register_Decl : Node_Id;
       Dummy_Register_Body : Node_Id;
+
+      All_Calls_Remote_E : Entity_Id;
 
    begin
       --  Building receiving stubs consist in several operations:
@@ -2313,10 +2818,86 @@ package body Exp_Dist is
         Subp_Id      => Subp_Id,
         Stmts        => Pkg_RPC_Receiver_Stmts,
         Decl         => Pkg_RPC_Receiver_Body);
+      Pkg_RPC_Receiver_Decls := Declarations (Pkg_RPC_Receiver_Body);
+
+      --  Extract local address information from the target reference:
+      --  if non-null, that means that this is a reference that denotes
+      --  one particular operation, and hence that the operation name
+      --  must not be taken into account for dispatching.
+
+      Append_To (Pkg_RPC_Receiver_Decls,
+        Make_Object_Declaration (Loc,
+          Defining_Identifier =>
+            Is_Local,
+          Object_Definition   =>
+            New_Occurrence_Of (Standard_Boolean, Loc)));
+      Append_To (Pkg_RPC_Receiver_Decls,
+        Make_Object_Declaration (Loc,
+          Defining_Identifier =>
+            Local_Address,
+          Object_Definition   =>
+            New_Occurrence_Of (RTE (RE_Address), Loc)));
+      Append_To (Pkg_RPC_Receiver_Decls,
+        Make_Object_Declaration (Loc,
+          Defining_Identifier =>
+            Subp_Index,
+          Object_Definition   =>
+            New_Occurrence_Of (Standard_Integer, Loc)));
+
+      Append_To (Pkg_RPC_Receiver_Stmts,
+        Make_Procedure_Call_Statement (Loc,
+          Name =>
+            New_Occurrence_Of (RTE (RE_Get_Local_Address), Loc),
+          Parameter_Associations => New_List (
+            Make_Selected_Component (Loc,
+              Prefix =>
+                New_Occurrence_Of (Request, Loc),
+              Selector_Name =>
+                Make_Identifier (Loc, Name_Target)),
+            New_Occurrence_Of (Is_Local, Loc),
+            New_Occurrence_Of (Local_Address, Loc))));
+
+      --  Determine whether the reference that was used to make
+      --  the call was the base RCI reference (in which case
+      --  Local_Address is 0, and the method identifier from the
+      --  request must be used to determine which subprogram is
+      --  called) or a reference identifying one particular subprogram
+      --  (in which case Local_Address is the address of that
+      --  subprogram, and the method name from the request is
+      --  ignored).
+      --  In each case, cascaded elsifs are used to determine the
+      --  proper subprogram index. Using hash tables might be
+      --  more efficient.
+
+      Append_To (Pkg_RPC_Receiver_Stmts,
+        Make_Implicit_If_Statement (Pkg_Spec,
+          Condition =>
+            Make_Op_Ne (Loc,
+              Left_Opnd  => New_Occurrence_Of (Local_Address, Loc),
+              Right_Opnd => New_Occurrence_Of (RTE (RE_Null_Address), Loc)),
+          Then_Statements => New_List (
+            Make_Implicit_If_Statement (Pkg_Spec,
+              Condition =>
+                New_Occurrence_Of (Standard_False, Loc),
+              Then_Statements => New_List (
+                Make_Null_Statement (Loc)),
+              Elsif_Parts =>
+                Dispatch_On_Address)),
+          Else_Statements => New_List (
+            Make_Implicit_If_Statement (Pkg_Spec,
+              Condition =>
+                New_Occurrence_Of (Standard_False, Loc),
+              Then_Statements => New_List (
+                Make_Null_Statement (Loc)),
+              Elsif_Parts =>
+                Dispatch_On_Name))));
 
       --  For each subprogram, the receiving stub will be built and a
       --  case statement will be made on the Subprogram_Id to dispatch
       --  to the right subprogram.
+
+      Overload_Counter_Table.Reset;
+      Reserve_NamingContext_Methods;
 
       Current_Declaration := First (Visible_Declarations (Pkg_Spec));
 
@@ -2325,57 +2906,97 @@ package body Exp_Dist is
          if Nkind (Current_Declaration) = N_Subprogram_Declaration
            and then Comes_From_Source (Current_Declaration)
          then
-            pragma Assert (Current_Subprogram_Number =
-              Get_Subprogram_Id (Defining_Unit_Name (Specification (
-                Current_Declaration))));
+            declare
+               Loc : constant Source_Ptr :=
+                 Sloc (Current_Declaration);
+               --  While specifically processing Current_Declaration,
+               --  use its Sloc as the location of all generated
+               --  nodes.
 
-            Current_Stubs :=
-              Build_Subprogram_Receiving_Stubs
-                (Vis_Decl     => Current_Declaration,
-                 Asynchronous =>
-                   Nkind (Specification (Current_Declaration)) =
-                       N_Procedure_Specification
-                     and then Is_Asynchronous
-                       (Defining_Unit_Name (Specification
-                          (Current_Declaration))));
+               Subp_Def       : constant Entity_Id
+                 := Defining_Unit_Name (
+                      Specification (Current_Declaration));
 
-            Append_To (Decls, Current_Stubs);
-            Analyze (Current_Stubs);
+               Subp_Dist_Name : constant Entity_Id
+                 := Make_Defining_Identifier (Loc,
+                      New_External_Name (
+                        Related_Id   => Chars (Subp_Def),
+                        Suffix       => 'D',
+                        Suffix_Index => -1));
 
-            --  Actuals :=
-            --    New_List (New_Occurrence_Of (Stream_Parameter, Loc));
+               Subp_Val       : String_Id;
+               Case_Stmts     : List_Id;
 
-            if Nkind (Specification (Current_Declaration))
-                = N_Function_Specification
-              or else
-                not Is_Asynchronous (
-                  Defining_Entity (Specification (Current_Declaration)))
-            then
-               --  An asynchronous procedure does not want an output parameter
-               --  since no result and no exception will ever be returned.
+            begin
+               Current_Stubs :=
+                 Build_Subprogram_Receiving_Stubs
+                   (Vis_Decl     => Current_Declaration,
+                    Asynchronous =>
+                      Nkind (Specification (Current_Declaration)) =
+                          N_Procedure_Specification
+                        and then Is_Asynchronous
+                          (Defining_Unit_Name (Specification
+                             (Current_Declaration))));
+
+               Append_To (Decls, Current_Stubs);
+               Analyze (Current_Stubs);
+
+               --  Actuals :=
+               --    New_List (New_Occurrence_Of (Stream_Parameter, Loc));
+
+               if Nkind (Specification (Current_Declaration))
+                   = N_Function_Specification
+                 or else
+                   not Is_Asynchronous (
+                     Defining_Entity (Specification (Current_Declaration)))
+               then
+                  --  An asynchronous procedure does not want an output
+                  --  parameter, since no result and no exception will
+                  --  ever be returned.
 
 --                 Append_To (Actuals,
 --                   New_Occurrence_Of (Result_Parameter, Loc));
-               null;
-            end if;
+                  null;
+               end if;
 
---              Append_To (Pkg_RPC_Receiver_Cases,
---                Make_Case_Statement_Alternative (Loc,
---                  Discrete_Choices =>
---                    New_List (
---                      Make_Integer_Literal (Loc, Current_Subprogram_Number)),
---                  Statements       =>
---                      Make_Procedure_Call_Statement (Loc,
---                        Name                   =>
---                          New_Occurrence_Of (
---                            Defining_Entity (Current_Stubs), Loc),
---                        Parameter_Associations =>
---                          Actuals))));
 
-            declare
-               Subp_Val : Node_Id;
-               Case_Stmts : List_Id;
-            begin
+               --  Add subprogram to subprograms table for this receiver
+
+               Assign_Subprogram_Identifier (Subp_Def, Subp_Val);
+
+               Append_To (Decls,
+                 Make_Object_Declaration (Loc,
+                   Defining_Identifier => Subp_Dist_Name,
+                   Constant_Present    => True,
+                   Object_Definition   => New_Occurrence_Of (
+                     Standard_String, Loc),
+                   Expression          =>
+                     Make_String_Literal (Loc, Subp_Val)));
+               Analyze (Last (Decls));
+
+               Append_To (Subp_Info_List,
+                 Make_Component_Association (Loc,
+                   Choices => New_List (
+                     Make_Integer_Literal (Loc,
+                       Current_Subprogram_Number)),
+                   Expression =>
+                     Make_Aggregate (Loc,
+                       Expressions => New_List (
+                         Make_Attribute_Reference (Loc,
+                           Prefix =>
+                             New_Occurrence_Of (
+                               Subp_Dist_Name, Loc),
+                           Attribute_Name => Name_Address),
+                         Make_Attribute_Reference (Loc,
+                           Prefix =>
+                             New_Occurrence_Of (
+                               Subp_Dist_Name, Loc),
+                           Attribute_Name => Name_Length),
+                         Make_Attribute_Reference (Loc,
+                           Prefix =>
+                             New_Occurrence_Of (Subp_Def, Loc),
+                           Attribute_Name => Name_Address)))));
+
                Case_Stmts := New_List (
                  Make_Procedure_Call_Statement (Loc,
                     Name                   =>
@@ -2393,26 +3014,60 @@ package body Exp_Dist is
                   Append_To (Case_Stmts, Make_Return_Statement (Loc));
                end if;
 
-               Get_Name_String (Chars (
-                 Defining_Unit_Name (Specification (
-                   Current_Declaration))));
-               Subp_Val := Make_String_Literal (Loc,
-                 Strval => String_From_Name_Buffer);
-
-               Append_To (Pkg_RPC_Receiver_Cases,
-                 Make_Implicit_If_Statement (Pkg_Spec,
+               Append_To (Dispatch_On_Name,
+                 Make_Elsif_Part (Loc,
                    Condition =>
                      Make_Function_Call (Loc,
                        Name =>
                          New_Occurrence_Of (RTE (RE_Caseless_String_Eq), Loc),
                        Parameter_Associations => New_List (
                          New_Occurrence_Of (Subp_Id, Loc),
-                         Subp_Val)),
-                   Then_Statements =>
+                         New_Occurrence_Of (Subp_Dist_Name, Loc))),
+                   Then_Statements => New_List (
+                     Make_Assignment_Statement (Loc,
+                       New_Occurrence_Of (Subp_Index, Loc),
+                       Make_Integer_Literal (Loc,
+                          Current_Subprogram_Number)))));
+               Append_To (Dispatch_On_Address,
+                 Make_Elsif_Part (Loc,
+                   Condition =>
+                     Make_Op_Eq (Loc,
+                       Left_Opnd  =>
+                         New_Occurrence_Of (Local_Address, Loc),
+                       Right_Opnd =>
+                         Make_Attribute_Reference (Loc,
+                           Prefix =>
+                             New_Occurrence_Of (Subp_Def, Loc),
+                           Attribute_Name => Name_Address)),
+                   Then_Statements => New_List (
+                     Make_Assignment_Statement (Loc,
+                       New_Occurrence_Of (Subp_Index, Loc),
+                       Make_Integer_Literal (Loc,
+                          Current_Subprogram_Number)))));
+--             Append_To (Pkg_RPC_Receiver_Cases,
+--                   Make_Implicit_If_Statement (Pkg_Spec,
+--                     Condition =>
+--                       Make_Function_Call (Loc,
+--                         Name =>
+--                 New_Occurrence_Of (RTE (RE_Caseless_String_Eq), Loc),
+--                         Parameter_Associations => New_List (
+--                           New_Occurrence_Of (Subp_Id, Loc),
+--                           New_Occurrence_Of (Subp_Dist_Name, Loc))),
+--                     Then_Statements =>
+--                       Case_Stmts));
+               Append_To (Pkg_RPC_Receiver_Cases,
+                 Make_Case_Statement_Alternative (Loc,
+                   Discrete_Choices =>
+                     New_List (
+                       Make_Integer_Literal (Loc,
+                          Current_Subprogram_Number)),
+                   Statements       =>
                      Case_Stmts));
             end;
 
-            Current_Subprogram_Number := Current_Subprogram_Number + 1;
+            Current_Subprogram_Number
+              := Current_Subprogram_Number + 1;
+
          end if;
 
          Next (Current_Declaration);
@@ -2426,20 +3081,42 @@ package body Exp_Dist is
       --  every exception will be caught and (if the subprogram is not an
       --  APC) put into the result stream and sent away.
 
---        Append_To (Pkg_RPC_Receiver_Cases,
---          Make_Case_Statement_Alternative (Loc,
---            Discrete_Choices =>
---              New_List (Make_Others_Choice (Loc)),
---            Statements       =>
---              New_List (Make_Null_Statement (Loc))));
+      Append_To (Pkg_RPC_Receiver_Cases,
+        Make_Case_Statement_Alternative (Loc,
+          Discrete_Choices =>
+            New_List (Make_Others_Choice (Loc)),
+          Statements       =>
+            New_List (Make_Null_Statement (Loc))));
 
---        Append_To (Pkg_RPC_Receiver_Stmts,
---          Make_Case_Statement (Loc,
---            Expression   =>
---              New_Occurrence_Of (Subp_Id, Loc),
---            Alternatives => Pkg_RPC_Receiver_Cases));
-      Append_List_To (Pkg_RPC_Receiver_Stmts,
-        Pkg_RPC_Receiver_Cases);
+      Append_To (Pkg_RPC_Receiver_Stmts,
+        Make_Case_Statement (Loc,
+          Expression   =>
+            New_Occurrence_Of (Subp_Index, Loc),
+          Alternatives => Pkg_RPC_Receiver_Cases));
+--        Append_List_To (Pkg_RPC_Receiver_Stmts,
+--          Pkg_RPC_Receiver_Cases);
+
+      Append_To (Decls,
+        Make_Object_Declaration (Loc,
+          Defining_Identifier => Subp_Info_Array,
+          Constant_Present    => True,
+          Aliased_Present     => True,
+          Object_Definition   =>
+            Make_Subtype_Indication (Loc,
+              Subtype_Mark =>
+                New_Occurrence_Of (RTE (RE_RCI_Subp_Info_Array), Loc),
+              Constraint =>
+                Make_Index_Or_Discriminant_Constraint (Loc,
+                  New_List (
+                    Make_Range (Loc,
+                      Low_Bound  => Make_Integer_Literal (Loc, 0),
+                      High_Bound =>
+                        Make_Integer_Literal (Loc,
+                          List_Length (Subp_Info_List) - 1))))),
+          Expression          =>
+            Make_Aggregate (Loc,
+              Component_Associations => Subp_Info_List)));
+      Analyze (Last (Decls));
 
       Append_To (Decls, Pkg_RPC_Receiver_Body);
       Analyze (Last (Decls));
@@ -2474,6 +3151,62 @@ package body Exp_Dist is
       Append_To (Decls, Dummy_Register_Decl);
       Analyze (Dummy_Register_Decl);
 
+      if Has_All_Calls_Remote (Defining_Unit_Name (Pkg_Spec)) then
+         All_Calls_Remote_E := Standard_True;
+      else
+         All_Calls_Remote_E := Standard_False;
+      end if;
+
+      Append_To (Register_Pkg_Actuals,
+         --  Name
+        Make_String_Literal (Loc,
+          Strval => Get_Pkg_Name_String_Id (Pkg_Spec)));
+
+      Append_To (Register_Pkg_Actuals,
+         --  Version
+        Make_Attribute_Reference (Loc,
+          Prefix         =>
+            New_Occurrence_Of
+              (Defining_Entity (Pkg_Spec), Loc),
+          Attribute_Name =>
+            Name_Version));
+
+      Append_To (Register_Pkg_Actuals,
+         --  Handler
+        Make_Attribute_Reference (Loc,
+          Prefix          =>
+            New_Occurrence_Of (Pkg_RPC_Receiver, Loc),
+          Attribute_Name  => Name_Access));
+
+      Append_To (Register_Pkg_Actuals,
+         --  Receiver
+        Make_Attribute_Reference (Loc,
+          Prefix         =>
+            New_Occurrence_Of (
+              Defining_Identifier (
+                Pkg_RPC_Receiver_Object), Loc),
+          Attribute_Name =>
+            Name_Access));
+
+      Append_To (Register_Pkg_Actuals,
+         --  Subp_Info
+        Make_Attribute_Reference (Loc,
+          Prefix         =>
+            New_Occurrence_Of (Subp_Info_Array, Loc),
+          Attribute_Name =>
+            Name_Address));
+
+      Append_To (Register_Pkg_Actuals,
+         --  Subp_Info_Len
+        Make_Attribute_Reference (Loc,
+          Prefix         =>
+            New_Occurrence_Of (Subp_Info_Array, Loc),
+          Attribute_Name =>
+            Name_Length));
+      Append_To (Register_Pkg_Actuals,
+         --  Is_All_Calls_Remote
+        New_Occurrence_Of (All_Calls_Remote_E, Loc));
+
       Dummy_Register_Body :=
         Make_Package_Body (Loc,
           Defining_Unit_Name         =>
@@ -2487,34 +3220,7 @@ package body Exp_Dist is
                   Name                   =>
                     New_Occurrence_Of
                        (RTE (RE_Register_Pkg_Receiving_Stub), Loc),
-                  Parameter_Associations => New_List (
-
-                     --  Name
-                    Make_String_Literal (Loc,
-                      Strval => Get_Pkg_Name_String_Id (Pkg_Spec)),
-
-                     --  Version
-                    Make_Attribute_Reference (Loc,
-                      Prefix         =>
-                        New_Occurrence_Of
-                           (Defining_Entity (Pkg_Spec), Loc),
-                      Attribute_Name =>
-                        Name_Version),
-
-                     --  Handler
-                    Make_Attribute_Reference (Loc,
-                      Prefix          =>
-                        New_Occurrence_Of (Pkg_RPC_Receiver, Loc),
-                      Attribute_Name  => Name_Access),
-
-                     --  Receiver
-                    Make_Attribute_Reference (Loc,
-                      Prefix         =>
-                        New_Occurrence_Of (
-                          Defining_Identifier (
-                            Pkg_RPC_Receiver_Object), Loc),
-                      Attribute_Name =>
-                        Name_Unrestricted_Access))))));
+                  Parameter_Associations => Register_Pkg_Actuals))));
 
       Append_To (Decls, Dummy_Register_Body);
       Analyze (Dummy_Register_Body);
@@ -2594,15 +3300,15 @@ package body Exp_Dist is
 
                     Make_Component_Declaration (Loc,
                       Defining_Identifier =>
-                        Make_Defining_Identifier (Loc, Name_Addr),
-                      Subtype_Indication  =>
-                        New_Occurrence_Of (RTE (RE_Unsigned_64), Loc)),
-
-                    Make_Component_Declaration (Loc,
-                      Defining_Identifier =>
                         Make_Defining_Identifier (Loc, Name_Target),
                       Subtype_Indication  =>
                         New_Occurrence_Of (RTE (RE_Entity_Ptr), Loc)),
+
+                    Make_Component_Declaration (Loc,
+                      Defining_Identifier =>
+                        Make_Defining_Identifier (Loc, Name_Addr),
+                      Subtype_Indication  =>
+                        New_Occurrence_Of (RTE (RE_Address), Loc)),
 
                     Make_Component_Declaration (Loc,
                       Defining_Identifier =>
@@ -2688,9 +3394,6 @@ package body Exp_Dist is
 
       Request : Node_Id;
       --  The request object constructed by these stubs.
-
-      Subp_Id : Node_Id;
-      --  The subprogram identifier passed to Request_Create.
 
       Result : Node_Id;
       --  Name of the result named value (in non-APC cases) which get the
@@ -3047,33 +3750,13 @@ package body Exp_Dist is
 
       Append_List_To (Statements, Extra_Formal_Statements);
 
-      Get_Subprogram_Name (
-        Defining_Unit_Name (Specification (Nod)));
-      Subp_Id := Make_String_Literal (Loc,
-        Strval => String_From_Name_Buffer);
-      --  Here, use Nod (the original visible subprogram declaration)
-      --  and not Spec to determine the "real" subprogram name,
-      --  because we might be generating stubs with an internal
-      --  name if we are calling an All_Calls_Remote unit.
-
-      --  Although the DSA receiving stubs will make a caseless
-      --  comparison when receiving a call, the calling stubs
-      --  will create requests with the exact casing of the
-      --  defining unit name of the called subprogram, so
-      --  as to allow calls to subprograms on distributed
-      --  nodes that do distinguish between casings.
-
-      --  An alternative design would be to allow a representation
-      --  clause on subprogram specs:
-      --  for Subp'Distribution_Subprogram_Identifier use "fooBar";
-
       Append_To (Statements,
         Make_Procedure_Call_Statement (Loc,
           Name =>
             New_Occurrence_Of (RTE (RE_Request_Create), Loc),
           Parameter_Associations => New_List (
             Target_Object,
-            Subp_Id,
+            Subprogram_Id,
             New_Occurrence_Of (Arguments, Loc),
             New_Occurrence_Of (Result, Loc),
             New_Occurrence_Of (RTE (RE_Nil_Exc_List), Loc))));
@@ -3358,6 +4041,7 @@ package body Exp_Dist is
       return Node_Id
    is
       Loc : constant Source_Ptr := Sloc (RPC_Receiver);
+
    begin
       return
         Make_Procedure_Specification (Loc,
@@ -3391,7 +4075,7 @@ package body Exp_Dist is
 
    function Build_Subprogram_Calling_Stubs
      (Vis_Decl                 : Node_Id;
-      Subp_Id                  : Int;
+      Subp_Id                  : Node_Id;
       Asynchronous             : Boolean;
       Dynamically_Asynchronous : Boolean   := False;
       Stub_Type                : Entity_Id := Empty;
@@ -3617,7 +4301,7 @@ package body Exp_Dist is
         (Decls                 => Decls,
          Statements            => Statements,
          Target_Object         => Target_Object,
-         Subprogram_Id         => Make_Integer_Literal (Loc, Subp_Id),
+         Subprogram_Id         => Subp_Id,
          Asynchronous          => Asynchronous_Expr,
          Is_Known_Asynchronous => Asynchronous
                                     and then not Dynamically_Asynchronous,
@@ -4280,16 +4964,19 @@ package body Exp_Dist is
       Current_Type      : Node_Id;
       Current_Etype     : Entity_Id;
 
-      Name_For_New_Spec : Name_Id;
+      Name_For_New_Spec : Name_Id := No_Name;
 
       New_Identifier : Entity_Id;
 
    begin
-      if New_Name = No_Name then
+      if New_Name = No_Name
+        and then Nkind (Spec) in N_Subprogram_Specification
+      then
          Name_For_New_Spec := Chars (Defining_Unit_Name (Spec));
       else
          Name_For_New_Spec := New_Name;
       end if;
+      pragma Assert (Name_For_New_Spec /= No_Name);
 
       if Present (Parameter_Specifications (Spec)) then
 
@@ -4344,7 +5031,9 @@ package body Exp_Dist is
          end loop;
       end if;
 
-      if Nkind (Spec) = N_Function_Specification then
+      if Nkind (Spec) = N_Function_Specification
+        or else Nkind (Spec) = N_Access_Function_Definition
+      then
          return
            Make_Function_Specification (Loc,
              Defining_Unit_Name       =>
@@ -4451,6 +5140,7 @@ package body Exp_Dist is
       RCI_Cache         : Entity_Id;
       Calling_Stubs     : Node_Id;
       E_Calling_Stubs   : Entity_Id;
+      Subp_Id           : Node_Id;
 
    begin
       E_Calling_Stubs := RCI_Calling_Stubs_Table.Get (Called_Subprogram);
@@ -4493,9 +5183,12 @@ package body Exp_Dist is
             RCI_Locator := Parent (RCI_Cache);
          end if;
 
+         Subp_Id := Make_String_Literal (Loc,
+           Get_Subprogram_Identifier (Called_Subprogram));
+
          Calling_Stubs := Build_Subprogram_Calling_Stubs
            (Vis_Decl               => Parent (Parent (Called_Subprogram)),
-            Subp_Id                => Get_Subprogram_Id (Called_Subprogram),
+            Subp_Id                => Subp_Id,
             Asynchronous           => Nkind (N) = N_Procedure_Call_Statement
                                         and then
                                       Is_Asynchronous (Called_Subprogram),
@@ -4582,34 +5275,68 @@ package body Exp_Dist is
       return End_String;
    end Get_String_Id;
 
-   -------------------------
-   -- Get_Subprogram_Name --
-   -------------------------
+   -------------------------------
+   -- Get_Subprogram_Identifier --
+   -------------------------------
 
-   procedure Get_Subprogram_Name
+   function Get_Subprogram_Identifier
      (Def : Entity_Id)
+      return String_Id
    is
-      Sdef : Source_Ptr := Sloc (Def);
-      Tdef : Source_Buffer_Ptr;
-   begin
-      Get_Name_String (Chars (Def));
-      if (not Comes_From_Source (Def))
-        or else Name_Buffer (Name_Buffer'First) = 'O'
-      then
-         return;
-      end if;
+      Result : String_Id :=
+        Subprogram_Identifier_Table.Get (Def);
 
-      Tdef := Source_Text (Get_Source_File_Index (Sdef));
-      for J in 1 .. Name_Len loop
-         Name_Buffer (J) := Tdef (Sdef + Source_Ptr (J) - 1);
-      end loop;
-   end Get_Subprogram_Name;
+      Current_Declaration : Node_Id;
+      Current_Subp        : Entity_Id;
+      Current_Subp_Str    : String_Id;
+   begin
+      if Result = No_String then
+         --  We are looking up this subprogram's identifier
+         --  outside of the context of generating calling
+         --  or receiving stubs; hence, we are processing
+         --  a 'Access attribute_reference for an RCI subprogram,
+         --  for the purpose of obtaining a RAS value.
+
+         pragma Assert
+           (Is_Remote_Call_Interface (Scope (Def))
+              and then
+              (Nkind (Parent (Def)) = N_Procedure_Specification
+                 or else
+               Nkind (Parent (Def)) = N_Function_Specification));
+
+         Current_Declaration :=
+           First (Visible_Declarations
+             (Package_Specification_Of_Scope (Scope (Def))));
+
+         while Current_Declaration /= Empty loop
+            if Nkind (Current_Declaration) = N_Subprogram_Declaration
+              and then Comes_From_Source (Current_Declaration)
+            then
+               Current_Subp := Defining_Unit_Name (Specification (
+                 Current_Declaration));
+               Assign_Subprogram_Identifier (
+                 Current_Subp, Current_Subp_Str);
+               if Current_Subp = Def then
+                  Result := Current_Subp_Str;
+               end if;
+            end if;
+            Next (Current_Declaration);
+         end loop;
+      end if;
+      pragma Assert (Result /= No_String);
+      return Result;
+   end Get_Subprogram_Identifier;
 
    ----------
    -- Hash --
    ----------
 
    function Hash (F : Entity_Id) return Hash_Index is
+   begin
+      return Hash_Index (Natural (F) mod Positive (Hash_Index'Last + 1));
+   end Hash;
+
+   function Hash (F : Name_Id) return Hash_Index is
    begin
       return Hash_Index (Natural (F) mod Positive (Hash_Index'Last + 1));
    end Hash;
@@ -4856,7 +5583,7 @@ package body Exp_Dist is
                  Defining_Unit_Name   =>
                    Make_Defining_Identifier (Loc, New_Internal_Name ('R')),
                  Name                 =>
-                   New_Occurrence_Of (RTE (RE_RCI_Info), Loc),
+                   New_Occurrence_Of (RTE (RE_RCI_Locator), Loc),
                  Generic_Associations => New_List (
                    Make_Generic_Association (Loc,
                      Selector_Name                     =>
@@ -4889,6 +5616,14 @@ package body Exp_Dist is
             List_Containing (Declaration_Node (Full_View)));
       end if;
    end Remote_Types_Tagged_Full_View_Encountered;
+
+   procedure Reserve_NamingContext_Methods is
+      Str_Resolve : constant String := "resolve";
+   begin
+      Name_Buffer (1 .. Str_Resolve'Length) := Str_Resolve;
+      Name_Len := Str_Resolve'Length;
+      Overload_Counter_Table.Set (Name_Find, 1);
+   end Reserve_NamingContext_Methods;
 
    -------------------
    -- Scope_Of_Spec --
@@ -4932,5 +5667,24 @@ package body Exp_Dist is
       end if;
       Set_TSS (Typ, Snam);
    end Set_Renaming_TSS;
+
+   function Underlying_RACW_Type
+     (RAS_Typ : Entity_Id)
+      return Entity_Id
+   is
+      Record_Type : Entity_Id;
+   begin
+      if Ekind (RAS_Typ) = E_Record_Type then
+         Record_Type := RAS_Typ;
+      else
+         pragma Assert (Present (Equivalent_Type (RAS_Typ)));
+         Record_Type := Equivalent_Type (RAS_Typ);
+      end if;
+
+      return
+        Etype (Subtype_Indication (
+          First (Component_Items (Component_List (
+            Type_Definition (Declaration_Node (Record_Type)))))));
+   end Underlying_RACW_Type;
 
 end Exp_Dist;

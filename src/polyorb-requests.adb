@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,6 +34,8 @@
 
 --  $Id$
 
+with Ada.Unchecked_Deallocation;
+
 with PolyORB.Log;
 with PolyORB.ORB;
 with PolyORB.ORB.Interface;
@@ -57,7 +59,7 @@ package body PolyORB.Requests is
      (Target    : in     References.Ref;
       --  May or may not be local!
       --  Ctx       : in     Any.Context.Ref;
-      Operation : in     Operation_Id;
+      Operation : in     String;
       Arg_List  : in     Any.NVList.Ref;
       Result    : in out Any.NamedValue;
       Exc_List  : in     Any.ExceptionList.Ref
@@ -70,6 +72,8 @@ package body PolyORB.Requests is
    is
       Res : constant Request_Access := new Request;
    begin
+      pragma Debug (O ("Creating request"));
+
       Res.Target    := Target;
       Res.Operation := To_PolyORB_String (Operation);
       Res.Args      := Arg_List;
@@ -86,6 +90,20 @@ package body PolyORB.Requests is
 
       Req := Res;
    end Create_Request;
+
+   ---------------------
+   -- Destroy_Request --
+   ---------------------
+
+   procedure Destroy_Request (R : in out Request_Access) is
+      procedure Free is new Ada.Unchecked_Deallocation
+        (Request, Request_Access);
+
+   begin
+      pragma Debug (O ("Destroying request"));
+
+      Free (R);
+   end Destroy_Request;
 
    ------------
    -- Invoke --
@@ -108,7 +126,8 @@ package body PolyORB.Requests is
         (The_ORB.Tasking_Policy, The_ORB,
          Queue_Request'
          (Request   => Self,
-          Requestor => null));
+          Requestor => Self.Requesting_Component));
+      --   Requestor => null));
 
       --  Execute the ORB until the request is completed.
       ORB.Run
@@ -291,7 +310,13 @@ package body PolyORB.Requests is
       end;
    exception
       when others =>
-         --  Could not render arguments.
+         --  For some kinds of Any's, bugs in the respective
+         --  Image procedures may trigger exceptions. In such
+         --  cases, we do not want to fail here because we are
+         --  only computing an informational, debugging-oriented
+         --  message. Consequently, we return a placeholder
+         --  value rather than propagating the exception.
+
          return S1 & " with non-representable arguments";
    end Image;
 

@@ -51,10 +51,10 @@ package PolyORB.Binding_Data.Local is
      (Oid : Objects.Object_Id;
       P   : out Local_Profile_Type);
 
-   procedure Bind_Non_Local_Profile
+   function Bind_Profile
      (Profile : Local_Profile_Type;
-      TE      : out Transport.Transport_Endpoint_Access;
-      Session : out Components.Component_Access);
+      The_ORB : Components.Component_Access)
+     return Components.Component_Access;
 
    function Get_Profile_Tag
      (Profile : Local_Profile_Type)

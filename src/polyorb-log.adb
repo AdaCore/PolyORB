@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -46,9 +46,8 @@ package body PolyORB.Log is
    -- Get_Log_Level --
    -------------------
 
-   Log_Section : constant String := "log";
-
-   Default_Log_Level : constant Log_Level := Notice;
+   function Get_Log_Level (Facility : in String) return Log_Level;
+   --  Returns the user-requested log level for facility Flag.
 
    function Get_Log_Level (Facility : in String) return Log_Level
    is
@@ -70,8 +69,9 @@ package body PolyORB.Log is
 
    package body Facility_Log is
 
-      Initialized : Boolean := False;
+      Initialized    : Boolean   := False;
       Facility_Level : Log_Level := Info;
+      Counter        : Natural   := 0;
 
       procedure Output
         (Message : in String;
@@ -87,6 +87,31 @@ package body PolyORB.Log is
             Put_Line (Facility & ": " & Message);
          end if;
       end Output;
+
+      procedure Increment is
+         Old_Counter : constant Natural := Counter;
+      begin
+         Counter := Counter + 1;
+         Output ("Counter "
+                 & Integer'Image (Old_Counter)
+                 & " -> "
+                 & Integer'Image (Counter));
+      end Increment;
+
+      procedure Decrement is
+         Old_Counter : constant Natural := Counter;
+      begin
+         Counter := Counter - 1;
+
+         if Counter < 0 then
+            raise Program_Error;
+         end if;
+
+         Output ("Counter "
+                 & Integer'Image (Old_Counter)
+                 & " -> "
+                 & Integer'Image (Counter));
+      end Decrement;
    end Facility_Log;
 
 end PolyORB.Log;

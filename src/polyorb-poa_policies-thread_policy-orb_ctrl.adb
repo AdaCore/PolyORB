@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with PolyORB.Servants;
+
 package body PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl is
 
    ------------
@@ -61,14 +63,27 @@ package body PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl is
 
    procedure Check_Compatibility
      (Self : ORB_Ctrl_Policy;
-      OA   : PolyORB.POA_Types.Obj_Adapter_Access)
+      Other_Policies   : AllPolicies)
    is
    begin
       pragma Warnings (Off);
       pragma Unreferenced (Self);
-      pragma Unreferenced (OA);
+      pragma Unreferenced (Other_Policies);
       pragma Warnings (On);
       null;
    end Check_Compatibility;
 
+   function Handle_Request_Execution
+     (Self      : access ORB_Ctrl_Policy;
+      Msg       : PolyORB.Components.Message'Class;
+      Requestor : PolyORB.Components.Component_Access)
+      return PolyORB.Components.Message'Class
+   is
+      use PolyORB.Servants;
+   begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
+      return Execute_Servant (Servant_Access (Requestor), Msg);
+   end Handle_Request_Execution;
 end PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl;

@@ -32,16 +32,14 @@
 
 --  $Id$
 
+with Ada.Exceptions;
+
 with PolyORB.Sequences.Unbounded.Search;
 
 with PolyORB.Log;
 with PolyORB.Smart_Pointers;
 
 package body PolyORB.Any.ExceptionList is
-
-   -----------
-   -- Debug --
-   -----------
 
    use PolyORB.Log;
 
@@ -55,13 +53,23 @@ package body PolyORB.Any.ExceptionList is
 
    procedure Finalize (Obj : in out Object) is
    begin
+      pragma Debug (O ("Finalize : enter"));
+      pragma Debug (O ("length" &
+                       Integer'Image (Exception_Sequences.Length (Obj.List))));
       Exception_Sequences.Delete
         (Obj.List, 1, Exception_Sequences.Length (Obj.List));
+      pragma Debug (O ("Finalize : leave"));
+   exception
+      when E : others =>
+         pragma Debug (O ("Finalize: caught "
+                          & Ada.Exceptions.Exception_Information (E)));
+         raise;
    end Finalize;
 
-   -----------------
-   --  Get_Count  --
-   -----------------
+   ---------------
+   -- Get_Count --
+   ---------------
+
    function Get_Count
      (Self : in Ref)
       return PolyORB.Types.Unsigned_Long is
@@ -71,9 +79,10 @@ package body PolyORB.Any.ExceptionList is
         (Exception_Sequences.Length (Obj.List));
    end Get_Count;
 
-   -----------
-   --  Add  --
-   -----------
+   ---------
+   -- Add --
+   ---------
+
    procedure Add
      (Self : in Ref;
       Exc : in PolyORB.Any.TypeCode.Object)
@@ -97,9 +106,10 @@ package body PolyORB.Any.ExceptionList is
       return Exception_Sequences.Element_Of (Obj.List, Positive (Index));
    end Item;
 
-   --------------
-   --  Remove  --
-   --------------
+   ------------
+   -- Remove --
+   ------------
+
    procedure Remove
      (Self : in Ref;
       Index : in PolyORB.Types.Unsigned_Long)
@@ -119,6 +129,10 @@ package body PolyORB.Any.ExceptionList is
    begin
       return new Object;
    end Create_Object;
+
+   -----------------
+   -- Create_List --
+   -----------------
 
    procedure Create_List (Self : out Ref) is
       Result : Ref;

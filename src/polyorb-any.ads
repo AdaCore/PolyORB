@@ -30,16 +30,13 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.ads#19 $
+--  $Id: //droopi/main/src/polyorb-any.ads#25 $
 
 with Ada.Finalization;
 with Ada.Unchecked_Deallocation;
 
-with PolyORB.Locks;
-with PolyORB.References;
-with PolyORB.Storage_Pools;
+with PolyORB.Tasking.Rw_Locks;
 with PolyORB.Types;
-with PolyORB.Utils.Chained_Lists;
 
 package PolyORB.Any is
 
@@ -51,13 +48,10 @@ package PolyORB.Any is
 
    type Any is private;
    type Any_Ptr is access all Any;
-   for Any_Ptr'Storage_Pool use PolyORB.Storage_Pools.Debug_Pool;
    --  The end of this part is after the typecode part;
 
    type Content is abstract tagged null record;
    type Any_Content_Ptr is access all Content'Class;
-   for Any_Content_Ptr'Storage_Pool
-     use PolyORB.Storage_Pools.Debug_Pool;
 
    function Duplicate
      (Object : access Content)
@@ -507,6 +501,10 @@ package PolyORB.Any is
    function Equal (Left, Right : in Any) return Boolean
      renames "=";
 
+   function Compare_Any_Contents (Left : in Any; Right : in Any)
+     return Boolean;
+   --  Check if two Anys are pointing to the same content object.
+
    function To_Any (Item : in Types.Short)              return Any;
    function To_Any (Item : in Types.Long)               return Any;
    function To_Any (Item : in Types.Long_Long)          return Any;
@@ -718,186 +716,6 @@ private
    procedure Deallocate_Any_Content_Ptr is new Ada.Unchecked_Deallocation
      (Any_Content_Ptr, Any_Content_Ptr_Ptr);
 
-   type Content_Octet is new Content with
-      record
-         Value : Types.Octet_Ptr;
-      end record;
-   type Content_Octet_Ptr is access all Content_Octet;
-   procedure Deallocate (Object : access Content_Octet);
-   function Duplicate
-     (Object : access Content_Octet)
-     return Any_Content_Ptr;
-
-   type Content_Short is new Content with
-      record
-         Value : Types.Short_Ptr;
-      end record;
-   type Content_Short_Ptr is access all Content_Short;
-   procedure Deallocate (Object : access Content_Short);
-   function Duplicate
-     (Object : access Content_Short)
-     return Any_Content_Ptr;
-
-   type Content_Long is new Content with
-      record
-         Value : Types.Long_Ptr;
-      end record;
-   type Content_Long_Ptr is access all Content_Long;
-   procedure Deallocate (Object : access Content_Long);
-   function Duplicate
-     (Object : access Content_Long)
-     return Any_Content_Ptr;
-
-   type Content_Long_Long is new Content with
-      record
-         Value : Types.Long_Long_Ptr;
-      end record;
-   type Content_Long_Long_Ptr is access all Content_Long_Long;
-   procedure Deallocate (Object : access Content_Long_Long);
-   function Duplicate
-     (Object : access Content_Long_Long)
-     return Any_Content_Ptr;
-
-   type Content_UShort is new Content with
-      record
-         Value : Types.Unsigned_Short_Ptr;
-      end record;
-   type Content_UShort_Ptr is access all Content_UShort;
-   procedure Deallocate (Object : access Content_UShort);
-   function Duplicate
-     (Object : access Content_UShort)
-     return Any_Content_Ptr;
-
-   type Content_ULong is new Content with
-      record
-         Value : Types.Unsigned_Long_Ptr;
-      end record;
-   type Content_ULong_Ptr is access all Content_ULong;
-   procedure Deallocate (Object : access Content_ULong);
-   function Duplicate
-     (Object : access Content_ULong)
-     return Any_Content_Ptr;
-
-   type Content_ULong_Long is new Content with
-      record
-         Value : Types.Unsigned_Long_Long_Ptr;
-      end record;
-   type Content_ULong_Long_Ptr is access all Content_ULong_Long;
-   procedure Deallocate (Object : access Content_ULong_Long);
-   function Duplicate
-     (Object : access Content_ULong_Long)
-     return Any_Content_Ptr;
-
-   type Content_Boolean is new Content with
-      record
-         Value : Types.Boolean_Ptr;
-      end record;
-   type Content_Boolean_Ptr is access all Content_Boolean;
-   procedure Deallocate (Object : access Content_Boolean);
-   function Duplicate
-     (Object : access Content_Boolean)
-     return Any_Content_Ptr;
-
-   type Content_Char is new Content with
-      record
-         Value : Types.Char_Ptr;
-      end record;
-   type Content_Char_Ptr is access all Content_Char;
-   procedure Deallocate (Object : access Content_Char);
-   function Duplicate
-     (Object : access Content_Char)
-     return Any_Content_Ptr;
-
-   type Content_Wchar is new Content with
-      record
-         Value : Types.Wchar_Ptr;
-      end record;
-   type Content_Wchar_Ptr is access all Content_Wchar;
-   procedure Deallocate (Object : access Content_Wchar);
-   function Duplicate
-     (Object : access Content_Wchar)
-     return Any_Content_Ptr;
-
-   type Content_String is new Content with
-      record
-         Value : Types.String_Ptr;
-      end record;
-   type Content_String_Ptr is access all Content_String;
-   procedure Deallocate (Object : access Content_String);
-   function Duplicate
-     (Object : access Content_String)
-     return Any_Content_Ptr;
-
-   type Content_Wide_String is new Content with
-      record
-         Value : Types.Wide_String_Ptr;
-      end record;
-   type Content_Wide_String_Ptr is access all Content_Wide_String;
-   procedure Deallocate (Object : access Content_Wide_String);
-   function Duplicate
-     (Object : access Content_Wide_String)
-     return Any_Content_Ptr;
-
-   type Content_Float is new Content with
-      record
-         Value : Types.Float_Ptr;
-      end record;
-   type Content_Float_Ptr is access all Content_Float;
-   procedure Deallocate (Object : access Content_Float);
-   function Duplicate
-     (Object : access Content_Float)
-     return Any_Content_Ptr;
-
-   type Content_Double is new Content with
-      record
-         Value : Types.Double_Ptr;
-      end record;
-   type Content_Double_Ptr is access all Content_Double;
-   procedure Deallocate (Object : access Content_Double);
-   function Duplicate
-     (Object : access Content_Double)
-     return Any_Content_Ptr;
-
-   type Content_Long_Double is new Content with
-      record
-         Value : Types.Long_Double_Ptr;
-      end record;
-   type Content_Long_Double_Ptr is access all Content_Long_Double;
-   procedure Deallocate (Object : access Content_Long_Double);
-   function Duplicate
-     (Object : access Content_Long_Double)
-     return Any_Content_Ptr;
-
-   type Content_TypeCode is new Content with
-      record
-         Value : TypeCode.Object_Ptr;
-      end record;
-   type Content_TypeCode_Ptr is access all Content_TypeCode;
-   procedure Deallocate (Object : access Content_TypeCode);
-   function Duplicate
-     (Object : access Content_TypeCode)
-     return Any_Content_Ptr;
-
-   type Content_Any is new Content with
-      record
-         Value : Any_Ptr;
-      end record;
-   type Content_Any_Ptr is access all Content_Any;
-   procedure Deallocate (Object : access Content_Any);
-   function Duplicate
-     (Object : access Content_Any)
-     return Any_Content_Ptr;
-
-   type Content_ObjRef is new Content with record
-      Value : PolyORB.References.Ref_Ptr;
-   end record;
-   type Content_ObjRef_Ptr is access all Content_ObjRef;
-   procedure Deallocate (Object : access Content_ObjRef);
-   function Duplicate
-     (Object : access Content_ObjRef)
-     return Any_Content_Ptr;
-
-
    --  the content_TypeCode type is defined inside the TypeCode package
    --  However, the corresponding deallocate function is here
    --  This is due to the fact that the TypeCode.Object type is private
@@ -905,46 +723,6 @@ private
    --  too if it were declared there.
    procedure Deallocate is new Ada.Unchecked_Deallocation
      (TypeCode.Object, TypeCode.Object_Ptr);
-
-   --  A list of Any contents (for construction of aggregates).
-   package Content_Lists is new PolyORB.Utils.Chained_Lists
-     (Any_Content_Ptr);
-   subtype Content_List is Content_Lists.List;
-
-   function Duplicate (List : in Content_List) return Content_List;
-   procedure Deep_Deallocate (List : in out Content_List);
-   --  procedure Deallocate (L : in out Content_List)
-
-   function Get_Content_List_Length (List : in Content_List)
-     return Types.Unsigned_Long;
-
-   --  for complex types that could be defined in Idl
-   --  content_aggregate will be used.
-   --  complex types include Struct, Union, Enum, Sequence,
-   --  Array, Except, Fixed, Value, Valuebox, Abstract_Interface.
-   --  Here is the way the content_list is used in each case
-   --  (See CORBA V2.3 - 15.3) :
-   --     - for Struct, Except : the elements are the values of each
-   --  field in the order of the declaration
-   --     - for Union : the value of the switch element comes
-   --  first. Then come all the values of the corresponding fields
-   --     - for Enum : an unsigned_long corresponding to the position
-   --  of the value in the declaration is the only element
-   --     - for Array : all the elements of the array, one by one.
-   --     - for Sequence : the length first and then all the elements
-   --  of the sequence, one by one.
-   --     - for Fixed : FIXME
-   --     - for Value : FIXME
-   --     - for Valuebox : FIXME
-   --     - for Abstract_Interface : FIXME
-   type Content_Aggregate is new Content with record
-      Value : Content_List := Content_Lists.Empty;
-   end record;
-   type Content_Aggregate_Ptr is access all Content_Aggregate;
-   function Duplicate
-     (Object : access Content_Aggregate)
-     return Any_Content_Ptr;
-   procedure Deallocate (Object : access Content_Aggregate);
 
    type Natural_Ptr is access Natural;
    procedure Deallocate is new Ada.Unchecked_Deallocation
@@ -965,7 +743,7 @@ private
       --  Reference counter associated with the
       --  designated container.
 
-      Any_Lock     : PolyORB.Locks.Rw_Lock_Access;
+      Any_Lock     : PolyORB.Tasking.Rw_Locks.Rw_Lock_Access;
       --  Lock to guarantee consistent concurrent access
       --  to Ref_Counter.
    end record;
@@ -984,8 +762,8 @@ private
 
    --  The control procedures to the Any type
    procedure Initialize (Object : in out Any);
-   procedure Adjust (Object : in out Any);
-   procedure Finalize (Object : in out Any);
+   procedure Adjust     (Object : in out Any);
+   procedure Finalize   (Object : in out Any);
 
    --  And the management of the counter
    procedure Inc_Usage (Obj : in Any);

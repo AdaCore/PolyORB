@@ -36,7 +36,7 @@
 --  $Id$
 
 with PolyORB.Sequences.Unbounded;
-with PolyORB.Soft_Links;
+with PolyORB.Tasking.Advanced_Mutexes;
 
 package PolyORB.Obj_Adapters.Simple is
 
@@ -50,7 +50,7 @@ package PolyORB.Obj_Adapters.Simple is
 
    function Export
      (OA  : access Simple_Obj_Adapter;
-      Obj :        Objects.Servant_Access;
+      Obj :        Servants.Servant_Access;
       Key :        Objects.Object_Id_Access := null)
       return Objects.Object_Id;
 
@@ -69,11 +69,11 @@ package PolyORB.Obj_Adapters.Simple is
    --  and a result Any for a given method.
 
    type Parameter_Profile_Description is
-     access function (Method : Requests.Operation_Id)
+     access function (Method : String)
      return Any.NVList.Ref;
 
    type Result_Profile_Description is
-     access function (Method : Requests.Operation_Id)
+     access function (Method : String)
      return Any.Any;
 
    type Interface_Description is record
@@ -89,29 +89,29 @@ package PolyORB.Obj_Adapters.Simple is
    function Get_Empty_Arg_List
      (OA     : access Simple_Obj_Adapter;
       Oid    : access Objects.Object_Id;
-      Method :        Requests.Operation_Id)
+      Method :        String)
      return Any.NVList.Ref;
 
    function Get_Empty_Result
      (OA     : access Simple_Obj_Adapter;
       Oid    : access Objects.Object_Id;
-      Method :        Requests.Operation_Id)
+      Method :        String)
      return Any.Any;
 
    function Find_Servant
      (OA : access Simple_Obj_Adapter;
       Id : access Objects.Object_Id)
-     return Objects.Servant_Access;
+     return Servants.Servant_Access;
 
    procedure Release_Servant
      (OA      : access Simple_Obj_Adapter;
       Id      : access Objects.Object_Id;
-      Servant : in out Objects.Servant_Access);
+      Servant : in out Servants.Servant_Access);
 
 private
 
    type Object_Map_Entry is record
-      Servant : Objects.Servant_Access;
+      Servant : Servants.Servant_Access;
       --  May be null (for empty entries).
 
       If_Desc : Interface_Description;
@@ -126,7 +126,7 @@ private
       --  Object_Ids are simply the indices of the objects
       --  within the object map.
 
-      Lock : Soft_Links.Adv_Mutex_Access;
+      Lock : PolyORB.Tasking.Advanced_Mutexes.Adv_Mutex_Access;
    end record;
 
 end PolyORB.Obj_Adapters.Simple;

@@ -34,12 +34,14 @@
 
 with PolyORB.Log;
 with PolyORB.POA;
+with PolyORB.Components;
+with PolyORB.Setup;
+with PolyORB.ORB.Interface;
 
 package body PolyORB.POA_Manager.Basic_Manager is
 
-   use PolyORB.Locks;
    use PolyORB.Log;
-   use Requests_Queue_P;
+   use PolyORB.Tasking.Rw_Locks;
 
    package L is new PolyORB.Log.Facility_Log
      ("polyorb.poa_manager.basic_manager");
@@ -64,6 +66,11 @@ package body PolyORB.POA_Manager.Basic_Manager is
    procedure Activate
      (Self : access Basic_POA_Manager)
    is
+      --  use PolyORB.ORB;
+      use PolyORB.Setup;
+      use PolyORB.Components;
+      use PolyORB.ORB.Interface;
+      use Requests_Queue_P;
    begin
       pragma Debug (O ("Activate POAManager"));
       Lock_W (Self.State_Lock);
@@ -72,8 +79,38 @@ package body PolyORB.POA_Manager.Basic_Manager is
          raise PolyORB.POA.Adapter_Inactive;
       else
          Self.Current_State := ACTIVE;
+         Unlock_W (Self.State_Lock);
       end if;
-      Unlock_W (Self.State_Lock);
+      if Self.PM_Hold_Servant /= null then
+         declare
+            R : Execute_Request;
+         begin
+            pragma Debug (O (Integer'Image (Length
+                                            (Self.Holded_Requests))));
+            if Length (Self.Holded_Requests) > 0 then
+               declare
+                  N : constant Natural := Length (Self.Holded_Requests);
+                  All_Requests : Element_Array (1 .. N);
+               begin
+                  Lock_W (Self.Queue_Lock);
+                  All_Requests := To_Element_Array (Self.Holded_Requests);
+                  Delete (Self.Holded_Requests,
+                          1,
+                          N);
+                  Unlock_W (Self.Queue_Lock);
+
+                  for I in 1 .. N loop
+                     R := All_Requests (I);
+                     Emit_No_Reply (Component_Access (PolyORB.Setup.The_ORB),
+                                    Queue_Request'
+                                    (Request   => R.Req,
+                                     Requestor => R.Req.Requesting_Component));
+                  end loop;
+               end;
+               pragma Debug (O ("Activate : Exit loop"));
+            end if;
+         end;
+      end if;
    end Activate;
 
    -------------------
@@ -194,9 +231,6 @@ package body PolyORB.POA_Manager.Basic_Manager is
       M.Current_State := HOLDING;
       Unlock_W (M.State_Lock);
 
-      Lock_W (M.Queue_Lock);
-      Create (M.Holded_Requests, Queue_Size);
-      Unlock_W (M.Queue_Lock);
    end Create;
 
    ------------------
@@ -259,30 +293,21 @@ package body PolyORB.POA_Manager.Basic_Manager is
    function Get_Hold_Servant
      (Self : access Basic_POA_Manager;
       OA   :        Obj_Adapter_Access)
-     return Objects.Servant_Access
+     return Servants.Servant_Access
    is
-      S         : Hold_Servant_Access;
-      New_Entry : Queue_Element_Access;
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (OA);
+      pragma Warnings (On);
+
       pragma Debug (O ("Get a Hold_Servant"));
-      Lock_W (Self.Queue_Lock);
-
-      if Get_Count (Self.Holded_Requests) >=
-        Get_Max_Count (Self.Holded_Requests)
-      then
-         Unlock_W (Self.Queue_Lock);
-         raise PolyORB.POA.Transient;
+      Lock_W (Self.State_Lock);
+      if Self.PM_Hold_Servant = null then
+         Self.PM_Hold_Servant := new Hold_Servant;
+         Self.PM_Hold_Servant.PM := Basic_POA_Manager_Access (Self);
       end if;
-
-      New_Entry     := new Queue_Element;
-      New_Entry.OA  := OA;
-      Add (Self.Holded_Requests, New_Entry);
-
-      S             := new Hold_Servant;
-      S.Queue_Entry := New_Entry;
-      Unlock_W (Self.Queue_Lock);
-
-      return Objects.Servant_Access (S);
+      Unlock_W (Self.State_Lock);
+      return Servants.Servant_Access (Self.PM_Hold_Servant);
    end Get_Hold_Servant;
 
    -----------------------
@@ -364,62 +389,37 @@ package body PolyORB.POA_Manager.Basic_Manager is
          Destroy (Self.Count_Lock);
          Destroy (Self.POAs_Lock);
          Destroy (Self.Queue_Lock);
-         Destroy (Self.Holded_Requests);
          Free (BPM);
       else
          Unlock_R (Self.Count_Lock);
       end if;
    end Destroy_If_Unused;
 
-   ------------
-   -- Create --
-   ------------
-
-   procedure Create
-     (HS  : in out Hold_Servant;
-      QEA : in     Queue_Element_Access)
-   is
-   begin
-      HS.Queue_Entry := QEA;
-   end Create;
-
-   ----------
-   -- Left --
-   ----------
-
-   function "="
-     (Left, Right : Hold_Servant)
-     return Boolean
-   is
-   begin
-      return Left.Queue_Entry = Right.Queue_Entry;
-   end "=";
-
    --------------------
    -- Handle_Message --
    --------------------
 
-   function Handle_Message
+   function Execute_Servant
      (Obj : access Hold_Servant;
       Msg :        PolyORB.Components.Message'Class)
      return PolyORB.Components.Message'Class
    is
+      use Requests_Queue_P;
       S            : Hold_Servant_Access;
       Null_Message : PolyORB.Components.Null_Message;
    begin
       pragma Debug (O ("Hold Servant queues message"));
 
       S := Hold_Servant_Access (Obj);
-
-      pragma Warnings (Off);
-      pragma Unreferenced (Msg);
-      pragma Warnings (On);
-      --      Obj.Queue_Entry.Msg := Msg;
-      --  ??? How do we queue the messages?
-
-      Free (S);
-
+      if Msg in Execute_Request then
+         Lock_W (S.PM.Queue_Lock);
+         Append (S.PM.Holded_Requests, Execute_Request (Msg));
+         Unlock_W (S.PM.Queue_Lock);
+      else
+         pragma Debug (O (" Message not in Execute_Request"));
+         raise PolyORB.Components.Unhandled_Message;
+      end if;
       return Null_Message;
-   end Handle_Message;
+   end Execute_Servant;
 
 end PolyORB.POA_Manager.Basic_Manager;

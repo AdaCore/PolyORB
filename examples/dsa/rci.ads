@@ -27,5 +27,14 @@ package RCI is
    function Get_Obj (Name : String) return RT.RACW;
 
    function echoString (S : String) return String;
+   type echo_RAS is access function (S : String) return String;
+
+   function echoString_Delayed (S : String; Seconds : Integer) return String;
+
+   type Complex is record
+      Re, Im : Float;
+   end record;
+
+   function Modulus2 (Z : Complex) return Float;
 
 end RCI;

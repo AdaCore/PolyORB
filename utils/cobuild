@@ -2,7 +2,7 @@
 
 # cobuild: Build something from a checked-out wavefront.
 
-# $Id: //droopi/main/utils/cobuild#8 $
+# $Id: //droopi/main/utils/cobuild#14 $
 
 PROJECT=DROOPI
 
@@ -102,7 +102,7 @@ echo "---------- Syncing"
 
 #p4 sync "#none"
 #rm -fr $CLIENT_TOP/*
-p4 sync @$CHANGELIST
+p4 sync -f @$CHANGELIST
 
 CHANGE=`p4 changes -m 1 ...#have | awk '{print \$2}'`
 export CHANGE
@@ -120,8 +120,9 @@ export CHANGE
 
   if [ -x $CLIENT_TOP/configure ]
   then
-    $CLIENT_TOP/configure --disable-shared --enable-debug --enable-xmlada \
-      --prefix=$OUTDIR/install
+    $CLIENT_TOP/configure --disable-shared --enable-debug \
+       --with-proto-perso="giop soap srp" --with-appli-perso="corba moma" \
+       --with-services="naming ir" --prefix=$OUTDIR/install
   fi && make && make install
   RC=$?
   exit $RC

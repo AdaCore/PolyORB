@@ -39,9 +39,9 @@ with Ada.Unchecked_Deallocation;
 with PolyORB.Any;
 with PolyORB.Any.NVList;
 with PolyORB.Objects;
+with PolyORB.Servants;
 with PolyORB.POA_Policies;
 with PolyORB.References;
-with PolyORB.Requests;
 
 package PolyORB.POA.Basic_POA is
 
@@ -77,7 +77,7 @@ package PolyORB.POA.Basic_POA is
 
    function Activate_Object
      (Self      : access Basic_Obj_Adapter;
-      P_Servant :        Objects.Servant_Access;
+      P_Servant :        Servants.Servant_Access;
       Hint      :        Object_Id_Access := null)
      return Object_Id;
 
@@ -87,13 +87,13 @@ package PolyORB.POA.Basic_POA is
 
    function Servant_To_Id
      (Self      : access Basic_Obj_Adapter;
-      P_Servant : in     Objects.Servant_Access)
+      P_Servant : in     Servants.Servant_Access)
      return Object_Id;
 
    function Id_To_Servant
      (Self : access Basic_Obj_Adapter;
       Oid  :        Object_Id)
-     return Objects.Servant_Access;
+     return Servants.Servant_Access;
 
    --------------------------------------------------------
    --  Functions and procedures to interface with PolyORB --
@@ -107,7 +107,7 @@ package PolyORB.POA.Basic_POA is
 
    function Export
      (OA  : access Basic_Obj_Adapter;
-      Obj :        Objects.Servant_Access;
+      Obj :        Servants.Servant_Access;
       Key : Objects.Object_Id_Access := null)
      return Objects.Object_Id;
 
@@ -123,24 +123,24 @@ package PolyORB.POA.Basic_POA is
    function Get_Empty_Arg_List
      (OA     : access Basic_Obj_Adapter;
       Oid    : access Objects.Object_Id;
-      Method :        Requests.Operation_Id)
+      Method :        String)
      return Any.NVList.Ref;
 
    function Get_Empty_Result
      (OA     : access Basic_Obj_Adapter;
       Oid    : access Objects.Object_Id;
-      Method :        Requests.Operation_Id)
+      Method :        String)
      return Any.Any;
 
    function Find_Servant
      (OA : access Basic_Obj_Adapter;
       Id : access Objects.Object_Id)
-     return Objects.Servant_Access;
+     return Servants.Servant_Access;
 
    procedure Release_Servant
      (OA      : access Basic_Obj_Adapter;
       Id      : access Objects.Object_Id;
-      Servant : in out Objects.Servant_Access);
+      Servant : in out Servants.Servant_Access);
 
    -------------------------------------------------
    --  Utilities, neither in CORBA nor in PolyORB  --

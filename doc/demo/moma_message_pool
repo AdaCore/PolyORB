@@ -1,0 +1,2 @@
+#!/bin/sh
+POLYORB_CONF=message_pool.conf ../../examples/moma/server 

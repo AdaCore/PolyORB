@@ -34,7 +34,7 @@
 
 package PolyORB.HTTP_Methods is
 
-   pragma Preelaborate;
+   pragma Elaborate_Body;
 
    type Method is
      (
@@ -50,7 +50,6 @@ package PolyORB.HTTP_Methods is
       Extension_Method
       --  </ENUM>
       );
-   pragma Convention (C, Method);
 
    function To_String (Id : Method) return String;
    function In_Word_Set (S : String) return Method;

@@ -1,6 +1,9 @@
-#if ENABLE_ASIS
-#CIAO=	ciao
-#endif
+corba_dir = idlac 
+dsa_dir   =
+moma_dir  =
+giop_dir  =
+soap_dir  = gnatprfh 
+srp_dir   =
 
-SUBDIRS=	idlac
-# $(CIAO)
+SUBDIRS= @PROTO_DIRS@ @APPLI_DIRS@
+ADACOMPILER=../support/native-adacompiler

@@ -76,13 +76,6 @@ package PolyORB.Filters.Interface is
    --  object a specific message is destined to, and informs
    --  the upper layer.
 
-   type Set_Buffer is new Root_Data_Unit with record
-      Buffer : Buffer_Access;
-   end record;
-   --  Direction: from upper to lower.
-   --  Semantics: Buffer is to be used by filters along the
-   --  chain to hold received data contents.
-
    type Connect_Indication is new Root_Data_Unit with null record;
    --  Direction: from lower to upper.
    --  Semantics: a new incoming transport connection is
@@ -102,13 +95,6 @@ package PolyORB.Filters.Interface is
    --  Semantics: the upper layer requests that the whole
    --    protocol stack be disconnected.
 
-   type Data_Indication is new Root_Data_Unit with record
-      Data_Amount : Stream_Element_Count := 0;
-      --  The amount of data received, 0 if unknown.
-   end record;
-   --  Direction: from lower to upper.
-   --  Semantics: Data has been received and must be handled.
-
    type Data_Expected is new Root_Data_Unit with record
       --  Direction: from upper to lower.
       --  Semantics: prepare for reception of a message.
@@ -119,6 +105,13 @@ package PolyORB.Filters.Interface is
       Max : Stream_Element_Count;
       --  The maximum amount of data to be received.
    end record;
+
+   type Data_Indication is new Root_Data_Unit with record
+      Data_Amount : Stream_Element_Count := 0;
+      --  The amount of data received, 0 if unknown.
+   end record;
+   --  Direction: from lower to upper.
+   --  Semantics: Data has been received and must be handled.
 
    type Data_Out is new Root_Data_Unit with record
       --  Direction: from upper to lower.

@@ -35,12 +35,23 @@
 
 --  $Id$
 
-with Ada.Streams; use Ada.Streams;
+with Ada.Streams;
 with Ada.Unchecked_Conversion;
+
+with PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl;
+with PolyORB.POA_Policies.Thread_Policy;
+
+with PolyORB.Tasking.Advanced_Mutexes;
 
 package body PolyORB.Obj_Adapters.Simple is
 
-   use PolyORB.Soft_Links;
+   use Ada.Streams;
+
+   use PolyORB.Tasking.Advanced_Mutexes;
+
+   use PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl;
+   use PolyORB.POA_Policies.Thread_Policy;
+
    use Object_Map_Entry_Seqs;
 
    subtype Simple_OA_Oid is Stream_Element_Array
@@ -50,6 +61,10 @@ package body PolyORB.Obj_Adapters.Simple is
       new Ada.Unchecked_Conversion (Integer, Simple_OA_Oid);
    function Oid_To_Index is
       new Ada.Unchecked_Conversion (Simple_OA_Oid, Integer);
+
+   ----------------
+   -- Find_Entry --
+   ----------------
 
    function Find_Entry
      (OA    : Simple_Obj_Adapter;
@@ -65,7 +80,7 @@ package body PolyORB.Obj_Adapters.Simple is
       Index : Integer)
       return Object_Map_Entry
    is
-      use type Objects.Servant_Access;
+      use type Servants.Servant_Access;
    begin
       declare
          OME : constant Object_Map_Entry
@@ -86,23 +101,35 @@ package body PolyORB.Obj_Adapters.Simple is
 
    --  XXX Replace OA.Lock with a r/w lock???
 
+   ------------
+   -- Create --
+   ------------
+
    procedure Create (OA : access Simple_Obj_Adapter) is
    begin
       Create (OA.Lock);
    end Create;
+
+   -------------
+   -- Destroy --
+   -------------
 
    procedure Destroy (OA : access Simple_Obj_Adapter) is
    begin
       Destroy (OA.Lock);
    end Destroy;
 
+   ------------
+   -- Export --
+   ------------
+
    function Export
      (OA  : access Simple_Obj_Adapter;
-      Obj :        Objects.Servant_Access;
+      Obj :        Servants.Servant_Access;
       Key :        Objects.Object_Id_Access := null)
       return Objects.Object_Id
    is
-      use type Objects.Servant_Access;
+      use type Servants.Servant_Access;
       use type Objects.Object_Id_Access;
    begin
       if Key /= null then
@@ -140,11 +167,15 @@ package body PolyORB.Obj_Adapters.Simple is
 
    --  XXX There is FAR TOO MUCH code duplication in here!
 
+   --------------
+   -- Unexport --
+   --------------
+
    procedure Unexport
      (OA : access Simple_Obj_Adapter;
       Id : Objects.Object_Id_Access)
    is
-      use type Objects.Servant_Access;
+      use type Servants.Servant_Access;
 
       Index : constant Integer
         := Oid_To_Index (Simple_OA_Oid (Id.all));
@@ -169,6 +200,10 @@ package body PolyORB.Obj_Adapters.Simple is
       Leave (OA.Lock);
    end Unexport;
 
+   ----------------
+   -- Object_Key --
+   ----------------
+
    function Object_Key
      (OA : access Simple_Obj_Adapter;
       Id :        Objects.Object_Id_Access)
@@ -182,12 +217,16 @@ package body PolyORB.Obj_Adapters.Simple is
       --  object key.
    end Object_Key;
 
+   -------------------------------
+   -- Set_Interface_Description --
+   -------------------------------
+
    procedure Set_Interface_Description
      (OA      : in out Simple_Obj_Adapter;
       Id      : access Objects.Object_Id;
       If_Desc : Interface_Description)
    is
-      use type Objects.Servant_Access;
+      use type Servants.Servant_Access;
 
       Index : constant Integer
         := Oid_To_Index (Simple_OA_Oid (Id.all));
@@ -212,10 +251,14 @@ package body PolyORB.Obj_Adapters.Simple is
       Leave (OA.Lock);
    end Set_Interface_Description;
 
+   ------------------------
+   -- Get_Empty_Arg_List --
+   ------------------------
+
    function Get_Empty_Arg_List
      (OA     : access Simple_Obj_Adapter;
       Oid    : access Objects.Object_Id;
-      Method : Requests.Operation_Id)
+      Method :        String)
      return Any.NVList.Ref
    is
       Index : constant Integer := Oid_To_Index (Simple_OA_Oid (Oid.all));
@@ -243,10 +286,14 @@ package body PolyORB.Obj_Adapters.Simple is
       return Result;
    end Get_Empty_Arg_List;
 
+   ----------------------
+   -- Get_Empty_Result --
+   ----------------------
+
    function Get_Empty_Result
      (OA     : access Simple_Obj_Adapter;
       Oid    : access Objects.Object_Id;
-      Method : Requests.Operation_Id)
+      Method :        String)
      return Any.Any
    is
       Index : constant Integer := Oid_To_Index (Simple_OA_Oid (Oid.all));
@@ -275,24 +322,36 @@ package body PolyORB.Obj_Adapters.Simple is
       return Result;
    end Get_Empty_Result;
 
+   ------------------
+   -- Find_Servant --
+   ------------------
+
+   No_Thread_Policy : constant ThreadPolicy_Access := new ORB_Ctrl_Policy;
+   --  XXX ????
+
    function Find_Servant
      (OA : access Simple_Obj_Adapter;
       Id : access Objects.Object_Id)
-     return Objects.Servant_Access
+     return Servants.Servant_Access
    is
-      Result : Objects.Servant_Access;
+      Result : Servants.Servant_Access;
    begin
       Enter (OA.Lock);
       Result := Element_Of (OA.Object_Map, Oid_To_Index
                             (Simple_OA_Oid (Id.all))).Servant;
+      Servants.Set_Thread_Policy (Result, No_Thread_Policy);
       Leave (OA.Lock);
       return Result;
    end Find_Servant;
 
+   ---------------------
+   -- Release_Servant --
+   ---------------------
+
    procedure Release_Servant
      (OA : access Simple_Obj_Adapter;
       Id : access Objects.Object_Id;
-      Servant : in out Objects.Servant_Access) is
+      Servant : in out Servants.Servant_Access) is
    begin
       pragma Warnings (Off);
       pragma Unreferenced (OA);
