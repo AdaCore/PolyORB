@@ -694,11 +694,11 @@ package body Idl_Fe.Types is
    function Is_Redefinable (Name : String) return Boolean is
       A_Definition : Identifier_Definition_Acc;
    begin
+      pragma Debug (O ("Is_Redefinable : enter"));
       --  Checks if the identifier is already imported
-      if Check_Imported_Identifier_Index (Name) /= Nil_Uniq_Id then
-         return False;
-      end if;
-
+         if Check_Imported_Identifier_Index (Name) /= Nil_Uniq_Id then
+            return False;
+         end if;
       A_Definition := Find_Identifier_Definition (Name);
       if A_Definition /= null then
          pragma Debug (O ("Is_Redefinable : " &
@@ -1023,9 +1023,9 @@ package body Idl_Fe.Types is
         Table (Index).Definition := Definition;
    end Add_Definition_To_Storage;
 
-   --------------------------------------
-   --  Check_Imported_Identifier_Idex  --
-   --------------------------------------
+   ---------------------------------------
+   --  Check_Imported_Identifier_Index  --
+   ---------------------------------------
 
    function Check_Imported_Identifier_Index
      (Identifier : String)
@@ -1038,13 +1038,14 @@ package body Idl_Fe.Types is
       Index : Uniq_Id;
       Scope : Node_Id;
    begin
-      --      pragma Debug (O ("Check_Imported_Identifier : current_scope_is "
-      --                     & Current_Scope.Scope.Definition.Name.all));
-      if Kind (Current_Scope.Scope) = K_Interface then
-         null;
-         pragma Debug (O ("Check_Imported_Identifier : is interface "));
+      pragma Debug (O ("Check_Imported_Identifier : enter"));
+      if not Is_Imports (Current_Scope.Scope) then
+         return Nil_Uniq_Id;
+         pragma Debug (O ("Check_Imported_Identifier : is imports "));
       end if;
       Scope := Current_Scope.Scope;
+      pragma Debug (O ("Check_Imported_Identifier : scope type is " &
+                       Node_Kind'Image (Kind (Scope)) & "."));
       Index := Imported_Table (Scope).Hash_Table (Hash_Index);
       if Index /= Nil_Uniq_Id then
          while Imported_Table (Scope).Content_Table.Table (Index).Definition.Name
@@ -1078,6 +1079,7 @@ package body Idl_Fe.Types is
       Index : Uniq_Id;
       Scope : Node_Id;
    begin
+      pragma Debug (O ("Find_Imported_Identifier_Definition : enter"));
       Scope := Current_Scope.Scope;
       Index := Check_Imported_Identifier_Index (Name);
       if Index /= Nil_Uniq_Id then

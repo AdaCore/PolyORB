@@ -784,15 +784,16 @@ package body Idl_Fe.Parser is
       Next_Token;
    end Parse_Export;
 
-   --------------------------------
-   --  Parse_Interface_Decl_End  --
-   --------------------------------
+   -------------------------------
+   --  Parse_Interface_Dcl_End  --
+   -------------------------------
 
    procedure Parse_Interface_Dcl_End
-     (Result : out Node_Id;
+     (Result : in out Node_Id;
       Success : out Boolean) is
       Body_Success : Boolean;
    begin
+      pragma Debug (O ("Parse_Interface_Dcl_End : enter"));
       --  interface header.
       if Get_Token = T_Colon then
          --  inheritance_spec
@@ -4977,7 +4978,7 @@ package body Idl_Fe.Parser is
          Success := False;
          return;
       end if;
-      pragma Debug (O ("Parse_Except_Dcl : token befor add" &
+      pragma Debug (O ("Parse_Except_Dcl : token before add : " &
                        Idl_Token'Image (Get_Token)));
       if not Add_Identifier (Result, Get_Token_String) then
          declare
@@ -4994,7 +4995,7 @@ package body Idl_Fe.Parser is
             return;
          end;
       end if;
-      pragma Debug (O ("Parse_Except_Dcl : token after add" &
+      pragma Debug (O ("Parse_Except_Dcl : token after add : " &
                        Idl_Token'Image (Get_Token)));
       Next_Token;
       if Get_Token /= T_Left_Cbracket then

@@ -183,7 +183,7 @@ private
    --
    --  Rule 10:
    --  <inheritance_spec> ::= ":" <scoped_name> { "," <scoped_name> }*
-   procedure Parse_Interface_Dcl_End (Result : out Node_Id;
+   procedure Parse_Interface_Dcl_End (Result : in out Node_Id;
                                       Success : out Boolean);
 
    --  Rule 12:

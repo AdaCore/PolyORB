@@ -222,10 +222,6 @@ package Idl_Fe.Types is
    function Get_Definition (Node : Node_Id)
                             return Identifier_Definition_Acc;
 
-   function Get_Name
-     (Node : in Node_Id)
-     return String;
-
    --  Return the node list containing the inherited interfaces
    function Get_Parents (Node : Node_Id)
                          return Node_List is abstract;
