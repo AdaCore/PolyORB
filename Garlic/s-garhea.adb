@@ -284,10 +284,6 @@ package body System.Garlic.Heart is
       end if;
 
       return Partition;
-   exception
-      when E : others =>
-         pragma Debug (D (D_Debug, Exception_Information (E)));
-         raise;
    end Get_My_Partition_ID;
 
    -------------------------------------

@@ -652,11 +652,8 @@ package body System.Garlic.Non_Blocking is
       pragma Debug (D (D_Debug, "Selection terminated"));
       Soft_Links.Sub_Non_Terminating_Task;
 
-   exception
-      when E : others =>
-         pragma Debug
-           (D (D_Debug, Exception_Name (E) & " received in Selection"));
-         Soft_Links.Sub_Non_Terminating_Task;
+   exception when others =>
+      Soft_Links.Sub_Non_Terminating_Task;
    end Selection;
 
    -----------------------------------
