@@ -3,6 +3,7 @@
 	* backend-be_idl.adb: Generate value declaration and adopt the
 	same organization for IDL backend than the one for Ada
 	backend. Generate boxed value types and abstract value types.
+	Fix wrong output of multidimensional arrays.
 
 	* frontend-nutils.adb, frontend-nutils.ads: Fix function
 	Is_A_Forward_Of for value declaration. Implement value type

@@ -307,8 +307,8 @@ package body Backend.BE_IDL is
          Generate (C);
          C := Next_Entity (C);
          exit when No (C);
-         Write (T_Comma);
-         Write_Space;
+         Write (T_Right_Bracket);
+         Write (T_Left_Bracket);
       end loop;
       Write (T_Right_Bracket);
    end Generate_Complex_Declarator;
