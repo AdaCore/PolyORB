@@ -102,7 +102,8 @@ package body CORBA.PolicyCurrent is
       pragma Unreferenced (Self);
 
       Notepad : Notepad_Access;
-      Note : Policy_Manager_Note;
+      Note    : Policy_Manager_Note;
+
    begin
       Notepad := Get_Current_Thread_Notepad;
 
@@ -137,9 +138,10 @@ package body CORBA.PolicyCurrent is
    is
       pragma Unreferenced (Self);
 
-      Notepad    : Notepad_Access;
+      Notepad : Notepad_Access;
       Note    : Policy_Manager_Note;
       Indexes : CORBA.Short;
+
    begin
       Notepad := Get_Current_Thread_Notepad;
 
@@ -169,6 +171,7 @@ package body CORBA.PolicyCurrent is
    procedure Deferred_Initialization is
       Ptr : constant Object_Ptr := new Object;
       Ref : CORBA.Object.Ref;
+
    begin
       CORBA.Object.Set (Ref, PolyORB.Smart_Pointers.Entity_Ptr (Ptr));
 
