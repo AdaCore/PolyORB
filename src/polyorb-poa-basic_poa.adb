@@ -72,15 +72,6 @@ package body PolyORB.POA.Basic_POA is
 
    function Get_Boot_Time return Time_Stamp;
 
-   function Get_Child
-     (Adapter : access Basic_Obj_Adapter;
-      Name    : in     String)
-      return POA_Types.Obj_Adapter_Access;
-   --  Look in the list of children of the Adapter if an OA with
-   --  the given name already exists.
-   --  This procedure should be called from a point that protects the
-   --  Self's Children List.
-
    procedure Init_With_User_Policies
      (OA       : access Basic_Obj_Adapter;
       Policies : POA_Policies.PolicyList);
@@ -94,10 +85,9 @@ package body PolyORB.POA.Basic_POA is
    procedure Check_Policies_Compatibility
      (OA : Basic_Obj_Adapter_Access);
 
-   function Register_Child
+   procedure Register_Child
      (Self  : access Basic_Obj_Adapter;
-      Child :        Basic_Obj_Adapter_Access)
-     return Positive;
+      Child :        Basic_Obj_Adapter_Access);
    --  Add a child to the current POA.
    --  This procedure should be called from a point that protects the
    --  Self's Children List.
@@ -155,47 +145,6 @@ package body PolyORB.POA.Basic_POA is
 
       return POAManager_Access (E);
    end POA_Manager_Of;
-
-   ---------------
-   -- Get_Child --
-   ---------------
-
-   function Get_Child
-     (Adapter : access Basic_Obj_Adapter;
-      Name    : in     String)
-     return POA_Types.Obj_Adapter_Access
-   is
-      use POA_Sequences;
-
-      A_Child : POA_Types.Obj_Adapter_Access;
-   begin
-      if Adapter.Children /= null then
-
-         pragma Debug (O ("Looking for child POA " & Name));
-
-         for I in 1 .. Length (Adapter.Children.all) loop
-            A_Child := Element_Of (Adapter.Children.all, I);
-
-            if A_Child /= null then
-               pragma Debug
-                 (O ("Read "
-                     & "'"
-                     & To_Standard_String
-                     (POA.Obj_Adapter_Access (A_Child).Name)
-                     & "'"));
-
-               if POA.Obj_Adapter_Access (A_Child).Name = Name then
-                  pragma Debug (O ("Found !"));
-                  return A_Child;
-               end if;
-            end if;
-         end loop;
-
-         pragma Debug (O ("No matching child POA found."));
-      end if;
-
-      return null;
-   end Get_Child;
 
    -------------------
    -- Get_Boot_Time --
@@ -390,12 +339,11 @@ package body PolyORB.POA.Basic_POA is
    -- Register_Child --
    --------------------
 
-   function Register_Child
+   procedure Register_Child
      (Self  : access Basic_Obj_Adapter;
       Child :        Basic_Obj_Adapter_Access)
-     return Positive
    is
-      use POA_Types.POA_Sequences;
+      use PolyORB.POA_Types.POA_HTables;
 
    begin
       pragma Debug (O (To_Standard_String (Self.Name)
@@ -403,21 +351,14 @@ package body PolyORB.POA.Basic_POA is
                        & To_Standard_String (Child.Name)));
 
       if Self.Children = null then
-         Self.Children := new POAList;
+         Self.Children := new POATable;
+         Initialize (Self.Children.all);
       end if;
 
-      for I in 1 .. Length (Sequence (Self.Children.all)) loop
-         if Element_Of (Sequence (Self.Children.all), I) = null then
-            Replace_Element (Sequence (Self.Children.all), I,
-                             POA_Types.Obj_Adapter_Access (Child));
-            return I;
-         end if;
-      end loop;
-
-      Append (Sequence (Self.Children.all),
+      Insert (Self.Children.all,
+              To_Standard_String (Child.Name),
               POA_Types.Obj_Adapter_Access (Child));
 
-      return Length (Sequence (Self.Children.all));
    end Register_Child;
 
    ----------------------
@@ -532,6 +473,8 @@ package body PolyORB.POA.Basic_POA is
       Policies     :        POA_Policies.PolicyList)
      return Obj_Adapter_Access
    is
+      use PolyORB.POA_Types.POA_HTables;
+
       New_Obj_Adapter : Basic_Obj_Adapter_Access;
 
    begin
@@ -553,14 +496,14 @@ package body PolyORB.POA.Basic_POA is
          --  Write Lock here: content of children has to be the same when
          --  we add the new child.
 
-         if Get_Child (Self, To_Standard_String (Adapter_Name)) /= null then
+         if Lookup (Self.Children.all,
+                    To_Standard_String (Adapter_Name), null) /= null then
             Unlock_W (Self.Children_Lock);
             raise POA.Adapter_Already_Exists;
          end if;
       end if;
 
       --  Create new object adapter
-
       New_Obj_Adapter           := new Basic_Obj_Adapter;
       Create (New_Obj_Adapter.POA_Lock);
       Create (New_Obj_Adapter.Children_Lock);
@@ -581,6 +524,9 @@ package body PolyORB.POA.Basic_POA is
                        POA_Types.Obj_Adapter_Access (New_Obj_Adapter));
       end if;
 
+      --  Note that New_Obj_Adapter.Children is initialized iff we
+      --  need it, see the procedure Register_Child for more details.
+
       --  First initialize POA with default policies.
       Init_With_Default_Policies (New_Obj_Adapter);
 
@@ -595,14 +541,7 @@ package body PolyORB.POA.Basic_POA is
          Lock_W (Self.Children_Lock);
       end if;
 
-      declare
-         Child_Id : constant Integer := Register_Child (Self, New_Obj_Adapter);
-         pragma Warnings (Off);
-         pragma Unreferenced (Child_Id);
-         pragma Warnings (On);
-      begin
-         null;
-      end;
+      Register_Child (Self, New_Obj_Adapter);
 
       --  Construct POA Absolute name.
       if Length (Self.Absolute_Address) > 0 then
@@ -644,45 +583,45 @@ package body PolyORB.POA.Basic_POA is
       Etherealize_Objects : in     Types.Boolean;
       Wait_For_Completion : in     Types.Boolean)
    is
-      use POA_Types.POA_Sequences;
+      use PolyORB.POA_Types.POA_HTables;
 
-      procedure Free is new Ada.Unchecked_Deallocation
-        (POAList, POAList_Access);
-
-      A_Child : Basic_Obj_Adapter_Access;
-      Name    : Types.String := Self.Name;
+      Name : constant String := To_Standard_String (Self.Name);
    begin
-      pragma Debug (O ("Start destroying POA "
-                       & To_Standard_String (Name)));
+      pragma Debug (O ("Start destroying POA " & Name));
 
       --  Destroy all children
-      begin
+      if Self.Children /= null then
          Lock_W (Self.Children_Lock);
-         if Self.Children /= null then
-            for I in 1 .. Length (Sequence (Self.Children.all)) loop
-               A_Child := Basic_Obj_Adapter_Access
-                 (Element_Of (Sequence (Self.Children.all), I));
 
-               if A_Child /= null then
-                  Destroy
-                    (A_Child,
-                     Etherealize_Objects,
-                     Wait_For_Completion);
+         declare
+            It : Iterator := First (Self.Children.all);
+            A_Child : Basic_Obj_Adapter_Access;
+         begin
+            while not Last (It) loop
+               A_Child := Basic_Obj_Adapter (Value (It).all.all)'Access;
 
-                  Replace_Element (Sequence (Self.Children.all), I, null);
-               end if;
+               Destroy (A_Child,
+                        Etherealize_Objects,
+                        Wait_For_Completion);
+
+               --  NOTE: there is no need to delete A_Child from
+               --  Self.Children, this will be done when finalizing it.
+
+               Next (It);
             end loop;
 
+            Finalize (Self.Children.all);
             Free (Self.Children);
-         end if;
-         Unlock_W (Self.Children_Lock);
 
-      exception
-         when others =>
-            pragma Debug (O ("Got exception when destroying Child POA"));
             Unlock_W (Self.Children_Lock);
-            raise;
-      end;
+
+         exception
+            when others =>
+               pragma Debug (O ("Got exception when destroying Child POA"));
+               Unlock_W (Self.Children_Lock);
+               raise;
+         end;
+      end if;
 
       --  Tell father to remove current POA from its list of children
       if Self.Father /= null then
@@ -696,19 +635,20 @@ package body PolyORB.POA.Basic_POA is
       --  Destroy self (also unregister from the POAManager)
       pragma Debug (O ("About to destroy POA"));
 
-      --  XXX Add code for Etherealize_Objects and Wait_For_Completion ???
+      --  Destroy POA components.
       declare
          OA : Basic_Obj_Adapter_Access := Basic_Obj_Adapter_Access (Self);
       begin
          Destroy_OA (OA);
       end;
 
-      pragma Debug (O ("POA " & To_Standard_String (Name) & " destroyed"));
+      pragma Debug (O ("POA " & Name & " destroyed"));
+
+      --  XXX Add code for Etherealize_Objects and Wait_For_Completion ???
 
    exception
       when others =>
-         pragma Debug (O ("Got exception when destroying POA: "
-                          & To_Standard_String (Name)));
+         pragma Debug (O ("Got exception when destroying POA: " & Name));
          raise;
    end Destroy;
 
@@ -851,7 +791,7 @@ package body PolyORB.POA.Basic_POA is
       Name : Types.String)
      return Obj_Adapter_Access
    is
-      use POA_Types.POA_Sequences;
+      use PolyORB.POA_Types.POA_HTables;
 
       Split_Point      : constant Natural := Index (Name, POA_Path_Separator);
 
@@ -874,17 +814,15 @@ package body PolyORB.POA.Basic_POA is
          Remaining_Name := Tail (Name, Length (Name) - Split_Point);
       end if;
 
-      for I in 1 .. Length (Sequence (Self.Children.all)) loop
-         A_Child := Obj_Adapter_Access
-           (Element_Of (Sequence (Self.Children.all), I));
+      A_Child := PolyORB.POA.Obj_Adapter_Access
+        (Lookup (Self.Children.all, To_Standard_String (Name), null));
 
-         if A_Child /= null
-           and then A_Child.Name = A_Child_Name then
-            return Find_POA
-              (Basic_Obj_Adapter (A_Child.all)'Access,
-               Remaining_Name);
-         end if;
-      end loop;
+      if A_Child /= null
+        and then A_Child.Name = A_Child_Name then
+         return Find_POA
+           (Basic_Obj_Adapter (A_Child.all)'Access,
+            Remaining_Name);
+      end if;
 
       return null;
    end Find_POA;
@@ -895,8 +833,7 @@ package body PolyORB.POA.Basic_POA is
 
    procedure Copy_Obj_Adapter
      (From : in     Basic_Obj_Adapter;
-      To   : access Basic_Obj_Adapter)
-   is
+      To   : access Basic_Obj_Adapter) is
    begin
       Lock_R (From.POA_Lock);
       Lock_W (To.POA_Lock);
@@ -928,28 +865,15 @@ package body PolyORB.POA.Basic_POA is
 
    procedure Remove_POA_By_Name
      (Self       : access Basic_Obj_Adapter;
-      Child_Name :        Types.String)
-   is
-      use POA_Sequences;
-      A_Child : POA_Types.Obj_Adapter_Access;
+      Child_Name :        Types.String) is
    begin
       pragma Debug (O (To_Standard_String (Self.Name)
                        & ": removing POA with name "
                        & To_Standard_String (Child_Name)
                        & " from my children."));
 
-      for I in 1 .. Length (Self.Children.all) loop
-         A_Child := Element_Of (Self.Children.all, I);
-         if A_Child /= null
-           and then POA.Obj_Adapter_Access (A_Child).Name = Child_Name
-         then
-            Replace_Element (Sequence (Self.Children.all), I, null);
-            return;
-         end if;
-      end loop;
-
-      pragma Debug (O ("Leave, POA not found"));
-      --  XXX what to do in this case ? raise an exception or not ???
+      PolyORB.POA_Types.POA_HTables.Delete (Self.Children.all,
+                                            To_Standard_String (Child_Name));
 
    end Remove_POA_By_Name;
 
@@ -987,7 +911,7 @@ package body PolyORB.POA.Basic_POA is
    function Export
      (OA  : access Basic_Obj_Adapter;
       Obj :        Servants.Servant_Access;
-      Key :        Objects.Object_Id_Access       := null)
+      Key :        Objects.Object_Id_Access := null)
      return Objects.Object_Id
    is
       Oid : Objects.Object_Id_Access;
@@ -1245,7 +1169,8 @@ package body PolyORB.POA.Basic_POA is
      (OA         : access Basic_Obj_Adapter;
       Proxies_OA :        Basic_Obj_Adapter_Access) is
    begin
-      pragma Assert (OA.Proxies_OA = null and then Proxies_OA /= null);
+      pragma Assert (OA.Proxies_OA = null
+                       and then Proxies_OA /= null);
       OA.Proxies_OA := Proxies_OA;
    end Set_Proxies_OA;
 
@@ -1290,7 +1215,7 @@ package body PolyORB.POA.Basic_POA is
            := Create_Object_Identification
            (OA.Proxies_OA, Oid_Data'Unchecked_Access);
       begin
-         pragma Debug (O ("TPO: Oid data length:"
+         pragma Debug (O ("To_Proxy_Oid: Oid data length:"
                           & Integer'Image (Oid_Data'Length)));
          pragma Debug (O ("To_Proxy_Oid: leave"));
 

@@ -107,8 +107,7 @@ package PolyORB.POA is
          Father : Obj_Adapter_Access;
          --  Parent POA.
 
-         Children : POAList_Access;
-         --  XXX should use a hash table instead.
+         Children : POATable_Access;
          --  All child-POAs of this POA.
 
          POA_Lock                   : Tasking.Rw_Locks.Rw_Lock_Access;

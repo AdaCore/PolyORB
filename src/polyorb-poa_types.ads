@@ -41,6 +41,8 @@ with PolyORB.Any.NVList;
 with PolyORB.Obj_Adapters;
 with PolyORB.Objects;
 with PolyORB.Types;
+with PolyORB.Utils.HFunctions.Mul;
+with PolyORB.Utils.HTables.Perfect;
 
 with PolyORB.Sequences.Unbounded;
 
@@ -89,19 +91,33 @@ package PolyORB.POA_Types is
    subtype POAList is POA_Sequences.Sequence;
    type POAList_Access is access all POAList;
 
+   package POA_HTables is new PolyORB.Utils.HTables.Perfect
+     (Obj_Adapter_Access,
+      PolyORB.Utils.HFunctions.Mul.Hash_Mul_Parameters,
+      PolyORB.Utils.HFunctions.Mul.Default_Hash_Parameters,
+      PolyORB.Utils.HFunctions.Mul.Hash,
+      PolyORB.Utils.HFunctions.Mul.Next_Hash_Parameters);
+   subtype POATable is POA_HTables.Table_Instance;
+   type POATable_Access is access all POATable;
+
+   procedure Free is new Ada.Unchecked_Deallocation
+     (POATable, POATable_Access);
+
    subtype Object_Id is PolyORB.Objects.Object_Id;
    subtype Object_Id_Access is PolyORB.Objects.Object_Id_Access;
    function "=" (X, Y : Object_Id_Access) return Boolean
      renames PolyORB.Objects."=";
 
-   type Unmarshalled_Oid is
-     record
-         Creator          : Types.String;
-         Id               : Types.String;
-         System_Generated : Boolean;
-         Persistency_Flag : Lifespan_Cookie;
-     end record;
+   type Unmarshalled_Oid is record
+      Creator          : Types.String;
+      Id               : Types.String;
+      System_Generated : Boolean;
+      Persistency_Flag : Lifespan_Cookie;
+   end record;
    type Unmarshalled_Oid_Access is access Unmarshalled_Oid;
+
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Unmarshalled_Oid, Unmarshalled_Oid_Access);
 
    function "=" (Left, Right : in Unmarshalled_Oid) return Standard.Boolean;
 
@@ -163,8 +179,5 @@ package PolyORB.POA_Types is
 
    procedure Free (X : in out PolyORB.POA_Types.Object_Id_Access)
      renames PolyORB.Objects.Free;
-
-   procedure Free is new Ada.Unchecked_Deallocation
-     (Unmarshalled_Oid, Unmarshalled_Oid_Access);
 
 end PolyORB.POA_Types;
