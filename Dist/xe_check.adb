@@ -218,6 +218,10 @@ package body XE_Check is
          Set_Name_Table_Info (Unit.Table (U).Uname, 0);
       end loop;
 
+      for S in Source.First .. Source.Last loop
+         Set_Name_Table_Info (Source.Table (S).Sfile, 0);
+      end loop;
+
       ALIs.Init;
       Unit.Init;
       Withs.Init;

@@ -1,7 +1,12 @@
+1999-01-07  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* xe_check.adb: Final fix for 6023-G01. Set filename info back to
+ 	zero.
+
 1999-01-03  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* xe_check.adb: Deallocate ali test buffer once scanned. Part of
-	fix for 6023-G01.
+	fix for 6023-G01. Remove typo.
 
 1998-12-08  Laurent Pautet  <pautet@scapin.enst.fr>
 
