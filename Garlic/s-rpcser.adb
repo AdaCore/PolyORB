@@ -49,6 +49,7 @@ with System.Garlic.Options;
 with System.Garlic.Priorities;   use System.Garlic.Priorities;
 with System.Garlic.Soft_Links;
 with System.Garlic.Streams;
+with System.Garlic.Tasking;
 with System.Garlic.Types;
 
 with System.Garlic.Startup;
@@ -86,14 +87,8 @@ package body System.RPC.Server is
    procedure Adjust
      (Self : in out Outer_Abort_Handler_Type);
 
-   Max_Tasks : constant := 512;
-   --  This one must match the maximum value of Task_Pool_Max_Bound defined
-   --  in s-garopt.ads. Use a named constant somewhere to make sure that
-   --  they match ???
-
    function Convert is
-      new Ada.Unchecked_Conversion
-     (System.Address, Streams.RPC_Receiver);
+      new Ada.Unchecked_Conversion (System.Address, Streams.RPC_Receiver);
 
    --  This package handles a pool of anonymous tasks which will be used
    --  by System.RPC to handle incoming calls.
@@ -116,61 +111,19 @@ package body System.RPC.Server is
    procedure Shutdown;
    --  Called on shutdown
 
-   type Cancel_Type is record
-      PID  : Types.Partition_ID;
-      RPC  : RPC_Id;
-      Free : Boolean := True;
-   end record;
-
-   type Cancel_Array is array (1 .. Max_Tasks) of Cancel_Type;
-
-   protected Task_Manager is
-      entry Get_One;
-
-      procedure Free_One;
-
-      procedure Abort_One
-        (PID : in Types.Partition_ID;
-         RPC : in RPC_Id);
-
-      procedure Unabort_One
-        (PID : in Types.Partition_ID;
-         RPC : in RPC_Id);
-
-      entry Is_Aborted
-        (PID : in Types.Partition_ID;
-         RPC : in RPC_Id);
-
-      procedure Shutdown;
-
-   private
-
-      entry Is_Aborted_Waiting
-        (PID : in Types.Partition_ID;
-         RPC : in RPC_Id);
-
-      Cancel_Map  : Cancel_Array;
-      In_Progress : Boolean := False;
-      Count       : Natural := 0;
-      Count_Abort : Natural := 0;
-      Terminated  : Boolean := False;
-   end Task_Manager;
-   --  This protected object requeues on Is_Aborted_Waiting; this may look
-   --  inefficient, but we hope that remote abortion won't occur too much
-   --  (or at least that remote abortion won't occur too often when there is
-   --  a lot of other remote calls in progress). Count_Abort contains the
-   --  number of abortion in progress.
-
    type Task_Identifier;
    type Task_Identifier_Access is access Task_Identifier;
 
+   function Create_Anonymous_Task
+     return Task_Identifier_Access;
+
+   procedure Destroy_Anonymous_Task
+     (Identifier : in out Task_Identifier_Access);
+
    task type Anonymous_Task is
-      entry Set_Identifier (Identifier : in Task_Identifier_Access);
-      entry Set_Job (The_PID    : in Types.Partition_ID;
-                     The_RPC    : in RPC_Id;
-                     The_Params : in Streams.Params_Stream_Access;
-                     The_Async  : in Boolean);
-      entry Shutdown;
+      entry  Initialize (Identifier : in Task_Identifier_Access);
+      entry  Execute;
+      entry  Shutdown;
       pragma Priority (Default_Priority);
       pragma Storage_Size (3_000_000);
    end Anonymous_Task;
@@ -179,8 +132,14 @@ package body System.RPC.Server is
    --  still needed there ???
 
    type Task_Identifier is record
-      Task_Pointer : Anonymous_Task_Access;
-      Next         : Task_Identifier_Access;
+      Self   : Anonymous_Task_Access;
+      RPC    : RPC_Id;
+      PID    : Types.Partition_ID;
+      Stop   : System.Garlic.Tasking.Mutex_PO_Access;
+      Params : Streams.Params_Stream_Access;
+      Async  : Boolean;
+      Next   : Task_Identifier_Access;
+      Prev   : Task_Identifier_Access;
    end record;
    --  Since it is impossible for a task to get a pointer on itself, it
    --  is transmitted through this structure. Moreover, this allows to
@@ -190,57 +149,28 @@ package body System.RPC.Server is
       new Ada.Unchecked_Deallocation
      (Task_Identifier, Task_Identifier_Access);
 
-   function Create_New_Task return Task_Identifier_Access;
-   --  Create a new task
-
    Low_Mark  : Positive renames System.Garlic.Options.Task_Pool_Low_Bound;
    High_Mark : Positive renames System.Garlic.Options.Task_Pool_High_Bound;
    Max_Mark  : Positive renames System.Garlic.Options.Task_Pool_Max_Bound;
 
-   protected Free_Tasks is
+   Allocated_Tasks    : Natural := 0;
+   Deallocated_Tasks  : Natural := 0;
+   Tasks_Pool_Count   : Natural := 0;
+   Idle_Tasks_Count   : Natural := 0;
+   Tasks_Pool_Mutex   : System.Garlic.Soft_Links.Mutex_Access;
+   Tasks_Pool_Watcher : System.Garlic.Soft_Links.Watcher_Access;
+   Idle_Tasks_Queue   : Task_Identifier_Access;
+   Used_Tasks_Queue   : Task_Identifier_Access;
 
-      entry Get_Task
-        (Identifier : out Task_Identifier_Access;
-         Shutdown   : out Boolean);
-      --  Call this to create a task. If Identifier is Null, then you have
-      --  to create the task yourself before using it (calling the
-      --  Create_New_Task function).
-      --  This entry is potentially blocking because in some cases you
-      --  do not want to have more than a maximum number of running tasks
-      --  in your system.
+   Terminated : Boolean := False;
 
-      procedure Queue (Identifier : in Task_Identifier_Access;
-                       Accepted   : out Boolean);
-      --  A task will call Queue when it has terminated its job. If Accepted
-      --  is false on return, then the task must terminate itself as soon
-      --  as possible in order to limit the number of running tasks in the
-      --  system.
+   procedure Show_Tasks_Pool;
+   --  This procedure will print a tasks pool status in debug mode
 
-      entry Wait (Shutdown : out Boolean);
-      --  This procedure will be blocked until there is a need for more
-      --  anonymous tasks. It will also be unblocked by the shutdown
-      --  operation and will set Shutdown_In_Progress to True if there
-      --  is a shutdown in progress.
-
-      procedure Shutdown;
-      --  This procedure will be called upon shutdown
-
-      procedure Status;
-      --  This procedure will print a status when in debug mode.
-      --  Warning: it is *not* legal to do so in normal mode since the
-      --  traces are potentially blocking operations.
-
-   private
-      Terminated        : Boolean := False;
-      Free_Tasks_List   : Task_Identifier_Access;
-      Free_Tasks_Count  : Natural := 0;
-      Total_Tasks_Count : Natural := 0;
-      Allocations       : Natural := 0;
-      Deallocations     : Natural := 0;
-   end Free_Tasks;
+   procedure Stop_Tasks_Pool;
+   --  This procedure will be called upon shutdown
 
    task type Background_Creation is
-      entry Shutdown;
       pragma Priority (Background_Creation_Priority);
    end Background_Creation;
    --  This task will have a low priority and create tasks in the background
@@ -255,9 +185,21 @@ package body System.RPC.Server is
 
    procedure Abort_Task
      (PID : in Types.Partition_ID;
-      RPC : in RPC_Id) is
+      RPC : in RPC_Id)
+   is
+      Identifier : Task_Identifier_Access;
    begin
-      Task_Manager.Abort_One (PID, RPC);
+      System.Garlic.Soft_Links.Enter (Tasks_Pool_Mutex);
+      Identifier := Used_Tasks_Queue;
+      while Identifier /= null
+        and then (Identifier.PID /= PID or else Identifier.RPC /= RPC)
+      loop
+         Identifier := Identifier.Next;
+      end loop;
+      if Identifier /= null then
+         Identifier.Stop.Leave;
+      end if;
+      System.Garlic.Soft_Links.Leave (Tasks_Pool_Mutex);
    end Abort_Task;
 
    ------------
@@ -283,16 +225,50 @@ package body System.RPC.Server is
       Async  : in Boolean)
    is
       Identifier : Task_Identifier_Access;
-      Terminated : Boolean;
+      Version    : System.Garlic.Types.Version_Id;
+
    begin
-      Free_Tasks.Get_Task (Identifier, Terminated);
+      while not Terminated loop
+         System.Garlic.Soft_Links.Enter (Tasks_Pool_Mutex);
+         if Idle_Tasks_Count > 0 then
+            Identifier       := Idle_Tasks_Queue;
+            Idle_Tasks_Queue := Identifier.Next;
+            Idle_Tasks_Count := Idle_Tasks_Count - 1;
+
+         elsif Tasks_Pool_Count < Max_Mark then
+            Identifier       := Create_Anonymous_Task;
+
+         else
+            System.Garlic.Soft_Links.Lookup (Tasks_Pool_Watcher, Version);
+         end if;
+
+         if Identifier /= null then
+            Identifier.Next       := Used_Tasks_Queue;
+            if Identifier.Next /= null then
+               Identifier.Next.Prev  := Identifier;
+            end if;
+            Identifier.Prev       := null;
+            Used_Tasks_Queue      := Identifier;
+
+            Identifier.RPC    := RPC;
+            Identifier.PID    := PID;
+            Identifier.Params := Params;
+            Identifier.Async  := Async;
+
+            Identifier.Self.Execute;
+         end if;
+         System.Garlic.Soft_Links.Leave (Tasks_Pool_Mutex);
+
+         exit when Identifier /= null;
+
+         System.Garlic.Soft_Links.Differ (Tasks_Pool_Watcher, Version);
+      end loop;
+
       if Terminated then
          raise System.RPC.Communication_Error;
       end if;
-      if Identifier = null then
-         Identifier := Create_New_Task;
-      end if;
-      Identifier.Task_Pointer.Set_Job (PID, RPC, Params, Async);
+
+      Show_Tasks_Pool;
    end Allocate_Task;
 
    --------------------
@@ -300,15 +276,11 @@ package body System.RPC.Server is
    --------------------
 
    task body Anonymous_Task is
-      Dest      : Types.Partition_ID;
+      Callee    : Types.Partition_ID;
       Receiver  : Streams.RPC_Receiver;
       Result    : Streams.Params_Stream_Access;
       Cancelled : Boolean;
       Priority  : Natural;
-      PID       : Types.Partition_ID;
-      RPC       : RPC_Id;
-      Params    : Streams.Params_Stream_Access;
-      Async     : Boolean;
       Self      : Task_Identifier_Access;
       Aborted   : Boolean := False;
 
@@ -316,25 +288,17 @@ package body System.RPC.Server is
    begin
       pragma Debug (D ("Anonymous task starting"));
       select
-         accept Set_Identifier (Identifier : in Task_Identifier_Access) do
+         accept Initialize (Identifier : in Task_Identifier_Access) do
             Self := Identifier;
-         end Set_Identifier;
+         end Initialize;
       or
          terminate;
       end select;
-      loop
+
+      while Self /= null loop
          pragma Debug (D ("Waiting for a job"));
          select
-            accept Set_Job
-              (The_PID    : in Types.Partition_ID;
-               The_RPC    : in RPC_Id;
-               The_Params : in Streams.Params_Stream_Access;
-               The_Async  : in Boolean) do
-               PID    := The_PID;
-               RPC    := The_RPC;
-               Params := The_Params;
-               Async  := The_Async;
-            end Set_Job;
+            accept Execute;
          or
             accept Shutdown do
                Aborted := True;
@@ -342,6 +306,7 @@ package body System.RPC.Server is
          or
             terminate;
          end select;
+
          exit when Aborted;
 
          --  Before executing anything, make sure that our elaboration is
@@ -351,26 +316,24 @@ package body System.RPC.Server is
 
          Result    := new Streams.Params_Stream_Type (0);
          Cancelled := False;
-         Task_Manager.Get_One;
-         Task_Manager.Unabort_One (PID, RPC);
-         Types.Partition_ID'Read (Params, Dest);
-         if not Dest'Valid then
-            pragma Debug (D ("Invalid destination received"));
+         Types.Partition_ID'Read (Self.Params, Callee);
+         if not Callee'Valid then
+            pragma Debug (D ("Invalid PID received"));
             raise Constraint_Error;
          end if;
-         Natural'Read (Params, Priority);
+         Natural'Read (Self.Params, Priority);
          System.Garlic.Soft_Links.Set_Priority (Priority);
          When_Established;
          select
-            Task_Manager.Is_Aborted (PID, RPC);
+            Self.Stop.Enter;
             declare
                Empty  : aliased Streams.Params_Stream_Type (0);
-               Header : constant RPC_Header := (Abortion_Reply, RPC);
+               Header : constant RPC_Header := (Abortion_Reply, Self.RPC);
                Error  : aliased Error_Type;
             begin
                pragma Debug (D ("Abortion queried by caller"));
                Insert_RPC_Header (Empty'Access, Header);
-               Send (PID, Remote_Call, Empty'Access, Error);
+               Send (Self.PID, Remote_Call, Empty'Access, Error);
                if Found (Error) then
                   Raise_Exception (Communication_Error'Identity,
                                    Content (Error'Access));
@@ -380,13 +343,13 @@ package body System.RPC.Server is
          then abort
             pragma Debug (D ("Job to achieve"));
             Receiver := Convert
-               (System.Address (Interfaces.Unsigned_64'Input (Params)));
-            Receiver (Params, Result);
+               (System.Address (Interfaces.Unsigned_64'Input (Self.Params)));
+            Receiver (Self.Params, Result);
             pragma Debug (D ("Job achieved without abortion"));
          end select;
 
          declare
-            Copy : Streams.Params_Stream_Access := Params;
+            Copy : Streams.Params_Stream_Access := Self.Params;
          begin
 
             --  Yes, we deallocate a copy, because Params is readonly (it's
@@ -394,17 +357,17 @@ package body System.RPC.Server is
 
             Streams.Deallocate (Copy);
          end;
-         if Async or else Cancelled then
+         if Self.Async or else Cancelled then
             pragma Debug (D ("Result not sent"));
             Streams.Deallocate (Result);
          else
             declare
-               Header : constant RPC_Header := (RPC_Reply, RPC);
+               Header : constant RPC_Header := (RPC_Reply, Self.RPC);
                Error  : aliased Error_Type;
             begin
                pragma Debug (D ("Result will be sent"));
                Insert_RPC_Header (Result, Header);
-               Send (PID, Remote_Call, Result, Error);
+               Send (Self.PID, Remote_Call, Result, Error);
                if Found (Error) then
                   Raise_Exception (Communication_Error'Identity,
                                    Content (Error'Access));
@@ -412,28 +375,37 @@ package body System.RPC.Server is
                Streams.Free (Result);
             end;
          end if;
-         Task_Manager.Free_One;
          pragma Debug (D ("Job finished, queuing"));
-         declare
-            Queued : Boolean;
-         begin
-            Free_Tasks.Queue (Self, Queued);
-            if not Queued then
-               pragma Debug (D ("Too many tasks, queuing refused"));
-               exit;
-            end if;
-         end;
-      end loop;
-      pragma Debug (D ("Anonymous task finishing"));
 
-      Free (Self);
+         System.Garlic.Soft_Links.Enter (Tasks_Pool_Mutex);
+         if Self.Prev = null then
+            Used_Tasks_Queue := Self.Next;
+         else
+            Self.Prev.Next   := Self.Next;
+         end if;
+         if Self.Next /= null then
+            Self.Next.Prev := Self.Prev;
+         end if;
+
+         if Idle_Tasks_Count < High_Mark then
+            Self.Prev        := null;
+            Self.Next        := Idle_Tasks_Queue;
+            Idle_Tasks_Queue := Self;
+            Idle_Tasks_Count := Idle_Tasks_Count + 1;
+
+         else
+            Destroy_Anonymous_Task (Self);
+         end if;
+
+         System.Garlic.Soft_Links.Update (Tasks_Pool_Watcher);
+         System.Garlic.Soft_Links.Leave  (Tasks_Pool_Mutex);
+      end loop;
    exception
       when E : others =>
          pragma Warnings (Off, E);
          pragma Debug (D ("Error in anonymous task " &
                           "(exception " & Exception_Name (E) & ")"));
-         Free (Self);
-
+         Destroy_Anonymous_Task (Self);
    end Anonymous_Task;
 
    -------------------------
@@ -441,36 +413,55 @@ package body System.RPC.Server is
    -------------------------
 
    task body Background_Creation is
-      Terminated : Boolean;
-      Accepted   : Boolean;
       Identifier : Task_Identifier_Access;
+
    begin
       System.Garlic.Soft_Links.Add_Non_Terminating_Task;
-      loop
-         Free_Tasks.Wait (Terminated);
-         exit when Terminated;
-         Identifier := Create_New_Task;
-         Free_Tasks.Queue (Identifier, Accepted);
-         if not Accepted then
-            Identifier.Task_Pointer.Shutdown;
+      while not Terminated loop
+         System.Garlic.Soft_Links.Enter (Tasks_Pool_Mutex);
+         if Tasks_Pool_Count < Low_Mark then
+            Identifier       := Create_Anonymous_Task;
+            Identifier.Next  := Idle_Tasks_Queue;
+            Idle_Tasks_Queue := Identifier;
+
+         else
+            Identifier := null;
          end if;
+         System.Garlic.Soft_Links.Leave (Tasks_Pool_Mutex);
+
+         exit when Identifier = null;
       end loop;
       System.Garlic.Soft_Links.Sub_Non_Terminating_Task;
-      accept Shutdown;
    end Background_Creation;
 
-   ---------------------
-   -- Create_New_Task --
-   ---------------------
+   ---------------------------
+   -- Create_Anonymous_Task --
+   ---------------------------
 
-   function Create_New_Task return Task_Identifier_Access is
-      Identifier : constant Task_Identifier_Access :=
-       new Task_Identifier'(Task_Pointer => new Anonymous_Task,
-                            Next         => null);
+   function Create_Anonymous_Task return Task_Identifier_Access is
+      Identifier : constant Task_Identifier_Access := new Task_Identifier;
    begin
-      Identifier.Task_Pointer.Set_Identifier (Identifier);
+      Allocated_Tasks  := Allocated_Tasks + 1;
+      Tasks_Pool_Count := Tasks_Pool_Count + 1;
+      Identifier.Self  := new Anonymous_Task;
+      Identifier.Stop  := new System.Garlic.Tasking.Mutex_PO;
+      Identifier.Stop.Enter;
+      Identifier.Self.Initialize (Identifier);
       return Identifier;
-   end Create_New_Task;
+   end Create_Anonymous_Task;
+
+   ----------------------------
+   -- Destroy_Anonymous_Task --
+   ----------------------------
+
+   procedure Destroy_Anonymous_Task
+     (Identifier : in out Task_Identifier_Access) is
+   begin
+      Deallocated_Tasks := Deallocated_Tasks + 1;
+      Tasks_Pool_Count  := Tasks_Pool_Count - 1;
+      System.Garlic.Tasking.Free (Identifier.Stop);
+      Free (Identifier);
+   end Destroy_Anonymous_Task;
 
    --------------
    -- Finalize --
@@ -479,110 +470,33 @@ package body System.RPC.Server is
    procedure Finalize
      (Handler : in out Inner_Abort_Handler_Type) is
    begin
-      pragma Debug (D ("Finalize ..."));
       Finalize (Handler.Outer.PID, Handler.Outer.Wait, Handler.Outer.Key);
    end Finalize;
 
-   ----------------
-   -- Free_Tasks --
-   ----------------
+   ---------------------
+   -- Show_Tasks_Pool --
+   ---------------------
 
-   protected body Free_Tasks is
+   procedure Show_Tasks_Pool is
+   begin
+      return;
+      pragma Debug (D ("Idle Tasks Count :" & Idle_Tasks_Count'Img));
+      pragma Debug (D ("Tasks Pool Count :" & Tasks_Pool_Count'Img));
+      pragma Debug (D ("Allocated   Tasks:" & Allocated_Tasks'Img));
+      pragma Debug (D ("Deallocated Tasks:" & Deallocated_Tasks'Img));
+      null;
+   end Show_Tasks_Pool;
 
-      --------------
-      -- Get_Task --
-      --------------
+   ---------------------
+   -- Stop_Tasks_Pool --
+   ---------------------
 
-      entry Get_Task
-        (Identifier : out Task_Identifier_Access;
-         Shutdown   : out Boolean)
-      when Terminated
-        or else Free_Tasks_Count > 0
-        or else Total_Tasks_Count < Max_Mark
-      is
-      begin
-         Shutdown := Terminated;
-         if Free_Tasks_Count > 0 then
-            Identifier       := Free_Tasks_List;
-            Free_Tasks_List  := Identifier.Next;
-            Free_Tasks_Count := Free_Tasks_Count - 1;
-
-         else
-            Identifier := null;
-            if not Terminated then
-               Allocations       := Allocations + 1;
-               Total_Tasks_Count := Total_Tasks_Count + 1;
-            end if;
-         end if;
-         Status;
-      end Get_Task;
-
-      -----------
-      -- Queue --
-      -----------
-
-      procedure Queue
-        (Identifier : in Task_Identifier_Access;
-         Accepted   : out Boolean) is
-      begin
-         if Terminated then
-            Accepted := False;
-
-         elsif Total_Tasks_Count <= High_Mark then
-            Accepted         := True;
-            Identifier.Next  := Free_Tasks_List;
-            Free_Tasks_List  := Identifier;
-            Free_Tasks_Count := Free_Tasks_Count + 1;
-
-         else
-            Accepted          := False;
-            Deallocations     := Deallocations + 1;
-            Total_Tasks_Count := Total_Tasks_Count - 1;
-         end if;
-         Status;
-      end Queue;
-
-      ------------
-      -- Status --
-      ------------
-
-      procedure Status is
-      begin
-         return;
-         pragma Debug (D ("Free tasks:" & Free_Tasks_Count'Img));
-         pragma Debug (D ("Total tasks:" & Total_Tasks_Count'Img));
-         pragma Debug (D ("Allocations :" & Allocations'Img));
-         pragma Debug (D ("Deallocations :" & Deallocations'Img));
-         null;
-      end Status;
-
-      --------------
-      -- Shutdown --
-      --------------
-
-      procedure Shutdown is
-      begin
-         pragma Debug (D ("Free_Tasks.Shutdown called"));
-         Terminated := True;
-      end Shutdown;
-
-      ----------
-      -- Wait --
-      ----------
-
-      entry Wait
-        (Shutdown : out Boolean)
-      when Terminated or
-        else Total_Tasks_Count < High_Mark is
-      begin
-         Shutdown := Terminated;
-         if not Terminated then
-            Total_Tasks_Count := Total_Tasks_Count + 1;
-         end if;
-         --  Status;
-      end Wait;
-
-   end Free_Tasks;
+   procedure Stop_Tasks_Pool is
+   begin
+      pragma Debug (D ("Stop tasks pool"));
+      Terminated := True;
+      System.Garlic.Soft_Links.Update (Tasks_Pool_Watcher);
+   end Stop_Tasks_Pool;
 
    ----------------
    -- Initialize --
@@ -601,6 +515,7 @@ package body System.RPC.Server is
       Handler.PID  := 0;
       Handler.Wait := False;
       Handler.Key  := 0;
+
       System.Garlic.Soft_Links.Adjust (Handler.all);
       System.Garlic.Soft_Links.Register_Abort_Handler (Handler);
    end Initialize;
@@ -610,149 +525,23 @@ package body System.RPC.Server is
    --------------
 
    procedure Shutdown is
-      Identifier : Task_Identifier_Access;
-      Terminated : Boolean;
    begin
       pragma Debug (D ("Shutdown called"));
-      Free_Tasks.Status;
-      Free_Tasks.Shutdown;
-      Task_Manager.Shutdown;
-      if Background_Task /= null then
-         Background_Task.Shutdown;
-      end if;
-      loop
-         Free_Tasks.Get_Task (Identifier, Terminated);
-         exit when Identifier = null;
-         Identifier.Task_Pointer.Shutdown;
+      Show_Tasks_Pool;
+      Terminated := True;
+      System.Garlic.Soft_Links.Enter (Tasks_Pool_Mutex);
+      while Idle_Tasks_Queue /= null loop
+         Idle_Tasks_Queue.Self.Shutdown;
+         Idle_Tasks_Queue := Idle_Tasks_Queue.Next;
       end loop;
+      System.Garlic.Soft_Links.Update (Tasks_Pool_Watcher);
+      System.Garlic.Soft_Links.Leave (Tasks_Pool_Mutex);
    end Shutdown;
 
-   ------------------
-   -- Task_Manager --
-   ------------------
-
-   protected body Task_Manager is
-
-      ---------------
-      -- Abort_One --
-      ---------------
-
-      procedure Abort_One
-        (PID : in Types.Partition_ID;
-         RPC : in RPC_Id) is
-      begin
-         for I in Cancel_Map'Range loop
-            if Cancel_Map (I).Free then
-               Cancel_Map (I) := (PID, RPC, False);
-               Count_Abort := Count_Abort + 1;
-               if Is_Aborted_Waiting'Count > 0 then
-                  In_Progress := True;
-                  pragma Debug (D ("Will signal abortion"));
-               end if;
-               return;
-            end if;
-         end loop;
-      end Abort_One;
-
-      --------------
-      -- Free_One --
-      --------------
-
-      procedure Free_One is
-      begin
-         Count := Count - 1;
-      end Free_One;
-
-      -------------
-      -- Get_One --
-      -------------
-
-      entry Get_One when Count < Max_Tasks is
-      begin
-         Count := Count + 1;
-      end Get_One;
-
-      ----------------
-      -- Is_Aborted --
-      ----------------
-
-      entry Is_Aborted
-        (PID : in Types.Partition_ID;
-         RPC : in RPC_Id)
-      when Terminated
-        or else (Count_Abort > 0 and then not In_Progress)
-      is
-      begin
-         if Terminated then
-            return;
-         end if;
-         for I in Cancel_Map'Range loop
-            declare
-               Ent : Cancel_Type renames Cancel_Map (I);
-            begin
-               if not Ent.Free
-                 and then Ent.RPC = RPC
-                 and then Ent.PID = PID
-               then
-                  Count_Abort := Count_Abort - 1;
-                  Ent.Free    := True;
-                  return;
-               end if;
-            end;
-         end loop;
-         requeue Is_Aborted_Waiting with abort;
-      end Is_Aborted;
-
-      ------------------------
-      -- Is_Aborted_Waiting --
-      ------------------------
-
-      entry Is_Aborted_Waiting
-        (PID : in Types.Partition_ID;
-         RPC : in RPC_Id)
-      when In_Progress is
-      begin
-         if Is_Aborted_Waiting'Count = 0 then
-            In_Progress := False;
-         end if;
-         requeue Is_Aborted with abort;
-      end Is_Aborted_Waiting;
-
-      --------------
-      -- Shutdown --
-      --------------
-
-      procedure Shutdown is
-      begin
-         Terminated := True;
-      end Shutdown;
-
-      -----------------
-      -- Unabort_One --
-      -----------------
-
-      procedure Unabort_One
-        (PID : in Types.Partition_ID;
-         RPC : in RPC_Id) is
-      begin
-         for I in Cancel_Map'Range loop
-            declare
-               Ent : Cancel_Type renames Cancel_Map (I);
-            begin
-               if not Ent.Free
-                 and then Ent.RPC = RPC
-                 and then Ent.PID = PID
-               then
-                  Ent.Free    := True;
-                  Count_Abort := Count_Abort - 1;
-               end if;
-            end;
-         end loop;
-      end Unabort_One;
-
-   end Task_Manager;
-
 begin
+   System.Garlic.Soft_Links.Create (Tasks_Pool_Mutex);
+   System.Garlic.Soft_Links.Create (Tasks_Pool_Watcher);
+
    Register_Task_Pool
      (Allocate_Task => Allocate_Task'Access,
       Abort_Task    => Abort_Task'Access,
