@@ -332,6 +332,253 @@ package body System.Garlic.Table is
    end Complex;
 
    ------------
+   -- Medium --
+   ------------
+
+   package body Medium is
+
+      Min_Pos : constant Integer    := Index_Type'Pos (First_Index);
+      Max_Pos :          Integer    := Min_Pos + Initial_Size - 1;
+
+      Min     : constant Index_Type := Index_Type'Val (Min_Pos);
+      Max     :          Index_Type := Index_Type'Val (Max_Pos);
+
+      type Usage_Type is record
+         Name : Name_Id;
+         Free : Boolean;
+      end record;
+      Null_Usage : constant Usage_Type := (Null_Name, True);
+
+      type Usage_Table_Type   is array (Index_Type range <>) of Usage_Type;
+      type Usage_Table_Access is access Usage_Table_Type;
+
+      Usage   : Usage_Table_Access;
+
+      function Allocate (N : Index_Type := Null_Index) return Index_Type;
+      --  Allocate a new component. When N /= Null_Index then allocate
+      --  N. When this component index is not in the table's range,
+      --  return Null_Index.
+
+      procedure Check (N : Index_Type);
+      --  Check whether N is in range of current table. Otherwise,
+      --  raise Constraint_Error.
+
+      procedure Free is
+        new Ada.Unchecked_Deallocation
+        (Component_Table_Type, Component_Table_Access);
+
+      procedure Free is
+        new Ada.Unchecked_Deallocation
+        (Usage_Table_Type, Usage_Table_Access);
+
+      --  Most of these subprograms are abort deferred. At the beginning of
+      --  them, the code enter a critical section. At the end, it leaves
+      --  the critical section. To avoid a premature abortion in the middle
+      --  of the critical section, the code is protected against abortion.
+
+      --------------
+      -- Allocate --
+      --------------
+
+      function Allocate (N : Index_Type := Null_Index) return Index_Type is
+         Old_Max   : Index_Type;
+         Old_Table : Component_Table_Access;
+         Old_Usage : Usage_Table_Access;
+      begin
+         --  Try to allocate N as required when N /= Null_Index
+
+         if N /= Null_Index then
+            if Max < N or else N < Min then
+               pragma Debug (D (D_Debug, "Erroneous index" & N'Img));
+
+               return Null_Index;
+            end if;
+
+            --  Mark the slot as used so that it is not allocated for another
+            --  client.
+
+            if Usage (N).Free then
+               pragma Debug (D (D_Debug, "Allocate exact index" & N'Img));
+
+               Usage (N).Free := False;
+            end if;
+
+            return N;
+         end if;
+
+         --  Try to allocate a free slot
+
+         for Index in Min .. Max loop
+            if Usage (Index).Free then
+               Usage (Index).Free := False;
+               pragma Debug (D (D_Debug, "Allocate new index" & Index'Img));
+
+               return Index;
+            end if;
+         end loop;
+
+         pragma Debug (D (D_Debug, "Extend table"));
+
+         --  Allocate new table
+
+         Old_Max   := Max;
+         Old_Table := Table;
+         Old_Usage := Usage;
+
+         Max_Pos   := Max_Pos + Increment_Size;
+         Max       := Index_Type'Val (Max_Pos);
+         Table     := new Component_Table_Type (Min .. Max);
+         Usage     := new Usage_Table_Type     (Min .. Max);
+
+         --  Copy old table in new table
+
+         Table (Min .. Old_Max) := Old_Table (Min .. Old_Max);
+         Usage (Min .. Old_Max) := Old_Usage (Min .. Old_Max);
+
+         --  Intialize incremented part of new table
+
+         Table (Old_Max + 1 .. Max) := (others => Null_Component);
+         Usage (Old_Max + 1 .. Max) := (others => Null_Usage);
+
+         --  Release unused memory
+
+         Free (Old_Table);
+         Free (Old_Usage);
+
+         Usage (Old_Max + 1).Free := False;
+
+         return Old_Max + 1;
+      end Allocate;
+
+      -----------
+      -- Check --
+      -----------
+
+      procedure Check (N : Index_Type) is
+         Error : Boolean;
+      begin
+         Enter (Global_Mutex);
+         Error := (Allocate (N) = Null_Index);
+         Leave (Global_Mutex);
+
+         if Error then
+            raise Constraint_Error;
+         end if;
+      end Check;
+
+      -------------------
+      -- Get_Component --
+      -------------------
+
+      function Get_Component (N : Index_Type) return Component_Type is
+         Component : Component_Type;
+      begin
+         pragma Abort_Defer;
+
+         pragma Debug (D (D_Debug, "Get component" & N'Img));
+
+         Check (N);
+         Enter (Global_Mutex);
+         Component := Table (N);
+         Leave (Global_Mutex);
+
+         return Component;
+      end Get_Component;
+
+      ---------------
+      -- Get_Index --
+      ---------------
+
+      function Get_Index (S : String) return Index_Type is
+         Index : Index_Type;
+         Name  : Name_Id;
+         Info  : Integer;
+      begin
+         pragma Abort_Defer;
+
+         Enter (Global_Mutex);
+         Name  := Get (S);
+         Info  := Get_Info (Name);
+         if Info = 0 then
+
+            --  Info is a null index. Create new component and set its
+            --  index as name info.
+
+            Index := Allocate;
+            Table (Index) := Null_Component;
+            Usage (Index).Name := Name;
+            Set_Info (Name, Integer (Index_Type'Pos (Index)));
+         else
+            Index := Index_Type'Val (Info);
+         end if;
+         Leave (Global_Mutex);
+
+         pragma Debug
+           (D (D_Debug, "Get index" & Index'Img & " for component " & S));
+
+         return Index;
+      end Get_Index;
+
+      --------------
+      -- Get_Name --
+      --------------
+
+      function  Get_Name  (N : Index_Type) return String is
+         Name : Name_Id;
+      begin
+         pragma Abort_Defer;
+
+         Enter (Global_Mutex);
+         if Max < N or else Usage (N).Free then
+            Name := Null_Name;
+         else
+            Name := Usage (N).Name;
+         end if;
+         Leave (Global_Mutex);
+
+         pragma Debug
+           (D (D_Debug, "Get name " & Get (Name) & " for component" & N'Img));
+
+         return Get (Name);
+      end Get_Name;
+
+      -------------------
+      -- Set_Component --
+      -------------------
+
+      procedure Set_Component (N : Index_Type; C : Component_Type) is
+      begin
+         pragma Abort_Defer;
+
+         Check (N);
+         Enter (Global_Mutex);
+         Table (N) := C;
+         Leave (Global_Mutex);
+      end Set_Component;
+
+      --------------
+      -- Set_Name --
+      --------------
+
+      procedure Set_Name (N : Index_Type; S : String) is
+      begin
+         pragma Abort_Defer;
+
+         pragma Debug (D (D_Debug, "Set name " & S & " to component" & N'Img));
+
+         Check (N);
+         Enter (Global_Mutex);
+         Usage (N).Name := Get (S);
+         Set_Info (Usage (N).Name, Integer (Index_Type'Pos (N)));
+         Leave (Global_Mutex);
+      end Set_Name;
+
+   begin
+      Table := new Component_Table_Type'(Min .. Max => Null_Component);
+      Usage := new Usage_Table_Type    '(Min .. Max => Null_Usage);
+   end Medium;
+
+   ------------
    -- Simple --
    ------------
 

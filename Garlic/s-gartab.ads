@@ -107,6 +107,53 @@ package System.Garlic.Table is
    end Complex;
 
    generic
+      type Index_Type is range <>;
+      Null_Index     : Index_Type;
+      First_Index    : Index_Type;
+
+      Initial_Size   : Positive;
+      Increment_Size : Natural;
+
+      type Component_Type is private;
+      Null_Component : Component_Type;
+
+   package Medium is
+
+      type Component_Table_Type is
+         array (Index_Type range <>) of Component_Type;
+
+      type Component_Table_Access is access Component_Table_Type;
+
+      Table : Component_Table_Access;
+
+      --  These procedures are atomic and cannot be aborted
+
+      function  Get_Component (N : Index_Type) return Component_Type;
+      --  Check whether component of index N corresponds to an allocated
+      --  component. When N is not allocated, allocate it. Raise
+      --  Constraint_Error when N is not in range of current table.
+
+      function  Get_Index (S : String) return Index_Type;
+      --  Check whether this name is already related to a component index.
+      --  If not, allocate a component, associate its index to its name
+      --  and return its index.
+
+      function  Get_Name (N : Index_Type) return String;
+      --  Return the name related to component of index N. Return an
+      --  empty string when this index corresponds to a non-allocated
+      --  component.
+
+      procedure Set_Component (N : Index_Type; C : Component_Type);
+      --  Set component of index N to C. When N is not allocated, allocate
+      --  it. Raise Constraint_Error when N is not in range of current table.
+
+      procedure Set_Name  (N : Index_Type; S : String);
+      --  Set component name of index N to S. When N is not allocated, allocate
+      --  it. Raise Constraint_Error when N is not in range of current table.
+
+   end Medium;
+
+   generic
       type Index_Type     is range <>;
       Null_Index     : Index_Type;
       First_Index    : Index_Type;
