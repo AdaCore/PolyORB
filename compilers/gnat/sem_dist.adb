@@ -482,22 +482,30 @@ package body Sem_Dist is
    ------------------------------------
 
    procedure Process_Remote_AST_Declaration (N : Node_Id) is
-      pragma Warnings (Off);
       Loc            : constant Source_Ptr := Sloc (N);
       User_Type      : constant Node_Id := Defining_Identifier (N);
+      Scop           : constant Entity_Id := Scope (User_Type);
+      Is_RCI         : constant Boolean :=
+        Is_Remote_Call_Interface (Scop);
+      Is_RT          : constant Boolean :=
+        Is_Remote_Types (Scop);
       Type_Def       : constant Node_Id := Type_Definition (N);
-      Pkg_Spec       : constant Node_Id :=
-        Package_Specification_Of_Scope (Scope (User_Type));
+
+      Subpkg         : constant Entity_Id :=
+                         Make_Defining_Identifier
+                           (Loc, New_Internal_Name ('S'));
+      Subpkg_Decl    : Node_Id;
 
       Obj_Type       : constant Entity_Id :=
                          Make_Defining_Identifier
                            (Loc, New_External_Name (
                                    Chars (User_Type), 'R'));
+      Obj_Type_Decl  : Node_Id;
+
       Full_Obj_Type  : constant Entity_Id :=
                          Make_Defining_Identifier
                            (Loc, Chars (Obj_Type));
-
-      Obj_Type_Decl  : Node_Id;
+      Full_Obj_Type_Decl : Node_Id;
 
       Prim_Decl      : Node_Id;
 
@@ -511,21 +519,25 @@ package body Sem_Dist is
                         Make_Defining_Identifier
                           (Loc, Chars (User_Type));
       Fat_Type_Decl  : Node_Id;
-      pragma Warnings (On);
+
    begin
+
+      --  The tagged private type, primitive operation and RACW
+      --  type associated with a RAS need to all be declared in
+      --  a subpackage of the one that contains the RAS declaration,
+      --  because the primitive of the object type, and the associated
+      --  primitive of the stub type, need to be dispatching operations
+      --  of these types, and the profile of the RAS might contain
+      --  tagged types declared in the same scope.
+
       Obj_Type_Decl :=
         Make_Private_Type_Declaration (Loc,
           Defining_Identifier => Obj_Type,
           Abstract_Present => True,
           Tagged_Present   => True,
           Limited_Present  => True);
-      Insert_After (N, Obj_Type_Decl);
 
-      if Private_Declarations (Pkg_Spec) = No_List then
-         Set_Private_Declarations (Pkg_Spec, New_List);
-      end if;
-
-      Append_To (Private_Declarations (Pkg_Spec),
+      Full_Obj_Type_Decl :=
         Make_Full_Type_Declaration (Loc,
           Defining_Identifier =>
             Full_Obj_Type,
@@ -535,9 +547,7 @@ package body Sem_Dist is
               Tagged_Present   => True,
               Limited_Present  => True,
               Component_List   => Empty,
-              Null_Present     => True)));
---        Set_Ekind (Obj_Type, E_Limited_Private_Type);
---        Set_Full_View (Obj_Type, Full_Obj_Type);
+              Null_Present     => True));
 
       Prim_Decl :=
         Make_Abstract_Subprogram_Declaration (Loc,
@@ -554,13 +564,11 @@ package body Sem_Dist is
             Make_Access_Definition (Loc,
               Subtype_Mark =>
                 New_Occurrence_Of (Obj_Type, Loc))));
-      --  XXX if the RAS definition has a formal parameter
-      --    that is of a tagged type, bad bad things happens because
-      --    Call becomes a dispatching operation in both this type
-      --    and Obj_Type.
       Set_Comes_From_Source (
         Defining_Unit_Name (Specification (Prim_Decl)), True);
-      Insert_After (Obj_Type_Decl, Prim_Decl);
+      --  Trick later semantic analysis into considering this
+      --  operation as a primitive (dispatching) operation of
+      --  tagged type Obj_Type.
 
       RACW_Type_Decl := Make_Full_Type_Declaration (Loc,
         Defining_Identifier => RACW_Type,
@@ -573,15 +581,30 @@ package body Sem_Dist is
                   New_Occurrence_Of (Obj_Type, Loc),
                 Attribute_Name =>
                   Name_Class)));
-      Set_Is_Remote_Call_Interface (
-        RACW_Type, Is_Remote_Call_Interface (Scope (User_Type)));
-      Set_Is_Remote_Types (RACW_Type, Is_Remote_Types (Scope (User_Type)));
-      Insert_After (Prim_Decl, RACW_Type_Decl);
+      Set_Is_Remote_Call_Interface (RACW_Type, Is_RCI);
+      Set_Is_Remote_Types (RACW_Type, Is_RT);
       --  XXX RACW RPC Receiver generation should be shorted out for this
       --      RACW type.
       --  XXX RACW From_Any generation should be changed for this type
       --      to always instantiate a stub type, regardless of locality.
       --  XXX possible predicate: not (Comes_From_Source (Designated_Type))
+
+      Subpkg_Decl :=
+        Make_Package_Declaration (Loc,
+          Make_Package_Specification (Loc,
+            Defining_Unit_Name =>
+              Subpkg,
+            Visible_Declarations => New_List (
+              Obj_Type_Decl,
+              Prim_Decl,
+              RACW_Type_Decl),
+            Private_Declarations => New_List (
+              Full_Obj_Type_Decl),
+            End_Label =>
+              New_Occurrence_Of (Subpkg, Loc)));
+      Set_Is_Remote_Call_Interface (Subpkg, Is_RCI);
+      Set_Is_Remote_Types (Subpkg, Is_RT);
+      Insert_After (N, Subpkg_Decl);
 
       --  Many parts of the analyzer and expander expect
       --  that the fat pointer type used to implement remote
@@ -599,7 +622,7 @@ package body Sem_Dist is
                       Make_Defining_Identifier (Loc, Name_Ras),
                     Subtype_Indication  =>
                       New_Occurrence_Of (RACW_Type, Loc))))));
-      Insert_After (RACW_Type_Decl, Fat_Type_Decl);
+      Insert_After (Subpkg_Decl, Fat_Type_Decl);
       Set_Equivalent_Type (User_Type, Fat_Type);
       Set_Corresponding_Remote_Type (Fat_Type, User_Type);
 
