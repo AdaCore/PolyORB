@@ -179,9 +179,9 @@ adabe_sequence::produce_marshal_adb(dep_list& with, string &body, string &previo
   body += "      begin\n";
   body += "         for I in 1..Len loop\n";
   body += "            UnMarshall (Val,S) ;\n";
-  body += "            ";
+  body += "            A := ";
   body += inter_name;
-  body += ".Replace_Element (A,Integer(I),Val) ;\n";
+  body += ".\"&\" (A,Val) ;\n";
   body += "         end loop ;\n";
   body += "      end ;\n";
   body += "   end ;\n\n\n";
