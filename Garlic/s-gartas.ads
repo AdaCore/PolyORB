@@ -33,6 +33,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Unchecked_Deallocation;
+
 with System.Garlic.Soft_Links;
 with System.Garlic.Types;
 
@@ -102,15 +104,30 @@ package System.Garlic.Tasking is
 
    function Independent_Task_Count return Natural;
 
+   procedure List_Tasks;
+
    function Get_Priority return Natural;
 
    procedure Set_Priority (P : in Natural);
 
-private
+   --  We export Mutex_PO because a construct like select ... than
+   --  abort ... needs a call to such a protected object as a
+   --  statement for the first alternative.
 
-   type Mutex_PO;
+   protected type Mutex_PO is
+      entry Enter;
+      procedure Leave;
+      function Is_Busy return Boolean;
+   private
+      Busy : Boolean := False;
+   end Mutex_PO;
 
    type Mutex_PO_Access is access Mutex_PO;
+
+   procedure Free is
+     new Ada.Unchecked_Deallocation (Mutex_PO, Mutex_PO_Access);
+
+private
 
    type Protected_Mutex_Type is new Soft_Links.Mutex_Type
      with record
