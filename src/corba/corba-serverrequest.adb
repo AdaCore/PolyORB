@@ -3,6 +3,7 @@
 --  $Id$
 
 with Droopi;
+with Droopi.Any.NVList;
 with Droopi.Types;
 
 package body CORBA.ServerRequest is
@@ -13,8 +14,11 @@ package body CORBA.ServerRequest is
    end Operation;
 
    procedure Arguments (O : Object; NV : in out NVList.Ref) is
+      Droopi_Args : Droopi.Any.NVList.Ref
+        := CORBA.NVList.To_Droopi_Ref (NV);
    begin
-      NV := CORBA.NVList.To_CORBA_Ref (O.Args);
+      Droopi.Requests.Arguments (To_Droopi_Request (O), Droopi_Args);
+      NV := CORBA.NVList.To_CORBA_Ref (Droopi_Args);
    end Arguments;
 
    procedure Set_Result (O : Object; Val : Any) is

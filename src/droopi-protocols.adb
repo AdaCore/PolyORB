@@ -22,6 +22,14 @@ package body Droopi.Protocols is
       Free (S);
    end Destroy_Session;
 
+   procedure Handle_Unmarshall_Arguments
+     (S    : access Session;
+      Args : in out Any.NVList.Ref) is
+   begin
+      raise Program_Error;
+      --  By default: no support for deferred arguments
+      --  unmarshalling.
+   end Handle_Unmarshall_Arguments;
 
    function Handle_Message
      (Sess : access Session;

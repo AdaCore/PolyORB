@@ -6,6 +6,7 @@ with Droopi.Log;
 pragma Elaborate_All (Droopi.Log);
 with Droopi.ORB;
 with Droopi.ORB.Interface;
+with Droopi.Protocols.Interface;
 with Droopi.Setup;
 
 package body Droopi.Requests is
@@ -66,6 +67,27 @@ package body Droopi.Requests is
          May_Poll => True);
 
    end Invoke;
+
+   procedure Arguments
+     (Self : Request_Access;
+      Args : in out Any.NVList.Ref)
+   is
+      use Any.NVList;
+      use Components;
+
+   begin
+      if Is_Nil (Self.Args) then
+         pragma Assert (Self.Deferred_Arguments_Session /= null);
+         Self.Args := Args;
+         Components.Emit_No_Reply
+           (Self.Deferred_Arguments_Session,
+            Protocols.Interface.Unmarshall_Arguments'(Args => Args));
+         Self.Deferred_Arguments_Session := null;
+      else
+         pragma Assert (Self.Deferred_Arguments_Session = null);
+         Args := Self.Args;
+      end if;
+   end Arguments;
 
 --    procedure Destroy_Request
 --      (Req : in out Request_Access) is

@@ -1059,6 +1059,28 @@ package body Droopi.Protocols.GIOP is
       Ses.Current_Profile := Profile;
    end Store_Profile;
 
+   --------------------
+   -- Expect_Message --
+   --------------------
+
+   procedure Expect_Message (S : access GIOP_Session);
+   --  Prepare S to receive next GIOP message.
+   --  This must be called once when a session is established
+   --  (in Handle_Connect_Indication for a server session,
+   --  in Handle_Connect_Confirmation for a client session),
+   --  and then exactly once after a message has been received.
+   --  This must not be called after sending a message (because
+   --  message sends and receives can be interleaved in an
+   --  arbitrary way, and Expect_Message must not be called
+   --  twice in a row).
+
+   procedure Expect_Message (S : access GIOP_Session) is
+   begin
+      Buffers.Release_Contents (S.Buffer_In.all);
+      Expect_Data (S, S.Buffer_In, Message_Header_Size);
+      S.State := Expect_Header;
+   end Expect_Message;
+
    -------------------
    -- Store_Request --
    -------------------
@@ -1088,6 +1110,38 @@ package body Droopi.Protocols.GIOP is
       S.Minor_Version := Minor_Version;
    end Set_Version;
 
+   procedure Handle_Unmarshall_Arguments
+     (Ses : access GIOP_Session;
+      Args : in out Any.NVList.Ref)
+   is
+      use Droopi.Any;
+      use Droopi.Any.NVList.Internals;
+      use Droopi.Any.NVList.Internals.NV_Sequence;
+
+      List     : NV_Sequence_Access;
+      Temp_Arg : Any.NamedValue;
+   begin
+      pragma Assert (Ses.State = Arguments_Ready);
+      List :=  List_Of (Args);
+      for I in 1 .. Get_Count (Args) loop
+         Temp_Arg :=  NV_Sequence.Element_Of
+           (List.all, Positive (I));
+         if False
+           or else Temp_Arg.Arg_Modes = ARG_IN
+           or else Temp_Arg.Arg_Modes = ARG_INOUT
+         then
+            Unmarshall_To_Any (Ses.Buffer_In, Temp_Arg.Argument);
+         end if;
+         NV_Sequence.Replace_Element
+           (List.all, Positive (I), Temp_Arg);
+         --  XXX This is very inefficient because of multiple
+         --    copies of an Any. The Unmarshall_To_Any should
+         --    be done in-place on the actual Element_Array
+         --    deep within List...
+      end loop;
+      Expect_Message (Ses);
+   end Handle_Unmarshall_Arguments;
+
    ----------------------
    -- Request_Received --
    ----------------------
@@ -1097,12 +1151,8 @@ package body Droopi.Protocols.GIOP is
    is
       use Binding_Data.IIOP;
       use Binding_Data.Local;
-      use Internals;
-      use Internals.NV_Sequence;
-
       use References;
 
-      use Droopi.Any;
       use Droopi.Objects;
 
       use Req_Seq;
@@ -1122,8 +1172,6 @@ package body Droopi.Protocols.GIOP is
       Target_Ref  : Target_Address_Access;
 
       ORB : constant ORB_Access := ORB_Access (Ses.Server);
-      Temp_Arg : Any.NamedValue;
-      List     : NV_Sequence_Access;
 
    begin
       pragma Debug (O ("Request_Received: entering"));
@@ -1162,29 +1210,24 @@ package body Droopi.Protocols.GIOP is
       end case;
 
       pragma Debug (O ("Request_Received: Unmarshalled request header"));
+
       Args := Obj_Adapters.Get_Empty_Arg_List
         (Object_Adapter (ORB),
          Object_Key.all,
          To_Standard_String (Operation));
 
-      --  Unmarshalling of arguments
-      List :=  List_Of (Args);
-      for I in 1 .. Get_Count (Args) loop
-         Temp_Arg :=  NV_Sequence.Element_Of
-           (List.all, Positive (I));
-         if False
-           or else Temp_Arg.Arg_Modes = ARG_IN
-           or else Temp_Arg.Arg_Modes = ARG_INOUT
-         then
-            Unmarshall_To_Any (Ses.Buffer_In, Temp_Arg.Argument);
-         end if;
-         NV_Sequence.Replace_Element
-           (List.all, Positive (I), Temp_Arg);
-         --  XXX This is very inefficient because of multiple
-         --    copies of an Any. The Unmarshall_To_Any should
-         --    be done in-place on the actual Element_Array
-         --    deep within List...
-      end loop;
+      Ses.State := Arguments_Ready;
+
+      if not Is_Nil (Args) then
+         --  The signature of the method is known: unmarshall
+         --  the arguments right now.
+         Handle_Unmarshall_Arguments (Ses, Args);
+      else
+         --  Unable to obtain the list of arguments at this point.
+         --  Defer the unmarshalling until the Servant has a chance
+         --  to provide its own arg list.
+         null;
+      end if;
 
       Result :=
         (Name     => To_Droopi_String ("Result"),
@@ -1215,12 +1258,11 @@ package body Droopi.Protocols.GIOP is
          Result    => Result,
          Req       => Req);
 
-      Set_Note (Req.Notepad, Request_Note'(Annotations.Note with
-                                          Id => Request_Id));
+      Set_Note
+        (Req.Notepad, Request_Note'(Annotations.Note with Id => Request_Id));
 
       --  Adding the request to the Server's Processing Requests List
       Append (Ses.Processing_Rq, Req);
-
 
       Emit_No_Reply
         (Component_Access (ORB),
@@ -1561,23 +1603,6 @@ package body Droopi.Protocols.GIOP is
       pragma Debug (O ("After Sending Reply"));
    end Send_Reply;
 
-   procedure Expect_Message (S : access GIOP_Session);
-   --  Prepare S to receive next GIOP message.
-   --  This must be called once when a session is established
-   --  (in Handle_Connect_Indication for a server session,
-   --  in Handle_Connect_Confirmation for a client session),
-   --  and then exactly once after a message has been received.
-   --  This must not be called after sending a message (because
-   --  message sends and receives can be interleaved in an
-   --  arbitrary way, and Expect_Message must not be called
-   --  twice in a row).
-
-   procedure Expect_Message (S : access GIOP_Session) is
-   begin
-      Expect_Data (S, S.Buffer_In, Message_Header_Size);
-      S.Expect_Header := True;
-   end Expect_Message;
-
    ----------------------------------
    --  Handle Connect Indication ----
    ----------------------------------
@@ -1615,7 +1640,7 @@ package body Droopi.Protocols.GIOP is
       pragma Debug (O ("Received data on transport endpoint..."));
       pragma Debug (Buffers.Show (S.Buffer_In.all));
 
-      if S.Expect_Header then
+      if S.State = Expect_Header then
          Unmarshall_GIOP_Header
            (S, Mess_Type, Mess_Size,
             Fragment_Next, Success);
@@ -1629,9 +1654,14 @@ package body Droopi.Protocols.GIOP is
                & Mess_Type'Img
                & "," & Mess_Size'Img & " bytes expected."));
          S.Mess_Type_Received  := Mess_Type;
-         S.Expect_Header := False;
+         S.State := Expect_Body;
          Expect_Data (S, S.Buffer_In, Stream_Element_Count (Mess_Size));
          return;
+      else
+         pragma Assert (S.State = Expect_Body);
+         --  When receiving a Data_Indication, the session must
+         --  be in one of the states where it expects data.
+         null;
       end if;
 
       --  if Fragment_Next then
@@ -1763,13 +1793,13 @@ package body Droopi.Protocols.GIOP is
             raise Not_Implemented;
       end case;
 
-      Buffers.Release_Contents (S.Buffer_In.all);
+      if S.State = Expect_Body then
+         --  The expected message body has now been received
+         --  and processed: prepare to receive next message.
 
-      Expect_Message (S);
-      --  Prepare to receive next message.
-
+         Expect_Message (S);
+      end if;
    end Handle_Data_Indication;
-
 
    procedure Handle_Disconnect (S : access GIOP_Session) is
    begin

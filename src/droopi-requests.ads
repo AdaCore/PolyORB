@@ -7,6 +7,7 @@ with Ada.Unchecked_Deallocation;
 with Droopi.Annotations;
 with Droopi.Any;
 with Droopi.Any.NVList;
+with Droopi.Components;
 with Droopi.References;
 with Droopi.Storage_Pools;
 with Droopi.Task_Info;
@@ -25,7 +26,26 @@ package Droopi.Requests is
       --  Ctx        : CORBA.Context.Ref;
       Target    : References.Ref;
       Operation : Types.Identifier;
+
       Args      : Any.NVList.Ref;
+      --  The arguments to the request. The Protocol layer
+      --  MAY set this component directly OR set the following
+      --  component instead. The Application layer MUST NOT
+      --  access this component directly, and MUST use operation
+      --  Arguments below to retrieve the arguments from an
+      --  invocation.
+
+      Deferred_Arguments_Session : Components.Component_Access;
+      --  If Args have not been unmarshalled at the time the
+      --  request is created, then this component must be
+      --  set to the Session on which the arguments are
+      --  waiting to be unmarshalled.
+
+      --  When creating a Request object with deferred arguments,
+      --  it is the Protocol layer's responsibility to ensure that
+      --  consistent information is presented when
+      --  Unmarshall_Arguments is called.
+
       Result    : Any.NamedValue;
       --  Exc_List   : CORBA.ExceptionList.Ref;
       --  Ctxt_List  : CORBA.ContextList.Ref;
@@ -71,11 +91,20 @@ package Droopi.Requests is
       --  Exc_List  : in     ExceptionList.Ref;
       --  Ctxt_List : in     ContextList.Ref;
       Req       :    out Request_Access
-      --  Req_Flags : in     Flags
+      --  Req_Flags : in     Flags;
      );
 
    procedure Invoke (Self : Request_Access);
    --  Run Self.
+
+   procedure Arguments
+     (Self : Request_Access;
+      Args : in out Any.NVList.Ref);
+   --  Retrieve the invocation's arguments into Args.
+   --  Call back the protocol layer to do the unmarshalling,
+   --  if necessary. Should be called exactly once from within
+   --  a servant's Invoke primitive. Args MUST be a correctly
+   --  typed NVList for the signature of the method being invoked.
 
    procedure Destroy_Request is new Ada.Unchecked_Deallocation
      (Request, Request_Access);

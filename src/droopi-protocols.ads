@@ -4,6 +4,7 @@
 
 with Ada.Streams;
 
+with Droopi.Any.NVList;
 with Droopi.Buffers;
 with Droopi.Components;
 with Droopi.Filters; use Droopi.Filters;
@@ -127,6 +128,13 @@ package Droopi.Protocols is
 
    procedure Handle_Disconnect (S : access Session) is abstract;
    --  Invoked when the underlying connection is closed.
+
+   procedure Handle_Unmarshall_Arguments
+     (S    : access Session;
+      Args : in out Any.NVList.Ref);
+   --  Invoked when the application needs unmarshalled arguments
+   --  for a request. Must be implemented by protocols that
+   --  allow deferred arguments unmarshalling.
 
    ---------------------
    -- Message demuxer --

@@ -355,6 +355,20 @@ private
 
    package Req_Seq is new Sequences.Unbounded (Requests.Request_Access);
 
+   type GIOP_State is
+     (Expect_Header,
+      --  Waiting for a new message header.
+
+      Expect_Body,
+      --  A message header has been received, waiting for
+      --  the corresponding message body.
+
+      Arguments_Ready
+      --  A Request message has been received, and the arguments
+      --  for the request are ready for unmarshalling at the input
+      --  buffer's current position.
+      );
+
    type GIOP_Session is new Session with record
       Major_Version        : Types.Octet := 1;
       Minor_Version        : Types.Octet := 2;
@@ -371,9 +385,13 @@ private
       --  You can have many independent pending Locate_Requests
       --  on the same session!
       Nbr_Tries            : Natural := 0;
-      Expect_Header        : Boolean := True;
+      State                : GIOP_State;
       Mess_Type_Received   : Msg_Type;
    end record;
+
+   procedure Handle_Unmarshall_Arguments
+     (Ses : access GIOP_Session;
+      Args : in out Any.NVList.Ref);
 
    --  XXX The components of GIOP session should be documented!
 
