@@ -519,6 +519,28 @@ package body Backend.BE_Ada.Nutils is
       return N;
    end Make_Designator;
 
+   ---------------------
+   -- Make_Designator --
+   ---------------------
+
+   function Make_Designator
+     (Identifier : Node_Id;
+      Unit_Name : Node_Id)
+     return Node_Id
+   is
+      N : Node_Id;
+   begin
+      N := New_Node (K_Designator);
+      Set_Defining_Identifier (N, Identifier);
+      Set_Parent_Unit_Name (N, Unit_Name);
+
+      if Present (Unit_Name) then
+         Add_With_Package (Unit_Name);
+      end if;
+
+      return N;
+   end Make_Designator;
+
    --------------------------------------
    -- Make_Enumeration_Type_Definition --
    --------------------------------------
@@ -976,6 +998,26 @@ package body Backend.BE_Ada.Nutils is
       Increment_Last;
       Table (Last).Current_Entity := E;
    end Push_Entity;
+
+   --------------------------
+   -- Qualified_Designator --
+   --------------------------
+
+   function Qualified_Designator (P : Node_Id) return Node_Id is
+      N : Node_Id;
+   begin
+      N := New_Node (K_Designator);
+      Set_Defining_Identifier
+        (N, Make_Defining_Identifier (Name (P)));
+      if Present (Parent_Unit_Name (P)) then
+         Set_Parent_Unit_Name
+           (N, Qualified_Designator (Parent_Unit_Name (P)));
+      else
+         Set_Parent_Unit_Name (N, No_Node);
+      end if;
+
+      return N;
+   end Qualified_Designator;
 
    ---------------------------
    -- Remove_Node_From_List --

@@ -24,6 +24,16 @@ package body Backend.BE_Ada is
 
    procedure Bind_FE_To_BE (F : Node_Id; B : Node_Id);
 
+   procedure Helper_Any_Conversion (T : Node_Id);
+   --  Insert an any conversions functions for a given type (T) node in the
+   --  helper package.
+   procedure Helper_Narrowing_Ref;
+   --  Insert windening object reference helper.
+   procedure Helper_TypeCode (T : Node_Id);
+   --  Insert a TypeCode constant for a given type (T) node in the Helper
+   --  package.
+   procedure Helper_Widening_Ref;
+   --  Insert widening object reference helper.
    procedure Initialize;
 
    Getter : constant Character := 'G';
@@ -125,6 +135,44 @@ package body Backend.BE_Ada is
          Generator.Generate (BE_Node (E));
       end if;
    end Generate;
+
+   ---------------------------
+   -- Helper_Any_Conversion --
+   ---------------------------
+
+   procedure Helper_Any_Conversion (T : Node_Id) is
+      pragma Unreferenced (T);
+   begin
+      null;
+   end Helper_Any_Conversion;
+
+   --------------------------
+   -- Helper_Narrowing_Ref --
+   --------------------------
+
+   procedure Helper_Narrowing_Ref is
+   begin
+      null;
+   end Helper_Narrowing_Ref;
+
+   ---------------------
+   -- Helper_TypeCode --
+   ---------------------
+
+   procedure Helper_TypeCode (T : Node_Id) is
+      pragma Unreferenced (T);
+   begin
+      null;
+   end Helper_TypeCode;
+
+   -------------------------
+   -- Helper_Widening_Ref --
+   -------------------------
+
+   procedure Helper_Widening_Ref is
+   begin
+      null;
+   end Helper_Widening_Ref;
 
    ----------------
    -- Initialize --
@@ -465,15 +513,19 @@ package body Backend.BE_Ada is
       return            List_Id
    is
       pragma Unreferenced (Local_Variables);
-      L     : List_Id;
-      N     : Node_Id;
-      C     : Node_Id;
-      P     : List_Id;
-      S     : List_Id;
-      Count : Natural;
+      Statements    : List_Id;
+      N             : Node_Id;
+      C             : Node_Id;
+      P             : List_Id;
+      S             : List_Id;
+      Count         : Natural;
+      Return_T      : Node_Id;
+      I             : Node_Id;
+      Param         : Node_Id;
 
    begin
-      L := New_List (BEN.K_List_Id);
+      Return_T := Return_Type (Subp_Spec);
+      Statements := New_List (BEN.K_List_Id);
 
       --  Test if the Self_Ref_U is nil, if it's nil raise exception.
 
@@ -494,7 +546,7 @@ package body Backend.BE_Ada is
         (Make_Defining_Identifier (VN (V_Self_Ref)), P);
       Set_Actual_Parameter_Part (C, P);
       N := Make_If_Statement (C, S, No_List);
-      Append_Node_To_List (N, L);
+      Append_Node_To_List (N, Statements);
 
       --  Create argument list.
 
@@ -505,7 +557,7 @@ package body Backend.BE_Ada is
       Append_Node_To_List
         (Make_Defining_Identifier (VN (V_Argument_List)), P);
       Set_Actual_Parameter_Part (C, P);
-      Append_Node_To_List (C, L);
+      Append_Node_To_List (C, Statements);
 
       Count := Length (Parameter_Profile (Subp_Spec));
       if Count > 1 then
@@ -525,16 +577,44 @@ package body Backend.BE_Ada is
          Expression    => C);
       P := Make_List_Id (N);
 
+      Set_Str_To_Name_Buffer ("TC_");
+      if No (Return_T)
+      or else FEN.Kind
+        (FE_Node (Defining_Identifier (Return_T))) = FEN.K_Void
+      then
+         I := RE (RE_Get_Empty_Any_1);
+         Add_Str_To_Name_Buffer ("Void");
+         Param := Make_Designator
+           (Identifier => Make_Defining_Identifier (Name_Find),
+            Unit_Name => RU (RU_CORBA));
+      elsif Is_Base_Type
+        (FE_Node (Defining_Identifier (Return_T)))
+      then
+         Get_Name_String_And_Append
+           (BEN.Name (Defining_Identifier (Return_T)));
+         Param := Make_Designator
+           (Identifier => Make_Defining_Identifier (Name_Find),
+            Unit_Name => RU (RU_CORBA));
+         I := RE (RE_Get_Empty_Any_0);
+      else
+         Get_Name_String_And_Append
+           (BEN.Name (Defining_Identifier (Return_T)));
+         Param := Make_Designator
+           (Identifier => Make_Defining_Identifier (Name_Find),
+            Unit_Name =>
+              Qualified_Designator
+            (Defining_Identifier ((Helper_Package (Current_Entity)))));
+         I := RE (RE_Get_Empty_Any_0);
+      end if;
+      C := Make_Subprogram_Call
+        (Defining_Identifier  => I,
+         Actual_Parameter_Part => Make_List_Id (Param));
+
       N := Make_Component_Association
         (Selector_Name => Make_Defining_Identifier (PN (P_Argument)),
-         Expression    => Make_Literal (New_Integer_Value (0, 0, 10)));
+         Expression    => C);
       Append_Node_To_List (N, P);
 
-
-      C := Make_Subprogram_Call
-        (Defining_Identifier  => RE (RE_Get_Empty_Any_0),
-         Actual_Parameter_Part =>
-           Make_List_Id (Make_Literal (Int0_Val)));
       N := Make_Component_Association
         (Selector_Name => Make_Defining_Identifier (PN (P_Arg_Modes)),
          Expression    => Make_Literal (New_Integer_Value (0, 0, 10)));
@@ -545,9 +625,9 @@ package body Backend.BE_Ada is
       N := Make_Assignment_Statement
         (Variable_Identifier => Make_Defining_Identifier (VN (V_Result_Name)),
          Expression => N);
-      Append_Node_To_List (N, L);
+      Append_Node_To_List (N, Statements);
 
-      return L;
+      return Statements;
    end Marshaller_Body;
 
    -----------------------------
@@ -936,6 +1016,8 @@ package body Backend.BE_Ada is
         (Make_Repository_Declaration (E), Visible_Part (Current_Package));
 
       N := First_Entity (Interface_Body (E));
+      Helper_Narrowing_Ref;
+      Helper_Widening_Ref;
       while Present (N) loop
          Visit (N);
          N := Next_Entity (N);
@@ -1028,12 +1110,12 @@ package body Backend.BE_Ada is
               (Make_Defining_Identifier (PN (P_Returns)),
                Type_Designator,
                Mode_Out);
-            Bind_FE_To_BE
-              (Type_Spec (E),
-               Defining_Identifier (Type_Designator));
             Append_Node_To_List (Ada_Param, Profile);
          end if;
       end if;
+      Bind_FE_To_BE
+        (Type_Spec (E),
+         Defining_Identifier (Type_Designator));
 
       --  Add subprogram to main specification
 
@@ -1122,6 +1204,8 @@ package body Backend.BE_Ada is
            (N, Visible_Part (Current_Package));
          Append_Node_To_List
            (Make_Repository_Declaration (D), Visible_Part (Current_Package));
+         Helper_TypeCode (N);
+         Helper_Any_Conversion (N);
          D := Next_Entity (D);
       end loop;
    end Visit_Type_Declaration;

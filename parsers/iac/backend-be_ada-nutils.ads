@@ -265,6 +265,11 @@ package Backend.BE_Ada.Nutils is
      (Entity : Node_Id)
      return Node_Id;
 
+   function Make_Designator
+     (Identifier : Node_Id;
+      Unit_Name : Node_Id)
+     return Node_Id;
+
    function Make_Enumeration_Type_Definition
      (Enumeration_Literals : List_Id)
      return Node_Id;
@@ -351,5 +356,9 @@ package Backend.BE_Ada.Nutils is
      (Discriminant        : Node_Id;
       Variant_List        : List_Id)
       return                Node_Id;
+
+   function Qualified_Designator
+     (P : Node_Id)
+     return Node_Id;
 
 end Backend.BE_Ada.Nutils;

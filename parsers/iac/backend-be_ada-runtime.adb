@@ -112,4 +112,12 @@ package body Backend.BE_Ada.Runtime is
       return Copy_Designator (RED (Id));
    end RE;
 
+   --------
+   -- RU --
+   --------
+
+   function RU (Id : RU_Id) return Node_Id is
+   begin
+      return Copy_Designator (RUD (Id));
+   end RU;
 end Backend.BE_Ada.Runtime;

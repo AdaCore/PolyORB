@@ -101,5 +101,7 @@ package Backend.BE_Ada.Runtime is
 
    function RE (Id : RE_Id) return Node_Id;
    --  Return a designator for entity Id
+   function RU (Id : RU_Id) return Node_Id;
+   --  Return a node for Unit id.
 
 end Backend.BE_Ada.Runtime;

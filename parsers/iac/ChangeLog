@@ -1,3 +1,19 @@
+2004-07-09  souli  <souli@neraka.enst.fr>
+
+	* backend-be_ada-nutils.adb: Add Make_Designator and
+	Qualified_Designator in order to generate a designator for a given ADA
+	entity. 
+	
+	* backend-be_ada-runtime.adb: Add RU function that returns a
+	designator to an unit entity.
+
+	* backend-be_ada.adb: Add functions to generate windening and
+	narrowing subprogram that results in the mapped in the mapped
+	reference type definined in the interface package
+	(Helper_Narrowing_Ref, Helper_Widening_Ref), to generate TypeCode
+	constant and type any conversion functions for the mapped
+	reference type and for all types defined in the interface package.    
+
 2004-07-06  Laurent Pautet  <pautet@dorine.enst.fr>
 
 	* backend-be_ada-nutils.adb, backend-be_ada-nutils.ads,
