@@ -43,6 +43,7 @@ ADA_SPECS_WITH_BODY = \
 	portableserver.ads
 
 ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
+	corba-local.ads \
 	corba-sequences-bounded.ads \
 	corba-sequences-unbounded.ads \
 	corba-sequences.ads \
