@@ -1,0 +1,13 @@
+valuetype Val {
+ public short ShortMbr;
+ exception ValExcpt {
+ Val ex1;
+ };
+ Val op1() raises (Val::ValExcpt);
+};
+interface Inf {
+ exception ValExcpt {
+ Val ex1;
+ };
+ Val op2() raises (Inf::ValExcpt);
+};
