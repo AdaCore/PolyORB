@@ -20,8 +20,6 @@ package body Client_Common is
       use PolyORB.Utils.Report;
       use Harness;
 
-      How_Many : constant Integer := 1_000;
-
       IOR : CORBA.String;
       MyHarness : Harness.Ref;
       Ok : Boolean := True;
@@ -29,13 +27,16 @@ package body Client_Common is
       T0, T1 : Time;
       Delta1 : Duration;
 
+      How_Many : Integer;
+
    begin
       New_Test ("Harness");
 
       CORBA.ORB.Initialize ("ORB");
 
       if Ada.Command_Line.Argument_Count < 1 then
-         Ada.Text_IO.Put_Line ("usage : client <IOR_string_from_server>");
+         Ada.Text_IO.Put_Line
+           ("usage : client <IOR_string_from_server> [how_many]");
          return;
       end if;
 
@@ -43,6 +44,12 @@ package body Client_Common is
       ORB.String_To_Object (IOR, MyHarness);
 
       Output ("test not nil reference", not Is_Nil (MyHarness));
+
+      if Ada.Command_Line.Argument_Count = 2 then
+         How_Many := Integer'Value (Ada.Command_Line.Argument (2));
+      else
+         How_Many := 1_000;
+      end if;
 
       T0 := Clock;
       for J in 1 .. How_Many loop
