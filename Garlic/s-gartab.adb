@@ -340,22 +340,19 @@ package body System.Garlic.Table is
 
    package body Medium is
 
-      Min_Pos : constant Integer    := Index_Type'Pos (First_Index);
-      Max_Pos :          Integer    := Min_Pos + Initial_Size - 1;
+      type Component_Table_Type is
+         array (Index_Type range <>) of Component_Type;
 
-      Min     : constant Index_Type := Index_Type'Val (Min_Pos);
-      Max     :          Index_Type := Index_Type'Val (Max_Pos);
+      type Component_Table_Access is access Component_Table_Type;
 
-      type Usage_Type is record
-         Name : Name_Id;
-         Free : Boolean;
-      end record;
-      Null_Usage : constant Usage_Type := (Null_Name, True);
+      Table : Component_Table_Access;
 
-      type Usage_Table_Type   is array (Index_Type range <>) of Usage_Type;
-      type Usage_Table_Access is access Usage_Table_Type;
+      Min_Pos  : constant Integer := Integer (First_Index);
+      Max_Pos  :          Integer := Min_Pos + Initial_Size - 1;
+      Last_Pos :          Integer := Min_Pos - 1;
 
-      Usage : Usage_Table_Access;
+      Min     : constant Index_Type := Index_Type (Min_Pos);
+      Max     :          Index_Type := Index_Type (Max_Pos);
 
       function Allocate return Index_Type;
       --  Allocate a new component.
@@ -364,11 +361,16 @@ package body System.Garlic.Table is
         new Ada.Unchecked_Deallocation
         (Component_Table_Type, Component_Table_Access);
 
-      procedure Free is
-        new Ada.Unchecked_Deallocation
-        (Usage_Table_Type, Usage_Table_Access);
+      procedure Validate (N : Index_Type);
 
-      function Valid (N : Index_Type) return Boolean;
+      Mutex   : Mutex_Access;
+      Watcher : Watcher_Access;
+
+      --  This lock is used to block tasks until the table is
+      --  modified. This uses special behaviour of Types.Mutex_Record.
+      --  Basically, Local_Mutex.Leave (Postponed) lets the run-time know
+      --  that the mutex has been postponed and that it should be resumed
+      --  when a Local_Mutex.Leave (Modified) occurs.
 
       --  Most of these subprograms are abort deferred. At the beginning of
       --  them, the code enter a critical section. At the end, it leaves
@@ -383,47 +385,48 @@ package body System.Garlic.Table is
       is
          Old_Max   : Index_Type;
          Old_Table : Component_Table_Access;
-         Old_Usage : Usage_Table_Access;
       begin
-         --  Try to allocate a free slot
-
-         for Index in Min .. Max loop
-            if Usage (Index).Free then
-               Usage (Index).Free := False;
-               return Index;
-            end if;
-         end loop;
 
          --  Allocate new table
 
          Old_Max   := Max;
          Old_Table := Table;
-         Old_Usage := Usage;
 
          Max_Pos   := Max_Pos + Increment_Size;
-         Max       := Index_Type'Val (Max_Pos);
+         Max       := Index_Type (Max_Pos);
          Table     := new Component_Table_Type (Min .. Max);
-         Usage     := new Usage_Table_Type     (Min .. Max);
 
          --  Copy old table in new table
 
          Table (Min .. Old_Max) := Old_Table (Min .. Old_Max);
-         Usage (Min .. Old_Max) := Old_Usage (Min .. Old_Max);
 
          --  Intialize incremented part of new table
 
          Table (Old_Max + 1 .. Max) := (others => Null_Component);
-         Usage (Old_Max + 1 .. Max) := (others => Null_Usage);
 
          --  Release unused memory
 
          Free (Old_Table);
-         Free (Old_Usage);
-
-         Usage (Old_Max + 1).Free := False;
-
          return Old_Max + 1;
       end Allocate;
+
+      ------------
+      -- Differ --
+      ------------
+
+      procedure Differ (Version : in Types.Version_Id) is
+      begin
+         Differ (Watcher, Version);
+      end Differ;
+
+      -----------
+      -- Enter --
+      -----------
+
+      procedure Enter is
+      begin
+         Enter (Mutex);
+      end Enter;
 
       -------------------
       -- Get_Component --
@@ -433,68 +436,13 @@ package body System.Garlic.Table is
       is
          Component : Component_Type;
       begin
-         pragma Abort_Defer;
-
-         pragma Assert (Valid (N));
          Enter_Critical_Section;
+         Validate (N);
          Component := Table (N);
          Leave_Critical_Section;
 
          return Component;
       end Get_Component;
-
-      ---------------
-      -- Get_Index --
-      ---------------
-
-      function Get_Index (S : String) return Index_Type
-      is
-         Index : Index_Type;
-         Name  : Name_Id;
-         Info  : Integer;
-      begin
-         pragma Abort_Defer;
-
-         Enter_Critical_Section;
-         Name  := Get (S);
-         Info  := Get_Info (Name);
-         if Info = 0 then
-
-            --  Info is a null index. Create new component and set its
-            --  index as name info.
-
-            Index := Allocate;
-            Table (Index) := Null_Component;
-            Usage (Index).Name := Name;
-            Set_Info (Name, Integer (Index_Type'Pos (Index)));
-         else
-            Index := Index_Type'Val (Info);
-         end if;
-         Leave_Critical_Section;
-
-         return Index;
-      end Get_Index;
-
-      --------------
-      -- Get_Name --
-      --------------
-
-      function  Get_Name  (N : Index_Type) return String
-      is
-         Name : Name_Id;
-      begin
-         pragma Abort_Defer;
-
-         Enter_Critical_Section;
-         if Max < N or else Usage (N).Free then
-            Name := Null_Name;
-         else
-            Name := Usage (N).Name;
-         end if;
-         Leave_Critical_Section;
-
-         return Get (Name);
-      end Get_Name;
 
       ----------------
       -- Initialize --
@@ -502,49 +450,78 @@ package body System.Garlic.Table is
 
       procedure Initialize is
       begin
+         Create (Mutex);
+         Create (Watcher);
          Table := new Component_Table_Type'(Min .. Max => Null_Component);
-         Usage := new Usage_Table_Type    '(Min .. Max => Null_Usage);
       end Initialize;
+
+      ----------
+      -- Last --
+      ----------
+
+      function Last return Index_Type is
+      begin
+         return Index_Type (Last_Pos);
+      end Last;
+
+      -----------
+      -- Leave --
+      -----------
+
+      procedure Leave (Version : out Version_Id) is
+      begin
+         Lookup (Watcher, Version);
+         Leave (Mutex);
+      end Leave;
+
+      -----------
+      -- Leave --
+      -----------
+
+      procedure Leave is
+      begin
+         Leave (Mutex);
+      end Leave;
 
       -------------------
       -- Set_Component --
       -------------------
 
-      procedure Set_Component (N : Index_Type; C : Component_Type)
-      is
+      procedure Set_Component
+        (N : in Index_Type;
+         C : in Component_Type) is
       begin
-         pragma Abort_Defer;
-
-         pragma Assert (Valid (N));
          Enter_Critical_Section;
+         Validate (N);
          Table (N) := C;
+         Update (Watcher);
          Leave_Critical_Section;
       end Set_Component;
 
-      --------------
-      -- Set_Name --
-      --------------
+      ------------
+      -- Update --
+      ------------
 
-      procedure Set_Name (N : Index_Type; S : String)
-      is
+      procedure Update is
       begin
-         pragma Abort_Defer;
+         Update (Watcher);
+      end Update;
 
-         pragma Assert (Valid (N));
-         Enter_Critical_Section;
-         Usage (N).Name := Get (S);
-         Set_Info (Usage (N).Name, Integer (Index_Type'Pos (N)));
-         Leave_Critical_Section;
-      end Set_Name;
+      --------------
+      -- Validate --
+      --------------
 
-      -----------
-      -- Valid --
-      -----------
-
-      function Valid (N : Index_Type) return Boolean is
+      procedure Validate (N : Index_Type) is
+         Dummy : Index_Type;
       begin
-         return Min <= N and then N <= Max;
-      end Valid;
+         pragma Assert (Min <= N);
+         while N > Max loop
+            Dummy := Allocate;
+         end loop;
+         if Last_Pos < Integer (N) then
+            Last_Pos := Integer (N);
+         end if;
+      end Validate;
 
    end Medium;
 
