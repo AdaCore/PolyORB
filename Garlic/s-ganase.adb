@@ -34,11 +34,12 @@
 ------------------------------------------------------------------------------
 
 with System.Garlic.Debug;   use System.Garlic.Debug;
+with System.Garlic.Heart;   use System.Garlic.Heart;
 with System.Garlic.Streams; use System.Garlic.Streams;
 
 package body System.Garlic.Name_Server is
 
-   use System.Garlic.Heart, System.Garlic.Name_Table;
+   use System.Garlic.Name_Table;
    use System.Garlic.Physical_Location, System.Garlic.Types;
    use System.Garlic.Protocols;
 

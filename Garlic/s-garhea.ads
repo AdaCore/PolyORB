@@ -33,13 +33,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Exceptions;
 with Ada.Streams;
 with System.Garlic.Name_Table;
 with System.Garlic.Physical_Location;
 with System.Garlic.Streams;
 with System.Garlic.Types;
-with System.Garlic.Utils;
 
 --  These ones should not be needed, but the binder needs them to get a
 --  correct dependencies order ???

@@ -33,7 +33,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Streams;
 with System.Garlic.Utils;
 with System.Storage_Elements;
 with System.Storage_Pools;

@@ -36,7 +36,6 @@
 with Ada.Streams;
 with Ada.Unchecked_Deallocation;
 with System.Garlic.Heart;
-with System.Garlic.Name_Table;
 with System.Garlic.Streams;
 with System.Garlic.Types;
 

@@ -284,6 +284,11 @@ package body System.Garlic.Heart is
       end if;
 
       return Partition;
+   exception
+      when E : others =>
+         pragma Warnings (Off, E);
+         pragma Debug (D (D_Debug, Exception_Information (E)));
+         raise;
    end Get_My_Partition_ID;
 
    -------------------------------------
@@ -403,6 +408,7 @@ package body System.Garlic.Heart is
 
       exception
          when E : others =>
+            pragma Warnings (Off, E);
             pragma Debug (D (D_Garlic, "Handle_Internal: fatal exception"));
             pragma Debug (D (D_Debug, Exception_Information (E)));
             raise Communication_Error;

@@ -35,6 +35,7 @@
 
 with Ada.Dynamic_Priorities;
 with Ada.Exceptions;
+pragma Warnings (Off, Exceptions);
 with Ada.Unchecked_Deallocation;
 with System.Garlic;              use System.Garlic;
 with System.Garlic.Debug;        use System.Garlic.Debug;
@@ -342,6 +343,7 @@ package body System.RPC.Pool is
 
    exception
       when E : others =>
+         pragma Warnings (Off, E);
          pragma Debug (D (D_Debug, "Error in anonymous task " &
                           "(exception " & Exception_Name (E) & ")"));
          null;

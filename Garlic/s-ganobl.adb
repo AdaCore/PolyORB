@@ -34,6 +34,7 @@
 ------------------------------------------------------------------------------
 
 with Ada.Exceptions;                      use Ada.Exceptions;
+pragma Warnings (Off, Ada.Exceptions);
 with Ada.Interrupts.Names;
 with GNAT.OS_Lib;                         use GNAT.OS_Lib;
 with System.Garlic.Constants;             use System.Garlic.Constants;
@@ -116,14 +117,14 @@ package body System.Garlic.Non_Blocking is
          Flags  : in int;
          Result : out int);
 
-      Recv_Mask       : Desc_Set := (others => False);
-      Send_Mask       : Desc_Set := (others => False);
-      Ready_Recv_Mask : Desc_Set := (others => False);
-      Ready_Send_Mask : Desc_Set := (others => False);
-      Rfds            : Fd_Set_Access := new Fd_Set;
-      Sfds            : Fd_Set_Access := new Fd_Set;
+      Recv_Mask       : Desc_Set       := (others => False);
+      Send_Mask       : Desc_Set       := (others => False);
+      Ready_Recv_Mask : Desc_Set       := (others => False);
+      Ready_Send_Mask : Desc_Set       := (others => False);
+      Rfds            : Fd_Set_Access  := new Fd_Set;
+      Sfds            : Fd_Set_Access  := new Fd_Set;
       Timeout         : Timeval_Access := new Timeval;
-      Max_FD          : int := -1;
+      Max_FD          : int            := -1;
 
    end Asynchronous_Type;
 
@@ -651,9 +652,12 @@ package body System.Garlic.Non_Blocking is
       end loop;
       pragma Debug (D (D_Debug, "Selection terminated"));
       Soft_Links.Sub_Non_Terminating_Task;
-
-   exception when others =>
-      Soft_Links.Sub_Non_Terminating_Task;
+   exception
+      when E : others =>
+         pragma Warnings (Off, E);
+         pragma Debug
+           (D (D_Debug, Exception_Name (E) & " received in Selection"));
+         Soft_Links.Sub_Non_Terminating_Task;
    end Selection;
 
    -----------------------------------
@@ -759,6 +763,7 @@ package body System.Garlic.Non_Blocking is
 
    exception
       when E : others =>
+         pragma Warnings (Off, E);
          pragma Debug
            (D (D_Debug, Exception_Name (E) & " received in Sigio_Simulation"));
          Soft_Links.Sub_Non_Terminating_Task;

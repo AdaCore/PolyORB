@@ -34,7 +34,6 @@
 ------------------------------------------------------------------------------
 
 with Ada.Unchecked_Deallocation;
-with System.Garlic.Heart;
 with System.Garlic.Name_Table;
 with System.Garlic.Physical_Location;
 with System.Garlic.Protocols;

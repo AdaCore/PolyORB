@@ -38,7 +38,6 @@ with Interfaces.C;
 package body System.Garlic.Storage_Handling is
 
    package IC  renames Interfaces.C;
-   package AS  renames Ada.Streams;
    package SSE renames System.Storage_Elements;
    package SSP renames System.Storage_Pools;
 
