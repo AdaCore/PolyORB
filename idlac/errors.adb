@@ -51,6 +51,9 @@ package body Errors is
    function Full_Name (Loc : Location) return String;
    --  Return the full file name (i.e., a usable one)
 
+   function Resolve_Tabs (S : String) return String;
+   --  Return a string where tabs have been properly expanded
+
    --------------------------
    --  Location_To_String  --
    --------------------------
@@ -254,7 +257,8 @@ package body Errors is
             for I in 1 .. Loc.Line loop
                Get_Line (File, Line, Last);
             end loop;
-            Put_Line (Current_Error, LN & "   " & Line (1 .. Last));
+            Put_Line (Current_Error,
+                      LN & "   " & Resolve_Tabs (Line (1 .. Last)));
             for I in 1 .. LNN + 3 + Loc.Col loop
                Put (Current_Error, " ");
             end loop;
@@ -272,5 +276,27 @@ package body Errors is
             Location_To_String (Loc, Short => True) & ' ' & Message);
       end if;
    end Pinpoint_Error;
+
+   ------------------
+   -- Resolve_Tabs --
+   ------------------
+
+   function Resolve_Tabs (S : String) return String is
+      R : String (1 .. S'Length * 8);
+      L : Natural := 0;
+   begin
+      for I in S'Range loop
+         if S (I) = Ascii.HT then
+            for J in 1 .. 8 - (L mod 8) loop
+               L := L + 1;
+               R (L) := ' ';
+            end loop;
+         else
+            L := L + 1;
+            R (L) := S (I);
+         end if;
+      end loop;
+      return R (1 .. L);
+   end Resolve_Tabs;
 
 end Errors;
