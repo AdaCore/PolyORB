@@ -57,10 +57,11 @@ package body PolyORB.Tasking.Condition_Variables is
 
    procedure Create (C : out Condition_Access; Name : String := "") is
    begin
-      pragma Debug (O ("Create"));
+      pragma Debug (O ("Create: enter"));
       pragma Debug (Inc);
       pragma Assert (My_Factory /= null);
       C := Create (My_Factory, Name);
+      pragma Debug (O ("Create: leave"));
    end Create;
 
    -------------
@@ -69,10 +70,11 @@ package body PolyORB.Tasking.Condition_Variables is
 
    procedure Destroy (C : in out Condition_Access) is
    begin
-      pragma Debug (O ("Destroy"));
+      pragma Debug (O ("Destroy: enter"));
       pragma Debug (Dec);
       pragma Assert (My_Factory /= null);
       Destroy (My_Factory, C);
+      pragma Debug (O ("Destroy: leave"));
    end Destroy;
 
    --------------------------------

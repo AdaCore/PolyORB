@@ -32,7 +32,7 @@
 
 --  Inter-process synchronisation objects.
 
---  $Id: //droopi/main/src/polyorb-tasking-rw_locks.adb#3 $
+--  $Id: //droopi/main/src/polyorb-tasking-rw_locks.adb#4 $
 
 with Ada.Unchecked_Deallocation;
 
@@ -69,8 +69,8 @@ package body PolyORB.Tasking.Rw_Locks is
       pragma Assert (All_Rw_Locks /= null);
       Enter (All_Rw_Locks);
       Rw_Lock_Counter := Rw_Lock_Counter + 1;
-      pragma Debug (O ("Rw_Lock: init/Serial ="
-                       & Rw_Lock_Counter'Img));
+      pragma Debug (O ("Create, Serial ="
+                       & Integer'Image (Rw_Lock_Counter)));
       Result.Serial := Rw_Lock_Counter;
       Leave (All_Rw_Locks);
       Create (Result.Guard_Values);
@@ -91,9 +91,10 @@ package body PolyORB.Tasking.Rw_Locks is
    procedure Destroy (L : in out Rw_Lock_Access) is
    begin
       pragma Debug
-        (O ("Rw_Lock: final/Serial =" & L.Serial'Img));
+        (O ("Destroy, Serial =" & Integer'Image (L.Serial)));
       Destroy (L.Guard_Values);
       Free (L);
+      pragma Debug (O ("Desroy: end"));
    end Destroy;
 
    ------------
@@ -102,7 +103,7 @@ package body PolyORB.Tasking.Rw_Locks is
 
    procedure Lock_W (L : access Rw_Lock_Type) is
    begin
-      pragma Debug (O ("Lock_W Serial =" & L.Serial'Img));
+      pragma Debug (O ("Lock_W Serial =" & Integer'Image (L.Serial)));
 
       Enter (All_Rw_Locks);
 
@@ -125,8 +126,7 @@ package body PolyORB.Tasking.Rw_Locks is
 
    procedure Lock_R (L : access Rw_Lock_Type) is
    begin
-
-      pragma Debug (O ("Lock_R"));
+      pragma Debug (O ("Lock_R Serial =" & Integer'Image (L.Serial)));
 
       Enter (All_Rw_Locks);
 
@@ -150,14 +150,17 @@ package body PolyORB.Tasking.Rw_Locks is
 
    procedure Unlock_W (L : access Rw_Lock_Type) is
    begin
-      pragma Debug (O ("Unlock_W"));
+      pragma Debug (O ("Unlock_W Serial =" & Integer'Image (L.Serial)));
 
       Enter (All_Rw_Locks);
+
       if L.Count /= -1 then
+         pragma Debug (O ("Lock has not been previously taken !"));
          raise Program_Error;
       else
          L.Count := 0;
       end if;
+
       Broadcast (L.Guard_Values);
       Leave (All_Rw_Locks);
    end Unlock_W;
@@ -168,7 +171,7 @@ package body PolyORB.Tasking.Rw_Locks is
 
    procedure Unlock_R (L : access Rw_Lock_Type) is
    begin
-      pragma Debug (O ("Unlock_R"));
+      pragma Debug (O ("Unlock_R Serial =" & Integer'Image (L.Serial)));
 
       Enter (All_Rw_Locks);
       if L.Count <= 0 then
