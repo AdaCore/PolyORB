@@ -1,4 +1,5 @@
 with Idl_Fe.Types; use Idl_Fe.Types;
+with System;
 
 package Utils is
 
@@ -11,6 +12,9 @@ package Utils is
 
    function Img (B : Boolean) return String;
    --  Return "True" or "False", cased that way.
+
+   function Img (A : System.Address) return String;
+   --  Return the image of an Address.
 
    pragma Inline (Img);
    --  All versions of Img are covered by this pragma

@@ -786,7 +786,12 @@ package body Ada_Be.Expansion is
                   Set_Parent (D_Node, New_Node);
                   Insert_After
                     (Members (Parent_Scope (D_Node)), New_Node, Position);
-                  --  The new member will be processed again later.
+
+                  Expand_Member (New_Node);
+                  --  The new member would not be processed by
+                  --  Expand_Struct, because the iterator in that
+                  --  procedure is already pointing to the next one.
+
                   Position := New_Node;
                end;
             else
@@ -842,7 +847,15 @@ package body Ada_Be.Expansion is
          Set_Value (Array_Ref_Node, Array_Node);
          Set_S_Type (Array_Ref_Node, Array_Node);
 
-         Replace_Node (Element_Type_Node, Array_Ref_Node);
+         case Kind (Parent_Node) is
+            when K_Member =>
+               Set_M_Type (Parent_Node, Array_Ref_Node);
+            when K_Case =>
+               Set_Case_Type (Parent_Node, Array_Ref_Node);
+            when others =>
+               pragma Assert (False);
+               null;
+         end case;
 
          Set_T_Type (Array_Type_Node, Element_Type_Node);
          Set_Declarators
@@ -1005,6 +1018,9 @@ package body Ada_Be.Expansion is
    is
       Suffix : Integer := 1;
    begin
+      pragma Debug (O ("Add_Identifier_With_Renaming: trying to add "
+                       & Identifier));
+
       if not Add_Identifier (Node, Identifier) then
          while not Add_Identifier
            (Node, Identifier & "_" & Img (Suffix)) loop

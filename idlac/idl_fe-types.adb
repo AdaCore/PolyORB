@@ -8,6 +8,8 @@ with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree.Synthetic;
 with Idl_Fe.Debug;
 pragma Elaborate (Idl_Fe.Debug);
 
+with Utils; use Utils;
+
 package body Idl_Fe.Types is
 
    -----------
@@ -107,6 +109,8 @@ package body Idl_Fe.Types is
      (It : in out Node_Iterator;
       Node : out Node_Id) is
    begin
+      pragma Debug (O ("Getting head of list at "
+                       & Img (It.all'Address)));
       Node := It.Car;
       It := Node_Iterator (It.Cdr);
    end Get_Next_Node;
@@ -152,32 +156,6 @@ package body Idl_Fe.Types is
          return List;
       end if;
    end Append_Node;
-
-   -------------------
-   --  Remove_Node  --
-   -------------------
-
-   function Remove_Node
-     (List : Node_List;
-      Node : Node_Id)
-     return Node_List is
-   begin
-      if List /= Nil_List then
-         if List.Car = Node then
-            declare
-               --  XXX  Old_List : Node_List := List;
-               Old_Cdr : constant Node_List
-                 := List.Cdr;
-            begin
-               --  XXX Free (Old_List);
-               return Old_Cdr;
-            end;
-         else
-            List.Cdr := Remove_Node (List.Cdr, Node);
-         end if;
-      end if;
-      return List;
-   end Remove_Node;
 
    procedure Insert_Before
      (List : in out Node_List;
@@ -244,29 +222,39 @@ package body Idl_Fe.Types is
       new Ada.Unchecked_Deallocation
      (Node_List_Cell, Node_List);
 
+   -------------------
+   --  Remove_Node  --
+   -------------------
+
+   function Remove_Node
+     (List : Node_List;
+      Node : Node_Id)
+     return Node_List is
+   begin
+      if List /= Nil_List then
+         if List.Car = Node then
+            declare
+               Old_List : Node_List := List;
+               Old_Cdr : constant Node_List
+                 := List.Cdr;
+            begin
+               pragma Debug (O ("Deallocating list cell at "
+                                & Img (Old_List.all'Address)));
+               Unchecked_Deallocation (Old_List);
+               return Old_Cdr;
+            end;
+         else
+            List.Cdr := Remove_Node (List.Cdr, Node);
+         end if;
+      end if;
+      return List;
+   end Remove_Node;
+
    procedure Remove_Node
      (List : in out Node_List;
       Node : Node_Id) is
-      Old_List : Node_List;
    begin
-      if List = null then
-         return;
-      end if;
-      if List.Car = Node then
-         Old_List := List;
-         List := List.Cdr;
-         Unchecked_Deallocation (Old_List);
-      else
-         while List.Cdr /= null loop
-            if List.Cdr.Car = Node then
-               Old_List := List.Cdr;
-               List.Cdr := List.Cdr.Cdr;
-               Unchecked_Deallocation (Old_List);
-               return;
-            end if;
-            List := List.Cdr;
-         end loop;
-      end if;
+      List := Remove_Node (List, Node);
    end Remove_Node;
 
    ------------

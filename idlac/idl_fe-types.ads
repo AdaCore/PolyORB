@@ -168,11 +168,14 @@ package Idl_Fe.Types is
    function Append_Node (List : in Node_List;
                          Node : Node_Id) return Node_List;
 
-   --  Remove the first occurrence of Node from List
+   procedure Remove_Node
+     (List : in out Node_List;
+      Node : Node_Id);
    function Remove_Node
      (List : in Node_List;
       Node : Node_Id)
      return Node_List;
+   --  Remove the first occurrence of Node from List
 
    --  Insert Node into List immediately before the first
    --  occurrence of Before.
@@ -190,11 +193,6 @@ package Idl_Fe.Types is
 
    --  Look whether node is in list or not
    function Is_In_List (List : Node_List; Node : Node_Id) return Boolean;
-
-   --  Removes a node from the list. Actually only removes the first
-   --  occurence of the node or does nothing if the node was not in
-   --  the list.
-   procedure Remove_Node (List : in out Node_List; Node : Node_Id);
 
    --  Frees all the list
    procedure Free (List : in out Node_List);
