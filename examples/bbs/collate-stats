@@ -14,11 +14,24 @@ while getopts fa opt; do
   esac
 done
 
+get_threads() {
+  t=4
+  if [ -f "$d/$1.conf" ]; then
+     tconf=`grep ^polyorb.orb.thread_pool.threads "$d/evolutedp.conf"`
+     if [ "$tconf" != "" ]; then
+       t=`echo $tconf | sed "s/^.*=//"`
+     fi
+  fi
+  echo "$1_thr=$t"
+}
+
 for d in $output/*; do
   if [ ! -d $d ]; then continue; fi
   if $force || [ ! -f $d/99RESULTS ]; then
     cp $d/00PARAMETERS $d/99RESULTS
     . $d/00PARAMETERS
+    
+    (
     for f in $d/cli*; do
       sed -n '/.*Elapsed *: \([0-9]*\.[0-9]*\)$/s//\1/p' < $f
     done | awk '{ sum += $1; sqsum += $1 * $1 }
@@ -27,7 +40,9 @@ for d in $output/*; do
                          avg = sum / NR;
                          printf "moy=%.12g\nect=%.12g\n",
                            (sum / NR), sqrt(sqsum/NR - (avg * avg))
-                       } else { print "status=FAILED"; } }' >> $d/99RESULTS
+                       } else { print "status=FAILED"; } }'
+    get_threads serverp
+    get_threads evolutedp ) >> $d/99RESULTS
   fi
   if $all || grep status=OK $d/99RESULTS > /dev/null; then
     cat $d/99RESULTS
