@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.1 $
+--                            $Revision: 1.2 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -49,6 +49,8 @@
 --  a line with "specific_name"
 
 package Broca.Debug is
+
+   pragma Elaborate_Body;
 
    function Is_Active (Flag : in String) return Natural;
    --  returns 0 when not active
