@@ -1,3 +1,16 @@
+1999-07-15  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* s-rpc.ads, s-gartyp.ads: Cosmetic fixes.
+
+	* s-gargro.adb: Defensive test. Check that broadcast is not call
+	when N_Boot_Mirrors = 1.
+
+	* s-garpar.adb: When a client partition (without RCI and RACW in
+	it) is dead, recycle its partition id.
+
+	* s-garuni.adb: Do not broadcast partition unit table on
+	invalidation when there is only one boot mirror.
+
 1999-07-15  Laurent Pautet  <pautet@dorine.enst.fr>
 
         * s-gartyp.ads: Partition_ID'Last is now Natural'Last.

@@ -508,7 +508,9 @@ package body System.Garlic.Units is
       Invalidate_Unit_List (Partition);
       Units.Leave;
 
-      if Is_Boot_Mirror then
+      if Is_Boot_Mirror
+        and then N_Boot_Mirrors > 1
+      then
          Request_Type'Output (Query'Access, Copy_Units);
          Write_Units (Query'Access);
          Broadcast (Unit_Name_Service, Query'Access);

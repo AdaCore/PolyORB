@@ -74,6 +74,7 @@ package body System.Garlic.Group is
       Params : access Streams.Params_Stream_Type)
    is
    begin
+      pragma Assert (N_Boot_Mirrors > 1);
       Enter (Group_Mutex);
       pragma Debug (D ("Broadcast facility is locked"));
       Insert (Params.all);
