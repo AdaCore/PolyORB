@@ -42,6 +42,7 @@ with PolyORB.Components;
 with PolyORB.Objects; use PolyORB.Objects;
 with PolyORB.Requests;
 with PolyORB.Smart_Pointers;
+with PolyORB.Types;
 
 package PolyORB.Obj_Adapters is
 
@@ -117,6 +118,25 @@ package PolyORB.Obj_Adapters is
    --  Find_Servant won't be used by the client anymore. This
    --  may cause the servant to be destroyed if so is OA's
    --  policy.
+
+   ----------------------------------
+   -- Export of object identifiers --
+   ----------------------------------
+
+   function Oid_To_Rel_URI
+     (OA : access Obj_Adapter;
+      Id : Object_Id)
+     return Types.String;
+
+   function Rel_URI_To_Oid
+     (OA  : access Obj_Adapter;
+      URI : Types.String)
+     return Object_Id;
+
+   --  Convert an object id from/to its representation as
+   --  a relative URI. A default implementation of these
+   --  functions is provided; actual object adapters may
+   --  overload them if desired.
 
 private
 
