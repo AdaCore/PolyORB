@@ -65,6 +65,7 @@ else
   echo "WARNING: unable to locate VERSION.INFO in directory Utils"
 fi
 if [ -f Utils/mangle.sh ]; then
+  chmod 755 Utils/mangle.sh
   tm=/tmp/man$$
   sed -ne '1,/BEGIN\]/p' < Dist/glade_version.txt > $tm.1
   sed -ne '/END\]/,$p' < Dist/glade_version.txt > $tm.3
