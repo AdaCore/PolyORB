@@ -50,7 +50,7 @@ package body Echo.Skeleton is
             Result := Echo.Impl.EchoString(Self, Mesg) ;
 
             -- computing the size of the replied message
-            Mesg_Size := Giop_S.Reply_Header_Size (Orls);
+            Mesg_Size := Giop_S.Reply_Header_Size;
             Mesg_Size := Align_Size (Result, Mesg_Size) ;
 
             -- Initialisation of the reply
@@ -95,7 +95,7 @@ package body Echo.Skeleton is
                    & Integer'Image(Integer(Result))) ;
 
             -- computing the size of the replied message
-            Mesg_Size := Giop_S.Reply_Header_Size (Orls);
+            Mesg_Size := Giop_S.Reply_Header_Size;
             Output(Echo_Skeleton,"reply header size : "
                    & Integer'Image(Integer(Mesg_Size))) ;
 

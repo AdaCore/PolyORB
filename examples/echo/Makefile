@@ -21,7 +21,6 @@ COMMAND_LINE = -I$(ADABROKER_PATH) \
 
 main: .
 	make -C ../../InterfaceORB main
-	gnatmake -gnatf -gnata -m -i toto.adb $(COMMAND_LINE)
 	gnatmake -gnatf -gnata -m -i client $(COMMAND_LINE)
 	gnatmake -gnatf -gnata -m -i server $(COMMAND_LINE)
 
