@@ -4,13 +4,24 @@
 
 --  $Id$
 
+with Droopi.Log;
+pragma Elaborate_All (Droopi.Log);
+
 package body Droopi.ORB.Task_Info is
+
+   use Droopi.Log;
+
+   package L is new Droopi.Log.Facility_Log
+     ("droopi.orb.task_info");
+   procedure O (Message : in String; Level : Log_Level := Debug)
+     renames L.Output;
 
    procedure Set_Status_Blocked
      (TI       : in out Task_Info;
       Selector : Asynch_Ev.Asynch_Ev_Monitor_Access) is
    begin
       pragma Assert (TI.Status = Running);
+
       TI.Status   := Blocked;
       TI.Selector := Selector;
    end Set_Status_Blocked;

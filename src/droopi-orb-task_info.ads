@@ -55,7 +55,7 @@ private package Droopi.ORB.Task_Info is
 private
 
    type Task_Info (Kind : Task_Kind) is record
-      Status : Task_Status;
+      Status : Task_Status := Running;
 
       Selector : Asynch_Ev.Asynch_Ev_Monitor_Access;
       --  Meaningful only when Status = Blocked
