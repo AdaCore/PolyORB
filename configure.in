@@ -213,7 +213,7 @@ AC_OUTPUT([Makefile
 	   compilers/ciao/Makefile compilers/idlac/Makefile
 	   compilers/idlac/testsuite/Makefile
 	   compilers/idlac/platform.ads
-	   src/Makefile src/corba/Makefile 
+	   src/Makefile src/corba/Makefile src/giop/Makefile 
            src/moma/Makefile src/soap/Makefile src/srp/Makefile
 	   idls/Makefile idls/cos/Makefile idls/cos/event/Makefile
 	   idls/cos/naming/Makefile idls/cos/time/Makefile

@@ -10,7 +10,7 @@ COS=cos
 endif
 
 if ENABLE_GIOP
-GIOP_LIB=
+GIOP_LIB="../src/giop/libpolyorb-giop.la"
 endif
 
 if ENABLE_MOMA
@@ -26,7 +26,7 @@ if ENABLE_SOAP
 SOAP_LIB="../src/soap/libpolyorb-soap.la"
 endif
 
-if ENABLE_SOAP
+if ENABLE_SRP
 SRP_LIB="../src/srp/libpolyorb-srp.la"
 endif
 
@@ -53,10 +53,12 @@ $(TESTS): force
 	-I$(srcdir) \
 	-I$(srcdir)/../src \
 	-I$(srcdir)/../src/corba \
+	-I$(srcdir)/../src/giop \
 	-I$(srcdir)/../src/soap \
 	-I$(srcdir)/../src/srp \
 	-I../src \
 	-I../src/corba \
+	-I../src/giop \
 	-I../src/soap \
 	-I../src/srp \
 	$(XMLADA_INCLUDE) \

@@ -53,7 +53,6 @@ ADAFLAGS = -I. -I$(srcdir) -I.. -I$(srcdir)/.. \
 # P.Representations.CDR.
 
 ADACOMPILER = ../../support/adacompiler
-CC = $(CC_FOR_TARGET)
 
 GNATPRFH = ../../compilers/gnatprfh/gnatprfh
 GEN_HTTP_BODY = $(srcdir)/gen_http_body

@@ -3,7 +3,7 @@ CORBA_DIR = corba
 endif
 
 if ENABLE_GIOP
-GIOP_DIR = 
+GIOP_DIR = giop
 endif
 
 if ENABLE_MOMA

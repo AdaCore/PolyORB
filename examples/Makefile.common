@@ -7,6 +7,7 @@ GNATMAKE_FLAGS = \
 	-I$(srcdir)/$(EXAMPLES_ROOT)/generic \
 	-I$(srcdir)/$(EXAMPLES_ROOT)/../src \
 	-I$(srcdir)/$(EXAMPLES_ROOT)/../src/corba \
+	-I$(srcdir)/$(EXAMPLES_ROOT)/../src/giop \
 	-I$(srcdir)/$(EXAMPLES_ROOT)/../src/moma \
 	-I$(srcdir)/$(EXAMPLES_ROOT)/../src/soap \
 	-I$(srcdir)/$(EXAMPLES_ROOT)/../src/srp \
@@ -15,6 +16,7 @@ GNATMAKE_FLAGS = \
 	-I$(EXAMPLES_ROOT)/generic \
 	-I$(EXAMPLES_ROOT)/../src \
 	-I$(EXAMPLES_ROOT)/../src/corba \
+	-I$(EXAMPLES_ROOT)/../src/giop \
 	-I$(EXAMPLES_ROOT)/../src/moma \
 	-I$(EXAMPLES_ROOT)/../src/soap \
 	-I$(EXAMPLES_ROOT)/../src/srp \

@@ -7,6 +7,10 @@ if ENABLE_CORBA
 CORBA_LIB="$(COS_ROOT)/../src/corba/libpolyorb-corba.la"
 endif
 
+if ENABLE_GIOP
+GIOP_LIB="$(COS_ROOT)/../src/giop/libpolyorb-giop.la"
+endif
+
 if ENABLE_MOMA
 MOMA_LIB="$(COS_ROOT)/../src/moma/libpolyorb-moma.la"
 endif
@@ -18,6 +22,7 @@ endif
 POLYORB_LIBS = \
 $(COS_ROOT)/../src/libpolyorb.la \
 $(CORBA_LIB) \
+$(GIOP_LIB) \
 $(MOMA_LIB) \
 $(SOAP_LIB)
 
@@ -25,10 +30,12 @@ GNATMAKE_FLAGS = \
 	-I$(srcdir) \
 	-I$(srcdir)/$(COS_ROOT)/../src \
 	-I$(srcdir)/$(COS_ROOT)/../src/corba \
+	-I$(srcdir)/$(COS_ROOT)/../src/giop \
 	-I$(srcdir)/$(COS_ROOT)/../src/soap \
 	-I$(srcdir)/$(COS_ROOT)/../src/srp \
 	-I$(COS_ROOT)/../src \
 	-I$(COS_ROOT)/../src/corba \
+	-I$(COS_ROOT)/../src/giop \
 	-I$(COS_ROOT)/../src/soap \
 	-I$(COS_ROOT)/../src/srp \
 	$(XMLADA_INCLUDE) \
