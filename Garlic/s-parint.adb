@@ -34,7 +34,6 @@
 ------------------------------------------------------------------------------
 
 with Ada.Unchecked_Deallocation;
-with GNAT.Htable;
 with System.Garlic.Debug; use System.Garlic.Debug;
 with System.Garlic.Utils; use System.Garlic.Utils;
 with System.Garlic.Heart; use System.Garlic.Heart;
@@ -85,6 +84,8 @@ package body System.Partition_Interface is
    type Unit_Status is (Unknown, Queried, Known);
    type Requests_Type is array (Partition_ID) of Boolean;
 
+   type Unit_Info;
+   type Unit_Info_Access is access Unit_Info;
    type Unit_Info is record
       Name      : Unit_Name_Access;
       Partition : Partition_ID;
@@ -94,24 +95,10 @@ package body System.Partition_Interface is
       Status    : Unit_Status := Unknown;
       Pending   : Boolean := False;
       Requests  : Requests_Type := (others => False);
+      Next      : Unit_Info_Access;
    end record;
-   type Unit_Info_Access is access Unit_Info;
 
-   No_Unit_Info : constant Unit_Info_Access := null;
-
-   type Hash_Index is range 1 .. 101;
-   function Hash_Function (N : Unit_Name_Access) return Hash_Index;
-   function Equal (N1, N2 : Unit_Name_Access) return Boolean;
-   package Unit_Htable is
-     new GNAT.Htable.Simple_Htable
-     (Header_Num => Hash_Index,
-      Element    => Unit_Info_Access,
-      No_Element => No_Unit_Info,
-      Key        => Unit_Name_Access,
-      Hash       => Hash_Function,
-      Equal      => Equal);
-   use Unit_Htable;
-   --  This Htable is used to store and retrieve quickly unit information.
+   Unit_Info_Root : Unit_Info_Access := null;
 
    Units_Keeper : Semaphore_Access := new Semaphore_Type;
 
@@ -260,27 +247,21 @@ package body System.Partition_Interface is
       return Cache;
    end Allocate;
 
-   -----------
-   -- Equal --
-   -----------
-
-   function Equal (N1, N2 : Unit_Name_Access) return Boolean is
-   begin
-      return N1.all = N2.all;
-   end Equal;
-
    ----------
    -- Find --
    ----------
 
    function Find (Name : Unit_Name_Access) return Unit_Info_Access is
-      Unit  : Unit_Info_Access;
+      Unit  : Unit_Info_Access := Unit_Info_Root;
    begin
-      Unit := Get (Name);
-      if Unit = No_Unit_Info then
+      while Unit /= null and then Unit.Name.all /= Name.all loop
+         Unit := Unit.Next;
+      end loop;
+      if Unit = null then
          Unit := new Unit_Info;
          Unit.Name := new Unit_Name'(Name.all);
-         Set (Unit.Name, Unit);
+         Unit.Next      := Unit_Info_Root;
+         Unit_Info_Root := Unit;
       end if;
       return Unit;
    end Find;
@@ -419,25 +400,13 @@ package body System.Partition_Interface is
 
    end Get_Unit_Info;
 
-   -------------------
-   -- Hash_Function --
-   -------------------
-
-   function Hash_Function (N : Unit_Name_Access) return Hash_Index is
-      function Hash_Unit_Name is
-         new GNAT.Htable.Hash (Hash_Index);
-   begin
-      return Hash_Unit_Name (N.all);
-   end Hash_Function;
-
    ----------------------------
    -- Partition_RPC_Receiver --
    ----------------------------
 
    procedure Partition_RPC_Receiver
      (Params : access Params_Stream_Type;
-      Result : access Params_Stream_Type)
-   is
+      Result : access Params_Stream_Type) is
       Receiver : RPC_Receiver;
    begin
       RPC_Receiver'Read (Params, Receiver);

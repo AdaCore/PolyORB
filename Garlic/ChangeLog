@@ -1,3 +1,7 @@
+Tue Jan 14 18:34:50 1997  Laurent Pautet  <pautet@quasimodo.enst.fr>
+
+	* s-parint.adb: Get rid of Htable (overkilling).
+
 Tue Jan 14 10:06:14 1997  Laurent Pautet  <pautet@inf.enst.fr>
 
 	* s-garhea.adb: Barrier -> Barrier_Type in Garlic.Utils.
