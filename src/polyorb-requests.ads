@@ -40,7 +40,6 @@ with PolyORB.Any.ExceptionList;
 with PolyORB.Any.NVList;
 with PolyORB.Components;
 with PolyORB.References;
---  with PolyORB.Storage_Pools;
 with PolyORB.Task_Info;
 with PolyORB.Types;
 with PolyORB.Utils.Simple_Flags;
@@ -165,8 +164,6 @@ package PolyORB.Requests is
    end record;
 
    type Request_Access is access all Request;
-   --  for Request_Access'Storage_Pool
-   --    use PolyORB.Storage_Pools.Debug_Pool;
 
    procedure Create_Request
      (Target    : in     References.Ref;

@@ -39,7 +39,6 @@ with Ada.Streams; use Ada.Streams;
 with PolyORB.Buffers; use PolyORB.Buffers;
 with PolyORB.Sequences.Unbounded;
 with PolyORB.Sockets;
-with PolyORB.Storage_Pools;
 with PolyORB.Types;
 
 package PolyORB.Binding_Data.IIOP is
@@ -49,7 +48,6 @@ package PolyORB.Binding_Data.IIOP is
    type IIOP_Profile_Type is new Profile_Type with private;
 
    type Octets_Access is access all Stream_Element_Array;
-   for Octets_Access'Storage_Pool use PolyORB.Storage_Pools.Debug_Pool;
 
    type Tagged_Component is record
       Tag            : Types.Unsigned_Long;
