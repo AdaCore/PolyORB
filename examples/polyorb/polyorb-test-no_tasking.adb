@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -42,9 +42,9 @@ with PolyORB.ORB.No_Tasking;
 pragma Warnings (Off, PolyORB.ORB.No_Tasking);
 pragma Elaborate_All (PolyORB.ORB.No_Tasking);
 
-with PolyORB.ORB_Controller.Basic;
-pragma Warnings (Off, PolyORB.ORB_Controller.Basic);
-pragma Elaborate_All (PolyORB.ORB_Controller.Basic);
+with PolyORB.ORB_Controller.No_Tasking;
+pragma Warnings (Off, PolyORB.ORB_Controller.No_Tasking);
+pragma Elaborate_All (PolyORB.ORB_Controller.No_Tasking);
 
 with PolyORB.Setup.Tasking.No_Tasking;
 pragma Warnings (Off, PolyORB.Setup.Tasking.No_Tasking);
