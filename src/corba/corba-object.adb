@@ -32,13 +32,13 @@
 
 --  The following subprograms still have to be implemented :
 --     Get_Policy
---     Is_A
 --     Non_Existent
 
 --  $Id$
 
 with GNAT.HTable;
 
+with PolyORB.CORBA_P.Names;
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Smart_Pointers;
@@ -86,8 +86,28 @@ package body CORBA.Object is
      return CORBA.Boolean
    is
    begin
-      raise PolyORB.Not_Implemented;
-      return Is_A (Self, Logical_Type_Id);
+      if Is_Equivalent
+        (Logical_Type_Id,
+         PolyORB.CORBA_P.Names.OMG_RepositoryId ("CORBA/Object"))
+      --  Any object Is_A CORBA::Object.
+
+        or else Is_Equivalent
+        (Logical_Type_Id,
+         PolyORB.References.Type_Id_Of
+         (To_PolyORB_Ref (Self)))
+      --  Any object is of the class of its
+      --  actual (i. e. most derived) type.
+
+      then
+         return True;
+      end if;
+
+      --  If class membership cannot be determined locally,
+      --  perform a remote call on the object.
+
+      --  XXX this is not implemented yet.
+      return False;
+
    end Is_A;
 
    -------------------

@@ -94,8 +94,14 @@ package body PolyORB.References is
       RIP : constant Entity_Ptr
         := Entity_Of (R);
    begin
-      if RIP = null
-        or else not (RIP.all in Reference_Info'Class) then
+      if RIP = null then
+         pragma Debug (O ("Attempted to obtain type id of a null ref"));
+         raise Constraint_Error;
+      end if;
+
+      if RIP.all not in Reference_Info'Class then
+         pragma Debug (O ("Attempted to obtain type id of a "
+                          & Ada.Tags.External_Tag (RIP.all'Tag)));
          raise Constraint_Error;
          --  XXX should this be allowed? (denoted entity
          --  could have an intrinsic type).

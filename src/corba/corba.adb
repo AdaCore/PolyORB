@@ -30,7 +30,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/corba.adb#11 $
+--  $Id: //droopi/main/src/corba/corba.adb#12 $
+
+with Ada.Characters.Handling;
 
 with PolyORB.CORBA_P.Exceptions;
 
@@ -601,5 +603,23 @@ package body CORBA is
    function Image (NV : NamedValue) return Standard.String
      renames PolyORB.Any.Image;
 
-end CORBA;
+   ------------------
+   -- RepositoryId --
+   ------------------
 
+   function Is_Equivalent (RI1, RI2 : RepositoryId)
+     return Boolean is
+   begin
+      return Is_Equivalent
+        (To_Standard_String (RI1),
+         To_Standard_String (RI2));
+   end Is_Equivalent;
+
+   function Is_Equivalent (RI1, RI2 : Standard.String)
+     return Boolean is
+      use Ada.Characters.Handling;
+   begin
+      return To_Lower (RI1) = To_Lower (RI2);
+   end Is_Equivalent;
+
+end CORBA;

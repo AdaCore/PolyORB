@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/corba.ads#13 $
+--  $Id: //droopi/main/src/corba/corba.ads#14 $
 
 with Ada.Exceptions;
 with Ada.Strings.Unbounded;
@@ -643,13 +643,25 @@ private
    pragma Inline (Get_Aggregate_Count);
    pragma Inline (Get_Aggregate_Element);
 
-   ------------------
-   --  Named_Value --
-   ------------------
+   -----------------
+   -- Named_Value --
+   -----------------
 
    ARG_IN :        constant Flags := PolyORB.Any.ARG_IN;
    ARG_OUT :       constant Flags := PolyORB.Any.ARG_OUT;
    ARG_INOUT :     constant Flags := PolyORB.Any.ARG_INOUT;
    IN_COPY_VALUE : constant Flags := PolyORB.Any.IN_COPY_VALUE;
+
+   ------------------
+   -- RepositoryId --
+   ------------------
+
+   function Is_Equivalent (RI1, RI2 : RepositoryId)
+     return Boolean;
+
+   function Is_Equivalent (RI1, RI2 : Standard.String)
+     return Boolean;
+   --  Return True if, and only if, RI1 and RI2 denote the same
+   --  repository entity (a case-insensitive string match).
 
 end CORBA;
