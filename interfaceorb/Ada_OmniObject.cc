@@ -196,7 +196,8 @@ ADABROKER_TRY
     result->C_Object = same->C_Object ;
     result->Init_Ok = true ;
 #ifdef DEBUG
-    cerr << "Ada_OmniObject::objectDuplicate : exiting ... OK" << endl ;
+    // DO NOT UNCOMMENT THIS DEBUG INFO
+    // cerr << "Ada_OmniObject::objectDuplicate : exiting ... OK" << endl ;
 #endif
   } else {
 #ifdef DEBUG
