@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -85,11 +85,6 @@ package CORBA.ORB is
      (Obj : in CORBA.Object.Ref'Class)
      return CORBA.String;
    --  Convert reference to IOR
-
-   function Object_To_Corbaloc
-     (Obj : in CORBA.Object.Ref'Class)
-     return CORBA.String;
-   --  Convert reference to corbaloc, return corbaloc of best profile
 
    procedure String_To_Object
      (From : in     CORBA.String;

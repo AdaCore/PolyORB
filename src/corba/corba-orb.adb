@@ -54,7 +54,6 @@ with PolyORB.ORB;
 with PolyORB.Objects;
 with PolyORB.Parameters;
 with PolyORB.References.IOR;
-with PolyORB.References.Corbaloc;
 with PolyORB.Setup;
 with PolyORB.Smart_Pointers;
 with PolyORB.Utils.Strings.Lists;
@@ -466,21 +465,6 @@ package body CORBA.ORB is
         (Object_To_String
          (CORBA.Object.To_PolyORB_Ref (CORBA.Object.Ref (Obj))));
    end Object_To_String;
-
-   ------------------------
-   -- Object_To_Corbaloc --
-   ------------------------
-
-   function Object_To_Corbaloc
-     (Obj : in CORBA.Object.Ref'Class)
-     return CORBA.String
-   is
-      use PolyORB.References.Corbaloc;
-   begin
-      return CORBA.String
-        (Object_To_String
-         (CORBA.Object.To_PolyORB_Ref (CORBA.Object.Ref (Obj))));
-   end Object_To_Corbaloc;
 
    ----------------------
    -- String_To_Object --

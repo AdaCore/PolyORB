@@ -487,6 +487,8 @@ src/corba/corba.adb
 src/corba/corba.ads
 src/corba/polyorb-corba_p-adapteractivator.adb
 src/corba/polyorb-corba_p-adapteractivator.ads
+src/corba/polyorb-corba_p-corbaloc.adb
+src/corba/polyorb-corba_p-corbaloc.ads
 src/corba/polyorb-corba_p-exceptions.adb
 src/corba/polyorb-corba_p-exceptions.ads
 src/corba/polyorb-corba_p-initial_references.adb

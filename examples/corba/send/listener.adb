@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -47,6 +47,7 @@ with CORBA.Policy;
 
 with PortableServer.POA.GOA;
 
+with PolyORB.CORBA_P.CORBALOC;
 with PolyORB.CORBA_P.Server_Tools;
 
 with Test.Printer.Impl;
@@ -177,7 +178,8 @@ begin
 
       Ada.Text_IO.Put_Line
         ("Group IOR: '"
-         & CORBA.To_Standard_String (Object_To_Corbaloc (Group))
+         & CORBA.To_Standard_String
+         (PolyORB.CORBA_P.CORBALOC.Object_To_Corbaloc (Group))
          & "'");
 
       if Print_IOR then
@@ -188,7 +190,8 @@ begin
 
          Ada.Text_IO.Put_Line
            ("Object IOR: '"
-            & CORBA.To_Standard_String (Object_To_Corbaloc (Ref1))
+            & CORBA.To_Standard_String
+            (PolyORB.CORBA_P.CORBALOC.Object_To_Corbaloc (Ref1))
             & "'");
       end if;
 
