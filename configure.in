@@ -106,6 +106,7 @@ AC_ARG_WITH(platform,
   i?86-*-cygwin32)     PLATFORM_SPECIFIC=w;;
   mips-sgi-irix*)      PLATFORM_SPECIFIC=g;;
   mips-sni-sysv4)      PLATFORM_SPECIFIC=x;;
+  hppa*-hp-hpux*)      PLATFORM_SPECIFIC=h;;
   *)                   ]AC_MSG_ERROR([Unsupported platform "${target}"])[;;
 esac])
 AC_SUBST(PLATFORM_SPECIFIC)
@@ -116,6 +117,7 @@ AC_SUBST(PLATFORM_SPECIFIC)
    w) PSNAME="Windows NT";;
    g) PSNAME="SGI";;
    x) PSNAME="SNI";;
+   h) PSNAME="HP";;
    e) PSNAME="Empty";;
    *) PSNAME="Unknown (${PLATFORM_SPECIFIC})";;
 esac]
