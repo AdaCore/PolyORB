@@ -252,8 +252,6 @@ package body Idl_Fe.Types is
       Scope.Identifier_List := List;
    end Add_Identifier_Definition;
 
-
-
    ----------------------------
    --  scope handling types  --
    ----------------------------
@@ -597,6 +595,34 @@ package body Idl_Fe.Types is
    --  identifiers handling methods  --
    ------------------------------------
 
+
+   ----------------------
+   --  Is_Redefinable  --
+   ----------------------
+   function Is_Redefinable (Name : String) return Boolean is
+      Definition : Identifier_Definition_Acc;
+   begin
+      --  Checks if the identifier is already imported
+      if Check_Imported_Identifier_Index (Name) /= Nil_Uniq_Id then
+         return False;
+      end if;
+      Definition := Find_Identifier_Definition (Name);
+      --  Checks if the identifier is not being redefined in the same
+      --  scope.
+      if Definition /= null then
+         if Definition.Parent_Scope = Current_Scope.Scope then
+            return False;
+         end if;
+         --  Ckecks if identifier found is the current scope name:
+         --  it is not allowed except for the operation
+         if Get_Kind (Current_Scope.Scope.all) /= K_Operation and
+           Definition = Current_Scope.Scope.Definition then
+            return False;
+         end if;
+      end if;
+      return True;
+   end Is_Redefinable;
+
    ------------------------------
    --  Check_Identifier_Index  --
    ------------------------------
@@ -738,20 +764,12 @@ package body Idl_Fe.Types is
    begin
       pragma Debug (O ("Add_Identifier : enter"));
       pragma Debug (O ("Add_Identifier : identifier is " & Name));
-      --  Checks if the identifier is already imported
-      if Check_Imported_Identifier_Index (Name) /= Nil_Uniq_Id then
-         return False;
-      end if;
-
-      Index := Create_Identifier_Index (Name);
-      Definition := Id_Table.Table (Index).Definition;
-      --  Checks if the identifier is not being redefined in the same
-      --  scope.
-      if Definition /= null
-        and then Definition.Parent_Scope = Current_Scope.Scope then
+      --  Checks if the identifier is redefinable
+      if not Is_Redefinable (Name) then
          return False;
       end if;
       --  Creates a new definition.
+      Index := Create_Identifier_Index (Name);
       Definition := new Identifier_Definition;
       Definition.Name := new String'(Name);
       Definition.Id := Index;

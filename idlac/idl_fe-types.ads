@@ -324,6 +324,9 @@ package Idl_Fe.Types is
    --  identifiers handling  --
    ----------------------------
 
+   --  Check if the name is redefinable in the current scope
+   function Is_Redefinable (Name : String) return Boolean;
+
    --  Check if the  uniq_id from an identifier is already defined
    --  return it or Nil_Uniq_Id
    function Check_Identifier_Index (Identifier : String) return Uniq_Id;
