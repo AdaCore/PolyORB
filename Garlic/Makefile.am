@@ -1,7 +1,3 @@
-#
-## Makefile.am,v 1.11 1996/05/19 14:03:21 tardieu Exp
-##
-
 AUTOMAKE_OPTIONS = no-dependencies foreign
 
 ADA_FOR_TARGET = @ADA_FOR_TARGET@
@@ -118,7 +114,7 @@ $(srcdir)/s-gartra.ads $(srcdir)/s-gartra.adb \
 $(srcdir)/s-garela.ads $(srcdir)/s-garela.adb \
 $(srcdir)/s-gartab.ads $(srcdir)/s-gartab.adb \
 $(srcdir)/s-garter.ads $(srcdir)/s-garter.adb \
-$(srcdir)/s-gartyp.ads                        \
+$(srcdir)/s-gartyp.ads $(srcdir)/s-gartyp.adb \
 $(srcdir)/s-garuni.ads $(srcdir)/s-garuni.adb \
 $(srcdir)/s-garuti.ads $(srcdir)/s-garuti.adb \
 $(srcdir)/s-garsto.ads $(srcdir)/s-garsto.adb \
