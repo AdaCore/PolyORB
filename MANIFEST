@@ -396,6 +396,8 @@ src/gnat.adc
 src/gnat.adc.exclude
 src/polyorb-annotations.adb
 src/polyorb-annotations.ads
+src/polyorb-any-exceptionlist.adb
+src/polyorb-any-exceptionlist.ads
 src/polyorb-any-nvlist.adb
 src/polyorb-any-nvlist.ads
 src/polyorb-any-objref.adb

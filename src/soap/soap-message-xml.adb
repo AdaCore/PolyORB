@@ -87,6 +87,13 @@ package body SOAP.Message.XML is
      (Void, A_Undefined, A_Int, A_Short, A_UInt, A_UShort,
       A_UByte, A_Float, A_Double, A_String,
       A_Boolean, A_Time_Instant, A_Base64);
+   pragma Warnings (Off);
+   pragma Unreferenced
+     (A_Int, A_Short, A_UInt, A_UShort,
+      A_UByte, A_Float, A_Double, A_String,
+      A_Boolean, A_Time_Instant, A_Base64);
+   --  Parsing of arrays is currently disabled.
+   pragma Warnings (On);
 
    type Message_Kind is (Payload, Response);
 
@@ -145,10 +152,6 @@ package body SOAP.Message.XML is
       NV : in out PolyORB.Any.NamedValue);
 
    procedure Parse_Boolean
-     (N  : in     DOM.Core.Node;
-      NV : in out PolyORB.Any.NamedValue);
-
-   procedure Parse_Null
      (N  : in     DOM.Core.Node;
       NV : in out PolyORB.Any.NamedValue);
 
@@ -408,14 +411,6 @@ package body SOAP.Message.XML is
    begin
       Set_Any_Value (NV.Argument, Node_Value (Value) = "1");
    end Parse_Boolean;
-
-   procedure Parse_Null
-     (N  : in     DOM.Core.Node;
-      NV : in out PolyORB.Any.NamedValue)
-   is
-   begin
-      null;
-   end Parse_Null;
 
    procedure Parse_Enum
      (N  : in     DOM.Core.Node;

@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions.adb#4 $
+--  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions.adb#5 $
 
 with Ada.Exceptions; use Ada.Exceptions;
 with Ada.Strings.Unbounded;
@@ -568,7 +568,6 @@ package body PolyORB.CORBA_P.Exceptions is
    --  CORBA::completion_status.
 
    function From_Any (Item : Any.Any) return Completion_Status;
-   function To_Any (CS : Completion_Status) return Any.Any;
 
    procedure Raise_From_Any (Occurrence : Any.Any) is
       Repository_Id : constant CORBA.RepositoryId
@@ -655,14 +654,6 @@ package body PolyORB.CORBA_P.Exceptions is
       end loop;
       return TC;
    end TC_Completion_Status;
-
-   function To_Any (CS : Completion_Status) return Any.Any is
-      Result : Any.Any := Get_Empty_Any_Aggregate (TC_Completion_Status);
-   begin
-      Add_Aggregate_Element
-        (Result, To_Any (Unsigned_Long (Completion_Status'Pos (CS))));
-      return Result;
-   end To_Any;
 
    function From_Any (Item : Any.Any) return Completion_Status is
    begin
