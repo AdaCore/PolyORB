@@ -112,10 +112,11 @@ begin
       end;
 
       --  Fixed point
-      Output ("test fixed point",
-              echoMoney (Myall_types, 6423.50) = 6423.50
-              and then echoMoney (Myall_types, 0.0) = 0.0
-        and then echoMoney (Myall_types, 3.14) = 3.14);
+--               echoMoney (Myall_types, 6423.50) = 6423.50
+--               and then echoMoney (Myall_types, 0.0) = 0.0
+--         and then echoMoney (Myall_types, 3.14) = 3.14);
+      Output ("test fixed point", False);
+      --  Fixed point types are not implemented yet.
 
       --  Structs
       declare
@@ -165,34 +166,6 @@ begin
          Output ("test union with enum switch", Pass);
       end;
 
-      --  Exceptions
-      Ok := False;
-      declare
-         Member : my_exception_Members;
-      begin
-         testException (Myall_types, 2485);
-      exception
-         when E : my_exception =>
-            Get_Members (E, Member);
-            Ok := (Member.info = 2485);
-         when others =>
-            null;
-      end;
-      Output ("test user exception", Ok);
-
-      Ok := False;
-      declare
-         Member : my_exception_Members;
-      begin
-         testUnknownException (Myall_types, 2485);
-      exception
-         when CORBA.UNKNOWN =>
-            Ok := True;
-         when others =>
-            null;
-      end;
-      Output ("test unknown exception", Ok);
-
       --  Arrays
       declare
          X : simple_array := (2, 3, 5, 7, 11);
@@ -205,17 +178,20 @@ begin
          Output ("test multi-dimensional array",
                  echoMatrix (Myall_types, M) = M);
       end;
-      declare
-         B : bigmatrix;
-      begin
-         for I in B'Range (1) loop
-            for J in B'Range (2) loop
-               B (I, J) := Long ((I + 1) * (J + 2));
-            end loop;
-         end loop;
-         Output ("test big multi-dimensional array",
-                 echoBigMatrix (Myall_types, B) = B);
-      end;
+
+--       declare
+--          B : bigmatrix;
+--       begin
+--          for I in B'Range (1) loop
+--             for J in B'Range (2) loop
+--                B (I, J) := Long ((I + 1) * (J + 2));
+--             end loop;
+--          end loop;
+--          Output ("test big multi-dimensional array",
+--                  echoBigMatrix (Myall_types, B) = B);
+--       end;
+      Output ("test big multi-dimensional array", False);
+      --  Test bigmatrix produces a server stack overflow.
 
       --  Attributes
       set_myColor (Myall_types, Green);
@@ -245,6 +221,34 @@ begin
          X := X & 1 & 2 & 3 & 4 & 5;
          Output ("test bounded sequence",  echoBsequence (Myall_types, X) = X);
       end;
+
+      --  Exceptions
+      Ok := False;
+      declare
+         Member : my_exception_Members;
+      begin
+         testException (Myall_types, 2485);
+      exception
+         when E : my_exception =>
+            Get_Members (E, Member);
+            Ok := (Member.info = 2485);
+         when others =>
+            null;
+      end;
+      Output ("test user exception", Ok);
+
+      Ok := False;
+      declare
+         Member : my_exception_Members;
+      begin
+         testUnknownException (Myall_types, 2485);
+      exception
+         when CORBA.UNKNOWN =>
+            Ok := True;
+         when others =>
+            null;
+      end;
+      Output ("test unknown exception", Ok);
 
       exit when One_Shot;
    end loop;
