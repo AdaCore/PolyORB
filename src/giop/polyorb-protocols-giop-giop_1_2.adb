@@ -50,7 +50,6 @@ with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Utils.Strings;
-with PolyORB.Binding_Data.UIPMC;
 
 package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
@@ -831,27 +830,11 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
          Marshall (Buffer, Sink);
       end loop;
 
-      if Target_Ref.Object_Key /= null then
-         Marshall (Buffer, Key_Addr);
-         Marshall
-           (Buffer,
-            Stream_Element_Array
-            (Target_Ref.Object_Key.all));
-      else
-         if R.Target_Profile.all
-           in PolyORB.Binding_Data.UIPMC.UIPMC_Profile_Type then
-            declare
-               use PolyORB.Binding_Data.UIPMC;
-               use PolyORB.Binding_Data;
-            begin
-               Marshall (Buffer, Profile_Addr);
-               Marshall (Buffer, Tag_UIPMC);
-               Marshall_UIPMC_Profile_Body (Buffer, R.Target_Profile);
-            end;
-         else
-            raise GIOP_Error;
-         end if;
-      end if;
+      Marshall (Buffer, Key_Addr);
+      Marshall
+        (Buffer,
+         Stream_Element_Array
+         (Target_Ref.Object_Key.all));
 
       pragma Debug (O ("Operation : "
                        & To_Standard_String (R.Req.Operation)));
@@ -1058,26 +1041,10 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
             end;
 
          when Profile_Addr  =>
-            declare
-               use PolyORB.Binding_Data;
-
-               Profile_Id : constant Types.Unsigned_Long
-                 := Unmarshall (Buffer);
-            begin
-               if Profile_Id = Tag_Internet_IOP then
-                  Target_Ref := new Target_Address'
-                    (Address_Type => Profile_Addr,
-                     Profile  =>  Binding_Data.IIOP.
-                     Unmarshall_IIOP_Profile_Body (Buffer));
-               elsif Profile_Id = Tag_UIPMC then
-                  Target_Ref := new Target_Address'
-                    (Address_Type => Profile_Addr,
-                     Profile  =>  Binding_Data.UIPMC.
-                     Unmarshall_UIPMC_Profile_Body (Buffer));
-               else
-                  raise GIOP_Error;
-               end if;
-            end;
+            Target_Ref := new Target_Address'
+              (Address_Type => Profile_Addr,
+               Profile  =>  Binding_Data.IIOP.
+               Unmarshall_IIOP_Profile_Body (Buffer));
 
          when Reference_Addr  =>
             declare
