@@ -6,6 +6,10 @@ $Id$
 Items still requiring attention
 -------------------------------
 
+* Establish a configurable connection cache so requests to
+  the same object made though different references can share
+  the same binding object.
+
 * DSA: When taking 'Access on a local RCI subprogram, have
   only 1 instance of the relay object for the whole partition.
   (cf. tardieu99 4.6.2)
