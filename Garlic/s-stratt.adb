@@ -34,7 +34,7 @@
 ------------------------------------------------------------------------------
 
 with Ada.IO_Exceptions;
-with Ada.Streams; use Ada.Streams;
+with Ada.Streams;              use Ada.Streams;
 with Ada.Unchecked_Conversion;
 
 package body System.Stream_Attributes is
@@ -149,6 +149,31 @@ package body System.Stream_Attributes is
    type XDR_LI  is range -2 ** (SU * LI_L  - 1) .. 2 ** (SU * LI_L  - 1) - 1;
    type XDR_LLI is range -2 ** (SU * LLI_L - 1) .. 2 ** (SU * LLI_L - 1) - 1;
 
+   function Short_Short_Integer_To_XDR_S_SSI is
+      new Ada.Unchecked_Conversion (Short_Short_Integer, XDR_S_SSI);
+   function XDR_S_SSI_To_Short_Short_Integer is
+      new Ada.Unchecked_Conversion (XDR_S_SSI, Short_Short_Integer);
+
+   function Short_Integer_To_XDR_S_SI is
+      new Ada.Unchecked_Conversion (Short_Integer, XDR_S_SI);
+   function XDR_S_SI_To_Short_Integer is
+      new Ada.Unchecked_Conversion (XDR_S_SI, Short_Integer);
+
+   function Integer_To_XDR_S_I is
+      new Ada.Unchecked_Conversion (Integer, XDR_S_I);
+   function XDR_S_I_To_Integer is
+     new Ada.Unchecked_Conversion (XDR_S_I, Integer);
+
+   function Long_Long_Integer_To_XDR_S_LI is
+      new Ada.Unchecked_Conversion (Long_Long_Integer, XDR_S_LI);
+   function XDR_S_LI_To_Long_Long_Integer is
+      new Ada.Unchecked_Conversion (XDR_S_LI, Long_Long_Integer);
+
+   function Long_Long_Integer_To_XDR_S_LLI is
+      new Ada.Unchecked_Conversion (Long_Long_Integer, XDR_S_LLI);
+   function XDR_S_LLI_To_Long_Long_Integer is
+      new Ada.Unchecked_Conversion (XDR_S_LLI, Long_Long_Integer);
+
    --  An XDR unsigned integer is a 32-bit datum that encodes a nonnegative
    --  integer in the range [0,4294967295]. It is represented by an unsigned
    --  binary number whose most and least significant bytes are 0 and 3,
@@ -181,6 +206,26 @@ package body System.Stream_Attributes is
    type XDR_LU  is mod BB ** LU_L;
    type XDR_LLU is mod BB ** LLU_L;
 
+   function Short_Unsigned_To_XDR_S_SU is
+      new Ada.Unchecked_Conversion (Short_Unsigned, XDR_S_SU);
+   function XDR_S_SU_To_Short_Unsigned is
+      new Ada.Unchecked_Conversion (XDR_S_SU, Short_Unsigned);
+
+   function Unsigned_To_XDR_S_U is
+      new Ada.Unchecked_Conversion (Unsigned, XDR_S_U);
+   function XDR_S_U_To_Unsigned is
+      new Ada.Unchecked_Conversion (XDR_S_U, Unsigned);
+
+   function Long_Long_Unsigned_To_XDR_S_LU is
+      new Ada.Unchecked_Conversion (Long_Long_Unsigned, XDR_S_LU);
+   function XDR_S_LU_To_Long_Long_Unsigned is
+      new Ada.Unchecked_Conversion (XDR_S_LU, Long_Long_Unsigned);
+
+   function Long_Long_Unsigned_To_XDR_S_LLU is
+      new Ada.Unchecked_Conversion (Long_Long_Unsigned, XDR_S_LLU);
+   function XDR_S_LLU_To_Long_Long_Unsigned is
+      new Ada.Unchecked_Conversion (XDR_S_LLU, Long_Long_Unsigned);
+
    --  The standard defines the floating-point data type "float" (32 bits
    --  or 4 bytes). The encoding used is the IEEE standard for normalized
    --  single-precision floating-point numbers.
@@ -210,14 +255,7 @@ package body System.Stream_Attributes is
 
    --  Booleans are important enough and occur frequently enough to warrant
    --  their own explicit type in the standard. Booleans are declared as
-   --  an enumeration.
-
-   --  enum { FALSE = 0, TRUE = 1 } boolean;
-
-   B_L   : constant := 4;
-   subtype XDR_S_B is SEA (1 .. B_L);
-   type XDR_B  is mod BB ** B_L;
-
+   --  an enumeration, with FALSE = 0 and TRUE = 1.
 
    --  The standard defines a string of n (numbered 0 through n-1) ASCII
    --  bytes to be the number n encoded as an unsigned integer (as described
@@ -238,6 +276,14 @@ package body System.Stream_Attributes is
    WC_L  : constant := 4;
    subtype XDR_S_WC is SEA (1 .. WC_L);
    type XDR_WC is mod BB ** WC_L;
+
+   --  Optimization: if we already have the correct Bit_Order, then some
+   --  computations can be avoided since the source and the target will be
+   --  identical anyway. They will be replaced by direct unchecked
+   --  conversions.
+
+   Optimize_Integers : constant Boolean :=
+     Default_Bit_Order = High_Order_First;
 
    ----------------
    -- Workaround --
@@ -329,26 +375,12 @@ package body System.Stream_Attributes is
    ---------
 
    function I_B (Stream : access RST) return Boolean is
-      S : XDR_S_B;
-      L : SEO;
-      U : XDR_B := 0;
-
    begin
-      Ada.Streams.Read (Stream.all, S, L);
-
-      if L /= S'Last then
-         raise Err;
-      else
-         for N in S'Range loop
-            U := U * BB + XDR_B (S (N));
-         end loop;
-
-         case U is
-            when 0      => return False;
-            when 1      => return True;
-            when others => raise Err;
-         end case;
-      end if;
+      case I_I (Stream) is
+         when 0      => return False;
+         when 1      => return True;
+         when others => raise Err;
+      end case;
    end I_B;
 
    ---------
@@ -777,6 +809,8 @@ package body System.Stream_Attributes is
 
       if L /= S'Last then
          raise Err;
+      elsif Optimize_Integers then
+         return XDR_S_SSI_To_Short_Short_Integer (S);
       else
          --  for N in S'Range loop
          --     U := U * BB + XDR_SSU (S (N));
@@ -806,6 +840,8 @@ package body System.Stream_Attributes is
 
       if L /= S'Last then
          raise Err;
+      elsif Optimize_Integers then
+         return XDR_S_SI_To_Short_Integer (S);
       else
          for N in S'Range loop
             U := U * BB + XDR_SU (S (N));
@@ -834,6 +870,8 @@ package body System.Stream_Attributes is
 
       if L /= S'Last then
          raise Err;
+      elsif Optimize_Integers then
+         return XDR_S_I_To_Integer (S);
       else
          for N in S'Range loop
             U := U * BB + XDR_U (S (N));
@@ -863,6 +901,8 @@ package body System.Stream_Attributes is
 
       if L /= S'Last then
          raise Err;
+      elsif Optimize_Integers then
+         return Long_Integer (XDR_S_LI_To_Long_Long_Integer (S));
       else
 
          --  Compute using machine unsigned
@@ -903,6 +943,8 @@ package body System.Stream_Attributes is
 
       if L /= S'Last then
          raise Err;
+      elsif Optimize_Integers then
+         return XDR_S_LLI_To_Long_Long_Integer (S);
       else
 
          --  Compute using machine unsigned for computing
@@ -965,6 +1007,8 @@ package body System.Stream_Attributes is
 
       if L /= S'Last then
          raise Err;
+      elsif Optimize_Integers then
+         return XDR_S_SU_To_Short_Unsigned (S);
       else
          for N in S'Range loop
             U := U * BB + XDR_SU (S (N));
@@ -988,6 +1032,8 @@ package body System.Stream_Attributes is
 
       if L /= S'Last then
          raise Err;
+      elsif Optimize_Integers then
+         return XDR_S_U_To_Unsigned (S);
       else
          for N in S'Range loop
             U := U * BB + XDR_U (S (N));
@@ -1012,6 +1058,8 @@ package body System.Stream_Attributes is
 
       if L /= S'Last then
          raise Err;
+      elsif Optimize_Integers then
+         return Long_Unsigned (XDR_S_LU_To_Long_Long_Unsigned (S));
       else
 
          --  Compute using machine unsigned
@@ -1046,6 +1094,8 @@ package body System.Stream_Attributes is
 
       if L /= S'Last then
          raise Err;
+      elsif Optimize_Integers then
+         return XDR_S_LLU_To_Long_Long_Unsigned (S);
       else
 
          --  Compute using machine unsigned
@@ -1121,28 +1171,11 @@ package body System.Stream_Attributes is
    ---------
 
    procedure W_B (Stream : access RST; Item : in Boolean) is
-      S : XDR_S_B;
-      U : XDR_B;
-
    begin
-
-      --  False = 0, True = 1.
-
       if Item then
-         U := 1;
+         W_I (Stream, 1);
       else
-         U := 0;
-      end if;
-
-      for N in reverse S'Range loop
-         S (N) := SE (U mod BB);
-         U := U / BB;
-      end loop;
-
-      Ada.Streams.Write (Stream.all, S);
-
-      if U /= 0 then
-         raise Err;
+         W_I (Stream, 0);
       end if;
    end W_B;
 
@@ -1629,25 +1662,20 @@ package body System.Stream_Attributes is
       U : XDR_SSU;
 
    begin
-
-      --  Test sign and apply two complement's notation.
-      if Item < 0 then
-         U := XDR_SSU'Last xor XDR_SSU (-(Item + 1));
+      if Optimize_Integers then
+         S := Short_Short_Integer_To_XDR_S_SSI (Item);
       else
-         U := XDR_SSU (Item);
+         --  Test sign and apply two complement's notation.
+         if Item < 0 then
+            U := XDR_SSU'Last xor XDR_SSU (-(Item + 1));
+         else
+            U := XDR_SSU (Item);
+         end if;
+
+         S (1) := SE (U);
       end if;
 
-      --  for N in reverse S'Range loop
-      --     S (N) := SE (U mod BB);
-      --     U := U / BB;
-      --  end loop;
-      S (1) := SE (U);
-
       Ada.Streams.Write (Stream.all, S);
-
-      --  if U /= 0 then
-      --     raise Err;
-      --  end if;
    end W_SSI;
 
    ----------
@@ -1659,24 +1687,27 @@ package body System.Stream_Attributes is
       U : XDR_SU;
 
    begin
-
-      --  Test sign and apply two complement's notation.
-      if Item < 0 then
-         U := XDR_SU'Last xor XDR_SU (-(Item + 1));
+      if Optimize_Integers then
+         S := Short_Integer_To_XDR_S_SI (Item);
       else
-         U := XDR_SU (Item);
-      end if;
+         --  Test sign and apply two complement's notation.
+         if Item < 0 then
+            U := XDR_SU'Last xor XDR_SU (-(Item + 1));
+         else
+            U := XDR_SU (Item);
+         end if;
 
-      for N in reverse S'Range loop
-         S (N) := SE (U mod BB);
-         U := U / BB;
-      end loop;
+         for N in reverse S'Range loop
+            S (N) := SE (U mod BB);
+            U := U / BB;
+         end loop;
+
+         if U /= 0 then
+            raise Err;
+         end if;
+      end if;
 
       Ada.Streams.Write (Stream.all, S);
-
-      if U /= 0 then
-         raise Err;
-      end if;
    end W_SI;
 
    ---------
@@ -1688,24 +1719,27 @@ package body System.Stream_Attributes is
       U : XDR_U;
 
    begin
-
-      --  Test sign and apply two complement's notation.
-      if Item < 0 then
-         U := XDR_U'Last xor XDR_U (-(Item + 1));
+      if Optimize_Integers then
+         S := Integer_To_XDR_S_I (Item);
       else
-         U := XDR_U (Item);
-      end if;
+         --  Test sign and apply two complement's notation.
+         if Item < 0 then
+            U := XDR_U'Last xor XDR_U (-(Item + 1));
+         else
+            U := XDR_U (Item);
+         end if;
 
-      for N in reverse S'Range loop
-         S (N) := SE (U mod BB);
-         U := U / BB;
-      end loop;
+         for N in reverse S'Range loop
+            S (N) := SE (U mod BB);
+            U := U / BB;
+         end loop;
+
+         if U /= 0 then
+            raise Err;
+         end if;
+      end if;
 
       Ada.Streams.Write (Stream.all, S);
-
-      if U /= 0 then
-         raise Err;
-      end if;
    end W_I;
 
    ----------
@@ -1718,34 +1752,37 @@ package body System.Stream_Attributes is
       X : Long_Unsigned;
 
    begin
-
-      --  Test sign and apply two complement's notation.
-      if Item < 0 then
-         X := Long_Unsigned'Last xor Long_Unsigned (-(Item + 1));
+      if Optimize_Integers then
+         S := Long_Long_Integer_To_XDR_S_LI (Long_Long_Integer (Item));
       else
-         X := Long_Unsigned (Item);
-      end if;
-
-      --  Compute using machine unsigned
-      --  rather than long_unsigned.
-
-      for N in reverse S'Range loop
-
-         --  We have filled an unsinged.
-         if (LU_L - N) mod UB = 0 then
-            U := Unsigned (X and UL);
-            X := Shift_Right (X, US);
+         --  Test sign and apply two complement's notation.
+         if Item < 0 then
+            X := Long_Unsigned'Last xor Long_Unsigned (-(Item + 1));
+         else
+            X := Long_Unsigned (Item);
          end if;
 
-         S (N) := SE (U mod BB);
-         U := U / BB;
-      end loop;
+         --  Compute using machine unsigned
+         --  rather than long_unsigned.
+
+         for N in reverse S'Range loop
+
+            --  We have filled an unsinged.
+            if (LU_L - N) mod UB = 0 then
+               U := Unsigned (X and UL);
+               X := Shift_Right (X, US);
+            end if;
+
+            S (N) := SE (U mod BB);
+            U := U / BB;
+         end loop;
+
+         if U /= 0 then
+            raise Err;
+         end if;
+      end if;
 
       Ada.Streams.Write (Stream.all, S);
-
-      if U /= 0 then
-         raise Err;
-      end if;
    end W_LI;
 
    -----------
@@ -1758,34 +1795,37 @@ package body System.Stream_Attributes is
       X : Long_Long_Unsigned;
 
    begin
-
-      --  Test sign and apply two complement's notation.
-      if Item < 0 then
-         X := Long_Long_Unsigned'Last xor Long_Long_Unsigned (-(Item + 1));
+      if Optimize_Integers then
+         S := Long_Long_Integer_To_XDR_S_LLI (Item);
       else
-         X := Long_Long_Unsigned (Item);
-      end if;
-
-      --  Compute using machine unsigned
-      --  rather than long_long_unsigned.
-
-      for N in reverse S'Range loop
-
-         --  We have filled an unsigned.
-         if (LLU_L - N) mod UB = 0 then
-            U := Unsigned (X and UL);
-            X := Shift_Right (X, US);
+         --  Test sign and apply two complement's notation.
+         if Item < 0 then
+            X := Long_Long_Unsigned'Last xor Long_Long_Unsigned (-(Item + 1));
+         else
+            X := Long_Long_Unsigned (Item);
          end if;
 
-         S (N) := SE (U mod BB);
-         U := U / BB;
-      end loop;
+         --  Compute using machine unsigned
+         --  rather than long_long_unsigned.
+
+         for N in reverse S'Range loop
+
+            --  We have filled an unsigned.
+            if (LLU_L - N) mod UB = 0 then
+               U := Unsigned (X and UL);
+               X := Shift_Right (X, US);
+            end if;
+
+            S (N) := SE (U mod BB);
+            U := U / BB;
+         end loop;
+
+         if U /= 0 then
+            raise Err;
+         end if;
+      end if;
 
       Ada.Streams.Write (Stream.all, S);
-
-      if U /= 0 then
-         raise Err;
-      end if;
    end W_LLI;
 
    -----------
@@ -1819,16 +1859,20 @@ package body System.Stream_Attributes is
       U : XDR_SU := XDR_SU (Item);
 
    begin
-      for N in reverse S'Range loop
-         S (N) := SE (U mod BB);
-         U := U / BB;
-      end loop;
+      if Optimize_Integers then
+         S := Short_Unsigned_To_XDR_S_SU (Item);
+      else
+         for N in reverse S'Range loop
+            S (N) := SE (U mod BB);
+            U := U / BB;
+         end loop;
+
+         if U /= 0 then
+            raise Err;
+         end if;
+      end if;
 
       Ada.Streams.Write (Stream.all, S);
-
-      if U /= 0 then
-         raise Err;
-      end if;
    end W_SU;
 
    ---------
@@ -1840,16 +1884,20 @@ package body System.Stream_Attributes is
       U : XDR_U := XDR_U (Item);
 
    begin
-      for N in reverse S'Range loop
-         S (N) := SE (U mod BB);
-         U := U / BB;
-      end loop;
+      if Optimize_Integers then
+         S := Unsigned_To_XDR_S_U (Item);
+      else
+         for N in reverse S'Range loop
+            S (N) := SE (U mod BB);
+            U := U / BB;
+         end loop;
+
+         if U /= 0 then
+            raise Err;
+         end if;
+      end if;
 
       Ada.Streams.Write (Stream.all, S);
-
-      if U /= 0 then
-         raise Err;
-      end if;
    end W_U;
 
    ----------
@@ -1862,26 +1910,29 @@ package body System.Stream_Attributes is
       X : Long_Unsigned := Item;
 
    begin
+      if Optimize_Integers then
+         S := Long_Long_Unsigned_To_XDR_S_LU (Long_Long_Unsigned (Item));
+      else
+         --  Compute using machine unsigned
+         --  rather than long_unsigned.
 
-      --  Compute using machine unsigned
-      --  rather than long_unsigned.
+         for N in reverse S'Range loop
 
-      for N in reverse S'Range loop
+            --  We have filled an unsigned.
+            if (LU_L - N) mod UB = 0 then
+               U := Unsigned (X and UL);
+               X := Shift_Right (X, US);
+            end if;
+            S (N) := SE (U mod BB);
+            U := U / BB;
+         end loop;
 
-         --  We have filled an unsigned.
-         if (LU_L - N) mod UB = 0 then
-            U := Unsigned (X and UL);
-            X := Shift_Right (X, US);
+         if U /= 0 then
+            raise Err;
          end if;
-         S (N) := SE (U mod BB);
-         U := U / BB;
-      end loop;
+      end if;
 
       Ada.Streams.Write (Stream.all, S);
-
-      if U /= 0 then
-         raise Err;
-      end if;
    end W_LU;
 
    -----------
@@ -1894,27 +1945,30 @@ package body System.Stream_Attributes is
       X : Long_Long_Unsigned := Item;
 
    begin
+      if Optimize_Integers then
+         S := Long_Long_Unsigned_To_XDR_S_LLU (Item);
+      else
+         --  Compute using machine unsigned
+         --  rather than long_long_unsigned.
 
-      --  Compute using machine unsigned
-      --  rather than long_long_unsigned.
+         for N in reverse S'Range loop
 
-      for N in reverse S'Range loop
+            --  We have filled an unsigned.
+            if (LLU_L - N) mod UB = 0 then
+               U := Unsigned (X and UL);
+               X := Shift_Right (X, US);
+            end if;
 
-         --  We have filled an unsigned.
-         if (LLU_L - N) mod UB = 0 then
-            U := Unsigned (X and UL);
-            X := Shift_Right (X, US);
+            S (N) := SE (U mod BB);
+            U := U / BB;
+         end loop;
+
+         if U /= 0 then
+            raise Err;
          end if;
-
-         S (N) := SE (U mod BB);
-         U := U / BB;
-      end loop;
+      end if;
 
       Ada.Streams.Write (Stream.all, S);
-
-      if U /= 0 then
-         raise Err;
-      end if;
    end W_LLU;
 
 end System.Stream_Attributes;

@@ -1,3 +1,8 @@
+1998-12-11  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-stratt.adb: Optimize integer coding (the most frequent case)
+	on some kind of machines (Sun).
+
 1998-12-11  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-garpar.adb: Fix a problem of boot on main partition.
