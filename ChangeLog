@@ -1,3 +1,13 @@
+1998-04-20  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* MANIFEST: Reinstated Garlic/s-garthi.ads, and remove
+	Garlic/5lgarthi.ads and Garlic/5wgarthi.ads. Add
+	Garlic/5wgtplsp.adb.
+
+	* configure.in: New variable TCP_PLATFORM_SOURCE which uses either 
+	the source or the body of System.Garlic.Platform_Specific. Needed
+	for the Windows NT port.
+
 1998-04-19  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* configure.in: Add flag -gnatx2 when using the maintainer mode to 

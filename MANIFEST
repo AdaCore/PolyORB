@@ -146,13 +146,12 @@ Examples/Messages/pure.ads
 Garlic/5agtplsp.ads
 Garlic/5egtplsp.ads
 Garlic/5ggtplsp.ads
-Garlic/5lgarthi.ads
-Garlic/5wgarthi.ads
 Garlic/5lgtplsp.ads
 Garlic/5sgtplsp.ads
 Garlic/5ugtplsp.ads
 Garlic/5wgarcon.ads
 Garlic/5wgtplsp.ads
+Garlic/5wgtplsp.adb
 Garlic/5xgtplsp.ads
 Garlic/DALL
 Garlic/Makefile.am
@@ -206,6 +205,7 @@ Garlic/s-gartcp.adb
 Garlic/s-gartcp.ads
 Garlic/s-garter.adb
 Garlic/s-garter.ads
+Garlic/s-garthi.ads
 Garlic/s-gartra.adb
 Garlic/s-gartra.ads
 Garlic/s-gartyp.adb

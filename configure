@@ -1468,6 +1468,14 @@ fi
 
 
 #
+# Checking whether s-gtplsp.adb exists for this platform
+#
+case ${PLATFORM_SPECIFIC} in
+  w) TCP_PLATFORM_SOURCE=s-gtplsp.adb;;
+  *) TCP_PLATFORM_SOURCE=s-gtplsp.ads;;
+esac
+
+#
 # Extra libraries
 #
 # Check whether --with-extra-libs or --without-extra-libs was given.
@@ -1682,6 +1690,7 @@ s%@FILTERFILE@%%g
 s%@PROTOCOLSSOURCES@%$PROTOCOLSSOURCES%g
 s%@PROTOCOLSOBJECTS@%$PROTOCOLSOBJECTS%g
 s%@TCP_INCLUDED@%$TCP_INCLUDED%g
+s%@TCP_PLATFORM_SOURCE@%$TCP_PLATFORM_SOURCE%g
 s%@EXTRA_LIBS@%$EXTRA_LIBS%g
 
 CEOF

@@ -235,6 +235,14 @@ AC_SUBST(PROTOCOLSSOURCES)
 AC_SUBST(PROTOCOLSOBJECTS)
 AC_SUBST(TCP_INCLUDED)
 #
+# Checking whether s-gtplsp.adb exists for this platform
+#
+case ${PLATFORM_SPECIFIC} in
+  w) TCP_PLATFORM_SOURCE=s-gtplsp.adb;;
+  *) TCP_PLATFORM_SOURCE=s-gtplsp.ads;;
+esac
+AC_SUBST(TCP_PLATFORM_SOURCE)
+#
 # Extra libraries
 #
 AC_ARG_WITH(extra-libs,
