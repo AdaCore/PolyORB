@@ -20,7 +20,7 @@ adabe_union::produce_ads(dep_list with,string &String, string &previousdefinitio
   for each node in UTL_scope:    //this
   {
       cast of the item to the real adabe type, if it is a union branch do
-      branche.produce-ads(with,&temp,&previousdefinition)
+      branch.produce_ads(with,&temp,&previousdefinition,disc_type())
      
   }
   temp += "end case \n"

@@ -27,6 +27,9 @@
 
 /*
   $Log: cfe_interface.cc,v $
+  Revision 1.2  1999/03/01 19:48:01  niebel
+  modification of the mapping of expressions in the union
+
   Revision 1.1  1999/02/14 17:45:00  niebel
   Ajout des sources d'omniidl2 en vue de l'ajout de notre back end.
 
@@ -291,7 +294,7 @@ BE_parse_args(int argc, char **argv)
 
   DRV_cpp_init();
   idl_global->set_prog_name(argv[0]);
-  while ((c = getopt(argc,argv,"D:EI:U:Vuvwh:s:lamt")) != EOF)
+  while ((c = getopt(argc,argv,"D:EI:U:Vuvwh:s:lamt")) != EOF) /////////// rajouter :b 
     {
       switch (c) 
 	{
