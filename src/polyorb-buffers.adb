@@ -329,9 +329,14 @@ package body PolyORB.Buffers is
       pragma Debug (O ("Padding by"
                        & Stream_Element_Count'Image (Padding)));
 
-      Grow_Shrink (Buffer.Contents'Access, Padding, Padding_Space);
       --  Try to extend Buffer.Content's last Iovec
       --  to provide proper alignment.
+
+      Grow_Shrink (Buffer.Contents'Access, Padding, Padding_Space);
+
+      --  If debugging, intitialize the padding space to a known value
+
+      pragma Debug (Fill (Padding_Space, Padding));
 
       if Is_Null (Padding_Space) then
          --  Grow was unable to extend the last Iovec:

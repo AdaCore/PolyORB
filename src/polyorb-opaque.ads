@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,7 +33,7 @@
 
 --  Utility declarations for low-level memory management.
 
---  $Id: //droopi/main/src/polyorb-opaque.ads#9 $
+--  $Id: //droopi/main/src/polyorb-opaque.ads#10 $
 
 with Ada.Streams;
 with Ada.Unchecked_Deallocation;
@@ -61,5 +61,13 @@ package PolyORB.Opaque is
 
    function Is_Null (P : Opaque_Pointer) return Boolean;
    pragma Inline (Is_Null);
+
+   procedure Fill
+     (P      : Opaque_Pointer;
+      Len    : Ada.Streams.Stream_Element_Count;
+      Filler : Ada.Streams.Stream_Element := 16#aa#);
+   pragma Inline (Fill);
+   --  Fill Len elements starting at P with the specified filler value
+   --  (used for debugging purposes).
 
 end PolyORB.Opaque;
