@@ -214,11 +214,12 @@ package body PolyORB.POA_Types is
    begin
       Get_ULong (SEA, SEI, Len);
       declare
-         S : Standard.String (0 .. Integer (Len) - 1);
+         S : Standard.String (1 .. Integer (Len));
       begin
          for I in S'Range loop
             S (I) := Standard.Character'Val
-              (SEA (SEI + Stream_Element_Offset (I)));
+              (SEA (SEI + Stream_Element_Offset
+                    (I - S'First)));
          end loop;
          Str := To_PolyORB_String (S);
       end;
