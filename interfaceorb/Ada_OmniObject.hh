@@ -119,7 +119,7 @@ public:
   void setRopeAndKey(const Ada_OmniRopeAndKey& l,_CORBA_Boolean keepIOP=1);
   // calls the setRopeAndKey function of C_Object
 
-  void  getRopeAndKey(Ada_OmniRopeAndKey& l, _CORBA_Boolean& success);
+  void  getRopeAndKey(Ada_OmniRopeAndKey& l, _CORBA_Boolean  success);
   // calls the getRopeAndKey function of C_Object
 
   void resetRopeAndKey();

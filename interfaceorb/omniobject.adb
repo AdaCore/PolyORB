@@ -563,7 +563,7 @@ package body OmniObject is
    ---------------------
    procedure C_Get_Rope_And_Key (Self : in Object'Class ;
                                 L : in out Omniropeandkey.Object ;
-                                Success : in out Sys_Dep.C_Boolean) ;
+                                Success : out Sys_Dep.C_Boolean) ;
    pragma Import (CPP,
                   C_Get_Rope_And_Key,
                   "getRopeAndKey__14Ada_OmniObjectR18Ada_OmniRopeAndKeyRb") ;

@@ -318,17 +318,12 @@ ADABROKER_CATCH
 // getRopeAndKey
 //--------------
 void
-Ada_OmniObject::getRopeAndKey(Ada_OmniRopeAndKey& l, _CORBA_Boolean& success) {
+Ada_OmniObject::getRopeAndKey(Ada_OmniRopeAndKey& l, _CORBA_Boolean success) {
 ADABROKER_TRY
   if ((Init_Ok) && (l.assertInit_Ok())) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
-    omniRopeAndKey ll ;
-    _CORBA_Boolean ss ;
-    ss = C_Object->getRopeAndKey(ll) ;
-    //*(l.C_Object) = ll ;
     success = C_Object->getRopeAndKey(*(l.C_Object));
-    return ;
   } else {
     // else raise an Ada Exception
     throw omniORB::fatalException(__FILE__,
