@@ -646,23 +646,13 @@ package body XE_Stubs is
                  and then Get_Passive (Partition) /= Btrue
                then
                   Dwrite_Line (File, 2, "Register_Partition_To_Launch");
-                  Name_Len := 0;
-                  Add_Str_To_Name_Buffer ("(""");
-                  Add_Str_To_Name_Buffer (Get_Rsh_Command);
-                  Add_Str_To_Name_Buffer (""",");
-                  Dwrite_Line (File, 3, Name_Buffer (1 .. Name_Len));
                   Remote_Host := Get_Host (Partition);
                   if Remote_Host = No_Name then
-                     Dwrite_Line (File, 3, "False, """,
+                     Dwrite_Line (File, 3, "(False, """,
                                   Partitions.Table (Partition).Name, """,");
                   else
-                     Dwrite_Line (File, 3, "True, ", Remote_Host, ",");
+                     Dwrite_Line (File, 3, "(True, ", Remote_Host, ",");
                   end if;
-                  Name_Len := 0;
-                  Add_Str_To_Name_Buffer ("""");
-                  Add_Str_To_Name_Buffer (Get_Rsh_Options);
-                  Add_Str_To_Name_Buffer (""",");
-                  Dwrite_Line (File, 3, Name_Buffer (1 .. Name_Len));
                   Dwrite_Line (File, 3, """", Get_Absolute_Exec (Partition),
                                "", Get_Command_Line  (Partition), """);");
                end if;
