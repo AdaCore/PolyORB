@@ -496,6 +496,7 @@ AC_OUTPUT([
 	examples/polyorb/Makefile
 	testsuite/Makefile
 	testsuite/corba/Makefile
+	testsuite/corba/local/Makefile
 	testsuite/corba/portableserver/Makefile
 	testsuite/core/Makefile
 	testsuite/core/any/Makefile
