@@ -38,6 +38,7 @@ package CORBA.Value is
    type Base is abstract new CORBA.AbstractBase.Ref with null record;
    
    type Impl_Base is abstract tagged limited private;
+   --  should inherit from CORBA.Impl.Object
    
 private
    

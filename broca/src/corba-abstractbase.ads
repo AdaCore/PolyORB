@@ -35,7 +35,7 @@ package CORBA.AbstractBase is
 
    type Ref is new Ada.Finalization.Controlled with
       record
-         Ptr: CORBA.Impl.Object_Ptr;
+         Ptr: CORBA.Impl.Object_Ptr := null;
       end record;
 
    procedure Initialize (The_Ref: in out Ref);
