@@ -59,6 +59,7 @@ package body PolyORB.Filters.HTTP is
    use PolyORB.Filters.Interface;
    use PolyORB.Log;
    use PolyORB.ORB;
+   use PolyORB.Utils;
 
    use String_Lists;
 
@@ -71,44 +72,6 @@ package body PolyORB.Filters.HTTP is
    -----------------------------------------
    -- Declaration of internal subprograms --
    -----------------------------------------
-
-   function Find_Skip
-     (S     : String;
-      Start : Integer;
-      What  : Character;
-      Skip  : Boolean)
-     return Integer;
-   --  If Skip is False, return the index of the
-   --  first occurrence of What in S.
-   --  If Skip is True, return the index of the
-   --  first occurrence of any character OTHER THAN What.
-   --  If no such character exists, S'Last + 1 is returned.
-
-   --  Shorthands for commonly-used forms of Find_Skip
-
-   function Find
-     (S     : String;
-      Start : Integer;
-      What  : Character;
-      Skip  : Boolean := False)
-     return Integer
-     renames Find_Skip;
-
-   function Find_Whitespace
-     (S     : String;
-      Start : Integer;
-      What  : Character := ' ';
-      Skip  : Boolean := False)
-     return Integer
-     renames Find_Skip;
-
-   function Skip_Whitespace
-     (S     : String;
-      Start : Integer;
-      What  : Character := ' ';
-      Skip  : Boolean := True)
-     return Integer
-     renames Find_Skip;
 
    procedure Handle_Data_Indication
      (F : access HTTP_Filter;
@@ -262,23 +225,6 @@ package body PolyORB.Filters.HTTP is
 
       return Res;
    end Handle_Message;
-
-   function Find_Skip
-     (S     : String;
-      Start : Integer;
-      What  : Character;
-      Skip  : Boolean)
-     return Integer
-   is
-      I : Integer := Start;
-   begin
-      while I < S'Last loop
-         I := I + 1;
-         exit when I > S'Last or else (S (I) = What xor Skip);
-      end loop;
-
-      return I;
-   end Find_Skip;
 
    -----------------------------
    -- HTTP message processing --

@@ -68,7 +68,49 @@ package PolyORB.Utils is
    --  the character whose hexadecimal representation
    --  is xy, and any '+' characters replaced by spaces.
 
+   -----------------------
+   -- String operations --
+   -----------------------
+
    function Trimmed_Image (I : Integer) return String;
    --  Return Integer'Image (I) without a leading space.
+
+   function Find_Skip
+     (S     : String;
+      Start : Integer;
+      What  : Character;
+      Skip  : Boolean)
+     return Integer;
+   --  If Skip is False, return the index of the
+   --  first occurrence of What in S.
+   --  If Skip is True, return the index of the
+   --  first occurrence of any character OTHER THAN What.
+   --  If no such character exists, S'Last + 1 is returned.
+
+   --  Shorthands for commonly-used forms of Find_Skip
+
+   function Find
+     (S     : String;
+      Start : Integer;
+      What  : Character;
+      Skip  : Boolean := False)
+     return Integer
+     renames Find_Skip;
+
+   function Find_Whitespace
+     (S     : String;
+      Start : Integer;
+      What  : Character := ' ';
+      Skip  : Boolean := False)
+     return Integer
+     renames Find_Skip;
+
+   function Skip_Whitespace
+     (S     : String;
+      Start : Integer;
+      What  : Character := ' ';
+      Skip  : Boolean := True)
+     return Integer
+     renames Find_Skip;
 
 end PolyORB.Utils;

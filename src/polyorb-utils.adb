@@ -180,4 +180,21 @@ package body PolyORB.Utils is
       end if;
    end Trimmed_Image;
 
+   function Find_Skip
+     (S     : String;
+      Start : Integer;
+      What  : Character;
+      Skip  : Boolean)
+     return Integer
+   is
+      I : Integer := Start;
+   begin
+      while I < S'Last loop
+         I := I + 1;
+         exit when I > S'Last or else (S (I) = What xor Skip);
+      end loop;
+
+      return I;
+   end Find_Skip;
+
 end PolyORB.Utils;
