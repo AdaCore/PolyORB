@@ -15,9 +15,9 @@ with Corba, OmniObjectManager, Omniropeandkey ;
 
 package body OmniObject is
 
-   function Is_Proxy (This : in Object'Class)
+   function Is_Proxy (This : in Object)
                       return Boolean is
-      function C_Is_Proxy (This : in Object'Class)
+      function C_Is_Proxy (This : in Object)
                            return Interfaces.C.Unsigned_Char ;
       -- here is supposed that HAS_Cplusplus_Bool is'nt defined
       -- cf definition of type _CORBA_Boolean in CORBA_basetypes.h L59
@@ -26,9 +26,9 @@ package body OmniObject is
       return (C_Is_Proxy(This) \= 0) ;
    end ;
 
-   procedure PR_IRRepositoryId(This : in Object'Class;
+   procedure PR_IRRepositoryId(This : in Object;
                                RepositoryId : in String ) is
-      procedure C_PR_IRRepositoryId (This : in Object'Class;
+      procedure C_PR_IRRepositoryId (This : in Object;
                                      C_RepositoryId : in Chars_Ptr) ;
       pragma Import (C,C_PR_IRRepositoryId,"is_proxy__C10omniObject") ;
    begin
@@ -36,17 +36,17 @@ package body OmniObject is
       return;
    end ;
 
-   procedure Init (Self : in out Object'Class ;
+   procedure Init (Self : in out Object ;
                    Manager : in OmniObjectManager.Object);
    -- wrapper around   omniObject(omniObjectManager*p =0);
    -- in omniInternal.h L 294
 
 
-   procedure Set_Rope_And_Key (This : in out Object'Class ;
+   procedure Set_Rope_And_Key (This : in out Object ;
                             L : in out Omniropeandkey.Object ;
                             KeepIOP : Corba.boolean
                            ) is
-      procedure C_Set_Rope_And_Key (This : in out Object'Class,
+      procedure C_Set_Rope_And_Key (This : in out Object,
                                    L : --in out Omniropeandkey.Object'Class,
                                    KeepIOP : --) ;
       pragma Import (C,C_Set_Rope_And_Key,

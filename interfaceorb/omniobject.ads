@@ -17,22 +17,22 @@ package OmniObject is
 
    type Object is private ;
 
-   function Is_Proxy (This : in Object'Class)
+   function Is_Proxy (This : in Object)
                      return Boolean ;
    -- wrapper around   inline _CORBA_Boolean is_proxy()
    -- in omniInternal.h L384
 
-   procedure PR_IRRepositoryId(This : in Object'Class;
+   procedure PR_IRRepositoryId(This : in Object;
                                RepositoryId : in String ) ;
    -- wrapper around   void  PR_IRRepositoryId(const char* s);
    -- in omniInternal.h L 306
 
-   procedure Init (This : in out Object'Class ;
+   procedure Init (This : in out Object ;
                    Manager : in OmniObjectManager.Object);
    -- wrapper around   omniObject(omniObjectManager*p =0);
    -- in omniInternal.h L 294
 
-   procedure Set_Rope_And_Key (This : in out Object'Class ;
+   procedure Set_Rope_And_Key (This : in out Object ;
                                L : in out Omniropeandkey.Object ;
                                KeepIOP : Corba.boolean
                               ) ;
@@ -42,8 +42,8 @@ package OmniObject is
 
 
    procedure Get_Rope_And_Key (Self : in Object ;
-                           L : in out Omniropeandkey.Object ;
-                           Result : out Corba.Boolean) ;
+                               L : in out Omniropeandkey.Object ;
+                               Result : out Corba.Boolean) ;
    -- wrapper around _CORBA_Boolean getRopeAndKey(omniRopeAndKey& l) const;
    -- in omniInternal.h L 338
 
