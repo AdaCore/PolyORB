@@ -37,6 +37,8 @@ compilers/idlac/ada_be-idl2ada-value_skel.adb
 compilers/idlac/ada_be-idl2ada-value_skel.ads
 compilers/idlac/ada_be-idl2ada.adb
 compilers/idlac/ada_be-idl2ada.ads
+compilers/idlac/ada_be-mappings-corba-alm_1_2.adb
+compilers/idlac/ada_be-mappings-corba-alm_1_2.ads
 compilers/idlac/ada_be-mappings-corba.adb
 compilers/idlac/ada_be-mappings-corba.ads
 compilers/idlac/ada_be-mappings.ads

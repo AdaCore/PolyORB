@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -37,6 +37,7 @@ with Idl_Fe.Tree;           use Idl_Fe.Tree;
 with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree.Synthetic;
 
 with Ada_Be.Identifiers;    use Ada_Be.Identifiers;
+with Ada_Be.Mappings.CORBA; use Ada_Be.Mappings.CORBA;
 with Ada_Be.Temporaries;    use Ada_Be.Temporaries;
 with Ada_Be.Debug;
 pragma Elaborate_All (Ada_Be.Debug);
@@ -478,7 +479,7 @@ package body Ada_Be.Idl2Ada.Helper is
       --  Unchecked_To_<reference>
       declare
          Short_Type_Name : constant String
-           := Ada_Type_Defining_Name (Node);
+           := Ada_Type_Defining_Name (Mapping, Node);
          Type_Name : constant String
            := Ada_Type_Name (Node);
       begin
@@ -526,7 +527,7 @@ package body Ada_Be.Idl2Ada.Helper is
       --  Unchecked_To_<reference>
       declare
          Short_Type_Name : constant String
-           := Ada_Type_Defining_Name (Node);
+           := Ada_Type_Defining_Name (Mapping, Node);
          Type_Name : constant String
            := Ada_Type_Name (Node);
       begin
@@ -571,7 +572,7 @@ package body Ada_Be.Idl2Ada.Helper is
       Node : in Node_Id)
    is
       Type_Name : constant String
-        := Ada_Type_Defining_Name (Node);
+        := Ada_Type_Defining_Name (Mapping, Node);
 
       Type_Full_Name : constant String
         := Ada_Type_Name (Node);
@@ -660,7 +661,7 @@ package body Ada_Be.Idl2Ada.Helper is
       Node : in Node_Id) is
 
       Type_Name : constant String
-        := Ada_Type_Defining_Name (Node);
+        := Ada_Type_Defining_Name (Mapping, Node);
 
       Type_Full_Name : constant String
         := Ada_Type_Name (Node);
@@ -827,7 +828,7 @@ package body Ada_Be.Idl2Ada.Helper is
                      Type_Node : constant Node_Id
                        := State_Type (Member_Node);
                      Helper_Name : constant String
-                       := Ada_Helper_Name (Type_Node);
+                       := Ada_Helper_Unit_Name (Mapping, Type_Node);
                      It2   : Node_Iterator;
                      Decl_Node : Node_Id;
                   begin
@@ -971,7 +972,7 @@ package body Ada_Be.Idl2Ada.Helper is
                      Type_Node : constant Node_Id :=
                        State_Type (Member_Node);
                      Helper_Name : constant String
-                       := Ada_Helper_Name (Type_Node);
+                       := Ada_Helper_Unit_Name (Mapping, Type_Node);
                      It2   : Node_Iterator;
                      Decl_Node : Node_Id;
                   begin
@@ -1186,7 +1187,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
       declare
          Type_Defining_Name : constant String
-           := Ada_Type_Defining_Name (Node);
+           := Ada_Type_Defining_Name (Mapping, Node);
          Type_Name : constant String
            := Ada_Type_Name (Node);
       begin
@@ -1267,7 +1268,7 @@ package body Ada_Be.Idl2Ada.Helper is
          PL (CU, "begin");
          II (CU);
          PL (CU, "return To_"
-             & Ada_Type_Defining_Name (Node)
+             & Ada_Type_Defining_Name (Mapping, Node)
              & " (CORBA.Object.Helper."
              & "From_Any (Item));");
          DI (CU);
@@ -1331,7 +1332,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
       declare
          Short_Type_Name : constant String
-           := Ada_Type_Defining_Name (Node);
+           := Ada_Type_Defining_Name (Mapping, Node);
          Type_Name : constant String
            := Ada_Type_Name (Node);
       begin
@@ -1392,7 +1393,7 @@ package body Ada_Be.Idl2Ada.Helper is
          PL (CU, "begin");
          II (CU);
          PL (CU, "return To_"
-             & Ada_Type_Defining_Name (Node)
+             & Ada_Type_Defining_Name (Mapping, Node)
              & " (CORBA.Object.Helper."
              & "From_Any (Item));");
          DI (CU);
@@ -1714,7 +1715,7 @@ package body Ada_Be.Idl2Ada.Helper is
                      It2   : Node_Iterator;
                      Decl_Node : Node_Id;
                      Helper_Name : constant String
-                       := Ada_Helper_Name (M_Type (Member_Node));
+                       := Ada_Helper_Unit_Name (Mapping, M_Type (Member_Node));
                   begin
                      Add_Helper_Dependency (CU, Helper_Name);
                      Init (It2, Decl (Member_Node));
@@ -1814,7 +1815,7 @@ package body Ada_Be.Idl2Ada.Helper is
                Get_Next_Node (It, Member_Node);
                declare
                   Helper_Name : constant String
-                    := Ada_Helper_Name (M_Type (Member_Node));
+                    := Ada_Helper_Unit_Name (Mapping, M_Type (Member_Node));
                   It2   : Node_Iterator;
                   Decl_Node : Node_Id;
                begin
@@ -2053,7 +2054,7 @@ package body Ada_Be.Idl2Ada.Helper is
       Node      : in     Node_Id)
    is
       Switch_Helper_Name : constant String
-        := Ada_Helper_Name (Switch_Type (Node));
+        := Ada_Helper_Unit_Name (Mapping, Switch_Type (Node));
    begin
       if Generate_Dyn then
          Add_With (CU, "CORBA", Use_It => True);
@@ -2099,7 +2100,7 @@ package body Ada_Be.Idl2Ada.Helper is
                Get_Next_Node (It, Case_Node);
                declare
                   Helper_Name : constant String
-                    := Ada_Helper_Name (Case_Type (Case_Node));
+                    := Ada_Helper_Unit_Name (Mapping, Case_Type (Case_Node));
                   It2         : Node_Iterator;
                   Label_Node  : Node_Id;
                   First_Label : Boolean := True;
@@ -2190,7 +2191,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
                declare
                   Helper_Name : constant String
-                    := Ada_Helper_Name (Case_Type (Case_Node));
+                    := Ada_Helper_Unit_Name (Mapping, Case_Type (Case_Node));
                   It2         : Node_Iterator;
                   Label_Node  : Node_Id;
                   First_Label : Boolean := True;
@@ -2409,10 +2410,11 @@ package body Ada_Be.Idl2Ada.Helper is
      (CU        : in out Compilation_Unit;
       Node      : in     Node_Id)
    is
-      Is_Array : constant Boolean
+      Is_Array    : constant Boolean
         := Length (Array_Bounds (Node)) > 0;
-      Type_Node : constant Node_Id := T_Type (Parent (Node));
-      Helper_Name : constant String := Ada_Helper_Name (Type_Node);
+      Type_Node   : constant Node_Id := T_Type (Parent (Node));
+      Helper_Name : constant String
+        := Ada_Helper_Unit_Name (Mapping, Type_Node);
    begin
       if Generate_Dyn then
          --  Fill in typecode TC_<name of the type>
@@ -2447,7 +2449,7 @@ package body Ada_Be.Idl2Ada.Helper is
          if Is_Array then
             Gen_Array_TC (CU, Type_Node, Node);
          else
-            Add_With (CU, Ada_Helper_Name (Type_Node));
+            Add_With (CU, Ada_Helper_Unit_Name (Mapping, Type_Node));
             PL (CU, "CORBA.TypeCode.Internals.Add_Parameter ("
                 & Ada_TC_Name (Node)
                 & ", CORBA.To_Any (Name));");
@@ -2680,7 +2682,8 @@ package body Ada_Be.Idl2Ada.Helper is
          Add_With (CU, "PolyORB.Sequences.Bounded.CORBA_Helper");
       end if;
 
-      Add_With (CU, Ada_Helper_Name (Sequence_Type (Sequence (Node))));
+      Add_With
+        (CU, Ada_Helper_Unit_Name (Mapping, Sequence_Type (Sequence (Node))));
 
       NL (CU);
       PL (CU, "package " & Seq_Helper_Name
@@ -2688,11 +2691,11 @@ package body Ada_Be.Idl2Ada.Helper is
       Put (CU, "  (");
       II (CU);
       PL (CU, "Element_To_Any =>" & ASCII.LF
-          & "  " & Ada_Helper_Name
-          (Sequence_Type (Sequence (Node))) & ".To_Any,");
+          & "  " & Ada_Helper_Unit_Name
+          (Mapping, Sequence_Type (Sequence (Node))) & ".To_Any,");
       PL (CU, "Element_From_Any =>" & ASCII.LF
-          & "  " & Ada_Helper_Name
-          (Sequence_Type (Sequence (Node))) & ".From_Any);");
+          & "  " & Ada_Helper_Unit_Name
+          (Mapping, Sequence_Type (Sequence (Node))) & ".From_Any);");
 
       DI (CU);
 

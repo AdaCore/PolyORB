@@ -61,24 +61,18 @@ with Ada_Be.Idl2Ada.Value_Skel;
 with Ada_Be.Idl2Ada.Skel;
 with Ada_Be.Idl2Ada.IR_Info;
 
-with Ada_Be.Mappings; use Ada_Be.Mappings;
+with Ada_Be.Mappings;       use Ada_Be.Mappings;
+with Ada_Be.Mappings.CORBA; use Ada_Be.Mappings.CORBA;
 
 with Errors;                use Errors;
 with Utils;                 use Utils;
 
-with Ada.Strings.Fixed; use Ada.Strings.Fixed;
+with Ada.Strings.Fixed;     use Ada.Strings.Fixed;
 
 package body Ada_Be.Idl2Ada is
 
    Flag : constant Natural := Ada_Be.Debug.Is_Active ("ada_be.idl2ada");
    procedure O is new Ada_Be.Debug.Output (Flag);
-
-   ------------------------------------------
-   -- The current language mapping variant --
-   ------------------------------------------
-
-   type Mapping_Access is access Ada_Be.Mappings.Mapping_Type'Class;
-   Mapping : Mapping_Access;
 
    ---------------------------------------------
    -- The current state of the code generator --
@@ -215,7 +209,9 @@ package body Ada_Be.Idl2Ada is
    begin
       pragma Assert (Is_Repository (Node));
 
-      Mapping := new Mappings.Mapping_Type'Class'(Use_Mapping);
+      Mapping :=
+        new Mappings.CORBA.CORBA_Mapping_Type'Class'
+        (CORBA_Mapping_Type'Class (Use_Mapping));
       Init (It, Contents (Node));
       while not Is_End (It) loop
          Get_Next_Node (It, S_Node);
@@ -532,7 +528,7 @@ package body Ada_Be.Idl2Ada is
                   Gen_Operation_Profile
                     (CU, Node,
                      Ada_Type_Defining_Name
-                     (Parent_Scope (Node)));
+                     (Mapping, Parent_Scope (Node)));
                   PL (CU, " is");
                   II (CU);
                   Add_With (CU,
@@ -1112,7 +1108,7 @@ package body Ada_Be.Idl2Ada is
       NL (Stubs_Spec);
       PL (Stubs_Spec, "function Is_A");
       PL (Stubs_Spec, "  (Self : "
-          & Ada_Type_Defining_Name (Node)
+          & Ada_Type_Defining_Name (Mapping, Node)
           & ";");
       PL (Stubs_Spec, "   Logical_Type_Id : Standard.String)");
       PL (Stubs_Spec, "  return CORBA.Boolean;");
@@ -1135,7 +1131,7 @@ package body Ada_Be.Idl2Ada is
       NL (Stubs_Body);
       PL (Stubs_Body, "function Is_A");
       PL (Stubs_Body, "  (Self : "
-          & Ada_Type_Defining_Name (Node)
+          & Ada_Type_Defining_Name (Mapping, Node)
           & ";");
       PL (Stubs_Body, "   Logical_Type_Id : Standard.String)");
       PL (Stubs_Body, "  return CORBA.Boolean");
@@ -1315,7 +1311,7 @@ package body Ada_Be.Idl2Ada is
 
       NL (CU);
       Put (CU, "type "
-           & Ada_Type_Defining_Name (Node)
+           & Ada_Type_Defining_Name (Mapping, Node)
            & " is new ");
 
       if Primary_Parent = No_Node then
@@ -1387,7 +1383,7 @@ package body Ada_Be.Idl2Ada is
          Put (CU, "  new "
               & Ada_Full_Name (Forward_Node)
               & ".Convert ("
-              & Ada_Type_Defining_Name (Node)
+              & Ada_Type_Defining_Name (Mapping, Node)
               & ");");
          Add_With (CU, Ada_Full_Name
                    (Definition (Node).Parent_Scope));
@@ -1616,7 +1612,7 @@ package body Ada_Be.Idl2Ada is
             if not Is_Implicit_Inherited (Node) then
                Gen_Operation_Profile
                  (CU, Node, "in " & Ada_Type_Defining_Name
-                  (Parent_Scope (Node)));
+                  (Mapping, Parent_Scope (Node)));
                PL (CU, ";");
                if Original_Node (Node) = No_Node then
                   --  A real (not expanded) operation
@@ -2082,7 +2078,7 @@ package body Ada_Be.Idl2Ada is
 
                Gen_Operation_Profile
                  (CU, Node,
-                  Ada_Type_Defining_Name (Parent_Scope (Node)));
+                  Ada_Type_Defining_Name (Mapping, Parent_Scope (Node)));
 
                NL (CU);
                PL (CU, "is");
@@ -2187,7 +2183,8 @@ package body Ada_Be.Idl2Ada is
                                  else
                                     declare
                                        TC_Helper_Name   : constant String
-                                         := Ada_Helper_Name (P_Typ);
+                                         := Ada_Helper_Unit_Name
+                                         (Mapping, P_Typ);
                                     begin
                                        Add_With (CU, TC_Helper_Name);
                                        PL (CU, "  := CORBA.Get_Empty_Any");
@@ -2280,7 +2277,8 @@ package body Ada_Be.Idl2Ada is
                         while not Is_End (It) loop
                            Get_Next_Node (It, R_Node);
                            E_Node := Value (R_Node);
-                           Add_With (CU, Ada_Helper_Name (E_Node));
+                           Add_With
+                             (CU, Ada_Helper_Unit_Name (Mapping, E_Node));
                            if First then
                               NL (CU);
                               PL (CU, "--  Create exceptions list.");
@@ -2308,7 +2306,7 @@ package body Ada_Be.Idl2Ada is
                      PL (CU, "      Argument => "
                          & "CORBA.Internals.To_PolyORB_Any ");
 
-                     Add_With (CU, Ada_Helper_Name (Org_O_Type));
+                     Add_With (CU, Ada_Helper_Unit_Name (Mapping, Org_O_Type));
                      PL (CU, "  (Get_Empty_Any ("
                          & TC_Name (Org_O_Type) & ")),");
                      II (CU);
@@ -2779,43 +2777,6 @@ package body Ada_Be.Idl2Ada is
       end case;
    end Gen_Node_Default;
 
-   ----------------------------
-   -- Ada_Type_Defining_Name --
-   ----------------------------
-
-   function Ada_Type_Defining_Name (Node : Node_Id) return String is
-      NK : constant Node_Kind := Kind (Node);
-   begin
-      case NK is
-         when
-           K_Interface         |
-           K_Forward_Interface =>
-            return Calling_Stubs_Type (Mapping, Node);
-
-         when
-           K_ValueType         |
-           K_Forward_ValueType =>
-
-            if Abst (Node) then
-               return "Abstract_Value_Ref";
-            else
-               return "Value_Ref";
-            end if;
-
-         when others =>
-            --  Improper use: node N is not an
-            --  Interface or ValueType.
-
-            Error
-              ("Improper call of Ada_Type_Defining_Name with a "
-               & Node_Kind'Image (NK), Fatal, Get_Location (Node));
-
-            --  Keep the compiler happy.
-            raise Program_Error;
-
-      end case;
-   end Ada_Type_Defining_Name;
-
    --------------------
    -- Ada_Type_Name --
    --------------------
@@ -2862,7 +2823,8 @@ package body Ada_Be.Idl2Ada is
            K_Sequence_Instance |
            K_String_Instance =>
 
-            return Ada_Helper_Name (Node) & ".TC_" & Ada_Name (Node);
+            return
+              Ada_Helper_Unit_Name (Mapping, Node) & ".TC_" & Ada_Name (Node);
 
          when K_Declarator =>
             declare
@@ -2881,12 +2843,14 @@ package body Ada_Be.Idl2Ada is
                           K_Forward_ValueType =>
                            return TC_Name (T_Node);
                         when others =>
-                           return Ada_Helper_Name (Node) & ".TC_"
+                           return Ada_Helper_Unit_Name (Mapping, Node) & ".TC_"
                              & Ada_Name (Node);
                      end case;
                   end;
                else
-                  return Ada_Helper_Name (Node) & ".TC_" & Ada_Name (Node);
+                  return
+                    Ada_Helper_Unit_Name (Mapping, Node)
+                      & ".TC_" & Ada_Name (Node);
                end if;
             end;
 
@@ -2990,7 +2954,7 @@ package body Ada_Be.Idl2Ada is
                   --  From_Any and To_Any.
                   return Helper_Unit (P_T_Type);
                else
-                  return Ada_Helper_Name (Node);
+                  return Ada_Helper_Unit_Name (Mapping, Node);
                end if;
             end;
 
@@ -3005,7 +2969,7 @@ package body Ada_Be.Idl2Ada is
             --  Potentially different from Ada_Helper_Name (Node).
 
          when others =>
-            return Ada_Helper_Name (Node);
+            return Ada_Helper_Unit_Name (Mapping, Node);
       end case;
    end Helper_Unit;
 
@@ -3249,77 +3213,6 @@ package body Ada_Be.Idl2Ada is
       end case;
    end Ada_TC_Name;
 
-   ---------------------
-   -- Ada_Helper_Name --
-   ---------------------
-
-   function Ada_Helper_Name
-     (Node : in     Node_Id)
-     return String
-   is
-      NK : constant Node_Kind := Kind (Node);
-   begin
-      case NK is
-         when
-           K_Interface | K_ValueType =>
-            return Client_Stubs_Unit_Name (Mapping, Node)
-              & Helper.Suffix;
-
-         when
-           K_Forward_Interface | K_Forward_ValueType =>
-            return Parent_Scope_Name (Node) & Helper.Suffix;
-
-         when
-           K_Sequence_Instance |
-           K_String_Instance   |
-           K_Enum              |
-           K_Union             |
-           K_Struct            |
-           K_Exception         |
-           K_Declarator        =>
-
-            return Client_Stubs_Unit_Name
-              (Mapping, Parent_Scope (Node))
-              & Helper.Suffix;
-
-         when K_Scoped_Name =>
-            return Ada_Helper_Name (Value (Node));
-
-         when K_Short           |
-           K_Long               |
-           K_Long_Long          |
-           K_Unsigned_Short     |
-           K_Unsigned_Long      |
-           K_Unsigned_Long_Long |
-           K_Char               |
-           K_Wide_Char          |
-           K_Boolean            |
-           K_Float              |
-           K_Double             |
-           K_Long_Double        |
-           K_String             |
-           K_Wide_String        |
-           K_Octet              |
-           K_Any                |
-           K_Void               =>
-            return "CORBA";
-
-         when K_Object =>
-            return "CORBA.Object.Helper";
-
-         when others =>
-            --  Improper use: node N is not
-            --  mapped to an Ada type.
-
-            Error
-              ("No helpers for " & Node_Kind'Image (NK) & " nodes.",
-               Fatal, Get_Location (Node));
-
-            --  Keep the compiler happy.
-            raise Program_Error;
-      end case;
-   end Ada_Helper_Name;
-
    ----------------------
    -- Ada_Full_TC_Name --
    ----------------------
@@ -3328,7 +3221,7 @@ package body Ada_Be.Idl2Ada is
      (Node : Node_Id)
      return String is
    begin
-      return Ada_Helper_Name (Node) & "." & Ada_TC_Name (Node);
+      return Ada_Helper_Unit_Name (Mapping, Node) & "." & Ada_TC_Name (Node);
    end Ada_Full_TC_Name;
 
    -----------------------------

@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                A D A _ B E . M A P P I N G S . C O R B A                 --
+--        A D A _ B E . M A P P I N G S . C O R B A . A L M _ 1 _ 2         --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--            Copyright (C) 2005 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,74 +31,26 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  The CORBA personality IDL mapping.
+--  This unit controls the mapping of specific CORBA IDL constructs
+--  into Ada units as defined by the Ada Language Mapping version 1.2.
 
-package Ada_Be.Mappings.CORBA is
+package Ada_Be.Mappings.CORBA.ALM_1_2 is
 
-   type CORBA_Mapping_Type is new Mapping_Type with private;
+   function Is_Well_Known_Node (Node : in Idl_Fe.Types.Node_Id) return Boolean;
+   --  Return True iff Node denotes one CORBA IDL construct with
+   --  specific mapping rules.
 
-   function Library_Unit_Name
-     (Self : access CORBA_Mapping_Type;
-      Node : Idl_Fe.Types.Node_Id)
-     return String;
+   function Fetch_Unit_Name (Node : in Idl_Fe.Types.Node_Id) return String;
+   --  Return fully qualified compilation base unit name for Node
 
-   function Client_Stubs_Unit_Name
-     (Self : access CORBA_Mapping_Type;
-      Node : Idl_Fe.Types.Node_Id)
-     return String;
+   function Fetch_Helper_Unit_Name
+     (Node : in Idl_Fe.Types.Node_Id)
+      return String;
+   --  Return fully qualified compilation helper unit name for Node
 
-   function Server_Skel_Unit_Name
-     (Self : access CORBA_Mapping_Type;
-      Node : Idl_Fe.Types.Node_Id)
-     return String;
+   function Fetch_Calling_Stubs_Type_Name
+     (Node : in Idl_Fe.Types.Node_Id)
+      return String;
+   --  Return calling stubs type name corresponding to Node
 
-   function Self_For_Operation
-     (Self : access CORBA_Mapping_Type;
-      Node : Idl_Fe.Types.Node_Id)
-     return String;
-
-   procedure Map_Type_Name
-     (Self : access CORBA_Mapping_Type;
-      Node : Idl_Fe.Types.Node_Id;
-      Unit : out ASU.Unbounded_String;
-      Typ  : out ASU.Unbounded_String);
-
-   function Calling_Stubs_Type
-     (Self : access CORBA_Mapping_Type;
-      Node : Idl_Fe.Types.Node_Id)
-     return String;
-
-   function Generate_Scope_In_Child_Package
-     (Self : access CORBA_Mapping_Type;
-      Node : Idl_Fe.Types.Node_Id)
-     return Boolean;
-
-   The_CORBA_Mapping : constant CORBA_Mapping_Type;
-
-   ----------------------------
-   -- CORBA specific section --
-   ----------------------------
-
-   function Ada_Helper_Unit_Name
-     (Mapping : access CORBA_Mapping_Type;
-      Node    : in     Idl_Fe.Types.Node_Id)
-     return String;
-   --  The name of the helper package where the TypeCode and To_Any/From_Any
-   --  subprograms corresponding to Node is defined
-
-   function Ada_Type_Defining_Name
-     (Mapping : access CORBA_Mapping_Type;
-      Node    : in     Idl_Fe.Types.Node_Id)
-     return String;
-   --  The defining name of the Ada type that maps Node
-   --  (a K_Interface or K_ValueType).
-   --  This is not the fully qualified name.
-
-private
-
-   type CORBA_Mapping_Type is new Mapping_Type with null record;
-
-   The_CORBA_Mapping : constant CORBA_Mapping_Type
-     := (Mapping_Type with null record);
-
-end Ada_Be.Mappings.CORBA;
+end Ada_Be.Mappings.CORBA.ALM_1_2;

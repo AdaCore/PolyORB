@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,25 +26,146 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  The CORBA personality IDL mapping.
 
-with Errors; use Errors;
+with Errors;                        use Errors;
 
-with Idl_Fe.Tree; use Idl_Fe.Tree;
-with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree.Synthetic;
-with Ada_Be.Identifiers; use Ada_Be.Identifiers;
-with Ada_Be.Idl2Ada; use Ada_Be.Idl2Ada;
+with Idl_Fe.Tree;                   use Idl_Fe.Tree;
+with Idl_Fe.Tree.Synthetic;         use Idl_Fe.Tree.Synthetic;
+with Ada_Be.Identifiers;            use Ada_Be.Identifiers;
+with Ada_Be.Mappings.CORBA.ALM_1_2; use Ada_Be.Mappings.CORBA.ALM_1_2;
 
 package body Ada_Be.Mappings.CORBA is
 
    use Idl_Fe.Types;
 
-   Skel_Suffix : constant String := ".Skel";
+   Skel_Suffix   : constant String := ".Skel";
+   Helper_Suffix : constant String := ".Helper";
+
+   --------------------------
+   -- Ada_Helper_Unit_Name --
+   --------------------------
+
+   function Ada_Helper_Unit_Name
+     (Mapping : access CORBA_Mapping_Type;
+      Node    : in     Node_Id)
+     return String
+   is
+      NK : constant Node_Kind := Kind (Node);
+   begin
+      case NK is
+         when
+           K_Interface | K_ValueType =>
+            if Is_Well_Known_Node (Node) then
+               return Fetch_Helper_Unit_Name (Node);
+            else
+               return Client_Stubs_Unit_Name (Mapping, Node) & Helper_Suffix;
+            end if;
+
+         when
+           K_Forward_Interface | K_Forward_ValueType =>
+            return Parent_Scope_Name (Node) & Helper_Suffix;
+
+         when
+           K_Sequence_Instance |
+           K_String_Instance   |
+           K_Enum              |
+           K_Union             |
+           K_Struct            |
+           K_Exception         |
+           K_Declarator        =>
+
+            return Client_Stubs_Unit_Name
+              (Mapping, Parent_Scope (Node))
+              & Helper_Suffix;
+
+         when K_Scoped_Name =>
+            return Ada_Helper_Unit_Name (Mapping, Value (Node));
+
+         when K_Short           |
+           K_Long               |
+           K_Long_Long          |
+           K_Unsigned_Short     |
+           K_Unsigned_Long      |
+           K_Unsigned_Long_Long |
+           K_Char               |
+           K_Wide_Char          |
+           K_Boolean            |
+           K_Float              |
+           K_Double             |
+           K_Long_Double        |
+           K_String             |
+           K_Wide_String        |
+           K_Octet              |
+           K_Any                |
+           K_Void               =>
+            return "CORBA";
+
+         when K_Object =>
+            return "CORBA.Object.Helper";
+
+         when others =>
+            --  Improper use: node N is not
+            --  mapped to an Ada type.
+
+            Error
+              ("No helpers for " & Node_Kind'Image (NK) & " nodes.",
+               Fatal, Get_Location (Node));
+
+            --  Keep the compiler happy.
+            raise Program_Error;
+      end case;
+   end Ada_Helper_Unit_Name;
+
+   ----------------------------
+   -- Ada_Type_Defining_Name --
+   ----------------------------
+
+   function Ada_Type_Defining_Name
+     (Mapping : access CORBA_Mapping_Type;
+      Node    : in     Node_Id)
+      return String
+   is
+      NK : constant Node_Kind := Kind (Node);
+   begin
+      case NK is
+         when
+           K_Interface         |
+           K_Forward_Interface =>
+            return Calling_Stubs_Type (Mapping, Node);
+
+         when
+           K_ValueType         |
+           K_Forward_ValueType =>
+
+            if Abst (Node) then
+               return "Abstract_Value_Ref";
+            else
+               return "Value_Ref";
+            end if;
+
+         when others =>
+            --  Improper use: node N is not an
+            --  Interface or ValueType.
+
+            Error
+              ("Improper call of Ada_Type_Defining_Name with a "
+               & Node_Kind'Image (NK), Fatal, Get_Location (Node));
+
+            --  Keep the compiler happy.
+            raise Program_Error;
+
+      end case;
+   end Ada_Type_Defining_Name;
+
+   -----------------------
+   -- Library_Unit_Name --
+   -----------------------
 
    function Library_Unit_Name
      (Self : access CORBA_Mapping_Type;
@@ -138,28 +259,37 @@ package body Ada_Be.Mappings.CORBA is
       --  as a formal parameter named Self.
    end Self_For_Operation;
 
+   -------------------
+   -- Map_Type_Name --
+   -------------------
+
    procedure Map_Type_Name
      (Self : access CORBA_Mapping_Type;
-      Node : Node_Id;
-      Unit : out ASU.Unbounded_String;
-      Typ  : out ASU.Unbounded_String)
+      Node : in     Node_Id;
+      Unit :    out ASU.Unbounded_String;
+      Typ  :    out ASU.Unbounded_String)
    is
       NK : constant Node_Kind := Kind (Node);
    begin
-      Unit := +Library_Unit_Name (Self, Node);
+      if Is_Well_Known_Node (Node) then
+         Unit := +Fetch_Unit_Name (Node);
+
+      else
+         Unit := +Library_Unit_Name (Self, Node);
+      end if;
 
       case NK is
          when
            K_Interface         |
            K_ValueType         =>
             Typ := +(Library_Unit_Name (Self, Node)
-                     & "." & Ada_Type_Defining_Name (Node));
+                     & "." & Ada_Type_Defining_Name (Self, Node));
          when
            K_Forward_Interface |
            K_Forward_ValueType =>
             Typ := +(Library_Unit_Name (Self, Node)
                      & "." & Ada_Name (Node)
-                     & "." & Ada_Type_Defining_Name (Node));
+                     & "." & Ada_Type_Defining_Name (Self, Node));
 
          when K_Sequence_Instance =>
             Typ := +(Ada_Full_Name (Node) & ".Sequence");
@@ -258,6 +388,8 @@ package body Ada_Be.Mappings.CORBA is
          return "Abstract_Ref";
       elsif Local (Node) then
          return "Local_Ref";
+      elsif Is_Well_Known_Node (Node) then
+         return Fetch_Calling_Stubs_Type_Name (Node);
       else
          return "Ref";
       end if;

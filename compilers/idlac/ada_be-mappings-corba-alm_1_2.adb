@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                A D A _ B E . M A P P I N G S . C O R B A                 --
+--        A D A _ B E . M A P P I N G S . C O R B A . A L M _ 1 _ 2         --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--            Copyright (C) 2005 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,74 +31,85 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  The CORBA personality IDL mapping.
+with Ada_Be.Identifiers; use Ada_Be.Identifiers;
+with Idl_Fe.Tree;        use Idl_Fe.Tree;
+with Idl_Fe.Types;       use Idl_Fe.Types;
 
-package Ada_Be.Mappings.CORBA is
+package body Ada_Be.Mappings.CORBA.ALM_1_2 is
 
-   type CORBA_Mapping_Type is new Mapping_Type with private;
+   function Is_CORBA_TypeCode (Node : in Idl_Fe.Types.Node_Id) return Boolean;
+   --  Return True iff Node denote CORBA.TypeCode interface declaration
 
-   function Library_Unit_Name
-     (Self : access CORBA_Mapping_Type;
-      Node : Idl_Fe.Types.Node_Id)
-     return String;
+   -----------------------------------
+   -- Fetch_Calling_Stubs_Type_Name --
+   -----------------------------------
 
-   function Client_Stubs_Unit_Name
-     (Self : access CORBA_Mapping_Type;
-      Node : Idl_Fe.Types.Node_Id)
-     return String;
+   function Fetch_Calling_Stubs_Type_Name (Node : in Node_Id) return String is
+   begin
+      pragma Assert (Is_Well_Known_Node (Node));
 
-   function Server_Skel_Unit_Name
-     (Self : access CORBA_Mapping_Type;
-      Node : Idl_Fe.Types.Node_Id)
-     return String;
+      if Is_CORBA_TypeCode (Node) then
+         return "Object";
 
-   function Self_For_Operation
-     (Self : access CORBA_Mapping_Type;
-      Node : Idl_Fe.Types.Node_Id)
-     return String;
-
-   procedure Map_Type_Name
-     (Self : access CORBA_Mapping_Type;
-      Node : Idl_Fe.Types.Node_Id;
-      Unit : out ASU.Unbounded_String;
-      Typ  : out ASU.Unbounded_String);
-
-   function Calling_Stubs_Type
-     (Self : access CORBA_Mapping_Type;
-      Node : Idl_Fe.Types.Node_Id)
-     return String;
-
-   function Generate_Scope_In_Child_Package
-     (Self : access CORBA_Mapping_Type;
-      Node : Idl_Fe.Types.Node_Id)
-     return Boolean;
-
-   The_CORBA_Mapping : constant CORBA_Mapping_Type;
+      else
+         raise Program_Error;
+      end if;
+   end Fetch_Calling_Stubs_Type_Name;
 
    ----------------------------
-   -- CORBA specific section --
+   -- Fetch_Helper_Unit_Name --
    ----------------------------
 
-   function Ada_Helper_Unit_Name
-     (Mapping : access CORBA_Mapping_Type;
-      Node    : in     Idl_Fe.Types.Node_Id)
-     return String;
-   --  The name of the helper package where the TypeCode and To_Any/From_Any
-   --  subprograms corresponding to Node is defined
+   function Fetch_Helper_Unit_Name (Node : in Node_Id) return String is
+   begin
+      pragma Assert (Is_Well_Known_Node (Node));
 
-   function Ada_Type_Defining_Name
-     (Mapping : access CORBA_Mapping_Type;
-      Node    : in     Idl_Fe.Types.Node_Id)
-     return String;
-   --  The defining name of the Ada type that maps Node
-   --  (a K_Interface or K_ValueType).
-   --  This is not the fully qualified name.
+      if Is_CORBA_TypeCode (Node) then
+         return "CORBA";
 
-private
+      else
+         raise Program_Error;
+      end if;
+   end Fetch_Helper_Unit_Name;
 
-   type CORBA_Mapping_Type is new Mapping_Type with null record;
+   ---------------------
+   -- Fetch_Unit_Name --
+   ---------------------
 
-   The_CORBA_Mapping : constant CORBA_Mapping_Type
-     := (Mapping_Type with null record);
+   function Fetch_Unit_Name (Node : in Node_Id) return String is
+   begin
+      pragma Assert (Is_Well_Known_Node (Node));
 
-end Ada_Be.Mappings.CORBA;
+      if Is_CORBA_TypeCode (Node) then
+         return "CORBA";
+
+      else
+         raise Program_Error;
+      end if;
+   end Fetch_Unit_Name;
+
+   -----------------------
+   -- Is_CORBA_TypeCode --
+   -----------------------
+
+   function Is_CORBA_TypeCode (Node : in Node_Id) return Boolean is
+   begin
+      return Kind (Node) = K_Interface
+        and then Ada_Full_Name (Node) = "CORBA.TypeCode";
+   end Is_CORBA_TypeCode;
+
+   ------------------------
+   -- Is_Well_Known_Node --
+   ------------------------
+
+   function Is_Well_Known_Node (Node : in Node_Id) return Boolean is
+   begin
+      if Is_CORBA_TypeCode (Node) then
+         return True;
+
+      else
+         return False;
+      end if;
+   end Is_Well_Known_Node;
+
+end Ada_Be.Mappings.CORBA.ALM_1_2;

@@ -36,10 +36,11 @@ with Idl_Fe.Tree;           use Idl_Fe.Tree;
 with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree.Synthetic;
 
 with Ada_Be.Identifiers;    use Ada_Be.Identifiers;
-with Ada_Be.Temporaries;    use Ada_Be.Temporaries;
 with Ada_Be.Idl2Ada.Impl;
 with Ada_Be.Idl2Ada.Helper;
 with Ada_Be.Idl2Ada.Value_Skel;
+with Ada_Be.Mappings.CORBA; use Ada_Be.Mappings.CORBA;
+with Ada_Be.Temporaries;    use Ada_Be.Temporaries;
 
 with Ada_Be.Debug;
 pragma Elaborate_All (Ada_Be.Debug);
@@ -453,7 +454,7 @@ package body Ada_Be.Idl2Ada.Skel is
 
                         P_Typ : constant Node_Id := Param_Type (P_Node);
                         Helper_Name : constant String
-                          := Ada_Helper_Name (P_Typ);
+                          := Ada_Helper_Unit_Name (Mapping, P_Typ);
 
                      begin
 

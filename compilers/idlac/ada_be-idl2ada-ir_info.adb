@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -36,6 +36,7 @@ with Idl_Fe.Tree;           use Idl_Fe.Tree;
 with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree.Synthetic;
 
 with Ada_Be.Identifiers;    use Ada_Be.Identifiers;
+with Ada_Be.Mappings.CORBA; use Ada_Be.Mappings.CORBA;
 with Ada_Be.Debug;
 pragma Elaborate_All (Ada_Be.Debug);
 
@@ -829,7 +830,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
             PL (CU, "(name => CORBA.To_CORBA_String ("""
                 & Name (Declarator (P_Node)) & """),");
 
-            Add_With (CU, Ada_Helper_Name (T_Node));
+            Add_With (CU, Ada_Helper_Unit_Name (Mapping, T_Node));
             Add_With (CU, Ada_IR_Info_Name (T_Node));
 
             PL (CU, " IDL_type =>");
@@ -1091,7 +1092,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
             Get_Next_Node (It, M_Node);
             T_Node := M_Type (M_Node);
 
-            Add_With (CU, Ada_Helper_Name (T_Node));
+            Add_With (CU, Ada_Helper_Unit_Name (Mapping, T_Node));
 
             Init (It2, Decl (M_Node));
             while not Is_End (It2) loop
@@ -1166,11 +1167,11 @@ package body Ada_Be.Idl2Ada.IR_Info is
      (CU        : in out Compilation_Unit;
       Node      : in     Node_Id)
    is
-      It, It2 : Node_Iterator;
-      IRN : constant String := Ada_IR_Name (Node);
-      Case_Index : Long_Integer := -1;
-      ST_Node : constant Node_Id := Switch_Type (Node);
-      ST_Helper : constant String := Ada_Helper_Name (ST_Node);
+      IRN        : constant String  := Ada_IR_Name (Node);
+      It, It2    : Node_Iterator;
+      Case_Index : Long_Integer     := -1;
+      ST_Node    : constant Node_Id := Switch_Type (Node);
+      ST_Helper  : constant String  := Ada_Helper_Unit_Name (Mapping, ST_Node);
    begin
       Gen_IR_Function_Prologue (CU, Node, For_Body => True);
       Gen_Parent_Container_Lookup (CU, Node);
