@@ -303,6 +303,21 @@ package Broca.CDR is
      (Buffer : access Buffer_Type;
       Data : in out CORBA.Object.Ref'Class);
 
+   generic
+      type F is delta <> digits <>;
+   package Fixed_Point is
+
+      procedure Marshall
+        (Buffer : access Buffer_Type;
+         Data   : access F);
+      procedure Marshall
+        (Buffer : access Buffer_Type;
+         Data   : in F);
+
+      function Unmarshall (Buffer : access Buffer_Type)
+                           return F;
+   end Fixed_Point;
+
 private
 
    procedure Align_Marshall_Copy

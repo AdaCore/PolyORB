@@ -2619,7 +2619,7 @@ package body Ada_Be.Idl2Ada is
                      PL (CU, "package CDR_"
                          & Type_Name & " is");
                      PL (CU, "  new Broca.CDR.Fixed_Point ("
-                         & Type_Name & ";");
+                         & Type_Name & ");");
 
                      Gen_Marshall_Profile
                        (CU, Decl_Node);
