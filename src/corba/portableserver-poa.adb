@@ -33,6 +33,7 @@
 
 with Ada.Exceptions;
 
+with CORBA.DomainManager.Helper;
 with CORBA.ORB;
 
 with PortableServer.ServantActivator;
@@ -60,6 +61,7 @@ with PolyORB.Types;
 with PolyORB.Utils.Strings;
 
 with PolyORB.CORBA_P.AdapterActivator;
+with PolyORB.CORBA_P.Domain_Management;
 with PolyORB.CORBA_P.Exceptions;
 with PolyORB.CORBA_P.Interceptors_Hooks;
 with PolyORB.CORBA_P.POA_Config;
@@ -85,6 +87,45 @@ package body PortableServer.POA is
      (Self : Ref)
      return PolyORB.POA.Obj_Adapter_Access;
    --  Convert a Ref to a CORBA POA to a PolyORB POA.
+
+   procedure Associate_To_Domain_Managers (P_Servant : in Servant);
+   --  Associate servant with domain managers
+
+   ----------------------------------
+   -- Associate_To_Domain_Managers --
+   ----------------------------------
+
+   procedure Associate_To_Domain_Managers (P_Servant : in Servant) is
+      Policy_Manager : CORBA.DomainManager.Ref;
+      Note           : PolyORB.CORBA_P.Domain_Management.Domain_Manager_Note;
+
+   begin
+      --  Associate activated servant with domain managers. For now we just
+      --  add policy domain manager into list of object domain managers.
+
+      begin
+         Policy_Manager
+           := CORBA.DomainManager.Helper.To_Ref
+           (CORBA.ORB.Resolve_Initial_References
+            (CORBA.ORB.To_CORBA_String ("PolyORBPolicyDomainManager")));
+
+      exception
+         when CORBA.InvalidName =>
+            pragma Debug (O ("No policy domain manager registered"));
+            return;
+      end;
+
+      CORBA.DomainManager.IDL_Sequence_DomainManager.Append
+        (Note.Domain_Managers, Policy_Manager);
+
+      PolyORB.Annotations.Set_Note
+        (PolyORB.Servants.Notepad_Of
+         (CORBA.Impl.To_PolyORB_Servant
+          (CORBA.Impl.Object (P_Servant.all)'Access)).all,
+         Note);
+
+      pragma Debug (O ("Servant associated with policy domain manager"));
+   end Associate_To_Domain_Managers;
 
    ----------------
    -- Create_Ref --
@@ -717,6 +758,8 @@ package body PortableServer.POA is
          PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
       end if;
 
+      Associate_To_Domain_Managers (P_Servant);
+
       declare
          Oid : constant PolyORB.POA_Types.Object_Id :=
            PolyORB.POA_Types.U_Oid_To_Oid (U_Oid);
@@ -750,6 +793,8 @@ package body PortableServer.POA is
          A_Oid'Unchecked_Access,
          U_Oid,
          Error);
+
+      Associate_To_Domain_Managers (P_Servant);
 
       if Found (Error) then
          PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
@@ -877,8 +922,8 @@ package body PortableServer.POA is
    -------------------
 
    function Servant_To_Id
-     (Self      : Ref;
-      P_Servant : Servant)
+     (Self      : in Ref;
+      P_Servant : in Servant)
      return ObjectId
    is
       POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
@@ -897,6 +942,11 @@ package body PortableServer.POA is
          PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
       end if;
 
+      --  XXX Associate an object with domain managers iff it has been
+      --  implicitly activated by this call
+
+      Associate_To_Domain_Managers (P_Servant);
+
       declare
          Result : constant ObjectId := ObjectId (Oid.all);
 
@@ -912,8 +962,8 @@ package body PortableServer.POA is
    --------------------------
 
    function Servant_To_Reference
-     (Self : Ref;
-      P_Servant : Servant)
+     (Self      : in Ref;
+      P_Servant : in Servant)
      return CORBA.Object.Ref
    is
       POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
@@ -943,6 +993,11 @@ package body PortableServer.POA is
       --  Obtain object reference.
 
       PolyORB.POA_Types.Free (Oid);
+
+      --  XXX Associate an object with domain managers iff it has been
+      --  implicitly activated by this call
+
+      Associate_To_Domain_Managers (P_Servant);
 
       CORBA.Object.Internals.Convert_To_CORBA_Ref
         (P_Result, C_Result);
