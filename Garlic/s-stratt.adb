@@ -376,7 +376,7 @@ package body System.Stream_Attributes is
 
    function I_B (Stream : access RST) return Boolean is
    begin
-      case I_I (Stream) is
+      case I_SSU (Stream) is
          when 0      => return False;
          when 1      => return True;
          when others => raise Err;
@@ -1173,9 +1173,9 @@ package body System.Stream_Attributes is
    procedure W_B (Stream : access RST; Item : in Boolean) is
    begin
       if Item then
-         W_I (Stream, 1);
+         W_SSU (Stream, 1);
       else
-         W_I (Stream, 0);
+         W_SSU (Stream, 0);
       end if;
    end W_B;
 
