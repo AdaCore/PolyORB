@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.adb#20 $
+--  $Id: //droopi/main/src/polyorb-any.adb#21 $
 
 with Ada.Exceptions;
 with Ada.Tags;
@@ -38,6 +38,8 @@ with Ada.Tags;
 with PolyORB.Locks;
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
+
+with System.Address_Image;
 
 package body PolyORB.Any is
 
@@ -2902,9 +2904,13 @@ package body PolyORB.Any is
    ------------------
    procedure Initialize (Object : in out Any) is
    begin
-      pragma Debug (O2 ("Initialize"));
+      pragma Debug (O2 ("Initialize: enter, Object = "
+                        & System.Address_Image (Object'Address)));
       Object.Ref_Counter := new Natural'(1);
       PolyORB.Locks.Create (Object.Any_Lock);
+      pragma Debug
+        (O2 ("  Lck = "
+             & System.Address_Image (Object.Any_Lock.all'Address)));
       Object.The_Value := new Any_Content_Ptr'(null);
    end Initialize;
 
@@ -2914,7 +2920,13 @@ package body PolyORB.Any is
    procedure Adjust (Object : in out Any) is
       Value : Any_Content_Ptr;
    begin
-      pragma Debug (O2 ("Adjust : enter"));
+      pragma Debug (O2 ("Adjust : enter, Object = "
+                        & System.Address_Image (Object'Address)));
+      pragma Debug (O2 ("  Cnt = "
+                         & Integer'Image (Get_Counter (Object).all)));
+      pragma Debug (O2 ("  Lck = "
+                        & System.Address_Image
+                        (Object.Any_Lock.all'Address)));
       if Object.As_Reference then
          Inc_Usage (Object);
       else
@@ -2941,7 +2953,8 @@ package body PolyORB.Any is
    ----------------
    procedure Finalize (Object : in out Any) is
    begin
-      pragma Debug (O2 ("Finalize: enter"));
+      pragma Debug (O2 ("Finalize: enter, Object = "
+                        & System.Address_Image (Object'Address)));
       Dec_Usage (Object);
       pragma Debug (O2 ("Finalize: end"));
    exception
@@ -2960,16 +2973,6 @@ package body PolyORB.Any is
       Obj.The_Value.all := The_Value;
       Unlock_W (Obj.Any_Lock);
    end Set_Value;
-
-   -------------------
-   --  Set_Counter  --
-   -------------------
-   procedure Set_Counter (Obj : in out Any; The_Counter : in Natural_Ptr) is
-   begin
-      Lock_W (Obj.Any_Lock);
-      Obj.Ref_Counter := The_Counter;
-      Unlock_W (Obj.Any_Lock);
-   end Set_Counter;
 
    ---------------------
    --  Get_Value_Ptr  --
@@ -3022,29 +3025,35 @@ package body PolyORB.Any is
 
    procedure Dec_Usage (Obj : in out Any) is
    begin
-      pragma Debug (O2 ("Dec_Usage : enter"));
+      pragma Debug (O2 ("Dec_Usage: enter, Obj = "
+                        & System.Address_Image (Obj'Address)));
+      pragma Debug
+        (O2 ("  Lck = "
+             & System.Address_Image (Obj.Any_Lock.all'Address)));
       Lock_W (Obj.Any_Lock);
-      pragma Debug (O2 ("Dec_Usage : lock placed"));
+      pragma Debug (O2 ("Dec_Usage: lock placed, Cnt = "
+                        & Integer'Image (Obj.Ref_Counter.all)));
       if Obj.Ref_Counter.all > 1 then
          Obj.Ref_Counter.all := Obj.Ref_Counter.all - 1;
-         pragma Debug (O2 ("Dec_Usage : counter decremented"));
+         pragma Debug (O2 ("Dec_Usage: counter decremented"));
          Unlock_W (Obj.Any_Lock);
-         pragma Debug (O2 ("Dec_Usage : lock released"));
+         pragma Debug (O2 ("Dec_Usage: lock released"));
       else
-         pragma Debug (O2 ("Dec_Usage : about to release the any"));
+         pragma Debug (O2 ("Dec_Usage: about to release the any"));
          if Obj.The_Value.all /= null then
-            pragma Debug (O2 ("Dec_Usage : deallocation of a "
+            pragma Debug (O2 ("Dec_Usage: deallocation of a "
                               & Ada.Tags.External_Tag
                               (Obj.The_Value.all'Tag)));
             Deallocate (Obj.The_Value.all);
          end if;
-         pragma Debug (O2 ("Dec_Usage : content released"));
+         pragma Debug (O2 ("Dec_Usage: content released"));
          Deallocate_Any_Content_Ptr (Obj.The_Value);
-         pragma Debug (O2 ("Dec_Usage : content_Ptr released"));
+         pragma Debug (O2 ("Dec_Usage: content_Ptr released"));
          Deallocate (Obj.Ref_Counter);
-         pragma Debug (O2 ("Dec_Usage : counter deallocated"));
+         pragma Debug (O2 ("Dec_Usage: counter deallocated"));
          Unlock_W (Obj.Any_Lock);
-         pragma Debug (O2 ("Dec_Usage : lock released, DESTROYING"));
+         pragma Debug (O2 ("Dec_Usage: lock released, DESTROYING Lck = "
+                           & System.Address_Image (Obj.Any_Lock.all'Address)));
          PolyORB.Locks.Destroy (Obj.Any_Lock);
       end if;
       pragma Debug (O2 ("Dec_Usage : end"));
