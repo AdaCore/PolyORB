@@ -528,8 +528,8 @@ module Nodes {
   */
 
   interface Fixed_Point_Type : Node_Id {
-    Name_Id      N_Digits;
-    Name_Id      N_Delta;
+    long     N_Total;
+    long     N_Scale;
   };
 
 
