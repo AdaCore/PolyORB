@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2001 Free Software Foundation, Inc.             --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,12 +31,13 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/testparser.adb#2 $
+--  $Id$
 
 with Ada.Exceptions;    use Ada.Exceptions;
 with Ada.Text_IO;       use Ada.Text_IO;
 with GNAT.Command_Line; use GNAT.Command_Line;
 
+with Idl_Fe.Lexer;
 with Idl_Fe.Types;
 with Idl_Fe.Parser;
 with Idl_Fe.Display_Tree;
@@ -71,10 +72,7 @@ begin
       end case;
    end loop;
 
-   Idl_Fe.Parser.Initialize
-     (Get_Argument,
-      Preprocess => True,
-      Keep_Temporary_Files => False);
+   Idl_Fe.Parser.Initialize (Get_Argument);
 
    Put_Line (Current_Error, "Testparser : Parsing");
    Rep := Idl_Fe.Parser.Parse_Specification;
@@ -123,4 +121,5 @@ begin
          (Exception_Raised.all));
    end if;
 
+   Idl_Fe.Lexer.Remove_Temporary_Files;
 end Testparser;
