@@ -81,7 +81,7 @@ package body AWS.Server is
    use PolyORB.Log;
    package L is
      new PolyORB.Log.Facility_Log ("aws.server");
-   procedure O (Message : in Standard.String; Level : Log_Level := Critical)
+   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
    --  the polyorb logging facility
 
