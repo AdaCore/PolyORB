@@ -44,6 +44,7 @@ package body PolyORB.Object_Maps is
    function Is_Null
      (Item : in Object_Map_Entry_Access)
      return Boolean;
+   pragma Inline (Is_Null);
 
    function Is_Null
      (Item : in Object_Map_Entry_Access)
@@ -64,10 +65,10 @@ package body PolyORB.Object_Maps is
    is
       Elts  : constant Element_Array := To_Element_Array (O_Map.Map);
    begin
-      for I in Elts'Range loop
-         if Is_Null (Elts (I)) then
-            Replace_Element (O_Map.Map, 1 + I - Elts'First, Obj);
-            return I;
+      for J in Elts'Range loop
+         if Is_Null (Elts (J)) then
+            Replace_Element (O_Map.Map, 1 + J - Elts'First, Obj);
+            return J;
          end if;
       end loop;
 
@@ -112,13 +113,14 @@ package body PolyORB.Object_Maps is
    is
       Elts  : constant Element_Array := To_Element_Array (O_Map.Map);
    begin
-      for I in Elts'Range loop
-         if not Is_Null (Elts (I))
-           and then Elts (I).Oid.all = Item
+      for J in Elts'Range loop
+         if not Is_Null (Elts (J))
+           and then Elts (J).Oid.all = Item
          then
-            return Elts (I);
+            return Elts (J);
          end if;
       end loop;
+
       return null;
    end Get_By_Id;
 
@@ -134,13 +136,14 @@ package body PolyORB.Object_Maps is
       use type PolyORB.Servants.Servant_Access;
       Elts  : constant Element_Array := To_Element_Array (O_Map.Map);
    begin
-      for I in Elts'Range loop
-         if not Is_Null (Elts (I))
-           and then Elts (I).Servant = Item
+      for J in Elts'Range loop
+         if not Is_Null (Elts (J))
+           and then Elts (J).Servant = Item
          then
-            return Elts (I);
+            return Elts (J);
          end if;
       end loop;
+
       return null;
    end Get_By_Servant;
 
