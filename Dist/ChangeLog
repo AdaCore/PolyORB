@@ -4,14 +4,8 @@ Wed Sep 17 18:15:37 1997  Laurent Pautet  <pautet@scapin.enst.fr>
 	a pragma Starter (Shell) because some systems output the pid of
 	the background process.
 
-Mon Sep 15 15:13:52 1997  Laurent Pautet  <pautet@esmeralda.enst.fr>
-
 	* xe_stubs.adb: Fix Mark_Unit_On_Partition when unit is generic.
-
-Sun Sep 14 19:47:21 1997  Samuel Tardieu  <sam@inf.enst.fr>
-
-	* xe_check.adb: Do not barf about generic RCI units.
-
+	
 Sat Sep 13 14:32:15 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* config.sdefault: Use output of gnatls to find the right include
