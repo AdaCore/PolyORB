@@ -568,7 +568,7 @@ package body MemBufferedStream is
       Size := Corba.Length (A) + Corba.Unsigned_Long (1) ;
       Marshall (Size , S) ;
       -- Then marshall the string itself and a null character at the end
-      for I in 1..Integer(Size) loop
+      for I in 1..Integer(Size)-1 loop
          C := Ada.Strings.Unbounded.Element (Ada.Strings.Unbounded.Unbounded_String (A),I) ;
          Marshall (C,S) ;
       end loop ;
