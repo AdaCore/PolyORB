@@ -372,8 +372,10 @@ adabe_interface::produce_adb(dep_list& with, string &body, string &previous)
   body += "         return Result ;\n";
   body += "      end if ;\n\n";
   body += "      Ada.Exceptions.Raise_Exception(Constraint_Error'Identity,\n";
-  body += "                                     \"Can *only* call To_Ref to create a Ref from an Impl.Object\"\n";
-  body += "                                     \"When they represent the same IDL interface\"\n";
+  body += "                                     Corba.CRLF\n" ;
+  body += "                                     & \"Can *only* call To_Ref to create a Ref from an Impl.Object\"\n";
+  body += "                                     & Corba.CRLF\n" ;
+  body += "                                     & \"When they represent the same IDL interface\");\n";
   body += "   end ;\n\n\n";
 
 
