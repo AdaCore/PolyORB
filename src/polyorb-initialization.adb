@@ -132,8 +132,7 @@ package body PolyORB.Initialization is
    --  Visit 'M' dependencies and run the corresponding initializers;
    --  Circular_Dependency_Detected reports circularity between modules.
 
-   procedure Raise_Unresolved_Dependency
-     (From, Upon : String);
+   procedure Raise_Unresolved_Dependency (From, Upon : String);
    pragma No_Return (Raise_Unresolved_Dependency);
    --  Output a diagnostic message for an unresolved dependency, and
    --  raise the appropriate exception.
@@ -142,9 +141,7 @@ package body PolyORB.Initialization is
    -- Lookup_Module --
    -------------------
 
-   function Lookup_Module
-     (Name : String)
-     return Module_Access is
+   function Lookup_Module (Name : String) return Module_Access is
    begin
       return World_Dict.Lookup (Name, Default => null);
    end Lookup_Module;
@@ -201,8 +198,7 @@ package body PolyORB.Initialization is
    -- Check_Conflicts --
    ---------------------
 
-   procedure Check_Conflicts
-   is
+   procedure Check_Conflicts is
       MI : Module_Lists.Iterator := First (World);
       SI : String_Lists.Iterator;
 
@@ -269,8 +265,7 @@ package body PolyORB.Initialization is
    -- Resolve_Dependencies --
    --------------------------
 
-   procedure Resolve_Dependencies
-   is
+   procedure Resolve_Dependencies is
       MI  : Module_Lists.Iterator := First (World);
       IDI : Dep_Lists.Iterator;
       SI  : String_Lists.Iterator;
@@ -432,8 +427,7 @@ package body PolyORB.Initialization is
    -- Run_Initializers --
    ----------------------
 
-   procedure Run_Initializers
-   is
+   procedure Run_Initializers is
       MI : Module_Lists.Iterator := First (World);
       M  : Module_Access;
 
@@ -458,10 +452,7 @@ package body PolyORB.Initialization is
    -- Initialize_World --
    ----------------------
 
-   procedure Initialize_World
-   is
-      use PolyORB.Parameters;
-
+   procedure Initialize_World is
    begin
       if Initialized then
          raise Program_Error;
@@ -511,8 +502,7 @@ package body PolyORB.Initialization is
    -- Diagnose_Unresolved_Dependency --
    ------------------------------------
 
-   procedure Raise_Unresolved_Dependency
-     (From, Upon : String) is
+   procedure Raise_Unresolved_Dependency (From, Upon : String) is
    begin
       O ("Unresolved dependency: " & From & " -> " & Upon, Critical);
       raise Program_Error;
