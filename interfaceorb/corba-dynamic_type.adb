@@ -38,7 +38,7 @@ package body Corba.Dynamic_Type is
    type Cell_Ptr is access all Cell ;
    type Cell is  record
       ID : Corba.String ;
-      Value : Corba.Object.Ref_Ptr ;
+      Value : Corba.Object.Constant_Ref_Ptr ;
       Next : Cell_Ptr ;
    end record ;
 
@@ -53,7 +53,7 @@ package body Corba.Dynamic_Type is
    -- Register :
    -------------
    procedure Register (RepoId : in Corba.String ;
-                      Dyn_Type : in Corba.Object.Ref_Ptr) is
+                      Dyn_Type : in Corba.Object.Constant_Ref_Ptr) is
       Temp : Cell_Ptr ;
    begin
       -- makes a new cell ...
@@ -68,7 +68,7 @@ package body Corba.Dynamic_Type is
    -- Get_Dynamic_Type_From_Repository_Id
    --------------------------------------
    function Get_Dynamic_Type_From_Repository_Id(RepoID : in Corba.String)
-                                                return Corba.Object.Ref_Ptr is
+                                                return Corba.Object.Constant_Ref_Ptr is
       Temp : Cell_Ptr := Pd_List ;
    begin
       loop

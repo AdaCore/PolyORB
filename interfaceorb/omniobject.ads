@@ -112,6 +112,17 @@ package OmniObject is
                              return Corba.String ;
    -- return the IOR corresponding to this object
 
+   function Dispatch (Self : in Implemented_Object ;
+                      Orls : in Giop_S.Object ;
+                      Orl_Op : in Standard.String ;
+                      Orl_Response_Expected : in Corba.Boolean)
+                      return Corba.Boolean ;
+   -- this function is called by the C one
+   -- It is implemented in the sub-classes of omniObject
+   -- this function on this object should never be called
+
+
+
    -----------------------------------------------
    --             Omniobject                    --
    --     this type is imported from C++        --
@@ -264,16 +275,6 @@ private
                    RepoId : in Interfaces.C.Strings.Chars_Ptr)
                    return  Sys_Dep.C_Boolean ;
    pragma Export(CPP, C_Is_A, "Ada_Is_A__14Ada_OmniObjectPCc") ;
-
-
-   function Dispatch (Self : in Object'Class ;
-                      Orls : in Giop_S.Object ;
-                      Orl_Op : in String ;
-                      Orl_Response_Expected : in Boolean)
-                      return Boolean ;
-   -- Ada equivalent of C function C_Dispatch
-   -- this function is called by the C one
-   -- It is not implemented here but in the sub-classes of omniObject
 
 
 

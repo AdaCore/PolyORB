@@ -23,8 +23,11 @@ package Corba.Object is
 
    type Ref is tagged private ;
    type Ref_Ptr is access all Ref'Class ;
+   type Constant_Ref_Ptr is  access constant Corba.Object.Ref'Class ;
 
-   Nil_Ref : constant Ref ;
+
+   -- constant Ref
+   Nil_Ref : aliased constant Ref ;
 
    --I boolean is_nil();
    function Is_Nil(Self: in Ref'Class) return Corba.Boolean;
@@ -68,6 +71,7 @@ package Corba.Object is
    ---        AdaBroker  specific                 ---
    --------------------------------------------------
    function Get_Dynamic_Type(Self: in Ref) return Ref'Class ;
+   function Get_Nil_Ref(Self: in Ref) return Ref ;
 
    Repository_Id : Corba.String := Corba.To_Corba_String("IDL:omg.org/CORBA/Object:1.0") ;
    function Get_Repository_Id(Self : in Ref) return Corba.String ;
@@ -89,7 +93,13 @@ package Corba.Object is
    ---        omniORB specific                    ---
    --------------------------------------------------
 
-   procedure Object_Is_Ready(Self : in Ref'Class) ;
+   procedure Create_Proxy_Object_Factory(RepoID : in Corba.String) ;
+   -- stores in a global variable in the ORB the fact
+   -- that a new IDL interface can be used
+   -- must be called when elaborating each package
+   -- where a descendant of Corba.Object.Ref is defined
+
+      procedure Object_Is_Ready(Self : in Ref'Class) ;
    -- calls the C++ function omni::objectIsReady
    -- has to be done when an object has been created
    -- to register it into the ORB
@@ -211,7 +221,7 @@ private
 
    type Ref is new Ada.Finalization.Controlled with record
       Omniobj : Omniobject.Object_Ptr := null ;
-      Dynamic_Type : Ref_Ptr := null ;
+      Dynamic_Type : Constant_Ref_Ptr := null ;
    end record ;
 
    procedure Initialize (Self: in out Ref);
@@ -223,9 +233,9 @@ private
    procedure Finalize (Self: in out Ref);
    -- release th underlying omniobject
 
-   Nil_Ref : constant Ref := (Ada.Finalization.Controlled
-                              with Omniobj => null,
-                              Dynamic_Type => null);
+   Nil_Ref :  aliased constant Ref := (Ada.Finalization.Controlled
+                                       with Omniobj => null,
+                                       Dynamic_Type => null) ;
 
 
 

@@ -52,6 +52,22 @@ package body OmniObject is
    end ;
 
 
+   -- Dispatch
+   -----------
+   function Dispatch (Self : in Implemented_Object ;
+                      Orls : in Giop_S.Object ;
+                      Orl_Op : in Standard.String ;
+                      Orl_Response_Expected : in Corba.Boolean)
+                      return Corba.Boolean is
+   begin
+      Ada.Exceptions.Raise_Exception(Corba.Adabroker_Fatal_Error'Identity,
+                                     "Omniobject.Dispatch(Implemented_Object)"
+                                     & Corba.CRLF
+                                     & "should never be called on an Implemented_Object") ;
+      return False ;
+      -- to please the compiler !!
+   end ;
+
 
    -- Initialize
    -------------
@@ -87,6 +103,7 @@ package body OmniObject is
    begin
       if not Is_Nil(Self) then
          Self.Omniobj.all.Implobj := null ;
+         Release(Self.Omniobj.all) ;
          Object_Destructor(Self.Omniobj.all) ;
          Self.Omniobj := null ;
       end if ;
@@ -395,6 +412,26 @@ package body OmniObject is
    -- needed to convert System.Address into Giop_S.Object
 
 
+   -- Dispatch
+   -----------
+   function Dispatch(Self: in Object'Class ;
+                     Orls: in Giop_S.Object ;
+                     Orl_Op : in Standard.String ;
+                     Orl_Response_Expected : in Corba.Boolean)
+                     return Corba.Boolean is
+   begin
+      -- check there is no error
+      if Self.Implobj = null then
+         Ada.Exceptions.Raise_Exception(Corba.Adabroker_Fatal_Error'Identity,
+                                        "Omniobject.Dispatch should not be called on a proxy object") ;
+      else
+         return Dispatch(Self.Implobj.all,
+                         Orls,
+                         Orl_Op,
+                         Orl_Response_Expected) ;
+      end if ;
+   end ;
+
    -- C_Dispatch
    -------------
    function C_Dispatch (Self : in Object'Class ;
@@ -403,9 +440,9 @@ package body OmniObject is
                         Orl_Response_Expected : in Sys_Dep.C_Boolean)
                         return Sys_Dep.C_Boolean is
       Ada_Orls_Ptr : Address_To_Giop_S.Object_Pointer ;
-      Ada_Orl_Op : String := Interfaces.C.Strings.Value(Orl_OP) ;
-      Ada_Orl_Response_Expected : Boolean ;
-      Ada_Result : Boolean ;
+      Ada_Orl_Op : Standard.String := Interfaces.C.Strings.Value(Orl_OP) ;
+      Ada_Orl_Response_Expected : Corba.Boolean ;
+      Ada_Result : Corba.Boolean ;
    begin
       -- transforms the arguments in a Ada type, ...
       Ada_Orls_Ptr := Address_To_Giop_S.To_Pointer(Orls) ;
@@ -420,19 +457,6 @@ package body OmniObject is
    end ;
 
 
-   -- Dispatch
-   -----------
-   function Dispatch(Self: in Object'Class ;
-                     Orls: in Giop_S.Object ;
-                     Orl_Op : in String ;
-                     Orl_Response_Expected : in Boolean)
-                     return Boolean is
-   begin
-      -- ARGUMENTS : corba.string ?? corba.boolean ??
-      -- to be implemented
-      -- should never be called on a proxy object
-      return False ;
-   end ;
 
    -- Get_Repository_Id
    --------------------

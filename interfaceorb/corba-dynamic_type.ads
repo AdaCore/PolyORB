@@ -34,15 +34,14 @@ with Corba.Object ;
 
 package Corba.Dynamic_Type is
 
-
    function Get_Dynamic_Type_From_Repository_Id(RepoID : in Corba.String)
-                                                return Corba.Object.Ref_ptr ;
+                                                return Corba.Object.Constant_Ref_ptr ;
    -- This function takes a repository_id as input
    -- and returns the static nil Ref of the class corresponding
    -- to this repository_id
 
    procedure Register(RepoId : in Corba.String ;
-                      Dyn_Type : in Corba.Object.Ref_Ptr) ;
+                      Dyn_Type : in Corba.Object.Constant_Ref_Ptr) ;
    -- this procedure registers a new static object in the list
 
 end ;

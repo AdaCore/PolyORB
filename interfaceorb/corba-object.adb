@@ -118,6 +118,13 @@ package body Corba.Object is
    ---        AdaBroker  specific                 ---
    --------------------------------------------------
 
+   -- Get_Nil_Ref
+   --------------
+   function Get_Nil_Ref(Self : in Ref) return Ref is
+   begin
+      return Nil_Ref ;
+   end ;
+
     -- Assert_Ref_Not_Nil
    ---------------------
    procedure Assert_Ref_Not_Nil(Self : in Ref) is
@@ -173,44 +180,54 @@ package body Corba.Object is
    procedure String_to_Object (From : in CORBA.String;
                                To : out CORBA.Object.Ref'class) is
       RepoId : Corba.String ;
-      Tmp_Obj_ptr : Omniobject.Object_Ptr ;
    begin
       -- Get the omniobject
-      Tmp_Obj_ptr := Omniobject.String_To_Object(From) ;
+      To.Omniobj := Omniobject.String_To_Object(From) ;
 
-      -- if there was an error somewhere
-      if Tmp_Obj_Ptr = null then
-         To.Omniobj := null ;
-         To.Dynamic_Type := null ;
-         return ;
+      -- if the result is correct
+      if not (To.Omniobj = null) then
+
+         -- check if the omniobject we got can be put into
+         -- To (type implied the repoId)
+         RepoId := Omniobject.Get_Repository_Id(To.Omniobj.all) ;
+
+         if Is_A(To, RepoId) then
+            To.Dynamic_Type :=
+              Corba.Dynamic_Type.Get_Dynamic_Type_From_Repository_Id(From) ;
+            return ;
+         end if ;
       end if ;
 
-      -- check if the omniobject we got can be put into
-      -- To (type implied the repoId)
-      RepoId := Omniobject.Get_Repository_Id(Tmp_Obj_Ptr.all) ;
+      -- otherwise, the operation is illegal return Nil_Ref
+      -- in the right class
+      To := Get_Nil_Ref(To) ;
 
-      if Is_A(To, RepoId) then
-         To.Omniobj := Tmp_Obj_ptr ;
-         To.Dynamic_Type :=
-           Corba.Dynamic_Type.Get_Dynamic_Type_From_Repository_Id(From) ;
-         return ;
-      end if ;
-
-      -- otherwise, the operation is illegal
-      Ada.Exceptions.Raise_Exception(Constraint_Error'Identity,
-                                     "Corba.Object.String_To_Object :"
-                                     & Corba.CRLF
-                                     & "Cannot cast "
-                                     & Corba.To_Standard_String(RepoId)
-                                     & Corba.CRLF
-                                     & "Into "
-                                     & Corba.To_Standard_String(Get_Repository_Id(To))) ;
    end ;
 
     --------------------------------------------------
     ---        omniORB specific                    ---
     --------------------------------------------------
 
+    -- C_Create_Proxy_Object_Factory
+   ---------------------------------
+   procedure C_Create_Proxy_Object_Factory(RepoID : in Interfaces.C.Strings.Chars_ptr) ;
+   pragma Import (CPP, C_Create_Proxy_Object_Factory, "createProxyObjectFactory__FPCc") ;
+   -- corresponds to
+   -- void createProxyObjectFactory(const char* repoID)
+   -- see proxyObjectFactory.hh
+
+
+   -- Create_Proxy_Object_Factory
+   ------------------------------
+   procedure Create_Proxy_Object_Factory(RepoID : in Corba.String) is
+      C_Repoid : Interfaces.C.Strings.Chars_Ptr ;
+      Tmp : Standard.String := Corba.To_Standard_String(RepoId) ;
+   begin
+      C_Repoid := Interfaces.C.Strings.New_String(Tmp) ;
+      -- never deallocated because it is stored in a global
+      -- variable in omniORB (proxyStubs)
+      C_Create_Proxy_Object_Factory(C_RepoId) ;
+   end ;
 
 
    -- Marshal_Object_Reference
@@ -342,6 +359,10 @@ package body Corba.Object is
       end if ;
    end ;
 
+
+begin
+
+   Corba.Dynamic_Type.Register(Repository_Id, Nil_Ref'Access) ;
 
 end Corba.Object ;
 

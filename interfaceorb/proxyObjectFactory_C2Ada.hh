@@ -42,6 +42,9 @@ private:
   const char* pd_repoID ;
 };
 
-// This procedure wil be called from the Ada code
+// This procedure will be called from the Ada code
 void createProxyObjectFactory(const char* repoID) ;
   
+
+
+
