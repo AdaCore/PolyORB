@@ -34,16 +34,12 @@
 ------------------------------------------------------------------------------
 
 with Interfaces.C;
-with System.Garlic.Thin;
-pragma Warnings (Off, System.Garlic.Thin);
 
 package System.Garlic.TCP.Platform_Specific is
 
    pragma Elaborate_Body;
 
    --  Windows NT version of this package
-
-   package Net renames System.Garlic.Thin;
 
 private
 

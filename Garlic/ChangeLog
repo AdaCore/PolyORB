@@ -17,7 +17,7 @@
 	this is now done during configuration file. Add new object and
 	source files: s-gatcop.ads s-gatcop.o.
 
-	* 5sgtplsp.ads: Remove renaming of
+	* 5sgtplsp.ads, 5wgtplsp.ads, 5wgtplsp.adb: Remove renaming of
  	System.Garlic.TCP.Platform_Specific.Net to System.Garlic.Thin as
  	this mode is now detected during configuration.
 

@@ -33,6 +33,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with System.Garlic.Thin;
+
 package body System.Garlic.TCP.Platform_Specific is
 
    --  Windows NT version of this package.
