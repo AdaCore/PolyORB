@@ -61,8 +61,12 @@ package body Broca.IIOP is
 
    type Strand_Connection_Type is new Connection_Type with
       record
-         Strand : Strand_Access;
+         Strand : Strand_Type;
       end record;
+
+   No_Strand : constant Strand_Type
+     := (List   => null,
+         Socket => Sockets.Thin.Failure);
 
    function Receive
      (Connection : access Strand_Connection_Type;
@@ -75,7 +79,6 @@ package body Broca.IIOP is
    procedure Send
      (Connection : access Strand_Connection_Type;
       Buffer     : access Buffer_Type);
-
 
    function Image (Profile : access Profile_IIOP_Type) return String;
    --  For debugging purpose ...
@@ -107,12 +110,6 @@ package body Broca.IIOP is
    function Hash_Profile  (K : Profile_Key) return Hash_Type;
    function Equal_Profile (K1, K2 : Profile_Key) return Boolean;
 
-   type Strand_Key is
-      record
-         Host : CORBA.String;
-         Port : CORBA.Unsigned_Short;
-      end record;
-
    function Hash_Strand  (K : Strand_Key) return Hash_Type;
    function Equal_Strand (K1, K2 : Strand_Key) return Boolean;
 
@@ -128,7 +125,7 @@ package body Broca.IIOP is
    package SHT is
       new GNAT.HTable.Simple_HTable
         (Hash_Type,
-         Strand_List_Access,
+         Strand_List_Ptr,
          null,
          Strand_Key,
          Hash_Strand,
@@ -139,6 +136,24 @@ package body Broca.IIOP is
    --  unmarshalled. We can have several strands for a given profile
    --  in order to serve several methods of the same object at the
    --  same time.
+
+   procedure Finalize
+     (The_List : in out Strand_List) is
+   begin
+      Enter_Critical_Section;
+      SHT.Remove (The_List.Key);
+
+      declare
+         Socks : Strand_Sequences.Element_Array
+           := Strand_Sequences.To_Element_Array
+           (Strand_Sequences.Sequence (The_List.L));
+      begin
+         Leave_Critical_Section;
+         for I in Socks'Range loop
+            Sockets.Thin.C_Close (Socks (I).Socket);
+         end loop;
+      end;
+   end Finalize;
 
    --------------------
    -- Create_Profile --
@@ -192,7 +207,17 @@ package body Broca.IIOP is
       use Sockets.Constants;
       use Sockets.Thin;
 
-      Strand  : Strand_Access;
+      use Broca.Refs;
+
+      use Strand_Sequences;
+
+      Key : constant Strand_Key
+        := (Host => Profile.Host,
+            Port => Profile.Port);
+
+      The_Strand_List : Strand_List_Ptr;
+
+      Strand  : Strand_Type;
 
    begin
       Enter_Critical_Section;
@@ -200,48 +225,49 @@ package body Broca.IIOP is
       --  Create the strand list node if needed and register it into
       --  the strands hash table.
 
-      if Profile.Strands = null then
+      The_Strand_List := SHT.Get (Key);
+
+      if The_Strand_List = null then
          pragma Debug (O ("init strand list for profile " & Image (Profile)));
 
-         declare
-            Key : Strand_Key;
-
-         begin
-            Key.Host := Profile.Host;
-            Key.Port := Profile.Port;
-
-            Profile.Strands := new Strand_List_Type;
-
-            SHT.Set (Key, Profile.Strands);
-         end;
+         The_Strand_List := new Strand_List;
+         The_Strand_List.Key := Key;
+         SHT.Set (Key, The_Strand_List);
       end if;
 
-      --  If the strands list is not empty, then get a strand from it.
+      if Is_Nil (Profile.Strands) then
+         Set (Profile.Strands, Broca.Refs.Entity_Ptr (The_Strand_List));
+      else
+         pragma Assert (Entity_Of (Profile.Strands)
+                        = Broca.Refs.Entity_Ptr (The_Strand_List));
+         --  If a profile has a non-nil reference to a strands list,
+         --  and SHT contains a list with the same key, ensure
+         --  consistency.
+         null;
+      end if;
 
-      if Profile.Strands.Head /= null then
+      --  Try to reuse an existing strand
+
+      if Length (The_Strand_List.L) > 0 then
          pragma Debug (O ("reuse strand from profile " & Image (Profile)));
 
-         Strand               := Profile.Strands.Head;
-         Profile.Strands.Head := Strand.Next;
-         if Profile.Strands.Head = null then
-            Profile.Strands.Tail := null;
-         end if;
-      end if;
+         Strand := Element_Of (The_Strand_List.L, 1);
+         Delete (The_Strand_List.L, 1, 1);
+         Leave_Critical_Section;
+      else
+         Leave_Critical_Section;
 
-      Leave_Critical_Section;
+         --  No strands available: create a new one.
 
-      --  If there is no strand availble, then create a new one.
+         --  FIXME: Add a mechanism to close idle strands.
 
-      if Strand = null then
          pragma Debug (O ("create new strand for profile " & Image (Profile)));
 
          declare
             Addr : Sockaddr_In;
             Host : String := To_Standard_String (Profile.Host);
-
          begin
-            Strand      := new Strand_Type;
-            Strand.List := Profile.Strands;
+            Strand.List := The_Strand_List;
 
             Strand.Socket := C_Socket (Af_Inet, Sock_Stream, 0);
             if Strand.Socket = Failure then
@@ -270,8 +296,8 @@ package body Broca.IIOP is
          end;
       end if;
 
-      return
-        new Strand_Connection_Type'(Connection_Type with Strand => Strand);
+      return new Strand_Connection_Type'
+        (Connection_Type with Strand => Strand);
    end Find_Connection;
 
    --------------------
@@ -421,24 +447,17 @@ package body Broca.IIOP is
    -------------
 
    procedure Release
-     (Connection : access Strand_Connection_Type)
-   is
-      List : Strand_List_Access;
-
+     (Connection : access Strand_Connection_Type) is
    begin
       pragma Debug (O ("release strand"));
 
       --  Push the free strand into the strands list.
 
       Enter_Critical_Section;
-      List := Connection.Strand.List;
-      if List.Tail /= null then
-         List.Tail.Next := Connection.Strand;
-
-      else
-         List.Head := Connection.Strand;
-      end if;
-      List.Tail := Connection.Strand;
+      Append
+        (Connection.Strand.List.L,
+         Connection.Strand);
+      Connection.Strand := No_Strand;
       Leave_Critical_Section;
    end Release;
 

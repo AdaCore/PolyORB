@@ -57,7 +57,8 @@ package Broca.Refs is
       Value  : out Entity);
 
    type Ref_Ptr is access all Entity'Class;
-   --  FIXME: Rename Ref_Ptr to Entity_Ptr
+   subtype Entity_Ptr is Ref_Ptr;
+   --  FIXME: Rename Ref_Ptr to Entity_Ptr, remove subtype decl.
 
    procedure Inc_Usage (Obj : Ref_Ptr);
    procedure Dec_Usage (Obj : in out Ref_Ptr);

@@ -31,11 +31,44 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Unchecked_Deallocation;
+
 with CORBA;
+
 with Broca.IOP;
 with Broca.Buffers; use Broca.Buffers;
 
 package body Broca.Object is
+
+   --------------
+   -- Finalize --
+   --------------
+
+   procedure Finalize
+     (O : in out Object_Type)
+   is
+      use Broca.IOP;
+
+      procedure Free is
+         new Ada.Unchecked_Deallocation
+        (Profile_Type'Class, Profile_Ptr);
+      procedure Free is
+         new Ada.Unchecked_Deallocation
+        (Profile_Ptr_Array, Profile_Ptr_Array_Ptr);
+
+   begin
+      for I in O.Profiles'Range loop
+         --  FIXME: Should finalize the profile
+         --    (eg close any associated connection
+         --    that won't be reused.)
+         --    This can be done either by calling a close
+         --    subprogram explicitly or by making the
+         --    profile type controlled, and having its
+         --    Finalize do the job.
+         Free (O.Profiles (I));
+      end loop;
+      Free (O.Profiles);
+   end Finalize;
 
    --------------
    -- Marshall --

@@ -34,9 +34,10 @@
 with Interfaces.C;
 with CORBA;
 
+with Sequences.Unbounded;
 with Broca.Sequences;
 with Broca.Buffers;
-
+with Broca.Refs;
 with Broca.IOP;
 pragma Elaborate_All (Broca.IOP);
 
@@ -52,25 +53,7 @@ package Broca.IIOP is
      := (Major => 1, Minor => 0);
    --  The version of IIOP implemented by this ORB.
 
-   type Strand_Type;
-   type Strand_Access is access Strand_Type;
-
-   type Strand_List_Type;
-   type Strand_List_Access is access Strand_List_Type;
-
-   type Strand_Type is
-      record
-         Next   : Strand_Access;
-         List   : Strand_List_Access;
-         Socket : Interfaces.C.int;
-      end record;
-   --  A strand is a connection with associated data.
-
-   type Strand_List_Type is
-      record
-         Head : Strand_Access;
-         Tail : Strand_Access;
-      end record;
+   type Strand_List_Ref is new Broca.Refs.Ref with null record;
 
    type Profile_IIOP_Type is new IOP.Profile_Type with
       record
@@ -78,10 +61,10 @@ package Broca.IIOP is
          Host    : CORBA.String;
          Port    : CORBA.Unsigned_Short;
          ObjKey  : Broca.Sequences.Octet_Sequence;
-         Strands : Strand_List_Access := null;
+         Strands : Strand_List_Ref;
       end record;
    --  Most of the fields come from the IOR itself. Socket_Addr is
-   --  built from Host and Port. Strands is the list of strands.
+   --  built from Host and Port.
 
    --  FIXME: Rename to Profile_IIOP_Ptr. Make classwide.
    type Profile_IIOP_Access is access all Profile_IIOP_Type;
@@ -105,5 +88,40 @@ private
    function Get_Object_Key
      (Profile : Profile_IIOP_Type)
      return Broca.Sequences.Octet_Sequence;
+
+   type Strand_List;
+   type Strand_List_Ptr is access all Strand_List;
+
+   type Strand_Type is record
+      List   : Strand_List_Ptr;
+      Socket : Interfaces.C.int;
+   end record;
+
+   package Strand_Sequences is
+      new Standard.Sequences.Unbounded (Strand_Type);
+   type Strand_Seq is new Strand_Sequences.Sequence;
+
+   type Strand_Key is
+      record
+         Host : CORBA.String;
+         Port : CORBA.Unsigned_Short;
+      end record;
+
+   type Strand_List is new Broca.Refs.Entity with
+      record
+         Key : Strand_Key;
+         L   : Strand_Seq;
+      end record;
+
+   --  Reference counting semantics are implemented for strands
+   --  lists. When the reference count of a strands list reaches
+   --  0, all strands on the list are closed, and the associated
+   --  storage is deallocated. The strand list is also removed
+   --  from the strand lists hash table.
+
+   procedure Finalize (The_List : in out Strand_List);
+   --  Finalize a strand list:
+   --  deallocate the associated storage and remove the list
+   --  from the strand lists hash table.
 
 end Broca.IIOP;

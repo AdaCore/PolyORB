@@ -49,6 +49,9 @@ package Broca.Object is
 
    type Object_Ptr is access all Object_Type'Class;
 
+   procedure Finalize
+     (O : in out Object_Type);
+
    procedure Marshall
      (Buffer : access Broca.Buffers.Buffer_Type;
       Value  : in Broca.Object.Object_Type);
