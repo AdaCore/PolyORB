@@ -1,6 +1,6 @@
 #include <adabe.h>
 
-adabe_interface_fwd(UTL_ScopedName *n, UTL_StrList *p)
+adabe_interface_fwd::adabe_interface_fwd(UTL_ScopedName *n, UTL_StrList *p)
   : AST_InterfaceFwd(n, p),
     AST_Decl(AST_Decl::NT_interface_fwd, n, p),
     adabe_name()
@@ -10,9 +10,9 @@ adabe_interface_fwd(UTL_ScopedName *n, UTL_StrList *p)
 void
 adabe_interface_fwd::produce_ads(dep_list with, string &body, string &previous)
 {
-  compute_ada_name();
-  full_definition()->set_ada_name(get_ada_local_name()); 
-  full_definition()->set_ada_full_name(get_ada_full_name());
+  compute_ada_name();  
+  //  adabe_name::narrow_from_decl(full_definition())->set_ada_name(get_ada_local_name()); 
+  //  adabe_name::narrow_from_decl(full_definition())->set_ada_full_name(get_ada_full_name());
   string file_name = get_ada_full_name() + "-forward.ads";
   ofstream file(file_name.c_str());
   file << "with CORBA.Forward \n";

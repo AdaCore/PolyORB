@@ -2,7 +2,7 @@
 #include <strstream>
 
 static string
-produce_disc_value( AST_ConcreteType* t,AST_Expression* exp);
+produce_disc_value(AST_ConcreteType *t, AST_Expression *exp);
 
 
 adabe_union_branch::adabe_union_branch(AST_UnionLabel *lab, AST_Type *ft, UTL_ScopedName *n,
@@ -49,7 +49,7 @@ adabe_union_branch::produce_marshal_adb(dep_list with, string &body, string &pre
 static string
 produce_disc_value( AST_ConcreteType* t,AST_Expression* exp)
 {
-  ostringstream ost;
+  ostrstream ost;
   if (t->node_type() != AST_Decl::NT_enum)
     {
       AST_Expression::AST_ExprValue *v = exp->ev();
@@ -66,7 +66,7 @@ produce_disc_value( AST_ConcreteType* t,AST_Expression* exp)
 	   break;
 	 case AST_Expression::EV_ulong:
 	   ost << v->u.ulval;
-	   break
+	   break;
 	 case AST_Expression::EV_bool:
 	   return ((v->u.bval == 0) ? "FALSE" : "TRUE");
 	 case AST_Expression::EV_char:        
@@ -88,8 +88,8 @@ produce_disc_value( AST_ConcreteType* t,AST_Expression* exp)
     }
   else
     {
-      AST_EnumVal* v = AST_Enum::narrow_from_decl(t)->lookup_by_value(exp);
-      return (v.get_ada_local_name());
+      adabe_enum_val* v = adabe_enum_val::narrow_from_decl(adabe_enum::narrow_from_decl(t)->lookup_by_value(exp));
+      return (v->get_ada_local_name());
     }
   return ost.str();
 }

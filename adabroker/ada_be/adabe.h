@@ -5,7 +5,7 @@
 ***                                                                                            ***
 ***                                                                                            ***
 ***   Copyright 1999                                                                           ***
-***   Jean Marie Cottin, Laurent  Kubler, Vincent Niebel                                       ***
+***   Jean Marie Cottin, Laurent Kubler, Vincent Niebel                                        ***
 ***                                                                                            ***
 ***   This is free software; you can redistribute it and/or modify it under terms of the GNU   ***
 ***   General Public License, as published by the Free Software Foundation.                    ***
@@ -83,27 +83,27 @@ public:
   bool is_imported(dep_list with);
   // if the node is imported; 
   
-  virtual void produce_ads(dep_list, string, string)         = 0;  
-  virtual void produce_adb(dep_list, string, string)         = 0;
+  virtual void produce_ads(dep_list, string, string);//         = 0;  
+  virtual void produce_adb(dep_list, string, string);//         = 0;
   // functions used to produce the body and specification for the main files
   
-  virtual void produce_impl_ads(dep_list, string, string)    = 0;
-  virtual void produce_impl_adb(dep_list, string, string)    = 0;
+  virtual void produce_impl_ads(dep_list, string, string);//    = 0;
+  virtual void produce_impl_adb(dep_list, string, string);//    = 0;
   // functions used to produce the body and specification for the
   // serverside specific files
 
-  virtual void produce_proxies_ads(dep_list, string, string) = 0;
-  virtual void produce_proxies_adb(dep_list, string, string) = 0;
+  virtual void produce_proxies_ads(dep_list, string, string);// = 0;
+  virtual void produce_proxies_adb(dep_list, string, string);// = 0;
   // functions used to produce the body and specification for the
   // proxy calls 
   
-  virtual void produce_skel_ads(dep_list, string, string)    = 0;
-  virtual void produce_skel_adb(dep_list, string, string)    = 0;
+  virtual void produce_skel_ads(dep_list, string, string);//    = 0;
+  virtual void produce_skel_adb(dep_list, string, string);//    = 0;
   // functions used to produce the body and specification for the
   // package used to select the right function called
   
-  virtual void produce_marshal_ads(dep_list, string, string) = 0;
-  virtual void produce_marshal_adb(dep_list, string, string) = 0;
+  virtual void produce_marshal_ads(dep_list, string, string);// = 0;
+  virtual void produce_marshal_adb(dep_list, string, string);// = 0;
   // function used to produce the body and specification for the
   // marshalling functions
 
@@ -274,9 +274,6 @@ public:
 		   AST_ConcreteType* concrete);
   virtual void produce_marshal_adb(dep_list with, string &body, string &previous);
 
-private:
-  string produce_disc_value(AST_ConcreteType, AST_Expression);
-  //produce the value of the branch
 };
 
 
@@ -364,8 +361,8 @@ public:
   DEF_NARROW_FROM_DECL(adabe_argument);
 
   virtual void produce_ads(dep_list with, string &body, string &previous);
-  virtual void produce_proxies_ads(dep_list with, string &body, string &input_style);
-  virtual void produce_proxies_adb(dep_list with, string &body, string &previous);
+  virtual void produce_proxies_ads(dep_list with, string &body, string &input);
+  virtual void produce_proxies_adb(dep_list with, string &body, string &input);
 };
 
 
@@ -415,6 +412,9 @@ public:
 private:
   bool is_function();
   //to check if the operation is a function or not
+
+  bool return_is_void();
+  //is the return type void or not
 };
 
 
@@ -439,10 +439,10 @@ public:
 class adabe_interface : public virtual AST_Interface,
 		       public virtual adabe_name
 {
-public:
+ public:
 
   adabe_interface(UTL_ScopedName *n, AST_Interface **ih, long nih,
-	       UTL_StrList *p);
+		  UTL_StrList *p);
 
   DEF_NARROW_METHODS1(adabe_interface, AST_Interface);
   DEF_NARROW_FROM_DECL(adabe_interface);
@@ -455,9 +455,14 @@ public:
   virtual void produce_proxies_ads(dep_list with, string &body, string &private_definition);
   virtual void produce_proxies_adb(dep_list with, string &body, string &private_definition);
   virtual void produce_skel_ads(dep_list with, string &body, string &previous);
-  virtual void produce_skeleton_adb(dep_list with, string &body, string &private_definition);
+  virtual void produce_skel_adb(dep_list with, string &body, string &private_definition);
   virtual void produce_marshal_ads(dep_list with, string &body, string &previous);
   virtual void produce_marshal_adb(dep_list with, string &body, string &previous);
+
+ private:
+
+  bool pd_is_forwarded;
+  // is this interface forward declared?
 };
 
 

@@ -14,14 +14,15 @@ void
 adabe_operation::produce_ads(dep_list with,string &body, string &previous)
 {
   compute_ada_name();
-  switch (pd_flags) {
-  case OP_noflags :
-  case OP_idempotent :
-    break;
-  case OP_oneway :
-    body += "   oneway ";
-    break;
-  }
+  switch (flags())
+    {
+    case OP_noflags :
+    case OP_idempotent :
+      break;
+    case OP_oneway :
+      body += "   oneway ";
+      break;
+    }
   if (is_function())
     {
       body += " function" + get_ada_local_name() + "(Self : in Ref ";
@@ -30,7 +31,7 @@ adabe_operation::produce_ads(dep_list with,string &body, string &previous)
 	{
 	  body += ",";
 	  AST_Decl *d = i.item();
-	  if (d->node_type() == AST_Decl::NT_Argument)
+	  if (d->node_type() == AST_Decl::NT_argument)
 	    adabe_name::narrow_from_decl(d)->produce_ads(with, body, previous);
 	  else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in operation");
        	  i.next();
@@ -47,7 +48,7 @@ adabe_operation::produce_ads(dep_list with,string &body, string &previous)
 	{
 	  body += ",";
 	  AST_Decl *d = i.item();
-	  if (d->node_type() == AST_Decl::NT_Argument)
+	  if (d->node_type() == AST_Decl::NT_argument)
 	    adabe_name::narrow_from_decl(d)->produce_ads(with, body, previous);
 	  else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in operation");
 	  i.next();
@@ -55,19 +56,21 @@ adabe_operation::produce_ads(dep_list with,string &body, string &previous)
       body += ", Result : out ";
       AST_Decl *b = return_type();
       body += adabe_name::narrow_from_decl(b)->dump_name(with, body, previous) + ");\n";
+    }
 }
 
 void
 adabe_operation::produce_adb(dep_list with,string &body, string &previous)
 {
-  switch (pd_flags) {
-  case OP_noflags :
-  case OP_idempotent :
-    break;
-  case OP_oneway :
+  switch (flags())
+    {
+    case OP_noflags :
+    case OP_idempotent :
+      break;
+    case OP_oneway :
     body += "   oneway ";
     break;
-  }
+    }
   if (is_function())
     {
       body += " function" + get_ada_local_name() + "(Self : in Ref ";
@@ -76,17 +79,17 @@ adabe_operation::produce_adb(dep_list with,string &body, string &previous)
 	{
 	  body += ",";
 	  AST_Decl *d = i.item();
-	  if (d->node_type() == AST_Decl::NT_Argument)
+	  if (d->node_type() == AST_Decl::NT_argument)
 	    adabe_name::narrow_from_decl(d)->produce_ads(with, body, previous);
 	  else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in operation");
 	  i.next();
 	}
       body += ") return ";
       AST_Decl *b = return_type();
-      string name += adabe_name::narrow_from_decl(b)->dump_name(with, body, previous);
+      string name = adabe_name::narrow_from_decl(b)->dump_name(with, body, previous);
       body += name + "is \n";
-      AST_Decl  *c = defined_in();
-      name_of_the_package = c->get_ada_local_name();
+      adabe_name  *c = adabe_name::narrow_from_decl(ScopeAsDecl(defined_in()));      
+      string name_of_the_package = c->get_ada_local_name();
       body += "   Opcd : " + name_of_the_package + ".Proxies." + get_ada_local_name() + "_Proxy ;\n";
       body += "   Result : " + name +";\n";
       body += "   begin \n";
@@ -95,8 +98,8 @@ adabe_operation::produce_adb(dep_list with,string &body, string &previous)
       UTL_ScopeActiveIterator j(this,UTL_Scope::IK_decls);
       while (!j.is_done())
 	{
-	  AST_Decl *e = j.item();
-	  if (e->node_type() == AST_Decl::NT_Argument) body += e->get_ada_local_name();
+	  adabe_name *e = adabe_name::narrow_from_decl(j.item());
+	  if (e->node_type() == AST_Decl::NT_argument) body += e->get_ada_local_name();
 	  else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in operation");
 	  j.next();
 	  if (!j.is_done()) body += ", ";
@@ -111,40 +114,40 @@ adabe_operation::produce_adb(dep_list with,string &body, string &previous)
     }
   else
     {
-      body += "   procedure" + ada.name + "(Self : in Ref ";
+      body += "   procedure get_" + get_ada_local_name() + "(Self : in Ref ";
       UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
       while (!i.is_done())
 	{
 	  body += ",";
 	  AST_Decl *d = i.item();
-	  if (d->node_type() == AST_Decl::NT_Argument)
+	  if (d->node_type() == AST_Decl::NT_argument)
 	    adabe_name::narrow_from_decl(d)->produce_ads(with, body, previous);
 	  else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in operation");
 	  i.next();
 	}
-      if (return_type() != NULL) {
-	AST_Decl *b = return_type();
-	string name =  adabe_name::narrow_from_decl(b)->dump_name(with, body, previous);
-	body += ", Result : out " + name + ") is\n";
-      }
+      string name =  adabe_name::narrow_from_decl(return_type())->dump_name(with, body, previous);
+      if (!return_is_void())
+	{	
+	  body += ", Result : out " + name + ") is\n";
+	}
       else   body += ") is \n";
-      AST_Decl  *b = defined_in();
-      name_of_the_package = b->get_ada_local_name();
+      adabe_name  *b = adabe_name::narrow_from_decl(ScopeAsDecl(defined_in()));
+      string name_of_the_package = b->get_ada_local_name();
       body += "   Opcd : " + name_of_the_package + ".Proxies." + get_ada_local_name() + "_Proxy ;\n";
-      body += "   Result : " + name +";\n";
+      body += "   Result : " + name + ";\n";
       body += "   begin \n";
       body += "      Assert_Ref_Not_Nil(Self);";
       body += "      Opcd := " + name_of_the_package + ".Proxies.Create(";
       UTL_ScopeActiveIterator j(this,UTL_Scope::IK_decls);
       while (!j.is_done())
 	{
-	  AST_Decl *e = j.item();
-	  if (e->node_type() == AST_Decl::NT_Argument) body += e->get_ada_local_name();
+	  adabe_name *e = adabe_name::narrow_from_decl(j.item());
+	  if (e->node_type() == AST_Decl::NT_argument) body += e->get_ada_local_name();
 	  else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in operation");
 	  j.next();
 	  if (!j.is_done()) body += ", ";
 	}
-      if (return_type() !=  NULL) body += ", Result) ;\n";
+      if (!return_is_void()) body += ", Result) ;\n";
       body += ") ;\n";
       body += "      OmniProxyCallWrapper.Invoke(Self, Opcd) ;\n";
       body += "      " + name_of_the_package + ".Proxies.Free(Opcd) ;\n";
@@ -156,7 +159,7 @@ adabe_operation::produce_adb(dep_list with,string &body, string &previous)
 void
 adabe_operation::produce_impl_ads(dep_list with,string &body, string &previous)
 {
-  switch (pd_flags) {
+  switch (flags()) {
   case OP_noflags :
   case OP_idempotent :
     break;
@@ -172,7 +175,7 @@ adabe_operation::produce_impl_ads(dep_list with,string &body, string &previous)
 	{
 	  body += ",";
 	  AST_Decl *d = i.item();
-	  if (d->node_type() == AST_Decl::NT_Argument)
+	  if (d->node_type() == AST_Decl::NT_argument)
 	    adabe_name::narrow_from_decl(d)->produce_impl_ads(with, body, previous);
 	  else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in operation");
 	  i.next();
@@ -189,7 +192,7 @@ adabe_operation::produce_impl_ads(dep_list with,string &body, string &previous)
 	{
 	  body += ",";
 	  AST_Decl *d = i.item();
-	  if (d->node_type() == AST_Decl::NT_Argument)
+	  if (d->node_type() == AST_Decl::NT_argument)
 	    adabe_name::narrow_from_decl(d)->produce_impl_ads(with, body, previous);
 	  else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in operation");
 	  i.next();
@@ -203,7 +206,7 @@ adabe_operation::produce_impl_ads(dep_list with,string &body, string &previous)
 void
 adabe_operation::produce_impl_adb(dep_list with,string &body, string &previous)
 {
-  switch (pd_flags) {
+  switch (flags()) {
   case OP_noflags :
   case OP_idempotent :
     break;
@@ -214,13 +217,12 @@ adabe_operation::produce_impl_adb(dep_list with,string &body, string &previous)
   if (is_function())
     {
       body += "   function" + get_ada_local_name() + "(Self : access Object ";
-      while the UTL_Scope is not empty (make a copy)              
       UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
       while (!i.is_done())
 	{
 	  body += ",";
 	  AST_Decl *d = i.item();
-	  if (d->node_type() == AST_Decl::NT_Argument)
+	  if (d->node_type() == AST_Decl::NT_argument)
 	    adabe_name::narrow_from_decl(d)->produce_impl_ads(with, body, previous);
 	  else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in operation");
 	  i.next();
@@ -233,18 +235,18 @@ adabe_operation::produce_impl_adb(dep_list with,string &body, string &previous)
     }
   else
     {
-      body += "    procedure" + ada.name + "(Self : access Object ";
+      body += "    procedure get_" + get_ada_local_name() + "(Self : access Object ";
       UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
       while (!i.is_done())
 	{
 	  body += ",";
 	  AST_Decl *d = i.item();
-	  if (d->node_type() == AST_Decl::NT_Argument)
+	  if (d->node_type() == AST_Decl::NT_argument)
 	    adabe_name::narrow_from_decl(d)->produce_impl_ads(with, body, previous);
 	  else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in operation");
 	  i.next();
 	}
-      if (return_type != NULL) {
+      if (!return_is_void()) {
 	   AST_Decl *b = return_type();
            string name =  adabe_name::narrow_from_decl(b)->dump_name(with, body, previous);
 	   body += ", Result : out " + name + ") is\n";
@@ -258,19 +260,19 @@ adabe_operation::produce_impl_adb(dep_list with,string &body, string &previous)
 void
 adabe_operation::produce_proxies_ads(dep_list with,string &body, string &private_definition)
 {
-  name = get_ada_full_name();
-  body += "   type " + name +"_Proxy is new OmniProxyCallDesc.Object with private ;\n";
+  string name = get_ada_full_name();
+  body += "   type " + name + "_Proxy is new OmniProxyCallDesc.Object with private ;\n";
   body += "   function Create(";
   UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
   while (!i.is_done())
     {
       AST_Decl *d = i.item();
-      if (d->node_type() == AST_Decl::NT_Argument)
+      if (d->node_type() == AST_Decl::NT_argument)
 	adabe_name::narrow_from_decl(d)->produce_proxies_ads(with, body, "IN"); //add the ","
       else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in operation");
       i.next();
     }
-  body = substr(body,0,body.length()-3); //to remove the last ", "
+  if (body[body.length()-1] != '(') body = body.substr(0,body.length()-3); //to remove the last ", "
   body += ") return " + name +"_Proxy ;\n";
   body += "   procedure Free(Self : in out " + name + "_Proxy);\n";
   body += "   function Aligned_Size(Self : in " + name + "_Proxy ; Size_In : in Corba.Unsigned_Long)";
@@ -281,15 +283,15 @@ adabe_operation::produce_proxies_ads(dep_list with,string &body, string &private
     {
       body += "   function Get_Result (Self : in " + name + "_Proxy ) return ";
       AST_Decl *b = return_type();
-      body += adabe_name::narrow_from_decl(b)->dump_name(with, body, previous) + "; \n"; 
+      body += adabe_name::narrow_from_decl(b)->dump_name(with, body, private_definition) + "; \n"; 
     }
   private_definition += "   type " + name + "_Proxy is new OmniProxyCallDesc.Object with record \n";
   UTL_ScopeActiveIterator j(this,UTL_Scope::IK_decls);
   while (!j.is_done())
     {
       AST_Decl *e = j.item();
-      if (e->node_type() == AST_Decl::NT_Argument)
-	adabe_name::narrow_from_decl(e)->produce_proxies_adb(with, private_definition, previous);
+      if (e->node_type() == AST_Decl::NT_argument)
+	adabe_name::narrow_from_decl(e)->produce_proxies_adb(with, private_definition, private_definition);
       else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in operation");
       j.next();
     }
@@ -297,7 +299,7 @@ adabe_operation::produce_proxies_ads(dep_list with,string &body, string &private
     {
       private_definition += "      Private_Result : ";
       AST_Decl *c = return_type();
-      body += adabe_name::narrow_from_decl(c)->dump_name(with, body, previous);
+      body += adabe_name::narrow_from_decl(c)->dump_name(with, body, private_definition);
       body += "_Ptr := null;\n";
     }
   private_definition += "   end record; \n ;";
@@ -316,14 +318,27 @@ adabe_operation::produce_skeleton_adb(dep_list with,string &body, string &privat
 bool  
 adabe_operation::is_function()
 {
-  AST_Argument.Direction test = dir_IN;
-  bool ret = (return_type() != NULL);
+  AST_Argument::Direction test = AST_Argument::dir_IN;
+  bool ret = return_is_void();
   UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
-  while ((ret)&&(argument.direction()== test)&&(!i.is_done()))
+  while ((!i.is_done()) && (ret))
     {
+      ret = (((AST_Argument::narrow_from_decl(i.item()))->direction()) == test);
       i.next();
     }
   return(ret);
+}
+
+bool
+adabe_operation::return_is_void()
+{
+  AST_Decl *rtype = return_type();
+  if (rtype->node_type() == AST_Decl::NT_pre_defined &&
+      AST_PredefinedType::narrow_from_decl(rtype)->pt()
+          == AST_PredefinedType::PT_void)
+    return true;
+  else
+    return false;
 }
 
 

@@ -12,20 +12,21 @@ void
 adabe_argument::produce_ads(dep_list with, string &body, string &previous)
 {
   compute_ada_name();
-  String += get_ada_local_name() + " :";
-  switch (pd_direction) {
-  case dir_IN :
-    String += " in ";
-    break;
-  case dir_OUT :
-    String += " out ";
-    break;
-  case dir_INOUT :
-    String += " inout ";
-    break;
-  }
-  AST_Decl d* = field_type();
-  String += adabe_name::narrow_from_decl(d)->dump_name(with, body, previous); // virtual method
+  body += get_ada_local_name() + " :";
+  switch (direction())
+    {
+    case dir_IN :
+      body += " in ";
+      break;
+    case dir_OUT :
+      body += " out ";
+      break;
+    case dir_INOUT :
+      body += " inout ";
+      break;
+    }
+  AST_Decl *d = field_type();
+  body += adabe_name::narrow_from_decl(d)->dump_name(with, body, previous); // virtual method
 }
 
 
@@ -49,42 +50,46 @@ adabe_argument::produce_ads(dep_list with, string &body, string &previous)
   produce_ads(with, body, previous);
   }
 */
-
+void
 adabe_argument::produce_proxies_ads(dep_list with, string &body, string &input)
 {
-  if input = "IN"
+  if (input == "IN")
     {
+      string previous = "";
       string tmp = "";
       bool verif = false;
       tmp += get_ada_local_name() + " :";
-      switch (pd_direction) {
-      case dir_IN :
-      case dir_INOUT :
-	tmp += " in ";
-	verif = true;
-	break;
-      case dir_OUT :
-	break;
-      }
-      AST_Decl d* = field_type();
+      switch (direction())
+	{
+	case dir_IN :
+	case dir_INOUT :
+	  tmp += " in ";
+	  verif = true;
+	  break;
+	case dir_OUT :
+	  break;
+	}
+      AST_Decl *d = field_type();
       tmp += adabe_name::narrow_from_decl(d)->dump_name(with, body, previous); // virtual method
       if (verif) body += tmp + ", ";
     }
-  if input = "OUT"
+  if (input == "OUT")
     {
       string tmp = "";
+      string previous = "";
       bool verif = false;
       tmp += get_ada_local_name() + " :";
-      switch (pd_direction) {
-      case dir_OUT :
-      case dir_INOUT :
-	tmp += " out ";
-	verif = true;
-	break;
-      case dir_IN :
-	break;
-      }
-      AST_Decl d* = field_type();
+      switch (direction())
+	{
+	case dir_OUT :
+	case dir_INOUT :
+	  tmp += " out ";
+	  verif = true;
+	  break;
+	case dir_IN :
+	  break;
+	}
+      AST_Decl *d = field_type();
       tmp += adabe_name::narrow_from_decl(d)->dump_name(with, body, previous); // virtual method
       if (verif) body += tmp + ", ";
     }
@@ -93,9 +98,8 @@ adabe_argument::produce_proxies_ads(dep_list with, string &body, string &input)
 void
 adabe_argument::produce_proxies_adb(dep_list with, string &body, string &previous)
 {
-  INDENT(String);
   body += "      Arg_" + get_ada_local_name() + " :";
-  AST_Decl d* = field_type();
+  AST_Decl *d = field_type();
   body += adabe_name::narrow_from_decl(d)->dump_name(with, body, previous); // virtual method
   body += "_Ptr := null ;\n";
 }

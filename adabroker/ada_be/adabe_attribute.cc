@@ -17,7 +17,7 @@ adabe_attribute::produce_ads(dep_list with, string &body, string &previous)
   AST_Decl *d = field_type();
   string name = adabe_name::narrow_from_decl(d)->dump_name(with, body, previous);
   body += name + ";\n";
-  if (!pd_readonly)
+  if (!readonly())
     {
       body += "   procedure set_" + get_ada_local_name();
       body += "(Self : in Ref, To : in ";
@@ -27,13 +27,13 @@ adabe_attribute::produce_ads(dep_list with, string &body, string &previous)
 }
 
 void
-adabe_operation::produce_adb(dep_list with, string &body, string &previous)
+adabe_attribute::produce_adb(dep_list with, string &body, string &previous)
 {
   body += "   function get_" + get_ada_local_name() +"(Self : in Ref) return "; 
   AST_Decl *d = field_type();  
   string name = adabe_name::narrow_from_decl(d)->dump_name(with, body, previous);
   body += name + ";\n";  
-  name_of_the_package = adabe_name::narrow_from_decl(ScopeAsDecl(defined_in()))->get_ada_full_name();
+  string name_of_the_package = adabe_name::narrow_from_decl(ScopeAsDecl(defined_in()))->get_ada_full_name();
   body += "   Opcd : " + name_of_the_package + ".Proxies.Get_" + get_ada_local_name() + "_Proxy ;\n";
   body += "   Result : " + name +";\n";
   body += "   begin \n";
@@ -44,7 +44,7 @@ adabe_operation::produce_adb(dep_list with, string &body, string &previous)
   body += "      " + name_of_the_package + ".Proxies.Free(Opcd) ;\n";
   body += "      return Result ;";
   body += "   end;";
-  if (!pd_readonly)
+  if (!readonly())
     {
       body += "   procedure set_" + get_ada_local_name() +"(Self : in Ref, To : in ";
       body += name + ") is \n";
@@ -62,11 +62,11 @@ adabe_operation::produce_adb(dep_list with, string &body, string &previous)
 void
 adabe_attribute::produce_impl_ads(dep_list with, string &body, string &previous)
 {
-  body += "   function get_" + get_ada_local_name() +"(Self : access Object) return " 
+  body += "   function get_" + get_ada_local_name() +"(Self : access Object) return "; 
   AST_Decl *d = field_type();
   string name = adabe_name::narrow_from_decl(d)->dump_name(with, body, previous);
   body += name + ";\n";
-  if (!pd_readonly)
+  if (!readonly())
     {
       body += "   procedure set_" + name +"(Self : access Object, To : in ";
       body += name;
@@ -83,7 +83,7 @@ adabe_attribute::produce_impl_adb(dep_list with, string &body, string &previous)
   body += name + ";\n";
   body += "   begin\n\n";
   body += "   end; \n"; 
-  if (!pd_readonly)
+  if (!readonly())
     {
       body += "   procedure set_" + name +"(Self : access Object, To : in ";
       body += name;
@@ -97,7 +97,7 @@ void
 adabe_attribute::produce_proxies_ads(dep_list with, string &body, string &private_definition)
 {  
   AST_Decl *d = field_type();
-  string name = adabe_name::narrow_from_decl(d)->dump_name(with, body, previous);
+  string name = adabe_name::narrow_from_decl(d)->dump_name(with, body, private_definition);
   body += "   type get_" + get_ada_local_name() +"_Proxy is new OmniProxyCallDesc.Object with private;\n";
   body += "   function Create() return get_" + get_ada_local_name() +"_Proxy ;\n";
   body += "   procedure Free(Self : in out get_" + get_ada_local_name() + "_Proxy);\n";
@@ -112,7 +112,7 @@ adabe_attribute::produce_proxies_ads(dep_list with, string &body, string &privat
   private_definition += "      Result : " + name + "_Ptr := null;\n";
   private_definition += "   end record ;\n";
   
-  if (!pd_readonly)
+  if (!readonly())
     {
       body += "   type set_" + get_ada_local_name() +"_Proxy is new OmniProxyCallDesc.Object with private ;\n";
       body += "   function Create(Arg : in " + name + ") return set_" + get_ada_local_name() +"_Proxy ;\n";

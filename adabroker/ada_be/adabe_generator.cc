@@ -140,18 +140,22 @@ adabe_generator::create_string(AST_Expression *v)
 {
   return (AST_String *) new adabe_string(v);
 }
-
-AST_String *
-adabe_generator::create_wstring(AST_Expression *v)
-{
+/*
+  AST_String *
+  adabe_generator::create_wstring(AST_Expression *v)
+  {
   return (AST_String *) new adabe_string(v, sizeof(wchar_t));
-}
+  }
+*/
 
 AST_Typedef *
 adabe_generator::create_typedef(AST_Type *bt, UTL_ScopedName *n, UTL_StrList *p)
 {
   return (AST_Typedef *) new adabe_typedef(bt, n, p);
 }
+
+
+
 
 
 

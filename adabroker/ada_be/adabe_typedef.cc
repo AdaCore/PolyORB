@@ -12,9 +12,9 @@ void
 adabe_typedef::produce_ads(dep_list with, string &body, string &previous)
 {
   compute_ada_name();
-  body += "   type" + get_ada_local_name() + "is new ";
-  AST_Decl *b  base_type();
-  string name =  adabe_name::narrow_from_decl(b)->dump_name(with, &body, &previous); //virtual method
+  body += "   type " + get_ada_local_name() + " is new ";
+  AST_Decl *b = base_type();
+  string name =  adabe_name::narrow_from_decl(b)->dump_name(with, body, previous); //virtual method
   body += name;
   body += ";\n";
   body += "   type" + get_ada_local_name() + "_Ptr is access all " + get_ada_local_name() + ";\n";

@@ -17,21 +17,21 @@ adabe_union::produce_ads(dep_list with, string &body, string &previous)
 
   compute_ada_name();
   body += "   type " + get_ada_local_name();
-  disc_type()->compute_ada_names();
-  name = get_ada_local_name();
-  AST_Decl *b = disc_type();
-  body += "(Switch : "  + adabe_name::narrow_from_decl(d)->dump_name(with, body, previous);
+  adabe_name *b = adabe_name::narrow_from_decl(disc_type());
+  b->compute_ada_name();
+  string name = get_ada_local_name();
+  body += "(Switch : "  + b->dump_name(with, body, previous);
   body += " := " + name + "'first) is record\n";
   body += "      case Switch is\n";
   UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
   while (!i.is_done())
     {
       AST_Decl *d = i.item();
-      if (d->node_type() == AST_Decl::NT_UnionBranch)
-	adabe_name::narrow_from_decl(d)->produce_ads(with, body, previous);
+      if (d->node_type() == AST_Decl::NT_union_branch)
+	adabe_union_branch::narrow_from_decl(d)->produce_ads(with, body, previous, disc_type());
       else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in union");
     }
-  body += "      end case; \n"
+  body += "      end case; \n";
   body += "   end record; \n";
   set_already_defined();
 }

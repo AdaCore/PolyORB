@@ -26,6 +26,9 @@
 
 /*
   $Log: o2be_generator.cc,v $
+  Revision 1.2  1999/03/17 09:34:40  niebel
+  compilation of the first part of the implementation
+
   Revision 1.1  1999/02/14 17:45:25  niebel
   Ajout des sources d'omniidl2 en vue de l'ajout de notre back end.
 
@@ -200,3 +203,7 @@ o2be_generator::create_typedef(AST_Type *bt, UTL_ScopedName *n, UTL_StrList *p)
 {
   return (AST_Typedef *) new o2be_typedef(bt, n, p);
 }
+
+
+
+
