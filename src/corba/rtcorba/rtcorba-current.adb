@@ -65,8 +65,7 @@ package body RTCORBA.Current is
    -- Create --
    ------------
 
-   function Create return CORBA.Object.Ref
-   is
+   function Create return CORBA.Object.Ref is
       Result : Ref;
 
       Current : constant PolyORB.Smart_Pointers.Entity_Ptr
@@ -167,8 +166,6 @@ package body RTCORBA.Current is
                                             Completed => CORBA.Completed_No));
       end if;
 
-      --  Update current object
-
       declare
 
          use PolyORB.Tasking.Threads;
@@ -179,15 +176,23 @@ package body RTCORBA.Current is
       begin
          Get_Note (Notepad.all, Note, Default_Note);
 
+         --  Modify priority
+
+         if Note.Priority /= External_Priority (New_Priority)
+           or else Get_Priority (Get_Thread_Factory, Current_Task)
+           /= Integer (New_Priority)
+         then
+            Set_Priority
+              (Get_Thread_Factory,
+               Current_Task,
+               Integer (New_Priority));
+         end if;
+
+         --  Update current object
+
          Note.Priority := External_Priority (To);
          Set_Note (Notepad.all, Note);
 
-         --  Modify priority
-
-         Set_Priority
-           (Get_Thread_Factory,
-            Current_Task,
-            Integer (New_Priority));
       end;
    end Set_The_Priority;
 
@@ -197,8 +202,7 @@ package body RTCORBA.Current is
 
    procedure Initialize;
 
-   procedure Initialize
-   is
+   procedure Initialize is
       use PolyORB.CORBA_P.Initial_References;
 
    begin
