@@ -50,6 +50,9 @@ with Utils;                 use Utils;
 
 with Ada.Strings.Fixed; use Ada.Strings.Fixed;
 
+with Ada.Text_IO;use Ada.Text_IO;
+
+
 package body Ada_Be.Idl2Ada is
 
    Flag : constant Natural := Ada_Be.Debug.Is_Active ("ada_be.idl2ada");
@@ -141,6 +144,8 @@ package body Ada_Be.Idl2Ada is
    --  case on the returned status.
 
 
+
+
    type Str_Access is access String;
    --  interface dynamique
    procedure Gen_Node_Stubs_Body_Dyn
@@ -158,6 +163,11 @@ package body Ada_Be.Idl2Ada is
    procedure Forward_Stuff (T_Node : in Node_Id; To_From : in String;
                             Str1 : out Str_Access; Str2 : out Str_Access);
    --  interface dynamique
+   procedure Gen_Invoke
+     (CU   : in out Compilation_Unit;
+      Node : Node_Id);
+   --  interface dynamique
+
 
    procedure Gen_Convert_Forward_Declaration
      (CU : in out Compilation_Unit;
@@ -814,6 +824,8 @@ package body Ada_Be.Idl2Ada is
             Gen_Is_A (Node, Stubs_Spec, Stubs_Body);
             Gen_Local_Is_A (Stubs_Body, Node);
 
+
+
             --  CORBA 2.3
             Helper.Gen_Node_Spec (Helper_Spec, Node);
             Helper.Gen_Node_Body (Helper_Body, Node);
@@ -822,10 +834,86 @@ package body Ada_Be.Idl2Ada is
                                              Node);
 
             if not Abst (Node) then
+
                Skel.Gen_Body_Common_End (Skel_Body, Skeleton, Node);
+
                if Generate_Delegate then
                   Skel.Gen_Body_Common_End (Delegate_Body, Delegate, Node);
                end if;
+
+               ----------------------*****************************
+               if Implement then
+
+                  NL (Impl_Spec);
+                  PL (Impl_Spec, "procedure Invoke ( Self : access Object ;");
+                  PL (Impl_Spec, "                   Request : access CORBA.ServerRequest.Object );");
+                  PL (Impl_Spec, "function Primary_Interface( Self : access Object ; -- ....");
+                  PL (Impl_Spec, "   POA_Ptr : PortableServer.POA.Ref) return String;");
+
+                  Add_With (Impl_Spec, "CORBA.ServerRequest");
+                  Add_With (Impl_Spec, "PortableServer.POA");
+
+
+
+                  Add_With (Impl_Body, "CORBA",
+                            Use_It    => True,
+                            Elab_Control => Elaborate_All);
+
+                  Add_With (Impl_Body, "Broca.Object");
+                  Add_With (Impl_Body, "Broca.Exceptions");
+
+                  Add_With (Impl_Body, "CORBA.Object");
+                  Add_With (Impl_Body, "CORBA.Context");
+                  Add_With (Impl_Body, "CORBA.NVList");
+                  Add_With (Impl_Body, "CORBA.ContextList");
+                  Add_With (Impl_Body, "CORBA.ExceptionList");
+                  Add_With (Impl_Body, "CORBA.ORB");
+
+                  NL (Impl_Body);
+                  NL (Impl_Body);
+                  PL (Impl_Body, "procedure Invoke ( Self : access Object ;");
+                  PL (Impl_Body, "                   Request : access CORBA.ServerRequest.Object ) is  ");
+                  NL (Impl_Body);
+                  PL (Impl_Body, "   Operation : Standard.String");
+                  PL (Impl_Body, "      := CORBA.To_Standard_String (CORBA.ServerRequest.Operation (Request.all));");
+                  NL (Impl_Body);
+                  PL (Impl_Body, "begin");
+
+                  declare
+                     It   : Node_Iterator;
+                     Export_Node : Node_Id;
+                  begin
+                     Init (It, Contents (Node));
+                     while not Is_End (It) loop
+                        Get_Next_Node (It, Export_Node);
+
+                        if Is_Gen_Scope (Export_Node) then
+                           Put_Line ("mmmmmmmmmmmmmm");
+                        else
+
+                           Gen_Invoke
+                             (Impl_Body, Export_Node);
+
+                        end if;
+
+                     end loop;
+                  end;
+
+                  PL (Impl_Body, "Broca.Exceptions.Raise_Bad_Operation;");
+                  PL (Impl_Body, "end Invoke;");
+                  NL (Impl_Body);
+                  PL (Impl_Body, "function Primary_Interface( Self : access Object ; -- ....");
+                  PL (Impl_Body, "   POA_Ptr : PortableServer.POA.Ref) return String is ");
+                  PL (Impl_Body, "begin");
+                  Pl (Impl_Body, "   return """ &  Idl_Repository_Id (Node)  & """;");
+                  PL (Impl_Body, "end Primary_Interface;");
+
+
+               end if;
+
+               ----------------------*****************************
+
+
             end if;
 
          when others =>
@@ -3411,5 +3499,323 @@ package body Ada_Be.Idl2Ada is
       end case;
 
    end Gen_Constant_Value;
+
+   procedure Gen_Invoke
+     (CU   : in out Compilation_Unit;
+      Node : Node_Id) is
+   begin
+      case Kind (Node) is
+
+         ----------------
+         -- Operations --
+         ----------------
+
+         when K_Operation =>
+
+
+            declare
+               O_Name : constant String
+                 := Ada_Operation_Name (Node);
+               O_Type : constant Node_Id
+                 := Operation_Type (Node);
+               Response_Expected : constant Boolean
+                 := not Is_Oneway (Node);
+               Is_Function : constant Boolean
+                 := Kind (O_Type) /= K_Void;
+               Raise_Something : constant Boolean
+                 := not (Raises (Node) = Nil_List);
+
+
+               Prefix, Arg_Name, Str1, Str2 : Str_Access;
+               Max_Len : Integer := T_Result_Name'Length;
+
+            begin
+
+
+
+               declare
+                  It   : Node_Iterator;
+                  P_Node : Node_Id;
+               begin
+                  Init (It, Parameters (Node));
+                  while not Is_End (It) loop
+                     Get_Next_Node (It, P_Node);
+                     if not Is_Returns (P_Node) then
+                        Arg_Name := new String'
+                          (Ada_Name (Declarator (P_Node)));
+                        if Max_Len <
+                          (Arg_Name.all'Length + T_Argument'Length) then
+                           Max_Len := Arg_Name.all'Length + T_Argument'Length;
+                        end if;
+                     end if;
+                  end loop;
+               end;
+
+
+               NL (CU);
+               PL (CU,
+                   "if Operation = """
+                   & Idl_Operation_Id (Node)
+                   & """ then");
+               II (CU);
+
+               NL (CU);
+               PL (CU, "declare");
+               II (CU);
+--------------------
+
+               declare
+                  It   : Node_Iterator;
+                  P_Node : Node_Id;
+               begin
+                  Init (It, Parameters (Node));
+                  while not Is_End (It) loop
+                     Get_Next_Node (It, P_Node);
+                     Add_With_Stream (CU, Param_Type (P_Node));
+
+
+                     Arg_Name := new String'
+                       (Ada_Name (Declarator (P_Node)));
+
+
+                     PL (CU, Justify (Arg_Name.all, Max_Len)
+                         & " : " & Ada_Type_Name ( Param_Type (P_Node) )  & ";");
+
+                     if not Is_Returns (P_Node) then
+                        PL (CU, Justify (T_Arg_Name & Arg_Name.all, Max_Len)
+                            & " : CORBA.Identifier := To_CORBA_String ("""
+                            & Arg_Name.all & """);");
+                     end if;
+
+                     Prefix := new String'
+                       (Helper_Path (Param_Type (P_Node)));
+                     Add_With (CU, Prefix.all);
+                     Forward_Stuff
+                       (Param_Type (P_Node), "From_Forward", Str1, Str2);
+                     PL (CU, Justify (T_Argument & Arg_Name.all, Max_Len)
+                         & " : CORBA.Any := " & Prefix.all & ".To_Any"
+                         & " (" & Str1.all & Arg_Name.all
+                         & Str2.all & ");");
+                     NL (CU);
+
+                  end loop;
+               end;
+
+               if Is_Function then
+
+                  PL (CU, Justify (T_Result, Max_Len)
+                      & " : " & Ada_Type_Name ( O_Type )  & ";");
+                  PL (CU, Justify (T_Argument & T_Result , Max_Len)
+                      & " : CORBA.Any ;");
+               end if;
+
+
+               PL (CU, Justify (T_Ctx, Max_Len)
+                   & " : CORBA.Context.Ref := CORBA.Context.Nil_Ref;");
+               PL (CU, Justify (T_Arg_List, Max_Len) & " : CORBA.NVList.Ref;");
+               if Raise_Something then
+                  PL (CU, Justify (T_Excp_List, Max_Len)
+                    & " : CORBA.ExceptionList.Ref;");
+               end if;
+
+-------------------
+
+               DI (CU);
+               PL (CU, "begin");
+               II (CU);
+
+
+               PL (CU, "--  creating the argument list");
+               PL (CU, "CORBA.ORB.Create_List (0, " & T_Arg_List & ");");
+               declare
+                  It   : Node_Iterator;
+                  P_Node : Node_Id;
+                  First : Boolean := True;
+               begin
+                  Init (It, Parameters (Node));
+                  while not Is_End (It) loop
+
+                     Get_Next_Node (It, P_Node);
+
+                     if not Is_Returns (P_Node) then
+
+                        Arg_Name := new String'
+                          (Ada_Name (Declarator (P_Node)));
+
+                        if First then
+                           NL (CU);
+                           PL (CU, "--  marshalling arguments.");
+                           First := False;
+                        end if;
+
+                        PL (CU, "CORBA.NVList.Add_Item (" & T_Arg_List & ",");
+                        PL (CU, "                       " & T_Arg_Name
+                          & Arg_Name.all & ",");
+                        PL (CU, "                       "
+                          & T_Argument&Arg_Name.all & ",");
+
+                        case Mode (P_Node) is
+                           when Mode_In =>
+                              PL (CU,
+                                "                       CORBA.ARG_IN);");
+                           when Mode_Inout =>
+                              PL (CU,
+                                "                       CORBA.ARG_INOUT);");
+                           when Mode_Out =>
+                              PL (CU,
+                                "                       CORBA.ARG_OUT);");
+                           when others =>
+                              null;
+                        end case;
+
+                     end if;
+
+                  end loop;
+               end;
+
+               NL (CU);
+               PL (CU, "CORBA.ServerRequest.Arguments (Request, " & T_Arg_List & ");");
+               NL (CU);
+
+
+               PL (CU, "begin"); II (CU);
+
+               if Is_Function then
+                  Put (CU, T_Result & " := ");
+               end if;
+
+               Put (CU, Ada_Operation_Name (Node) & " (Self");
+
+               declare
+                  It   : Node_Iterator;
+                  P_Node : Node_Id;
+               begin
+                  Init (It, Parameters (Node));
+                  while not Is_End (It) loop
+                     Get_Next_Node (It, P_Node);
+                     Arg_Name := new String'(Ada_Name (Declarator (P_Node)));
+                     Put (CU, ", " & Arg_Name.all);
+                  end loop;
+               end;
+               PL (CU, ");");
+
+               if Raise_Something then
+                  DI (CU); PL (CU,"exception"); II (CU);
+
+                  declare
+                     It : Node_Iterator;
+                     R_Node : Node_Id;
+                     E_Node : Node_Id;
+                  begin
+                     Init (It, Raises (Node));
+                     while not Is_End (It) loop
+                        Get_Next_Node (It, R_Node);
+                        E_Node := Value (R_Node);
+                        Add_With_Entity (CU, E_Node);
+
+                        Prefix := new String'(Helper_Path (E_Node));
+                        Add_With (CU, Prefix.all);
+
+                        PL (CU, "when E: " & Ada_Name (E_Node) & " =>");II (CU);
+                        PL (CU, "declare");
+                        PL (CU, "   Members : " & Ada_Name (E_Node) & "_Members;");
+                        PL (CU, "begin");
+                        PL (CU, "   Get_Members (E, Members);");
+                        PL (CU, "   CORBA.ServerRequest.Set_Exception (Request.all,");
+
+                        PL (CU, "      " & Helper_Path (E_Node) & ".To_Any (Members));");
+                        PL (CU, "   return;");
+                        PL (CU, "end;"); DI (CU);
+                     end loop;
+                  end;
+
+                  PL (CU, "when others =>");
+                  PL (CU, "   null;");
+               end if;
+
+
+               DI (CU); PL (CU,"end;");
+
+
+               if Response_Expected then
+
+                  declare
+                     It   : Node_Iterator;
+                     P_Node : Node_Id;
+                     First : Boolean := True;
+                  begin
+                     Init (It, Parameters (Node));
+                     while not Is_End (It) loop
+                        Get_Next_Node (It, P_Node);
+
+                        if not Is_Returns (P_Node) then
+
+
+                           if Mode (P_Node) =  Mode_Inout
+                             or else Mode (P_Node) = Mode_Out
+                           then
+
+                              Arg_Name := new String'
+                                (Ada_Name (Declarator (P_Node)));
+
+                              if First then
+                                 NL (CU);
+                                 PL (CU, "--  Set out arguments.");
+                                 First := False;
+                              end if;
+
+                              Prefix := new String'(Helper_Path (Param_Type (P_Node)));
+                              Add_With (CU, Prefix.all);
+                              Forward_Stuff (Param_Type (P_Node), "From_Forward", Str1, Str2);
+                              PL (CU, Justify (T_Argument & Arg_Name.all, Max_Len)
+                                  & " := " & Prefix.all & ".To_Any"
+                                  & " (" & Str1.all & Arg_Name.all
+                                  & Str2.all & ");");
+                              NL (CU);
+
+                           end if;
+
+                        end if;
+
+                     end loop;
+                  end;
+
+                  if Kind (Original_Operation_Type (Node)) /= K_Void then
+                     PL (CU, "-- Set Result");
+                     if Is_Function then
+                        Arg_Name := new String'(T_Result);
+                     else
+                        Arg_Name := new String'("Returns");
+                     end if;
+
+                        Prefix := new String'(Helper_Path (Original_Operation_Type (Node)));
+                        Forward_Stuff (Original_Operation_Type (Node), "From_Forward", Str1, Str2);
+                        PL (CU, T_Argument & T_Result
+                            & " := " & Prefix.all & ".To_Any"
+                            & " (" & Str1.all & Arg_Name.all
+                            & Str2.all & ");");
+                        PL (CU, "CORBA.ServerRequest.Set_Result (Request, "
+                            & T_Argument & T_Result & ");" );
+                  end if;
+
+               end if;
+
+
+               PL (CU, "return;");
+
+               DI (CU);
+               PL (CU, "end;");
+
+               DI (CU);
+               PL (CU,"end if;");
+            end;
+
+         when others =>
+            null;
+
+      end case;
+
+   end Gen_Invoke;
+
 
 end Ada_Be.Idl2Ada;
