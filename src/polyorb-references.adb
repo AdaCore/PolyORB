@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,14 +26,13 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Object references.
 
-with Ada.Strings.Unbounded;
 with Ada.Tags;
 
 with PolyORB.Binding_Objects;
@@ -41,6 +40,7 @@ with PolyORB.Log;
 with PolyORB.Objects;
 with PolyORB.Utils.Chained_Lists;
 with PolyORB.Utils.Strings;
+with PolyORB.Types;
 
 package body PolyORB.References is
 
@@ -169,26 +169,27 @@ package body PolyORB.References is
      (R : Ref)
      return String
    is
-      use Ada.Strings.Unbounded;
+      use type PolyORB.Types.String;
 
       P : constant Profile_Array := Profiles_Of (R);
-      Res : Unbounded_String
-        := To_Unbounded_String ("Object reference: ");
+      Res : PolyORB.Types.String;
    begin
       if P'Length = 0 then
-         Res := Res & "<nil or invalid reference>";
+         return "Object reference: <nil or invalid reference>";
+
       else
-         Res := Res & Type_Id_Of (R) & ASCII.LF;
+         Res := PolyORB.Types.To_PolyORB_String ("Object reference: ")
+           & Type_Id_Of (R) & ASCII.LF;
 
          for J in P'Range loop
-            Res := Res & "  " & Ada.Tags.External_Tag
-              (P (J).all'Tag) & ASCII.LF;
-            Res := Res & "    " & Binding_Data.Image (P (J).all)
-              & ASCII.LF;
+            Res := Res
+              & PolyORB.Types.To_PolyORB_String
+              ("  " & Ada.Tags.External_Tag (P (J).all'Tag) & ASCII.LF
+               & "    " & Binding_Data.Image (P (J).all) & ASCII.LF);
          end loop;
       end if;
 
-      return To_String (Res);
+      return PolyORB.Types.To_Standard_String (Res);
    end Image;
 
    ---------------------------
