@@ -197,21 +197,21 @@ begin
    end;
    Output ("test in and out and inout param function", Ok);
 
---   begin
---      Oneway_Void_Proc (MyObj);
---      Ok := True;
---    exception when others =>
---       Ok := False;
---    end;
---    Output ("test void one way procedure", Ok);
+   begin
+      Oneway_Void_Proc (MyObj);
+      Ok := True;
+    exception when others =>
+       Ok := False;
+    end;
+    Output ("test void one way procedure", Ok);
 
---    begin
---       Oneway_In_Proc (MyObj, 1, 2, 3);
---       Ok := True;
---    exception when others =>
---       Ok := False;
---    end;
---    Output ("test in param one way procedure", Ok);
+    begin
+       Oneway_In_Proc (MyObj, 1, 2, 3);
+       Ok := True;
+    exception when others =>
+       Ok := False;
+    end;
+    Output ("test in param one way procedure", Ok);
 
 end Client;
 

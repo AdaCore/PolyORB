@@ -1519,39 +1519,46 @@ package body Ada_Be.Idl2Ada is
                       ".Buffer'Access);");
                end if;
 
-               declare
-                  It   : Node_Iterator;
-                  P_Node : Node_Id;
-                  First : Boolean := True;
-               begin
-                  Init (It, Parameters (Node));
-                  while not Is_End (It) loop
-                     Get_Next_Node (It, P_Node);
+               if Response_Expected then
+                  declare
+                     It     : Node_Iterator;
+                     P_Node : Node_Id;
+                     First  : Boolean := True;
+                  begin
+                     Init (It, Parameters (Node));
+                     while not Is_End (It) loop
+                        Get_Next_Node (It, P_Node);
 
-                     case Mode (P_Node) is
-                        when Mode_Inout | Mode_Out =>
-                           if First then
-                              NL (CU);
-                              PL
-                                (CU,
-                                 "--  Unmarshall inout and out parameters.");
-                              First := False;
-                           end if;
-                           PL (CU, Ada_Name (Declarator (P_Node))
-                               & " := Unmarshall (" & T_Handler &
-                               ".Buffer'Access);");
-                        when others =>
-                           null;
-                     end case;
+                        case Mode (P_Node) is
+                           when Mode_Inout | Mode_Out =>
+                              if First then
+                                 NL (CU);
+                                 PL
+                                   (CU,
+                                    "--  Unmarshall inout and out " &
+                                    "parameters.");
+                                 First := False;
+                              end if;
+                              PL (CU, Ada_Name (Declarator (P_Node))
+                                  & " := Unmarshall (" & T_Handler &
+                                  ".Buffer'Access);");
+                           when others =>
+                              null;
+                        end case;
 
-                  end loop;
-               end;
+                     end loop;
+                  end;
 
-               PL (CU, "Broca.GIOP.Release (" & T_Handler & ");");
-               if Kind (O_Type) /= K_Void then
-                  PL (CU, "return " & T_Returns & ";");
+                  PL (CU, "Broca.GIOP.Release (" & T_Handler & ");");
+                  if Kind (O_Type) /= K_Void then
+                     PL (CU, "return " & T_Returns & ";");
+                  else
+                     PL (CU, "return;");
+                  end if;
+
                else
-                  PL (CU, "return;");
+                  PL (CU, "Broca.GIOP.Release (" & T_Handler & ");");
+                  PL (CU, "raise Program_Error;");
                end if;
 
                DI (CU);
@@ -1559,7 +1566,12 @@ package body Ada_Be.Idl2Ada is
                II (CU);
                --  XXX ??? What's this ? FIXME.
                PL (CU, "Broca.GIOP.Release (" & T_Handler & ");");
-               PL (CU, "raise Program_Error;");
+
+               if Response_Expected then
+                  PL (CU, "raise Program_Error;");
+               else
+                  PL (CU, "return;");
+               end if;
                DI (CU);
                PL (CU, "when Broca.GIOP.Sr_User_Exception =>");
                II (CU);
