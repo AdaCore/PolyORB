@@ -5,10 +5,6 @@ Frontend
 
 Backend Ada
 
-* Implement exceptions
-
-* Implement unions
-
 * Implement interfaces (inherited interfaces)
 
 * Implement sequences
