@@ -33,9 +33,12 @@
 with Ada.Long_Float_Text_IO;
 with Ada.Exceptions;
 with Ada.Strings.Fixed;
+with Ada.Strings.Unbounded;
 
 with PolyORB.Types;
 with PolyORB.Utils;
+
+with SOAP.Utils;
 
 package body SOAP.Types is
 
@@ -497,13 +500,17 @@ package body SOAP.Types is
    -- XML_Image --
    ---------------
 
+   function XML_Record_Image (O : in NamedValue) return String;
+
    function XML_Image (O : in NamedValue) return String is
    begin
       case TCK (O.Argument) is
          --  when Tk_Array =>
-         --  when Tk_Record =>
          --  when Tk_Null =>
          --  XXX see code below.
+
+         when Tk_Struct =>
+            return XML_Record_Image (O);
 
          when Tk_Void =>
             return "<" & To_Standard_String (O.Name)
@@ -581,21 +588,44 @@ package body SOAP.Types is
 --       return To_String (Result);
 --    end XML_Image;
 
---    function XML_Image (O : in SOAP_Record) return String is
---       Result : Unbounded_String;
---    begin
---       Append (Result, Utils.Tag (Name (O), Start => True));
---       Append (Result, New_Line);
+   function XML_Record_Image (O : in NamedValue) return String is
+      use Ada.Strings.Unbounded;
 
---       for K in O.Items.O'Range loop
---          Append (Result, XML_Image (O.Items.O (K).O.all));
---          Append (Result, New_Line);
---       end loop;
+      Result : Unbounded_String;
+      Data_Type : constant PolyORB.Any.TypeCode.Object
+        := Get_Precise_Type (O.Argument);
+      New_Line : constant String := ASCII.CR & ASCII.LF;
+   begin
+      Append (Result, SOAP.Utils.Tag
+              (To_Standard_String (O.Name), Start => True));
+      Append (Result, New_Line);
 
---       Append (Result, Utils.Tag (Name (O), Start => False));
+      declare
+         Nb : constant PolyORB.Types.Unsigned_Long
+           := PolyORB.Any.Get_Aggregate_Count (O.Argument);
+      begin
+         for I in 0 .. Nb - 1 loop
+            Append
+              (Result, XML_Image
+               (PolyORB.Any.NamedValue'
+                (Name     =>
+                   PolyORB.Any.TypeCode.Member_Name (Data_Type, I),
+                 Argument =>
+                   PolyORB.Any.Get_Aggregate_Element
+                 (O.Argument, PolyORB.Any.TypeCode.Member_Type
+                  (Data_Type, I), I),
+                 Arg_Modes =>
+                   ARG_IN)));
 
---       return To_String (Result);
---    end XML_Image;
+            Append (Result, New_Line);
+         end loop;
+      end;
+
+      Append (Result, SOAP.Utils.Tag
+              (To_Standard_String (O.Name), Start => False));
+
+      return To_String (Result);
+   end XML_Record_Image;
 
    --------------
    -- XML_Type --
