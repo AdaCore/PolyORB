@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.6 $
+--                            $Revision: 1.7 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -65,7 +65,7 @@ pragma Elaborate_All (Adabroker.Debug);
 package body AdaBroker.OmniProxyCallWrapper is
 
    Flag : constant Natural
-      := AdaBroker.Debug.Is_Active ("omniproxycallwrapper");
+      := AdaBroker.Debug.Is_Active ("adabroker.omniproxycallwrapper");
    procedure O is new AdaBroker.Debug.Output (Flag);
 
    use type CORBA.Unsigned_Long;

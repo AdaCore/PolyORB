@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.45 $
+--                            $Revision: 1.46 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -353,7 +353,7 @@ package CORBA is
    AdaBroker_Not_Implemented_Yet : exception;
    --  Function was not implemented yet
 
-   No_Initialisation_Error       : exception;
+   No_Initialization_Error       : exception;
    --  A C object was used before being initialised via an Init function
 
    C_Out_Of_Range                : exception;

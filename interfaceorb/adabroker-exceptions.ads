@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.4 $
+--                            $Revision: 1.5 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -33,7 +33,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  This package deals with the raising of C exceptions in Ada and ada ones
+--  This unit deals with the raising of C exceptions in Ada and ada ones
 --  in C.  It is both a C and a Ada class (see Ada_Exceptions.hh) and
 --  provides 2 mains methods : raise_C_Exception and
 --  raise_Ada_Exception. The first one is called by Ada code and

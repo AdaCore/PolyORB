@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.4 $
+--                            $Revision: 1.5 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -90,7 +90,7 @@ package AdaBroker.Constants is
      := Exception_Id'("IDL:omg.org/CORBA/BAD_OPERATION:1.0");
 
    No_Resources_Repoid : constant Exception_Id
-     := Exception_Id'("IDL:omg.org/CORBA/NO_RESSOURCES:1.0");
+     := Exception_Id'("IDL:omg.org/CORBA/NO_RESOURCES:1.0");
 
    No_Response_Repoid : constant Exception_Id
      := Exception_Id'("IDL:omg.org/CORBA/NO_RESPONSE:1.0");

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.4 $
+--                            $Revision: 1.5 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -985,7 +985,7 @@ package body AdaBroker.OmniORB is
                begin
                   CORBA.Get_Members (E, Exbd);
                   Marshall_System_Exception
-                    (Constants.Unknown_Repoid, Exbd, Orls);
+                    (Constants.Marshal_Repoid, Exbd, Orls);
                end;
 
             when E : CORBA.Initialization_Failure =>
@@ -1022,6 +1022,15 @@ package body AdaBroker.OmniORB is
                   CORBA.Get_Members (E, Exbd);
                   Marshall_System_Exception
                     (Constants.Bad_Operation_Repoid, Exbd, Orls);
+               end;
+
+            when E : CORBA.No_Response =>
+               declare
+                  Exbd : CORBA.No_Response_Members;
+               begin
+                  CORBA.Get_Members (E, Exbd);
+                  Marshall_System_Exception
+                    (Constants.No_Response_Repoid, Exbd, Orls);
                end;
 
             when E : CORBA.No_Resources =>
@@ -1160,7 +1169,7 @@ package body AdaBroker.OmniORB is
                end;
 
             when E : CORBA.AdaBroker_Fatal_Error |
-              CORBA.No_Initialisation_Error      |
+              CORBA.No_Initialization_Error      |
               CORBA.C_Out_Of_Range               |
               CORBA.OmniORB_Fatal_Error          |
               CORBA.Dummy_User                   =>

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.21 $
+--                            $Revision: 1.22 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -50,7 +50,7 @@ pragma Elaborate_All (AdaBroker.Debug);
 
 package body CORBA.Exceptions is
 
-   Flag : constant Natural := AdaBroker.Debug.Is_Active ("corba-exceptions");
+   Flag : constant Natural := AdaBroker.Debug.Is_Active ("corba.exceptions");
    procedure O is new AdaBroker.Debug.Output (Flag);
 
    use type Constants.Exception_Id;
@@ -86,9 +86,9 @@ package body CORBA.Exceptions is
 
    List : Cell_Ptr := null;
 
-   procedure Get
-     (From   : in Ada.Exceptions.Exception_Occurrence;
-      Result : out IDL_Exception_Members'Class);
+   function Get
+     (From   : in Ada.Exceptions.Exception_Occurrence)
+     return IDL_Exception_Members'Class;
 
    procedure Put
      (V    : in IDL_Exception_Members'Class;
@@ -116,77 +116,54 @@ package body CORBA.Exceptions is
    -- Get --
    ---------
 
-   procedure Get
-     (From   : in Ada.Exceptions.Exception_Occurrence;
-      Result : out IDL_Exception_Members'Class)
+   function Get
+     (From   : in Ada.Exceptions.Exception_Occurrence)
+     return IDL_Exception_Members'Class
    is
-      Tmp : Cell_Ptr := List;
-      Old : Cell_Ptr := null;
-      ID  : Standard.String := Ada.Exceptions.Exception_Message (From);
+      Current  : Cell_Ptr := List;
+      Previous : Cell_Ptr := null;
+      Message  : Standard.String := Ada.Exceptions.Exception_Message (From);
    begin
-      if Tmp = null then
-         --  Raise an Ada Exception AdaBroker_Fatal_Error
-         pragma Debug (O ("get **** tmp = null ****"));
+      while Current /= null
+        and then Current.ID /= Message
+      loop
+         Previous := Current;
+         Current  := Current.Next;
+      end loop;
 
+      if Current = null then
          Ada.Exceptions.Raise_Exception
            (AdaBroker_Fatal_Error'Identity,
-            "cannot translate member associated to " &
+            "cannot find member associated to " &
             Ada.Exceptions.Exception_Name (From));
-
-      else
-         loop
-            pragma Debug (O ("get : enter loop"));
-
-            if Tmp.all.ID = ID then
-               declare
-                  Member : IDL_Exception_Members'Class := Tmp.all.Value.all;
-               begin
-                  pragma Debug (O ("get : find correct member"));
-                  --  We can suppress the correponding cell
-                  if Old = null then
-                     List := Tmp.all.Next;
-                  else
-                     Old.all.Next := Tmp.all.Next;
-                  end if;
-
-                  pragma Debug (O ("get : free memory"));
-
-                  Free (Tmp.all.Value);
-                  Free (Tmp);
-
-                  pragma Debug (O ("result type " &
-                                   Ada.Tags.External_Tag (Result'Tag)));
-
-                  pragma Debug (O ("member type " &
-                                   Ada.Tags.External_Tag (Member'Tag)));
-
-                  --  At last, return the result
-                  Result := Member;
-
-                  pragma Debug (O ("get : leave loop"));
-                  return;
-               end;
-
-            else
-               --  If the end of list is reached
-               if Tmp.all.Next = null then
-
-               --  Raise an Ada Exception AdaBroker_Fatal_Error
-                  pragma Debug (O ("get : cannot find member"));
-
-                  Ada.Exceptions.Raise_Exception
-                    (AdaBroker_Fatal_Error'Identity,
-                     "cannot translate member associated to " &
-                     Ada.Exceptions.Exception_Name (From));
-
-               else
-                  --  Else go to the next element of the list
-                  Old := Tmp;
-                  Tmp := Tmp.Next;
-               end if;
-            end if;
-         end loop;
       end if;
+
+      if Previous /= null then
+         Previous.Next := Previous.Next.Next;
+      else
+         List := List.Next;
+      end if;
+
+      declare
+         Member : IDL_Exception_Members'Class := Current.Value.all;
+      begin
+         pragma Debug
+           (O ("member type " & Ada.Tags.External_Tag (Member'Tag)));
+
+         Free (Current.Value);
+         Free (Current);
+
+         if Member in Ex_Body'Class then
+            declare
+               X : Ex_Body'Class := Ex_Body'Class (Member);
+            begin
+               pragma Debug (O ("ex_body minor " & X.Minor'Img));
+               pragma Debug (O ("ex_body completed " & X.Completed'Img));
+               null;
+            end;
+         end if;
+         return Member;
+      end;
    end Get;
 
    -----------------
@@ -198,9 +175,9 @@ package body CORBA.Exceptions is
       To   : out IDL_Exception_Members'Class)
    is
    begin
-      pragma Debug (O ("get_member : enter"));
-      Get (From, To);
-      pragma Debug (O ("get_member : leave"));
+      pragma Debug (O ("get_members : enter"));
+      To := Get (From);
+      pragma Debug (O ("get_members : leave"));
    end Get_Members;
 
    ---------------------------

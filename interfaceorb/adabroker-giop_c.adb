@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.6 $
+--                            $Revision: 1.7 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -49,7 +49,7 @@ with CORBA;
 
 package body AdaBroker.GIOP_C is
 
-   Flag : constant Natural := AdaBroker.Debug.Is_Active ("giop_c");
+   Flag : constant Natural := AdaBroker.Debug.Is_Active ("adabroker.giop_c");
    procedure O is new AdaBroker.Debug.Output (Flag);
 
    use type CORBA.Unsigned_Long;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.6 $
+--                            $Revision: 1.7 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -62,7 +62,8 @@ package body AdaBroker.NetBufferedStream is
    use type CORBA.String;
    use type CORBA.Unsigned_Long;
 
-   Flag : constant Natural := AdaBroker.Debug.Is_Active ("netbufferedstream");
+   Flag : constant Natural
+      := AdaBroker.Debug.Is_Active ("adabroker.netbufferedstream");
    procedure O is new AdaBroker.Debug.Output (Flag);
 
    ------------
