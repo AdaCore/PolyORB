@@ -85,7 +85,7 @@ package body PortableServer is
 
    function Execute_Servant
      (Self : access DynamicImplementation;
-      Msg  : PolyORB.Components.Message'Class)
+      Msg  :        PolyORB.Components.Message'Class)
      return PolyORB.Components.Message'Class
    is
       use PolyORB.Objects.Interface;
@@ -98,8 +98,8 @@ package body PortableServer is
             use PolyORB.Requests;
             use CORBA.ServerRequest;
 
-            R : constant Request_Access
-              := Execute_Request (Msg).Req;
+            R : constant Request_Access := Execute_Request (Msg).Req;
+
          begin
             Invoke (DynamicImplementation'Class (Self.all)'Access,
                     CORBA.ServerRequest.Object_Ptr (R));
@@ -125,7 +125,7 @@ package body PortableServer is
 
    procedure Invoke
      (Self    : access Servant_Base;
-      Request : in CORBA.ServerRequest.Object_Ptr) is
+      Request : in     CORBA.ServerRequest.Object_Ptr) is
    begin
       Find_Info (Servant (Self)).Dispatcher (Servant (Self), Request);
       --  Invoke primitive for static object implementations:
@@ -144,8 +144,8 @@ package body PortableServer is
    is
       use Skeleton_Lists;
 
-      It : Iterator;
-      Info    : Skeleton_Info;
+      It   : Iterator;
+      Info : Skeleton_Info;
 
    begin
       pragma Debug
@@ -183,6 +183,7 @@ package body PortableServer is
       Dispatcher : in Request_Dispatcher := null)
    is
       use Skeleton_Lists;
+
    begin
       pragma Debug (O ("Register_Skeleton: Enter."));
 
@@ -246,6 +247,7 @@ package body PortableServer is
       To   : out ForwardRequest_Members)
    is
       use Ada.Exceptions;
+
    begin
       if Exception_Identity (From) /= ForwardRequest'Identity then
          CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
@@ -264,6 +266,7 @@ package body PortableServer is
       pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Excp_Memb);
       pragma Warnings (On); --  WAG:3.15
+
    begin
       raise PolyORB.Not_Implemented;
    end Raise_ForwardRequest;

@@ -220,8 +220,8 @@ package PortableServer is
 
    --  ThreadPolicyValue
 
-   TC_ThreadPolicyValue : CORBA.TypeCode.Object
-     := CORBA.TypeCode.TC_Enum;
+   TC_ThreadPolicyValue : CORBA.TypeCode.Object :=
+     CORBA.TypeCode.TC_Enum;
 
    function From_Any
      (Item : in CORBA.Any)
@@ -233,8 +233,8 @@ package PortableServer is
 
    --  LifespanPolicyValue
 
-   TC_LifespanPolicyValue : CORBA.TypeCode.Object
-     := CORBA.TypeCode.TC_Enum;
+   TC_LifespanPolicyValue : CORBA.TypeCode.Object :=
+     CORBA.TypeCode.TC_Enum;
 
    function From_Any
      (Item : in CORBA.Any)
@@ -246,8 +246,8 @@ package PortableServer is
 
    --  IdUniquenessPolicyValue
 
-   TC_IdUniquenessPolicyValue : CORBA.TypeCode.Object
-     := CORBA.TypeCode.TC_Enum;
+   TC_IdUniquenessPolicyValue : CORBA.TypeCode.Object :=
+     CORBA.TypeCode.TC_Enum;
 
    function From_Any
      (Item : in CORBA.Any)
@@ -272,8 +272,8 @@ package PortableServer is
 
    --  ImplicitActivationPolicyValue
 
-   TC_ImplicitActivationPolicyValue : CORBA.TypeCode.Object
-     := CORBA.TypeCode.TC_Enum;
+   TC_ImplicitActivationPolicyValue : CORBA.TypeCode.Object :=
+     CORBA.TypeCode.TC_Enum;
 
    function From_Any
      (Item : in CORBA.Any)
@@ -285,8 +285,8 @@ package PortableServer is
 
    --  ServantRetentionPolicyValue
 
-   TC_ServantRetentionPolicyValue : CORBA.TypeCode.Object
-     := CORBA.TypeCode.TC_Enum;
+   TC_ServantRetentionPolicyValue : CORBA.TypeCode.Object :=
+     CORBA.TypeCode.TC_Enum;
 
    function From_Any
      (Item : in CORBA.Any)
@@ -298,8 +298,8 @@ package PortableServer is
 
    --  RequestProcessingPolicyValue
 
-   TC_RequestProcessingPolicyValue : CORBA.TypeCode.Object
-     := CORBA.TypeCode.TC_Enum;
+   TC_RequestProcessingPolicyValue : CORBA.TypeCode.Object :=
+     CORBA.TypeCode.TC_Enum;
 
    function From_Any
      (Item : in CORBA.Any)
