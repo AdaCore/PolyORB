@@ -245,9 +245,9 @@ package body XE_Utils is
      (Source, Target : in File_Name_Type;
       Maybe_Symbolic : in Boolean := False)
    is
-
-      S : String_Access := new String (1 .. Strlen (Source));
-      T : String_Access := new String (1 .. Strlen (Target));
+      S       : String_Access := new String (1 .. Strlen (Source));
+      T       : String_Access := new String (1 .. Strlen (Target));
+      Success : Boolean;
 
    begin
       Get_Name_String (Source);
@@ -256,7 +256,11 @@ package body XE_Utils is
       T.all := Name_Buffer (1 .. Name_Len);
 
       if Link = null then
-         Copy_File (S.all, T.all);
+         Copy_File (S.all, T.all, Success);
+
+         if not Success then
+            Message ("cannot copy file " & S.all & " to " & T.all);
+         end if;
 
       else
          Force_Remove (T.all);
