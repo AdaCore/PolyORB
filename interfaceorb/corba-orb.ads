@@ -36,7 +36,7 @@ package Corba.Orb is
    ---             omniORB2 specific             ----
    --------------------------------------------------
 
-   procedure Init(Orb_Name : in String) ;
+   procedure Init(Orb_Name : in Standard.String) ;
    -- wrapper around CORBA::ORB_init(int& argc, char** argv,
    --                               const char* orb_identifier);
    -- in CORBA.h L 2246

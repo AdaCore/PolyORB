@@ -10,18 +10,23 @@
 ----                                                               ----
 -----------------------------------------------------------------------
 
-
+with Corba, BufferedStream ;
 
 package NetBufferedStream is
 
    type Object is new BufferedStream.Object with null record;
 
-   function IsReusingExistingConnection (Self : in Object) return CORBA::Boolean;
+   function IsReusingExistingConnection (Self : in Object)
+                                         return CORBA.Boolean;
    -- wrapper around     _CORBA_Boolean isReUsingExistingConnection() const;
    -- de la classe Sync
    -- in rope.h L 395
 
-   function Align_And_Put_Bytes (...) return ...;
+   -- function Align_And_Put_Bytes (Align : in Omni.Alignment_T ;
+--                               Nbytes : Integer ;
+--                               StartMTU : Corba.Boolean := False ;
+--                               At_Most_Once : Corba.Boolean := false
+--                              ) return ????????? ;
    -- wrapper around inline void* align_and_put_bytes(omni::alignment_t align,
    --                                      size_t nbytes,
    --                                      _CORBA_Boolean startMTU=0,

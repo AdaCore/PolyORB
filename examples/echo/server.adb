@@ -27,7 +27,8 @@ begin
    Corba.Boa.Object_Is_Ready(Server) ;
 
    -- getting this object's IOR
-   Text_IO.Putline(Corba.Orb.Object_To_String(Server)) ;
+   -- Text_IO.Put_Line(Corba.Orb.Object_To_String(Server)) ;
+   -- pb has to be solved
 
    -- telling the BOA we are ready
    -- the BOA blocks indefinitely on this call

@@ -10,7 +10,7 @@
 ----                                                               ----
 -----------------------------------------------------------------------
 
-
+with BufferedStream ;
 
 package MemBufferedStream is
 

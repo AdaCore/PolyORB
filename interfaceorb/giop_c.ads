@@ -10,7 +10,7 @@
 ----                                                               ----
 -----------------------------------------------------------------------
 
-
+with Corba, Omni, OmniORB, Giop, Rope, Netbufferedstream ;
 
 package Giop_C is
 
@@ -24,7 +24,7 @@ package Giop_C is
    procedure Put_Char_Array (Self: in Object ;
                                B: in Corba.String ;
                                Size: in Integer ;
-                               Align: in Alignment_T := Omni.ALIGN_1 ;
+                               Align: in Omni.Alignment_T := Omni.ALIGN_1 ;
                                StartMTU: in Corba.Boolean := False ;
                                At_Most_One: in Corba.Boolean := False ) ;
    -- wrapper around NetBufferedStream::put_char_array(const CORBA::Char* b,
@@ -37,7 +37,7 @@ package Giop_C is
    procedure Get_Char_Array (Self : in Object ;
                                B : in Corba.String ;
                                Size : in Integer ;
-                               Align : in Alignment_T := Omni.ALIGN_1 ;
+                               Align : in Omni.Alignment_T := Omni.ALIGN_1 ;
                                StartMTU : in Corba.Boolean := False) ;
    -- wrapper around void NetBufferedStream::get_char_array(CORBA::Char* b,
    --                                               int size,
@@ -45,8 +45,8 @@ package Giop_C is
    --                                               CORBA::Boolean startMTU)
    -- in nbufferedStream.cc L 121
 
-   function RequestHeaderSize (Objkeysize : in Size_T ;
-                              Opnamesize : in Size_T) return Integer ;
+   function RequestHeaderSize (Objkeysize : in Integer ;
+                              Opnamesize : in Integer ) return Integer ;
    -- wrapper around   static size_t RequestHeaderSize(const size_t objkeysize,
    --                                                  const size_t opnamesize);
    -- in giopDriver.h L 220
@@ -54,7 +54,7 @@ package Giop_C is
    procedure InitialiseRequest (Self : in OmniORB.ObjectKey ;
                                  Objkey : in Integer ;
                                  Objkeysize : in Integer ;
-                                 Opname : in CORBA::STRING ;
+                                 Opname : in CORBA.STRING ;
                                  OpnameSize : in Integer ;
                                  MsgSize : in Integer ;
                                  Oneway : in CORBA.Boolean) ;
@@ -66,7 +66,7 @@ package Giop_C is
    --                     const CORBA::Boolean oneway)
    -- in giopClient.cc L 119
 
-   function ReceiveReply (Self : in Object) return ReplyStatusType ;
+   function ReceiveReply (Self : in Object) return Giop.ReplyStatusType ;
    -- wrapper around GIOP::ReplyStatusType GIOP_C::ReceiveReply()
    -- in giopClient L174
 

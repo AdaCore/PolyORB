@@ -10,6 +10,7 @@
 ----                                                               ----
 -----------------------------------------------------------------------
 
+with Corba, Giop_C ;
 
 package omniProxyCallDesc is
 
@@ -19,7 +20,7 @@ package omniProxyCallDesc is
    -- to omniORB's OmniProxyCallDesc
    -- In proxyCall.h L33
    procedure Init (Self : in out Object ;
-                   Operator : String ;
+                   Operator : String
                   );
 
    function AlignedSize(Size_In: in Corba.Unsigned_Long)
@@ -40,6 +41,7 @@ package omniProxyCallDesc is
 
 private
 
+   type Object is abstract tagged limited null record ;
 
 end omniproxyCallDesc ;
 

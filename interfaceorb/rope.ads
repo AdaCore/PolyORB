@@ -16,12 +16,12 @@ package Rope is
 
   type Object is limited private ;
 
-  Null_Rope : Object;
+  function Null_Rope return Object ;
 
 private
 
-   type Object is record
-   end record ;
+   type Object is null record ;
 
+   Null_Rope_Internal : Object ;
 
 end Rope ;

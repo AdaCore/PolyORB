@@ -5,33 +5,43 @@
 ----                  package omniObject                           ----
 ----                                                               ----
 ----   authors : Sebastien Ponce, Fabien Azavant                   ----
-----   date    :                                                   ----
+----   date    : 02/08/99                                          ----
 ----                                                               ----
 ----                                                               ----
 -----------------------------------------------------------------------
 
+with System, Interfaces.C.Pointers ;
+with Corba, OmniObjectManager, Omniropeandkey ;
 
 package OmniObject is
 
    type Object is limited private ;
 
-   function Is_Proxy() return Boolean ;
+   function Is_Proxy return Boolean ;
    -- wrapper around   inline _CORBA_Boolean is_proxy()
    -- in omniInternal.h L384
 
-   procedure PR_IRRepositoryId(in String RepositoryId) ;
+   procedure PR_IRRepositoryId(RepositoryId : in String ) ;
    -- wrapper around   void  PR_IRRepositoryId(const char* s);
    -- in omniInternal.h L 306
 
-   procedure Init (Self : in out Object,Manager : in OmniObjectManager.Object);
+   procedure Init (Self : in out Object ;
+                   Manager : in OmniObjectManager.Object);
    -- wrapper around   omniObject(omniObjectManager*p =0);
    -- in omniInternal.h L 294
 
-   procedure SetRopeAndKey (Self : in Object, ...) ;
-   -- wrapper around void setRopeAndKey(const omniRopeAndKey& l,_CORBA_Boolean keepIOP=1);
+   procedure SetRopeAndKey (Self : in out Object ;
+                            L : in out Omniropeandkey.Object ;
+                            KeepIOP : Corba.boolean
+                           ) ;
+   -- wrapper around void setRopeAndKey(const omniRopeAndKey& l,
+   --                                   _CORBA_Boolean keepIOP=1);
    -- in omniInternal.h L 328
 
-   function GetRopeAndKey (Self : in Object, ...) return ... ;
+
+   procedure GetRopeAndKey (Self : in Object ;
+                           L : in out Omniropeandkey.Object ;
+                           Result : out Corba.Boolean) ;
    -- wrapper around _CORBA_Boolean getRopeAndKey(omniRopeAndKey& l) const;
    -- in omniInternal.h L 338
 
@@ -45,10 +55,11 @@ package OmniObject is
 
 private
 
+   type Object is null record ;
 
-   function Dispatch (Self : in Interface.C.Pointers.Pointer,
-                        Orls : in System.Address,
-                        Orl_Op : in Interface.C.Chars_ptr,
+   function Dispatch (Self : in Interfaces.C.Pointers.Pointer ;
+                        Orls : in System.Address ;
+                        Orl_Op : in Interfaces.C.Chars_Ptr ;
                         Orl_Response_Expected : in System.Address)
                       return System.Address;
    pragma Export (C,Dispatch,"dispatch_ada");

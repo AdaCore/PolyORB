@@ -14,7 +14,6 @@
 
 with Ada.Exceptions ;
 with Ada.Strings.Unbounded ;
-with Implementation_Defined ;
 with Interfaces ;
 
 --I module CORBA {
@@ -170,57 +169,6 @@ package Corba is
 
 
 private
-
-   procedure MarshalObjRef(The_Object: Object'Class ;
-                           RepoID : String ;
-                           Nbs : NetBufferedStream.object) ;
-   -- wrapper around void CORBA::MarshalObjRef(CORBA::Object_ptr obj,
-   --        const char* repoId,
-   --        size_t repoIdSize,
-   --        NetBufferedStream &s)
-   -- defined in objectRef.cc L721
-
-   procedure MarshalObjRef(The_Object: Object'Class ;
-                           RepoID : String ;
-                           Mbs : MemBufferedStream.object) ;
-   -- wrapper around void CORBA::MarshalObjRef(CORBA::Object_ptr obj,
-   --        const char* repoId,
-   --        size_t repoIdSize,
-   --        MemBufferedStream &s)
-   -- defined in objectRef.cc L850
-
-   function UnMarshalObjRef(Repoid : String ;
-                            Nbs : NetBufferedStream
-                           ) return CORBA.Object.Ref ;
-   -- return ???
-   -- wrapper around CORBA::Object_ptr
-   --                CORBA::UnMarshalObjRef(
-   --                           const char* repoId,
-   --                           NetBufferedStream& s)
-   -- in objectRef.cc L637
-
-   function UnMarshalObjRef(Repoid : String ;
-                            Mbs : MemBufferedStream
-                           ) return CORBA.Object.Ref ;
-   -- return ???
-   -- wrapper around CORBA::Object_ptr
-   --                CORBA::UnMarshalObjRef(
-   --                           const char* repoId,
-   --                           MemBufferedStream& s)
-   -- in objectRef.cc L765
-
-   function AlignedObjRef(The_Object : Object'Class ;
-                          RepoID : String ;
-                          Initial_Offset : Integer ;
-                         ) return Integer ;
-   -- wrapper around size_t
-   --                CORBA::AlignedObjRef(CORBA::Object_ptr obj,
-   --                const char* repoId,
-   --                size_t repoIdSize,
-   --                size_t initialoffset)
-   -- in objectRef.cc L744
-
-
 
 
 

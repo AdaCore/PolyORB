@@ -9,7 +9,7 @@
 ----                                                                    ----
 ----------------------------------------------------------------------------
 
-with Corba;
+with Corba, Corba.Object ;
 with Omniproxycalldesc;
 with Giop_C;
 
@@ -31,32 +31,32 @@ package Echo is
    ----    not in  spec omniORB specific         ----
    --------------------------------------------------
 
-   type OmniProxyCallDesc_Echo is new OmniProxyCallDesc with private ;
+   type OmniProxyCallDesc_Echo is new OmniProxyCallDesc.Object with private ;
 
    function AlignedSize(Self: in OmniProxyCallDesc_Echo;
                           Size_In: in Corba.Unsigned_Long)
                         return Corba.Unsigned_Long ;
 
    procedure MarshalArguments(Self: in OmniProxyCallDesc_Echo;
-                                Giop_Client: in out Giop_C) ;
+                                Giop_Client: in out Giop_C.Object) ;
 
    procedure UnmarshalReturnedValues(Self: in OmniProxyCallDesc_Echo;
-                                       Giop_Client: in out Giop_C) ;
+                                       Giop_Client: in out Giop_C.Object) ;
 
-   function Result (Self : in Object) return CORBA.String;
+   function Result (Self : in Ref) return CORBA.String;
 
    --------------------------------------------------
    ----    not in  spec AdaBroker specific       ----
    --------------------------------------------------
 
    procedure AdaBroker_Cast_To_Parent(Real_Object: in Ref;
-                                      Result: out Corba.Object'Class) ;
+                                      Result: out Corba.Object.Ref'Class) ;
 
 
 
 private
 
-   type OmniProxyCallDesc_Echo is new OmniProxyCallDesc with record
+   type OmniProxyCallDesc_Echo is new OmniProxyCallDesc.Object with record
       Arg : Corba.String ;
       Result : Corba.String ;
    end record ;
