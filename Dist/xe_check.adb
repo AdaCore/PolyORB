@@ -272,7 +272,8 @@ package body XE_Check is
          end if;
       end loop;
 
-      --  Use (5) and (2). To check all RCI units are configured.
+      --  Use (5) and (2). To check all RCI units (except generics)
+      --  are configured.
 
       if Debug_Mode then
          Message ("check all RCI units are configured");
@@ -280,6 +281,7 @@ package body XE_Check is
 
       for U in Unit.First .. Unit.Last loop
          if Unit.Table (U).RCI and then
+            ALIs.Table (Unit.Table (U).My_ALI).Afile /= No_File and then
             Get_CUID (Unit.Table (U).Uname) = Null_CUID then
             Write_Program_Name;
             Write_Str (": RCI Ada unit """);
