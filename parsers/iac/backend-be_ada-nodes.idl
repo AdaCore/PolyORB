@@ -337,7 +337,9 @@ module Backend::BE_Ada::Nodes {
   interface Unsigned_Long_Long : Base_Type {};
   interface _Char : Base_Type {};
   interface Wide_Char : Base_Type {};
-  interface _Octet : Base_Type {};
-  interface _Boolean : Base_Type {};
   interface _String : Base_Type {};
+  interface Wide_String : Base_Type {};
+  interface _Boolean : Base_Type {};  
+  interface _Octet : Base_Type {};
+    
 };

@@ -32,13 +32,12 @@ package body Backend.BE_Ada is
    function Make_Ada_Typedef_Node
      (Identifier_Name : String;
       Type_Spec : Node_Id) return Node_Id;
-   procedure Visite_Type_Declaration (E : Node_Id);
    procedure Visite_Specification (E : Node_Id);
 
    function Visit_Interface (E : Node_Id)return Node_Id;
    function Visite_Module (E : Node_Id) return Node_Id;
    function Visite_Operation_Declaration (E : Node_Id) return Node_Id;
-
+   function Visite_Type_Declaration (E : Node_Id) return List_Id;
 
    function Image (N : Node_Kind) return String;
 
@@ -238,20 +237,6 @@ package body Backend.BE_Ada is
       return Node;
    end G_Package;
 
-   function Get_Mapped_Type (E : Node_Id) return Node_Id is
-      Node : Node_Id := No_Node;
-   begin
-
-      case Kind (E) is
-         when K_Float .. K_Octet =>
-            Set_Str_To_Name_Buffer (Image (Kind (E)));
-            Node := Node_Id (Get_Name_Table_Info (Name_Find));
-         when others =>
-            DE ("Type Mapping not implemented yet");
-      end case;
-      return Node;
-   end Get_Mapped_Type;
-
 
    ---------------
    --  Generate --
@@ -276,6 +261,26 @@ package body Backend.BE_Ada is
          Generate (Ada_Packages);
       end if;
    end Generate;
+
+   ----------------------
+   --  Get_Mapped_Type --
+   ----------------------
+   function Get_Mapped_Type (E : Node_Id) return Node_Id is
+      Node : Node_Id := No_Node;
+   begin
+
+      case Kind (E) is
+         when K_Float .. K_Octet =>
+            Set_Str_To_Name_Buffer (Image (Kind (E)));
+            Node := Node_Id (Get_Name_Table_Info (Name_Find));
+
+         when others =>
+            DE ("Type Mapping not implemented yet");
+      end case;
+      return Node;
+   end Get_Mapped_Type;
+
+
 
    function Image (N : Node_Kind) return String is
       S : String := Node_Kind'Image (N);
@@ -303,9 +308,12 @@ package body Backend.BE_Ada is
       Declare_Base_Type ("CORBA.Unsigned_Long_Long", BE.K_Unsigned_Long_Long);
       Declare_Base_Type ("CORBA.Char", BE.K_Char);
       Declare_Base_Type ("CORBA.WChar", BE.K_Wide_Char);
-      Declare_Base_Type ("CORBA.Octet", BE.K_Octet);
-      Declare_Base_Type ("CORBA.Boolean", BE.K_Boolean);
       Declare_Base_Type ("CORBA.String", BE.K_String);
+      Declare_Base_Type ("CORBA.Wide_String", BE.K_Wide_String);
+      Declare_Base_Type ("CORBA.Boolean", BE.K_Boolean);
+      Declare_Base_Type ("CORBA.Octet", BE.K_Octet);
+
+
    end Insert_Base_Type;
 
 
@@ -385,12 +393,6 @@ package body Backend.BE_Ada is
       Write_Eol;
    end Usage;
 
-   procedure Visite_Type_Declaration (E : Node_Id)  is
-      pragma Unreferenced (E);
-   begin
-      --   Write_Line ("Type Definition");
-      null;
-   end Visite_Type_Declaration;
 
 
 
@@ -403,6 +405,7 @@ package body Backend.BE_Ada is
       I_Body : List_Id;
       N : Node_Id;
       Ada_Public_Node : Node_Id;
+      Ada_Public_List : List_Id;
       Package_With_Node : List_Id;
       pragma Unreferenced (Pkg_Body, Package_With_Node);
    begin
@@ -430,6 +433,9 @@ package body Backend.BE_Ada is
                when K_Operation_Declaration =>
                   Ada_Public_Node := Visite_Operation_Declaration (N);
                   Append_Node_To_List (Ada_Public_Node, Public_Decl);
+               when K_Type_Declaration =>
+                  Ada_Public_List := Visite_Type_Declaration (N);
+                  Append_List_To_List (Ada_Public_List, Public_Decl);
                when others =>
                   DE ("Visit_Interface : Fonctionnalite pas encore imp!");
             end case;
@@ -512,6 +518,8 @@ package body Backend.BE_Ada is
       List_Def : List_Id;
       D      : Node_Id;
       Ada_Node : Node_Id;
+      Ada_List : List_Id;
+      pragma Unreferenced (Ada_List);
    begin
       List_Def := Definitions (E);
       D := First_Node (List_Def);
@@ -526,8 +534,8 @@ package body Backend.BE_Ada is
                Pop_Package;
 
             when K_Type_Declaration =>
-               Visite_Type_Declaration (D);
-
+               --    Ada_List := Visite_Type_Declaration (D);
+               null;
             when K_Interface_Declaration =>
                Ada_Node := Visit_Interface (D);
                Append_Node_To_List (Ada_Node, Ada_Packages);
@@ -537,8 +545,22 @@ package body Backend.BE_Ada is
          end case;
          D := Next_Node (D);
       end loop;
-
    end Visite_Specification;
+
+   -------------------------------
+   --   Visite_Type_Declaration --
+   -------------------------------
+   function Visite_Type_Declaration (E : Node_Id) return List_Id is
+      Type_Spec_Node : Node_Id;
+      Declarators_List : List_Id;  --    := Declarators (E);
+      pragma Unreferenced (Declarators_List);
+   begin
+
+      Type_Spec_Node := Get_Mapped_Type (Type_Spec (E));
+      W_Node_Id (Type_Spec_Node);
+
+      return No_List;
+   end Visite_Type_Declaration;
 
 end Backend.BE_Ada;
 

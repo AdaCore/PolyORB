@@ -284,8 +284,9 @@ package body Backend.BE_Ada.FILES_Generation is
    --------------------------
    procedure Generate_Type_Spec (E : Node_Id) is
    begin
+      pragma Warnings (off);
       case Kind (E) is
-         when K_Float .. K_String =>
+         when K_Float .. K_Octet =>
             Write_Str (Get_Name_String (Image (Base_Type (E))));
          when K_Derived_Type_Definition =>
             Generate_Derived_Type (E);
@@ -296,6 +297,7 @@ package body Backend.BE_Ada.FILES_Generation is
             Error_Name (1) := Name_Find;
             DE ("Generate Type Spec : Not supporting %");
       end case;
+      pragma Warnings (on);
    end Generate_Type_Spec;
 
    -------------------------------

@@ -13,9 +13,15 @@ package Backend.BE_Ada.Nutils is
       new GNAT.Table
      (Inheritance_Stack_Entry, Int, No_Inheritance_Depth + 1, 10, 10);
 
-   type Base_Type_Mapping is array (K_Float .. K_String) of Name_Id;
-   Base_Type_Mapping_Table : Base_Type_Mapping;
 
+
+
+
+
+   procedure Append_List_To_List (L1 : List_Id; L2 : in out List_Id);
+   procedure Append_Node_To_List (E : Node_Id; L : in out List_Id);
+   --  Append node N to list L.
+   --  Create the list if the list is null;
 
    procedure Push_Package (E : Node_Id);
    procedure Pop_Package;
@@ -27,9 +33,6 @@ package Backend.BE_Ada.Nutils is
    function New_Node (Kind : Node_Kind; Loc : Location) return Node_Id;
    function New_List (Kind : Node_Kind; Loc  : Location) return List_Id;
 
-   procedure Append_Node_To_List (E : Node_Id; L : in out List_Id);
-   --  Append node N to list L.
-   --  Create the list if the list is null;
 
    procedure Remove_Node_From_List (E : Node_Id; L : List_Id);
    --  Remove node N to list L.

@@ -12,6 +12,53 @@ package body Backend.BE_Ada.Nutils is
 
    use Inheritance_Stack;
 
+   --------------------------
+   --  Append_List_To_List --
+   --------------------------
+   procedure Append_List_To_List (L1 : List_Id; L2 : in out List_Id) is
+      N : Node_Id;
+   begin
+      if L1 = No_List then
+         return;
+      end if;
+      N := First_Node (L1);
+      while Present (N) loop
+         Append_Node_To_List (N, L2);
+         N := Next_Node (N);
+      end loop;
+   end Append_List_To_List;
+
+   -------------------------
+   -- Append_Node_To_List --
+   -------------------------
+   procedure Append_Node_To_List (E : Node_Id; L : in out List_Id) is
+      Last : Node_Id;
+      List_Kind : Node_Kind;
+   begin
+      if L = No_List then
+         case Kind (E) is
+            when K_Ada_Packages =>
+               List_Kind := K_Ada_Package_List;
+            when others =>
+               List_Kind := K_List_Id;
+         end case;
+         L := New_List (List_Kind, No_Location);
+      end if;
+
+      Last := Last_Node (L);
+      if No (Last) then
+         Set_First_Node (L, E);
+      else
+         Set_Next_Node (Last, E);
+      end if;
+      Last := E;
+      while Present (Last) loop
+         Set_Last_Node (L, Last);
+         Last := Next_Node (Last);
+      end loop;
+   end Append_Node_To_List;
+
+
    function Current_Package return Node_Id is
    begin
       if Last = No_Inheritance_Depth then
@@ -57,35 +104,6 @@ package body Backend.BE_Ada.Nutils is
       end loop;
       return To_String (Full_Name);
    end Full_Package_Name;
-
-
-
-   procedure Append_Node_To_List (E : Node_Id; L : in out List_Id) is
-      Last : Node_Id;
-      List_Kind : Node_Kind;
-   begin
-      if L = No_List then
-         case Kind (E) is
-            when K_Ada_Packages =>
-               List_Kind := K_Ada_Package_List;
-            when others =>
-               List_Kind := K_List_Id;
-         end case;
-         L := New_List (List_Kind, No_Location);
-      end if;
-
-      Last := Last_Node (L);
-      if No (Last) then
-         Set_First_Node (L, E);
-      else
-         Set_Next_Node (Last, E);
-      end if;
-      Last := E;
-      while Present (Last) loop
-         Set_Last_Node (L, Last);
-         Last := Next_Node (Last);
-      end loop;
-   end Append_Node_To_List;
 
 
    function New_Node
