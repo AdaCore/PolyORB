@@ -46,10 +46,9 @@ SUFFIXES = .idl .ads .adb
 .idl.adb:
 	$(IDLAC) $(IDLAC_FLAGS) $<
 
-client server $(EXTRA):: force $(EXAMPLE).ads
-	@chmod +x $(LINKER)
-	$(GNATMAKE) $@ $(GNATMAKE_FLAGS)
+client server $(EXTRA): force $(EXAMPLE).ads
+	$(GNATMAKE) $@ $($@_FLAGS) $(GNATMAKE_FLAGS)
 
-force::
+force:
 	cd $(EXAMPLES_ROOT)/../src && $(MAKE)
 	cd $(EXAMPLES_ROOT)/../cos/naming && $(MAKE)

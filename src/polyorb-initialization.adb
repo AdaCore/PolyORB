@@ -187,20 +187,34 @@ package body PolyORB.Initialization is
          Current := Value (MI).all;
          SI := First (Current.Info.Depends);
          while not Last (SI) loop
-            Prepend (Current.Deps, World_Dict.Lookup (Value (SI).all));
+            declare
+               Dep_Name : String renames Value (SI).all;
+               Dep_Module : Module_Access;
+               Last : Integer := Dep_Name'Last;
+               Optional : Boolean := False;
+            begin
+               if Last in Dep_Name'Range
+                 and then Dep_Name (Last) = '?'
+               then
+                  Optional := True;
+                  Last := Last - 1;
+               end if;
+               Dep_Module := Lookup_Module
+                 (Dep_Name (Dep_Name'First .. Last));
+               if Dep_Module /= null then
+                  Prepend (Current.Deps, Dep_Module);
+               elsif not Optional then
+                  O ("Unresolved dependency: "
+                       & Current.Info.Name.all & " -> "
+                       & Dep_Name, Critical);
+                  raise Unresolved_Dependency;
+               end if;
+            end;
             Next (SI);
          end loop;
 
          Next (MI);
       end loop;
-   exception
-      when World_Dict.Key_Not_Found =>
-         O ("Unresolved dependency: "
-            & Current.Info.Name.all & " -> "
-            & Value (SI).all, Critical);
-         raise Unresolved_Dependency;
-      when others =>
-         raise;
    end Resolve_Dependencies;
 
    -----------------------------------------------------------
