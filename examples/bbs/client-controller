@@ -13,8 +13,12 @@ output=/infres/shalmaneser/quinot/polyorb-output
 
 Revolutedp_pids=""
 
-hosts=valjean:lantier:donjuan:candide:gavroche:elvire:cosette:folcoche:roland:quasimodo:chimene:arsene:isengrin:fracasse:
-#nadja:goriot:esmeralda:javert:fracasse:blizzard:aurelien:esmeralda2:
+sol8_hosts=valjean:cosette:fadette:roland:isengrin:candide:fracasse:donjuan:chimene:elvire:gavroche:lantier:folcoche:quasimodo:
+#cyrano:
+
+sol9_hosts=nadja:blizzard:aurelien:goriot:esmeralda:esmeralda2:rodrigue:vautrin:arsene:javert:
+
+hosts=$sol8_hosts
 
 nhosts=`echo $hosts | tr -cd : | wc -c`
 size=100

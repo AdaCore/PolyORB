@@ -1,9 +1,10 @@
 #! /bin/sh
 
+#set data style yerrorbars
 plot_one() {
   cat <<__EOF__ | gnuplot
 set term postscript eps color
-set data style yerrorbars
+set data style linespoint
 set output "$2"
 plot "$1"
 __EOF__
