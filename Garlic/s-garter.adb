@@ -33,6 +33,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with System.Garlic.Debug; use System.Garlic.Debug;
 with System.Garlic.Heart; use System.Garlic.Heart;
 with System.Garlic.Priorities;
 with System.Garlic.Utils;
@@ -40,6 +41,14 @@ with System.RPC; use System.RPC;
 with System.Tasking;
 
 package body System.Garlic.Termination is
+
+   Private_Debug_Key : constant Debug_Key :=
+     Debug_Initialize ("TERMINATION", "(s-garhea): ");
+   procedure D
+     (Level   : in Debug_Levels;
+      Message : in String;
+      Key     : in Debug_Key := Private_Debug_Key)
+     renames Print_Debug_Info;
 
    protected Count is
       procedure Increment;
@@ -232,6 +241,11 @@ package body System.Garlic.Termination is
    begin
       Termination_Code'Read (Params, Termination_Operation);
       Stamp'Read (Params, Id);
+
+      D (D_Debug,
+         "Received operation of " &
+         Termination_Code'Image (Termination_Operation));
+
       case Termination_Operation is
 
          when Set_Stamp =>

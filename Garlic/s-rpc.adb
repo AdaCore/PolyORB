@@ -36,6 +36,7 @@
 with Ada.Dynamic_Priorities;
 with Ada.Finalization;
 with Ada.Unchecked_Deallocation;
+with System.Garlic.Caching;
 with System.Garlic.Debug; use System.Garlic.Debug;
 with System.Garlic.Heart; use System.Garlic.Heart;
 with System.Garlic.Termination;
@@ -99,7 +100,6 @@ package body System.RPC is
    end record;
 
    type Request_Array is array (Request_Id) of Boolean;
-   pragma Pack (Request_Array);
 
    protected type Request_Id_Server_Type is
       entry Get  (Id : out Request_Id);
@@ -123,21 +123,10 @@ package body System.RPC is
       Header : in Request_Header);
    --  This procedure adds a Request_Header in front of Params.
 
-   type Receiver_Array is array (Partition_ID) of RPC_Receiver;
-
-   protected type Receiver_Map_Type is
-      procedure Set (Partition : in Partition_ID; Receiver : in RPC_Receiver);
-      entry Get (Partition_ID) (Receiver : out RPC_Receiver);
-   private
-      Receivers   : Receiver_Array;
-   end Receiver_Map_Type;
-
-   type Receiver_Map_Access is access Receiver_Map_Type;
-   procedure Free is
-      new Ada.Unchecked_Deallocation (Receiver_Map_Type,
-                                      Receiver_Map_Access);
-
-   Receiver_Map : Receiver_Map_Access := new Receiver_Map_Type;
+   package Receiver_Map is
+      new System.Garlic.Caching (Index_Type => Partition_ID,
+                                 Data_Type  => RPC_Receiver,
+                                 Unset      => null);
 
    type Result_Type is record
       Result    : Params_Stream_Access;
@@ -146,8 +135,6 @@ package body System.RPC is
 
    type Result_Array is array (Request_Id) of Result_Type;
    type Valid_Result_Array is array (Request_Id) of Boolean;
-   --  XXXXX Makes GNAT 3.07w enter an endless loop
-   --  pragma Pack (Valid_Result_Array);
 
    protected type Result_Watcher_Type is
       procedure Set (Id : in Request_Id; Result : in Result_Type);
@@ -262,7 +249,13 @@ package body System.RPC is
       Task_Pool.Unabort_One (Partition, Id);
       Partition_ID'Read (Params, Dest);
       Ada.Dynamic_Priorities.Set_Priority (Any_Priority'Input (Params));
-      Receiver_Map.Get (Dest) (Receiver);
+      Receiver := Receiver_Map.Get (Dest);
+      if Receiver = null then
+
+         --  Well, we won't query it, it should be automatically set.
+
+         Receiver := Receiver_Map.Get (Dest);
+      end if;
       select
          Task_Pool.Is_Aborted (Partition, Id);
          declare
@@ -315,24 +308,15 @@ package body System.RPC is
      (Source : in out Params_Stream_Type;
       Dest   : access Params_Stream_Type)
    is
-      Count : constant Stream_Element_Count := Source.Count;
    begin
-      if Dest.First.Size /= Count then
+      if Dest.First /= null then
          Free (Dest.First);
-         Dest.First := new Node (Count);
       end if;
-      Read (Source, Dest.First.Content, Dest.First.Last);
-      if Dest.First.Last /= Count then
-         raise Program_Error;
-      end if;
-
-      --  Do not forget we store in fact the next "free" element (which
-      --  may well not be free if there is no more room, like here).
-
-      Dest.First.Last := Dest.First.Last + 1;
-
-      Dest.Current := Dest.First;
-      Dest.Count   := Count;
+      Dest.First         := Source.First;
+      Dest.Current       := Source.First;
+      Dest.Special_First := Source.Special_First;
+      Dest.Count         := Source.Count;
+      Source.First       := null;
    end Copy;
 
    ---------------
@@ -616,34 +600,6 @@ package body System.RPC is
       Stream.Count := Stream.Count - (Offset - Item'First);
    end Read;
 
-   -----------------------
-   -- Receiver_Map_Type --
-   -----------------------
-
-   protected body Receiver_Map_Type is
-
-      ---------
-      -- Get --
-      ---------
-
-      entry Get (for Partition in Partition_ID) (Receiver : out RPC_Receiver)
-      when Receivers (Partition) /= null is
-      begin
-         Receiver := Receivers (Partition);
-      end Get;
-
-      ---------
-      -- Set --
-      ---------
-
-      procedure Set (Partition : in Partition_ID; Receiver : in RPC_Receiver)
-      is
-      begin
-         Receivers (Partition) := Receiver;
-      end Set;
-
-   end Receiver_Map_Type;
-
    ----------------------------
    -- Request_Id_Server_Type --
    ----------------------------
@@ -742,7 +698,7 @@ package body System.RPC is
    procedure Shutdown is
    begin
       Free (Request_Id_Server);
-      Free (Receiver_Map);
+      Receiver_Map.Die;
       Free (Result_Watcher);
       Free (Task_Pool);
    end Shutdown;

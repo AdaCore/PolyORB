@@ -42,6 +42,7 @@ s-rpc.o
 SOURCES = \
 ${srcdir}/rci_info.ads ${srcdir}/rci_info.adb \
 ${srcdir}/s-gaphlo.ads ${srcdir}/s-gaphlo.adb \
+${srcdir}/s-garcac.ads ${srcdir}/s-garcac.adb \
         ./s-garcon.ads                        \
 ${srcdir}/s-gardeb.ads ${srcdir}/s-gardeb.adb \
 ${srcdir}/s-garhea.ads ${srcdir}/s-garhea.adb \
