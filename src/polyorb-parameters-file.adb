@@ -171,16 +171,18 @@ package body PolyORB.Parameters.File is
 
    end Configuration_File_Name;
 
-   ---------------------------
-   -- Initialize_Parameters --
-   ---------------------------
+   ----------------
+   -- Initialize --
+   ----------------
 
-   procedure Initialize_Parameters is
+   procedure Initialize;
+
+   procedure Initialize is
    begin
       Load_Configuration_File (Configuration_File_Name);
       --  Load PolyORB's configuration file
 
-   end Initialize_Parameters;
+   end Initialize;
 
    use PolyORB.Initialization;
    use PolyORB.Initialization.String_Lists;
@@ -194,5 +196,5 @@ begin
        Depends   => Empty,
        Provides  => +"parameters",
        Implicit  => True,
-       Init      => Initialize_Parameters'Access));
+       Init      => Initialize'Access));
 end PolyORB.Parameters.File;

@@ -74,6 +74,4 @@ package PolyORB.Parameters.File is
    function Configuration_File_Name return String;
    --  Return PolyORB Configuration file name.
 
-   procedure Initialize_Parameters;
-
 end PolyORB.Parameters.File;
