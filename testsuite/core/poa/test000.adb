@@ -116,7 +116,7 @@ procedure Test000 is
       use PolyORB.POA;
       use PolyORB.POA_Manager;
       use PolyORB.POA_Policies;
-      use PolyORB.POA_Policies.Policy_Sequences;
+      use PolyORB.POA_Policies.Policy_Lists;
 
       Root_POA : constant PolyORB.POA.Obj_Adapter_Access
         := new PolyORB.POA.Basic_POA.Basic_Obj_Adapter;
