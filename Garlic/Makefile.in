@@ -362,7 +362,7 @@ inlining: all-local
 	@echo 'procedure Inlining is'      >>inlining.adb
 	@echo 'begin Put_Line ("a"); end;' >>inlining.adb
 	-@${GNATMAKE} -I. inlining.adb
-	@if test -f inlining; then\
+	@if test -f inlining -a `cat inlining` = "no"; then\
 	   echo "Run-time compiled without inlining flags";\
 	   echo no  >inlining;\
 	else\
@@ -370,12 +370,13 @@ inlining: all-local
 	   mkdir gnatlib;\
 	   grep s-stratt `${srcdir}/../Dist/config.sdefault pathtolib`*.ali |\
 	      ${SED} 's,^.*[/]\(.*\)\.ali:.*$$,\1.o,g' >gnatlib/tocheck;\
-	   for object in `cat gnatlib/tocheck`; do\
-	      if [ ! -f $$object ]; then\
-	         (cd gnatlib;\
-	          echo $$object >>rebuild;\
-	          ${CC} -c ${CFLAGS} -I- ${GNATFLAGS}\
-	            `gnatls -a -s $$object`);\
+	   for o in `cat gnatlib/tocheck`; do\
+	      if [ ! -f $$o ]; then\
+	          s=`gnatls -a -s $$o`;\
+	          echo "${CC} -c ${CFLAGS} ${GNATFLAGS} -I. -I- $$s" \
+	               "-o gnatlib/$$o";\
+	          ${CC} -c ${CFLAGS} ${GNATFLAGS} -I. -I- $$s -o gnatlib/$$o;\
+	          echo $$o >>gnatlib/rebuild;\
 	      fi;\
 	   done;\
 	   echo yes >inlining;\

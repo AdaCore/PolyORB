@@ -1,3 +1,7 @@
+1998-03-23  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* Makefile.am: Add output infos. Update dependencies.
+
 1998-03-20  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-painst.adb, s-painst.ads: New package that contains few
