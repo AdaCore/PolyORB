@@ -54,9 +54,17 @@ AC_OUTPUT([Makefile
 	   compilers/idlac/testsuite/Makefile
 	   compilers/idlac/platform.ads
 	   src/Makefile src/corba/Makefile support/adacompiler])
+# src/polyorb-config
+#
+#
+# Some files need to be copied verbatim from the source tree to the
+# build directory (only necessary when source dir != build dir).
+#
 for a in src/gnat.adc
 do
-  echo "creating $a"
-  cp $srcdir/$a $a
+  if [ ! -f "$a" ]
+  then
+    echo "creating $a"
+    cp $srcdir/$a $a
+  fi
 done
-# src/polyorb-config])
