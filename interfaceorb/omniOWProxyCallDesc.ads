@@ -2,7 +2,7 @@
 ----                                                               ----
 ----                  AdaBroker                                    ----
 ----                                                               ----
-----                  package omniORB                              ----
+----                  package omniOWProxyCallDesc                  ----
 ----                                                               ----
 ----   authors : Sebastien Ponce, Fabien Azavant                   ----
 ----   date    :                                                   ----
@@ -11,23 +11,28 @@
 -----------------------------------------------------------------------
 
 
-package Omniorb is
+package omniOWProxyCallDesc is
 
+   type Object is abstract tagged limited private;
 
-   type ObjectKey is new ??? ;
-   -- corresponds to omniORB::objectKey
+   -- all the following funcitions correspond
+   -- to omniORB's OmniProxyCallDesc
+   -- In proxyCall.h L68
+   procedure Init (Self : in out Object,
+                     Op : in CORBA::String,
+                     Op_Len : in Size_T);
 
-   fatalException : exception;
-   type fatalException_Members is new System_Exception_Members with
-     record
-        Pd_File : CORBA::String;
-        Pd_Line CROBA::Int;
-        Pd_Errmsg CORBA::String;
-     end record;
-   -- corresponds to class fatalException
-   -- in omniORB.h L 470
+   function AlignedSize(Size_In: in Corba.Unsigned_Long)
+     return Corba.Unsigned_Long is abstract ;
+
+   procedure MarshalArguments (Giop_Client: in out Giop_C) is abstract ;
+
+   function Operation_Len (Self : in Object) return Size_T;
+
+   function Operation (Self : in Object) return CORBA::String;
 
 private
 
 
-end Omniorb ;
+end omniOWproxyCallDesc ;
+

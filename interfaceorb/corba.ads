@@ -149,6 +149,23 @@ package Corba is
    -----------------------------------------------------------
 
 
+    function _omni_CallTransientExceptionHandler (...) return CORBA::Boolean;
+    -- wrapper around extern CORBA::Boolean
+    --                  _omni_callTransientExceptionHandler(omniObject*,
+    --                  CORBA::ULong,
+    --                  const CORBA::TRANSIENT&);
+
+    function _omni_CallCommFailureExceptionHandler (...) return CORBA::Boolean;
+    -- wrapper around extern CORBA::Boolean
+    --                  _omni_callCommFailureExceptionHandler(omniObject*,
+    --                  CORBA::ULong,
+    --                  const CORBA::COMM_FAILURE&);
+
+    function _omni_CallSystemExceptionHandler (...) return CORBA::Boolean;
+    -- wrapper around extern CORBA::Boolean
+    --                  _omni_callSystemExceptionHandler(omniObject*,
+    --                  CORBA::ULong,
+    --                  const CORBA::SystemException&);
 
 
 private

@@ -36,7 +36,7 @@ package Corba.Object is
    -- wrapper around void CORBA::Object::PR_setobj(omniObject *obj)
    -- in corbaObject.cc L121
 
-   function PR_Getobj(  ) return ;
+   function PR_Getobj(  ) return OmniObject.Object ;
    -- wrapper around omniObject* CORBA::Object::PR_getobj()
    -- in corbaObject.cc L128
 

@@ -16,6 +16,7 @@ package Rope is
 
   type Object is limited private ;
 
+  Null_Rope : Object;
 
 private
 
