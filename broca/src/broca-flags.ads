@@ -35,22 +35,20 @@ with CORBA;
 
 package Broca.Flags is
 
-   --  The body is in charge to decode options during elaboration.
    pragma Elaborate_Body;
+   --  The body is in charge to decode options during elaboration.
 
-   --  Not highly used.
-   Verbose : Boolean := True;
-
+   Nbr_Server_Tasks : Positive := 4;
    --  Number of tasks used by the server.
    --  If 1, it use the main task (ie, the task that has called run) to do all
    --  the work.  If greather than 1, it creates tasks. Default is 4.
    --  -ORBserver-tasks N
-   Nbr_Server_Tasks : Positive := 4;
 
-   --  Maximum number of consecutive location forward.
    Max_Tries : Natural := 2;
+   --  Maximum number of consecutive location forwards
 
-   --  A coded value of time when the server was started up.  This is used in
-   --  ObjectId.
    Boot_Time : CORBA.Unsigned_Long;
+   --  A coded value of time when the server was started up.
+   --  This is used in ObjectIds.
+
 end Broca.Flags;
