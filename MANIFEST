@@ -589,8 +589,6 @@ src/polyorb-jobs.adb
 src/polyorb-jobs.ads
 src/polyorb-locked_queue.adb
 src/polyorb-locked_queue.ads
-src/polyorb-locks.adb
-src/polyorb-locks.ads
 src/polyorb-log.adb
 src/polyorb-log.ads
 src/polyorb-minimal_servant.adb
@@ -677,8 +675,6 @@ src/polyorb-profiles-no_tasking.ads
 src/polyorb-profiles-ravenscar.adb
 src/polyorb-profiles-ravenscar.ads
 src/polyorb-profiles.ads
-src/polyorb-protected_objects.adb
-src/polyorb-protected_objects.ads
 src/polyorb-protocols-echo.adb
 src/polyorb-protocols-echo.ads
 src/polyorb-protocols-interface.ads
@@ -726,8 +722,6 @@ src/polyorb-smart_pointers.ads
 src/polyorb-sockets.ads
 src/polyorb-soft_links.adb
 src/polyorb-soft_links.ads
-src/polyorb-static_dict.adb
-src/polyorb-static_dict.ads
 src/polyorb-storage_pools.ads
 src/polyorb-tasking-advanced_mutexes.adb
 src/polyorb-tasking-advanced_mutexes.ads
@@ -760,6 +754,8 @@ src/polyorb-tasking-profiles-ravenscar-mutexes.ads
 src/polyorb-tasking-profiles-ravenscar-threads.adb
 src/polyorb-tasking-profiles-ravenscar-threads.ads
 src/polyorb-tasking-profiles-ravenscar.ads
+src/polyorb-tasking-rw_locks.adb
+src/polyorb-tasking-rw_locks.ads
 src/polyorb-tasking-semaphores.adb
 src/polyorb-tasking-semaphores.ads
 src/polyorb-tasking-soft_links.adb
