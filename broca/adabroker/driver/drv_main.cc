@@ -101,10 +101,9 @@ static void
 DRV_version()
 {
   std::cerr <<
-    "Omniidl 2.7.0\n"
-    "Copyright (C) 1996-1999 Olivetti & Oracle Research Laborartory,"
-    " Cambridge, UK.\n"
-    "Omniidl comes with ABSOLUTELY NO WARRANTY.\n" << std::endl;
+    "\nAdaBroker 0.8 beta\n"
+    "Copyright (C) 1999-2000 ENST Paris University, France\n"
+    "AdaBroker comes with ABSOLUTELY NO WARRANTY.\n" << std::endl;
 }
 
 /*
