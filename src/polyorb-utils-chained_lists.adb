@@ -38,6 +38,11 @@ with Ada.Unchecked_Deallocation;
 
 package body PolyORB.Utils.Chained_Lists is
 
+   --  Local declarations
+
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Node, Node_Access);
+
    ------------
    -- Append --
    ------------
@@ -139,13 +144,6 @@ package body PolyORB.Utils.Chained_Lists is
    begin
       return Iterator (L.First);
    end First;
-
-   ----------
-   -- Free --
-   ----------
-
-   procedure Free is new Ada.Unchecked_Deallocation
-     (Node, Node_Access);
 
    ----------
    -- Last --
