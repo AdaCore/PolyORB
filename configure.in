@@ -508,6 +508,7 @@ AC_OUTPUT([
 	examples/corba/echo/Makefile
 	examples/corba/random/Makefile
 	examples/corba/rtcorba/Makefile
+	examples/corba/rtcorba/server_declared/Makefile
 	examples/corba/send/Makefile
 	examples/dsa/Makefile
 	examples/bbs/Makefile
@@ -523,6 +524,10 @@ AC_OUTPUT([
 	testsuite/corba/harness/Makefile
 	testsuite/corba/local/Makefile
 	testsuite/corba/portableserver/Makefile
+	testsuite/corba/rtcorba/Makefile
+	testsuite/corba/rtcorba/rtcurrent/Makefile
+	testsuite/corba/rtcorba/rtorb/Makefile
+	testsuite/corba/rtcorba/rtpoa/Makefile
 	testsuite/core/Makefile
 	testsuite/core/any/Makefile
 	testsuite/core/chained_lists/Makefile

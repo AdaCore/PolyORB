@@ -1,4 +1,4 @@
-SUBDIRS = .
+SUBDIRS = . rtcorba
 
 include $(srcdir)/../Makefile.common
 

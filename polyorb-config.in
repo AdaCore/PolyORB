@@ -19,8 +19,8 @@ do
 
  if [ "x$P" = "xcorba" ]
  then
-   polyorb_dir="$polyorb_dir -I${includedir}/polyorb/corba/cos"
-   polyorb_lib="$polyorb_lib"
+   polyorb_dir="$polyorb_dir -I${includedir}/polyorb/corba/cos -I${includedir}/polyorb/corba/rtcorba"
+   polyorb_lib="$polyorb_lib -lpolyorb-corba-rtcorba"
  fi 
 
  if [ "x$P" = "xaws" ]

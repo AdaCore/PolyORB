@@ -9,7 +9,7 @@ giop_dir  =
 soap_dir  =
 srp_dir   =
 
-SUBDIRS = all_exceptions cos harness local portableserver
+SUBDIRS = all_exceptions cos harness local portableserver rtcorba
 
 CLEANFILES = config-stamp
 
