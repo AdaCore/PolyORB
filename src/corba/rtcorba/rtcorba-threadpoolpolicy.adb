@@ -33,7 +33,10 @@
 
 --  $Id$
 
+with PolyORB.CORBA_P.POA_Config;
 with PolyORB.CORBA_P.Policy;
+with PolyORB.CORBA_P.Policy_Management;
+
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
@@ -43,13 +46,20 @@ with PolyORB.RTCORBA_P.ThreadPoolManager;
 with PolyORB.RT_POA_Policies.Thread_Pool_Policy;
 with PolyORB.Smart_Pointers;
 with PolyORB.Utils.Strings;
-with PolyORB.CORBA_P.POA_Config;
 
 package body RTCORBA.ThreadpoolPolicy is
 
+   use CORBA;
    use CORBA.Policy;
+   use CORBA.TypeCode;
 
    use PolyORB.CORBA_P.Policy;
+   use PolyORB.CORBA_P.Policy_Management;
+
+   function Create_ThreadpoolPolicy
+     (The_Type : in CORBA.PolicyType;
+      Value    : in CORBA.Any)
+     return CORBA.Policy.Ref;
 
    ------------
    -- To_Ref --
@@ -85,8 +95,38 @@ package body RTCORBA.ThreadpoolPolicy is
 
          return Result;
       end;
-
    end To_Ref;
+
+   -----------------------------
+   -- Create_ThreadpoolPolicy --
+   -----------------------------
+
+   function Create_ThreadpoolPolicy
+     (The_Type : in CORBA.PolicyType;
+      Value    : in CORBA.Any)
+     return CORBA.Policy.Ref
+   is
+   begin
+      pragma Assert (The_Type = THREADPOOL_POLICY_TYPE);
+
+      if Get_Type (Value) /= TC_Unsigned_Long then
+         Raise_PolicyError ((Reason => BAD_POLICY_TYPE));
+      end if;
+
+      declare
+         Result : CORBA.Policy.Ref;
+         Entity : constant PolyORB.Smart_Pointers.Entity_Ptr
+           := new Policy_Object_Type;
+
+      begin
+         Set_Policy_Type (Policy_Object_Type (Entity.all), The_Type);
+         Set_Policy_Value (Policy_Object_Type (Entity.all), Value);
+
+         CORBA.Policy.Set (Result, Entity);
+
+         return Result;
+      end;
+   end Create_ThreadpoolPolicy;
 
    --------------------
    -- Get_Threadpool --
@@ -133,6 +173,14 @@ package body RTCORBA.ThreadpoolPolicy is
       PolyORB.CORBA_P.POA_Config.Register
         (THREADPOOL_POLICY_TYPE,
          Thread_Pool_Policy_Allocator'Access);
+
+      Register
+        (The_Type       => THREADPOOL_POLICY_TYPE,
+         POA_Level      => True,
+         Factory        => Create_ThreadpoolPolicy'Access,
+         System_Default =>
+           Create_ThreadpoolPolicy (THREADPOOL_POLICY_TYPE,
+                                    To_Any (CORBA.Unsigned_Long (0))));
    end Initialize;
 
    use PolyORB.Initialization;
