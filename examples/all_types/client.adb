@@ -22,8 +22,8 @@ use Corba.Object ;
 
 procedure Client is
 
+   -- initialization of the ORB
    Orb : Corba.Orb.Object := Corba.Orb.Orb_Init("omniORB2");
-   Boa : Corba.Boa.Object := Corba.Orb.Boa_Init(Orb, "omniORB2_BOA") ;
 
    IOR : Corba.String ;
    MyAll_Types : All_Types.Ref ;
