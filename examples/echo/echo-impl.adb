@@ -1,49 +1,52 @@
-with CORBA.Object.OmniORB;
+------------------------------------------------------------------------------
+--                                                                          --
+--                          ADABROKER COMPONENTS                            --
+--                                                                          --
+--                            E C H O . I M P L                             --
+--                                                                          --
+--                                 B o d y                                  --
+--                                                                          --
+--                            $Revision: 1.4 $
+--                                                                          --
+--            Copyright (C) 1999 ENST Paris University, France.             --
+--                                                                          --
+-- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. AdaBroker  is distributed  in the hope that it will be  useful, --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with AdaBroker; see file COPYING. If  --
+-- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
+-- Boston, MA 02111-1307, USA.                                              --
+--                                                                          --
+--             AdaBroker is maintained by ENST Paris University.            --
+--                     (email: broker@inf.enst.fr)                          --
+--                                                                          --
+------------------------------------------------------------------------------
+
+with Ada.Text_IO;
 with Echo.Skel;
-with CORBA;
-package body Echo.Impl is 
+pragma Elaborate (Echo.Skel);
+pragma Warnings (Off, Echo.Skel);
+--  No entity from Echo.Skel is referenced.
 
-   function echoString
-     (Self : access Object;
-      Mesg : in CORBA.String)
-      return CORBA.String is
-   begin 
+package body Echo.Impl is
+
+   function EchoString
+     (Self : access Object; Mesg : in CORBA.String)
+     return CORBA.String
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
+   begin
+      Ada.Text_IO.Put_Line
+        ("Echoing string: « " & CORBA.To_Standard_String (Mesg)
+         & " »");
       return Mesg;
-   end echoString;
+   end EchoString;
 
-   -----------------------------------------------------------
-   --  Implementations objects are controlled, you can add  --
-   --  instructions in the following functions as specified --
-   -----------------------------------------------------------
-
-   procedure Initialize (Self : in out Object) is
-   begin
-      AdaBroker.OmniORB.Initialize
-        (AdaBroker.OmniORB.ImplObject (Self),
-         Echo.Repository_Id);
-      -- You can add things *BELOW* this line
-
-   end Initialize;
-
-   procedure Adjust (Self: in out Object) is
-   begin
-      AdaBroker.OmniORB.Adjust
-     (AdaBroker.OmniORB.ImplObject (Self));
-      -- You can add things *BELOW* this line
-
-   end Adjust;
-
-   procedure Finalize (Self : in out Object) is
-   begin
-
-      -- You can add things *BEFORE* this line
-      AdaBroker.OmniORB.Finalize
-     (AdaBroker.OmniORB.ImplObject (Self));
-   end Finalize;
-
-begin
-   CORBA.Object.OmniORB.Register
-     (Echo.Repository_Id,
-      Echo.Nil_Ref,
-      Echo.Skel.Dispatch'Access);
 end Echo.Impl;
+

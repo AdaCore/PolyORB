@@ -1,0 +1,4 @@
+struct \<T_/identifier>_with_bounds {
+   unsigned long long array_bounds[\<N_/positive_int_const>];
+   sequence<sequence<...\<component_/type_spec>>> array_values;
+};

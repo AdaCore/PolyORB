@@ -1,0 +1,18 @@
+/* Common declarations for CIAO IDL contracts. */
+/* $Id: //depot/ciao/main/doc/ciao.idl#9 $ */
+
+#ifndef __CIAO_IDL
+#define __CIAO_IDL
+
+module CIAO {
+  /* Any Ada exception is represented as an Ada_Exception.
+     The Name and Information contain the Exception_Name and
+     Exception_Information for the occurence. */
+  
+  exception Ada_Exception {
+    string name;
+    string information;
+  };
+};
+
+#endif /* defined (__CIAO_IDL) */

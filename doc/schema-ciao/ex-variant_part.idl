@@ -1,0 +1,32 @@
+typedef enum Colour_enum {
+   Red, Green, Blue, Yellow
+} Colour;
+
+typedef struct
+ My_record_struct {
+   Colour D;
+   long long int Foo;
+   union
+    D_variant_union
+      switch (long long) {
+
+      case 0: // Red
+         struct
+          D_var_10_struct {
+            string Bar;
+            long long Baz;
+         } D_var_0;
+
+      case 1: // Green .. Blue
+         struct
+          D_var_1_struct {
+            long long Fred;
+         } D_var_1;
+
+      default: // others
+         struct
+          D_var_others_struct {
+         } D_var_others;
+
+     } D_variant;
+} My_Record;

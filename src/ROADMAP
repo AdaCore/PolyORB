@@ -1,0 +1,147 @@
+PolyORB source code roadmap
+---------------------------
+
+$Id$
+
+The source code of PolyORB is not for the faint of heart.
+Caveat emptor. This document gives a very high-level overview
+of how the code is organized.
+
+
+./polyorb.ads
+
+Empty package, provides a common namespace for generic ORB
+components.
+
+./soap/
+
+Directory containing the SOAP protocol personality.
+
+./corba/
+
+Directory containing the CORBA application personality, and the
+CORBA/GIOP protocol personality.
+
+./corba/corba-*.ads
+
+Standard CORBA packages
+
+./corba/polyorb-corba_p-*.ads
+
+PolyORB-specific components of the CORBA personality. This includes
+internal utility components, as well as some tools that can be used
+directly by application developers (eg PolyORB.CORBA_P.Server_Tools).
+
+./polyorb-log.ads
+
+Logging facility. Provides a unified means for other units
+to output debugging, diagnostics and error messages.
+
+./polyorb-filters.ads
+
+Layered components that form a protocol stack. Each
+filter transmits SDUs (service data units) from its
+lower layer to its upper layer, and can perform some
+processing on the SDU and its associated data.
+
+The lowest layer is a polyorb.filters.sockets.socket_filter,
+which does not receive SDUs from a lower layer but directly
+from the ORB engine.
+
+The uppermost layer is a Session, which does not actually
+transmits SDUs to an upper layer but takes action based on
+received SDUs.
+
+./polyorb-types.ads
+
+Base data types used throughout PolyORB.
+
+./polyorb-soft_links.ads
+
+Abstraction layer for all library units that may depend upon
+the tasking runtime.
+
+./polyorb-protected_objects.ads
+
+Implementation of soft_links for a context with tasking.
+Uses protected objects.
+
+./polyorb-no_tasking.ads
+
+Implementation of soft_links for a context without tasking.
+All synchronisation operations are replaced with empty placeholders,
+since there is actually only one task in the application.
+
+./polyorb-locks.ads
+
+High-level synchronisation objects (currently only a readers/writers lock).
+Implemented using the low-level facilities provided by soft_links.
+
+./polyorb-representations.ads
+
+The abstraction of a method to represent data in a form
+suitable for transmission. Children of this unit are expected
+to derive the Droopi.Representations.Representation abstract
+type into a concrete type implementing one representation
+mechanism.
+
+./polyorb-jobs.ads
+
+A Job is anything that can keep a task busy (like a Runnable
+in Java). This unit declares an abstract Job type, and a means
+to maintain job queues.
+
+./polyorb-requests.ads
+
+The central data structure in PolyORB: an object representing a method
+invocation request to be executed by an object in a way that is independant
+of the application and protocol personalities.
+
+./polyorb-transport.ads
+
+The abstraction of access points and end points in the transport service.
+An access point is an entity that has an address, to which other nodes
+can connect. An end point is an entity that represents an established
+connection with an access point, and can be used to exchange information.
+
+./polyorb-transport-sockets.ads
+
+A concrete implementation of the classes defined in PolyORB.Transport,
+based on TCP sockets.
+
+./sequences.ads
+./sequences-bounded.ads
+./sequences-unbounded.ads
+
+{Bounded,unbounded} variable length arrays (cf. CORBA.Sequences.
+Notionally based on Ada.Strings.Unbounded.)
+
+./polyorb-obj_adapters.ads
+
+The abstract interface of object adapters in PolyORB.
+
+./polyorb-poa.ads
+
+The base class for all Portable Object Adapter implementations (generic
+hierarchical object adapters modeled after the CORBA POA.)
+
+./polyorb-poa_types.ads
+
+Base data structures handled by PolyORB.POA.
+
+./polyorb-poa_policies.ads
+
+Children of this unit define various policy objects that can be used
+to customise the behaviour of portable object adapters.
+
+----------
+
+Others are undocumented as of yet.
+
+./polyorb-protocols.ads
+./polyorb-setup.ads
+./polyorb-buffers.ads
+./polyorb-refs.ads
+./polyorb-opaque-chunk_pools.ads
+./polyorb-opaque.ads
+./polyorb-binding_data.ads

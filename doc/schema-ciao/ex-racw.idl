@@ -1,0 +1,7 @@
+interface My_Object {
+  void Op_1();
+  Ada_Boolean
+    Op_2(in Ada_Integer I);
+};
+
+typedef My_Object My_Ref;

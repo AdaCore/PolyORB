@@ -1,0 +1,76 @@
+------------------------------------------------------------------------------
+--                                                                          --
+--                           POLYORB COMPONENTS                             --
+--                                                                          --
+--          P O L Y O R B . U T I L S . S T R I N G S . L I S T S           --
+--                                                                          --
+--                                 S p e c                                  --
+--                                                                          --
+--             Copyright (C) 2001-2002 Free Software Fundation              --
+--                                                                          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
+-- Boston, MA 02111-1307, USA.                                              --
+--                                                                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--              PolyORB is maintained by ENST Paris University.             --
+--                                                                          --
+------------------------------------------------------------------------------
+
+--  Generic chained list.
+
+--  $Id$
+
+with PolyORB.Utils.Chained_Lists;
+pragma Elaborate_All (PolyORB.Utils.Chained_Lists);
+
+package PolyORB.Utils.Strings.Lists is
+
+   pragma Elaborate_Body;
+
+   package String_Ptr_Lists is new PolyORB.Utils.Chained_Lists
+     (String_Ptr);
+
+   type List is new String_Ptr_Lists.List;
+   type Iterator is new String_Ptr_Lists.Iterator;
+   Empty : constant List := List (String_Ptr_Lists.Empty);
+
+   function First (L : List) return Iterator;
+   function Value (I : Iterator) return String_Ptr;
+   procedure Prepend (L : in out List; I : String);
+   procedure Append (L : in out List; I : String);
+
+   function "+" (I : String) return List;
+   --  Make a list with I as its only element.
+
+   function "&" (I : String; L : List) return List;
+   --  Prepend I to L.
+
+   function "&" (L : List; I : String) return List;
+   --  Append I to L.
+
+   procedure Deallocate (L : in out List);
+
+private
+
+   pragma Inline (First);
+   pragma Inline (Value);
+   pragma Inline (Prepend);
+   pragma Inline (Append);
+   pragma Inline ("+");
+   pragma Inline ("&");
+
+end PolyORB.Utils.Strings.Lists;

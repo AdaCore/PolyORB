@@ -1,6 +1,10 @@
-with CORBA.Object.OmniORB;
 with all_functions.Skel;
-package body all_functions.Impl is 
+pragma Elaborate (all_functions.Skel);
+pragma Warnings (Off, all_functions.Skel);
+
+package body all_functions.Impl is
+
+   Oneway_Value : CORBA.Short := 0;
 
    function Get_the_attribute
      (Self : access Object)
@@ -22,6 +26,9 @@ package body all_functions.Impl is
      (Self : access Object)
       return CORBA.Short
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
    begin
       return 18;
    end Get_the_readonly_attribute;
@@ -29,7 +36,10 @@ package body all_functions.Impl is
    procedure void_proc
      (Self : access Object)
    is
-   begin 
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
+   begin
       null;
    end void_proc;
 
@@ -39,7 +49,10 @@ package body all_functions.Impl is
       b : in CORBA.Short;
       c : in CORBA.Short)
    is
-   begin 
+      pragma Warnings (Off);
+      pragma Unreferenced (Self, a, b, c);
+      pragma Warnings (On);
+   begin
       null;
    end in_proc;
 
@@ -49,10 +62,13 @@ package body all_functions.Impl is
       b : out CORBA.Short;
       c : out CORBA.Short)
    is
-   begin 
-      A := 10 ;
-      B := 11 ;
-      C := 12 ;
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
+   begin
+      a := 10;
+      b := 11;
+      c := 12;
    end out_proc;
 
    procedure inout_proc
@@ -60,9 +76,12 @@ package body all_functions.Impl is
       a : in out CORBA.Short;
       b : in out CORBA.Short)
    is
-   begin 
-      A := A+1 ;
-      B := B+1 ;
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
+   begin
+      a := a + 1;
+      b := b + 1;
    end inout_proc;
 
    procedure in_out_proc
@@ -72,9 +91,12 @@ package body all_functions.Impl is
       c : out CORBA.Short;
       d : out CORBA.Short)
    is
-   begin 
-      C := 3 ;
-      D := 4 ;
+      pragma Warnings (Off);
+      pragma Unreferenced (Self, a, b);
+      pragma Warnings (On);
+   begin
+      c := 3;
+      d := 4;
    end in_out_proc;
 
    procedure in_inout_proc
@@ -84,9 +106,12 @@ package body all_functions.Impl is
       c : in CORBA.Short;
       d : in out CORBA.Short)
    is
-   begin 
-      B := 36 ;
-      D := 40 ;
+      pragma Warnings (Off);
+      pragma Unreferenced (Self, a, c);
+      pragma Warnings (On);
+   begin
+      b := 36;
+      d := 40;
    end in_inout_proc;
 
    procedure out_inout_proc
@@ -96,11 +121,14 @@ package body all_functions.Impl is
       c : in out CORBA.Short;
       d : out CORBA.Short)
    is
-   begin 
-      A:= 45 ;
-      B := 46 ;
-      C := 47 ;
-      D := 48 ;
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
+   begin
+      a := 45;
+      b := 46;
+      c := 47;
+      d := 48;
    end out_inout_proc;
 
    procedure in_out_inout_proc
@@ -109,17 +137,23 @@ package body all_functions.Impl is
       b : out CORBA.Short;
       c : in out CORBA.Short)
    is
-   begin 
-      B := -54 ;
-      C := C + 1 ;
+      pragma Warnings (Off);
+      pragma Unreferenced (Self, a);
+      pragma Warnings (On);
+   begin
+      b := -54;
+      c := c + 1;
    end in_out_inout_proc;
 
    function void_fun
      (Self : access Object)
       return CORBA.Short
    is
-   begin 
-      return 3 ;
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
+   begin
+      return 3;
    end void_fun;
 
    function in_fun
@@ -129,8 +163,11 @@ package body all_functions.Impl is
       c : in CORBA.Short)
       return CORBA.Short
    is
-   begin 
-      return 7 ;
+      pragma Warnings (Off);
+      pragma Unreferenced (Self, a, b, c);
+      pragma Warnings (On);
+   begin
+      return 7;
    end in_fun;
 
    procedure out_fun
@@ -140,11 +177,14 @@ package body all_functions.Impl is
       c : out CORBA.Short;
       Returns : out CORBA.Short)
    is
-   begin 
-      A := 5 ;
-      B := 6 ;
-      C := 7 ;
-      Returns := 10 ;
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
+   begin
+      a := 5;
+      b := 6;
+      c := 7;
+      Returns := 10;
    end out_fun;
 
    procedure inout_fun
@@ -153,10 +193,13 @@ package body all_functions.Impl is
       b : in out CORBA.Short;
       Returns : out CORBA.Short)
    is
-   begin 
-      A := A + 1 ;
-      B := B + 1 ;
-      Returns := A + B ;
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
+   begin
+      a := a + 1;
+      b := b + 1;
+      Returns := a + b;
    end inout_fun;
 
    procedure in_out_fun
@@ -167,10 +210,13 @@ package body all_functions.Impl is
       d : out CORBA.Short;
       Returns : out CORBA.Short)
    is
-   begin 
-      C := B ;
-      D := A ;
-      Returns := A + B ;
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
+   begin
+      c := b;
+      d := a;
+      Returns := a + b;
    end in_out_fun;
 
    procedure in_inout_fun
@@ -181,10 +227,13 @@ package body all_functions.Impl is
       d : in out CORBA.Short;
       Returns : out CORBA.Short)
    is
-   begin 
-      B := B + A ;
-      D := D + C ;
-      Returns := B + D ;
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
+   begin
+      b := b + a;
+      d := d + c;
+      Returns := b + d;
    end in_inout_fun;
 
    procedure out_inout_fun
@@ -195,12 +244,15 @@ package body all_functions.Impl is
       d : out CORBA.Short;
       Returns : out CORBA.Short)
    is
-   begin 
-      A:= B ;
-      B := B + 1 ;
-      D := C ;
-      C := C + 1 ;
-      Returns := A+B+C+D +1;
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
+   begin
+      a := b;
+      b := b + 1;
+      d := c;
+      c := c + 1;
+      Returns := a + b + c + d + 1;
    end out_inout_fun;
 
    procedure in_out_inout_fun
@@ -210,59 +262,47 @@ package body all_functions.Impl is
       c : in out CORBA.Short;
       Returns : out CORBA.Short)
    is
-   begin 
-      B := A+1 ;
-      C := A + C ;
-      Returns := -1 ;
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
+   begin
+      b := a + 1;
+      c := a + c;
+      Returns := -1;
    end in_out_inout_fun;
 
    procedure oneway_void_proc
      (Self : access Object)
    is
-   begin 
-      null;
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
+   begin
+      Oneway_Value := 1;
+      delay 5.0;
+      Oneway_Value := 2;
    end oneway_void_proc;
 
    procedure oneway_in_proc
      (Self : access Object;
       a : in CORBA.Short;
-      b : in CORBA.Short;
-      c : in CORBA.Short)
+      b : in CORBA.Short)
    is
-   begin 
-      null;
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
+   begin
+      Oneway_Value := a;
+      delay 5.0;
+      Oneway_Value := b;
    end oneway_in_proc;
 
-   -----------------------------------------------------------
-   --  Implementations objects are controlled, you can add  --
-   --  instructions in the following functions as specified --
-   -----------------------------------------------------------
-
-   procedure Initialize (Self : in out Object) is
+   function oneway_checker (Self : access Object) return CORBA.Short is
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
    begin
-      AdaBroker.OmniORB.Initialize
-        (AdaBroker.OmniORB.ImplObject (Self),
-         all_functions.Repository_Id);
-      -- Add user code *BELOW* this line
-   end Initialize;
+      return Oneway_Value;
+   end oneway_checker;
 
-   procedure Adjust (Self: in out Object) is
-   begin
-      AdaBroker.OmniORB.Adjust
-        (AdaBroker.OmniORB.ImplObject (Self));
-      -- Add user code *BELOW* this line
-   end Adjust;
-
-   procedure Finalize (Self : in out Object) is
-   begin
-      -- Add user code *BEFORE* this line
-      AdaBroker.OmniORB.Finalize
-        (AdaBroker.OmniORB.ImplObject (Self));
-   end Finalize;
-
-begin
-   CORBA.Object.OmniORB.Register
-     (all_functions.Repository_Id,
-      all_functions.Nil_Ref,
-      all_functions.Skel.Dispatch'Access);
 end all_functions.Impl;

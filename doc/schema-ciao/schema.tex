@@ -1,0 +1,1166 @@
+%%% Projet CIAO, phase 1 : schéma de traduction Ada DSA -> OMG IDL
+%%% Rapport bibliographique du DEA SI
+%%% $Id: //droopi/main/doc/schema-ciao/schema.tex#1 $
+
+\documentclass[10pt,a4paper,final]{article}
+\usepackage{code}
+\usepackage{epsfig}
+\usepackage[latin1]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[francais]{babel}
+
+\title{Traduction de l'annexe des systèmes
+répartis d'Ada~95 vers OMG IDL}
+\author{Thomas Quinot}
+
+\newcommand{\nom}[1]{{\scshape #1}}
+\newcommand{\code}[1]{\nonfrenchspacing\texttt{#1}}
+
+% Ada syntax
+\newcommand{\asynt}[1]{\mbox{\textsf{#1}}}
+% IDL syntax
+\newcommand{\isynt}[1]{\mbox{$<$\textsf{#1}$>$}}
+% IDL directive
+\newcommand{\idirect}[1]{\mbox{\textsf{{\#}#1}}}
+% Metaidentifiers/semantic information
+\newcommand{\meta}[1]{{\rmfamily\itshape #1}}
+
+\newcommand{\kw}[1]{{\rmfamily\bfseries #1}}
+\newcommand{\sem}[1]{{\rmfamily\itshape #1}}
+\makeatletter
+\newenvironment{bnf}%
+ {\sffamily\list{}%
+   {\newcommand{\bnf@alt}[1][0]{\texttt{|}\ }%
+    \newcommand{\bnf@altstar}[1][0]{\makebox[0pt][r]{\bnf@alt\ \ }}%
+    \def\alt{\secdef\bnf@alt\bnf@altstar}%
+    \renewcommand{\indent}{\mbox{}\quad}
+    \setlength{\itemsep}{0.5ex}%
+    \setlength{\labelwidth}{2.5em}%
+    \setlength{\leftmargin}{\labelsep}%
+    \addtolength{\leftmargin}{\labelwidth}}}%
+ {\endlist}
+\makeatother
+
+\newenvironment{syntaxe}%
+ {\noindent\minipage{\textwidth}
+  \vspace{1em}
+  \hfil{\small\itshape Syntaxe}\hfil
+  \bnf}%
+ {\endbnf\endminipage}
+
+\newenvironment{traduction}%
+ {\vspace{1em}
+  \hfil{\small\itshape Traduction}\hfil\\}%
+ {}
+
+\newcommand{\exemple}[2]{%
+\vspace{1em}
+%% \psfig{file=ex-#1.ads.eps,width=8cm}\psfig{file=ex-#1.idl.eps,width=8cm}
+\begin{figure}[H]
+\begin{center}
+{\small\itshape Exemple}\\
+\raisebox{-\height}{\subcode{ex-#1.ads.eps}{Spécification Ada}{ex:#1:ads}}%
+\raisebox{-\height}{\subcode{ex-#1.idl.eps}{Contrat IDL}{ex:#1:idl}}\\
+\caption{#2}
+\end{center}
+\label{ex:#1}
+\end{figure}
+}
+
+\newcommand{\pure}{\emph{Declared Pure}}
+\newcommand{\rt}{\emph{Remote Types}}
+\newcommand{\rci}{\emph{Remote Call Interface}}
+
+\newcommand{\citerm}[1]{\cite{ada-rm}~#1}
+\addtolength{\parskip}{0.5ex}
+\addtolength{\textheight}{5mm}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+
+\newpage
+
+\section{Introduction}
+
+De nombreux modèles d'objets répartis sont actuellement proposés par
+des industriels ou par des groupes de normalisation. On citera comme
+exemples le modèle CORBA~\cite{corba} proposé par l'Open Management Group (OMG),
+l'annexe des systèmes répartis d'Ada~95~\cite{ada-rm} proposé par l'ISO
+et le modèle RMI de Java proposé par Sun. Chaque modèle propose des fonctionnalités
+intéressantes mais disponibles uniquement dans le cadre d'un même modèle.
+D'autre part,  chaque modèle s'accompagne d'un certain nombre de contraintes
+quant à sa mise en oeuvre, ses protocoles et son espace d'adressage.
+
+L'un des axes de recherche du département Informatique et Réseaux de
+l'ENST est l'interopérabilité entre ces différents modèles. Dans
+\cite{quinot99a}, nous avons présenté une comparaison entre les
+fonctionnalités offertes par CORBA et l'annexe des systèmes répartis
+d'Ada~95. Dans CORBA, les services fournis par un objet réparti sont décrits
+à l'aide d'un langage spécifique, OMG~IDL. L'OMG a défini une projection du modèle
+d'objets et des définitions IDL vers différents langages hôtes tels que C++, Java
+et Ada. Un service défini par un contrat IDL peut être indifféremment mis en
+{\oe}uvre dans n'importe quel langage hôte, et être appelé à partir
+d'un client écrit dans n'importe quel autre langage~: le mécanisme
+d'appel utilisé est indépendant des langages utilisés par le client
+et le serveur. Cette possibilité de faire interagir différents
+environnements est un avantage certain de CORBA. Au contraire,
+l'annexe des systèmes répartis d'Ada~95 permet seulement de
+faire communiquer des objets Ada.
+
+Pour pallier cet inconvénient, nous souhaitons offrir aux implémenteurs
+de services la possibilité d'utiliser Ada~95 et l'annexe des systèmes
+répartis, tout en permettant à des clients CORBA d'accéder à ces
+services. À cet effet, nous souhaitons générer automatiquement la
+spécification d'un service en OMG~IDL, à partir
+de sa spécification en Ada~95. En utilisant un traducteur CORBA préexistant,
+nous pourrons générer automatiquement un squelette de serveur en Ada.
+L'implémentation de ce serveur sera également générée 
+automatiquement par un outil que nous développerons ultérieurement,
+et consistera en des appels aux services Ada~95. Nous aurons ainsi
+réalisé un agent jouant à la fois le rôle de serveur CORBA et
+de client de l'annexe~; cet agent permettra d'utiliser les services
+«~actifs~» de l'annexe à partir du monde CORBA. Nous ne proposons
+pas, dans ce projet, de méthode d'accès aux services «~passifs~»
+de l'annexe (les paquetages \emph{Shared Passive}) à partir de CORBA.
+
+Ce document décrit le schéma formel de traduction
+d'une spécification de service de l'annexe vers le langage de description
+de service CORBA, OMG IDL. Dans la section suivante, nous décrirons
+nos motivations pour définir une traduction formelle d'une spécification
+de paquetage Ada~95 en contrat OMG IDL, ainsi que la structure générale
+de cette traduction. Nous présenterons ensuite le schéma de traduction
+proprement dit.
+
+\section{Architecture}
+
+\subsection{Présentation des systèmes d'objets répartis}
+\subsubsection{Annexe E d'Ada 95}
+
+L'annexe des systèmes répartis d'Ada~95 fournit des mécanismes
+pour la programmation d'applications réparties. Une application
+peut être divisée en partitions, dont chacune s'exécuter sur
+un hôte différent. Les partitions communiquent par appels
+de sous-programmes à distance, en respectant toujours les
+règles de typage d'Ada. Ces appels distants peuvent être
+résolus statiquement (au partitionnement) ou dynamiquement
+(à l'exécution), restituant ainsi deux modèles classiques
+d'applications réparties~: les sous-programmes distants (RPC)
+et les objets répartis. En effet, l'annexe permet la définition
+de types \emph{access} particuliers permettant de faire référence
+à un objet distant. Les appels d'opérations primitives sur un
+objet désigné par un tel pointeur sont effectués à distance,
+de façon transparent, sur la partition où réside l'objet.
+
+La définition de services accessibles à distance se fait
+à l'aide des pragmas de catégorisation \code{Pure},
+\code{Remote\_Types} et \code{Remote\_Call\_Interface}.
+Un quatrième pragma, \code{Shared\_Passive}, permet de
+définir des données partagées entre partitions.
+Dans l'annexe, c'est donc le même langage (Ada lui-même) qui
+est utilisé pour décrire un service, pour y faire appel et
+pour l'implémenter.
+
+Dans le cadre de ce projet, nous utilisons GLADE,
+une mise en {\oe}uvre de l'annexe pour le compilateur libre
+GNAT~\cite{gnat}. GLADE a été initialement développé
+en partenariat par TAMU\footnote{Texas A\&M University},
+Ada Core Technologies et l'ENST~\cite{tardieu95c}~;
+Les travaux de TAMU ont évolué parallèlement, en utilisant une
+ancienne version de la couche de communication de GLADE,
+pour produire une autre implémentation de l'annexe~: ADEPT.
+
+\subsubsection{CORBA}
+
+Au contraire de l'annexe, CORBA utilise un langage spécifique pour
+décrire les services accessibles à distance. Ce langage est l'IDL
+normalisé par l'OMG. IDL permet de définir des modules, des constantes,
+des types de données et des interfaces. IDL est un langage
+descriptif purement orienté objets~; dans cette mesure, il présente
+une certaine ressemblance avec Java. Sa syntaxe est proche de celle de C++.
+L'OMG a normalisé la projection des spécifications IDL vers différents
+langages hôtes (C, C++, Ada, Java, etc.) Cette projection est
+en générale naturelle~; toutefois, quand une construction IDL n'a pas d'équivalent
+direct dans le langage cible, les documents de l'OMG spécifient comment
+elle doit être simulée. Un traducteur IDL génère automatiquement des
+souches clientes et des squelettes d'implémentation pour chaque objet
+décrit en IDL. Une souche cliente est un module en langage hôte présentant
+au programme utilisateur l'interface du service décrit par le contrat IDL,
+et réalisant des appels au sous-système de communication CORBA pour
+traiter les requêtes de l'utilisateur~; un squelette d'implémentation,
+réciproquement, reçoit des requêtes en provenance du sous-système de communication,
+et effectue les appels aux fonctions fournies par l'implémenteur du service
+avant de retourner les réponses.
+
+\subsection{Présentation du projet CIAO}
+
+L'objectif du projet CIAO\footnote{CORBA Interface for Ada (DSA) Objects}
+est de permettre à un utilisateur CORBA de faire appel
+à un service fourni grâce à l'annexe. L'utilisateur CORBA a donc besoin
+d'une description en OMG IDL de ce service. Ce contrat
+IDL peut être généré automatiquement si l'on dispose d'un schéma formel
+de traduction d'une spécification de paquetage de l'annexe vers
+OMG~IDL.
+
+Nous allons donc proposer une application de l'ensemble des
+spécifications de services de l'annexe (\emph{i. e.} l'ensemble
+des arbres syntaxiques Ada~95 correspondant à la déclaration
+d'une \asynt{library\_unit} ayant l'une des catégories \pure{}, \rt{} ou
+\rci{}) dans l'ensemble des contrats OMG IDL (\emph{i. e.}
+l'ensemble des arbres syntaxiques OMG IDL).
+
+Cette application est définie dans le même esprit que la projection
+canonique d'OMG~IDL vers Ada. Les constructions «~orientées objets~»
+d'Ada sont traduites en leurs équivalents IDL. En Ada,
+un type \emph{tagged private} pour lequel il existe un type
+\emph{Remote Access to Class-Wide} (RACW) définit un objet réparti.
+Nous représentons un tel type par une \code{interface} IDL, et ses
+sous-programmes primitifs sont représentés par les opérations de cette
+\code{interface}. Un type \emph{Remote Access to Subprogram} (RAS) est
+également représenté par une \code{interface} ayant une seule opération
+«~\code{Call}~». Enfin, les sous-programmes appelables à distance d'un
+paquetage \rci{} sont considérés comme les opérations d'une interface
+«~\code{Remote\_Subprograms}~». Une interface «~Constants~» est également
+créée, et contient les traductions des constantes définies par un
+service Ada.
+
+La traduction doit également conserver la structure générale du service~:
+à chaque paquetage Ada correspond un module IDL~; un paquetages de
+bibliothèque (\emph{library package}) est traduit par exactement un fichier
+source IDL~; les sous-paquetages éventuels sont traduits par des modules
+imbriqués.
+
+Nous allons présenter dans la partie \ref{schema} la traduction que nous
+proposons. Nous indiquons, pour chaque élément de la grammaire Ada,
+en partant de \asynt{compilation\_unit}, une traduction sous forme de
+zéro ou un élément de la grammaire OMG IDL. La traduction de certains
+éléments n'est pas actuellement supportée~; cela restreint l'ensemble
+des paquetages traduisibles. Ces restrictions sont indiquées au
+fil du texte, et rappelées dans la section \ref{restrictions}.
+
+Lorsque l'élément Ada est un non-terminal, nous donnons une traduction
+pour chaque forme alternative. Si l'élément IDL correspondant
+est un non-terminal, nous indiquons comment ses sous-éléments doivent
+être construits. En général cette construction se fait récursivement
+en termes de traductions de sous-éléments de l'élément Ada.
+
+Pour certaines formes, nous n'explicitons pas de traduction. La traduction
+par défaut est alors la concaténation des traductions des éléments qui
+définissent la forme. Par exemple, si l'on considère
+un non-terminal \asynt{foo ::= bar~baz}, alors en l'absence d'autre
+indication, la traduction d'un \asynt{foo} est la traduction du
+\asynt{bar} qu'il contient, suivie de celle du \asynt{baz}.
+
+\section{Schéma de traduction}
+\label{schema}
+
+\subsection{Notations}
+
+Les règles syntaxiques Ada sont rappelées dans les paragraphes
+\emph{Syntaxe}. Elles sont données en utilisant les mêmes notations
+que le Manuel de référence du langage \cite{ada-rm}.
+
+Les non-terminaux IDL sont notés comme dans la documentation de
+l'OMG \cite{corba}, par exemple \isynt{simple\_type\_spec}.
+Quand cela sera nécessaire, nous ajouterons à cette notation des
+informations sémantiques, comme cela est fait dans la notation Ada~:
+\isynt{\sem{structure\_}identifier}. Nous décrirons certaines constructions
+IDL par des insertions de code. Dans ces fragments, nous pourrons laisser
+des non-terminaux non développés~:
+\showcode{sample.idl.eps}{Exemple de fragment de code}{code-sample}
+
+\subsection{Éléments lexicaux}
+\label{lex}
+
+Au cours de la traduction, nous aurons à représenter des identificateurs
+Ada par des équivalents en IDL. Nous posons que la traduction
+d'un \asynt{identifier} Ada est en général l'\isynt{identifier} IDL
+qui a la même représentation. De plus, certaines constructions IDL
+traduisent des constructions anonymes en Ada. Nous leur donnons un
+\isynt{identifier} formé en ajoutant un suffixe à la représentation
+d'un \asynt{identifier} Ada. Si un conflit de nommage découle de ce procédé,
+nous ajoutons des suffixes aux identificateurs IDL pour lever toute ambiguïté.
+
+Ces règles suffisent à la traduction des \asynt{defining\_identifier}.
+La traduction d'un \asynt{name} doit, de plus, tenir compte des
+règles de résolution de noms d'Ada et d'IDL. Si un \asynt{name} Ada dénote
+une entité qui n'est pas déclarée dans l'unité en cours de traduction,
+il doit être traduit par un \isynt{scoped\_name} contenant
+les indications de portée nécessaires à sa résolution. Les règles de
+traduction de \asynt{compilation\_unit} (cf. \ref{MAP:compilation:unit})
+garantissent qu'il est toujours possible de désigner sans ambiguïté
+la construction IDL traduisant une entité Ada visible. Il n'est donc
+pas nécessaire de traduire les clauses \code{use} d'Ada~; chaque
+fois que c'est nécessaire, nous utilisons en IDL des noms
+(\isynt{scoped\_name}) totalement qualifiés.
+
+Les identificateurs prédéfinis (déclarés dans le paquetage normalisé
+\code{Standard} sont traduits dans le module \code{CIAO::Standard}
+(cf. \ref{ciao-idl}), avec un préfixe \code{Ada\_} pour éviter toute
+collision avec les identificateurs prédéfinis IDL.
+
+\subsection{Unités de compilation}
+
+On considère une \asynt{compilation\_unit} qui est la déclaration
+d'une unité de bibliothèque ayant l'une des catégories \pure{},
+\rt{} ou \rci{}.
+
+\begin{syntaxe}
+\item[compilation\_unit] ::= context\_clause library\_item \\
+\alt*    context\_clause subunit
+
+\item[context\_clause] ::= \\
+        with\_clause \\
+\alt*    use\_clause
+
+\item[with\_clause] ::= \kw{with} \sem{library\_unit\_}name \{\kw{,} \sem{library\_unit\_}name \}\kw{;}
+\end{syntaxe}
+
+\begin{traduction}
+\label{MAP:compilation:unit}
+Une \asynt{compilation\_unit} est traduite par une \isynt{specification} IDL.
+Nous ne devons considérer ici que la première forme de
+\asynt{compilation\_unit}, car nous ne nous intéressons qu'aux
+\emph{déclarations} d'unités de bibliothèque.
+
+En premier lieu, la \isynt{specification} contient une directive
+d'inclusion de fichier \idirect{include "ciao.idl"}. Ce fichier fournit des
+déclarations communes~; son contenu est donné en annexe (cf. \ref{ciao-idl}).
+Ces déclarations sont utilisées pour construire certaines traductions
+d'éléments Ada au long de ce document.
+
+\label{MAP:with:clause}
+Chaque \asynt{with\_clause} dont le \asynt{\meta{library\_unit\_}name}
+dénote un paquetage de bibliothèque est traduite par une directive
+d'inclusion \idirect{include "\meta{filename}"} où \meta{filename} est le
+nom du fichier IDL produit par la traduction de ce paquetage.
+Tout autre \asynt{context\_item} n'est pas traduit.
+\end{traduction}
+
+\label{MAP:library:item}
+\begin{syntaxe}
+\item[library\_item] ::= [ \kw{private} ] library\_unit\_declaration \\
+\alt* library\_unit\_body \\
+\alt* [ \kw{private} ] library\_unit\_renaming\_declaration
+
+\item[library\_unit\_declaration] ::= subprogram\_declaration \\
+\alt* package\_declaration \\
+\alt* generic\_declaration \\
+\alt* generic\_instanciation
+\end{syntaxe}
+
+%% Nous ne traitons dans la suite que les deux formes qui correspondent à
+%% la déclaration de services appelables à distance~:
+%% \asynt{package\_declaration}, traitée en \ref{MAP:package:declaration}, et
+%% \asynt{generic\_instanciation}, traitée en \ref{MAP:generic:instanciation}.
+Seules deux formes de \asynt{library\_item} peuvent déclarer effectivement
+des services appelables à distance~: les déclarations de paquetage
+(\asynt{package\_declaration}) et les instanciations de paquetage générique
+(\asynt{package\_instanciation}). La traduction des déclarations de paquetage
+est traitée dans la section suivante. Celle des instanciations de paquetage
+générique nécessiterait la mise en {\oe}uvre de règles complexes de résolution
+de noms. Nous choisissons donc, dans un premier temps, de ne pas l'autoriser.
+
+\subsection{Déclarations}
+
+\subsubsection{Déclaration de paquetage}\label{MAP:package:declaration}
+\begin{syntaxe}
+\item[package\_declaration] ::= package\_specification\kw{;}
+
+\item[package\_specification] ::= \\
+  \kw{package} defining\_program\_unit\_name \kw{is} \\
+    \indent\indent \{ basic\_declarative\_item \} \\
+  \makebox[0pt][r]{[\,}\kw{private} \\
+    \indent\indent \{ basic\_declarative\_item \} \\
+   \kw{end} [[parent\_unit\_name\kw{.}]identifier]
+
+\item[defining\_program\_unit\_name] ::=
+  [parent\_unit\_name\kw{.}]defining\_identifier
+\end{syntaxe}
+
+\begin{traduction}
+\label{MAP:package:specification}
+Une \asynt{package\_specification} est traduite par un \isynt{module}.
+
+\label{MAP:defining:program:unit:name}
+Si l'unité est un paquetage fils, l'\isynt{identifier} du
+\isynt{module} doit rendre compte de l'ensemble de ses ascendants.
+Il est construit en concaténant chacun des \asynt{direct\_name}s qui
+composent le \asynt{parent\_unit\_name} avec le
+\asynt{defining\_identifier}, en les séparant par des caractères
+«~souligné~» doublés (\code{\_\_}). Sinon, l'\isynt{identifier} traduit
+simplement le \asynt{defining\_identifier}.
+
+La déclaration d'un paquetage fils a visibilité sur la déclaration
+de ses ascendants. Pour conserver cette propriété, la traduction
+d'un paquetage fils commence par un sous-module \code{Parent}
+ne contenant qu'une directive d'inclusion du fichier traduisant
+le paquetage père. Le module a ainsi visibilité sur toutes les déclarations
+nécessaires, sans que nous introduisions de collision de nommage.
+
+Les \isynt{definition} du module sont les
+traductions des \asynt{basic\_declarative\_item}~: en général, un
+\asynt{basic\_declarative\_item} est traduit par une \isynt{definition},
+et dans ce cas se rattache au \isynt{module}.
+Cependant, les \asynt{basic\_declarative\_item} qui sont
+des \asynt{subprogram\_declaration} ou des \asynt{abstract\_subprogram\_declaration}
+définissant des opération primitives d'objets répartis sont traduits comme des
+\isynt{export}, et dans ce cas ils se rattachent à un \isynt{interface\_body}.
+\end{traduction}
+
+\exemple{structure}{Structure de la traduction}
+
+\begin{syntaxe}
+\item[basic\_declarative\_item] ::= \\
+  basic\_declaration \alt{} representation\_clause \alt{} use\_clause
+
+\item[basic\_declaration] ::= \\
+     type\_declaration \alt{} subtype\_declaration \\
+\alt* object\_declaration \alt{} number\_declaration \\
+\alt* subprogram\_declaration \alt{} abstract\_subprogram\_declaration \\
+\alt* package\_declaration \alt{} renaming \_declaration \\
+\alt* exception\_declaration \alt{} generic\_declaration \\
+\alt* generic\_instantiation
+\end{syntaxe}
+
+\begin{traduction}
+\label{MAP:basic:declarative:item}
+Une \asynt{use\_clause} ne fait que modifier le comportement de résolution
+des noms dans le processus de traduction, mais ne produit aucune traduction
+dans le fichier IDL.
+
+\label{MAP:basic:declaration}
+Dans les cas où une \asynt{basic\_declaration} est~:
+\begin{itemize}
+\item une \asynt{type\_declaration} ou une \asynt{subtype\_declaration}~;
+\item une \asynt{object\_declaration} (qui est nécessairement constante,
+  cf. \citerm{10.2.1(16), E.2.2(7), E.2.3(10)}) ou une
+  \asynt{number\_declaration}~;
+\item une \asynt{package\_declaration}~;
+\end{itemize}
+sa traduction est une \isynt{definition}, dont la construction est donnée
+ci-après.
+
+Une \asynt{subprogram\_declaration} ou une
+\asynt{abstract\_subprogram\_declaration} est traduite par
+un \isynt{export} (cf. section \ref{MAP:subprogram:declaration}) qui
+se rattache à un \isynt{interface\_body}.
+Les \asynt{exception\_declaration} et
+\asynt{generic\_declaration} ne sont pas traduites. Toutes les exception
+Ada sont reflétées par l'exception IDL \code{Ada\_Exception}.
+Cela permet de transmettre aux clients CORBA une information
+complète sur les exceptions Ada levées par un serveur de l'annexe,
+sans qu'il soit nécessaire de prévoir à l'avance tous les types
+d'exceptions que pourrait lever ce serveur. Une déclaration d'unité
+générique ne crée aucun service appelable à distance (un service
+peut éventuellement être créé par \emph{l'instanciation} d'une unité
+générique, mais cette possibilité n'est pas autorisée pour l'instant par
+le schéma de traduction).
+
+La traduction d'une \asynt{generic\_instantiation} n'est pas permise actuellement.
+De même, les \asynt{renaming\_declaration} donnent lieu à des problèmes complexes
+de résolution de noms, et nous décidons pour l'instant de ne pas permettre
+leur traduction.
+\end{traduction}
+
+\subsubsection{Déclaration de type ou de sous-type}
+\label{decl:type-subtype}
+
+\begin{syntaxe}
+\item[type\_declaration] ::= full\_type\_declaration \\
+\alt* incomplete\_type\_declaration \\
+\alt* private\_type\_declaration \\
+\alt* private\_extension\_declaration
+
+\item[full\_type\_declaration] ::= \\
+  \kw{type} defining\_identifier [known\_discriminant\_part] \kw{is}
+     type\_definition\kw{;} \\
+\alt* task\_type\_declaration \\
+\alt* protected\_type\_declaration
+\end{syntaxe}
+
+\begin{traduction}
+\label{MAP:incomplete:type:declaration}
+Une \asynt{incomplete\_type\_declaration} n'est pas traduite.
+En effet, elle est toujours complétée
+par une \asynt{full\_type\_declaration}, et tant que cette
+complétion n'a pas été rencontrée, le \asynt{defining\_identifier}
+ne peut être utilisé que pour former des
+\asynt{access\_to\_object\_definition} ou des \asynt{access\_definition}.
+
+Une \asynt{access\_to\_object\_definition} sera toujours traduite
+par un type «~opaque~» indépendant du sous-type désigné si
+celui-ci est issu d'une \asynt{full\_type\_declaration}
+(cf. \ref{MAP:access:to:object:definition}). De la même façon,
+la traduction d'une \asynt{access\_definition} qui définit
+un discriminant ne nécessite pas la connaissance exacte de la
+nature de l'objet désigné.
+
+Le seul cas problématique est celui où une \asynt{incomplete\_type\_declaration}
+est utilisée pour former un paramètre formel \emph{access} dans une signature
+de sous-programme. En Ada, il se peut que la présence de
+cette signature \emph{avant} la complétion soit requise (par exemple
+dans le cas où l'on définit un type \emph{access} sur sous-programme et
+que la complétion est une \asynt{record\_type\_definition} dont un membre
+est de ce type. Le sous-programme, s'il est traduit, se rattache à une interface.
+Nous pouvons alors n'émettre qu'une \isynt{forward\_dcl} là où nous
+insérerions normalement l'\isynt{interface\_dcl} correspondant à cette interface
+(cela ne modifie en rien par ailleurs la validité ni le sens de la traduction), et retarder
+l'insertion de l'\isynt{interface\_dcl} jusqu'au moment où la
+\asynt{full\_type\_declaration} a été traduite.
+
+Nous donnons ci-après la traduction des éléments~:
+\begin{itemize}
+\item \asynt{full\_type\_declaration}~;
+\item \asynt{private\_type\_declaration}~;
+\item \asynt{private\_extension\_declaration}.
+\end{itemize}
+
+\label{MAP:full:type:declaration}
+Une \asynt{full\_type\_declaration} déclare un type Ada.
+
+% Elle est naturellement
+% traduite par une \isynt{type\_dcl} de la forme \code{typedef}~\isynt{type\_declarator},
+% déclarant un type IDL correspondant.
+
+Une \asynt{known\_discriminant\_part} ne peut être présente
+que pour la déclaration d'un type composite qui n'est pas un tableau,
+c'est-à-dire un type structure, un type tâche ou un type protégé.
+
+Si c'est une \asynt{task\_type\_declaration} ou une
+\asynt{protected\_type\_declaration}, alors la déclaration est
+traduite par une \isynt{type\_dcl} de la forme
+\code{typedef}~\isynt{type\_declarator}, et le
+\isynt{type\_declarator} est un type opaque de nature
+à contenir un flot quelconque d'octets. En effet, un type tâche ou
+protégé est un type limité non étiqueté. Lorsqu'un objet d'un tel type
+doit être transmis au cours d'un appel distant, le langage spécifie
+que l'utilisateur est responsable de sa mise en forme
+(\emph{marshalling}) sous forme de flux d'octets transmissible sur le réseau.
+(cf. \citerm{E.2.2(14) et E.2.3(14)}). Nous utiliserons encore cette
+traduction comme «~type opaque~» plus loin dans ce schéma, pour tous les
+types Ada dont le mode de transmission est défini par l'utilisateur
+(au moyen des attributs \code{'Read} et \code{'Write}).
+
+Le \isynt{declarators} du \isynt{type\_declarator} est un seul
+\isynt{identifier} traduisant le \asynt{defining\_identifier} de la
+\asynt{task\_type\_declaration} ou de la \asynt{protected\_type\_declaration}.
+
+Quand la \asynt{full\_type\_declaration} contient une \asynt{type\_definition},
+sa traduction dépend de la forme de la \asynt{type\_definition}.
+\end{traduction}
+
+\begin{syntaxe}
+\item[type\_definition] ::= \\
+     enumeration\_type\_definition \alt{} integer\_type\_definition \\
+\alt* real\_type\_definition \alt{} array\_type\_definition \\
+\alt* record\_type\_definition \alt{} access\_type\_definition \\
+\alt* derived\_type\_definition
+
+\item[array\_type\_definition] ::= unconstrained\_array\_definition \\
+  \alt*{} constrained\_array\_definition
+
+\item[unconstrained\_array\_definition] ::= \\
+  \kw{array (} index\_subtype\_definition
+  \{\kw{,} index\_subtype\_definition \} \kw{)} \\
+  \mbox{}\ \kw{of} component\_definition
+
+\item[constrained\_array\_definition] ::= \\
+  \kw{array (} discrete\_subtype\_definition
+  \{\kw{,} discrete\_subtype\_definition \} \kw{)} \\
+  \mbox{}\  \kw{of} component\_definition
+
+\item[component\_definition] ::= [\kw{aliased}] subtype\_indication
+\end{syntaxe}
+
+\begin{traduction}
+Si c'est une \asynt{array\_type\_definition} dont la
+\asynt{component\_definition} dénote un sous-type limité (tel que
+défini par \citerm{7.5(3)}), alors la \asynt{full\_type\_declaration}
+déclare aussi un type limité, et comme précédemment 
+une \isynt{type\_dcl} \code{typedef} est construite avec une \isynt{type\_spec}
+opaque, et un \isynt{declarators} provenant du \asynt{defining\_identifier}.
+
+%% Il appartient au programmeur de connaître les bornes des
+%% tableaux contraints.
+Une \asynt{constrained\_array\_definition} dont les éléments
+sont d'un type non limité définit un type tableau dont la taille est
+connue à la compilation. Nous pouvons donc le représenter par
+un tableau IDL de même longueur~: une \isynt{type\_dcl} est
+produite, et la \isynt{type\_spec} du
+\isynt{type\_declarator} est la traduction de la \asynt{component\_definition}
+(cf. \ref{subtype-indication}~;
+le \isynt{declarators} est un \isynt{array\_declarator} dont
+l'\isynt{identifier} est la traduction du \asynt{defining\_identifier}.
+Pour chaque \asynt{discrete\_subtype\_definition}, la traduction comporte une
+\isynt{fixed\_array\_size} égale à la longueur du tableau (son nombre
+d'éléments) sur la dimension correspondante.
+
+Une \asynt{unconstrained\_array\_definition} définit également un tableau, dont
+la longueur et les bornes ne sont connues qu'à l'exécution. Nous ne
+pouvons donc pas utiliser un tableau IDL~; en revanche, une
+\emph{séquence} est adaptée pour représenter ce type d'objet.
+Là encore on produit une \isynt{type\_dcl}~; la \isynt{type\_spec} est le
+\isynt{struct\_type} suivant~:
+\showcode{unconstrained-array.idl.eps}{Traduction de tableau non contraint}{unconstrained-array}
+
+où~:
+\begin{itemize}
+\item \isynt{\sem{T\_}identifier} traduit le \asynt{defining\_identifier}
+  de la \asynt{full\_type\_declaration} ;
+\item \isynt{\sem{N\_}positive\_int\_const} est le nombre de dimensions
+  du tableau ;
+\item le composant \code{array\_bounds} contient la borne inférieure
+  des indices pour chaque dimension du tableau (la borne supérieure
+  est implicitement définie par la borne inférieure et la longueur de
+  la séquence)~;
+\item \isynt{type\_spec} traduit
+  \asynt{component\_definition} ;
+\item le non-terminal \isynt{sequence\_type} est itéré récursivement
+  une fois pour chaque dimension du tableau.
+\end{itemize}
+
+Nous utilisons les séquences IDL pour représenter des familles ordonnées d'éléments
+de longueur quelconque. La borne définie par l'élément d'indice 0 de
+\code{array\_bounds} est relative à la séquence la plus externe.
+
+Dans le cas des tableaux contraints comme des tableaux non contraints, il appartient
+au développeur du client CORBA de déterminer comment il doit indicer les tableaux,
+en tenant compte des bornes qu'il connaît.
+
+\end{traduction}
+
+\begin{syntaxe}
+\item[integer\_type\_definition] ::= signed\_integer\_type\_definition
+  \alt*{} modular\_type\_definition
+
+\item[real\_type\_definition] ::=
+  floating\_point\_definition \alt{} fixed\_point\_definition
+\end{syntaxe}
+
+\begin{traduction}
+\label{MAP:integer:type:definition}
+Une \asynt{integer\_type\_definition} est traduite par un
+une \isynt{type\_dcl} \code{typedef} ayant un \isynt{integer\_type}
+comme \isynt{type\_spec}.
+
+\label{MAP:signed:integer:type:definition}
+\label{MAP:modular:type:definition}
+Pour une \asynt{signed\_integer\_type\_definition}, cet \isynt{integer\_type}
+est \code{long long}~; dans le cas d'une
+\asynt{modular\_type\_definition}, c'est \code{unsigned long long}.
+Si une valeur Ada ne peut être représentée comme un entier 64 bits,
+une erreur devra être générée à l'exécution par l'agent d'interface.
+
+\label{MAP:floating:point:definition}
+Une \asynt{real\_type\_definition} est traduite par le
+\isynt{floating\_pt\_type} \code{long double}.
+Si une valeur Ada ne peut être représentée par le type choisi,
+une erreur devra être générée à l'exécution par l'agent d'interface.
+\end{traduction}
+
+\begin{syntaxe}
+\item[enumeration\_type\_definition] ::= \\
+  \kw{(}enumeration\_literal\_specification
+   \{\kw{,} enumeration\_literal\_specification\}\kw{)}
+
+\item[enumeration\_literal\_specification] ::=
+  defining\_identifier \alt{} defining\_character\_literal
+\end{syntaxe}
+
+\begin{traduction}
+\label{MAP:enumeration:type:definition}
+Une \asynt{enumeration\_type\_definition} se traduit par un
+une \isynt{type\_dcl} de la forme \isynt{enum\_type}, avec~:
+\begin{itemize}
+\item un \isynt{identifier} traduisant le
+  \asynt{defining\_identifier}~;
+\item pour chaque \asynt{enumeration\_literal\_specification},
+  un \isynt{enumerator} qui est la traduction du
+  \asynt{defining\_identifier} pour la première forme,
+  ou bien \code{CHAR\_} suivi du nom de la constante du
+  paquetage normalisé \mbox{Ada.Characters.Latin\_1} correspondant
+  au \asynt{defining\_character\_literal} pour la seconde forme.
+\end{itemize}
+\end{traduction}
+
+\begin{syntaxe}
+\item[record\_type\_definition] ::=
+  [[\kw{abstract}] \kw{tagged}] [\kw{limited}] record\_definition
+
+\item[record\_definition] ::= \\
+     \kw{record} \\
+       \indent component\_list \\
+     \kw{end record} \\
+\alt* \kw{null record}
+
+\item[component\_list] ::= \\
+  component\_item \{ component\_item \} \\
+\alt* \{ component\_item \} variant\_part \\
+\alt* \kw{null;}
+
+\item[compnent\_item] ::= component\_declaration \alt{}representation\_clause
+
+\item[component\_declaration] ::= \\
+  defining\_identifier\_list \kw{:} component\_definition
+    [\kw{:=} default\_expression]\kw{;}
+
+\item[known\_discriminant\_part] ::= \\
+  \kw{(}discriminant\_specification \{\kw{,} discriminant\_specification \}\kw{)}
+
+\item[discriminant\_specification] ::= \\
+  defining\_identifier\_list \kw{:} subtype\_mark
+     [\kw{:=} default\_expression] \\
+\alt*
+  defining\_identifier\_list \kw{:} access\_definition
+     [\kw{:=} default\_expression]
+
+\item[defining\_identifier\_list] ::=
+  defining\_identifier \{\kw{,} defining\_identifier\}
+
+\end{syntaxe}
+
+\begin{traduction}
+\label{MAP:record:type:definition}
+Si une déclaration de type définie par une \asynt{record\_type\_definition}
+contient l'un des mots-clé \code{tagged} et \code{limited},
+sa traduction le type opaque défini précédemment.
+
+Dans le cas contraire, c'est un \isynt{struct\_type}, avec~:
+\begin{itemize}
+\item un \isynt{identifier} traduisant le \asynt{defining\_identifier}~;
+\item si la \asynt{full\_type\_declaration} contient une
+  \asynt{known\_discriminant\_part} définissant un ou plusieurs
+  discriminants scalaires, un \isynt{member} pour
+  chacun de ces discriminants\footnote{Si une \asynt{record\_definition}
+  a un discriminant non scalaire, alors elle contient le mot-clé
+  \code{limited}, cf. \citerm{3.7(10)}}~;
+\item une \isynt{member\_list} traduisant la \asynt{component\_list},
+  et comprenant~:
+  \begin{itemize}
+  \item un \isynt{member} pour chaque \asynt{component\_declaration}~;
+  \item un \isynt{member} pour chaque \asynt{variant\_part}, dont
+  la construction est donnée ci-après.
+  \end{itemize} 
+\end{itemize}
+
+Une \asynt{representation\_clause} au sein d'une
+\asynt{record\_type\_definition} n'est pas traduite. En effet,
+une telle clause a pour objectif de spécifier la projection
+d'un type de donnée sur l'architecture matérielle sous-jacente
+(\citerm{13.1(1)}). Nous prenons le parti de ne pas la refléter
+dans la traduction, car elle n'intervient pas sur le sens de
+la description abstraite de service que nous manipulons.
+\end{traduction}
+
+\begin{syntaxe}
+\item[variant\_part] ::= \\
+       \kw{case} \sem{discriminant\_}direct\_name \kw{is} \\
+        \indent variant \\
+        \indent \{variant\} \\
+       \kw{end case;}
+
+\item[variant] ::= \\
+       \kw{when} discrete\_choice\_list $=>$ \\
+        \indent  component\_list
+
+\item[discrete\_choice\_list] ::= discrete\_choice \{\kw{\texttt{|}} discrete\_choice\}
+
+\item[discrete\_choice] ::= expression \alt{}discrete\_range \alt{}{\kw{others}}
+\end{syntaxe}
+
+\begin{traduction}
+Dans une \asynt{record\_type\_definition} ayant un ou plusieurs
+discriminants scalaires, une \asynt{variant\_part} permet de définir
+des composants qui dépendent d'un discriminant. Les \asynt{variant}
+sont mutuellement exclusives. Nous représentons une telle construction
+en IDL à l'aide d'un type \code{union}.
+
+Une \asynt{variant\_part} est traduite par un \isynt{member}.
+Son \isynt{identifier} traduit l'\asynt{identifier} du discriminant,
+avec le suffixe \code{\_variant}\footnote{XXX identificateur à revoir}~;
+sa \isynt{type\_spec} est un \isynt{union\_type} dont l'\isynt{identifier}
+est encore celui du discriminant, suivi de \code{\_variant\_union}%
+\footnote{XXX identificateur à revoir}.
+Le type du discriminant (IDL) de cette union est \code{long long int}.
+En effet, si nous voulions utiliser le type correspondant au
+discriminant Ada, il serait nécessaire de traduire un
+\asynt{discrete\_choice}, c'est-à-dire une expression statique
+quelconque. De plus, dans le cas d'un \asynt{discrete\_range},
+il serait nécessaire d'énumérer explicitement toutes les valeurs possibles
+de l'intervalle, ce qui pourrait conduire à une traduction de taille
+déraisonnable.
+
+Les membres de ce type union correspondent aux différentes
+variantes~; pour chacune d'elles, il nous faut représenter une
+\asynt{component\_list}. Chaque \asynt{variant} est donc
+traduite par un \isynt{member} de l'union, dont l'\isynt{identifier} est
+celui du discriminant suivi de \code{\_var\_\sem{p}}%
+\footnote{XXX identificateur à revoir},
+et la \isynt{type\_spec} est un \isynt{struct\_type} dont
+l'\isynt{identifier} est celui du discriminant suivi de
+\code{\_var\_\sem{p}\_struct}\footnote{XXX identificateur à revoir}.
+Dans tous ces \isynt{identifier}, \sem{p} représente la position
+de la variante dans la \asynt{variant\_part}.
+
+La \isynt{member\_list} est la traduction de la \asynt{component\_list},
+comme décrite précédemment.
+
+On associe un identificateur IDL à chaque \asynt{discrete\_choice}.
+Il est formé en prenant l'identificateur du discriminant indiqué
+par la \asynt{variant\_part}, et en y ajoutant en suffixe \code{\_var\_}
+puis la position de la variante dans la \asynt{variant\_part}, ou bien
+\code{others} pour l'éventuelle \asynt{discret\_choice\_list} réduite
+au mot-clé \code{others}\footnote{XXX identificateur à revoir}.
+\end{traduction}
+
+\exemple{variant_part}{Structure à partie variante}
+
+\begin{syntaxe}
+\item[access\_type\_definition] ::= access\_to\_object\_definition \\
+  \alt*{} access\_to\_subprogram\_definition
+
+\item[access\_to\_object\_definition] ::=
+        \kw{access} [general\_access\_modifier] subtype\_indication
+
+\item[general\_access\_modifier] ::= \kw{all} \alt{} \kw{constant}
+
+\item[access\_to\_subprogram\_definition] ::= \\
+      \kw{access} [\kw{protected}]
+        \kw{procedure} parameter\_profile \\
+\alt* \kw{access} [\kw{protected}]
+        \kw{function} parameter\_and\_result\_profile
+\end{syntaxe}
+
+\begin{traduction}
+\label{MAP:access:to:object:definition}
+Une \asynt{access\_to\_object\_definition} qui définit un
+RACW (cf. \citerm{E.2.2(9)}) crée un type référence vers objet distant.
+En IDL, on peut utiliser un nom d'interface pour dénoter un tel type.
+Un telle \asynt{access\_to\_object\_definition} est donc traduite
+simplement par la \isynt{type\_spec} correspondant à la
+\asynt{subtype\_indication} (qui dénote le sous-type désigné par le RACW).
+
+Toute autre \asynt{access\_to\_object\_definition} définit un
+type pourvu de procédures \code{'Read} et \code{'Write}
+fournies par l'utilisateur~; elle est traduite comme un type opaque.
+
+Une \asynt{access\_to\_subprogram\_definition} définit un type
+sur lequel on peut effectuer un appel à distance. Nous le traduisons
+par une \isynt{interface\_dcl} contenant une seule déclaration
+\isynt{op\_dcl}. Son \isynt{identifier} est \code{Call}~;
+la construction de ses autres sous-éléments (\isynt{op\_attribute},
+\isynt{op\_type\_spec} et \isynt{parameter\_dcls} est détaillée
+dans la section \ref{MAP:subprogram:declaration}.
+\end{traduction}
+
+\begin{syntaxe}
+\item[derived\_type\_definition] ::= \\
+   \mbox{} [\kw{abstract}] \kw{new}
+   \sem{parent\_}subtype\_indication [record\_extension\_part]
+
+\item[subtype\_declaration] ::= \\
+       \kw{subtype} defining\_identifier \kw{is} subtype\_indication\kw{;}
+
+\end{syntaxe}
+
+\begin{traduction}
+Comme une déclaration de type \emph{tagged}, une
+\asynt{derived\_type\_definition} dont le type parent est
+\emph{tagged} est traduite par un type opaque.
+
+Si le type parent n'est pas un type \emph{tagged}, alors il
+ne peut y avoir de \asynt{record\_extension\_declaration}, et
+la traduction de la \asynt{derived\_type\_definition} est celle
+de sa \asynt{\sem{parent\_}subtype\_indication}. De même, une
+\asynt{subtype\_declaration} est traduite par une \isynt{type\_dcl}
+dont l'\isynt{identifier} et la \isynt{type\_spec} traduisent
+respectivement le \asynt{defining\_identifier} et la \asynt{subtype\_indication}.
+\end{traduction}
+
+\subsubsection{Déclaration d'objet réparti}
+\label{decl:interfaces}
+
+\begin{syntaxe}
+\item[private\_type\_declaration] ::= \\
+     \kw{type} defining\_identifier [discriminant\_part] \kw{is} \\
+       \indent{} [[\kw{abstract}] \kw{tagged}] [\kw{limited}] \kw{private;}
+
+\item[private\_extension\_declaration] ::= 
+     \kw{type} defining\_identifier [discriminant\_part] \kw{is} \\
+       \indent{} [\kw{abstract}] \kw{new} ancestor\_subtype\_indication
+               \kw{with private;}
+\end{syntaxe}
+
+\begin{traduction}
+Une déclaration de type \emph{tagged limited private} crée un type susceptible
+d'être accessible à distance (\emph{via} un RACW). Une
+\asynt{private\_type\_declaration} d'un tel type est donc traduite
+par une \isynt{interface\_dcl} sans \isynt{inheritance\_spec}, puisque
+le type Ada n'hérite pas d'un autre type objet réparti.
+L'\isynt{interface\_body} est une liste d'\isynt{op\_dcl}
+correspondant aux opérations primitives du type~; ces \isynt{op\_dcl}
+proviennent de la traduction d'éléments \asynt{subprogram\_declaration} ou
+\asynt{abstract\_subprogram\_declaration}, donnée ci-après
+(section \ref{MAP:subprogram:declaration}).
+
+De même, une \asynt{private\_extension\_declaration} dont le type parent
+est \emph{limited private} (il est toujours \emph{tagged}, cf.
+\citerm{7.3(8)}) est traduite comme une \isynt{interface\_dcl}
+dont l'\isynt{inheritance\_spec} est le \isynt{scoped\_name}
+désignant la traduction du type parent.
+
+En général, la traduction d'une \isynt{interface\_dcl} apparaît dans
+l'arbre traduit dans sa position naturelle par rapport aux autres déclarations
+(l'ordre des déclarations est alors le même que l'ordre des déclarations Ada
+d'origine). Cependant, si un sous-programme a des paramètres \emph{access}
+désignant des types incomplets, la traduction de l'\isynt{interface\_dcl}
+peut être placée plus tard dans l'arbre (cf. \ref{MAP:incomplete:type:declaration}).
+Dans ce cas, une \isynt{foward\_dcl} est insérée à l'emplacement naturel de 
+l'interface dans la traduction, et la production de l'\isynt{interface\_dcl}
+est retardée.
+
+Toute autre \asynt{private\_type\_declaration} ou
+\asynt{private\_extension\_declaration} définit un type
+dont le client ne connaît pas le contenu, et se traduit naturellement
+comme un type opaque.
+\end{traduction}
+
+\exemple{racw}{Traduction d'un objet réparti}
+
+\subsubsection{Déclaration de sous-programme}
+
+\begin{syntaxe}
+\item[subprogram\_declaration] ::= subprogram\_specification\kw{;}
+
+\item[abstract\_subprogram\_declaration] ::= subprogram\_specification
+  \kw{is abstract;}
+
+\item[subprogram\_specification] ::= \\
+         \kw{procedure} defining\_program\_unit\_name  parameter\_profile \\
+ \alt*{} \kw{function} defining\_designator  parameter\_and\_result\_profile
+
+\item[designator] ::= [parent\_unit\_name \kw{.} ]identifier
+  \alt{} operator\_symbol
+
+\item[defining\_designator] ::= defining\_program\_unit\_name
+    \alt{} defining\_operator\_symbol
+
+\item[parameter\_profile] ::= [formal\_part]
+
+\item[parameter\_and\_result\_profile] ::= [formal\_part] \kw{return}
+    subtype\_mark
+
+\item[formal\_part] ::=
+    \kw{(}parameter\_specification \{\kw{;} parameter\_specification\}\kw{)}
+
+\item[parameter\_specification] ::= \\
+        defining\_identifier\_list \kw{:} mode  subtype\_mark
+           [\kw{:=} default\_expression]
+\alt*{} defining\_identifier\_list \kw{:} access\_definition
+           [\kw{:=} default\_expression]
+
+\item[access\_definition] ::= \kw{access} subtype\_mark
+
+\item[mode] ::= [\kw{in}] \alt{} \kw{in out} \alt{} \kw{out}
+\end{syntaxe}
+
+\begin{traduction}
+
+\label{MAP:subprogram:declaration}
+Un sous-programme (procédure ou fonction) est une opération primitive
+d'au plus un type \emph{tagged}. Une \asynt{subprogram\_specification}
+pour une opération primitive d'un type \emph{tagged limited private}
+(traduit par une \isynt{interface}) définit une méthode d'un objet
+réparti. Elle est donc traduite par une \isynt{op\_dcl} qui
+se rattache à l'\isynt{interface\_body} correspondant à cet objet.
+Dans un paquetage \rci{}, une déclaration de sous-programme qui
+n'est pas une primitive d'un objet réparti est traduite comme
+une opération de l'interface \code{Remote\_Subprograms}.
+Dans un paquetage \pure{} ou \rt{}, une déclaration de sous-programme
+qui n'est pas une primitive d'un objet réparti définit une
+procédure ou une fonction qui ne peut être appelée que localement,
+et non à distance. Une telle déclaration n'est donc pas traduite.
+
+L'\isynt{op\_dcl} est ainsi construite~:
+\begin{itemize}
+\item l'\isynt{op\_type\_spec} est \code{void} pour une procédure,
+  ou bien la traduction de la \asynt{subtype\_mark} dénotant le
+  type de retour pour une fonction~;
+\item l'\isynt{dentifier} traduit le \asynt{defining\_designator}
+  (Pour un \asynt{operator\_symbol}, on prend comme traduction
+  \code{Operator\_} suivi du nom de l'opérateur. En effet,
+  IDL ne permet pas la surcharge des opérateurs)~;
+\item l'élément \isynt{parameter\_dcls} est une suite de \isynt{param\_dcl}
+  qui traduisent les \isynt{parameter\_specification}, à l'exception de
+  celle qui définit le premier opérande formel contrôlant, c'est-à-dire à
+  l'instance d'objet sur laquelle l'opération est invoquée (dans le
+  cas d'une primitive d'objet réparti), cet opérande correspondant au paramètre
+  implicite \code{Self} de la méthode IDL~;
+\item la \isynt{raises\_expr} \code{raises CIAO::Ada\_Exception}
+  indiquant que la seule exception que peut lever l'opération est
+  l'exception \code{Ada\_Exception} définie dans les déclarations
+  communes.
+\end{itemize}
+
+La traduction d'une \asynt{parameter\_specification} est une
+suite de \isynt{param\_dcl}, un pour chaque membre de la
+\asynt{defining\_identifier\_list}. Si le type du paramètre formel
+est défini par une \asynt{subtype\_mark}, le \isynt{param\_attribute}
+traduit naturellement le \asynt{mode}, et la \isynt{param\_type\_spec}
+traduit la \asynt{subtype\_mark}. Si le paramètre formel
+est défini par une \asynt{access\_definition}, le \isynt{param\_attribute}
+est \code{inout} et la \isynt{param\_type\_spec} traduit le sous-type
+désigné par cette \asynt{access\_definition}.
+\end{traduction}
+
+\subsubsection{Déclaration de constante}
+
+\begin{syntaxe}
+\item[object\_declaration] ::= \\
+        defining\_identifier\_list \kw{:} [\kw{aliased}] [\kw{constant}]
+          subtype\_indication \\
+          \indent{}   [\kw{:=} expression]\kw{;} \\
+\alt*{} defining\_identifier\_list \kw{:} [\kw{aliased}] [\kw{constant}]
+          array\_type\_definition \\
+          \indent{}   [\kw{:=} expression]\kw{;} \\
+\alt*{} single\_task\_declaration \\
+\alt*{} single\_protected\_declaration
+
+\item[number\_declaration] ::= \\
+       defining\_identifier\_list \kw{: constant :=} static\_expression\kw{;}
+\end{syntaxe}
+
+\begin{traduction}
+Une \asynt{object\_declaration} qui déclare une tâche ou un objet protégé
+ne donne pas lieu à l'exportation d'un service appelable à distance,
+et n'est donc pas traduite.
+
+Dans un paquetage \pure{}, \rt{} ou \rci{}, une \asynt{object\_declaration}
+qui déclare une instance d'un type est toujours une déclaration de constante.
+Elle est traduite par des \isynt{op\_dcl} rattachées à l'\isynt{interface}
+\code{Constants}, une pour chaque \asynt{defining\_identifier}.
+L'\isynt{identifier} de chaque \isynt{op\_dcl} traduit un
+\asynt{defining\_identifier}~; L'\isynt{op\_type\_spec} est la traduction
+de la \asynt{subtype\_indication}, et la fonction ne prend aucun
+paramètre. Cette fonction retourne la valeur de la constante, telle
+qu'elle est connue par le serveur. Une \asynt{number\_declaration} est
+traduite de façon similaire. Si la \asynt{static\_expression} est d'un type
+entier, l'\isynt{op\_type\_spec} de la fonction est \code{long long int}~;
+si elle est d'un type réel, l'\isynt{op\_type\_spec} est \code{long double}.
+\end{traduction}
+
+\subsection{Indications de sous-type}
+\label{subtype-indication}
+
+En plusieurs points de la traduction, il est nécessaire de déterminer
+une \isynt{type\_spec} représentant une \asynt{subtype\_indication}.
+
+\begin{syntaxe}
+\item[subtype\_indication] ::=  subtype\_mark [constraint]
+
+\item[subtype\_mark] ::= \sem{subtype\_}name
+
+
+\item[name] ::= \\
+         direct\_name                \alt{} explicit\_dereference \\
+       \alt*{} indexed\_component          \alt{} slice \\
+       \alt*{} selected\_component         \alt{} attribute\_reference \\
+       \alt*{} type\_conversion            \alt{} function\_call \\
+       \alt*{} character\_literal
+
+\item[direct\_name] ::= identifier \alt{} operator\_symbol
+\end{syntaxe}
+
+\begin{traduction}
+Une indication de sous-type (\asynt{subtype\_indication}) se compose d'une
+marque de sous-type (\asynt{subtype\_mark}), à laquelle est éventuellement
+adjointe une contrainte. Le modèle de types de CORBA ne permet pas
+d'exprimer les contraintes Ada sur les types. La traduction d'une
+\asynt{subtype\_indication} est donc toujours celle de sa
+\asynt{subtype\_mark}~; en contrepartie, l'agent d'interface vérifie,
+à l'exécution, que les contraintes sont satisfaites par les données
+envoyées par les clients CORBA, et lève une exception dans le cas
+contraire.
+
+Une \asynt{subtype\_mark} est un nom qui dénote un sous-type.
+Il s'agit donc soit d'un \asynt{identifier} ou d'un \asynt{selected\_component}
+(qui se réduit en fait, ici, à une suite d'\asynt{identifier} séparés
+par des points, et dont chacun dénote un paquetage de bibliothèque), soit d'une
+\asynt{attribute\_reference} (toute autre forme de \asynt{subtype\_mark}
+ne peut dénoter un sous-type). Pour un \asynt{identifier} ou un
+\asynt{selected\_component}, la simple traduction lexicale est utilisée
+(cf. section \ref{lex}).
+\end{traduction}
+
+\begin{syntaxe}
+
+\item[prefix] ::= name \alt{} implicit\_dereference
+\item[attribute\_reference] ::= prefix\kw{'}attribute\_designator
+
+\item[attribute\_designator] ::= identifier[\kw{(}\sem{static\_}expression\kw{)}] \\
+      \alt*{} \kw{Access} \alt{} \kw{Delta} \alt{} \kw{Digits}
+\end{syntaxe}
+
+\begin{traduction}
+Les seuls \asynt{attribute\_designator} normalisés pour lesquels une
+\asynt{attribute\_reference} dénote un sous-type sont \code{Base}
+(\citerm{3.5}) et \code{Class} (\citerm{3.9}).
+Dans la mesure où nous ne tenons pas compte des contraintes exprimées sur
+les sous-types pour la traduction, un sous-type contraint d'un type
+est traduit comme équivalent à son type de base. Réciproquement,
+la traduction d'une \asynt{attribute\_reference} de la forme
+\code{\sem{S}'Base} est donc la traduction de son \asynt{prefix},
+qui dénote un sous-type scalaire.
+
+Une \asynt{attribute\_reference} de la forme \code{\sem{S}'Class} peut
+être appliquée à un sous-type \emph{tagged} ou \emph{tagged private}.
+Dans les deux cas, nous traduisons une telle \asynt{attribute\_reference}
+comme son \asynt{prefix}.
+
+Une unité contenant une \asynt{subtype\_indication} dont la traduction
+appellerait la traduction d'une autre \asynt{attribute\_reference}
+(non normalisée) n'est pas traduisible.
+\end{traduction}
+
+%%% \subsection{Instance de paquetage générique}
+%%% \label{MAP:generic:instanciation}
+
+\subsection{Définitions communes}
+
+Tous les contrats IDL générés conformément à la présente traduction
+incluent un fichier \emph{ciao.idl} dont le contenu est~:
+\showcode{ciao.idl.eps}{Déclarations communes}{ciao-idl}
+
+\subsection{Restrictions}
+\label{restrictions}
+
+La traduction des paquetages contenant une \asynt{renaming\_declaration}
+ou une \asynt{generic\_instanciation} n'est pas permise.
+
+Si la traduction d'un paquetage appelle la traduction d'une
+\asynt{subtype\_indication} comportant une \asynt{attribute\_reference}
+non décrite dans le présent document, alors ce paquetage n'est pas
+traduisible.
+
+\section{Conclusion}
+\label{conclusion}
+
+Nous avons établi un schéma de traduction des spécifications de services
+de l'annexe des systèmes répartis d'Ada~95 vers OMG IDL. Ce schéma
+a permis de développer un traducteur automatisé en utilisant l'API
+ASIS pour parcourir des arbres syntaxiques Ada~\cite{quinot99c},
+offrant ainsi à tout client CORBA un accès aux services exportés
+par un paquetage Ada de catégorie \rt{} ou \rci{}. Ce schéma de
+traduction sera également utilisé pour la réalisation de la
+personnalité DSA de l'intergiciel schizophrène
+PolyORB~\cite{quinot01c:droopi}.
+
+%%% Bibliographie
+
+\bibliographystyle{plain}
+\bibliography{interop}
+
+\end{document}

@@ -1,0 +1,6 @@
+#! /bin/sh
+
+ADA="@ADA@"
+TOP=`dirname $0`/..
+
+${TOP}/libtool --mode=link ${ADA} "$@"

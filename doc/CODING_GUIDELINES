@@ -1,0 +1,35 @@
+--  CODING GUIDELINES for the PolyORB project
+
+--  $Id$
+
+The Ada 95 Quality & Style Guide is included by reference.
+
+Code layout should follow the usual GNAT practice.
+
+Every package that can be declared Pure shall, then:
+every package that can be Preelaborate shall, then:
+every package that can have an Elaborate_Body pragma shall, then:
+every package that cannot or need not have any of the above shall
+have a comment that explains why.
+
+Each file should start with the standard PolyORB copyright header,
+then a blank line, then a comment that documents its purpose,
+followed by a blank line, followed by a comment containing the
+repository id (filled automatically by the SCM system).
+
+If a package body needs to explcitly execute some code for its
+initialization, this MUST NOT be done in the elaboration code.
+Instead, a parameterless procedure Initialize must be declared
+containing the necessary initialization code, and this procedure
+should be registered with the automatic configurator, PolyORB.Configrator.
+
+Direct use of protected objects is explicitly prohibited.
+All synchronisation is to be performed through PolyORB.Soft_Links.
+
+No dependencies on CORBA.* or PolyORB.CORBA_P.* are allowed
+anywhere except in units implementing the CORBA personality.
+
+All the code shall be compiled with pragma Ravenscar.
+
+The code shall not produce warnings when compiled with -gnatwa -gnaty.
+Any use of pragma Warnings (Off) shall be documented by a comment.

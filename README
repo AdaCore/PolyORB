@@ -1,36 +1,112 @@
-***********************************************************
-***                                                     ***
-***         AdaBroker : an IDL to Ada compiler          ***
-***                                                     ***
-***********************************************************
+------------------------------------------------------------------------------
+--                                                                          --
+--                           POLYORB COMPONENTS                             --
+--                                                                          --
+--                Copyright (C) 2001 Free Software Fundation                --
+--                                                                          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
+-- Boston, MA 02111-1307, USA.                                              --
+--                                                                          --
+--              PolyORB is maintained by ENST Paris University.             --
+--                                                                          --
+------------------------------------------------------------------------------
 
-Installation :
+This is the documentation for PolyORB version @polyorb_version@.
+
+The home page of the project is located at http://www.polyorb.eu.org/.
+This is where you can find news about the project, new releases, and
+pointers to several documents and papers related to PolyORB.
+
+What is PolyORB?
+----------------
+
+PolyORB is a polymorphic, reusable infrastructure for building
+object-oriented distributed systems.  Middleware environments are
+software libraries that hide the complex issues of distribution
+and provide the programmer with high-level abstractions that allow
+easy and transparent construction of distributed applications.
+A number of different standards exist for creating object-oriented
+distributed applications.  These standards define two things:
+
+    * the interface seen by the developer's applicative objects;
+    * the protocol used by the middleware environment to talk to other
+      nodes in the distributed application.
+
+Usually, middleware for one platform supports only one set of
+such interfaces, and cannot interoperate with other platforms.
+
+A polymorphic middleware allows the existence of several different
+implementations of each of these aspects to be used within the same
+middleware framework.  In addition, PolyORB allows such different
+personalities to coexist in the same instance of the running middleware;
+it decouples the personality presented to applications on one side
+("application personality"), and the personality presented
+to other middlewares on the other side ("protocol personality").
+Multiple implementations of each personalisable aspect can
+coexist within the same instance of the running middleware:
+unlike previous generic middlewares, PolyORB is actually schizophrenic.
+
+The decoupling of application and protocol personalities, and the support
+for multiple simultaneous personalities within the same running middleware
+are key features required for the construction of interoperable
+distributed applications.  This allows PolyORB to communicate
+with middlewares that implement different distribution standards:
+PolyORB provides middleware-to-middleware interoperability.
+
+The PolyORB architecture also permits the automatic,
+just-in-time creation of proxies between incompatible environments
+(although this feature is not implemented yet).
+
+Build requirements
+------------------
+
+Ada 95 compiler: GNAT 3.14a1 or later.
+
+Optional: XmlAda (http://libre.act-europe.fr/xmlada/) if you want to
+build the SOAP protocol personality.
+
+Build instructions
+------------------
+
+See file INSTALL.
+
+Available options for the 'configure' script include:
+  --enable-xmlada: set if you have XmlAda and you want to build the
+                   SOAP protocol personality.
+  --enable-shared: build shared libraries.
+  --enable-debug:  enable debugging information generation and supplementary
+                   runtime checks.
+
+Documentation overview
+----------------------
+
+README: This file, first instructions.
+src/ROADMAP: Overview of PolyORB source code.
+doc/*: Miscellaneous documents describing PolyORB internals.
+
+Usage of idlac
 --------------
 
-- check that egcs and gnat are intalled on your system. Set your
-  environnement variables so that g++ refers to egcs and gcc to gnat.
+idlac is the IDL-to-Ada 95 compiler of PolyORB. It is an evolution
+of the compiler that was present in AdaBroker.
 
-- create a symbolic link in AdaBroker, pointing to omniORB_2.7.1 (if
-  you use another version of omniORB, update the config.mk file in
-  AdaBroker/config). In any case, the link must be called `omniORB_2.7.1'.
+  idlac [-i] [-k] idl_file [-cppargs ...]
 
-- run 'make export'. It will produce AdaBroker libraries and
-  adabroker executable. The installation procedure is similar to
-  omniORB installation procedure. For instance, adabroker executable
-  is installed in omniORB_2.7.1/bin/<platform>. Same thing for
-  libraries and ali files which are installed in
-  omniORB_2.7.1/lib/<platform>.
+  -i    Generate implementation template.
+  -k    Keep temporary files.
+  -q    Be quiet.
+  -cppargs ARGS
+        Pass ARGS to the C++ preprocessor.
 
-- go to AdaBroker/Examples directory and run 'make' to build examples.
-
-- AdaBroker has been tested only with EGCS, but should work OK with most
-  recent C++ compilers. However, we have had failure reports with GCC 2.8.1.
-  This will be fixed as soon as GNAT is officially ported on EGCS.
-
-Usage :
--------
-
-  adabroker [ -i ] myinterface.idl creates several files :
+This creates several files :
 
 - myinterface.ads, myinterface.adb : these files contain the mapping
   for user defined types (client and server side).
@@ -39,88 +115,53 @@ Usage :
   filled by the user. They contain the implementation of the
   server. They are generated only if the -i flag is specified.
 
-- myinterface-proxy.ads, myinterface-proxy.adb : these files
-  contain utilities to make proxy calls.
+- myinterface.ads, myinterface.adb : these files
+  contain the client stubs for the interface.
 
 - myinterface-skel.ads, myinterface-skel.adb : these files
-  contain utilities for the server-side implementation.
+  contain the server-side skeletons for the interface.
 
-- myinterface-stream.ads, myinterface-stream.adb : they contain
-  subprograms to marshall types according to the GIOP protocol.
+- myinterface-stream.ads, myinterface-stream.adb : these files
+  contain subprograms to marshall data according to the CDR protocol.
 
+Usage of PolyORB
+----------------
 
-Features :
-----------
+See examples of simple CORBA clients and servers in subdirectory 'examples/'.
+Basically, a simple non-tasking CORBA client should have a dependency
+and a pragma Elaborate_All on PolyORB.Setup.CORBA_Client. A CORBA+SOAP
+server should have a dependcy and pragma Elaborate_All on one of
+PolyORB.Setup.No_Tasking_Server, PolyORB.Setup.Thread_Pool_Server or
+PolyORB.Setup.Thread_Per_Session_Server.
 
-- Most of the CORBA features are implemented except dynamic
-  invocation. This includes CORBA types, CORBA exceptions, forward
-  declarations and multiple inheritance. The Ada tasking is also
-  working with AdaBroker. AdaBroker/Examples provides
-  several examples of the available features.
+If you want anything different, you should create a package similar
+to one of these setup packages and use it instead. That package must
+have dependencies and pragmas Elaborate_All on all subsystems you need
+to use, and must contain a call to PolyORB.Configurator.Initialize_World
+in its own elaboration code.
 
-- This release has been successfully tested on Solaris. It has been
-  reported to work on Linux (RedHat and Debian) with a home-built
-  Ada and C++ compiler based on EGCS 1.1.1 and GNAT 3.11p.
+Bug reports
+-----------
 
-- If you need to debug AdaBroker, you can create a file adabroker.opt in
-  your current directory. This file should contain lines with package
-  names you want to debug. For instance, corba.orb will enable debug
-  messages from package CORBA.ORB. If you want to debug C++ files, you
-  can set the environment variable TRACELEVEL to a given naturel depending
-  on how much detailed you want the output to be.
-
-
-Bug reports:
-------------
-
-If you find a bug and would like to submit fixes, please do so
-indicating what release you use. We accept patch files. To produce
-such a patch file, put your files in the AdaBroker directory and our
-files in the directory AdaBroker.orig, and use the following command:
-
-  diff --recursive --context AdaBroker.orig AdaBroker > patch_file
-
-and send us the patch_file via E-mail at the address 
-
-          adabroker-bugs@adabroker.eu.org
-
-If your diff version do not understand the --recursive or --context
-option, please use the GNU diffutils package which may be found on any
-GNU archive (e.g. ftp://ftp.lip6.fr/pub/gnu/).
-
-Note that unified diff files (-u option of GNU diff) are also welcomed.
-
-
-Mailing-lists:
---------------
-
-Several mailing-lists have been created for discussions around AdaBroker:
-
-  - adabroker@adabroker.eu.org: general discussions about AdaBroker
-      To subscribe, send a mail to "adabroker-request@adabroker.eu.org"
-      with the single line "subscribe" in the body (subject will be ignored)
-
-  - adabroker-announce@adabroker.eu.org: low trafic mailing-list that will
-      only carry important information about AdaBroker, such as new releases,
-      beta test announces, etc.
-      To subscribe, send a mail to
-      "adabroker-announce-request@adabroker.eu.org" with the single line
-      "subscribe" in the body (subject will be ignored)
-
+Please send bug reports to the PolyORB team at polyorb-devel@polyorb.eu.org.
 
 Contributors:
 -------------
 
-AdaBroker has been developped since January, 1999 by the following
+PolyORB has been developped since January, 1999 by the following
 contributors:
 
 * Fabien Azavant (azavant@enst.fr)
 * Emmanuel Chavane (chavane@enst.fr)
 * Jean-Marie Cottin (cottin@enst.fr)
+* Michael Friess
+* Nicolas Fritsch
+* Mejdi Kaddour
 * Laurent Kubler (kubler@enst.fr)
 * Vincent Niebel (niebel@enst.fr)
 * Laurent Pautet (pautet@enst.fr)
 * Sebastien Ponce (ponce@enst.fr)
 * Thomas Quinot (quinot@enst.fr)
+* Nicolas Setton
 * Frank Singhoff (singhoff@enst.fr)
 * Samuel Tardieu (sam@enst.fr)
