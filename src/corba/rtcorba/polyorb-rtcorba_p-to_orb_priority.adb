@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with CORBA;
 with RTCORBA.PriorityMapping;
 with PolyORB.RTCORBA_P.Setup;
