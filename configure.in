@@ -552,7 +552,7 @@ for dir in \
   src/srp \
   src/web_common
 do
-  adc="${dir}/gnat.adc
+  adc="${dir}/gnat.adc"
   if test -d "${dir}" -a ! -f "${adc}"
   then
     echo "creating ${adc}"
