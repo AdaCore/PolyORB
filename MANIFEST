@@ -136,10 +136,10 @@ Garlic/2wgarcon.ads
 Garlic/2wgtplsp.ads
 Garlic/2xgtplsp.ads
 Garlic/DALL
-Garlic/DOFF
 Garlic/Makefile.am
 Garlic/Makefile.in
 Garlic/Makefile.zip
+Garlic/UNDALL
 Garlic/constants.sh
 Garlic/s-gafizi.adb
 Garlic/s-ganobl.adb

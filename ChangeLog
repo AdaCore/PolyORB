@@ -1,5 +1,7 @@
 1998-02-12  Laurent Guerby  <guerby@gnat.com>
 
+	* MANIFEST: Replace Garlic/DOFF by Garlic/UNDALL.
+
 	* configure.in: Remove -O0 for Digital Unix, no longer needed.
 
 	* configure: Ditto.
