@@ -956,7 +956,7 @@ package body System.PolyORB_Interface is
                            if Str_Addr_Conv.To_Pointer (Info.Name).all
                              = Subprogram_Name
                            then
-                              Addr     := Info.Proxy_Addr;
+                              Addr     := Info.Addr;
                               Receiver := Rec_Stub.Receiver;
                               exit All_Stubs;
                            end if;

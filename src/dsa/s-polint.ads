@@ -96,7 +96,7 @@ package System.PolyORB_Interface is
       Name_Length : Integer;
       --  Subprogram distribution identifier
 
-      Proxy_Addr  : System.Address;
+      Addr        : System.Address;
       --  Local address of the proxy object
    end record;
 

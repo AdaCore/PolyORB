@@ -86,6 +86,7 @@ begin
    Put_Line ("through RAS: " & RAS.all (S & " (RASE)"));
 
    RAS := RCI.getRAS;
+   Put_Line ("Obtained RAS-from-server");
    Put_Line ("through RAS-from-server: " & RAS (S & " (RASS)"));
 
    Try_RACW ("");

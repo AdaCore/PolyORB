@@ -129,8 +129,10 @@ package body RCI is
    end echoString;
 
    function getRAS return echo_RAS is
+      Func : constant echo_RAS := echoString'Access;
    begin
-      return echoString'Access;
+      Put_Line (Fun.all ("Checking local (bypass) RAS call"));
+      return Func;
    end getRAS;
 
    function echoString_Delayed (S : String; Seconds : Integer) return String is

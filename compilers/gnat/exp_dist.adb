@@ -220,11 +220,11 @@ package body Exp_Dist is
 
    function Build_Remote_Subprogram_Proxy_Type
      (Loc            : Source_Ptr;
-      ACR_Expression : Node_Id := Empty)
+      ACR_Expression : Node_Id)
      return Node_Id;
    --  Build and return a tagged record type definition for an RCI
    --  subprogram proxy type.
-   --  ACR_Expression is an optional default initialization value for
+   --  ACR_Expression is use as the initialization value for
    --  the All_Calls_Remote component.
 
    procedure Add_Calling_Stubs_To_Declarations
@@ -3027,7 +3027,7 @@ package body Exp_Dist is
       Dummy_Register_Decl : Node_Id;
       Dummy_Register_Body : Node_Id;
 
-      All_Calls_Remote_E : Entity_Id;
+      All_Calls_Remote_E  : Entity_Id;
 
    begin
       --  Building receiving stubs consist in several operations:
@@ -4168,7 +4168,7 @@ package body Exp_Dist is
 
    function Build_Remote_Subprogram_Proxy_Type
      (Loc            : Source_Ptr;
-      ACR_Expression : Node_Id := Empty)
+      ACR_Expression : Node_Id)
      return Node_Id is
    begin
       return

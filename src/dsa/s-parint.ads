@@ -76,7 +76,14 @@ package System.Partition_Interface is
    subtype RAS_Proxy_Type is System.PolyORB_Interface.RAS_Proxy_Type;
    subtype RAS_Proxy_Type_Access is
      System.PolyORB_Interface.RAS_Proxy_Type_Access;
-   --  SHARED: none
+   --  SHARED: GLADE,PolyORB
+
+   --  Receiving stubs contain a table of all subprograms
+   --  exported by the unit.
+
+   subtype RCI_Subp_Info is System.PolyORB_Interface.RCI_Subp_Info;
+   subtype RCI_Subp_Info_Array is
+     System.PolyORB_Interface.RCI_Subp_Info_Array;
 
 --    procedure Check
 --      (Name    : in Unit_Name;
