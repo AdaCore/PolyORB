@@ -402,7 +402,7 @@ inlining: all-local
 	@if test `cat inlining` = "go"; then\
 	   for o in `cat gnatlib/tocheck`; do\
 	      if [ ! -f gnatlib/$$o ]; then\
-	          s=`gnatls -a -s $$o`;\
+	          s=`gnatls -a -s $$o | sed 's/\013//g'`;\
 	          echo\
                     "${ADA_FOR_TARGET} -c ${CFLAGS} ${GNATFLAGS} -I. -I- $$s"\
 	            "-o gnatlib/$$o";\
