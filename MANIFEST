@@ -1,7 +1,6 @@
 ./COPYING
 ./GNUmakefile
 ./README
-./TODO
 ./dir.mk
 ./Examples/GNUmakefile
 ./Examples/dir.mk
