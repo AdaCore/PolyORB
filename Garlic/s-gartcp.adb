@@ -121,7 +121,21 @@ package body System.Garlic.TCP is
    Partition_Map : Partition_Map_Access :=
      new Partition_Map_Type;
 
-   function Establish_Connection (Location : Host_Location) return C.int;
+   subtype Operation_Code is String (1 .. 4);
+   --  An operation code.
+
+   Open_Code : constant Operation_Code := "OPEN";
+   --  Code corresponding to the opening of a new connection.
+
+   Data_Code : constant Operation_Code := "DATA";
+   --  Code corresponding to transfer of data.
+
+   Quit_Code : constant Operation_Code := "QUIT";
+   --  Code corresponding to a shutdown operation.
+
+   function Establish_Connection (Location  : Host_Location;
+                                  Operation : Operation_Code)
+      return C.int;
    --  Establish a socket to a remote location and return the file descriptor.
 
    procedure Establish_Listening_Socket;
@@ -178,6 +192,16 @@ package body System.Garlic.TCP is
       access Incoming_Connection_Handler;
    --  Handler for an incoming connection.
 
+   function Read_Code (FD : C.int) return Operation_Code;
+   pragma Inline (Read_Code);
+   --  Read an operation code from a file descriptor or raise
+   --  Communication_Error if the code is not understood.
+
+   function To_Stream_Element_Array (Code : Operation_Code)
+     return Stream_Element_Array;
+   pragma Inline (To_Stream_Element_Array);
+   --  Return the stream element array corresponding to the code.
+
    --------------------
    -- Accept_Handler --
    --------------------
@@ -195,36 +219,43 @@ package body System.Garlic.TCP is
 
       --  Infinite loop on C_Accept.
 
-      select
-         Shutdown_Keeper.Wait;
-         pragma Debug
-           (D (D_Debug, "Accept_Handler exiting because of Shutdown_Keeper"));
-         raise Communication_Error;
-      then abort
-         loop
-            declare
-               Sin    : Sockaddr_In_Access := new Sockaddr_In;
-               Length : aliased C.int := Sin.all'Size / 8;
-               FD     : C.int;
-               NT     : Incoming_Connection_Handler_Access;
-            begin
-               Sin.Sin_Family := Constants.Af_Inet;
-               Add_Non_Terminating_Task;
-               pragma Debug (D (D_Debug, "Before Net.C_Accept"));
-               FD := Net.C_Accept (Self_Host.FD, To_Sockaddr_Access (Sin),
-                                   Length'Access);
-               pragma Debug (D (D_Debug, "After Net.C_Accept"));
-               Sub_Non_Terminating_Task;
-               if FD = Failure then
-                  raise Communication_Error;
-               end if;
-               NT :=
-                new Incoming_Connection_Handler (FD,
-                                                 Receiving => True,
-                                                 Remote => Null_Partition_ID);
-            end;
-         end loop;
-      end select;
+      loop
+         declare
+            Sin    : Sockaddr_In_Access := new Sockaddr_In;
+            Length : aliased C.int := Sin.all'Size / 8;
+            FD     : C.int;
+            NT     : Incoming_Connection_Handler_Access;
+            Code   : Operation_Code;
+         begin
+            Sin.Sin_Family := Constants.Af_Inet;
+            Add_Non_Terminating_Task;
+            pragma Debug (D (D_Debug, "Before Net.C_Accept"));
+            FD := Net.C_Accept (Self_Host.FD, To_Sockaddr_Access (Sin),
+                                Length'Access);
+            pragma Debug (D (D_Debug, "After Net.C_Accept"));
+            Sub_Non_Terminating_Task;
+            if FD = Failure then
+               raise Communication_Error;
+            end if;
+            pragma Debug (D (D_Debug, "Reading code"));
+            Code := Read_Code (FD);
+            if Code = Open_Code then
+               pragma Debug (D (D_Debug, "Open code received"));
+               null;
+            elsif Code = Quit_Code then
+               pragma Debug (D (D_Debug, "Quit code received"));
+               raise Communication_Error;
+            else
+               pragma Debug (D (D_Debug,
+                                "Unknown code received: " & Code));
+               raise Communication_Error;
+            end if;
+            NT :=
+             new Incoming_Connection_Handler (FD,
+                                              Receiving => True,
+                                              Remote => Null_Partition_ID);
+         end;
+      end loop;
    end Accept_Handler;
 
    --------------------------
@@ -266,7 +297,8 @@ package body System.Garlic.TCP is
    -- Establish_Connection --
    --------------------------
 
-   function Establish_Connection (Location : Host_Location)
+   function Establish_Connection (Location  : Host_Location;
+                                  Operation : Operation_Code)
      return C.int is
       FD   : C.int;
       Sin  : Sockaddr_In_Access := new Sockaddr_In;
@@ -287,6 +319,7 @@ package body System.Garlic.TCP is
          Free (Sin);
          raise Communication_Error;
       end if;
+      Physical_Send (FD, To_Stream_Element_Array (Operation));
       return FD;
    end Establish_Connection;
 
@@ -378,120 +411,130 @@ package body System.Garlic.TCP is
       Partition : Partition_ID := Null_Partition_ID;
    begin
 
-      select
-         Shutdown_Keeper.Wait;
-         raise Communication_Error;
-      then abort
+      if Receiving then
 
-         if Receiving then
+         --  The first thing we will receive is the Partition_ID. As an
+         --  exception, Null_Partition_ID means that the remote side hasn't
+         --  got a Partition_ID.
 
-            --  The first thing we will receive is the Partition_ID. As an
-            --  exception, Null_Partition_ID means that the remote side hasn't
-            --  got a Partition_ID.
+         declare
+            Stream_P  : Stream_Element_Array (1 .. Partition_ID_Length);
+            Stream    : aliased Params_Stream_Type (Partition_ID_Length);
+         begin
+            pragma Debug
+              (D (D_Communication, "New communication task started"));
 
-            declare
-               Stream_P  : Stream_Element_Array (1 .. Partition_ID_Length);
-               Stream    : aliased Params_Stream_Type (Partition_ID_Length);
-            begin
-               pragma Debug
-                 (D (D_Communication, "New communication task started"));
+            --  We do not call Add_Non_Terminating_Task since we want to
+            --  receive the whole partition ID. Moreover, we will signal
+            --  that data has arrived.
 
-               --  We do not call Add_Non_Terminating_Task since we want to
-               --  receive the whole partition ID. Moreover, we will signal
-               --  that data has arrived.
-
-               Activity_Detected;
-               Physical_Receive (FD, Stream_P);
-               To_Params_Stream_Type (Stream_P, Stream'Access);
-               Partition_ID'Read (Stream'Access, Partition);
-               if not Partition'Valid then
-                  pragma Debug (D (D_Debug, "Invalid partition ID"));
-                  raise Constraint_Error;
-               end if;
-               if Partition = Null_Partition_ID then
-                  declare
-                     Result : aliased Params_Stream_Type (Partition_ID_Length);
+            Activity_Detected;
+            Physical_Receive (FD, Stream_P);
+            To_Params_Stream_Type (Stream_P, Stream'Access);
+            Partition_ID'Read (Stream'Access, Partition);
+            if not Partition'Valid then
+               pragma Debug (D (D_Debug, "Invalid partition ID"));
+               raise Constraint_Error;
+            end if;
+            if Partition = Null_Partition_ID then
+               declare
+                  Result : aliased Params_Stream_Type (Partition_ID_Length);
+               begin
+                  Partition := Allocate_Partition_ID;
+                  Partition_ID'Write (Result'Access, Partition);
+                  Add_Non_Terminating_Task;
                   begin
-                     Partition := Allocate_Partition_ID;
-                     Partition_ID'Write (Result'Access, Partition);
-                     Add_Non_Terminating_Task;
-                     begin
-                        Physical_Send
-                          (FD, To_Stream_Element_Array (Result'Access));
-                     exception
-                        when Communication_Error =>
-                           Sub_Non_Terminating_Task;
-                           raise Communication_Error;
-                     end;
-                     Sub_Non_Terminating_Task;
+                     Physical_Send
+                       (FD, To_Stream_Element_Array (Result'Access));
+                  exception
+                     when Communication_Error =>
+                        Sub_Non_Terminating_Task;
+                        raise Communication_Error;
                   end;
-               end if;
-               pragma Debug
-                 (D (D_Communication,
-                     "This task is in charge of partition" & Partition'Img));
-               Partition_Map.Lock (Partition);
-               Data           := Partition_Map.Get_Immediate (Partition);
-               Data.FD        := FD;
-               Data.Connected := True;
-               Partition_Map.Set_Locked (Partition, Data);
-               Partition_Map.Unlock (Partition);
-            end;
-
-         else
-
-            Partition := Remote;
+                  Sub_Non_Terminating_Task;
+               end;
+            end if;
             pragma Debug
               (D (D_Communication,
-                  "New task to handle partition" & Partition'Img));
+                  "This task is in charge of partition" & Partition'Img));
+            Partition_Map.Lock (Partition);
+            Data           := Partition_Map.Get_Immediate (Partition);
+            Data.FD        := FD;
+            Data.Connected := True;
+            Partition_Map.Set_Locked (Partition, Data);
+            Partition_Map.Unlock (Partition);
+         end;
 
-         end if;
+      else
 
-         --  Then we have an (almost) infinite loop to get requests or
-         --  answers.
+         Partition := Remote;
+         pragma Debug
+           (D (D_Communication,
+               "New task to handle partition" & Partition'Img));
 
-         loop
+      end if;
+
+      --  Then we have an (almost) infinite loop to get requests or
+      --  answers.
+
+      loop
+         declare
+            Header_P : Stream_Element_Array
+              (1 .. Stream_Element_Count_Length);
+            Header   : aliased Params_Stream_Type
+              (Stream_Element_Count_Length);
+            Length   : Stream_Element_Count;
+         begin
+            Add_Non_Terminating_Task;
             declare
-               Header_P : Stream_Element_Array
-                 (1 .. Stream_Element_Count_Length);
-               Header   : aliased Params_Stream_Type
-                 (Stream_Element_Count_Length);
-               Length   : Stream_Element_Count;
+               Code : Operation_Code;
             begin
-               Add_Non_Terminating_Task;
-               begin
-                  pragma Debug
-                    (D (D_Debug, "Physical receive will be called"));
-                  Physical_Receive (FD, Header_P);
-                  pragma Debug
-                    (D (D_Debug, "Physical receive has been called"));
-               exception
-                  when Communication_Error =>
-                     Sub_Non_Terminating_Task;
-                     raise Communication_Error;
-               end;
-               Sub_Non_Terminating_Task;
-               To_Params_Stream_Type (Header_P, Header'Access);
-               Stream_Element_Count'Read (Header'Access, Length);
-               if not Length'Valid then
-                  pragma Debug (D (D_Debug, "Invalid Length"));
-                  raise Constraint_Error;
+               pragma Debug
+                 (D (D_Debug, "Reading operation code"));
+               Code := Read_Code (FD);
+               if Code = Data_Code then
+                  pragma Debug (D (D_Debug, "Received a data code"));
+                  null;
+               elsif Code = Quit_Code then
+                  pragma Debug (D (D_Debug, "Received a quit code"));
+                  raise Communication_Error;
+               else
+                  pragma Debug (D (D_Debug, "Received unknown code: " &
+                                   Code));
+                  raise Communication_Error;
                end if;
                pragma Debug
-                 (D (D_Debug,
-                     "Will receive a packet of length" & Length'Img));
-
-               declare
-                  Request_P : Stream_Element_Array (1 .. Length);
-               begin
-
-                  --  No Add_Non_Terminating_Task either (see above).
-
-                  Physical_Receive (FD, Request_P);
-                  Has_Arrived (Partition, Request_P);
-               end;
+                 (D (D_Debug, "Physical receive will be called"));
+               Physical_Receive (FD, Header_P);
+               pragma Debug
+                 (D (D_Debug, "Physical receive has been called"));
+            exception
+               when Communication_Error =>
+                  Sub_Non_Terminating_Task;
+                  raise Communication_Error;
             end;
-         end loop;
-      end select;
+            Sub_Non_Terminating_Task;
+            To_Params_Stream_Type (Header_P, Header'Access);
+            Stream_Element_Count'Read (Header'Access, Length);
+            if not Length'Valid then
+               pragma Debug (D (D_Debug, "Invalid Length"));
+               raise Constraint_Error;
+            end if;
+            pragma Debug
+              (D (D_Debug,
+                  "Will receive a packet of length" & Length'Img));
+
+            declare
+               Request_P : Stream_Element_Array (1 .. Length);
+            begin
+
+               --  No Add_Non_Terminating_Task either (see above).
+
+               Physical_Receive (FD, Request_P);
+               Has_Arrived (Partition, Request_P);
+            end;
+         end;
+      end loop;
 
    exception
 
@@ -666,6 +709,21 @@ package body System.Garlic.TCP is
       end loop;
    end Physical_Send;
 
+   ---------------
+   -- Read_Code --
+   ---------------
+
+   function Read_Code (FD : in C.int) return Operation_Code is
+      subtype Stream_Code is
+        Stream_Element_Array (1 .. Operation_Code'Size / 8);
+      function Convert is
+         new Ada.Unchecked_Conversion (Stream_Code, Operation_Code);
+      Code : Stream_Code;
+   begin
+      Physical_Receive (FD, Code);
+      return Convert (Code);
+   end Read_Code;
+
    ----------
    -- Send --
    ----------
@@ -727,7 +785,8 @@ package body System.Garlic.TCP is
                               "Trying to connect to partition" &
                               Partition'Img));
                         Remote_Data.FD :=
-                          Establish_Connection (Remote_Data.Location);
+                          Establish_Connection (Remote_Data.Location,
+                                                Open_Code);
                         Remote_Data.Connected := True;
                         exit;
                      exception
@@ -768,19 +827,23 @@ package body System.Garlic.TCP is
             declare
                Offset : constant Stream_Element_Offset :=
                  Data'First + Unused_Space - Header_Length;
+               Code   : constant Stream_Element_Offset :=
+                 Offset - Operation_Code'Size / 8;
             begin
                Stream_Element_Count'Write (Header'Access,
                                            Data'Length - Unused_Space);
                Data (Offset .. Offset + Header_Length - 1) :=
                  To_Stream_Element_Array (Header'Access);
+               Data (Code .. Offset - 1) :=
+                 To_Stream_Element_Array (Data_Code);
                pragma Debug
                  (D (D_Debug,
                      "Sending packet of length" &
-                     Stream_Element_Count'Image (Data'Last - Offset + 1) &
+                     Stream_Element_Count'Image (Data'Last - Code + 1) &
                      " (content of" &
                      Stream_Element_Count'Image (Data'Length - Unused_Space) &
                      ")"));
-               Physical_Send (Remote_Data.FD, Data (Offset .. Data'Last));
+               Physical_Send (Remote_Data.FD, Data (Code .. Data'Last));
             end;
             Partition_Map.Unlock (Partition);
          exception
@@ -836,7 +899,35 @@ package body System.Garlic.TCP is
    --------------
 
    procedure Shutdown (Protocol : access TCP_Protocol) is
+      Data : Host_Data;
    begin
+
+      --  The following loop tries to send a QUIT message to any known
+      --  partition so that it releases its socket to be able to perform
+      --  the shutdown operation on its end.
+
+      for Partition in Partition_ID loop
+         Data := Partition_Map.Get_Immediate (Partition);
+         if Data.Known and then Data.Connected then
+            begin
+               Physical_Send (Data.FD, To_Stream_Element_Array (Quit_Code));
+            exception
+               when Communication_Error => null;
+            end;
+         end if;
+      end loop;
+
+      --  Send the same message on a new connection to the partition itself
+      --  so that the accept gets the message.
+
+      declare
+         FD : C.Int;
+      begin
+         FD := Establish_Connection (Self_Host.Location, Quit_Code);
+      exception
+         when Communication_Error => null;
+      end;
+
       Free (Partition_Map);
    end Shutdown;
 
@@ -879,5 +970,20 @@ package body System.Garlic.TCP is
       end if;
       return Stream_Element_Count_Length_Cache;
    end Stream_Element_Count_Length;
+
+   -----------------------------
+   -- To_Stream_Element_Array --
+   -----------------------------
+
+   function To_Stream_Element_Array (Code : Operation_Code)
+     return Stream_Element_Array
+   is
+      subtype Stream_Code is
+        Stream_Element_Array (1 .. Operation_Code'Size / 8);
+      function Convert is
+         new Ada.Unchecked_Conversion (Operation_Code, Stream_Code);
+   begin
+      return Convert (Code);
+   end To_Stream_Element_Array;
 
 end System.Garlic.TCP;
