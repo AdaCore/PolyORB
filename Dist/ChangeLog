@@ -1,3 +1,8 @@
+Thu Dec 19 23:12:41 1996  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* xe-gcc-filter.in: Get rid of some generated pieces of
+	code in client stubs.
+
 Thu Dec 19 13:46:57 1996  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* xe-gcc-filter.in: Changed bogus test.

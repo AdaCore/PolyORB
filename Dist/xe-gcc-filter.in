@@ -26,25 +26,6 @@ BEGIN {wait = 0; skipline = 0}
 /function get_active_partition_id.*is/{skipline = 1; next}
 /end get_active_partition_id;/{skipline = 0; next}
 /end get_rci_package_receiver;/{skipline = 0; next}
-/system.rpc.do_[ar]pc.*;/{
-   print "      begin"
-   print "   " $0
-   print "      exception when system.rpc.communication_error =>";
-   print "         raise;"
-   print "      end;"
-   next}
-/system.rpc.do_[ar]pc/{
-   print "      begin"
-   print "   " $0
-   wait = 1;
-   next}
-wait == 1 && /^.*;$/{
-   wait = 0;
-   print "   " $0;
-   print "      exception when system.rpc.communication_error =>";
-   print "         raise;"
-   print "      end;"
-   next}
 skipline == 0 {print $0}
 ' |\
 ${SED} -e "
