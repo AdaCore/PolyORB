@@ -864,22 +864,22 @@ package body XE_Utils is
          Name_Buffer (Name_Len) := 'b';
       end if;
 
-      --  If Info /= 0, then this unit is already in table Unit. Info
+      --  If Info /= 0, then this unit is already in table Units. Info
       --  corresponds to the index in this table. Check body first.
       --  When the unit source file does not follow GNAT convention,
       --  we shall find it anyway as long as this unit is already loaded.
 
       Info := Get_Name_Table_Info (Name_Find);
       if Info /= 0 then
-         return Unit.Table (Unit_Id (Info)).Sfile;
+         return Units.Table (Unit_Id (Info)).Sfile;
       else
-         --  If Info /= 0, then this unit is already in table Unit. Info
+         --  If Info /= 0, then this unit is already in table Units. Info
          --  corresponds to the index in this table. Then check spec.
 
          Name_Buffer (Name_Len) := 's';
          Info := Get_Name_Table_Info (Name_Find);
          if Info /= 0 then
-            return Unit.Table (Unit_Id (Info)).Sfile;
+            return Units.Table (Unit_Id (Info)).Sfile;
          end if;
 
          Name := U_To_N (Uname);

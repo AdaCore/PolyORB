@@ -154,8 +154,8 @@ package body XE_Stubs is
          Create_Dir (Receiver_Dir);
       end if;
 
-      for U in CUnit.First .. CUnit.Last loop
-         Set_PID (CUnit.Table (U).CUname, CUnit.Table (U).Partition);
+      for U in CUnits.First .. CUnits.Last loop
+         Set_PID (CUnits.Table (U).CUname, CUnits.Table (U).Partition);
       end loop;
 
       --  Create caller *and* receiver stubs only if we have
@@ -163,13 +163,13 @@ package body XE_Stubs is
       --  Note that a RCI or SP unit is not always configured when
       --  we don't build the full configuration.
 
-      for U in Unit.First .. Unit.Last loop
+      for U in Units.First .. Units.Last loop
          if Is_RCI_Or_SP_Unit (U)
-           and then not Unit.Table (U).Is_Generic
+           and then not Units.Table (U).Is_Generic
          then
-            PID := Get_PID (U_To_N (Unit.Table (U).Uname));
+            PID := Get_PID (U_To_N (Units.Table (U).Uname));
             Both := PID /= Null_PID and then Partitions.Table (PID).To_Build;
-            Create_Stub (Unit.Table (U).My_ALI, Both);
+            Create_Stub (Units.Table (U).My_ALI, Both);
          end if;
       end loop;
 
@@ -208,23 +208,23 @@ package body XE_Stubs is
 
                --  Update most recent stamp of this partition
                Most_Recent_Stamp
-                 (P, ALIs.Table (CUnit.Table (CUID).My_ALI).Ofile_Full_Name);
+                 (P, ALIs.Table (CUnits.Table (CUID).My_ALI).Ofile_Full_Name);
 
                --  Now mark all the dependencies
-               Mark_Units_On_Partition (P, CUnit.Table (CUID).My_ALI);
-               CUID := CUnit.Table (CUID).Next;
+               Mark_Units_On_Partition (P, CUnits.Table (CUID).My_ALI);
+               CUID := CUnits.Table (CUID).Next;
             end loop;
 
-            for U in Unit.First .. Unit.Last loop
+            for U in Units.First .. Units.Last loop
 
-               if Get_PID (Unit.Table (U).Uname) = P then
-                  ALI := Unit.Table (U).My_ALI;
+               if Get_PID (Units.Table (U).Uname) = P then
+                  ALI := Units.Table (U).My_ALI;
 
                   --  Update stubs
                   if not Is_RCI_Or_SP_Unit (U) then
                      null;
 
-                  elsif Get_PID (U_To_N (Unit.Table (U).Uname)) = P then
+                  elsif Get_PID (U_To_N (Units.Table (U).Uname)) = P then
 
                      --  Copy RCI or SP receiver stubs when this unit has been
                      --  assigned on P partition. RCI or SP caller stubs are
@@ -241,14 +241,14 @@ package body XE_Stubs is
                   else
 
                      --  Remove previous copies of stubs stored.
-                     Delete_Stub (Directory, Unit.Table (U).Sfile);
+                     Delete_Stub (Directory, Units.Table (U).Sfile);
 
                   end if;
 
                   --  We have RACW types in this partition.So, we
                   --  need all the PCS features in this partition.
 
-                  if Unit.Table (U).Has_RACW_Type then
+                  if Units.Table (U).Has_RACW_Type then
                      Set_Light_PCS (P, False);
                   end if;
 
@@ -258,7 +258,7 @@ package body XE_Stubs is
 
                   --  Compute the new checksum. This checksum will be
                   --  useful to identify this partition.
-                  Compute_Checksum  (P, Unit.Table (U).Sfile);
+                  Compute_Checksum  (P, Units.Table (U).Sfile);
 
                end if;
 
@@ -623,8 +623,8 @@ package body XE_Stubs is
       --  First pass to map RCI or SP receivers on the partition.
       CU := Partitions.Table (PID).First_Unit;
       while CU /= Null_CUID loop
-         Dwrite_With_Clause (FD, No_Str, CUnit.Table (CU).CUname, False);
-         CU := CUnit.Table (CU).Next;
+         Dwrite_With_Clause (FD, No_Str, CUnits.Table (CU).CUname, False);
+         CU := CUnits.Table (CU).Next;
       end loop;
 
       --  Need the RCI or SP callers to compare their version with the
@@ -699,7 +699,7 @@ package body XE_Stubs is
                Dwrite_Call (FD, 1, "Check",
                             To_String (Name (Callers.Table (C))),
                             No_Str, Version,
-                            Unit.Table (Callers.Table (C)).RCI'Img);
+                            Units.Table (Callers.Table (C)).RCI'Img);
             end;
          end loop;
       end if;
@@ -780,7 +780,7 @@ package body XE_Stubs is
       --  Because of gnat.adc, use source filename to guess object
       --  filename.
 
-      Unit_Name := U_To_N (Unit.Table (ALIs.Table (A).First_Unit).Uname);
+      Unit_Name := U_To_N (Units.Table (ALIs.Table (A).First_Unit).Uname);
 
       if Debug_Mode then
          if Both then
@@ -791,20 +791,20 @@ package body XE_Stubs is
       end if;
 
       for U in ALIs.Table (A).First_Unit .. ALIs.Table (A).Last_Unit loop
-         if Unit.Table (U).RCI then
+         if Units.Table (U).RCI then
             Is_RCI_Unit := True;
          end if;
-         case Unit.Table (U).Utype is
+         case Units.Table (U).Utype is
             when Is_Spec =>
-               Unit_Spec      := Unit.Table (U).Sfile;
+               Unit_Spec      := Units.Table (U).Sfile;
                Full_Unit_Spec := Full_Source_Name (Unit_Spec);
             when Is_Spec_Only =>
-               Unit_Spec      := Unit.Table (U).Sfile;
+               Unit_Spec      := Units.Table (U).Sfile;
                Full_Unit_Spec := Full_Source_Name (Unit_Spec);
                Unit_Body      := Unit_Spec;
                Full_Unit_Body := Full_Unit_Spec;
             when Is_Body =>
-               Unit_Body      := Unit.Table (U).Sfile;
+               Unit_Body      := Units.Table (U).Sfile;
                Full_Unit_Body := Full_Source_Name (Unit_Body);
             when Is_Body_Only =>
                raise Program_Error;
@@ -1083,15 +1083,15 @@ package body XE_Stubs is
       for U in ALIs.Table (Lib).First_Unit ..
                ALIs.Table (Lib).Last_Unit loop
          if Is_RCI_Or_SP_Unit (U)
-           and then not Unit.Table (U).Is_Generic
-           and then Get_PID (U_To_N (Unit.Table (U).Uname)) /= PID
+           and then not Units.Table (U).Is_Generic
+           and then Get_PID (U_To_N (Units.Table (U).Uname)) /= PID
          then
             First_Unit := U;
             Last_Unit  := U;
             Callers.Increment_Last;
             Callers.Table (Callers.Last) := U;
             if Debug_Mode then
-               Message ("insert caller", U_To_N (Unit.Table (U).Uname));
+               Message ("insert caller", U_To_N (Units.Table (U).Uname));
             end if;
          end if;
       end loop;
@@ -1099,11 +1099,11 @@ package body XE_Stubs is
       --  Mark this unit to avoid infinite recursive search.
       for U in ALIs.Table (Lib).First_Unit ..
                ALIs.Table (Lib).Last_Unit loop
-         Set_PID (Unit.Table (U).Uname, PID);
+         Set_PID (Units.Table (U).Uname, PID);
       end loop;
 
       for I in First_Unit .. Last_Unit loop
-         for J in Unit.Table (I).First_With .. Unit.Table (I).Last_With loop
+         for J in Units.Table (I).First_With .. Units.Table (I).Last_With loop
 
             --  Avoid generic units.
             Continue := not (Withs.Table (J).Afile = No_File);
@@ -1129,7 +1129,7 @@ package body XE_Stubs is
                         ALIs.Table (Current_ALI).Last_Unit loop
 
                   --  No need to search deeper. Already done.
-                  if Get_PID (Unit.Table (K).Uname) = PID then
+                  if Get_PID (Units.Table (K).Uname) = PID then
                      Continue := False;
                      exit;
                   end if;
@@ -1153,7 +1153,7 @@ package body XE_Stubs is
 
    function Name (U : Unit_Id) return Name_Id is
    begin
-      return U_To_N (Unit.Table (U).Uname);
+      return U_To_N (Units.Table (U).Uname);
    end Name;
 
    -----------------------

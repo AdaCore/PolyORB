@@ -149,21 +149,21 @@ package body XE_Back is
 
       --  The same unit can be multiply declared especially if
       --  this unit is a normal package.
-      CUnit.Increment_Last;
-      CUnit.Table (CUnit.Last).Partition   := To;
-      CUnit.Table (CUnit.Last).CUname      := CU;
-      CUnit.Table (CUnit.Last).My_ALI      := No_ALI_Id;
-      CUnit.Table (CUnit.Last).My_Unit     := No_Unit_Id;
-      CUnit.Table (CUnit.Last).Most_Recent := No_File;
-      CUnit.Table (CUnit.Last).Next        := Null_CUID;
+      CUnits.Increment_Last;
+      CUnits.Table (CUnits.Last).Partition   := To;
+      CUnits.Table (CUnits.Last).CUname      := CU;
+      CUnits.Table (CUnits.Last).My_ALI      := No_ALI_Id;
+      CUnits.Table (CUnits.Last).My_Unit     := No_Unit_Id;
+      CUnits.Table (CUnits.Last).Most_Recent := No_File;
+      CUnits.Table (CUnits.Last).Next        := Null_CUID;
 
       --  Update partition single linked list of configured units.
       if Partitions.Table (To).First_Unit = Null_CUID then
-         Partitions.Table (To).First_Unit := CUnit.Last;
+         Partitions.Table (To).First_Unit := CUnits.Last;
       else
-         CUnit.Table (Partitions.Table (To).Last_Unit).Next := CUnit.Last;
+         CUnits.Table (Partitions.Table (To).Last_Unit).Next := CUnits.Last;
       end if;
-      Partitions.Table (To).Last_Unit := CUnit.Last;
+      Partitions.Table (To).Last_Unit := CUnits.Last;
 
    end Add_Conf_Unit;
 
@@ -841,7 +841,7 @@ package body XE_Back is
 
    function Get_Unit_Sfile (U : in Unit_Id) return File_Name_Type is
    begin
-      Get_Name_String (Unit.Table (U).Sfile);
+      Get_Name_String (Units.Table (U).Sfile);
       Name_Len := Name_Len - 4;
       return Name_Find;
    end Get_Unit_Sfile;
@@ -888,7 +888,7 @@ package body XE_Back is
 
    function Is_RCI_Or_SP_Unit (U : ALI.Unit_Id) return Boolean is
    begin
-      return Unit.Table (U).RCI or else Unit.Table (U).Shared_Passive;
+      return Units.Table (U).RCI or else Units.Table (U).Shared_Passive;
    end Is_RCI_Or_SP_Unit;
 
    ------------
@@ -1663,18 +1663,18 @@ package body XE_Back is
          U := Partitions.Table (PID).First_Unit;
          while U /= Null_CUID loop
             Write_Str ("             - ");
-            Write_Name (CUnit.Table (U).CUname);
-            if Unit.Table (CUnit.Table (U).My_Unit).RCI then
+            Write_Name (CUnits.Table (U).CUname);
+            if Units.Table (CUnits.Table (U).My_Unit).RCI then
                Write_Str (" (rci)");
-            elsif Unit.Table (CUnit.Table (U).My_Unit).Remote_Types then
+            elsif Units.Table (CUnits.Table (U).My_Unit).Remote_Types then
                Write_Str (" (rt)");
-            elsif Unit.Table (CUnit.Table (U).My_Unit).Shared_Passive then
+            elsif Units.Table (CUnits.Table (U).My_Unit).Shared_Passive then
                Write_Str (" (sp)");
             else
                Write_Str (" (normal)");
             end if;
             Write_Eol;
-            U := CUnit.Table (U).Next;
+            U := CUnits.Table (U).Next;
          end loop;
          Write_Eol;
       end if;
@@ -1686,7 +1686,7 @@ package body XE_Back is
 
    function To_Build (U : CUID_Type) return Boolean is
    begin
-      return Partitions.Table (CUnit.Table (U).Partition).To_Build;
+      return Partitions.Table (CUnits.Table (U).Partition).To_Build;
    end To_Build;
 
 end XE_Back;

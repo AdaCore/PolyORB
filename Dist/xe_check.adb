@@ -153,14 +153,14 @@ package body XE_Check is
       CU := Partitions.Table (Default_Partition).First_Unit;
       while CU /= Null_CUID loop
          for P in Partitions.First + 1 .. Partitions.Last loop
-            Add_Conf_Unit (CUnit.Table (CU).CUname, P);
+            Add_Conf_Unit (CUnits.Table (CU).CUname, P);
          end loop;
-         CU := CUnit.Table (CU).Next;
+         CU := CUnits.Table (CU).Next;
       end loop;
 
       --  Unmark any configured unit
-      for CU in CUnit.First .. CUnit.Last loop
-         Set_Name_Table_Info (CUnit.Table (CU).CUname, 0);
+      for CU in CUnits.First .. CUnits.Last loop
+         Set_Name_Table_Info (CUnits.Table (CU).CUname, 0);
       end loop;
 
       --  Initialize parameters for Compile_Sources
@@ -187,9 +187,9 @@ package body XE_Check is
       if Partitions.Table (Main_Partition).To_Build then
          Push (Main_Subprogram, True);
       end if;
-      for U in CUnit.First .. CUnit.Last loop
+      for U in CUnits.First .. CUnits.Last loop
          if To_Build (U) then
-            Push (CUnit.Table (U).CUname, True);
+            Push (CUnits.Table (U).CUname, True);
          end if;
       end loop;
 
@@ -215,8 +215,8 @@ package body XE_Check is
          Set_Name_Table_Info (ALIs.Table (A).Afile, 0);
       end loop;
 
-      for U in Unit.First .. Unit.Last loop
-         Set_Name_Table_Info (Unit.Table (U).Uname, 0);
+      for U in Units.First .. Units.Last loop
+         Set_Name_Table_Info (Units.Table (U).Uname, 0);
       end loop;
 
       for S in Source.First .. Source.Last loop
@@ -224,7 +224,7 @@ package body XE_Check is
       end loop;
 
       ALIs.Init;
-      Unit.Init;
+      Units.Init;
       Withs.Init;
       Sdep.Init;
       Source.Init;
@@ -235,16 +235,16 @@ package body XE_Check is
 
       --  Note that all the configured units have been marked because
       --  they were pushed in the compilation queue. This assertion
-      --  is very important and use in Load_Unit and Load_Withed_Unit.
+      --  is very important and use in Load_Unit and Load_Withed_Units.
 
       Mask_Object_Consistency_Check;
 
       if Partitions.Table (Main_Partition).To_Build then
          Load_Unit (Main_Subprogram);
       end if;
-      for U in CUnit.First .. CUnit.Last loop
+      for U in CUnits.First .. CUnits.Last loop
          if To_Build (U) then
-            Load_Unit (CUnit.Table (U).CUname);
+            Load_Unit (CUnits.Table (U).CUname);
          end if;
       end loop;
 
@@ -253,16 +253,16 @@ package body XE_Check is
       --  Set configured unit name key to No_Ali_Id       (1)
 
       Set_ALI_Id (Configuration, No_ALI_Id);
-      for U in CUnit.First .. CUnit.Last loop
-         Set_ALI_Id (CUnit.Table (U).CUname, No_ALI_Id);
+      for U in CUnits.First .. CUnits.Last loop
+         Set_ALI_Id (CUnits.Table (U).CUname, No_ALI_Id);
       end loop;
 
       --  Set ada unit name key to null                   (2)
       --  Set configured unit name key to the ali file id (3)
 
-      for U in Unit.First .. Unit.Last loop
-         Set_CUID (Unit.Table (U).Uname, Null_CUID);
-         Set_ALI_Id (U_To_N (Unit.Table (U).Uname), Unit.Table (U).My_ALI);
+      for U in Units.First .. Units.Last loop
+         Set_CUID (Units.Table (U).Uname, Null_CUID);
+         Set_ALI_Id (U_To_N (Units.Table (U).Uname), Units.Table (U).My_ALI);
       end loop;
 
       --  Set partition name key to Null_PID              (4)
@@ -283,11 +283,11 @@ package body XE_Check is
          Message ("detect multiply conf. unit");
       end if;
 
-      for U in CUnit.First .. CUnit.Last loop
+      for U in CUnits.First .. CUnits.Last loop
 
          if To_Build (U) then
 
-            CUname := CUnit.Table (U).CUname;
+            CUname := CUnits.Table (U).CUname;
 
             A := Get_ALI_Id (CUname);
 
@@ -304,9 +304,9 @@ package body XE_Check is
                for I in ALIs.Table (A).First_Unit ..
                  ALIs.Table (A).Last_Unit loop
 
-                  Uname := Unit.Table (I).Uname;
+                  Uname := Units.Table (I).Uname;
 
-                  if Unit.Table (I).Is_Generic then
+                  if Units.Table (I).Is_Generic then
                      Message ("generic unit", To_String (CUname),
                               "cannot be assigned to a partition");
                      Error := True;
@@ -317,7 +317,7 @@ package body XE_Check is
                      --  configured rci or sp unit name to a partition.
 
                      if Get_CUID (Uname) /= Null_CUID  then
-                        if Unit.Table (I).RCI then
+                        if Units.Table (I).RCI then
                            Message ("RCI Ada unit",
                                     To_String (CUname),
                                     "has been assigned twice");
@@ -338,20 +338,20 @@ package body XE_Check is
 
                   --  Save spec unit id or body unit id if not possible
 
-                  if Unit.Table (I).Utype /= Is_Body then
-                     CUnit.Table (U).My_Unit := I;
+                  if Units.Table (I).Utype /= Is_Body then
+                     CUnits.Table (U).My_Unit := I;
                   end if;
 
                end loop;
 
-               CUnit.Table (U).My_ALI := A;
+               CUnits.Table (U).My_ALI := A;
 
                --  Set partition name to its index value.             (7)
                --  This way we confirm that the partition is not
                --  empty as it contains at least one unit.
 
                declare
-                  PID : PID_Type := CUnit.Table (U).Partition;
+                  PID : PID_Type := CUnits.Table (U).Partition;
                begin
                   Set_PID (Partitions.Table (PID).Name, PID);
                end;
@@ -370,12 +370,12 @@ package body XE_Check is
             Message ("check all RCI or SP units are configured");
          end if;
 
-         for U in Unit.First .. Unit.Last loop
-            Uname := Unit.Table (U).Uname;
+         for U in Units.First .. Units.Last loop
+            Uname := Units.Table (U).Uname;
             if Is_RCI_Or_SP_Unit (U)
-              and then not Unit.Table (U).Is_Generic
+              and then not Units.Table (U).Is_Generic
               and then Get_CUID (Uname) = Null_CUID then
-               if Unit.Table (U).RCI then
+               if Units.Table (U).RCI then
                   Message ("RCI Ada unit",
                            To_String (U_To_N (Uname)),
                            "has not been assigned to a partition");
@@ -402,14 +402,14 @@ package body XE_Check is
          CUID   : CUID_Type;
 
       begin
-         for U in CUnit.First .. CUnit.Last loop
+         for U in CUnits.First .. CUnits.Last loop
 
             if To_Build (U) then
 
                --  This check applies to a RCI or SP package
-               if Is_RCI_Or_SP_Unit (CUnit.Table (U).My_Unit) then
-                  Child := CUnit.Table (U).CUname;
-                  CPID  := CUnit.Table (U).Partition;
+               if Is_RCI_Or_SP_Unit (CUnits.Table (U).My_Unit) then
+                  Child := CUnits.Table (U).CUname;
+                  CPID  := CUnits.Table (U).Partition;
 
                   loop
                      Parent := Get_Parent (Child);
@@ -419,7 +419,7 @@ package body XE_Check is
                      if CUID /= Null_CUID then
 
                         --  The child has to be on its parent partition
-                        PPID := CUnit.Table (CUID).Partition;
+                        PPID := CUnits.Table (CUID).Partition;
                         if PPID /= CPID then
                            Message ("", To_String (Parent),
                                     "and", To_String (Child),
@@ -501,11 +501,11 @@ package body XE_Check is
 
       --  Once this procedure called, we have the following properties:
       --
-      --  * Info of CUnit.Table (U).CUname corresponds to its ALI_Id ie ali
-      --  index corresponding to ada unit CUnit.Table (U).CUname.
+      --  * Info of CUnits.Table (U).CUname corresponds to its ALI_Id ie ali
+      --  index corresponding to ada unit CUnits.Table (U).CUname.
       --
-      --  * Info of Unit.Table (U).Uname corresponds to its CUID_Id ie
-      --  mapped unit index corresponding to ada unit Unit.Table (U).Uname
+      --  * Info of Units.Table (U).Uname corresponds to its CUID_Id ie
+      --  mapped unit index corresponding to ada unit Units.Table (U).Uname
       --  if this unit has been mapped.
       --
       --  * Info of Partitions.Table (P).Name corresponds to its PID.
@@ -592,7 +592,7 @@ package body XE_Check is
       end if;
 
       --  Any withed unit has to be checked
-      for W in Unit.Table (R).First_With .. Unit.Table (R).Last_With loop
+      for W in Units.Table (R).First_With .. Units.Table (R).Last_With loop
          Source := Get_File_Name (Withs.Table (W).Uname);
          Push (Withs.Table (W).Uname, False);
       end loop;
@@ -685,7 +685,7 @@ package body XE_Check is
       end loop;
 
       for U in ALIs.Table (A).First_Unit .. ALIs.Table (A).Last_Unit loop
-         for W in Unit.Table (U).First_With .. Unit.Table (U).Last_With loop
+         for W in Units.Table (U).First_With .. Units.Table (U).Last_With loop
 
             --  If the withed unit is configured, then load it later.
 
@@ -758,7 +758,7 @@ package body XE_Check is
       end loop;
 
       for U in FU .. LU loop
-         for W in Unit.Table (U).First_With .. Unit.Table (U).Last_With loop
+         for W in Units.Table (U).First_With .. Units.Table (U).Last_With loop
 
             --  If the withed unit is configured, load it later.
 

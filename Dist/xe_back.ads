@@ -198,13 +198,13 @@ package XE_Back is
       Table_Increment      => 100,
       Table_Name           => "Channel");
 
-   package CUnit is new Table.Table
+   package CUnits is new Table.Table
      (Table_Component_Type => Conf_Unit_Type,
       Table_Index_Type     => CUID_Type,
       Table_Low_Bound      => First_CUID,
       Table_Initial        => 200,
       Table_Increment      => 100,
-      Table_Name           => "CUnit");
+      Table_Name           => "CUnits");
 
    Configuration   : Types.Name_Id := Types.No_Name;
    --  Name of the configuration.

@@ -1,3 +1,9 @@
+1999-04-08  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* xe_back.adb, xe_back.ads, xe_check.adb, xe_stubs.adb,
+	xe_utils.adb, xe_utils.adb: the previous check-in was taking a
+	slightly un-synchronized version of the gnat sources.
+
 1999-04-07  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* xe_check.adb, xe_back.adb: Update in regard to gnat changes.
