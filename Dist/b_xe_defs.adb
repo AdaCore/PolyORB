@@ -216,6 +216,7 @@ begin
       end;
    end loop;
 
+   Put_Line (0, "pragma Style_Checks (Off);");
    if Windows_NT then
       Put_Line (0, "with XE_Reg;");
    end if;
