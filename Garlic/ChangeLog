@@ -1,3 +1,7 @@
+1998-07-02  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-garhea.adb: Add debugging information.
+
 1998-06-23  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-garuti.ads, s-garuti.adb: Move exception utilities to
@@ -13,6 +17,106 @@
 	rule for Empty_Version (to please ADEPT project).
 
 	* Makefile.am, Makefile.in: Update because of new unit.
+
+1998-06-16  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-gasoli.ads, s-gasoli.adb: New package containing soft links
+	for termination-related stuff.
+
+	* s-gaphlo.ads, s-gaphlo.adb: Use pragma Stream_Convert instead
+	than defining stream attributes that do the same thing.
+
+	* s-gartcp.adb: Return "tcp" only as location when the light
+	runtime has been activated to emphasize that fact.
+
+	* s-garhea.ads: Move the types Public_Data and Partition_Data into 
+	the body, and add access functions to read the various values.
+	(Name, Termination_Policy, Location): new functions
+	
+	* s-garhea.adb: Do not send shutdown messages to partition whose
+	termination policy is Local_Termination.
+	(Name, Termination_Policy, Location): new functions
+
+	* s-garfil.adb: Use the new function Name from System.Garlic.Heart 
+	to get a partition's name.
+
+	* s-garter.ads: Empty spec since now soft links are used for
+	termination strategies.
+
+	* s-garter.adb: Do not poll partitions whose termination policy is 
+	Local_Termination.
+
+	* linktest.adb: New file, that will be used in developper mode to
+	test that no circular dependencies have been introduced.
+
+	* Makefile.am: Add linktest target.
+
+	* s-garlic.ads: Move Communication_Error from System.Garlic.Types
+	to here to prevent an elaboration circularity in
+	System.Garlic.Utils.
+
+	* s-garuti.adb: Remove with clause on System.Garlic.Types since
+	the only entity that was referenced was Communication_Error.
+
+	* s-rpc.adb: Use System.Garlic.Communication_Error rather than the 
+	former System.Garlic.Types.Communication_Error.
+
+	* s-garstr.adb: Rename Copy into Deep_Copy to have the name match
+	the actual operation.
+
+	* s-rpc.adb: Ditto
+	Make sure that System.Garlic.Startup is elaborated before this
+	package to make sure that options get set correctly.
+
+	* s-gartyp.ads, s-garstr.ads: Move type RPC_Receiver from
+	System.Garlic.Streams to System.Garlic.Types.
+
+	* s-garuni.ads, s-garuni.adb: Remove dependency on
+	System.Garlic.Streams.
+
+1998-06-15  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-garter.adb: Do not try to terminate if a partition whose
+	termination policy is Local_Termination has not terminated yet,
+	because that means that the whole application cannot terminate at
+	this time.
+
+	* s-garhea.ads: Remove useless My_Partition_Name that is not used
+	outside System.Garlic.Heart.
+	(Blocking_Partition): new function
+	(Can_Have_A_Light_Runtime): new function
+
+	* s-garhea.adb: Transmit the termination policy along with the
+	location of the partition; preliminary work for a light runtime.
+	Check that the callback to be called when a partition dies has
+	been set before calling it, thus avoiding a Constraint_Error at
+	run-time.
+	(Blocking_Partition): new function
+	(Can_Have_A_Light_Runtime): new function
+
+	* s-ganata.ads, s-ganata.adb: Define 'Read and 'Write operator on
+	type Name_Id. Make Name_Id a private type instead of a subtype of
+	Natural to be able to define stream operations.
+
+	* s-garfil.adb: Use conversion routines between Natural and
+	Name_Id.
+
+	* s-gartyp.ads, s-garhea.adb: Move definition of
+	Reconnection_Type, Shutdown_Type, Termination_Type and
+	Execution_Mode_Type from System.Garlic.Heart to
+	System.Garlic.Types.
+	Remove Unknown_Termination from available termination modes.
+
+	* s-garopt.ads: Use types from System.Garlic.Types instead of
+	System.Garlic.Heart.
+	Remove dependency on System.Garlic.Heart.
+	Add pragma Elaborate_Body.
+
+	* s-garopt.adb: Raise Program_Error instead of choosing
+	Unknown_Termination when the user specifies a bad value in the
+	environment variable.
+
+	* s-garrep.adb: Use types from System.Garlic.Types.
 
 1998-06-04  Laurent Pautet  <pautet@scapin.enst.fr>
 
