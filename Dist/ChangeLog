@@ -1,3 +1,8 @@
+2003-02-03  Pascal Obry  <obry@gnat.com>
+
+	* xe_usage.adb:
+	Update the copyright notice.
+
 2002-10-14  Laurent Pautet  <pautet@arlequin.enst.fr>
 
 	* xe.ads, xe_ack.adb, xe_back.ads, xe_stdcnf.adb, xe_stubs.adb:
