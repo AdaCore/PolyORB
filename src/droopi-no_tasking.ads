@@ -85,7 +85,19 @@ package Droopi.No_Tasking is
 
    procedure Leave (M : in Unprotected_Adv_Mutex_Type);
 
+   -------------------------
+   -- Task identification --
+   -------------------------
+
+   type No_Task_Id is new Soft_Links.Task_Id with private;
+
+   function Get_Current_Task return Soft_Links.Task_Id'Class;
+
+   function Image (T : No_Task_Id) return String;
+   pragma Inline (Image);
+
 private
+
    type Unprotected_Mutex_Type is
      new Soft_Links.Mutex_Type with null record;
 
@@ -118,5 +130,7 @@ private
       record
          X : Unprotected_Watcher_Data_Access;
       end record;
+
+   type No_Task_Id is new Soft_Links.Task_Id with null record;
 
 end Droopi.No_Tasking;

@@ -1,5 +1,7 @@
 --  $Id$
 
+with Ada.Task_Identification;
+
 with Droopi.Soft_Links;
 
 package Droopi.Protected_Objects is
@@ -84,6 +86,17 @@ package Droopi.Protected_Objects is
 
    procedure Leave (M : in Protected_Adv_Mutex_Type);
 
+   -------------------------
+   -- Task identification --
+   -------------------------
+
+   type PO_Task_Id is new Soft_Links.Task_Id with private;
+
+   function Get_Current_Task return Soft_Links.Task_Id'Class;
+
+   function Image (T : PO_Task_Id) return String;
+   pragma Inline (Image);
+
 private
 
    type Barrier_PO;
@@ -122,6 +135,11 @@ private
    type Protected_Adv_Mutex_Type is new Soft_Links.Adv_Mutex_Type
      with record
         X : Adv_Mutex_PO_Access;
+     end record;
+
+   type PO_Task_Id is new Soft_Links.Task_Id
+     with record
+        X : Ada.Task_Identification.Task_Id;
      end record;
 
 end Droopi.Protected_Objects;

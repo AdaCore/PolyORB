@@ -245,4 +245,21 @@ package body Droopi.Soft_Links is
       Leave (M.all);
    end Leave;
 
+   -------------------------
+   -- Task identification --
+   -------------------------
+
+   Get_Current_Task : Current_Task_Function;
+
+   procedure Register_Current_Task
+     (F : in Current_Task_Function) is
+   begin
+      Get_Current_Task := F;
+   end Register_Current_Task;
+
+   function Current_Task return Task_Id'Class is
+   begin
+      return Get_Current_Task.all;
+   end Current_Task;
+
 end Droopi.Soft_Links;

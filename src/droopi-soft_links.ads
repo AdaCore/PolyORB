@@ -199,4 +199,19 @@ package Droopi.Soft_Links is
    procedure Leave (M : in Adv_Mutex_Access);
    pragma Inline (Leave);
 
+   -------------------------
+   -- Task identification --
+   -------------------------
+
+   type Task_Id is abstract tagged null record;
+
+   type Current_Task_Function is access function
+     return Task_Id'Class;
+
+   procedure Register_Current_Task
+     (F : in Current_Task_Function);
+   function Current_Task return Task_Id'Class;
+
+   function Image (T : Task_Id) return String is abstract;
+
 end Droopi.Soft_Links;

@@ -205,6 +205,8 @@ package body Droopi.No_Tasking is
       Register_Barrier_Creation_Function (Create'Access);
       Register_Mutex_Creation_Function (Create'Access);
       Register_Adv_Mutex_Creation_Function (Create'Access);
+      Register_Current_Task
+        (Current_Task_Function'(Get_Current_Task'Access));
    end Initialize;
 
    -----------
@@ -246,5 +248,19 @@ package body Droopi.No_Tasking is
 
       W.X.Version := W.X.Version + 1;
    end Update;
+
+   ------------------
+   -- Current_Task --
+   ------------------
+
+   function Get_Current_Task return Soft_Links.Task_Id'Class is
+   begin
+      return No_Task_Id'(null record);
+   end Get_Current_Task;
+
+   function Image (T : No_Task_Id) return String is
+   begin
+      return "main_task";
+   end Image;
 
 end Droopi.No_Tasking;

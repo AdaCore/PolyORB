@@ -1,6 +1,5 @@
 --  $Id$
 
-with Ada.Task_Identification;    use Ada.Task_Identification;
 with Ada.Unchecked_Deallocation;
 
 with System.Soft_Links;  use System.Soft_Links;
@@ -8,6 +7,8 @@ with System.Soft_Links;  use System.Soft_Links;
 with Droopi.Soft_Links;  use Droopi.Soft_Links;
 
 package body Droopi.Protected_Objects is
+
+   use Ada.Task_Identification;
 
    Critical_Section : Protected_Adv_Mutex_Type;
 
@@ -218,7 +219,8 @@ package body Droopi.Protected_Objects is
    -----------
 
    procedure Enter (M : in Protected_Adv_Mutex_Type) is
-      Self : constant Task_Id := Current_Task;
+      Self : constant Ada.Task_Identification.Task_Id
+        := Current_Task;
    begin
       pragma Assert (M.X /= null);
       if M.X.Current /= Self then
@@ -256,6 +258,8 @@ package body Droopi.Protected_Objects is
       Register_Watcher_Creation_Function (Create'Access);
       Register_Mutex_Creation_Function (Create'Access);
       Register_Adv_Mutex_Creation_Function (Create'Access);
+      Register_Current_Task
+        (Current_Task_Function'(Get_Current_Task'Access));
    end Initialize;
 
    -----------
@@ -429,5 +433,20 @@ package body Droopi.Protected_Objects is
       end Update;
 
    end Watcher_PO;
+
+   ------------------
+   -- Current_Task --
+   ------------------
+
+   function Get_Current_Task return Soft_Links.Task_Id'Class is
+   begin
+      return PO_Task_Id'(X => Ada.Task_Identification.Current_Task);
+   end Get_Current_Task;
+
+   function Image (T : PO_Task_Id) return String is
+   begin
+      return Ada.Task_Identification.Image (T.X);
+   end Image;
+
 
 end Droopi.Protected_Objects;
