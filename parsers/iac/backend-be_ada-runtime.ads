@@ -34,12 +34,15 @@ package Backend.BE_Ada.Runtime is
      (RE_Ref_0,                     --  Ref
       RE_To_Any_1,                  --  To_Any
       RE_Get_Empty_Any_1,           --  Get_Empty_Any
+      RE_False,                     --  False
+      RE_True,                      --  True
       RE_Exception_Occurrence,      --  Ada.Exceptions.Exception_Occurrence
       RE_TC_Void,                   --  CORBA.TC_Void
       RE_Any,                       --  CORBA.Any
       RE_To_Any_0,                  --  CORBA.To_Any
       RE_From_Any_0,                --  CORBA.From_Any
       RE_Get_Empty_Any_0,           --  CORBA.Get_Empty_Any
+      RE_Is_Equivalent,             --  CORBA.Is_Equivalent
       RE_Float,                     --  CORBA.Float
       RE_Double,                    --  CORBA.Double
       RE_Long_Double,               --  CORBA.Long_Double
@@ -121,12 +124,15 @@ package Backend.BE_Ada.Runtime is
      := (RE_Ref_0                   => RU_Null,
          RE_To_Any_1                => RU_Null,
          RE_Get_Empty_Any_1         => RU_Null,
+         RE_False                   => RU_Null,
+         RE_True                    => RU_Null,
          RE_Exception_Occurrence    => RU_Ada_Exceptions,
          RE_TC_Void                 => RU_CORBA,
          RE_Any                     => RU_CORBA,
          RE_To_Any_0                => RU_CORBA,
          RE_From_Any_0              => RU_CORBA,
          RE_Get_Empty_Any_0         => RU_CORBA,
+         RE_Is_Equivalent           => RU_CORBA,
          RE_Float                   => RU_CORBA,
          RE_Double                  => RU_CORBA,
          RE_Long_Double             => RU_CORBA,

@@ -124,7 +124,7 @@ package Backend.BE_Ada.Nutils is
       Op_And,             -- and
       Op_And_Then,        -- and then
       Op_Or,              -- or
-      Op_Or_Then,         -- or then
+      Op_Or_Else,         -- or else
       Op_Double_Asterisk, -- **
       Op_Minus,           -- -
       Op_Plus,            -- +
@@ -150,7 +150,7 @@ package Backend.BE_Ada.Nutils is
      of Name_Id;
 
    subtype Keyword_Operator is Operator_Type
-     range Operator_Type'First .. Op_Or_Then;
+     range Operator_Type'First .. Op_Or_Else;
 
    type Parameter_Id is
      (P_Arg_Modes,

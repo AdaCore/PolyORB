@@ -351,7 +351,7 @@ package body Backend.BE_Ada.Nutils is
       New_Token (Tok_Vertical_Bar, "|");
       New_Token (Tok_Dot_Dot, "..");
 
-      for O in Op_And .. Op_Or_Then loop
+      for O in Op_And .. Op_Or_Else loop
          New_Operator (O);
       end loop;
       New_Operator (Op_Double_Asterisk, "**");

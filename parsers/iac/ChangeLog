@@ -1,3 +1,15 @@
+2004-08-04  souli  <souli@neraka.enst.fr>
+
+	* backend-be_ada-nutils.ad[b,s]: Replace Op_Or_Then by Op_Or_Else in
+	Operator_Type (mistake).  
+
+	* backend-be_ada-stubs.adb: Complete stubs body. Generate Is_A
+	body. 
+
+	* backend-be_ada-runtime.ads: Add new runtime-entities used in
+	stub Is_A body.
+	
+
 2004-08-04  Laurent Pautet  <pautet@dorine.enst.fr>
 
 	* backend-be_ada-runtime.adb: Add rules for ARG_IN, ARG_INOUT and

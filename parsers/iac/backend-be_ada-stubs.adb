@@ -22,10 +22,15 @@ package body Backend.BE_Ada.Stubs is
    package BEN renames Backend.BE_Ada.Nodes;
    package FEU renames Frontend.Nutils;
 
+
    function Marshaller_Body
      (Subp_Spec : Node_Id; Local_Variables : List_Id) return List_Id;
    function Marshaller_Declarations
      (Subp_Spec : Node_Id) return List_Id;
+   function Local_Is_A_Body (E : Node_Id) return Node_Id;
+   function Local_Is_A_Spec return Node_Id;
+   function Visible_Is_A_Body return Node_Id;
+   function Visible_Is_A_Spec return Node_Id;
 
    package body Package_Spec is
 
@@ -233,8 +238,6 @@ package body Backend.BE_Ada.Stubs is
          N       : Node_Id;
          L       : List_Id;
          I       : Node_Id;
-         Profile : List_Id;
-         Param   : Node_Id;
       begin
          P := Map_IDL_Unit (E);
          Append_Node_To_List (P, Packages (Current_Entity));
@@ -258,34 +261,20 @@ package body Backend.BE_Ada.Stubs is
          Set_Corresponding_Node (I, N);
          Append_Node_To_List
            (N, Visible_Part (Current_Package));
-         Append_Node_To_List
-           (Map_Repository_Declaration (E), Visible_Part (Current_Package));
          Bind_FE_To_Stub (Identifier (E), N);
+         N := Map_Repository_Declaration (E);
+         Append_Node_To_List
+           (N, Visible_Part (Current_Package));
+         Set_FE_Node (N, Identifier (E));
 
          N := First_Entity (Interface_Body (E));
          while Present (N) loop
             Visit (N);
             N := Next_Entity (N);
          end loop;
-         Profile := New_List (K_Parameter_Profile);
-         Param := Make_Parameter_Specification
-           (Make_Defining_Identifier (PN (P_Self)), I);
-         Append_Node_To_List (Param, Profile);
-         Param := Make_Parameter_Specification
-           (Make_Defining_Identifier (PN (P_Logical_Type_Id)),
-            RE (RE_String_2));
-         Append_Node_To_List (Param, Profile);
-         N := Make_Subprogram_Specification
-           (Make_Defining_Identifier (SN (S_Is_A)),
-            Profile,
-            RE (RE_Boolean));
+         N := Visible_Is_A_Spec;
          Append_Node_To_List (N, Visible_Part (Current_Package));
-         Profile := New_List (K_Parameter_Profile);
-         Append_Node_To_List (Param, Profile);
-         N := Make_Subprogram_Specification
-           (Make_Defining_Identifier (SN (S_Is_A)),
-            Profile,
-            RE (RE_Boolean));
+         N := Local_Is_A_Spec;
          Append_Node_To_List (N, Private_Part (Current_Package));
          Pop_Entity;
       end Visit_Interface_Declaration;
@@ -599,6 +588,10 @@ package body Backend.BE_Ada.Stubs is
             Visit (N);
             N := Next_Entity (N);
          end loop;
+         N := Visible_Is_A_Body;
+         Append_Node_To_List (N, Statements (Current_Package));
+         N := Local_Is_A_Body (E);
+         Append_Node_To_List (N, Statements (Current_Package));
          Pop_Entity;
       end Visit_Interface_Declaration;
 
@@ -631,6 +624,7 @@ package body Backend.BE_Ada.Stubs is
       end Visit_Specification;
 
    end Package_Body;
+
 
    ---------------------
    -- Marshaller_Body --
@@ -808,9 +802,6 @@ package body Backend.BE_Ada.Stubs is
         (RE (RE_Create_Request),
          P);
       Append_Node_To_List (N, Statements);
-
-      --  Set result type
-
       N := Make_Subprogram_Call
         (RE (RE_Flags),
          Make_List_Id (Make_Literal (Int0_Val)));
@@ -1045,4 +1036,126 @@ package body Backend.BE_Ada.Stubs is
       return L;
    end Marshaller_Declarations;
 
+   ---------------------
+   -- Local_Is_A_Body --
+   ---------------------
+
+   function Local_Is_A_Body (E : Node_Id) return Node_Id is
+      N             : Node_Id;
+      S             : constant List_Id := New_List (K_List_Id);
+      M             : Node_Id;
+      Repository_Id : Node_Id;
+      Object_URL    : Value_Id;
+
+   begin
+      N := Stub_Node (BE_Node (Identifier (E)));
+      N := Next_Node (N);
+      Repository_Id := Expand_Designator (N);
+      N := Make_Subprogram_Call
+        (RE (RE_Is_Equivalent),
+         Make_List_Id
+         (Make_Defining_Identifier (PN (P_Logical_Type_Id)),
+          Repository_Id));
+
+      if FEN.Kind (E) = K_Interface_Declaration then
+         Set_Str_To_Name_Buffer ("IDL:Omg.Org/CORBA/Object:1.0");
+      else
+         Set_Str_To_Name_Buffer ("IDL:Omg.Org/CORBA/ValueBase:1.0");
+      end if;
+
+      Object_URL := New_String_Value (Name_Find, False);
+      M := Make_Subprogram_Call
+        (RE (RE_Is_Equivalent),
+         Make_List_Id
+         (Make_Defining_Identifier (PN (P_Logical_Type_Id)),
+          Make_Literal (Object_URL)));
+      N := Make_Expression
+        (N, Op_Or_Else,
+         Make_Expression
+         (M, Op_Or_Else,
+          RE (RE_False)));
+      N := Make_Return_Statement (N);
+      Append_Node_To_List (N, S);
+      N := Make_Subprogram_Implementation
+        (Local_Is_A_Spec, No_List, S);
+      return N;
+   end Local_Is_A_Body;
+
+   ---------------------
+   -- Local_Is_A_Spec --
+   ---------------------
+
+   function Local_Is_A_Spec return Node_Id is
+      N       : Node_Id;
+      Profile : List_Id;
+      Param   : Node_Id;
+   begin
+      Param := Make_Parameter_Specification
+        (Make_Defining_Identifier (PN (P_Logical_Type_Id)),
+         RE (RE_String_2));
+      Profile := New_List (K_Parameter_Profile);
+      Append_Node_To_List (Param, Profile);
+      N := Make_Subprogram_Specification
+        (Make_Defining_Identifier (SN (S_Is_A)),
+         Profile,
+         RE (RE_Boolean));
+      return N;
+   end Local_Is_A_Spec;
+
+   -----------------------
+   -- Visible_Is_A_Body --
+   -----------------------
+
+   function Visible_Is_A_Body return Node_Id is
+      N : Node_Id;
+      M : Node_Id;
+      S : constant List_Id := New_List (K_List_Id);
+   begin
+      M := Make_Subprogram_Call
+        (RE (RE_Ref_1),
+         Make_List_Id (Make_Defining_Identifier (PN (P_Self))));
+      M := Make_Subprogram_Call
+        (RE (RE_Is_A),
+         Make_List_Id (M, Make_Defining_Identifier (PN (P_Logical_Type_Id))));
+      N := Make_Subprogram_Call
+        (Make_Defining_Identifier (SN (S_Is_A)),
+         Make_List_Id (Make_Designator (PN (P_Logical_Type_Id))));
+      N := Make_Expression
+        (RE (RE_False),
+         Op_Or_Else,
+         Make_Expression
+         (N,
+          Op_Or_Else,
+          M));
+      N := Make_Return_Statement (N);
+      Append_Node_To_List (N, S);
+      N := Make_Subprogram_Implementation
+        (Visible_Is_A_Spec, No_List, S);
+      return N;
+   end Visible_Is_A_Body;
+
+   -----------------------
+   -- Visible_Is_A_Spec --
+   -----------------------
+
+   function Visible_Is_A_Spec return Node_Id is
+      N       : Node_Id;
+      Profile : List_Id;
+      Param   : Node_Id;
+   begin
+      Profile := New_List (K_Parameter_Profile);
+      Param := Make_Parameter_Specification
+        (Make_Defining_Identifier (PN (P_Self)),
+         Make_Defining_Identifier (TN (T_Ref)));
+      Append_Node_To_List (Param, Profile);
+      Param := Make_Parameter_Specification
+        (Make_Defining_Identifier (PN (P_Logical_Type_Id)),
+         RE (RE_String_2));
+      Append_Node_To_List (Param, Profile);
+      N := Make_Subprogram_Specification
+        (Make_Defining_Identifier (SN (S_Is_A)),
+         Profile,
+         RE (RE_Boolean));
+      return N;
+   end Visible_Is_A_Spec;
 end Backend.BE_Ada.Stubs;
