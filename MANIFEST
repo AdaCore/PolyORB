@@ -586,6 +586,9 @@ src/moma/moma-sessions.ads
 src/moma/moma-types.adb
 src/moma/moma-types.ads
 src/moma/moma.ads
+src/moma/polyorb-moma_p.ads
+src/moma/polyorb-moma_p-exceptions.adb
+src/moma/polyorb-moma_p-exceptions.ads
 src/polyorb-annotations.adb
 src/polyorb-annotations.ads
 src/polyorb-any-exceptionlist.adb
