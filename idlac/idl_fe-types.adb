@@ -777,9 +777,12 @@ package body Idl_Fe.Types is
    ----------------------
    --  Add_Identifier  --
    ----------------------
-   function Add_Identifier (Node : access N_Named'Class;
-                            Name : String)
-                            return Boolean is
+
+   function Add_Identifier
+     (Node : access N_Named'Class;
+      Name : String)
+     return Boolean
+   is
       Definition : Identifier_Definition_Acc;
       Index : Uniq_Id;
    begin
@@ -807,9 +810,12 @@ package body Idl_Fe.Types is
    -----------------------------------
    --  Check_Identifier_In_Storage  --
    -----------------------------------
-   function Check_Identifier_In_Storage (Scope : N_Scope_Acc;
-                                         Identifier : String)
-                                             return Uniq_Id is
+
+   function Check_Identifier_In_Storage
+     (Scope : N_Scope_Acc;
+      Identifier : String)
+     return Uniq_Id
+   is
       use Idl_Fe.Lexer;
       Hash_Index : Hash_Value_Type := Hash (Identifier) mod Hash_Mod;
       Index : Uniq_Id;
@@ -853,9 +859,13 @@ package body Idl_Fe.Types is
    -------------------------------------
    --  Create_Indentifier_In_Storage  --
    -------------------------------------
-   function Create_Identifier_In_Storage (Identifier : String)
-                                          return Uniq_Id is
+
+   function Create_Identifier_In_Storage
+     (Identifier : String)
+     return Uniq_Id
+   is
       use Idl_Fe.Lexer;
+
       Hash_Index : Hash_Value_Type := Hash (Identifier) mod Hash_Mod;
       Index : Uniq_Id :=
         Current_Scope.Scope.Identifier_Table.Hash_Table (Hash_Index);
@@ -898,8 +908,10 @@ package body Idl_Fe.Types is
    --------------------------------
    --  Add_Definition_To_Storage --
    --------------------------------
+
    procedure Add_Definition_To_Storage
-     (Definition : in Identifier_Definition_Acc) is
+     (Definition : in Identifier_Definition_Acc)
+   is
       Index : Uniq_Id;
       Definition_Test : Identifier_Definition_Acc;
    begin
@@ -919,9 +931,13 @@ package body Idl_Fe.Types is
    --------------------------------------
    --  Check_Imported_Identifier_Idex  --
    --------------------------------------
-   function Check_Imported_Identifier_Index (Identifier : String)
-                                             return Uniq_Id is
+
+   function Check_Imported_Identifier_Index
+     (Identifier : String)
+     return Uniq_Id
+   is
       use Idl_Fe.Lexer;
+
       Hash_Index : Hash_Value_Type := Hash (Identifier) mod Hash_Mod;
       Index : Uniq_Id;
       Scope : N_Imports_Acc;
@@ -960,8 +976,11 @@ package body Idl_Fe.Types is
    -------------------------------------------
    --  Find_Imported_Identifier_Definition  --
    -------------------------------------------
-   function Find_Imported_Identifier_Definition (Name : String)
-                                        return Identifier_Definition_Acc is
+
+   function Find_Imported_Identifier_Definition
+     (Name : String)
+     return Identifier_Definition_Acc
+   is
       Index : Uniq_Id;
       Scope : N_Imports_Acc;
    begin
@@ -982,11 +1001,16 @@ package body Idl_Fe.Types is
    --------------------------------------
    --  Create_Indentifier_In_Imported  --
    --------------------------------------
-   function Create_Identifier_In_Imported (Identifier : String;
-                                           Scope : N_Imports_Acc)
-                                           return Uniq_Id is
+
+   function Create_Identifier_In_Imported
+     (Identifier : String;
+      Scope : N_Imports_Acc)
+     return Uniq_Id
+   is
       use Idl_Fe.Lexer;
-      Hash_Index : Hash_Value_Type := Hash (Identifier) mod Hash_Mod;
+
+      Hash_Index : Hash_Value_Type
+        := Hash (Identifier) mod Hash_Mod;
       Index : Uniq_Id;
    begin
       Index := Scope.Imported_Table.Hash_Table (Hash_Index);
@@ -1020,11 +1044,14 @@ package body Idl_Fe.Types is
       return Index;
    end Create_Identifier_In_Imported;
 
-   --------------------------------
+   ---------------------------------
    --  Add_Definition_To_Imported --
-   --------------------------------
+   ---------------------------------
+
    procedure Add_Definition_To_Imported
-     (Definition : in Identifier_Definition_Acc; Scope : in N_Scope_Acc) is
+     (Definition : in Identifier_Definition_Acc;
+      Scope : in N_Scope_Acc)
+   is
       Index : Uniq_Id;
       Definition_Test : Identifier_Definition_Acc;
       Scope_Im : N_Imports_Acc;
@@ -1053,9 +1080,12 @@ package body Idl_Fe.Types is
    --------------------------------
    --  Find_Identifier_In_Scope  --
    --------------------------------
-   procedure Find_Identifier_In_Inheritance (Name : in String;
-                                             Scope : in N_Imports_Acc;
-                                             List : in out Node_List) is
+
+   procedure Find_Identifier_In_Inheritance
+     (Name : in String;
+      Scope : in N_Imports_Acc;
+      List : in out Node_List)
+   is
       It : Node_Iterator;
       Node : N_Root_Acc;
       Definition : Identifier_Definition_Acc;
@@ -1090,8 +1120,11 @@ package body Idl_Fe.Types is
    --------------------------------------------
    --  Find_Inherited_Identifier_Definition  --
    --------------------------------------------
-   function Find_Inherited_Identifier_Definition (Name : String)
-                                           return Identifier_Definition_Acc is
+
+   function Find_Inherited_Identifier_Definition
+     (Name : String)
+     return Identifier_Definition_Acc
+   is
       Result_List : Node_List := null;
       First_List : Node_List := null;
    begin
@@ -1099,9 +1132,10 @@ package body Idl_Fe.Types is
       if Current_Scope.Scope.all not in N_Imports'Class then
          return null;
       end if;
-      Find_Identifier_In_Inheritance (Name,
-                                      N_Imports_Acc (Current_Scope.Scope),
-                                      First_List);
+      Find_Identifier_In_Inheritance
+        (Name,
+         N_Imports_Acc (Current_Scope.Scope),
+         First_List);
       Result_List := Simplify_Node_List (First_List);
       Free (First_List);
       if Get_Length (Result_List) = 0 then
@@ -1132,11 +1166,11 @@ package body Idl_Fe.Types is
             pragma Debug (O ("Find_Inherited_Identifier_Definition : " &
                              "Many definitions found in inheritance"));
 
-
             Idl_Fe.Errors.Parser_Error ("Multiple definitions found" &
                                         " in inheritance.",
                                         Idl_Fe.Errors.Error,
                                         Idl_Fe.Lexer.Get_Lexer_Location);
+
             Init (It, Result_List);
             Node := Get_Node (It);
             Free (Result_List);
