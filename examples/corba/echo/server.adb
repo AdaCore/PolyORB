@@ -36,6 +36,7 @@ pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
 
 with CORBA;
 with CORBA.Object;
+with CORBA.ORB;
 with CORBA.Impl;
 with PortableServer;
 
@@ -49,6 +50,7 @@ procedure Server is
    --  Use_Delegate    : Boolean := False;
 
 begin
+   CORBA.ORB.Initialize ("ORB");
 
    --  Parse command line
 

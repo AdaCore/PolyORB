@@ -38,6 +38,7 @@ with Random.Impl;
 
 with CORBA;
 with CORBA.Object;
+with CORBA.ORB;
 
 with PolyORB.Setup.No_Tasking_Server;
 pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
@@ -54,6 +55,7 @@ procedure Server is
    Ref : CORBA.Object.Ref;
 
 begin
+   CORBA.ORB.Initialize ("ORB");
    Initiate_Servant (new Random.Impl.Object, Ref);
    Ada.Text_IO.Put_Line
      ("'" & CORBA.To_Standard_String (CORBA.Object.Object_To_String (Ref)) &
