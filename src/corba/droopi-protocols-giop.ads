@@ -20,8 +20,6 @@ with Droopi.References.IOR;
 with Droopi.Requests;
 with Droopi.Objects;
 with Droopi.ORB;
-with Droopi.Log;
-pragma Elaborate_All (Droopi.Log);
 with Droopi.Types;
 with Droopi.Any;
 
@@ -32,16 +30,10 @@ package Droopi.Protocols.GIOP is
    --  Body requires child units GIOP_<version>:
    --  no elab control pragmas.
 
-   use Droopi.Log;
    use Droopi.Binding_Data;
    use ORB;
 
    package Arg_Seq is new Sequences.Unbounded (Any.NamedValue);
-
-   package L is new Droopi.Log.Facility_Log ("droopi.protocols.giop");
-   procedure O (Message : in String; Level : Log_Level := Debug)
-     renames L.Output;
-
 
    Message_Header_Size  : constant Stream_Element_Offset;
    Maximum_Message_Size : constant Stream_Element_Offset;

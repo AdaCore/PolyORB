@@ -3,12 +3,21 @@
 
 --  $Id$
 
-with Droopi.Filters.Interface; use Droopi.Filters.Interface;
+with Droopi.Filters.Interface;
+with Droopi.Log;
 
 package body Droopi.Filters.Slicers is
 
    use Ada.Streams;
+
    use Droopi.Buffers;
+   use Droopi.Filters.Interface;
+   use Droopi.Log;
+
+   package L is new Droopi.Log.Facility_Log ("droopi.filters.slicers");
+   procedure O (Message : in String; Level : Log_Level := Debug)
+     renames L.Output;
+
 
    procedure Create
      (Fact   : access Slicer_Factory;
@@ -36,13 +45,23 @@ package body Droopi.Filters.Slicers is
                            and then F.In_Buf = null);
             F.Data_Expected := DEM.Max;
             F.In_Buf := DEM.In_Buf;
-            F.Buffer_Position := CDR_Position (F.In_Buf);
+            F.Buffer_Length := Length (F.In_Buf);
+            pragma Debug (O ("Expecting" & F.Data_Expected'Img
+                             & " bytes."));
+            return Emit
+              (F.Lower,
+               Data_Expected'
+               (Max => F.Data_Expected, In_Buf => F.In_Buf));
          end;
       elsif S in Data_Indication then
          declare
             Data_Received : constant Stream_Element_Count
-              := CDR_Position (F.In_Buf) - F.Buffer_Position;
+              := Length (F.In_Buf) - F.Buffer_Length;
          begin
+            pragma Debug (O ("Expected" & F.Data_Expected'Img
+                             & " bytes, received"
+                             & Data_Received'Img));
+
             if F.In_Buf = null
               or else Data_Received > F.Data_Expected
             then
@@ -51,23 +70,33 @@ package body Droopi.Filters.Slicers is
             end if;
 
             F.Data_Expected := F.Data_Expected - Data_Received;
-            F.Buffer_Position := CDR_Position (F.In_Buf);
+            F.Buffer_Length := Length (F.In_Buf);
 
             if F.Data_Expected = 0 then
                F.In_Buf := null;
                return Emit
                  (F.Upper,
                   Data_Indication'(Root_Data_Unit with null record));
+            else
+               pragma Debug (O ("Expecting" & F.Data_Expected'Img
+                                & " further bytes."));
+               Emit_No_Reply
+                 (F.Lower,
+                  Data_Expected'
+                  (Max => F.Data_Expected, In_Buf => F.In_Buf));
             end if;
          end;
 
-      elsif S in Disconnect_Indication then
-         return Emit
-           (F.Upper,
-            Disconnect_Indication'(Root_Data_Unit with null record));
-
+      elsif False
+        or else S in Connect_Indication
+        or else S in Disconnect_Indication
+        or else S in Set_Server
+      then
+         return Emit (F.Upper, S);
       elsif S in Data_Out then
          return Emit (F.Lower, S);
+      else
+         raise Unhandled_Message;
       end if;
 
       return Res;

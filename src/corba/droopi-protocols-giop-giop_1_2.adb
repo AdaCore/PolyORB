@@ -14,6 +14,8 @@
 
 with Droopi.Binding_Data;        use Droopi.Binding_Data;
 with Droopi.Binding_Data.IIOP;
+with Droopi.Log;
+pragma Elaborate_All (Droopi.Log);
 with Droopi.Protocols;           use Droopi.Protocols;
 with Droopi.Representations.CDR; use Droopi.Representations.CDR;
 
@@ -22,10 +24,15 @@ with Droopi.Types;
 package body Droopi.Protocols.GIOP.GIOP_1_2 is
 
    use Droopi.Buffers;
+   use Droopi.Log;
    use Droopi.Objects;
    use Droopi.References;
    use Droopi.References.IOR;
    use Droopi.Types;
+
+   package L is new Droopi.Log.Facility_Log ("droopi.protocols.giop.giop_1_2");
+   procedure O (Message : in String; Level : Log_Level := Debug)
+     renames L.Output;
 
    --------------------------
    -- Marshall_GIOP_Header --

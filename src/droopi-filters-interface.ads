@@ -29,6 +29,9 @@ package Droopi.Filters.Interface is
    type Set_Server is new Root_Data_Unit with record
       Server : Components.Component_Access;
    end record;
+   --  Direction: from lower to upper.
+   --  Semantics: inform stacks participants of the ORB
+   --  component they are working for.
 
    type Set_Buffer is new Root_Data_Unit with record
       Buffer : Buffer_Access;
@@ -53,7 +56,7 @@ package Droopi.Filters.Interface is
 
    type Data_Indication is new Root_Data_Unit with null record;
    --  Direction: from lower to upper.
-   --  Semantics: data has been received and must be handled.
+   --  Semantics: Data has been received and must be handled.
 
    type Data_Expected is new Root_Data_Unit with record
       --  Direction: from upper to lower.

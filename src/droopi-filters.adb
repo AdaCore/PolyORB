@@ -2,9 +2,19 @@
 
 --  $Id$
 
+with Ada.Tags;
+
 with Droopi.Filters.Interface;
+with Droopi.Log;
+pragma Elaborate_All (Droopi.Log);
 
 package body Droopi.Filters is
+
+   use Droopi.Log;
+
+   package L is new Droopi.Log.Facility_Log ("droopi.filters");
+   procedure O (Message : in String; Level : Log_Level := Debug)
+     renames L.Output;
 
    procedure Connect_Lower (F : access Filter; Lower : Component_Access) is
    begin
@@ -32,6 +42,11 @@ package body Droopi.Filters is
    procedure Chain_Factories (Factories : Factory_Array) is
    begin
       for I in Factories'First .. Factories'Last - 1 loop
+         pragma Debug
+           (O ("Chaining "
+               & Ada.Tags.External_Tag (Factories (I)'Tag)
+               & " to "
+               & Ada.Tags.External_Tag (Factories (I + 1)'Tag)));
          Connect
            (Factories (I).Upper,
             Component_Access (Factories (I + 1)));
@@ -46,6 +61,8 @@ package body Droopi.Filters is
       F : Filter_Access;
    begin
       Create (Fact => Factory'Class (FChain.all)'Access, Filt => F);
+      pragma Debug (O ("Created filter of type "
+                       & Ada.Tags.External_Tag (F'Tag)));
       --  Create new filter.
 
       if FChain.Upper /= null then

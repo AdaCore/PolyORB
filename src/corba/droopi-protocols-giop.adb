@@ -16,7 +16,6 @@ with Sequences.Unbounded;
 
 with Droopi.Any;
 with Droopi.Any.NVList;
-
 with Droopi.Buffers;             use Droopi.Buffers;
 with Droopi.Binding_Data;        use Droopi.Binding_Data;
 with Droopi.Binding_Data.IIOP;
@@ -24,9 +23,10 @@ with Droopi.Binding_Data.Local;
 with Droopi.Components;
 with Droopi.Filters;
 with Droopi.Filters.Interface;
+with Droopi.Log;
+pragma Elaborate_All (Droopi.Log);
 with Droopi.Obj_Adapters;
 with Droopi.Objects;
-with Droopi.Opaque;              use Droopi.Opaque;
 with Droopi.ORB;
 with Droopi.ORB.Interface;
 with Droopi.Protocols;           use Droopi.Protocols;
@@ -46,12 +46,17 @@ package body Droopi.Protocols.GIOP is
    use Droopi.Any.NVList;
    use Droopi.Binding_Data.IIOP;
    use Droopi.Components;
+   use Droopi.Log;
    use Droopi.ORB;
    use Droopi.ORB.Interface;
    use Droopi.Requests;
    use Droopi.Representations.CDR;
    use Droopi.Transport;
    use Droopi.Types;
+
+   package L is new Droopi.Log.Facility_Log ("droopi.protocols.giop");
+   procedure O (Message : in String; Level : Log_Level := Debug)
+     renames L.Output;
 
    Pend_Req : Pending_Request;
    --  XXX Why is this a global variable???
@@ -189,8 +194,10 @@ package body Droopi.Protocols.GIOP is
      (Buffer : access Buffer_Type)
      return Version
    is
+      V : constant Types.Unsigned_Long := Unmarshall (Buffer);
    begin
-      return Unsigned_Long_To_Version (Unmarshall (Buffer));
+      pragma Debug (O ("Got version value: (ulong)" & V'Img));
+      return Unsigned_Long_To_Version (V);
    end Unmarshall;
 
 
@@ -278,11 +285,10 @@ package body Droopi.Protocols.GIOP is
       Success               : out Boolean)
    is
 
-      Stream_Header          : Encapsulation := Encapsulate (Ses.Buffer_In);
-      Zone_Address           : Zone_Access :=
-                               new Stream_Element_Array'(Stream_Header);
-      Message_Header         : Buffer_Access := new Buffer_Type;
+      Buffer : Buffer_Access renames Ses.Buffer_In;
 
+      Stream_Header          : constant Stream_Element_Array
+        := To_Stream_Element_Array (Buffer);
       Message_Magic          : Stream_Element_Array (Magic'Range);
       Message_Major_Version  : Version;
       Message_Minor_Version  : Version;
@@ -304,16 +310,18 @@ package body Droopi.Protocols.GIOP is
          Message_Endianness := Big_Endian;
       end if;
 
-      Buffers.Initialize_Buffer
-        (Message_Header, Message_Header_Size,
-         Opaque_Pointer'(Zone => Zone_Address,
-         Offset => 0), Message_Endianness, 0);
+--       Buffers.Initialize_Buffer
+--         (Message_Header, Message_Header_Size,
+--          Opaque_Pointer'(Zone => Zone_Address,
+--          Offset => 0), Message_Endianness, 0);
+
+      Set_Endianness (Buffer, Message_Endianness);
 
       --  Magic
       for I in Message_Magic'Range loop
 
          Message_Magic (I) := Stream_Element
-           (Types.Octet'(Unmarshall (Message_Header)));
+           (Types.Octet'(Unmarshall (Buffer)));
 
       end loop;
 
@@ -323,8 +331,8 @@ package body Droopi.Protocols.GIOP is
       end if;
 
       --  Test if the GIOP version of the Message received is supported
-      Message_Major_Version := Unmarshall (Message_Header);
-      Message_Minor_Version := Unmarshall (Message_Header);
+      Message_Major_Version := Unmarshall (Buffer);
+      Message_Minor_Version := Unmarshall (Buffer);
 
       if not (Message_Major_Version =  Ses.Major_Version)
         or else (Ses.Minor_Version < Message_Minor_Version)
@@ -334,7 +342,7 @@ package body Droopi.Protocols.GIOP is
          return;
       end if;
 
-      Flags := Unmarshall (Message_Header);
+      Flags := Unmarshall (Buffer);
       if (Flags and 2 ** Endianness_Bit) /= 0 then
          Endianness := Little_Endian;
       else
@@ -348,17 +356,17 @@ package body Droopi.Protocols.GIOP is
       end if;
 
       --  Message type
-      Message_Type := Unmarshall (Message_Header);
+      Message_Type := Unmarshall (Buffer);
 
       --  Message size
-      Message_Size := Unmarshall (Message_Header);
+      Message_Size := Unmarshall (Buffer);
 
       --  Everything allright
       Ses.Major_Version := Message_Major_Version;
       Ses.Minor_Version := Message_Minor_Version;
 
       Success := True;
-      Release_Contents (Message_Header.all);
+      Release_Contents (Buffer.all);
 
    end Unmarshall_GIOP_Header;
 
@@ -1387,7 +1395,8 @@ package body Droopi.Protocols.GIOP is
 
    begin
       pragma Debug (O ("Received new connection ..."));
-      null;
+      Expect_Data (S, S.Buffer_In, Message_Header_Size);
+      S.Expect_Header := True;
    end Handle_Connect_Indication;
 
    procedure Handle_Connect_Confirmation (S : access GIOP_Session) is
@@ -1413,124 +1422,124 @@ package body Droopi.Protocols.GIOP is
       pragma Debug (O ("Received data on socket service..."));
       pragma Debug (Buffers.Show (S.Buffer_In.all));
 
-         if S.Expect_Header then
-            Unmarshall_GIOP_Header (S, Mess_Type, Mess_Size,
-                                    Fragment_Next, Success);
-            if not Success then
+      if S.Expect_Header then
+         Unmarshall_GIOP_Header (S, Mess_Type, Mess_Size,
+                                 Fragment_Next, Success);
+         if not Success then
+            raise GIOP_Error;
+         end if;
+         S.Mess_Type_Received  := Mess_Type;
+         S.Expect_Header := False;
+         Expect_Data (S, S.Buffer_In, Stream_Element_Count (Mess_Size));
+         return;
+      end if;
+
+      --  if Fragment_Next then
+      --   Expect_Data ();
+      --   return;
+      --  end if
+
+      case S.Mess_Type_Received  is
+         when Request =>
+            if S.Role = Server then
+               Request_Received (S);
+            else
                raise GIOP_Error;
             end if;
-            S.Mess_Type_Received  := Mess_Type;
-            S.Expect_Header := False;
-            Expect_Data (S, S.Buffer_In, Stream_Element_Count (Mess_Size));
-            return;
-         end if;
+         when Reply =>
+            if S.Role = Client then
+               Reply_Received (S);
+            else
+               raise GIOP_Error;
+            end if;
 
-         --  if Fragment_Next then
-         --   Expect_Data ();
-         --   return;
-         --  end if
+         when Cancel_Request =>
+            if S.Role = Client then
+               raise Not_Implemented;
+            else
+               raise GIOP_Error;
+            end if;
 
-         case S.Mess_Type_Received  is
-            when Request =>
-               if S.Role = Server then
-                  Request_Received (S);
-               else
-                  raise GIOP_Error;
-               end if;
-            when Reply =>
-               if S.Role = Client then
-                  Reply_Received (S);
-               else
-                  raise GIOP_Error;
-               end if;
+         when Locate_Request =>
+            if S.Role = Server then
+               --  not yet implemented
+               raise Not_Implemented;
+            else
+               raise GIOP_Error;
+            end if;
 
-            when Cancel_Request =>
-               if S.Role = Client then
-                  raise Not_Implemented;
-               else
-                  raise GIOP_Error;
-               end if;
+         when Locate_Reply =>
+            if S.Role = Client  then
+               declare
+                  Req_Id        : Types.Unsigned_Long;
+                  Locate_Status : Locate_Status_Type;
+               begin
+                  Unmarshall_Locate_Reply
+                    (S.Buffer_In, Req_Id, Locate_Status);
+                  case Locate_Status is
+                     when Object_Here =>
+                        S.Object_Found := True;
+                        Invoke_Request (S, Pend_Req.Req.all);
 
-            when Locate_Request =>
-               if S.Role = Server then
-                  --  not yet implemented
-                  raise Not_Implemented;
-               else
-                  raise GIOP_Error;
-               end if;
+                     when Unknown_Object =>
+                        pragma Debug (O ("Object not found"));
+                        Release (S.Buffer_In);
+                        Release (S.Buffer_Out);
+                        return;
 
-            when Locate_Reply =>
-               if S.Role = Client  then
-                  declare
-                     Req_Id        : Types.Unsigned_Long;
-                     Locate_Status : Locate_Status_Type;
-                  begin
-                     Unmarshall_Locate_Reply
-                           (S.Buffer_In, Req_Id, Locate_Status);
-                     case Locate_Status is
-                        when Object_Here =>
-                           S.Object_Found := True;
-                           Invoke_Request (S, Pend_Req.Req.all);
+                     when Object_Forward | Object_Forward_Perm =>
+                        declare
+                           TE      : Transport_Endpoint_Access;
+                           New_Ses : Session_Access;
+                        begin
+                           Pend_Req.Target_Profile  :=
+                             Select_Profile (S.Buffer_In);
+                           Binding_Data.IIOP.Bind_Profile
+                             (IIOP_Profile_Type
+                              (Pend_Req.Target_Profile.all),
+                              TE, Component_Access (New_Ses));
 
-                        when Unknown_Object =>
-                           pragma Debug (O ("Object not found"));
+                           --  Release the previous session buffers
                            Release (S.Buffer_In);
                            Release (S.Buffer_Out);
-                           return;
 
-                        when Object_Forward | Object_Forward_Perm =>
-                           declare
-                              TE      : Transport_Endpoint_Access;
-                              New_Ses : Session_Access;
-                           begin
-                              Pend_Req.Target_Profile  :=
-                                 Select_Profile (S.Buffer_In);
-                              Binding_Data.IIOP.Bind_Profile
-                                (IIOP_Profile_Type
-                                  (Pend_Req.Target_Profile.all),
-                                 TE, Component_Access (New_Ses));
+                           Pend_Req.Request_Id := Current_Request_Id;
+                           Current_Request_Id := Current_Request_Id + 1;
+                           Invoke_Request (New_Ses, Pend_Req.Req.all);
+                        end;
 
-                              --  Release the previous session buffers
-                              Release (S.Buffer_In);
-                              Release (S.Buffer_Out);
+                     when Loc_Needs_Addressing_Mode =>
+                        raise Not_Implemented;
 
-                              Pend_Req.Request_Id := Current_Request_Id;
-                              Current_Request_Id := Current_Request_Id + 1;
-                              Invoke_Request (New_Ses, Pend_Req.Req.all);
-                           end;
+                     when Loc_System_Exception =>
+                        Unmarshall_And_Raise (S.Buffer_In);
 
-                        when Loc_Needs_Addressing_Mode =>
-                           raise Not_Implemented;
-
-                        when Loc_System_Exception =>
-                           Unmarshall_And_Raise (S.Buffer_In);
-
-                     end case;
-                  end;
-               else
-                  raise GIOP_Error;
-               end if;
-
-            when Close_Connection =>
-               if S.Role = Server or else S.Minor_Version = Ver2 then
-                  raise Program_Error;
-               else
-                  raise Not_Implemented;
-               end if;
-
-            when Message_Error =>
+                  end case;
+               end;
+            else
                raise GIOP_Error;
+            end if;
 
-            when Fragment =>
+         when Close_Connection =>
+            if S.Role = Server or else S.Minor_Version = Ver2 then
+               raise Program_Error;
+            else
                raise Not_Implemented;
-         end case;
+            end if;
 
+         when Message_Error =>
+            raise GIOP_Error;
 
-      S.Expect_Header := True;
+         when Fragment =>
+            raise Not_Implemented;
+      end case;
+
       Buffers.Release_Contents (S.Buffer_In.all);
 
       --  Prepare to receive next message.
+
       Expect_Data (S, S.Buffer_In, Message_Header_Size);
+      S.Expect_Header := True;
 
    end Handle_Data_Indication;
 

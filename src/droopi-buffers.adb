@@ -61,6 +61,15 @@ package body Droopi.Buffers is
       return Buffer.Length;
    end Length;
 
+   procedure Set_Endianness
+     (Buffer : access Buffer_Type; E : Endianness_Type)
+   is
+   begin
+      pragma Assert
+        (Buffer.CDR_Position = Buffer.Initial_CDR_Position);
+      Buffer.Endianness := E;
+   end Set_Endianness;
+
    function Endianness
      (Buffer : Buffer_Type)
      return Endianness_Type is
@@ -294,9 +303,11 @@ package body Droopi.Buffers is
    is
       Data : Opaque_Pointer;
    begin
-      Grow_Shrink (Buffer.Contents'Access, -Size, Data);
-      Buffer.CDR_Position := Buffer.CDR_Position - Size;
-      Buffer.Length := Buffer.Length - Size;
+      if Size /= 0 then
+         Grow_Shrink (Buffer.Contents'Access, -Size, Data);
+         Buffer.CDR_Position := Buffer.CDR_Position - Size;
+         Buffer.Length := Buffer.Length - Size;
+      end if;
    end Unuse_Allocation;
 
    procedure Extract_Data

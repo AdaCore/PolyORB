@@ -55,7 +55,7 @@ package body Droopi.Protocols is
       Emit_No_Reply
         (Port   => Lower (S),
          Msg    => Data_Expected'
-           (In_Buf => In_Buf, Max => 1024));
+           (In_Buf => In_Buf, Max => Max));
    end Expect_Data;
 
 end Droopi.Protocols;

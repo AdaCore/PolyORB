@@ -1,6 +1,6 @@
 --  Buffer management
 
---  $Id: //droopi/main/src/droopi-buffers.ads#10 $
+--  $Id: //droopi/main/src/droopi-buffers.ads#11 $
 
 with System;
 --  For bit-order information.
@@ -41,8 +41,12 @@ package Droopi.Buffers is
    pragma Inline (Length);
    --  Return the length of Buffer.
 
+   procedure Set_Endianness
+     (Buffer : access Buffer_Type;
+      E      :        Endianness_Type);
    function Endianness (Buffer : Buffer_Type) return Endianness_Type;
    --  Return the endianness of Buffer.
+   --  XXX This should be moved to CDR.
 
    procedure Release_Contents (Buffer : in out Buffer_Type);
    --  Signal that the current contents of a buffer will not be

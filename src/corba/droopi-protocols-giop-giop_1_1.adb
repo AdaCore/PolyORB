@@ -21,6 +21,8 @@ with CORBA;
 with Droopi.Buffers;             use Droopi.Buffers;
 with Droopi.Binding_Data;        use Droopi.Binding_Data;
 with Droopi.Binding_Data.IIOP;
+with Droopi.Log;
+pragma Elaborate_All (Droopi.Log);
 with Droopi.Protocols;           use Droopi.Protocols;
 with Droopi.References;          use Droopi.References;
 with Droopi.Representations.CDR; use Droopi.Representations.CDR;
@@ -28,7 +30,12 @@ with Droopi.Types;
 
 package body Droopi.Protocols.GIOP.GIOP_1_1 is
 
+   use Droopi.Log;
    use Droopi.Types;
+
+   package L is new Droopi.Log.Facility_Log ("droopi.protocols.giop.giop_1_1");
+   procedure O (Message : in String; Level : Log_Level := Debug)
+     renames L.Output;
 
    Nobody_Principal : constant Ada.Strings.Unbounded.Unbounded_String
       := Ada.Strings.Unbounded.To_Unbounded_String ("nobody");
