@@ -32,10 +32,11 @@
 
 --  Storage of opaque data.
 
---  $Id: //droopi/main/src/polyorb-opaque.ads#5 $
+--  $Id: //droopi/main/src/polyorb-opaque.ads#6 $
 
 with Ada.Streams;
 with Ada.Unchecked_Deallocation;
+with System;
 
 package PolyORB.Opaque is
 
@@ -47,19 +48,12 @@ package PolyORB.Opaque is
    procedure Free is new Ada.Unchecked_Deallocation
      (Ada.Streams.Stream_Element_Array, Zone_Access);
 
-   type Opaque_Pointer is record
-      Zone : Zone_Access;
-      --  The storage zone wherein the data resides.
+   subtype Opaque_Pointer is System.Address;
+   function Is_Null (P : Opaque_Pointer) return Boolean;
+   pragma Inline (Is_Null);
 
-      Offset : Ada.Streams.Stream_Element_Offset;
-      --  The position of the first data element within the zone.
-
-   end record;
-
-   function "+" (P : Opaque_Pointer; Ofs : Ada.Streams.Stream_Element_Offset)
-                return Opaque_Pointer;
-   pragma Inline ("+");
-   --  Add Ofs to P.Offset.
+   function To_Opaque_Pointer (Z : Zone_Access) return Opaque_Pointer;
+   pragma Inline (To_Opaque_Pointer);
 
    subtype Alignment_Type is Ada.Streams.Stream_Element_Offset range 1 .. 8;
 

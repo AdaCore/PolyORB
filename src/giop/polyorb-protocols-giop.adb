@@ -224,6 +224,7 @@ package body PolyORB.Protocols.GIOP is
       Endianness1 : Endianness_Type;
       Z : constant Zone_Access
         := Zone_Access'(Octets.all'Unchecked_Access);
+      --  Bypass runtime accessibility check.
    begin
 
       if PolyORB.Types.Boolean'Val
@@ -237,10 +238,7 @@ package body PolyORB.Protocols.GIOP is
       Initialize_Buffer
         (Buffer               => S.Buffer_In,
          Size                 => Octets'Length - 1,
-         Data                 =>
-           (Zone   => Z,
-            Offset => Z'First + 1),
-         --  Bypass runtime accessibility check.
+         Data                 => To_Opaque_Pointer (Z),
          Endianness           => Endianness1,
          Initial_CDR_Position => 0);
 

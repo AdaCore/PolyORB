@@ -136,9 +136,13 @@ package body PolyORB.Utils.Buffers is
          Octets'Length,
          Data_Address);
 
-      Data_Address.Zone (Data_Address.Offset
-        .. Data_Address.Offset + Octets'Length - 1)
-        := Octets;
+      declare
+         subtype Z_Type is Stream_Element_Array (Octets'Range);
+         Z : Z_Type;
+         for Z'Address use Data_Address;
+      begin
+         Z := Octets;
+      end;
    end Align_Marshall_Copy;
 
    ---------------------------
@@ -155,8 +159,13 @@ package body PolyORB.Utils.Buffers is
    begin
       Align_Position (Buffer, Alignment);
       Extract_Data (Buffer, Data_Address, Size);
-      return Data_Address.Zone
-        (Data_Address.Offset .. Data_Address.Offset + Size - 1);
+      declare
+         subtype Z_Type is Stream_Element_Array (0 .. Size - 1);
+         Z : Z_Type;
+         for Z'Address use Data_Address;
+      begin
+         return Z;
+      end;
    end Align_Unmarshall_Copy;
 
 end PolyORB.Utils.Buffers;

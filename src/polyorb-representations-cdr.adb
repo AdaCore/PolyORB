@@ -81,8 +81,6 @@ package body PolyORB.Representations.CDR is
       Buffer : access Buffer_Type)
    is
       Endianness : Endianness_Type;
-      Z : constant Zone_Access
-        := Zone_Access'(Octets.all'Unchecked_Access);
    begin
       if PolyORB.Types.Boolean'Val
         (PolyORB.Types.Octet (Octets (Octets'First))) then
@@ -94,10 +92,7 @@ package body PolyORB.Representations.CDR is
       Initialize_Buffer
         (Buffer               => Buffer,
          Size                 => Octets'Length - 1,
-         Data                 =>
-           (Zone   => Z,
-            Offset => Z'First + 1),
-         --  Bypass runtime accessibility check.
+         Data                 => Octets (Octets'First + 1)'Address,
          Endianness           => Endianness,
          Initial_CDR_Position => 1);
    end Decapsulate;

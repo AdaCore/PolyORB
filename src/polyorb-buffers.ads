@@ -32,10 +32,12 @@
 
 --  Buffer management
 
---  $Id: //droopi/main/src/polyorb-buffers.ads#12 $
+--  $Id: //droopi/main/src/polyorb-buffers.ads#13 $
 
 with System;
 --  For bit-order information.
+
+with System.Storage_Elements;
 
 with Ada.Streams;
 
@@ -295,10 +297,9 @@ private
 
    type Iovec is record
       Iov_Base : Opaque.Opaque_Pointer;
-      Iov_Len  : Ada.Streams.Stream_Element_Count;
+      Iov_Len  : System.Storage_Elements.Storage_Offset;
    end record;
-   --  This is modeled after the POSIX iovec, but is not equivalent
-   --  (because we cannot depend on being able to manipulate System.Address).
+   --  This is modeled after the POSIX iovec.
 
    type Buffer_Chunk_Metadata is record
       --  An Iovec pool manipulates chunks of memory allocated

@@ -40,6 +40,7 @@ with PolyORB.Log;
 package body PolyORB.Buffers is
 
    use Ada.Streams;
+   use System.Storage_Elements;
    use PolyORB.Opaque;
    use PolyORB.Log;
    use Buffer_Chunk_Pools;
@@ -99,7 +100,7 @@ package body PolyORB.Buffers is
    is
       Data_Iovec : constant Iovec
         := (Iov_Base => Data,
-            Iov_Len  => Data.Zone'Length - (Data.Offset - Data.Zone'First));
+            Iov_Len  => Storage_Offset (Size));
 
    begin
       pragma Assert (True
@@ -219,14 +220,12 @@ package body PolyORB.Buffers is
       Buffer.CDR_Position := Position;
    end Set_Initial_Position;
 
-   Null_Data : constant Zone_Access
-     := new Stream_Element_Array'
-     (1 .. Alignment_Type'Last - 1 => 0);
+   Null_Data : aliased Stream_Element_Array (1 .. Alignment_Type'Last - 1)
+     := (1 .. Alignment_Type'Last - 1 => 0);
    --  Null data used for padding.
 
    Null_Data_Address : constant Opaque_Pointer
-     := (Zone   => Null_Data,
-         Offset => Null_Data'First);
+     := Null_Data (Null_Data'First)'Address;
 
    procedure Pad_Align
      (Buffer    : access Buffer_Type;
@@ -253,7 +252,7 @@ package body PolyORB.Buffers is
       --  Try to extend Buffer.Content's last Iovec
       --  to provide proper alignment.
 
-      if Padding_Space.Zone = null then
+      if Is_Null (Padding_Space) then
          --  Grow was unable to extend the last Iovec:
          --  insert a non-growable iovec corresponding
          --  to static null data.
@@ -261,7 +260,7 @@ package body PolyORB.Buffers is
          declare
             Padding_Iovec : constant Iovec
               := (Iov_Base => Null_Data_Address,
-                  Iov_Len  => Padding);
+                  Iov_Len  => Storage_Offset (Padding));
          begin
             Append
               (Iovec_Pool => Buffer.Contents,
@@ -316,7 +315,7 @@ package body PolyORB.Buffers is
       Data      : Opaque_Pointer)
    is
       Data_Iovec : constant Iovec
-        := (Iov_Base => Data, Iov_Len  => Size);
+        := (Iov_Base => Data, Iov_Len  => Storage_Offset (Size));
    begin
       pragma Assert (Buffer.Endianness = Host_Order);
 
@@ -337,14 +336,14 @@ package body PolyORB.Buffers is
       Grow_Shrink (Buffer.Contents'Access, Size, A_Data);
       --  First try to grow an existing Iovec.
 
-      if A_Data.Zone = null then
+      if Is_Null (A_Data) then
          declare
             A_Chunk : Chunk_Access;
             Data_Iovec : Iovec;
          begin
             Allocate (Buffer.Storage'Access, A_Chunk);
             Data_Iovec := (Iov_Base => Chunk_Storage (A_Chunk),
-                           Iov_Len  => Size);
+                           Iov_Len  => Storage_Offset (Size));
 
             A_Data := Chunk_Storage (A_Chunk);
             Metadata (A_Chunk).all :=
@@ -353,7 +352,7 @@ package body PolyORB.Buffers is
               (Iovec_Pool => Buffer.Contents,
                An_Iovec   => Data_Iovec,
                A_Chunk    => A_Chunk);
-            pragma Assert (A_Data.Zone /= null);
+            pragma Assert (not Is_Null (A_Data));
          end;
       end if;
 
@@ -442,14 +441,20 @@ package body PolyORB.Buffers is
       Addr : PolyORB.Sockets.Sock_Addr_Type;
       Saved_CDR_Position : constant Stream_Element_Offset
         := Buffer.CDR_Position;
+      subtype Z_Type is Stream_Element_Array (0 .. Max - 1);
    begin
       Allocate_And_Insert_Cooked_Data (Buffer, Max, Data);
-      PolyORB.Sockets.Receive_Socket
-        (Socket => Socket,
-         Item   => Data.Zone (Data.Offset .. Data.Offset + Max - 1),
-         Last   => Last,
-         From   => Addr);
-      Received := Last - Data.Offset + 1;
+      declare
+         Z : Z_Type;
+         for Z'Address use Data;
+      begin
+         PolyORB.Sockets.Receive_Socket
+           (Socket => Socket,
+            Item   => Z,
+            Last   => Last,
+            From   => Addr);
+      end;
+      Received := Last + 1;
       Unuse_Allocation (Buffer, Max - Received);
       Buffer.CDR_Position := Saved_CDR_Position;
    end Receive_Buffer;
@@ -551,14 +556,15 @@ package body PolyORB.Buffers is
                              and then Chunk_Metadata.Last_Used + Size
                                <= Last_Chunk.Size)
                     or else (Size < 0
-                             and then Chunk_Metadata.Last_Used + Size
-                               >= 0
-                             and then Last_Iovec.Iov_Len + Size >= 0)
+                             and then Chunk_Metadata.Last_Used + Size >= 0
+                             and then Last_Iovec.Iov_Len
+                               + Storage_Offset (Size) >= 0)
                   then
                      Chunk_Metadata.Last_Used
                        := Chunk_Metadata.Last_Used + Size;
                      Data := First_Address_After (Last_Iovec);
-                     Last_Iovec.Iov_Len := Last_Iovec.Iov_Len + Size;
+                     Last_Iovec.Iov_Len := Last_Iovec.Iov_Len
+                       + Storage_Offset (Size);
                   else
                      pragma Assert (False);
                      null;
@@ -568,7 +574,7 @@ package body PolyORB.Buffers is
          end Do_Grow;
 
       begin
-         Data.Zone := null;
+         Data := System.Null_Address;
          if Iovec_Pool.Last = 0 then
             --  Empty Iovec pool.
             return;
@@ -668,16 +674,19 @@ package body PolyORB.Buffers is
 
       procedure Dump (Iovecs : Iovec_Array; Into : Opaque_Pointer)
       is
-         Offset : Stream_Element_Offset := Into.Offset;
+         Offset : Storage_Offset := 0;
       begin
          for I in Iovecs'Range loop
             declare
-               L : constant Stream_Element_Count := Iovecs (I).Iov_Len;
-               S : constant Opaque_Pointer := Iovecs (I).Iov_Base;
+               L : constant Stream_Element_Offset
+                 := Stream_Element_Offset (Iovecs (I).Iov_Len);
+               S : Stream_Element_Array (0 .. L - 1);
+               for S'Address use Iovecs (I).Iov_Base;
+               D : Stream_Element_Array (0 .. L - 1);
+               for D'Address use Into + Offset;
             begin
-               Into.Zone (Offset .. Offset + L - 1)
-                 := S.Zone (S.Offset .. S.Offset + L - 1);
-               Offset := Offset + L;
+               D := S;
+               Offset := Offset + Storage_Offset (L);
             end;
          end loop;
       end Dump;
@@ -688,12 +697,10 @@ package body PolyORB.Buffers is
          Length : Stream_Element_Count := 0;
       begin
          for I in Iovecs'Range loop
-            Length := Length + Iovecs (I).Iov_Len;
+            Length := Length + Stream_Element_Count (Iovecs (I).Iov_Len);
          end loop;
          Result := new Stream_Element_Array (1 .. Length);
-         Dump (Iovecs, Opaque_Pointer'
-               (Zone => Result,
-                Offset => Result'First));
+         Dump (Iovecs, Opaque_Pointer'(Result (Result'First)'Address));
          return Result;
       end Dump;
 
@@ -753,16 +760,16 @@ package body PolyORB.Buffers is
          Offset     : Stream_Element_Offset;
          Size       : Stream_Element_Count)
       is
-         Vecs             : constant Iovec_Array  := Iovecs (Iovec_Pool);
-         Offset_Remainder : Stream_Element_Offset := Offset;
-         Index            : Natural               := Vecs'First;
+         Vecs             : constant Iovec_Array := Iovecs (Iovec_Pool);
+         Offset_Remainder : Storage_Offset := Storage_Offset (Offset);
+         Index            : Natural := Vecs'First;
       begin
          while Offset_Remainder >= Vecs (Index).Iov_Len loop
-            Offset_Remainder := Offset_Remainder
-              - Vecs (Index).Iov_Len;
+            Offset_Remainder := Offset_Remainder - Vecs (Index).Iov_Len;
             Index := Index + 1;
          end loop;
-         pragma Assert (Offset_Remainder + Size <= Vecs (Index).Iov_Len);
+         pragma Assert (Offset_Remainder + Storage_Offset (Size)
+           <= Vecs (Index).Iov_Len);
 
          Data := Vecs (Index).Iov_Base + Offset_Remainder;
       exception
@@ -793,44 +800,43 @@ package body PolyORB.Buffers is
 
          Last  : Stream_Element_Offset;
 
-         Count : Stream_Element_Count;
-         --  Number of Stream_Elements written in one
-         --  Send_Socket operation.
-
-         Rest  : Stream_Element_Count := 0;
+         Remainder : Storage_Offset := 0;
          --  Number of Stream_Elements yet to be written.
 
       begin
          for I in Vecs'Range loop
-            Rest := Rest + Vecs (I).Iov_Len;
+            Remainder := Remainder + Vecs (I).Iov_Len;
          end loop;
 
-         while Rest > 0 loop
+         while Remainder > 0 loop
             declare
                P : constant Opaque_Pointer := Vecs (Index).Iov_Base;
-               L : constant Stream_Element_Count := Vecs (Index).Iov_Len;
+               L : constant Storage_Offset := Vecs (Index).Iov_Len;
+               subtype Z_Type is Stream_Element_Array
+                 (0 .. Stream_Element_Offset (L - 1));
+               Z : Z_Type;
+               for Z'Address use P;
+               Count : Storage_Offset;
             begin
 
                --  FIXME:
                --  For now we do scatter-gather ourselves for lack of a writev
                --  operation in GNAT.Sockets.
 
-               Send_Socket (S, P.Zone (P.Offset .. P.Offset + L - 1), Last);
+               Send_Socket (S, Z, Last);
                --  May raise Socket_Error.
-               Count := Last - P.Offset + 1;
+               Count := Storage_Offset (Last) + 1;
 
-               while Index <= Vecs'Last
-                 and then Count >= Vecs (Index).Iov_Len loop
-                  Rest  := Rest  - Vecs (Index).Iov_Len;
+               while Index <= Vecs'Last and then Count >= Vecs (Index).Iov_Len
+               loop
+                  Remainder := Remainder - Vecs (Index).Iov_Len;
                   Count := Count - Vecs (Index).Iov_Len;
                   Index := Index + 1;
                end loop;
 
                if Count > 0 then
-                  Vecs (Index).Iov_Base :=
-                    Vecs (Index).Iov_Base + Count;
-                  Vecs (Index).Iov_Len
-                    := Vecs (Index).Iov_Len - Count;
+                  Vecs (Index).Iov_Base := Vecs (Index).Iov_Base + Count;
+                  Vecs (Index).Iov_Len := Vecs (Index).Iov_Len - Count;
                end if;
             end;
          end loop;

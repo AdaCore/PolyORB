@@ -32,7 +32,7 @@
 
 --  Pools of memory chunks, with associated client metadata.
 
---  $Id: //droopi/main/src/polyorb-opaque-chunk_pools.adb#8 $
+--  $Id: //droopi/main/src/polyorb-opaque-chunk_pools.adb#9 $
 
 with Ada.Unchecked_Deallocation;
 with System;
@@ -87,9 +87,7 @@ package body PolyORB.Opaque.Chunk_Pools is
      (A_Chunk : Chunk_Access)
      return Opaque_Pointer is
    begin
-      return Opaque_Pointer'
-        (Zone   => A_Chunk.Data,
-         Offset => A_Chunk.Data'First);
+      return A_Chunk.Data (A_Chunk.Data'First)'Address;
    end Chunk_Storage;
 
    procedure Release

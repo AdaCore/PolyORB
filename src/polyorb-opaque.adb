@@ -34,12 +34,15 @@
 
 package body PolyORB.Opaque is
 
-   function "+" (P : Opaque_Pointer; Ofs : Ada.Streams.Stream_Element_Offset)
-                return Opaque_Pointer
-   is
-      use type Ada.Streams.Stream_Element_Offset;
+   function Is_Null (P : Opaque_Pointer) return Boolean is
+      use type System.Address;
    begin
-      return Opaque_Pointer'(P.Zone, P.Offset + Ofs);
-   end "+";
+      return P = System.Null_Address;
+   end Is_Null;
+
+   function To_Opaque_Pointer (Z : Zone_Access) return Opaque_Pointer is
+   begin
+      return Z (Z'First)'Address;
+   end To_Opaque_Pointer;
 
 end PolyORB.Opaque;

@@ -324,72 +324,76 @@ package body PolyORB.Filters.HTTP is
             At_Position => New_Data_Position);
          --  Peek at the newly-received data.
 
-         Scan_Line :
-         for I in New_Data.Offset
-           .. New_Data.Offset + Data_Received - 1
-         loop
-            case New_Data.Zone (I) is
-               when Character'Pos (ASCII.CR) =>
-                  if F.CR_Seen then
-                     raise Protocol_Error;
-                     --  Two consecutive CRs.
-                  end if;
+         declare
+            subtype Z_Type is Stream_Element_Array (0 .. Data_Received - 1);
+            Z : Z_Type;
+            for Z'Address use New_Data;
+         begin
+            Scan_Line :
+            for J in Z'Range loop
+               case Z (J) is
+                  when Character'Pos (ASCII.CR) =>
+                     if F.CR_Seen then
+                        raise Protocol_Error;
+                        --  Two consecutive CRs.
+                     end if;
 
-                  F.CR_Seen := True;
+                     F.CR_Seen := True;
 
-               when Character'Pos (ASCII.LF) =>
-                  if not F.CR_Seen then
-                     raise Protocol_Error;
-                     --  LF not preceded with CR.
-                  end if;
-                  F.CR_Seen := False;
+                  when Character'Pos (ASCII.LF) =>
+                     if not F.CR_Seen then
+                        raise Protocol_Error;
+                        --  LF not preceded with CR.
+                     end if;
+                     F.CR_Seen := False;
 
-                  begin
-                     Process_Line
-                       (F, Line_Length =>
-                          New_Data_Position - CDR_Position (F.In_Buf)
-                        + I - New_Data.Offset + 1);
-                  exception
-                     when E : others =>
-                        O ("Received exception in "
-                           & HTTP_State'Image (F.State) & " state:", Error);
-                        O (Ada.Exceptions.Exception_Information (E),
-                           Error);
-                        Clear_Message_State (F.all);
-                        if F.Role = Server then
-                           Error (F, S_400_Bad_Request);
-                        else
-                           --  XXX what to do on client side?
-                           raise;
-                        end if;
-                        --  XXX close???
-                  end;
+                     begin
+                        Process_Line
+                          (F, Line_Length =>
+                             New_Data_Position - CDR_Position (F.In_Buf)
+                           + J + 1);
+                     exception
+                        when E : others =>
+                           O ("Received exception in "
+                              & HTTP_State'Image (F.State) & " state:", Error);
+                           O (Ada.Exceptions.Exception_Information (E),
+                              Error);
+                           Clear_Message_State (F.all);
+                           if F.Role = Server then
+                              Error (F, S_400_Bad_Request);
+                           else
+                              --  XXX what to do on client side?
+                              raise;
+                           end if;
+                           --  XXX close???
+                     end;
 
-                  --  Calculation of the length of the current line:
-                  --  New_Data_Position - CDR_Position = amount of data
-                  --    received  but not yet processed
-                  --    (the beginning of this line)
-                  --  I - I'First + 1 = amount of data now appended
-                  --    (the end of this line).
+                     --  Calculation of the length of the current line:
+                     --  New_Data_Position - CDR_Position = amount of data
+                     --    received  but not yet processed
+                     --    (the beginning of this line)
+                     --  I - I'First + 1 = amount of data now appended
+                     --    (the end of this line).
 
-                  New_Data_Position := CDR_Position (F.In_Buf);
-                  Data_Received := Length (F.In_Buf) - New_Data_Position;
-                  if Data_Received > 0 then
-                     pragma Debug (O ("Restarting HTTP processing"));
-                     pragma Debug
-                       (O ("Transfer length:" & F.Transfer_Length'Img));
-                     pragma Debug
-                       (O ("Pending data:" & Data_Received'Img));
-                     goto Process_Received_Data;
-                  end if;
-                  --  Update state, and restart data processing if
-                  --  necessary (Process_Line may have changed F.State,
-                  --  so we cannot simply continue running Scan_Line).
+                     New_Data_Position := CDR_Position (F.In_Buf);
+                     Data_Received := Length (F.In_Buf) - New_Data_Position;
+                     if Data_Received > 0 then
+                        pragma Debug (O ("Restarting HTTP processing"));
+                        pragma Debug
+                          (O ("Transfer length:" & F.Transfer_Length'Img));
+                        pragma Debug
+                          (O ("Pending data:" & Data_Received'Img));
+                        goto Process_Received_Data;
+                     end if;
+                     --  Update state, and restart data processing if
+                     --  necessary (Process_Line may have changed F.State,
+                     --  so we cannot simply continue running Scan_Line).
 
-               when others =>
-                  F.CR_Seen := False;
-            end case;
-         end loop Scan_Line;
+                  when others =>
+                     F.CR_Seen := False;
+               end case;
+            end loop Scan_Line;
+         end;
 
          if CDR_Position (F.In_Buf) = Length (F.In_Buf) then
             --  All data currently in F.In_Buf has been processed,
@@ -419,15 +423,8 @@ package body PolyORB.Filters.HTTP is
 
             declare
                S : String (1 .. Integer (Data_Processed));
-               --  XXX BAD BAD do not allocate that on the stack!
+               for S'Address use Data;
             begin
-               for I in S'Range loop
-                  S (I) := Character'Val
-                    (Data.Zone
-                     (Data.Offset
-                      + Stream_Element_Offset (I - S'First)));
-               end loop;
-
                Append (F.Entity, S);
             end;
 
@@ -498,8 +495,6 @@ package body PolyORB.Filters.HTTP is
       Line_Length : Stream_Element_Count)
    is
       Data : PolyORB.Opaque.Opaque_Pointer;
-      S : String (1 .. Integer (Line_Length) - 2);
-      --  Ignore last 2 characters (CR/LF).
    begin
       pragma Debug
         (O ("Processing line at position "
@@ -507,81 +502,80 @@ package body PolyORB.Filters.HTTP is
             (PolyORB.Buffers.CDR_Position (F.In_Buf))));
       PolyORB.Buffers.Extract_Data
         (F.In_Buf, Data, Line_Length, Use_Current => True);
-      for I in S'Range loop
-         S (I) := Character'Val
-           (Data.Zone
-            (Data.Offset + Stream_Element_Offset (I - S'First)));
-      end loop;
+      declare
+         S : String (1 .. Integer (Line_Length) - 2);
+         --  Ignore last 2 characters (CR/LF).
+         for S'Address use Data;
+      begin
+         pragma Debug (O ("HTTP line received: " & S));
 
-      pragma Debug (O ("HTTP line received: " & S));
-
-      case F.State is
-         when Start_Line =>
-            if F.Role = Server then
-               Parse_Request_Line (F, S);
-            else
-               Parse_Status_Line (F, S);
-            end if;
-
-         when Chunk_Size =>
-            Parse_Chunk_Size (F, S);
-
-         when Header | Trailer =>
-            if S'Length > 2 then
-               Parse_Header_Line (F, S);
-            else
-               --  End of headers (an empty line).
-               pragma Debug (O ("Headers complete."));
-
-               --  Determine the message body transfer length
-               --  (RFC 2616 4.4)
-
-               --  if Is_Response_Without_Body (F) then
-               --  XXX implement predicate Is_Resp_WO_Body
-               if False then
-                  F.Transfer_Length := 0;
-                  --  Response received complete, does not (and
-                  --  MUST not) contain a body.
-
-                  --  XXX now we must send Data_Indication to
-                  --  the upper layer, and switch to Start_Line
-                  --  state.
-
-               elsif Length (F.Transfer_Encoding) > 0 then
-                  if Value (First (F.Transfer_Encoding)).all
-                    = Encoding_Chunked
-                  then
-                     F.Chunked := True;
-                     F.State := Chunk_Size;
-                  end if;
-               elsif F.Content_Length > 0 then
-                  F.Transfer_Length := F.Content_Length;
-                  --  Expect content-length octets, NO trailing CRLF.
-                  F.State := Entity;
---             elsif Media-Type is multipart/byteranges
---                ... use that to determine the transfer-length
+         case F.State is
+            when Start_Line =>
+               if F.Role = Server then
+                  Parse_Request_Line (F, S);
                else
-                  if F.Role = Server then
-                     --  XXX 400 Bad request: the client cannot
-                     --  indicate the transfer length by closing
-                     --  the connection at the end of the message,
-                     --  because then there would be no channel
-                     --  for sending a response.
-                     raise Protocol_Error;
-                  end if;
-
-                  --  We are on the client side, and the
-                  --  transfer-length will be indicated by the
-                  --  server closing the connection.
-                  F.Transfer_Length := -1;
-                  F.State := Entity;
+                  Parse_Status_Line (F, S);
                end if;
-            end if;
 
-         when others =>
-            raise Program_Error;
-      end case;
+            when Chunk_Size =>
+               Parse_Chunk_Size (F, S);
 
+            when Header | Trailer =>
+               if S'Length > 2 then
+                  Parse_Header_Line (F, S);
+               else
+                  --  End of headers (an empty line).
+                  pragma Debug (O ("Headers complete."));
+
+                  --  Determine the message body transfer length
+                  --  (RFC 2616 4.4)
+
+                  --  if Is_Response_Without_Body (F) then
+                  --  XXX implement predicate Is_Resp_WO_Body
+                  if False then
+                     F.Transfer_Length := 0;
+                     --  Response received complete, does not (and
+                     --  MUST not) contain a body.
+
+                     --  XXX now we must send Data_Indication to
+                     --  the upper layer, and switch to Start_Line
+                     --  state.
+
+                  elsif Length (F.Transfer_Encoding) > 0 then
+                     if Value (First (F.Transfer_Encoding)).all
+                       = Encoding_Chunked
+                     then
+                        F.Chunked := True;
+                        F.State := Chunk_Size;
+                     end if;
+                  elsif F.Content_Length > 0 then
+                     F.Transfer_Length := F.Content_Length;
+                     --  Expect content-length octets, NO trailing CRLF.
+                     F.State := Entity;
+   --             elsif Media-Type is multipart/byteranges
+   --                ... use that to determine the transfer-length
+                  else
+                     if F.Role = Server then
+                        --  XXX 400 Bad request: the client cannot
+                        --  indicate the transfer length by closing
+                        --  the connection at the end of the message,
+                        --  because then there would be no channel
+                        --  for sending a response.
+                        raise Protocol_Error;
+                     end if;
+
+                     --  We are on the client side, and the
+                     --  transfer-length will be indicated by the
+                     --  server closing the connection.
+                     F.Transfer_Length := -1;
+                     F.State := Entity;
+                  end if;
+               end if;
+
+            when others =>
+               raise Program_Error;
+         end case;
+      end;
    end Process_Line;
 
    --  Linear white space

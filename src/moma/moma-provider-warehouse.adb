@@ -106,11 +106,15 @@ package body MOMA.Provider.Warehouse is
       else
          Ada.Streams.Stream_IO.Open (Stream_File, In_File, "message_" & K);
          Allocate_And_Insert_Cooked_Data (Buffer, 1024, Data);
-         Ada.Streams.Stream_IO.Read (Stream_File, Data.Zone
-                                     (Data.Offset .. Data.Offset + 1024),
-                                     Last);
+         declare
+            subtype Z_Type is Stream_Element_Array (0 .. 1023);
+            Z : Z_Type;
+            for Z'Address use Data;
+         begin
+            Ada.Streams.Stream_IO.Read (Stream_File, Z, Last);
+         end;
 
-         Received := Last - Data.Offset + 1;
+         Received := Last + 1;
          Unuse_Allocation (Buffer, 1024 - Received);
          Ada.Streams.Stream_IO.Close (Stream_File);
 
