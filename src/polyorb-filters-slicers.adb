@@ -51,6 +51,9 @@ package body PolyORB.Filters.Slicers is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
+   ------------
+   -- Create --
+   ------------
 
    procedure Create
      (Fact   : access Slicer_Factory;
@@ -67,6 +70,10 @@ package body PolyORB.Filters.Slicers is
       Slicer_Filter (Res.all).Data_Expected := 0;
       Slicer := Res;
    end Create;
+
+   --------------------
+   -- Handle_Message --
+   --------------------
 
    function Handle_Message
      (F : access Slicer_Filter;
@@ -157,11 +164,13 @@ package body PolyORB.Filters.Slicers is
         or else S in Set_Server
       then
          return Emit (F.Upper, S);
+
       elsif False
         or else S in Data_Out
         or else S in Disconnect_Request
       then
          return Emit (F.Lower, S);
+
       else
          raise Unhandled_Message;
       end if;
