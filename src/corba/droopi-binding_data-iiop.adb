@@ -86,8 +86,8 @@ package body Droopi.Binding_Data.IIOP is
       Pro  : aliased GIOP_Protocol;
       Sli  : aliased Slicer_Factory;
       Prof : Profile_Access := new IIOP_Profile_Type;
-      --  XXX memory leak (probable)
-      --  What is this copy used for?
+      --  This Profile_Access is stored in the created
+      --  GIOP_Session, and free'd when the session is finalised.
 
       TProf : IIOP_Profile_Type
         renames IIOP_Profile_Type (Prof.all);

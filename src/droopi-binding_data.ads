@@ -1,7 +1,7 @@
 --  Management of binding data, i. e. the elements of information
 --  that designate a remote middleware TSAP.
 
---  $Id: //droopi/main/src/droopi-binding_data.ads#14 $
+--  $Id: //droopi/main/src/droopi-binding_data.ads#15 $
 
 with Ada.Finalization;
 
@@ -39,8 +39,9 @@ package Droopi.Binding_Data is
    Tag_Internet_IOP        : constant Profile_Tag;
    Tag_Multiple_Components : constant Profile_Tag;
    Tag_Local               : constant Profile_Tag;
-   Tag_Test                : constant Profile_Tag;
    Tag_SRP                 : constant Profile_Tag;
+   Tag_SOAP                : constant Profile_Tag;
+   Tag_Test                : constant Profile_Tag;
 
    type Profile_Preference is new Integer range 0 .. Integer'Last;
    --  Profile_Preference'First means "unsupported profile type"
@@ -131,8 +132,9 @@ private
    --  Tags defined by DROOPI
 
    Tag_Local               : constant Profile_Tag := 16#7fffff00#;
-   Tag_Test                : constant Profile_Tag := 16#7fffff01#;
    Tag_SRP                 : constant Profile_Tag := 16#7fffff02#;
+   Tag_SOAP                : constant Profile_Tag := 16#7fffff03#;
+   Tag_Test                : constant Profile_Tag := 16#7fffff0f#;
 
    Preference_Default : constant Profile_Preference
      := (Profile_Preference'First + Profile_Preference'Last) / 2;

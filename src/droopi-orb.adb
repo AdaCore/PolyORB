@@ -620,9 +620,8 @@ package body Droopi.ORB is
 
             --  XXX Should that be Emit? Should there be a reply
             --      from Requestor?
+            --  XXX Who frees the Request object?
 
-            --  The client is responsible for destroying
-            --  the request object after use.
          end;
          pragma Debug (O ("Run Request_Job: executed request"));
       end;

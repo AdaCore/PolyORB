@@ -113,13 +113,15 @@ package body Droopi.References.IOR is
                      if Element_Of (Callbacks, I).Tag = Tag then
                         Profs (N) := Element_Of (Callbacks, I).
                           Unmarshall_Profile_Body (Buffer);
+                        --  Profiles dynamically allocated here
+                        --  will be freed when the returned
+                        --  reference is finalised.
                      end if;
                   end loop;
                end;
             end loop;
 
-            Result.Ref := Ref'(Nil_Ref => False,
-               Profiles => To_Sequence (Profs));
+            Create_Reference (Profs, Result.Ref);
 
             return Result;
       end;

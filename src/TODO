@@ -12,8 +12,12 @@ Items still requiring attention
 
 * Make compliant PortableServer tree for CORBA personality.
 
+* Factor out common code between different versions of
+  Droopi.Binding_Data.*
+
 REQUIRED:
 ---------
+
 corba-context.ads
 corba-contextlist.ads
 corba-current.ads

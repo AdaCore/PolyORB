@@ -100,12 +100,6 @@ package body Droopi.Requests is
       end if;
    end Arguments;
 
---    procedure Destroy_Request
---      (Req : in out Request_Access) is
---    begin
---       Free (Req);
---    end Destroy_Request;
-
    function Image (Req : Request) return String
    is
       S1 : constant String

@@ -96,6 +96,10 @@ package CORBA.Object is
    type Reference_Info is new Droopi.Smart_Pointers.Entity with record
       IOR : Droopi.References.IOR.IOR_Type;
    end record;
+   --  XXX Actually, type info from IOR_Type should be moved into
+   --  Droopi.References.Reference_Info, and then IOR_Type can be
+   --  suppressed completely, and Droopi.References.Ref/Reference_Info
+   --  can be used instead.
 
 private
 

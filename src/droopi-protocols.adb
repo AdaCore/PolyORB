@@ -2,9 +2,12 @@
 
 --  $Id$
 
+with Ada.Tags;
 with Ada.Unchecked_Deallocation;
 
 with Droopi.Filters.Interface;
+with Droopi.Log;
+pragma Elaborate_All (Droopi.Log);
 with Droopi.Objects.Interface;
 with Droopi.Protocols.Interface;
 
@@ -12,9 +15,15 @@ package body Droopi.Protocols is
 
    use Droopi.Components;
    use Droopi.Filters.Interface;
+   use Droopi.Log;
    use Droopi.Objects.Interface;
    use Droopi.ORB.Interface;
    use Droopi.Protocols.Interface;
+
+   package L is new Droopi.Log.Facility_Log ("droopi.protocols");
+   procedure O (Message : in String; Level : Log_Level := Debug)
+     renames L.Output;
+
 
    procedure Free is new Ada.Unchecked_Deallocation
      (Session'Class, Session_Access);
@@ -40,6 +49,9 @@ package body Droopi.Protocols is
    is
       Nothing : Components.Null_Message;
    begin
+      pragma Debug
+        (O ("Handling message of type "
+            & Ada.Tags.External_Tag (S'Tag)));
       if S in Connect_Indication then
          Handle_Connect_Indication (Session_Access (Sess));
       elsif S in Connect_Confirmation then
@@ -64,9 +76,17 @@ package body Droopi.Protocols is
            (Session_Access (Sess),
             Execute_Request (S).Req);
       elsif S in Executed_Request then
-         Send_Reply
-           (Session_Access (Sess),
-            Executed_Request (S).Req);
+         declare
+            Var_Req : Request_Access
+              := Executed_Request (S).Req;
+         begin
+            Send_Reply
+              (Session_Access (Sess),
+               Executed_Request (S).Req);
+            pragma Debug (O ("Destroying request..."));
+            Destroy_Request (Var_Req);
+            pragma Debug (O ("... done."));
+         end;
       elsif S in Queue_Request then
          --  XXX
          --  This is very wrong:

@@ -1,3 +1,5 @@
+--  Tasking policy for the ORB core: 'No_Tasking'.
+
 --  $Id$
 
 with Droopi.Components;

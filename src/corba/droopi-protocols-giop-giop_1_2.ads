@@ -89,6 +89,8 @@ package Droopi.Protocols.GIOP.GIOP_1_2 is
       Response_Expected : out Boolean;
       Target_Ref        : out Target_Address_Access;
       Operation         : out Types.String);
+   --  Storage for Target_Ref is dynamically allocated,
+   --  and must be released by the caller after use.
 
    procedure Unmarshall_Reply_Message
       (Buffer       : access Buffers.Buffer_Type;

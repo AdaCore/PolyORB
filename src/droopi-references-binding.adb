@@ -40,7 +40,7 @@ package body Droopi.References.Binding is
          use Profile_Seqs;
 
          Profiles : constant Element_Array
-           := To_Element_Array (R.Profiles);
+           := Profiles_Of (R);
 
          Best_Preference : Profile_Preference
            := Profile_Preference'First;

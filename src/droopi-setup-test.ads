@@ -4,6 +4,7 @@
 
 with Droopi.ORB;
 with Droopi.References;
+pragma Elaborate_All (Droopi.References);
 
 package Droopi.Setup.Test is
 

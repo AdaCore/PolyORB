@@ -5,6 +5,7 @@
 with Sequences.Unbounded;
 
 with Droopi.Binding_Data; use Droopi.Binding_Data;
+with Droopi.Smart_Pointers;
 
 package Droopi.References is
 
@@ -26,7 +27,7 @@ package Droopi.References is
    function Profiles_Of (R : Ref) return Profile_Array;
    --  Return the list of profiles constituting Ref.
 
-   function Is_Nil (R : Ref) return Boolean;
+   --  function Is_Nil (R : Ref) return Boolean;
    --  True iff R is a Nil reference, i.e. a reference that
    --  does not designate any object.
 
@@ -37,16 +38,16 @@ private
 
    subtype Profile_Seq is Profile_Seqs.Sequence;
 
-   type Ref (Nil_Ref : Boolean := True) is record
-      case Nil_Ref is
-         when True =>
-            null;
-         when False =>
-            Profiles : Profile_Seq;
-            --  The collection of tagged profiles that designate
-            --  transport access points where this object can be
-            --  contacted, together with the object ids to be used.
-      end case;
-   end record;
+   type Ref is new Droopi.Smart_Pointers.Ref with null record;
+
+   type Reference_Info is new Droopi.Smart_Pointers.Entity with
+      record
+         Profiles : Profile_Seq;
+         --  The collection of tagged profiles that designate
+         --  transport access points where this object can be
+         --  contacted, together with the object ids to be used.
+      end record;
+
+   procedure Finalize (RI : in out Reference_Info);
 
 end Droopi.References;

@@ -9,6 +9,7 @@
 ------------------------------------------------------------------------------
 
 with Ada.Streams;   use Ada.Streams;
+with Ada.Unchecked_Deallocation;
 
 with CORBA;
 --  For Exception_Occurrence.
@@ -76,6 +77,10 @@ package Droopi.Protocols.GIOP is
    for Target_Address_Access'Storage_Pool
      use Droopi.Storage_Pools.Debug_Pool;
 
+   procedure Free is
+      new Ada.Unchecked_Deallocation
+     (Target_Address, Target_Address_Access);
+
    --  GIOP:: MsgType
    type Msg_Type is
      (Request,
@@ -139,133 +144,6 @@ package Droopi.Protocols.GIOP is
 
    procedure Initialize;
    procedure Finalize;
-
-   -------------------------
-   -- Marshalling helpers --
-   -------------------------
-
-   --  Specs
-
-   procedure Marshall
-     (Buffer : access Buffers.Buffer_Type;
-      Value  : in Msg_Type);
-
-   procedure Marshall
-     (Buffer : access Buffers.Buffer_Type;
-      Value  : in Reply_Status_Type);
-
-   procedure Marshall
-     (Buffer : access Buffers.Buffer_Type;
-      Value  : in Locate_Status_Type);
-
-   function Unmarshall
-     (Buffer : access Buffers.Buffer_Type)
-     return Msg_Type;
-
-   function Unmarshall
-     (Buffer : access Buffers.Buffer_Type)
-     return Reply_Status_Type;
-
-   function Unmarshall
-     (Buffer : access Buffers. Buffer_Type)
-     return Locate_Status_Type;
-
-   ----------------------------------------------------------
-   -- Common marshalling procedures for GIOP 1.0, 1.1, 1.2 --
-   ----------------------------------------------------------
-
-   --  procedure Marshall_Exception
-   --   (Buffer           : access Buffers.Buffer_Type;
-   --    Request_Id       : in Types.Unsigned_Long;
-   --    Exception_Type   : in Reply_Status_Type;
-   --    Occurence        : in Types.Exception_Occurrence);
-
-
-   --  procedure Marshall_Location_Forward
-   --   (Buffer           : access Buffers.Buffer_Type;
-   --    Request_Id       : in  Types.Unsigned_Long;
-   --    Forward_Ref      : in  Droopi.References.Ref);
-
-
-   procedure Marshall_Cancel_Request
-     (Buffer           : access Buffers.Buffer_Type;
-      Request_Id       : in Types.Unsigned_Long);
-
-   procedure Marshall_Locate_Request
-     (Buffer           : access Buffers.Buffer_Type;
-      Request_Id       : in Types.Unsigned_Long;
-      Object_Key       : in Objects.Object_Id_Access);
-
-   procedure Marshall_Locate_Reply
-     (Buffer         : access Buffers.Buffer_Type;
-      Request_Id     : in Types.Unsigned_Long;
-      Locate_Status  : in Locate_Status_Type);
-
-   ----------------
-   -- Unmarshall --
-   ----------------
-
-   procedure Unmarshall_GIOP_Header
-     (Ses                   : access GIOP_Session;
-      Message_Type          : out Msg_Type;
-      Message_Size          : out Types.Unsigned_Long;
-      Fragment_Next         : out Types.Boolean;
-      Success               : out Boolean);
-
-   procedure Unmarshall_Locate_Reply
-     (Buffer        : access Buffers.Buffer_Type;
-      Request_Id    : out Types.Unsigned_Long;
-      Locate_Status : out Locate_Status_Type);
-
-   ------------------------
-   -- Marshalling switch --
-   ------------------------
-
-   procedure Request_Message
-     (Ses               : access GIOP_Session;
-      Pend_Req      : access Pending_Request;
-      Response_Expected : in Boolean;
-      Fragment_Next     : out Boolean);
-
-   procedure No_Exception_Reply
-     (Ses           : access GIOP_Session;
-      Request       :        Requests.Request_Access;
-      Fragment_Next :    out Boolean);
-
-   procedure Exception_Reply
-     (Ses             : access GIOP_Session;
-      Request         :  Requests.Request_Access;
-      Exception_Type  : in Reply_Status_Type;
-      Occurence       : in CORBA.Exception_Occurrence;
-      Fragment_Next   : out Boolean);
-
-   procedure Location_Forward_Reply
-     (Ses             : access GIOP_Session;
-      Request         :  Requests.Request_Access;
-      Forward_Ref     : in Droopi.References.IOR.IOR_Type;
-      Fragment_Next   : out Boolean);
-
-   procedure Need_Addressing_Mode_Message
-     (Ses             : access GIOP_Session;
-      Request         : Requests.Request_Access;
-      Address_Type    : in Addressing_Disposition);
-
-   procedure Cancel_Request_Message
-     (Ses             : access GIOP_Session;
-      Request         : Requests.Request_Access);
-
-
-   procedure Locate_Request_Message
-     (Ses             : access GIOP_Session;
-      Request         : Requests.Request_Access;
-      Object_Key      : in Objects.Object_Id_Access;
-      Fragment_Next   : out Boolean);
-
-
-   procedure Locate_Reply_Message
-     (Ses             : access GIOP_Session;
-      Request         : Requests.Request_Access;
-      Locate_Status   : in Locate_Status_Type);
 
    -------------------
    -- Store_Profile --
@@ -335,6 +213,133 @@ package Droopi.Protocols.GIOP is
 
 private
 
+   -------------------------
+   -- Marshalling helpers --
+   -------------------------
+
+   --  Specs
+
+   procedure Marshall
+     (Buffer : access Buffers.Buffer_Type;
+      Value  : in Msg_Type);
+
+   procedure Marshall
+     (Buffer : access Buffers.Buffer_Type;
+      Value  : in Reply_Status_Type);
+
+   procedure Marshall
+     (Buffer : access Buffers.Buffer_Type;
+      Value  : in Locate_Status_Type);
+
+   function Unmarshall
+     (Buffer : access Buffers.Buffer_Type)
+     return Msg_Type;
+
+   function Unmarshall
+     (Buffer : access Buffers.Buffer_Type)
+     return Reply_Status_Type;
+
+   function Unmarshall
+     (Buffer : access Buffers. Buffer_Type)
+     return Locate_Status_Type;
+
+   ----------------------------------------------------------
+   -- Common marshalling procedures for GIOP 1.0, 1.1, 1.2 --
+   ----------------------------------------------------------
+
+   --  procedure Marshall_Exception
+   --   (Buffer           : access Buffers.Buffer_Type;
+   --    Request_Id       : in Types.Unsigned_Long;
+   --    Exception_Type   : in Reply_Status_Type;
+   --    Occurence        : in Types.Exception_Occurrence);
+
+
+   --  procedure Marshall_Location_Forward
+   --   (Buffer           : access Buffers.Buffer_Type;
+   --    Request_Id       : in  Types.Unsigned_Long;
+   --    Forward_Ref      : in  Droopi.References.Ref);
+
+
+   procedure Marshall_Cancel_Request
+     (Buffer           : access Buffers.Buffer_Type;
+      Request_Id       : in Types.Unsigned_Long);
+
+   procedure Marshall_Locate_Request
+     (Buffer           : access Buffers.Buffer_Type;
+      Request_Id       : in Types.Unsigned_Long;
+      Object_Key       : access Objects.Object_Id);
+
+   procedure Marshall_Locate_Reply
+     (Buffer         : access Buffers.Buffer_Type;
+      Request_Id     : in Types.Unsigned_Long;
+      Locate_Status  : in Locate_Status_Type);
+
+   ----------------
+   -- Unmarshall --
+   ----------------
+
+   procedure Unmarshall_GIOP_Header
+     (Ses                   : access GIOP_Session;
+      Message_Type          : out Msg_Type;
+      Message_Size          : out Types.Unsigned_Long;
+      Fragment_Next         : out Types.Boolean;
+      Success               : out Boolean);
+
+   procedure Unmarshall_Locate_Reply
+     (Buffer        : access Buffers.Buffer_Type;
+      Request_Id    : out Types.Unsigned_Long;
+      Locate_Status : out Locate_Status_Type);
+
+   ------------------------
+   -- Marshalling switch --
+   ------------------------
+
+   procedure Request_Message
+     (Ses               : access GIOP_Session;
+      Pend_Req      : access Pending_Request;
+      Response_Expected : in Boolean;
+      Fragment_Next     : out Boolean);
+
+   procedure No_Exception_Reply
+     (Ses           : access GIOP_Session;
+      Request       :        Requests.Request_Access;
+      Fragment_Next :    out Boolean);
+
+   procedure Exception_Reply
+     (Ses             : access GIOP_Session;
+      Request         :  Requests.Request_Access;
+      Exception_Type  : in Reply_Status_Type;
+      Occurence       : in CORBA.Exception_Occurrence;
+      Fragment_Next   : out Boolean);
+
+   procedure Location_Forward_Reply
+     (Ses             : access GIOP_Session;
+      Request         :  Requests.Request_Access;
+      Forward_Ref     : in Droopi.References.IOR.IOR_Type;
+      Fragment_Next   : out Boolean);
+
+   procedure Need_Addressing_Mode_Message
+     (Ses             : access GIOP_Session;
+      Request         : Requests.Request_Access;
+      Address_Type    : in Addressing_Disposition);
+
+   procedure Cancel_Request_Message
+     (Ses             : access GIOP_Session;
+      Request         : Requests.Request_Access);
+
+
+   procedure Locate_Request_Message
+     (Ses             : access GIOP_Session;
+      Request         : Requests.Request_Access;
+      Object_Key      : access Objects.Object_Id;
+      Fragment_Next   : out Boolean);
+
+
+   procedure Locate_Reply_Message
+     (Ses             : access GIOP_Session;
+      Request         : Requests.Request_Access;
+      Locate_Status   : in Locate_Status_Type);
+
    --  Explicit bounds are required in the nominal subtype
    --  in order to comply with Ravenscar restriction
    --  No_Implicit_Heap_Allocation.
@@ -378,7 +383,6 @@ private
       Buffer_In            : Buffers.Buffer_Access;
       Role                 : ORB.Endpoint_Role;
       Pending_Rq           : Pend_Req_Seq.Sequence;
-      Processing_Rq        : Req_Seq.Sequence;
       Current_Profile      : Profile_Access;
       Object_Found         : Boolean := False;
       --  XXX wrong.
@@ -389,6 +393,7 @@ private
       Mess_Type_Received   : Msg_Type;
    end record;
 
+   procedure Initialize (S : in out GIOP_Session);
    procedure Finalize (S : in out GIOP_Session);
 
    procedure Handle_Unmarshall_Arguments

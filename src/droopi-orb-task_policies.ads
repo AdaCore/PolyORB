@@ -1,4 +1,4 @@
---  Tasking policies for the ORB core.
+--  Tasking policy for the ORB core: 'No_Tasking'.
 
 --  $Id$
 
