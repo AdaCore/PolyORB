@@ -245,11 +245,11 @@ package Tree is
 --    type N_Param_Acc is access all N_Param;
 --    function Get_Kind (N : N_Param) return Node_Kind;
 
---    type N_Exception is new N_Named with record
---       Members : Node_List;
---    end record;
---    type N_Exception_Acc is access all N_Exception;
---    function Get_Kind (N : N_Exception) return Node_Kind;
+   type N_Exception is new N_Named with record
+      Members : Node_List;
+   end record;
+   type N_Exception_Acc is access all N_Exception;
+   function Get_Kind (N : N_Exception) return Node_Kind;
 
 --    type N_Member is new N_Root with record
 --       M_Type : N_Root_Acc;
@@ -400,12 +400,12 @@ package Tree is
 --    type N_Lit_Floating_Point_Acc is access all N_Lit_Floating_Point;
 --    function Get_Kind (N : N_Lit_Floating_Point) return Node_Kind;
 
---    type N_Const is new N_Named with record
---       C_Type : N_Root_Acc;
---       Expr : N_Root_Acc;
---    end record;
---    type N_Const_Acc is access all N_Const;
---    function Get_Kind (N : N_Const) return Node_Kind;
+   type N_Const is new N_Named with record
+      Const_Type : N_Root_Acc;
+      Expression : N_Root_Acc;
+   end record;
+   type N_Const_Acc is access all N_Const;
+   function Get_Kind (N : N_Const) return Node_Kind;
 
 
 private

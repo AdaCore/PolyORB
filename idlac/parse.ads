@@ -110,7 +110,7 @@ private
    --               |   <interface> ";"
    --               |   <module> ";"
    --               |   <value> ";"
-   procedure Parse_Definition (Result : out N_Named_Acc;
+   procedure Parse_Definition (Result : out N_Root_Acc;
                                Success : out Boolean);
 
    --  Rule 3:
@@ -277,6 +277,25 @@ private
 
    --  Rule 26
    --  <init_param_attribute> ::= "in"
+
+   --  Rule 27
+   --  <const_dcl> ::= "const" <const_type> <identifier> "=" <const_exp>
+   procedure Parse_Const_Dcl (Result : out N_Const_Acc;
+                              Success : out Boolean);
+
+   --  Rule 42
+   --  <type_dcl> ::= "typedef" <type_declarator>
+   --             |   <struct_type>
+   --             |   <union_type>
+   --             |   <enum_type>
+   --             |   "native" <simple_declarator>
+   procedure Parse_Type_Dcl (Result : out N_Root_Acc;
+                             Success : out Boolean);
+
+   --  Rule 86
+   --  <except_dcl> ::= "exception" <identifier> "{" <member>* "}"
+   procedure Parse_Except_Dcl (Result : out N_Exception_Acc;
+                               Success : out Boolean);
 
 
 
@@ -555,10 +574,6 @@ private
 --    --  <member> ::= <type_spec> <declarators> ";"
 --    procedure Parse_Member_List (List : in out Node_List) is
 
---    --  Rule 71:
---    --  <except_dcl> ::= "exception" <identifier> "{" <member>* "}"
---    function Parse_Except_Dcl return N_Exception_Acc is
-
 --    --  Rule 60:
 --    --  <case> ::= <case_label>+ <element_spec> ";"
 --    --
@@ -603,14 +618,6 @@ private
 --    --  Rule 28:
 --    --  <type_declarator> ::= <type_spec> <declarators>
 --    function Parse_Type_Declarator return N_Type_Declarator_Acc is
-
---    --  Rule 27:
---    --  <type_dcl> ::= "typedef" <type_declarator>
---    --             |   <struct_type>
---    --             |   <union_type>
---    --             |   <enum_type>
---    --             |   "native" <simple_declarator>
---    function Parse_Type_Dcl return N_Root_Acc is
 
    --  Rule 8:
    --  <interface_body> ::= <export>*
@@ -665,10 +672,6 @@ private
 --    --               |   <fixed_pt_const_type>
 --    --               |   <scoped_name>
 --    function Parse_Const_Type return N_Root_Acc is
-
---    --  Rule 12:
---    --  <const_dcl> ::= "const" <const_type> <identifier> "=" <const_exp>
---    function Parse_Const_Dcl return N_Const_Acc is
 
 
 

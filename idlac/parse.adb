@@ -208,25 +208,94 @@ package body Parse is
    --  Parsing of the idl  --
    --------------------------
 
+   ---------------------------
+   --  Parse_Specification  --
+   ---------------------------
+   function Parse_Specification return N_Repository_Acc is
+      Result : N_Repository_Acc;
+   begin
+      Result := new N_Repository;
+      Set_Location (Result.all, Get_Token_Location);
+      --  The repository is the root scope.
+      Push_Scope (Result);
+      Next_Token;
+      declare
+         Definition : N_Root_Acc;
+         Definition_Result : Boolean;
+      begin
+         while Get_Token /= T_Eof loop
+            Parse_Definition (Definition, Definition_Result);
+            if not Definition_Result then
+               Go_To_Next_Definition;
+            end if;
+            if Definition /= null then
+               Append_Node (Result.Contents,
+                            Definition);
+            end if;
+         end loop;
+      end;
+      Pop_Scope;
+      return Result;
+   end Parse_Specification;
+
    ------------------------
    --  Parse_Definition  --
    ------------------------
-   procedure Parse_Definition (Result : out N_Named_Acc;
+   procedure Parse_Definition (Result : out N_Root_Acc;
                                Success : out Boolean) is
    begin
       case Get_Token is
---          when T_Typedef | T_Struct | T_Union | T_Enum | T_Native =>
---             Res := N_Root_Acc (Parse_Type_Dcl);
---          when T_Const =>
---             Res := N_Root_Acc (Parse_Const_Dcl);
---          when T_Exception =>
---             Res := N_Root_Acc (Parse_Except_Dcl);
+         when T_Typedef
+           | T_Struct
+           | T_Union
+           | T_Enum
+           | T_Native =>
+            Parse_Type_Dcl (Result, Success);
+            if not Success then
+               return;
+            end if;
+         when T_Const =>
+            declare
+               Res : N_Const_Acc;
+            begin
+               Parse_Const_Dcl (Res, Success);
+               Result := N_Root_Acc (Res);
+               if not Success then
+                  return;
+               end if;
+            end;
+         when T_Exception =>
+            declare
+               Res : N_Exception_Acc;
+            begin
+               Parse_Except_Dcl (Res, Success);
+               Result := N_Root_Acc (Res);
+               if not Success then
+                  return;
+               end if;
+            end;
          when T_Abstract =>
             case View_Next_Token is
                when T_Interface =>
-                  Parse_Interface (Result, Success);
+                  declare
+                     Res : N_Named_Acc;
+                  begin
+                     Parse_Interface (Res, Success);
+                     Result := N_Root_Acc (Res);
+                     if not Success then
+                        return;
+                     end if;
+                  end;
                when T_ValueType  =>
-                  Parse_Value (Result, Success);
+                  declare
+                     Res : N_Named_Acc;
+                  begin
+                     Parse_Value (Res, Success);
+                     Result := N_Root_Acc (Res);
+                     if not Success then
+                        return;
+                     end if;
+                  end;
                when others =>
                   declare
                      Loc : Errors.Location;
@@ -246,27 +315,42 @@ package body Parse is
                                           Get_Token_Location);
                      Success := False;
                      Result := null;
+                     --  consumes T_Abstract
+                     Next_Token;
                      return;
                   end;
             end case;
          when T_Interface =>
-            Parse_Interface (Result, Success);
+            declare
+               Res : N_Named_Acc;
+            begin
+               Parse_Interface (Res, Success);
+               Result := N_Root_Acc (Res);
+               if not Success then
+                  return;
+               end if;
+            end;
          when T_Module =>
             declare
                Res : N_Module_Acc;
             begin
                Parse_Module (Res, Success);
-               Result := N_Named_Acc (Res);
+               Result := N_Root_Acc (Res);
                if not Success then
                   return;
                end if;
             end;
          when T_ValueType
            | T_Custom =>
-            Parse_Value (Result, Success);
-            if not Success then
-               return;
-            end if;
+            declare
+               Res : N_Named_Acc;
+            begin
+               Parse_Value (Res, Success);
+               Result := N_Root_Acc (Res);
+               if not Success then
+                  return;
+               end if;
+            end;
          when others =>
             Errors.Parser_Error ("definition expected.",
                                  Errors.Error,
@@ -324,7 +408,7 @@ package body Parse is
                   --  parse the module body
                   Next_Token;
                   declare
-                     Definition : N_Named_Acc;
+                     Definition : N_Root_Acc;
                      Definition_Result : Boolean;
                   begin
                      while Get_Token /= T_Right_Cbracket loop
@@ -333,7 +417,7 @@ package body Parse is
                         if Definition_Result then
                            --  successfull
                            Append_Node (Result.Contents,
-                                        N_Root_Acc (Definition));
+                                        Definition);
                         else
                            --  failed
                            Go_To_Next_Definition;
@@ -471,7 +555,7 @@ package body Parse is
             Errors.Parser_Error (Ada.Characters.Latin_1.Quotation &
                                  "valuetype" &
                                  Ada.Characters.Latin_1.Quotation &
-                                 "expected after custom keyword.",
+                                 " expected after custom keyword.",
                                  Errors.Error,
                                  Loc);
          end;
@@ -484,7 +568,7 @@ package body Parse is
                Loc : Errors.Location;
             begin
                Loc := Get_Previous_Token_Location;
-               Loc.Col := Loc.Col + 7;
+               Loc.Col := Loc.Col + 10;
                Errors.Parser_Error ("identifier expected.",
                                     Errors.Error,
                                     Loc);
@@ -558,7 +642,7 @@ package body Parse is
                      Loc := Get_Token_Location;
                      Loc.Col := Loc.Col + Get_Token_String'Length;
                      Errors.Parser_Error ("Bad value definition. " &
-                                          "inheritance specification, '{'" &
+                                          "Inheritance specification, '{'" &
                                           " or ';' expected.",
                                           Errors.Error,
                                           Loc);
@@ -642,7 +726,7 @@ package body Parse is
                   Loc := Get_Token_Location;
                   Loc.Col := Loc.Col + Get_Token_String'Length;
                   Errors.Parser_Error ("Bad value definition. " &
-                                       "type, inheritance specification, " &
+                                       "Type, inheritance specification, " &
                                        "'{' or ';' expected.",
                                        Errors.Error,
                                        Loc);
@@ -689,7 +773,7 @@ package body Parse is
          else
             Errors.Parser_Error
             ("The identifier used for this valuetype is already "
-             & "defined in the same scope, " &
+             & "defined in the same scope : " &
              Errors.Display_Location (Get_Location (Definition.Node.all)),
              Errors.Error,
              Get_Token_Location);
@@ -799,6 +883,98 @@ package body Parse is
       Success := False;
    end Parse_Value_Element;
 
+   -----------------------
+   --  Parse_Const_Dcl  --
+   -----------------------
+   procedure Parse_Const_Dcl (Result : out N_Const_Acc;
+                              Success : out Boolean) is
+   begin
+      Result := null;
+      Success := False;
+--    function Parse_Const_Dcl return N_Const_Acc is
+--       Res : N_Const_Acc;
+--    begin
+--       Res := new N_Const;
+--       Set_Location (Res.all, Get_Location);
+--       Expect (T_Const);
+--       Next_Token;
+--       Res.C_Type := Parse_Const_Type;
+--       Expect (T_Identifier);
+--       Add_Identifier (Res);
+--       Scan_Expect (T_Equal);
+--       Next_Token;
+--       Res.Expr := Parse_Const_Exp;
+--       return Res;
+--    end Parse_Const_Dcl;
+   end Parse_Const_Dcl;
+
+   ----------------------
+   --  Parse_Type_Dcl  --
+   ----------------------
+   procedure Parse_Type_Dcl (Result : out N_Root_Acc;
+                             Success : out Boolean) is
+   begin
+      Result := null;
+      Success := False;
+--    function Parse_Type_Dcl return N_Root_Acc is
+--    begin
+--       case Token is
+--          when T_Typedef =>
+--             Next_Token;
+--             return N_Root_Acc (Parse_Type_Declarator);
+--          when T_Struct =>
+--             return N_Root_Acc (Parse_Struct_Type);
+--          when T_Union =>
+--             return N_Root_Acc (Parse_Union_Type);
+--          when T_Enum =>
+--             return N_Root_Acc (Parse_Enum_Type);
+--          when T_Native =>
+--             declare
+--                Res : N_Native_Acc;
+--             begin
+--                Res := new N_Native;
+--                Set_Location (Res.all, Get_Location);
+--                Expect (T_Native);
+--                Next_Token;
+--                Res.Decl := Parse_Declarator;
+--                if Res.Decl.Array_Bounds /= Nil_List then
+--                   Errors.Parser_Error ("simple declarator expected",
+--                                        Errors.Error);
+--                end if;
+--                return N_Root_Acc (Res);
+--             end;
+--          when others =>
+--             Errors.Parser_Error ("type declarator expected",
+--                                  Errors.Error);
+--             raise Parse_Error;
+--       end case;
+--    end Parse_Type_Dcl;
+   end Parse_Type_Dcl;
+
+   ------------------------
+   --  Parse_Except_Dcl  --
+   ------------------------
+   procedure Parse_Except_Dcl (Result : out N_Exception_Acc;
+                               Success : out Boolean) is
+   begin
+      Result := null;
+      Success := False;
+--    function Parse_Except_Dcl return N_Exception_Acc is
+--       Res : N_Exception_Acc;
+--    begin
+--       Expect (T_Exception);
+--       Res := new N_Exception;
+--       Set_Location (Res.all, Get_Location);
+--       Scan_Expect (T_Identifier);
+--       Add_Identifier (Res);
+--       Scan_Expect (T_Left_Cbracket);
+--       Next_Token;
+--       while Token /= T_Right_Cbracket loop
+--          Parse_Member_List (Res.Members);
+--       end loop;
+--       Next_Token;
+--       return Res;
+   end Parse_Except_Dcl;
 
 
 --    --  FIXME: to add: rules 25, 26, 81, 82.
@@ -1559,25 +1735,6 @@ package body Parse is
 --       end loop;
 --    end Parse_Member_List;
 
---    --  Rule 71:
---    --  <except_dcl> ::= "exception" <identifier> "{" <member>* "}"
---    function Parse_Except_Dcl return N_Exception_Acc is
---       Res : N_Exception_Acc;
---    begin
---       Expect (T_Exception);
---       Res := new N_Exception;
---       Set_Location (Res.all, Get_Location);
---       Scan_Expect (T_Identifier);
---       Add_Identifier (Res);
---       Scan_Expect (T_Left_Cbracket);
---       Next_Token;
---       while Token /= T_Right_Cbracket loop
---          Parse_Member_List (Res.Members);
---       end loop;
---       Next_Token;
---       return Res;
---    end Parse_Except_Dcl;
-
 --    --  Rule 60:
 --    --  <case> ::= <case_label>+ <element_spec> ";"
 --    --
@@ -1754,45 +1911,6 @@ package body Parse is
 --       return Res;
 --    end Parse_Type_Declarator;
 
---    --  Rule 27:
---    --  <type_dcl> ::= "typedef" <type_declarator>
---    --             |   <struct_type>
---    --             |   <union_type>
---    --             |   <enum_type>
---    --             |   "native" <simple_declarator>
---    function Parse_Type_Dcl return N_Root_Acc is
---    begin
---       case Token is
---          when T_Typedef =>
---             Next_Token;
---             return N_Root_Acc (Parse_Type_Declarator);
---          when T_Struct =>
---             return N_Root_Acc (Parse_Struct_Type);
---          when T_Union =>
---             return N_Root_Acc (Parse_Union_Type);
---          when T_Enum =>
---             return N_Root_Acc (Parse_Enum_Type);
---          when T_Native =>
---             declare
---                Res : N_Native_Acc;
---             begin
---                Res := new N_Native;
---                Set_Location (Res.all, Get_Location);
---                Expect (T_Native);
---                Next_Token;
---                Res.Decl := Parse_Declarator;
---                if Res.Decl.Array_Bounds /= Nil_List then
---                   Errors.Parser_Error ("simple declarator expected",
---                                        Errors.Error);
---                end if;
---                return N_Root_Acc (Res);
---             end;
---          when others =>
---             Errors.Parser_Error ("type declarator expected",
---                                  Errors.Error);
---             raise Parse_Error;
---       end case;
---    end Parse_Type_Dcl;
 
 --    --  Rule 9:
 --    --  <export> ::= <type_dcl> ";"
@@ -2060,55 +2178,9 @@ package body Parse is
 --       end case;
 --    end Parse_Const_Type;
 
---    --  Rule 12:
---    --  <const_dcl> ::= "const" <const_type> <identifier> "=" <const_exp>
---    function Parse_Const_Dcl return N_Const_Acc is
---       Res : N_Const_Acc;
---    begin
---       Res := new N_Const;
---       Set_Location (Res.all, Get_Location);
---       Expect (T_Const);
---       Next_Token;
---       Res.C_Type := Parse_Const_Type;
---       Expect (T_Identifier);
---       Add_Identifier (Res);
---       Scan_Expect (T_Equal);
---       Next_Token;
---       Res.Expr := Parse_Const_Exp;
---       return Res;
---    end Parse_Const_Dcl;
 
 
 
-
-   --  Rule 1 :
-   --  <specification> ::= <definition>+
-   function Parse_Specification return N_Repository_Acc is
-      Result : N_Repository_Acc;
-   begin
-      Result := new N_Repository;
-      Set_Location (Result.all, Get_Token_Location);
-      --  The repository is the root scope.
-      Push_Scope (Result);
-      Next_Token;
-      while Get_Token /= T_Eof loop
-         declare
-            Definition : N_Named_Acc;
-            Definition_Result : Boolean;
-         begin
-            Parse_Definition (Definition, Definition_Result);
-            if not Definition_Result then
-               Go_To_Next_Definition;
-            end if;
-            if Definition /= null then
-               Append_Node (Result.Contents,
-                            N_Root_Acc (Definition));
-            end if;
-         end;
-      end loop;
-      Pop_Scope;
-      return Result;
-   end Parse_Specification;
 
 
    ------------------------------
@@ -2126,8 +2198,11 @@ package body Parse is
    begin
       while Get_Token /= T_Eof loop
          case Get_Token is
-            when T_Module |
-              T_Interface =>
+            when T_Module
+              | T_Interface
+              | T_Custom
+              | T_Abstract
+              | T_ValueType =>
                return;
             when others =>
                Next_Token;

@@ -203,10 +203,10 @@ package body Tree is
 --       return K_Param;
 --    end Get_Kind;
 
---    function Get_Kind (N : N_Exception) return Node_Kind is
---    begin
---       return K_Exception;
---    end Get_Kind;
+   function Get_Kind (N : N_Exception) return Node_Kind is
+   begin
+      return K_Exception;
+   end Get_Kind;
 
 --    function Get_Kind (N : N_Member) return Node_Kind is
 --    begin
@@ -328,10 +328,10 @@ package body Tree is
 --       return K_Sequence;
 --    end Get_Kind;
 
---    function Get_Kind (N : N_Const) return Node_Kind is
---    begin
---       return K_Const;
---    end Get_Kind;
+   function Get_Kind (N : N_Const) return Node_Kind is
+   begin
+      return K_Const;
+   end Get_Kind;
 
 --    function Get_Kind (N : N_Native) return Node_Kind is
 --    begin

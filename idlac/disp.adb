@@ -127,7 +127,6 @@ package body Disp is
 --                end if;
 --                Disp_List (N_Interface (N).Contents, N_Indent, Full);
 --             end if;
-            Put_Line ("ValueType");
 
          when K_Forward_ValueType =>
 --             if N_Forward_Interface (N).Forward /= null then
@@ -245,13 +244,13 @@ package body Disp is
 --             Disp_Indent (N_Indent, "type:");
 --             Disp_Tree (N_Param (N).P_Type.all, N_Indent + Offset, False);
 
---          when K_Exception =>
---             Put ("exception ");
---             Put_Line (Get_Name (N_Exception (N)));
---             if Full then
---                Disp_Indent (N_Indent, "members:");
---                Disp_List (N_Exception (N).Members, N_Indent + Offset, Full);
---             end if;
+         when K_Exception =>
+            Put ("exception ");
+            Put_Line (Get_Name (N_Exception (N)));
+            if Full then
+               Disp_Indent (N_Indent, "members:");
+               Disp_List (N_Exception (N).Members, N_Indent + Offset, Full);
+            end if;
 
 --          when K_Member =>
 --             Put_Line ("member");
@@ -390,12 +389,12 @@ package body Disp is
 --                          N_Indent + Offset, Full);
 --             end if;
 
---          when K_Const =>
---             Put_Line ("const " & Get_Name (N_Const (N)));
---             Disp_Indent (N_Indent, "type:");
---             Disp_Tree (N_Const (N).C_Type.all, N_Indent + Offset, Full);
---             Disp_Indent (N_Indent, "expr:");
---             Disp_Tree (N_Const (N).Expr.all, N_Indent + Offset, Full);
+         when K_Const =>
+            Put_Line ("const " & Get_Name (N_Const (N)));
+            Disp_Indent (N_Indent, "type:");
+            Disp_Tree (N_Const (N).Const_Type.all, N_Indent + Offset, Full);
+            Disp_Indent (N_Indent, "expr:");
+            Disp_Tree (N_Const (N).Expression.all, N_Indent + Offset, Full);
 
 --          when K_Native =>
 --             Put_Line ("native:");
