@@ -522,8 +522,6 @@ package body XE_Stubs is
       Dwrite_Eol  (FD);
       Dwrite_Str  (FD, "with System.Garlic.Filters;");
       Dwrite_Eol  (FD);
-      Dwrite_Str  (FD, "with System.Garlic.Filters.None;");
-      Dwrite_Eol  (FD);
 
       if Default_Registration_Filter /= No_Filter_Name then
          Dwrite_Str  (FD, "--  Specific registration filters");
@@ -792,6 +790,8 @@ package body XE_Stubs is
       Dwrite_Eol (FD);
       Dwrite_Str (FD, "with system.garlic.termination;");
       Dwrite_Eol (FD);
+      Dwrite_Str (FD, "with system.garlic.types;");
+      Dwrite_Eol (FD);
       Dwrite_Str (FD, "with system.partition_interface;");
       Dwrite_Eol (FD);
       Dwrite_Str (FD, "with ada.exceptions;");
@@ -815,7 +815,7 @@ package body XE_Stubs is
       if PID = Main_Partition then
          Dwrite_Str (FD, "   what    : ada.exceptions.exception_id;");
          Dwrite_Eol (FD);
-         Dwrite_Str (FD, "   message : system.garlic.heart.string_ptr;");
+         Dwrite_Str (FD, "   message : system.garlic.types.string_access;");
          Dwrite_Eol (FD);
       end if;
 

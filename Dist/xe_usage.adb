@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---         Copyright (C) 1996,1997 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-1998 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -53,8 +53,6 @@ begin
    Write_Str ("  -q   Be quiet, do not display partitioning operations");
    Write_Eol;
    Write_Str ("  -v   Motivate all executed commands");
-   Write_Eol;
-   Write_Str ("  -V   Output version information");
    Write_Eol;
    Write_Eol;
 

@@ -15,7 +15,6 @@ libexec_PROGRAMS = dist1
 dist1_DEPENDENCIES = xe_defs.o sdefault.o
 dist1_SOURCES =
 dist1_LDADD =
-data_DATA = ${srcdir}/glade_version.txt
 
 GNATMAKE = gnatmake -m
 

@@ -15,8 +15,18 @@ cp $i ../newada/ 2> /dev/null
 echo -n . >& 2
 done
 echo
+echo Removing gnatdist files
 rm -f ../newada/xe*
+echo Removing sdefault.adb
 rm -f ../newada/sdefault.adb
+echo Removing files that are part of the system library
+adainclude=`./config.sdefault pathtolib | \
+  sed -e 's,adalib/libgnat.a,adainclude,'`
+for i in ../newada/*(.); do
+  if [ -f $adainclude/`basename $i` ]; then
+    rm -f ../newada/$i
+  fi
+done
 echo Diffing directories
 for i in ../ada/*(.); do
 if [ ! -f ../newada/`basename $i` ]; then

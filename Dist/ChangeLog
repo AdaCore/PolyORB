@@ -1,3 +1,15 @@
+1998-01-03  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* xe_stubs.adb: Use String_Access from System.Garlic.Types
+
+1998-01-02  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* xe_usage.adb: Remove references to -V
+
+	* gnatdist.in: Remove handling of -V
+
+	* Makefile.am: Remove references to glade_version.txt
+
 1997-12-15  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* gnatdist.in: Add special handling for -V.

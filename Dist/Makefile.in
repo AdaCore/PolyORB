@@ -88,7 +88,6 @@ libexec_PROGRAMS = dist1
 dist1_DEPENDENCIES = xe_defs.o sdefault.o
 dist1_SOURCES =
 dist1_LDADD =
-data_DATA = ${srcdir}/glade_version.txt
 
 GNATMAKE = gnatmake -m
 
@@ -105,8 +104,6 @@ LIBS = @LIBS@
 dist1_OBJECTS = 
 dist1_LDFLAGS = 
 SCRIPTS =  $(bin_SCRIPTS)
-
-DATA =  $(data_DATA)
 
 DIST_COMMON =  ChangeLog Makefile.am Makefile.in TODO gnatdist.in
 
@@ -190,25 +187,6 @@ uninstall-binSCRIPTS:
 	  rm -f $(bindir)/`echo $$p|sed '$(transform)'`; \
 	done
 
-install-dataDATA: $(data_DATA)
-	@$(NORMAL_INSTALL)
-	$(mkinstalldirs) $(datadir)
-	@list='$(data_DATA)'; for p in $$list; do \
-	  if test -f $(srcdir)/$$p; then \
-	    echo " $(INSTALL_DATA) $(srcdir)/$$p $(datadir)/$$p"; \
-	    $(INSTALL_DATA) $(srcdir)/$$p $(datadir)/$$p; \
-	  else if test -f $$p; then \
-	    echo " $(INSTALL_DATA) $$p $(datadir)/$$p"; \
-	    $(INSTALL_DATA) $$p $(datadir)/$$p; \
-	  fi; fi; \
-	done
-
-uninstall-dataDATA:
-	$(NORMAL_UNINSTALL)
-	list='$(data_DATA)'; for p in $$list; do \
-	  rm -f $(datadir)/$$p; \
-	done
-
 tags: TAGS
 
 ID: $(HEADERS) $(SOURCES)
@@ -248,20 +226,20 @@ installcheck:
 install-exec: install-libexecPROGRAMS install-binSCRIPTS
 	@$(NORMAL_INSTALL)
 
-install-data: install-dataDATA
+install-data: 
 	@$(NORMAL_INSTALL)
 
 install: install-exec install-data all
 	@:
 
-uninstall: uninstall-libexecPROGRAMS uninstall-binSCRIPTS uninstall-dataDATA
+uninstall: uninstall-libexecPROGRAMS uninstall-binSCRIPTS
 
-all: Makefile $(PROGRAMS) $(SCRIPTS) $(DATA)
+all: Makefile $(PROGRAMS) $(SCRIPTS)
 
 install-strip:
 	$(MAKE) INSTALL_PROGRAM='$(INSTALL_PROGRAM) -s' INSTALL_SCRIPT='$(INSTALL_PROGRAM)' install
 installdirs:
-	$(mkinstalldirs)  $(libexecdir) $(bindir) $(datadir)
+	$(mkinstalldirs)  $(libexecdir) $(bindir)
 
 
 mostlyclean-generic:
@@ -298,12 +276,11 @@ maintainer-clean:  maintainer-clean-libexecPROGRAMS \
 clean-libexecPROGRAMS maintainer-clean-libexecPROGRAMS \
 uninstall-libexecPROGRAMS install-libexecPROGRAMS mostlyclean-compile \
 distclean-compile clean-compile maintainer-clean-compile \
-uninstall-binSCRIPTS install-binSCRIPTS uninstall-dataDATA \
-install-dataDATA tags mostlyclean-tags distclean-tags clean-tags \
-maintainer-clean-tags distdir info dvi installcheck install-exec \
-install-data install uninstall all installdirs mostlyclean-generic \
-distclean-generic clean-generic maintainer-clean-generic clean \
-mostlyclean distclean maintainer-clean
+uninstall-binSCRIPTS install-binSCRIPTS tags mostlyclean-tags \
+distclean-tags clean-tags maintainer-clean-tags distdir info dvi \
+installcheck install-exec install-data install uninstall all \
+installdirs mostlyclean-generic distclean-generic clean-generic \
+maintainer-clean-generic clean mostlyclean distclean maintainer-clean
 
 
 force: 

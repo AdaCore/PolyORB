@@ -21,11 +21,6 @@ if test $# = 0; then
   exit 1
 fi
 
-if test $# = 1 -a "$1" = "-V"; then
-  cat ${datadir}/glade_version.txt
-  exit 0
-fi
-
 LIBS="${GARLIC}/libgarlic.a ${GARLIC}/libgnat.a ${EXTRA_LIBS}"
 
 eval dist1 -I${GARLIC} -L${GARLIC} "$@" -largs ${LIBS}
