@@ -165,8 +165,10 @@ package body Broca.Buffers is
         (Buffer_Type, Buffer_Access);
 
    begin
-      Release (A_Buffer.all);
-      Free (A_Buffer);
+      if A_Buffer /= null then
+         Release (A_Buffer.all);
+         Free (A_Buffer);
+      end if;
    end Release;
 
    ----------------------------------------
