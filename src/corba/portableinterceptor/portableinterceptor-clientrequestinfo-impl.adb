@@ -458,20 +458,5 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
 --     (Self : access Object;
 --      Id   : in     IOP.ComponentId)
 --      return IOP.TaggedComponentSeq;
---
---   procedure Add_Request_Service_Context
---     (Self            : access Object;
---      Service_Context : in     IOP.ServiceContext;
---      Replace         : in     CORBA.Boolean);
---
---   function Get_Request_Service_Context
---     (Self : access Object;
---      Id   : in     IOP.ServiceId)
---      return IOP.ServiceContext;
---
---   function Get_Reply_Service_Context
---     (Self : access Object;
---      Id   : in     IOP.ServiceId)
---      return IOP.ServiceContext;
 
 end PortableInterceptor.ClientRequestInfo.Impl;
