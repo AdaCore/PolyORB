@@ -5,7 +5,7 @@
 	 about entity referenced before it has a value.
 	Work for B711-005.
 
-	* xe_parse.adb:
+	* xe_parse.ads, xe_parse.adb:
 	(Search_Matching_Parameter): Formal_Type set to mode out to avoid
 	 GNAT warnings about entity referenced before it has a value.
 	Work for B711-005.
