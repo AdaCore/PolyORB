@@ -85,9 +85,9 @@ package body System.Garlic.Units is
    --  becomes DEFINED, the boot mirrors are allowed to answer to
    --  pending request from other partitions. When a partition dies,
    --  all its units are INVALID. If the reconnection mode of the
-   --  partition is Blocked_Until_Restart, then the unit status is set
+   --  partition is Block_Until_Restart, then the unit status is set
    --  to UNDEFINED. Otherwise, it is set to INVALID. If the
-   --  reconnection mode is Failed_Until_Restart, then the status can
+   --  reconnection mode is Fail_Until_Restart, then the status can
    --  get back to DEFINED.
 
    type Unit_Info is
@@ -197,9 +197,9 @@ package body System.Garlic.Units is
    procedure Invalidate_Unit_List
      (Partition : in Partition_ID);
    --  Modify status of units configured on Partition. This final status is
-   --  INVALID when Partition reconnection mode is Rejected_On_Restart or
-   --  Failed_Until_Restart, UNDEFINED when reconnection is
-   --  Blocked_Until_Restart.
+   --  INVALID when Partition reconnection mode is Reject_On_Restart or
+   --  Fail_Until_Restart, UNDEFINED when reconnection is
+   --  Block_Until_Restart.
 
    procedure Store_New_Unit
      (Unit      : in Unit_Id;
@@ -806,7 +806,7 @@ package body System.Garlic.Units is
       --  situation similar to the one we have during elaboration. So,
       --  status should be Undefined.
 
-      if Reconnection = Blocked_Until_Restart then
+      if Reconnection = Block_Until_Restart then
          Status := Undefined;
       else
          Status := Invalid;
@@ -1035,7 +1035,7 @@ package body System.Garlic.Units is
       if Current_Status = Invalid and then Status = Declared then
 
          --  Check reconnection policy and exit when the unit must be
-         --  configured on a partition with Rejected_On_Restart policy.
+         --  configured on a partition with Reject_On_Restart policy.
 
          pragma Debug (D ("Checking renewed unit " & Units.Get_Name (Unit)));
 
@@ -1049,7 +1049,7 @@ package body System.Garlic.Units is
                Catch (Error);
                return;
             end if;
-            if Reconnection = Rejected_On_Restart then
+            if Reconnection = Reject_On_Restart then
                pragma Debug (D ("Rejecting unit " & Units.Get_Name (Unit) &
                                 "on restart"));
                return;
@@ -1065,7 +1065,7 @@ package body System.Garlic.Units is
       then
          --  A unit may have an UNDEFINED status once its partition has
          --  been invalidated. This comes from a partition reconnection
-         --  mode set to Blocked_Until_Restart. But Status is supposed to
+         --  mode set to Block_Until_Restart. But Status is supposed to
          --  evolve as follow: UNDEFINED -> QUERIED -> DEFINED ->
          --  INVALID. With the reconnection mode above, the status evolves
          --  from Defined to Undefined. To set its status back to DEFINED,

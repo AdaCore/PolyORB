@@ -88,9 +88,9 @@ package System.Garlic.Types is
                              Deferred_Termination);
    --  Three ways of terminating a partition
 
-   type Reconnection_Type is (Rejected_On_Restart,
-                              Blocked_Until_Restart,
-                              Failed_Until_Restart);
+   type Reconnection_Type is (Reject_On_Restart,
+                              Block_Until_Restart,
+                              Fail_Until_Restart);
    --  Three ways of reconnecting to a partition
 
    type Execution_Mode_Type is (Trace_Mode,

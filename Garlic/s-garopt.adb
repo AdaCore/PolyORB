@@ -72,7 +72,7 @@ package body System.Garlic.Options is
       Is_Boot_Mirror  := False;
       Is_Boot_Server  := False;
       Nolaunch        := False;
-      Reconnection    := Rejected_On_Restart;
+      Reconnection    := Reject_On_Restart;
       Termination     := Global_Termination;
    end Initialize_Default_Options;
 

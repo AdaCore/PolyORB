@@ -67,7 +67,7 @@ package System.Garlic.Units is
    --  Invalidate all the units configured on this partition. The exact
    --  invalidation will depend on the reconnection mode of this
    --  partition. When reconnection mode is Reject_On_Restart or
-   --  Failed_Until_Restart, the status of these units will be set to
+   --  Fail_Until_Restart, the status of these units will be set to
    --  Invalid. Otherwise, it will be set to Undefined.
 
    procedure Register_Unit
