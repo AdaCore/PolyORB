@@ -46,7 +46,7 @@ package PolyORB.Binding_Data.SRP is
    procedure Adjust (P : in out SRP_Profile_Type);
    procedure Finalize (P : in out SRP_Profile_Type);
 
-   procedure Bind_Profile
+   procedure Bind_Non_Local_Profile
      (Profile : SRP_Profile_Type;
       TE      : out Transport.Transport_Endpoint_Access;
       Session : out Components.Component_Access);

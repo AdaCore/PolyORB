@@ -33,12 +33,13 @@
 --  Management of binding data, i. e. the elements of information
 --  that designate a remote middleware TSAP.
 
---  $Id: //droopi/main/src/polyorb-binding_data.ads#7 $
+--  $Id: //droopi/main/src/polyorb-binding_data.ads#8 $
 
 with Ada.Finalization;
 
 with PolyORB.Components;
 with PolyORB.Objects;
+with PolyORB.Smart_Pointers;
 with PolyORB.Transport;
 with PolyORB.Types;
 
@@ -86,7 +87,7 @@ package PolyORB.Binding_Data is
      return Objects.Object_Id_Access;
    --  Retrieve the opaque object key from Profile.
 
-   procedure Bind_Profile
+   procedure Bind_Non_Local_Profile
      (Profile : Profile_Type;
       TE      : out Transport.Transport_Endpoint_Access;
       Filter  : out Components.Component_Access)
@@ -144,6 +145,14 @@ package PolyORB.Binding_Data is
    function Image (Prof : Profile_Type) return String is abstract;
    --  Used for debugging purposes
 
+   procedure Set_Continuation
+     (Prof         : access Profile_Type;
+      Continuation :        PolyORB.Smart_Pointers.Ref);
+   --  Associate profile Profile (a profile designating an object
+   --  on the local ORB) with the designated object as its actual
+   --  Continuation. Used for proxy profiles (which are actually
+   --  indirect pointers to remote objects).
+
 private
 
    --  Standard tags defined by CORBA
@@ -163,7 +172,8 @@ private
 
    type Profile_Type is
      abstract new Ada.Finalization.Limited_Controlled with record
-      Object_Id : Objects.Object_Id_Access;
+        Object_Id    : Objects.Object_Id_Access;
+        Continuation : PolyORB.Smart_Pointers.Ref;
      end record;
 
    type Profile_Factory is abstract tagged limited null record;

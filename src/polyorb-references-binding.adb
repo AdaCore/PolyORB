@@ -62,6 +62,19 @@ package body PolyORB.References.Binding is
       Pro       : out Binding_Data.Profile_Access)
    is
       use type Components.Component_Access;
+      use Binding_Data;
+      use Binding_Data.Local;
+      use Obj_Adapters;
+      use ORB;
+      use Profile_Seqs;
+
+      Profiles : constant Element_Array := Profiles_Of (R);
+
+      Best_Preference : Profile_Preference := Profile_Preference'First;
+      Best_Profile_Index : Integer := Profiles'Last + 1;
+
+      Object_Id : PolyORB.Objects.Object_Id_Access;
+
       Existing_Servant : Components.Component_Access;
       Existing_Profile : Binding_Data.Profile_Access;
    begin
@@ -79,126 +92,125 @@ package body PolyORB.References.Binding is
          return;
       end if;
 
+      --  XXX should probably rework the two-phase preference
+      --  -> bind mechanism, else we could have a case where
+      --  one non-local profile is preferred to a local, but
+      --  less preferred, profile. On the other hand, this
+      --  might be useful because it allows implementation
+      --  of All_Calls_Remote simply through prefs fiddling.
+
+      for I in Profiles'Range loop
+         declare
+            P : constant Profile_Preference
+              := Get_Profile_Preference (Profiles (I).all);
+         begin
+            if P > Best_Preference then
+               Best_Preference := P;
+               Best_Profile_Index := I;
+            end if;
+         end;
+      end loop;
+
+      if Best_Profile_Index > Profiles'Last
+        or else Best_Preference = Profile_Preference'First
+      then
+         raise Invalid_Reference;
+         --  No supported profile found.
+      end if;
+
       declare
-         use Binding_Data;
-         use Binding_Data.Local;
-         use Obj_Adapters;
-         use ORB;
-         use Profile_Seqs;
-
-         Profiles : constant Element_Array
-           := Profiles_Of (R);
-
-         Best_Preference : Profile_Preference
-           := Profile_Preference'First;
-         Best_Profile_Index : Integer := Profiles'Last + 1;
-
-         Object_Id : PolyORB.Objects.Object_Id_Access;
-
+         Selected_Profile : Profile_Access
+           renames Profiles (Best_Profile_Index);
+         OA : constant Obj_Adapter_Access
+           := Object_Adapter (Local_ORB);
       begin
-         --  XXX should probably rework the two-phase preference
-         --  -> bind mechanism, else we could have a case where
-         --  one non-local profile is preferred to a local, but
-         --  less preferred, profile. On the other hand, this
-         --  might be useful because it allows implementation
-         --  of All_Calls_Remote simply through prefs fiddling.
+         pragma Debug
+           (O ("Found profile: " & Ada.Tags.External_Tag
+               (Selected_Profile'Tag)));
 
-         for I in Profiles'Range loop
-            declare
-               P : constant Profile_Preference
-                 := Get_Profile_Preference (Profiles (I).all);
-            begin
-               if P > Best_Preference then
-                  Best_Preference := P;
-                  Best_Profile_Index := I;
-               end if;
-            end;
-         end loop;
-
-         if Best_Profile_Index > Profiles'Last
-           or else Best_Preference = Profile_Preference'First
+         if Selected_Profile.all in Local_Profile_Type
+           or else Is_Profile_Local (Local_ORB, Selected_Profile)
          then
-            raise Invalid_Reference;
-            --  No supported profile found.
+
+            --  Local profile
+
+            Object_Id := Get_Object_Key (Selected_Profile.all);
+
+            if Is_Proxy_Oid (OA, Object_Id) then
+               declare
+                  Continuation : constant PolyORB.References.Ref
+                    := Proxy_To_Ref (OA, Object_Id);
+               begin
+                  if Is_Nil (Continuation) then
+                     --  Fail.
+                     Servant := null;
+                     Pro := null;
+                  else
+                     Binding_Data.Set_Continuation
+                       (Selected_Profile,
+                        Smart_Pointers.Ref (Continuation));
+                     --  This is necessary in order to prevent the
+                     --  profiles in Continuation (a ref to the
+                     --  actual object) from being finalised before
+                     --  Selected_Profile (a local profile with a
+                     --  proxy oid) is finalized itself.
+                     Bind (Continuation, Local_ORB, Servant, Pro);
+                     Set_Binding_Info (R, Servant, Pro);
+                  end if;
+               end;
+            else
+               --  Real local object
+               Pro := Selected_Profile;
+               Servant := Components.Component_Access
+                 (Find_Servant
+                  (Object_Adapter (Local_ORB), Object_Id));
+               return;
+
+               --  ==> When binding a local reference, an OA
+               --      is needed. Where do we obtain it from?
+               --      PolyORB.References cannot depend on Obj_Adapters!
+               --      ... but D.R.Binding can depend on anything.
+               --      We also need to know what profiles are local,
+               --      presumably by sending the ORB an Is_Local_Profile
+               --      query for each profile (for the condition below).
+            end if;
+
+            --  End of processing for local profile case.
+
+            return;
+
          end if;
 
          declare
-            P : Profile_Access
-              renames Profiles (Best_Profile_Index);
-            OA : constant Obj_Adapter_Access
-              := Object_Adapter (Local_ORB);
+            use PolyORB.Components;
+            use PolyORB.Filters;
+
+            New_TE      : Transport.Transport_Endpoint_Access;
+            New_Filter  : Filter_Access;
+            FU : Filter_Access;
          begin
-            pragma Debug (O ("Found profile: "
-                             & Ada.Tags.External_Tag (P'Tag)));
-            null;
+            pragma Debug (O ("Binding non-local profile"));
+            pragma Debug (O ("Creating new binding object"));
 
-            Pro := P;
-            if P.all in Local_Profile_Type
-              or else Is_Profile_Local (Local_ORB, P)
-            then
+            PolyORB.Binding_Data.Bind_Non_Local_Profile
+              (Selected_Profile.all, New_TE,
+               Component_Access (New_Filter));
 
-               --  Local profile
+            ORB.Register_Endpoint
+              (Local_ORB, New_TE, New_Filter, Client);
 
-               Object_Id := Get_Object_Key (P.all);
+            loop
+               FU := Filter_Access (Upper (New_Filter));
+               exit when FU = null;
+                  New_Filter := FU;
+            end loop;
 
-               if Is_Proxy_Oid (OA, Object_Id) then
-                  declare
-                     Continuation : PolyORB.References.Ref
-                       := Proxy_To_Ref (OA, Object_Id);
-                  begin
-                     --  Attach (Continuation, P);
-                     --  XXX need to keep Continuation in
-                     --  an annotation on P so as to not
-                     --  destroy the binding before P is release.
-                     Bind (Continuation, Local_ORB, Servant, Pro);
-                  end;
-               else
-                     --  Real local object
-                     Servant := Components.Component_Access
-                       (Find_Servant
-                        (Object_Adapter (Local_ORB), Object_Id));
+            Servant := Components.Component_Access (New_Filter);
+            Pro := Selected_Profile;
+            Set_Binding_Info (R, Servant, Selected_Profile);
 
-                     --  ==> When binding a local reference, an OA
-                     --      is needed. Where do we obtain it from?
-                     --      PolyORB.References cannot depend on Obj_Adapters!
-                     --      ... but D.R.Binding can depend on anything.
-                     --      We also need to know what profiles are local,
-                     --      presumably by sending the ORB an Is_Local_Profile
-                     --      query for each profile (for the condition below).
-               end if;
-            else
-               declare
-                  use PolyORB.Components;
-                  use PolyORB.Filters;
-
-                  New_TE      : Transport.Transport_Endpoint_Access;
-                  New_Filter  : Filter_Access;
-                  FU : Filter_Access;
-               begin
-                  pragma Debug (O ("Binding profile"));
-                  pragma Debug (O ("Creating new binding object"));
-
-                  PolyORB.Binding_Data.Bind_Profile
-                    (P.all, New_TE, Component_Access (New_Filter));
-                  ORB.Register_Endpoint
-                    (Local_ORB, New_TE, New_Filter, Client);
-
-                  loop
-                     FU := Filter_Access (Upper (New_Filter));
-                     exit when FU = null;
-                     New_Filter := FU;
-                  end loop;
-
-                  Set_Binding_Info
-                    (R, Components.Component_Access
-                     (New_Filter),
-                     P);
-                  Servant := Components.Component_Access (New_Filter);
-                  --  The Session itself acts as a remote surrogate
-                  --  of the designated object.
-
-               end;
-            end if;
+            --  The Session itself acts as a remote surrogate
+            --  of the designated object.
 
          end;
       end;

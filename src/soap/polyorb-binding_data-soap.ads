@@ -50,7 +50,7 @@ package PolyORB.Binding_Data.SOAP is
    procedure Adjust     (P : in out SOAP_Profile_Type);
    procedure Finalize   (P : in out SOAP_Profile_Type);
 
-   procedure Bind_Profile
+   procedure Bind_Non_Local_Profile
      (Profile   : SOAP_Profile_Type;
       TE        : out Transport.Transport_Endpoint_Access;
       Filter    : out Components.Component_Access);

@@ -66,7 +66,7 @@ package body PolyORB.Binding_Data.SRP is
       Free (P.Object_Id);
    end Finalize;
 
-   procedure Bind_Profile
+   procedure Bind_Non_Local_Profile
      (Profile : SRP_Profile_Type;
       TE      : out Transport.Transport_Endpoint_Access;
       Session : out Components.Component_Access)
@@ -85,7 +85,7 @@ package body PolyORB.Binding_Data.SRP is
       TE := new Transport.Sockets.Socket_Endpoint;
       Create (Socket_Endpoint (TE.all), S);
       Create (P'Access, Filters.Filter_Access (Session));
-   end Bind_Profile;
+   end Bind_Non_Local_Profile;
 
    function Get_Profile_Tag
      (Profile : SRP_Profile_Type)

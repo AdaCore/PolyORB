@@ -1150,7 +1150,7 @@ package body PolyORB.Protocols.GIOP is
          pragma Debug (O ("... destroying server profile."));
          Destroy_Profile (S.Current_Profile);
          --  XXX currently this is correct because a /copy/
-         --  of the profile is made in Bind_Profile.
+         --  of the profile is made in Bind_Non_Local_Profile.
       end if;
       if S.Buffer_In /= null then
          Release (S.Buffer_In);
@@ -1589,7 +1589,7 @@ package body PolyORB.Protocols.GIOP is
 
             begin
                Prof := Select_Profile (Ses.Buffer_In);
-               Binding_Data.IIOP.Bind_Profile
+               Binding_Data.IIOP.Bind_Non_Local_Profile
                  (IIOP_Profile_Type (Prof.all),
                   TE,
                   Component_Access (New_Ses));
@@ -2001,7 +2001,7 @@ package body PolyORB.Protocols.GIOP is
                               raise GIOP_Error;
                            end loop;
 
-                           Binding_Data.IIOP.Bind_Profile
+                           Binding_Data.IIOP.Bind_Non_Local_Profile
                              (IIOP_Profile_Type
                               (Current_Req.Target_Profile.all),
                               TE, Component_Access (New_Ses));

@@ -72,6 +72,4 @@ package PolyORB.References.Binding is
    --  a proxy. If R has no profile matching Tag, and this
    --  ORB cannot behave as a proxy either, null is returned.
 
-   --  XXX proxy profile creation is not implemented yet.
-
 end PolyORB.References.Binding;

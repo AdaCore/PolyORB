@@ -1090,7 +1090,8 @@ package body PolyORB.POA.Basic_POA is
       Id_OA : constant Basic_Obj_Adapter_Access
         := Find_POA_Recursively (OA, U_Oid.Creator);
    begin
-      return Id_OA = OA.Proxies_OA;
+      return OA.Proxies_OA /= null
+        and then Id_OA = OA.Proxies_OA;
    end Is_Proxy_Oid;
 
    use Ada.Streams;
@@ -1100,13 +1101,20 @@ package body PolyORB.POA.Basic_POA is
       R  :        References.Ref)
      return Object_Id_Access
    is
-      Oid_Data : aliased Object_Id
-        := Object_Id (References.IOR.Object_To_Opaque (R));
-      U_Oid : constant Unmarshalled_Oid
-        := Create_Object_Identification
-        (OA.Proxies_OA, Oid_Data'Unchecked_Access);
    begin
-      return U_Oid_To_Oid (U_Oid);
+      if OA.Proxies_OA = null then
+         return null;
+      end if;
+
+      declare
+         Oid_Data : aliased Object_Id
+           := Object_Id (References.IOR.Object_To_Opaque (R));
+         U_Oid : constant Unmarshalled_Oid
+           := Create_Object_Identification
+           (OA.Proxies_OA, Oid_Data'Unchecked_Access);
+      begin
+         return U_Oid_To_Oid (U_Oid);
+      end;
    end To_Proxy_Oid;
 
    function Proxy_To_Ref
@@ -1114,18 +1122,26 @@ package body PolyORB.POA.Basic_POA is
       Oid : access Objects.Object_Id)
      return References.Ref
    is
-      U_Oid : constant Unmarshalled_Oid
-        := Oid_To_U_Oid (Oid);
-      Id : constant String := To_Standard_String (U_Oid.Id);
-      IOR : Stream_Element_Array
-        (Stream_Element_Offset (Id'First)
-         .. Stream_Element_Offset (Id'Last));
+      Nil_Ref : References.Ref;
    begin
-      for I in IOR'Range loop
-         IOR (I) := Stream_Element
-           (Character'Pos (Id (Integer (I))));
-      end loop;
-      return References.IOR.Opaque_To_Object (IOR);
+      if OA.Proxies_OA = null then
+         return Nil_Ref;
+      end if;
+
+      declare
+         U_Oid : constant Unmarshalled_Oid
+           := Oid_To_U_Oid (Oid);
+         Id : constant String := To_Standard_String (U_Oid.Id);
+         IOR : Stream_Element_Array
+           (Stream_Element_Offset (Id'First)
+            .. Stream_Element_Offset (Id'Last));
+      begin
+         for I in IOR'Range loop
+            IOR (I) := Stream_Element
+              (Character'Pos (Id (Integer (I))));
+         end loop;
+         return References.IOR.Opaque_To_Object (IOR);
+      end;
    end Proxy_To_Ref;
 
 end PolyORB.POA.Basic_POA;

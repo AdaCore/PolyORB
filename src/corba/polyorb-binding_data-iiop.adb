@@ -102,7 +102,7 @@ package body PolyORB.Binding_Data.IIOP is
       Free (P.Object_Id);
    end Finalize;
 
-   procedure Bind_Profile
+   procedure Bind_Non_Local_Profile
      (Profile : IIOP_Profile_Type;
       TE      : out Transport.Transport_Endpoint_Access;
       Filter  : out Components.Component_Access)
@@ -158,7 +158,7 @@ package body PolyORB.Binding_Data.IIOP is
       end;
 
       --  The caller will invoke Register_Endpoint on TE.
-   end Bind_Profile;
+   end Bind_Non_Local_Profile;
 
    function Get_Profile_Tag
      (Profile : IIOP_Profile_Type)

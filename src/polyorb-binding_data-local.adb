@@ -68,7 +68,7 @@ package body PolyORB.Binding_Data.Local is
    pragma Warnings (Off);
    --  Out parameters are not assigned a value.
 
-   procedure Bind_Profile
+   procedure Bind_Non_Local_Profile
      (Profile : Local_Profile_Type;
       TE      : out Transport.Transport_Endpoint_Access;
       Session : out Components.Component_Access) is
@@ -76,7 +76,7 @@ package body PolyORB.Binding_Data.Local is
       raise Program_Error;
       --  May not happen (no such a profile does not support
       --  connections).
-   end Bind_Profile;
+   end Bind_Non_Local_Profile;
 
    pragma Warnings (On);
 

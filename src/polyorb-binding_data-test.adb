@@ -66,7 +66,7 @@ package body PolyORB.Binding_Data.Test is
       Free (P.Object_Id);
    end Finalize;
 
-   procedure Bind_Profile
+   procedure Bind_Non_Local_Profile
      (Profile : Test_Profile_Type;
       TE      : out Transport.Transport_Endpoint_Access;
       Session : out Components.Component_Access)
@@ -90,7 +90,7 @@ package body PolyORB.Binding_Data.Test is
       Transport.Connect_Upper (TE, Session);
       Connect_Lower
         (Filter_Access (Session), Components.Component_Access (TE));
-   end Bind_Profile;
+   end Bind_Non_Local_Profile;
 
    function Get_Profile_Tag
      (Profile : Test_Profile_Type)

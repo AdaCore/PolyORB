@@ -103,7 +103,7 @@ package body PolyORB.Binding_Data.SOAP is
       Free (P.Object_Id);
    end Finalize;
 
-   procedure Bind_Profile
+   procedure Bind_Non_Local_Profile
      (Profile : SOAP_Profile_Type;
       TE      : out Transport.Transport_Endpoint_Access;
       Filter  : out Components.Component_Access)
@@ -144,7 +144,7 @@ package body PolyORB.Binding_Data.SOAP is
       Adjust (TProf);
 
       --  The caller will invoke Register_Endpoint on TE.
-   end Bind_Profile;
+   end Bind_Non_Local_Profile;
 
    function Get_Profile_Tag
      (Profile : SOAP_Profile_Type)

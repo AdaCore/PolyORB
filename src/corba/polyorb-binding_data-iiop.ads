@@ -65,7 +65,7 @@ package PolyORB.Binding_Data.IIOP is
    procedure Adjust     (P : in out IIOP_Profile_Type);
    procedure Finalize   (P : in out IIOP_Profile_Type);
 
-   procedure Bind_Profile
+   procedure Bind_Non_Local_Profile
      (Profile   : IIOP_Profile_Type;
       TE        : out Transport.Transport_Endpoint_Access;
       Filter    : out Components.Component_Access);
