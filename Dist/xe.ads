@@ -320,12 +320,12 @@ package XE is
    procedure Create_Parameter
      (Parameter_Node : out Parameter_Id;
       Parameter_Name : in  Name_Id);
-   pragma Inline (Create_Variable);
+   pragma Inline (Create_Parameter);
 
    procedure Create_Statement
      (Statement_Node : out Statement_Id;
       Statement_Name : in  Name_Id);
-   pragma Inline (Create_Subprogram);
+   pragma Inline (Create_Statement);
 
    procedure Create_Subprogram
      (Subprogram_Node : out Subprogram_Id;
@@ -834,7 +834,7 @@ package XE is
    function Get_Unit_Sfile      (U : Unit_Id)  return File_Name_Type;
    --  Retrieve some data from tables.
 
-   procedure Update_Stamp (P : in PID_Type; F : in File_Name_Type);
+   procedure More_Recent_Stamp (P : in PID_Type; F : in File_Name_Type);
    --  The more recent stamp of files needed to build a partition is
    --  updated.
 
