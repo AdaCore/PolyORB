@@ -120,15 +120,28 @@ module Backend::BE_Ada::Nodes {
     Node_Id    Arg_Type ;
   };
 
-  interface Ada_Function : Definition {
+
+  /* Function Specification */
+  interface Ada_Function_Spec : Definition {
     List_Id    Argument_List;
     Node_Id    Return_Type;
+  };
+
+  /* Function Body */
+  interface Ada_Function : Ada_Function_Spec {
+    Node_Id    Func_Spec; 
     List_Id    Declarations;
     List_Id    Func_Body;
   };
 
-  interface Ada_Procedure : Definition {
+  /* Procedure  Specification */
+  interface Ada_Procedure_Spec : Definition {
     List_Id    Argument_List;
+  };    
+
+  /* Procedure Body */
+  interface Ada_Procedure : Ada_Procedure_Spec {
+    Node_Id    Proc_Spec; 
     List_Id    Declarations;
     List_Id    Proc_Body;
   };
