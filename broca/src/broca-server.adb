@@ -781,10 +781,6 @@ package body Broca.Server is
       pragma Debug (O ("Handle_Request: unmarshalling Response_Expected"));
       Response_Expected := Unmarshall (Buffer);
 
-      --  POA
-      --  pragma Debug (O ("Handle_Request : unmarshalling POA"));
-      --  Unmarshall_POA (Buffer, POA, POA_State);
-
       declare
          Key : aliased Encapsulation
            := Unmarshall (Buffer);
@@ -817,12 +813,12 @@ package body Broca.Server is
                pragma Debug (O ("Handle_Request : unmarshalling operation"));
                Operation := Unmarshall (Buffer);
 
-               --  principal
+               --  Principal
                pragma Debug (O ("Handle_Request : unmarshalling principal"));
                Principal := Unmarshall (Buffer);
 
                begin
-                  --  This unlock_R the POA.
+                  --  This Unlock_R the POA.
                   pragma Debug (O ("Handle_Request : invoking "
                                    & To_Standard_String (Operation)));
 
@@ -834,7 +830,8 @@ package body Broca.Server is
                        (POA,
                         Object_Id'Access,
                         CORBA.Identifier (Operation),
-                        Request_Id, Response_Expected, Buffer,
+                        Request_Id, Response_Expected,
+                        Buffer,
                         Reply_Buffer'Access);
 
                      Broca.GIOP.Prepend_GIOP_Header

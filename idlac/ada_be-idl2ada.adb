@@ -852,8 +852,6 @@ package body Ada_Be.Idl2Ada is
             DI (Stubs_Body);
             PL (Stubs_Body, "end Is_A;");
 
-            --  backward compatibility, will disappear
-            --  Gen_To_Ref (Stubs_Spec, Stubs_Body);
             --  CORBA 2.3
             Gen_Helper (Node, Helper_Spec, Helper_Body);
 
@@ -3420,15 +3418,21 @@ package body Ada_Be.Idl2Ada is
    procedure Gen_Helper
      (Node : in Node_Id;
       Helper_Spec : in out Compilation_Unit;
-      Helper_Body : in out Compilation_Unit) is
+      Helper_Body : in out Compilation_Unit)
+   is
+
       Short_Type_Name : constant String
         := Ada_Type_Defining_Name (Node);
       Type_Name : constant String
         := Ada_Type_Name (Node);
       NK : constant Node_Kind
         := Kind (Node);
+
    begin
       Add_With (Helper_Spec, "CORBA.Object");
+
+      --  Unchecked_To_<reference>
+
       NL (Helper_Spec);
       PL (Helper_Spec, "function Unchecked_To_" & Short_Type_Name);
       PL (Helper_Spec, "  (The_Ref : in CORBA.Object.Ref'Class)");
@@ -3457,6 +3461,9 @@ package body Ada_Be.Idl2Ada is
       DI (Helper_Body);
       PL (Helper_Body, "end Unchecked_To_" & Short_Type_Name & ";");
       NL (Helper_Body);
+
+      --  To_<reference>
+
       PL (Helper_Body, "function To_" & Short_Type_Name);
       PL (Helper_Body, "  (The_Ref : in CORBA.Object.Ref'Class)");
       PL (Helper_Body, "  return " & Type_Name);
@@ -3483,17 +3490,22 @@ package body Ada_Be.Idl2Ada is
       DI (Helper_Body);
       PL (Helper_Body, "end To_" & Short_Type_Name & ";");
 
-      --  to_any and from_any functions
+      --  From_Any
+
       case NK is
-         when K_Object =>
+         when
+           K_Interface |
+           K_ValueType =>
+
             NL (Helper_Spec);
             Gen_From_Any_Profile (Helper_Spec, Node);
             NL (Helper_Spec);
             II (Helper_Spec);
             PL (Helper_Spec, "renames "
-                & Ada_Name (Node)
-                & ".From_Any");
+                & Ada_Full_Name (Node)
+                & ".From_Any;");
             DI (Helper_Spec);
+
          when others =>
             null;
       end case;

@@ -1121,7 +1121,7 @@ package body Broca.Rootpoa is
    is
       use PortableServer;
       Slot : Slot_Index_Type;
-      A_Servant : Servant;
+      A_Servant : Servant := null;
       Skel : Internal_Skeleton_Ptr;
       A_Poa : PortableServer.POA.Ref;
       Oid : ObjectId;
@@ -1140,11 +1140,7 @@ package body Broca.Rootpoa is
          Key_To_Slot (Self, Key_Buffer'Access, Slot);
          if Slot /= Bad_Slot_Index then
             A_Servant := Self.Object_Map (Slot).Skeleton.P_Servant;
-         else
-            A_Servant := null;
          end if;
-      else
-         A_Servant := null;
       end if;
 
       PortableServer.POA.Set (A_Poa, CORBA.Impl.Object_Ptr (Self));
@@ -1157,26 +1153,23 @@ package body Broca.Rootpoa is
                Release (Key_Buffer);
                pragma Debug
                  (O ("GIOP_invoke : USE_ACTIVE_OBJECT_MAP_ONLY policy"));
-               if Slot /= Bad_Slot_Index then
-                  A_Servant := Self.Object_Map (Slot).Skeleton.P_Servant;
-               else
-                  Broca.Exceptions.Raise_Object_Not_Exist;
-               end if;
+               Broca.Exceptions.Raise_Object_Not_Exist;
 
             when USE_DEFAULT_SERVANT =>
                Release (Key_Buffer);
                pragma Debug
                  (O ("GIOP_Invoke: USE_DEFAULT_SERVANT policy"));
+
                if Self.Default_Servant = null then
                   Broca.Exceptions.Raise_Obj_Adapter;
-               else
-                  A_Servant := Self.Default_Servant;
-                  if Self.Servant_Policy = RETAIN
-                    and then Slot /= Bad_Slot_Index
-                  then
-                     --  FIXME: persistent
-                     Self.Object_Map (Slot).Skeleton.P_Servant := A_Servant;
-                  end if;
+               end if;
+
+               A_Servant := Self.Default_Servant;
+               if Self.Servant_Policy = RETAIN
+                 and then Slot /= Bad_Slot_Index
+               then
+                  --  FIXME: persistent
+                  Self.Object_Map (Slot).Skeleton.P_Servant := A_Servant;
                end if;
 
             when USE_SERVANT_MANAGER =>
@@ -1185,10 +1178,11 @@ package body Broca.Rootpoa is
                  (PortableServer.ServantManager.Get (Self.Servant_Manager),
                   null)
                then
+                  Release (Key_Buffer);
                   Broca.Exceptions.Raise_Obj_Adapter;
-               else
-                  Skel := To_Internal_Skeleton (Self.Servant_Manager);
                end if;
+
+               Skel := To_Internal_Skeleton (Self.Servant_Manager);
                if Self.Servant_Policy = RETAIN then
                   Release (Key_Buffer);
                   Self.Servant_Lock.Lock;
@@ -1213,9 +1207,9 @@ package body Broca.Rootpoa is
                   if Slot = Bad_Slot_Index then
                      --  FIXME: persistent.
                      Broca.Exceptions.Raise_Internal (615);
-                  else
-                     Self.Object_Map (Slot).Skeleton.P_Servant := A_Servant;
                   end if;
+
+                  Self.Object_Map (Slot).Skeleton.P_Servant := A_Servant;
                else
                   Key_To_ObjectId (Key_Buffer'Access, Oid);
                   Release (Key_Buffer);
@@ -1229,9 +1223,11 @@ package body Broca.Rootpoa is
                   --  Attributes.Set_Value
                   --    (POA_Task_Attribute'
                   --     (Oid, PortableServer.POA.Convert.To_Forward (A_Poa)));
+
                   GIOP_Dispatch
                     (A_Servant, CORBA.To_Standard_String (Operation),
                      Request_Id, Response_Expected, Message, Reply);
+
                   PortableServer.ServantLocator.Impl.Postinvoke
                     (PortableServer.ServantLocator.Impl.Object'Class
                      (Skel.P_Servant.all),
@@ -1278,9 +1274,10 @@ package body Broca.Rootpoa is
          if Self.Servant_Policy = RETAIN then
             Self.Object_Map (Slot).Requests_Lock.Unlock_R;
          end if;
+
          Self.Requests_Lock.Unlock_R;
          POA_Manager_Ptr (Self.POA_Manager).State.Dec_Usage;
-         return;
+
       exception
          when others =>
             if Self.Servant_Policy = RETAIN then
@@ -1288,8 +1285,6 @@ package body Broca.Rootpoa is
             end if;
             raise;
       end;
-
-      Release (Key_Buffer);
 
    exception
       when others =>
