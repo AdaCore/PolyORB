@@ -204,7 +204,8 @@ adabe_interface::produce_adb(dep_list& with, string &body, string &previous)
   body += "      Repo_Id : Corba.String := Get_Repository_Id(Result) ;\n";
   body += "   begin\n";
   body += "      if Is_A(Dynamic_Type, Repo_Id) then\n";
-  body += "         return (Corba.Object.Ref(The_Ref) with null record) ;\n"; 
+  body += "         corba.Object.Internal_Copy(The_Ref, Result) ;\n"; 
+  body += "         return Result ;\n"; 
   body += "      end if ;\n\n";
   body += "      Ada.Exceptions.Raise_Exception(Constraint_Error'Identity,\n";
   body += "                                    \"Cannot cast \"\n";
