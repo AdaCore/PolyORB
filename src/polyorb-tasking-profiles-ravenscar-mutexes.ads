@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,13 +26,13 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Implementation of POSIX-like mutexes under the
---  Ravenscar profile. For more comments see PolyORB.Tasking.Mutexes
+--  Implementation of POSIX-like mutexes under the Ravenscar
+--  profile. For more details see PolyORB.Tasking.Mutexes.
 
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Tasking.Profiles.Ravenscar.Index_Manager;
@@ -46,9 +46,7 @@ package PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
 
    use PolyORB.Tasking.Mutexes;
 
-   type Ravenscar_Mutex_Type is
-     new Mutex_Type with private;
-   --  Mutex type for the Ravenscar profile.
+   type Ravenscar_Mutex_Type is new Mutex_Type with private;
 
    type Ravenscar_Mutex_Access is access all Ravenscar_Mutex_Type'Class;
 
@@ -57,13 +55,11 @@ package PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
 
    type Ravenscar_Mutex_Factory_Type is
      new Mutex_Factory_Type with private;
-   --  Monitor factory type for the Ravenscar profile.
 
    type Ravenscar_Mutex_Factory_Access is
      access all Ravenscar_Mutex_Factory_Type'Class;
 
    The_Mutex_Factory : constant Ravenscar_Mutex_Factory_Access;
-   --  The Monitor factory for the Ravenscar profile.
 
    function Create
      (MF   : access Ravenscar_Mutex_Factory_Type;
@@ -73,9 +69,6 @@ package PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
    procedure Destroy
      (MF : access Ravenscar_Mutex_Factory_Type;
       M  : in out Mutex_Access);
-
-   procedure Initialize;
-   --  Initialize the package.
 
 private
    use Threads_For_Mutexes;
@@ -104,5 +97,8 @@ private
 
    The_Mutex_Factory : constant Ravenscar_Mutex_Factory_Access
      := new Ravenscar_Mutex_Factory_Type;
+
+   procedure Initialize;
+   --  Initialize the package
 
 end PolyORB.Tasking.Profiles.Ravenscar.Mutexes;

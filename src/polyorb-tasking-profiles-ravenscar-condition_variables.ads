@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,14 +26,13 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Implementation of POSIX-like condition variables under the
---  Ravenscar profile. For more comments see
---  PolyORB.Tasking.Condition_Variables
+--  Implementation of POSIX-like condition variables under the Ravenscar
+--  profile. For more details see PolyORB.Tasking.Condition_Variables
 
 with PolyORB.Tasking.Condition_Variables;
 with PolyORB.Tasking.Mutexes;
@@ -49,9 +48,7 @@ package PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
    use PolyORB.Tasking.Condition_Variables;
    use PolyORB.Tasking.Mutexes;
 
-   type Ravenscar_Condition_Type is
-     new Condition_Type with private;
-   --  Condition type for the Ravenscar profile.
+   type Ravenscar_Condition_Type is new Condition_Type with private;
 
    type Ravenscar_Condition_Access is
      access all Ravenscar_Condition_Type'Class;
@@ -68,13 +65,11 @@ package PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
 
    type Ravenscar_Condition_Factory_Type is
      new Condition_Factory_Type with private;
-   --  Monitor factory type for the Ravenscar profile.
 
    type Ravenscar_Condition_Factory_Access is
      access all Ravenscar_Condition_Factory_Type'Class;
 
    The_Condition_Factory : constant Ravenscar_Condition_Factory_Access;
-   --  The Monitor factory for the Ravenscar profile.
 
    function Create
      (MF   : access Ravenscar_Condition_Factory_Type;
@@ -84,9 +79,6 @@ package PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
    procedure Destroy
      (MF : access Ravenscar_Condition_Factory_Type;
       C  : in out Condition_Access);
-
-   procedure Initialize;
-   --  Initialize the package.
 
 private
    use Threads_For_CV;
@@ -115,5 +107,8 @@ private
 
    The_Condition_Factory : constant Ravenscar_Condition_Factory_Access
      := new Ravenscar_Condition_Factory_Type;
+
+   procedure Initialize;
+   --  Initialize the package
 
 end PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables;
