@@ -121,7 +121,6 @@ adabe_operation::produce_adb(dep_list& with,string &body, string &previous)
       body += ") ;\n";
       body += "      OmniProxyCallWrapper.Invoke(Self, Opcd) ;\n";
       body += "      Result := " + name_of_the_package + ".Proxies.Get_Result(Opcd) ;\n";
-      body += "      " + name_of_the_package + ".Proxies.Free(Opcd) ;\n";
       body += "      return Result ;\n";
       body += "   end ;\n\n";
     }
@@ -196,7 +195,7 @@ adabe_operation::produce_impl_ads(dep_list& with,string &body, string &previous)
 	}
       body += ") return ";
       AST_Decl *b = return_type();
-      body +=  dynamic_cast<adabe_name *>(b)->dump_name(with, previous) + ";\n";
+      body +=  dynamic_cast<adabe_name *>(b)->dump_name(with, previous) + " ;n\n";
     }
   else
     {
@@ -248,7 +247,7 @@ adabe_operation::produce_impl_adb(dep_list& with,string &body, string &previous)
       AST_Decl *b = return_type();
       body +=  dynamic_cast<adabe_name *>(b)->dump_name(with, previous) + " is\n";
       body += "   begin \n";
-      body += "   end;";
+      body += "   end ;\n";
     }
   else
     {
@@ -319,7 +318,7 @@ adabe_operation::produce_proxies_ads(dep_list& with,string &body, string &privat
   if ((!no_out) || (is_function())) {
   body += "   procedure Unmarshal_Returned_Values(Self : in out " ;
   body +=  get_ada_local_name() + "_Proxy ;\n";
-  body += "                                       Giop_Client : in Giop_C.Object) ;\n\n";
+  body += "                                       Giop_Client : in out Giop_C.Object) ;\n\n";
   }
   if (is_function()) {
   body += "   function Get_Result (Self : in " + get_ada_local_name() + "_Proxy)\n";
@@ -350,6 +349,7 @@ adabe_operation::produce_proxies_adb(dep_list& with,string &body,
 				     string &private_definition)
 {
   string name = get_ada_full_name();
+  string result_name = "";
   string in_decls = "";
   string init = "";
   string align_size = "";
@@ -428,42 +428,41 @@ adabe_operation::produce_proxies_adb(dep_list& with,string &body,
     body += "   ----------------------------\n" ;
     body += "   procedure Unmarshal_Returned_Values(Self : in out " ;
     body += get_ada_local_name() + "_Proxy ;\n";
-    body += "                                       Giop_Client : in Giop_C.Object) is\n";
+    body += "                                       Giop_Client : in out Giop_C.Object) is\n";
     body += unmarshall_decls;
     if (is_function()) {
-      body += "      Result : " + name + " ;\n";
+    // get the type of the result
+    AST_Decl *b = return_type();
+    result_name =  dynamic_cast<adabe_name *>(b)->dump_name(with, private_definition); 
+    body += "      Result : " + result_name + " ;\n";
     }
     body += "   begin\n";
     body += unmarshall;
     if (is_function()) {
       body += "      Unmarshall(Result, Giop_client) ;\n";
-      body += "      Self.Result := new " + get_ada_local_name() + "_Proxy'(Result) ;\n";
+      body += "      Self.Private_Result := new " + result_name + "'(Result) ;\n";
     }
     body += "   end ;\n\n\n";      
   }
   
   if (is_function()) {
-    // get the type of the result
-    AST_Decl *b = return_type();
-    string result_name =  dynamic_cast<adabe_name *>(b)->dump_name(with, private_definition); 
-
     body += "   -- Get_Result\n" ;
     body += "   -------------\n" ;
     body += "   function Get_Result (Self : in " + get_ada_local_name() + "_Proxy )\n";
     body += "                        return " +  result_name + " is\n";
     body += "   begin\n";
-    body += "      return Self.Result.all ;\n";
+    body += "      return Self.Private_Result.all ;\n";
     body += "   end ;\n\n\n";
   }
 
   if ( (!no_in) || (!no_out) || (is_function())) {
     body += "   -- Finalize\n" ;
     body += "   -----------\n" ;
-    body += "   procedure Finalize(Self : in out " + name + ") is\n";
+    body += "   procedure Finalize(Self : in out " + get_ada_local_name() + "_Proxy) is\n";
     body += "   begin\n";
     body += finalize;
     if (is_function()) {
-      body += "      Free(Self.Result) ;\n";
+      body += "      Free(Self.Private_Result) ;\n";
     } 
     body += "   end ;\n\n\n";
   }
@@ -518,7 +517,7 @@ adabe_operation::produce_skel_adb(dep_list& with,string &body, string &private_d
   }
 
   body += "            -- change state\n";
-  body += "            Request_Received(Orls) ;\n";
+  body += "            Giop_S.Request_Received(Orls) ;\n";
 
   body += "            -- call the implementation\n";
   body += "            ";

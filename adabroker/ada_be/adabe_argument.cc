@@ -103,9 +103,9 @@ adabe_argument::produce_proxies_adb(dep_list &with, string &in_decls, bool &no_i
     init += get_ada_local_name ();
     init += ") ;\n";
 
-    align_size += "      Align_size(Self.";
+    align_size += "      Tmp := Align_size(Self.";
     align_size += get_ada_local_name ();
-    align_size += ".all, tmp) ;\n";
+    align_size += ".all, Tmp) ;\n";
 
     marshall += "      Marshall(Self.";
     marshall += get_ada_local_name ();
@@ -136,7 +136,7 @@ adabe_argument::produce_proxies_adb(dep_list &with, string &in_decls, bool &no_i
     unmarshall += ") ;\n";
   }
 
-  finalize += "      Free (Self.";
+  finalize += "      Free(Self.";
   finalize += get_ada_local_name ();
   finalize += ") ;\n";
 }

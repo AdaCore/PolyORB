@@ -48,7 +48,6 @@ adabe_attribute::produce_adb(dep_list& with, string &body, string &previous)
   body += "      " + name_of_the_package + ".Proxies.Init(Opcd) ;\n";
   body += "      OmniProxyCallWrapper.Invoke(Self, Opcd) ;\n";
   body += "      Result := " + name_of_the_package + ".Proxies.Get_Result(Opcd) ;\n";
-  body += "      " + name_of_the_package + ".Proxies.Free(Opcd) ;\n";
   body += "      return Result ;\n";
   body += "   end ;\n\n\n";
   if (!readonly())
@@ -61,13 +60,12 @@ adabe_attribute::produce_adb(dep_list& with, string &body, string &previous)
       body += ") is \n";
       body += "      Opcd : ";
       body += name_of_the_package;
-      body += ".Proxies.";
+      body += ".Proxies.Set_";
       body += get_ada_local_name();
       body += "_Proxy ;\n";
       body += "   begin \n";
       body += "      " + name_of_the_package + ".Proxies.Init(Opcd, To) ;\n";
       body += "      OmniProxyCallWrapper.Invoke(Self, Opcd) ;\n";
-      body += "      " + name_of_the_package + ".Proxies.Free(Opcd) ;\n";
       body += "   end ;\n\n\n";    
     }
 }
@@ -75,13 +73,17 @@ adabe_attribute::produce_adb(dep_list& with, string &body, string &previous)
 void
 adabe_attribute::produce_impl_ads(dep_list& with, string &body, string &previous)
 {
+  string space = "";
+  for (unsigned int i=0;i<get_ada_local_name().length();i++) space += " ";
   body += "   function Get_" + get_ada_local_name() +"(Self : access Object) return "; 
   AST_Decl *d = field_type();
   string name = dynamic_cast<adabe_name *>(d)->dump_name(with, previous);
   body += name + " ;\n\n";
   if (!readonly())
     {
-      body += "   procedure Set_" + get_ada_local_name() +"(Self : access Object ; To : in ";
+      body += "   procedure Set_" + get_ada_local_name();
+      body += "(Self : access Object ;\n";
+      body += space + "                  To : in ";
       body += name;
       body += " ) ;\n\n";
     }
@@ -124,7 +126,7 @@ adabe_attribute::produce_proxies_ads(dep_list& with, string &body, string &priva
   body += "   function Operation(Self : in Get_" + get_ada_local_name() + "_Proxy)\n";
   body += "                      return Corba.String ;\n\n" ;
   body += "   procedure Unmarshal_Returned_Values(Self : in out Get_" + get_ada_local_name() + "_Proxy ;\n";
-  body += "                                       Giop_Client : in Giop_C.Object);\n\n";
+  body += "                                       Giop_Client : in out Giop_C.Object);\n\n";
   body += "   function Get_Result (Self : in Get_" + get_ada_local_name() + "_Proxy )\n";
   body += "                        return " +  name + "; \n\n\n";
 
@@ -182,7 +184,7 @@ adabe_attribute::produce_proxies_adb(dep_list &with, string &body, string &priva
   body += "   -- Unmarshal_Returned_Values\n" ;
   body += "   ----------------------------\n" ;
   body += "   procedure Unmarshal_Returned_Values(Self : in out Get_" + get_ada_local_name() + "_Proxy ;\n";
-  body += "                                       Giop_Client : in Giop_C.Object) is\n";
+  body += "                                       Giop_Client : in out Giop_C.Object) is\n";
   body += "      Result : " + name + " ;\n";
   body += "   begin\n";
   body += "      Unmarshall(Result, Giop_client) ;\n";
@@ -258,7 +260,7 @@ adabe_attribute::produce_skel_adb(dep_list& with, string &body, string &private_
   string full_name = get_ada_full_name ();
   string pack_name = full_name.substr(0,full_name.find_last_of('.')) ;
 
-  body += "      if Orl_Op = \"Get_";
+  body += "      if Orl_Op = \"_get_";
   body += name;
   body += "\" then\n";
   body += "         declare\n";
@@ -269,7 +271,7 @@ adabe_attribute::produce_skel_adb(dep_list& with, string &body, string &private_
   body += "         begin\n";
 
   body += "            -- change state\n";
-  body += "            Request_Received(Orls) ;\n";
+  body += "            Giop_S.Request_Received(Orls) ;\n";
 
   body += "            -- call the implementation\n";
   body += "            Result := ";
@@ -298,7 +300,7 @@ adabe_attribute::produce_skel_adb(dep_list& with, string &body, string &private_
 
   if (!readonly())
     {
-      body += "      if Orl_Op = \"Set_";
+      body += "      if Orl_Op = \"_set_";
       body += name;
       body += "\" then\n";
       body += "         declare\n";
@@ -311,7 +313,7 @@ adabe_attribute::produce_skel_adb(dep_list& with, string &body, string &private_
       body += "            Unmarshall (Mesg,Orls) ;\n";
       
       body += "            -- change state\n";
-      body += "            Request_Received(Orls) ;\n";
+      body += "            Giop_S.Request_Received(Orls) ;\n";
       
       body += "            -- call the implementation\n";
       body += "            ";

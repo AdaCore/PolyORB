@@ -341,7 +341,7 @@ adabe_interface::produce_impl_ads(dep_list& with, string &body, string &previous
   with.add("Omniobject");
   body += "\npackage " + get_ada_full_name() + ".Impl is\n\n";
   if (n_inherits() == 0)
-    body += "   type Object is new Omniobject.Implemented_Object with private ;\n\n";
+    body += "   type Object is new Omniobject.Implemented_Object with private ;\n\n\n";
 
  // forward declarated
 
@@ -355,64 +355,9 @@ adabe_interface::produce_impl_ads(dep_list& with, string &body, string &previous
       inher = adabe_interface::narrow_from_decl(inherits()[0]);      
       body += "   type Object is new " + inher->get_ada_full_name() +
 	".Object with private ;\n\n";
-/*
-  UTL_ScopeActiveIterator j(inher,UTL_Scope::IK_decls);
-      while (!j.is_done())
-	{
-	  AST_Decl *d = j.item();
-	  switch(d->node_type()) {
-	  case AST_Decl::NT_const:
-	  case AST_Decl::NT_enum:
-	  case AST_Decl::NT_except:
-	  case AST_Decl::NT_struct:
-	  case AST_Decl::NT_typedef:
-	  case AST_Decl::NT_union:
-	  case AST_Decl::NT_sequence:
-	  case AST_Decl::NT_string:
-	  case AST_Decl::NT_array:
-	    {
-	      adabe_name *e = dynamic_cast<adabe_name *>(d);
-	      tmp += "   subtype" +  e->get_ada_local_name() + " is " + e->get_ada_full_name() + ";\n";
-	    }
-	    break;
-	  default:break;
-	  }
-	  j.next();
-	}
-      if (n_inherits() == 1)  body += "with NULL record; \n";
-      else
-	{
-	  body += "with record \n";
-	  for(int i = 1; i < n_inherits(); i++)
-	    {
-	      inher = adabe_interface::narrow_from_decl(inherits()[i]);
-	      body += "      Adabroker_father : access " + inher->get_ada_full_name() + ".Object; \n"; //...
-	      UTL_ScopeActiveIterator j(inher,UTL_Scope::IK_decls);
-	      while (!j.is_done())
-		{
-		  AST_Decl *d = j.item();
-		  switch(d->node_type()) {
-		  case AST_Decl::NT_const:
-		  case AST_Decl::NT_enum:
-		  case AST_Decl::NT_except:
-		  case AST_Decl::NT_struct:
-		  case AST_Decl::NT_typedef:
-		  case AST_Decl::NT_union:
-		  case AST_Decl::NT_sequence:
-		  case AST_Decl::NT_string:
-		  case AST_Decl::NT_array:
-		    {
-		      adabe_name *e = dynamic_cast<adabe_name *>(d);
-		      tmp += "   subtype" +  e->get_ada_local_name() + " is " + e->get_ada_full_name();
-		    }
-		    break;
-		  default:break;
-		  }
-		  j.next();
-		}
-	    }
-	  body += "   end record; \n";
-	  } */
+      body += "   type " + get_ada_local_name() + "_Ptr is access " + get_ada_local_name() + ";\n";
+      body += "   procedure Free is new Ada.Unchecked_Deallocation(";
+      body += get_ada_local_name() + ", " + get_ada_local_name ()+ "_Ptr);\n";  
     } 
   body += tmp;
   
@@ -437,7 +382,7 @@ adabe_interface::produce_impl_ads(dep_list& with, string &body, string &previous
 	}
        i.next();
     }
-  body += "private\n\n" ;
+  body += "\nprivate\n\n" ;
   body += "   -- You may add fields to this record\n" ;
   if (n_inherits() == 0) {
     body += "   type Object is new Omniobject.Implemented_Object with record\n";
@@ -575,15 +520,15 @@ void
 adabe_interface::produce_skel_adb(dep_list& with, string &body, string &previous)
 {
   adabe_global::set_adabe_current_file(this);
-
+  with.add(get_ada_full_name() + ".Impl");
+  with.add(get_ada_full_name() + ".Marshal");
+  with.add("Netbufferedstream ; use Netbufferedstream");
+  with.add("Membufferedstream ; use Membufferedstream");
   with.add("Omniropeandkey") ;
-  with.add("Netbufferedstream ; use Netbufferedstream") ;
-  with.add("Giop_S ; use Giop_S") ;
   with.add("Giop") ;
   with.add("Corba") ;
-  with.add(get_ada_local_name() + ".Impl") ;
-  
   body += "use type Corba.Unsigned_Long ;\n\n" ;
+
   body += "package body " + get_ada_full_name() + ".Skeleton is\n\n";
   body += "   procedure Dispatch (Myself : in Omniobject.Implemented_Object_Ptr ;\n";
   body += "                       Orls : in out Giop_S.Object ;\n";
