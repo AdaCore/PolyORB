@@ -276,7 +276,6 @@ package body System.Garlic.Non_Blocking is
             Empty := Sfds.all = 0;
          else
             Dummy := Thin.C_Send (RSFD, Buf, Len, Flags);
-            pragma Debug (D (D_Debug, Dump (Dummy, Errno)));
             Empty := Dummy = Thin.Failure and then Errno = Ewouldblock;
          end if;
          if Empty then
