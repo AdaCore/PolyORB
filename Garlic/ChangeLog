@@ -1,5 +1,7 @@
 Sat May  3 16:14:27 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
+	* Makefile.in: Added split to CLEANFILES.
+
 	* split.adb: Use System.IO rather than Ada.Text_IO to avoid
 	  problems with Ada.Text_IO depending on s-stratt.adb.
 
