@@ -55,7 +55,7 @@ is
    is
    begin
       pragma Warnings (Off);
-      pragma Unreferenced (Self, OA);
+      pragma Unreferenced (Self, Other_Policies);
       pragma Warnings (On);
 
       null;
@@ -89,7 +89,7 @@ is
    begin
       pragma Warnings (Off);
       pragma Unreferenced (Self);
-      pragma Unreferenced (Other_Policies);
+      pragma Unreferenced (OA);
       pragma Unreferenced (U_Oid);
       pragma Warnings (On);
       null;
