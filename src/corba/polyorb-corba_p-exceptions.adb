@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions.adb#20 $
+--  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions.adb#21 $
 
 with CORBA;
 
@@ -52,6 +52,50 @@ package body PolyORB.CORBA_P.Exceptions is
    package L is new PolyORB.Log.Facility_Log ("polyorb.corba_p.exceptions");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+
+   procedure Exception_Name_To_Error_Id
+     (Name     :     String;
+      Is_Error : out Boolean;
+      Id       : out Error_Id);
+   --  Convert an exception name into a PolyORB's Error Id.
+
+   --------------------------------
+   -- Exception_Name_To_Error_Id --
+   --------------------------------
+
+   procedure Exception_Name_To_Error_Id
+     (Name     :     String;
+      Is_Error : out Boolean;
+      Id       : out Error_Id)
+   is
+      Prefix_Length : constant Natural := PolyORB_Exc_Prefix'Length;
+      Version_Length : constant Natural
+        := To_Standard_String (PolyORB_Exc_Version)'Length;
+
+   begin
+      if Name'Length > Prefix_Length + Version_Length
+        and then Name (Name'First .. Name'First + Prefix_Length - 1)
+        = PolyORB_Exc_Prefix
+      then
+         declare
+            Error_Id_Name : constant String
+              := Name (Name'First + Prefix_Length ..
+                       Name'Last - Version_Length) & "_E";
+
+         begin
+            pragma Debug (O ("Error_Id_Name : " & Error_Id_Name));
+
+            Is_Error := True;
+            Id := Error_Id'Value (Error_Id_Name);
+         end;
+      else
+         Is_Error := False;
+         Id := No_Error;
+      end if;
+
+      pragma Debug (O (Name & " is a PolyORB error ? "
+                       & Boolean'Image (Is_Error)));
+   end Exception_Name_To_Error_Id;
 
    --------------------
    -- Raise_From_Any --

@@ -299,12 +299,6 @@ package PolyORB.Exceptions is
    -- Exception utility functions --
    ---------------------------------
 
-   procedure Exception_Name_To_Error_Id
-     (Name     :     String;
-      Is_Error : out Boolean;
-      Id       : out Error_Id);
-   --  Convert an exception name into a PolyORB's Error Id.
-
    function Occurrence_To_Name
      (Occurrence : Ada.Exceptions.Exception_Occurrence)
       return PolyORB.Types.RepositoryId;
