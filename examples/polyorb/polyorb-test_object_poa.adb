@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                    C O R B A . T E S T _ O B J E C T                     --
+--              P O L Y O R B . T E S T _ O B J E C T _ P O A               --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,13 +30,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  A simple test server object.
-
 --  $Id$
 
 with Ada.Exceptions;
-
-with CORBA;
 
 with PolyORB.Any;
 with PolyORB.Any.NVList;
@@ -46,9 +42,7 @@ with PolyORB.Objects.Interface;
 with PolyORB.Requests;
 with PolyORB.Types;
 
-package body CORBA.Test_Object is
-
-   use CORBA;
+package body PolyORB.Test_Object_POA is
 
    use PolyORB.Any;
    use PolyORB.Log;
@@ -65,22 +59,22 @@ package body CORBA.Test_Object is
 
    function echoString
      (O : My_Object;
-      S : CORBA.String)
-     return CORBA.String
+      S : PolyORB.Types.String)
+     return PolyORB.Types.String
    is
       pragma Warnings (Off);
       pragma Unreferenced (O);
       pragma Warnings (On);
    begin
       pragma Debug (Output ("echoString is being executed with argument: "
-                            & CORBA.To_Standard_String (S)));
+                            & PolyORB.Types.To_Standard_String (S)));
       return S;
    end echoString;
 
    function echoInteger
      (O : My_Object;
-      I : CORBA.Long)
-     return CORBA.Long
+      I : PolyORB.Types.Long)
+     return PolyORB.Types.Long
    is
       pragma Warnings (Off);
       pragma Unreferenced (O);
@@ -125,7 +119,7 @@ package body CORBA.Test_Object is
                   use PolyORB.Any.NVList.Internals;
                   Args_Sequence : constant NV_Sequence_Access
                     := List_Of (Args);
-                  echoString_Arg : CORBA.String :=
+                  echoString_Arg : PolyORB.Types.String :=
                     From_Any (NV_Sequence.Element_Of
                               (Args_Sequence.all, 1).Argument);
                begin
@@ -142,7 +136,7 @@ package body CORBA.Test_Object is
                   use PolyORB.Any.NVList.Internals;
                   Args_Sequence : constant NV_Sequence_Access
                     := List_Of (Args);
-                  echoInteger_Arg : constant CORBA.Long :=
+                  echoInteger_Arg : constant PolyORB.Types.Long :=
                     From_Any (NV_Sequence.Element_Of
                               (Args_Sequence.all, 1).Argument);
                begin
@@ -166,5 +160,5 @@ package body CORBA.Test_Object is
          raise;
    end Execute_Servant;
 
-end CORBA.Test_Object;
+end PolyORB.Test_Object_POA;
 

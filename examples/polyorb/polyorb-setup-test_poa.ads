@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                    C O R B A . T E S T _ O B J E C T                     --
+--               P O L Y O R B . S E T U P . T E S T _ P O A                --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,36 +30,15 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  A simple test server object.
+--  A variant of the test setup that uses a POA instead of
+--  an SOA.
 
 --  $Id$
 
-with PolyORB.Components;
-with PolyORB.Servants;
-with CORBA;
-
-package CORBA.Test_Object is
+package PolyORB.Setup.Test_POA is
 
    pragma Elaborate_Body;
 
-   use CORBA;
+   procedure Initialize_Test_Object;
 
-   type My_Object is new PolyORB.Servants.Servant with null record;
-
-   function echoString
-     (O : My_Object;
-      S : CORBA.String)
-     return CORBA.String;
-
-   function echoInteger
-     (O : My_Object;
-      I : CORBA.Long)
-     return CORBA.Long;
-
-   function Execute_Servant
-     (Obj : access My_Object;
-      Msg : PolyORB.Components.Message'Class)
-     return PolyORB.Components.Message'Class;
-
-end CORBA.Test_Object;
-
+end PolyORB.Setup.Test_POA;

@@ -2,20 +2,20 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---             P O L Y O R B . S E T U P . T E S T _ C O R B A              --
+--              P O L Y O R B . T E S T _ O B J E C T _ S O A               --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
--- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
 -- Software Foundation;  either version 2,  or (at your option)  any  later --
--- version. AdaBroker  is distributed  in the hope that it will be  useful, --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
 -- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
--- General Public License distributed with AdaBroker; see file COPYING. If  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
 -- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
 -- Boston, MA 02111-1307, USA.                                              --
 --                                                                          --
@@ -30,15 +30,47 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  A variant of the test setup that uses a POA instead of
---  an SOA.
+--  A simple test server object that uses the SOA.
 
 --  $Id$
 
-package PolyORB.Setup.Test_CORBA is
+with PolyORB.Components;
+with PolyORB.Obj_Adapters.Simple;
+with PolyORB.Servants;
+with PolyORB.Types;
+
+package PolyORB.Test_Object_SOA is
 
    pragma Elaborate_Body;
 
-   procedure Initialize_CORBA_Test_Object;
+   use PolyORB.Types;
 
-end PolyORB.Setup.Test_CORBA;
+   type My_Object is new PolyORB.Servants.Servant with null record;
+
+   function waitAndEchoString
+     (O : My_Object;
+      S : Types.String;
+      T : Types.Long)
+     return Types.String;
+
+   function echoString
+     (O : My_Object;
+      S : Types.String)
+     return Types.String;
+
+   function echoInteger
+     (O : My_Object;
+      I : Types.Long)
+     return Types.Long;
+
+   function Execute_Servant
+     (Obj : access My_Object;
+      Msg : Components.Message'Class)
+     return Components.Message'Class;
+
+   function If_Desc
+     return Obj_Adapters.Simple.Interface_Description;
+   pragma Inline (If_Desc);
+
+end PolyORB.Test_Object_SOA;
+

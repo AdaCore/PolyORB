@@ -34,8 +34,8 @@
 
 --  $Id$
 
-with PolyORB.Setup.Test; use PolyORB.Setup.Test;
-with PolyORB.Setup.Test_CORBA; use PolyORB.Setup.Test_CORBA;
+with PolyORB.Setup.Test_SOA;
+with PolyORB.Setup.Test_POA;
 
 with PolyORB.Setup.No_Tasking_Server;
 pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
@@ -43,6 +43,6 @@ pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
 
 procedure PolyORB.Test.No_Tasking_POA is
 begin
-   Setup.Test_CORBA.Initialize_CORBA_Test_Object;
-   Run_Test;
+   PolyORB.Setup.Test_POA.Initialize_Test_Object;
+   PolyORB.Setup.Test_SOA.Run_Test;
 end PolyORB.Test.No_Tasking_POA;

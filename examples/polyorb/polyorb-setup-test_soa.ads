@@ -2,20 +2,20 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                  P O L Y O R B . T E S T _ O B J E C T                   --
+--               P O L Y O R B . S E T U P . T E S T _ S O A                --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
--- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
 -- Software Foundation;  either version 2,  or (at your option)  any  later --
--- version. AdaBroker  is distributed  in the hope that it will be  useful, --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
 -- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
--- General Public License distributed with AdaBroker; see file COPYING. If  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
 -- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
 -- Boston, MA 02111-1307, USA.                                              --
 --                                                                          --
@@ -30,47 +30,32 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  A simple test server object.
+--  Set up a test ORB.
 
 --  $Id$
 
-with PolyORB.Components;
-with PolyORB.Obj_Adapters.Simple;
-with PolyORB.Servants;
-with PolyORB.Types;
+with PolyORB.References;
+pragma Elaborate_All (PolyORB.References);
 
-package PolyORB.Test_Object is
+with PolyORB.Smart_Pointers;
+pragma Elaborate_All (PolyORB.Smart_Pointers);
+pragma Warnings (Off, PolyORB.Smart_Pointers);
+--  The dependency and pragma above should not be necessary
+--  (because of the dependency and pragma on PolyORB.References,
+--  which has Smart_Pointers in its closure). They are necessary to
+--  work around a bug in GNAT 3.15.
+
+package PolyORB.Setup.Test_SOA is
 
    pragma Elaborate_Body;
 
-   use PolyORB.Types;
+   procedure Initialize_Test_Object;
+   --  Create the test object implementation.
 
-   type My_Object is new PolyORB.Servants.Servant with null record;
+   My_Ref : PolyORB.References.Ref;
+   --  Object reference designating the created test object.
 
-   function waitAndEchoString
-     (O : My_Object;
-      S : Types.String;
-      T : Types.Long)
-     return Types.String;
+   procedure Run_Test;
+   --  Execute the test server.
 
-   function echoString
-     (O : My_Object;
-      S : Types.String)
-     return Types.String;
-
-   function echoInteger
-     (O : My_Object;
-      I : Types.Long)
-     return Types.Long;
-
-   function Execute_Servant
-     (Obj : access My_Object;
-      Msg : Components.Message'Class)
-     return Components.Message'Class;
-
-   function If_Desc
-     return Obj_Adapters.Simple.Interface_Description;
-   pragma Inline (If_Desc);
-
-end PolyORB.Test_Object;
-
+end PolyORB.Setup.Test_SOA;

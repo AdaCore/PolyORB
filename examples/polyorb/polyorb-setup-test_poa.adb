@@ -2,20 +2,20 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---             P O L Y O R B . S E T U P . T E S T _ C O R B A              --
+--               P O L Y O R B . S E T U P . T E S T _ P O A                --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
--- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
 -- Software Foundation;  either version 2,  or (at your option)  any  later --
--- version. AdaBroker  is distributed  in the hope that it will be  useful, --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
 -- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
--- General Public License distributed with AdaBroker; see file COPYING. If  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
 -- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
 -- Boston, MA 02111-1307, USA.                                              --
 --                                                                          --
@@ -37,31 +37,31 @@
 with Ada.Exceptions;
 with Ada.Text_IO; use Ada.Text_IO;
 
-with CORBA;
-with CORBA.Test_Object; use CORBA.Test_Object;
-with CORBA.Object;
-with CORBA.ORB;
+with PolyORB.Test_Object_POA;
 
 with PolyORB.Obj_Adapters;
 with PolyORB.Objects;
 with PolyORB.Servants;
 with PolyORB.ORB; use PolyORB.ORB;
 with PolyORB.POA;
-with PolyORB.POA.Basic_POA; use PolyORB.POA.Basic_POA;
+with PolyORB.POA.Basic_POA;
 with PolyORB.POA_Types;
 with PolyORB.References;
-with PolyORB.Setup.Test; use PolyORB.Setup.Test;
+with PolyORB.References.IOR;
 with PolyORB.Types;
 with PolyORB.POA_Config;
 with PolyORB.POA_Config.Minimum;
 with PolyORB.POA_Manager;
 
-package body PolyORB.Setup.Test_CORBA is
+package body PolyORB.Setup.Test_POA is
+
+   use PolyORB.Test_Object_POA;
+   use PolyORB.POA.Basic_POA;
 
    My_Servant : PolyORB.Servants.Servant_Access;
    Obj_Adapter : PolyORB.POA_Types.Obj_Adapter_Access;
 
-   procedure Initialize_CORBA_Test_Object is
+   procedure Initialize_Test_Object is
    begin
       Put ("Initializing OA confiuration... ");
       PolyORB.POA_Config.Set_Configuration
@@ -75,7 +75,7 @@ package body PolyORB.Setup.Test_CORBA is
         (The_ORB, PolyORB.Obj_Adapters.Obj_Adapter_Access (Obj_Adapter));
       --  Link object adapter with ORB.
 
-      My_Servant := new CORBA.Test_Object.My_Object;
+      My_Servant := new PolyORB.Test_Object_POA.My_Object;
       --  Create application server object.
 
       PolyORB.POA_Manager.Activate
@@ -88,14 +88,13 @@ package body PolyORB.Setup.Test_CORBA is
            := PolyORB.Obj_Adapters.Export
            (Obj_Adapters.Obj_Adapter_Access (Obj_Adapter), My_Servant);
          --  Register it with the SOA.
-         My_CORBA_Ref : CORBA.Object.Ref;
+         My_Ref : PolyORB.References.Ref;
       begin
          Put_Line ("Registered object: " & PolyORB.Objects.Image (My_Id));
          Create_Reference
            (The_ORB, My_Id'Access, "IDL:Echo:1.0", My_Ref);
          --  Obtain object reference.
-         CORBA.Object.Set
-           (My_CORBA_Ref, PolyORB.References.Entity_Of (My_Ref));
+
          Put_Line ("Reference is     : " & References.Image (My_Ref));
          Put_Line ("URI is           : "
                    & PolyORB.Types.To_Standard_String
@@ -103,8 +102,8 @@ package body PolyORB.Setup.Test_CORBA is
                     (Obj_Adapter, My_Id'Access)));
          begin
             Put_Line ("IOR is           : "
-                      & CORBA.To_Standard_String
-                      (CORBA.ORB.Object_To_String (My_CORBA_Ref)));
+                      & PolyORB.Types.To_Standard_String
+                      (PolyORB.References.IOR.Object_To_String (My_Ref)));
          exception
             when E : others =>
                Put_Line ("Warning: Object_To_String raised:");
@@ -113,6 +112,7 @@ package body PolyORB.Setup.Test_CORBA is
 
       end;
       Put_Line (" done.");
-   end Initialize_CORBA_Test_Object;
+   end Initialize_Test_Object;
 
-end PolyORB.Setup.Test_CORBA;
+end PolyORB.Setup.Test_POA;
+

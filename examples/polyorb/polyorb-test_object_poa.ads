@@ -2,20 +2,20 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---         P O L Y O R B . T E S T . T H R E A D _ P O O L _ P O A          --
+--              P O L Y O R B . T E S T _ O B J E C T _ P O A               --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
--- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
 -- Software Foundation;  either version 2,  or (at your option)  any  later --
--- version. AdaBroker  is distributed  in the hope that it will be  useful, --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
 -- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
--- General Public License distributed with AdaBroker; see file COPYING. If  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
 -- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
 -- Boston, MA 02111-1307, USA.                                              --
 --                                                                          --
@@ -30,19 +30,34 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Set up a test server with the Thread_Pool tasking policy.
+--  A simple test server object that uses the POA.
 
 --  $Id$
 
-with PolyORB.Setup.Test_SOA;
-with PolyORB.Setup.Test_POA;
+with PolyORB.Components;
+with PolyORB.Servants;
+with PolyORB.Types;
 
-with PolyORB.Setup.Thread_Pool_Server;
-pragma Elaborate_All (PolyORB.Setup.Thread_Pool_Server);
-pragma Warnings (Off, PolyORB.Setup.Thread_Pool_Server);
+package PolyORB.Test_Object_POA is
 
-procedure PolyORB.Test.Thread_Pool_POA is
-begin
-   PolyORB.Setup.Test_POA.Initialize_Test_Object;
-   PolyORB.Setup.Test_SOA.Run_Test;
-end PolyORB.Test.Thread_Pool_POA;
+   pragma Elaborate_Body;
+
+   type My_Object is new PolyORB.Servants.Servant with null record;
+
+   function echoString
+     (O : My_Object;
+      S : PolyORB.Types.String)
+     return PolyORB.Types.String;
+
+   function echoInteger
+     (O : My_Object;
+      I : PolyORB.Types.Long)
+     return PolyORB.Types.Long;
+
+   function Execute_Servant
+     (Obj : access My_Object;
+      Msg : PolyORB.Components.Message'Class)
+     return PolyORB.Components.Message'Class;
+
+end PolyORB.Test_Object_POA;
+

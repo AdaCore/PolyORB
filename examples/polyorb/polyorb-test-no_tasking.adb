@@ -34,13 +34,15 @@
 
 --  $Id$
 
-with PolyORB.Setup.Test; use PolyORB.Setup.Test;
+with PolyORB.Setup.Test_SOA;
 
 with PolyORB.Setup.No_Tasking_Server;
 pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
 pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
 
 procedure PolyORB.Test.No_Tasking is
+   use PolyORB.Setup.Test_SOA;
+
 begin
    Initialize_Test_Object;
    Run_Test;
