@@ -654,7 +654,6 @@ package body XE_Stubs is
       Receiver_Object : File_Name_Type;
       Receiver_ALI    : File_Name_Type;
       Unit_Name       : Unit_Name_Type;
-      Rename_Objects  : Boolean := False;
 
    begin
 
