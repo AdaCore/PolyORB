@@ -35,12 +35,12 @@
 
 with System.Garlic.Debug;      use System.Garlic.Debug;
 pragma Elaborate_All (System.Garlic.Debug);
+with System.Garlic.Exceptions; use System.Garlic.Exceptions;
 with System.Garlic.Heart;      use System.Garlic.Heart;
 with System.Garlic.Partitions; use System.Garlic.Partitions;
 with System.Garlic.Soft_Links;
 with System.Garlic.Streams;    use System.Garlic.Streams;
 with System.Garlic.Types;      use System.Garlic.Types;
-with System.Garlic.Utils;      use System.Garlic.Utils;
 
 --  Used when debug on.
 with System.Garlic.Options;
