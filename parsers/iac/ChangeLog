@@ -1,5 +1,21 @@
 2004-06-29  Laurent Pautet  <pautet@dorine.enst.fr>
 
+	* backend-be_ada-generator.adb: Add a missing space between
+	defining_identifier and colon.
+
+	* backend-be_ada-nutils.adb: Add one to Token_Type'Pos in order to
+	have a positive value.
+
+	* iac.adb: Comments.
+
+	* analyzer.adb: Analyze expanded constant declaration coming from
+	enumerator in order to compute its value.
+
+	* backend-be_ada.adb: Read constant value and not constant
+	expression value.
+	
+2004-06-29  Laurent Pautet  <pautet@dorine.enst.fr>
+
 	* backend-be_ada-generator.adb: Remove junk code
 	(Generate_Enumeration_Type and Generate_Type_Spec not
 	used). Establish some generation rules. The enclosing entity

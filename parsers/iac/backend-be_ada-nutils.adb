@@ -680,7 +680,6 @@ package body Backend.BE_Ada.Nutils is
       else
          Set_Loc  (N, No_Location);
       end if;
-
       return List_Id (N);
    end New_List;
 
@@ -707,7 +706,6 @@ package body Backend.BE_Ada.Nutils is
       else
          Set_Loc  (N, No_Location);
       end if;
-
       return N;
    end New_Node;
 
@@ -721,7 +719,8 @@ package body Backend.BE_Ada.Nutils is
    begin
       if T in Keyword_Type then
          Set_Str_To_Name_Buffer (Image (T));
-         Set_Name_Table_Byte (Name_Find, Byte (Token_Type'Pos (T)));
+         Set_Name_Table_Byte (Name_Find, Byte (Token_Type'Pos (T) + 1));
+
       else
          Set_Str_To_Name_Buffer (I);
       end if;
@@ -863,8 +862,9 @@ package body Backend.BE_Ada.Nutils is
       end if;
       Name := Name_Find;
 
-      --  if the Identifier collide with an Ada reserved word
-      --  insert "IDL_" string before the identifier.
+      --  If the identifier collides with an Ada reserved word insert
+      --  "IDL_" string before the identifier.
+
       V := Get_Name_Table_Byte (Name);
       if V > 0 then
          Set_Str_To_Name_Buffer ("IDL_");

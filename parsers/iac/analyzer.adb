@@ -287,6 +287,7 @@ package body Analyzer is
 
       C := First_Entity (Enumerators (E));
       while Present (C) loop
+
          --  Define scoped name referencing enumeration type
 
          I := Make_Identifier
@@ -305,7 +306,8 @@ package body Analyzer is
 
          --  This declaration is already analyzed as reference is set
 
-         Enter_Name_In_Scope (I);
+         --  Enter_Name_In_Scope (I);
+         Analyze (N);
          C := Next_Entity (C);
       end loop;
    end Analyze_Enumeration_Type;

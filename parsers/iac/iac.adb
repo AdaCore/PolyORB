@@ -50,21 +50,26 @@ begin
       --  Remove any prefix
 
       First := 1;
-      for I in reverse 1 .. Name_Len loop
-         if Name_Buffer (I) = '/'
-           or else Name_Buffer (I) = '\'
+      for J in reverse 1 .. Name_Len loop
+         if Name_Buffer (J) = '/'
+           or else Name_Buffer (J) = '\'
          then
-            First := I + 1;
+            First := J + 1;
             exit;
          end if;
       end loop;
 
-      --  Remove any suffix
+      --  Remove any suffix.
+      --
+      --  Implementation note: we do not want any '.' character left
+      --  in the specification unit name since this would require to
+      --  define the parent unit as well.
 
       Last := Name_Len;
-      for I in First .. Name_Len loop
-         if Name_Buffer (I) = '.' then
-            Last := I - 1;
+      for J in First .. Name_Len loop
+         if Name_Buffer (J) = '.' then
+            Last := J - 1;
+            exit;
          end if;
       end loop;
 

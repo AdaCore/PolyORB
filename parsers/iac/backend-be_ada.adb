@@ -657,7 +657,7 @@ package body Backend.BE_Ada is
         (Defining_Identifier => Make_Defining_Identifier (E),
          Constant_Present    => True,
          Object_Definition   => Make_Designator (Type_Spec (E)),
-         Expression          => Make_Literal (FEN.Value (FEN.Expression (E))));
+         Expression          => Make_Literal (FEN.Value (E)));
       Append_Node_To_List (N, Visible_Part (Current_Package));
    end Visit_Constant_Declaration;
 

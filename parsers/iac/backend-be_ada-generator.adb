@@ -342,6 +342,7 @@ package body Backend.BE_Ada.Generator is
          Name_Len := Var_Name_Len;
       end if;
       Write_Str (Name_Buffer (1 .. Name_Len));
+      Write_Space;
       Write (Tok_Colon);
       if Constant_Present (N) then
          Write_Space;
