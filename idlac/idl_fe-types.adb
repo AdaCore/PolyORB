@@ -4,12 +4,10 @@ with GNAT.Case_Util;
 with GNAT.Table;
 with Idl_Fe.Errors;
 with Idl_Fe.Lexer;
-with Idl_Fe.Debug;
 with Idl_Fe.Tree; use Idl_Fe.Tree;
 with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree.Synthetic;
-
-pragma Elaborate_All (Idl_Fe.Debug);
-
+with Idl_Fe.Debug;
+pragma Elaborate (Idl_Fe.Debug);
 
 package body Idl_Fe.Types is
 
@@ -19,7 +17,6 @@ package body Idl_Fe.Types is
 
    Flag : constant Natural := Idl_Fe.Debug.Is_Active ("idl_fe.types");
    procedure O is new Idl_Fe.Debug.Output (Flag);
-
 
    --------------------------------------------
    --  Root of the tree parsed from the idl  --
@@ -125,6 +122,25 @@ package body Idl_Fe.Types is
          return List;
       end if;
    end Append_Node;
+
+   procedure Insert_Before
+     (List : in out Node_List;
+      Node : Node_Id;
+      Before : Node_Id)
+   is
+      Cell : Node_List;
+   begin
+      pragma Assert (List /= Nil_List);
+
+      if List.Car = Before then
+         Cell := new Node_List_Cell'
+           (Car => Node,
+            Cdr => List);
+         List := Cell;
+      else
+         Insert_Before (List.Cdr, Node, Before);
+      end if;
+   end Insert_Before;
 
    procedure Insert_After
      (List : in Node_List;

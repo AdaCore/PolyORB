@@ -150,8 +150,15 @@ package Idl_Fe.Types is
    function Append_Node (List : in Node_List;
                          Node : Node_Id) return Node_List;
 
-   --  Insert Node into List after the first occurrence
-   --  of After.
+   --  Insert Node into List immediately before the first
+   --  occurrence of Before.
+   procedure Insert_Before
+     (List : in out Node_List;
+      Node : Node_Id;
+      Before : Node_Id);
+
+   --  Insert Node into List immediately after the first
+   --  occurrence of After.
    procedure Insert_After
      (List : in Node_List;
       Node : Node_Id;
