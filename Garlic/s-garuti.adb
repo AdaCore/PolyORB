@@ -53,11 +53,11 @@ package body System.Garlic.Utils is
    procedure Free is
       new Ada.Unchecked_Deallocation (Node, Node_Ptr);
 
-   -------------
-   -- Barrier --
-   -------------
+   ------------------
+   -- Barrier_Type --
+   ------------------
 
-   protected body Barrier is
+   protected body Barrier_Type is
 
       ------------
       -- Signal --
@@ -96,7 +96,56 @@ package body System.Garlic.Utils is
          end if;
       end Wait;
 
-   end Barrier;
+   end Barrier_Type;
+
+   --------------------
+   -- Semaphore_Type --
+   --------------------
+
+   protected body Semaphore_Type is
+
+      ----------
+      -- Lock --
+      ----------
+
+      entry Lock when not Locked is
+      begin
+         Locked := True;
+      end Lock;
+
+      ------------
+      -- Unlock --
+      ------------
+
+      entry Unlock (Post : Action_Type := Unmodified)
+      when Action /= Modified is
+      begin
+         Locked := False;
+         case Post is
+            when Modified =>
+               if Wait'Count > 0 then
+                  Action := Modified;
+               end if;
+            when Wait_Until_Modified =>
+               requeue Wait with abort;
+            when Unmodified =>
+               null;
+         end case;
+      end Unlock;
+
+      ----------
+      -- Wait --
+      ----------
+
+      entry Wait (Post : Action_Type := Unmodified)
+      when Action = Modified is
+      begin
+         if Wait'Count = 0 then
+            Action := Unmodified;
+         end if;
+      end Wait;
+
+   end Semaphore_Type;
 
    ---------------------------
    -- To_Params_Stream_Type --

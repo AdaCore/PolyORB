@@ -33,24 +33,43 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Unchecked_Deallocation;
 with Ada.Streams;
 with System.RPC;
 
-private package System.Garlic.Utils is
+package System.Garlic.Utils is
 
-   protected type Barrier is
+   protected type Barrier_Type is
       entry Wait;
       procedure Signal (How_Many : Positive := 1);
       procedure Signal_All (Permanent : Boolean);
    private
       Free : Natural := 0;
       Perm : Boolean := False;
-   end Barrier;
+   end Barrier_Type;
    --  Any number of task may be waiting on Wait. Signal unblocks How_Many
    --  tasks (the order depends on the queuing policy) and Signal_All unblocks
    --  all the tasks (if Permanent is True, Wait will no longer be blocking).
    --  If How_Many is more than the number of tasks waiting, new tasks will
    --  be awakened as well.
+
+   type Barrier_Access is access Barrier_Type;
+
+   type Action_Type is (Modified, Unmodified, Wait_Until_Modified);
+
+   protected type Semaphore_Type is
+      entry Lock;
+      entry Unlock (Post : Action_Type := Unmodified);
+   private
+      entry Wait (Post : Action_Type := Unmodified);
+      Locked : Boolean := False;
+      Action : Action_Type := Unmodified;
+   end Semaphore_Type;
+
+   type Semaphore_Access is access Semaphore_Type;
+
+   procedure Free is
+     new Ada.Unchecked_Deallocation (Semaphore_Type, Semaphore_Access);
 
    function To_Stream_Element_Array
      (Params : access System.RPC.Params_Stream_Type;
@@ -59,7 +78,7 @@ private package System.Garlic.Utils is
    pragma Inline (To_Stream_Element_Array);
    --  This routine "looks" into the Params structure to extract the
    --  Stream_Element_Array which will be sent accross the network. It
-   --  also let Unused places to store extra information.
+   --  also let Unused places to sKtore extra information.
 
    procedure To_Params_Stream_Type
      (Content : Ada.Streams.Stream_Element_Array;

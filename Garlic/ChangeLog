@@ -1,3 +1,21 @@
+Tue Jan 14 10:06:14 1997  Laurent Pautet  <pautet@inf.enst.fr>
+
+	* s-garhea.adb: Barrier -> Barrier_Type in Garlic.Utils.
+
+	* s-parint.adb, s-parint.ads: It was not possible to query several
+ 	client elaboration requests from the same partition when the first
+ 	request was pending. Abortion of first RPC was unsafe and would
+ 	let the unit table in an inconsistent state. Synchronisation is
+ 	now a little bit less complex than it was. Restarting a partition
+ 	is now fully implemented (works on any partition, and not only on
+ 	boot partition). Code is a little bit cleaner.
+
+Mon Jan 13 17:23:31 1997  Laurent Pautet  <pautet@inf.enst.fr>
+
+	* s-garuti.ads, s-garuti.adb: No longer private to use it in
+ 	s-parint. Add a new semaphore type (with useful procedures to deal
+ 	with arrays).
+
 Mon Jan 13 13:41:33 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-rpc.adb: Changed prototype of Public_RPC_Receiver to match the

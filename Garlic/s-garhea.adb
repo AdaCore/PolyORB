@@ -79,7 +79,7 @@ package body System.Garlic.Heart is
    --  by more than one task (in fact, they should not be modified after
    --  the elaboration is terminated).
 
-   Elaboration_Barrier : Utils.Barrier;
+   Elaboration_Barrier : Utils.Barrier_Type;
    --  This barrier will be no longer blocking when the elaboration is
    --  terminated.
 
