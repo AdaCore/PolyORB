@@ -4,6 +4,8 @@
 
 AUTOMAKE_OPTIONS = no-dependencies foreign
 
+ADA = @ADA@
+GNATMAKE = @GNATMAKE@
 GNATSRC = @GNAT_SOURCE@
 GARLIC = ${libdir}/garlic
 GNATFLAGS = -gnatpg @GNATFLAGS@
@@ -43,7 +45,7 @@ xe_defs.adb: Makefile
 	@echo "end XE_Defs;" >>xe_defs.adb
 
 xe_defs.o: xe_defs.ads xe_defs.adb
-	${CC} -c -g -O2 -gnatp -I${srcdir} -I${GNATSRC} xe_defs.adb
+	${ADA} -c -g -O2 -gnatp -I${srcdir} -I${GNATSRC} xe_defs.adb
 
 sdefault.adb: ${srcdir}/config.sdefault
 	@if [ -f ${GNATSRC}/sdefault.adb ]; then \
@@ -53,4 +55,4 @@ sdefault.adb: ${srcdir}/config.sdefault
 	  ${SHELL} ${srcdir}/config.sdefault; fi
 
 sdefault.o: sdefault.adb ${GNATSRC}/sdefault.ads
-	${CC} -c -g -O2 -gnatp -I${GNATSRC} sdefault.adb
+	${ADA} -c -g -O2 -gnatp -I${GNATSRC} sdefault.adb
