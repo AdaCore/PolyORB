@@ -104,7 +104,7 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
       pragma Warnings (On);
 
    begin
-      return "SERVANT_RETENTION_POLICY.RETAIN";
+      return "SERVANT_RETENTION_POLICY.NON_RETAIN";
    end Policy_Id;
 
    --------------------------------

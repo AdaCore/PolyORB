@@ -50,7 +50,8 @@ package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique is
    -- Create --
    ------------
 
-   function Create return Unique_Id_Policy_Access is
+   function Create
+     return Unique_Id_Policy_Access is
    begin
       return new Unique_Id_Policy;
    end Create;
@@ -109,9 +110,9 @@ package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique is
    -------------------------------
 
    procedure Ensure_Servant_Uniqueness
-     (Self      : Unique_Id_Policy;
-      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Servants.Servant_Access;
+     (Self      :        Unique_Id_Policy;
+      OA        :        PolyORB.POA_Types.Obj_Adapter_Access;
+      P_Servant :        Servants.Servant_Access;
       Error     : in out PolyORB.Exceptions.Error_Container)
    is
       pragma Warnings (Off);

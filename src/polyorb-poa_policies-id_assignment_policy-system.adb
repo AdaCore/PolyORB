@@ -31,21 +31,29 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Unchecked_Conversion;
+--  with Ada.Unchecked_Conversion;
 
+with PolyORB.Log;
 with PolyORB.Object_Maps;
 with PolyORB.POA;
 with PolyORB.POA_Types;
 with PolyORB.POA_Policies.Lifespan_Policy;
 with PolyORB.Tasking.Rw_Locks;
 with PolyORB.Types;
-with PolyORB.Utils.Strings;
+--  with PolyORB.Utils.Strings;
+with PolyORB.Utils;
 
 package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
 
+   use PolyORB.Log;
    use PolyORB.Object_Maps;
    use PolyORB.Tasking.Rw_Locks;
    use PolyORB.Types;
+
+   package L is new Log.Facility_Log
+     ("polyorb.poa_policies.id_assignement_policy.system");
+   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+     renames L.Output;
 
    ------------
    -- Create --
@@ -115,10 +123,12 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
       The_Entry : Object_Map_Entry_Access;
       Index : Integer;
 
-      function As_String_Ptr is new Ada.Unchecked_Conversion
-        (Object_Id_Access, Utils.Strings.String_Ptr);
+--      function As_String_Ptr is new Ada.Unchecked_Conversion
+--        (Object_Id_Access, Utils.Strings.String_Ptr);
 
    begin
+      pragma Debug (O ("Assign_Object_Identifier: enter"));
+
       Lock_W (POA.Map_Lock);
 
       if POA.Active_Object_Map = null then
@@ -127,25 +137,37 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
       pragma Assert (POA.Active_Object_Map /= null);
 
       if Hint /= null then
+         pragma Debug (O ("Hint is not null"));
 
-         Index := Integer'Value (As_String_Ptr (Hint).all);
-         The_Entry := Get_By_Id
-           (POA.Active_Object_Map.all, Oid_To_U_Oid (Hint));
-         Unlock_W (POA.Map_Lock);
+         declare
+            U_Hint : constant Unmarshalled_Oid := Oid_To_U_Oid (Hint);
 
-         if The_Entry = null then
-            Throw (Error,
-                   InvalidPolicy_E,
-                   InvalidPolicy_Members'(Index => 0));
+         begin
+            if not U_Hint.System_Generated then
+               Throw (Error,
+                      InvalidPolicy_E,
+                      InvalidPolicy_Members'(Index => 0));
+               Unlock_W (POA.Map_Lock);
+               return;
+            end if;
 
-            --  Could not determine the slot associated with
-            --  this index.
-            --  XXX if this is a POA with the PERSISTENT lifespan
-            --  policy, then dummy slots should be allocated to
-            --  bring this index back into existence.
-         end if;
+            Index := Integer'Value (To_Standard_String (U_Hint.Id));
+            The_Entry := new Object_Map_Entry;
+            The_Entry.Oid
+              := PolyORB.POA_Types.Create_Id
+              (Name             =>
+                 To_PolyORB_String (PolyORB.Utils.Trimmed_Image (Index)),
+               System_Generated => True,
+               Persistency_Flag =>
+                 Get_Lifespan_Cookie (POA.Lifespan_Policy.all, OA),
+               Creator          => POA.Absolute_Address);
+
+            Add (POA.Active_Object_Map, The_Entry, Index);
+            Unlock_W (POA.Map_Lock);
+         end;
+
       else
-
+         pragma Debug (O ("Hint is null"));
          --  XXX possible memory leak, to investigate.
          --  XXX If the servant retention policy is NON_RETAIN,
          --   should we not get rid of the active object map
@@ -154,18 +176,25 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
 
          The_Entry := new Object_Map_Entry;
          Index := Add (POA.Active_Object_Map, The_Entry);
-         Unlock_W (POA.Map_Lock);
-
          The_Entry.Oid
            := PolyORB.POA_Types.Create_Id
-           (Name => To_PolyORB_String (PolyORB.Utils.Trimmed_Image (Index)),
+           (Name             =>
+              To_PolyORB_String (PolyORB.Utils.Trimmed_Image (Index)),
             System_Generated => True,
             Persistency_Flag =>
               Get_Lifespan_Cookie (POA.Lifespan_Policy.all, OA),
-            Creator => POA.Absolute_Address);
+            Creator          => POA.Absolute_Address);
+
+
+         Unlock_W (POA.Map_Lock);
       end if;
 
+      pragma Debug (O ("Object Name is '"
+                       & PolyORB.Utils.Trimmed_Image (Index)
+                       & "'"));
+
       U_Oid := The_Entry.Oid.all;
+      pragma Debug (O ("Assign_Object_Identifier: leave"));
    end Assign_Object_Identifier;
 
 end PolyORB.POA_Policies.Id_Assignment_Policy.System;

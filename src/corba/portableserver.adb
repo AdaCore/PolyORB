@@ -262,10 +262,11 @@ package body PortableServer is
 
       U_OID : constant Unmarshalled_Oid
         := Create_Id
-        (Name => PolyORB.Types.To_PolyORB_String (Id),
+        (Name             => PolyORB.Types.To_PolyORB_String (Id),
          System_Generated => False,
          Persistency_Flag => 0,
-         Creator => PolyORB.Types.To_PolyORB_String (""));
+         Creator          => PolyORB.Types.To_PolyORB_String (""),
+         Completed        => False);
 
       OID : constant Object_Id := U_Oid_To_Oid (U_OID);
    begin

@@ -31,22 +31,32 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with PolyORB.Log;
 with PolyORB.Object_Maps;
 with PolyORB.POA;
 with PolyORB.POA_Policies.Id_Uniqueness_Policy;
 with PolyORB.POA_Policies.Lifespan_Policy;
 with PolyORB.Tasking.Rw_Locks;
+with PolyORB.Types;
 
 package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
 
+   use PolyORB.Log;
    use PolyORB.Object_Maps;
    use PolyORB.Tasking.Rw_Locks;
+   use PolyORB.Types;
+
+   package L is new Log.Facility_Log
+     ("polyorb.poa_policies.servant_retention_policy.retain");
+   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+     renames L.Output;
 
    ------------
    -- Create --
    ------------
 
-   function Create return Retain_Policy_Access is
+   function Create
+     return Retain_Policy_Access is
    begin
       return new Retain_Policy;
    end Create;
@@ -56,8 +66,8 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
    -------------------------
 
    procedure Check_Compatibility
-     (Self           : Retain_Policy;
-      Other_Policies : AllPolicies;
+     (Self           :        Retain_Policy;
+      Other_Policies :        AllPolicies;
       Error          : in out PolyORB.Exceptions.Error_Container)
    is
       pragma Warnings (Off);
@@ -110,6 +120,12 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
         := PolyORB.POA.Obj_Adapter_Access (OA);
 
    begin
+      pragma Debug (O ("Retain_Servant_Association: enter"));
+
+      pragma Debug (O ("Inserting object '"
+                       & To_Standard_String (U_Oid.Id)
+                       & "'"));
+
       Ensure_Servant_Uniqueness
         (POA.Id_Uniqueness_Policy.all,
          OA,
@@ -122,31 +138,59 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
 
       Lock_W (POA.Map_Lock);
 
+      if POA.Active_Object_Map = null then
+         pragma Debug (O ("Creating Object Map"));
+         POA.Active_Object_Map := new Object_Map;
+      end if;
+      pragma Assert (POA.Active_Object_Map /= null);
+
       declare
          The_Entry : Object_Map_Entry_Access
            := Get_By_Id (POA.Active_Object_Map.all, U_Oid);
       begin
-         if not U_Oid.System_Generated
-           and then The_Entry = null then
-            --  If the U_Oid is not System_Generated, the entry may
-            --  not yet exist, thus we allocate it.
+         if The_Entry = null then
+            pragma Debug (O ("The entry is null"));
 
-            The_Entry := new Object_Map_Entry;
+            The_Entry     := new Object_Map_Entry;
             The_Entry.Oid := new Unmarshalled_Oid'(U_Oid);
-            declare
-               Index : constant Integer
-                 := Add (POA.Active_Object_Map, The_Entry);
-               pragma Warnings (Off);
-               pragma Unreferenced (Index);
-               pragma Warnings (On);
-            begin
-               null;
-            end;
+            The_Entry.Servant := P_Servant;
+
+            if not U_Oid.System_Generated then
+               declare
+                  Index : constant Integer
+                    := Add (POA.Active_Object_Map, The_Entry);
+
+                  Test_Entry : constant Object_Map_Entry_Access
+                    := Get_By_Id (POA.Active_Object_Map.all, U_Oid);
+               begin
+                  pragma Debug (O ("Insert object at new index "
+                                   & Integer'Image (Index)));
+
+                  pragma Debug (O ("Ok ? "
+                                   & Boolean'Image (Test_Entry = The_Entry)));
+
+                  null;
+               end;
+            else
+               pragma Debug (O ("Insert object at reused index "
+                                & To_Standard_String (U_Oid.Id)));
+               Add (POA.Active_Object_Map,
+                    The_Entry,
+                    Integer'Value (To_Standard_String (U_Oid.Id)));
+            end if;
+
+         else
+            pragma Debug (O ("The entry is not null"));
+
+            The_Entry.Servant := P_Servant;
+
          end if;
-         The_Entry.Servant := P_Servant;
+         pragma Debug (O ("Insert object name was "
+                          & To_Standard_String (The_Entry.Oid.Id)));
       end;
 
       Unlock_W (POA.Map_Lock);
+      pragma Debug (O ("Retain_Servant_Association: leave"));
    end Retain_Servant_Association;
 
    --------------------------------
@@ -165,26 +209,28 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
 
       use PolyORB.Exceptions;
 
-      POA      : constant PolyORB.POA.Obj_Adapter_Access
+      POA : constant PolyORB.POA.Obj_Adapter_Access
         := PolyORB.POA.Obj_Adapter_Access (OA);
 
       An_Entry : Object_Map_Entry_Access;
    begin
+      pragma Debug (O ("Removing object '"
+                       & To_Standard_String (U_Oid.Id)
+                       & "'"));
+
       Lock_W (POA.Map_Lock);
       An_Entry := Object_Maps.Remove_By_Id
-        (POA.Active_Object_Map.all'Access, U_Oid);
+        (POA.Active_Object_Map, U_Oid);
       Unlock_W (POA.Map_Lock);
 
       if An_Entry = null then
          PolyORB.Exceptions.Throw
            (Error,
             ObjectNotActive_E,
-            System_Exception_Members'(Minor => 0,
-                                      Completed => Completed_No));
+            Null_Member);
       else
          --  Free the Unmarshalled_Oid_Access and the entry.
          --  Note: The servant has to be freed by the application.
-
          Free (An_Entry.Oid);
          Free (An_Entry);
       end if;
@@ -210,13 +256,18 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
         := PolyORB.POA.Obj_Adapter_Access (OA);
       An_Entry : Object_Map_Entry_Access;
    begin
-
       if POA.Active_Object_Map /= null then
          Lock_R (POA.Map_Lock);
          An_Entry := Get_By_Servant (POA.Active_Object_Map.all, P_Servant);
          Unlock_R (POA.Map_Lock);
 
+         pragma Debug (O ("Retained_Servant_To_Id : entry null ? "
+                          & Boolean'Image (An_Entry = null)));
+
          if An_Entry /= null then
+            pragma Debug (O ("Entry name is: " &
+                             To_Standard_String (An_Entry.Oid.Id)));
+
             return U_Oid_To_Oid (An_Entry.Oid.all);
          end if;
       end if;
@@ -256,6 +307,10 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
       if Found (Error) then
          return;
       end if;
+
+      pragma Debug (O ("Looking for object '"
+                       & To_Standard_String (U_Oid.Id)
+                       & "'"));
 
       Lock_R (POA.Map_Lock);
       An_Entry := Get_By_Id (POA.Active_Object_Map.all, U_Oid);

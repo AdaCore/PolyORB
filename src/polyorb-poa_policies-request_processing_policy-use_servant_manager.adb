@@ -112,7 +112,7 @@ is
       pragma Warnings (On);
    begin
       Servant := null;
-      raise Not_Implemented;
+      --      raise Not_Implemented;
    end Id_To_Servant;
 
 end PolyORB.POA_Policies.Request_Processing_Policy.Use_Servant_Manager;

@@ -33,10 +33,20 @@
 
 --  $Id$
 
+with PolyORB.Log;
+with PolyORB.Types;
+
 package body PolyORB.Object_Maps is
 
    use Map_Entry_Seqs;
+
+   use PolyORB.Log;
    use PolyORB.POA_Types;
+   use PolyORB.Types;
+
+   package L is new Log.Facility_Log ("polyorb.object_maps");
+   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+     renames L.Output;
 
    -------------
    -- Is_Null --
@@ -66,15 +76,38 @@ package body PolyORB.Object_Maps is
    is
       Elts  : constant Element_Array := To_Element_Array (O_Map.Map);
    begin
+      pragma Debug (O ("Add: enter"));
+
       for J in Elts'Range loop
          if Is_Null (Elts (J)) then
+            pragma Debug (O ("Replacing element" & Integer'Image (J)));
             Replace_Element (O_Map.Map, 1 + J - Elts'First, Obj);
             return J;
          end if;
       end loop;
 
+      pragma Debug (O ("Appending element"));
       Append (O_Map.Map, Obj);
+
+      pragma Debug (O ("Add: leave"));
       return Elts'Last + 1;
+   end Add;
+
+   procedure Add
+     (O_Map : access Object_Map;
+      Obj   : in     Object_Map_Entry_Access;
+      Index : in     Integer)
+   is
+      Elts  : constant Element_Array := To_Element_Array (O_Map.Map);
+   begin
+      pragma Debug (O ("Add: enter"));
+
+      if not Is_Null (Elts (Index)) then
+         raise Program_Error;
+      end if;
+
+      Replace_Element (O_Map.Map, 1 + Index - Elts'First, Obj);
+      pragma Debug (O ("Add: leave"));
    end Add;
 
    -------------------
@@ -112,14 +145,23 @@ package body PolyORB.Object_Maps is
    is
       Elts  : constant Element_Array := To_Element_Array (O_Map.Map);
    begin
+      pragma Debug (O ("Get_By_Id: enter"));
+      pragma Debug (O ("Object_Map'Size: " & Integer'Image (Elts'Last)));
+
       for J in Elts'Range loop
-         if not Is_Null (Elts (J))
-           and then Elts (J).Oid.all = Item
-         then
-            return Elts (J);
+
+         if not Is_Null (Elts (J)) then
+            pragma Debug (O ("Looking elt: "
+                             & To_Standard_String (Elts (J).Oid.Id)));
+
+            if Elts (J).Oid.all = Item then
+               pragma Debug (O ("Found !"));
+               return Elts (J);
+            end if;
          end if;
       end loop;
 
+      pragma Debug (O ("Not Found !"));
       return null;
    end Get_By_Id;
 
@@ -135,14 +177,22 @@ package body PolyORB.Object_Maps is
       use type PolyORB.Servants.Servant_Access;
       Elts  : constant Element_Array := To_Element_Array (O_Map.Map);
    begin
+      pragma Debug (O ("Get_By_Servant: enter"));
+      pragma Debug (O ("Object_Map'Size: " & Integer'Image (Elts'Last)));
+
       for J in Elts'Range loop
-         if not Is_Null (Elts (J))
-           and then Elts (J).Servant = Item
-         then
-            return Elts (J);
+         if not Is_Null (Elts (J)) then
+            pragma Debug (O ("Looking elt: "
+                             & To_Standard_String (Elts (J).Oid.Id)));
+
+            if Elts (J).Servant = Item then
+               pragma Debug (O ("Found !"));
+               return Elts (J);
+            end if;
          end if;
       end loop;
 
+      pragma Debug (O ("Not Found !"));
       return null;
    end Get_By_Servant;
 
@@ -157,6 +207,8 @@ package body PolyORB.Object_Maps is
    is
       Elts  : constant Element_Array := To_Element_Array (O_Map.Map);
    begin
+      pragma Debug (O ("Remove_By_Id: enter"));
+
       for J in Elts'Range loop
          if not Is_Null (Elts (J))
            and then Elts (J).Oid.all = Item
@@ -165,12 +217,14 @@ package body PolyORB.Object_Maps is
                Old_Entry : constant Object_Map_Entry_Access
                  := Element_Of (O_Map.Map, J);
             begin
+               pragma Debug (O ("Found !"));
                Replace_Element (O_Map.Map, J, null);
                return Old_Entry;
             end;
          end if;
       end loop;
 
+      pragma Debug (O ("Not Found !"));
       return null;
    end Remove_By_Id;
 

@@ -62,6 +62,11 @@ package PolyORB.Object_Maps is
      (O_Map : access Object_Map;
       Obj   : in     Object_Map_Entry_Access)
      return Integer;
+
+   procedure Add
+     (O_Map : access Object_Map;
+      Obj   : in     Object_Map_Entry_Access;
+      Index : in     Integer);
    --  Adds a new entry in the map, returning its index.
 
    function Is_Servant_In

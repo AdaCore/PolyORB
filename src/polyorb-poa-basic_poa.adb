@@ -658,7 +658,7 @@ package body PolyORB.POA.Basic_POA is
          pragma Debug (O ("Notify parent POA of POA destruction"));
 
          POA.Remove_POA_By_Name
-           (POA.Obj_Adapter_Access (Self.Father).all'Access,
+           (POA.Obj_Adapter_Access (Self.Father),
             Self.Name);
       end if;
 
@@ -709,6 +709,8 @@ package body PolyORB.POA.Basic_POA is
    begin
       pragma Debug (O ("Activate_Object: enter"));
 
+      --  Build a well formed Oid from the 'Hint' provided by the user.
+
       Assign_Object_Identifier
         (Self.Id_Assignment_Policy.all,
          POA_Types.Obj_Adapter_Access (Self),
@@ -748,6 +750,21 @@ package body PolyORB.POA.Basic_POA is
         := Oid_To_U_Oid (A_Oid'Unchecked_Access);
    begin
       pragma Debug (O ("Deactivate_Object: enter"));
+
+      if not U_Oid.System_Generated
+        and then not U_Oid.Completed
+      then
+         --  The Oid we got was generated at the application level,
+         --  and is incommplete, generate well formed Oid used within
+         --  PolyORB's POA.
+
+         Assign_Object_Identifier
+           (Self.Id_Assignment_Policy.all,
+            POA_Types.Obj_Adapter_Access (Self),
+            A_Oid'Unchecked_Access,
+            U_Oid,
+            Error);
+      end if;
 
       Etherealize_All
         (Self.Request_Processing_Policy.all,

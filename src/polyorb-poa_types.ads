@@ -134,17 +134,28 @@ package PolyORB.POA_Types is
      renames PolyORB.Objects."=";
 
    type Unmarshalled_Oid is record
-      Creator          : Types.String;
-      Id               : Types.String;
-      System_Generated : Boolean;
-      Persistency_Flag : Lifespan_Cookie;
+      Id               : Types.String;     --  Id
+      Creator          : Types.String;     --  Creator 'name'
+      System_Generated : Boolean;          --  System or User managed ?
+      Persistency_Flag : Lifespan_Cookie;  --  Object's Lifespan
+      Completed        : Boolean;          --  Is Oid well formed ?
+
+      --  NOTE:
+      --   * the 'Creator' is typically the POA to which the object is
+      --     attached,
+      --   * a 'well formed Oid' is an Unmarshalled_Oid for which all
+      --     fields are accurately set. This may occur when the user
+      --     defines a general Oid, and then creates a tuple (POA, Oid,
+      --     Servant), as for the USER_ID assignement policy.
+
    end record;
    type Unmarshalled_Oid_Access is access Unmarshalled_Oid;
 
    procedure Free is new Ada.Unchecked_Deallocation
      (Unmarshalled_Oid, Unmarshalled_Oid_Access);
 
-   function "=" (Left, Right : in Unmarshalled_Oid) return Standard.Boolean;
+   function "=" (Left, Right : in Unmarshalled_Oid)
+                return Standard.Boolean;
 
    function Image
      (Oid : Object_Id) return Types.String;
@@ -154,7 +165,8 @@ package PolyORB.POA_Types is
      (Name             : in Types.String;
       System_Generated : in Boolean;
       Persistency_Flag : in Time_Stamp;
-      Creator          : in Types.String)
+      Creator          : in Types.String;
+      Completed        : in Boolean := True)
      return Unmarshalled_Oid_Access;
    pragma Inline (Create_Id);
    --  Create an Unmarshalled_Oid_Access.
@@ -163,7 +175,8 @@ package PolyORB.POA_Types is
      (Name             : in Types.String;
       System_Generated : in Boolean;
       Persistency_Flag : in Time_Stamp;
-      Creator          : in Types.String)
+      Creator          : in Types.String;
+      Completed        : in Boolean := True)
      return Unmarshalled_Oid;
    pragma Inline (Create_Id);
    --  Create an Unmarshalled_Oid.
@@ -172,7 +185,8 @@ package PolyORB.POA_Types is
      (Name             : in Types.String;
       System_Generated : in Boolean;
       Persistency_Flag : in Time_Stamp;
-      Creator          : in Types.String)
+      Creator          : in Types.String;
+      Completed        : in Boolean := True)
      return Object_Id_Access;
    pragma Inline (Create_Id);
    --  Create an Unmarshalled_Oid, and then marshall it into an Object_Id
