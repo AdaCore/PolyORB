@@ -1,0 +1,39 @@
+2000-02-18  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* sockets-thin.ads: Use System.Address instead of Iovec_Access, to
+	simplify the interface.
+
+2000-01-25  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* sockets-thin.ads: Change caddr_t by System.Address as it is more
+	consistent to do so.
+
+2000-01-07  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* sockets-naming.adb: Protect non-reentrant calls with a
+	mutex.
+
+1999-06-16  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* Makefile.am (install-data-local): Use $(mkinstalldirs) instead
+	of mkdir to create directories.
+
+	* sockets.ads: Add a new field that records whether Shutdown has
+	been called in both directions or not.
+
+	* sockets.adb: If Shutdown has been closed in both direction,
+	close the socket so that we do not experience a memory leak.
+
+1998-04-06  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* constants.c: Use new config.h to include the right files
+
+	* constants.sh: Use a new scheme to compute constants
+
+	* Makefile.am: Use new constants.sh
+
+1998-03-22  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* sockets-utils.adb: Add an explicit raise Program_Error to work
+	around a GNAT limitation that does not recognize Raise_Exception
+	as raising an exception.
