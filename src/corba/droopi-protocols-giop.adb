@@ -135,7 +135,6 @@ package body Droopi.Protocols.GIOP is
 
 
 
-
    --------------------------------------
     -- Marshalling Messages Types --
    --------------------------------------
@@ -245,7 +244,7 @@ package body Droopi.Protocols.GIOP is
       Marshall (Buffer, Request_Id);
 
       --  Object Key
-      Marshall (Buffer, Object_Key.all);
+      Marshall (Buffer, Stream_Element_Array(Object_Key.all));
 
    end  Marshall_Locate_Request;
 
@@ -399,12 +398,12 @@ package body Droopi.Protocols.GIOP is
       Response_Expected : in Boolean;
       Fragment_Next     : out Boolean)
    is
-
-      use Arg_Seq;
+      use Internals;
+      use Internals.NV_Sequence;
       Header_Buffer : Buffer_Access := new Buffer_Type;
       Sync          : Sync_Scope;
-      Arg_Count     : CORBA.Long;
       Arg           : CORBA.NamedValue;
+      List          : NV_Sequence_Access;
 
    begin
       Fragment_Next := False;
@@ -449,12 +448,12 @@ package body Droopi.Protocols.GIOP is
             end;
       end case;
 
-      --  Marshall the request's Body
-    --  Arg_Count := Get_Count (Pend_Req.Req.Args);
-    --  for I in 1 .. Arg_Count loop
-    --        Arg := Element_Of(Pend_Req.Req.Args, I);
-    --        Marshall (Ses.Buffer_Out, Arg);
-    --  end loop;
+      --  Marshall the request's Body not yet implemented
+      List :=  List_Of (Pend_Req.Req.Args);
+      for I in 1 ..  Get_Count (Pend_Req.Req.Args) loop
+          Arg := NV_Sequence.Element_Of(List.all, Positive(I));
+          Marshall (Ses.Buffer_Out, Arg);
+      end loop;
 
       if  Length (Ses.Buffer_Out) > Maximum_Message_Size
       then
@@ -928,35 +927,33 @@ package body Droopi.Protocols.GIOP is
       use Droopi.References.IOR;
       New_Ref    : Droopi.References.IOR.IOR_Type := Unmarshall(Buffer);
       Prof_Array : Droopi.References.Profile_Array := Profiles_Of(New_Ref.Ref) ;
+      Prof_Temp  : Profile_Access;
 
    begin
       pragma Debug (O ("Reply Message : Received Location_Forward"));
       for I in Prof_Array'Range loop
          if Prof_Array(I).all in Binding_Data.IIOP.IIOP_Profile_Type then
-            return Prof_Array(I);
+            Prof_Temp := Prof_Array(I);
             exit;
          end if;
       end loop;
-
+      return Prof_Temp;
    end Select_Profile;
 
    -------------------
    -- Store_Request --
    -------------------
-   procedure Store_Request
-     (Req     :  Requests.Request);
---      Profile : in Binding_Data.IIOP.IIOP_Profile_type);
-
 
    procedure Store_Request
-     (Req  :   Requests.Request)
---      Profile : in Binding_Data.IIOP.IIOP_Profile_type)
+     (R       :  Requests.Request_Access;
+      Profile : Profile_Access)
    is
-   use CORBA;
+      use CORBA;
    begin
-      --Pend_Req.Req.all := Req.all;
+      Pend_Req.Req := R;
       Pend_Req.Request_Id := Current_Request_Id;
       Current_Request_Id := Current_Request_Id + 1;
+      Pend_Req.Target_Profile := Profile;
    end Store_Request;
 
 
@@ -973,11 +970,12 @@ package body Droopi.Protocols.GIOP is
       use CORBA.AbstractBase;
       use Obj_Adapters.Simple;
       use Binding_Data.IIOP;
+      use Internals;
+      use Internals.NV_Sequence;
 
       use References;
 
       use Droopi.Objects;
-      use Arg_Seq;
 
       Request_Id        :  CORBA.Unsigned_Long;
       Response_Expected :  Boolean;
@@ -996,6 +994,8 @@ package body Droopi.Protocols.GIOP is
       ORB : constant ORB_Access := ORB_Access (Ses.Server);
       Transp_AP : Droopi.Transport.Transport_Access_Point_Access
                     := new Socket_Access_Point;
+      Temp_Arg : CORBA.NamedValue;
+      List     : NV_Sequence_Access;
 
    begin
 
@@ -1037,19 +1037,18 @@ package body Droopi.Protocols.GIOP is
       end case;
 
       Args := Obj_Adapters.Get_Empty_Arg_List
-        (Object_Adapter (ORB).all, Object_Key.all, To_Standard_String(Operation.all));
+             (Object_Adapter (ORB).all, Object_Key.all, To_Standard_String(Operation.all));
 
 
-      Obj := Object_Ptr(Object_Of(Args));
+      -- Unmarshalling of arguments
+      List :=  List_Of (Pend_Req.Req.Args);
+      for I in 1 .. Get_Count (Args) loop
+         Temp_Arg :=  NV_Sequence.Element_Of(List.all, Positive(I));
+         Unmarshall(Ses.Buffer_In, Temp_Arg);
+         NV_Sequence.Replace_Element(List.all, Positive(I), Temp_Arg);
+      end loop;
 
-
-    -- UnMarshalling of arguments not yet implemented
-    --  for I in 1 .. Get_Count (Args) loop
-    --     Temp :=  Arg_Seq.Element_Of (Obj.List, I);
-    --     Unmarshall(Ses.Buffer_In, Temp);-- Arg_Seq.Element_Of(Obj.List, I));
-    --  end loop;
-
-      --  unmarshalling of arguments not yet implemented
+      ----
       Result := (Name     => To_CORBA_String ("Result"),
                  Argument => Obj_Adapters.Get_Empty_Result
                  (Object_Adapter (ORB).all, Object_Key.all, To_Standard_String(Operation.all)),
@@ -1276,6 +1275,7 @@ package body Droopi.Protocols.GIOP is
       use Binding_Data.IIOP;
       use Droopi.Filters.Slicers;
       use Droopi.Filters.Interface;
+      use Droopi.Objects;
       Buf            : Buffer_Access := new Buffer_Type;
       Sli            : Filter_Access;
       Fragment_Next  : Boolean := False;
@@ -1291,7 +1291,6 @@ package body Droopi.Protocols.GIOP is
 
       Sli := Filter_Access(Lower (S));
       Release_Contents (S.Buffer_Out.all);
-      Store_Request (R);
 
       --  fragmentation not yet implemented
       --  Message_Size:= Length (Buf1);
@@ -1303,9 +1302,9 @@ package body Droopi.Protocols.GIOP is
       if S.Object_Found = False then
          if  S.Nbr_Tries <= Max_Nb_Tries then
             declare
-             Obj : Objects.Object_Id_Access := null;
+               Oid : Object_Id:= Get_Object_Key(Pend_Req.Target_Profile.all);
+               Obj : Object_Id_Access := new Object_Id'(Oid);
             begin
-               Obj.all := Get_Object_Key(Pend_Req.Target_Profile.all);
                Locate_Request_Message(S, Obj, Fragment_Next);
                S.Nbr_Tries := S.Nbr_Tries + 1;
             end;
@@ -1318,7 +1317,6 @@ package body Droopi.Protocols.GIOP is
          Request_Message(S, True, Fragment_Next);
          S.Object_Found := True;
          S.Nbr_Tries := 0;
-
       end if;
 
 
@@ -1329,7 +1327,6 @@ package body Droopi.Protocols.GIOP is
 
       --  Expecting data
       Expect_Data (S, S.Buffer_In, Message_Header_Size);
-
       Release (Buf);
 
    exception

@@ -32,6 +32,7 @@ package Droopi.Protocols.GIOP is
 
 
    use Droopi.Log;
+   use Droopi.Binding_Data;
 
    package Arg_Seq is new Sequences.Unbounded (CORBA.NamedValue);
 
@@ -325,6 +326,13 @@ package Droopi.Protocols.GIOP is
      (Ses             : access GIOP_Session;
       Locate_Status   : in Locate_Status_Type);
 
+
+   -----------------------------
+   ----  Store Request
+   ----------------------------
+   procedure Store_Request
+     (R       :  Requests.Request_Access;
+      Profile :  Profile_Access);
 
    -------------------------------------------
    --  Session procedures

@@ -6,6 +6,7 @@ with CORBA;
 
 with Droopi.Buffers; use Droopi.Buffers;
 with Droopi.Sockets;
+with Droopi.Representations.CDR;
 
 package Droopi.Binding_Data.IIOP is
 
@@ -52,12 +53,12 @@ package Droopi.Binding_Data.IIOP is
       P : Profile_Access) return Boolean;
 
    procedure Marshall_IIOP_Profile_Body
-     (IOR     : access Buffer_Type;
+     (Buf     : access Buffer_Type;
       Profile : Profile_Access);
 
-   function Unmarshall_IIOP_Profile_Body
+   function   Unmarshall_IIOP_Profile_Body
      (Buffer   : access Buffer_Type)
-    return Profile_Access;
+    return  Profile_Access;
 
 private
 
@@ -70,8 +71,8 @@ private
       Address : Sockets.Sock_Addr_Type;
    end record;
 
-   IIOP_Major_Version : constant CORBA.Unsigned_Long := 1;
+   IIOP_Major_Version : constant CORBA.Octet := 1;
 
-   IIOP_Minor_Version : constant CORBA.Unsigned_Long := 2;
+   IIOP_Minor_Version : constant CORBA.Octet := 2;
 
 end Droopi.Binding_Data.IIOP;

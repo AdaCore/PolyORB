@@ -2,15 +2,39 @@
 
 --  $Id$
 
+with Ada.Streams; use Ada.Streams;
+
+with CORBA;
+with CORBA.Exceptions;
+
 with Droopi.Transport.Sockets;
 with Droopi.Protocols.GIOP;
 with Droopi.Protocols;
+with Droopi.Filters;
 with Droopi.Filters.Slicers;
+with Droopi.Sockets;
+with Droopi.Objects;
+with Droopi.ORB;
+
 --  The IIOP protocol is defined upon TCP/IP.
 
 package body Droopi.Binding_Data.IIOP is
 
+
+   use Droopi.Representations.CDR;
    use Droopi.Objects;
+   use Droopi.Transport.Sockets;
+   use Droopi.Sockets;
+
+
+   procedure Marshall_Socket
+        (Buffer   : access Buffer_Type;
+         Sock     : Sockets.Sock_Addr_Type);
+
+   procedure Unmarshall_Socket
+    (Buffer   : access Buffer_Type;
+     Sock     : out Sockets.Sock_Addr_Type);
+
 
    procedure Initialize (P : in out IIOP_Profile_Type) is
    begin
@@ -42,31 +66,32 @@ package body Droopi.Binding_Data.IIOP is
       TE      : out Transport.Transport_Endpoint_Access;
       Session : out Components.Component_Access)
    is
+      use Droopi.Protocols;
       use Droopi.Protocols.GIOP;
       use Droopi.Sockets;
-      use Droopi.Transport.Sockets;
+      use Droopi.Filters;
+      use Droopi.Filters.Slicers;
+      use Droopi.ORB;
 
-
-      S : Socket_Type;
+      Sock : Socket_Type;
       Remote_Addr : Sock_Addr_Type := Profile.Address;
       Pro : aliased GIOP_Protocol;
-      Slicer_Fact :  Factory_Access  := new Factory_Slicer;
-      Sli_Filt    : access Slicer_Filter;
+      Slicer_Fact : Factory_Access  := new Slicer_Factory;
+      Ses         : Session_Access;
+      Sli_Filter  : Filter_Access;
       ORB         : ORB_Access;
 
    begin
 
-      Create_Socket (S);
-      Connect_Socket (S, Remote_Addr);
+      Create_Socket (Sock);
+      Connect_Socket (Sock, Remote_Addr);
       TE := new Transport.Sockets.Socket_Endpoint;
-      Create (Socket_Endpoint (TE.all), S);
-      Create (Pro'Access, Filters.Filter_Access (Session));
+      Create (Socket_Endpoint (TE.all), Sock);
+      Create (Pro'Access, Filters.Filter_Access(Ses));
 
+     -- ORB := ORB_Access(Session(Ses.all).Server);
 
-      ORB := ORB_Access(Session.Server)
-
-      Register_Endpoint
-        (ORB, TE, Slicer_Fact, Session.Role);
+     -- Register_Endpoint(ORB, TE, Slicer_Fact, Ses.Role);
 
       -- Connect Session to Slicer
       Sli_Filter := TE.Upper;
@@ -130,32 +155,32 @@ package body Droopi.Binding_Data.IIOP is
    --------------------------------
 
    procedure Marshall_IIOP_Profile_Body
-     (IOR     : access Buffer_Type;
+     (Buf     : access Buffer_Type;
       Profile : Profile_Access)
    is
-      use Representations.CDR;
 
       IIOP_Profile : IIOP_Profile_Type renames IIOP_Profile_Type (Profile.all);
-      Profile_Body : aliased Buffer_Type;
+      Profile_Body : Buffer_Access;
 
    begin
 
       --  A TAG_INTERNET_IOP Profile Body is an encapsulation.
-
-      Start_Encapsulation (Profile_Body'Access);
+      Start_Encapsulation (Profile_Body);
 
       --  Version
-      Marshall (Profile_Body'Access, CORBA.Octet'(IIOP_Major_Version));
-      Marshall (Profile_Body'Access, CORBA.Octet'(IIOP_Minor_Version));
+      Marshall (Profile_Body, CORBA.Octet(IIOP_Major_Version));
+      Marshall (Profile_Body, CORBA.Octet(IIOP_Minor_Version));
 
       -- Marshalling of a Socket
-      --Marshall (Profile_Body'Access, IIOP_Profile.);
-      --Marshall (Profile_Body'Access, IIOP_Profile.Port);
-      Marshall (Profile_Body'Access, IIOP_Profile.ObjKey);
+      Marshall_Socket (Profile_Body, IIOP_Profile.Address);
+
+      -- Marshalling of the Object Id
+      Marshall (Profile_Body, Stream_Element_Array(IIOP_Profile.Object_Id.all));
 
       --  Marshall the Profile_Body into IOR.
-      Marshall (IOR, Encapsulate (Profile_Body'Access));
+      Marshall (Buf, Encapsulate (Profile_Body));
       Release (Profile_Body);
+
    end Marshall_IIOP_Profile_Body;
 
 
@@ -164,16 +189,95 @@ package body Droopi.Binding_Data.IIOP is
    --------------------------------
 
    function Unmarshall_IIOP_Profile_Body
-     (Buffer   : access Buffer_Type)
+     (Buffer       : access Buffer_Type)
      return Profile_Access
+
    is
+     use CORBA;
+     use CORBA.Exceptions;
+     Profile_Body   : aliased Encapsulation := Unmarshall (Buffer);
+     Profile_Buffer : Buffer_Access;
+     Major_Version  : CORBA.Octet;
+     Minor_Version  : CORBA.Octet;
+     Length         : CORBA.Long;
+     Result         : Profile_Access := new IIOP_Profile_Type;
+     TResult        : IIOP_Profile_Type
+                      renames IIOP_Profile_Type (Result.all);
+
 
    begin
 
-    raise Not_Implemented;
-    -- not yet implemnted
+      Decapsulate (Profile_Body'Access, Profile_Buffer);
+
+      Major_Version  := Unmarshall (Profile_Buffer);
+      Minor_Version  := Unmarshall (Profile_Buffer);
+
+      if Major_Version /=  IIOP_Major_Version
+        or else Minor_Version > IIOP_Minor_Version
+      then
+         CORBA.Exceptions.Raise_Bad_Param;
+      end if;
+
+      Unmarshall_Socket(Profile_Buffer, TResult.Address);
+
+      declare
+        Str  : aliased Stream_Element_Array := Unmarshall(Profile_Buffer);
+      begin
+
+        TResult.Object_Id := new Object_Id'(Object_Id(Str));
+        if Minor_Version /= 0 then
+         Length := Unmarshall (Profile_Buffer);
+         if Length /= 0 then
+           --  FIXME: Multiple components are not yet handled.
+           CORBA.Exceptions.Raise_Bad_Param;
+         end if;
+        end if;
+      end;
+      return Result;
 
    end Unmarshall_IIOP_Profile_Body;
+
+
+
+   procedure Marshall_Socket
+       (Buffer   : access Buffer_Type;
+        Sock     : Sockets.Sock_Addr_Type)
+
+   is
+      use CORBA;
+      Str  : CORBA.String := To_CORBA_String(Image(Sock.Addr));
+   begin
+
+     -- Marshalling of the Host as a string
+     Marshall(Buffer, Str);
+
+     -- Marshalling of the port
+     Marshall(Buffer, CORBA.Unsigned_Short(Sock.Port));
+
+
+   end Marshall_Socket;
+
+
+   procedure Unmarshall_Socket
+    (Buffer   : access Buffer_Type;
+     Sock     : out Sockets.Sock_Addr_Type)
+
+   is
+      use CORBA;
+      Str  : CORBA.String := Unmarshall(Buffer);
+      Port : CORBA.Unsigned_Short;
+   begin
+
+     -- UnMarshalling of the Host
+     Sock.Addr :=Inet_Addr(To_Standard_String(Str));
+
+     -- Unmarshalling of the port
+     Port := Unmarshall(Buffer);
+     Sock.Port := Port_Type(Port);
+
+   end Unmarshall_Socket;
+
+
 
 
 
