@@ -32,7 +32,7 @@
 
 --  Pools of memory chunks, with associated client metadata.
 
---  $Id: //droopi/main/src/polyorb-opaque-chunk_pools.ads#7 $
+--  $Id: //droopi/main/src/polyorb-opaque-chunk_pools.ads#8 $
 
 with Ada.Finalization;
 
@@ -89,6 +89,8 @@ package PolyORB.Opaque.Chunk_Pools is
    --  package.
 
 private
+
+   pragma Inline (Metadata);
 
    --  A chunk pool is managed as a linked list
    --  of chunks.

@@ -608,13 +608,16 @@ package body PolyORB.Buffers is
       function Is_Dynamic
         (Iovec_Pool : Iovec_Pool_Type)
         return Boolean;
+      pragma Inline (Is_Dynamic);
       --  True iff Iovec pool uses dynamically allocated
       --  storage for the Iovecs and descriptors.
 
-      function Iovecs
+      function Iovecs_Address
         (Iovec_Pool : Iovec_Pool_Type)
-        return Iovec_Array;
-      --  Returns the Iovec_Array of Iovec_Pool.
+        return System.Address;
+      pragma Inline (Iovecs_Address);
+      --  Returns the address of the first element of
+      --  Iovec_Pool's Iovec_Array.
 
       procedure Extend
         (Iovec_Pool : in out Iovec_Pool_Type;
@@ -644,18 +647,16 @@ package body PolyORB.Buffers is
          return Iovec_Pool.Dynamic_Array /= null;
       end Is_Dynamic;
 
-      function Iovecs
+      function Iovecs_Address
         (Iovec_Pool : Iovec_Pool_Type)
-        return Iovec_Array is
+        return System.Address is
       begin
          if Is_Dynamic (Iovec_Pool) then
-            return Iovec_Pool.Dynamic_Array
-              (1 .. Iovec_Pool.Last);
+            return Iovec_Pool.Dynamic_Array (1)'Address;
          else
-            return Iovec_Pool.Prealloc_Array
-              (1 .. Iovec_Pool.Last);
+            return Iovec_Pool.Prealloc_Array (1)'Address;
          end if;
-      end Iovecs;
+      end Iovecs_Address;
 
       procedure Extend
         (Iovec_Pool : in out Iovec_Pool_Type;
@@ -670,9 +671,13 @@ package body PolyORB.Buffers is
                  := new Iovec_Array
                  (1 .. Allocate);
 
+               Old_Array_Address : constant System.Address
+                 := Iovecs_Address (Iovec_Pool);
+               Old_Array : Iovec_Array (1 .. Iovec_Pool.Length);
+               for Old_Array'Address use Old_Array_Address;
+               pragma Import (Ada, Old_Array);
             begin
-               New_Array (1 .. Iovec_Pool.Last)
-                 := Iovecs (Iovec_Pool);
+               New_Array (1 .. Iovec_Pool.Last) := Old_Array (Old_Array'Range);
 
                if Is_Dynamic (Iovec_Pool) then
                   Free (Iovec_Pool.Dynamic_Array);
@@ -731,25 +736,36 @@ package body PolyORB.Buffers is
 
       procedure Prepend_Pool
         (Prefix     : Iovec_Pool_Type;
-         Iovec_Pool : in out Iovec_Pool_Type) is
+         Iovec_Pool : in out Iovec_Pool_Type)
+      is
 
          New_Last : constant Natural := Iovec_Pool.Last + Prefix.Last;
+
       begin
          Extend (Iovec_Pool, New_Last, New_Last + 1);
          --  An Iovec pool that has been prefixed
          --  will likely not be appended to anymore.
 
-         --  Append new Iovec.
+         declare
+            Prefix_Iovecs_Address : constant System.Address
+              := Iovecs_Address (Prefix);
+            Prefix_Iovecs : Iovec_Array (1 .. Prefix.Length);
+            for Prefix_Iovecs'Address use Prefix_Iovecs_Address;
+            pragma Import (Ada, Prefix_Iovecs);
 
-         if Is_Dynamic (Iovec_Pool) then
-            Iovec_Pool.Dynamic_Array (1 .. New_Last)
-              := Iovecs (Prefix) & Iovecs (Iovec_Pool);
-         else
-            Iovec_Pool.Prealloc_Array (1 .. New_Last)
-              := Iovecs (Prefix) & Iovecs (Iovec_Pool);
-         end if;
+            Pool_Iovecs_Address : constant System.Address
+              := Iovecs_Address (Iovec_Pool);
+            Pool_Iovecs : Iovec_Array (1 .. Iovec_Pool.Length);
+            for Pool_Iovecs'Address use Pool_Iovecs_Address;
+            pragma Import (Ada, Pool_Iovecs);
 
-         Iovec_Pool.Last := New_Last;
+         begin
+            --  Append new Iovec.
+            Pool_Iovecs (1 .. New_Last)
+              := Prefix_Iovecs (Prefix_Iovecs'Range)
+              & Pool_Iovecs (1 .. Iovec_Pool.Last);
+            Iovec_Pool.Last := New_Last;
+         end;
       end Prepend_Pool;
 
       procedure Append
@@ -766,13 +782,15 @@ package body PolyORB.Buffers is
          Iovec_Pool.Last := New_Last;
          Iovec_Pool.Last_Chunk := A_Chunk;
 
-         if Is_Dynamic (Iovec_Pool) then
-            Iovec_Pool.Dynamic_Array (Iovec_Pool.Last)
-              := An_Iovec;
-         else
-            Iovec_Pool.Prealloc_Array (Iovec_Pool.Last)
-              := An_Iovec;
-         end if;
+         declare
+            Pool_Iovecs_Address : constant System.Address
+              := Iovecs_Address (Iovec_Pool);
+            Pool_Iovecs : Iovec_Array (1 .. Iovec_Pool.Length);
+            for Pool_Iovecs'Address use Pool_Iovecs_Address;
+            pragma Import (Ada, Pool_Iovecs);
+         begin
+            Pool_Iovecs (Iovec_Pool.Last) := An_Iovec;
+         end;
       end Append;
 
       procedure Extract_Data
@@ -781,7 +799,12 @@ package body PolyORB.Buffers is
          Offset     : Stream_Element_Offset;
          Size       : Stream_Element_Count)
       is
-         Vecs             : constant Iovec_Array := Iovecs (Iovec_Pool);
+         Vecs_Address : constant System.Address
+           := Iovecs_Address (Iovec_Pool);
+         Vecs : Iovec_Array (1 .. Iovec_Pool.Last);
+         for Vecs'Address use Vecs_Address;
+         pragma Import (Ada, Vecs);
+
          Offset_Remainder : Storage_Offset := Storage_Offset (Offset);
          Index            : Natural := Vecs'First;
       begin
@@ -820,7 +843,12 @@ package body PolyORB.Buffers is
       is
          use PolyORB.Sockets;
 
-         Vecs : constant Iovec_Array := Iovecs (Iovec_Pool.all);
+         Vecs_Address : constant System.Address
+           := Iovecs_Address (Iovec_Pool.all);
+
+         Vecs : Iovec_Array (1 .. Iovec_Pool.Last);
+         for Vecs'Address use Vecs_Address;
+         pragma Import (Ada, Vecs);
 
          --  WAG:3.16
 
@@ -843,7 +871,7 @@ package body PolyORB.Buffers is
          --  WAG:3.16
 
          S_Vecs : Vector_Type (Vecs'Range);
-         for S_Vecs'Address use Vecs (Vecs'First)'Address;
+         for S_Vecs'Address use Vecs_Address;
          pragma Import (Ada, S_Vecs);
 
          Index : Natural := Vecs'First;
@@ -902,8 +930,13 @@ package body PolyORB.Buffers is
         (Iovec_Pool : Iovec_Pool_Type;
          Into       : Opaque_Pointer)
       is
+         Vecs_Address : constant System.Address
+           := Iovecs_Address (Iovec_Pool);
+         Vecs : Iovec_Array (1 .. Iovec_Pool.Last);
+         for Vecs'Address use Vecs_Address;
+         pragma Import (Ada, Vecs);
       begin
-         Dump (Iovecs (Iovec_Pool), Into);
+         Dump (Vecs, Into);
       end Dump;
 
       function Dump

@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.ads#28 $
+--  $Id: //droopi/main/src/polyorb-any.ads#29 $
 
 with Ada.Finalization;
 with Ada.Unchecked_Deallocation;
@@ -344,6 +344,8 @@ package PolyORB.Any is
       --  Return the number of parameters in typecode Self.
 
    private
+
+      pragma Inline (Kind);
 
       -----------------------------------------------------
       -- A list of typecode parameters (which are Any's) --
