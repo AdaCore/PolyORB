@@ -217,6 +217,12 @@ configuration My_Config is
   --  Specify additional arguments to pass on the command line when a 
   --  given partition is launched.
 
+  for Partition_4'Termination use Local_Termination;
+  --  Specify a termination mechanism for partition_4. The default is
+  --  to compute a global distributed termination. When Local_Termination
+  --  is specified then a partition terminates when the local termination
+  --  is detected (standard ada termination).
+
   pragma Starter (Method => Ada);
   --  Specify the kind of startup method you would like. There are 3
   --  possibilities: Shell, Ada and None. Specifying `Shell' builds a shell
