@@ -50,7 +50,7 @@ package body MOMA.Provider.Topic_Datas is
                              Pool      : PolyORB.References.Ref)
    is
       V : Topic;
-      T : String := To_Standard_String (Topic_Id);
+      T : constant String := To_Standard_String (Topic_Id);
    begin
       Lock_W (Data.T_Lock);
       V := Lookup (Data.T, T);
@@ -87,7 +87,7 @@ package body MOMA.Provider.Topic_Datas is
    is
       V           : Topic;
       Subscribers : Ref_List.List;
-      K           : String := To_Standard_String (Topic_Id);
+      K           : constant String := To_Standard_String (Topic_Id);
    begin
       --  XXX Should we call Ensure_Initialization ?
       Lock_R (Data.T_Lock);
