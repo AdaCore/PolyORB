@@ -82,7 +82,7 @@ package body OmniObject is
    begin
       if not Is_Nil(Self) then
          Self.Omniobj.all.Implobj := null ;
-         --Object_Destructor(Self.Omniobj.all) ;
+         Object_Destructor(Self.Omniobj.all) ;
          Self.Omniobj := null ;
       end if ;
    end ;

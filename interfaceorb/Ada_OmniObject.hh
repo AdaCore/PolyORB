@@ -33,6 +33,11 @@ public:
   
   virtual ~Ada_OmniObject() ;
 
+  static void Destructor(Ada_OmniObject* o) ;
+  // static destructor that will be called from the Ada code
+  // because the virtual destructor cannot be called from tha Ada code
+
+
   void Init ();
   // Initialisation of a local object via call to the
   // omniObject_C2Ada constructor on C_OmniObject
@@ -93,3 +98,4 @@ extern void raise_ada_exception (const char *msg) ;
   // this function allows C code to raise Ada exception
   // It is implemented in Ada and only raise a No_Initialisation
   // exception with the message msg. (see corba.ads)
+

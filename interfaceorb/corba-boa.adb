@@ -27,7 +27,7 @@ package body Corba.Boa is
    ---------------
    procedure Obj_Is_Ready(Self: in Object'Class ;
                           Object: in Corba.Object.Ref'Class ;
-                          P: in Corba.Object.Object) is
+                          P: in OmniObject.Implemented_Object) is
       C_Object : System.Address ;
       C_P : System.Address ;
    begin
@@ -73,6 +73,8 @@ package body Corba.Boa is
 
 
 end Corba.Boa ;
+
+
 
 
 

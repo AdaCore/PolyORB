@@ -21,6 +21,7 @@
 with Interfaces.CPP ;
 with System ;
 with Corba.Object ;
+with Omniobject ;
 
 package Corba.Boa is
 
@@ -45,7 +46,7 @@ package Corba.Boa is
 
    procedure Obj_Is_Ready(Self: in Object'Class ;
                           object: in Corba.Object.Ref'Class ;
-                          p: in Corba.Object.Object) ;
+                          p: in Omniobject.Implemented_Object) ;
    -- Ada equivalent of C procedure C_Obj_Is_Ready
 
 

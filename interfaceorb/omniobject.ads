@@ -260,7 +260,8 @@ private
    -- corresponding Ada function ;
 
    procedure Object_Destructor(Self : in out Object'Class) ;
-   pragma Import (CPP,Object_Destructor,"_._14Ada_OmniObject") ;
+   pragma Import (CPP,Object_Destructor,
+                  "Destructor__14Ada_OmniObjectP14Ada_OmniObject") ;
    -- C++ destructor of Ada_omniObject
 
 

@@ -30,6 +30,12 @@ Ada_OmniObject::~Ada_OmniObject()
 } ;
 
 void
+Ada_OmniObject::Destructor(Ada_OmniObject* o) {
+  delete o ;
+}
+
+
+void
 Ada_OmniObject::Init ()
 {
   // Creation of the underlining omniobject_C2Ada object
