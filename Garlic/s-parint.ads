@@ -67,15 +67,35 @@ package System.Partition_Interface is
    --  Use by the main subprogram to check that a remote receiver
    --  unit has has the same version than the caller's one.
 
+   procedure Register_Passive_Partition
+     (Partition : out RPC.Partition_ID;
+      Name      : in String;
+      Location  : in String);
+   --  Register a passive partition as it cannot register itself. To
+   --  avoid conflicts due to multiple registrations, the partition
+   --  name is used as a key. If the partition is already declared,
+   --  then ignored request. If not, create a factory for this
+   --  partition using its location.
+
+   procedure Register_Passive_Package_On_Passive_Partition
+     (Partition : in RPC.Partition_ID;
+      Name      : in String;
+      Version   : in String := "");
+   --  Register a passive package configured on a passive
+   --  partition. As a passive partition has no elaboration code, each
+   --  partition using this package performs the registration itself.
+
    function Get_Active_Partition_ID
      (Name : Unit_Name)
       return System.RPC.Partition_ID;
    --  Similar in some respects to RCI_Info.Get_Active_Partition_ID
+   --  XXXXX: Rename it in Get_RCI_Partition_ID
 
    function Get_Active_Version
       (Name : Unit_Name)
        return String;
    --  Similar in some respects to Get_Active_Partition_ID
+   --  XXXXX: Rename it in Get_RCI_Version
 
    function Get_Local_Partition_ID return RPC.Partition_ID;
    --  Return the Partition_ID of the current partition
@@ -89,9 +109,11 @@ package System.Partition_Interface is
      (Name : Unit_Name)
      return System.RPC.Partition_ID;
    --  Return the Partition_ID of the given shared passive partition
+   --  XXXXX: Rename it in Get_SP_Partition_ID
 
    function Get_Passive_Version (Name : Unit_Name) return String;
    --  Return the version corresponding to a shared passive unit
+   --  XXXXX: Rename it in Get_SP_Version
 
    function Get_RCI_Package_Receiver
      (Name : Unit_Name)
@@ -108,7 +130,7 @@ package System.Partition_Interface is
    procedure Register_Passive_Package
      (Name    : in Unit_Name;
       Version : in String := "");
-   --  Register a passive package
+   --  Register a shared passive package during its elaboration.
 
    procedure Get_Unique_Remote_Pointer
      (Handler : in out RACW_Stub_Type_Access);
@@ -143,6 +165,7 @@ package System.Partition_Interface is
    package RCI_Info is
       function Get_RCI_Package_Receiver return Interfaces.Unsigned_64;
       function Get_Active_Partition_ID return RPC.Partition_ID;
+      --  XXXXX: Rename it in Get_RCI_Partition_ID
    end RCI_Info;
    --  RCI package information caching
 

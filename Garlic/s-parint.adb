@@ -42,20 +42,24 @@ with System.Garlic.Heart;      use System.Garlic.Heart;
 with System.Garlic.Options;    use System.Garlic.Options;
 with System.Garlic.Partitions; use System.Garlic.Partitions;
 with System.Garlic.Remote;     use System.Garlic.Remote;
+with System.Garlic.Types;
 with System.Garlic.Soft_Links;
 
 with System.Garlic.Startup;
 pragma Elaborate_All (System.Garlic.Startup);
 pragma Warnings (Off, System.Garlic.Startup);
 
-with System.Garlic.Streams;    use System.Garlic.Streams;
-with System.Garlic.Types;      use System.Garlic.Types;
-with System.Garlic.Units;      use System.Garlic.Units;
-with System.Garlic.Utils;      use System.Garlic.Utils;
+with System.Garlic.Storages; use System.Garlic.Storages;
+with System.Garlic.Streams;         use System.Garlic.Streams;
+with System.Garlic.Types;           use System.Garlic.Types;
+with System.Garlic.Units;           use System.Garlic.Units;
+with System.Garlic.Utils;           use System.Garlic.Utils;
 
 package body System.Partition_Interface is
 
    use Ada.Exceptions, Interfaces;
+
+   package SG  renames System.Garlic;
 
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("S_PARINT", "(s-parint): ");
@@ -64,9 +68,6 @@ package body System.Partition_Interface is
      (Message : in String;
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
-
-   Passive_Prefix : constant String := "SP__";
-   --  Prefix to use for Shared_Passive packages
 
    function Convert is
      new Ada.Unchecked_Conversion
@@ -181,9 +182,9 @@ package body System.Partition_Interface is
    begin
       case Termination is
          when Local_Termination  =>
-            System.Garlic.Soft_Links.Local_Termination;
+            SG.Soft_Links.Local_Termination;
          when Global_Termination =>
-            System.Garlic.Soft_Links.Global_Termination;
+            SG.Soft_Links.Global_Termination;
          when others => null;
       end case;
       Delete_Termination_Sanity_File;
@@ -225,6 +226,7 @@ package body System.Partition_Interface is
       N : String := Name;
       E : aliased Error_Type;
       P : Partition_ID;
+
    begin
       pragma Debug (D ("Request Get_Active_Partition_ID"));
 
@@ -282,8 +284,7 @@ package body System.Partition_Interface is
       Name  : String_Access;
       Error : aliased Error_Type;
    begin
-      System.Garlic.Partitions.Get_Name
-        (System.Garlic.Types.Partition_ID (Partition), Name, Error);
+      SG.Partitions.Get_Name (Partition_ID (Partition), Name, Error);
       if Found (Error) then
          Raise_Communication_Error (Error'Access);
       end if;
@@ -298,7 +299,7 @@ package body System.Partition_Interface is
      (Name : Unit_Name)
       return RPC.Partition_ID is
    begin
-      return Get_Active_Partition_ID (Passive_Prefix & Name);
+      return Get_Active_Partition_ID (Name);
    end Get_Passive_Partition_ID;
 
    -------------------------
@@ -307,7 +308,7 @@ package body System.Partition_Interface is
 
    function Get_Passive_Version (Name : Unit_Name) return String is
    begin
-      return Get_Active_Version (Passive_Prefix & Name);
+      return Get_Active_Version (Name);
    end Get_Passive_Version;
 
    ------------------------------
@@ -458,9 +459,37 @@ package body System.Partition_Interface is
      (Name    : in Unit_Name;
       Version : in String := "")
    is
+      N : String       := Name;
+      V : Version_Type := Version_Type (Version);
+
    begin
-      Register_Receiving_Stub (Passive_Prefix & Name, null, Version);
+      To_Lower (N);
+
+      pragma Debug (D ("Register local shared passive unit " & N));
+
+      Register_Unit (Self_PID, N, 0, V);
    end Register_Passive_Package;
+
+   --------------------------------
+   -- Register_Passive_Partition --
+   --------------------------------
+
+   procedure Register_Passive_Partition
+     (Partition : out RPC.Partition_ID;
+      Name      : in String;
+      Location  : in String)
+   is
+      Error : aliased Error_Type;
+
+   begin
+      Register_Passive_Partition
+        (Partition_ID (Partition), Name, Location, Error);
+      if Found (Error) then
+         Raise_Communication_Error (Error'Access);
+      end if;
+
+      Register_Partition (Partition_ID (Partition), Location);
+   end Register_Passive_Partition;
 
    -----------------------------
    -- Register_Receiving_Stub --
@@ -471,14 +500,37 @@ package body System.Partition_Interface is
       Receiver : in RPC.RPC_Receiver;
       Version  : in String := "")
    is
-      N : String := Name;
+      N : String       := Name;
       V : Version_Type := Version_Type (Version);
+      R : Unsigned_64  := Unsigned_64 (System.Address'(Convert (Receiver)));
+
    begin
-      pragma Debug (D ("Request Register_Receiving_Stub"));
+      pragma Debug (D ("Register receiving stub"));
 
       To_Lower (N);
-      Register_Unit (N, Unsigned_64 (System.Address'(Convert (Receiver))), V);
+      Register_Unit (Self_PID, N, R, V);
    end Register_Receiving_Stub;
+
+   ---------------------------------------------------
+   -- Register_Passive_Package_On_Passive_Partition --
+   ---------------------------------------------------
+
+   procedure Register_Passive_Package_On_Passive_Partition
+     (Partition : in RPC.Partition_ID;
+      Name      : in Unit_Name;
+      Version   : in String := "")
+     is
+      N : String       := Name;
+      V : Version_Type := Version_Type (Version);
+      P : Partition_ID := Partition_ID (Partition);
+
+   begin
+      To_Lower (N);
+
+      pragma Debug (D ("Register " & N & " on passive partition" & P'Img));
+
+      Register_Unit (P, N, 0, V);
+   end Register_Passive_Package_On_Passive_Partition;
 
    --------------
    -- RCI_Info --
@@ -536,11 +588,12 @@ package body System.Partition_Interface is
       Caller : Caller_List := Callers;
       Dummy  : Caller_List;
       Error  : aliased Error_Type;
+
    begin
-      System.Garlic.Heart.Complete_Elaboration;
+      SG.Heart.Complete_Elaboration;
       D ("Complete elaboration");
 
-      Register_Units_On_Boot_Server (Error);
+      Register_Units_On_Boot_Server (Self_PID, Error);
       if Found (Error) then
          Raise_Communication_Error (Error'Access);
       end if;
@@ -578,12 +631,12 @@ package body System.Partition_Interface is
       end if;
 
       D ("Watch for termination");
-      Complete_Termination (System.Garlic.Options.Termination);
+      Complete_Termination (SG.Options.Termination);
    exception
       when Occurrence : others =>
          D ("Handle exception " & Exception_Name (Occurrence) &
             " in partition main subprogram");
-      Complete_Termination (System.Garlic.Options.Termination);
+      Complete_Termination (SG.Options.Termination);
       raise;
    end Run;
 
