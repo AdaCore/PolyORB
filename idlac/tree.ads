@@ -264,8 +264,8 @@ package Tree is
    --  a null element is used.
    type N_Case is new Types.N_Root with record
       Labels : Types.Node_List;
-      C_Type : Types.N_Root_Acc;
-      C_Decl : N_Declarator_Acc;
+      Case_Type : Types.N_Root_Acc;
+      Case_Decl : N_Declarator_Acc;
    end record;
    type N_Case_Acc is access all N_Case;
    function Get_Kind (N : N_Case) return Types.Node_Kind;

@@ -156,6 +156,20 @@ package body Types is
       end loop;
    end Free;
 
+   ------------------
+   --  Get_Length  --
+   ------------------
+   function Get_Length (List : Node_List) return Integer is
+      Temp_List : Node_List := List;
+      Result : Integer := 0;
+   begin
+      while Temp_List /= null loop
+         Result := Result + 1;
+         Temp_List := Temp_List.Cdr;
+      end loop;
+      return Result;
+   end Get_Length;
+
 
 
    ---------------------------------------------------

@@ -218,6 +218,126 @@ package body Parse is
 
 
 
+   ----------------------------------
+   --  Management of const values  --
+   ----------------------------------
+
+   --  the actual list of already used values
+   Used_Values : Set_Ptr := null;
+
+   ---------
+   --  <  --
+   ---------
+   function "<" (X, Y : Value_Ptr) return Boolean is
+   begin
+      return X.all < Y.all;
+   end "<";
+
+   ---------
+   --  >  --
+   ---------
+   function ">" (X, Y : Value_Ptr) return Boolean is
+   begin
+      return X.all > Y.all;
+   end ">";
+
+   ---------------
+   --  Is_Prec  --
+   ---------------
+   function Is_Prec (Prec, Next : Value_Ptr) return Boolean is
+   begin
+      return Prec.all = Next.all - 1;
+   end Is_Prec;
+
+   ----------------------
+   --  Add_Used_Value  --
+   ----------------------
+   function Add_Used_Value (C : N_Const_Acc) return Boolean is
+      Val : Value_Ptr;
+      Old_Used : Set_Ptr := null;
+      Used : Set_Ptr := Used_Values;
+   begin
+      Val := Eval (C);
+      while Used /= null and then Used.Interval.Max < Val loop
+         Old_Used := Used;
+         Used := Used.Next;
+      end loop;
+      if Used = null then
+         if Old_Used = null then
+            Used_Values := new Set;
+            Used_Values.Next := null;
+            Used_Values.Interval := (Min => Val, Max => Val);
+         else
+            if Is_Prec (Used.Interval.Max, Val) then
+               if Used.Next /= null
+                 and then Is_Prec (Val, Used.Next.Interval.Min) then
+                  --  merge the intervals
+                  declare
+                     Old_Used : Set_Ptr := Used.Next;
+                  begin
+                     Used.Interval.Max := Used.Next.Interval.Max;
+                     Used.Next := Used.Next.Next;
+                     Free (Old_Used);
+                  end;
+               else
+                  --  only change the upper bound of the interval
+                  Used.Interval.Max := Val;
+               end if;
+            else
+               Old_Used.Next := new Set;
+               Old_Used.Next.all.Next := null;
+               Old_Used.Next.all.Interval := (Min => Val, Max => Val);
+            end if;
+         end if;
+      else
+         if Used.Interval.Min > Val then
+            if Is_Prec (Val, Used.Interval.Min) then
+               if Old_Used /= null
+                 and then Is_Prec (Old_Used.Interval.Max, Val) then
+                  --  merge the intervals
+                  Old_Used.Interval.Max := Used.Interval.Max;
+                  Old_Used.Next := Used.Next;
+                  Free (Used);
+               else
+                  --  only change the lower bound of the interval
+                  Used.Interval.Min := Val;
+               end if;
+            else
+               Old_Used.Next := new Set;
+               Old_Used.Next.all.Next := Used;
+               Old_Used.Next.all.Interval := (Min => Val, Max => Val);
+            end if;
+         else
+            return False;
+         end if;
+      end if;
+      return True;
+   end Add_Used_Value;
+
+   --------------------------
+   --  Release_All_Values  --
+   --------------------------
+   procedure Release_All_Used_Values is
+      Old_Used_Values : Set_Ptr;
+   begin
+      while Used_Values /= null loop
+         Old_Used_Values := Used_Values;
+         Used_Values := Used_Values.Next;
+         Free (Old_Used_Values);
+      end loop;
+   end Release_All_Used_Values;
+
+   ------------
+   --  Eval  --
+   ------------
+   function Eval (C : N_Const_Acc) return Value_Ptr is
+   begin
+      raise Errors.Internal_Error;
+      return null;
+   end Eval;
+
+
+
    --------------------------
    --  Parsing of the idl  --
    --------------------------
@@ -1826,6 +1946,23 @@ package body Parse is
 --    end Parse_Const_Dcl;
    end Parse_Const_Dcl;
 
+   -----------------------
+   --  Parse_Const_Exp  --
+   -----------------------
+   procedure Parse_Const_Exp (Result : out N_Const_Acc;
+                              Switch_Type : in N_Root_Acc;
+                              Success : out Boolean) is
+   begin
+      Result := null;
+      Success := False;
+--    --  Rule 14:
+--    --  <const_expr> ::= <or_expr>
+--    function Parse_Const_Exp return N_Root_Acc is
+--    begin
+--       return Parse_Or_Expr;
+--    end Parse_Const_Exp;
+   end Parse_Const_Exp;
+
    ----------------------
    --  Parse_Type_Dcl  --
    ----------------------
@@ -2814,7 +2951,9 @@ package body Parse is
          end;
       end if;
       Next_Token;
-      Parse_Switch_Body (Result.Cases, Success);
+      Parse_Switch_Body (Result.Cases,
+                         Result.Switch_Type,
+                         Success);
       Pop_Scope;
       if not Success then
          return;
@@ -2874,6 +3013,29 @@ package body Parse is
                Res : N_Scoped_Name_Acc;
             begin
                Parse_Scoped_Name (Res, Success);
+               --  The <scoped_name> in the <switch_type_spec> production
+               --  must be a previously defined integer, char, boolean
+               --  or enum type.
+               case Get_Kind (Res.Value.all) is
+                  when K_Short
+                    | K_Long
+                    | K_Long_Long
+                    | K_Unsigned_Short
+                    | K_Unsigned_Long
+                    | K_Unsigned_Long_Long
+                    | K_Char
+                    | K_Wide_Char
+                    | K_Boolean
+                    | K_Enum =>
+                     null;
+                  when others =>
+                     Errors.Parser_Error ("Invalid type in switch. The " &
+                                          "scoped name should refer to " &
+                                          "an integer, char, boolean or " &
+                                          " enum type.",
+                                          Errors.Error,
+                                          Get_Token_Location);
+               end case;
                Result := N_Root_Acc (Res);
             end;
          when others =>
@@ -2890,6 +3052,7 @@ package body Parse is
    --  Parse_Switch_Body  --
    -------------------------
    procedure Parse_Switch_Body (Result : out Node_List;
+                                Switch_Type : in N_Root_Acc;
                                 Success : out Boolean) is
       Default_Clause : Boolean := False;
    begin
@@ -2907,17 +3070,26 @@ package body Parse is
             Loc : Errors.Location;
          begin
             Loc := Get_Token_Location;
-            Parse_Case (Case_Clause, Case_Success);
+            Parse_Case (Case_Clause,
+                        Switch_Type,
+                        Case_Success);
             if not Case_Success then
-               Go_To_Next_Case;
+               Go_To_End_Of_Case;
             else
                Append_Node (Result, N_Root_Acc (Case_Clause));
-               if Is_In_List (Case_Clause.Labels, null) then
-                  if Default_Clause then
+               if Default_Clause then
+                  if Is_In_List (Case_Clause.Labels, null) then
                      Errors.Parser_Error ("default clause already appeared.",
                                           Errors.Error,
                                           Loc);
                   else
+                     Errors.Parser_Error ("useless clause : default " &
+                                          "already appeared.",
+                                          Errors.Warning,
+                                          Loc);
+                  end if;
+               else
+                  if Is_In_List (Case_Clause.Labels, null) then
                      Default_Clause := True;
                   end if;
                end if;
@@ -2925,6 +3097,7 @@ package body Parse is
          end;
          exit when Get_Token = T_Right_Cbracket;
       end loop;
+      Release_All_Used_Values;
       Success := True;
       return;
    end Parse_Switch_Body;
@@ -2933,11 +3106,118 @@ package body Parse is
    --  Parse_Case  --
    ------------------
    procedure Parse_Case (Result : out N_Case_Acc;
+                         Switch_Type : in N_Root_Acc;
                          Success : out Boolean) is
    begin
-      Result := null;
-      Success := False;
+      case Get_Token is
+         when T_Case
+           | T_Default =>
+            null;
+         when others =>
+            Errors.Parser_Error ("invalid case label : " &
+                                 Ada.Characters.Latin_1.Quotation &
+                                 "case" &
+                                 Ada.Characters.Latin_1.Quotation &
+                                 " or " &
+                                 Ada.Characters.Latin_1.Quotation &
+                                 "default" &
+                                 Ada.Characters.Latin_1.Quotation &
+                                 " expected.",
+                                 Errors.Error,
+                                 Get_Token_Location);
+            Result := null;
+            Success := False;
+            return;
+      end case;
+      Result := new N_Case;
+      Set_Location (Result.all, Get_Token_Location);
+      Result.Labels := Nil_List;
+      while Get_Token = T_Case or Get_Token = T_Default loop
+         declare
+            Case_Label : N_Const_Acc;
+            Case_Success : Boolean;
+         begin
+            Parse_Case_Label (Case_Label, Switch_Type, Case_Success);
+            if not Case_Success then
+               Go_To_End_Of_Case_Label;
+            else
+               Append_Node (Result.Labels, N_Root_Acc (Case_Label));
+            end if;
+         end;
+      end loop;
+      Parse_Element_Spec (Result.Case_Type,
+                          Result.Case_Decl,
+                          Success);
+      if not Success then
+         return;
+      end if;
+      if Get_Token /= T_Semi_Colon then
+         Errors.Parser_Error ("';' expected at the end of case clause.",
+                              Errors.Error,
+                              Get_Token_Location);
+         Success := False;
+      else
+         Next_Token;
+      end if;
+      return;
    end Parse_Case;
+
+
+   ------------------------
+   --  Parse_Case_Label  --
+   ------------------------
+   procedure Parse_Case_Label (Result : out N_Const_Acc;
+                               Switch_Type : in N_Root_Acc;
+                               Success : out Boolean) is
+   begin
+      case Get_Token is
+         when T_Case =>
+            declare
+               Loc : Errors.Location;
+            begin
+               Next_Token;
+               Loc := Get_Token_Location;
+               Parse_Const_Exp (Result, Switch_Type, Success);
+               if not Success then
+                  return;
+               end if;
+               --  Verifying that a clause does not appear twice
+               if not Add_Used_Value (Result) then
+                  Errors.Parser_Error ("This value was already taken into " &
+                                       "account in this switch statement.",
+                                       Errors.Warning,
+                                       Loc);
+               end if;
+            end;
+         when T_Default =>
+            Next_Token;
+            Result := null;
+            Success := True;
+         when others =>
+            raise Errors.Internal_Error;
+      end case;
+      if Get_Token /= T_Colon_Colon then
+         Errors.Parser_Error ("':' expected at the end of case label.",
+                              Errors.Error,
+                              Get_Token_Location);
+         Success := False;
+      else
+         Next_Token;
+      end if;
+      return;
+   end Parse_Case_Label;
+
+   --------------------------
+   --  Parse_Element_Spec  --
+   --------------------------
+   procedure Parse_Element_Spec (Element_Type : out N_Root_Acc;
+                                 Element_Decl : out N_Declarator_Acc;
+                                 Success : out Boolean) is
+   begin
+      Element_Type := null;
+      Element_Decl := null;
+      Success := False;
+   end Parse_Element_Spec;
 
    -----------------------
    --  Parse_Enum_Type  --
@@ -3497,14 +3777,6 @@ package body Parse is
 --       return Res;
 --    end Parse_Or_Expr;
 
---    --  Rule 14:
---    --  <const_expr> ::= <or_expr>
---    function Parse_Const_Exp return N_Root_Acc is
---    begin
---       return Parse_Or_Expr;
---    end Parse_Const_Exp;
-
-
 
 --    --  Rule 70:
 --    --  <attr_dcl> ::= [ "readonly" ] "attribute" <param_type_spec>
@@ -3566,48 +3838,6 @@ package body Parse is
 --          exit when Token = T_Right_Cbracket;
 --       end loop;
 --    end Parse_Member_List;
-
---    --  Rule 60:
---    --  <case> ::= <case_label>+ <element_spec> ";"
---    --
---    --  Rule 61:
---    --  <case_label> ::= "case" <const_exp> ":"
---    --               |   "default ":"
---    function Parse_Case return N_Case_Acc is
---       Res : N_Case_Acc;
---    begin
---       Res := new N_Case;
---       Set_Location (Res.all, Get_Location);
---       Res.Labels := Nil_List;
---       loop
---          case Token is
---             when T_Case =>
---                Next_Token;
---                Append_Node (Res.Labels, Parse_Const_Exp);
---             when T_Default =>
---                Next_Token;
---                Append_Node (Res.Labels, null);
---             when others =>
---                exit;
---          end case;
---          Expect (T_Colon);
---          Next_Token;
---       end loop;
---       if Res.Labels = Nil_List then
---          Errors.Parser_Error ("`case' or `default' expected",
---                                Errors.Error);
---          raise Parse_Error;
---       end if;
---       Res.C_Type := Parse_Type_Spec;
---       Res.C_Decl := Parse_Declarator;
---       Expect (T_Semi_Colon);
---       Next_Token;
---       return Res;
---    end Parse_Case;
-
-
-
-
 
 --    --  Rule 13:
 --    --  <const_type> ::= <integer_type>
@@ -3729,13 +3959,21 @@ package body Parse is
       null;
    end Go_To_Next_Member;
 
-   -----------------------
-   --  Go_To_Next_Case  --
-   -----------------------
-   procedure Go_To_Next_Case is
+   -------------------------
+   --  Go_To_End_Of_Case  --
+   -------------------------
+   procedure Go_To_End_Of_Case is
    begin
       null;
-   end Go_To_Next_Case;
+   end Go_To_End_Of_Case;
+
+   -------------------------------
+   --  Go_To_End_Of_Case_Label  --
+   -------------------------------
+   procedure Go_To_End_Of_Case_Label is
+   begin
+      null;
+   end Go_To_End_Of_Case_Label;
 
    --
    --  INUTILE ?????

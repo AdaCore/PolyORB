@@ -176,6 +176,9 @@ package Types is
    --  Frees all the list
    procedure Free (List : in out Node_List);
 
+   --  computes the length of the list
+   function Get_Length (List : in Node_List) return Integer;
+
    ---------------------------------------------------
    --  Named nodes in the tree parsed from the idl  --
    ---------------------------------------------------

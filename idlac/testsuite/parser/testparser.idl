@@ -188,10 +188,18 @@ union union6 switch (boolean) { case true : long i; ;
 
 /* Test of rule 73 */
 union union7 switch (error) { case true : long i; };
+typedef string string1;
+union union8 switch (string1) { case true : long i; };
 
 /* Test of rule 74 */
-union union8 switch (boolean) { };
-union union9 switch (boolean) {
+union union9 switch (boolean) { };
+union union10 switch (boolean) {
     default : long i;
     default : short j;
 };
+
+/* Test of rule 75 */
+union union11 switch (boolean) { error };
+union union12 switch (boolean) { case true : long i };
+union union13 switch (boolean) { case true : long i;
+				 case true : long j; };

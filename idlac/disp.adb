@@ -318,9 +318,9 @@ package body Disp is
             Disp_Indent (N_Indent, "labels:");
             Disp_List (N_Case (N).Labels, N_Indent, Full);
             Disp_Indent (N_Indent, "type:");
-            Disp_Tree (N_Case (N).C_Type.all, N_Indent, Full);
+            Disp_Tree (N_Case (N).Case_Type.all, N_Indent, Full);
             Disp_Indent (N_Indent, "declarator:");
-            Disp_Tree (N_Case (N).C_Decl.all, N_Indent, Full);
+            Disp_Tree (N_Case (N).Case_Decl.all, N_Indent, Full);
 
 --          when K_Or =>
 --             Disp_Binary ("or");

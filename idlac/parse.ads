@@ -19,6 +19,7 @@
 with Tree; use Tree;
 with Tokens; use Tokens;
 with Types; use Types;
+with Ada.Unchecked_Deallocation;
 with Errors;
 
 package Parse is
@@ -98,6 +99,68 @@ private
    --  Returns the string of the current_token
    function Get_Next_Token_String return String;
 
+
+   ----------------------------------
+   --  Management of const values  --
+   ----------------------------------
+
+   --  all possible values for an idl const
+   type Idl_Short is new Long_Long_Integer range (-2 ** 15) .. (2 ** 15 - 1);
+   type Idl_Long is new Long_Long_Integer range (-2 ** 31) .. (2 ** 31 - 1);
+   type Idl_LongLong is new Long_Long_Integer range
+     (-2 ** 63) .. (2 ** 63 - 1);
+   type Idl_UShort is new Long_Long_Integer range 0 .. (2 ** 16 - 1);
+   type Idl_ULong is new Long_Long_Integer range 0 .. (2 ** 32 - 1);
+   type Idl_ULonglong is new Long_Long_Integer range
+     (-2 ** 63) .. (2 ** 63 - 1);
+   type Idl_Char is new Long_Long_Integer range 0 .. (2 ** 8 - 1);
+   type Idl_WideChar is new Long_Long_Integer range 0 .. (2 ** 16 - 1);
+   type Idl_Boolean is new Long_Long_Integer range 0 .. 1;
+   type Idl_Enum is new Long_Long_Integer range 0 .. (2 ** 32 - 1);
+
+   --  a pointer on an idl value
+   type Value_Ptr is access all Long_Long_Integer;
+
+   --  to deallocate a value_ptr
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Long_Long_Integer, Value_Ptr);
+
+   --  compare two value_ptr
+   --  actually compare the real values pointed by these pointers
+   --  assuming that they are from the same type
+   function "<" (X, Y : Value_Ptr) return Boolean;
+   function ">" (X, Y : Value_Ptr) return Boolean;
+
+   --  returns true if the value pointed by prec is the one pointed
+   --  bu next - 1, false else.
+   function Is_Prec (Prec, Next : Value_Ptr) return Boolean;
+
+   --  a generic interval of values
+   type Interval_Type is record
+      Min, Max : Value_Ptr;
+   end record;
+
+   --  a generic set of values, implemented as a list of intervals
+   type Set;
+   type Set_Ptr is access Set;
+   type Set is record
+      Interval : Interval_Type;
+      Next : Set_Ptr;
+   end record;
+
+   --  to deallocate a set_ptr
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Set, Set_Ptr);
+
+   --  try to add a value to the set of already used values.
+   --  if this value was already there, it return false, else true
+   function Add_Used_Value (C : N_Const_Acc) return Boolean;
+
+   --  Frees all the set of already used values
+   procedure Release_All_Used_Values;
+
+   --  Evaluates the numeric value of a constant
+   function Eval (C : N_Const_Acc) return Value_Ptr;
 
    --------------------------
    --  Parsing of the idl  --
@@ -271,7 +334,7 @@ private
    procedure Parse_End_Value_Dcl (Result : out N_ValueType_Acc;
                                   Success : out Boolean;
                                   Custom : in Boolean;
-                                  Abst : in boolean);
+                                  Abst : in Boolean);
 
    --  Rule Value7
    --  <end_value_forward_dcl> ::= <identifier>
@@ -331,6 +394,12 @@ private
    --  Rule 27
    --  <const_dcl> ::= "const" <const_type> <identifier> "=" <const_exp>
    procedure Parse_Const_Dcl (Result : out N_Const_Acc;
+                              Success : out Boolean);
+
+   --  Rule 29
+   --  <const_expr> ::= <or_expr>
+   procedure Parse_Const_Exp (Result : out N_Const_Acc;
+                              Switch_Type : in N_Root_Acc;
                               Success : out Boolean);
 
    --  Rule 42
@@ -529,16 +598,27 @@ private
    --  Rule 74
    --  <switch_body> ::= <case>+
    procedure Parse_Switch_Body (Result : out Node_List;
+                                Switch_Type : in N_Root_Acc;
                                 Success : out Boolean);
 
    --  Rule 75
    --  <case> ::= <case_label>+ <element_spec> ";"
    procedure Parse_Case (Result : out N_Case_Acc;
+                         Switch_Type : in N_Root_Acc;
                          Success : out Boolean);
 
    --  Rule 76
    --  <case_label> ::= "case" <const_exp> ":"
    --                 | "default ":"
+   procedure Parse_Case_Label (Result : out N_Const_Acc;
+                               Switch_Type : in N_Root_Acc;
+                               Success : out Boolean);
+
+   --  Rule 77
+   --  <element_spec> ::= <type_spec> <declarator>
+   procedure Parse_Element_Spec (Element_Type : out N_Root_Acc;
+                                 Element_Decl : out N_Declarator_Acc;
+                                 Success : out Boolean);
 
    --  Rule 78
    --  <enum_type> ::= "enum" <identifier> "{" <enumerator>
@@ -625,8 +705,11 @@ private
    --  Goes to the next member (see rule 71)
    procedure Go_To_Next_Member;
 
-   --  Goes to the next case clause in an union (see rule 74)
-   procedure Go_To_Next_Case;
+   --  Goes to the end of a case clause in an union (see rule 74)
+   procedure Go_To_End_Of_Case;
+
+   --  Goes to the end of a case label in an union (see rule 75)
+   procedure Go_To_End_Of_Case_Label;
 
 
 
@@ -730,10 +813,6 @@ private
 --    --  <or_expr> ::= <xor_expr>
 --    --            |   <or_expr> "^" <xor_expr>
 --    function Parse_Or_Expr return N_Root_Acc is
-
---    --  Rule 14:
---    --  <const_expr> ::= <or_expr>
---    function Parse_Const_Exp return N_Root_Acc is
 
 --    --
 --    --  Rule 70:
