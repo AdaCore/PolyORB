@@ -61,7 +61,7 @@ procedure Test000 is
       return Result;
    end To_Array;
 
-   L1, L2, L3 : List;
+   L1, L2, L3, L4 : List;
    It : Iterator;
 begin
    Output ("empty", To_Array (L1)'Length = 0);
@@ -91,6 +91,11 @@ begin
    Insert (L3, 444, Before => It);
    Output ("insert", To_Array (L3) = (666, 123, 444, 456, 789));
 
+   L4 := Duplicate (L3);
+   Element (L4, 1).all := 321;
+   Append (L4, 555);
+   Output ("duplicate", To_Array (L3) = (666, 123, 444, 456, 789)
+               and then To_Array (L4) = (666, 321, 444, 456, 789, 555));
    declare
       function Range_400_499 (X : Integer) return Boolean;
       function Range_400_499 (X : Integer) return Boolean is
