@@ -588,6 +588,8 @@ src/soap/aws.ads
 src/soap/gen_keywords
 src/soap/polyorb-binding_data-soap.adb
 src/soap/polyorb-binding_data-soap.ads
+src/soap/polyorb-buffer_sources.adb
+src/soap/polyorb-buffer_sources.ads
 src/soap/polyorb-filters-aws_interface.ads
 src/soap/polyorb-filters-http.adb
 src/soap/polyorb-filters-http.ads
