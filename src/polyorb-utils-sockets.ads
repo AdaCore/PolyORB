@@ -33,6 +33,8 @@
 
 --  $Id$
 
+--  General purpose functions for using sockets with string and buffers
+
 with PolyORB.Buffers;
 with PolyORB.Types;
 with PolyORB.Sockets;
@@ -42,13 +44,18 @@ package PolyORB.Utils.Sockets is
    function String_To_Addr
      (Str : Types.String)
      return PolyORB.Sockets.Inet_Addr_Type;
+   --  Convert a string to an inet address
+   --  String can be a numerical IP (eg: 127.0.0.1)
+   --  or a string addess (eg: localhost)
 
    procedure Marshall_Socket
      (Buffer : access PolyORB.Buffers.Buffer_Type;
       Sock   : in     PolyORB.Sockets.Sock_Addr_Type);
+   --  Marshall socket address and port in a buffer
 
    procedure Unmarshall_Socket
      (Buffer : access PolyORB.Buffers.Buffer_Type;
       Sock   :    out PolyORB.Sockets.Sock_Addr_Type);
+   --  Unmarshall socket address and port from a buffer
 
 end PolyORB.Utils.Sockets;
