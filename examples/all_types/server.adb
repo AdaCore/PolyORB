@@ -34,6 +34,8 @@ with PolyORB.Setup.No_Tasking_Server;
 pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
 pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
 
+with PolyORB.CORBA_P.Naming_Tools; use PolyORB.CORBA_P.Naming_Tools;
+
 with CORBA;
 with CORBA.Object;
 with CORBA.Impl;
@@ -45,7 +47,7 @@ procedure Server is
    use PolyORB.CORBA_P.Server_Tools;
 
    Ref             : CORBA.Object.Ref;
-   --  Register_Server : Boolean := False;
+   Register_Server : Boolean := False;
    --  Use_Delegate    : Boolean := False;
 
 begin
@@ -56,7 +58,7 @@ begin
       case Getopt ("d s") is
          when ASCII.NUL => exit;
          --  when 'd'       => Use_Delegate := True;
-         --  when 's'       => Register_Server := True;
+         when 's'       => Register_Server := True;
          when others    => raise Program_Error;
       end case;
    end loop;
@@ -77,17 +79,17 @@ begin
    --  If the server is to be registered, check whether there is a name
    --  given on the command line, use "echo" otherwise.
 
---   if Register_Server then
---      declare
---         Name : constant String := Get_Argument;
---      begin
---         if Name = "" then
---            Register ("echo", Ref);
---         else
---            Register (Name, Ref);
---         end if;
---      end;
---   end if;
+   if Register_Server then
+      declare
+         Name : constant String := Get_Argument;
+      begin
+         if Name = "" then
+            Register ("all_types", Ref);
+         else
+            Register (Name, Ref);
+         end if;
+      end;
+   end if;
 
    --  Print IOR so that we can give it to a client
 

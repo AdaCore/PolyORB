@@ -8,11 +8,14 @@ GNATMAKE_FLAGS = \
 	-I$(srcdir)/$(EXAMPLES_ROOT)/../src \
 	-I$(srcdir)/$(EXAMPLES_ROOT)/../src/corba \
 	-I$(srcdir)/$(EXAMPLES_ROOT)/../src/soap \
+	-I$(srcdir)/$(EXAMPLES_ROOT)/../cos/naming \
 	-I$(EXAMPLES_ROOT) \
 	-I$(EXAMPLES_ROOT)/generic \
 	-I$(EXAMPLES_ROOT)/../src \
 	-I$(EXAMPLES_ROOT)/../src/corba \
 	-I$(EXAMPLES_ROOT)/../src/soap \
+	-I$(EXAMPLES_ROOT)/../cos/naming \
+	-I$(EXAMPLES_ROOT)/../idls/cos/naming \
 	$(XMLADA_INCLUDE) \
 	-m \
 	$(EXAMPLE_GNATMAKE_FLAGS) \
@@ -54,4 +57,4 @@ client server $(EXTRA): force $(EXAMPLE).ads
 
 force::
 	cd $(EXAMPLES_ROOT)/../src && $(MAKE)
-#	cd $(EXAMPLES_ROOT)/../cos/naming && $(MAKE)
+	cd $(EXAMPLES_ROOT)/../cos/naming && $(MAKE)

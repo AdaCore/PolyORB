@@ -42,6 +42,8 @@ with Report;    use Report;
 with PolyORB.Setup.CORBA_Client;
 pragma Warnings (Off, PolyORB.Setup.CORBA_Client);
 
+with PolyORB.CORBA_P.Naming_Tools; use PolyORB.CORBA_P.Naming_Tools;
+
 procedure Client is
    Myall_types : all_types.Ref;
    Ok : Boolean;
@@ -54,15 +56,12 @@ begin
       return;
    end if;
 
-   --  if Argument (1) = "-i" then
-   --     Myall_types := To_Ref (Locate ("all_types"));
-   --  else
-   --     Myall_types := To_Ref (Locate (Argument (1)));
-   --  end if;
-   CORBA.ORB.String_To_Object
-     (To_CORBA_String (Ada.Command_Line.Argument (1)), Myall_types);
+   if Argument (1) = "-i" then
+      Myall_types := To_Ref (Locate ("all_types"));
+   else
+      Myall_types := To_Ref (Locate (Argument (1)));
+   end if;
 
-   --  checking if it worked
    if all_types.Is_Nil (Myall_types) then
       Ada.Text_IO.Put_Line ("main : cannot invoke on a nil reference");
       return;
