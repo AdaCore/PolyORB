@@ -225,17 +225,6 @@ package body System.Garlic.Termination is
       end loop;
    end Initiate_Synchronization;
 
-   --------------------------------
-   -- Init_Non_Terminating_Tasks --
-   --------------------------------
-
-   procedure Init_Non_Terminating_Tasks is
-   begin
-      while Get_Active_Task_Count /= 1 loop
-         Add_Non_Terminating_Task;
-      end loop;
-   end Init_Non_Terminating_Tasks;
-
    ----------------
    -- Initialize --
    ----------------
@@ -397,12 +386,7 @@ package body System.Garlic.Termination is
                  (D (D_Debug,
                      "Get_Active_Task_Count is" & Get_Active_Task_Count'Img));
 
-               --  XXXXX At this point, it appears that Get_Active_Task_Count
-               --  may sometimes return 2 instead of 1. The result is not
-               --  checked because it prevents termination which should
-               --  occur.
-
-               if Success then
+               if Success and Get_Active_Task_Count = 1 then
 
                   --  Everyone agrees it's time to die, so let's initiate
                   --  this if nothing runs here.

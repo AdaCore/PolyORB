@@ -1,3 +1,11 @@
+Mon Sep 22 16:05:48 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-garter.ads: Revert previous bogus checkin.
+
+	* s-garter.adb: Revert previous bogus checkin.
+
+	* s-garsta.adb: Revert previous bogus checkin.
+
 Fri Sep 19 19:49:05 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-garsta.adb: Use it.
