@@ -1,3 +1,7 @@
+2001-03-07  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-garloc.ads, s-garloc.adb: Remove obsolete files.
+
 2001-02-08  Laurent Pautet  <pautet@arlequin.enst.fr>
 
 	* s-garopt.adb, s-garopt.ads: Add options to configure remote
