@@ -62,44 +62,6 @@ AC_SUBST(LAUNCHINGSOURCES)
 AC_SUBST(LAUNCHINGOBJECTS)
 AC_SUBST(LAUNCHING_INCLUDED)
 #
-# Protocol list
-#
-AC_ARG_WITH(protocols,
-[  --with-protocols        Enumerate protocol list],
-[
-  AC_MSG_CHECKING([default protocols])
-  LIST="";
-  PROTOCOLSSOURCES="";
-  PROTOCOLSOBJECTS="";
-  TCP_INCLUDED="--  ";
-  for P in "${withval}"; do
-     case ${P} in
-     TCP|tcp) 
-        LIST="${LIST} tcp";
-        PROTOCOLSSOURCES="${PROTOCOLSSOURCES} \$(TCPSOURCES)";
-        PROTOCOLSOBJECTS="${PROTOCOLSOBJECTS} \$(TCPOBJECTS)";
-        TCP_INCLUDED="";;
-     no)
-        LIST="none";
-        ;;
-      *) 
-        AC_MSG_ERROR([unknown protocol ${P}])
-        ;;
-      esac;
-  done
-  AC_MSG_RESULT([${LIST}])
-],
-[
-AC_MSG_CHECKING([default protocols])
-PROTOCOLSSOURCES="\$(TCPSOURCES)";
-PROTOCOLSOBJECTS="\$(TCPOBJECTS)";
-TCP_INCLUDED=""
-AC_MSG_RESULT([tcp])
-])
-AC_SUBST(PROTOCOLSSOURCES)
-AC_SUBST(PROTOCOLSOBJECTS)
-AC_SUBST(TCP_INCLUDED)
-#
 # Find GNAT sources
 #
 AC_DEFUN([AC_GNAT_SOURCE],
@@ -155,6 +117,55 @@ AC_SUBST(PLATFORM_SPECIFIC)
    *) PSNAME="Unknown (${PLATFORM_SPECIFIC})";;
 esac]
 AC_MSG_RESULT($PSNAME)
+#
+# Protocol list
+#
+AC_ARG_WITH(protocols,
+[  --with-protocols        Enumerate protocol list],
+[
+  AC_MSG_CHECKING([default protocols])
+  LIST="";
+  PROTOCOLSSOURCES="";
+  PROTOCOLSOBJECTS="";
+  TCP_INCLUDED="--  ";
+  for P in "${withval}"; do
+     case ${P} in
+     TCP|tcp) 
+        LIST="${LIST} tcp";
+        PROTOCOLSSOURCES="${PROTOCOLSSOURCES} \$(TCPSOURCES)";
+        PROTOCOLSOBJECTS="${PROTOCOLSOBJECTS} \$(TCPOBJECTS)";
+        TCP_INCLUDED="";;
+     no)
+        LIST="none";
+        ;;
+      *) 
+        AC_MSG_ERROR([unknown protocol ${P}])
+        ;;
+      esac;
+  done
+  AC_MSG_RESULT([${LIST}])
+],
+[
+AC_MSG_CHECKING([default protocols])
+PROTOCOLSSOURCES="\$(TCPSOURCES)";
+PROTOCOLSOBJECTS="\$(TCPOBJECTS)";
+TCP_INCLUDED=""
+AC_MSG_RESULT([tcp])
+])
+if test "$TCP_INCLUDED" = ""; then
+  AC_MSG_CHECKING([thread-blocking I/O])
+    if grep Non_Blocking $srcdir/Garlic/2${PLATFORM_SPECIFIC}gtplsp.ads \
+      > /dev/null 2>&1; then
+	AC_MSG_RESULT([no])
+	PROTOCOLSOURCES="${PROTOCOLSOURCES} \$(NOBLTCPSOURCES)"
+	PROTOCOLSOBJECTS="${PROTOCOLSOBJECTS} \$(NOBLTCPOBJECTS)"
+    else
+	AC_MSG_RESULT([yes])
+    fi
+fi
+AC_SUBST(PROTOCOLSSOURCES)
+AC_SUBST(PROTOCOLSOBJECTS)
+AC_SUBST(TCP_INCLUDED)
 #
 # Find get_errno or __get_errno
 #

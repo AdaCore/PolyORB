@@ -16,9 +16,9 @@ ac_help="$ac_help
 ac_help="$ac_help
   --without-launching     Don't include launching facilities"
 ac_help="$ac_help
-  --with-protocols        Enumerate protocol list"
-ac_help="$ac_help
   --with-platform=letter  Select another platform's specific files (debug)"
+ac_help="$ac_help
+  --with-protocols        Enumerate protocol list"
 ac_help="$ac_help
   --with-extra-libs=libs  Add extra libraries when building a program"
 
@@ -1014,56 +1014,12 @@ fi
 
 
 #
-# Protocol list
-#
-# Check whether --with-protocols or --without-protocols was given.
-if test "${with_protocols+set}" = set; then
-  withval="$with_protocols"
-  
-  echo $ac_n "checking default protocols""... $ac_c" 1>&6
-echo "configure:1025: checking default protocols" >&5
-  LIST="";
-  PROTOCOLSSOURCES="";
-  PROTOCOLSOBJECTS="";
-  TCP_INCLUDED="--  ";
-  for P in "${withval}"; do
-     case ${P} in
-     TCP|tcp) 
-        LIST="${LIST} tcp";
-        PROTOCOLSSOURCES="${PROTOCOLSSOURCES} \$(TCPSOURCES)";
-        PROTOCOLSOBJECTS="${PROTOCOLSOBJECTS} \$(TCPOBJECTS)";
-        TCP_INCLUDED="";;
-     no)
-        LIST="none";
-        ;;
-      *) 
-        { echo "configure: error: unknown protocol ${P}" 1>&2; exit 1; }
-        ;;
-      esac;
-  done
-  echo "$ac_t""${LIST}" 1>&6
-
-else
-  
-echo $ac_n "checking default protocols""... $ac_c" 1>&6
-echo "configure:1050: checking default protocols" >&5
-PROTOCOLSSOURCES="\$(TCPSOURCES)";
-PROTOCOLSOBJECTS="\$(TCPOBJECTS)";
-TCP_INCLUDED=""
-echo "$ac_t""tcp" 1>&6
-
-fi
-
-
-
-
-#
 # Find GNAT sources
 #
 
 
   echo $ac_n "checking for GNAT sources""... $ac_c" 1>&6
-echo "configure:1067: checking for GNAT sources" >&5
+echo "configure:1023: checking for GNAT sources" >&5
   if test -f gnat/osint.ads; then
     GNAT_SOURCE=../gnat
     echo "$ac_t""gnat" 1>&6
@@ -1085,7 +1041,7 @@ echo "configure:1067: checking for GNAT sources" >&5
 # Make
 #
 echo $ac_n "checking whether ${MAKE-make} sets \${MAKE}""... $ac_c" 1>&6
-echo "configure:1089: checking whether ${MAKE-make} sets \${MAKE}" >&5
+echo "configure:1045: checking whether ${MAKE-make} sets \${MAKE}" >&5
 set dummy ${MAKE-make}; ac_make=`echo "$2" | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_prog_make_${ac_make}_set'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -1115,7 +1071,7 @@ fi
 # Platform specific
 #
 echo $ac_n "checking which platform-specific variant to use""... $ac_c" 1>&6
-echo "configure:1119: checking which platform-specific variant to use" >&5
+echo "configure:1075: checking which platform-specific variant to use" >&5
 # Check whether --with-platform or --without-platform was given.
 if test "${with_platform+set}" = set; then
   withval="$with_platform"
@@ -1145,10 +1101,66 @@ case "${PLATFORM_SPECIFIC}" in
 esac
 echo "$ac_t""$PSNAME" 1>&6
 #
+# Protocol list
+#
+# Check whether --with-protocols or --without-protocols was given.
+if test "${with_protocols+set}" = set; then
+  withval="$with_protocols"
+  
+  echo $ac_n "checking default protocols""... $ac_c" 1>&6
+echo "configure:1112: checking default protocols" >&5
+  LIST="";
+  PROTOCOLSSOURCES="";
+  PROTOCOLSOBJECTS="";
+  TCP_INCLUDED="--  ";
+  for P in "${withval}"; do
+     case ${P} in
+     TCP|tcp) 
+        LIST="${LIST} tcp";
+        PROTOCOLSSOURCES="${PROTOCOLSSOURCES} \$(TCPSOURCES)";
+        PROTOCOLSOBJECTS="${PROTOCOLSOBJECTS} \$(TCPOBJECTS)";
+        TCP_INCLUDED="";;
+     no)
+        LIST="none";
+        ;;
+      *) 
+        { echo "configure: error: unknown protocol ${P}" 1>&2; exit 1; }
+        ;;
+      esac;
+  done
+  echo "$ac_t""${LIST}" 1>&6
+
+else
+  
+echo $ac_n "checking default protocols""... $ac_c" 1>&6
+echo "configure:1137: checking default protocols" >&5
+PROTOCOLSSOURCES="\$(TCPSOURCES)";
+PROTOCOLSOBJECTS="\$(TCPOBJECTS)";
+TCP_INCLUDED=""
+echo "$ac_t""tcp" 1>&6
+
+fi
+
+if test "$TCP_INCLUDED" = ""; then
+  echo $ac_n "checking thread-blocking I/O""... $ac_c" 1>&6
+echo "configure:1147: checking thread-blocking I/O" >&5
+    if grep Non_Blocking $srcdir/Garlic/2${PLATFORM_SPECIFIC}gtplsp.ads \
+      > /dev/null 2>&1; then
+	echo "$ac_t""no" 1>&6
+	PROTOCOLSOURCES="${PROTOCOLSOURCES} \$(NOBLTCPSOURCES)"
+	PROTOCOLSOBJECTS="${PROTOCOLSOBJECTS} \$(NOBLTCPOBJECTS)"
+    else
+	echo "$ac_t""yes" 1>&6
+    fi
+fi
+
+
+
+#
 # Find get_errno or __get_errno
 #
 echo $ac_n "checking for get_errno in -lgnat""... $ac_c" 1>&6
-echo "configure:1152: checking for get_errno in -lgnat" >&5
+echo "configure:1164: checking for get_errno in -lgnat" >&5
 ac_lib_var=`echo gnat'_'get_errno | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -1156,7 +1168,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lgnat  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 1160 "configure"
+#line 1172 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -1167,7 +1179,7 @@ int main() {
 get_errno()
 ; return 0; }
 EOF
-if { (eval echo configure:1171: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
+if { (eval echo configure:1183: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -1203,7 +1215,7 @@ fi
 # Check if gnatmake -s is ok (smart recompilation)
 #
 echo $ac_n "checking if gnatmake supports -s""... $ac_c" 1>&6
-echo "configure:1207: checking if gnatmake supports -s" >&5
+echo "configure:1219: checking if gnatmake supports -s" >&5
 if gnatmake -s -a -gnatg ada > /dev/null 2>&1; then
    GNATMAKE="gnatmake -s"
    echo "$ac_t""yes" 1>&6
@@ -1396,12 +1408,12 @@ s%@GNATFLAGS@%$GNATFLAGS%g
 s%@LAUNCHINGSOURCES@%$LAUNCHINGSOURCES%g
 s%@LAUNCHINGOBJECTS@%$LAUNCHINGOBJECTS%g
 s%@LAUNCHING_INCLUDED@%$LAUNCHING_INCLUDED%g
-s%@PROTOCOLSSOURCES@%$PROTOCOLSSOURCES%g
-s%@PROTOCOLSOBJECTS@%$PROTOCOLSOBJECTS%g
-s%@TCP_INCLUDED@%$TCP_INCLUDED%g
 s%@GNAT_SOURCE@%$GNAT_SOURCE%g
 s%@SET_MAKE@%$SET_MAKE%g
 s%@PLATFORM_SPECIFIC@%$PLATFORM_SPECIFIC%g
+s%@PROTOCOLSSOURCES@%$PROTOCOLSSOURCES%g
+s%@PROTOCOLSOBJECTS@%$PROTOCOLSOBJECTS%g
+s%@TCP_INCLUDED@%$TCP_INCLUDED%g
 s%@CERRNO@%$CERRNO%g
 s%@EXTRA_LIBS@%$EXTRA_LIBS%g
 s%@GNATMAKE@%$GNATMAKE%g
