@@ -191,6 +191,9 @@ package body PolyORB.Transport.Sockets is
 
    procedure Close (TE : in out Socket_Endpoint) is
    begin
+      Enter (TE.Mutex);
+      --  Ensure that no-one is holding this mutex, since
+      --  we are about to destroy it.
       if TE.Socket /= No_Socket then
          Close_Socket (TE.Socket);
       end if;
