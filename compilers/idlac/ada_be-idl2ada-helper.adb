@@ -197,9 +197,10 @@ package body Ada_Be.Idl2Ada.Helper is
             Gen_Enum_Spec (CU, Node);
 
          when K_Type_Declarator =>
-            if Is_Interface_Type (T_Type (Node)) then
-               null;
-            elsif Kind (T_Type (Node)) = K_Fixed then
+--             if Is_Interface_Type (T_Type (Node)) then
+--                null;
+--             elsif
+            if Kind (T_Type (Node)) = K_Fixed then
                Gen_Fixed_Spec (CU, Node);
             else
                declare
@@ -1868,22 +1869,22 @@ package body Ada_Be.Idl2Ada.Helper is
             PL (CU, "TC_Alias;");
          end if;
 
-         --  From_Any
-
-         NL (CU);
-         Gen_From_Any_Profile (CU, Node);
-         PL (CU, ";");
-
-         --  To_Any
-
-         NL (CU);
-         Gen_To_Any_Profile (CU, Node);
-         PL (CU, ";");
-
-         --  Fill in typecode TC_<name of the type>
-
          if Is_Array then
             Add_Elaborate_Body (CU);
+         end if;
+
+         if not Is_Interface_Type (Node) then
+            --  From_Any
+
+            NL (CU);
+            Gen_From_Any_Profile (CU, Node);
+            PL (CU, ";");
+
+            --  To_Any
+
+            NL (CU);
+            Gen_To_Any_Profile (CU, Node);
+            PL (CU, ";");
          end if;
       end if;
    end Gen_Type_Declarator_Spec;
@@ -1902,6 +1903,59 @@ package body Ada_Be.Idl2Ada.Helper is
       Helper_Name : constant String := Ada_Helper_Name (Type_Node);
    begin
       if Generate_Dyn then
+         --  Fill in typecode TC_<name of the type>
+
+         Divert (CU, Deferred_Initialization);
+         NL (CU);
+         PL (CU, "declare");
+         II (CU);
+         Add_With (CU, "CORBA");
+
+         if Is_Array then
+            for I in 1 .. Length (Array_Bounds (Node)) - 1 loop
+               PL (CU, "TC_"
+                   & Img (I)
+                   & " : CORBA.TypeCode.Object := "
+                   & "CORBA.TypeCode.TC_Array;");
+            end loop;
+         else
+            PL (CU, "Name : CORBA.String := CORBA.To_CORBA_String ("""
+                & Ada_Name (Node)
+                & """);");
+            PL (CU, "Id : CORBA.String := CORBA.To_CORBA_String ("""
+                & Idl_Repository_Id (Node)
+                & """);");
+         end if;
+
+         DI (CU);
+         PL (CU, "begin");
+         II (CU);
+
+         if Is_Array then
+            Gen_Array_TC (CU, Type_Node, Node);
+         else
+            PL (CU, "CORBA.TypeCode.Add_Parameter ("
+                & Ada_TC_Name (Node)
+                & ", CORBA.To_Any (Name));");
+            PL (CU, "CORBA.TypeCode.Add_Parameter ("
+                & Ada_TC_Name (Node)
+                & ", CORBA.To_Any (Id));");
+            Add_With (CU, Ada_Helper_Name (Type_Node));
+            PL (CU, "CORBA.TypeCode.Add_Parameter ("
+                & Ada_TC_Name (Node)
+                & ", CORBA.To_Any ("
+                & Ada_Full_TC_Name (Type_Node)
+                & "));");
+         end if;
+
+         DI (CU);
+         PL (CU, "end;");
+         Divert (CU, Visible_Declarations);
+
+         if Is_Interface_Type (Type_Node) then
+            return;
+         end if;
+
          --  From_Any
 
          NL (CU);
@@ -2094,54 +2148,6 @@ package body Ada_Be.Idl2Ada.Helper is
          DI (CU);
          PL (CU, "end To_Any;");
 
-         --  Fill in typecode TC_<name of the type>
-
-         Divert (CU, Deferred_Initialization);
-         NL (CU);
-         PL (CU, "declare");
-         II (CU);
-         Add_With (CU, "CORBA");
-
-         if Is_Array then
-            for I in 1 .. Length (Array_Bounds (Node)) - 1 loop
-               PL (CU, "TC_"
-                   & Img (I)
-                   & " : CORBA.TypeCode.Object := "
-                   & "CORBA.TypeCode.TC_Array;");
-            end loop;
-         else
-            PL (CU, "Name : CORBA.String := CORBA.To_CORBA_String ("""
-                & Ada_Name (Node)
-                & """);");
-            PL (CU, "Id : CORBA.String := CORBA.To_CORBA_String ("""
-                & Idl_Repository_Id (Node)
-                & """);");
-         end if;
-
-         DI (CU);
-         PL (CU, "begin");
-         II (CU);
-
-         if Is_Array then
-            Gen_Array_TC (CU, Type_Node, Node);
-         else
-            PL (CU, "CORBA.TypeCode.Add_Parameter ("
-                & Ada_TC_Name (Node)
-                & ", CORBA.To_Any (Name));");
-            PL (CU, "CORBA.TypeCode.Add_Parameter ("
-                & Ada_TC_Name (Node)
-                & ", CORBA.To_Any (Id));");
-            Add_With (CU, Ada_Helper_Name (Type_Node));
-            PL (CU, "CORBA.TypeCode.Add_Parameter ("
-                & Ada_TC_Name (Node)
-                & ", CORBA.To_Any ("
-                & Ada_Full_TC_Name (Type_Node)
-                & "));");
-         end if;
-
-         DI (CU);
-         PL (CU, "end;");
-         Divert (CU, Visible_Declarations);
       end if;
    end Gen_Type_Declarator_Body;
 

@@ -1,12 +1,12 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                          ADABROKER COMPONENTS                            --
+--                           ADABROKER SERVICES                             --
 --                                                                          --
---               A D A _ B E . I D L 2 A D A . I R _ I N F O                --
+--             P O L Y O R B . C O R B A _ P . I R _ T O O L S              --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
---          Copyright (C) 1999-2000 ENST Paris University, France.          --
+--             Copyright (C) 2002 ENST Paris University, France.            --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -19,6 +19,13 @@
 -- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
 -- Boston, MA 02111-1307, USA.                                              --
 --                                                                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
 --             AdaBroker is maintained by ENST Paris University.            --
 --                     (email: broker@inf.enst.fr)                          --
 --                                                                          --
@@ -26,23 +33,21 @@
 
 --  $Id$
 
-with Idl_Fe.Types;          use Idl_Fe.Types;
-with Ada_Be.Source_Streams; use Ada_Be.Source_Streams;
-pragma Elaborate_All (Ada_Be.Source_Streams);
+package body PolyORB.CORBA_P.IR_Tools is
 
-private package Ada_Be.Idl2Ada.IR_Info is
+   use CORBA.Repository_Root.Repository;
 
-   Suffix : constant String
-     := ".IR_Info";
+   Repo_Root_Ref : Ref;
 
-   procedure Gen_Body_Prelude (CU : in out Compilation_Unit);
+   function Get_IR_Root
+     return CORBA.Repository_Root.Repository.Ref is
+   begin
+      if Is_Nil (Repo_Root_Ref) then
+         Repo_Root_Ref := Helper.To_Ref
+           (PolyORB.CORBA_P.Naming_Tools.Locate
+            ("Interface_Repository"));
+      end if;
+      return Repo_Root_Ref;
+   end Get_IR_Root;
 
-   procedure Gen_Node_Spec
-     (CU   : in out Compilation_Unit;
-      Node : Node_Id);
-   procedure Gen_Node_Body
-     (CU   : in out Compilation_Unit;
-      Node : Node_Id);
-   --  Generate an Interface Repository information package
-
-end Ada_Be.Idl2Ada.IR_Info;
+end PolyORB.CORBA_P.IRools;

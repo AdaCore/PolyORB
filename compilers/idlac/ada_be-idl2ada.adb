@@ -319,6 +319,10 @@ package body Ada_Be.Idl2Ada is
       Helper.Gen_Node_Spec (Helper_Spec, Node);
       Helper.Gen_Node_Body (Helper_Body, Node);
 
+      IR_Info.Gen_Body_Prelude (IR_Info_Body);
+      IR_Info.Gen_Node_Spec (IR_Info_Spec, Node);
+      IR_Info.Gen_Node_Body (IR_Info_Body, Node);
+
       --  Skel package
       Skel.Gen_Node_Spec (Skel_Spec, Skeleton, Node);
       Skel.Gen_Node_Body (Skel_Body, Skeleton, Node);
@@ -613,6 +617,7 @@ package body Ada_Be.Idl2Ada is
       --  Work-around for GNAT bug 9530-011.
 
       Helper.Gen_Body_Prelude (Helper_Body);
+      IR_Info.Gen_Body_Prelude (IR_Info_Body);
 
       case Kind (Node) is
          when K_ValueType =>
