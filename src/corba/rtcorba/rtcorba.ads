@@ -40,10 +40,7 @@
 
 with CORBA.Sequences.Unbounded;
 
-pragma Warnings (Off); --  WAG:3.15
-with PolyORB.Any; --  WAG:3.15
-pragma Elaborate_All (PolyORB.Any); --  WAG:3.15
-pragma Warnings (On); --  WAG:3.15
+with PolyORB.RT_POA_Policies.Priority_Model_Policy;
 
 package RTCORBA is
 
@@ -73,26 +70,14 @@ package RTCORBA is
    PRIORITY_MODEL_POLICY_TYPE : constant CORBA.PolicyType := 40;
 
    type PriorityModel is
-     (CLIENT_PROPAGATED,
-      SERVER_DECLARED);
+     new PolyORB.RT_POA_Policies.Priority_Model_Policy.Priority_Model;
+   --  Implementation Note: this is equivalent to
+   --   type PriorityModel is (CLIENT_PROPAGATED, SERVER_DECLARED);
 
    --  Threadpool Policy
 
    THREADPOOL_POLICY_TYPE : constant CORBA.PolicyType := 41;
 
-   -------------
-   -- Helpers --
-   -------------
-
-   TC_PriorityModel : CORBA.TypeCode.Object
-     := CORBA.TypeCode.TC_Alias;
-
-   function From_Any
-     (Item : in CORBA.Any)
-     return ThreadpoolId;
-
-   function To_Any
-     (Item : in ThreadpoolId)
-     return CORBA.Any;
+   procedure Dummy;
 
 end RTCORBA;

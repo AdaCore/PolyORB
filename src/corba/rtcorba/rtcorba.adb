@@ -35,31 +35,9 @@
 
 package body RTCORBA is
 
-   --------------
-   -- From_Any --
-   --------------
-
-   function From_Any
-     (Item : in CORBA.Any)
-     return ThreadpoolId
-   is
-      Result : constant CORBA.Unsigned_Long := CORBA.From_Any (Item);
+   procedure Dummy is
    begin
-      return ThreadpoolId (Result);
-   end From_Any;
-
-   ------------
-   -- To_Any --
-   ------------
-
-   function To_Any
-     (Item : in ThreadpoolId)
-     return CORBA.Any
-   is
-      Result : CORBA.Any := CORBA.To_Any (CORBA.Unsigned_Long (Item));
-   begin
-      CORBA.Set_Type (Result, TC_PriorityModel);
-      return Result;
-   end To_Any;
+      null;
+   end Dummy;
 
 end RTCORBA;
