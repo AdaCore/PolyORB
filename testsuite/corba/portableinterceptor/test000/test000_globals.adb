@@ -111,9 +111,11 @@ package body Test000_Globals is
    -- Log_Point --
    ---------------
 
-   procedure Log_Point is
+   procedure Log_Point
+     (Name : in String)
+   is
    begin
-      Log_Lists.Append (Log, (Source => Object));
+      Log_Lists.Append (Log, (Object, Name (Name'First)));
    end Log_Point;
 
    ---------------
@@ -149,16 +151,17 @@ package body Test000_Globals is
    begin
       for J in Log'Range loop
          Put (Log_Source'Image (Log (J).Source));
+         Put (' ');
+         Put (Log (J).Name);
+         Put (' ');
 
          case Log (J).Source is
             when Client =>
-               Put (Log (J).Name);
                Put
                 (Test000_Idl.ClientInterceptor.Client_Interception_Point'Image
                   (Log (J).Client_Point));
 
             when Server =>
-               Put (Log (J).Name);
                Put
                 (Test000_Idl.ServerInterceptor.Server_Interception_Point'Image
                   (Log (J).Server_Point));

@@ -37,7 +37,20 @@ pragma Warnings (Off, Test000_Idl.TestInterface.Skel);
 
 with Test000_Globals;
 with PolyORB.Exceptions;
+
 package body Test000_Idl.TestInterface.Impl is
+
+   ----------
+   -- Init --
+   ----------
+
+   procedure Init
+     (Self : access Object;
+      Name : in     String)
+   is
+   begin
+      Self.Name := CORBA.To_CORBA_String (Name);
+   end Init;
 
    ----------
    -- Proc --
@@ -45,7 +58,7 @@ package body Test000_Idl.TestInterface.Impl is
 
    procedure Proc (Self : access Object) is
    begin
-      Test000_Globals.Log_Point;
+      Test000_Globals.Log_Point (CORBA.To_Standard_String (Self.Name));
       if Self.State = Normal then
          null;
       else

@@ -33,6 +33,7 @@
 
 with Test000_Idl.ClientInterceptor;
 with Test000_Idl.ServerInterceptor;
+with Test000_Idl.TestInterface;
 
 package Test000_Globals is
 
@@ -42,6 +43,8 @@ package Test000_Globals is
    Server_A : Test000_Idl.ServerInterceptor.Local_Ref;
    Server_B : Test000_Idl.ServerInterceptor.Local_Ref;
    Server_C : Test000_Idl.ServerInterceptor.Local_Ref;
+
+   Object_1 : Test000_Idl.TestInterface.Ref;
 
    procedure Enable_Client_Interceptors;
 
@@ -54,31 +57,26 @@ package Test000_Globals is
    type Log_Source is (Client, Object, Server);
 
    type Log_Record (Source : Log_Source := Object) is record
+      Name : Character;
+
       case Source is
          when Object =>
             null;
 
-         when Client | Server =>
-            Name : Character;
+         when Client =>
+            Client_Point :
+              Test000_Idl.ClientInterceptor.Client_Interception_Point;
 
-            case Source is
-               when Client =>
-                  Client_Point :
-                     Test000_Idl.ClientInterceptor.Client_Interception_Point;
-
-               when Server =>
-                  Server_Point :
-                     Test000_Idl.ServerInterceptor.Server_Interception_Point;
-
-               when others =>
-                  null;
-            end case;
+         when Server =>
+            Server_Point :
+              Test000_Idl.ServerInterceptor.Server_Interception_Point;
       end case;
    end record;
 
    type Log_Array is array (Positive range <>) of Log_Record;
 
-   procedure Log_Point;
+   procedure Log_Point
+     (Name : in String);
 
    procedure Log_Point
      (Name  : in String;

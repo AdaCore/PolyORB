@@ -46,6 +46,10 @@ package Test000_Idl.TestInterface.Impl is
 
    procedure Raise_Exception (Self : access Object);
 
+   procedure Init
+     (Self : access Object;
+      Name : in     String);
+
 private
 
    type Process_State is (Normal, Raise_Exception);
@@ -53,6 +57,7 @@ private
    type Object is
      new PortableServer.Servant_Base with
    record
+      Name  : CORBA.String;
       State : Process_State := Normal;
    end record;
 
