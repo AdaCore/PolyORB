@@ -6,5 +6,4 @@ name=polyorb-snap-$change
 
 TMPDIR=$HOME utils/make_distrib -p4 $change $name
 tar=$name.tar.gz
-scp $tar libre.act-europe.fr:/paris.a/httpd/html-libre/polyorb/snapshots/ \
-  && rm -f $tar
+
