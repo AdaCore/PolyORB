@@ -91,7 +91,7 @@ package PolyORB.POA_Manager.Basic_Manager is
 
    procedure Remove_POA
      (Self : access Basic_POA_Manager;
-      OA   : Obj_Adapter_Access);
+      OA   :        Obj_Adapter_Access);
 
    function Get_Hold_Servant
      (Self : access Basic_POA_Manager;

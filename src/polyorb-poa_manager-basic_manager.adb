@@ -51,24 +51,30 @@ package body PolyORB.POA_Manager.Basic_Manager is
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
-   procedure Do_Wait_For_Completion (Self : access Basic_POA_Manager);
+   procedure Do_Wait_For_Completion
+     (Self : access Basic_POA_Manager);
    --  Wait for completion
 
-   procedure Do_Etherealize_Objects (Self : access Basic_POA_Manager);
+   procedure Do_Etherealize_Objects
+     (Self : access Basic_POA_Manager);
    --  Etherealize the objects of the associated POAs
    --  (in case a Servant Manager is used with a RETAIN policy)
 
-   procedure Inc_Usage_Counter (Self : access Basic_POA_Manager);
+   procedure Inc_Usage_Counter
+     (Self : access Basic_POA_Manager);
    --  Increment POA Manager Usage Counter.
 
-   procedure Dec_Usage_Counter (Self : access Basic_POA_Manager);
+   procedure Dec_Usage_Counter
+     (Self : access Basic_POA_Manager);
    --  Decrement POA Manager Usage Counter.
 
-   procedure Destroy_If_Unused (Self : in out Basic_POA_Manager);
+   procedure Destroy_If_Unused
+     (Self : in out Basic_POA_Manager);
    --  Destroy the POAManager if it is no longer used by any POA,
    --  and the POAManager has been created only for
 
-   procedure Reemit_Requests  (Self : access Basic_POA_Manager);
+   procedure Reemit_Requests
+     (Self : access Basic_POA_Manager);
    --  Reemit requests stored by the Hold Servant attached to 'Self'.
 
    --------------
@@ -244,8 +250,9 @@ package body PolyORB.POA_Manager.Basic_Manager is
    -- Get_State --
    ---------------
 
-   function Get_State (Self : Basic_POA_Manager)
-                      return State is
+   function Get_State
+     (Self : Basic_POA_Manager)
+     return State is
    begin
       return Self.Current_State;
    end Get_State;
@@ -254,7 +261,8 @@ package body PolyORB.POA_Manager.Basic_Manager is
    -- Create --
    ------------
 
-   procedure Create (M : access Basic_POA_Manager)
+   procedure Create
+     (M : access Basic_POA_Manager)
    is
       use PolyORB.POA_Types.POA_Sequences;
 
