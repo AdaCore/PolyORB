@@ -128,7 +128,6 @@ idlac/idlac.adb
 idlac/make_nodes.py
 idlac/nodes.txt
 idlac/platform.ads.in
-idlac/testexpansion.adb
 idlac/testgen.adb
 idlac/testlexer.adb
 idlac/testparser.adb
