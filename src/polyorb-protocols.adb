@@ -50,6 +50,7 @@ package body PolyORB.Protocols is
    use PolyORB.Log;
    use PolyORB.Objects.Interface;
    use PolyORB.Protocols.Interface;
+   use Unsigned_Long_Flags;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.protocols");
    procedure O (Message : in String; Level : Log_Level := Debug)

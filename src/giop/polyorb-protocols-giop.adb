@@ -90,6 +90,7 @@ package body PolyORB.Protocols.GIOP is
    use PolyORB.Representations.CDR;
    use PolyORB.Tasking.Mutexes;
    use PolyORB.Types;
+   use Octet_Flags;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.protocols.giop");
    procedure O (Message : in String; Level : Log_Level := Debug)
@@ -498,7 +499,7 @@ package body PolyORB.Protocols.GIOP is
       end if;
 
       Flags := Unmarshall (Buffer);
-      if Is_Set (Flags, Endianness_Bit) then
+      if Is_Set (Endianness_Bit, Flags) then
          Endianness := Little_Endian;
       else
          Endianness := Big_Endian;
@@ -509,7 +510,7 @@ package body PolyORB.Protocols.GIOP is
       pragma Assert (Message_Endianness = Endianness);
 
       if Message_Minor_Version > 0 then
-         Fragment_Next := Is_Set (Flags, Fragment_Bit);
+         Fragment_Next := Is_Set (Fragment_Bit, Flags);
       end if;
 
       --  Message type
@@ -1860,6 +1861,7 @@ package body PolyORB.Protocols.GIOP is
       use PolyORB.Objects;
       use PolyORB.Requests;
       use Pend_Req_Seq;
+      use Unsigned_Long_Flags;
 
       Fragment_Next  : Boolean := False;
       Current_Req    : Pending_Request;
@@ -2255,34 +2257,6 @@ package body PolyORB.Protocols.GIOP is
    begin
       Release (S.Buffer_In);
    end Handle_Disconnect;
-
-   ---------
-   -- Set --
-   ---------
-
-   procedure Set
-     (Bit_Field : in out Types.Octet;
-      Bit_Order : Bit_Order_Type;
-      Bit_Value : Boolean) is
-   begin
-      if Bit_Value then
-         Bit_Field := Bit_Field or (2 ** Bit_Order);
-      else
-         Bit_Field := Bit_Field and not (2 ** Bit_Order);
-      end if;
-   end Set;
-
-   ------------
-   -- Is_Set --
-   ------------
-
-   function Is_Set
-     (Bit_Field : Types.Octet;
-      Bit_Order : Bit_Order_Type)
-     return Boolean is
-   begin
-      return (Bit_Field and (2 ** Bit_Order)) /= 0;
-   end Is_Set;
 
    ----------------
    -- Initialize --

@@ -95,6 +95,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       Fragment_Next : in Boolean)
    is
       use Representations.CDR;
+      use Octet_Flags;
       Flags : Types.Octet := 0;
 
    begin

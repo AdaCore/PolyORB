@@ -34,20 +34,52 @@
 
 --  $Id$
 
-with PolyORB.Types;
-
+generic
+   type Flags_Type is mod <>;
 package PolyORB.Utils.Simple_Flags is
 
-   type Flags is new Types.Unsigned_Long;
+   type Bit_Count is new Integer range 0 .. (Flags_Type'Size - 1);
 
-   function Is_Set (Flag_To_Test : Flags;
-                    In_Flags     : Flags) return Boolean;
+   function Mask
+     (N : Bit_Count)
+     return Flags_Type;
+   pragma Inline (Mask);
+   --  Create a binary mask equal to 2^N
+
+   function Is_Set
+     (Flag_To_Test : Flags_Type;
+      In_Flags     : Flags_Type)
+     return Boolean;
    pragma Inline (Is_Set);
    --  Test if Flag_To_Test has been set in In_Flags
+   --  Flag_To_Test is a mask
 
-   function Set (Flag_To_Set : Flags;
-                 In_Flags    : Flags) return Flags;
+   function Is_Set
+     (N        : Bit_Count;
+      In_Flags : Flags_Type)
+     return Boolean;
+   pragma Inline (Is_Set);
+   --  Test if bit N has been set in In_Flags
+
+   function Set
+     (Flag_To_Set : Flags_Type;
+      In_Flags    : Flags_Type)
+     return Flags_Type;
    pragma Inline (Set);
    --  Set Flag_To_Set in In_Flags
+   --  Flag_To_Set is a mask
+
+   function Set
+     (N        : Bit_Count;
+      In_Flags : Flags_Type)
+     return Flags_Type;
+   pragma Inline (Set);
+   --  Set bit N in In_Flags
+
+   procedure Set
+     (Flag_Field : in out Flags_Type;
+      N          : Bit_Count;
+      Value      : Boolean);
+   --  Set the N bit of Flag_Field to Value
 
 end PolyORB.Utils.Simple_Flags;

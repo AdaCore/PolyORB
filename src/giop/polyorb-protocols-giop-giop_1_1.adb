@@ -79,6 +79,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
 
       use Representations.CDR;
       use PolyORB.Buffers;
+      use Octet_Flags;
       Flags : Types.Octet := 0;
 
    begin

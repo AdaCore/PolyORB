@@ -48,6 +48,7 @@ with PolyORB.Requests;
 with PolyORB.Sequences.Unbounded;
 with PolyORB.Types;
 with PolyORB.Representations.CDR;
+with PolyORB.Utils.Simple_Flags;
 
 package PolyORB.Protocols.GIOP is
 
@@ -111,6 +112,9 @@ package PolyORB.Protocols.GIOP is
       Octets : access Representations.CDR.Encapsulation);
 
 private
+
+   package Octet_Flags is
+      new PolyORB.Utils.Simple_Flags (Types.Octet);
 
    type Sync_Scope is (NONE, WITH_TRANSPORT, WITH_SERVER, WITH_TARGET);
 
@@ -419,28 +423,8 @@ private
 
    Max_Nb_Tries : constant Integer := 100;
 
-   subtype Bit_Order_Type is Integer
-     range 0 .. Types.Octet'Size;
-
-   function Is_Set
-     (Bit_Field : Types.Octet;
-      Bit_Order : Bit_Order_Type)
-     return Boolean;
-   pragma Inline (Is_Set);
-   --  True if, and only if, the bit of order
-   --  Bit_Order is set in Bit_Field.
-   --  (Bit_Order = 0 is the least significant bit).
-
-   procedure Set
-     (Bit_Field : in out Types.Octet;
-      Bit_Order : Bit_Order_Type;
-      Bit_Value : Boolean);
-   pragma Inline (Set);
-   --  Set the value of bit Bit_Order in Bit_Field
-   --  to 1 if Bit_Value = True, to 0 otherwise.
-
-   Endianness_Bit : constant Bit_Order_Type := 0;
-   Fragment_Bit   : constant Bit_Order_Type := 1;
+   Endianness_Bit : constant Octet_Flags.Bit_Count := 0;
+   Fragment_Bit   : constant Octet_Flags.Bit_Count := 1;
 
    function Get_Request_Id return Types.Unsigned_Long;
    --  Obtain a new, unique request identifier.

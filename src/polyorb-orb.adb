@@ -75,6 +75,7 @@ package body PolyORB.ORB is
    use PolyORB.Tasking.Threads;
    use PolyORB.Transport;
    use PolyORB.Types;
+   use Unsigned_Long_Flags;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.orb");
    procedure O (Message : in String; Level : Log_Level := Debug)
