@@ -1,3 +1,8 @@
+	* README: Fixed a bogus WWW address and add the address of ACT
+ 	Europe GLADE page.
+
+Thu Mar 13 17:18:45 1997  Laurent Pautet  <pautet@esmeralda.enst.fr>
+
 	* configure.in: Add Examples/LightBank.
 
 	* configure: Modified (configure.in).

@@ -425,12 +425,6 @@ depending on the configuration of the distributed application.
    the distribution. You might also want to look at the example in the
    'Filtering' directory of the GLADE distribution.
 
-   The basic principles behind this implementation of hooks for filtering
-   is described in the following paper: J. Kienzle, Th. Wolf, A. Strohmeier:
-   "Secure Communication in Distributed Ada", Proceedings of Ada-Europe '96,
-   Montreux, Switzerland, June 1996, published as Lecture Notes in Computer
-   Science 1088, pp. 198 - 210, Springer 1996.
-
 
 Trace/Replay Debugging.
 -----------------------

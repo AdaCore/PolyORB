@@ -212,13 +212,20 @@ Brittany). The ENST team comprises:
 Glade Contributions.
 --------------------
 
-Glade filtering is part of a free contribution from
-Prof. A. Strohmeier, T. Wolf (http://lglwww.epfl.ch/~wolf/) and J. Kienzle
-(EPFL, Lausanne, Switzerland). Extra filters are available on:
+Glade filtering is part of a free contribution (04/97) from
+Prof. A. Strohmeier, T. Wolf and J. Kienzle (EPFL, Lausanne,
+Switzerland). Extra filters are available on:
 
       http://lglwww.epfl.ch/Ada/filters.html
 
-Glade replay features is part of a free contribution from D. Neri
+The basic principles behind this contribution for filtering is
+described in the following paper: J. Kienzle, Th. Wolf, A. Strohmeier:
+"Secure Communication in Distributed Ada", Proceedings of Ada-Europe
+'96, Montreux, Switzerland, June 1996, published as Lecture Notes in
+Computer Science 1088, pp. 198 - 210, Springer 1996.
+
+
+Glade replay features is part of a free contribution (04/97) from D. Neri
 <d92-dne@nada.kth.se>, KTH (Royal Institute of Technology, Stockholm,
 Sweden).
 
