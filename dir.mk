@@ -1,4 +1,4 @@
-SUBDIRS = InterfaceORB omniidl2 support
+SUBDIRS = interfaceorb adabroker support
 
 all::
 	@$(MakeSubdirs)
