@@ -226,7 +226,7 @@ AC_DEFUN([AM_SUPPORT_RPC_ABORTION],
 AC_CHECK_PROG(GNATLS, gnatls, gnatls)
 GNAT_RTS_FLAG="";
 am_gnat_major_version=`$GNATLS -v | $SED -ne 's/^GNATLS [[^0-9]]*\(.\).*$/\1/p'`
-am_gnatlib_dir=`$GNATLS -a -s system.ads | $SED 's,/adainclude/system.ads,,'`
+am_gnatlib_dir=`$GNATLS -a -s system.ads | $SED 's,\\\,/,g;s,/adainclude/system.ads,,'`
 am_gnat_zcx_by_default=`$SED -ne 's/ZCX_By_Default.*:= *\(.*\);$/\1/p' \
   $am_gnatlib_dir/adainclude/system.ads`
 if test $am_gnat_major_version = "5"; then
