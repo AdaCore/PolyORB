@@ -562,6 +562,7 @@ AC_OUTPUT([
 	testsuite/core/obj_adapters/Makefile
 	testsuite/core/poa/Makefile
 	testsuite/core/random/Makefile
+	testsuite/core/sync_policies/Makefile
 	testsuite/core/tasking/Makefile
 	testsuite/acats/Makefile
 	testsuite/acats/CXE1001/Makefile
