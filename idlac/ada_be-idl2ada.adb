@@ -366,11 +366,12 @@ package body Ada_Be.Idl2Ada is
                       & "_Type;");
                   PL (CU,
                       Ada_Be.Temporaries.T_Impl_Object_Ptr
-                      & " : CORBA.Impl.Object_Ptr;");
+                      & " : constant CORBA.Impl.Object_Ptr");
+                  PL (CU, "  := CORBA.Impl.Object_Ptr (Object_Of (Self));");
                   DI (CU);
                   PL (CU, "begin");
                   II (CU);
-                  PL (CU, "--  sanity check");
+                  PL (CU, "--  Sanity check");
                   PL (CU, "if Is_Nil (Self) then");
                   II (CU);
                   Add_With (CU, "Broca.Exceptions");
@@ -379,10 +380,7 @@ package body Ada_Be.Idl2Ada is
                   PL (CU, "end if;");
                   NL (CU);
 
-                  PL (CU, "--  find the operation");
-                  PL (CU,
-                      Ada_Be.Temporaries.T_Impl_Object_Ptr
-                      & " := CORBA.Impl.Object_Ptr (Object_Of (Self));");
+                  PL (CU, "--  Find the operation");
                   PL (CU,
                       Ada_Be.Temporaries.T_Value_Operation
                       & " := "
@@ -395,16 +393,14 @@ package body Ada_Be.Idl2Ada is
                       & ".all'Tag);");
 
                   NL (CU);
-                  PL (CU, "--  call the operation");
+                  PL (CU, "--  Call it operation");
                   if Is_Function then
-                     Put (CU, "return");
+                     PL (CU, "return");
                      II (CU);
                   end if;
                   PL (CU, Ada_Be.Temporaries.T_Value_Operation);
+                  Put (CU, "  (" & Ada_Be.Temporaries.T_Impl_Object_Ptr);
                   II (CU);
-                  Put (CU,
-                       "("
-                       & Ada_Be.Temporaries.T_Impl_Object_Ptr);
 
                   --  The remaining formals
 
@@ -417,7 +413,7 @@ package body Ada_Be.Idl2Ada is
                         Get_Next_Node (It, Param_Node);
 
                         PL (CU, ",");
-                        Put (CU, " " & Ada_Name (Declarator (Param_Node)));
+                        Put (CU, Ada_Name (Declarator (Param_Node)));
                      end loop;
                   end;
 
