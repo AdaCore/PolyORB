@@ -1,6 +1,6 @@
 #! /bin/sh
 #
-# $Id: //depot/adabroker/main/broca/src/adabroker-config.in#8 $
+# $Id: //depot/adabroker/main/broca/src/adabroker-config.in#9 $
 #
 
 #! /bin/sh
@@ -19,7 +19,7 @@ case $1 in
 	echo AdaBroker $VERSION
 	;;
     --cflags)
-	echo -I$libdir/adasockets -L$libdir/adasockets \
+	echo -I$libdir/adabroker -L$libdir/adabroker \
 	    `adasockets-config --cflags`
 	;;
     --libs)
