@@ -45,23 +45,23 @@ package body all_types.MyImpl is
       return arg;
    end echoULong;
 
---   function echoFloat
---     (Self : access Object;
---      arg : in CORBA.Float)
---      return CORBA.Float
---   is
---   begin
---      return arg;
---   end echoFloat;
---
---   function echoDouble
---     (Self : access Object;
---      arg : in CORBA.Double)
---      return CORBA.Double
---   is
---   begin
---      return arg;
---   end echoDouble;
+   function echoFloat
+     (Self : access Object;
+      arg : in CORBA.Float)
+      return CORBA.Float
+   is
+   begin
+      return arg;
+   end echoFloat;
+
+   function echoDouble
+     (Self : access Object;
+      arg : in CORBA.Double)
+      return CORBA.Double
+   is
+   begin
+      return arg;
+   end echoDouble;
 
    function echoChar
      (Self : access Object;

@@ -42,15 +42,15 @@ private
       arg : in CORBA.Unsigned_Long)
       return CORBA.Unsigned_Long;
 
---   function echoFloat
---     (Self : access Object;
---      arg : in CORBA.Float)
---      return CORBA.Float;
---
---   function echoDouble
---     (Self : access Object;
---      arg : in CORBA.Double)
---      return CORBA.Double;
+   function echoFloat
+     (Self : access Object;
+      arg : in CORBA.Float)
+      return CORBA.Float;
+
+   function echoDouble
+     (Self : access Object;
+      arg : in CORBA.Double)
+      return CORBA.Double;
 
    function echoChar
      (Self : access Object;

@@ -36,8 +36,8 @@ begin
    Output ("test long",  EchoLong (MyAll_Types, 456) = 456);
    Output ("test unsigned_short", EchoUShort (MyAll_Types, 456) = 456);
    Output ("test unsigned_long", EchoULong (MyAll_Types, 123) = 123);
---   Output ("test float", EchoFloat (MyAll_Types, 2.7) = 2.7);
---   Output ("test double", EchoDouble (MyAll_Types, 3.14) = 3.14);
+   Output ("test float", EchoFloat (MyAll_Types, 2.7) = 2.7);
+   Output ("test double", EchoDouble (MyAll_Types, 3.14) = 3.14);
    Output ("test char", EchoChar (MyAll_Types, 'A') = 'A');
    Output ("test octet", EchoOctet (MyAll_Types, 5) = 5);
    Output ("test string",

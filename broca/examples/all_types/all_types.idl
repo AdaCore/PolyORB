@@ -7,8 +7,8 @@ interface all_types {
   long echoLong(in long arg) ;
   unsigned short echoUShort(in unsigned short arg) ;
   unsigned long echoULong(in unsigned long arg) ;
-//  float echoFloat(in float arg) ;
-//  double echoDouble(in double arg) ;
+  float echoFloat(in float arg) ;
+  double echoDouble(in double arg) ;
   char echoChar(in char arg) ;
   octet echoOctet (in octet arg) ;
   string echoString (in string arg) ;

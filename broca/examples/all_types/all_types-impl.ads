@@ -31,6 +31,16 @@ package all_types.Impl is
       arg : in CORBA.Unsigned_Long)
       return CORBA.Unsigned_Long is abstract;
 
+   function echoFloat
+     (Self : access Object;
+      arg : in CORBA.Float)
+      return CORBA.Float is abstract;
+
+   function echoDouble
+     (Self : access Object;
+      arg : in CORBA.Double)
+      return CORBA.Double is abstract;
+
    function echoChar
      (Self : access Object;
       arg : in CORBA.Char)

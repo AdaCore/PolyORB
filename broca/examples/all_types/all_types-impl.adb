@@ -208,6 +208,80 @@ package body all_types.Impl is
          end;
       end if;
 
+      if Operation = "echoFloat" then
+         declare
+            arg : CORBA.Float;
+            Returns : CORBA.Float;
+         begin
+            --  Unmarshalls arguments
+            Unmarshall (Stream, arg);
+            --  Call implementation
+            Returns := echoFloat (Object_Acc (Obj), arg);
+            Stream.Pos := Broca.Giop.Message_Header_Size;
+            --  service context
+            Marshall_Size_Unsigned_Long (Stream);
+            --  Request_id
+            Marshall_Size_Unsigned_Long (Stream);
+            --  reply_status
+            Marshall_Size_Unsigned_Long (Stream);
+            --  return value
+            Marshall_Size (Stream, Returns);
+            Reply_Size := Stream.Pos - Broca.Giop.Message_Header_Size;
+            Increase_Buffer_And_Clear_Pos (Stream, Stream.Pos);
+
+            Broca.Giop.Create_Giop_Header
+              (Stream, Broca.Giop.Reply,
+               CORBA.Unsigned_Long (Reply_Size));
+
+            --  service context
+            Marshall (Stream, CORBA.Unsigned_Long (0));
+            --  request id
+            Marshall (Stream, Request_Id);
+            --  reply status
+            Marshall (Stream, Broca.Giop.No_Exception);
+            --  return value
+            Marshall (Stream, Returns);
+            return;
+         end;
+      end if;
+
+      if Operation = "echoDouble" then
+         declare
+            arg : CORBA.Double;
+            Returns : CORBA.Double;
+         begin
+            --  Unmarshalls arguments
+            Unmarshall (Stream, arg);
+            --  Call implementation
+            Returns := echoDouble (Object_Acc (Obj), arg);
+            Stream.Pos := Broca.Giop.Message_Header_Size;
+            --  service context
+            Marshall_Size_Unsigned_Long (Stream);
+            --  Request_id
+            Marshall_Size_Unsigned_Long (Stream);
+            --  reply_status
+            Marshall_Size_Unsigned_Long (Stream);
+            --  return value
+            Marshall_Size (Stream, Returns);
+            Reply_Size := Stream.Pos - Broca.Giop.Message_Header_Size;
+            Increase_Buffer_And_Clear_Pos (Stream, Stream.Pos);
+
+            Broca.Giop.Create_Giop_Header
+              (Stream, Broca.Giop.Reply,
+               CORBA.Unsigned_Long (Reply_Size));
+
+            --  service context
+            Marshall (Stream, CORBA.Unsigned_Long (0));
+            --  request id
+            Marshall (Stream, Request_Id);
+            --  reply status
+            Marshall (Stream, Broca.Giop.No_Exception);
+            --  return value
+            Marshall (Stream, Returns);
+            return;
+         end;
+      end if;
+
       if Operation = "echoChar" then
          declare
             arg : CORBA.Char;
