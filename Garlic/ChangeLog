@@ -1,3 +1,10 @@
+2003-03-15  Pascal Obry  <obry@gnat.com>
+
+	* s-gaprtc.adb:
+	(Receive_One_Stream): Prefix variables to avoid build failure due
+	 to visibility rule. New type introduced in s-socket.ads v1.49.
+	Continued work for C211-001.
+
 2003-02-11  Samuel Tardieu <sam@gnat.com>
 
 	* s-gartab.ads: Remove unused generic formal Null_Index in all
