@@ -33,6 +33,7 @@
 
 with CORBA.Sequences.Unbounded;
 with CORBA.Impl;
+with CORBA.AbstractBase;
 
 with Broca.IOP;
 with Broca.Exceptions;
@@ -44,6 +45,9 @@ pragma Elaborate (Broca.Debug);
 
 with Broca.IIOP;
 pragma Warnings (Off, Broca.IIOP);
+
+with Broca.POA;
+with PortableServer;
 
 package body Broca.ORB is
 
@@ -59,6 +63,77 @@ package body Broca.ORB is
 
    Identifiers : ObjectIdList;
    References  : IDL_SEQUENCE_Ref.Sequence;
+
+   References_POA         : Broca.POA.POA_Object_Ptr;
+
+   procedure GIOP_Dispatch
+     (For_Servant       : in PortableServer.Servant;
+      Operation         : in String;
+      Request_Id        : in CORBA.Unsigned_Long;
+      Response_Expected : in CORBA.Boolean;
+      Request_Buffer    : access Broca.Buffers.Buffer_Type;
+      Reply_Buffer      : access Broca.Buffers.Buffer_Type);
+
+   function Is_A
+     (For_Servant : PortableServer.Servant)
+     return Boolean;
+
+   procedure Ensure_References_POA_Is_Started;
+
+   --------------------------------------
+   -- Ensure_References_POA_Is_Started --
+   --------------------------------------
+
+   procedure Ensure_References_POA_Is_Started is
+      use Broca.POA, PortableServer;
+   begin
+      if References_POA = null then
+         declare
+            use PortableServer;
+            RootPOA : constant POA_Object_Ptr :=
+              POA_Object_Of (Broca.POA.Ref'Class
+                             (CORBA.AbstractBase.Ref'Class
+                              (Resolve_Initial_References
+                               (Root_POA_ObjectId))));
+         begin
+            References_POA :=
+              Broca.POA.Create_POA
+              (Self         => RootPOA,
+               Adapter_Name => CORBA.To_CORBA_String ("InitialReferences"),
+               A_POAManager => null,
+               Tp           => ORB_CTRL_MODEL,
+               Lp           => PERSISTENT,
+               Up           => UNIQUE_ID,
+               Ip           => USER_ID,
+               Ap           => NO_IMPLICIT_ACTIVATION,
+               Sp           => NON_RETAIN,
+               Rp           => USE_DEFAULT_SERVANT);
+            PortableServer.Register_Skeleton
+              (Initial_References_RepositoryId,
+               Is_A'Access,
+               GIOP_Dispatch'Access);
+            Activate (Get_The_POAManager (References_POA) .all);
+         end;
+      end if;
+   end Ensure_References_POA_Is_Started;
+
+   -------------------
+   -- GIOP_Dispatch --
+   -------------------
+
+   procedure GIOP_Dispatch
+     (For_Servant       : in PortableServer.Servant;
+      Operation         : in String;
+      Request_Id        : in CORBA.Unsigned_Long;
+      Response_Expected : in CORBA.Boolean;
+      Request_Buffer    : access Broca.Buffers.Buffer_Type;
+      Reply_Buffer      : access Broca.Buffers.Buffer_Type)
+   is
+   begin
+      --  Now, how to get the right servant since we do not have the
+      --  object key handy? XXXXX Sam 2000-06-15
+      null;
+   end GIOP_Dispatch;
 
    -------------------
    -- IOR_To_Object --
@@ -128,6 +203,18 @@ package body Broca.ORB is
 
    end IOR_To_Object;
 
+   ----------
+   -- Is_A --
+   ----------
+
+   function Is_A
+     (For_Servant : PortableServer.Servant)
+     return Boolean
+   is
+   begin
+      return True;
+   end Is_A;
+
    ---------------------------
    -- List_Initial_Services --
    ---------------------------
@@ -143,7 +230,8 @@ package body Broca.ORB is
 
    function Resolve_Initial_References
      (Identifier : ObjectId)
-     return CORBA.Object.Ref'Class is
+     return CORBA.Object.Ref'Class
+   is
       use CORBA.ORB.IDL_SEQUENCE_ObjectId;
       use IDL_SEQUENCE_Ref;
    begin
@@ -166,6 +254,13 @@ package body Broca.ORB is
       use CORBA.ORB.IDL_SEQUENCE_ObjectId;
       use IDL_SEQUENCE_Ref;
    begin
+      --  If we register initial references other than the RootPOA,
+      --  then it is likely that we are willing to export those services.
+
+      if Identifier /= Root_POA_ObjectId then
+         Ensure_References_POA_Is_Started;
+      end if;
+
       Append (Identifiers, Identifier);
       Append (References, CORBA.Object.Ref (Reference));
    end Register_Initial_Reference;

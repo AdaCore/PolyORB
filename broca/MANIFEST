@@ -251,6 +251,8 @@ src/broca-configuration.adb
 src/broca-configuration.ads
 src/broca-debug.adb
 src/broca-debug.ads
+src/broca-environment.adb
+src/broca-environment.ads
 src/broca-exceptions-stack.adb
 src/broca-exceptions-stack.ads
 src/broca-exceptions.adb

@@ -33,7 +33,6 @@
 
 with Ada.Unchecked_Deallocation;
 with Ada.Exceptions;
-with Ada.Text_IO;
 with Ada.Task_Identification;
 
 with CORBA; use CORBA;
@@ -64,17 +63,15 @@ package body Broca.Server is
       Num    : in Natural);
    --  Marshall POA chain.
 
-   --  Just disp a string as a log message.
-   --  FIXME: should go somewhere else.
+   procedure Log (S : String);
+
+   --  Display a better log message
    procedure Log (S : String) is
-      use Ada.Text_IO;
    begin
-      if Broca.Flags.Log then
-         Put ("[" & Ada.Task_Identification.Image
-              (Ada.Task_Identification.Current_Task)
-              & "] ORB log: ");
-         Put_Line (S);
-      end if;
+      pragma Debug (O ("[" & Ada.Task_Identification.Image
+                       (Ada.Task_Identification.Current_Task)
+                       & "] ORB log: " & S));
+      null;
    end Log;
 
    use Broca.POA;
@@ -907,7 +904,7 @@ package body Broca.Server is
       --  identifier.
       begin
          Start_Encapsulation (Object_Key_Buffer'Access);
-         Broca.Server.Marshall (Object_Key_Buffer'Access, POA);
+         Marshall (Object_Key_Buffer'Access, POA);
          Marshall (Object_Key_Buffer'Access, Key);
       exception
          when others =>
@@ -1110,9 +1107,7 @@ package body Broca.Server is
 
       --  Unmarshall boot time.
       Boot_Time := Unmarshall (Buffer);
-      if Boot_Time /= 0
-        and then Boot_Time /= Broca.Flags.Boot_Time
-      then
+      if Boot_Time /= 0 and then Boot_Time /= Broca.Flags.Boot_Time then
          pragma Debug (O ("Incorrect boot time"));
          pragma Debug (O ("Local  boot time is" & Broca.Flags.Boot_Time'Img));
          pragma Debug (O ("Remote boot time is" & Boot_Time'Img));
@@ -1166,12 +1161,7 @@ package body Broca.Server is
          --  Unmarshall number of POAs in path name.
          Path_Size := Unmarshall (Buffer);
 
-         --  For a transient POA, next is its object id.
-         if Path_Size = 0 then
-            POA := Nil_Ref;
-            Broca.POA.All_POAs_Lock.Unlock_R;
-         end if;
-
+         --  Start with the root POA
          Current_POA := All_POAs (Broca.POA.Root_POA_Index).POA;
 
          --  Neither the POA nor its children won't be destroyed

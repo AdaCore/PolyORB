@@ -9,7 +9,7 @@ GNATMAKE_FLAGS = -z -I$(srcdir) \
 	-I$(srcdir)/../../adasockets/src \
 	-g -O2 -m -gnata
 
-PROGRAM = test_time
+PROGS = test_time
 
 CLEANFILES += $(GEN_COSTIME)
 

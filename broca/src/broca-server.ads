@@ -43,10 +43,6 @@ package Broca.Server is
 
    pragma Elaborate_Body;
 
-   --  Log.
-   --  This is displayed/stored only if broca.flags.log is true.
-   procedure Log (S : String);
-
    --  A server can receive and send messages.
    --  It can do this by managing connections, eg from inet.
    --
@@ -158,7 +154,7 @@ package Broca.Server is
       Key     : Broca.Buffers.Encapsulation)
      return CORBA.Object.Ref;
    --  This procedure builds an IOR and returns a properly
-   --  externalised object reference. KEY is only the key for the
+   --  externalised object reference. KEY is the key relative to the
    --  POA, not the full object key.
 
 private

@@ -4,6 +4,8 @@ with CORBA.ORB;
 with PortableServer.POA;
 with PortableServer.POAManager;
 
+with Broca.Inet_Server;
+
 with Broca.Parameters;
 
 with Broca.RootPOA;
@@ -43,6 +45,8 @@ package body Broca.Server_Tools is
    procedure Initiate_RootPOA is
       RootPOAStr  : CORBA.String;
    begin
+      Broca.Inet_Server.Ensure_Started;
+
       RootPOAStr := CORBA.To_CORBA_String ("RootPOA");
       Root_POA   := PortableServer.POA.To_Ref
         (CORBA.ORB.Resolve_Initial_References
@@ -57,6 +61,8 @@ package body Broca.Server_Tools is
       ORBMainLoop : ORBTaskPtr;
 
    begin
+      Broca.Inet_Server.Ensure_Started;
+
       if CORBA.Object.Is_Nil (CORBA.Object.Ref (Root_POA)) then
          Initiate_RootPOA;
       end if;
@@ -75,6 +81,8 @@ package body Broca.Server_Tools is
       R : out CORBA.Object.Ref'Class) is
    begin
       pragma Debug (O ("Initiate_Servant : enter"));
+      Broca.Inet_Server.Ensure_Started;
+
       if CORBA.Object.Is_Nil (CORBA.Object.Ref (Root_POA)) then
          Initiate_RootPOA;
       end if;

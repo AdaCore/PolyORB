@@ -4,6 +4,7 @@ ADA_SPECS_WITH_BODY = \
 	   broca-debug.ads \
 	   broca-opaque-chunk_pools.ads \
 	   broca-buffers.ads \
+           broca-environment.ads \
 	   broca-protected_objects.ads \
 	   broca-server_tools.ads \
 	   broca-configuration.ads \

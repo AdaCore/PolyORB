@@ -57,7 +57,6 @@ with Broca.Vararray;
 with Broca.Buffers; use Broca.Buffers;
 with Broca.CDR;
 with Broca.Server;
-with Broca.Inet_Server;
 with Broca.Locks;
 with Broca.GIOP;
 
@@ -368,6 +367,7 @@ package body Broca.RootPOA is
 
    type Slot_Index is new CORBA.Unsigned_Long;
    Bad_Slot : constant Slot_Index := -1;
+
    type Object_Map_Type is array (Slot_Index range <>)
      of Object_Map_Entry;
    type Object_Map_Ptr is access Object_Map_Type;
@@ -483,10 +483,6 @@ package body Broca.RootPOA is
    function Slot_Index_To_ObjectId
      (Slot : Slot_Index)
      return ObjectId;
-
-   function ObjectId_To_Slot_Index
-     (Oid : ObjectId)
-     return Slot_Index;
 
    procedure Free is new Ada.Unchecked_Deallocation
      (Object => Object_Map_Type, Name => Object_Map_Ptr);
@@ -838,7 +834,7 @@ package body Broca.RootPOA is
 
       Release (Key);
 
-      Broca.Server.Log ("ObjectId created");
+      pragma Debug (O ("ObjectId created"));
 
       return Obj;
    end Create_Skeleton;
@@ -1050,8 +1046,6 @@ package body Broca.RootPOA is
 
    function To_SI_Data is
       new Ada.Unchecked_Conversion (Slot_Index, Slot_Index_Data);
-   function From_SI_Data is
-      new Ada.Unchecked_Conversion (Slot_Index_Data, Slot_Index);
 
    function Slot_Index_To_ObjectId
      (Slot : Slot_Index)
@@ -1059,13 +1053,6 @@ package body Broca.RootPOA is
    begin
       return To_Sequence (To_SI_Data (Slot));
    end Slot_Index_To_ObjectId;
-
-   function ObjectId_To_Slot_Index
-     (Oid : ObjectId)
-     return Slot_Index is
-   begin
-      return From_SI_Data (To_Element_Array (Oid));
-   end ObjectId_To_Slot_Index;
 
    function Get_Slot_To_Destroy
      (Self : access Object'Class)
@@ -1478,12 +1465,13 @@ package body Broca.RootPOA is
       --  Unless an explicit POA manager object is provided at POA creation
       --  time, a POA manager is created when a POA is created and is
       --  automatically associed with that POA.
-      if A_POAManager /= null then
+      if A_POAManager = null then
          Res.POA_Manager := A_POAManager;
       else
          Res.POA_Manager := new POA_Manager_Type;
       end if;
       Broca.Refs.Inc_Usage (Broca.Refs.Ref_Ptr (Res.POA_Manager));
+      Register (Res.POA_Manager.all, To_POA_Ref (Res));
 
       Broca.Server.Register_POA (To_POA_Ref (Res));
 

@@ -32,7 +32,6 @@
 ------------------------------------------------------------------------------
 
 with Ada.Exceptions;
-with Ada.Text_IO;
 with Interfaces.C; use Interfaces.C;
 with Interfaces.C.Strings;
 
@@ -44,14 +43,14 @@ with Sockets.Constants; use Sockets.Constants;
 with CORBA; use CORBA;
 pragma Elaborate_All (CORBA);
 
-with Broca.Buffers; use Broca.Buffers;
+with Broca.Buffers;     use Broca.Buffers;
+with Broca.Environment; use Broca.Environment;
 with Broca.Opaque;
-with Broca.Stream; use Broca.Stream;
+with Broca.Stream;      use Broca.Stream;
 with Broca.IOP;
 with Broca.GIOP;
 with Broca.IIOP;
 
-with Broca.Flags;
 with Broca.Server;
 with Broca.Sequences;
 with Broca.Sockets;
@@ -71,8 +70,10 @@ package body Broca.Inet_Server is
 
    My_Addr : In_Addr;
    IIOP_Host : CORBA.String;
-   IIOP_Port : CORBA.Unsigned_Short;
-   Listening_Socket : Interfaces.C.int;
+   IIOP_Port : CORBA.Unsigned_Short := 0;
+
+   Server_Started : Boolean := False;
+   --  Set to True when at least one server is started.
 
    --  Find an IPv4 address for this host.
    procedure Get_Host_Address;
@@ -84,8 +85,6 @@ package body Broca.Inet_Server is
 
    procedure Signal_Poll_Set_Change;
    procedure Accept_Poll_Set_Change;
-
-   procedure Initialize;
 
    --  Calling this function will cause the BOA to start accepting requests
    --  from other address spaces.
@@ -171,6 +170,8 @@ package body Broca.Inet_Server is
       end if;
    end Ntohs;
 
+   type Boolean_Array is array (Natural range <>) of Boolean;
+
    subtype Pollfd_Array_Index is Integer range 0 .. Simultaneous_Streams;
 
    type Job_Kind is (No_Event, Fd_Event);
@@ -189,8 +190,7 @@ package body Broca.Inet_Server is
    protected Lock is
 
       --  Initialize the work scheduler.
-      procedure Initialize (Listening_Socket : Interfaces.C.int;
-                            Signal_Fd_Read   : Interfaces.C.int);
+      procedure Initialize (Signal_Fd_Read   : Interfaces.C.int);
 
       entry Get_Job_And_Lock (A_Job : out Job);
       --  Obtain a pending job to perform. The scheduler is
@@ -200,9 +200,14 @@ package body Broca.Inet_Server is
         (Returned_Poll_Set : Pollfd_Array);
       --  Set new pending jobs.
 
+      procedure Insert_Listening (Sock : Interfaces.C.int);
+      --  Insert a new listening socket.
+
+      procedure Clear_Events (Sock : Interfaces.C.int);
+      --  Clear events on a listening socket.
+
       procedure Insert_Descriptor (Sock : Interfaces.C.int);
       --  Insert a descriptor for a newly-opened connection.
-      --  Clear events on listening socket.
 
       procedure Mask_Descriptor (Fd : Interfaces.C.int);
       --  Mask descriptor Fd.
@@ -217,16 +222,22 @@ package body Broca.Inet_Server is
       --  Destroy a descriptor associated with a closed
       --  connection.
       procedure Unmask_Descriptor (Fd : Interfaces.C.int);
-      --  Release waitiong for events on descriptor.
+      --  Release waiting for events on descriptor.
+
+      function Is_Listening_Socket (Sock : Interfaces.C.int)
+        return Boolean;
+      --  Return True if Sock is a registered listening socket.
 
    private
 
       Locked : Boolean := False;
 
-      Polls : Pollfd_Array (1 .. Simultaneous_Streams)
-        := (others => (Fd => Failure, Events => 0, Revents => 0));
-      Streams : Stream_Ptr_Array (3 .. Simultaneous_Streams)
-        := (others => null);
+      Polls        : Pollfd_Array (1 .. Simultaneous_Streams) :=
+        (others => (Fd => Failure, Events => 0, Revents => 0));
+      Streams      : Stream_Ptr_Array (3 .. Simultaneous_Streams) :=
+        (others => null);
+      Is_Listening : Boolean_Array (1 .. Simultaneous_Streams) :=
+        (others => False);
 
       Nbr_Fd : Integer;
       Fd_Pos : Integer;
@@ -239,17 +250,13 @@ package body Broca.Inet_Server is
 
    protected body Lock is
 
-      procedure Initialize (Listening_Socket : Interfaces.C.int;
-                            Signal_Fd_Read   : Interfaces.C.int)
+      procedure Initialize (Signal_Fd_Read   : Interfaces.C.int)
       is
       begin
-         Polls (1).Fd := Listening_Socket;
-         Polls (1).Events := Pollin;
+         Polls (1).Fd      := Signal_Fd_Read;
+         Polls (1).Events  := Pollin;
          Polls (1).Revents := 0;
-         Polls (2).Fd := Signal_Fd_Read;
-         Polls (2).Events := Pollin;
-         Polls (2).Revents := 0;
-         Nbr_Fd := 2;
+         Nbr_Fd := 1;
          Fd_Pos := 1;
          Locked := False;
       end Initialize;
@@ -328,13 +335,40 @@ package body Broca.Inet_Server is
          Polls (Nbr_Fd).Events := Pollin;
          Polls (Nbr_Fd).Revents := 0;
          Streams (Nbr_Fd) := Broca.Stream.Create_Fd_Stream (Sock);
+         Is_Listening (Nbr_Fd) := False;
          Fd_Pos := 2;
-
-         Polls (1).Revents := 0;
-         if Nbr_Fd = Polls'Last then
-            Polls (1).Events := 0;
-         end if;
       end Insert_Descriptor;
+
+      procedure Insert_Listening (Sock : Interfaces.C.int) is
+      begin
+         pragma Assert (Nbr_Fd < Polls'Last);
+
+         Nbr_Fd := Nbr_Fd + 1;
+         Polls (Nbr_Fd).Fd      := Sock;
+         Polls (Nbr_Fd).Events  := Pollin;
+         Polls (Nbr_Fd).Revents := 0;
+         Is_Listening (Nbr_Fd)  := True;
+      end Insert_Listening;
+
+      function Is_Listening_Socket (Sock : Interfaces.C.int) return Boolean is
+      begin
+         for I in Polls'Range loop
+            if Polls (I).Fd = Sock then
+               return Is_Listening (I);
+            end if;
+         end loop;
+         return False;
+      end Is_Listening_Socket;
+
+      procedure Clear_Events (Sock : Interfaces.C.int) is
+      begin
+         for I in Polls'Range loop
+            if Polls (I).Fd = Sock then
+               Polls (I).Revents := 0;
+               return;
+            end if;
+         end loop;
+      end Clear_Events;
 
       procedure Mask_Descriptor (Fd : Interfaces.C.int) is
       begin
@@ -437,14 +471,26 @@ package body Broca.Inet_Server is
       end if;
    end Accept_Poll_Set_Change;
 
-   --  Create a listening socket.
-   procedure Initialize is
+   -----------
+   -- Start --
+   -----------
+
+   procedure Start (Port : in Natural := 0) is
       Sock : Interfaces.C.int;
       Sock_Name : Sockaddr_In;
       Sock_Name_Size : aliased Interfaces.C.int;
       Result : Interfaces.C.int;
+      Used_Port : Natural;
    begin
       pragma Debug (O ("Initialize : enter"));
+
+      if Port = 0 then
+         Used_Port := Natural'Value
+           (Get_Conf (Environment.Port, Environment.Port_Default));
+      else
+         Used_Port := Port;
+      end if;
+
       --  Create the socket.
       Sock := C_Socket (Af_Inet, Sock_Stream, 0);
       if Sock = Failure then
@@ -460,7 +506,7 @@ package body Broca.Inet_Server is
       --  Do not use the default address (security issue), but the address
       --  found.
       Sock_Name.Sin_Family := Af_Inet;
-      Sock_Name.Sin_Port := Htons (Broca.Flags.Port);
+      Sock_Name.Sin_Port := Htons (Used_Port);
       Sock_Name.Sin_Addr := My_Addr;
       Result := C_Bind (Sock, Sock_Name'Address, Sock_Name'Size / 8);
       if Result = Failure then
@@ -484,34 +530,32 @@ package body Broca.Inet_Server is
          C_Close (Sock);
          Broca.Exceptions.Raise_Comm_Failure;
       end if;
-      IIOP_Port := CORBA.Unsigned_Short
-        (Ntohs (Sock_Name.Sin_Port));
 
-      Listening_Socket := Sock;
+      --  Register the socket
+      Lock.Insert_Listening (Sock);
 
-      --  Stringification of the address.
-      declare
-         use Ada.Text_IO;
-         Addr_Str : String := In_Addr_To_Str (My_Addr);
-      begin
-         IIOP_Host := CORBA.To_CORBA_String (Addr_Str);
-         if Broca.Flags.Verbose then
-            Put ("listening on host: ");
-            Put (Addr_Str);
-            Put (", port: ");
-            Put_Line (CORBA.Unsigned_Short'Image (IIOP_Port));
-         end if;
-      end;
-
-      --  Create signalling socket pair.
-      Result := C_Socketpair (Af_Unix, Sock_Stream, 0, Signal_Fds'Address);
-      if Result = Failure then
-         C_Close (Sock);
-         Broca.Exceptions.Raise_Comm_Failure;
+      if not Server_Started then
+         Server_Started := True;
+         IIOP_Host      := CORBA.To_CORBA_String (In_Addr_To_Str (My_Addr));
+         IIOP_Port      := CORBA.Unsigned_Short (Ntohs (Sock_Name.Sin_Port));
       end if;
 
-      Lock.Initialize (Listening_Socket, Signal_Fd_Read);
-   end Initialize;
+      pragma Debug (O ("listening on host: " &
+                       CORBA.To_Standard_String (IIOP_Host) &
+                       ", port:" &
+                       Positive'Image (Ntohs (Sock_Name.Sin_Port))));
+   end Start;
+
+   --------------------
+   -- Ensure_Started --
+   --------------------
+
+   procedure Ensure_Started is
+   begin
+      if not Server_Started then
+         Start;
+      end if;
+   end Ensure_Started;
 
    --  Calling this function will cause the BOA to start accepting requests
    --  from other address spaces.
@@ -530,11 +574,11 @@ package body Broca.Inet_Server is
       A_Job : Job;
 
    begin
-      Broca.Server.Log ("Enter Wait_Fd_Request");
+      pragma Debug (O ("Enter Wait_Fd_Request"));
       Broca.Server.New_Request (Fd_Server_Id);
 
       --  Try to obtain some work to be done.
-      Broca.Server.Log ("Waiting for something to do");
+      pragma Debug (O ("Waiting for something to do"));
       begin
          Lock.Get_Job_And_Lock (A_Job);
       exception
@@ -545,7 +589,7 @@ package body Broca.Inet_Server is
                raise;
       end;
 
-      Broca.Server.Log ("Got something to do.");
+      pragma Debug (O ("Got something to do."));
 
       --  The pending work repository is now locked.
 
@@ -589,35 +633,36 @@ package body Broca.Inet_Server is
          Lock.Set_Pending_Jobs (A_Job.Poll_Set);
          Lock.Unlock;
 
-      elsif A_Job.Fd = Listening_Socket then
+      elsif Lock.Is_Listening_Socket (A_Job.Fd) then
 
          --  Accepting a connection.
-         Broca.Server.Log ("accepting");
+         pragma Debug (O ("accepting"));
 
          Size := 0;
          Size := Sock_Name'Size / 8;
          Sock :=
-           C_Accept (Listening_Socket, Sock_Name'Address, Size'Access);
+           C_Accept (A_Job.Fd, Sock_Name'Address, Size'Access);
          if Sock = Failure then
             Broca.Exceptions.Raise_Comm_Failure;
          end if;
 
-         Broca.Server.Log
+         pragma Debug (O
            ("accepting a connection of fd" & C.int'Image (Sock)
             & " from " & In_Addr_To_Str (Sock_Name.Sin_Addr)
-            & " port" & Natural'Image (Ntohs (Sock_Name.Sin_Port)));
+            & " port" & Natural'Image (Ntohs (Sock_Name.Sin_Port))));
 
+         Lock.Clear_Events (A_Job.Fd);
          Lock.Insert_Descriptor (Sock);
          Lock.Unlock;
 
       elsif A_Job.Fd = Signal_Fd_Read then
-         Broca.Server.Log ("poll set change");
+         pragma Debug (O ("poll set change"));
 
          Accept_Poll_Set_Change;
          Lock.Unlock;
 
       else
-         Broca.Server.Log ("data on fd" & A_Job.Fd'Img);
+         pragma Debug (O ("data on fd" & A_Job.Fd'Img));
 
          --  Prevent poll from accepting messages from this file
          --  descriptor, because the server is now in charge
@@ -633,15 +678,12 @@ package body Broca.Inet_Server is
          if Sockets.Receive (Sock, Bytes'Access, Message_Header_Size)
            /= Message_Header_Size
          then
-            if Broca.Flags.Log then
-               Broca.Server.Log
-                 ("connection closed on fd" & C.int'Image (Sock));
-            end if;
+            pragma Debug (O ("connection closed on fd" & C.int'Image (Sock)));
 
             --  The fd was closed
             C_Close (Sock);
 
-            Broca.Server.Log ("Deleting fd" & A_Job.Fd'Img);
+            pragma Debug (O ("Deleting fd" & A_Job.Fd'Img));
             Lock.Delete_Descriptor (A_Job.Fd);
             Signal_Poll_Set_Change;
 
@@ -673,16 +715,16 @@ package body Broca.Inet_Server is
                   0);
             end;
 
-            Broca.Server.Log
-              ("message received from fd" & Interfaces.C.int'Image (Sock));
+            pragma Debug (O
+              ("message received from fd" & Interfaces.C.int'Image (Sock)));
             Broca.Stream.Lock_Receive (A_Job.Stream);
             Broca.Server.Handle_Message
               (A_Job.Stream, Buffer'Access);
             Release (Buffer);
 
-            Broca.Server.Log ("Request done for" & A_Job.Fd'Img);
+            pragma Debug (O ("Request done for" & A_Job.Fd'Img));
             Lock.Unmask_Descriptor (A_Job.Fd);
-            Broca.Server.Log ("Unmasked fd" & A_Job.Fd'Img);
+            pragma Debug (O ("Unmasked fd" & A_Job.Fd'Img));
             Signal_Poll_Set_Change;
          end if;
       end if;
@@ -707,6 +749,9 @@ package body Broca.Inet_Server is
    begin
       Wait_Fd_Request;
    end Perform_Work;
+
+   type Fd_Server_Ptr is access Fd_Server_Type;
+   The_Fd_Server : Fd_Server_Ptr;
 
    --------------------------------
    -- Server profile marshalling --
@@ -741,24 +786,18 @@ package body Broca.Inet_Server is
       return Broca.IOP.Profile_Ptr (Res);
    end Make_Profile;
 
-   ----------------------
-   -- Elaboration code --
-   ----------------------
-
-   type Fd_Server_Ptr is access Fd_Server_Type;
-   The_Fd_Server : Fd_Server_Ptr;
 begin
-
-   pragma Debug (O ("elaborating broca.inet_server with pragma debug"));
-   Initialize;
-
    The_Fd_Server := new Fd_Server_Type;
    Broca.Server.Register
      (Broca.Server.Server_Ptr (The_Fd_Server), Fd_Server_Id);
 
+   --  Create signalling socket pair.
+   if C_Socketpair (Af_Unix, Sock_Stream, 0, Signal_Fds'Address) = Failure then
+      Broca.Exceptions.Raise_Comm_Failure;
+   end if;
+
+   Lock.Initialize (Signal_Fd_Read);
+
    --  There is always one request to handle: accepting a connection.
    Broca.Server.New_Request (Fd_Server_Id);
-exception
-   when CORBA.Comm_Failure =>
-      Broca.Server.Log ("Failed to initialize Inet server.");
 end Broca.Inet_Server;

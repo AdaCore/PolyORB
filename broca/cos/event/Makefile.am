@@ -9,7 +9,7 @@ GNATMAKE_FLAGS = -I$(srcdir) \
 	-I$(srcdir)/../../adasockets/src \
 	-g -O2 -m -gnata
 
-PROGRAM=test_event
+PROGS=test_event
 
 IDL_1=$(srcdir)/CosEventComm.idl
 IDL_2=$(srcdir)/CosEventChannelAdmin.idl
@@ -154,5 +154,5 @@ $(GEN_1): $(IDL_1) $(IDLAC)
 $(GEN_2): $(IDL_2) $(IDLAC)
 	$(IDLAC) -I$(srcdir) $(IDL_2)
 
-$(PROGRAM): force $(GEN_1) $(GEN_2) $(IMP_1) $(IMP_2)
+$(PROGS): force $(GEN_1) $(GEN_2) $(IMP_1) $(IMP_2)
 	$(GNATMAKE) $@ $(GNATMAKE_FLAGS)
