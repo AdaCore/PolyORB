@@ -39,6 +39,7 @@ with Ada.Real_Time; use Ada.Real_Time;
 with RCI;
 with RT;
 with SP;
+with Matrices;
 
 with PolyORB.Initialization;
 with System.RPC;
@@ -108,8 +109,45 @@ begin
             Matrix (J, K) := (Re => 1.0 / Float (J), Im => 1.0 / Float (K));
          end loop;
       end loop;
-      Put_Line ("Matrix passed? "
+      Put_Line ("Constrained matrix passed? "
         & Boolean'Image (Matrix = RCI.echoC_4_5 (Matrix)));
+   end;
+
+   declare
+      use Matrices;
+
+      M : Matrix (8 .. 10, 3 .. 11);
+   begin
+      for J in M'Range (1) loop
+         for K in M'Range (2) loop
+            M (J, K) := Float (J) + 0.01 * Float (K);
+         end loop;
+      end loop;
+
+      Put_Line ("Sending matrix:");
+      for J in M'Range (1) loop
+         for K in M'Range (2) loop
+            Put (" " & Float'Image (M (J, K)));
+         end loop;
+         New_Line;
+      end loop;
+
+      declare
+         M_Prime : constant Matrix := RCI.echoTranspose (M);
+      begin
+         Put_Line ("Ranges of M : (" & Integer'Image (M'First (1))
+                             & ".." & Integer'Image (M'Last (1))
+                             & ", " & Integer'Image (M'First (2))
+                             & ".." & Integer'Image (M'Last (2)) & ")");
+
+         Put_Line ("Ranges of M': (" & Integer'Image (M_Prime'First (1))
+                              & ".." & Integer'Image (M_Prime'Last (1))
+                              & ", " & Integer'Image (M_Prime'First (2))
+                              & ".." & Integer'Image (M_Prime'Last (2)) & ")");
+
+         Put_Line ("Unconstrained matrix passed? "
+                   & Boolean'Image (M = Transpose (M_Prime)));
+      end;
    end;
 
    declare

@@ -380,6 +380,6 @@ begin
       (Name      => +"references.ior",
        Conflicts => Empty,
        Depends   => Empty,
-       Provides  => Empty,
+       Provides  => +"references",
        Init      => Initialize'Access));
 end PolyORB.References.IOR;

@@ -106,6 +106,22 @@ package body RCI is
       return V;
    end echoVector;
 
+   function echoTranspose (M : Matrix) return Matrix is
+   begin
+      Put_Line ("Got matrix:");
+      Put_Line ("Ranges of M : (" & Integer'Image (M'First (1))
+                           & ".." & Integer'Image (M'Last (1))
+                           & ", " & Integer'Image (M'First (2))
+                           & ".." & Integer'Image (M'Last (2)) & ")");
+      for J in M'Range (1) loop
+         for K in M'Range (2) loop
+            Put (" " & Float'Image (M (J, K)));
+         end loop;
+         New_Line;
+      end loop;
+      return Matrices.Transpose (M);
+   end echoTranspose;
+
    function echoString (S : String) return String is
    begin
       Put_Line ("Thus spake my client unto me: «" & S & "».");

@@ -912,24 +912,41 @@ package body System.PolyORB_Interface is
       Seq_Any : PolyORB.Any.Any;
       Tc      : constant PolyORB.Any.TypeCode.Object := Get_Type (Value);
    begin
+      pragma Debug (O ("Get_Nested_Sequence_Length: enter, Depth =" & Depth'Img
+                       & ", Tc = " & Image (Tc)));
+
       if PolyORB.Any.TypeCode.Kind (Tc) = Tk_Struct then
          declare
             Index : constant PolyORB.Types.Unsigned_Long
               := PolyORB.Any.TypeCode.Member_Count (Tc) - 1;
          begin
+            pragma Debug
+              (O ("Tc is a Tk_Struct, index of last member is" & Index'Img));
+
             Seq_Any := Get_Aggregate_Element (Value,
               PolyORB.Any.TypeCode.Member_Type (Tc, Index),
               Index);
          end;
       else
+         pragma Debug (O ("Tc is (assumed to be) a Tk_Sequence"));
          Seq_Any := Value;
       end if;
 
-      if Depth = 1 then
-         return FA_U (PolyORB.Any.Get_Aggregate_Element (Seq_Any, TC_U, 0));
-      else
-         return Get_Nested_Sequence_Length (Seq_Any, Depth - 1);
-      end if;
+      declare
+         use type Unsigned;
+
+         Outer_Length : constant Unsigned
+           := FA_U (PolyORB.Any.Get_Aggregate_Element (Seq_Any, TC_U, 0));
+      begin
+         if Depth = 1 or else Outer_Length = 0 then
+            return Outer_Length;
+         else
+            Seq_Any := PolyORB.Any.Get_Aggregate_Element
+              (Seq_Any, From_Any (PolyORB.Any.TypeCode.Get_Parameter
+               (Get_Type (Seq_Any), 1)), 1);
+            return Get_Nested_Sequence_Length (Seq_Any, Depth - 1);
+         end if;
+      end;
    end Get_Nested_Sequence_Length;
 
    -----------------
@@ -1452,7 +1469,8 @@ begin
        & "naming.NamingContext.Helper"
        & "tasking.mutexes"
        & "access_points?"
-       & "binding_factories",
+       & "binding_factories"
+       & "references",
        Provides => Empty,
        Init => Initialize'Access));
 

@@ -33,6 +33,7 @@
 
 --  $Id$
 
+with Matrices; use Matrices;
 with RT;
 
 package RCI is
@@ -63,6 +64,8 @@ package RCI is
 
    type Vector is array (Integer range <>) of Integer;
    function echoVector (V : Vector) return Vector;
+
+   function echoTranspose (M : Matrix) return Matrix;
 
    function echoString (S : String) return String;
    type echo_RAS is access function (S : String) return String;
