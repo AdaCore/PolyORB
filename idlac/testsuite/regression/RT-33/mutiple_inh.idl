@@ -1,0 +1,10 @@
+module MyModule {
+
+  interface IfA {
+  };
+  interface IfB {
+  };
+
+  interface IfC : IfA, IfB {
+  };
+};
