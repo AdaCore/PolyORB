@@ -4,19 +4,20 @@
 
 package body Remote_Abort is
 
-   Execute_Has_Been_Called : Boolean := False;
-   Execute_Has_Terminated  : Boolean := False;
+   Execute_Has_Been_Called : Integer := 0;
+   Execute_Has_Been_Terminated  : Integer := 0;
 
    procedure Execute is
    begin
-      Execute_Has_Been_Called := True;
-      delay 20.0;
-      Execute_Has_Terminated  := True;
+      Execute_Has_Been_Called := Execute_Has_Been_Called + 1;
+      delay 4.0;
+      Execute_Has_Been_Terminated  := Execute_Has_Been_Terminated + 1;
    end Execute;
 
-   function Status return Boolean is
+   procedure Status (Started, Aborted : out Integer) is
    begin
-      return Execute_Has_Been_Called and not Execute_Has_Terminated;
+      Started := Execute_Has_Been_Called;
+      Aborted := Execute_Has_Been_Called - Execute_Has_Been_Terminated;
    end Status;
 
 end Remote_Abort;

@@ -9,8 +9,6 @@ package Remote_Abort is
    procedure Execute;
    --  This procedure takes at least 20 seconds to execute.
 
-   function Status return Boolean;
-   --  If Execute is called but aborted before the end, Status will return
-   --  True. Otherwise, Status will return False.
+   procedure Status (Started, Aborted : out Integer);
 
 end Remote_Abort;
