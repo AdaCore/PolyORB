@@ -56,7 +56,7 @@ package body PolyORB.ORB.Thread_Per_Request is
    use PolyORB.Transport;
 
    package L is new PolyORB.Log.Facility_Log
-     ("polyorb.orb.thread_per_session");
+     ("polyorb.orb.thread_per_request");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 

@@ -50,7 +50,7 @@ package body PolyORB.ORB.No_Tasking is
    use PolyORB.Log;
 
    package L is new PolyORB.Log.Facility_Log
-     ("polyorb.orb.tasking_policies");
+     ("polyorb.orb.no_tasking");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
