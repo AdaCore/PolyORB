@@ -27,6 +27,12 @@ IDL=$(srcdir)/File.idl
 GEN=\
 file-helper.adb \
 file-helper.ads \
+file-ir_info.adb \
+file-ir_info.ads \
+file_idl_file-helper.adb \
+file_idl_file-helper.ads \
+file_idl_file-ir_info.adb \
+file_idl_file-ir_info.ads \
 file-skel.adb \
 file-skel.ads \
 file-stream.adb \

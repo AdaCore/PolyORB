@@ -2,7 +2,7 @@
 
 # cobuild: Build something from a checked-out wavefront.
 
-# $Id: //droopi/main/utils/cobuild#13 $
+# $Id: //droopi/main/utils/cobuild#14 $
 
 PROJECT=DROOPI
 
@@ -122,7 +122,7 @@ export CHANGE
   then
     $CLIENT_TOP/configure --disable-shared --enable-debug \
        --with-proto-perso="giop soap srp" --with-appli-perso="corba moma" \
-       --prefix=$OUTDIR/install
+       --with-services="naming ir" --prefix=$OUTDIR/install
   fi && make && make install
   RC=$?
   exit $RC

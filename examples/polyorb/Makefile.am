@@ -9,6 +9,8 @@ LINKER=	../../support/linker
 
 CLEANFILES= *.o *.ali
 
+DISTCLEANFILES = $(TESTS)
+
 all: $(TESTS)
 
 all-local: $(TESTS)

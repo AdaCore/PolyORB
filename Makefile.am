@@ -1,7 +1,7 @@
 AUTOMAKE_OPTIONS = foreign no-dependencies
 ACLOCAL_AMFLAGS = -I support
 
-corba_dir = idls cos
+corba_dir =
 dsa_dir   =
 moma_dir  =
 
@@ -9,7 +9,7 @@ giop_dir  =
 soap_dir  =
 srp_dir   =
 
-SUBDIRS = compilers src examples @APPLI_DIRS@ @PROTO_DIRS@
+SUBDIRS = compilers idls src cos examples @APPLI_DIRS@ @PROTO_DIRS@
 
 CLEANFILES = config-stamp
 

@@ -195,9 +195,7 @@ GEN= \
   corba-repository_root.ads
 
 
-ir_dir = server client print
-
-PROGS =	@TOOLS_DIR@
+PROGS =	server client print
 
 $(GEN): $(srcdir)/ir.idl $(srcdir)/typecode.sh $(IDLAC)
 	$(IDLAC) $(srcdir)/ir.idl

@@ -15,17 +15,17 @@ moma_inc=-I$(srcdir)/$(EXAMPLES_ROOT)/../src/moma -I$(EXAMPLES_ROOT)/../src/moma
 soap_inc=-I$(srcdir)/$(EXAMPLES_ROOT)/../src/soap -I$(EXAMPLES_ROOT)/../src/soap
 srp_inc=-I$(srcdir)/$(EXAMPLES_ROOT)/../src/srp -I$(EXAMPLES_ROOT)/../src/srp
 
-POLYORB_INCS = -I$(srcdir)/$(EXAMPLES_ROOT)/../src -I$(EXAMPLES_ROOT)/../src @PROTO_INCS@ @APPLI_INCS@
+naming_inc=-I$(srcdir)/$(EXAMPLES_ROOT)/../cos/naming -I$(EXAMPLES_ROOT)/../cos/naming \
+           -I$(EXAMPLES_ROOT)/../idls/cos/naming
+
+POLYORB_INCS = -I$(srcdir) -I$(srcdir)/$(EXAMPLES_ROOT)/../src -I$(EXAMPLES_ROOT)/../src \
+               $(naming_inc) @PROTO_INCS@ @APPLI_INCS@ @SERVICE_INCS@
 
 GNATMAKE_FLAGS = \
-	-I$(srcdir) \
 	-I$(srcdir)/$(EXAMPLES_ROOT) \
 	-I$(srcdir)/$(EXAMPLES_ROOT)/common \
-	-I$(srcdir)/$(EXAMPLES_ROOT)/../cos/naming \
 	-I$(EXAMPLES_ROOT) \
 	-I$(EXAMPLES_ROOT)/common \
-	-I$(EXAMPLES_ROOT)/../cos/naming \
-	-I$(EXAMPLES_ROOT)/../idls/cos/naming \
 	$(POLYORB_INCS) \
 	$(XMLADA_INCS) \
 	-m \
@@ -57,7 +57,6 @@ force: src
 
 src:
 	cd $(top_builddir)/src && $(MAKE)
-	cd $(top_builddir)/cos/naming && $(MAKE)
 
 err:
 	$(ERR)

@@ -42,7 +42,7 @@ AM_ENABLE_STATIC(yes)
 AM_ADA_PREREQ(20010503, 3.14a1)
 
 ##########################################
-# Protocol personality list.
+# Protocol personalities list.
 ##########################################
 
 AC_MSG_CHECKING([default protocol personalities])
@@ -66,7 +66,7 @@ AC_ARG_WITH(proto-perso,
 AC_MSG_RESULT(${PROTO_LIST})
 
 ##########################################
-# Application personality list
+# Application personalities list
 ##########################################
 
 AC_MSG_CHECKING([default application personalities])
@@ -95,16 +95,16 @@ AC_MSG_RESULT(${APPLI_LIST})
 
 AC_MSG_CHECKING([default services])
 AC_ARG_WITH(services,
-[  --with-services=x       Enumerate protocol personalities],
+[  --with-services=x       Enumerate services],
 [
   SERVICE_LIST=""
   for S in ${withval}
   do
      if test -f ${srcdir}/cos/${S}/Makefile.am
      then
-        PROTO_LIST="${PROTO_LIST} $S "
+        SERVICE_LIST="${SERVICE_LIST} $S "
      else
-        AC_MSG_ERROR([unknown protocol personality ${S}])
+        AC_MSG_ERROR([unknown service ${S}])
      fi
   done
 ],
@@ -146,9 +146,19 @@ AC_SUBST(PROTO_DIRS)
 AC_SUBST(PROTO_LIBS)
 AC_SUBST(PROTO_INCS)
 
+SERVICE_INCS=""
+
+for P in ${SERVICE_LIST}
+do
+   SERVICE_INCS="${SERVICE_INCS} "'$'"(${P}_inc)"
+done
+
+AC_SUBST(SERVICE_INCS)
+AC_SUBST(SERVICE_LIST)
+
 ##########################################
-# Check XmlAda,
-#  required by SOAP personality.
+# Test : if SOAP personality is built,
+#        then XmlAda should be configured
 ##########################################
 
 XMLADA_INCS=""
@@ -169,45 +179,25 @@ AM_CONDITIONAL(HAS_XMLADA, test x"$has_xmlada" = xyes)
 AC_SUBST(XMLADA_INCS)
 AC_SUBST(XMLADA_LIBS)
 
-soap_enabled=`echo ${PROTO_LIST} | ${AWK} '/ soap /{print "yes"}'`
+soap_enabled=`echo ${PROTO_LIST} | ${AWK} '/soap/{print "yes"}'`
+
 if test x"$soap_enabled" = xyes -a x"$has_xmlada" != xyes
 then
-   AC_MSG_ERROR("Protocol personality soap requires XmlAda")
+   AC_MSG_ERROR("Protocol personality SOAP requires XmlAda")
 fi
 
 ##########################################
-# CORBA Interface Repository
+# Test : if IR is built, 
+#        then CORBA must be built
 ##########################################
 
-ir_enabled=no
-AC_MSG_CHECKING([whether to build the CORBA Interface Repository])
-AC_ARG_ENABLE(ir,
-[  --enable-ir             Build the Interface Repository (requires CORBA) (no)],
-[ir_enabled=${enableval}])
-AC_MSG_RESULT($ir_enabled)
+corba_enabled=`echo ${APPLI_LIST} | ${AWK} '/corba/{print "yes"}'`
+ir_enabled=`echo ${SERVICE_LIST} | ${AWK} '/ir/{print "yes"}'`
 
-AM_CONDITIONAL(ENABLE_IR, test x$ir_enabled = xyes)
-
-# Check CORBA IR consistency
-
-corba_enabled=`echo ${APPLI_LIST} | ${AWK} '/ corba /{print "yes"}'`
-if test x"$ir_enabled" = xyes -a x"$corba_enabled" != xyes
+if test x$ir_enabled = xyes -a x$corba_enabled != xyes
 then
    AC_MSG_ERROR("Interface Repository requires CORBA application personality")
 fi
-
-# Add IR to TOOLS list
-
-if test x"$ir_enabled" = xyes
-then
-   TOOLS_DIR="${TOOLS_DIR} ir_dir"
-fi
-
-##########################################
-# Output Extra tools list (IR ...)
-##########################################
-
-AC_SUBST(TOOLS_DIR)
 
 ##########################################
 # Check for maintainer (debug) mode.
@@ -274,23 +264,26 @@ AC_SUBST_FILE(PROTO_SERVER_WITHS)
 # examples only.
 ##########################################
 
-corba_enabled=`echo "${APPLI_LIST}" | ${AWK} '/ corba /{print "yes"}'`
+corba_enabled=`echo "${APPLI_LIST}" | ${AWK} '/corba/{print "yes"}'`
 AM_CONDITIONAL(ENABLE_CORBA, test x$corba_enabled = xyes)
 
-dsa_enabled=`echo "${APPLI_LIST}" | ${AWK} '/ dsa /{print "yes"}'`
+dsa_enabled=`echo "${APPLI_LIST}" | ${AWK} '/dsa/{print "yes"}'`
 AM_CONDITIONAL(ENABLE_DSA, test x$dsa_enabled = xyes)
 
-moma_enabled=`echo "${APPLI_LIST}" | ${AWK} '/ moma /{print "yes"}'`
+moma_enabled=`echo "${APPLI_LIST}" | ${AWK} '/moma/{print "yes"}'`
 AM_CONDITIONAL(ENABLE_MOMA, test x$moma_enabled = xyes)
 
-giop_enabled=`echo "${PROTO_LIST}" | ${AWK} '/ giop /{print "yes"}'`
+giop_enabled=`echo "${PROTO_LIST}" | ${AWK} '/giop/{print "yes"}'`
 AM_CONDITIONAL(ENABLE_GIOP, test x$giop_enabled = xyes)
 
-soap_enabled=`echo "${PROTO_LIST}" | ${AWK} '/ soap /{print "yes"}'`
+soap_enabled=`echo "${PROTO_LIST}" | ${AWK} '/soap/{print "yes"}'`
 AM_CONDITIONAL(ENABLE_SOAP, test x$soap_enabled = xyes)
 
-srp_enabled=`echo "${PROTO_LIST}" | ${AWK} '/ srp /{print "yes"}'`
+srp_enabled=`echo "${PROTO_LIST}" | ${AWK} '/srp/{print "yes"}'`
 AM_CONDITIONAL(ENABLE_SRP, test x$srp_enabled = xyes)
+
+ir_enabled=`echo "${SERVICE_LIST}" | ${AWK} '/ir/{print "yes"}'`
+AM_CONDITIONAL(ENABLE_IR, test x$ir_enabled = xyes)
 
 ##########################################
 # Output generated files
