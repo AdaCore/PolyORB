@@ -3371,7 +3371,7 @@ package body Ada_Be.Idl2Ada is
                Type_Name : constant String
                  := Ada_Type_Name (Node);
             begin
-	    
+
                --  Unchecked_To_<reference>
 
                Add_With (Helper_Spec, "CORBA.Object");
@@ -3433,6 +3433,8 @@ package body Ada_Be.Idl2Ada is
                PL (Helper_Body, "end To_" & Short_Type_Name & ";");
             end;
 
+            --  From_Any
+
             NL (Helper_Spec);
             Gen_From_Any_Profile (Helper_Spec, Node);
             NL (Helper_Spec);
@@ -3443,7 +3445,9 @@ package body Ada_Be.Idl2Ada is
             DI (Helper_Spec);
 
          when K_Enum =>
-            --  typecode generation
+
+            --  TypeCode
+
             NL (Helper_Spec);
             PL (Helper_Spec, "TC_"
                 & Ada_Name (Node)
@@ -3452,7 +3456,8 @@ package body Ada_Be.Idl2Ada is
             PL (Helper_Spec, "CORBA.TypeCode.TC_Enum;");
             DI (Helper_Spec);
 
-            --  to and from_any functions
+            --  From_Any and To_Any
+
             NL (Helper_Spec);
             Gen_From_Any_Profile (Helper_Spec, Node);
             PL (Helper_Spec, ";");
