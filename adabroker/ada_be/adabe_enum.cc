@@ -70,7 +70,7 @@ adabe_enum::produce_marshal_adb(dep_list& with, string &body, string &previous)
   body += "   procedure Marshall (A : in ";
   body += get_ada_local_name();
   body += " ;\n";
-  body += "      S : in out Giop_C.Object) is\n";
+  body += "                       S : in out Giop_C.Object) is\n";
   body += "   begin\n";
   body += "      Marshall (Corba.Unsigned_Long("+get_ada_local_name()+"'Pos(A)); S);";
   body += "   end Marshall\n";
@@ -78,9 +78,13 @@ adabe_enum::produce_marshal_adb(dep_list& with, string &body, string &previous)
   body += "   procedure UnMarshall (A : out ";
   body += get_ada_local_name();
   body += " ;\n";
-  body += "      S : in out Giop_C.Object) is \n\n";
+  body += "                         S : in out Giop_C.Object) is \n\n";
+  body += "      Tmp : Corba.Unsigned_Long ;\n";
   body += "   begin\n";
-  body += "      UnMarshall (Corba.Unsigned_Long("+get_ada_local_name()+"'Pos(A)); S);";
+  body += "      UnMarshall (Tmp,S) ;\n";
+  body += "      A := ";
+  body += get_ada_local_name();
+  body += "'Val(Tmp) ;";
   body += "   end UnMarshall\n";
 
   body += "   function Align_Size (A : in";

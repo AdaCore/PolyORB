@@ -441,7 +441,7 @@ adabe_operation::produce_proxies_adb(dep_list& with,string &body, string &privat
 }
 
 void
-adabe_operation::produce_skeleton_adb(dep_list& with,string &body, string &private_definition)
+adabe_operation::produce_skel_adb(dep_list& with,string &body, string &private_definition)
 {
 }
 

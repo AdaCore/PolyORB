@@ -132,9 +132,8 @@ adabe_typedef::produce_marshal_adb(dep_list& with, string &body, string &previou
   body += "                        Initial_Offset : in Corba.Unsigned_Long ;\n";
   body += "                        N : in Corba.Unsigned_Long := 1)\n";
   body += "                        return Corba.Unsigned_Long is\n";
-  body += "      Tmp : Corba.Unsigned_Long := 0 ;\n";
   body += "   begin\n";
-  body += "      Tmp := Align_Size(";
+  body += "      return Align_Size(";
   body += name;
   body += "(A) , Tmp, N) ;\n";
   body += "   end ;\n\n\n";

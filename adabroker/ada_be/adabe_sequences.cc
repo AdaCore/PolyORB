@@ -93,7 +93,7 @@ adabe_sequence::produce_marshal_adb(dep_list& with, string &body, string &previo
   body += "         for I in (1..Len) loop\n";
   body += "            UnMarshall (Tmp(I),S) ;\n";
   body += "         end loop ;\n";
-  body += "         return To_Sequence (Tmp) ;\n";
+  body += "         A := To_Sequence (Tmp) ;\n";
   body += "      end ;\n";
   body += "   end ;\n\n\n";
 

@@ -245,7 +245,7 @@ adabe_attribute::produce_proxies_adb(dep_list &with, string &body, string &priva
 
 
 void
-adabe_attribute::produce_skeleton_adb(dep_list& with, string &body, string &private_definition)
+adabe_attribute::produce_skel_adb(dep_list& with, string &body, string &private_definition)
 {
 }
 

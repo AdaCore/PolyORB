@@ -109,9 +109,6 @@ adabe_exception::produce_marshal_adb (dep_list& with,string &body, string &previ
   unmarshall += get_ada_local_name();
   unmarshall += "_Members ;\n";
   unmarshall += "                        S : in out Giop_C.Object) is\n";
-  unmarshall += "      Tmp : ";
-  unmarshall += get_ada_local_name ();
-  unmarshall += "_Members ;\n";
   unmarshall += "   begin\n";
   
   align_size += "   function Align_Size (A : in ";
@@ -142,7 +139,6 @@ adabe_exception::produce_marshal_adb (dep_list& with,string &body, string &previ
       activator.next();
     }
   marshall += "   end ;\n";
-  unmarshall += "      S := Tmp ;\n";
   unmarshall += "   end ;\n";
   align_size += "      end loop ;\n";
   align_size += "      return Tmp ;\n";

@@ -141,20 +141,23 @@ adabe_array::produce_marshal_adb(dep_list& with,string &body, string &previous)
   body += "               Initial_Offset : in Corba.Unsigned_Long ;\n";
   body += "               N : in Corba.Unsigned_Long := 1)\n";
   body += "               return Corba.Unsigned_Long ;\n\n\n";
-  body += "   begin\n";
   if (b->has_fixed_size())
     {
+      body += "   begin\n";
       body += "      return Align_Size (A'First, Initial_Offset, N * ";
       body += n_dims();
       body += ") ;\n";
     } else {
+      body += "      Tmp : Corba.Unsigned_long := Initial_Offset ;\n";
+      body += "   begin\n";
       body += "      for I in (1..N) loop\n";
       body += "         for J in (1..\n";
       body += n_dims();
       body += ") loop\n";
-      body += "            return Align_Size (A(J),Initial_Offset) ;\n";
+      body += "            Tmp := Align_Size (A(J),Tmp) ;\n";
       body += "         end loop ;\n";
       body += "      end loop ;\n";
+      body += "      return Tmp ;\n";
     }
   body += "   end Align_Size\n";
       

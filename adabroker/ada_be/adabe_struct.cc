@@ -72,11 +72,11 @@ adabe_structure::produce_marshal_ads(dep_list &with, string &body, string &previ
   body += "   procedure Marshall (A : in ";
   body += get_ada_local_name();
   body += " ;\n";
-  body += "      S : in out Giop_C.Object) ;\n\n";
+  body += "                       S : in out Giop_C.Object) ;\n\n";
   body += "   procedure UnMarshall (A : out ";
   body += get_ada_local_name();
   body += " ;\n";
-  body += "      S : in out Giop_C.Object) ;\n\n";
+  body += "                       S : in out Giop_C.Object) ;\n\n";
   body += "   function Align_Size (A : in ";
   body += get_ada_local_name();
   body += " ;\n";
@@ -96,13 +96,13 @@ adabe_structure::produce_marshal_adb(dep_list &with, string &body, string &previ
   marshall += "   procedure Marshall(A : in ";
   marshall += get_ada_local_name();
   marshall += " ;\n";
-  marshall += "      S : in out Giop_C.Object) is\n";
+  marshall += "                      S : in out Giop_C.Object) is\n";
   marshall += "   begin\n";
   
   unmarshall += "   procedure UnMarshall(A : out ";
   unmarshall += get_ada_local_name();
   unmarshall += " ;\n";
-  unmarshall += "      S : in out Giop_C.Object) is\n";
+  unmarshall += "                        S : in out Giop_C.Object) is\n";
   unmarshall += "   begin\n";
   
   align_size += "   function Align_Size (A : in ";
