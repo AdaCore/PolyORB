@@ -262,6 +262,13 @@ module Backend::BE_Ada::Nodes {
   interface Exception_Declaration : Definition {
   };
 
+  interface BE_Ada : Node_Id {
+    Node_Id    Stub_Node;
+    Node_Id    Helper_Node;
+    Node_Id    Skel_Node;
+    Node_Id    Impl_Node;
+  };
+
   /**************/
   /* Base types */
   /**************/

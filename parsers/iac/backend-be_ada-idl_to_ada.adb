@@ -1,10 +1,8 @@
 with Namet;     use Namet;
-with Locations;  use Locations;
 with Types;     use Types;
 with Values;    use Values;
 
 with Frontend.Nodes;            use Frontend.Nodes;
-with Frontend.Nutils;
 
 with Backend.BE_Ada.Nodes;      use Backend.BE_Ada.Nodes;
 with Backend.BE_Ada.Nutils;     use Backend.BE_Ada.Nutils;
@@ -15,7 +13,6 @@ package body Backend.BE_Ada.IDL_To_Ada is
    Setter : constant Character := 'S';
 
    package FEN renames Frontend.Nodes;
-   package FEU renames Frontend.Nutils;
    package BEN renames Backend.BE_Ada.Nodes;
 
    function Convert
@@ -34,9 +31,9 @@ package body Backend.BE_Ada.IDL_To_Ada is
    begin
       N := BE_Node (F);
       if No (N) then
-         N := FEU.New_Node (FEN.K_BE_CORBA, No_Location);
+         N := New_Node (BEN.K_BE_Ada);
       end if;
-      FEN.Set_Impl_Node (N, B);
+      BEN.Set_Impl_Node (N, B);
       FEN.Set_BE_Node (F, N);
       BEN.Set_FE_Node (B, F);
    end Bind_FE_To_Impl;
@@ -53,9 +50,9 @@ package body Backend.BE_Ada.IDL_To_Ada is
    begin
       N := BE_Node (F);
       if No (N) then
-         N := FEU.New_Node (FEN.K_BE_CORBA, No_Location);
+         N := New_Node (BEN.K_BE_Ada);
       end if;
-      FEN.Set_Helper_Node (N, B);
+      BEN.Set_Helper_Node (N, B);
       FEN.Set_BE_Node (F, N);
       BEN.Set_FE_Node (B, F);
    end Bind_FE_To_Helper;
@@ -72,9 +69,9 @@ package body Backend.BE_Ada.IDL_To_Ada is
    begin
       N := BE_Node (F);
       if No (N) then
-         N := FEU.New_Node (FEN.K_BE_CORBA, No_Location);
+         N := New_Node (BEN.K_BE_Ada);
       end if;
-      FEN.Set_Skel_Node (N, B);
+      BEN.Set_Skel_Node (N, B);
       FEN.Set_BE_Node (F, N);
       BEN.Set_FE_Node (B, F);
    end Bind_FE_To_Skel;
@@ -91,9 +88,9 @@ package body Backend.BE_Ada.IDL_To_Ada is
    begin
       N := BE_Node (F);
       if No (N) then
-         N := FEU.New_Node (FEN.K_BE_CORBA, No_Location);
+         N := New_Node (BEN.K_BE_Ada);
       end if;
-      FEN.Set_Stub_Node (N, B);
+      BEN.Set_Stub_Node (N, B);
       FEN.Set_BE_Node (F, N);
       BEN.Set_FE_Node (B, F);
    end Bind_FE_To_Stub;

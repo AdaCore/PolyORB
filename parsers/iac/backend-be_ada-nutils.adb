@@ -6,7 +6,6 @@ with Namet;     use Namet;
 with Utils;     use Utils;
 
 with Frontend.Nodes;
-with Frontend.Nutils;
 
 with Backend.BE_Ada.Nodes;   use Backend.BE_Ada.Nodes;
 
@@ -14,7 +13,6 @@ with Backend.BE_Ada.Nodes;   use Backend.BE_Ada.Nodes;
 package body Backend.BE_Ada.Nutils is
 
    package FEN renames Frontend.Nodes;
-   package FEU renames Frontend.Nutils;
    package BEN renames Backend.BE_Ada.Nodes;
 
    type Entity_Stack_Entry is record
@@ -810,9 +808,9 @@ package body Backend.BE_Ada.Nutils is
          BEN.Set_FE_Node (N, From);
          B := FEN.BE_Node (From);
          if No (B) then
-            B := FEU.New_Node (FEN.K_BE_CORBA, No_Location);
+            B := New_Node (K_BE_Ada);
          end if;
-         FEN.Set_Stub_Node (B, N);
+         Set_Stub_Node (B, N);
          FEN.Set_BE_Node (From, B);
          Set_Loc  (N, FEN.Loc (From));
       else

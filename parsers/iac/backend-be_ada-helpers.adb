@@ -239,14 +239,14 @@ package body Backend.BE_Ada.Helpers is
          Push_Entity (BEN.IDL_Unit (Package_Declaration (N)));
          Set_Helper_Spec;
 
-         Append_Node_To_List
-           (Widening_Ref_Spec (E), Visible_Part (Current_Package));
-         Append_Node_To_List
-           (Narrowing_Ref_Spec (E), Visible_Part (Current_Package));
-         N := TypeCode_Spec (E);
+         N := Widening_Ref_Spec (E);
          Append_Node_To_List
            (N, Visible_Part (Current_Package));
          Bind_FE_To_Helper (Identifier (E), N);
+         Append_Node_To_List
+           (Narrowing_Ref_Spec (E), Visible_Part (Current_Package));
+         Append_Node_To_List
+           (TypeCode_Spec (E), Visible_Part (Current_Package));
          Append_Node_To_List
            (From_Any_Spec (E), Visible_Part (Current_Package));
          Append_Node_To_List
@@ -324,7 +324,7 @@ package body Backend.BE_Ada.Helpers is
             N := TypeCode_Spec (D);
             Append_Node_To_List
               (N, Visible_Part (Current_Package));
-            Bind_FE_To_Helper (Identifier (E), N);
+            Bind_FE_To_Helper (Identifier (D), N);
             Append_Node_To_List
               (From_Any_Spec (D), Visible_Part (Current_Package));
             Append_Node_To_List
@@ -509,9 +509,12 @@ package body Backend.BE_Ada.Helpers is
       ---------------------------------
 
       procedure Visit_Interface_Declaration (E : Node_Id) is
-         pragma Unreferenced (E);
+         N : Node_Id;
       begin
-         null;
+         N := Helper_Node (BE_Node (Identifier (E)));
+         if No (N) then
+            null;
+         end if;
       end Visit_Interface_Declaration;
 
       ------------------

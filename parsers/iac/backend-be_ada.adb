@@ -12,6 +12,7 @@ with Backend.BE_Ada.IDL_To_Ada; use Backend.BE_Ada.IDL_To_Ada;
 with Backend.BE_Ada.Generator;  use Backend.BE_Ada.Generator;
 with Backend.BE_Ada.Nutils;     use Backend.BE_Ada.Nutils;
 with Backend.BE_Ada.Runtime;    use Backend.BE_Ada.Runtime;
+with Backend.BE_Ada.Nodes;
 
 with Backend.BE_Ada.Helpers;
 with Backend.BE_Ada.Impls;
@@ -24,6 +25,7 @@ package body Backend.BE_Ada is
    Print_IDL_Tree : Boolean := False;
    Build_Impls    : constant Boolean := False;
 
+   package BE renames Backend.BE_Ada.Nodes;
 
    procedure Initialize;
 
@@ -69,9 +71,9 @@ package body Backend.BE_Ada is
       end if;
 
       if Print_Ada_Tree then
-         W_Node_Id (Stub_Node (BE_Node (Identifier (E))));
+         W_Node_Id (BE.Stub_Node (BE_Node (Identifier (E))));
       else
-         Generator.Generate (Stub_Node (BE_Node (Identifier (E))));
+         Generator.Generate (BE.Stub_Node (BE_Node (Identifier (E))));
       end if;
    end Generate;
 

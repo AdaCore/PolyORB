@@ -1,3 +1,7 @@
+2004-07-21  souli  <souli@neraka.enst.fr>
+
+	* frontend-nodes.idl: Moved BE_CORBA to backend-be_ada-nodes.idl. 
+
 2004-07-20  Saber Souli  <souli@neraka.enst.fr>
 
 	* backend-be_ada-helpers.adb: Linked Frontend nodes with Helper
