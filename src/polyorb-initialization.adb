@@ -35,6 +35,8 @@
 
 --  $Id$
 
+with Ada.Exceptions;
+
 with PolyORB.Dynamic_Dict;
 with PolyORB.Log;
 with PolyORB.Parameters;
@@ -117,6 +119,12 @@ package body PolyORB.Initialization is
    --  Visit 'M' dependencies and run the corresponding initializers;
    --  Circular_Dependency_Detected reports circularity between modules.
 
+   procedure Raise_Unresolved_Dependency
+     (From, Upon : String);
+   pragma No_Return (Raise_Unresolved_Dependency);
+   --  Output a diagnostic message for an unresolved dependency, and
+   --  raise the appropriate exception.
+
    -------------------
    -- Lookup_Module --
    -------------------
@@ -141,11 +149,6 @@ package body PolyORB.Initialization is
          raise Program_Error;
          --  If we call Register_Module after Initialization is done,
          --  then there is a deep problem.
-      end if;
-
-      if not Parameters.Get_Conf ("modules", Info.Name.all, True) then
-         pragma Debug (O (Info.Name.all & " is disabled."));
-         return;
       end if;
 
       M.Info := Info;
@@ -284,10 +287,8 @@ package body PolyORB.Initialization is
                      Prepend (Current.Deps, Dep_Module);
 
                   elsif not Optional then
-                     O ("Unresolved dependency: "
-                        & Current.Info.Name.all & " -> "
-                        & Dep_Name, Critical);
-                     raise Unresolved_Dependency;
+                     Raise_Unresolved_Dependency
+                       (From => Current.Info.Name.all, Upon => Dep_Name);
                   end if;
                end;
 
@@ -317,7 +318,6 @@ package body PolyORB.Initialization is
    is
       MI  : Dep_Lists.Iterator;
       Dep : Module_Access;
-
    begin
       if M.In_Progress then
          O (M.Info.Name.all & " is part of a cycle:", Critical);
@@ -326,6 +326,13 @@ package body PolyORB.Initialization is
       end if;
 
       Circular_Dependency_Detected := False;
+
+      if not Parameters.Get_Conf ("modules", M.Name.all, True) then
+
+         --  This module is not enabled.
+
+         return;
+      end if;
 
       M.In_Progress := True;
       MI := First (M.Deps);
@@ -340,9 +347,17 @@ package body PolyORB.Initialization is
          if not Dep.Visited then
             begin
                Visit (Dep, Circular_Dependency_Detected);
-
                if Circular_Dependency_Detected then
                   O ("... depended upon by " & Dep.Info.Name.all, Critical);
+                  return;
+               end if;
+
+               if not Dep.Visited then
+
+                  --  Case of a dependency that is disabled.
+
+                  Raise_Unresolved_Dependency
+                    (From => M.Name.all, Upon => Dep.Name.all);
                   return;
                end if;
             end;
@@ -352,8 +367,16 @@ package body PolyORB.Initialization is
       end loop;
 
       pragma Debug (O ("Processed dependencies of " & Module_Name (M).all));
+
       if not M.Virtual then
-         M.Info.Init.all;
+         begin
+            M.Info.Init.all;
+         exception
+            when E : others =>
+               O ("Initialization of " & Module_Name (M).all & " failed: "
+                  & Ada.Exceptions.Exception_Information (E), Warning);
+               raise;
+         end;
       end if;
 
       M.Visited := True;
@@ -438,5 +461,16 @@ package body PolyORB.Initialization is
          return Module.Info.Name;
       end if;
    end Module_Name;
+
+   ------------------------------------
+   -- Diagnose_Unresolved_Dependency --
+   ------------------------------------
+
+   procedure Raise_Unresolved_Dependency
+     (From, Upon : String) is
+   begin
+      O ("Unsresolved dependency: " & From & " -> " & Upon, Critical);
+      raise Unresolved_Dependency;
+   end Raise_Unresolved_Dependency;
 
 end PolyORB.Initialization;
