@@ -1,3 +1,11 @@
+2000-05-26  Laurent Pautet  <pautet@inf.enst.fr>
+
+	* header.txt: Update copyright.
+
+	* make-ada-dir, Makefile.am: Remove RCS keyword.
+
+	* all files: Update copyright.
+
 2000-05-24  Laurent Pautet  <pautet@inf.enst.fr>
 
 	* xe_stubs.adb: Use Has_RACW to set correctly Light_PCS. Fix

@@ -1,3 +1,7 @@
+2000-05-26  Laurent Pautet  <pautet@inf.enst.fr>
+
+	* user_guide.html: Remove RCS keyword.
+
 2000-05-24  Laurent Pautet  <pautet@inf.enst.fr>
 
 	* glade_ug.texi: Add info on new features (passive partitions,
