@@ -159,12 +159,12 @@ package body PortableServer.ServantRetentionPolicy is
    procedure Deferred_Initialization is
    begin
       Register
-        (SERVANT_RETENTION_POLICY_ID,
-         Create_ServantRetentionPolicy (SERVANT_RETENTION_POLICY_ID,
-                                        To_Any (RETAIN)),
-         Create_ServantRetentionPolicy'Access,
-         False,
-         True);
+        (The_Type       => SERVANT_RETENTION_POLICY_ID,
+         POA_Level      => True,
+         Factory        => Create_ServantRetentionPolicy'Access,
+         System_Default =>
+           Create_ServantRetentionPolicy (SERVANT_RETENTION_POLICY_ID,
+                                          To_Any (RETAIN)));
    end Deferred_Initialization;
 
    use PolyORB.Initialization;

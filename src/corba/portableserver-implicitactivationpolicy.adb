@@ -160,13 +160,13 @@ package body PortableServer.ImplicitActivationPolicy is
    procedure Deferred_Initialization is
    begin
       Register
-        (IMPLICIT_ACTIVATION_POLICY_ID,
-         Create_ImplicitActivationPolicy
-          (IMPLICIT_ACTIVATION_POLICY_ID,
-           To_Any (NO_IMPLICIT_ACTIVATION)),
-         Create_ImplicitActivationPolicy'Access,
-         False,
-         True);
+        (The_Type       => IMPLICIT_ACTIVATION_POLICY_ID,
+         POA_Level      => True,
+         Factory        => Create_ImplicitActivationPolicy'Access,
+         System_Default =>
+           Create_ImplicitActivationPolicy
+            (IMPLICIT_ACTIVATION_POLICY_ID,
+             To_Any (NO_IMPLICIT_ACTIVATION)));
    end Deferred_Initialization;
 
    use PolyORB.Initialization;

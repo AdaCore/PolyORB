@@ -157,12 +157,11 @@ package body PortableServer.IdUniquenessPolicy is
    procedure Deferred_Initialization is
    begin
       Register
-        (ID_UNIQUENESS_POLICY_ID,
-         Create_IdUniquenessPolicy (ID_UNIQUENESS_POLICY_ID,
-                                    To_Any (UNIQUE_ID)),
-         Create_IdUniquenessPolicy'Access,
-         False,
-         True);
+        (The_Type       => ID_UNIQUENESS_POLICY_ID,
+         POA_Level      => True,
+         Factory        => Create_IdUniquenessPolicy'Access,
+         System_Default => Create_IdUniquenessPolicy (ID_UNIQUENESS_POLICY_ID,
+                                                      To_Any (UNIQUE_ID)));
    end Deferred_Initialization;
 
    use PolyORB.Initialization;

@@ -160,11 +160,11 @@ package body PortableServer.ThreadPolicy is
    procedure Deferred_Initialization is
    begin
       Register
-        (THREAD_POLICY_ID,
-         Create_ThreadPolicy (THREAD_POLICY_ID, To_Any (ORB_CTRL_MODEL)),
-         Create_ThreadPolicy'Access,
-         False,
-         True);
+        (The_Type       => THREAD_POLICY_ID,
+         POA_Level      => True,
+         Factory        => Create_ThreadPolicy'Access,
+         System_Default => Create_ThreadPolicy (THREAD_POLICY_ID,
+                                                To_Any (ORB_CTRL_MODEL)));
    end Deferred_Initialization;
 
    use PolyORB.Initialization;

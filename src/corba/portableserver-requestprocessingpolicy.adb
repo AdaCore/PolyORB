@@ -159,13 +159,13 @@ package body PortableServer.RequestProcessingPolicy is
    procedure Deferred_Initialization is
    begin
       Register
-        (REQUEST_PROCESSING_POLICY_ID,
-         Create_RequestProcessingPolicy
-          (REQUEST_PROCESSING_POLICY_ID,
-           To_Any (USE_ACTIVE_OBJECT_MAP_ONLY)),
-         Create_RequestProcessingPolicy'Access,
-         False,
-         True);
+        (The_Type       => REQUEST_PROCESSING_POLICY_ID,
+         POA_Level      => True,
+         Factory        => Create_RequestProcessingPolicy'Access,
+         System_Default =>
+           Create_RequestProcessingPolicy
+            (REQUEST_PROCESSING_POLICY_ID,
+             To_Any (USE_ACTIVE_OBJECT_MAP_ONLY)));
    end Deferred_Initialization;
 
    use PolyORB.Initialization;

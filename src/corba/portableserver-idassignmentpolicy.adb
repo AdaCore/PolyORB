@@ -157,12 +157,11 @@ package body PortableServer.IdAssignmentPolicy is
    procedure Deferred_Initialization is
    begin
       Register
-        (ID_ASSIGNMENT_POLICY_ID,
-         Create_IdAssignmentPolicy (ID_ASSIGNMENT_POLICY_ID,
-                                    To_Any (SYSTEM_ID)),
-         Create_IdAssignmentPolicy'Access,
-         False,
-         True);
+        (The_Type       => ID_ASSIGNMENT_POLICY_ID,
+         POA_Level      => True,
+         Factory        => Create_IdAssignmentPolicy'Access,
+         System_Default => Create_IdAssignmentPolicy (ID_ASSIGNMENT_POLICY_ID,
+                                                      To_Any (SYSTEM_ID)));
    end Deferred_Initialization;
 
    use PolyORB.Initialization;

@@ -158,11 +158,11 @@ package body PortableServer.LifespanPolicy is
    procedure Deferred_Initialization is
    begin
       Register
-        (LIFESPAN_POLICY_ID,
-         Create_LifespanPolicy (LIFESPAN_POLICY_ID, To_Any (TRANSIENT)),
-         Create_LifespanPolicy'Access,
-         False,
-         True);
+        (The_Type       => LIFESPAN_POLICY_ID,
+         POA_Level      => True,
+         Factory        => Create_LifespanPolicy'Access,
+         System_Default =>
+           Create_LifespanPolicy (LIFESPAN_POLICY_ID, To_Any (TRANSIENT)));
    end Deferred_Initialization;
 
    use PolyORB.Initialization;

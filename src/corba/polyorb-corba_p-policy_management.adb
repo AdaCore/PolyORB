@@ -36,11 +36,15 @@ with PolyORB.Exceptions;
 package body PolyORB.CORBA_P.Policy_Management is
 
    type Policy_Info is record
-      Registered  : Boolean := False;
-      Default     : CORBA.Policy.Ref;
-      Factory     : Policy_Factory;
-      Client_Side : Boolean;
-      Server_Side : Boolean;
+      Registered          : Boolean := False;
+      POA_Level           : Boolean;
+      ORB_Level           : Boolean;
+      Thread_Level        : Boolean;
+      Reference_Level     : Boolean;
+      Factory             : Policy_Factory;
+      Compatibility_Check : Compatibility_Check_Proc;
+      Reconciliation      : Reconciliation_Proc;
+      System_Default      : CORBA.Policy.Ref;
    end record;
 
    Policy_Registry : array (CORBA.PolicyType range 1 .. 60) of Policy_Info;
@@ -59,19 +63,47 @@ package body PolyORB.CORBA_P.Policy_Management is
       return Policy_Registry (The_Type).Factory;
    end Get_Policy_Factory;
 
-   ---------------------------
-   -- Is_Client_Side_Policy --
-   ---------------------------
+   -------------------
+   -- Is_ORB_Policy --
+   -------------------
 
-   function Is_Client_Side_Policy
+   function Is_ORB_Policy
      (The_Type : in CORBA.PolicyType)
      return Boolean
    is
    begin
       pragma Assert (Policy_Registry (The_Type).Registered);
 
-      return Policy_Registry (The_Type).Client_Side;
-   end Is_Client_Side_Policy;
+      return Policy_Registry (The_Type).ORB_Level;
+   end Is_ORB_Policy;
+
+   -------------------
+   -- Is_POA_Policy --
+   -------------------
+
+   function Is_POA_Policy
+     (The_Type : in CORBA.PolicyType)
+     return Boolean
+   is
+   begin
+      pragma Assert (Policy_Registry (The_Type).Registered);
+
+      return Policy_Registry (The_Type).POA_Level;
+   end Is_POA_Policy;
+
+   -------------------------
+   -- Is_Reference_Policy --
+   -------------------------
+
+   function Is_Reference_Policy
+     (The_Type : in CORBA.PolicyType)
+     return Boolean
+   is
+   begin
+      pragma Assert (Policy_Registry (The_Type).Registered);
+
+      return Policy_Registry (The_Type).Reference_Level;
+   end Is_Reference_Policy;
 
    -------------------
    -- Is_Registered --
@@ -82,19 +114,19 @@ package body PolyORB.CORBA_P.Policy_Management is
       return Policy_Registry (The_Type).Registered;
    end Is_Registered;
 
-   ---------------------------
-   -- Is_Server_Side_Policy --
-   ---------------------------
+   ----------------------
+   -- Is_Thread_Policy --
+   ----------------------
 
-   function Is_Server_Side_Policy
+   function Is_Thread_Policy
      (The_Type : in CORBA.PolicyType)
      return Boolean
    is
    begin
       pragma Assert (Policy_Registry (The_Type).Registered);
 
-      return Policy_Registry (The_Type).Server_Side;
-   end Is_Server_Side_Policy;
+      return Policy_Registry (The_Type).Thread_Level;
+   end Is_Thread_Policy;
 
    -----------------------
    -- Raise_PolicyError --
@@ -114,19 +146,27 @@ package body PolyORB.CORBA_P.Policy_Management is
    --------------
 
    procedure Register
-     (The_Type    : in CORBA.PolicyType;
-      Default     : in CORBA.Policy.Ref;
-      Factory     : in Policy_Factory;
-      Client_Side : in Boolean;
-      Server_Side : in Boolean)
+     (The_Type            : in CORBA.PolicyType;
+      POA_Level           : in Boolean                  := False;
+      ORB_Level           : in Boolean                  := False;
+      Thread_Level        : in Boolean                  := False;
+      Reference_Level     : in Boolean                  := False;
+      Factory             : in Policy_Factory           := null;
+      Compatibility_Check : in Compatibility_Check_Proc := null;
+      Reconciliation      : in Reconciliation_Proc      := null;
+      System_Default      : in CORBA.Policy.Ref         := Null_Policy)
    is
    begin
       Policy_Registry (The_Type) :=
-        (True,
-         Default,
-         Factory,
-         Client_Side,
-         Server_Side);
+        (Registered          => True,
+         POA_Level           => POA_Level,
+         ORB_Level           => ORB_Level,
+         Thread_Level        => Thread_Level,
+         Reference_Level     => Reference_Level,
+         Factory             => Factory,
+         Compatibility_Check => Compatibility_Check,
+         Reconciliation      => Reconciliation,
+         System_Default      => System_Default);
    end Register;
 
 end PolyORB.CORBA_P.Policy_Management;

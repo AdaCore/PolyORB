@@ -200,12 +200,16 @@ package body RTCORBA.PriorityModelPolicy is
          Priority_Model_Policy_Allocator'Access);
 
       Register
-        (THREADPOOL_POLICY_TYPE,
-         Create_PriorityModelPolicy (THREADPOOL_POLICY_TYPE,
-                                     To_Any (CORBA.Unsigned_Long (0))),
-         Create_PriorityModelPolicy'Access,
-         False,
-         True);
+        (The_Type       => THREADPOOL_POLICY_TYPE,
+         POA_Level      => True,
+         Factory        => Create_PriorityModelPolicy'Access,
+         System_Default =>
+           Create_PriorityModelPolicy (THREADPOOL_POLICY_TYPE,
+                                       To_Any (CORBA.Unsigned_Long (0))));
+      --  XXX Is this correct? If policy can't be created with
+      --  CORBA::create_policy then we must not register factory procedure.
+      --  Also, created system default value is not compatible with policy
+      --  implementation.
    end Initialize;
 
    use PolyORB.Initialization;
