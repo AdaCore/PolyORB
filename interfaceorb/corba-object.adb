@@ -100,6 +100,7 @@ package body Corba.Object is
     ---        omniORB specific                    ---
     --------------------------------------------------
 
+
     -- Marshal_Obj_Ref
     ------------------
     procedure Marshal_Obj_Ref(The_Ref: Ref'Class ;

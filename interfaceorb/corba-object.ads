@@ -38,6 +38,11 @@ package Corba.Object is
    procedure Release (Self : in out Ref'class);
    -- Not implemented in omniORB
    -- neither here
+   --
+   -- NONONONONONONONONONONONONO
+   -- it is implemented !!! (objectRef.cc
+   -- here, we can call finalize on the object,
+   -- and that will call release on the C++ object
 
    --I Object duplicate();
    -- use assignment
@@ -59,6 +64,29 @@ package Corba.Object is
    --------------------------------------------------
    ---        omniORB specific                    ---
    --------------------------------------------------
+
+   -- The five following subprograms are marshalling operators
+   -- they will be inherited by all the descedants of Corba.Object.Ref
+   -- so there is no need to redefine them in each new package
+   -- ( it is done in C++ )
+   --function NP_Aligned_Size(The_Ref : in Ref ;
+   --                         Initial_Offset : in Corba.Unsigned_Long)
+   --  return Corba.Unsigned_Long ;
+
+   --procedure Marshal_Object_Reference(The_Ref : in Ref ;
+   --                                   S : in out NetBufferedStream) ;
+
+   --function Unmarshal_Object_Reference(S : in out NetBufferedStream)
+   --  return Ref ;
+
+   --procedure Marshal_Object_Reference(The_Ref : in Ref ;
+   --                                   S : in out MemBufferedStream) ;
+
+   --function Unmarshal_Object_Reference(S : in out MemBufferedStream)
+   --  return Ref ;
+
+
+
 
    -- procedure PR_Setobj(The_Object : in OmniObject.Object) ;
    -- wrapper around void CORBA::Object::PR_setobj(omniObject *obj)
