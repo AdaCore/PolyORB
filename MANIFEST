@@ -264,8 +264,6 @@ examples/all_types/ir_server.adb
 examples/all_types/server.adb
 examples/corba-test_object.adb
 examples/corba-test_object.ads
-examples/echo.adb
-examples/echo.ads
 examples/echo/Makefile.am
 examples/echo/Makefile.in
 examples/echo/client.adb
