@@ -1,3 +1,7 @@
+Mon Dec 16 16:45:08 1996  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* xe-gcc-filter.in: Compatibility test (do we use gnat >= 4.0).
+
 Sat Nov 30 20:21:47 1996  Laurent Pautet  <pautet@quasimodo.enst.fr>
 
 	* xe_stubs.adb, xe_utils.ads, xe_utils.adb: Change DSA

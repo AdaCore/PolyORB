@@ -7,6 +7,8 @@ mv -f $1 ${NAME}
 SED=@SED@
 AWK=@AWK@
 
+grep -i "package RCI_Cache is new" ${NAME} 
+if [ "$?" = "1" ]; then
 ${SED} "
 s/^.*system\.rpc\.general.*$//g
 s/register_server_elaboration/register_receiving_stub/g
@@ -50,6 +52,7 @@ skipline == 0 {print $0}
 ${SED} -e "
 s/get_active_partition_id/RCI_Cache.get_active_partition_id/g
 s/get_rci_package_receiver/RCI_Cache.get_rci_package_receiver/g
+fi
 s/__quote__/\\'/g
 " >$1
 rm -f ${NAME}
