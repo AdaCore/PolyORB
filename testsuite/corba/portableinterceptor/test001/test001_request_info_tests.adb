@@ -236,9 +236,13 @@ package body Test001_Request_Info_Tests is
    begin
       Obj := Get_Forward_Reference (Info);
 
-      --  XXX In current test implementation we can't test location forwarding,
-      --  thus exception always raised.
-      Output (Point, Operation, False);
+      if Valid
+        and then CORBA.Object.Is_Equivalent (Obj, Test_Forward_Object)
+      then
+         Output (Point, Operation, True);
+      else
+         Output (Point, Operation, False);
+      end if;
 
    exception
       when E : Bad_Inv_Order =>
