@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -306,10 +306,6 @@ private
    ---------------------------------------
 
    type Tasking_Policy_Type is abstract tagged limited null record;
-
-   package Monitor_Lists is new PolyORB.Utils.Chained_Lists
-     (PAE.Asynch_Ev_Monitor_Access, PAE."=");
-   subtype Monitor_List is Monitor_Lists.List;
 
    package TAP_Lists is new PolyORB.Utils.Chained_Lists
      (PT.Transport_Access_Point_Access, PT."=");
