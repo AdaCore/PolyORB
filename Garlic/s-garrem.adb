@@ -33,7 +33,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Unchecked_Deallocation;
 with GNAT.IO;
+with GNAT.OS_Lib;                     use GNAT.OS_Lib;
 with Interfaces.C.Strings;
 with System.Garlic.Constants;         use System.Garlic.Constants;
 with System.Garlic.Debug;             use System.Garlic.Debug;
@@ -77,29 +79,17 @@ package body System.Garlic.Remote is
       Command  : in String);
    --  Launch Command on Host using Launcher
 
-   function Background
-     (Command  : String;
-      Platform : String := Platform_Name)
-      return String;
-   --  Return the command necessary to launch Command in background on
-   --  Platform.
+   function Strip_Pwd (Command : String) return String;
+   --  Remove the "`pwd`" construct that may have been added by the code
+   --  generator, and replace it by ".". This is equivalent when launching
+   --  partitions locally and will work on platforms that don't support
+   --  this form of commands, such as Windows NT.
 
-   ----------------
-   -- Background --
-   ----------------
+   function Split (Command : String) return Argument_List;
+   --  Return an argument list corresponding to Command. Honors double-quote
+   --  escaped commands correctly.
 
-   function Background
-     (Command  : String;
-      Platform : String := Platform_Name)
-      return String
-   is
-   begin
-      if Platform_Name = "Open NT" or else Platform_Name = "Windows NT" then
-         return "start /B " & Command;
-      else
-         return Command & " &";
-      end if;
-   end Background;
+   procedure Free is new Ada.Unchecked_Deallocation (String, String_Access);
 
    ------------
    -- Detach --
@@ -145,8 +135,6 @@ package body System.Garlic.Remote is
         Executable_Name & " " & "--detach --slave --boot_server " &
         Get_Boot_Server;
    begin
-      pragma Debug (D (D_Debug, "Full_Launch: " & Full_Command));
-
       Launch (Launcher, Host, Full_Command);
    end Full_Launch;
 
@@ -201,14 +189,16 @@ package body System.Garlic.Remote is
 
    procedure Local_Launcher (Command  : in String)
    is
-      C_Command   : C.Strings.chars_ptr :=
-        C.Strings.New_String (Background (Command));
-      Return_Code : int;
+      Args : Argument_List       := Split (Strip_Pwd (Command));
+      PID  : constant Process_Id :=
+        Non_Blocking_Spawn (Args (1).all, Args (2 .. Args'Last));
    begin
-      pragma Debug (D (D_Debug, "Local Launch: " & Command));
-
-      Return_Code := System (C_Command);
-      C.Strings.Free (C_Command);
+      for I in Args'Range loop
+         Free (Args (I));
+      end loop;
+      if PID = Invalid_Pid then
+         raise Program_Error;
+      end if;
    end Local_Launcher;
 
    ------------------
@@ -220,26 +210,74 @@ package body System.Garlic.Remote is
       Host     : in String;
       Command  : in String)
    is
-      --  RSH-like commands target Unix systems, so use the backgrounding
-      --  specific to Unix.
-
-      B_Command        : constant String := Background (Command, "unix");
-      Rsh_Full_Command : constant String :=
-        Launcher & " " & Host & " """ & B_Command & """ >/dev/null";
-      Return_Code      : int;
-      C_Command        : C.Strings.chars_ptr :=
-        C.Strings.New_String (Rsh_Full_Command);
+      Exec_Option      : String_Access       := new String'("-c");
+      Rsh_Full_Command : String_Access       :=
+        new String'(Launcher & " " & Host & " '" & Command & " &'");
+      PID              : constant Process_Id :=
+        Non_Blocking_Spawn ("sh", (Exec_Option, Rsh_Full_Command));
    begin
-      Return_Code := System (C_Command);
-      C.Strings.Free (C_Command);
-      if Return_Code = -1 then
-
-         --  Since any exception may be raised here, we choose to
-         --  raise Program_Error since the elaboration won't take
-         --  be able to finish properly.
-
+      Free (Exec_Option);
+      Free (Rsh_Full_Command);
+      if PID = Invalid_Pid then
          raise Program_Error;
       end if;
    end Rsh_Launcher;
+
+   -----------
+   -- Split --
+   -----------
+
+   function Split (Command : String) return Argument_List is
+      Result   : Argument_List (1 .. 50);
+      Last     : Natural := 0;
+      Current  : String_Access;
+      Old      : String_Access;
+      In_Quote : Boolean := False;
+   begin
+      for I in Command'Range loop
+         declare
+            Char : Character renames Command (I);
+         begin
+            if Char = '"' then                -- "
+               In_Quote := not In_Quote;
+            elsif Char = ' ' and then not In_Quote then
+               if Current /= null then
+                  Last := Last + 1;
+                  Result (Last) := Current;
+                  Current := null;
+               end if;
+            else
+               if Current = null then
+                  Current := new String'(1 => Char);
+               else
+                  Old     := Current;
+                  Current := new String'(Old.all & Char);
+                  Free (Old);
+               end if;
+            end if;
+         end;
+      end loop;
+      if Current /= null then
+         Last := Last + 1;
+         Result (Last) := Current;
+      end if;
+      pragma Assert (not In_Quote);
+      return Result (1 .. Last);
+   end Split;
+
+   ---------------
+   -- Strip_Pwd --
+   ---------------
+
+   function Strip_Pwd (Command : String) return String is
+   begin
+      if Command'Length > 5
+        and then Command (Command'First .. Command'First + 4) = "`pwd`"
+      then
+         return '.' & Command (Command'First + 5 .. Command'Last);
+      else
+         return Command;
+      end if;
+   end Strip_Pwd;
 
 end System.Garlic.Remote;

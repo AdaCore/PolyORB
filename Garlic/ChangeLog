@@ -1,5 +1,9 @@
 1998-10-06  Samuel Tardieu  <sam@inf.enst.fr>
 
+	* s-garrem.adb: Rewrite launcher so that it strips "`pwd`" for local 
+	launch and replaces it by "." (to make it work on NT). Use
+	GNAT.OS_Lib.Non_Blocking_Spawn to spawn processes in background.
+
 	* s-gartcp.adb: Open the listening socket in the initialization
 	routine to fix a race condition that causes intermittent failures
 	with the Ada starter.
