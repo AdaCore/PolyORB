@@ -291,7 +291,7 @@ package body Analyzer is
             Make_Identifier
               (Loc (C),
                IDL_Name (Identifier (C)),
-               Scope (C)),
+               Current_Scope),
             C);
          Bind_Identifier_To_Entity (Identifier (N), N);
          Insert_After_Node (N, L);
