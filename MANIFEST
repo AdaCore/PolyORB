@@ -361,8 +361,9 @@ ada/einfo.adb
 ada/einfo.ads
 ada/elists.adb
 ada/elists.ads
-ada/errout.adb
-ada/errout.ads
+ada/err_vars.ads
+ada/erroutc.adb
+ada/erroutc.ads
 ada/fmap.adb
 ada/fmap.ads
 ada/fname-sf.adb
@@ -413,6 +414,8 @@ ada/prj-dect.adb
 ada/prj-dect.ads
 ada/prj-env.adb
 ada/prj-env.ads
+ada/prj-err.adb
+ada/prj-err.ads
 ada/prj-ext.adb
 ada/prj-ext.ads
 ada/prj-nmsc.adb
@@ -434,10 +437,8 @@ ada/prj.ads
 ada/rident.ads
 ada/scans.adb
 ada/scans.ads
-ada/scn.adb
-ada/scn.ads
-ada/scn-nlit.adb
-ada/scn-slit.adb
+ada/scang.adb
+ada/scang.adb
 ada/sdefault.ads
 ada/sfn_scan.adb
 ada/sfn_scan.ads
@@ -457,8 +458,8 @@ ada/stand.adb
 ada/stand.ads
 ada/stringt.adb
 ada/stringt.ads
-ada/style.adb
-ada/style.ads
+ada/styleg.adb
+ada/styleg.ads
 ada/stylesw.adb
 ada/stylesw.ads
 ada/switch.adb
