@@ -178,10 +178,13 @@ Ada_OmniObject::initProxyObject (const char *repoId,
 //-----------------
 Ada_OmniObject*
 Ada_OmniObject::objectDuplicate(Ada_OmniObject* same) {
+#ifdef DEBUG
+    cerr << "Ada_OmniObject::objectDuplicate : entering, checking Init_OK" << endl ;
+#endif
 ADABROKER_TRY
   if (same->Init_Ok) {
 #ifdef DEBUG
-    cerr << "Ada_OmniObject::objectDuplicate : entering, Init_Ok = true" << endl ;
+    cerr << "Ada_OmniObject::objectDuplicate : Init_Ok = true" << endl ;
 #endif
     omni::objectDuplicate(same->C_Object) ;
     // register a new pointer to this object
