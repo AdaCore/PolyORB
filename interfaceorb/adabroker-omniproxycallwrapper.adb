@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.7 $
+--                            $Revision: 1.8 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -49,7 +49,8 @@ with CORBA;
 with CORBA.Object;
 with CORBA.Object.OmniORB;
 
-with AdaBroker; use AdaBroker;
+with AdaBroker;            use AdaBroker;
+with AdaBroker.Exceptions; use AdaBroker.Exceptions;
 with AdaBroker.GIOP;
 with AdaBroker.GIOP_C;
 with AdaBroker.NetBufferedStream;
@@ -72,43 +73,44 @@ package body AdaBroker.OmniProxyCallWrapper is
    use type AdaBroker.OmniORB.OmniObject;
    use type AdaBroker.OmniORB.OmniObject_Ptr;
 
-   function Completion_Status_To_C_Int
-     (Status : in CORBA.Completion_Status)
-      return Interfaces.C.int;
-
-   function C_Int_To_Completion_Status
-     (N : in Interfaces.C.int)
-      return CORBA.Completion_Status;
-
-   procedure Handle_CORBA_Exception
-     (OmniObj_Ptr   : in OmniORB.OmniObject_Ptr;
-      Ex_Member     : in out CORBA.Ex_Body'Class;
-      Ex_Occurrence : in Ada.Exceptions.Exception_Occurrence;
-      Retries       : in out CORBA.Unsigned_Long);
+   procedure Handle_System_Exception
+     (OmniObj_Ptr : in OmniORB.OmniObject_Ptr;
+      Occurrence  : in Ada.Exceptions.Exception_Occurrence;
+      Retries     : in out CORBA.Unsigned_Long);
 
    ----------------------------
-   -- Handle_CORBA_Exception --
+   -- Handle_System_Exception --
    ----------------------------
 
-   procedure Handle_CORBA_Exception
-     (OmniObj_Ptr   : in OmniORB.OmniObject_Ptr;
-      Ex_Member     : in out CORBA.Ex_Body'Class;
-      Ex_Occurrence : in Ada.Exceptions.Exception_Occurrence;
-      Retries       : in out CORBA.Unsigned_Long)
+   procedure Handle_System_Exception
+     (OmniObj_Ptr : in OmniORB.OmniObject_Ptr;
+      Occurrence  : in Ada.Exceptions.Exception_Occurrence;
+      Retries     : in out CORBA.Unsigned_Long)
    is
+      Member : CORBA.IDL_Exception_Members'Class
+        := AdaBroker.Exceptions.Get_Members (Occurrence);
    begin
-      CORBA.Get_Members (Ex_Occurrence, Ex_Member);
       Retries := Retries + 1;
-      if not Omni_System_Exception_Handler
-        (OmniObj_Ptr.all,
-         Retries,
-         Ex_Member.Minor,
-         Ex_Member.Completed)
-      then
-         CORBA.Raise_CORBA_Exception
-           (Ada.Exceptions.Exception_Identity (Ex_Occurrence), Ex_Member);
+      if Member in CORBA.System_Exception_Members'Class then
+         declare
+            M : CORBA.System_Exception_Members
+              := CORBA.System_Exception_Members (Member);
+         begin
+            if not Omni_System_Exception_Handler
+              (OmniObj_Ptr.all, Retries, M.Minor, M.Completed)
+            then
+               Exceptions.Raise_CORBA_Exception
+                 (Ada.Exceptions.Exception_Identity (Occurrence), M);
+            else
+               pragma Debug (O ("rejected by Omni_System_Exception_Handler"));
+               null;
+            end if;
+         end;
+      else
+         pragma Debug (O ("not a system exception members"));
+         null;
       end if;
-   end Handle_CORBA_Exception;
+   end Handle_System_Exception;
 
    ------------
    -- Invoke --
@@ -271,7 +273,7 @@ package body AdaBroker.OmniProxyCallWrapper is
 
                         --  Raise an Unknown exception
                         Excpt_Members := (0, CORBA.Completed_Maybe);
-                        CORBA.Raise_CORBA_Exception
+                        Exceptions.Raise_CORBA_Exception
                           (CORBA.Unknown'Identity, Excpt_Members);
                      end;
                   end if;
@@ -332,7 +334,7 @@ package body AdaBroker.OmniProxyCallWrapper is
                         begin
                            --  Raise a Comm_Failure exception
                            Excpt_Members := (0, CORBA.Completed_No);
-                           CORBA.Raise_CORBA_Exception
+                           Exceptions.Raise_CORBA_Exception
                              (CORBA.Comm_Failure'Identity,
                               Excpt_Members);
                         end;
@@ -388,7 +390,7 @@ package body AdaBroker.OmniProxyCallWrapper is
                            Member2 : CORBA.Transient_Members
                              := (Member.Minor, Member.Completed);
                         begin
-                           CORBA.Raise_CORBA_Exception
+                           Exceptions.Raise_CORBA_Exception
                              (CORBA.Transient'Identity, Member2);
                         end;
                      end if;
@@ -402,17 +404,18 @@ package body AdaBroker.OmniProxyCallWrapper is
                         Member.Minor,
                         Member.Completed)
                      then
-                        CORBA.Raise_CORBA_Exception
+                        Exceptions.Raise_CORBA_Exception
                           (CORBA.Comm_Failure'Identity, Member);
                      end if;
                   end if;
                end;
 
-            when CORBA.Transient =>
+            when E : CORBA.Transient =>
                pragma Debug (O ("invoke : caught CORBA.Transient"));
                declare
                   Member : CORBA.Transient_Members;
                begin
+                  CORBA.Get_Members (E, Member);
                   Retries := Retries + 1;
                   if not Omni_Call_Transient_Exception_Handler
                     (OmniObj_Ptr.all,
@@ -420,16 +423,17 @@ package body AdaBroker.OmniProxyCallWrapper is
                      Member.Minor,
                      Member.Completed)
                   then
-                     CORBA.Raise_CORBA_Exception
+                     Exceptions.Raise_CORBA_Exception
                        (CORBA.Transient'Identity,
                         Member);
                   end if;
                end;
 
-            when CORBA.Object_Not_Exist =>
+            when E : CORBA.Object_Not_Exist =>
                declare
                   Member : CORBA.Object_Not_Exist_Members;
                begin
+                  CORBA.Get_Members (E, Member);
                   if Is_Fwd then
                      --  if Is_Fwd = True, we have to reset the rope and
                      --  the key Of the object according to IOP profile.
@@ -445,7 +449,7 @@ package body AdaBroker.OmniProxyCallWrapper is
                            Member2 : CORBA.Transient_Members
                              := (Member.Minor, Member.Completed);
                         begin
-                           CORBA.Raise_CORBA_Exception
+                           Exceptions.Raise_CORBA_Exception
                              (CORBA.Transient'Identity, Member2);
                         end;
                      end if;
@@ -457,172 +461,36 @@ package body AdaBroker.OmniProxyCallWrapper is
                         Member.Minor,
                         Member.Completed)
                      then
-                        CORBA.Raise_CORBA_Exception
+                        Exceptions.Raise_CORBA_Exception
                           (CORBA.Object_Not_Exist'Identity, Member);
                      end if;
                   end if;
                end;
 
-            when E : CORBA.Unknown =>
-               declare
-                  Member : CORBA.Unknown_Members;
-               begin
-                  Handle_CORBA_Exception (OmniObj_Ptr, Member, E, Retries);
-               end;
-
-            when E : CORBA.Bad_Param =>
-               declare
-                  Member : CORBA.Bad_Param_Members;
-               begin
-                  Handle_CORBA_Exception (OmniObj_Ptr, Member, E, Retries);
-               end;
-
-            when E : CORBA.No_Memory =>
-               declare
-                  Member : CORBA.No_Memory_Members;
-               begin
-                  Handle_CORBA_Exception (OmniObj_Ptr, Member, E, Retries);
-               end;
-
-            when E : CORBA.Imp_Limit =>
-               declare
-                  Member : CORBA.Imp_Limit_Members;
-               begin
-                  Handle_CORBA_Exception (OmniObj_Ptr, Member, E, Retries);
-               end;
-
-            when E : CORBA.Inv_Objref =>
-               declare
-                  Member : CORBA.Inv_Objref_Members;
-               begin
-                  Handle_CORBA_Exception (OmniObj_Ptr, Member, E, Retries);
-               end;
-
-            when E : CORBA.No_Permission =>
-               declare
-                  Member : CORBA.No_Permission_Members;
-               begin
-                  Handle_CORBA_Exception (OmniObj_Ptr, Member, E, Retries);
-               end;
-
-            when E : CORBA.Internal =>
-               declare
-                  Member : CORBA.Internal_Members;
-               begin
-                  Handle_CORBA_Exception (OmniObj_Ptr, Member, E, Retries);
-               end;
-
-            when E : CORBA.Marshal =>
-               declare
-                  Member : CORBA.Marshal_Members;
-               begin
-                  Handle_CORBA_Exception (OmniObj_Ptr, Member, E, Retries);
-               end;
-
-            when E : CORBA.Initialization_Failure =>
-               declare
-                  Member : CORBA.Initialization_Failure_Members;
-               begin
-                  Handle_CORBA_Exception (OmniObj_Ptr, Member, E, Retries);
-               end;
-
-            when E : CORBA.No_Implement =>
-               declare
-                  Member : CORBA.No_Implement_Members;
-               begin
-                  Handle_CORBA_Exception (OmniObj_Ptr, Member, E, Retries);
-               end;
-
-            when E : CORBA.Bad_Typecode =>
-               declare
-                  Member : CORBA.Bad_Typecode_Members;
-               begin
-                  Handle_CORBA_Exception (OmniObj_Ptr, Member, E, Retries);
-               end;
-
-            when E : CORBA.Bad_Operation =>
-               declare
-                  Member : CORBA.Bad_Operation_Members;
-               begin
-                  Handle_CORBA_Exception (OmniObj_Ptr, Member, E, Retries);
-               end;
-
-            when E : CORBA.No_Resources =>
-               declare
-                  Member : CORBA.No_Resources_Members;
-               begin
-                  Handle_CORBA_Exception (OmniObj_Ptr, Member, E, Retries);
-               end;
-
-            when E : CORBA.No_Response =>
-               declare
-                  Member : CORBA.No_Response_Members;
-               begin
-                  Handle_CORBA_Exception (OmniObj_Ptr, Member, E, Retries);
-               end;
-
-            when E : CORBA.Persist_Store =>
-               declare
-                  Member : CORBA.Persist_Store_Members;
-               begin
-                  Handle_CORBA_Exception (OmniObj_Ptr, Member, E, Retries);
-               end;
-
-            when E : CORBA.Bad_Inv_Order =>
-               declare
-                  Member : CORBA.Bad_Inv_Order_Members;
-               begin
-                  Handle_CORBA_Exception (OmniObj_Ptr, Member, E, Retries);
-               end;
-
-            when E : CORBA.Free_Mem =>
-               declare
-                  Member : CORBA.Free_Mem_Members;
-               begin
-                  Handle_CORBA_Exception (OmniObj_Ptr, Member, E, Retries);
-               end;
-
-            when E : CORBA.Inv_Ident =>
-               declare
-                  Member : CORBA.Inv_Ident_Members;
-               begin
-                  Handle_CORBA_Exception (OmniObj_Ptr, Member, E, Retries);
-               end;
-
-            when E : CORBA.Inv_Flag =>
-               declare
-                  Member : CORBA.Inv_Flag_Members;
-               begin
-                  Handle_CORBA_Exception (OmniObj_Ptr, Member, E, Retries);
-               end;
-
-            when E : CORBA.Intf_Repos =>
-               declare
-                  Member : CORBA.Intf_Repos_Members;
-               begin
-                  Handle_CORBA_Exception (OmniObj_Ptr, Member, E, Retries);
-               end;
-
-            when E : CORBA.Bad_Context =>
-               declare
-                  Member : CORBA.Bad_Context_Members;
-               begin
-                  Handle_CORBA_Exception (OmniObj_Ptr, Member, E, Retries);
-               end;
-
-            when E : CORBA.Obj_Adapter =>
-               declare
-                  Member : CORBA.Obj_Adapter_Members;
-               begin
-                  Handle_CORBA_Exception (OmniObj_Ptr, Member, E, Retries);
-               end;
-
-            when E : CORBA.Data_Conversion =>
-               declare
-                  Member : CORBA.Data_Conversion_Members;
-               begin
-                  Handle_CORBA_Exception (OmniObj_Ptr, Member, E, Retries);
-               end;
+            when E : CORBA.Unknown |
+               CORBA.Bad_Param |
+               CORBA.No_Memory |
+               CORBA.Imp_Limit |
+               CORBA.Inv_Objref |
+               CORBA.No_Permission |
+               CORBA.Internal |
+               CORBA.Marshal |
+               CORBA.Initialization_Failure |
+               CORBA.No_Implement |
+               CORBA.Bad_Typecode |
+               CORBA.Bad_Operation |
+               CORBA.No_Resources |
+               CORBA.No_Response |
+               CORBA.Persist_Store |
+               CORBA.Bad_Inv_Order |
+               CORBA.Free_Mem |
+               CORBA.Inv_Ident |
+               CORBA.Inv_Flag |
+               CORBA.Intf_Repos |
+               CORBA.Bad_Context |
+               CORBA.Obj_Adapter |
+               CORBA.Data_Conversion =>
+               Handle_System_Exception (OmniObj_Ptr, E, Retries);
          end;
       end loop;
    end Invoke;
@@ -761,7 +629,7 @@ package body AdaBroker.OmniProxyCallWrapper is
                              := (Member.Minor,
                                  Member.Completed);
                         begin
-                           CORBA.Raise_CORBA_Exception
+                           Exceptions.Raise_CORBA_Exception
                              (CORBA.Transient'Identity,
                               Member2);
                         end;
@@ -774,7 +642,7 @@ package body AdaBroker.OmniProxyCallWrapper is
                         Member.Minor,
                         Member.Completed)
                      then
-                        CORBA.Raise_CORBA_Exception
+                        Exceptions.Raise_CORBA_Exception
                           (CORBA.Comm_Failure'Identity,
                            Member);
                      end if;
@@ -792,7 +660,7 @@ package body AdaBroker.OmniProxyCallWrapper is
                      Member.Minor,
                      Member.Completed)
                   then
-                     CORBA.Raise_CORBA_Exception
+                     Exceptions.Raise_CORBA_Exception
                        (CORBA.Transient'Identity,
                         Member);
                   end if;
@@ -810,7 +678,7 @@ package body AdaBroker.OmniProxyCallWrapper is
                      Member.Minor,
                      Member.Completed)
                   then
-                     CORBA.Raise_CORBA_Exception
+                     Exceptions.Raise_CORBA_Exception
                        (Ada.Exceptions.Exception_Identity (E),
                         Member);
                   end if;
@@ -828,7 +696,7 @@ package body AdaBroker.OmniProxyCallWrapper is
                      Member.Minor,
                      Member.Completed)
                   then
-                     CORBA.Raise_CORBA_Exception
+                     Exceptions.Raise_CORBA_Exception
                        (Ada.Exceptions.Exception_Identity (E),
                         Member);
                   end if;
@@ -846,7 +714,7 @@ package body AdaBroker.OmniProxyCallWrapper is
                      Member.Minor,
                      Member.Completed)
                   then
-                     CORBA.Raise_CORBA_Exception
+                     Exceptions.Raise_CORBA_Exception
                        (Ada.Exceptions.Exception_Identity (E),
                         Member);
                   end if;
@@ -864,7 +732,7 @@ package body AdaBroker.OmniProxyCallWrapper is
                      Member.Minor,
                      Member.Completed)
                   then
-                     CORBA.Raise_CORBA_Exception
+                     Exceptions.Raise_CORBA_Exception
                        (Ada.Exceptions.Exception_Identity (E),
                         Member);
                   end if;
@@ -881,7 +749,7 @@ package body AdaBroker.OmniProxyCallWrapper is
                      Member.Minor,
                      Member.Completed)
                   then
-                     CORBA.Raise_CORBA_Exception
+                     Exceptions.Raise_CORBA_Exception
                        (Ada.Exceptions.Exception_Identity (E),
                         Member);
                   end if;
@@ -899,7 +767,7 @@ package body AdaBroker.OmniProxyCallWrapper is
                      Member.Minor,
                      Member.Completed)
                   then
-                     CORBA.Raise_CORBA_Exception
+                     Exceptions.Raise_CORBA_Exception
                        (Ada.Exceptions.Exception_Identity (E),
                         Member);
                   end if;
@@ -917,7 +785,7 @@ package body AdaBroker.OmniProxyCallWrapper is
                      Member.Minor,
                      Member.Completed)
                   then
-                     CORBA.Raise_CORBA_Exception
+                     Exceptions.Raise_CORBA_Exception
                        (Ada.Exceptions.Exception_Identity (E),
                         Member);
                   end if;
@@ -935,7 +803,7 @@ package body AdaBroker.OmniProxyCallWrapper is
                      Member.Minor,
                      Member.Completed)
                   then
-                     CORBA.Raise_CORBA_Exception
+                     Exceptions.Raise_CORBA_Exception
                        (Ada.Exceptions.Exception_Identity (E),
                         Member);
                   end if;
@@ -953,7 +821,7 @@ package body AdaBroker.OmniProxyCallWrapper is
                      Member.Minor,
                      Member.Completed)
                   then
-                     CORBA.Raise_CORBA_Exception
+                     Exceptions.Raise_CORBA_Exception
                        (Ada.Exceptions.Exception_Identity (E),
                         Member);
                   end if;
@@ -971,7 +839,7 @@ package body AdaBroker.OmniProxyCallWrapper is
                      Member.Minor,
                      Member.Completed)
                   then
-                     CORBA.Raise_CORBA_Exception
+                     Exceptions.Raise_CORBA_Exception
                        (Ada.Exceptions.Exception_Identity (E),
                         Member);
                   end if;
@@ -989,7 +857,7 @@ package body AdaBroker.OmniProxyCallWrapper is
                      Member.Minor,
                      Member.Completed)
                   then
-                     CORBA.Raise_CORBA_Exception
+                     Exceptions.Raise_CORBA_Exception
                        (Ada.Exceptions.Exception_Identity (E),
                         Member);
                   end if;
@@ -1007,7 +875,7 @@ package body AdaBroker.OmniProxyCallWrapper is
                      Member.Minor,
                      Member.Completed)
                   then
-                     CORBA.Raise_CORBA_Exception
+                     Exceptions.Raise_CORBA_Exception
                        (Ada.Exceptions.Exception_Identity (E),
                         Member);
                   end if;
@@ -1025,7 +893,7 @@ package body AdaBroker.OmniProxyCallWrapper is
                      Member.Minor,
                      Member.Completed)
                   then
-                     CORBA.Raise_CORBA_Exception
+                     Exceptions.Raise_CORBA_Exception
                        (Ada.Exceptions.Exception_Identity (E),
                         Member);
                   end if;
@@ -1043,7 +911,7 @@ package body AdaBroker.OmniProxyCallWrapper is
                      Member.Minor,
                      Member.Completed)
                   then
-                     CORBA.Raise_CORBA_Exception
+                     Exceptions.Raise_CORBA_Exception
                        (Ada.Exceptions.Exception_Identity (E),
                         Member);
                   end if;
@@ -1061,7 +929,7 @@ package body AdaBroker.OmniProxyCallWrapper is
                      Member.Minor,
                      Member.Completed)
                   then
-                     CORBA.Raise_CORBA_Exception
+                     Exceptions.Raise_CORBA_Exception
                        (Ada.Exceptions.Exception_Identity (E),
                         Member);
                   end if;
@@ -1079,7 +947,7 @@ package body AdaBroker.OmniProxyCallWrapper is
                      Member.Minor,
                      Member.Completed)
                   then
-                     CORBA.Raise_CORBA_Exception
+                     Exceptions.Raise_CORBA_Exception
                        (Ada.Exceptions.Exception_Identity (E),
                         Member);
                   end if;
@@ -1097,7 +965,7 @@ package body AdaBroker.OmniProxyCallWrapper is
                      Member.Minor,
                      Member.Completed)
                   then
-                     CORBA.Raise_CORBA_Exception
+                     Exceptions.Raise_CORBA_Exception
                        (Ada.Exceptions.Exception_Identity (E),
                         Member);
                   end if;
@@ -1115,7 +983,7 @@ package body AdaBroker.OmniProxyCallWrapper is
                      Member.Minor,
                      Member.Completed)
                   then
-                     CORBA.Raise_CORBA_Exception
+                     Exceptions.Raise_CORBA_Exception
                        (Ada.Exceptions.Exception_Identity (E),
                         Member);
                   end if;
@@ -1133,7 +1001,7 @@ package body AdaBroker.OmniProxyCallWrapper is
                      Member.Minor,
                      Member.Completed)
                   then
-                     CORBA.Raise_CORBA_Exception
+                     Exceptions.Raise_CORBA_Exception
                        (Ada.Exceptions.Exception_Identity (E),
                         Member);
                   end if;
@@ -1151,7 +1019,7 @@ package body AdaBroker.OmniProxyCallWrapper is
                      Member.Minor,
                      Member.Completed)
                   then
-                     CORBA.Raise_CORBA_Exception
+                     Exceptions.Raise_CORBA_Exception
                        (Ada.Exceptions.Exception_Identity (E),
                         Member);
                   end if;
@@ -1169,7 +1037,7 @@ package body AdaBroker.OmniProxyCallWrapper is
                      Member.Minor,
                      Member.Completed)
                   then
-                     CORBA.Raise_CORBA_Exception
+                     Exceptions.Raise_CORBA_Exception
                        (Ada.Exceptions.Exception_Identity (E),
                         Member);
                   end if;
@@ -1187,7 +1055,7 @@ package body AdaBroker.OmniProxyCallWrapper is
                      Member.Minor,
                      Member.Completed)
                   then
-                     CORBA.Raise_CORBA_Exception
+                     Exceptions.Raise_CORBA_Exception
                        (Ada.Exceptions.Exception_Identity (E),
                         Member);
                   end if;
@@ -1205,7 +1073,7 @@ package body AdaBroker.OmniProxyCallWrapper is
                      Member.Minor,
                      Member.Completed)
                   then
-                     CORBA.Raise_CORBA_Exception
+                     Exceptions.Raise_CORBA_Exception
                        (Ada.Exceptions.Exception_Identity (E),
                         Member);
                   end if;
@@ -1215,50 +1083,10 @@ package body AdaBroker.OmniProxyCallWrapper is
       end loop;
    end One_Way;
 
-   --------------------------------
-   -- Completion_Status_To_C_Int --
-   --------------------------------
-
-   function Completion_Status_To_C_Int
-     (Status : in CORBA.Completion_Status)
-      return Interfaces.C.int is
-   begin
-      case Status is
-         when CORBA.Completed_Yes =>
-            return Interfaces.C.int (0);
-         when CORBA.Completed_No =>
-            return Interfaces.C.int (1);
-         when CORBA.Completed_Maybe =>
-            return Interfaces.C.int (2);
-      end case;
-   end Completion_Status_To_C_Int;
-
-   --------------------------------
-   -- C_Int_To_Completion_Status --
-   --------------------------------
-
-   function C_Int_To_Completion_Status
-     (N : in Interfaces.C.int)
-      return CORBA.Completion_Status is
-   begin
-      case N is
-         when 1 =>
-            return CORBA.Completed_Yes;
-         when 2 =>
-            return CORBA.Completed_No;
-         when 3 =>
-            return CORBA.Completed_Maybe;
-         when others =>
-            Ada.Exceptions.Raise_Exception
-              (CORBA.AdaBroker_Fatal_Error'Identity,
-               "incorrect Completion_Status in C_Int_To_Completion_Status " &
-               "(see corba_exceptions.adb L210)");
-      end case;
-   end C_Int_To_Completion_Status;
-
    --------------------------------------------
    -- C_Omni_Call_Transient_Exeption_Handler --
-   -------------------------------------------
+   --------------------------------------------
+
    function C_Omni_Call_Transient_Exeption_Handler
      (Obj     : in System.Address;
       Retries : in Interfaces.C.unsigned_long;
@@ -1291,7 +1119,7 @@ package body AdaBroker.OmniProxyCallWrapper is
       C_Obj     := Obj'Address;
       C_Retries := Interfaces.C.unsigned_long (Retries);
       C_Minor   := Interfaces.C.unsigned_long (Minor);
-      C_Status  := Completion_Status_To_C_Int (Status);
+      C_Status  := To_Int (Status);
 
       --  Call the C function ...
       C_Result := C_Omni_Call_Transient_Exeption_Handler
@@ -1338,7 +1166,7 @@ package body AdaBroker.OmniProxyCallWrapper is
       C_Obj     := Obj'Address;
       C_Retries := Interfaces.C.unsigned_long (Retries);
       C_Minor   := Interfaces.C.unsigned_long (Minor);
-      C_Status  := Completion_Status_To_C_Int (Status);
+      C_Status  := To_Int (Status);
 
       --  Call the C function
       C_Result := C_Omni_Comm_Failure_Exception_Handler
@@ -1385,7 +1213,7 @@ package body AdaBroker.OmniProxyCallWrapper is
       C_Obj     := Obj'Address;
       C_Retries := Interfaces.C.unsigned_long (Retries);
       C_Minor   := Interfaces.C.unsigned_long (Minor);
-      C_Status  := Completion_Status_To_C_Int (Status);
+      C_Status  := To_Int (Status);
 
       --  Call the C function
       C_Result := C_Omni_System_Exception_Handler
