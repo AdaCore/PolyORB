@@ -36,20 +36,12 @@
 with Ada.Streams;
 with Ada.Unchecked_Conversion;
 
-with PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl;
-with PolyORB.POA_Policies.Thread_Policy;
-
 package body PolyORB.Obj_Adapters.Simple is
 
    use Ada.Streams;
 
    use PolyORB.Exceptions;
-
    use PolyORB.Tasking.Mutexes;
-
-   use PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl;
-   use PolyORB.POA_Policies.Thread_Policy;
-
    use Object_Map_Entry_Arrays;
 
    subtype Simple_OA_Oid is Stream_Element_Array
@@ -108,8 +100,32 @@ package body PolyORB.Obj_Adapters.Simple is
                 Null_Members'(Null_Member));
          OME := (Servant => null, If_Desc => (null, null));
       end if;
-
    end Find_Entry;
+
+   ------------------------------
+   -- Handle_Request_Execution --
+   ------------------------------
+
+   function Handle_Request_Execution
+     (Self      : access Simple_Executor;
+      Msg       : PolyORB.Components.Message'Class;
+      Requestor : PolyORB.Components.Component_Access)
+     return PolyORB.Components.Message'Class
+   is
+      use PolyORB.Servants;
+
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
+
+   begin
+      --  At this stage, PolyORB.ORB.Run has already affected a thread
+      --  to handle the request execution, in which this current call
+      --  is executed. Thus we just need to call the Execute_Servant
+      --  procedure to go on with the request execution.
+
+      return Execute_Servant (Servant_Access (Requestor), Msg);
+   end Handle_Request_Execution;
 
    ------------
    -- Create --
@@ -220,7 +236,6 @@ package body PolyORB.Obj_Adapters.Simple is
       Enter (OA.Lock);
       OA.Object_Map.Table (Index) := OME;
       Leave (OA.Lock);
-
    end Unexport;
 
    ----------------
@@ -358,9 +373,6 @@ package body PolyORB.Obj_Adapters.Simple is
    -- Find_Servant --
    ------------------
 
-   No_Thread_Policy : constant ThreadPolicy_Access := new ORB_Ctrl_Policy;
-   --  XXX ????
-
    procedure Find_Servant
      (OA      : access Simple_Obj_Adapter;
       Id      : access Objects.Object_Id;
@@ -380,7 +392,7 @@ package body PolyORB.Obj_Adapters.Simple is
       end if;
 
       Servant := OME.Servant;
-      PolyORB.Servants.Set_Thread_Policy (Servant, No_Thread_Policy);
+      PolyORB.Servants.Set_Executor (Servant, OA.S_Exec'Access);
    end Find_Servant;
 
    ---------------------
@@ -398,10 +410,8 @@ package body PolyORB.Obj_Adapters.Simple is
       pragma Warnings (On);
 
    begin
-
-      --  SOA: do nothing.
+      --  SOA: do nothing
       Servant := null;
-
    end Release_Servant;
 
 end PolyORB.Obj_Adapters.Simple;

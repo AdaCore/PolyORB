@@ -1409,7 +1409,6 @@ package body PolyORB.POA is
          Key,
          Oid,
          Error);
-
    end Export;
 
    --------------
@@ -1600,8 +1599,9 @@ package body PolyORB.POA is
                  (Get_Hold_Servant
                   (POA_Manager_Of (Obj_OA),
                    POA_Types.Obj_Adapter_Access (Obj_OA)));
-               Servants.Set_Thread_Policy (Servant, Obj_OA.Thread_Policy);
-
+               Servants.Set_Executor
+                 (Servant,
+                  Executor (Obj_OA.Thread_Policy));
                Leave (Obj_OA.POA_Lock);
                return;
 
@@ -1675,9 +1675,7 @@ package body PolyORB.POA is
                                           Completed => Completed_No));
          return;
       end if;
-
-      Servants.Set_Thread_Policy (Servant, Obj_OA.Thread_Policy);
-
+      Servants.Set_Executor (Servant, Executor (OA.Thread_Policy));
       pragma Debug (O ("Find_Servant: Leave."));
    end Find_Servant;
 

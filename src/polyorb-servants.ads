@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -37,16 +37,20 @@
 
 with PolyORB.Annotations;
 with PolyORB.Components;
-with PolyORB.POA_Policies.Thread_Policy;
 
 package PolyORB.Servants is
+
+   -------------
+   -- Servant --
+   -------------
+
+   --  A Servant is a Component that supports the messages
+   --  defined in PolyORB.Servants.Interface. This type may
+   --  be further derived by personality-specific units.
 
    type Servant is abstract new PolyORB.Components.Component with private;
 
    type Servant_Access is access all Servant'Class;
-   --  A Servant is a Component that supports the messages
-   --  defined in PolyORB.Servants.Interface. This type may
-   --  be further derived by personality-specific units.
 
    function Handle_Message
      (S   : access Servant;
@@ -59,44 +63,40 @@ package PolyORB.Servants is
      return Components.Message'Class
       is abstract;
 
-   procedure Set_Thread_Policy
-     (S  : access Servant;
-      TP :        POA_Policies.Thread_Policy.ThreadPolicy_Access);
-   pragma Inline (Set_Thread_Policy);
-   --  Set a ThreadPolicy pointer for the servant
-
    function Notepad_Of
      (S : Servant_Access)
      return PolyORB.Annotations.Notepad_Access;
    pragma Inline (Notepad_Of);
-   --  Return Notepad associated to a servant.
+   --  Return Notepad associated to a servant
+
+   --------------
+   -- Executor --
+   --------------
+
+   --  An Executor is responsible for setting the condition under
+   --  which a Servant object executes a request.
+
+   type Executor is abstract tagged limited private;
+   type Executor_Access is access all Executor'Class;
+
+   function Handle_Request_Execution
+     (Self      : access Executor;
+      Msg       : PolyORB.Components.Message'Class;
+      Requestor : PolyORB.Components.Component_Access)
+     return PolyORB.Components.Message'Class
+      is abstract;
+
+   procedure Set_Executor
+     (S    : access Servant;
+      Exec :        Executor_Access);
+   pragma Inline (Set_Executor);
 
 private
 
+   type Executor is abstract tagged limited null record;
+
    type Servant is abstract new PolyORB.Components.Component with record
-      TP_Access : POA_Policies.Thread_Policy.ThreadPolicy_Access := null;
-
-      --  TP_Access is a ThreadPolicy_Access. It is a pointer to the
-      --  ThreadPolicy of the OA that manages the Servant. If the OA
-      --  is not a POA, then this policy will be the ORB_CTRL_MODEL
-      --  policy. This field is needed by PolyORB in order to
-      --  execute a request on a servant with the appropriate Thread
-      --  Policy. We can notice that only the POAs use different
-      --  thread policies, but as the ORB doesn't know if the OA is
-      --  a POA or not, a generic mechanism is needed.
-      --  1) When a Servant is created, TP_Access is set to null;
-      --  2) When the ORB has to execute a job, it executes PolyORB.Jobs.Run;
-      --  3) In Jobs.Run, a surrogate is binded to an object
-      --     (servant, session,..)  with the References-Binding.Bind
-      --     function;
-      --  4) If the object is a Servant, its Thread_Policy will be set during
-      --     an upcall to Find_Servant;
-      --  5) Then, after the binding, a message will be sent to the servant;
-      --  6) The servant will use TP_Access in order to be executed with
-      --     the appropriate thread policy (POA case) or with the
-      --     ORB_CTRL_MODEL (other cases).
-
+      Exec : Executor_Access;
       Notepad : aliased PolyORB.Annotations.Notepad;
-
    end record;
 end PolyORB.Servants;

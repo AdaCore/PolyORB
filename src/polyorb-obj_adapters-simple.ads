@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -125,10 +125,20 @@ private
      (Object_Map_Entry, Natural, 1, 10, 1);
    subtype Object_Map_Entry_Array is Object_Map_Entry_Arrays.Instance;
 
+   type Simple_Executor is new Servants.Executor with null record;
+
+   function Handle_Request_Execution
+     (Self      : access Simple_Executor;
+      Msg       : PolyORB.Components.Message'Class;
+      Requestor : PolyORB.Components.Component_Access)
+     return PolyORB.Components.Message'Class;
+
    type Simple_Obj_Adapter is new Obj_Adapter with record
       Object_Map : Object_Map_Entry_Array;
       --  Object_Ids are simply the indices of the objects
       --  within the object map.
+
+      S_Exec : aliased Simple_Executor;
 
       Lock : PolyORB.Tasking.Mutexes.Mutex_Access;
    end record;

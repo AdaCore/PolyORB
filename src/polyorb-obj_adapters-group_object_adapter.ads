@@ -127,12 +127,23 @@ private
       PolyORB.Utils.HFunctions.Hyper.Next_Hash_Parameters);
    use Perfect_Htable;
 
+   type Simple_Executor is new Servants.Executor with null record;
+
+   function Handle_Request_Execution
+     (Self      : access Simple_Executor;
+      Msg       : PolyORB.Components.Message'Class;
+      Requestor : PolyORB.Components.Component_Access)
+     return PolyORB.Components.Message'Class;
+
    type Group_Object_Adapter is new Obj_Adapter with record
       Lock : PolyORB.Tasking.Mutexes.Mutex_Access;
       --  Mutex
 
       Registered_Groups : Table_Instance;
       --  List of regsitered groups
+
+      S_Exec : aliased Simple_Executor;
+
    end record;
 
 end PolyORB.Obj_Adapters.Group_Object_Adapter;

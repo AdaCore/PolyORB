@@ -36,7 +36,6 @@
 with PolyORB.Binding_Data;
 with PolyORB.Exceptions;
 with PolyORB.Log;
-with PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl;
 with PolyORB.Servants.Group_Servants;
 with PolyORB.Utils;
 
@@ -51,11 +50,6 @@ package body PolyORB.Obj_Adapters.Group_Object_Adapter is
      ("polyorb.obj_adapters.group_object_adapter");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
-
-   use PolyORB.POA_Policies.Thread_Policy;
-   use PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl;
-
-   No_Thread_Policy : constant ThreadPolicy_Access := new ORB_Ctrl_Policy;
 
    ------------
    -- Create --
@@ -77,6 +71,31 @@ package body PolyORB.Obj_Adapters.Group_Object_Adapter is
       Destroy (GOA.Lock);
       Destroy (Obj_Adapter (GOA.all)'Access);
    end Destroy;
+
+   ------------------------------
+   -- Handle_Request_Execution --
+   ------------------------------
+
+   function Handle_Request_Execution
+     (Self      : access Simple_Executor;
+      Msg       : PolyORB.Components.Message'Class;
+      Requestor : PolyORB.Components.Component_Access)
+     return PolyORB.Components.Message'Class
+   is
+      use PolyORB.Servants;
+
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
+
+   begin
+      --  At this stage, PolyORB.ORB.Run has already affected a thread
+      --  to handle the request execution, in which this current call
+      --  is executed. Thus we just need to call the Execute_Servant
+      --  procedure to go on with the request execution.
+
+      return Execute_Servant (Servant_Access (Requestor), Msg);
+   end Handle_Request_Execution;
 
    --------------------------------------
    -- Interface to application objects --
@@ -125,7 +144,7 @@ package body PolyORB.Obj_Adapters.Group_Object_Adapter is
          pragma Debug
            (O ("Group servant : " & Image (Oid.all) & " exported"));
          Insert (GOA.Registered_Groups, Image (Oid.all), Obj);
-         PolyORB.Servants.Set_Thread_Policy (Obj, No_Thread_Policy);
+         PolyORB.Servants.Set_Executor (Obj, GOA.S_Exec'Access);
          --  XXX questionable
       end if;
       Leave (GOA.Lock);

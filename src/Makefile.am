@@ -82,6 +82,7 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-poa_policies-request_processing_policy-use_servant_manager.ads \
 		polyorb-poa_policies-servant_retention_policy-non_retain.ads \
 		polyorb-poa_policies-servant_retention_policy-retain.ads \
+		polyorb-poa_policies-thread_policy.ads \
 		polyorb-poa_policies-thread_policy-orb_ctrl.ads \
 		polyorb-poa_policies-thread_policy-main_thread.ads \
 		polyorb-poa_policies-thread_policy-single_thread.ads \
@@ -192,7 +193,6 @@ ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
 		polyorb-poa_policies-lifespan_policy.ads \
 		polyorb-poa_policies-request_processing_policy.ads \
 		polyorb-poa_policies-servant_retention_policy.ads \
-		polyorb-poa_policies-thread_policy.ads \
 		polyorb-protocols-interface.ads \
 		polyorb-rt_poa.ads \
 		polyorb-rt_poa_policies.ads \

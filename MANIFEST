@@ -990,6 +990,7 @@ src/polyorb-poa_policies-thread_policy-orb_ctrl.adb
 src/polyorb-poa_policies-thread_policy-orb_ctrl.ads
 src/polyorb-poa_policies-thread_policy-single_thread.adb
 src/polyorb-poa_policies-thread_policy-single_thread.ads
+src/polyorb-poa_policies-thread_policy.adb
 src/polyorb-poa_policies-thread_policy.ads
 src/polyorb-poa_policies.ads
 src/polyorb-poa_types.adb

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -49,7 +49,6 @@ package body PolyORB.POA_Policies.Thread_Policy.Main_Thread is
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
-
    Main_Thread_Lock : PolyORB.Tasking.Mutexes.Mutex_Access;
    Initialized : Boolean := False;
 
@@ -57,10 +56,13 @@ package body PolyORB.POA_Policies.Thread_Policy.Main_Thread is
    -- Create --
    ------------
 
-   function Create
-     return Main_Thread_Policy_Access is
+   function Create return Main_Thread_Policy_Access is
+      Result : constant Main_Thread_Policy_Access := new Main_Thread_Policy;
+
    begin
-      return new Main_Thread_Policy;
+      ThreadPolicy (Result.all).Executor := new Main_Thread_Executor;
+
+      return Result;
    end Create;
 
    ---------------
@@ -95,7 +97,7 @@ package body PolyORB.POA_Policies.Thread_Policy.Main_Thread is
 
    begin
       null;
-      --  No rule to test.
+      --  No rule to test
 
    end Check_Compatibility;
 
@@ -104,7 +106,7 @@ package body PolyORB.POA_Policies.Thread_Policy.Main_Thread is
    ------------------------------
 
    function Handle_Request_Execution
-     (Self      : access Main_Thread_Policy;
+     (Self      : access Main_Thread_Executor;
       Msg       :        PolyORB.Components.Message'Class;
       Requestor :        PolyORB.Components.Component_Access)
       return PolyORB.Components.Message'Class

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,15 +34,8 @@
 --  $Id$
 
 with PolyORB.Servants.Interface;
-with PolyORB.Log;
 
 package body PolyORB.Servants is
-
-   use PolyORB.Log;
-
-   package L is new PolyORB.Log.Facility_Log ("polyorb.servants");
-   procedure O (Message : in String; Level : Log_Level := Debug)
-     renames L.Output;
 
    ----------------
    -- Notepad_Of --
@@ -55,16 +48,17 @@ package body PolyORB.Servants is
       return S.Notepad'Access;
    end Notepad_Of;
 
-   -----------------------
-   -- Set_Thread_Policy --
-   -----------------------
+   ------------------
+   -- Set_Executor --
+   ------------------
 
-   procedure Set_Thread_Policy
-     (S  : access Servant;
-      TP :        POA_Policies.Thread_Policy.ThreadPolicy_Access) is
+   procedure Set_Executor
+     (S    : access Servant;
+      Exec :        Executor_Access)
+   is
    begin
-      S.TP_Access := TP;
-   end Set_Thread_Policy;
+      S.Exec := Exec;
+   end Set_Executor;
 
    --------------------
    -- Handle_Message --
@@ -75,27 +69,16 @@ package body PolyORB.Servants is
       Msg :        Components.Message'Class)
       return Components.Message'Class
    is
-      use PolyORB.POA_Policies.Thread_Policy;
       use PolyORB.Servants.Interface;
 
    begin
       if Msg in Execute_Request then
-
-         if S.TP_Access = null then
-            O ("No thread policy specified for servant");
-            raise Program_Error;
-         end if;
-
-         --  Dispatch by OA thread policy
-         pragma Debug (O ("POA Thread policy is "
-                          & Policy_Id (S.TP_Access.all)));
          return Handle_Request_Execution
-           (S.TP_Access,
+           (S.Exec,
             Msg,
             PolyORB.Components.Component_Access (S));
 
       else
-         pragma Debug (O ("Message not in Execute_Request"));
          raise PolyORB.Components.Unhandled_Message;
       end if;
    end Handle_Message;

@@ -4,9 +4,9 @@
 --                                                                          --
 --   P O L Y O R B . P O A _ P O L I C I E S . T H R E A D _ P O L I C Y    --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--            Copyright (C) 2004 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,21 +33,18 @@
 
 --  $Id$
 
-with PolyORB.Servants;
+package body PolyORB.POA_Policies.Thread_Policy is
 
-package PolyORB.POA_Policies.Thread_Policy is
-
-   type ThreadPolicy is abstract new Policy with private;
-   type ThreadPolicy_Access is access all ThreadPolicy'Class;
+   --------------
+   -- Executor --
+   --------------
 
    function Executor
      (Self : access ThreadPolicy)
-     return PolyORB.Servants.Executor_Access;
-
-private
-
-   type ThreadPolicy is abstract new Policy with record
-      Executor : PolyORB.Servants.Executor_Access;
-   end record;
+     return PolyORB.Servants.Executor_Access
+   is
+   begin
+      return Self.Executor;
+   end Executor;
 
 end PolyORB.POA_Policies.Thread_Policy;
