@@ -112,8 +112,8 @@ idl.sed:
 # Local rules
 # 
 
-all-local: polyorb_ug.html polyorb_ug.pdf polyorb_ug.ps polyorb_ug.txt \
-	polyorb_dg.html polyorb_dg.pdf polyorb_dg.txt polyorb_dg.ps
+all-local: polyorb_ug.info polyorb_ug.html polyorb_ug.pdf polyorb_ug.ps polyorb_ug.txt \
+	polyorb_ug.info polyorb_dg.html polyorb_dg.pdf polyorb_dg.txt polyorb_dg.ps
 
 clean-local:
 	-@${RM} polyorb_ug.pdf polyorb_ug.txt polyorb_ug.info 
@@ -135,3 +135,11 @@ install-data-local:
 	for f in `ls polyorb_ug.ps`; do  $(INSTALL_DATA) $$f $(prefix)/doc/polyorb/ps; done
 	for f in `ls polyorb_ug.pdf`; do  $(INSTALL_DATA) $$f $(prefix)/doc/polyorb/pdf; done
 	for f in `ls polyorb_ug.txt`; do  $(INSTALL_DATA) $$f $(prefix)/doc/polyorb/txt; done
+
+release: all
+	-@${RM} MANIFEST
+	@echo polyorb_ug.info >> MANIFEST
+	@echo polyorb_ug.ps >> MANIFEST
+	@echo polyorb_ug.pdf >> MANIFEST
+	@echo polyorb_ug.txt >> MANIFEST
+	@echo polyorb_ug.html/* >> MANIFEST
