@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---   P O L Y O R B . S E Q U E N C E S . U N B O U N D E D . H E L P E R    --
+--                POLYORB.SEQUENCES.UNBOUNDED.CORBA_HELPER                  --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -30,8 +30,6 @@
 --                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
-
---  $Id$
 
 --  Any conversion subprograms for unbounded sequences.
 
