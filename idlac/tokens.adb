@@ -18,7 +18,6 @@
 
 with Ada.Text_Io;
 with Ada.Characters.Latin_1; use Ada.Characters.Latin_1;
---  with Ada.Characters.Handling;
 with Gnat.Case_Util;
 with Types; use Types;
 with Errors;
@@ -406,6 +405,34 @@ package body Tokens is
             Col := Col + 1;
             Current_Token := T_Right_Cbracket;
             return;
+            --  mapping of escaped identifiers
+            --  CORBA 2.3 - 3.2.3.1 :
+            --  "users may lexically "escape" identifiers by prepending an
+            --  underscore (_) to na identifier.
+         when '_' =>
+            Col := Col + 1;
+            if Line (Col) in 'A' .. 'Z'
+              or else Line (Col) in 'a' .. 'z' then
+               Current_Token := Scan_Identifier;
+               if Current_Token = T_Identifier then
+                  Errors.Display_Error
+                    ("Invalid identifier name. An identifier cannot begin" &
+                     " with '_', except if the end is an idl keyword",
+                     Current_State.Line_Number,
+                     Col - 1,
+                     Errors.Error);
+                  raise Fatal_Error;
+               else
+                  Current_Token := T_Identifier;
+                  return;
+               end if;
+            else
+               Errors.Display_Error ("Invalid character '_'",
+                                     Current_State.Line_Number,
+                                     Col - 1,
+                                     Errors.Error);
+               raise Fatal_Error;
+            end if;
          when others =>
             if Line (Col) >= ' ' then
                Errors.Display_Error ("bad characater `" & Line (Col) & "'",
