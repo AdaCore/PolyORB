@@ -1,10 +1,10 @@
 with Ada.Strings.Unbounded;
 with CORBA; use CORBA;
 with Broca.Exceptions;
-with Broca.Marshalling;
+with Broca.Marshalling; use Broca.Marshalling;
 with Broca.Buffers;     use Broca.Buffers;
-with Broca.IOP;
-with Broca.Sequences;
+with Broca.IOP;         use Broca.IOP;
+with Broca.Sequences;   use Broca.Sequences;
 with Sockets.Constants;
 with Sockets.Naming;
 
@@ -18,6 +18,94 @@ package body Broca.IIOP is
 
    function Port_To_Network_Port (Port : CORBA.Unsigned_Short)
      return Interfaces.C.unsigned_short;
+
+   procedure Decapsulate_Profile
+     (Buffer   : in out Buffer_Descriptor;
+      Profile  : out Profile_Ptr);
+
+   procedure Encapsulate_Profile
+     (Buffer   : in out Buffer_Descriptor;
+      From     : in Buffer_Index_Type;
+      Profile  : in Profile_Ptr);
+
+   --------------------
+   -- Get_Profile_Id --
+   --------------------
+
+   function Get_Profile_Id
+     (Profile : Profile_IIOP_Type)
+     return Profile_Id is
+   begin
+      return Tag_Internet_IOP;
+   end Get_Profile_Id;
+
+   -------------------------
+   -- Decapsulate_Profile --
+   -------------------------
+
+   procedure Decapsulate_Profile
+     (Buffer   : in out Buffer_Descriptor;
+      Profile  : out Profile_Ptr)
+   is
+      Old_Endian   : Boolean := Get_Endianess (Buffer);
+      New_Endian   : Boolean;
+      Minor        : Octet;
+      Major        : Octet;
+      IIOP_Profile : Profile_IIOP_Ptr := new Profile_IIOP_Type;
+   begin
+      Unmarshall (Buffer, New_Endian);
+      Set_Endianess (Buffer, New_Endian);
+
+      Unmarshall (Buffer, Major);
+      Unmarshall (Buffer, Minor);
+
+      Unmarshall (Buffer, IIOP_Profile.Host);
+      Unmarshall (Buffer, IIOP_Profile.Port);
+      Align_Size (Buffer, UL_Size);
+      Unmarshall (Buffer, IIOP_Profile.Object_Key);
+      Set_Endianess (Buffer, Old_Endian);
+
+      Profile :=  Profile_Ptr (IIOP_Profile);
+   end Decapsulate_Profile;
+
+   -------------------------
+   -- Encapsulate_Profile --
+   -------------------------
+
+   procedure Encapsulate_Profile
+     (Buffer   : in out Buffer_Descriptor;
+      From     : in Buffer_Index_Type;
+      Profile  : in Profile_Ptr)
+   is
+      IIOP_Profile : Profile_IIOP_Type renames Profile_IIOP_Type (Profile.all);
+   begin
+      --  Endianess
+      Compute_New_Size (Buffer, O_Size, O_Size);
+
+      --  Major version
+      Compute_New_Size (Buffer, O_Size, O_Size);
+
+      --  Minor version
+      Compute_New_Size (Buffer, O_Size, O_Size);
+
+      --  Host
+      Compute_New_Size (Buffer, IIOP_Profile.Host);
+
+      --  Port
+      Compute_New_Size (Buffer, US_Size, US_Size);
+
+      Compute_New_Size (Buffer, IIOP_Profile.Object_Key);
+
+      Allocate_Buffer_And_Clear_Pos (Buffer, Size (Buffer));
+
+      Marshall (Buffer, Is_Little_Endian);
+      Marshall (Buffer, CORBA.Octet'(1));
+      Marshall (Buffer, CORBA.Octet'(0));
+      Marshall (Buffer, IIOP_Profile.Host);
+      Marshall (Buffer, IIOP_Profile.Port);
+      Align_Size (Buffer, UL_Size);
+      Marshall (Buffer, IIOP_Profile.Object_Key);
+   end Encapsulate_Profile;
 
    --------------------
    -- Get_Object_Key --
@@ -52,7 +140,7 @@ package body Broca.IIOP is
 
    procedure Create_Profile
      (Buffer : in out Buffer_Descriptor;
-      Profile : out IOP.Profile_Ptr)
+      Profile : out Profile_Ptr)
    is
       use Broca.Marshalling;
 
@@ -161,7 +249,7 @@ package body Broca.IIOP is
       end if;
    end Open_Strand;
 
-   type Strand_Connection_Type is new IOP.Connection_Type with
+   type Strand_Connection_Type is new Connection_Type with
       record
          Strand : Strand_Ptr;
       end record;
@@ -247,7 +335,7 @@ package body Broca.IIOP is
    --  Find a free connection (or create a new one) for a message to an
    --  OBJECT via PROFILE.
    function Find_Connection (Profile : access Profile_IIOP_Type)
-                             return IOP.Connection_Ptr
+                             return Connection_Ptr
    is
       use Interfaces.C;
       Strand : Strand_Ptr;
@@ -273,8 +361,13 @@ package body Broca.IIOP is
       if Strand.Fd = Sockets.Thin.Failure then
          Open_Strand (Profile, Strand);
       end if;
-      return new Strand_Connection_Type'(IOP.Connection_Type
+      return new Strand_Connection_Type'(Connection_Type
                                          with Strand => Strand);
    end Find_Connection;
 
+begin
+   Register
+     (Tag_Internet_IOP,
+      Encapsulate_Profile'Access,
+      Decapsulate_Profile'Access);
 end Broca.IIOP;

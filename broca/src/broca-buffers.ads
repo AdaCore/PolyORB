@@ -74,6 +74,9 @@ package Broca.Buffers is
    pragma Inline (Read);
    --  Read from Buffer an array of bytes
 
+   procedure Rewind (Buffer : in out Buffer_Descriptor);
+   --  Rewind buffer from beginning
+
    procedure Set_Endianess
      (Buffer        : in out Buffer_Descriptor;
       Little_Endian : in Boolean);

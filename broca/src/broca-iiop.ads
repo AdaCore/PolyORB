@@ -6,6 +6,7 @@ with Broca.Locks;
 with Broca.IOP;
 with Sockets.Thin;
 with Interfaces.C;
+pragma Elaborate_All (Broca.IOP);
 
 package Broca.IIOP is
    type Version_Type is
@@ -48,13 +49,17 @@ package Broca.IIOP is
          --  Lock on the list of strands.
          Lock : Broca.Locks.Rw_Lock_Type;
       end record;
-   type Profile_IIOP_Ptr is access Profile_IIOP_Type;
+   type Profile_IIOP_Ptr is access all Profile_IIOP_Type;
 
    --  Find a free connection (or create a new one) for a message to an
    --  OBJECT via PROFILE.
    function Find_Connection
      (Profile : access Profile_IIOP_Type)
-      return IOP.Connection_Ptr;
+     return IOP.Connection_Ptr;
+
+   function Get_Profile_Id
+     (Profile : Profile_IIOP_Type)
+     return IOP.Profile_Id;
 
    procedure Create_Profile
      (Buffer : in out Buffers.Buffer_Descriptor;

@@ -208,6 +208,15 @@ package body Broca.Buffers is
       Buffer.Pos := Buffer.Pos + Length;
    end Read;
 
+   ------------
+   -- Rewind --
+   ------------
+
+   procedure Rewind (Buffer : in out Buffer_Descriptor) is
+   begin
+      Buffer.Pos := 0;
+   end Rewind;
+
    -------------------
    -- Set_Endianess --
    -------------------

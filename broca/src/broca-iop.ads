@@ -27,6 +27,10 @@ package Broca.IOP is
    --  Receive data from a connection. Fill exactly Buffer. Raise
    --  comm_failure on error.
 
+   subtype Profile_Id is CORBA.Unsigned_Long;
+   Tag_Internet_IOP        : constant Profile_Id := 0;
+   Tag_Multiple_Components : constant Profile_Id := 1;
+
    type Profile_Type is abstract tagged limited null record;
 
    function Get_Object_Key
@@ -38,6 +42,10 @@ package Broca.IOP is
    function Find_Connection
      (Profile : access Profile_Type)
      return Connection_Ptr is abstract;
+
+   function Get_Profile_Id
+     (Profile : Profile_Type)
+      return Profile_Id is abstract;
 
    type Profile_Ptr is access all Profile_Type'Class;
 
@@ -56,5 +64,21 @@ package Broca.IOP is
      (Buffer   : in out Buffers.Buffer_Descriptor;
       Type_Id  : out CORBA.String;
       Profiles : out Profile_Ptr_Array_Ptr);
+
+   type Encapsulate_Profile_Type is
+     access procedure
+       (Buffer  : in out Buffers.Buffer_Descriptor;
+        From    : in Buffers.Buffer_Index_Type;
+        Profile : in Profile_Ptr);
+
+   type Decapsulate_Profile_Type is
+     access procedure
+       (Buffer  : in out Buffers.Buffer_Descriptor;
+        Profile : out Profile_Ptr);
+
+   procedure Register
+     (Profile     : in Profile_Id;
+      Encapsulate : in Encapsulate_Profile_Type;
+      Decapsulate : in Decapsulate_Profile_Type);
 
 end Broca.IOP;
