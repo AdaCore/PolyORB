@@ -54,11 +54,4 @@ exception
          Put (", completion status: ");
          Put_Line (Completion_Status'Image (Memb.Completed));
       end;
-   when E : Echo.no_walls =>
-      declare
-         Memb : Echo.no_walls_Members;
-      begin
-         Echo.Get_Members (E, Memb);
-         Put_Line ("sorry, no wall." & CORBA.Unsigned_Long'Image (Memb.one));
-      end;
 end Client;

@@ -3,7 +3,6 @@ with CORBA;
 with Broca.Marshalling;
 with Broca.Giop;
 with Broca.Exceptions;
-with Echo;
 package body Echo.Impl is
 
    type Object_Acc is access all Object'Class;
@@ -40,7 +39,7 @@ package body Echo.Impl is
             Marshall_Size_Unsigned_Long (Stream);
             --  reply_status
             Marshall_Size_Unsigned_Long (Stream);
-            --  return argument
+            --  return value
             Marshall_Size (Stream, Returns);
             Reply_Size := Stream.Pos - Broca.Giop.Message_Header_Size;
             Increase_Buffer_And_Clear_Pos (Stream, Stream.Pos);
@@ -55,49 +54,9 @@ package body Echo.Impl is
             Marshall (Stream, Request_Id);
             --  reply status
             Marshall (Stream, Broca.Giop.No_Exception);
-            --  return arg
-            Marshall (Stream, Mesg);
+            --  return value
+            Marshall (Stream, Returns);
             return;
-
-         exception
-            when E : no_walls =>
-               declare
-                  use Echo.Stream;
-                  RepoID : String
-                     := "IDL:Echo/no_walls:1.0";
-                  Member : no_walls_Members;
-               begin
-                  Echo.Get_Members (E, Member);
-                  --  Compute size of reply
-                  Stream.Pos := Broca.Giop.Message_Header_Size;
-                  --  service context
-                  Marshall_Size_Unsigned_Long (Stream);
-                  --  request id
-                  Marshall_Size_Unsigned_Long (Stream);
-                  --  reply status
-                  Marshall_Size_Unsigned_Long (Stream);
-                  Marshall_Size (Stream, RepoID);
-                  Marshall_Size (Stream, Member);
-                  Reply_Size :=
-                     Stream.Pos - Broca.Giop.Message_Header_Size;
-                  Increase_Buffer_And_Clear_Pos (Stream, Stream.Pos);
-
-                  Broca.Giop.Create_Giop_Header
-                     (Stream, Broca.Giop.Reply,
-                      CORBA.Unsigned_Long (Reply_Size));
-
-                  --  service context
-                  Marshall (Stream, CORBA.Unsigned_Long (0));
-                  --  request id
-                  Marshall (Stream, Request_Id);
-                  --  reply status
-                  Marshall (Stream, Broca.Giop.User_Exception);
-
-                  --  Marshall exception
-                  Marshall (Stream, RepoID);
-                  Marshall (Stream, Member);
-                  return;
-               end;
          end;
       end if;
 
