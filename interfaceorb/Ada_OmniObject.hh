@@ -139,9 +139,11 @@ public:
   IOP::TaggedProfileList* iopProfiles() ; 
   // this function calls omniobject::iopProfiles()
   // on the underlying object
+
   
 private:
-  void* ada_pointer ;
+  
+  void* Implobj ;
   // This pointer is only used by the Ada side of this object
   
   omniObject_C2Ada *C_OmniObject;
@@ -150,6 +152,9 @@ private:
   bool Init_Ok;
   // This flag tells if an init function was called or not
 
+  void* VTable;
+  // This field is only used by Ada. It is needed to interface C++ and Ada  
+  
 };
 
 extern void raise_ada_exception (const char *msg) ;

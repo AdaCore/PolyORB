@@ -74,11 +74,8 @@ public:
   
 private:
 
-  GIOP_S *C_Giop_s;
-  // Pointer on the underlying Giop_s object
-
-  bool Init_Ok;
-  // This flag tells whether an init function was called or not
+  void* VTable1;
+  // This field is only used by Ada. It is needed to interface C++ and Ada  
 
 };
 

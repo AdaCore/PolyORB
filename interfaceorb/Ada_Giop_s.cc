@@ -55,7 +55,7 @@
 Ada_Giop_s::Ada_Giop_s ()
 {
   Init_Ok = false;
-  C_Giop_s = NULL;
+  C_Object = NULL;
 };
 
   
@@ -64,7 +64,7 @@ Ada_Giop_s::Ada_Giop_s ()
 void
 Ada_Giop_s::Init (Strand *s)
 {
-  C_Giop_s = new GIOP_S (s);
+  C_Object = new GIOP_S (s);
   Init_Ok = true;
 };
 
@@ -76,8 +76,8 @@ Ada_Giop_s::RequestReceived(_CORBA_Boolean skip)
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_Giop_s
-    C_Giop_s->RequestReceived(skip);
+    // function on C_Object
+    ((Ada_Giop_s *) C_Object)->RequestReceived(skip);
   } else {
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_Giop_s::RequestReceived without initialising object.");
@@ -93,8 +93,9 @@ Ada_Giop_s::InitialiseReply(const int status,
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_Giop_s
-    C_Giop_s->InitialiseReply((GIOP::ReplyStatusType) status,msgsize);
+    // function on C_Object
+    ((Ada_Giop_s *) C_Object)->InitialiseReply((GIOP::ReplyStatusType) status,
+					       msgsize);
   } else {
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_Giop_s::InitialiseReply without initialising object.");
@@ -109,10 +110,20 @@ Ada_Giop_s::ReplyCompleted()
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_Giop_s
-    C_Giop_s->ReplyCompleted();
+    // function on C_Object
+    ((Ada_Giop_s *) C_Object)->ReplyCompleted();
   } else {
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_Giop_s::ReplyCompleted without initialising object.");
   }
 };
+
+
+
+
+
+
+
+
+
+

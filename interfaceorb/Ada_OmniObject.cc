@@ -194,10 +194,15 @@ extern _CORBA_Boolean dispatch(GIOP_S &,
 			       _CORBA_Boolean response_expected);
 // See implementation in omniobject.adb
   
+
+// Ada_Is_A
+//---------
 extern _CORBA_Boolean Ada_Is_A(const char* repoId) ;
 // See implementation in omniobject.adb
 
 
+// getOmniObject
+//--------------
 omniObject_C2Ada *
 Ada_OmniObject::getOmniObject() {
   return C_OmniObject ;

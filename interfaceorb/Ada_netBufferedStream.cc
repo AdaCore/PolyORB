@@ -67,7 +67,7 @@ Ada_netBufferedStream::Init (Strand *s, _CORBA_Boolean RdLock,
                              _CORBA_Boolean WrLock, size_t Bufsize)
 {
   // Creation of the underlying omniobject_C2Ada object
-  C_netBufferedStream = new NetBufferedStream (s,RdLock,WrLock,Bufsize);
+  C_Object = new NetBufferedStream (s,RdLock,WrLock,Bufsize);
   // updating of Init_OK flag 
   Init_Ok = true;
   return;
@@ -81,7 +81,7 @@ Ada_netBufferedStream::Init (Rope *r, _CORBA_Boolean RdLock,
                              _CORBA_Boolean WrLock, size_t Bufsize)
 {
   // Creation of the underlying omniobject_C2Ada object
-  C_netBufferedStream = new NetBufferedStream (r,RdLock,WrLock,Bufsize);
+  C_Object = new NetBufferedStream (r,RdLock,WrLock,Bufsize);
   // updating of Init_OK flag
   Init_Ok = true;
   return;
@@ -95,7 +95,7 @@ Ada_netBufferedStream::marshall (_CORBA_Char a, NetBufferedStream& s)
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_netBufferedStream
+    // function on C_Object
     a >>= s;
   } else {
     // else raise an Ada Exception
@@ -111,7 +111,7 @@ Ada_netBufferedStream::unmarshall (_CORBA_Char& a, NetBufferedStream& s)
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_netBufferedStream
+    // function on C_Object
     a <<= s;
   } else {
     // else raise an Ada Exception
@@ -127,7 +127,7 @@ Ada_netBufferedStream::marshall (_CORBA_Boolean b, NetBufferedStream& s)
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_netBufferedStream
+    // function on C_Object
     b >>= s;
   } else {
     // else raise an Ada Exception
@@ -143,7 +143,7 @@ Ada_netBufferedStream::unmarshall (_CORBA_Boolean& b, NetBufferedStream& s)
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_netBufferedStream
+    // function on C_Object
     b <<= s;
   } else {
     // else raise an Ada Exception
@@ -159,7 +159,7 @@ Ada_netBufferedStream::marshall (_CORBA_Short a, NetBufferedStream& s)
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_netBufferedStream
+    // function on C_Object
     a >>= s;
   } else {
     // else raise an Ada Exception
@@ -175,7 +175,7 @@ Ada_netBufferedStream::unmarshall (_CORBA_Short& a, NetBufferedStream& s)
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_netBufferedStream
+    // function on C_Object
     a <<= s;
   } else {
     // else raise an Ada Exception
@@ -191,7 +191,7 @@ Ada_netBufferedStream::marshall (_CORBA_UShort a, NetBufferedStream& s)
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_netBufferedStream
+    // function on C_Object
     a >>= s;
   } else {
     // else raise an Ada Exception
@@ -207,7 +207,7 @@ Ada_netBufferedStream::unmarshall (_CORBA_UShort& a, NetBufferedStream& s)
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_netBufferedStream
+    // function on C_Object
     a <<= s;
   } else {
     // else raise an Ada Exception
@@ -223,7 +223,7 @@ Ada_netBufferedStream::marshall (_CORBA_Long a, NetBufferedStream& s)
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_netBufferedStream
+    // function on C_Object
     a >>= s;
   } else {
     // else raise an Ada Exception
@@ -236,7 +236,7 @@ Ada_netBufferedStream::unmarshall (_CORBA_Long& a, NetBufferedStream& s)
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_netBufferedStream
+    // function on C_Object
     a <<= s;
   } else {
     // else raise an Ada Exception
@@ -252,7 +252,7 @@ Ada_netBufferedStream::marshall (_CORBA_ULong a, NetBufferedStream& s)
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_netBufferedStream
+    // function on C_Object
     a >>= s;
   } else {
     // else raise an Ada Exception
@@ -268,7 +268,7 @@ Ada_netBufferedStream::unmarshall (_CORBA_ULong& a, NetBufferedStream& s)
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_netBufferedStream
+    // function on C_Object
     a <<= s;
   } else {
     // else raise an Ada Exception
@@ -284,7 +284,7 @@ Ada_netBufferedStream::marshall (_CORBA_Float a, NetBufferedStream& s)
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_netBufferedStream
+    // function on C_Object
     a >>= s;
   } else {
     // else raise an Ada Exception
@@ -300,7 +300,7 @@ Ada_netBufferedStream::unmarshall (_CORBA_Float& a, NetBufferedStream& s)
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_netBufferedStream
+    // function on C_Object
     a <<= s;
   } else {
     // else raise an Ada Exception
@@ -316,7 +316,7 @@ Ada_netBufferedStream::marshall (_CORBA_Double a, NetBufferedStream& s)
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_netBufferedStream
+    // function on C_Object
     a >>= s;
   } else {
     // else raise an Ada Exception
@@ -332,7 +332,7 @@ Ada_netBufferedStream::unmarshall (_CORBA_Double& a, NetBufferedStream& s)
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_netBufferedStream
+    // function on C_Object
     a <<= s;
   } else {
     // else raise an Ada Exception
@@ -348,8 +348,8 @@ Ada_netBufferedStream::isReUsingExistingConnection()
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_netBufferedStream
-    return C_netBufferedStream->isReUsingExistingConnection();
+    // function on C_Object
+    return C_Object->isReUsingExistingConnection();
   } else {
     // else raise an Ada Exception
     raise_ada_exception ("Call of isReUsingExistingConnection without initialising object.");

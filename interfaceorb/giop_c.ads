@@ -64,6 +64,7 @@ package Giop_C is
 
    type Object is new NetbufferedStream.Object with record
       Table1 : Interfaces.CPP.Vtable_Ptr ;
+      -- Ada field : needed to interface C++ and Ada
    end record;
    pragma CPP_Class (Object) ;
    pragma CPP_Vtable (Object,Table1,1) ;

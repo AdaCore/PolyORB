@@ -90,15 +90,20 @@ package OmniObject is
    -----------------------------------------------
    type Object is tagged limited record
       Implobj : Implemented_Object_Ptr  := null ;
+      -- Ada field
+      -- the pointer implobj is null for proxy object
       Cptr : System.Address ;
-      -- this field is only used by the C++ side of the object
+      -- C field : Pointer on the underlying omniObject_C2Ada object
+      Init_Ok : Sys_Dep.C_Boolean ;
+      -- C field : state of the object (initialized or not)
       Table : Interfaces.CPP.Vtable_Ptr ;
+      -- Ada field : needed to interface C++ and Ada
    end record ;
-   -- the pointer implobj is null for proxy object
-
    pragma CPP_Class (Object);
    pragma CPP_Vtable (Object,Table,2);
-   -- This object is wrapped around Ada_OmniObject (see Ada_OmniObject.hh)
+   -- this type is both a C and an Ada class
+   -- it is is wrapped around Ada_OmniObject
+   -- (see Ada_OmniObject.hh)
 
    type Object_Ptr is access all Object'Class ;
 
