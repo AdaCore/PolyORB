@@ -124,7 +124,7 @@ package body all_types.Impl is
       return matrix
    is
    begin
-      return Arg;
+      return arg;
    end echoMatrix;
 
    procedure testException

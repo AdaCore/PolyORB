@@ -128,14 +128,25 @@ main (int argc, char **argv)
 	Output ("test union", Pass);
       }
 
-      /*
-	declare
-	X : U_Sequence := U_Sequence (IDL_SEQUENCE_Short.Null_Sequence);
-	begin
-	X := X & 16 & 32 & 64 & 128 & 257;
-	Output ("test unbounded sequence", at->EchoUsequence (Myall_types, X) = X);
-	end;
+      {
+	CORBA::Short Tab[] = { 16, 32, 64, 128, 257 };
+	all_types::U_sequence X (5, 5, Tab);
+	all_types::U_sequence Y;
+	bool Pass = 1;
+	int i;
+
+	Y = *at->echoUsequence (X);
 	
+	Pass &= Y.length () == X.length ();
+
+	for (i = 0 ; Pass && i < X.length () ; i++) {
+	  Pass &= (X [i] == Y [i]);
+	}
+	
+	Output ("test unbounded sequence", Pass);
+      }
+
+      /*	
 	declare
 	Member : My_Exception_Members;
       begin
@@ -147,19 +158,44 @@ main (int argc, char **argv)
             Ok := (Member.Info = 2485);
       end;
       Output ("test exception", Ok);
+      */
 
-      declare
-         X : Simple_Array := (2,3,5,7,11);
-      begin
-         Output ("test simple array", at->EchoArray (Myall_types, X) = X);
-      end;
+      {
+        all_types::simple_array  X = { 2, 3, 5, 7, 11 };
+	all_types::simple_array_var Y;
+	bool Pass = 1;
+	int i;
 
-      declare
-         M : Matrix := ((165, 252, 375), (377, 145, 222), (202, 477, 147));
-      begin
-         Output ("test multi-dimensional array", at->EchoMatrix (Myall_types, M) = M);
-      end;
+	Y = at->echoArray (X);
 
+	for (i = 0 ; Pass && i < 5 ; i++) {
+	  Pass &= X [i] == Y [i];
+	}
+
+	Output ("test simple array", Pass);
+      }
+
+      {
+         all_types::matrix M = { { 0xfe, 0xe1, 0x5a },
+		      { 0xde, 0xad, 0xa5 },
+		      { 0xbe, 0xef, 0x88 } };
+	 all_types::matrix_var N;
+	 int i, j;
+	 bool Pass = 1;
+
+	 N = at->echoMatrix (M);
+	 for (i = 0 ; /* Pass && */ i < 3 ; i++)
+	   for (j = 0 ; /* Pass && */ j < 3 ; j++) {
+	     Pass &= M [i][j] == N [i][j];
+	     cout << "M[" << i << " ][" << j << "] == " << M[i][j] << endl;
+	     cout << "N[" << i << " ][" << j << "] == " << N[i][j] << endl;
+	   }
+
+         Output ("test multi-dimensional array", Pass);
+      }
+
+
+      /*
 --   declare
 --      X : Simple_Struct := (A => (0,1,2,3,4,5,6,7,8,9), B => 10);
 --   begin
