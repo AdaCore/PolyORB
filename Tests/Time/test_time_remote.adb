@@ -4,7 +4,10 @@
 
 package body Test_Time_Remote is
 
-   procedure Do_Nothing is begin null; end Do_Nothing;
+   procedure Do_Nothing (Table : in out Table_Type) is
+   begin 
+      Table := (others => 1.0);
+   end Do_Nothing;
 
    procedure Wait_5_Seconds is
    begin

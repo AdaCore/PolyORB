@@ -8,28 +8,21 @@ with Text_IO; use Text_IO;
 
 procedure Test_Time is
 
+   Count : constant := 1_000;
    Before, After : Time;
-
-   procedure Test is
-   begin
-      Before := Clock;
-      Do_Nothing;
-      After := Clock;
-      Put_Line ("Done in " & Duration'Image (To_Duration (After - Before)) &
-                "seconds");
-   end Test;
+   Table : Table_Type := (others => 0.0);
 
 begin
    Put_Line ("Waiting for the remote partition");
-   Do_Nothing;
+   Do_Nothing (Table);
    Put_Line ("Starting");
-   for I in 1 .. 20 loop
-      Test;
-   end loop;
-   Put_Line ("Starting second test (5 seconds)");
    Before := Clock;
-   Wait_5_Seconds;
+   for I in 1 .. Count loop
+      Do_Nothing (Table);
+   end loop;
    After := Clock;
-   Put_Line ("Done in " & Duration'Image (To_Duration (After - Before)) &
-             "seconds");
+   Put_Line
+      ("Avg Time : " &
+       Duration'Image (To_Duration (After - Before) / Duration (Count)) &
+       "seconds");
 end Test_Time;
