@@ -83,13 +83,6 @@ package PolyORB.ORB is
    -- Utility routines for jobs handling --
    ----------------------------------------
 
-   procedure Run_And_Free_Job
-     (J : in out PJ.Job_Access);
-   --  Execute job J in the context of tasking policy P.
-   --  J is ran in the context of the calling task, except in
-   --  cases where the policy mandates otherwise.
-   --  J is freed afterwards.
-
    function Duplicate_Request_Job
      (RJ : access PJ.Job'Class)
      return PJ.Job_Access;
@@ -294,10 +287,17 @@ private
 
    --  The middleware core implements the Reactor pattern
    --  to handle event occurring on asynchronous event sources.
-
-   type AES_Event_Handler is abstract tagged limited null record;
    --  An event handler is associated with each asynchronous
-   --  event source.
+   --  event source. The handling of an event constitutes
+   --  a Job that can be performed by an ORB task.
+
+   type AES_Event_Handler is abstract new PolyORB.Jobs.Job with record
+      ORB : ORB_Access;
+      AES : PAE.Asynch_Ev_Source_Access;
+   end record;
+
+   procedure Run (AEH : access AES_Event_Handler);
+   --  Call Handle_Event.
 
    procedure Handle_Event
      (H   : access AES_Event_Handler;
@@ -309,12 +309,11 @@ private
    --  event source has been destroyed, and the handler must be
    --  deallocated.
 
-   type AES_Event_Handler_Access is
-     access all AES_Event_Handler'Class;
-
    --  In this implementation of the Reactor pattern, the
    --  association between an event source and its event
    --  handler is made using an Annotation on the event source.
+
+   type AES_Event_Handler_Access is access AES_Event_Handler'Class;
 
    type AES_Note is new Annotations.Note with record
       Handler : AES_Event_Handler_Access;

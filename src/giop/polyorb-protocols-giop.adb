@@ -482,7 +482,7 @@ package body PolyORB.Protocols.GIOP is
       end loop;
 
       if Message_Magic /= Magic then
-         pragma Debug (O ("Unmarshall_GIOP_Header: Bad magic!"));
+         O ("Unmarshall_GIOP_Header: Bad magic!");
          return;
       end if;
 
@@ -493,8 +493,7 @@ package body PolyORB.Protocols.GIOP is
       if not (Message_Major_Version =  Ses.Major_Version)
         or else (Ses.Minor_Version < Message_Minor_Version)
       then
-         pragma Debug
-           (O ("Unmarshall_GIOP_Header: GIOP version not supported"));
+         O ("Unmarshall_GIOP_Header: GIOP version not supported");
          return;
       end if;
 
@@ -2105,6 +2104,8 @@ package body PolyORB.Protocols.GIOP is
       Success       : Boolean;
       ORB           : constant ORB_Access := ORB_Access (S.Server);
 
+      Message_Completed : Boolean := True;
+
    begin
       pragma Debug
         (O ("Received data in state " & GIOP_State'Image (S.State)));
@@ -2147,6 +2148,11 @@ package body PolyORB.Protocols.GIOP is
             else
                raise GIOP_Error;
             end if;
+
+            Message_Completed := False;
+            --  Request_Received is in charge of processing the
+            --  arguments of the request (if any) and to signal
+            --  readiness for receiption of the next message.
 
          when Reply =>
             if S.Role = Client then
@@ -2248,7 +2254,7 @@ package body PolyORB.Protocols.GIOP is
             raise Not_Implemented;
       end case;
 
-      if S.State = Expect_Body then
+      if Message_Completed then
 
          --  The expected message body has now been received
          --  and processed: prepare to receive next message.

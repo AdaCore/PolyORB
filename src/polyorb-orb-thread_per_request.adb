@@ -67,10 +67,9 @@ package body PolyORB.ORB.Thread_Per_Request is
    A_Job : Jobs.Job_Access := null;
    --  This variables are used to initialized the threads local variables.
    --  They are used to replaced the accept statement
-   --  XXX There is nothing to prevent inconsistent interleaving
-   --      of writes and reads to this variable!!!
-   --  In this policy we can assert that there is only one task which executes
-   --  ORB.Run so the assertion XXX is wrong
+   --  In this policy we can assume that there is only one task which
+   --  executes ORB.Run. There is therefore no risk of inconsistent
+   --  interleaving of reads and writes to this variable.
 
    Thread_Init_Watcher    : Watcher_Access := null;
    Thread_Init_Version_Id : Version_Id;
