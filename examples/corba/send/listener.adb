@@ -87,7 +87,7 @@ procedure Listener is
 
 begin
    if Argument_Count > 1 then
-      Ada.Text_IO.Put_Line ("usage : ./listner [-v]");
+      Ada.Text_IO.Put_Line ("usage : ./listener [-v]");
       return;
    end if;
 
@@ -96,7 +96,7 @@ begin
    then
       Print_IOR := True;
    else
-      Ada.Text_IO.Put_Line ("usage : ./listner [-v]");
+      Ada.Text_IO.Put_Line ("usage : ./listener [-v]");
    end if;
 
    CORBA.ORB.Initialize ("ORB");
