@@ -52,12 +52,17 @@ SUFFIXES = .idl .ads .adb
 .idl.adb:
 	$(IDLAC) $(IDLAC_FLAGS) $<
 
-@APPLI_EXES@ @SERVICE_EXES@: force $(EXAMPLE).ads
+@APPLI_EXES@ @SERVICE_EXES@: forced_targets $(EXAMPLE).ads
 	$(GNATMAKE_FOR_TARGET) $@ $($@_FLAGS) $(GNATMAKE_FLAGS)
 
-force: src
+forced_targets: $(IDLAC) src
 
-src:
-	cd $(top_builddir)/compilers && $(MAKE)
+src: force
 	cd $(top_builddir)/cos && $(MAKE)
 	cd $(top_builddir)/src && $(MAKE)
+
+$(IDLAC): force
+	cd $(top_builddir)/compilers && $(MAKE)
+
+force:
+
