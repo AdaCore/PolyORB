@@ -43,8 +43,6 @@ package PolyORB.Transport.Datagram.Sockets_In is
 
    use PolyORB.Sockets;
 
-   End_Point_Read_Only : exception;
-
    ------------------
    -- Access Point --
    ------------------
@@ -66,8 +64,7 @@ package PolyORB.Transport.Datagram.Sockets_In is
      (TAP : access Socket_In_Access_Point)
       return Asynch_Ev.Asynch_Ev_Source_Access;
 
-   function Address_Of (SAP : Socket_In_Access_Point)
-     return Sock_Addr_Type;
+   function Address_Of (SAP : Socket_In_Access_Point) return Sock_Addr_Type;
 
    ---------------
    -- End Point --
@@ -98,10 +95,9 @@ package PolyORB.Transport.Datagram.Sockets_In is
       Buffer :        Buffers.Buffer_Access;
       Error  :    out Exceptions.Error_Container);
    pragma No_Return (Write);
-   pragma Unreferenced (Write);
-   --  Write data to datagram socket.
-   --  Unused for read-only transport endpoints, an exception will be raised
-   --  at run-time.
+   --  Write data to datagram socket. This procedure should not be
+   --  used for read-only transport endpoints, Program_Error will be
+   --  raised at run-time.
 
    procedure Close (TE : access Socket_In_Endpoint);
 

@@ -59,13 +59,15 @@ package body PolyORB.Transport.Datagram.Sockets_In is
      (SAP         : in out Socket_In_Access_Point;
       Socket      : in     Socket_Type;
       Address     : in out Sock_Addr_Type;
-      Update_Addr :        Boolean := True) is
+      Update_Addr :        Boolean := True)
+   is
    begin
       Bind_Socket (Socket, Address);
 
       SAP.Socket := Socket;
+
       if Update_Addr then
-         SAP.Addr   := Get_Socket_Name (Socket);
+         SAP.Addr := Get_Socket_Name (Socket);
          if SAP.Addr.Addr = Any_Inet_Addr then
             SAP.Addr.Addr := Addresses (Get_Host_By_Name (Host_Name), 1);
          end if;
@@ -87,6 +89,7 @@ package body PolyORB.Transport.Datagram.Sockets_In is
 
       Ev_Src : constant Asynch_Ev_Source_Access
         := Create_Event_Source (TAP.Socket);
+
    begin
       Set_Note (Notepad_Of (Ev_Src).all,
                 AES_Note'(Annotations.Note with Handler =>
@@ -98,8 +101,7 @@ package body PolyORB.Transport.Datagram.Sockets_In is
    -- Address_Of --
    ----------------
 
-   function Address_Of (SAP : Socket_In_Access_Point)
-     return Sock_Addr_Type is
+   function Address_Of (SAP : Socket_In_Access_Point) return Sock_Addr_Type is
    begin
       return SAP.Addr;
    end Address_Of;
@@ -129,6 +131,7 @@ package body PolyORB.Transport.Datagram.Sockets_In is
 
       Ev_Src : constant Asynch_Ev_Source_Access
         := Create_Event_Source (TE.Socket);
+
    begin
       Set_Note (Notepad_Of (Ev_Src).all,
                 AES_Note'(Annotations.Note with Handler =>
@@ -150,6 +153,7 @@ package body PolyORB.Transport.Datagram.Sockets_In is
 
       Data_Received : Stream_Element_Count;
       Request : Request_Type (N_Bytes_To_Read);
+
    begin
       --  Must read all data in one call from datagram socket.
       --  Amount read is often greater than asked amount.
@@ -169,9 +173,11 @@ package body PolyORB.Transport.Datagram.Sockets_In is
             Throw (Error, Unknown_E, System_Exception_Members'
                    (Minor => 0, Completed => Completed_Maybe));
       end;
+
       pragma Assert (Data_Received /= 0);
       pragma Debug (O (Data_Received'Img & " byte(s) received"));
       pragma Assert (Data_Received <= Size);
+
       Size := Data_Received;
    end Read;
 
@@ -185,8 +191,8 @@ package body PolyORB.Transport.Datagram.Sockets_In is
       Error  :    out Exceptions.Error_Container)
    is
    begin
-      raise End_Point_Read_Only;
-      --  Should never happen.
+      raise Program_Error;
+      --  Should never happen
    end Write;
 
    -----------

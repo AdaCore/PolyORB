@@ -146,7 +146,7 @@ package body PolyORB.Transport.Datagram is
                Throw (Error, Comm_Failure_E,
                       System_Exception_Members'
                       (Minor => 0, Completed => Completed_Maybe));
-               --  Notify the ORB that the socket is closed.
+               --  Notify the ORB that the socket is closed
 
             else
                Read
@@ -185,10 +185,12 @@ package body PolyORB.Transport.Datagram is
 
       elsif Msg in Disconnect_Request then
          Close (Transport_Endpoint'Class (TE.all)'Access);
+
       else
-         --  Must not happen.
+         --  Must not happen
          raise Components.Unhandled_Message;
       end if;
+
       return Nothing;
    end Handle_Message;
 

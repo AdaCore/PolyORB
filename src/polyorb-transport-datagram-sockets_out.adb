@@ -58,12 +58,11 @@ package body PolyORB.Transport.Datagram.Sockets_Out is
      (TE : access Socket_Out_Endpoint)
      return Asynch_Ev_Source_Access
    is
-      pragma Warnings (Off);
       pragma Unreferenced (TE);
-      pragma Warnings (On);
+
    begin
       return null;
-      --  No event source for datagram out endpoint.
+      --  No event source for datagram out endpoint
    end Create_Event_Source;
 
    ------------
@@ -91,12 +90,11 @@ package body PolyORB.Transport.Datagram.Sockets_Out is
       Size   : in out Stream_Element_Count;
       Error  :    out Exceptions.Error_Container)
    is
-      pragma Warnings (Off);
       pragma Unreferenced (TE, Buffer, Size);
-      pragma Warnings (On);
+
    begin
-      raise End_Point_Write_Only;
-      --  Never happens.
+      raise Program_Error;
+      --  Should never happen
    end Read;
 
    -----------
@@ -109,6 +107,7 @@ package body PolyORB.Transport.Datagram.Sockets_Out is
     Error  :    out Exceptions.Error_Container)
    is
       use PolyORB.Exceptions;
+
    begin
       pragma Debug (O ("Write: enter"));
       pragma Debug (O ("Send to : " & Image (TE.Addr)));
