@@ -327,10 +327,7 @@ AM_CONDITIONAL(DEBUG, test x$debug = xtrue)
 # Build documentation
 ##########################################
 
-AC_CHECK_PROGS(DVIPS, dvips)
-AC_CHECK_PROGS(MAKEINFO, makeinfo)
 AC_CHECK_PROGS(TEXI2HTML, texi2html)
-AC_CHECK_PROGS(TEX, tex)
 
 DOC_DIR=
 
@@ -340,6 +337,7 @@ AC_ARG_ENABLE(doc,
 	DOC_DIR=doc
 fi],
 [])
+
 AC_SUBST(DOC_DIR)
 
 ##########################################
