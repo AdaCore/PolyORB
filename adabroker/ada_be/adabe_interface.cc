@@ -72,6 +72,7 @@ adabe_interface::produce_ads(dep_list &with, string &body, string &previous)
   with.add("Corba.Object");
   with.add("Corba");
   with.add("AdaBroker") ;
+  with.add("Omniobject") ;
   with.add("Ada.Unchecked_Deallocation") ;
   
 #ifdef DEBUG_INTERFACE
@@ -222,8 +223,10 @@ adabe_interface::produce_ads(dep_list &with, string &body, string &previous)
 
   // cast operator. Allows to cast a Ref Object into one of its ancestors
   // or children (if posible)
-  body += "   function To_Ref(The_Ref : in Corba.Object.Ref'Class) return Ref ;\n\n\n";
-
+  body += "   function To_Ref(The_Ref : in Corba.Object.Ref'Class) return Ref ;\n";
+  body += "   function To_Ref(The_Ref : in Omniobject.Implemented_Object'Class) " ;
+  body += "return Ref ;\n\n\n" ;
+  
   // add all multiple inheritance declarations to the body
   body += tmp;
 
@@ -282,10 +285,6 @@ adabe_interface::produce_ads(dep_list &with, string &body, string &previous)
   body += "   function Is_A(Repo_Id : in Corba.String)\n";
   body += "                 return Corba.Boolean ;\n\n";
 
-  // Get_Nil_Ref : return a nil reference to a Ref object
-  body += "   function Get_Nil_Ref(Self : in Ref)\n";
-  body += "                        return Ref ;\n\n"; 
-
   // Free : deallocate the memory used by a Ref_Ptr
   body += "   procedure Free is new Ada.Unchecked_Deallocation(Ref, Ref_Ptr) ;\n\n\n" ;
 
@@ -329,7 +328,8 @@ adabe_interface::produce_adb(dep_list& with, string &body, string &previous)
   // add packages Ada.Exceptions and Corba.Object to the with clauses
   with.add("Ada.Exceptions");
   with.add("Corba.Object");
-
+  with.add("Omniobject") ;
+  
   // add Corba.Object and type Corba.String to the use clauses
   body += "use Corba.Object ;\n";
   body += "use type Corba.String ;\n";
@@ -343,6 +343,8 @@ adabe_interface::produce_adb(dep_list& with, string &body, string &previous)
   body += "   -----------------------------\n\n";
 
   // To_Ref cast operator
+  body += "   -- To_Ref\n" ;
+  body += "   ---------\n" ;
   body += "   function To_Ref(The_Ref : in Corba.Object.ref'Class)\n";
   body += "                   return Ref is\n";
   body += "      Dynamic_Type : Corba.Object.Ref'Class := Get_Dynamic_Type(The_Ref) ;\n";
@@ -359,6 +361,22 @@ adabe_interface::produce_adb(dep_list& with, string &body, string &previous)
   body += "                                     & Corba.CRLF\n";
   body += "                                     & Corba.To_Standard_String(Repo_Id)) ;\n";
   body += "   end ;\n\n\n"; 
+
+  body += "   -- To_Ref\n" ;
+  body += "   ---------\n" ;
+  body += "   function To_Ref(The_Ref : in Omniobject.Implemented_Object'Class) return Ref is\n" ;
+  body += "      Result : Ref ;\n" ;
+  body += "   begin\n" ;
+  body += "      if Omniobject.Get_Repository_Id(The_Ref) = Repository_Id then\n";
+  body += "         Corba.Object.Internal_Copy(The_Ref, Nil_Ref'Access, Result) ;\n";
+  body += "         return Result ;\n";
+  body += "      end if ;\n\n";
+  body += "      Ada.Exceptions.Raise_Exception(Constraint_Error'Identity,\n";
+  body += "                                     \"Can *only* call To_Ref to create a Ref from an Impl.Object\"\n";
+  body += "                                     \"When they represent the same IDL interface\"\n";
+  body += "   end ;\n\n\n";
+
+
 
   // pointer on the direct parent of this package
   adabe_interface *inher;
@@ -496,15 +514,6 @@ adabe_interface::produce_adb(dep_list& with, string &body, string &previous)
       }
   }
   body += ");\n";
-  body += "   end ;\n\n\n";
-
-  // function Get_Nil_Ref
-  body += "   -- Get_Nil_Ref\n" ;
-  body += "   --------------\n" ;
-  body += "   function Get_Nil_Ref(Self : in Ref)\n";
-  body += "                        return Ref is\n"; 
-  body += "   begin\n";
-  body += "      return Nil_Ref ;\n";
   body += "   end ;\n\n\n";
 
   // last part of the ads file : the directly excuted code

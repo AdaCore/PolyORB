@@ -321,52 +321,6 @@ adabe_name::compute_ada_name()
 	while (already_used == 1);      
     }
 }
-/*
-  void 
-  adabe_name::add_number_to_type_name(adabe_name *type)
-  {
-  int loop = 0;
-  bool already_used;
-  string temp_name = type->get_ada_local_name();
-  UTL_Scope *parent_scope = defined_in();
-  if (parent_scope != NULL) 
-  do {
-  switch (parent_scope->scope_node_type())
-  {
-  case AST_Decl::NT_op:
-  case AST_Decl::NT_enum:
-  case AST_Decl::NT_except:
-  case AST_Decl::NT_struct:
-  case AST_Decl::NT_union:
-  dynamic_cast<adabe_name *>(parent_scope)->add_number_to_type_name (type);
-  return;
-  break;
-  case AST_Decl::NT_root:
-  case AST_Decl::NT_interface:
-  case AST_Decl::NT_module:
-  pd_ada_full_name =  (dynamic_cast<adabe_name *>(parent_scope))->get_ada_full_name();
-  already_used = is_name_already_used(type->get_ada_local_name(), parent_scope);
-  break;
-  default:
-  throw adabe_internal_error(__FILE__,__LINE__,"unexpected contening scope");
-  }
-  
-  if (already_used == 1)
-  {
-  if (loop>999)
-  throw adabe_internal_error(__FILE__,__LINE__,"too many name conflicts");
-  char extension[4];
-  sprintf (extension, "_%d",loop++);
-  type->set_ada_local_name(temp_name + extension);
-  }
-  type->set_ada_full_name (type->get_ada_local_name());
-  /*  try to go the to the root of teh tree, and, each step, try to find 
-      a node with the same name. If such a node if found
-	  try with another name 
-	  }
-	  while (already_used == 1);
-	  }
-*/
 
 
 /////////////////////////////////
