@@ -129,9 +129,9 @@ $(ADAFILES): all-srcs.ada
 	./gensedfile $< $@
 
 myconfig.cfg.texi: myconfig.cfg cfg.sed
-	@awk ' { printf "@b{%02d} %s\n", NR, $$0 } ' $< >myconfig.tmp.cfg
+	awk '{printf "@b{%02d} %s\n", NR, $$0}' <myconfig.cfg >myconfig.tmp.cfg
 	./gentexifile myconfig.tmp.cfg $@
-	@$(RM) myconfig.tmp.cfg
+	$(RM) myconfig.tmp.cfg
 
 clean:
 	rm -f *.aux *.log *.ads *.adb *.dvi *.ps *.eps *.html *.pdf
