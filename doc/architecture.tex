@@ -865,8 +865,13 @@ d'un certain nombre de classes abstraites.
 \item[Object\_Reference] une information communicable,
   créée par un object adapter, qui contient un ou plusieurs
   profiles.
-  Chaque profil désigne un point d'accès du service de transport
-  sur lequel des requêtes peuvent être envoyées. Il contient
+  Chaque profil désigne un point d'accès du service de transport,
+  qu'il associe à un protocole d'appel de méthodes.
+  Lorsqu'une connexion de transport est établie vers ce point
+  d'accès, le protocole associé peut être utilisé sur cette
+  connexion pour envoyer des requêtes d'appel de méthode.
+
+  Chaque profile contient
   également l'identité de l'object adapter qui a créé la référence,
   et l'identité de l'objet logique désigné.
 \item[Servant] la classe racine de toutes les implémentations
