@@ -58,7 +58,7 @@ adabe_interface::produce_ads(dep_list &with, string &body, string &previous)
       corps = inher->get_ada_full_name();
       body += "   type Ref is new " + corps + ".Ref with null record ;\n";
       tmp += "\n -- inheritance from " + inher->get_ada_full_name();
-      tmp += "\n --------------------------------------------------";
+      tmp += "\n --------------------------------------------------\n";
       {
 	UTL_ScopeActiveIterator j(inher,UTL_Scope::IK_decls);
 	while (!j.is_done())
@@ -100,7 +100,7 @@ adabe_interface::produce_ads(dep_list &with, string &body, string &previous)
 	      inher = adabe_interface::narrow_from_decl(inherits()[i]);
 	      with.add(inher->get_ada_full_name());
 	      tmp += "\n -- inheritance from " + inher->get_ada_full_name();
-	      tmp += "\n --------------------------------------------------";
+	      tmp += "\n --------------------------------------------------\n";
 	      {
 		UTL_ScopeActiveIterator j(inher,UTL_Scope::IK_decls);
 		while (!j.is_done())
@@ -232,7 +232,7 @@ adabe_interface::produce_adb(dep_list& with, string &body, string &previous)
       inher = adabe_interface::narrow_from_decl(inherits()[i]);
       with.add(inher->get_ada_full_name() + ".Proxies");
       body += "\n -- inheritance from " + inher->get_ada_full_name();
-      body += "\n --------------------------------------------------";
+      body += "\n --------------------------------------------------\n";
       {
 	UTL_ScopeActiveIterator j(inher,UTL_Scope::IK_decls);
 	while (!j.is_done())

@@ -46,18 +46,18 @@ adabe_operation::produce_ads(dep_list& with,string &body, string &previous)
     }
   else
     {
-      body += "   procedure" + get_ada_local_name() + "(Self : in Ref ";
+      body += "   procedure " + get_ada_local_name() + "(Self : in Ref";
        UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
       while (!i.is_done())
 	{
-	  body += ",";
+	  body += "; ";
 	  AST_Decl *d = i.item();
 	  if (d->node_type() == AST_Decl::NT_argument)
 	    dynamic_cast<adabe_name *>(d)->produce_ads(with, body, previous);
 	  else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in operation");
 	  i.next();
 	}
-      body += ", Result : out ";
+      body += "; Result : out ";
       AST_Decl *b = return_type();
       body += dynamic_cast<adabe_name *>(b)->dump_name(with, previous) + ");\n";
     }
@@ -72,7 +72,7 @@ adabe_operation::produce_adb(dep_list& with,string &body, string &previous)
     case OP_idempotent :
       break;
     case OP_oneway :
-    body += "   oneway ";
+    body += "   --- oneway ---\n";
     break;
     }
   if (is_function())
@@ -83,7 +83,7 @@ adabe_operation::produce_adb(dep_list& with,string &body, string &previous)
       UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
       while (!i.is_done())
 	{
-	  body += ",\n";
+	  body += ";\n";
 	  body += "             " + space;
 	  AST_Decl *d = i.item();
 	  if (d->node_type() == AST_Decl::NT_argument)
@@ -291,28 +291,32 @@ adabe_operation::produce_proxies_ads(dep_list& with,string &body, string &privat
   string result_name =  dynamic_cast<adabe_name *>(b)->dump_name(with, previous); 
 
   // produce functions
-  body += "   type " + name + "_Proxy is new OmniProxyCallDesc.Object with private ;\n\n";
-  body += "   procedure Init(Self : in out " + get_ada_local_name();
+  body += "   -----------------------------------------------------------\n" ;
+  body += "   ---               " + get_ada_local_name() + "\n" ; 
+  body += "   -----------------------------------------------------------\n\n" ;
+  body += "   type " + get_ada_local_name() + "_Proxy is new OmniProxyCallDesc.Object with private ;\n\n";
+  body += "   procedure Init(Self : in out " + get_ada_local_name() + "_Proxy";
   body += in_decls;  
-  body += "   function Operation(Self : in " + get_ada_local_name() + ")\n";
+  body += "   function Operation(Self : in " + get_ada_local_name() + "_Proxy )\n";
   body += "                      return CORBA.String ;\n\n" ;
   if (!no_in) {
-      body += "   function Aligned_Size(Self : in " + get_ada_local_name() + " ;\n";
-      body += "                         Size_In : in Corba.Unsigned_Long)\n";
-      body += "                         return Corba.Unsigned_Long ;\n\n";
-      body += "   procedure Marshal_Arguments(Self : in " + get_ada_local_name() + " ;\n";
+      body += "   function Align_Size(Self : in " + get_ada_local_name() + "_Proxy ;\n";
+      body += "                       Size_In : in Corba.Unsigned_Long)\n";
+      body += "                       return Corba.Unsigned_Long ;\n\n";
+      body += "   procedure Marshal_Arguments(Self : in " + get_ada_local_name() + "_Proxy ;\n";
       body += "                               Giop_Client : in out Giop_C.Object) ;\n\n";
   }
   if ((!no_out) || (is_function())) {
-  body += "   procedure Unmarshal_Returned_Values(Self : in out " + get_ada_local_name() + " ;\n";
+  body += "   procedure Unmarshal_Returned_Values(Self : in out " ;
+  body +=  get_ada_local_name() + "_Proxy ;\n";
   body += "                                       Giop_Client : in Giop_C.Object) ;\n\n";
   }
   if (is_function()) {
-  body += "   function Get_Result (Self : in " + get_ada_local_name() + ")\n";
+  body += "   function Get_Result (Self : in " + get_ada_local_name() + "_Proxy)\n";
   body += "                        return " +  result_name + "; \n\n\n";
   }
 
-  private_definition += "   type " + name + " is new OmniProxyCallDesc.Object with record \n";
+  private_definition += "   type " + get_ada_local_name() + "_Proxy is new OmniProxyCallDesc.Object with record \n";
   private_definition += fields;
   if (is_function())
     {
@@ -320,7 +324,8 @@ adabe_operation::produce_proxies_ads(dep_list& with,string &body, string &privat
       private_definition += result_name + "_Ptr := null;\n";
     }
   private_definition += "   end record; \n";
-  private_definition += "   procedure Finalize(Self : in out " + name + "_Proxy) ;\n\n";
+  private_definition += "   procedure Finalize(Self : in out "
+    + get_ada_local_name() + "_Proxy) ;\n\n";
 }
 
 void
@@ -353,59 +358,77 @@ adabe_operation::produce_proxies_adb(dep_list& with,string &body, string &privat
   string result_name =  dynamic_cast<adabe_name *>(b)->dump_name(with, private_definition); 
 
   // produce functions
-  body += "   procedure Init(Self : in out " + get_ada_local_name();
+  body += "   -----------------------------------------------------------\n" ;
+  body += "   ---               " + get_ada_local_name() + "\n" ; 
+  body += "   -----------------------------------------------------------\n\n" ;
+  body += "   -- Init\n" ;
+  body += "   -------\n" ;
+  body += "   procedure Init(Self : in out " + get_ada_local_name() + "_Proxy" ;
   body += in_decls;
-  body += "      begin\n";
+  body += "   begin\n";
   body += "      Set_User_Exceptions(Self, False) ;\n";
   body += init;
   body += "   end ;\n\n\n";
-  
-  body += "   function Operation(Self : in " + get_ada_local_name() + ")\n";
+  body += "   -- Operation\n" ;
+  body += "   ------------\n" ;
+  body += "   function Operation(Self : in " + get_ada_local_name() + "_Proxy )\n";
   body += "                      return CORBA.String is\n";
   body += "   begin\n";
   body += "      return Corba.To_Corba_String(\"" + get_ada_local_name() + "\") ;\n";
   body += "   end ;\n\n\n";
-
+  
   if (!no_in) {
-      body += "   function Aligned_Size(Self : in " + get_ada_local_name() + " ;\n";
-      body += "                         Size_In : in Corba.Unsigned_Long)\n";
-      body += "                         return Corba.Unsigned_Long is\n";
-      body += "      Tmp : Corba.Unsigned_Long := Size_In ;\n";
-      body += "   begin\n";
-      body += align_size;
-      body += "      return Tmp ;\n";
-      body += "   end ;\n\n\n";
-
-      body += "   procedure Marshal_Arguments(Self : in " + get_ada_local_name() + " ;\n";
-      body += "                               Giop_Client : in out Giop_C.Object) is\n";
-      body += "   begin\n";
-      body += marshall;
-      body += "   end ;\n\n\n";      
+    body += "   -- Align_Size\n" ;
+    body += "   -------------\n" ;
+    body += "   function Align_Size(Self : in " + get_ada_local_name() + "_Proxy ;\n";
+    body += "                       Size_In : in Corba.Unsigned_Long)\n";
+    body += "                       return Corba.Unsigned_Long is\n";
+    body += "      Tmp : Corba.Unsigned_Long := Size_In ;\n";
+    body += "   begin\n";
+    body += align_size;
+    body += "      return Tmp ;\n";
+    body += "   end ;\n\n\n";
+    
+    body += "   -- Marshal_Arguments\n" ;
+    body += "   --------------------\n" ;
+    body += "   procedure Marshal_Arguments(Self : in " ;
+    body += get_ada_local_name() + "_Proxy ;\n";
+    body += "                               Giop_Client : in out Giop_C.Object) is\n";
+    body += "   begin\n";
+    body += marshall;
+    body += "   end ;\n\n\n";      
   }
   if ((!no_out) || (is_function())) {
-  body += "   procedure Unmarshal_Returned_Values(Self : in out " + get_ada_local_name() + " ;\n";
-  body += "                                       Giop_Client : in Giop_C.Object) is\n";
-  body += unmarshall_decls;
-  if (is_function()) {
-    body += "      Result : " + name + " ;\n";
-  }
-  body += "   begin\n";
-  body += unmarshall;
-  if (is_function()) {
-    body += "      Unmarshall(Result, Giop_client) ;\n";
-    body += "      Self.Result := new " + name + "'(Result) ;\n";
-  }
-  body += "   end ;\n\n\n";      
+    body += "   -- Unmarshal_Returned_Values\n" ;
+    body += "   ----------------------------\n" ;
+    body += "   procedure Unmarshal_Returned_Values(Self : in out " ;
+    body += get_ada_local_name() + "_Proxy ;\n";
+    body += "                                       Giop_Client : in Giop_C.Object) is\n";
+    body += unmarshall_decls;
+    if (is_function()) {
+      body += "      Result : " + name + " ;\n";
+    }
+    body += "   begin\n";
+    body += unmarshall;
+    if (is_function()) {
+      body += "      Unmarshall(Result, Giop_client) ;\n";
+      body += "      Self.Result := new " + get_ada_local_name() + "_Proxy'(Result) ;\n";
+    }
+    body += "   end ;\n\n\n";      
   }
   
   if (is_function()) {
-  body += "   function Get_Result (Self : in " + get_ada_local_name() + ")\n";
-  body += "                        return " +  result_name + " is\n";
-  body += "   begin\n";
-  body += "      return Self.Result.all ;\n";
-  body += "   end ;\n\n\n";
+    body += "   -- Get_Result\n" ;
+    body += "   -------------\n" ;
+    body += "   function Get_Result (Self : in " + get_ada_local_name() + "_Proxy )\n";
+    body += "                        return " +  result_name + " is\n";
+    body += "   begin\n";
+    body += "      return Self.Result.all ;\n";
+    body += "   end ;\n\n\n";
   }
 
+  body += "   -- Finalize\n" ;
+  body += "   -----------\n" ;
   body += "   procedure Finalize(Self : in out " + name + ") is\n";
   body += "   begin\n";
   body += finalize;
