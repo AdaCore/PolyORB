@@ -16,7 +16,7 @@ else
 TESTSUITE=
 endif
 
-SUBDIRS = support compilers @APPLI_DIRS@ @PROTO_DIRS@ @LIBS_DIRS@ src examples @DOC_DIR@ $(TESTSUITE) 
+SUBDIRS = support compilers @APPLI_DIRS@ @PROTO_DIRS@ @LIBS_DIRS@ src @DOC_DIR@ $(TESTSUITE) 
 
 CLEANFILES = config-stamp
 DISTCLEANFILES = support/adacompiler support/native-adacompiler support/linker polyorb-config
