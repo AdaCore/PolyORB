@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--           Copyright (C) 2003 Free Software Foundation, Inc.              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,15 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Log;
-
 package body PolyORB.Calendar is
-
-   use PolyORB.Log;
-
-   package L is new PolyORB.Log.Facility_Log ("polyorb.calendar");
-   procedure O (Message : in String; Level : Log_Level := Debug)
-     renames L.Output;
 
    The_Clock_Factory : Clock_Factory_Access := null;
 
@@ -84,7 +76,6 @@ package body PolyORB.Calendar is
    is
    begin
       pragma Assert (The_Clock_Factory = null);
-      pragma Debug (O ("register clock factory"));
       The_Clock_Factory := CF;
    end Register_Clock_Factory;
 

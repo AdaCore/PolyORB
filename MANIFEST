@@ -675,6 +675,8 @@ src/polyorb-buffers.adb
 src/polyorb-buffers.ads
 src/polyorb-call_back.adb
 src/polyorb-call_back.ads
+src/polyorb-calendar.adb
+src/polyorb-calendar.ads
 src/polyorb-components.adb
 src/polyorb-components.ads
 src/polyorb-constants.ads
@@ -884,6 +886,8 @@ src/polyorb-tasking-condition_variables.ads
 src/polyorb-tasking-mutexes.adb
 src/polyorb-tasking-mutexes.ads
 src/polyorb-tasking-priorities.ads
+src/polyorb-tasking-profiles-full_tasking-calendar.adb
+src/polyorb-tasking-profiles-full_tasking-calendar.ads
 src/polyorb-tasking-profiles-full_tasking-condition_variables.adb
 src/polyorb-tasking-profiles-full_tasking-condition_variables.ads
 src/polyorb-tasking-profiles-full_tasking-mutexes.adb
@@ -893,6 +897,8 @@ src/polyorb-tasking-profiles-full_tasking-threads.ads
 src/polyorb-tasking-profiles-full_tasking-threads_dynamic_priorities.adb
 src/polyorb-tasking-profiles-full_tasking-threads_dynamic_priorities.ads
 src/polyorb-tasking-profiles-full_tasking.ads
+src/polyorb-tasking-profiles-no_tasking-calendar.adb
+src/polyorb-tasking-profiles-no_tasking-calendar.ads
 src/polyorb-tasking-profiles-no_tasking-condition_variables.adb
 src/polyorb-tasking-profiles-no_tasking-condition_variables.ads
 src/polyorb-tasking-profiles-no_tasking-mutexes.adb
@@ -900,6 +906,8 @@ src/polyorb-tasking-profiles-no_tasking-mutexes.ads
 src/polyorb-tasking-profiles-no_tasking-threads.adb
 src/polyorb-tasking-profiles-no_tasking-threads.ads
 src/polyorb-tasking-profiles-no_tasking.ads
+src/polyorb-tasking-profiles-ravenscar-calendar.adb
+src/polyorb-tasking-profiles-ravenscar-calendar.ads
 src/polyorb-tasking-profiles-ravenscar-condition_variables.adb
 src/polyorb-tasking-profiles-ravenscar-condition_variables.ads
 src/polyorb-tasking-profiles-ravenscar-index_manager.adb
