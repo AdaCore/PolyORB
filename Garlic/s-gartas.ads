@@ -2,7 +2,7 @@
 --                                                                          --
 --                            GLADE COMPONENTS                              --
 --                                                                          --
---      S Y S T E M . G A R L I C . P R O T E C T E D _ O B J E C T S       --
+--                S Y S T E M . G A R L I C . T A S K I N G                 --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -34,9 +34,9 @@
 ------------------------------------------------------------------------------
 
 with System.Garlic.Soft_Links;
-with System.Garlic.Utils;
+with System.Garlic.Types;
 
-package System.Garlic.Protected_Objects is
+package System.Garlic.Tasking is
 
    procedure Initialize;
 
@@ -47,26 +47,6 @@ package System.Garlic.Protected_Objects is
    procedure Enter_Critical_Section;
 
    procedure Leave_Critical_Section;
-
-   ----------------------------------
-   -- Barrier for PCS with Tasking --
-   ----------------------------------
-
-   type Protected_Barrier_Type is new Soft_Links.Barrier_Type with private;
-
-   function Create return Soft_Links.Barrier_Access;
-
-   procedure Destroy (B : in out Protected_Barrier_Type);
-
-   procedure Signal
-     (B : in Protected_Barrier_Type;
-      N : in Positive := 1);
-
-   procedure Signal_All
-     (B : in Protected_Barrier_Type;
-      P : in Boolean := True);
-
-   procedure Wait (B : in Protected_Barrier_Type);
 
    --------------------------------
    -- Mutex for PCS with Tasking --
@@ -88,19 +68,19 @@ package System.Garlic.Protected_Objects is
 
    type Protected_Watcher_Type is new Soft_Links.Watcher_Type with private;
 
-   function Create return Soft_Links.Watcher_Access;
+   function Create (V : in Types.Version_Id) return Soft_Links.Watcher_Access;
 
    procedure Destroy (W : in out Protected_Watcher_Type);
 
    procedure Differ
      (W : in Protected_Watcher_Type;
-      V : in Utils.Version_Id);
+      V : in Types.Version_Id);
 
    procedure Lookup
      (W : in Protected_Watcher_Type;
-      V : out Utils.Version_Id);
+      V : out Types.Version_Id);
 
-   procedure Update (W : in Protected_Watcher_Type);
+   procedure Update (W : in out Protected_Watcher_Type);
 
    -----------------------------------------
    -- Advanced Mutex for PCS with Tasking --
@@ -116,17 +96,17 @@ package System.Garlic.Protected_Objects is
 
    procedure Leave (M : in Protected_Adv_Mutex_Type);
 
+   function Is_Environment_Task return Boolean;
+
+   function Env_Task_Awake_Count return Natural;
+
+   function Independent_Task_Count return Natural;
+
+   function Get_Priority return Natural;
+
+   procedure Set_Priority (P : in Natural);
+
 private
-
-   type Barrier_PO;
-
-   type Barrier_PO_Access is access Barrier_PO;
-
-   type Protected_Barrier_Type is new Soft_Links.Barrier_Type
-     with record
-        X : Barrier_PO_Access;
-     end record;
-
 
    type Mutex_PO;
 
@@ -157,4 +137,4 @@ private
         X : Adv_Mutex_PO_Access;
      end record;
 
-end System.Garlic.Protected_Objects;
+end System.Garlic.Tasking;

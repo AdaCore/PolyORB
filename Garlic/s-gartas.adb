@@ -2,7 +2,7 @@
 --                                                                          --
 --                            GLADE COMPONENTS                              --
 --                                                                          --
---      S Y S T E M . G A R L I C . P R O T E C T E D _ O B J E C T S       --
+--                 S Y S T E M . G A R L I C . T A S K I N G                --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -35,37 +35,25 @@
 
 with Ada.Task_Identification;    use Ada.Task_Identification;
 with Ada.Unchecked_Deallocation;
+with Ada.Dynamic_Priorities;
 
+with System;                     use System;
 with System.Soft_Links;          use System.Soft_Links;
-
-with System.Garlic.Debug;        use System.Garlic.Debug;
 with System.Garlic.Soft_Links;   use System.Garlic.Soft_Links;
-with System.Garlic.Utils;        use System.Garlic.Utils;
+with System.Garlic.Types;        use System.Garlic.Types;
+with System.Tasking;
+pragma Elaborate_All (System.Tasking);
+with System.Tasking.Utilities;
+pragma Elaborate_All (System.Tasking.Utilities);
 
-package body System.Garlic.Protected_Objects is
+package body System.Garlic.Tasking is
 
-   Private_Debug_Key : constant Debug_Key :=
-     Debug_Initialize ("S_GAPROB", "(s-gaprob): ");
-   procedure D
-     (Message : in String;
-      Key     : in Debug_Key := Private_Debug_Key)
-     renames Print_Debug_Info;
+   use type System.Tasking.Task_ID;
+
+   Environment_Task : constant System.Tasking.Task_ID := System.Tasking.Self;
+   --  The environment task. Self will be set to it at elaboration time.
 
    Critical_Section : Protected_Adv_Mutex_Type;
-
-   protected type Barrier_PO is
-      entry Wait;
-      procedure Signal (How_Many : Positive := 1);
-      procedure Signal_All (Permanent : Boolean);
-   private
-      Free : Natural := 0;
-      Perm : Boolean := False;
-   end Barrier_PO;
-   --  Any number of task may be waiting on Wait. Signal unblocks How_Many
-   --  tasks (the order depends on the queuing policy) and Signal_All
-   --  unblocks all the tasks and Wait will no longer be blocking. If
-   --  How_Many is more than the number of tasks waiting, new tasks will be
-   --  awakened as well.
 
    protected type Mutex_PO is
       entry Enter;
@@ -77,6 +65,7 @@ package body System.Garlic.Protected_Objects is
    protected type Watcher_PO is
       function Lookup return Version_Id;
       procedure Update;
+      procedure Initialize (V : in Version_Id);
       entry Differ (V : in Version_Id);
    private
       entry Await (V : in Version_Id);
@@ -102,73 +91,16 @@ package body System.Garlic.Protected_Objects is
      new Ada.Unchecked_Deallocation (Adv_Mutex_PO, Adv_Mutex_PO_Access);
    procedure Free is
      new Ada.Unchecked_Deallocation (Watcher_PO, Watcher_PO_Access);
-   procedure Free is
-     new Ada.Unchecked_Deallocation (Barrier_PO, Barrier_PO_Access);
-
-   ------------------
-   -- Barrier_PO --
-   ------------------
-
-   protected body Barrier_PO is
-
-      -----------------------
-      -- Barrier_PO.Signal --
-      -----------------------
-
-      procedure Signal (How_Many : Positive := 1) is
-      begin
-         if not Perm then
-            Free := Free + How_Many;
-         end if;
-      end Signal;
-
-      ---------------------------
-      -- Barrier_PO.Signal_All --
-      ---------------------------
-
-      procedure Signal_All (Permanent : Boolean) is
-      begin
-         if not Perm then
-            if Permanent then
-               Perm := True;
-            else
-               Free := Free + Wait'Count;
-            end if;
-         end if;
-      end Signal_All;
-
-      ---------------------
-      -- Barrier_PO.Wait --
-      ---------------------
-
-      entry Wait when Perm or else Free > 0 is
-      begin
-         if not Perm then
-            Free := Free - 1;
-         end if;
-      end Wait;
-
-   end Barrier_PO;
 
    ------------
    -- Create --
    ------------
 
-   function Create return Barrier_Access is
-      B : Protected_Barrier_Type;
-   begin
-      B.X := new Barrier_PO;
-      return new Protected_Barrier_Type'(B);
-   end Create;
-
-   ------------
-   -- Create --
-   ------------
-
-   function Create return Watcher_Access is
+   function Create (V : in Version_Id) return Watcher_Access is
       W : Protected_Watcher_Type;
    begin
       W.X := new Watcher_PO;
+      W.X.Initialize (V);
       return new Protected_Watcher_Type'(W);
    end Create;
 
@@ -196,15 +128,6 @@ package body System.Garlic.Protected_Objects is
       M.X := new Mutex_PO;
       return new Protected_Mutex_Type'(M);
    end Create;
-
-   -------------
-   -- Destroy --
-   -------------
-
-   procedure Destroy (B : in out Protected_Barrier_Type) is
-   begin
-      Free (B.X);
-   end Destroy;
 
    -------------
    -- Destroy --
@@ -294,10 +217,14 @@ package body System.Garlic.Protected_Objects is
       Critical_Section.X.Level   := 0;
       Register_Enter_Critical_Section (Enter_Critical_Section'Access);
       Register_Leave_Critical_Section (Leave_Critical_Section'Access);
-      Register_Barrier_Creation_Function (Create'Access);
       Register_Watcher_Creation_Function (Create'Access);
       Register_Mutex_Creation_Function (Create'Access);
       Register_Adv_Mutex_Creation_Function (Create'Access);
+      Register_Is_Environment_Task (Is_Environment_Task'Access);
+      Register_Env_Task_Awake_Count (Env_Task_Awake_Count'Access);
+      Register_Independent_Task_Count (Independent_Task_Count'Access);
+      Register_Get_Priority (Get_Priority'Access);
+      Register_Set_Priority (Set_Priority'Access);
    end Initialize;
 
    -----------
@@ -374,48 +301,14 @@ package body System.Garlic.Protected_Objects is
    end Mutex_PO;
 
    ------------
-   -- Signal --
-   ------------
-
-   procedure Signal
-     (B : in Protected_Barrier_Type;
-      N : in Positive := 1) is
-   begin
-      pragma Assert (B.X /= null);
-      B.X.Signal (N);
-   end Signal;
-
-   ----------------
-   -- Signal_All --
-   ----------------
-
-   procedure Signal_All
-     (B : in Protected_Barrier_Type;
-      P : in Boolean := True) is
-   begin
-      pragma Assert (B.X /= null);
-      B.X.Signal_All (P);
-   end Signal_All;
-
-   ------------
    -- Update --
    ------------
 
-   procedure Update (W : in Protected_Watcher_Type) is
+   procedure Update (W : in out Protected_Watcher_Type) is
    begin
       pragma Assert (W.X /= null);
       W.X.Update;
    end Update;
-
-   ----------
-   -- Wait --
-   ----------
-
-   procedure Wait (B : in Protected_Barrier_Type) is
-   begin
-      pragma Assert (B.X /= null);
-      B.X.Wait;
-   end Wait;
 
    ----------------
    -- Watcher_PO --
@@ -446,6 +339,16 @@ package body System.Garlic.Protected_Objects is
          end if;
       end Differ;
 
+      ---------------------------
+      -- Watcher_PO.Initialize --
+      ---------------------------
+
+      procedure Initialize
+        (V : in Version_Id) is
+      begin
+         Current := V;
+      end Initialize;
+
       -----------------------
       -- Watcher_PO.Lookup --
       -----------------------
@@ -472,4 +375,31 @@ package body System.Garlic.Protected_Objects is
 
    end Watcher_PO;
 
-end System.Garlic.Protected_Objects;
+   function Is_Environment_Task return Boolean
+   is
+      Self : constant System.Tasking.Task_ID := System.Tasking.Self;
+   begin
+      return Self = Environment_Task;
+   end Is_Environment_Task;
+
+   function Env_Task_Awake_Count return Natural is
+   begin
+      return Environment_Task.Awake_Count;
+   end Env_Task_Awake_Count;
+
+   function Independent_Task_Count return Natural is
+   begin
+      return System.Tasking.Utilities.Independent_Task_Count;
+   end Independent_Task_Count;
+
+   function Get_Priority return Natural is
+   begin
+      return Natural (Ada.Dynamic_Priorities.Get_Priority);
+   end Get_Priority;
+
+   procedure Set_Priority (P : in Natural) is
+   begin
+      Ada.Dynamic_Priorities.Set_Priority (Any_Priority (P));
+   end Set_Priority;
+
+end System.Garlic.Tasking;
