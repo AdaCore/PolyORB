@@ -37,10 +37,10 @@ with CORBA.Repository_Root; use CORBA.Repository_Root;
 
 with PortableServer;
 
-with Broca.Server_Tools; use Broca.Server_Tools;
-
-with Naming_Tools;
 with CosNaming.NamingContext;
+
+with Broca.Naming_Tools;
+with Broca.Server_Tools; use Broca.Server_Tools;
 
 pragma Elaborate (Broca.Server_Tools);
 
@@ -59,7 +59,7 @@ begin
 --     ("'" & CORBA.To_Standard_String (CORBA.Object.Object_To_String (Ref)) &
 --      "'");
    begin
-      Naming_Tools.Register ("Interface_Repository", Ref);
+      Broca.Naming_Tools.Register ("Interface_Repository", Ref);
    exception
       when CosNaming.NamingContext.AlreadyBound =>
          Naming_Tools.Register ("Interface_Repository", Ref, Rebind => True);
