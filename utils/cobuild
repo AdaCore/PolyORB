@@ -175,7 +175,7 @@ fi
   do
     dir=`dirname "$file"`
     mkdir -p "$dir"
-    if [ -f "$SOURCE_DIR/$file ]
+    if [ -f "$SOURCE_DIR/$file" ]
     then
       ln -s "$SOURCE_DIR/$file" "$file"
     fi
