@@ -144,12 +144,16 @@ public:
   // and if necessary defines the type in the last ones (or the marshal function) 
   // add a dependency in the dep_list
   
+  char *repositoryID(void) const;
+  // this function give the repository ID of the object
+
   DEF_NARROW_FROM_DECL(adabe_name);
   DEF_NARROW_FROM_SCOPE(adabe_name);
   // narrowing functions (from AST_Decl or UTL_Scope
 
   
  private:
+  char *pd_repositoryID;            // the repositoryID
   string pd_ada_local_name;        // the local name of the type or identifier
   string pd_ada_full_name;         // the full name ...
   bool pd_defined_type;            // is the type already defined

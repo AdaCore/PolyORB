@@ -8,7 +8,7 @@ adabe_interface::adabe_interface(UTL_ScopedName *n, AST_Interface **ih, long nih
 	      adabe_name(AST_Decl::NT_interface, n, p)
 {
   if (nih == -1) pd_is_forwarded = true;
-  else pd_is_forwarded = false;
+  else pd_is_forwarded = false;  
 }
 
 void
@@ -176,7 +176,9 @@ adabe_interface::produce_ads(dep_list &with, string &body, string &previous)
   body += "   --       Not in Spec       --\n";
   body += "   -----------------------------\n\n";
   
-  body += "   Repository_Id : Corba.String := Corba.To_Corba_String(\"RepositoryID\") ;\n";
+  body += "   Repository_Id : Corba.String := Corba.To_Corba_String(\"";
+  body += repositoryID();
+  body += "\") ;\n";
   body += "   function Get_Repository_Id(Self : in Ref)\n";
   body += "                              return Corba.String ;\n\n";
   body += "   function Is_A(The_Ref : in Ref;\n";
