@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.2 $
+--                            $Revision: 1.3 $
 --                                                                          --
 --            Copyright (C) 1999 ENST Paris University, France.             --
 --                                                                          --
@@ -114,15 +114,15 @@ begin
          Ok : Boolean;
       begin
          Ok := False;
---        declare
---           Member : my_exception_Members;
---        begin
---           testException (Myall_types, 2485);
---        exception
---           when E : my_exception =>
---              Get_Members (E, Member);
---              Ok := (Member.info = 2485);
---        end;
+         declare
+            Member : my_exception_Members;
+         begin
+            testException (Myall_types, 2485);
+         exception
+            when E : my_exception =>
+               Get_Members (E, Member);
+               Ok := (Member.info = 2485);
+         end;
          Output ("test exception", Ok);
       end;
 

@@ -93,9 +93,9 @@ package all_types is
      (From : in Ada.Exceptions.Exception_Occurrence;
       To   : out my_exception_Members);
 
-   --  procedure testException
-   --    (Self : in Ref;
-   --     arg : in CORBA.Long);
+   procedure testException
+      (Self : in Ref;
+       arg : in CORBA.Long);
 
    type myUnion (Switch : CORBA.Long := CORBA.Long'First) is
    record

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.2 $
+--                            $Revision: 1.3 $
 --                                                                          --
 --            Copyright (C) 1999 ENST Paris University, France.             --
 --                                                                          --
@@ -115,9 +115,9 @@ private
       arg : in matrix)
       return matrix;
 
---     procedure testException
---       (Self : access Object;
---        arg : in CORBA.Long);
+   procedure testException
+     (Self : access Object;
+      arg : in CORBA.Long);
 
    function echoStruct
      (Self : access Object;

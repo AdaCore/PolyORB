@@ -310,49 +310,50 @@ package body all_types.Skel is
          end;
       end if;
 
---        if Operation = "testException" then
---           declare
---              IDL_arg : CORBA.Long;
---           begin
---              --  Unmarshalls arguments
---              IDL_arg := Unmarshall (Request_Buffer);
---              --  Call implementation
---              testException (Object_Ptr (Obj), IDL_arg);
---
---              --  service context
---              Marshall (Reply_Buffer,
---                        CORBA.Unsigned_Long (Broca.GIOP.No_Context));
---              --  request id
---              Marshall (Reply_Buffer, Request_Id);
---              --  reply status
---              Broca.GIOP.Marshall (Reply_Buffer, Broca.GIOP.No_Exception);
---              return;
---
---           exception
---              when E : my_exception =>
---                 declare
---                    use all_types.Stream;
---                    RepoID : String
---                       := "IDL:all_types/my_exception:1.0";
---                    Member : my_exception_Members;
---                 begin
---                    all_types.Get_Members (E, Member);
---
---                    --  service context
---                    Marshall (Reply_Buffer,
---                              CORBA.Unsigned_Long (Broca.GIOP.No_Context));
---                    --  request id
---                    Marshall (Reply_Buffer, Request_Id);
---                    --  reply status
---                    Marshall (Reply_Buffer, Broca.GIOP.User_Exception);
---
---                    --  Marshall exception
---                    Marshall (Reply_Buffer, RepoID);
---                    Marshall (Reply_Buffer, Member);
---                    return;
---                 end;
---           end;
---        end if;
+      if Operation = "testException" then
+         declare
+            IDL_arg : CORBA.Long;
+         begin
+            --  Unmarshalls arguments
+            IDL_arg := Unmarshall (Request_Buffer);
+            --  Call implementation
+            testException (Object_Ptr (Obj), IDL_arg);
+
+            --  service context
+            Marshall (Reply_Buffer,
+                      CORBA.Unsigned_Long (Broca.GIOP.No_Context));
+            --  request id
+            Marshall (Reply_Buffer, Request_Id);
+            --  reply status
+            Broca.GIOP.Marshall (Reply_Buffer, Broca.GIOP.No_Exception);
+            return;
+
+         exception
+            when E : my_exception =>
+               declare
+                  use all_types.Stream;
+                  RepoID : CORBA.String
+                    := CORBA.To_CORBA_String
+                    ("IDL:all_types/my_exception:1.0");
+                  Member : my_exception_Members;
+               begin
+                  all_types.Get_Members (E, Member);
+
+                  --  service context
+                  Marshall (Reply_Buffer,
+                            CORBA.Unsigned_Long (Broca.GIOP.No_Context));
+                  --  request id
+                  Marshall (Reply_Buffer, Request_Id);
+                  --  reply status
+                  Marshall (Reply_Buffer, Broca.GIOP.User_Exception);
+
+                  --  Marshall exception
+                  Marshall (Reply_Buffer, RepoID);
+                  Marshall (Reply_Buffer, Member);
+                  return;
+               end;
+         end;
+      end if;
 
       if Operation = "echoUnion" then
          declare

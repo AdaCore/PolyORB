@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.2 $
+--                            $Revision: 1.3 $
 --                                                                          --
 --            Copyright (C) 1999 ENST Paris University, France.             --
 --                                                                          --
@@ -26,7 +26,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  with Broca.Exceptions; use Broca.Exceptions;
+with Broca.Exceptions; use Broca.Exceptions;
 
 package body all_types.Impl is
 
@@ -155,17 +155,15 @@ package body all_types.Impl is
       return arg;
    end echoMatrix;
 
---     procedure testException
---       (Self : access Object;
---        arg : in CORBA.Long)
---     is
---        Members : IDL_Exception_Members_Ptr
---           := new My_Exception_Members'(Info => arg);
---        --  FIXME: introducing potential memory leak in server.
---     begin
---        Broca.Exceptions.User_Raise_Exception
---          (My_Exception'Identity, Members);
---     end testException;
+   procedure testException
+     (Self : access Object;
+      arg : in CORBA.Long)
+   is
+      --  FIXME: introducing potential memory leak in server.
+   begin
+      Broca.Exceptions.User_Raise_Exception
+        (my_exception'Identity, my_exception_Members'(Info => arg));
+   end testException;
 
    function echoStruct
      (Self : access Object;
