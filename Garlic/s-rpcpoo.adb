@@ -401,7 +401,7 @@ package body System.RPC.Pool is
                        Accepted   : out Boolean)
       is
       begin
-         if Total_Tasks_Count < Max_Mark then
+         if Total_Tasks_Count <= Max_Mark then
             Accepted         := True;
             Identifier.Next  := Free_Tasks_List;
             Free_Tasks_List  := Identifier;
