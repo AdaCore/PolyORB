@@ -1,4 +1,4 @@
-IDLdir = $(includedir)/polyorb/corba/idls/cos/CORBA_IDL
+IDLdir = $(includedir)/polyorb/corba/idls/CORBA_IDL
 
 IDL =	$(srcdir)/orb.idl \
 	$(srcdir)/CORBA_Current.idl \
