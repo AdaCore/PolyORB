@@ -42,7 +42,7 @@ if $kill; then
   for h in $hosts; do
     if [ "$h" != "" ]; then
       echo $h
-      rsh $h "/usr/ucb/ps axw|grep 'quinot.*evolutedp' | grep -v grep \
+      rsh $h "/usr/ucb/ps axw|grep 'quinot.*$evolutedp' | grep -v grep \
          | awk '{print \$1}' | xargs kill -9 2> /dev/null || echo ---"
     fi
   done
@@ -63,7 +63,7 @@ echo "000 init"
 sed "s/^/    /" $output/00PARAMETERS
 cp $ab_names_conf $serverp_conf $evolutedp_conf $output 2> /dev/null || true
 trap 'echo kill $ab_names_pid $serverp_pid $Revolutedp_pids;
-           kill $ab_names_pid $serverp_pid $Revolutedp_pids;
+           kill -9 $ab_names_pid $serverp_pid $Revolutedp_pids;
            exit' 0 2 15
 
 echo "001 Starting name server..."
