@@ -115,7 +115,6 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-utils-buffers.ads \
 		polyorb-utils-chained_lists.ads \
 		polyorb-utils-dynamic_tables.ads \
-		polyorb-utils-htables.ads \
 		polyorb-utils-htables-perfect.ads \
 		polyorb-utils-simple_flags.ads \
 		polyorb-utils-strings.ads \
@@ -150,7 +149,8 @@ ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
 		polyorb-tasking-profiles-ravenscar.ads \
 		polyorb-tasking-profiles-ravenscar-configuration.ads \
 		polyorb-tasking-profiles-full_tasking.ads \
-		polyorb-tasking-profiles-no_tasking.ads
+		polyorb-tasking-profiles-no_tasking.ads \
+		polyorb-utils-htables.ads
 
 ADA_BODIES = $(ADA_SPECS_WITH_BODY:.ads=.adb)
 
@@ -325,7 +325,7 @@ polyorb-utils.lo:polyorb.ads polyorb-utils.adb polyorb-utils.ads
 polyorb-utils-buffers.lo:polyorb.ads polyorb-buffers.ads polyorb-opaque.ads polyorb-opaque-chunk_pools.ads polyorb-sockets.ads polyorb-utils.ads polyorb-utils-buffers.adb polyorb-utils-buffers.ads polyorb-utils-chained_lists.ads 
 polyorb-utils-chained_lists.lo:polyorb.ads polyorb-utils.ads polyorb-utils-chained_lists.adb polyorb-utils-chained_lists.ads 
 polyorb-utils-dynamic_tables.lo:polyorb.ads polyorb-utils.ads polyorb-utils-dynamic_tables.adb polyorb-utils-dynamic_tables.ads 
-polyorb-utils-htables.lo:polyorb.ads polyorb-utils.ads polyorb-utils-dynamic_tables.adb polyorb-utils-dynamic_tables.ads polyorb-utils-htables.adb polyorb-utils-htables.ads polyorb-utils-strings.ads 
+polyorb-utils-htables.lo:polyorb.ads polyorb-utils.ads polyorb-utils-htables.ads 
 polyorb-utils-htables-perfect.lo:polyorb.ads polyorb-utils.ads polyorb-utils-dynamic_tables.adb polyorb-utils-dynamic_tables.ads polyorb-utils-htables.ads polyorb-utils-htables-perfect.adb polyorb-utils-htables-perfect.ads polyorb-utils-strings.ads 
 polyorb-utils-simple_flags.lo:polyorb.ads polyorb-log.adb polyorb-log.ads polyorb-types.ads polyorb-utils.ads polyorb-utils-simple_flags.adb polyorb-utils-simple_flags.ads 
 polyorb-utils-strings.lo:polyorb.ads polyorb-utils.ads polyorb-utils-strings.adb polyorb-utils-strings.ads 

@@ -30,13 +30,19 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  This package provides fonctions to use the package
---  PolyORB.Utils.HTables with a generic type. Each Item is associated with
---  an element. When hashing a key, Lookup returns this Item.
+--  This package provides dynamic perfect hash tables; it implements
+--  the Dietzfelbinger algorithm as described in "Dynamic Perfect
+--  Hashing: Upper and Lower Bounds", Dietzfelbinger et al.  in SIAM
+--  Journal on Computing, 1994, pp 738-761.
+
+--  This algorithm provides dynamic perfect hash table with
+--  - O (1) worst-case time for lookups and deletions,
+--  - O (1) amortized expected time for insertions.
 
 --  $Id$
 
 with PolyORB.Utils.Dynamic_Tables;
+with PolyORB.Utils.Strings;
 
 generic
    type Item is private;
@@ -44,12 +50,14 @@ generic
 package PolyORB.Utils.HTables.Perfect is
    pragma Preelaborate;
 
-   No_Key : exception;
+   use type PolyORB.Utils.Strings.String_Ptr;
+   subtype String_Access is PolyORB.Utils.Strings.String_Ptr;
+
+   No_Key : exception renames PolyORB.Utils.HTables.No_Key;
 
    type Item_Access is access all Item;
 
    type Table is private;
-
    type Table_Access is access all Table;
 
    type Table_Instance is record
@@ -69,7 +77,7 @@ package PolyORB.Utils.HTables.Perfect is
 
    procedure Finalize
      (T : in out Table_Instance);
-   --  Deallocate the hash table.
+   --  Finalize the hash table.
 
    function Lookup
      (T           : Table_Instance;
@@ -94,10 +102,8 @@ package PolyORB.Utils.HTables.Perfect is
    --  'Key' is the string to hash and 'Value' its associated Item.
    --  If 'Key' already exists, nothing is done.
 
-   --  Note : this procedure uses the procedure Insert from
-   --  polyorb.utils.htables.ads. It reorganizes if necessary the
-   --  table or the sub_tables. In addition, it inserts Value in the
-   --  table Items (see below) XXX need a better comment !!
+   --  Note : this procedure reorganizes, if necessary, the table or
+   --  the sub_tables, leading to amortized O (1) complexity only.
 
    procedure Delete
      (T   : Table_Instance;
@@ -108,12 +114,86 @@ package PolyORB.Utils.HTables.Perfect is
    --  of the table or a sub-table (procedure Insert)
 
 private
+   --  A Hash table is the agregation of an Hash_Table index table
+   --  (non-generic) and and an array of item (generic) which contains
+   --  the values stored.  The Hash_Table type is an index table that
+   --  contains the actual position of an Item in the array of item.
+
+   --  As described in the Dietzfelbinger algorithm, the Hash Table is
+   --  divided into several tables, each of which contains several
+   --  items.
+
+   --  The Hash_Table index uses different structures to map an
+   --  element to its associated item.
+
+   --  'Element' type.
+
+   type Element is record
+      Key        : String_Access;  --  Key of the element to hash.
+      Used       : Boolean;        --  Is the slot really used ?
+      ST_Index   : Natural;        --  Index in the Sub Table.
+      ST_Offset  : Natural;        --  Offset in the Sub Table.
+      Item_Index : Natural;        --  Index of the element.
+   end record;
+
+   Empty : constant Element := Element'(null, False, 0, 0, 0);
+
+   package Dynamic_Element_Array is new
+     PolyORB.Utils.Dynamic_Tables (Element, Natural, 0, 10, 50);
+   use Dynamic_Element_Array;
+
+   subtype Element_Array is Dynamic_Element_Array.Instance;
+
+   --  'Subtable' type.
+
+   type Subtable is record
+      First  : Natural;  --  'First subtable index.
+      Last   : Natural;  --  'Last subtable index.
+      Count  : Natural;  --  Number of elements used.
+      High   : Natural;  --  Highest count value before reorganization.
+      Max    : Natural;  --  Subtable maximum size.
+      K      : Natural;  --  K-parameter of the subtable.
+   end record;
+
+   package Dynamic_Subtable_Array is new
+     PolyORB.Utils.Dynamic_Tables (Subtable, Natural, 0, 10, 50);
+   use Dynamic_Subtable_Array;
+
+   subtype Subtable_Array is Dynamic_Subtable_Array.Instance;
+
+   --  'Table_Info' type.
+
+   type Table_Info is record
+      Prime        : Natural;  --  Used by the algorithm, user defined.
+      Count        : Natural;  --  Number of Key stored in the table.
+      High         : Natural;  --  When Count = High, the table is resized.
+      N_Subtables  : Natural;  --  Number of subtables.
+      K            : Natural;  --  K-parameter of the subtable.
+   end record;
+
+   --  The Hash table index.
+
+   type Hash_Table is record
+      Info      : Table_Info;      --  Table information.
+      Elements  : Element_Array;   --  Placeholder for elements.
+      Subtables : Subtable_Array;  --  Sub tables information.
+   end record;
+   --  Each structure of the array contains the parameters for the sub-table
+   --  hash function except the prime number stored in Info.Prime. In addition
+   --  it contains the limit of each sub-table in the table Elements.
+   --  We can note that :
+   --          ..< Subtables.all (i).First   < Subtables.all (i).Last   <
+   --              Subtables.all (i+1).First < Subtables.all (i+1).Last <..
+
+   --  Item_Array
 
    package Dynamic_Item_Array is new
      PolyORB.Utils.Dynamic_Tables (Item_Access, Natural, 0, 10, 50);
    use Dynamic_Item_Array;
 
    subtype Item_Array is Dynamic_Item_Array.Instance;
+
+   --  'Table' type.
 
    type Table is record
       HTable : Hash_Table;

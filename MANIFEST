@@ -833,7 +833,6 @@ src/polyorb-utils-dynamic_tables.adb
 src/polyorb-utils-dynamic_tables.ads
 src/polyorb-utils-htables-perfect.adb
 src/polyorb-utils-htables-perfect.ads
-src/polyorb-utils-htables.adb
 src/polyorb-utils-htables.ads
 src/polyorb-utils-simple_flags.adb
 src/polyorb-utils-simple_flags.ads
