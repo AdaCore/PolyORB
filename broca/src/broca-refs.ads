@@ -1,5 +1,5 @@
 with Ada.Finalization;
-with Broca.Types;
+with Broca.Buffers;
 
 package Broca.Refs is
    --  REF_TYPE is the base type of all objects that can be referenced.
@@ -19,7 +19,7 @@ package Broca.Refs is
    --  By default, object_to_IOR raise CORBA.marshal exception.
    --  This is the way to create an IOR from an object.
    function Object_To_IOR (Obj : Ref_Type)
-                           return Broca.Types.Buffer_Descriptor;
+                           return Broca.Buffers.Buffer_Descriptor;
 
    type Ref_Acc is access all Ref_Type'Class;
 

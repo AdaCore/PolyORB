@@ -3,7 +3,7 @@ with CORBA;
 with CORBA.Forward;
 with CORBA.Object;
 with Broca.Sequences;
-with Broca.Types;
+with Broca.Buffers;
 pragma Elaborate_All (CORBA.Forward);
 
 package PortableServer is
@@ -27,7 +27,7 @@ package PortableServer is
       Operation : String;
       Request_Id : CORBA.Unsigned_Long;
       Reponse_Expected : CORBA.Boolean;
-      Stream : in out Broca.Types.Buffer_Descriptor);
+      Stream : in out Broca.Buffers.Buffer_Descriptor);
 
    type Servant is access all Servant_Base'Class;
 

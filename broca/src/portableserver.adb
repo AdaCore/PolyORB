@@ -17,7 +17,7 @@ package body PortableServer is
       Operation : String;
       Request_Id : CORBA.Unsigned_Long;
       Reponse_Expected : CORBA.Boolean;
-      Stream : in out Broca.Types.Buffer_Descriptor) is
+      Stream : in out Broca.Buffers.Buffer_Descriptor) is
    begin
       Broca.Exceptions.Raise_Bad_Operation;
    end Giop_Dispatch;

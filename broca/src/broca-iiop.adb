@@ -25,7 +25,7 @@ package body Broca.Iiop is
    function Port_To_Network_Port (Port : CORBA.Unsigned_Short)
      return Interfaces.C.unsigned_short is
    begin
-      if Broca.Marshalling.Is_Little_Endian then
+      if Broca.Buffers.Is_Little_Endian then
          return Interfaces.C.unsigned_short
            ((Port / 256) + (Port mod 256) * 256);
       else
@@ -163,7 +163,7 @@ package body Broca.Iiop is
    begin
       Len := Interfaces.C.int (Stream.Pos);
       pragma Debug (O ("Dump outgoing buffer of length" & Len'Img));
-      Broca.Marshalling.Dump (Stream.Buffer (0 .. Stream.Pos - 1));
+      Broca.Buffers.Dump (Stream.Buffer (0 .. Stream.Pos - 1));
       if C_Send (Connection.Strand.Fd,
                  Stream.Buffer.all'Address,
                  Len,
@@ -190,7 +190,7 @@ package body Broca.Iiop is
          Stream.Pos := Buffer_Index_Type (Len);
       end if;
       pragma Debug (O ("Dump incoming buffer of length" & Len'Img));
-      Broca.Marshalling.Dump (Stream.Buffer (0 .. Stream.Pos - 1));
+      Broca.Buffers.Dump (Stream.Buffer (0 .. Stream.Pos - 1));
    end Receive;
 
    function Get_Request_Id (Connection : access Strand_Connection_Type)

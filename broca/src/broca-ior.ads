@@ -1,5 +1,5 @@
 with CORBA; use CORBA;
-with Broca.Types; use Broca.Types;
+with Broca.Buffers; use Broca.Buffers;
 
 package Broca.Ior is
    --  Convert a string representing an IOR, as decribed in CORBA V2.2 11.6.6,

@@ -5,7 +5,7 @@ with Ada.Exceptions;
 with Ada.Text_IO;
 with CORBA; use CORBA;
 with PortableServer;
-with Broca.Types; use Broca.Types;
+with Broca.Buffers; use Broca.Buffers;
 with Broca.Exceptions;
 with Broca.Marshalling;
 with Broca.Giop;
@@ -63,7 +63,7 @@ package body Broca.Server is
      of POA_Entry_Type;
    type POA_Entry_Array_Acc is access POA_Entry_Array;
 
-   procedure Unchecked_Deallocation is new Ada.Unchecked_Deallocation
+   procedure Free is new Ada.Unchecked_Deallocation
      (Object => POA_Entry_Array, Name => POA_Entry_Array_Acc);
 
    --  This is the variable containing an access to the table of objects.
@@ -105,7 +105,7 @@ package body Broca.Server is
             N_Ao (Slot) := (Poa => Poa, Date => 1);
             O_Ao := All_POAs;
             All_POAs := N_Ao;
-            Unchecked_Deallocation (O_Ao);
+            Free (O_Ao);
             Poa.Index := Slot;
             return;
          end;
@@ -179,7 +179,7 @@ package body Broca.Server is
             Marshall_Size (Buffer, Current.Name);
             Current := Current.Parent;
          end loop;
-         Marshall_Align_4 (Buffer);
+         Align_Size (Buffer, 4);
       end if;
    end Marshall_Size_Object_Key;
 
@@ -204,7 +204,7 @@ package body Broca.Server is
          Marshall_Object_Key (Buffer, Poa.Parent, Num + 1);
          Marshall (Buffer, Poa.Name);
          if Num = 0 then
-            Marshall_Align_4 (Buffer);
+            Align_Size (Buffer, 4);
          end if;
       end if;
    end Marshall_Object_Key;
@@ -298,7 +298,7 @@ package body Broca.Server is
          Unmarshall (Buffer, A_Long);
 
          for I in 1 .. A_Long loop
-            Unmarshall_Skip_String (Buffer);
+            Skip_String (Buffer);
          end loop;
          Inc_Usage_If_Active (Get_The_POAManager (Poa).all, Poa_State);
       else
@@ -350,8 +350,8 @@ package body Broca.Server is
 
       --  Length of the key
       Key_Length := Length - (Buffer.Pos - Pos);
-      Increase_Buffer_And_Clear_Pos (Key, Key_Length);
-      Unmarshall_Extract (Key, Buffer, Key_Length);
+      Allocate_Buffer_And_Clear_Pos (Key, Key_Length);
+      Extract_Buffer (Key, Buffer, Key_Length);
 
       <<Restore_Endianness_And_Return>>
         Buffer.Little_Endian := Saved_Endianness;
@@ -477,7 +477,7 @@ package body Broca.Server is
          record
             Poa : Broca.Poa.POA_Object_Access;
             Stream : Broca.Stream.Stream_Acc;
-            Bd : Broca.Types.Buffer_Descriptor;
+            Bd : Broca.Buffers.Buffer_Descriptor;
             Next : Request_Cell_Acc;
          end record;
    end Queues;
@@ -523,7 +523,7 @@ package body Broca.Server is
    end Server_Table;
 
    package body Queues is
-      procedure Unchecked_Deallocation is new Ada.Unchecked_Deallocation
+      procedure Free is new Ada.Unchecked_Deallocation
         (Object => Request_Cell_Type, Name => Request_Cell_Acc);
 
       Wait_Server_Id : Server_Id_Type;
@@ -589,11 +589,11 @@ package body Broca.Server is
                Head := Head.Next;
             end if;
             --  Free the memory associed with BUFFER, since it is overwritten.
-            Unchecked_Deallocation (Buffer.Buffer);
+            Free (Buffer.Buffer);
             Stream := Cell.Stream;
             Buffer := Cell.Bd;
             Poa := Cell.Poa;
-            Unchecked_Deallocation (Cell);
+            Free (Cell);
          end Try_Fetch;
 
          entry Fetch (Stream : out Broca.Stream.Stream_Acc;
@@ -613,17 +613,17 @@ package body Broca.Server is
       --  Note: there is no profiles for this server.
       type Wait_Server_Type is new Server_Type with null record;
       procedure Perform_Work (Server : access Wait_Server_Type;
-                              Buffer : in out Broca.Types.Buffer_Descriptor);
+                              Buffer : in out Broca.Buffers.Buffer_Descriptor);
       procedure Marshall_Size_Profile
         (Server : access Wait_Server_Type;
-         Ior : in out Broca.Types.Buffer_Descriptor;
-         Object_Key : Broca.Types.Buffer_Descriptor);
+         Ior : in out Broca.Buffers.Buffer_Descriptor;
+         Object_Key : Broca.Buffers.Buffer_Descriptor);
       procedure Marshall_Profile (Server : access Wait_Server_Type;
-                                  Ior : in out Broca.Types.Buffer_Descriptor;
-                                  Object_Key : Broca.Types.Buffer_Descriptor);
+                                  Ior : in out Broca.Buffers.Buffer_Descriptor;
+                                  Object_Key : Broca.Buffers.Buffer_Descriptor);
 
       procedure Perform_Work (Server : access Wait_Server_Type;
-                              Buffer : in out Broca.Types.Buffer_Descriptor)
+                              Buffer : in out Broca.Buffers.Buffer_Descriptor)
       is
          use Broca.Poa;
          Stream : Broca.Stream.Stream_Acc;
@@ -642,15 +642,15 @@ package body Broca.Server is
 
       procedure Marshall_Size_Profile
         (Server : access Wait_Server_Type;
-         Ior : in out Broca.Types.Buffer_Descriptor;
-         Object_Key : Broca.Types.Buffer_Descriptor) is
+         Ior : in out Broca.Buffers.Buffer_Descriptor;
+         Object_Key : Broca.Buffers.Buffer_Descriptor) is
       begin
          return;
       end Marshall_Size_Profile;
 
       procedure Marshall_Profile (Server : access Wait_Server_Type;
-                                  Ior : in out Broca.Types.Buffer_Descriptor;
-                                  Object_Key : Broca.Types.Buffer_Descriptor)
+                                  Ior : in out Broca.Buffers.Buffer_Descriptor;
+                                  Object_Key : Broca.Buffers.Buffer_Descriptor)
       is
       begin
          return;
@@ -852,7 +852,7 @@ package body Broca.Server is
             Unlock_Send (Stream);
 
       end case;
-      Unchecked_Deallocation (Key.Buffer);
+      Free (Key.Buffer);
       pragma Debug (O ("Handle_Request : leave"));
    exception
       when Broca.Stream.Connection_Closed =>
@@ -897,15 +897,15 @@ package body Broca.Server is
       Unmarshall (Buffer, Message_Size);
 
       --  Receive body of the message.
-      Increase_Buffer_And_Set_Pos
+      Allocate_Buffer_And_Set_Pos
         (Tmp, Buffer_Index_Type (Message_Size));
       Receive (Stream, Tmp);
       Unlock_Receive (Stream);
-      Increase_Buffer_And_Set_Pos
+      Allocate_Buffer_And_Set_Pos
         (Buffer, Buffer_Index_Type (Message_Size + Message_Header_Size));
       Buffer.Buffer (Message_Header_Size .. Buffer.Pos - 1) := Tmp.Buffer.all;
       Buffer.Pos := Message_Header_Size;
-      Unchecked_Deallocation (Tmp.Buffer);
+      Free (Tmp.Buffer);
 
       case CORBA.Unsigned_Long (Message_Type) is
          when Broca.Giop.Request =>
@@ -931,7 +931,7 @@ package body Broca.Server is
             Lock_Send (Stream);
             Send (Stream, Buffer);
             Unlock_Send (Stream);
-            Unchecked_Deallocation (Key.Buffer);
+            Free (Key.Buffer);
 
          when others =>
             Broca.Exceptions.Raise_Comm_Failure;
@@ -951,13 +951,13 @@ package body Broca.Server is
       Server_Table.Register (Server, Id);
    end Register;
 
-   procedure Build_Ior (Target : out Broca.Types.Buffer_Descriptor;
+   procedure Build_Ior (Target : out Broca.Buffers.Buffer_Descriptor;
                         Type_Id : CORBA.RepositoryId;
                         Poa : Broca.Poa.POA_Object_Access;
-                        Key : Broca.Types.Buffer_Descriptor) is
+                        Key : Broca.Buffers.Buffer_Descriptor) is
       use Broca.Marshalling;
       Ior : Buffer_Descriptor;
-      Object_Key : Broca.Types.Buffer_Descriptor;
+      Object_Key : Broca.Buffers.Buffer_Descriptor;
       Pos : Buffer_Index_Type;
       Nbr_Profiles : CORBA.Unsigned_Long;
       Server : Server_Acc;
@@ -971,12 +971,12 @@ package body Broca.Server is
       --  Create Object_Key.
       Marshall_Size_Unsigned_Long (Object_Key);
       Marshall_Size_Object_Key (Object_Key, Poa);
-      Marshall_Size_Append (Object_Key, Key);
+      Compute_Size (Object_Key, Key);
       Length := CORBA.Unsigned_Long (Object_Key.Pos - 4);
       Allocate_Buffer (Object_Key);
       Marshall (Object_Key, Length);
       Marshall_Object_Key (Object_Key, Poa);
-      Marshall_Append (Object_Key, Key);
+      Append_Buffer (Object_Key, Key);
       Poa.Link_Lock.Unlock_R;
 
       Ior.Pos := 0;
@@ -1015,7 +1015,7 @@ package body Broca.Server is
          Marshall_Profile (Server, Ior, Object_Key);
       end loop;
 
-      Unchecked_Deallocation (Object_Key.Buffer);
+      Free (Object_Key.Buffer);
 
       Target := Ior;
    end Build_Ior;
@@ -1072,7 +1072,7 @@ package body Broca.Server is
    --  arbitrary work, such as cleaning the POA up.
    procedure Request_Cleanup (Poa : Broca.Poa.POA_Object_Access)
    is
-      Bd : Broca.Types.Buffer_Descriptor;
+      Bd : Broca.Buffers.Buffer_Descriptor;
    begin
       Queues.Wait_Queue.Append (null, Bd, Poa);
    end Request_Cleanup;

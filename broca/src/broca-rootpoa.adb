@@ -14,7 +14,7 @@ with Broca.Poa; use Broca.Poa;
 with Broca.Sequences;
 with Broca.Orb;
 with Broca.Vararray;
-with Broca.Types;
+with Broca.Buffers;
 with Broca.Server;
 with Broca.Inet_Server;
 with Broca.Locks;
@@ -33,7 +33,7 @@ pragma Elaborate_All (Broca.Debug);
 package body Broca.Rootpoa is
    Flag : constant Natural := Broca.Debug.Is_Active ("broca.rootpoa");
    procedure O is new Broca.Debug.Output (Flag);
-   
+
    ---------------------------------------
    -- An implementation of a POAManager --
    ---------------------------------------
@@ -325,11 +325,11 @@ package body Broca.Rootpoa is
 
    procedure Giop_Invoke
      (Self : access Object;
-      Key : in out Broca.Types.Buffer_Descriptor;
+      Key : in out Broca.Buffers.Buffer_Descriptor;
       Operation : CORBA.Identifier;
       Request_Id : CORBA.Unsigned_Long;
       Reponse_Expected : CORBA.Boolean;
-      Message : in out Broca.Types.Buffer_Descriptor);
+      Message : in out Broca.Buffers.Buffer_Descriptor);
    function Create_POA
      (Self          : access Object;
       Adapter_Name  : CORBA.String;
@@ -383,7 +383,7 @@ package body Broca.Rootpoa is
      return Natural;
    function Reserve_A_Slot (Self : access Object) return Slot_Index_Type;
    function Build_Key_For_ObjectId (Oid : ObjectId)
-                                    return Broca.Types.Buffer_Descriptor;
+                                    return Broca.Buffers.Buffer_Descriptor;
    function Clean_Slot (Self : access Object; Slot : Slot_Index_Type)
                         return Boolean;
    procedure Unlink_POA (Self : POA_Object_Access);
@@ -501,22 +501,22 @@ package body Broca.Rootpoa is
       return Slot;
    end Reserve_A_Slot;
 
-   procedure Marshall_Objectid (Buf : in out Broca.Types.Buffer_Descriptor;
+   procedure Marshall_Objectid (Buf : in out Broca.Buffers.Buffer_Descriptor;
                                 Oid : ObjectId);
    procedure Marshall_Size_Objectid
-     (Buf : in out Broca.Types.Buffer_Descriptor; Oid : ObjectId);
-   procedure Unmarshall_Objectid (Buf : in out Broca.Types.Buffer_Descriptor;
+     (Buf : in out Broca.Buffers.Buffer_Descriptor; Oid : ObjectId);
+   procedure Unmarshall_Objectid (Buf : in out Broca.Buffers.Buffer_Descriptor;
                                   Oid : out ObjectId);
    function Build_Key_For_Slot (Self : access Object; Slot : Slot_Index_Type)
-                                return Broca.Types.Buffer_Descriptor;
+                                return Broca.Buffers.Buffer_Descriptor;
    procedure Key_To_Slot
      (Self : access Object;
-      Key : in out Broca.Types.Buffer_Descriptor;
+      Key : in out Broca.Buffers.Buffer_Descriptor;
       Slot : out Slot_Index_Type);
-   procedure Key_To_ObjectId (Key : in out Broca.Types.Buffer_Descriptor;
+   procedure Key_To_ObjectId (Key : in out Broca.Buffers.Buffer_Descriptor;
                               Oid : out ObjectId);
 
-   procedure Marshall_Objectid (Buf : in out Broca.Types.Buffer_Descriptor;
+   procedure Marshall_Objectid (Buf : in out Broca.Buffers.Buffer_Descriptor;
                                 Oid : ObjectId)
    is
    begin
@@ -524,12 +524,12 @@ package body Broca.Rootpoa is
    end Marshall_Objectid;
 
    procedure Marshall_Size_Objectid
-     (Buf : in out Broca.Types.Buffer_Descriptor; Oid : ObjectId) is
+     (Buf : in out Broca.Buffers.Buffer_Descriptor; Oid : ObjectId) is
    begin
       Broca.Sequences.Marshall_Size (Buf, Broca.Sequences.Octet (Oid));
    end Marshall_Size_Objectid;
 
-   procedure Unmarshall_Objectid (Buf : in out Broca.Types.Buffer_Descriptor;
+   procedure Unmarshall_Objectid (Buf : in out Broca.Buffers.Buffer_Descriptor;
                                   Oid : out ObjectId)
    is
       Seq_Oct : Broca.Sequences.Octet;
@@ -540,19 +540,19 @@ package body Broca.Rootpoa is
 
    --  Possible only if RETAIN policy.
    function Build_Key_For_Slot (Self : access Object; Slot : Slot_Index_Type)
-                                return Broca.Types.Buffer_Descriptor
+                                return Broca.Buffers.Buffer_Descriptor
    is
       use Broca.Marshalling;
-      use Broca.Types;
+      use Broca.Buffers;
       Res : Buffer_Descriptor;
    begin
       if Self.Lifespan_Policy = PERSISTENT then
-         Increase_Buffer_And_Clear_Pos
+         Allocate_Buffer_And_Clear_Pos
            (Res, 4 + 4 + 4 +
             Buffer_Index_Type
             (Length (Self.Object_Map (Slot).Skeleton.Object_Id)));
       else
-         Increase_Buffer_And_Clear_Pos  (Res, 4 + 4);
+         Allocate_Buffer_And_Clear_Pos  (Res, 4 + 4);
       end if;
       if Self.Lifespan_Policy = PERSISTENT then
          Marshall (Res, Broca.Flags.Boot_Time);
@@ -567,7 +567,7 @@ package body Broca.Rootpoa is
 
    procedure Key_To_Slot
      (Self : access Object;
-      Key : in out Broca.Types.Buffer_Descriptor;
+      Key : in out Broca.Buffers.Buffer_Descriptor;
       Slot : out Slot_Index_Type)
    is
       use Broca.Marshalling;
@@ -600,10 +600,10 @@ package body Broca.Rootpoa is
 
    --  Possible only if NON_RETAIN policy.
    function Build_Key_For_ObjectId (Oid : ObjectId)
-                                    return Broca.Types.Buffer_Descriptor
+                                    return Broca.Buffers.Buffer_Descriptor
    is
       use Broca.Marshalling;
-      use Broca.Types;
+      use Broca.Buffers;
       Res : Buffer_Descriptor;
    begin
       Marshall_Size_Objectid (Res, Oid);
@@ -612,7 +612,7 @@ package body Broca.Rootpoa is
       return Res;
    end Build_Key_For_ObjectId;
 
-   procedure Key_To_ObjectId (Key : in out Broca.Types.Buffer_Descriptor;
+   procedure Key_To_ObjectId (Key : in out Broca.Buffers.Buffer_Descriptor;
                               Oid : out ObjectId) is
    begin
       Unmarshall_Objectid (Key, Oid);
@@ -631,7 +631,7 @@ package body Broca.Rootpoa is
                              Type_Id : CORBA.RepositoryId;
                              Oid : ObjectId) return Broca.Poa.Skeleton_Access
    is
-      Key : Broca.Types.Buffer_Descriptor;
+      Key : Broca.Buffers.Buffer_Descriptor;
       Obj : Broca.Poa.Skeleton_Access;
    begin
       Obj := new Broca.Poa.Skeleton;
@@ -652,7 +652,7 @@ package body Broca.Rootpoa is
       Broca.Server.Build_Ior
         (Obj.Ior, Type_Id, Broca.Poa.POA_Object_Access (Self), Key);
 
-      Broca.Types.Unchecked_Deallocation (Key.Buffer);
+      Broca.Buffers.Free (Key.Buffer);
 
       Broca.Server.Log ("ObjectId created");
 
@@ -685,7 +685,7 @@ package body Broca.Rootpoa is
      (Self : access Object; Oid : ObjectId; P_Servant : PortableServer.Servant)
    is
       Slot : Slot_Index_Type;
-      Key : Broca.Types.Buffer_Descriptor;
+      Key : Broca.Buffers.Buffer_Descriptor;
       Obj : Broca.Poa.Skeleton_Access;
    begin
       Slot := Slot_By_Object_Id (Self, Oid);
@@ -715,7 +715,7 @@ package body Broca.Rootpoa is
    is
       Res : CORBA.Object.Ref;
       Slot : Slot_Index_Type;
-      Key : Broca.Types.Buffer_Descriptor;
+      Key : Broca.Buffers.Buffer_Descriptor;
       Obj : Broca.Poa.Skeleton_Access;
       Oid : ObjectId;
    begin
@@ -984,11 +984,11 @@ package body Broca.Rootpoa is
 
    procedure Giop_Invoke
      (Self : access Object;
-      Key : in out Broca.Types.Buffer_Descriptor;
+      Key : in out Broca.Buffers.Buffer_Descriptor;
       Operation : CORBA.Identifier;
       Request_Id : CORBA.Unsigned_Long;
       Reponse_Expected : CORBA.Boolean;
-      Message : in out Broca.Types.Buffer_Descriptor)
+      Message : in out Broca.Buffers.Buffer_Descriptor)
    is
       use PortableServer;
       Slot : Slot_Index_Type;
@@ -1017,10 +1017,10 @@ package body Broca.Rootpoa is
       PortableServer.POA.Set (A_Poa, Broca.Refs.Ref_Acc (Self));
 
       if A_Servant = null then
-	 pragma Debug (O ("Giop_invoke : A_Servant is null"));
+         pragma Debug (O ("Giop_invoke : A_Servant is null"));
          case Self.Request_Policy is
             when USE_ACTIVE_OBJECT_MAP_ONLY =>
-	       pragma Debug (O ("Giop_invoke : USE_ACTIVE_OBJECT_MAP_ONLY policy"));
+               pragma Debug (O ("Giop_invoke : USE_ACTIVE_OBJECT_MAP_ONLY policy"));
                if Slot /= Bad_Slot_Index then
                   A_Servant := Self.Object_Map (Slot).Skeleton.P_Servant;
                else
@@ -1028,7 +1028,7 @@ package body Broca.Rootpoa is
                end if;
 
             when USE_DEFAULT_SERVANT =>
-	       pragma Debug (O ("Giop_invoke : USE_DEFAULT_SERVANT policy"));
+               pragma Debug (O ("Giop_invoke : USE_DEFAULT_SERVANT policy"));
                if Self.Default_Servant = null then
                   Broca.Exceptions.Raise_Obj_Adapter;
                else
@@ -1042,7 +1042,7 @@ package body Broca.Rootpoa is
                end if;
 
             when USE_SERVANT_MANAGER =>
-	       pragma Debug (O ("Giop_invoke : USE_SERVANT_MANAGER policy"));
+               pragma Debug (O ("Giop_invoke : USE_SERVANT_MANAGER policy"));
                if Broca.Refs."="
                  (PortableServer.ServantManager.Get (Self.Servant_Manager),
                   null)
@@ -1100,17 +1100,17 @@ package body Broca.Rootpoa is
       end if;
       begin
          if Self.Servant_Policy = RETAIN then
-	    pragma Debug (O ("Giop_Invoke : RETAIN policy"));
-	    Self.Object_Map (Slot).Requests_Lock.Lock_R;
+            pragma Debug (O ("Giop_Invoke : RETAIN policy"));
+            Self.Object_Map (Slot).Requests_Lock.Lock_R;
          end if;
-	 pragma Debug (O ("Giop_Invoke : call giop_dispatch for " & CORBA.To_Standard_String (Operation)));
+         pragma Debug (O ("Giop_Invoke : call giop_dispatch for " & CORBA.To_Standard_String (Operation)));
          Attributes.Set_Value
            (POA_Task_Attribute'(Current_Object => Oid,
                                 Current_POA    => PortableServer.POA.Convert.To_Forward (A_Poa)));
          Giop_Dispatch
            (A_Servant, CORBA.To_Standard_String (Operation), Request_Id,
             Reponse_Expected, Message);
-	 pragma Debug (O ("Giop_Invoke : giop_dispatch returned"));
+         pragma Debug (O ("Giop_Invoke : giop_dispatch returned"));
          if Self.Servant_Policy = RETAIN then
             Self.Object_Map (Slot).Requests_Lock.Unlock_R;
          end if;

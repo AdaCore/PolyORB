@@ -1,6 +1,6 @@
 with Ada.Unchecked_Deallocation;
 
-package Broca.Types is
+package Broca.Buffers is
 
    --  Buffer to/from network before unmarshalling or after marshalling.
    --  Must start at 0, according to CORBA V2.2 13.3
@@ -21,4 +21,4 @@ package Broca.Types is
 
    procedure Unchecked_Deallocation is new Ada.Unchecked_Deallocation
      (Name => Buffer_Access, Object => Buffer_Type);
-end Broca.Types;
+end Broca.Buffers;

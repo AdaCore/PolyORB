@@ -1,3 +1,9 @@
+1999-08-23  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* broca-buffers.ad[bs]: New unit to handle buffers.
+	
+	* all files: Update files to take new unit into account.
+
 1999-08-21  Laurent Pautet  <pautet@dorine.enst.fr>
 
 	* broca-giop.ads: Change header size to 12. Define No_Context to

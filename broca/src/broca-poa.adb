@@ -14,7 +14,7 @@ package body Broca.Poa is
    end Get_The_POAManager;
 
    function Object_To_IOR (Obj : Skeleton)
-                           return Broca.Types.Buffer_Descriptor is
+                           return Broca.Buffers.Buffer_Descriptor is
    begin
       return Obj.Ior;
    end Object_To_IOR;

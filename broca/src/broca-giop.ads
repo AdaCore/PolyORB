@@ -1,7 +1,7 @@
 with CORBA;
 with CORBA.Object;
 with Broca.Object;
-with Broca.Types; use Broca.Types;
+with Broca.Buffers; use Broca.Buffers;
 
 package Broca.Giop is
    --  Declare a few constants for GIOP version 1.0.

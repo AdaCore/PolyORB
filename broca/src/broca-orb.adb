@@ -16,7 +16,7 @@ package body Broca.Orb is
    Flag : constant Natural := Broca.Debug.Is_Active ("broca.orb");
    procedure O is new Broca.Debug.Output (Flag);
 
-   procedure IOR_To_Object (Ior : in out Broca.Types.Buffer_Descriptor;
+   procedure IOR_To_Object (Ior : in out Broca.Buffers.Buffer_Descriptor;
                             Res : out CORBA.Object.Ref'Class)
    is
       use Broca.Marshalling;

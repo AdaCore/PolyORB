@@ -1,4 +1,3 @@
-with Ada.Text_IO;
 with Ada.Unchecked_Deallocation;
 with Ada.Tags;
 with Broca.Locks;
@@ -8,8 +7,17 @@ with Broca.Debug;
 pragma Elaborate_All (Broca.Debug);
 
 package body Broca.Refs is
+
    Flag : constant Natural := Broca.Debug.Is_Active ("broca.refs");
    procedure O is new Broca.Debug.Output (Flag);
+
+   Counter_Global_Lock : Broca.Locks.Mutex_Type;
+
+   procedure Free is new Ada.Unchecked_Deallocation (Ref_Type'Class, Ref_Acc);
+
+   -------------------
+   -- Disable_Usage --
+   -------------------
 
    procedure Disable_Usage (Obj : in out Ref_Type) is
    begin
@@ -20,8 +28,6 @@ package body Broca.Refs is
       end if;
    end Disable_Usage;
 
-   Counter_Global_Lock : Broca.Locks.Mutex_Type;
-
    procedure Inc_Usage (Obj : Ref_Acc) is
    begin
       if Obj.Counter /= -1 then
@@ -31,9 +37,6 @@ package body Broca.Refs is
       end if;
    end Inc_Usage;
 
-   procedure Unchecked_Deallocation is new Ada.Unchecked_Deallocation
-     (Object => Ref_Type'Class, Name => Ref_Acc);
-
    procedure Dec_Usage (Obj : in out Ref_Acc) is
    begin
       if Obj.Counter /= -1 then
@@ -42,8 +45,8 @@ package body Broca.Refs is
          Counter_Global_Lock.Unlock;
          if Obj.Counter = 0 then
             pragma Debug (O ("dec_usage: deallocate " &
-			     Ada.Tags.External_Tag (Obj.all'Tag)));
-            Unchecked_Deallocation (Obj);
+                             Ada.Tags.External_Tag (Obj.all'Tag)));
+            Free (Obj);
          end if;
       end if;
    end Dec_Usage;
@@ -67,9 +70,9 @@ package body Broca.Refs is
       end if;
    end Finalize;
 
-   function Object_To_IOR (Obj : Ref_Type) return Broca.Types.Buffer_Descriptor
+   function Object_To_IOR (Obj : Ref_Type) return Broca.Buffers.Buffer_Descriptor
    is
-      Res : Broca.Types.Buffer_Descriptor;
+      Res : Broca.Buffers.Buffer_Descriptor;
    begin
       Broca.Exceptions.Raise_Marshal;
       return Res;

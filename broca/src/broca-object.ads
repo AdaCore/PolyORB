@@ -1,5 +1,5 @@
 with CORBA;
-with Broca.Types; use Broca.Types;
+with Broca.Buffers; use Broca.Buffers;
 with Broca.Refs;
 with Broca.Sequences;
 

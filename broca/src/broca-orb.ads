@@ -2,11 +2,11 @@ with CORBA;
 with CORBA.ORB;
 with CORBA.Object;
 with Broca.Poa;
-with Broca.Types;
+with Broca.Buffers;
 pragma Elaborate_All (CORBA);
 
 package Broca.Orb is
-   procedure IOR_To_Object (Ior : in out Broca.Types.Buffer_Descriptor;
+   procedure IOR_To_Object (Ior : in out Broca.Buffers.Buffer_Descriptor;
                             Res : out CORBA.Object.Ref'Class);
 
    function List_Initial_Services return CORBA.ORB.ObjectIdList;

@@ -37,20 +37,20 @@ package body Broca.Ior is
          elsif El >= 'a' and then El <= 'f' then
             Nibble := 10 + Character'Pos (El) - Character'Pos ('a');
          else
-            Unchecked_Deallocation (Res);
+            Free (Res);
             Broca.Exceptions.Raise_Bad_Param;
          end if;
          if I mod 2 = 1 then
-            Res (Res_Index) := Types.Element (Nibble * 16);
+            Res (Res_Index) := Byte (Nibble * 16);
          else
-            Res (Res_Index) := Res (Res_Index) + Types.Element (Nibble);
+            Res (Res_Index) := Res (Res_Index) + Byte (Nibble);
             Res_Index := Res_Index + 1;
          end if;
       end loop;
       return Res;
    end Ior_String_To_Buffer;
 
-   type Char_Array is array (Types.Element range <>) of Character;
+   type Char_Array is array (Byte range <>) of Character;
    Xdigits : constant Char_Array (0 .. 15) := "0123456789abcdef";
 
    --  Convert a buffer containing an marshalled contents of an IOR into

@@ -2,7 +2,7 @@ with Interfaces.C;
 with CORBA;
 with Broca.Sequences;
 with Broca.Object;
-with Broca.Types; use Broca.Types;
+with Broca.Buffers; use Broca.Buffers;
 with Broca.Locks;
 with Sockets.Thin;
 with Interfaces.C;

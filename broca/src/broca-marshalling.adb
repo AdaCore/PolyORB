@@ -11,43 +11,6 @@ package body Broca.Marshalling is
    Flag : constant Natural := Broca.Debug.Is_Active ("broca.marshalling");
    procedure O is new Broca.Debug.Output (Flag);
 
-   subtype Output_Line is String (1 .. 48);
-
-   Hex : constant String      := "0123456789ABCDEF";
-   Nil : constant Output_Line := (others => ' ');
-
-   ----------
-   -- Dump --
-   ----------
-
-   procedure Dump
-     (Buffer : Buffer_Type)
-   is
-      Index   : Natural := 1;
-      Output  : Output_Line;
-   begin
-      for I in Buffer'Range loop
-         Output (Index)     := ' ';
-         Output (Index + 1) := Hex (Natural (Buffer (I) / 16) + 1);
-         Output (Index + 2) := Hex (Natural (Buffer (I) mod 16) + 1);
-         Index := Index + 3;
-
-         if Index > Output'Length then
-            pragma Debug (O (Output));
-            Index := 1;
-            Output := Nil;
-         end if;
-      end loop;
-
-      if Index /= 1 then
-         pragma Debug (O (Output (1 .. Index - 1)));
-         null;
-      end if;
-   exception when others =>
-      pragma Debug (O ("problem in dump"));
-      raise;
-   end Dump;
-
    subtype Short_Buffer_Type is Buffer_Type (0 .. 1);
    function Buffer_Type_To_Unsigned_Short is new Ada.Unchecked_Conversion
      (Source => Short_Buffer_Type, Target => CORBA.Unsigned_Short);
@@ -77,101 +40,6 @@ package body Broca.Marshalling is
      (Source => Very_Long_Buffer_Type, Target => CORBA.Double);
    function Double_To_Buffer_Type is new Ada.Unchecked_Conversion
      (Source => CORBA.Double, Target => Very_Long_Buffer_Type);
-
-   procedure Align
-     (Buffer : in out Buffer_Descriptor; Alignment : Buffer_Index_Type);
-   pragma Inline (Align);
-
-   procedure Align
-     (Buffer : in out Buffer_Descriptor; Alignment : Buffer_Index_Type) is
-   begin
-      Buffer.Pos := Buffer.Pos +
-        ((Alignment - (Buffer.Pos mod Alignment)) mod Alignment);
-   end Align;
-
-   procedure Marshall_Align_2 (Buffer : in out Buffer_Descriptor) is
-   begin
-      Align (Buffer, 2);
-   end Marshall_Align_2;
-
-   procedure Marshall_Align_4 (Buffer : in out Buffer_Descriptor) is
-   begin
-      Align (Buffer, 4);
-   end Marshall_Align_4;
-
-   procedure Marshall_Align_8 (Buffer : in out Buffer_Descriptor) is
-   begin
-      Align (Buffer, 8);
-   end Marshall_Align_8;
-
-   procedure Marshall_Align_16 (Buffer : in out Buffer_Descriptor) is
-   begin
-      Align (Buffer, 16);
-   end Marshall_Align_16;
-
-
-   --  Append the contents of SOURCE to TARGET.
-   --  TARGET size must be big enough.
-   procedure Marshall_Append (Target : in out Buffer_Descriptor;
-                              Source : in Buffer_Descriptor) is
-   begin
-      Target.Buffer (Target.Pos .. Target.Pos + Source.Pos - 1)
-        := Source.Buffer (0 .. Source.Pos - 1);
-      Target.Pos := Target.Pos + Source.Pos;
-   end Marshall_Append;
-
-   procedure Marshall_Size_Append (Target : in out Buffer_Descriptor;
-                                   Source : in Buffer_Descriptor) is
-   begin
-      Target.Pos := Target.Pos + Source.Pos;
-   end Marshall_Size_Append;
-
-   procedure Unmarshall_Extract (Target : in out Buffer_Descriptor;
-                                 Source : in out Buffer_Descriptor;
-                                 Length : Buffer_Index_Type) is
-   begin
-      Target.Buffer (Target.Pos .. Target.Pos + Length - 1) :=
-        Source.Buffer (Source.Pos .. Source.Pos + Length - 1);
-      Source.Pos := Source.Pos + Length;
-      Target.Pos := 0;
-      Target.Little_Endian := Source.Little_Endian;
-   end Unmarshall_Extract;
-
-   --  Return true if BUFFER can be interpreted as STR.
-   --  The string is not unmarshalled.
-   function Marshall_Compare (Stream : in Buffer_Descriptor;
-                              Str : in String) return Boolean
-   is
-      use CORBA;
-      Buffer : Buffer_Descriptor;
-      Length : CORBA.Unsigned_Long;
-      Pos : Buffer_Index_Type;
-      C : Character;
-   begin
-      --  FIXME: not as efficient as possible.
-      Buffer := Stream;
-      Unmarshall (Buffer, Length);
-      Pos := Buffer.Pos;
-      if Length /= Str'Length + 1 then
-         return False;
-      end if;
-      for I in 0 .. Unsigned_Long'Pos (Length - 2) loop
-         C := Character'Val (Stream.Buffer (Pos + Buffer_Index_Type (I)));
-         if C /= Str (Str'First + I) then
-            return False;
-         end if;
-      end loop;
-      return True;
-   end Marshall_Compare;
-
-   --  Skip a string in a buffer.
-   procedure Unmarshall_Skip_String (Buffer : in out Buffer_Descriptor)
-   is
-      Length : CORBA.Unsigned_Long;
-   begin
-      Unmarshall (Buffer, Length);
-      Buffer.Pos := Buffer.Pos + Buffer_Index_Type (Length);
-   end Unmarshall_Skip_String;
 
    --  Unmarshall procedure
    --  Extract a type from BUFFER starting at POS, which maybe aligned before,
@@ -208,7 +76,7 @@ package body Broca.Marshalling is
    procedure Unmarshall
      (Stream : in out Buffer_Descriptor; Res : out CORBA.Unsigned_Short) is
    begin
-      Marshall_Align_2 (Stream);
+      Align_Size (Stream, 2);
       if Stream.Little_Endian /= Is_Little_Endian then
          Res := Buffer_Type_To_Unsigned_Short
            ((Stream.Buffer (Stream.Pos + 1), Stream.Buffer (Stream.Pos)));
@@ -222,7 +90,7 @@ package body Broca.Marshalling is
    procedure Unmarshall
      (Stream : in out Buffer_Descriptor; Res : out CORBA.Unsigned_Long) is
    begin
-      Marshall_Align_4 (Stream);
+      Align_Size (Stream, 4);
       if Stream.Little_Endian /= Is_Little_Endian then
          Res := Buffer_Type_To_Unsigned_Long
            ((Stream.Buffer (Stream.Pos + 3),
@@ -239,7 +107,7 @@ package body Broca.Marshalling is
    procedure Unmarshall
      (Stream : in out Buffer_Descriptor; Res : out CORBA.Short) is
    begin
-      Marshall_Align_2 (Stream);
+      Align_Size (Stream, 2);
       if Stream.Little_Endian /= Is_Little_Endian then
          Res := Buffer_Type_To_Short
            ((Stream.Buffer (Stream.Pos + 1), Stream.Buffer (Stream.Pos)));
@@ -253,7 +121,7 @@ package body Broca.Marshalling is
    procedure Unmarshall
      (Stream : in out Buffer_Descriptor; Res : out CORBA.Long) is
    begin
-      Marshall_Align_4 (Stream);
+      Align_Size (Stream, 4);
       if Stream.Little_Endian /= Is_Little_Endian then
          Res := Buffer_Type_To_Long
            ((Stream.Buffer (Stream.Pos + 3),
@@ -293,7 +161,7 @@ package body Broca.Marshalling is
    procedure Unmarshall
      (Stream : in out Buffer_Descriptor; Res : out CORBA.Float) is
    begin
-      Marshall_Align_4 (Stream);
+      Align_Size (Stream, 4);
       if Stream.Little_Endian /= Is_Little_Endian then
          Res := Buffer_Type_To_Float
            ((Stream.Buffer (Stream.Pos + 3),
@@ -310,7 +178,7 @@ package body Broca.Marshalling is
    procedure Unmarshall
      (Stream : in out Buffer_Descriptor; Res : out CORBA.Double) is
    begin
-      Marshall_Align_8 (Stream);
+      Align_Size (Stream, 8);
       if Stream.Little_Endian /= Is_Little_Endian then
          Res := Buffer_Type_To_Double
            ((Stream.Buffer (Stream.Pos + 7),
@@ -336,9 +204,9 @@ package body Broca.Marshalling is
       Nbr_Elements : Natural) is
    begin
       --  Align for number of element (which is a unsigned long).
-      Marshall_Align_4 (Stream);
+      Align_Size (Stream, 4);
       Stream.Pos := Stream.Pos + 4;
-      Align (Stream, Buffer_Index_Type (Element_Size));
+      Align_Size (Stream, Alignment_Type (Element_Size));
       Stream.Pos :=
         Stream.Pos + Buffer_Index_Type (Nbr_Elements * Element_Size);
    end Marshall_Size_Primitive_Sequence;
@@ -350,7 +218,7 @@ package body Broca.Marshalling is
 
    procedure Marshall_Size_Long (Stream : in out Buffer_Descriptor) is
    begin
-      Marshall_Align_4 (Stream);
+      Align_Size (Stream, 4);
       Stream.Pos := Stream.Pos + 4;
    end Marshall_Size_Long;
 
@@ -360,7 +228,7 @@ package body Broca.Marshalling is
    procedure Marshall_Size_Short (Stream : in out Buffer_Descriptor)
    is
    begin
-      Marshall_Align_2 (Stream);
+      Align_Size (Stream, 2);
       Stream.Pos := Stream.Pos + 2;
    end Marshall_Size_Short;
 
@@ -369,13 +237,13 @@ package body Broca.Marshalling is
 
    procedure Marshall_Size_Float (Stream : in out Buffer_Descriptor) is
    begin
-      Marshall_Align_4 (Stream);
+      Align_Size (Stream, 4);
       Stream.Pos := Stream.Pos + 4;
    end Marshall_Size_Float;
 
    procedure Marshall_Size_Double (Stream : in out Buffer_Descriptor) is
    begin
-      Marshall_Align_8 (Stream);
+      Align_Size (Stream, 8);
       Stream.Pos := Stream.Pos + 8;
    end Marshall_Size_Double;
 
@@ -383,7 +251,7 @@ package body Broca.Marshalling is
      (Stream : in out Buffer_Descriptor; Val : CORBA.String) is
       use CORBA;
    begin
-      Marshall_Align_4 (Stream);
+      Align_Size (Stream, 4);
       Stream.Pos := Stream.Pos + 4 + Buffer_Index_Type (Length (Val)) + 1;
    end Marshall_Size;
 
@@ -391,7 +259,7 @@ package body Broca.Marshalling is
      (Stream : in out Buffer_Descriptor; Val : String) is
       use CORBA;
    begin
-      Marshall_Align_4 (Stream);
+      Align_Size (Stream, 4);
       Stream.Pos := Stream.Pos + 4 + Buffer_Index_Type (Val'Length) + 1;
    end Marshall_Size;
 
@@ -449,49 +317,54 @@ package body Broca.Marshalling is
       Marshall_Size_Double (Stream);
    end Marshall_Size;
 
-   --  Allocate or reallocate Stream.Buffer to that its length is at least
-   --  equal to SIZE.
-   procedure Increase_Buffer
-     (Stream : in out Buffer_Descriptor; Size : Buffer_Index_Type);
-
-   procedure Increase_Buffer
-     (Stream : in out Buffer_Descriptor; Size : Buffer_Index_Type) is
-   begin
-      if Stream.Buffer = null or else Stream.Buffer.all'Last < Size - 1 then
-         Unchecked_Deallocation (Stream.Buffer);
-         Stream.Buffer := new Buffer_Type (0 .. Size - 1);
-      end if;
-   end Increase_Buffer;
-
-   procedure Increase_Buffer_And_Set_Pos
-     (Stream : in out Buffer_Descriptor; Size : Buffer_Index_Type) is
-   begin
-      Increase_Buffer (Stream, Size);
-      Stream.Pos := Size;
-   end Increase_Buffer_And_Set_Pos;
-
-   procedure Increase_Buffer_And_Clear_Pos
-     (Stream : in out Buffer_Descriptor; Size : Buffer_Index_Type) is
-   begin
-      Increase_Buffer (Stream, Size);
-      Stream.Pos := 0;
-   end Increase_Buffer_And_Clear_Pos;
-
-   --  For an outcoming stream, allocate the buffer and clear pos.
-   procedure Allocate_Buffer (Stream : in out Buffer_Descriptor) is
-   begin
-      Increase_Buffer (Stream, Stream.Pos);
-      Stream.Pos := 0;
-      Stream.Little_Endian := Is_Little_Endian;
-   end Allocate_Buffer;
-
    --  Marshall
    procedure Marshall
      (Stream : in out Buffer_Descriptor; Val : CORBA.Octet) is
    begin
-      Stream.Buffer (Stream.Pos) := Element (Val);
+      Stream.Buffer (Stream.Pos) := Byte (Val);
       Stream.Pos := Stream.Pos + 1;
    end Marshall;
+
+   -------------
+   -- Compare --
+   -------------
+
+   function Compare (Buffer  : in Buffer_Descriptor;
+                     Pattern : in String) return Boolean
+   is
+      use CORBA;
+      Old : Buffer_Descriptor;
+      Len : CORBA.Unsigned_Long;
+      Pos : Buffer_Index_Type;
+      C   : Character;
+   begin
+      --  FIXME: not as efficient as possible.
+      Old := Buffer;
+      Unmarshall (Old, Len);
+      Pos := Old.Pos;
+      if Len /= Pattern'Length + 1 then
+         return False;
+      end if;
+      for I in 0 .. Unsigned_Long'Pos (Len - 2) loop
+         C := Character'Val (Buffer.Buffer (Pos + Buffer_Index_Type (I)));
+         if C /= Pattern (Pattern'First + I) then
+            return False;
+         end if;
+      end loop;
+      return True;
+   end Compare;
+
+   -----------------
+   -- Skip_String --
+   -----------------
+
+   procedure Skip_String (Buffer : in out Buffer_Descriptor)
+   is
+      Length : CORBA.Unsigned_Long;
+   begin
+      Unmarshall (Buffer, Length);
+      Buffer.Pos := Buffer.Pos + Buffer_Index_Type (Length);
+   end Skip_String;
 
    procedure Marshall
      (Stream : in out Buffer_Descriptor; Val : CORBA.Char) is
@@ -510,7 +383,7 @@ package body Broca.Marshalling is
    procedure Marshall
      (Stream : in out Buffer_Descriptor; Val : CORBA.Unsigned_Short) is
    begin
-      Marshall_Align_2 (Stream);
+      Align_Size (Stream, 2);
       Stream.Buffer (Stream.Pos .. Stream.Pos + 1) :=
         Unsigned_Short_To_Buffer_Type (Val);
       Stream.Pos := Stream.Pos + 2;
@@ -519,7 +392,7 @@ package body Broca.Marshalling is
    procedure Marshall
      (Stream : in out Buffer_Descriptor; Val : CORBA.Unsigned_Long) is
    begin
-      Marshall_Align_4 (Stream);
+      Align_Size (Stream, 4);
       Stream.Buffer (Stream.Pos .. Stream.Pos + 3) :=
         Unsigned_Long_To_Buffer_Type (Val);
       Stream.Pos := Stream.Pos + 4;
@@ -528,7 +401,7 @@ package body Broca.Marshalling is
    procedure Marshall
      (Stream : in out Buffer_Descriptor; Val : CORBA.Short) is
    begin
-      Marshall_Align_2 (Stream);
+      Align_Size (Stream, 2);
       Stream.Buffer (Stream.Pos .. Stream.Pos + 1) :=
         Short_To_Buffer_Type (Val);
       Stream.Pos := Stream.Pos + 2;
@@ -537,7 +410,7 @@ package body Broca.Marshalling is
    procedure Marshall
      (Stream : in out Buffer_Descriptor; Val : CORBA.Long) is
    begin
-      Marshall_Align_4 (Stream);
+      Align_Size (Stream, 4);
       Stream.Buffer (Stream.Pos .. Stream.Pos + 3) :=
         Long_To_Buffer_Type (Val);
       Stream.Pos := Stream.Pos + 4;
@@ -546,7 +419,7 @@ package body Broca.Marshalling is
    procedure Marshall
      (Stream : in out Buffer_Descriptor; Val : CORBA.Float) is
    begin
-      Marshall_Align_4 (Stream);
+      Align_Size (Stream, 4);
       Stream.Buffer (Stream.Pos .. Stream.Pos + 3) :=
         Float_To_Buffer_Type (Val);
       Stream.Pos := Stream.Pos + 4;
@@ -555,7 +428,7 @@ package body Broca.Marshalling is
    procedure Marshall
      (Stream : in out Buffer_Descriptor; Val : CORBA.Double) is
    begin
-      Marshall_Align_8 (Stream);
+      Align_Size (Stream, 8);
       Stream.Buffer (Stream.Pos .. Stream.Pos + 7) :=
         Double_To_Buffer_Type (Val);
       Stream.Pos := Stream.Pos + 8;
@@ -596,13 +469,4 @@ package body Broca.Marshalling is
       Stream.Pos := Stream.Pos + Buffer_Index_Type (Val_Length + 1);
    end Marshall;
 
-begin
-   declare
-      use CORBA;
-
-      Buf : Buffer_Type (0 .. 1) := (16, 8);
-      Us : CORBA.Unsigned_Short := Buffer_Type_To_Unsigned_Short (Buf);
-   begin
-      Is_Little_Endian := "/=" (Us, 16 * 256 + 8);
-   end;
 end Broca.Marshalling;

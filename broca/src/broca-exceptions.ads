@@ -1,7 +1,7 @@
 with System;
 with Ada.Exceptions;
 with CORBA; use CORBA;
-with Broca.Types; use Broca.Types;
+with Broca.Buffers; use Broca.Buffers;
 
 package Broca.Exceptions is
    -----------------------------------------

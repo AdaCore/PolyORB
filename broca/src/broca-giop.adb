@@ -65,7 +65,7 @@ package body Broca.Giop is
       --  Exception
       Broca.Exceptions.Marshall_Size (Stream, Occurence);
 
-      Increase_Buffer_And_Set_Pos (Stream, Stream.Pos);
+      Allocate_Buffer_And_Set_Pos (Stream, Stream.Pos);
 
       Broca.Giop.Create_Giop_Header
         (Stream, Broca.Giop.Reply,
@@ -98,9 +98,9 @@ package body Broca.Giop is
       --  reply_status
       Marshall_Size_Unsigned_Long (Stream);
       --  IOR
-      Marshall_Size_Append (Stream, N_Ref);
+      Compute_Size (Stream, N_Ref);
 
-      Increase_Buffer_And_Set_Pos (Stream, Stream.Pos);
+      Allocate_Buffer_And_Set_Pos (Stream, Stream.Pos);
 
       Broca.Giop.Create_Giop_Header
         (Stream, Broca.Giop.Reply,
@@ -112,7 +112,7 @@ package body Broca.Giop is
       --  reply_status
       Marshall (Stream, Broca.Giop.Location_Forward);
       --  exception.
-      Marshall_Append (Stream, N_Ref);
+      Append_Buffer (Stream, N_Ref);
    end Create_Reply_Location_Forward;
 
    Nobody_Principal : constant CORBA.String :=
@@ -221,7 +221,7 @@ package body Broca.Giop is
 
       --  1.4 Receive reply
       --  1.4.1 the message header
-      Increase_Buffer_And_Set_Pos
+      Allocate_Buffer_And_Set_Pos
          (Handler.Buffer, Broca.Giop.Message_Header_Size);
       Broca.Object.Receive (Handler.Connection, Handler.Buffer);
       if Handler.Buffer.Pos /= Broca.Giop.Message_Header_Size then
@@ -246,20 +246,20 @@ package body Broca.Giop is
       Unmarshall (Handler.Buffer, Message_Size);
 
       --  Allocate enough bytes for the message.
-      Increase_Buffer_And_Set_Pos
+      Allocate_Buffer_And_Set_Pos
         (Tmp, Buffer_Index_Type (Message_Size));
 
       --  1.4.5 Receive the reply header and body.
       Broca.Object.Receive (Handler.Connection, Tmp);
       Broca.Object.Release_Connection (Handler.Connection);
 
-      Increase_Buffer_And_Set_Pos
+      Allocate_Buffer_And_Set_Pos
         (Handler.Buffer,
          Buffer_Index_Type (Message_Size + Message_Header_Size));
       Handler.Buffer.Buffer (Message_Header_Size .. Handler.Buffer.Pos - 1)
         := Tmp.Buffer.all;
       Handler.Buffer.Pos := Message_Header_Size;
-      Unchecked_Deallocation (Tmp.Buffer);
+      Free (Tmp.Buffer);
 
       --  service_context.
       Unmarshall (Handler.Buffer, Service_Context);

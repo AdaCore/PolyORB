@@ -1,7 +1,7 @@
 with System;
 with Ada.Strings.Unbounded;
 with Ada.Exceptions;
-with Broca.Types; use Broca.Types;
+with Broca.Buffers; use Broca.Buffers;
 with CORBA; use CORBA;
 with CORBA.Iop;
 with Sockets.Thin;
@@ -88,7 +88,7 @@ package body Broca.Inet_Server is
 
    function Htons (Val : Natural) return Interfaces.C.unsigned_short is
    begin
-      if Broca.Marshalling.Is_Little_Endian then
+      if Broca.Buffers.Is_Little_Endian then
          return Interfaces.C.unsigned_short
            ((Val / 256) + (Val mod 256) * 256);
       else
@@ -100,7 +100,7 @@ package body Broca.Inet_Server is
    is
       use Interfaces.C;
    begin
-      if Broca.Marshalling.Is_Little_Endian then
+      if Broca.Buffers.Is_Little_Endian then
          return Natural
            ((Val / 256) + (Val mod 256) * 256);
       else
@@ -188,7 +188,7 @@ package body Broca.Inet_Server is
       Iiop_Port := CORBA.Unsigned_Short (Sock_Name.Sin_Port);
 
       --  Network to host byte order conversion.
-      if Broca.Marshalling.Is_Little_Endian then
+      if Broca.Buffers.Is_Little_Endian then
          Iiop_Port := (Iiop_Port / 256) + (Iiop_Port mod 256) * 256;
       end if;
 
@@ -288,7 +288,7 @@ package body Broca.Inet_Server is
       end if;
 
       --  Receive a message header
-      Increase_Buffer_And_Clear_Pos
+      Allocate_Buffer_And_Clear_Pos
         (Buffer, Broca.Giop.Message_Header_Size);
       Res := C_Recv (Sock, Buffer.Buffer.all'Address,
                      Broca.Giop.Message_Header_Size, 0);
@@ -337,24 +337,24 @@ package body Broca.Inet_Server is
 
    type Fd_Server_Type is new Broca.Server.Server_Type with null record;
    procedure Perform_Work (Server : access Fd_Server_Type;
-                           Buffer : in out Broca.Types.Buffer_Descriptor);
+                           Buffer : in out Broca.Buffers.Buffer_Descriptor);
    procedure Marshall_Size_Profile
      (Server : access Fd_Server_Type;
-      Ior : in out Broca.Types.Buffer_Descriptor;
-      Object_Key : Broca.Types.Buffer_Descriptor);
+      Ior : in out Broca.Buffers.Buffer_Descriptor;
+      Object_Key : Broca.Buffers.Buffer_Descriptor);
    procedure Marshall_Profile (Server : access Fd_Server_Type;
-                               Ior : in out Broca.Types.Buffer_Descriptor;
-                               Object_Key : Broca.Types.Buffer_Descriptor);
+                               Ior : in out Broca.Buffers.Buffer_Descriptor;
+                               Object_Key : Broca.Buffers.Buffer_Descriptor);
 
    procedure Perform_Work (Server : access Fd_Server_Type;
-                           Buffer : in out Broca.Types.Buffer_Descriptor) is
+                           Buffer : in out Broca.Buffers.Buffer_Descriptor) is
    begin
       Wait_Fd_Request (Buffer);
    end Perform_Work;
 
    procedure Marshall_Size_Profile (Server : access Fd_Server_Type;
-                                    Ior : in out Broca.Types.Buffer_Descriptor;
-                                    Object_Key : Broca.Types.Buffer_Descriptor)
+                                    Ior : in out Broca.Buffers.Buffer_Descriptor;
+                                    Object_Key : Broca.Buffers.Buffer_Descriptor)
    is
       use Broca.Marshalling;
    begin
@@ -372,14 +372,14 @@ package body Broca.Inet_Server is
       Marshall_Size (Ior, Iiop_Host);
       --  Port
       Marshall_Size_Unsigned_Short (Ior);
-      Marshall_Align_4 (Ior);
+      Align_Size (Ior, 4);
       --  key.
-      Marshall_Size_Append (Ior, Object_Key);
+      Compute_Size (Ior, Object_Key);
    end Marshall_Size_Profile;
 
    procedure Marshall_Profile (Server : access Fd_Server_Type;
-                               Ior : in out Broca.Types.Buffer_Descriptor;
-                               Object_Key : Broca.Types.Buffer_Descriptor)
+                               Ior : in out Broca.Buffers.Buffer_Descriptor;
+                               Object_Key : Broca.Buffers.Buffer_Descriptor)
    is
       use Broca.Marshalling;
       Length_Pos : Buffer_Index_Type;
@@ -397,9 +397,9 @@ package body Broca.Inet_Server is
       Marshall (Ior, Iiop_Host);
       --  Port
       Marshall (Ior, Iiop_Port);
-      Marshall_Align_4 (Ior);
+      Align_Size (Ior, 4);
       --  object key
-      Marshall_Append (Ior, Object_Key);
+      Append_Buffer (Ior, Object_Key);
 
       Pos := Ior.Pos;
       Ior.Pos := Length_Pos;

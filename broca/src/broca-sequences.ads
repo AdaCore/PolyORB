@@ -1,6 +1,6 @@
 with CORBA;
 with CORBA.Sequences.Unbounded;
-with Broca.Types; use Broca.Types;
+with Broca.Buffers; use Broca.Buffers;
 pragma Elaborate_All (CORBA.Sequences.Unbounded);
 
 package Broca.Sequences is

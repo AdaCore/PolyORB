@@ -1,44 +1,7 @@
 with CORBA;
-with Broca.Types; use Broca.Types;
+with Broca.Buffers; use Broca.Buffers;
 
 package Broca.Marshalling is
-   --  True if this machine use little endian byte order.
-   Is_Little_Endian : Boolean;
-
-   procedure Dump (Buffer : Buffer_Type);
-
-   --  Alignment
-   procedure Marshall_Align_2 (Buffer : in out Buffer_Descriptor);
-   procedure Marshall_Align_4 (Buffer : in out Buffer_Descriptor);
-   procedure Marshall_Align_8 (Buffer : in out Buffer_Descriptor);
-   procedure Marshall_Align_16 (Buffer : in out Buffer_Descriptor);
-   pragma Inline (Marshall_Align_2);
-   pragma Inline (Marshall_Align_4);
-   pragma Inline (Marshall_Align_8);
-   pragma Inline (Marshall_Align_16);
-
-   --  Append the contents of SOURCE to TARGET.
-   --  TARGET size must be big enough.
-   procedure Marshall_Append (Target : in out Buffer_Descriptor;
-                              Source : in Buffer_Descriptor);
-   procedure Marshall_Size_Append (Target : in out Buffer_Descriptor;
-                                   Source : in Buffer_Descriptor);
-
-   --  Extract LENGTH octets from SOURCE, update position of SOURCE and copy
-   --  it to TARGET.
-   --  TARGET must be big enough, however, position is reset before copying
-   --  and not updated, and little_endian flag is copied from SOURCE.
-   procedure Unmarshall_Extract (Target : in out Buffer_Descriptor;
-                                 Source : in out Buffer_Descriptor;
-                                 Length : Buffer_Index_Type);
-
-   --  Return true if BUFFER can be interpreted as STR.
-   --  The string is not unmarshalled.
-   function Marshall_Compare (Stream : in Buffer_Descriptor;
-                              Str : in String) return Boolean;
-
-   --  Skip a string in a buffer.
-   procedure Unmarshall_Skip_String (Buffer : in out Buffer_Descriptor);
 
    --  Unmarshall procedure
    --  Extract a type from BUFFER starting at POS, which maybe aligned before,
@@ -100,17 +63,13 @@ package Broca.Marshalling is
    procedure Marshall_Size
      (Stream : in out Buffer_Descriptor; Val : CORBA.Double);
 
-   --  For an outcoming stream, allocate the buffer and clear pos.
-   procedure Allocate_Buffer (Stream : in out Buffer_Descriptor);
+   function Compare (Buffer  : in Buffer_Descriptor;
+                     Pattern : in String) return Boolean;
+   --  Return true if Buffer can be interpreted as Pattern.  The
+   --  string is not unmarshalled.
 
-   --  Be sure STREAM.Buffer is at least of length SIZE.
-   --  Set STREAM.Pos to SIZE.
-   procedure Increase_Buffer_And_Set_Pos
-     (Stream : in out Buffer_Descriptor; Size : Buffer_Index_Type);
-   --  Be sure STREAM.Buffer is at least of length SIZE.
-   --  Set STREAM.Pos to 0.
-   procedure Increase_Buffer_And_Clear_Pos
-     (Stream : in out Buffer_Descriptor; Size : Buffer_Index_Type);
+   procedure Skip_String (Buffer : in out Buffer_Descriptor);
+   --  Unmarshall String and ignore result.
 
    --  Marshall
    procedure Marshall

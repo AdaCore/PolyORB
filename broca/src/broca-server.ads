@@ -1,5 +1,5 @@
 with CORBA;
-with Broca.Types; use Broca.Types;
+with Broca.Buffers; use Broca.Buffers;
 with Broca.Poa;
 with Broca.Stream;
 
@@ -20,7 +20,7 @@ package Broca.Server is
    --  BUFFER can already have been allocated, as a result it can be reused,
    --  or freed and replaced.
    procedure Perform_Work (Server : access Server_Type;
-                           Buffer : in out Broca.Types.Buffer_Descriptor)
+                           Buffer : in out Broca.Buffers.Buffer_Descriptor)
       is abstract;
 
    --  During the building of an IOR, this procedure is called to know the
@@ -29,8 +29,8 @@ package Broca.Server is
    --  Need only to update IOR.POS.
    --  OBJECT_KEY must be 4-aligned
    procedure Marshall_Size_Profile (Server : access Server_Type;
-                                    Ior : in out Broca.Types.Buffer_Descriptor;
-                                    Object_Key : Broca.Types.Buffer_Descriptor)
+                                    Ior : in out Broca.Buffers.Buffer_Descriptor;
+                                    Object_Key : Broca.Buffers.Buffer_Descriptor)
       is abstract;
    --  During the building of an IOR, the procedure is called to marshall a
    --  profile.  The length of the profile (ie, the number added to IOR.POS)
@@ -38,8 +38,8 @@ package Broca.Server is
    --  In particular, it must be zero for no profile.
    --  OBJECT_KEY must be 4-aligned
    procedure Marshall_Profile (Server : access Server_Type;
-                               Ior : in out Broca.Types.Buffer_Descriptor;
-                               Object_Key : Broca.Types.Buffer_Descriptor)
+                               Ior : in out Broca.Buffers.Buffer_Descriptor;
+                               Object_Key : Broca.Buffers.Buffer_Descriptor)
       is abstract;
 
    type Server_Acc is access all Server_Type'Class;
@@ -77,10 +77,10 @@ package Broca.Server is
    --  This procedure builds an IOR.
    --  It can return a null_string if there is no profiles for this object.
    --  KEY is only the key for the POA, not the full object key.
-   procedure Build_Ior (Target : out Broca.Types.Buffer_Descriptor;
+   procedure Build_Ior (Target : out Broca.Buffers.Buffer_Descriptor;
                         Type_Id : CORBA.RepositoryId;
                         Poa : Broca.Poa.POA_Object_Access;
-                        Key : Broca.Types.Buffer_Descriptor);
+                        Key : Broca.Buffers.Buffer_Descriptor);
 private
    type Server_Id_Type is new Natural;
 end Broca.Server;

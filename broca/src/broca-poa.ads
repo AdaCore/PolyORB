@@ -4,7 +4,7 @@ with PortableServer; use PortableServer;
 with PortableServer.AdapterActivator;
 with PortableServer.ServantManager;
 with Broca.Refs;
-with Broca.Types;
+with Broca.Buffers;
 with Broca.Locks;
 with Broca.Sequences;
 
@@ -99,7 +99,7 @@ package Broca.Poa is
    type Skeleton is new Broca.Refs.Ref_Type with
       record
          --  IOR created for this object.
-         Ior : Broca.Types.Buffer_Descriptor;
+         Ior : Broca.Buffers.Buffer_Descriptor;
 
          P_Servant : PortableServer.Servant;
 
@@ -112,7 +112,7 @@ package Broca.Poa is
 
    --  Get the IOR.
    function Object_To_IOR (Obj : Skeleton)
-                           return Broca.Types.Buffer_Descriptor;
+                           return Broca.Buffers.Buffer_Descriptor;
 
    type Skeleton_Access is access all Skeleton;
 
@@ -221,11 +221,11 @@ package Broca.Poa is
    --  returning.
    procedure Giop_Invoke
      (Self : access POA_Object;
-      Key : in out Broca.Types.Buffer_Descriptor;
+      Key : in out Broca.Buffers.Buffer_Descriptor;
       Operation : CORBA.Identifier;
       Request_Id : CORBA.Unsigned_Long;
       Reponse_Expected : CORBA.Boolean;
-      Message : in out Broca.Types.Buffer_Descriptor) is abstract;
+      Message : in out Broca.Buffers.Buffer_Descriptor) is abstract;
 
    function Get_The_POAManager (Self : access POA_Object)
                                 return POAManager_Object_Access;
