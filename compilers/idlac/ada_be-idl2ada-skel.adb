@@ -430,8 +430,6 @@ package body Ada_Be.Idl2Ada.Skel is
 
 
             declare
-               --  O_Name : constant String
-               --    := Ada_Operation_Name (Node);
                O_Type : constant Node_Id
                  := Operation_Type (Node);
                Response_Expected : constant Boolean
@@ -486,8 +484,11 @@ package body Ada_Be.Idl2Ada.Skel is
                      declare
                         Arg_Name : constant String
                           := Ada_Name (Declarator (P_Node));
+
+                        P_Typ : constant Node_Id := Param_Type (P_Node);
                         Helper_Name : constant String
-                          := Helper_Unit (Param_Type (P_Node));
+                          := Ada_Helper_Name (P_Typ);
+
                      begin
 
                         PL (CU, Justify (Arg_Name, Max_Len) & " : "
@@ -498,21 +499,15 @@ package body Ada_Be.Idl2Ada.Skel is
                                & " : constant CORBA.Identifier");
                            PL (CU, "  := CORBA.To_CORBA_String ("""
                                & Arg_Name & """);");
+
+                           Add_With (CU, Helper_Name);
+
+                           PL (CU, Justify (T_Argument & Arg_Name, Max_Len)
+                               & " : CORBA.Any := CORBA.Get_Empty_Any");
+                           PL (CU, "  (" & Ada_Full_TC_Name (P_Typ) & ");");
+
+                           NL (CU);
                         end if;
-
-                        Add_With (CU, Helper_Name);
-
-                        PL (CU, "pragma Warnings (Off);");
-                        --  Using Arg_Name before it has a value.
-                        --  We only need to build an Any here.
-                        Put (CU, Justify (T_Argument & Arg_Name, Max_Len)
-                            & " : CORBA.Any := " & Helper_Name & ".To_Any"
-                            & " (");
-                        Gen_Forward_Conversion
-                          (CU, Param_Type (P_Node), "From_Forward",  Arg_Name);
-                        PL (CU, ");");
-                        PL (CU, "pragma Warnings (On);");
-                        NL (CU);
                      end;
                   end loop;
                end;
