@@ -8,4 +8,4 @@ exec_prefix="@exec_prefix@"
 libdir="@libdir@"
 alidir="$libdir/adabroker"
 
-echo "-I$alidir -L$alidir"
+echo "-I$alidir -L$alidir -largs -lbroca"
