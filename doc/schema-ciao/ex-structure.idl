@@ -1,0 +1,7 @@
+#include "ciao.idl"
+#include "CORBA__Foo__Bar.idl"
+#include "CORBA__A__B.idl"
+
+module CORBA__A__B__C {
+  // declarations
+};

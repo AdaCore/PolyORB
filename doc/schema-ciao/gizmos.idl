@@ -1,0 +1,32 @@
+#include "ciao.idl"
+
+module CORBA__Gizmos {
+  interface Root_Gizmo;
+
+  typedef double Celsius;
+
+  typedef double Price;
+
+  typedef struct
+   Gizmo_Params_struct
+  {
+    Celsius Temperature;
+    Price Cost;
+  } Gizmo_Params;
+
+  interface Electric_Gizmo;
+
+  interface Root_Gizmo
+  {
+    void Heat
+      (in Celsius How_Much);
+    Gizmo_Params
+      Get_Params ();
+  };
+
+  interface Electric_Gizmo
+    : Root_Gizmo
+  {
+    boolean Is_Plugged_In ();
+  };
+};

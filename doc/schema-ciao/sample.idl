@@ -1,0 +1,1 @@
+enum \<enumeration_/identifier> { \<enumeration_literal>, ... }
