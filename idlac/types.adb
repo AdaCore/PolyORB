@@ -17,8 +17,7 @@
 --
 
 with Ada.Unchecked_Deallocation;
-with Gnat.Table;
-with Gnat.Case_Util;
+with GNAT.Case_Util;
 with Tokens;
 with Errors;
 
@@ -54,9 +53,9 @@ package body Types is
 
    --  Adds an identifier definition to a scope
    procedure Add_Identifier_Definition (Scope : in out N_Scope'Class;
-                                        Identifier : in Identifier_definition)
+                                        Identifier : in Identifier_Definition)
    is
-      List : Identifier_definition_List;
+      List : Identifier_Definition_List;
    begin
       List := new Identifier_Definition_Cell'(Definition => Identifier,
                                               Next => Scope.Identifier_List);
@@ -68,30 +67,6 @@ package body Types is
      (Object => Identifier_Definition_Cell,
       Name => Identifier_Definition_List);
 
-   ----------------------------
-   --  identifiers handling  --
-   ----------------------------
-
-   --  Each identifier is given a unique id number. This number is
-   --  its location in the table of all the identifiers definitions :
-   --  the id_table.
-   --  In order to find easily a given identifier in this id_table,
-   --  an hashtable of the position of the identifiers in the
-   --  id_table is maintained : the Hash_table. This one keeps the
-   --  position in the id_table of the first identifier defined for
-   --  each possible hash value. All the identifiers having the same
-   --  hash_value are then linked : each one has a pointer on the
-   --  next defined.
-
-   --  dimension of the hashtable
-   type Hash_Value_Type is mod 2**32;
-   Hash_Mod : constant Hash_Value_Type := 2053;
-
-   --  The hash table of the location of the identifiers in the
-   --  id_table
-   type Hash_Table_Type is array (0 .. Hash_Mod - 1) of Uniq_Id;
-   Hash_Table : Hash_Table_Type := (others => Nil_Uniq_Id);
-
    --  The hashing function. Takes an identifier and return its hash
    --  value
    function Hash (Str : in String) return Hash_Value_Type is
@@ -99,28 +74,10 @@ package body Types is
    begin
       for I in Str'Range loop
          Res := ((Res and 16#0fffffff#) * 16) xor
-           Character'Pos (Gnat.Case_Util.To_Lower (Str (I)));
+           Character'Pos (GNAT.Case_Util.To_Lower (Str (I)));
       end loop;
       return Res;
    end Hash;
-
-   --  Type of an entry in the id_table.
-   --  it contains the following :
-   --    - the identifier_definition,
-   --    - a pointer on the entry correponding to the definition
-   --  of an identifier with the same hash value.
-   type Hash_Entry is record
-      Definition : Identifier_Definition_Acc := null;
-      Next : Uniq_Id;
-   end record;
-
-   --  The id_table. It is actually an variable size table. If it
-   --  becomes to little, it grows automatically.
-   package Id_Table is new Gnat.Table
-     (Table_Component_Type => Hash_Entry, Table_Index_Type => Uniq_Id,
-      Table_Low_Bound => Nil_Uniq_Id + 1, Table_Initial => 256,
-      Table_Increment => 100);
-
 
 
    --------------------------------------------------------------
@@ -174,7 +131,7 @@ package body Types is
 
    function Get_Root_Scope return N_Scope_Acc is
    begin
-      return Root_Scope.scope;
+      return Root_Scope.Scope;
    end Get_Root_Scope;
 
    function Get_Current_Scope return N_Scope_Acc is
@@ -196,8 +153,8 @@ package body Types is
 
    procedure Pop_Scope is
       Old_Scope : Scope_Stack_Acc;
-      Definition_list : Identifier_Definition_List;
-      Old_Definition_list : Identifier_Definition_List;
+      Definition_List : Identifier_Definition_List;
+      Old_Definition_List : Identifier_Definition_List;
    begin
       Old_Scope := Current_Scope;
       Current_Scope := Old_Scope.Parent;
@@ -318,7 +275,7 @@ package body Types is
       Definition.Id := Index;
       Definition.Node := N_Named_Acc (Node);
       Definition.Previous_Definition := Id_Table.Table (Index).Definition;
-      Definition.Parent_scope := Current_Scope.Scope;
+      Definition.Parent_Scope := Current_Scope.Scope;
       Id_Table.Table (Index).Definition := Definition;
       Add_Identifier_Definition (Current_Scope.Scope.all, Definition.all);
       Node.Definition := Definition;

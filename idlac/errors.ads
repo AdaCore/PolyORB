@@ -49,4 +49,13 @@ package Errors is
    --  returns the number of errors
    function Error_Number return Natural;
 
+private
+   --  nice display of a natural
+   function Nat_To_String (Val : Natural) return String;
+
+   --  display an error
+   procedure Display_Error (Message : in String;
+                            Level : in Error_Kind;
+                            Loc : Location);
+
 end Errors;

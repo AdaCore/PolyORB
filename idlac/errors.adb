@@ -1,4 +1,4 @@
-with Ada.Text_Io;
+with Ada.Text_IO;
 
 package body Errors is
 
@@ -20,12 +20,12 @@ package body Errors is
    --  displays a location
    function Display_Location (Loc : in Location) return String is
    begin
---       Ada.Text_Io.Put ("line ");
---       Ada.Text_Io.Put (Nat_To_String (Loc.Line));
---       Ada.Text_Io.Put (", column ");
---       Ada.Text_Io.Put (Nat_To_String (Loc.Col));
---       Ada.Text_Io.Put (" of file ");
---       Ada.Text_Io.Put (Loc.Filename.all);
+--       Ada.Text_IO.Put ("line ");
+--       Ada.Text_IO.Put (Nat_To_String (Loc.Line));
+--       Ada.Text_IO.Put (", column ");
+--       Ada.Text_IO.Put (Nat_To_String (Loc.Col));
+--       Ada.Text_IO.Put (" of file ");
+--       Ada.Text_IO.Put (Loc.Filename.all);
       return "line " &
         Nat_To_String (Loc.Line) &
         ", column " &
@@ -41,19 +41,19 @@ package body Errors is
    begin
       case Level is
          when Fatal =>
-            Ada.Text_Io.Put ("FATAL ERROR occured");
+            Ada.Text_IO.Put ("FATAL ERROR occured");
          when Error =>
-            Ada.Text_Io.Put ("ERROR occured");
-         when WARNING =>
-            Ada.Text_Io.Put ("WARNING occured");
+            Ada.Text_IO.Put ("ERROR occured");
+         when Warning =>
+            Ada.Text_IO.Put ("WARNING occured");
       end case;
       if Loc.Line > 0 then
-         Ada.Text_Io.Put (" at " & Display_Location (Loc));
+         Ada.Text_IO.Put (" at " & Display_Location (Loc));
       end if;
-      Ada.Text_Io.New_Line;
-      Ada.Text_Io.Put ("    ");
-      Ada.Text_Io.Put_Line (Message);
-      Ada.Text_Io.New_Line;
+      Ada.Text_IO.New_Line;
+      Ada.Text_IO.Put ("    ");
+      Ada.Text_IO.Put_Line (Message);
+      Ada.Text_IO.New_Line;
    end Display_Error;
 
 
@@ -85,7 +85,7 @@ package body Errors is
    --  displays the error and, depending of its level, raise it
    procedure Parser_Error (Message : in String;
                            Level : in Error_Kind;
-                           Loc : in location)is
+                           Loc : in Location)is
    begin
       case Level is
          when Fatal =>

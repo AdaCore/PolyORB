@@ -16,6 +16,7 @@
 --  MA 02111-1307, USA.
 --
 
+with GNAT.Table;
 with Errors;
 
 package Types is
@@ -196,7 +197,7 @@ package Types is
    ----------------------------
 
    --  Get the uniq_id from an identifier
-   function Get_identifier (Identifier : String) return Uniq_Id;
+   function Get_Identifier (Identifier : String) return Uniq_Id;
 
    --  Find the current identifier definition.
    --  The current identifier is the one just scanned by the lexer
@@ -260,6 +261,57 @@ private
 
    Nil_Uniq_Id : constant Uniq_Id := 0;
 
+
+   --  Adds an identifier definition to a scope
+   procedure Add_Identifier_Definition (Scope : in out N_Scope'Class;
+                                        Identifier : in Identifier_Definition);
+
+
+
+   ----------------------------
+   --  identifiers handling  --
+   ----------------------------
+
+   --  Each identifier is given a unique id number. This number is
+   --  its location in the table of all the identifiers definitions :
+   --  the id_table.
+   --  In order to find easily a given identifier in this id_table,
+   --  an hashtable of the position of the identifiers in the
+   --  id_table is maintained : the Hash_table. This one keeps the
+   --  position in the id_table of the first identifier defined for
+   --  each possible hash value. All the identifiers having the same
+   --  hash_value are then linked : each one has a pointer on the
+   --  next defined.
+
+   --  dimension of the hashtable
+   type Hash_Value_Type is mod 2**32;
+   Hash_Mod : constant Hash_Value_Type := 2053;
+
+   --  The hash table of the location of the identifiers in the
+   --  id_table
+   type Hash_Table_Type is array (0 .. Hash_Mod - 1) of Uniq_Id;
+   Hash_Table : Hash_Table_Type := (others => Nil_Uniq_Id);
+
+   --  Type of an entry in the id_table.
+   --  it contains the following :
+   --    - the identifier_definition,
+   --    - a pointer on the entry correponding to the definition
+   --  of an identifier with the same hash value.
+   type Hash_Entry is record
+      Definition : Identifier_Definition_Acc := null;
+      Next : Uniq_Id;
+   end record;
+
+   --  The id_table. It is actually an variable size table. If it
+   --  becomes to little, it grows automatically.
+   package Id_Table is new GNAT.Table
+     (Table_Component_Type => Hash_Entry, Table_Index_Type => Uniq_Id,
+      Table_Low_Bound => Nil_Uniq_Id + 1, Table_Initial => 256,
+      Table_Increment => 100);
+
+   --  The hashing function. Takes an identifier and return its hash
+   --  value
+   function Hash (Str : in String) return Hash_Value_Type;
 
 
 --

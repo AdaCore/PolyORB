@@ -16,8 +16,18 @@
 --  MA 02111-1307, USA.
 --
 
+with Tree; use Tree;
 with Types; use Types;
 
 package Disp is
    procedure Disp_Tree (Tree : N_Root'Class);
+
+private
+
+   --  display the indentation
+   procedure Disp_Indent (Indent : Natural; S : String := "");
+
+   --  display a node list
+   procedure Disp_List (List : Node_List; Indent : Natural; Full : Boolean);
+
 end Disp;

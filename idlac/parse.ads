@@ -17,6 +17,9 @@
 --
 
 with Tree; use Tree;
+with Tokens; use Tokens;
+with Types; use Types;
+with Errors;
 
 package Parse is
 
@@ -32,6 +35,8 @@ package Parse is
    --------------------------
    --  Parsing of the idl  --
    --------------------------
+   --  Rule 1 :
+   --  <specification> ::= <definition>+
    function Parse_Specification return N_Repository_Acc;
 
 
@@ -488,8 +493,5 @@ private
    procedure Parse_Definition (Result : out N_Root_Acc;
                                Success : out Boolean);
 
-   --  Rule 1 :
-   --  <specification> ::= <definition>+
-   function Parse_Specification return N_Repository_Acc;
 
 end Parse;

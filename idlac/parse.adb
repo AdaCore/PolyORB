@@ -1468,11 +1468,6 @@ package body Parse is
 --    end Parse_Const_Dcl;
 
 
-   --  Rule 2:
-   --  see complete definiton further
-   procedure Parse_Definition (Result : out N_Root_Acc;
-                               Success : out Boolean);
-
    --  Tries to reach the beginning of the next definition.
    --  Called when the parser encounters an error during the
    --  parsing of a definition in order to try to continue the
