@@ -10,8 +10,7 @@
 ----                                                               ----
 -----------------------------------------------------------------------
 
--- with Omniobject, ;
--- removed to compile without dependind on omniobject
+ with Omniobject ;
 
 with Omniobjectmanager, Omniropeandkey ;
 
@@ -152,8 +151,7 @@ private
 
    type Ref is new Ada.Finalization.Controlled with record
       Dynamic_Object : Dynamic_Type := null ;
-      -- Wrapped_Omniobject : Omniobject.Object ;
-      -- removed to compile it without depending on omniobject
+      Wrapped_Omniobject : Omniobject.Object ;
    end record ;
 
    procedure Initialize (Self: in out Ref'Class);
@@ -168,21 +166,5 @@ private
    procedure Finalize (Self: in out Ref'Class);
    -- called each time a Ref object must be trashed
    -- releases the underlying C pointer
-
-   -------------------------------------------------------------------
-   -- ancienne methode compliquee sans les types controlled
-   --
-   --   type Internal_Object ;
-   --   type Internal_Object_Access is access all Internal_Object'Class ;
-   --
-   --   type Dynamic_Type(Ptr : access Internal_Object'Class) is limited null record ;
-   --
-   --   type Internal_Object is tagged limited record
-   --      Dynamic_Object : Dynamic_Type(Internal_Object'Access) ;
-   --   end record ;
-   --
-   --   type Ref is tagged record
-   --      Internal_Corba_Object : Internal_Object_Access ;
-   --   end record ;
 
 end Corba.Object ;
