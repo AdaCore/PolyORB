@@ -267,11 +267,6 @@ package System.PolyORB_Interface is
       T : PolyORB.Any.TypeCode.Object)
       renames PolyORB.Any.Set_Type;
 
-   function Get_Type
-     (The_Any : in Any)
-     return PolyORB.Any.TypeCode.Object
-     renames PolyORB.Any.Get_Type;
-
    function Get_Empty_Any
      (Tc : PolyORB.Any.TypeCode.Object)
       return Any
@@ -281,17 +276,6 @@ package System.PolyORB_Interface is
      (Tc : PolyORB.Any.TypeCode.Object)
       return Any
      renames PolyORB.Any.Get_Empty_Any_Aggregate;
-
-   function Content_Type
-     (Self : PolyORB.Any.TypeCode.Object)
-      return PolyORB.Any.TypeCode.Object
-     renames PolyORB.Any.TypeCode.Content_Type;
-
-   function Member_Type
-     (Self  : PolyORB.Any.TypeCode.Object;
-      Index : PolyORB.Types.Unsigned_Long)
-      return PolyORB.Any.TypeCode.Object
-     renames PolyORB.Any.TypeCode.Member_Type;
 
    subtype NVList_Ref is PolyORB.Any.NVList.Ref;
    procedure NVList_Create (NVList : out PolyORB.Any.NVList.Ref)
@@ -396,8 +380,6 @@ package System.PolyORB_Interface is
    --  type for each Ada type should be selected, if cross-platform
    --  interoperability is desired.
 
-   function TC_Any return PolyORB.Any.TypeCode.Object
-     renames PolyORB.Any.TC_Any;
    function TC_I return PolyORB.Any.TypeCode.Object
      renames PolyORB.Any.TC_Long;
    function TC_LF return PolyORB.Any.TypeCode.Object
@@ -439,9 +421,6 @@ package System.PolyORB_Interface is
    function TC_Array return PolyORB.Any.TypeCode.Object
      renames PolyORB.Any.TypeCode.TC_Array;
    --  Empty Tk_Array typecode.
-   function TC_Sequence return PolyORB.Any.TypeCode.Object
-     renames PolyORB.Any.TypeCode.TC_Sequence;
-   --  Empty Tk_Sequence typecode.
    function TC_Struct return PolyORB.Any.TypeCode.Object
      renames PolyORB.Any.TypeCode.TC_Struct;
    --  Empty Tk_Struct typecode.

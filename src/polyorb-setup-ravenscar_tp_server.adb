@@ -39,26 +39,29 @@
 with PolyORB.Initialization;
 with PolyORB.ORB.Thread_Pool;
 with PolyORB.Profiles.Ravenscar;
+with PolyORB.Tasking.Soft_Links;
 with PolyORB.Setup.Server;
 with System;
 
 pragma Elaborate_All (PolyORB.ORB.Thread_Pool);
 pragma Elaborate_All (PolyORB.Profiles.Ravenscar);
+pragma Elaborate_All (PolyORB.Tasking.Soft_Links);
 pragma Elaborate_All (PolyORB.Setup.Server);
 
 pragma Warnings (Off, PolyORB.Initialization);
 pragma Warnings (Off, PolyORB.ORB.Thread_Pool);
 pragma Warnings (Off, PolyORB.Profiles.Ravenscar);
+pragma Warnings (Off, PolyORB.Tasking.Soft_Links);
 pragma Warnings (Off, PolyORB.Setup.Server);
 
 package body PolyORB.Setup.Ravenscar_TP_Server is
 
    package Ravenscar_Profile_Instance is
       new PolyORB.Profiles.Ravenscar
-     (Number_Of_Application_Tasks => 4,
-      Number_Of_System_Tasks      => 20,
-      Number_Of_Conditions        => 1_000,
-      Number_Of_Mutexes           => 1_000,
-      Task_Priority               => System.Default_Priority);
+     (Number_Of_Threads    => 20,
+      Number_Of_Conditions => 1_000,
+      Number_Of_Mutexes    => 1_000,
+      Task_Priority        => System.Default_Priority,
+      Storage_Size         => 262144);
 
 end PolyORB.Setup.Ravenscar_TP_Server;

@@ -38,16 +38,16 @@ package body Debug is
    end W_Byte;
 
    procedure W_List_Id (I : Natural; L : List_Id) is
-      E : Node_Id;
+      E : Entity_Id;
    begin
       if L = No_List then
          return;
       end if;
 
-      E := First_Node (L);
-      while E /= No_Node loop
-         W_Node_Id (I, E);
-         E := Next_Node (E);
+      E := First_Entity (L);
+      while E /= No_Entity loop
+         W_Node_Id (I, Node_Id (E));
+         E := Next_Entity (E);
       end loop;
    end W_List_Id;
 
@@ -58,9 +58,9 @@ package body Debug is
       V : String;
       N : Int := 0)
    is
-      C : Node_Id;
+      C : Entity_Id;
    begin
-      if A = "Next_Node"
+      if A = "Next_Entity"
         or else A = "Homonym"
         or else A = "Name"
       then
@@ -71,22 +71,22 @@ package body Debug is
       Write_Char (' ');
       Write_Str  (T);
       Write_Char (' ');
-      C := Node_Id (N);
+      C := Entity_Id (N);
       if T = "Name_Id" then
          Write_Line (Quoted (V));
-      elsif T = "Node_Id"
+      elsif T = "Entity_Id"
         and then Present (C)
       then
          case Kind (C) is
             when K_Float .. K_Value_Base =>
-               Write_Line ('(' & Image (Kind (Node_Id (N))) & ')');
+               Write_Line ('(' & Image (Kind (Entity_Id (N))) & ')');
             when others =>
                Write_Line (V);
          end case;
       else
          Write_Line (V);
       end if;
-      if A = "Node"
+      if A = "Entity"
         or else A = "Scope"
       then
          return;
@@ -103,8 +103,16 @@ package body Debug is
       if N = No_Node then
          return;
       end if;
-      W_Node (I, N);
+      W_Node      (I, N);
    end W_Node_Id;
+
+   procedure W_Entity_Id (I : Natural; E : Entity_Id) is
+   begin
+      if E = No_Entity then
+         return;
+      end if;
+      W_Node (I, Node_Id (E));
+   end W_Entity_Id;
 
    procedure W_Node_Header (I : Natural; N : Node_Id) is
    begin
@@ -126,6 +134,11 @@ package body Debug is
    end Image;
 
    function Image (N : Node_Id) return String is
+   begin
+      return Image (Int (N));
+   end Image;
+
+   function Image (N : Entity_Id) return String is
    begin
       return Image (Int (N));
    end Image;
@@ -167,11 +180,11 @@ package body Debug is
    end wni;
 
    procedure W_Full_Tree is
-      D : Node_Id := First_Node (Definitions (Root));
+      D : Entity_Id := First_Entity (Definitions (Root));
    begin
       while Present (D) loop
-         W_Node_Id (0, D);
-         D := Next_Node (D);
+         W_Entity_Id (0, D);
+         D := Next_Entity (D);
       end loop;
    end W_Full_Tree;
 

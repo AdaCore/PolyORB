@@ -30,7 +30,6 @@
 --                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
-
 --  $Id$
 
 with RT;
@@ -60,9 +59,6 @@ package RCI is
    function My_Func (S : String) return Color;
 
    function Get_Obj (Name : String) return RT.RACW;
-
-   type Vector is array (Integer range <>) of Integer;
-   function echoVector (V : Vector) return Vector;
 
    function echoString (S : String) return String;
    type echo_RAS is access function (S : String) return String;

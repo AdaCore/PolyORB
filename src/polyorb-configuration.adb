@@ -66,7 +66,7 @@ package body PolyORB.Configuration is
 
    --  Note: We are currently initializing structures on which
    --  PolyORB.Log.Facility_Log depends. Thus we cannot instantiate
-   --  this package and use PolyORB.Log.Internals.Put_Line instead.
+   --  this package and use PolyORB.Log.Put_Line instead.
 
    Debug : constant Boolean := True;
 
@@ -151,7 +151,8 @@ package body PolyORB.Configuration is
    -- Fetch --
    -----------
 
-   function Fetch (Key : String)  return String is
+   function Fetch (Key : String)
+                  return String is
    begin
       if Key'Length > 4
         and then Key (Key'First .. Key'First + 4) = "file:"
@@ -166,12 +167,10 @@ package body PolyORB.Configuration is
             Get_Line (File, Result, Last);
             Close (File);
             return Result (1 .. Last);
-
          exception
             when Name_Error =>
                return "";
          end;
-
       else
          return Key;
       end if;
@@ -191,43 +190,36 @@ package body PolyORB.Configuration is
          case VV (VV'First) is
             when '0' | 'n' =>
                return False;
-
             when '1' | 'y' =>
                return True;
-
             when 'o' =>
                if VV = "off" then
                   return False;
                elsif VV = "on" then
                   return True;
                end if;
-
             when 'd' =>
                if VV = "disable" then
                   return False;
                end if;
-
             when 'e' =>
                if VV = "enable" then
                   return True;
                end if;
-
             when 'f' =>
                if VV = "false" then
                   return False;
                end if;
-
             when 't' =>
                if VV = "true" then
                   return True;
                end if;
-
             when others =>
                null;
          end case;
       end if;
-
       raise Constraint_Error;
+
    end To_Boolean;
 
    --------------
@@ -241,9 +233,7 @@ package body PolyORB.Configuration is
    is
       From_Env : constant String
         := Get_Env (Make_Env_Name (Section, Key));
-
       Default_Value : aliased String := Default;
-
    begin
       if From_Env /= "" then
          return Fetch (From_Env);
@@ -269,7 +259,8 @@ package body PolyORB.Configuration is
    function Get_Conf
      (Section, Key : String;
       Default      : Integer := 0)
-     return Integer is
+     return Integer
+   is
    begin
       return Integer'Value (Get_Conf (Section, Key, Integer'Image (Default)));
    end Get_Conf;
@@ -279,7 +270,7 @@ package body PolyORB.Configuration is
    -------------
 
    function Get_Env
-     (Key     : String;
+     (Key : String;
       Default : String := "")
      return String
    is
@@ -313,7 +304,6 @@ package body PolyORB.Configuration is
          Variables.Unregister (K);
          Free (P);
       end if;
-
       Variables.Register (K, +Value);
    end Set_Variable;
 
@@ -369,7 +359,6 @@ package body PolyORB.Configuration is
             case Line (Line'First) is
                when '#' =>
                   null;
-
                when '[' =>
                   declare
                      Bra : constant Integer := Line'First;

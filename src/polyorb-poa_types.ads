@@ -137,12 +137,12 @@ package PolyORB.POA_Types is
 
    type Unmarshalled_Oid is record
       Id               : Types.String;     --  Id
-      Creator          : Types.String;     --  Creator
+      Creator          : Types.String;     --  Creator 'name'
       System_Generated : Boolean;          --  System or User managed ?
       Persistency_Flag : Lifespan_Cookie;  --  Object's Lifespan
 
       --  NOTE:
-      --   * the Creator is typically the POA to which the object is
+      --   * the 'Creator' is typically the POA to which the object is
       --     attached,
 
    end record;
@@ -190,7 +190,7 @@ package PolyORB.POA_Types is
    function Get_Name
      (Oid : Object_Id)
      return Types.String;
-   --  Return Name component marshalled in Oid.
+   --  Return 'Name' component marshalled in Oid.
 
    function Oid_To_U_Oid
      (Oid : access Object_Id)

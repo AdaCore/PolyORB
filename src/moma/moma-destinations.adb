@@ -275,7 +275,7 @@ begin
         (Module_Info'
          (Name      => +"MOMA.Destinations",
           Conflicts => Empty,
-          Depends   => Empty,
+          Depends   => +"soft_links",
           Provides  => Empty,
           Init      => Initialize'Access));
    end;

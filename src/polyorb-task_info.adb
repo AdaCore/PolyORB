@@ -32,8 +32,7 @@
 ------------------------------------------------------------------------------
 
 --  Information about running ORB tasks.
-
---  This package is used to store and retrieve information
+--  This packages is used to store and retrieve information
 --  concerning the status of tasks that execute ORB functions.
 
 --  $Id$
@@ -57,7 +56,6 @@ package body PolyORB.Task_Info is
      return Asynch_Ev.Asynch_Ev_Monitor_Access is
    begin
       pragma Assert (TI.Status = Blocked);
-
       return TI.Selector;
    end Selector;
 
@@ -67,7 +65,7 @@ package body PolyORB.Task_Info is
 
    procedure Set_Status_Blocked
      (TI       : in out Task_Info;
-      Selector :        Asynch_Ev.Asynch_Ev_Monitor_Access) is
+      Selector : Asynch_Ev.Asynch_Ev_Monitor_Access) is
    begin
       pragma Assert (TI.Status = Running);
 
@@ -81,10 +79,9 @@ package body PolyORB.Task_Info is
 
    procedure Set_Status_Idle
      (TI        : in out Task_Info;
-      Condition :        PTCV.Condition_Access) is
+      Condition : Tasking.Condition_Variables.Condition_Access) is
    begin
       pragma Assert (TI.Status = Running);
-
       TI.Status    := Idle;
       TI.Condition := Condition;
    end Set_Status_Idle;
@@ -97,7 +94,6 @@ package body PolyORB.Task_Info is
      (TI : in out Task_Info) is
    begin
       pragma Assert (TI.Status /= Running);
-
       TI.Status    := Running;
       TI.Selector  := null;
       TI.Condition := null;
@@ -127,10 +123,9 @@ package body PolyORB.Task_Info is
    ---------------
 
    function Condition (TI : Task_Info)
-     return PTCV.Condition_Access is
+     return Tasking.Condition_Variables.Condition_Access is
    begin
       pragma Assert (TI.Status = Idle);
-
       return TI.Condition;
    end Condition;
 

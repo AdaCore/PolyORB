@@ -1026,14 +1026,11 @@ package Rtsfind is
      RE_NamedValue,                      -- System.PolyORB_Interface
      RE_Result_Name,                     -- System.PolyORB_Interface
      RE_Object_Ref,                      -- System.PolyORB_Interface
-     RE_Get_Type,                        -- System.PolyORB_Interface
      RE_Get_Empty_Any,                   -- System.PolyORB_Interface
      RE_Get_Empty_Any_Aggregate,         -- System.PolyORB_Interface
      RE_Any_Aggregate_Build,             -- System.PolyORB_Interface
      RE_Add_Aggregate_Element,           -- System.PolyORB_Interface
      RE_Get_Aggregate_Element,           -- System.PolyORB_Interface
-     RE_Content_Type,                    -- System.PolyORB_Interface
-     RE_Member_Type,                     -- System.PolyORB_Interface
      RE_NVList_Ref,                      -- System.PolyORB_Interface
      RE_NVList_Create,                   -- System.PolyORB_Interface
      RE_NVList_Add_Item,                 -- System.PolyORB_Interface
@@ -1114,7 +1111,6 @@ package Rtsfind is
      RE_TC_Alias,                        -- System.PolyORB_Interface
      RE_TC_Build,                        -- System.PolyORB_Interface
      RE_Set_TC,                          -- System.PolyORB_Interface
-     RE_TC_Any,                          -- System.PolyORB_Interface
      RE_TC_AD,                           -- System.PolyORB_Interface
      RE_TC_AS,                           -- System.PolyORB_Interface
      RE_TC_B,                            -- System.PolyORB_Interface
@@ -1136,7 +1132,6 @@ package Rtsfind is
      RE_TC_Void,                         -- System.PolyORB_Interface
      RE_TC_WC,                           -- System.PolyORB_Interface
      RE_TC_Array,                        -- System.PolyORB_Interface,
-     RE_TC_Sequence,                     -- System.PolyORB_Interface,
      RE_TC_String,                       -- System.PolyORB_Interface,
      RE_TC_Struct,                       -- System.PolyORB_Interface,
 
@@ -2064,14 +2059,11 @@ package Rtsfind is
      RE_NamedValue                       => System_PolyORB_Interface,
      RE_Result_Name                      => System_PolyORB_Interface,
      RE_Object_Ref                       => System_PolyORB_Interface,
-     RE_Get_Type                         => System_PolyORB_Interface,
      RE_Get_Empty_Any                    => System_PolyORB_Interface,
      RE_Get_Empty_Any_Aggregate          => System_PolyORB_Interface,
      RE_Any_Aggregate_Build              => System_PolyORB_Interface,
      RE_Add_Aggregate_Element            => System_PolyORB_Interface,
      RE_Get_Aggregate_Element            => System_PolyORB_Interface,
-     RE_Content_Type                     => System_PolyORB_Interface,
-     RE_Member_Type                      => System_PolyORB_Interface,
      RE_NVList_Ref                       => System_PolyORB_Interface,
      RE_NVList_Create                    => System_PolyORB_Interface,
      RE_NVList_Add_Item                  => System_PolyORB_Interface,
@@ -2152,7 +2144,6 @@ package Rtsfind is
      RE_TC_Alias                         => System_PolyORB_Interface,
      RE_TC_Build                         => System_PolyORB_Interface,
      RE_Set_TC                           => System_PolyORB_Interface,
-     RE_TC_Any                           => System_PolyORB_Interface,
      RE_TC_AD                            => System_PolyORB_Interface,
      RE_TC_AS                            => System_PolyORB_Interface,
      RE_TC_B                             => System_PolyORB_Interface,
@@ -2174,7 +2165,6 @@ package Rtsfind is
      RE_TC_Void                          => System_PolyORB_Interface,
      RE_TC_WC                            => System_PolyORB_Interface,
      RE_TC_Array                         => System_PolyORB_Interface,
-     RE_TC_Sequence                      => System_PolyORB_Interface,
      RE_TC_String                        => System_PolyORB_Interface,
      RE_TC_Struct                        => System_PolyORB_Interface,
 

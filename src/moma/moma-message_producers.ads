@@ -34,7 +34,7 @@
 --  A Message_Producer object is the client view of the message sending
 --  process. It is the facade to all communication carried out with
 --  a message pool to send messages; it contains the stub to access
---  Message_Producer servants (see MOMA.Provider for more details).
+--  'Message_Producer' servants (see MOMA.Provider for more details).
 
 --  NOTE: A MOMA client must use only this package to send messages to a
 --  message pool.

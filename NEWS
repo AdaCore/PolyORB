@@ -27,26 +27,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-* PolyORB 1.O (released 2003-06-16)
-
-This release contains a CORBA-compliant instantiation of the PolyORB
-generic middleware. It includes:
-- an IDL to Ada 95 compiler,
-- Portable Object Adapter (POA),
-Dynamic Skeleton Interface (DSI),
-Dynamic Invocation Interface (DII), and
-Interface Repository (IR) implementations,
-- COS Naming, COS Event and COS Time services implementations,
-- GIOP 1.0, 1.1, and 1.2 implementations.
-
-This CORBA implementation can be configured for full tasking,
-Ravenscar tasking or no tasking runtime, depending on the level
-of desired functionality for the application, and on the resource
-constraints for the target.
-
-This release should be considered as a stable implementation of
-CORBA middleware over PolyORB.
-
 * PolyORB 0.1 (released 2001-12-04)
 
 This is the first public release of PolyORB code. This release

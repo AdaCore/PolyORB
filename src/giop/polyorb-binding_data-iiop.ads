@@ -33,13 +33,20 @@
 
 --  Binding data concrete implementation for IIOP.
 
+--  $Id$
+
+with Ada.Streams;
+
 with PolyORB.Buffers;
+with PolyORB.Sequences.Unbounded;
 with PolyORB.Sockets;
 with PolyORB.Types;
-with PolyORB.GIOP_P.Tagged_Components;
 
 package PolyORB.Binding_Data.IIOP is
 
+   pragma Elaborate_Body;
+
+   use Ada.Streams;
    use PolyORB.Buffers;
 
    type IIOP_Profile_Type is new Profile_Type with private;
@@ -97,11 +104,20 @@ private
    --  XXX DOCUMENTATION: What is a Tagged_Component, and what is it
    --  used for ??
 
+   type Octets_Access is access all Stream_Element_Array;
+
+   type Tagged_Component is record
+      Tag            : Types.Unsigned_Long;
+      Component_Data : Octets_Access;
+   end record;
+
+   package Component_Seq is new PolyORB.Sequences.Unbounded (Tagged_Component);
+
    type IIOP_Profile_Type is new Profile_Type with record
       Major_Version : Types.Octet := IIOP_Major_Version;
       Minor_Version : Types.Octet := IIOP_Minor_Version;
       Address       : Sockets.Sock_Addr_Type;
-      Components    : PolyORB.GIOP_P.Tagged_Components.Tagged_Component_List;
+      Components    : Component_Seq.Sequence;
    end record;
 
    type IIOP_Profile_Factory is new Profile_Factory with record

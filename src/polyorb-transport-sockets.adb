@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---  P O L Y O R B . T R A N S P O R T . C O N N E C T E D . S O C K E T S   --
+--            P O L Y O R B . T R A N S P O R T . S O C K E T S             --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -34,10 +34,14 @@
 --  Socket implementation of transport service access points
 --  and communication endpoints.
 
+--  $Id$
+
+with Ada.Exceptions;
+
 with PolyORB.Asynch_Ev.Sockets;
 with PolyORB.Log;
 
-package body PolyORB.Transport.Connected.Sockets is
+package body PolyORB.Transport.Sockets is
 
    use Ada.Streams;
 
@@ -46,8 +50,7 @@ package body PolyORB.Transport.Connected.Sockets is
    use PolyORB.Log;
    use PolyORB.Tasking.Mutexes;
 
-   package L is new PolyORB.Log.Facility_Log
-     ("polyorb.transport.connected.sockets");
+   package L is new PolyORB.Log.Facility_Log ("polyorb.transport.sockets");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -77,17 +80,9 @@ package body PolyORB.Transport.Connected.Sockets is
 
    function Create_Event_Source
      (TAP : Socket_Access_Point)
-     return Asynch_Ev_Source_Access
-   is
-      use PolyORB.Annotations;
-
-      Ev_Src : constant Asynch_Ev_Source_Access
-        := Create_Event_Source (TAP.Socket);
+     return Asynch_Ev_Source_Access is
    begin
-      Set_Note (Notepad_Of (Ev_Src).all,
-                AES_Note'(Annotations.Note with Handler =>
-                            new Connected_TAP_AES_Event_Handler));
-      return Ev_Src;
+      return Create_Event_Source (TAP.Socket);
    end Create_Event_Source;
 
    -----------------------
@@ -95,7 +90,7 @@ package body PolyORB.Transport.Connected.Sockets is
    -----------------------
 
    procedure Accept_Connection
-     (TAP :     Socket_Access_Point;
+     (TAP : Socket_Access_Point;
       TE  : out Transport_Endpoint_Access)
    is
       New_TE : constant Transport_Endpoint_Access
@@ -126,7 +121,7 @@ package body PolyORB.Transport.Connected.Sockets is
 
    procedure Create
      (TE : in out Socket_Endpoint;
-      S  :        Socket_Type) is
+      S  : Socket_Type) is
    begin
       TE.Socket := S;
       Create (TE.Mutex);
@@ -138,17 +133,9 @@ package body PolyORB.Transport.Connected.Sockets is
 
    function Create_Event_Source
      (TE : Socket_Endpoint)
-     return Asynch_Ev_Source_Access
-   is
-      use PolyORB.Annotations;
-
-      Ev_Src : constant Asynch_Ev_Source_Access
-        := Create_Event_Source (TE.Socket);
+     return Asynch_Ev_Source_Access is
    begin
-      Set_Note (Notepad_Of (Ev_Src).all,
-                AES_Note'(Annotations.Note with Handler =>
-                            new Connected_TE_AES_Event_Handler));
-      return Ev_Src;
+      return Create_Event_Source (TE.Socket);
    end Create_Event_Source;
 
    -----------
@@ -157,7 +144,7 @@ package body PolyORB.Transport.Connected.Sockets is
 
    procedure Read
      (TE     : in out Socket_Endpoint;
-      Buffer :        Buffers.Buffer_Access;
+      Buffer : Buffers.Buffer_Access;
       Size   : in out Stream_Element_Count)
    is
       Data_Received : Stream_Element_Count;
@@ -181,15 +168,20 @@ package body PolyORB.Transport.Connected.Sockets is
 
    procedure Write
      (TE     : in out Socket_Endpoint;
-      Buffer :        Buffers.Buffer_Access) is
+      Buffer : Buffers.Buffer_Access)
+   is
    begin
       pragma Debug (O ("Write: enter"));
-
-      --  Send_Buffer is not atomic, needs to be protected.
-
-      Enter (TE.Mutex);
+      begin
+         Enter (TE.Mutex);
+         --  XXX Send_Buffer is not atomic, needs to be protected.
+      exception
+         when E : others =>
+            pragma Debug (O ("Enter (TE.Mutex) raised "
+              & Ada.Exceptions.Exception_Information (E)));
+            raise;
+      end;
       pragma Debug (O ("TE mutex acquired"));
-
       PolyORB.Buffers.Send_Buffer (Buffer, TE.Socket);
       Leave (TE.Mutex);
    end Write;
@@ -210,4 +202,4 @@ package body PolyORB.Transport.Connected.Sockets is
       Destroy (TE.Mutex);
    end Close;
 
-end PolyORB.Transport.Connected.Sockets;
+end PolyORB.Transport.Sockets;

@@ -483,10 +483,10 @@ package body PortableServer is
 begin
    Register_Module
      (Module_Info'
-      (Name      => +"portableserver",
+      (Name => +"portableserver",
        Conflicts => Empty,
-       Depends   => Empty,
-       Provides  => Empty,
-       Init      => Initialize'Access));
+       Depends => +"soft_links",
+       Provides => Empty,
+       Init => Initialize'Access));
 
 end PortableServer;

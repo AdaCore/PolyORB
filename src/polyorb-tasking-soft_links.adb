@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---          P O L Y O R B . T R A N S P O R T . C O N N E C T E D           --
+--           P O L Y O R B . T A S K I N G . S O F T _ L I N K S            --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,75 +31,59 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Abstract connected transport service access points and transport endpoints.
+--  $Id$
 
-with PolyORB.Binding_Data;
+--  with Ada.Unchecked_Deallocation;
 
-package PolyORB.Transport.Connected is
+with PolyORB.Initialization;
+pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
-   use PolyORB.Asynch_Ev;
-   use PolyORB.Binding_Data;
+with PolyORB.Tasking.Advanced_Mutexes;
+with PolyORB.Utils.Strings;
 
-   Connection_Closed : exception;
+package body PolyORB.Tasking.Soft_Links is
 
-   ------------------
-   -- Access Point --
-   ------------------
+   use PolyORB.Tasking.Advanced_Mutexes;
 
-   type Connected_Transport_Access_Point
-      is abstract new Transport_Access_Point with private;
-   type Connected_Transport_Access_Point_Access
-   is access all Connected_Transport_Access_Point'Class;
-   --  Conected Access point
+   -------------------------------------------
+   -- Critical Section for ORB with Tasking --
+   -------------------------------------------
 
-   procedure Accept_Connection
-     (TAP :     Connected_Transport_Access_Point;
-      TE  : out Transport_Endpoint_Access)
-      is abstract;
-   --  Accept a pending new connection on TAP and create
-   --  a new associated TE.
+   Critical_Section : Adv_Mutex_Access;
 
-   type Connected_TAP_AES_Event_Handler
-   is new TAP_AES_Event_Handler with private;
-   --  Connected Access Point Event Handler
+   procedure Enter_Critical_Section is
+   begin
+      Enter (Critical_Section);
+   end Enter_Critical_Section;
 
-   procedure Handle_Event
-     (H : access Connected_TAP_AES_Event_Handler);
+   procedure Leave_Critical_Section is
+   begin
+      Leave (Critical_Section);
+   end Leave_Critical_Section;
 
-   ---------------
-   -- End Point --
-   ---------------
+   ----------------
+   -- Initialize --
+   ----------------
 
-   type Connected_Transport_Endpoint
-      is abstract new Transport_Endpoint with private;
-   type Connected_Transport_Endpoint_Access
-   is access all Connected_Transport_Endpoint'Class;
-   --  Connected End point
+   procedure Initialize;
 
-   function Handle_Message
-     (TE  : access Connected_Transport_Endpoint;
-      Msg : Components.Message'Class)
-     return Components.Message'Class;
+   procedure Initialize is
+   begin
+      Create (Critical_Section);
+   end Initialize;
 
-   type Connected_TE_AES_Event_Handler
-   is new TE_AES_Event_Handler with private;
-   --  Connected End Point Event Handler
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
+   use PolyORB.Utils.Strings;
 
-   procedure Handle_Event
-     (H : access Connected_TE_AES_Event_Handler);
-
-private
-
-   type Connected_Transport_Access_Point
-      is abstract new Transport_Access_Point with null record;
-
-   type Connected_TAP_AES_Event_Handler
-   is new TAP_AES_Event_Handler with null record;
-
-   type Connected_Transport_Endpoint
-      is abstract new Transport_Endpoint with null record;
-
-   type Connected_TE_AES_Event_Handler
-   is new TE_AES_Event_Handler with null record;
-
-end PolyORB.Transport.Connected;
+begin
+   Register_Module
+     (Module_Info'
+      (Name => +"tasking.soft_links",
+       Conflicts => Empty,
+       Depends => +"tasking.threads"
+         & "tasking.condition_variables"
+         & "tasking.mutexes",
+       Provides => +"soft_links",
+       Init => Initialize'Access));
+end PolyORB.Tasking.Soft_Links;

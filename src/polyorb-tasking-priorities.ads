@@ -98,16 +98,16 @@ package PolyORB.Tasking.Priorities is
       External_Priority : in  Integer;
       PolyORB_Priority  : out ORB_Component_Priority;
       Returns           : out PolyORB.Types.Boolean) is abstract;
-   --  Map an External_Priority into an ORB_Component_Priority.
-   --  Returns is set to true if the operation was succesful.
+   --  Map an 'Eternal_Priority' into an ORB_Component_Priority.
+   --  'Returns' is set to true if the operation was succesful.
 
    procedure To_External_Priority
      (Self              : in  Priority_Mapping;
       PolyORB_Priority  : in  ORB_Component_Priority;
       External_Priority : out Integer;
       Returns           : out PolyORB.Types.Boolean) is abstract;
-   --  Map an ORB_Component_Priority into an External_Priority.
-   --  Returns is set to true if the operation was succesful.
+   --  Map an ORB_Component_Priority into an 'External_Priority'.
+   --  'Returns' is set to true if the operation was succesful.
 
 private
    Default_Component_Priority : constant ORB_Component_Priority

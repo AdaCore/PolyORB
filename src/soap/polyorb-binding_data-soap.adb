@@ -56,7 +56,7 @@ with PolyORB.Representations.CDR;
 --  would be specific of how IORs are constructed) (but we could
 --  say that the notion of IOR is cross-platform!).
 
-with PolyORB.Transport.Connected.Sockets;
+with PolyORB.Transport.Sockets;
 with PolyORB.Utils.Strings;
 
 with AWS.URL;
@@ -69,8 +69,7 @@ package body PolyORB.Binding_Data.SOAP is
    use PolyORB.Protocols.SOAP_Pr;
    use PolyORB.Representations.CDR;
    --  use PolyORB.Sockets;
-   use PolyORB.Transport;
-   use PolyORB.Transport.Connected.Sockets;
+   use PolyORB.Transport.Sockets;
    use PolyORB.Types;
 
    Preference : Profile_Preference;
@@ -120,7 +119,6 @@ package body PolyORB.Binding_Data.SOAP is
      return Components.Component_Access
    is
       use PolyORB.Components;
-      use PolyORB.ORB;
       use PolyORB.Protocols;
       use PolyORB.Sockets;
       use PolyORB.Filters;
@@ -130,7 +128,7 @@ package body PolyORB.Binding_Data.SOAP is
       Pro  : aliased SOAP_Protocol;
       Htt  : aliased HTTP_Filter_Factory;
       TE : constant Transport.Transport_Endpoint_Access
-        := new Socket_Endpoint;
+        := new Transport.Sockets.Socket_Endpoint;
       Filter : Filter_Access;
    begin
       Create_Socket (Sock);
@@ -145,10 +143,7 @@ package body PolyORB.Binding_Data.SOAP is
       --  the stack (the HTTP filter in the case of SOAP/HTTP).
 
       ORB.Register_Endpoint
-        (ORB_Access (The_ORB),
-         TE,
-         Filter,
-         ORB.Client);
+        (ORB.ORB_Access (The_ORB), TE, Filter, ORB.Client);
       --  Register the endpoint and lowest filter with the ORB.
 
       return Component_Access (Upper (Filter));
@@ -200,7 +195,7 @@ package body PolyORB.Binding_Data.SOAP is
       Oid : Objects.Object_Id)
      return Profile_Access
    is
-      use PolyORB.Transport.Connected.Sockets;
+      use PolyORB.Transport.Sockets;
 
       Result : constant Profile_Access
         := new SOAP_Profile_Type;

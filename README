@@ -147,30 +147,20 @@ PolyORB.orig, and use the following command:
 
   diff --recursive --context PolyORB.orig PolyORB > patch_file
 
+and send us the patch_file via e-mail at the address 
+
+	polyorb-devel@lists.act-europe.fr
+
 If your diff version do not understand the --recursive or --context
 option, please use the GNU diffutils package which may be found on any
 GNU archive (e.g. ftp://ftp.lip6.fr/pub/gnu/).
 
 Note that unified diff files (-u option of GNU diff) are also welcomed.
 
-Unsupported users may directly send their patches and bug report via
-e-mail at the address
-
-	polyorb-devel@lists.act-europe.fr
-
-If you are interested in becoming a supported PolyORB user, you should
-send an email to sales@gnat.com or to sales@act-europe.fr, depending
-on your geographic location.
-
 Mailing-lists
 -------------
 
-The mailing-list PolyORB-Users serves as a informal forum for
-technical discussions about PolyORB among users.
-
-You can subscribe to this list and browse the archive at the URL:
-
-http://lists.act-europe.fr/mailman/listinfo/polyorb-users
+	TO BE WRITTEN
 
 Contributors:
 -------------
@@ -182,7 +172,6 @@ contributors:
 * Fabien Azavant
 * Benjamin Bagland
 * Emmanuel Chavane
-* Karim Chine
 * Jean-Marie Cottin
 * Olivier Delalleau
 * Cyril Domercq

@@ -88,8 +88,8 @@ package PolyORB.Utils.HTables.Perfect is
       HParam :     Hash_Parameters := Default_Hash_Parameters;
       Max    :     Natural := Default_Max);
    --  Initialize the hash table.
-   --  HParam are the hash function parameters,
-   --  Max is the max number of elements to store.
+   --  'HParam' are the hash function parameters,
+   --  'Max' is the max number of elements to store.
 
    procedure Finalize
      (T : in out Table_Instance);
@@ -100,23 +100,23 @@ package PolyORB.Utils.HTables.Perfect is
       Key         : String;
       Error_Value : Item)
       return Item;
-   --  Find Key in hash table and return its associated Item.
-   --  When Key does not exist, the function returns Error_Value.
+   --  Find 'Key' in hash table and return its associated Item.
+   --  When 'Key' does not exist, the function returns 'Error_Value'.
 
    function Lookup
      (T     : Table_Instance;
       Key   : String)
       return Item;
-   --  Find Key in hash table and return its associated Item.
-   --  When Key does not exist, the function raises No_Key exception.
+   --  Find 'Key' in hash table and return its associated Item.
+   --  When 'Key' does not exist, the function raise 'No_Key' exception.
 
    procedure Insert
      (T     : Table_Instance;
       Key   : String;
       Value : Item);
    --  Insert (Key, Value) in hash table.
-   --  Key is the string to hash and Value its associated Item.
-   --  If Key already exists, nothing is done.
+   --  'Key' is the string to hash and 'Value' its associated Item.
+   --  If 'Key' already exists, nothing is done.
 
    --  Note : this procedure may reorganize or extend, when necessary,
    --  the table or the sub_tables, leading to amortized O (1)
@@ -152,7 +152,7 @@ package PolyORB.Utils.HTables.Perfect is
    function First (T : Table_Instance)
                   return Iterator;
    --  Return an Iterator placed on the first non null element found
-   --  in T.  If there is no such element, the Iterator is placed
+   --  in 'T'.  If there is no such element, the Iterator is placed
    --  outside T bounds.
 
    function Value (I : Iterator)
@@ -181,7 +181,7 @@ private
    --  The Hash_Table index uses different structures to map an
    --  element to its associated item.
 
-   --  Element type
+   --  'Element' type.
 
    type Element is record
       Key        : Utils.Strings.String_Ptr; --  Key of the element to hash.
@@ -199,7 +199,7 @@ private
 
    subtype Element_Array is Dynamic_Element_Array.Instance;
 
-   --  Subtable type
+   --  'Subtable' type.
 
    type Subtable is record
       First  : Natural;         --  'First subtable index.
@@ -216,7 +216,7 @@ private
 
    subtype Subtable_Array is Dynamic_Subtable_Array.Instance;
 
-   --  Table_Info type
+   --  'Table_Info' type.
 
    type Table_Info is record
       Count        : Natural;         --  Number of keys stored in Subtables.
@@ -245,7 +245,7 @@ private
 
    subtype Item_Array is Dynamic_Item_Array.Instance;
 
-   --  Table type
+   --  'Table' type.
 
    type Table is record
       HTable : Hash_Table;

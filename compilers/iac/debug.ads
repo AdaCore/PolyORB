@@ -13,6 +13,7 @@ package Debug is
    procedure W_Boolean     (N : Boolean);
    procedure W_Byte        (N : Byte);
    procedure W_List_Id     (I : Natural; L : List_Id);
+   procedure W_Entity_Id   (I : Natural; E : Entity_Id);
    procedure W_Node_Id     (I : Natural; N : Node_Id);
    procedure W_Node_Header (I : Natural; N : Node_Id);
    procedure W_Full_Tree;
@@ -26,6 +27,7 @@ package Debug is
 
    function Image (N : Node_Kind) return String;
    function Image (N : Name_Id) return String;
+   function Image (N : Entity_Id) return String;
    function Image (N : Node_Id) return String;
    function Image (N : List_Id) return String;
    function Image (N : Mode_Id) return String;

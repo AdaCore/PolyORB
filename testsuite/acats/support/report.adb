@@ -1,6 +1,3 @@
-pragma Style_Checks (Off);
-pragma Warnings (Off);
-
 WITH TEXT_IO, CALENDAR;
 USE TEXT_IO, CALENDAR;
 PRAGMA ELABORATE (TEXT_IO, CALENDAR);

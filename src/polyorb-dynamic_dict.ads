@@ -63,7 +63,7 @@ package PolyORB.Dynamic_Dict is
    --  key.
 
    function Lookup
-     (K       : String;
+     (K : String;
       Default : Value)
      return Value;
    --  As above, but Default is returned for non-registered keys,

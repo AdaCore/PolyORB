@@ -6,7 +6,7 @@ AC_CONFIG_AUX_DIR(support)
 ##########################################
 
 AC_CANONICAL_SYSTEM
-AM_INIT_AUTOMAKE(polyorb,0.1)
+AM_INIT_AUTOMAKE(polyorb,1.0a)
 LIBVERSIONINFO=0:0:0
 AC_SUBST(LIBVERSIONINFO)
 
@@ -225,7 +225,7 @@ then
 fi
 
 ##########################################
-# Test : if IR is built,
+# Test : if IR is built, 
 #        then CORBA must be built
 ##########################################
 
@@ -318,34 +318,9 @@ echo "" > ${PROTO_SERVER_WITHS}
 
 for P in ${PROTO_LIST}
 do
-   cat >>${PROTO_CLIENT_WITHS} <<EOF
--- ${P} --
-EOF
-
-   cat >>${PROTO_SERVER_WITHS} <<EOF
--- ${P} --
-EOF
-
-if test -f ${srcdir}/src/${P}/polyorb-setup-${P}.ads
-then
-   U=`${AWK} '/^package/{print $2}' ${srcdir}/src/${P}/polyorb-setup-${P}.ads`
-   cat >>${PROTO_SERVER_WITHS} <<EOF
-with ${U};
-pragma Elaborate_All (${U});
-pragma Warnings (Off, ${U});
-
-EOF
-   cat >>${PROTO_CLIENT_WITHS} <<EOF
-with ${U};
-pragma Elaborate_All (${U});
-pragma Warnings (Off, ${U});
-
-EOF
-
-fi
-
    U=`${AWK} '/^package/{print $2}' ${srcdir}/src/${P}/polyorb-binding_data-*.ads`
    cat >>${PROTO_CLIENT_WITHS} <<EOF
+-- ${P} --
 with ${U};
 pragma Elaborate_All (${U});
 pragma Warnings (Off, ${U});
@@ -354,6 +329,7 @@ EOF
 
    U=`${AWK} '/^package/{print $2}' ${srcdir}/src/${P}/polyorb-setup-tcp_access_points-*.ads`
    cat >>${PROTO_SERVER_WITHS} <<EOF
+-- ${P} --
 with ${U};
 pragma Elaborate_All (${U});
 pragma Warnings (Off, ${U});
@@ -419,12 +395,11 @@ AC_OUTPUT([
 	testsuite/corba/Makefile
 	testsuite/corba/portableserver/Makefile
 	testsuite/core/Makefile
-	testsuite/core/any/Makefile
 	testsuite/core/chained_lists/Makefile
 	testsuite/core/dynamic_dict/Makefile
 	testsuite/core/fixed_point/Makefile
 	testsuite/core/initialization/Makefile
-	testsuite/core/obj_adapters/Makefile
+	testsuite/core/obj_adapters-simple/Makefile
 	testsuite/core/poa/Makefile
 	testsuite/core/tasking/Makefile
 	testsuite/acats/Makefile
@@ -457,7 +432,7 @@ ${RM} ${PROTO_SERVER_WITHS}
 #
 # XXX Should we add src/soap/gnat.adc ?
 
-for a in src/gnat.adc src/corba/gnat.adc src/moma/gnat.adc 
+for a in src/gnat.adc src/corba/gnat.adc src/moma/gnat.adc
 do
   if test ! -f "$a"
   then

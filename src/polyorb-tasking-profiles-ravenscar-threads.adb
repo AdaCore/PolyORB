@@ -34,7 +34,6 @@
 --  Implementation of Threads under the Ravenscar profile.
 
 with System.Tasking;
---  This is an internal GNAT unit.
 
 with Ada.Task_Identification;
 with Ada.Unchecked_Conversion;
@@ -66,7 +65,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
 
    package Thread_Index_Manager is
       new PolyORB.Tasking.Profiles.Ravenscar.Index_Manager
-     (Number_Of_System_Tasks - 1);
+     (Number_Of_Threads - 1);
 
    subtype Task_Index_Type is Thread_Index_Manager.Index_Type;
    --  Type of the Ids of the Threads that are not the one of the main task.

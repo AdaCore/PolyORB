@@ -44,7 +44,7 @@ pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.ORB;
 with PolyORB.Protocols;
-with PolyORB.Transport.Connected.Sockets;
+with PolyORB.Transport.Sockets;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.Setup.TCP_Access_Points.IIOP is
@@ -52,7 +52,7 @@ package body PolyORB.Setup.TCP_Access_Points.IIOP is
    use PolyORB.Filters;
    use PolyORB.Filters.Slicers;
    use PolyORB.ORB;
-   use PolyORB.Transport.Connected.Sockets;
+   use PolyORB.Transport.Sockets;
 
    --  The 'GIOP' access point.
 
@@ -62,8 +62,8 @@ package body PolyORB.Setup.TCP_Access_Points.IIOP is
          SAP     => new Socket_Access_Point,
          PF      => new Binding_Data.IIOP.IIOP_Profile_Factory);
 
-   GIOP_Pro : aliased Protocols.GIOP.GIOP_Protocol;
-   Sli      : aliased Slicer_Factory;
+   GIOP_Protocol  : aliased Protocols.GIOP.GIOP_Protocol;
+   Slicer_Factory : aliased Filters.Slicers.Slicer_Factory;
 
    ------------------------------
    -- Initialize_Access_Points --
@@ -78,14 +78,12 @@ package body PolyORB.Setup.TCP_Access_Points.IIOP is
       if Get_Conf ("access_points", "iiop", True) then
 
          Initialize_Socket (GIOP_Access_Point, Any_Port);
-
-         Chain_Factories ((0 => Sli'Unchecked_Access,
-                           1 => GIOP_Pro'Unchecked_Access));
-
+         Chain_Factories ((0 => Slicer_Factory'Unchecked_Access,
+                           1 => GIOP_Protocol'Unchecked_Access));
          Register_Access_Point
            (ORB    => The_ORB,
             TAP    => GIOP_Access_Point.SAP,
-            Chain  => Sli'Unchecked_Access,
+            Chain  => Slicer_Factory'Unchecked_Access,
             PF     => GIOP_Access_Point.PF);
       end if;
 

@@ -107,15 +107,21 @@ package body PolyORB.Services.Naming.BindingIterator.Helper is
          Deferred_Initialization_Done := True;
       end Deferred_Initialization;
 
-   use PolyORB.Initialization;
-   use PolyORB.Initialization.String_Lists;
-   use PolyORB.Utils.Strings;
 begin
-   Register_Module
-     (Module_Info'
-      (Name      => +"naming.BindingIterator.Helper",
-       Conflicts => Empty,
-       Depends   => +"any",
-       Provides  => Empty,
-       Init      => Deferred_Initialization'Access));
+   declare
+      use PolyORB.Initialization;
+      use PolyORB.Initialization.String_Lists;
+      use PolyORB.Utils.Strings;
+   begin
+      Register_Module
+        (Module_Info'
+         (Name      => +"CosNaming.BindingIterator.Helper",
+          Conflicts => Empty,
+          Depends   =>
+            +"soft_links"
+          ,
+          Provides  => Empty,
+          Init      => Deferred_Initialization'Access));
+   end;
+
 end PolyORB.Services.Naming.BindingIterator.Helper;

@@ -35,19 +35,11 @@
 
 package body PolyORB.Opaque is
 
-   -------------
-   -- Is_Null --
-   -------------
-
    function Is_Null (P : Opaque_Pointer) return Boolean is
       use type System.Address;
    begin
       return P = System.Null_Address;
    end Is_Null;
-
-   -----------------------
-   -- To_Opaque_Pointer --
-   -----------------------
 
    function To_Opaque_Pointer (Z : Zone_Access) return Opaque_Pointer is
    begin

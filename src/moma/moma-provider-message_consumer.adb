@@ -234,7 +234,7 @@ package body MOMA.Provider.Message_Consumer is
       use PolyORB.Any.NVList.Internals.NV_Lists;
 
       Args : PolyORB.Any.NVList.Ref;
-      It   : Iterator;
+      It   : Iterator := First (List_Of (Args).all);
    begin
       pragma Debug (O ("The server is executing the request:"
                        & PolyORB.Requests.Image (Req.all)));
@@ -250,7 +250,6 @@ package body MOMA.Provider.Message_Consumer is
              Arg_Modes => PolyORB.Any.ARG_IN));
          Arguments (Req, Args);
 
-         It := First (List_Of (Args).all);
          Set_Result
            (Req, Get (Self.Remote_Ref, From_Any (Value (It).Argument)));
          pragma Debug (O ("Result: " & Image (Req.Result)));
@@ -267,8 +266,6 @@ package body MOMA.Provider.Message_Consumer is
          declare
             Handler_Dest, Behavior : Element_Access;
          begin
-
-            It := First (List_Of (Args).all);
             Handler_Dest := Value (It);
             Next (It);
             Behavior := Value (It);

@@ -1,40 +1,40 @@
 package body Nutils is
 
-   -------------------------
-   -- Append_Node_To_List --
-   -------------------------
+   ---------------------------
+   -- Append_Entity_To_List --
+   ---------------------------
 
-   procedure Append_Node_To_List (E : Node_Id; L : List_Id) is
-      Last : Node_Id;
+   procedure Append_Entity_To_List (E : Entity_Id; L : List_Id) is
+      Last : Entity_Id;
    begin
-      Last := Last_Node (L);
+      Last := Last_Entity (L);
       if No (Last) then
-         Set_First_Node (L, E);
+         Set_First_Entity (L, E);
       else
-         Set_Next_Node (Last, E);
+         Set_Next_Entity (Last, E);
       end if;
       Last := E;
       while Present (Last) loop
-         Set_Last_Node (L, Last);
-         Last := Next_Node (Last);
+         Set_Last_Entity (L, Last);
+         Last := Next_Entity (Last);
       end loop;
-   end Append_Node_To_List;
+   end Append_Entity_To_List;
 
    ---------------
    -- Associate --
    ---------------
 
-   procedure Associate (E : Node_Id; N : Node_Id) is
+   procedure Associate (E : Entity_Id; N : Node_Id) is
    begin
       Set_Identifier (E, N);
-      Set_Node     (N, E);
+      Set_Entity     (N, E);
    end Associate;
 
    ---------------------
    -- Is_A_Forward_Of --
    ---------------------
 
-   function Is_A_Forward_Of (X, Y : Node_Id) return Boolean is
+   function Is_A_Forward_Of (X, Y : Entity_Id) return Boolean is
       KX : constant Node_Kind := Kind (X);
       KY : constant Node_Kind := Kind (Y);
    begin
@@ -78,7 +78,7 @@ package body Nutils is
    -- Is_A_Scope --
    ----------------
 
-   function Is_A_Scope (E : Node_Id) return Boolean is
+   function Is_A_Scope (E : Entity_Id) return Boolean is
    begin
       case Kind (E) is
          when K_Module
@@ -98,7 +98,7 @@ package body Nutils is
    -- Is_A_Type --
    ---------------
 
-   function Is_A_Type (E : Node_Id) return Boolean is
+   function Is_A_Type (E : Entity_Id) return Boolean is
    begin
       case Kind (E) is
          when K_Type_Declaration
@@ -139,7 +139,7 @@ package body Nutils is
    -- Is_Attribute_Or_Operation --
    -------------------------------
 
-   function Is_Attribute_Or_Operation (E : Node_Id) return Boolean
+   function Is_Attribute_Or_Operation (E : Entity_Id) return Boolean
    is
       K : constant Node_Kind := Kind (E);
    begin
@@ -153,14 +153,14 @@ package body Nutils is
 
    function Is_Empty (L : List_Id) return Boolean is
    begin
-      return L = No_List or else No (First_Node (L));
+      return L = No_List or else No (First_Entity (L));
    end Is_Empty;
 
    -------------------------------------
-   -- Is_Interface_Redefinable_Node --
+   -- Is_Interface_Redefinable_Entity --
    -------------------------------------
 
-   function Is_Interface_Redefinable_Node (E : Node_Id) return Boolean is
+   function Is_Interface_Redefinable_Entity (E : Entity_Id) return Boolean is
    begin
       case Kind (E) is
          when K_Type_Declaration
@@ -179,25 +179,43 @@ package body Nutils is
          when others =>
             return False;
       end case;
-   end Is_Interface_Redefinable_Node;
+   end Is_Interface_Redefinable_Entity;
 
    --------------
    -- New_Copy --
    --------------
 
-   function New_Copy (N : Node_Id) return Node_Id
-   is
-      L : Node_Id;
+   function New_Copy (E : Entity_Id) return Entity_Id is
    begin
       Entries.Increment_Last;
-      L := Entries.Last;
-      Entries.Table (L) := Entries.Table (N);
-      Set_Next_Node (L, No_Node);
-      if Kind (L) = K_Identifier then
-         Set_Homonym (L, No_Node);
-      end if;
-      return L;
+      Entries.Table (Entries.Last) := Entries.Table (Node_Id (E));
+      Set_Next_Entity (E, No_Entity);
+      return Entity_Id (Entries.Last);
    end New_Copy;
+
+   --------------
+   -- New_Copy --
+   --------------
+
+   function New_Copy (N : Node_Id) return Node_Id is
+   begin
+      Entries.Increment_Last;
+      Entries.Table (Entries.Last) := Entries.Table (N);
+      Set_Homonym (N, No_Node);
+      return Entries.Last;
+   end New_Copy;
+
+   ----------------
+   -- New_Entity --
+   ----------------
+
+   function New_Entity
+     (Kind : Node_Kind;
+      Loc  : Location)
+     return Entity_Id is
+   begin
+      return Entity_Id (New_Node (Kind, Loc));
+   end New_Entity;
 
    --------------
    -- New_List --
@@ -232,31 +250,31 @@ package body Nutils is
       return N;
    end New_Node;
 
-   ---------------------------
-   -- Remove_Node_From_List --
-   ---------------------------
+   -----------------------------
+   -- Remove_Entity_From_List --
+   -----------------------------
 
-   procedure Remove_Node_From_List (E : Node_Id; L : List_Id) is
-      C : Node_Id;
+   procedure Remove_Entity_From_List (E : Entity_Id; L : List_Id) is
+      C : Entity_Id;
    begin
-      C := First_Node (L);
+      C := First_Entity (L);
       if C = E then
-         Set_First_Node (L, Next_Node (E));
-         if Last_Node (L) = E then
-            Set_Last_Node (L, No_Node);
+         Set_First_Entity (L, Next_Entity (E));
+         if Last_Entity (L) = E then
+            Set_Last_Entity (L, No_Entity);
          end if;
       else
          while Present (C) loop
-            if Next_Node (C) = E then
-               Set_Next_Node (C, Next_Node (E));
-               if Last_Node (L) = E then
-                  Set_Last_Node (L, C);
+            if Next_Entity (C) = E then
+               Set_Next_Entity (C, Next_Entity (E));
+               if Last_Entity (L) = E then
+                  Set_Last_Entity (L, C);
                end if;
                exit;
             end if;
-            C := Next_Node (C);
+            C := Next_Entity (C);
          end loop;
       end if;
-   end Remove_Node_From_List;
+   end Remove_Entity_From_List;
 
 end Nutils;

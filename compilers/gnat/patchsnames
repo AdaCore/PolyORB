@@ -9,6 +9,5 @@ mkdir $dir
 trap "rm -fr $dir" 0
 
 sed -e 's/N + [0-9]*;/N + 999;/' -e 's/$//' snames.ads > $dir/snames.ads
-cp snames.adb $dir/snames.adb
-(cd $dir && xsnames && mv snames.ns snames.ads && mv snames.nb snames.adb)
-cp $dir/snames.ad[sb] .
+(cd $dir && patch snames.ads)
+cp $dir/snames.ads .

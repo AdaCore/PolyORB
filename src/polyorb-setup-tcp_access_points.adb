@@ -37,11 +37,11 @@
 --  $Id$
 
 with PolyORB.Components;
-with PolyORB.Transport.Connected.Sockets;
+with PolyORB.Transport.Sockets;
 
 package body PolyORB.Setup.TCP_Access_Points is
 
-   use PolyORB.Transport.Connected.Sockets;
+   use PolyORB.Transport.Sockets;
 
    procedure Initialize_Socket
      (DAP  : in out Access_Point_Info;
@@ -61,7 +61,7 @@ package body PolyORB.Setup.TCP_Access_Points is
          (Reuse_Address, True));
 
       if DAP.SAP = null then
-         DAP.SAP := new Socket_Access_Point;
+         DAP.SAP := new Transport.Sockets.Socket_Access_Point;
       end if;
       loop
          DAP.Address.Port := Port;

@@ -53,42 +53,28 @@ package body PolyORB.Buffers is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-   package L2 is new PolyORB.Log.Facility_Log ("polyorb.buffers_show");
-   procedure O2 (Message : in String; Level : Log_Level := Debug)
-     renames L2.Output;
+   subtype Output_Line is String (1 .. 48);
+
+   Hex : constant String      := "0123456789ABCDEF";
+   Nil : constant Output_Line := (others => ' ');
 
    ------------------------
    -- General operations --
    ------------------------
 
-   ------------
-   -- Length --
-   ------------
-
-   function Length
-     (Buffer : access Buffer_Type)
-     return Stream_Element_Count is
+   function Length (Buffer : access Buffer_Type) return Stream_Element_Count is
    begin
       return Buffer.Length;
    end Length;
 
-   --------------------
-   -- Set_Endianness --
-   --------------------
-
    procedure Set_Endianness
-     (Buffer : access Buffer_Type;
-      E      :        Endianness_Type) is
+     (Buffer : access Buffer_Type; E : Endianness_Type)
+   is
    begin
       pragma Assert
         (Buffer.CDR_Position = Buffer.Initial_CDR_Position);
-
       Buffer.Endianness := E;
    end Set_Endianness;
-
-   ----------------
-   -- Endianness --
-   ----------------
 
    function Endianness
      (Buffer : Buffer_Type)
@@ -97,31 +83,23 @@ package body PolyORB.Buffers is
       return Buffer.Endianness;
    end Endianness;
 
-   ----------------------
-   -- Release_Contents --
-   ----------------------
-
    procedure Release_Contents
      (Buffer : in out Buffer_Type) is
    begin
       Release (Buffer.Contents);
       Buffer_Chunk_Pools.Release (Buffer.Storage'Access);
-      Buffer.CDR_Position         := 0;
+      Buffer.CDR_Position := 0;
       Buffer.Initial_CDR_Position := 0;
-      Buffer.Endianness           := Host_Order;
-      Buffer.Length               := 0;
+      Buffer.Endianness := Host_Order;
+      Buffer.Length := 0;
    end Release_Contents;
 
-   -----------------------
-   -- Initialize_Buffer --
-   -----------------------
-
    procedure Initialize_Buffer
-     (Buffer               : access Buffer_Type;
-      Size                 :        Stream_Element_Count;
-      Data                 :        Opaque_Pointer;
-      Endianness           :        Endianness_Type;
-      Initial_CDR_Position :        Stream_Element_Offset)
+     (Buffer     : access Buffer_Type;
+      Size       : Stream_Element_Count;
+      Data       : Opaque_Pointer;
+      Endianness : Endianness_Type;
+      Initial_CDR_Position : Stream_Element_Offset)
    is
       Data_Iovec : constant Iovec
         := (Iov_Base => Data,
@@ -132,8 +110,8 @@ package body PolyORB.Buffers is
         and then Buffer.CDR_Position = 0
         and then Buffer.Initial_CDR_Position = 0);
 
-      Buffer.Endianness           := Endianness;
-      Buffer.CDR_Position         := Initial_CDR_Position;
+      Buffer.Endianness := Endianness;
+      Buffer.CDR_Position := Initial_CDR_Position;
       Buffer.Initial_CDR_Position := Initial_CDR_Position;
 
       Append
@@ -143,13 +121,9 @@ package body PolyORB.Buffers is
       Buffer.Length := Size;
    end Initialize_Buffer;
 
-   -------------
-   -- Reserve --
-   -------------
-
    function Reserve
      (Buffer : access Buffer_Type;
-      Amount :        Stream_Element_Count)
+      Amount : Stream_Element_Count)
      return Reservation
    is
       Copy_Address : Opaque_Pointer;
@@ -166,13 +140,9 @@ package body PolyORB.Buffers is
          Length       => Amount);
    end Reserve;
 
-   ---------------
-   -- Copy_Data --
-   ---------------
-
    procedure Copy_Data
      (From : in Buffer_Type;
-      Into :    Reservation) is
+      Into : Reservation) is
    begin
       pragma Assert (True
         and then From.Endianness   = Into.Endianness
@@ -181,10 +151,6 @@ package body PolyORB.Buffers is
 
       Iovec_Pools.Dump (From.Contents, Into.Location);
    end Copy_Data;
-
-   ----------
-   -- Copy --
-   ----------
 
    function Copy
      (Buffer : access Buffer_Type)
@@ -208,14 +174,11 @@ package body PolyORB.Buffers is
       return Into;
    end Copy;
 
-   -------------
-   -- Release --
-   -------------
-
    procedure Release
      (A_Buffer : in out Buffer_Access)
    is
-      procedure Free is new Ada.Unchecked_Deallocation
+      procedure Free is
+         new Ada.Unchecked_Deallocation
         (Buffer_Type, Buffer_Access);
 
    begin
@@ -225,13 +188,10 @@ package body PolyORB.Buffers is
       end if;
    end Release;
 
-   -----------------------------
-   -- To_Stream_Element_Array --
-   -----------------------------
-
    function To_Stream_Element_Array
      (Buffer   : access Buffer_Type)
-     return Opaque.Zone_Access is
+     return Opaque.Zone_Access
+   is
    begin
       pragma Assert (Buffer.Initial_CDR_Position = 0);
       return Iovec_Pools.Dump (Buffer.Contents);
@@ -248,37 +208,19 @@ package body PolyORB.Buffers is
       return Result;
    end To_Stream_Element_Array;
 
-   ----------
-   -- Peek --
-   ----------
-
-   function Peek
-     (Buffer   : access Buffer_Type;
-      Position :        Ada.Streams.Stream_Element_Offset)
-     return Ada.Streams.Stream_Element is
-   begin
-      return Iovec_Pools.Peek
-        (Iovec_Pool => Buffer.Contents,
-         Offset     => Position - Buffer.Initial_CDR_Position);
-   end Peek;
-
    ------------------------------
    -- The CDR view of a buffer --
    ------------------------------
 
-   --------------------------
-   -- Set_Initial_Position --
-   --------------------------
-
    procedure Set_Initial_Position
      (Buffer   : access Buffer_Type;
-      Position :        Stream_Element_Offset) is
+      Position : Stream_Element_Offset) is
    begin
       pragma Assert
         (Buffer.Initial_CDR_Position = Buffer.CDR_Position);
 
       Buffer.Initial_CDR_Position := Position;
-      Buffer.CDR_Position         := Position;
+      Buffer.CDR_Position := Position;
    end Set_Initial_Position;
 
    Null_Data : aliased Stream_Element_Array (1 .. Alignment_Type'Last - 1)
@@ -288,13 +230,9 @@ package body PolyORB.Buffers is
    Null_Data_Address : constant Opaque_Pointer
      := Null_Data (Null_Data'First)'Address;
 
-   ---------------
-   -- Pad_Align --
-   ---------------
-
    procedure Pad_Align
      (Buffer    : access Buffer_Type;
-      Alignment :        Alignment_Type)
+      Alignment : Alignment_Type)
    is
       Padding : constant Stream_Element_Count
          := (Alignment - Buffer.CDR_Position) mod Alignment;
@@ -337,13 +275,9 @@ package body PolyORB.Buffers is
       Align_Position (Buffer, Alignment);
    end Pad_Align;
 
-   --------------------
-   -- Align_Position --
-   --------------------
-
    procedure Align_Position
      (Buffer    : access Buffer_Type;
-      Alignment :        Alignment_Type)
+      Alignment : Alignment_Type)
    is
       Padding : constant Stream_Element_Count
          := (Alignment - Buffer.CDR_Position) mod Alignment;
@@ -354,8 +288,8 @@ package body PolyORB.Buffers is
       end if;
 
       pragma Debug
-        (O ("Align_Position: pos = "
-            & Stream_Element_Offset'Image (Buffer.CDR_Position)));
+        (O ("Align_Position: pos = " & Stream_Element_Offset'Image
+            (Buffer.CDR_Position)));
       pragma Debug
         (O ("Aligning on" & Alignment_Type'Image (Alignment)));
       pragma Debug
@@ -372,20 +306,16 @@ package body PolyORB.Buffers is
       --  Post-condition: the buffer is aligned as requested.
       pragma Debug
         (O ("Align_Position: now at"
-            & Stream_Element_Offset'Image (Buffer.CDR_Position)));
-
+            & Stream_Element_Offset'Image
+            (Buffer.CDR_Position)));
    end Align_Position;
 
    --  Inserting data into a buffer
 
-   ---------------------
-   -- Insert_Raw_Data --
-   ---------------------
-
    procedure Insert_Raw_Data
      (Buffer    : access Buffer_Type;
-      Size      :        Stream_Element_Count;
-      Data      :        Opaque_Pointer)
+      Size      : Stream_Element_Count;
+      Data      : Opaque_Pointer)
    is
       Data_Iovec : constant Iovec
         := (Iov_Base => Data, Iov_Len  => Storage_Offset (Size));
@@ -399,17 +329,12 @@ package body PolyORB.Buffers is
       Buffer.Length := Buffer.Length + Size;
    end Insert_Raw_Data;
 
-   -------------------------------------
-   -- Allocate_And_Insert_Cooked_Data --
-   -------------------------------------
-
    procedure Allocate_And_Insert_Cooked_Data
      (Buffer    : access Buffer_Type;
-      Size      :        Stream_Element_Count;
-      Data      :    out Opaque_Pointer)
+      Size      : Stream_Element_Count;
+      Data      : out Opaque_Pointer)
    is
       A_Data : Opaque_Pointer;
-
    begin
       Grow_Shrink (Buffer.Contents'Access, Size, A_Data);
       --  First try to grow an existing Iovec.
@@ -440,16 +365,11 @@ package body PolyORB.Buffers is
       Buffer.Length := Buffer.Length + Size;
    end Allocate_And_Insert_Cooked_Data;
 
-   ----------------------
-   -- Unuse_Allocation --
-   ----------------------
-
    procedure Unuse_Allocation
      (Buffer    : access Buffer_Type;
-      Size      :        Stream_Element_Count)
+      Size      : Stream_Element_Count)
    is
       Data : Opaque_Pointer;
-
    begin
       if Size /= 0 then
          Grow_Shrink (Buffer.Contents'Access, -Size, Data);
@@ -458,63 +378,45 @@ package body PolyORB.Buffers is
       end if;
    end Unuse_Allocation;
 
-   ------------------
-   -- Extract_Data --
-   ------------------
-
    procedure Extract_Data
-     (Buffer      : access Buffer_Type;
-      Data        :    out Opaque_Pointer;
-      Size        :        Stream_Element_Count;
-      Use_Current :        Boolean := True;
-      At_Position :        Stream_Element_Offset := 0)
+     (Buffer : access Buffer_Type;
+      Data   : out Opaque_Pointer;
+      Size   : Stream_Element_Count;
+      Use_Current : Boolean := True;
+      At_Position : Stream_Element_Offset := 0)
    is
       Start_Position : Stream_Element_Offset;
-
    begin
       if Use_Current then
          Start_Position := Buffer.CDR_Position;
       else
          Start_Position := At_Position;
       end if;
-
       Extract_Data
         (Buffer.Contents, Data,
          Start_Position - Buffer.Initial_CDR_Position, Size);
-
       if Use_Current then
          Buffer.CDR_Position := Buffer.CDR_Position + Size;
       end if;
    end Extract_Data;
 
-   ------------------
-   -- CDR_Position --
-   ------------------
-
    function CDR_Position
      (Buffer : access Buffer_Type)
-     return Stream_Element_Offset is
+     return Stream_Element_Offset
+   is
    begin
       return Buffer.CDR_Position;
    end CDR_Position;
 
-   ------------
-   -- Rewind --
-   ------------
-
-   procedure Rewind
-     (Buffer : access Buffer_Type) is
+   procedure Rewind (Buffer : access Buffer_Type) is
    begin
       Buffer.CDR_Position := Buffer.Initial_CDR_Position;
    end Rewind;
 
-   ---------------
-   -- Remaining --
-   ---------------
-
    function Remaining
      (Buffer : access Buffer_Type)
-     return Stream_Element_Count is
+     return Stream_Element_Count
+   is
    begin
       return Buffer.Initial_CDR_Position + Buffer.Length
         - Buffer.CDR_Position;
@@ -524,36 +426,26 @@ package body PolyORB.Buffers is
    -- The input/output view of a buffer --
    ---------------------------------------
 
-   -----------------
-   -- Send_Buffer --
-   -----------------
-
    procedure Send_Buffer
      (Buffer : access Buffer_Type;
-      Socket :        Sockets.Socket_Type;
-      To     :        Sockets.Sock_Addr_Type := Sockets.No_Sock_Addr)
+      Socket : Sockets.Socket_Type)
    is
    begin
       Iovec_Pools.Write_To_Socket
-        (Socket, Buffer.Contents'Access, Buffer.Length, To);
+        (Socket, Buffer.Contents'Access, Buffer.Length);
    end Send_Buffer;
-
-   --------------------
-   -- Receive_Buffer --
-   --------------------
 
    procedure Receive_Buffer
      (Buffer   : access Buffer_Type;
-      Socket   :        Sockets.Socket_Type;
-      Max      :        Stream_Element_Count;
-      Received :    out Stream_Element_Count)
+      Socket   : Sockets.Socket_Type;
+      Max      : Stream_Element_Count;
+      Received : out Stream_Element_Count)
    is
       Data : Opaque_Pointer;
       Last : Stream_Element_Offset;
       Addr : PolyORB.Sockets.Sock_Addr_Type;
       Saved_CDR_Position : constant Stream_Element_Offset
         := Buffer.CDR_Position;
-
    begin
       Allocate_And_Insert_Cooked_Data (Buffer, Max, Data);
       declare
@@ -577,78 +469,48 @@ package body PolyORB.Buffers is
    -- Utility subprograms --
    -------------------------
 
-   procedure Show
-     (Octets : Zone_Access);
+   procedure Show (Octets : Zone_Access);
    --  Display the contents of Octets for
    --  debugging purposes.
 
-   ----------
-   -- Show --
-   ----------
-
    procedure Show (Octets : Zone_Access)
    is
-      subtype Hexa_Line is String (1 .. 50);
-      subtype Ascii_Line is String (1 .. 17);
+      Output : Output_Line;
+      Index  : Natural := 1;
 
-      Hex : constant String      := "0123456789ABCDEF";
-      Nil_Hexa : constant Hexa_Line := (others => ' ');
-      Nil_Ascii : constant Ascii_Line := (others => ' ');
-
-      Hexa : Hexa_Line := Nil_Hexa;
-      Ascii : Ascii_Line := Nil_Ascii;
-      Index_Hexa : Natural := 1;
-      Index_Ascii : Natural := 1;
    begin
       for J in Octets'Range loop
-         Hexa (Index_Hexa) := ' ';
-         Hexa (Index_Hexa + 1) := Hex
+         Output (Index)     := ' ';
+         Output (Index + 1) := Hex
            (Natural (Octets (J) / 16) + 1);
-         Hexa (Index_Hexa + 2) := Hex
+         Output (Index + 2) := Hex
            (Natural (Octets (J) mod 16) + 1);
-         Index_Hexa := Index_Hexa + 3;
+         Index := Index + 3;
 
-         if Octets (J) < 32 or else Octets (J) > 127 then
-            Ascii (Index_Ascii) := '.';
-         else
-            Ascii (Index_Ascii) := Character'Val (Natural (Octets (J)));
-         end if;
-         Index_Ascii := Index_Ascii + 1;
-
-         if Index_Hexa = 25 then
-            Hexa (Index_Hexa) := ' ';
-            Hexa (Index_Hexa + 1) := ' ';
-            Index_Hexa := Index_Hexa + 2;
-            Ascii (Index_Ascii) := ' ';
-            Index_Ascii := Index_Ascii + 1;
-         end if;
-
-         if Index_Hexa > Hexa'Length then
-            pragma Debug (O2 (Hexa & "   " & Ascii));
-            Index_Hexa := 1;
-            Hexa := Nil_Hexa;
-            Index_Ascii := 1;
-            Ascii := Nil_Ascii;
+         if Index > Output'Length then
+            pragma Debug (O (Output));
+            Index := 1;
+            Output := Nil;
          end if;
       end loop;
 
-      if Index_Hexa /= 1 then
-         pragma Debug (O2 (Hexa & "   " & Ascii));
+      if Index /= 1 then
+         pragma Debug (O (Output (1 .. Index - 1)));
          null;
       end if;
    end Show;
 
-   procedure Show (Buffer : in Buffer_Type) is
+   procedure Show
+     (Buffer : in Buffer_Type)
+   is
    begin
-      pragma Debug (O2 ("Dumping "
+      pragma Debug (O ("Dumping "
                        & Endianness_Type'Image (Buffer.Endianness)
                        & " buffer, CDR position is "
                        & Stream_Element_Offset'Image
                        (Buffer.CDR_Position) & " (length is" &
                        Buffer.Length'Img & ")"));
-      if Buffer.Length = 0 then
-         return;
-      end if;
+
       declare
          Dumped : Zone_Access := Iovec_Pools.Dump (Buffer.Contents);
       begin
@@ -657,28 +519,16 @@ package body PolyORB.Buffers is
       end;
    end Show;
 
-   -------------------------------------------
-   -- Implementation of package Iovec_Pools --
-   -------------------------------------------
-
    package body Iovec_Pools is
 
       procedure Free is new Ada.Unchecked_Deallocation
         (Iovec_Array, Iovec_Array_Access);
 
-      -----------------
-      -- Grow_Shrink --
-      -----------------
-
       procedure Grow_Shrink
         (Iovec_Pool   : access Iovec_Pool_Type;
-         Size         :        Stream_Element_Offset;
-         Data         :    out Opaque_Pointer)
+         Size         : Stream_Element_Offset;
+         Data         : out Opaque_Pointer)
       is
-
-         -------------------------
-         -- First_Address_After --
-         -------------------------
 
          function First_Address_After
            (An_Iovec : Iovec)
@@ -688,25 +538,21 @@ package body PolyORB.Buffers is
          --  element immediately following the
          --  last element of An_Iovec.
 
-         function First_Address_After
-           (An_Iovec : Iovec)
+         function First_Address_After (An_Iovec : Iovec)
            return Opaque_Pointer is
          begin
             return An_Iovec.Iov_Base + An_Iovec.Iov_Len;
          end First_Address_After;
 
-         -------------
-         -- Do_Grow --
-         -------------
-
          procedure Do_Grow
            (Last_Iovec : in out Iovec;
-            Last_Chunk :        Chunk_Access);
+            Last_Chunk : Chunk_Access);
          pragma Inline (Do_Grow);
 
          procedure Do_Grow
            (Last_Iovec : in out Iovec;
-            Last_Chunk :        Chunk_Access) is
+            Last_Chunk : Chunk_Access)
+         is
          begin
             if Last_Chunk /= null then
                declare
@@ -732,8 +578,8 @@ package body PolyORB.Buffers is
                      --  unchanged.
                      pragma Debug
                        (O ("Cannot satisfy growth request "
-                           & "of size"
-                           & Stream_Element_Offset'Image (Size)));
+                             & "of size"
+                             & Stream_Element_Offset'Image (Size)));
                      null;
                   end if;
                end;
@@ -776,12 +622,13 @@ package body PolyORB.Buffers is
 
       procedure Extend
         (Iovec_Pool : in out Iovec_Pool_Type;
-         Require    :        Natural;
-         Allocate   :        Natural);
-      --  Check the number of available Iovecs in Iovec_Pool and
-      --  possibly extend it.  If Iovec_Pool's length is at least
-      --  Require, then does nothing, else make it Allocate Iovecs
-      --  long.
+         Require    : Natural;
+         Allocate   : Natural);
+      --  Check the number of available Iovecs in
+      --  Iovec_Pool and possibly extend it.
+      --  If Iovec_Pool's length is at least
+      --  Require, then does nothing, else
+      --  make it Allocate Iovecs long.
 
       procedure Dump (Iovecs : Iovec_Array; Into : Opaque_Pointer);
       --  Dump the content of Iovecs into Into.
@@ -794,20 +641,12 @@ package body PolyORB.Buffers is
       -- Utility Subprograms (bodies) --
       ----------------------------------
 
-      ----------------
-      -- Is_Dynamic --
-      ----------------
-
       function Is_Dynamic
         (Iovec_Pool : Iovec_Pool_Type)
         return Boolean is
       begin
          return Iovec_Pool.Dynamic_Array /= null;
       end Is_Dynamic;
-
-      --------------------
-      -- Iovecs_Address --
-      --------------------
 
       function Iovecs_Address
         (Iovec_Pool : Iovec_Pool_Type)
@@ -820,14 +659,10 @@ package body PolyORB.Buffers is
          end if;
       end Iovecs_Address;
 
-      ------------
-      -- Extend --
-      ------------
-
       procedure Extend
         (Iovec_Pool : in out Iovec_Pool_Type;
-         Require    :        Natural;
-         Allocate   :        Natural) is
+         Require    : Natural;
+         Allocate   : Natural) is
       begin
          pragma Assert (Allocate >= Require);
 
@@ -855,23 +690,17 @@ package body PolyORB.Buffers is
          end if;
       end Extend;
 
-      ----------
-      -- Dump --
-      ----------
-
-      procedure Dump
-        (Iovecs : Iovec_Array;
-         Into   : Opaque_Pointer)
+      procedure Dump (Iovecs : Iovec_Array; Into : Opaque_Pointer)
       is
          Offset : Storage_Offset := 0;
       begin
-         for J in Iovecs'Range loop
+         for I in Iovecs'Range loop
             declare
                L : constant Stream_Element_Offset
-                 := Stream_Element_Offset (Iovecs (J).Iov_Len);
+                 := Stream_Element_Offset (Iovecs (I).Iov_Len);
 
                S_Addr : constant System.Address
-                 := Iovecs (J).Iov_Base;
+                 := Iovecs (I).Iov_Base;
                S : Stream_Element_Array (0 .. L - 1);
                for S'Address use S_Addr;
                pragma Import (Ada, S);
@@ -889,20 +718,16 @@ package body PolyORB.Buffers is
          end loop;
       end Dump;
 
-      function Dump
-        (Iovecs : Iovec_Array)
-        return Zone_Access
+      function Dump (Iovecs : Iovec_Array) return Zone_Access
       is
          Result : Zone_Access;
          Length : Stream_Element_Count := 0;
       begin
-         for J in Iovecs'Range loop
-            Length := Length + Stream_Element_Count (Iovecs (J).Iov_Len);
+         for I in Iovecs'Range loop
+            Length := Length + Stream_Element_Count (Iovecs (I).Iov_Len);
          end loop;
-
          Result := new Stream_Element_Array (1 .. Length);
          Dump (Iovecs, Opaque_Pointer'(Result (Result'First)'Address));
-
          return Result;
       end Dump;
 
@@ -910,14 +735,11 @@ package body PolyORB.Buffers is
       -- Visible subprograms (implementations) --
       -------------------------------------------
 
-      ------------------
-      -- Prepend_Pool --
-      ------------------
-
       procedure Prepend_Pool
-        (Prefix     :        Iovec_Pool_Type;
+        (Prefix     : Iovec_Pool_Type;
          Iovec_Pool : in out Iovec_Pool_Type)
       is
+
          New_Last : constant Natural := Iovec_Pool.Last + Prefix.Last;
 
       begin
@@ -947,14 +769,10 @@ package body PolyORB.Buffers is
          end;
       end Prepend_Pool;
 
-      ------------
-      -- Append --
-      ------------
-
       procedure Append
         (Iovec_Pool : in out Iovec_Pool_Type;
-         An_Iovec   :        Iovec;
-         A_Chunk    :        Buffer_Chunk_Pools.Chunk_Access := null)
+         An_Iovec   : Iovec;
+         A_Chunk    : Buffer_Chunk_Pools.Chunk_Access := null)
       is
          New_Last : constant Natural := Iovec_Pool.Last + 1;
       begin
@@ -976,15 +794,11 @@ package body PolyORB.Buffers is
          end;
       end Append;
 
-      ------------------
-      -- Extract_Data --
-      ------------------
-
       procedure Extract_Data
-        (Iovec_Pool :     Iovec_Pool_Type;
+        (Iovec_Pool : Iovec_Pool_Type;
          Data       : out Opaque_Pointer;
-         Offset     :     Stream_Element_Offset;
-         Size       :     Stream_Element_Count)
+         Offset     : Stream_Element_Offset;
+         Size       : Stream_Element_Count)
       is
          Vecs_Address : constant System.Address
            := Iovecs_Address (Iovec_Pool);
@@ -999,58 +813,14 @@ package body PolyORB.Buffers is
             Offset_Remainder := Offset_Remainder - Vecs (Index).Iov_Len;
             Index := Index + 1;
          end loop;
-
          pragma Assert (Offset_Remainder + Storage_Offset (Size)
            <= Vecs (Index).Iov_Len);
 
          Data := Vecs (Index).Iov_Base + Offset_Remainder;
-
       exception
          when others =>
             raise Read_Error;
       end Extract_Data;
-
-      ----------
-      -- Peek --
-      ----------
-
-      function Peek
-        (Iovec_Pool : Iovec_Pool_Type;
-         Offset     : Stream_Element_Offset)
-        return Stream_Element
-      is
-         Vecs_Address : constant System.Address
-           := Iovecs_Address (Iovec_Pool);
-         Iovecs : Iovec_Array (1 .. Iovec_Pool.Last);
-         for Iovecs'Address use Vecs_Address;
-         pragma Import (Ada, Iovecs);
-         Current_Offset : Stream_Element_Offset := 0;
-      begin
-         for J in Iovecs'Range loop
-            declare
-               L : constant Stream_Element_Offset
-                 := Stream_Element_Offset (Iovecs (J).Iov_Len);
-            begin
-               if Offset < L + Current_Offset then
-                  declare
-                     S_Addr : constant System.Address
-                       := Iovecs (J).Iov_Base;
-                     S : Stream_Element_Array (0 .. L - 1);
-                     for S'Address use S_Addr;
-                     pragma Import (Ada, S);
-                  begin
-                     return S (Offset - Current_Offset);
-                  end;
-               end if;
-               Current_Offset := Current_Offset + L;
-            end;
-         end loop;
-         raise Read_Error;
-      end Peek;
-
-      -------------
-      -- Release --
-      -------------
 
       procedure Release
         (Iovec_Pool : in out Iovec_Pool_Type) is
@@ -1067,15 +837,10 @@ package body PolyORB.Buffers is
         new System.Address_To_Access_Conversions
         (Ada.Streams.Stream_Element);
 
-      ---------------------
-      -- Write_To_Socket --
-      ---------------------
-
       procedure Write_To_Socket
-        (S          :        PolyORB.Sockets.Socket_Type;
+        (S          : PolyORB.Sockets.Socket_Type;
          Iovec_Pool : access Iovec_Pool_Type;
-         Length     :        Stream_Element_Count;
-         To         :        PolyORB.Sockets.Sock_Addr_Type)
+         Length     : Stream_Element_Count)
       is
          use PolyORB.Sockets;
 
@@ -1138,7 +903,7 @@ package body PolyORB.Buffers is
                Last : Stream_Element_Offset;
             begin
 
-               Send_Socket (S, Z, Last, To);
+               Send_Socket (S, Z, Last);
                --  May raise Socket_Error.
                Count := Stream_Element_Count (Last) + 1;
             end;    --  WAG:3.16
@@ -1161,10 +926,6 @@ package body PolyORB.Buffers is
 
          end loop;
       end Write_To_Socket;
-
-      ----------
-      -- Dump --
-      ----------
 
       procedure Dump
         (Iovec_Pool : Iovec_Pool_Type;
@@ -1195,3 +956,4 @@ package body PolyORB.Buffers is
    end Iovec_Pools;
 
 end PolyORB.Buffers;
+

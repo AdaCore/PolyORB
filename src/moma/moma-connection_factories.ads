@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  A Connection_Factory contains all information to create a connection to
+--  A 'Connection Factory' contains all information to create a connection to
 --  the MOMA provider.
 
 --  $Id$

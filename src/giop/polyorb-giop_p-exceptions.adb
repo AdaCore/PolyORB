@@ -31,6 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  $Id$
+
 with PolyORB.Any;
 with PolyORB.Exceptions;
 with PolyORB.Log;
@@ -88,7 +90,7 @@ package body PolyORB.GIOP_P.Exceptions is
       end if;
 
       pragma Debug (O (Name & " is a system exception ? "
-                       & Result'Img));
+                       & Boolean'Image (Result)));
       return Result;
    end Is_System_Exception;
 

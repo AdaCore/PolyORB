@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                    P O L Y O R B . S E T U P . G I O P                   --
+--            P O L Y O R B . T R A N S P O R T . S O C K E T S             --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,8 +31,81 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-package PolyORB.Setup.GIOP is
+--  Socket implementation of transport service access points
+--  and communication endpoints.
+
+--  $Id$
+
+with PolyORB.Sockets; use PolyORB.Sockets;
+with PolyORB.Tasking.Mutexes;
+
+package PolyORB.Transport.Sockets is
 
    pragma Elaborate_Body;
 
-end PolyORB.Setup.GIOP;
+   type Socket_Access_Point
+      is new Transport_Access_Point with private;
+   --  A listening transport service access point as
+   --  a listening stream-oriented socket.
+
+   procedure Create
+     (SAP     : in out Socket_Access_Point;
+      Socket  :        Socket_Type;
+      Address : in out Sock_Addr_Type);
+   --  Initialise SAP: bind Socket to Address, listen on it,
+   --  and set up the corresponding Socket_Access_Point.
+   --  On entry, Address.Port may be 0, in which case the system
+   --  will assign an available port number itself. On return,
+   --  Address is always set to the actual address used.
+
+   function Create_Event_Source
+     (TAP : Socket_Access_Point)
+      return Asynch_Ev.Asynch_Ev_Source_Access;
+
+   procedure Accept_Connection
+     (TAP : Socket_Access_Point;
+      TE  : out Transport_Endpoint_Access);
+
+   function Address_Of (SAP : Socket_Access_Point)
+     return Sock_Addr_Type;
+
+   type Socket_Endpoint
+     is new Transport_Endpoint with private;
+   --  An opened transport endpoint as a connected
+   --  stream-oriented socket.
+
+   procedure Create
+     (TE : in out Socket_Endpoint;
+      S  : Socket_Type);
+
+   function Create_Event_Source
+     (TE : Socket_Endpoint)
+      return Asynch_Ev.Asynch_Ev_Source_Access;
+
+   procedure Read
+     (TE     : in out Socket_Endpoint;
+      Buffer : Buffers.Buffer_Access;
+      Size   : in out Ada.Streams.Stream_Element_Count);
+
+   procedure Write
+     (TE     : in out Socket_Endpoint;
+      Buffer : Buffers.Buffer_Access);
+
+   procedure Close (TE : in out Socket_Endpoint);
+
+private
+
+   type Socket_Access_Point is new Transport_Access_Point
+     with record
+        Socket : Socket_Type := No_Socket;
+        Addr   : Sock_Addr_Type;
+     end record;
+
+   type Socket_Endpoint is new Transport_Endpoint
+     with record
+        Socket : Socket_Type := No_Socket;
+        Addr   : Sock_Addr_Type;
+        Mutex  : Tasking.Mutexes.Mutex_Access;
+     end record;
+
+end PolyORB.Transport.Sockets;

@@ -34,7 +34,7 @@
 --  MExecute message type.
 --
 --  A MExecute message derives directly from MMap message.
---  Its payload contains a map type.
+--  Its payload contains a 'map' type.
 --
 --  It should be filled the following way :
 --

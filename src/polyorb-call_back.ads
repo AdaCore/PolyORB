@@ -46,13 +46,13 @@ with PolyORB.Requests;
 
 package PolyORB.Call_Back is
 
-   type Call_Back_Handler is new PolyORB.Components.Component with private;
+   use PolyORB.Components;
 
+   type Call_Back_Handler is new PolyORB.Components.Component with private;
    type CBH_Access is access all Call_Back_Handler'Class;
 
-   type Handler is access procedure
-     (Req :        PolyORB.Requests.Request;
-      CBH : access Call_Back_Handler);
+   type Handler is access procedure (Req : PolyORB.Requests.Request;
+                                     CBH : access Call_Back_Handler);
 
    function Handle_Message
      (CB_Handler : access Call_Back_Handler;
@@ -77,13 +77,13 @@ private
 
    type Call_Back_Handler is new PolyORB.Components.Component with record
       CB_Function : Handler;
-
-      Notepad     : aliased Annotations.Notepad;
+      Notepad : aliased Annotations.Notepad;
    end record;
 
-   pragma Inline (Attach_Request_To_CB);
-   pragma Inline (Attach_Handler_To_CB);
-   pragma Inline (Notepad_Of);
+   pragma Inline (Attach_Request_To_CB,
+                  Attach_Handler_To_CB,
+                  Notepad_Of);
+
 
 end PolyORB.Call_Back;
 

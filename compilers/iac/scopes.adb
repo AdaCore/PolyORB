@@ -4,7 +4,6 @@ with Debug;     use Debug;
 pragma Warnings (Off, Debug);
 with Errors;    use Errors;
 with Flags;     use Flags;
-with Locations; use Locations;
 with Names;     use Names;
 with Namet;     use Namet;
 with Nodes;     use Nodes;
@@ -16,105 +15,126 @@ package body Scopes is
 
    use Scope_Stack;
 
-   procedure W_Homonym  (N : Node_Id);
-   procedure W_Homonyms (N : Node_Id);
-   procedure W_Scoped_Identifiers (S : Node_Id);
-
-   procedure Insert_Into_Homonyms (N : Node_Id);
    procedure Remove_From_Homonyms (N : Node_Id);
 
+   -----------------------------
+   -- Current_Entity_In_Scope --
+   -----------------------------
+
+   function Current_Entity_In_Scope (N : Node_Id) return Entity_Id is
+   begin
+      return Entity_In_Scope (N, Current_Scope);
+   end Current_Entity_In_Scope;
 
    -------------------
    -- Current_Scope --
    -------------------
 
-   function Current_Scope return Node_Id is
+   function Current_Scope return Entity_Id is
    begin
       if Last = No_Scope_Depth then
-         return No_Node;
+         return No_Entity;
       else
-         return Table (Last).Node;
+         return Table (Last).Entity;
       end if;
    end Current_Scope;
 
-   --------------------
-   -- Current_Node --
-   --------------------
+   -------------------------
+   -- Current_Scope_Depth --
+   -------------------------
 
-   function Current_Node (N : Node_Id) return Node_Id
-   is
-      H : Node_Id := First_Homonym (N);
-      E : Node_Id;
+   function Current_Scope_Depth return Int is
    begin
-      if Present (H) then
-         E := Node (H);
+      return Last;
+   end Current_Scope_Depth;
 
-         --  The current visible entity has already been entered in the scope
+   ----------------------------
+   -- Current_Visible_Entity --
+   ----------------------------
 
-         if Kind (E) = K_Scoped_Name then
-            return Reference (E);
-         end if;
-
-         if Immediately_Visible (H) then
-            return Node (H);
-
-         elsif Potentially_Visible (H) then
-            H := Homonym (H);
-
-            if Present (H) and then Potentially_Visible (H) then
-               Error_Loc  (1)  := Loc      (N);
-               Error_Name (1)  := IDL_Name (N);
-               DE ("multiple#declarations");
-
-               H := First_Homonym (N);
-               while Present (H) and then Potentially_Visible (H) loop
-                  Error_Loc  (1)  := Loc (N);
-                  Error_Loc  (2)  := Loc (H);
-                  DE ("found declaration!", K_None);
-                  H := Homonym (H);
-               end loop;
-
-               return No_Node;
-
+   function Current_Visible_Entity (N : Node_Id) return Entity_Id
+   is
+      T : Natural   := 0;
+      C : Entity_Id := No_Entity;
+      H : Node_Id   := First_Homonym (N);
+      E : Entity_Id;
+   begin
+      while Present (H) loop
+         E := Entity (H);
+         if Is_Visible (E) then
+            if No (C) then
+               C := E;
             else
-               return Node (First_Homonym (N));
+               if T = 0 then
+                  Error_Loc  (1)  := Loc      (N);
+                  Error_Name (1)  := IDL_Name (N);
+                  DE ("multiple#declarations");
+                  Error_Loc  (1)  := Loc (N);
+                  Error_Loc  (2)  := Loc (Identifier (C));
+                  DE ("found declaration!", K_None);
+               end if;
+
+               Error_Loc  (1)  := Loc (N);
+               Error_Loc  (2)  := Loc (Identifier (E));
+               DE ("found declaration!", K_None);
+               T := T + 1;
             end if;
          end if;
+         H := Homonym (H);
+      end loop;
+
+      if No (C) then
+         Error_Loc  (1) := Loc      (N);
+         Error_Name (1) := IDL_Name (N);
+         DE ("#is undefined");
+         return No_Entity;
       end if;
 
-      Error_Loc  (1) := Loc      (N);
-      Error_Name (1) := IDL_Name (N);
-      DE ("#is undefined");
+      return C;
+   end Current_Visible_Entity;
 
-      return No_Node;
-   end Current_Node;
+   -----------------------
+   -- Enclosed_Entities --
+   -----------------------
 
-   -----------------------------
-   -- Node_In_Current_Scope --
-   -----------------------------
-
-   function Node_In_Current_Scope (N : Node_Id) return Node_Id is
+   function Enclosed_Entities (E : Entity_Id) return List_Id is
    begin
-      return Node_In_Scope (N, Current_Scope);
-   end Node_In_Current_Scope;
+      case Kind (E) is
+         when K_Module =>
+            return Definitions (E);
+         when K_Interface_Declaration =>
+            return Interface_Body (E);
+         when K_Operation_Declaration
+           | K_Initializer_Declaration =>
+            return Parameters (E);
+         when K_Value_Declaration
+           | K_Abstract_Value_Declaration =>
+            return Value_Body (E);
+         when K_Exception_Declaration
+           | K_Structure_Type =>
+            return Members (E);
+         when others =>
+            raise Program_Error;
+      end case;
+   end Enclosed_Entities;
 
    ---------------------
-   -- Node_In_Scope --
+   -- Entity_In_Scope --
    ---------------------
 
-   function Node_In_Scope (N : Node_Id; S : Node_Id) return Node_Id
+   function Entity_In_Scope (N : Node_Id; S : Entity_Id) return Entity_Id
    is
       H : Node_Id := First_Homonym (N);
    begin
       while Present (H) loop
          if Scope (H) = S then
-            return Node (H);
+            return Entity (H);
          end if;
          H := Homonym (H);
       end loop;
 
-      return No_Node;
-   end Node_In_Scope;
+      return No_Entity;
+   end Entity_In_Scope;
 
    -------------------------
    -- Enter_Name_In_Scope --
@@ -122,59 +142,80 @@ package body Scopes is
 
    procedure Enter_Name_In_Scope (N : Node_Id)
    is
-      C : constant Node_Id := Node_In_Current_Scope (N);
-      E : constant Node_Id := Node (N);
-      S : constant Node_Id := Current_Scope;
+      C : Entity_Id := Current_Entity_In_Scope (N);
+      E : constant Entity_Id := Entity (N);
+      S : constant Entity_Id := Current_Scope;
+      D : constant Int       := Current_Scope_Depth;
       H : Node_Id;
    begin
       if Present (C) then
          H := Identifier (C);
 
-         --  This same entity is already in the scope
-
          if C = E then
             return;
-
-         --  This entity is an extension of a module
 
          elsif Kind (C) = K_Module
            and then Kind (E) = K_Module
          then
             null;
 
-         --  This scoped name is already in the scope
+         elsif Kind (C) = K_Scoped_Name
+           and then Kind (E) = K_Scoped_Name
+         then
+            null;
 
-         elsif Kind (E) = K_Scoped_Name then
+         elsif Kind (C) /= K_Scoped_Name
+           and then Kind (E) = K_Scoped_Name
+         then
             return;
 
          elsif Is_A_Forward_Of (C, E) then
             if Kind (C) = K_Forward_Interface_Declaration then
-               Set_Forward             (C, E);
-               Set_Immediately_Visible (H, False);
-               Set_Scope               (H, No_Node);
+               Set_Forward    (C, E);
+               Set_Is_Visible (C, False);
+               Set_Scope      (H, No_Entity);
             end if;
 
          else
             Error_Loc  (1) := Loc      (N);
             Error_Loc  (2) := Loc      (C);
             Error_Name (1) := IDL_Name (N);
-            if Kind (C) = K_Scoped_Name then
-               DE ("#conflicts with scoped name!");
-            else
-               DE ("#conflicts with declaration!");
-            end if;
+            DE ("#conflicts with declaration!");
             return;
          end if;
       end if;
 
-      if Kind (E) /= K_Scoped_Name then
-         Set_Immediately_Visible (N, True);
+      H := First_Homonym (N);
+      Set_Homonym        (N, H);
+      Set_First_Homonym  (N, N);
+      Set_Scope          (N, S);
+      Set_Scope_Depth    (N, D);
+
+      if D_Scopes then
+         W_Str      ("enter  """);
+         Write_Name (Name (N));
+         W_Str      (""" in scope ");
+         W_Int      (Int (S));
+         W_Eol;
       end if;
 
-      Set_Next_Node        (N, Scoped_Identifiers (S));
-      Set_Scoped_Identifiers     (S, N);
-      Insert_Into_Homonyms (N);
-      Set_Scope            (N, S);
+      if Kind (E) /= K_Scoped_Name then
+         if Present (S)
+           and then Kind (S) = K_Interface_Declaration
+         then
+            H := First_Homonym (N);
+            while Present (H) loop
+               C := Entity (H);
+               if Is_Visible (C)
+                 and then Scope_Depth (H) = D
+               then
+                  Set_Is_Visible (C, False);
+               end if;
+               H := Homonym (H);
+            end loop;
+         end if;
+         Set_Is_Visible  (E, True);
+      end if;
    end Enter_Name_In_Scope;
 
    ----------------
@@ -189,78 +230,44 @@ package body Scopes is
       Root_Name := Name_Find;
    end Initialize;
 
-   --------------------------
-   -- Insert_Into_Homonyms --
-   --------------------------
-
-   procedure Insert_Into_Homonyms (N : Node_Id) is
-      F : constant Node_Id := First_Homonym (N);
-   begin
-      if D_Scopes then
-         W_Str      ("homonyms ");
-         Write_Name (Name (N));
-         W_Str      (" ");
-         W_Homonym  (N);
-         W_Str      (" --> ");
-         W_Homonyms (N);
-         W_Eol;
-      end if;
-      Set_Homonym       (N, F);
-      Set_First_Homonym (N, N);
-   end Insert_Into_Homonyms;
-
    ------------------------------------
-   -- Make_Enclosed_Nodes_Visible --
+   -- Make_Enclosed_Entities_Visible --
    ------------------------------------
 
-   procedure Make_Enclosed_Nodes_Visible
-     (E : Node_Id; Visible : Boolean; Immediately : Boolean := True)
+   procedure Make_Enclosed_Entities_Visible (E : Entity_Id; V : Boolean)
    is
-      I : Node_Id := Scoped_Identifiers (E);
-      C : Node_Id;
+      L : constant List_Id := Enclosed_Entities (E);
+      C : Entity_Id;
    begin
-      while Present (I) loop
-         C := Node (I);
-         if Kind (C) /= K_Scoped_Name then
-            Make_Node_Visible (C, Visible, Immediately);
-         end if;
-         I := Next_Node (I);
+      if Is_Empty (L) then
+         return;
+      end if;
+
+      C := First_Entity (L);
+      while Present (C) loop
+         Make_Entity_Visible (C, V);
+         C := Next_Entity (C);
       end loop;
-   end Make_Enclosed_Nodes_Visible;
+   end Make_Enclosed_Entities_Visible;
 
    -------------------------
-   -- Make_Node_Visible --
+   -- Make_Entity_Visible --
    -------------------------
 
-   procedure Make_Node_Visible
-     (E : Node_Id; Visible : Boolean; Immediately : Boolean := True)
+   procedure Make_Entity_Visible (E : Entity_Id; V : Boolean)
    is
       N : constant Node_Id := Identifier (E);
+      D : constant Int     := Current_Scope_Depth;
    begin
-      if Visible then
-         Insert_Into_Homonyms (N);
+      Set_Is_Visible (E, V);
+      if V then
+         Set_Scope_Depth   (N, D);
+         Set_Homonym       (N, First_Homonym (N));
+         Set_First_Homonym (N, N);
       else
          Remove_From_Homonyms (N);
       end if;
-
-      if Immediately then
-         Set_Immediately_Visible (N, Visible);
-         Set_Potentially_Visible (N, False);
-      else
-         Set_Immediately_Visible (N, False);
-         Set_Potentially_Visible (N, Visible);
-      end if;
-
-      if D_Scopes then
-         W_Str      ("make visible ");
-         Write_Name (Name (N));
-         W_Str      (" ");
-         W_Homonym  (N);
-         W_Str      (" --> ");
-         W_Homonyms (N);
-         W_Eol;
-      end if;
-   end Make_Node_Visible;
+   end Make_Entity_Visible;
 
    ---------------
    -- Pop_Scope --
@@ -268,60 +275,37 @@ package body Scopes is
 
    procedure Pop_Scope
    is
-      S : constant Node_Id := Table (Last).Node;
-      T : constant Boolean := Is_A_Type (S);
-      C : Node_Id;
-      E : Node_Id;
-      N : Node_Id;
+      C : Entity_Id renames Table (Last).Scoped_Names;
    begin
-      if D_Scopes then
-         W_Str      ("pop scope """);
-         if Kind (S) /= K_Specification then
-            Write_Name (Name (Identifier (S)));
-         end if;
-         W_Str      ("""");
-         W_Eol;
-         W_Scoped_Identifiers (S);
-      end if;
-      Decrement_Last;
-
-      --  When the current scope is a type name the potential scope
-      --  extends to the enclosing non-module scope. We introduced the
-      --  scoped names in the enclosing scope.
-
-      C := Scoped_Identifiers (S);
+      Make_Enclosed_Entities_Visible (Table (Last).Entity, False);
       while Present (C) loop
-         Remove_From_Homonyms (C);
-         if T then
-            E := Node (C);
-            if Kind (E) = K_Scoped_Name then
-               E := New_Copy (E);
-               N := New_Copy (C);
-               Associate (E, N);
-               Enter_Name_In_Scope (N);
-            end if;
-         end if;
-         C := Next_Node (C);
+         Remove_From_Homonyms (Identifier (C));
+         C := Next_Entity (C);
       end loop;
       if D_Scopes then
+         W_Str      ("pop  """);
+         Write_Name (Name (Identifier (Table (Last).Entity)));
+         W_Str      (""" ");
+         W_Int      (Last);
          W_Eol;
       end if;
+      Decrement_Last;
    end Pop_Scope;
 
    ----------------
    -- Push_Scope --
    ----------------
 
-   procedure Push_Scope (S : Node_Id) is
+   procedure Push_Scope (E : Entity_Id) is
    begin
       Increment_Last;
-      Table (Last).Node := S;
+      Table (Last).Entity       := E;
+      Table (Last).Scoped_Names := No_Entity;
       if D_Scopes then
-         W_Str      ("push scope """);
-         if Kind (S) /= K_Specification then
-            Write_Name (Name (Identifier (S)));
-         end if;
-         W_Str      ("""");
+         W_Str      ("push """);
+         Write_Name (Name (Identifier (E)));
+         W_Str      (""" ");
+         W_Int      (Last);
          W_Eol;
       end if;
    end Push_Scope;
@@ -333,80 +317,31 @@ package body Scopes is
    procedure Remove_From_Homonyms (N : Node_Id) is
       H : Node_Id;
    begin
-      H := First_Homonym (N);
-
-      if H = N then
+      Set_Scope_Depth (N, No_Scope_Depth);
+      loop
+         H := First_Homonym (N);
+         exit when No (H) or else Scope_Depth (H) /= No_Scope_Depth;
          Set_First_Homonym (N, Homonym (H));
-
-      else
-         while Present (H) loop
-            if Homonym (H) = N then
-               Set_Homonym (H, Homonym (N));
-               exit;
-            end if;
-            H := Homonym (H);
-         end loop;
-      end if;
-      if D_Scopes then
-         W_Str      ("homonyms ");
-         Write_Name (Name (N));
-         W_Str      (" ");
-         W_Homonym  (N);
-         W_Str      (" <-- ");
-         W_Homonyms (N);
-         W_Eol;
-      end if;
+         Set_Homonym (H, No_Node);
+      end loop;
    end Remove_From_Homonyms;
 
-   ----------------
-   -- W_Homonyms --
-   ----------------
+   ------------------
+   -- Scoped_Names --
+   ------------------
 
-   procedure W_Homonyms (N : Node_Id)
-   is
-      H : Node_Id := First_Homonym (N);
+   function Scoped_Names return Entity_Id is
    begin
-      while Present (H) loop
-         W_Homonym (H);
-         W_Str (" ");
-         H := Homonym (H);
-      end loop;
-   end W_Homonyms;
+      return Table (Last).Scoped_Names;
+   end Scoped_Names;
 
-   ---------------
-   -- W_Homonym --
-   ---------------
+   ----------------------
+   -- Set_Scoped_Names --
+   ----------------------
 
-   procedure W_Homonym (N : Node_Id) is
+   procedure Set_Scoped_Names (E : Entity_Id) is
    begin
-      W_Str (Image (Loc (N)));
-      W_Str ("(");
-      if Kind (Node (N)) = K_Scoped_Name then
-         W_Str ("S");
-      elsif Immediately_Visible (N) then
-         W_Str ("V");
-      elsif Potentially_Visible (N) then
-         W_Str ("v");
-      else
-         W_Str ("?");
-      end if;
-      W_Str (") ");
-   end W_Homonym;
-
-   --------------------------
-   -- W_Scoped_Identifiers --
-   --------------------------
-
-   procedure W_Scoped_Identifiers (S : Node_Id) is
-      C : Node_Id := Scoped_Identifiers (S);
-   begin
-      W_Str ("scoped identifiers =");
-      while Present (C) loop
-         W_Str (" ");
-         Write_Name (Name (C));
-         C := Next_Node (C);
-      end loop;
-      W_Eol;
-   end W_Scoped_Identifiers;
+      Table (Last).Scoped_Names := E;
+   end Set_Scoped_Names;
 
 end Scopes;

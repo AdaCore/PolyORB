@@ -34,7 +34,7 @@
 --  A Message_Handler object is the client view of the message handling
 --  process. It is the facade used to define the callback behavior and
 --  procedures, and provides templates ; it contains the stub to access
---  Message_Handler servants (see MOMA.Provider for more details).
+--  'Message_Handler' servants (see MOMA.Provider for more details).
 
 --  NOTE: A MOMA client must use only this package to get a callback for the
 --  messages it receives.

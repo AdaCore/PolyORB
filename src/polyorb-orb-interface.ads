@@ -89,12 +89,6 @@ package PolyORB.ORB.Interface is
    --  When replied by object adapter to middleware core:
    --    Returns object id translated to relative URI.
 
-   type Monitor_Access_Point is new Components.Message with record
-      TAP : Transport.Transport_Access_Point_Access;
-   end record;
-   --  A binding object requests that the designated transport
-   --  access point be monitored for incoming data.
-
    type Monitor_Endpoint is new Components.Message with record
       TE : Transport.Transport_Endpoint_Access;
    end record;

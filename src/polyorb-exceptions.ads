@@ -35,15 +35,15 @@
 
 --  PolyORB distinguishes errors and exceptions:
 --
---  A non null error means that a wrong execution occurs within
+--  A non null 'error' means that a wrong execution occurs within
 --  PolyORB's core middleware or one of its personalities.
 --
---  An exception is one possible result of the execution of a
+--  An 'exception' is one possible result of the execution of a
 --  personality-specific function or procedure. It is either raised
 --  within application personality context, or returned in the request
 --  response message.
 --
---  When raised, exception is built from error information,
+--  When raised, 'exception' is built from 'error' information,
 --  translated to personality specific context.
 
 --  PolyORB's core middleware should not raise exceptions, except Ada
@@ -258,7 +258,7 @@ package PolyORB.Exceptions is
    procedure User_Get_Members
      (Occurrence : in  Ada.Exceptions.Exception_Occurrence;
       Members    : out PolyORB.Exceptions.Exception_Members'Class);
-   --  Extract members from User exception occurence
+   --  Extract members from a 'User' exception occurence
 
    procedure User_Purge_Members
      (Occurrence : in Ada.Exceptions.Exception_Occurrence);
@@ -337,7 +337,7 @@ package PolyORB.Exceptions is
 
    procedure Catch
      (Error : in out Error_Container);
-   --  Acknowledge Error and reset its content.
+   --  Acknowledge 'Error' and reset its content.
 
    function Is_Error
      (Error : in Error_Container)
