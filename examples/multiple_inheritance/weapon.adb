@@ -42,11 +42,26 @@ package body Weapon is
    end ;
 
 
-
+   --------------------------------------------------
+   ----      IDL   description                   ----
+   --------------------------------------------------
+   procedure Shoot(Self : in Ref) is
+      Opcd : Weapon.Proxies.Shoot_Proxy ;
+   begin
+      Weapon.Proxy.Init(Opcd) ;
+      OmniProxyCallWrapper.Invoke(Self, Opcd) ;
+   end ;
 
    --------------------------------------------------
    ----    not in  spec AdaBroker specific       ----
    --------------------------------------------------
+
+   -- Get_Nil_Ref
+   --------------
+   function Get_Nil_Ref(Self : in Ref) return Ref is
+   begin
+      return Nil_Ref ;
+   end ;
 
    -- Get_Repository_Id
    --------------------
@@ -62,8 +77,7 @@ package body Weapon is
                  Repo_Id: in Corba.String )
                  return Corba.Boolean is
    begin
-      return (Repository_Id = Repo_Id
-              or Corba.Object.Is_A(Repo_Id) ) ;
+      return Is_A(Repo_Id) ;
    end ;
 
    -- Is_A
@@ -75,17 +89,11 @@ package body Weapon is
               or Corba.Object.Is_A(Repo_Id) ) ;
    end ;
 
-   --------------------------------------------------
-   ----                 private                  ----
-   --------------------------------------------------
 
-   -- Initialize
-   -------------
-   procedure Initialize(Self : in out Ref) is
-   begin
-      Corba.Object.AdaBroker_Set_Dynamic_Type(Self,Weapon.Nil_Ref'Access) ;
-   end ;
+begin
 
+   Corba.Object.Register(Repository_Id, Nil_Ref'Access) ;
+   Corba.Object.Create_Proxy_Object_Factory(Repository_Id) ;
 
 End Weapon ;
 

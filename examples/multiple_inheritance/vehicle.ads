@@ -20,9 +20,15 @@ package Vehicle is
    type Ref is new Corba.Object.Ref with null record;
    type Ref_Ptr is access all Ref'Class ;
 
+   Nil_Ref : aliased constant Ref ;
+
    function To_Ref(The_Ref: in Corba.Object.Ref'Class) return Ref ;
 
-
+   --------------------------------------------------
+   ----      IDL   description                   ----
+   --------------------------------------------------
+   function Can_Drive(Self : in Ref ;
+                      Age : in Corba.Unsigned_Short) return Corba.Boolean ;
 
    --------------------------------------------------
    ----    not in  spec AdaBroker specific       ----
@@ -34,11 +40,11 @@ package Vehicle is
    function Is_A(The_Ref: in Ref; Repo_Id: in Corba.String) return Corba.Boolean ;
    function Is_A(Repo_Id: in Corba.String) return Corba.Boolean ;
 
+   function Get_Nil_Ref(Self: in Ref) return Ref ;
+
 private
 
-   procedure Initialize (Self: in out Ref);
-
-   Nil_Ref : aliased Ref := (Corba.Object.Nil_Ref with null record) ;
+   Nil_Ref : aliased constant Ref := (Corba.Object.Nil_Ref with null record) ;
 
 End Vehicle ;
 

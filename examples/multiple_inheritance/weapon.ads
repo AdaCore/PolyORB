@@ -21,10 +21,17 @@ package Weapon is
    type Ref is new Corba.Object.Ref with null record ;
    type Ref_Ptr is access all Ref ;
 
-   type Name is new Corba.String ;
+   Nil_Ref : aliased constant Ref ;
 
    function To_Ref(The_Ref: in Corba.Object.Ref'Class) return Ref ;
 
+
+   -------------------------------------------------
+   ----         IDL  definitions                ----
+   -------------------------------------------------
+   type Name is new Corba.String ;
+
+   procedure Shoot(Self : in Ref) ;
 
    --------------------------------------------------
    ----    not in  spec AdaBroker specific       ----
@@ -36,11 +43,11 @@ package Weapon is
    function Is_A(The_Ref: in Ref; Repo_Id: in Corba.String) return Corba.Boolean ;
    function Is_A(Repo_Id: in Corba.String) return Corba.Boolean ;
 
+   function Get_Nil_Ref(Self: in Ref) return Ref ;
+
 private
 
-   procedure Initialize (Self: in out Ref);
-
-   Nil_Ref : aliased Ref := (Corba.Object.Nil_Ref with null record) ;
+   Nil_Ref : aliased constant Ref := (Corba.Object.Nil_Ref with null record) ;
 
 End Weapon;
 

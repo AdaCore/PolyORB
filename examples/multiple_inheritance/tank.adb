@@ -15,6 +15,8 @@ with Ada.Exceptions ;
 with Corba.Object ; use Corba.Object ;
 use type Corba.String ;
 
+with Weapon.Proxies ;
+
 package body Tank is
 
    --------------------------------------------------
@@ -24,8 +26,7 @@ package body Tank is
    -- To_Ref
    ---------
    function To_Ref(The_Ref: in Corba.Object.Ref'Class) return Ref is
-      Dynamic_Type : Corba.Object.Ref'Class
-        := Get_Dynamic_Type(The_Ref) ;
+      Dynamic_Type : Corba.Object.Ref'Class := Get_Dynamic_Type(The_Ref) ;
       Result : Ref ;
       Repo_id : Corba.String := Get_Repository_Id(Result) ;
    begin
@@ -42,10 +43,29 @@ package body Tank is
    end ;
 
 
+   --------------------------------------------------
+   ----      IDL   description                   ----
+   --------------------------------------------------
+   procedure Shoot(Self : in Ref) is
+      Opcd : Weapon.Proxies.Shoot_Proxy ;
+   begin
+      Weapon.Proxy.Init(Opcd) ;
+      OmniProxyCallWrapper.Invoke(Self, Opcd) ;
+   end ;
+
+
 
    --------------------------------------------------
    ----    not in  spec AdaBroker specific       ----
    --------------------------------------------------
+
+   -- Get_Nil_Ref
+   --------------
+   function Get_Nil_Ref(Self : in Ref) return Ref is
+   begin
+      return Nil_Ref ;
+   end ;
+
 
    -- Get_Repository_Id
    --------------------
@@ -61,9 +81,7 @@ package body Tank is
                  Repo_Id: in Corba.String )
                  return Corba.Boolean is
    begin
-      return (Repository_Id = Repo_Id
-              or Vehicle.Is_a(Repo_Id)
-              or Weapon.Is_a(Repo_Id)) ;
+      return Is_A(Repo_Id) ;
    end ;
 
     -- Is_A
@@ -72,23 +90,14 @@ package body Tank is
                  return Corba.Boolean is
    begin
       return (Repository_Id = Repo_Id
-              or Vehicle.Is_a(Repo_Id)
-              or Weapon.Is_a(Repo_Id)) ;
+              or Vehicle.Is_A(Repo_Id)
+              or Weapon.Is_A(Repo_Id)) ;
    end ;
 
-   --------------------------------------------------
-   ----                 private                  ----
-   --------------------------------------------------
+begin
 
-   -- Initialize
-   -------------
-   procedure Initialize(Self : in out Ref) is
-   begin
-      Corba.Object.AdaBroker_Set_Dynamic_Type(Self,Tank.Nil_Ref'Access) ;
-   end ;
-
-
-
+   Corba.Object.Register(Repository_Id, Nil_Ref'Access) ;
+   Corba.Object.Create_Proxy_Object_Factory(Repository_Id) ;
 
 End Tank ;
 

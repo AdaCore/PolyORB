@@ -11,8 +11,11 @@ CPP_LINK_FILES += $(ADABROKER_PATH)/Ada_Giop_s.o
 CPP_LINK_FILES += $(ADABROKER_PATH)/omniObject_C2Ada.o
 CPP_LINK_FILES += $(ADABROKER_PATH)/Ada_OmniObject.o
 CPP_LINK_FILES += $(ADABROKER_PATH)/Ada_OmniRopeAndKey.o
-CPP_LINK_FILES += $(ADABROKER_PATH)/Ada_Rope.o
 CPP_LINK_FILES += $(ADABROKER_PATH)/Ada_netBufferedStream.o
+CPP_LINK_FILES += $(ADABROKER_PATH)/Ada_memBufferedStream.o
+CPP_LINK_FILES += $(ADABROKER_PATH)/proxyObjectFactory_C2Ada.o
+CPP_LINK_FILES += $(ADABROKER_PATH)/Ada_Corba_Orb.o
+CPP_LINK_FILES += $(ADABROKER_PATH)/Ada_Corba_Exceptions.o
 
 
 main:
