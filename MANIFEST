@@ -346,5 +346,6 @@ omniidl2/util/utl_tmpl/utl_list.cc
 omniidl2/util/utl_tmpl/utl_namelist.cc
 omniidl2/util/utl_tmpl/utl_strlist.cc
 support/boolsize.cc
+support/dir.mk
 support/linker_options
 MANIFEST
