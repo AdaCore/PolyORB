@@ -7,7 +7,7 @@ all:: $(CORBA_LIB_DEPEND) $(ADABROKER_LIB_DEPEND) name_idl_file.ads
 
 
 clean::
-	rm *.o *~ *.a*
+	-rm -f *.o *~ *.a*
 
 ada:
 	omniidl2 -b ada name.idl

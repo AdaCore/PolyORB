@@ -37,6 +37,6 @@ ada::
 	omniidl2 -bada bootstrap.idl
 
 clean::
-	rm *.o *.ali *~ server client $(GENERATED_FILES)
+	-rm -f *.o *.ali *~ server client $(GENERATED_FILES)
 
 

@@ -15,7 +15,7 @@ GENERATED_FILES += $(IDL_INTERFACE)_idl_file.ad*
 GENERATED_FILES += $(IDL_INTERFACE)_idl_file-marshal.ad*
 
 clean::
-	rm *.o *.ali *~ server client server $(GENERATED_FILES)
+	-rm -f *.o *.ali *~ server client server $(GENERATED_FILES)
 
 ada:
 	omniidl2 -b ada all_types.idl

@@ -45,7 +45,7 @@ $(lib): $(CXXOBJS)
 	@$(StaticLinkLibrary)
 
 clean::
-	rm *.ali *.o Ada_Sys_Dep sys_dep.ads *~ libadabroker.a
+	-rm -f *.ali *.o Ada_Sys_Dep sys_dep.ads *~ libadabroker.a
 
 
 previous_check: Ada_Sys_Dep

@@ -16,7 +16,7 @@ GENERATED_FILES += vehicle.ad*
 
 
 clean::
-	rm *.o *.ali *~ client server $(GENERATED_FILES)
+	-rm -f *.o *.ali *~ client server $(GENERATED_FILES)
 
 ada:
 	omniidl2 -b ada classes.idl

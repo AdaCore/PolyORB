@@ -2,7 +2,7 @@ with Interfaces.C;
 
 package AdaBroker.Sysdep is
 
-   type Bool is new Interfaces.C.unsigned_long;
+   type Bool is new Interfaces.C.unsigned_char;
 
    True  : Bool := Bool (1);
    False : Bool := Bool (0);

@@ -7,7 +7,7 @@ all:: $(CORBA_LIB_DEPEND) $(ADABROKER_LIB_DEPEND) ada
 
 
 clean::
-	rm *.o *.ali *~ server client \
+	-rm -f *.o *.ali *~ server client \
 *-skeleton* *-marshal* *-proxies* chicken.ad* egg.ad* *_forward* \
 chicken_idl_file.ads egg_idl_file.ads
 
