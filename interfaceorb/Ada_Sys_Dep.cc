@@ -54,12 +54,6 @@ class myException {} ;
 
 int main ()
 {
-  if (sizeof(bool) != 1)
-    {
-      cerr << "The size of type C++ Bool is not standard.\n AdaBroker cannot be compiled.\n";
-      throw new myException ;
-    } ;
-
   if (sizeof(long) != 4)
     {
       cerr << "The size of type C++ Long is not standard.\n AdaBroker cannot be compiled.\n";
