@@ -631,7 +631,7 @@ package body System.Garlic.Heart is
 
       if Partition = Self_PID then
          declare
-            PID        : Partition_ID;
+            PID        : Partition_ID := Null_PID;
             Code       : Any_Opcode;
             Unfiltered : Stream_Element_Access;
             Unused     : constant Stream_Element_Count := Unused_Space;
