@@ -32,7 +32,6 @@ with Exp_Strm;    use Exp_Strm;
 with Exp_Tss;     use Exp_Tss;
 with Exp_Util;    use Exp_Util;
 with GNAT.HTable; use GNAT.HTable;
-with Sinput;      use Sinput;
 with Lib;         use Lib;
 with Namet;       use Namet;
 with Nlists;      use Nlists;
@@ -286,6 +285,13 @@ package body Exp_Dist is
    function Scope_Of_Spec (Spec : Node_Id) return Entity_Id;
    --  Return the scope represented by a given spec
 
+   procedure Set_Renaming_TSS
+     (Typ     : Entity_Id;
+      Nam     : Entity_Id;
+      TSS_Nam : Name_Id);
+   --  Create a renaming declaration of subprogram Nam,
+   --  and register it as a TSS for Typ with name TSS_Nam.
+
    function Need_Extra_Constrained (Parameter : Node_Id) return Boolean;
    --  Return True if the current parameter needs an extra formal to reflect
    --  its constrained status.
@@ -294,13 +300,6 @@ package body Exp_Dist is
      (Parameter : Node_Id; Stub_Type : Entity_Id) return Boolean;
    --  Return True if the current parameter is a controlling formal argument
    --  of type Stub_Type or access to Stub_Type.
-
-   procedure Set_Renaming_TSS
-     (Typ     : Entity_Id;
-      Nam     : Entity_Id;
-      TSS_Nam : Name_Id);
-   --  Create a renaming declaration of subprogram Nam,
-   --  and register it as a TSS for Typ with name TSS_Nam.
 
    procedure Declare_Create_NVList
      (Loc    : Source_Ptr;
@@ -3346,8 +3345,6 @@ package body Exp_Dist is
      (Def :     Entity_Id;
       Id  : out String_Id)
    is
-      Sdef : constant Source_Ptr := Sloc (Def);
-      Tdef : Source_Buffer_Ptr;
       N    : constant Name_Id := Chars (Def);
 
       Overload_Order : constant Int :=
@@ -3356,27 +3353,6 @@ package body Exp_Dist is
       Overload_Counter_Table.Set (N, Overload_Order);
 
       Get_Name_String (N);
-
-      if False and then not Is_Operator_Symbol_Name (N) then
-
-         --  XXX THIS IS BORKEN because it gets called
-         --  with a def that does not come_from_source.
-
-         --  Not a defining_operator_name
-
-         Tdef := Source_Text (Get_Source_File_Index (Sdef));
-         for J in 1 .. Name_Len loop
-            Name_Buffer (J) := Tdef (Sdef + Source_Ptr (J) - 1);
-         end loop;
-
-         if Name_Buffer (1) = 'O' then
-            --  Do not risk a clash with a defining operator name.
-            --  XXX this is an approximation, actually this change
-            --  should be made /only/ if there is an actual clash.
-            Name_Buffer (1) := 'o';
-         end if;
-
-      end if;
 
       --  Homonym handling: as in Exp_Dbug, but much simpler,
       --  because the only entities for which we have to generate
@@ -4240,8 +4216,6 @@ package body Exp_Dist is
    --  Start of processing for Build_Subprogram_Calling_Stubs
 
    begin
---        Target_Partition :=
---          Make_Defining_Identifier (Loc, New_Internal_Name ('P'));
 
       Subp_Spec := Copy_Specification (Loc,
         Spec     => Specification (Vis_Decl),
@@ -4284,28 +4258,9 @@ package body Exp_Dist is
          end;
       end if;
 
-      if Stub_Type /= Empty then
-         pragma Assert (Controlling_Parameter /= Empty);
+      if Present (Stub_Type) then
+         pragma Assert (Present (Controlling_Parameter));
 
---           Append_To (Decls,
---             Make_Object_Declaration (Loc,
---               Defining_Identifier => Target_Partition,
---               Constant_Present    => True,
---               Object_Definition   =>
---                 New_Occurrence_Of (RTE (RE_Partition_ID), Loc),
-
---               Expression          =>
---                 Make_Selected_Component (Loc,
---                   Prefix        =>
---                     New_Occurrence_Of (Controlling_Parameter, Loc),
---                   Selector_Name =>
---                     Make_Identifier (Loc, Name_Origin))));
---           RPC_Receiver :=
---             Make_Selected_Component (Loc,
---               Prefix        =>
---                 New_Occurrence_Of (Controlling_Parameter, Loc),
---               Selector_Name =>
---                 Make_Identifier (Loc, Name_Receiver));
          Append_To (Decls,
            Make_Object_Declaration (Loc,
              Defining_Identifier => Target_Reference,
@@ -4324,33 +4279,11 @@ package body Exp_Dist is
                  Selector_Name =>
                    Make_Identifier (Loc, Name_Target)))));
          --  Controlling_Parameter has the same components
-         --  as System.PolyORB_Interfance.RACW_Stub_Type.
+         --  as System.Partition_Interface.RACW_Stub_Type.
 
          Target_Object := New_Occurrence_Of (Target_Reference, Loc);
 
       else
---           Append_To (Decls,
---             Make_Object_Declaration (Loc,
---               Defining_Identifier => Target_Partition,
---               Constant_Present    => True,
---               Object_Definition   =>
---                 New_Occurrence_Of (RTE (RE_Partition_ID), Loc),
-
---               Expression          =>
---                 Make_Function_Call (Loc,
---                   Name => Make_Selected_Component (Loc,
---                     Prefix        =>
---                   Make_Identifier (Loc, Chars (RCI_Locator)),
---                     Selector_Name =>
---                   Make_Identifier (Loc, Name_Get_Active_Partition_ID)))));
-
---           RPC_Receiver :=
---             Make_Selected_Component (Loc,
---               Prefix        =>
---                 Make_Identifier (Loc, Chars (RCI_Locator)),
---               Selector_Name =>
---                 Make_Identifier (Loc, Name_Get_RCI_Package_Receiver));
-
          Target_Object :=
            Make_Selected_Component (Loc,
              Prefix        =>
@@ -4502,39 +4435,6 @@ package body Exp_Dist is
         Make_Defining_Identifier (Loc, New_Internal_Name ('A'));
       Declare_Create_NVList (Loc, Arguments, Outer_Decls, Outer_Statements);
 
---        if not Asynchronous or else Dynamically_Asynchronous then
---           Result_Parameter :=
---             Make_Defining_Identifier (Loc, New_Internal_Name ('S'));
-
---       --  The first statement after the subprogram call is a statement to
---       --  writes a Null_Occurrence into the result stream.
-
---           Null_Raise_Statement :=
---             Make_Attribute_Reference (Loc,
---               Prefix         =>
---                 New_Occurrence_Of (RTE (RE_Exception_Occurrence), Loc),
---               Attribute_Name => Name_Write,
---               Expressions    => New_List (
---                 New_Occurrence_Of (Result_Parameter, Loc),
---                 New_Occurrence_Of (RTE (RE_Null_Occurrence), Loc)));
-
---           if Dynamically_Asynchronous then
---              Null_Raise_Statement :=
---                Make_Implicit_If_Statement (Vis_Decl,
---                  Condition       =>
---                  Make_Op_Not (Loc, New_Occurrence_Of (Dynamic_Async, Loc)),
---                  Then_Statements => New_List (Null_Raise_Statement));
---           end if;
-
---           Append_To (After_Statements, Null_Raise_Statement);
-
---        else
---           Result_Parameter := Empty;
---        end if;
-
-      --  XXX REMOVE (useless for PolyORB since by default we have
-      --  an empty any in the exception information.)
-
       --  Loop through every parameter and get its value from the stream. If
       --  the parameter is unconstrained, then the parameter is read using
       --  'Input at the point of declaration.
@@ -4662,13 +4562,7 @@ package body Exp_Dist is
                          Etyp, New_Occurrence_Of (Any, Loc), Decls);
 
                if Constrained then
---                    Append_To (Statements,
---                      Make_Attribute_Reference (Loc,
---                        Prefix         => New_Occurrence_Of (Etyp, Loc),
---                        Attribute_Name => Name_Read,
---                        Expressions    => New_List (
---                          New_Occurrence_Of (Stream_Parameter, Loc),
---                          New_Occurrence_Of (Object, Loc))));
+
                   Append_To (Statements,
                     Make_Assignment_Statement (Loc,
                       Name =>
@@ -4677,13 +4571,6 @@ package body Exp_Dist is
                          Expr));
                   Expr := Empty;
                else
---                    Expr := Input_With_Tag_Check (Loc,
---                      Var_Type => Etyp,
---                      Stream   => Stream_Parameter);
---                    Append_To (Decls, Expr);
---                    Expr := Make_Function_Call (Loc,
---                      New_Occurrence_Of (Defining_Unit_Name
---                        (Specification (Expr)), Loc));
                   null;
                   --  Expr will be used to initialize (and constrain)
                   --  the parameter when it is declared.
@@ -4713,15 +4600,8 @@ package body Exp_Dist is
             --  changed.
 
             if Out_Present (Current_Parameter)
-              and then not Is_Controlling_Formal then
---                 Append_To (After_Statements,
---                   Make_Attribute_Reference (Loc,
---                     Prefix         => New_Occurrence_Of (Etyp, Loc),
---                     Attribute_Name => Name_Write,
---                     Expressions    => New_List (
---                         New_Occurrence_Of (Result_Parameter, Loc),
---                         New_Occurrence_Of (Object, Loc))));
-
+              and then not Is_Controlling_Formal
+            then
                Append_To (After_Statements,
                  Make_Procedure_Call_Statement (Loc,
                    Name =>
@@ -4826,13 +4706,6 @@ package body Exp_Dist is
                       Object_Definition   =>
                         New_Occurrence_Of (Formal_Type, Loc)));
 
---                    Append_To (Extra_Formal_Statements,
---                      Make_Attribute_Reference (Loc,
---                   Prefix         => New_Occurrence_Of (Formal_Type, Loc),
---                        Attribute_Name => Name_Read,
---                        Expressions    => New_List (
---                          New_Occurrence_Of (Stream_Parameter, Loc),
---                          New_Occurrence_Of (Formal_Entity, Loc))));
                   Append_To (Extra_Formal_Statements,
                     Make_Assignment_Statement (Loc,
                       Name =>
@@ -4882,13 +4755,7 @@ package body Exp_Dist is
                   Make_Function_Call (Loc,
                     Name                   => Called_Subprogram,
                     Parameter_Associations => Parameter_List)));
---              Append_To (After_Statements,
---                Make_Attribute_Reference (Loc,
---                  Prefix         => New_Occurrence_Of (Etyp, Loc),
---                  Attribute_Name => Name_Output,
---                  Expressions    => New_List (
---                    New_Occurrence_Of (Result_Parameter, Loc),
---                    New_Occurrence_Of (Result, Loc))));
+
             Set_Etype (Result, Etyp);
             Append_To (After_Statements,
               Make_Procedure_Call_Statement (Loc,
