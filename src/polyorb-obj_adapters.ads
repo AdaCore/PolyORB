@@ -145,7 +145,7 @@ package PolyORB.Obj_Adapters is
 
    function Rel_URI_To_Oid
      (OA  : access Obj_Adapter;
-      URI : Types.String) return Objects.Object_Id_Access;
+      URI : String) return Objects.Object_Id_Access;
 
    --  Convert an object id from/to its representation as a relative URI. A
    --  default implementation of these functions is provided; actual object

@@ -1157,7 +1157,9 @@ package body PolyORB.ORB is
          declare
             Result : constant Iface.Oid_Translate
               := (Oid => Obj_Adapters.Rel_URI_To_Oid
-                  (ORB.Obj_Adapter, Iface.URI_Translate (Msg).Path));
+                  (ORB.Obj_Adapter,
+                   PolyORB.Types.To_Standard_String
+                   (Iface.URI_Translate (Msg).Path)));
 
          begin
             return Result;

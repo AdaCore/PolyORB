@@ -118,7 +118,7 @@ package body PolyORB.POA is
 
    function Rel_URI_To_Oid
      (OA  : access Obj_Adapter;
-      URI :        Types.String)
+      URI :        String)
      return Object_Id_Access
    is
       pragma Warnings (Off);
@@ -126,40 +126,40 @@ package body PolyORB.POA is
       pragma Warnings (On);
 
       U_Oid : aliased Unmarshalled_Oid;
-      S : constant String := To_Standard_String (URI);
 
-      Colon : Integer := Find (S, S'First, ';');
+      Colon : Integer := Find (URI, URI'First, ';');
       Last_Slash : Integer := Colon - 1;
    begin
-      pragma Debug (O ("URI: " & To_Standard_String (URI)));
+      pragma Debug (O ("URI: " & URI));
 
-      while S (Last_Slash) /= '/'
-        and then Last_Slash >= S'First loop
+      while URI (Last_Slash) /= '/'
+        and then Last_Slash >= URI'First loop
          Last_Slash := Last_Slash - 1;
       end loop;
 
-      pragma Assert (S (S'First) = '/'
-                     and then Last_Slash >= S'First);
+      pragma Assert (URI (URI'First) = '/'
+                     and then Last_Slash >= URI'First);
 
-      U_Oid.Creator := To_PolyORB_String (S (S'First + 1 .. Last_Slash - 1));
+      U_Oid.Creator := To_PolyORB_String
+        (URI (URI'First + 1 .. Last_Slash - 1));
 
       U_Oid.Id := To_PolyORB_String
-        (URI_Decode (S (Last_Slash + 1 .. Colon - 1)));
+        (URI_Decode (URI (Last_Slash + 1 .. Colon - 1)));
 
-      if Colon + 3 <= S'Last
-        and then S (Colon + 1 .. Colon + 3) = "sys"
+      if Colon + 3 <= URI'Last
+        and then URI (Colon + 1 .. Colon + 3) = "sys"
       then
          U_Oid.System_Generated := True;
-         Colon := Find (S, Colon + 1, ';');
+         Colon := Find (URI, Colon + 1, ';');
       else
          U_Oid.System_Generated := False;
       end if;
 
-      if Colon + 3 <= S'Last
-        and then S (Colon + 1 .. Colon + 3) = "pf="
+      if Colon + 3 <= URI'Last
+        and then URI (Colon + 1 .. Colon + 3) = "pf="
       then
          U_Oid.Persistency_Flag
-           := Lifespan_Cookie'Value (S (Colon + 4 .. S'Last));
+           := Lifespan_Cookie'Value (URI (Colon + 4 .. URI'Last));
       else
          U_Oid.Persistency_Flag := 0;
       end if;

@@ -81,21 +81,20 @@ package body PolyORB.Obj_Adapters is
 
    function Rel_URI_To_Oid
      (OA  : access Obj_Adapter;
-      URI : Types.String)
+      URI : String)
      return Objects.Object_Id_Access
    is
       pragma Warnings (Off);
       pragma Unreferenced (OA);
       pragma Warnings (On);
 
-      S : constant String := Types.To_Standard_String (URI);
    begin
-      if S (S'First) /= '/' then
+      if URI (URI'First) /= '/' then
          raise Constraint_Error;
       end if;
 
       return new Objects.Object_Id'
-        (Objects.Hex_String_To_Oid (S (S'First + 1 .. S'Last)));
+        (Objects.Hex_String_To_Oid (URI (URI'First + 1 .. URI'Last)));
    end Rel_URI_To_Oid;
 
    ------------------

@@ -326,7 +326,7 @@ package PolyORB.POA is
 
    function Rel_URI_To_Oid
      (OA  : access Obj_Adapter;
-      URI :        Types.String)
+      URI :        String)
      return Object_Id_Access;
    --  Convert an object id from its representation as a relative URI
 
