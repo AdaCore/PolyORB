@@ -40,11 +40,16 @@ find . -name Makefile.in -exec touch {} \;
 sleep 1
 find . -name configure -exec touch {} \;
 sleep 1
-echo Configuring then erasing configuration files
-./configure
-make distclean
+#echo Configuring
+#./configure
+#echo Building the distribution
+#make
+#echo Building the examples
+#(cd Examples && make)
+echo Adapting modes
 chmod -R og=u-w .
 flist=""
+echo Packaging
 for i in `cat MANIFEST`; do
   flist="${flist} ${dir}/${i}"
 done
