@@ -35,6 +35,7 @@ package XE_Utils is
 
    No_Str        : constant String := "";
 
+   Cfg_Suffix    : Types.File_Name_Type;
    Obj_Suffix    : Types.File_Name_Type;
    Exe_Suffix    : Types.File_Name_Type;
 
@@ -179,6 +180,8 @@ package XE_Utils is
 
    procedure Free is
      new Unchecked_Deallocation (String, GNAT.OS_Lib.String_Access);
+
+   Get_Conf_Suffix       : constant String := ".cfg";
 
    procedure Initialize;
    --  Must be called before any other calls in this package

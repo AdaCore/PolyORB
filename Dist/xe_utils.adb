@@ -35,6 +35,7 @@ with Csets;                      use Csets;
 with Debug;                      use Debug;
 with Fname;                      use Fname;
 with Fname.UF;
+with Hostparm;                   use Hostparm;
 with Make;                       use Make;
 with Namet;                      use Namet;
 with Opt;
@@ -213,8 +214,7 @@ package body XE_Utils is
       Execute_Gcc
         (Source,
          Object,
-         (Caller_Compile_Flag,
-          I_GARLIC_Dir)
+         (1 => Caller_Compile_Flag)
          );
    end Compile_RCI_Caller;
 
@@ -227,8 +227,7 @@ package body XE_Utils is
       Execute_Gcc
         (Source,
          Object,
-         (Receiver_Compile_Flag,
-          I_GARLIC_Dir)
+         (1 => Receiver_Compile_Flag)
          );
    end Compile_RCI_Receiver;
 
@@ -843,6 +842,7 @@ package body XE_Utils is
       Namet.Initialize;
 
       GNATLib_Compile_Flag := new String'("-gnatg");
+      Cfg_Suffix           := Str_To_Id (Get_Conf_Suffix);
       Obj_Suffix           := Str_To_Id (Get_Object_Suffix.all);
       Exe_Suffix           := Str_To_Id (Get_Executable_Suffix.all);
 
@@ -861,15 +861,12 @@ package body XE_Utils is
 
       DSA_Dir        := Str_To_Id ("dsa");
 
-      Name_Len := 18;
-      Name_Buffer (1 .. 18) := "dsa/private/caller";
-      Name_Buffer (4)  := Directory_Separator;
-      Name_Buffer (12) := Directory_Separator;
-      Caller_Dir := Name_Find;
-
-      Name_Len := 20;
-      Name_Buffer (13 .. 20) := "receiver";
-      Receiver_Dir := Name_Find;
+      declare
+         Private_Dir : Name_Id := Dir (DSA_Dir, Str_To_Id ("private"));
+      begin
+         Caller_Dir   := Dir (Private_Dir, Str_To_Id ("caller"));
+         Receiver_Dir := Dir (Private_Dir, Str_To_Id ("receiver"));
+      end;
 
       PWD_Id         := Dir (Str_To_Id ("`pwd`"), No_File);
 
@@ -890,17 +887,21 @@ package body XE_Utils is
          GARLIC := Get_GARLIC_Dir;
       end if;
 
-      I_Current_Dir := new String'("-I.");
-      L_Current_Dir := new String'("-L.");
+      I_Current_Dir := new String'("-I" & Normalized_CWD);
+      L_Current_Dir := new String'("-L" & Normalized_CWD);
 
-      Name_Len := 20;
-      Name_Buffer (1 .. 20) := "-Idsa/private/caller";
-      Name_Buffer (6)  := Directory_Separator;
-      Name_Buffer (14) := Directory_Separator;
+      Name_Len := 2;
+      Name_Buffer (1 .. 2) := "-I";
+      Get_Name_String_And_Append (Caller_Dir);
       I_Caller_Dir := new String'(Name_Buffer (1 .. Name_Len));
 
       Name_Buffer (2) := 'L';
       L_Caller_Dir := new String'(Name_Buffer (1 .. Name_Len));
+
+      Name_Len := 2;
+      Name_Buffer (1 .. 2) := "-I";
+      Add_Str_To_Name_Buffer (GARLIC.all);
+      I_GARLIC_Dir := new String'(Name_Buffer (1 .. Name_Len));
 
       --  gnatmake has its own set of flags. gnatdist parses them
       --  first and then passes them to gnatmake. gnatmake keeps also
@@ -915,38 +916,58 @@ package body XE_Utils is
 
       Optimization_Mode := True;
       for I in 1 .. Argument_Count loop
-         if Argument (I)(1) = Switch_Character
-           or else Argument (I)(1) = '-'
-         then
-            if Argument (I)'Length >= 2
-              and then Argument (I)(2) = 'g'
-              and then (Argument (I)'Length < 5
-                        or else Argument (I)(2 .. 5) /= "gnat")
+         declare
+            Argv : String := Argument (I);
+         begin
+            if Argv (1) = Switch_Character
+              or else Argv (1) = '-'
             then
-               Optimization_Mode := False;
-            elsif Argument (I)'Length >= 2
-              and then Argument (I)(2) = 'O'
-            then
-               Optimization_Mode := False;
+               if Argv'Length >= 2
+                 and then Argv (2) = 'g'
+                 and then (Argv'Length < 5
+                           or else Argv (2 .. 5) /= "gnat")
+               then
+                  Optimization_Mode := False;
+               elsif Argv'Length >= 2
+                 and then Argv (2) = 'O'
+               then
+                  Optimization_Mode := False;
+               end if;
             end if;
-         end if;
-         Scan_Make_Arg (Argument (I), And_Save => False);
+            Scan_Make_Arg (Argv, And_Save => False);
+         end;
       end loop;
 
       Add_Default_Optimization;
 
-      Name_Len := 2;
-      Name_Buffer (1) := '-';
-      Name_Buffer (2) := 'I';
-      Add_Str_To_Name_Buffer (GARLIC.all);
-      I_GARLIC_Dir := new String'(Name_Buffer (1 .. Name_Len));
+      declare
+         Primary_Dir : String_Ptr;
+      begin
 
-      if Number_Of_Files > 0 then
-         Scan_Make_Arg ("-cargs", And_Save => False);
+         --  We must add GARLIC in the src and lib search dirs. But
+         --  when we want to use an internal GARLIC file from the
+         --  current directory (or somewhere else), we must add -I- to
+         --  remove the primary directory (GARLIC directory here).
+
+         if Opt.Look_In_Primary_Dir then
+            Primary_Dir :=
+              Normalize_Directory_Name (Get_Primary_Src_Search_Directory.all);
+         end if;
+         if Number_Of_Files > 0 then
+            Scan_Make_Arg ("-cargs", And_Save => False);
+            if Primary_Dir /= null then
+               Scan_Make_Arg ("-I" & Primary_Dir.all, And_Save => False);
+               Scan_Make_Arg ("-I-", And_Save => False);
+            end if;
+            Scan_Make_Arg (I_GARLIC_Dir.all, And_Save => False);
+            Scan_Make_Arg ("-bargs", And_Save => False);
+         end if;
+         if Primary_Dir /= null then
+            Scan_Make_Arg ("-I" & Primary_Dir.all, And_Save => False);
+            Scan_Make_Arg ("-I-", And_Save => False);
+         end if;
          Scan_Make_Arg (I_GARLIC_Dir.all, And_Save => False);
-         Scan_Make_Arg ("-bargs", And_Save => False);
-      end if;
-      Scan_Make_Arg (I_GARLIC_Dir.all, And_Save => False);
+      end;
 
       Osint.Add_Default_Search_Dirs;
 
