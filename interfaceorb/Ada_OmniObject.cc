@@ -187,8 +187,7 @@ Ada_OmniObject::initProxyObject (const char *repoId,
 				       key,
 				       keysize,
 				       profiles,
-				       release,
-				       this);
+				       release) ;
   // updating of Init_OK flag
   Init_Ok = true;
 };
@@ -216,13 +215,8 @@ ADABROKER_TRY
     cerr << "Ada_OmniObject::objectDuplicate : omni::objectDuplicate called OK" << endl ;
 #endif
 
-    Ada_OmniObject *result = new Ada_OmniObject() ;
-    result->C_Object = same->C_Object ;
-    result->Init_Ok = true ;
-#ifdef DEBUG
-     cerr << "Ada_OmniObject::objectDuplicate : exiting ... OK" << endl ;
-#endif
-    return result ;
+    return new Ada_OmniObject(same->C_Object) ;
+
   } else {
 #ifdef DEBUG
     cerr << "Ada_OmniObject::objectDuplicate : Init_Ok = FALSE !!!!!!!! raising fatalException" << endl ;
@@ -574,7 +568,8 @@ ADABROKER_TRY
   if (adaobj == 0) {
     return 0 ;
   } else {
-    return adaobj->Ada_OmniObject_Pointer ;
+    // create a new Ada_OmniObject that points to the same omniObject_C2Ada
+    return new Ada_OmniObject (adaobj) ;
   }
 ADABROKER_CATCH
   // never reach here just a default return for dummy compilers.

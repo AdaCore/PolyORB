@@ -75,11 +75,18 @@ proxyObjectFactory_C2Ada::newProxyObject(Rope *r,
 #ifdef DEBUG
   cerr << "proxyObjectFactory_C2Ada::newProxyObject" << endl ;
 #endif
+  
+  omniObject_C2Ada *omniobj =  new omniObject_C2Ada (pd_repoID,
+					      r,
+					      key,
+					      keysize,
+					      profiles,
+					      release) ;
+  
+  //  Ada_OmniObject* p = new Ada_OmniObject() ;
+  //p->initProxyObject(pd_repoID, r,key, keysize, profiles, release) ;
 
-  Ada_OmniObject* p = new Ada_OmniObject() ;
-  p->initProxyObject(pd_repoID, r,key, keysize, profiles, release) ;
-
-  omniObject *omniobj = p->getOmniObject() ;
+  //omniObject *omniobj = p->getOmniObject() ;
   
   omni::objectIsReady(omniobj) ;
   // telling the ORB that this object is ready to use

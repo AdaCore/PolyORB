@@ -51,7 +51,7 @@
 
 // DEBUG is defined at the beginning of each file
 // and undefined at the end of each file
-#define DEBUG
+//#define DEBUG
 
 
 
@@ -72,17 +72,14 @@ omniObject_C2Ada::omniObject_C2Ada(const char *repoId,
 				   _CORBA_Octet *key,
 				   size_t keysize,
 				   IOP::TaggedProfileList *profiles,
-				   _CORBA_Boolean release,
-				   Ada_OmniObject *Ada_Ptr) : omniObject (repoId,
+				   _CORBA_Boolean release) : omniObject (repoId,
 									  r,
 									  key,
 									  keysize,
 									  profiles,
 									  release)
 {
-  // calls the omniObject constructor and initialise the pointer
-  // on the Ada_OmniObject Ada_OmniObject_Pointer ;
-  Ada_OmniObject_Pointer = Ada_Ptr;
+  // calls the omniObject constructor
 };
 
 

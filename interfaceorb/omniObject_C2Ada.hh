@@ -72,8 +72,7 @@ public:
 		   _CORBA_Octet *key,
 		   size_t keysize,
 		   IOP::TaggedProfileList *profiles,
-		   _CORBA_Boolean release,
-		   Ada_OmniObject *Ada_Ptr);
+		   _CORBA_Boolean release);
   // constructor for proxy objects
 
   ~omniObject_C2Ada() {} ;
