@@ -37,3 +37,7 @@ in idl_fe-parser.adb and idl_fe-parser.ads.
 
 
 	- some FIXMES were left in the code (5 at this moment). They explain the problem
+
+	- the function Img for constant_value_ptr in utils.adb does only work for integers
+
+	- merge torture and all_definitions examples.

@@ -54,4 +54,7 @@ package Utils is
    pragma Inline (Img);
    --  All versions of Img are covered by this pragma
 
+   function Img (A : Constant_Value_Ptr) return String;
+   --  return the image of a constant
+
 end Utils;

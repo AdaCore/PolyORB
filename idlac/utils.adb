@@ -142,4 +142,53 @@ package body Utils is
       return Result;
    end Img;
 
+   ---------
+   -- Img --
+   ---------
+
+   function Img (A : Constant_Value_Ptr) return String is
+   begin
+      case A.all.Kind is
+         when C_Octet
+           | C_Short
+           | C_Long
+           | C_LongLong
+           | C_UShort
+           | C_ULong
+           | C_ULongLong
+           | C_General_Integer =>
+            return Img (A.all.Integer_Value);
+         when C_Char =>
+            --  FIXME : not a correct image
+            return "";
+         when C_WChar =>
+            --  FIXME : not a correct image
+            return "";
+         when C_Boolean =>
+            --  FIXME : not a correct image
+            return "";
+         when C_Float
+           | C_Double
+           | C_LongDouble
+           | C_General_Float =>
+            --  FIXME : not a correct image
+            return "";
+         when C_String =>
+            --  FIXME : not a correct image
+            return "";
+         when C_WString =>
+            --  FIXME : not a correct image
+            return "";
+         when C_Fixed
+           | C_General_Fixed =>
+            --  FIXME : not a correct image
+            return "";
+         when C_Enum =>
+            --  FIXME : not a correct image
+            return "";
+         when C_No_Kind =>
+            return "";
+      end case;
+   end Img;
+
 end Utils;
