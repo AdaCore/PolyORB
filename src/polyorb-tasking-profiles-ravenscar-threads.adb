@@ -51,7 +51,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
      renames L.Output;
 
    Initialized : Boolean := False;
-   -- whether or not the package is initialized.
+   --  whether or not the package is initialized.
 
    ---------
    -- Ids --
@@ -492,6 +492,9 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
       ------------------------
 
       procedure End_Initialization (Id : Thread_Index_Type) is
+         pragma Warnings (Off);
+         pragma Unreferenced (Id);
+         pragma Warnings (On);
       begin
          Package_Initialized := Current >= Thread_Index_Type'Last;
       end End_Initialization;
