@@ -47,10 +47,10 @@ ADAFLAGS = -I. -I$(srcdir) -I.. -I$(srcdir)/.. \
 GNATPRFH = ../../compilers/gnatprfh/gnatprfh
 GEN_HTTP_BODY = $(srcdir)/gen_http_body
 
-polyorb-http_methods.adb: $(GEN_HTTP_BODY) $(srcdir)/polyorb-http_methods.ads
+$(top_builddir)/src/soap/polyorb-http_methods.adb: $(GEN_HTTP_BODY) $(srcdir)/polyorb-http_methods.ads
 	$(GEN_HTTP_BODY) $(GNATPRFH) $(srcdir) Method
 
-polyorb-http_headers.adb: $(GEN_HTTP_BODY) $(srcdir)/polyorb-http_headers.ads
+$(top_builddir)/src/soap/polyorb-http_headers.adb: $(GEN_HTTP_BODY) $(srcdir)/polyorb-http_headers.ads
 	$(GEN_HTTP_BODY) $(GNATPRFH) $(srcdir) Header
 
 install-data-local:
