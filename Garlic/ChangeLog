@@ -1,3 +1,13 @@
+Wed Mar 26 23:07:31 1997  Laurent Pautet  <pautet@esmeralda.enst.fr>
+
+	* Makefile.am, Makefile.in: Add s-garrep and s-gartra in
+ 	COMMON_OBJECTS and COMMON_SOURCES. Rebuild source
+ 	dependencies. Tag to_be_released.
+
+	* zlib: Add zlib dir and tag to_be_released. Warning: Need for
+	a target 'distclean' and 'clean' in zlib Makefile and also a call
+	to this target in Garlic Makefile.
+
 Mon Mar 24 15:44:31 1997  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-gartcp.adb: Modified Open_Code, Data_Code and Quit_Code to be
