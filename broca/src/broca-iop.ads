@@ -46,4 +46,15 @@ package Broca.IOP is
 
    type Profile_Ptr_Array_Ptr is access Profile_Ptr_Array;
 
+   procedure Encapsulate_IOR
+     (Buffer   : in out Buffers.Buffer_Descriptor;
+      From     : in Buffers.Buffer_Index_Type;
+      Type_Id  : in CORBA.String;
+      Profiles : in Profile_Ptr_Array_Ptr);
+
+   procedure Decapsulate_IOR
+     (Buffer   : in out Buffers.Buffer_Descriptor;
+      Type_Id  : out CORBA.String;
+      Profiles : out Profile_Ptr_Array_Ptr);
+
 end Broca.IOP;
