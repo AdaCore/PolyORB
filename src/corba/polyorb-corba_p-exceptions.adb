@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions.adb#18 $
+--  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions.adb#19 $
 
 with CORBA;
 
@@ -39,7 +39,6 @@ with PolyORB.Any;
 with PolyORB.Exceptions;
 with PolyORB.Log;
 with PolyORB.Types;
-with PolyORB.Utils;
 
 package body PolyORB.CORBA_P.Exceptions is
 
@@ -49,38 +48,29 @@ package body PolyORB.CORBA_P.Exceptions is
    use PolyORB.Exceptions;
    use PolyORB.Log;
    use PolyORB.Types;
-   use PolyORB.Utils;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.corba_p.exceptions");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
-   function Is_System_Exception (Name : String) return Boolean;
+   procedure Exception_Name_To_Error_Id
+     (Name     :     String;
+      Is_Error : out Boolean;
+      Id       : out Error_Id);
 
-   function To_CORBA_Exception (Name : String) return String;
-   --  Map PolyORB system exception Repository Ids into CORBA
-   --  ones; leave other repository IDs unchanged.
+   --------------------------------
+   -- Exception_Name_To_Error_Id --
+   --------------------------------
 
-   procedure Raise_System_Exception_From_Any
-     (System_Id  : Ada.Exceptions.Exception_Id;
-      Occurrence : PolyORB.Any.Any);
-
-   -------------------------
-   -- Is_System_Exception --
-   -------------------------
-
-   --  IMPLEMENTATION NOTE : Every change to this function should be
-   --  duplicated to PolyORB.GIOP_P.Exceptions.Is_System_Exception.
-
-   function Is_System_Exception
-     (Name : String)
-     return Boolean
+   procedure Exception_Name_To_Error_Id
+     (Name     :     String;
+      Is_Error : out Boolean;
+      Id       : out Error_Id)
    is
       Prefix_Length : constant Natural := PolyORB_Exc_Prefix'Length;
       Version_Length : constant Natural
         := To_Standard_String (PolyORB_Exc_Version)'Length;
 
-      Result : Boolean := False;
    begin
       if Name'Length > Prefix_Length + Version_Length
         and then Name (Name'First .. Name'First + Prefix_Length - 1)
@@ -94,45 +84,17 @@ package body PolyORB.CORBA_P.Exceptions is
          begin
             pragma Debug (O ("Error_Id_Name : " & Error_Id_Name));
 
-            Result := Error_Id'Value (Error_Id_Name) in ORB_System_Error;
+            Is_Error := True;
+            Id := Error_Id'Value (Error_Id_Name);
          end;
-      end if;
-
-      pragma Debug (O (Name & " is a system exception ? "
-                       & Boolean'Image (Result)));
-      return Result;
-   end Is_System_Exception;
-
-   ------------------------
-   -- To_CORBA_Exception --
-   ------------------------
-
-   function To_CORBA_Exception
-     (Name : String)
-     return String
-   is
-      use PolyORB.Utils;
-
-      Colon1 : constant Integer := Find (Name, Name'First, ':');
-      Slash  : constant Integer := Find (Name, Colon1 + 1, '/');
-
-      Root      : String renames Name (Name'First .. Slash);
-      Base_Name : String renames Name (Slash + 1 .. Name'Last);
-   begin
-      pragma Debug (O ("To_CORBA_Exception: name was " & Name));
-
-      if Root = PolyORB_Exc_Prefix then
-         pragma Debug (O ("To_CORBA_Exception: new name is "
-                          & "IDL:CORBA/" & Base_Name));
-
-         return "IDL:CORBA/" & Base_Name;
-
       else
-         pragma Debug (O (" not changed: " & Name));
-
-         return Name;
+         Is_Error := False;
+         Id := No_Error;
       end if;
-   end To_CORBA_Exception;
+
+      pragma Debug (O (Name & " is a PolyORB error ? "
+                       & Boolean'Image (Is_Error)));
+   end Exception_Name_To_Error_Id;
 
    --------------------
    -- Raise_From_Any --
@@ -146,27 +108,42 @@ package body PolyORB.CORBA_P.Exceptions is
 
       EId : constant String := To_Standard_String (Repository_Id);
 
+      Is_Error : Boolean;
+      Id       : Error_Id;
+      Error    : Error_Container;
+
    begin
       pragma Debug (O ("Raise_From_Any: enter"));
 
-      if Is_System_Exception (EId) then
-         declare
-            CORBA_Repository_Id : constant String
-              := To_CORBA_Exception (EId);
+      Exception_Name_To_Error_Id (EId, Is_Error, Id);
 
-            System_Id : constant Ada.Exceptions.Exception_Id
-              := PolyORB.Exceptions.Get_ExcepId_By_RepositoryId
-              (CORBA_Repository_Id);
+      if Is_Error then
 
-         begin
-            pragma Debug (O ("Raising " & Exception_Name (System_Id)));
+         Error.Kind := Id;
 
-            Raise_System_Exception_From_Any (System_Id, Occurrence);
-         end;
+         case Error.Kind is
+            when ORB_System_Error =>
+               Error.Member := new System_Exception_Members'
+                 (Minor =>
+                    From_Any
+                  (Get_Aggregate_Element
+                   (Occurrence, TC_Unsigned_Long,
+                    PolyORB.Types.Unsigned_Long (0))),
+                  Completed =>
+                    From_Any
+                  (Get_Aggregate_Element
+                   (Occurrence, PolyORB.Exceptions.TC_Completion_Status,
+                    PolyORB.Types.Unsigned_Long (1))));
+
+            when others =>
+               Error.Member := new Null_Members'(Null_Member);
+         end case;
+
+         pragma Debug (O ("Raising " & Error_Id'Image (Error.Kind)));
+         Raise_From_Error (Error);
 
       else
          pragma Debug (O ("Raising " & EId));
-
          Raise_User_Exception_From_Any (Repository_Id, Occurrence);
 
       end if;
@@ -174,50 +151,6 @@ package body PolyORB.CORBA_P.Exceptions is
       raise Program_Error;
       --  Never reached (Raiser raises an exception.)
    end Raise_From_Any;
-
-   -------------------------------------
-   -- Raise_System_Exception_From_Any --
-   -------------------------------------
-
-   procedure Raise_System_Exception_From_Any
-     (System_Id  : Ada.Exceptions.Exception_Id;
-      Occurrence : PolyORB.Any.Any)
-   is
-      Minor : constant PolyORB.Types.Unsigned_Long
-        := From_Any
-        (Get_Aggregate_Element
-         (Occurrence, TC_Unsigned_Long,
-          PolyORB.Types.Unsigned_Long (0)));
-
-      Completed : constant Completion_Status
-        := PolyORB.Exceptions.From_Any
-        (Get_Aggregate_Element
-         (Occurrence, PolyORB.Exceptions.TC_Completion_Status,
-          PolyORB.Types.Unsigned_Long (1)));
-
-      Str : Standard.String (1 .. 5);
-      Val : PolyORB.Types.Unsigned_Long;
-
-   begin
-      --  Marshall Minor and Completed fields of EXCP_MEMB into a string.
-      --  A trivial marshalling is used:
-      --  Str (1 .. 4)   Minor (MSB first)
-      --  Str (5)        Completed
-
-      Str (5) := Character'Val (Completion_Status'Pos (Completed));
-      Val := Minor;
-
-      for J in 1 .. 4 loop
-         Str (J) := Character'Val (Val / 2 ** 24);
-         Val := (Val mod 2 ** 24) * 256;
-      end loop;
-
-      --  Raise the exception.
-      Ada.Exceptions.Raise_Exception (System_Id, Str);
-
-
-      raise Program_Error;
-   end Raise_System_Exception_From_Any;
 
    -----------------------------
    -- System_Exception_To_Any --
@@ -243,6 +176,8 @@ package body PolyORB.CORBA_P.Exceptions is
          CORBA.Get_Members (E, Members);
       exception
          when others =>
+            pragma Debug (O ("No matching system exception found, "
+                             & "will use CORBA.UNKNOWN"));
             Name := To_PolyORB_String ("UNKNOWN");
             Members := (1, CORBA.Completed_Maybe);
       end;

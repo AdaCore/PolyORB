@@ -33,7 +33,7 @@
 
 --  Exceptions management for the CORBA Application Personality of PolyORB.
 
---  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions.ads#11 $
+--  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions.ads#12 $
 
 with Ada.Exceptions;
 
