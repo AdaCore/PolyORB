@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -31,8 +31,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -68,6 +68,13 @@ package CORBA.Policy is
      CORBA.Sequences.Unbounded (Ref);
 
    subtype PolicyList is IDL_Sequence_Policy.Sequence;
+   --  Implementation Note: the IDL-to-Ada mapping defines the
+   --  PolicyList type as:
+   --    type PolicyList is new IDL_Sequence_Policy.Sequence;
+   --
+   --  This adds new primitives to Ref that requires overriding for
+   --  any derivation of Ref. We define PolicyList as a subtype to
+   --  avoid this behavior.
 
    package IDL_Sequence_PolicyType is new
      CORBA.Sequences.Unbounded (PolicyType);
