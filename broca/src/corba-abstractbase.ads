@@ -49,6 +49,10 @@ package CORBA.AbstractBase is
    function Get (The_Ref : Ref) return CORBA.Impl.Object_Ptr
      renames Object_Of;
 
+   --  function Is_Nil (Self : in Ref) return Boolean
+   --  is inherited from broca.refs.ref.
+
+
    Nil_Ref : constant Ref;
 
 private

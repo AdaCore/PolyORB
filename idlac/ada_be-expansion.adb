@@ -75,6 +75,10 @@ package body Ada_Be.Expansion is
    --  then copy inherited methods and attributes
    --  from ancestors and supported interfaces
 
+   procedure Expand_Boxed_ValueType
+     (Node : in Node_Id);
+   --  expands the type of a boxed value (sequence for example
+
    procedure Expand_Attribute
      (Node : in Node_Id);
    --  Expand an attribute into the corresponding _get_
@@ -321,6 +325,9 @@ package body Ada_Be.Expansion is
            K_String      |
            K_Wide_String =>
             Expand_String (Node);
+
+         when K_Boxed_ValueType =>
+            Expand_Boxed_ValueType (Node);
 
          when others =>
             null;
@@ -975,6 +982,9 @@ package body Ada_Be.Expansion is
       end;
    end Expand_Exception;
 
+   ------------------------------
+   --  Expand_Type_Declarator  --
+   ------------------------------
    procedure Expand_Type_Declarator
      (Node : Node_Id)
    is
@@ -1054,6 +1064,9 @@ package body Ada_Be.Expansion is
       Expand_Node_List (Enumerators (Node), False);
    end Expand_Enum;
 
+   -----------------------
+   --  Expand_Sequence  --
+   -----------------------
    procedure Expand_Sequence
      (Node : Node_Id)
    is
@@ -1179,6 +1192,18 @@ package body Ada_Be.Expansion is
       end if;
    end Expand_Fixed;
 
+   ------------------------------
+   --  Expand_Boxed_ValueType  --
+   ------------------------------
+   procedure Expand_Boxed_ValueType
+     (Node : in Node_Id) is
+   begin
+      Expand_Node (Boxed_Type (Node));
+   end Expand_Boxed_ValueType;
+
+   -------------------------------
+   --  Expand_Constructed_Type  --
+   -------------------------------
    procedure Expand_Constructed_Type
      (Node : Node_Id;
       Replacement_Node : out Node_Id)
@@ -1489,6 +1514,9 @@ package body Ada_Be.Expansion is
         (Parent, Append_Node (Contents (Parent), Child));
    end Append_Node_To_Contents;
 
+   --------------------------
+   --  Sequence_Type_Name  --
+   --------------------------
    function Sequence_Type_Name
      (Node : Node_Id)
      return String

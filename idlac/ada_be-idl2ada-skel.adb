@@ -274,6 +274,7 @@ package body Ada_Be.Idl2Ada.Skel is
 
                if Is_Supported then
                   PL (CU, Ada_Be.Temporaries.T_Value_Operation);
+                  Add_With (CU, "CORBA.Impl");
                   Put (CU, "  (CORBA.Impl.Object_Ptr (Obj)");
                else
                   PL (CU, Ada_Full_Name (I_Node) & Impl.Suffix
@@ -602,11 +603,7 @@ package body Ada_Be.Idl2Ada.Skel is
 
       PL (CU, "PortableServer.Register_Skeleton");
       Put (CU, "  (");
-      if NK = K_Interface then
-         Put (CU, Ada_Full_Name (Node));
-      else
-         Put (CU, Ada_Full_Name (Node) & Ada_Be.Idl2Ada.Value_Skel.Suffix);
-      end if;
+      Put (CU, Ada_Full_Name (Node));
       PL (CU, "." & T_Repository_Id &",");
       PL (CU, "   Servant_Is_A'Access,");
       PL (CU, "   GIOP_Dispatch'Access);");

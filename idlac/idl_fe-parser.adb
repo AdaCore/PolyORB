@@ -1396,6 +1396,7 @@ package body Idl_Fe.Parser is
            or else Kind (A_Name) = K_Interface
            or else Kind (A_Name) = K_ValueType
            or else Kind (A_Name) = K_Forward_Interface
+           or else Kind (A_Name) = K_Boxed_ValueType
            or else Kind (A_Name) = K_Forward_ValueType then
             Set_S_Type (Res, A_Name);
          else
@@ -4385,6 +4386,7 @@ package body Idl_Fe.Parser is
                           | K_Interface
                           | K_Forward_Interface
                           | K_ValueType
+                          | K_Boxed_ValueType
                           | K_Forward_ValueType =>
                            null;
                         when others =>
@@ -6759,6 +6761,7 @@ package body Idl_Fe.Parser is
                           | K_Interface
                           | K_Forward_Interface
                           | K_ValueType
+                          | K_Boxed_ValueType
                           | K_Forward_ValueType
                           | K_Native =>
                            null;

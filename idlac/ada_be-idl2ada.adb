@@ -80,6 +80,12 @@ package body Ada_Be.Idl2Ada is
    -- Specialised generation subprograms --
    ----------------------------------------
 
+   function Access_Type_Name (Node : in Node_Id)
+     return String;
+   --  Generates a name for an access to objet type.
+   --  The rule used is to take the ada_type_name,
+   --  replacing '.' with '_', and appending "_Access".
+
    procedure Gen_Repository_Id
      (Node : in Node_Id;
       Spec : in out Compilation_Unit);
@@ -1155,8 +1161,39 @@ package body Ada_Be.Idl2Ada is
             null;
          when K_Forward_ValueType =>
             null;
+
          when K_Boxed_ValueType =>
-            null;
+            Add_With (CU, "CORBA.Value.Box");
+            NL (CU);
+            PL (CU,
+                "type "
+                & Access_Type_Name (Boxed_Type (Node))
+                & " is");
+            PL (CU,
+                "   access all "
+                & Ada_Type_Name (Boxed_Type (Node))
+                & ";");
+            NL (CU);
+            PL (CU,
+                "package "
+                & Ada_Name (Node)
+                & "_Value_Box is new CORBA.Value.Box");
+            PL (CU,
+                "  ("
+                & Ada_Type_Name (Boxed_Type (Node))
+                & ",");
+            PL (CU,
+                "   "
+                & Access_Type_Name (Boxed_Type (Node))
+                & ");");
+            NL (CU);
+            PL (CU,
+                "type "
+                & Ada_Name (Node)
+                & " is new "
+                & Ada_Name (Node)
+                & "_Value_Box.Box_Ref;");
+
          when K_State_Member =>
             null;
 
@@ -2107,6 +2144,7 @@ package body Ada_Be.Idl2Ada is
            K_Union      |
            K_Struct     |
            K_Exception  |
+           K_Boxed_ValueType |
            K_Declarator =>
             return Ada_Full_Name (Node);
 
@@ -2179,6 +2217,22 @@ package body Ada_Be.Idl2Ada is
       end case;
    end Ada_Type_Name;
 
+   ------------------------
+   --  Access_Type_Name  --
+   ------------------------
+   function Access_Type_Name (Node : in Node_Id)
+                              return String is
+      Name : String
+        := Ada_Type_Name (Node);
+   begin
+      for I in Name'Range loop
+         if Name (I) = '.' then
+            Name (I) := '_';
+         end if;
+      end loop;
+      return Name & "_Access";
+   end Access_Type_Name;
+
    procedure Add_With_Entity
      (CU : in out Compilation_Unit;
       Node : Node_Id)
@@ -2201,6 +2255,7 @@ package body Ada_Be.Idl2Ada is
            K_Declarator        |
            K_Forward_Interface |
            K_Forward_ValueType |
+           K_Boxed_ValueType |
            K_Exception         |
            K_Sequence_Instance |
            K_String_Instance   =>
@@ -2318,6 +2373,10 @@ package body Ada_Be.Idl2Ada is
             Add_With (CU, "Broca.CDR");
 
          when K_ValueType =>
+            null;
+         when K_Forward_ValueType =>
+            null;
+         when K_Boxed_ValueType =>
             null;
 
          when others =>

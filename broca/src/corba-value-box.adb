@@ -24,35 +24,57 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-generic
-   type Boxed is private;
-   type Boxed_Access is access all Boxed;
+with CORBA.Impl;
+with Ada.Unchecked_Deallocation;
+with Broca.Exceptions;
+with Broca.Refs;
 
-package CORBA.Value.Box is
+package body CORBA.Value.Box is
 
-   type Box_Ref is new CORBA.Value.Base with private;
+   procedure FreeBox is
+     new Ada.Unchecked_Deallocation (Boxed, Boxed_Access);
 
-   --  function Is_Null (The_Ref : in Box_Ref) return Boolean;
-   --  inherited from corba.abstractbase.ref
+   --------------
+   --  Create  --
+   --------------
+   function Create (With_Value : in Boxed) return Box_Ref is
+      Result : Box_Ref;
+      Ptr : Object_Ptr := new Object;
+   begin
+      Ptr.Content := new Boxed' (With_Value);
+      Set (Result, CORBA.Impl.Object_Ptr (Ptr));
+      return Result;
+   end Create;
 
-   function Create (With_Value : in Boxed) return Box_Ref;
-   function "+" (With_Value : in Boxed) return Box_Ref
-     renames Create;
-
+   ----------------
+   --  Contents  --
+   ----------------
    function Contents (The_Boxed : in Box_Ref)
-     return Boxed_Access;
-   function "-" (The_Boxed : in Box_Ref) return Boxed_Access
-     renames Contents;
+     return Boxed_Access is
+   begin
+      if Is_Nil (The_Boxed) then
+         Broca.Exceptions.Raise_Bad_Param;
+      end if;
+      return Object_Ptr (Object_Of (The_Boxed)).Content;
+   end Contents;
 
-   procedure Release (The_Ref : in out Box_Ref);
-
-private
-
-   type Box_Ref is new CORBA.Value.Base with null record;
-
-   type Object is new CORBA.Value.Impl_Base with record
-      Content : Boxed_Access;
-   end record;
-   type Object_Ptr is access all Object;
+   ---------------
+   --  Release  --
+   ---------------
+   procedure Release (The_Ref : in out Box_Ref) is
+   begin
+      if Is_Nil (The_Ref) then
+         Broca.Exceptions.Raise_Bad_Param;
+      else
+         FreeBox (Object_Ptr (Object_Of (The_Ref)).Content);
+         Broca.Refs.Set (Broca.Refs.Ref (The_Ref), null);
+      end if;
+   end Release;
 
 end CORBA.Value.Box;
+
+
+
+
+
+
