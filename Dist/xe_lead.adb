@@ -149,12 +149,7 @@ procedure XE_Lead is
      (Partition : in PID_Type) is
    begin
       if Protocol_Name = No_Name then
-         Write_Name (FD, Partitions.Table (Partition).Name);
-         Write_Str  (FD, "_HOST=`hostname`");
-         Write_Eol  (FD);
-         Write_Str  (FD, "BOOT_SERVER=tcp://$");
-         Write_Name (FD, Partitions.Table (Partition).Name);
-         Write_Str  (FD, "_HOST:5555");
+         Write_Str  (FD, "BOOT_SERVER=tcp://`hostname`:5555");
          Write_Eol  (FD);
       else
          Write_Str  (FD, "BOOT_SERVER=");

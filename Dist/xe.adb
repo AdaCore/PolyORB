@@ -1495,15 +1495,15 @@ package body XE is
       Write_Eol;
       Write_Str ("Configuration :");
       Write_Eol;
-      Write_Str ("   Name    : ");
+      Write_Str ("   Name     : ");
       Write_Name (Configuration);
       Write_Eol;
 
-      Write_Str ("   Main    : ");
+      Write_Str ("   Main     : ");
       Write_Name (Main_Subprogram);
       Write_Eol;
 
-      Write_Str ("   Starter : ");
+      Write_Str ("   Starter  : ");
       case Starter_Method is
          when Ada_Starter =>
             Write_Str ("Ada code");
@@ -1513,6 +1513,14 @@ package body XE is
             Write_Str ("none");
       end case;
       Write_Eol;
+
+      if Protocol_Name /= No_Name then
+         Write_Str  ("   Protocol : ");
+         Write_Name (Protocol_Name);
+         Write_Str  ("://");
+         Write_Name (Protocol_Data);
+         Write_Eol;
+      end if;
       Write_Eol;
 
       for P in Partitions.First .. Partitions.Last loop
@@ -1525,7 +1533,7 @@ package body XE is
             Write_Eol;
 
             if I.Main_Subprogram /= No_Name then
-               Write_Str ("   Main    : ");
+               Write_Str ("   Main     : ");
                Write_Name (I.Main_Subprogram);
                Write_Eol;
             end if;
@@ -1539,7 +1547,7 @@ package body XE is
             end if;
 
             if Host /= Null_Host then
-               Write_Str ("   Host    : ");
+               Write_Str ("   Host     : ");
                if not Hosts.Table (Host).Static then
                   Write_Str ("function call :: ");
                end if;
@@ -1566,7 +1574,7 @@ package body XE is
             end if;
 
             if Storage_Dir /= No_Storage_Dir then
-               Write_Str ("   Storage : ");
+               Write_Str ("   Storage  : ");
                Write_Name (Storage_Dir);
                Write_Eol;
             end if;
@@ -1580,13 +1588,13 @@ package body XE is
             end if;
 
             if Command_Line /= No_Command_Line then
-               Write_Str ("   Command : ");
+               Write_Str ("   Command  : ");
                Write_Name (Command_Line);
                Write_Eol;
             end if;
 
             if I.First_Unit /= Null_CUID then
-               Write_Str ("   Units   : ");
+               Write_Str ("   Units    : ");
                Write_Eol;
                U := I.First_Unit;
                while U /= Null_CUID loop
