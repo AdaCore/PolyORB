@@ -403,6 +403,16 @@ $(TCP_PLATFORM_SOURCES): $(S_GTPLSP_ADS) $(S_GTPLSP_ADB)
 	  cp $(srcdir)/$(S_GTPLSP_ADB) s-gtplsp.adb; \
 	fi
 
+force:
+
+s-garthi.ads s-garthi.adb: $(S_GARTHI_ADS) $(S_GARTHI_ADB) force
+	@if test -n "$(S_GARTHI_ADB)"; then \
+	  cp $(srcdir)/$(S_GARTHI_ADB) s-garthi.adb; \
+	fi
+	@if test -n "$(S_GARTHI_ADS)"; then \
+	  cp $(srcdir)/$(S_GARTHI_ADS) s-garthi.ads; \
+	fi
+
 split: $(srcdir)/split.adb
 	$(GNATMAKE) -m -o split $(srcdir)/split.adb
 
