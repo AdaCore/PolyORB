@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.20 $
+--                            $Revision: 1.21 $
 --                                                                          --
---            Copyright (C) 1999 ENST Paris University, France.             --
+--         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -36,8 +36,9 @@
 with Ada.Strings.Unbounded;
 with CORBA; use CORBA;
 with Broca.Exceptions;
-with Broca.Marshalling; use Broca.Marshalling;
+with Broca.CDR; use Broca.CDR;
 with Broca.Buffers;     use Broca.Buffers;
+with Broca.Buffers.IO_Operations;
 with Broca.IOP;         use Broca.IOP;
 with Broca.Sequences;   use Broca.Sequences;
 with Sockets.Constants;
@@ -55,51 +56,55 @@ package body Broca.IIOP is
      return Interfaces.C.unsigned_short;
 
    procedure Decapsulate_Profile
-     (Buffer   : in out Buffer_Descriptor;
+     (Buffer   : access Buffer_Type;
       Profile  : out Profile_Ptr);
 
    procedure Encapsulate_Profile
-     (Buffer   : in out Buffer_Descriptor;
-      From     : in Buffer_Index_Type;
-      Profile  : in Profile_Ptr);
+     (IOR   : access Buffer_Type;
+      Profile  : access Profile_Type'Class);
 
    --------------------
-   -- Get_Profile_Id --
+   -- Get_Profile_Tag --
    --------------------
 
-   function Get_Profile_Id
+   function Get_Profile_Tag
      (Profile : Profile_IIOP_Type)
-     return Profile_Id is
+     return Profile_Tag is
    begin
       return Tag_Internet_IOP;
-   end Get_Profile_Id;
+   end Get_Profile_Tag;
 
    -------------------------
    -- Decapsulate_Profile --
    -------------------------
 
    procedure Decapsulate_Profile
-     (Buffer   : in out Buffer_Descriptor;
+     (Buffer   : access Buffer_Type;
       Profile  : out Profile_Ptr)
    is
-      Old_Endian   : Boolean := Get_Endianess (Buffer);
-      New_Endian   : Boolean;
-      Minor        : Octet;
-      Major        : Octet;
+      --  Old_Endian   : Boolean := Get_Endianess (Buffer);
+      --  New_Endian   : Boolean;
+      Minor        : CORBA.Octet;
+      Major        : CORBA.Octet;
       IIOP_Profile : Profile_IIOP_Ptr := new Profile_IIOP_Type;
+
+      Profile_Body : aliased Encapsulation
+        := Unmarshall (Buffer);
+      Profile_Body_Buffer : aliased Buffer_Type;
    begin
-      Unmarshall (Buffer, New_Endian);
-      Set_Endianess (Buffer, New_Endian);
+      --  Unmarshall (Buffer, New_Endian);
+      --  Set_Endianess (Buffer, New_Endian);
+      Decapsulate (Profile_Body'Access, Profile_Body_Buffer'Access);
 
-      Unmarshall (Buffer, Major);
-      Unmarshall (Buffer, Minor);
+      Major := Unmarshall (Profile_Body_Buffer'Access);
+      Minor := Unmarshall (Profile_Body_Buffer'Access);
 
-      Unmarshall (Buffer, IIOP_Profile.Host);
-      Unmarshall (Buffer, IIOP_Profile.Port);
+      IIOP_Profile.Host := Unmarshall (Profile_Body_Buffer'Access);
+      IIOP_Profile.Port := Unmarshall (Profile_Body_Buffer'Access);
       IIOP_Profile.Network_Port := Port_To_Network_Port (IIOP_Profile.Port);
-      Align_Size (Buffer, UL_Size);
-      Unmarshall (Buffer, IIOP_Profile.Object_Key);
-      Set_Endianess (Buffer, Old_Endian);
+      --  Align_Size (Profile_Body_Buffer'Access, UL_Size);
+      IIOP_Profile.Object_Key := Unmarshall (Profile_Body_Buffer'Access);
+      --  Set_Endianess (Profile_Body_Buffer'Access, Old_Endian);
 
       Profile :=  Profile_Ptr (IIOP_Profile);
    end Decapsulate_Profile;
@@ -109,46 +114,41 @@ package body Broca.IIOP is
    -------------------------
 
    procedure Encapsulate_Profile
-     (Buffer   : in out Buffer_Descriptor;
-      From     : in Buffer_Index_Type;
-      Profile  : in Profile_Ptr)
+     (IOR     : access Buffer_Type;
+      Profile : access Profile_Type'Class)
    is
-      IIOP_Profile : Profile_IIOP_Type renames Profile_IIOP_Type (Profile.all);
+      IIOP_Profile : Profile_IIOP_Type
+        renames Profile_IIOP_Type (Profile.all);
+
+      use Broca.CDR;
+
+      Profile_Body : aliased Buffer_Type;
    begin
-      Rewind (Buffer);
 
-      Skip_Bytes (Buffer, From);
+      --  A TAG_INTERNET_IOP Profile Body is an encapsulation.
 
-      --  Endianess
-      Compute_New_Size (Buffer, O_Size, O_Size);
+      Start_Encapsulation (Profile_Body'Access);
 
-      --  Major version
-      Compute_New_Size (Buffer, O_Size, O_Size);
-
-      --  Minor version
-      Compute_New_Size (Buffer, O_Size, O_Size);
+      --  Version
+      --  FIXME: Version should not be hard-coded.
+      Marshall (Profile_Body'Access, CORBA.Octet'(1));
+      Marshall (Profile_Body'Access, CORBA.Octet'(0));
 
       --  Host
-      Compute_New_Size (Buffer, IIOP_Profile.Host);
+      Marshall (Profile_Body'Access, IIOP_Profile.Host);
 
       --  Port
-      Compute_New_Size (Buffer, US_Size, US_Size);
+      Marshall (Profile_Body'Access, IIOP_Profile.Port);
 
-      Align_Size (Buffer, UL_Size);
+      --  Object key
+      Marshall (Profile_Body'Access, IIOP_Profile.Object_Key);
 
-      Compute_New_Size (Buffer, IIOP_Profile.Object_Key);
-
-      Allocate_Buffer_And_Clear_Pos (Buffer, Full_Size (Buffer));
-
-      Skip_Bytes (Buffer, From);
-
-      Marshall (Buffer, Is_Little_Endian);
-      Marshall (Buffer, CORBA.Octet'(1));
-      Marshall (Buffer, CORBA.Octet'(0));
-      Marshall (Buffer, IIOP_Profile.Host);
-      Marshall (Buffer, IIOP_Profile.Port);
-      Align_Size (Buffer, UL_Size);
-      Marshall (Buffer, IIOP_Profile.Object_Key);
+      --  Marshall the TaggedProfile into IOR.
+      --  XXX Check that the tag is not marshalled twice:
+      --  once by the caller, another here.
+      Marshall (IOR, Broca.IOP.Tag_Internet_IOP);
+      Marshall (IOR, Encapsulate (Profile_Body'Access));
+      Release (Profile_Body);
    end Encapsulate_Profile;
 
    --------------------
@@ -170,7 +170,7 @@ package body Broca.IIOP is
      (Port : CORBA.Unsigned_Short)
      return Interfaces.C.unsigned_short is
    begin
-      if Broca.Buffers.Is_Little_Endian then
+      if Broca.Buffers.Host_Order = Little_Endian then
          return Interfaces.C.unsigned_short
            ((Port / 256) + (Port mod 256) * 256);
       else
@@ -182,31 +182,34 @@ package body Broca.IIOP is
    -- Create_Profile --
    --------------------
 
+   --  XXX This contains duplicate functionality
+   --  XXX WRT Decapsulate_Profile.
+   --  ==> This must be rewritten in terms of
+   --  Decapsulate_Profile.
+
    procedure Create_Profile
-     (Buffer : in out Buffer_Descriptor;
+     (Buffer : access Buffer_Type;
       Profile : out Profile_Ptr)
    is
-      use Broca.Marshalling;
+      use Broca.CDR;
 
+      Profile_Body : aliased Encapsulation
+        := Unmarshall (Buffer);
+      Profile_Body_Buffer : aliased Buffer_Type;
       Res : Profile_IIOP_Ptr;
       Nbr_Seq : CORBA.Unsigned_Long;
-      Profile_Length : CORBA.Unsigned_Long;
-      Old_Endian : CORBA.Boolean;
-      New_Endian : CORBA.Boolean;
+
    begin
       Res := new Profile_IIOP_Type;
 
-      --  Extract length of the sequence.
-      Unmarshall (Buffer, Profile_Length);
-
-      --  Profile_Data is an encapsulation. Extract endian.
-      Old_Endian := Get_Endianess (Buffer);
-      Unmarshall (Buffer, New_Endian);
-      Set_Endianess (Buffer, New_Endian);
+      Decapsulate (Profile_Body'Access,
+                   Profile_Body_Buffer'Access);
 
       --  Extract version
-      Unmarshall (Buffer, Res.IIOP_Version.Major);
-      Unmarshall (Buffer, Res.IIOP_Version.Minor);
+      Res.IIOP_Version.Major
+        := Unmarshall (Profile_Body_Buffer'Access);
+      Res.IIOP_Version.Minor
+        := Unmarshall (Profile_Body_Buffer'Access);
 
       if Res.IIOP_Version.Major /= 1
         or else Res.IIOP_Version.Minor > 1
@@ -214,16 +217,18 @@ package body Broca.IIOP is
          Broca.Exceptions.Raise_Bad_Param;
       end if;
 
-      Unmarshall (Buffer, Res.Host);
-      Unmarshall (Buffer, Res.Port);
+      Res.Host := Unmarshall (Profile_Body_Buffer'Access);
+      Res.Port := Unmarshall (Profile_Body_Buffer'Access);
       pragma Debug (O ("host: " & To_String (Res.Host)));
       pragma Debug (O ("port: " & CORBA.Unsigned_Short'Image (Res.Port)));
       Res.Network_Port := Port_To_Network_Port (Res.Port);
-      Broca.Sequences.Unmarshall (Buffer, Res.Object_Key);
+      Res.Object_Key := Broca.Sequences.Unmarshall
+        (Profile_Body_Buffer'Access);
 
       if Res.IIOP_Version.Minor = 1 then
-         Unmarshall (Buffer, Nbr_Seq);
+         Nbr_Seq := Unmarshall (Profile_Body_Buffer'Access);
          if Nbr_Seq /= 0 then
+            --  FIXME:
             --  Components are not yet handled.
             Broca.Exceptions.Raise_Bad_Param;
          end if;
@@ -231,9 +236,6 @@ package body Broca.IIOP is
 
       --  Store profile result.
       Profile := Res.all'Access;
-
-      --  Restore little_endian flag of buffer.
-      Set_Endianess (Buffer, Old_Endian);
    end Create_Profile;
 
    procedure Create_Socket_Address (Profile : in out Profile_IIOP_Type);
@@ -254,11 +256,9 @@ package body Broca.IIOP is
         (Address_Of (To_String (Unbounded_String (Profile.Host))));
    end Create_Socket_Address;
 
-   function Create_Strand (Profile : access Profile_IIOP_Type)
-                           return Strand_Ptr;
+   function Create_Strand return Strand_Ptr;
 
-   function Create_Strand (Profile : access Profile_IIOP_Type)
-                           return Strand_Ptr is
+   function Create_Strand return Strand_Ptr is
       Res : Strand_Ptr;
    begin
       Res := new Strand_Type;
@@ -297,39 +297,43 @@ package body Broca.IIOP is
       record
          Strand : Strand_Ptr;
       end record;
-   function Get_Request_Id (Connection : access Strand_Connection_Type)
-                            return CORBA.Unsigned_Long;
+
    procedure Send
      (Connection : access Strand_Connection_Type;
-      Buffer     : in out Buffer_Descriptor);
+      Buffer     : access Buffer_Type);
 
-   procedure Receive
+   function Receive
      (Connection : access Strand_Connection_Type;
-      Buffer     : in out Buffer_Descriptor);
+      Length     : Opaque.Index_Type)
+     return Opaque.Octet_Array;
 
    procedure Release_Connection
      (Connection : access Strand_Connection_Type);
 
    procedure Send
      (Connection : access Strand_Connection_Type;
-      Buffer     : in out Buffer_Descriptor)
+      Buffer     : access Buffer_Type)
    is
       use Sockets.Thin;
       use Interfaces.C;
-      Length : Buffer_Index_Type := Full_Size (Buffer);
-      Bytes  : Buffer_Type (0 .. Length - 1);
-      Result : Interfaces.C.int;
    begin
-      Read (Buffer, Bytes);
-      pragma Debug (O ("Dump outgoing buffer of length" & Length'Img));
-      Broca.Buffers.Dump (Bytes);
-      Result := C_Send
-        (Connection.Strand.Fd,
-         Bytes'Address,
-         Interfaces.C.int (Length), 0);
-      if Result /= Interfaces.C.int (Length) then
-         Broca.Exceptions.Raise_Comm_Failure;
-      end if;
+      --  Read (Buffer, Bytes);
+      pragma Debug (O ("Dump outgoing buffer"));
+      Broca.Buffers.Show (Buffer.all);
+      --  Result := C_Send
+      --    (Connection.Strand.Fd,
+      --     Bytes'Address,
+      --     Interfaces.C.int (Length), 0);
+      --  if Result /= Interfaces.C.int (Length) then
+      --   Broca.Exceptions.Raise_Comm_Failure;
+      --  end if;
+      begin
+         Broca.Buffers.IO_Operations.Write_To_FD
+           (Connection.Strand.Fd, Buffer);
+      exception
+         when others =>
+            Broca.Exceptions.Raise_Comm_Failure;
+      end;
       pragma Debug (O ("Message correctly sent"));
    end Send;
 
@@ -337,48 +341,77 @@ package body Broca.IIOP is
    -- Receive --
    -------------
 
-   procedure Receive
+--     procedure Receive
+--       (Connection : access Strand_Connection_Type;
+--        Buffer     : access Buffer_Type)
+--     is
+--        Length : constant Buffer_Index_Type := Size_Left (Buffer);
+--     begin
+--        if Length = 0 then
+--           pragma Debug (O ("Null length in Receive"));
+--
+--           return;
+--        end if;
+--
+--        declare
+--           use Sockets.Thin;
+--           use Interfaces.C;
+--
+--           Bytes  : Buffer_Type (0 .. Length - 1);
+--           Result : Interfaces.C.int;
+--        begin
+--           Result := C_Recv
+--             (Connection.Strand.Fd,
+--              Bytes'Address,
+--              Interfaces.C.int (Length), 0);
+--
+--           if Result /=  Interfaces.C.int (Length) then
+--              Broca.Exceptions.Raise_Comm_Failure;
+--           end if;
+--           Write (Buffer, Bytes);
+--
+--           pragma Debug (O ("Dump incoming buffer of length" & Length'Img));
+--           Broca.Buffers.Dump (Bytes);
+--        end;
+--     end Receive;
+
+   function Receive
      (Connection : access Strand_Connection_Type;
-      Buffer     : in out Buffer_Descriptor)
+      Length     : Opaque.Index_Type)
+     return Opaque.Octet_Array
    is
-      Length : constant Buffer_Index_Type := Size_Left (Buffer);
+      use Broca.Opaque;
+
+      Result : Octet_Array (1 .. Length);
    begin
       if Length = 0 then
          pragma Debug (O ("Null length in Receive"));
-         return;
+
+         return Result;
       end if;
 
       declare
          use Sockets.Thin;
          use Interfaces.C;
 
-         Bytes  : Buffer_Type (0 .. Length - 1);
-         Result : Interfaces.C.int;
+         Received : Interfaces.C.int;
       begin
-         Result := C_Recv
+         Received := C_Recv
            (Connection.Strand.Fd,
-            Bytes'Address,
+            Result (1)'Address,
             Interfaces.C.int (Length), 0);
 
-         if Result /=  Interfaces.C.int (Length) then
+         if Received /=  Interfaces.C.int (Length) then
             Broca.Exceptions.Raise_Comm_Failure;
+         else
+            return Result;
          end if;
-         Write (Buffer, Bytes);
 
-         pragma Debug (O ("Dump incoming buffer of length" & Length'Img));
-         Broca.Buffers.Dump (Bytes);
+         --  XXX
+         --  pragma Debug (O ("Dump incoming buffer of length" & Length'Img));
+         --  Broca.Buffers.Show (Bytes);
       end;
    end Receive;
-
-   function Get_Request_Id (Connection : access Strand_Connection_Type)
-                            return CORBA.Unsigned_Long
-   is
-      Res : CORBA.Unsigned_Long;
-   begin
-      Res := Connection.Strand.Request_Id;
-      Connection.Strand.Request_Id := Connection.Strand.Request_Id + 1;
-      return Res;
-   end Get_Request_Id;
 
    procedure Release_Connection (Connection : access Strand_Connection_Type) is
    begin
@@ -404,7 +437,7 @@ package body Broca.IIOP is
          Strand := Strand.Next;
       end loop;
       if Strand = null then
-         Strand := Create_Strand (Profile);
+         Strand := Create_Strand;
          Strand.Lock.Lock;
          Profile.Lock.Lock_W;
          Strand.Next := Profile.Strands;

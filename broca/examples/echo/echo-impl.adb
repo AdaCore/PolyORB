@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.3 $
+--                            $Revision: 1.4 $
 --                                                                          --
 --            Copyright (C) 1999 ENST Paris University, France.             --
 --                                                                          --
@@ -26,11 +26,15 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Text_IO;
+
 package body Echo.Impl is
 
    function EchoString (Self : access Object; Mesg : in CORBA.String)
                         return CORBA.String is
    begin
+      Ada.Text_IO.Put_Line ("Echoing string: « "
+                & CORBA.To_Standard_String (Mesg) & " »");
       return Mesg;
    end EchoString;
 

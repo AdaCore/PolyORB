@@ -149,14 +149,10 @@ package Sockets.Thin is
    pragma Convention (C, Iovec);
    --  Iovec C type
 
-   type Iovec_Access is access all Iovec;
-   pragma Convention (C, Iovec_Access);
-   --  Access to Iovec structure
-
    type Msghdr is record
       Msg_Name         : System.Address;
       Msg_Namelen      : C.int;
-      Msg_Iov          : Iovec_Access;
+      Msg_Iov          : System.Address;
       Msg_Iovlen       : C.int;
       Msg_Accrights    : System.Address;
       Msg_Accrightslen : C.int;
@@ -331,7 +327,7 @@ package Sockets.Thin is
 
    function C_Readv
      (Fildes : C.int;
-      Iov    : Iovec_Access;
+      Iov    : System.Address;
       Iovcnt : C.int)
      return C.int;
 
@@ -401,7 +397,7 @@ package Sockets.Thin is
 
    function C_Writev
      (Fildes : C.int;
-      Iov    : Iovec_Access;
+      Iov    : System.Address;
       Iovcnt : C.int)
      return C.int;
 

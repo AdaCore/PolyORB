@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.7 $
+--                            $Revision: 1.8 $
 --                                                                          --
---            Copyright (C) 1999 ENST Paris University, France.             --
+--         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,67 +33,74 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Broca.Marshalling; use Broca.Marshalling;
-with Ada.Unchecked_Conversion;
+with Broca.CDR; use Broca.CDR;
 
 package body Broca.Sequences is
 
-   ----------------------
-   -- Compute_New_Size --
-   ----------------------
+   package OS renames Octet_Sequences;
 
-   procedure Compute_New_Size
-     (Buffer : in out Buffer_Descriptor;
-      Value  : in Octet_Sequences.Sequence) is
+   function To_CORBA_Octet_Array
+     (Data : Octet_Array)
+     return CORBA_Octet_Array
+   is
+      Result : CORBA_Octet_Array (1 .. Data'Length);
    begin
-      Compute_New_Size
-        (Buffer,
-         UL_Size,
-         O_Size,
-         Octet_Sequences.Length (Value));
-   end Compute_New_Size;
+      for I in Data'Range loop
+         Result (Integer (I - Data'First + 1))
+           := CORBA.Octet (Data (I));
+      end loop;
+
+      return Result;
+   end To_CORBA_Octet_Array;
 
    --------------
    -- Marshall --
    --------------
 
    procedure Marshall
-     (Buffer : in out Buffer_Descriptor;
-      Value  : in Octet_Sequences.Sequence)
+     (Buffer : access Buffer_Type;
+      Data   : in Octet_Sequences.Sequence)
    is
-      package OS renames Octet_Sequences;
-      Octets : constant OS.Element_Array := OS.To_Element_Array (Value);
-      subtype Sub_Element_Array is OS.Element_Array (Octets'Range);
-      subtype Sub_Buffer_Type is Buffer_Type (0 .. Octets'Length - 1);
-      function Element_Array_To_Buffer_Type is
-        new Ada.Unchecked_Conversion (Sub_Element_Array, Sub_Buffer_Type);
+      Octets : constant OS.Element_Array
+        := OS.To_Element_Array (Data);
+      --  subtype Sub_Element_Array is OS.Element_Array (Octets'Range);
+      --  subtype Sub_Buffer_Type is Buffer_Type (0 .. Octets'Length - 1);
+      --  function Element_Array_To_Buffer_Type is
+      --    new Ada.Unchecked_Conversion (Sub_Element_Array, Sub_Buffer_Type);
    begin
       Marshall (Buffer, CORBA.Unsigned_Long (Octets'Length));
-      Write (Buffer, Element_Array_To_Buffer_Type (Octets));
+      for I in Octets'Range loop
+         Marshall (Buffer, Octets (I));
+      end loop;
+   end Marshall;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : access Octet_Sequences.Sequence)
+   is
+   begin
+      Marshall (Buffer, Data.all);
    end Marshall;
 
    ----------------
    -- Unmarshall --
    ----------------
 
-   procedure Unmarshall
-     (Buffer : in out Buffer_Descriptor;
-      Result : out Octet_Sequences.Sequence)
+   function Unmarshall
+     (Buffer : access Buffer_Type)
+     return Octet_Sequences.Sequence
    is
-      package S renames Octet_Sequences;
-      Length : Buffer_Index_Type;
+      Length : constant CORBA.Unsigned_Long
+        := Unmarshall (Buffer);
+
+      subtype Sub_Element_Array is
+        OS.Element_Array (1 .. Integer (Length));
+      Octets : Sub_Element_Array;
    begin
-      Unmarshall (Buffer, CORBA.Unsigned_Long (Length));
-      declare
-         subtype Sub_Element_Array is S.Element_Array (1 .. Natural (Length));
-         subtype Sub_Buffer_Type is Buffer_Type (0 .. Length - 1);
-         function Buffer_Type_To_Element_Array is
-           new Ada.Unchecked_Conversion (Sub_Buffer_Type, Sub_Element_Array);
-         Bytes : Sub_Buffer_Type;
-      begin
-         Read (Buffer, Bytes);
-         Result := S.To_Sequence (Buffer_Type_To_Element_Array (Bytes));
-      end;
+      for I in Octets'Range loop
+         Octets (I) := Unmarshall (Buffer);
+      end loop;
+      return OS.To_Sequence (Octets);
    end Unmarshall;
 
 end Broca.Sequences;

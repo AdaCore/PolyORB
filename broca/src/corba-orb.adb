@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.7 $
+--                            $Revision: 1.8 $
 --                                                                          --
---            Copyright (C) 1999 ENST Paris University, France.             --
+--         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -55,19 +55,21 @@ package body CORBA.ORB is
      (From : in CORBA.String;
       To   : out CORBA.Object.Ref'Class)
    is
-      Buffer : Broca.Buffers.Buffer_Descriptor;
+      Data : aliased Encapsulation
+        := Broca.IOR.IOR_String_To_Octets (From);
+      Data_Buffer : aliased Buffer_Type;
    begin
       pragma Debug (O ("String_To_Object : enter"));
 
-      Buffer := Broca.IOR.IOR_String_To_Buffer (From);
-      Broca.ORB.IOR_To_Object (Buffer, To);
+      Decapsulate (Data'Access, Data_Buffer'Access);
+      Broca.ORB.IOR_To_Object (Data_Buffer'Access, To);
+      Release (Data_Buffer);
 
       if CORBA.Object.Is_Nil (To) then
          pragma Debug (O ("String_To_Object : null object returned"));
          null;
       end if;
 
-      Destroy (Buffer);
    end String_To_Object;
 
    function List_Initial_Services return ObjectIdList

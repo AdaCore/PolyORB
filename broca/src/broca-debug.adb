@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.2 $
+--                            $Revision: 1.3 $
 --                                                                          --
---            Copyright (C) 1999 ENST Paris University, France.             --
+--         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -41,7 +41,7 @@ package body Broca.Debug is
 
    type String_Ptr is access String;
 
-   Flag_Table : array (1 .. 32) of String_Ptr;
+   Flag_Table : array (1 .. 256) of String_Ptr;
    Last_Flag  : Natural := 0;
 
    ---------------

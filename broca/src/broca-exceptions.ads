@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.8 $
+--                            $Revision: 1.9 $
 --                                                                          --
---            Copyright (C) 1999 ENST Paris University, France.             --
+--         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -73,18 +73,16 @@ package Broca.Exceptions is
       To   : out System_Exception_Members);
 
    --  Only for a system exception.
-   procedure Compute_New_Size
-     (Buffer : in out Buffer_Descriptor;
-      Excpt  : in CORBA.Exception_Occurrence);
+   --  procedure Compute_New_Size
+   --    (Buffer : access Buffer_Type;
+   --     Excpt  : in CORBA.Exception_Occurrence);
 
    procedure Marshall
-     (Buffer : in out Buffer_Descriptor;
+     (Buffer : access Buffer_Type;
       Excpt  : in CORBA.Exception_Occurrence);
 
-   procedure Unmarshall_And_Raise (Buffer : in out Buffer_Descriptor);
+   procedure Unmarshall_And_Raise (Buffer : access Buffer_Type);
    pragma No_Return (Unmarshall_And_Raise);
-
-
 
    -------------------------------------------
    --  Utilities to raise System Exceptions --

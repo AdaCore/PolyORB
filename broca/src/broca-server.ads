@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.8 $
+--                            $Revision: 1.9 $
 --                                                                          --
---            Copyright (C) 1999 ENST Paris University, France.             --
+--         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -56,7 +56,7 @@ package Broca.Server is
    --  or freed and replaced.
    procedure Perform_Work
      (Server : access Server_Type;
-      Buffer : in out Broca.Buffers.Buffer_Descriptor)
+      Buffer : access Broca.Buffers.Buffer_Type)
       is abstract;
 
    --  During the building of an IOR, this procedure is called to know the
@@ -64,11 +64,16 @@ package Broca.Server is
    --  Length can be null, if the server can't create a profile.
    --  Need only to update IOR.POS.
    --  OBJECT_KEY must be 4-aligned
-   procedure Marshall_Size_Profile
-     (Server : access Server_Type;
-      IOR : in out Broca.Buffers.Buffer_Descriptor;
-      Object_Key : Broca.Buffers.Buffer_Descriptor)
-      is abstract;
+   --  procedure Marshall_Size_Profile
+   --    (Server : access Server_Type;
+   --     IOR : access Broca.Buffers.Buffer_Type;
+   --     Object_Key : access Broca.Buffers.Buffer_Type)
+   --   is abstract;
+
+   --  True if, and only if, this server can create profiles.
+   function Can_Create_Profile
+     (Server : access Server_Type)
+     return Boolean is abstract;
 
    --  During the building of an IOR, the procedure is called to marshall a
    --  profile.  The length of the profile (ie, the number added to IOR.POS)
@@ -76,9 +81,9 @@ package Broca.Server is
    --  In particular, it must be zero for no profile.
    --  OBJECT_KEY must be 4-aligned
    procedure Marshall_Profile
-     (Server : access Server_Type;
-      IOR : in out Broca.Buffers.Buffer_Descriptor;
-      Object_Key : Broca.Buffers.Buffer_Descriptor)
+     (Server     : access Server_Type;
+      IOR        : access Broca.Buffers.Buffer_Type;
+      Object_Key : Encapsulation)
       is abstract;
 
    type Server_Ptr is access all Server_Type'Class;
@@ -89,21 +94,26 @@ package Broca.Server is
 
    --  A server, in order to be active, must register itself with this
    --  procedure.
-   procedure Register (Server : Server_Ptr; Id : out Server_Id_Type);
+   procedure Register
+     (Server : Server_Ptr;
+      Id : out Server_Id_Type);
 
    --  This procedure is called by a POA to request a server task to perform
    --  arbitrary work, such as cleaning the POA up.
-   procedure Request_Cleanup (POA : Broca.POA.POA_Object_Ptr);
+   procedure Request_Cleanup
+     (POA : Broca.POA.POA_Object_Ptr);
 
    --  When a server has a request that can be processed, it must inform
    --  with this procedure.
    --  POS is the identifier coming from register.
-   procedure New_Request (Id : Server_Id_Type);
+   procedure New_Request
+     (Id : Server_Id_Type);
 
    --  This procedure is designed to be called by perform_work primitive to
    --  process a message.
-   procedure Handle_Message (Stream : Broca.Stream.Stream_Ptr;
-                             Buffer : in out Buffer_Descriptor);
+   procedure Handle_Message
+     (Stream : Broca.Stream.Stream_Ptr;
+      Buffer : access Broca.Buffers.Buffer_Type);
 
    --  Register a POA.
    --  broca.poa.all_poas_lock should have been lock_w.
@@ -116,10 +126,11 @@ package Broca.Server is
    --  This procedure builds an IOR.
    --  It can return a null_string if there is no profiles for this object.
    --  KEY is only the key for the POA, not the full object key.
-   procedure Build_IOR (Target : out Broca.Buffers.Buffer_Descriptor;
-                        Type_Id : CORBA.RepositoryId;
-                        POA : Broca.POA.POA_Object_Ptr;
-                        Key : Broca.Buffers.Buffer_Descriptor);
+   function Build_IOR
+     (Type_Id : CORBA.RepositoryId;
+      POA : Broca.POA.POA_Object_Ptr;
+      Key : Broca.Buffers.Encapsulation)
+     return Encapsulation;
 private
    type Server_Id_Type is new Natural;
 end Broca.Server;

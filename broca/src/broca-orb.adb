@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.14 $
+--                            $Revision: 1.15 $
 --                                                                          --
---            Copyright (C) 1999 ENST Paris University, France.             --
+--         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -35,10 +35,10 @@
 
 with CORBA.Sequences.Unbounded;
 with CORBA.ORB; use CORBA.ORB;
-with CORBA.IOP;
+with Broca.IOP;
 with CORBA.Object;
 with Broca.Exceptions;
-with Broca.Marshalling;
+with Broca.CDR;
 with Broca.Buffers;
 with Broca.Refs;
 with Broca.Object;
@@ -67,24 +67,20 @@ package body Broca.ORB is
    -------------------
 
    procedure IOR_To_Object
-     (IOR : in out Broca.Buffers.Buffer_Descriptor;
+     (IOR : access Broca.Buffers.Buffer_Type;
       Ref : out CORBA.Object.Ref'Class)
    is
-      use Broca.Marshalling;
+      use Broca.CDR;
 
       Nbr_Profiles : CORBA.Unsigned_Long;
-      Tag : CORBA.IOP.Profile_Id;
+      Tag : Broca.IOP.Profile_Tag;
       Type_Id : CORBA.String;
       Obj : Broca.Object.Object_Ptr;
-      Endianess : Boolean;
    begin
       pragma Debug (O ("IOR_To_Object : enter"));
-      --  Extract endianness
-      Unmarshall (IOR, Endianess);
-      Broca.Buffers.Set_Endianess (IOR, Endianess);
 
       --  Unmarshall type id.
-      Unmarshall (IOR, Type_Id);
+      Type_Id := Unmarshall (IOR);
       declare
          A_Ref : CORBA.Object.Ref'Class :=
            Broca.Repository.Create (CORBA.RepositoryId (Type_Id));
@@ -101,14 +97,14 @@ package body Broca.ORB is
          Obj := Broca.Object.Object_Ptr
            (Broca.Refs.Get (Broca.Refs.Ref (A_Ref)));
 
-         Unmarshall (IOR, Nbr_Profiles);
+         Nbr_Profiles := Unmarshall (IOR);
 
          Obj.Type_Id  := Type_Id;
          Obj.Profiles := new IOP.Profile_Ptr_Array (1 .. Nbr_Profiles);
          for I in 1 .. Nbr_Profiles loop
-            Unmarshall (IOR, Tag);
+            Tag := Unmarshall (IOR);
             case Tag is
-               when CORBA.IOP.Tag_Internet_IOP =>
+               when Broca.IOP.Tag_Internet_IOP =>
                   Broca.IIOP.Create_Profile (IOR, Obj.Profiles (I));
                when others =>
                   Broca.Exceptions.Raise_Bad_Param;

@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.5 $
+--                            $Revision: 1.6 $
 --                                                                          --
---            Copyright (C) 1999 ENST Paris University, France.             --
+--         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -53,14 +53,21 @@ package body CORBA.Object is
    -- Object_To_String --
    ----------------------
 
-   function Object_To_String (Obj : CORBA.Object.Ref) return CORBA.String
+   function Object_To_String
+     (Obj : CORBA.Object.Ref)
+     return CORBA.String
    is
-      Buffer : Buffer_Descriptor;
+      Buffer : aliased Buffer_Type;
    begin
-      Compute_New_Size (Buffer, Obj);
-      Allocate_Buffer (Buffer);
-      Marshall (Buffer, Obj);
-      return Broca.IOR.Buffer_To_IOR_String (Buffer);
+      Marshall (Buffer'Access, Obj);
+      declare
+         Result : constant CORBA.String
+           := Broca.IOR.Buffer_To_IOR_String
+           (Buffer'Access);
+      begin
+         Release (Buffer);
+         return Result;
+      end;
    end Object_To_String;
 
 end CORBA.Object;

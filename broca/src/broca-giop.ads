@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.10 $
+--                            $Revision: 1.11 $
 --                                                                          --
---            Copyright (C) 1999 ENST Paris University, France.             --
+--         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -36,6 +36,7 @@
 with CORBA;
 with CORBA.Object;
 with Broca.Object;
+with Broca.Opaque;
 with Broca.Buffers;
 with Broca.IOP;
 
@@ -71,78 +72,84 @@ package Broca.GIOP is
 
    No_Context : constant CORBA.Unsigned_Long := 0;
 
-   procedure Compute_GIOP_Header_Size
-     (Buffer : in out Buffers.Buffer_Descriptor);
-
-   procedure Compute_New_Size
-     (Buffer : in out Buffers.Buffer_Descriptor;
-      Value  : in MsgType);
-
-   procedure Compute_New_Size
-     (Buffer : in out Buffers.Buffer_Descriptor;
-      Value  : in ReplyStatusType);
-
-   procedure Compute_New_Size
-     (Buffer : in out Buffers.Buffer_Descriptor;
-      Value  : in LocateStatusType);
-
-   procedure Compute_New_Size
-     (Buffer     : in out Buffers.Buffer_Descriptor;
-      Request_Id : in CORBA.Unsigned_Long;
-      Occurence  : in CORBA.Exception_Occurrence);
-
-   procedure Compute_New_Size
-     (Buffer     : in out Buffers.Buffer_Descriptor;
-      Request_Id : in CORBA.Unsigned_Long;
-      Reference  : in CORBA.Object.Ref);
+--     procedure Compute_GIOP_Header_Size
+--       (Buffer : access Buffers.Buffer_Type);
+--
+--     procedure Compute_New_Size
+--       (Buffer : access Buffers.Buffer_Type;
+--        Value  : in MsgType);
+--
+--     procedure Compute_New_Size
+--       (Buffer : access Buffers.Buffer_Type;
+--        Value  : in ReplyStatusType);
+--
+--     procedure Compute_New_Size
+--       (Buffer : access Buffers.Buffer_Type;
+--        Value  : in LocateStatusType);
+--
+--     procedure Compute_New_Size
+--       (Buffer     : access Buffers.Buffer_Type;
+--        Request_Id : in CORBA.Unsigned_Long;
+--        Occurence  : in CORBA.Exception_Occurrence);
+--
+--     procedure Compute_New_Size
+--       (Buffer     : access Buffers.Buffer_Type;
+--        Request_Id : in CORBA.Unsigned_Long;
+--        Reference  : in CORBA.Object.Ref);
 
    procedure Marshall_GIOP_Header
-     (Buffer       : in out Buffers.Buffer_Descriptor;
+     (Buffer       : access Buffers.Buffer_Type;
       Message_Type : in MsgType);
 
+   procedure Marshall_GIOP_Header
+     (Buffer       : access Buffers.Buffer_Type;
+      Message_Type : in MsgType;
+      Message_Size : in Opaque.Index_Type);
+
    procedure Marshall
-     (Buffer : in out Buffers.Buffer_Descriptor;
+     (Buffer : access Buffers.Buffer_Type;
       Value  : in MsgType);
 
    procedure Marshall
-     (Buffer : in out Buffers.Buffer_Descriptor;
+     (Buffer : access Buffers.Buffer_Type;
       Value  : in ReplyStatusType);
 
    procedure Marshall
-     (Buffer : in out Buffers.Buffer_Descriptor;
+     (Buffer : access Buffers.Buffer_Type;
       Value  : in LocateStatusType);
 
    procedure Marshall
-     (Buffer     : in out Buffers.Buffer_Descriptor;
+     (Buffer     : access Buffers.Buffer_Type;
       Request_Id : in CORBA.Unsigned_Long;
       Occurence  : in CORBA.Exception_Occurrence);
 
    procedure Marshall
-     (Buffer     : in out Buffers.Buffer_Descriptor;
+     (Buffer     : access Buffers.Buffer_Type;
       Request_Id : in CORBA.Unsigned_Long;
       Reference  : in CORBA.Object.Ref);
 
-   procedure Unmarshall
-     (Buffer : in out Buffers.Buffer_Descriptor;
-      Result : out MsgType);
+   function Unmarshall
+     (Buffer : access Buffers.Buffer_Type)
+     return MsgType;
 
-   procedure Unmarshall
-     (Buffer : in out Buffers.Buffer_Descriptor;
-      Result : out ReplyStatusType);
+   function Unmarshall
+     (Buffer : access Buffers.Buffer_Type)
+     return ReplyStatusType;
 
-   procedure Unmarshall
-     (Buffer : in out Buffers.Buffer_Descriptor;
-      Result : out LocateStatusType);
+   function Unmarshall
+     (Buffer : access Buffers.Buffer_Type)
+     return LocateStatusType;
 
    procedure Unmarshall_GIOP_Header
-     (Buffer       : in out Buffers.Buffer_Descriptor;
-      Message_Type : out MsgType;
-      Message_Size : out CORBA.Unsigned_Long;
-      Success      : out Boolean);
+     (Buffer             : access Buffers.Buffer_Type;
+      Message_Type       : out MsgType;
+      Message_Size       : out CORBA.Unsigned_Long;
+      Message_Endianness : out Buffers.Endianness_Type;
+      Success            : out Boolean);
 
    type Request_Handler is
       record
-         Buffer     : Buffers.Buffer_Descriptor;
+         Buffer     : aliased Buffers.Buffer_Type;
          Request_Id : CORBA.Unsigned_Long;
          Profile    : IOP.Profile_Ptr;
          Connection : IOP.Connection_Ptr;
@@ -150,15 +157,16 @@ package Broca.GIOP is
       end record;
 
    --  Send a request.
-   procedure Send_Request_Size
-     (Handler   : in out Request_Handler;
-      Target    : in Object.Object_Ptr;
-      Operation : in CORBA.Identifier);
+   --  procedure Send_Request_Size
+   --    (Handler   : in out Request_Handler;
+   --     Target    : in Object.Object_Ptr;
+   --     Operation : in CORBA.Identifier);
 
    procedure Send_Request_Marshall
-     (Handler          : in out Request_Handler;
-      Reponse_Expected : in Boolean;
-      Operation        : in CORBA.Identifier);
+     (Handler           : in out Request_Handler;
+      Target            : in Object.Object_Ptr;
+      Response_Expected : in Boolean;
+      Operation         : in CORBA.Identifier);
 
    type Send_Request_Result_Type is
      (Sr_No_Reply,

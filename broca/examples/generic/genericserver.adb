@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.4 $
+--                            $Revision: 1.5 $
 --                                                                          --
 --            Copyright (C) 1999 ENST Paris University, France.             --
 --                                                                          --
@@ -28,9 +28,9 @@
 
 with Ada.Command_Line;
 with Ada.Exceptions;
-with Ada.Text_IO;use Ada.Text_IO;
+with Ada.Text_IO; use Ada.Text_IO;
 with CORBA.Object;
-with CORBA;use CORBA;
+with CORBA; use CORBA;
 with CORBA.ORB; use CORBA.ORB;
 with PortableServer;
 with PortableServer.POA;
@@ -240,7 +240,7 @@ package body GenericServer is
       use PortableServer;
       Res : Ref;
       Thread_Policy : ThreadPolicyValue;
-      Uniqueness_Policy : IdUniqueNessPolicyValue;
+      Uniqueness_Policy : IdUniquenessPolicyValue;
       Nil : PortableServer.POAManager.Ref;
       A_Ref : CORBA.Object.Ref;
       Oid : PortableServer.ObjectId;
@@ -315,7 +315,7 @@ package body GenericServer is
 
       Poa : PortableServer.POA.Ref;
       Poa_Manager : PortableServer.POAManager.Ref;
-      Oid : PortableServer.ObjectId;
+      --  Oid : PortableServer.ObjectId;
 
       Ior : CORBA.String;
       Oid_List : ObjectIdList;
@@ -336,7 +336,8 @@ package body GenericServer is
          Root_Poa : PortableServer.POA.Ref;
          Object_Ref : CORBA.Object.Ref;
       begin
-         Object_Ref := Resolve_Initial_References (To_CORBA_String ("RootPOA"));
+         Object_Ref := Resolve_Initial_References
+           (To_CORBA_String ("RootPOA"));
          Root_Poa := PortableServer.POA.To_Ref (Object_Ref);
          Poa := Build_Poa_Tree (Root_Poa);
          Poa_Manager := PortableServer.POA.Get_The_POAManager (Root_Poa);
@@ -369,8 +370,7 @@ package body GenericServer is
       end if;
 
       --  Run the ORB: accept requests.
-      if Flag_Tilt
-      then
+      if Flag_Tilt then
          declare
             task Orb;
 

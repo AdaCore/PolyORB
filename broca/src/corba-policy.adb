@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.3 $
+--                            $Revision: 1.4 $
 --                                                                          --
---            Copyright (C) 1999 ENST Paris University, France.             --
+--         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,18 +34,23 @@
 ------------------------------------------------------------------------------
 
 with Broca.Policy;
-with Broca.Object;
+with Broca.Refs;
 
 package body CORBA.Policy is
-   function Get_Policy_Type (Self: Ref) return Policytype is
+
+   function Get_Policy_Type
+     (Self : Ref)
+     return PolicyType is
    begin
       return Broca.Policy.Get_Policy_Type
-        (Broca.Policy.Policy_Object_Type (Self.A_Ref.all));
+        (Broca.Policy.Policy_Object_Type ((Get (Self).all)));
    end Get_Policy_Type;
 
-   function Copy (Self: Ref) return Ref is
+   function Copy
+     (Self : Ref)
+     return Ref'Class is
    begin
-      return Ref'(A_Ref => Broca.Object.Ref_Ptr (Broca.Policy.Copy
+      return Ref'(A_Ref => Broca.Refs.Ref_Ptr (Broca.Policy.Copy
                   (Broca.Policy.Policy_Object_Type'Class (Self.A_Ref.all))));
    end Copy;
 end CORBA.Policy;

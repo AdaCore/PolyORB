@@ -1,6 +1,8 @@
 ADA_FULL = \
 	   broca-debug.ads \
+	   broca-opaque-chunk_pools.ads \
 	   broca-buffers.ads \
+	   broca-buffers-io_operations.ads \
            broca-exceptions.ads \
            broca-exceptions-stack.ads \
            broca-flags.ads \
@@ -9,7 +11,7 @@ ADA_FULL = \
            broca-inet_server.ads \
            broca-ior.ads \
            broca-locks.ads \
-           broca-marshalling.ads \
+           broca-cdr.ads \
            broca-object.ads \
            broca-orb.ads \
            broca-poa.ads \
@@ -46,6 +48,7 @@ ADA_IMPLS = $(ADA_FULL:.ads=.adb)
 
 ADA_SPECS += $(ADA_FULL) \
            broca.ads \
+	   broca-opaque.ads \
            broca-iop.ads \
            corba-sequences.ads \
            portableserver-servantactivator-impl.ads \

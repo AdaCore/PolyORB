@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.12 $
+--                            $Revision: 1.13 $
 --                                                                          --
---            Copyright (C) 1999 ENST Paris University, France.             --
+--         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,9 +34,9 @@
 ------------------------------------------------------------------------------
 
 with CORBA;
+with Broca.Buffers;
 with Broca.Refs;
 with Broca.IOP;
-with Broca.Buffers; use Broca.Buffers;
 
 package Broca.Object is
 
@@ -46,30 +46,32 @@ package Broca.Object is
          Profiles : IOP.Profile_Ptr_Array_Ptr;
       end record;
 
-   procedure Compute_New_Size
-     (Buffer : in out Buffer_Descriptor;
-      Value  : in Broca.Object.Object_Type);
+   --  procedure Compute_New_Size
+   --  (Buffer : access Broca.Buffers.Buffer_Type;
+   --    Value  : in Broca.Object.Object_Type);
 
    procedure Marshall
-     (Buffer : in out Buffer_Descriptor;
+     (Buffer : access Broca.Buffers.Buffer_Type;
       Value  : in Broca.Object.Object_Type);
 
    procedure Unmarshall
-     (Buffer : in out Buffer_Descriptor;
+     (Buffer : access Broca.Buffers.Buffer_Type;
       Result : out Broca.Object.Object_Type);
 
    type Object_Ptr is access all Object_Type'Class;
 
-   function Find_Profile (Object : Object_Ptr) return IOP.Profile_Ptr;
+   function Find_Profile
+     (Object : Object_Ptr)
+     return IOP.Profile_Ptr;
    --  Find a profile for a message
 
    procedure Encapsulate_IOR
-     (Buffer : in out Buffers.Buffer_Descriptor;
-      From   : in Buffers.Buffer_Index_Type;
+     (Buffer : access Broca.Buffers.Buffer_Type;
+      --  From   : in Opaque.Index_Type;
       Object : in Object_Type'Class);
 
    procedure Decapsulate_IOR
-     (Buffer : in out Buffers.Buffer_Descriptor;
+     (Buffer : access Broca.Buffers.Buffer_Type;
       Object : out Object_Type'Class);
 
 end Broca.Object;

@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.10 $
+--                            $Revision: 1.11 $
 --                                                                          --
---            Copyright (C) 1999 ENST Paris University, France.             --
+--         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -35,6 +35,7 @@
 
 with Sockets.Thin;
 
+with Broca.Buffers.IO_Operations;
 with Broca.Debug;
 pragma Elaborate_All (Broca.Debug);
 
@@ -65,51 +66,48 @@ package body Broca.Stream is
 
    procedure Send
      (Stream : access Fd_Stream_Type;
-      Buffer : in out Buffer_Descriptor)
-   is
-      use Sockets.Thin;
-      use Interfaces.C;
-      Length : Buffer_Index_Type := Full_Size (Buffer);
-      Bytes  : Buffer_Type (0 .. Length - 1);
-      Result : Interfaces.C.int;
+      Buffer : access Buffer_Type) is
    begin
       Stream.Lock_S.Check_Owner;
-      Read (Buffer, Bytes);
-      pragma Debug (O ("Dump outgoing buffer of length" & Length'Img));
-      Broca.Buffers.Dump (Bytes);
-      Result := C_Send
-        (Stream.Fd,
-         Bytes'Address,
-         Interfaces.C.int (Length), 0);
-      if Result /= Interfaces.C.int (Length) then
-         raise Connection_Closed;
-      end if;
+      --  Read (Buffer, Bytes);
+      pragma Debug (O ("Dump outgoing buffer"));
+      Broca.Buffers.Show (Buffer.all);
+      begin
+         Broca.Buffers.IO_Operations.Write_To_FD
+           (Stream.Fd,
+            Buffer);
+      exception
+         when others =>
+            raise Connection_Closed;
+      end;
    end Send;
 
-   procedure Receive
+   function Receive
      (Stream : access Fd_Stream_Type;
-      Buffer : in out Buffer_Descriptor)
+      Length : Index_Type)
+     return Octet_Array
    is
       use Sockets.Thin;
       use Interfaces.C;
-      Length : Buffer_Index_Type := Size_Left (Buffer);
-      Bytes  : Buffer_Type (0 .. Length - 1);
+
+      Bytes : Octet_Array (1 .. Length);
       Result : Interfaces.C.int;
    begin
       Stream.Lock_R.Check_Owner;
       Result := C_Recv
         (Stream.Fd,
-         Bytes'Address,
+         Bytes (1)'Address,
          Interfaces.C.int (Length), 0);
 
       if Result /=  Interfaces.C.int (Length) then
          raise Connection_Closed;
       end if;
 
-      Write (Buffer, Bytes);
+      --  Write (Buffer, Bytes);
 
-      pragma Debug (O ("Receive: got " & Length'Img & " bytes"));
-      Broca.Buffers.Dump (Bytes);
+      --  pragma Debug (O ("Receive: got " & Length'Img & " bytes"));
+      --  Broca.Buffers.Dump (Bytes);
+      return Bytes;
    end Receive;
 
    function Create_Fd_Stream (Fd : Interfaces.C.int) return Stream_Ptr is

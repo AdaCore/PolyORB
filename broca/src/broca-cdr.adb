@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.5 $
+--                            $Revision: 1.6 $
 --                                                                          --
---            Copyright (C) 1999 ENST Paris University, France.             --
+--         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,250 +34,156 @@
 ------------------------------------------------------------------------------
 
 with Ada.Unchecked_Conversion;
-with Ada.Unchecked_Deallocation;
-with System;                     use System;
+with System.Address_To_Access_Conversions;
+
+with Broca.Debug;
+with Broca.Opaque; use Broca.Opaque;
 
 package body Broca.CDR is
+   Flag : constant Natural := Broca.Debug.Is_Active ("broca.cdr");
+   procedure O is new Broca.Debug.Output (Flag);
 
    use CORBA;
+   --  For operators on CORBA integer types.
 
-   procedure Free_It is
-      new Ada.Unchecked_Deallocation (Octet_Array, Octet_Array_Ptr);
+   -------------------------
+   -- Utility subprograms --
+   -------------------------
 
-   Local_Endianess : Endianess_Type;
+   subtype BO_Octet is Broca.Opaque.Octet;
 
-   function Rev (Octets : Octet_Array) return Octet_Array;
+   function Rev
+     (Octets : Octet_Array)
+     return Octet_Array;
+   --  Reverse the order of an array of octets.
 
-   procedure Marshall_Endian
+   procedure Align_Marshall_Big_Endian_Copy
      (Buffer    : access Buffer_Type;
       Octets    : Octet_Array;
-      Alignment : in Alignment_Type);
+      Alignment : Alignment_Type := 1);
+   --  Align Buffer on Alignment, then marshall a copy of
+   --  Octets into it.
+   --  The data in Octets shall be presented in big-endian
+   --  byte order.
 
-   function Unmarshall_Endian
+   function Align_Unmarshall_Big_Endian_Copy
      (Buffer    : access Buffer_Type;
       Size      : Index_Type;
-      Alignment : Alignment_Type)
+      Alignment : Alignment_Type := 1)
      return Octet_Array;
+   --  Align Buffer on Alignment, then unmarshall a copy of
+   --  Size octets from it.
+   --  The data is returned in big-endian byte order.
+
+   procedure Align_Marshall_Copy
+     (Buffer    : access Buffer_Type;
+      Octets    : in Octet_Array;
+      Alignment : Alignment_Type := 1);
+   --  Align Buffer on Alignment, then marshall a copy
+   --  of Octets into Buffer, as is.
+
+   function Align_Unmarshall_Copy
+     (Buffer    : access Buffer_Type;
+      Size      : Index_Type;
+      Alignment : Alignment_Type := 1)
+     return Octet_Array;
+   --  Align Buffer on Alignment, then unmarshall a copy
+   --  of Size octets from Buffer's data, as is.
+
+   ------------------------------------------
+   -- Conversions between CORBA signed and --
+   -- unsigned integer types.              --
+   ------------------------------------------
 
    function To_Long is
-      new Ada.Unchecked_Conversion (CORBA.Unsigned_Long, CORBA.Long);
+      new Ada.Unchecked_Conversion
+     (CORBA.Unsigned_Long, CORBA.Long);
    function To_Unsigned_Long is
-      new Ada.Unchecked_Conversion (CORBA.Long, CORBA.Unsigned_Long);
+      new Ada.Unchecked_Conversion
+     (CORBA.Long, CORBA.Unsigned_Long);
    function To_Short is
-      new Ada.Unchecked_Conversion (CORBA.Unsigned_Short, CORBA.Short);
+      new Ada.Unchecked_Conversion
+     (CORBA.Unsigned_Short, CORBA.Short);
    function To_Unsigned_Short is
-      new Ada.Unchecked_Conversion (CORBA.Short, CORBA.Unsigned_Short);
+      new Ada.Unchecked_Conversion
+     (CORBA.Short, CORBA.Unsigned_Short);
 
-   function Align (Index : Index_Type; Alignment : Alignment_Type)
-     return Index_Type;
-
-   ------------
-   -- Adjust --
-   ------------
-
-   procedure Adjust (Buffer : in out Buffer_Type) is
-   begin
-      Buffer.Content := new Octet_Array'(Buffer.Content.all);
-   end Adjust;
-
-   -----------
-   -- Align --
-   -----------
-
-   function Align (Index : Index_Type; Alignment : Alignment_Type)
-     return Index_Type
-   is
-   begin
-      return Index_Type (Alignment) *
-        ((Index + Index_Type (Alignment) - 1) / Index_Type (Alignment));
-   end Align;
-
-   --------------
-   -- Finalize --
-   --------------
-
-   procedure Finalize (Buffer : in out Buffer_Type) is
-   begin
-      Free (Buffer.Content);
-   end Finalize;
-
-   ----------
-   -- Free --
-   ----------
-
-   procedure Free (Octets : in out Octet_Array_Ptr) is
-   begin
-      Free_It (Octets);
-   end Free;
-
-   -----------------
-   -- Get_Content --
-   -----------------
-
-   function Get_Content (Buffer : access Buffer_Type) return Octet_Array is
-   begin
-      return Buffer.Content.all;
-   end Get_Content;
-
-   ----------------
-   -- Initialize --
-   ----------------
-
-   procedure Initialize (Buffer : in out Buffer_Type) is
-   begin
-      Initialize (Buffer'Access, Local_Endianess);
-   end Initialize;
-
-   ----------------
-   -- Initialize --
-   ----------------
-
-   procedure Initialize
-     (Buffer  : access Buffer_Type;
-      Content : in Octet_Array)
-   is
-   begin
-      Free (Buffer.Content);
-      Buffer.Content     := new Octet_Array (0 .. Content'Length - 1);
-      Buffer.Content.all := Content;
-      Buffer.Index       := 0;
-      if Unmarshall (Buffer) then
-         Buffer.Endianess := Little_Endian;
-      else
-         Buffer.Endianess := Big_Endian;
-      end if;
-   end Initialize;
-
-   ----------------
-   -- Initialize --
-   ----------------
-
-   procedure Initialize
-     (Buffer    : access Buffer_Type;
-      Endianess : in Endianess_Type)
-   is
-   begin
-      Buffer.Endianess := Endianess;
-      Buffer.Content   := new Octet_Array (0 .. -1);
-      Buffer.Index     := 0;
-      Marshall (Buffer, Buffer.Endianess = Little_Endian);
-   end Initialize;
-
-   --------------
-   -- Marshall --
-   --------------
+   ----------------------------------
+   -- Marshall-by-copy subprograms --
+   -- for all elementary types     --
+   ----------------------------------
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Inner  : in Buffer_Type)
+      Data : in CORBA.Boolean)
    is
    begin
-      Marshall (Buffer, CORBA.Unsigned_Long'(Inner.Content'Length));
-      Marshall_Opaque (Buffer, Inner.Content.all);
+      Marshall (Buffer, CORBA.Octet'(CORBA.Boolean'Pos (Data)));
    end Marshall;
 
-   --------------
-   -- Marshall --
-   --------------
-
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Octets : in CORBA.Boolean)
+      Data   : in CORBA.Char)
    is
    begin
-      Marshall (Buffer, CORBA.Octet'(CORBA.Boolean'Pos (Octets)));
+      Marshall (Buffer, CORBA.Octet'(CORBA.Char'Pos (Data)));
    end Marshall;
 
-   --------------
-   -- Marshall --
-   --------------
-
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Octets : in CORBA.Char)
+      Data : in CORBA.Octet)
    is
    begin
-      Marshall (Buffer, CORBA.Octet'(CORBA.Char'Pos (Octets)));
+      Align_Marshall_Copy (Buffer, (1 => BO_Octet (Data)), 1);
    end Marshall;
 
-   --------------
-   -- Marshall --
-   --------------
-
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Octets : in CORBA.Octet)
+      Data : in CORBA.Unsigned_Short)
    is
    begin
-      Marshall_Opaque (Buffer, (1 => Octets));
-   end Marshall;
-
-   --------------
-   -- Marshall --
-   --------------
-
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Octets : in CORBA.Unsigned_Short)
-   is
-   begin
-      Marshall_Endian
+      Align_Marshall_Big_Endian_Copy
         (Buffer,
-         (CORBA.Octet (Octets / 256), CORBA.Octet (Octets mod 256)),
+         (BO_Octet (Data / 256),
+          BO_Octet (Data mod 256)),
          2);
    end Marshall;
 
-   --------------
-   -- Marshall --
-   --------------
-
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Octets : in CORBA.Unsigned_Long)
+      Data : in CORBA.Unsigned_Long)
    is
    begin
-      Marshall_Endian
+      Align_Marshall_Big_Endian_Copy
         (Buffer,
-         (CORBA.Octet (Octets / 256**3),
-          CORBA.Octet ((Octets / 256**2) mod 256),
-          CORBA.Octet ((Octets / 256) mod 256),
-          CORBA.Octet (Octets mod 256)),
+         (BO_Octet (Data / 256**3),
+          BO_Octet ((Data / 256**2) mod 256),
+          BO_Octet ((Data / 256) mod 256),
+          BO_Octet (Data mod 256)),
          4);
    end Marshall;
 
-   --------------
-   -- Marshall --
-   --------------
-
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Octets : in CORBA.Long)
+      Data : in CORBA.Long)
    is
    begin
-      Marshall (Buffer, To_Unsigned_Long (Octets));
+      Marshall (Buffer, To_Unsigned_Long (Data));
    end Marshall;
-
-   --------------
-   -- Marshall --
-   --------------
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Octets : in CORBA.Short)
+      Data : in CORBA.Short)
    is
    begin
-      Marshall (Buffer, To_Unsigned_Short (Octets));
+      Marshall (Buffer, To_Unsigned_Short (Data));
    end Marshall;
-
-   --------------
-   -- Marshall --
-   --------------
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Octets : in CORBA.String)
+      Data : in CORBA.String)
    is
-      Equiv : constant String := To_String (Octets) & Ascii.Nul;
+      Equiv : constant String := CORBA.To_String (Data) & Ascii.Nul;
    begin
       Marshall (Buffer, CORBA.Unsigned_Long'(Equiv'Length));
       for I in Equiv'Range loop
@@ -285,41 +191,179 @@ package body Broca.CDR is
       end loop;
    end Marshall;
 
-   ---------------------
-   -- Marshall_Endian --
-   ---------------------
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : in Encapsulation) is
+   begin
+      Marshall (Buffer, CORBA.Unsigned_Long (Data'Length));
+      for I in Data'Range loop
+         Marshall (Buffer, CORBA.Octet (Data (I)));
+      end loop;
+   end Marshall;
 
-   procedure Marshall_Endian
-     (Buffer    : access Buffer_Type;
-      Octets    : Octet_Array;
-      Alignment : in Alignment_Type)
+   ---------------------------------------------------
+   -- Marshall-by-reference subprograms             --
+   -- (for elementary types, these are placeholders --
+   -- that actually perform marshalling by copy.    --
+   ---------------------------------------------------
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : access CORBA.Octet) is
+   begin
+      Marshall (Buffer, Data.all);
+   end Marshall;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : access CORBA.Char) is
+   begin
+      Marshall (Buffer, Data.all);
+   end Marshall;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : access CORBA.Boolean) is
+   begin
+      Marshall (Buffer, Data.all);
+   end Marshall;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : access CORBA.Short) is
+   begin
+      Marshall (Buffer, Data.all);
+   end Marshall;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : access CORBA.Unsigned_Short) is
+   begin
+      Marshall (Buffer, Data.all);
+   end Marshall;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : access CORBA.Long) is
+   begin
+      Marshall (Buffer, Data.all);
+   end Marshall;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : access CORBA.Unsigned_Long) is
+   begin
+      Marshall (Buffer, Data.all);
+   end Marshall;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : access CORBA.String) is
+   begin
+      Marshall (Buffer, Data.all);
+   end Marshall;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : access Encapsulation) is
+   begin
+      Marshall (Buffer, CORBA.Unsigned_Long (Data'Length));
+      Insert_Raw_Data (Buffer, Data'Length, Data (Data'First)'Address);
+   end Marshall;
+
+   ------------------------------------
+   -- Unmarshall-by-copy subprograms --
+   ------------------------------------
+
+   function Unmarshall (Buffer : access Buffer_Type)
+     return CORBA.Boolean is
+   begin
+      return CORBA.Boolean'Val (CORBA.Octet'(Unmarshall (Buffer)));
+   end Unmarshall;
+
+   function Unmarshall (Buffer : access Buffer_Type)
+     return CORBA.Char is
+   begin
+      return CORBA.Char'Val (CORBA.Octet'(Unmarshall (Buffer)));
+   end Unmarshall;
+
+   function Unmarshall (Buffer : access Buffer_Type)
+     return CORBA.Octet is
+      Result : constant Octet_Array
+        := Align_Unmarshall_Copy (Buffer, 1, 1);
+   begin
+      return CORBA.Octet (Result (Result'First));
+   end Unmarshall;
+
+   function Unmarshall (Buffer : access Buffer_Type)
+     return CORBA.Unsigned_Short
+   is
+      Octets : constant Octet_Array :=
+        Align_Unmarshall_Big_Endian_Copy (Buffer, 2, 2);
+
+
+   begin
+      return CORBA.Unsigned_Short (Octets (Octets'First)) * 256 +
+        CORBA.Unsigned_Short (Octets (Octets'First + 1));
+   end Unmarshall;
+
+   function Unmarshall (Buffer : access Buffer_Type)
+     return CORBA.Unsigned_Long
+   is
+      Octets : constant Octet_Array :=
+        Align_Unmarshall_Big_Endian_Copy (Buffer, 4, 4);
+
+   begin
+      return CORBA.Unsigned_Long (Octets (Octets'First)) * 256**3
+        + CORBA.Unsigned_Long (Octets (Octets'First + 1)) * 256**2
+        + CORBA.Unsigned_Long (Octets (Octets'First + 2)) * 256
+        + CORBA.Unsigned_Long (Octets (Octets'First + 3));
+   end Unmarshall;
+
+   function Unmarshall (Buffer : access Buffer_Type)
+     return CORBA.Long
    is
    begin
-      if Buffer.Endianess = Big_Endian then
-         Marshall_Opaque (Buffer, Octets, Alignment);
-      else
-         Marshall_Opaque (Buffer, Rev (Octets), Alignment);
-      end if;
-   end Marshall_Endian;
+      return To_Long (Unmarshall (Buffer));
+   end Unmarshall;
 
-   ---------------------
-   -- Marshall_Opaque --
-   ---------------------
-
-   procedure Marshall_Opaque
-     (Buffer    : access Buffer_Type;
-      Octets    : in Octet_Array;
-      Alignment : in Alignment_Type := 1)
+   function Unmarshall (Buffer : access Buffer_Type)
+     return CORBA.Short
    is
-      Pad_Size    : constant Index_Type :=
-        Align (Buffer.Content'Last, Alignment) - Buffer.Content'Last;
-      Padding     : constant Octet_Array (1 .. Pad_Size) := (others => 0);
-      New_Content : constant Octet_Array_Ptr :=
-        new Octet_Array'(Buffer.Content.all & Padding & Octets);
    begin
-      Free (Buffer.Content);
-      Buffer.Content := New_Content;
-   end Marshall_Opaque;
+      return To_Short (Unmarshall (Buffer));
+   end Unmarshall;
+
+   function Unmarshall (Buffer : access Buffer_Type)
+     return CORBA.String
+   is
+      Length : constant CORBA.Unsigned_Long
+        := Unmarshall (Buffer);
+      Equiv  : String (1 .. Natural (Length));
+   begin
+      for I in Equiv'Range loop
+         Equiv (I) := Character'Val (CORBA.Char'Pos
+                                     (Unmarshall (Buffer)));
+      end loop;
+      return CORBA.To_CORBA_String
+        (Equiv (1 .. Equiv'Length - 1));
+   end Unmarshall;
+
+   function Unmarshall (Buffer : access Buffer_Type)
+     return Encapsulation
+   is
+      Length : CORBA.Unsigned_Long;
+   begin
+      Length := Unmarshall (Buffer);
+      declare
+         E : Encapsulation (1 .. Index_Type (Length));
+      begin
+         for I in E'Range loop
+            E (I) := BO_Octet (CORBA.Octet'(Unmarshall (Buffer)));
+         end loop;
+         return E;
+      end;
+   end Unmarshall;
 
    ---------
    -- Rev --
@@ -334,156 +378,109 @@ package body Broca.CDR is
       return Result;
    end Rev;
 
-   ----------------
-   -- Unmarshall --
-   ----------------
+   ------------------------------------
+   -- Align_Marshall_Big_Endian_Copy --
+   ------------------------------------
 
-   function Unmarshall (Buffer : access Buffer_Type) return Buffer_Type is
-      Inner  : aliased Buffer_Type;
-      Length : constant CORBA.Unsigned_Long := Unmarshall (Buffer);
-   begin
-      Initialize (Inner'Access, Unmarshall_Opaque (Buffer,
-                                                   Index_Type (Length)));
-      return Inner;
-   end Unmarshall;
-
-   ----------------
-   -- Unmarshall --
-   ----------------
-
-   function Unmarshall (Buffer : access Buffer_Type) return CORBA.Boolean is
-   begin
-      return CORBA.Boolean'Val (CORBA.Octet'(Unmarshall (Buffer)));
-   end Unmarshall;
-
-   ----------------
-   -- Unmarshall --
-   ----------------
-
-   function Unmarshall (Buffer : access Buffer_Type) return CORBA.Char is
-   begin
-      return CORBA.Char'Val (CORBA.Octet'(Unmarshall (Buffer)));
-   end Unmarshall;
-
-   ----------------
-   -- Unmarshall --
-   ----------------
-
-   function Unmarshall (Buffer : access Buffer_Type) return CORBA.Octet is
-      Result : constant Octet_Array := Unmarshall_Opaque (Buffer, 1);
-   begin
-      return Result (Result'First);
-   end Unmarshall;
-
-   ----------------
-   -- Unmarshall --
-   ----------------
-
-   function Unmarshall (Buffer : access Buffer_Type)
-     return CORBA.Unsigned_Short
-   is
-      Octets : constant Octet_Array :=
-        Unmarshall_Endian (Buffer, 2, 2);
-   begin
-      return CORBA.Unsigned_Short (Octets (Octets'First)) * 256 +
-        CORBA.Unsigned_Short (Octets (Octets'First + 1));
-   end Unmarshall;
-
-   ----------------
-   -- Unmarshall --
-   ----------------
-
-   function Unmarshall (Buffer : access Buffer_Type)
-     return CORBA.Unsigned_Long
-   is
-      Octets : constant Octet_Array :=
-        Unmarshall_Endian (Buffer, 4, 4);
-   begin
-      return CORBA.Unsigned_Long (Octets (Octets'First)) * 256**3 +
-        CORBA.Unsigned_Long (Octets (Octets'First + 1)) * 256**2 +
-        CORBA.Unsigned_Long (Octets (Octets'First + 2)) * 256 +
-        CORBA.Unsigned_Long (Octets (Octets'First + 3));
-   end Unmarshall;
-
-   ----------------
-   -- Unmarshall --
-   ----------------
-
-   function Unmarshall (Buffer : access Buffer_Type)
-     return CORBA.Long
-   is
-   begin
-      return To_Long (Unmarshall (Buffer));
-   end Unmarshall;
-
-   ----------------
-   -- Unmarshall --
-   ----------------
-
-   function Unmarshall (Buffer : access Buffer_Type)
-     return CORBA.Short
-   is
-   begin
-      return To_Short (Unmarshall (Buffer));
-   end Unmarshall;
-
-   ----------------
-   -- Unmarshall --
-   ----------------
-
-   function Unmarshall (Buffer : access Buffer_Type) return CORBA.String is
-      Length : constant CORBA.Unsigned_Long := Unmarshall (Buffer);
-      Equiv  : String (1 .. Natural (Length));
-   begin
-      for I in Equiv'Range loop
-         Equiv (I) := Character'Val (CORBA.Char'Pos (Unmarshall (Buffer)));
-      end loop;
-      return To_Unbounded_String (Equiv (1 .. Equiv'Length - 1));
-   end Unmarshall;
-
-   -----------------------
-   -- Unmarshall_Endian --
-   -----------------------
-
-   function Unmarshall_Endian
+   procedure Align_Marshall_Big_Endian_Copy
      (Buffer    : access Buffer_Type;
-      Size      : Index_Type;
-      Alignment : Alignment_Type)
-     return Octet_Array
+      Octets    : Octet_Array;
+      Alignment : Alignment_Type := 1)
    is
    begin
-      if Buffer.Endianess = Big_Endian then
-         return Unmarshall_Opaque (Buffer, Size, Alignment);
+      if Endianness (Buffer.all) = Big_Endian then
+         Align_Marshall_Copy (Buffer, Octets, Alignment);
       else
-         return Rev (Unmarshall_Opaque (Buffer, Size, Alignment));
+         Align_Marshall_Copy (Buffer, Rev (Octets), Alignment);
       end if;
-   end Unmarshall_Endian;
+   end Align_Marshall_Big_Endian_Copy;
 
-   -----------------------
-   -- Unmarshall_Opaque --
-   -----------------------
+   -------------------------
+   -- Align_Marshall_Copy --
+   -------------------------
 
-   function Unmarshall_Opaque
+   procedure Align_Marshall_Copy
+     (Buffer    : access Buffer_Type;
+      Octets    : in Octet_Array;
+      Alignment : Alignment_Type := 1)
+   is
+
+      subtype Data is Octet_Array (Octets'Range);
+
+      package Opaque_Pointer_To_Data_Access is
+         new System.Address_To_Access_Conversions
+        (Data);
+
+      Data_Address : Opaque_Pointer;
+
+   begin
+      Align (Buffer, Alignment);
+      Allocate_And_Insert_Cooked_Data
+        (Buffer,
+         Octets'Length,
+         Data_Address);
+
+      Opaque_Pointer_To_Data_Access.To_Pointer (Data_Address).all
+        := Octets;
+   end Align_Marshall_Copy;
+
+   --------------------------------------
+   -- Align_Unmarshall_Big_Endian_Copy --
+   --------------------------------------
+
+   function Align_Unmarshall_Big_Endian_Copy
      (Buffer    : access Buffer_Type;
       Size      : Index_Type;
       Alignment : Alignment_Type := 1)
      return Octet_Array
    is
-      Pad_Size    : constant Index_Type :=
-        Align (Buffer.Index, Alignment) - Buffer.Index;
-      Result   : Octet_Array (0 .. Size - 1);
    begin
-      Buffer.Index := Buffer.Index + Pad_Size;
-      Result       := Buffer.Content (Buffer.Index ..
-                                      Buffer.Index + Buffer.Index + Size - 1);
-      Buffer.Index := Buffer.Index + Size;
-      return Result;
-   end Unmarshall_Opaque;
+      if Endianness (Buffer.all) = Big_Endian then
+         return Align_Unmarshall_Copy (Buffer, Size, Alignment);
+      else
+         return Rev (Align_Unmarshall_Copy
+                     (Buffer, Size, Alignment));
+      end if;
+   end Align_Unmarshall_Big_Endian_Copy;
 
-begin
-   if Default_Bit_Order = High_Order_First then
-      Local_Endianess := Big_Endian;
-   else
-      Local_Endianess := Little_Endian;
-   end if;
+   ---------------------------
+   -- Align_Unmarshall_Copy --
+   ---------------------------
+
+   function Align_Unmarshall_Copy
+     (Buffer    : access Buffer_Type;
+      Size      : Index_Type;
+      Alignment : Alignment_Type := 1)
+     return Octet_Array
+   is
+
+      subtype Data is Octet_Array (1 .. Size);
+
+
+      package Opaque_Pointer_To_Data_Access is
+         new System.Address_To_Access_Conversions
+        (Data);
+
+      Data_Address : Opaque_Pointer;
+
+   begin
+      Align (Buffer, Alignment);
+      Extract_Data (Buffer, Data_Address, Size);
+      return Opaque_Pointer_To_Data_Access.To_Pointer
+        (Data_Address).all;
+   end Align_Unmarshall_Copy;
+
+   -------------------------
+   -- Start_Encapsulation --
+   -------------------------
+
+   procedure Start_Encapsulation
+     (Buffer : access Buffer_Type) is
+   begin
+      Set_Initial_Position (Buffer, 0);
+      Marshall (Buffer,
+                CORBA.Boolean
+                (Endianness (Buffer.all) = Little_Endian));
+   end Start_Encapsulation;
+
 end Broca.CDR;

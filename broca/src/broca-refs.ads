@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.9 $
+--                            $Revision: 1.10 $
 --                                                                          --
---            Copyright (C) 1999 ENST Paris University, France.             --
+--         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -38,8 +38,6 @@ with Broca.Buffers;
 
 package Broca.Refs is
 
-   --  type Ref_Type is new Ada.Finalization.Limited_Controlled
-   --    with private;
    type Ref_Type is tagged limited private;
    --  Ref_Type is the base type of all objects that can be
    --  referenced. It contains a Counter, which is the number of
@@ -53,16 +51,17 @@ package Broca.Refs is
    --  Must be called just after creation, when Counter is -1
    --  (otherwise, CORBA.internal is raised).
 
-   procedure Compute_New_Size
-     (Buffer : in out Broca.Buffers.Buffer_Descriptor;
-      Value  : in Ref_Type);
+   --  XXX
+   --  procedure Compute_New_Size
+   --    (Buffer : access Broca.Buffers.Buffer_Type;
+   --     Value  : in Ref_Type);
 
    procedure Marshall
-     (Buffer : in out Broca.Buffers.Buffer_Descriptor;
+     (Buffer : access Broca.Buffers.Buffer_Type;
       Value  : in Ref_Type);
 
    procedure Unmarshall
-     (Buffer : in out Broca.Buffers.Buffer_Descriptor;
+     (Buffer : access Broca.Buffers.Buffer_Type;
       Value  : out Ref_Type);
 
    type Ref_Ptr is access all Ref_Type'Class;
@@ -84,16 +83,17 @@ package Broca.Refs is
    --  Set the object (can destroyed the previous one, if it was the only
    --  reference).
 
-   procedure Compute_New_Size
-     (Buffer : in out Broca.Buffers.Buffer_Descriptor;
-      Value  : in Ref);
+   --  XXX
+   --  procedure Compute_New_Size
+   --    (Buffer : access Broca.Buffers.Buffer_Type;
+   --     Value  : in Ref);
 
    procedure Marshall
-     (Buffer : in out Broca.Buffers.Buffer_Descriptor;
+     (Buffer : access Broca.Buffers.Buffer_Type;
       Value  : in Ref);
 
    procedure Unmarshall
-     (Buffer : in out Broca.Buffers.Buffer_Descriptor;
+     (Buffer : access Broca.Buffers.Buffer_Type;
       Value  : out Ref);
 
 private

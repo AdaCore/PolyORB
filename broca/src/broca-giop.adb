@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.19 $
+--                            $Revision: 1.20 $
 --                                                                          --
---            Copyright (C) 1999 ENST Paris University, France.             --
+--         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,11 +34,12 @@
 ------------------------------------------------------------------------------
 
 with Broca.Refs;
-with Broca.Marshalling;  use Broca.Marshalling;
+with Broca.CDR; use Broca.CDR;
 with Broca.Exceptions;
-with Broca.Flags;
+--  with Broca.Flags;
 with Broca.Sequences;
 with Broca.ORB;
+with Broca.Opaque; use Broca.Opaque;
 with Broca.Buffers;      use Broca.Buffers;
 
 with Broca.Debug;
@@ -49,7 +50,7 @@ package body Broca.GIOP is
    Flag : constant Natural := Broca.Debug.Is_Active ("broca.giop");
    procedure O is new Broca.Debug.Output (Flag);
 
-   Magic : constant Buffer_Type :=
+   Magic : constant Octet_Array :=
      (Character'Pos ('G'),
       Character'Pos ('I'),
       Character'Pos ('O'),
@@ -59,6 +60,10 @@ package body Broca.GIOP is
      := 1;
    Minor_Version : constant CORBA.Octet
      := 0;
+
+   Byte_Order_Offset : constant := 6;
+   --  The offset of the byte_order boolean field in
+   --  a GIOP message header.
 
    Nobody_Principal : constant CORBA.String :=
      CORBA.To_CORBA_String ("nobody");
@@ -115,37 +120,52 @@ package body Broca.GIOP is
    -- Compute_GIOP_Header_Size --
    ------------------------------
 
-   procedure Compute_GIOP_Header_Size
-     (Buffer : in out Buffer_Descriptor) is
-   begin
-      Allocate_Buffer_And_Clear_Pos (Buffer, 0);
-      Compute_New_Size (Buffer, O_Size, Message_Header_Size);
-   end Compute_GIOP_Header_Size;
+--     procedure Compute_GIOP_Header_Size
+--       (Buffer : access Buffer_Type) is
+--     begin
+--        Allocate_Buffer_And_Clear_Pos (Buffer, 0);
+--        Compute_New_Size (Buffer, O_Size, Message_Header_Size);
+--     end Compute_GIOP_Header_Size;
 
    --------------------------
    -- Marshall_GIOP_Header --
    --------------------------
 
    procedure Marshall_GIOP_Header
-     (Buffer       : in out Buffer_Descriptor;
+     (Buffer       : access Buffer_Type;
       Message_Type : in MsgType)
    is
-      use Broca.Marshalling;
-      Message_Size : Buffer_Index_Type;
+      use Broca.CDR;
+      Message_Size : Index_Type;
    begin
-      Allocate_Buffer (Buffer);
+      --  XXX THIS IS NOT CORRECT!!!!!!!!!!
+      raise Program_Error;
 
-      Message_Size := Full_Size (Buffer) - Message_Header_Size;
+      Marshall_GIOP_Header (Buffer,
+                            Message_Type,
+                            Length (Buffer));
+   end Marshall_GIOP_Header;
+
+   procedure Marshall_GIOP_Header
+     (Buffer       : access Buffer_Type;
+      Message_Type : in MsgType;
+      Message_Size : in Index_Type)
+   is
+      use Broca.CDR;
+   begin
       --  1.2.1 The message header.
       --  Magic
-      Write (Buffer, Magic);
+      for I in Magic'Range loop
+         Marshall (Buffer, CORBA.Octet (Magic (I)));
+      end loop;
 
       --  Version
       Marshall (Buffer, Major_Version);
       Marshall (Buffer, Minor_Version);
 
       --  Byte order
-      Marshall (Buffer, Is_Little_Endian);
+      Marshall (Buffer, CORBA.Boolean
+                (Endianness (Buffer.all) = Little_Endian));
 
       --  Message type
       Marshall (Buffer, Message_Type);
@@ -159,41 +179,51 @@ package body Broca.GIOP is
    ----------------------------
 
    procedure Unmarshall_GIOP_Header
-     (Buffer       : in out Buffer_Descriptor;
+     (Buffer       : access Buffer_Type;
       Message_Type          : out MsgType;
       Message_Size          : out CORBA.Unsigned_Long;
+      Message_Endianness    : out Endianness_Type;
       Success               : out Boolean)
    is
-      use Broca.Marshalling;
-      Magic_Num : Buffer_Type := Magic;
+      use CORBA;
+      use Broca.CDR;
+      Message_Magic : Octet_Array (Magic'Range);
       Message_Major_Version : CORBA.Octet;
       Message_Minor_Version : CORBA.Octet;
-      Endianess : CORBA.Boolean;
    begin
       Success := False;
 
       --  Magic
-      Read (Buffer, Magic_Num);
-      if Magic_Num /= Magic then
+      for I in Message_Magic'Range loop
+         Message_Magic (I) := Opaque.Octet
+           (CORBA.Octet'(Unmarshall (Buffer)));
+      end loop;
+
+      if Message_Magic /= Magic then
          return;
       end if;
 
-      Unmarshall (Buffer, Message_Major_Version);
-      Unmarshall (Buffer, Message_Minor_Version);
-      if not CORBA."=" (Message_Major_Version, Major_Version)
-        or else CORBA."<" (Minor_Version, Message_Minor_Version) then
+      --  XXX Check that. FIXME
+      --  2000-02-14 Thomas.
+      Message_Major_Version := Unmarshall (Buffer);
+      Message_Minor_Version := Unmarshall (Buffer);
+      if not (Message_Major_Version =  Major_Version)
+        or else (Minor_Version < Message_Minor_Version) then
          return;
       end if;
 
       --  Byte order
-      Unmarshall (Buffer, Endianess);
-      Set_Endianess (Buffer, Endianess);
+      if Unmarshall (Buffer) then
+         Message_Endianness := Little_Endian;
+      else
+         Message_Endianness := Big_Endian;
+      end if;
 
       --  Message type
-      Unmarshall (Buffer, Message_Type);
+      Message_Type := Unmarshall (Buffer);
 
       --  Message size
-      Unmarshall (Buffer, Message_Size);
+      Message_Size := Unmarshall (Buffer);
 
       Success := True;
    end Unmarshall_GIOP_Header;
@@ -202,36 +232,36 @@ package body Broca.GIOP is
    -- Compute_New_Size --
    ----------------------
 
-   procedure Compute_New_Size
-     (Buffer     : in out Buffer_Descriptor;
-      Request_Id : in CORBA.Unsigned_Long;
-      Occurence  : in CORBA.Exception_Occurrence)
-   is
-      use Broca.Marshalling;
-   begin
-      --  Service context
-      Compute_New_Size (Buffer, UL_Size, UL_Size);
-
-      --  Request id
-      Compute_New_Size (Buffer, UL_Size, UL_Size);
-
-      --  Reply status
-      Compute_New_Size (Buffer, UL_Size, UL_Size);
-
-      --  Exception
-      Broca.Exceptions.Compute_New_Size (Buffer, Occurence);
-   end Compute_New_Size;
+--     procedure Compute_New_Size
+--       (Buffer     : access Buffer_Type;
+--        Request_Id : in CORBA.Unsigned_Long;
+--        Occurence  : in CORBA.Exception_Occurrence)
+--     is
+--        use Broca.CDR;
+--     begin
+--        --  Service context
+--        Compute_New_Size (Buffer, UL_Size, UL_Size);
+--
+--        --  Request id
+--        Compute_New_Size (Buffer, UL_Size, UL_Size);
+--
+--        --  Reply status
+--        Compute_New_Size (Buffer, UL_Size, UL_Size);
+--
+--        --  Exception
+--        Broca.Exceptions.Compute_New_Size (Buffer, Occurence);
+--     end Compute_New_Size;
 
    --------------
    -- Marshall --
    --------------
 
    procedure Marshall
-     (Buffer     : in out Buffer_Descriptor;
+     (Buffer     : access Buffer_Type;
       Request_Id : in CORBA.Unsigned_Long;
       Occurence  : in CORBA.Exception_Occurrence)
    is
-      use Broca.Marshalling;
+      use Broca.CDR;
    begin
       --  Service context
       Marshall (Buffer, CORBA.Unsigned_Long (No_Context));
@@ -250,37 +280,37 @@ package body Broca.GIOP is
    -- Compute_New_Size --
    ----------------------
 
-   procedure Compute_New_Size
-     (Buffer     : in out Buffer_Descriptor;
-      Request_Id : in CORBA.Unsigned_Long;
-      Reference  : in CORBA.Object.Ref)
-   is
-      use Broca.Marshalling;
-   begin
-      --  Service context
-      Compute_New_Size (Buffer, UL_Size, UL_Size);
-
-      --  Request id
-      Compute_New_Size (Buffer, UL_Size, UL_Size);
-
-      --  Reply status
-      Compute_New_Size (Buffer, UL_Size, UL_Size);
-
-      --  IOR
-      Broca.Refs.Compute_New_Size
-        (Buffer, Broca.Refs.Ref (Reference));
-   end Compute_New_Size;
+--     procedure Compute_New_Size
+--       (Buffer     : access Buffer_Type;
+--        Request_Id : in CORBA.Unsigned_Long;
+--        Reference  : in CORBA.Object.Ref)
+--     is
+--        use Broca.CDR;
+--     begin
+--        --  Service context
+--        Compute_New_Size (Buffer, UL_Size, UL_Size);
+--
+--        --  Request id
+--        Compute_New_Size (Buffer, UL_Size, UL_Size);
+--
+--        --  Reply status
+--        Compute_New_Size (Buffer, UL_Size, UL_Size);
+--
+--        --  IOR
+--        Broca.Refs.Compute_New_Size
+--          (Buffer, Broca.Refs.Ref (Reference));
+--     end Compute_New_Size;
 
    --------------
    -- Marshall --
    --------------
 
    procedure Marshall
-     (Buffer     : in out Buffer_Descriptor;
+     (Buffer     : access Buffer_Type;
       Request_Id : in CORBA.Unsigned_Long;
       Reference  : in CORBA.Object.Ref)
    is
-      use Broca.Marshalling;
+      use Broca.CDR;
    begin
       --  Service context
       Marshall (Buffer, CORBA.Unsigned_Long (No_Context));
@@ -300,81 +330,87 @@ package body Broca.GIOP is
    -- Send_Request_Size --
    -----------------------
 
-   procedure Send_Request_Size
-     (Handler   : in out Request_Handler;
-      Target    : in Object.Object_Ptr;
-      Operation : in CORBA.Identifier)
-   is
-      use Broca.Marshalling;
-   begin
-      if Handler.Nbr_Tries > Broca.Flags.Max_Tries then
-         Broca.Exceptions.Raise_Inv_Objref;
-      else
-         Handler.Nbr_Tries := Handler.Nbr_Tries + 1;
-      end if;
-
-      --  1. Send a GIOP message.
-      Handler.Profile := Object.Find_Profile (Target);
-      Handler.Connection := IOP.Find_Connection (Handler.Profile);
-
-      Compute_GIOP_Header_Size (Handler.Buffer);
-
-      --  Service context
-      Compute_New_Size (Handler.Buffer, UL_Size, UL_Size);
-
-      --  Request id
-      Compute_New_Size (Handler.Buffer, UL_Size, UL_Size);
-
-      --  Response expected + Reserved
-      Compute_New_Size (Handler.Buffer, UL_Size, UL_Size);
-
-      Compute_New_Size
-        (Buffer       => Handler.Buffer,
-         Length_Size  => UL_Size,
-         Element_Size => 1,
-         Array_Length => Broca.Sequences.Octet_Sequences.Length
-         (IOP.Get_Object_Key (Handler.Profile.all)));
-
-      --  Operation
-      Compute_New_Size (Handler.Buffer, CORBA.String (Operation));
-
-      --  Principal - See 13.3.4: encoded as sequence <octet>
-      Compute_New_Size (Handler.Buffer, Nobody_Principal);
-   end Send_Request_Size;
+--     procedure Send_Request_Size
+--       (Handler   : in out Request_Handler;
+--        Target    : in Object.Object_Ptr;
+--        Operation : in CORBA.Identifier)
+--     is
+--        use Broca.CDR;
+--     begin
+--        if Handler.Nbr_Tries > Broca.Flags.Max_Tries then
+--           Broca.Exceptions.Raise_Inv_Objref;
+--        else
+--           Handler.Nbr_Tries := Handler.Nbr_Tries + 1;
+--        end if;
+--
+--        --  1. Send a GIOP message.
+--        Handler.Profile := Object.Find_Profile (Target);
+--        Handler.Connection := IOP.Find_Connection (Handler.Profile);
+--
+--        Compute_GIOP_Header_Size (Handler.Buffer'Access);
+--
+--        --  Service context
+--        Compute_New_Size (Handler.Buffer'Access, UL_Size, UL_Size);
+--
+--        --  Request id
+--        Compute_New_Size (Handler.Buffer'Access, UL_Size, UL_Size);
+--
+--        --  Response expected + Reserved
+--        Compute_New_Size (Handler.Buffer'Access, UL_Size, UL_Size);
+--
+--        Compute_New_Size
+--          (Buffer       => Handler.Buffer'Access,
+--           Length_Size  => UL_Size,
+--           Element_Size => 1,
+--           Array_Length => Broca.Sequences.Octet_Sequences.Length
+--           (IOP.Get_Object_Key (Handler.Profile.all)));
+--
+--        --  Operation
+--        Compute_New_Size (Handler.Buffer'Access, CORBA.String (Operation));
+--
+--        --  Principal - See 13.3.4: encoded as sequence <octet>
+--        Compute_New_Size (Handler.Buffer'Access, Nobody_Principal);
+--     end Send_Request_Size;
 
    ---------------------------
    -- Send_Request_Marshall --
    ---------------------------
 
    procedure Send_Request_Marshall
-     (Handler          : in out Request_Handler;
-      Reponse_Expected : in Boolean;
-      Operation        : in CORBA.Identifier)
+     (Handler           : in out Request_Handler;
+      Target            : in Object.Object_Ptr;
+      Response_Expected : in Boolean;
+      Operation         : in CORBA.Identifier)
    is
-      use Broca.Marshalling;
+      use Broca.CDR;
    begin
-      Marshall_GIOP_Header (Handler.Buffer, Broca.GIOP.Request);
+      Handler.Profile := Object.Find_Profile (Target);
+      Handler.Connection := IOP.Find_Connection (Handler.Profile);
+
+      --  Reserve space for message header
+      Set_Initial_Position
+        (Handler.Buffer'Access, Message_Header_Size);
 
       --  Service context
-      Marshall (Handler.Buffer, CORBA.Unsigned_Long (No_Context));
+      Marshall (Handler.Buffer'Access, CORBA.Unsigned_Long (No_Context));
 
       --  Request id
       Handler.Request_Id := IOP.Get_Request_Id (Handler.Connection);
-      Marshall (Handler.Buffer, Handler.Request_Id);
+      Marshall (Handler.Buffer'Access, Handler.Request_Id);
 
       --  Response expected
-      Marshall (Handler.Buffer, Reponse_Expected);
+      Marshall (Handler.Buffer'Access, Response_Expected);
 
       --  Object key
       Broca.Sequences.Marshall
-        (Handler.Buffer,
+        (Handler.Buffer'Access,
          IOP.Get_Object_Key (Handler.Profile.all));
 
       --  Operation
-      Marshall (Handler.Buffer, CORBA.String (Operation));
+      Marshall (Handler.Buffer'Access, CORBA.String (Operation));
 
       --  Principal
-      Marshall (Handler.Buffer, Nobody_Principal);
+      Marshall (Handler.Buffer'Access, Nobody_Principal);
    end Send_Request_Marshall;
 
    -----------------------
@@ -387,18 +423,27 @@ package body Broca.GIOP is
       Reponse_Expected : in Boolean;
       Result           : out Send_Request_Result_Type)
    is
-      use Broca.Marshalling;
+      use Broca.CDR;
       use CORBA;
-      Message_Type    : MsgType;
-      Message_Size    : CORBA.Unsigned_Long;
-      Service_Context : CORBA.Unsigned_Long;
-      Reply_Status    : ReplyStatusType;
-      Request_Id      : CORBA.Unsigned_Long;
-      Nothing         : Buffer_Type (1 .. 0);
-      Header_Correct  : Boolean;
+      Header_Buffer      : aliased Buffer_Type;
+      Message_Type       : MsgType;
+      Message_Size       : CORBA.Unsigned_Long;
+      Message_Endianness : Endianness_Type;
+      Service_Context    : CORBA.Unsigned_Long;
+      Reply_Status       : ReplyStatusType;
+      Request_Id         : CORBA.Unsigned_Long;
+      Header_Correct     : Boolean;
    begin
+      --  Add GIOP header.
+      Marshall_GIOP_Header
+        (Header_Buffer'Access,
+         Broca.GIOP.Request,
+         Length (Handler.Buffer'Access));
+      Prepend (Header_Buffer, Handler.Buffer'Access);
+
       --  1.3 Send request.
-      IOP.Send (Handler.Connection, Handler.Buffer);
+      IOP.Send (Handler.Connection, Handler.Buffer'Access);
+      Release (Handler.Buffer);
 
       if not Reponse_Expected then
          IOP.Release_Connection (Handler.Connection);
@@ -408,149 +453,189 @@ package body Broca.GIOP is
 
       --  1.4 Receive reply
       --  1.4.1 the message header
-      Allocate_Buffer_And_Clear_Pos (Handler.Buffer, Message_Header_Size);
 
       pragma Debug (O ("Receive answer ..."));
-      IOP.Receive (Handler.Connection, Handler.Buffer);
-      pragma Debug (O ("Receive answer done"));
+      declare
+         Message_Header : aliased Broca.Opaque.Octet_Array
+           := IOP.Receive (Handler.Connection,
+                           Message_Header_Size);
+         Message_Header_Buffer : aliased Buffer_Type;
+         Endianness : Endianness_Type;
+      begin
+         pragma Debug (O ("Receive answer done"));
 
-      Unmarshall_GIOP_Header (Handler.Buffer,
-                              Message_Type, Message_Size,
-                              Header_Correct);
+         if CORBA.Boolean'Val
+           (CORBA.Octet (Message_Header
+                         (Message_Header'First
+                          + Byte_Order_Offset)) and 1) then
+            Endianness := Little_Endian;
+         else
+            Endianness := Big_Endian;
+         end if;
+
+         Broca.Buffers.Initialize_Buffer
+           (Message_Header_Buffer'Access,
+            Message_Header_Size,
+            Message_Header'Address,
+            Endianness,
+            0);
+
+         Unmarshall_GIOP_Header
+           (Message_Header_Buffer'Access,
+            Message_Type, Message_Size, Message_Endianness,
+            Header_Correct);
+
+         pragma Assert (Message_Endianness = Endianness);
+
+         Release (Message_Header_Buffer);
+      end;
 
       if not (Header_Correct and then Message_Type = Reply) then
          Broca.Exceptions.Raise_Comm_Failure;
       end if;
 
-      --  Allocate enough bytes for the message.
-      Allocate_Buffer_And_Clear_Pos
-        (Handler.Buffer,
-         Buffer_Index_Type (Message_Size) + Message_Header_Size);
-      Skip_Bytes (Handler.Buffer, Message_Header_Size);
-
       --  1.4.5 Receive the reply header and body.
-      IOP.Receive (Handler.Connection, Handler.Buffer);
-      IOP.Release_Connection (Handler.Connection);
+      declare
+         Message_Body : aliased Broca.Opaque.Octet_Array
+           := IOP.Receive (Handler.Connection,
+                           Broca.Opaque.Index_Type (Message_Size));
+         Message_Body_Buffer : Buffer_Type
+           renames Handler.Buffer;
 
-      --  Service context
-      Read (Handler.Buffer, Nothing);
-      Skip_Bytes (Handler.Buffer, Message_Header_Size);
-      Unmarshall (Handler.Buffer, Service_Context);
-      if Service_Context /= No_Context then
-         pragma Debug
-           (O ("Send_Request_Send : incorrect context" & Service_Context'Img));
-         raise Program_Error;
-      end if;
+      begin
+         Broca.Buffers.Initialize_Buffer
+           (Message_Body_Buffer'Access,
+            Broca.Opaque.Index_Type (Message_Size),
+            Message_Body'Address,
+            Message_Endianness,
+            GIOP.Message_Header_Size);
 
-      --  Request id
-      Unmarshall (Handler.Buffer, CORBA.Unsigned_Long (Request_Id));
-      if Request_Id /= Handler.Request_Id then
-         pragma Debug
-           (O ("Send_Request_Send : incorrect request id" & Request_Id'Img));
-         Broca.Exceptions.Raise_Comm_Failure;
-      end if;
+         IOP.Release_Connection (Handler.Connection);
 
-      --  Reply status
-      Unmarshall (Handler.Buffer, Reply_Status);
-      case Reply_Status is
-         when Broca.GIOP.No_Exception =>
-            Result := Sr_Reply;
-            return;
-
-         when Broca.GIOP.System_Exception =>
-            Broca.Exceptions.Unmarshall_And_Raise (Handler.Buffer);
-
-         when Broca.GIOP.Location_Forward =>
-            declare
-               New_Ref : CORBA.Object.Ref;
-            begin
-               Broca.ORB.IOR_To_Object (Handler.Buffer, New_Ref);
-               --  FIXME: check type, use a lock ?
-               Target.Profiles :=
-                 Object.Object_Ptr (CORBA.Object.Get (New_Ref)).Profiles;
-            end;
-            Result := Sr_Forward;
-            return;
-
-         when Broca.GIOP.User_Exception =>
-            Result := Sr_User_Exception;
-            return;
-
-         when others =>
+         --  Service context
+         --  XXX remove
+         --  XXX Read (Handler.Buffer'Access, Nothing);
+         --  XXX Skip_Bytes (Handler.Buffer'Access, Message_Header_Size);
+         Service_Context := Unmarshall (Message_Body_Buffer'Access);
+         if Service_Context /= No_Context then
+            pragma Debug (O ("Send_Request_Send : incorrect context"
+                             & Service_Context'Img));
             raise Program_Error;
-      end case;
+         end if;
+
+         --  Request id
+         Request_Id := Unmarshall (Message_Body_Buffer'Access);
+         if Request_Id /= Handler.Request_Id then
+            pragma Debug
+              (O ("Send_Request_Send : incorrect request id"
+                  & Request_Id'Img));
+            Broca.Exceptions.Raise_Comm_Failure;
+         end if;
+
+         --  Reply status
+         Reply_Status := Unmarshall (Message_Body_Buffer'Access);
+         case Reply_Status is
+            when Broca.GIOP.No_Exception =>
+               Result := Sr_Reply;
+               return;
+
+            when Broca.GIOP.System_Exception =>
+               Broca.Exceptions.Unmarshall_And_Raise
+                 (Message_Body_Buffer'Access);
+
+            when Broca.GIOP.Location_Forward =>
+               declare
+                  IOR_Octets : aliased Encapsulation
+                    := Unmarshall (Message_Body_Buffer'Access);
+                  IOR_Buffer : aliased Buffer_Type;
+                  New_Ref : CORBA.Object.Ref;
+               begin
+                  --  XXX Check that we have an IOR
+                  --      marshalled with LENGTH at
+                  --      this position in Buffer
+                  Decapsulate (IOR_Octets'Access, IOR_Buffer'Access);
+                  Broca.ORB.IOR_To_Object (IOR_Buffer'Access, New_Ref);
+                  --  FIXME: check type, use a lock ?
+                  Target.Profiles :=
+                    Object.Object_Ptr (CORBA.Object.Get (New_Ref)).Profiles;
+               end;
+               Result := Sr_Forward;
+               return;
+
+            when Broca.GIOP.User_Exception =>
+               Result := Sr_User_Exception;
+               return;
+
+            when others =>
+               raise Program_Error;
+         end case;
+
+         Release (Message_Body_Buffer);
+      end;
+
    end Send_Request_Send;
 
-   procedure Compute_New_Size
-     (Buffer : in out Buffer_Descriptor;
-      Value  : in MsgType) is
-   begin
-      Compute_New_Size (Buffer, O_Size, O_Size);
-   end Compute_New_Size;
-
-   procedure Compute_New_Size
-     (Buffer : in out Buffer_Descriptor;
-      Value  : in ReplyStatusType) is
-   begin
-      Compute_New_Size (Buffer, UL_Size, UL_Size);
-   end Compute_New_Size;
-
-   procedure Compute_New_Size
-     (Buffer : in out Buffer_Descriptor;
-      Value  : in LocateStatusType) is
-   begin
-      Compute_New_Size (Buffer, UL_Size, UL_Size);
-   end Compute_New_Size;
+--     procedure Compute_New_Size
+--       (Buffer : access Buffer_Type;
+--        Value  : in MsgType) is
+--     begin
+--        Compute_New_Size (Buffer, O_Size, O_Size);
+--     end Compute_New_Size;
+--
+--     procedure Compute_New_Size
+--       (Buffer : access Buffer_Type;
+--        Value  : in ReplyStatusType) is
+--     begin
+--        Compute_New_Size (Buffer, UL_Size, UL_Size);
+--     end Compute_New_Size;
+--
+--     procedure Compute_New_Size
+--       (Buffer : access Buffer_Type;
+--        Value  : in LocateStatusType) is
+--     begin
+--        Compute_New_Size (Buffer, UL_Size, UL_Size);
+--     end Compute_New_Size;
 
    procedure Marshall
-     (Buffer : in out Buffer_Descriptor;
+     (Buffer : access Buffer_Type;
       Value  : in MsgType) is
    begin
       Marshall (Buffer, MsgType_To_Octet (Value));
    end Marshall;
 
    procedure Marshall
-     (Buffer : in out Buffer_Descriptor;
+     (Buffer : access Buffer_Type;
       Value  : in ReplyStatusType) is
    begin
       Marshall (Buffer, ReplyStatusType_To_Unsigned_Long (Value));
    end Marshall;
 
    procedure Marshall
-     (Buffer : in out Buffer_Descriptor;
+     (Buffer : access Buffer_Type;
       Value  : in LocateStatusType) is
    begin
       Marshall (Buffer, LocateStatusType_To_Unsigned_Long (Value));
    end Marshall;
 
-   procedure Unmarshall
-     (Buffer : in out Buffer_Descriptor;
-      Result : out MsgType)
-   is
-      O : CORBA.Octet;
+   function Unmarshall
+     (Buffer : access Buffer_Type)
+     return MsgType is
    begin
-      Unmarshall (Buffer, O);
-      Result := Octet_To_MsgType (O);
+      return Octet_To_MsgType (Unmarshall (Buffer));
    end Unmarshall;
 
-   procedure Unmarshall
-     (Buffer : in out Buffer_Descriptor;
-      Result : out ReplyStatusType)
-   is
-      UL : CORBA.Unsigned_Long;
+   function Unmarshall
+     (Buffer : access Buffer_Type)
+     return ReplyStatusType is
    begin
-      Unmarshall (Buffer, UL);
-      Result := Unsigned_Long_To_ReplyStatusType (UL);
+      return Unsigned_Long_To_ReplyStatusType (Unmarshall (Buffer));
    end Unmarshall;
 
-   procedure Unmarshall
-     (Buffer : in out Buffer_Descriptor;
-      Result : out LocateStatusType)
-   is
-      UL : CORBA.Unsigned_Long;
+   function Unmarshall
+     (Buffer : access Buffer_Type)
+     return LocateStatusType is
    begin
-      Unmarshall (Buffer, UL);
-      Result := Unsigned_Long_To_LocateStatusType (UL);
+      return Unsigned_Long_To_LocateStatusType (Unmarshall (Buffer));
    end Unmarshall;
 
 end Broca.GIOP;

@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.12 $
+--                            $Revision: 1.13 $
 --                                                                          --
---            Copyright (C) 1999 ENST Paris University, France.             --
+--         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -137,19 +137,19 @@ package body Broca.Refs is
    -- Compute_New_Size --
    ----------------------
 
-   procedure Compute_New_Size
-     (Buffer : in out Buffer_Descriptor;
-      Value  : in Ref_Type) is
-   begin
-      Broca.Exceptions.Raise_Marshal;
-   end Compute_New_Size;
+--     procedure Compute_New_Size
+--       (Buffer : access Buffer_Type;
+--        Value  : in Ref_Type) is
+--     begin
+--        Broca.Exceptions.Raise_Marshal;
+--     end Compute_New_Size;
 
    --------------
    -- Marshall --
    --------------
 
    procedure Marshall
-     (Buffer : in out Buffer_Descriptor;
+     (Buffer : access Buffer_Type;
       Value  : in Ref_Type) is
    begin
       Broca.Exceptions.Raise_Marshal;
@@ -160,7 +160,7 @@ package body Broca.Refs is
    ----------------
 
    procedure Unmarshall
-     (Buffer : in out Buffer_Descriptor;
+     (Buffer : access Buffer_Type;
       Value  : out Ref_Type) is
    begin
       raise Program_Error;
@@ -170,22 +170,22 @@ package body Broca.Refs is
    -- Compute_New_Size --
    ----------------------
 
-   procedure Compute_New_Size
-     (Buffer : in out Buffer_Descriptor;
-      Value  : in Ref) is
-   begin
-      if Value.A_Ref = null then
-         Broca.Exceptions.Raise_Marshal;
-      end if;
-      Compute_New_Size (Buffer, Value.A_Ref.all);
-   end Compute_New_Size;
+--     procedure Compute_New_Size
+--       (Buffer : access Buffer_Type;
+--        Value  : in Ref) is
+--     begin
+--        if Value.A_Ref = null then
+--           Broca.Exceptions.Raise_Marshal;
+--        end if;
+--        Compute_New_Size (Buffer, Value.A_Ref.all);
+--     end Compute_New_Size;
 
    --------------
    -- Marshall --
    --------------
 
    procedure Marshall
-     (Buffer : in out Buffer_Descriptor;
+     (Buffer : access Buffer_Type;
       Value  : in Ref) is
    begin
       if Value.A_Ref = null then
@@ -199,7 +199,7 @@ package body Broca.Refs is
    ----------------
 
    procedure Unmarshall
-     (Buffer : in out Buffer_Descriptor;
+     (Buffer : access Buffer_Type;
       Value  : out Ref)
    is
       New_Ref : Ref;

@@ -318,10 +318,11 @@ src/broca-ior.adb
 src/broca-ior.ads
 src/broca-locks.adb
 src/broca-locks.ads
-src/broca-marshalling.adb
-src/broca-marshalling.ads
 src/broca-object.adb
 src/broca-object.ads
+src/broca-opaque-chunk_pools.adb
+src/broca-opaque-chunk_pools.ads
+src/broca-opaque.ads
 src/broca-orb.adb
 src/broca-orb.ads
 src/broca-poa.adb

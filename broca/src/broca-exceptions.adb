@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.9 $
+--                            $Revision: 1.10 $
 --                                                                          --
---            Copyright (C) 1999 ENST Paris University, France.             --
+--         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -36,7 +36,7 @@
 with Ada.Strings.Unbounded;
 with Ada.Exceptions; use Ada.Exceptions;
 with CORBA; use CORBA;
-with Broca.Marshalling;
+with Broca.CDR;
 with Broca.Exceptions.Stack;
 
 package body Broca.Exceptions is
@@ -285,31 +285,31 @@ package body Broca.Exceptions is
    -- Compute_New_Size --
    ----------------------
 
-   procedure Compute_New_Size
-     (Buffer : in out Buffer_Descriptor;
-      Excpt  : in CORBA.Exception_Occurrence)
-   is
-      use Broca.Marshalling;
-   begin
-      --  Exception id
-      Compute_New_Size (Buffer, CORBA.String (Occurrence_To_Name (Excpt)));
-
-      --  Minor
-      Compute_New_Size (Buffer, UL_Size, UL_Size);
-
-      --  Completion status
-      Compute_New_Size (Buffer, UL_Size, UL_Size);
-   end Compute_New_Size;
+--     procedure Compute_New_Size
+--       (Buffer : access Buffer_Type;
+--        Excpt  : in CORBA.Exception_Occurrence)
+--     is
+--        use Broca.CDR;
+--     begin
+--        --  Exception id
+--        Compute_New_Size (Buffer, CORBA.String (Occurrence_To_Name (Excpt)));
+--
+--        --  Minor
+--        Compute_New_Size (Buffer, UL_Size, UL_Size);
+--
+--        --  Completion status
+--        Compute_New_Size (Buffer, UL_Size, UL_Size);
+--     end Compute_New_Size;
 
    --------------
    -- Marshall --
    --------------
 
    procedure Marshall
-     (Buffer : in out Buffer_Descriptor;
+     (Buffer : access Buffer_Type;
       Excpt  : in CORBA.Exception_Occurrence)
    is
-      use Broca.Marshalling;
+      use Broca.CDR;
       Members : System_Exception_Members;
    begin
       Get_Members (Excpt, Members);
@@ -322,15 +322,15 @@ package body Broca.Exceptions is
    Suffix : constant String := ":1.0";
    --  System Exception Prefix
 
-   procedure Unmarshall_And_Raise (Buffer : in out Buffer_Descriptor) is
-      use Broca.Marshalling;
+   procedure Unmarshall_And_Raise (Buffer : access Buffer_Type) is
+      use Broca.CDR;
       use Ada.Exceptions;
       Minor      : CORBA.Unsigned_Long;
       Status     : CORBA.Unsigned_Long;
       Identity   : Exception_Id;
       Repository : CORBA.String;
    begin
-      Unmarshall (Buffer, Repository);
+      Repository := Unmarshall (Buffer);
       declare
          R : String  := To_Standard_String (Repository);
          F : Natural := R'First;
@@ -362,8 +362,8 @@ package body Broca.Exceptions is
          Status := Completion_Status'Pos (Completed_Maybe);
       end if;
 
-      Unmarshall (Buffer, Minor);
-      Unmarshall (Buffer, Status);
+      Minor := Unmarshall (Buffer);
+      Minor := Unmarshall (Buffer);
 
       --  Raise the exception.
       Raise_Exception

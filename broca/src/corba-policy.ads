@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.3 $
+--                            $Revision: 1.4 $
 --                                                                          --
---            Copyright (C) 1999 ENST Paris University, France.             --
+--         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -40,7 +40,7 @@ with CORBA.Sequences.Unbounded;
 package CORBA.Policy is
    type Ref is new CORBA.Object.Ref with null record;
 
-   function Get_Policy_Type (Self: Ref) return Policytype;
+   function Get_Policy_Type (Self: Ref) return PolicyType;
    function Copy (Self: Ref) return Ref'Class;
 
    package IDL_SEQUENCE_Policy is new CORBA.Sequences.Unbounded (Ref);

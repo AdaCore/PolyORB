@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.9 $
+--                            $Revision: 1.10 $
 --                                                                          --
---            Copyright (C) 1999 ENST Paris University, France.             --
+--         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -84,6 +84,7 @@ package Broca.IIOP is
          --  Lock on the list of strands.
          Lock : Broca.Locks.Rw_Lock_Type;
       end record;
+
    type Profile_IIOP_Ptr is access all Profile_IIOP_Type;
 
    --  Find a free connection (or create a new one) for a message to an
@@ -92,12 +93,12 @@ package Broca.IIOP is
      (Profile : access Profile_IIOP_Type)
      return IOP.Connection_Ptr;
 
-   function Get_Profile_Id
+   function Get_Profile_Tag
      (Profile : Profile_IIOP_Type)
-     return IOP.Profile_Id;
+     return IOP.Profile_Tag;
 
    procedure Create_Profile
-     (Buffer : in out Buffers.Buffer_Descriptor;
+     (Buffer : access Broca.Buffers.Buffer_Type;
       Profile : out IOP.Profile_Ptr);
 
 private

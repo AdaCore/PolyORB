@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.8 $
+--                            $Revision: 1.9 $
 --                                                                          --
---            Copyright (C) 1999 ENST Paris University, France.             --
+--         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -236,7 +236,9 @@ package body Portableserver.POA is
    end Create_POA;
 
    function Find_POA
-     (Self : Ref; Adapter_Name : CORBA.String; Activate_It : CORBA.Boolean)
+     (Self : Ref;
+      Adapter_Name : CORBA.String;
+      Activate_It : CORBA.Boolean)
       return Ref'Class
    is
       use Broca.POA;

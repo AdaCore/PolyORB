@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.6 $
+--                            $Revision: 1.7 $
 --                                                                          --
---            Copyright (C) 1999 ENST Paris University, France.             --
+--         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -63,7 +63,8 @@ package PortableServer is
       Operation : String;
       Request_Id : CORBA.Unsigned_Long;
       Reponse_Expected : CORBA.Boolean;
-      Stream : in out Broca.Buffers.Buffer_Descriptor);
+      Request_Buffer : access Broca.Buffers.Buffer_Type;
+      Reply_Buffer   : access Broca.Buffers.Buffer_Type);
 
    type Servant is access all Servant_Base'Class;
 

@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.5 $
+--                            $Revision: 1.6 $
 --                                                                          --
---            Copyright (C) 1999 ENST Paris University, France.             --
+--         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,127 +33,108 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Finalization;
 with CORBA;
+
+with Broca.Buffers;
+use Broca.Buffers;
 
 package Broca.CDR is
 
    pragma Elaborate_Body;
 
-   --  This package takes care of CDR and GIOP encoding. It has not been
-   --  tuned for efficiency yet, but should be easy to use.
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : access CORBA.Octet);
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : in CORBA.Octet);
 
-   type Buffer_Type is private;
-
-   type Endianess_Type is (Little_Endian, Big_Endian);
-
-   type Index_Type is mod 2 ** 32;
-
-   type Octet_Array is array (Index_Type range <>) of CORBA.Octet;
-   type Octet_Array_Ptr is access Octet_Array;
-
-   procedure Free (Octets : in out Octet_Array_Ptr);
-
-   type Alignment_Type is range 1 .. 8;
-
-   procedure Initialize
-     (Buffer  : access Buffer_Type;
-      Content : in Octet_Array);
-   --  Read endianess from content and prepare the buffer to be worked on
-
-   procedure Initialize
-     (Buffer    : access Buffer_Type;
-      Endianess : in Endianess_Type);
-   --  Initialize a buffer explicitely with an endianess type. If you want
-   --  to work with the default endianess, do not initialize the buffer
-   --  at all, it will be done automatically.
-
-   function Get_Content (Buffer : access Buffer_Type)
-     return Octet_Array;
-   --  Return an octet array representing the stream to be sent
-
-   procedure Marshall_Opaque
-     (Buffer    : access Buffer_Type;
-      Octets    : in Octet_Array;
-      Alignment : in Alignment_Type := 1);
-   --  Marshall any kind of data
-
-   function Unmarshall_Opaque
-     (Buffer    : access Buffer_Type;
-      Size      : Index_Type;
-      Alignment : Alignment_Type := 1)
-     return Octet_Array;
+   function Unmarshall (Buffer : access Buffer_Type)
+     return CORBA.Octet;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Inner  : in Buffer_Type);
-   --  Marshall a buffer into another one
+      Data   : access CORBA.Char);
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : in CORBA.Char);
 
-   function Unmarshall (Buffer : access Buffer_Type) return Buffer_Type;
+   function Unmarshall (Buffer : access Buffer_Type)
+     return CORBA.Char;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Octets : in CORBA.Octet);
+      Data   : access CORBA.Boolean);
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : in CORBA.Boolean);
 
-   function Unmarshall (Buffer : access Buffer_Type) return CORBA.Octet;
+   function Unmarshall (Buffer : access Buffer_Type)
+     return CORBA.Boolean;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Octets : in CORBA.Char);
-
-   function Unmarshall (Buffer : access Buffer_Type) return CORBA.Char;
-
+      Data   : access CORBA.Unsigned_Short);
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Octets : in CORBA.Boolean);
-
-   function Unmarshall (Buffer : access Buffer_Type) return CORBA.Boolean;
-
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Octets : in CORBA.Unsigned_Short);
+      Data   : in CORBA.Unsigned_Short);
 
    function Unmarshall (Buffer : access Buffer_Type)
      return CORBA.Unsigned_Short;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Octets : in CORBA.Unsigned_Long);
+      Data   : access CORBA.Unsigned_Long);
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : in CORBA.Unsigned_Long);
 
    function Unmarshall (Buffer : access Buffer_Type)
      return CORBA.Unsigned_Long;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Octets : in CORBA.Short);
+      Data   : access CORBA.Short);
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : in CORBA.Short);
 
-   function Unmarshall (Buffer : access Buffer_Type) return CORBA.Short;
+   function Unmarshall (Buffer : access Buffer_Type)
+     return CORBA.Short;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Octets : in CORBA.Long);
+      Data   : access CORBA.Long);
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : in CORBA.Long);
 
-   function Unmarshall (Buffer : access Buffer_Type) return CORBA.Long;
+   function Unmarshall (Buffer : access Buffer_Type)
+     return CORBA.Long;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Octets : in CORBA.String);
+      Data   : access CORBA.String);
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : in CORBA.String);
 
-   function Unmarshall (Buffer : access Buffer_Type) return CORBA.String;
+   function Unmarshall (Buffer : access Buffer_Type)
+     return CORBA.String;
 
-private
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : access Encapsulation);
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : in Encapsulation);
 
-   type Buffer_Type is new Ada.Finalization.Controlled with record
-      Endianess : Endianess_Type;
-      Content   : Octet_Array_Ptr;
-      Index     : Index_Type;
-   end record;
-   --  The current implementation works like a realloc() each time something
-   --  gets written in the buffer. It should be replaced by a linked list
-   --  with fixed size preallocation for efficiency reasons.
+   function Unmarshall (Buffer : access Buffer_Type)
+     return Encapsulation;
 
-   procedure Initialize (Buffer : in out Buffer_Type);
-   procedure Adjust     (Buffer : in out Buffer_Type);
-   procedure Finalize   (Buffer : in out Buffer_Type);
+   procedure Start_Encapsulation
+     (Buffer : access Buffer_Type);
+   --  Prepare Buffer to receive marshalled data
+   --  that will be turned into an Encapsulation.
 
 end Broca.CDR;

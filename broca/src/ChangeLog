@@ -1,3 +1,49 @@
+2000-02-21  Thomas Quinot  <quinot@inf.enst.fr>
+
+	* broca-buffers.adb: Implemented Extract_Data.
+
+2000-02-18  Thomas Quinot  <quinot@inf.enst.fr>
+
+	* All: It compiles.
+
+2000-02-14  Thomas Quinot  <quinot@inf.enst.fr>
+
+	* broca-server.adb: Compiles with new buffers.
+	* broca-giop.adb: Almost compiles with new buffers.
+
+2000-02-03  Thomas Quinot  <quinot@inf.enst.fr>
+
+	* broca-buffers.adb: Added Copy operation.
+
+	* broca-opaque-chunk_pools.ads, broca-opaque-chunk_pools.adb:
+	allow the allocation of chunks of any size.
+
+2000-02-01  Thomas Quinot  <quinot@inf.enst.fr>
+
+	* broca-server.adb: Rewrote Build_IOR using new buffers.
+
+	* broca-buffers.ads: Created Set_Initial_Position
+	(used by Start_Encapsulation and Start_Message).
+	
+	* broca-buffers.ads: Created Prepend (used for
+	preparation of message buffers).
+	
+	* broca-buffers.ads, broca-buffers.adb: Removed
+	Iovec descriptors altogether. It is sufficient to
+	keep track of the growability and chunk access for
+	the last Iovec in an Iovec_Pool.
+	
+	* broca-cdr.ads, broca-cdr.adb: Created Start_Encapsulation.
+
+2000-01-28  Thomas Quinot  <quinot@antinea.enst.fr>
+
+	* broca-buffers.adb: Fixed Allocate_And_Insert_Cooked_Data.
+
+2000-01-28  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* broca-buffers.ads, broca-buffers.adb: Remove unused field in
+	Buffer_Chunk_Metadata.
+
 1999-08-30  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* broca-repository.adb: Call a Class a Factory because it is a

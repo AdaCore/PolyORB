@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.10 $
+--                            $Revision: 1.11 $
 --                                                                          --
---            Copyright (C) 1999 ENST Paris University, France.             --
+--         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -43,32 +43,36 @@ package body Broca.Object is
    -- Compute_New_Size --
    ----------------------
 
-   procedure Compute_New_Size
-     (Buffer : in out Buffer_Descriptor;
-      Value  : in Broca.Object.Object_Type) is
-      A_Buf : Buffer_Descriptor;
-      Old_Size : Buffer_Index_Type := Full_Size (Buffer);
-   begin
-      Encapsulate_IOR (A_Buf, Old_Size, Value);
-      --  XXX should cache A_Buf in object for subsequent call to
-      --  Marshall.
-      Skip_Bytes (Buffer, Full_Size (A_Buf) - Old_Size);
-      Destroy (A_Buf);
-   end Compute_New_Size;
+--     procedure Compute_New_Size
+--       (Buffer : access Buffer_Type;
+--        Value  : in Broca.Object.Object_Type) is
+--        A_Buf : Buffer_Descriptor;
+--        Old_Size : Buffer_Index_Type := Full_Size (Buffer);
+--     begin
+--        Encapsulate_IOR (A_Buf, Old_Size, Value);
+--        --  XXX should cache A_Buf in object for subsequent call to
+--        --  Marshall.
+--        Skip_Bytes (Buffer, Full_Size (A_Buf) - Old_Size);
+--        Destroy (A_Buf);
+--     end Compute_New_Size;
 
    --------------
    -- Marshall --
    --------------
 
    procedure Marshall
-     (Buffer : in out Buffer_Descriptor;
+     (Buffer : access Buffer_Type;
       Value  : in Broca.Object.Object_Type) is
    begin
       --  XXX Check:
       --  Value of "From" parameter (0);
       --  Potential exception (if Get (Value) cannot be
       --  narrowed to Object_Type)
-      Encapsulate_IOR (Buffer, Size_Used (Buffer), Value);
+
+      --  XXX Change by Thomas 2000-02-15
+      --  Encapsulate_IOR (Buffer, Size_Used (Buffer), Value);
+
+      Encapsulate_IOR (Buffer, Value);
    end Marshall;
 
    ----------------
@@ -76,8 +80,9 @@ package body Broca.Object is
    ----------------
 
    procedure Unmarshall
-     (Buffer : in out Buffer_Descriptor;
-      Result : out Broca.Object.Object_Type) is
+     (Buffer : access Buffer_Type;
+      Result : out Broca.Object.Object_Type)
+   is
    begin
       Decapsulate_IOR (Buffer, Result);
    end Unmarshall;
@@ -96,12 +101,12 @@ package body Broca.Object is
    ---------------------
 
    procedure Encapsulate_IOR
-     (Buffer : in out Buffers.Buffer_Descriptor;
-      From   : in Buffer_Index_Type;
+     (Buffer : access Buffer_Type;
+      --  From   : in Buffer_Index_Type;
       Object : in Object_Type'Class)
    is
    begin
-      IOP.Encapsulate_IOR (Buffer, From, Object.Type_Id, Object.Profiles);
+      IOP.Encapsulate_IOR (Buffer, Object.Type_Id, Object.Profiles);
    end Encapsulate_IOR;
 
    ---------------------
@@ -109,7 +114,7 @@ package body Broca.Object is
    ---------------------
 
    procedure Decapsulate_IOR
-     (Buffer : in out Buffers.Buffer_Descriptor;
+     (Buffer : access Buffer_Type;
       Object : out Object_Type'Class)
    is
    begin

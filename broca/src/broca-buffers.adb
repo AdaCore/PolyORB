@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.13 $
+--                            $Revision: 1.14 $
 --                                                                          --
---            Copyright (C) 1999 ENST Paris University, France.             --
+--         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -36,7 +36,26 @@
 with Broca.Debug;
 with System; use System;
 
+with Ada.Unchecked_Deallocation;
+--  For Iovec_Pools.Free.
+
+with Interfaces.C;
+--  For Interfaces.C.int.
+
+with Ada.Unchecked_Conversion;
+--  For conversions between Opaque_Pointer and Caddr_T.
+--  For conversions between System.Address and Interfaces.C.int.
+
+with System.Address_To_Access_Conversions;
+--  For Dump.
+
+with CORBA;
+--  For CORBA.Octet and CORBA.Bool.
+
 package body Broca.Buffers is
+
+   use Buffer_Chunk_Pools;
+   use Iovec_Pools;
 
    Flag : constant Natural := Broca.Debug.Is_Active ("broca.buffers");
    procedure O is new Broca.Debug.Output (Flag);
@@ -46,129 +65,313 @@ package body Broca.Buffers is
    Hex : constant String      := "0123456789ABCDEF";
    Nil : constant Output_Line := (others => ' ');
 
-   procedure Fix_Buffer_Size
-     (Buffer : in out Buffer_Descriptor;
-      Size   : in Buffer_Index_Type);
+   ---------------------------
+   -- Interface with Iovecs --
+   ---------------------------
 
-   procedure Set_Write_Mode
-     (Buffer : in out Buffer_Descriptor;
-      Write  : in Boolean);
+   subtype C_int is Interfaces.C.int;
 
-   ----------------
-   -- Align_Size --
-   ----------------
+   ------------------------
+   -- General operations --
+   ------------------------
 
-   procedure Align_Size
-     (Buffer    : in out Buffer_Descriptor;
-      Alignment : in Alignment_Type) is
+   function Endianness
+     (Buffer : Buffer_Type)
+     return Endianness_Type is
    begin
-      Buffer.Pos := Buffer.Pos +
-        ((Alignment - (Buffer.Pos mod Alignment)) mod Alignment);
-   end Align_Size;
+      return Buffer.Endianness;
+   end Endianness;
 
-   ---------------------
-   -- Allocate_Buffer --
-   ---------------------
-
-   procedure Allocate_Buffer (Buffer : in out Buffer_Descriptor) is
+   procedure Release
+     (Buffer : in out Buffer_Type) is
    begin
-      Fix_Buffer_Size (Buffer, Buffer.Pos);
-      Buffer.Pos := 0;
-      Buffer.Little_Endian := Is_Little_Endian;
-   end Allocate_Buffer;
+      Release (Buffer.Contents);
+      Release (Buffer.Storage'Access);
+      Buffer.CDR_Position := 0;
+   end Release;
 
-   -----------------------------------
-   -- Allocate_Buffer_And_Clear_Pos --
-   -----------------------------------
-
-   procedure Allocate_Buffer_And_Clear_Pos
-     (Buffer : in out Buffer_Descriptor;
-      Size   : in Buffer_Index_Type) is
-   begin
-      Fix_Buffer_Size (Buffer, Size);
-      Buffer.Pos := 0;
-   end Allocate_Buffer_And_Clear_Pos;
-
-   -------------------
-   -- Append_Buffer --
-   -------------------
-
-   procedure Append_Buffer
-     (Target : in out Buffer_Descriptor;
-      Source : in Buffer_Descriptor)
+   procedure Initialize_Buffer
+     (Buffer     : access Buffer_Type;
+      Size       : Index_Type;
+      Data       : Opaque_Pointer;
+      Endianness : Endianness_Type;
+      Initial_CDR_Position : Index_Type)
    is
-      Length : Buffer_Index_Type
-        := Source.Buffer'Last - Source.Pos + 1;
+      Data_Iovec : constant Iovec
+        := (Iov_Base => Data,
+            Iov_Len  => C_int (Size));
+
    begin
-      Set_Write_Mode (Target, True);
-      Target.Buffer (Target.Pos .. Target.Pos + Length - 1)
-        := Source.Buffer (Source.Pos .. Source.Pos + Length - 1);
-      Target.Pos := Target.Pos + Length;
-   end Append_Buffer;
+      pragma Assert (True
+        and then Buffer.CDR_Position = 0
+        and then Buffer.Initial_CDR_Position = 0);
 
-   ----------------------
-   -- Compute_New_Size --
-   ----------------------
+      Buffer.Endianness := Endianness;
+      Buffer.CDR_Position := Initial_CDR_Position;
+      Buffer.Initial_CDR_Position := Initial_CDR_Position;
 
-   procedure Compute_New_Size
-     (Buffer : in out Buffer_Descriptor;
-      Align  : in Alignment_Type;
-      Size   : in Buffer_Index_Type) is
+      Append
+        (Iovec_Pool => Buffer.Contents,
+         An_Iovec   => Data_Iovec);
+   end Initialize_Buffer;
+
+   procedure Prepend
+     (Prefix : in Buffer_Type;
+      Buffer : access Buffer_Type) is
    begin
-      Align_Size (Buffer, Align);
-      Buffer.Pos := Buffer.Pos + Size;
-   end Compute_New_Size;
+      pragma Assert (True
+        and then Prefix.Endianness = Buffer.Endianness
+        and then Prefix.CDR_Position = Buffer.Initial_CDR_Position);
 
-   ----------------------
-   -- Compute_New_Size --
-   ----------------------
+      Iovec_Pools.Prepend_Pool (Prefix.Contents, Buffer.Contents);
 
-   procedure Compute_New_Size
-     (Target : in out Buffer_Descriptor;
-      Source : in Buffer_Descriptor) is
+      Buffer.Initial_CDR_Position := Prefix.Initial_CDR_Position;
+   end Prepend;
+
+   function Copy
+     (Buffer : access Buffer_Type)
+     return Buffer_Access
+   is
+      Into : constant Buffer_Access
+        := new Buffer_Type;
+
+      Octets : constant Octet_Array
+        := Dump (Buffer.Contents);
+      Copy_Address : Opaque_Pointer;
+
+      subtype Data is Octet_Array (Octets'Range);
+
+      package Opaque_Pointer_To_Data_Access is
+         new System.Address_To_Access_Conversions (Data);
+
+      use Opaque_Pointer_To_Data_Access;
+
    begin
-      pragma Assert (Source.Buffer /= null);
-      Target.Pos := Target.Pos + Source.Buffer'Last - Source.Pos + 1;
-   end Compute_New_Size;
+      Into.Endianness := Buffer.Endianness;
+      Set_Initial_Position (Into, Buffer.Initial_CDR_Position);
 
-   ----------
-   -- Copy --
-   ----------
+      Allocate_And_Insert_Cooked_Data
+        (Buffer,
+         Octets'Length,
+         Copy_Address);
+      To_Pointer (Copy_Address).all := Octets;
 
-   procedure Copy
-     (Source : in Buffer_Descriptor;
-      Target : out Buffer_Descriptor) is
-   begin
-      Target := Source;
-      if Source.Buffer /= null then
-         Target.Buffer := new Buffer_Type'(Source.Buffer.all);
-      end if;
+      return Into;
    end Copy;
 
-   -------------
-   -- Destroy --
-   -------------
-
-   procedure Destroy (Buffer : in out Buffer_Descriptor) is
-   begin
-      Free (Buffer.Buffer);
-      Buffer.Pos := 0;
-   end Destroy;
-
-   ----------
-   -- Dump --
-   ----------
-
-   procedure Dump
-     (Buffer : Buffer_Type)
+   procedure Release
+     (A_Buffer : in out Buffer_Access)
    is
-      Index   : Natural := 1;
-      Output  : Output_Line;
+      procedure Free is
+         new Ada.Unchecked_Deallocation
+        (Buffer_Type, Buffer_Access);
+
    begin
-      for I in Buffer'Range loop
+      Release (A_Buffer.all);
+      Free (A_Buffer);
+   end Release;
+
+   ----------------------------------------
+   -- The Encapsulation view of a buffer --
+   ----------------------------------------
+
+   function Encapsulate
+     (Buffer   : access Buffer_Type)
+     return Encapsulation is
+   begin
+      pragma Assert (Buffer.Initial_CDR_Position = 0);
+
+      return Iovec_Pools.Dump (Buffer.Contents);
+   end Encapsulate;
+
+   procedure Decapsulate
+     (Octets : access Encapsulation;
+      Buffer : access Buffer_Type)
+   is
+      Endianness : Endianness_Type;
+   begin
+      if CORBA.Boolean'Val
+        (CORBA.Octet (Octets (Octets'First))) then
+         Endianness := Little_Endian;
+      else
+         Endianness := Big_Endian;
+      end if;
+
+      Initialize_Buffer
+        (Buffer     => Buffer,
+         Size       => Octets.all'Length - 1,
+         Data       => Octets (Octets'First + 1)'Address,
+         Endianness => Endianness,
+         Initial_CDR_Position => 1);
+
+   end Decapsulate;
+
+   ------------------------------
+   -- The CDR view of a buffer --
+   ------------------------------
+
+   procedure Set_Initial_Position
+     (Buffer   : access Buffer_Type;
+      Position : Index_Type) is
+   begin
+      pragma Assert
+        (Buffer.Initial_CDR_Position = Buffer.CDR_Position);
+
+      Buffer.Initial_CDR_Position := Position;
+      Buffer.CDR_Position := Position;
+   end Set_Initial_Position;
+
+   Null_Data : aliased array (1 .. Alignment_Type'Last - 1)
+     of Interfaces.Unsigned_8 := (others => 0);
+   pragma Convention (C, Null_Data);
+   --  Null data used for padding.
+   Null_Data_Address : constant System.Address
+     := Null_Data'Address;
+   --  The address of the first element of array Null_Data.
+
+   procedure Align
+     (Buffer    : access Buffer_Type;
+      Alignment : Alignment_Type)
+   is
+      Padding : constant Index_Type
+         := (Alignment - Buffer.CDR_Position) mod Alignment;
+      Padding_Space : Opaque_Pointer;
+   begin
+
+      if Padding = 0 then
+         --  Buffer is already aligned.
+         return;
+      end if;
+
+      Grow (Buffer.Contents'Access, Padding, Padding_Space);
+      --  Try to extend Buffer.Content's last Iovec
+      --  to provide proper alignment.
+
+      if Padding_Space = Null_Address then
+         --  Grow was unable to extend the last Iovec:
+         --  insert a non-growable iovec corresponding
+         --  to static null data.
+
+         declare
+            Padding_Iovec : constant Iovec
+              := (Iov_Base => Null_Data_Address,
+                  Iov_Len  => C_int (Padding));
+         begin
+            Append
+              (Iovec_Pool => Buffer.Contents,
+               An_Iovec   => Padding_Iovec);
+         end;
+      end if;
+
+      Buffer.CDR_Position := Buffer.CDR_Position + Padding;
+      --  Advance the CDR position to the new alignment.
+
+      pragma Assert (Buffer.CDR_Position mod Alignment = 0);
+      --  XXX The buffer should then be aligned.
+   end Align;
+
+   --  Inserting data into a buffer
+
+   procedure Insert_Raw_Data
+     (Buffer    : access Buffer_Type;
+      Size      : Index_Type;
+      Data      : Opaque_Pointer)
+   is
+      Data_Iovec : constant Iovec
+        := (Iov_Base => Data,
+            Iov_Len  => C_int (Size));
+   begin
+      pragma Assert (Buffer.Endianness = Host_Order);
+
+      Append
+        (Iovec_Pool => Buffer.Contents,
+         An_Iovec   => Data_Iovec);
+      Buffer.CDR_Position := Buffer.CDR_Position + Size;
+   end Insert_Raw_Data;
+
+   procedure Allocate_And_Insert_Cooked_Data
+     (Buffer    : access Buffer_Type;
+      Size      : Index_Type;
+      Data      : out Opaque_Pointer)
+   is
+      A_Data : Opaque_Pointer;
+   begin
+      Grow (Buffer.Contents'Access, Size, A_Data);
+      --  First try to grow an existing Iovec.
+
+      if A_Data /= Null_Address then
+         Buffer.CDR_Position := Buffer.CDR_Position + Size;
+         Data := A_Data;
+         return;
+      end if;
+
+      declare
+         A_Chunk : Chunk_Access;
+         Data_Iovec : Iovec;
+      begin
+         Allocate (Buffer.Storage'Access, A_Chunk);
+         Data_Iovec := (Iov_Base => Chunk_Storage (A_Chunk),
+                        Iov_Len  => C_int (Size));
+
+         A_Data := Chunk_Storage (A_Chunk);
+         pragma Assert (A_Data /= Null_Address);
+         Data := A_Data;
+
+         Metadata (A_Chunk).all :=
+           (Last_Used             => Size);
+         Append
+           (Iovec_Pool => Buffer.Contents,
+            An_Iovec   => Data_Iovec,
+            A_Chunk    => A_Chunk);
+         Buffer.CDR_Position := Buffer.CDR_Position + Size;
+      end;
+   end Allocate_And_Insert_Cooked_Data;
+
+   procedure Extract_Data
+     (Buffer : access Buffer_Type;
+      Data   : out Opaque_Pointer;
+      Size   : Index_Type) is
+   begin
+      Extract_Data
+        (Buffer.Contents,
+         Data,
+         Buffer.CDR_Position - Buffer.Initial_CDR_Position,
+         Size);
+      Buffer.CDR_Position := Buffer.CDR_Position + Size;
+   end Extract_Data;
+
+   function Length
+     (Buffer : access Buffer_Type)
+     return Index_Type is
+   begin
+      return Buffer.CDR_Position - Buffer.Initial_CDR_Position;
+   end Length;
+
+   -------------------------
+   -- Utility subprograms --
+   -------------------------
+
+   procedure Show
+     (Octets : Octet_Array);
+   --  Display the contents of Octets for
+   --  debugging purposes.
+
+   procedure Show
+     (Octets : Octet_Array)
+   is
+      Output : Output_Line;
+      Index  : Natural := 1;
+
+      use Interfaces;
+      --  For operations on Unsigned_8.
+
+   begin
+      for J in Octets'Range loop
          Output (Index)     := ' ';
-         Output (Index + 1) := Hex (Natural (Buffer (I) / 16) + 1);
-         Output (Index + 2) := Hex (Natural (Buffer (I) mod 16) + 1);
+         Output (Index + 1) := Hex
+           (Natural (Octets (J) / 16) + 1);
+         Output (Index + 2) := Hex
+           (Natural (Octets (J) mod 16) + 1);
          Index := Index + 3;
 
          if Index > Output'Length then
@@ -182,195 +385,385 @@ package body Broca.Buffers is
          pragma Debug (O (Output (1 .. Index - 1)));
          null;
       end if;
-   exception when others =>
-      pragma Debug (O ("problem in dump"));
-      raise;
-   end Dump;
-
-   --------------------
-   -- Extract_Buffer --
-   --------------------
-
-   procedure Extract_Buffer
-     (Target : in out Buffer_Descriptor;
-      Source : in out Buffer_Descriptor;
-      Length : in Buffer_Index_Type) is
-   begin
-      Set_Write_Mode (Target, False);
-      Target.Buffer (Target.Pos .. Target.Pos + Length - 1) :=
-        Source.Buffer (Source.Pos .. Source.Pos + Length - 1);
-      Source.Pos := Source.Pos + Length;
-      Target.Pos := 0;
-      Target.Little_Endian := Source.Little_Endian;
-   end Extract_Buffer;
-
-   -----------------------
-   -- Fix_Buffer_Size --
-   -----------------------
-
-   procedure Fix_Buffer_Size
-     (Buffer : in out Buffer_Descriptor;
-      Size   : in Buffer_Index_Type) is
-   begin
-      if Buffer.Buffer /= null then
-         if Size = Buffer_Index_Type (Buffer.Buffer'Length) then
-            return;
-         end if;
-         Free (Buffer.Buffer);
-      end if;
-
-      if Size > 0 then
-         Buffer.Buffer := new Buffer_Type (0 .. Size - 1);
-      end if;
-   end Fix_Buffer_Size;
-
-   ---------------
-   -- Full_Size --
-   ---------------
-
-   function Full_Size (Buffer : in Buffer_Descriptor)
-     return Buffer_Index_Type is
-   begin
-      if Buffer.Buffer /= null then
-         return Buffer.Buffer'Last + 1;
-      else
-         return Buffer.Pos;
-      end if;
-   end Full_Size;
-
-   -------------------
-   -- Get_Endianess --
-   -------------------
-
-   function Get_Endianess (Buffer : Buffer_Descriptor) return Boolean is
-   begin
-      return Buffer.Little_Endian;
-   end Get_Endianess;
-
-   ----------
-   -- Read --
-   ----------
-
-   procedure Read
-     (Buffer  : in out Buffer_Descriptor;
-      Bytes   : out Buffer_Type)
-   is
-      Length : constant Buffer_Index_Type := Buffer_Index_Type (Bytes'Length);
-   begin
-      Set_Write_Mode (Buffer, False);
-
-      if Length = 0 then
-         return;
-      end if;
-
-      pragma Assert (Buffer.Pos + Length - 1 <= Buffer.Buffer'Last);
-      Bytes := Buffer.Buffer (Buffer.Pos .. Buffer.Pos + Length - 1);
-      Buffer.Pos := Buffer.Pos + Length;
-   end Read;
-
-   ------------
-   -- Rewind --
-   ------------
-
-   procedure Rewind (Buffer : in out Buffer_Descriptor) is
-   begin
-      Buffer.Pos := 0;
-   end Rewind;
-
-   -------------------
-   -- Set_Endianess --
-   -------------------
-
-   procedure Set_Endianess
-     (Buffer        : in out Buffer_Descriptor;
-      Little_Endian : in Boolean) is
-   begin
-      Buffer.Little_Endian := Little_Endian;
-   end Set_Endianess;
-
-   --------------------
-   -- Set_Write_Mode --
-   --------------------
-
-   procedure Set_Write_Mode
-     (Buffer : in out Buffer_Descriptor;
-      Write  : in Boolean)
-   is
-   begin
-      if Buffer.Write and not Write then
-         --  If reading after writing, then
-         --  rewind buffer.
-         Buffer.Pos := 0;
-      end if;
-      Buffer.Write := Write;
-   end Set_Write_Mode;
-
-   ---------------
-   -- Size_Left --
-   ---------------
-
-   function Size_Left
-     (Buffer : in Buffer_Descriptor)
-      return Buffer_Index_Type is
-   begin
-      return Buffer.Buffer'Last - Buffer.Pos + 1;
-   end Size_Left;
-
-   ---------------
-   -- Size_Used --
-   ---------------
-
-   function Size_Used
-     (Buffer : in Buffer_Descriptor)
-      return Buffer_Index_Type is
-   begin
-      return Buffer.Pos;
-   end Size_Used;
-
-   ----------
-   -- Show --
-   ----------
-
-   procedure Show (Buffer : in Buffer_Descriptor) is
-   begin
-      pragma Debug (O ("Pos  =" & Buffer.Pos'Img));
-      if Buffer.Buffer /= null then
-         pragma Debug (O ("Last =" & Buffer.Buffer'Last'Img));
-         Dump (Buffer.Buffer (Buffer.Pos .. Buffer.Buffer'Last));
-      else
-         pragma Debug (O ("Buffer empty"));
-         null;
-      end if;
    end Show;
 
-   ----------------
-   -- Skip_Bytes --
-   ----------------
-
-   procedure Skip_Bytes
-     (Buffer : in out Buffer_Descriptor;
-      Size   : in Buffer_Index_Type) is
-   begin
-      Buffer.Pos := Buffer.Pos + Size;
-   end Skip_Bytes;
-
-   -----------
-   -- Write --
-   -----------
-
-   procedure Write
-     (Buffer  : in out Buffer_Descriptor;
-      Bytes   : in Buffer_Type)
+   procedure Show
+     (Buffer : in Buffer_Type)
    is
-      Length : constant Buffer_Index_Type := Buffer_Index_Type (Bytes'Length);
    begin
-      Set_Write_Mode (Buffer, True);
-      pragma Assert (Buffer.Pos + Length - 1 <= Buffer.Buffer'Last);
-      Buffer.Buffer (Buffer.Pos .. Buffer.Pos + Length - 1) := Bytes;
-      Buffer.Pos := Buffer.Pos + Length;
-   end Write;
+      pragma Debug (O ("Dumping "
+                       & Endianness_Type'Image (Buffer.Endianness)
+                       & " buffer, CDR position is "
+                       & Index_Type'Image
+                       (Buffer.CDR_Position)));
 
-begin
-   Is_Little_Endian := (Default_Bit_Order /= High_Order_First);
+      Show (Iovec_Pools.Dump (Buffer.Contents));
+   end Show;
+
+   package body Iovec_Pools is
+
+      procedure Free is new Ada.Unchecked_Deallocation
+        (Iovec_Array, Iovec_Array_Access);
+
+      --  Address <-> Integer conversions
+
+      function To_C_int is
+         new Ada.Unchecked_Conversion
+        (System.Address, C_int);
+      function To_Address is
+         new Ada.Unchecked_Conversion
+        (C_int, System.Address);
+
+      procedure Grow
+        (Iovec_Pool   : access Iovec_Pool_Type;
+         Size         : Index_Type;
+         Data         : out Opaque_Pointer)
+      is
+
+         use Interfaces.C;
+
+         function First_Address_After
+           (An_Iovec : Iovec)
+           return System.Address;
+         --  Return the address of the storage
+         --  element immediately following the
+         --  last element of An_Iovec.
+
+         function First_Address_After
+           (An_Iovec : Iovec)
+           return System.Address is
+         begin
+            return To_Address
+              (To_C_int (An_Iovec.Iov_Base) + An_Iovec.Iov_Len);
+         end First_Address_After;
+
+         procedure Do_Grow
+           (Last_Iovec : in out Iovec;
+            Last_Chunk : Chunk_Access);
+
+         procedure Do_Grow
+           (Last_Iovec : in out Iovec;
+            Last_Chunk : Chunk_Access)
+         is
+
+         begin
+            if Last_Chunk /= null then
+               declare
+                  Chunk_Metadata : constant Chunk_Metadata_Access
+                    := Metadata (Last_Chunk);
+               begin
+                  if Chunk_Metadata.Last_Used + Size
+                    <= Last_Chunk.Size then
+                     Chunk_Metadata.Last_Used
+                       := Chunk_Metadata.Last_Used + Size;
+                     Data := First_Address_After (Last_Iovec);
+                     Last_Iovec.Iov_Len := Last_Iovec.Iov_Len
+                       + C_int (Size);
+                  end if;
+               end;
+            end if;
+         end Do_Grow;
+
+      begin
+         Data := Null_Address;
+         if Iovec_Pool.Last = 0 then
+            --  Empty Iovec pool.
+            return;
+         end if;
+
+         if Iovec_Pool.Last <= Iovec_Pool.Prealloc_Array'Last then
+            Do_Grow (Iovec_Pool.Prealloc_Array (Iovec_Pool.Last),
+                     Iovec_Pool.Last_Chunk);
+         else
+            Do_Grow (Iovec_Pool.Dynamic_Array (Iovec_Pool.Last),
+                     Iovec_Pool.Last_Chunk);
+         end if;
+      end Grow;
+
+      ----------------------------------------
+      -- Utility Subprograms (declarations) --
+      ----------------------------------------
+
+      function Is_Dynamic
+        (Iovec_Pool : Iovec_Pool_Type)
+        return Boolean;
+      --  True iff Iovec pool uses dynamically allocated
+      --  storage for the Iovecs and descriptors.
+
+      function Iovecs
+        (Iovec_Pool : Iovec_Pool_Type)
+        return Iovec_Array;
+      --  Returns the Iovec_Array of Iovec_Pool.
+
+      procedure Extend
+        (Iovec_Pool : in out Iovec_Pool_Type;
+         Require    : Positive_Index_Type;
+         Allocate   : Positive_Index_Type);
+      --  Check the number of available Iovecs in
+      --  Iovec_Pool and possibly extend it.
+      --  If Iovec_Pool's length is at least
+      --  Require, then does nothing, else
+      --  make it Allocate Iovecs long.
+
+      function Dump
+        (Iovecs : Iovec_Array)
+        return Octet_Array;
+      --  Dump the data designated by an Iovec_Array
+      --  into an array of octets.
+
+      ----------------------------------
+      -- Utility Subprograms (bodies) --
+      ----------------------------------
+
+      function Is_Dynamic
+        (Iovec_Pool : Iovec_Pool_Type)
+        return Boolean is
+      begin
+         return Iovec_Pool.Dynamic_Array /= null;
+      end Is_Dynamic;
+
+      function Iovecs
+        (Iovec_Pool : Iovec_Pool_Type)
+        return Iovec_Array is
+      begin
+         if Is_Dynamic (Iovec_Pool) then
+            return Iovec_Pool.Dynamic_Array
+              (1 .. Iovec_Pool.Last);
+         else
+            return Iovec_Pool.Prealloc_Array
+              (1 .. Iovec_Pool.Last);
+         end if;
+      end Iovecs;
+
+      function Dump
+        (Iovecs : Iovec_Array)
+        return Octet_Array
+      is
+         Length : Index_Type := 0;
+      begin
+         for I in Iovecs'Range loop
+            Length := Length + Index_Type (Iovecs (I).Iov_Len);
+         end loop;
+
+         declare
+            Result  : Octet_Array (1 .. Length);
+            Current : Index_Type := Result'First;
+         begin
+            for I in Iovecs'Range loop
+               declare
+                  subtype Data is
+                    Octet_Array (1 .. Index_Type
+                                 (Iovecs (I).Iov_Len));
+
+                  package Opaque_Pointer_To_Data_Access is
+                      new System.Address_To_Access_Conversions
+                      (Data);
+
+                  use Opaque_Pointer_To_Data_Access;
+
+                  Octets : constant Object_Pointer
+                    := To_Pointer (Iovecs (I).Iov_Base);
+               begin
+                  Result
+                    (Current .. Current
+                     + Index_Type (Iovecs (I).Iov_Len) - 1)
+                    := Octets.all;
+                  Current := Current
+                    + Index_Type (Iovecs (I).Iov_Len);
+               end;
+            end loop;
+
+            return Result;
+
+         end;
+      end Dump;
+
+      -------------------------------------------
+      -- Visible subprograms (implementations) --
+      -------------------------------------------
+
+      procedure Extend
+        (Iovec_Pool : in out Iovec_Pool_Type;
+         Require    : Positive_Index_Type;
+         Allocate   : Positive_Index_Type) is
+      begin
+         pragma Assert (Allocate >= Require);
+
+         if Require > Iovec_Pool.Length then
+            declare
+               New_Array : constant Iovec_Array_Access
+                 := new Iovec_Array
+                 (1 .. Allocate);
+
+            begin
+               New_Array (1 .. Iovec_Pool.Last)
+                 := Iovecs (Iovec_Pool);
+
+               if Is_Dynamic (Iovec_Pool) then
+                  Free (Iovec_Pool.Dynamic_Array);
+               end if;
+
+               Iovec_Pool.Dynamic_Array := New_Array;
+               Iovec_Pool.Length := New_Array'Length;
+            end;
+         end if;
+      end Extend;
+
+      procedure Prepend_Pool
+        (Prefix     : Iovec_Pool_Type;
+         Iovec_Pool : in out Iovec_Pool_Type) is
+
+         New_Last : constant Index_Type
+           := Iovec_Pool.Last + Prefix.Last;
+      begin
+         Extend (Iovec_Pool, New_Last, New_Last + 1);
+         --  An Iovec pool that has been prefixed
+         --  will likely not be appended to anymore.
+
+         --  Append new Iovec.
+
+         if Is_Dynamic (Iovec_Pool) then
+            Iovec_Pool.Dynamic_Array (1 .. New_Last)
+              := Iovecs (Prefix) & Iovecs (Iovec_Pool);
+         else
+            Iovec_Pool.Prealloc_Array (1 .. New_Last)
+              := Iovecs (Prefix) & Iovecs (Iovec_Pool);
+         end if;
+
+         Iovec_Pool.Last := New_Last;
+      end Prepend_Pool;
+
+      procedure Append
+        (Iovec_Pool : in out Iovec_Pool_Type;
+         An_Iovec   : Iovec;
+         A_Chunk    : Buffer_Chunk_Pools.Chunk_Access := null)
+      is
+         New_Last : constant Index_Type
+           := Iovec_Pool.Last + 1;
+      begin
+         Extend (Iovec_Pool, New_Last, 2 * Iovec_Pool.Length);
+
+         --  Append new Iovec.
+
+         Iovec_Pool.Last := New_Last;
+         Iovec_Pool.Last_Chunk := A_Chunk;
+
+         if Is_Dynamic (Iovec_Pool) then
+            Iovec_Pool.Dynamic_Array (Iovec_Pool.Last)
+              := An_Iovec;
+         else
+            Iovec_Pool.Prealloc_Array (Iovec_Pool.Last)
+              := An_Iovec;
+         end if;
+      end Append;
+
+      procedure Extract_Data
+        (Iovec_Pool : Iovec_Pool_Type;
+         Data       : out Opaque_Pointer;
+         Offset     : Index_Type;
+         Size       : Index_Type)
+      is
+         use Interfaces.C;
+
+         Vecs : constant Iovec_Array
+           := Iovecs (Iovec_Pool);
+         Offset_Remainder : C_int
+           := C_int (Offset);
+         Index : Index_Type
+           := Vecs'First;
+      begin
+         while Offset_Remainder >= Vecs (Index).Iov_Len loop
+            Offset_Remainder := Offset_Remainder
+              - Vecs (Index).Iov_Len;
+            Index := Index + 1;
+         end loop;
+
+         pragma Assert (Offset_Remainder + C_int (Size)
+                          <= Vecs (Index).Iov_Len);
+
+         Data := To_Address (To_C_int (Vecs (Index).Iov_Base)
+                             + Offset_Remainder);
+      exception
+         when others =>
+            raise Read_Error;
+      end Extract_Data;
+
+      procedure Release
+        (Iovec_Pool : in out Iovec_Pool_Type) is
+      begin
+         if Is_Dynamic (Iovec_Pool) then
+            Free (Iovec_Pool.Dynamic_Array);
+         end if;
+
+         Iovec_Pool.Last := 0;
+         Iovec_Pool.Length := Iovec_Pool.Prealloc_Array'Length;
+      end Release;
+
+      function Dump
+        (Iovec_Pool : in Iovec_Pool_Type)
+        return Octet_Array is
+      begin
+         if Is_Dynamic (Iovec_Pool) then
+            return Dump (Iovec_Pool.Dynamic_Array
+                         (1 .. Iovec_Pool.Last));
+         else
+            return Dump (Iovec_Pool.Prealloc_Array
+                         (1 .. Iovec_Pool.Last));
+         end if;
+      end Dump;
+
+      procedure Write_To_FD
+        (FD : in Interfaces.C.int;
+         Iovec_Pool : access Iovec_Pool_Type)
+      is
+         use Sockets.Thin;
+         use Interfaces.C;
+
+         Vecs : Iovec_Array
+           := Iovecs (Iovec_Pool.all);
+
+         Index : Index_Type := Vecs'First;
+
+         Count : int;
+         Rest  : int := 0;
+
+      begin
+         for I in Vecs'Range loop
+            Rest := Rest + Vecs (I).Iov_Len;
+         end loop;
+
+         while Rest > 0 loop
+            Count := C_Writev
+              (FD,
+               Vecs (Index)'Address,
+               C_int (Vecs'Last - Index + 1));
+
+            --  XXX Should improve error reporting.
+            --  This is initially from sockets.adb.
+            if Count < 0 then
+               --  Raise_With_Message ("Send failed");
+               raise Write_Error;
+            elsif Count = 0 then
+               raise Write_Error;
+            end if;
+
+            while Index <= Vecs'Last
+              and then Count >= Vecs (Index).Iov_Len loop
+               Rest  := Rest  - Vecs (Index).Iov_Len;
+               Count := Count - Vecs (Index).Iov_Len;
+               Index := Index + 1;
+            end loop;
+
+            if Count > 0 then
+               Vecs (Index).Iov_Base := To_Address
+                 (To_C_int (Vecs (Index).Iov_Base) + Count);
+               Vecs (Index).Iov_Len
+                 := Vecs (Index).Iov_Len - Count;
+            end if;
+         end loop;
+      end Write_To_FD;
+
+   end Iovec_Pools;
+
 end Broca.Buffers;
 

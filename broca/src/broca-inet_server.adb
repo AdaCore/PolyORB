@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.17 $
+--                            $Revision: 1.18 $
 --                                                                          --
---            Copyright (C) 1999 ENST Paris University, France.             --
+--         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -35,17 +35,18 @@
 
 with Broca.Buffers; use Broca.Buffers;
 with CORBA; use CORBA;
-with CORBA.IOP;
+with Broca.IOP;
+with Broca.IIOP;
 with Sockets.Thin; use Sockets.Thin;
 with Sockets.Constants; use Sockets.Constants;
 with Interfaces.C; use Interfaces.C;
 with Interfaces.C.Strings;
 with Broca.Exceptions;
-with Broca.Marshalling;
 with Broca.GIOP;
 with Broca.Stream; use Broca.Stream;
 with Broca.Flags;
 with Broca.Server;
+with Broca.Sequences;
 with Ada.Text_IO;
 pragma Elaborate_All (Broca.Exceptions);
 pragma Elaborate_All (Broca.Server);
@@ -80,7 +81,7 @@ package body Broca.Inet_Server is
 
    --  Calling this function will cause the BOA to start accepting requests
    --  from other address spaces.
-   procedure Wait_Fd_Request (Buffer : in out Buffer_Descriptor);
+   procedure Wait_Fd_Request (Buffer_NOT_USED : access Buffer_Type);
 
    --  Convert an IN_ADDR to the decimal string representation.
    function In_Addr_To_Str (Addr : Sockets.Thin.In_Addr) return String;
@@ -135,7 +136,7 @@ package body Broca.Inet_Server is
 
    function Htons (Val : Natural) return Interfaces.C.unsigned_short is
    begin
-      if Broca.Buffers.Is_Little_Endian then
+      if Broca.Buffers.Host_Order = Little_Endian then
          return Interfaces.C.unsigned_short
            ((Val / 256) + (Val mod 256) * 256);
       else
@@ -151,7 +152,7 @@ package body Broca.Inet_Server is
    is
       use Interfaces.C;
    begin
-      if Broca.Buffers.Is_Little_Endian then
+      if Broca.Buffers.Host_Order = Little_Endian then
          return Natural
            ((Val / 256) + (Val mod 256) * 256);
       else
@@ -214,7 +215,7 @@ package body Broca.Inet_Server is
 
    private
 
-      Locked : Boolean;
+      Locked : Boolean := False;
       Polls : Pollfd_Array (1 .. Simultaneous_Streams)
         := (others => (Fd => Failure, Events => 0, Revents => 0));
       Streams : Stream_Ptr_Array (3 .. Simultaneous_Streams)
@@ -244,6 +245,7 @@ package body Broca.Inet_Server is
          Polls (2).Revents := 0;
          Nbr_Fd := 2;
          Fd_Pos := 1;
+         Locked := False;
       end Initialize;
 
       entry Get_Job_And_Lock (A_Job : out Job) when not Locked is
@@ -340,7 +342,7 @@ package body Broca.Inet_Server is
          pragma Assert (Pos in 1 .. Nbr_Fd);
 
          --  FIXME: remove suspended requests.
-         Broca.Stream.Unchecked_Deallocation (Streams (Pos));
+         Broca.Stream.Free (Streams (Pos));
          Streams (Pos) := Streams (Nbr_Fd);
          Streams (Nbr_Fd) := null;
          Polls (Pos) := Polls (Nbr_Fd);
@@ -430,12 +432,8 @@ package body Broca.Inet_Server is
          C_Close (Sock);
          Broca.Exceptions.Raise_Comm_Failure;
       end if;
-      IIOP_Port := CORBA.Unsigned_Short (Sock_Name.Sin_Port);
-
-      --  Network to host byte order conversion.
-      if Broca.Buffers.Is_Little_Endian then
-         IIOP_Port := (IIOP_Port / 256) + (IIOP_Port mod 256) * 256;
-      end if;
+      IIOP_Port := CORBA.Unsigned_Short
+        (Ntohs (Sock_Name.Sin_Port));
 
       Listening_Socket := Sock;
 
@@ -465,17 +463,20 @@ package body Broca.Inet_Server is
 
    --  Calling this function will cause the BOA to start accepting requests
    --  from other address spaces.
-   procedure Wait_Fd_Request (Buffer : in out Buffer_Descriptor)
+   procedure Wait_Fd_Request (Buffer_NOT_USED : access Buffer_Type)
    is
-      use Broca.Marshalling;
-      use Sockets.Constants;
       use Interfaces.C;
+      use Sockets.Constants;
+
+      use Broca.Opaque;
       use Broca.GIOP;
+
+      Buffer : aliased Buffer_Type;
       Res : C.int;
       Sock : Interfaces.C.int;
       Sock_Name : Sockaddr_In;
       Size : aliased C.int;
-      Bytes : Buffer_Type (0 .. Message_Header_Size - 1);
+      Bytes : Octet_Array (1 .. Message_Header_Size);
       A_Job : Job;
 
    begin
@@ -579,15 +580,21 @@ package body Broca.Inet_Server is
             Broca.Exceptions.Raise_Comm_Failure;
          else
             --  A message header was correctly received.
-            Allocate_Buffer_And_Clear_Pos
-              (Buffer, Broca.GIOP.Message_Header_Size);
-            Write (Buffer, Bytes);
+            Initialize_Buffer
+              (Buffer'Access,
+               Bytes'Length,
+               Bytes (1)'Address,
+               Little_Endian,
+               --  XXX Check endianness of msg header!
+               0);
 
             Broca.Server.Log
               ("message received from fd" & Interfaces.C.int'Image (Sock)
                & " at" & A_Job.Pos'Img);
             Broca.Stream.Lock_Receive (A_Job.Stream);
-            Broca.Server.Handle_Message (A_Job.Stream, Buffer);
+            Broca.Server.Handle_Message
+              (A_Job.Stream, Buffer'Access);
+            Release (Buffer);
 
             Broca.Server.Log ("Request done for" & A_Job.Pos'Img);
             Lock.Unmask_Descriptor (A_Job.Pos);
@@ -597,19 +604,24 @@ package body Broca.Inet_Server is
       end if;
    end Wait_Fd_Request;
 
-   type Fd_Server_Type is new Broca.Server.Server_Type with null record;
-   procedure Perform_Work (Server : access Fd_Server_Type;
-                           Buffer : in out Broca.Buffers.Buffer_Descriptor);
-   procedure Marshall_Size_Profile
+   type Fd_Server_Type is
+     new Broca.Server.Server_Type with null record;
+
+   procedure Perform_Work
      (Server : access Fd_Server_Type;
-      IOR : in out Broca.Buffers.Buffer_Descriptor;
-      Object_Key : Broca.Buffers.Buffer_Descriptor);
-   procedure Marshall_Profile (Server : access Fd_Server_Type;
-                               IOR : in out Broca.Buffers.Buffer_Descriptor;
-                               Object_Key : Broca.Buffers.Buffer_Descriptor);
+      Buffer : access Buffer_Type);
+
+   function Can_Create_Profile
+     (Server : access Fd_Server_Type)
+     return Boolean;
+
+   procedure Marshall_Profile
+     (Server     : access Fd_Server_Type;
+      IOR        : access Buffer_Type;
+      Object_Key : Encapsulation);
 
    procedure Perform_Work (Server : access Fd_Server_Type;
-                           Buffer : in out Broca.Buffers.Buffer_Descriptor) is
+                           Buffer : access Buffer_Type) is
    begin
       Wait_Fd_Request (Buffer);
    end Perform_Work;
@@ -618,69 +630,38 @@ package body Broca.Inet_Server is
    -- Server profile marshalling --
    --------------------------------
 
-   procedure Marshall_Size_Profile
-     (Server     : access Fd_Server_Type;
-      IOR        : in out Broca.Buffers.Buffer_Descriptor;
-      Object_Key : in Broca.Buffers.Buffer_Descriptor)
-   is
-      use Broca.Marshalling;
+   function Can_Create_Profile
+     (Server : access Fd_Server_Type)
+     return Boolean is
    begin
-      --  Tag
-      Compute_New_Size (IOR, UL_Size, UL_Size);
-
-      --  Profile_Data length
-      Compute_New_Size (IOR, UL_Size, UL_Size);
-
-      --  Flag
-      Compute_New_Size (IOR, O_Size, O_Size);
-
-      --  Version
-      Compute_New_Size (IOR, O_Size, O_Size);
-      Compute_New_Size (IOR, O_Size, O_Size);
-
-      --  Host string.
-      Compute_New_Size (IOR, IIOP_Host);
-
-      --  Port
-      Compute_New_Size (IOR, US_Size, US_Size);
-      Align_Size       (IOR, UL_Size);
-
-      --  Key.
-      Compute_New_Size (IOR, Object_Key);
-   end Marshall_Size_Profile;
+      return True;
+      --  The Fd server can associate a TAG_INTERNET_IOP
+      --  profile to an object.
+   end Can_Create_Profile;
 
    ----------------------
    -- Marshall_Profile --
    ----------------------
 
+   --  Marshall a TAG_INTERNET_IOP TaggedProfile into buffer
+   --  IOR.
+
    procedure Marshall_Profile
      (Server     : access Fd_Server_Type;
-      IOR        : in out Broca.Buffers.Buffer_Descriptor;
-      Object_Key : in Broca.Buffers.Buffer_Descriptor)
+      IOR        : access Broca.Buffers.Buffer_Type;
+      Object_Key : Encapsulation)
    is
-      use Broca.Marshalling;
+      use Broca.Sequences;
+
+      Server_Profile : aliased Broca.IIOP.Profile_IIOP_Type;
    begin
-      Marshall (IOR, CORBA.IOP.Tag_Internet_IOP);
+      Server_Profile.Host := IIOP_Host;
+      Server_Profile.Port := IIOP_Port;
+      Server_Profile.Object_Key := Octet_Sequences.To_Sequence
+        (To_CORBA_Octet_Array (Object_Key));
 
-      Marshall (IOR, CORBA.Unsigned_Long (Size_Left (IOR) - UL_Size));
-
-      --  Endianess
-      Marshall (IOR, Is_Little_Endian);
-
-      --  Version
-      Marshall (IOR, CORBA.Octet'(1));
-      Marshall (IOR, CORBA.Octet'(0));
-
-      --  Host
-      Marshall (IOR, IIOP_Host);
-
-      --  Port
-      Marshall (IOR, IIOP_Port);
-
-      Align_Size (IOR, UL_Size);
-
-      --  Object key
-      Append_Buffer (IOR, Object_Key);
+      Broca.IOP.Callbacks (Broca.IOP.Tag_Internet_IOP).Encapsulate
+        (IOR, Server_Profile'Access);
    end Marshall_Profile;
 
    ----------------------

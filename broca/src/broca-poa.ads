@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.8 $
+--                            $Revision: 1.9 $
 --                                                                          --
---            Copyright (C) 1999 ENST Paris University, France.             --
+--         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -44,6 +44,7 @@ with Broca.Locks;
 with Broca.Sequences;
 
 package Broca.POA is
+
    type POA_Object;
    type POA_Object_Ptr is access all POA_Object'Class;
 
@@ -134,7 +135,8 @@ package Broca.POA is
    type Skeleton is new Broca.Refs.Ref_Type with
       record
          --  IOR created for this object.
-         IOR : Broca.Buffers.Buffer_Descriptor;
+         IOR : Broca.Sequences.Octet_Sequence :=
+           Broca.Sequences.Null_Sequence;
 
          P_Servant : PortableServer.Servant;
 
@@ -145,12 +147,12 @@ package Broca.POA is
            PortableServer.ObjectId (Broca.Sequences.Null_Sequence);
       end record;
 
-   procedure Compute_New_Size
-     (Buffer : in out Broca.Buffers.Buffer_Descriptor;
-      Value  : in Skeleton);
+   --  procedure Compute_New_Size
+   --    (Buffer : access Broca.Buffers.Buffer_Type;
+   --     Value  : in Skeleton);
 
    procedure Marshall
-     (Buffer : in out Broca.Buffers.Buffer_Descriptor;
+     (Buffer : access Broca.Buffers.Buffer_Type;
       Value  : in Skeleton);
 
    type Skeleton_Ptr is access all Skeleton;
@@ -259,12 +261,14 @@ package Broca.POA is
    --  Requests_lock must have been already lock_r and is unlock_R before
    --  returning.
    procedure GIOP_Invoke
-     (Self : access POA_Object;
-      Key : in out Broca.Buffers.Buffer_Descriptor;
-      Operation : CORBA.Identifier;
+     (Self       : access POA_Object;
+      Key        : access Broca.Buffers.Encapsulation;
+      Operation  : CORBA.Identifier;
       Request_Id : CORBA.Unsigned_Long;
       Reponse_Expected : CORBA.Boolean;
-      Message : in out Broca.Buffers.Buffer_Descriptor) is abstract;
+      Message    : access Broca.Buffers.Buffer_Type;
+      Reply      : access Broca.Buffers.Buffer_Type)
+      is abstract;
 
    function Get_The_POAManager (Self : access POA_Object)
                                 return POAManager_Object_Ptr;

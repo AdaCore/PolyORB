@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.4 $
+--                            $Revision: 1.5 $
 --                                                                          --
---            Copyright (C) 1999 ENST Paris University, France.             --
+--         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -35,6 +35,7 @@
 
 with CORBA;
 with CORBA.Sequences.Unbounded;
+with Broca.Opaque; use Broca.Opaque;
 with Broca.Buffers; use Broca.Buffers;
 pragma Elaborate_All (CORBA.Sequences.Unbounded);
 
@@ -43,19 +44,25 @@ package Broca.Sequences is
    package Octet_Sequences is new CORBA.Sequences.Unbounded (CORBA.Octet);
 
    subtype Octet_Sequence is Octet_Sequences.Sequence;
+   subtype CORBA_Octet_Array is Octet_Sequences.Element_Array;
 
    Null_Sequence : Octet_Sequence renames Octet_Sequences.Null_Sequence;
 
-   procedure Compute_New_Size
-     (Buffer : in out Buffer_Descriptor;
-      Value  : in Octet_Sequences.Sequence);
+   function To_CORBA_Octet_Array
+     (Data : Octet_Array)
+     return CORBA_Octet_Array;
+   --  Return an array of CORBA.Octet (suitable for
+   --  creation of an Octet_Sequence) from an Octet_Array.
 
    procedure Marshall
-     (Buffer : in out Buffer_Descriptor;
-      Value  : in Octet_Sequences.Sequence);
+     (Buffer : access Buffer_Type;
+      Data   : access Octet_Sequences.Sequence);
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : in Octet_Sequences.Sequence);
 
-   procedure Unmarshall
-     (Buffer : in out Buffer_Descriptor;
-      Result : out Octet_Sequences.Sequence);
+   function Unmarshall (Buffer : access Buffer_Type)
+     return Octet_Sequences.Sequence;
+
 
 end Broca.Sequences;

@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.3 $
+--                            $Revision: 1.4 $
 --                                                                          --
---            Copyright (C) 1999 ENST Paris University, France.             --
+--         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,67 +34,44 @@
 ------------------------------------------------------------------------------
 
 with Ada.Text_IO; use Ada.Text_IO;
+with Broca.Buffers; use Broca.Buffers;
 with Broca.CDR;   use Broca.CDR;
 with CORBA;       use CORBA;
 
 procedure Test_CDR is
 
-   Stream, Inner1, Inner2 : aliased Buffer_Type;
-
-   procedure Dump (S : access Buffer_Type);
-
-   ----------
-   -- Dump --
-   ----------
-
-   procedure Dump (S : access Buffer_Type) is
-
-      function Hex (O : Octet) return String;
-
-      ---------
-      -- Hex --
-      ---------
-
-      function Hex (O : Octet) return String is
-         Mapping : constant String := "0123456789ABCDEF";
-      begin
-         return Mapping ((Natural (O) / 16) + 1) &
-           Mapping ((Natural (O) mod 16) + 1);
-      end Hex;
-
-      Content : constant Octet_Array := Get_Content (S);
-      Count   : Natural              := 0;
-
-   begin
-      Put ("Byte ordering: ");
-      if Content (Content'First) = 0 then
-         Put_Line ("big endian");
-      elsif Content (Content'First) = 1 then
-         Put_Line ("little endian");
-      else
-         Put_Line ("invalid");
-      end if;
-      for I in Content'Range loop
-         Put (Hex (Content (I)) & " ");
-         Count := Count + 1;
-         if Count = 25 then
-            New_Line;
-            Count := 0;
-         end if;
-      end loop;
-      New_Line;
-   end Dump;
+   Stream, Inner1 : aliased Buffer_Type;
+   Inner2 : aliased Buffer_Type (Endianness => Big_Endian);
 
 begin
-   Initialize (Inner1'Access, Big_Endian);
-   Initialize (Inner2'Access, Little_Endian);
+   --  Initialize (Inner1'Access, Big_Endian);
+   --  Initialize (Inner2'Access, Little_Endian);
+
+   Start_Encapsulation (Inner1'Access);
+   Start_Encapsulation (Inner2'Access);
+
    Marshall (Inner1'Access, CORBA.Unsigned_Long'(16#1234ABCD#));
    Marshall (Inner2'Access, CORBA.Unsigned_Long'(16#1234ABCD#));
+   --  GIOP.Start_Message (Stream);
+   --   <=> Marshall (message_header)
 
    Marshall (Stream'Access, True);
    Marshall (Stream'Access, CORBA.Unsigned_Long'(16#1234ABCD#));
    Marshall (Stream'Access, CORBA.Unsigned_Long'(16#1234ABCD#));
-   Marshall (Stream'Access, Inner1);
-   Marshall (Stream'Access, Inner2);
-   Dump (Stream'Access);
+   --  Marshall (Stream'Access, Encaps (Inner1));
+   --  Marshall (Stream'Access, Encaps (Inner2));
+
+   declare
+      E1 : aliased Encapsulation := Encapsulate (Inner1'Access);
+      E2 : aliased Encapsulation := Encapsulate (Inner2'Access);
+   begin
+      Put_Line ("Inner1 :");
+      Show (Inner1);
+      Put_Line ("Inner2 :");
+      Show (Inner2);
+      Marshall (Stream'Access, E1);
+      Marshall (Stream'Access, E2);
+   end;
+   Put_Line ("Stream:");
+   Show (Stream);
 end Test_CDR;

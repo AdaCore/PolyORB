@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.5 $
+--                            $Revision: 1.6 $
 --                                                                          --
---            Copyright (C) 1999 ENST Paris University, France.             --
+--         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,6 +34,7 @@
 ------------------------------------------------------------------------------
 
 with Ada.Unchecked_Deallocation;
+with Broca.Opaque; use Broca.Opaque;
 with Broca.Buffers; use Broca.Buffers;
 with Broca.Locks;
 with Interfaces.C;
@@ -54,49 +55,65 @@ package Broca.Stream is
         Lock_S, Lock_R : Broca.Locks.Mutex_Type;
      end record;
 
+
    --  Send a buffer to a stream.
    --  All the buffer (from 0 to BUFFER.POS - 1) is sent.
    --  In case of failure, connection_closed is raised.
    procedure Send
      (Stream : access Stream_Type;
-      Buffer : in out Buffer_Descriptor) is abstract;
+      Buffer : access Buffer_Type) is abstract;
 
-   --  Become an exclusif owner for sending data to the stream.
+   --  Become an exclusive owner for sending data to the stream.
    --  Can queue the task.
    procedure Lock_Send (Stream : access Stream_Type);
    procedure Unlock_Send (Stream : access Stream_Type);
 
-   --  Receive data from a stream. Fill exactly buffer. Can raise
-   --  connection_closed.
-   procedure Receive
-     (Stream : access Stream_Type;
-      Buffer : in out Buffer_Descriptor) is abstract;
+   --  Receive data from a stream. Fill exactly buffer.
+   --  Can raise Connection_Closed.
+   --  procedure Receive
+   --    (Stream : access Stream_Type;
+   --     Buffer : access Buffer_Type) is abstract;
 
-   --  Become an exclusif owner for receiving data from the stream.
-   --  Can queue the task.
+   --  Receive data from a stream into an octet array.
+   function Receive
+     (Stream : access Stream_Type;
+      Length : Index_Type)
+     return Octet_Array is abstract;
+
+   --  Become an exclusive owner for receiving data from the
+   --  stream. Can queue the task.
    procedure Lock_Receive (Stream : access Stream_Type);
    procedure Unlock_Receive (Stream : access Stream_Type);
 
-   type Stream_Ptr is access all Stream_Type'Class;
-   procedure Unchecked_Deallocation is new Ada.Unchecked_Deallocation
-     (Object => Stream_Type'Class, Name => Stream_Ptr);
+   --  A stream for a socket.
+   type Fd_Stream_Type is new Stream_Type with private;
 
+   procedure Send
+     (Stream : access Fd_Stream_Type;
+      Buffer : access Buffer_Type);
+
+   --  procedure Receive
+   --    (Stream : access Fd_Stream_Type;
+   --     Buffer : access Buffer_Type);
+
+   function Receive
+     (Stream : access Fd_Stream_Type;
+      Length : Index_Type)
+     return Octet_Array;
+
+   type Stream_Ptr is access all Stream_Type'Class;
    type Stream_Ptr_Array is array (Natural range <>) of Stream_Ptr;
 
-   --  A stream for a socket.
+   function Create_Fd_Stream (Fd : Interfaces.C.int) return Stream_Ptr;
+
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Object => Stream_Type'Class, Name => Stream_Ptr);
+
+private
+
    type Fd_Stream_Type is new Stream_Type with
      record
         Fd : Interfaces.C.int;
      end record;
-
-   procedure Send
-     (Stream : access Fd_Stream_Type;
-      Buffer : in out Buffer_Descriptor);
-
-   procedure Receive
-     (Stream : access Fd_Stream_Type;
-      Buffer : in out Buffer_Descriptor);
-
-   function Create_Fd_Stream (Fd : Interfaces.C.int) return Stream_Ptr;
 
 end Broca.Stream;

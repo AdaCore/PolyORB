@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.5 $
+--                            $Revision: 1.6 $
 --                                                                          --
---            Copyright (C) 1999 ENST Paris University, France.             --
+--         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,16 +34,26 @@
 ------------------------------------------------------------------------------
 
 with CORBA; use CORBA;
+with Broca.Opaque;
 with Broca.Buffers; use Broca.Buffers;
 
 package Broca.IOR is
 
-   function IOR_String_To_Buffer (IOR : CORBA.String) return Buffer_Descriptor;
+   --  function IOR_String_To_Buffer
+   --    (IOR : CORBA.String)
+   --    return Buffer_Type;
    --  Convert a string representing an IOR, as decribed in CORBA V2.2
    --  11.6.6, into a buffer ready for unmarshalling.
 
+   function IOR_String_To_Octets
+     (IOR : CORBA.String)
+     return Broca.Opaque.Octet_Array;
+   --  Convert a string representing an IOR, as decribed
+   --  in CORBA V2.2 11.6.6, into an Octet_Array ready
+   --  for decapsulation.
+
    function Buffer_To_IOR_String
-     (Buffer : Buffer_Descriptor)
+     (Buffer : access Buffer_Type)
      return CORBA.String;
    --  Convert a buffer containing a marshalled IOR into a string.
 
