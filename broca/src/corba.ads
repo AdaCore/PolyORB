@@ -534,7 +534,7 @@ package CORBA is
       function TC_Enum               return TypeCode.Object;
       function TC_Alias              return TypeCode.Object;
       function TC_Except             return TypeCode.Object;
-      function TC_Objref             return TypeCode.Object;
+      function TC_ObjRef             return TypeCode.Object;
       function TC_Fixed              return TypeCode.Object;
       function TC_Sequence           return TypeCode.Object;
       function TC_Array              return TypeCode.Object;
