@@ -1201,6 +1201,18 @@ package body PolyORB.ORB is
    end Handle_Message;
 
    ----------------
+   -- Notepad_Of --
+   ----------------
+
+   function Notepad_Of
+     (ORB : access ORB_Type)
+     return Annotations.Notepad_Access
+   is
+   begin
+      return ORB.Notepad'Access;
+   end Notepad_Of;
+
+   ----------------
    -- Initialize --
    ----------------
 

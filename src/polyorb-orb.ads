@@ -38,6 +38,7 @@
 
 --  $Id$
 
+with PolyORB.Annotations;
 with PolyORB.Asynch_Ev;
 with PolyORB.Binding_Data;
 with PolyORB.Components;
@@ -280,6 +281,14 @@ package PolyORB.ORB is
    --  Create a copy of RJ, a Request_Job, so it can be stored
    --  for later execution.
 
+   ----------------------------
+   -- Annotations management --
+   ----------------------------
+
+   function Notepad_Of
+     (ORB : access ORB_Type)
+     return Annotations.Notepad_Access;
+
 private
 
    --------------------------------------------
@@ -328,6 +337,10 @@ private
       Obj_Adapter : Obj_Adapters.Obj_Adapter_Access;
       --  The object adapter that manages objects registered
       --  with this ORB.
+
+      Notepad : aliased Annotations.Notepad;
+      --  ORB's notepad. The user must ensure there is no race
+      --  condition when accessing it.
    end record;
 
 end PolyORB.ORB;
