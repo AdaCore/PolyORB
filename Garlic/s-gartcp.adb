@@ -251,24 +251,27 @@ package body System.Garlic.TCP is
    function Do_Connect (Location  : Host_Location) return C.int
    is
       Peer : C.int;
-      Sin  : Sockaddr_In_Access := new Sockaddr_In;
+      Sin  : Sockaddr_In_Access;
       Code : C.int;
    begin
       Peer := C_Socket (Af_Inet, Sock_Stream, 0);
-      if Peer = Failure then
-         Free (Sin);
-         Raise_Communication_Error;
+      if Peer /= Failure then
+         Sin := new Sockaddr_In;
+         Sin.Sin_Family := Constants.Af_Inet;
+         Sin.Sin_Addr := To_In_Addr (Location.Addr);
+         Sin.Sin_Port := Port_To_Network (Location.Port);
+         Code := Net.C_Connect
+           (Peer, To_Sockaddr_Access (Sin), Sin.all'Size / 8);
+         if Code = Failure then
+            pragma Debug
+              (D (D_Debug,
+                  "Cannot connect to host " & Image (Location.Addr) &
+                  " on port" & Location.Port'Img));
+            Free (Sin);
+            Code := Net.C_Close (Peer);
+            Peer := Failure;
+         end if;
       end if;
-      Sin.Sin_Family := Constants.Af_Inet;
-      Sin.Sin_Addr := To_In_Addr (Location.Addr);
-      Sin.Sin_Port := Port_To_Network (Location.Port);
-      Code := Net.C_Connect
-        (Peer, To_Sockaddr_Access (Sin), Sin.all'Size / 8);
-      if Code = Failure then
-         Code := Net.C_Close (Peer);
-         Peer := Failure;
-      end if;
-      Free (Sin);
       return Peer;
    end Do_Connect;
 
@@ -773,7 +776,12 @@ package body System.Garlic.TCP is
          Back : C.int;
          Self : Socket_Type renames Socket_Table (Last_PID);
       begin
-         Back := Do_Connect (Self.Location);
+         for I in 1 .. 5 loop
+            pragma Debug (D (D_Debug, "Connect to signal termination"));
+            Back := Do_Connect (Self.Location);
+            exit when Back /= Failure;
+            delay 1.0;
+         end loop;
          Physical_Send (Back, Quit_Stream'Access, Quit_Stream'First);
          Back := Net.C_Close (Back);
       exception

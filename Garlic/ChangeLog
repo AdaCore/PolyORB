@@ -1,5 +1,9 @@
 1998-09-14  Laurent Pautet  <pautet@scapin.enst.fr>
 
+	* s-gartcp.adb: Fix a strange bug which occurs during
+	termination. A task does not always succeed to connect to
+	itself. So, try to connect several times before quitting.
+
 	* s-gartab.adb: Suppress calls to global critical section which
  	were done in the middle of a blocking procedure. We probably
  	should simplify Enter_Critical_Section and Leave_Critical_Section
