@@ -61,10 +61,22 @@ package body System.PolyORB_Interface is
    type Receiving_Stub_Kind is (Obj_Stub, Pkg_Stub);
 
    type Receiving_Stub is record
-      Kind     : Receiving_Stub_Kind;
-      Name     : String_Ptr;
-      Version  : String_Ptr;
-      Receiver : Servant_Access;
+      Kind                : Receiving_Stub_Kind;
+      --  Indicates whetger this info is relative to a
+      --  RACW type or a RCI.
+
+      Name                : String_Ptr;
+      --  Fully qualified name of the RACW or RCI
+
+      Version             : String_Ptr;
+      --  For RCIs only: library unit version
+
+      Is_All_Calls_Remote : Boolean;
+      --  For RCIs only: true iff a pragma All_Calls_Remote
+      --  applies to this unit.
+
+      Receiver            : Servant_Access;
+      --  The RPC receiver (servant) object
    end record;
 
    package Receiving_Stub_Lists is new PolyORB.Utils.Chained_Lists
@@ -75,6 +87,25 @@ package body System.PolyORB_Interface is
    procedure Initialize;
    --  Initialization procedure to be called during the
    --  global PolyORB initialization.
+
+   --  A map of all known RCIs is maintained.
+
+   type RCI_Info is record
+      Base_Ref            : Obj_Reference;
+      --  The main reference for this package.
+
+      Is_Local            : Boolean := False;
+      --  True if the package is assigned on this partition.
+
+      Is_All_Calls_Remote : Boolean := True;
+      --  True if the package is remote, or if a
+      --  pragma All_Call_Remotes applies.
+   end record;
+
+   package Known_RCIs is new PolyORB.Dynamic_Dict (RCI_Info);
+
+   function Lookup_RCI_Info (Name : String) return RCI_Info;
+   --  Retrieve RCI information for a local or remote RCI package.
 
    --  To limit the amount of memory leaked by the use of
    --  distributed object stub types, these are referenced
@@ -332,6 +363,12 @@ package body System.PolyORB_Interface is
                        (The_ORB, Oid'Access,
                         "DSA:" & Stub.Name.all & ":" & Stub.Version.all,
                         Ref);
+                     Known_RCIs.Set
+                       (Stub.Name.all, RCI_Info'
+                          (Base_Ref            => Ref,
+                           Is_Local            => True,
+                           Is_All_Calls_Remote =>
+                             Stub.Is_All_Calls_Remote));
 
                      declare
                         CRef : CORBA.Object.Ref;
@@ -359,28 +396,6 @@ package body System.PolyORB_Interface is
       Deallocate (All_Receiving_Stubs);
       pragma Debug (O ("Done initializing DSA."));
    end Initialize;
-
-   --------------
-   -- RCI_Info --
-   --------------
-
-   package body RCI_Info is
-
-      Ref_Cache : PolyORB.References.Ref;
-
-      function Get_RCI_Package_Ref
-        return PolyORB.References.Ref is
-      begin
-         if PolyORB.References.Is_Nil (Ref_Cache) then
-            Ref_Cache := CORBA.Object.To_PolyORB_Ref
-              (PolyORB.CORBA_P.Naming_Tools.Locate
-               (To_Lower (RCI_Name) & ".RCI"));
-         end if;
-
-         return Ref_Cache;
-      end Get_RCI_Package_Ref;
-
-   end RCI_Info;
 
    -----------------------
    -- Get_Local_Address --
@@ -417,6 +432,34 @@ package body System.PolyORB_Interface is
       Is_Local := False;
       Addr := Null_Address;
    end Get_Local_Address;
+
+   -----------------
+   -- Get_RAS_Ref --
+   -----------------
+
+   procedure Get_RAS_Ref
+     (Pkg_Name        :     String;
+      Subprogram_Name :     String;
+      Subp_Ref        : out Object_Ref)
+   is
+      Info : constant RCI_Info := Retrieve_RCI_Info (Pkg_Name);
+   begin
+      if Info.Is_Local then
+         --  retrieve subprogram address using subprogram name
+         --  and subprogram table. Warning: the name used
+         --  MUST be the distribution-name (with overload
+         --  suffix, where appropriate.)
+         null;
+         --  Subp_Ref := ...;
+         --  XXX TBD
+      else
+         --  Remote_Get_RAS_Ref (Info.Base_Ref, Subprogram_Name);
+         --  XXX make a RPC to resolve subprogram name to a ref.
+         null;
+         --  Subp_Ref := ...;
+         --  XXX TBD
+      end if;
+   end Get_RAS_Ref;
 
    -------------------
    -- Get_Reference --
@@ -482,6 +525,33 @@ package body System.PolyORB_Interface is
       PolyORB.Soft_Links.Leave_Critical_Section;
    end Get_Unique_Remote_Pointer;
 
+   -----------------
+   -- RCI_Locator --
+   -----------------
+
+   package body RCI_Locator is
+
+      Info : RCI_Info;
+
+      function Get_RCI_Package_Ref
+        return Object_Ref is
+      begin
+         if PolyORB.References.Is_Nil (Info.Base_Ref) then
+            Info := Retrieve_RCI_Info (Name);
+         end if;
+
+         if PolyORB.References.Is_Nil (Info.Base_Ref) then
+            raise Communication_Error;
+            --  XXX add an informative exception message.
+            --  NOTE: Here, we are in calling stubs, so it is
+            --  OK to raise an exception that is specific to
+            --  the DSA applicative personality.
+         end if;
+         return Info.Base_Ref;
+      end Get_RCI_Package_Ref;
+
+   end RCI_Locator;
+
    ---------------------------------
    -- Register_Obj_Receiving_Stub --
    ---------------------------------
@@ -499,10 +569,12 @@ package body System.PolyORB_Interface is
       Append
         (All_Receiving_Stubs,
          Receiving_Stub'
-           (Kind     => Obj_Stub,
-            Name     => +Name (Name'First .. Name'Last - 1),
-            Receiver => Receiver,
-            Version  => null));
+           (Kind                => Obj_Stub,
+            Name                =>
+              +Name (Name'First .. Name'Last - 1),
+            Receiver            => Receiver,
+            Version             => null,
+            Is_All_Calls_Remote => False));
    end Register_Obj_Receiving_Stub;
 
    ---------------------------------
@@ -510,10 +582,11 @@ package body System.PolyORB_Interface is
    ---------------------------------
 
    procedure Register_Pkg_Receiving_Stub
-     (Name     : in String;
-      Version  : in String;
-      Handler  : in Request_Handler_Access;
-      Receiver : in Servant_Access)
+     (Name                : in String;
+      Version             : in String;
+      Handler             : in Request_Handler_Access;
+      Receiver            : in Servant_Access;
+      Is_All_Calls_Remote : in Boolean)
    is
       use Receiving_Stub_Lists;
    begin
@@ -521,11 +594,34 @@ package body System.PolyORB_Interface is
       Append
         (All_Receiving_Stubs,
          Receiving_Stub'
-           (Kind     => Pkg_Stub,
-            Name     => +Name,
-            Receiver => Receiver,
-            Version  => +Version));
+           (Kind                => Pkg_Stub,
+            Name                => +Name,
+            Receiver            => Receiver,
+            Version             => +Version,
+            Is_All_Calls_Remote => Is_All_Calls_Remote));
    end Register_Pkg_Receiving_Stub;
+
+   -----------------------
+   -- Retrieve_RCI_Info --
+   -----------------------
+
+   function Retrieve_RCI_Info (Name : String) return RCI_Info
+   is
+      Info : RCI_Info := Know_RCIs.Lookup (RCI_Name, Info);
+   begin
+      if PolyORB.References.Is_Nil (Info.Base_Ref) then
+         --  Not known yet: we therefore know that it is remote,
+         --  and that we need to look it up with the naming service.
+         Info := RCI_Info'
+           (Base_Ref => CORBA.Object.To_PolyORB_Ref
+              (PolyORB.CORBA_P.Naming_Tools.Locate
+                 (To_Lower (RCI_Name) & ".RCI")),
+            Is_Local => False,
+            Is_All_Calls_Remote => True);
+         Known_RCIs.Register (RCI_Name, Info);
+      end if;
+      return Info;
+   end Retrieve_RCI_Info;
 
    -------------------------------
    -- Setup_Object_RPC_Receiver --

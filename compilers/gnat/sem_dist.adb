@@ -402,9 +402,9 @@ package body Sem_Dist is
       RAS_Type              : Entity_Id;
       RAS_Name              : Name_Id;
       Async_E               : Entity_Id;
-      Subp_Id               : Int;
+      All_Calls_Remote_E    : Entity_Id;
+      Subp_Id               : String_Id;
       Attribute_Subp        : Entity_Id;
-      Parameter             : Node_Id;
 
    begin
       --  Check if we have to expand the access attribute
@@ -448,7 +448,8 @@ package body Sem_Dist is
       RS_Pkg_Specif := Parent (Remote_Subp_Decl);
       RS_Pkg_E := Defining_Entity (RS_Pkg_Specif);
 
-      Subp_Id := Get_Subprogram_Id (Remote_Subp);
+      Get_Subprogram_Identifier (Remote_Subp);
+      Subp_Id := String_From_Name_Buffer;
 
       if Ekind (Remote_Subp) = E_Procedure
         and then Is_Asynchronous (Remote_Subp)
@@ -458,23 +459,21 @@ package body Sem_Dist is
          Async_E := Standard_False;
       end if;
 
-      --  Right now, we do not call the Name_uAddress_Resolver subprogram,
-      --  which means that we end up with a Null_Address value in the ras
-      --  field: each dereference of an RAS will go through the PCS, which
-      --  is authorized but potentially not very efficient ???
-
-      Parameter := New_Occurrence_Of (RTE (RE_Null_Address), Loc);
+      if Has_All_Calls_Remote (RS_Pkg_E) then
+         All_Calls_Remote_E := Standard_True;
+      else
+         All_Calls_Remote_E := Standard_False;
+      end if;
 
       Tick_Access_Conv_Call :=
         Make_Function_Call (Loc,
           Name => New_Occurrence_Of (Attribute_Subp, Loc),
           Parameter_Associations =>
             New_List (
-              Parameter,
               Make_String_Literal (Loc, Full_Qualified_Name (RS_Pkg_E)),
-              Make_Integer_Literal (Loc, Subp_Id),
-              New_Occurrence_Of (Async_E, Loc)));
-
+              Make_String_Literal (Loc, Subp_Id),
+              New_Occurrence_Of (Async_E, Loc),
+              New_Occurrence_Of (All_Calls_Remote_E, Loc)));
       Rewrite (N, Tick_Access_Conv_Call);
       Analyze_And_Resolve (N, RAS_Type);
 

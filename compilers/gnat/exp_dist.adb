@@ -324,7 +324,7 @@ package body Exp_Dist is
                          Hash       => Hash,
                          Equal      => "=");
    --  Mapping between a RCI package on which All_Calls_Remote applies and
-   --  the generic instantiation of RCI_Info for this package.
+   --  the generic instantiation of RCI_Locator for this package.
 
    package RCI_Calling_Stubs_Table is
       new Simple_HTable (Header_Num => Hash_Index,
@@ -403,8 +403,8 @@ package body Exp_Dist is
      (Loc          : Source_Ptr;
       Package_Spec : Node_Id)
       return         Node_Id;
-   --  Instantiate the generic package RCI_Info in order to locate the
-   --  RCI package whose spec is given as argument.
+   --  Instantiate the generic package RCI_Locator in order to locate
+   --  the RCI package whose spec is given as argument.
 
    function Make_Tag_Check (Loc : Source_Ptr; N : Node_Id) return Node_Id;
    --  Surround a node N by a tag check, as in:
@@ -465,7 +465,7 @@ package body Exp_Dist is
 
    begin
       --  The first thing added is an instantiation of the generic package
-      --  System.Partition_interface.RCI_Info with the name of the (current)
+      --  System.PolyORB_Interface.RCI_Locator with the name of the (current)
       --  remote package. This will act as an interface with the name server
       --  to determine the Partition_ID and the RPC_Receiver for the
       --  receiver of this package.
@@ -818,6 +818,16 @@ package body Exp_Dist is
           Parameter_Associations => New_List (
             Unchecked_Convert_To (RTE (RE_RACW_Stub_Type_Access),
               New_Occurrence_Of (Stubbed_Result, Loc)))));
+      --  XXX Houston we have a problem. Here, the Asynchronous flag
+      --  in the stub type is set if, and only if, the RACW type has
+      --  a pragma Asynchronous. This is incorrect for RACWs that
+      --  implement RAS types, because in that case the /designated
+      --  subprogram/ (not the type) might be asynchronous, and
+      --  that causes the stub to need to be asynchronous too.
+      --  The solution is to transport a RAS as a struct containing
+      --  a Ref and an asynchronous flag, and to properly alter
+      --  the Asynchronous component in the stub type in the RAS's
+      --  _From_Any TSS.
 
       --  Distinguish between the local and remote cases, and execute the
       --  appropriate piece of code.
@@ -1887,7 +1897,7 @@ package body Exp_Dist is
       --  Ras_Type is the access to subprogram type while Fat_Type points to
       --  the record type corresponding to a remote access to subprogram type.
 
-      Proc_Decls        : constant List_Id := New_List;
+      Proc_Decls        : List_Id;
       Proc_Statements   : constant List_Id := New_List;
 
       Proc_Spec : Node_Id;
@@ -1895,11 +1905,23 @@ package body Exp_Dist is
 
       Proc : Node_Id;
 
-      Param        : Node_Id;
       Package_Name : Node_Id;
       Subp_Id      : Node_Id;
-      Asynchronous : Node_Id;
       Return_Value : Node_Id;
+
+      Asynch_P     : Entity_Id;
+      --  Is the procedure to which the 'Access applies asynchronous?
+      Asynch_T     : Node_Id;
+      --  Is the RAS type asynchronous?
+
+      All_Calls_Remote : Entity_Id;
+      --  True if an All_Calls_Remote pragma applies to the RCI unit
+      --  that contains the procedure.
+
+      Subp_Ref : Entity_Id;
+
+      Is_Local : Entity_Id;
+      --  For the call to Get_Local_Address
 
       procedure Set_Field (Field_Name : in Name_Id; Value : in Node_Id);
       --  Set a field name for the return value
@@ -1919,15 +1941,18 @@ package body Exp_Dist is
    --  Start of processing for Add_RAS_Access_Attribute
 
    begin
-      Param := Make_Defining_Identifier (Loc, New_Internal_Name ('P'));
-      Package_Name := Make_Defining_Identifier (Loc, New_Internal_Name ('S'));
+      Is_Local := Make_Defining_Identifier (Loc, New_Internal_Name ('L'));
+      Package_Name := Make_Defining_Identifier (Loc, New_Internal_Name ('P'));
       Subp_Id := Make_Defining_Identifier (Loc, New_Internal_Name ('N'));
-      Asynchronous := Make_Defining_Identifier (Loc, New_Internal_Name ('B'));
-      Return_Value := Make_Defining_Identifier (Loc, New_Internal_Name ('P'));
+      Asynch_P := Make_Defining_Identifier (Loc, New_Internal_Name ('B'));
+      Return_Value := Make_Defining_Identifier (Loc, New_Internal_Name ('R'));
+      All_Calls_Remote :=
+        Make_Defining_Identifier (Loc, New_Internal_Name ('A'));
+      Subp_Ref := Make_Defining_Identifier (Loc, New_Internal_Name ('R'));
 
       --  Create the object which will be returned of type Fat_Type
 
-      Append_To (Proc_Decls,
+      Proc_Decls := New_List (
         Make_Object_Declaration (Loc,
           Defining_Identifier =>
             Stub_Ptr,
@@ -1937,9 +1962,8 @@ package body Exp_Dist is
           Expression          =>
             Make_Allocator (Loc,
               New_Occurrence_Of (
-                Stub_Elements.Stub_Type, Loc))));
+                Stub_Elements.Stub_Type, Loc))),
 
-      Append_To (Proc_Decls,
         Make_Object_Declaration (Loc,
           Defining_Identifier => Return_Value,
           Object_Definition   =>
@@ -1953,18 +1977,88 @@ package body Exp_Dist is
                   Expression =>
                     Unchecked_Convert_To (RACW_Type,
                        New_Occurrence_Of (
-                         Stub_Ptr, Loc)))))));
+                         Stub_Ptr, Loc)))))),
+
+        Make_Object_Declaration (Loc,
+          Defining_Identifier => Subp_Ref,
+          Object_Definition   =>
+            New_Occurrence_Of (RTE (RE_Object_Ref), Loc)),
+
+        Make_Object_Declaration (Loc,
+          Defining_Identifier => Is_Local,
+          Object_Definition   =>
+            New_Occurrence_Of (Standard_Boolean, Loc)));
 
       --  Initialize the fields of the record type with the appropriate data
 
---        Set_Field (Name_Target, XXX Some Ref );
---        Set_Field (Name_Addr, XXX 'Address for Local Subp);
---  XXX TBD!!!
+      Append_To (Proc_Statements,
+        Make_Procedure_Call_Statement (Loc,
+          Name =>
+            New_Occurrence_Of (RTE (RE_Get_RAS_Ref), Loc),
+          Parameter_Associations => New_List (
+            New_Occurrence_Of (Package_Name, Loc),
+            New_Occurrence_Of (Subp_Id, Loc),
+            New_Occurrence_Of (Subp_Ref, Loc))));
+
+      Set_Field (Name_Target,
+        Make_Function_Call (Loc,
+          Name =>
+            New_Occurrence_Of (RTE (RE_Entity_Of), Loc),
+          Parameter_Associations => New_List (
+            New_Occurrence_Of (Subp_Ref, Loc))));
+
+      Append_To (Proc_Statements,
+        Make_Procedure_Call_Statement (Loc,
+          Name =>
+            New_Occurrence_Of (RTE (RE_Inc_Usage), Loc),
+          Parameter_Associations => New_List (
+            Make_Selected_Component (Loc,
+              Prefix        => New_Occurrence_Of (Stub_Ptr, Loc),
+              Selector_Name => Make_Identifier (Loc, Name_Target)))));
+
+      Append_To (Proc_Statements,
+        Make_Procedure_Call_Statement (Loc,
+          Name =>
+            New_Occurrence_Of (RTE (RE_Get_Local_Address), Loc),
+          Parameter_Associations => New_List (
+            New_Occurrence_Of (Subp_Ref, Loc),
+            New_Occurrence_Of (Is_Local, Loc),
+            Make_Selected_Component (Loc,
+              Prefix        => New_Occurrence_Of (Stub_Ptr, Loc),
+              Selector_Name => Make_Identifier (Loc, Name_Addr)))));
+      --  At this point Addr is Null_Address if the reference is remote,
+      --  and the local address of the real subprogram otherwise.
+
+      Append_To (Proc_Statements,
+        Make_Implicit_If_Statement (N,
+          Condition =>
+            New_Occurrence_Of (All_Calls_Remote, Loc),
+          Then_Statements => New_List (
+            Make_Assignment_Statement (Loc,
+              Name       =>
+                Make_Selected_Component (Loc,
+                  Prefix        => New_Occurrence_Of (Stub_Ptr, Loc),
+                  Selector_Name => Make_Identifier (Loc, Name_Addr)),
+              Expression => New_Occurrence_Of (RTE (RE_Null_Address), Loc)))));
+      --  If this is an All_Calls_Remote local subprogram, then do not
+      --  store the local subprogram address here, to prevent it from
+      --  being called directly when the RAS is dereferenced.
+
+      if Is_Asynchronous (Ras_Type) then
+         Asynch_T := New_Occurrence_Of (Standard_True, Loc);
+      else
+         Asynch_T := New_Occurrence_Of (Standard_False, Loc);
+      end if;
 
       Set_Field (Name_Asynchronous,
-        New_Occurrence_Of (Asynchronous, Loc));
-
-      --  Return the newly created value
+        Make_Or_Else (Loc,
+          New_Occurrence_Of (Asynch_P, Loc),
+          Asynch_T));
+      --  E.4.1(9) A remote call is asynchronous if it is a call to
+      --  a procedure, or a call through a value of an access-to-procedure
+      --  type, to which a pragma Asynchronous applies.
+      --  Parameter Asynch_P is true when the procedure is asynchronous;
+      --  Expression Asynch_T is true when the type is asynchronous.
 
       Append_To (Proc_Statements,
         Make_Return_Statement (Loc,
@@ -1977,10 +2071,6 @@ package body Exp_Dist is
         Make_Function_Specification (Loc,
           Defining_Unit_Name       => Proc,
           Parameter_Specifications => New_List (
-            Make_Parameter_Specification (Loc,
-              Defining_Identifier => Param,
-              Parameter_Type      =>
-                New_Occurrence_Of (RTE (RE_Address), Loc)),
 
             Make_Parameter_Specification (Loc,
               Defining_Identifier => Package_Name,
@@ -1990,10 +2080,15 @@ package body Exp_Dist is
             Make_Parameter_Specification (Loc,
               Defining_Identifier => Subp_Id,
               Parameter_Type      =>
-                New_Occurrence_Of (Standard_Natural, Loc)),
+                New_Occurrence_Of (Standard_String, Loc)),
 
             Make_Parameter_Specification (Loc,
-              Defining_Identifier => Asynchronous,
+              Defining_Identifier => Asynch_P,
+              Parameter_Type      =>
+                New_Occurrence_Of (Standard_Boolean, Loc)),
+
+            Make_Parameter_Specification (Loc,
+              Defining_Identifier => All_Calls_Remote,
               Parameter_Type      =>
                 New_Occurrence_Of (Standard_Boolean, Loc))),
 
@@ -4934,7 +5029,7 @@ package body Exp_Dist is
                  Defining_Unit_Name   =>
                    Make_Defining_Identifier (Loc, New_Internal_Name ('R')),
                  Name                 =>
-                   New_Occurrence_Of (RTE (RE_RCI_Info), Loc),
+                   New_Occurrence_Of (RTE (RE_RCI_Locator), Loc),
                  Generic_Associations => New_List (
                    Make_Generic_Association (Loc,
                      Selector_Name                     =>

@@ -18,6 +18,8 @@ package System.PolyORB_Interface is
 
    pragma Elaborate_Body;
 
+   subtype Object_Ref is PolyORB.References.Ref;
+
    ---------------------
    -- RCI information --
    ---------------------
@@ -27,10 +29,10 @@ package System.PolyORB_Interface is
 
    generic
       RCI_Name : String;
-   package RCI_Info is
+   package RCI_Locator is
       function Get_RCI_Package_Ref
-        return PolyORB.References.Ref;
-   end RCI_Info;
+        return Object_Ref;
+   end RCI_Locator;
 
    --  Receiving stubs contain a table of all subprograms
    --  exported by the unit.
@@ -42,6 +44,17 @@ package System.PolyORB_Interface is
       Addr : System.Address;
       --  Local address of the actual subprogram
    end record;
+
+   ---------------------------------------
+   -- Remote access-to-subprogram types --
+   ---------------------------------------
+
+   procedure Get_RAS_Ref
+     (Pkg_Name        :     String;
+      Subprogram_Name :     String;
+      Subp_Ref        : out Object_Ref);
+   --  Return the RAS object reference associated with the
+   --  named subprogram.
 
    --------------------------
    -- RPC receiver objects --
@@ -147,8 +160,6 @@ package System.PolyORB_Interface is
    function To_Standard_String (S : PolyORB.Types.Identifier)
      return String
      renames PolyORB.Types.To_Standard_String;
-
-   subtype Object_Ref is PolyORB.References.Ref;
 
    function Is_Nil (R : PolyORB.References.Ref) return Boolean
      renames PolyORB.References.Is_Nil;
