@@ -44,7 +44,7 @@ with Unchecked_Deallocation;
 
 package body System.Garlic.Naming is
 
-   use Thin;
+   use System.Garlic.Types, System.Garlic.Thin;
 
    Default_Buffer_Size : constant := 16384;
 
@@ -127,8 +127,6 @@ package body System.Garlic.Naming is
    procedure Finalize (Object : in out Host_Entry)
    is
       Aliases : String_Array renames Object.Aliases;
-      procedure Free is
-         new Unchecked_Deallocation (String, String_Access);
    begin
       Free (Object.Name);
       for I in Aliases'Range loop

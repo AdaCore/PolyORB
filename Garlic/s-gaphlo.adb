@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---         Copyright (C) 1996,1997 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-1998 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -34,6 +34,7 @@
 ------------------------------------------------------------------------------
 
 with System.Garlic.Debug;    use System.Garlic.Debug;
+with System.Garlic.Types;    use System.Garlic.Types;
 with Unchecked_Deallocation;
 
 package body System.Garlic.Physical_Location is
@@ -50,7 +51,7 @@ package body System.Garlic.Physical_Location is
 
    type Location_Body is record
       Protocol : Protocols.Protocol_Access;
-      Data     : String_Ptr;
+      Data     : String_Access;
    end record;
 
    type Node;

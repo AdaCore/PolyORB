@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---         Copyright (C) 1996,1997 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-1998 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -34,7 +34,7 @@
 ------------------------------------------------------------------------------
 
 with System.Garlic.Heart;
-with System.Garlic.Utils;
+with System.Garlic.Types;
 
 package System.Garlic.Options is
 
@@ -47,15 +47,15 @@ package System.Garlic.Options is
 
    Has_RCI_Pkg_Or_RACW_Var : Boolean := True;
 
-   Boot_Server     : Utils.String_Access;
+   Boot_Server     : Types.String_Access;
    Connection_Hits : Natural;
    Detach          : Boolean;
    Is_Slave        : Boolean;
    Nolaunch        : Boolean;
    Termination     : Heart.Termination_Type;
-   Partition_Name  : Utils.String_Access;
+   Partition_Name  : Types.String_Access;
    Execution_Mode  : Heart.Execution_Mode_Type;
-   Trace_File_Name : Utils.String_Access;
+   Trace_File_Name : Types.String_Access;
 
    procedure Initialize;
 

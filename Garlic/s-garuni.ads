@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---         Copyright (C) 1996,1997 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-1998 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -36,7 +36,7 @@
 with System.Garlic.Name_Table;
 with System.Garlic.Table;
 with System.Garlic.Heart;
-with System.Garlic.Utils;
+with System.Garlic.Types;
 with System.RPC;
 
 package System.Garlic.Units is
@@ -45,7 +45,7 @@ package System.Garlic.Units is
 
    type Unit_Id is new Natural;
    Null_Unit_Id  : constant Unit_Id := 0;
-   First_Unit_Id : constant Unit_Id := 1;
+   First_Unit_Id : constant Unit_Id := 2_000_000;
 
    type Request_List is array (RPC.Partition_ID) of Boolean;
    type Request_Id is (Get_Unit, Set_Unit);
@@ -77,7 +77,7 @@ package System.Garlic.Units is
       record
          Partition : RPC.Partition_ID;
          Receiver  : RPC.RPC_Receiver;
-         Version   : Utils.String_Access;
+         Version   : Types.String_Access;
          Cache     : Cache_Access;
          Status    : Unit_Status;
          Pending   : Boolean;
@@ -98,7 +98,7 @@ package System.Garlic.Units is
          Command   : Request_Id;
          Partition : RPC.Partition_ID;
          Receiver  : RPC.RPC_Receiver;
-         Version   : Utils.String_Access;
+         Version   : Types.String_Access;
          Cache     : Cache_Access;
       end record;
 

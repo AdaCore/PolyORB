@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---         Copyright (C) 1996,1997 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-1998 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -37,6 +37,7 @@ with Ada.Exceptions;
 with Ada.Streams;
 with System.Garlic.Name_Table;
 with System.Garlic.Physical_Location;
+with System.Garlic.Types;
 with System.RPC;
 
 --  These ones should not be needed, but the binder needs them ???
@@ -150,20 +151,16 @@ package System.Garlic.Heart is
    -- Execution control --
    -----------------------
 
-   type String_Ptr is access String;
-   --  This duplicates the String_Access type declared in s-garuti.ads.
-   --  Maybe the basic types should go in a preelaborated package ???
-
    protected Fatal_Error is
       entry Occurred
         (What    : out Ada.Exceptions.Exception_Id;
-         Message : out String_Ptr);
+         Message : out Types.String_Access);
       procedure Signal
         (What    : in Ada.Exceptions.Exception_Id;
          Message : in String := "");
    private
       Exc : Ada.Exceptions.Exception_Id := Ada.Exceptions.Null_Id;
-      Msg : String_Ptr := null;
+      Msg : Types.String_Access := null;
    end Fatal_Error;
    --  This protected object is a keeper to cancel the main procedure if
    --  needed.

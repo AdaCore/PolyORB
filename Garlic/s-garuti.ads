@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---         Copyright (C) 1996,1997 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-1998 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -40,10 +40,6 @@ with Ada.Task_Identification;
 package System.Garlic.Utils is
 
    pragma Elaborate_Body;
-
-   type String_Access is access String;
-   procedure Free is new Ada.Unchecked_Deallocation (String, String_Access);
-   --  String access type used throughout Garlic
 
    procedure To_Lower (Item : in out String);
    pragma Inline (To_Lower);

@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---         Copyright (C) 1996,1997 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-1998 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -37,7 +37,6 @@ with Ada.Command_Line;         use Ada.Command_Line;
 with System.Garlic.Debug;      use System.Garlic.Debug;
 with System.Garlic.Heart;      use System.Garlic.Heart;
 with System.Garlic.OS_Lib;     use System.Garlic.OS_Lib;
-with System.Garlic.Utils;      use System.Garlic.Utils;
 
 package body System.Garlic.Options is
 
@@ -49,6 +48,8 @@ package body System.Garlic.Options is
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
    --  Debugging stuff
+
+   use System.Garlic.Types;
 
    function Value (S : String) return Termination_Type;
 
