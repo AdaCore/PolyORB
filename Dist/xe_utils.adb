@@ -147,17 +147,6 @@ package body XE_Utils is
       return Source_File_Stamp (File1) > Source_File_Stamp (File2);
    end Later;
 
-   --------------
-   -- Register --
-   --------------
-
-   function Register (Name : String) return Name_Id is
-   begin
-      Name_Len := Name'Length;
-      Name_Buffer (1 .. Name_Len) := Name;
-      return Name_Find;
-   end Register;
-
    -------------
    -- Execute --
    -------------
@@ -800,24 +789,26 @@ package body XE_Utils is
          GNAT_Verbose := new String' ("-q");
       end if;
 
-      Obj_Suffix     := Register (".o");
-      ALI_Suffix     := Register (".ali");
-      ADS_Suffix     := Register (".ads");
-      ADB_Suffix     := Register (".adb");
+      Obj_Suffix     := Str_To_Id (".o");
+      ALI_Suffix     := Str_To_Id (".ali");
+      ADS_Suffix     := Str_To_Id (".ads");
+      ADB_Suffix     := Str_To_Id (".adb");
 
-      Spec_Suffix    := Register ("%s");
-      Body_Suffix    := Register ("%b");
+      Spec_Suffix    := Str_To_Id ("%s");
+      Body_Suffix    := Str_To_Id ("%b");
 
-      Dir_Sep_Id     := Register (Dir_Sep);
-      Dot_Sep_Id     := Register (".");
+      Dir_Sep_Id     := Str_To_Id (Dir_Sep);
+      Dot_Sep_Id     := Str_To_Id (".");
 
-      DSA_Dir        := Register ("dsa");
+      DSA_Dir        := Str_To_Id ("dsa");
 
-      Caller_Dir     := DSA_Dir & Dir_Sep_Id & Register ("caller");
-      Receiver_Dir   := DSA_Dir & Dir_Sep_Id & Register ("receiver");
+      Caller_Dir     := DSA_Dir & Dir_Sep_Id & Str_To_Id ("caller");
+      Receiver_Dir   := DSA_Dir & Dir_Sep_Id & Str_To_Id ("receiver");
 
-      Parent_Dir     := Register ("..");
+      Parent_Dir     := Str_To_Id ("..");
       G_Parent_Dir   := Parent_Dir & Dir_Sep_Id & Parent_Dir;
+
+      GNAT_ADC       := Str_To_Id ("gnat.adc");
 
       declare
          GARLIC_Dir  : constant String_Access := Get_GARLIC_Dir;

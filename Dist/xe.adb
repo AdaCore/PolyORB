@@ -1489,6 +1489,7 @@ package body XE is
             Write_Str ("none");
       end case;
       Write_Eol;
+      Write_Eol;
 
       for P in Partitions.First .. Partitions.Last loop
          declare

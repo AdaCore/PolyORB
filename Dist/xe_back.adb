@@ -501,9 +501,6 @@ package body XE_Back is
             Value := Get_Variable_Value (Variable_Id (Parameter));
             Protocol_Data := Get_Node_Name (Node_Id (Value));
 
-         when Pragma_Heterogeneous =>
-            null;
-
          when Pragma_Unknown =>
             null;
 

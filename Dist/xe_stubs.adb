@@ -197,13 +197,16 @@ procedure XE_Stubs is
          Create_Dir (DSA_Dir & Dir_Sep_Id & PName);
       end if;
 
-      Create (FD, Fname);
-
       if Building_Script then
          Write_Str ("cat >");
          Write_Name (Fname);
          Write_Str (" <<EOF");
          Write_Eol;
+         FD := Standout;
+
+      else
+         Create (FD, Fname);
+
       end if;
 
       --  Force the RCI receivers to be present on the partition.
@@ -471,11 +474,12 @@ procedure XE_Stubs is
       Write_Name (FD, PName);
       Write_Str  (FD, ";");
       Write_Eol  (FD);
-      Close (FD);
 
       if Building_Script then
          Write_Str ("EOF");
          Write_Eol;
+      else
+         Close (FD);
       end if;
 
       if not Quiet_Output then

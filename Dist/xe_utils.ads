@@ -34,8 +34,6 @@ package XE_Utils is
 
    function Later (File1, File2 : Name_Id) return Boolean;
 
-   function Register (Name : String) return Name_Id;
-
    Obj_Suffix   : Name_Id;
    ALI_Suffix   : Name_Id;
    ADS_Suffix   : Name_Id;
@@ -53,6 +51,8 @@ package XE_Utils is
    Receiver_Dir : Name_Id;
    Parent_Dir   : Name_Id;
    G_Parent_Dir : Name_Id;
+
+   GNAT_ADC     : Name_Id;
 
    procedure Copy_With_File_Stamp
      (Source, Target : in File_Name_Type;

@@ -1596,7 +1596,7 @@ package body XE_Parse is
       Declare_Attribute
         (Type_Node      => Partition_Type_Node,
          Attribute_Name => Str_To_Id ("host"),
-         Attr_Type_Node => Host_Function_Type_Node,
+         Attr_Type_Node => String_Type_Node,
          Attribute_Kind => Attribute_Host,
          Attribute_Node => Attribute_Node);
 
@@ -1677,12 +1677,18 @@ package body XE_Parse is
          Not_Unique,
          Variable_Node);
 
+      --  To easily retrieve the enumeration literal.
+      Set_Variable_Mark (Variable_Node, 1);
+
       Declare_Variable
         (Configuration_Node,
          Str_To_Id ("false"),
          Boolean_Type_Node,
          Unique,
          Variable_Node);
+      --  To easily retrieve the enumeration literal.
+      Set_Variable_Mark (Variable_Node, 0);
+
 
       --  type Convention_Type is (Ada, Shell); (standard)
 
@@ -1712,26 +1718,6 @@ package body XE_Parse is
 
       --  To easily retrieve the enumeration literal.
       Set_Variable_Mark (Variable_Node, Convert (Shell_Import));
-
-      --  pragma heterogeneous ... or
-      --  procedure pragma__heterogeneous
-      --    (method : boolean);
-
-      Declare_Subprogram
-        (Pragma_Prefix & Str_To_Id ("heterogeneous"),
-         True,
-         Pragma_Heterogeneous_Node);
-
-      --  To easily retrieve the enumeration literal.
-      Set_Subprogram_Mark
-        (Pragma_Heterogeneous_Node,
-         Convert (Pragma_Heterogeneous));
-
-      Declare_Subprogram_Parameter
-        (Str_To_Id ("method"),
-         Boolean_Type_Node,
-         Pragma_Heterogeneous_Node,
-         Parameter_Node);
 
       --  pragma starter ... or
       --  procedure pragma__starter
@@ -2171,6 +2157,15 @@ package body XE_Parse is
          return Get_Variable_Type (Variable_Id (Expr_Node)) = Type_Node;
 
       elsif Is_Subprogram (Expr_Node) then
+
+         --  If Expr_Node is a function, check returned parameter.
+
+         if not Is_Subprogram_A_Procedure (Subprogram_Id (Expr_Node)) and then
+           Convert (Get_Type_Mark (Type_Node)) /= Pre_Type_Function then
+            Search_Function_Returned_Parameter (Subprogram_Id (Expr_Node), P);
+            return Get_Parameter_Type (P) = Type_Node;
+
+         end if;
 
          --  Is the expression a function when the type is a function type
          --  or a procedure when the type is a procedure type ?
