@@ -39,6 +39,7 @@ with PolyORB.CORBA_P.Interceptors_Slots;
 
 with PolyORB.Exceptions;
 with PolyORB.Initialization;
+with PolyORB.POA;
 with PolyORB.References;
 with PolyORB.Requests;
 with PolyORB.Request_QoS.Service_Contexts;
@@ -148,7 +149,9 @@ package body PolyORB.CORBA_P.Interceptors is
 
    All_IOR_Interceptors : IORInterceptor_Lists.List;
 
-   procedure POA_Create (Error : in out PolyORB.Exceptions.Error_Container);
+   procedure POA_Create
+     (POA   : in     PolyORB.POA.Obj_Adapter_Access;
+      Error : in out PolyORB.Exceptions.Error_Container);
 
    --  ORB_Initializers
 
@@ -767,7 +770,12 @@ package body PolyORB.CORBA_P.Interceptors is
    -- POA_Create --
    ----------------
 
-   procedure POA_Create (Error : in out PolyORB.Exceptions.Error_Container) is
+   procedure POA_Create
+     (POA   : in     PolyORB.POA.Obj_Adapter_Access;
+      Error : in out PolyORB.Exceptions.Error_Container)
+   is
+      pragma Unreferenced (POA);
+
       Iter : IORInterceptor_Lists.Iterator;
       Info : PortableInterceptor.IORInfo.Local_Ref;
    begin

@@ -35,6 +35,7 @@
 
 with PolyORB.Binding_Data;
 with PolyORB.Exceptions;
+with PolyORB.POA;
 with PolyORB.Requests;
 with PolyORB.Smart_Pointers;
 
@@ -55,7 +56,8 @@ package PolyORB.CORBA_P.Interceptors_Hooks is
       From_Agruments : in Boolean);
 
    type POA_Create_Handler is access procedure
-     (Error : in out PolyORB.Exceptions.Error_Container);
+     (POA   : in     PolyORB.POA.Obj_Adapter_Access;
+      Error : in out PolyORB.Exceptions.Error_Container);
 
    Client_Invoke : Client_Invoke_Handler := null;
 

@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poa.adb#56 $
+--  $Id: //droopi/main/src/corba/portableserver-poa.adb#57 $
 
 with Ada.Exceptions;
 
@@ -187,7 +187,7 @@ package body PortableServer.POA is
 
       if not Found (Error) then
          if PolyORB.CORBA_P.Interceptors_Hooks.POA_Create /= null then
-            PolyORB.CORBA_P.Interceptors_Hooks.POA_Create (Error);
+            PolyORB.CORBA_P.Interceptors_Hooks.POA_Create (Res, Error);
             --  XXX  if Error found, destroy POA
          end if;
       end if;
