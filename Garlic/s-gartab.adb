@@ -82,7 +82,7 @@ package body System.Garlic.Table is
         new Ada.Unchecked_Deallocation
         (Usage_Table_Type, Usage_Table_Access);
 
-      function Valid (N : Index_Type) return Boolean;
+      procedure Validate (N : Index_Type);
 
       Mutex   : Mutex_Type;
       Watcher : Watcher_Type;
@@ -174,8 +174,8 @@ package body System.Garlic.Table is
       is
          Component : Component_Type;
       begin
-         pragma Assert (Valid (N));
          Enter_Critical_Section;
+         Validate (N);
          Component := Table (N);
          Leave_Critical_Section;
 
@@ -257,8 +257,8 @@ package body System.Garlic.Table is
       procedure Set_Component (N : Index_Type; C : Component_Type)
       is
       begin
-         pragma Assert (Valid (N));
          Enter_Critical_Section;
+         Validate (N);
          Table (N) := C;
          Update (Watcher);
          Leave_Critical_Section;
@@ -271,8 +271,8 @@ package body System.Garlic.Table is
       procedure Set_Name (N : Index_Type; S : String)
       is
       begin
-         pragma Assert (Valid (N));
          Enter_Critical_Section;
+         Validate (N);
          Usage (N).Name := Get (S);
          Set_Info (Usage (N).Name, Integer (Index_Type'Pos (N)));
          Leave_Critical_Section;
@@ -287,14 +287,18 @@ package body System.Garlic.Table is
          Update (Watcher);
       end Update;
 
-      -----------
-      -- Valid --
-      -----------
+      --------------
+      -- Validate --
+      --------------
 
-      function Valid (N : Index_Type) return Boolean is
+      procedure Validate (N : Index_Type) is
+         Dummy : Index_Type;
       begin
-         return Min <= N and then N <= Max;
-      end Valid;
+         pragma Assert (Min <= N);
+         while N > Max loop
+            Dummy := Allocate;
+         end loop;
+      end Validate;
 
    begin
       Create (Mutex);
