@@ -1,3 +1,8 @@
+Tue Feb 11 10:21:51 1997  Laurent Pautet <pautet@inf.enst.fr>
+
+	* user_guide.txt, install_guide.txt: Change references to mailing
+	  lists.
+
 Fri Nov 29 11:49:30 1996  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* user_guide.txt: Documented the Ada starter.
