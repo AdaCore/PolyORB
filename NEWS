@@ -1,3 +1,30 @@
+Changes since GLADE 5.03a
+=========================
+
+New Functionnalities
+--------------------
+
+*   GNATDIST is now fully project-aware that is -P and -X flags are
+    properly handled.
+
+Integration
+===========
+
+*   GNATDIST can be configured for either GLADE or PolyORB (use
+    --with-pcs configure flag).
+
+
+Changes since GLADE 5.02a
+=========================
+
+Bug fixes
+---------
+
+*   GLADE is fully ported on GNAT-5.02a (abortion of synchronous
+    remote subprogram invocation is still not working because of GNAT5
+    limitations).
+
+
 Changes since GLADE 3.16a
 =========================
 

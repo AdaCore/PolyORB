@@ -1,3 +1,32 @@
+2004-10-12  Laurent Pautet  <pautet@dorine.enst.fr>
+
+2004-10-11  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* Makefile.am, Makefile.in: Build xe_back.adb depending on PCSNAME
+	(either garlic or polyorb). Provide two implementations.
+	For CA22-003.
+
+	* b_xe_defs.adb: Replace PCS_NAME with PCSNAME.
+	For CA22-003.
+
+	* xe_back.adb, xe_back-polyorb.adb, xe_back-garlic.adb: Add a
+	rtsfind-like mecanism to describe the run-time API and to generate
+	internal packages. Remove xe_back.adb to make two versions of it:
+	a default one for garlic, and another one for polyorb. Reinject
+	xe_stubs-polyorb.adb into xe_back.adb.
+	For CA22-003.
+	
+	* xe_utils.adb: Do not add GARLIC link flags in gnatdist anymore.
+	For CA22-003.
+
+	* xe_flags.ads: Add flag -t which prevents from removing temporary
+	files.
+	For CA22-003.
+
+	* xe_io.adb: Allow not to remove temporary files for debugging
+	purpose.
+	For CA22-003.
+
 2004-09-08  Laurent Pautet  <pautet@dorine.enst.fr>
 
 	* xe_list.adb: Call Compile and Build with the proper Silent
