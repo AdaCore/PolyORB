@@ -56,8 +56,6 @@ package body RTCORBA.Current is
    use PolyORB.Tasking.Threads.Annotations;
    use PolyORB.Request_QoS.Priority;
 
-   type Current_Object is new PolyORB.Smart_Pointers.Entity with null record;
-
    function Create return CORBA.Object.Ref;
    --  Create a RTCORBA.Current.Ref
 
@@ -66,7 +64,7 @@ package body RTCORBA.Current is
    ------------
 
    function Create return CORBA.Object.Ref is
-      Result : Ref;
+      Result : Local_Ref;
 
       Current : constant PolyORB.Smart_Pointers.Entity_Ptr
         := new Current_Object;
@@ -77,33 +75,12 @@ package body RTCORBA.Current is
       return CORBA.Object.Ref (Result);
    end Create;
 
-   ------------
-   -- To_Ref --
-   ------------
-
-   function To_Ref
-     (Self : CORBA.Object.Ref'Class)
-     return Ref
-   is
-      Result : Ref;
-
-   begin
-      if CORBA.Object.Entity_Of (Self).all
-        not in Current_Object'Class then
-         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
-      end if;
-
-      Set (Result, CORBA.Object.Entity_Of (Self));
-
-      return Result;
-   end To_Ref;
-
    ----------------------
    -- Get_The_Priority --
    ----------------------
 
    function Get_The_Priority
-     (Self : in Ref)
+     (Self : in Local_Ref)
      return RTCORBA.Priority
    is
       pragma Unreferenced (Self);
@@ -124,7 +101,7 @@ package body RTCORBA.Current is
    ----------------------
 
    procedure Set_The_Priority
-     (Self : in Ref;
+     (Self : in Local_Ref;
       To   : in RTCORBA.Priority)
    is
       pragma Unreferenced (Self);

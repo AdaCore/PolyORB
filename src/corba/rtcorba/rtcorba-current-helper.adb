@@ -2,16 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                      R T C O R B A . C U R R E N T                       --
+--               R T C O R B A . C U R R E N T . H E L P E R                --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
---                                                                          --
--- This specification is derived from the CORBA Specification, and adapted  --
--- for use with PolyORB. The copyright notice above, and the license        --
--- provisions that follow apply solely to the contents neither explicitely  --
--- nor implicitely specified by the CORBA Specification defined by the OMG. --
+--            Copyright (C) 2004 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -38,25 +33,46 @@
 
 --  $Id$
 
-with CORBA.Current;
-with PolyORB.Smart_Pointers;
+package body RTCORBA.Current.Helper is
 
-package RTCORBA.Current is
+   ----------------------------
+   -- Unchecked_To_Local_Ref --
+   ----------------------------
 
-   type Local_Ref is new CORBA.Current.Ref with private;
+   function Unchecked_To_Local_Ref
+     (The_Ref : in CORBA.Object.Ref'Class)
+     return RTCORBA.Current.Local_Ref
+   is
+      Result : RTCORBA.Current.Local_Ref;
 
-   function Get_The_Priority
-     (Self : in Local_Ref)
-     return RTCORBA.Priority;
+   begin
+      Set (Result, CORBA.Object.Object_Of (The_Ref));
 
-   procedure Set_The_Priority
-     (Self : in Local_Ref;
-      To   : in RTCORBA.Priority);
+      return Result;
+   end Unchecked_To_Local_Ref;
 
-private
+   ------------------
+   -- To_Local_Ref --
+   ------------------
 
-   type Local_Ref is new CORBA.Current.Ref with null record;
+   function To_Local_Ref
+     (The_Ref : in CORBA.Object.Ref'Class)
+     return RTCORBA.Current.Local_Ref
+   is
+   begin
+      --        if CORBA.Object.Is_Nil (The_Ref)
+      --          or else CORBA.Object.Is_A (The_Ref, Repository_Id) then
+      --           return Unchecked_To_Local_Ref (The_Ref);
+      --        end if;
+      --        CORBA.Raise_Bad_Param (Default_Sys_Member);
 
-   type Current_Object is new PolyORB.Smart_Pointers.Entity with null record;
+      if CORBA.Object.Entity_Of (The_Ref).all
+        not in Current_Object'Class
+      then
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
+      end if;
 
-end RTCORBA.Current;
+      return Unchecked_To_Local_Ref (The_Ref);
+   end To_Local_Ref;
+
+end RTCORBA.Current.Helper;

@@ -12,6 +12,7 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-rtcorba_p-setup.ads \
 		rtcorba.ads \
 		rtcorba-current.ads \
+		rtcorba-current-helper.ads \
 		rtcorba-mutex.ads \
 		rtcorba-mutex-helper.ads \
 		rtcorba-rtorb.ads \

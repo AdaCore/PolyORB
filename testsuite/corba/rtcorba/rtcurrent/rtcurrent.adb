@@ -36,7 +36,7 @@ with Ada.Text_IO;
 
 with CORBA.ORB;
 
-with RTCORBA.Current;
+with RTCORBA.Current.Helper;
 
 with RTCORBA.PriorityMapping.Linear;
 
@@ -104,8 +104,8 @@ begin
    New_Test ("RTCurrent");
 
    declare
-      Current : RTCORBA.Current.Ref
-        := RTCORBA.Current.To_Ref
+      Current : RTCORBA.Current.Local_Ref
+        := RTCORBA.Current.Helper.To_Local_Ref
         (Resolve_Initial_References
          (To_CORBA_String ("RTCurrent")));
 

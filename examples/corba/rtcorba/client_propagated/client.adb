@@ -40,7 +40,7 @@ with CORBA.ORB;
 
 with Echo;
 
-with RTCORBA.Current;
+with RTCORBA.Current.Helper;
 with RTCORBA.PriorityMapping.Linear;
 
 with PolyORB.RTCORBA_P.Setup;
@@ -161,8 +161,8 @@ begin
    --  defined on the server side.
 
    declare
-      Current : RTCORBA.Current.Ref
-        := RTCORBA.Current.To_Ref
+      Current : RTCORBA.Current.Local_Ref
+        := RTCORBA.Current.Helper.To_Local_Ref
         (Resolve_Initial_References
          (To_CORBA_String ("RTCurrent")));
 
