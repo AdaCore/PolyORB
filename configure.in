@@ -256,6 +256,20 @@ AM_PROG_LIBTOOL
 host=$host_tmp
 
 ##########################################
+# Windows requires specific targets
+##########################################
+
+case "$host_os" in
+  cygwin* | mingw*)
+    windows=true
+    ;;
+  *)
+    windows=false
+    ;;
+esac
+AM_CONDITIONAL(WINDOWS, test x$windows = xtrue)
+
+##########################################
 # Build polyorb-setup-* files
 ##########################################
 
@@ -298,6 +312,7 @@ dnl is edited automatically by make_distrib.
 
 AC_OUTPUT([
 	Makefile
+	support/Makefile
 	compilers/Makefile
 	compilers/gnatprfh/Makefile
 	compilers/ciao/Makefile
@@ -316,7 +331,7 @@ AC_OUTPUT([
 	idls/cos/Makefile
 	idls/cos/event/Makefile
 	idls/cos/naming/Makefile
-   idls/cos/notification/Makefile
+	idls/cos/notification/Makefile
 	idls/cos/time/Makefile
 	cos/Makefile
 	cos/event/Makefile

@@ -903,6 +903,8 @@ src/srp/polyorb-setup-tcp_access_points-srp.adb
 src/srp/polyorb-setup-tcp_access_points-srp.ads
 src/srp/polyorb-utils-srp.adb
 src/srp/polyorb-utils-srp.ads
+support/Makefile.am
+support/Makefile.in
 support/ada.m4
 support/adacompiler.in
 support/config.guess
@@ -915,6 +917,7 @@ support/missing
 support/mkdep
 support/mkinstalldirs
 support/reconfig
+support/run_script.adb
 testsuite/Makefile.am
 testsuite/Makefile.common
 testsuite/Makefile.in

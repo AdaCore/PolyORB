@@ -1129,7 +1129,9 @@ package body Idl_Fe.Lexer is
 
    --  Name of the temporary file to be created if the
    --  preprocessor is used.
-   Tmp_File_Name : GNAT.OS_Lib.Temp_File_Name;
+   Tmp_File_Name_Base : GNAT.OS_Lib.Temp_File_Name;
+   Tmp_File_Name : String
+     (Tmp_File_Name_Base'First .. Tmp_File_Name_Base'Last + 4);
 
    --  Manipulation of an array of strings for
    --  the arguments to be given to the preprocessor
@@ -1427,7 +1429,7 @@ package body Idl_Fe.Lexer is
       Add_Argument ("-I");
       Add_Argument (".");
 
-      Create_Temp_File (Fd, Tmp_File_Name);
+      Create_Temp_File (Fd, Tmp_File_Name_Base);
       if Fd = Invalid_FD then
          Errors.Error
            (Ada.Command_Line.Command_Name &
@@ -1436,6 +1438,10 @@ package body Idl_Fe.Lexer is
             Errors.Fatal,
             Get_Real_Location);
       end if;
+      Tmp_File_Name (Tmp_File_Name_Base'Range) := Tmp_File_Name_Base;
+      Tmp_File_Name (Tmp_File_Name'Last - 4 .. Tmp_File_Name'Last)
+        := ".out" & ASCII.NUL;
+
       --  We don't need the fd.
       Close (Fd);
 
