@@ -2360,19 +2360,6 @@ package body PolyORB.Any is
       return N;
    end Get_Content_List_Length;
 
-   -----------------
-   --  Duplicate  --
-   -----------------
-   function Duplicate (Object : access Content)
-                       return Any_Content_Ptr is
-   begin
-      --  we should never be here since Any_Content_Ptr should
-      --  never be the real type of a variable
-      pragma Debug (O2 ("Duplicate (generic) : enter & end"));
-      raise Program_Error;
-      return null;
-   end Duplicate;
-
    ------------------
    --  Deallocate  --
    ------------------
@@ -2997,20 +2984,5 @@ package body PolyORB.Any is
         & To_Standard_String (NV.Name)
         & " = " & Image (NV.Argument);
    end Image;
-
-   package body Internals is
-
-      procedure Set_Value
-        (Obj : in out Any; The_Value : in Any_Content_Ptr)
-        renames PolyORB.Any.Set_Value;
-
-      procedure Inc_Usage
-        (Obj : in Any)
-        renames PolyORB.Any.Inc_Usage;
-
-      function Get_Value (Obj : Any) return Any_Content_Ptr
-        renames PolyORB.Any.Get_Value;
-
-   end Internals;
 
 end PolyORB.Any;

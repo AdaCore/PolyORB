@@ -42,10 +42,13 @@ package body CORBA.Object.Helper is
    --------------
    --  To_Any  --
    --------------
+
    function To_Any (Item : in CORBA.Object.Ref) return Any is
       Result : Any;
    begin
-      Set_Value (Result, new Content_ObjRef' (Value => new Ref' (Item)));
+      Set_Value (Result, new Content_ObjRef'
+                 (Content with Value =>
+                    new PolyORB.References.Ref'(To_PolyORB_Ref (Item))));
       Set_Type (Result, TC_Object);
       Inc_Usage (Result);
       return Result;
@@ -59,14 +62,17 @@ package body CORBA.Object.Helper is
       if (TypeCode.Kind (Get_Type (Item)) /= Tk_Objref) then
          raise Bad_TypeCode;
       end if;
-      return Content_ObjRef_Ptr (Get_Value (Item)).Value.all;
+      return To_CORBA_Ref
+        (Content_ObjRef_Ptr (Get_Value (Item)).Value.all);
    end From_Any;
 
    ---------------------
    --  Set_Any_Value  --
    ---------------------
-   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
-                            Value : in CORBA.Object.Ref) is
+
+   procedure Set_Any_Value
+     (Any_Value : in out CORBA.Any;
+      Value : in CORBA.Object.Ref) is
       use CORBA.TypeCode;
    begin
       if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Objref then
@@ -74,10 +80,11 @@ package body CORBA.Object.Helper is
       end if;
       Lock_W (Any_Value.Any_Lock);
       if Any_Value.The_Value.all /= Null_Content_Ptr then
-         Content_ObjRef_Ptr (Any_Value.The_Value.all).Value.all := Value;
+         Content_ObjRef_Ptr (Any_Value.The_Value.all).Value.all
+           := PolyORB.References.Ref'Class (To_PolyORB_Ref (Value));
       else
          Any_Value.The_Value.all := new Content_ObjRef'
-           (Value => new Ref '(Value));
+           (Value => new PolyORB.References.Ref'(To_PolyORB_Ref (Value)));
       end if;
       Unlock_W (Any_Value.Any_Lock);
    end Set_Any_Value;
