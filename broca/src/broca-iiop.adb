@@ -56,6 +56,9 @@ package body Broca.IIOP is
    Flag : constant Natural := Broca.Debug.Is_Active ("broca.iiop");
    procedure O is new Broca.Debug.Output (Flag);
 
+   --  This connection provides a strand to communicate using a given
+   --  transport endpoint.
+
    type Strand_Connection_Type is new Connection_Type with
       record
          Strand : Strand_Access;
@@ -73,20 +76,22 @@ package body Broca.IIOP is
      (Connection : access Strand_Connection_Type;
       Buffer     : access Buffer_Type);
 
+
    function Image (Profile : access Profile_IIOP_Type) return String;
+   --  For debugging purpose ...
 
    procedure Marshall_IIOP_Profile_Body
      (IOR     : access Buffer_Type;
       Profile : access Profile_Type'Class);
 
-   function Port_To_Network_Port
-     (Port : CORBA.Unsigned_Short)
-     return Interfaces.C.unsigned_short;
-
    procedure Unmarshall_IIOP_Profile_Body
      (Buffer   : access Buffer_Type;
       Profile  : out Profile_Ptr);
 
+   function Port_To_Network_Port
+     (Port : CORBA.Unsigned_Short)
+     return Interfaces.C.unsigned_short;
+   --  To translate a CORBA short into a network port.
 
    subtype Hash_Type is Natural range 0 .. 30;
 
@@ -128,6 +133,12 @@ package body Broca.IIOP is
          Strand_Key,
          Hash_Strand,
          Equal_Strand);
+
+   --  We need to store profiles and strands into hash tables in order
+   --  to avoid duplicating profiles from refs that we have already
+   --  unmarshalled. We can have several strands for a given profile
+   --  in order to serve several methods of the same object at the
+   --  same time.
 
    --------------------
    -- Create_Profile --
@@ -186,6 +197,9 @@ package body Broca.IIOP is
    begin
       Enter_Critical_Section;
 
+      --  Create the strand list node if needed and register it into
+      --  the strands hash table.
+
       if Profile.Strands = null then
          pragma Debug (O ("init strand list for profile " & Image (Profile)));
 
@@ -202,6 +216,8 @@ package body Broca.IIOP is
          end;
       end if;
 
+      --  If the strands list is not empty, then get a strand from it.
+
       if Profile.Strands.Head /= null then
          pragma Debug (O ("reuse strand from profile " & Image (Profile)));
 
@@ -213,6 +229,8 @@ package body Broca.IIOP is
       end if;
 
       Leave_Critical_Section;
+
+      --  If there is no strand availble, then create a new one.
 
       if Strand = null then
          pragma Debug (O ("create new strand for profile " & Image (Profile)));
@@ -227,8 +245,6 @@ package body Broca.IIOP is
 
             Strand.Socket := C_Socket (Af_Inet, Sock_Stream, 0);
             if Strand.Socket = Failure then
-               Leave_Critical_Section;
-
                pragma Debug (O ("fail to open socket for profile " &
                                 Image (Profile)));
 
@@ -245,9 +261,8 @@ package body Broca.IIOP is
                Addr'Size / 8) = Failure
             then
                C_Close (Strand.Socket);
-               Leave_Critical_Section;
 
-               pragma Debug (O ("fail to connect socket  for profile " &
+               pragma Debug (O ("fail to connect socket for profile " &
                                 Image (Profile)));
 
                Broca.Exceptions.Raise_Comm_Failure;
@@ -414,6 +429,8 @@ package body Broca.IIOP is
    begin
       pragma Debug (O ("release strand"));
 
+      --  Push the free strand into the strands list.
+
       Enter_Critical_Section;
       List := Connection.Strand.List;
       if List.Tail /= null then
@@ -438,10 +455,8 @@ package body Broca.IIOP is
       use Interfaces.C;
 
    begin
-      pragma Debug (O ("Dump outgoing buffer"));
+      pragma Debug (O ("dump outgoing buffer"));
       Broca.Buffers.Show (Buffer.all);
-
-      pragma Debug (O ("Use strand FD =" & Connection.Strand.Socket'Img));
 
       begin
          Broca.Buffers.IO_Operations.Write_To_FD
@@ -451,7 +466,7 @@ package body Broca.IIOP is
          Broca.Exceptions.Raise_Comm_Failure;
       end;
 
-      pragma Debug (O ("Message correctly sent"));
+      pragma Debug (O ("message correctly sent"));
    end Send;
 
    ----------------------------------
@@ -494,6 +509,8 @@ package body Broca.IIOP is
             Broca.Exceptions.Raise_Bad_Param;
          end if;
       end if;
+
+      --  Try to find an existing profile in the hash table.
 
       Enter_Critical_Section;
 
