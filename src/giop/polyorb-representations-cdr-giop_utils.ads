@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---              P O L Y O R B . R E P R E S E N T A T I O N S               --
+--                 POLYORB.REPRESENTATIONS.CDR.GIOP_UTILS                   --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--            Copyright (C) 2004 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,40 +31,22 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Data representation methods.
-
---  A Representation is a method for transforming an arbitrary piece
---  of data (in the form of an 'Any' object) into a sequence of
---  Stream_Elements, and back.
-
 --  $Id$
 
-with PolyORB.Any;
-with PolyORB.Buffers;
-with PolyORB.Exceptions;
+package PolyORB.Representations.CDR.GIOP_Utils is
 
-package PolyORB.Representations is
+   --  'NamedValue' type
 
-   type Representation is abstract tagged limited private;
+   procedure Marshall
+     (Buffer         : access Buffers.Buffer_Type;
+      Representation : in     CDR_Representation'Class;
+      Data           : in     PolyORB.Any.NamedValue);
+   --  Marshall Data according to selected CDR representation Representation
 
-   type Representation_Access is access all Representation;
+   function  Unmarshall
+     (Buffer         : access Buffers.Buffer_Type;
+      Representation : in     CDR_Representation'Class)
+      return PolyORB.Any.NamedValue;
+   --  Unmarshall data according to selected CDR representation Representation
 
-   procedure Marshall_From_Any
-     (R      : in     Representation;
-      Buffer : access Buffers.Buffer_Type;
-      Data   : in     Any.Any;
-      Error  : in out Exceptions.Error_Container)
-     is abstract;
-
-   procedure Unmarshall_To_Any
-     (R      : in     Representation;
-      Buffer : access Buffers.Buffer_Type;
-      Data   : in out Any.Any;
-      Error  : in out Exceptions.Error_Container)
-     is abstract;
-
-private
-
-   type Representation is abstract tagged limited null record;
-
-end PolyORB.Representations;
+end PolyORB.Representations.CDR.GIOP_Utils;

@@ -141,6 +141,8 @@ private
    procedure Marshall_Argument_List
      (Implem              : access GIOP_Implem_1_1;
       Buffer              :        PolyORB.Buffers.Buffer_Access;
+      Representation      : in
+        PolyORB.Representations.CDR.CDR_Representation'Class;
       Args                : in out Any.NVList.Ref;
       Direction           :        Any.Flags;
       First_Arg_Alignment :        Buffers.Alignment_Type);

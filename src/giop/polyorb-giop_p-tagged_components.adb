@@ -37,14 +37,14 @@ with Ada.Streams;
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Log;
-with PolyORB.Representations.CDR;
+with PolyORB.Representations.CDR.Common;
 
 package body PolyORB.GIOP_P.Tagged_Components is
 
    use Ada.Streams;
 
    use PolyORB.Log;
-   use PolyORB.Representations.CDR;
+   use PolyORB.Representations.CDR.Common;
 
    package L is
       new PolyORB.Log.Facility_Log ("polyorb.giop_p.tagged_components");

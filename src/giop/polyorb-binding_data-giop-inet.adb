@@ -35,7 +35,7 @@ with Ada.Streams;
 
 with PolyORB.Buffers;
 with PolyORB.Log;
-with PolyORB.Representations.CDR;
+with PolyORB.Representations.CDR.Common;
 with PolyORB.Utils.Sockets;
 with PolyORB.Types;
 
@@ -48,7 +48,7 @@ package body PolyORB.Binding_Data.GIOP.INET is
    use PolyORB.Buffers;
    use PolyORB.Log;
    use PolyORB.Objects;
-   use PolyORB.Representations.CDR;
+   use PolyORB.Representations.CDR.Common;
    use PolyORB.Utils.Sockets;
    use PolyORB.Types;
 

@@ -50,7 +50,8 @@ with PolyORB.ORB.Interface;
 with PolyORB.Parameters;
 with PolyORB.References.Binding;
 with PolyORB.References.IOR;
-with PolyORB.Representations.CDR;
+with PolyORB.Representations.CDR.Common;
+with PolyORB.Representations.CDR.GIOP_1_2;
 with PolyORB.Request_QoS;
 with PolyORB.Smart_Pointers;
 with PolyORB.Utils.Strings;
@@ -62,7 +63,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
    use PolyORB.GIOP_P.Service_Contexts;
    use PolyORB.Log;
    use PolyORB.Objects;
-   use PolyORB.Representations.CDR;
+   use PolyORB.Representations.CDR.Common;
+   use PolyORB.Representations.CDR.GIOP_1_2;
 
    package L is new PolyORB.Log.Facility_Log
      ("polyorb.protocols.giop.giop_1_2");
@@ -77,6 +79,9 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
    procedure Free is new Ada.Unchecked_Deallocation
      (GIOP_Ctx_1_2, GIOP_Ctx_1_2_Access);
+
+   procedure Free is new Ada.Unchecked_Deallocation
+     (GIOP_1_2_CDR_Representation, GIOP_1_2_CDR_Representation_Access);
 
    procedure Free is new Ada.Unchecked_Deallocation
      (Target_Address, Target_Address_Access);
@@ -157,7 +162,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
       Sess : GIOP_Session renames GIOP_Session (S.all);
    begin
-      Sess.Ctx := new GIOP_Ctx_1_2;
+      Sess.Ctx  := new GIOP_Ctx_1_2;
+      Sess.Repr := new GIOP_1_2_CDR_Representation;
       pragma Debug (O ("Initialize context for GIOP session 1.2"));
    end Initialize_Session;
 
@@ -181,6 +187,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       end if;
 
       Free (GIOP_Ctx_1_2_Access (Sess.Ctx));
+      Free (GIOP_1_2_CDR_Representation_Access (Sess.Repr));
       pragma Debug (O ("Finalize context for GIOP session 1.2"));
    end Finalize_Session;
 
@@ -927,6 +934,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       pragma Unreferenced (Implem);
       pragma Warnings (On);
 
+      use PolyORB.Annotations;
       use PolyORB.Requests.Unsigned_Long_Flags;
       use PolyORB.Types;
 
@@ -1031,7 +1039,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       --  Arguments
 
       Marshall_Argument_List
-        (Sess.Implem, Buffer, R.Req.Args, PolyORB.Any.ARG_IN,
+        (Sess.Implem, Buffer, Sess.Repr.all, R.Req.Args, PolyORB.Any.ARG_IN,
          Sess.Implem.Data_Alignment);
 
       --  GIOP Header
@@ -1189,7 +1197,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       Operation  :    out Types.String;
       QoS        :    out PolyORB.Request_QoS.QoS_Parameter_Lists.List)
    is
-      use Representations.CDR;
       use PolyORB.Types;
 
       Received_Flags : Types.Octet;
@@ -1289,7 +1296,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
       --  Operation
 
-      Operation :=  Unmarshall (Buffer);
+      Operation := Types.String (Types.Identifier'(Unmarshall (Buffer)));
       pragma Debug (O ("Operation  : "
                        & Types.To_Standard_String (Operation)));
 
@@ -1331,7 +1338,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       Request_Id : in     Types.Unsigned_Long;
       Target_Ref : in     Target_Address)
    is
-      use Representations.CDR;
    begin
 
       --  Request id

@@ -40,14 +40,14 @@ with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Log;
-with PolyORB.Representations.CDR;
+with PolyORB.Representations.CDR.Common;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.MIOP_P.Tagged_Components is
 
    use PolyORB.Buffers;
    use PolyORB.Log;
-   use PolyORB.Representations.CDR;
+   use PolyORB.Representations.CDR.Common;
 
    procedure Free
    is new Ada.Unchecked_Deallocation (TC_Group_Info, TC_Group_Info_Access);
@@ -86,7 +86,7 @@ package body PolyORB.MIOP_P.Tagged_Components is
 
       Marshall (Buffer, TC_Group_Info_Version_Major);
       Marshall (Buffer, TC_Group_Info_Version_Minor);
-      Marshall (Buffer, C.G_I.Group_Domain_Id);
+      Marshall (Buffer, Types.Identifier (C.G_I.Group_Domain_Id));
       Marshall (Buffer, C.G_I.Object_Group_Id);
       Marshall (Buffer, C.G_I.Object_Group_Ref_Version);
    end Marshall;
@@ -110,7 +110,8 @@ package body PolyORB.MIOP_P.Tagged_Components is
       Temp := Unmarshall (Buffer);
       pragma Assert (Temp = TC_Group_Info_Version_Minor);
 
-      C.G_I.Group_Domain_Id := Unmarshall (Buffer);
+      C.G_I.Group_Domain_Id :=
+        Types.String (Types.Identifier'(Unmarshall (Buffer)));
       C.G_I.Object_Group_Id := Unmarshall (Buffer);
       C.G_I.Object_Group_Ref_Version := Unmarshall (Buffer);
       pragma Debug (O ("Group Info : " & Image (C.G_I)));

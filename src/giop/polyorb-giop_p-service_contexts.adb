@@ -32,14 +32,14 @@
 ------------------------------------------------------------------------------
 
 with PolyORB.Log;
-with PolyORB.Representations.CDR;
+with PolyORB.Representations.CDR.Common;
 with PolyORB.Tasking.Priorities;
 
 package body PolyORB.GIOP_P.Service_Contexts is
 
    use PolyORB.Buffers;
    use PolyORB.Log;
-   use PolyORB.Representations.CDR;
+   use PolyORB.Representations.CDR.Common;
    use PolyORB.Types;
 
    package L is

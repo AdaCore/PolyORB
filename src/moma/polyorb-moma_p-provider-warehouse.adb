@@ -42,7 +42,7 @@ with System;
 with PolyORB.Any;
 with PolyORB.Buffers;
 with PolyORB.Opaque;
-with PolyORB.Representations.CDR;
+with PolyORB.Representations.CDR.Common;
 with PolyORB.Tasking.Rw_Locks;
 with PolyORB.Utils.HTables.Perfect;
 
@@ -56,7 +56,7 @@ package body PolyORB.MOMA_P.Provider.Warehouse is
    use PolyORB.Any;
    use PolyORB.Buffers;
    use PolyORB.Opaque;
-   use PolyORB.Representations.CDR;
+   use PolyORB.Representations.CDR.Common;
    use PolyORB.Tasking.Rw_Locks;
 
    use MOMA.Messages;

@@ -36,7 +36,7 @@
 with PolyORB.Filters.Interface;
 with PolyORB.Log;
 with PolyORB.Parameters;
-with PolyORB.Representations.CDR;
+with PolyORB.Representations.CDR.Common;
 with PolyORB.Types;
 
 package body PolyORB.Filters.MIOP.MIOP_Out is
@@ -95,7 +95,7 @@ package body PolyORB.Filters.MIOP.MIOP_Out is
       To   : access Buffer_Type;
       Len  :        Types.Unsigned_Short)
    is
-      use PolyORB.Representations.CDR;
+      use PolyORB.Representations.CDR.Common;
       Temp : Types.Octet;
    begin
       for J in 1 .. Integer (Len) loop

@@ -37,7 +37,7 @@ with Ada.Streams;
 
 with PolyORB.Log;
 
-with PolyORB.Representations.CDR;
+with PolyORB.Representations.CDR.Common;
 
 package body CORBA.Fixed_Point is
 
@@ -55,7 +55,8 @@ package body CORBA.Fixed_Point is
    -- this is to help --
    ---------------------
 
-   package CDR_Fixed_F is new PolyORB.Representations.CDR.Fixed_Point (F);
+   package CDR_Fixed_F is
+      new PolyORB.Representations.CDR.Common.Fixed_Point (F);
 
    ------------
    -- To_Any --

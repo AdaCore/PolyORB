@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -41,17 +41,21 @@ with PolyORB.Utils.Buffers; use PolyORB.Utils.Buffers;
 package body PolyORB.Representations.Test is
 
    procedure Marshall_From_Any
-     (R      : Rep_Test;
+     (R      : in     Rep_Test;
       Buffer : access Buffers.Buffer_Type;
-      Data   : Any.Any) is
+      Data   : in     Any.Any;
+      Error  : in out Exceptions.Error_Container)
+   is
    begin
       raise Not_Implemented;
    end Marshall_From_Any;
 
    procedure Unmarshall_To_Any
-     (R      : Rep_Test;
+     (R      : in     Rep_Test;
       Buffer : access Buffers.Buffer_Type;
-      Data   : in out Any.Any) is
+      Data   : in out Any.Any;
+      Error  : in out Exceptions.Error_Container)
+   is
    begin
       raise Not_Implemented;
    end Unmarshall_To_Any;
@@ -76,7 +80,7 @@ package body PolyORB.Representations.Test is
    end Unmarshall_Char;
 
    procedure Marshall_String
-     (R : access Rep_Test;
+     (R : in     Rep_Test;
       B : access Buffer_Type;
       S : String)
    is
@@ -90,7 +94,7 @@ package body PolyORB.Representations.Test is
    end Marshall_String;
 
    function Unmarshall_String
-     (R : access Rep_Test;
+     (R : in     Rep_Test;
       B : access Buffer_Type)
      return String
    is

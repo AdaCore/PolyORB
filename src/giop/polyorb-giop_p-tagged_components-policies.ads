@@ -33,7 +33,7 @@
 
 --  TAG_POLICIES tagged component
 
-with PolyORB.Representations.CDR;
+with PolyORB.Representations.CDR.Common;
 with PolyORB.Types;
 with PolyORB.Utils.Chained_Lists;
 
@@ -54,7 +54,7 @@ package PolyORB.GIOP_P.Tagged_Components.Policies is
 private
 
    type Encapsulation_Access is access all
-     PolyORB.Representations.CDR.Encapsulation;
+     PolyORB.Representations.CDR.Common.Encapsulation;
 
    type Policy_Value is record
       P_Type  : PolyORB.Types.Unsigned_Long;

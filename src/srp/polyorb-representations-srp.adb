@@ -1441,6 +1441,14 @@ package body PolyORB.Representations.SRP is
 --                       PolyORB.Any.TypeCode.Name (Data));
 --             Marshall (Buffer, Encapsulate (Complex_Buffer));
 --             Release (Complex_Buffer);
+         when Tk_Local_Interface =>
+            raise Not_Implemented;
+         when Tk_Component =>
+            raise Not_Implemented;
+         when Tk_Home =>
+            raise Not_Implemented;
+         when Tk_Event =>
+            raise Not_Implemented;
       end case;
       pragma Debug (O ("Marshall (Typecode) : end"));
    end Marshall;
@@ -1450,9 +1458,10 @@ package body PolyORB.Representations.SRP is
    -----------------------
 
    procedure Marshall_From_Any
-     (R      : Rep_SRP;
+     (R      : in     Rep_SRP;
       Buffer : access Buffers.Buffer_Type;
-      Data   : Any.Any)
+      Data   : in     Any.Any;
+      Error  : in out Exceptions.Error_Container)
    is
    begin
       raise Not_Implemented;
@@ -1780,6 +1789,19 @@ package body PolyORB.Representations.SRP is
             --  pragma Debug (O ("Marshall_From_Any : dealing with "
             --                 & "an abstract interface"));
             raise Not_Implemented;
+
+         when Tk_Local_Interface =>
+            raise Not_Implemented;
+
+         when Tk_Component =>
+            raise Not_Implemented;
+
+         when Tk_Home =>
+            raise Not_Implemented;
+
+         when Tk_Event =>
+            raise Not_Implemented;
+
       end case;
       pragma Debug (O ("Marshall_From_Any : end"));
    end Marshall_From_Any;
@@ -1811,9 +1833,10 @@ package body PolyORB.Representations.SRP is
    -----------------------
 
    procedure Unmarshall_To_Any
-     (R      : Rep_SRP;
+     (R      : in     Rep_SRP;
       Buffer : access Buffers.Buffer_Type;
-      Data   : in out Any.Any)
+      Data   : in out Any.Any;
+      Error  : in out Exceptions.Error_Container)
    is
       Encoded_URL : String_Ptr;
       Decoded_URL : String_Ptr;
@@ -2269,6 +2292,18 @@ package body PolyORB.Representations.SRP is
          when Tk_Abstract_Interface =>
             --  FIXME : to be done
             null;
+         when Tk_Local_Interface =>
+            --  FIXME : to be done
+            null;
+         when Tk_Component =>
+            --  FIXME : to be done
+            null;
+         when Tk_Home =>
+            --  FIXME : to be done
+            null;
+         when Tk_Event =>
+            --  FIXME : to be done
+            null;
       end case;
       pragma Debug (O ("Unmarshall_To_Any : end"));
    end Unmarshall_To_Any;
@@ -2383,12 +2418,13 @@ package body PolyORB.Representations.SRP is
    -----------------------
 
    function Unmarshall_To_Any
-     (R      : Rep_SRP;
+     (R      : in     Rep_SRP;
       Buffer : access Buffers.Buffer_Type) return Any.Any
    is
-      Data : Any.Any;
+      Data  : Any.Any;
+      Error : Exceptions.Error_Container;
    begin
-      Unmarshall_To_Any (R, Buffer, Data);
+      Unmarshall_To_Any (R, Buffer, Data, Error);
       return Data;
    end Unmarshall_To_Any;
 

@@ -32,7 +32,7 @@
 ------------------------------------------------------------------------------
 
 with PolyORB.Buffers;
-with PolyORB.Representations.CDR;
+with PolyORB.Representations.CDR.Common;
 with PolyORB.Utils;
 
 package body PolyORB.MIOP_P.Groups is
@@ -66,7 +66,7 @@ package body PolyORB.MIOP_P.Groups is
    is
       use PolyORB.Buffers;
       use PolyORB.Objects;
-      use PolyORB.Representations.CDR;
+      use PolyORB.Representations.CDR.Common;
       use PolyORB.Types;
 
       Buffer : Buffer_Access := new Buffer_Type;
@@ -74,7 +74,7 @@ package body PolyORB.MIOP_P.Groups is
    begin
       Marshall (Buffer, G_I.Object_Group_Id);
       Marshall (Buffer, G_I.Object_Group_Ref_Version);
-      Marshall (Buffer, G_I.Group_Domain_Id);
+      Marshall (Buffer, Types.Identifier (G_I.Group_Domain_Id));
       Oid := new Object_Id'
         (To_Oid
          (PolyORB.Utils.To_String
@@ -92,7 +92,7 @@ package body PolyORB.MIOP_P.Groups is
      return Group_Info
    is
       use PolyORB.Buffers;
-      use PolyORB.Representations.CDR;
+      use PolyORB.Representations.CDR.Common;
 
       Buffer : Buffer_Access := new Buffer_Type;
       G_I : Group_Info;
@@ -105,7 +105,8 @@ package body PolyORB.MIOP_P.Groups is
          0);
       G_I.Object_Group_Id := Unmarshall (Buffer);
       G_I.Object_Group_Ref_Version := Unmarshall (Buffer);
-      G_I.Group_Domain_Id := Unmarshall (Buffer);
+      G_I.Group_Domain_Id :=
+        Types.String (Types.Identifier'(Unmarshall (Buffer)));
       Release (Buffer);
       return G_I;
    end To_Group_Info;

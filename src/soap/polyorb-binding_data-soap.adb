@@ -50,7 +50,7 @@ with PolyORB.Setup;
 
 with PolyORB.References.IOR;
 with PolyORB.References.URI;
-with PolyORB.Representations.CDR;
+with PolyORB.Representations.CDR.Common;
 --  XXX Unfortunate dependency on CDR code. Should provide
 --  To_Any methods instead!!!!!! (but actually the Any in question
 --  would be specific of how IORs are constructed) (but we could
@@ -72,7 +72,7 @@ package body PolyORB.Binding_Data.SOAP is
    use PolyORB.Filters.HTTP;
    use PolyORB.Objects;
    use PolyORB.Protocols.SOAP_Pr;
-   use PolyORB.Representations.CDR;
+   use PolyORB.Representations.CDR.Common;
    use PolyORB.Transport;
    use PolyORB.Transport.Connected.Sockets;
    use PolyORB.Types;
@@ -335,7 +335,7 @@ package body PolyORB.Binding_Data.SOAP is
         (Profile_Body, Stream_Element_Array
          (SOAP_Profile.Object_Id.all));
 
-      Marshall (Profile_Body, SOAP_Profile.URI_Path);
+      Marshall_Latin_1_String (Profile_Body, SOAP_Profile.URI_Path);
 
       --  Marshall the Profile_Body into IOR.
 
@@ -377,7 +377,7 @@ package body PolyORB.Binding_Data.SOAP is
          TResult.Object_Id := new Object_Id'(Object_Id (Str));
       end;
 
-      TResult.URI_Path := Unmarshall (Profile_Buffer);
+      TResult.URI_Path := Unmarshall_Latin_1_String (Profile_Buffer);
       Release (Profile_Buffer);
 
       return Result;

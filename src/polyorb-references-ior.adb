@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -39,7 +39,7 @@ with PolyORB.Binding_Data;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 with PolyORB.Log;
-with PolyORB.Representations.CDR;
+with PolyORB.Representations.CDR.Common;
 with PolyORB.Types;
 with PolyORB.Utils.Chained_Lists;
 
@@ -49,7 +49,7 @@ package body PolyORB.References.IOR is
 
    use PolyORB.Binding_Data;
    use PolyORB.Log;
-   use PolyORB.Representations.CDR;
+   use PolyORB.Representations.CDR.Common;
    use PolyORB.Utils;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.references.ior");
@@ -181,14 +181,17 @@ package body PolyORB.References.IOR is
       pragma Debug (O ("Marshall IOR: Enter"));
 
       if Is_Nil (Value) then
-         Marshall (Buffer, PolyORB.Types.String'(To_PolyORB_String ("")));
+         Marshall
+           (Buffer,
+            PolyORB.Types.RepositoryId'(To_PolyORB_String ("")));
          Marshall (Buffer, Types.Unsigned_Long'(0));
          pragma Debug (O ("Empty IOR"));
 
       else
          Marshall
            (Buffer,
-            PolyORB.Types.String'(To_PolyORB_String (Type_Id_Of (Value))));
+            PolyORB.Types.RepositoryId'
+              (To_PolyORB_String (Type_Id_Of (Value))));
 
          Pad_Align (Buffer, 4);
 
@@ -243,7 +246,7 @@ package body PolyORB.References.IOR is
       Result     : PolyORB.References.Ref;
 
       PolyORB_Type_Id : constant Types.String
-        := Types.String (Types.String'(Unmarshall (Buffer)));
+        := Types.String (Types.RepositoryId'(Unmarshall (Buffer)));
       Type_Id : constant String
         := To_Standard_String (PolyORB_Type_Id);
 
@@ -289,7 +292,7 @@ package body PolyORB.References.IOR is
       Buf : Buffer_Access := new Buffer_Type;
    begin
       Start_Encapsulation (Buf);
-      Representations.CDR.Marshall (Buf, IOR);
+      Marshall (Buf, IOR);
 
       declare
          Octets : constant Encapsulation := Encapsulate (Buf);

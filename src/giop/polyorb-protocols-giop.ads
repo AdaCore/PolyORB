@@ -36,6 +36,7 @@ with Ada.Unchecked_Deallocation;
 
 with PolyORB.Buffers;
 with PolyORB.ORB;
+with PolyORB.Representations.CDR;
 with PolyORB.Types;
 with PolyORB.Utils.Chained_Lists;
 with PolyORB.Utils.Simple_Flags;
@@ -259,6 +260,8 @@ private
    procedure Marshall_Argument_List
      (Implem              : access GIOP_Implem;
       Buffer              :        Buffers.Buffer_Access;
+      Representation      : in
+         Representations.CDR.CDR_Representation'Class;
       Args                : in out Any.NVList.Ref;
       Direction           :        Any.Flags;
       First_Arg_Alignment :        Buffers.Alignment_Type);
@@ -272,6 +275,8 @@ private
    procedure Unmarshall_Argument_List
      (Implem              : access GIOP_Implem;
       Buffer              :        Buffers.Buffer_Access;
+      Representation      : in
+         Representations.CDR.CDR_Representation'Class;
       Args                : in out Any.NVList.Ref;
       Direction           :        Any.Flags;
       First_Arg_Alignment :        Buffers.Alignment_Type);
@@ -360,6 +365,8 @@ private
       Req_Index    : Types.Unsigned_Long := 1;
       --  Access to GIOP_Protocol, which contain GIOP_Implems
       Conf         : GIOP_Conf_Access;
+      --  Marshalling/unmarshalling repsentation object
+      Repr         : Representations.CDR.CDR_Representation_Access;
    end record;
 
    type GIOP_Session_Access is access all GIOP_Session;
@@ -465,8 +472,9 @@ private
    ---------------------------------
 
    procedure Unmarshall_System_Exception_To_Any
-     (Buffer : PolyORB.Buffers.Buffer_Access;
-      Info   : out Any.Any);
+     (Buffer : in     PolyORB.Buffers.Buffer_Access;
+      Repr   : in     PolyORB.Representations.CDR.CDR_Representation'Class;
+      Info   :    out Any.Any);
 
    function Get_Conf_Chain
      (Implem : access GIOP_Implem'Class)

@@ -37,11 +37,13 @@ with PolyORB.Annotations;
 with PolyORB.Binding_Data;
 with PolyORB.Buffers;
 with PolyORB.Components;
+with PolyORB.Exceptions;
 with PolyORB.GIOP_P.Exceptions;
 with PolyORB.Log;
 with PolyORB.ORB;
 with PolyORB.Parameters;
-with PolyORB.Representations.CDR;
+with PolyORB.Representations.CDR.Common;
+with PolyORB.Representations.CDR.GIOP_Utils;
 with PolyORB.Types;
 
 package body PolyORB.Protocols.GIOP is
@@ -52,6 +54,8 @@ package body PolyORB.Protocols.GIOP is
    use PolyORB.Log;
    use PolyORB.ORB;
    use PolyORB.Representations.CDR;
+   use PolyORB.Representations.CDR.Common;
+   use PolyORB.Representations.CDR.GIOP_Utils;
    use PolyORB.Types;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.protocols.giop");
@@ -174,12 +178,13 @@ package body PolyORB.Protocols.GIOP is
       S.Buffer_In  := new Buffer_Type;
    end Initialize;
 
-   --------------
-   -- Finalize --
-   --------------
+   -------------
+   -- Destroy --
+   -------------
 
    procedure Destroy
-     (S : in out GIOP_Session) is
+     (S : in out GIOP_Session)
+   is
    begin
       pragma Debug (O ("Destroying GIOP session"));
 
@@ -266,7 +271,7 @@ package body PolyORB.Protocols.GIOP is
       pragma Assert (Sess.State = Waiting_Unmarshalling);
 
       Unmarshall_Argument_List
-        (Sess.Implem, Sess.Buffer_In, Args,
+        (Sess.Implem, Sess.Buffer_In, Sess.Repr.all, Args,
          PolyORB.Any.ARG_IN, Sess.Implem.Data_Alignment);
 
       Expect_GIOP_Header (Sess);
@@ -553,6 +558,7 @@ package body PolyORB.Protocols.GIOP is
    procedure Unmarshall_Argument_List
      (Implem              : access GIOP_Implem;
       Buffer              :        Buffer_Access;
+      Representation      : in     CDR_Representation'Class;
       Args                : in out Any.NVList.Ref;
       Direction           :        Any.Flags;
       First_Arg_Alignment :        Buffers.Alignment_Type)
@@ -564,9 +570,11 @@ package body PolyORB.Protocols.GIOP is
       use PolyORB.Any;
       use PolyORB.Any.NVList.Internals;
       use PolyORB.Any.NVList.Internals.NV_Lists;
+      use PolyORB.Exceptions;
 
       It  : Iterator := First (List_Of (Args).all);
       Arg : Element_Access;
+      Error : PolyORB.Exceptions.Error_Container;
    begin
       pragma Assert (Direction = ARG_IN or else Direction = ARG_OUT);
 
@@ -580,7 +588,15 @@ package body PolyORB.Protocols.GIOP is
            or else Arg.Arg_Modes = Direction
            or else Arg.Arg_Modes = ARG_INOUT
          then
-            Unmarshall_To_Any (Buffer, Arg.Argument);
+            Unmarshall_To_Any (Representation, Buffer, Arg.Argument, Error);
+
+            if Found (Error) then
+               Catch (Error);
+               raise Program_Error;
+               --  XXX We cannot silentely ignore any error. For now, we
+               --  raise this exception. To be investigated.
+            end if;
+
          end if;
          Next (It);
       end loop;
@@ -593,6 +609,7 @@ package body PolyORB.Protocols.GIOP is
    procedure Marshall_Argument_List
      (Implem              : access GIOP_Implem;
       Buffer              :        Buffer_Access;
+      Representation      : in     CDR_Representation'Class;
       Args                : in out Any.NVList.Ref;
       Direction           :        Any.Flags;
       First_Arg_Alignment :        Buffers.Alignment_Type)
@@ -625,7 +642,7 @@ package body PolyORB.Protocols.GIOP is
                              & Types.To_Standard_String (Arg.Name)
                              & " = " & Image (Arg.Argument)));
 
-            Marshall (Buffer, Arg.all);
+            Marshall (Buffer, Representation, Arg.all);
          end if;
 
          Next (It);
@@ -637,17 +654,30 @@ package body PolyORB.Protocols.GIOP is
    ----------------------------------------
 
    procedure Unmarshall_System_Exception_To_Any
-     (Buffer :     Buffer_Access;
-      Info   : out Any.Any)
+     (Buffer :        Buffer_Access;
+      Repr   : in     Representations.CDR.CDR_Representation'Class;
+      Info   :    out Any.Any)
    is
+      use PolyORB.Exceptions;
       use PolyORB.GIOP_P.Exceptions;
 
       Exception_Name : constant String
-        := Extract_System_Exception_Name (Unmarshall (Buffer));
+        := Extract_System_Exception_Name
+             (To_Standard_String (Types.RepositoryId'(Unmarshall (Buffer))));
+      Error : PolyORB.Exceptions.Error_Container;
 
    begin
-      Info := Any.Get_Empty_Any (System_Exception_TypeCode (Exception_Name));
-      Unmarshall_To_Any (Buffer, Info);
+      Info := Any.Get_Empty_Any
+        (PolyORB.GIOP_P.Exceptions.System_Exception_TypeCode (Exception_Name));
+      Unmarshall_To_Any (Repr, Buffer, Info, Error);
+
+      if Found (Error) then
+         Catch (Error);
+         raise Program_Error;
+         --  XXX We cannot silentely ignore any error. For now, we
+         --  raise this exception. To be investigated.
+      end if;
+
    end Unmarshall_System_Exception_To_Any;
 
    --  Version management

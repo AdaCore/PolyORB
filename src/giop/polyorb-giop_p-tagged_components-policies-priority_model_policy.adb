@@ -65,7 +65,7 @@ package body PolyORB.GIOP_P.Tagged_Components.Policies.Priority_Model_Policy is
       use PolyORB.RT_POA_Policies.Priority_Model_Policy;
       use PolyORB.Tasking.Priorities;
       use Policy_Value_Seq;
-      use PolyORB.Representations.CDR;
+      use PolyORB.Representations.CDR.Common;
       use type PolyORB.Types.Unsigned_Long;
 
       Result : Policy_Value;

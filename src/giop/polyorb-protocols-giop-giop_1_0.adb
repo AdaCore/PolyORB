@@ -44,7 +44,8 @@ with PolyORB.Objects;
 with PolyORB.Obj_Adapters;
 with PolyORB.ORB.Interface;
 with PolyORB.References;
-with PolyORB.Representations.CDR;
+with PolyORB.Representations.CDR.Common;
+with PolyORB.Representations.CDR.GIOP_1_0;
 with PolyORB.Request_QoS;
 with PolyORB.Smart_Pointers;
 with PolyORB.Utils.Strings;
@@ -55,7 +56,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
    use PolyORB.GIOP_P.Service_Contexts;
    use PolyORB.Log;
    use PolyORB.Objects;
-   use PolyORB.Representations.CDR;
+   use PolyORB.Representations.CDR.Common;
+   use PolyORB.Representations.CDR.GIOP_1_0;
 
    package L is new PolyORB.Log.Facility_Log
      ("polyorb.protocols.giop.giop_1_0");
@@ -65,6 +67,10 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
    procedure Free is
       new Ada.Unchecked_Deallocation
      (GIOP_Ctx_1_0, GIOP_Ctx_1_0_Access);
+
+   procedure Free is
+      new Ada.Unchecked_Deallocation
+     (GIOP_1_0_CDR_Representation, GIOP_1_0_CDR_Representation_Access);
 
    Permitted_Sync_Scopes : constant PolyORB.Requests.Flags :=
      Sync_None or
@@ -118,6 +124,10 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       Implem. Permitted_Sync_Scopes := Permitted_Sync_Scopes;
    end Initialize_Implem;
 
+   ------------------------
+   -- Initialize_Session --
+   ------------------------
+
    procedure Initialize_Session
      (Implem : access GIOP_Implem_1_0;
       S      : access Session'Class)
@@ -130,8 +140,13 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
    begin
       pragma Debug (O ("Initialize context for GIOP session 1.0"));
 
-      Sess.Ctx := new GIOP_Ctx_1_0;
+      Sess.Ctx  := new GIOP_Ctx_1_0;
+      Sess.Repr := new GIOP_1_0_CDR_Representation;
    end Initialize_Session;
+
+   ----------------------
+   -- Finalize_Session --
+   ----------------------
 
    procedure Finalize_Session
      (Implem : access GIOP_Implem_1_0;
@@ -141,9 +156,10 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       pragma Unreferenced (Implem);
       pragma Warnings (On);
 
-      Sess    : GIOP_Session renames GIOP_Session (S.all);
+      Sess : GIOP_Session renames GIOP_Session (S.all);
    begin
       Free (GIOP_Ctx_1_0_Access (Sess.Ctx));
+      Free (GIOP_1_0_CDR_Representation_Access (Sess.Repr));
       pragma Debug (O ("Finalize context for GIOP session 1.0"));
    end Finalize_Session;
 
@@ -479,7 +495,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
    begin
       pragma Debug (O ("Sending request , Id :" & R.Request_Id'Img));
 
-
       Buffer := new Buffer_Type;
       Header_Buffer := new Buffer_Type;
       Header_Space := Reserve (Buffer, GIOP_Header_Size);
@@ -494,10 +509,10 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
                        & To_Standard_String (R.Req.Operation)));
 
       Marshall (Buffer, R.Req.Operation);
-      Marshall (Buffer, Nobody_Principal);
+      Marshall_Latin_1_String (Buffer, Nobody_Principal);
 
       Marshall_Argument_List
-        (Sess.Implem, Buffer, R.Req.Args, PolyORB.Any.ARG_IN,
+        (Sess.Implem, Buffer, Sess.Repr.all, R.Req.Args, PolyORB.Any.ARG_IN,
          Sess.Implem.Data_Alignment);
 
       Ctx.Message_Type := Request;
@@ -622,7 +637,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       Principal         :    out Types.String;
       QoS               :    out PolyORB.Request_QoS.QoS_Parameter_Lists.List)
    is
-      use Representations.CDR;
       use PolyORB.Types;
 
    begin
@@ -644,18 +658,18 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       --  Object key
 
       declare
-         Obj : constant Stream_Element_Array :=  Unmarshall (Buffer);
+         Obj : constant Stream_Element_Array := Unmarshall (Buffer);
       begin
          Object_Key := new Object_Id'(Object_Id (Obj));
       end;
 
       --  Operation
 
-      Operation :=  Unmarshall (Buffer);
+      Operation :=  Types.String (Types.Identifier'(Unmarshall (Buffer)));
       pragma Debug (O ("Operation  : "
                        & Types.To_Standard_String (Operation)));
 
-      Principal := Unmarshall (Buffer);
+      Principal := Unmarshall_Latin_1_String (Buffer);
 
    end Unmarshall_Request_Message;
 

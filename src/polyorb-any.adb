@@ -630,11 +630,15 @@ package body PolyORB.Any is
               | Tk_Union
               | Tk_Enum
               | Tk_Alias
+              | Tk_Except
               | Tk_Value
               | Tk_Valuebox
               | Tk_Native
               | Tk_Abstract_Interface
-              | Tk_Except =>
+              | Tk_Local_Interface
+              | Tk_Component
+              | Tk_Home
+              | Tk_Event =>
                declare
                   Res : PolyORB.Types.String;
                begin
@@ -661,11 +665,15 @@ package body PolyORB.Any is
               | Tk_Union
               | Tk_Enum
               | Tk_Alias
+              | Tk_Except
               | Tk_Value
               | Tk_Valuebox
               | Tk_Native
               | Tk_Abstract_Interface
-              | Tk_Except =>
+              | Tk_Local_Interface
+              | Tk_Component
+              | Tk_Home
+              | Tk_Event =>
                declare
                   Res : PolyORB.Types.String;
                begin
@@ -702,7 +710,8 @@ package body PolyORB.Any is
             when Tk_Enum =>
                return Param_Nb - 2;
 
-            when Tk_Value =>
+            when Tk_Value
+              | Tk_Event =>
                return (Param_Nb - 4) / 3;
 
             when others =>
@@ -749,7 +758,8 @@ package body PolyORB.Any is
                Res := From_Any (Get_Parameter (Self, Index + 2));
                return Identifier (Res);
 
-            when Tk_Value =>
+            when Tk_Value
+              | Tk_Event =>
                if Param_Nb < 3 * Index + 7 then
                   raise Bounds;
                end if;
@@ -793,7 +803,8 @@ package body PolyORB.Any is
                end if;
                return From_Any (Get_Parameter (Self, 3 * Index + 5));
 
-            when Tk_Value =>
+            when Tk_Value
+              | Tk_Event =>
                if Param_Nb < 3 * Index + 7 then
                   raise Bounds;
                end if;
@@ -983,7 +994,8 @@ package body PolyORB.Any is
          --  TypeCode.Object in the private part of CORBA.TypeCode
          --  to understand the magic numbers used here.
          case Kind (Self) is
-            when Tk_Value =>
+            when Tk_Value
+              | Tk_Event =>
                declare
                   Param_Nb : constant Unsigned_Long
                     := Parameter_Count (Self);
@@ -1010,7 +1022,8 @@ package body PolyORB.Any is
         return ValueModifier is
       begin
          case Kind (Self) is
-            when Tk_Value =>
+            when Tk_Value
+              | Tk_Event =>
                declare
                   Res : Short;
                begin
@@ -1032,7 +1045,8 @@ package body PolyORB.Any is
         return Object is
       begin
          case Kind (Self) is
-            when Tk_Value =>
+            when Tk_Value
+              | Tk_Event =>
                return From_Any (Get_Parameter (Self, 3));
 
             when others =>
@@ -1615,6 +1629,46 @@ package body PolyORB.Any is
          return PTC_Abstract_Interface;
       end TC_Abstract_Interface;
 
+      ------------------------
+      -- TC_Local_Interface --
+      ------------------------
+
+      function TC_Local_Interface
+        return TypeCode.Object is
+      begin
+         return PTC_Local_Interface;
+      end TC_Local_Interface;
+
+      ------------------
+      -- TC_Component --
+      ------------------
+
+      function TC_Component
+        return TypeCode.Object is
+      begin
+         return PTC_Component;
+      end TC_Component;
+
+      -------------
+      -- TC_Home --
+      -------------
+
+      function TC_Home
+        return TypeCode.Object is
+      begin
+         return PTC_Home;
+      end TC_Home;
+
+      --------------
+      -- TC_Event --
+      --------------
+
+      function TC_Event
+        return TypeCode.Object is
+      begin
+         return PTC_Event;
+      end TC_Event;
+
       ---------------------
       -- Parameter_Count --
       ---------------------
@@ -2038,10 +2092,15 @@ package body PolyORB.Any is
          when Tk_Fixed
            | Tk_Value
            | Tk_Valuebox
-           | Tk_Abstract_Interface =>
+           | Tk_Abstract_Interface
+           | Tk_Local_Interface
+           | Tk_Component
+           | Tk_Home
+           | Tk_Event =>
             --  XXX : to be done
-            pragma Debug (O ("Equal (Any, Fixed or Value or ValueBox "
-                             & "or Abstract_Interface) : end"
+            pragma Debug (O ("Equal (Any, Fixed, Value, ValueBox, "
+                             & "Abstract_Interface, Local_Interface, "
+                             & "Component, Home or Event) : end"
                              & " NON IMPLEMENTED -> TRUE"));
             return True;
 

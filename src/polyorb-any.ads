@@ -64,7 +64,7 @@ package PolyORB.Any is
    -- TypeCodes --
    ---------------
 
-   --  See spec CORBA V2.3, Ada Langage Mapping 1.33
+   --  See spec CORBA V3.0, Ada Langage Mapping 1.33
 
    type TCKind is
       (Tk_Null,
@@ -103,7 +103,11 @@ package PolyORB.Any is
        Tk_Value,
        Tk_Valuebox,
        Tk_Native,
-       Tk_Abstract_Interface);
+       Tk_Abstract_Interface,
+       Tk_Local_Interface,
+       Tk_Component,
+       Tk_Home,
+       Tk_Event);
    subtype Aggregate_TCKind is TCKind range Tk_Struct .. Tk_Fixed;
 
    type ValueModifier is new Types.Short;
@@ -378,6 +382,10 @@ package PolyORB.Any is
       function TC_Valuebox           return TypeCode.Object;
       function TC_Native             return TypeCode.Object;
       function TC_Abstract_Interface return TypeCode.Object;
+      function TC_Local_Interface    return TypeCode.Object;
+      function TC_Component          return TypeCode.Object;
+      function TC_Home               return TypeCode.Object;
+      function TC_Event              return TypeCode.Object;
 
       function Parameter_Count
         (Self : in Object)
@@ -421,12 +429,13 @@ package PolyORB.Any is
       --     long_double, boolean, char, Wchar, octet, any,
       --     TypeCode, Principal: parameters = null
       --
-      --  2. For Objref, struct, union, enum, alias, value, valueBox,
-      --     native, abstract_interface and except, the first parameter
-      --     will contain the name and the second the repository id.
+      --  2. For Objref, struct, union, enum, alias, except, value, valueBox,
+      --     native, abstract_interface, local_interface, component, home
+      --     and event, the first parameter will contain the name and the
+      --     second the repository id.
       --
-      --     objref, native and abstract_interface don't have
-      --     any further parameters.
+      --     objref, native, abstract_interface, local_interface, component
+      --     and home don't have any further parameters.
       --
       --  3. For struct and except, the next parameters will
       --     be alternatively a type and a name. So the number of
@@ -447,7 +456,7 @@ package PolyORB.Any is
       --
       --  6. For alias, the third parameter is its content type
       --
-      --  7. For value, the third parameter will be a type
+      --  7. For value and event, the third parameter will be a type
       --     modifier and the fourth one a concrete base type. The next
       --     parameters will be alternatively a visibility, a type and
       --     a name. So the number of parameters will be
@@ -536,6 +545,14 @@ package PolyORB.Any is
         := (Tk_Native, null, False, False);
       PTC_Abstract_Interface : constant Object
         := (Tk_Abstract_Interface, null, False, False);
+      PTC_Local_Interface    : constant Object
+        := (Tk_Local_Interface, null, False, False);
+      PTC_Component          : constant Object
+        := (Tk_Component, null, False, False);
+      PTC_Home               : constant Object
+        := (Tk_Home, null, False, False);
+      PTC_Event              : constant Object
+        := (Tk_Event, null, False, False);
 
    end TypeCode;
 

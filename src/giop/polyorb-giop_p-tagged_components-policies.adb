@@ -43,7 +43,7 @@ with PolyORB.Utils.Strings;
 package body PolyORB.GIOP_P.Tagged_Components.Policies is
 
    use Ada.Streams;
-   use PolyORB.Representations.CDR;
+   use PolyORB.Representations.CDR.Common;
 
    package Sub_Component_Allocator_Lists is
       new PolyORB.Utils.Chained_Lists (Fetch_Sub_Component_Func_Access);

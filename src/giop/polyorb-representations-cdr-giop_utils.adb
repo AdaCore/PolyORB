@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                P O L Y O R B . U T I L S . S O C K E T S                 --
+--                 POLYORB.REPRESENTATIONS.CDR.GIOP_UTILS                   --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
+--            Copyright (C) 2004 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,80 +33,80 @@
 
 --  $Id$
 
-with PolyORB.Types;
-with PolyORB.Representations.CDR.Common;
+with PolyORB.Log;
 
-package body PolyORB.Utils.Sockets is
+package body PolyORB.Representations.CDR.GIOP_Utils is
 
-   use PolyORB.Buffers;
-   use PolyORB.Sockets;
-   use PolyORB.Representations.CDR.Common;
+   use PolyORB.Log;
 
-   --------------------
-   -- String_To_Addr --
-   --------------------
+   package L is
+     new PolyORB.Log.Facility_Log ("polyorb.representations.cdr.giop_utils");
+   procedure O (Message : in String; Level : Log_Level := Debug)
+     renames L.Output;
 
-   function String_To_Addr
-     (Str : Types.String)
-     return Inet_Addr_Type
+   --------------
+   -- Marshall --
+   --------------
+
+   procedure Marshall
+     (Buffer         : access Buffers.Buffer_Type;
+      Representation : in     CDR_Representation'Class;
+      Data           : in     PolyORB.Any.NamedValue)
    is
-      use PolyORB.Types;
-      use PolyORB.Sockets;
+      use PolyORB.Exceptions;
 
-      Addr_Image : constant String := To_Standard_String (Str);
-      Hostname_Seen : Boolean := False;
+      Error : Exceptions.Error_Container;
+
    begin
-      for J in Addr_Image'Range loop
-         if Addr_Image (J) not in '0' .. '9'
-           and then Addr_Image (J) /= '.'
-         then
-            Hostname_Seen := True;
-            exit;
-         end if;
-      end loop;
+      pragma Debug (O ("Marshall (NamedValue) : enter"));
+      Marshall_From_Any (Representation, Buffer, Data.Argument, Error);
 
-      if Hostname_Seen then
-         return Addresses (Get_Host_By_Name (Addr_Image), 1);
-      else
-         return Inet_Addr (Addr_Image);
+      if Found (Error) then
+         Catch (Error);
+         raise Program_Error;
+         --  XXX We cannot silentely ignore any error. For now, we
+         --  raise this exception. To be investigated.
       end if;
-   end String_To_Addr;
 
-   ---------------------
-   -- Marshall_Socket --
-   ---------------------
+      pragma Debug (O ("Marshall (NamedValue) : end"));
+   end Marshall;
 
-   procedure Marshall_Socket
-     (Buffer : access Buffer_Type;
-      Sock   : in     Sock_Addr_Type)
+   ----------------
+   -- Unmarshall --
+   ----------------
+
+   function Unmarshall
+     (Buffer         : access Buffers.Buffer_Type;
+      Representation : in     CDR_Representation'Class)
+      return PolyORB.Any.NamedValue
    is
-      Str : constant Types.String :=
-        PolyORB.Types.To_PolyORB_String (Image (Sock.Addr));
+      use PolyORB.Exceptions;
+
+      NV  :  PolyORB.Any.NamedValue;
+      pragma Warnings (Off, NV);
+      --  Default initialization
+
+      Error : Exceptions.Error_Container;
+
    begin
+      pragma Debug (O ("Unmarshall (NamedValue) : enter"));
+      pragma Debug (O ("Unmarshall (NamedValue) : is_empty := "
+                       & Boolean'Image (PolyORB.Any.Is_Empty
+                                        (NV.Argument))));
+      Unmarshall_To_Any (Representation, Buffer, NV.Argument, Error);
 
-      --  Marshalling the host name as a string
+      if Found (Error) then
+         Catch (Error);
+         raise Program_Error;
+         --  XXX We cannot silentely ignore any error. For now, we
+         --  raise this exception. To be investigated.
+      end if;
 
-      Marshall_Latin_1_String (Buffer, Str);
+      pragma Debug (O ("Unmarshall (NamedValue) : is_empty := "
+                       & Boolean'Image (PolyORB.Any.Is_Empty
+                                        (NV.Argument))));
+      pragma Debug (O ("Unmarshall (NamedValue) : end"));
+      return NV;
+   end Unmarshall;
 
-      --  Marshalling the port
-
-      Marshall (Buffer, Types.Unsigned_Short (Sock.Port));
-
-   end Marshall_Socket;
-
-   -----------------------
-   -- Unmarshall_Socket --
-   -----------------------
-
-   procedure Unmarshall_Socket
-    (Buffer : access Buffer_Type;
-     Sock   :    out Sock_Addr_Type)
-   is
-      Addr_Image : constant Types.String := Unmarshall_Latin_1_String (Buffer);
-      Port : constant Types.Unsigned_Short := Unmarshall (Buffer);
-   begin
-      Sock.Addr := String_To_Addr (Addr_Image);
-      Sock.Port := Port_Type (Port);
-   end Unmarshall_Socket;
-
-end PolyORB.Utils.Sockets;
+end PolyORB.Representations.CDR.GIOP_Utils;

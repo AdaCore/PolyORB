@@ -696,6 +696,14 @@ src/giop/polyorb-protocols-giop-giop_1_2.adb
 src/giop/polyorb-protocols-giop-giop_1_2.ads
 src/giop/polyorb-protocols-giop.adb
 src/giop/polyorb-protocols-giop.ads
+src/giop/polyorb-representations-cdr-giop_1_0.adb
+src/giop/polyorb-representations-cdr-giop_1_0.ads
+src/giop/polyorb-representations-cdr-giop_1_1.adb
+src/giop/polyorb-representations-cdr-giop_1_1.ads
+src/giop/polyorb-representations-cdr-giop_1_2.adb
+src/giop/polyorb-representations-cdr-giop_1_2.ads
+src/giop/polyorb-representations-cdr-giop_utils.adb
+src/giop/polyorb-representations-cdr-giop_utils.ads
 src/moma/Makefile.am
 src/moma/Makefile.in
 src/moma/moma-configuration-server.adb
@@ -922,6 +930,8 @@ src/polyorb-references-uri.adb
 src/polyorb-references-uri.ads
 src/polyorb-references.adb
 src/polyorb-references.ads
+src/polyorb-representations-cdr-common.adb
+src/polyorb-representations-cdr-common.ads
 src/polyorb-representations-cdr.adb
 src/polyorb-representations-cdr.ads
 src/polyorb-representations-test.adb

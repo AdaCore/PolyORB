@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---             P O L Y O R B . F I L T E R S . F R A G M E N T E R          --
+--           P O L Y O R B . F I L T E R S . F R A G M E N T E R            --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -35,10 +35,12 @@
 --  Fragment data which comes from endpoint whithout read length control
 --  For example UDP sockets
 
+--  $Id$
+
 with PolyORB.Filters.Interface;
 with PolyORB.Log;
 with PolyORB.Types;
-with PolyORB.Representations.CDR;
+with PolyORB.Representations.CDR.Common;
 
 package body PolyORB.Filters.Fragmenter is
 
@@ -89,7 +91,7 @@ package body PolyORB.Filters.Fragmenter is
       To   : access Buffer_Type;
       Len  :        Ada.Streams.Stream_Element_Count)
    is
-      use PolyORB.Representations.CDR;
+      use PolyORB.Representations.CDR.Common;
       K : constant Stream_Element_Offset := CDR_Position (To);
       Temp : Types.Octet;
    begin

@@ -199,18 +199,20 @@ package PolyORB.Representations.SRP is
       Data   : in PolyORB.Any.TypeCode.Object);
 
    procedure Marshall_From_Any
-     (R      : Rep_SRP;
+     (R      : in     Rep_SRP;
       Buffer : access Buffers.Buffer_Type;
-      Data   : Any.Any);
+      Data   : in     Any.Any;
+      Error  : in out Exceptions.Error_Container);
 
    procedure Marshall_From_Any
      (Buffer : access Buffer_Type;
       Data   : PolyORB.Any.Any);
 
    procedure Unmarshall_To_Any
-     (R      : Rep_SRP;
+     (R      : in     Rep_SRP;
       Buffer : access Buffers.Buffer_Type;
-      Data   : in out Any.Any);
+      Data   : in out Any.Any;
+      Error  : in out Exceptions.Error_Container);
 
    procedure Unmarshall_To_Any
      (Buffer : access Buffer_Type;
@@ -242,7 +244,7 @@ package PolyORB.Representations.SRP is
    --  Unmarshall a string terminated by a CR/LF sequence.
 
    function Unmarshall_To_Any
-     (R      : Rep_SRP;
+     (R      : in     Rep_SRP;
       Buffer : access Buffers.Buffer_Type) return Any.Any;
 
    --  Temporary procedure. Should be replaces by Marshall_From_Any when

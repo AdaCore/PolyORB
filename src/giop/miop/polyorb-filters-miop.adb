@@ -34,13 +34,13 @@
 --  MIOP stack headers function
 
 with PolyORB.Log;
-with PolyORB.Representations.CDR;
+with PolyORB.Representations.CDR.Common;
 
 package body PolyORB.Filters.MIOP is
 
    use PolyORB.Buffers;
    use PolyORB.Log;
-   use PolyORB.Representations.CDR;
+   use PolyORB.Representations.CDR.Common;
 
    package L is new PolyORB.Log.Facility_Log
      ("polyorb.filters.miop");
@@ -88,7 +88,7 @@ package body PolyORB.Filters.MIOP is
       Marshall (Buffer, Header.Packet_Total);
 
       --  Unique_Id
-      Marshall (Buffer, Header.Unique_Id);
+      Marshall (Buffer, Types.Identifier (Header.Unique_Id));
 
       --  Final padding
       Pad_Align (Buffer, 8);
@@ -207,11 +207,12 @@ package body PolyORB.Filters.MIOP is
 
       for J in Equiv'Range loop
          Equiv (J) := Character'Val
-           (PolyORB.Types.Char'Pos (Unmarshall (Buffer)));
+           (PolyORB.Types.Char'Pos (Unmarshall_Latin_1_Char (Buffer)));
       end loop;
 
       --  A 0 must end the string
-      if Character'Val (PolyORB.Types.Char'Pos (Unmarshall (Buffer)))
+      if Character'Val
+           (PolyORB.Types.Char'Pos (Unmarshall_Latin_1_Char (Buffer)))
         /= ASCII.Nul
       then
          raise Constraint_Error;

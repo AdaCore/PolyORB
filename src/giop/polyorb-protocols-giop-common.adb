@@ -37,7 +37,7 @@ with PolyORB.Exceptions;
 with PolyORB.GIOP_P.Exceptions;
 with PolyORB.Log;
 with PolyORB.References.IOR;
-with PolyORB.Representations.CDR;
+with PolyORB.Representations.CDR.Common;
 with PolyORB.Servants.Interface;
 with PolyORB.Smart_Pointers;
 
@@ -46,6 +46,7 @@ package body PolyORB.Protocols.GIOP.Common is
    use PolyORB.Buffers;
    use PolyORB.Log;
    use PolyORB.Representations.CDR;
+   use PolyORB.Representations.CDR.Common;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.protocols.giop.common");
    procedure O (Message : in String; Level : Log_Level := Debug)
@@ -144,7 +145,6 @@ package body PolyORB.Protocols.GIOP.Common is
       use PolyORB.Buffers;
       use PolyORB.Components;
       use PolyORB.Exceptions;
-      use PolyORB.Representations.CDR;
       use PolyORB.Types;
       use type PolyORB.Any.TypeCode.Object;
 
@@ -158,6 +158,7 @@ package body PolyORB.Protocols.GIOP.Common is
       CORBA_Occurence : PolyORB.Any.Any;
       Data_Alignment  : Stream_Element_Offset :=
         Sess.Implem.Data_Alignment;
+      Error           : Exceptions.Error_Container;
 
    begin
       pragma Assert ((Sess.Implem.Version = GIOP_Version'(1, 0)) or
@@ -228,7 +229,18 @@ package body PolyORB.Protocols.GIOP.Common is
             Marshall (Buffer_Out,
                       Any.TypeCode.Id
                       (Any.Get_Type (CORBA_Occurence)));
-            Marshall_From_Any (Buffer_Out, CORBA_Occurence);
+            Marshall_From_Any
+              (Sess.Repr.all,
+               Buffer_Out,
+               CORBA_Occurence,
+               Error);
+
+            if Found (Error) then
+               Catch (Error);
+               raise Program_Error;
+               --  XXX We cannot silentely ignore any error. For now, we
+               --  raise this exception. To be investigated.
+            end if;
 
          when No_Exception =>
             if TypeCode.Kind (Get_Type (Request.Result.Argument)) /=
@@ -237,11 +249,23 @@ package body PolyORB.Protocols.GIOP.Common is
                Data_Alignment := 1;
             end if;
 
-            Marshall_From_Any (Buffer_Out, Request.Result.Argument);
+            Marshall_From_Any
+              (Sess.Repr.all,
+               Buffer_Out,
+               Request.Result.Argument,
+               Error);
+
+            if Found (Error) then
+               Catch (Error);
+               raise Program_Error;
+               --  XXX We cannot silentely ignore any error. For now, we
+               --  raise this exception. To be investigated.
+            end if;
 
             Marshall_Argument_List
               (Sess.Implem,
                Buffer_Out,
+               Sess.Repr.all,
                Request.Args,
                PolyORB.Any.ARG_OUT,
                Data_Alignment);
@@ -463,8 +487,9 @@ package body PolyORB.Protocols.GIOP.Common is
       Reply_Status : in     Reply_Status_Type)
    is
       use PolyORB.Any;
-      use PolyORB.ORB;
       use PolyORB.Components;
+      use PolyORB.Exceptions;
+      use PolyORB.ORB;
 
       Current_Req  : Pending_Request;
       Success      : Boolean;
@@ -472,6 +497,7 @@ package body PolyORB.Protocols.GIOP.Common is
       ORB          : constant ORB_Access := ORB_Access (Sess.Server);
       Arguments_Alignment : Buffers.Alignment_Type
         := Sess.Implem.Data_Alignment;
+      Error        : Exceptions.Error_Container;
    begin
       pragma Assert ((Sess.Implem.Version = GIOP_Version'(1, 0)) or
                      (Sess.Implem.Version = GIOP_Version'(1, 1)) or
@@ -501,11 +527,21 @@ package body PolyORB.Protocols.GIOP.Common is
             end if;
 
             Unmarshall_To_Any
-              (Sess.Buffer_In, Current_Req.Req.Result.Argument);
+              (Sess.Repr.all,
+               Sess.Buffer_In,
+               Current_Req.Req.Result.Argument,
+               Error);
+
+            if Found (Error) then
+               Catch (Error);
+               raise Program_Error;
+               --  XXX We cannot silentely ignore any error. For now, we
+               --  raise this exception. To be investigated.
+            end if;
 
             Unmarshall_Argument_List
-              (Sess.Implem, Sess.Buffer_In, Current_Req.Req.Args,
-               PolyORB.Any.ARG_OUT, Arguments_Alignment);
+              (Sess.Implem, Sess.Buffer_In, Sess.Repr.all,
+               Current_Req.Req.Args, PolyORB.Any.ARG_OUT, Arguments_Alignment);
 
             Emit_No_Reply
               (Current_Req.Req.Requesting_Component,
@@ -516,7 +552,7 @@ package body PolyORB.Protocols.GIOP.Common is
             Align_Position (Sess.Buffer_In, Sess.Implem.Data_Alignment);
 
             Unmarshall_System_Exception_To_Any
-              (Sess.Buffer_In, Current_Req.Req.Exception_Info);
+              (Sess.Buffer_In, Sess.Repr.all, Current_Req.Req.Exception_Info);
             Emit_No_Reply
               (Component_Access (ORB),
                Servants.Interface.Executed_Request'
@@ -526,13 +562,12 @@ package body PolyORB.Protocols.GIOP.Common is
             Align_Position (Sess.Buffer_In, Sess.Implem.Data_Alignment);
             declare
                use PolyORB.Types;
-               use PolyORB.Exceptions;
 
-               RepositoryId : constant PolyORB.Types.String
+               RepositoryId : constant PolyORB.Types.RepositoryId
                  := Unmarshall (Sess.Buffer_In);
                Except_Index : constant PolyORB.Types.Unsigned_Long
                  := Any.ExceptionList.Search_Exception_Id
-                 (Current_Req.Req.Exc_List, RepositoryId);
+                 (Current_Req.Req.Exc_List, Types.String (RepositoryId));
             begin
                pragma Debug (O ("Exception repository ID:"
                                 & To_Standard_String (RepositoryId)));
@@ -579,7 +614,7 @@ package body PolyORB.Protocols.GIOP.Common is
                                     (Exception_Name
                                      (Slash .. Exception_Name'Last))));
                      TypeCode.Add_Parameter
-                       (TC, To_Any (RepositoryId));
+                       (TC, To_Any (Types.String (RepositoryId)));
                      Current_Req.Req.Exception_Info
                        := PolyORB.Any.Get_Empty_Any_Aggregate (TC);
                   end;
@@ -589,8 +624,18 @@ package body PolyORB.Protocols.GIOP.Common is
                     (Any.ExceptionList.Item
                      (Current_Req.Req.Exc_List, Except_Index));
                   Unmarshall_To_Any
-                    (Sess.Buffer_In,
-                     Current_Req.Req.Exception_Info);
+                    (Sess.Repr.all,
+                     Sess.Buffer_In,
+                     Current_Req.Req.Exception_Info,
+                     Error);
+
+                  if Found (Error) then
+                     Catch (Error);
+                     raise Program_Error;
+                     --  XXX We cannot silentely ignore any error. For now, we
+                     --  raise this exception. To be investigated.
+                  end if;
+
                   pragma Debug
                     (O ("Exception: "
                         & Any.Image (Current_Req.Req.Exception_Info)));

@@ -94,6 +94,7 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-references-corbaloc.ads \
 		polyorb-references-uri.ads \
 		polyorb-representations-cdr.ads \
+		polyorb-representations-cdr-common.ads \
 		polyorb-representations-test.ads \
 		polyorb-request_scheduler.ads \
 		polyorb-request_scheduler-servant_lane.ads \

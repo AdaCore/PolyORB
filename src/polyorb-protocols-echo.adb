@@ -69,7 +69,7 @@ package body PolyORB.Protocols.Echo is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-   Rep : constant Rep_Test_Access := new Rep_Test;
+   Rep : Rep_Test;
 
    procedure Create
      (Proto   : access Echo_Protocol;

@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---              P O L Y O R B . R E P R E S E N T A T I O N S               --
+--                  POLYORB.REPRESENTATIONS.CDR.GIOP_1_1                    --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--            Copyright (C) 2004 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,40 +31,78 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Data representation methods.
-
---  A Representation is a method for transforming an arbitrary piece
---  of data (in the form of an 'Any' object) into a sequence of
---  Stream_Elements, and back.
+--  Support package for CDR representation of char and strings for GIOP 1.1
 
 --  $Id$
 
-with PolyORB.Any;
-with PolyORB.Buffers;
-with PolyORB.Exceptions;
+with PolyORB.Representations.CDR.GIOP_1_0;
 
-package PolyORB.Representations is
+package PolyORB.Representations.CDR.GIOP_1_1 is
 
-   type Representation is abstract tagged limited private;
+   pragma Elaborate_Body;
 
-   type Representation_Access is access all Representation;
+   type GIOP_1_1_CDR_Representation is
+      new GIOP_1_0.GIOP_1_0_CDR_Representation with null record;
 
-   procedure Marshall_From_Any
-     (R      : in     Representation;
+   type GIOP_1_1_CDR_Representation_Access is
+      access all GIOP_1_1_CDR_Representation;
+
+   --  XXX Encapsulation is also GIOP version dependent.
+
+   --  'char' type
+
+   procedure Marshall
+     (R      : in     GIOP_1_1_CDR_Representation;
       Buffer : access Buffers.Buffer_Type;
-      Data   : in     Any.Any;
-      Error  : in out Exceptions.Error_Container)
-     is abstract;
+      Data   : in     PolyORB.Types.Char;
+      Error  : in out Exceptions.Error_Container);
 
-   procedure Unmarshall_To_Any
-     (R      : in     Representation;
+   procedure Unmarshall
+     (R      : in     GIOP_1_1_CDR_Representation;
       Buffer : access Buffers.Buffer_Type;
-      Data   : in out Any.Any;
-      Error  : in out Exceptions.Error_Container)
-     is abstract;
+      Data   :    out PolyORB.Types.Char;
+      Error  : in out Exceptions.Error_Container);
 
-private
+   --  'wchar' type
 
-   type Representation is abstract tagged limited null record;
+   procedure Marshall
+     (R      : in     GIOP_1_1_CDR_Representation;
+      Buffer : access Buffers.Buffer_Type;
+      Data   : in     PolyORB.Types.Wchar;
+      Error  : in out Exceptions.Error_Container);
 
-end PolyORB.Representations;
+   procedure Unmarshall
+     (R      : in     GIOP_1_1_CDR_Representation;
+      Buffer : access Buffers.Buffer_Type;
+      Data   :    out PolyORB.Types.Wchar;
+      Error  : in out Exceptions.Error_Container);
+
+   --  'string' type
+
+   procedure Marshall
+     (R      : in     GIOP_1_1_CDR_Representation;
+      Buffer : access Buffers.Buffer_Type;
+      Data   : in     PolyORB.Types.String;
+      Error  : in out Exceptions.Error_Container);
+
+   procedure Unmarshall
+     (R      : in     GIOP_1_1_CDR_Representation;
+      Buffer : access Buffers.Buffer_Type;
+      Data   :    out PolyORB.Types.String;
+      Error  : in out Exceptions.Error_Container);
+
+   --  'wstring' type
+
+   procedure Marshall
+     (R      : in     GIOP_1_1_CDR_Representation;
+      Buffer : access Buffers.Buffer_Type;
+      Data   : in     PolyORB.Types.Wide_String;
+      Error  : in out Exceptions.Error_Container);
+
+   procedure Unmarshall
+     (R      : in     GIOP_1_1_CDR_Representation;
+      Buffer : access Buffers.Buffer_Type;
+      Data   :    out PolyORB.Types.Wide_String;
+      Error  : in out Exceptions.Error_Container);
+
+end PolyORB.Representations.CDR.GIOP_1_1;
