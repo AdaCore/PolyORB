@@ -145,17 +145,29 @@ package body Disp is
 
          when K_Boxed_ValueType =>
             Put_Line ("boxed valuetype " & Get_Name (N_Boxed_ValueType (N)));
+            Disp_Tree (N_Boxed_ValueType (N).Boxed_Type.all,
+                       N_Indent + Offset,
+                       Full);
 
          when K_State_Member =>
-            Put_Line ("statemember");
+            if N_State_Member (N).Is_Public then
+               Put ("public");
+            else
+               Put ("private");
+            end if;
+            Put_Line (" statemember");
+            Disp_Tree (N_State_Member (N).State_Type.all,
+                       N_Indent + Offset,
+                       Full);
+            Disp_Tree (N_State_Member (N).State_Declarators.all,
+                       N_Indent + Offset,
+                       Full);
+
 
          when K_Initializer =>
             Put_Line ("initializer");
 
 
---            Disp_Tree (N_Boxed_ValueType (N).Boxed_Type.all,
---                       N_Indent + Offset,
---                       Full);
 
 --          when K_Operation =>
 --             declare
@@ -245,20 +257,20 @@ package body Disp is
 --                Disp_Tree (N_String (N).Bound.all, N_Indent, Full);
 --             end if;
 
---          when K_Param =>
---             Put ("param ");
---             case N_Param (N).Mode is
---                when Mode_In =>
---                   Put ("in");
---                when Mode_Out =>
---                   Put ("out");
---                when Mode_Inout =>
---                   Put ("inout");
---             end case;
---             Put (' ');
---             Put_Line (Get_Name (N_Param (N)));
---             Disp_Indent (N_Indent, "type:");
---             Disp_Tree (N_Param (N).P_Type.all, N_Indent + Offset, False);
+         when K_Param =>
+            Put ("param ");
+            case N_Param (N).Mode is
+               when Mode_In =>
+                  Put ("in");
+               when Mode_Out =>
+                  Put ("out");
+               when Mode_Inout =>
+                  Put ("inout");
+            end case;
+            Put (' ');
+            Put_Line (Get_Name (N_Param (N)));
+            Disp_Indent (N_Indent, "type:");
+            Disp_Tree (N_Param (N).Param_Type.all, N_Indent + Offset, False);
 
          when K_Exception =>
             Put ("exception ");
@@ -275,13 +287,13 @@ package body Disp is
 --             Disp_Indent (N_Indent, "type:");
 --             Disp_Tree (N_Member (N).M_Type.all, N_Indent + Offset, Full);
 
---          when K_Declarator =>
---             Put_Line ("declarator " & Get_Name (N_Declarator (N)));
---             if N_Declarator (N).Array_Bounds /= Nil_List then
---                Disp_Indent (N_Indent, "fixed_array:");
---                Disp_List (N_Declarator (N).Array_Bounds,
---                           N_Indent + Offset, True);
---             end if;
+         when K_Declarator =>
+            Put_Line ("declarator " & Get_Name (N_Declarator (N)));
+            if N_Declarator (N).Array_Bounds /= Nil_List then
+               Disp_Indent (N_Indent, "fixed_array:");
+               Disp_List (N_Declarator (N).Array_Bounds,
+                          N_Indent + Offset, True);
+            end if;
 
 --          when K_Union =>
 --             Put_Line ("union " & Get_Name (N_Union (N)));

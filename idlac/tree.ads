@@ -139,14 +139,22 @@ package Tree is
    type N_Boxed_ValueType_Acc is access all N_Boxed_ValueType;
    function Get_Kind (N : N_Boxed_ValueType) return Node_Kind;
 
+   type N_Declarator is new N_Named with record
+      Array_Bounds : Node_List;
+   end record;
+   type N_Declarator_Acc is access all N_Declarator;
+   function Get_Kind (N : N_Declarator) return Node_Kind;
+
    type N_State_Member is new N_Root with record
-      null;
+      State_Type : N_Root_Acc;
+      State_Declarators : N_Declarator_Acc;
+      Is_Public : Boolean;
    end record;
    type N_State_Member_Acc is access all N_State_Member;
    function Get_Kind (N : N_State_Member) return Node_Kind;
 
-   type N_Initializer is new N_Named with record
-      null;
+   type N_Initializer is new N_Scope with record
+      Param_Decls : Node_List;
    end record;
    type N_Initializer_Acc is access all N_Initializer;
    function Get_Kind (N : N_Initializer) return Node_Kind;
@@ -253,13 +261,13 @@ package Tree is
 --    type N_String_Acc is access all N_String;
 --    function Get_Kind (N : N_String) return Node_Kind;
 
---    type Param_Mode is (Mode_In, Mode_Out, Mode_Inout);
---    type N_Param is new N_Named with record
---       Mode : Param_Mode;
---       P_Type : N_Root_Acc;
---    end record;
---    type N_Param_Acc is access all N_Param;
---    function Get_Kind (N : N_Param) return Node_Kind;
+   type Param_Mode is (Mode_In, Mode_Out, Mode_Inout);
+   type N_Param is new N_Named with record
+      Mode : Param_Mode;
+      Param_Type : N_Root_Acc;
+   end record;
+   type N_Param_Acc is access all N_Param;
+   function Get_Kind (N : N_Param) return Node_Kind;
 
    type N_Exception is new N_Named with record
       Members : Node_List;
@@ -273,12 +281,6 @@ package Tree is
 --    end record;
 --    type N_Member_Acc is access all N_Member;
 --    function Get_Kind (N : N_Member) return Node_Kind;
-
---    type N_Declarator is new N_Named with record
---       Array_Bounds : Node_List;
---    end record;
---    type N_Declarator_Acc is access all N_Declarator;
---    function Get_Kind (N : N_Declarator) return Node_Kind;
 
 --    type N_Native is new N_Root with record
 --       Decl : N_Declarator_Acc;

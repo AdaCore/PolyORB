@@ -403,8 +403,6 @@ package body Parse is
                            Get_Token_Location);
                      end;
                   end if;
-                  --  create a new scope
-                  Push_Scope (Result);
                   --  consume the T_Left_Cbracket token
                   Next_Token;
                   --  parse the module body
@@ -413,6 +411,7 @@ package body Parse is
                      Definition : N_Root_Acc;
                      Definition_Result : Boolean;
                   begin
+                     Push_Scope (Result);
                      while Get_Token /= T_Right_Cbracket loop
                         --  try to parse a definition
                         Parse_Definition (Definition, Definition_Result);
@@ -425,11 +424,11 @@ package body Parse is
                            Go_To_Next_Definition;
                         end if;
                      end loop;
+                     Pop_Scope;
                      --  consume the T_Right_Cbracket token
                      Next_Token;
                   end;
                   --  end of the module body parsing
-                  Pop_Scope;
                   Success := True;
                when others =>
                   declare
@@ -701,11 +700,11 @@ package body Parse is
       --  Create a scope for the interface.
       Push_Scope (Result);
       Parse_Interface_Body (Result.Contents);
+      Pop_Scope;
       --  consume the right bracket at the end of the interface body
       --  verification of the presence of this bracket was done
       --  in Parse_Interface_Body
       Next_Token;
-      Pop_Scope;
       Success := True;
       return;
    end Parse_Interface_Dcl_End;
@@ -1062,6 +1061,7 @@ package body Parse is
          return;
       end if;
       Next_Token;
+      Push_Scope (Result);
       while Get_Token /= T_Right_Cbracket loop
          declare
             Element_Success : Boolean;
@@ -1081,6 +1081,7 @@ package body Parse is
             end if;
          end;
       end loop;
+      Pop_Scope;
       --  consumes the right Cbracket
       Next_Token;
       Success := True;
@@ -1540,8 +1541,38 @@ package body Parse is
    procedure Parse_State_Member (Result : out N_State_Member_Acc;
                                  Success : out Boolean) is
    begin
-      Result := null;
-      Success := False;
+      Result := new N_State_Member;
+      Set_Location (Result.all, Get_Token_Location);
+      case Get_Token is
+         when T_Public =>
+            Result.Is_Public := True;
+         when T_Private =>
+            Result.Is_Public := False;
+         when others =>
+            raise Errors.Internal_Error;
+      end case;
+      Next_Token;
+      Parse_Type_Spec (Result.State_Type, Success);
+      if not Success then
+         Go_To_End_Of_State_Member;
+         return;
+      end if;
+      Parse_Declarators (Result.State_Declarators,
+                         Success);
+      if not Success then
+         Go_To_End_Of_State_Member;
+         return;
+      end if;
+      if Get_Token /= T_Semi_Colon then
+         Errors.Parser_Error ("missing ';' at the end of the state " &
+                              "declaration.",
+                              Errors.Error,
+                              Get_Token_Location);
+         Success := False;
+      else
+         Next_Token;
+      end if;
+      return;
    end Parse_State_Member;
 
    ----------------------
@@ -1549,10 +1580,199 @@ package body Parse is
    ----------------------
    procedure Parse_Init_Dcl (Result : out N_Initializer_Acc;
                              Success : out Boolean) is
+      Definition : Identifier_Definition_Acc;
    begin
-      Result := null;
-      Success := False;
+      if View_Next_Token /= T_Identifier then
+         declare
+            Loc : Errors.Location;
+         begin
+            Loc := Get_Token_Location;
+            Loc.Col := Loc.Col + 8;
+            Errors.Parser_Error ("Identifier expected after keyword " &
+                                 Ada.Characters.Latin_1.Quotation &
+                                 "factory" &
+                                 Ada.Characters.Latin_1.Quotation &
+                                 ".",
+                                 Errors.Error,
+                                 Loc);
+         end;
+         Success := False;
+         return;
+      end if;
+      Result := new N_Initializer;
+      Set_Location (Result.all, Get_Token_Location);
+      --  consume T_Factory
+      Next_Token;
+      --  try to find a previous definition
+      Definition := Find_Identifier_Definition (Get_Token_String);
+      --  Is there a previous definition and in the same scope ?
+      if Definition /= null
+        and then Definition.Parent_Scope = Get_Current_Scope then
+         Errors.Parser_Error
+           ("The identifier used for this initializer is already "
+            & "defined in the same scope : " &
+            Errors.Display_Location (Get_Location (Definition.Node.all)),
+            Errors.Error,
+            Get_Token_Location);
+      else
+         --  no previous definition
+         if not Add_Identifier (Result,
+                                Get_Token_String) then
+            raise Errors.Internal_Error;
+         end if;
+      end if;
+      Next_Token;
+      if Get_Token /= T_Left_Paren then
+         declare
+            Loc : Errors.Location;
+         begin
+            Loc := Get_Previous_Token_Location;
+            Loc.Col := Loc.Col + Get_Previous_Token_String'Length;
+            Errors.Parser_Error ("missing '(' in initializer declaration.",
+                                 Errors.Error,
+                                 Loc);
+         end;
+         Success := False;
+         return;
+      end if;
+      Next_Token;
+      if Get_Token /= T_Right_Paren then
+         --  there is some parameters
+         declare
+            Decls_Success : Boolean;
+         begin
+            Push_Scope (Result);
+            Parse_Init_Param_Decls (Result.Param_Decls, Decls_Success);
+            Pop_Scope;
+            if not Decls_Success then
+               Go_To_Next_Right_Paren;
+            else
+               if Get_Token /= T_Right_Paren then
+                  Errors.Parser_Error ("missing ')' at the end of " &
+                                       "initializer declaration.",
+                                       Errors.Error,
+                                       Get_Token_Location);
+                  Success := False;
+                  return;
+               end if;
+            end if;
+         end;
+      end if;
+      --  consumes the T_Right_Parenthesis
+      Next_Token;
+      if Get_Token /= T_Semi_Colon then
+         Errors.Parser_Error ("missing ';' at the end of initializer " &
+                              "declaration.",
+                              Errors.Error,
+                              Get_Token_Location);
+         Success := False;
+         return;
+      end if;
+      Next_Token;
+      Success := True;
+      return;
    end Parse_Init_Dcl;
+
+   ------------------------
+   --  Parse_Init_Decls  --
+   ------------------------
+   procedure Parse_Init_Param_Decls (Result : out Node_List;
+                                     Success : out Boolean) is
+   begin
+      Result := Nil_List;
+      declare
+         Decl : N_Param_Acc;
+         Decl_Success : Boolean;
+      begin
+         Parse_Init_Param_Decl (Decl, Decl_Success);
+         if Decl_Success then
+            Append_Node (Result, N_Root_Acc (Decl));
+         else
+            Success := False;
+            return;
+         end if;
+      end;
+      while Get_Token = T_Comma loop
+         Next_Token;
+         declare
+            Decl : N_Param_Acc;
+            Decl_Success : Boolean;
+         begin
+            Parse_Init_Param_Decl (Decl, Decl_Success);
+            if Decl_Success then
+               Append_Node (Result, N_Root_Acc (Decl));
+            else
+               Success := False;
+               return;
+            end if;
+         end;
+      end loop;
+      Success := True;
+      return;
+   end Parse_Init_Param_Decls;
+
+   -----------------------
+   --  Parse_Init_Decl  --
+   -----------------------
+   procedure Parse_Init_Param_Decl (Result : out N_Param_Acc;
+                                    Success : out Boolean) is
+   begin
+      case Get_Token is
+         when T_In =>
+            Next_Token;
+         when T_Out
+           | T_Inout =>
+            Errors.Parser_Error ("an initializer parameter can only be " &
+                                 "in mode " &
+                                 Ada.Characters.Latin_1.Quotation &
+                                 "in" &
+                                 Ada.Characters.Latin_1.Quotation &
+                                 ".",
+                                 Errors.Error,
+                                 Get_Token_Location);
+            Next_Token;
+         when T_Float
+           | T_Double
+           | T_Long
+           | T_Short
+           | T_Unsigned
+           | T_Char
+           | T_Wchar
+           | T_Boolean
+           | T_Octet
+           | T_Any
+           | T_Object
+           | T_ValueBase
+           | T_String
+           | T_Wstring
+           | T_Identifier
+           | T_Colon_Colon =>
+            Errors.Parser_Error ("an initializer parameter should begin " &
+                                 "with keyword " &
+                                 Ada.Characters.Latin_1.Quotation &
+                                 "in" &
+                                 Ada.Characters.Latin_1.Quotation &
+                                 ".",
+                                 Errors.Error,
+                                 Get_Token_Location);
+         when others =>
+            Errors.Parser_Error ("bad initializer parameter declaration.",
+                                 Errors.Error,
+                                 Get_Token_Location);
+            Success := False;
+            Result := null;
+            return;
+      end case;
+      Result := new N_Param;
+      Set_Location (Result.all, Get_Previous_Token_Location);
+      Result.Mode := Mode_In;
+      Parse_Param_Type_Spec (Result.Param_Type, Success);
+      if not Success then
+         return;
+      end if;
+      Parse_Simple_Declarator (Result, Success);
+      return;
+   end Parse_Init_Param_Decl;
 
    -----------------------
    --  Parse_Const_Dcl  --
@@ -1645,6 +1865,63 @@ package body Parse is
 --       end case;
    end  Parse_Type_Spec;
 
+   -------------------------
+   --  Parse_Declarators  --
+   -------------------------
+   procedure Parse_Declarators (Result : out N_Declarator_Acc;
+                               Success : out Boolean) is
+   begin
+      Result := null;
+      Success := False;
+--    procedure Parse_Declarators (List : in out Node_List) is
+--       El : N_Declarator_Acc;
+--    begin
+--       loop
+--          El := Parse_Declarator;
+--          Append_Node (List, N_Root_Acc (El));
+--          exit when Token /= T_Comma;
+--          Next_Token;
+--       end loop;
+   end Parse_Declarators;
+
+   -------------------------------
+   --  Parse_Simple_Declarator  --
+   -------------------------------
+   procedure Parse_Simple_Declarator (Result : in out N_Param_Acc;
+                                      Success : out Boolean) is
+      Definition : Identifier_Definition_Acc;
+   begin
+      if Get_Token /= T_Identifier then
+         Errors.Parser_Error ("Identifier expected in parameter " &
+                              "declaration.",
+                              Errors.Error,
+                              Get_Token_Location);
+         Success := False;
+         return;
+      else
+         --  try to find a previous definition
+         Definition := Find_Identifier_Definition (Get_Token_String);
+         --  Is there a previous definition and in the same scope ?
+         if Definition /= null
+           and then Definition.Parent_Scope = Get_Current_Scope then
+            Errors.Parser_Error
+              ("This identifier is already used in this parameters " &
+               "declaration : " &
+               Errors.Display_Location (Get_Location (Definition.Node.all)),
+               Errors.Error,
+               Get_Token_Location);
+         else
+            --  no previous definition
+            if not Add_Identifier (Result,
+                                   Get_Token_String) then
+               raise Errors.Internal_Error;
+            end if;
+         end if;
+      end if;
+      Success := True;
+      return;
+   end Parse_Simple_Declarator;
+
    ------------------------
    --  Parse_Except_Dcl  --
    ------------------------
@@ -1669,6 +1946,35 @@ package body Parse is
 --       Next_Token;
 --       return Res;
    end Parse_Except_Dcl;
+
+   -----------------------------
+   --  Parse_Param_Type_Spec  --
+   -----------------------------
+   procedure Parse_Param_Type_Spec (Result : out N_Root_Acc;
+                                    Success : out Boolean) is
+   begin
+      Result := null;
+      Success := False;
+--       case Token is
+--          when T_String =>
+--             return N_Root_Acc (Parse_String_Type);
+--          when T_Wstring =>
+--             return Parse_Wide_String_Type;
+--          when T_Fixed =>
+--             return Parse_Fixed_Pt_Type;
+--          when T_Colon_Colon | T_Identifier =>
+--             return N_Root_Acc (Parse_Scoped_Name);
+--          when T_Float | T_Double | T_Long | T_Short | T_Unsigned | T_Char
+--            | T_Wchar | T_Boolean | T_Octet | T_Any | T_Object =>
+--             return Parse_Base_Type_Spec;
+--          when others =>
+--             Errors.Parser_Error ("param type specifier expected",
+--                                   Errors.Error);
+--             raise Errors.Internal_Error;
+--       end case;
+   end Parse_Param_Type_Spec;
+
+
 
 
 --    --  FIXME: to add: rules 25, 26, 81, 82.
@@ -2228,33 +2534,6 @@ package body Parse is
 --       end case;
 --    end Parse_Base_Type_Spec;
 
---    --  Rule 80:
---    --  <param_type_spec> ::= <base_type_spec>
---    --                    |   <string_type>
---    --                    |   <wide_string_type>
---    --                    |   <fixed_pt_type>
---    --                    |   <scoped_name>
---    function Parse_Param_Type_Spec return N_Root_Acc is
---    begin
---       case Token is
---          when T_String =>
---             return N_Root_Acc (Parse_String_Type);
---          when T_Wstring =>
---             return Parse_Wide_String_Type;
---          when T_Fixed =>
---             return Parse_Fixed_Pt_Type;
---          when T_Colon_Colon | T_Identifier =>
---             return N_Root_Acc (Parse_Scoped_Name);
---          when T_Float | T_Double | T_Long | T_Short | T_Unsigned | T_Char
---            | T_Wchar | T_Boolean | T_Octet | T_Any | T_Object =>
---             return Parse_Base_Type_Spec;
---          when others =>
---             Errors.Parser_Error ("param type specifier expected",
---                                   Errors.Error);
---             raise Errors.Internal_Error;
---       end case;
---    end Parse_Param_Type_Spec;
-
 --    --  Rule 70:
 --    --  <attr_dcl> ::= [ "readonly" ] "attribute" <param_type_spec>
 --    --                 <simple_declarator> { "," <simple_declarator> }*
@@ -2375,19 +2654,6 @@ package body Parse is
 --       end loop;
 --       return Res;
 --    end Parse_Declarator;
-
---    --  Rule 34:
---    --  <declarators> ::= <declarator> { "," <declarator> }*
---    procedure Parse_Declarators (List : in out Node_List) is
---       El : N_Declarator_Acc;
---    begin
---       loop
---          El := Parse_Declarator;
---          Append_Node (List, N_Root_Acc (El));
---          exit when Token /= T_Comma;
---          Next_Token;
---       end loop;
---    end Parse_Declarators;
 
 --    --  Rule 55:
 --    --  <member_list> ::= <member>+
@@ -2678,7 +2944,26 @@ package body Parse is
       null;
    end Go_To_Next_Value_Element;
 
+   ---------------------------------
+   --  Go_To_End_Of_State_Member  --
+   ---------------------------------
+   procedure Go_To_End_Of_State_Member is
+   begin
+      while Get_Token /= T_Semi_Colon loop
+         Next_Token;
+      end loop;
+      Next_Token;
+   end Go_To_End_Of_State_Member;
 
+   ------------------------------------
+   --  Go_To_Next_Right_Parenthesis  --
+   ------------------------------------
+   procedure Go_To_Next_Right_Paren is
+   begin
+      while Get_Token /= T_Right_Paren loop
+         Next_Token;
+      end loop;
+   end Go_To_Next_Right_Paren;
 
    --
    --  INUTILE ?????

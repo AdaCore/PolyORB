@@ -219,10 +219,10 @@ package body Tree is
 --       return K_String;
 --    end Get_Kind;
 
---    function Get_Kind (N : N_Param) return Node_Kind is
---    begin
---       return K_Param;
---    end Get_Kind;
+   function Get_Kind (N : N_Param) return Node_Kind is
+   begin
+      return K_Param;
+   end Get_Kind;
 
    function Get_Kind (N : N_Exception) return Node_Kind is
    begin
@@ -234,10 +234,10 @@ package body Tree is
 --       return K_Member;
 --    end Get_Kind;
 
---    function Get_Kind (N : N_Declarator) return Node_Kind is
---    begin
---       return K_Declarator;
---    end Get_Kind;
+   function Get_Kind (N : N_Declarator) return Node_Kind is
+   begin
+      return K_Declarator;
+   end Get_Kind;
 
 --    function Get_Kind (N : N_Union) return Node_Kind is
 --    begin

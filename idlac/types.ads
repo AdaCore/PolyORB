@@ -61,10 +61,10 @@ package Types is
 --        K_Object,
 --        K_String,
 --        K_Native,
---        K_Param,
+       K_Param,
        K_Exception,
 --        K_Member,
---        K_Declarator,
+       K_Declarator,
 --        K_Type_Declarator,
        K_Const  --  ,
 --        K_Union,
@@ -132,10 +132,8 @@ package Types is
    ---------------------------------------------------
 
    --  Basic type for a named_node.
-   --  An identifier can be attached only to a named node.
-   --  Ie, the meaning of an identifier is a named node.
-   --  However, a named node can be anonymous.
-   --  FIXME : bizarre ce commentaire...
+   --  This is a node with a name, such as an identifier, a module,
+   --  an interface, a function...
    type N_Named is abstract new N_Root with private;
    type N_Named_Acc is access all N_Named'Class;
 

@@ -131,7 +131,6 @@ private
    --  <interface_header> ::= ["abstract"] "interface" <identifier>
    --                         [ <interface_inheritance_spec> ]
    --
-   --
    --  These rules are equivalent to
    --
    --  <interface> ::= ["abstract"] "interface" <identifier>
@@ -169,10 +168,10 @@ private
    procedure Parse_Interface_Dcl_End (Result : in out  N_Interface_Acc;
                                      Success : out Boolean);
 
-   --    --  Rule 11:
-   --    --  <scoped_name> ::= <identifier>
-   --    --                    | "::" <identifier>
-   --    --                    | <scoped_name> "::" <identifier>
+   --  Rule 12:
+   --  <scoped_name> ::= <identifier>
+   --                | "::" <identifier>
+   --                | <scoped_name> "::" <identifier>
    procedure Parse_Scoped_Name (Result : out N_Scoped_Name_Acc;
                                 Success : out Boolean);
 
@@ -300,8 +299,6 @@ private
    procedure Parse_Value_Element  (Result : out N_Root_Acc;
                                    Success : out Boolean);
 
-
-
    --  Rule 22
    --  <state_member> ::= ( "public" | "private" )
    --                     <type_spec> <declarators> ";"
@@ -316,13 +313,16 @@ private
 
    --  Rule 24
    --  <init_param_decls> ::= <init_param_decl> { "," <init_param_decl> }
+   procedure Parse_Init_Param_Decls (Result : out Node_List;
+                                     Success : out Boolean);
 
    --  Rule 25
    --  <init_param_decl> ::= <init_param_attribute> <param_type_spec>
    --                        <simple_declarator>
-
    --  Rule 26
    --  <init_param_attribute> ::= "in"
+   procedure Parse_Init_Param_Decl (Result : out N_Param_Acc;
+                                    Success : out Boolean);
 
    --  Rule 27
    --  <const_dcl> ::= "const" <const_type> <identifier> "=" <const_exp>
@@ -344,10 +344,28 @@ private
    procedure Parse_Type_Spec (Result : out N_Root_Acc;
                               Success : out Boolean);
 
+   --  Rule 49
+   --  <declarators> ::= <declarator> { "," <declarator> }*
+   procedure Parse_Declarators (Result : out N_Declarator_Acc;
+                                Success : out Boolean);
+
+   --  Rule 51
+   --  <simple_declarator> ::= <identifier>
+   procedure Parse_Simple_Declarator (Result : in out N_Param_Acc;
+                                      Success : out Boolean);
+
    --  Rule 86
    --  <except_dcl> ::= "exception" <identifier> "{" <member>* "}"
    procedure Parse_Except_Dcl (Result : out N_Exception_Acc;
                                Success : out Boolean);
+
+   --  Rule 95
+   --  <param_type_spec> ::= <base_type_spec>
+   --                    |   <string_type>
+   --                    |   <wide_string_type>
+   --                    |   <scoped_name>
+   procedure Parse_Param_Type_Spec (Result : out N_Root_Acc;
+                                    Success : out Boolean);
 
 
 
@@ -370,7 +388,11 @@ private
    --  Goes to the next value_element (see rule 21)
    procedure Go_To_Next_Value_Element;
 
+   --  Goes to the end of a state member declaration (see rule 22)
+   procedure Go_To_End_Of_State_Member;
 
+   --  Goes to the next right parenthesis.
+   procedure Go_To_Next_Right_Paren;
 
 
 
@@ -560,14 +582,6 @@ private
 --    --  <object_type> ::= "Object"
 --    function Parse_Base_Type_Spec return N_Root_Acc is
 
---    --  Rule 80:
---    --  <param_type_spec> ::= <base_type_spec>
---    --                    |   <string_type>
---    --                    |   <wide_string_type>
---    --                    |   <fixed_pt_type>
---    --                    |   <scoped_name>
---    function Parse_Param_Type_Spec return N_Root_Acc is
-
 --    --  Rule 70:
 --    --  <attr_dcl> ::= [ "readonly" ] "attribute" <param_type_spec>
 --    --                 <simple_declarator> { "," <simple_declarator> }*
@@ -596,9 +610,6 @@ private
 --    --  <declarator> ::= <simple_declarator>
 --    --               |   <complex_declarator>
 --    --
---    --  Rule 36:
---    --  <simple_declarator> ::= <identifier>
---    --
 --    --  Rule 37:
 --    --  <complex_declarator> ::= <array_declarator>
 --    --
@@ -608,10 +619,6 @@ private
 --    --  Rule 69:
 --    --  <fixed_array_size> ::= "[" <positive_int_const> "]"
 --    function Parse_Declarator return N_Declarator_Acc is
-
---    --  Rule 34:
---    --  <declarators> ::= <declarator> { "," <declarator> }*
---    procedure Parse_Declarators (List : in out Node_List) is
 
 --    --  Rule 55:
 --    --  <member_list> ::= <member>+

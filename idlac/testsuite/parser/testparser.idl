@@ -107,3 +107,33 @@ abstract valuetype value44 supports valueinterface1, valueinterface3, valueinter
 
 /* Test of rule 21 */
 valuetype value45 { Error };
+
+/* Test of rule 22 */
+valuetype value45 { 
+  private long[5]
+};
+
+/* Test of rule 23 */
+valuetype value46 {
+  factory 
+  factory factory1 ();
+  factory factory1 ();
+  factory factory2
+  factory factory3 (;
+  factory factory4 ()
+};
+
+/* Test of rule 24 */
+
+/* Test of rule 25 */
+valuetype value47 {
+  factory factory1 (out long l);
+  factory factory2 (long l);
+  factory factory3 (Error);
+};
+
+/* Test of rule 51 */
+valuetype value48 {
+  factory factory1 (in long);
+  factory factory1 (in long l, in short l);
+};
