@@ -4,6 +4,7 @@
 #  sun4_sosV_5.5             Solaris 2.5, Sunpro C++/gcc-2.7.2
 #  sun4_sosV_5.6             Solaris 2.6, Sunpro C++/gcc-2.7.2
 #  i586_linux_2.0            x86 Redhat linux 4.2, gcc-2.7.2
+#  i586_linux_2.0_egcs2.95   x86 Linux, gcc 2.95 with new libstdc++
 #  alpha_osf1_3.2            Digital Unix 3.2, DEC C++ v5.5
 #  alpha_osf1_4.0            Digital Unix 4.0, DEC C++ v6.0
 #  powerpc_aix_4.2           IBM AIX 4.2, IBM C Set++
@@ -24,8 +25,9 @@
 #  x86_sco5                  SCO OpenServer 5
 
 #platform = sun4_sosV_5.5
-platform = sun4_sosV_5.6
+#platform = sun4_sosV_5.6
 #platform = i586_linux_2.0
+platform = i586_linux_2.0_egcs2.95
 #platform = alpha_osf1_3.2
 #platform = alpha_osf1_4.0
 #platform = powerpc_aix_4.2
