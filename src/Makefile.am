@@ -70,7 +70,6 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-profiles-full_tasking.ads \
 		polyorb-profiles-no_tasking.ads \
 		polyorb-profiles-ravenscar.ads \
-		polyorb-protected_objects.ads \
 		polyorb-protocols.ads \
 		polyorb-protocols-echo.ads \
 		polyorb-references.ads \
