@@ -50,13 +50,12 @@
 @c  
 @c  7. To add an entry to the bibliography, you must:
 @c     * add it to polyorb_ug.bib
-@c     * add a '\nocite{<name>}' to polyorb_ug_ref.tex
 @c     This will generate the correct polyorb_ug_ref.texi file
 @c     You may then cite the correct reference.
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#10 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#11 $
 
 @setfilename polyorb_ug.info
 @settitle PolyORB User's Guide
@@ -669,34 +668,322 @@ communication protocol for Web Services.
 @c -------------------------------------------------------------------
 @node Building an application with PolyORB
 @chapter Building an application with PolyORB
+@cindex Configuration, PolyORB
 @c -------------------------------------------------------------------
 
-@section Static configuration
+@menu
+* Compile-time configuration::
+* Run-time configuration::
+* Setting up protocol personalities::
+* Activating debug information::
+* Tracing exceptions::
+* polyorb-config::
+@end menu
 
+@c -------------------------------------------------------------------
+@node Compile-time configuration
+@section Compile-time configuration
+@c -------------------------------------------------------------------
+
+@noindent
+The user may configure some elements of a PolyORB application at
+compile-time.
+ 
+@menu
+* Tasking run-times::
+* Middleware tasking policies::
+* Object Adapter::
+* Linking protocol personalities to executable::
+* Sample files::
+@end menu
+
+@c -------------------------------------------------------------------
+@node Tasking run-times
 @subsection Tasking run-times
+@c -------------------------------------------------------------------
 
+@noindent
+PolyORB provides different tasking run-times. The user may select the
+most appropriate one, depending on its application requirements. The
+tasking run-times determine the constructs PolyORB may use for its
+internal synchronizations.
+
+@itemize @bullet
+@item @code{No_Tasking}: There is no dependency on the Ada tasking
+run-time, middleware is mono-task.
+
+@item @code{Full_Tasking}: Middleware uses Ada tasking constructs,
+middleware can be configured for multi-tasking.
+
+@item @code{Ravenscar} : Middleware uses Ada 
+tasking constructs, with the limitaions of the Ravenscar profile
+@cite{[DB98]}.  Middleware can be configured for multi-tasking.
+@cindex Ravenscar profile
+@end itemize
+
+@c -------------------------------------------------------------------
+@node Middleware tasking policies
 @subsection Middleware tasking policies
+@c -------------------------------------------------------------------
 
+@noindent
+PolyORB provides several tasking policies. A tasking policy defines
+how threads are used by the middleware to process incoming requests.
+
+@itemize @bullet
+@item @code{No_Tasking}: There is only one task in middleware,
+processing all requests.
+
+@item @code{Thread_Per_Sessions}: One thask monitors communication
+entities. One task is spawned for each active connection. This task
+handles all incoming requests on this connection.
+
+@item @code{Thread_Per_Sessions}: One thask monitors communication
+entities. One task is spawned for each incoming requests.
+
+@item @code{Thread_Pool}: A set of threads cooperate to handle all
+incoming requests.
+
+@end itemize
+
+@c -------------------------------------------------------------------
+@node Object Adapter
 @subsection Object Adapter
+@c -------------------------------------------------------------------
+ 
+@b{TO BE WRITTEN}
 
+@c -------------------------------------------------------------------
+@node Linking protocol personalities to executable
 @subsection Linking protocol personalities to executable
+@c -------------------------------------------------------------------
+ 
+@b{TO BE WRITTEN}
 
+@c -------------------------------------------------------------------
+@node Sample files
 @subsection Sample files
+@c -------------------------------------------------------------------
 
-@section Dynamic configuration
+@noindent
+PolyORB proposes a set of pre-defined setup packages. You must with
+one of them in your application node to activate the corresponding
+setup.
 
-@subsection Using configuration file
+@itemize @bullet
+@item @code{PolyORB.Setup.Client}: a client node, without tasking
+enabled, configured to use all protocol personalities build with PolyORB.
 
-@subsection Setting up protocol personalities
+@item @code{PolyORB.Setup.Ravenscar_TP_Server}: a server node, with tasking
+enabled, configured to use all protocol personalities build with
+PolyORB. Middleware tasking runtime follow Ravenscar's profile
+restrictions. Middleware tasking policies is @code{Thread_Pool}.
 
-@subsubsection Activating/Deactivating protocol personalities
+@item @code{PolyORB.Setup.Thread_Per_Request_Server}: a server node, 
+with tasking enabled, configured to use all protocol personalities
+build with PolyORB. Middleware tasking policies is
+@code{Thread_Per_Request}.
 
-@subsubsection Setting up default listenning ports
+@item @code{PolyORB.Setup.Thread_Per_Session_Server}: a server node, 
+with tasking enabled, configured to use all protocol personalities
+build with PolyORB. Middleware tasking policies is
+@code{Thread_Per_Session}.
 
+@item @code{PolyORB.Setup.Thread_Pool_Server}: a server node, 
+with tasking enabled, configured to use all protocol personalities
+build with PolyORB. Middleware tasking policies is
+@code{Thread_Pool}.
+
+@end itemize
+
+@c -------------------------------------------------------------------
+@node Run-time configuration
+@section Run-time configuration
+@c -------------------------------------------------------------------
+
+
+@noindent
+The user may configure some elements of a PolyORB application at
+run-time.
+
+@menu 
+* Using a configuration file::
+@end menu
+
+@c -------------------------------------------------------------------
+@node Using a configuration file
+@subsection Using a configuration file
+@cindex @file{polyorb.conf}
+@cindex @code{POLYORB_CONF}
+@c -------------------------------------------------------------------
+
+
+@noindent
+A configuration file may be used to configure a PolyORB node. A sample
+configuration file may be found in @file{src/polyorb.conf}.
+
+The syntax of the configuration file is:
+@itemize @bullet
+@item empty lines and lines that have a '#' in column 1 are ignored;
+
+@item sections can be started by lines of the form
+    @code{[ SECTION-NAME ']'};
+
+@item variable assignments can be performed by lines of the form 
+@code{VARIABLE-NAME '=' VALUE}.
+
+Any variable assignment is local to a section.
+
+Assignments that occur before the first section declaration are
+relative to section [environment].  Section and variable names are
+case sensitive.
+
+A variable @code{Var.Iable} in section @code{[Sec]} can be overridden
+by setting environment variable @code{"POLYORB_SEC_VAR_IABLE"}.
+Furthermore, each time a resolved in that section value starts with
+@code{"file:"}, the contents of the file is used instead.
+@end itemize
+
+@noindent
+Default search path for @file{polyorb.conf} is current
+directory. Environment variable @code{POLYORB_CONF} may be used to
+set up information on configuration file.
+
+PolyORB's configuration file allows the user to 
+@enumerate
+@item enable/disable the output of debug information
+@item set up default reference on naming service
+@item select the default protocol personality
+@item set up each protocol personality
+@end enumerate
+
+@noindent
+The configuration file is read once when running a node, during
+elaboration. Then, propers configuration parameters are selected.
+
+@c -------------------------------------------------------------------
+@node Setting up protocol personalities
+@section Setting up protocol personalities
+@c -------------------------------------------------------------------
+
+@noindent
+PolyORB allows the user to activate some of the available protocol
+personalities and to set up preferred protocol. Protocol-specific
+parameters are defined in their respective sections.
+
+@menu
+* Activating/Deactivating protocol personalities::
+* Configuring protocol personality preferences::
+@end menu
+
+@c -------------------------------------------------------------------
+@node Activating/Deactivating protocol personalities
+@subsection Activating/Deactivating protocol personalities
+@cindex Protocol personality, activation
+@c -------------------------------------------------------------------
+
+@noindent
+Protocol activation is controlled by PolyORB's configuration file.
+
+The section @code{[access_points]} control the initialization of
+@emph{access points}. An access point is a node entry point that may
+serve incoming requests.
+
+@smallexample
+[access_points]
+soap=enable
+iiop=enable
+diop=disable
+uipmc=disable
+@end smallexample
+
+@noindent
+This example activates SOAP and IIOP, deactivates DIOP and MIOP.
+
+The section @code{[modules]} controls the activation/deactivation of
+some modules within PolyORB. It is used to enable @emph{bindings} to
+remote entities.
+
+@smallexample
+[modules]
+binding_data.soap=disable
+binding_data.iiop=disable
+binding_data.diop=disable
+binding_data.uipmc=disable
+@end smallexample
+ 
+@noindent
+This example enables the creation of bindings to remote objects using
+SOAP or IIOP. Objects cannot be reached using DIOP or UIMPC.
+
+@emph{Note: by default, all configured personalities are activated.}
+
+@c -------------------------------------------------------------------
+@node Configuring protocol personality preferences
+@subsection Configuring protocol personality preferences
+@c -------------------------------------------------------------------
+
+@noindent
+The user may affect a @emph{preference} to each protocol
+personality. The protocol with the higher preference will be selected
+among possible protocols to send a request to a remote node.  
+
+See @code{polyorb.binding_data.<protocol>.preference} in
+section @code{[protocol]} to set up protocol's preference.
+
+Possible protocols are defined as the protocols available on the
+remote node, as advertised in its @emph{object reference}.  @code{IOR}
+or @code{corbaloc} references may support multiple protocols,
+@code{URI} only support one protocol.
+ 
+Each protocol supports a variety of configuration parameters, please
+refer to the protocols' sections for more details.
+
+@c -------------------------------------------------------------------
+@node Activating debug information
 @section Activating debug information
+@cindex Debug information
+@c -------------------------------------------------------------------
 
+@noindent
+To activate the output of debug information, you must first configure
+and compile PolyORB with debug activate, see help on
+@command{--enable-debug} flag in @ref{Installation}.
+
+To output debug information on a selected package, create a
+configuration file with a @code{[log]} section and the name of the
+packages on which you want debug information:
+
+@smallexample
+# Sample configuration file, output debug for PolyORB.A_Package
+[log]
+polyorb.a_package=debug
+@end smallexample
+
+@noindent
+Note that some packages may not provide such information. See sample
+configuration file the complete list of packages that provide debug.
+
+@c -------------------------------------------------------------------
+@node Tracing exceptions
+@section Tracing exceptions
+@cindex Exceptions
+@c -------------------------------------------------------------------
+
+@noindent
+To trace exception propagations in PolyORB's source code, it is
+necessary to:
+
+@enumerate
+@item compile PolyORB with debug activated,
+@item activate debug information on package @code{PolyORB.Exceptions}.
+@end enumerate
+
+@c -------------------------------------------------------------------
+@node polyorb-config
 @section @command{polyorb-config}
-
+@cindex @command{polyorb-config} 
+@c -------------------------------------------------------------------
 
 @noindent
 @command{polyorb-config} returns path and library information on
