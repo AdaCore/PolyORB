@@ -172,6 +172,15 @@ package body Tokens is
       end loop;
    end Go_To_End_Of_Char;
 
+   --  skips the characters until the next " or the end of the file
+   procedure Go_To_End_Of_String is
+   begin
+      while View_Next_Char /= Quotation loop
+         Skip_Char;
+      end loop;
+      Skip_Char;
+   end Go_To_End_Of_String;
+
 
    ---------------------------------
    --  low level char processing  --
@@ -521,6 +530,11 @@ package body Tokens is
    end Scan_Identifier;
 
 
+   --  Called when the current character is a digit.
+   --  This procedure sets Current_Token and returns.
+   --  The get_marked_text function returns then the
+   --  numeric literal
+   --
    --  IDL Syntax and semantics, CORBA V2.3 § 3.2.5
    --
    --  Integers Literals : (3.2.5.1)
@@ -643,6 +657,108 @@ package body Tokens is
          Current_Token := T_Error;
       end if;
    end Scan_Underscore;
+
+
+   --  Called when the current character is a ".
+   --  This procedure sets Current_Token and returns.
+   --  The get_marked_text function returns then the
+   --  string literal
+   --
+   --  IDL Syntax and semantics, CORBA V2.3 § 3.2.5
+   --
+   --  String Literals : (3.2.5.1)
+   --  A string literal is a sequence of characters (...) surrounded
+   --  by double quotes, as in "...".
+   --
+   --  Adjacent string literals are concatenated.
+   --  (...)
+   --  Within a string, the double quote character " must be preceded
+   --  by a \.
+   --  A string literal may not contain the character '\0'.
+   procedure Scan_String is
+      Several_Lines : Boolean := False;
+   begin
+      Set_Mark;
+      loop
+         case Next_Char is
+            when Quotation =>
+               if View_Next_Char = Quotation then
+                  Skip_Char;
+               else
+                  Current_Token := T_Lit_String;
+                  return;
+               end if;
+            when '\' =>
+               case View_Next_Char is
+                  when LC_N | LC_T | LC_V | LC_B | LC_R
+                    | LC_F | LC_A | '\' | '?' | ''' | QUOTATION =>
+                     Skip_Char;
+                  when '0' =>
+                     if Is_Octal_Digit_Character
+                       (View_Next_Next_Char) then
+                        Skip_Char;
+                     else
+                        Go_To_End_Of_String;
+                        Errors.Lexer_Error
+                          ("A string literal may not contain"
+                           & " the character '\0'",
+                           Errors.Error);
+                        Current_Token := T_Error;
+                        return;
+                     end if;
+                  when '1' .. '7' =>
+                     Skip_Char;
+                  when LC_X =>
+                     if Is_Hexa_Digit_Character
+                       (View_Next_Next_Char) then
+                        Skip_Char;
+                     else
+                        Go_To_End_Of_String;
+                        Errors.Lexer_Error
+                          ("bad hexadecimal character in string",
+                           Errors.Error);
+                        Current_Token := T_Error;
+                        return;
+                     end if;
+                  when LC_U =>
+                     if Is_Hexa_Digit_Character
+                       (View_Next_Next_Char) then
+                        Skip_Char;
+                     else
+                        Go_To_End_Of_String;
+                        Errors.Lexer_Error
+                          ("bad unicode character in string",
+                           Errors.Error);
+                        Current_Token := T_Error;
+                        return;
+                     end if;
+                  when others =>
+                     Go_To_End_Of_String;
+                     Errors.Lexer_Error
+                       ("bad escape sequence in string",
+                        Errors.Error);
+                     Current_Token := T_Error;
+                     return;
+               end case;
+            when Lf =>
+               if Several_Lines = False then
+                  Errors.Lexer_Error
+                    ("This String goes over several lines",
+                     Errors.Warning);
+                  Several_Lines := True;
+               end if;
+            when others =>
+               null;
+         end case;
+      end loop;
+   exception
+      when Ada.Text_Io.End_Error =>
+         Errors.Lexer_Error ("unexpected end of file in the middle "
+                             & "of a string, you probably forgot the "
+                             & Quotation
+                             & " at the end of a string",
+                             Errors.Fatal);
+   end Scan_String;
 
 
 
@@ -812,6 +928,9 @@ package body Tokens is
                return;
             when ''' =>
                Scan_Char;
+               return;
+            when Quotation =>
+               Scan_String;
                return;
             when others =>
                if Get_Current_Char >= ' ' then

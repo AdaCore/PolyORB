@@ -67,25 +67,54 @@ interface echo {
   const wchar L'\uabcd';
 
   /* bad ones */
-     const char ''';
-     const char '\';
-     const char '\8';
-     const char '\k';
-     const char '\1234';
-     const char '\xzfrt';
-     const char 'zfrtjhsu
-     const char '\xabc';
-     const char '\ux';
-     const char '\uabcde';
+  const char ''';
+  const char '\';
+  const char '\8';
+  const char '\k';
+  const char '\1234';
+  const char '\xzfrt';
+  const char 'zfrtjhsu
+  const char '\xabc';
+  const char '\ux';
+  const char '\uabcde';
 
-     const wchar L''';
-     const wchar L'\';
-     const wchar L'\8';
-     const wchar L'\k';
-     const wchar L'\1234';
-     const wchar L'\xzfrt';
-     const wchar L'zfrtjhsu
-     const wchar L'\xabc';
-     const wchar L'\ux';
-     const wchar L'\uabcde';
+  const wchar L''';
+  const wchar L'\';
+  const wchar L'\8';
+  const wchar L'\k';
+  const wchar L'\1234';
+  const wchar L'\xzfrt';
+  const wchar L'zfrtjhsu
+  const wchar L'\xabc';
+  const wchar L'\ux';
+  const wchar L'\uabcde';
+
+
+  /*** String literal test ***/
+
+  const string "a string";
+  const string "a more"" complicated"" one";
+  const string "two" "strings";
+  const string "very """ """complicated""";
+  const string "with a \\ inside";
+  const string "with a \""" inside";
+  const string "with an octal char : \123";
+  const string "with an octal char : \12345";
+  const string "with an octal char : \03";
+  const string "with an hexa char : \xab";
+  const string "with an hexa char : \xabcd";
+  const string "with a unicode char : \uabcd";
+  const string "with a unicode char : \uabcdef";
+  const string " a
+                   multiline 
+                             string";
+
+  /* bad ones */
+  const string "with a null octal char : \0";
+  const string "with a bad hexa char : \xk";
+  const string "with a bad unicode char : \uk";
+  const string "with a bad escape char : \g";
+  
+  /* fatal one 
+     const string "sans fin ... ; */
 };
