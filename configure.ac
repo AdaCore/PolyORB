@@ -551,6 +551,8 @@ AC_OUTPUT([
 	testsuite/corba/cos/naming/Makefile
 	testsuite/corba/cos/notification/Makefile
 	testsuite/corba/cos/time/Makefile
+	testsuite/corba/domainmanager/Makefile
+	testsuite/corba/domainmanager/test000/Makefile
 	testsuite/corba/harness/Makefile
 	testsuite/corba/local/Makefile
 	testsuite/corba/location_forwarding/Makefile

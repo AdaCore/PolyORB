@@ -14,6 +14,7 @@ SUBDIRS = \
 	benchs \
 	code_sets \
 	cos \
+	domainmanager \
 	harness \
 	local \
 	location_forwarding \
