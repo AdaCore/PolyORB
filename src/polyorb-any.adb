@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.adb#38 $
+--  $Id: //droopi/main/src/polyorb-any.adb#39 $
 
 with Ada.Exceptions;
 with Ada.Tags;
@@ -2104,8 +2104,6 @@ package body PolyORB.Any is
       pragma Debug (O ("Get_Empty_Any : enter"));
       Set_Type (Result, Tc);
       pragma Debug (O ("Get_Empty_Any : type set"));
-      Inc_Usage (Result);
-      pragma Debug (O ("Get_Empty_Any : usage incremented"));
       return Result;
    end Get_Empty_Any;
 
@@ -2561,7 +2559,6 @@ package body PolyORB.Any is
         := Duplicate
         (Content_Lists.Element (Ptr, Integer (Index)).all);
       Unlock_R (Value.Any_Lock);
-      Inc_Usage (Result);
       Set_Type (Result, Tc);
       pragma Debug (O ("Get_Aggregate_Element : end"));
       return Result;
@@ -2579,7 +2576,6 @@ package body PolyORB.Any is
       pragma Debug (O ("Get_Empty_Any_Aggregate : begin"));
       Set_Value (Result, new Content_Aggregate);
       Set_Type (Result, Tc);
-      Inc_Usage (Result);
       pragma Debug (O ("Get_Empty_Any_Aggregate : end"));
       return Result;
    end Get_Empty_Any_Aggregate;
