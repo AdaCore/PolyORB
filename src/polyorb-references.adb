@@ -109,10 +109,6 @@ package body PolyORB.References is
             TRIP : Reference_Info renames Reference_Info (RIP.all);
          begin
             TRIP.Type_Id  := new String'(Type_Id);
-            if TRIP.Profiles /= null then
-               Free (TRIP.Profiles);
-            end if;
-
             TRIP.Profiles := new Profile_Array'(Profiles);
             Set (R, RIP);
          end;
