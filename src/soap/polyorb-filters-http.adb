@@ -178,13 +178,17 @@ package body PolyORB.Filters.HTTP is
             F.Role := Client;
          end if;
 
-         Expect_Data (F, F.In_Buf, Buffer_Size);
-         --  Wait for first line of message.
-
          F.State := Start_Line;
          F.Data_Received := 0;
          F.In_Buf := new PolyORB.Buffers.Buffer_Type;
-         --  HTTP has its own buffer.
+         --  HTTP has its own buffer for protocol stuff;
+         --  the upper layer provides another buffer for
+         --  message payload.
+
+         Expect_Data (F, F.In_Buf, Buffer_Size);
+         --  Wait for first line of message.
+
+         Emit_No_Reply (F.Upper, S);
       elsif S in Data_Expected then
          F.Message_Buf := Data_Expected (S).In_Buf;
 
@@ -469,7 +473,7 @@ package body PolyORB.Filters.HTTP is
             (Data.Offset + Stream_Element_Offset (I - S'First)));
       end loop;
 
-      pragma Debug (O ("HTTP line received:" & S));
+      pragma Debug (O ("HTTP line received: " & S));
 
       case F.State is
          when Start_Line =>

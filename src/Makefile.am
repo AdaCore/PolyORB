@@ -151,9 +151,12 @@ TESTS=  polyorb-test-no_tasking \
 tests: $(TESTS)
 
 $(TESTS): all
-	$(GNATMAKE) -c -I. -Icorba -Isoap echo-impl.adb -cargs -g -O2 -Wall -gnatfa -gnatwu -gnatwe -gnatwl -bargs $(BARGS)
-	# No style checks for this one!
-	$(GNATMAKE) -I. -Icorba -Isoap $@ -cargs $(GNATFLAGS) -largs -Lsoap/.libs -lpolyorb-soap -Lcorba/.libs -lpolyorb-corba $(LDFLAGS) -bargs $(BARGS)
+	$(GNATMAKE) -c -I. -Icorba -Isoap $(XMLADA_INCLUDE) echo-impl.adb \
+	-cargs -g -O2 -Wall -gnatfa -gnatwu -gnatwe -gnatwl -bargs $(BARGS) \
+	-largs $(XMLADA_LIBS)
+	$(GNATMAKE) -I. -Icorba -Isoap $(XMLADA_INCLUDE) $@ \
+	-cargs $(GNATFLAGS) -largs -Lsoap/.libs -lpolyorb-soap -Lcorba/.libs \
+	-lpolyorb-corba $(LDFLAGS) -bargs $(BARGS) -largs $(XMLADA_LIBS)
 
 ### DO NOT REMOVE THIS LINE, IT IS USED BY MAKEDEPEND ###
 polyorb-annotations.lo:polyorb-annotations.adb polyorb-annotations.ads polyorb.ads sequences-unbounded.adb sequences-unbounded.ads sequences.ads 

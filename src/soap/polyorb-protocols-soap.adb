@@ -59,7 +59,7 @@ package body PolyORB.Protocols.SOAP  is
       Result : constant Filter_Access
         := new SOAP_Session;
    begin
-      SOAP_Session (Session.all).In_Buf
+      SOAP_Session (Result.all).In_Buf
         := new PolyORB.Buffers.Buffer_Type;
       Session := Result;
    end Create;
@@ -97,6 +97,7 @@ package body PolyORB.Protocols.SOAP  is
    begin
       PolyORB.Utils.Text_Buffers.Unmarshall_String
         (S.In_Buf, Entity);
+      pragma Debug (O ("SOAP entity received: " & Entity));
       if S.Role = Server then
          declare
             M : constant Standard.SOAP.Message.Payload.Object

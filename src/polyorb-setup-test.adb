@@ -289,7 +289,7 @@ package body PolyORB.Setup.Test is
       ---------------------------------------------
 
       Put ("Creating SOAP access point... ");
-      Initialize_Socket (SOAP_Access_Point, 8008);
+      Initialize_Socket (SOAP_Access_Point, 8080);
       Chain_Factories
         ((0 => HTTP_Filter'Unchecked_Access,
           1 => SOAP_Protocol'Unchecked_Access));

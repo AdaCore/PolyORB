@@ -24,7 +24,7 @@ ADA_SPECS_WITH_BODY = \
 	soap-types.ads \
 	soap-utils.ads
 
-ADA_SPECS = $(ADA_SPECS_WITH_BODY)
+ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
 	aws.ads \
 	soap.ads
 
