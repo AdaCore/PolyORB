@@ -97,7 +97,7 @@ package body Server is
                 " registered clients:");
       for I in Penpals'Range loop
          begin
-            Put ("   Trying to contact <" & Penpals (I) .Name.all & ">... ");
+            Put ("   Trying to contact <" & Penpals (I).Name.all & ">... ");
             Flush;
             New_Message (Sender    => Sender,
                          Recipient => Penpals (I).Penpal,

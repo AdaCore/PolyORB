@@ -7,8 +7,7 @@ with PolyORB.ORB;
 with PolyORB.Setup;
 with PolyORB.Initialization;
 pragma Warnings (Off);
---  with PolyORB.Setup.Thread_Pool_Server;
-with PolyORB.Setup.No_Tasking_Server;
+with PolyORB.Setup.Thread_Pool_Server;
 with PolyORB.POA_Config.RACWs;
 pragma Warnings (On);
 
