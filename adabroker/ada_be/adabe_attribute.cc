@@ -12,15 +12,19 @@ adabe_attribute::adabe_attribute(idl_bool ro, AST_Type *ft, UTL_ScopedName *n, U
 void
 adabe_attribute::produce_ads(dep_list& with, string &body, string &previous)
 {
+  string space = "";
+  for (unsigned int i=0;i<get_ada_local_name().length();i++) space += " ";
   compute_ada_name();
-  body += "   function Get_" + get_ada_local_name() +"(Self : in Ref) return "; 
+  body += "   function Get_" + get_ada_local_name() +"(Self : in Ref)\n";
+  body += "                  " + space + "return "; 
   AST_Decl *d = field_type();
   string name = dynamic_cast<adabe_name *>(d)->dump_name(with, previous);
   body += name + " ;\n";
   if (!readonly())
     {
-      body += "   procedure Get_" + get_ada_local_name();
-      body += "(Self : in Ref ; To : in ";
+      body += "   procedure Set_" + get_ada_local_name();
+      body += "(Self : in Ref ;\n";
+      body += "                  " + space + "To : in ";
       body += name;
       body += ") ;\n";
     }
@@ -29,33 +33,43 @@ adabe_attribute::produce_ads(dep_list& with, string &body, string &previous)
 void
 adabe_attribute::produce_adb(dep_list& with, string &body, string &previous)
 {
-  body += "   function get_" + get_ada_local_name() +"(Self : in Ref) return "; 
+  string space = "";
+  for (unsigned int i=0;i<get_ada_local_name().length();i++) space += " ";
+  body += "   function get_" + get_ada_local_name() +"(Self : in Ref)\n";
+  body += "                 " + space + "return "; 
   AST_Decl *d = field_type();  
   string name = dynamic_cast<adabe_name *>(d)->dump_name(with, previous);
-  body += name + ";\n";  
+  body += name + " ;\n";  
   string name_of_the_package = dynamic_cast<adabe_name *>(ScopeAsDecl(defined_in()))->get_ada_full_name();
-  body += "   Opcd : " + name_of_the_package + ".Proxies.Get_" + get_ada_local_name() + "_Proxy ;\n";
-  body += "   Result : " + name +";\n";
+  body += "      Opcd : " + name_of_the_package + ".Proxies.Get_" + get_ada_local_name() + "_Proxy ;\n";
+  body += "      Result : " + name +" ;\n";
   body += "   begin \n";
-  body += "      Assert_Ref_Not_Nil(Self);";
-  body += "      Opcd := " + name_of_the_package + ".Proxies.Create();\n";
+  body += "      Assert_Ref_Not_Nil(Self) ;\n";
+  body += "      Opcd := " + name_of_the_package + ".Proxies.Create() ;\n";
   body += "      OmniProxyCallWrapper.Invoke(Self, Opcd) ;\n";
   body += "      Result := " + name_of_the_package + ".Proxies.Get_Result(Opcd) ;\n";
   body += "      " + name_of_the_package + ".Proxies.Free(Opcd) ;\n";
-  body += "      return Result ;";
-  body += "   end;";
+  body += "      return Result ;\n";
+  body += "   end ;\n\n";
   if (!readonly())
     {
-      body += "   procedure set_" + get_ada_local_name() +"(Self : in Ref, To : in ";
-      body += name + ") is \n";
-      body += "   Opcd : " + name_of_the_package + ".Proxies." + get_ada_local_name() + "_Proxy ;\n";
+      body += "   procedure set_";
+      body += get_ada_local_name();
+      body += "(Self : in Ref,\n";
+      body += "                  " + space + "To : in ";
+      body += name;
+      body += ") is \n";
+      body += "      Opcd : ";
+      body += name_of_the_package;
+      body += ".Proxies.";
+      body += get_ada_local_name();
+      body += "_Proxy ;\n";
       body += "   begin \n";
-      body += "      Assert_Ref_Not_Nil(Self);";
-      body += "      Opcd := " + name_of_the_package + ".Proxies.Create(To);";
+      body += "      Assert_Ref_Not_Nil(Self) ;\n";
+      body += "      Opcd := " + name_of_the_package + ".Proxies.Create(To) ;\n";
       body += "      OmniProxyCallWrapper.Invoke(Self, Opcd) ;\n";
       body += "      " + name_of_the_package + ".Proxies.Free(Opcd) ;\n";
-      body += "      return ;";
-      body += "   end;";    
+      body += "   end ;\n\n";    
     }
 }
 

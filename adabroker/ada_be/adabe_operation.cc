@@ -25,18 +25,22 @@ adabe_operation::produce_ads(dep_list& with,string &body, string &previous)
     }
   if (is_function())
     {
+      string space = "";
+      for (unsigned int i=0;i<get_ada_local_name().length();i++) space += " ";
       body += "   function " + get_ada_local_name() + "(Self : in Ref";
       UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
       while (!i.is_done())
 	{
-	  body += "; ";
+	  body += ";\n";
+	  body += "             " + space ;
 	  AST_Decl *d = i.item();
 	  if (d->node_type() == AST_Decl::NT_argument)
 	    dynamic_cast<adabe_name *>(d)->produce_ads(with, body, previous);
 	  else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in operation");
        	  i.next();
 	}
-      body += ") return "; 
+      body += ")\n";
+      body += "             " + space + "return "; 
       AST_Decl *b = return_type();
       body += dynamic_cast<adabe_name *>(b)->dump_name(with, previous) + ";\n";
     }
@@ -73,27 +77,31 @@ adabe_operation::produce_adb(dep_list& with,string &body, string &previous)
     }
   if (is_function())
     {
-      body += " function" + get_ada_local_name() + "(Self : in Ref ";
+      string space = "";
+      for (unsigned int i=0;i<get_ada_local_name().length();i++) space += " ";
+      body += "   function " + get_ada_local_name() + "(Self : in Ref";
       UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
       while (!i.is_done())
 	{
-	  body += ",";
+	  body += ",\n";
+	  body += "             " + space;
 	  AST_Decl *d = i.item();
 	  if (d->node_type() == AST_Decl::NT_argument)
 	    dynamic_cast<adabe_name *>(d)->produce_ads(with, body, previous);
 	  else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in operation");
 	  i.next();
 	}
-      body += ") return ";
+      body += ")\n";
+      body += "             " + space + "return ";
       AST_Decl *b = return_type();
       string name = dynamic_cast<adabe_name *>(b)->dump_name(with, previous);
-      body += name + "is \n";
+      body += name + " is\n";
       adabe_name  *c = dynamic_cast<adabe_name *>(ScopeAsDecl(defined_in()));      
       string name_of_the_package = c->get_ada_local_name();
-      body += "   Opcd : " + name_of_the_package + ".Proxies." + get_ada_local_name() + "_Proxy ;\n";
-      body += "   Result : " + name +";\n";
+      body += "      Opcd : " + name_of_the_package + ".Proxies." + get_ada_local_name() + "_Proxy ;\n";
+      body += "      Result : " + name +";\n";
       body += "   begin \n";
-      body += "      Assert_Ref_Not_Nil(Self);";
+      body += "      Assert_Ref_Not_Nil(Self) ;\n";
       body += "      Opcd := " + name_of_the_package + ".Proxies.Create(";
       UTL_ScopeActiveIterator j(this,UTL_Scope::IK_decls);
       while (!j.is_done())
@@ -109,8 +117,8 @@ adabe_operation::produce_adb(dep_list& with,string &body, string &previous)
       body += "      OmniProxyCallWrapper.Invoke(Self, Opcd) ;\n";
       body += "      Result := " + name_of_the_package + ".Proxies.Get_Result(Opcd) ;\n";
       body += "      " + name_of_the_package + ".Proxies.Free(Opcd) ;\n";
-      body += "      return Result ;";
-      body += "   end;";
+      body += "      return Result ;\n";
+      body += "   end ;\n\n";
     }
   else
     {

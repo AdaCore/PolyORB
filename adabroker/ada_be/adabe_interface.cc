@@ -177,10 +177,15 @@ adabe_interface::produce_ads(dep_list &with, string &body, string &previous)
   body += "   -----------------------------\n\n";
   
   body += "   Repository_Id : Corba.String := Corba.To_Corba_String(\"RepositoryID\") ;\n";
-  body += "   function Get_Repository_Id(Self : in Ref) return Corba.String ;\n\n";
-  body += "   function Is_A(The_Ref : in Ref; Repo_Id : in Corba.String) return Corba.Boolean ;\n";
-  body += "   function Is_A(Repo_Id : in Corba.String) return Corba.Boolean ;\n\n";
-  body += "   Get_Nil_Ref(Self : in Ref) return Ref ;\n"; 
+  body += "   function Get_Repository_Id(Self : in Ref)\n";
+  body += "                              return Corba.String ;\n\n";
+  body += "   function Is_A(The_Ref : in Ref;\n";
+  body += "                 Repo_Id : in Corba.String)\n";
+  body += "                 return Corba.Boolean ;\n";
+  body += "   function Is_A(Repo_Id : in Corba.String)\n";
+  body += "                 return Corba.Boolean ;\n\n";
+  body += "   Get_Nil_Ref(Self : in Ref)\n";
+  body += "               return Ref ;\n"; 
   body += "\nprivate\n";
   body += "   Nil_Ref : aliased constant Ref := (" + corps;
   body += ".Nil_Ref with null record) ;\n";
@@ -203,7 +208,8 @@ adabe_interface::produce_adb(dep_list& with, string &body, string &previous)
   body += "\n   -----------------------------\n";
   body += "   --         The Spec        --\n";
   body += "   -----------------------------\n\n";
-  body += "   function To_Ref(The_Ref : in Corba.Object.ref'Class) return Ref is\n";
+  body += "   function To_Ref(The_Ref : in Corba.Object.ref'Class)\n";
+  body += "                   return Ref is\n";
   body += "      Dynamic_Type : Corba.Oject.Ref'Class := Get_Dynamic_Type(The_Ref) ;\n";
   body += "      Result : Ref ;\n";
   body += "      Repo_Id : Corba.String := Get_Repository_Id(Result) ;\n";
@@ -255,7 +261,7 @@ adabe_interface::produce_adb(dep_list& with, string &body, string &previous)
   body += "\n\n" ;
   body += "   --------------------------------------------------\n";
   body += "   --          IDL definitions                     --\n";
-  body += "   --------------------------------------------------";
+  body += "   --------------------------------------------------\n\n";
   {
     UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
     while (!i.is_done())
@@ -284,7 +290,8 @@ adabe_interface::produce_adb(dep_list& with, string &body, string &previous)
   body += "   -----------------------------\n\n";
   body += "   -- Get_Repository_Id\n" ;
   body += "   --------------------\n" ;
-  body += "   function Get_Repository_Id(Self : in Ref) return Corba.String is\n";
+  body += "   function Get_Repository_Id(Self : in Ref)\n";
+  body += "                              return Corba.String is\n";
   body += "   begin\n";
   body += "      return Repository_Id ;\n";
   body += "   end ;\n\n\n";    
@@ -313,7 +320,8 @@ adabe_interface::produce_adb(dep_list& with, string &body, string &previous)
   body += "   end ;\n\n\n";    
   body += "   -- Get_Nil_Ref\n" ;
   body += "   --------------\n" ;
-  body += "   function Get_Nil_Ref(Self : in Ref) return Ref ;\n"; 
+  body += "   function Get_Nil_Ref(Self : in Ref)\n";
+  body += "                        return Ref ;\n"; 
   body += "   begin\n";
   body += "      return Nil_Ref ;\n";
   body += "   end ;\n\n\n";
