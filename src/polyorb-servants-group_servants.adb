@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---     P O L Y O R B . S E R V A N T S . G R O U P _ S E R V A N T S        --
+--      P O L Y O R B . S E R V A N T S . G R O U P _ S E R V A N T S       --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,6 +30,8 @@
 --                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+--  $Id$
 
 with Ada.Tags;
 
@@ -71,7 +73,7 @@ package body PolyORB.Servants.Group_Servants is
 
    function Handle_Unmarshall_Arguments
      (Self : access Group_Servant;
-      Msg  : Components.Message'Class)
+      Msg  :        Components.Message'Class)
       return Components.Message'Class
    is
       use PolyORB.Protocols.Interface;
@@ -284,7 +286,7 @@ package body PolyORB.Servants.Group_Servants is
 
    function Handle_Message
      (Self : access Group_Servant;
-      Msg  : Components.Message'Class)
+      Msg  :        Components.Message'Class)
      return Components.Message'Class
    is
       use PolyORB.Servants.Interface;
@@ -368,26 +370,20 @@ package body PolyORB.Servants.Group_Servants is
       Leave (Self.Group_Lock);
    end Unregister;
 
-   ----------------
-   -- Initialize --
-   ----------------
+   ---------------------------
+   -- Destroy_Group_Servant --
+   ---------------------------
 
-   procedure Initialize (GS : in out Group_Servant) is
-   begin
-      Create (GS.Mutex);
-      Create (GS.Group_Lock);
-   end Initialize;
+   procedure Destroy_Group_Servant
+     (Group : in out PolyORB.Servants.Servant_Access)
+   is
+      GS : Group_Servant_Access := Group_Servant (Group.all)'Access;
 
-   --------------
-   -- Finalize --
-   --------------
-
-   procedure Finalize   (GS : in out Group_Servant) is
    begin
       TPL.Deallocate (GS.Target_List);
       Destroy (GS.Mutex);
       Destroy (GS.Group_Lock);
-   end Finalize;
+   end Destroy_Group_Servant;
 
    --------------------------
    -- Create_Group_Servant --
@@ -403,6 +399,8 @@ package body PolyORB.Servants.Group_Servants is
       pragma Debug (O ("Create group servant : "
                        & PolyORB.Objects.Image (Oid.all)));
       GS.Oid := Oid;
+      Create (GS.Mutex);
+      Create (GS.Group_Lock);
 
       return PolyORB.Servants.Servant_Access (GS);
    end Create_Group_Servant;
@@ -412,7 +410,7 @@ package body PolyORB.Servants.Group_Servants is
    -------------------------
 
    procedure Get_Group_Object_Id
-     (Group : PolyORB.Servants.Servant_Access;
+     (Group :        PolyORB.Servants.Servant_Access;
       Oid   :    out Object_Id_Access;
       Error : in out PolyORB.Exceptions.Error_Container)
    is
@@ -448,8 +446,8 @@ package body PolyORB.Servants.Group_Servants is
    ---------------
 
    procedure Associate
-     (Group : PolyORB.Servants.Servant_Access;
-      Ref   : PolyORB.References.Ref;
+     (Group :        PolyORB.Servants.Servant_Access;
+      Ref   :        PolyORB.References.Ref;
       Error : in out PolyORB.Exceptions.Error_Container)
    is
    begin
@@ -466,8 +464,8 @@ package body PolyORB.Servants.Group_Servants is
    ------------------
 
    procedure Disassociate
-     (Group : PolyORB.Servants.Servant_Access;
-      Ref   : PolyORB.References.Ref;
+     (Group :        PolyORB.Servants.Servant_Access;
+      Ref   :        PolyORB.References.Ref;
       Error : in out PolyORB.Exceptions.Error_Container)
    is
    begin

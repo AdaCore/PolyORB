@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,6 +33,8 @@
 
 --  Servant which manage groups of servants
 --  Work as a proxy
+
+--  $Id$
 
 with PolyORB.Any.NVList;
 with PolyORB.Components;
@@ -62,6 +64,10 @@ package PolyORB.Servants.Group_Servants is
      (Oid : Object_Id_Access)
      return PolyORB.Servants.Servant_Access;
    --  Create a new group servant
+
+   procedure Destroy_Group_Servant
+     (Group : in out PolyORB.Servants.Servant_Access);
+   --  Destroy group servant
 
    procedure Get_Group_Object_Id
      (Group :        PolyORB.Servants.Servant_Access;
@@ -179,9 +185,6 @@ private
      (Self : access Group_Servant;
       Ref  :        PolyORB.References.Ref);
    --  Remove a target ref from a group
-
-   procedure Initialize (GS : in out Group_Servant);
-   procedure Finalize   (GS : in out Group_Servant);
 
    type Iterator is record
       It : Target_List_Package.Iterator;

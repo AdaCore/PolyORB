@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                  POLYORB.OBJ_ADAPTERS.GROUP_OBJECT_ADAPTER               --
+--                POLYORB.OBJ_ADAPTERS.GROUP_OBJECT_ADAPTER                 --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -140,6 +140,7 @@ package body PolyORB.Obj_Adapters.Group_Object_Adapter is
       Error : in out PolyORB.Exceptions.Error_Container)
    is
       use PolyORB.Objects;
+      use PolyORB.Servants.Group_Servants;
       use type PolyORB.Servants.Servant_Access;
 
       GS : PolyORB.Servants.Servant_Access;
@@ -155,6 +156,7 @@ package body PolyORB.Obj_Adapters.Group_Object_Adapter is
                 Invalid_Object_Id_E,
                 Null_Members'(Null_Member));
       else
+         Destroy_Group_Servant (GS);
          Delete (GOA.Registered_Groups, To_String (Id.all));
          pragma Debug (O ("Group removed with success : "
                           & To_String (Id.all)));
