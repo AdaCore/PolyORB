@@ -47,8 +47,6 @@ with PolyORB.Types;
 
 package PolyORB.Filters.HTTP is
 
-   pragma Elaborate_Body;
-
    type HTTP_Filter_Factory is new Factory with private;
 
    procedure Create
@@ -251,6 +249,7 @@ private
 
       Out_Buf : PolyORB.Buffers.Buffer_Access;
       --  Buffer used to prepare outbound messages.
+      --  XXX could this not be the same as In_Buf?
 
       ----------------------------------------------------------
       -- Parameters concerning the HTTP message               --

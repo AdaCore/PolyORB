@@ -36,7 +36,10 @@ with Ada.Characters.Handling;
 with Ada.Exceptions;
 with Ada.Unchecked_Conversion;
 
+with AWS.Response;
+
 with PolyORB.Components;
+with PolyORB.Filters.AWS_Interface;
 with PolyORB.Filters.Interface;
 with PolyORB.HTTP_Headers;
 with PolyORB.Log;
@@ -49,6 +52,7 @@ package body PolyORB.Filters.HTTP is
 
    use Ada.Streams;
 
+   use PolyORB.Filters.AWS_Interface;
    use PolyORB.Filters.Interface;
    use PolyORB.Log;
    use PolyORB.ORB;
@@ -101,6 +105,11 @@ package body PolyORB.Filters.HTTP is
      return Integer
      renames Find_Skip;
 
+   procedure Handle_Data_Indication
+     (F : access HTTP_Filter;
+      S : Filters.Interface.Data_Indication);
+   --  Process a Data_Indication message from lower layers.
+
    procedure Process_Line
      (F : access HTTP_Filter;
       Line_Length : Stream_Element_Count);
@@ -111,6 +120,24 @@ package body PolyORB.Filters.HTTP is
    procedure Message_Complete (F : access HTTP_Filter);
    --  A message has been completely received and processed by F:
    --  send the upper layer a Data_Indication.
+
+   --------------------------------------
+   -- Preparation of outgoing messages --
+   --------------------------------------
+
+   function Image (I : Integer) return String;
+
+   procedure Prepare_Header_Only
+     (F : access HTTP_Filter;
+      RD : AWS.Response.Data);
+
+   procedure Prepare_General_Header
+     (F : access HTTP_Filter;
+      RD : AWS.Response.Data);
+
+   procedure Prepare_Message
+     (F : access HTTP_Filter;
+      RD : AWS.Response.Data);
 
    procedure Error
      (F : access HTTP_Filter;
@@ -181,6 +208,7 @@ package body PolyORB.Filters.HTTP is
          F.State := Start_Line;
          F.Data_Received := 0;
          F.In_Buf := new PolyORB.Buffers.Buffer_Type;
+         F.Out_Buf := new PolyORB.Buffers.Buffer_Type;
          --  HTTP has its own buffer for protocol stuff;
          --  the upper layer provides another buffer for
          --  message payload.
@@ -193,183 +221,23 @@ package body PolyORB.Filters.HTTP is
          F.Message_Buf := Data_Expected (S).In_Buf;
 
       elsif S in Data_Indication then
+         Handle_Data_Indication (F, Data_Indication (S));
+
+      elsif S in AWS_Response_Out then
 
          declare
-            Data_Received : Stream_Element_Count
-              := Stream_Element_Count
-              (Data_Indication (S).Data_Amount);
-
-            New_Data : PolyORB.Opaque.Opaque_Pointer;
-            New_Data_Position : Stream_Element_Offset
-              := Length (F.In_Buf) - Data_Received;
+            RD : constant AWS.Response.Data
+              := AWS_Response_Out (S).Data;
          begin
-
-            ---------------------------
-            -- Process received data --
-            ---------------------------
-
-            <<Process_Received_Data>>
-
-            if F.State in Line_By_Line then
-
-               --  Processing data in line-by-line mode.
-
-               Extract_Data
-                 (F.In_Buf, New_Data, Data_Received,
-                  Use_Current => False,
-                  At_Position => New_Data_Position);
-               --  Peek at the newly-received data.
-
-               Scan_Line :
-               for I in New_Data.Offset
-                 .. New_Data.Offset + Data_Received - 1
-               loop
-                  case New_Data.Zone (I) is
-                     when Character'Pos (ASCII.CR) =>
-                        if F.CR_Seen then
-                           raise Protocol_Error;
-                           --  Two consecutive CRs.
-                        end if;
-
-                        F.CR_Seen := True;
-
-                     when Character'Pos (ASCII.LF) =>
-                        if not F.CR_Seen then
-                           raise Protocol_Error;
-                           --  LF not preceded with CR.
-                        end if;
-                        F.CR_Seen := False;
-
-                        begin
-                           Process_Line
-                             (F, Line_Length =>
-                                New_Data_Position - CDR_Position (F.In_Buf)
-                              + I - New_Data.Offset + 1);
-                        exception
-                           when E : others =>
-                              O ("Received exception in "
-                                 & F.State'Img & " state:", Error);
-                              O (Ada.Exceptions.Exception_Information (E),
-                                 Error);
-                              Clear_Message_State (F.all);
-                              if F.Role = Server then
-                                 Error (F, S_400_Bad_Request);
-                              else
-                                 --  XXX what to do on client side?
-                                 raise;
-                              end if;
-                              --  XXX close???
-                        end;
-
-                        --  Calculation of the length of the current line:
-                        --  New_Data_Position - CDR_Position = amount of data
-                        --    received  but not yet processed
-                        --    (the beginning of this line)
-                        --  I - I'First + 1 = amount of data now appended
-                        --    (the end of this line).
-
-                        New_Data_Position := CDR_Position (F.In_Buf);
-                        Data_Received := Length (F.In_Buf) - New_Data_Position;
-                        if Data_Received > 0 then
-                           goto Process_Received_Data;
-                        end if;
-                        --  Update state, and restart data processing if
-                        --  necessary (Process_Line may have changed F.State,
-                        --  so we cannot simply continue running Scan_Line).
-
-                     when others =>
-                        F.CR_Seen := False;
-                  end case;
-               end loop Scan_Line;
-
-               if CDR_Position (F.In_Buf) = Length (F.In_Buf) then
-                  --  All data currently in F.In_Buf has been processed,
-                  --  so release it (NB: in the HTTP filter, the initial
-                  --  position in the buffer is always 0.)
-                  Release_Contents (F.In_Buf.all);
-               end if;
-            else
-               --  Not in a line-by-line state: transferring entity.
-
-               pragma Assert
-                 (Data_Received <= Stream_Element_Count (F.Transfer_Length));
-
-               declare
-                  use PolyORB.Types;
-                  Data : PolyORB.Opaque.Opaque_Pointer;
-               begin
-                  PolyORB.Buffers.Extract_Data
-                    (F.In_Buf, Data, Data_Received, Use_Current => True);
-
-                  declare
-                     S : String (1 .. Integer (Data_Received));
-                     --  XXX BAD BAD do not allocate that on the stack!
-                  begin
-                     for I in S'Range loop
-                        S (I) := Character'Val
-                          (Data.Zone
-                           (Data.Offset
-                            + Stream_Element_Offset (I - S'First)));
-                     end loop;
-
-                     Append (F.Entity, S);
-                  end;
-
-                  F.Transfer_Length
-                    := F.Transfer_Length - Integer (Data_Received);
-
-                  if F.Transfer_Length = 0 then
-                     if F.Chunked then
-                        --  Got a complete chunk
-                        declare
-                           L : constant Integer := Length (F.Entity);
-                        begin
-                           if Slice (F.Entity, L - 1, L) /= CRLF then
-                              raise Protocol_Error;
-                              --  XXX chunk data not terminated by CRLF;
-                           end if;
-
-                           Delete (F.Entity, L - 1, L);
-                        end;
-
-                        --  End of chunk data, wait for next.
-                        F.State := Chunk_Size;
-                        F.Transfer_Length := -1;
-                     else
-                        Message_Complete (F);
-                     end if;
-                  end if;
-               end;
-            end if;
-
-            ----------------------------------------
-            -- Prepare for further data reception --
-            ----------------------------------------
-
-            --  At this point, all the received data have
-            --  been processed. Further data must now be Expected
-            --  according to the current state information (which
-            --  may have been modified by the above processing.
-
-            case F.Transfer_Length is
-               when -1 =>
-                  --  Either state is Start_Line, Header, Chunk_Size
-                  --  or (state is entity
-                  --      and transfer length is unknown).
-                  Expect_Data (F, F.In_Buf, Buffer_Size);
-
-               when 0 =>
-                  --  All expected data was received, upper layer
-                  --  has been notified (see calls to Message_Complete
-                  --  above).
-                  null;
-
-               when others =>
-                  Expect_Data
-                    (F, F.In_Buf, Stream_Element_Offset (F.Transfer_Length));
-
+            Release_Contents (F.Out_Buf.all);
+            case AWS.Response.Mode (RD) is
+               when AWS.Response.Header =>
+                  Prepare_Header_Only (F, RD);
+               when AWS.Response.Message =>
+                  Prepare_Message (F, RD);
             end case;
          end;
+         Emit_No_Reply (Lower (F), Data_Out'(Out_Buf => F.Out_Buf));
 
       elsif S in Set_Server then
          PolyORB.Components.Emit_No_Reply (F.Upper, S);
@@ -453,6 +321,194 @@ package body PolyORB.Filters.HTTP is
    ---------------------
    -- Implementations --
    ---------------------
+
+   procedure Handle_Data_Indication
+     (F : access HTTP_Filter;
+      S : Filters.Interface.Data_Indication)
+   is
+      use PolyORB.Buffers;
+
+      Data_Received : Stream_Element_Count
+        := Stream_Element_Count (S.Data_Amount);
+
+      New_Data : PolyORB.Opaque.Opaque_Pointer;
+      New_Data_Position : Stream_Element_Offset
+        := Length (F.In_Buf) - Data_Received;
+   begin
+
+      ---------------------------
+      -- Process received data --
+      ---------------------------
+
+      <<Process_Received_Data>>
+
+      if F.State in Line_By_Line then
+
+         ------------------------------------------
+         -- Processing data in line-by-line mode --
+         -- (header or chunk size line).         --
+         ------------------------------------------
+
+         Extract_Data
+           (F.In_Buf, New_Data, Data_Received,
+            Use_Current => False,
+            At_Position => New_Data_Position);
+         --  Peek at the newly-received data.
+
+         Scan_Line :
+         for I in New_Data.Offset
+           .. New_Data.Offset + Data_Received - 1
+         loop
+            case New_Data.Zone (I) is
+               when Character'Pos (ASCII.CR) =>
+                  if F.CR_Seen then
+                     raise Protocol_Error;
+                     --  Two consecutive CRs.
+                  end if;
+
+                  F.CR_Seen := True;
+
+               when Character'Pos (ASCII.LF) =>
+                  if not F.CR_Seen then
+                     raise Protocol_Error;
+                     --  LF not preceded with CR.
+                  end if;
+                  F.CR_Seen := False;
+
+                  begin
+                     Process_Line
+                       (F, Line_Length =>
+                          New_Data_Position - CDR_Position (F.In_Buf)
+                        + I - New_Data.Offset + 1);
+                  exception
+                     when E : others =>
+                        O ("Received exception in "
+                           & F.State'Img & " state:", Error);
+                        O (Ada.Exceptions.Exception_Information (E),
+                           Error);
+                        Clear_Message_State (F.all);
+                        if F.Role = Server then
+                           Error (F, S_400_Bad_Request);
+                        else
+                           --  XXX what to do on client side?
+                           raise;
+                        end if;
+                        --  XXX close???
+                  end;
+
+                  --  Calculation of the length of the current line:
+                  --  New_Data_Position - CDR_Position = amount of data
+                  --    received  but not yet processed
+                  --    (the beginning of this line)
+                  --  I - I'First + 1 = amount of data now appended
+                  --    (the end of this line).
+
+                  New_Data_Position := CDR_Position (F.In_Buf);
+                  Data_Received := Length (F.In_Buf) - New_Data_Position;
+                  if Data_Received > 0 then
+                     goto Process_Received_Data;
+                  end if;
+                  --  Update state, and restart data processing if
+                  --  necessary (Process_Line may have changed F.State,
+                  --  so we cannot simply continue running Scan_Line).
+
+               when others =>
+                  F.CR_Seen := False;
+            end case;
+         end loop Scan_Line;
+
+         if CDR_Position (F.In_Buf) = Length (F.In_Buf) then
+            --  All data currently in F.In_Buf has been processed,
+            --  so release it (NB: in the HTTP filter, the initial
+            --  position in the buffer is always 0.)
+            Release_Contents (F.In_Buf.all);
+         end if;
+
+      else
+
+         ------------------------------------------------------
+         -- Not in a line-by-line state: transferring entity --
+         ------------------------------------------------------
+
+         pragma Assert
+           (Data_Received <= Stream_Element_Count (F.Transfer_Length));
+
+         declare
+            use PolyORB.Types;
+            Data : PolyORB.Opaque.Opaque_Pointer;
+         begin
+            PolyORB.Buffers.Extract_Data
+              (F.In_Buf, Data, Data_Received, Use_Current => True);
+
+            declare
+               S : String (1 .. Integer (Data_Received));
+               --  XXX BAD BAD do not allocate that on the stack!
+            begin
+               for I in S'Range loop
+                  S (I) := Character'Val
+                    (Data.Zone
+                     (Data.Offset
+                      + Stream_Element_Offset (I - S'First)));
+               end loop;
+
+               Append (F.Entity, S);
+            end;
+
+            F.Transfer_Length
+              := F.Transfer_Length - Integer (Data_Received);
+
+            if F.Transfer_Length = 0 then
+               if F.Chunked then
+                  --  Got a complete chunk
+                  declare
+                     L : constant Integer := Length (F.Entity);
+                  begin
+                     if Slice (F.Entity, L - 1, L) /= CRLF then
+                        raise Protocol_Error;
+                        --  XXX chunk data not terminated by CRLF;
+                     end if;
+
+                     Delete (F.Entity, L - 1, L);
+                  end;
+
+                  --  End of chunk data, wait for next.
+                  F.State := Chunk_Size;
+                  F.Transfer_Length := -1;
+               else
+                  Message_Complete (F);
+               end if;
+            end if;
+         end;
+      end if;
+
+      ----------------------------------------
+      -- Prepare for further data reception --
+      ----------------------------------------
+
+      --  At this point, all the received data have
+      --  been processed. Further data must now be Expected
+      --  according to the current state information (which
+      --  may have been modified by the above processing.
+
+      case F.Transfer_Length is
+         when -1 =>
+            --  Either state is Start_Line, Header, Chunk_Size
+            --  or (state is entity
+            --      and transfer length is unknown).
+            Expect_Data (F, F.In_Buf, Buffer_Size);
+
+         when 0 =>
+            --  All expected data was received, upper layer
+            --  has been notified (see calls to Message_Complete
+            --  above).
+            null;
+
+         when others =>
+            Expect_Data
+              (F, F.In_Buf, Stream_Element_Offset (F.Transfer_Length));
+
+      end case;
+   end Handle_Data_Indication;
 
    procedure Process_Line
      (F : access HTTP_Filter;
@@ -612,14 +668,20 @@ package body PolyORB.Filters.HTTP is
       Pos := Separator + 1;
    end Parse_CSL_Item;
 
-   function Image (V : HTTP_Version) return String is
-      Major_Image : constant String := V.Major'Img;
-      Minor_Image : constant String := V.Minor'Img;
+   function Image (I : Integer) return String
+   is
+      II : constant String := Integer'Image (I);
    begin
-      return HTTP_Slash
-        & Major_Image (Major_Image'First + 1 .. Major_Image'Last)
-        & "."
-        & Minor_Image (Minor_Image'First + 1 .. Minor_Image'Last);
+      if I > 0 then
+         return II (II'First + 1 .. II'Last);
+      else
+         return II;
+      end if;
+   end Image;
+
+   function Image (V : HTTP_Version) return String is
+   begin
+      return HTTP_Slash & Image (V.Major) & "." & Image (V.Minor);
    end Image;
 
    function Parse_Hex (S : String) return Natural is
@@ -899,12 +961,33 @@ package body PolyORB.Filters.HTTP is
    function To_Integer is new Ada.Unchecked_Conversion
      (HTTP_Status_Code, Integer);
 
-   procedure Put_Status_Line (F : HTTP_Filter; Status : HTTP_Status_Code);
+   --------------------------------------
+   -- Preparation of outgoing messages --
+   --------------------------------------
 
-   procedure Put_Status_Line (F : HTTP_Filter; Status : HTTP_Status_Code) is
+   procedure New_Line (F : access HTTP_Filter);
+   procedure Put_Line (F : access HTTP_Filter; S : String);
+
+   function Header
+     (H : PolyORB.HTTP_Headers.Header; Value : String)
+     return String;
+
+   procedure Put_Status_Line
+     (F : access HTTP_Filter; Status : HTTP_Status_Code);
+
+   function Header
+     (H : PolyORB.HTTP_Headers.Header; Value : String)
+     return String is
    begin
-      PolyORB.Utils.Text_Buffers.Marshall_String
-        (F.Out_Buf,
+      return PolyORB.HTTP_Headers.To_String (H) & ": " & Value;
+   end Header;
+
+   procedure Put_Status_Line
+     (F : access HTTP_Filter; Status : HTTP_Status_Code)
+   is
+   begin
+      Put_Line
+        (F,
          Image (F.Version)
          --  XXX Should we reply with that version?
          & Integer'Image (To_Integer (Status)) & " "
@@ -913,9 +996,112 @@ package body PolyORB.Filters.HTTP is
 
    procedure Error (F : access HTTP_Filter; Status : HTTP_Status_Code) is
    begin
-      Put_Status_Line (F.all, Status);
+      Put_Status_Line (F, Status);
       Clear_Message_State (F.all);
       Emit_No_Reply (Lower (F), Data_Out'(Out_Buf => F.Out_Buf));
    end Error;
+
+   procedure New_Line (F : access HTTP_Filter)
+   is
+      use PolyORB.Utils.Text_Buffers;
+   begin
+      Marshall_Char (F.Out_Buf, ASCII.CR);
+      Marshall_Char (F.Out_Buf, ASCII.LF);
+   end New_Line;
+
+   procedure Put_Line (F : access HTTP_Filter; S : String) is
+   begin
+      PolyORB.Utils.Text_Buffers.Marshall_String (F.Out_Buf, S);
+      New_Line (F);
+   end Put_Line;
+
+   use PolyORB.HTTP_Headers;
+
+   --  The procedures Prepare_* are adapted from those
+   --  in AWS.Server.Protocol_Handler.
+
+   procedure Prepare_General_Header
+     (F : access HTTP_Filter;
+      RD : AWS.Response.Data)
+   is
+   begin
+      --  Put_Line (F, Header (H_Date, To_HTTP_Date (OS_Lib.GMT_Clock)));
+      Put_Line (F, Header (H_Server, "PolyORB"));
+
+      --  Connection
+
+--       if Will_Close then
+--          --  If there is no connection received we assume a non
+--          --  Keep-Alive connection.
+
+--          Put_Line (F, Header (H_Connection, "close"));
+--       else
+--       Put_Line (F, Messages.Connection
+--         (AWS.Status.Connection (C_Stat)));
+--       end if;
+      --  XXX What should we truly do here?
+
+   end Prepare_General_Header;
+
+   procedure Prepare_Header_Only
+     (F : access HTTP_Filter;
+      RD : AWS.Response.Data)
+   is
+      Status : constant HTTP_Status_Code
+        := AWS.Response.Status_Code (RD);
+   begin
+      Put_Status_Line (F, Status);
+      Prepare_General_Header (F, RD);
+
+      --  There is no content
+      Put_Line (F, Header (H_Content_Length, "0"));
+
+      if Status = S_401_Unauthorized then
+         Put_Line
+           (F, Header (H_WWW_Authenticate,
+                       "Basic realm="""
+                       & AWS.Response.Realm (RD) & """"));
+      end if;
+
+      --  End of header
+      New_Line (F);
+   end Prepare_Header_Only;
+
+   procedure Prepare_Message
+     (F : access HTTP_Filter;
+      RD : AWS.Response.Data)
+   is
+      Status : constant HTTP_Status_Code
+        := AWS.Response.Status_Code (RD);
+   begin
+      Put_Status_Line (F, Status);
+      if Status = S_301_Moved_Permanently then
+         Put_Line
+           (F, Header (H_Location, AWS.Response.Location (RD)));
+      end if;
+      Prepare_General_Header (F, RD);
+
+      Put_Line (F, Header
+                  (H_Content_Length,
+                   Image (AWS.Response.Content_Length (RD))));
+
+      Put_Line (F, Header
+                  (H_Content_Type,
+                   AWS.Response.Content_Type (RD)));
+
+      if Status = S_401_Unauthorized then
+         Put_Line
+           (F, Header (H_WWW_Authenticate,
+                       "Basic realm="""
+                       & AWS.Response.Realm (RD) & """"));
+      end if;
+
+      --  End of headers.
+
+      New_Line (F);
+
+      Put_Line (F, AWS.Response.Message_Body (RD));
+      --  XXX could be more clever and send it chunked...
+   end Prepare_Message;
 
 end PolyORB.Filters.HTTP;

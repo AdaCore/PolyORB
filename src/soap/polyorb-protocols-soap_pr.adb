@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---              P O L Y O R B . P R O T O C O L S . S O A P                 --
+--            P O L Y O R B . P R O T O C O L S . S O A P _ P R             --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -43,6 +43,7 @@ with SOAP.Parameters;
 with PolyORB.Annotations;
 with PolyORB.Binding_Data;
 with PolyORB.Binding_Data.Local;
+with PolyORB.Filters.AWS_Interface;
 with PolyORB.Filters.Interface;
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
@@ -131,18 +132,17 @@ package body PolyORB.Protocols.SOAP_Pr is
          declare
             RD : AWS.Response.Data
               := SOAP.Message.Response.Build (RO);
-            --  XXX possible abstraction violation detected!
-            --  Here we construct an /AWS/ response object.
-            --  Does this mean we assume that this SOAP engine
-            --  is bound to an HTTP engine? (esp. considering that
-            --  AWS.Response.Data contains an /HTTP/ status code. :( ).
-            --  (but that also means that AWS suffers from the same
-            --  abstraction violation).
-            pragma Warnings (Off, RD);
-            --  XXX not referenced yet
+
+            --  Here we depend on a violation of abstraction:
+            --  we construct an /AWS/ response object, and
+            --  AWS is HTTP-specific. This is a shortcoming
+            --  of the AWS SOAP engine. It is unknown yet whether
+            --  this violation can be easily removed.
          begin
-            --  XXX send out RD.
-            raise Not_Implemented;
+            PolyORB.Components.Emit_No_Reply
+              (Lower (S),
+               PolyORB.Filters.AWS_Interface.AWS_Response_Out'
+               (Data => RD));
          end;
       end;
    end Send_Reply;

@@ -365,6 +365,7 @@ src/soap/aws-response.adb
 src/soap/aws-response.ads
 src/soap/aws.ads
 src/soap/gen_keywords
+src/soap/polyorb-filters-aws_interface.ads
 src/soap/polyorb-filters-http.adb
 src/soap/polyorb-filters-http.ads
 src/soap/polyorb-http_headers.adb

@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---            P O L Y O R B . P R O T O C O L S . S O A P _ P R             --
+--        P O L Y O R B . F I L T E R S . A W S _ I N T E R F A C E         --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -30,59 +30,21 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  Messages exchanged by AWS-based filters and components.
+
 --  $Id$
 
-with PolyORB.Buffers;
-with PolyORB.ORB;
-with PolyORB.Types;
+with AWS.Response;
+with PolyORB.Filters.Interface;
 
-package PolyORB.Protocols.SOAP_Pr is
+package PolyORB.Filters.AWS_Interface is
 
-   pragma Elaborate_Body;
+   use PolyORB.Filters.Interface;
 
-   type SOAP_Protocol is new Protocol with private;
-
-   type SOAP_Session is new Session with private;
-
-   procedure Create
-     (Proto   : access SOAP_Protocol;
-      Session : out Filter_Access);
-
-   procedure Invoke_Request
-     (S   : access SOAP_Session;
-      R   : Requests.Request_Access);
-
-   procedure Abort_Request
-     (S : access SOAP_Session;
-      R : Requests.Request_Access);
-
-   procedure Send_Reply
-     (S : access SOAP_Session;
-      R : Requests.Request_Access);
-
-   procedure Handle_Connect_Indication (S : access SOAP_Session);
-
-   procedure Handle_Connect_Confirmation (S : access SOAP_Session);
-
-   procedure Handle_Data_Indication
-     (S : access SOAP_Session;
-     Data_Amount : Ada.Streams.Stream_Element_Count);
-
-   procedure Handle_Disconnect (S : access SOAP_Session);
-
-private
-
-   type SOAP_Protocol is new Protocol with null record;
-
-   type SOAP_Session is new Session with record
-      In_Buf : PolyORB.Buffers.Buffer_Access;
-      Role   : PolyORB.ORB.Endpoint_Role;
-      Target : PolyORB.Types.String;
+   type AWS_Response_Out is new Root_Data_Unit with record
+      --  Direction: from upper to lower.
+      --  Semantics: send AWS response out.
+      Data : AWS.Response.Data;
    end record;
 
-   function Handle_Message
-     (Sess : access SOAP_Session;
-      S : Components.Message'Class)
-     return Components.Message'Class;
-
-end PolyORB.Protocols.SOAP_Pr;
+end PolyORB.Filters.AWS_Interface;
