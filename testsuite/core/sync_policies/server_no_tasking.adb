@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---              P O L Y O R B . T E S T . N O _ T A S K I N G               --
+--                    S E R V E R _ N O _ T A S K I N G                     --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -32,8 +32,6 @@
 ------------------------------------------------------------------------------
 
 --  Setup a test server with no tasking at all.
-
---  $Id$
 
 with PolyORB.Initialization;
 with PolyORB.ORB;

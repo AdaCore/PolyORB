@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---              P O L Y O R B . T E S T _ O B J E C T _ P O A               --
+--                          P I N G _ O B J E C T                           --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -30,8 +30,6 @@
 --                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
-
---  $Id$
 
 with Ada.Exceptions;
 with Ada.Text_IO;
