@@ -54,49 +54,55 @@ pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
 
 procedure Server is
 begin
-   CORBA.ORB.Initialize ("ORB");
 
    declare
-      Root_POA : PortableServer.POA.Ref;
-
-      Ref : CORBA.Object.Ref;
-
-      Obj : constant CORBA.Impl.Object_Ptr := new Echo.Impl.Object;
+      Argv : CORBA.ORB.Arg_List := CORBA.ORB.Command_Line_Arguments;
 
    begin
+      CORBA.ORB.Init (CORBA.ORB.To_CORBA_String ("ORB"), Argv);
 
-      --  Retrieve Root POA
+      declare
+         Root_POA : PortableServer.POA.Ref;
 
-      Root_POA := PortableServer.POA.To_Ref
-        (CORBA.ORB.Resolve_Initial_References
-         (CORBA.ORB.To_CORBA_String ("RootPOA")));
+         Ref : CORBA.Object.Ref;
 
-      PortableServer.POAManager.Activate
-        (PortableServer.POA.Get_The_POAManager (Root_POA));
+         Obj : constant CORBA.Impl.Object_Ptr := new Echo.Impl.Object;
 
-      --  Set up new object
+      begin
 
-      Ref := PortableServer.POA.Servant_To_Reference
-        (Root_POA, PortableServer.Servant (Obj));
+         --  Retrieve Root POA
 
-      --  Output IOR
+         Root_POA := PortableServer.POA.To_Ref
+           (CORBA.ORB.Resolve_Initial_References
+            (CORBA.ORB.To_CORBA_String ("RootPOA")));
 
-      Ada.Text_IO.Put_Line
-        ("'"
-         & CORBA.To_Standard_String (CORBA.Object.Object_To_String (Ref))
-         & "'");
-      Ada.Text_IO.New_Line;
+         PortableServer.POAManager.Activate
+           (PortableServer.POA.Get_The_POAManager (Root_POA));
 
-      --  Output corbaloc
+         --  Set up new object
 
-      Ada.Text_IO.Put_Line
-        ("'"
-         & CORBA.To_Standard_String
-         (PolyORB.CORBA_P.CORBALOC.Object_To_Corbaloc (Ref))
-         & "'");
+         Ref := PortableServer.POA.Servant_To_Reference
+           (Root_POA, PortableServer.Servant (Obj));
 
-      --  Launch the server
+         --  Output IOR
 
-      CORBA.ORB.Run;
+         Ada.Text_IO.Put_Line
+           ("'"
+            & CORBA.To_Standard_String (CORBA.Object.Object_To_String (Ref))
+            & "'");
+         Ada.Text_IO.New_Line;
+
+         --  Output corbaloc
+
+         Ada.Text_IO.Put_Line
+           ("'"
+            & CORBA.To_Standard_String
+            (PolyORB.CORBA_P.CORBALOC.Object_To_Corbaloc (Ref))
+            & "'");
+
+         --  Launch the server
+
+         CORBA.ORB.Run;
+      end;
    end;
 end Server;
