@@ -40,9 +40,12 @@ private
 
    type String_Access is access all String;
 
-   type What_To_Do is (Reorder_SubTable,Reorder_Table,Do_Nothing,Insert_Item);
-   -- What_To_Do is en enum type used by Insert in order to indicates
-   -- what to do after
+   type What_To_Do is (Reorder_SubTable,
+                       Reorder_Table,
+                       Do_Nothing,
+                       Insert_Item);
+   --  What_To_Do is en enum type used by Insert in order to indicates
+   --  what to do after
 
    type Element is record
       Key       : String_Access;
@@ -99,18 +102,17 @@ private
       Elements  : Element_Array_Ptr;
       Subtables : Subtable_Array_Ptr;
    end record;
-   --  Info      contained the variables of the table (see above for
-   --            details)
-   --  Elements  is the array where all the elements are stored
-   --  SubTables is the array which contains all the informations
-   --            specific to the sub_tables. His size is equal to
-   --            to Info.N_Sub_Tables. Each structure of the array
-   --            contains the parameters for the sub-table hash function
-   --            except the prime number stored in Info.Prime. In addition
-   --            it contains the limit of each sub-table in the table Elements.
-   --            We can notes that :
-   --            ...< Subtables.all(i).First < Subtables.all(i).Last
-   --            < Subtables.all(i+1).First < Subtables.all(i+1).Last < ...
+   --  Info contained the variables of the table (see above for
+   --  details).
+   --  Elements is the array where all the elements are stored.
+   --  Subtables is the array which contains all the informations
+   --  specific to the sub_tables. His size is equal to Info.N_Sub_Tables.
+   --  Each structure of the array contains the parameters for the sub-table
+   --  hash function except the prime number stored in Info.Prime. In addition
+   --  it contains the limit of each sub-table in the table Elements.
+   --  We can note that :
+   --          ..< Subtables.all (i).First   < Subtables.all (i).Last   <
+   --              Subtables.all (i+1).First < Subtables.all (i+1).Last <..
 
    procedure Initialize
      (T      : out Hash_Table;
@@ -129,11 +131,11 @@ private
       Key       : String;
       ST_Index  : out Natural;
       ST_Offset : out Natural;
-      OK        : out Boolean);
+      Found     : out Boolean);
    --  Find key in hash table. Key is the string to hash. ST_Index
    --  corresponds to the subtable index and ST_Offset to the offset
-   --  in this subtable. When Key does not exist, OK is set to False.
-   --  If Key exists Ok is set to True
+   --  in this subtable. When Key does not exist, Found is set to False.
+   --  If Key exists Found is set to True
 
    procedure Insert
      (T         : Hash_Table;
@@ -158,5 +160,7 @@ private
       Key : String);
    --  Delete key in hash table. In case of a non-existing Key, Delete
    --  ignores deletion. Key is the string to hash.
+   --  When a Key is deleted, it's not physically. Indeed it puts just
+   --  the tag Used to False
 
 end PolyORB.Utils.HTables;

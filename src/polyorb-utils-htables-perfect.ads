@@ -38,6 +38,8 @@ generic
    type Item is private;
 package PolyORB.Utils.HTables.Perfect is
 
+   type Item_Access is access all Item;
+
    type Table is private;
 
    procedure Initialize
@@ -50,18 +52,19 @@ package PolyORB.Utils.HTables.Perfect is
 
    procedure Finalize
      (T : in out Table);
-    --  Deallocate all the internal structures.
+   --  Deallocate all the internal structures.
 
-   function Lookup
+   procedure Lookup
      (T     : Table;
       Key   : String;
-      Value : out Item;
-      OK    : out Boolean);
+      Value : out Item_Access;
+      Found : out Boolean);
    --  Find key in hash table.
    --  Key is the string to hash.
-   --  Value is Item associated with Key
-   --  When Key does not exist, OK is set to False.
-   --  If Key exists Ok is set to True
+   --  Value_Access is a reference to the Item associated with Key
+   --  XXXXX Is Value a reference to a copy of the Item or not ????
+   --  When Key does not exist, Found is set to False.
+   --  If Key exists Found is set to True
 
    procedure Insert
      (T     : Table;
@@ -70,16 +73,21 @@ package PolyORB.Utils.HTables.Perfect is
    --  Insert (Key, Value) in hash table.
    --  Key is the string to hash and Value its corresponding value.
    --  If Key already exists, nothing is done
+   --  This procedure uses the procedure Insert of polyorb.utils.htables.ads
+   --  and it rorganizes if necessary the table or the sub_tables. In
+   --  addition,it inserts Value in the table Items (see below)
 
    procedure Delete
      (T   : Table;
       Key : String);
    --  Delete key in hash table. In case of a non-existing Key, Delete
-   --  ignores deletion. Key is the string to hash.
+   --  ignores deletion. Key is the string to hash. This procedure only put
+   --  the flag Used to False. Deallocations appears only after reorganisation
+   --  of the table or a sub-table (procedure Insert)
 
 private
 
-   type Item_Access is access all Item;
+
    type Item_Array is array (Natural range <>) of Item_Access;
    type Item_Array_Ptr is access all Item_Array;
 
@@ -87,10 +95,10 @@ private
       HTable : Hash_Table;
       Items  : Item_Array_Ptr;
    end record;
-   -- Table is the agregation of an Hash_Table (non-generic) and
-   -- and an array (generic) which contains the Values associated
-   -- with the Keys. We can note that HTable.Elements.all and Items.all
-   -- have the same size. Indeed if a Key is stored in HTable.Elements.all(i)
-   -- then his value is stored in Items.all(i)
+   --  Table is the agregation of an Hash_Table (non-generic) and
+   --  and an array (generic) which contains the Values associated
+   --  with the Keys. We can note that HTable.Elements.all and Items.all
+   --  have the same size. Indeed if a Key is stored in HTable.Elements(i)
+   --  then his value is stored in Items(i)
 
 end PolyORB.Utils.HTables.Perfect;
