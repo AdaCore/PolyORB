@@ -960,7 +960,7 @@ package body PolyORB.ORB is
          --  XXX for 'Current'
 
          declare
-            Result : constant Components.Message'class
+            Result : constant Components.Message'Class
               := Emit (Surrogate,
                        Objects.Interface.Execute_Request'
                        (Req => J.Request,
