@@ -612,7 +612,7 @@ package body Exp_Dist is
       Reserve_NamingContext_Methods;
 
       Current_Declaration := First (Visible_Declarations (Pkg_Spec));
-      while Current_Declaration /= Empty loop
+      while Present (Current_Declaration) loop
          if Nkind (Current_Declaration) = N_Subprogram_Declaration
            and then Comes_From_Source (Current_Declaration)
          then
@@ -1102,7 +1102,7 @@ package body Exp_Dist is
 
       Is_Degenerate := False;
       Current_Parameter := First (Parameter_Specifications (Type_Def));
-      Parameters : while Current_Parameter /= Empty loop
+      Parameters : while Present (Current_Parameter) loop
          if Nkind (Parameter_Type (Current_Parameter))
            = N_Access_Definition
          then
@@ -1473,7 +1473,7 @@ package body Exp_Dist is
 
       Current_Declaration       : Node_Id;
       Current_Stubs             : Node_Id;
-      Current_Subprogram_Number : Int := 0;
+      Current_Subprogram_Number : Int := First_RCI_Subprogram_Id;
 
       Subp_Info_Array : constant Entity_Id :=
         Make_Defining_Identifier (Loc, New_Internal_Name ('I'));
@@ -1604,7 +1604,7 @@ package body Exp_Dist is
         Has_All_Calls_Remote (Defining_Entity (Pkg_Spec)));
 
       Current_Declaration := First (Visible_Declarations (Pkg_Spec));
-      while Current_Declaration /= Empty loop
+      while Present (Current_Declaration) loop
          if Nkind (Current_Declaration) = N_Subprogram_Declaration
            and then Comes_From_Source (Current_Declaration)
          then
@@ -1631,6 +1631,8 @@ package body Exp_Dist is
                Proxy_Object_Addr : Entity_Id;
 
             begin
+               pragma Assert (Current_Subprogram_Number =
+                 Get_Subprogram_Id (Subp_Def));
 
                --  Build receiving stub
 
@@ -2220,8 +2222,7 @@ package body Exp_Dist is
       Declare_Create_NVList (Loc, Arguments, Decls, Statements);
 
       Current_Parameter := First (Ordered_Parameters_List);
-
-      while Current_Parameter /= Empty loop
+      while Present (Current_Parameter) loop
 
          if Is_RACW_Controlling_Formal (Current_Parameter, Stub_Type) then
             Is_Controlling_Formal := True;
@@ -2528,7 +2529,7 @@ package body Exp_Dist is
          Append_List_To (Statements, Non_Asynchronous_Statements);
 
       else
-         pragma Assert (Asynchronous /= Empty);
+         pragma Assert (Present (Asynchronous));
 --           Prepend_To (Asynchronous_Statements,
 --             Make_Attribute_Reference (Loc,
 --               Prefix         => New_Occurrence_Of (Standard_Boolean, Loc),
@@ -2615,7 +2616,7 @@ package body Exp_Dist is
       --  Loop through the parameters and add them to the right list
 
       Current_Parameter := First (Parameter_Specifications (Spec));
-      while Current_Parameter /= Empty loop
+      while Present (Current_Parameter) loop
          if Nkind (Parameter_Type (Current_Parameter)) = N_Access_Definition
              or else
            Is_Constrained (Etype (Parameter_Type (Current_Parameter)))
@@ -2692,8 +2693,8 @@ package body Exp_Dist is
 
    function Build_Remote_Subprogram_Proxy_Type
      (Loc            : Source_Ptr;
-      ACR_Expression : Node_Id)
-     return Node_Id is
+      ACR_Expression : Node_Id) return Node_Id
+   is
    begin
       return
         Make_Record_Definition (Loc,
@@ -2907,7 +2908,7 @@ package body Exp_Dist is
       --  Find a controlling argument if we have a stub type. Also check
       --  if this subprogram can be made asynchronous.
 
-      if Stub_Type /= Empty
+      if Present (Stub_Type)
          and then Present (Parameter_Specifications (Spec_To_Use))
       then
          declare
@@ -2915,7 +2916,7 @@ package body Exp_Dist is
                                   First (Parameter_Specifications
                                            (Spec_To_Use));
          begin
-            while Current_Parameter /= Empty loop
+            while Present (Current_Parameter) loop
 
                if
                  Is_RACW_Controlling_Formal (Current_Parameter, Stub_Type)
@@ -3087,7 +3088,7 @@ package body Exp_Dist is
       Dynamic_Async : Entity_Id;
 
    begin
-      if RACW_Type /= Empty then
+      if Present (RACW_Type) then
          Called_Subprogram :=
            New_Occurrence_Of (Parent_Primitive, Loc);
       else
@@ -3115,7 +3116,7 @@ package body Exp_Dist is
       --  'Input at the point of declaration.
 
       Current_Parameter := First (Ordered_Parameters_List);
-      while Current_Parameter /= Empty loop
+      while Present (Current_Parameter) loop
          declare
             Etyp        : Entity_Id;
             Constrained : Boolean;
@@ -3582,7 +3583,7 @@ package body Exp_Dist is
       if Present (Parameter_Specifications (Spec)) then
          Parameters        := New_List;
          Current_Parameter := First (Parameter_Specifications (Spec));
-         while Current_Parameter /= Empty loop
+         while Present (Current_Parameter) loop
             Current_Identifier := Defining_Identifier (Current_Parameter);
             Current_Type       := Parameter_Type (Current_Parameter);
 
@@ -3605,7 +3606,7 @@ package body Exp_Dist is
             else
                Current_Etype := Entity (Current_Type);
 
-               if Object_Type /= Empty
+               if Present (Object_Type)
                  and then Current_Etype = Object_Type
                then
                   Current_Type := New_Occurrence_Of (Stub_Type, Loc);
@@ -3677,7 +3678,7 @@ package body Exp_Dist is
    begin
       if Present (Parameter_Specifications (Spec)) then
          Current_Parameter := First (Parameter_Specifications (Spec));
-         while Current_Parameter /= Empty loop
+         while Present (Current_Parameter) loop
             if Out_Present (Current_Parameter) then
                return False;
             end if;
@@ -4673,7 +4674,7 @@ package body Exp_Dist is
          Current_Declaration :=
            First (Visible_Declarations
              (Package_Specification_Of_Scope (Scope (Def))));
-         while Current_Declaration /= Empty loop
+         while Present (Current_Declaration) loop
             if Nkind (Current_Declaration) = N_Subprogram_Declaration
               and then Comes_From_Source (Current_Declaration)
             then
@@ -4828,7 +4829,7 @@ package body Exp_Dist is
       Typ : Entity_Id;
 
    begin
-      if Etyp /= Empty then
+      if Present (Etyp) then
          Typ := Etyp;
       else
          Typ := Etype (Object);
