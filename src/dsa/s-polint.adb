@@ -306,6 +306,11 @@ package body System.PolyORB_Interface is
       return Integer (PolyORB.Types.Long'(From_Any (Item)));
    end FA_I;
 
+   function FA_U (Item : PolyORB.Any.Any) return Unsigned is
+   begin
+      return Unsigned (PolyORB.Types.Unsigned_Long'(From_Any (Item)));
+   end FA_U;
+
    function FA_LF (Item : PolyORB.Any.Any) return Long_Float is
    begin
       return Long_Float (PolyORB.Types.Double'(From_Any (Item)));
@@ -315,6 +320,11 @@ package body System.PolyORB_Interface is
    begin
       return Long_Integer (PolyORB.Types.Long'(From_Any (Item)));
    end FA_LI;
+
+   function FA_LU (Item : PolyORB.Any.Any) return Long_Unsigned is
+   begin
+      return Long_Unsigned (PolyORB.Types.Unsigned_Long'(From_Any (Item)));
+   end FA_LU;
 
    function FA_LLF (Item : PolyORB.Any.Any) return Long_Long_Float is
    begin
@@ -326,6 +336,12 @@ package body System.PolyORB_Interface is
       return Long_Long_Integer (PolyORB.Types.Long_Long'(From_Any (Item)));
    end FA_LLI;
 
+   function FA_LLU (Item : PolyORB.Any.Any) return Long_Long_Unsigned is
+   begin
+      return Long_Long_Unsigned
+        (PolyORB.Types.Unsigned_Long_Long'(From_Any (Item)));
+   end FA_LLU;
+
    function FA_SF (Item : PolyORB.Any.Any) return Short_Float is
    begin
       return Short_Float (PolyORB.Types.Float'(From_Any (Item)));
@@ -335,6 +351,11 @@ package body System.PolyORB_Interface is
    begin
       return Short_Integer (PolyORB.Types.Short'(From_Any (Item)));
    end FA_SI;
+
+   function FA_SU (Item : PolyORB.Any.Any) return Short_Unsigned is
+   begin
+      return Short_Unsigned (PolyORB.Types.Short'(From_Any (Item)));
+   end FA_SU;
 
    function FA_SSI (Item : PolyORB.Any.Any) return Short_Short_Integer is
       function To_SSI is new Ada.Unchecked_Conversion
@@ -401,6 +422,20 @@ package body System.PolyORB_Interface is
          return RPC.Partition_ID (FA_I (Result.Argument));
       end;
    end Get_Active_Partition_ID;
+
+   function Get_Aggregate_Element
+     (Value : Any;
+      Tc    : PolyORB.Any.TypeCode.Object;
+      Index : System.Unsigned_Types.Long_Unsigned)
+      return Any is
+   begin
+      return PolyORB.Any.Get_Aggregate_Element
+        (Value, Tc, PolyORB.Types.Unsigned_Long (Index));
+   end Get_Aggregate_Element;
+
+   ----------------------------
+   -- Get_Local_Partition_ID --
+   ----------------------------
 
    Local_Partition_ID : RPC.Partition_ID;
    Local_Partition_ID_Allocated : Boolean := False;
@@ -1146,6 +1181,11 @@ package body System.PolyORB_Interface is
       return To_Any (PolyORB.Types.Long (Item));
    end TA_I;
 
+   function TA_U (Item : Unsigned) return PolyORB.Any.Any is
+   begin
+      return To_Any (PolyORB.Types.Unsigned_Long (Item));
+   end TA_U;
+
    function TA_LF (Item : Long_Float) return PolyORB.Any.Any is
    begin
       return To_Any (PolyORB.Types.Double (Item));
@@ -1155,6 +1195,11 @@ package body System.PolyORB_Interface is
    begin
       return To_Any (PolyORB.Types.Long (Item));
    end TA_LI;
+
+   function TA_LU (Item : Long_Unsigned) return PolyORB.Any.Any is
+   begin
+      return To_Any (PolyORB.Types.Unsigned_Long (Item));
+   end TA_LU;
 
    function TA_LLF (Item : Long_Long_Float) return PolyORB.Any.Any is
    begin
@@ -1166,6 +1211,11 @@ package body System.PolyORB_Interface is
       return To_Any (PolyORB.Types.Long_Long (Item));
    end TA_LLI;
 
+   function TA_LLU (Item : Long_Long_Unsigned) return PolyORB.Any.Any is
+   begin
+      return To_Any (PolyORB.Types.Unsigned_Long_Long (Item));
+   end TA_LLU;
+
    function TA_SF (Item : Short_Float) return PolyORB.Any.Any is
    begin
       return To_Any (PolyORB.Types.Float (Item));
@@ -1175,6 +1225,11 @@ package body System.PolyORB_Interface is
    begin
       return To_Any (PolyORB.Types.Short (Item));
    end TA_SI;
+
+   function TA_SU (Item : Short_Unsigned) return PolyORB.Any.Any is
+   begin
+      return To_Any (PolyORB.Types.Unsigned_Short (Item));
+   end TA_SU;
 
    function TA_SSI (Item : Short_Short_Integer) return PolyORB.Any.Any is
       function To_Octet is new Ada.Unchecked_Conversion

@@ -268,6 +268,11 @@ package System.PolyORB_Interface is
       return Any
      renames PolyORB.Any.Get_Empty_Any;
 
+   function Get_Empty_Any_Aggregate
+     (Tc : PolyORB.Any.TypeCode.Object)
+      return Any
+     renames PolyORB.Any.Get_Empty_Any_Aggregate;
+
    subtype NVList_Ref is PolyORB.Any.NVList.Ref;
    procedure NVList_Create (NVList : out PolyORB.Any.NVList.Ref)
      renames PolyORB.Any.NVList.Create;
@@ -281,6 +286,13 @@ package System.PolyORB_Interface is
 
    --  Elementary From_Any and To_Any operations
 
+   subtype Unsigned is System.Unsigned_Types.Unsigned;
+   subtype Long_Unsigned is
+     System.Unsigned_Types.Long_Unsigned;
+   subtype Long_Long_Unsigned is
+     System.Unsigned_Types.Long_Long_Unsigned;
+   subtype Short_Unsigned is
+     System.Unsigned_Types.Short_Unsigned;
    subtype Short_Short_Unsigned is
      System.Unsigned_Types.Short_Short_Unsigned;
 
@@ -290,18 +302,22 @@ package System.PolyORB_Interface is
    function FA_C (Item : Any) return Character;
    function FA_F (Item : Any) return Float;
    function FA_I (Item : Any) return Integer;
+   function FA_U (Item : Any) return Unsigned;
+
    function FA_LF (Item : Any) return Long_Float;
    function FA_LI (Item : Any) return Long_Integer;
+   function FA_LU (Item : Any) return Long_Unsigned;
+
    function FA_LLF (Item : Any) return Long_Long_Float;
    function FA_LLI (Item : Any) return Long_Long_Integer;
---       function FA_LLU (Item : Any) return X;
---       function FA_LU (Item : Any) return X;
+   function FA_LLU (Item : Any) return Long_Long_Unsigned;
+
    function FA_SF (Item : Any) return Short_Float;
    function FA_SI (Item : Any) return Short_Integer;
+   function FA_SU (Item : Any) return Short_Unsigned;
+
    function FA_SSI (Item : Any) return Short_Short_Integer;
    function FA_SSU (Item : Any) return Short_Short_Unsigned;
---       function FA_SU (Item : Any) return X;
---       function FA_U (Item : Any) return X;
    function FA_WC (Item : Any) return Wide_Character;
 
    function FA_String (Item : Any) return String;
@@ -317,18 +333,18 @@ package System.PolyORB_Interface is
    function TA_C (Item : Character) return Any;
    function TA_F (Item : Float) return Any;
    function TA_I (Item : Integer) return Any;
+   function TA_U (Item : Unsigned) return Any;
    function TA_LF (Item : Long_Float) return Any;
    function TA_LI (Item : Long_Integer) return Any;
+   function TA_LU (Item : Long_Unsigned) return Any;
    function TA_LLF (Item : Long_Long_Float) return Any;
    function TA_LLI (Item : Long_Long_Integer) return Any;
---     function TA_LLU (X) return Any;
---     function TA_LU (X) return Any;
+   function TA_LLU (Item : Long_Long_Unsigned) return Any;
    function TA_SF (Item : Short_Float) return Any;
    function TA_SI (Item : Short_Integer) return Any;
+   function TA_SU (Item : Short_Unsigned) return Any;
    function TA_SSI (Item : Short_Short_Integer) return Any;
    function TA_SSU (Item : Short_Short_Unsigned) return Any;
---     function TA_SU (X) return Any;
---     function TA_U (X) return Any;
    function TA_WC (Item : Wide_Character) return Any;
 
    function TA_String (S : String) return Any;
@@ -398,6 +414,9 @@ package System.PolyORB_Interface is
    function TC_Alias return PolyORB.Any.TypeCode.Object
      renames PolyORB.Any.TypeCode.TC_Alias;
    --  Empty Tk_Alias typecode.
+   function TC_Array return PolyORB.Any.TypeCode.Object
+     renames PolyORB.Any.TypeCode.TC_Array;
+   --  Empty Tk_Array typecode.
    function TC_Struct return PolyORB.Any.TypeCode.Object
      renames PolyORB.Any.TypeCode.TC_Struct;
    --  Empty Tk_Struct typecode.
@@ -425,9 +444,8 @@ package System.PolyORB_Interface is
    function Get_Aggregate_Element
      (Value : Any;
       Tc    : PolyORB.Any.TypeCode.Object;
-      Index : PolyORB.Types.Unsigned_Long)
-      return Any
-     renames PolyORB.Any.Get_Aggregate_Element;
+      Index : System.Unsigned_Types.Long_Unsigned)
+      return Any;
 
    --------------
    -- Requests --
@@ -482,13 +500,15 @@ package System.PolyORB_Interface is
 private
 
    pragma Inline
-     (FA_B, FA_C, FA_F, FA_I, FA_LF, FA_LI, FA_LLF, FA_LLI,
-      FA_SF, FA_SI, FA_SSI, FA_WC, FA_String,
+     (FA_B, FA_C, FA_F, FA_I, FA_U, FA_LF, FA_LI, FA_LU,
+      FA_LLF, FA_LLI, FA_LLU, FA_SF, FA_SI, FA_SU,
+      FA_SSI, FA_SSU, FA_WC, FA_String,
 
-      TA_B, TA_C, TA_F, TA_I, TA_LF, TA_LI, TA_LLF, TA_LLI,
-      TA_SF, TA_SI, TA_SSI, TA_WC, TA_String);
+      TA_B, TA_C, TA_F, TA_I, TA_U, TA_LF, TA_LI, TA_LU,
+      TA_LLF, TA_LLI, TA_LLU, TA_SF, TA_SI, TA_SU,
+      TA_SSI, TA_SSU, TA_WC, TA_String);
 
-   pragma Inline (Caseless_String_Eq);
+   pragma Inline (Caseless_String_Eq, Get_Aggregate_Element);
 
    function Execute_Servant
      (Self : access Servant;

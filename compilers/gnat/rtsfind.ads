@@ -1096,6 +1096,7 @@ package Rtsfind is
      RE_Result_Name,                     -- System.PolyORB_Interface
      RE_Object_Ref,                      -- System.PolyORB_Interface
      RE_Get_Empty_Any,                   -- System.PolyORB_Interface
+     RE_Get_Empty_Any_Aggregate,         -- System.PolyORB_Interface
      RE_Any_Aggregate_Build,             -- System.PolyORB_Interface
      RE_Add_Aggregate_Element,           -- System.PolyORB_Interface
      RE_Get_Aggregate_Element,           -- System.PolyORB_Interface
@@ -1199,6 +1200,7 @@ package Rtsfind is
      RE_TC_U,                            -- System.PolyORB_Interface
      RE_TC_Void,                         -- System.PolyORB_Interface
      RE_TC_WC,                           -- System.PolyORB_Interface
+     RE_TC_Array,                        -- System.PolyORB_Interface,
      RE_TC_String,                       -- System.PolyORB_Interface,
      RE_TC_Struct,                       -- System.PolyORB_Interface,
 
@@ -2148,6 +2150,7 @@ package Rtsfind is
      RE_Result_Name                      => System_PolyORB_Interface,
      RE_Object_Ref                       => System_PolyORB_Interface,
      RE_Get_Empty_Any                    => System_PolyORB_Interface,
+     RE_Get_Empty_Any_Aggregate          => System_PolyORB_Interface,
      RE_Any_Aggregate_Build              => System_PolyORB_Interface,
      RE_Add_Aggregate_Element            => System_PolyORB_Interface,
      RE_Get_Aggregate_Element            => System_PolyORB_Interface,
@@ -2251,6 +2254,7 @@ package Rtsfind is
      RE_TC_U                             => System_PolyORB_Interface,
      RE_TC_Void                          => System_PolyORB_Interface,
      RE_TC_WC                            => System_PolyORB_Interface,
+     RE_TC_Array                         => System_PolyORB_Interface,
      RE_TC_String                        => System_PolyORB_Interface,
      RE_TC_Struct                        => System_PolyORB_Interface,
 
