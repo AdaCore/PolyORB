@@ -74,6 +74,9 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-representations-srp.ads \
 		polyorb-representations-test.ads \
 		polyorb-requests.ads \
+		polyorb-sequences-bounded.ads \
+		polyorb-sequences-unbounded.ads \
+		polyorb-sequences-unbounded-search.ads \
 		polyorb-setup-tcp_access_points.ads \
 		polyorb-smart_pointers.ads \
 		polyorb-soft_links.ads \
@@ -88,10 +91,7 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-utils-srp.ads \
 		polyorb-utils-strings.ads \
 		polyorb-utils-strings-lists.ads \
-		polyorb-utils-text_buffers.ads \
-		sequences-bounded.ads \
-		sequences-unbounded.ads \
-		sequences-unbounded-search.ads
+		polyorb-utils-text_buffers.ads
 
 ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
 		polyorb.ads \
@@ -109,11 +109,11 @@ ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
 		polyorb-poa_policies-thread_policy.ads \
 		polyorb-protocols-interface.ads \
 		polyorb-representations.ads \
+		polyorb-sequences.ads \
 		polyorb-setup.ads \
 		polyorb-sockets.ads \
 		polyorb-storage_pools.ads \
-		polyorb-test.ads \
-		sequences.ads
+		polyorb-test.ads
 
 ADA_BODIES = $(ADA_SPECS_WITH_BODY:.ads=.adb)
 

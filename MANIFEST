@@ -24,6 +24,8 @@ compilers/idlac/ada_be-idl2ada-helper.adb
 compilers/idlac/ada_be-idl2ada-helper.ads
 compilers/idlac/ada_be-idl2ada-impl.adb
 compilers/idlac/ada_be-idl2ada-impl.ads
+compilers/idlac/ada_be-idl2ada-ir_info.adb
+compilers/idlac/ada_be-idl2ada-ir_info.ads
 compilers/idlac/ada_be-idl2ada-skel.adb
 compilers/idlac/ada_be-idl2ada-skel.ads
 compilers/idlac/ada_be-idl2ada-value_impl.adb
