@@ -1655,7 +1655,7 @@ package body XE_Parse is
 
       Declare_Variable
         (Configuration_Node,
-         Str_To_Id ("local"),
+         Str_To_Id ("local_termination"),
          Integer_Type_Node,
          Unique,
          Null_Location,
@@ -1666,7 +1666,7 @@ package body XE_Parse is
 
       Declare_Variable
         (Configuration_Node,
-         Str_To_Id ("global"),
+         Str_To_Id ("global_termination"),
          Integer_Type_Node,
          Unique,
          Null_Location,
@@ -1677,7 +1677,7 @@ package body XE_Parse is
 
       Declare_Variable
         (Configuration_Node,
-         Str_To_Id ("deferred"),
+         Str_To_Id ("deferred_termination"),
          Integer_Type_Node,
          Unique,
          Null_Location,
@@ -2404,17 +2404,23 @@ package body XE_Parse is
             return False;
          end if;
 
-         --  Check also type of parameters ...
+         if Get_Array_Element_Type (Type_Node) /= Null_Type then
 
-         First_Type_Component (Type_Node, C);
-         First_Subprogram_Parameter (Subprogram_Id (Expr_Node), P);
-         while C /= Null_Component and then P /= Null_Parameter loop
-            if Get_Component_Type (C) /= Get_Parameter_Type (P) then
-               return False;
-            end if;
-            Next_Type_Component (C);
-            Next_Subprogram_Parameter (P);
-         end loop;
+            --  Check also type of parameters ...
+
+            First_Type_Component (Type_Node, C);
+            First_Subprogram_Parameter (Subprogram_Id (Expr_Node), P);
+            while C /= Null_Component and then P /= Null_Parameter loop
+               if Get_Component_Type (C) /= Get_Parameter_Type (P) then
+                  return False;
+               end if;
+               Next_Type_Component (C);
+               Next_Subprogram_Parameter (P);
+            end loop;
+
+         else
+            return True;
+         end if;
 
          --  Check we have the same number of parameters ...
 

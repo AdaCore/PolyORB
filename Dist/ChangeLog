@@ -1,10 +1,15 @@
-Fri Feb 14 12:28:40 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
+Fri Feb 14 18:37:18 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
 
-	* xe_parse.adb: Apply changes from xe into xe_parse.
+	* xe_build.adb: Add a new error message when file cannot be found.
+
+	* xe_parse.adb: Apply changes from xe into xe_parse.  Change
+ 	termination variable from X to X_Termination to avoid conflicts.
+	Change some error messages.
 
 	* xe.ads, xe.adb: Get rid of two unused and useless procedures.
   	Move Type_Is_A_Structure and is_Type_A_Strcture into
- 	Set_Array_Element_Type and Get_Array_Element_Type.
+ 	Set_Array_Element_Type and Get_Array_Element_Type. Imporve the way
+ 	list or array are handled.
 
 Thu Feb 13 15:21:57 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
 

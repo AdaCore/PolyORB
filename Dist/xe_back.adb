@@ -283,9 +283,13 @@ package body XE_Back is
    procedure Set_Partition_Attribute
      (Attribute : in Attribute_Id;
       Partition : in PID_Type) is
+
+      --  Could be a variable or a subprogram.
+      Attribute_Item : Node_Id;
+
       Attribute_Kind : Attribute_Type;
-      Attribute_Item : Variable_Id;
       Ada_Unit_Name  : Name_Id;
+
    begin
 
       --  Apply attribute to a partition.
@@ -293,11 +297,11 @@ package body XE_Back is
       Attribute_Kind :=
         Convert (Get_Component_Mark (Component_Id (Attribute)));
       Attribute_Item :=
-        Variable_Id (Get_Component_Value (Component_Id (Attribute)));
+        Get_Component_Value (Component_Id (Attribute));
 
       --  No attribute was really assigned.
 
-      if Attribute_Item = Null_Variable then
+      if Attribute_Item = Null_Node then
          return;
       end if;
 
@@ -306,10 +310,13 @@ package body XE_Back is
 
             --  Only strings are allowed here.
 
-            if Get_Variable_Type (Attribute_Item) /= String_Type_Node then
-               Write_SLOC (Node_Id (Attribute_Item));
+            if not Is_Variable (Attribute_Item) or else
+              Get_Variable_Type (Variable_Id (Attribute_Item)) /=
+              String_Type_Node then
+               Write_SLOC (Node_Id (Attribute));
                Write_Name (Partitions.Table (Partition).Name);
-               Write_Str  ("'s attribute must be of type string");
+               Write_Str ("'s storage_dir attribute must be ");
+               Write_Str ("a string litteral");
                Write_Eol;
                raise Parsing_Error;
             end if;
@@ -319,7 +326,7 @@ package body XE_Back is
 
             if Partition = Null_PID and then
                Default_Storage_Dir = No_Storage_Dir then
-               Default_Storage_Dir := Get_Node_Name (Node_Id (Attribute_Item));
+               Default_Storage_Dir := Get_Node_Name (Attribute_Item);
 
             --  Apply to one partition. Check that it has not already
             --  been done.
@@ -327,12 +334,12 @@ package body XE_Back is
             elsif Partition /= Null_PID and then
               Partitions.Table (Partition).Storage_Dir = No_Storage_Dir then
                Partitions.Table (Partition).Storage_Dir
-                 := Get_Node_Name (Node_Id (Attribute_Item));
+                 := Get_Node_Name (Attribute_Item);
 
             --  This operation has already been done !
 
             else
-               Write_SLOC (Node_Id (Attribute_Item));
+               Write_SLOC (Attribute_Item);
                if Partition = Null_PID then
                   Write_Str ("type partition");
                else
@@ -349,12 +356,13 @@ package body XE_Back is
                Host : Host_Id;
             begin
 
-               if Is_Subprogram (Node_Id (Attribute_Item)) then
+               if Is_Subprogram (Attribute_Item) then
                   Build_New_Host (Subprogram_Id (Attribute_Item), Host);
 
                --  Create an entry for this host string.
 
-               elsif Get_Variable_Type (Attribute_Item) = String_Type_Node then
+               elsif Get_Variable_Type (Variable_Id (Attribute_Item)) =
+                     String_Type_Node then
                   Hosts.Increment_Last;
                   Host := Hosts.Last;
                   Hosts.Table (Host).Name
@@ -362,9 +370,9 @@ package body XE_Back is
                   Hosts.Table (Host).Static := True;
 
                else
-                  Write_SLOC (Node_Id (Attribute_Item));
+                  Write_SLOC (Node_Id (Attribute));
                   Write_Name (Partitions.Table (Partition).Name);
-                  Write_Str  ("'s host attribute is not a string value");
+                  Write_Str  ("'s host attribute must of string type");
                   Write_Eol;
                   raise Parsing_Error;
                end if;
@@ -383,7 +391,7 @@ package body XE_Back is
                   Partitions.Table (Partition).Host := Host;
 
                else
-                  Write_SLOC (Node_Id (Attribute_Item));
+                  Write_SLOC (Node_Id (Attribute));
                   if Partition = Null_PID then
                      Write_Str ("type partition");
                   else
@@ -420,7 +428,7 @@ package body XE_Back is
                Add_Conf_Unit (Ada_Unit_Name, Partition);
 
             else
-               Write_SLOC (Node_Id (Attribute_Item));
+               Write_SLOC (Node_Id (Attribute));
                if Partition = Null_PID then
                   Write_Str ("type partition");
                else
@@ -435,10 +443,12 @@ package body XE_Back is
 
             --  Only strings are allowed.
 
-            if Get_Variable_Type (Attribute_Item) /= String_Type_Node then
-               Write_SLOC (Node_Id (Attribute_Item));
+            if not Is_Variable (Attribute_Item) or else
+              Get_Variable_Type (Variable_Id (Attribute_Item)) /=
+              String_Type_Node then
+               Write_SLOC (Node_Id (Attribute));
                Write_Name (Partitions.Table (Partition).Name);
-               Write_Str  ("'s command line attribute must be of string type");
+               Write_Str ("'s command line attribute must be string litteral");
                Write_Eol;
                raise Parsing_Error;
             end if;
@@ -460,7 +470,7 @@ package body XE_Back is
                  := Get_Node_Name (Node_Id (Attribute_Item));
 
             else
-               Write_SLOC (Node_Id (Attribute_Item));
+               Write_SLOC (Node_Id (Attribute));
                if Partition = Null_PID then
                   Write_Str ("type partition");
                else
@@ -475,11 +485,13 @@ package body XE_Back is
 
             --  Only booleans are allowed.
 
-            if Get_Variable_Type (Attribute_Item) /= Integer_Type_Node then
-               Write_SLOC (Node_Id (Attribute_Item));
+            if not Is_Variable (Attribute_Item) or else
+              Get_Variable_Type (Variable_Id (Attribute_Item)) /=
+              Integer_Type_Node then
+               Write_SLOC (Node_Id (Attribute));
                Write_Name (Partitions.Table (Partition).Name);
-               Write_Str  ("'s termination attribute must be ");
-               Write_Str  ("of termination type");
+               Write_Str ("'s termination attribute must be ");
+               Write_Str ("of termination type");
                Write_Eol;
                raise Parsing_Error;
             end if;
@@ -490,7 +502,8 @@ package body XE_Back is
             if Partition = Null_PID and then
               Default_Termination = Unknown_Termination then
                Default_Termination :=
-                 Termination_Type (Get_Variable_Mark (Attribute_Item));
+                 Termination_Type
+                 (Get_Variable_Mark (Variable_Id (Attribute_Item)));
 
             --  Apply to one partition. Check that it has not already
             --  been done.
@@ -499,10 +512,11 @@ package body XE_Back is
               Partitions.Table (Partition).Termination = Unknown_Termination
             then
                Partitions.Table (Partition).Termination :=
-                 Termination_Type (Get_Variable_Mark (Attribute_Item));
+                 Termination_Type
+                 (Get_Variable_Mark (Variable_Id (Attribute_Item)));
 
             else
-               Write_SLOC (Node_Id (Attribute_Item));
+               Write_SLOC (Node_Id (Attribute));
                if Partition = Null_PID then
                   Write_Str ("type partition");
                else

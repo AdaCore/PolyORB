@@ -115,6 +115,15 @@ begin
             --  if any and output an error message.
 
             else
+               if Debug_Mode then
+                  Write_Program_Name;
+                  Write_Str (": ");
+                  Write_Str (N1 (1 .. L1));
+                  Write_Str (" or ");
+                  Write_Str (N2 (1 .. L2));
+                  Write_Str (" were not found");
+                  Write_Eol;
+               end if;
                if L1 > Suffix'Length and then
                  N1 (L1 - Suffix'Length + 1 .. L1) = Suffix then
                   L1 := L1 - Suffix'Length;
