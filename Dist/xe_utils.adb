@@ -67,7 +67,7 @@ package body XE_Utils is
    EOL : constant String := (1 => Ascii.LF);
 
    Output_Flag           : constant String_Access := new String' ("-o");
-   Preserve              : constant String_Access := new String' ("-p");
+   Preserve              : constant String_Access := new String' ("-lf");
    Symbolic              : constant String_Access := new String' ("-s");
    Force                 : constant String_Access := new String' ("-f");
    Compile_Flag          : constant String_Access := new String' ("-c");
