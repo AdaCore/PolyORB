@@ -64,6 +64,9 @@ package Corba.Object is
 
    function To_Ref(The_Ref: in Corba.Object.Ref'Class) return Ref ;
 
+   procedure AdaBroker_Cast_To_Parent(Real_Object: in Ref;
+                                      Result: out Corba.Object.Ref'Class ) ;
+
    procedure Assert_Ref_Not_Nil(Self : in Ref) ;
 
 
