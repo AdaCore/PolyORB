@@ -48,6 +48,15 @@ Examples/Bank/server.ads
 Examples/Bank/simcity.cfg
 Examples/Bank/terminal.ads
 Examples/Bank/types.ads
+Examples/DSMStorage/Makefile.am
+Examples/DSMStorage/Makefile.in
+Examples/DSMStorage/README
+Examples/DSMStorage/client.adb
+Examples/DSMStorage/dsm.cfg
+Examples/DSMStorage/scheduler.adb
+Examples/DSMStorage/scheduler.ads
+Examples/DSMStorage/server.adb
+Examples/DSMStorage/vector.ads
 Examples/Eratho/Makefile.am
 Examples/Eratho/Makefile.in
 Examples/Eratho/README
