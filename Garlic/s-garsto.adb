@@ -74,11 +74,6 @@ package body System.Garlic.Storages is
    --  Var_Name is a fully qualified variable string name. Remove suffix
    --  to get package string name.
 
-   function Lookup_Package
-     (Pkg_Name : in String)
-     return Shared_Data_Access;
-   --  Return package shared data. Needed to create a variable storage.
-
    function Lookup_Partition
      (Partition : in Partition_ID)
      return Shared_Data_Access;
@@ -309,13 +304,13 @@ package body System.Garlic.Storages is
       Enter_Critical_Section;
       Storage := SST.Get (Par_Name'Unrestricted_Access);
       if Storage = null then
-         pragma Debug (D ("register partition " & Par_Name));
+         pragma Debug (D ("register partition" & Par_Name));
          Master := Lookup_Storage (Location);
          if Master = null then
             Leave_Critical_Section;
             Raise_Exception
               (Program_Error'Identity,
-               "cannot find data storage for partition" & Partition'Img);
+               "cannot find data storage for partition" & Par_Name);
          end if;
          Create_Storage (Master.all, Minor (Location), Storage);
          SST.Set (new String'(Par_Name), Storage);

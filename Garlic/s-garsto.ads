@@ -105,6 +105,10 @@ package System.Garlic.Storages is
      (Var_Name : in String)
      return Shared_Data_Access;
 
+   function  Lookup_Package
+     (Pkg_Name : in String)
+     return Shared_Data_Access;
+
    function  Lookup_Storage
      (Storage_Name : in String)
      return Shared_Data_Access;
