@@ -5,7 +5,9 @@ with PortableServer.POA;
 
 with CosNaming.BindingIterator;
 with CosNaming.BindingIterator.Impl;
+with CosNaming.BindingIterator.Helper;
 with CosNaming.NamingContext.Skel;
+with CosNaming.NamingContext.Helper;
 pragma Elaborate (CosNaming.NamingContext.Skel);
 
 with GNAT.HTable;
@@ -292,7 +294,7 @@ package body CosNaming.NamingContext.Impl is
          begin
             Left_Name := To_Sequence (NCA (NCA'First .. NCA'Last - 1));
             Left_Obj  := Resolve (Self, Left_Name);
-            Ctx       := NamingContext.To_Ref  (Left_Obj);
+            Ctx       := NamingContext.Helper.To_Ref  (Left_Obj);
          exception when CORBA.Bad_Param =>
             raise NotFound;
          end;
@@ -557,7 +559,7 @@ package body CosNaming.NamingContext.Impl is
       Oid := PortableServer.POA.Activate_Object
         (Root_POA, PortableServer.Servant (Ctx));
 
-      return NamingContext.To_Ref
+      return NamingContext.Helper.To_Ref
         (PortableServer.POA.Servant_To_Reference
          (Root_POA, PortableServer.Servant (Ctx)));
    end New_Context;
@@ -659,7 +661,7 @@ package body CosNaming.NamingContext.Impl is
         (Root_POA, PortableServer.Servant (Iter));
 
        BI := BindingIterator.Convert_Forward.To_Forward
-        (BindingIterator.To_Ref
+        (BindingIterator.Helper.To_Ref
          (PortableServer.POA.Servant_To_Reference
           (Root_POA, PortableServer.Servant (Iter))));
    end List;
