@@ -369,34 +369,87 @@ package body Backend.BE_Ada.Helpers is
 
    package body Package_Body is
 
-      -------------------------
-      -- Any_Conversion_Body --
-      -------------------------
+      function From_Any_Body
+        (E : Node_Id)
+        return Node_Id;
+      function To_Any_Body
+        (E : Node_Id)
+        return Node_Id;
+      --  return an any conversions functions for a given type
+      --  (T) node in the helper package.
+      function Narrowing_Ref_Body
+        (E : Node_Id)
+        return Node_Id;
+      --  return windening object reference helper.
+      function TypeCode_Body
+        (E : Node_Id)
+        return Node_Id;
+      --  return a TypeCode constant for a given type (T) node in the Helper
+      --  package.
+      function Widening_Ref_Body
+        (E : Node_Id)
+        return Node_Id;
+      --  return widening object reference helper.
+      pragma Unreferenced (From_Any_Body, To_Any_Body, TypeCode_Body,
+                             Widening_Ref_Body, Narrowing_Ref_Body);
+      procedure Visit_Enumeration_Type (E : Node_Id);
+      procedure Visit_Interface_Declaration (E : Node_Id);
+      procedure Visit_Module (E : Node_Id);
+      procedure Visit_Specification (E : Node_Id);
+      procedure Visit_Structure_Type (E : Node_Id);
+      procedure Visit_Type_Declaration (E : Node_Id);
+      procedure Visit_Union_Type (E : Node_Id);
 
-      procedure Any_Conversion_Body (T : Node_Id) is
-         pragma Unreferenced (T);
+      -------------------
+      -- From_Any_Body --
+      -------------------
+
+      function From_Any_Body
+        (E : Node_Id)
+        return Node_Id
+      is
+         pragma Unreferenced (E);
       begin
-         null;
-      end Any_Conversion_Body;
+         return No_Node;
+      end From_Any_Body;
+
+      -----------------
+      -- To_Any_Body --
+      -----------------
+
+      function To_Any_Body
+        (E : Node_Id)
+        return Node_Id
+      is
+         pragma Unreferenced (E);
+      begin
+         return No_Node;
+      end To_Any_Body;
 
       ------------------------
       -- Narrowing_Ref_Body --
       ------------------------
 
-      procedure Narrowing_Ref_Body (E : Node_Id) is
+      function Narrowing_Ref_Body
+        (E : Node_Id)
+        return Node_Id
+      is
          pragma Unreferenced (E);
       begin
-         null;
+         return No_Node;
       end Narrowing_Ref_Body;
 
       -------------------
       -- TypeCode_Body --
       -------------------
 
-      procedure TypeCode_Body (T : Node_Id) is
-         pragma Unreferenced (T);
+      function TypeCode_Body
+        (E : Node_Id)
+        return Node_Id
+      is
+         pragma Unreferenced (E);
       begin
-         null;
+         return No_Node;
       end TypeCode_Body;
 
       -----------
@@ -404,15 +457,116 @@ package body Backend.BE_Ada.Helpers is
       -----------
 
       procedure Visit (E : Node_Id) is
-         pragma Unreferenced (E);
       begin
-         null;
+         case FEN.Kind (E) is
+
+            when K_Enumeration_Type =>
+               Visit_Enumeration_Type (E);
+
+            when K_Interface_Declaration =>
+               Visit_Interface_Declaration (E);
+
+            when K_Module =>
+               Visit_Module (E);
+
+            when K_Specification =>
+               Visit_Specification (E);
+
+            when K_Structure_Type =>
+               Visit_Structure_Type (E);
+
+            when K_Type_Declaration =>
+               Visit_Type_Declaration (E);
+
+            when K_Union_Type =>
+               Visit_Union_Type (E);
+
+            when others =>
+               null;
+         end case;
       end Visit;
 
-      procedure Widening_Ref_Body (E : Node_Id) is
+      ----------------------------
+      -- Visit_Enumeration_Type --
+      ----------------------------
+
+      procedure Visit_Enumeration_Type (E : Node_Id) is
          pragma Unreferenced (E);
       begin
          null;
+      end Visit_Enumeration_Type;
+
+      ---------------------------------
+      -- Visit_Interface_Declaration --
+      ---------------------------------
+
+      procedure Visit_Interface_Declaration (E : Node_Id) is
+         pragma Unreferenced (E);
+      begin
+         null;
+      end Visit_Interface_Declaration;
+
+      ------------------
+      -- Visit_Module --
+      ------------------
+
+      procedure Visit_Module (E : Node_Id) is
+         pragma Unreferenced (E);
+      begin
+         null;
+      end Visit_Module;
+
+      -------------------------
+      -- Visit_Specification --
+      -------------------------
+
+      procedure Visit_Specification (E : Node_Id) is
+         pragma Unreferenced (E);
+      begin
+         null;
+      end Visit_Specification;
+
+      --------------------------
+      -- Visit_Structure_Type --
+      --------------------------
+
+      procedure Visit_Structure_Type (E : Node_Id) is
+         pragma Unreferenced (E);
+      begin
+         null;
+      end Visit_Structure_Type;
+
+      ----------------------------
+      -- Visit_Type_Declaration --
+      ----------------------------
+
+      procedure Visit_Type_Declaration (E : Node_Id) is
+         pragma Unreferenced (E);
+      begin
+         null;
+      end Visit_Type_Declaration;
+
+      ----------------------
+      -- Visit_Union_Type --
+      ----------------------
+
+      procedure Visit_Union_Type (E : Node_Id) is
+         pragma Unreferenced (E);
+      begin
+         null;
+      end Visit_Union_Type;
+
+      -----------------------
+      -- Widening_Ref_Body --
+      -----------------------
+
+      function Widening_Ref_Body
+        (E : Node_Id)
+        return Node_Id
+      is
+         pragma Unreferenced (E);
+      begin
+         return No_Node;
       end Widening_Ref_Body;
 
    end Package_Body;

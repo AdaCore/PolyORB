@@ -1,5 +1,10 @@
 2004-07-19  Saber Souli  <souli@neraka.enst.fr>
 
+	* backend-be_ada-helpers.adb: Generate helpers body. (functions
+	are now empty).  
+
+2004-07-19  Saber Souli  <souli@neraka.enst.fr>
+
 	* backend-be_ada-helpers.adb: Completed helper specification, for
 	interfaces, and types. 
 
