@@ -274,6 +274,7 @@ package body Lexer is
       New_Token (T_Connection, "->");
       New_Token (T_Immediate_Connection, "->>");
       New_Token (T_Interval, "..");
+      New_Token (T_Colon_Colon, "::");
       New_Token (T_Left_Step_Bracket, "-[");
       New_Token (T_Right_Step_Bracket, "]->");
       New_Token (T_Begin_Annex, "{**");
@@ -859,7 +860,12 @@ package body Lexer is
 
             when ':' =>
                Token_Location.Scan := Token_Location.Scan + 1;
-               Token := T_Colon;
+               if Buffer (Token_Location.Scan) = ':' then
+                  Token_Location.Scan := Token_Location.Scan + 1;
+                  Token := T_Colon_Colon;
+               else
+                  Token := T_Colon;
+               end if;
 
             when ';' =>
                Token_Location.Scan := Token_Location.Scan + 1;
@@ -940,6 +946,34 @@ package body Lexer is
          end case;
       end loop;
 
+   end Scan_Token;
+
+   ----------------
+   -- Scan_Token --
+   ----------------
+
+   procedure Scan_Token (T : Token_Type) is
+      Loc : Location := Token_Location;
+   begin
+      Scan_Token;
+      if T /= Token and Token /= T_Error then
+         if T = T_Semicolon then
+            Loc.Last := Loc.Scan;
+            if Buffer (Loc.Last) = LF
+              or else Buffer (Loc.Last) = FF
+              or else Buffer (Loc.Last) = CR
+              or else Buffer (Loc.Last) = VT
+            then
+               Loc.Last := Loc.Last - 1;
+            end if;
+         else
+            Loc := Token_Location;
+         end if;
+
+         Error_Loc (1) := Loc;
+         DE ("expected token " & Image (T) & ", found " & Image (Token));
+         Token := T_Error;
+      end if;
    end Scan_Token;
 
    ---------------

@@ -49,6 +49,7 @@ package Lexer is
       T_Connection,            --  ->
       T_Immediate_Connection,  --  ->>
       T_Interval,              --  ..
+      T_Colon_Colon,           --  ::
       T_Left_Step_Bracket,     --  -[
       T_Right_Step_Bracket,    --  ]->
       T_Begin_Annex,           --  {**
@@ -215,5 +216,12 @@ package Lexer is
    procedure Scan_Token;
    --  Scan token and update global variables Token, Token_Name
    --  (for identifiers and literals) and Token_Location.
+
+   procedure Scan_Token (T : Token_Type);
+   --  Same as above. When the current token is not the expected token
+   --  T, an error message is output and Token is set to T_Error. As a
+   --  special case, when T_Semicolon is expected, we output an error
+   --  location at the end of the line instead of the current token
+   --  location.
 
 end Lexer;
