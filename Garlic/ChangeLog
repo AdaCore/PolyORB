@@ -1,3 +1,12 @@
+1998-08-28  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* s-garfil.adb: send reply to a Get_Params query outside from
+ 	procedure Incoming which is executed in global critical
+ 	section. The problem is that the public data of the remote
+ 	partition can be unknown at this point. A request will be sent to
+ 	boot server and the reply will be kept pending as it won't be
+ 	possible to enter global critical section again.
+
 1998-08-26  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-rpc.ads: Minor reformatting.

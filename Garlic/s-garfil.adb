@@ -222,7 +222,6 @@ package body System.Garlic.Filters is
       end if;
 
       --  When possible, avoid unnecessary buffer copies
-      --  What does the previous comment mean, a copy is made right below ???
 
       return new Stream_Element_Array'(Stream);
    end Filter_Incoming;
@@ -268,7 +267,6 @@ package body System.Garlic.Filters is
       end if;
 
       --  When possible, avoid unnecessary buffer copies
-      --  What does the previous comment mean, a copy is made right below ???
 
       return To_Stream_Element_Access (Stream);
    end Filter_Outgoing;
@@ -355,18 +353,6 @@ package body System.Garlic.Filters is
          Channel.Incoming.Ready := True;
 
          Status := Modified;
-      end if;
-
-      --  If this was a remote request, then provide the remote part
-      --  to the other partition.
-
-      if Request.Command = Get_Params then
-         pragma Debug
-           (D (D_Debug,
-               "Provide params for partition " & Name (Partition) &
-               " incoming filter"));
-
-         Send_Message (Partition, Set_Params, Channel);
       end if;
    end Incoming;
 
@@ -536,6 +522,20 @@ package body System.Garlic.Filters is
 
          else
             Channels.Apply (Partition, Request, Incoming'Access);
+
+            --  If this was a remote query, then provide the remote part to
+            --  the other partition ouside from critical section because
+            --  Send can also require to enter in a critical section.
+
+            if Request.Command = Get_Params then
+               pragma Debug
+                 (D (D_Debug,
+                     "Provide params for partition " & Name (Partition) &
+                     " incoming filter"));
+
+               Send_Message (Partition, Set_Params,
+                             Channels.Get_Component (Partition));
+            end if;
          end if;
       end Internal_Receive;
 
