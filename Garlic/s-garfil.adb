@@ -542,8 +542,9 @@ package body System.Garlic.Filters is
    ----------------
 
    procedure Initialize is
-      F : Name_Id;
+      N : Name_Id;
       L : Registered_Filter_Access;
+
    begin
       Filters.Initialize;
       Channels.Initialize;
@@ -566,22 +567,22 @@ package body System.Garlic.Filters is
 
       --  Initialize default filter
 
-      F := To_Name_Id (Get_Info (Get (Default_Filter_Name)));
-      if F /= Null_Name then
-         pragma Debug (D ("Use default filter " & Get (F)));
+      N := To_Name_Id (Get_Info (Get (Default_Filter_Name)));
+      if N /= Null_Name then
+         pragma Debug (D ("Use default filter " & Get (N)));
 
-         Default := Filters.Get_Component (Filters.Get_Index (Get (F)));
+         Default := Filters.Get_Component (Filters.Get_Index (Get (N)));
       end if;
 
       --  Initialize registration filter and create corresponding params
       --  when needed.
 
-      F := To_Name_Id (Get_Info (Get (Registration_Filter_Name)));
-      if F /= Null_Name then
-         pragma Debug (D ("Use registration filter " & Get (F)));
+      N := To_Name_Id (Get_Info (Get (Registration_Filter_Name)));
+      if N /= Null_Name then
+         pragma Debug (D ("Use registration filter " & Get (N)));
 
          Register.Filter :=
-           Filters.Get_Component (Filters.Get_Index (Get (F)));
+           Filters.Get_Component (Filters.Get_Index (Get (N)));
          Generate_Params
            (Register.Filter.all,
             Register.Incoming.Remote,
@@ -678,16 +679,24 @@ package body System.Garlic.Filters is
      (Filter : in Filter_Access;
       Name   : in String)
    is
-      Registered_Filter : Registered_Filter_Access;
+      F : Registered_Filter_Access;
    begin
+      F := Registered_Filter_List;
+      while F /= null loop
+         if F.Name.all = Name then
+            return;
+         end if;
+         F := F.Next;
+      end loop;
+
       --  We cannot yet register filters because this unit has not
       --  been initialized yet. Queue the registration request.
 
-      Registered_Filter := new Registered_Filter_Type;
-      Registered_Filter.Name   := new String'(Name);
-      Registered_Filter.Filter := Filter;
-      Registered_Filter.Next   := Registered_Filter_List;
-      Registered_Filter_List   := Registered_Filter;
+      F := new Registered_Filter_Type;
+      F.Name   := new String'(Name);
+      F.Filter := Filter;
+      F.Next   := Registered_Filter_List;
+      Registered_Filter_List   := F;
    end Register_Filter;
 
    ----------
