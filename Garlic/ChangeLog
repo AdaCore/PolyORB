@@ -1,3 +1,15 @@
+Thu Nov 21 19:45:25 1996  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-gartcp.adb: Protect against very early internal error which
+	  could propagate even when it's not fatal.
+
+	* s-rpc.adb: Do not wait on protected entry in a finalization
+	  procedure called during abortion. A flag showing that the result
+	  will have to be invalidated when it arrives is set instead, thus
+	  providing a much better respect of the semantic of abort (abort
+	  very quickly) instead of waiting for the answer. If the answer
+	  was there already, it's discarded.
+
 Tue Nov 19 16:56:07 1996  Laurent Pautet  <pautet@quasimodo.enst.fr>
 
 	* s-garela.adb: New package provided to set usual defaults.

@@ -8,3 +8,4 @@ test_startup
 .gdb_history
 s-garser.adb
 s-gaprco.adb
+s-gaosli.ads

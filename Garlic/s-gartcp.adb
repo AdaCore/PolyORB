@@ -477,7 +477,7 @@ package body System.Garlic.TCP is
                end if;
                pragma Debug
                  (D (D_Debug,
-                     "Will receeive a packet of length" & Length'Img));
+                     "Will receive a packet of length" & Length'Img));
 
                declare
                   Request_P : Stream_Element_Array (1 .. Length);
@@ -499,11 +499,13 @@ package body System.Garlic.TCP is
          --  The remote end has closed the socket or a communication error
          --  occurred.
 
-         Partition_Map.Lock (Partition);
-         Data := Partition_Map.Get_Immediate (Partition);
-         Data.Connected := False;
-         Partition_Map.Set_Locked (Partition, Data);
-         Partition_Map.Unlock (Partition);
+         if Partition /= Null_Partition_ID then
+            Partition_Map.Lock (Partition);
+            Data := Partition_Map.Get_Immediate (Partition);
+            Data.Connected := False;
+            Partition_Map.Set_Locked (Partition, Data);
+            Partition_Map.Unlock (Partition);
+         end if;
          declare
             Dummy : C.int;
          begin

@@ -139,10 +139,13 @@ package body System.RPC is
    protected type Result_Watcher_Type is
       procedure Set (Id : in Request_Id; Result : in Result_Type);
       procedure Get (Id : in Request_Id; Result : out Result_Type);
+      procedure Invalidate (Id : in Request_Id);
       entry Wait (Request_Id);
    private
       Valid       : Valid_Result_Array := (others => False);
+      Cancelled   : Valid_Result_Array := (others => False);
       Results     : Result_Array;
+      procedure Free (Id : in Request_Id);
    end Result_Watcher_Type;
 
    type Result_Watcher_Access is access Result_Watcher_Type;
@@ -273,12 +276,14 @@ package body System.RPC is
             Header : constant Request_Header :=
               (RPC_Cancellation_Accepted, Id);
          begin
+            pragma Debug (D (D_Debug, "Abortion queried by caller"));
             Insert_Request (Empty'Access, Header);
             Send (Partition, Remote_Call, Empty'Access);
             Cancelled := True;
          end;
       then abort
          Receiver (Params, Result);
+         pragma Debug (D (D_Debug, "Job achieved without abortion"));
       end select;
 
       declare
@@ -291,11 +296,13 @@ package body System.RPC is
          Deep_Free (Params_Copy);
       end;
       if Asynchronous or else Cancelled then
+         pragma Debug (D (D_Debug, "Result not sent"));
          Deep_Free (Result);
       else
          declare
             Header : constant Request_Header := (RPC_Answer, Id);
          begin
+            pragma Debug (D (D_Debug, "Result will be sent"));
             Insert_Request (Result, Header);
             Send (Partition, Remote_Call, Result);
             Free (Result);
@@ -417,13 +424,15 @@ package body System.RPC is
       end;
       pragma Debug (D (D_Debug, "Waiting for the result"));
       Result_Watcher.Wait (Id);
-      pragma Debug (D (D_Debug, "The result is available"));
       begin
          pragma Abort_Defer;
-         Result_Watcher.Get (Id, Res);
+         pragma Debug (D (D_Debug, "The result is available"));
          Keeper.Sent := False;
+         Result_Watcher.Get (Id, Res);
+         pragma Assert (not Res.Cancelled);
          Request_Id_Server.Free (Id);
          pragma Debug (D (D_Debug, "Copying the result"));
+         pragma Assert (Res.Result /= null);
          Copy (Res.Result.all, Result);
          Free (Res.Result);
       end;
@@ -459,10 +468,8 @@ package body System.RPC is
    begin
       if Keeper.Sent then
          Send_Abort_Message (Keeper.Partition, Id);
-         Result_Watcher.Wait (Id);
-         Result_Watcher.Get (Id, Res);
-         Deep_Free (Res.Result);
-         Request_Id_Server.Free (Id);
+         pragma Debug (D (D_Debug, "Will invalidate object" & Id'Img));
+         Result_Watcher.Invalidate (Id);
       end if;
    end Finalize;
 
@@ -542,6 +549,9 @@ package body System.RPC is
                Copy (Params.all, Params_Copy);
                if not Asynchronous then
                   Id := Header.Id;
+                  pragma Debug
+                    (D (D_Debug,
+                        "(request id is" & Id'Img & ")"));
                end if;
                Anonymous := new Anonymous_Task (Partition,
                                                 Id,
@@ -556,7 +566,7 @@ package body System.RPC is
                pragma Debug
                  (D (D_Debug,
                      "RPC answer received from partition" &
-                     Partition'Img));
+                     Partition'Img & " (request" & Header.Id'Img & ")"));
                Result.Result := new Params_Stream_Type (Params.Initial_Size);
                Copy (Params.all, Result.Result);
                pragma Debug
@@ -568,7 +578,7 @@ package body System.RPC is
             pragma Debug
                   (D (D_Debug,
                       "RPC cancellation request received from partition" &
-                      Partition'Img));
+                      Partition'Img & " (request" & Header.Id'Img & ")"));
             Task_Pool.Abort_One (Partition, Header.Id);
 
          when RPC_Cancellation_Accepted =>
@@ -578,7 +588,7 @@ package body System.RPC is
                pragma Debug
                   (D (D_Debug,
                       "RPC cancellation ack received from partition" &
-                      Partition'Img));
+                      Partition'Img & " (request" & Header.Id'Img & ")"));
                Result.Cancelled := True;
                Result_Watcher.Set (Header.Id, Result);
             end;
@@ -656,7 +666,8 @@ package body System.RPC is
          end loop;
          Id := Latest;
          In_Use (Id) := True;
-         Count := Count + 1;
+         Count  := Count + 1;
+         Latest := Latest + 1;
       end Get;
 
    end Request_Id_Server_Type;
@@ -667,18 +678,42 @@ package body System.RPC is
 
    protected body Result_Watcher_Type is
 
+      ----------
+      -- Free --
+      ----------
+
+      procedure Free (Id : in Request_Id) is
+         Res : Result_Type;
+      begin
+         Get (Id, Res);
+         Deep_Free (Res.Result);
+         Request_Id_Server.Free (Id);
+      end Free;
+
       ---------
       -- Get --
       ---------
 
       procedure Get (Id : in Request_Id; Result : out Result_Type) is
       begin
-         if Valid (Id) then
-            Result := Results (Id);
-            Valid (Id) := False;
-            Results (Id) .Result := null;
-         end if;
+         pragma Assert (Valid (Id));
+         Result := Results (Id);
+         Valid (Id) := False;
+         Results (Id) .Result := null;
       end Get;
+
+      ----------------
+      -- Invalidate --
+      ----------------
+
+      procedure Invalidate (Id : in Request_Id) is
+      begin
+         if Valid (Id) then
+            Free (Id);
+         else
+            Cancelled (Id) := True;
+         end if;
+      end Invalidate;
 
       ---------
       -- Set --
@@ -688,6 +723,10 @@ package body System.RPC is
       begin
          Valid (Id) := True;
          Results (Id) := Result;
+         if Cancelled (Id) then
+            Cancelled (Id) := False;
+            Free (Id);
+         end if;
       end Set;
 
       ----------
