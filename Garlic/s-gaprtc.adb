@@ -960,6 +960,7 @@ package body System.Garlic.Protocols.Tcp is
          Info.Sock_Addr := Value (Get_Data (Location));
 
          if Info.Sock_Addr = No_Sock_Addr then
+            Outgoings.Leave;
             Throw (Error, "Send: Cannot connect with peer without location");
             return;
          end if;
@@ -1272,6 +1273,11 @@ package body System.Garlic.Protocols.Tcp is
       begin
          return (Addr.Family, Addr, Any_Port);
       end;
+
+   exception when Socket_Error =>
+      --  When Image can be parsed at all, return No_Sock_Addr.
+
+      return No_Sock_Addr;
    end Value;
 
    -----------------
