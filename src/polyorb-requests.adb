@@ -100,8 +100,7 @@ package body PolyORB.Requests is
         (Request, Request_Access);
 
    begin
-      pragma Debug (O ("Destroying request"));
-
+      Annotations.Destroy (R.Notepad);
       Free (R);
    end Destroy_Request;
 
