@@ -53,4 +53,8 @@ package PolyORB.POA_Policies.Implicit_Activation_Policy.Activation is
       P_Servant : Servants.Servant_Access)
      return Object_Id_Access;
 
+   function Is_Implicit_Activation_Allowed
+     (Self : Activation_Policy)
+     return Boolean;
+
 end PolyORB.POA_Policies.Implicit_Activation_Policy.Activation;

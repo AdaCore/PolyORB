@@ -145,8 +145,9 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
          begin
             if not U_Hint.System_Generated then
                Throw (Error,
-                      InvalidPolicy_E,
-                      InvalidPolicy_Members'(Index => 0));
+                      Bad_Param_E,
+                      System_Exception_Members'(Minor => 0,
+                                                Completed => Completed_No));
                Unlock_W (POA.Map_Lock);
                return;
             end if;

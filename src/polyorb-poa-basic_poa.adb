@@ -818,7 +818,6 @@ package body PolyORB.POA.Basic_POA is
          --  oid (for USE_DEFAULT_SERVANT policy).
       end if;
 
-
    end Servant_To_Id;
 
    -------------------
@@ -833,10 +832,25 @@ package body PolyORB.POA.Basic_POA is
    is
       A_Oid : aliased Object_Id := Oid;
 
-      U_Oid : constant Unmarshalled_Oid
+      U_Oid : Unmarshalled_Oid
         := Oid_To_U_Oid (A_Oid'Access);
 
    begin
+      if not U_Oid.System_Generated
+        and then not U_Oid.Completed
+      then
+         --  The Oid we got was generated at the application level,
+         --  and is incommplete, generate well formed Oid used within
+         --  PolyORB's POA.
+
+         Assign_Object_Identifier
+           (Self.Id_Assignment_Policy.all,
+            POA_Types.Obj_Adapter_Access (Self),
+            A_Oid'Unchecked_Access,
+            U_Oid,
+            Error);
+      end if;
+
       Ensure_Lifespan
         (Self.Lifespan_Policy.all,
          POA_Types.Obj_Adapter_Access (Self),
@@ -981,9 +995,18 @@ package body PolyORB.POA.Basic_POA is
    is
       U_Oid : Unmarshalled_Oid;
    begin
+      --  NOTE: Per construction, this procedure has the same semantics as
+      --  Servant_To_Ref CORBA procedure.
 
       --  First find out whether we have retained a previous
       --  association for this servant.
+
+      --  NOTE: Per construction, we can retain an Id iff we are using
+      --  'unique' Id_Uniqueness policy and 'retain' Servant_Retention
+      --  policy. Thus, a non null Oid implies we are using this two
+      --  policies. There is no need to test them.
+
+      --  XXX completer l explication
 
       Oid := Retained_Servant_To_Id
         (Self      => OA.Servant_Retention_Policy.all,
@@ -994,39 +1017,21 @@ package body PolyORB.POA.Basic_POA is
          return;
       end if;
 
-      Activate_Object (OA, Obj, Key, U_Oid, Error);
+      if Is_Implicit_Activation_Allowed
+        (OA.Implicit_Activation_Policy.all)
+      then
+         Activate_Object (OA, Obj, Key, U_Oid, Error);
+      else
+         Throw (Error,
+                ServantNotActive_E,
+                Null_Member);
+      end if;
 
       if Found (Error) then
          return;
       end if;
 
       Oid := U_Oid_To_Oid (U_Oid);
-
-      --  XXX Is it approriate to call Activate_Object
-      --  (a standard operation of the POA) at this point?
-
-      --  Activation will actually be performed only if
-      --  Obj has not already been activated *and*
-      --  the implicit activation policy allows implicit activation.
-
-      --  If the implicit allocation policy does not allow implicit
-      --  activation, then this call to Activate_Object must not
-      --  activate Obj. It must return the previous Id if Obj has
-      --  been activated *and* the retention policy is RETAIN.
-      --  It must return an error condition if Obj has not been
-      --  activated, or if the retention policy is NON_RETAIN.
-
-      --  If implicit activation is allowed but the object has
-      --  already been activated, and the retention policy is RETAIN,
-      --  then the previous ID must be return and no activation must
-      --  be performed. If the retention policy is not RETAIN, the
-      --  behaviour then depends on the Id_Uniqueness_Policy...
-
-      --  To make a long story short: there are a number of conditions
-      --  where the correct behaviour here consists in NOT activating
-      --  an object. So, is the above correct? This is not a
-      --  trivial question.
-
    end Export;
 
    --------------

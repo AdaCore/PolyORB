@@ -54,4 +54,12 @@ package PolyORB.POA_Policies.Implicit_Activation_Policy is
    --  Case ACTIVATION:
    --    Activates the servant in the Active Object Map.
 
+   --  XXX the comment above is wrong
+
+   function Is_Implicit_Activation_Allowed
+     (Self : ImplicitActivationPolicy)
+     return Boolean
+     is abstract;
+   --  Return true if we can
+
 end PolyORB.POA_Policies.Implicit_Activation_Policy;

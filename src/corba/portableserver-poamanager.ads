@@ -36,7 +36,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poamanager.ads#6 $
+--  $Id: //droopi/main/src/corba/portableserver-poamanager.ads#7 $
 
 with Ada.Exceptions;
 
@@ -49,7 +49,7 @@ package PortableServer.POAManager is
 
    type Ref is new CORBA.Object.Ref with null record;
 
-   subtype State is PolyORB.POA_Manager.State;
+   type State is new PolyORB.POA_Manager.State;
    --  equivalent to
    --       type State is (HOLDING, ACTIVE, DISCARDING, INACTIVE);
 
@@ -70,7 +70,9 @@ package PortableServer.POAManager is
       Etherealize_Objects : in CORBA.Boolean;
       Wait_For_Completion : in CORBA.Boolean);
 
-   function Get_State (Self : in Ref) return State;
+   function Get_State
+     (Self : in Ref)
+     return PortableServer.POAManager.State;
 
    --------------------------------------
    -- POAManager Exceptions Management --

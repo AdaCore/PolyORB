@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poamanager.adb#13 $
+--  $Id: //droopi/main/src/corba/portableserver-poamanager.adb#14 $
 
 with PolyORB.Exceptions;
 with PolyORB.Initialization;
@@ -212,8 +212,10 @@ package body PortableServer.POAManager is
    is
       POA_Manager : constant POAManager_Access := To_POA_Manager (Self);
 
+      State : constant PolyORB.POA_Manager.State
+        := Get_State (POA_Manager.all);
    begin
-      return Get_State (POA_Manager.all);
+      return PortableServer.POAManager.State (State);
    end Get_State;
 
    ----------------

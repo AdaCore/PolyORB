@@ -129,4 +129,20 @@ package body PolyORB.POA_Policies.Implicit_Activation_Policy.Activation is
       return null;
    end Implicit_Activate_Servant;
 
+   ------------------------------------
+   -- Is_Implicit_Activation_Allowed --
+   ------------------------------------
+
+   function Is_Implicit_Activation_Allowed
+     (Self : Activation_Policy)
+     return Boolean
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
+
+   begin
+      return True;
+   end Is_Implicit_Activation_Allowed;
+
 end PolyORB.POA_Policies.Implicit_Activation_Policy.Activation;
