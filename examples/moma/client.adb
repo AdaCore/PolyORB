@@ -63,6 +63,7 @@ with MOMA.Messages.MTexts;
 with MOMA.Types;
 
 with PolyORB.Any;
+with PolyORB.Initialization;
 with PolyORB.References;
 with PolyORB.References.IOR;
 with PolyORB.Types;
@@ -431,6 +432,9 @@ begin
       Put_Usage;
       return;
    end if;
+
+   --  Initialize World
+   PolyORB.Initialization.Initialize_World;
 
    --  Get a reference on the message pool to use.
    if Kind = Pool then

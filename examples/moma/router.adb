@@ -38,6 +38,7 @@
 with Ada.Command_Line;
 with Ada.Text_IO;
 
+with PolyORB.Initialization;
 with PolyORB.Minimal_Servant.Tools;
 with PolyORB.References;
 with PolyORB.References.IOR;
@@ -74,6 +75,9 @@ begin
       Put_Line ("-- 'IOR'       is the IOR of another router");
       return;
    end if;
+
+   --  Initialize World
+   PolyORB.Initialization.Initialize_World;
 
    --  Find reference to other router if needed.
    if Argument_Count = 2 then

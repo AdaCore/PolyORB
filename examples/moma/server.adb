@@ -37,6 +37,7 @@
 with Ada.Command_Line;
 with Ada.Text_IO;
 
+with PolyORB.Initialization;
 with PolyORB.Minimal_Servant.Tools;
 with PolyORB.References;
 with PolyORB.References.IOR;
@@ -67,6 +68,9 @@ procedure Server is
    Pool_1   : Message_Pool;
 
 begin
+
+   --  Initialize World
+   PolyORB.Initialization.Initialize_World;
 
    --  Argument check.
    if Argument_Count > 1 then
