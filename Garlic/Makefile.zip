@@ -5,10 +5,10 @@
 # Makefile portion for the ZIP filter.
 #
 
-zip-objects = \
+zipOBJECTS = \
 s-gafizi.o
 
-zip-sources = \
+zipSOURCES = \
 ${srcdir}/s-gafizi.ads ${srcdir}/s-gafizi.adb
 
 zipLIBOBJS = adler32.o compress.o crc32.o gzio.o \
