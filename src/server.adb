@@ -75,7 +75,19 @@ begin
         (To_Droopi_Servant
          (CORBA.Impl.Object (Obj.all)'Access)).If_Desc.External_Name
         := CORBA.To_CORBA_String ("IDL:Echo:1.0");
+
       --  XXX Set the interface description for Echo
+      --  Not quite the best way to do this.
+      --  Actually the POA should not depend on an ifdesc
+      --  to be present in every servant object. Better
+      --  would be to define a primitive Get_If_Desc on Servant_Base
+      --  or somesuch, but we cannot that (becaause that would mean
+      --  mix generated code (impl of Get_If_Desc) with user code (other
+      --  primitives of Servant). What should be done is: keep in
+      --  the POA a repository of Servant'Tag -> If_Desc mappings.
+      --  (interesting: this is exactly what was done in AB : actually
+      --  Skel == If_Desc (mostly).
+
       Initiate_Servant (PortableServer.Servant (Obj), Ref);
       --  Note that Ref is a smart pointer to a Reference_Info, *not*
       --  to a CORBA.Impl.Object.

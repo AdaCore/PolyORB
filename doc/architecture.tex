@@ -74,6 +74,7 @@ répartis HPC++ est établi. Ses performances sont évaluées,
 en comparaison avec des appels de méthodes distants à
 l'intérieur de chaque plate-forme.
 
+% XXX
 % les middlewares, les plates-formes à objets répartis
 % Préliminaires sur la question de l'interopérabilité.
 % Deux solutions possibles pour l'interopérabilité :
@@ -137,6 +138,7 @@ ordres. Les unes sont spécifiques de notre implémentation~:
 
 \subsection{Intergiciels interopérables}
 
+% XXX
 % * ad hoc (breg98: Java/RMI+Nexus RMI+HPC++
 % * basés sur les middlewares génériques : DROOPI
 
@@ -1480,16 +1482,28 @@ par les adaptateurs d'objets.
 
 \subsection{Nommage}
 
-%%  ./droopi-references-binding.ads
 %%  ./droopi-references.ads
+
+Les types de données de base pour le service de nommage sont
+définis par les paquetages~:
+
+\begin{description}
+\item[Droopi.References] contenant les types de données de
+  base pour représenter des références d'objets constituées
+  d'un ensemble de profils.
+\item[Droopi.Bninding\_Data] définissant le type abstrait
+  «~Profile\_Type~» correspondant à un profil.
+\end{description}
+
+Pour chaque personnalité, il est défini un ou plusieurs types
+de profils concrets permettant de désigner l'association d'une
+adresse au sein d'un service de transport avec le choix d'un
+protocole.
 
 \subsection{Liaison (\emph{binding})}
 
+%%  ./droopi-references-binding.ads
 
-%%  ./droopi-binding_data-local.ads
-%%  ./droopi-binding_data-srp.ads
-%%  ./droopi-binding_data-test.ads
-%%  ./droopi-binding_data.ads
 
 
 
