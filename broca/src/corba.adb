@@ -413,7 +413,7 @@ package body CORBA is
                end;
             when others =>
                declare
-                  Member : Bounds_Members;
+                  Member : BadKind_Members;
                begin
                   Broca.Exceptions.User_Raise_Exception (BadKind'Identity,
                                                          Member);
