@@ -8,6 +8,9 @@ Partial support of the Dynamic Invocation Interface.
 
 A stand-alone COS Naming server is now provided, ab_names.
 
+A shell-script ab_gnome lets you use GNOME name service (as well as others)
+from AdaBroker.
+
 A package Broca.Parameters allows the person installing AdaBroker to
 change the default stack size in server tasks.
 
