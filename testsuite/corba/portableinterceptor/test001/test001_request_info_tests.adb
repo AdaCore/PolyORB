@@ -559,15 +559,15 @@ package body Test001_Request_Info_Tests is
 
       elsif Point = Receive_Exception
         and then (Stat /= PortableInterceptor.System_Exception
-                    or else Stat /= PortableInterceptor.User_Exception)
+                    and then Stat /= PortableInterceptor.User_Exception)
       then
          Output (Point, Operation, False);
 
       elsif Point = Receive_Other
         and then (Stat /= Successful
-                    or else Stat /= Location_Forward
-                    or else Stat /= Transport_Retry
-                    or else Stat /= PortableInterceptor.Unknown)
+                    and then Stat /= Location_Forward
+                    and then Stat /= Transport_Retry
+                    and then Stat /= PortableInterceptor.Unknown)
       then
          Output (Point, Operation, False);
 
@@ -576,14 +576,14 @@ package body Test001_Request_Info_Tests is
 
       elsif Point = Send_Exception
         and then (Stat /= PortableInterceptor.System_Exception
-                    or else Stat /= PortableInterceptor.User_Exception)
+                    and then Stat /= PortableInterceptor.User_Exception)
       then
          Output (Point, Operation, False);
 
       elsif Point = Send_Other
         and then (Stat /= Successful
-                    or else Stat /= Location_Forward
-                    or else Stat /= PortableInterceptor.Unknown)
+                    and then Stat /= Location_Forward
+                    and then Stat /= PortableInterceptor.Unknown)
       then
          Output (Point, Operation, False);
 
