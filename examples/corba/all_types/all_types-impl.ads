@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/examples/corba/all_types/all_types-impl.ads#4 $
+--  $Id: //droopi/main/examples/corba/all_types/all_types-impl.ads#5 $
 
 with CORBA;
 with CORBA.Object;
@@ -199,5 +199,7 @@ package all_types.Impl is
    function get_Counter
      (Self : access Object)
      return CORBA.Long;
+
+   procedure echoStopServer (Self : access Object);
 
 end all_types.Impl;

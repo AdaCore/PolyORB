@@ -31,9 +31,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/examples/corba/all_types/all_types-impl.adb#6 $
+--  $Id: //droopi/main/examples/corba/all_types/all_types-impl.adb#7 $
 
 with Ada.Text_IO;
+with CORBA.ORB;
 
 with all_types.Skel;
 pragma Elaborate (all_types.Skel);
@@ -325,5 +326,10 @@ package body all_types.Impl is
       Self.Attr_Counter := Self.Attr_Counter + 1;
       return Self.Attr_Counter;
    end get_Counter;
+
+   procedure echoStopServer (Self : access Object) is
+   begin
+      CORBA.ORB.Shutdown (Wait_For_Completion => False);
+   end echoStopServer;
 
 end all_types.Impl;

@@ -105,4 +105,7 @@ interface all_types {
   // ----------
   readonly attribute long Counter;
   attribute Color myColor;
+
+  void echoStopServer ();
+  // Shut down server
 };

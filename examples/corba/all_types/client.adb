@@ -33,7 +33,7 @@
 
 --  All_Types client.
 
---  $Id: //droopi/main/examples/corba/all_types/client.adb#16 $
+--  $Id: //droopi/main/examples/corba/all_types/client.adb#17 $
 
 with Ada.Characters.Handling;
 with Ada.Command_Line; use Ada.Command_Line;
@@ -188,11 +188,18 @@ begin
       end;
 
       --  Fixed point
---               echoMoney (Myall_types, 6423.50) = 6423.50
---               and then echoMoney (Myall_types, 0.0) = 0.0
---         and then echoMoney (Myall_types, 3.14) = 3.14);
-      Output ("test fixed point", False);
-      --  Fixed point types are not implemented yet.
+      declare
+         X : constant array (1 .. 4) of Money :=
+           (0.0, 6423.50, 3.14, -27.18);
+      begin
+         Ok := True;
+         for J in X'Range loop
+            if X (J) /= echoMoney (Myall_types, X (J)) then
+               Ok := False;
+            end if;
+         end loop;
+         Output ("test fixed point", Ok);
+      end;
 
       --  Structs
       declare
@@ -295,12 +302,9 @@ begin
                B (I, J) := Long ((I + 1) * (J + 2));
             end loop;
          end loop;
-         --  Output ("test big multi-dimensional array",
-         --      echoBigMatrix (Myall_types, B) = B);
+         Output ("test big multi-dimensional array",
+           echoBigMatrix (Myall_types, B) = B);
       end;
-      Output ("test big multi-dimensional array", False);
-      --  XXX idlac generates wrong code for this example, index goes beyond
-      --  arrays limits, raising an exception on the server side.
 
       --  Attributes
       set_myColor (Myall_types, Green);
@@ -357,5 +361,15 @@ begin
       Howmany := Howmany - 1;
    end loop;
 
+   begin
+      echoStopServer (Myall_types);
+      Ok := True;
+   exception
+      when others =>
+         Ok := False;
+         raise;
+   end;
+
+   Output ("shut down server", Ok);
    End_Report;
 end Client;
