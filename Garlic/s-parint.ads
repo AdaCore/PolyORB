@@ -85,6 +85,11 @@ package System.Partition_Interface is
    --  partition. As a passive partition has no elaboration code, each
    --  partition using this package performs the registration itself.
 
+   procedure Elaborate_Passive_Partition
+     (Partition : in RPC.Partition_ID);
+   --  Register all the units of this partition on the boot server and
+   --  check that these units are uniquely defined.
+
    function Get_Active_Partition_ID
      (Name : Unit_Name)
       return System.RPC.Partition_ID;
