@@ -91,12 +91,14 @@ package XE_Utils is
    function  GNAT_Style (N : Types.Name_Id) return Types.Name_Id;
    --  Return a string that approx. follows GNAT style.
 
-   function C  (N : Types.Name_Id) return Types.Name_Id renames GNAT_Style;
-   function C  (S : String) return Types.Name_Id;
-   function S  (X : String) return Types.Name_Id;
-   function SG (X : String) return Types.Name_Id;
-   function S  (N : Types.Name_Id) return Types.Name_Id;
-   function SG (N : Types.Name_Id) return Types.Name_Id;
+   function C   (N : Types.Name_Id) return Types.Name_Id renames GNAT_Style;
+   function C   (S : String) return Types.Name_Id;
+   function S   (X : String) return Types.Name_Id;
+   function SG  (X : String) return Types.Name_Id;
+   function SGP (X : String) return Types.Name_Id;
+   function S   (N : Types.Name_Id) return Types.Name_Id;
+   function SG  (N : Types.Name_Id) return Types.Name_Id;
+   function SGP (N : Types.Name_Id) return Types.Name_Id;
 
    procedure Change_Dir (To : in Types.File_Name_Type);
    --  Changes the working directory of the current execution environment
@@ -222,6 +224,8 @@ package XE_Utils is
      (U : in Types.Unit_Name_Type)
       return Types.Name_Id;
    --  Strip %[bs] from U.
+
+   function System_Tasking_Child (N : Types.Name_Id) return Boolean;
 
    procedure Unlink_File (File : in Types.File_Name_Type);
 

@@ -71,6 +71,9 @@ package body XE_Utils is
    Special_File_Flag     : constant String_Access := new String' ("-x");
    Ada_File_Flag         : constant String_Access := new String' ("ada");
 
+   System_Tasking        : constant String  := "system.tasking";
+   System_Tasking_Length : constant Natural := System_Tasking'Length;
+
    GARLIC                : String_Access;
 
    function Locate
@@ -1205,6 +1208,28 @@ package body XE_Utils is
       return S (Name_Find);
    end SG;
 
+   ---------
+   -- SGP --
+   ---------
+
+   function SGP (X : String) return Name_Id is
+   begin
+      return SGP (Str_To_Id (X));
+   end SGP;
+
+   ---------
+   -- SGP --
+   ---------
+
+   function SGP (N : Name_Id) return Name_Id is
+      CN : Name_Id := C (N);
+   begin
+      Name_Len := 0;
+      Add_Str_To_Name_Buffer ("Protocols.");
+      Get_Name_String_And_Append (CN);
+      return SG (Name_Find);
+   end SGP;
+
    -----------------------
    -- Source_File_Error --
    -----------------------
@@ -1247,6 +1272,17 @@ package body XE_Utils is
       Get_Name_String (Name);
       return Name_Len;
    end Strlen;
+
+   -------------------------
+   -- System_Tasking_Child --
+   -------------------------
+
+   function System_Tasking_Child (N : Types.Name_Id) return Boolean is
+   begin
+      Get_Name_String (N);
+      return System_Tasking_Length <= Name_Len
+        and then System_Tasking = Name_Buffer (1 .. System_Tasking_Length);
+   end System_Tasking_Child;
 
    --------------
    -- To_Lower --
