@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.6 $
+--                            $Revision: 1.7 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -101,7 +101,8 @@ package AdaBroker.NetBufferedStream is
       Initial_Offset : in CORBA.Unsigned_Long;
       N              : in CORBA.Unsigned_Long := 1)
       return CORBA.Unsigned_Long;
-   --  Compute the size needed to marshall A into S
+   --  Compute the size needed to marshall N objects of type Char
+   --  into a netbufferedstream object whose initial offset is Initial_Offset
 
    procedure Marshall
      (A : in CORBA.Boolean;
@@ -118,7 +119,8 @@ package AdaBroker.NetBufferedStream is
       Initial_Offset : in CORBA.Unsigned_Long;
       N              : in CORBA.Unsigned_Long := 1)
       return CORBA.Unsigned_Long;
-   --  Compute the size needed to marshall A into S
+   --  Compute the size needed to marshall N objects of type Boolean
+   --  into a netbufferedstream object whose initial offset is Initial_Offset
 
    procedure Marshall
      (A : in CORBA.Short;
@@ -136,7 +138,8 @@ package AdaBroker.NetBufferedStream is
       Initial_Offset : in CORBA.Unsigned_Long;
       N              : in CORBA.Unsigned_Long := 1)
       return CORBA.Unsigned_Long;
-   --  Compute the size needed to marshall A into S
+   --  Compute the size needed to marshall N objects of type Short
+   --  into a netbufferedstream object whose initial offset is Initial_Offset
 
 
    procedure Marshall
@@ -154,7 +157,8 @@ package AdaBroker.NetBufferedStream is
       Initial_Offset : in CORBA.Unsigned_Long;
       N              : in CORBA.Unsigned_Long := 1)
       return CORBA.Unsigned_Long;
-   --  Compute the size needed to marshall A into S
+   --  Compute the size needed to marshall N objects of type Unsigned_Short
+   --  into a netbufferedstream object whose initial offset is Initial_Offset
 
    procedure Marshall
      (A : in CORBA.Long;
@@ -171,7 +175,8 @@ package AdaBroker.NetBufferedStream is
       Initial_Offset : in CORBA.Unsigned_Long;
       N              : in CORBA.Unsigned_Long := 1)
       return CORBA.Unsigned_Long;
-   --  Compute the size needed to marshall A into S
+   --  Compute the size needed to marshall N objects of type Long
+   --  into a netbufferedstream object whose initial offset is Initial_Offset
 
    procedure Marshall
      (A : in CORBA.Unsigned_Long;
@@ -188,7 +193,8 @@ package AdaBroker.NetBufferedStream is
       Initial_Offset : in CORBA.Unsigned_Long;
       N              : in CORBA.Unsigned_Long := 1)
       return CORBA.Unsigned_Long;
-   --  Compute the size needed to marshall A into S
+   --  Compute the size needed to marshall N objects of type Unsigned_Long
+   --  into a netbufferedstream object whose initial offset is Initial_Offset
 
    procedure Marshall
      (A : in CORBA.Float;
@@ -205,7 +211,8 @@ package AdaBroker.NetBufferedStream is
       Initial_Offset : in CORBA.Unsigned_Long;
       N              : in CORBA.Unsigned_Long := 1)
                         return CORBA.Unsigned_Long;
-   --  Compute the size needed to marshall A into S
+   --  Compute the size needed to marshall N objects of type Float
+   --  into a netbufferedstream object whose initial offset is Initial_Offset
 
    procedure Marshall
      (A : in CORBA.Double;
@@ -222,7 +229,8 @@ package AdaBroker.NetBufferedStream is
       Initial_Offset : in CORBA.Unsigned_Long;
       N              : in CORBA.Unsigned_Long := 1)
       return CORBA.Unsigned_Long;
-   --  Compute the size needed to marshall A into S
+   --  Compute the size needed to marshall N objects of type Double
+   --  into a netbufferedstream object whose initial offset is Initial_Offset
 
    procedure Marshall
      (A : in CORBA.Octet;
@@ -239,7 +247,8 @@ package AdaBroker.NetBufferedStream is
       Initial_Offset : in CORBA.Unsigned_Long;
       N              : in CORBA.Unsigned_Long := 1)
                         return CORBA.Unsigned_Long;
-   --  Compute the size needed to marshall A into S
+   --  Compute the size needed to marshall N objects of type Octet
+   --  into a netbufferedstream object whose initial offset is Initial_Offset
 
    procedure Marshall
      (A : in CORBA.String;
@@ -256,7 +265,9 @@ package AdaBroker.NetBufferedStream is
       Initial_Offset : in CORBA.Unsigned_Long;
       N              : in CORBA.Unsigned_Long := 1)
       return CORBA.Unsigned_Long;
-   --  Compute the size needed to marshall A into S
+   --  Compute the size needed to marshall N identical objects of type String
+   --  into a netbufferedstream object whose initial offset is Initial_Offset
+   --  Identical means here of the same size
 
    procedure Marshall
      (A : in CORBA.Completion_Status;
@@ -273,7 +284,8 @@ package AdaBroker.NetBufferedStream is
       Initial_Offset : in CORBA.Unsigned_Long;
       N              : in CORBA.Unsigned_Long := 1)
       return CORBA.Unsigned_Long;
-   --  Compute the size needed to marshall A into S
+   --  Compute the size needed to marshall N objects of type Completion_Status
+   --  into a netbufferedstream object whose initial offset is Initial_Offset
 
    procedure Marshall
      (A : in CORBA.System_Exception_Members'Class;
@@ -290,7 +302,8 @@ package AdaBroker.NetBufferedStream is
       Initial_Offset : in CORBA.Unsigned_Long;
       N              : in CORBA.Unsigned_Long := 1)
       return CORBA.Unsigned_Long;
-   --  Compute the size needed to marshall A into S
+   --  Compute the size needed to marshall N objects of type System_Exception_Members
+   --  into a netbufferedstream object whose initial offset is Initial_Offset
 
    function Is_Reusing_Existing_Connection
      (Self : in Object'Class)
@@ -318,7 +331,8 @@ package AdaBroker.NetBufferedStream is
       Initial_Offset : in CORBA.Unsigned_Long;
       N              : in CORBA.Unsigned_Long := 1)
       return CORBA.Unsigned_Long;
-   --  Compute the size needed to marshall A into S
+   --  Compute the size needed to marshall N objects of type Any
+   --  into a netbufferedstream object whose initial offset is Initial_Offset
 
 
 private
