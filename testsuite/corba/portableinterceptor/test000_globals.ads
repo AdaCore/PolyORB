@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with Test000_Idl.ClientInterceptor;
 with Test000_Idl.ServerInterceptor;
 

@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PortableServer;
 
 package Test000_Idl.TestInterface.Impl is

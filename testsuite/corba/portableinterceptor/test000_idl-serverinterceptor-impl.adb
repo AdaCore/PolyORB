@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB;
 with PortableInterceptor.Interceptor;
 with Test000_Globals;

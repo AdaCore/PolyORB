@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with CORBA;
 with PortableInterceptor.ClientRequestInfo;
 with PortableInterceptor.ClientRequestInterceptor.Impl;

@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PortableInterceptor.ORBInitializer.Impl;
 with PortableInterceptor.ORBInitInfo;
 

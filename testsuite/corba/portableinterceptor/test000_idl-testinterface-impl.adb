@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with Test000_Idl.TestInterface.Skel;
 pragma Elaborate (Test000_Idl.TestInterface.Skel);
 pragma Warnings (Off, Test000_Idl.TestInterface.Skel);
