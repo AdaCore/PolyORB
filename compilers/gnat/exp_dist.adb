@@ -227,18 +227,6 @@ package body Exp_Dist is
       return   Node_Id;
    --  Similar to above, with Stream instead of Stream'Access
 
-   function Copy_Specification
-     (Loc         : Source_Ptr;
-      Spec        : Node_Id;
-      Object_Type : Entity_Id := Empty;
-      Stub_Type   : Entity_Id := Empty;
-      New_Name    : Name_Id   := No_Name)
-      return        Node_Id;
-   --  Build a specification from another one. If Object_Type is not Empty
-   --  and any access to Object_Type is found, then it is replaced by an
-   --  access to Stub_Type. If New_Name is given, then it will be used as
-   --  the name for the newly created spec.
-
    function Scope_Of_Spec (Spec : Node_Id) return Entity_Id;
    --  Return the scope represented by a given spec
 
@@ -689,6 +677,11 @@ package body Exp_Dist is
    is
       Loc : constant Source_Ptr := Sloc (RACW_Type);
 
+      Is_RAS : constant Boolean :=
+        Present (Original_Node (RACW_Type))
+        and then Is_Remote_Access_To_Subprogram_Type
+        (Original_Node (RACW_Type));
+      pragma Unreferenced (Is_RAS);
       Fnam : constant Entity_Id
         := Make_Defining_Identifier (Loc, New_Internal_Name ('F'));
 
@@ -2273,7 +2266,7 @@ package body Exp_Dist is
       Pkg_RPC_Receiver_Object      : Node_Id;
 
       Pkg_RPC_Receiver_Body        : Node_Id;
-      Pkg_RPC_Receiver_Stmts  : List_Id;
+      Pkg_RPC_Receiver_Stmts       : List_Id;
       Pkg_RPC_Receiver_Cases       : constant List_Id := New_List;
       --  A Pkg_RPC_Receiver is built to decode the request
 
@@ -2286,6 +2279,12 @@ package body Exp_Dist is
 
       Current_Declaration       : Node_Id;
       Current_Stubs             : Node_Id;
+      Current_Subprogram_Number : Int := 0;
+
+      Subp_Info_Array : constant Entity_Id :=
+        Make_Defining_Identifier (Loc, New_Internal_Name ('I'));
+
+      Subp_Info_List : constant List_Id := New_List;
 
       Dummy_Register_Name : Name_Id;
       Dummy_Register_Spec : Node_Id;
@@ -2332,53 +2331,111 @@ package body Exp_Dist is
          if Nkind (Current_Declaration) = N_Subprogram_Declaration
            and then Comes_From_Source (Current_Declaration)
          then
-            Current_Stubs :=
-              Build_Subprogram_Receiving_Stubs
-                (Vis_Decl     => Current_Declaration,
-                 Asynchronous =>
-                   Nkind (Specification (Current_Declaration)) =
-                       N_Procedure_Specification
-                     and then Is_Asynchronous
-                       (Defining_Unit_Name (Specification
-                          (Current_Declaration))));
+            declare
+               Loc : constant Source_Ptr :=
+                 Sloc (Current_Declaration);
+               --  While specifically processing Current_Declaration,
+               --  use its Sloc as the location of all generated
+               --  nodes.
 
-            Append_To (Decls, Current_Stubs);
-            Analyze (Current_Stubs);
+               Subp_Def       : constant Entity_Id
+                 := Defining_Unit_Name (
+                      Specification (Current_Declaration));
 
-            --  Actuals :=
-            --    New_List (New_Occurrence_Of (Stream_Parameter, Loc));
+               Subp_Dist_Name : constant Entity_Id
+                 := Make_Defining_Identifier (Loc,
+                      New_External_Name (
+                        Related_Id   => Chars (Subp_Def),
+                        Suffix       => 'D',
+                        Suffix_Index => -1));
 
-            if Nkind (Specification (Current_Declaration))
-                = N_Function_Specification
-              or else
-                not Is_Asynchronous (
-                  Defining_Entity (Specification (Current_Declaration)))
-            then
-               --  An asynchronous procedure does not want an output parameter
-               --  since no result and no exception will ever be returned.
+               Subp_Val       : String_Id;
+               Case_Stmts     : List_Id;
+
+            begin
+               Current_Stubs :=
+                 Build_Subprogram_Receiving_Stubs
+                   (Vis_Decl     => Current_Declaration,
+                    Asynchronous =>
+                      Nkind (Specification (Current_Declaration)) =
+                          N_Procedure_Specification
+                        and then Is_Asynchronous
+                          (Defining_Unit_Name (Specification
+                             (Current_Declaration))));
+
+               Append_To (Decls, Current_Stubs);
+               Analyze (Current_Stubs);
+
+               --  Actuals :=
+               --    New_List (New_Occurrence_Of (Stream_Parameter, Loc));
+
+               if Nkind (Specification (Current_Declaration))
+                   = N_Function_Specification
+                 or else
+                   not Is_Asynchronous (
+                     Defining_Entity (Specification (Current_Declaration)))
+               then
+                  --  An asynchronous procedure does not want an output
+                  --  parameter, since no result and no exception will
+                  --  ever be returned.
 
 --                 Append_To (Actuals,
 --                   New_Occurrence_Of (Result_Parameter, Loc));
-               null;
-            end if;
+                  null;
+               end if;
 
---              Append_To (Pkg_RPC_Receiver_Cases,
---                Make_Case_Statement_Alternative (Loc,
---                  Discrete_Choices =>
---                    New_List (
---                      Make_Integer_Literal (Loc, Current_Subprogram_Number)),
---                  Statements       =>
---                      Make_Procedure_Call_Statement (Loc,
---                        Name                   =>
---                          New_Occurrence_Of (
---                            Defining_Entity (Current_Stubs), Loc),
---                        Parameter_Associations =>
---                          Actuals))));
+--                 Append_To (Pkg_RPC_Receiver_Cases,
+--                   Make_Case_Statement_Alternative (Loc,
+--                     Discrete_Choices =>
+--                       New_List (
+--                         Make_Integer_Literal (Loc,
+--                            Current_Subprogram_Number)),
+--                     Statements       =>
+--                         Make_Procedure_Call_Statement (Loc,
+--                           Name                   =>
+--                             New_Occurrence_Of (
+--                               Defining_Entity (Current_Stubs), Loc),
+--                           Parameter_Associations =>
+--                             Actuals))));
 
-            declare
-               Subp_Val : Node_Id;
-               Case_Stmts : List_Id;
-            begin
+
+               --  Add subprogram to subprograms table for this receiver
+
+               Get_Subprogram_Identifier (Subp_Def);
+               Subp_Val := String_From_Name_Buffer;
+
+               Append_To (Decls,
+                 Make_Object_Declaration (Loc,
+                   Defining_Identifier => Subp_Dist_Name,
+                   Constant_Present    => True,
+                   Object_Definition   => New_Occurrence_Of (
+                     Standard_String, Loc),
+                   Expression          =>
+                     Make_String_Literal (Loc, Subp_Val)));
+               Analyze (Last (Decls));
+
+               Append_To (Subp_Info_List,
+                 Make_Component_Association (Loc,
+                   Choices => New_List (
+                     Make_Integer_Literal (Loc,
+                       Current_Subprogram_Number)),
+                   Expression =>
+                     Make_Aggregate (Loc,
+                       Expressions => New_List (
+                         Make_Attribute_Reference (Loc,
+                           Prefix =>
+                             New_Occurrence_Of (
+                               Subp_Dist_Name, Loc),
+                           Attribute_Name => Name_Address),
+                         Make_Attribute_Reference (Loc,
+                           Prefix =>
+                             New_Occurrence_Of (Subp_Def, Loc),
+                           Attribute_Name => Name_Address)))));
+
+
+               Current_Subprogram_Number
+                 := Current_Subprogram_Number + 1;
+
                Case_Stmts := New_List (
                  Make_Procedure_Call_Statement (Loc,
                     Name                   =>
@@ -2396,12 +2453,6 @@ package body Exp_Dist is
                   Append_To (Case_Stmts, Make_Return_Statement (Loc));
                end if;
 
-               Get_Subprogram_Identifier (
-                 Defining_Unit_Name (Specification (
-                   Current_Declaration)));
-               Subp_Val := Make_String_Literal (Loc,
-                 Strval => String_From_Name_Buffer);
-
                Append_To (Pkg_RPC_Receiver_Cases,
                  Make_Implicit_If_Statement (Pkg_Spec,
                    Condition =>
@@ -2410,10 +2461,11 @@ package body Exp_Dist is
                          New_Occurrence_Of (RTE (RE_Caseless_String_Eq), Loc),
                        Parameter_Associations => New_List (
                          New_Occurrence_Of (Subp_Id, Loc),
-                         Subp_Val)),
+                         New_Occurrence_Of (Subp_Dist_Name, Loc))),
                    Then_Statements =>
                      Case_Stmts));
             end;
+
          end if;
 
          Next (Current_Declaration);
@@ -2441,6 +2493,21 @@ package body Exp_Dist is
 --            Alternatives => Pkg_RPC_Receiver_Cases));
       Append_List_To (Pkg_RPC_Receiver_Stmts,
         Pkg_RPC_Receiver_Cases);
+
+      Append_To (Decls,
+        Make_Object_Declaration (Loc,
+          Defining_Identifier => Subp_Info_Array,
+          Constant_Present    => True,
+          Object_Definition   =>
+            Make_Unconstrained_Array_Definition (Loc,
+              Subtype_Marks => New_List (
+                New_Occurrence_Of (Standard_Integer, Loc)),
+              Subtype_Indication =>
+                New_Occurrence_Of (RTE (RE_RCI_Subp_Info), Loc)),
+          Expression          =>
+            Make_Aggregate (Loc,
+              Component_Associations => Subp_Info_List)));
+      Analyze (Last (Decls));
 
       Append_To (Decls, Pkg_RPC_Receiver_Body);
       Analyze (Last (Decls));
@@ -4258,16 +4325,19 @@ package body Exp_Dist is
       Current_Type      : Node_Id;
       Current_Etype     : Entity_Id;
 
-      Name_For_New_Spec : Name_Id;
+      Name_For_New_Spec : Name_Id := No_Name;
 
       New_Identifier : Entity_Id;
 
    begin
-      if New_Name = No_Name then
+      if New_Name = No_Name
+        and then Nkind (Spec) in N_Subprogram_Specification
+      then
          Name_For_New_Spec := Chars (Defining_Unit_Name (Spec));
       else
          Name_For_New_Spec := New_Name;
       end if;
+      pragma Assert (Name_For_New_Spec /= No_Name);
 
       if Present (Parameter_Specifications (Spec)) then
 
@@ -4322,7 +4392,9 @@ package body Exp_Dist is
          end loop;
       end if;
 
-      if Nkind (Spec) = N_Function_Specification then
+      if Nkind (Spec) = N_Function_Specification
+        or else Nkind (Spec) = N_Access_Function_Definition
+      then
          return
            Make_Function_Specification (Loc,
              Defining_Unit_Name       =>

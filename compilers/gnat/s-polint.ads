@@ -18,6 +18,31 @@ package System.PolyORB_Interface is
 
    pragma Elaborate_Body;
 
+   ---------------------
+   -- RCI information --
+   ---------------------
+
+   --  Calling stubs need a cache of the object reference
+   --  associated with each RCI unit.
+
+   generic
+      RCI_Name : String;
+   package RCI_Info is
+      function Get_RCI_Package_Ref
+        return PolyORB.References.Ref;
+   end RCI_Info;
+
+   --  Receiving stubs contain a table of all subprograms
+   --  exported by the unit.
+
+   type RCI_Subp_Info is record
+      Name : System.Address;
+      --  Subprogram distribution identifier
+
+      Addr : System.Address;
+      --  Local address of the actual subprogram
+   end record;
+
    --------------------------
    -- RPC receiver objects --
    --------------------------
@@ -28,13 +53,6 @@ package System.PolyORB_Interface is
 
    function Caseless_String_Eq (S1, S2 : String) return Boolean;
    --  Case-less equality of S1 and S2.
-
-   generic
-      RCI_Name : String;
-   package RCI_Info is
-      function Get_RCI_Package_Ref
-        return PolyORB.References.Ref;
-   end RCI_Info;
 
    subtype Request_Access is PolyORB.Requests.Request_Access;
 

@@ -482,57 +482,113 @@ package body Sem_Dist is
    ------------------------------------
 
    procedure Process_Remote_AST_Declaration (N : Node_Id) is
-      Loc           : constant Source_Ptr := Sloc (N);
-      User_Type     : constant Node_Id := Defining_Identifier (N);
-      Fat_Type      : constant Entity_Id :=
+      Loc            : constant Source_Ptr := Sloc (N);
+      User_Type      : constant Node_Id := Defining_Identifier (N);
+      Type_Def       : constant Node_Id := Type_Definition (N);
+      Pkg_Spec       : constant Node_Id :=
+        Package_Specification_Of_Scope (Scope (User_Type));
+
+      Obj_Type       : constant Entity_Id :=
+                         Make_Defining_Identifier
+                           (Loc, New_External_Name (
+                                   Chars (User_Type), 'R'));
+      Full_Obj_Type  : constant Entity_Id :=
+                         Make_Defining_Identifier
+                           (Loc, Chars (Obj_Type));
+
+      Obj_Type_Decl  : Node_Id;
+
+      Prim_Decl      : Node_Id;
+
+      RACW_Type      : constant Entity_Id :=
+                         Make_Defining_Identifier
+                           (Loc, New_External_Name (
+                                   Chars (User_Type), 'P'));
+      RACW_Type_Decl : Node_Id;
+
+      Fat_Type       : constant Entity_Id :=
                         Make_Defining_Identifier
                           (Loc, Chars (User_Type));
-      New_Type_Decl : Node_Id;
-
+      Fat_Type_Decl  : Node_Id;
    begin
-      New_Type_Decl :=
+      Obj_Type_Decl :=
+        Make_Private_Type_Declaration (Loc,
+          Defining_Identifier => Obj_Type,
+          Abstract_Present => True,
+          Tagged_Present   => True,
+          Limited_Present  => True);
+      Insert_After (N, Obj_Type_Decl);
+
+      if No (Private_Declarations (Pkg_Spec)) then
+         Set_Private_Declarations (Pkg_Spec, New_List);
+      end if;
+
+      Append_To (Private_Declarations (Pkg_Spec),
         Make_Full_Type_Declaration (Loc,
-          Defining_Identifier => Fat_Type,
-          Type_Definition =>
+          Defining_Identifier =>
+            Full_Obj_Type,
+          Type_Definition     =>
             Make_Record_Definition (Loc,
-              Component_List =>
-                Make_Component_List (Loc,
-                  Component_Items => New_List (
+              Abstract_Present => True,
+              Tagged_Present   => True,
+              Limited_Present  => True,
+              Component_List   => Empty,
+              Null_Present     => True)));
+      Set_Ekind (Obj_Type, E_Limited_Private_Type);
+      Set_Full_View (Obj_Type, Full_Obj_Type);
 
-                    Make_Component_Declaration (Loc,
-                      Defining_Identifier =>
-                        Make_Defining_Identifier (Loc,
-                          Chars => Name_RAS_Calling_Stub),
-                      Subtype_Indication =>
-                        New_Occurrence_Of
-                          (RTE (RE_Unsigned_64), Loc)),
+      Prim_Decl :=
+        Make_Abstract_Subprogram_Declaration (Loc,
+          Specification    =>
+            Copy_Specification (Loc,
+              Spec     => Type_Def,
+              New_Name => Name_Call));
+      Prepend_To (
+        Parameter_Specifications (Specification (Prim_Decl)),
+        Make_Parameter_Specification (Loc,
+          Defining_Identifier =>
+            Make_Defining_Identifier (Loc, Name_uS),
+          Parameter_Type      =>
+            Make_Access_Definition (Loc,
+              Subtype_Mark =>
+                New_Occurrence_Of (Obj_Type, Loc))));
+      --  XXX if the RAS definition has a formal parameter
+      --    that is of a tagged type, shit happens because
+      --    Call becomes a dispatching operation in both this type
+      --    and Obj_Type.
 
-                    Make_Component_Declaration (Loc,
-                      Defining_Identifier =>
-                        Make_Defining_Identifier (Loc,
-                          Chars => Name_Target),
-                      Subtype_Indication =>
-                        New_Occurrence_Of
-                           (RTE (RE_Object_Ref), Loc)),
+      Insert_After (Obj_Type_Decl, Prim_Decl);
 
---                      Make_Component_Declaration (Loc,
---                        Defining_Identifier =>
---                          Make_Defining_Identifier (Loc,
---                            Chars => Name_Subp_Id),
---                        Subtype_Indication =>
---                          New_Occurrence_Of
---                             (RTE (RE_Identifier), Loc)),
+      RACW_Type_Decl := Make_Full_Type_Declaration (Loc,
+        Defining_Identifier => RACW_Type,
+        Type_Definition     =>
+          Make_Access_To_Object_Definition (Loc,
+            All_Present => True,
+            Subtype_Indication =>
+              Make_Attribute_Reference (Loc,
+                Prefix =>
+                  New_Occurrence_Of (Obj_Type, Loc),
+                Attribute_Name =>
+                  Name_Class)));
+      Insert_After (Prim_Decl, RACW_Type_Decl);
 
-                    Make_Component_Declaration (Loc,
-                      Defining_Identifier =>
-                        Make_Defining_Identifier (Loc,
-                          Chars => Name_Async),
-                      Subtype_Indication =>
-                        New_Reference_To
-                          (Standard_Boolean,
-                           Loc))))));
+      --  Many parts of the analyzer and expander expect
+      --  that the fat pointer type used to implement remote
+      --  access to subprogram types be a record.
 
-      Insert_After (N, New_Type_Decl);
+      Fat_Type_Decl := Make_Full_Type_Declaration (Loc,
+        Defining_Identifier => Fat_Type,
+        Type_Definition     =>
+          Make_Record_Definition (Loc,
+            Component_List =>
+              Make_Component_List (Loc,
+                Component_Items => New_List (
+                  Make_Component_Declaration (Loc,
+                    Defining_Identifier =>
+                      Make_Defining_Identifier (Loc, Name_Ras),
+                    Subtype_Indication  =>
+                      New_Occurrence_Of (RACW_Type, Loc))))));
+      Insert_After (RACW_Type_Decl, Fat_Type_Decl);
       Set_Equivalent_Type (User_Type, Fat_Type);
       Set_Corresponding_Remote_Type (Fat_Type, User_Type);
 
@@ -543,9 +599,9 @@ package body Sem_Dist is
 
       Set_Suppress_Init_Proc (Fat_Type);
 
-      if Expander_Active then
-         Add_RAST_Features (Parent (User_Type));
-      end if;
+      --  if Expander_Active then
+      --     Add_RAST_Features (Parent (User_Type));
+      --  end if;
 
    end Process_Remote_AST_Declaration;
 

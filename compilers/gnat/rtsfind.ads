@@ -1054,6 +1054,7 @@ package Rtsfind is
      RE_Get_Reference,                   -- System.PolyORB_Interface
      RE_Local_Oid_To_Address,            -- System.PolyORB_Interface
      RE_RCI_Info,                        -- System.PolyORB_Interface
+     RE_RCI_Subp_Info,                   -- System.PolyORB_Interface
      RE_RACW_Stub_Type,                  -- System.PolyORB_Interface
      RE_RACW_Stub_Type_Access,           -- System.PolyORB_Interface
      RE_Get_Unique_Remote_Pointer,       -- System.PolyORB_Interface
@@ -2069,6 +2070,7 @@ package Rtsfind is
      RE_Get_Reference                    => System_PolyORB_Interface,
      RE_Local_Oid_To_Address             => System_PolyORB_Interface,
      RE_RCI_Info                         => System_PolyORB_Interface,
+     RE_RCI_Subp_Info                    => System_PolyORB_Interface,
      RE_RACW_Stub_Type                   => System_PolyORB_Interface,
      RE_RACW_Stub_Type_Access            => System_PolyORB_Interface,
      RE_Get_Unique_Remote_Pointer        => System_PolyORB_Interface,
