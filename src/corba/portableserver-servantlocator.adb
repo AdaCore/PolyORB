@@ -54,8 +54,8 @@ package body PortableServer.ServantLocator is
       pragma Unreferenced (Operation);
       pragma Warnings (On); --  WAG:3.15
 
-      Result_Cookie : constant Cookie_Base
-        := Cookie_Base'(Root_Cookie with null record);
+      Result_Cookie : constant Cookie_Base :=
+        Cookie_Base'(Root_Cookie with null record);
 
    begin
       The_Cookie := new Cookie_Base'(Result_Cookie);
