@@ -134,7 +134,6 @@ package body Backend.BE_Ada.Generator is
    procedure Generate_Package_Specification (N : Node_Id);
    procedure Generate_Parameter (N : Node_Id);
    procedure Generate_Parameter_List (L : List_Id);
-   procedure Generate_Qualified_Name (N : Node_Id);
    procedure Generate_Record_Definition (N : Node_Id);
    procedure Generate_Record_Type_Definition (N : Node_Id);
    procedure Generate_Subprogram_Implementation (N : Node_Id);
@@ -378,7 +377,7 @@ package body Backend.BE_Ada.Generator is
       Write_Space;
       Write_Token (Tok_Body);
       Write_Space;
-      Generate_Qualified_Name (Package_Declaration (N));
+      Generate (Defining_Identifier (Package_Declaration (N)));
       Write_Space;
       Write_Token (Tok_Is);
       Write_Eol;
@@ -394,7 +393,7 @@ package body Backend.BE_Ada.Generator is
       Write_Indentation;
       Write_Token  (Tok_End);
       Write_Space;
-      Generate_Qualified_Name (Package_Declaration (N));
+      Generate (Defining_Identifier (Package_Declaration (N)));
       Write_Token (Tok_Semicolon);
       Write_Eol;
    end Generate_Package_Implementation;
@@ -414,7 +413,7 @@ package body Backend.BE_Ada.Generator is
       Write_Indentation;
       Write_Token  (Tok_Package);
       Write_Space;
-      Generate_Qualified_Name (Package_Declaration (N));
+      Generate (Defining_Identifier (Package_Declaration (N)));
       Write_Space;
       Write_Token (Tok_Is);
       Write_Eol;
@@ -441,7 +440,7 @@ package body Backend.BE_Ada.Generator is
       Write_Indentation;
       Write_Token  (Tok_End);
       Write_Space;
-      Generate_Qualified_Name (Package_Declaration (N));
+      Generate (Defining_Identifier (Package_Declaration (N)));
       Write_Token (Tok_Semicolon);
       Write_Eol;
    end Generate_Package_Specification;
@@ -494,23 +493,6 @@ package body Backend.BE_Ada.Generator is
       end loop;
       Write_Token (Tok_Right_Paren);
    end Generate_Parameter_List;
-
-   -----------------------------
-   -- Generate_Qualified_Name --
-   -----------------------------
-
-   procedure Generate_Qualified_Name (N : Node_Id) is
-   begin
-      pragma Assert (Kind (N) = K_Package_Declaration);
-
-
-      if Present (Parent (N)) then
-         Generate_Qualified_Name (Parent (N));
-         Write_Token (Tok_Dot);
-      end if;
-      Write_Name (Name (Defining_Identifier (N)));
-
-   end Generate_Qualified_Name;
 
    --------------------------------
    -- Generate_Record_Definition --

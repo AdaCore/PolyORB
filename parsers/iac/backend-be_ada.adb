@@ -176,11 +176,7 @@ package body Backend.BE_Ada is
       L := New_List (K_Packages);
       Set_Packages (P, L);
 
-      Get_Name_String (IDL_Name (FEN.Identifier (E)));
-      if Kind (E) = K_Specification then
-         Add_Str_To_Name_Buffer ("_IDL_File");
-      end if;
-      I := Make_Defining_Identifier (Name_Find);
+      I := Make_Fully_Qualified_Identifier (E);
 
       --  Main package
 

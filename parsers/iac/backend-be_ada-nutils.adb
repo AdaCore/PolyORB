@@ -199,13 +199,17 @@ package body Backend.BE_Ada.Nutils is
       P : Node_Id;
       N : Node_Id;
       K : FEN.Node_Kind;
+      R : Node_Id;
 
    begin
       K := FEN.Kind (Entity);
       if K = FEN.K_Scoped_Name then
+         R := Reference (Entity);
+         if Kind (BE_Node (R)) = K_Specification then
+            return No_Node;
+         end if;
          N := New_Node (K_Designator);
-         Set_Defining_Identifier
-           (N, Make_Defining_Identifier (Reference (Entity)));
+         Set_Defining_Identifier (N, Make_Defining_Identifier (R));
          P := Parent_Entity (Entity);
          if Present (P) then
             Set_Parent_Unit_Name (N, Make_Designator (P));
@@ -275,13 +279,23 @@ package body Backend.BE_Ada.Nutils is
    function Make_Fully_Qualified_Identifier
      (Entity : Node_Id)
      return Node_Id is
+      use FEN;
+
       N : Node_Id;
       P : Node_Id;
+      I : Node_Id;
 
    begin
-      N := Make_Defining_Identifier (Entity);
-      P := FEN.Scope_Entity (Entity);
-      if Present (P) then
+      I := FEN.Identifier (Entity);
+      Get_Name_String (IDL_Name (I));
+      if Kind (Entity) = K_Specification then
+         Add_Str_To_Name_Buffer ("_IDL_File");
+      end if;
+      N := Make_Defining_Identifier (Name_Find);
+      P := FEN.Scope_Entity (I);
+      if Present (P)
+        and then FEN.Kind (P) /= FEN.K_Specification
+      then
          Set_Parent_Unit_Name (N, Make_Fully_Qualified_Identifier (P));
       end if;
       return N;
