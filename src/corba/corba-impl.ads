@@ -52,7 +52,8 @@ package CORBA.Impl is
    --  Object_Ptr is the return type of CORBA.AbstractBase.Object_Of.
    --  It may either designate an actual local object
    --  (a CORBA.Impl.Object'Class), or a surrogate thereof
-   --  (a D.SP.Entity'Class not derived from CORBA.Impl.Object).
+   --  (a PolyORB.Smart_Pointers.Entity'Class not derived from
+   --  CORBA.Impl.Object).
 
    function Execute_Servant
      (Self : access Object;
