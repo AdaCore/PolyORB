@@ -50,31 +50,31 @@ package body Test_Suite.Test_Case.Client_Server is
       Output      : Test_Suite_Output'Class)
      return Boolean
    is
-      Test_Result : Boolean := True;
-
-      procedure Run_Client (IOR : String);
-      procedure Run_Server;
+      function Run_Client (IOR : String) return Boolean;
+      function Run_Server return Boolean;
 
       ----------------
       -- Run_Client --
       ----------------
 
-      procedure Run_Client (IOR : String) is
-         Fd_Client : Process_Descriptor;
+      function Run_Client (IOR : String) return Boolean is
+         Fd : Process_Descriptor;
 
-         Client_Command : constant String
+         Command : constant String
            := "./" & To_String (Test_To_Run.Client.Command);
 
-         Env    : constant String := To_String (Test_To_Run.Client.Conf);
+         Env : constant String := To_String (Test_To_Run.Client.Conf);
+
+         Argument_List : GNAT.OS_Lib.Argument_List := (1 => new String'(IOR));
 
          Result : Expect_Match;
-
-         Client_Argument_List : Argument_List
-           := (1 => new String'(IOR));
 
          Item_To_Match : constant Regexp_Array
            := Regexp_Array'(+"END TESTS(.*)FAILED",
                             +"END TESTS(.*)PASSED");
+
+         Test_Result : Boolean;
+
       begin
          --  Setting environment
 
@@ -86,44 +86,42 @@ package body Test_Suite.Test_Case.Client_Server is
             Setenv ("POLYORB_CONF", Env);
          end if;
 
-         Log (Output, "Running client: " & Client_Command);
+         --  Test the executable actually exists
+
+         if not Is_Regular_File (Command) then
+            Log (Output, Command & " does not exist !");
+            Log (Output, "Aborting test");
+
+            return False;
+         end if;
+
+         --  Launch Test
+
+         Log (Output, "Running client: " & Command);
          Log (Output, "  with timeout: "
               & Integer'Image (Test_To_Run.Timeout));
          Log (Output, "           IOR:");
          Log (Output, "'" & IOR & "'");
          Separator (Output);
 
-         --  Test the executable actually exists
-
-         if not Is_Regular_File (Client_Command) then
-            Log (Output, Client_Command & " does not exist !");
-            Log (Output, "Aborting test");
-
-            Test_Result := False;
-
-            return;
-         end if;
-
          --  Spawn Client
 
          Non_Blocking_Spawn
-           (Descriptor  => Fd_Client,
-            Command     => Client_Command,
-            Args        => Client_Argument_List,
+           (Descriptor  => Fd,
+            Command     => Command,
+            Args        => Argument_List,
             Buffer_Size => 4096,
             Err_To_Out  => True);
 
          --  Redirect Output
 
          Initialize_Filter (Output);
-         Add_Filter (Fd_Client,
-                     Output_Filter'Access,
-                     GNAT.Expect.Output);
+         Add_Filter (Fd, Output_Filter'Access, GNAT.Expect.Output);
 
          --  Parse output
 
          Expect
-           (Fd_Client,
+           (Fd,
             Result,
             Item_To_Match,
             Test_To_Run.Timeout);
@@ -148,8 +146,10 @@ package body Test_Suite.Test_Case.Client_Server is
 
          --  Clean up
 
-         Free (Client_Argument_List (1));
-         Close (Fd_Client);
+         Free (Argument_List (1));
+         Close (Fd);
+
+         return Test_Result;
 
       exception
          when GNAT.Expect.Process_Died =>
@@ -159,12 +159,15 @@ package body Test_Suite.Test_Case.Client_Server is
             --  The process may normally exit, or die because of an
             --  internal error. We cannot judge at this stage.
 
-            Test_Result := False;
+            Free (Argument_List (1));
+            Close (Fd);
 
-            Close (Fd_Client);
+            return False;
 
          when others =>
-            Close (Fd_Client);
+            Free (Argument_List (1));
+            Close (Fd);
+
             raise;
       end Run_Client;
 
@@ -172,19 +175,24 @@ package body Test_Suite.Test_Case.Client_Server is
       -- Run_Server --
       ----------------
 
-      procedure Run_Server is
-         Fd_Server : Process_Descriptor;
+      function Run_Server return Boolean is
+         Fd : Process_Descriptor;
 
-         Server_Command : constant String
+         Command : constant String
            := "./" & To_String (Test_To_Run.Server.Command);
 
-         Match  : Match_Array (0 .. 2);
          Env    : constant String := To_String (Test_To_Run.Server.Conf);
 
-         Server_Argument_List : Argument_List
-           := (1 => new String'(""));
+         Argument_List : GNAT.OS_Lib.Argument_List := (1 => new String'(""));
 
          Result : Expect_Match;
+
+         Match  : Match_Array (0 .. 0);
+
+         Item_To_Match : constant Regexp_Array
+           := Regexp_Array'(1 => +"IOR:([a-z0-9]*)");
+
+         Test_Result : Boolean;
 
       begin
          --  Setting environment
@@ -197,59 +205,59 @@ package body Test_Suite.Test_Case.Client_Server is
             Setenv ("POLYORB_CONF", Env);
          end if;
 
-         Log (Output, "Running server: " & Server_Command);
-         Separator (Output);
-
          --  Test the executable actually exists
 
-         if not Is_Regular_File (Server_Command) then
-            Log (Output, Server_Command & " does not exist !");
+         if not Is_Regular_File (Command) then
+            Log (Output, Command & " does not exist !");
             Log (Output, "Aborting test");
 
-            Test_Result := False;
-
-            return;
+            return False;
          end if;
+
+         --  Launch Test
+
+         Log (Output, "Running server: " & Command);
+         Separator (Output);
 
          --  Spawn Server
 
          Non_Blocking_Spawn
-           (Descriptor  => Fd_Server,
-            Command     => Server_Command,
-            Args        => Server_Argument_List,
+           (Descriptor  => Fd,
+            Command     => Command,
+            Args        => Argument_List,
             Buffer_Size => 4096,
             Err_To_Out  => True);
 
+         --  Redirect Output
+
          Initialize_Filter (Output);
-         Add_Filter
-           (Fd_Server,
-            Output_Filter'Access,
-            GNAT.Expect.Output);
+         Add_Filter (Fd, Output_Filter'Access, GNAT.Expect.Output);
 
          --  Match Server IOR
 
-         Expect (Fd_Server, Result, "IOR:([a-z0-9]*)", Match, -1);
+         Expect (Fd, Result, Item_To_Match, Match, Test_To_Run.Timeout);
 
          --  Parse output
 
          case Result is
             when 1 =>
-               --  Start Client Task
+               --  Start Client
 
-               --               Client_T.Initialize
-               Run_Client
-                 (Expect_Out (Fd_Server)
+               Test_Result := Run_Client
+                 (Expect_Out (Fd)
                   (Match (0).First .. Match (0).Last));
 
             when others =>
                Log (Output, "Error when parsing server IOR");
-
+               Test_Result := False;
          end case;
 
          --  Clean up
 
-         Free (Server_Argument_List (1));
-         Close (Fd_Server);
+         Free (Argument_List (1));
+         Close (Fd);
+
+         return Test_Result;
 
       exception
          when GNAT.Expect.Process_Died =>
@@ -260,18 +268,25 @@ package body Test_Suite.Test_Case.Client_Server is
             Log (Output, "==> Server Process Terminated <==");
             Test_Result := False;
 
-            Close (Fd_Server);
+            Free (Argument_List (1));
+            Close (Fd);
+
+            return Test_Result;
 
          when others =>
-            Close (Fd_Server);
+            Free (Argument_List (1));
+            Close (Fd);
+
             raise;
       end Run_Server;
+
+      Test_Result : Boolean;
 
    begin
       Log (Output, "Launching test: " & To_String (Test_To_Run.Id));
       Separator (Output);
 
-      Run_Server;
+      Test_Result := Run_Server;
       Close_Test_Output_Context (Output, Test_Result);
 
       return Test_Result;
