@@ -1,4 +1,3 @@
-
-ADABROKER_TOP=../..
-ADABROKER_CURRENT=omniidl2/narrow
+ADABROKER_TOP=..
+ADABROKER_CURRENT=narrow
 include $(ADABROKER_TOP)/config/config.mk
