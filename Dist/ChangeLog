@@ -11,7 +11,8 @@ Fri Oct 24 17:49:16 1997  Laurent Pautet  <pautet@esmeralda.enst.fr>
  	systematically to save object file in place. Compile, bind and
  	link in current directory to honor gnat.adc.
 
-	* xe_stubs.adb: Use previous changes and honor gnat.adc.
+	* xe_stubs.adb: Use previous changes and honor gnat.adc. Fix
+ 	4617-G02.
 
 Thu Oct 23 09:58:06 1997  Laurent Pautet  <pautet@esmeralda.enst.fr>
 
