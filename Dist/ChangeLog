@@ -1,3 +1,11 @@
+2004-03-24  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* xe_utils.ads, xe_utils.adb, xe_stubs.adb: Introduce function
+	Split_String to split a string in several substrings when it is
+	too large. Use it to pass string parameter in subprogram calls
+	when an unit is compiled with -gnatg.
+	Fix D317-009.
+
 2004-02-13  Laurent Pautet  <pautet@dorine.enst.fr>
 
 	* Makefile.am, Makefile.in (clean): Add b_xe_defs$(EXEEXT) to the
