@@ -110,7 +110,7 @@ package System.Partition_Interface is
    function Get_Active_Partition_ID
      (Name : Unit_Name)
       return System.RPC.Partition_ID;
-   --  Similar in some respects to RCI_Info.Get_Active_Partition_ID
+   --  Similar in some respects to RCI_Locator.Get_Active_Partition_ID
    --  XXXXX: Rename it in Get_RCI_Partition_ID
 
    function Get_Active_Version
@@ -140,7 +140,7 @@ package System.Partition_Interface is
    function Get_RCI_Package_Receiver
      (Name : Unit_Name)
       return Interfaces.Unsigned_64;
-   --  Similar in some respects to RCI_Info.Get_RCI_Package_Receiver
+   --  Similar in some respects to RCI_Locator.Get_RCI_Package_Receiver
 
    procedure Register_Receiving_Stub
      (Name          : in Unit_Name;
@@ -181,11 +181,11 @@ package System.Partition_Interface is
 
    generic
       RCI_Name : String;
-   package RCI_Info is
+   package RCI_Locator is
       function Get_RCI_Package_Receiver return Interfaces.Unsigned_64;
       function Get_Active_Partition_ID return RPC.Partition_ID;
       --  XXXXX: Rename it in Get_RCI_Partition_ID
-   end RCI_Info;
+   end RCI_Locator;
    --  RCI package information caching
 
    subtype RCI_Subp_Info is System.Garlic.Units.RCI_Subp_Info;

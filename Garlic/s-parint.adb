@@ -570,11 +570,11 @@ package body System.Partition_Interface is
       Setup_RAS_Proxies (Subprograms, Receiver_Address);
    end Register_Receiving_Stub;
 
-   --------------
-   -- RCI_Info --
-   --------------
+   -----------------
+   -- RCI_Locator --
+   -----------------
 
-   package body RCI_Info is
+   package body RCI_Locator is
 
       Name : String := RCI_Name;
       Unit : Unit_Id;
@@ -614,7 +614,7 @@ package body System.Partition_Interface is
    begin
       To_Lower (Name);
       Unit := Get_Unit_Id (Name);
-   end RCI_Info;
+   end RCI_Locator;
 
    ---------
    -- Run --
