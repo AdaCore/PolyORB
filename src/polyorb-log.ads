@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -80,12 +80,6 @@ package PolyORB.Log is
          Level   : Log_Level := Debug);
       --  Log Message when Level is at least equal to the user-requested
       --  level for Facility.
-
-      procedure Increment;
-      --  Increment an internal counter and prints its value;
-
-      procedure Decrement;
-      --  Decrement an internal counter and prints its value;
 
    end Facility_Log;
 

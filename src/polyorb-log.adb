@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -67,7 +67,6 @@ package body PolyORB.Log is
 
       Initialized    : Boolean   := False;
       Facility_Level : Log_Level := Info;
-      Counter        : Natural   := 0;
 
       ------------
       -- Output --
@@ -89,36 +88,6 @@ package body PolyORB.Log is
          end if;
       end Output;
 
-      ---------------
-      -- Increment --
-      ---------------
-
-      procedure Increment
-      is
-         Old_Counter : constant Natural := Counter;
-      begin
-         Counter := Counter + 1;
-         Output ("Counter "
-                 & Integer'Image (Old_Counter)
-                 & " -> "
-                 & Integer'Image (Counter));
-      end Increment;
-
-      ---------------
-      -- Decrement --
-      ---------------
-
-      procedure Decrement
-      is
-         Old_Counter : constant Natural := Counter;
-      begin
-         Counter := Counter - 1;
-
-         Output ("Counter "
-                 & Integer'Image (Old_Counter)
-                 & " -> "
-                 & Integer'Image (Counter));
-      end Decrement;
    end Facility_Log;
 
    --------------------------------
