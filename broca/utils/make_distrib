@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: //depot/adabroker/main/broca/Utils/make_distrib#7 $
+# $Id: //depot/adabroker/main/broca/utils/make_distrib#2 $
 #
 # This script builds a compressed archive suitable for distribution.
 #
@@ -71,34 +71,34 @@ else
   cvs -d ${root} co ${kk} -r ${tag} -d ${dir} ${name}
   cd ${dir}
 fi
-if [ -f Utils/VERSION.INFO ]; then
+if [ -f utils/VERSION.INFO ]; then
   echo "Sourcing version file, then deleting it"
   if $s; then
     echo "(with no implicit version information)"
-    . Utils/VERSION.INFO
+    . utils/VERSION.INFO
   else
     echo "(with AdaBroker version information derived from ${dir})"
-    . Utils/VERSION.INFO ${dir}
+    . utils/VERSION.INFO ${dir}
   fi
-  rm -f Utils/VERSION.INFO
+  rm -f utils/VERSION.INFO
 else
-  echo "WARNING: unable to locate VERSION.INFO in directory Utils"
+  echo "WARNING: unable to locate VERSION.INFO in directory utils"
 fi
-#if [ -f Utils/mangle.sh ]; then
-#  chmod 755 Utils/mangle.sh
+#if [ -f utils/mangle.sh ]; then
+#  chmod 755 utils/mangle.sh
 #  tm=/tmp/man$$
 #  sed -ne '1,/BEGIN\]/p' < Dist/glade_version.txt > $tm.1
 #  sed -ne '/END\]/,$p' < Dist/glade_version.txt > $tm.3
 #  sed -e '1,/BEGIN\]/d' -e '/END\]/,$d' < Dist/glade_version.txt | \
-#    Utils/mangle.sh > $tm.2
+#    utils/mangle.sh > $tm.2
 #  cat $tm.1 $tm.2 $tm.3 > Dist/glade_version.txt
 #  rm $tm.1 $tm.2 $tm.3
 #else
-#  echo "WARNING: unable to locate mangle.sh in directory Utils"
+#  echo "WARNING: unable to locate mangle.sh in directory utils"
 #fi
-#if [ -f ${prev}/Utils/normalize.pl ]; then
+#if [ -f ${prev}/utils/normalize.pl ]; then
 #    echo Recentering keywords
-#    ${prev}/Utils/normalize.pl `cat MANIFEST`
+#    ${prev}/utils/normalize.pl `cat MANIFEST`
 #fi
 echo Generating auto-generated files
 make -f Makefile.am autoconf
