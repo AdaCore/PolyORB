@@ -73,7 +73,8 @@ package body Droopi.ORB is
 
          when Communication_Sk =>
 
-            --  Data arrived on a communication channel.
+            pragma Debug (O ("Data received on socket"
+                             & Image (AS.Socket)));
 
             declare
                Channel : constant Droopi.Channels.Channel_Access
@@ -155,6 +156,7 @@ package body Droopi.ORB is
       May_Poll       : Boolean := False) is
    begin
       loop
+         pragma Debug (O ("Run: enter."));
          Enter_Critical_Section;
 
          if (Exit_Condition /= null and then Exit_Condition.all)
@@ -181,6 +183,9 @@ package body Droopi.ORB is
 
                for I in Monitored_Set'Range loop
                   Set (R_Set, Monitored_Set (I).Socket);
+                  pragma Debug
+                    (O ("Monitoring socket"
+                        & Image (Monitored_Set (I).Socket)));
                end loop;
                Empty (W_Set);
 
@@ -190,18 +195,27 @@ package body Droopi.ORB is
                   Create_Selector (ORB.Selector.all);
                end if;
 
+               pragma Debug (O ("Checking selector..."));
                Check_Selector
                  (Selector     => ORB.Selector.all,
                   R_Socket_Set => R_Set,
                   W_Socket_Set => W_Set,
                   Status       => Status);
+               pragma Debug (O ("Selector returned status "
+                                & Status'Img));
 
                Enter_Critical_Section;
                ORB.Polling := False;
                Leave_Critical_Section;
 
                for I in Monitored_Set'Range loop
+                  pragma Debug
+                    (O ("Checking event on socket"
+                        & Image (Monitored_Set (I).Socket)));
                   if Is_Set (R_Set, Monitored_Set (I).Socket) then
+                     pragma Debug
+                       (O ("Got event on socket"
+                           & Image (Monitored_Set (I).Socket)));
                      Handle_Event (ORB, Monitored_Set (I));
                   end if;
 
@@ -218,6 +232,7 @@ package body Droopi.ORB is
 
          end if;
       end loop;
+      pragma Debug (O ("Run: leave."));
    end Run;
 
    function Work_Pending (ORB : access ORB_Type) return Boolean

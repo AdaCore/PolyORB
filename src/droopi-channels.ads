@@ -1,6 +1,6 @@
 --  A communication channel (a transport service protocol entity).
 
--- $Id$
+--  $Id$
 
 with Droopi.Buffers;
 with Droopi.Protocols;
