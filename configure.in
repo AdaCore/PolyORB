@@ -425,6 +425,7 @@ AC_OUTPUT([
 	examples/corba/all_functions/Makefile
 	examples/corba/echo/Makefile
 	examples/corba/random/Makefile
+	examples/corba/send/Makefile
 	examples/dsa/Makefile
 	examples/bbs/Makefile
 	examples/moma/Makefile

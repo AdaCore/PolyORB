@@ -306,6 +306,13 @@ examples/corba/random/random-impl.adb
 examples/corba/random/random-impl.ads
 examples/corba/random/random.idl
 examples/corba/random/server.adb
+examples/corba/send/Makefile.am
+examples/corba/send/Makefile.in
+examples/corba/send/print.idl
+examples/corba/send/listener.adb
+examples/corba/send/send.adb
+examples/corba/send/test-printer-impl.adb
+examples/corba/send/test-printer-impl.ads
 examples/moma/Makefile.am
 examples/moma/Makefile.in
 examples/moma/README
