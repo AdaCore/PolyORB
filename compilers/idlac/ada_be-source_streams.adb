@@ -223,10 +223,6 @@ package body Ada_Be.Source_Streams is
          end if;
          --  Here we are actually at BOL.
 
-         CU.Diversions (CU.Current_Diversion).At_BOL := False;
-         --  Indentation has actually been produced in D so
-         --  we do not want to generate it again in Current_Div.
-
          Put (CU, To_String (Div.Library_Item));
          CU.Diversions (CU.Current_Diversion).At_BOL := Div.At_BOL;
       end if;
@@ -314,17 +310,18 @@ package body Ada_Be.Source_Streams is
          User_Edited : in Boolean := False)
       is
       begin
-         Put_Line (File, "----------------------------------------------");
+         Put_Line (File, "-------------------------------------------------");
          Put_Line (File, "--  This file has been generated automatically");
-         Put_Line (File, "--  by IDLAC (http://www.polyorb.eu.org/)");
+         Put_Line (File, "--  by IDLAC (http://libre.act-europe.fr/polyorb/)");
          if not User_Edited then
             Put_Line (File, "--");
             Put_Line (File, "--  Do NOT hand-modify this file, as your");
             Put_Line (File, "--  changes will be lost when you re-run the");
             Put_Line (File, "--  IDL to Ada compiler.");
          end if;
-         Put_Line (File, "----------------------------------------------");
-         --  XXXXX To be removed later on
+         Put_Line (File, "-------------------------------------------------");
+
+         --  XXX To be removed later on
          Put_Line (File, "pragma Style_Checks (Off);");
          New_Line (File);
       end Emit_Standard_Header;
@@ -525,6 +522,13 @@ package body Ada_Be.Source_Streams is
       end if;
       Free (Object.Library_Unit);
    end Finalize;
+
+   procedure Initialize (CU : in out Compilation_Unit) is
+   begin
+      for D in Predefined_Diversions loop
+         CU.Diversions (D).Indent_Level := 1;
+      end loop;
+   end Initialize;
 
    procedure Finalize (CU : in out Compilation_Unit) is
    begin

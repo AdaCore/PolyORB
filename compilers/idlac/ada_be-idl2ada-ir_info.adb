@@ -1583,7 +1583,6 @@ package body Ada_Be.Idl2Ada.IR_Info is
       PL (CU, "end Register_IR_Info;");
 
       Divert (CU, Visible_Declarations);
-      DI (CU);
       Undivert (CU, Registration);
    end Gen_Body_Postlude;
 

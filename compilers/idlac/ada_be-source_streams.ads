@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/ada_be-source_streams.ads#5 $
+--  $Id: //droopi/main/compilers/idlac/ada_be-source_streams.ads#6 $
 
 with Ada.Finalization;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
@@ -198,7 +198,7 @@ private
       --  True iff some text has been Insert'ed in this diversion.
 
       Library_Item   : Unbounded_String;
-      Indent_Level   : Positive := 1;
+      Indent_Level   : Natural := 0;
       At_BOL         : Boolean := True;
       --  True if a line has just been ended, and the
       --  indentation space for the new line has not
@@ -220,6 +220,7 @@ private
       Diversions        : Diversion_Set;
    end record;
 
+   procedure Initialize (CU : in out Compilation_Unit);
    procedure Finalize   (CU : in out Compilation_Unit);
 
 end Ada_Be.Source_Streams;
