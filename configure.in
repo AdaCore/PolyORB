@@ -27,6 +27,7 @@ AC_CHECK_PROGS(AWK, [gnuawk gawk awk])
 AC_CHECK_PROG(SED, sed, sed)
 AC_CHECK_PROG(FIND, find, find)
 AC_CHECK_PROG(PYTHON, python, python)
+AC_CHECK_PROG(GREP, grep, grep)
 AM_PROG_WORKING_ADA
 AM_CROSS_PROG_WORKING_ADA
 AM_HAS_GNAT_SOCKETS_COPY
@@ -248,7 +249,7 @@ XMLADA_LIBS=""
 has_xmlada=no
 
 AC_MSG_CHECKING([XmlAda])
-if xmlada-config --version 2>&1 | grep "^XmlAda" > /dev/null 2>&1; then
+if xmlada-config --version 2>&1 | ${GREP} "^XmlAda" > /dev/null 2>&1; then
    XMLADA_INCS="`xmlada-config --cflags`"
    XMLADA_LIBS="`xmlada-config --libs`"
    has_xmlada=yes
@@ -384,7 +385,8 @@ EOF
 -- ${P} --
 EOF
 
-for F in `${FIND} ${srcdir}/src/${P} -regex '.*polyorb-setup-[[a-z]]*\.ads'`
+for F in `${FIND} ${srcdir}/src/${P} -type f \
+        | ${GREP} 'polyorb-setup-[a-z]*\.ads'`
 do
    U=`${AWK} '/^package/{print $2}' ${F}`
    cat >>${PROTO_SERVER_WITHS} <<EOF
