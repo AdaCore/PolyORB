@@ -68,21 +68,21 @@ package body System.Garlic.TCP_Platform_Specific is
 
    function C_Accept
      (S       : C.int;
-      Addr    : Sockaddr_Access;
+      Addr    : System.Address;
       Addrlen : access C.int)
       return C.int;
    pragma Export (C, C_Accept, "accept");
 
    function Std_Accept
      (S       : C.int;
-      Addr    : Sockaddr_Access;
+      Addr    : System.Address;
       Addrlen : access C.int)
       return C.int;
    pragma Import (Stdcall, Std_Accept, "accept");
 
    function C_Accept
      (S       : C.int;
-      Addr    : Sockaddr_Access;
+      Addr    : System.Address;
       Addrlen : access C.int)
       return C.int is
    begin
@@ -95,21 +95,21 @@ package body System.Garlic.TCP_Platform_Specific is
 
    function C_Bind
      (S       : C.int;
-      Name    : Sockaddr_Access;
+      Name    : System.Address;
       Namelen : C.int)
       return C.int;
    pragma Export (C, C_Bind, "bind");
 
    function Std_Bind
      (S       : C.int;
-      Name    : Sockaddr_Access;
+      Name    : System.Address;
       Namelen : C.int)
       return C.int;
    pragma Import (Stdcall, Std_Bind, "bind");
 
    function C_Bind
      (S       : C.int;
-      Name    : Sockaddr_Access;
+      Name    : System.Address;
       Namelen : C.int)
       return C.int is
    begin
@@ -137,21 +137,21 @@ package body System.Garlic.TCP_Platform_Specific is
 
    function C_Connect
      (S       : C.int;
-      Name    : Sockaddr_Access;
+      Name    : System.Address;
       Namelen : C.int)
       return C.int;
    pragma Export (C, C_Connect, "connect");
 
    function Std_Connect
      (S       : C.int;
-      Name    : Sockaddr_Access;
+      Name    : System.Address;
       Namelen : C.int)
       return C.int;
    pragma Import (Stdcall, Std_Connect, "connect");
 
    function C_Connect
      (S       : C.int;
-      Name    : Sockaddr_Access;
+      Name    : System.Address;
       Namelen : C.int)
       return C.int is
    begin
@@ -244,21 +244,21 @@ package body System.Garlic.TCP_Platform_Specific is
 
    function C_Getsockname
      (S       : C.int;
-      Name    : Sockaddr_Access;
+      Name    : System.Address;
       Namelen : access C.int)
       return C.int;
    pragma Export (C, C_Getsockname, "getsockname");
 
    function Std_Getsockname
      (S       : C.int;
-      Name    : Sockaddr_Access;
+      Name    : System.Address;
       Namelen : access C.int)
       return C.int;
    pragma Import (Stdcall, Std_Getsockname, "getsockname");
 
    function C_Getsockname
      (S       : C.int;
-      Name    : Sockaddr_Access;
+      Name    : System.Address;
       Namelen : access C.int)
       return C.int is
    begin
@@ -340,7 +340,7 @@ package body System.Garlic.TCP_Platform_Specific is
 
    function C_Recv
      (S     : C.int;
-      Buf   : Strings.chars_ptr;
+      Buf   : System.Address;
       Len   : C.int;
       Flags : C.int)
       return C.int;
@@ -348,7 +348,7 @@ package body System.Garlic.TCP_Platform_Specific is
 
    function Std_Recv
      (S     : C.int;
-      Buf   : Strings.chars_ptr;
+      Buf   : System.Address;
       Len   : C.int;
       Flags : C.int)
       return C.int;
@@ -356,7 +356,7 @@ package body System.Garlic.TCP_Platform_Specific is
 
    function C_Recv
      (S     : C.int;
-      Buf   : Strings.chars_ptr;
+      Buf   : System.Address;
       Len   : C.int;
       Flags : C.int)
       return C.int is
@@ -370,7 +370,7 @@ package body System.Garlic.TCP_Platform_Specific is
 
    function C_Send
      (S     : C.int;
-      Msg   : Strings.chars_ptr;
+      Msg   : System.Address;
       Len   : C.int;
       Flags : C.int)
       return C.int;
@@ -378,7 +378,7 @@ package body System.Garlic.TCP_Platform_Specific is
 
    function Std_Send
      (S     : C.int;
-      Msg   : Strings.chars_ptr;
+      Msg   : System.Address;
       Len   : C.int;
       Flags : C.int)
      return C.int;
@@ -386,7 +386,7 @@ package body System.Garlic.TCP_Platform_Specific is
 
    function C_Send
      (S     : C.int;
-      Msg   : Strings.chars_ptr;
+      Msg   : System.Address;
       Len   : C.int;
       Flags : C.int)
      return C.int is

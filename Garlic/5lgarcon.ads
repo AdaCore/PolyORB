@@ -38,6 +38,7 @@
 package System.Garlic.Constants is
    Tcp_Nodelay          : constant := 16#0001#;
    Af_Inet              : constant := 16#0002#;
+   Pf_Inet              : constant := 16#0002#;
    Sock_Stream          : constant := 16#0001#;
    Sock_Dgram           : constant := 16#0002#;
    Eintr                : constant := 16#0004#;

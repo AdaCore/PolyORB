@@ -38,6 +38,7 @@
 package System.Garlic.Constants is
 
    Af_Inet        : constant := 2;
+   Pf_Inet        : constant := 2;
    Sock_Dgram     : constant := 2;
    Sock_Stream    : constant := 1;
    So_Reuseaddr   : constant := 4;
