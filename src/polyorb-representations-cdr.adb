@@ -39,6 +39,7 @@ with Ada.Streams;
 with PolyORB.Any;
 with PolyORB.Any.ObjRef;
 with PolyORB.Buffers;
+with PolyORB.Fixed_Point;
 with PolyORB.Log;
 with PolyORB.Opaque;
 with PolyORB.References;
@@ -156,6 +157,8 @@ package body PolyORB.Representations.CDR is
    TC_Valuebox_Id           : constant PolyORB.Types.Unsigned_Long := 30;
    TC_Native_Id             : constant PolyORB.Types.Unsigned_Long := 31;
    TC_Abstract_Interface_Id : constant PolyORB.Types.Unsigned_Long := 32;
+
+   --  Internal utility functions
 
    -----------------
    -- Encapsulate --
@@ -401,7 +404,7 @@ package body PolyORB.Representations.CDR is
                      pragma Debug (O ("Marshall_From_Any : value kind is "
                                       & PolyORB.Any.TCKind'Image
                                       (PolyORB.Any.TypeCode.Kind
-                                       (PolyORB.Any.Get_Type (Value)))));
+                                       (Data_Type))));
                      Marshall_From_Any (Buffer, Value);
                   end loop;
                end if;
@@ -438,23 +441,23 @@ package body PolyORB.Representations.CDR is
             Marshall (Buffer, PolyORB.Types.Wide_String'(From_Any (Data)));
 
          when Tk_Fixed =>
-            --  declare
-            --   Digit,Scale: PolyORB.Any.Any;
-            --  begin
-            --   pragma Debug (O ("Marshall_From_Any : dealing with a fixed"));
-            --   Digit:=Get_Aggregate_Element
-            --           (Data,
-            --            PolyORB.Any.TypeCode.TC_Unsigned_Long,
-            --            PolyORB.Any.TypeCode.Fixed_Digits(Data_Type),
-            --            PolyORB.Types.Unsigned_Long(0));
-            --   Marshall_From_Any(Buffer,Digit);
-            --   Scale:=Get_Aggregate_Element
-            --           (Data,
-            --            PolyORB.Any.TypeCode.Fixed_Scale(Data_Type),
-            --            PolyORB.Types.Unsigned_Long(1));
-            --   Marshall_From_Any(Buffer,Scale);
-            --   end;
-            raise PolyORB.Not_Implemented;
+            declare
+               B : Stream_Element_Array (1 ..
+                 Stream_Element_Offset
+                   (TypeCode.Fixed_Digits (Data_Type)));
+               Last : Stream_Element_Offset := B'First;
+            begin
+               pragma Debug (O ("Marshall_From_Any : dealing with a fixed"));
+               loop
+                  B (Last) := Stream_Element (Octet'(
+                    From_Any (Get_Aggregate_Element (Data,
+                      PolyORB.Any.TypeCode.TC_Octet,
+                      PolyORB.Types.Unsigned_Long (Last - B'First)))));
+                  exit when B (Last) mod 16 > 9;
+                  Last := Last + 1;
+               end loop;
+               Align_Marshall_Copy (Buffer, B (B'First .. Last));
+            end;
 
          when Tk_Value =>
             declare
@@ -855,39 +858,19 @@ package body PolyORB.Representations.CDR is
             end;
 
          when Tk_Fixed =>
-            --  FIXME : to be done
-            --  declare
-            --   Arg1,Arg2:PolyORB.Any.Any;
-            --  begin
-            --    pragma Debug(0 ("unmarshall_to_any: dealing with a fixed"));
-            --    Set_Any_Aggregate_Value(Result);
-            --    if Is_Empty then
-            --      Arg1:= Get_Empty_Any(TypeCode.Fixed_Digits(Tc));
-            --    else
-            --      Arg1:= Get_Aggregate_Element
-            --             (Result,
-            --              TypeCode.Fixed_Digits(Tc),
-            --              PolyORB.Types.Unsigned_Long(0));
-            --    end if;
-            --    Unmarshall_To_Any(Buffer, Arg1);
-            --    if Is_Empty then
-            --      Add_Aggregate_Element(Result,Arg1);
-            --    end if;
-
-            --    if Is_Empty then
-            --      Arg2:= Get_Empty_Any(TypeCode.Fixed_Scale(Tc));
-            --    else
-            --       Arg2:= Get_Aggregate_Element
-            --             (Result,
-            --              TypeCode.Fixed_Digits(Tc),
-            --              PolyORB.Types.Unsigned_Long(0));
-            --    end if;
-            --    Unmarshall_To_Any(Buffer, Arg2);
-            --    if Is_Empty then
-            --      Add_Aggregate_Element(Result,Arg2);
-            --    end if;
-            --   end;
-            raise PolyORB.Not_Implemented;
+            declare
+               Arg : PolyORB.Any.Any
+                 := Get_Empty_Any_Aggregate (Get_Type (Result));
+               B : PolyORB.Types.Octet;
+            begin
+               loop
+                  B := Unmarshall (Buffer);
+                  Add_Aggregate_Element (Arg, To_Any (B));
+                  exit when B mod 16 > 9;
+               end loop;
+               Copy_Any_Value (Dest => Result, Src => Arg);
+               --  XXX Inefficient, see Tk_Struct above
+            end;
 
          when Tk_Value =>
 
@@ -1134,14 +1117,16 @@ package body PolyORB.Representations.CDR is
    --  Marshalling of a Standard String.
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in     Standard.String) is
+      Data   : in     Standard.String)
+   is
+      Str : Stream_Element_Array (1 .. Data'Length);
+      for Str'Address use Data'Address;
+      pragma Import (Ada, Str);
    begin
       pragma Debug (O ("Marshall (String) : enter"));
 
       Marshall (Buffer, PolyORB.Types.Unsigned_Long'(Data'Length + 1));
-      for J in Data'Range loop
-         Marshall (Buffer, PolyORB.Types.Char (Data (J)));
-      end loop;
+      Align_Marshall_Copy (Buffer, Str);
       Marshall (Buffer, PolyORB.Types.Char (ASCII.Nul));
 
       pragma Debug (O ("Marshall (String) : end"));
@@ -1602,9 +1587,7 @@ package body PolyORB.Representations.CDR is
    begin
       pragma Debug (O ("Marshall (Encapsulation) : enter"));
       Marshall (Buffer, PolyORB.Types.Unsigned_Long (Data'Length));
-      for J in Data'Range loop
-         Marshall (Buffer, PolyORB.Types.Octet (Data (J)));
-      end loop;
+      Align_Marshall_Copy (Buffer, Data);
       pragma Debug (O ("Marshall (Encapsulation) : end"));
    end Marshall;
 
@@ -2598,11 +2581,6 @@ package body PolyORB.Representations.CDR is
 
    package body Fixed_Point is
 
-      Fixed_Positive_Zero : constant Stream_Element
-        := 16#C#;
-      Fixed_Negative : constant Stream_Element
-        := 16#D#;
-
       Max_Digits : constant := 31;
       --  31 is the maximum number of digits for a fixed type
 
@@ -2644,108 +2622,41 @@ package body PolyORB.Representations.CDR is
          return Octets_To_Fixed (Octets (1 .. I));
       end Unmarshall;
 
+      package FPC is new PolyORB.Fixed_Point.Fixed_Point_Conversion (F);
+
       ---------------------
       -- Fixed_To_Octets --
       ---------------------
 
-      function Fixed_To_Octets
-        (Data : in F)
-        return Stream_Element_Array
-      is
-         N_Digits : Integer := 0;
-         Val : F := Data;
+      function Fixed_To_Octets (Data : in F) return Stream_Element_Array is
+         use PolyORB.Fixed_Point;
+         use FPC;
+         N : constant PolyORB.Fixed_Point.Nibbles := Fixed_To_Nibbles (Data);
+         B : Stream_Element_Array (0 .. N'Length / 2 - 1);
       begin
-         loop
-            N_Digits := N_Digits + 1;
-            Val := Val * 0.1;
-            exit when Val = 0.0;
+         for J in B'Range loop
+            B (J) := Stream_Element (N (N'First + 2 * Integer (J))) * 16
+                   + Stream_Element (N (N'First + 2 * Integer (J) + 1));
          end loop;
-
-         declare
-            Octets : Stream_Element_Array
-              (0 .. Stream_Element_Offset ((N_Digits + 2) / 2 - 1))
-              := (others => 0);
-            --  The size of the representation is
-            --  at least 1, plus 1 nibble for the sign.
-
-            Offset : Integer;
-            Bias : F;
-         begin
-            if N_Digits mod 2 /= 0 then
-               Offset := 0;
-            else
-               Offset := 1;
-            end if;
-
-            Val := Data;
-            Bias := F (10.0 ** (N_Digits - F'Scale + 1));
-
-            for J in Offset .. Offset + N_Digits loop
-               declare
-                  Digit : constant PolyORB.Types.Octet
-                    := PolyORB.Types.Octet (Val / Bias);
-               begin
-                  if J mod 2 = 0 then
-                     Octets (Stream_Element_Offset (J / 2))
-                       := Stream_Element (Digit * 16);
-                  else
-                     Octets (Stream_Element_Offset (J / 2))
-                       := Octets (Stream_Element_Offset (J / 2)) +
-                       Stream_Element (Digit);
-                  end if;
-
-                  Val := Val - F (Digit) * Bias;
-                  Bias := 0.1 * Bias;
-               end;
-            end loop;
-
-            if Data >= 0.0 then
-               Octets (Octets'Last) :=
-                 Octets (Octets'Last) + Fixed_Positive_Zero;
-            else
-               Octets (Octets'Last) :=
-                 Octets (Octets'Last) + Fixed_Negative;
-            end if;
-
-            return Octets;
-         end;
+         return B;
       end Fixed_To_Octets;
 
       ---------------------
       -- Octets_To_Fixed --
       ---------------------
 
-      function Octets_To_Fixed
-        (Octets : Stream_Element_Array)
-        return F
-      is
-         Result : F := 0.0;
+      function Octets_To_Fixed (Octets : Stream_Element_Array) return F is
+         use PolyORB.Fixed_Point;
+         use FPC;
+         N : PolyORB.Fixed_Point.Nibbles (0 .. Octets'Length * 2 - 1);
       begin
          for J in Octets'Range loop
-            if Octets (J) / 16 > 9
-              or else (Octets (J) mod 16 > 9 and then J < Octets'Last)
-              or else (Octets (J) mod 16 > 9 and then J = Octets'Last
-                       and then (Octets (J) mod 16 /= Fixed_Positive_Zero)
-                       and then (Octets (J) mod 16 /= Fixed_Negative))
-            then
-               pragma Debug
-                 (O ("Octets_To_Fixed : exception raised, " &
-                     "Octets (J) = " & Stream_Element'Image
-                     (Octets (J))));
-               raise Constraint_Error;
-            end if;
-
-            Result := Result * 10 + F (Octets (J) / 16) * F'Delta;
-            if J < Octets'Last then
-               Result := Result * 10 + F (Octets (J) mod 16) * F'Delta;
-            else
-               if Octets (J) mod 16 = Fixed_Negative then
-                  Result := -Result;
-               end if;
-            end if;
-
+            N (2 * Integer (J - Octets'First))
+              := Nibble (Octets (J) / 16);
+            N (2 * Integer (J - Octets'First) + 1)
+              := Nibble (Octets (J) mod 16);
          end loop;
-         return Result;
+         return Nibbles_To_Fixed (N);
       end Octets_To_Fixed;
 
    end Fixed_Point;

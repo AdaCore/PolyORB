@@ -90,7 +90,8 @@ package PolyORB.Any is
        Tk_Sequence,
        Tk_Array,
        Tk_Except,
-      --  end Aggregates
+       Tk_Fixed,
+      --  End aggregates
 
        Tk_String,
        Tk_Alias,
@@ -99,12 +100,11 @@ package PolyORB.Any is
        Tk_Longdouble,
        Tk_Widechar,
        Tk_Wstring,
-       Tk_Fixed,
        Tk_Value,
        Tk_Valuebox,
        Tk_Native,
        Tk_Abstract_Interface);
-   subtype Aggregate_TCKind is TCKind range Tk_Struct .. Tk_Except;
+   subtype Aggregate_TCKind is TCKind range Tk_Struct .. Tk_Fixed;
 
    type ValueModifier is new Types.Short;
 

@@ -498,4 +498,4 @@ package PolyORB.Representations.CDR is
 
    end Fixed_Point;
 
-end  PolyORB.Representations.CDR;
+end PolyORB.Representations.CDR;
