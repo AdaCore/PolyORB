@@ -40,6 +40,10 @@
 #include <stdio.h>
 #endif
 
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif
+
 #ifdef HAVE_STROPTS_H
 #include <stropts.h>
 #endif

@@ -1,3 +1,7 @@
+1999-02-16  Samuel Tardieu <sam@inf.enst.fr>
+
+	* configure.in: Add a test for the string.h header file.
+
 1999-02-07  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* configure, configure.in, MANIFEST: Add Examples/Reconnection.

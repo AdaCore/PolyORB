@@ -1,5 +1,8 @@
 1999-02-16  Samuel Tardieu  <sam@inf.enst.fr>
 
+	* constants.c, config.h.in: Use string.h if present, needed on
+	Digital Unix.
+
 	* makedall: New script that updates the debugging scripts
 	automatically.
 
