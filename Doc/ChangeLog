@@ -1,3 +1,9 @@
+Wed Feb 12 10:50:01 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
+
+	* user_guide.txt: Building a shell script is not the
+ 	default. Directory hierarchy has been changed (everything is under
+ 	directory dsa). Remove obsolete warnings on exceptions.
+
 Tue Feb 11 10:21:51 1997  Laurent Pautet <pautet@inf.enst.fr>
 
 	* user_guide.txt, install_guide.txt: Change references to mailing

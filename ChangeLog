@@ -1,3 +1,7 @@
+	  Suppress last 2 paragraphs.
+
+Tue Feb 11 09:26:04 1997  Samuel Tardieu  <sam@inf.enst.fr>
+Tue Feb 11 10:18:20 1997  Laurent Pautet <pautet@inf.enst.fr>
 	* configure.in: Changed Linux target. Damn new config.guess!
 
 Mon Feb 10 14:39:45 1997  Samuel Tardieu  <sam@inf.enst.fr>

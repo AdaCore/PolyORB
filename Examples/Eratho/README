@@ -25,5 +25,86 @@ There are four examples of the same program.
 To build this program, once in the "Examples/Eratho" directory, type
 "make". To execute the distributed program type "./mainloop".
 
-The "dynamic" and "absolute" versions provide a good example of implementation
-of distributed applications based on the client and server model.
+
+spiral:
+
+   Prime_1, Prime_2 and Prime_3 are three identical RCI packages
+   (sorry, generic RCI packages are not yet implemented). They are
+   connected together into a token ring where the token is the number
+   to test. When procedure Test_Primarity is invoked, a RCI Prime
+   package tests if its current prime divides the number. If not, a
+   remote procedure call is invoked inside the current remote
+   procedure call. The successive remote calls return the
+   divider. This is an example of recursive remote procedure calls.
+   Note that RCI packages Prime_1, Prime_2 and Prime_3 can't be the
+   same RCI package assigned three times, because a remote call
+   interface library unit shall be assigned to at most one partition
+   of a given program.
+
+cycle:
+
+   Prime_1, Prime_2 and Prime_3 are still three identical RCI
+   packages. But rather invoking a remote procedure call inside a
+   remote procedure call, procedure Test_Primarity invokes an
+   asynchronous remote procedure call and doesn't keep waiting for the
+   returned parameter Divider of example "spiral". In this case, when
+   the algorithm ends up, the last invoked partition executes another
+   asynchronous remote procedure call to release a semaphore and to
+   provide to the main partition the result.
+   
+dynamic :
+
+   There are several instances of the same partition (well, these
+   instances have different names, but they contain the same code).
+   In partition2 and partition3, a normal package Prime derives
+   New_Pool_Type from Prime_Pool_Type. Note that on each of these
+   partitions, the derivation is different, because Prime is a
+   (replicated) normal package. A reference to an object declared in
+   each of these partitions is registered to Controller. When all
+   these references are registered (3), Controller builds a token ring
+   and provides to each partition a reference to the object of its
+   neighbor. Thus, we have the same behaviour as spiral's one, except
+   that partitions communicate through remote dispatching procedure
+   calls.
+
+absolute:
+
+   This example is a merge of "cycle" and "dynamic" examples.
+
+
+The "dynamic" and "absolute" examples provide a good example of way to
+implement distributed applications based on the client and server
+model. For instance, in example "dynamic", partition2 and partition3
+are identical. We can imagine to have the following configuration file :
+
+configuration Dynamic is
+   pragma Starter (None);
+   Partition1 : Partition := (Controller);
+   Partition2 : Partition := (Prime);
+   for Partition'Storage_Dir use "bin";
+   procedure Mainloop is in Partition1;
+end Dynamic;
+
+And to start independently :
+
+host1 % bin/partition1 --boot_server tcp://host1:unused-port --nolaunch
+
+And to start several instances of partition2 :
+
+host2 % bin/partition2 --boot_server tcp://host1:unused-port --slave
+
+host3 % bin/partition2 --boot_server tcp://host1:unused-port --slave
+
+host4 % bin/partition2 --boot_server tcp://host1:unused-port --slave
+
+In our example, we need 3 instances of prime, because the prime finder
+algorithm starts running when 3 clients have been registered.
+
+This is an example of client / server applications using advanced
+features of Ada 95 Distributed System Annex (ie distributed objects or
+RACW types). Of course, you can also write client / server
+applications by using plain Ada remote procedure calls. In this
+context, several instances of the same partition could perform Ada
+remote procedure calls to the same partition as long as these clients
+don't include RCI packages (See E.2.3 (17)).
+
