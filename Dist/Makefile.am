@@ -16,14 +16,14 @@ dist1_DEPENDENCIES = xe_defs.o sdefault.o
 dist1_SOURCES =
 dist1_LDADD =
 
-GNATMAKE = gnatmake -m
+GNATMAKE = gnatmake
 
 CLEANFILES = *.ali gnatdist xe_defs.adb sdefault.adb
 
 force: 
 
 dist1: ${dist1_DEPENDENCIES} force
-	${GNATMAKE} -a ${GNATFLAGS} -I. -I${srcdir} -I${GNATSRC} \
+	${GNATMAKE} -m -a ${GNATFLAGS} -I. -I${srcdir} -I${GNATSRC} \
 	   ${srcdir}/xe_build.adb -o dist1
 
 xe_defs.adb: Makefile
