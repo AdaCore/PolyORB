@@ -323,10 +323,6 @@ package body System.Garlic.Heart is
    begin
       pragma Assert (Self_PID /= Null_PID);
 
-      if Opcode /= Shutdown_Service then
-         Soft_Links.Activity_Detected;
-      end if;
-
       Handle := Handlers (Opcode);
       pragma Assert (Handle /= null);
 
@@ -349,8 +345,6 @@ package body System.Garlic.Heart is
       Error     : in out Error_Type)
    is
    begin
-      Soft_Links.Activity_Detected;
-
       case Opcode is
          when No_Operation =>
             null;
@@ -589,6 +583,13 @@ package body System.Garlic.Heart is
                Notify_Partition_Error (Partition);
             end if;
          end if;
+      end if;
+
+      --  If this packet has anything to do with a remote call, record the
+      --  fact that we sent a message.
+
+      if Opcode = Remote_Call then
+         Activity_Detected;
       end if;
 
       Free (Stream);

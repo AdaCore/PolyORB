@@ -113,6 +113,10 @@ package body System.Garlic.Termination is
 
    procedure Dump_Task_Table;
 
+   function Locally_Ready (N : Positive) return Boolean;
+   --  Return True if there are exactly N tasks running, and if no messages
+   --  have been sent since the last wave. Return False otherwise.
+
    Current_Father : Types.Partition_ID;
    --  Our father for the current wave
 
@@ -125,13 +129,8 @@ package body System.Garlic.Termination is
    --  we have answered our father, which may happen in case of a negative
    --  answer from a neighbour.
 
-   Current_Ready  : Boolean := False;
-   pragma Atomic (Current_Ready);
-   Previous_Ready : Boolean := False;
-   --  Record the fact that we are (were) ready to terminate at the time of
-   --  the first message received for the current Stamp. Those values are
-   --  initially false so that two rounds are needed for every partition
-   --  joining the distributed system.
+   Messages_Sent : Boolean := False;
+   --  Record the fact that messages have been sent since the last wave
 
    Termination_Detected : Boolean := False;
    --  Will be set to True when the termination will be detected
@@ -181,7 +180,7 @@ package body System.Garlic.Termination is
 
    procedure Activity_Detected is
    begin
-      Current_Ready := False;
+      Messages_Sent := True;
    end Activity_Detected;
 
    ------------------------------
@@ -228,7 +227,7 @@ package body System.Garlic.Termination is
    ------------------------
 
    procedure Global_Termination is
-      Flip_Flop : Boolean := True;
+      Flip_Flop : Boolean := False;
       Deadline  : Time;
    begin
 
@@ -259,7 +258,7 @@ package body System.Garlic.Termination is
 
          exit Main_Loop when Shutdown_In_Progress;
 
-         if Flip_Flop then
+         if Flip_Flop and then Current_Stamp /= 0 then
             delay Time_Between_Checks;
             exit Main_Loop when Shutdown_In_Progress;
          end if;
@@ -274,8 +273,7 @@ package body System.Garlic.Termination is
             --  Update termination stamp to start a new vote
 
             Current_Stamp     := Current_Stamp + 1;
-            Previous_Ready    := Current_Ready;
-            Current_Ready     := True;
+            Messages_Sent     := False;
             Shutdown_Rejected := False;
 
             pragma Debug
@@ -354,13 +352,6 @@ package body System.Garlic.Termination is
             if Stamp > Current_Stamp then
                Current_Stamp  := Stamp;
                Current_Father := Partition;
-               Previous_Ready := Current_Ready;
-
-               --  We are ready only if we have two active tasks in the
-               --  system, the environment task and the current one
-               --  (which is active because it is an incoming request).
-
-               Current_Ready  := Get_Active_Task_Count = 2;
 
                pragma Debug
                  (D ("New round" & Stamp_Type'Image (Current_Stamp) &
@@ -371,15 +362,14 @@ package body System.Garlic.Termination is
                --  father right now.
 
                if Neighbours_Contacted = 0 then
-                  Send_Answer (Current_Father,
-                               Previous_Ready and Current_Ready);
+                  Send_Answer (Current_Father, Locally_Ready (2));
                end if;
             elsif Stamp = Current_Stamp then
                pragma Debug
                  (D ("Got slave message" &
                      Stamp_Type'Image (Current_Stamp) &
                      Partition_ID'Image (Partition)));
-               Send_Answer (Partition, Previous_Ready and Current_Ready);
+               Send_Answer (Partition, True);
             else
                pragma Debug (D ("Got obsolete stamp" &
                                 Stamp_Type'Image (Stamp)));
@@ -411,8 +401,7 @@ package body System.Garlic.Termination is
                     (D ("Answering neighbour" &
                         Partition_ID'Image (Partition) &
                         Stamp_Type'Image (Current_Stamp)));
-                  Send_Answer
-                    (Current_Father, Previous_Ready and Current_Ready);
+                  Send_Answer (Current_Father, Locally_Ready (2));
                end if;
             else
                null;
@@ -464,6 +453,15 @@ package body System.Garlic.Termination is
       Heart.Soft_Shutdown;
    end Local_Termination;
 
+   -------------------
+   -- Locally_Ready --
+   -------------------
+
+   function Locally_Ready (N : Positive) return Boolean is
+   begin
+      return Get_Active_Task_Count = N and then not Messages_Sent;
+   end Locally_Ready;
+
    -----------------
    -- Send_Answer --
    -----------------
@@ -472,6 +470,9 @@ package body System.Garlic.Termination is
       Message : aliased Params_Stream_Type (0);
       Error   : Error_Type;
    begin
+      if Recipient = Current_Father then
+         Messages_Sent := False;
+      end if;
       if Recipient = Self_PID then
          Termination_Detected := Ready;
          Shutdown_Rejected    := not Ready;
