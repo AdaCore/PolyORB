@@ -9,25 +9,35 @@ $Id$
 0.0 Prerequisites
 -----------------
 
-GNAT 3.15a1 compiler
+GNAT 3.15a1 native compiler
 GNAT 3.16w baseline sources
 XmlAda wavefront sources
+PolyORB tarball
+PolyORB wavefront (DSA components)
 
 0.1 Native platforms
 --------------------
 
-From the designated PolyORB and GNAT baselines, perform a build of
-a native GNAT 3.16w. Install it.
+Prepare baseline GNAT sources as usual for build platform.
+Copy the compilers/gnat compiler files into the baseline.
+Add exp_hlpr.o in ada/Makefile.in.
+Run xsnames, remove comment line from snames.adb.
+Configure and build.
+
+Build native and cross GNAT 3.16w and install it.
 
 Using that compiler, build XmlAda wavefront and install it.
 
-Using that compiler, build PolyORB with the following options:
-  --with-xmlada
-  --enable-ir
-  --enable-debug
+Copy examples/dsa + s-polint.* from PolyORB wavefront into PolyORB
+sources directory.
+
+Configure PolyORB with:
+  --enable-xmlada \
+  --enable-ir \
+  --enable-debug \
   --disable-shared
 
-Finally, build the examples/dsa directory.
+Build PolyORB, manually build examples/dsa.
 
 0.2 Cross platform
 ------------------
