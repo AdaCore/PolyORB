@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -242,5 +242,71 @@ package body PolyORB.Utils is
       return S'Length >= Prefix'Length
         and then S (S'First .. S'First + Prefix'Length - 1) = Prefix;
    end Has_Prefix;
+
+   --------------
+   -- To_Lower --
+   --------------
+
+   function To_Lower (S : String) return String is
+
+      function To_Lower (C : Character) return Character;
+
+      function To_Lower (C : Character) return Character is
+         C_Val : constant Natural := Character'Pos (C);
+
+      begin
+         if C in 'A' .. 'Z'
+           or else C_Val in 16#C0# .. 16#D6#
+           or else C_Val in 16#D8# .. 16#DE#
+         then
+            return Character'Val (C_Val + 16#20#);
+
+         else
+            return C;
+         end if;
+      end To_Lower;
+
+      Result : String := S;
+
+   begin
+      for J in Result'Range loop
+         Result (J) := To_Lower (Result (J));
+      end loop;
+
+      return Result;
+   end To_Lower;
+
+   --------------
+   -- To_Upper --
+   --------------
+
+   function To_Upper (S : String) return String is
+
+      function To_Upper (C : Character) return Character;
+
+      function To_Upper (C : Character) return Character is
+         C_Val : constant Natural := Character'Pos (C);
+
+      begin
+         if C in 'a' .. 'z'
+           or else C_Val in 16#E0# .. 16#F6#
+           or else C_Val in 16#F8# .. 16#FE#
+         then
+            return Character'Val (C_Val - 16#20#);
+
+         else
+            return C;
+         end if;
+      end To_Upper;
+
+      Result : String := S;
+
+   begin
+      for J in Result'Range loop
+         Result (J) := To_Upper (Result (J));
+      end loop;
+
+      return Result;
+   end To_Upper;
 
 end PolyORB.Utils;

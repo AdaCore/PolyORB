@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,12 +26,12 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Miscellaneous utility subprograms.
+--  Miscellaneous utility subprograms
 
 with Ada.Streams;
 
@@ -72,7 +72,7 @@ package PolyORB.Utils is
    -----------------------
 
    function Trimmed_Image (I : Integer) return String;
-   --  Return Integer'Image (I) without a leading space.
+   --  Return Integer'Image (I) without a leading space
 
    function Find_Skip
      (S     : String;
@@ -113,7 +113,13 @@ package PolyORB.Utils is
      renames Find_Skip;
 
    function Has_Prefix (S : String; Prefix : String) return Boolean;
-   --  True if, and only if, S starts with Prefix.
+   --  True if, and only if, S starts with Prefix
+
+   function To_Upper (S : String) return String;
+   --  Folds all characters of string S to upper case
+
+   function To_Lower (S : String) return String;
+   --  Folds all characters of string S to lower case
 
 private
 

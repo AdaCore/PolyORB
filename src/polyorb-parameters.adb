@@ -33,15 +33,11 @@
 
 --  PolyORB runtime configuration facility
 
-with Ada.Characters.Handling;
-
 with PolyORB.Dynamic_Dict;
 with PolyORB.Log;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.Parameters is
-
-   use Ada.Characters.Handling;
 
    use PolyORB.Utils.Strings;
 
@@ -103,7 +99,8 @@ package body PolyORB.Parameters is
    -------------------
 
    function Make_Env_Name (Section, Key : String) return String is
-      Result : String := "POLYORB_" & To_Upper (Section & "_" & Key);
+      Result : String := "POLYORB_"
+        & PolyORB.Utils.To_Upper (Section & "_" & Key);
 
    begin
       for J in Result'Range loop
@@ -143,7 +140,7 @@ package body PolyORB.Parameters is
    ----------------
 
    function To_Boolean (V : String) return Boolean is
-      VV : constant String := To_Lower (V);
+      VV : constant String := PolyORB.Utils.To_Lower (V);
 
    begin
       if VV'Length > 0 then
