@@ -127,32 +127,14 @@ adabe_name::compute_ada_name()
     switch (parent_scope->scope_node_type())
       {
       case AST_Decl::NT_op:
-	already_used = (adabe_operation::narrow_from_scope(parent_scope))->is_name_already_used(pd_ada_local_name, parent_scope);
-	pd_ada_full_name =  (adabe_operation::narrow_from_scope(parent_scope))->get_ada_full_name();
-	break;
       case AST_Decl::NT_interface:
-	already_used = (adabe_interface::narrow_from_scope(parent_scope))->is_name_already_used(pd_ada_local_name, parent_scope);
-	pd_ada_full_name =  (adabe_interface::narrow_from_scope(parent_scope))->get_ada_full_name();
-	break;
       case AST_Decl::NT_module:
-	already_used = (adabe_module::narrow_from_scope(parent_scope))->is_name_already_used(pd_ada_local_name, parent_scope);
-	pd_ada_full_name =  (adabe_module::narrow_from_scope(parent_scope))->get_ada_full_name();
-	break;
       case AST_Decl::NT_root:
-	already_used = (adabe_root::narrow_from_scope(parent_scope))->is_name_already_used(pd_ada_local_name, parent_scope);
-	pd_ada_full_name =  (adabe_root::narrow_from_scope(parent_scope))->get_ada_full_name();
-	break;
       case AST_Decl::NT_except:
-	already_used = (adabe_exception::narrow_from_scope(parent_scope))->is_name_already_used(pd_ada_local_name, parent_scope);
-	pd_ada_full_name =  (adabe_exception::narrow_from_scope(parent_scope))->get_ada_full_name();
-	break;
       case AST_Decl::NT_struct:
-	already_used = (adabe_structure::narrow_from_scope(parent_scope))->is_name_already_used(pd_ada_local_name, parent_scope);
-	pd_ada_full_name =  (adabe_structure::narrow_from_scope(parent_scope))->get_ada_full_name();
-	break;
       case AST_Decl::NT_union:
-	already_used = (adabe_union::narrow_from_scope(parent_scope))->is_name_already_used(pd_ada_local_name, parent_scope);
-	pd_ada_full_name =  (adabe_union::narrow_from_scope(parent_scope))->get_ada_full_name();
+	already_used = (dynamic_cast<adabe_name *>(parent_scope))->is_name_already_used(pd_ada_local_name, parent_scope);
+	pd_ada_full_name =  (dynamic_cast<adabe_name *>(parent_scope))->get_ada_full_name();
 	break;
       default:
 	throw adabe_internal_error(__FILE__,__LINE__,"unexpected contening scope");
@@ -167,11 +149,11 @@ adabe_name::compute_ada_name()
 	  throw adabe_internal_error(__FILE__,__LINE__,"too many name conflicts");
 	cout << "Je suis passe ici\n";
 	char extension[4];
-	sprintf (extension, "_%d",loop);
+	sprintf (extension, "_%d",loop++);
 	//      delete pd_ada_local_name;
 	//      pd_ada_local_name = new string();
 	pd_ada_local_name = temp_name + extension;
-	pd_ada_full_name = pd_ada_full_name + extension;
+	pd_ada_full_name = pd_ada_full_name + "." + pd_ada_local_name;
       }
     /*  try to go the to the root of teh tree, and, each step, try to find 
 	a node with the same name. If such a node if found
@@ -202,84 +184,19 @@ adabe_name::is_name_already_used(string name, UTL_Scope *in_scope)
       i.next();
       if (d->in_main_file())
 	{
-	  adabe_name *ada;
-	  switch (d->node_type())
-	    {
-	    case NT_module: 
-		ada = adabe_module::narrow_from_decl(d);
-	      break;
-	    case NT_root:
-		ada = adabe_root::narrow_from_decl(d);
-	      break;
-	    case NT_interface:
-		ada = adabe_interface::narrow_from_decl(d);
-	      break;
-	    case NT_interface_fwd:
-		ada = adabe_interface_fwd::narrow_from_decl(d);
-	      break;
-	    case NT_const:
-		ada = adabe_constant::narrow_from_decl(d);
-	      break;
-	    case NT_except:
-		ada = adabe_exception::narrow_from_decl(d);
-	      break;
-	    case NT_attr:
-		ada = adabe_attribute::narrow_from_decl(d);
-	      break;
-	    case NT_op:
-		ada = adabe_operation::narrow_from_decl(d);
-	      break;
-	    case NT_argument:
-		ada = adabe_argument::narrow_from_decl(d);
-	      break;
-	    case NT_union:
-		ada = adabe_union::narrow_from_decl(d);
-	      break;
-	    case NT_union_branch:
-		ada = adabe_union_branch::narrow_from_decl(d);
-	      break;
-	    case NT_struct:
-		ada = adabe_structure::narrow_from_decl(d);
-	      break;
-	    case NT_field:
-		ada = adabe_field::narrow_from_decl(d);
-	      break;
-	    case NT_enum:
-		ada = adabe_enum::narrow_from_decl(d);
-	      break;
-	    case NT_enum_val:
-		ada = adabe_enum_val::narrow_from_decl(d);
-	      break;
-	    case NT_string:
-		ada = adabe_string::narrow_from_decl(d);
-	      break;
-	    case NT_array:
-		ada = adabe_array::narrow_from_decl(d);
-	      break;
-	    case NT_sequence:
-		ada = adabe_sequence::narrow_from_decl(d);
-	      break;
-	    case NT_typedef:
-		ada = adabe_typedef::narrow_from_decl(d);
-	      break;
-	      /*	    case NT_pre_defined:
-			    ada = adabe_pre_defined::narrow_from_decl(d);
-			    break;*/
-	    }
-	  // adabe_name *ada = adabe_interface::narrow_from_decl(d);
+	   adabe_name *ada = dynamic_cast<adabe_name *>(d);;
+
+	   // adabe_name *ada = adabe_interface::narrow_from_decl(d);
 #ifdef DEBUG_NAME
-	  cout << "in adabe_name, in is_name_already_used, after the narrow_from_decl"  << endl;
-	  cout << "in adabe_name, in is_name_already_used, ada = " << (int) ada <<endl;
-	  //  ada->dump(cout);
+	   cout << "in adabe_name, in is_name_already_used, after the narrow_from_decl"  << endl;
 #endif
-	  temp = (ada->get_ada_local_name());
+	   temp = (ada->get_ada_local_name());
 #ifdef DEBUG_NAME
-	  cout << "in adabe_name, in is_name_already_used, after get_ada_local_name"  << endl;
+	   cout << "in adabe_name, in is_name_already_used, after get_ada_local_name"  << endl;
+	   cout << "this vaut " << (int) this << "et ada vaut " << (int) ada << endl;
 #endif
 	  
-	  if (temp  != "")
-	    if (temp == name); //...
-	      //	      return 1;
+	  if ((this != ada) && (temp  != "") && (temp == name)) return 1;
 	}
     }
 #ifdef DEBUG_NAME

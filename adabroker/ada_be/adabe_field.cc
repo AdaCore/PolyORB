@@ -14,7 +14,13 @@ adabe_field::produce_ads(dep_list& with, string &body, string &previous)
   body += "      " + get_ada_local_name();
   body += " : ";
   AST_Decl *b = field_type();
+#ifdef DEBUG_FIELD
+  cerr << "before the dump name of the field " << endl;
+#endif 
   body += dynamic_cast<adabe_name *>(b)->dump_name(with, body, previous); 
+#ifdef DEBUG_FIELD
+  cerr << "after the dump name of the field " << endl;
+#endif 
   body += ";\n";
 }
 
