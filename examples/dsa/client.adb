@@ -1,6 +1,7 @@
 with Ada.Text_IO; use Ada.Text_IO;
 with RCI;
 with RT;
+with SP;
 
 pragma Warnings (Off);
 with PolyORB.Initialization;
@@ -33,6 +34,7 @@ procedure Client is
    Z : constant RCI.Complex := (Re => 2.0, Im => 3.0);
 
 begin
+   SP.Shared_Integer := 42;
    Put_Line ("I said: " & S);
    Put_Line ("The server replied: "
      & RCI.echoString (S));
