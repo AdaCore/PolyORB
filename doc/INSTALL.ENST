@@ -18,6 +18,13 @@ Pour les autres architectures, les sources se trouvent dans :
    
 Il suffit de faire "make".
 
+Copier/Deplacer un fichier dans le depot
+****************************************
+
+De facon a ne pas perdre l'historique des modifications, utiliser
+systématiquement la commande 'p4 integrate', cf le manuel pour plus
+d'informations.
+
 Comment installer polyorb sur les stations Sun de l'ENST
 ********************************************************
 
