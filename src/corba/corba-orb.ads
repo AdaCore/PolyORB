@@ -48,7 +48,7 @@ package CORBA.ORB is
    pragma Elaborate_Body;
 
    package Octet_Sequence is
-      new PolyORB.Sequences.Unbounded (Octet);
+      new CORBA.Sequences.Unbounded (Octet);
 
    type ServiceDetail is record
       Service_Detail_Type : ServiceDetailType;
