@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with Ada.Dynamic_Priorities;
 
 with PolyORB.Initialization;
