@@ -1,8 +1,4 @@
-pragma Warnings (Off);
-----------------------------------------------
---  This file has been generated automatically
---  by AdaBroker (http://adabroker.eu.org/)
-----------------------------------------------
+pragma Style_Checks (Off);
 
 with Ada.Tags;
 with Ada.Strings.Unbounded;
@@ -280,7 +276,7 @@ package body CORBA.Repository_Root.Container.Impl is
            -- types containing a "container_view" field
            dk_Struct     =>
             declare
-               Interm : StructDef.Impl.Object_Ptr :=
+               Interm : constant StructDef.Impl.Object_Ptr :=
                  StructDef.Impl.Object_Ptr (Self);
             begin
                Result := StructDef.Impl.Get_Container_View (Interm);
@@ -289,7 +285,7 @@ package body CORBA.Repository_Root.Container.Impl is
            -- types containing a "container_view" field
            dk_Union      =>
             declare
-               Interm : UnionDef.Impl.Object_Ptr :=
+               Interm : constant UnionDef.Impl.Object_Ptr :=
                  UnionDef.Impl.Object_Ptr (Self);
             begin
                Result := UnionDef.Impl.Get_Container_View (Interm);
@@ -338,7 +334,7 @@ package body CORBA.Repository_Root.Container.Impl is
            -- types containing a "container_view" field
            dk_Struct     =>
             declare
-               Interm : StructDef.Impl.Object_Ptr :=
+               Interm : constant StructDef.Impl.Object_Ptr :=
                  StructDef.Impl.Object_Ptr (Self);
             begin
                return StructDef.Impl.Get_Container_View (Interm);
@@ -347,7 +343,7 @@ package body CORBA.Repository_Root.Container.Impl is
            -- types containing a "container_view" field
            dk_Union      =>
             declare
-               Interm : UnionDef.Impl.Object_Ptr :=
+               Interm : constant UnionDef.Impl.Object_Ptr :=
                  UnionDef.Impl.Object_Ptr (Self);
             begin
                return UnionDef.Impl.Get_Container_View (Interm);
@@ -542,7 +538,7 @@ package body CORBA.Repository_Root.Container.Impl is
                begin
                   for I in Int_Array'Range loop
                      declare
-                        Int : InterfaceDef.Impl.Object_Ptr
+                        Int : constant InterfaceDef.Impl.Object_Ptr
                           := InterfaceDef.Impl.To_Object (Int_Array (I));
                         Res : ContainedSeq;
                      begin
@@ -569,7 +565,7 @@ package body CORBA.Repository_Root.Container.Impl is
                begin
                   for I in Int_Array'Range loop
                      declare
-                       Int : InterfaceDef.Impl.Object_Ptr
+                       Int : constant InterfaceDef.Impl.Object_Ptr
                          := InterfaceDef.Impl.To_Object (Int_Array (I));
                        Res : ContainedSeq;
                      begin
@@ -595,7 +591,7 @@ package body CORBA.Repository_Root.Container.Impl is
                begin
                   for I in Val_Array'Range loop
                      declare
-                        Val : ValueDef.Impl.Object_Ptr
+                        Val : constant ValueDef.Impl.Object_Ptr
                           := ValueDef.Impl.To_Object (Val_Array (I));
                         Res : ContainedSeq;
                      begin
@@ -675,7 +671,7 @@ package body CORBA.Repository_Root.Container.Impl is
                begin
                   for I in Int_Array'Range loop
                      declare
-                        Int : InterfaceDef.Impl.Object_Ptr
+                        Int : constant InterfaceDef.Impl.Object_Ptr
                           := InterfaceDef.Impl.To_Object (Int_Array (I));
                         Res : ContainedSeq;
                      begin
@@ -704,7 +700,7 @@ package body CORBA.Repository_Root.Container.Impl is
                begin
                   for I in Int_Array'Range loop
                      declare
-                       Int : InterfaceDef.Impl.Object_Ptr
+                       Int : constant InterfaceDef.Impl.Object_Ptr
                          := InterfaceDef.Impl.To_Object (Int_Array (I));
                        Res : ContainedSeq;
                      begin
@@ -732,7 +728,7 @@ package body CORBA.Repository_Root.Container.Impl is
                begin
                   for I in Val_Array'Range loop
                      declare
-                        Val : ValueDef.Impl.Object_Ptr
+                        Val : constant ValueDef.Impl.Object_Ptr
                           := ValueDef.Impl.To_Object (Val_Array (I));
                         Res : ContainedSeq;
                      begin
@@ -779,7 +775,7 @@ package body CORBA.Repository_Root.Container.Impl is
         get_def_kind (Self) /= dk_Repository then
          declare
             New_Level : Long;
-            Parent : Object_Ptr
+            Parent : constant Object_Ptr
               := To_Object
               (Contained.Impl.get_defined_in
                (Contained.Impl.To_Contained
@@ -842,7 +838,7 @@ package body CORBA.Repository_Root.Container.Impl is
 
       --  get the description and populate the result.
       declare
-         Cont_Array : Contained_Seq.Element_Array
+         Cont_Array : constant Contained_Seq.Element_Array
            := Contained_Seq.To_Element_Array (Content);
          Des : Contained.Description;
          Ref : Contained.Ref;
@@ -888,8 +884,8 @@ package body CORBA.Repository_Root.Container.Impl is
          return Result;
       end if;
       declare
-         Obj : ModuleDef.Impl.Object_Ptr := new ModuleDef.Impl.Object;
-         Cont_Obj : Contained.Impl.Object_Ptr := new Contained.Impl.Object;
+         Obj : constant ModuleDef.Impl.Object_Ptr := new ModuleDef.Impl.Object;
+         Cont_Obj : constant Contained.Impl.Object_Ptr := new Contained.Impl.Object;
       begin
 
          --  initialization of the object
@@ -935,7 +931,7 @@ package body CORBA.Repository_Root.Container.Impl is
          return Nil_Ref;
       end if;
       declare
-         Obj : ConstantDef.Impl.Object_Ptr := new ConstantDef.Impl.Object;
+         Obj : constant ConstantDef.Impl.Object_Ptr := new ConstantDef.Impl.Object;
       begin
          --  initialization of the object
          ConstantDef.Impl.Init (Obj,
@@ -973,9 +969,9 @@ package body CORBA.Repository_Root.Container.Impl is
          return Nil_Ref;
       end if;
       declare
-         Obj : StructDef.Impl.Object_Ptr := new StructDef.Impl.Object;
-         Container_Obj : Object_Ptr := new Object;
-         IDLType_Obj : IDLType.Impl.Object_Ptr := new IDLType.Impl.Object;
+         Obj : constant StructDef.Impl.Object_Ptr := new StructDef.Impl.Object;
+         Container_Obj : constant Object_Ptr := new Object;
+         IDLType_Obj : constant IDLType.Impl.Object_Ptr := new IDLType.Impl.Object;
       begin
          --  initialization of the object
          StructDef.Impl.Init (Obj,
@@ -1018,9 +1014,9 @@ package body CORBA.Repository_Root.Container.Impl is
          return Nil_Ref;
       end if;
       declare
-         Obj : UnionDef.Impl.Object_Ptr := new UnionDef.Impl.Object;
-         Container_Obj : Object_Ptr := new Object;
-         IDLType_Obj : IDLType.Impl.Object_Ptr := new IDLType.Impl.Object;
+         Obj : constant UnionDef.Impl.Object_Ptr := new UnionDef.Impl.Object;
+         Container_Obj : constant Object_Ptr := new Object;
+         IDLType_Obj : constant IDLType.Impl.Object_Ptr := new IDLType.Impl.Object;
       begin
          --  initialization of the object
          UnionDef.Impl.Init (Obj,
@@ -1063,8 +1059,8 @@ package body CORBA.Repository_Root.Container.Impl is
          return Nil_Ref;
       end if;
       declare
-         Obj : EnumDef.Impl.Object_Ptr := new EnumDef.Impl.Object;
-         IDLType_Obj : IDLType.Impl.Object_Ptr := new IDLType.Impl.Object;
+         Obj : constant EnumDef.Impl.Object_Ptr := new EnumDef.Impl.Object;
+         IDLType_Obj : constant IDLType.Impl.Object_Ptr := new IDLType.Impl.Object;
       begin
          --  initialization of the object
          EnumDef.Impl.Init (Obj,
@@ -1103,8 +1099,8 @@ package body CORBA.Repository_Root.Container.Impl is
          return Nil_Ref;
       end if;
       declare
-         Obj : AliasDef.Impl.Object_Ptr := new AliasDef.Impl.Object;
-         IDLType_Obj : IDLType.Impl.Object_Ptr := new IDLType.Impl.Object;
+         Obj : constant AliasDef.Impl.Object_Ptr := new AliasDef.Impl.Object;
+         IDLType_Obj : constant IDLType.Impl.Object_Ptr := new IDLType.Impl.Object;
       begin
          --  initialization of the object
          AliasDef.Impl.Init (Obj,
@@ -1112,8 +1108,7 @@ package body CORBA.Repository_Root.Container.Impl is
                              dk_Alias,
                              id,
                              name,
-                             version,
-                             To_Forward (Object_Ptr (Self)),
+                             version,                             To_Forward (Object_Ptr (Self)),
                              IDLType_Obj,
                              IDLType.Convert_Forward.To_Ref (original_type));
 
@@ -1147,9 +1142,9 @@ package body CORBA.Repository_Root.Container.Impl is
       end if;
       declare
          Res : CORBA.Repository_Root.InterfaceDef_Forward.Ref;
-         Obj : InterfaceDef.Impl.Object_Ptr := new InterfaceDef.Impl.Object;
-         Cont_Obj : Contained.Impl.Object_Ptr := new Contained.Impl.Object;
-         IDLType_Obj : IDLType.Impl.Object_Ptr := new IDLType.Impl.Object;
+         Obj : constant InterfaceDef.Impl.Object_Ptr := new InterfaceDef.Impl.Object;
+         Cont_Obj : constant Contained.Impl.Object_Ptr := new Contained.Impl.Object;
+         IDLType_Obj : constant IDLType.Impl.Object_Ptr := new IDLType.Impl.Object;
       begin
          pragma Debug (O ("Create_interface : before init"));
          --  initialization of the object
@@ -1202,9 +1197,9 @@ package body CORBA.Repository_Root.Container.Impl is
          return Nil_Ref;
       end if;
       declare
-         Obj : ValueDef.Impl.Object_Ptr := new ValueDef.Impl.Object;
-         Cont_Obj : Contained.Impl.Object_Ptr := new Contained.Impl.Object;
-         IDLType_Obj : IDLType.Impl.Object_Ptr := new IDLType.Impl.Object;
+         Obj : constant ValueDef.Impl.Object_Ptr := new ValueDef.Impl.Object;
+         Cont_Obj : constant Contained.Impl.Object_Ptr := new Contained.Impl.Object;
+         IDLType_Obj : constant IDLType.Impl.Object_Ptr := new IDLType.Impl.Object;
       begin
          --  there cannot be more then one "true" in those boolean!
          if (is_custom and is_abstract) or
@@ -1259,8 +1254,8 @@ package body CORBA.Repository_Root.Container.Impl is
          return Nil_Ref;
       end if;
       declare
-         Obj : ValueBoxDef.Impl.Object_Ptr := new ValueBoxDef.Impl.Object;
-         IDLType_Obj : IDLType.Impl.Object_Ptr := new IDLType.Impl.Object;
+         Obj : constant ValueBoxDef.Impl.Object_Ptr := new ValueBoxDef.Impl.Object;
+         IDLType_Obj : constant IDLType.Impl.Object_Ptr := new IDLType.Impl.Object;
       begin
          --  initialization of the object
          ValueBoxDef.Impl.Init (Obj,
@@ -1301,8 +1296,8 @@ package body CORBA.Repository_Root.Container.Impl is
          return Nil_Ref;
       end if;
       declare
-         Obj : ExceptionDef.Impl.Object_Ptr := new ExceptionDef.Impl.Object;
-         Cont_Obj : Contained.Impl.Object_Ptr := new Contained.Impl.Object;
+         Obj : constant ExceptionDef.Impl.Object_Ptr := new ExceptionDef.Impl.Object;
+         Cont_Obj : constant Contained.Impl.Object_Ptr := new Contained.Impl.Object;
       begin
          --  initialization of the object
          ExceptionDef.Impl.Init (Obj,
@@ -1341,8 +1336,8 @@ package body CORBA.Repository_Root.Container.Impl is
          return Nil_Ref;
       end if;
       declare
-         Obj : NativeDef.Impl.Object_Ptr := new NativeDef.Impl.Object;
-         IDLType_Obj : IDLType.Impl.Object_Ptr := new IDLType.Impl.Object;
+         Obj : constant NativeDef.Impl.Object_Ptr := new NativeDef.Impl.Object;
+         IDLType_Obj : constant IDLType.Impl.Object_Ptr := new IDLType.Impl.Object;
       begin
          --  initialization of the object
          NativeDef.Impl.Init (Obj,

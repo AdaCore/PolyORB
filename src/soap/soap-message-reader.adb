@@ -49,10 +49,13 @@ package body SOAP.Message.Reader is
      (Handler : in out Tree_Reader;
       Ch      : in     Unicode.CES.Byte_Sequence)
    is
-      Tmp : Node;
-   begin
-      Tmp := Append_Child
+      pragma Warnings (Off);
+      Tmp : constant Node := Append_Child
         (Handler.Current_Node, Create_Text_Node (Handler.Tree, Ch));
+      pragma Unreferenced (Tmp);
+      pragma Warnings (On);
+   begin
+      null;
    end Characters;
 
    -----------------
@@ -92,15 +95,21 @@ package body SOAP.Message.Reader is
      (Handler : in out Tree_Reader;
       Ch      : in     Unicode.CES.Byte_Sequence)
    is
-      Tmp : Node;
    begin
       --  Ignore these white spaces at the toplevel
       if Ch'Length = 1
         and then Ch (Ch'First) /= ASCII.LF
         and then Handler.Current_Node /= Handler.Tree
       then
-         Tmp := Append_Child
-           (Handler.Current_Node, Create_Text_Node (Handler.Tree, Ch));
+         declare
+            pragma Warnings (Off);
+            Tmp : constant Node := Append_Child
+              (Handler.Current_Node, Create_Text_Node (Handler.Tree, Ch));
+            pragma Unreferenced (Tmp);
+            pragma Warnings (On);
+         begin
+            null;
+         end;
       end if;
    end Ignorable_Whitespace;
 

@@ -1,23 +1,19 @@
-pragma Warnings (Off);
+pragma Style_Checks (Off);
 ----------------------------------------------
 --  This file has been generated automatically
 --  by AdaBroker (http://adabroker.eu.org/)
 ----------------------------------------------
 
 with Ada.Text_IO;
-with Ada.Unchecked_Deallocation;
 with Ada.Strings.Unbounded;
 
 with CORBA.Repository_Root; use CORBA.Repository_Root;
-with CORBA.Repository_Root.Contained.Skel;
 with CORBA.Repository_Root.Contained.Helper;
 with CORBA.Repository_Root.Container.Impl;
 with CORBA.Repository_Root.Exceptiondef.Impl;
 with CORBA.Repository_Root.Interfacedef.Impl;
 with CORBA.Repository_Root.Valuedef.Impl;
 with CORBA.Repository_Root.Moduledef.Impl;
-with CORBA.Repository_Root.UnionDef.Impl;
-with CORBA.Repository_Root.StructDef.Impl;
 with CORBA.Repository_Root.IRObject.Impl;
 with CORBA.Repository_Root.Repository.Impl;
 
@@ -313,7 +309,7 @@ package body CORBA.Repository_Root.Contained.Impl is
          when
            Dk_Exception  =>
             declare
-               Interm : Exceptiondef.Impl.Object_Ptr :=
+               Interm : constant Exceptiondef.Impl.Object_Ptr :=
                  Exceptiondef.Impl.Object_Ptr (Self);
             begin
                Result := Exceptiondef.Impl.Get_Contained_View (Interm);
@@ -321,7 +317,7 @@ package body CORBA.Repository_Root.Contained.Impl is
          when
            Dk_Module     =>
             declare
-               Interm : Moduledef.Impl.Object_Ptr :=
+               Interm : constant Moduledef.Impl.Object_Ptr :=
                  Moduledef.Impl.Object_Ptr (Self);
             begin
                Result := Moduledef.Impl.Get_Contained_View (Interm);
@@ -329,7 +325,7 @@ package body CORBA.Repository_Root.Contained.Impl is
          when
            Dk_Value      =>
             declare
-               Interm : Valuedef.Impl.Object_Ptr :=
+               Interm : constant Valuedef.Impl.Object_Ptr :=
                  Valuedef.Impl.Object_Ptr (Self);
             begin
                Result := Valuedef.Impl.Get_Contained_View (Interm);
@@ -337,7 +333,7 @@ package body CORBA.Repository_Root.Contained.Impl is
          when
            Dk_Interface  =>
             declare
-               Interm : Interfacedef.Impl.Object_Ptr :=
+               Interm : constant Interfacedef.Impl.Object_Ptr :=
                  Interfacedef.Impl.Object_Ptr (Self);
             begin
                Result := Interfacedef.Impl.Get_Contained_View (Interm);
@@ -385,7 +381,7 @@ package body CORBA.Repository_Root.Contained.Impl is
          when
            Dk_Exception  =>
             declare
-               Interm : Exceptiondef.Impl.Object_Ptr :=
+               Interm : constant Exceptiondef.Impl.Object_Ptr :=
                  Exceptiondef.Impl.Object_Ptr (Self);
             begin
                return Exceptiondef.Impl.Get_Contained_View (Interm);
@@ -393,7 +389,7 @@ package body CORBA.Repository_Root.Contained.Impl is
          when
            Dk_Module     =>
             declare
-               Interm : Moduledef.Impl.Object_Ptr :=
+               Interm : constant Moduledef.Impl.Object_Ptr :=
                  Moduledef.Impl.Object_Ptr (Self);
             begin
                return Moduledef.Impl.Get_Contained_View (Interm);
@@ -401,7 +397,7 @@ package body CORBA.Repository_Root.Contained.Impl is
          when
            Dk_Value      =>
             declare
-               Interm : Valuedef.Impl.Object_Ptr :=
+               Interm : constant Valuedef.Impl.Object_Ptr :=
                  Valuedef.Impl.Object_Ptr (Self);
             begin
                return Valuedef.Impl.Get_Contained_View (Interm);
@@ -409,7 +405,7 @@ package body CORBA.Repository_Root.Contained.Impl is
          when
            Dk_Interface  =>
             declare
-               Interm : Interfacedef.Impl.Object_Ptr :=
+               Interm : constant Interfacedef.Impl.Object_Ptr :=
                  Interfacedef.Impl.Object_Ptr (Self);
             begin
                return Interfacedef.Impl.Get_Contained_View (Interm);
@@ -513,7 +509,7 @@ package body CORBA.Repository_Root.Contained.Impl is
      (Self : access Object)
      return CORBA.RepositoryId
    is
-      Cont : Container.Impl.Object_Ptr
+      Cont : constant Container.Impl.Object_Ptr
         := Container.Impl.To_Object (Self.Defined_In);
       use Container.Impl;
    begin
@@ -524,8 +520,7 @@ package body CORBA.Repository_Root.Contained.Impl is
 
       return
         Get_Id (To_Contained (Get_Real_Object (Cont)));
-   end Get_Defined_In;
-
+   end get_defined_in;
 
    function get_absolute_name
      (Self : access Object)
@@ -545,7 +540,7 @@ package body CORBA.Repository_Root.Contained.Impl is
                                   & CORBA.String (Self.Name));
       else
          declare
-            Scope : Object_Ptr
+            Scope : constant Object_Ptr
               := To_Contained (Get_Real_Object (To_Object (Self.Defined_In)));
          begin
             pragma Debug (O2 ("get_absolute_name : it is not a repository"));
@@ -582,8 +577,6 @@ package body CORBA.Repository_Root.Contained.Impl is
      (Self : access Object)
      return Contained.Description
    is
-      --  only returned when an exception occured
-      Result : Contained.Description;
    begin
       case Get_Def_Kind (Self) is
          when
@@ -598,7 +591,6 @@ package body CORBA.Repository_Root.Contained.Impl is
            Dk_All        |
            Dk_None       =>
             PolyORB.Exceptions.Raise_Internal;
-            return Result;
          when
            --  child objects
            Dk_Attribute  |
@@ -613,12 +605,12 @@ package body CORBA.Repository_Root.Contained.Impl is
            Dk_ValueMember|
            dk_Native =>
             --  dispatching call...
-            return Describe (Object_Ptr (Self));
+            return describe (Object_Ptr (Self));
          -- types containing a "contained_view" field
          when
            Dk_Exception  =>
             declare
-               Interm : Exceptiondef.Impl.Object_Ptr :=
+               Interm : constant Exceptiondef.Impl.Object_Ptr :=
                  Exceptiondef.Impl.Object_Ptr (Get_Real_Object (Self));
             begin
                return Exceptiondef.Impl.Describe (Interm);
@@ -626,7 +618,7 @@ package body CORBA.Repository_Root.Contained.Impl is
          when
            Dk_Module     =>
             declare
-               Interm : Moduledef.Impl.Object_Ptr :=
+               Interm : constant Moduledef.Impl.Object_Ptr :=
                  Moduledef.Impl.Object_Ptr (Get_Real_Object (Self));
             begin
                return Moduledef.Impl.Describe (Interm);
@@ -634,7 +626,7 @@ package body CORBA.Repository_Root.Contained.Impl is
          when
            Dk_Value      =>
             declare
-               Interm : Valuedef.Impl.Object_Ptr :=
+               Interm : constant Valuedef.Impl.Object_Ptr :=
                  Valuedef.Impl.Object_Ptr (Get_Real_Object (Self));
             begin
                return Valuedef.Impl.Describe (Interm);
@@ -642,7 +634,7 @@ package body CORBA.Repository_Root.Contained.Impl is
          when
            Dk_Interface  =>
             declare
-               Interm : Interfacedef.Impl.Object_Ptr :=
+               Interm : constant Interfacedef.Impl.Object_Ptr :=
                  Interfacedef.Impl.Object_Ptr (Get_Real_Object (Self));
             begin
                return Interfacedef.Impl.Describe (Interm);
@@ -659,14 +651,13 @@ package body CORBA.Repository_Root.Contained.Impl is
       new_name : in CORBA.Identifier;
       new_version : in VersionSpec) is
 
-      For_Container_Ptr : Container.Impl.Object_Ptr
+      For_Container_Ptr : constant Container.Impl.Object_Ptr
         := Container.Impl.To_Object (Self.Defined_In);
-      New_Container_Ptr : Container.Impl.Object_Ptr
+      New_Container_Ptr : constant Container.Impl.Object_Ptr
         := Container.Impl.To_Object (New_Container);
-      Rep1 : Repository.Impl.Object_Ptr
+      Rep1 : constant Repository.Impl.Object_Ptr
         := Repository.Impl.To_Object (Get_Containing_Repository (Self));
       Rep2 : Repository.Impl.Object_Ptr;
-      Not_Allowed : Boolean := False;
       use Repository.Impl;
    begin
       if Container.Impl.Get_Def_Kind (New_Container_Ptr) = Dk_Repository then
@@ -680,9 +671,7 @@ package body CORBA.Repository_Root.Contained.Impl is
       -- It must be in the same Repository
       if Rep1 /= Rep2 then
          PolyORB.Exceptions.Raise_Bad_Param (Minor => 4);
-         Not_Allowed := True;
       else
-
          --  the move should comply with p10-8 of the IR spec.
          --  (structure and navigation in the IR)
          --  it raises the bad_param if the structure is not correct
@@ -716,7 +705,7 @@ package body CORBA.Repository_Root.Contained.Impl is
    ------------------------------
    procedure Simplify_ContainedSeq (In_Seq : in out ContainedSeq)
    is
-      Cont_Array : Contained_For_Seq.Element_Array
+      Cont_Array : constant Contained_For_Seq.Element_Array
         := Contained_For_Seq.To_Element_Array
         (Contained_For_Seq.Sequence (In_Seq));
    begin
@@ -750,7 +739,7 @@ package body CORBA.Repository_Root.Contained.Impl is
       Result : Object_Ptr := null;
       Success : Boolean;
       Container_Object : Container.Impl.Object_Ptr;
-      Cont_Array : Contained_Seq.Element_Array
+      Cont_Array : constant Contained_Seq.Element_Array
         := Contained_Seq.To_Element_Array (In_Seq);
    begin
 
@@ -802,7 +791,7 @@ package body CORBA.Repository_Root.Contained.Impl is
       end if;
 
       declare
-         Cont_Array : Contained_Seq.Element_Array
+         Cont_Array : constant Contained_Seq.Element_Array
            := Contained_Seq.To_Element_Array (In_Seq);
       begin
          for I in Cont_Array'Range loop
@@ -847,7 +836,7 @@ package body CORBA.Repository_Root.Contained.Impl is
                          Name : Identifier;
                          Limit_Type : DefinitionKind) return ContainedSeq is
       Result : Contained_Seq.Sequence := Contained_Seq.Null_Sequence;
-      Cont_Array : Contained_Seq.Element_Array
+      Cont_Array : constant Contained_Seq.Element_Array
         := Contained_Seq.To_Element_Array (In_Seq);
    begin
       for I in Cont_Array'Range loop
@@ -875,7 +864,7 @@ package body CORBA.Repository_Root.Contained.Impl is
          --  we can only select the containeds with the right def_kind
          declare
             Result : Contained_Seq.Sequence := Contained_Seq.Null_Sequence;
-            Cont_Array : Contained_Seq.Element_Array
+            Cont_Array : constant Contained_Seq.Element_Array
               := Contained_Seq.To_Element_Array (In_Seq);
          begin
             for I in Cont_Array'Range loop
@@ -895,15 +884,14 @@ package body CORBA.Repository_Root.Contained.Impl is
    -----------------------
    function To_ContainedSeq (In_Seq : Contained_Seq.Sequence)
                              return  CORBA.Repository_Root.ContainedSeq is
-      Cont_Array : Contained_Seq.Element_Array
+      Cont_Array : constant Contained_Seq.Element_Array
         := Contained_Seq.To_Element_Array (In_Seq);
-      The_Ref : CORBA.Repository_Root.Contained.Ref;
       Result : CORBA.Repository_Root.ContainedSeq
         := CORBA.Repository_Root.ContainedSeq (Contained_For_Seq.Null_Sequence);
    begin
       for I in Cont_Array'Range loop
          declare
-            Cont : Object_Ptr := Cont_Array (I);
+            Cont : constant Object_Ptr := Cont_Array (I);
          begin
             Contained_For_Seq.Append (Contained_For_Seq.Sequence (Result),
                                       To_Forward (Cont));
@@ -917,7 +905,7 @@ package body CORBA.Repository_Root.Contained.Impl is
    -----------------------------
    function To_Contained_Sequence (In_Seq : ContainedSeq)
                                    return Contained_Seq.Sequence is
-      Cont_Array : Contained_For_Seq.Element_Array
+      Cont_Array : constant Contained_For_Seq.Element_Array
         := Contained_For_Seq.To_Element_Array
         (Contained_For_Seq.Sequence (In_Seq));
       Result : Contained_Seq.Sequence

@@ -11,7 +11,6 @@ with CORBA.Repository_Root.ArrayDef;
 with CORBA.Repository_Root.SequenceDef;
 with CORBA.Repository_Root.SequenceDef.Impl;
 with CORBA.Repository_Root.IDLType;
-with CORBA.Repository_Root.IDLType.Impl;
 with CORBA.Repository_Root.WstringDef;
 with CORBA.Repository_Root.WstringDef.Impl;
 with CORBA.Repository_Root.StringDef;
@@ -268,15 +267,11 @@ package body CORBA.Repository_Root.Repository.Impl is
 
       Result : CORBA.Repository_Root.SequenceDef.Ref;
       Elem_Obj : PortableServer.Servant;
-      Element : CORBA.TypeCode.Object;
       Obj : constant SequenceDef.Impl.Object_Ptr
         := new SequenceDef.Impl.Object;
    begin
       PolyORB.CORBA_P.Server_Tools.Reference_To_Servant (element_type,
                                                Elem_Obj);
-      Element := IDLType.Impl.get_type
-        (IDLType.Impl.To_IDLType
-         (IRObject.Impl.Object_Ptr (Elem_Obj)));
       --  initialization of the Sequence
       SequenceDef.Impl.Init (Obj,
                              IRObject.Impl.Object_Ptr (Obj),
@@ -305,14 +300,9 @@ package body CORBA.Repository_Root.Repository.Impl is
       Result : CORBA.Repository_Root.ArrayDef.Ref;
       Obj : constant ArrayDef.Impl.Object_Ptr := new ArrayDef.Impl.Object;
       Elem_Obj : PortableServer.Servant;
-      Element : CORBA.TypeCode.Object;
    begin
       PolyORB.CORBA_P.Server_Tools.Reference_To_Servant (element_type,
                                                Elem_Obj);
-      Element := IDLType.Impl.get_type
-        (IDLType.Impl.To_IDLType
-         (IRObject.Impl.Object_Ptr (Elem_Obj)));
-
       --  initialization of the Array
       ArrayDef.Impl.Init (Obj,
                           IRObject.Impl.Object_Ptr (Obj),
