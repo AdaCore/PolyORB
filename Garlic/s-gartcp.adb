@@ -50,19 +50,12 @@ with System.Garlic.Soft_Links;            use System.Garlic.Soft_Links;
 with System.Garlic.Streams;               use System.Garlic.Streams;
 with System.Garlic.Thin;                  use System.Garlic.Thin;
 with System.Garlic.Types;                 use System.Garlic.Types;
+with System.Garlic.Utils;                 use System.Garlic.Utils;
 with System.Garlic.TCP_Platform_Specific;
 pragma Warnings (Off, System.Garlic.TCP_Platform_Specific);
 with System.Storage_Elements;             use System.Storage_Elements;
 
 package body System.Garlic.TCP is
-
-   --  This system implements TCP communication. The connection is established
-   --  as follow: (C = caller, R = receiver)
-   --    - If the partition_ID is not known:
-   --      C->R : Null_PID
-   --      R->C : <new caller Partition_ID> <boot partition name>
-   --    - After this, in any case: (C & R may be reversed)
-   --      C->R : <Length (Stream_Element_Count)> <Packet>
 
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("S_GARTCP", "(s-gartcp): ");
@@ -92,43 +85,17 @@ package body System.Garlic.TCP is
    function Split_Data (Data : String) return Host_Location;
    --  Split a data given as <machine> or <machine>:<port>
 
-   type Host_Data is record
-      Location  : Host_Location;
-      FD        : C.int;
-      Connected : Boolean := False;
-      Known     : Boolean := False;
-      Queried   : Boolean := False;
-      Locked    : Boolean := False;
+   type Socket_Type is record
+      Location : Host_Location;
+      Socket   : C.int;
+      Defined  : Boolean := False;
+      Locked   : Boolean := False;
    end record;
 
-   Self_Host : Host_Data;
+   Socket_Table : array (Boot_PID .. Last_PID) of Socket_Type;
+   Socket_Table_Mutex : Mutex_Access := Create;
 
-   type Partition_Array is array (Partition_ID) of Host_Data;
-
-   protected type Partition_Map_Type is
-      procedure Set_Locked
-        (Partition : in Partition_ID; Data : in Host_Data);
-      entry Get (Partition_ID) (Data : out Host_Data);
-      entry Lock (Partition_ID);
-      procedure Unlock (Partition : in Partition_ID);
-      function Get_Immediate (Partition : Partition_ID) return Host_Data;
-   private
-      Partitions  : Partition_Array;
-   end Partition_Map_Type;
-   --  Get returns immediately if Known is True or else Queried is False,
-   --  and sets Queried to True, meaning that the calling task should ask
-   --  for the coordinates.
-
-   type Partition_Map_Access is access Partition_Map_Type;
-   procedure Free is
-      new Ada.Unchecked_Deallocation (Partition_Map_Type,
-                                      Partition_Map_Access);
-   Partition_Map : Partition_Map_Access :=
-     new Partition_Map_Type;
-   --  Kludge to raise Program_Error at deallocation time. Should be removed
-   --  in the future ???
-
-   type Operation_Code is (Unknown_Code, Data_Code, Quit_Code);
+   type Operation_Code is (Junk_Code, Data_Code, Quit_Code);
    --  Various operations that can be performed on a communication link
 
    Operation_Code_Length : constant := 4;
@@ -138,15 +105,10 @@ package body System.Garlic.TCP is
      Stream_Element_Array (1 .. Operation_Code_Length);
    --  Constrained subtype for operation codes
 
-   function Read_Code (FD : C.int) return Operation_Code;
+   function Read_Code (Peer : C.int) return Operation_Code;
    pragma Inline (Read_Code);
    --  Read an operation code from a file descriptor or return Unknown_Code
    --  if the code is not understood.
-
-   function To_Stream_Element_Array (Code : Operation_Code)
-     return Operation_Code_Array;
-   pragma Inline (To_Stream_Element_Array);
-   --  Return the stream element array corresponding to the code
 
    Stream_Element_Count_Length : constant := 4;
    --  Size of a Stream_Element_Count when it is encoded as a stream
@@ -155,7 +117,8 @@ package body System.Garlic.TCP is
      Stream_Element_Array (1 .. Stream_Element_Count_Length);
    --  Constrained subtype for stream element counts
 
-   function Read_Stream_Element_Count (FD : C.int) return Stream_Element_Count;
+   function Read_Stream_Element_Count (Peer : C.int)
+     return Stream_Element_Count;
    --  Read a stream element count from a file descriptor and check that
    --  it is valid. Raise Communication_Error otherwise.
 
@@ -163,67 +126,53 @@ package body System.Garlic.TCP is
      return Stream_Element_Count_Array;
    --  Return the stream element array corresponding to this count
 
-   Partition_ID_Length : constant := 2;
-   --  Length of a partition ID when it is encoded as a stream
-
-   subtype Partition_ID_Array is
-     Stream_Element_Array (1 .. Partition_ID_Length);
-   --  Constrained subtype for partition ID
-
-   function Read_Partition_ID (FD : C.int) return Partition_ID;
-   --  Read a Partition_ID from a file descriptor or raise Constraint_Error
-   --  if it is not valid.
-
-   procedure Write_Partition_ID (FD        : in C.int;
-                                 Partition : in Partition_ID);
-   --  Write a Partition_ID on a file descriptor
-
-   function Establish_Connection (Location  : Host_Location)
-      return C.int;
+   function Do_Connect (Location : Host_Location) return C.int;
    --  Establish a socket to a remote location and return the file descriptor
 
-   procedure Establish_Listening_Socket;
+   procedure Do_Listen;
    --  Establish a socket according to the information in Self_Host (and
    --  complete it if needed).
+
+   procedure Enter (PID : Partition_ID);
+   procedure Leave (PID : Partition_ID);
 
    procedure Free is
      new Ada.Unchecked_Deallocation (Sockaddr_In, Sockaddr_In_Access);
 
    procedure Physical_Receive
-     (FD : in C.int; Data : out Stream_Element_Array);
+     (Peer : in C.int;
+      Data : out Stream_Element_Array);
    pragma Inline (Physical_Receive);
-   procedure Physical_Send (FD : in C.int; Data : in Stream_Element_Array);
+   procedure Physical_Send
+     (Peer   : in C.int;
+      Stream : access Stream_Element_Array;
+      First  : in Stream_Element_Count);
    pragma Inline (Physical_Send);
    --  Receive and send data. Physical_Receive loops as long as Data has
    --  not been filled and Physical_Send as long as everything has not been
    --  sent.
 
-   procedure Physical_Send
-     (FD   : in C.int;
-      Data : in System.Address;
-      Len  : in C.int);
-   procedure Physical_Receive
-     (FD   : in C.int;
-      Data : in System.Address;
-      Len  : in C.int);
-   --  Same procedures as above, at a lower level (and does not require a
-   --  copy on the stack).
+   Data_Stream : aliased Stream_Element_Array
+     :=  (1 .. Operation_Code_Length => Operation_Code'Pos (Data_Code));
+
+   Quit_Stream : aliased Stream_Element_Array
+     := (1 .. Operation_Code_Length => Operation_Code'Pos (Quit_Code));
 
    task type Accept_Handler is
       pragma Priority (Priorities.RPC_Priority);
    end Accept_Handler;
    type Accept_Handler_Access is access Accept_Handler;
    Acceptor : Accept_Handler_Access;
-   --  The task which will accept new connections
+   --  Accept new connections
 
-   task type Incoming_Connection_Handler
-     (FD  : C.int;
-      PID : Partition_ID) is
+   task type Connection_Handler
+     (Peer : C.int;
+      PID  : Partition_ID) is
       pragma Priority (Priorities.RPC_Priority);
-   end Incoming_Connection_Handler;
-   type Incoming_Connection_Handler_Access is
-      access Incoming_Connection_Handler;
-   --  Handler for an incoming connection
+   end Connection_Handler;
+   type Connection_Handler_Access is
+      access Connection_Handler;
+   --  Handle incoming connection
 
    --------------------
    -- Accept_Handler --
@@ -236,21 +185,22 @@ package body System.Garlic.TCP is
       Accept_Loop :
       loop
          declare
-            Sin    : Sockaddr_In_Access := new Sockaddr_In;
-            Length : aliased C.int := Sin.all'Size / 8;
-            FD     : C.int;
-            NT     : Incoming_Connection_Handler_Access;
-            Code   : Operation_Code;
-            Result : C.int;
+            Self    : Socket_Type renames Socket_Table (Last_PID);
+            Sin     : Sockaddr_In_Access := new Sockaddr_In;
+            Length  : aliased C.int := Sin.all'Size / 8;
+            Peer    : C.int;
+            Handler : Connection_Handler_Access;
+            Code    : Operation_Code;
+            Result  : C.int;
          begin
             Sin.Sin_Family := Constants.Af_Inet;
             Add_Non_Terminating_Task;
             pragma Debug (D (D_Debug, "Before Net.C_Accept"));
-            FD := Net.C_Accept (Self_Host.FD, To_Sockaddr_Access (Sin),
-                                Length'Access);
+            Peer := Net.C_Accept
+              (Self.Socket, To_Sockaddr_Access (Sin), Length'Access);
             pragma Debug (D (D_Debug, "After Net.C_Accept"));
             Sub_Non_Terminating_Task;
-            if FD = Failure then
+            if Peer = Failure then
                Raise_Communication_Error;
             end if;
 
@@ -258,23 +208,23 @@ package body System.Garlic.TCP is
             --  next.
 
             pragma Debug (D (D_Debug, "Reading code"));
-            Code := Read_Code (FD);
+            Code := Read_Code (Peer);
             case Code is
 
-               when Unknown_Code =>
+               when Junk_Code =>
                   pragma Debug (D (D_Debug,
                                    "Unknown code received, closing socket"));
-                  Result := Net.C_Close (FD);
+                  Result := Net.C_Close (Peer);
 
                when Data_Code =>
                   pragma Debug (D (D_Debug, "Data code received"));
                   --  Create a new task to handle this new connection
 
-                  NT := new Incoming_Connection_Handler (FD, Null_PID);
+                  Handler := new Connection_Handler (Peer, Null_PID);
 
                when Quit_Code =>
                   pragma Debug (D (D_Debug, "Quitting accept handler"));
-                  Result := Net.C_Close (FD);
+                  Result := Net.C_Close (Peer);
                   exit Accept_Loop;
 
             end case;
@@ -294,103 +244,124 @@ package body System.Garlic.TCP is
       return Self;
    end Create;
 
-   --------------------------
-   -- Establish_Connection --
-   --------------------------
+   ----------------
+   -- Do_Connect --
+   ----------------
 
-   function Establish_Connection (Location  : Host_Location) return C.int
+   function Do_Connect (Location  : Host_Location) return C.int
    is
-      FD   : C.int;
+      Peer : C.int;
       Sin  : Sockaddr_In_Access := new Sockaddr_In;
       Code : C.int;
    begin
-      FD := C_Socket (Af_Inet, Sock_Stream, 0);
-      if FD = Failure then
+      Peer := C_Socket (Af_Inet, Sock_Stream, 0);
+      if Peer = Failure then
          Free (Sin);
          Raise_Communication_Error;
       end if;
       Sin.Sin_Family := Constants.Af_Inet;
       Sin.Sin_Addr := To_In_Addr (Location.Addr);
       Sin.Sin_Port := Port_To_Network (Location.Port);
-      Code := Net.C_Connect (FD,
-                             To_Sockaddr_Access (Sin), Sin.all'Size / 8);
+      Code := Net.C_Connect
+        (Peer, To_Sockaddr_Access (Sin), Sin.all'Size / 8);
       if Code = Failure then
-         Code := Net.C_Close (FD);
-         Free (Sin);
-         Raise_Communication_Error;
+         Code := Net.C_Close (Peer);
+         Peer := Failure;
       end if;
-      return FD;
-   end Establish_Connection;
+      Free (Sin);
+      return Peer;
+   end Do_Connect;
 
-   --------------------------------
-   -- Establish_Listening_Socket --
-   --------------------------------
+   ---------------
+   -- Do_Listen --
+   ---------------
 
-   procedure Establish_Listening_Socket is
-      Port  : C.unsigned_short renames Self_Host.Location.Port;
-      FD    : C.int renames Self_Host.FD;
+   procedure Do_Listen is
+      Self  : Socket_Type renames Socket_Table (Last_PID);
+      Port  : C.unsigned_short renames Self.Location.Port;
       Sin   : Sockaddr_In_Access := new Sockaddr_In;
       Check : Sockaddr_In_Access := new Sockaddr_In;
-      Dummy : aliased C.int := Check.all'Size / 8;
+      Size  : aliased C.int := Check.all'Size / 8;
+      Code  : C.int;
+      One   : aliased C.int := 1;
    begin
-      FD := C_Socket (Af_Inet, Sock_Stream, 0);
-      if FD = Failure then
+      Enter (Last_PID);
+      Self.Socket := C_Socket (Af_Inet, Sock_Stream, 0);
+      if Self.Socket = Failure then
          Free (Sin);
          Free (Check);
+         Leave (Last_PID);
          Raise_Communication_Error;
       end if;
-      declare
-         One   : aliased C.int := 1;
-         Dummy : C.int;
-      begin
-         Dummy := C_Setsockopt (FD, Sol_Socket,
-                                So_Reuseaddr,
-                                One'Address,
-                                One'Size / 8);
-      end;
+
+      Code := C_Setsockopt
+        (Self.Socket, Sol_Socket, So_Reuseaddr, One'Address, One'Size / 8);
+
       Sin.Sin_Family := Constants.Af_Inet;
       Sin.Sin_Port := Port_To_Network (Port);
-      if C_Bind (FD,
-                 To_Sockaddr_Access (Sin),
-                 Sin.all'Size / 8) = Failure then
+      Code := C_Bind (Self.Socket, To_Sockaddr_Access (Sin), Sin.all'Size / 8);
+      if Code = Failure then
          Free (Sin);
          Free (Check);
+         Leave (Last_PID);
          Raise_Communication_Error;
       end if;
-      if C_Listen (FD, 15) = Failure then
+
+      if C_Listen (Self.Socket, 15) = Failure then
+         Leave (Last_PID);
          Raise_Communication_Error;
       end if;
+
       if Port = 0 then
-         if C_Getsockname (FD,
-                           To_Sockaddr_Access (Check),
-                           Dummy'Access) =  Failure then
+         Code := C_Getsockname
+           (Self.Socket, To_Sockaddr_Access (Check), Size'Access);
+         if Code = Failure then
             Free (Sin);
             Free (Check);
+            Leave (Last_PID);
             Raise_Communication_Error;
          end if;
          Port := Network_To_Port (Check.Sin_Port);
       end if;
+
       Free (Check);
-      Self_Host.Connected := True;
-      pragma Debug
-        (D (D_Communication,
-            "Listening on port" & C.unsigned_short'Image (Port)));
-   end Establish_Listening_Socket;
+      Self.Defined := True;
+      Leave (Last_PID);
+
+      pragma Debug (D (D_Communication, "Listen on port" & Port'Img));
+   end Do_Listen;
+
+   -----------
+   -- Enter --
+   -----------
+
+   procedure Enter (PID : Partition_ID) is
+   begin
+      loop
+         Enter (Socket_Table_Mutex);
+         if not Socket_Table (PID).Locked then
+            Socket_Table (PID).Locked := True;
+            pragma Debug (D (D_Debug, "Enter lock of partition" & PID'Img));
+            Leave (Socket_Table_Mutex);
+            exit;
+         end if;
+         pragma Debug (D (D_Debug, "Postpone lock of partition" & PID'Img));
+         Leave (Socket_Table_Mutex, Postponed);
+      end loop;
+   end Enter;
 
    --------------
    -- Get_Info --
    --------------
 
    function Get_Info (P : access TCP_Protocol) return String is
-      Port : constant String :=
-        C.unsigned_short'Image (Self_Host.Location.Port);
+      Location : Host_Location renames Socket_Table (Last_PID).Location;
+      Port     : constant String := Location.Port'Img;
    begin
       if Can_Have_A_Light_Runtime then
          return "";
-      else
-         return Name_Of (Image (Self_Host.Location.Addr)) &
-           ":" & Port (2 .. Port'Last);
       end if;
+      return Name_Of (Image (Location.Addr)) & ":" & Port (2 .. Port'Last);
    end Get_Info;
 
    --------------
@@ -403,11 +374,10 @@ package body System.Garlic.TCP is
    end Get_Name;
 
    ---------------------------------
-   -- Incoming_Connection_Handler --
+   -- Connection_Handler --
    ---------------------------------
 
-   task body Incoming_Connection_Handler is
-      Data       : Host_Data;
+   task body Connection_Handler is
       Unknown    : Boolean := (PID = Null_PID);
       Partition  : Partition_ID := PID;
       Length     : Stream_Element_Count;
@@ -415,7 +385,6 @@ package body System.Garlic.TCP is
       Unfiltered : Stream_Element_Access;
       Operation  : Opcode;
       Code       : Operation_Code;
-
    begin
       pragma Debug (D (D_Communication, "New communication task started"));
 
@@ -424,13 +393,13 @@ package body System.Garlic.TCP is
             pragma Debug (D (D_Debug, "Reading operation code"));
 
             Add_Non_Terminating_Task;
-            Code := Read_Code (FD);
+            Code := Read_Code (Peer);
             Sub_Non_Terminating_Task;
 
             case Code is
-               when Unknown_Code =>
+               when Junk_Code =>
                   pragma Debug (D (D_Debug, "Unknown code received"));
-                  Raise_Communication_Error ("Received an unknown code");
+                  Raise_Communication_Error ("Received an bad code");
 
                when Data_Code =>
                   pragma Debug (D (D_Debug, "Received a data code"));
@@ -443,31 +412,30 @@ package body System.Garlic.TCP is
             end case;
          end if;
 
-         Length := Read_Stream_Element_Count (FD);
+         Length := Read_Stream_Element_Count (Peer);
 
          pragma Debug (D (D_Debug, "Receive a packet of length" & Length'Img));
 
-         pragma Debug (D (D_Debug, "Create stream"));
+         pragma Debug (D (D_Debug, "Allocate stream"));
          Filtered := new Stream_Element_Array (1 .. Length);
 
          pragma Debug (D (D_Debug, "Receive stream physically"));
-         Physical_Receive (FD, Filtered.all);
+         Physical_Receive (Peer, Filtered.all);
 
          pragma Debug (D (D_Debug, "Analyse stream"));
          Analyze_Stream (Partition, Operation, Unfiltered, Filtered);
 
          if Unknown then
-
             Activity_Detected;
             pragma Debug
               (D (D_Communication, "Task handling partition" & Partition'Img));
 
-            Partition_Map.Lock (Partition);
-            Data           := Partition_Map.Get_Immediate (Partition);
-            Data.FD        := FD;
-            Data.Connected := True;
-            Partition_Map.Set_Locked (Partition, Data);
-            Partition_Map.Unlock (Partition);
+            Enter (Partition);
+            if not Socket_Table (Partition).Defined then
+               Socket_Table (Partition).Socket  := Peer;
+               Socket_Table (Partition).Defined := True;
+            end if;
+            Leave (Partition);
             Unknown := False;
          end if;
 
@@ -494,18 +462,16 @@ package body System.Garlic.TCP is
             --  executing a shutdown operation. If we are, then
             --  it is likely that Partition_Map is already deallocated.
 
-            Partition_Map.Lock (Partition);
-            Data := Partition_Map.Get_Immediate (Partition);
-            Data.Connected := False;
-            Partition_Map.Set_Locked (Partition, Data);
-            Partition_Map.Unlock (Partition);
+            Enter (Partition);
+            Socket_Table (Partition).Defined := False;
+            Leave (Partition);
 
          end if;
 
          declare
             Dummy : C.int;
          begin
-            Dummy := Net.C_Close (FD);
+            Dummy := Net.C_Close (Peer);
          end;
 
          --  Signal to the heart that we got an error on this partition
@@ -533,106 +499,43 @@ package body System.Garlic.TCP is
          declare
             Dummy : C.int;
          begin
-            Dummy := Net.C_Close (FD);
+            Dummy := Net.C_Close (Peer);
          end;
-   end Incoming_Connection_Handler;
+   end Connection_Handler;
 
-   ------------------------
-   -- Partition_Map_Type --
-   ------------------------
+   -----------
+   -- Leave --
+   -----------
 
-   protected body Partition_Map_Type is
-
-      ---------
-      -- Get --
-      ---------
-
-      entry Get (for Partition in Partition_ID) (Data : out Host_Data)
-      when Partitions (Partition).Known or else
-        not Partitions (Partition).Queried is
-      begin
-         if Partitions (Partition).Known then
-            Data := Partitions (Partition);
-         else
-            Partitions (Partition).Queried := True;
-            Data := Partitions (Partition);
-         end if;
-      end Get;
-
-      -------------------
-      -- Get_Immediate --
-      -------------------
-
-      function Get_Immediate (Partition : Partition_ID) return Host_Data is
-      begin
-         return Partitions (Partition);
-      end Get_Immediate;
-
-      ----------
-      -- Lock --
-      ----------
-
-      entry Lock (for P in Partition_ID)
-      when not Partitions (P).Locked is
-      begin
-         Partitions (P).Locked := True;
-      end Lock;
-
-      ----------------
-      -- Set_Locked --
-      ----------------
-
-      procedure Set_Locked
-        (Partition : in Partition_ID; Data : in Host_Data)
-      is
-      begin
-         Partitions (Partition) := Data;
-      end Set_Locked;
-
-      ------------
-      -- Unlock --
-      ------------
-
-      procedure Unlock (Partition : in Partition_ID) is
-      begin
-         Partitions (Partition).Locked := False;
-      end Unlock;
-
-   end Partition_Map_Type;
-
-   ----------------------
-   -- Physical_Receive --
-   ----------------------
-
-   procedure Physical_Receive (FD : in C.int; Data : out Stream_Element_Array)
-   is
+   procedure Leave (PID : Partition_ID) is
    begin
-      Physical_Receive (FD, Data'Address, Data'Length);
-   end Physical_Receive;
+      Enter (Socket_Table_Mutex);
+      pragma Debug (D (D_Debug, "Enter unlock of partition" & PID'Img));
+      Socket_Table (PID).Locked := False;
+      Leave (Socket_Table_Mutex, Modified);
+   end Leave;
 
    ----------------------
    -- Physical_Receive --
    ----------------------
 
    procedure Physical_Receive
-     (FD   : in C.int;
-      Data : in System.Address;
-      Len  : in C.int)
+     (Peer : in C.int;
+      Data : out Stream_Element_Array)
    is
-      Current : System.Address := Data;
-      Rest    : C.int          := Len;
-      Code    : C.int;
+      Addr : System.Address := Data'Address;
+      Size : C.int          := Data'Length;
+      Code : C.int;
    begin
-      while Rest > 0 loop
-
-         Code := Net.C_Recv (FD, To_Chars_Ptr (Current), Rest, 0);
+      while Size > 0 loop
+         Code := Net.C_Recv (Peer, To_Chars_Ptr (Addr), Size, 0);
          if Code <= 0 then
-            Code := Net.C_Close (FD);
+            Code := Net.C_Close (Peer);
             Raise_Communication_Error ("Read error");
          end if;
 
-         Current := Current + Storage_Offset (Code);
-         Rest := Rest - Code;
+         Addr := Addr + Storage_Offset (Code);
+         Size := Size - Code;
       end loop;
    end Physical_Receive;
 
@@ -640,34 +543,24 @@ package body System.Garlic.TCP is
    -- Physical_Send --
    -------------------
 
-   procedure Physical_Send (FD : in C.int; Data : in Stream_Element_Array)
-   is
-   begin
-      Physical_Send (FD, Data'Address, Data'Length);
-   end Physical_Send;
-
-   -------------------
-   -- Physical_Send --
-   -------------------
-
    procedure Physical_Send
-     (FD   : in C.int;
-      Data : in System.Address;
-      Len  : in C.int)
+     (Peer   : in C.int;
+      Stream : access Stream_Element_Array;
+      First  : in Stream_Element_Count)
    is
-      Current : System.Address := Data;
-      Rest    : C.int          := Len;
-      Code    : C.int;
+      Addr : System.Address := Stream (First)'Address;
+      Size : C.int          := C.int (Stream'Last - First + 1);
+      Code : C.int;
    begin
-      while Rest > 0 loop
-         Code := Net.C_Send (FD, To_Chars_Ptr (Current), Rest, 0);
+      while Size > 0 loop
+         Code := Net.C_Send (Peer, To_Chars_Ptr (Addr), Size, 0);
          if Code <= 0 then
-            Code := Net.C_Close (FD);
+            Code := Net.C_Close (Peer);
             Raise_Communication_Error ("Write error");
          end if;
 
-         Current := Current + Storage_Offset (Code);
-         Rest := Rest - Code;
+         Addr := Addr + Storage_Offset (Code);
+         Size := Size - Code;
       end loop;
    end Physical_Send;
 
@@ -675,69 +568,46 @@ package body System.Garlic.TCP is
    -- Read_Code --
    ---------------
 
-   function Read_Code (FD : C.int) return Operation_Code is
-      Code   : Operation_Code_Array;
+   function Read_Code (Peer : C.int)
+     return Operation_Code
+   is
+      Stream : Operation_Code_Array;
       Result : Operation_Code;
    begin
-      pragma Debug (D (D_Debug,
-                       "Will receive" &
-                       Integer'Image (Code'Length) &
-                       " bytes from FD" & FD'Img));
-      Physical_Receive (FD, Code);
-      pragma Debug (D (D_Debug, "Bytes received"));
-      Result := Operation_Code'Val (Code (1));
+      pragma Debug (D (D_Debug, "Will receive code from peer" & Peer'Img));
+      Physical_Receive (Peer, Stream);
+      Result := Operation_Code'Val (Stream (1));
       if not Result'Valid then
-         pragma Debug (D (D_Exception, "Unknown Operation_Code received"));
-         return Unknown_Code;
+         Result := Junk_Code;
       end if;
-      for I in 2 .. Code'Last loop
-         if Code (I) /= Code (1) then
-            pragma Debug (D (D_Exception, "Invalid Operation_Code received"));
-            return Unknown_Code;
+      for I in 2 .. Stream'Last loop
+         if Stream (I) /= Stream (1) then
+            Result := Junk_Code;
+            exit;
          end if;
       end loop;
+      pragma Debug (D (D_Debug, "Received from peer code " & Result'Img));
       return Result;
    exception
       when Constraint_Error =>
-         pragma Debug (D (D_Debug, "Exception raised, unknown code"));
-         return Unknown_Code;
+         return Junk_Code;
    end Read_Code;
-
-   -----------------------
-   -- Read_Partition_ID --
-   -----------------------
-
-   function Read_Partition_ID (FD : C.int) return Partition_ID is
-      Stream : Partition_ID_Array;
-      Result : Natural;
-   begin
-      Physical_Receive (FD, Stream);
-      Result := Natural (Stream (1)) * 256 + Natural (Stream (2));
-      if Result < Natural (Partition_ID'First)
-        or else Result > Natural (Partition_ID'Last)
-      then
-         raise Constraint_Error;
-      end if;
-      return Partition_ID (Result);
-   end Read_Partition_ID;
 
    -------------------------------
    -- Read_Stream_Element_Count --
    -------------------------------
 
-   function Read_Stream_Element_Count (FD : C.int) return Stream_Element_Count
+   function Read_Stream_Element_Count (Peer : C.int)
+     return Stream_Element_Count
    is
       Stream : Stream_Element_Count_Array;
    begin
-      Physical_Receive (FD, Stream);
+      Physical_Receive (Peer, Stream);
       return
         Stream_Element_Count (Stream (1)) * 256 ** 3 +
         Stream_Element_Count (Stream (2)) * 256 ** 2 +
         Stream_Element_Count (Stream (3)) * 256 +
         Stream_Element_Count (Stream (4));
-   exception
-      when Constraint_Error =>
-         Raise_Communication_Error ("Bad Stream_Element_Count received");
    end Read_Stream_Element_Count;
 
    ----------
@@ -749,123 +619,86 @@ package body System.Garlic.TCP is
       Partition : in Partition_ID;
       Data      : access Stream_Element_Array)
    is
-      Remote_Data : Host_Data;
-
+      Peer  : Socket_Type renames Socket_Table (Partition);
+      Hits  : Natural := 1;
+      First : Stream_Element_Count := Data'First + Unused_Space;
+      Count : Stream_Element_Count;
    begin
-      --  We need to use the global lock to make sure that the info has been
-      --  received concerning this partition.
+      Enter (Partition);
+      if not Peer.Defined then
+         Peer.Location := Split_Data (Get_Data (Location (Partition)));
 
-      Enter_Critical_Section;
+         pragma Debug
+           (D (D_Communication,
+               "Try to connect to " & Image (Peer.Location.Addr) &
+               " port" & Peer.Location.Port'Img));
 
-      Partition_Map.Lock (Partition);
-      Partition_Map.Get (Partition) (Remote_Data);
-      if Remote_Data.Queried and then not Remote_Data.Known then
-         Partition_Map.Unlock (Partition);
-         declare
-            Temp : Host_Location;
-         begin
-            Temp := Split_Data (Get_Data (Location (Partition)));
-            Partition_Map.Lock (Partition);
-            Remote_Data           := Partition_Map.Get_Immediate (Partition);
-            Remote_Data.Location  := Temp;
-            Remote_Data.Known     := True;
-            Remote_Data.Queried   := False;
-            Partition_Map.Set_Locked (Partition, Remote_Data);
-         end;
-      end if;
+         if Partition = Boot_PID then
+            Hits := Options.Connection_Hits;
+         end if;
 
-      Leave_Critical_Section;
-
-      begin
-         if not Remote_Data.Connected then
-
+         while Hits > 0 loop
             pragma Debug
               (D (D_Communication,
-                  "Willing to connect to " &
-                  Image (Remote_Data.Location.Addr) & " port" &
-                  C.unsigned_short'Image (Remote_Data.Location.Port)));
+                  "Trying to connect to partition" & Partition'Img));
 
-            declare
-               Retries : Natural := 1;
-            begin
-               if Partition = Boot_PID then
-                  Retries := Options.Connection_Hits;
-               end if;
-               for I in 1 .. Retries loop
-                  begin
-                     pragma Debug
-                       (D (D_Communication,
-                           "Trying to connect to partition" &
-                           Partition'Img));
-                     Remote_Data.FD :=
-                       Establish_Connection (Remote_Data.Location);
-                     Remote_Data.Connected := True;
-                     exit;
-                  exception
-                     when Communication_Error =>
-                        if I = Retries then
-                           pragma Debug
-                             (D (D_Communication,
-                                 "Cannot connect to partition" &
-                                 Partition'Img));
-                           Raise_Communication_Error
-                             ("Cannot connect to partition" &
-                              Partition_ID'Image (Partition));
-                        else
-                           delay 2.0;
-                        end if;
-                  end;
-               end loop;
-               pragma Debug
-                 (D (D_Communication,
-                     "Connected to partition" & Partition'Img));
-            end;
+            Peer.Socket  := Do_Connect (Peer.Location);
+            if Peer.Socket /= Failure then
+               Peer.Defined := True;
+               exit;
+            end if;
 
-            Partition_Map.Set_Locked (Partition, Remote_Data);
+            delay 2.0;
+            Hits := Hits - 1;
+         end loop;
 
-            --  Now create a task to get data on this connection
-
-            declare
-               NT : Incoming_Connection_Handler_Access;
-            begin
-               NT := new Incoming_Connection_Handler
-                 (Remote_Data.FD, Partition);
-            end;
-
-         end if;
-         declare
-            Offset : constant Stream_Element_Offset :=
-              Data'First + Unused_Space - Stream_Element_Count_Length;
-            Code   : constant Stream_Element_Offset :=
-              Offset - Operation_Code_Length;
-         begin
-            --  Write length at the beginning of the data, then the operation
-            --  code.
-
-            Data (Code .. Offset - 1) :=
-              To_Stream_Element_Array (Data_Code);
-            Data (Offset .. Offset + Stream_Element_Count_Length - 1) :=
-              To_Stream_Element_Array (Data'Length - Unused_Space);
+         if Hits = 0 then
             pragma Debug
-              (D (D_Debug,
-                  "Sending packet of length" &
-                  Stream_Element_Count'Image (Data'Last - Code + 1) &
-                  " (content of" &
-                  Stream_Element_Count'Image (Data'Length - Unused_Space) &
-                  ")"));
-            pragma Debug (D (D_Debug, "first =" & Data'First'Img));
-            pragma Debug (D (D_Debug, "code =" & Code'Img));
-            Dump (D_Debug, Data, Private_Debug_Key);
-            Physical_Send (Remote_Data.FD, Data (Code) 'Address,
-                           C.int (Data'Last - Code + 1));
+              (D (D_Communication,
+                  "Cannot connect to partition" & Partition'Img));
+            Leave (Partition);
+
+            Raise_Communication_Error
+              ("Cannot connect to partition" & Partition'Img);
+         end if;
+
+         pragma Debug
+           (D (D_Communication,
+               "Connected to partition" & Partition'Img));
+
+         --  Now create a task to get data on this connection
+
+         declare
+            Handler : Connection_Handler_Access;
+         begin
+            Handler := new Connection_Handler (Peer.Socket, Partition);
          end;
-         Partition_Map.Unlock (Partition);
-      exception
-         when Communication_Error =>
-            pragma Debug (D (D_Debug, "Error detected in Send"));
-            Partition_Map.Unlock (Partition);
-            raise;
-      end;
+
+      end if;
+
+      --  Write length at the beginning of the data, then the operation code.
+
+      Count := Stream_Element_Count_Length;
+      First := First - Count;
+      Data (First .. First + Count - 1)
+        := To_Stream_Element_Array (Data'Length - Unused_Space);
+
+      Count := Operation_Code_Length;
+      First := First - Count;
+      Data (First .. First + Count - 1) := Data_Stream;
+
+      pragma Debug
+        (D (D_Debug,
+            "Sending packet of length" &
+            Stream_Element_Count'Image (Data'Last - First + 1) &
+            " (content of" &
+            Stream_Element_Count'Image (Data'Length - Unused_Space) &
+            ")"));
+
+      Dump (D_Debug, Data, Private_Debug_Key);
+      Physical_Send (Peer.Socket, Data, First);
+
+      Leave (Partition);
    end Send;
 
    -------------------
@@ -877,22 +710,23 @@ package body System.Garlic.TCP is
       Is_Boot_Protocol : in Boolean := False;
       Boot_Data        : in String := "")
    is
-      Boot_Host : Host_Data;
+      Self : Socket_Type renames Socket_Table (Last_PID);
+      Boot : Socket_Type renames Socket_Table (Boot_PID);
    begin
-      Self_Host.Location := Split_Data (Host_Name);
+      Enter (Last_PID);
+      Enter (Boot_PID);
+      Self.Location := Split_Data (Host_Name);
       if Is_Boot_Protocol then
-         Boot_Host.Location := Split_Data (Boot_Data);
-         Boot_Host.Known    := True;
-         Partition_Map.Lock (Boot_PID);
-         Partition_Map.Set_Locked (Boot_PID, Boot_Host);
-         Partition_Map.Unlock (Boot_PID);
+         Boot.Location := Split_Data (Boot_Data);
          if Options.Boot_Partition then
-            Self_Host.Location.Port := Boot_Host.Location.Port;
+            Self.Location.Port := Boot.Location.Port;
          end if;
       end if;
+      Leave (Last_PID);
+      Leave (Boot_PID);
       if not Can_Have_A_Light_Runtime then
          pragma Debug (D (D_Debug, "Starting an acceptor task"));
-         Establish_Listening_Socket;
+         Do_Listen;
          Acceptor := new Accept_Handler;
       else
          pragma Debug (D (D_Debug, "No acceptor task, light runtime"));
@@ -905,7 +739,7 @@ package body System.Garlic.TCP is
    --------------
 
    procedure Shutdown (Protocol : access TCP_Protocol) is
-      Data : Host_Data;
+      Peer : C.int;
    begin
 
       pragma Debug (D (D_Debug, "Initiating connections shutdown"));
@@ -914,16 +748,21 @@ package body System.Garlic.TCP is
       --  partition so that it releases its socket to be able to perform
       --  the shutdown operation on its end.
 
-      for Partition in Partition_ID loop
-         Data := Partition_Map.Get_Immediate (Partition);
-         if Data.Known and then Data.Connected then
+      Enter (Socket_Table_Mutex);
+
+      for P in Boot_PID .. Last_PID - 1 loop
+         if Socket_Table (P).Defined then
+            Peer := Socket_Table (P).Socket;
             begin
-               Physical_Send (Data.FD, To_Stream_Element_Array (Quit_Code));
+               Physical_Send (Peer, Quit_Stream'Access, Quit_Stream'First);
+               Peer := Net.C_Close (Peer);
             exception
                when Communication_Error => null;
             end;
          end if;
       end loop;
+
+      Leave (Socket_Table_Mutex);
 
       pragma Debug (D (D_Debug, "Sending a close message to myself"));
 
@@ -931,16 +770,17 @@ package body System.Garlic.TCP is
       --  so that the accept gets the message.
 
       declare
-         FD : C.int;
+         Back : C.int;
+         Self : Socket_Type renames Socket_Table (Last_PID);
       begin
-         FD := Establish_Connection (Self_Host.Location);
-         Physical_Send (FD, To_Stream_Element_Array (Quit_Code));
-         FD := Net.C_Close (FD);
+         Back := Do_Connect (Self.Location);
+         Physical_Send (Back, Quit_Stream'Access, Quit_Stream'First);
+         Back := Net.C_Close (Back);
       exception
          when Communication_Error => null;
       end;
 
-      Free (Partition_Map);
+      Destroy (Socket_Table_Mutex);
       Shutdown_Completed := True;
 
       pragma Debug (D (D_Debug, "Shutdown completed"));
@@ -971,18 +811,6 @@ package body System.Garlic.TCP is
    -- To_Stream_Element_Array --
    -----------------------------
 
-   function To_Stream_Element_Array (Code : Operation_Code)
-     return Operation_Code_Array
-   is
-   begin
-      pragma Assert (Code /= Unknown_Code);
-      return (others => Operation_Code'Pos (Code));
-   end To_Stream_Element_Array;
-
-   -----------------------------
-   -- To_Stream_Element_Array --
-   -----------------------------
-
    function To_Stream_Element_Array (Count : Stream_Element_Count)
      return Stream_Element_Count_Array
    is
@@ -992,19 +820,5 @@ package body System.Garlic.TCP is
               3 => Stream_Element ((Count / 256) mod 256),
               4 => Stream_Element (Count mod 256));
    end To_Stream_Element_Array;
-
-   ------------------------
-   -- Write_Partition_ID --
-   ------------------------
-
-   procedure Write_Partition_ID (FD        : in C.int;
-                                 Partition : in Partition_ID)
-   is
-      Stream : constant Partition_ID_Array :=
-        (1 => Stream_Element (Natural (Partition) / 256),
-         2 => Stream_Element (Natural (Partition) mod 256));
-   begin
-      Physical_Send (FD, Stream);
-   end Write_Partition_ID;
 
 end System.Garlic.TCP;

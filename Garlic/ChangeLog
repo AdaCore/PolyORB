@@ -1,3 +1,9 @@
+1998-09-13  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* s-gartcp.adb: Part of the Garlic full re-writting. Remove
+ 	protected objects. Adapt to the new protocol. Remove unused
+ 	procedures.
+
 1998-09-11  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-garhea.adb: Workaround to avoid bad returned value assignment
