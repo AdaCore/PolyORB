@@ -2095,8 +2095,6 @@ package body Exp_Dist is
    -- Add_RAS_Dereference_TSS --
    -----------------------------
 
-   --  This subprogram could use more comments ???
-
    procedure Add_RAS_Dereference_TSS (N : Node_Id) is
       Loc : constant Source_Ptr := Sloc (N);
 
@@ -2136,13 +2134,28 @@ package body Exp_Dist is
 
       Current_Parameter : Node_Id;
 
+   --  Start of processing for Add_RAS_Dereference_TSS
+
    begin
+
+      --  The Dereference TSS for a remote access-to-subprogram type
+      --  has the form:
+      --  [function|procedure] ras_typeRD (RAS_Value, <RAS_Parameters>)
+      --     [return <>]
+      --  and is called whenever a value of a RAS type is dereferenced.
+
+      --  First construct a list of parameter specifications:
+
+      --  The first formal is the RAS values
+
       Param_Specs := New_List (
         Make_Parameter_Specification (Loc,
           Defining_Identifier => RAS_Parameter,
           In_Present          => True,
           Parameter_Type      =>
             New_Occurrence_Of (Fat_Type, Loc)));
+
+      --  The following formals are copied from the type declaration
 
       Is_Degenerate := False;
       Current_Parameter := First (Parameter_Specifications (Type_Def));
@@ -2174,14 +2187,21 @@ package body Exp_Dist is
       if Is_Degenerate then
          Prepend_To (Param_Assoc, New_Occurrence_Of (RAS_Parameter, Loc));
 
-         --  Generate a dummy body recursing on the Dereference TSS, since
-         --  actually it will never be executed.
+         --  Generate a dummy body. This code will never actually be executed,
+         --  because null is the only legal value for a degenerate RAS type.
+         --  For legality's sake (in order to avoid generating a function
+         --  that does not contain a return statement), we include a dummy
+         --  recursive call on the TSS itself.
 
          Append_To (Stmts,
            Make_Raise_Program_Error (Loc, Reason => PE_Explicit_Raise));
          RACW_Primitive_Name := New_Occurrence_Of (Proc, Loc);
 
       else
+         --  For a normal RAS type, we cast the RAS formal to the corresponding
+         --  tagged type, and perform a dispatching call to its Call
+         --  primitive operation.
+
          Prepend_To (Param_Assoc,
            Unchecked_Convert_To (RACW_Type,
              New_Occurrence_Of (RAS_Parameter, Loc)));
@@ -4142,9 +4162,6 @@ package body Exp_Dist is
                               Defining_Identifier (Parameter);
 
          Condition         : Node_Id;
-         Designated_Object : Node_Id;
-         pragma Warnings (Off, Designated_Object);
-         --  Is it really right that this is unreferenced ???
 
       begin
          --  The expression that will be built is of the form:
@@ -4154,19 +4171,10 @@ package body Exp_Dist is
          --      raise Constraint_Error;
          --    end if;
 
-         --  Condition contains the reversed condition. Also, Parameter is
-         --  dereferenced if it is an access type. We do not check that
+         --  Condition contains the reversed condition. We do not check that
          --  Parameter is in Stub_Type since such a check has been inserted
          --  at the point of call already (a tag check since we have multiple
          --  controlling operands).
-
-         if Nkind (Parameter_Type (Parameter)) = N_Access_Definition then
-            Designated_Object :=
-              Make_Explicit_Dereference (Loc,
-                Prefix => New_Occurrence_Of (Parameter_Entity, Loc));
-         else
-            Designated_Object := New_Occurrence_Of (Parameter_Entity, Loc);
-         end if;
 
          Condition := New_Occurrence_Of (Standard_False, Loc);
          --  XXX rewrite to co-location check between Parameter_Entity
