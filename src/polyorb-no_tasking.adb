@@ -73,19 +73,6 @@ package body PolyORB.No_Tasking is
       return new Unprotected_Mutex_Type;
    end Create;
 
-   ------------
-   -- Create --
-   ------------
-
-   function Create return Barrier_Access is
-      B : Unprotected_Barrier_Type;
-   begin
-      B.X := new Unprotected_Barrier_Data;
-      pragma Assert (B.X /= null);
-
-      return new Unprotected_Barrier_Type'(B);
-   end Create;
-
    -------------
    -- Destroy --
    -------------
@@ -121,17 +108,6 @@ package body PolyORB.No_Tasking is
       null;
    end Destroy;
 
-   -------------
-   -- Destroy --
-   -------------
-
-   procedure Free is new Ada.Unchecked_Deallocation
-     (Unprotected_Barrier_Data, Unprotected_Barrier_Data_Access);
-   procedure Destroy (B : in out Unprotected_Barrier_Type) is
-   begin
-      Free (B.X);
-   end Destroy;
-
    ----------------------------
    -- Enter_Critical_Section --
    ----------------------------
@@ -149,63 +125,6 @@ package body PolyORB.No_Tasking is
    begin
       null;
    end Leave_Critical_Section;
-
-   ------------
-   -- Signal --
-   ------------
-
-   procedure Signal
-     (B : in Unprotected_Barrier_Type;
-      N : in Positive := 1) is
-   begin
-      pragma Assert (B.X /= null);
-      if not B.X.Perm then
-         B.X.Free := B.X.Free + N;
-      end if;
-   end Signal;
-
-   ----------------
-   -- Signal_All --
-   ----------------
-
-   procedure Signal_All
-     (B : in Unprotected_Barrier_Type;
-      P : in Boolean := True) is
-   begin
-      pragma Assert (B.X /= null);
-
-      if not B.X.Perm then
-         if P then
-            B.X.Perm := True;
-         else
-            null;
-            --  B.Free := B.Free + B.Wait'Count;
-            --  No tasking: B.Wait = 0
-         end if;
-      end if;
-   end Signal_All;
-
-   ----------
-   -- Wait --
-   ----------
-
-   procedure Wait (B : in Unprotected_Barrier_Type) is
-   begin
-      pragma Assert (B.X /= null);
-
-      if B.X.Perm or else B.X.Free > 0 then
-         if not B.X.Perm then
-            B.X.Free := B.X.Free - 1;
-         end if;
-      else
-         raise Program_Error;
-
-         --  Or hang forever...
-         --  loop
-         --     null;
-         --  end loop;
-      end if;
-   end Wait;
 
    ------------
    -- Differ --
@@ -252,7 +171,6 @@ package body PolyORB.No_Tasking is
       Register_Enter_Critical_Section (Enter_Critical_Section'Access);
       Register_Leave_Critical_Section (Leave_Critical_Section'Access);
       Register_Watcher_Creation_Function (Create'Access);
-      Register_Barrier_Creation_Function (Create'Access);
       Register_Mutex_Creation_Function (Create'Access);
       Register_Adv_Mutex_Creation_Function (Create'Access);
       Register_Task_Identification

@@ -36,13 +36,10 @@ with Ada.Unchecked_Deallocation;
 
 package body PolyORB.Soft_Links is
 
-   Barrier_Create   : Barrier_Creation_Function;
    Mutex_Create     : Mutex_Creation_Function;
    Watcher_Create   : Watcher_Creation_Function;
    Adv_Mutex_Create : Adv_Mutex_Creation_Function;
 
-   procedure Free is
-     new Ada.Unchecked_Deallocation (Barrier_Type'Class, Barrier_Access);
    procedure Free is
      new Ada.Unchecked_Deallocation (Mutex_Type'Class, Mutex_Access);
    procedure Free is
@@ -116,52 +113,6 @@ package body PolyORB.Soft_Links is
      renames P_Leave_Critical_Section.Register;
    procedure Leave_Critical_Section
      renames P_Leave_Critical_Section.Call;
-
-   -------------
-   -- Barrier --
-   -------------
-
-   procedure Register_Barrier_Creation_Function
-     (F : in Barrier_Creation_Function)
-   is
-   begin
-      Barrier_Create := F;
-   end Register_Barrier_Creation_Function;
-
-   procedure Create (B : out Barrier_Access) is
-   begin
-      B := Barrier_Create.all;
-   end Create;
-
-   procedure Destroy (B : in out Barrier_Access) is
-   begin
-      if B /= null then
-         Destroy (B.all);
-         Free (B);
-      end if;
-   end Destroy;
-
-   procedure Signal
-     (B : in Barrier_Access;
-      N : in Positive := 1) is
-   begin
-      pragma Assert (B /= null);
-      Signal (B.all, N);
-   end Signal;
-
-   procedure Signal_All
-     (B : in Barrier_Access;
-      P : in Boolean := True) is
-   begin
-      pragma Assert (B /= null);
-      Signal_All (B.all, P);
-   end Signal_All;
-
-   procedure Wait (B : in Barrier_Access) is
-   begin
-      pragma Assert (B /= null);
-      Wait (B.all);
-   end Wait;
 
    -------------
    -- Mutex --

@@ -50,26 +50,6 @@ package PolyORB.Protected_Objects is
 
    procedure Leave_Critical_Section;
 
-   ----------------------------------
-   -- Barrier for ORB with Tasking --
-   ----------------------------------
-
-   type Protected_Barrier_Type is new Soft_Links.Barrier_Type with private;
-
-   function Create return Soft_Links.Barrier_Access;
-
-   procedure Destroy (B : in out Protected_Barrier_Type);
-
-   procedure Signal
-     (B : in Protected_Barrier_Type;
-      N : in Positive := 1);
-
-   procedure Signal_All
-     (B : in Protected_Barrier_Type;
-      P : in Boolean := True);
-
-   procedure Wait (B : in Protected_Barrier_Type);
-
    --------------------------------
    -- Mutex for PCS with Tasking --
    --------------------------------
@@ -141,16 +121,6 @@ package PolyORB.Protected_Objects is
    pragma Inline (To_Integer);
 
 private
-
-   type Barrier_PO;
-
-   type Barrier_PO_Access is access Barrier_PO;
-
-   type Protected_Barrier_Type is new Soft_Links.Barrier_Type
-     with record
-        X : Barrier_PO_Access;
-     end record;
-
 
    type Mutex_PO;
 
