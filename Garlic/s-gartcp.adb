@@ -161,7 +161,7 @@ package body System.Garlic.TCP is
    --  Idem for a stream element count.
 
    task Accept_Handler is
-      pragma Storage_Size (150_000);
+      pragma Storage_Size (300_000);
       pragma Priority (Priorities.RPC_Priority);
       entry Start;
    end Accept_Handler;
@@ -170,7 +170,7 @@ package body System.Garlic.TCP is
    task type Incoming_Connection_Handler (FD        : C.Int;
                                           Receiving : Boolean;
                                           Remote    : Partition_ID) is
-      pragma Storage_Size (150_000);
+      pragma Storage_Size (300_000);
       pragma Priority (Priorities.RPC_Priority);
    end Incoming_Connection_Handler;
    type Incoming_Connection_Handler_Access is

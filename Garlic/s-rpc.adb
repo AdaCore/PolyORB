@@ -186,7 +186,7 @@ package body System.RPC is
                              Id           : Request_Id;
                              Params       : Params_Stream_Access;
                              Asynchronous : Boolean) is
-      pragma Storage_Size (150_000);
+      pragma Storage_Size (300_000);
    end Anonymous_Task;
    type Anonymous_Task_Access is access Anonymous_Task;
    --  An anonymous task will serve a request.

@@ -110,7 +110,7 @@ package body System.Garlic.Termination is
    --  non-terminating tasks).
 
    task type Termination_Service is
-      pragma Storage_Size (150_000);
+      pragma Storage_Size (300_000);
       pragma Priority (Priorities.Master_Termination_Priority);
    end Termination_Service;
    type Termination_Service_Access is access Termination_Service;
