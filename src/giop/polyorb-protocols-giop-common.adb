@@ -134,9 +134,9 @@ package body PolyORB.Protocols.GIOP.Common is
       return Unmarshall_Aux (Buffer);
    end Unmarshall;
 
-   --------------------------
+   -----------------------
    -- Common_Send_Reply --
-   --------------------------
+   -----------------------
 
    procedure Common_Send_Reply
      (Sess           : access GIOP_Session;

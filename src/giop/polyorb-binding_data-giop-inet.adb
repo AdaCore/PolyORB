@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -306,7 +306,7 @@ package body PolyORB.Binding_Data.GIOP.INET is
 
       Release (Profile_Buffer);
 
-      pragma Debug (O ("Unmarshall_IIOP_Profile_body: leave"));
+      pragma Debug (O ("Common_Unmarshall_Profile_body: leave"));
    end Common_Unmarshall_Profile_Body;
 
 end PolyORB.Binding_Data.GIOP.INET;
