@@ -58,7 +58,7 @@ procedure Idlac is
    procedure Usage is
    begin
       Put_Line (Current_Error, "Usage: " & Command_Name
-                & " [-E] [-d] [-i] [-k] [-p] [-q] [-noir]"
+                & " [-E] [-d] [-i] [-k] [-p] [-q] [-ir] [-noir]"
                 & " idl_file [-cppargs ...]");
       Put_Line (Current_Error, "  -E     Preprocess only.");
       Put_Line (Current_Error, "  -d     Generate delegation package.");
@@ -67,8 +67,10 @@ procedure Idlac is
       Put_Line (Current_Error, "  -p     Produce source on standard output.");
       Put_Line (Current_Error, "  -q     Be quiet (default).");
       Put_Line (Current_Error, "  -v     Be verbose.");
-      Put_Line (Current_Error, "  -noir  Don't generate code for "
+      Put_Line (Current_Error, "  -ir    Generate code for "
                 & "interface repository.");
+      Put_Line (Current_Error, "  -noir  Don't generate code for "
+                & "interface repository (default).");
       Put_Line (Current_Error, "  -gnatW8");
       Put_Line (Current_Error, "         Use UTF8 character encoding");
       Put_Line (Current_Error, "  -cppargs ARGS");
@@ -86,7 +88,7 @@ begin
         ('-', False, "cppargs");
 
       loop
-         case Getopt ("E I: d i k p q v noir gnatW8") is
+         case Getopt ("E I: d i ir k p q v noir gnatW8") is
             when ASCII.Nul => exit;
 
             when 'E' =>
@@ -103,10 +105,16 @@ begin
                Generate_Delegate := True;
 
             when 'i' =>
-               Generate_Impl_Template := True;
+               if Full_Switch = "i" then
+                  Generate_Impl_Template := True;
+
+               elsif Full_Switch = "ir" then
+                  Generate_IR := True;
+               end if;
 
             when 'n' =>
                if Full_Switch = "noir" then
+                  --  For backward compatibility we just ignore this switch
                   Generate_IR := False;
                end if;
 
@@ -117,6 +125,7 @@ begin
                To_Stdout := True;
 
             when 'q' =>
+               --  For backward compatibility we just ignore this switch
                Verbose := False;
 
             when 'v' =>

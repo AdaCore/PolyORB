@@ -43,7 +43,7 @@ package Idlac_Flags is
    To_Stdout              : Boolean  := False;
    Verbose                : Boolean  := False;
    Generate_Delegate      : Boolean  := False;
-   Generate_IR            : Boolean  := True;
+   Generate_IR            : Boolean  := False;
    Character_Encoding     : Encoding := ISO_Latin_1;
 
 end Idlac_Flags;

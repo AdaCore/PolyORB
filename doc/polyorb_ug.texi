@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#53 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#54 $
 
 @include version.texi
 
@@ -1487,7 +1487,7 @@ NAME
        idlac - PolyORB's IDL-to-Ada compiler
 
 SYNOPSIS
-       idlac [-E] [-d] [-i] [-k] [-p] [-q] [-v] [-noir] idl_file [-cppargs ...]
+       idlac [-E] [-d] [-i] [-k] [-p] [-q] [-v] [-ir] [-noir] idl_file [-cppargs ...]
 
 DESCRIPTION
        idlac is an IDL-to-Ada compiler, compliant with version 1.2 of the "Ada
@@ -1510,7 +1510,9 @@ OPTIONS
 
        -v      Be verbose.
 
-       -noir   Don't generate code for interface repository.
+       -ir     Generate code for interface repository.
+
+       -noir   Don't generate code for interface repository (default).
 
        -gnatW8
                Use UTF8 character encoding
@@ -1545,6 +1547,10 @@ OPTIONS
 
 @item @code{myinterface-helper.ads}, @code{myinterface-helper.adb} : these 
   files contain subprograms to marshal data into CORBA Any containers.
+
+@item @code{myinterface-ir_info.ads}, @code{myinterface-ir_info.adb} : these
+  files contain code for registering IDL definitions in the CORBA Interface
+  Repository. They are generated only if the -ir flag is specified.
 
 
 @end itemize
