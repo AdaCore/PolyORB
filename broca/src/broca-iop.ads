@@ -32,57 +32,46 @@
 ------------------------------------------------------------------------------
 
 with CORBA;
+
 with Broca.Opaque;
 with Broca.Buffers;
 with Broca.Sequences;
 
 package Broca.IOP is
 
-   -----------------------------------------
-   -- The abstract interface for all GIOP --
-   -- connections.                        --
-   -----------------------------------------
+   -----------------------------------
+   -- Abstract GIOP connection type --
+   -----------------------------------
 
-   --  Contains data for a connection.
    type Connection_Type is abstract tagged private;
    type Connection_Ptr is access all Connection_Type'Class;
 
-   function Get_Request_Id
+   function Get_Request
      (Connection : access Connection_Type)
      return CORBA.Unsigned_Long;
-   --  Get a new Request Id for this Connection.
+   --  Get a new request id for this connection.
 
-   procedure Release_Connection
+   procedure Release
      (Connection : access Connection_Type) is abstract;
-   --  Release a previously locked connection.
+   --  Release a previously suspended connection.
 
    procedure Send
      (Connection : access Connection_Type;
-      Buffer     : access Buffers.Buffer_Type)
-      is abstract;
-   --  Send a buffer to a connection. Raise Comm_Failure
-   --  on error.
-
-   --  procedure Receive
-   --    (Connection : access Connection_Type;
-   --     Buffer     : access Buffers.Buffer_Type)
-   --     is abstract;
-   --  Receive data from a connection. Fill exactly Buffer.
-   --  Raise Comm_Failure on error.
+      Buffer     : access Buffers.Buffer_Type) is abstract;
+   --  Send a buffer to a connection. Raise Comm_Failure on error.
 
    function Receive
      (Connection : access Connection_Type;
       Length     : Opaque.Index_Type)
-     return Opaque.Octet_Array
-      is abstract;
-   --  Receive data from a connection.
-   --  Raise Comm_Failure on error.
+     return Opaque.Octet_Array is abstract;
+   --  Receive data from a connection. Raise Comm_Failure on error.
 
-   -------------------------------------------------------
-   -- The abstract interface for all GIOP profile types --
-   -------------------------------------------------------
+   --------------------------------
+   -- Abstract GIOP profile type --
+   --------------------------------
 
    subtype Profile_Tag is CORBA.Unsigned_Long;
+
    Tag_Internet_IOP        : constant Profile_Tag := 0;
    Tag_Multiple_Components : constant Profile_Tag := 1;
 
@@ -96,14 +85,14 @@ package Broca.IOP is
    function Find_Connection
      (Profile : access Profile_Type)
      return Connection_Ptr is abstract;
-   --  Find a free connection (or create a new one) for
-   --  a message to the transport endpoint designated by
-   --  Profile, and reserve it.
+   --  Find a connection (or create a new one) that matches this
+   --  profile into order to send a message to the transport endpoint
+   --  designated by Profile.
 
    function Get_Profile_Tag
      (Profile : Profile_Type)
       return Profile_Tag is abstract;
-   --  Return Profile's Standard Protocol Profile tag.
+   --  Return standard protocol profile tag.
 
    type Profile_Ptr is access all Profile_Type'Class;
 
@@ -137,7 +126,7 @@ package Broca.IOP is
       Profile : out Profile_Ptr);
 
    procedure Register
-     (Profile     : in Profile_Tag;
+     (Profile                 : in Profile_Tag;
       Marshall_Profile_Body   : in Marshall_Profile_Body_Type;
       Unmarshall_Profile_Body : in Unmarshall_Profile_Body_Type);
 
@@ -153,7 +142,7 @@ package Broca.IOP is
 private
 
    type Connection_Type is abstract tagged record
-      Request_Id : CORBA.Unsigned_Long := 1;
+      Request : CORBA.Unsigned_Long := 1;
    end record;
 
    type Profile_Type is abstract tagged limited null record;

@@ -304,7 +304,7 @@ package body Broca.GIOP is
       Marshall (Handler.Buffer'Access, CORBA.Unsigned_Long (No_Context));
 
       --  Request id
-      Handler.Request_Id := IOP.Get_Request_Id (Handler.Connection);
+      Handler.Request_Id := IOP.Get_Request (Handler.Connection);
       Marshall (Handler.Buffer'Access, Handler.Request_Id);
 
       --  Response expected
@@ -355,7 +355,7 @@ package body Broca.GIOP is
       Release (Handler.Buffer);
 
       if not Reponse_Expected then
-         IOP.Release_Connection (Handler.Connection);
+         IOP.Release (Handler.Connection);
          Result := Sr_No_Reply;
          return;
       end if;
@@ -420,7 +420,7 @@ package body Broca.GIOP is
             Message_Endianness,
             GIOP.Message_Header_Size);
 
-         IOP.Release_Connection (Handler.Connection);
+         IOP.Release (Handler.Connection);
 
          --  Service context
          Service_Context := Unmarshall (Message_Body_Buffer'Access);

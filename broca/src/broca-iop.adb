@@ -43,15 +43,17 @@ package body Broca.IOP is
    Flag : constant Natural := Broca.Debug.Is_Active ("broca.iop");
    procedure O is new Broca.Debug.Output (Flag);
 
-   function Get_Request_Id (Connection : access Connection_Type)
-                            return CORBA.Unsigned_Long
+   function Get_Request
+     (Connection : access Connection_Type)
+     return CORBA.Unsigned_Long
    is
-      Res : CORBA.Unsigned_Long;
+      Result : CORBA.Unsigned_Long;
+
    begin
-      Res := Connection.Request_Id;
-      Connection.Request_Id := Connection.Request_Id + 1;
-      return Res;
-   end Get_Request_Id;
+      Result := Connection.Request;
+      Connection.Request := Connection.Request + 1;
+      return Result;
+   end Get_Request;
 
    ---------------------
    -- Decapsulate_IOR --

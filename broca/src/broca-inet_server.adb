@@ -222,7 +222,7 @@ package body Broca.Inet_Server is
       --  Destroy a descriptor associated with a closed
       --  connection.
       procedure Unmask_Descriptor (Fd : Interfaces.C.int);
-      --  Resume waitiong for events on descriptor.
+      --  Release waitiong for events on descriptor.
 
    private
 
@@ -750,10 +750,10 @@ package body Broca.Inet_Server is
 
       Server_Profile : aliased Broca.IIOP.Profile_IIOP_Type;
    begin
-      Server_Profile.Host := IIOP_Host;
-      Server_Profile.Port := IIOP_Port;
-      Server_Profile.Object_Key := Octet_Sequences.To_Sequence
-        (To_CORBA_Octet_Array (Object_Key));
+      Server_Profile.Host   := IIOP_Host;
+      Server_Profile.Port   := IIOP_Port;
+      Server_Profile.ObjKey
+        := Octet_Sequences.To_Sequence (To_CORBA_Octet_Array (Object_Key));
 
       Marshall (IOR, Broca.IOP.Tag_Internet_IOP);
       Broca.IOP.Callbacks (Broca.IOP.Tag_Internet_IOP).Marshall_Profile_Body
