@@ -19,3 +19,7 @@ clean::
 
 ada::
 	omniidl2 -b ada all_functions.idl
+
+all_functions.ads: all_functions.idl
+	omniidl2 -bada all_functions.idl
+
