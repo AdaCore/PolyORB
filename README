@@ -84,6 +84,7 @@ Documentation overview
 
 FEATURES    : List PolyORB's features.
 INSTALL     : Detail PolyORB installation process.
+NEWS        : Detail updates between PolyORB's releases.
 README      : This file, first instructions.
 src/ROADMAP : Overview of PolyORB source code.
 doc/*       : Miscellaneous documents describing PolyORB internals.

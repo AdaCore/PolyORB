@@ -77,14 +77,23 @@ Note: at this time, you MUST use GNU make to compile this software.
 Available options for the 'configure' script include:
   --with-appli-perso=".." : application personalities to build, among
                             CORBA, DSA, MOMA
+      e.g.   --with-appli-perso="corba moma" to build both the CORBA 
+             and MOMA personnalities
+
   --with-proto-perso=".." : personalities to build, among
                             GIOP, SOAP, SRP
-  --with-services=".." : services to build : event,ir, naming, time
+      e.g.   --with-proto-perso="giop soap" to build both the GIOP 
+             and SOAP personnalities
+
+  --with-services=".." : CORBA COS services to build : event, ir, naming, time
+      e.g.  --with-services="event naming" to build only COS Event and COS Naming.	
+
   --enable-shared : build shared libraries.
   --enable-debug  : enable debugging information generation and supplementary
                     runtime checks.
 
-By default, only the CORBA and GIOP personalities are built.
+By default, only the CORBA and GIOP personalities are built, no CORBA
+Services are built.
 
 Platform notes
 --------------
