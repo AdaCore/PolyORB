@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: //droopi/main/utils/make_distrib#14 $
+# $Id: //droopi/main/utils/make_distrib#15 $
 #
 # This script builds a compressed archive suitable for distribution.
 #
@@ -87,16 +87,18 @@ if $prcs; then
 elif $perforce; then
   . ./${P4CONFIG:-.p4}
   export P4USER P4PORT P4PASSWD
-  view=`p4 files MANIFEST | sed 's,/MANIFEST#.*$,/...,'`
+  view_root=`p4 files MANIFEST | sed 's,/MANIFEST#.*$,,'`
   cd ${tmp}/${dir}
   tmp=`pwd`
   client=make_distrib_$$
-  p4 client -i <<__EOF__
+  (cat <<__EOF__
 Client: $client
 Root: ${tmp}
 Options: allwrite clobber compress
-View: ${view} //${client}/...
+View:
 __EOF__
+  sed "s,.*,	${view_root}/& //${client}/&," \
+    < ${prev}/MANIFEST) | p4 client -i
   P4CLIENT=${client}; export P4CLIENT
   set +e
   p4 sync ...@${tag}
