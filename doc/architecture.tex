@@ -48,10 +48,51 @@ utiliser un service particulier aurait avantage à pouvoir
 obtenir ce service de tout objet qui peut le lui fournir, quel
 que soit le modèle de répartition utilisé par chacun.
 
+\subsection{Pourquoi l'interopérabilité ?}
+
 Se pose donc la question des mécanismes que l'intergiciel peut
 offrir pour permettre l'interopération entre des objets, clients
 et serveurs, existant au sein de plates-formes de répartition
-différentes.
+différentes. Un exemple de cas où l'on souhaite avoir
+une telle possibilité est le développement d'un objet
+rendant un service à des clients. On peut par exemple
+vouloir profiter de la sûreté du langage \ada{} et de
+la facilité d'utilisation de l'annexe pour les systèmes répartis,
+tout en bénéficiant de l'ouverture à des plates-formes
+hétérogènes offerte par CORBA. On cherchera alors à faire
+interopérer des composants utilisant les deux plates-formes,
+afin d'obtenir l'ensemble des bénéfices associés à chacune
+
+\cite{breg98} détaille également une situation où un objet
+HPC++ fournissant un service de calcul intensif sur machine
+parallèle est piloté au moyen d'une interface utilisateur
+graphique réalisée avec des objets Java utilisant RMI.
+Divers solutions permettant aux objets Java de communiquer
+avec les objets répartis sont proposés. La solution retenue
+est un mécanisme d'interopérabilité entre RMI et les objets
+répartis HPC++ est établi. Ses performances sont évaluées,
+en comparaison avec des appels de méthodes distants à
+l'intérieur de chaque plate-forme.
+
+% les middlewares, les plates-formes à objets répartis
+% Préliminaires sur la question de l'interopérabilité.
+% Deux solutions possibles pour l'interopérabilité :
+%   - les passerelles ;
+%   - l'utilisation d'un middleware générique
+%     -> Pourquoi un middleware générique peut-il répondre
+%        aux problématiques de l'interopérabilité ?
+%
+% état de l'art : les middlewares génériques existants.
+% Quels sont les caractéristiques principales de ces middlewares ?
+% Quels sont nos objectifs propres ? (interopérabilité, flexibilité,
+% configurabilité, temps réel, GL) ? Quelles sont les caractéristiques
+% des middlewares existants qui nous semblent pertinentes par rapport
+% à ces objectifs ?
+%
+% -> proposer notre contribution comme une synthèse d'éléments
+% dont certains existent dans des middlewares existants, et que
+% nous combinons d'une façon originale pour résoudre un problème
+% que nous nous posons : l'interopérabilité.
 
 \subsection{Passerelles}
 
@@ -77,27 +118,32 @@ Nous réalisons donc une passerelle jouant à la fois le rôle de serveur
 CORBA et de client de l'annexe~; ce composant permettra d'utiliser les services
 «~actifs~» de l'annexe à partir du monde CORBA.
 
-% les middlewares, les plates-formes à objets répartis
-% Préliminaires sur la question de l'interopérabilité.
-% Deux solutions possibles pour l'interopérabilité :
-%   - les passerelles ;
-%   - l'utilisation d'un middleware générique
-%     -> Pourquoi un middleware générique peut-il répondre
-%        aux problématiques de l'interopérabilité ?
-%
-% état de l'art : les middlewares génériques existants.
-% Quels sont les caractéristiques principales de ces middlewares ?
-% Quels sont nos objectifs propres ? (interopérabilité, flexibilité,
-% configurabilité, temps réel, GL) ? Quelles sont les caractéristiques
-% des middlewares existants qui nous semblent pertinentes par rapport
-% à ces objectifs ?
-%
-% -> proposer notre contribution comme une synthèse d'éléments
-% dont certains existent dans des middlewares existants, et que
-% nous combinons d'une façon originale pour résoudre un problème
-% que nous nous posons : l'interopérabilité.
+Cette approche a l'intérêt d'avoir été prototypée avec succès.
+Elle présente cependant certaines limitations, qui sont de deux
+ordres. Les unes sont spécifiques de notre implémentation~:
+\begin{description}
+\item telle que nous l'avons réalisée, elle ne traduit pas certaines
+  constructions évoluées de l'annexe qui ne se projettent pas
+  naturellement dans le modèle de CORBA~;
+\item elle ne permet l'interopération que dans un seul sens,
+  c'est-à-dire uniquement avec des clients CORBA et des
+  serveurs \dsa{}. Elle ne permet pas à des clients \dsa{}
+  d'utiliser les services d'un objet CORBA. En particulier,
+  les mécanismes de rappel (\emph{callback}) ne sont pas
+  supportés. En effet, cela nécessiterait le développement
+  d'une deuxième passerelle réalisant une fonction symétrique
+  de celle existante.
+\end{itemize}
+
+\subsection{Intergiciels interopérables}
+
+% * ad hoc (breg98: Java/RMI+Nexus RMI+HPC++
+% * basés sur les middlewares génériques : DROOPI
 
 \section{Position du problème}
+% Maintenant, introduire une étude de cas détaillée.
+% On est en train de reprendre et d'étendre la sous-section
+% 'pourquoi l'interopérabilité ?' de l'intro.
 
 \subsection{Contexte}
 \label{sec:contexte}
