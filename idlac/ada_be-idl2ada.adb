@@ -1130,7 +1130,8 @@ package body Ada_Be.Idl2Ada is
 
    procedure Gen_Node_Skel_Body
      (CU   : in out Compilation_Unit;
-      Node : Node_Id) is
+      Node : Node_Id)
+   is
    begin
       if Kind (Node) /= K_Operation then
          return;
@@ -1154,6 +1155,19 @@ package body Ada_Be.Idl2Ada is
          NL (CU);
          PL (CU, "if Operation = """ & Idl_Operation_Id (Node) & """ then");
          II (CU);
+         NL (CU);
+         PL (CU, "--  Sanity check");
+         if Is_Oneway (Node) then
+            PL (CU, "if Response_Expected then");
+         else
+            PL (CU, "if not Response_Expected then");
+         end if;
+         II (CU);
+         PL (CU, "Broca.Exceptions.Raise_Bad_Param;");
+         DI (CU);
+         PL (CU, "end if;");
+         NL (CU);
+
          PL (CU, "declare");
          II (CU);
 
