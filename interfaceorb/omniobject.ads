@@ -35,7 +35,7 @@ with OmniRopeAndKey ;
 
 package OmniObject is
 
-   type Object is abstract tagged record --new Ada.Finalization.Controlled with record
+   type Object is abstract new Ada.Finalization.Controlled with record
       Table : Interfaces.CPP.Vtable_Ptr ;
    end record ;
 
@@ -153,12 +153,11 @@ package OmniObject is
    -- This function is implemented in Ada and exported to C
    -- it calls th Ada function Dispatch
 
-   function Dispatch (Self : in Object ;
+   function Dispatch (Self : in Object'Class ;
                       Orls : in Giop_S.Object ;
                       Orl_Op : in String ;
                       Orl_Response_Expected : in Boolean)
-                      return Boolean is abstract ;
-   pragma Cpp_Virtual (Dispatch) ;
+                      return Boolean ;
    -- Ada equivalent of C function C_Dispatch
    -- this function is called by the C one
    -- It is not implemented here but in the sub-classes of omniObject

@@ -156,7 +156,6 @@ package body OmniObject is
                         Orl_Op : in Interfaces.C.Strings.Chars_Ptr ;
                         Orl_Response_Expected : in Sys_Dep.C_Boolean)
                         return Interfaces.C.Unsigned_Char is
-      Ada_Orls : Giop_S.Object ;
       Ada_Orls_Ptr : Address_To_Giop_S.Object_Pointer ;
       Ada_Orl_Op : String := Interfaces.C.Strings.Value(Orl_OP) ;
       Ada_Orl_Response_Expected : Boolean ;
@@ -164,16 +163,27 @@ package body OmniObject is
    begin
       -- transforms the arguments in a Ada type, ...
       Ada_Orls_Ptr := Address_To_Giop_S.To_Pointer(Orls) ;
-      Ada_Orls := Ada_Orls_Ptr.all ;
       Ada_Orl_Response_Expected := Sys_Dep.Boolean_C_To_Ada (Orl_Response_Expected) ;
       -- ... calls the ada function ...
       Ada_Result := Dispatch (Self,
-                              Ada_Orls,
+                              Ada_Orls_Ptr.All,
                               Ada_Orl_Op,
                               Ada_Orl_Response_Expected) ;
       -- ... and transforms the result into a C type
       return Sys_Dep.Boolean_Ada_To_C (Ada_Result) ;
    end ;
+
+
+   -- Dispatch
+   -----------
+   function Dispatch (Self : in Object'Class ;
+                      Orls : in Giop_S.Object ;
+                      Orl_Op : in String ;
+                      Orl_Response_Expected : in Boolean)
+                      return Boolean is
+   begin
+      return False ;
+   end;
 
 
    -- C_Raise_Ada_Exception
