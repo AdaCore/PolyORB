@@ -489,7 +489,9 @@ package body Backend.BE_IDL is
 
    procedure Generate_Initializer_Declaration (E : Node_Id) is
    begin
-      Dummy (E);
+      Write (T_Factory);
+      Write_Space;
+      Generate_Operation_Declaration (E);
    end Generate_Initializer_Declaration;
 
    -----------------------------------
@@ -639,12 +641,15 @@ package body Backend.BE_IDL is
       L : List_Id;
 
    begin
-      if Is_Oneway (E) then
-         Write (T_Oneway);
+      if Kind (E) /= K_Initializer_Declaration then
+         if Is_Oneway (E) then
+            Write (T_Oneway);
+            Write_Space;
+         end if;
+         Generate (Type_Spec (E));
          Write_Space;
       end if;
-      Generate (Type_Spec (E));
-      Write_Space;
+
       Generate (Identifier (E));
       Write (T_Left_Paren);
 

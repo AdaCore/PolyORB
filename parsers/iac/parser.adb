@@ -1185,7 +1185,7 @@ package body Parser is
          return No_Node;
       end if;
 
-      Parameters := New_List (K_Initializer_Parameter_List, Token_Location);
+      Parameters := New_List (K_Parameter_List, Token_Location);
       Set_Parameters   (Node, Parameters);
 
       loop
@@ -1214,6 +1214,13 @@ package body Parser is
             exit;
          end if;
       end loop;
+
+      Scan_Token (T_Semi_Colon);
+      if Token = T_Error then
+         Restore_Lexer (State);
+         Skip_Declaration (T_Semi_Colon);
+         Node := No_Node;
+      end if;
 
       return Node;
    end P_Initializer_Declaration;

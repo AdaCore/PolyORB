@@ -433,7 +433,7 @@ package body Analyzer is
 
    procedure Analyze_Initializer_Declaration (E : Node_Id) is
    begin
-      Dummy (E);
+      Analyze_Operation_Declaration (E);
    end Analyze_Initializer_Declaration;
 
    -----------------------------------
@@ -672,26 +672,28 @@ package body Analyzer is
    begin
       Enter_Name_In_Scope (Identifier (E));
 
-      Param_Type := Type_Spec (E);
-      Analyze (Param_Type);
+      if Kind (E) /= K_Initializer_Declaration then
+         Param_Type := Type_Spec (E);
+         Analyze (Param_Type);
 
-      if Kind (Param_Type) = K_Scoped_Name then
-         Param_Type := Reference (Param_Type);
-      end if;
+         if Kind (Param_Type) = K_Scoped_Name then
+            Param_Type := Reference (Param_Type);
+         end if;
 
-      --  When operation is oneway, check return type is void.
+         --  When operation is oneway, check return type is void.
 
-      if Oneway and then Kind (Param_Type) /= K_Void then
-         Oneway := False;
-         Error_Loc (1)  := Loc (Type_Spec (E));
-         DE ("oneway operation cannot return a non-void result");
-      end if;
+         if Oneway and then Kind (Param_Type) /= K_Void then
+            Oneway := False;
+            Error_Loc (1)  := Loc (Type_Spec (E));
+            DE ("oneway operation cannot return a non-void result");
+         end if;
 
-      --  When the current interface is not local, check that its
-      --  operations do not use local types.
+         --  When the current interface is not local, check that its
+         --  operations do not use local types.
 
-      if not Is_Local then
-         No_Operation_Parameter_Of_Local_Type (Param_Type, Interface);
+         if not Is_Local then
+            No_Operation_Parameter_Of_Local_Type (Param_Type, Interface);
+         end if;
       end if;
 
       --  Analyze parameters

@@ -341,11 +341,7 @@ module Frontend::Nodes {
                                <simple_declarator> 
   */
 
-  interface Initializer_Parameter : Parameter_Declaration {};
-  interface Initializer_Parameter_List : List_Id {};
-  interface Initializer_Declaration : Scope_Definition {
-    List_Id     Parameters;
-  };
+  interface Initializer_Declaration : Operation_Declaration {};
 
 
   /*****************/
