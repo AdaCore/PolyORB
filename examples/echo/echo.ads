@@ -9,6 +9,10 @@
 ----                                                                    ----
 ----------------------------------------------------------------------------
 
+with Corba;
+with Omniproxycalldesc;
+with Giop_C;
+
 
 package Echo is
 
@@ -20,7 +24,7 @@ package Echo is
 
    function To_Ref(From: in Corba.Object.Ref'Class) return Ref ;
 
-   function EchoString(Self: in Ref, Message: in Corba.String) return Corba.String ;
+   function EchoString(Self: in Ref; Message: in Corba.String) return Corba.String ;
 
 
    --------------------------------------------------
@@ -29,14 +33,14 @@ package Echo is
 
    type OmniProxyCallDesc_Echo is new OmniProxyCallDesc with private ;
 
-   function AlignedSize(Self: in OmniProxyCallDesc_Echo,
+   function AlignedSize(Self: in OmniProxyCallDesc_Echo;
                           Size_In: in Corba.Unsigned_Long)
                         return Corba.Unsigned_Long ;
 
-   procedure MarshalArguments(Self: in OmniProxyCallDesc_Echo,
+   procedure MarshalArguments(Self: in OmniProxyCallDesc_Echo;
                                 Giop_Client: in out Giop_C) ;
 
-   procedure UnmarshalReturnedValues(Self: in OmniProxyCallDesc_Echo,
+   procedure UnmarshalReturnedValues(Self: in OmniProxyCallDesc_Echo;
                                        Giop_Client: in out Giop_C) ;
 
 

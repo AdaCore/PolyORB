@@ -10,23 +10,20 @@
 ----------------------------------------------------------------------------
 
 
-package Echo.impl body is
+package body Echo.impl is
 
 
-   procedure Init (Self : in out Object, K : in OmniORB.ObjectKey) is
+   procedure Init (Self : in out Object; K : in OmniORB.ObjectKey) is
       L : OmniRopeAndKey.Object;
    begin
-      Init(L,Rope.Null_Rope,K,...);
+      -- Init(L,Rope.Null_Rope,K,...);
       -- PROBLEME sur K : le type n'est pas le bon. En C, on trouve ici
       -- un cast plus que sauvage...
-      .... To Be continued
+      -- To Be continued
    end
 
 
-private
-
-
-End Echo_impl ;
+End Echo.Impl ;
 
 
 

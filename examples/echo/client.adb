@@ -10,7 +10,7 @@
 ----------------------------------------------------------------------------
 
 
-with Ada_Comand_Line ;
+with Ada.Command_Line ;
 with Text_Io ; use Text_Io ;
 with Corba, Corba.Orb, Corba.Boa ;
 with Echo ;
@@ -27,7 +27,7 @@ procedure Client is
 
 begin
 
-   if Ada.Comand_Line.Argument_Count < 1 then
+   if Ada.Command_Line.Argument_Count < 1 then
       Put_Line ("usage : client <IOR_string_from_server>") ;
       return ;
    end if ;

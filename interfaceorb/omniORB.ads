@@ -20,9 +20,9 @@ package Omniorb is
    fatalException : exception;
    type fatalException_Members is new System_Exception_Members with
      record
-        Pd_File : CORBA::String;
-        Pd_Line CROBA::Int;
-        Pd_Errmsg CORBA::String;
+        Pd_File : CORBA.String;
+        Pd_Line CROBA.Int;
+        Pd_Errmsg CORBA.String;
      end record;
    -- corresponds to class fatalException
    -- in omniORB.h L 470

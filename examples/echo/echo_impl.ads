@@ -18,7 +18,7 @@ package Echo.Impl is
 
    type Object is new Corba.Implementation_Defined.Ref with private;
 
-   function EchoString(Self : in access Object,
+   function EchoString(Self : in access Object;
                          Message : in Corba.String) return Corba.String ;
 
 
@@ -26,7 +26,7 @@ package Echo.Impl is
    ----              not in  spec                ----
    --------------------------------------------------
 
-   procedure Init (Self : in out Object, K : in OmniORB.ObjectKey);
+   procedure Init (Self : in out Object; K : in OmniORB.ObjectKey);
    -- initializer
 
 
@@ -35,7 +35,7 @@ private
    type Object is new Corba.Object.Ref with private;
 
 
-End Echo_impl ;
+End Echo.Impl ;
 
 
 

@@ -22,7 +22,7 @@ package body Echo is
       -- cf to_ref.txt
    end ;
 
-   function EchoString(Self: in Ref, message: in Corba.String) return Corba.String is
+   function EchoString(Self: in Ref; message: in Corba.String) return Corba.String is
 
       Opcd : OmniProxyCallDesc_Echo ;
    begin
@@ -36,7 +36,7 @@ package body Echo is
    ----              not in  spec                ----
    --------------------------------------------------
 
-   function AlignedSize(Self: in OmniProxyCallDesc_Echo,
+   function AlignedSize(Self: in OmniProxyCallDesc_Echo;
                           MsgSize: in Corba.Unsigned_Long)
                         return Corba.Unsigned_Long is
    begin
@@ -45,15 +45,15 @@ package body Echo is
    end;
 
 
-   procedure MarshalArguments(Self: in OmniProxyCallDesc_Echo,
+   procedure MarshalArguments(Self: in OmniProxyCallDesc_Echo;
                                 Giop_Client: in out Giop_C) is
-      Len : CORBA:Unsigned_Long;
+      Len : CORBA.Unsigned_Long;
    begin
       Len := Arg'Length + 1;
 
-   end
+   end ;
 
-   procedure UnmarshalReturnedValues(Self: in OmniProxyCallDesc_Echo,
+   procedure UnmarshalReturnedValues(Self: in OmniProxyCallDesc_Echo;
                                        Giop_Client: in out Giop_C) ;
 
 
