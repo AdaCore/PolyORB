@@ -21,8 +21,14 @@ with Errors;
 
 package Tokens is
 
+   -------------------------------
+   --  idl keywords and tokens  --
+   -------------------------------
+
    --  All the idl_keywords
-   --  CORBA 2.3 - 3.2.4
+   --
+   --  IDL Syntax and semantics, CORBA V2.3 § 3.2.4
+   --
    --  must be synchronized with the token declarations
    All_Idl_Keywords : array (1 .. 47) of String_Cacc :=
      (new String'("abstract"),
@@ -74,21 +80,13 @@ package Tokens is
       new String'("wstring")
       );
 
-   --  the three kinds of identifiers : keywords, true
-   --  identifiers or miscased keywords.
-   type Idl_Keyword_State is
-     (Is_Keyword, Is_Identifier, Bad_Case);
 
-   --  All the possible tokens.
+
+   --  All the idl tokens.
    type Idl_Token is
       (
-   --  Position 0.
-       T_Error,
-
-   --  Keywords.
-   --  Must start at position 1.
-   --  Must be synchronised with tokens.adb
-       T_Abstract,
+       T_Error,           --  Position 0.
+       T_Abstract,        --  Keywords, synchronised with keywords
        T_Any,
        T_Attribute,
        T_Boolean,
@@ -135,37 +133,31 @@ package Tokens is
        T_Void,
        T_Wchar,
        T_Wstring,
-   --  Punctuation characters
-       T_Sharp,                 -- #
-       T_Semi_Colon,            -- ;
-       T_Left_Cbracket,         -- {
-       T_Right_Cbracket,        -- }
-       T_Colon,                 -- :
-       T_Comma,                 -- ,
-       T_Equal,                 -- =
-       T_Plus,                  -- +
-       T_Minus,                 -- -
-       T_Left_Paren,            -- (
-       T_Right_Paren,           -- )
-       T_Less,                  -- <
-       T_Greater,               -- >
-       T_Left_Sbracket,         -- [
-       T_Right_Sbracket,        -- ]
-       T_Apostrophe,            -- '
-       T_Quote,                 -- "
-       T_Backslash,             -- \
-       T_Bar,                   -- |
-       T_Circumflex,            -- ^
-       T_Ampersand,             -- &
-       T_Star,                  -- *
-       T_Slash,                 -- /
-       T_Percent,               -- %
-       T_Tilde,                 -- ~
-       T_Colon_Colon,           -- ::
-       T_Greater_Greater,       -- >>
-       T_Less_Less,             -- <<
-   --  Literals
-       T_Lit_Decimal_Integer,
+       T_Semi_Colon,          -- ;  --  graphical character tokens
+       T_Left_Cbracket,       -- {
+       T_Right_Cbracket,      -- }
+       T_Colon,               -- :
+       T_Comma,               -- ,
+       T_Colon_Colon,         -- ::
+       T_Left_Paren,          -- (
+       T_Right_Paren,         -- )
+       T_Equal,               -- =
+       T_Bar,                 -- |
+       T_Circumflex,          -- ^
+       T_Ampersand,           -- &
+       T_Greater_Greater,     -- >>
+       T_Less_Less,           -- <<
+       T_Plus,                -- +
+       T_Minus,               -- -
+       T_Star,                -- *
+       T_Slash,               -- /
+       T_Percent,             -- %
+       T_Tilde,               -- ~
+       T_Less,                -- <
+       T_Greater,             -- >
+       T_Left_Sbracket,       -- [
+       T_Right_Sbracket,      -- ]
+       T_Lit_Decimal_Integer,        --  Literals
        T_Lit_Octal_Integer,
        T_Lit_Hexa_Integer,
        T_Lit_Simple_Char,
@@ -182,26 +174,17 @@ package Tokens is
        T_Lit_Exponent_Floating_Point,
        T_Lit_Pure_Exponent_Floating_Point,
        T_Lit_String,
+       T_Lit_Wide_String,
        T_Lit_Simple_Fixed_Point,
        T_Lit_Floating_Fixed_Point,
-   --  Identifier
-       T_Identifier,
-   --  Misc
-       T_Eof
+       T_Identifier,                 --  Identifier
+       T_Eof                         --  Misc
        );
 
 
-   --  definition of the alphabetic characters in idl
-   --  CORBA V2.3 table 3-2, 3-3
-   function Is_Alphabetic_Character (C : Standard.Character) return Boolean;
-   function Is_Digit_Character (C : Standard.Character) return Boolean;
-   function Is_Octal_Digit_Character (C : Standard.Character) return Boolean;
-   function Is_Hexa_Digit_Character (C : Standard.Character) return Boolean;
-   function Is_Identifier_Character (C : Standard.Character) return Boolean;
-   --  Identifier characters ar either alphabetic characters
-   --  or digits or '_'
-
-
+   ------------------------------------
+   --  The main method : next_token  --
+   ------------------------------------
 
    --  Advance the lexical analyse until a new token is found.
    --  An invalid token will make function TOKEN returns t_error.
@@ -209,6 +192,12 @@ package Tokens is
 
    --  Get the current token.
    function Token return Idl_Token;
+
+
+
+   -------------------------------------
+   --  methods useful for the parser  --
+   -------------------------------------
 
    --  Return the location of the current token.
    function Get_Location return Errors.Location;
@@ -221,29 +210,11 @@ package Tokens is
    --  string.
    function Get_Literal return String;
 
-   --  Make function TOKEN returns TOK at it next call, without performing
-   --  any other action.
-   --  The purpose is to handle some errors, such as '>>' instead of '> >'.
-   --  TOK cannot be t_error.
-   --  This procedure can stack only one token, ie, it must be called after
-   --  next_token.
-   procedure Set_Replacement_Token (Tok : Idl_Token);
-
-   --  checks whether s is an Idl keyword or not
-   --  the result can be Is_Keyword if it is,
-   --  Is_Identifier if it is not and Bad_Case if
-   --  it is one but with bad case
-   --  CORBA V2.3, 3.2.4 :
-   --  keywords must be written exactly as in the above list. Identifiers
-   --  that collide with keywords (...) are illegal.
-   procedure Is_Idl_Keyword (S : in String;
-                             Is_A_Keyword : out Idl_Keyword_State;
-                             Tok : out Idl_Token);
 
 
-   subtype Idl_Keywords is Idl_Token range T_Any .. T_Wstring;
-
-   function Idl_Compare (Left, Right : String) return Boolean;
+   -----------------------------
+   --  idl string processing  --
+   -----------------------------
 
    --  Compare two IDL identifiers.
    --  Returns Equal if they are equal (case sensitivity).
@@ -252,9 +223,31 @@ package Tokens is
    type Ident_Equality is (Differ, Case_Differ, Equal);
    function Idl_Identifier_Equal (Left, Right : String) return Ident_Equality;
 
-   --  Return the idl_token TOK as a string.
-   --  Format is "`keyword'", "`+'" (for symbols), "identifier `id'"
-   function Image (Tok : Idl_Token) return String;
+
+
+   -------------------------
+   --  Maybe useless ???  --
+   -------------------------
+
+--    --  Make function TOKEN returns TOK at it next call, without performing
+--    --  any other action.
+--    --  The purpose is to handle some errors, such as '>>' instead of '> >'.
+--    --  TOK cannot be t_error.
+--    --  This procedure can stack only one token, ie, it must be called after
+--    --  next_token.
+--    procedure Set_Replacement_Token (Tok : Idl_Token);
+
+
+
+--    subtype Idl_Keywords is Idl_Token range T_Any .. T_Wstring;
+
+--    function Idl_Compare (Left, Right : String) return Boolean;
+
+
+--    --  Return the idl_token TOK as a string.
+--    --  Format is "`keyword'", "`+'" (for symbols), "identifier `id'"
+--    function Image (Tok : Idl_Token) return String;
+
 end Tokens;
 
 

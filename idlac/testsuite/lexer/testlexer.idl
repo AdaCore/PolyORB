@@ -108,6 +108,10 @@ interface echo {
   const string " a
                    multiline 
                              string";
+  const wstring L"a string";
+  const wstring L"a more"" complicated"" one";
+  const wstring L"two" "strings";
+  const wstring L"very """ """complicated""";
 
   /* bad ones */
   const string "with a null octal char : \0";
@@ -117,4 +121,5 @@ interface echo {
   
   /* fatal one 
      const string "sans fin ... ; */
+  
 };

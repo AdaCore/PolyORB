@@ -263,22 +263,54 @@ package body Tokens is
    end Is_Identifier_Character;
 
 
-   ---------------------------------
-   --  more high level functions  --
-   ---------------------------------
+   -----------------------------
+   --  idl string processing  --
+   -----------------------------
 
-   --  forces the next token to be Tok.
-   --  used when there is a recoverable error to force the next token
-   procedure Set_Replacement_Token (Tok : Idl_Token) is
+   --  compares two idl identifiers. The result is either DIFFER, if they
+   --  are different identifiers, or CASE_DIFFER if it is the same identifier
+   --  but with a different case on some letters, or at last EQUAL if it is
+   --  the same word.
+   --
+   --  CORVA V2.3, 3.2.3
+   --  When comparing two identifiers to see if they collide :
+   --    - Upper- and lower-case letters are treated as the same letter. (...)
+   --    - all characters are significant
+   function Idl_Identifier_Equal (Left, Right : String)
+                                  return Ident_Equality is
+      use Gnat.Case_Util;
    begin
-      if Tok = T_Error or else Replacement_Token /= T_Error then
-         raise Errors.Internal_Error;
+      if Left'Length /= Right'Length then
+         return Differ;
       end if;
-      Replacement_Token := Tok;
-   end Set_Replacement_Token;
+      for I in Left'Range loop
+         if To_Lower (Left (I))
+           /= To_Lower (Right (Right'First + I - Left'First))
+         then
+            return Differ;
+         end if;
+      end loop;
+      if Left /= Right then
+         return Case_Differ;
+      else
+         return Equal;
+      end if;
+   end Idl_Identifier_Equal;
 
+   --  the three kinds of identifiers : keywords, true
+   --  identifiers or miscased keywords.
+   type Idl_Keyword_State is
+     (Is_Keyword, Is_Identifier, Bad_Case);
 
    --  checks whether s is an Idl keyword or not
+   --  the result can be Is_Keyword if it is,
+   --  Is_Identifier if it is not and Bad_Case if
+   --  it is one but with bad case
+   --
+   --  IDL Syntax and semantics, CORBA V2.3 § 3.2.4
+   --
+   --  keywords must be written exactly as in the above list. Identifiers
+   --  that collide with keywords (...) are illegal.
    procedure Is_Idl_Keyword (S : in String;
                              Is_A_Keyword : out Idl_Keyword_State;
                              Tok : out Idl_Token) is
@@ -306,6 +338,11 @@ package body Tokens is
       return;
    end Is_Idl_Keyword;
 
+
+   ----------------------------------------
+   --  scanners for chars, identifiers,  --
+   --    numeric and string literals     --
+   ----------------------------------------
 
    --  Called when the current character is a '.
    --  This procedure sets Current_Token and returns.
@@ -464,19 +501,141 @@ package body Tokens is
    end Scan_Char;
 
 
+   --  Called when the current character is a ".
+   --  This procedure sets Current_Token and returns.
+   --  The get_marked_text function returns then the
+   --  string literal
+   --
+   --  IDL Syntax and semantics, CORBA V2.3 § 3.2.5
+   --
+   --  String Literals : (3.2.5.1)
+   --  A string literal is a sequence of characters (...) surrounded
+   --  by double quotes, as in "...".
+   --
+   --  Adjacent string literals are concatenated.
+   --  (...)
+   --  Within a string, the double quote character " must be preceded
+   --  by a \.
+   --  A string literal may not contain the character '\0'.
+   procedure Scan_String is
+      Several_Lines : Boolean := False;
+   begin
+      Set_Mark;
+      loop
+         case Next_Char is
+            when Quotation =>
+               if View_Next_Char = Quotation then
+                  Skip_Char;
+               else
+                  Current_Token := T_Lit_String;
+                  return;
+               end if;
+            when '\' =>
+               case View_Next_Char is
+                  when LC_N | LC_T | LC_V | LC_B | LC_R
+                    | LC_F | LC_A | '\' | '?' | ''' | QUOTATION =>
+                     Skip_Char;
+                  when '0' =>
+                     if Is_Octal_Digit_Character
+                       (View_Next_Next_Char) then
+                        Skip_Char;
+                     else
+                        Go_To_End_Of_String;
+                        Errors.Lexer_Error
+                          ("A string literal may not contain"
+                           & " the character '\0'",
+                           Errors.Error);
+                        Current_Token := T_Error;
+                        return;
+                     end if;
+                  when '1' .. '7' =>
+                     Skip_Char;
+                  when LC_X =>
+                     if Is_Hexa_Digit_Character
+                       (View_Next_Next_Char) then
+                        Skip_Char;
+                     else
+                        Go_To_End_Of_String;
+                        Errors.Lexer_Error
+                          ("bad hexadecimal character in string",
+                           Errors.Error);
+                        Current_Token := T_Error;
+                        return;
+                     end if;
+                  when LC_U =>
+                     if Is_Hexa_Digit_Character
+                       (View_Next_Next_Char) then
+                        Skip_Char;
+                     else
+                        Go_To_End_Of_String;
+                        Errors.Lexer_Error
+                          ("bad unicode character in string",
+                           Errors.Error);
+                        Current_Token := T_Error;
+                        return;
+                     end if;
+                  when others =>
+                     Go_To_End_Of_String;
+                     Errors.Lexer_Error
+                       ("bad escape sequence in string",
+                        Errors.Error);
+                     Current_Token := T_Error;
+                     return;
+               end case;
+            when Lf =>
+               if Several_Lines = False then
+                  Errors.Lexer_Error
+                    ("This String goes over several lines",
+                     Errors.Warning);
+                  Several_Lines := True;
+               end if;
+            when others =>
+               null;
+         end case;
+      end loop;
+   exception
+      when Ada.Text_Io.End_Error =>
+         Errors.Lexer_Error ("unexpected end of file in the middle "
+                             & "of a string, you probably forgot the "
+                             & Quotation
+                             & " at the end of a string",
+                             Errors.Fatal);
+   end Scan_String;
+
+
    --  Called when the current character is a letter.
    --  This procedure sets TOKEN and returns.
    --  The get_marked_text function returns then the
    --  name of the identifier
+   --
+   --  IDL Syntax and semantics, CORBA V2.3, 3.2.5
+   --
+   --  Wide Chars : 3.5.2.2
+   --  Wide characters litterals have an L prefix, for example :
+   --      const wchar C1 = L'X';
+   --
+   --  Wide Strings : 3.5.2.4
+   --  Wide string literals have an L prefix, for example :
+   --      const wstring S1 = L"Hello";
+   --
+   --  Identifiers : 3.2.3
+   --  An identifier is an arbritrarily long sequence of ASCII
+   --  alphabetic, digit and underscore characters.  The first
+   --  character must be an ASCII alphabetic character. All
+   --  characters are significant.
+   --
+   --  Keywords : 3.2.4
+   --  keywords must be written exactly as in the above list. Identifiers
+   --  that collide with keywords (...) are illegal. For example,
+   --  "boolean" is a valid keyword, "Boolean" and "BOOLEAN" are
+   --  illegal identifiers.
    function Scan_Identifier return Idl_Token is
       Is_A_Keyword : Idl_Keyword_State;
       Tok : Idl_Token;
    begin
       Set_Mark;
-      --  CORBA V2.3, 3.2.5.2
-      --  Wide characters litterals have an L prefix, for example :
-      --      const wchar C1 = L'X';
-      if Get_Current_Char = 'L' and View_Next_Char = ''' then
+      if Get_Current_Char = 'L'
+        and View_Next_Char = ''' then
          Skip_Char;
          Scan_Char;
          case Current_Token is
@@ -495,22 +654,23 @@ package body Tokens is
             when others =>
                raise Errors.Internal_Error;
          end case;
+      elsif Get_Current_Char = 'L'
+        and View_Next_Char = Quotation then
+         Skip_Char;
+         Scan_String;
+         case Current_Token is
+            when T_Lit_String =>
+               return T_Lit_Wide_String;
+            when T_Error  =>
+               return T_Error;
+            when others =>
+               raise Errors.Internal_Error;
+         end case;
       else
-         --  CORBA V2.3, 3.2.3:
-         --  An identifier is an arbritrarily long sequence of ASCII
-         --  alphabetic, digit and underscore characters.  The first
-         --  character must be an ASCII alphabetic character. All
-         --  characters are significant.
          while Is_Identifier_Character (View_Next_Char)
          loop
             Skip_Char;
          end loop;
-         --  check if it is a reserved keyword or not :
-         --  CORBA V2.3, 3.2.4 :
-         --  keywords must be written exactly as in the above list. Identifiers
-         --  that collide with keywords (...) are illegal. For example,
-         --  "boolean" is a valid keyword, "Boolean" and "BOOLEAN" are
-         --  illegal identifiers.
          Is_Idl_Keyword (Get_Marked_Text,
                          Is_A_Keyword,
                          tok);
@@ -659,159 +819,9 @@ package body Tokens is
    end Scan_Underscore;
 
 
-   --  Called when the current character is a ".
-   --  This procedure sets Current_Token and returns.
-   --  The get_marked_text function returns then the
-   --  string literal
-   --
-   --  IDL Syntax and semantics, CORBA V2.3 § 3.2.5
-   --
-   --  String Literals : (3.2.5.1)
-   --  A string literal is a sequence of characters (...) surrounded
-   --  by double quotes, as in "...".
-   --
-   --  Adjacent string literals are concatenated.
-   --  (...)
-   --  Within a string, the double quote character " must be preceded
-   --  by a \.
-   --  A string literal may not contain the character '\0'.
-   procedure Scan_String is
-      Several_Lines : Boolean := False;
-   begin
-      Set_Mark;
-      loop
-         case Next_Char is
-            when Quotation =>
-               if View_Next_Char = Quotation then
-                  Skip_Char;
-               else
-                  Current_Token := T_Lit_String;
-                  return;
-               end if;
-            when '\' =>
-               case View_Next_Char is
-                  when LC_N | LC_T | LC_V | LC_B | LC_R
-                    | LC_F | LC_A | '\' | '?' | ''' | QUOTATION =>
-                     Skip_Char;
-                  when '0' =>
-                     if Is_Octal_Digit_Character
-                       (View_Next_Next_Char) then
-                        Skip_Char;
-                     else
-                        Go_To_End_Of_String;
-                        Errors.Lexer_Error
-                          ("A string literal may not contain"
-                           & " the character '\0'",
-                           Errors.Error);
-                        Current_Token := T_Error;
-                        return;
-                     end if;
-                  when '1' .. '7' =>
-                     Skip_Char;
-                  when LC_X =>
-                     if Is_Hexa_Digit_Character
-                       (View_Next_Next_Char) then
-                        Skip_Char;
-                     else
-                        Go_To_End_Of_String;
-                        Errors.Lexer_Error
-                          ("bad hexadecimal character in string",
-                           Errors.Error);
-                        Current_Token := T_Error;
-                        return;
-                     end if;
-                  when LC_U =>
-                     if Is_Hexa_Digit_Character
-                       (View_Next_Next_Char) then
-                        Skip_Char;
-                     else
-                        Go_To_End_Of_String;
-                        Errors.Lexer_Error
-                          ("bad unicode character in string",
-                           Errors.Error);
-                        Current_Token := T_Error;
-                        return;
-                     end if;
-                  when others =>
-                     Go_To_End_Of_String;
-                     Errors.Lexer_Error
-                       ("bad escape sequence in string",
-                        Errors.Error);
-                     Current_Token := T_Error;
-                     return;
-               end case;
-            when Lf =>
-               if Several_Lines = False then
-                  Errors.Lexer_Error
-                    ("This String goes over several lines",
-                     Errors.Warning);
-                  Several_Lines := True;
-               end if;
-            when others =>
-               null;
-         end case;
-      end loop;
-   exception
-      when Ada.Text_Io.End_Error =>
-         Errors.Lexer_Error ("unexpected end of file in the middle "
-                             & "of a string, you probably forgot the "
-                             & Quotation
-                             & " at the end of a string",
-                             Errors.Fatal);
-   end Scan_String;
-
-
-
-   procedure Scan_Preprocessor is
-   begin
-      if Get_Current_Char /= '#' then
-         raise Errors.Internal_Error;
-      end if;
-      Skip_Spaces;
-      case View_Next_Char is
-         when 'A' .. 'Z' | 'a' .. 'z' =>
-            --  This is a preprocessor directive
-            Skip_Char;
-            Set_Mark;
-            while View_Next_Char in 'a' .. 'z'
-              or else View_Next_Char in 'A' .. 'Z'
-              or else View_Next_Char = '_'
-            loop
-               Skip_Char;
-            end loop;
-            if Get_Marked_Text = "define"
-              or else Get_Marked_Text = "if"
-              or else Get_Marked_Text = "ifdef"
-              or else Get_Marked_Text = "ifndef"
-              or else Get_Marked_Text = "undef"
-              or else Get_Marked_Text = "include"
-              or else Get_Marked_Text = "assert"
-            then
-               Errors.Lexer_Error
-                 ("cannot handle preprocessor directive, use -p",
-                  Errors.Error);
-            elsif Get_Marked_Text = "pragma" then
-               --  Currently ignored.
-               --  FIXME
-               Skip_Line;
-            else
-               Errors.Lexer_Error
-                 ("unknow preprocessor directive.  -p can help",
-                  Errors.Error);
-            end if;
-         when '0' .. '9' =>
-            --  This is line directive
-            --  Skip it.
-            --  FIXME.
-            Skip_Line;
-         when Lf =>
-            --  This is an end of line.
-            null;
-         when others =>
-            Errors.Lexer_Error ("bad preprocessor line",
-                                  Errors.Error);
-      end case;
-   end Scan_Preprocessor;
+   ------------------------------------
+   --  The main method : next_token  --
+   ------------------------------------
 
    --  Gets the next token and puts it in current_token
    procedure Next_Token is
@@ -828,37 +838,15 @@ package body Tokens is
             when Ht =>
                Refresh_Offset;
                Token_Col := Col + Col_offset;
-            when Exclamation =>
-               --  invalid character.
-               Current_Token := T_Error;
+            when ';' =>
+               Current_Token := T_Semi_Colon;
                return;
-            when '(' =>
-               Current_Token := T_Left_Paren;
+            when '{' =>
+               Current_Token := T_Left_Cbracket;
                return;
-            when ')' =>
-               Current_Token := T_Right_Paren;
+            when '}' =>
+               Current_Token := T_Right_Cbracket;
                return;
-            when '*' =>
-               Current_Token := T_Star;
-               return;
-            when '+' =>
-               Current_Token := T_Plus;
-               return;
-            when '#' =>
-               Scan_Preprocessor;
-               Skip_Line;
-            when '/' =>
-               if View_Next_Char = '/' then
-                  --  This is a line comment.
-                  Skip_Line;
-               elsif View_Next_Char = '*' then
-                  --  This is the beginning of a comment
-                  Skip_Char;
-                  Skip_Comment;
-               else
-                  Current_Token := T_Slash;
-                  return;
-               end if;
             when ':' =>
                if view_next_char = ':' then
                   Skip_Char;
@@ -867,8 +855,26 @@ package body Tokens is
                   Current_Token := T_Colon;
                end if;
                return;
-            when ';' =>
-               Current_Token := T_Semi_Colon;
+            when ',' =>
+               Current_Token := T_Comma;
+               return;
+            when '(' =>
+               Current_Token := T_Left_Paren;
+               return;
+            when ')' =>
+               Current_Token := T_Right_Paren;
+               return;
+            when '=' =>
+               Current_Token := T_Equal;
+               return;
+            when '|' =>
+               Current_Token := T_Bar;
+               return;
+            when '^' =>
+               Current_Token := T_Circumflex;
+               return;
+            when '&' =>
+               Current_Token := T_Ampersand;
                return;
             when '<' =>
                if View_Next_Char = '<' then
@@ -886,11 +892,38 @@ package body Tokens is
                   Current_Token := T_Greater;
                end if;
                return;
-            when ',' =>
-               Current_Token := T_Comma;
+            when '+' =>
+               Current_Token := T_Plus;
                return;
-            when '=' =>
-               Current_Token := T_Equal;
+            when '-' =>
+               Current_Token := T_Minus;
+               return;
+            when '*' =>
+               Current_Token := T_Star;
+               return;
+            when '/' =>
+               if View_Next_Char = '/' then
+                  --  This is a line comment.
+                  Skip_Line;
+               elsif View_Next_Char = '*' then
+                  --  This is the beginning of a comment
+                  Skip_Char;
+                  Skip_Comment;
+               else
+                  Current_Token := T_Slash;
+                  return;
+               end if;
+            when '%' =>
+               Current_Token := T_Percent;
+               return;
+            when '~' =>
+               Current_Token := T_Tilde;
+               return;
+            when '[' =>
+               Current_Token := T_Left_Sbracket;
+               return;
+            when ']' =>
+               Current_Token := T_Right_Sbracket;
                return;
             when '0' .. '9' =>
                Scan_Numeric;
@@ -908,20 +941,7 @@ package body Tokens is
               | LC_O_Oblique_Stroke .. LC_U_Diaeresis
               | LC_German_Sharp_S
               | LC_Y_Diaeresis =>
-               --  Keyword or identifier.
                Current_Token := Scan_Identifier;
-               return;
-            when '[' =>
-               Current_Token := T_Left_Sbracket;
-               return;
-            when ']' =>
-               Current_Token := T_Right_Sbracket;
-               return;
-            when '{' =>
-               Current_Token := T_Left_Cbracket;
-               return;
-            when '}' =>
-               Current_Token := T_Right_Cbracket;
                return;
             when '_' =>
                Scan_Underscore;
@@ -934,12 +954,14 @@ package body Tokens is
                return;
             when others =>
                if Get_Current_Char >= ' ' then
-                  Errors.Lexer_Error ("bad character `" & Line (Col) & "'",
-                                        Errors.Error);
+                  Errors.Lexer_Error ("Invalid character '"
+                                      & Get_Current_Char
+                                      & "'",
+                                      Errors.Error);
                else
                   Errors.Lexer_Error
-                    ("bad character "
-                     & Natural'Image (Character'Pos (Line (Col))),
+                    ("Invalid character, ASCII code "
+                     & Natural'Image (Character'Pos (Get_Current_Char)),
                      Errors.Error);
                end if;
                Current_Token := T_Error;
@@ -957,6 +979,11 @@ package body Tokens is
    begin
       return Current_Token;
    end Token;
+
+
+   -------------------------------------
+   --  methods useful for the parser  --
+   -------------------------------------
 
    --  returns the current location
    function Get_Location return Errors.Location is
@@ -1000,67 +1027,104 @@ package body Tokens is
       end case;
    end Get_Literal;
 
-   --  returns an image of the current identifier
-   function Image (Tok : Idl_Token) return String is
-   begin
-      case Tok is
-         when T_Identifier =>
-            if Tok = Token then
-               return "identifier `" & Get_Identifier & ''';
-            else
-               return "identifier";
-            end if;
-         when others =>
-            return '`' & Idl_Token'Image (Token) & ''';
-      end case;
-   end Image;
 
-   --  compares two idl words
-   function Idl_Compare (Left, Right : String) return Boolean is
-      use Gnat.Case_Util;
-   begin
-      if Left'Length /= Right'Length then
-         return False;
-      end if;
-      for I in Left'Range loop
-         if To_Lower (Left (I))
-           /= To_Lower (Right (Right'First + I - Left'First))
-         then
-            return False;
-         end if;
-      end loop;
-      return True;
-   end Idl_Compare;
+   -------------------------
+   --  Maybe useless ???  --
+   -------------------------
 
-   --  compares two idl identifiers. The result is either DIFFER, if they
-   --  are different identifiers, or CASE_DIFFER if it is the same identifier
-   --  but with a different case on some letters, or at last EQUAL if it is
-   --  the same word.
-   --
-   --  CORVA V2.3, 3.2.3
-   --  When comparing two identifiers to see if they collide :
-   --    - Upper- and lower-case letters are treated as the same letter. (...)
-   --    - all characters are significant
-   function Idl_Identifier_Equal (Left, Right : String)
-                                  return Ident_Equality is
-      use Gnat.Case_Util;
-   begin
-      if Left'Length /= Right'Length then
-         return Differ;
-      end if;
-      for I in Left'Range loop
-         if To_Lower (Left (I))
-           /= To_Lower (Right (Right'First + I - Left'First))
-         then
-            return Differ;
-         end if;
-      end loop;
-      if Left /= Right then
-         return Case_Differ;
-      else
-         return Equal;
-      end if;
-   end Idl_Identifier_Equal;
+--    --  compares two idl words
+--    function Idl_Compare (Left, Right : String) return Boolean is
+--       use Gnat.Case_Util;
+--    begin
+--       if Left'Length /= Right'Length then
+--          return False;
+--       end if;
+--       for I in Left'Range loop
+--          if To_Lower (Left (I))
+--            /= To_Lower (Right (Right'First + I - Left'First))
+--          then
+--             return False;
+--          end if;
+--       end loop;
+--       return True;
+--    end Idl_Compare;
+
+--    --  returns an image of the current identifier
+--    function Image (Tok : Idl_Token) return String is
+--    begin
+--       case Tok is
+--          when T_Identifier =>
+--             if Tok = Token then
+--                return "identifier `" & Get_Identifier & ''';
+--             else
+--                return "identifier";
+--             end if;
+--          when others =>
+--             return '`' & Idl_Token'Image (Token) & ''';
+--       end case;
+--    end Image;
+
+--    --  forces the next token to be Tok.
+--    --  used when there is a recoverable error to force the next token
+--    procedure Set_Replacement_Token (Tok : Idl_Token) is
+--    begin
+--       if Tok = T_Error or else Replacement_Token /= T_Error then
+--          raise Errors.Internal_Error;
+--       end if;
+--       Replacement_Token := Tok;
+--    end Set_Replacement_Token;
+--
+--    --  Preprocessing, not really implemented
+--    procedure Scan_Preprocessor is
+--    begin
+--       if Get_Current_Char /= '#' then
+--          raise Errors.Internal_Error;
+--       end if;
+--       Skip_Spaces;
+--       case View_Next_Char is
+--          when 'A' .. 'Z' | 'a' .. 'z' =>
+--             --  This is a preprocessor directive
+--             Skip_Char;
+--             Set_Mark;
+--             while View_Next_Char in 'a' .. 'z'
+--               or else View_Next_Char in 'A' .. 'Z'
+--               or else View_Next_Char = '_'
+--             loop
+--                Skip_Char;
+--             end loop;
+--             if Get_Marked_Text = "define"
+--               or else Get_Marked_Text = "if"
+--               or else Get_Marked_Text = "ifdef"
+--               or else Get_Marked_Text = "ifndef"
+--               or else Get_Marked_Text = "undef"
+--               or else Get_Marked_Text = "include"
+--               or else Get_Marked_Text = "assert"
+--             then
+--                Errors.Lexer_Error
+--                  ("cannot handle preprocessor directive, use -p",
+--                   Errors.Error);
+--             elsif Get_Marked_Text = "pragma" then
+--                --  Currently ignored.
+--                --  FIXME
+--                Skip_Line;
+--             else
+--                Errors.Lexer_Error
+--                  ("unknow preprocessor directive.  -p can help",
+--                   Errors.Error);
+--             end if;
+--          when '0' .. '9' =>
+--             --  This is line directive
+--             --  Skip it.
+--             --  FIXME.
+--             Skip_Line;
+--          when Lf =>
+--             --  This is an end of line.
+--             null;
+--          when others =>
+--             Errors.Lexer_Error ("bad preprocessor line",
+--                                   Errors.Error);
+--       end case;
+--    end Scan_Preprocessor;
 
 end Tokens;
 
