@@ -41,7 +41,7 @@ package body CORBA.Object.Helper is
    function To_Any (Item : in CORBA.Object.Ref) return Any is
       Result : Any;
    begin
-      Set_Value (Result, new Content_ObjRef' (Value => Item));
+      Set_Value (Result, new Content_ObjRef' (Value => new Ref' (Item)));
       Set_Type (Result, TC_Object);
       Inc_Usage (Result);
       return Result;
@@ -55,7 +55,7 @@ package body CORBA.Object.Helper is
       if (TypeCode.Kind (Get_Type (Item)) /= Tk_Objref) then
          raise Bad_TypeCode;
       end if;
-      return Content_ObjRef_Ptr (Get_Value (Item)).Value;
+      return Content_ObjRef_Ptr (Get_Value (Item)).Value.all;
    end From_Any;
 
    ---------------------
@@ -70,9 +70,10 @@ package body CORBA.Object.Helper is
       end if;
       Any_Value.Any_Lock.Lock_W;
       if Any_Value.The_Value.all /= Null_Content_Ptr then
-         Content_ObjRef_Ptr (Any_Value.The_Value.all).Value := Value;
+         Content_ObjRef_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
-         Any_Value.The_Value.all := new Content_ObjRef'(Value => Value);
+         Any_Value.The_Value.all := new Content_ObjRef'
+           (Value => new Ref '(Value));
       end if;
       Any_Value.Any_Lock.Unlock_W;
    end Set_Any_Value;

@@ -1154,7 +1154,6 @@ begin
          Pass : Boolean := True;
       begin
          for I in Test_Unions'Range loop
-            Ada.Text_IO.Put_Line ("@@1 I = " & I'Img);
             Pass := Pass and then echoUnionEnumSwitch (Myall_types, Test_Unions (I))
               = Test_Unions (I);
             exit when not Pass;

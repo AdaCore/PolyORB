@@ -55,6 +55,7 @@ package CORBA.Object is
 
    --  CORBA 2.3
    type Ref is new CORBA.AbstractBase.Ref with private;
+   type Ref_Ptr is access all Ref;
 
    function Object_To_String (Obj : Ref) return CORBA.String;
    --  Returns the IOR corresponding to this object it is called by
@@ -104,6 +105,7 @@ package CORBA.Object is
 private
 
    type Ref is new CORBA.AbstractBase.Ref with null record;
+   procedure Deallocate is new Ada.Unchecked_Deallocation (Ref, Ref_Ptr);
 
    -----------
    --  Any  --
@@ -111,13 +113,11 @@ private
 
    type Content_ObjRef is new Content with
       record
-         Value : Ref;
+         Value : Ref_Ptr;
       end record;
-
    type Content_ObjRef_Ptr is access all Content_ObjRef;
-
-   function Duplicate
-     (Object : access Content_ObjRef)
+   procedure Deallocate (Object : access Content_ObjRef);
+   function Duplicate (Object : access Content_ObjRef)
      return Any_Content_Ptr;
 
    Nil_Ref : constant Ref

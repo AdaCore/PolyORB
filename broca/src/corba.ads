@@ -67,6 +67,57 @@ package CORBA is
    type    Wide_String        is
      new Ada.Strings.Wide_Unbounded.Unbounded_Wide_String;
 
+   --  here are the type definitions for pointers on the previous types
+
+   type    Short_Ptr              is access all Short;
+   type    Long_Ptr               is access all Long;
+   type    Long_Long_Ptr          is access all Long_Long;
+   type    Unsigned_Short_Ptr     is access all Unsigned_Short;
+   type    Unsigned_Long_Ptr      is access all Unsigned_Long;
+   type    Unsigned_Long_Long_Ptr is access all Unsigned_Long_Long;
+   type    Float_Ptr              is access all Float;
+   type    Double_Ptr             is access all Double;
+   type    Long_Double_Ptr        is access all Long_Double;
+   type    Char_Ptr               is access all Char;
+   type    Wchar_Ptr              is access all Wchar;
+   type    Octet_Ptr              is access all Octet;
+   type    Boolean_Ptr            is access all Boolean;
+   type    String_Ptr             is access all String;
+   type    Wide_String_Ptr        is access all Wide_String;
+
+   --  and the deallocation method for each pointer type
+
+   procedure Deallocate is new Ada.Unchecked_Deallocation
+     (Short, Short_Ptr);
+   procedure Deallocate is new Ada.Unchecked_Deallocation
+     (Long, Long_Ptr);
+   procedure Deallocate is new Ada.Unchecked_Deallocation
+     (Long_Long, Long_Long_Ptr);
+   procedure Deallocate is new Ada.Unchecked_Deallocation
+     (Unsigned_Short, Unsigned_Short_Ptr);
+   procedure Deallocate is new Ada.Unchecked_Deallocation
+     (Unsigned_Long, Unsigned_Long_Ptr);
+   procedure Deallocate is new Ada.Unchecked_Deallocation
+     (Unsigned_Long_Long, Unsigned_Long_Long_Ptr);
+   procedure Deallocate is new Ada.Unchecked_Deallocation
+     (Float, Float_Ptr);
+   procedure Deallocate is new Ada.Unchecked_Deallocation
+     (Double, Double_Ptr);
+   procedure Deallocate is new Ada.Unchecked_Deallocation
+     (Long_Double, Long_Double_Ptr);
+   procedure Deallocate is new Ada.Unchecked_Deallocation
+     (Char, Char_Ptr);
+   procedure Deallocate is new Ada.Unchecked_Deallocation
+     (Wchar, Wchar_Ptr);
+   procedure Deallocate is new Ada.Unchecked_Deallocation
+     (Octet, Octet_Ptr);
+   procedure Deallocate is new Ada.Unchecked_Deallocation
+     (Boolean, Boolean_Ptr);
+   procedure Deallocate is new Ada.Unchecked_Deallocation
+     (String, String_Ptr);
+   procedure Deallocate is new Ada.Unchecked_Deallocation
+     (Wide_String, Wide_String_Ptr);
+
    ---------------------------------
    -- String conversion functions --
    ---------------------------------
@@ -295,6 +346,7 @@ package CORBA is
    -----------
 
    type Any is private;
+   type Any_Ptr is access all Any;
    --  The end of this part is after the typecode part;
 
 
@@ -355,6 +407,7 @@ package CORBA is
       --  Spec  --
       ------------
       type Object is private;
+      type Object_Ptr is access all Object;
 
       Bounds : exception;
       type Bounds_Members is new CORBA.IDL_Exception_Members with null record;
@@ -570,7 +623,7 @@ package CORBA is
 
    private
       --       --  implementation defined
-      --       Out_Of_Bounds_Index : exception;
+      --       Out_Of_Bounds_Index : exception;  --  FIXME : remove it ?
 
       --  list of parameters (which are some any)
       type Cell;
@@ -586,6 +639,7 @@ package CORBA is
             Kind : CORBA.TCKind := Tk_Void;
             Parameters : Cell_Ptr := null;
          end record;
+
       --  here is the way the typecodes are coded :
       --    for null, void, short, long, long_long,
       --  unsigned_short, unsigned_long, unsigned_long_long, float,
@@ -898,8 +952,8 @@ private
    --   one field for the value
    --
    --  To be able to carry values of different types, the second
-   --  field is an Any_Content_Ptr which is an access to any type
-   --  deriving from Content. Every basic types Foo that can be carried
+   --  field is an Any_Content_Ptr_Ptr which is an access to an access to any
+   --  type deriving from Content. Every basic types Foo that can be carried
    --  into an Any should be associated to a child of Content (Content_Foo)
    --  which contains a field of the Foo type.
    --  For complex types (with several values, like structures, arrays...),
@@ -911,12 +965,12 @@ private
    type Content is abstract tagged null record;
    type Any_Content_Ptr is access all Content'Class;
    Null_Content_Ptr : constant Any_Content_Ptr := null;
-   type Any_Content_Ptr_Ptr is access Any_Content_Ptr;
+   type Any_Content_Ptr_Ptr is access all Any_Content_Ptr;
    Null_Content_Ptr_Ptr : constant Any_Content_Ptr_Ptr := null;
 
    --  This function duplicates its argument and give back
    --  a deep copy of it.
-   --  It is actually overridden fro every subtype of Content
+   --  It is actually overridden for every subtype of Content
    function Duplicate (Object : access Content)
                        return Any_Content_Ptr;
 
@@ -934,139 +988,164 @@ private
 
    type Content_Octet is new Content with
       record
-         Value : CORBA.Octet;
+         Value : CORBA.Octet_Ptr;
       end record;
    type Content_Octet_Ptr is access all Content_Octet;
+   procedure Deallocate (Object : access Content_Octet);
    function Duplicate (Object : access Content_Octet)
                        return Any_Content_Ptr;
 
    type Content_Short is new Content with
       record
-         Value : CORBA.Short;
+         Value : CORBA.Short_Ptr;
       end record;
    type Content_Short_Ptr is access all Content_Short;
+   procedure Deallocate (Object : access Content_Short);
    function Duplicate (Object : access Content_Short)
                        return Any_Content_Ptr;
 
    type Content_Long is new Content with
       record
-         Value : CORBA.Long;
+         Value : CORBA.Long_Ptr;
       end record;
    type Content_Long_Ptr is access all Content_Long;
+   procedure Deallocate (Object : access Content_Long);
    function Duplicate (Object : access Content_Long)
                        return Any_Content_Ptr;
 
    type Content_Long_Long is new Content with
       record
-         Value : CORBA.Long_Long;
+         Value : CORBA.Long_Long_Ptr;
       end record;
    type Content_Long_Long_Ptr is access all Content_Long_Long;
+   procedure Deallocate (Object : access Content_Long_Long);
    function Duplicate (Object : access Content_Long_Long)
                        return Any_Content_Ptr;
 
    type Content_UShort is new Content with
       record
-         Value : CORBA.Unsigned_Short;
+         Value : CORBA.Unsigned_Short_Ptr;
       end record;
    type Content_UShort_Ptr is access all Content_UShort;
+   procedure Deallocate (Object : access Content_UShort);
    function Duplicate (Object : access Content_UShort)
                        return Any_Content_Ptr;
 
    type Content_ULong is new Content with
       record
-         Value : CORBA.Unsigned_Long;
+         Value : CORBA.Unsigned_Long_Ptr;
       end record;
    type Content_ULong_Ptr is access all Content_ULong;
+   procedure Deallocate (Object : access Content_ULong);
    function Duplicate (Object : access Content_ULong)
                        return Any_Content_Ptr;
 
    type Content_ULong_Long is new Content with
       record
-         Value : CORBA.Unsigned_Long_Long;
+         Value : CORBA.Unsigned_Long_Long_Ptr;
       end record;
    type Content_ULong_Long_Ptr is access all Content_ULong_Long;
+   procedure Deallocate (Object : access Content_ULong_Long);
    function Duplicate (Object : access Content_ULong_Long)
                        return Any_Content_Ptr;
 
    type Content_Boolean is new Content with
       record
-         Value : CORBA.Boolean;
+         Value : CORBA.Boolean_Ptr;
       end record;
    type Content_Boolean_Ptr is access all Content_Boolean;
+   procedure Deallocate (Object : access Content_Boolean);
    function Duplicate (Object : access Content_Boolean)
                        return Any_Content_Ptr;
 
    type Content_Char is new Content with
       record
-         Value : CORBA.Char;
+         Value : CORBA.Char_Ptr;
       end record;
    type Content_Char_Ptr is access all Content_Char;
+   procedure Deallocate (Object : access Content_Char);
    function Duplicate (Object : access Content_Char)
                        return Any_Content_Ptr;
 
    type Content_Wchar is new Content with
       record
-         Value : CORBA.Wchar;
+         Value : CORBA.Wchar_Ptr;
       end record;
    type Content_Wchar_Ptr is access all Content_Wchar;
+   procedure Deallocate (Object : access Content_Wchar);
    function Duplicate (Object : access Content_Wchar)
                        return Any_Content_Ptr;
 
    type Content_String is new Content with
       record
-         Value : CORBA.String;
+         Value : CORBA.String_Ptr;
       end record;
    type Content_String_Ptr is access all Content_String;
+   procedure Deallocate (Object : access Content_String);
    function Duplicate (Object : access Content_String)
                        return Any_Content_Ptr;
 
    type Content_Wide_String is new Content with
       record
-         Value : CORBA.Wide_String;
+         Value : CORBA.Wide_String_Ptr;
       end record;
    type Content_Wide_String_Ptr is access all Content_Wide_String;
+   procedure Deallocate (Object : access Content_Wide_String);
    function Duplicate (Object : access Content_Wide_String)
                        return Any_Content_Ptr;
 
    type Content_Float is new Content with
       record
-         Value : CORBA.Float;
+         Value : CORBA.Float_Ptr;
       end record;
    type Content_Float_Ptr is access all Content_Float;
+   procedure Deallocate (Object : access Content_Float);
    function Duplicate (Object : access Content_Float)
                        return Any_Content_Ptr;
 
    type Content_Double is new Content with
       record
-         Value : CORBA.Double;
+         Value : CORBA.Double_Ptr;
       end record;
    type Content_Double_Ptr is access all Content_Double;
+   procedure Deallocate (Object : access Content_Double);
    function Duplicate (Object : access Content_Double)
                        return Any_Content_Ptr;
 
    type Content_Long_Double is new Content with
       record
-         Value : CORBA.Long_Double;
+         Value : CORBA.Long_Double_Ptr;
       end record;
    type Content_Long_Double_Ptr is access all Content_Long_Double;
+   procedure Deallocate (Object : access Content_Long_Double);
    function Duplicate (Object : access Content_Long_Double)
                        return Any_Content_Ptr;
 
    type Content_TypeCode is new Content with
       record
-         Value : CORBA.TypeCode.Object;
+         Value : CORBA.TypeCode.Object_Ptr;
       end record;
    type Content_TypeCode_Ptr is access all Content_TypeCode;
+   procedure Deallocate (Object : access Content_TypeCode);
    function Duplicate (Object : access Content_TypeCode)
                        return Any_Content_Ptr;
 
    type Content_Any is new Content with
       record
-         Value : CORBA.Any;
+         Value : CORBA.Any_Ptr;
       end record;
    type Content_Any_Ptr is access all Content_Any;
+   procedure Deallocate (Object : access Content_Any);
    function Duplicate (Object : access Content_Any)
                        return Any_Content_Ptr;
+
+   --  the content_TypeCode type is defined inside the TypeCode package
+   --  However, the corresponding deallocate function is here
+   --  This is due to the fact that the TypeCode.Object type is private
+   --  in package TypeCode which implies that Deallocate sould be private
+   --  too if it were declared there.
+   procedure Deallocate is new Ada.Unchecked_Deallocation
+     (TypeCode.Object, TypeCode.Object_Ptr);
 
    --  a list of any
    type Content_Cell;
@@ -1106,7 +1185,7 @@ private
    type Content_Aggregate_Ptr is access all Content_Aggregate;
    function Duplicate (Object : access Content_Aggregate)
                        return Any_Content_Ptr;
-   procedure Deallocate (Object : in out Content_Aggregate_Ptr);
+   procedure Deallocate (Object : access Content_Aggregate);
 
    type Natural_Ptr is access Natural;
    procedure Deallocate is new Ada.Unchecked_Deallocation
@@ -1119,8 +1198,9 @@ private
 
    --  The actual Any type
    --  The first two fields are clear, the third one tells whether
-   --  the Any has a semantic of reference or of value and the last
-   --  one counts the number of references on the field The_Value.
+   --  the Any has a semantic of reference or of value, the fourth
+   --  one counts the number of references on the field The_Value
+   --  and the last one is a lock to manage thread safe features.
    type Any is new Ada.Finalization.Controlled with record
       The_Value : Any_Content_Ptr_Ptr;
       The_Type  : CORBA.TypeCode.Object;
@@ -1148,6 +1228,9 @@ private
    --  And the management of the counter
    procedure Inc_Usage (Obj : in Any);
    procedure Dec_Usage (Obj : in out Any);
+
+   --  deallocation of Any pointers
+   procedure Deallocate is new Ada.Unchecked_Deallocation (Any, Any_Ptr);
 
    ------------------
    --  Named_Value --
