@@ -1,4 +1,27 @@
-2004-08-04  souli  <souli@neraka.enst.fr>
+2004-08-06  Saber Souli  <souli@neraka.enst.fr>
+
+	* backend-be_ada-generator.adb: Add '.All' to Designators
+	representing an explicit_dereference. 
+
+	* backend-be_ada-runtime.adb: Add casing rules. 
+
+	* backend-be_ada-runtime.ads: Add runtimes entities used in skels
+	body. 
+
+	* backend-be_ada.adb: Call the skels bodies generation. 
+
+	* backend-be_ada-nutils.ad[b,s]: Modify signature of
+	Make_If_Statement, to add an Elsif_Statements list. 
+
+	* backend-be_ada-nodes.idl: Add Elsif_Statement node. Add Is_All
+	to Designator, when Is_All is true it stand's for Designator.All
+	(explicit_dereference).  
+	
+	* backend-be_ada-skels.adb: Generate common part of invoke
+	subprogram.
+	
+
+2004-08-04  Saber Souli  <souli@neraka.enst.fr>
 
 	* backend-be_ada-nutils.ad[b,s]: Replace Op_Or_Then by Op_Or_Else in
 	Operator_Type (mistake).  
@@ -17,7 +40,7 @@
 
 	* backend-be_ada-runtime.ads: Alphabetic order.
 
-2004-08-04  souli  <souli@neraka.enst.fr>
+2004-08-04  Saber Souli  <souli@neraka.enst.fr>
 
 	* backend-be_ada-helpers.adb: Consider the modification in
 	backend-be_ada-runtime.ads. 

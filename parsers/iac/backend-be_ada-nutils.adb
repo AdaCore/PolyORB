@@ -655,7 +655,8 @@ package body Backend.BE_Ada.Nutils is
 
    function Make_Designator
      (Designator : Name_Id;
-      Parent     : Name_Id := No_Name)
+      Parent     : Name_Id := No_Name;
+      Is_All     : Boolean := False)
      return Node_Id
    is
       N : Node_Id;
@@ -663,6 +664,7 @@ package body Backend.BE_Ada.Nutils is
    begin
       N := New_Node (K_Designator);
       Set_Defining_Identifier (N, Make_Defining_Identifier (Designator));
+      Set_Is_All (N, Is_All);
 
       if Parent /= No_Name then
          P := New_Node (K_Designator);
@@ -774,9 +776,10 @@ package body Backend.BE_Ada.Nutils is
    -----------------------
 
    function Make_If_Statement
-     (Condition : Node_Id;
-      Then_Statements : List_Id;
-      Else_Statements : List_Id)
+     (Condition        : Node_Id;
+      Then_Statements  : List_Id;
+      Elsif_Statements : List_Id := No_List;
+      Else_Statements  : List_Id := No_List)
      return Node_Id
    is
       N : Node_Id;
@@ -784,6 +787,7 @@ package body Backend.BE_Ada.Nutils is
       N := New_Node (K_If_Statement);
       Set_Condition (N, Condition);
       Set_Then_Statements (N, Then_Statements);
+      Set_Elsif_Statements (N, Elsif_Statements);
       Set_Else_Statements (N, Else_Statements);
       return N;
    end Make_If_Statement;

@@ -171,7 +171,8 @@ package Backend.BE_Ada.Nutils is
       P_Operation,
       P_Arg_List,
       P_Req,
-      P_Exception_Info);
+      P_Exception_Info,
+      P_Request);
 
    PN : array (Parameter_Id) of Name_Id;
 
@@ -187,6 +188,7 @@ package Backend.BE_Ada.Nutils is
       V_Members,
       V_Name,
       V_Operation_Name,
+      V_Operation,
       V_Request,
       V_Result,
       V_Result_Name,
@@ -204,7 +206,8 @@ package Backend.BE_Ada.Nutils is
       S_From_Any,
       S_To_Any,
       S_Set,
-      S_Is_A);
+      S_Is_A,
+      S_Invoke);
 
    SN : array (Subprogram_Id) of Name_Id;
 
@@ -330,7 +333,8 @@ package Backend.BE_Ada.Nutils is
 
    function Make_Designator
      (Designator : Name_Id;
-      Parent     : Name_Id := No_Name)
+      Parent     : Name_Id := No_Name;
+      Is_All     : Boolean := False)
      return Node_Id;
 
    function Make_Enumeration_Type_Definition
@@ -361,9 +365,10 @@ package Backend.BE_Ada.Nutils is
      return Node_Id;
 
    function Make_If_Statement
-     (Condition : Node_Id;
-      Then_Statements : List_Id;
-      Else_Statements : List_Id)
+     (Condition        : Node_Id;
+      Then_Statements  : List_Id;
+      Elsif_Statements : List_Id := No_List;
+      Else_Statements  : List_Id := No_List)
      return Node_Id;
 
    function Make_List_Id

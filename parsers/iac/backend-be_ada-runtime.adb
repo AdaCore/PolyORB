@@ -82,13 +82,15 @@ package body Backend.BE_Ada.Runtime is
 
    begin
       Register_Casing_Rule ("AbstractBase");
-      Register_Casing_Rule ("CORBA");
       Register_Casing_Rule ("ARG_INOUT");
       Register_Casing_Rule ("ARG_IN");
       Register_Casing_Rule ("ARG_OUT");
+      Register_Casing_Rule ("CORBA");
       Register_Casing_Rule ("NamedValue");
       Register_Casing_Rule ("NVList");
       Register_Casing_Rule ("PolyORB");
+      Register_Casing_Rule ("PortableServer");
+      Register_Casing_Rule ("ServerRequest");
       Register_Casing_Rule ("TC_");
       Register_Casing_Rule ("TypeCode");
 

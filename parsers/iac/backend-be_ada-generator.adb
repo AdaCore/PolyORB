@@ -379,6 +379,11 @@ package body Backend.BE_Ada.Generator is
       end if;
 
       Write_Name (Name (Defining_Identifier (N)));
+
+      if Is_All (N) then
+         Write (Tok_Dot);
+         Write (Tok_All);
+      end if;
    end Generate_Designator;
 
    ------------------------------------------

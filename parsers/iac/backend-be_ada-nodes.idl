@@ -36,10 +36,10 @@ module Backend::BE_Ada::Nodes {
   };
 
   interface Designator : Node_Id {
+    boolean    Is_All;
     Node_Id    Defining_Identifier;
     Node_Id    Parent_Unit_Name;
   };
-
 
   /*****************/
   /* Package nodes */
@@ -150,10 +150,16 @@ module Backend::BE_Ada::Nodes {
   /****************/
   /* Statetements */
   /****************/
+  
+  interface Elsif_Statement : Node_Id {
+    Node_Id    Condition; 
+    List_Id    Then_Statements;
+  };
 
   interface If_Statement : Node_Id {
     Node_Id    Condition;
     List_Id    Then_Statements; 
+    List_Id    Elsif_Statements; 
     List_Id    Else_Statements; 
   };
 

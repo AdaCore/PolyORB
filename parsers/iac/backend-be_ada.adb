@@ -154,11 +154,17 @@ package body Backend.BE_Ada is
 
    procedure Visit (E : Node_Id) is
    begin
+      --  Generate packages specifications
+
       Stubs.Package_Spec.Visit (E);
       Helpers.Package_Spec.Visit (E);
       Skels.Package_Spec.Visit (E);
+
+      --  Generate packages bodies
+
       Stubs.Package_Body.Visit (E);
       Helpers.Package_Body.Visit (E);
+      Skels.Package_Body.Visit (E);
 
       if Impl_Packages_Gen then
          Impls.Package_Spec.Visit (E);
