@@ -2,7 +2,9 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
-XXXXXX
+--                  POLYORB.SERVICES.NAMING.NAMINGCONTEXT                   --
+--                                                                          --
+--                                 B o d y                                  --
 --                                                                          --
 --             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
@@ -27,3 +29,48 @@ XXXXXX
 --              PolyORB is maintained by ENST Paris University.             --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+--  $Id$
+
+package body PolyORB.Services.Naming.NamingContext is
+
+   ------------------
+   --  Get_Members --
+   ------------------
+
+   procedure Get_Members
+     (From : Ada.Exceptions.Exception_Occurrence;
+      To   : out NotFound_Members) is
+   begin
+      PolyORB.Exceptions.User_Get_Members (From, To);
+   end Get_Members;
+
+   procedure Get_Members
+     (From : Ada.Exceptions.Exception_Occurrence;
+      To   : out CannotProceed_Members) is
+   begin
+      PolyORB.Exceptions.User_Get_Members (From, To);
+   end Get_Members;
+
+   procedure Get_Members
+     (From : Ada.Exceptions.Exception_Occurrence;
+      To   : out InvalidName_Members) is
+   begin
+      PolyORB.Exceptions.User_Get_Members (From, To);
+   end Get_Members;
+
+   procedure Get_Members
+     (From : Ada.Exceptions.Exception_Occurrence;
+      To   : out AlreadyBound_Members) is
+   begin
+      PolyORB.Exceptions.User_Get_Members (From, To);
+   end Get_Members;
+
+   procedure Get_Members
+     (From : Ada.Exceptions.Exception_Occurrence;
+      To   : out NotEmpty_Members) is
+   begin
+      PolyORB.Exceptions.User_Get_Members (From, To);
+   end Get_Members;
+
+end PolyORB.Services.Naming.NamingContext;

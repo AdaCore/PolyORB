@@ -2,7 +2,9 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
-XXXXXX
+--                     P O L Y O R B . S E R V I C E S                      --
+--                                                                          --
+--                                 S p e c                                  --
 --                                                                          --
 --             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
@@ -27,3 +29,11 @@ XXXXXX
 --              PolyORB is maintained by ENST Paris University.             --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+--  $Id$
+
+package PolyORB.Services is
+
+   pragma Pure;
+
+end PolyORB.Services;

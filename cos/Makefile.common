@@ -35,8 +35,6 @@ GNATMAKE_FLAGS = \
 
 CLEANFILES = b~*.* *.o *.ali
 
-PROGS= @APPLI_EXES@ @SERVICE_EXES@
-
 DISTCLEANFILES =  $(PROGS)
 
 SUFFIXES = .idl .ads .adb

@@ -2,9 +2,11 @@ AUTOMAKE_OPTIONS = no-dependencies
 
 include $(srcdir)/../Makefile.common
 
-corba_exe=ab_names test_naming
+corba_exe=ab_names test_naming test_naming_corba
 ir_exe=ir_ab_names
 ir_dir=../ir
+
+PROGS= po_names test_naming_generic @APPLI_EXES@ @SERVICE_EXES@
 
 FORCE=	force
 

@@ -4,6 +4,8 @@ include $(srcdir)/../Makefile.common
 
 corba_exe=server client print
 
+PROGS= @APPLI_EXES@ @SERVICE_EXES@
+
 COS_DIRS=../../idls/cos/naming
 COS_GNATMAKE_FLAGS=-I../../idls/cos/naming -I$(srcdir)/../naming
 

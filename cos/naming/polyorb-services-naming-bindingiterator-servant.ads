@@ -2,7 +2,9 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
-XXXXXX
+--             POLYORB.SERVICES.NAMING.BINDINGITERATOR.SERVANT              --
+--                                                                          --
+--                                 S p e c                                  --
 --                                                                          --
 --             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
@@ -27,3 +29,41 @@ XXXXXX
 --              PolyORB is maintained by ENST Paris University.             --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+--  $Id$
+
+with PolyORB.Minimal_Servant;
+with PolyORB.Obj_Adapters.Simple;
+with PolyORB.Requests;
+
+package PolyORB.Services.Naming.BindingIterator.Servant is
+
+   pragma Elaborate_Body;
+
+   package Bindings renames SEQUENCE_Binding;
+
+   type Binding_Element_Array_Ptr is access Bindings.Element_Array;
+
+   type Object;
+   type Object_Ptr is access all Object;
+   type Object is
+     new PolyORB.Minimal_Servant.Servant with
+      record
+         Self  : Object_Ptr;
+         Index : Natural;
+         Table : Binding_Element_Array_Ptr;
+      end record;
+
+   function Create return Object_Ptr;
+
+   procedure Invoke
+     (Self     : access Object;
+      Request  : in     PolyORB.Requests.Request_Access);
+   --  Middleware 'glue'.
+
+   function If_Desc
+     return PolyORB.Obj_Adapters.Simple.Interface_Description;
+   pragma Inline (If_Desc);
+   --  Middleware 'glue'.
+
+end PolyORB.Services.Naming.BindingIterator.Servant;

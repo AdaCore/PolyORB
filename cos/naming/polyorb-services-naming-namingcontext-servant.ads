@@ -2,7 +2,9 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
-XXXXXX
+--              POLYORB.SERVICES.NAMING.NAMINGCONTEXT.SERVANT               --
+--                                                                          --
+--                                 S p e c                                  --
 --                                                                          --
 --             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
@@ -27,3 +29,56 @@ XXXXXX
 --              PolyORB is maintained by ENST Paris University.             --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+--  $Id$
+
+with PolyORB.Minimal_Servant;
+with PolyORB.Obj_Adapters.Simple;
+with PolyORB.Requests;
+
+package PolyORB.Services.Naming.NamingContext.Servant is
+
+   Key_Size : constant := 4;
+   type Key_Type is new String (1 .. Key_Size);
+
+   type Bound_Object;
+   type Bound_Object_Ptr is access Bound_Object;
+
+   type Object;
+   type Object_Ptr is access all Object'Class;
+
+   type Bound_Object is
+      record
+         BN   : NameComponent;
+         BT   : BindingType;
+         Obj  : PolyORB.References.Ref;
+         Prev : Bound_Object_Ptr;
+         Next : Bound_Object_Ptr;
+         NC   : Object_Ptr;
+      end record;
+
+   type Object is
+     new PolyORB.Minimal_Servant.Servant with
+      record
+         Key  : Key_Type;
+         Self : Object_Ptr;
+         Prev : Object_Ptr;
+         Next : Object_Ptr;
+         Head : Bound_Object_Ptr;
+         Tail : Bound_Object_Ptr;
+      end record;
+
+   procedure Invoke
+     (Self     : access Object;
+      Request  : in     PolyORB.Requests.Request_Access);
+   --  Middleware 'glue'.
+
+   function If_Desc
+     return PolyORB.Obj_Adapters.Simple.Interface_Description;
+   pragma Inline (If_Desc);
+   --  Middleware 'glue'.
+
+   function Create
+     return Object_Ptr;
+
+end PolyORB.Services.Naming.NamingContext.Servant;

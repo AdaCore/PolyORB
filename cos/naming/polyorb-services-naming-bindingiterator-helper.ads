@@ -2,7 +2,9 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
-XXXXXX
+--             POLYORB.SERVICES.NAMING.BINDINGITERATOR.HELPER               --
+--                                                                          --
+--                                 S p e c                                  --
 --                                                                          --
 --             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
@@ -27,3 +29,24 @@ XXXXXX
 --              PolyORB is maintained by ENST Paris University.             --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+--  $Id$
+
+with PolyORB.Any;
+pragma Elaborate_All (PolyORB.Any);
+
+package PolyORB.Services.Naming.BindingIterator.Helper is
+
+   pragma Elaborate_Body;
+
+   TC_BindingIterator : PolyORB.Any.TypeCode.Object
+     := PolyORB.Any.TypeCode.TC_Object;
+
+   function From_Any (Item : in PolyORB.Any.Any)
+      return PolyORB.Services.Naming.BindingIterator.Ref;
+
+   function To_Any
+     (Item : in PolyORB.Services.Naming.BindingIterator.Ref)
+     return PolyORB.Any.Any;
+
+end PolyORB.Services.Naming.BindingIterator.Helper;

@@ -2,7 +2,9 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
-XXXXXX
+--              P O L Y O R B . S E R V I C E S . N A M I N G               --
+--                                                                          --
+--                                 S p e c                                  --
 --                                                                          --
 --             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
@@ -27,3 +29,64 @@ XXXXXX
 --              PolyORB is maintained by ENST Paris University.             --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+--  The PolyORB Naming Service is an adaptation from OMG COS Naming, v 1.0
+
+--  $Id$
+
+with CORBA.Forward;
+pragma Elaborate_All (CORBA.Forward);
+with PolyORB.Sequences.Unbounded;
+pragma Elaborate_All (PolyORB.Sequences.Unbounded);
+with CORBA;
+with PolyORB.Types;
+
+package PolyORB.Services.Naming is
+
+   type Istring is new PolyORB.Types.String;
+
+   Istring_Repository_Id : constant Standard.String
+     := "IDL:omg.org/CosNaming/Istring:1.0";
+
+   type NameComponent is record
+      id : Istring;
+      kind : Istring;
+   end record;
+
+   NameComponent_Repository_Id : constant Standard.String
+     := "IDL:omg.org/CosNaming/NameComponent:1.0";
+
+   package SEQUENCE_NameComponent is
+     new PolyORB.Sequences.Unbounded (NameComponent);
+
+   type Name is new SEQUENCE_NameComponent.Sequence;
+
+   Name_Repository_Id : constant Standard.String
+     := "IDL:omg.org/CosNaming/Name:1.0";
+
+   type BindingType is
+     (Nobject,
+      Ncontext);
+
+   BindingType_Repository_Id : constant Standard.String
+     := "IDL:omg.org/CosNaming/BindingType:1.0";
+
+   type Binding is record
+      binding_name : Name;
+      binding_type : BindingType;
+   end record;
+
+   Binding_Repository_Id : constant Standard.String
+     := "IDL:omg.org/CosNaming/Binding:1.0";
+
+   package SEQUENCE_Binding is
+     new PolyORB.Sequences.Unbounded (Binding);
+
+   type BindingList is new SEQUENCE_Binding.Sequence;
+
+   BindingList_Repository_Id : constant Standard.String
+     := "IDL:omg.org/CosNaming/BindingList:1.0";
+
+   package BindingIterator_Forward is new CORBA.Forward;
+
+end PolyORB.Services.Naming;

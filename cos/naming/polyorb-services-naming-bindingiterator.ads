@@ -2,7 +2,9 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
-XXXXXX
+--                 POLYORB.SERVICES.NAMING.BINDINGITERATOR                  --
+--                                                                          --
+--                                 S p e c                                  --
 --                                                                          --
 --             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
@@ -27,3 +29,13 @@ XXXXXX
 --              PolyORB is maintained by ENST Paris University.             --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+--  $Id$
+
+with PolyORB.References;
+
+package PolyORB.Services.Naming.BindingIterator is
+
+   type Ref is new PolyORB.References.Ref with null record;
+
+end PolyORB.Services.Naming.BindingIterator;
