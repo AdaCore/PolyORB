@@ -398,6 +398,8 @@ ada/make.adb
 ada/make.ads
 ada/makeusg.adb
 ada/makeusg.ads
+ada/makeutl.adb
+ada/makeutl.ads
 ada/mlib.adb
 ada/mlib.ads
 ada/mlib-fil.adb
