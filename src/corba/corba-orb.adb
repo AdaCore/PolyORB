@@ -87,8 +87,10 @@ package body CORBA.ORB is
    is
       Result : CORBA.TypeCode.Object := TypeCode.TC_Alias;
    begin
-      CORBA.TypeCode.Add_Parameter (Result, CORBA.To_Any (Name));
-      CORBA.TypeCode.Add_Parameter (result, CORBA.To_Any (Id));
+      CORBA.TypeCode.Add_Parameter
+        (Result, CORBA.To_Any (CORBA.String (Name)));
+      CORBA.TypeCode.Add_Parameter
+        (Result, CORBA.To_Any (CORBA.String (Id)));
       CORBA.TypeCode.Add_Parameter (Result, CORBA.To_Any (Original_Type));
       return Result;
    end Create_Alias_Tc;
