@@ -35,9 +35,6 @@
 
 with PolyORB.Utils.Report;
 
-with PolyORB.Profiles.Full_Tasking;
-pragma Elaborate_All (PolyORB.Profiles.Full_Tasking);
-pragma Warnings (Off, PolyORB.Profiles.Full_Tasking);
 
 with PolyORB.Tasking.Threads;
 with PolyORB.Tasking.Condition_Variables;

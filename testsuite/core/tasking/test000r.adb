@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                              T E S T 0 0 2                               --
+--                              T E S T 0 0 0                               --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -31,24 +31,27 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Condition variables testsuite.
+--  Run the tests for the Ravenscar profile
 
 --  $Id$
 
 with PolyORB.Initialization;
+with PolyORB.Utils.Report;
 
-with PolyORB.Profiles.Full_Tasking;
-pragma Elaborate_All (PolyORB.Profiles.Full_Tasking);
-pragma Warnings (Off, PolyORB.Profiles.Full_Tasking);
+with Test000_Common;
 
-with Test002_Common;
+with Ravenscar_Setup;
+pragma Warnings (Off, Ravenscar_Setup);
 
-procedure Test002 is
-   use Test002_Common;
+procedure Test000R is
+   use Test000_Common;
 
 begin
    PolyORB.Initialization.Initialize_World;
-   Initialize_Test;
-   Test_CV;
-
-end Test002;
+   Initialize;
+   Test_Threads;
+   Test_Synchronisations;
+   Test_Mutexes;
+   Test_Watchers;
+   PolyORB.Utils.Report.End_Report;
+end Test000R;
