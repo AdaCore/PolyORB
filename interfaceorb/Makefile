@@ -19,7 +19,9 @@ ORB_LIBS += -I /home/Seb/Projet/omniORB_2.7.0/src/lib/omniORB2/orbcore/
 
 # variables a definir pour la compilation
 CORBA_FLAGS = -D __x86__ -D __linux__ -D __OSVERSION__=2
-OMNI_ORB_FLAGS = 
+OMNI_ORB_FLAGS =
+# -D USE_omniORB_logStream -D _OMNIORB2_LIBRARY
+
 FLAGS = $(CORBA_FLAGS) $(OMNI_ORB_FLAGS)
 
 # liste des librairies c++ a compiler
@@ -31,7 +33,8 @@ ADA_LIBS_NAME_NO_ADB = rope
 
 
 all : sys_dep.o Ada_Rope.o rope.o Ada_OmniRopeAndKey.o omniropeandkey.o \
-omniobjectmanager.o omniObject_C2Ada.o Ada_OmniObject.o omniobject.o
+omniobjectmanager.o omniObject_C2Ada.o Ada_OmniObject.o omniobject.o \
+giop.o Ada_Giop_s.o giop_s.o
 
 clean :
 	rm *.ali *.o 
@@ -65,6 +68,14 @@ Ada_OmniObject.o : Ada_OmniObject.hh Ada_OmniObject.cc
 omniobject.o : omniobject.ads omniobject.adb
 	$(GNATGCC) $(DO_NOT_LINK) $(ORB_LIBS) $(FLAGS) omniobject.adb
 
+giop.o : giop.ads
+	$(GNATGCC) $(DO_NOT_LINK) $(ORB_LIBS) $(FLAGS) giop.ads
+
+Ada_Giop_s.o : Ada_Giop_s.hh Ada_Giop_s.cc
+	$(GCC) $(DO_NOT_LINK) $(ORB_LIBS) $(FLAGS) Ada_Giop_s.cc
+
+giop_s.o : giop_s.ads giop_s.adb
+	$(GNATGCC) $(DO_NOT_LINK) $(ORB_LIBS) $(FLAGS) giop_s.adb
 
 ################################################
 # compilation of files that do not depend on C++
@@ -92,3 +103,6 @@ bufferedstream.ali: bufferedstream.ads bufferedstream.adb
 netbufferedstream.ali: netbufferedstream.ads netbufferedstream.adb
 
 membufferedstream.ali: membufferedstream.ads membufferedstream.adb
+
+
+

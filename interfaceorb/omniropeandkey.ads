@@ -11,7 +11,7 @@
 ----   constructor.                                                ----
 ----                                                               ----
 ----                                                               ----
-----                  package body omniRopeAndKey                  ----
+----                  package omniRopeAndKey                       ----
 ----                                                               ----
 ----   authors : Sebastien Ponce, Fabien Azavant                   ----
 ----   date    : 02/18/99                                          ----
@@ -36,7 +36,7 @@ package OmniRopeAndKey is
    pragma CPP_Class (Object) ;
    pragma CPP_Vtable (Object,Table,1) ;
    -- This object is wrapped around Ada_OmniRopeAndKey
-   -- (see Ada_OmniRopeAndKey.h)
+   -- (see Ada_OmniRopeAndKey.hh)
 
    type Object_Ptr is access all Object ;
    -- just to give a name to pointers on Object
