@@ -9,6 +9,12 @@
 ----                                                                    ----
 ----------------------------------------------------------------------------
 
+
+-- TO DO ::::::
+-- remove useless comments to show what has to be generated
+-- add tests to check that the Weapon_ref is valid
+
+
 with Text_IO ;
 
 with Ada.Unchecked_Deallocation ;
