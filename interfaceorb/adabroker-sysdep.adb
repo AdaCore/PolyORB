@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.4 $
+--                            $Revision: 1.5 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -38,19 +38,15 @@ package body AdaBroker.Sysdep is
    function To_Bool (B : Boolean) return Bool is
    begin
       if B then
-         return Bool (True);
+         return True;
       else
-         return Bool (False);
+         return False;
       end if;
    end To_Bool;
 
    function To_Boolean (B : Bool) return Boolean is
    begin
-      if B = Bool (True) then
-         return Standard.True;
-      else
-         return Standard.False;
-      end if;
+      return B /= False;
    end To_Boolean;
 
 end AdaBroker.Sysdep;

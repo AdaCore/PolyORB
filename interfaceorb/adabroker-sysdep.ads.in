@@ -1,4 +1,4 @@
-with Interfaces.C;
+with Interfaces;
 
 package AdaBroker.Sysdep is
 
@@ -16,8 +16,8 @@ package AdaBroker.Sysdep is
 
    type Bool is new @BOOL@;
 
-   True  : Bool := Bool (1);
-   False : Bool := Bool (0);
+   False : constant Bool := Bool'First;
+   True  : constant Bool := Bool'Succ (False);
    --  Definition of Bool, the Ada equivalent of the C++ bool
    --  type. Needed to interface C functions in Ada It is supposed here
    --  that the C internal representation of type boolean need one
