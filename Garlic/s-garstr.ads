@@ -107,6 +107,8 @@ package System.Garlic.Streams is
    --  Same as Print_Debug_info except that this procedure prints
    --  Stream content.
 
+   function Empty (Params  : access Params_Stream_Type) return Boolean;
+
    procedure Free is
      new Ada.Unchecked_Deallocation
      (Ada.Streams.Stream_Element_Array, Stream_Element_Access);

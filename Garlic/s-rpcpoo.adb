@@ -268,7 +268,7 @@ package body System.RPC.Pool is
          --  Before executing anything, make sure that our elaboration is
          --  finished.
 
-         Wait_Until_Elaboration_Is_Terminated;
+         Wait_For_Elaboration_Completion;
 
          Result    := new Streams.Params_Stream_Type (0);
          Cancelled := False;
@@ -298,6 +298,7 @@ package body System.RPC.Pool is
                Cancelled := True;
             end;
          then abort
+            pragma Debug (D (D_Debug, "Job to achieve"));
             Types.RPC_Receiver'Read (Params, Receiver);
             Receiver (Params, Result);
             pragma Debug (D (D_Debug, "Job achieved without abortion"));

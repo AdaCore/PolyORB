@@ -114,6 +114,15 @@ package body System.Garlic.Streams is
       end if;
    end Dump;
 
+   -----------
+   -- Empty --
+   -----------
+
+   function Empty (Params  : access Params_Stream_Type) return Boolean is
+   begin
+      return Params.Count = 0;
+   end Empty;
+
    ----------
    -- Read --
    ----------

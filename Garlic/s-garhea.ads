@@ -69,33 +69,11 @@ package System.Garlic.Heart is
    -- Settings --
    --------------
 
-   procedure Set_Policy
-     (Shutdown     : Types.Shutdown_Type     :=
-        Types.Shutdown_On_Boot_Partition_Error);
-   --  Sets Garlic policy about Shutdowns and reconnections
-
-   -------------------------
-   -- Elaboration control --
-   -------------------------
-
-   procedure Complete_Elaboration;
-   --  This procedure must be called as the first instruction of the
-   --  main procedure.
-
-   procedure Wait_Until_Elaboration_Is_Terminated;
-   --  This procedure blocks until elaboration is terminated
-
-   procedure Soft_Shutdown;
-   --  Shutdown everything after signaling to all known reachable
-   --  partitions to shutdown also.
-
-   Shutdown_In_Progress : Boolean := False;
-   pragma Atomic (Shutdown_In_Progress);
-
-   function Blocking_Partition (Partition : Types.Partition_ID) return Boolean;
-   --  Return True if a partition has a local termination but is still
-   --  alive. This means that the whole distributed program cannot terminate
-   --  because a client is still working.
+   procedure Next_Partition
+     (Partition : in out Types.Partition_ID;
+      Allocated : in Boolean := True);
+   --  Find next partition id after Partition which is Allocated (or
+   --  un-allocated when Allocated is False).
 
    function Reconnection_Policy (Partition : Types.Partition_ID)
      return Types.Reconnection_Type;
@@ -115,6 +93,29 @@ package System.Garlic.Heart is
      return Physical_Location.Location_Type;
    pragma Inline (Location);
    --  Return the location of a partition
+
+   procedure Set_Policy
+     (Shutdown     : Types.Shutdown_Type     :=
+        Types.Shutdown_On_Boot_Partition_Error);
+   --  Sets Garlic policy about Shutdowns and reconnections
+
+   -------------------------
+   -- Elaboration control --
+   -------------------------
+
+   procedure Complete_Elaboration;
+   --  This procedure must be called as the first instruction of the
+   --  main procedure.
+
+   procedure Wait_For_Elaboration_Completion;
+   --  This procedure blocks until elaboration is terminated
+
+   procedure Soft_Shutdown;
+   --  Shutdown everything after signaling to all known reachable
+   --  partitions to shutdown also.
+
+   Shutdown_In_Progress : Boolean := False;
+   pragma Atomic (Shutdown_In_Progress);
 
    ---------------------
    -- Local partition --
@@ -178,22 +179,6 @@ package System.Garlic.Heart is
       Reply     : access Streams.Params_Stream_Type);
    --  A procedure which will get the requests
 
-   procedure Send
-     (Partition : in Types.Partition_ID;
-      Opcode    : in Any_Opcode;
-      Params    : access Streams.Params_Stream_Type);
-   --  Send something to a remote partition after calling the appropriate
-   --  filter.
-
-   procedure Register_Handler
-     (Opcode  : in Any_Opcode;
-      Handler : in Request_Handler);
-   --  Receive something from a remote partition given the Opcode. The
-   --  receiver will have to read the Params_Stream_Type before returning.
-
-   type Register_PID_Callback is
-      access procedure (Partition : in Types.Partition_ID);
-
    procedure Analyze_Stream
      (Partition  : out Types.Partition_ID;
       Opcode     : out Any_Opcode;
@@ -208,5 +193,18 @@ package System.Garlic.Heart is
      (Partition  : in Types.Partition_ID;
       Opcode     : in Any_Opcode;
       Unfiltered : in Streams.Stream_Element_Access);
+
+   procedure Register_Handler
+     (Opcode  : in Any_Opcode;
+      Handler : in Request_Handler);
+   --  Receive something from a remote partition given the Opcode. The
+   --  receiver will have to read the Params_Stream_Type before returning.
+
+   procedure Send
+     (Partition : in Types.Partition_ID;
+      Opcode    : in Any_Opcode;
+      Params    : access Streams.Params_Stream_Type);
+   --  Send something to a remote partition after calling the appropriate
+   --  filter.
 
 end System.Garlic.Heart;

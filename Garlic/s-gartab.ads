@@ -84,6 +84,9 @@ package System.Garlic.Table is
       --  Unlock table. Return internal version for later use. Version is
       --  updated by Set_Component.
 
+      procedure Leave;
+      --  Unlock table.
+
       procedure Set_Component (N : Index_Type; C : Component_Type);
       --  Set component of index N to C. When N is not allocated, allocate
       --  it. Raise Constraint_Error when N is not in range of current table.

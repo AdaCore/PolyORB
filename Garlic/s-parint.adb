@@ -33,7 +33,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Exceptions;
+with Ada.Exceptions;           use Ada.Exceptions;
 with Ada.Unchecked_Deallocation;
 with Ada.Unchecked_Conversion;
 with GNAT.HTable;              use GNAT.HTable;
@@ -47,7 +47,6 @@ with System.Garlic.Remote;     use System.Garlic.Remote;
 with System.Garlic.Soft_Links;
 with System.Garlic.Startup;
 pragma Warnings (Off, System.Garlic.Startup);
-with System.Garlic.Streams;    use System.Garlic.Streams;
 with System.Garlic.Types;      use System.Garlic.Types;
 with System.Garlic.Units;      use System.Garlic.Units;
 with System.Garlic.Utils;      use System.Garlic.Utils;
@@ -84,13 +83,6 @@ package body System.Partition_Interface is
    function Different (V1, V2 : String) return Boolean;
    --  Compare two version ids. If one of these version ids is a string
    --  of blank characters then they will be considered as identical.
-
-   procedure Handle_Request
-     (Partition : in Partition_ID;
-      Opcode    : in External_Opcode;
-      Query     : access Params_Stream_Type;
-      Reply     : access Params_Stream_Type);
-   --  Global message receiver
 
    type Hash_Index is range 0 .. 100;
    function Hash (K : RACW_Stub_Type_Access) return Hash_Index;
@@ -214,13 +206,13 @@ package body System.Partition_Interface is
    is
       N : String := Name;
       U : Unit_Id;
-
    begin
+      pragma Debug (D (D_Debug, "Request Get_Active_Partition_ID"));
+
       To_Lower (N);
       U := Units.Get_Index (N);
-      pragma Debug (D (D_Debug, "Request Get_Active_Partition_ID"));
-      Process (U, (Get_Unit, Self_PID,  0, null, null));
-      return RPC.Partition_ID (Units.Get_Component (U).Partition);
+
+      return RPC.Partition_ID (Get_Unit_Info (U).Partition);
    end Get_Active_Partition_ID;
 
    ------------------------
@@ -234,11 +226,12 @@ package body System.Partition_Interface is
       N : String := Name;
       U : Unit_Id;
    begin
+      pragma Debug (D (D_Debug, "Request Get_Active_Version"));
+
       To_Lower (N);
       U := Units.Get_Index (N);
-      pragma Debug (D (D_Debug, "Request Get_Active_Version"));
-      Process (U, (Get_Unit, Self_PID, 0, null, null));
-      return Units.Get_Component (U).Version.all;
+
+      return Get_Unit_Info (U).Version.all;
    end Get_Active_Version;
 
    ----------------------------
@@ -285,12 +278,12 @@ package body System.Partition_Interface is
       N : String := Name;
       U : Unit_Id;
    begin
-      To_Lower (N);
-      U := Units.Get_Index (N);
       pragma Debug (D (D_Debug, "Request Get_Package_Receiver"));
 
-      Process (U, (Get_Unit, Self_PID, 0, null, null));
-      return Units.Get_Component (U).Receiver;
+      To_Lower (N);
+      U := Units.Get_Index (N);
+
+      return Get_Unit_Info (U).Receiver;
    end Get_RCI_Package_Receiver;
 
    -------------------------------
@@ -348,59 +341,6 @@ package body System.Partition_Interface is
       end if;
    end Launch;
 
-   --------------------
-   -- Handle_Request --
-   --------------------
-
-   procedure Handle_Request
-     (Partition : in Partition_ID;
-      Opcode    : in External_Opcode;
-      Query     : access Params_Stream_Type;
-      Reply     : access Params_Stream_Type)
-   is
-      R : Request_Type;
-      U : Unit_Id;
-   begin
-      Request_Id'Read (Query, R.Command);
-
-      case R.Command is
-         when Set_Unit =>
-            U := Units.Get_Index (Unit_Name'Input (Query));
-            Partition_ID'Read (Query, R.Partition);
-            Interfaces.Unsigned_64'Read (Query, R.Receiver);
-            R.Version := new String'(String'Input (Query));
-
-            pragma Debug
-              (D (D_RNS,
-                  "Recv "   & R.Command'Img &
-                  " on "    & Units.Get_Name (U) &
-                  " from "  & Partition'Img));
-
-         when Get_Unit =>
-            U := Units.Get_Index (Unit_Name'Input (Query));
-            R.Partition := Partition;
-
-            pragma Debug
-              (D (D_RNS,
-                  "Recv "   & R.Command'Img &
-                  " on "    & Units.Get_Name (U) &
-                  " from "  & Partition'Img));
-
-         when Invalidate =>
-            Partition_ID'Read (Query, R.Partition);
-            U := Partition_RCI_List (R.Partition);
-
-            pragma Debug
-              (D (D_RNS,
-                  "Recv "   & R.Command'Img &
-                  " on "    & R.Partition'Img &
-                  " from "  & Partition'Img));
-
-      end case;
-
-      Process (U, R);
-   end Handle_Request;
-
    ------------------------------------
    -- Raise_Program_Error_For_E_4_18 --
    ------------------------------------
@@ -420,27 +360,19 @@ package body System.Partition_Interface is
       Receiver : in RPC.RPC_Receiver;
       Version  : in String := "")
    is
-      Uname   : String := Name;
-      Uindex  : Unit_Id;
-      Request : Request_Type
-        := (Set_Unit,
-            Self_PID,
-            Interfaces.Unsigned_64 (System.Address'(Convert (Receiver))),
-            new String'(Version),
-            null);
+      N : String := Name;
+      U : Unit_Id;
    begin
       pragma Debug (D (D_Debug, "Request Register_Receiving_Stub"));
-      To_Lower (Uname);
-      Uindex := Units.Get_Index (Uname);
 
-      pragma Debug (D (D_Debug, "Request Set_Unit"));
-      Process (Uindex, Request);
+      To_Lower (N);
+      U := Units.Get_Index (N);
 
-      pragma Debug (D (D_Debug, "Request Get_Unit"));
-      Process (Uindex, (Get_Unit, Self_PID, 0, null, null));
+      Set_Unit_Info
+        (U, Interfaces.Unsigned_64 (System.Address'(Convert (Receiver))),
+         new String'(Version));
 
-      pragma Debug (D (D_Debug, "Verify Set_Unit"));
-      if Units.Get_Component (Uindex).Partition /= Self_PID then
+      if Get_Unit_Info (U).Partition /= Self_PID then
          Soft_Shutdown;
          Ada.Exceptions.Raise_Exception
            (Program_Error'Identity,
@@ -454,12 +386,8 @@ package body System.Partition_Interface is
 
    package body RCI_Info is
 
-      Cache   : constant Cache_Access := new Cache_Type;
-      Name    : String                := RCI_Name;
-      Uname   : Unit_Id;
-
-      Request : constant Request_Type
-        := (Get_Unit, Self_PID, 0, null, Cache);
+      Name : String := RCI_Name;
+      Unit : Unit_Id;
 
       -----------------------------
       -- Get_Active_Partition_ID --
@@ -467,28 +395,13 @@ package body System.Partition_Interface is
 
       function Get_Active_Partition_ID return RPC.Partition_ID
       is
-         Unit   : Unit_Type;
-         Status : Unit_Status;
-
+         Info : Unit_Info := Get_Unit_Info (Unit);
       begin
-         Get_RCI_Data (Cache.all, Unit.Receiver, Unit.Partition, Status);
-
-         if Status /= Known then
-            pragma Debug (D (D_Debug, "RCI_Info Get_Active_Partition_ID"));
-
-            Process (Uname, Request);
-            Unit := Units.Get_Component (Uname);
-
-            if Unit.Status = Invalid then
-               Raise_Communication_Error
-                 ("Partition" & Unit.Partition'Img & " is unreachable");
-
-            else
-               Set_RCI_Data (Cache.all, Unit.Receiver, Unit.Partition);
-            end if;
+         if Info.Status = Invalid then
+            Raise_Communication_Error
+              ("Partition" & Info.Partition'Img & " is unreachable");
          end if;
-
-         return RPC.Partition_ID (Unit.Partition);
+         return RPC.Partition_ID (Info.Partition);
       end Get_Active_Partition_ID;
 
       ------------------------------
@@ -497,33 +410,18 @@ package body System.Partition_Interface is
 
       function Get_RCI_Package_Receiver return Interfaces.Unsigned_64
       is
-         Unit   : Unit_Type;
-         Status : Unit_Status;
-
+         Info : Unit_Info := Get_Unit_Info (Unit);
       begin
-         Get_RCI_Data (Cache.all, Unit.Receiver, Unit.Partition, Status);
-
-         if Status /= Known then
-            pragma Debug (D (D_Debug, "RCI_Info Get_Active_Partition_ID"));
-
-            Process (Uname, Request);
-            Unit := Units.Get_Component (Uname);
-
-            if Unit.Status = Invalid then
-               Raise_Communication_Error
-                 ("Partition" & Unit.Partition'Img & " is unreachable");
-
-            else
-               Set_RCI_Data (Cache.all, Unit.Receiver, Unit.Partition);
-            end if;
+         if Info.Status = Invalid then
+            Raise_Communication_Error
+              ("Partition" & Info.Partition'Img & " is unreachable");
          end if;
-
-         return Unit.Receiver;
+         return Info.Receiver;
       end Get_RCI_Package_Receiver;
 
    begin
       To_Lower (Name);
-      Uname := Units.Get_Index (Name);
+      Unit := Units.Get_Index (Name);
    end RCI_Info;
 
    ---------
@@ -580,13 +478,13 @@ package body System.Partition_Interface is
       Complete_Termination (System.Garlic.Options.Termination);
 
    exception
-      when others =>
+      when E : others =>
+         pragma Warnings (Off, E);
+         pragma Debug (D (D_Exception, "Run: " & Exception_Information (E)));
          pragma Debug (D (D_Debug,
                           "Complete termination after handling exception"));
          Complete_Termination (System.Garlic.Options.Termination);
          raise;
    end Run;
 
-begin
-   Register_Handler (Unit_Name_Service, Handle_Request'Access);
 end System.Partition_Interface;

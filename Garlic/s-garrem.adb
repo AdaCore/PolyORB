@@ -121,6 +121,8 @@ package body System.Garlic.Remote is
         Executable_Name & " " & "--detach --slave --boot_server " &
         Get_Boot_Server & " &";
    begin
+      pragma Debug (D (D_Debug, "Full_Launch: " & Full_Command));
+
       Launch (Launcher, Host, Full_Command);
    end Full_Launch;
 
@@ -180,10 +182,11 @@ package body System.Garlic.Remote is
       Host     : in String;
       Command  : in String)
    is
-      C_Command : C.Strings.chars_ptr :=
-        C.Strings.New_String (Command);
+      C_Command : C.Strings.chars_ptr := C.Strings.New_String (Command);
       Return_Code : int;
    begin
+      pragma Debug (D (D_Debug, "Local Launch: " & Command));
+
       Return_Code := System (C_Command);
       C.Strings.Free (C_Command);
    end Local_Launcher;
@@ -211,9 +214,13 @@ package body System.Garlic.Remote is
             C_Command        : C.Strings.chars_ptr :=
               C.Strings.New_String (Rsh_Full_Command);
          begin
+            pragma Debug (D (D_Debug, "Rsh Launcher: " & Rsh_Full_Command));
+
             Return_Code := System (C_Command);
             C.Strings.Free (C_Command);
             if Return_Code = -1 then
+               pragma Debug
+                 (D (D_Debug, "Rsh Launcher: fail to launch partition"));
 
                --  Since any exception may be raised here, we choose to
                --  raise Program_Error since the elaboration won't take

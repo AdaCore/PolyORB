@@ -43,7 +43,7 @@ private package System.Garlic.Partitions is
       record
          case Kind is
             when Get_Partition_Info =>
-               Reply_To_PID : Types.Partition_ID;
+               null;
             when Set_Partition_Info =>
                Logical_Name : Utils.String_Access;
                Location     : Physical_Location.Location_Type;

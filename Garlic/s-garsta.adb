@@ -50,6 +50,8 @@ with System.Garlic.Soft_Links;
 with System.Garlic.Trace;
 pragma Elaborate_All (System.Garlic.Trace);
 with System.Garlic.Types;             use System.Garlic.Types;
+with System.Garlic.Units;
+pragma Elaborate_All (System.Garlic.Units);
 with System.Garlic.Utils;             use System.Garlic.Utils;
 
 package body System.Garlic.Startup is
@@ -128,6 +130,8 @@ begin
    --  Phase (5) (see s-garlic.ads)
 
    Filters.Initialize;
+
+   Units.Initialize;
 
    --  Phase (6) (see s-garlic.ads)
 

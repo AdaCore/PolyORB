@@ -104,11 +104,6 @@ package body System.RPC is
      (RPC    : in  RPC_Id;
       Result : out Streams.Stream_Element_Access);
 
-   procedure Invalidate_RCI_Units (Partition : in Types.Partition_ID);
-   pragma Inline (Invalidate_RCI_Units);
-   --  For a given partition, send an invalidation message to the boot
-   --  server and unregister its RCI units locally.
-
    procedure Finalize (Keeper : in out Abort_Keeper);
    --  Handle abortion from Do_RPC
 
@@ -303,20 +298,6 @@ package body System.RPC is
       RPC_Header'Output (Params, Header);
    end Insert_RPC_Header;
 
-   --------------------------
-   -- Invalidate_RCI_Units --
-   --------------------------
-
-   procedure Invalidate_RCI_Units (Partition : in Types.Partition_ID)
-   is
-      Invalidation : Request_Type := (Invalidate, Partition, 0, null, null);
-   begin
-      pragma Debug
-        (D (D_Debug, "Invalidate partition" & Partition'Img & "'s RCI units"));
-
-      Process (Partition_RCI_List (Partition), Invalidation);
-   end Invalidate_RCI_Units;
-
    ----------------------------------
    -- Partition_Error_Notification --
    ----------------------------------
@@ -329,7 +310,7 @@ package body System.RPC is
          return;
       end if;
 
-      Invalidate_RCI_Units (Partition);
+      Invalidate_Partition (Partition);
       Raise_Partition_Error (Partition);
    end Partition_Error_Notification;
 

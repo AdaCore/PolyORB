@@ -242,6 +242,15 @@ package body System.Garlic.Table is
          Leave (Mutex);
       end Leave;
 
+      -----------
+      -- Leave --
+      -----------
+
+      procedure Leave is
+      begin
+         Leave (Mutex);
+      end Leave;
+
       -------------------
       -- Set_Component --
       -------------------

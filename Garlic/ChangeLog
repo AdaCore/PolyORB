@@ -1,3 +1,54 @@
+1998-09-30  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* s-rpcpoo.adb: Reformatting.
+	
+	* s-rpc.adb: Remove Invalidate_RCI_Units and call
+ 	Units.Invalidate_Partition.
+	
+	* s-parint.adb: Expand procedure Process or call Get_Unit_Info
+ 	instead. Move Handle_Request to Garlic.Units. Cleanup of RCI_Info.
+	
+	* s-garuni.adb, s-garuni.ads: Add procedure Initialize,
+ 	Invalidate, Set_Unit_Info and Get_Unit_Info. Expand procedure
+ 	Process. Remove Cache_Type and Cache_Access and access Units.Table
+ 	directly because previously there was already a call to a
+ 	protected object. Change Request_Type into a type with
+ 	discriminant. Add a Reply parameter to Handle_Request.
+	
+	* s-garter.adb: Reformatting. Change Stamp into Stamp_Type. Use
+ 	new procedure Next_Partition. Add a Reply parameter to
+ 	Handle_Request.
+	
+	* s-gartcp.adb: Add debugging info. Fix the way the boot partition
+ 	connection is moved from its old slot to the new one. Do not send
+ 	a quit banner to the partition itself when there is no accept
+ 	connection task.
+
+	* s-garfil.adb: Minor reformatting. Add a Reply parameter to
+ 	Handle_Request.
+
+	* s-garhea.adb: Remove some procedures. Expand procedure
+ 	Process. Add a Reply parameter to Partition_Request_Handler.
+  	Prevent boot partition from processing a request before its
+ 	partition id is known. Add Next_Partition which is an
+ 	iterator. Remove a invalid partition at the very end of
+ 	Invalidate_Partition because we need to get its partition info.
+
+	* s-garhea.ads: Reorganize spec.
+
+	* s-garpar.ads: Remove field in Request_Type.
+
+	* s-garrem.adb: Add debugging info.
+
+	* s-garsta.adb: Add Units initialization.
+
+	* s-garstr.adb, s-garstr.ads: Add function Empty to detect when a
+	stream is empty.
+
+	* s-gartab.adb, s-gartab.adb: Add procedure Leave with no version
+	parameter.
+
+	
 1998-09-23  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-garrep.adb: Fix bugs.

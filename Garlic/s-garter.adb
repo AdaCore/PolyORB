@@ -33,6 +33,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Exceptions;
 with System.Garlic.Debug;         use System.Garlic.Debug;
 with System.Garlic.Heart;         use System.Garlic.Heart;
 with System.Garlic.Options;
@@ -96,23 +97,23 @@ package body System.Garlic.Termination is
    --  (some select then abort statements may be protected by calling
    --  Sub_Non_Terminating_Task inconditionnally after the end select).
 
-   type Stamp is mod 2 ** 8;
+   type Stamp_Type is mod 2 ** 8;
    --  A Stamp value is assigned at each round of the termination protocol
    --  to distinguish between different rounds.
 
    protected Termination_Watcher is
-      procedure Set_Stamp (S : in Stamp);
-      function  Get_Stamp return Stamp;
+      procedure Set_Stamp (Stamp : in Stamp_Type);
+      function  Get_Stamp return Stamp_Type;
       procedure Increment_Stamp;
       procedure Messages_Sent (N : in Natural);
       procedure Activity_Detected;
-      procedure Positive_Ack_Received (S : in Stamp);
-      procedure Negative_Ack_Received (S : in Stamp);
+      procedure Positive_Ack_Received (Stamp : in Stamp_Type);
+      procedure Negative_Ack_Received (Stamp : in Stamp_Type);
       procedure Force_Termination;
-      entry     Termination_Accepted (S : in Stamp; B : out Boolean);
+      entry     Termination_Accepted (Stamp : in Stamp_Type; B : out Boolean);
       function  Result_Is_Available return Boolean;
    private
-      Current   : Stamp := Stamp'Last;
+      Current   : Stamp_Type := Stamp_Type'Last;
       Count     : Natural;
       Result    : Boolean;
       Available : Boolean := False;
@@ -231,42 +232,54 @@ package body System.Garlic.Termination is
    ------------------------------
 
    procedure Initiate_Synchronization is
-      Id     : Stamp                 := Termination_Watcher.Get_Stamp;
-      Count  : Natural               := 0;
+      Stamp : Stamp_Type := Termination_Watcher.Get_Stamp;
+      Count : Natural    := 0;
+      PID   : Partition_ID;
+      Info  : Partition_Info;
    begin
-      for PID in Partitions.Table'Range loop
-         if Partitions.Table (PID).Allocated
-           and then Termination_Policy (PID) /= Local_Termination
-           and then PID /= Self_PID
+      PID := Null_PID;
+      loop
+         Next_Partition (PID);
+         exit when PID = Null_PID;
+         Info := Partitions.Get_Component (PID);
+
+         if PID /= Self_PID
+           and then Info.Status = Done
+           and then Info.Termination /= Local_Termination
          then
             declare
-               Params : aliased Params_Stream_Type (0);
+               Query : aliased Params_Stream_Type (0);
             begin
                pragma Debug
-                 (D (D_Debug,
-                     "Sending shutdown query to partition" & PID'Img));
-               Termination_Code'Write (Params'Access, Set_Stamp);
-               Stamp'Write (Params'Access, Id);
-               Send (PID, Shutdown_Service, Params'Access);
+                 (D (D_Debug, "Send shutdown query to partition" & PID'Img));
+               Termination_Code'Write (Query'Access, Set_Stamp);
+               Stamp_Type'Write (Query'Access, Stamp);
+               Send (PID, Shutdown_Service, Query'Access);
                Count := Count + 1;
             exception
                when Communication_Error => null;
             end;
          end if;
       end loop;
-      pragma Debug (D (D_Debug, "Sent" & Count'Img & " messages"));
+
       Termination_Watcher.Messages_Sent (Count);
-      for PID in Partitions.Table'Range loop
-         if Partitions.Table (PID).Allocated
-           and then Termination_Policy (PID) /= Local_Termination
-           and then PID /= Self_PID
+
+      PID := Null_PID;
+      loop
+         Next_Partition (PID);
+         exit when PID = Null_PID;
+         Info := Partitions.Get_Component (PID);
+
+         if PID /= Self_PID
+           and then Info.Status = Done
+           and then Info.Termination /= Local_Termination
          then
             declare
-               Params : aliased Params_Stream_Type (0);
+               Query : aliased Params_Stream_Type (0);
             begin
-               Termination_Code'Write (Params'Access, Check_Stamp);
-               Stamp'Write (Params'Access, Id);
-               Send (PID, Shutdown_Service, Params'Access);
+               Termination_Code'Write (Query'Access, Check_Stamp);
+               Stamp_Type'Write (Query'Access, Stamp);
+               Send (PID, Shutdown_Service, Query'Access);
             exception
                when Communication_Error => null;
             end;
@@ -292,10 +305,9 @@ package body System.Garlic.Termination is
    procedure Local_Termination is
    begin
       loop
-         pragma Debug (D (D_Debug, "Count =" & Get_Active_Task_Count'Img));
-
          --  This procedure is executed by the env. task. So, we terminate
          --  when the env. task is the only active task.
+
          exit when Get_Active_Task_Count = 1;
 
          delay Time_Between_Checks;
@@ -314,63 +326,58 @@ package body System.Garlic.Termination is
       Query     : access Params_Stream_Type;
       Reply     : access Params_Stream_Type)
    is
-      Termination_Operation : Termination_Code;
-      Id                    : Stamp;
+      Code  : Termination_Code;
+      Stamp : Stamp_Type;
    begin
-      Termination_Code'Read (Query, Termination_Operation);
+      Termination_Code'Read (Query, Code);
 
-      if not Termination_Operation'Valid then
-         pragma Debug (D (D_Debug, "Received invalid termination operation"));
-         raise Constraint_Error;
+      if not Opcode'Valid then
+         Ada.Exceptions.Raise_Exception
+           (Constraint_Error'Identity,
+            "Received invalid termination operation");
       end if;
 
-      Stamp'Read (Query, Id);
-      if not Id'Valid then
-         pragma Debug (D (D_Debug, "Received invalid stamp"));
-         raise Constraint_Error;
+      Stamp_Type'Read (Query, Stamp);
+      if not Stamp'Valid then
+         Ada.Exceptions.Raise_Exception
+           (Constraint_Error'Identity,
+            "Received invalid termination stamp");
       end if;
 
-      pragma Debug
-        (D (D_Debug, "Received operation of " & Termination_Operation'Img));
-
-      case Termination_Operation is
-
+      case Code is
          when Set_Stamp =>
-            Termination_Watcher.Set_Stamp (Id);
+            Termination_Watcher.Set_Stamp (Stamp);
 
          when Check_Stamp =>
             declare
-               OK     : Boolean;
-               Answer : aliased Params_Stream_Type (0);
+               Ready : Boolean;
+               Reply : aliased Params_Stream_Type (0);
             begin
-               Termination_Watcher.Termination_Accepted (Id, OK);
-
-               --  Send a positive ack if there has been no activity and
-               --  no task is active but the current one.
-
-               pragma Debug (D (D_Debug,
-                                "Active task count is" &
-                                Natural'Image (Get_Active_Task_Count)));
+               Termination_Watcher.Termination_Accepted (Stamp, Ready);
 
                --  To terminate, Get_Active_Task_Count should be 2 because
                --  the env. task is still active (awake) and the task
                --  executing this code is also active.
 
-               if OK and then Get_Active_Task_Count = 2 and then
-                 Options.Termination /= Deferred_Termination then
-                  Termination_Code'Write (Answer'Access, Positive_Ack);
+               if Ready
+                 and then Get_Active_Task_Count = 2
+                 and then Options.Termination /= Deferred_Termination
+               then
+                  pragma Debug (D (D_Debug, "Partition can terminate"));
+                  Termination_Code'Write (Reply'Access, Positive_Ack);
                else
-                  Termination_Code'Write (Answer'Access, Negative_Ack);
+                  pragma Debug (D (D_Debug, "Partition cannot terminate"));
+                  Termination_Code'Write (Reply'Access, Negative_Ack);
                end if;
-               Stamp'Write (Answer'Access, Id);
-               Send (Partition, Shutdown_Service, Answer'Access);
+               Stamp_Type'Write (Reply'Access, Stamp);
+               Send (Partition, Shutdown_Service, Reply'Access);
             end;
 
          when Positive_Ack =>
-            Termination_Watcher.Positive_Ack_Received (Id);
+            Termination_Watcher.Positive_Ack_Received (Stamp);
 
          when Negative_Ack =>
-            Termination_Watcher.Negative_Ack_Received (Id);
+            Termination_Watcher.Negative_Ack_Received (Stamp);
 
       end case;
    end Handle_Request;
@@ -422,13 +429,6 @@ package body System.Garlic.Termination is
          delay Time_Between_Checks;
          exit Main_Loop when Shutdown_In_Progress;
 
-         --  If there is only one active task (me!), we can initiate
-         --  the algorithm.
-
-         pragma Debug (D (D_Debug,
-                          "Checking for active tasks:" &
-                          Natural'Image (Get_Active_Task_Count)));
-
          --  To terminate, Get_Active_Task_Count should be 1 because the
          --  env. task is still active because it is executing this code.
 
@@ -437,37 +437,43 @@ package body System.Garlic.Termination is
                function Clock return Duration
                  renames System.Task_Primitives.Operations.Clock;
                Ready    : Boolean := True;
-               Id       : Stamp;
+               Stamp    : Stamp_Type;
                Success  : Boolean;
-               End_Time : Duration;
+               Deadline : Duration;
+               PID      : Partition_ID;
+               Info     : Partition_Info;
             begin
                --  First of all, check if there is any alive partition whose
                --  termination is local. If this is the case, that means
                --  that these partitions have not terminated yet.
 
-               for PID in Partitions.Table'Range loop
-                  if Partitions.Table (PID).Allocated
-                    and then PID /= Self_PID
+               PID := Null_PID;
+               loop
+                  Next_Partition (PID);
+                  exit when PID = Null_PID;
+                  Info := Partitions.Get_Component (PID);
+
+                  if PID /= Self_PID
+                    and then Info.Status = Done
+                    and then Info.Termination = Local_Termination
                   then
-                     if Blocking_Partition (PID) then
-                        pragma Debug (D (D_Debug,
-                                         "Partition" & PID'Img &
-                                         " has not terminated"));
-                        Ready := False;
-                        exit;
-                     end if;
+                     pragma Debug
+                       (D (D_Debug,
+                           "Partition" & PID'Img & " still active"));
+                     Ready := False;
+                     exit;
                   end if;
                end loop;
 
                if Ready then
 
                   Termination_Watcher.Increment_Stamp;
-                  Id := Termination_Watcher.Get_Stamp;
+                  Stamp := Termination_Watcher.Get_Stamp;
                   Initiate_Synchronization;
 
                   Success  := False;
-                  End_Time := Clock + Time_To_Synchronize;
-                  while Clock < End_Time loop
+                  Deadline := Clock + Time_To_Synchronize;
+                  while Clock < Deadline loop
 
                      --  The following construction is against all the
                      --  quality and style guidelines; but they cannot be
@@ -479,7 +485,8 @@ package body System.Garlic.Termination is
                      delay Polling_Interval;
 
                      if Termination_Watcher.Result_Is_Available then
-                        Termination_Watcher.Termination_Accepted (Id, Success);
+                        Termination_Watcher.Termination_Accepted
+                          (Stamp, Success);
                         exit;
                      end if;
                   end loop;
@@ -490,10 +497,6 @@ package body System.Garlic.Termination is
 
                   Success := False;
                end if;
-
-               pragma Debug
-                 (D (D_Debug,
-                     "Get_Active_Task_Count is" & Get_Active_Task_Count'Img));
 
                --  To terminate, Get_Active_Task_Count should be 1 because
                --  the env. task is still active because it is executing
@@ -543,7 +546,7 @@ package body System.Garlic.Termination is
       -- Get_Stamp --
       ---------------
 
-      function Get_Stamp return Stamp is
+      function Get_Stamp return Stamp_Type is
       begin
          return Current;
       end Get_Stamp;
@@ -578,9 +581,9 @@ package body System.Garlic.Termination is
       -- Negative_Ack_Received --
       ---------------------------
 
-      procedure Negative_Ack_Received (S : in Stamp) is
+      procedure Negative_Ack_Received (Stamp : in Stamp_Type) is
       begin
-         if S = Current then
+         if Stamp = Current then
             Result    := False;
             Available := True;
          end if;
@@ -590,9 +593,9 @@ package body System.Garlic.Termination is
       -- Positive_Ack_Received --
       ---------------------------
 
-      procedure Positive_Ack_Received (S : in Stamp) is
+      procedure Positive_Ack_Received (Stamp : in Stamp_Type) is
       begin
-         if S = Current then
+         if Stamp = Current then
             if not Available then
                Count := Count - 1;
                if Count = 0 then
@@ -616,9 +619,9 @@ package body System.Garlic.Termination is
       -- Set_Stamp --
       ---------------
 
-      procedure Set_Stamp (S : in Stamp) is
+      procedure Set_Stamp (Stamp : in Stamp_Type) is
       begin
-         Current   := S;
+         Current   := Stamp;
          Result    := True;
          Available := True;
       end Set_Stamp;
@@ -627,10 +630,10 @@ package body System.Garlic.Termination is
       -- Termination_Accepted --
       --------------------------
 
-      entry Termination_Accepted (S : in Stamp; B : out Boolean)
+      entry Termination_Accepted (Stamp : in Stamp_Type; B : out Boolean)
       when Available is
       begin
-         B := Result and then S = Current;
+         B := Result and then Stamp = Current;
       end Termination_Accepted;
 
    end Termination_Watcher;
