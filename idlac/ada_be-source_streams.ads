@@ -27,7 +27,7 @@
 with Ada.Finalization;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
-package Ada_BE.Source_Streams is
+package Ada_Be.Source_Streams is
 
    Indent_Size : constant := 3;
 
@@ -169,4 +169,4 @@ private
 
    procedure Finalize (Object : in out Compilation_Unit);
 
-end Ada_BE.Source_Streams;
+end Ada_Be.Source_Streams;

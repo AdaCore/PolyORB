@@ -41,7 +41,7 @@ with PortableServer.ServantLocator.Impl;
 
 with CORBA.Impl;
 
-package body Portableserver.POA is
+package body PortableServer.POA is
 
    use Broca.POA;
 
@@ -609,4 +609,4 @@ package body Portableserver.POA is
       return Broca.POA.Skeleton_To_Ref (Skel.all);
    end Id_To_Reference;
 
-end Portableserver.POA;
+end PortableServer.POA;

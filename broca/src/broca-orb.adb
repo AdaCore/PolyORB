@@ -48,12 +48,13 @@ with Broca.Sequences;
 with Broca.Debug;
 pragma Elaborate (Broca.Debug);
 
+with Broca.IOP;
 with Broca.IIOP;
 with Broca.POA;
 with Broca.RootPOA;
 with PortableServer.POA;
-with PortableServer.ServantLocator.Impl;
 with PortableServer.ServantManager;
+with PortableServer.ServantLocator.Impl;
 
 package body Broca.ORB is
 
@@ -221,8 +222,11 @@ package body Broca.ORB is
             Sp           => NON_RETAIN,
             Rp           => USE_SERVANT_MANAGER);
          pragma Debug (O ("Setting default servant"));
+         --  XXX Typecast to keep compiler happy about
+         --  "no entites of PS.SM are referenced".
          PortableServer.ServantManager.Set
-           (References_POA.Servant_Manager,
+           (PortableServer.ServantManager.Ref'Class
+            (References_POA.Servant_Manager),
             CORBA.Impl.Object_Ptr'(Locator'Access));
          pragma Debug (O ("Activating the references POA"));
          Activate (Get_The_POAManager (References_POA) .all);

@@ -122,7 +122,7 @@ package body Broca.Server_Tools is
          Initiate_RootPOA;
       end if;
       pragma Debug (O ("Initiate_Servant : ready to "
-                       & "call Corba.Object.Set"));
+                       & "call CORBA.Object.Set"));
       CORBA.Object.Set
         (CORBA.Object.Ref (R),
          CORBA.Object.Object_Of

@@ -42,6 +42,7 @@ with PortableServer;
 with Broca.Buffers;     use Broca.Buffers;
 with Broca.CDR;         use Broca.CDR;
 with Broca.Opaque;
+with Broca.Sequences;
 with Broca.Exceptions;
 with Broca.GIOP;
 with Broca.Parameters;

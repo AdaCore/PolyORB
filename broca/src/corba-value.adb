@@ -34,7 +34,7 @@
 with Broca.Value.Value_Skel;
 with Broca.Exceptions;
 
-package body Corba.Value is
+package body CORBA.Value is
 
    ------------
    --  Is_A  --
@@ -72,4 +72,4 @@ package body Corba.Value is
 
    end Is_A;
 
-end Corba.Value;
+end CORBA.Value;

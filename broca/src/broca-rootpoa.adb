@@ -49,6 +49,7 @@ with PortableServer.ServantActivator.Impl;
 with PortableServer.ServantLocator.Impl;
 
 with Broca.Flags;
+with Broca.Opaque;
 with Broca.Refs;
 with Broca.Exceptions;
 with Broca.ORB;
