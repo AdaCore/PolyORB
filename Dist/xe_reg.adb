@@ -26,127 +26,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with System;
-with Interfaces.C;
+with GNAT.Registry; use GNAT.Registry;
 
 package body XE_Reg is
-
-   use System;
-
-   REG_ERROR : exception;
-
-   --  Win32 registry functions prototypes
-
-   subtype ULONG   is Interfaces.C.unsigned_long;
-   subtype LONG    is Interfaces.C.long;
-   subtype DWORD   is ULONG;
-   type    PULONG  is access all ULONG;
-   subtype PDWORD  is PULONG;
-   subtype LPDWORD is PDWORD;
-
-   subtype HKEY is ULONG;
-   type PHKEY   is access all HKEY;
-
-   type ACCESS_MASK is new DWORD;
-   type REGSAM      is new ACCESS_MASK;
-
-   KEY_QUERY_VALUE    : constant := 1;
-
-   HKEY_LOCAL_MACHINE : constant HKEY := 16#80000002#;
-
-   ERROR_SUCCESS      : constant := 0;
-
-   function RegOpenKeyEx
-     (hKey       : XE_Reg.HKEY;
-      lpSubKey   : Address;
-      ulOptions  : DWORD;
-      samDesired : REGSAM;
-      phkResult  : PHKEY)
-      return       LONG;
-   pragma Import (Stdcall, RegOpenKeyEx, "RegOpenKeyExA");
-
-   function RegQueryValueEx
-     (hKey        : XE_Reg.HKEY;
-      lpValueName : Address;
-      lpReserved  : LPDWORD;
-
-      lpType      : LPDWORD;
-      lpData      : Address;
-      lpcbData    : LPDWORD)
-      return        LONG;
-   pragma Import (Stdcall, RegQueryValueEx, "RegQueryValueExA");
-
-   function RegCloseKey (hKey : XE_Reg.HKEY) return LONG;
-   pragma Import (Stdcall, RegCloseKey, "RegCloseKey");
-
-   function Open_Key (From_Key : HKEY; Name : String) return HKEY;
-   --  open the Name registry key and return its handle
-
-   function Get_Key (Key : HKEY; Name : String) return String;
-   --  key the key name value for Name in the registry Key.
-
-   --------------
-   -- Open_Key --
-   --------------
-
-   function Open_Key (From_Key : in HKEY; Name : in String) return HKEY is
-      use type LONG;
-
-      C_Name  : constant String := Name & ASCII.NUL;
-      New_Key : aliased HKEY;
-      Result  : LONG;
-   begin
-      Result := RegOpenKeyEx
-        (From_Key,
-         C_Name'Address,
-         0,
-         KEY_QUERY_VALUE,
-         New_Key'Unchecked_Access);
-
-      if Result /= ERROR_SUCCESS then
-         raise REG_ERROR;
-      else
-         return New_Key;
-      end if;
-   end Open_Key;
-
-   -------------
-   -- Get_Key --
-   -------------
-
-   function Get_Key (Key : HKEY; Name : String) return String is
-      use type ULONG;
-      use type LONG;
-
-      Value        : String (1 .. 100);
-      pragma Warnings (Off, Value);
-
-      Size_Value   : aliased ULONG;
-      Type_Value   : aliased DWORD;
-
-      C_Name       : constant String := Name & ASCII.NUL;
-      Result       : LONG;
-
-   begin
-      --  read value of the GCC key
-      Size_Value := Value'Length;
-
-      Result := RegQueryValueEx
-        (Key,
-         C_Name'Address,
-         null,
-         Type_Value'Unchecked_Access,
-         Value'Address,
-         Size_Value'Unchecked_Access);
-
-      if Result /= ERROR_SUCCESS then
-         raise REG_ERROR;
-      else
-         Size_Value := Size_Value - 1;
-         return Value (1 .. Integer (Size_Value));
-      end if;
-
-   end Get_Key;
 
    --------------------
    -- Get_GARLIC_Dir --
@@ -165,12 +47,14 @@ package body XE_Reg is
          declare
             GCC_ROOT : constant String := Result.all;
          begin
+            Free (Result);
+
             if GCC_ROOT (GCC_ROOT'Last) = '\'
               or else GCC_ROOT (GCC_ROOT'Last) = '/'
             then
-               return new String'(Result.all & "lib\garlic");
+               return new String'(GCC_ROOT & "lib\garlic");
             else
-               return new String'(Result.all & "\lib\garlic");
+               return new String'(GCC_ROOT & "\lib\garlic");
             end if;
          end;
       end if;
@@ -183,20 +67,15 @@ package body XE_Reg is
                            "SOFTWARE\Ada Core Technologies");
 
       --  get GCC value
-      Result := new String'(Get_Key (ACT_Key, "GCC") & "\lib\garlic");
 
-      --  close key
+      Result := new String'(Query_Value (ACT_Key, "GCC") & "\lib\garlic");
 
-      declare
-         Result : LONG;
-      begin
-         Result := RegCloseKey (ACT_Key);
-      end;
+      Close_Key (ACT_Key);
 
       return Result;
 
    exception
-      when REG_ERROR =>
+      when Registry_Error =>
          return null;
    end Get_GARLIC_Dir;
 
