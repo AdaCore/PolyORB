@@ -35,6 +35,7 @@ with Ada_Be.Debug;
 with Errors;                use Errors;
 with Utils;                 use Utils;
 
+with Ada.Characters.Handling;
 with GNAT.HTable;
 
 package body Ada_Be.Expansion is
@@ -210,6 +211,9 @@ package body Ada_Be.Expansion is
    --  True if Node (K_Operation) has "out" or "in out"
    --  formal parameters.
 
+   function Is_Ada_Keyword (Name : String) return Boolean;
+   --  Check whether Name is an Ada 95 keyword
+
    -----------------
    -- Expand_Node --
    -----------------
@@ -218,6 +222,13 @@ package body Ada_Be.Expansion is
    begin
       pragma Debug (O ("Expanding node : "
                        & Node_Kind'Image (Kind (Node))));
+
+      --  Rename nodes with Ada identifiers
+
+      if Is_Named (Node) and then Is_Ada_Keyword (Name (Node)) then
+         Add_Identifier_With_Renaming (Node, "IDL_" & Name (Node));
+      end if;
+
       case (Kind (Node)) is
          when K_Repository =>
             Expand_Repository (Node);
@@ -255,6 +266,9 @@ package body Ada_Be.Expansion is
 
          when K_Sequence =>
             Expand_Sequence (Node);
+
+         when K_Param =>
+            Expand_Param (Node);
 
          when
            K_String      |
@@ -772,6 +786,7 @@ package body Ada_Be.Expansion is
      (Node : in Node_Id) is
    begin
       Expand_Node (Param_Type (Node));
+      Expand_Node (Declarator (Node));
    end Expand_Param;
 
    procedure Expand_Exception
@@ -820,6 +835,7 @@ package body Ada_Be.Expansion is
       end if;
 
       Expand_Node (T_Type (Node));
+      Expand_Node_List (Declarators (Node), False);
    end Expand_Type_Declarator;
 
    procedure Expand_Struct
@@ -1188,7 +1204,83 @@ package body Ada_Be.Expansion is
    --          private utilities          --
    -----------------------------------------
 
+   --------------------
+   -- Is_Ada_Keyword --
+   --------------------
 
+   function Is_Ada_Keyword (Name : String) return Boolean is
+      Lower : constant String := Ada.Characters.Handling.To_Lower (Name);
+   begin
+      return    Lower = "abort"
+        or else Lower = "abs"
+        or else Lower = "abstract"
+        or else Lower = "accept"
+        or else Lower = "access"
+        or else Lower = "aliased"
+        or else Lower = "all"
+        or else Lower = "and"
+        or else Lower = "array"
+        or else Lower = "at"
+        or else Lower = "begin"
+        or else Lower = "body"
+        or else Lower = "case"
+        or else Lower = "constant"
+        or else Lower = "declare"
+        or else Lower = "delay"
+        or else Lower = "delta"
+        or else Lower = "digits"
+        or else Lower = "do"
+        or else Lower = "else"
+        or else Lower = "elsif"
+        or else Lower = "end"
+        or else Lower = "entry"
+        or else Lower = "exception"
+        or else Lower = "exit"
+        or else Lower = "for"
+        or else Lower = "function"
+        or else Lower = "generic"
+        or else Lower = "goto"
+        or else Lower = "if"
+        or else Lower = "in"
+        or else Lower = "is"
+        or else Lower = "limited"
+        or else Lower = "loop"
+        or else Lower = "mod"
+        or else Lower = "new"
+        or else Lower = "not"
+        or else Lower = "null"
+        or else Lower = "of"
+        or else Lower = "or"
+        or else Lower = "others"
+        or else Lower = "out"
+        or else Lower = "package"
+        or else Lower = "pragma"
+        or else Lower = "private"
+        or else Lower = "procedure"
+        or else Lower = "protected"
+        or else Lower = "raise"
+        or else Lower = "range"
+        or else Lower = "record"
+        or else Lower = "rem"
+        or else Lower = "renames"
+        or else Lower = "requeue"
+        or else Lower = "return"
+        or else Lower = "reverse"
+        or else Lower = "select"
+        or else Lower = "separate"
+        or else Lower = "subtype"
+        or else Lower = "tagged"
+        or else Lower = "task"
+        or else Lower = "terminate"
+        or else Lower = "then"
+        or else Lower = "type"
+        or else Lower = "until"
+        or else Lower = "use"
+        or else Lower = "when"
+        or else Lower = "while"
+        or else Lower = "with"
+        or else Lower = "xor";
+   end Is_Ada_Keyword;
 
    -----------------------
    --  Expand_Node_List --
