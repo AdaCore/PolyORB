@@ -65,11 +65,11 @@ interface all_types {
 
   // Structs
   // -------
-  //struct simple_struct {
-  //    long a;
-  //    string s;
-  //};
-  //simple_struct echoStruct (in simple_struct arg);
+  struct simple_struct {
+      long a;
+      string s;
+  };
+  simple_struct echoStruct (in simple_struct arg);
 
   //struct array_struct {
   //    long a[10];

@@ -195,13 +195,13 @@ begin
       --  Fixed point types are not implemented yet.
 
       --  Structs
-      --  declare
-      --   Test_Struct : constant simple_struct
-      --     := (123, To_CORBA_String ("Hello world!"));
-      --  begin
-      --   Output ("test struct",
-      --           echoStruct (Myall_types, Test_Struct) = Test_Struct);
-      --  end;
+      declare
+         Test_Struct : constant simple_struct
+           := (123, To_CORBA_String ("Hello world!"));
+      begin
+         Output ("test struct",
+                 echoStruct (Myall_types, Test_Struct) = Test_Struct);
+      end;
 
       --  declare
       --   Struct : constant simple_struct

@@ -191,13 +191,13 @@ package body all_types.Impl is
    --   CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
    --end testSystemException;
 
-   --  function echoStruct
-   --  (Self : access Object;
-   --   arg  : in simple_struct)
-   --   return simple_struct is
-   --  begin
-   --   return arg;
-   --  end echoStruct;
+   function echoStruct
+     (Self : access Object;
+      arg  : in simple_struct)
+     return simple_struct is
+   begin
+      return arg;
+   end echoStruct;
 
    --  function echoArrayStruct
    --  (Self : access Object;
