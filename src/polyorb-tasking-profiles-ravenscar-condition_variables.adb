@@ -33,38 +33,48 @@
 
 --  Implementation of synchronisation objects under the ravenscar profile.
 
-with PolyORB.Tasking.Threads;
 with PolyORB.Tasking.Profiles.Ravenscar.Threads;
 
 with PolyORB.Initialization;
 with PolyORB.Utils.Strings;
+with PolyORB.Log;
 
 package body PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
-   use PolyORB.Tasking.Profiles.Ravenscar.Threads;
 
-   package PTT renames PolyORB.Tasking.Threads;
+   use PolyORB.Log;
 
    package PTM renames PolyORB.Tasking.Mutexes;
 
    package PTCV renames PolyORB.Tasking.Condition_Variables;
 
+   package L is new PolyORB.Log.Facility_Log
+     ("polyorb.tasking.profiles.ravenscar.condition_variables");
+
+   procedure O (Message : in String; Level : Log_Level := Debug)
+     renames L.Output;
+
    type Queued_Thread is record
       --  Element of a queue of Thread; see comment for Thread_Queue.
+      Sync       : Synchro_Index_Type;
+      --  Synchro object the Thread is waiting on.
 
-      This       : Ravenscar_Thread_Id;
-      Next       : Extended_Thread_Index;
+      Next       : Extended_Synchro_Index;
+      --  Next Thread in the queue.
+
       Is_Waiting : Boolean;
+      --  True if the thread is waiting.
+
    end record;
 
-   type Thread_Queue is array (Thread_Index) of Queued_Thread;
+   type Thread_Queue is array (Synchro_Index_Type) of Queued_Thread;
    --  Implementation of a queue using an array.
-   --  Each element of the array contain an access to a Thread,
+   --  Each element of the array represent a waiting thread, and
+   --  contain an access to the synchro object on which it is waiting,
    --  and the index of the Thread following it in the queue.
-   --  This queue  is used by a Mutex to record the tasks that
+   --  This queue  is used by a condition variable to record the tasks that
    --  wait for it.
-   --  The place of a Thread in the array doesn't change during execution;
-   --  The only thing that changes is the index of the Thread that follows it
-   --  in the queue. If it is not queued, it is set to Null_Thread_Index.
+   --  The place of a Thread in the array change at every suspending call;
+   --  It is determinate by the index of its current synchro object.
 
    type Condition_Pool_Type is array (Condition_Index_Type)
      of aliased Ravenscar_Condition_Type;
@@ -76,15 +86,18 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
       --  Provide thread safe primitives for a  Mutex,
       --  and manage its Thread_Queue.
 
+      function Check_Queue_Consistency return Boolean;
+      --  Function supposed to be used in an assert statement.
+      --  It check some simple properties of the Thread_Queue :
+      --  No loop, no error in the Is_Waiting flags...
+
       procedure Prepare_Wait
-        (Tid : Ravenscar_Thread_Id;
-         Id  : Thread_Index);
-      --  Inform the PO that a task, whose Thread_Id is Id,
-      --  is about to Wait.
+        (S : Synchro_Index_Type);
+      --  Inform the PO that the current task is about to Wait.
 
       procedure Signal
         (Someone_Is_Waiting : out Boolean;
-         To_Free            : out Ravenscar_Thread_Id);
+         To_Free            : out Synchro_Index_Type);
       --  Protected part of the implementation of Signal.
 
       procedure Broadcast (To_Free : out Thread_Queue);
@@ -95,7 +108,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
 
    private
       My_Index         : Condition_Index_Type;
-      First            : Extended_Thread_Index;
+      First            : Extended_Synchro_Index;
       Waiters          : Thread_Queue;
    end Condition_PO;
 
@@ -104,6 +117,25 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
 
    The_Condition_PO_Arr : Condition_PO_Arr;
    --  Pool of Condition_PO.
+
+   ---------------
+   -- Broadcast --
+   ---------------
+
+   procedure Broadcast
+     (C : in out Ravenscar_Condition_Type) is
+      To_Free : Thread_Queue;
+   begin
+      pragma Debug (O ("Broadcast"));
+      The_Condition_PO_Arr (C.Id).Broadcast (To_Free);
+      for J in To_Free'Range loop
+
+         if To_Free (J).Is_Waiting = True then
+            Resume (To_Free (J).Sync);
+         end if;
+
+      end loop;
+   end Broadcast;
 
    ------------
    -- Create --
@@ -121,6 +153,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
       Index : Condition_Index_Type;
       C     : Ravenscar_Condition_Access;
    begin
+      pragma Debug (O ("Create"));
       Condition_Index_Manager.Get (Index);
       C := The_Condition_Pool (Index)'Access;
       C.Id := Index;
@@ -139,8 +172,136 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
       pragma Unreferenced (MF);
       pragma Warnings (On);
    begin
+      pragma Debug (O ("Destroy"));
       Condition_Index_Manager.Release (Ravenscar_Condition_Access (C).Id);
    end Destroy;
+
+   ------------------
+   -- Condition_PO --
+   ------------------
+
+   protected body Condition_PO is
+      --  XXX gestion of the queue not implemented yet.
+
+      ------------------------------------------
+      -- Condition_PO.Check_Queue_Consistency --
+      ------------------------------------------
+
+      function Check_Queue_Consistency return Boolean is
+         type Bool_Arr is array (Waiters'Range) of Boolean;
+         Marked  : Bool_Arr;
+         Current : Extended_Synchro_Index := First;
+      begin
+         for J in Marked'Range loop
+            Marked (J) := False;
+         end loop;
+         while Current /= Null_Synchro_Index loop
+
+            if Marked (Synchro_Index_Type (Current)) then
+               --  Loop in the queue
+               return False;
+            end if;
+
+            if not Waiters (Synchro_Index_Type (Current)).Is_Waiting then
+               --  Someone is in the queue, but does not wait.
+               return False;
+            end if;
+
+            Marked (Synchro_Index_Type (Current)) := True;
+            Current := Waiters (Synchro_Index_Type (Current)).Next;
+         end loop;
+
+         return True;
+      end Check_Queue_Consistency;
+
+      ----------------------------
+      -- Condition_PO.Broadcast --
+      ----------------------------
+
+      procedure Broadcast (To_Free : out Thread_Queue) is
+      begin
+         pragma Assert (Check_Queue_Consistency);
+         To_Free := Waiters;
+         First := Null_Synchro_Index;
+         for J in Waiters'Range loop
+            Waiters (J).Is_Waiting := False;
+         end loop;
+         pragma Assert (Check_Queue_Consistency);
+      end Broadcast;
+
+      -----------------------------
+      -- Condition_PO.Initialize --
+      -----------------------------
+
+      procedure Initialize (N : Condition_Index_Type) is
+      begin
+         My_Index := N;
+         First := Null_Synchro_Index;
+         for J in Waiters'Range loop
+            Waiters (J).Next := Null_Synchro_Index;
+            Waiters (J).Is_Waiting := False;
+         end loop;
+         pragma Assert (Check_Queue_Consistency);
+      end Initialize;
+
+      -------------------------------
+      -- Condition_PO.Prepare_Wait --
+      -------------------------------
+
+      procedure Prepare_Wait
+        (S : Synchro_Index_Type) is
+         Current   : Extended_Synchro_Index;
+         Precedent : Extended_Synchro_Index;
+      begin
+         pragma Assert (Check_Queue_Consistency);
+         Waiters (S).Is_Waiting := True;
+         Waiters (S).Sync := S;
+
+         if First /= Null_Synchro_Index then
+            --  This loop search the rank of T in the queue:
+            Current := Waiters (Synchro_Index_Type (First)).Next;
+            Precedent := First;
+            while Current /= Null_Synchro_Index loop
+               --  XXX compare the Priorities...
+               Precedent := Current;
+               Current := Waiters (Synchro_Index_Type (Current)).Next;
+            end loop;
+
+            Waiters (Synchro_Index_Type (Precedent)).Next
+              := Extended_Synchro_Index (S);
+            Waiters (S).Next := Current;
+
+         else
+            First := Extended_Synchro_Index (S);
+            Waiters (S).Next := Null_Synchro_Index;
+         end if;
+         pragma Assert (Check_Queue_Consistency);
+      end Prepare_Wait;
+
+      -------------------------
+      -- Condition_PO.Signal --
+      -------------------------
+
+      procedure Signal
+        (Someone_Is_Waiting : out Boolean;
+         To_Free            : out Synchro_Index_Type) is
+         Former_First : constant Extended_Synchro_Index := First;
+      begin
+         pragma Assert (Check_Queue_Consistency);
+         Someone_Is_Waiting := First /= Null_Synchro_Index;
+
+         if Someone_Is_Waiting then
+            First := Waiters (Synchro_Index_Type (Former_First)).Next;
+            Waiters (Synchro_Index_Type (Former_First)).Next
+              := Null_Synchro_Index;
+            Waiters (Synchro_Index_Type (Former_First)).Is_Waiting := False;
+            To_Free := Waiters (Synchro_Index_Type (Former_First)).Sync;
+         end if;
+
+         pragma Assert (Check_Queue_Consistency);
+      end Signal;
+
+   end Condition_PO;
 
    ----------------
    -- Initialize --
@@ -156,95 +317,6 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
                                     (The_Condition_Factory));
    end Initialize;
 
-   ------------------
-   -- Condition_PO --
-   ------------------
-
-   protected body Condition_PO is
-      --  XXX gestion of the queue not implemented yet.
-
-      ----------------------------
-      -- Condition_PO.Broadcast --
-      ----------------------------
-
-      procedure Broadcast (To_Free : out Thread_Queue) is
-      begin
-         To_Free := Waiters;
-         First := Null_Thread_Index;
-         for J in Waiters'Range loop
-            Waiters (J).Is_Waiting := False;
-         end loop;
-      end Broadcast;
-
-      -----------------------------
-      -- Condition_PO.Initialize --
-      -----------------------------
-
-      procedure Initialize (N : Condition_Index_Type) is
-      begin
-         My_Index := N;
-         First := Null_Thread_Index;
-         for J in Waiters'Range loop
-            Waiters (J).Next := Null_Thread_Index;
-            Waiters (J).Is_Waiting := False;
-         end loop;
-      end Initialize;
-
-      -------------------------------
-      -- Condition_PO.Prepare_Wait --
-      -------------------------------
-
-      procedure Prepare_Wait
-        (Tid : Ravenscar_Thread_Id;
-         Id  : Thread_Index) is
-         Current   : Extended_Thread_Index;
-         Precedent : Extended_Thread_Index;
-      begin
-         Waiters (Id).Is_Waiting := True;
-         Waiters (Id).This := Tid;
-         pragma Assert (Id /= Null_Thread_Index);
-
-         if First /= Null_Thread_Index then
-            --  This loop search the rank of T in the queue:
-            Current := Waiters (First).Next;
-            Precedent := First;
-            while Current /= Null_Thread_Index loop
-               --  XXX compare the Priorities...
-               Precedent := Current;
-               Current := Waiters (Current).Next;
-            end loop;
-
-            Waiters (Precedent).Next := Id;
-            Waiters (Id).Next := Current;
-
-         else
-            First := Id;
-            Waiters (Id).Next := Null_Thread_Index;
-         end if;
-      end Prepare_Wait;
-
-      -------------------------
-      -- Condition_PO.Signal --
-      -------------------------
-
-      procedure Signal
-        (Someone_Is_Waiting : out Boolean;
-         To_Free            : out Ravenscar_Thread_Id) is
-         Former_First : constant Extended_Thread_Index := First;
-      begin
-         Someone_Is_Waiting := First /= Null_Thread_Index;
-
-         if Someone_Is_Waiting then
-            First := Waiters (Former_First).Next;
-            Waiters (Former_First).Next := Null_Thread_Index;
-            Waiters (Former_First).Is_Waiting := False;
-            To_Free := Waiters (Former_First).This;
-         end if;
-
-      end Signal;
-
-   end Condition_PO;
-
    ------------
    -- Signal --
    ------------
@@ -252,32 +324,15 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
    procedure Signal
      (C : in out Ravenscar_Condition_Type) is
       Someone_Is_Waiting : Boolean;
-      To_Free            : Ravenscar_Thread_Id;
+      To_Free            : Synchro_Index_Type;
    begin
+      pragma Debug (O ("Signal"));
       The_Condition_PO_Arr (C.Id).Signal (Someone_Is_Waiting, To_Free);
 
       if Someone_Is_Waiting then
          Resume (To_Free);
       end if;
    end Signal;
-
-   ---------------
-   -- Broadcast --
-   ---------------
-
-   procedure Broadcast
-     (C : in out Ravenscar_Condition_Type) is
-      To_Free : Thread_Queue;
-   begin
-      The_Condition_PO_Arr (C.Id).Broadcast (To_Free);
-      for J in To_Free'Range loop
-
-         if To_Free (J).Is_Waiting = True then
-            Resume (To_Free (J).This);
-         end if;
-
-      end loop;
-   end Broadcast;
 
    ----------
    -- Wait --
@@ -286,16 +341,13 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
    procedure Wait
      (C : in out Ravenscar_Condition_Type;
       M : access PTM.Mutex_Type'Class) is
-      My_TF          : constant PTT.Thread_Factory_Access
-        := PTT.Get_Thread_Factory;
-      Current_Thread_Id : constant Ravenscar_Thread_Id
-        := Ravenscar_Thread_Id (PTT.Get_Current_Thread_Id (My_TF));
-      T_Id           : constant Extended_Thread_Index
-        := Get_Thread_Index (Current_Thread_Id);
+      S : Synchro_Index_Type;
    begin
-      The_Condition_PO_Arr (C.Id).Prepare_Wait (Current_Thread_Id, T_Id);
+      pragma Debug (O ("Wait"));
+      S := Prepare_Suspend;
+      The_Condition_PO_Arr (C.Id).Prepare_Wait (S);
       PTM.Leave (M.all);
-      Suspend (Current_Thread_Id);
+      Suspend (S);
       PTM.Enter (M.all);
    end Wait;
 

@@ -1,4 +1,4 @@
-EXAMPLES_ROOT=..
+EXAMPLES_ROOT=../..
 EXAMPLE = all_functions
 
 #EXTRA = dynclient
@@ -10,4 +10,4 @@ if ENABLE_CORBA
    COS=cos
 endif
 
-include $(srcdir)/../Makefile.common
+include $(srcdir)/../../Makefile.common

@@ -1,24 +1,11 @@
-if ENABLE_CORBA
-CORBA_DIR = corba 
-endif
+corba_dir = corba 
+dsa_dir   = 
+moma_dir  = moma
+giop_dir  = giop
+soap_dir  = soap
+srp_dir   = srp
 
-if ENABLE_GIOP
-GIOP_DIR = giop
-endif
-
-if ENABLE_MOMA
-MOMA_DIR = moma
-endif
-
-if ENABLE_SOAP
-SOAP_DIR = soap
-endif
-
-if ENABLE_SRP
-SRP_DIR = srp
-endif
-
-SUBDIRS = . $(CORBA_DIR) $(GIOP_DIR) $(MOMA_DIR) $(SOAP_DIR) $(SRP_DIR)
+SUBDIRS = . @PROTO_DIRS@ @APPLI_DIRS@
 
 include $(srcdir)/Makefile.common
 

@@ -3,28 +3,16 @@ IDLAC_DIR=	$(COS_ROOT)/../compilers/idlac
 IDLAC=		$(IDLAC_DIR)/idlac
 LINKER=		$(COS_ROOT)/../support/linker
 
-if ENABLE_CORBA
-CORBA_LIB="$(COS_ROOT)/../src/corba/libpolyorb-corba.la"
-endif
-
-if ENABLE_GIOP
-GIOP_LIB="$(COS_ROOT)/../src/giop/libpolyorb-giop.la"
-endif
-
-if ENABLE_MOMA
-MOMA_LIB="$(COS_ROOT)/../src/moma/libpolyorb-moma.la"
-endif
-
-if ENABLE_SOAP
-SOAP_LIB="$(COS_ROOT)/../src/soap/libpolyorb-soap.la"
-endif
+corba_lib="$(COS_ROOT)/../src/corba/libpolyorb-corba.la"
+giop_lib="$(COS_ROOT)/../src/giop/libpolyorb-giop.la"
+moma_lib="$(COS_ROOT)/../src/moma/libpolyorb-moma.la"
+soap_lib="$(COS_ROOT)/../src/soap/libpolyorb-soap.la"
+srp_lib="$(COS_ROOT)/../src/srp/libpolyorb-srp.la"
 
 POLYORB_LIBS = \
 $(COS_ROOT)/../src/libpolyorb.la \
-$(CORBA_LIB) \
-$(GIOP_LIB) \
-$(MOMA_LIB) \
-$(SOAP_LIB)
+@PROTO_LIBS@ \
+@APPLI_LIBS@
 
 GNATMAKE_FLAGS = \
 	-I$(srcdir) \
@@ -38,7 +26,7 @@ GNATMAKE_FLAGS = \
 	-I$(COS_ROOT)/../src/giop \
 	-I$(COS_ROOT)/../src/soap \
 	-I$(COS_ROOT)/../src/srp \
-	$(XMLADA_INCLUDE) \
+	$(XMLADA_INCS) \
 	-m \
 	$(COS_GNATMAKE_FLAGS) \
 	-cargs $(GNATFLAGS) -bargs $(BARGS) \

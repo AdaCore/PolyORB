@@ -55,7 +55,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
       Full_Tasking_Thread_Id_Access);
 
    procedure Free is new Unchecked_Deallocation
-     (PTT.Runnable'Class, PTT.Runnable_Access);
+     (PTT.Runnable_Controller'Class, PTT.Runnable_Controller_Access);
 
    task type Generic_Task_With_Runnable (P : System.Priority) is
       --  type of the tasks created by this package;
@@ -66,7 +66,9 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
       entry Initialize (T : PTT.Thread_Access);
       --  Give the task its parameters.
 
-      entry Start (Run : PTT.Runnable_Access);
+      entry Start
+        (Run : PTT.Runnable_Access;
+         C   : PTT.Runnable_Controller_Access);
       --  Start the task.
 
       pragma Storage_Size (131072);
@@ -132,24 +134,23 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
      (TF               : access Full_Tasking_Thread_Factory_Type;
       Name             : String := "";
       Default_Priority : System.Any_Priority := System.Default_Priority;
-      R                : PTT.Runnable'Class)
+      R                : PTT.Runnable_Access;
+      C                : PTT.Runnable_Controller_Access)
      return PTT.Thread_Access is
       pragma Warnings (Off);
       pragma Unreferenced (TF);
       pragma Warnings (On);
       T            : Full_Tasking_Thread_Access
         := new Full_Tasking_Thread_Type;
-      The_Runnable : PTT.Runnable_Access;
       GT           : Generic_Task_With_Runnable_Access;
    begin
-      The_Runnable := new PTT.Runnable'Class'(R);
       T.Priority := System.Priority
         (PolyORB.Configuration.Get_Conf
            ("tasking", "polyorb.tasking.threads." & Name & ".priority",
             Default_Priority));
       GT := new Generic_Task_With_Runnable (T.Priority);
       GT.Initialize (PTT.Thread_Access (T));
-      GT.Start (The_Runnable);
+      GT.Start (R, C);
       return PTT.Thread_Access (T);
    end Run_In_Task;
 
@@ -181,8 +182,9 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
    --------------------------------
 
    task body Generic_Task_With_Runnable is
-      The_Thread   : Full_Tasking_Thread_Access;
-      The_Runnable : PTT.Runnable_Access;
+      The_Thread     : Full_Tasking_Thread_Access;
+      The_Runnable   : PTT.Runnable_Access;
+      The_Controller : PTT.Runnable_Controller_Access;
    begin
       accept Initialize (T : PTT.Thread_Access) do
          The_Thread := Full_Tasking_Thread_Access (T);
@@ -190,12 +192,17 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
            := new Full_Tasking_Thread_Id'
            (Tid => Ada.Task_Identification.Current_Task);
       end Initialize;
-      accept Start (Run : PTT.Runnable_Access) do
+      accept Start
+        (Run : PTT.Runnable_Access;
+         C : PTT.Runnable_Controller_Access)
+      do
          The_Runnable := Run;
+         The_Controller := C;
       end Start;
       PTT.Run (The_Runnable);
       Free (Full_Tasking_Thread_Id_Access (The_Thread.Id));
-      Free (The_Runnable);
+      PTT.Free_Runnable (The_Controller.all, The_Runnable);
+      Free (The_Controller);
       Free (The_Thread);
    end Generic_Task_With_Runnable;
 

@@ -93,7 +93,8 @@ package PolyORB.Tasking.Profiles.Full_Tasking.Threads is
      (TF               : access Full_Tasking_Thread_Factory_Type;
       Name             : String := "";
       Default_Priority : System.Any_Priority := System.Default_Priority;
-      R                : PTT.Runnable'Class)
+      R                : PTT.Runnable_Access;
+      C                : PTT.Runnable_Controller_Access)
      return PTT.Thread_Access;
 
    function Run_In_Task

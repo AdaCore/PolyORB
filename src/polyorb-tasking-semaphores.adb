@@ -34,8 +34,17 @@
 --  $Id$
 
 with Ada.Unchecked_Deallocation;
+with PolyORB.Log;
 
 package body PolyORB.Tasking.Semaphores is
+
+   use PolyORB.Log;
+
+   package L is new PolyORB.Log.Facility_Log
+     ("polyorb.tasking.semaphores");
+
+   procedure O (Message : in String; Level : Log_Level := Debug)
+     renames L.Output;
 
    ----------
    -- Free --
@@ -55,6 +64,7 @@ package body PolyORB.Tasking.Semaphores is
       The_Condition_Factory : constant PTCV.Condition_Factory_Access
         := PTCV.Get_Condition_Factory;
    begin
+      pragma Debug (O ("Create semaphore"));
       Result.Value := 0;
       Result.Mutex := PTM.Create (The_Mutex_Factory);
       Result.Condition := PTCV.Create (The_Condition_Factory);
@@ -67,6 +77,8 @@ package body PolyORB.Tasking.Semaphores is
       The_Condition_Factory : constant PTCV.Condition_Factory_Access
         := PTCV.Get_Condition_Factory;
    begin
+      pragma Debug (O ("Destroy semaphore, Value was "
+                       & Integer'Image (S.Value)));
       PTM.Destroy (The_Mutex_Factory.all, S.Mutex);
       PTCV.Destroy (The_Condition_Factory.all, S.Condition);
       Free (S);
@@ -75,6 +87,8 @@ package body PolyORB.Tasking.Semaphores is
    procedure Up (S : Semaphore_Access) is
    begin
       PTM.Enter (S.Mutex.all);
+      pragma Debug (O ("Up semaphore, value ="
+                       & Integer'Image (S.Value)));
       S.Value := S.Value + 1;
       PTCV.Signal (S.Condition.all);
       PTM.Leave (S.Mutex.all);
@@ -83,8 +97,11 @@ package body PolyORB.Tasking.Semaphores is
    procedure Down (S : Semaphore_Access) is
    begin
       PTM.Enter (S.Mutex.all);
+      pragma Debug (O ("Down semaphore"));
 
       while S.Value = 0 loop
+         pragma Debug (O ("Wait in Semaphore, value ="
+                          & Integer'Image (S.Value)));
          PTCV.Wait (S.Condition.all, S.Mutex);
       end loop;
       S.Value := S.Value - 1;
@@ -97,6 +114,8 @@ package body PolyORB.Tasking.Semaphores is
    begin
       PTM.Enter (S.Mutex.all);
       Result := S.Value;
+      pragma Debug (O (" get Semaphore value, value ="
+                       & Integer'Image (S.Value)));
       PTM.Leave (S.Mutex.all);
       return Result;
    end State;

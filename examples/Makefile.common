@@ -1,10 +1,10 @@
-IDLAC = $(EXAMPLES_ROOT)/../compilers/idlac/idlac
-LINKER = $(EXAMPLES_ROOT)/../support/linker
+IDLAC = $(top_builddir)/compilers/idlac/idlac
+LINKER = $(top_builddir)/support/linker
 
 GNATMAKE_FLAGS = \
 	-I$(srcdir) \
 	-I$(srcdir)/$(EXAMPLES_ROOT) \
-	-I$(srcdir)/$(EXAMPLES_ROOT)/generic \
+	-I$(srcdir)/$(EXAMPLES_ROOT)/common \
 	-I$(srcdir)/$(EXAMPLES_ROOT)/../src \
 	-I$(srcdir)/$(EXAMPLES_ROOT)/../src/corba \
 	-I$(srcdir)/$(EXAMPLES_ROOT)/../src/giop \
@@ -13,7 +13,7 @@ GNATMAKE_FLAGS = \
 	-I$(srcdir)/$(EXAMPLES_ROOT)/../src/srp \
 	-I$(srcdir)/$(EXAMPLES_ROOT)/../cos/naming \
 	-I$(EXAMPLES_ROOT) \
-	-I$(EXAMPLES_ROOT)/generic \
+	-I$(EXAMPLES_ROOT)/common \
 	-I$(EXAMPLES_ROOT)/../src \
 	-I$(EXAMPLES_ROOT)/../src/corba \
 	-I$(EXAMPLES_ROOT)/../src/giop \
@@ -22,16 +22,12 @@ GNATMAKE_FLAGS = \
 	-I$(EXAMPLES_ROOT)/../src/srp \
 	-I$(EXAMPLES_ROOT)/../cos/naming \
 	-I$(EXAMPLES_ROOT)/../idls/cos/naming \
-	$(XMLADA_INCLUDE) \
+	$(XMLADA_INCS) \
 	-m \
 	$(EXAMPLE_GNATMAKE_FLAGS) \
 	-cargs $(GNATFLAGS) -bargs $(BARGS) \
 	-largs $(LDFLAGS) --LINK=$(LINKER) \
 	$(POLYORB_LIBS) $(XMLADA_LIBS) 
-
-#	-I$(srcdir)/$(EXAMPLES_ROOT)/../cos/naming \
-#	-I$(EXAMPLES_ROOT)/../cos/naming \
-#	-I$(EXAMPLES_ROOT)/../idls/cos/naming
 
 # Due to a bug in Automake 1.4, this line must not be splitted.
 
@@ -55,10 +51,10 @@ client server $(EXTRA): force $(EXAMPLE).ads
 force: src $(COS)
 
 src:
-	cd $(EXAMPLES_ROOT)/../src && $(MAKE)
+	cd $(top_builddir)/src && $(MAKE)
 
 cos:
-	cd $(EXAMPLES_ROOT)/../cos/naming && $(MAKE)
+	cd $(top_builddir)/cos/naming && $(MAKE)
 
 err:
 	$(ERR)

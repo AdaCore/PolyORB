@@ -1,4 +1,4 @@
-EXAMPLES_ROOT=..
+EXAMPLES_ROOT=../..
 EXAMPLE = all_types
 
 ERR = $(error PolyORB not configured to generate CORBA applications !)
@@ -25,6 +25,6 @@ endif
 
 EXAMPLE_GNATMAKE_FLAGS=-I$(srcdir)/../../cos/ir $(IR_GNATMAKE_FLAGS)
 
-include $(srcdir)/../Makefile.common
+include $(srcdir)/../../Makefile.common
 
 

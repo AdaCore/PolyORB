@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-exceptions.adb#2 $
+--  $Id: //droopi/main/src/polyorb-exceptions.adb#3 $
 
 with Ada.Unchecked_Conversion;
 
@@ -62,12 +62,27 @@ package body PolyORB.Exceptions is
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
+   package Exception_Lists is new PolyORB.Utils.Chained_Lists
+     (Exception_Info);
+
+   All_Exceptions : Exception_Lists.List;
+   --  Exception list;
+
+   PolyORB_Exc_NameSpace : constant String := "IDL:";
+   PolyORB_Exc_Version   : constant PolyORB.Types.String
+     := To_PolyORB_String (":1.0");
+   --  PolyORB exceptions namespace and version.
+
    procedure Get_ExcepId_By_RepositoryId
-     (RepoId              : in     Standard.String;
-      ExcpId              :    out Ada.Exceptions.Exception_Id;
-      Is_CORBA_System_Exc :    out Boolean);
+     (RepoId        : in     Standard.String;
+      ExcpId        :    out Ada.Exceptions.Exception_Id;
+      Is_System_Exc :    out Boolean);
    --  Return the corresponding Ada Exception_Id for
    --  a repository id.
+
+   -----------------------------
+   -- User exception handling --
+   -----------------------------
 
    ----------------------
    -- User_Get_Members --
@@ -77,7 +92,7 @@ package body PolyORB.Exceptions is
      (Occurrence :     Ada.Exceptions.Exception_Occurrence;
       Members    : out Exception_Members'Class)
      renames PolyORB.Exceptions.Stack.Get_Members;
-   --  Extract members from a user exception occurence
+   --  Extract members from a user exception occurence.
 
    ------------------------
    -- User_Purge_Members --
@@ -106,9 +121,9 @@ package body PolyORB.Exceptions is
    ---------------------------------
 
    procedure Get_ExcepId_By_RepositoryId
-     (RepoId              : in     Standard.String;
-      ExcpId              :    out Ada.Exceptions.Exception_Id;
-      Is_CORBA_System_Exc :    out Boolean)
+     (RepoId        : in     Standard.String;
+      ExcpId        :    out Ada.Exceptions.Exception_Id;
+      Is_System_Exc :    out Boolean)
    is
 
       use PolyORB.Utils;
@@ -128,7 +143,7 @@ package body PolyORB.Exceptions is
       Result : Ada.Exceptions.Exception_Id;
    begin
       pragma Debug (O ("Internal_Name : " & Internal_Name));
-      Is_CORBA_System_Exc := False;
+      Is_System_Exc := False;
 
       if RepoId = "" then
          ExcpId := Ada.Exceptions.Null_Id;
@@ -149,7 +164,7 @@ package body PolyORB.Exceptions is
          ExcpId := PolyORB.Unknown'Identity;
       else
          ExcpId := Result;
-         Is_CORBA_System_Exc
+         Is_System_Exc
            := (Model = "IDL"
            and then Internal_Name'Length > 5
            and then Internal_Name
@@ -440,20 +455,6 @@ package body PolyORB.Exceptions is
       return PolyORB.Types.To_PolyORB_String (Name);
    end Occurrence_To_Name;
 
-   -----------------------------
-   -- User exceptions mapping --
-   -----------------------------
-
-
-   ------------------------------
-   -- A list of Exception_Info --
-   ------------------------------
-
-   package Exception_Lists is new PolyORB.Utils.Chained_Lists
-     (Exception_Info);
-
-   All_Exceptions : Exception_Lists.List;
-
    -------------------------
    -- Find_Exception_Info --
    -------------------------
@@ -506,16 +507,15 @@ package body PolyORB.Exceptions is
         := Any.TypeCode.Id (Get_Type (Occurrence));
 
       System_Id : Ada.Exceptions.Exception_Id;
-      Is_CORBA_System_Exc : Boolean;
+      Is_System_Exc : Boolean;
 
    begin
       Get_ExcepId_By_RepositoryId
         (To_Standard_String (Repository_Id),
          System_Id,
-         Is_CORBA_System_Exc);
+         Is_System_Exc);
 
-      if Is_CORBA_System_Exc then
-         --  This is a system exception.
+      if Is_System_Exc then
 
          declare
             Index : constant PolyORB.Types.Unsigned_Long := 1;
@@ -642,12 +642,13 @@ package body PolyORB.Exceptions is
       --  Name
       TypeCode.Add_Parameter (TC, To_Any (PolyORB.Types.String (Name)));
 
-      --  RepositoryId
-      if To_Standard_String (Name) (1 .. 4) /= "IDL:" then
+      --  RepositoryId : 'INTERNAL:<Name>:1.0'
+      if To_Standard_String (Name) (1 .. 4) /= PolyORB_Exc_NameSpace then
          TypeCode.Add_Parameter
            (TC, To_Any
-            (To_PolyORB_String ("IDL:") & PolyORB.Types.String (Name)
-             & To_PolyORB_String (":1.0")));
+            (To_PolyORB_String (PolyORB_Exc_NameSpace)
+             & PolyORB.Types.String (Name)
+             & PolyORB_Exc_Version));
       else
          TypeCode.Add_Parameter
             (TC, To_Any (PolyORB.Types.String (Name)));

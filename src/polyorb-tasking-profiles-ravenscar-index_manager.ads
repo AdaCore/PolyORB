@@ -64,7 +64,10 @@ package PolyORB.Tasking.Profiles.Ravenscar.Index_Manager is
 
    Identifier_Already_Released : exception;
 
-   procedure Initialize;
+   procedure Initialize (Error_On_Initialise : Boolean := True);
    --  initialize this package.
+   --  If Error_On_Initialise is set to false, we can call initialize
+   --  several times. In this case, if the package was already initialized
+   --  no initialization is done.
 
 end PolyORB.Tasking.Profiles.Ravenscar.Index_Manager;

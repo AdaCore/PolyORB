@@ -29,7 +29,7 @@ fi
 
 if test x"$is_soap" = xyes 
 then
-soap_files="@XMLADA_INCLUDE@ -I${prefix}/lib/polyorb-soap"
+soap_files="@XMLADA_INCS@ -I${prefix}/lib/polyorb-soap"
 soap_libs="@XMLADA_LIBS@ ${prefix}/lib/libpolyorb-soap.la"
 fi
 

@@ -1,9 +1,9 @@
 AC_INIT(src/polyorb.ads)
 AC_CONFIG_AUX_DIR(support)
 
-#
+##########################################
 # Initialization.
-#
+##########################################
 
 AC_CANONICAL_SYSTEM
 AM_INIT_AUTOMAKE(polyorb,0.1)
@@ -15,149 +15,194 @@ POLYORB_MINOR_VERSION=1
 AC_SUBST(POLYORB_MAJOR_VERSION)
 AC_SUBST(POLYORB_MINOR_VERSION)
 
-#
-# CORBA personality.
-#
+##########################################
+# Various programs.
+##########################################
 
-AC_MSG_CHECKING([whether to build the CORBA personality])
-corba_enabled=yes
+AC_PROG_CC
+AC_PROG_INSTALL
+AC_CHECK_PROG(RM, rm, rm)
+AC_CHECK_PROGS(AWK, [gnuawk gawk awk])
+AM_PROG_WORKING_ADA
+AM_CROSS_PROG_WORKING_ADA
+AC_EXEEXT
+AM_PROG_GNATMAKE
+AM_CROSS_PROG_GNATMAKE
+AM_CROSS_PROG_CC
+AC_CHECK_PROG(GNATCHOP, gnatchop, gnatchop)
+AC_CHECK_PROG(PYTHON, python, python)
+AM_ENABLE_SHARED(no)
+AM_ENABLE_STATIC(yes)
 
-AC_ARG_ENABLE(corba,
-[  --enable-corba          Build the CORBA personality (yes)],
-[corba_enabled=${enableval}])
+##########################################
+# Check that the GNAT version is recent 
+# enough for this version of PolyORB.
+##########################################
 
-AM_CONDITIONAL(ENABLE_CORBA, test x$corba_enabled = xyes)
-AC_MSG_RESULT($corba_enabled)
+AM_ADA_PREREQ(20010503, 3.14a1)
 
-IS_CORBA=$corba_enabled
-AC_SUBST(IS_CORBA)
+##########################################
+# Protocol personality list.
+##########################################
 
-#
-# GIOP personality.
-#
+AC_MSG_CHECKING([default protocol personalities])
+AC_ARG_WITH(proto-perso,
+[  --with-proto-perso=x    Enumerate protocol personalities],
+[
+  PROTO_LIST=""
+  for P in ${withval}
+  do
+     if test -f ${srcdir}/src/${P}/polyorb-binding_data-*.ads
+     then
+        PROTO_LIST="${PROTO_LIST} $P "
+     else
+        AC_MSG_ERROR([unknown protocol personality ${P}])
+     fi
+  done
+],
+[
+  PROTO_LIST=" giop "
+])
+AC_MSG_RESULT(${PROTO_LIST})
 
-AC_MSG_CHECKING([whether to build the GIOP personality])
-giop_enabled=yes
+PROTO_DIRS=""
+PROTO_LIBS=""
 
-AC_ARG_ENABLE(giop,
-[  --enable-giop           Build the GIOP personality (yes)],
-[giop_enabled=${enableval}])
+PROTO_CLIENT_WITHS=${srcdir}/proto_client_withs.adb
+${RM} ${PROTO_CLIENT_WITHS}
+PROTO_SERVER_WITHS=${srcdir}/proto_server_withs.adb
+${RM} ${PROTO_SERVER_WITHS}
 
-AM_CONDITIONAL(ENABLE_GIOP, test x$giop_enabled = xyes)
-AC_MSG_RESULT($giop_enabled)
+for P in ${PROTO_LIST}
+do
+   PROTO_DIRS="${PROTO_DIRS} "'$'"(${P}_dir)"
+   PROTO_LIBS="${PROTO_LIBS} "'$'"(${P}_lib)"
 
-IS_GIOP=$giop_enabled
-AC_SUBST(IS_GIOP)
+   U=`${AWK} '/^package/{print $2}' ${srcdir}/src/${P}/polyorb-binding_data-*.ads`
+   cat >>${PROTO_CLIENT_WITHS} <<EOF
+-- ${P} --
+with ${U};
+pragma Elaborate_All (${U});
+pragma Warnings (Off, ${U});
 
-#
-# CORBA Interface Repository.
-#
+EOF
 
-AC_MSG_CHECKING([whether to build the CORBA Interface Repository])
-ir_enabled=no
+   U=`${AWK} '/^package/{print $2}' ${srcdir}/src/${P}/polyorb-setup-tcp_access_points-*.ads`
+   cat >>${PROTO_SERVER_WITHS} <<EOF
+-- ${P} --
+with ${U};
+pragma Elaborate_All (${U});
+pragma Warnings (Off, ${U});
 
-AC_ARG_ENABLE(ir,
-[  --enable-ir             Build the Interface Repository (requires CORBA) (no)],
-[ir_enabled=${enableval}])
+EOF
+done
 
-AM_CONDITIONAL(ENABLE_IR, test x$ir_enabled = xyes)
-AC_MSG_RESULT($ir_enabled)
-if test x"$ir_enabled" = xyes -a x"$corba_enabled" != xyes
-then
-	AC_MSG_ERROR("CORBA IR requires CORBA to be built")
-fi
+AC_SUBST(PROTO_DIRS)
+AC_SUBST(PROTO_LIBS)
+AC_SUBST_FILE(PROTO_CLIENT_WITHS)
+AC_SUBST_FILE(PROTO_SERVER_WITHS)
 
-#
-# DSA personality.
-#
+##########################################
+# Application personality list
+##########################################
 
-AC_MSG_CHECKING([whether to build the DSA personality])
-dsa_enabled=no
+AC_MSG_CHECKING([default application personalities])
+AC_ARG_WITH(appli-perso,
+[  --with-appli-perso=x    Enumerate application personalities],
+[
+  APPLI_LIST=""
+  for P in ${withval}
+  do
+     if test -d src/${P} -o ${P} = "dsa"
+     then
+        APPLI_LIST="${APPLI_LIST} $P "
+     else
+        AC_MSG_ERROR([unknown application personality ${P}])
+     fi
+  done
+],
+[
+   APPLI_LIST=" corba "
+])
+AC_MSG_RESULT(${APPLI_LIST})
 
-AC_ARG_ENABLE(dsa,
-[  --enable-dsa            Build the DSA personality (experimental) (no)],
-[dsa_enabled=${enableval}])
+APPLI_DIRS=""
+APPLI_LIBS=""
 
-AM_CONDITIONAL(ENABLE_DSA, test x$dsa_enabled = xyes)
-AC_MSG_RESULT($dsa_enabled)
+for P in ${APPLI_LIST}
+do
+   APPLI_DIRS="${APPLI_DIRS} "'$'"(${P}_dir)"
+   APPLI_LIBS="${APPLI_LIBS} "'$'"(${P}_lib)"
+done
+AC_SUBST(APPLI_DIRS)
+AC_SUBST(APPLI_LIBS)
 
-#
-# MOMA personality.
-#
+##########################################
+# Check XmlAda,
+#  required by SOAP personality.
+##########################################
 
-AC_MSG_CHECKING([whether to build the MOMA personality])
-moma_enabled=no
-AC_ARG_ENABLE(moma,
-[  --enable-moma           Build the MOMA personality (no)],
-[moma_enabled=${enableval}])
-
-AM_CONDITIONAL(ENABLE_MOMA, test x$moma_enabled = xyes)
-AC_MSG_RESULT($moma_enabled)
-
-IS_MOMA=$moma_enabled
-AC_SUBST(IS_MOMA)
-
-#
-# Look for XmlAda location.
-#
-
-XMLADA_INCLUDE=""
+XMLADA_INCS=""
 XMLADA_LIBS=""
-AC_MSG_CHECKING([XmlAda])
 has_xmlada=no
-if xmlada-config --version | grep "^XmlAda" > /dev/null 2>&1; then
-   XMLADA_INCLUDE="`xmlada-config --cflags`"
+
+AC_MSG_CHECKING([XmlAda])
+if xmlada-config --version 2>&1 | grep "^XmlAda" > /dev/null 2>&1; then
+   XMLADA_INCS="`xmlada-config --cflags`"
    XMLADA_LIBS="`xmlada-config --libs`"
    has_xmlada=yes
 else
-   has_xmlada="no (not found)"
+   has_xmlada=no
 fi
-
-AM_CONDITIONAL(HAS_XMLADA, test x"$has_xmlada" = xyes)
-AC_SUBST(XMLADA_INCLUDE)
-AC_SUBST(XMLADA_LIBS)
 AC_MSG_RESULT($has_xmlada)
 
-#
-# SOAP protocol personality (requires XML/Ada).
-#
+AM_CONDITIONAL(HAS_XMLADA, test x"$has_xmlada" = xyes)
+AC_SUBST(XMLADA_INCS)
+AC_SUBST(XMLADA_LIBS)
 
-AC_MSG_CHECKING([whether to build the SOAP protocol personality])
-soap_enabled=no
-
-AC_ARG_ENABLE(soap,
-[  --enable-soap           Build SOAP personality (requires XML/Ada) (no)],
-[soap_enabled=${enableval}])
-
-AM_CONDITIONAL(ENABLE_SOAP, test x$soap_enabled = xyes)
-AC_MSG_RESULT($soap_enabled)
+soap_enabled=`echo ${PROTO_LIST} | ${AWK} '/ soap /{print "yes"}'`
 if test x"$soap_enabled" = xyes -a x"$has_xmlada" != xyes
 then
-	AC_MSG_ERROR("XML/Ada is required to build SOAP personality")
+   AC_MSG_ERROR("Protocol personality soap requires XmlAda")
 fi
 
-IS_SOAP=$soap_enabled
-AC_SUBST(IS_SOAP)
+##########################################
+# CORBA Interface Repository
+##########################################
 
-#
-# SRP personality.
-#
+ir_enabled=no
+AC_MSG_CHECKING([whether to build the CORBA Interface Repository])
+AC_ARG_ENABLE(ir,
+[  --enable-ir             Build the Interface Repository (requires CORBA) (no)],
+[ir_enabled=${enableval}])
+AC_MSG_RESULT($ir_enabled)
 
-AC_MSG_CHECKING([whether to build the SRP personality])
-srp_enabled=no
-AC_ARG_ENABLE(srp,
-[  --enable-srp            Build the SRP personality (experimental) (no)],
-[srp_enabled=${enableval}])
+AM_CONDITIONAL(ENABLE_IR, test x$ir_enabled = xyes)
 
-AM_CONDITIONAL(ENABLE_SRP, test x$srp_enabled = xyes)
-AC_MSG_RESULT($srp_enabled)
+# Check CORBA IR consistency
 
-IS_SRP=$srp_enabled
-AC_SUBST(IS_SRP)
+corba_enabled=`echo ${APPLI_LIST} | ${AWK} '/ corba /{print "yes"}'`
+if test x"$ir_enabled" = xyes -a x"$corba_enabled" != xyes
+then
+   AC_MSG_ERROR("Interface Repository requires CORBA application personality")
+fi
 
-#
+# Add IR to TOOLS list
+
+if test x"$ir_enabled" = xyes
+then
+   TOOLS_DIR="${TOOLS_DIR} ir_dir"
+fi
+
+##########################################
+# Output Extra tools list (IR ...)
+##########################################
+
+AC_SUBST(TOOLS_DIR)
+
+##########################################
 # Check for maintainer (debug) mode.
-#
+##########################################
 
 AC_ARG_ENABLE(debug,
 [  --enable-debug          Turn on debugging options],
@@ -171,42 +216,44 @@ AC_SUBST(GNATFLAGS)
 AC_SUBST(BARGS)
 AM_CONDITIONAL(DEBUG, test x$debug = xtrue)
 
-#
-# Various programs.
-#
-
-AC_PROG_CC
-AC_PROG_INSTALL
-AC_CHECK_PROG(RM, rm, rm)
-AM_PROG_WORKING_ADA
-AM_CROSS_PROG_WORKING_ADA
-AC_EXEEXT
-AM_PROG_GNATMAKE
-AM_CROSS_PROG_GNATMAKE
-AM_CROSS_PROG_CC
-AC_CHECK_PROG(GNATCHOP, gnatchop, gnatchop)
-AC_CHECK_PROG(PYTHON, python, python)
-AM_ENABLE_SHARED(no)
-AM_ENABLE_STATIC(yes)
-#
+##########################################
 # We change $host in order to force the generation of a libtool for the
 # target, and not for the host.
 # XXX if someone knows a clean way to do that, be my guest...
-#
+##########################################
+
 host_tmp=$host
 host=$target
 AM_PROG_LIBTOOL
 host=$host_tmp
 
-#
-# Check that the GNAT version is recent enough for this version of PolyORB.
-#
+##########################################
+# Switches required to build relevant
+# examples only.
+##########################################
 
-AM_ADA_PREREQ(20010503, 3.14a1)
+corba_enabled=`echo "${APPLI_LIST}" | ${AWK} '/ corba /{print "yes"}'`
+AM_CONDITIONAL(ENABLE_CORBA, test x$corba_enabled = xyes)
 
-#
-# Output
-#
+dsa_enabled=`echo "${APPLI_LIST}" | ${AWK} '/ dsa /{print "yes"}'`
+AM_CONDITIONAL(ENABLE_DSA, test x$dsa_enabled = xyes)
+
+moma_enabled=`echo "${APPLI_LIST}" | ${AWK} '/ moma /{print "yes"}'`
+AM_CONDITIONAL(ENABLE_MOMA, test x$moma_enabled = xyes)
+
+giop_enabled=`echo "${PROTO_LIST}" | ${AWK} '/ giop /{print "yes"}'`
+AM_CONDITIONAL(ENABLE_GIOP, test x$giop_enabled = xyes)
+
+soap_enabled=`echo "${PROTO_LIST}" | ${AWK} '/ soap /{print "yes"}'`
+AM_CONDITIONAL(ENABLE_SOAP, test x$soap_enabled = xyes)
+
+srp_enabled=`echo "${PROTO_LIST}" | ${AWK} '/ srp /{print "yes"}'`
+AM_CONDITIONAL(ENABLE_SRP, test x$srp_enabled = xyes)
+
+
+##########################################
+# Output generated files
+##########################################
 
 AC_OUTPUT([Makefile
 	   compilers/Makefile compilers/gnatprfh/Makefile
@@ -215,24 +262,30 @@ AC_OUTPUT([Makefile
 	   compilers/idlac/platform.ads
 	   src/Makefile src/corba/Makefile src/giop/Makefile 
            src/moma/Makefile src/soap/Makefile src/srp/Makefile
+           src/polyorb-setup-client.adb src/polyorb-setup-server.adb
 	   idls/Makefile idls/cos/Makefile idls/cos/event/Makefile
 	   idls/cos/naming/Makefile idls/cos/time/Makefile
 	   cos/Makefile cos/event/Makefile cos/naming/Makefile
-	   cos/time/Makefile cos/ir/Makefile \
-	   examples/Makefile examples/echo/Makefile \
-	   examples/all_types/Makefile examples/all_functions/Makefile \
-	   examples/dsa/Makefile examples/moma/Makefile \
-	   support/adacompiler support/native-adacompiler \
+	   cos/time/Makefile cos/ir/Makefile
+	   examples/Makefile 
+	   examples/corba/Makefile examples/corba/all_types/Makefile 
+	   examples/corba/all_functions/Makefile examples/corba/echo/Makefile
+	   examples/dsa/Makefile examples/moma/Makefile examples/polyorb/Makefile
+	   support/adacompiler support/native-adacompiler
            support/linker polyorb-config])
 
-# src/polyorb-config
-#
+
+##########################################
+# Copy files
+##########################################
+
 #
 # Some files need to be copied verbatim from the source tree to the
 # build directory (only necessary when source dir != build dir).
 #
+# XXX Should we add src/soap/gnat.adc ?
 
-for a in src/gnat.adc src/corba/gnat.adc src/moma/gnat.adc src/soap/gnat.adc
+for a in src/gnat.adc src/corba/gnat.adc src/moma/gnat.adc
 do
   if test ! -f "$a"
   then
@@ -245,136 +298,3 @@ do
   chmod a+x support/$a
 done
 
-#
-# Build setup files
-#
-
-# polyorb-setup-client.adb
-
-echo "creating $srcdir/src/polyorb-setup-client.adb"
-
-echo "--  Automatically generated file by configure. DO NOT EDIT" > $srcdir/src/polyorb-setup-client.adb
-echo "--" >> $srcdir/src/polyorb-setup-client.adb
-echo "--  Parameters used :" >> $srcdir/src/polyorb-setup-client.adb
-echo "--  * CORBA : " $corba_enabled  >> $srcdir/src/polyorb-setup-client.adb
-echo "--  * GIOP  : " $giop_enabled   >> $srcdir/src/polyorb-setup-client.adb
-echo "--  * IR    : " $ir_enabled     >> $srcdir/src/polyorb-setup-client.adb
-echo "--  * DSA   : " $dsa_enabled    >> $srcdir/src/polyorb-setup-client.adb
-echo "--  * MOMA  : " $moma_enabled   >> $srcdir/src/polyorb-setup-client.adb
-echo "--  * SOAP  : " $soap_enabled   >> $srcdir/src/polyorb-setup-client.adb
-echo "--  * SRP   : " $srp_enabled    >> $srcdir/src/polyorb-setup-client.adb
-echo "
---  Set up a test ORB.
-
-with PolyORB.Initialization;
-
-with PolyORB.ORB;
-pragma Elaborate_All (PolyORB.ORB);
-pragma Warnings (Off, PolyORB.ORB);
-
-with PolyORB.ORB.No_Tasking;
-pragma Elaborate_All (PolyORB.ORB.No_Tasking);
-pragma Warnings (Off, PolyORB.ORB.No_Tasking);" >> $srcdir/src/polyorb-setup-client.adb
-
-if test x"$soap_enabled" = xyes -a x"$has_xmlada" = xyes
-then
-echo "
-with PolyORB.Binding_Data.SOAP;
-pragma Elaborate_All (PolyORB.Binding_Data.SOAP);
-pragma Warnings (Off, PolyORB.Binding_Data.SOAP);
-" >> $srcdir/src/polyorb-setup-client.adb
-fi
-
-if test x"$giop_enabled" = xyes
-then
-echo "
-with PolyORB.Binding_Data.IIOP;
-pragma Elaborate_All (PolyORB.Binding_Data.IIOP);
-pragma Warnings (Off, PolyORB.Binding_Data.IIOP);
-" >> $srcdir/src/polyorb-setup-client.adb
-fi
-
-echo "
-package body PolyORB.Setup.Client is
-
-begin
-   PolyORB.Initialization.Initialize_World;
-end PolyORB.Setup.Client;
-" >> $srcdir/src/polyorb-setup-client.adb
-
-# polyorb-setup-server.adb
-
-echo "creating $srcdir/src/polyorb-setup-server.adb"
-
-echo "--  Automatically generated file by configure. DO NOT EDIT" > $srcdir/src/polyorb-setup-server.adb
-echo "--" >> $srcdir/src/polyorb-setup-server.adb
-echo "--  Parameters used :" >> $srcdir/src/polyorb-setup-server.adb
-echo "--  * CORBA : " $corba_enabled  >> $srcdir/src/polyorb-setup-server.adb
-echo "--  * GIOP  : " $giop_enabled   >> $srcdir/src/polyorb-setup-server.adb
-echo "--  * IR    : " $ir_enabled     >> $srcdir/src/polyorb-setup-server.adb
-echo "--  * DSA   : " $dsa_enabled    >> $srcdir/src/polyorb-setup-server.adb
-echo "--  * MOMA  : " $moma_enabled   >> $srcdir/src/polyorb-setup-server.adb
-echo "--  * SOAP  : " $soap_enabled   >> $srcdir/src/polyorb-setup-server.adb
-echo "--  * SRP   : " $srp_enabled   >> $srcdir/src/polyorb-setup-server.adb
-echo "
---  Set up a simple ORB to act as a server.
---  The user must take care of also setting up a tasking policy.
-
-with PolyORB.Smart_Pointers;
-
---  Transport subsystem: TCP sockets
-with PolyORB.Setup.TCP_Access_Points;
-pragma Elaborate_All (PolyORB.Setup.TCP_Access_Points);
-"  >> $srcdir/src/polyorb-setup-server.adb
-
-if test x"$soap_enabled" = xyes -a x"$has_xmlada" = xyes
-then
-echo "
-with PolyORB.Setup.TCP_Access_Points.SOAP;
-pragma Elaborate_All (PolyORB.Setup.TCP_Access_Points.SOAP);
-pragma Warnings (Off, PolyORB.Setup.TCP_Access_Points.SOAP);
-" >> $srcdir/src/polyorb-setup-server.adb
-fi
-
-if test x"$giop_enabled" = xyes
-then
-echo "
-with PolyORB.Setup.TCP_Access_Points.IIOP;
-pragma Elaborate_All (PolyORB.Setup.TCP_Access_Points.IIOP);
-pragma Warnings (Off, PolyORB.Setup.TCP_Access_Points.IIOP);
-" >> $srcdir/src/polyorb-setup-server.adb
-fi
-
-if test x"$srp_enabled" = xyes
-then
-echo "
-with PolyORB.Setup.TCP_Access_Points.SRP;
-pragma Elaborate_All (PolyORB.Setup.TCP_Access_Points.SRP);
-pragma Warnings (Off, PolyORB.Setup.TCP_Access_Points.SRP);
-" >> $srcdir/src/polyorb-setup-server.adb
-fi
-
-echo "
-package body PolyORB.Setup.Server is
-begin
-   null;
-end PolyORB.Setup.Server;
-" >> $srcdir/src/polyorb-setup-server.adb
-
-
-#
-# Output PolyORB's configuration
-#
-
-echo " "
-echo "*******************************************************************"
-echo "PolyORB has been setup with the following parameters :"
-echo " * CORBA application personality  : " $corba_enabled
-echo " * DSA   application personality  : " $dsa_enabled
-echo " * MOMA  application personality  : " $moma_enabled
-echo " * GIOP  protocol    personality  : " $giop_enabled
-echo " * SOAP  protocol    personality  : " $soap_enabled
-echo " * SRP   protocol    personality  : " $srp_enabled
-echo " * CORBA interface   repository   : " $ir_enabled
-echo " "
-echo "Now you may type 'gmake' to build PolyORB."

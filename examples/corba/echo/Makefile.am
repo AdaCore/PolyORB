@@ -1,4 +1,4 @@
-EXAMPLES_ROOT=	..
+EXAMPLES_ROOT=	../..
 EXAMPLE=	echo
 
 ERR = $(error PolyORB not configured to generate CORBA applications !)
@@ -12,4 +12,5 @@ EXTRA=		dynclient
 
 IDLAC_FLAGS=	-d
 
-include $(srcdir)/../Makefile.common
+include $(srcdir)/../../Makefile.common
+

@@ -38,10 +38,10 @@ with PolyORB.Any;
 with PolyORB.Annotations;
 with PolyORB.Any.ExceptionList;
 with PolyORB.Any.NVList;
-with PolyORB.Binding_Data;        use PolyORB.Binding_Data;
+with PolyORB.Binding_Data;
 with PolyORB.Binding_Data.IIOP;
 with PolyORB.Binding_Data.Local;
-with PolyORB.Buffers;             use PolyORB.Buffers;
+with PolyORB.Buffers;
 with PolyORB.Components;
 with PolyORB.Initialization;
 with PolyORB.Filters;
@@ -53,13 +53,13 @@ with PolyORB.Objects.Interface;
 with PolyORB.Opaque;
 with PolyORB.ORB;
 with PolyORB.ORB.Interface;
-with PolyORB.Protocols;           use PolyORB.Protocols;
+with PolyORB.Protocols;
 with PolyORB.Protocols.GIOP.GIOP_1_0;
 with PolyORB.Protocols.GIOP.GIOP_1_1;
 with PolyORB.Protocols.GIOP.GIOP_1_2;
 with PolyORB.References;
 with PolyORB.References.IOR;
-with PolyORB.Representations;     use PolyORB.Representations;
+with PolyORB.Representations;
 with PolyORB.Representations.CDR;
 with PolyORB.Requests;
 with PolyORB.Soft_Links;
@@ -73,13 +73,17 @@ with PolyORB.Exceptions;
 package body PolyORB.Protocols.GIOP is
 
    use PolyORB.Any.NVList;
+   use PolyORB.Binding_Data;
    use PolyORB.Binding_Data.IIOP;
+   use PolyORB.Buffers;
    use PolyORB.Components;
    use PolyORB.Filters.Interface;
    use PolyORB.Log;
    use PolyORB.ORB;
    use PolyORB.ORB.Interface;
+   use PolyORB.Protocols;
    use PolyORB.Requests;
+   use PolyORB.Representations;
    use PolyORB.Representations.CDR;
    use PolyORB.Types;
    use PolyORB.Annotations;
@@ -1494,8 +1498,9 @@ package body PolyORB.Protocols.GIOP is
       Reply_Status  : Reply_Status_Type;
       Request_Id    : Types.Unsigned_Long;
       Current_Req   : Pending_Request;
-      N  : Request_Note;
-      ORB : constant ORB_Access := ORB_Access (Ses.Server);
+      N             : Request_Note;
+      ORB           : constant ORB_Access
+        := ORB_Access (Ses.Server);
 
    begin
       case Ses.Minor_Version is
@@ -1533,15 +1538,23 @@ package body PolyORB.Protocols.GIOP is
             raise GIOP_Error;
       end case;
 
-      for I in 1 .. Length (Ses.Pending_Rq) loop
-         Current_Req := Element_Of (Ses.Pending_Rq, I);
-         Get_Note (Current_Req.Req.Notepad, N);
-         if N.Id  = Request_Id then
-            Delete (Ses.Pending_Rq, I, 1);
-            exit;
+      declare
+         Pending_Reqs : constant Pend_Req_Seq.Element_Array
+           := Pend_Req_Seq.To_Element_Array (Ses.Pending_Rq);
+      begin
+         for J in Pending_Reqs'Range loop
+            Get_Note (Pending_Reqs (J).Req.Notepad, N);
+            if N.Id  = Request_Id then
+               Delete (Ses.Pending_Rq, J, 1);
+               Current_Req := Pending_Reqs (J);
+               exit;
+            end if;
+         end loop;
+
+         if Current_Req.Req = null then
+            raise GIOP_Error;
          end if;
-         raise GIOP_Error;
-      end loop;
+      end;
 
       pragma Debug (O ("Received reply with status "
                        & Reply_Status_Type'Image (Reply_Status)));

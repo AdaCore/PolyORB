@@ -15,7 +15,7 @@ def get_subdirs (dir):
       if len (m.group (2)) > 0:
         vars[m.group (1)] = m.group (2)
 
-      if m.group (1) != 'CORBA_DIR' and m.group (1) != 'DSA_DIR' and m.group (1) != 'MOMA_DIR' and m.group (1) != 'SOAP_DIR' and m.group (1) != 'SRP_DIR':
+      if m.group (1) != 'CORBA_DIR' and m.group (1) != 'GIOP_DIR' and m.group (1) != 'DSA_DIR' and m.group (1) != 'MOMA_DIR' and m.group (1) != 'SOAP_DIR' and m.group (1) != 'SRP_DIR':
         continue
 
       dirs = map (lambda s, d=dir: d + "/" + s,

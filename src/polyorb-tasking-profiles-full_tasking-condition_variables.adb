@@ -34,11 +34,19 @@
 --  Implementation of condition variables under the Full_Tasking profile.
 
 with Unchecked_Deallocation;
-
+with PolyORB.Log;
 with PolyORB.Initialization;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
+
+   use PolyORB.Log;
+
+   package L is new PolyORB.Log.Facility_Log
+     ("polyorb.tasking.profiles.full_tasking.condition_variables");
+
+   procedure O (Message : in String; Level : Log_Level := Debug)
+     renames L.Output;
 
    procedure Initialize;
 
@@ -70,11 +78,11 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
       --  Real implementation of Broadcast.
 
    private
-      Count     : Integer := 0;
+      Count     : Natural := 0;
       --  Count is the number of tasks
       --  that wait on the condition variable.
 
-      To_Free   : Integer := 0;
+      To_Free   : Natural := 0;
       --   Number of remaining tasks in the queue that must be freed.
 
    end Condition_PO;
@@ -86,7 +94,9 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
    procedure Broadcast
      (C : in out Full_Tasking_Condition_Type) is
    begin
+      pragma Debug (O ("Wait for stabilisation of a CV, for a broadcast"));
       C.The_PO.Wait_Stabilisation;
+      pragma Debug (O ("Stabilisation done, Broadcast"));
       C.The_PO.Broadcast;
    end Broadcast;
 
@@ -161,6 +171,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
       --  XXX The use of Name is not yet implemented
       C : Full_Tasking_Condition_Access := new Full_Tasking_Condition_Type;
    begin
+      pragma Debug (O ("create condition variable"));
       C.The_PO := new Condition_PO;
       return PTCV.Condition_Access (C);
    end Create;
@@ -176,6 +187,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
       pragma Unreferenced (MF);
       pragma Warnings (On);
    begin
+      pragma Debug (O ("destroy condition variable"));
       Free (Full_Tasking_Condition_Access (C));
    end Destroy;
 
@@ -185,6 +197,9 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
 
    procedure Initialize is
    begin
+      pragma Debug
+        (O ("initialize package"
+            & " tasking.profiles.full_tasking.condition_variables"));
       PTCV.Register_Condition_Factory (PTCV.Condition_Factory_Access
                                     (The_Condition_Factory));
    end Initialize;
@@ -196,7 +211,9 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
    procedure Signal
      (C : in out Full_Tasking_Condition_Type) is
    begin
+      pragma Debug (O ("wait for stabilisation of a CV, for a signal"));
       C.The_PO.Wait_Stabilisation;
+      pragma Debug (O ("stabilisation done, signal condition variable"));
       C.The_PO.Signal;
    end Signal;
 
@@ -208,9 +225,12 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
      (C : in out Full_Tasking_Condition_Type;
       M : access PTM.Mutex_Type'Class) is
    begin
+      pragma Debug (O ("prepare wait"));
       C.The_PO.Prepare_Wait;
+      pragma Debug (O ("prepare wait ended, now wait"));
       PTM.Leave (M.all);
       C.The_PO.Wait;
+      pragma Debug (O ("wait ended"));
       PTM.Enter (M.all);
    end Wait;
 

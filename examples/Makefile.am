@@ -1,75 +1,27 @@
-if ENABLE_CORBA
-CORBA_DIR = echo all_types all_functions
-CORBA_LIB="../src/corba/libpolyorb-corba.la"
+corba_dir = corba polyorb
+dsa_dir   = dsa
+moma_dir  = moma
+giop_dir  =
+soap_dir  = 
+srp_dir   =
 
-TESTS=  polyorb-test-no_tasking \
-        polyorb-test-thread_pool \
-        polyorb-test-no_tasking_poa \
-        polyorb-test-thread_pool_poa
+SUBDIRS= @PROTO_DIRS@ @APPLI_DIRS@
+
+corba_lib="../src/corba/libpolyorb-corba.la"
+giop_lib="../src/giop/libpolyorb-giop.la"
+moma_lib="../src/moma/libpolyorb-moma.la"
+soap_lib="../src/soap/libpolyorb-soap.la"
+srp_lib="../src/srp/libpolyorb-srp.la"
+
+POLYORB_LIBS = ../src/libpolyorb.la @PROTO_LIBS@ @APPLI_LIBS@
+
 COS=cos
-endif
-
-if ENABLE_GIOP
-GIOP_LIB="../src/giop/libpolyorb-giop.la"
-endif
-
-if ENABLE_MOMA
-MOMA_DIR = moma
-MOMA_LIB="../src/moma/libpolyorb-moma.la"
-endif
-
-if ENABLE_DSA
-DSA_DIR = dsa
-endif
-
-if ENABLE_SOAP
-SOAP_LIB="../src/soap/libpolyorb-soap.la"
-endif
-
-if ENABLE_SRP
-SRP_LIB="../src/srp/libpolyorb-srp.la"
-endif
-
-SUBDIRS = . $(CORBA_DIR) $(DSA_DIR) $(MOMA_DIR)
-
-POLYORB_LIBS = \
-../src/libpolyorb.la \
-$(CORBA_LIB) \
-$(GIOP_LIB) \
-$(MOMA_LIB) \
-$(SOAP_LIB) \
-$(SRP_LIB)
 
 LINKER=	../support/linker
 
-CLEANFILES= *.o *.ali
-
-all: orb $(TESTS)
-
-all-local: $(TESTS)
-
-$(TESTS): force
-	$(GNATMAKE_FOR_TARGET) \
-	-I$(srcdir) \
-	-I$(srcdir)/../src \
-	-I$(srcdir)/../src/corba \
-	-I$(srcdir)/../src/giop \
-	-I$(srcdir)/../src/soap \
-	-I$(srcdir)/../src/srp \
-	-I../src \
-	-I../src/corba \
-	-I../src/giop \
-	-I../src/soap \
-	-I../src/srp \
-	$(XMLADA_INCLUDE) \
-	-m $@ \
-	-cargs $(GNATFLAGS) -bargs $(BARGS) \
-	-largs $(LDFLAGS) --LINK=$(LINKER) \
-	$(POLYORB_LIBS) $(XMLADA_LIBS)
+all: orb 
 
 orb:	force
-	(cd ../src && $(MAKE) all)
+	(cd $(top_builddir)/src && $(MAKE) all)
 
 force:
-
-clean:
