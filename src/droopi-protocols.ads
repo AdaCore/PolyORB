@@ -79,7 +79,7 @@ package Droopi.Protocols is
    function Handle_Message
      (Sess : access Session;
       S : Components.Message'Class)
-     return Boolean;
+     return Components.Message'Class;
    --  Demultiplex Data_Units to specialized operations.
 
    procedure Handle_Connect (S : access Session) is abstract;

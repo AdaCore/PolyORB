@@ -36,7 +36,7 @@ package Droopi.Transport is
    function Handle_Message
      (TE  : access Transport_Endpoint;
       Msg : Components.Message'Class)
-     return Boolean;
+     return Components.Message'Class;
 
    ----------------------------------------------------
    -- Primitive operations of Transport_Access_Point --

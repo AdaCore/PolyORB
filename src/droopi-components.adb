@@ -25,16 +25,17 @@ package body Droopi.Components is
       Port := Target;
    end Connect;
 
-   procedure Emit
+   function Emit
      (Port : Component_Access;
       Msg    : Message'Class)
-   is
-      Dummy : Boolean;
+     return Message'Class is
    begin
       pragma Debug (O ("Sending message " & External_Tag (Msg'Tag)
                        & " to target " & External_Tag (Port.all'Tag)));
       if Port /= null then
-         Dummy := Handle_Message (Port, Msg);
+         return Handle_Message (Port, Msg);
+      else
+         raise Unhandled_Message;
       end if;
    end Emit;
 
@@ -66,33 +67,60 @@ package body Droopi.Components is
    function Handle_Message
      (Grp : access Multicast_Group;
       Msg : Message'Class)
-     return Boolean
+     return Message'Class
    is
       Members : constant Element_Array
         := To_Element_Array (Grp.Members);
       Handled : Boolean := False;
+      Nothing : Null_Message;
    begin
       for I in Members'Range loop
-         Handled := Handled
-           or else Handle_Message (Members (I), Msg);
+         begin
+            declare
+               Reply : constant Message'Class
+                 := Handle_Message (Members (I), Msg);
+            begin
+               Handled := True;
+            end;
+         exception
+            when Unhandled_Message =>
+               null;
+            when others =>
+               raise;
+         end;
       end loop;
-      return Handled;
+
+      if Handled then
+         return Nothing;
+      else
+         raise Unhandled_Message;
+      end if;
    end Handle_Message;
 
    function Handle_Message
      (Grp : access Anycast_Group;
       Msg : Message'Class)
-     return Boolean
+     return Message'Class
    is
       Members : constant Element_Array
         := To_Element_Array (Grp.Members);
    begin
       for I in Members'Range loop
-         if Handle_Message (Members (I), Msg) then
-            return True;
-         end if;
+         begin
+            declare
+               Reply : constant Message'Class
+                 := Handle_Message (Members (I), Msg);
+            begin
+               return Reply;
+            end;
+         exception
+            when Unhandled_Message =>
+               null;
+            when others =>
+               raise;
+         end;
       end loop;
-      return False;
+      raise Unhandled_Message;
    end Handle_Message;
 
 end Droopi.Components;

@@ -14,8 +14,14 @@ package body Droopi.ORB.Task_Policies is
       C   : Active_Connection) is
    begin
       Insert_Source (ORB, C.AES);
-      Components.Emit
-        (Component_Access (C.TE), Connect_Indication'(null record));
+      declare
+         Reply : constant Components.Message'Class
+           := Components.Emit
+           (Component_Access (C.TE),
+            Connect_Indication'(null record));
+      begin
+         null;
+      end;
       --  The newly-created channel will be monitored
       --  by general-purpose ORB tasks.
    end Handle_New_Connection;

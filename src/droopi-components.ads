@@ -12,13 +12,17 @@ package Droopi.Components is
 
    type Message is abstract tagged null record;
 
+   type Null_Message is new Message with private;
+
    type Component is abstract tagged limited private;
    type Component_Access is access all Component'Class;
+
+   Unhandled_Message : exception;
 
    function Handle_Message
      (C : access Component;
       M : Message'Class)
-     return Boolean
+     return Message'Class
       is abstract;
    --  Called when component C is to receive message M.
    --  Return True if M has been handled, false otherwise.
@@ -29,9 +33,10 @@ package Droopi.Components is
    --  Connect Port to Target: when Port is emitted with message
    --  M, Target receives M.
 
-   procedure Emit
+   function Emit
      (Port : Component_Access;
-      Msg    : Message'Class);
+      Msg    : Message'Class)
+     return Message'Class;
    --  Emit message Msg on Port.
 
    -------------------------
@@ -71,6 +76,8 @@ package Droopi.Components is
 
 private
 
+   type Null_Message is new Message with null record;
+
    type Component is abstract tagged limited null record;
 
    package Component_Seqs is new Sequences.Unbounded
@@ -86,13 +93,13 @@ private
    function Handle_Message
      (Grp : access Multicast_Group;
       Msg : Message'Class)
-     return Boolean;
+     return Message'Class;
 
    type Anycast_Group is new Group with null record;
 
    function Handle_Message
      (Grp : access Anycast_Group;
       Msg : Message'Class)
-     return Boolean;
+     return Message'Class;
 
 end Droopi.Components;

@@ -180,13 +180,13 @@ package body Droopi.ORB is
 
          when A_TE_AES =>
             declare
-               --  Keep Ada-Mode happy.
+               Reply : constant Components.Message'Class
+                 := Emit (Component_Access (Note.D.TE),
+                         Filters.Data_Units.Data_Indication'
+                         (null record));
             begin
-               Emit (Component_Access (Note.D.TE),
-                     Filters.Data_Units.Data_Indication'(null record));
                Insert_Source (ORB, AES);
                --  Continue monitoring this source.
-
             exception
                when E : others =>
                   O ("Got exception while sending Data_Indication");

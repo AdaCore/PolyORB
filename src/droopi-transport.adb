@@ -26,11 +26,12 @@ package body Droopi.Transport is
    function Handle_Message
      (TE  : access Transport_Endpoint;
       Msg : Components.Message'Class)
-     return Boolean is
+     return Components.Message'Class
+   is
+      Nothing : Components.Null_Message;
    begin
       if Msg in Connect_Indication then
-         Emit (TE.Upper, Msg);
-
+         return Emit (TE.Upper, Msg);
       elsif Msg in Data_Expected then
          declare
             DE : Data_Expected renames Data_Expected (Msg);
@@ -60,19 +61,18 @@ package body Droopi.Transport is
 
                raise Connection_Closed;
                --  Notify the ORB that the socket was disconnected.
-            --  XXX what to do? who closes what?
+               --  XXX what to do? who closes what?
             end if;
 
-            Emit (TE.Upper, Msg);
+            return Emit (TE.Upper, Msg);
          end;
       elsif Msg in Data_Out then
          Write (Transport_Endpoint'Class (TE.all), Data_Out (Msg).Out_Buf);
       else
          --  Must not happen.
-         pragma Assert (False);
-         null;
+         raise Components.Unhandled_Message;
       end if;
-      return True;
+      return Nothing;
    end Handle_Message;
 
 end Droopi.Transport;
