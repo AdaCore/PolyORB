@@ -124,7 +124,7 @@ package body CORBA.Request is
                                    CORBA.Unsigned_Long'Image (Index)));
                   if Index > 0 then
                      declare
-                        Member : UserUnknownException_Members;
+                        Member : UnknownUserException_Members;
                      begin
                         Member.IDL_Exception := CORBA.Get_Empty_Any
                           (CORBA.ExceptionList.Item (Self.Exc_List,
@@ -135,7 +135,7 @@ package body CORBA.Request is
                         pragma Debug (O ("Invoke : end"));
                         Broca.GIOP.Release (Handler);
                         Broca.Exceptions.User_Raise_Exception
-                          (UserUnknownException'Identity,
+                          (UnknownUserException'Identity,
                            Member);
                      end;
                   else

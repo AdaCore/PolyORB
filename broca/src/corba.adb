@@ -1272,7 +1272,7 @@ package body CORBA is
    -------------------
    procedure Get_Members
      (From : Ada.Exceptions.Exception_Occurrence;
-      To   : out UserUnknownException_Members) is
+      To   : out UnknownUserException_Members) is
    begin
       Broca.Exceptions.User_Get_Members (From, To);
    end Get_Members;

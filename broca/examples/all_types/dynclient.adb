@@ -1099,12 +1099,12 @@ begin
       begin
          Ok := False;
          declare
-            Member : UserUnknownException_Members;
+            Member : UnknownUserException_Members;
             Info : CORBA.Long;
          begin
             testException (Myall_types, 2485);
          exception
-            when E : UserUnknownException =>
+            when E : UnknownUserException =>
                Get_Members (E, Member);
                Info := From_Any
                  (Get_Aggregate_Element (Member.IDL_Exception,
