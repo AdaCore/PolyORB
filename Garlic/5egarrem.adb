@@ -140,7 +140,7 @@ package body System.Garlic.Remote is
 
       else
          declare
-            C1 : constant String := Quote (Command, ''');
+            C1 : constant String := Command;
             C2 : constant String := Quote (C1 & ' ' & Arguments);
             C3 : constant String := Host & ' ' & Rsh_Options;
             C4 : constant String := Rsh_Command & ' ' & C3;
