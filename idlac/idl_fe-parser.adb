@@ -7,6 +7,8 @@ with Idl_Fe.Errors;
 with Idl_Fe.Debug;
 pragma Elaborate_All (Idl_Fe.Debug);
 
+--  with Ada.Text_IO;
+
 package body Idl_Fe.Parser is
 
    --------------
@@ -712,20 +714,23 @@ package body Idl_Fe.Parser is
    procedure Parse_Export (Result : out N_Root_Acc;
                            Success : out Boolean) is
    begin
-      --      Result := null;
---      Success := True;
       case Get_Token is
-         --          when T_Readonly | T_Attribute =>
+--          when T_Readonly | T_Attribute =>
 --             Parse_Attr_Dcl (List);
---          when T_Oneway | T_Void | T_Colon_Colon | T_Identifier |
---            T_Short | T_Long | T_Float | T_Double | T_Unsigned |
---            T_Char | T_Wchar | T_Boolean | T_Octet | T_Any | T_Object |
---            T_String | T_Wstring =>
---             Append_Node (List, N_Root_Acc (Parse_Op_Dcl));
---          when T_Right_Cbracket =>
---             return;
---          when T_Exception =>
---             Append_Node (List, N_Root_Acc (Parse_Except_Dcl));
+         when T_Oneway | T_Void | T_Colon_Colon | T_Identifier |
+           T_Short | T_Long | T_Float | T_Double | T_Unsigned |
+           T_Char | T_Wchar | T_Boolean | T_Octet | T_Any | T_Object |
+           T_String | T_Wstring =>
+            declare
+               Result_Operation : N_Operation_Acc;
+            begin
+               Parse_Op_Dcl (Result_Operation, Success);
+               Result := N_Root_Acc (Result_Operation);
+            end;
+            --          when T_Right_Cbracket =>
+            --             return;
+            --          when T_Exception =>
+            --             Append_Node (List, N_Root_Acc (Parse_Except_Dcl));
          when T_Union =>
             declare
                Result_Union : N_Union_Acc;
@@ -758,6 +763,9 @@ package body Idl_Fe.Parser is
             Result := null;
             return;
       end case;
+      if not Success then
+         return;
+      end if;
       if Get_Token /= T_Semi_Colon then
          declare
             Loc : Idl_Fe.Errors.Location;
@@ -849,8 +857,8 @@ package body Idl_Fe.Parser is
       loop
          exit when Get_Token = T_Right_Cbracket;
          Parse_Export (Result, Export_Success);
-
          if not Export_Success then
+            pragma Debug (O ("Parse_Interface_Body : Export_Success = false"));
             Go_To_Next_Export;
          else
             pragma Debug (O ("Parse_Interface_Body : Export_Success = True"));
@@ -890,19 +898,14 @@ package body Idl_Fe.Parser is
          end if;
          Name := Find_Identifier_Node (Get_Token_String);
          if Name = null then
-            declare
-               Loc : Idl_Fe.Errors.Location;
-            begin
-               Loc := Get_Previous_Token_Location;
-               Loc.Col := Loc.Col + Get_Previous_Token_String'Length;
-               Idl_Fe.Errors.Parser_Error
-                 ("Bad identifier in scoped name",
-                  Idl_Fe.Errors.Error,
-                  Loc);
-               Success := False;
-               Result := null;
-               return;
-            end;
+            pragma Debug (O ("Parse_Scoped_Name : name is null"));
+            Idl_Fe.Errors.Parser_Error
+              ("Bad identifier in scoped name",
+               Idl_Fe.Errors.Error,
+               Get_Token_Location);
+            Success := False;
+            Result := null;
+            return;
          end if;
          Next_Token;
          --  we should perhaps import this identifier :
@@ -3147,6 +3150,7 @@ package body Idl_Fe.Parser is
       Set_Location (Result.all, Get_Token_Location);
       Parse_Type_Spec (Result.T_Type, Success);
       if not Success then
+         pragma Debug (O ("Parse_Type_declarator : type_spec return false"));
          return;
       end if;
       Parse_Declarators (Result.Declarators, Success);
@@ -3227,6 +3231,8 @@ package body Idl_Fe.Parser is
             begin
                Parse_Scoped_Name (Res, Success);
                Result := N_Root_Acc (Res);
+               --  FIXME
+               --  >>>>>>>>>>>>>>>>> what are the accepted types?
             end;
          when others =>
             Idl_Fe.Errors.Parser_Error ("simple type specification expected.",
@@ -3508,7 +3514,7 @@ package body Idl_Fe.Parser is
          end if;
       end if;
       --  >>>>>>>>>>>>>>>>>>>>>>> Vince added it
-      Next_Token;
+      --    Next_Token;
       return;
    end Parse_Declarator;
 
@@ -3551,6 +3557,7 @@ package body Idl_Fe.Parser is
          end if;
       end if;
       Success := True;
+      Next_Token;
       return;
    end Parse_Simple_Declarator;
 
@@ -4483,6 +4490,7 @@ package body Idl_Fe.Parser is
          Success := False;
          return;
       end if;
+      Next_Token;
       return;
    end Parse_Enum_Type;
 
@@ -4524,6 +4532,8 @@ package body Idl_Fe.Parser is
          end if;
       end if;
       Success := True;
+      --  eat the identifier
+      Next_Token;
       return;
    end Parse_Enumerator;
 
@@ -4765,7 +4775,7 @@ package body Idl_Fe.Parser is
          Result.Is_Oneway := True;
          Next_Token;
       else
-         Result.Is_Oneway := True;
+         Result.Is_Oneway := False;
       end if;
       Parse_Op_Type_Spec (Result.Operation_Type, Success);
       if not Success then
@@ -4795,6 +4805,10 @@ package body Idl_Fe.Parser is
                   (Get_Location (Definition.Node.all)),
                   Idl_Fe.Errors.Error,
                   Get_Token_Location);
+               pragma Debug (O ("Parse_op_dcl : bad identifier"));
+               Result := null;
+               Success := False;
+               return;
             else
                --  no previous definition
                if not Add_Identifier (Result,
@@ -4805,7 +4819,9 @@ package body Idl_Fe.Parser is
          end;
       end if;
       Next_Token;
+      Push_Scope (Result);
       Parse_Parameter_Dcls (Result.Parameters, Success);
+      Pop_Scope;
       if not Success then
          return;
       end if;
@@ -4924,6 +4940,7 @@ package body Idl_Fe.Parser is
          Success := False;
          return;
       end if;
+      Next_Token;
       Success := True;
       return;
    end Parse_Parameter_Dcls;
@@ -4933,11 +4950,12 @@ package body Idl_Fe.Parser is
    -----------------------
    procedure Parse_Param_Dcl (Result : out N_Param_Acc;
                               Success : out boolean) is
+      Attr_Success : Boolean;
    begin
       Result := new N_Param;
       Set_Location (Result.all, Get_Token_Location);
-      Parse_Param_Attribute (Result.Mode, Success);
-      if not Success then
+      Parse_Param_Attribute (Result.Mode, Attr_Success);
+      if not Attr_Success then
          case Get_Token is
             when T_Float
               | T_Double
@@ -6295,19 +6313,37 @@ package body Idl_Fe.Parser is
    --  parsing of a definition in order to try to continue the
    --  parsing after the bad definition.
    procedure Go_To_Next_Definition is
+      Num : Natural := 0;
    begin
       while Get_Token /= T_Eof loop
-         case Get_Token is
-            when T_Module
-              | T_Interface
-              | T_Custom
-              | T_Abstract
-              | T_ValueType =>
-               return;
-            when others =>
-               Next_Token;
-         end case;
+         if Num = 0 then
+            case Get_Token is
+               when T_Module
+                 | T_Interface
+                 | T_Union
+                 | T_Struct
+                 | T_Enum
+                 | T_Typedef
+                 | T_Custom
+                 | T_Abstract
+                 | T_ValueType
+                 | T_Right_Cbracket =>
+                  return;
+               when others =>
+                  null;
+            end case;
+         end if;
+         if Get_Token = T_Left_Cbracket then
+            Num := Num + 1;
+         end if;
+         if Get_Token = T_Right_Cbracket then
+            Num := Num - 1;
+         end if;
+         Next_Token;
       end loop;
+      if Get_Current_Scope /= Get_Root_Scope then
+         raise Errors.Internal_Error;
+      end if;
    end Go_To_Next_Definition;
 
 
@@ -6319,6 +6355,9 @@ package body Idl_Fe.Parser is
       while Get_Token /= T_Eof and Get_Token /= T_Left_Cbracket loop
          Next_Token;
       end loop;
+      if Get_Current_Scope /= Get_Root_Scope and Get_Token = T_Eof then
+         raise Errors.Internal_Error;
+      end if;
    end Go_To_Next_Left_Cbracket;
 
    -----------------------------
@@ -6329,6 +6368,9 @@ package body Idl_Fe.Parser is
       while Get_Token /= T_Eof and Get_Token /= T_Right_Cbracket loop
          Next_Token;
       end loop;
+      if Get_Current_Scope /= Get_Root_Scope and Get_Token = T_Eof then
+         raise Errors.Internal_Error;
+      end if;
    end Go_To_Next_Right_Cbracket;
 
    -------------------------
@@ -6343,6 +6385,9 @@ package body Idl_Fe.Parser is
       if Get_Token /= T_Right_Cbracket then
          Next_Token;
       end if;
+      if Get_Current_Scope /= Get_Root_Scope and Get_Token = T_Eof then
+         raise Errors.Internal_Error;
+      end if;
    end Go_To_Next_Export;
 
    --------------------------------
@@ -6350,7 +6395,16 @@ package body Idl_Fe.Parser is
    --------------------------------
    procedure Go_To_Next_Value_Element is
    begin
-      null;
+      while Get_Token /= T_Eof and Get_Token /= T_Semi_Colon
+        and Get_Token /= T_Right_Cbracket loop
+         Next_Token;
+      end loop;
+      if Get_Token /= T_Right_Cbracket then
+         Next_Token;
+      end if;
+      if Get_Current_Scope /= Get_Root_Scope and Get_Token = T_Eof then
+         raise Errors.Internal_Error;
+      end if;
    end Go_To_Next_Value_Element;
 
    ---------------------------------
@@ -6362,6 +6416,9 @@ package body Idl_Fe.Parser is
          Next_Token;
       end loop;
       Next_Token;
+      if Get_Current_Scope /= Get_Root_Scope and Get_Token = T_Eof then
+         raise Errors.Internal_Error;
+      end if;
    end Go_To_End_Of_State_Member;
 
    ------------------------------------
@@ -6372,6 +6429,9 @@ package body Idl_Fe.Parser is
       while Get_Token /= T_Eof and Get_Token /= T_Right_Paren loop
          Next_Token;
       end loop;
+      if Get_Current_Scope /= Get_Root_Scope and Get_Token = T_Eof then
+         raise Errors.Internal_Error;
+      end if;
    end Go_To_Next_Right_Paren;
 
    -------------------------
@@ -6385,6 +6445,9 @@ package body Idl_Fe.Parser is
       end loop;
       if Get_Token /= T_Right_Cbracket then
          Next_Token;
+      end if;
+      if Get_Current_Scope /= Get_Root_Scope and Get_Token = T_Eof then
+         raise Errors.Internal_Error;
       end if;
    end Go_To_Next_Member;
 

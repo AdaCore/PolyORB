@@ -74,7 +74,11 @@ package body Idl_Fe.Display_Tree is
       case Get_Kind (N) is
          when K_Scoped_Name =>
             Put_Line
-              ("scoped name: " & Get_Name (N_Scoped_Name (N).Value.all));
+              ("scoped name: " & Get_Name (N_Scoped_Name (N).Value.all) &
+               " (type : " &
+               Node_Kind'Image (Get_Kind (N_Scoped_Name (N).Value.all)) &
+               ")");
+
          when K_Repository =>
             Put_Line ("repository");
             Disp_List (N_Repository (N).Contents, N_Indent, Full);
@@ -256,13 +260,12 @@ package body Idl_Fe.Display_Tree is
             Put ("param ");
             case N_Param (N).Mode is
                when Mode_In =>
-                  Put ("in");
+                  Put_Line ("in");
                when Mode_Out =>
-                  Put ("out");
+                  Put_Line ("out");
                when Mode_Inout =>
-                  Put ("inout");
+                  Put_Line ("inout");
             end case;
-            Put (' ');
             Disp_Tree (N_Param (N).Declarator.all, N_Indent + Offset, False);
             Disp_Indent (N_Indent, "type:");
             Disp_Tree (N_Param (N).Param_Type.all, N_Indent + Offset, False);
