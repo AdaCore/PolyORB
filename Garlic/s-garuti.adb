@@ -34,16 +34,29 @@
 ------------------------------------------------------------------------------
 
 with Ada.Unchecked_Deallocation;
+with Ada.Task_Identification;    use Ada.Task_Identification;
 with Interfaces.C;               use Interfaces.C;
 with System.Garlic.OS_Lib;       use System.Garlic.OS_Lib;
 with System.RPC;                 use System.RPC;
 
 package body System.Garlic.Utils is
 
+   Upper_To_Lower : constant := Character'Pos ('a') - Character'Pos ('A');
+
    use Ada.Exceptions;
 
    function Not_Null_Version (V : in String) return Boolean;
    --  Returns true when V is not a string of blank characters.
+
+   protected Section is
+      entry     Lock    (Self : Task_Id);
+      procedure Unlock;
+   private
+      entry Wait (Self : Task_Id);
+      Current   : Task_Id;
+      Level     : Natural := 0;
+      Requeuing : Boolean := False;
+   end Section;
 
    ------------------
    -- Barrier_Type --
@@ -101,6 +114,26 @@ package body System.Garlic.Utils is
         and then V1 /= V2;
    end Different;
 
+   -----------
+   -- Enter --
+   -----------
+
+   procedure Enter is
+      Self : Task_Id := Current_Task;
+
+   begin
+      Section.Lock (Self);
+   end Enter;
+
+   -----------
+   -- Leave --
+   -----------
+
+   procedure Leave is
+   begin
+      Section.Unlock;
+   end Leave;
+
    ----------------------
    -- Not_Null_Version --
    ----------------------
@@ -137,6 +170,51 @@ package body System.Garlic.Utils is
       Raise_Exception (Id, "Error" & int'Image (C_Errno));
    end Raise_With_Errno;
 
+   -------------
+   -- Section --
+   -------------
+
+   protected body Section is
+
+      -----------
+      -- Lock --
+      -----------
+
+      entry Lock (Self : Task_Id) when not Requeuing is
+      begin
+         if Level /= 0 and then Current /= Self then
+            requeue Wait with abort;
+         end if;
+         Current := Self;
+         Level   := Level + 1;
+      end Lock;
+
+      ------------
+      -- Unlock --
+      ------------
+
+      procedure Unlock is
+      begin
+         Level := Level - 1;
+         if Level = 0 and then Wait'Count > 0 then
+            Requeuing := True;
+         end if;
+      end Unlock;
+
+      ----------
+      -- Wait --
+      ----------
+
+      entry Wait (Self : Task_Id) when Requeuing is
+      begin
+         if Wait'Count = 0 then
+            Requeuing := False;
+         end if;
+         requeue Lock with abort;
+      end Wait;
+
+   end Section;
+
    --------------------
    -- Semaphore_Type --
    --------------------
@@ -156,16 +234,16 @@ package body System.Garlic.Utils is
       -- Unlock --
       ------------
 
-      entry Unlock (Post : Action_Type := Unmodified)
-      when Action /= Modified is
+      entry Unlock (Result : Status_Type := Unmodified)
+      when Status /= Modified is
       begin
          Locked := False;
-         case Post is
+         case Result is
             when Modified =>
                if Wait'Count > 0 then
-                  Action := Modified;
+                  Status := Modified;
                end if;
-            when Wait_Until_Modified =>
+            when Postponed =>
                requeue Wait with abort;
             when Unmodified =>
                null;
@@ -176,14 +254,28 @@ package body System.Garlic.Utils is
       -- Wait --
       ----------
 
-      entry Wait (Post : Action_Type := Unmodified)
-      when Action = Modified is
+      entry Wait (Result : Status_Type := Unmodified)
+      when Status = Modified is
       begin
          if Wait'Count = 0 then
-            Action := Unmodified;
+            Status := Unmodified;
          end if;
       end Wait;
 
    end Semaphore_Type;
+
+   --------------
+   -- To_Lower --
+   --------------
+
+   procedure To_Lower (Item : in out String) is
+   begin
+      for I in Item'Range loop
+         if Item (I) in 'A' .. 'Z' then
+            Item (I) :=
+               Character'Val (Character'Pos (Item (I)) + Upper_To_Lower);
+         end if;
+      end loop;
+   end To_Lower;
 
 end System.Garlic.Utils;

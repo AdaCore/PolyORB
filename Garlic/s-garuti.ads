@@ -39,8 +39,9 @@ with Ada.Unchecked_Deallocation;
 package System.Garlic.Utils is
 
    type String_Access is access String;
-
    procedure Free is new Ada.Unchecked_Deallocation (String, String_Access);
+
+   procedure To_Lower (Item : in out String);
 
    protected type Barrier_Type is
       entry Wait;
@@ -58,21 +59,29 @@ package System.Garlic.Utils is
 
    type Barrier_Access is access Barrier_Type;
 
-   type Action_Type is (Modified, Unmodified, Wait_Until_Modified);
+   type Status_Type is (Modified, Unmodified, Postponed);
 
    protected type Semaphore_Type is
       entry Lock;
-      entry Unlock (Post : Action_Type := Unmodified);
+      entry Unlock (Result : Status_Type := Unmodified);
    private
-      entry Wait (Post : Action_Type := Unmodified);
+      entry Wait (Result : Status_Type := Unmodified);
       Locked : Boolean := False;
-      Action : Action_Type := Unmodified;
+      Status : Status_Type := Unmodified;
    end Semaphore_Type;
 
    type Semaphore_Access is access Semaphore_Type;
 
    procedure Free is
      new Ada.Unchecked_Deallocation (Semaphore_Type, Semaphore_Access);
+
+   procedure Enter;
+   pragma Inline (Enter);
+   --  Enter one level of critical section.
+
+   procedure Leave;
+   pragma Inline (Leave);
+   --  Leave one level of critical section.
 
    procedure Raise_With_Errno (Id : in Ada.Exceptions.Exception_Id);
    pragma Inline (Raise_With_Errno);
