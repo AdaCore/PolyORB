@@ -17,6 +17,10 @@ procedure Mknodes is
    type Color_Type is new Int;
    No_Color : constant Color_Type := 0;
 
+   type Declaration_Type is new Byte;
+   Present : constant Declaration_Type := 0;
+   Missing : constant Declaration_Type := 1;
+
    type Color_Array is array (Color_Type range <>) of Boolean;
 
    package Nodes is
@@ -36,7 +40,7 @@ procedure Mknodes is
       function Loc (N : Node_Id) return Location;
 
       function Identifier (N : Node_Id) return Name_Id;
-      procedure Set_Defining_Identifier (N : Node_Id; V : Name_Id);
+      procedure Set_Identifier (N : Node_Id; V : Name_Id);
 
       function Type_Spec (N : Node_Id) return Node_Id;
       procedure Set_Type_Spec (N : Node_Id; V : Node_Id);
@@ -98,9 +102,6 @@ procedure Mknodes is
    Last_Interface  : Node_Id := No_Node;
    N_Interfaces    : Natural := 0;
 
---     function Node (N : Name_Id) return Node_Id;
---     procedure Set_Node (N : Name_Id; V : Node_Id);
-
    procedure Add_Attribute_To_Interface
      (Attribute : Node_Id;
       Interface : Node_Id);
@@ -117,8 +118,8 @@ procedure Mknodes is
    --  Return the inheritance tree. The oldest ancestors are
    --  first. The interface itself is last.
 
-   function No_Attribute (I : Node_Id) return Boolean;
-   --  Return True when interface I has no attribute
+   function Has_Attribute (I : Node_Id) return Boolean;
+   --  Return True when interface I has at least on attribute
 
    function Base_Kind (T : Node_Id) return Node_Kind;
    --  As interfaces are represented as Node_Id and as Node_Id is
@@ -130,6 +131,10 @@ procedure Mknodes is
    --  To allocate a slot for an attribute in a base type array, we
    --  use classical coloration algorithm. The base types are also
    --  colored to store the greatest color used for them.
+
+   function Declaration (N : Node_Id) return Declaration_Type;
+   procedure Set_Declaration (N : Node_Id; V : Declaration_Type);
+   --  To avoid multiple declarations in spec and body.
 
    procedure Assign_Color_To_Attribute (Attribute : Node_Id);
    --  Compute adjacent attributes that is attributes included in the
@@ -145,8 +150,8 @@ procedure Mknodes is
    function Resolve_Type  (N : Name_Id) return Node_Id;
    --  Return a type of name N
 
-   function Inherit_From (Child, Parent : Node_Id) return Boolean;
-   --  Return True when Child has Parent as an ancestor
+--     function Inherit_From (Child, Parent : Node_Id) return Boolean;
+--     --  Return True when Child has Parent as an ancestor
 
    function P_Attribute return Node_Id;
    function P_Definition return Node_Id;
@@ -302,13 +307,13 @@ procedure Mknodes is
       end Set_First_Entity;
 
       --------------------
-      -- Set_Defining_Identifier --
+      -- Set_Identifier --
       --------------------
 
-      procedure Set_Defining_Identifier (N : Node_Id; V : Name_Id) is
+      procedure Set_Identifier (N : Node_Id; V : Name_Id) is
       begin
          Table (N).Identifier := V;
-      end Set_Defining_Identifier;
+      end Set_Identifier;
 
       ---------------------
       -- Set_Last_Entity --
@@ -378,41 +383,60 @@ procedure Mknodes is
    -------------------------------
 
    procedure Assign_Color_To_Attribute (Attribute : Node_Id) is
-      Interface : Node_Id;
-      Kind      : constant Node_Kind := Base_Kind (Type_Spec (Attribute));
-      Is_Used   : Color_Array (No_Color .. Color_Type (N_Attributes));
-   begin
-      Is_Used := (others => False);
-      Interface := First_Interface;
-      while Interface /= No_Node loop
-         if Inherit_From (Interface, Scope (Attribute))
-           or else Inherit_From (Scope (Attribute), Interface)
-         then
-            --  Mark colors of adjacent attributes in
-            --  use. Attribute A2 is adjacent to attribute A1
-            --  when A2 and A1 belong to a common interface.
+      Kind : constant Node_Kind := Base_Kind (Type_Spec (Attribute));
+      Used : Color_Array (No_Color .. Color_Type (N_Attributes));
+      Attr : Node_Id;
+      Name : constant Name_Id := Identifier (Attribute);
+      Intf : Node_Id;
 
-            if not No_Attribute (Interface) then
-               for Neighbor in
-                  First_Entity (Interface) .. Last_Entity (Interface)
-               loop
-                  if Base_Kind (Type_Spec (Neighbor)) = Kind then
-                     Is_Used (Color (Neighbor)) := True;
-                  end if;
-               end loop;
-            end if;
+   begin
+      Write_Str  ("--  assign color to ");
+      Write_Name (Identifier (Attribute));
+      Write_Eol;
+      Used := (others => False);
+
+      Attr := First_Attribute;
+      while Attr /= No_Node loop
+         if Identifier (Attr) = Name then
+            Intf := Scope (Attr);
+            Write_Str ("--  find attribute in ");
+            Write_Name (Identifier (Intf));
+            Write_Eol;
+            while Intf /= No_Node loop
+               --  Mark colors of adjacent attributes in
+               --  use. Attribute A2 is adjacent to attribute A1
+               --  when A2 and A1 belong to a common interface.
+
+               if Has_Attribute (Intf) then
+                  for Neighbor in First_Entity (Intf) .. Last_Entity (Intf)
+                  loop
+                     Write_Str ("--  conflict with ");
+                     Write_Name (Identifier (Neighbor));
+                     Write_Str (" from ");
+                     Write_Name (Identifier (Intf));
+                     Write_Str (" ");
+                     Write_Int (Int (Color (Neighbor)));
+                     Write_Eol;
+                     Used (Color (Neighbor)) := True;
+                  end loop;
+               end if;
+               Intf := Type_Spec (Intf);
+            end loop;
          end if;
-         Interface := Next_Entity (Interface);
+         Attr := Next_Entity (Attr);
       end loop;
 
       --  Find a color not used by adjacent attributes
 
-      for C in No_Color + 1 .. Is_Used'Last loop
-         if not Is_Used (C) then
+      for C in No_Color + 1 .. Used'Last loop
+         if not Used (C) then
             Set_Color (Attribute, C);
             if Color (Base_Types (Kind)) < C then
                Set_Color (Base_Types (Kind), C);
             end if;
+            Write_Str ("--  decide to assign ");
+            Write_Int (Int (C));
+            Write_Eol;
             exit;
          end if;
       end loop;
@@ -445,6 +469,15 @@ procedure Mknodes is
       return Color_Type (Get_Name_Table_Info (Identifier (N)));
    end Color;
 
+   -----------------
+   -- Declaration --
+   -----------------
+
+   function Declaration (N : Node_Id) return Declaration_Type is
+   begin
+      return Declaration_Type (Get_Name_Table_Byte (Identifier (N)));
+   end Declaration;
+
    ------------------
    -- Declare_Type --
    ------------------
@@ -468,13 +501,13 @@ procedure Mknodes is
       case Kind (N) is
          when K_Boolean =>
             Set_Str_To_Name_Buffer ("Boolean");
-            Set_Defining_Identifier (N, Name_Find);
+            Set_Identifier (N, Name_Find);
          when K_Octet =>
             Set_Str_To_Name_Buffer ("Byte");
-            Set_Defining_Identifier (N, Name_Find);
+            Set_Identifier (N, Name_Find);
          when K_Long =>
             Set_Str_To_Name_Buffer ("Int");
-            Set_Defining_Identifier (N, Name_Find);
+            Set_Identifier (N, Name_Find);
          when others =>
             null;
       end case;
@@ -495,8 +528,8 @@ procedure Mknodes is
             if Identifier (Type_Spec (Attribute)) /= Type_Name then
                Error_Loc (1) := Loc (A);
                DE ("attribute type inconsistency");
+               return;
             end if;
-            return;
          end if;
          Attribute := Next_Entity (Attribute);
       end loop;
@@ -510,23 +543,6 @@ procedure Mknodes is
       Last_Attribute := A;
       N_Attributes := N_Attributes + 1;
    end Declare_Attribute;
-
-   ------------------
-   -- Inherit_From --
-   ------------------
-
-   function Inherit_From (Child, Parent : Node_Id) return Boolean is
-      T : Node_Id := Child;
-   begin
-      while T /= No_Node loop
-         if T = Parent then
-            return True;
-         end if;
-         T := Type_Spec (T);
-      end loop;
-
-      return False;
-   end Inherit_From;
 
    ----------------------
    -- Inheritance_Tree --
@@ -570,7 +586,7 @@ procedure Mknodes is
       I : Node_Id := Interface;
    begin
       while I /= No_Node loop
-         if not No_Attribute (I) then
+         if Has_Attribute (I) then
             for A in First_Entity (I) .. Last_Entity (I) loop
                if Identifier (A) = N then
                   return True;
@@ -583,23 +599,14 @@ procedure Mknodes is
       return False;
    end Is_Attribute_In_Interface;
 
-   ------------------
-   -- No_Attribute --
-   ------------------
+   -------------------
+   -- Has_Attribute --
+   -------------------
 
-   function No_Attribute (I : Node_Id) return Boolean is
+   function Has_Attribute (I : Node_Id) return Boolean is
    begin
-      return First_Entity (I) = No_Node;
-   end No_Attribute;
-
-   ----------
-   -- Node --
-   ----------
-
---     function Node (N : Name_Id) return Node_Id is
---     begin
---        return Node_Id (Get_Name_Table_Info (N));
---     end Node;
+      return First_Entity (I) /= No_Node;
+   end Has_Attribute;
 
    -----------------
    -- P_Attribute --
@@ -628,7 +635,7 @@ procedure Mknodes is
       if Token = T_Error then
          return No_Node;
       end if;
-      Set_Defining_Identifier (Attribute, Token_Name);
+      Set_Identifier (Attribute, Token_Name);
 
       Declare_Attribute (Attribute);
 
@@ -697,7 +704,7 @@ procedure Mknodes is
       if Token = T_Error then
          return No_Node;
       end if;
-      Set_Defining_Identifier (Interface, Token_Name);
+      Set_Identifier (Interface, Token_Name);
       if Resolve_Type (Identifier (Interface)) /= No_Node then
          Error_Loc (1) := Token_Location;
          DE ("interface already defined");
@@ -802,7 +809,7 @@ procedure Mknodes is
       if Token = T_Error then
          return No_Node;
       end if;
-      Set_Defining_Identifier (Type_Decl, Token_Name);
+      Set_Identifier (Type_Decl, Token_Name);
       if Resolve_Type (Identifier (Type_Decl)) /= No_Node then
          Error_Loc (1) := Token_Location;
          DE ("type already defined");
@@ -859,14 +866,14 @@ procedure Mknodes is
       Set_Name_Table_Info (Identifier (N), Int (V));
    end Set_Color;
 
-   --------------
-   -- Set_Node --
-   --------------
+   ---------------------
+   -- Set_Declaration --
+   ---------------------
 
---     procedure Set_Node (N : Name_Id; V : Node_Id) is
---     begin
---        Set_Name_Table_Info (N, Int (V));
---     end Set_Node;
+   procedure Set_Declaration (N : Node_Id; V : Declaration_Type) is
+   begin
+      Set_Name_Table_Byte (Identifier (N), Byte (V));
+   end Set_Declaration;
 
    -------
    -- W --
@@ -1011,9 +1018,9 @@ procedure Mknodes is
       end loop;
    end W_Indentation;
 
-   ------------------------
+   --------------------
    -- W_Package_Body --
-   ------------------------
+   --------------------
 
    procedure W_Package_Body is
       Attribute : Node_Id;
@@ -1031,10 +1038,6 @@ procedure Mknodes is
       Write_Line ("use Entries;");
       Write_Eol;
 
-      W_Attribute_Body ("Kind", "Entity_Id", "Node_Kind");
-      Write_Eol;
-      W_Attribute_Body ("Loc", "Entity_Id", "Location");
-      Write_Eol;
       W_Attribute_Body ("Kind", "Node_Id", "Node_Kind");
       Write_Eol;
       W_Attribute_Body ("Loc", "Node_Id", "Location");
@@ -1042,12 +1045,22 @@ procedure Mknodes is
 
       Attribute := First_Attribute;
       while Attribute /= No_Node loop
-         W_Attribute_Body (Attribute);
-         Write_Eol;
+         Set_Declaration (Attribute, Missing);
          Attribute := Next_Entity (Attribute);
       end loop;
 
-      W_Subprogram_Definition (1, W ("Node"), 'I', "Natural", 'N', "Node_Id");
+      Attribute := First_Attribute;
+      while Attribute /= No_Node loop
+         if Declaration (Attribute) = Missing then
+            W_Attribute_Body (Attribute);
+            Write_Eol;
+            Set_Declaration (Attribute, Present);
+         end if;
+         Attribute := Next_Entity (Attribute);
+      end loop;
+
+      W_Subprogram_Definition
+        (1, W ("Node"), 'I', "Natural", 'N', "Node_Id");
       W_Indentation (2);
       Write_Line ("case Kind (N) is");
       Interface := First_Interface;
@@ -1092,9 +1105,18 @@ procedure Mknodes is
             W_Subprogram_Call
               (2, W ("Node_Header"), "I", "Node_Id (N)");
 
+
             Attribute := First_Attribute;
             while Attribute /= No_Node loop
-               if Is_Attribute_In_Interface (Attribute, Interface) then
+               Set_Declaration (Attribute, Missing);
+               Attribute := Next_Entity (Attribute);
+            end loop;
+
+            Attribute := First_Attribute;
+            while Attribute /= No_Node loop
+               if Declaration (Attribute) = Missing
+                 and then Is_Attribute_In_Interface (Attribute, Interface)
+               then
                   if Kind (Type_Spec (Attribute)) =
                      K_Interface_Declaration
                   then
@@ -1113,6 +1135,7 @@ procedure Mknodes is
                         Quote (GNS (Identifier (Type_Spec (Attribute)))),
                         "Image (" & GNS (Identifier (Attribute)) & " (N))");
                   end if;
+                  Set_Declaration (Attribute, Present);
                end if;
                Attribute := Next_Entity (Attribute);
             end loop;
@@ -1179,7 +1202,7 @@ procedure Mknodes is
             Tree : constant Node_Array := Inheritance_Tree (Interface);
          begin
             for I in Tree'Range loop
-               if not No_Attribute (Tree (I)) then
+               if Has_Attribute (Tree (I)) then
                   for A in First_Entity (Tree (I)) .. Last_Entity (Tree (I))
                   loop
                      W_Indentation;
@@ -1214,10 +1237,6 @@ procedure Mknodes is
 
       --  Describe attribute accessors
 
-      W_Attribute_Spec ("Kind", "Entity_Id", "Node_Kind");
-      Write_Eol;
-      W_Attribute_Spec ("Loc", "Entity_Id", "Location");
-      Write_Eol;
       W_Attribute_Spec ("Kind", "Node_Id", "Node_Kind");
       Write_Eol;
       W_Attribute_Spec ("Loc", "Node_Id", "Location");
@@ -1225,12 +1244,22 @@ procedure Mknodes is
 
       Attribute := First_Attribute;
       while Attribute /= No_Node loop
-         W_Attribute_Spec (Attribute);
-         Write_Eol;
+         Set_Declaration (Attribute, Missing);
          Attribute := Next_Entity (Attribute);
       end loop;
 
-      W_Subprogram_Declaration (1, W ("Node"), 'I', "Natural", 'N', "Node_Id");
+      Attribute := First_Attribute;
+      while Attribute /= No_Node loop
+         if Declaration (Attribute) = Missing then
+            W_Attribute_Spec (Attribute);
+            Write_Eol;
+            Set_Declaration (Attribute, Present);
+         end if;
+         Attribute := Next_Entity (Attribute);
+      end loop;
+
+      W_Subprogram_Declaration
+        (1, W ("Node"), 'I', "Natural", 'N', "Node_Id");
       Write_Eol;
 
       --  Describe slot table types
@@ -1547,7 +1576,9 @@ begin
       Set_Color (Base_Types (K), No_Color);
       Attribute := First_Attribute;
       while Attribute /= No_Node loop
-         if Base_Kind (Type_Spec (Attribute)) = K then
+         if Base_Kind (Type_Spec (Attribute)) = K
+           and then Color (Attribute) = No_Color
+         then
             Assign_Color_To_Attribute (Attribute);
          end if;
          Attribute := Next_Entity (Attribute);

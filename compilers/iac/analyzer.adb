@@ -1,51 +1,52 @@
 with Debug;     use Debug;
 with Errors;    use Errors;
 with Flags;     use Flags;
-with Locations; use Locations;
 with Names;     use Names;
+with Namet;     use Namet;
 with Nodes;     use Nodes;
 with Nutils;    use Nutils;
+with Output;    use Output;
 with Scopes;    use Scopes;
 with Types;     use Types;
 
 package body Analyzer is
 
-   procedure Analyze_Abstract_Value_Declaration (E : Entity_Id);
-   procedure Analyze_Attribute_Declaration (E : Entity_Id);
-   procedure Analyze_Complex_Declarator (E : Entity_Id);
-   procedure Analyze_Constant_Declaration (E : Entity_Id);
-   procedure Analyze_Enumeration_Type (E : Entity_Id);
-   procedure Analyze_Exception_Declaration (E : Entity_Id);
-   procedure Analyze_Expression (E : Entity_Id);
-   procedure Analyze_Fixed_Point_Type (E : Entity_Id);
-   procedure Analyze_Forward_Interface_Declaration (E : Entity_Id);
-   procedure Analyze_Forward_Structure_Type (E : Entity_Id);
-   procedure Analyze_Forward_Union_Type (E : Entity_Id);
-   procedure Analyze_Initializer_Declaration (E : Entity_Id);
-   procedure Analyze_Interface_Declaration (E : Entity_Id);
-   procedure Analyze_Literal (E : Entity_Id);
-   procedure Analyze_Member (E : Entity_Id);
-   procedure Analyze_Module (E : Entity_Id);
-   procedure Analyze_Operation_Declaration (E : Entity_Id);
-   procedure Analyze_Native_Type (E : Entity_Id);
-   procedure Analyze_Parameter_Declaration (E : Entity_Id);
-   procedure Analyze_Scoped_Name (E : Entity_Id);
-   procedure Analyze_Simple_Declarator (E : Entity_Id);
-   procedure Analyze_Sequence_Type (E : Entity_Id);
-   procedure Analyze_State_Member (E : Entity_Id);
-   procedure Analyze_String (E : Entity_Id);
-   procedure Analyze_Structure_Type (E : Entity_Id);
-   procedure Analyze_Type_Declaration (E : Entity_Id);
-   procedure Analyze_Union_Type (E : Entity_Id);
-   procedure Analyze_Value_Declaration (E : Entity_Id);
-   procedure Analyze_Value_Box_Declaration (E : Entity_Id);
-   procedure Analyze_Value_Forward_Declaration (E : Entity_Id);
+   procedure Analyze_Abstract_Value_Declaration (E : Node_Id);
+   procedure Analyze_Attribute_Declaration (E : Node_Id);
+   procedure Analyze_Complex_Declarator (E : Node_Id);
+   procedure Analyze_Constant_Declaration (E : Node_Id);
+   procedure Analyze_Enumeration_Type (E : Node_Id);
+   procedure Analyze_Exception_Declaration (E : Node_Id);
+   procedure Analyze_Expression (E : Node_Id);
+   procedure Analyze_Fixed_Point_Type (E : Node_Id);
+   procedure Analyze_Forward_Interface_Declaration (E : Node_Id);
+   procedure Analyze_Forward_Structure_Type (E : Node_Id);
+   procedure Analyze_Forward_Union_Type (E : Node_Id);
+   procedure Analyze_Initializer_Declaration (E : Node_Id);
+   procedure Analyze_Interface_Declaration (E : Node_Id);
+   procedure Analyze_Literal (E : Node_Id);
+   procedure Analyze_Member (E : Node_Id);
+   procedure Analyze_Module (E : Node_Id);
+   procedure Analyze_Operation_Declaration (E : Node_Id);
+   procedure Analyze_Native_Type (E : Node_Id);
+   procedure Analyze_Parameter_Declaration (E : Node_Id);
+   procedure Analyze_Scoped_Name (E : Node_Id);
+   procedure Analyze_Simple_Declarator (E : Node_Id);
+   procedure Analyze_Sequence_Type (E : Node_Id);
+   procedure Analyze_State_Member (E : Node_Id);
+   procedure Analyze_String (E : Node_Id);
+   procedure Analyze_Structure_Type (E : Node_Id);
+   procedure Analyze_Type_Declaration (E : Node_Id);
+   procedure Analyze_Union_Type (E : Node_Id);
+   procedure Analyze_Value_Declaration (E : Node_Id);
+   procedure Analyze_Value_Box_Declaration (E : Node_Id);
+   procedure Analyze_Value_Forward_Declaration (E : Node_Id);
 
    -------------
    -- Analyze --
    -------------
 
-   procedure Analyze (E : Entity_Id) is
+   procedure Analyze (E : Node_Id) is
    begin
       case Kind (E) is
          when K_Abstract_Value_Declaration =>
@@ -114,6 +115,9 @@ package body Analyzer is
          when K_Sequence_Type =>
             Analyze_Sequence_Type (E);
 
+         when K_Specification =>
+            Analyze_Module (E);
+
          when K_State_Member =>
             Analyze_State_Member (E);
 
@@ -150,7 +154,7 @@ package body Analyzer is
    -- Analyze_Abstract_Value_Declaration --
    ----------------------------------------
 
-   procedure Analyze_Abstract_Value_Declaration (E : Entity_Id) is
+   procedure Analyze_Abstract_Value_Declaration (E : Node_Id) is
    begin
       Dummy (E);
    end Analyze_Abstract_Value_Declaration;
@@ -159,29 +163,33 @@ package body Analyzer is
    -- Analyze_Attribute_Declaration --
    -----------------------------------
 
-   procedure Analyze_Attribute_Declaration (E : Entity_Id) is
+   procedure Analyze_Attribute_Declaration (E : Node_Id)
+   is
+      D : Node_Id := Declarators (E);
    begin
       Analyze (Type_Spec (E));
-      Enter_Name_In_Scope (Identifier (E));
+      while Present (D) loop
+         Enter_Name_In_Scope (Identifier (D));
+         D := Next_Node (D);
+      end loop;
    end Analyze_Attribute_Declaration;
 
    --------------------------------
    -- Analyze_Complex_Declarator --
    --------------------------------
 
-   procedure Analyze_Complex_Declarator (E : Entity_Id)
+   procedure Analyze_Complex_Declarator (E : Node_Id)
    is
-      C : Entity_Id;
+      C : Node_Id;
    begin
-      Analyze (Type_Spec (E));
       Enter_Name_In_Scope (Identifier (E));
 
       --  The array sizes attribute is never empty
 
-      C := First_Entity (Array_Sizes (E));
+      C := First_Node (Array_Sizes (E));
       while Present (C) loop
          Analyze (C);
-         C := Next_Entity (C);
+         C := Next_Node (C);
       end loop;
    end Analyze_Complex_Declarator;
 
@@ -189,7 +197,7 @@ package body Analyzer is
    -- Analyze_Constant_Declaration --
    ----------------------------------
 
-   procedure Analyze_Constant_Declaration (E : Entity_Id) is
+   procedure Analyze_Constant_Declaration (E : Node_Id) is
    begin
       Analyze (Type_Spec (E));
       Enter_Name_In_Scope (Identifier (E));
@@ -200,23 +208,22 @@ package body Analyzer is
    -- Analyze_Enumeration_Type --
    ------------------------------
 
-   procedure Analyze_Enumeration_Type (E : Entity_Id)
+   procedure Analyze_Enumeration_Type (E : Node_Id)
    is
-      C : Entity_Id;
-      S : Entity_Id;
+      C : Node_Id;
+      S : Node_Id;
       N : Node_Id;
    begin
       Enter_Name_In_Scope (Identifier (E));
 
       N := New_Copy   (Identifier (E));
-      S := New_Entity (K_Scoped_Name, Loc (E));
+      S := New_Node (K_Scoped_Name, Loc (E));
       Associate  (S, N);
 
-      C := First_Entity (Enumerators (E));
+      C := First_Node (Enumerators (E));
       while Present (C) loop
-         Set_Type_Spec (C, S);
          Analyze (C);
-         C := Next_Entity (C);
+         C := Next_Node (C);
       end loop;
    end Analyze_Enumeration_Type;
 
@@ -224,32 +231,31 @@ package body Analyzer is
    -- Analyze_Exception_Declaration --
    -----------------------------------
 
-   procedure Analyze_Exception_Declaration (E : Entity_Id)
+   procedure Analyze_Exception_Declaration (E : Node_Id)
    is
-      C : Entity_Id;
+      C : Node_Id;
       L : List_Id;
    begin
       Enter_Name_In_Scope (Identifier (E));
       L := Members (E);
-      if Is_Empty (L) then
-         return;
+      if not Is_Empty (L) then
+         Push_Scope (E);
+         C := First_Node (L);
+         while Present (C) loop
+            Analyze (C);
+            C := Next_Node (C);
+         end loop;
+         Pop_Scope;
       end if;
-      C := First_Entity (L);
-      Push_Scope (E);
-      while Present (C) loop
-         Analyze (C);
-         C := Next_Entity (C);
-      end loop;
-      Pop_Scope;
    end Analyze_Exception_Declaration;
 
    ------------------------
    -- Analyze_Expression --
    ------------------------
 
-   procedure Analyze_Expression (E : Entity_Id)
+   procedure Analyze_Expression (E : Node_Id)
    is
-      C : Entity_Id;
+      C : Node_Id;
    begin
       C := Left_Expr (E);
       if Present (C) then
@@ -265,7 +271,7 @@ package body Analyzer is
    -- Analyze_Fixed_Point_Type --
    ------------------------------
 
-   procedure Analyze_Fixed_Point_Type (E : Entity_Id) is
+   procedure Analyze_Fixed_Point_Type (E : Node_Id) is
    begin
       Dummy (E);
    end Analyze_Fixed_Point_Type;
@@ -274,7 +280,7 @@ package body Analyzer is
    -- Analyze_Forward_Interface_Declaration --
    -------------------------------------------
 
-   procedure Analyze_Forward_Interface_Declaration (E : Entity_Id) is
+   procedure Analyze_Forward_Interface_Declaration (E : Node_Id) is
    begin
       Enter_Name_In_Scope (Identifier (E));
    end Analyze_Forward_Interface_Declaration;
@@ -283,7 +289,7 @@ package body Analyzer is
    -- Analyze_Forward_Structure_Type --
    ------------------------------------
 
-   procedure Analyze_Forward_Structure_Type (E : Entity_Id) is
+   procedure Analyze_Forward_Structure_Type (E : Node_Id) is
    begin
       Enter_Name_In_Scope (Identifier (E));
    end Analyze_Forward_Structure_Type;
@@ -292,7 +298,7 @@ package body Analyzer is
    -- Analyze_Forward_Union_Type --
    --------------------------------
 
-   procedure Analyze_Forward_Union_Type (E : Entity_Id) is
+   procedure Analyze_Forward_Union_Type (E : Node_Id) is
    begin
       Enter_Name_In_Scope (Identifier (E));
    end Analyze_Forward_Union_Type;
@@ -301,7 +307,7 @@ package body Analyzer is
    -- Analyze_Initializer_Declaration --
    -------------------------------------
 
-   procedure Analyze_Initializer_Declaration (E : Entity_Id) is
+   procedure Analyze_Initializer_Declaration (E : Node_Id) is
    begin
       Dummy (E);
    end Analyze_Initializer_Declaration;
@@ -310,29 +316,30 @@ package body Analyzer is
    -- Analyze_Interface_Declaration --
    -----------------------------------
 
-   procedure Analyze_Interface_Declaration (E : Entity_Id) is
-      F : Entity_Id := No_Entity;
-      I : Entity_Id;
-      C : Entity_Id;
+   procedure Analyze_Interface_Declaration (E : Node_Id) is
+      F : Node_Id := No_Node;
+      I : Node_Id;
+      C : Node_Id;
       S : List_Id;
       B : List_Id;
 
-      procedure Copy_Inherited_Entities (P, I : Entity_Id);
-      --  Copy inherited entities from an parent interface P into a
+      procedure Copy_Inherited_Nodes (P, I : Node_Id);
+      --  Copy inherited entities from a parent interface P into a
       --  child interface I. Operations and attributes are the only
       --  inherited entities. Do not copy inherited entities that have
       --  already been copied (diamond diagram).
 
       -----------------------------
-      -- Copy_Inherited_Entities --
+      -- Copy_Inherited_Nodes --
       -----------------------------
 
-      procedure Copy_Inherited_Entities (P, I : Entity_Id)
+      procedure Copy_Inherited_Nodes (P, I : Node_Id)
       is
-         E : Entity_Id;
-         C : Entity_Id;
+         E : Node_Id;
          N : Node_Id;
          B : List_Id;
+         D : Node_Id;
+         S : Node_Id;
       begin
          if No (P) then
             return;
@@ -345,27 +352,43 @@ package body Analyzer is
             return;
          end if;
 
-         --  Entity E is the current candidate to be copied. Entity B
+         --  Node E is the current candidate to be copied. Node B
          --  becomes now the target interface body.
 
-         E := First_Entity   (B);
+         E := First_Node   (B);
          B := Interface_Body (I);
 
          while Present (E) loop
-            C := Current_Entity_In_Scope (Identifier (E));
+            if Kind (E) = K_Attribute_Declaration then
+               D := Declarators (E);
+               while Present (D) loop
+                  S := New_Node (K_Scoped_Name, Loc (D));
+                  N := New_Copy (Identifier (D));
+                  Associate (S, N);
+                  if D_Scopes then
+                     Write_Str  ("inherit scoped name ");
+                     Write_Name (Name (N));
+                     Write_Eol;
+                  end if;
+                  Enter_Name_In_Scope (N);
+                  D := Next_Node (D);
+               end loop;
 
-            if Is_Attribute_Or_Operation (E)
-              and then (No (C) or else Loc (C) /= Loc (E))
-            then
+            elsif Kind (E) = K_Operation_Declaration then
+               S := New_Node (K_Scoped_Name, Loc (E));
                N := New_Copy (Identifier (E));
-               C := New_Copy (E);
-               Associate (C, N);
+               Associate (S, N);
+               if D_Scopes then
+                  Write_Str  ("inherit scoped name ");
+                  Write_Name (Name (N));
+                  Write_Eol;
+               end if;
                Enter_Name_In_Scope (N);
-               Append_Entity_To_List (C, B);
             end if;
-            E := Next_Entity (E);
+
+            E := Next_Node (E);
          end loop;
-      end Copy_Inherited_Entities;
+      end Copy_Inherited_Nodes;
 
    begin
       Enter_Name_In_Scope (Identifier (E));
@@ -376,13 +399,14 @@ package body Analyzer is
       Push_Scope (E);
       S := Interface_Spec (E);
       if not Is_Empty (S) then
-         I := First_Entity (S);
+         I := First_Node (S);
          while Present (I) loop
             Analyze (I);
             C := Reference (I);
             if Present (C) then
                if Kind (C) = K_Interface_Declaration then
-                  Make_Enclosed_Entities_Visible (C, True);
+                  Make_Enclosed_Nodes_Visible (C, True, False);
+
                else
                   if Kind (C) = K_Forward_Interface_Declaration then
                      Error_Loc (1) := Loc (E);
@@ -395,7 +419,7 @@ package body Analyzer is
                   end if;
                end if;
             end if;
-            I := Next_Entity (I);
+            I := Next_Node (I);
          end loop;
       end if;
 
@@ -406,16 +430,16 @@ package body Analyzer is
 
       B := Interface_Body (E);
       if not Is_Empty (B) then
-         F := First_Entity (B);
-         Set_First_Entity (B, No_Entity);
-         Set_Last_Entity  (B, No_Entity);
+         F := First_Node (B);
+         Set_First_Node (B, No_Node);
+         Set_Last_Node  (B, No_Node);
       end if;
 
       --  Enter attributes and operations of parent interfaces
 
       S := Interface_Spec (E);
       if not Is_Empty (S) then
-         I := First_Entity (S);
+         I := First_Node (S);
          while Present (I) loop
 
             --  The current interface body might be empty
@@ -425,16 +449,16 @@ package body Analyzer is
                Set_Interface_Body (E, B);
             end if;
 
-            --  Entity I is a scoped name.
+            --  Node I is a scoped name.
 
             C := Reference (I);
             if Present (C)
               and then Kind (C) = K_Interface_Declaration
             then
-               Copy_Inherited_Entities (Reference (I), E);
+               Copy_Inherited_Nodes (Reference (I), E);
             end if;
 
-            I := Next_Entity (I);
+            I := Next_Node (I);
          end loop;
       end if;
 
@@ -443,12 +467,12 @@ package body Analyzer is
       while Present (F) loop
          Analyze (F);
          C := F;
-         F := Next_Entity (F);
-         Set_Next_Entity (C, No_Entity);
+         F := Next_Node (F);
+         Set_Next_Node (C, No_Node);
          if Is_Attribute_Or_Operation (C) then
             Set_Base_Interface (C, E);
          end if;
-         Append_Entity_To_List (C, B);
+         Append_Node_To_List (C, B);
       end loop;
       Pop_Scope;
 
@@ -456,15 +480,15 @@ package body Analyzer is
 
       S := Interface_Spec (E);
       if not Is_Empty (S) then
-         I := First_Entity (S);
+         I := First_Node (S);
          while Present (I) loop
             C := Reference (I);
             if Present (C)
               and then Kind (C) = K_Interface_Declaration
             then
-               Make_Enclosed_Entities_Visible (C, False);
+               Make_Enclosed_Nodes_Visible (C, False, False);
             end if;
-            I := Next_Entity (I);
+            I := Next_Node (I);
          end loop;
       end if;
    end Analyze_Interface_Declaration;
@@ -473,7 +497,7 @@ package body Analyzer is
    -- Analyze_Literal --
    ---------------------
 
-   procedure Analyze_Literal (E : Entity_Id) is
+   procedure Analyze_Literal (E : Node_Id) is
    begin
       Dummy (E);
    end Analyze_Literal;
@@ -482,76 +506,89 @@ package body Analyzer is
    -- Analyze_Member --
    --------------------
 
-   procedure Analyze_Member (E : Entity_Id) is
+   procedure Analyze_Member (E : Node_Id)
+   is
+      D : Node_Id := Declarators (E);
    begin
       Analyze (Type_Spec (E));
-      Enter_Name_In_Scope (Identifier (E));
+      while Present (D) loop
+         Analyze (D);
+         D := Next_Node (D);
+      end loop;
    end Analyze_Member;
 
    --------------------
    -- Analyze_Module --
    --------------------
 
-   procedure Analyze_Module (E : Entity_Id)
+   procedure Analyze_Module (E : Node_Id)
    is
-      C : Entity_Id;
+      C : Node_Id;
+      L : List_Id;
    begin
-      Enter_Name_In_Scope (Identifier (E));
-      Push_Scope (E);
-      C := First_Entity (Definitions (E));
-      while Present (C) loop
-         Analyze (C);
-         C := Next_Entity (C);
-      end loop;
-      Pop_Scope;
+      if Kind (E) = K_Module then
+         Enter_Name_In_Scope (Identifier (E));
+      end if;
+
+      L := Definitions (E);
+      if not Is_Empty (L) then
+         Push_Scope (E);
+         C := First_Node (L);
+         while Present (C) loop
+            Analyze (C);
+            C := Next_Node (C);
+         end loop;
+         Pop_Scope;
+      end if;
    end Analyze_Module;
 
    -------------------------
    -- Analyze_Native_Type --
    -------------------------
 
-   procedure Analyze_Native_Type (E : Entity_Id) is
+   procedure Analyze_Native_Type (E : Node_Id) is
    begin
-      Enter_Name_In_Scope (Identifier (E));
+      Analyze (Declarator (E));
    end Analyze_Native_Type;
 
    -----------------------------------
    -- Analyze_Operation_Declaration --
    -----------------------------------
 
-   procedure Analyze_Operation_Declaration (E : Entity_Id)
+   procedure Analyze_Operation_Declaration (E : Node_Id)
    is
-      C : Entity_Id;
+      C : Node_Id;
       L : List_Id;
    begin
       Analyze (Type_Spec (E));
       Enter_Name_In_Scope (Identifier (E));
-      Push_Scope (E);
+
       L := Parameters (E);
       if not Is_Empty (L) then
-         C := First_Entity (L);
+         Push_Scope (E);
+         C := First_Node (L);
          while Present (C) loop
             Analyze (C);
-            C := Next_Entity (C);
+            C := Next_Node (C);
          end loop;
+         Pop_Scope;
       end if;
-      Pop_Scope;
 
       L := Exceptions (E);
       if not Is_Empty (L) then
-         C := First_Entity (L);
+         C := First_Node (L);
          while Present (C) loop
             Analyze (C);
-            C := Next_Entity (C);
+            C := Next_Node (C);
          end loop;
       end if;
 
       L := Contexts (E);
       if not Is_Empty (L) then
-         C := First_Entity (L);
+         C := First_Node (L);
          while Present (C) loop
             Analyze (C);
-            C := Next_Entity (C);
+            C := Next_Node (C);
          end loop;
       end if;
    end Analyze_Operation_Declaration;
@@ -560,35 +597,34 @@ package body Analyzer is
    -- Analyze_Parameter_Declaration --
    -----------------------------------
 
-   procedure Analyze_Parameter_Declaration (E : Entity_Id) is
+   procedure Analyze_Parameter_Declaration (E : Node_Id) is
    begin
       Analyze (Type_Spec (E));
-      Enter_Name_In_Scope (Identifier (E));
+      Analyze (Declarator (E));
    end Analyze_Parameter_Declaration;
 
    -------------------------
    -- Analyze_Scoped_Name --
    -------------------------
 
-   procedure Analyze_Scoped_Name (E : Entity_Id)
+   procedure Analyze_Scoped_Name (E : Node_Id)
    is
-      P : Entity_Id := Parent (E);
+      P : Node_Id := Parent (E);
       N : Node_Id   := Identifier (E);
-      C : Entity_Id;
+      C : Node_Id;
    begin
 
       --  Analyze single scoped name. First we have to find a possible
       --  visible entity. If there is one, associate the reference to
-      --  the designated entity and check whether the casing is correct.
+      --  the designated entity and check whether the casing is
+      --  correct.
 
       if No (P) then
-         C := Current_Visible_Entity (N);
+         C := Current_Node (N);
          if Present (C) then
             Set_Reference (E, C);
             Enter_Name_In_Scope (N);
             Check_Identifier (N, Identifier (C));
-            Set_Next_Scoped_Name (E, Scoped_Names);
-            Set_Scoped_Names (E);
          end if;
 
       --  Analyze multiple scoped names. Analyze parent P first and
@@ -602,7 +638,7 @@ package body Analyzer is
          P := Reference (P);
          if Present (P) then
             if Is_A_Scope (P) then
-               C := Entity_In_Scope (N, P);
+               C := Node_In_Scope (N, P);
                if Present (C) then
                   Set_Reference (E, C);
                   Check_Identifier (N, Identifier (C));
@@ -625,7 +661,7 @@ package body Analyzer is
    -- Analyze_Sequence_Type --
    ---------------------------
 
-   procedure Analyze_Sequence_Type (E : Entity_Id) is
+   procedure Analyze_Sequence_Type (E : Node_Id) is
    begin
       Analyze (Type_Spec (E));
    end Analyze_Sequence_Type;
@@ -634,9 +670,8 @@ package body Analyzer is
    -- Analyze_Simple_Declarator --
    -------------------------------
 
-   procedure Analyze_Simple_Declarator (E : Entity_Id) is
+   procedure Analyze_Simple_Declarator (E : Node_Id) is
    begin
-      Analyze (Type_Spec (E));
       Enter_Name_In_Scope (Identifier (E));
    end Analyze_Simple_Declarator;
 
@@ -644,7 +679,7 @@ package body Analyzer is
    -- Analyze_State_Member --
    --------------------------
 
-   procedure Analyze_State_Member (E : Entity_Id) is
+   procedure Analyze_State_Member (E : Node_Id) is
    begin
       Dummy (E);
    end Analyze_State_Member;
@@ -653,7 +688,7 @@ package body Analyzer is
    -- Analyze_String --
    --------------------
 
-   procedure Analyze_String (E : Entity_Id) is
+   procedure Analyze_String (E : Node_Id) is
    begin
       Dummy (E);
    end Analyze_String;
@@ -662,19 +697,19 @@ package body Analyzer is
    -- Analyze_Structure_Type --
    ----------------------------
 
-   procedure Analyze_Structure_Type (E : Entity_Id)
+   procedure Analyze_Structure_Type (E : Node_Id)
    is
       L : List_Id;
-      C : Entity_Id;
+      C : Node_Id;
    begin
       Enter_Name_In_Scope (Identifier (E));
       L := Members (E);
       if not Is_Empty (L) then
          Push_Scope (E);
-         C := First_Entity (L);
+         C := First_Node (L);
          while Present (C) loop
             Analyze (C);
-            C := Next_Entity (C);
+            C := Next_Node (C);
          end loop;
          Pop_Scope;
       end if;
@@ -684,17 +719,22 @@ package body Analyzer is
    -- Analyze_Type_Declaration --
    ------------------------------
 
-   procedure Analyze_Type_Declaration (E : Entity_Id) is
+   procedure Analyze_Type_Declaration (E : Node_Id)
+   is
+      D : Node_Id := Declarators (E);
    begin
       Analyze (Type_Spec (E));
-      Enter_Name_In_Scope (Identifier (E));
+      while Present (D) loop
+         Analyze (D);
+         D := Next_Node (D);
+      end loop;
    end Analyze_Type_Declaration;
 
    ------------------------
    -- Analyze_Union_Type --
    ------------------------
 
-   procedure Analyze_Union_Type (E : Entity_Id) is
+   procedure Analyze_Union_Type (E : Node_Id) is
    begin
       Enter_Name_In_Scope (Identifier (E));
    end Analyze_Union_Type;
@@ -703,7 +743,7 @@ package body Analyzer is
    -- Analyze_Value_Box_Declaration --
    -----------------------------------
 
-   procedure Analyze_Value_Box_Declaration (E : Entity_Id) is
+   procedure Analyze_Value_Box_Declaration (E : Node_Id) is
    begin
       Enter_Name_In_Scope (Identifier (E));
    end Analyze_Value_Box_Declaration;
@@ -712,7 +752,7 @@ package body Analyzer is
    -- Analyze_Value_Declaration --
    -------------------------------
 
-   procedure Analyze_Value_Declaration (E : Entity_Id) is
+   procedure Analyze_Value_Declaration (E : Node_Id) is
    begin
       Dummy (E);
    end Analyze_Value_Declaration;
@@ -721,7 +761,7 @@ package body Analyzer is
    -- Analyze_Value_Forward_Declaration --
    ---------------------------------------
 
-   procedure Analyze_Value_Forward_Declaration (E : Entity_Id) is
+   procedure Analyze_Value_Forward_Declaration (E : Node_Id) is
    begin
       Dummy (E);
    end Analyze_Value_Forward_Declaration;
