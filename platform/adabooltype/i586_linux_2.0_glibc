@@ -1,1 +1,3 @@
 s/@BOOL@/Interfaces.C.unsigned_char/g
+s/@STDCPP@/--  /g
+s/@SOCKET@/--  /g
