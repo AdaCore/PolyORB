@@ -100,7 +100,9 @@ for alifile in `echo *.ali | sort`; do
     case "${genlist}:" in
       *:${dep}:*)
         qualified_dep="\$(top_builddir)/${dep}"
-        ${ucbecho} -n " ${qualified_dep#\$(top_builddir)/`expand_dep ${builddir}`/}"
+        if [ -n "${dep}" ]; then
+	    ${ucbecho} -n " ${qualified_dep#\$(top_builddir)/`expand_dep ${builddir}`/}"
+        fi
         ;;
       *)
         ${ucbecho} -n " \$(top_srcdir)/${dep}"
