@@ -5,7 +5,7 @@ $Id$
 
 This demo displays first possibilities of MOMA.
 
-The server setup one message pool according to data found in
+The server setups one message pool according to data found in
 'destinations.conf'. The only pertinent parameter is 'persistent' that
 determine which persistence is to be used.
 
@@ -14,17 +14,33 @@ MText and MBytes messages are tested.
 
 To test persistence, you must setup a persistent destination, then
 
-To run the test, without using a naming service :
+To run the PTP test, without using a naming service :
 
-- launch the server : ./server, it will outputs its IOR string.
+- launch the server : ./server, it will output its IOR string.
 - run the client to store messages : ./client stor pool <IOR>
 - kill the server, then re-launch it
 - run the client to retrieve messages : ./client retr pool <IOR>
 
-To run the test, wusing a naming service :
+To run the PTP test, using a naming service :
 
 - launch the server with the IOR string of the Naming Service : 
-./server IOR:... , it will outputs its IOR string.
+./server IOR:... , it will output its IOR string.
 - run the client to store messages : ./client stor naming <IOR>
-- kill the server, then re-launch it
 - run the client to retrieve messages : ./client retr naming <IOR>
+
+To run the Pub/Sub test (necessarily without a naming service) :
+
+- edit destinations.conf to set persistency to none, as currently all pools
+use the same filenames to store persistent messages
+- launch n message pools (= servers) :
+./server n times, it will output its IOR string IOR_Pk (k = 1..n)
+- launch p routers :
+./router r1, it will output its IOR string IOR_R1
+./router rj IOR_R1, it will output its IOR string IOR_R2 (j = 2..p)
+- subscribe some pools to the test topic using some routers :
+./client sub IOR_Pk IOR_Rj, where k in 1..n, j in 1..p
+- send once the test messages to the test topic :
+./client stor topic IOR_Rj, where j in 1..p
+- retrieve the test messages from any pool subscribed to the test topic :
+./client retr pool IOR_Pk, where k in 1..n is the index of a subscribed pool
+
