@@ -1,5 +1,5 @@
 ;;;
-;;; $Id: //droopi/main/utils/update-headers.el#2 $
+;;; $Id: //droopi/main/utils/update-headers.el#3 $
 ;;;
 ;;; This file contains the update-header command which can be used to
 ;;; update headers depending on the header.txt file in the current directory.
@@ -65,10 +65,10 @@
 	  (goto-char (point-min))
 	  (re-search-forward "^[a-z]")
 	  (beginning-of-line)
-	  (insert "--  $Id: //droopi/main/utils/update-headers.el#2 $\n\n")))))
+	  (insert (concat "--  $" "Id:$\n\n"))))))
 
 (defun expand-ada-name (n)
-  (if (<= (length n) 1) n
+  (if (or (<= (length n) 1) (> (length n) 35)) n
     (concat (substring n 0 1) " " (expand-ada-name (substring n 1)))))
 
 (defun center-ada (l &optional omit-terminator)
@@ -92,8 +92,10 @@
       (let ((current (car l)))
 	(message "Updating %s..." current)
 	(find-file current)
-	(update-header)
-	(write-file current)
-	(message "Updating %s... done" current)
+	(if (not buffer-read-only)
+	    (progn
+	      (update-header)
+	      (write-file current)
+	      (message "Updating %s... done" current)))
 	(setq l (cdr l))))))
 
