@@ -1,1 +1,1 @@
-SUBDIRS = @SERVICE_LIST@
+SUBDIRS = naming event notification time
