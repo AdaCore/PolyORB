@@ -252,6 +252,14 @@ private
 
          Registered_Tasks : Natural := 0;
          --  Number of task registered by the ORB Controller
+         --  An invariant to be tested is
+         --
+         --  Registered_Tasks =
+         --     Unscheduled_Tasks
+         --   +  Idle_Tasks
+         --   +  Running_Tasks
+         --   +  Blocked_Tasks
+         --   +  Terminated_Tasks
 
          Unscheduled_Tasks : Natural := 0;
          --  Number of unscheduled tasks
@@ -264,6 +272,9 @@ private
 
          Blocked_Tasks : Natural := 0;
          --  Number of task blocking on AES
+
+         Terminated_Tasks : Natural := 0;
+         --  Number of terminated tasks
 
          Number_Of_Pending_Jobs : Natural := 0;
          --  Number of pending jobs

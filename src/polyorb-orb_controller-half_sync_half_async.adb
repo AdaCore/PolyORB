@@ -69,7 +69,7 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
 
    procedure Try_Allocate_One_Task
      (O : access ORB_Controller_Half_Sync_Half_Async);
-   --  Awake one idle task, if any. Elso do nothing.
+   --  Awake one idle task, if any. Else do nothing.
 
    -------------------
    -- Register_Task --
@@ -82,6 +82,8 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
    begin
       pragma Debug (O1 ("Register_Task: enter"));
 
+      pragma Assert (State (TI.all) = Unscheduled);
+
       O.Registered_Tasks := O.Registered_Tasks + 1;
       O.Unscheduled_Tasks := O.Unscheduled_Tasks + 1;
 
@@ -93,8 +95,8 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
          O.Monitoring_Task_Info := TI;
       end if;
 
-      pragma Debug (O1 ("Register_Task: leave"));
       pragma Debug (O2 (Status (O)));
+      pragma Debug (O1 ("Register_Task: leave"));
    end Register_Task;
 
    ---------------------
@@ -139,8 +141,6 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
       then
          --  Awake monitoring task
 
-         O.Idle_Tasks := O.Idle_Tasks - 1;
-         O.Unscheduled_Tasks := O.Unscheduled_Tasks + 1;
          O.Monitoring_Task_Idle := False;
          pragma Debug (O1 ("Enable_Polling: awake monitoring task"));
          Signal (O.Monitoring_Task_CV);
@@ -209,8 +209,7 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
 
                O.Polling_Scheduled := True;
                O.Monitoring_Task_Idle := False;
-               O.Idle_Tasks := O.Idle_Tasks - 1;
-               O.Unscheduled_Tasks := O.Unscheduled_Tasks + 1;
+
                Signal (O.Monitoring_Task_CV);
             end if;
 
@@ -239,7 +238,6 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
             --  Awake all idle tasks
 
             for J in 1 .. O.Idle_Tasks loop
-               O.Unscheduled_Tasks := O.Unscheduled_Tasks + 1;
                Awake_One_Idle_Task (O);
             end loop;
 
@@ -255,12 +253,6 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
 
          when Queue_Event_Job =>
 
-            --  Queueing an event means we delete one source
-
-            --  O.Number_Of_AES := O.Number_Of_AES - 1;
-
-            O.Counter := 0;
-
             --  Queue event to monitoring job queue
 
             pragma Assert (E.By_Task = Id (O.Monitoring_Task_Info.all));
@@ -269,7 +261,6 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
             PJ.Queue_Job (O.Monitoring_Task_Job_Queue, E.Event_Job);
 
          when Queue_Request_Job =>
-            pragma Debug (O1 (Boolean'Image (O.RS = null)));
 
             if O.RS = null
               or else not PRS.Try_Queue_Request_Job
@@ -307,17 +298,15 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
                   declare
                      use PolyORB.Asynch_Ev;
 
-                     Sel : constant Asynch_Ev_Monitor_Access
-                       := Selector (E.Requesting_Task.all);
+                     Sel : Asynch_Ev_Monitor_Access
+                       renames Selector (E.Requesting_Task.all);
 
                   begin
                      pragma Debug (O1 ("About to abort block"));
 
-                     O.Blocked_Tasks := O.Blocked_Tasks - 1;
-                     O.Unscheduled_Tasks := O.Unscheduled_Tasks + 1;
-
                      pragma Assert (Sel /= null);
                      Abort_Check_Sources (Sel.all);
+
                      pragma Debug (O1 ("Aborted."));
                   end;
 
@@ -328,8 +317,6 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
 
                   pragma Debug (O1 ("Signal requesting task"));
 
-                  O.Idle_Tasks := O.Idle_Tasks - 1;
-                  O.Unscheduled_Tasks := O.Unscheduled_Tasks + 1;
                   Signal (Condition (E.Requesting_Task.all));
 
                when Terminated
@@ -341,7 +328,9 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
             end case;
 
          when Idle_Awake =>
-            null;
+
+            O.Idle_Tasks := O.Idle_Tasks - 1;
+            O.Unscheduled_Tasks := O.Unscheduled_Tasks + 1;
 
       end case;
 
@@ -361,20 +350,19 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
 
       pragma Assert (PTI.State (TI.all) = Unscheduled);
 
-      --  Update counters
-
-      O.Unscheduled_Tasks := O.Unscheduled_Tasks - 1;
-
       --  Recompute TI status
 
       if Exit_Condition (TI.all)
         or else O.Shutdown
       then
 
-         pragma Debug (O1 ("Task is now terminated"));
-         pragma Debug (O2 (Status (O)));
+         O.Unscheduled_Tasks := O.Unscheduled_Tasks - 1;
+         O.Terminated_Tasks := O.Terminated_Tasks + 1;
 
          Set_State_Terminated (TI.all);
+
+         pragma Debug (O1 ("Task is now terminated"));
+         pragma Debug (O2 (Status (O)));
 
       else
 
@@ -386,6 +374,7 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
             if not PJ.Is_Empty (O.Monitoring_Task_Job_Queue) then
                --  Process event on the monitor
 
+               O.Unscheduled_Tasks := O.Unscheduled_Tasks - 1;
                O.Running_Tasks := O.Running_Tasks + 1;
 
                Set_State_Running
@@ -397,26 +386,31 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
             then
                --  Monitor
 
+               O.Unscheduled_Tasks := O.Unscheduled_Tasks - 1;
                O.Blocked_Tasks := O.Blocked_Tasks + 1;
-               O.Polling_Scheduled := False;
 
-               pragma Debug (O1 ("Task is now blocked"));
-               pragma Debug (O2 (Status (O)));
+               O.Polling_Scheduled := False;
 
                Set_State_Blocked
                  (TI.all,
                   O.Monitors (1),
                   O.Polling_Timeout);
 
+               pragma Debug (O1 ("Task is now blocked"));
+               pragma Debug (O2 (Status (O)));
+
             else
                --  Go idle
 
+               O.Unscheduled_Tasks := O.Unscheduled_Tasks - 1;
                O.Idle_Tasks := O.Idle_Tasks + 1;
+
                O.Monitoring_Task_Idle := True;
-               Set_State_Idle (TI.all, O.Monitoring_Task_CV, O.ORB_Lock);
 
                pragma Debug (O1 ("Task is now idle"));
                pragma Debug (O2 (Status (O)));
+
+               Set_State_Idle (TI.all, O.Monitoring_Task_CV, O.ORB_Lock);
 
             end if;
 
@@ -425,17 +419,20 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
 
             if O.Number_Of_Pending_Jobs > 0 then
 
+               O.Unscheduled_Tasks := O.Unscheduled_Tasks - 1;
                O.Running_Tasks := O.Running_Tasks + 1;
+
                O.Number_Of_Pending_Jobs := O.Number_Of_Pending_Jobs - 1;
+
+               Set_State_Running (TI.all, PJ.Fetch_Job (O.Job_Queue));
 
                pragma Debug (O1 ("Task is now running a job"));
                pragma Debug (O2 (Status (O)));
 
-               Set_State_Running (TI.all, PJ.Fetch_Job (O.Job_Queue));
-
             else
-
+               O.Unscheduled_Tasks := O.Unscheduled_Tasks - 1;
                O.Idle_Tasks := O.Idle_Tasks + 1;
+
                Set_State_Idle (TI.all, Allocate_CV (O), O.ORB_Lock);
 
                pragma Debug (O1 ("Task is now idle"));
@@ -454,13 +451,12 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
      (O  : access ORB_Controller_Half_Sync_Half_Async;
       TI :        PTI.Task_Info_Access)
    is
-      pragma Warnings (Off);
-      pragma Unreferenced (TI);
-      pragma Warnings (On);
-
    begin
       pragma Debug (O1 ("Unregister_Task: enter"));
 
+      pragma Assert (State (TI.all) = Terminated);
+
+      O.Terminated_Tasks := O.Terminated_Tasks - 1;
       O.Registered_Tasks := O.Registered_Tasks - 1;
 
       pragma Debug (O2 (Status (O)));
@@ -504,26 +500,19 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
    procedure Awake_One_Idle_Task
      (O : access ORB_Controller_Half_Sync_Half_Async)
    is
+      use CV_Lists;
+
       Idle_Task_CV : Condition_Access;
 
    begin
-      if O.Idle_Tasks > 0 then
+      if O.Used_CV /= Empty then
          pragma Debug (O1 ("Awake one idle task"));
-
-         --  Modify Scheduler status
-
-         O.Idle_Tasks := O.Idle_Tasks - 1;
-         O.Unscheduled_Tasks := O.Unscheduled_Tasks + 1;
 
          --  Signal one idle task, and puts its CV in Free_CV
 
          CV_Lists.Extract_First (O.Used_CV, Idle_Task_CV);
          Signal (Idle_Task_CV);
          CV_Lists.Append (O.Free_CV, Idle_Task_CV);
-
-      else
-         pragma Debug (O1 ("No idle task !"));
-         raise Program_Error;
 
       end if;
    end Awake_One_Idle_Task;
@@ -546,16 +535,13 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
          pragma Debug (O1 ("Assume one unaffected task will handle event"));
          null;
 
+      elsif O.Idle_Tasks > 0 then
+         Awake_One_Idle_Task (O);
+
       else
+         pragma Debug (O1 ("No idle tasks"));
+         null;
 
-         if O.Idle_Tasks > 0 then
-            Awake_One_Idle_Task (O);
-
-         else
-            pragma Debug (O1 ("No idle tasks"));
-            null;
-
-         end if;
       end if;
 
       pragma Debug (O1 ("Try_Allocate_One_Task: end"));
