@@ -29,14 +29,15 @@ def get_subdirs (dir):
 def read_MANIFEST (dir):
   MANIFEST = []
   for l in open ("MANIFEST", "r").readlines ():
-    m = re.match ("^(" + dir + "/(Makefile\.(common|am)|[^/]*\.ad[sb]))$", l)
+    m = re.match ("^(" + dir + "/(Makefile.*|[^/]*\.ad[sb]))$", l)
     if m:
       MANIFEST.append (m.group (1))
   return MANIFEST
 
 def read_files (dir):
+  Makefiles = glob.glob (dir + "/Makefile.am")
   return glob.glob (dir + "/*.ad[sb]") \
-         + glob.glob (dir + "/Makefile.am") \
+         + Makefiles + map (lambda s: s[:-2] + 'in', Makefiles) \
          + glob.glob (dir + "/Makefile.common")
 
 # Additional checks for src/:

@@ -89,6 +89,8 @@ cos/time/test_time.adb
 cos/time/test_time.ads
 cos/time/time_utils.adb
 cos/time/time_utils.ads
+exampels/calculator/Makefile.am
+exampels/calculator/Makefile.in
 examples/Makefile.am
 examples/Makefile.common
 examples/Makefile.in
@@ -472,6 +474,7 @@ src/corba.adb
 src/corba.ads
 src/header.txt
 src/ir/Makefile.am
+src/ir/Makefile.in
 src/ir/client.adb
 src/ir/corba-repository_root-aliasdef-impl.adb
 src/ir/corba-repository_root-aliasdef-impl.ads
