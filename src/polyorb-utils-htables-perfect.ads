@@ -31,11 +31,8 @@
 ------------------------------------------------------------------------------
 
 --  This package provides fonctions to use the package
---  polyorb-utils-htables.ads with a generic type. An Item
---  is associated with each elements (when hashing a key
---  this Item will be returned by the function lookup
-
---  $Id$
+--  PolyORB.Utils.HTables with a generic type. Each Item is associated with
+--  an element. When hashing a key, Lookup returns this Item.
 
 generic
    type Item is private;
@@ -46,30 +43,29 @@ package PolyORB.Utils.HTables.Perfect is
    procedure Initialize
      (T      : out Table;
       Prime  : Natural;
-      Length : Natural);
-   --  Prime is a prime number used by hash functions. Length is the
-   --  max number of elements that can be stored.
+      Max    : Natural);
+   --  Prime is a prime number used by hash functions. Max is the max
+   --  number of elements to store.
 
-   procedure Destroy
+   procedure Finalize
      (T : in out Table);
 
    function Lookup
      (T   : Table;
       Key : String)
      return Item;
-   --  Key is the string to be hashed
+   --  Key is the string to hash.
 
    procedure Insert
      (T     : Table;
       Key   : String;
       Value : Item);
-   --  Key is the string to be hashed
-   --  Value is the Item associated with Key
+   --  Key is the string to hash and Value its corresponding value.
 
    procedure Delete
      (T   : Table;
       Key : String);
-   --  Key is the string to be hashed
+   --  Key is the string to hash.
 
 private
 

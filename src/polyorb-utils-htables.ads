@@ -36,74 +36,52 @@
 
 package PolyORB.Utils.HTables is
 
-   --  Je ne comprends pas pourquoi tous ces types se trouvent la.
-   --  Pour l'essentiel, ils ne sont utilisables que par Perfect.
-   --  Donc, Perfect devrait etre rapatrie dans ce paquetage.
-
 private
 
    type String_Access is access all String;
 
    type Element is record
       Key         : String_Access;
-      Deleted     : Boolean;
+      Used        : Boolean;
       Table_Id    : Natural;
       Subtable_Id : Natural;
    end record;
-   --  Key         is hashed data (hashcode = h(Key))
+   --  Key is the element key in the hash algorithm terminology. When
+   --  an element in an array has a Used attribute set to true, this
+   --  denotes a non-empty slot. Table_Id and Subtable_Id are indices
+   --  to internal tables used by the perfect dynamic hash table
+   --  algorithm.
 
-   --  Deleted     True when Element is unused
+   --  XXXXX If (Used) <=> (Key /= null) then we do not need Used.
 
-   --  Table_Id    Used by the algorithm when it tries
-   --              to find a hash function that satisfies
-   --              a condition
-   --  Subtable_Id Used by the algorithm when it tries
-   --              to find an injective hash function for
-   --              the sub_tables
 
    type Subtable is record
-      Size  : Natural;
-      K : Natural;
-      Max_Elements : Natural;
-      N_Elements : Natural;
-      First : Natural;
+      First  : Natural;
+      Last   : Natural;
+      High   : Natural;
+      Max    : Natural;
+      K      : Natural;
    end record;
-   --  Size                is the size of the Subtable in the memory
-   --                      and define range of the hash function
-   --  Max_Elements        is an upper bound fixed by the algorithm.
-   --                      when N_Elements is superior to
-   --                      Max_Elements the algorithm needs to reorganize
-   --                      the sub_table
-   --  N_Elements          Actual number of Element stored in the sub_table
-   --
-   --  Number_Of_Elements < Max_Elements < Size
-
-   --  First               First subtable index
-
-   --  K                   is used to choose the hash function for
-   --                      the sub_table
-   --                      h(Key) = ((K * Key) mod Prime) mod Size
+   --  First (resp. Last) is the first (resp. last) subtable index.
+   --  Max is the maximum size of the subtable. When Last - First + 1
+   --  is greater than High, the algorithm reorganizes the subtable
+   --  for algorithm purposes. K is a subtable attribute that ensures
+   --  h (Key) = ((K * Key) mod Prime) mod Size.
 
    type Table_Info is record
-      Size : Natural;
-      Prime : Natural;
-      K : Natural;
-      Max_Elements : Natural;
-      Count : Natural;
+      Prime        : Natural;
+      Length       : Natural;
+      High         : Natural;
+      K            : Natural;
    end record;
-   --  P             Prime number for all the hash functions
-   --                h(Key) = ((K * Key) mod Prime) mod Size
+   --  Prime is a prime number used by the algorithm. It can be
+   --  specified by the user. Length is the actual number of elements
+   --  in the table. When Length > High, the algorithm reorganizes all
+   --  the subtables. K is a table attribute that ensures h (Key) =
+   --  ((K * Key) mod Prime) mod Size.
 
-   --  K             is used to choose the hash function for
-   --                the table
-   --                h(Key) = ((K * Key) mod Prime) mod Size
-
-   --  Count         is a variable that count the number of
-   --                modification (insertion) in the table
-   --  N_Sub_Tables  Number of Subtables
-   --  M             when Count > M the algorithm needs to
-   --                reorganize all the sub_tables (worst
-   --                case)
+   --  XXXXX : what is the difference between Table.K and Subtable.K.
+   --  Why is it duplicated ?
 
    type Element_Array is array (Natural range <>) of Element;
    type Element_Array_Ptr is access all Element_Array;
@@ -116,32 +94,38 @@ private
       Elements  : Element_Array_Ptr;
       Subtables : Subtable_Array_Ptr;
    end record;
+   --  XXXXX : comments ???
 
    procedure Initialize
      (T      : out Hash_Table;
       Prime  : Natural;
-      Length : Natural);
-   --  Prime is a prime number used by hash functions. Length is the
-   --  max number of elements that can be stored.
+      Max    : Natural);
+   --  Prime is a prime number used by hash functions. Max is the max
+   --  number of elements to store.
 
-   procedure Destroy
+   procedure Finalize
      (T : in out Hash_Table);
 
    procedure Lookup
-     (T   : Hash_Table;
-      Key : String;
+     (T      : Hash_Table;
+      Key    : String;
       Index1 : out Natural;
       Index2 : out Natural);
-   --  Key is the string to be hashed
+   --  Key is the string to hash.
+
+   --  XXXXX : meaning of Index1 and Index2 ?
 
    procedure Insert
-     (T     : Hash_Table;
-      Key   : String);
-   --  Key is the string to be hashed
+     (T   : Hash_Table;
+      Key : String);
+   --  Key is the string to hash.
    --  Value is the Item associated with Key
+
+   --  XXXXX where is Value now ???. Why don't we get the hash code back ?
 
    procedure Delete
      (T   : Hash_Table;
       Key : String);
-   --  Key is the string to be hashed
+   --  Key is the string to hash.
+
 end PolyORB.Utils.HTables;
