@@ -32,7 +32,6 @@
 
 with Ada.Tags;
 
-with PolyORB.Exceptions;
 with PolyORB.POA_Policies.Id_Assignment_Policy.System;
 with PolyORB.POA_Policies.Servant_Retention_Policy.Retain;
 
@@ -52,14 +51,18 @@ package body PolyORB.POA_Policies.Implicit_Activation_Policy.Activation is
    -------------------------
 
    procedure Check_Compatibility
-     (Self : Activation_Policy;
-      Other_Policies   : AllPolicies)
+     (Self           :        Activation_Policy;
+      Other_Policies :        AllPolicies;
+      Error          : in out PolyORB.Exceptions.Error_Container)
+
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
 
       use Ada.Tags;
+
+      use PolyORB.Exceptions;
 
       use PolyORB.POA_Policies.Servant_Retention_Policy;
       use PolyORB.POA_Policies.Servant_Retention_Policy.Retain;
@@ -73,14 +76,18 @@ package body PolyORB.POA_Policies.Implicit_Activation_Policy.Activation is
       for J in Other_Policies'Range loop
          if Other_Policies (J).all in ServantRetentionPolicy'Class
            and then Other_Policies (J).all'Tag /= Retain_Policy'Tag then
-            PolyORB.Exceptions.Raise_Invalid_Policy;
-            --  XXX we may raise an exception, but should we ?
+            Throw (Error,
+                   Invalid_Policy'Identity,
+                   new System_Exception_Members'(Minor => 0,
+                                                 Completed => Completed_No));
          end if;
 
          if Other_Policies (J).all in IdAssignmentPolicy'Class
            and then Other_Policies (J).all'Tag /= System_Id_Policy'Tag then
-            PolyORB.Exceptions.Raise_Invalid_Policy;
-            --  XXX we may raise an exception, but should we ?
+            Throw (Error,
+                   Invalid_Policy'Identity,
+                   new System_Exception_Members'(Minor => 0,
+                                                 Completed => Completed_No));
          end if;
 
       end loop;

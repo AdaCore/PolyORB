@@ -40,8 +40,7 @@ package body PolyORB.Obj_Adapters is
 
    procedure Set_ORB
      (OA      : access Obj_Adapter;
-      The_ORB :        Components.Component_Access)
-   is
+      The_ORB :        Components.Component_Access) is
    begin
       OA.ORB := The_ORB;
    end Set_ORB;
@@ -112,17 +111,17 @@ package body PolyORB.Obj_Adapters is
    -- To_Proxy_Oid --
    ------------------
 
-   function To_Proxy_Oid
-     (OA : access Obj_Adapter;
-      R  :        References.Ref)
-     return Objects.Object_Id_Access
+   procedure To_Proxy_Oid
+     (OA    : access Obj_Adapter;
+      R     :        References.Ref;
+      Oid   :    out Objects.Object_Id_Access;
+      Error : in out PolyORB.Exceptions.Error_Container)
    is
       pragma Warnings (Off);
-      pragma Unreferenced (OA, R);
+      pragma Unreferenced (OA, R, Oid, Error);
       pragma Warnings (On);
    begin
       raise Not_Implemented;
-      return null;
    end To_Proxy_Oid;
 
    ------------------

@@ -68,20 +68,20 @@ package body PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl is
    -------------------------
 
    procedure Check_Compatibility
-     (Self : ORB_Ctrl_Policy;
-      Other_Policies   : AllPolicies)
+     (Self           :        ORB_Ctrl_Policy;
+      Other_Policies :        AllPolicies;
+      Error          : in out PolyORB.Exceptions.Error_Container)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Unreferenced (Other_Policies);
+      pragma Unreferenced (Error);
       pragma Warnings (On);
 
    begin
       null;
       --  No rule to test.
 
-      --  XXX should we test that Father's POA thread policy is not
-      --  Single or Main thread ?
    end Check_Compatibility;
 
    ------------------------------

@@ -34,11 +34,14 @@
 
 --  $Id$
 
+with PolyORB.Exceptions;
 with PolyORB.Servants;
-with PolyORB.POA_Types; use PolyORB.POA_Types;
+with PolyORB.POA_Types;
 with PolyORB.Smart_Pointers;
 
 package PolyORB.POA_Manager is
+
+   use PolyORB.POA_Types;
 
    --  Unit has no proper body: no elab control necessary.
 
@@ -52,24 +55,25 @@ package PolyORB.POA_Manager is
 
    type POAManager_Access is access all POAManager'Class;
 
-   Invalid_Obj_Adapter : exception;
-
    --------------------------------------------------------------------
    -- Procedures and functions to implement the POAManager interface --
    --------------------------------------------------------------------
 
    procedure Activate
-     (Self : access POAManager)
+     (Self  : access POAManager;
+      Error : in out PolyORB.Exceptions.Error_Container)
       is abstract;
 
    procedure Hold_Requests
      (Self                : access POAManager;
-      Wait_For_Completion :        Boolean)
+      Wait_For_Completion :        Boolean;
+      Error               : in out PolyORB.Exceptions.Error_Container)
      is abstract;
 
    procedure Discard_Requests
      (Self                : access POAManager;
-      Wait_For_Completion :        Boolean)
+      Wait_For_Completion :        Boolean;
+      Error               : in out PolyORB.Exceptions.Error_Container)
       is abstract;
 
    procedure Deactivate

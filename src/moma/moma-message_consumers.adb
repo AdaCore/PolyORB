@@ -34,8 +34,8 @@
 
 with MOMA.Provider.Message_Consumer;
 
-with PolyORB.Any;
 with PolyORB.Any.NVList;
+with PolyORB.Exceptions;
 with PolyORB.Minimal_Servant.Tools;
 with PolyORB.Requests;
 with PolyORB.Types;
@@ -66,6 +66,12 @@ package body MOMA.Message_Consumers is
                              Dest    : MOMA.Destinations.Destination)
                             return Message_Consumer_Acc
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (Session);
+      pragma Warnings (On);
+
+      use PolyORB.Exceptions;
+
       MOMA_Obj : constant MOMA.Provider.Message_Consumer.Object_Acc
         := new MOMA.Provider.Message_Consumer.Object;
 
@@ -74,19 +80,24 @@ package body MOMA.Message_Consumers is
       Consumer : constant MOMA.Message_Consumers.Message_Consumer_Acc :=
         new MOMA.Message_Consumers.Message_Consumer;
 
+      Error : Error_Container;
+
    begin
-      pragma Warnings (Off);
-      pragma Unreferenced (Session);
-      pragma Warnings (On);
+
       --  XXX Session is to be used to 'place' the receiver
       --  using session position in the POA
 
-      Set_Remote_Ref (MOMA_Obj.all, MOMA.Destinations.Get_Ref (Dest));
       Initiate_Servant (MOMA_Obj,
                         MOMA.Provider.Message_Consumer.If_Desc,
                         MOMA.Types.MOMA_Type_Id,
-                        MOMA_Ref);
+                        MOMA_Ref,
+                        Error);
 
+      if Found (Error) then
+         Raise_From_Error (Error);
+      end if;
+
+      Set_Remote_Ref (MOMA_Obj.all, MOMA.Destinations.Get_Ref (Dest));
       Set_Destination (Consumer.all, Dest);
       Set_Ref (Consumer.all, MOMA_Ref);
       --  XXX Is it really useful to have the Ref to the remote destination in

@@ -51,11 +51,12 @@ package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Multiple is
    -------------------------
 
    procedure Check_Compatibility
-     (Self           : Multiple_Id_Policy;
-      Other_Policies : AllPolicies)
+     (Self           :        Multiple_Id_Policy;
+      Other_Policies :        AllPolicies;
+      Error          : in out PolyORB.Exceptions.Error_Container)
    is
       pragma Warnings (Off);
-      pragma Unreferenced (Self, Other_Policies);
+      pragma Unreferenced (Self, Other_Policies, Error);
       pragma Warnings (On);
    begin
       null;
@@ -85,10 +86,11 @@ package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Multiple is
    procedure Ensure_Servant_Uniqueness
      (Self      : Multiple_Id_Policy;
       OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Servants.Servant_Access)
+      P_Servant : Servants.Servant_Access;
+      Error     : in out PolyORB.Exceptions.Error_Container)
    is
       pragma Warnings (Off);
-      pragma Unreferenced (Self, OA, P_Servant);
+      pragma Unreferenced (Self, OA, P_Servant, Error);
       pragma Warnings (On);
 
    begin

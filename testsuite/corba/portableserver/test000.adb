@@ -93,16 +93,107 @@ procedure Test000 is
    use PolyORB.CORBA_P.Server_Tools;
    use PolyORB.Utils.Report;
 
-   procedure Test_Init;
+   -----------------------
+   -- Utility functions --
+   -----------------------
+
+   procedure Init_Test;
    --  Initialize test.
 
-   procedure Attach_Servant (To_POA : PortableServer.POA.Ref;
-                             Obj_Ref : out Echo.Ref);
+   procedure Attach_Servant
+     (To_POA  : PortableServer.POA.Ref;
+      Obj_Ref : out Echo.Ref);
    --  Attach an 'Echo' servant to 'To_POA' POA.
 
-   procedure Invoke_On_Servant (Obj_Ref : Echo.Ref;
-                                Reentrant : Boolean := False);
+   procedure Invoke_On_Servant
+     (Obj_Ref   : Echo.Ref;
+      Reentrant : Boolean := False;
+      Verbose   : Boolean := True);
+
+   function Invoke_On_Servant
+     (Obj_Ref   : Echo.Ref)
+     return Boolean;
    --  Invoke on Servant 'Obj_Ref'.
+
+   ---------------
+   -- Init_Test --
+   ---------------
+
+   procedure Init_Test is
+   begin
+      --  ORB Initialization.
+      CORBA.ORB.Initialize ("ORB");
+
+      --  Run the ORB instance in a separated task.
+      Initiate_Server (True);
+
+      Output ("ORB initialized", True);
+   end Init_Test;
+
+   --------------------
+   -- Attach_Servant --
+   --------------------
+
+   procedure Attach_Servant
+     (To_POA  : PortableServer.POA.Ref;
+      Obj_Ref : out Echo.Ref)
+   is
+      Obj : constant CORBA.Impl.Object_Ptr := new Echo.Impl.Object;
+
+   begin
+      Obj_Ref := Echo.Helper.To_Ref
+        (PortableServer.POA.Servant_To_Reference
+         (To_POA, PortableServer.Servant (Obj)));
+
+      Output ("Attach servant to POA "
+                             & To_Standard_String (Get_The_Name (To_POA)),
+                             True);
+   end Attach_Servant;
+
+   -----------------------
+   -- Invoke_On_Servant --
+   -----------------------
+
+   procedure Invoke_On_Servant
+     (Obj_Ref   : Echo.Ref;
+      Reentrant : Boolean := False;
+      Verbose   : Boolean := True) is
+   begin
+      if Reentrant then
+         declare
+            IOR : CORBA.String := CORBA.Object.Object_To_String (Obj_Ref);
+         begin
+            if Verbose then
+               Output
+                 ("Invocation on reentrant servant",
+                  IOR = Echo.echoString_reentrant (Obj_Ref, IOR));
+            end if;
+         end;
+      else
+         if Verbose then
+            Output
+              ("Invocation on created servant",
+               "Hello Ada World !" =
+               To_Standard_String
+               (Echo.echoString
+                (Obj_Ref, To_CORBA_String ("Hello Ada World !"))));
+         end if;
+      end if;
+   end Invoke_On_Servant;
+
+   function Invoke_On_Servant
+     (Obj_Ref   : Echo.Ref)
+     return Boolean is
+   begin
+      return "Hello Ada World !" =
+        To_Standard_String
+        (Echo.echoString
+         (Obj_Ref, To_CORBA_String ("Hello Ada World !")));
+   end Invoke_On_Servant;
+
+   ------------------------
+   -- POA Test functions --
+   ------------------------
 
    procedure Test_Root_POA;
    --  Test Root_POA.
@@ -115,9 +206,6 @@ procedure Test000 is
 
    procedure Test_Main_Thread_Policy;
    --  Test POA Main_Thread Thread Policy.
-
-   procedure Test_POA_Activation_Policies (POA : PortableServer.POA.Ref);
-   --  Test Servant Activation Policies under POA's configuration.
 
    procedure Test_Conversion (POA : PortableServer.POA.Ref);
    --  Test Conversion functions under POA's configuration.
@@ -173,67 +261,6 @@ procedure Test000 is
 
    procedure Test_POA_API;
 
-   ---------------
-   -- Test_Init --
-   ---------------
-
-   procedure Test_Init is
-   begin
-      --  ORB Initialization.
-      CORBA.ORB.Initialize ("ORB");
-
-      --  Run the ORB instance in a separated task.
-      Initiate_Server (True);
-
-      Output ("ORB initialized", True);
-   end Test_Init;
-
-   --------------------
-   -- Attach_Servant --
-   --------------------
-
-   procedure Attach_Servant
-     (To_POA  : PortableServer.POA.Ref;
-      Obj_Ref : out Echo.Ref)
-   is
-      Obj : constant CORBA.Impl.Object_Ptr := new Echo.Impl.Object;
-
-   begin
-      Obj_Ref := Echo.Helper.To_Ref
-        (PortableServer.POA.Servant_To_Reference
-         (To_POA, PortableServer.Servant (Obj)));
-
-      Output ("Attach servant to POA "
-                             & To_Standard_String (Get_The_Name (To_POA)),
-                             True);
-   end Attach_Servant;
-
-   -----------------------
-   -- Invoke_On_Servant --
-   -----------------------
-
-   procedure Invoke_On_Servant
-     (Obj_Ref : Echo.Ref;
-      Reentrant : Boolean := False) is
-   begin
-      if Reentrant then
-         declare
-            IOR : CORBA.String := CORBA.Object.Object_To_String (Obj_Ref);
-         begin
-            Output
-              ("Invocation on reentrant servant",
-               IOR = Echo.echoString_reentrant (Obj_Ref, IOR));
-         end;
-      else
-         Output
-           ("Invocation on created servant",
-            "Hello Ada World !" =
-            To_Standard_String
-            (Echo.echoString
-             (Obj_Ref, To_CORBA_String ("Hello Ada World !"))));
-      end if;
-   end Invoke_On_Servant;
-
    -------------------
    -- Test_Root_POA --
    -------------------
@@ -275,6 +302,8 @@ procedure Test000 is
         (CORBA.ORB.Resolve_Initial_References
          (CORBA.ORB.To_CORBA_String ("RootPOA")));
 
+      Child_POA_Manager : PortableServer.POAManager.Ref;
+
       Child_POA : PortableServer.POA.Ref;
 
       Obj_Ref  : Echo.Ref;
@@ -291,10 +320,14 @@ procedure Test000 is
         (PortableServer.POA.Create_POA
          (Root_POA,
           To_CORBA_String ("Child_POA"),
-          PortableServer.POA.Get_The_POAManager (Root_POA),
+          Child_POA_Manager,
           Policies));
 
       Output ("Created child POA", True);
+
+      Activate (PortableServer.POA.Get_The_POAManager (Child_POA));
+      --  faire le test sans cet appel !!!!
+      Output ("POA is now active", True);
 
       --  Test invocation on a servant attached to this Child POA.
 
@@ -337,6 +370,7 @@ procedure Test000 is
 
       begin
          Invoke_On_Servant (Obj_Ref);
+         Output ("Invoke raised exception", False);
       exception
          when others =>
             Output ("Invoke raised exception", True);
@@ -350,6 +384,17 @@ procedure Test000 is
       --  (dirty) Synchronization point.
       delay 5.0;
       Output ("Waiting for end of POA Manager tests", True);
+
+      Deactivate (PortableServer.POA.Get_The_POAManager (Child_POA),
+                  False,
+                  False);
+      begin
+         Activate (PortableServer.POA.Get_The_POAManager (Child_POA));
+         Output ("Activate raised exception", False);
+      exception
+         when AdapterInactive =>
+            Output ("Activate raised exception", True);
+      end;
 
       Destroy (Child_POA, True, True);
       Output ("POA has been destroyed", True);
@@ -492,117 +537,9 @@ procedure Test000 is
 
    end Test_Main_Thread_Policy;
 
-   ----------------------------------
-   -- Test_POA_Activation_Policies --
-   ----------------------------------
-
-   procedure Test_POA_Activation_Policies
-     (POA : PortableServer.POA.Ref) is
-   begin
-
-      --  Servant_To_Refence implicitely activates servant.
-
-      declare
-         Servant : constant PortableServer.Servant := new Echo.Impl.Object;
-         Obj_Ref : Echo.Ref;
-
-      begin
-         Obj_Ref := Echo.Helper.To_Ref
-           (PortableServer.POA.Servant_To_Reference (POA, Servant));
-
-         Output ("Implicitly activate servant in POA "
-                                & To_Standard_String (Get_The_Name (POA)),
-                                True);
-
-         Invoke_On_Servant (Obj_Ref);
-
-         Output
-           ("Default Repository_Id is correct",
-            Echo.Repository_Id = To_Standard_String
-            (Get_Type_Id (Reference_To_Servant (POA, Obj_Ref))));
-      end;
-
-      --  Explicitely Activate servant.
-
-      declare
-         Servant : constant PortableServer.Servant := new Echo.Impl.Object;
-         Obj_Ref : Echo.Ref;
-
-         OID : ObjectId := PortableServer.POA.Activate_Object (POA, Servant);
-
-      begin
-         Output ("Servant Activated", True);
-
-         Obj_Ref := Echo.Helper.To_Ref
-           (PortableServer.POA.Servant_To_Reference (POA, Servant));
-
-         Invoke_On_Servant (Obj_Ref);
-
-         Output
-           ("Default Repository_Id is correct",
-            Echo.Repository_Id = To_Standard_String
-            (Get_Type_Id (Reference_To_Servant (POA, Obj_Ref))));
-
-         PortableServer.POA.Deactivate_Object (POA, OID);
-         Output ("Servant Deactivated", True);
-
-         begin
-            Invoke_On_Servant (Obj_Ref);
-            Output ("Exception raised on invocation", False);
-         exception
-            when others =>
-               Output ("Exception raised on invocation", True);
-         end;
-      end;
-
-      --  Explicitely Activate servant with User Id.
-
-      declare
-         Servant : constant PortableServer.Servant := new Echo.Impl.Object;
-         Obj_Ref : Echo.Ref;
-
-         OID : ObjectId := PortableServer.String_To_ObjectId ("MyServant");
-
-      begin
-         begin
-            PortableServer.POA.Activate_Object_With_Id
-              (POA, OID, Servant);
-            Output ("Servant Activated With User Id", True);
-
-            Obj_Ref := Echo.Helper.To_Ref
-              (PortableServer.POA.Servant_To_Reference (POA, Servant));
-
-            Invoke_On_Servant (Obj_Ref);
-
-            Output
-              ("Default Repository_Id is correct",
-               Echo.Repository_Id = To_Standard_String
-               (Get_Type_Id (Reference_To_Servant (POA, Obj_Ref))));
-
-            PortableServer.POA.Deactivate_Object (POA, OID);
-            Output ("Servant Deactivated", True);
-
-            begin
-               Invoke_On_Servant (Obj_Ref);
-               Output ("Exception raised on invocation", False);
-            exception
-               when others =>
-                  Output ("Exception raised on invocation",
-                                         True);
-            end;
-
-         exception
-            when others =>
-               Output ("Exception raised when Activating "
-                                      & "servant with Id", True);
-         end;
-      end;
-
-   end Test_POA_Activation_Policies;
-
-   ----------------------
+   ---------------------
    -- Test_Conversion --
-   ----------------------
+   ---------------------
 
    procedure Test_Conversion (POA : PortableServer.POA.Ref)
    is
@@ -718,6 +655,13 @@ procedure Test000 is
           Policies));
 
       return Child_POA;
+
+   exception
+      when E : others =>
+         Put_Line ("Got exception when creating POA:"
+                   & Exception_Name (E));
+
+         raise;
    end Create_POA_With_Policies;
 
    --------------------
@@ -761,6 +705,7 @@ procedure Test000 is
                  and then not (Ap = SYSTEM_ID and Sp = RETAIN))
         or else (Rp = USE_ACTIVE_OBJECT_MAP_ONLY and then Sp /= RETAIN)
         or else (Rp = USE_DEFAULT_SERVANT and then Up /= MULTIPLE_ID)
+        or else Rp = USE_SERVANT_MANAGER -- XXX not implemented.
       then
          return False;
       else
@@ -820,7 +765,6 @@ procedure Test000 is
    procedure Test_POA_Creation
    is
       Result : Boolean := True;
-      Temp : Boolean;
 
    begin
       for Tp in ThreadPolicyValue'Range loop
@@ -831,15 +775,14 @@ procedure Test000 is
                      for Sp in ServantRetentionPolicyValue'Range loop
                         for Rp in RequestProcessingPolicyValue'Range loop
 
-                           Temp := Create_And_Destroy_POA
+                           Result := Result and Create_And_Destroy_POA
                              (Tp, Lp, Up, Ap, Ip, Sp, Rp);
 
-                           if not Temp then
+                           if not Result then
                               Put_Line
                                 (Policies_Image (Tp, Lp, Up, Ap, Ip, Sp, Rp));
+                              exit;
                            end if;
-
-                           Result := Result and Temp;
 
                         end loop;
                      end loop;
@@ -852,6 +795,225 @@ procedure Test000 is
       Output ("Test_POA_Creation", Result);
    end Test_POA_Creation;
 
+   ----------------------------------
+   -- Test_POA_Activation_Policies --
+   ----------------------------------
+
+   type Result_Vector is record
+      Implicit_Activation : Boolean := True;
+      Get_Type_Id         : Boolean := True;
+      Deactivated_Servant : Boolean := True;
+      Activation_No_Id    : Boolean := True;
+
+      Fatal               : Boolean := False;
+   end record;
+
+   function Test_POA_Activation_Policies
+     (POA : PortableServer.POA.Ref) return Result_Vector;
+   --  Test Servant Activation Policies under POA's configuration.
+
+   function Test_POA_Activation_Policies
+     (POA : PortableServer.POA.Ref) return Result_Vector
+   is
+      Result : Result_Vector;
+      Temp   : Boolean;
+   begin
+
+      --  Servant_To_Refence implicitely activates servant.
+
+      declare
+         Servant : constant PortableServer.Servant := new Echo.Impl.Object;
+         Obj_Ref : Echo.Ref;
+
+      begin
+         begin
+            Obj_Ref := Echo.Helper.To_Ref
+              (PortableServer.POA.Servant_To_Reference (POA, Servant));
+         exception
+            when E : others =>
+               Put_Line ("Implicit_Activation failed");
+               Result.Implicit_Activation := False;
+         end;
+
+         begin
+            Temp := Invoke_On_Servant (Obj_Ref);
+
+            if not Temp then
+               Put_Line ("FATAL: Did an invocation on a 'should-not-be'"
+                         & " activated servant !!");
+               Result.Fatal := True;
+            end if;
+
+         exception
+            when E : others =>
+               Put_Line ("Implicit_Activation failed");
+               Result.Implicit_Activation := False;
+         end;
+
+      exception
+         when E : others =>
+            Put_Line ("FATAL: Got exception @0 " & Exception_Name (E));
+            Result.Fatal := True;
+      end;
+
+      --  Explicitely Activate servant.
+
+      declare
+         Servant : constant PortableServer.Servant := new Echo.Impl.Object;
+         Obj_Ref : Echo.Ref;
+      begin
+
+         declare
+            OID : ObjectId
+              := PortableServer.POA.Activate_Object (POA, Servant);
+
+         begin
+            Obj_Ref := Echo.Helper.To_Ref
+              (PortableServer.POA.Servant_To_Reference (POA, Servant));
+
+            Temp := Invoke_On_Servant (Obj_Ref);
+
+            if not Temp then
+               Put_Line ("FATAL: Invooke_On_Servant failed");
+               Result.Fatal := True;
+            end if;
+
+            Temp := Echo.Repository_Id = To_Standard_String
+              (Get_Type_Id (Reference_To_Servant (POA, Obj_Ref)));
+
+            if not Temp then
+               Put_Line ("Get_Type_Id failed");
+               Result.Get_Type_Id := False;
+            end if;
+
+            PortableServer.POA.Deactivate_Object (POA, OID);
+
+            begin
+               Temp := Invoke_On_Servant (Obj_Ref);
+
+               Put_Line ("FATAL: Invoke_On_Servant #1 raised no exception");
+               Result.Fatal := True;
+            exception
+               when others =>
+                  null;
+            end;
+
+         exception
+            when E : others =>
+               Put_Line ("Deactivated_Servant failed");
+               Result.Deactivated_Servant := False;
+         end;
+
+      exception
+         when E : others =>
+            Put_Line ("Activation_No_Id failed");
+            Result.Activation_No_Id := False;
+      end;
+
+      --  Explicitely Activate servant with User Id.
+
+--        declare
+--           Servant : constant PortableServer.Servant := new Echo.Impl.Object;
+--           Obj_Ref : Echo.Ref;
+
+--           OID : ObjectId := PortableServer.String_To_ObjectId ("MyServant");
+
+--        begin
+--           begin
+--              PortableServer.POA.Activate_Object_With_Id
+--                (POA, OID, Servant);
+
+--              Obj_Ref := Echo.Helper.To_Ref
+--                (PortableServer.POA.Servant_To_Reference (POA, Servant));
+
+--              Invoke_On_Servant (Obj_Ref, False, False);
+
+--              Result := Result and
+--                Echo.Repository_Id = To_Standard_String
+--                (Get_Type_Id (Reference_To_Servant (POA, Obj_Ref)));
+
+--              PortableServer.POA.Deactivate_Object (POA, OID);
+
+--              begin
+--                 Invoke_On_Servant (Obj_Ref, False, False);
+
+--                 Output ("Invoke_On_Servant #2 raised no exception", False);
+--                 Result := False;
+--              exception
+--                 when E : others =>
+--                    null;
+--              end;
+
+--           exception
+--              when E : others =>
+--                 Put_Line ("Got exception @3 "
+--                           & Exception_Name (E));
+--                 Result := False;
+--           end;
+--        end;
+
+      return Result;
+
+   exception
+      when E : others =>
+         Put_Line ("Got exception @end "
+                   & Exception_Name (E));
+         Result.Fatal := True;
+
+         return Result;
+
+   end Test_POA_Activation_Policies;
+
+   --------------------
+   -- Analyze_Result --
+   --------------------
+
+   function Analyze_Result
+     (Result : Result_Vector;
+      Tp     : ThreadPolicyValue;
+      Lp     : LifespanPolicyValue;
+      Up     : IdUniquenessPolicyValue;
+      Ap     : IdAssignmentPolicyValue;
+      Ip     : ImplicitActivationPolicyValue;
+      Sp     : ServantRetentionPolicyValue;
+      Rp     : RequestProcessingPolicyValue)
+     return Boolean;
+
+   function Analyze_Result
+     (Result : Result_Vector;
+      Tp     : ThreadPolicyValue;
+      Lp     : LifespanPolicyValue;
+      Up     : IdUniquenessPolicyValue;
+      Ap     : IdAssignmentPolicyValue;
+      Ip     : ImplicitActivationPolicyValue;
+      Sp     : ServantRetentionPolicyValue;
+      Rp     : RequestProcessingPolicyValue)
+     return Boolean is
+   begin
+      if Result.Fatal
+
+        or else (Result.Implicit_Activation
+                 and then Sp /= RETAIN
+                 and then (Up /= UNIQUE_ID
+                           or else Ip /= IMPLICIT_ACTIVATION))
+        or else not Result.Get_Type_Id
+
+        or else (Result.Deactivated_Servant
+                 and then Sp /= RETAIN)
+
+        or else (Result.Activation_No_Id
+                 and then Ap /= SYSTEM_ID
+                 and then Sp /= RETAIN)
+      then
+         return False;
+
+      else
+
+         return True;
+      end if;
+
+   end Analyze_Result;
+
    ------------------
    -- Test_POA_API --
    ------------------
@@ -860,60 +1022,8 @@ procedure Test000 is
    is
       Test_POA : PortableServer.POA.Ref;
 
-      procedure Run_Test
-        (Tp : ThreadPolicyValue;
-         Lp : LifespanPolicyValue;
-         Up : IdUniquenessPolicyValue;
-         Ap : IdAssignmentPolicyValue;
-         Ip : ImplicitActivationPolicyValue;
-         Sp : ServantRetentionPolicyValue;
-         Rp : RequestProcessingPolicyValue);
-
-      procedure Run_Test
-        (Tp : ThreadPolicyValue;
-         Lp : LifespanPolicyValue;
-         Up : IdUniquenessPolicyValue;
-         Ap : IdAssignmentPolicyValue;
-         Ip : ImplicitActivationPolicyValue;
-         Sp : ServantRetentionPolicyValue;
-         Rp : RequestProcessingPolicyValue) is
-      begin
-         if Are_Policies_Valid
-           (Tp, Lp, Up, Ap, Ip, Sp, Rp) then
-
-            Test_POA := Create_POA_With_Policies
-              (Tp, Lp, Up, Ap, Ip, Sp, Rp);
-
-            New_Test
-              (Policies_Image
-               (Tp, Lp, Up, Ap, Ip, Sp, Rp));
-
-            Test_POA_Activation_Policies (Test_POA);
-
-            PortableServer.POA.Destroy
-              (Test_POA, False, False);
-         end if;
-      exception
-         when PolyORB.Not_Implemented =>
-            null;
-
-         when E : others =>
-            New_Line;
-            Put_Line ("Got exception "
-                      & Exception_Name (E)
-                      & " : "
-                      & Exception_Message (E));
-            Put_Line ("Valid ? "
-                      & Boolean'Image
-                      (Are_Policies_Valid
-                       (Tp, Lp, Up, Ap, Ip, Sp, Rp)));
-            Put_Line (Policies_Image
-                      (Tp, Lp, Up, Ap, Ip, Sp, Rp));
-
-            PortableServer.POA.Destroy
-              (Test_POA, False, False);
-
-      end Run_Test;
+      Result : Boolean := True;
+      Temp : Boolean;
 
    begin
       for Tp in ThreadPolicyValue'Range loop
@@ -924,8 +1034,44 @@ procedure Test000 is
                      for Sp in ServantRetentionPolicyValue'Range loop
                         for Rp in RequestProcessingPolicyValue'Range loop
 
-                           Run_Test (Tp, Lp, Up, Ap, Ip, Sp, Rp);
+                           if Are_Policies_Valid
+                             (Tp, Lp, Up, Ap, Ip, Sp, Rp) then
 
+                              Put_Line
+                                ("Testing: " &
+                                    Policies_Image
+                                    (Tp, Lp, Up, Ap, Ip, Sp, Rp));
+
+                              Test_POA := Create_POA_With_Policies
+                                (Tp, Lp, Up, Ap, Ip, Sp, Rp);
+
+                              begin
+                                 Temp := Analyze_Result
+                                   (Test_POA_Activation_Policies (Test_POA),
+                                    Tp, Lp, Up, Ap, Ip, Sp, Rp);
+                              exception
+                                 when others =>
+                                    Put_Line ("plop");
+                                    raise;
+                              end;
+
+                              begin
+                                 PortableServer.POA.Destroy
+                                   (Test_POA, False, False);
+                              exception
+                                 when others =>
+                                    Put_Line ("toto");
+                                    raise;
+                              end;
+                              Result := Result and Temp;
+
+                              if not Temp then
+                                 Put_Line ("Not Ok");
+
+                              end if;
+
+                              New_Line;
+                           end if;
                         end loop;
                      end loop;
                   end loop;
@@ -934,18 +1080,18 @@ procedure Test000 is
          end loop;
       end loop;
 
-      Output ("Test_POA_API", True);
+      Output ("Test_POA_API", Result);
    end Test_POA_API;
 
 begin
-   Test_Init;
---   Test_Root_POA;
---   Test_POAManager;
---   Test_Single_Thread_Policy;
---   Test_Main_Thread_Policy;
---   Test_Conversion (Get_Root_POA);
---   Test_POA_Creation;
-   Test_POA_API;
+   Init_Test;
+   Test_Root_POA;
+   Test_POAManager;
+   Test_Single_Thread_Policy;
+   Test_Main_Thread_Policy;
+   Test_Conversion (Get_Root_POA);
+   Test_POA_Creation;
+--   Test_POA_API;
    End_Report;
 
    GNAT.OS_Lib.OS_Exit (1);

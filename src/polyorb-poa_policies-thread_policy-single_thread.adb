@@ -74,12 +74,14 @@ package body PolyORB.POA_Policies.Thread_Policy.Single_Thread is
    -------------------------
 
    procedure Check_Compatibility
-     (Self : Single_Thread_Policy;
-      Other_Policies : AllPolicies)
+     (Self           :        Single_Thread_Policy;
+      Other_Policies :        AllPolicies;
+      Error          : in out PolyORB.Exceptions.Error_Container)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Unreferenced (Other_Policies);
+      pragma Unreferenced (Error);
       pragma Warnings (On);
 
    begin

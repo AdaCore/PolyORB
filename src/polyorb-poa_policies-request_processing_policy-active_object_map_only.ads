@@ -31,7 +31,8 @@
 ------------------------------------------------------------------------------
 
 package
-  PolyORB.POA_Policies.Request_Processing_Policy.Active_Object_Map_Only is
+  PolyORB.POA_Policies.Request_Processing_Policy.Active_Object_Map_Only
+is
 
    type Active_Map_Only_Policy is new RequestProcessingPolicy with null record;
    type Active_Map_Only_Policy_Access is access all Active_Map_Only_Policy;
@@ -39,8 +40,9 @@ package
    function Create return Active_Map_Only_Policy_Access;
 
    procedure Check_Compatibility
-     (Self : Active_Map_Only_Policy;
-      Other_Policies   : AllPolicies);
+     (Self           : Active_Map_Only_Policy;
+      Other_Policies : AllPolicies;
+      Error          : in out PolyORB.Exceptions.Error_Container);
 
    function Policy_Id
      (Self : Active_Map_Only_Policy)
@@ -51,10 +53,11 @@ package
       OA    : PolyORB.POA_Types.Obj_Adapter_Access;
       U_Oid : Unmarshalled_Oid);
 
-   function Id_To_Servant
-     (Self :        Active_Map_Only_Policy;
-      OA   :        PolyORB.POA_Types.Obj_Adapter_Access;
-      U_Oid : Unmarshalled_Oid)
-     return Servants.Servant_Access;
+   procedure Id_To_Servant
+     (Self    :        Active_Map_Only_Policy;
+      OA      :        PolyORB.POA_Types.Obj_Adapter_Access;
+      U_Oid   :        Unmarshalled_Oid;
+      Servant :    out Servants.Servant_Access;
+      Error   : in out PolyORB.Exceptions.Error_Container);
 
 end PolyORB.POA_Policies.Request_Processing_Policy.Active_Object_Map_Only;

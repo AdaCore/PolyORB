@@ -44,11 +44,13 @@ with PolyORB.Obj_Adapters;
 with PolyORB.Objects;
 with PolyORB.ORB;
 with PolyORB.Setup;
+with PolyORB.Servants;
 with PolyORB.Types;
 
 package body PolyORB.References.Binding is
 
    use PolyORB.Binding_Data;
+   use PolyORB.Exceptions;
    use PolyORB.Log;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.references.binding");
@@ -69,11 +71,12 @@ package body PolyORB.References.Binding is
    ----------
 
    procedure Bind
-     (R          : Ref'Class;
-      Local_ORB  : ORB.ORB_Access;
-      Servant    : out Components.Component_Access;
-      Pro        : out Binding_Data.Profile_Access;
-      Local_Only : Boolean := False)
+     (R          :        Ref'Class;
+      Local_ORB  :        ORB.ORB_Access;
+      Servant    :    out Components.Component_Access;
+      Pro        :    out Binding_Data.Profile_Access;
+      Local_Only :        Boolean;
+      Error      : in out PolyORB.Exceptions.Error_Container)
    is
       use type Components.Component_Access;
       use Binding_Data;
@@ -91,11 +94,16 @@ package body PolyORB.References.Binding is
 
       Existing_Servant : Components.Component_Access;
       Existing_Profile : Binding_Data.Profile_Access;
+
    begin
       pragma Debug (O ("Bind: enter"));
 
       if Is_Nil (R) then
-         raise Invalid_Reference;
+         Throw (Error,
+                Invalid_Reference'Identity,
+                new System_Exception_Members'(Minor => 0,
+                                              Completed => Completed_No));
+         return;
       end if;
 
       --  Initial values: failure.
@@ -139,8 +147,11 @@ package body PolyORB.References.Binding is
       if Best_Profile_Index > Profiles'Last
         or else Best_Preference = Profile_Preference'First
       then
-         raise Invalid_Reference;
-         --  No supported profile found.
+         Throw (Error,
+                Invalid_Reference'Identity,
+                new System_Exception_Members'(Minor => 0,
+                                              Completed => Completed_No));
+         return;
       end if;
 
       declare
@@ -148,6 +159,8 @@ package body PolyORB.References.Binding is
            renames Profiles (Best_Profile_Index);
          OA : constant Obj_Adapter_Access
            := Object_Adapter (Local_ORB);
+
+         S : PolyORB.Servants.Servant_Access;
       begin
          pragma Debug
            (O ("Found profile: " & Ada.Tags.External_Tag
@@ -163,10 +176,16 @@ package body PolyORB.References.Binding is
 
             if not Is_Proxy_Oid (OA, Object_Id) then
                --  Real local object
+
+               Find_Servant
+                 (Object_Adapter (Local_ORB), Object_Id, S, Error);
+
+               if Found (Error) then
+                  return;
+               end if;
+
                Pro := Selected_Profile;
-               Servant := Components.Component_Access
-                 (Find_Servant
-                  (Object_Adapter (Local_ORB), Object_Id));
+               Servant := Components.Component_Access (S);
                return;
 
                --  ==> When binding a local reference, an OA
@@ -197,8 +216,19 @@ package body PolyORB.References.Binding is
                      --  Selected_Profile (a local profile with a
                      --  proxy oid) is finalized itself.
                      pragma Debug (O ("Bind: recursing on proxy ref"));
-                     Bind (Continuation, Local_ORB, Servant, Pro);
+                     Bind (Continuation,
+                           Local_ORB,
+                           Servant,
+                           Pro,
+                           Local_Only,
+                           Error);
+
+                     if Found (Error) then
+                        return;
+                     end if;
+
                      pragma Debug (O ("Recursed."));
+
                      Share_Binding_Info
                        (Dest => Ref (R), Source => Continuation);
                      pragma Debug (O ("Cached binding data."));
@@ -287,9 +317,10 @@ package body PolyORB.References.Binding is
    ------------------------
 
    procedure Get_Tagged_Profile
-     (R         :     Ref;
-      Tag       :     Binding_Data.Profile_Tag;
-      Pro       : out Binding_Data.Profile_Access)
+     (R         :        Ref;
+      Tag       :        Binding_Data.Profile_Tag;
+      Pro       :    out Binding_Data.Profile_Access;
+      Error     : in out PolyORB.Exceptions.Error_Container)
    is
       use PolyORB.ORB;
       use type PolyORB.Types.Unsigned_Long;
@@ -298,6 +329,7 @@ package body PolyORB.References.Binding is
 
       Result : Binding_Data.Profile_Access
         := Find_Tagged_Profile (R, Tag, Delete => False);
+
    begin
       if Result = null then
          --  This ref has no profile with that tag:
@@ -309,10 +341,15 @@ package body PolyORB.References.Binding is
             use PolyORB.Obj_Adapters;
             use PolyORB.Objects;
 
-            Proxy_Oid : constant Object_Id_Access
-              := To_Proxy_Oid (Object_Adapter (Local_ORB), R);
+            Proxy_Oid : Object_Id_Access;
+
             Proxy_Ref : References.Ref;
          begin
+            To_Proxy_Oid (Object_Adapter (Local_ORB), R, Proxy_Oid, Error);
+
+            if Found (Error) then
+               return;
+            end if;
 
             if Proxy_Oid /= null then
                Create_Reference

@@ -34,6 +34,7 @@
 
 --  $Id$
 
+with PolyORB.Exceptions;
 with PolyORB.Log;
 with PolyORB.Obj_Adapters;
 with PolyORB.ORB;
@@ -85,7 +86,11 @@ package body PolyORB.CORBA_P.Server_Tools is
    Root_POA        : PortableServer.POA.Ref;
    Root_POA_Object : PolyORB.POA.Obj_Adapter_Access;
 
-   procedure Initiate_RootPOA is
+   procedure Initiate_RootPOA
+   is
+      use PolyORB.Exceptions;
+
+      Error : Error_Container;
    begin
       pragma Assert (Root_POA_Object = null);
       pragma Debug (O ("Initializing Root POA configuration..."));
@@ -105,7 +110,13 @@ package body PolyORB.CORBA_P.Server_Tools is
       PortableServer.POA.Set
         (Root_POA, Smart_Pointers.Entity_Ptr (Root_POA_Object));
 
-      PolyORB.Setup.Proxies_POA (Root_POA_Object);
+      PolyORB.Setup.Proxies_POA
+        (Root_POA_Object,
+         Error);
+
+      if Found (Error) then
+         Raise_From_Error (Error);
+      end if;
 
       --  Register initial reference for "RootPOA".
 

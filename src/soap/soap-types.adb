@@ -36,6 +36,7 @@ with Ada.Strings.Fixed;
 with Ada.Strings.Unbounded;
 
 with PolyORB.Any.ObjRef;
+with PolyORB.Exceptions;
 with PolyORB.References;
 with PolyORB.References.Binding;
 with PolyORB.Binding_Data.SOAP;
@@ -685,18 +686,29 @@ package body SOAP.Types is
       use type PolyORB.Binding_Data.Profile_Access;
       use PolyORB.Binding_Data.SOAP;
 
+      use PolyORB.Exceptions;
+
+      Error : Error_Container;
+
    begin
       Result := To_PolyORB_String ("<" & Tag_Name
         & " xsi:type="""
         & PolyORB.References.Type_Id_Of (Ref)
                                    & """>");
       PolyORB.References.Binding.Get_Tagged_Profile
-        (Ref, PolyORB.Binding_Data.Tag_SOAP, SOAP_Profile);
+        (Ref,
+         PolyORB.Binding_Data.Tag_SOAP,
+         SOAP_Profile,
+         Error);
       --  If the real reference (Ref) does not contain a SOAP
       --  profile, then Get_Tagged_Profile tries to create
       --  a proxy profile instead. Only if it is not possible
       --  to create such a proxy profile do we get a null pointer
       --  in SOAP_Profile.
+
+      if Found (Error) then
+         Raise_From_Error (Error);
+      end if;
 
       if SOAP_Profile /= null then
          declare

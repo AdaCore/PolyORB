@@ -40,8 +40,9 @@ package PolyORB.POA_Policies.Thread_Policy.Single_Thread is
    function Create return Single_Thread_Policy_Access;
 
    procedure Check_Compatibility
-     (Self : Single_Thread_Policy;
-      Other_Policies : AllPolicies);
+     (Self           :        Single_Thread_Policy;
+      Other_Policies :        AllPolicies;
+      Error          : in out PolyORB.Exceptions.Error_Container);
 
    function Policy_Id
      (Self : Single_Thread_Policy)

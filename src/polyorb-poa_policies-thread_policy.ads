@@ -41,20 +41,16 @@ package PolyORB.POA_Policies.Thread_Policy is
    type ThreadPolicy_Access is access all ThreadPolicy'Class;
    subtype Thread_Policy_Access is ThreadPolicy_Access;
 
-   procedure Check_Compatibility
-     (Self : ThreadPolicy;
-      Other_Policies   : AllPolicies)
-     is abstract;
-
    function Policy_Id
      (Self : ThreadPolicy)
-      return String is abstract;
+     return String
+      is abstract;
 
    function Handle_Request_Execution
      (Self      : access ThreadPolicy;
       Msg       : PolyORB.Components.Message'Class;
       Requestor : PolyORB.Components.Component_Access)
-      return PolyORB.Components.Message'Class
+     return PolyORB.Components.Message'Class
       is abstract;
 
 end PolyORB.POA_Policies.Thread_Policy;

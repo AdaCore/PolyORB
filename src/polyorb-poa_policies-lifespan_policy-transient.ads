@@ -33,13 +33,15 @@
 package PolyORB.POA_Policies.Lifespan_Policy.Transient is
 
    type Transient_Policy is new LifespanPolicy with null record;
+
    type Transient_Policy_Access is access all Transient_Policy;
 
    function Create return Transient_Policy_Access;
 
    procedure Check_Compatibility
-     (Self : Transient_Policy;
-      Other_Policies   : AllPolicies);
+     (Self           :        Transient_Policy;
+      Other_Policies :        AllPolicies;
+      Error          : in out PolyORB.Exceptions.Error_Container);
 
    function Policy_Id
      (Self : Transient_Policy)
@@ -51,8 +53,9 @@ package PolyORB.POA_Policies.Lifespan_Policy.Transient is
      return Lifespan_Cookie;
 
    procedure Ensure_Lifespan
-     (Self  : Transient_Policy;
-      OA    : PolyORB.POA_Types.Obj_Adapter_Access;
-      U_Oid : Unmarshalled_Oid);
+     (Self  :        Transient_Policy;
+      OA    :        PolyORB.POA_Types.Obj_Adapter_Access;
+      U_Oid :        Unmarshalled_Oid;
+      Error : in out PolyORB.Exceptions.Error_Container);
 
 end PolyORB.POA_Policies.Lifespan_Policy.Transient;

@@ -30,7 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Exceptions;
 with PolyORB.Objects;
 with PolyORB.POA;
 with PolyORB.POA_Policies.Lifespan_Policy;
@@ -54,10 +53,11 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.User is
 
    procedure Check_Compatibility
      (Self           : User_Id_Policy;
-      Other_Policies : AllPolicies)
+      Other_Policies : AllPolicies;
+      Error          : in out PolyORB.Exceptions.Error_Container)
    is
       pragma Warnings (Off);
-      pragma Unreferenced (Self, Other_Policies);
+      pragma Unreferenced (Self, Other_Policies, Error);
       pragma Warnings (On);
 
    begin
@@ -86,63 +86,38 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.User is
    -- Assign_Object_Identifier --
    ------------------------------
 
-   function Assign_Object_Identifier
-     (Self   : User_Id_Policy;
-      OA     : PolyORB.POA_Types.Obj_Adapter_Access;
-      Hint   : Object_Id_Access)
-     return Unmarshalled_Oid
+
+   procedure Assign_Object_Identifier
+     (Self  : User_Id_Policy;
+      OA    : PolyORB.POA_Types.Obj_Adapter_Access;
+      Hint  : Object_Id_Access;
+      U_Oid : out Unmarshalled_Oid;
+      Error : in out PolyORB.Exceptions.Error_Container)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
+
+      use PolyORB.Exceptions;
+      use PolyORB.POA_Policies.Lifespan_Policy;
+      use PolyORB.Types;
 
       POA : constant PolyORB.POA.Obj_Adapter_Access
         := PolyORB.POA.Obj_Adapter_Access (OA);
    begin
       if Hint = null then
-         PolyORB.Exceptions.Raise_Bad_Param;
+         Throw (Error,
+                Bad_Param'Identity,
+                new System_Exception_Members'(Minor => 0,
+                                              Completed => Completed_No));
       end if;
 
-      return PolyORB.POA_Types.Create_Id
-        (Name => PolyORB.Types.To_PolyORB_String
-         (PolyORB.Objects.To_String (Hint.all)),
+      U_Oid :=
+        PolyORB.POA_Types.Create_Id
+        (Name => To_PolyORB_String (PolyORB.Objects.To_String (Hint.all)),
          System_Generated => False,
-         Persistency_Flag =>
-           PolyORB.POA_Policies.Lifespan_Policy.Get_Lifespan_Cookie
-         (POA.Lifespan_Policy.all, OA),
-         Creator => POA.Absolute_Address);
+         Persistency_Flag => Get_Lifespan_Cookie (POA.Lifespan_Policy.all, OA),
+         Creator          => POA.Absolute_Address);
    end Assign_Object_Identifier;
-
-   ---------------
-   -- Is_System --
-   ---------------
-
-   function Is_System (Self : User_Id_Policy) return Boolean
-   is
-      pragma Warnings (Off);
-      pragma Unreferenced (Self);
-      pragma Warnings (On);
-
-   begin
-      return False;
-   end Is_System;
-
-   -----------------------
-   -- Ensure_Oid_Origin --
-   -----------------------
-
-   procedure Ensure_Oid_Origin
-     (Self  : User_Id_Policy;
-      U_Oid : Unmarshalled_Oid)
-   is
-      pragma Warnings (Off);
-      pragma Unreferenced (Self);
-      pragma Warnings (On);
-
-   begin
-      if U_Oid.System_Generated then
-         PolyORB.Exceptions.Raise_Bad_Param;
-      end if;
-   end Ensure_Oid_Origin;
 
 end PolyORB.POA_Policies.Id_Assignment_Policy.User;

@@ -30,12 +30,17 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.POA_Types;     use PolyORB.POA_Types;
+with PolyORB.Exceptions;
+with PolyORB.POA_Types;
 with PolyORB.Servants;
+
 package PolyORB.POA_Policies.Request_Processing_Policy is
+
+   use PolyORB.POA_Types;
 
    type RequestProcessingPolicy is abstract new Policy with null record;
    subtype Request_Processing_Policy is RequestProcessingPolicy;
+
    type RequestProcessingPolicy_Access is
      access all RequestProcessingPolicy'Class;
    subtype Request_Processing_Policy_Access is RequestProcessingPolicy_Access;
@@ -48,11 +53,12 @@ package PolyORB.POA_Policies.Request_Processing_Policy is
    --  If a servant manager is used, etherealize the servant(s) associated
    --  with the given Object_Id.
 
-   function Id_To_Servant
-     (Self  : RequestProcessingPolicy;
-      OA    : PolyORB.POA_Types.Obj_Adapter_Access;
-      U_Oid : Unmarshalled_Oid)
-     return Servants.Servant_Access
+   procedure Id_To_Servant
+     (Self    :        RequestProcessingPolicy;
+      OA      :        PolyORB.POA_Types.Obj_Adapter_Access;
+      U_Oid   :        Unmarshalled_Oid;
+      Servant :    out Servants.Servant_Access;
+      Error   : in out PolyORB.Exceptions.Error_Container)
       is abstract;
    --  Case USE_OBJECT_MAP_ONLY:
    --    Asks the Servant Retention Policy to look for the given Oid.

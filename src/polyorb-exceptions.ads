@@ -30,22 +30,30 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Exceptions management subsystem.
+--  Exceptions and Errors management subsystem.
 
---  XXX explain use of system exceptions ...
+--  PolyORB distinguishes errors and exceptions:
+--
+--  A non null 'error' means that a wrong execution occurs within
+--  PolyORB's core middleware or one of its personalities.
+--
+--  An 'exception' is one possible result of the execution of a
+--  personality-specific function or procedure. It is either raised
+--  within application personality context, or returned in the request
+--  response message. User and System exceptions follow CORBA definition
+--  of exceptions kinds.
+--
+--  When raised, 'exception' is built from 'error' information,
+--  translated to personality specific context.
 
---  Description:
---  Exceptions_Members are handled differently according to the type
---  of the exception:
---   - for System exceptions, it is marshalled in the message
---   - for User exceptions, it is stored in a global stack
---   unless the members is an empty struct, in which case nothing
---   is stored and the Get_Members function created a new
---   object from a derivation of Exception_Members
+--  PolyORB's core middleware should not raise exceptions, except Ada
+--  standard exceptions ad defined in the Ada Reference Manual. It
+--  should use instead 'error' as defined in the Error_Container type.
 
 --  $Id$
 
 with Ada.Exceptions;
+with Ada.Unchecked_Deallocation;
 
 with PolyORB.Any;
 with PolyORB.Types;
@@ -56,17 +64,36 @@ package PolyORB.Exceptions is
    -- Exceptions --
    ----------------
 
+   --  A PolyORB exception is notionally equivalent to a CORBA exception.
+   --  It is composed by
+   --   - Exception Id,
+   --   - Exception Member.
+
    type Exception_Members is abstract tagged null record;
    --  Base type for all PolyORB exception members. A member is a record
    --  attached to an exception that allows the programmer to pass
    --  arguments when an exception is raised. The default Member record is
    --  abstract and empty but all other records will inherit from it.
 
-   type Completion_Status is (Completed_Yes, Completed_No, Completed_Maybe);
-   --  Type used for characterize the state of an exception It is defined
-   --  by the CORBA specification.
+   --  Note:
+   --  Exceptions_Members are handled differently according to the type
+   --  of the exception:
+   --   - for System exceptions, it is marshalled in the message
+   --   - for User exceptions, it is stored in a global stack
+   --   unless the members is an empty struct, in which case nothing
+   --   is stored and the Get_Members function created a new
+   --   object from a derivation of Exception_Members
+
+   type Exception_Members_Access is access all Exception_Members'Class;
+
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Exception_Members'Class, Exception_Members_Access);
 
    subtype Exception_Occurrence is Ada.Exceptions.Exception_Occurrence;
+
+   ------------------
+   -- Exception Id --
+   ------------------
 
    --  An exception Id has the following form:
    --  NameSpace:Root'Separator' .. Version
@@ -94,7 +121,7 @@ package PolyORB.Exceptions is
    procedure User_Get_Members
      (Occurrence : in  Ada.Exceptions.Exception_Occurrence;
       Members    : out Exception_Members'Class);
-   --  Extract members from an exception occurence
+   --  Extract members from a 'User' exception occurence
 
    procedure User_Purge_Members
      (Occurrence : in Ada.Exceptions.Exception_Occurrence);
@@ -106,13 +133,41 @@ package PolyORB.Exceptions is
    pragma No_Return (User_Raise_Exception);
    --  Raise a user exception
 
+   procedure Raise_User_Exception_From_Any
+     (Repository_Id : PolyORB.Types.RepositoryId;
+      Occurence     : PolyORB.Any.Any);
+
+   -----------------------
+   -- Completion_Status --
+   -----------------------
+
+   type Completion_Status is
+     (Completed_Yes,
+      Completed_No,
+      Completed_Maybe);
+   --  Characterize the completion state of the execution process when
+   --  systeme exception has been raised.
+
+   To_Completion_Status :
+     constant array (PolyORB.Types.Unsigned_Long range 0 .. 2)
+         of Completion_Status
+     := (0 => Completed_Yes, 1 => Completed_No, 2 => Completed_Maybe);
+
+   To_Unsigned_Long :
+     constant array (Completion_Status) of PolyORB.Types.Unsigned_Long
+     := (Completed_Yes => 0, Completed_No => 1, Completed_Maybe => 2);
+
+   function From_Any
+     (Item : PolyORB.Any.Any)
+     return Completion_Status;
+
+   function TC_Completion_Status
+     return PolyORB.Any.TypeCode.Object;
+   --  The typecode for standard enumeration type completion_status.
+
    -----------------------
    -- System exceptions --
    -----------------------
-
-   function Occurrence_To_Name
-     (Occurrence : Ada.Exceptions.Exception_Occurrence)
-      return PolyORB.Types.RepositoryId;
 
    type System_Exception_Members is new Exception_Members with record
       Minor     : PolyORB.Types.Unsigned_Long;
@@ -123,6 +178,7 @@ package PolyORB.Exceptions is
    procedure Get_Members
      (From : in  Ada.Exceptions.Exception_Occurrence;
       To   : out System_Exception_Members);
+   --  Extract members from a 'System' exception occurence
 
    procedure Raise_System_Exception
      (Excp      : in Ada.Exceptions.Exception_Id;
@@ -131,18 +187,23 @@ package PolyORB.Exceptions is
    --  Raise the corresponding PolyORB system exception, and store its
    --  members for later retrieval by Get_Members.
 
-   ------------------------------------------------------------
-   -- Conversion between Unsigned_Long and Completion_Status --
-   ------------------------------------------------------------
+   function System_Exception_TypeCode
+     (Name : Standard.String)
+     return PolyORB.Any.TypeCode.Object;
+   --  Return the TypeCode corresponding to the indicated
+   --  system exception name.
 
-   To_Completion_Status :
-     constant array (PolyORB.Types.Unsigned_Long range 0 .. 2)
-         of Completion_Status
-     := (0 => Completed_Yes, 1 => Completed_No, 2 => Completed_Maybe);
+   function System_Exception_To_Any
+     (E : Ada.Exceptions.Exception_Occurrence)
+     return PolyORB.Any.Any;
 
-   To_Unsigned_Long :
-     constant array (Completion_Status) of PolyORB.Types.Unsigned_Long
-     := (Completed_Yes => 0, Completed_No => 1, Completed_Maybe => 2);
+   procedure Raise_System_Exception_From_Any
+     (System_Id  : Ada.Exceptions.Exception_Id;
+      Occurrence : PolyORB.Any.Any);
+
+   function Is_System_Exception
+     (Name : String)
+     return Boolean;
 
    ---------------------------------
    -- System Exception definition --
@@ -399,14 +460,15 @@ package PolyORB.Exceptions is
       Status : Completion_Status := Completed_No);
    pragma No_Return (Raise_Bad_TypeCode);
 
-   ----------------------------------
-   --  Exception utility functions --
-   ----------------------------------
-
-   procedure Default_Raise_From_Any (Occurrence : Any.Any);
+   ---------------------------------
+   -- Exception utility functions --
+   ---------------------------------
 
    type Raise_From_Any_Procedure is access procedure
      (Occurrence : PolyORB.Any.Any);
+
+   procedure Default_Raise_From_Any
+     (Occurrence : Any.Any);
 
    procedure Register_Exception
      (TC     : in PolyORB.Any.TypeCode.Object;
@@ -423,27 +485,14 @@ package PolyORB.Exceptions is
    --  in the application personality: here, raising a language
    --  exception with proper members.
 
-   function From_Any (Item : PolyORB.Any.Any)
-                      return Completion_Status;
-
-   function System_Exception_TypeCode
-     (Name : Standard.String)
-     return PolyORB.Any.TypeCode.Object;
-   --  Return the TypeCode corresponding to the indicated
-   --  system exception name.
+   function Occurrence_To_Name
+     (Occurrence : Ada.Exceptions.Exception_Occurrence)
+      return PolyORB.Types.RepositoryId;
 
    function Exception_Name
      (Repository_Id : Standard.String)
       return Standard.String;
    --  Return the name of an exception from its repository ID.
-
-   function System_Exception_To_Any
-     (E : Ada.Exceptions.Exception_Occurrence)
-      return PolyORB.Any.Any;
-
-   function TC_Completion_Status
-     return PolyORB.Any.TypeCode.Object;
-   --  The typecode for standard enumeration type completion_status.
 
    type Exception_Info is record
       TC     : PolyORB.Any.TypeCode.Object;
@@ -455,23 +504,37 @@ package PolyORB.Exceptions is
      return Exception_Info;
    --  Return Exception_Info associated to 'For_Exception'.
 
-   function Is_System_Exception
-     (Name : String)
-     return Boolean;
-
    function Get_ExcepId_By_RepositoryId
      (RepoId  : Standard.String)
       return Ada.Exceptions.Exception_Id;
    --  Return the corresponding Ada Exception_Id for
    --  a repository id.
 
-   procedure Raise_User_Exception_From_Any
-     (Repository_Id : PolyORB.Types.RepositoryId;
-      Occurence     : PolyORB.Any.Any);
+   -----------------------------------------------
+   -- PolyORB Internal Error handling functions --
+   -----------------------------------------------
 
-   procedure Raise_System_Exception_From_Any
-     (System_Id  : Ada.Exceptions.Exception_Id;
-      Occurrence : PolyORB.Any.Any);
+   type Error_Container is private;
+
+   function Found
+     (Error : Error_Container)
+     return Boolean;
+   --  True iff Error is not null.
+
+   procedure Throw
+     (Error  : in out Error_Container;
+      Kind   : in     Ada.Exceptions.Exception_Id;
+      Member : in     Exception_Members_Access);
+   --  Generates an error whith Kind and Member information.
+
+   procedure Catch
+     (Error : in out Error_Container);
+   --  Acknowledge 'Error' and reset its content.
+
+   procedure Raise_From_Error
+     (Error : in out Error_Container);
+   pragma No_Return (Raise_From_Error);
+   --  Raise an exception from the data in 'Error'
 
 private
 
@@ -479,8 +542,16 @@ private
    PolyORB_Root          : constant String := "POLYORB";
    PolyORB_Separator     : constant String := "/";
    PolyORB_Prefix        : constant String
-     := PolyORB_Exc_NameSpace & PolyORB_Root & "/";
+     := PolyORB_Exc_NameSpace
+     & PolyORB_Root
+     & PolyORB_Separator;
+
    PolyORB_Exc_Version   : constant PolyORB.Types.String
      := PolyORB.Types.To_PolyORB_String (":1.0");
+
+   type Error_Container is record
+      Kind   : Ada.Exceptions.Exception_Id := Ada.Exceptions.Null_Id;
+      Member : Exception_Members_Access;
+   end record;
 
 end PolyORB.Exceptions;

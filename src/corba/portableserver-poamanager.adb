@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poamanager.adb#8 $
+--  $Id: //droopi/main/src/corba/portableserver-poamanager.adb#9 $
 
 with PolyORB.Exceptions;
 with PolyORB.Smart_Pointers;
@@ -57,6 +57,7 @@ package body PortableServer.POAManager is
       To   : out AdapterInactive_Members)
    is
       use Ada.Exceptions;
+
    begin
       if Exception_Identity (From) /= AdapterInactive'Identity then
          PolyORB.Exceptions.Raise_Bad_Param;
@@ -107,11 +108,19 @@ package body PortableServer.POAManager is
    procedure Activate
      (Self : in Ref)
    is
+      use PolyORB.Exceptions;
+
       POA_Manager : constant POAManager_Access
         := To_Active_POA_Manager (Self);
 
+      Error : Error_Container;
+
    begin
-      Activate (POA_Manager);
+      Activate (POA_Manager, Error);
+
+      if Found (Error) then
+         Raise_From_Error (Error);
+      end if;
    end Activate;
 
    -------------------
@@ -122,11 +131,19 @@ package body PortableServer.POAManager is
      (Self                : in Ref;
       Wait_For_Completion : in CORBA.Boolean)
    is
+      use PolyORB.Exceptions;
+
       POA_Manager : constant POAManager_Access
         := To_Active_POA_Manager (Self);
 
+      Error : Error_Container;
+
    begin
-      Hold_Requests (POA_Manager, Wait_For_Completion);
+      Hold_Requests (POA_Manager, Wait_For_Completion, Error);
+
+      if Found (Error) then
+         Raise_From_Error (Error);
+      end if;
    end Hold_Requests;
 
    ----------------------
@@ -137,11 +154,19 @@ package body PortableServer.POAManager is
      (Self                : in Ref;
       Wait_For_Completion : in CORBA.Boolean)
    is
+      use PolyORB.Exceptions;
+
       POA_Manager : constant POAManager_Access
         := To_Active_POA_Manager (Self);
 
+      Error : Error_Container;
+
    begin
-      Discard_Requests (POA_Manager, Wait_For_Completion);
+      Discard_Requests (POA_Manager, Wait_For_Completion, Error);
+
+      if Found (Error) then
+         Raise_From_Error (Error);
+      end if;
    end Discard_Requests;
 
    ----------------

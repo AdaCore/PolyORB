@@ -32,7 +32,6 @@
 
 with Ada.Tags;
 
-with PolyORB.Exceptions;
 with PolyORB.Object_Maps;
 with PolyORB.POA;
 with PolyORB.POA_Policies.Implicit_Activation_Policy;
@@ -60,8 +59,9 @@ package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique is
    -------------------------
 
    procedure Check_Compatibility
-     (Self           : Unique_Id_Policy;
-      Other_Policies : AllPolicies)
+     (Self           :        Unique_Id_Policy;
+      Other_Policies :        AllPolicies;
+      Error          : in out PolyORB.Exceptions.Error_Container)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
@@ -79,8 +79,10 @@ package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique is
          if Other_Policies (J).all in ServantRetentionPolicy'Class
            and then Other_Policies (J).all'Tag = Non_Retain_Policy'Tag
          then
-            Raise_Invalid_Policy;
-            --  XXX we may raise an exception, but should we ?
+            Throw (Error,
+                   Invalid_Policy'Identity,
+                   new System_Exception_Members'(Minor => 0,
+                                                 Completed => Completed_No));
          end if;
       end loop;
 
@@ -109,7 +111,8 @@ package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique is
    procedure Ensure_Servant_Uniqueness
      (Self      : Unique_Id_Policy;
       OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Servants.Servant_Access)
+      P_Servant : Servants.Servant_Access;
+      Error     : in out PolyORB.Exceptions.Error_Container)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
@@ -123,8 +126,10 @@ package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique is
          Lock_R (POA.Map_Lock);
 
          if Is_Servant_In (POA.Active_Object_Map.all, P_Servant) then
-            Unlock_R (POA.Map_Lock);
-            Raise_Servant_Already_Active;
+            Throw (Error,
+                   Servant_Already_Active'Identity,
+                   new System_Exception_Members'(Minor => 0,
+                                                 Completed => Completed_No));
          end if;
 
          Unlock_R (POA.Map_Lock);

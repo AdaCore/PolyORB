@@ -47,20 +47,23 @@ package PolyORB.Obj_Adapters.Simple is
 
    procedure Destroy (OA : access Simple_Obj_Adapter);
 
-   function Export
-     (OA  : access Simple_Obj_Adapter;
-      Obj :        Servants.Servant_Access;
-      Key :        Objects.Object_Id_Access := null)
-      return Objects.Object_Id;
+   procedure Export
+     (OA    : access Simple_Obj_Adapter;
+      Obj   :        Servants.Servant_Access;
+      Key   :        Objects.Object_Id_Access;
+      Oid   :    out Objects.Object_Id_Access;
+      Error : in out PolyORB.Exceptions.Error_Container);
 
    procedure Unexport
-     (OA : access Simple_Obj_Adapter;
-      Id :        Objects.Object_Id_Access);
+     (OA    : access Simple_Obj_Adapter;
+      Id    :        Objects.Object_Id_Access;
+      Error : in out PolyORB.Exceptions.Error_Container);
 
-   function Object_Key
-     (OA : access Simple_Obj_Adapter;
-      Id :        Objects.Object_Id_Access)
-      return Objects.Object_Id;
+   procedure Object_Key
+     (OA      : access Simple_Obj_Adapter;
+      Id      :        Objects.Object_Id_Access;
+      User_Id :    out Objects.Object_Id_Access;
+      Error   : in out PolyORB.Exceptions.Error_Container);
 
    --  In the Simple Object Adapter, the methods of an object
    --  are described using two factory functions (provided by
@@ -97,10 +100,11 @@ package PolyORB.Obj_Adapters.Simple is
       Method :        String)
      return Any.Any;
 
-   function Find_Servant
-     (OA : access Simple_Obj_Adapter;
-      Id : access Objects.Object_Id)
-     return Servants.Servant_Access;
+   procedure Find_Servant
+     (OA      : access Simple_Obj_Adapter;
+      Id      : access Objects.Object_Id;
+      Servant :    out Servants.Servant_Access;
+      Error   : in out PolyORB.Exceptions.Error_Container);
 
    procedure Release_Servant
      (OA      : access Simple_Obj_Adapter;

@@ -125,12 +125,17 @@ package body PolyORB.Obj_Adapters.Simple is
    -- Export --
    ------------
 
-   function Export
-     (OA  : access Simple_Obj_Adapter;
-      Obj :        Servants.Servant_Access;
-      Key :        Objects.Object_Id_Access := null)
-      return Objects.Object_Id
+   procedure Export
+     (OA    : access Simple_Obj_Adapter;
+      Obj   :        Servants.Servant_Access;
+      Key   :        Objects.Object_Id_Access;
+      Oid   :    out Objects.Object_Id_Access;
+      Error : in out PolyORB.Exceptions.Error_Container)
    is
+      pragma Warnings (Off); --  WAG:3.15
+      pragma Unreferenced (Error);
+      pragma Warnings (On); --  WAG:3.15
+
       use type Servants.Servant_Access;
       use type Objects.Object_Id_Access;
    begin
@@ -163,7 +168,8 @@ package body PolyORB.Obj_Adapters.Simple is
          end if;
          Leave (OA.Lock);
 
-         return Objects.Object_Id (Index_To_Oid (New_Id - M'First + 1));
+         Oid := new Objects.Object_Id'(Objects.Object_Id
+                                       (Index_To_Oid (New_Id - M'First + 1)));
       end;
    end Export;
 
@@ -174,9 +180,14 @@ package body PolyORB.Obj_Adapters.Simple is
    --------------
 
    procedure Unexport
-     (OA : access Simple_Obj_Adapter;
-      Id : Objects.Object_Id_Access)
+     (OA    : access Simple_Obj_Adapter;
+      Id    :        Objects.Object_Id_Access;
+      Error : in out PolyORB.Exceptions.Error_Container)
    is
+      pragma Warnings (Off); --  WAG:3.15
+      pragma Unreferenced (Error);
+      pragma Warnings (On); --  WAG:3.15
+
       use type Servants.Servant_Access;
 
       Index : constant Integer
@@ -203,18 +214,25 @@ package body PolyORB.Obj_Adapters.Simple is
    -- Object_Key --
    ----------------
 
-   function Object_Key
-     (OA : access Simple_Obj_Adapter;
-      Id :        Objects.Object_Id_Access)
-      return Objects.Object_Id is
+   procedure Object_Key
+     (OA      : access Simple_Obj_Adapter;
+      Id      :        Objects.Object_Id_Access;
+      User_Id :    out Objects.Object_Id_Access;
+      Error   : in out PolyORB.Exceptions.Error_Container)
+   is
+      pragma Warnings (Off); --  WAG:3.15
+      pragma Unreferenced (OA, Id, User_Id);
+      pragma Warnings (On); --  WAG:3.15
+
+      use PolyORB.Exceptions;
    begin
-      raise Invalid_Object_Id;
+      Throw (Error,
+             Invalid_Object_Id'Identity,
+             new System_Exception_Members'(Minor => 0,
+                                           Completed => Completed_No));
       --  An SOA object identifier cannot contain a user-defined
       --  object key.
 
-      pragma Warnings (Off);
-      return Object_Key (OA, Id);
-      pragma Warnings (On);
    end Object_Key;
 
    -------------------------------
@@ -224,7 +242,7 @@ package body PolyORB.Obj_Adapters.Simple is
    procedure Set_Interface_Description
      (OA      : in out Simple_Obj_Adapter;
       Id      : access Objects.Object_Id;
-      If_Desc : Interface_Description)
+      If_Desc :        Interface_Description)
    is
       use type Servants.Servant_Access;
 
@@ -319,19 +337,22 @@ package body PolyORB.Obj_Adapters.Simple is
    No_Thread_Policy : constant ThreadPolicy_Access := new ORB_Ctrl_Policy;
    --  XXX ????
 
-   function Find_Servant
-     (OA : access Simple_Obj_Adapter;
-      Id : access Objects.Object_Id)
-     return Servants.Servant_Access
+   procedure Find_Servant
+     (OA      : access Simple_Obj_Adapter;
+      Id      : access Objects.Object_Id;
+      Servant :    out Servants.Servant_Access;
+      Error   : in out PolyORB.Exceptions.Error_Container)
    is
-      Result : Servants.Servant_Access;
+      pragma Warnings (Off); --  WAG:3.15
+      pragma Unreferenced (Error);
+      pragma Warnings (On); --  WAG:3.15
+
    begin
       Enter (OA.Lock);
-      Result := Element_Of (OA.Object_Map, Oid_To_Index
+      Servant := Element_Of (OA.Object_Map, Oid_To_Index
                             (Simple_OA_Oid (Id.all))).Servant;
-      Servants.Set_Thread_Policy (Result, No_Thread_Policy);
+      Servants.Set_Thread_Policy (Servant, No_Thread_Policy);
       Leave (OA.Lock);
-      return Result;
    end Find_Servant;
 
    ---------------------
@@ -339,8 +360,8 @@ package body PolyORB.Obj_Adapters.Simple is
    ---------------------
 
    procedure Release_Servant
-     (OA : access Simple_Obj_Adapter;
-      Id : access Objects.Object_Id;
+     (OA      : access Simple_Obj_Adapter;
+      Id      : access Objects.Object_Id;
       Servant : in out Servants.Servant_Access)
    is
       pragma Warnings (Off);

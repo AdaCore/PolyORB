@@ -45,6 +45,7 @@
 
 --  $Id$
 
+with PolyORB.Exceptions;
 with PolyORB.Object_Maps;
 with PolyORB.Objects;
 with PolyORB.POA_Manager;
@@ -126,12 +127,13 @@ package PolyORB.POA is
    -- CORBA-like POA interface --
    ------------------------------
 
-   function Create_POA
+   procedure Create_POA
      (Self         : access Obj_Adapter;
       Adapter_Name :        Types.String;
       A_POAManager :        POA_Manager.POAManager_Access;
-      Policies     :        PolyORB.POA_Policies.PolicyList)
-     return Obj_Adapter_Access
+      Policies     :        POA_Policies.PolicyList;
+      POA          :    out Obj_Adapter_Access;
+      Error        : in out PolyORB.Exceptions.Error_Container)
       is abstract;
    --  Create a POA given its name and a list of policies
    --  Policies are optionnal : defaults values are provided.
@@ -139,7 +141,7 @@ package PolyORB.POA is
 
    function Find_POA
      (Self : access Obj_Adapter;
-      Name :        String)
+      Name : String)
      return Obj_Adapter_Access
       is abstract;
    --  Starting from given POA, looks for the POA in all the descendancy whose
@@ -152,20 +154,22 @@ package PolyORB.POA is
       is abstract;
    --  Destroys recursively the POA and all his descendants
 
-   function Create_Object_Identification
-     (Self : access Obj_Adapter;
-      Hint :        Object_Id_Access := null)
-     return Unmarshalled_Oid
+   procedure Create_Object_Identification
+     (Self  : access Obj_Adapter;
+      Hint  :        Object_Id_Access := null;
+      U_Oid :    out Unmarshalled_Oid;
+      Error : in out PolyORB.Exceptions.Error_Container)
       is abstract;
    --  Reserve a complete object identifier, possibly using
    --  the given Hint (if not null) for the construction of
    --  the object identifier included in the Object_Id.
 
-   function Activate_Object
+   procedure Activate_Object
      (Self      : access Obj_Adapter;
       P_Servant :        Servants.Servant_Access := null;
-      Hint      :        Object_Id_Access := null)
-     return Object_Id
+      Hint      :        Object_Id_Access := null;
+      U_Oid     :    out Unmarshalled_Oid;
+      Error     : in out PolyORB.Exceptions.Error_Container)
       is abstract;
    --  Activates an object, i.e. associate it with a local
    --  identification, possibly using the given Hint (if not null)
@@ -173,8 +177,9 @@ package PolyORB.POA is
    --  in the Object_Id.
 
    procedure Deactivate_Object
-     (Self : access Obj_Adapter;
-      Oid  : in     Object_Id)
+     (Self  : access Obj_Adapter;
+      Oid   : in     Object_Id;
+      Error : in out PolyORB.Exceptions.Error_Container)
       is abstract;
    --  Deactivates an object from the Active Object Map (requires the RETAIN
    --  policy). In case a ServantManager is used, calls its etherealize
@@ -182,10 +187,12 @@ package PolyORB.POA is
    --  Active requests should be completed before the object is removed
    --  XXX ??? How do we implement that? How do we implement the queue?
 
-   function Servant_To_Id
+   procedure Servant_To_Id
      (Self      : access Obj_Adapter;
-      P_Servant : in     Servants.Servant_Access)
-     return Object_Id is abstract;
+      P_Servant : in     Servants.Servant_Access;
+      Oid       :    out Object_Id_Access;
+      Error     : in out PolyORB.Exceptions.Error_Container)
+      is abstract;
    --  Requires USE_DEFAULT_SERVANT or RETAIN and either UNIQUE_ID
    --  or IMPLICIT_ACTIVATION
    --  Case RETAIN and UNIQUE_ID:
@@ -199,10 +206,12 @@ package PolyORB.POA is
    --  Otherwise:
    --    Raises a ServantNotActive exception
 
-   function Id_To_Servant
-     (Self : access Obj_Adapter;
-      Oid  :        Object_Id)
-     return Servants.Servant_Access is abstract;
+   procedure Id_To_Servant
+     (Self    : access Obj_Adapter;
+      Oid     :        Object_Id;
+      Servant :    out Servants.Servant_Access;
+      Error   : in out PolyORB.Exceptions.Error_Container)
+     is abstract;
    --  Requires RETAIN or USE_DEFAULT_SERVANT
    --  Case RETAIN:
    --    Look for the given Object_Id in the Active Object Map.

@@ -899,13 +899,24 @@ package body PolyORB.ORB is
             null;
          end if;
 
+         declare
+            use PolyORB.Exceptions;
+
+            Error : Error_Container;
+
          begin
             References.Binding.Bind
-              (J.Request.Target, J.ORB, Surrogate, Pro);
+              (J.Request.Target, J.ORB, Surrogate, Pro, False, Error);
+
+            if Found (Error) then
+               Raise_From_Error (Error);
+               --  XXX Dummy work around, should write an error_to_any
+               --  procedure
+            end if;
 
          exception
             when E : others =>
-               pragma Debug (O ("Run_Request: Got an exception when binding"
+               pragma Debug (O ("Run_Request: Got an exception when binding "
                                 & Ada.Exceptions.Exception_Information (E)));
 
                --  Any exception caught at this level implies a

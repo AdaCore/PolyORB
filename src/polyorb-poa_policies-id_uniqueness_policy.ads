@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,10 +30,12 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.POA_Types;               use PolyORB.POA_Types;
+with PolyORB.POA_Types;
 with PolyORB.Servants;
 
 package PolyORB.POA_Policies.Id_Uniqueness_Policy is
+
+   use PolyORB.POA_Types;
 
    type IdUniquenessPolicy is abstract new Policy with null record;
    subtype Id_Uniqueness_Policy is IdUniquenessPolicy;
@@ -41,9 +43,10 @@ package PolyORB.POA_Policies.Id_Uniqueness_Policy is
    subtype Id_Uniqueness_Policy_Access is IdUniquenessPolicy_Access;
 
    procedure Ensure_Servant_Uniqueness
-     (Self      : IdUniquenessPolicy;
-      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Servants.Servant_Access)
+     (Self      :        IdUniquenessPolicy;
+      OA        :        PolyORB.POA_Types.Obj_Adapter_Access;
+      P_Servant :        Servants.Servant_Access;
+      Error     : in out PolyORB.Exceptions.Error_Container)
      is abstract;
    --  Case UNIQUE_ID:
    --  Checks that the specified servant is not yet in the Active Objects Map.
@@ -55,7 +58,7 @@ package PolyORB.POA_Policies.Id_Uniqueness_Policy is
      (Self      : IdUniquenessPolicy;
       OA        : PolyORB.POA_Types.Obj_Adapter_Access;
       P_Servant : Servants.Servant_Access;
-      Oid : Object_Id_Access)
+      Oid       : Object_Id_Access)
      return Object_Id_Access
       is abstract;
    --  Case UNIQUE_ID:

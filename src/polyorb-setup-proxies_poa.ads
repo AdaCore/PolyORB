@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---            P O L Y O R B . S E T U P . P R O X I E S _ P O A             --
+--           P O L Y O R B . S E T U P . P R O X I E S _ P O A              --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -32,6 +32,9 @@
 
 --  $Id$
 
+with PolyORB.Exceptions;
 with PolyORB.POA;
+
 procedure PolyORB.Setup.Proxies_POA
-  (Root_POA_Object : PolyORB.POA.Obj_Adapter_Access);
+  (Root_POA_Object : PolyORB.POA.Obj_Adapter_Access;
+   Error           : in out PolyORB.Exceptions.Error_Container);

@@ -35,6 +35,7 @@
 with MOMA.Provider.Message_Pool;
 with MOMA.Provider.Routers;
 
+with PolyORB.Exceptions;
 with PolyORB.Log;
 with PolyORB.Minimal_Servant.Tools;
 
@@ -58,8 +59,12 @@ package body MOMA.Configuration.Server is
    procedure Create_Message_Pool (Pool : MOMA.Types.Message_Pool;
                                   Ref  : out PolyORB.References.Ref)
    is
+      use PolyORB.Exceptions;
+
       MOMA_Obj : constant MOMA.Provider.Message_Pool.Object_Acc
        := new MOMA.Provider.Message_Pool.Object;
+
+      Error : Error_Container;
 
    begin
       pragma Debug (O ("Creating Message Pool "
@@ -68,7 +73,12 @@ package body MOMA.Configuration.Server is
       Initiate_Servant (MOMA_Obj,
                         MOMA.Provider.Message_Pool.If_Desc,
                         MOMA_Type_Id,
-                        Ref);
+                        Ref,
+                        Error);
+
+      if Found (Error) then
+         Raise_From_Error (Error);
+      end if;
 
       MOMA.Provider.Message_Pool.Initialize (MOMA_Obj, Pool);
    end Create_Message_Pool;
@@ -82,17 +92,28 @@ package body MOMA.Configuration.Server is
                             Router_Ref : PolyORB.References.Ref :=
                                             PolyORB.References.Nil_Ref)
    is
+      use PolyORB.Exceptions;
+
       Router : constant MOMA.Provider.Routers.Router_Acc
        := new MOMA.Provider.Routers.Router;
+
+      Error : Error_Container;
 
    begin
       pragma Debug (O ("Creating Router"));
 
-      MOMA.Provider.Routers.Set_Id (Router.all, Id);
+
       Initiate_Servant (Router,
                         MOMA.Provider.Routers.If_Desc,
                         MOMA_Type_Id,
-                        Ref);
+                        Ref,
+                        Error);
+
+      if Found (Error) then
+         Raise_From_Error (Error);
+      end if;
+
+      MOMA.Provider.Routers.Set_Id (Router.all, Id);
       MOMA.Provider.Routers.Set_Self_Ref (Router.all, Ref);
       MOMA.Provider.Routers.Initialize (Router, Router_Ref);
    end Create_Router;

@@ -650,11 +650,16 @@ package body System.PolyORB_Interface is
    procedure Initialize
    is
       use PolyORB;
+      use PolyORB.Exceptions;
+
       use type PolyORB.POA.Obj_Adapter_Access;
 
       use Receiving_Stub_Lists;
 
       It : Iterator;
+
+      Error : Error_Container;
+
    begin
       pragma Assert (Root_POA_Object = null);
       pragma Debug (O ("Initializing default POA configuration..."));
@@ -672,9 +677,18 @@ package body System.PolyORB_Interface is
 
       POA_Manager.Activate
         (POA_Manager.POAManager_Access
-           (POA_Manager.Entity_Of (Root_POA_Object.POA_Manager)));
+         (POA_Manager.Entity_Of (Root_POA_Object.POA_Manager)),
+         Error);
 
-      PolyORB.Setup.Proxies_POA (Root_POA_Object);
+      if Found (Error) then
+         Raise_From_Error (Error);
+      end if;
+
+      PolyORB.Setup.Proxies_POA (Root_POA_Object, Error);
+
+      if Found (Error) then
+         Raise_From_Error (Error);
+      end if;
 
       pragma Debug (O ("Initializing DSA library units"));
       It := First (All_Receiving_Stubs);
@@ -706,20 +720,32 @@ package body System.PolyORB_Interface is
                      Key : aliased PolyORB.Objects.Object_Id
                        := To_Local_Oid (System.Null_Address);
 
-                     Oid : aliased PolyORB.Objects.Object_Id
-                       := PolyORB.Obj_Adapters.Export
-                       (OA  => Servant_Access (Stub.Receiver).Object_Adapter,
-                        Obj => null,
-                        Key => Key'Unchecked_Access);
+                     Oid : PolyORB.Objects.Object_Id_Access;
 
                      Ref : PolyORB.References.Ref;
                   begin
+                     PolyORB.Obj_Adapters.Export
+                       (OA    => Servant_Access (Stub.Receiver).Object_Adapter,
+                        Obj   => null,
+                        Key   => Key'Unchecked_Access,
+                        Oid   => Oid,
+                        Error => Error);
+
+                     if Found (Error) then
+                        Raise_From_Error (Error);
+                     end if;
+
                      Create_Reference
-                       (The_ORB, Oid'Access,
+                       (The_ORB,
+                        Oid,
                         "DSA:" & Stub.Name.all & ":" & Stub.Version.all,
                         Ref);
+
+                     PolyORB.Objects.Free (Oid);
+
                      pragma Debug
                        (O ("Registering local RCI: " & Stub.Name.all));
+
                      Known_RCIs.Register
                        (To_Lower (Stub.Name.all), RCI_Info'
                           (Base_Ref            => Ref,
@@ -767,8 +793,13 @@ package body System.PolyORB_Interface is
       Is_Local : out Boolean;
       Addr     : out System.Address)
    is
+      use PolyORB.Exceptions;
+
       Profiles : constant Profile_Array
         := PolyORB.References.Profiles_Of (Ref);
+
+      Error : Error_Container;
+
    begin
       for J in Profiles'Range loop
          if PolyORB.ORB.Is_Profile_Local
@@ -777,15 +808,27 @@ package body System.PolyORB_Interface is
          then
             begin
                declare
-                  Key : constant PolyORB.Objects.Object_Id
-                    := PolyORB.Obj_Adapters.Object_Key
-                    (OA => PolyORB.Obj_Adapters.Obj_Adapter_Access
-                       (Root_POA_Object),
-                     Id => PolyORB.Binding_Data.Get_Object_Key
-                       (Profiles (J).all));
+                  Key : PolyORB.Objects.Object_Id_Access;
+
                begin
+                  PolyORB.Obj_Adapters.Object_Key
+                    (OA      =>  PolyORB.Obj_Adapters.Obj_Adapter_Access
+                     (Root_POA_Object),
+                     Id      => PolyORB.Binding_Data.Get_Object_Key
+                     (Profiles (J).all),
+                     User_Id => Key,
+                     Error   => Error);
+
+                  if Found (Error) then
+                     Raise_From_Error (Error);
+                  end if;
+
                   Is_Local := True;
                   Addr := To_Address (Key (Key'Range));
+
+                  PolyORB.Objects.Free (Key);
+                  --  XXX not sure we can do that ...
+
                   return;
                end;
             exception
@@ -916,9 +959,12 @@ package body System.PolyORB_Interface is
       Receiver : access Servant;
       Ref      :    out PolyORB.References.Ref)
    is
-      Last : Integer := Typ'Last;
+      use PolyORB.Exceptions;
       use type PolyORB.Obj_Adapters.Obj_Adapter_Access;
 
+      Last : Integer := Typ'Last;
+
+      Error : Error_Container;
    begin
       if Last in Typ'Range and then Typ (Last) = ASCII.NUL then
          Last := Last - 1;
@@ -931,16 +977,27 @@ package body System.PolyORB_Interface is
             Key : aliased PolyORB.Objects.Object_Id
               := To_Local_Oid (Addr);
 
-            Oid : aliased PolyORB.Objects.Object_Id
-              := PolyORB.Obj_Adapters.Export
-              (OA  => Receiver.Object_Adapter,
-               Obj => null,
-               Key => Key'Unchecked_Access);
+            Oid : PolyORB.Objects.Object_Id_Access;
 
          begin
+            PolyORB.Obj_Adapters.Export
+              (OA    => Receiver.Object_Adapter,
+               Obj   => null,
+               Key   => Key'Unchecked_Access,
+               Oid   => Oid,
+               Error => Error);
+
+            if Found (Error) then
+               Raise_From_Error (Error);
+            end if;
+
             PolyORB.ORB.Create_Reference
-              (PolyORB.Setup.The_ORB, Oid'Access,
-               "DSA:" & Typ (Typ'First .. Last), Ref);
+              (PolyORB.Setup.The_ORB,
+               Oid,
+               "DSA:" & Typ (Typ'First .. Last),
+               Ref);
+
+            PolyORB.Objects.Free (Oid);
          end;
       end if;
    exception
@@ -1116,6 +1173,7 @@ package body System.PolyORB_Interface is
      (Name            : String;
       Default_Servant : Servant_Access)
    is
+      use PolyORB.Exceptions;
       use PolyORB.POA;
       use PolyORB.POA_Config;
       use PolyORB.POA_Manager;
@@ -1124,6 +1182,8 @@ package body System.PolyORB_Interface is
       POA : Obj_Adapter_Access;
       PName : constant PolyORB.Types.String
         := PolyORB.Types.String (To_PolyORB_String (Name));
+
+      Error : Error_Container;
    begin
       --  NOTE: Actually this does more than set up an RPC
       --  receiver. A TypeCode corresponding to the RACW is
@@ -1142,11 +1202,17 @@ package body System.PolyORB_Interface is
          return;
       end if;
 
-      POA := Create_POA
+      Create_POA
         (Self         => Root_POA_Object,
          Adapter_Name => PName,
          A_POAManager => null,
-         Policies     => Default_Policies (RACW_POA_Config.all));
+         Policies     => Default_Policies (RACW_POA_Config.all),
+         POA          => POA,
+         Error        => Error);
+
+      if Found (Error) then
+         Raise_From_Error (Error);
+      end if;
 
       POA.Default_Servant := PolyORB.Servants.Servant_Access
         (Default_Servant);
@@ -1155,7 +1221,12 @@ package body System.PolyORB_Interface is
         PolyORB.Obj_Adapters.Obj_Adapter_Access (POA);
       pragma Assert (Default_Servant.Object_Adapter /= null);
 
-      Activate (POAManager_Access (Entity_Of (POA.POA_Manager)));
+      Activate (POAManager_Access (Entity_Of (POA.POA_Manager)), Error);
+
+      if Found (Error) then
+         Raise_From_Error (Error);
+      end if;
+
    end Setup_Object_RPC_Receiver;
 
    ------------

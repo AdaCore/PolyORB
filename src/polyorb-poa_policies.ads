@@ -36,6 +36,8 @@
 
 --  $Id$
 
+with PolyORB.Exceptions;
+
 with PolyORB.Objects;
 pragma Warnings (Off, PolyORB.Objects);
 --  Required in child units.
@@ -55,12 +57,16 @@ package PolyORB.POA_Policies is
 
    type AllPolicies is array (1 .. 7) of Policy_Access;
 
-   function Policy_Id (Self : Policy) return String is abstract;
+   function Policy_Id
+     (Self : Policy)
+     return String
+      is abstract;
    --  Return the name of a Policy.
 
    procedure Check_Compatibility
-     (Self             : Policy;
-      Other_Policies   : AllPolicies)
+     (Self           :        Policy;
+      Other_Policies :        AllPolicies;
+      Error          : in out PolyORB.Exceptions.Error_Container)
       is abstract;
    --  Check the compatibility of the current policy with the
    --  other policies of the object adapter.

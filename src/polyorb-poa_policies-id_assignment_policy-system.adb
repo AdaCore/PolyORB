@@ -32,7 +32,6 @@
 
 with Ada.Unchecked_Conversion;
 
-with PolyORB.Exceptions;
 with PolyORB.Object_Maps;
 with PolyORB.POA;
 with PolyORB.POA_Types;
@@ -62,10 +61,11 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
 
    procedure Check_Compatibility
      (Self           : System_Id_Policy;
-      Other_Policies : AllPolicies)
+      Other_Policies : AllPolicies;
+      Error          : in out PolyORB.Exceptions.Error_Container)
    is
       pragma Warnings (Off);
-      pragma Unreferenced (Self, Other_Policies);
+      pragma Unreferenced (Self, Other_Policies, Error);
       pragma Warnings (On);
 
    begin
@@ -89,41 +89,30 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
       return "ID_ASSIGNMENT_POLICY.SYSTEM_ID";
    end Policy_Id;
 
-   ---------------
-   -- Is_System --
-   ---------------
-
-   function Is_System (Self : System_Id_Policy) return Boolean
-   is
-      pragma Warnings (Off);
-      pragma Unreferenced (Self);
-      pragma Warnings (On);
-   begin
-      return True;
-   end Is_System;
-
    ------------------------------
    -- Assign_Object_Identifier --
    ------------------------------
 
-   function Assign_Object_Identifier
-     (Self   : System_Id_Policy;
-      OA     : PolyORB.POA_Types.Obj_Adapter_Access;
-      Hint   : Object_Id_Access)
-     return Unmarshalled_Oid
+   procedure Assign_Object_Identifier
+     (Self  : System_Id_Policy;
+      OA    : PolyORB.POA_Types.Obj_Adapter_Access;
+      Hint  : Object_Id_Access;
+      U_Oid : out Unmarshalled_Oid;
+      Error : in out PolyORB.Exceptions.Error_Container)
+
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
 
       use PolyORB.POA_Policies.Lifespan_Policy;
+      use PolyORB.Object_Maps;
+      use PolyORB.Exceptions;
 
       POA : constant PolyORB.POA.Obj_Adapter_Access
         := PolyORB.POA.Obj_Adapter_Access (OA);
       The_Entry : Object_Map_Entry_Access;
       Index : Integer;
-
-      use PolyORB.Object_Maps;
 
       function As_String_Ptr is new Ada.Unchecked_Conversion
         (Object_Id_Access, Utils.Strings.String_Ptr);
@@ -137,19 +126,18 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
       pragma Assert (POA.Active_Object_Map /= null);
 
       if Hint /= null then
-         begin
-            Index := Integer'Value (As_String_Ptr (Hint).all);
-            The_Entry := Get_By_Id
-              (POA.Active_Object_Map.all, Oid_To_U_Oid (Hint));
-         exception
-            when others =>
-               Unlock_W (POA.Map_Lock);
-               PolyORB.Exceptions.Raise_Invalid_Policy;
-         end;
+
+         Index := Integer'Value (As_String_Ptr (Hint).all);
+         The_Entry := Get_By_Id
+           (POA.Active_Object_Map.all, Oid_To_U_Oid (Hint));
          Unlock_W (POA.Map_Lock);
 
          if The_Entry = null then
-            PolyORB.Exceptions.Raise_Invalid_Policy;
+            Throw (Error,
+                   Invalid_Policy'Identity,
+                   new System_Exception_Members'(Minor => 0,
+                                                 Completed => Completed_No));
+
             --  Could not determine the slot associated with
             --  this index.
             --  XXX if this is a POA with the PERSISTENT lifespan
@@ -177,28 +165,7 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
             Creator => POA.Absolute_Address);
       end if;
 
-      return The_Entry.Oid.all;
-   exception
-      when others =>
-         raise;
+      U_Oid := The_Entry.Oid.all;
    end Assign_Object_Identifier;
-
-   -----------------------
-   -- Ensure_Oid_Origin --
-   -----------------------
-
-   procedure Ensure_Oid_Origin
-     (Self  : System_Id_Policy;
-      U_Oid : Unmarshalled_Oid)
-   is
-      pragma Warnings (Off);
-      pragma Unreferenced (Self);
-      pragma Warnings (On);
-
-   begin
-      if not U_Oid.System_Generated then
-         PolyORB.Exceptions.Raise_Bad_Param;
-      end if;
-   end Ensure_Oid_Origin;
 
 end PolyORB.POA_Policies.Id_Assignment_Policy.System;

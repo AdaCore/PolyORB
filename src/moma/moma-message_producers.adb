@@ -37,8 +37,8 @@ with MOMA.Messages.MExecutes;
 with MOMA.Provider.Message_Producer;
 with MOMA.Types;
 
-with PolyORB.Any;
 with PolyORB.Any.NVList;
+with PolyORB.Exceptions;
 with PolyORB.Log;
 with PolyORB.Minimal_Servant.Tools;
 with PolyORB.References;
@@ -101,7 +101,9 @@ package body MOMA.Message_Producers is
       --  XXX Session is to be used to 'place' the receiver
       --  using session position in the POA
 
+      use PolyORB.Exceptions;
       use PolyORB.References;
+
       use MOMA.Types;
 
       MOMA_Obj : constant MOMA.Provider.Message_Producer.Object_Acc
@@ -111,13 +113,20 @@ package body MOMA.Message_Producers is
       Producer : MOMA.Message_Producers.Message_Producer;
       Type_Id_S : MOMA.Types.String
         := To_MOMA_String (Type_Id_Of (MOMA.Destinations.Get_Ref (Dest)));
+
+      Error : Error_Container;
    begin
-      Set_Remote_Ref (MOMA_Obj.all, MOMA.Destinations.Get_Ref (Dest));
       Initiate_Servant (MOMA_Obj,
                         MOMA.Provider.Message_Producer.If_Desc,
                         MOMA.Types.MOMA_Type_Id,
-                        MOMA_Ref);
+                        MOMA_Ref,
+                        Error);
 
+      if Found (Error) then
+         Raise_From_Error (Error);
+      end if;
+
+      Set_Remote_Ref (MOMA_Obj.all, MOMA.Destinations.Get_Ref (Dest));
       Set_Destination (Producer, Dest);
       Set_Ref (Producer, MOMA_Ref);
       Set_Type_Id_Of (Producer, Type_Id_S);

@@ -30,7 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Exceptions;
 with PolyORB.Types;
 
 package body PolyORB.POA_Policies.Lifespan_Policy.Persistent is
@@ -51,12 +50,14 @@ package body PolyORB.POA_Policies.Lifespan_Policy.Persistent is
    -------------------------
 
    procedure Check_Compatibility
-     (Self : Persistent_Policy;
-      Other_Policies   : AllPolicies)
+     (Self           : Persistent_Policy;
+      Other_Policies : AllPolicies;
+      Error          : in out PolyORB.Exceptions.Error_Container)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Unreferenced (Other_Policies);
+      pragma Unreferenced (Error);
       pragma Warnings (On);
 
    begin
@@ -94,7 +95,7 @@ package body PolyORB.POA_Policies.Lifespan_Policy.Persistent is
       pragma Warnings (On);
 
    begin
-      return 0;
+      return Null_Time_Stamp;
    end Get_Lifespan_Cookie;
 
    ---------------------
@@ -102,17 +103,23 @@ package body PolyORB.POA_Policies.Lifespan_Policy.Persistent is
    ---------------------
 
    procedure Ensure_Lifespan
-     (Self  : Persistent_Policy;
-      OA    : PolyORB.POA_Types.Obj_Adapter_Access;
-      U_Oid : Unmarshalled_Oid)
+     (Self  :        Persistent_Policy;
+      OA    :        PolyORB.POA_Types.Obj_Adapter_Access;
+      U_Oid :        Unmarshalled_Oid;
+      Error : in out PolyORB.Exceptions.Error_Container)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self, OA);
       pragma Warnings (On);
 
+      use PolyORB.Exceptions;
+
    begin
-      if U_Oid.Persistency_Flag /= 0 then
-         PolyORB.Exceptions.Raise_Object_Not_Exist;
+      if U_Oid.Persistency_Flag /= Null_Time_Stamp then
+         Throw (Error,
+                Object_Not_Exist'Identity,
+                new System_Exception_Members'(Minor => 0,
+                                              Completed => Completed_No));
       end if;
    end Ensure_Lifespan;
 

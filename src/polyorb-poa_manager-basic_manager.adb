@@ -35,7 +35,6 @@
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Components;
-with PolyORB.Exceptions;
 with PolyORB.Log;
 with PolyORB.ORB.Interface;
 with PolyORB.Setup;
@@ -76,7 +75,8 @@ package body PolyORB.POA_Manager.Basic_Manager is
    --------------
 
    procedure Activate
-     (Self : access Basic_POA_Manager)
+     (Self  : access Basic_POA_Manager;
+      Error : in out PolyORB.Exceptions.Error_Container)
    is
       use Requests_Queue_P;
 
@@ -91,9 +91,11 @@ package body PolyORB.POA_Manager.Basic_Manager is
 
          --  If the POAManager state is 'inactive', raise an exception.
 
+         Throw (Error,
+                Adapter_Inactive'Identity,
+                new System_Exception_Members'(Minor => 0,
+                                              Completed => Completed_No));
          Unlock_W (Self.State_Lock);
-         Raise_Adapter_Inactive;
-
       else
 
          --  else set the POAManager state to 'active'
@@ -118,7 +120,8 @@ package body PolyORB.POA_Manager.Basic_Manager is
 
    procedure Hold_Requests
      (Self                : access Basic_POA_Manager;
-      Wait_For_Completion :        Boolean) is
+      Wait_For_Completion :        Boolean;
+      Error               : in out PolyORB.Exceptions.Error_Container) is
    begin
       pragma Debug (O ("Hold requests, Wait_For_Completion is "
                        & Boolean'Image (Wait_For_Completion)));
@@ -132,7 +135,11 @@ package body PolyORB.POA_Manager.Basic_Manager is
          --  If the POAManager state is 'inactive', raise an exception.
 
          Unlock_W (Self.State_Lock);
-         Raise_Adapter_Inactive;
+         Throw (Error,
+                Adapter_Inactive'Identity,
+                new System_Exception_Members'(Minor => 0,
+                                              Completed => Completed_No));
+
       else
 
          --  else set the POAManager state to 'holding'
@@ -156,7 +163,8 @@ package body PolyORB.POA_Manager.Basic_Manager is
 
    procedure Discard_Requests
      (Self                : access Basic_POA_Manager;
-      Wait_For_Completion :        Boolean) is
+      Wait_For_Completion :        Boolean;
+      Error               : in out PolyORB.Exceptions.Error_Container) is
    begin
       pragma Debug (O ("Discard requests, Wait_For_Completion is "
                        & Boolean'Image (Wait_For_Completion)));
@@ -170,8 +178,10 @@ package body PolyORB.POA_Manager.Basic_Manager is
          --  If the POAManager state is 'inactive', raise an exception.
 
          Unlock_W (Self.State_Lock);
-         Raise_Adapter_Inactive;
-
+         Throw (Error,
+                Adapter_Inactive'Identity,
+                new System_Exception_Members'(Minor => 0,
+                                              Completed => Completed_No));
       else
 
          --  else set the POAManager state to 'discarding'
@@ -325,7 +335,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
 
       Unlock_W (Self.POAs_Lock);
 
-      raise Invalid_Obj_Adapter;
+      raise Program_Error;
    end Remove_POA;
 
    ----------------------
@@ -456,10 +466,6 @@ package body PolyORB.POA_Manager.Basic_Manager is
          Unlock_R (Self.Count_Lock);
       end if;
 
-   exception
-      when others =>
-         pragma Debug (O ("Destroy_If_Unused: got exception"));
-         raise;
    end Destroy_If_Unused;
 
    ----------------------------------
@@ -480,6 +486,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
 
       R : Execute_Request;
       N : constant Natural := Length (Self.Holded_Requests);
+
       All_Requests : Element_Array (1 .. N);
    begin
       pragma Debug (O ("Number of requests to reemit"

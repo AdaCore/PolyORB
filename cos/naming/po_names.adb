@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--         Copyright (C) 1999-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -39,7 +39,9 @@
 
 with Ada.Text_IO;
 
+with PolyORB.Exceptions;
 with PolyORB.Initialization;
+with PolyORB.Minimal_Servant.Tools;
 with PolyORB.References;
 with PolyORB.References.IOR;
 with PolyORB.Types;
@@ -49,10 +51,10 @@ pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
 pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
 
 with PolyORB.Services.Naming.NamingContext.Servant;
-with PolyORB.Minimal_Servant.Tools;
 
 procedure PO_Names is
 
+   use PolyORB.Exceptions;
    use PolyORB.Minimal_Servant.Tools;
    use PolyORB.Types;
 
@@ -61,6 +63,8 @@ procedure PO_Names is
    NC_Ref  : PolyORB.References.Ref;
    Root_NC : NC.Object_Ptr;
 
+   Error : Error_Container;
+
 begin
    PolyORB.Initialization.Initialize_World;
 
@@ -68,7 +72,12 @@ begin
    Initiate_Servant (Root_NC,
                      NC.If_Desc,
                      To_PolyORB_String ("NAMING"),
-                     NC_Ref);
+                     NC_Ref,
+                     Error);
+
+   if Found (Error) then
+      Raise_From_Error (Error);
+   end if;
 
    Ada.Text_IO.Put_Line
      ("POLYORB_CORBA_NAMING_IOR=" &

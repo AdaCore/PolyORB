@@ -1,21 +1,21 @@
+with PolyORB.Exceptions;
 with PolyORB.Objects;
-with PolyORB.Servants;
-with PolyORB.Types;
-with PolyORB.References;
 with PolyORB.References.IOR;
-with PolyORB.ORB;
+with PolyORB.Servants;
 with PolyORB.Setup;
-
+with PolyORB.Types;
+with PolyORB.ORB;
 with PolyORB.Utils.Report;
+
 with Test_Servant;
 
 package body Test_Common is
 
-   use PolyORB.Types;
-
+   use PolyORB.Exceptions;
    use PolyORB.Objects;
    use PolyORB.ORB;
    use PolyORB.Setup;
+   use PolyORB.Types;
    use PolyORB.Utils.Report;
 
    use Test_Servant;
@@ -29,6 +29,12 @@ package body Test_Common is
    is
 
       S1  : My_Servant_Access;
+      My_Id : Object_Id_Access;
+
+      My_Ref : PolyORB.References.Ref;
+
+      Error : Error_Container;
+
    begin
       --  Create object adapter.
 
@@ -45,41 +51,48 @@ package body Test_Common is
       S1.Name  := To_PolyORB_String ("Servant1");
       Output ("Servant Created", True);
 
-      --  Servant manipulation tests.
+      PolyORB.Obj_Adapters.Export
+        (Obj_Adapter,
+         PolyORB.Servants.Servant_Access (S1),
+         null,
+         My_Id,
+         Error);
+      --  Register it with the SOA.
+
+      if Found (Error) then
+         Raise_From_Error (Error);
+      end if;
+
+      Create_Reference (The_ORB, My_Id, "POLYORB:TEST_SERVANT:1.0", My_Ref);
+      --  Obtain object reference.
+
+      Output ("Registered object", True);
 
       declare
-         My_Id : constant Object_Id_Access
-           := new Object_Id'(PolyORB.Obj_Adapters.Export
-                             (Obj_Adapter,
-                              PolyORB.Servants.Servant_Access (S1)));
-         --  Register it with the SOA.
-
-         My_Ref : PolyORB.References.Ref;
+         IOR : constant String :=
+           PolyORB.Types.To_Standard_String
+           (PolyORB.References.IOR.Object_To_String (My_Ref));
+         pragma Warnings (Off);
+         pragma Unreferenced (IOR);
+         pragma Warnings (On);
       begin
-         Create_Reference (The_ORB, My_Id, "POLYORB:TEST_SERVANT:1.0", My_Ref);
-         --  Obtain object reference.
-
-         Output ("Registered object", True);
-
-         declare
-            IOR : constant String :=
-              PolyORB.Types.To_Standard_String
-              (PolyORB.References.IOR.Object_To_String (My_Ref));
-            pragma Warnings (Off);
-            pragma Unreferenced (IOR);
-            pragma Warnings (On);
-         begin
-            Output ("IOR created", True);
-         end;
-
-         PolyORB.Obj_Adapters.Unexport (Obj_Adapter, My_Id);
-         Output ("Unregistered object", True);
+         Output ("IOR created", True);
       end;
+
+      PolyORB.Obj_Adapters.Unexport
+        (Obj_Adapter,
+         My_Id,
+         Error);
+
+      if Found (Error) then
+         Raise_From_Error (Error);
+      end if;
+
+      Output ("Unregistered object", True);
 
       --  Destroy object adapter
       PolyORB.Obj_Adapters.Destroy (Obj_Adapter);
       Output ("Destroyed Object Adapter", True);
-   end Test_Simple_OA;
-
+end Test_Simple_OA;
 
 end Test_Common;

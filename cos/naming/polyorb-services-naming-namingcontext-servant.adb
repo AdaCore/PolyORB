@@ -1197,13 +1197,23 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
       pragma Unreferenced (Self);
       pragma Warnings (On);
 
+      use PolyORB.Exceptions;
+
+      Error : Error_Container;
+
       My_Ref : NamingContext.Ref;
+
    begin
       PolyORB.Minimal_Servant.Tools.Initiate_Servant
          (Create,
           If_Desc,
           To_PolyORB_String ("NAMING"),
-          PolyORB.References.Ref (My_Ref));
+          PolyORB.References.Ref (My_Ref),
+          Error);
+
+      if Found (Error) then
+         Raise_From_Error (Error);
+      end if;
 
       return My_Ref;
    end New_Context;

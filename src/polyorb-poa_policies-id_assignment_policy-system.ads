@@ -39,22 +39,18 @@ package PolyORB.POA_Policies.Id_Assignment_Policy.System is
 
    procedure Check_Compatibility
      (Self : System_Id_Policy;
-      Other_Policies   : AllPolicies);
+      Other_Policies   : AllPolicies;
+      Error : in out PolyORB.Exceptions.Error_Container);
 
    function Policy_Id
      (Self : System_Id_Policy)
      return String;
 
-   function Is_System (Self : System_Id_Policy) return Boolean;
-
-   function Assign_Object_Identifier
-     (Self   : System_Id_Policy;
-      OA     : PolyORB.POA_Types.Obj_Adapter_Access;
-      Hint   : Object_Id_Access)
-     return Unmarshalled_Oid;
-
-   procedure Ensure_Oid_Origin
+   procedure Assign_Object_Identifier
      (Self  : System_Id_Policy;
-      U_Oid : Unmarshalled_Oid);
+      OA    : PolyORB.POA_Types.Obj_Adapter_Access;
+      Hint  : Object_Id_Access;
+      U_Oid : out Unmarshalled_Oid;
+      Error : in out PolyORB.Exceptions.Error_Container);
 
 end PolyORB.POA_Policies.Id_Assignment_Policy.System;

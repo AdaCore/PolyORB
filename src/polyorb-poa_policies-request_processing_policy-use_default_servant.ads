@@ -36,14 +36,16 @@ is
 
    type Use_Default_Servant_Policy is
      new RequestProcessingPolicy with null record;
+
    type Use_Default_Servant_Policy_Access is
      access all Use_Default_Servant_Policy;
 
    function Create return Use_Default_Servant_Policy_Access;
 
    procedure Check_Compatibility
-     (Self : Use_Default_Servant_Policy;
-      Other_Policies   : AllPolicies);
+     (Self           : Use_Default_Servant_Policy;
+      Other_Policies : AllPolicies;
+      Error          : in out PolyORB.Exceptions.Error_Container);
 
    function Policy_Id
      (Self : Use_Default_Servant_Policy)
@@ -54,10 +56,11 @@ is
       OA    : PolyORB.POA_Types.Obj_Adapter_Access;
       U_Oid : Unmarshalled_Oid);
 
-   function Id_To_Servant
-     (Self  : Use_Default_Servant_Policy;
-      OA    : PolyORB.POA_Types.Obj_Adapter_Access;
-      U_Oid : Unmarshalled_Oid)
-     return Servants.Servant_Access;
+   procedure Id_To_Servant
+     (Self    :        Use_Default_Servant_Policy;
+      OA      :        PolyORB.POA_Types.Obj_Adapter_Access;
+      U_Oid   :        Unmarshalled_Oid;
+      Servant :    out Servants.Servant_Access;
+      Error   : in out PolyORB.Exceptions.Error_Container);
 
 end PolyORB.POA_Policies.Request_Processing_Policy.Use_Default_Servant;

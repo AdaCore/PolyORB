@@ -30,29 +30,34 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.POA_Types;     use PolyORB.POA_Types;
+with PolyORB.Exceptions;
+with PolyORB.POA_Types;
 with PolyORB.Servants;
 
 package PolyORB.POA_Policies.Servant_Retention_Policy is
 
+   use PolyORB.POA_Types;
+
    type ServantRetentionPolicy is abstract new Policy with null record;
    subtype Servant_Retention_Policy is ServantRetentionPolicy;
+
    type ServantRetentionPolicy_Access is
      access all ServantRetentionPolicy'Class;
    subtype Servant_Retention_Policy_Access is ServantRetentionPolicy_Access;
 
    procedure Retain_Servant_Association
-     (Self      : ServantRetentionPolicy;
-      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Servants.Servant_Access;
-      U_Oid     : Unmarshalled_Oid)
+     (Self      :        ServantRetentionPolicy;
+      OA        :        PolyORB.POA_Types.Obj_Adapter_Access;
+      P_Servant :        Servants.Servant_Access;
+      U_Oid     :        Unmarshalled_Oid;
+      Error     : in out PolyORB.Exceptions.Error_Container)
      is abstract;
 
-
    procedure Forget_Servant_Association
-     (Self : ServantRetentionPolicy;
-      OA   : PolyORB.POA_Types.Obj_Adapter_Access;
-      Oid  : Unmarshalled_Oid)
+     (Self  :        ServantRetentionPolicy;
+      OA    :        PolyORB.POA_Types.Obj_Adapter_Access;
+      Oid   :        Unmarshalled_Oid;
+      Error : in out PolyORB.Exceptions.Error_Container)
       is abstract;
    --  Remove a previously-retained servant/oid association.
 
@@ -68,11 +73,12 @@ package PolyORB.POA_Policies.Servant_Retention_Policy is
    --  Case NON_RETAIN:
    --    Returns null
 
-   function Retained_Id_To_Servant
-     (Self      : ServantRetentionPolicy;
-      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      U_Oid     : Unmarshalled_Oid)
-     return Servants.Servant_Access
+   procedure Retained_Id_To_Servant
+     (Self    :        ServantRetentionPolicy;
+      OA      :        PolyORB.POA_Types.Obj_Adapter_Access;
+      U_Oid   :        Unmarshalled_Oid;
+      Servant :    out Servants.Servant_Access;
+      Error   : in out PolyORB.Exceptions.Error_Container)
       is abstract;
    --  Case RETAIN:
    --    Asks the Id_Assignment_Policy to look for the given Object_Id.

@@ -747,6 +747,69 @@ package body PolyORB.Exceptions is
       return Result;
    end System_Exception_To_Any;
 
+   -----------
+   -- Found --
+   -----------
+
+   function Found
+     (Error : in Error_Container)
+     return Boolean is
+   begin
+      return Error.Kind /= Null_Id;
+   end Found;
+
+   -----------
+   -- Throw --
+   -----------
+
+   procedure Throw
+     (Error  : in out Error_Container;
+      Kind   : in     Ada.Exceptions.Exception_Id;
+      Member : in     Exception_Members_Access) is
+   begin
+      if Error.Kind /= Null_Id then
+         pragma Debug (O ("*** Abort *** "
+                          & Exception_Name (Error.Kind)));
+
+         Free (Error.Member);
+      end if;
+
+      Error.Kind := Kind;
+      Error.Member := new Exception_Members'Class'(Member.all);
+
+      pragma Debug (O ("*** Throw *** "
+                          & Exception_Name (Error.Kind)));
+   end Throw;
+
+   -----------
+   -- Catch --
+   -----------
+
+   procedure Catch
+     (Error : in out Error_Container) is
+   begin
+      Error.Kind := Null_Id;
+      Free (Error.Member);
+   end Catch;
+
+   ----------------------
+   -- Raise_From_Error --
+   ----------------------
+
+   procedure Raise_From_Error
+     (Error : in out Error_Container)  is
+   begin
+      pragma Assert (Error.Kind /= Null_Id);
+
+      declare
+         Member : Exception_Members'Class := Error.Member.all;
+      begin
+         Free (Error.Member);
+         User_Raise_Exception (Error.Kind, Member);
+
+      end;
+   end Raise_From_Error;
+
    ----------------
    -- Initialize --
    ----------------

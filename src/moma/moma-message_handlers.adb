@@ -38,8 +38,8 @@ with MOMA.Provider.Message_Handler;
 with MOMA.Types;
 
 with PolyORB.Annotations;
-with PolyORB.Any;
 with PolyORB.Any.NVList;
+with PolyORB.Exceptions;
 with PolyORB.Log;
 with PolyORB.Minimal_Servant.Tools;
 with PolyORB.Types;
@@ -87,17 +87,27 @@ package body MOMA.Message_Handlers is
       --  XXX Session is to be used to 'place' the receiver
       --  using session position in the POA.
 
+      use PolyORB.Exceptions;
+
       Self    : MOMA.Message_Handlers.Message_Handler_Acc :=
         new MOMA.Message_Handlers.Message_Handler;
       Servant : constant MOMA.Provider.Message_Handler.Object_Acc :=
         new MOMA.Provider.Message_Handler.Object;
       Servant_Ref : PolyORB.References.Ref;
 
+      Error : Error_Container;
+
    begin
       Initiate_Servant (Servant,
                         MOMA.Provider.Message_Handler.If_Desc,
                         MOMA.Types.MOMA_Type_Id,
-                        Servant_Ref);
+                        Servant_Ref,
+                        Error);
+
+      if Found (Error) then
+         Raise_From_Error (Error);
+      end if;
+
       MOMA.Provider.Message_Handler.Initialize (Servant, Self);
 
       Self.Message_Cons := Message_Cons;

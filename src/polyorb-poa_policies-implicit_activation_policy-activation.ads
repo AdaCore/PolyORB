@@ -38,8 +38,9 @@ package PolyORB.POA_Policies.Implicit_Activation_Policy.Activation is
    function Create return Activation_Policy_Access;
 
    procedure Check_Compatibility
-     (Self : Activation_Policy;
-      Other_Policies   : AllPolicies);
+     (Self           : Activation_Policy;
+      Other_Policies : AllPolicies;
+      Error          : in out PolyORB.Exceptions.Error_Container);
 
    function Policy_Id
      (Self : Activation_Policy)

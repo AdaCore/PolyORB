@@ -83,8 +83,7 @@ package body PolyORB.Object_Maps is
    function Is_Servant_In
      (O_Map : in Object_Map;
       Item  : in PolyORB.Servants.Servant_Access)
-     return Boolean
-   is
+     return Boolean is
    begin
       return not Is_Null (Get_By_Servant (O_Map, Item));
    end Is_Servant_In;
@@ -96,8 +95,7 @@ package body PolyORB.Object_Maps is
    function Is_Object_Id_In
      (O_Map : in Object_Map;
       Item  : in PolyORB.POA_Types.Unmarshalled_Oid)
-     return Boolean
-   is
+     return Boolean is
    begin
       return not Is_Null (Get_By_Id (O_Map, Item));
    end Is_Object_Id_In;
@@ -147,9 +145,9 @@ package body PolyORB.Object_Maps is
       return null;
    end Get_By_Servant;
 
-   ------------
-   -- Remove --
-   ------------
+   ------------------
+   -- Remove_By_Id --
+   ------------------
 
    function Remove_By_Id
      (O_Map : access Object_Map;
@@ -171,6 +169,7 @@ package body PolyORB.Object_Maps is
             end;
          end if;
       end loop;
+
       return null;
    end Remove_By_Id;
 

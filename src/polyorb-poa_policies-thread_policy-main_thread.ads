@@ -40,8 +40,9 @@ package PolyORB.POA_Policies.Thread_Policy.Main_Thread is
    function Create return Main_Thread_Policy_Access;
 
    procedure Check_Compatibility
-     (Self : Main_Thread_Policy;
-      Other_Policies   : AllPolicies);
+     (Self           : Main_Thread_Policy;
+      Other_Policies : AllPolicies;
+      Error          : in out PolyORB.Exceptions.Error_Container);
 
    function Policy_Id
      (Self : Main_Thread_Policy)

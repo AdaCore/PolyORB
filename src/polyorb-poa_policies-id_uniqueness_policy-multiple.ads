@@ -38,8 +38,9 @@ package PolyORB.POA_Policies.Id_Uniqueness_Policy.Multiple is
    function Create return Multiple_Id_Policy_Access;
 
    procedure Check_Compatibility
-     (Self : Multiple_Id_Policy;
-      Other_Policies   : AllPolicies);
+     (Self           : Multiple_Id_Policy;
+      Other_Policies : AllPolicies;
+      Error          : in out PolyORB.Exceptions.Error_Container);
 
    function Policy_Id
      (Self : Multiple_Id_Policy)
@@ -48,7 +49,8 @@ package PolyORB.POA_Policies.Id_Uniqueness_Policy.Multiple is
    procedure Ensure_Servant_Uniqueness
      (Self      : Multiple_Id_Policy;
       OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Servants.Servant_Access);
+      P_Servant : Servants.Servant_Access;
+      Error     : in out PolyORB.Exceptions.Error_Container);
 
    function Activate_Again
      (Self      : Multiple_Id_Policy;

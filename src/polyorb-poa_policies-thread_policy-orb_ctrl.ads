@@ -40,8 +40,9 @@ package PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl is
    function Create return ORB_Ctrl_Policy_Access;
 
    procedure Check_Compatibility
-     (Self : ORB_Ctrl_Policy;
-      Other_Policies   : AllPolicies);
+     (Self           :        ORB_Ctrl_Policy;
+      Other_Policies :        AllPolicies;
+      Error          : in out PolyORB.Exceptions.Error_Container);
 
    function Policy_Id
      (Self : ORB_Ctrl_Policy)

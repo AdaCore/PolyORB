@@ -29,7 +29,6 @@
 
 with Ada.Tags;
 
-with PolyORB.Exceptions;
 with PolyORB.POA;
 with PolyORB.POA_Policies.Id_Uniqueness_Policy.Multiple;
 
@@ -51,14 +50,17 @@ is
    -------------------------
 
    procedure Check_Compatibility
-     (Self : Use_Default_Servant_Policy;
-      Other_Policies   : AllPolicies)
+     (Self           : Use_Default_Servant_Policy;
+      Other_Policies : AllPolicies;
+      Error          : in out PolyORB.Exceptions.Error_Container)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
 
       use Ada.Tags;
+
+      use PolyORB.Exceptions;
 
       use PolyORB.POA_Policies.Id_Uniqueness_Policy;
       use PolyORB.POA_Policies.Id_Uniqueness_Policy.Multiple;
@@ -70,8 +72,10 @@ is
          if Other_Policies (J).all in IdUniquenessPolicy'Class
            and then Other_Policies (J).all'Tag
            /= Multiple_Id_Policy'Tag then
-               PolyORB.Exceptions.Raise_Invalid_Policy;
-               --  XXX we may raise an exception, but should we ?
+            Throw (Error,
+                   Invalid_Policy'Identity,
+                   new System_Exception_Members'(Minor => 0,
+                                                 Completed => Completed_No));
          end if;
       end loop;
 
@@ -114,18 +118,19 @@ is
    -- Id_To_Servant --
    -------------------
 
-   function Id_To_Servant
-     (Self  : Use_Default_Servant_Policy;
-      OA    : PolyORB.POA_Types.Obj_Adapter_Access;
-      U_Oid : Unmarshalled_Oid)
-     return Servants.Servant_Access
+   procedure Id_To_Servant
+     (Self    :        Use_Default_Servant_Policy;
+      OA      :        PolyORB.POA_Types.Obj_Adapter_Access;
+      U_Oid   :        Unmarshalled_Oid;
+      Servant :    out Servants.Servant_Access;
+      Error   : in out PolyORB.Exceptions.Error_Container)
    is
       pragma Warnings (Off);
-      pragma Unreferenced (Self, U_Oid);
+      pragma Unreferenced (Self, U_Oid, Error);
       pragma Warnings (On);
    begin
 
-      return POA.Obj_Adapter_Access (OA).Default_Servant;
+      Servant := POA.Obj_Adapter_Access (OA).Default_Servant;
    end Id_To_Servant;
 
 end PolyORB.POA_Policies.Request_Processing_Policy.Use_Default_Servant;
