@@ -72,13 +72,6 @@ package body PolyORB.Utils.HTables is
    --  This function indicates if the hash function associated with the
    --  subtable ST_Index is injectiv
 
-   function Max (X : Integer; Y : Integer) return Integer;
-   pragma Warnings (Off);
-   pragma Unreferenced (Max);
-   --  XXX Where is this supposed to be used?
-   pragma Warnings (On);
-   --  Returns the greater of two integers
-
    procedure Process_Subtable
      (ST_Index : Natural;
       T : Hash_Table);
@@ -119,27 +112,16 @@ package body PolyORB.Utils.HTables is
       Prime : Natural)
       return Natural
    is
-      Result : Natural := 0;
+      Result : Long_Long_Integer := 0;
    begin
       for I in S'Range loop
-         Result := (Result * 65599 + Character'Pos (S (I)) * K) mod Prime;
+         Result := (Result * 65599
+                      + Long_Long_Integer (Character'Pos (S (I)))
+                        * Long_Long_Integer (K))
+           mod Long_Long_Integer (Prime);
       end loop;
-      Result := Result mod Size;
-      return Result;
+      return Natural (Result mod Long_Long_Integer (Size));
    end Hashcode;
-
-   ------------------
-   -- Max function --
-   ------------------
-
-   function Max (X : Integer; Y : Integer) return Integer is
-   begin
-      if Y > X then
-         return Y;
-      else
-         return X;
-      end if;
-   end Max;
 
    -------------------------------
    -- Process_Subtable_Hashcode --
