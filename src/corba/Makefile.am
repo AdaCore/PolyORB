@@ -23,6 +23,7 @@ ADA_SPECS_WITH_BODY = \
 	corba.ads \
 	polyorb-corba_p-adapteractivator.ads \
 	polyorb-corba_p-exceptions.ads \
+	polyorb-corba_p-initial_references.ads \
 	polyorb-corba_p-names.ads \
 	polyorb-corba_p-poa_config.ads \
 	polyorb-corba_p-policy.ads \

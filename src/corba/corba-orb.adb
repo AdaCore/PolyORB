@@ -42,6 +42,7 @@
 
 with Ada.Exceptions;
 
+with PolyORB.CORBA_P.Initial_References;
 with PolyORB.CORBA_P.Policy;
 
 with PolyORB.Configuration;
@@ -54,9 +55,6 @@ with PolyORB.Objects;
 with PolyORB.References.IOR;
 with PolyORB.Setup;
 with PolyORB.Smart_Pointers;
-with PolyORB.Utils.HFunctions.Mul;
-with PolyORB.Utils.HTables.Perfect;
-with PolyORB.Utils.Strings;
 with PolyORB.Utils.Strings.Lists;
 
 package body CORBA.ORB is
@@ -68,16 +66,6 @@ package body CORBA.ORB is
    package L is new PolyORB.Log.Facility_Log ("corba.orb");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
-
-   package Referenced_Objects_HTables is new PolyORB.Utils.HTables.Perfect
-     (CORBA.Object.Ref,
-      PolyORB.Utils.HFunctions.Mul.Hash_Mul_Parameters,
-      PolyORB.Utils.HFunctions.Mul.Default_Hash_Parameters,
-      PolyORB.Utils.HFunctions.Mul.Hash,
-      PolyORB.Utils.HFunctions.Mul.Next_Hash_Parameters);
-
-   Referenced_Objects : Referenced_Objects_HTables.Table_Instance;
-   --  For initial references.
 
    procedure Register_Initial_Reference
      (Identifier : ObjectId;
@@ -304,21 +292,27 @@ package body CORBA.ORB is
 
    function List_Initial_Services return ObjectIdList
    is
-      use Referenced_Objects_HTables;
+      use PolyORB.CORBA_P.Initial_References;
+      use PolyORB.Utils.Strings.Lists;
 
-      It : Iterator := First (Referenced_Objects);
+      Services_List : List := List_Initial_Services;
 
       Result : ObjectIdList;
+
+      It : Iterator := First (Services_List);
+
    begin
       pragma Debug (O ("List_Initial_Services: enter"));
 
       while not Last (It) loop
-         pragma Debug (O ("Service name: " & Key (It)));
+         pragma Debug (O ("Service name: " & Value (It).all));
          IDL_Sequence_ObjectId.Append
            (IDL_Sequence_ObjectId.Sequence (Result),
-            To_CORBA_String (Key (It)));
+            To_CORBA_String (Value (It).all));
          Next (It);
       end loop;
+
+      Deallocate (Services_List);
 
       pragma Debug (O ("List_Initial_Services: end"));
       return Result;
@@ -342,11 +336,10 @@ package body CORBA.ORB is
       Ref        : CORBA.Object.Ref)
    is
       use CORBA.Object;
-      use Referenced_Objects_HTables;
+      use PolyORB.CORBA_P.Initial_References;
 
       Id : constant Standard.String := To_Standard_String (Identifier);
 
-      Nil_Ref : CORBA.Object.Ref;
    begin
       pragma Debug (O ("Register_Initial_Reference: " & Id));
 
@@ -354,7 +347,7 @@ package body CORBA.ORB is
       --  then raise InvalidName.
 
       if Id = ""
-        or else not Is_Nil (Lookup (Referenced_Objects, Id, Nil_Ref)) then
+        or else not Is_Nil (Resolve_Initial_References (Id)) then
          declare
             Excp_Memb : InvalidName_Members := (null record);
          begin
@@ -374,7 +367,7 @@ package body CORBA.ORB is
          end;
       end if;
 
-      Insert (Referenced_Objects, Id, Ref);
+      Register_Initial_Reference (Id, Ref);
    end Register_Initial_Reference;
 
    procedure Register_Initial_Reference
@@ -396,17 +389,13 @@ package body CORBA.ORB is
      return CORBA.Object.Ref
    is
       use CORBA.Object;
-      use Referenced_Objects_HTables;
+      use PolyORB.CORBA_P.Initial_References;
 
       Id : constant Standard.String := To_Standard_String (Identifier);
 
-      Nil_Ref : CORBA.Object.Ref;
-
-      Result : CORBA.Object.Ref;
+      Result : CORBA.Object.Ref := Resolve_Initial_References (Id);
    begin
       pragma Debug (O ("Resolve_Initial_References: " & Id));
-
-      Result := Lookup (Referenced_Objects, Id, Nil_Ref);
 
       if Is_Nil (Result) then
          declare
@@ -599,10 +588,6 @@ package body CORBA.ORB is
 
    begin
 
-      --  Initialize Referenced_Objects hash table
-
-      Referenced_Objects_HTables.Initialize (Referenced_Objects);
-
       --  Register initial reference for NamingService
 
       if Naming_IOR /= "" then
@@ -622,8 +607,9 @@ begin
      (Module_Info'
       (Name      => +"corba.orb",
        Conflicts => Empty,
-       Depends   => +"orb",
-       Provides  => +"corba.initial_references",
+       Depends   => +"orb"
+       & "corba.initial_references",
+       Provides  => Empty,
        Init      => Initialize'Access));
 
 end CORBA.ORB;

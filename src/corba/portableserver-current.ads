@@ -36,15 +36,22 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-current.ads#5 $
+--  $Id: //droopi/main/src/corba/portableserver-current.ads#6 $
 
 with Ada.Exceptions;
 
 with CORBA.Current;
 
+with PolyORB.Smart_Pointers;
+with PolyORB.Tasking.Threads;
+
 package PortableServer.Current is
 
    type Ref is new CORBA.Current.Ref with private;
+
+   function To_Ref
+     (Self : CORBA.Object.Ref'Class)
+     return Ref;
 
    NoContext : exception;
 
@@ -76,5 +83,9 @@ package PortableServer.Current is
 private
 
    type Ref is new CORBA.Current.Ref with null record;
+
+   type Current_Object is new PolyORB.Smart_Pointers.Entity with record
+      Thread : PolyORB.Tasking.Threads.Thread_Id;
+   end record;
 
 end PortableServer.Current;

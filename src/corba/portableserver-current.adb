@@ -33,7 +33,57 @@
 
 --  $Id$
 
+with PolyORB.CORBA_P.Initial_References;
+
+with PolyORB.Initialization;
+pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
+
+with PolyORB.Utils.Strings.Lists;
+
 package body PortableServer.Current is
+
+   function Create return CORBA.Object.Ref;
+
+   ------------
+   -- Create --
+   ------------
+
+   function Create return CORBA.Object.Ref
+   is
+      Result : Ref;
+
+      Current : constant PolyORB.Smart_Pointers.Entity_Ptr :=
+        new Current_Object;
+
+   begin
+      Current_Object (Current.all).Thread :=
+        PolyORB.Tasking.Threads.Current_Task;
+
+      Set (Result, Current);
+
+      return CORBA.Object.Ref (Result);
+   end Create;
+
+   ------------
+   -- To_Ref --
+   ------------
+
+   function To_Ref
+     (Self : CORBA.Object.Ref'Class)
+     return Ref
+   is
+      Result : Ref;
+
+   begin
+      if CORBA.Object.Entity_Of (Self).all
+        not in Current_Object'Class then
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
+      end if;
+
+      Set (Result, CORBA.Object.Entity_Of (Self));
+
+      return Result;
+   end To_Ref;
 
    -------------
    -- Get_POA --
@@ -90,8 +140,36 @@ package body PortableServer.Current is
       pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Excp_Memb);
       pragma Warnings (On); --  WAG:3.15
+
    begin
       raise NoContext;
    end Raise_NoContext;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize;
+
+   procedure Initialize
+   is
+      use PolyORB.CORBA_P.Initial_References;
+
+   begin
+      Register_Initial_Reference ("POACurrent", Create'Access);
+   end Initialize;
+
+   use PolyORB.Initialization;
+   use PolyORB.Utils.Strings;
+   use PolyORB.Utils.Strings.Lists;
+
+begin
+   Register_Module
+     (Module_Info'
+      (Name      => +"portableserver.current",
+       Conflicts => Empty,
+       Depends   => +"corba.initial_references",
+       Provides  => Empty,
+       Init      => Initialize'Access));
 
 end PortableServer.Current;
