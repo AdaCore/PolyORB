@@ -33,35 +33,29 @@ package body Corba.Object is
    procedure Release (Self : in out Ref'class) is
    begin
       -- to be implemented
+      null ;
    end ;
 
 
-   -- Is_A
-   -------
-   function Is_A(Self: in Ref ;
-                 Logical_Type_Id : in Corba.Repository_Id)
+
+    -- Is_A
+    -------
+    function Is_A(Self: in Ref ;
+                 Logical_Type_Id : in Corba.String)
                  return Corba.Boolean is
-   begin
-      -- this is a translation of the C+ code of omniORB
-      if Is_Nil(Ref) then
-         if Logical_Type_Id = "" then
-            return True ;
-         else return False ;
-         end if ;
-      else
-         return Real_Is_A(Self, Logical_Type_Id) ;
-      end if ;
-   end;
+    begin
+       return (Get_Repository_Id(Self) = Logical_Type_Id) ;
+    end ;
 
 
-   -- Non_Existent
+    -- Non_Existent
    ---------------
-   function Non_Existent(Self : in Ref) return Coba.Boolean is
+   function Non_Existent(Self : in Ref) return Corba.Boolean is
    begin
-      if Is_Nil(Ref) then
+      if Is_Nil(self) then
          return True ;
       end if ;
-      return Real_Non_Existent(Self) ;
+      return False ;--Real_Non_Existent(Self) ;
       -- in our omniobject C to Ada, copy paste the code for non_existent
       -- that can be found in corbaObject.cc
    end ;
@@ -72,17 +66,19 @@ package body Corba.Object is
    function Is_Equivalent(Self : in Ref ;
                           Other : in Ref)
                           return Corba.Boolean is
-      Rak : Ropeandkey.Object ;
-      Other_Rak : Ropeandkey.Object ;
+      --Rak : Ropeandkey.Object ;
+      --Other_Rak : Ropeandkey.Object ;
    begin
       -- this is copied from corbaObject.cc L160.
       -- Here, Refs are proxy objects
-      Rak := Get_Rope_And_Key(Self) ;
-      Other_Rak := Get_Rope_And_Key(Other) ;
-      if Rak = Other_Rak then
-         return True ;
-      else return False ;
-      end if ;
+      --Rak := Get_Rope_And_Key(Self) ;
+      --Other_Rak := Get_Rope_And_Key(Other) ;
+      --if Rak = Other_Rak then
+      --   return True ;
+      --else return False ;
+      --end if ;
+      return False ;
+      -- to be implemented
    end;
 
 
@@ -93,7 +89,8 @@ package body Corba.Object is
                  return Corba.Unsigned_Long is
    begin
       -- Copy Paste The C++ code
-      return Real_Hash(Self, Maximum) ;
+      -- return Real_Hash(Self, Maximum) ;
+      return Corba.Unsigned_Long(0) ;
    end ;
 
    --------------------------------------------------
@@ -115,12 +112,18 @@ package body Corba.Object is
    end ;
 
 
+   -- Get_Repository_Id
+   --------------------
+   function Get_Repository_Id(Self : in Ref) return Corba.String is
+   begin
+      return Corba.To_Corba_String("IDL:omg.org/CORBA/Object:1.0") ;
+   end ;
 
-   --  Get_Dynamic_Ref
+   --  Get_Dynamic_Type
    ----------------------
-    function Get_Dynamic_Ref(Self: in Ref) return Ref'Class is
+    function Get_Dynamic_Type(Self: in Ref) return Ref'Class is
     begin
-       return Self ;
+       return Self.Dynamic_Type.all ;
     end ;
 
 
@@ -132,29 +135,13 @@ package body Corba.Object is
     end ;
 
 
-    -- AdaBroker_Cast_To_Parent
-    ---------------------------
-    procedure AdaBroker_Cast_To_Parent(Real_Ref: in Ref;
-                                       Result: out Corba.Object.Ref'Class ) is
+    -- AdaBroker_Set_Dynamic_Type
+    -----------------------------
+    procedure AdaBroker_Set_Dynamic_Type(Self : in out Ref'Class ;
+                                        Dynamic_Type : in Ref_Ptr) is
     begin
-       if Result in Ref then
-          declare
-             Tmp_Result : Corba.Object.Ref'Class := Real_Ref ;
-          begin
-             Result := Tmp_Result ;
-             return ;
-          end ;
-       end if ;
-
-       Ada.Exceptions.Raise_Exception(Constraint_Error'Identity,
-                                      "Corba.Object.To_Ref :"
-                                      & Corba.CRLF
-                                      & "  Cannot cast Corba.Object.Ref"
-                                      & Corba.CRLF
-                                      & "  into "
-                                      & Ada.Tags.External_Tag(Result'tag)) ;
+       Self.Dynamic_Type := Dynamic_Type ;
     end ;
-
 
     --------------------------------------------------
     ---        omniORB specific                    ---
@@ -164,9 +151,9 @@ package body Corba.Object is
     ---------------------------
     procedure Marshal_Object_Reference(The_Ref : in Ref ;
                                        S : in out NetBufferedStream.Object) is
-       Tmp : Ref'Class := Ref ;
+       Tmp : Ref'Class := The_Ref ;
     begin
-
+       null ;
     end ;
 
 

@@ -48,7 +48,7 @@ package Corba.Object is
    -- use assignment
 
    function Is_A(Self: in Ref ;
-                 Logical_Type_Id : in Corba.Repository_Id)
+                 Logical_Type_Id : in Corba.String)
                  return Corba.Boolean ;
   -- returns true if this object is of this Logical_Type_Id
    -- or one of its descendants
@@ -69,15 +69,16 @@ package Corba.Object is
    --------------------------------------------------
    ---        AdaBroker  specific                 ---
    --------------------------------------------------
-   function Get_Dynamic_Ref(Self: in Ref) return Ref'Class ;
+   function Get_Dynamic_Type(Self: in Ref) return Ref'Class ;
+
+   function Get_Repository_Id(Self : in Ref) return Corba.String ;
 
    function To_Ref(The_Ref: in Corba.Object.Ref'Class) return Ref ;
 
-   procedure AdaBroker_Cast_To_Parent(Real_Ref: in Ref;
-                                      Result: out Corba.Object.Ref'Class ) ;
-
    procedure Assert_Ref_Not_Nil(Self : in Ref) ;
 
+   procedure AdaBroker_Set_Dynamic_Type(Self : in out Ref'Class ;
+                                        Dynamic_Type : in Ref_Ptr) ;
 
    --------------------------------------------------
    ---        omniORB specific                    ---
@@ -194,8 +195,7 @@ private
    ---     references to implementations          ---
    --------------------------------------------------
    type Ref is new Ada.Finalization.Controlled with record
-      -- Dynamic_Ref : Ref_Ptr := null ;
-      -- Omniobj : Omniobject.Object ;
+      Dynamic_Type : Ref_Ptr := null ;
       Is_Nil : Boolean := False ;
    end record ;
 
@@ -212,7 +212,9 @@ private
    -- called each time a Ref object must be trashed
    -- releases the underlying C pointer
 
-   Nil_Ref : constant Ref := ( Ada.Finalization.Controlled with Is_Nil => True) ;
+   Nil_Ref : constant Ref := ( Ada.Finalization.Controlled with
+                               Dynamic_Type => null,
+                               Is_Nil => True) ;
 
    --------------------------------------------------
    ---     real implementations of objects        ---

@@ -53,10 +53,14 @@ giop.o Ada_Giop_s.o giop_s.o Ada_Giop_c.o giop_c.o Ada_netBufferedStream.o \
 netbufferedstream.o corba-boa.o
 
 
-sys_dep.o : sys_dep_before_preprocessor.ads sys_dep_before_preprocessor.adb
-	$(ADA_PREP) sys_dep_before_preprocessor.ads sys_dep.ads def_file -u
-	$(ADA_PREP) sys_dep_before_preprocessor.adb sys_dep.adb def_file -u
+sys_dep.o : sys_dep.ads sys_dep.adb
 	$(ADA_COMP) $(DO_NOT_LINK) sys_dep.adb
+
+sys_dep.ads : sys_dep_before_preprocessor.ads sys_dep_before_preprocessor.adb
+	$(ADA_PREP) sys_dep_before_preprocessor.ads sys_dep.ads def_file -u
+
+sys_dep.adb : sys_dep_before_preprocessor.ads sys_dep_before_preprocessor.adb
+	$(ADA_PREP) sys_dep_before_preprocessor.adb sys_dep.adb def_file -u
 
 Ada_Rope.o : Ada_Rope.cc Ada_Rope.hh
 	$(CPP_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) Ada_Rope.cc
