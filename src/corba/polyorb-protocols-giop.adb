@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-
-
 --  $Id$
 
 with Ada.Streams;                use Ada.Streams;
@@ -41,12 +39,13 @@ with Sequences.Unbounded;
 with PolyORB.Any;
 with PolyORB.Annotations;
 with PolyORB.Any.NVList;
-with PolyORB.Buffers;             use PolyORB.Buffers;
-with PolyORB.Opaque;
 with PolyORB.Binding_Data;        use PolyORB.Binding_Data;
 with PolyORB.Binding_Data.IIOP;
 with PolyORB.Binding_Data.Local;
+with PolyORB.Buffers;             use PolyORB.Buffers;
 with PolyORB.Components;
+with PolyORB.Configurator;
+pragma Elaborate_All (PolyORB.Configurator);
 with PolyORB.Filters;
 with PolyORB.Filters.Interface;
 with PolyORB.Log;
@@ -54,6 +53,7 @@ pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Obj_Adapters;
 with PolyORB.Objects;
 with PolyORB.Objects.Interface;
+with PolyORB.Opaque;
 with PolyORB.ORB;
 with PolyORB.ORB.Interface;
 with PolyORB.Protocols;           use PolyORB.Protocols;
@@ -65,9 +65,10 @@ with PolyORB.References.IOR;
 with PolyORB.Representations;     use PolyORB.Representations;
 with PolyORB.Representations.CDR;
 with PolyORB.Requests;
+with PolyORB.Soft_Links;
 with PolyORB.Transport;
 with PolyORB.Types;
-with PolyORB.Soft_Links;
+with PolyORB.Utils.Strings;
 
 package body PolyORB.Protocols.GIOP is
 
@@ -109,6 +110,7 @@ package body PolyORB.Protocols.GIOP is
    end record;
 
    --  Subprograms related to the global Request_Id counter.
+   --  (actually used only on the GIOP client side).
 
    procedure Initialize is
    begin
@@ -1917,5 +1919,16 @@ package body PolyORB.Protocols.GIOP is
       return (Bit_Field and (2 ** Bit_Order)) /= 0;
    end Is_Set;
 
-end PolyORB.Protocols.GIOP;
+   use PolyORB.Configurator;
+   use PolyORB.Configurator.String_Lists;
+   use PolyORB.Utils.Strings;
 
+begin
+   Register_Module
+     (Module_Info'
+      (Name => +"protocols.giop",
+       Conflicts => Empty,
+       Depends => Empty,
+       Provides => Empty,
+       Init => Initialize'Access));
+end PolyORB.Protocols.GIOP;

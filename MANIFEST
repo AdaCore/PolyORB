@@ -110,6 +110,17 @@ design/droopi-uml.ps
 doc/CODING_GUIDELINES
 doc/NOTES
 doc/architecture.ps
+examples/Makefile.am
+examples/Makefile.in
+examples/dynclient.adb
+examples/echo-impl.adb
+examples/echo-impl.ads
+examples/echo.ads
+examples/polyorb-test-no_tasking.adb
+examples/polyorb-test-no_tasking_poa.adb
+examples/polyorb-test-thread_pool.adb
+examples/polyorb-test-thread_pool_poa.adb
+examples/server.adb
 src/Makefile.am
 src/Makefile.in
 src/ROADMAP
