@@ -3,7 +3,6 @@ with GNAT.Command_Line; use GNAT.Command_Line;
 with Namet;     use Namet;
 with Output;    use Output;
 with Types;     use Types;
-with Utils;     use Utils;
 
 with Frontend.Nodes;           use Frontend.Nodes;
 
@@ -29,11 +28,7 @@ package body Backend.BE_A is
    Self_Parameter_Name    : Name_Id;
    To_Parameter_Name      : Name_Id;
 
-   package BEN renames Backend.BE_A.Nodes;
    package FEN renames Frontend.Nodes;
-
-   procedure Declare_CORBA_Type (K : BEN.Node_Kind; S : String := "");
-   --  Declare CORBA type as predefined Ada type.
 
    procedure Visit (E : Node_Id);
    procedure Visit_Constant_Declaration (E : Node_Id);
@@ -45,36 +40,6 @@ package body Backend.BE_A is
 
    function Make_IDL_Unit (E : Node_Id) return Node_Id;
    function Make_Package_Declaration (N : Name_Id) return Node_Id;
-
-   ------------------------
-   -- Declare_CORBA_Type --
-   ------------------------
-
-   procedure Declare_CORBA_Type (K : BEN.Node_Kind; S : String := "") is
-      E : Node_Id;
-      N : Name_Id;
-
-   begin
-
-      --  Create a fake node located at the beginning of the
-      --  specification (current token location).
-
-      E := New_Node (K);
-
-      --  Accumulate token names and store node id as table info
-
-      if S'Length = 0 then
-         Name_Len := 4;
-         Add_Str_To_Name_Buffer (BEN.Node_Kind'Image (K));
-         Name_Buffer (1 .. 6) := "CORBA.";
-         Capitalize (Name_Buffer (7 .. Name_Len));
-      else
-         Set_Str_To_Name_Buffer (S);
-      end if;
-      N := Name_Find;
-      Set_Name_Table_Info (N, Int (E));
-      BEN.Set_Image (Base_Type (E), N);
-   end Declare_CORBA_Type;
 
    ---------------
    -- Configure --
@@ -96,27 +61,27 @@ package body Backend.BE_A is
       end loop;
    end Configure;
 
-   ---------------
-   --  Generate --
-   ---------------
+   --------------
+   -- Generate --
+   --------------
 
    procedure Generate (E : Node_Id) is
    begin
-      Declare_CORBA_Type (BEN.K_Float);
-      Declare_CORBA_Type (BEN.K_Double);
-      Declare_CORBA_Type (BEN.K_Long_Double);
-      Declare_CORBA_Type (BEN.K_Short);
-      Declare_CORBA_Type (BEN.K_Long);
-      Declare_CORBA_Type (BEN.K_Long_Long);
-      Declare_CORBA_Type (BEN.K_Unsigned_Short);
-      Declare_CORBA_Type (BEN.K_Unsigned_Long);
-      Declare_CORBA_Type (BEN.K_Unsigned_Long_Long);
-      Declare_CORBA_Type (BEN.K_Char);
-      Declare_CORBA_Type (BEN.K_Wide_Char, "CORBA.WChar");
-      Declare_CORBA_Type (BEN.K_String);
-      Declare_CORBA_Type (BEN.K_Wide_String);
-      Declare_CORBA_Type (BEN.K_Boolean);
-      Declare_CORBA_Type (BEN.K_Octet);
+      Declare_CORBA_Type (FEN.K_Float);
+      Declare_CORBA_Type (FEN.K_Double);
+      Declare_CORBA_Type (FEN.K_Long_Double);
+      Declare_CORBA_Type (FEN.K_Short);
+      Declare_CORBA_Type (FEN.K_Long);
+      Declare_CORBA_Type (FEN.K_Long_Long);
+      Declare_CORBA_Type (FEN.K_Unsigned_Short);
+      Declare_CORBA_Type (FEN.K_Unsigned_Long);
+      Declare_CORBA_Type (FEN.K_Unsigned_Long_Long);
+      Declare_CORBA_Type (FEN.K_Char);
+      Declare_CORBA_Type (FEN.K_Wide_Char, "WChar");
+      Declare_CORBA_Type (FEN.K_String);
+      Declare_CORBA_Type (FEN.K_Wide_String);
+      Declare_CORBA_Type (FEN.K_Boolean);
+      Declare_CORBA_Type (FEN.K_Octet);
 
       Set_Str_To_Name_Buffer ("Ref");
       Interface_Ref := Name_Find;
@@ -282,9 +247,9 @@ package body Backend.BE_A is
    begin
       Set_Main_Spec;
 
-      A := First_Node (Declarators (E));
+      A := First_Entity (Declarators (E));
       while Present (A) loop
-         X := To_Ada_Name (FEN.IDL_Name (A));
+         X := To_Ada_Name (FEN.IDL_Name (Identifier (A)));
          Set_Str_To_Name_Buffer ("Get_");
          Get_Name_String_And_Append (X);
          N := Make_Defining_Identifier (Name_Find);
