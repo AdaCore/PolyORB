@@ -107,7 +107,7 @@ package body Exp_Hlpr is
 
    generic
       Subprogram : Entity_Id;
-      --  Reference location for Make_Implicit_Loop_Statement.
+      --  Reference location for constructed nodes.
 
       Arry : Entity_Id;
       --  For 'Range and Etype.
@@ -135,17 +135,39 @@ package body Exp_Hlpr is
    --  The generated statements are appended to Stmts.
 
    generic
-      with procedure Process_One_Field (E : Entity_Id);
-   procedure Add_Component_List (Clist : Node_Id);
+      Subprogram : Entity_Id;
+      --  Reference location for constructed nodes.
+
+      Rec : Entity_Id;
+      --  The record entity being dealt with.
+
+      with procedure Add_Process_Element
+        (Stmts   : List_Id;
+         Any     : Entity_Id;
+         Counter : in out Int;
+         Field   : Node_Id);
+
+   procedure Add_Component_List
+     (Stmts     :        List_Id;
+      Clist     :        Node_Id;
+      Container :        Entity_Id;
+      Counter   : in out Int);
    --  Process component list Clist. Individual fields are passed
    --  to Field_Processing. Each variant part is also processed.
+   --  Container is the outer Any (for From_Any and To_Any) or
+   --  TypeCode (for TC) to which the operation applies.
 
    ------------------------
    -- Add_Component_List --
    ------------------------
 
-   procedure Add_Component_List (Clist : Node_Id)
+   procedure Add_Component_List
+     (Stmts     :        List_Id;
+      Clist     :        Node_Id;
+      Container :        Entity_Id;
+      Counter   : in out Int)
    is
+      Loc : constant Source_Ptr := Sloc (Subprogram);
       CI : constant List_Id := Component_Items (Clist);
       VP : constant Node_Id := Variant_Part (Clist);
 
@@ -156,12 +178,22 @@ package body Exp_Hlpr is
       is
          Item : Node_Id;
          Def  : Entity_Id;
+         Field : Node_Id;
       begin
          Item := First (CL);
          while Present (Item) loop
             Def := Defining_Identifier (Item);
             if not Is_Internal_Name (Chars (Def)) then
-               Process_One_Field (Def);
+               if Present (Rec) then
+                  Field := Make_Selected_Component (Loc,
+                    Prefix        => New_Occurrence_Of (Rec, Loc),
+                    Selector_Name => New_Occurrence_Of (Def, Loc));
+                  Set_Etype (Field, Etype (Def));
+               else
+                  Field := Def;
+               end if;
+               Add_Process_Element
+                 (Stmts, Container, Counter, Field);
             end if;
             Next (Item);
          end loop;
@@ -381,7 +413,7 @@ package body Exp_Hlpr is
                Discriminant_Associations : List_Id;
                Rdef : constant Node_Id :=
                  Type_Definition (Declaration_Node (Typ));
-               Element_Count : Int := 0;
+               Component_Counter : Int := 0;
 
                --  The returned object
 
@@ -392,48 +424,38 @@ package body Exp_Hlpr is
                Res_Definition : Node_Id :=
                  New_Occurrence_Of (Typ, Loc);
 
-               procedure Add_Field
-                 (F    : Entity_Id);
-               --  Add processing for field F to statement list Stms.
+               procedure From_Any_Add_Process_Element
+                 (Stmts   : List_Id;
+                  Any     : Entity_Id;
+                  Counter : in out Int;
+                  Field   : Entity_Id);
 
-               function Get_Current_Aggregate_Element
-                 (Typ : Entity_Id)
-                  return Node_Id;
-               --  Return the Element_Count'th element, of type Typ,
-               --  in the aggregate being processed.
-
-               procedure Add_Field (F : Entity_Id) is
+               procedure From_Any_Add_Process_Element
+                 (Stmts   : List_Id;
+                  Any     : Entity_Id;
+                  Counter : in out Int;
+                  Field   : Node_Id)
+               is
                begin
-                  Append_To (Stms,
+                  Append_To (Stmts,
                     Make_Assignment_Statement (Loc,
-                      Name =>
-                        Make_Selected_Component (Loc,
-                          Prefix =>
-                            New_Occurrence_Of (Res, Loc),
-                          Selector_Name =>
-                            New_Occurrence_Of (F, Loc)),
+                      Name => Field,
                       Expression =>
-                        Get_Current_Aggregate_Element (Etype (F))));
-               end Add_Field;
+                        Build_From_Any_Call (Etype (Field),
+                          Build_Get_Aggregate_Element (Loc,
+                            Any => Any,
+                            Tc  => Build_TypeCode_Call
+                                     (Loc, Etype (Field), Decls),
+                            Idx => Make_Integer_Literal (Loc, Counter)),
+                          Decls)));
+                  Counter := Counter + 1;
+               end From_Any_Add_Process_Element;
 
                procedure FA_Add_Component_List is
-                  new Add_Component_List (Add_Field);
-
-               function Get_Current_Aggregate_Element
-                 (Typ : Entity_Id)
-                  return Node_Id
-               is
-                  Res : constant Node_Id :=
-                    Build_From_Any_Call (Typ,
-                      Build_Get_Aggregate_Element (Loc,
-                        Any => Any_Parameter,
-                        Tc  => Build_TypeCode_Call (Loc, Typ, Decls),
-                        Idx => Make_Integer_Literal (Loc, Element_Count)),
-                      Decls);
-               begin
-                  Element_Count := Element_Count + 1;
-                  return Res;
-               end Get_Current_Aggregate_Element;
+                  new Add_Component_List
+                 (Subprogram          => Fnam,
+                  Rec                 => Res,
+                  Add_Process_Element => From_Any_Add_Process_Element);
 
             begin
 
@@ -458,7 +480,16 @@ package body Exp_Hlpr is
                             Object_Definition =>
                               New_Occurrence_Of (Disc_Type, Loc),
                             Expression =>
-                              Get_Current_Aggregate_Element (Disc_Type)));
+                              Build_From_Any_Call (Etype (Disc),
+                                Build_Get_Aggregate_Element (Loc,
+                                  Any => Any_Parameter,
+                                  Tc  => Build_TypeCode_Call
+                                           (Loc, Etype (Disc), Decls),
+                                  Idx => Make_Integer_Literal
+                                           (Loc, Component_Counter)),
+                                Decls)));
+                        Component_Counter := Component_Counter + 1;
+
                         Append_To (Discriminant_Associations,
                           Make_Discriminant_Association (Loc,
                             Selector_Names => New_List (
@@ -492,7 +523,10 @@ package body Exp_Hlpr is
 
                --  ... then all components
 
-               FA_Add_Component_List (Component_List (Rdef));
+               FA_Add_Component_List (Stms,
+                 Clist     => Component_List (Rdef),
+                 Container => Any_Parameter,
+                 Counter   => Component_Counter);
 
                Append_To (Stms,
                  Make_Return_Statement (Loc,
@@ -1040,32 +1074,38 @@ package body Exp_Hlpr is
                Disc : Entity_Id := Empty;
                Rdef : constant Node_Id :=
                  Type_Definition (Declaration_Node (Typ));
-               Element_Count : Int := 0;
+               Counter : Int := 0;
                Elements : List_Id := New_List;
 
-               procedure Add_Field (E : Entity_Id);
-               --  Append an aggegate element, corresponding
-               --  to component E of the record.
+               procedure To_Any_Add_Process_Element
+                 (Stmts   : List_Id;
+                  Any     : Entity_Id;
+                  Counter : in out Int;
+                  Field   : Entity_Id);
 
-               procedure Add_Field (E : Entity_Id) is
+               procedure To_Any_Add_Process_Element
+                 (Stmts   : List_Id;
+                  Any     : Entity_Id;
+                  Counter : in out Int;
+                  Field   : Node_Id)
+               is
+                  pragma Unreferenced (Counter);
                begin
-                  Append_To (Stms,
+                  Append_To (Stmts,
                     Make_Procedure_Call_Statement (Loc,
                       Name =>
                         New_Occurrence_Of (
                           RTE (RE_Add_Aggregate_Element), Loc),
                       Parameter_Associations => New_List (
                         New_Occurrence_Of (Any, Loc),
-                        Build_To_Any_Call (
-                          Make_Selected_Component (Loc,
-                            Prefix =>
-                              New_Occurrence_Of (Expr_Parameter, Loc),
-                            Selector_Name =>
-                              New_Occurrence_Of (E, Loc)), Decls))));
-               end Add_Field;
+                        Build_To_Any_Call (Field, Decls))));
+               end To_Any_Add_Process_Element;
 
                procedure TA_Add_Component_List is
-                  new Add_Component_List (Add_Field);
+                  new Add_Component_List
+                    (Subprogram          => Fnam,
+                     Rec                 => Expr_Parameter,
+                     Add_Process_Element => To_Any_Add_Process_Element);
 
             begin
 
@@ -1078,7 +1118,7 @@ package body Exp_Hlpr is
                      Append_To (Elements,
                        Make_Component_Association (Loc,
                          Choices => New_List (
-                           Make_Integer_Literal (Loc, Element_Count)),
+                           Make_Integer_Literal (Loc, Counter)),
                          Expression =>
                            Build_To_Any_Call (
                              Make_Selected_Component (Loc,
@@ -1087,7 +1127,7 @@ package body Exp_Hlpr is
                                Selector_Name =>
                                  New_Occurrence_Of (Disc, Loc)),
                              Decls)));
-                     Element_Count := Element_Count + 1;
+                     Counter := Counter + 1;
                      Next_Discriminant (Disc);
                   end loop;
 
@@ -1131,7 +1171,10 @@ package body Exp_Hlpr is
 
                --  ... then all components
 
-               TA_Add_Component_List (Component_List (Rdef));
+               TA_Add_Component_List (Stms,
+                 Clist     => Component_List (Rdef),
+                 Container => Any,
+                 Counter   => Counter);
             end;
          end if;
 
@@ -1504,6 +1547,11 @@ package body Exp_Hlpr is
       Decls : constant List_Id := New_List;
       Stms : constant List_Id := New_List;
 
+      TCNam : constant Entity_Id
+        := Make_Stream_Procedure_Function_Name
+        (Loc, Typ, Name_uTypeCode);
+
+
       Parameters : List_Id;
 
       procedure Add_String_Parameter (S : String_Id);
@@ -1604,26 +1652,33 @@ package body Exp_Hlpr is
       -- Record types --
       ------------------
 
-      procedure Add_Field (F : Entity_Id);
-      --  Process a single component.
+      procedure TypeCode_Add_Process_Element
+        (Stmts   : List_Id;
+         Any     : Entity_Id;
+         Counter : in out Int;
+         Field   : Node_Id);
 
-      procedure Add_Field (F : Entity_Id) is
+      procedure TypeCode_Add_Process_Element
+        (Stmts   : List_Id;
+         Any     : Entity_Id;
+         Counter : in out Int;
+         Field   : Node_Id)
+      is
+         pragma Unreferenced (Stmts, Any, Counter);
       begin
          Add_TypeCode_Parameter (
-           Build_TypeCode_Call (Loc, Etype (F), Decls));
-         Get_Name_String (Chars (F));
+           Build_TypeCode_Call (Loc, Etype (Field), Decls));
+         Get_Name_String (Chars (Field));
          Add_String_Parameter (String_From_Name_Buffer);
-      end Add_Field;
+      end TypeCode_Add_Process_Element;
 
       procedure TC_Add_Component_List is
-         new Add_Component_List (Add_Field);
+         new Add_Component_List (TCNam, Empty, TypeCode_Add_Process_Element);
 
       Type_Name_Str : String_Id;
    begin
       pragma Assert (not Is_Itype (Typ));
-
-      Fnam := Make_Stream_Procedure_Function_Name
-        (Loc, Typ, Name_uTypeCode);
+      Fnam := TCNam;
 
       Spec :=
         Make_Function_Specification (Loc,
@@ -1678,6 +1733,7 @@ package body Exp_Hlpr is
                Disc : Entity_Id := Empty;
                Rdef : constant Node_Id :=
                  Type_Definition (Declaration_Node (Typ));
+               Dummy_Counter : Int := 0;
             begin
                --  First all discriminants
 
@@ -1685,13 +1741,17 @@ package body Exp_Hlpr is
                   Disc := First_Discriminant (Typ);
                end if;
                while Present (Disc) loop
-                  Add_Field (Disc);
+                  Add_TypeCode_Parameter (
+                    Build_TypeCode_Call (Loc, Etype (Disc), Decls));
+                  Get_Name_String (Chars (Disc));
+                  Add_String_Parameter (String_From_Name_Buffer);
                   Next_Discriminant (Disc);
                end loop;
 
                --  ... then all components
 
-               TC_Add_Component_List (Component_List (Rdef));
+               TC_Add_Component_List
+                 (No_List, Component_List (Rdef), Empty, Dummy_Counter);
                Return_Constructed_TypeCode (RTE (RE_TC_Struct));
             end;
          end if;
