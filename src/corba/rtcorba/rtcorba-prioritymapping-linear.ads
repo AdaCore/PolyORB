@@ -38,8 +38,6 @@
 
 --  Linear priority mapping between CORBA and Native priority
 
---  $Id$
-
 package RTCORBA.PriorityMapping.Linear is
 
    type Object is new RTCORBA.PriorityMapping.Object with private;

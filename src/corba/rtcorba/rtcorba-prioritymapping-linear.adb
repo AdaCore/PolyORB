@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.Tasking.Priorities;
 
 package body RTCORBA.PriorityMapping.Linear is
