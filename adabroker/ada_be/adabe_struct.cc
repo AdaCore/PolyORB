@@ -13,13 +13,13 @@ void
 adabe_structure::produce_ads(dep_list with,string &String, string &previousdefinition)
 {
   compute_ada_names();
-  indentation(temp);
+  INDENT(temp);
   temp += "type " + ada_name + "is record\n";
-  inc_indentation();
+  INC_INDENT();
   UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
   while (!i.is_done())
     {
-      indentation(temp);
+      INDENT(temp);
       AST_Decl *d = i.item();
       //	if (d->node_type() == AST_Decl::NT_field)
       //	  {
@@ -28,8 +28,8 @@ adabe_structure::produce_ads(dep_list with,string &String, string &previousdefin
       //        }
       i.next();
     }
-  dec_indentation();
-  indentation(temp);
+  DEC_INDENT();
+  INDENT(temp);
   temp += "end record;\n";
   previousdefinition += temp;
 }
@@ -65,9 +65,9 @@ adabe_structure::dump_name(dep_list with,string &String, string &previousdefinit
   return get_ada_full_name();	   
 }
   
-//IMPL_NARROW_METHODS1(adabe_structure, AST_Structure)
-//IMPL_NARROW_FROM_DECL(adabe_structure)
-//IMPL_NARROW_FROM_SCOPE(adabe_structure)
+IMPL_NARROW_METHODS1(adabe_structure, AST_Structure)
+IMPL_NARROW_FROM_DECL(adabe_structure)
+IMPL_NARROW_FROM_SCOPE(adabe_structure)
 
 
 

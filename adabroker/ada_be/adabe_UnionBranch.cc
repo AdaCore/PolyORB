@@ -20,7 +20,7 @@ void
 adabe_union_branch::produce_ads(dep_list with,string &String, string &previousdefinition, AST_ConcreteType *concrete)
 {
   string temp = "";
-  indentation(temp);
+  INDENT(temp);
   temp += "when ";
   if (label()->label_kind() != UL_default) temp += produce_disc_value(concrete, label()->label_value());
   else if (branche->label()->label_kind() == UL_default)
@@ -89,7 +89,12 @@ produce_disc_value( AST_ConcreteType* t,AST_Expression* exp)
       return (v.get_ada_name());					      
     }
 }
-//IMPL_NARROW_METHODS1(adabe_union_branch, AST_UnionBranch)
-//IMPL_NARROW_FROM_DECL(adabe_union_branch)
+IMPL_NARROW_METHODS1(adabe_union_branch, AST_UnionBranch)
+IMPL_NARROW_FROM_DECL(adabe_union_branch)
+
+
+
+
+
 
 

@@ -47,8 +47,8 @@ ada_predefined_type::get_ada_predefined_type()
   return local_name()->get_string();
 }
 
-//IMPL_NARROW_METHODS1(adabe_predefined_type, AST_PredefinedType)
-//IMPL_NARROW_FROM_DECL(adabe_predefined_type)
+IMPL_NARROW_METHODS1(adabe_predefined_type, AST_PredefinedType)
+IMPL_NARROW_FROM_DECL(adabe_predefined_type)
  
 
 

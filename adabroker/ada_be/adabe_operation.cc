@@ -16,7 +16,7 @@ void
 adabe_operation::produce_ads(dep_list with,string &String, string &previousdefinition)
 {
   compute_ada_names();
-  indentation();
+  INDENT();
   switch (pd_flags) {
   case OP_noflags :
   case OP_idempotent :
@@ -63,7 +63,7 @@ adabe_operation::produce_ads(dep_list with,string &String, string &previousdefin
 void
 adabe_operation::produce_adb(dep_list with,string &String, string &previousdefinition)
 {
-  indentation();
+  INDENT();
   switch (pd_flags) {
   case OP_noflags :
   case OP_idempotent :
@@ -91,16 +91,16 @@ adabe_operation::produce_adb(dep_list with,string &String, string &previousdefin
       String += name + "is \n";
       AST_Decl  *i = defined_in();
       name_of_the_package = i->get_ada_name();
-      indentation(String);
+      INDENT(String);
       String += "Opcd : " + name_of_the_package + ".Proxies." + get_ada_name() + "_Proxy ;\n";
-      indentation(String);
+      INDENT(String);
       String += "Result : " + name +";\n";
-      indentation(String);
+      INDENT(String);
       String += "begin \n";
-      inc_indentation();
-      indentation(String);
+      INC_INDENT();
+      INDENT(String);
       String += "Assert_Ref_Not_Nil(Self);";
-      indentation(String);
+      INDENT(String);
       String += "Opcd := " + name_of_the_package + ".Proxies.Create(";
       UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
       while (!i.is_done())
@@ -110,16 +110,16 @@ adabe_operation::produce_adb(dep_list with,string &String, string &previousdefin
 	  if (!i.is_done()) String += ", ";
 	}
       String += ") ;\n";
-      indentation(String);
+      INDENT(String);
       String += "OmniProxyCallWrapper.Invoke(Self, Opcd) ;\n";
-      indentation(String);
+      INDENT(String);
       String += "Result := " + name_of_the_package + ".Proxies.Get_Result(Opcd) ;\n";
-      indentation(String);
+      INDENT(String);
       String += name_of_the_package + ".Proxies.Free(Opcd) ;\n";
-      indentation(String);
+      INDENT(String);
       String += "return Result ;";
-      dec_indentation();
-      indentation(String);
+      DEC_INDENT();
+      INDENT(String);
       String += "end;";
     }
   else
@@ -143,16 +143,16 @@ adabe_operation::produce_adb(dep_list with,string &String, string &previousdefin
       else   String += ") is \n";
       AST_Decl  *i = defined_in();
       name_of_the_package = i->get_ada_name();
-      indentation(String);
+      INDENT(String);
       String += "Opcd : " + name_of_the_package + ".Proxies." + get_ada_name() + "_Proxy ;\n";
-      indentation(String);
+      INDENT(String);
       String += "Result : " + name +";\n";
-      indentation(String);
+      INDENT(String);
       String += "begin \n";
-      inc_indentation();
-      indentation(String);
+      INC_INDENT();
+      INDENT(String);
       String += "Assert_Ref_Not_Nil(Self);";
-      indentation(String);
+      INDENT(String);
       String += "Opcd := " + name_of_the_package + ".Proxies.Create(";
       UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
       while (!i.is_done())
@@ -163,14 +163,14 @@ adabe_operation::produce_adb(dep_list with,string &String, string &previousdefin
 	}
       if (return_type() !=  NULL) String += ", Result) ;\n";
       String += ") ;\n";
-      indentation(String);
+      INDENT(String);
       String += "OmniProxyCallWrapper.Invoke(Self, Opcd) ;\n";
-      indentation(String);
+      INDENT(String);
       String += name_of_the_package + ".Proxies.Free(Opcd) ;\n";
-      indentation(String);
+      INDENT(String);
       String += "return ;";
-      dec_indentation();
-      indentation(String);
+      DEC_INDENT();
+      INDENT(String);
       String += "end;";
     }
 }
@@ -178,7 +178,7 @@ adabe_operation::produce_adb(dep_list with,string &String, string &previousdefin
 void
 adabe_operation::produce_impl_ads(dep_list with,string &String, string &previousdefinition)
 {
-  indentation();
+  INDENT();
   switch (pd_flags) {
   case OP_noflags :
   case OP_idempotent :
@@ -226,7 +226,7 @@ adabe_operation::produce_impl_ads(dep_list with,string &String, string &previous
 void
 adabe_operation::produce_impl_adb(dep_list with,string &String, string &previousdefinition)
 {
-  indentation();
+  INDENT();
   switch (pd_flags) {
   case OP_noflags :
   case OP_idempotent :
@@ -252,9 +252,9 @@ adabe_operation::produce_impl_adb(dep_list with,string &String, string &previous
 	}
       String += ") return ";
       String += return_type()->dump_name(with, &String, &previousdefinition) + ";\n";
-      indentation();
+      INDENT();
       String += "begin \n\n";
-      indentation();
+      INDENT();
       String += "end;";
     }
   else
@@ -276,9 +276,9 @@ adabe_operation::produce_impl_adb(dep_list with,string &String, string &previous
 	   String += ", Result : out " + name + ") is\n";
       }
       else   String += ") is \n";
-      indentation();
+      INDENT();
       String += "begin \n\n";
-      indentation();
+      INDENT();
       String += "end;";
       
     }
@@ -289,10 +289,10 @@ adabe_operation::produce_impl_adb(dep_list with,string &String, string &previous
 void
 adabe_operation::produce_proxies_ads(dep_list with,string &String, string &privatedefinition)
 {
-  indentation();
+  INDENT();
   name = get_ada_full_name();
   String += "type " + name +"_Proxy is new OmniProxyCallDesc.Object with private ;\n";
-  indentation();
+  INDENT();
   String += "function Create(";
 
 
@@ -303,21 +303,21 @@ adabe_operation::produce_proxies_ads(dep_list with,string &String, string &priva
 
     
   String += ") return " + name +"_Proxy ;\n";
-  indentation();
+  INDENT();
   String += " procedure Free(Self : in out " + name + "_Proxy);\n";
-  indentation();
+  INDENT();
   String += " function Aligned_Size(Self : in " + name + "_Proxy ; Size_In : in Corba.Unsigned_Long)";
-  indentation();
+  INDENT();
   String += " return Corba.Unsigned_Long ;\n";
-  indentation();
+  INDENT();
   String += " procedure Marshal_Arguments(Self : in " + name + "_Proxy ; Giop_Client : in out Giop_C.Object);\n";
-  indentation();
+  INDENT();
   String += " procedure Unmarshal_Returned_Values(Self : in out " + name + "_Proxy ; Giop_Client : in Giop_C.Object);\n";
-  indentation();
+  INDENT();
   if (is_function())
     {
       String += " function Get_Result (Self : in " + name + "_Proxy ) return ";
-      indentation();
+      INDENT();
       String += return_type()->.dump_name( with, &String, &previousdefinition) + "; \n"; 
     }
   privatedefinition += "type " + name + "_Proxy is new OmniProxyCallDesc.Object with record \n";
@@ -328,7 +328,7 @@ adabe_operation::produce_proxies_ads(dep_list with,string &String, string &priva
 ///////////////////// pointeur sur les arguments ////////////////////////////
 
     
-  indentation();
+  INDENT();
   privatedefinition += "end record; \n ;";
 }
 
@@ -346,9 +346,9 @@ adabe_operation::is_function()
 }
 
 
-//IMPL_NARROW_METHODS1(adabe_operation, AST_Operation)
-//IMPL_NARROW_FROM_DECL(adabe_operation)
-//IMPL_NARROW_FROM_SCOPE(adabe_operation)
+IMPL_NARROW_METHODS1(adabe_operation, AST_Operation)
+IMPL_NARROW_FROM_DECL(adabe_operation)
+IMPL_NARROW_FROM_SCOPE(adabe_operation)
 
 
 

@@ -15,9 +15,9 @@ adabe_interface_fwd::produce_ads(dep_list with,string &String, string &previousd
   compute_ada_names();
   full_definition()->set_ada_name(get_ada_name()); 
   full_definition()->set_ada_full_name(get_ada_full_name());
-  indentation(String);
+  INDETATION(String);
   String += "with CORBA.Forward \n";
-  indentation(String);
+  INDENTATION(String);
   String += "package" + get_ada_name() + "_Forward is new CORBA.Forward \n"; 
 }
 
@@ -27,9 +27,9 @@ adabe_interface_fwd::produce_ads(dep_list with,string &String, string &previousd
   produce_ads( with, &String, &previousdefinition);
 }
 
-//IMPL_NARROW_METHODS1(adabe_interface_fwd, AST_InterfaceFwd)
-//IMPL_NARROW_FROM_DECL(adabe_interface_fwd)
-//IMPL_NARROW_FROM_SCOPE(adabe_interface_fwd)
+IMPL_NARROW_METHODS1(adabe_interface_fwd, AST_InterfaceFwd)
+IMPL_NARROW_FROM_DECL(adabe_interface_fwd)
+IMPL_NARROW_FROM_SCOPE(adabe_interface_fwd)
 
 
 

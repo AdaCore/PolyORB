@@ -15,7 +15,7 @@ void
 adabe_typedef::produce_ads(dep_list with,string &String, string &previousdefinition)
 {
   compute_ada_names();
-  indentation(String);
+  INDENTATION(String);
   String += "type" + get_ada_name() + "is new ";
   String += base_type()->dump_name(with, &String, &previousdefinition); //virtual method
   String += "\n";
@@ -41,8 +41,8 @@ adabe_typedef::produce_impl_adb(dep_list with,string &String, string &previousde
   return get_ada_full_name();
 }
 
-//IMPL_NARROW_METHODS1(adabe_typedef, AST_Typedef)
-//IMPL_NARROW_FROM_DECL(adabe_typedef)
+IMPL_NARROW_METHODS1(adabe_typedef, AST_Typedef)
+IMPL_NARROW_FROM_DECL(adabe_typedef)
 
 
 

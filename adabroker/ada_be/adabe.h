@@ -518,6 +518,7 @@ private:
 class adabe_global {
 private:
   static adabe_root* myself;
+  static long pd_ind_level;
  //////////////  static char*      pd_hdrsuffix;
  //////////////  static char*      pd_skelsuffix;
  //////////////  static char*      pd_dynskelsuffix;
@@ -569,12 +570,16 @@ public:
 
   static void set_root(adabe_root *v) { myself = v; }
   static adabe_root *root() { return myself; }
+  static void rst();
+  static void incr();
+  static void decr();
+  static void skip(string &s);
 };
 
-
-#define INC_INDENT_LEVEL()  idl_global->indent()->increase(); ////// modifier le type d'entree
-#define DEC_INDENT_LEVEL()  idl_global->indent()->decrease();
-#define IND(s) idl_global->indent()->skip_to(s);
+#define RST_INDENT()  adabe_global->rst();
+#define INC_INDENT()  adabe_global->incr(); 
+#define DEC_INDENT()  adabe_global->decr();
+#define INDENT(s) adabe_global->skip(s);
 
 
 class adabe_generator : public AST_Generator {

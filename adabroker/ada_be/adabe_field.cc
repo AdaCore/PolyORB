@@ -38,9 +38,9 @@ adabe_field::produce_impl_adb(dep_list with,string &String, string &previousdefi
 }
 
   
-//IMPL_NARROW_METHODS1(adabe_field, AST_Field)
-//IMPL_NARROW_FROM_DECL(adabe_field)
-//IMPL_NARROW_FROM_SCOPE(adabe_field)
+IMPL_NARROW_METHODS1(adabe_field, AST_Field)
+IMPL_NARROW_FROM_DECL(adabe_field)
+IMPL_NARROW_FROM_SCOPE(adabe_field)
 
 
 

@@ -19,20 +19,20 @@ adabe_union::produce_ads(dep_list with,string &String, string &previousdefinitio
 
   string temp = "";
   compute_ada_names();
-  indentation(temp);
+  INDENT(temp);
   temp += "type " + get_ada_name();
   disc_type()->compute_ada_names();
   name = get_ada_name();
   temp += "(Switch : "  + disc_type(with, &temp, &previousdefinition)->dump_name();
   temp += " := " + name + "'first) is record\n";
-  inc_indentation();
-  indentation(temp);
+  INC_INDENT();
+  INDENT(temp);
   temp += "case Switch is\n";
-  inc_indentation();
+  INC_INDENT();
   UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
   while (!i.is_done())
     {
-      indentation(temp);
+      INDENT(temp);
       AST_Decl *d = i.item();
       //	if (d->node_type() == AST_Decl::NT_UnionBranch)
       //	  {
@@ -41,11 +41,11 @@ adabe_union::produce_ads(dep_list with,string &String, string &previousdefinitio
       //        }
       i.next();
     }
-  dec_indentation();
-  indentation(temp);
+  DEC_INDENT();
+  INDENT(temp);
   temp += "end case; \n"
-  dec_indentation();
-  indentation(temp);
+  DEC_INDENT();
+  INDENT(temp);
   temp += "end record; \n";
   previousdefinition += temp;
 }
@@ -81,9 +81,9 @@ adabe_union::dump_name(dep_list with,string &String, string &previousdefinition)
   return get_ada_full_name();	   
 }
 
-//IMPL_NARROW_METHODS1(adabe_union, AST_Union)
-//IMPL_NARROW_FROM_DECL(adabe_union)
-//IMPL_NARROW_FROM_SCOPE(adabe_union)
+IMPL_NARROW_METHODS1(adabe_union, AST_Union)
+IMPL_NARROW_FROM_DECL(adabe_union)
+IMPL_NARROW_FROM_SCOPE(adabe_union)
 
 
 
