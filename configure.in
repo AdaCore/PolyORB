@@ -163,13 +163,14 @@ AC_SUBST(SERVICE_LIST)
 soap_enabled=`echo ${PROTO_LIST} | ${AWK} '/soap/{print "yes"}'`
 aws_enabled=`echo ${APPLI_LIST} | ${AWK} '/aws/{print "yes"}'`
 
-if test x"$soap_enabled" = xyes -o x"$aws_enabled"=xyes
+if test x"$soap_enabled" = xyes -o x"$aws_enabled" = xyes
 then
    AC_MSG_CHECKING([tools libraries])
    LIBS_LIST="${LIBS_LIST} web_common"
-   AC_MSG_RESULT(${LIBS_LIST})
-   AC_SUBST(LIBS_LIST)
 fi
+
+AC_MSG_RESULT(${LIBS_LIST})
+AC_SUBST(LIBS_LIST)
 
 ##########################################
 # Update Makefiles' subdirectory lists
