@@ -1,3 +1,9 @@
+Fri Aug 29 20:14:48 1997  Laurent Pautet  <pautet@inf.enst.fr>
+
+	* xe_stubs.adb: Detect if a partition includes a RCI package or
+ 	may declare a RACW variable. If this is not the case, then set
+	Has_RCI_Pkg_Or_RACW_Var to false.
+
 Tue Aug 12 17:54:28 1997  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* xe_back.ads, xe_back.adb: Remove Default_Host which was not

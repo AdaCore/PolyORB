@@ -90,6 +90,11 @@ package body XE_Stubs is
      renames Write_Str;
    --  Changed default parameter.
 
+   function Has_RCI_Pkg_Or_RACW_Var (PID : in PID_Type) return Boolean;
+   --  Return True if a partition can be remotely invoked by another one,
+   --  that means a RCI package has been configured on it or a remote
+   --  dispatching call can be invoked on a RACW present on this partition.
+
    procedure Mark_RCI_Callers
      (PID : in PID_Type;
       ALI : in ALI_Id);
@@ -162,17 +167,6 @@ package body XE_Stubs is
             if not Is_Directory (Directory) then
                Create_Dir (Directory);
             end if;
-
-            declare
-               UID : CUID_Type;
-            begin
-               --  Mark all the RCI callers.
-               UID := Partitions.Table (PID).First_Unit;
-               while UID /= Null_CUID loop
-                  Mark_RCI_Callers (PID, CUnit.Table (UID).My_ALI);
-                  UID := CUnit.Table (UID).Next;
-               end loop;
-            end;
 
             Create_Partition_Main_File (PID);
             Create_Elaboration_File (PID);
@@ -693,6 +687,11 @@ package body XE_Stubs is
          end;
       end if;
 
+      if not Has_RCI_Pkg_Or_RACW_Var (PID) then
+         Dwrite_Str (FD, "   Has_RCI_Pkg_Or_RACW_Var := False;");
+         Dwrite_Eol  (FD);
+      end if;
+
       --  Footer.
       Dwrite_Str  (FD, "end ");
       Dwrite_Name (FD, Elaboration_Name);
@@ -753,6 +752,13 @@ package body XE_Stubs is
       end if;
 
       Create (FD, Main_File);
+
+      --  Mark all the RCI callers.
+      UID := Partitions.Table (PID).First_Unit;
+      while UID /= Null_CUID loop
+         Mark_RCI_Callers (PID, CUnit.Table (UID).My_ALI);
+         UID := CUnit.Table (UID).Next;
+      end loop;
 
       --  Force the RCI receivers to be present on the partition.
       Dwrite_Eol (FD);
@@ -994,6 +1000,37 @@ package body XE_Stubs is
       end if;
 
    end Delete_Stub;
+
+   -----------------------------
+   -- Has_RCI_Pkg_Or_RACW_Var --
+   -----------------------------
+
+   function Has_RCI_Pkg_Or_RACW_Var (PID : in PID_Type) return Boolean is
+
+      UID : CUID_Type;
+
+   begin
+
+      --  Mark all the RCI callers.
+      UID := Partitions.Table (PID).First_Unit;
+      while UID /= Null_CUID loop
+         if Unit.Table (CUnit.Table (UID).My_Unit).RCI then
+            return True;
+         end if;
+         Mark_RCI_Callers (PID, CUnit.Table (UID).My_ALI);
+         UID := CUnit.Table (UID).Next;
+      end loop;
+
+      for U in CUnit.First .. CUnit.Last loop
+         if Get_PID (Unit.Table (CUnit.Table (U).My_Unit).Uname) = PID
+           and then Unit.Table (CUnit.Table (U).My_Unit).Has_RACW_Type then
+            return True;
+         end if;
+      end loop;
+
+      return False;
+
+   end Has_RCI_Pkg_Or_RACW_Var;
 
    ----------------------
    -- Mark_RCI_Callers --
