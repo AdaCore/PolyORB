@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -255,7 +255,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
       elsif Target_Code_Set = Native_Code_Set then
          return Info.Native.all;
 
-      elsif Target_Code_Set = Char_Data_Fallback_Code_Set then
+      elsif Target_Code_Set = Wchar_Data_Fallback_Code_Set then
          return Info.Fallback.all;
 
       else
