@@ -24,8 +24,8 @@
 #  x86_sco5                  SCO OpenServer 5
 
 #platform = sun4_sosV_5.5
-#platform = sun4_sosV_5.6
-platform = i586_linux_2.0
+platform = sun4_sosV_5.6
+#platform = i586_linux_2.0
 #platform = alpha_osf1_3.2
 #platform = alpha_osf1_4.0
 #platform = powerpc_aix_4.2
