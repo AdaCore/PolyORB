@@ -33,23 +33,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Exceptions;
 with Ada.Unchecked_Deallocation;
-with System.Garlic.Debug; use System.Garlic.Debug;
 
 package body System.Garlic.Utils is
-
-   Private_Debug_Key : constant Debug_Key :=
-     Debug_Initialize ("S_GARUTI", "(s-garuti): ");
-   procedure D
-     (Message : in String;
-      Key     : in Debug_Key := Private_Debug_Key)
-     renames Print_Debug_Info;
-
-   Version_Id_Window : constant Version_Id := Version_Id'Last / 2;
-
-   procedure Free is
-     new Ada.Unchecked_Deallocation (String, Error_Type);
 
    procedure Free is
      new Ada.Unchecked_Deallocation (String, String_Access);
@@ -67,15 +53,6 @@ package body System.Garlic.Utils is
       I : in out Natural;
       C : in Character);
 
-   ---------
-   -- "<" --
-   ---------
-
-   function "<" (L, R : Version_Id) return Boolean is
-   begin
-      return Integer (R - L) < Integer (Version_Id_Window);
-   end "<";
-
    ----------------------
    -- Access_To_String --
    ----------------------
@@ -84,31 +61,6 @@ package body System.Garlic.Utils is
    begin
       return S.all;
    end Access_To_String;
-
-   -----------
-   -- Catch --
-   -----------
-
-   procedure Catch (Error : in out Error_Type)
-   is
-   begin
-      if Error /= null then
-         pragma Debug (D ("*** Catch *** " & Error.all));
-         Free (Error);
-      end if;
-   end Catch;
-
-   -------------
-   -- Content --
-   -------------
-
-   function Content (Error : access Error_Type) return String is
-      pragma Assert (Error.all /= null);
-      Error_Message : constant String := Error.all.all;
-   begin
-      Free (Error.all);
-      return Error_Message;
-   end Content;
 
    ----------
    -- Copy --
@@ -150,15 +102,6 @@ package body System.Garlic.Utils is
          Free (S);
       end if;
    end Destroy;
-
-   -----------
-   -- Found --
-   -----------
-
-   function Found (Error : Error_Type) return Boolean is
-   begin
-      return Error /= null;
-   end Found;
 
    ------------------
    -- Merge_String --
@@ -246,18 +189,14 @@ package body System.Garlic.Utils is
       end loop;
    end Next_Separator;
 
-   -------------------------------
-   -- Raise_Communication_Error --
-   -------------------------------
+   -----------
+   -- Quote --
+   -----------
 
-   procedure Raise_Communication_Error (Error : in out Error_Type) is
-      pragma Assert (Error /= null);
-      Error_Message : constant String := Error.all;
+   function Quote (S : String; C : Character := '"') return String is -- '
    begin
-      Free (Error);
-      Ada.Exceptions.Raise_Exception
-        (Communication_Error'Identity, Error_Message);
-   end Raise_Communication_Error;
+      return C & S & C;
+   end Quote;
 
    --------------------
    -- Skip_Separator --
@@ -330,24 +269,6 @@ package body System.Garlic.Utils is
    begin
       return new String'(S);
    end String_To_Access;
-
-   -----------
-   -- Throw --
-   -----------
-
-   procedure Throw (Error : in out Error_Type; Message : in String)
-   is
-   begin
-      if Error /= null then
-         pragma Debug (D ("*** Abort *** " & Error.all));
-
-         Free (Error);
-      end if;
-
-      Error := new String'(Message);
-
-      pragma Debug (D ("*** Throw *** " & Error.all));
-   end Throw;
 
    ----------------
    -- To_Address --

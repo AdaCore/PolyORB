@@ -54,6 +54,7 @@ package System.Garlic.Utils is
      return String_Array_Access;
    --  Return an array of substrings sperated by C in S.
 
+   function Quote        (S : String; C : Character := '"') return String;
    function Unquote      (S : String) return String;
    --  If S is quoted, return the content.
 
@@ -86,21 +87,6 @@ package System.Garlic.Utils is
    --  In place transformation of a string with all the upper-case letters
    --  changed into corresponding lower-case ones.
 
-   type Error_Type is limited private;
-   function Found (Error : Error_Type) return Boolean;
-   procedure Throw (Error : in out Error_Type; Message : in String);
-   procedure Catch (Error : in out Error_Type);
-   procedure Raise_Communication_Error (Error : in out Error_Type);
-   function Content (Error : access Error_Type) return String;
-   --  Error type and associated primitives. By default, an Error_Type is
-   --  not considered as being an error until Throw has been called.
-   --  Catch, Raise_Communication_Error and Content cancel the error.
-
-   type Version_Id is mod 2 ** 8;
-   No_Version : constant Version_Id := 0;
-
-   function "<" (L, R : Version_Id) return Boolean;
-
    type Portable_Address is mod 2 ** 64;
    --  This type can contain an object of type System.Address on any platform
    --  where GNAT is supported. It is made public on purpose so that it is
@@ -114,7 +100,5 @@ private
 
    pragma Inline (To_Address);
    pragma Inline (To_Portable_Address);
-
-   type Error_Type is access String;
 
 end System.Garlic.Utils;
