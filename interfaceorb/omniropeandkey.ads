@@ -53,6 +53,7 @@ with Interfaces.C ;
 with Interfaces.CPP ;
 with Interfaces.C.Strings ;
 with System ;
+with Sys_Dep ;
 
 with Rope ;
 with Corba ;

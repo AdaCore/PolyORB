@@ -47,6 +47,11 @@
 #include "proxyObjectFactory_C2Ada.hh"
 #include "omniObject_C2Ada.hh"
 
+// DEBUG is defined at the beginning of each file
+// and undefined at the end of each file
+//#define DEBUG
+
+
 
 // irRepoID
 //---------
@@ -64,6 +69,10 @@ proxyObjectFactory_C2Ada::newProxyObject(Rope *r,
 					 size_t keysize,
 					 IOP::TaggedProfileList *profiles,
 					 CORBA::Boolean release) {
+
+#ifdef DEBUG
+  cerr << "proxyObjectFactory_C2Ada::newProxyObject" << endl ;
+#endif
 
   Ada_OmniObject* p = new Ada_OmniObject() ;
   p->Init(pd_repoID, r,key, keysize, profiles, release) ;
@@ -99,7 +108,7 @@ void createProxyObjectFactory(const char* repoID) {
 }
 
 
-
+#undef DEBUG
 
 
 

@@ -51,6 +51,12 @@
 
 #include "Ada_OmniObject.hh"
 
+
+// DEBUG is defined at the beginning of each file
+// and undefined at the end of each file
+#define DEBUG
+
+
 // Constructor
 //------------
 Ada_OmniObject::Ada_OmniObject()
@@ -234,7 +240,13 @@ Ada_OmniObject::getRepositoryID() {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
-    return C_Object->NP_IRRepositoryId();
+    char *result = C_Object->NP_IRRepositoryId();
+
+#ifdef DEBUG
+    cerr << "Ada_OmniObject::getRepositoryID : " << result << endl ;
+#endif
+
+    return result ;
   } else {
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_OmniObject::getRepositoryId without initialising object.");
@@ -304,3 +316,6 @@ Ada_OmniObject::ada_create_objref(const char* repoId,
     return adaobj->Ada_OmniObject_Pointer ;
   }
 }
+
+
+#undef DEBUG

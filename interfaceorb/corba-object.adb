@@ -51,6 +51,7 @@ with Omniobject ;
 use type Omniobject.Object_Ptr ;
 with Omniropeandkey ; use Omniropeandkey ;
 
+with Adabroker_Debug ; use Adabroker_Debug ;
 
 package body Corba.Object is
 
@@ -200,12 +201,17 @@ package body Corba.Object is
          -- check if the omniobject we got can be put into
          -- To (type implied the repoId)
          RepoId := Omniobject.Get_Repository_Id(To.Omniobj.all) ;
+
+         pragma Debug(Output(Debug,
+                             "Corba.Object.String_To_Object : repoid = "
+                             & Corba.To_Standard_String(RepoId))) ;
+
          Most_Derived_Type := Get_Dynamic_Type_From_Repository_Id(Repoid) ;
          -- dyn_type is now an object of the most derived type
          -- of the new created object
 
          if Is_A(Most_Derived_Type.all, Get_Repository_Id(To)) then
-            To.Dynamic_Type := Get_Dynamic_Type_From_Repository_Id(From) ;
+            To.Dynamic_Type := Most_Derived_Type ;
             return ;
          end if ;
       end if ;

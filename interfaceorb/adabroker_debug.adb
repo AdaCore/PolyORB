@@ -97,6 +97,7 @@ package body Adabroker_Debug is
          if Tmp.Flag = Flag then
             return True ;
          end if ;
+         Tmp := Tmp.Next ;
       end loop ;
       return False ;
    end ;

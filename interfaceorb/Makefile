@@ -161,7 +161,8 @@ corba.ali sys_dep.ali rope.ali Ada_netBufferedStream.o
 
 omni.ali: omni.ads omni.adb corba.ali
 
-omniobject.ali : omniobject.ads omniobject.adb corba.ali omni.ali 
+omniobject.ali : omniobject.ads omniobject.adb corba.ali omni.ali \
+membufferedstream.ali netbufferedstream.ali
 
 omniproxycalldesc.ali: omniproxycalldesc.ads omniproxycalldesc.adb \
 corba.ali giop_c.ali
@@ -171,7 +172,7 @@ omniproxycalldesc.ali corba-object.ali corba.ali corba-object.ali \
 omniropeandkey.ali giop_c.ali netbufferedstream.ali 
 
 omniropeandkey.ali : omniropeandkey.ads omniropeandkey.adb corba.ali \
-rope.ali Ada_OmniRopeAndKey.o
+rope.ali Ada_OmniRopeAndKey.o sys_dep.ali
 
 rope.ali : rope.ads
 

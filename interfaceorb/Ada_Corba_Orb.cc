@@ -50,18 +50,11 @@
 CORBA::ORB_ptr
 Ada_ORB_init(int argc, char **argv,const char *orb_identifier) {
 
-  cerr << "*** Entering Ada_ORB_init" << endl ;
-  cerr << "argc : " << argc << endl ;
-  cerr << "orb_id  : " << orb_identifier << endl ;
-  
-  for(int j=0 ; j<argc ; j++) {
-    cerr << argv[j] << endl ;
-  }
-
   try {
     return CORBA::ORB_init(argc, argv, orb_identifier) ;
   } catch (...) {
-    cerr << "caught C++ exception" << endl ;
+    cerr << "Ada_Orb_Init : caught C++ exception" << endl ;
+    throw ;
   }
   
 }
@@ -75,18 +68,11 @@ Ada_BOA_init(CORBA::ORB_ptr orb,
 	     char **argv,
 	     const char *boa_identifier) {
 
-  cerr << "*** Entering Ada_BOA_init" << endl ;
-  cerr << "argc : " << argc << endl ;
-  cerr << "boa_id  : " << boa_identifier << endl ;
-  
-  for(int j=0 ; j<argc ; j++) {
-    cerr << argv[j] << endl ;
-  }
-
   try {
     return orb->BOA_init(argc, argv, boa_identifier) ;
   } catch (...) {
-    cerr << "caught C++ exception" << endl ;
+    cerr << "Ada_Boa_init : caught C++ exception" << endl ;
+    throw ;
   }
   
 }

@@ -49,9 +49,14 @@ with Ada.Finalization ;
 with Omniobject ;
 with NetBufferedStream, MemBufferedStream ;
 
+with Adabroker_Debug ;
+pragma Elaborate(Adabroker_Debug) ;
+
 
 package Corba.Object is
 
+
+   Debug : constant Boolean := Adabroker_Debug.Is_Active("corba.object") ;
 
    --------------------------------------------------
    ---        CORBA 2.2 specifications            ---
