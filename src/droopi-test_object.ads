@@ -5,20 +5,22 @@
 with Droopi.Components;
 with Droopi.Obj_Adapters.Simple;
 with Droopi.Objects;
+with Droopi.Types;
 
 package Droopi.Test_Object is
+   use Droopi.Types;
 
    type My_Object is new Droopi.Objects.Servant with null record;
 
    function Echo_String
      (O : My_Object;
-      S : String)
-     return String;
+      S : Types.String)
+     return Types.String;
 
    function Echo_Integer
      (O : My_Object;
-      I : Integer)
-     return Integer;
+      I : Types.Long)
+     return Types.Long;
 
    function Handle_Message
      (Obj : access My_Object;

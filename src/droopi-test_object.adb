@@ -17,9 +17,11 @@ with Droopi.Types;
 
 package body Droopi.Test_Object is
 
+   use Droopi.Any;
    use Droopi.Log;
    use Droopi.Objects.Interface;
    use Droopi.Requests;
+   use Droopi.Types;
 
    package L is new Droopi.Log.Facility_Log ("droopi.test_object");
    procedure O (Message : in String; Level : Log_Level := Debug)
@@ -32,17 +34,20 @@ package body Droopi.Test_Object is
 
    function Echo_String
      (O : My_Object;
-      S : String)
-     return String is
+      S : Types.String)
+     return Types.String is
    begin
+--  pragma Debug (O ("Echo_String is being executed with argument: " & S));
       return S;
    end Echo_String;
 
    function Echo_Integer
      (O : My_Object;
-      I : Integer)
-     return Integer is
+      I : Types.Long)
+     return Types.Long is
    begin
+--  pragma Debug (O ("Echo_Integer is being executed with argument"
+--                   & Integer'Image (I)));
       return I;
    end Echo_Integer;
 
@@ -54,13 +59,43 @@ package body Droopi.Test_Object is
      (Obj : access My_Object;
       Msg : Components.Message'Class)
      return Components.Message'Class is
+      use Droopi.Any.NVList;
+      use Droopi.Any.NVList.Internals;
    begin
       if Msg in Execute_Request then
          declare
             Req : Request_Access renames Execute_Request (Msg).Req;
+            Args_Sequence : Internals.NV_Sequence_Access :=
+              Internals.List_Of (Req.all.Args);
          begin
             pragma Debug (O ("The server is executing the request:"
                              & Droopi.Requests.Image (Req.all)));
+            if Req.all.Operation = To_Droopi_String ("Echo_String") then
+               declare
+                  Echo_String_Arg : Types.String :=
+                    From_Any (NV_Sequence.Element_Of
+                              (Args_Sequence.all, 1).Argument);
+                  Result : Types.String_Ptr;
+               begin
+                  Result :=
+                    new Types.String'(Echo_String
+                                (Obj.all, Echo_String_Arg));
+               end;
+            elsif Req.all.Operation = "Echo_Integer" then
+--                declare
+--                   Echo_Integer_Arg : Types.Short :=
+--                     From_Any (NV_Sequence.Element_Of
+--                               (Args_Sequence.all, 1).Argument);
+--                   Result : Types.Long_Ptr;
+--                begin
+--                   Result := new Long'(Echo_Integer
+--                                       (Obj.all,
+--                                        Echo_Integer_Arg));
+--                end;
+               raise Not_Implemented;
+            else
+               raise Droopi.Components.Unhandled_Message;
+            end if;
             return Executed_Request'(Req => Req);
          end;
       else
