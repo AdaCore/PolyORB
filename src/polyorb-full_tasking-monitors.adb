@@ -269,6 +269,6 @@ begin
       (Name => +"full_tasking-monitors",
        Conflicts => Empty,
        Depends => Empty,
-       Provides => +"tasking-monitors",
+       Provides => +"tasking.monitors",
        Init => Initialize'Access));
 end PolyORB.Full_Tasking.Monitors;

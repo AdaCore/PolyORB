@@ -562,7 +562,7 @@ begin
       (Name => +"ravenscar-threads",
        Conflicts => Empty,
        Depends => Empty,
-       Provides => +"tasking-threads",
+       Provides => +"tasking.threads",
        Init => Initialize'Access));
 end PolyORB.Ravenscar.Threads;
 

@@ -297,6 +297,6 @@ begin
       (Name => +"full_tasking-threads",
        Conflicts => Empty,
        Depends => Empty,
-       Provides => +"tasking-threads",
+       Provides => +"tasking.threads",
        Init => Initialize'Access));
 end PolyORB.Full_Tasking.Threads;

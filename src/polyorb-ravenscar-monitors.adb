@@ -399,6 +399,6 @@ begin
       (Name => +"ravenscar-monitors",
        Conflicts => Empty,
        Depends => Empty,
-       Provides => +"tasking-monitors",
+       Provides => +"tasking.monitors",
        Init => Initialize'Access));
 end PolyORB.Ravenscar.Monitors;

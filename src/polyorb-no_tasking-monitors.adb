@@ -150,6 +150,6 @@ begin
       (Name => +"no_tasking_profile-monitors",
        Conflicts => Empty,
        Depends => Empty,
-       Provides => +"tasking-monitors",
+       Provides => +"tasking.monitors",
        Init => Initialize'Access));
 end PolyORB.No_Tasking.Monitors;
