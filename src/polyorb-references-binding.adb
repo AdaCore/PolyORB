@@ -55,6 +55,15 @@ package body PolyORB.References.Binding is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
+   function Find_Tagged_Profile
+     (R      : Ref;
+      Tag    : Binding_Data.Profile_Tag;
+      Delete : Boolean)
+     return Binding_Data.Profile_Access;
+   --  Find a profile in R with the specified Tag.
+   --  If Delete is true and a matching profile is found,
+   --  then the profile is removed from R.
+
    ----------
    -- Bind --
    ----------
@@ -115,14 +124,14 @@ package body PolyORB.References.Binding is
       --  might be useful because it allows implementation
       --  of All_Calls_Remote simply through prefs fiddling.
 
-      for I in Profiles'Range loop
+      for J in Profiles'Range loop
          declare
             P : constant Profile_Preference
-              := Get_Profile_Preference (Profiles (I).all);
+              := Get_Profile_Preference (Profiles (J).all);
          begin
             if P > Best_Preference then
                Best_Preference := P;
-               Best_Profile_Index := I;
+               Best_Profile_Index := J;
             end if;
          end;
       end loop;
@@ -242,15 +251,6 @@ package body PolyORB.References.Binding is
      (R      : Ref;
       Tag    : Binding_Data.Profile_Tag;
       Delete : Boolean)
-     return Binding_Data.Profile_Access;
-   --  Find a profile in R with the specified Tag.
-   --  If Delete is true and a matching profile is found,
-   --  then the profile is removed from R.
-
-   function Find_Tagged_Profile
-     (R      : Ref;
-      Tag    : Binding_Data.Profile_Tag;
-      Delete : Boolean)
      return Binding_Data.Profile_Access
    is
       use type PolyORB.Types.Unsigned_Long;
@@ -263,14 +263,16 @@ package body PolyORB.References.Binding is
       declare
          Profiles : constant Profile_Array := Profiles_Of (R);
       begin
-         for I in Profiles'Range loop
-            if Tag = Get_Profile_Tag (Profiles (I).all) then
+         for J in Profiles'Range loop
+            if Tag = Get_Profile_Tag (Profiles (J).all) then
+
                if Delete then
                   Profile_Seqs.Delete
                     (Reference_Info (Entity_Of (R).all).Profiles,
-                     I, I);
+                     J, J);
                end if;
-               return Profiles (I);
+
+               return Profiles (J);
             end if;
          end loop;
 
@@ -306,6 +308,7 @@ package body PolyORB.References.Binding is
          declare
             use PolyORB.Obj_Adapters;
             use PolyORB.Objects;
+
             Proxy_Oid : constant Object_Id_Access
               := To_Proxy_Oid (Object_Adapter (Local_ORB), R);
             Proxy_Ref : References.Ref;
