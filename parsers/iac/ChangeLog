@@ -1,3 +1,10 @@
+2004-07-26  Saber Souli  <souli@neraka.enst.fr>
+
+	* backend-be_ada-helpers.adb: Generate To_Any body for complex
+	declarator and simple declarator.  
+
+	* backend-be_ada-generator.adb: Generate for statements. 
+
 2004-07-22  Saber Souli  <souli@neraka.enst.fr>
 
 	* backend-be_ada-helpers.adb: Completed any convesion body for

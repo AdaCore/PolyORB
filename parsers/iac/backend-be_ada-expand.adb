@@ -19,7 +19,8 @@ package body Backend.BE_Ada.Expand is
    begin
 
       case Kind (N) is
-         when K_Full_Type_Declaration =>
+         when K_Full_Type_Declaration |
+           K_Subprogram_Specification =>
             P := Parent (X);
 
          when K_Package_Specification =>
@@ -33,7 +34,7 @@ package body Backend.BE_Ada.Expand is
             end if;
 
          when others =>
-            return No_Node;
+            raise Program_Error;
       end case;
 
       D := New_Node (K_Designator);

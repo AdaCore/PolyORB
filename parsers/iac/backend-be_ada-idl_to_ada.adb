@@ -15,10 +15,6 @@ package body Backend.BE_Ada.IDL_To_Ada is
    package FEN renames Frontend.Nodes;
    package BEN renames Backend.BE_Ada.Nodes;
 
-   function Convert
-     (K : FEN.Node_Kind)
-     return RE_Id;
-
    ---------------------
    -- Bind_FE_To_Impl --
    ---------------------
@@ -94,32 +90,6 @@ package body Backend.BE_Ada.IDL_To_Ada is
       FEN.Set_BE_Node (F, N);
       BEN.Set_FE_Node (B, F);
    end Bind_FE_To_Stub;
-
-   -------------
-   -- Convert --
-   -------------
-
-   function Convert (K : FEN.Node_Kind) return RE_Id is
-   begin
-      case K is
-         when FEN.K_Float               => return RE_Float;
-         when FEN.K_Double              => return RE_Double;
-         when FEN.K_Long_Double         => return RE_Long_Double;
-         when FEN.K_Short               => return RE_Short;
-         when FEN.K_Long                => return RE_Long;
-         when FEN.K_Long_Long           => return RE_Long_Long;
-         when FEN.K_Unsigned_Short      => return RE_Unsigned_Short;
-         when FEN.K_Unsigned_Long       => return RE_Unsigned_Long;
-         when FEN.K_Unsigned_Long_Long  => return RE_Unsigned_Long_Long;
-         when FEN.K_Char                => return RE_Char;
-         when FEN.K_Wide_Char           => return RE_WChar;
-         when FEN.K_String              => return RE_String_1;
-         when FEN.K_Wide_String         => return RE_Wide_String;
-         when FEN.K_Boolean             => return RE_Boolean;
-         when others                    =>
-            raise Program_Error;
-      end case;
-   end Convert;
 
    ------------------
    -- Is_Base_Type --

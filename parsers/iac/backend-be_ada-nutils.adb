@@ -511,6 +511,25 @@ package body Backend.BE_Ada.Nutils is
       return N;
    end Make_Expression;
 
+   ------------------------
+   -- Make_For_Statement --
+   ------------------------
+
+   function Make_For_Statement
+     (Defining_Identifier : Node_Id;
+      Range_Constraint    : Node_Id;
+      Statements          : List_Id)
+     return Node_Id
+   is
+      N : Node_Id;
+   begin
+      N := New_Node (K_For_Statement);
+      Set_Defining_Identifier (N, Defining_Identifier);
+      Set_Range_Constraint (N, Range_Constraint);
+      Set_Statements (N, Statements);
+      return N;
+   end Make_For_Statement;
+
    --------------------------------
    -- Make_Full_Type_Declaration --
    --------------------------------
@@ -772,7 +791,8 @@ package body Backend.BE_Ada.Nutils is
    function Make_Subprogram_Specification
      (Defining_Identifier : Node_Id;
       Parameter_Profile   : List_Id;
-      Return_Type         : Node_Id := No_Node)
+      Return_Type         : Node_Id := No_Node;
+      Parent              : Node_Id := Current_Package)
      return Node_Id
    is
       N : Node_Id;
@@ -782,6 +802,7 @@ package body Backend.BE_Ada.Nutils is
       Set_Defining_Identifier  (N, Defining_Identifier);
       Set_Parameter_Profile    (N, Parameter_Profile);
       Set_Return_Type          (N, Return_Type);
+      Set_Parent               (N, Parent);
       return N;
    end Make_Subprogram_Specification;
 

@@ -302,6 +302,12 @@ package Backend.BE_Ada.Nutils is
       Right_Expr : Node_Id)
      return Node_Id;
 
+   function Make_For_Statement
+     (Defining_Identifier : Node_Id;
+      Range_Constraint    : Node_Id;
+      Statements          : List_Id)
+     return Node_Id;
+
    function Make_Full_Type_Declaration
      (Defining_Identifier : Node_Id;
       Type_Definition     : Node_Id;
@@ -374,7 +380,8 @@ package Backend.BE_Ada.Nutils is
    function Make_Subprogram_Specification
      (Defining_Identifier : Node_Id;
       Parameter_Profile   : List_Id;
-      Return_Type         : Node_Id := No_Node)
+      Return_Type         : Node_Id := No_Node;
+      Parent              : Node_Id := Current_Package)
       return                Node_Id;
 
    function Make_Type_Attribute

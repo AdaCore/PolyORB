@@ -1,5 +1,7 @@
 with Types; use Types;
 
+with Frontend.Nodes;
+
 package Backend.BE_Ada.Runtime is
 
    --  Runtime Units
@@ -55,6 +57,8 @@ package Backend.BE_Ada.Runtime is
       RE_To_CORBA_String,           --  CORBA.To_CORBA_String
       RE_Ref_1,                     --  CORBA.AbstractBase.Ref
       RE_Set_Type,                  --  CORBA.Set_Type
+      RE_Get_Empty_Any_Aggregate,   --  CORBA.Get_Empty_Any_Agregate
+      RE_Add_Aggregate_Element,     --  CORBA.Add_Aggregate_Element
       RE_Is_Nil,                    --  CORBA.Object.Is_Nil
       RE_Ref_2,                     --  CORBA.Object.Ref
       RE_Object_Of,                 --  CORBA.Object.Object_Of
@@ -70,6 +74,7 @@ package Backend.BE_Ada.Runtime is
       RE_TC_Alias,                  --  PolyORB.Any.TypeCode.TC_Alias
       RE_TC_Enum,                   --  PolyORB.Any.TypeCode.TC_Enum
       RE_TC_Struct,                 --  PolyORB.Any.TypeCode.TC_Struct
+      RE_TC_Array,                  --  PolyORB.Any.TypeCode.TC_Array
       RE_Request_Access,            --  PolyORB.Requests.Request_Access
       RE_Identifier,                --  PolyORB.Types.Identifier
       RE_To_PolyORB_String,         --  PolyORB.Types.To_PolyORB_String
@@ -107,6 +112,8 @@ package Backend.BE_Ada.Runtime is
          RE_Raise_Bad_Param       => RU_CORBA,
          RE_Ref_1                 => RU_CORBA_AbstractBase,
          RE_Set_Type              => RU_CORBA,
+         RE_Get_Empty_Any_Aggregate => RU_CORBA,
+         RE_Add_Aggregate_Element => RU_CORBA,
          RE_Ref_2                 => RU_CORBA_Object,
          RE_Object_Of             => RU_CORBA_Object,
          RE_Is_A                  => RU_CORBA_Object,
@@ -122,10 +129,13 @@ package Backend.BE_Ada.Runtime is
          RE_TC_Alias              => RU_PolyORB_Any_TypeCode,
          RE_TC_Enum               => RU_PolyORB_Any_TypeCode,
          RE_TC_Struct             => RU_PolyORB_Any_TypeCode,
+         RE_TC_Array              => RU_PolyORB_Any_TypeCode,
          RE_Request_Access        => RU_PolyORB_Requests,
          RE_Identifier            => RU_PolyORB_Types,
          RE_To_PolyORB_String     => RU_PolyORB_Types,
          RE_String_2              => RU_Standard);
+
+   function Convert (K : Frontend.Nodes.Node_Kind) return RE_Id;
 
    procedure Initialize;
 

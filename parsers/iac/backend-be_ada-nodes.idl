@@ -163,6 +163,11 @@ module Backend::BE_Ada::Nodes {
     Node_Id    Expression; 
   };
 
+  interface For_Statement : Definition {
+    Node_Id      Range_Constraint; 
+    List_Id      Statements; 
+  };
+
   /***************/
   /* Other nodes */
   /***************/
