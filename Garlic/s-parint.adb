@@ -519,13 +519,18 @@ package body System.Partition_Interface is
    is
       Caller  : Caller_List := Callers;
       Dummy   : Caller_List;
+      Error   : Error_Type := No_Error;
    begin
       pragma Debug (D (D_Debug, "Complete elaboration"));
       System.Garlic.Heart.Complete_Elaboration;
 
+      Register_Units_On_Boot_Server (Error);
+      if Found (Error) then
+         Raise_Exception (RPC.Communication_Error'Identity, Error.all);
+      end if;
+
       pragma Debug (D (D_Debug, "Establish RPC Receiver"));
-      System.RPC.Establish_RPC_Receiver
-        (System.RPC.Partition_ID (Self_PID), null);
+      RPC.Establish_RPC_Receiver (RPC.Partition_ID (Self_PID), null);
 
       while Caller /= null loop
          pragma Debug (D (D_Debug, "Check " & Caller.Name.all &

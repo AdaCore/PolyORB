@@ -1,3 +1,11 @@
+1998-12-09  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* Makefile.in, Makefile.am: Fix a filemode problem.
+	
+	* s-parint.adb, s-rpc.adb: Move call to
+ 	Register_Unit_On_Boot_Server from RPC.Establish_RPC_Receiver to
+ 	Partition_Interface.Run to allow the replacement of System.RPC.
+
 1998-12-08  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* Makefile.am, Makefile.in: Add user write mode to

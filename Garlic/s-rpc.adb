@@ -248,14 +248,9 @@ package body System.RPC is
      (Partition : in Partition_ID;
       Receiver  : in RPC_Receiver)
    is
-      Error : Error_Type := No_Error;
    begin
       pragma Debug
         (D (D_Debug, "Setting RPC receiver for partition" & Partition'Img));
-      Register_Units_On_Boot_Server (Error);
-      if Found (Error) then
-         Raise_Exception (Communication_Error'Identity, Error.all);
-      end if;
       RPC_Allowed := True;
       Signal_All (RPC_Barrier);
       Register_RPC_Error_Notifier (Notify_Partition_Error'Access);

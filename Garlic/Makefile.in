@@ -478,7 +478,6 @@ install-data-local: all-local install-dirs-local install-extra-libs
 	  ${GARLIC}/libgnat.a
 	chmod u+w ${GARLIC}/libgnat.a
 	${AR} d ${GARLIC}/libgnat.a s-stratt.o s-rpc.o s-parint.o
-	chmod u-w ${GARLIC}/libgnat.a
 	@if test `cat inlining` = "yes"; then\
 	   (cd gnatlib;\
 	    ${AR} d ${GARLIC}/libgnat.a `cat rebuild`;\
