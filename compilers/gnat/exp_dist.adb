@@ -2751,6 +2751,7 @@ package body Exp_Dist is
       Pkg_RPC_Receiver_Object      : Node_Id;
 
       Pkg_RPC_Receiver_Body        : Node_Id;
+      Pkg_RPC_Receiver_Decls       : List_Id;
       Pkg_RPC_Receiver_Stmts       : List_Id;
       Pkg_RPC_Receiver_Cases       : constant List_Id := New_List;
       --  A Pkg_RPC_Receiver is built to decode the request
@@ -2759,7 +2760,24 @@ package body Exp_Dist is
       --  Request object received from neutral layer
 
       Subp_Id                     : Node_Id;
-      --  Subprogram_Id as read from the incoming stream
+      --  Subprogram identifier as received from the neutral
+      --  distribution core.
+
+      Is_Local : constant Entity_Id :=
+        Make_Defining_Identifier (Loc, New_Internal_Name ('L'));
+      Local_Address : constant Entity_Id :=
+        Make_Defining_Identifier (Loc, New_Internal_Name ('A'));
+      --  Address of a local subprogram designated by a
+      --  reference corresponding to a RAS.
+
+      Subp_Index : constant Entity_Id :=
+        Make_Defining_Identifier (Loc, New_Internal_Name ('I'));
+      --  Internal index as determined by matching either the
+      --  method name from the request structure, or the local
+      --  subprogram address (in case of a RAS).
+
+      Dispatch_On_Address : constant List_Id := New_List;
+      Dispatch_On_Name    : constant List_Id := New_List;
 
       Current_Declaration       : Node_Id;
       Current_Stubs             : Node_Id;
@@ -2805,6 +2823,79 @@ package body Exp_Dist is
         Subp_Id      => Subp_Id,
         Stmts        => Pkg_RPC_Receiver_Stmts,
         Decl         => Pkg_RPC_Receiver_Body);
+      Pkg_RPC_Receiver_Decls := Declarations (Pkg_RPC_Receiver_Body);
+
+      --  Extract local address information from the target reference:
+      --  if non-null, that means that this is a reference that denotes
+      --  one particular operation, and hence that the operation name
+      --  must not be taken into account for dispatching.
+
+      Append_To (Pkg_RPC_Receiver_Decls,
+        Make_Object_Declaration (Loc,
+          Defining_Identifier =>
+            Is_Local,
+          Object_Definition   =>
+            New_Occurrence_Of (Standard_Boolean, Loc)));
+      Append_To (Pkg_RPC_Receiver_Decls,
+        Make_Object_Declaration (Loc,
+          Defining_Identifier =>
+            Local_Address,
+          Object_Definition   =>
+            New_Occurrence_Of (RTE (RE_Address), Loc)));
+      Append_To (Pkg_RPC_Receiver_Decls,
+        Make_Object_Declaration (Loc,
+          Defining_Identifier =>
+            Subp_Index,
+          Object_Definition   =>
+            New_Occurrence_Of (Standard_Integer, Loc)));
+
+      Append_To (Pkg_RPC_Receiver_Stmts,
+        Make_Procedure_Call_Statement (Loc,
+          Name =>
+            New_Occurrence_Of (RTE (RE_Get_Local_Address), Loc),
+          Parameter_Associations => New_List (
+            Make_Selected_Component (Loc,
+              Prefix =>
+                New_Occurrence_Of (Request, Loc),
+              Selector_Name =>
+                Make_Identifier (Loc, Name_Target)),
+            New_Occurrence_Of (Is_Local, Loc),
+            New_Occurrence_Of (Local_Address, Loc))));
+
+      --  Determine whether the reference that was used to make
+      --  the call was the base RCI reference (in which case
+      --  Local_Address is 0, and the method identifier from the
+      --  request must be used to determine which subprogram is
+      --  called) or a reference identifying one particular subprogram
+      --  (in which case Local_Address is the address of that
+      --  subprogram, and the method name from the request is
+      --  ignored).
+      --  In each case, cascaded elsifs are used to determine the
+      --  proper subprogram index. Using hash tables might be
+      --  more efficient.
+
+      Append_To (Pkg_RPC_Receiver_Stmts,
+        Make_Implicit_If_Statement (Pkg_Spec,
+          Condition =>
+            Make_Op_Ne (Loc,
+              Left_Opnd  => New_Occurrence_Of (Local_Address, Loc),
+              Right_Opnd => New_Occurrence_Of (RTE (RE_Null_Address), Loc)),
+          Then_Statements => New_List (
+            Make_Implicit_If_Statement (Pkg_Spec,
+              Condition =>
+                New_Occurrence_Of (Standard_False, Loc),
+              Then_Statements => New_List (
+                Make_Null_Statement (Loc)),
+              Elsif_Parts =>
+                Dispatch_On_Address)),
+          Else_Statements => New_List (
+            Make_Implicit_If_Statement (Pkg_Spec,
+              Condition =>
+                New_Occurrence_Of (Standard_False, Loc),
+              Then_Statements => New_List (
+                Make_Null_Statement (Loc)),
+              Elsif_Parts =>
+                Dispatch_On_Name))));
 
       --  For each subprogram, the receiving stub will be built and a
       --  case statement will be made on the Subprogram_Id to dispatch
@@ -2873,20 +2964,6 @@ package body Exp_Dist is
                   null;
                end if;
 
---                 Append_To (Pkg_RPC_Receiver_Cases,
---                   Make_Case_Statement_Alternative (Loc,
---                     Discrete_Choices =>
---                       New_List (
---                         Make_Integer_Literal (Loc,
---                            Current_Subprogram_Number)),
---                     Statements       =>
---                         Make_Procedure_Call_Statement (Loc,
---                           Name                   =>
---                             New_Occurrence_Of (
---                               Defining_Entity (Current_Stubs), Loc),
---                           Parameter_Associations =>
---                             Actuals))));
-
 
                --  Add subprogram to subprograms table for this receiver
 
@@ -2920,10 +2997,6 @@ package body Exp_Dist is
                              New_Occurrence_Of (Subp_Def, Loc),
                            Attribute_Name => Name_Address)))));
 
-
-               Current_Subprogram_Number
-                 := Current_Subprogram_Number + 1;
-
                Case_Stmts := New_List (
                  Make_Procedure_Call_Statement (Loc,
                     Name                   =>
@@ -2941,8 +3014,8 @@ package body Exp_Dist is
                   Append_To (Case_Stmts, Make_Return_Statement (Loc));
                end if;
 
-               Append_To (Pkg_RPC_Receiver_Cases,
-                 Make_Implicit_If_Statement (Pkg_Spec,
+               Append_To (Dispatch_On_Name,
+                 Make_Elsif_Part (Loc,
                    Condition =>
                      Make_Function_Call (Loc,
                        Name =>
@@ -2950,9 +3023,50 @@ package body Exp_Dist is
                        Parameter_Associations => New_List (
                          New_Occurrence_Of (Subp_Id, Loc),
                          New_Occurrence_Of (Subp_Dist_Name, Loc))),
-                   Then_Statements =>
+                   Then_Statements => New_List (
+                     Make_Assignment_Statement (Loc,
+                       New_Occurrence_Of (Subp_Index, Loc),
+                       Make_Integer_Literal (Loc,
+                          Current_Subprogram_Number)))));
+               Append_To (Dispatch_On_Address,
+                 Make_Elsif_Part (Loc,
+                   Condition =>
+                     Make_Op_Eq (Loc,
+                       Left_Opnd  =>
+                         New_Occurrence_Of (Local_Address, Loc),
+                       Right_Opnd =>
+                         Make_Attribute_Reference (Loc,
+                           Prefix =>
+                             New_Occurrence_Of (Subp_Def, Loc),
+                           Attribute_Name => Name_Address)),
+                   Then_Statements => New_List (
+                     Make_Assignment_Statement (Loc,
+                       New_Occurrence_Of (Subp_Index, Loc),
+                       Make_Integer_Literal (Loc,
+                          Current_Subprogram_Number)))));
+--             Append_To (Pkg_RPC_Receiver_Cases,
+--                   Make_Implicit_If_Statement (Pkg_Spec,
+--                     Condition =>
+--                       Make_Function_Call (Loc,
+--                         Name =>
+--                 New_Occurrence_Of (RTE (RE_Caseless_String_Eq), Loc),
+--                         Parameter_Associations => New_List (
+--                           New_Occurrence_Of (Subp_Id, Loc),
+--                           New_Occurrence_Of (Subp_Dist_Name, Loc))),
+--                     Then_Statements =>
+--                       Case_Stmts));
+               Append_To (Pkg_RPC_Receiver_Cases,
+                 Make_Case_Statement_Alternative (Loc,
+                   Discrete_Choices =>
+                     New_List (
+                       Make_Integer_Literal (Loc,
+                          Current_Subprogram_Number)),
+                   Statements       =>
                      Case_Stmts));
             end;
+
+            Current_Subprogram_Number
+              := Current_Subprogram_Number + 1;
 
          end if;
 
@@ -2967,20 +3081,20 @@ package body Exp_Dist is
       --  every exception will be caught and (if the subprogram is not an
       --  APC) put into the result stream and sent away.
 
---        Append_To (Pkg_RPC_Receiver_Cases,
---          Make_Case_Statement_Alternative (Loc,
---            Discrete_Choices =>
---              New_List (Make_Others_Choice (Loc)),
---            Statements       =>
---              New_List (Make_Null_Statement (Loc))));
+      Append_To (Pkg_RPC_Receiver_Cases,
+        Make_Case_Statement_Alternative (Loc,
+          Discrete_Choices =>
+            New_List (Make_Others_Choice (Loc)),
+          Statements       =>
+            New_List (Make_Null_Statement (Loc))));
 
---        Append_To (Pkg_RPC_Receiver_Stmts,
---          Make_Case_Statement (Loc,
---            Expression   =>
---              New_Occurrence_Of (Subp_Id, Loc),
---            Alternatives => Pkg_RPC_Receiver_Cases));
-      Append_List_To (Pkg_RPC_Receiver_Stmts,
-        Pkg_RPC_Receiver_Cases);
+      Append_To (Pkg_RPC_Receiver_Stmts,
+        Make_Case_Statement (Loc,
+          Expression   =>
+            New_Occurrence_Of (Subp_Index, Loc),
+          Alternatives => Pkg_RPC_Receiver_Cases));
+--        Append_List_To (Pkg_RPC_Receiver_Stmts,
+--          Pkg_RPC_Receiver_Cases);
 
       Append_To (Decls,
         Make_Object_Declaration (Loc,

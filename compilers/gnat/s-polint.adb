@@ -324,7 +324,8 @@ package body System.PolyORB_Interface is
          declare
             EMsg : Execute_Request renames Execute_Request (Msg);
          begin
-            if Self.Impl_Info.Kind = Pkg_Stub and then
+            if Receiving_Stub (Self.Impl_Info.all).Kind = Pkg_Stub
+              and then
               PolyORB.Types.To_Standard_String (EMsg.Req.Operation)
               = "resolve"
             then
@@ -457,17 +458,27 @@ package body System.PolyORB_Interface is
            (PolyORB.Setup.The_ORB,
             Profiles (J))
          then
-            declare
-               Key : constant PolyORB.Objects.Object_Id
-                 := PolyORB.Obj_Adapters.Object_Key
-                 (OA => PolyORB.Obj_Adapters.Obj_Adapter_Access
-                    (Root_POA_Object),
-                  Id => PolyORB.Binding_Data.Get_Object_Key
-                    (Profiles (J).all));
             begin
-               Is_Local := True;
-               Addr := To_Address (Key (Key'Range));
-               return;
+               declare
+                  Key : constant PolyORB.Objects.Object_Id
+                    := PolyORB.Obj_Adapters.Object_Key
+                    (OA => PolyORB.Obj_Adapters.Obj_Adapter_Access
+                       (Root_POA_Object),
+                     Id => PolyORB.Binding_Data.Get_Object_Key
+                       (Profiles (J).all));
+               begin
+                  Is_Local := True;
+                  Addr := To_Address (Key (Key'Range));
+                  return;
+               end;
+            exception
+               when Invalid_Object_Id =>
+                  --  This object identifier does not have a
+                  --  user-assigned object key.
+                  null;
+
+               when others =>
+                  raise;
             end;
          end if;
       end loop;
@@ -532,9 +543,7 @@ package body System.PolyORB_Interface is
                end;
             end loop All_Stubs;
 
-            if Addr = System.Null_Address then
-               return;
-            end if;
+            pragma Assert (Addr /= System.Null_Address);
 
             Get_Reference
               (Addr, Pkg_Name, Receiver, Subp_Ref);
