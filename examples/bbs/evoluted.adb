@@ -52,6 +52,7 @@ procedure Evoluted is
    Message_Count : Integer := 100;
    Message_Size : Integer  := 100;
    Nmax : Integer;
+   Expected_Messages : Integer;
    type String_Ptr is access String;
    Payload : String_Ptr;
    Start : Time;
@@ -118,7 +119,7 @@ begin
       if Test_Broadcast then
          Expected_Messages := Expected_Messages * 2;
       end if;
-
+      Received_Counter.Set_Expected (Expected_Messages);
       Payload := new String'(1 .. Message_Size => 'X');
 
       Put_Line ("Expecting"
@@ -163,12 +164,8 @@ begin
          end;
       end loop;
 
-      Send_Done := True;
       Ada.Text_IO.Put_Line ("Send done.");
-
-      while not Recv_Done loop
-         delay 0.1;
-      end loop;
+      Received_Counter.Wait_For_Completion;
       declare
          Elapsed : constant Duration := Clock - Start;
       begin

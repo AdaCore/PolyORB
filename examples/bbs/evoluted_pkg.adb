@@ -158,9 +158,25 @@ package body Evoluted_Pkg is
          Put_Line ("Control-D pressed, exiting");
    end Mainloop;
 
+   protected body Received_Counter is
+      procedure Set_Expected (N : Integer) is
+      begin
+         Expected := N;
+      end Set_Expected;
 
-   Received_Msgs : Integer := 0;
-   pragma Atomic (Received_Msgs);
+      procedure Message_Received is
+      begin
+         Expected := Expected - 1;
+         if Expected = 0 then
+            Put_Line ("Recv done.");
+         end if;
+      end Message_Received;
+
+      entry Wait_For_Completion when Expected = 0 is
+      begin
+         null;
+      end Wait_For_Completion;
+   end Received_Counter;
 
    procedure New_Message
      (Sender    : in String;
@@ -168,14 +184,10 @@ package body Evoluted_Pkg is
       Message   : in String)
    is
    begin
-      Received_Msgs := Received_Msgs + 1;
+      Received_Counter.Message_Received;
       Ada.Text_IO.Put ("<" & Received_Msgs'Img & " > ");
       Common.New_Message
         (Sender, Penpal_Type (Recipient.all)'Access, Message);
-      if Received_Msgs >= Expected_Messages then
-         Recv_Done := True;
-         Ada.Text_IO.Put_Line ("Recv done.");
-      end if;
    end New_Message;
 
 end Evoluted_Pkg;
