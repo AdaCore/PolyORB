@@ -32,7 +32,6 @@
 ------------------------------------------------------------------------------
 
 with CORBA.Object;
-with CORBA.Impl;
 with CORBA;
 
 with Broca.Opaque; use Broca.Opaque;

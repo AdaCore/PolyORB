@@ -39,6 +39,8 @@ with Broca.Exceptions;
 with Broca.Refs;
 with Broca.Object;
 
+with CORBA.Impl;
+
 package body Broca.CDR is
 
    Flag : constant Natural := Broca.Debug.Is_Active ("broca.cdr");
