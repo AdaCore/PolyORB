@@ -117,12 +117,16 @@ package body Broca.Inet_Server is
       Host_Name_Ptr :=
         Interfaces.C.Strings.To_Chars_Ptr (Host_Name_Acc, False);
       Len := C_Gethostname (Host_Name_Ptr, Host_Name_Acc.all'Length);
+      pragma Debug (O ("Get_Host_Address: got the host name length : "
+                       & int'Image (Len)));
+
       if Len < 0 or Len > Host_Name_Acc.all'Length then
          Broca.Exceptions.Raise_Comm_Failure;
       end if;
 
       --  Get the host entry corresponding to the name.
       Host := C_Gethostbyname (Host_Name_Ptr);
+      pragma Debug (O ("Get_Host_Address: got the hostent_access"));
       if Host = null then
          Broca.Exceptions.Raise_Comm_Failure;
       end if;
@@ -427,14 +431,17 @@ package body Broca.Inet_Server is
       Sock_Name_Size : aliased Interfaces.C.int;
       Result : Interfaces.C.int;
    begin
+      pragma Debug (O ("Initialize : enter"));
       --  Create the socket.
       Sock := C_Socket (Af_Inet, Sock_Stream, 0);
       if Sock = Failure then
          Broca.Exceptions.Raise_Comm_Failure;
       end if;
+      pragma Debug (O ("Socket created"));
 
       --  Find an address for this host.
       Get_Host_Address;
+      pragma Debug (O ("Got the host address"));
 
       --  Bind this socket.
       --  Do not use the default address (security issue), but the address
@@ -447,6 +454,7 @@ package body Broca.Inet_Server is
          C_Close (Sock);
          Broca.Exceptions.Raise_Comm_Failure;
       end if;
+      pragma Debug (O ("Socket bound"));
 
       --  Listen
       Result := C_Listen (Sock, 8);
@@ -454,6 +462,7 @@ package body Broca.Inet_Server is
          C_Close (Sock);
          Broca.Exceptions.Raise_Comm_Failure;
       end if;
+      pragma Debug (O ("Listen statement executed"));
 
       --  Retrieve the port.
       Sock_Name_Size := Sock_Name'Size / 8;
@@ -718,6 +727,8 @@ package body Broca.Inet_Server is
    type Fd_Server_Ptr is access Fd_Server_Type;
    The_Fd_Server : Fd_Server_Ptr;
 begin
+
+   pragma Debug (O ("elaborating broca.inet_server with pragma debug"));
    Initialize;
 
    The_Fd_Server := new Fd_Server_Type;

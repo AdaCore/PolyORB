@@ -33,20 +33,20 @@
 
 with Ada.Exceptions;
 
-with Broca.Refs;
 with Broca.Exceptions;
 with Broca.POA;
 with PortableServer.ServantActivator.Impl;
 with PortableServer.ServantLocator.Impl;
 
-package body Portableserver.POA is
-   function Create_Ref (Referenced : Broca.Refs.Ref_Ptr) return Ref;
+with CORBA.Impl;
 
-   function Create_Ref (Referenced : Broca.Refs.Ref_Ptr) return Ref is
-      use Broca.Refs;
+package body Portableserver.POA is
+   function Create_Ref (Referenced : CORBA.Impl.Object_Ptr) return Ref;
+
+   function Create_Ref (Referenced : CORBA.Impl.Object_Ptr) return Ref is
       Res : Ref;
    begin
-      Set (Broca.Refs.Ref (Res), Referenced);
+      Set (Res, Referenced);
       return Res;
    end Create_Ref;
 
@@ -87,12 +87,11 @@ package body Portableserver.POA is
 
    function To_Poa (Self : Ref) return Broca.POA.POA_Object_Ptr is
       use Broca.POA;
-      use Broca.Refs;
-      Res_Ref : Broca.Refs.Ref_Ptr;
+      Res_Ref : CORBA.Impl.Object_Ptr;
       Res : Broca.POA.POA_Object_Ptr;
    begin
       Res_Ref := Get (Self);
-      if Res_Ref = null
+      if Is_Nil (Self)
         or else Res_Ref.all not in Broca.POA.POA_Object'Class
       then
          Broca.Exceptions.Raise_Bad_Param;
@@ -112,7 +111,7 @@ package body Portableserver.POA is
 
    function Get_The_Parent (Self : Ref) return Ref'Class is
    begin
-      return Ref'(Create_Ref (Broca.Refs.Ref_Ptr (To_Poa (Self).Parent)));
+      return Ref'(Create_Ref (CORBA.Impl.Object_Ptr (To_Poa (Self).Parent)));
    end Get_The_Parent;
 
    function Get_The_POAManager (Self : Ref)
@@ -122,7 +121,8 @@ package body Portableserver.POA is
       Res : PortableServer.POAManager.Ref;
    begin
       Set (Res,
-           Broca.Refs.Ref_Ptr (Broca.POA.Get_The_POAManager (To_Poa (Self))));
+           CORBA.Impl.Object_Ptr
+           (Broca.POA.Get_The_POAManager (To_Poa (Self))));
       return Res;
    end Get_The_POAManager;
 
@@ -227,7 +227,7 @@ package body Portableserver.POA is
             (PortableServer.POAManager.Get (A_POAManager)),
             Tp, Lp, Up, Ip, Ap, Sp, Rp);
          All_POAs_Lock.Unlock_W;
-         return Create_Ref (Broca.Refs.Ref_Ptr (Res));
+         return Create_Ref (CORBA.Impl.Object_Ptr (Res));
       exception
          when others =>
             All_POAs_Lock.Unlock_W;
@@ -252,7 +252,7 @@ package body Portableserver.POA is
       if Res = null then
          raise AdapterNonExistent;
       else
-         return Create_Ref (Broca.Refs.Ref_Ptr (Res));
+         return Create_Ref (CORBA.Impl.Object_Ptr (Res));
       end if;
    end Find_POA;
 
@@ -386,7 +386,8 @@ package body Portableserver.POA is
       end if;
       CORBA.Object.Set
         (Res,
-         Broca.Refs.Ref_Ptr (Broca.POA.Servant_To_Skeleton (POA, P_Servant)));
+         CORBA.Impl.Object_Ptr
+         (Broca.POA.Servant_To_Skeleton (POA, P_Servant)));
       return Res;
    end Servant_To_Reference;
 
@@ -455,7 +456,7 @@ package body Portableserver.POA is
       end if;
       Skel := Broca.POA.Id_To_Skeleton (POA, Oid);
       if Skel.P_Servant /= null then
-         CORBA.Object.Set (Res, Broca.Refs.Ref_Ptr (Skel));
+         CORBA.Object.Set (Res, CORBA.Impl.Object_Ptr (Skel));
          return Res;
       else
          raise PortableServer.POA.ObjectNotActive;

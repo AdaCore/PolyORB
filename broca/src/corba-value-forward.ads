@@ -39,13 +39,13 @@ package CORBA.Value.Forward is
       type Ref_Type is new CORBA.Value.Base with private;
    package Convert is
       function From_Forward (The_Forward : in Value_Ref)
-			     return Ref_Type;
+                             return Ref_Type;
       function To_Ref (The_Forward : in Value_Ref)
-		       return Ref_Type
-	renames From_Forward;
+                       return Ref_Type
+        renames From_Forward;
 
       function To_Forward (The_Ref : in Ref_Type)
-	return Value_Ref;
+                           return Value_Ref;
    end Convert;
-   
+
 end CORBA.Value.Forward;

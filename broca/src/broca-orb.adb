@@ -38,11 +38,13 @@ with CORBA.Object;
 with Broca.Exceptions;
 with Broca.CDR;
 with Broca.Buffers;
-with Broca.Refs;
+--  with Broca.Refs;
 with Broca.Object;
 with Broca.Repository;
 with Broca.IIOP;
 with Broca.IOP;
+
+with CORBA.Impl;
 
 with Broca.Debug;
 pragma Elaborate_All (Broca.Debug);
@@ -79,6 +81,9 @@ package body Broca.ORB is
 
       --  Unmarshall type id.
       Type_Id := Unmarshall (IOR);
+      pragma Debug (O ("IOR_To_Object : Type_Id unmarshalled : "
+                       & CORBA.To_Standard_String (Type_Id)));
+
       declare
          A_Ref : CORBA.Object.Ref'Class :=
            Broca.Repository.Create (CORBA.RepositoryId (Type_Id));
@@ -87,13 +92,14 @@ package body Broca.ORB is
             --  No classes for the string was found.
             --  Create a CORBA.Object.Ref.
             pragma Debug (O ("IOR_To_Object : A_Ref is nil."));
-            Broca.Refs.Set (Broca.Refs.Ref (A_Ref),
-                            new Broca.Object.Object_Type);
+            --  Broca.Refs.Set (Broca.Refs.Ref (A_Ref),
+            --                new Broca.Object.Object_Type);
+            CORBA.Object.Set (A_Ref, new Broca.Object.Object_Type);
          end if;
 
          --  Get the access to the internal object.
-         Obj := Broca.Object.Object_Ptr
-           (Broca.Refs.Get (Broca.Refs.Ref (A_Ref)));
+         Obj := Broca.Object.Object_Ptr (A_Ref.Ptr);
+         --  (Broca.Refs.Get (Broca.Refs.Ref (A_Ref)));
 
          Nbr_Profiles := Unmarshall (IOR);
 
@@ -112,8 +118,9 @@ package body Broca.ORB is
          --  FIXME: type must be checked ?
          if True then
             --  No.
-            Broca.Refs.Set (Broca.Refs.Ref (Ref),
-                            Broca.Refs.Get (Broca.Refs.Ref (A_Ref)));
+            --  Broca.Refs.Set (Broca.Refs.Ref (Ref),
+            --                Broca.Refs.Get (Broca.Refs.Ref (A_Ref)));
+            CORBA.Object.Set (Ref, A_Ref.Ptr);
          else
             Ref := A_Ref;
          end if;

@@ -1,22 +1,21 @@
 package body CORBA.Impl is
 
-   -----------------
-   --  Initialize --
-   -----------------
+   ---------------
+   -- Inc_Usage --
+   ---------------
 
-   procedure Initialize (This : in out Object) is
+   procedure Inc_Usage (Obj : in Object_Ptr) is
    begin
-      null;
-   end Initialize;
+      Broca.Refs.Inc_Usage (Broca.Refs.Ref_Ptr (Obj));
+   end Inc_Usage;
 
+   ---------------
+   -- Dec_Usage --
+   ---------------
 
-   -----------------
-   --  Initialize --
-   -----------------
-
-   procedure Finalize (This : in out Object) is
+   procedure Dec_Usage (Obj : in out Object_Ptr) is
    begin
-      null;
-   end Finalize;
+      Broca.Refs.Dec_Usage (Broca.Refs.Ref_Ptr (Obj));
+   end Dec_Usage;
 
 end CORBA.Impl;

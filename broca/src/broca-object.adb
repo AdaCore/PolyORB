@@ -72,6 +72,7 @@ package body Broca.Object is
 
    function Find_Profile (Object : Object_Ptr) return IOP.Profile_Ptr is
    begin
+      pragma Assert (Object /= null);
       return Object.Profiles (Object.Profiles'First);
    end Find_Profile;
 

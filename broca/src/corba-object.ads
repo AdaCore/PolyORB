@@ -33,13 +33,15 @@
 
 --  with Ada.Unchecked_Deallocation;
 
-with Broca.Refs;
+--  with Broca.Refs;
 
 --  with CORBA.ImplementationDef;
 --  with CORBA.InterfaceDef;
 --  with CORBA.Context;
 --  with CORBA.NVList;
 --  with CORBA.Request;
+
+with CORBA.AbstractBase;
 
 package CORBA.Object is
 
@@ -54,14 +56,17 @@ package CORBA.Object is
    --
    --  To allow such a behavior, a reference is in fact an access to a tagged
    --  type, ref_type, defined in broca.object.
-   type Ref is new Broca.Refs.Ref with private;
+   --  type Ref is new Broca.Refs.Ref with private;
+
+   --  CORBA 2.3
+   type Ref is new CORBA.AbstractBase.Ref with private;
 
    function Object_To_String (Obj : Ref) return CORBA.String;
    --  Returns the IOR corresponding to this object it is called by
    --  CORBA.ORB.Object_To_String see CORBA specification for details
 
-   function Is_Nil  (Self : in Ref) return CORBA.Boolean;
-   function Is_Null (Self : in Ref) return CORBA.Boolean renames Is_Nil;
+   --  function Is_Nil  (Self : in Ref) return CORBA.Boolean;
+   --  function Is_Null (Self : in Ref) return CORBA.Boolean renames Is_Nil;
 
 --    procedure Release (Self : in out Ref);
 
@@ -116,6 +121,6 @@ package CORBA.Object is
 
 private
 
-   type Ref is new Broca.Refs.Ref with null record;
+   type Ref is new CORBA.AbstractBase.Ref with null record;
 
 end CORBA.Object;

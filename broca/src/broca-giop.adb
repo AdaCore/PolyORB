@@ -33,8 +33,9 @@
 
 with Ada.Unchecked_Deallocation;
 
-with Broca.Refs;
+--  with Broca.Refs;
 with Broca.CDR; use Broca.CDR;
+with Broca.CDR.Refs;
 with Broca.Exceptions;
 with Broca.Sequences;
 with Broca.Opaque; use Broca.Opaque;
@@ -278,8 +279,8 @@ package body Broca.GIOP is
       Marshall (Buffer, Broca.GIOP.Location_Forward);
 
       --  Reference
-      Broca.Refs.Marshall_Reference
-        (Buffer, Broca.Refs.Ref (Reference));
+      Broca.CDR.Refs.Marshall
+        (Buffer, Reference);
    end Marshall;
 
    ---------------------------------
@@ -470,12 +471,13 @@ package body Broca.GIOP is
                begin
                   pragma Debug
                     (O ("Send_Request_Send : Received Location_Forward"));
-                  CORBA.Object.Unmarshall_Reference
+                  --  CORBA.Object.Unmarshall_Reference
+                  Broca.CDR.Refs.Unmarshall
                     (Message_Body_Buffer'Access,
                      New_Ref);
                   --  FIXME: check type, use a lock ?
                   Target.Profiles :=
-                    Object.Object_Ptr (CORBA.Object.Get (New_Ref)).Profiles;
+                    Object.Object_Ptr (New_Ref.Ptr).Profiles;
                end;
                Result := Sr_Forward;
                Release (Handler);

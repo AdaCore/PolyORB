@@ -33,6 +33,7 @@
 
 with CORBA;
 with CORBA.Object;
+with CORBA.Impl;
 with PortableServer; use PortableServer;
 with PortableServer.AdapterActivator;
 with PortableServer.ServantManager;
@@ -56,7 +57,7 @@ package Broca.POA is
    type Processing_State_Type is (Holding, Active, Discarding, Inactive);
 
    --  POAManager internal object and primitives.
-   type POAManager_Object is abstract new Broca.Refs.Ref_Type
+   type POAManager_Object is abstract new CORBA.Impl.Object
      with null record;
    type POAManager_Object_Ptr is access all POAManager_Object'Class;
 
@@ -109,7 +110,8 @@ package Broca.POA is
 
    --  An internal seleton is the internal object for an object implementation.
 
-   type Internal_Skeleton is new Broca.Refs.Ref_Type with
+   --  type Internal_Skeleton is new Broca.Refs.Ref_Type with
+   type Internal_Skeleton is new CORBA.Impl.Object with
       record
          P_Servant : PortableServer.Servant;
       end record;
@@ -130,7 +132,8 @@ package Broca.POA is
 
    --  A Skeleton is the internal object for an object implementation.
 
-   type Skeleton is new Broca.Refs.Ref_Type with
+   type Skeleton is new CORBA.Impl.Object with
+   --  type Skeleton is new Broca.Refs.Ref_Type with
       record
          --  IOR created for this object.
          IOR : Broca.Sequences.Octet_Sequence :=
@@ -171,7 +174,8 @@ package Broca.POA is
    Bad_Poa_Index : constant POA_Index_Type := 0;
    Root_POA_Index : constant POA_Index_Type := 1;
 
-   type Poa_Object is abstract new Broca.Refs.Ref_Type with
+   --  type Poa_Object is abstract new Broca.Refs.Ref_Type with
+   type Poa_Object is abstract new CORBA.Impl.Object with
       record
          --  A queue during creation by a poa activator adapter.
          Creation_Lock : Broca.Locks.Bcast_Lock_Type;

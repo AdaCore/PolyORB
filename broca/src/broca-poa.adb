@@ -61,7 +61,7 @@ package body Broca.POA is
       use Broca.Refs;
       Res : Broca.Refs.Ref_Ptr;
    begin
-      Res := CORBA.Object.Get (Ref);
+      Res := Broca.Refs.Ref_Ptr (Ref.Ptr);
       if Res = null or else Res.all not in Skeleton'Class then
          Broca.Exceptions.Raise_Bad_Param;
       else
@@ -77,7 +77,7 @@ package body Broca.POA is
       use Broca.Refs;
       Res : Broca.Refs.Ref_Ptr;
    begin
-      Res := CORBA.Object.Get (Ref);
+      Res := Broca.Refs.Ref_Ptr (Ref.Ptr);
       if Res = null or else Res.all not in Internal_Skeleton'Class then
          Broca.Exceptions.Raise_Bad_Param;
       else

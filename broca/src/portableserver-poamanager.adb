@@ -33,7 +33,8 @@
 
 with Broca.Exceptions;
 with Broca.POA; use Broca.POA;
-with Broca.Refs;
+--  with Broca.Refs;
+with CORBA.Impl;
 
 package body PortableServer.POAManager is
    procedure Get_Members (From : in Ada.Exceptions.Exception_Occurrence;
@@ -55,11 +56,11 @@ package body PortableServer.POAManager is
    function To_Poa_Manager (Self : Ref)
                             return POAManager_Object_Ptr
    is
-      use Broca.Refs;
-      Res : Broca.Refs.Ref_Ptr;
+      Res : CORBA.Impl.Object_Ptr;
    begin
       Res := Get (Self);
-      if Res = null or else Res.all not in POAManager_Object'Class then
+      if Is_Nil (Self)
+        or else Res.all not in POAManager_Object'Class then
          Broca.Exceptions.Raise_Bad_Param;
       else
          return POAManager_Object_Ptr (Res);

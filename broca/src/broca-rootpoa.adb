@@ -55,6 +55,9 @@ with Broca.Locks;
 with Broca.CDR;
 with Broca.Flags;
 with Ada.Task_Attributes;
+
+with CORBA.Impl;
+
 pragma Elaborate_All (Broca.Vararray);
 pragma Elaborate_All (Broca.ORB);
 pragma Elaborate_All (Broca.Refs);
@@ -814,7 +817,7 @@ package body Broca.Rootpoa is
       Obj := Create_Skeleton (Self, Slot, null, Intf, Oid);
 
       --  Create the reference.
-      CORBA.Object.Set (Res, Broca.Refs.Ref_Ptr (Obj));
+      CORBA.Object.Set (Res, CORBA.Impl.Object_Ptr (Obj));
       return Res;
    end Create_Reference;
 
@@ -840,7 +843,7 @@ package body Broca.Rootpoa is
       Obj := Create_Skeleton (Self, Slot, null, Intf, Oid);
 
       --  Create the reference.
-      CORBA.Object.Set (Res, Broca.Refs.Ref_Ptr (Obj));
+      CORBA.Object.Set (Res, CORBA.Impl.Object_Ptr (Obj));
       return Res;
    end Create_Reference_With_Id;
 
@@ -951,9 +954,10 @@ package body Broca.Rootpoa is
    --  The Object Map must be locked.
    function Clean_Slot (Self : access Object; Slot : Slot_Index_Type)
                         return Boolean is
-      use Broca.Refs;
+      --  use Broca.Refs;
    begin
-      if PortableServer.ServantManager.Get (Self.Servant_Manager) /= null
+      --  if PortableServer.ServantManager.Get (Self.Servant_Manager) /= null
+      if not PortableServer.ServantManager.Is_Nil (Self.Servant_Manager)
         and then Self.Object_Map (Slot).State = Active
       then
          Self.Object_Map (Slot).State := To_Be_Destroyed;
@@ -983,12 +987,12 @@ package body Broca.Rootpoa is
          Slot := Get_Slot_To_Destroy (Self);
          exit when Slot = Bad_Slot_Index;
 
-         if Broca.Refs."/="
+         if CORBA.Impl."/="
            (PortableServer.ServantManager.Get (Self.Servant_Manager), null)
          then
             Sm := To_Internal_Skeleton (Self.Servant_Manager);
             A_Servant := Self.Object_Map (Slot).Skeleton.P_Servant;
-            PortableServer.POA.Set (A_Poa, Broca.Refs.Ref_Ptr (Self));
+            PortableServer.POA.Set (A_Poa, CORBA.Impl.Object_Ptr (Self));
 
             --  Wait for completions on all outstanding requests before
             --  etherealize the object.
@@ -1107,7 +1111,7 @@ package body Broca.Rootpoa is
          A_Servant := null;
       end if;
 
-      PortableServer.POA.Set (A_Poa, Broca.Refs.Ref_Ptr (Self));
+      PortableServer.POA.Set (A_Poa, CORBA.Impl.Object_Ptr (Self));
       pragma Debug (O ("GIOP_Invoke: POA is set."));
 
       if A_Servant = null then
@@ -1141,7 +1145,7 @@ package body Broca.Rootpoa is
 
             when USE_SERVANT_MANAGER =>
                pragma Debug (O ("GIOP_Invoke: USE_SERVANT_MANAGER policy"));
-               if Broca.Refs."="
+               if CORBA.Impl."="
                  (PortableServer.ServantManager.Get (Self.Servant_Manager),
                   null)
                then
@@ -1449,7 +1453,8 @@ package body Broca.Rootpoa is
            (Object_Ptr (Self), Adapter_Name, Ghost_Poa_Manager,
             ORB_CTRL_MODEL, PortableServer.TRANSIENT, UNIQUE_ID, SYSTEM_ID,
             IMPLICIT_ACTIVATION, RETAIN, USE_ACTIVE_OBJECT_MAP_ONLY);
-         PortableServer.POA_Forward.Set (Poa_Ref, Broca.Refs.Ref_Ptr (Self));
+         PortableServer.POA_Forward.Set (Poa_Ref,
+                                         CORBA.Impl.Object_Ptr (Self));
 
          All_POAs_Lock.Unlock_W;
 
@@ -1537,7 +1542,7 @@ begin
    declare
       Obj_Ref : CORBA.Object.Ref;
    begin
-      CORBA.Object.Set (Obj_Ref, Broca.Refs.Ref_Ptr (Root_POA));
+      CORBA.Object.Set (Obj_Ref, CORBA.Impl.Object_Ptr (Root_POA));
       Broca.ORB.Register_Initial_Reference
         (Broca.ORB.Root_POA_ObjectId, Obj_Ref);
    end;

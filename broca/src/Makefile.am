@@ -33,6 +33,9 @@ ADA_FULL = \
            corba-sequences-bounded.ads \
            corba-sequences-unbounded.ads \
            corba.ads \
+	   corba-abstractbase.ads \
+	   corba-impl.ads \
+	   corba-value-forward.ads \
            portableserver-adapteractivator-impl.ads \
            portableserver-adapteractivator.ads \
            portableserver-current.ads \
@@ -51,7 +54,8 @@ ADA_SPECS = $(ADA_FULL) \
            corba-sequences.ads \
            portableserver-servantactivator-impl.ads \
            portableserver-servantlocator-impl.ads \
-           portableserver-servantmanager.ads
+           portableserver-servantmanager.ads \
+	   corba-value.ads 
 
 ADA_BODIES = $(ADA_FULL:.ads=.adb)
 

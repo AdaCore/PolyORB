@@ -31,18 +31,21 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with CORBA.Impl;
+with Ada.Finalization;
+
 package CORBA.AbstractBase is
 
    type Ref is new Ada.Finalization.Controlled with
       record
-         Ptr: CORBA.Impl.Object_Ptr := null;
+         Ptr : CORBA.Impl.Object_Ptr := null;
       end record;
 
-   procedure Initialize (The_Ref: in out Ref);
-   procedure Adjust (The_Ref: in out Ref);
-   procedure Finalize (The_Ref: in out Ref);
+   procedure Initialize (The_Ref : in out Ref);
+   procedure Adjust (The_Ref : in out Ref);
+   procedure Finalize (The_Ref : in out Ref);
 
-   procedure Unref (The_Ref: in out Ref)
+   procedure Unref (The_Ref : in out Ref)
      renames Finalize;
 
    function Is_Nil  (Self : in Ref) return CORBA.Boolean;
@@ -55,5 +58,14 @@ package CORBA.AbstractBase is
    procedure Release (Self : in out Ref);
 
    function Object_Of (Self : Ref) return CORBA.Impl.Object_Ptr;
+
+
+   --  Adabroker specific, temporrily to switch to spec
+   --  2.3 and still provide coherent reference counting
+
+   procedure Set (Self : in out Ref;
+                  Referenced : in CORBA.Impl.Object_Ptr);
+
+   function Get (Self : in Ref) return CORBA.Impl.Object_Ptr;
 
 end CORBA.AbstractBase;

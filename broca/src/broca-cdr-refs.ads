@@ -32,19 +32,20 @@
 ------------------------------------------------------------------------------
 
 with CORBA.Object;
+with CORBA.Impl;
 
 package Broca.CDR.Refs is
 
-   pragma Elaborate_Body;
-
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : access CORBA.Object.Ref);
+      Data   : in CORBA.Object.Ref'Class);
+
+   procedure Unmarshall (Buffer : access Buffer_Type;
+                         Data : in out CORBA.Object.Ref'Class);
+
+private
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in CORBA.Object.Ref);
-
-   function Unmarshall (Buffer : access Buffer_Type)
-     return CORBA.Object.Ref;
+      Data : in CORBA.Impl.Object);
 
 end Broca.CDR.Refs;

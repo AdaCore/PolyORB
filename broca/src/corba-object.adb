@@ -33,7 +33,7 @@
 
 with Broca.IOR;
 with Broca.Buffers; use Broca.Buffers;
-with Broca.Refs; use Broca.Refs;
+with Broca.CDR.Refs;
 
 package body CORBA.Object is
 
@@ -41,11 +41,11 @@ package body CORBA.Object is
    -- Is_Nil --
    ------------
 
-   function Is_Nil (Self : Ref) return CORBA.Boolean is
-      use Broca.Refs;
-   begin
-      return Get (Self) = null;
-   end Is_Nil;
+   --  function Is_Nil (Self : Ref) return CORBA.Boolean is
+   --   use Broca.Refs;
+   --  begin
+   --   return Get (Self) = null;
+   --  end Is_Nil;
 
    ----------------------
    -- Object_To_String --
@@ -57,7 +57,8 @@ package body CORBA.Object is
    is
       Buffer : aliased Buffer_Type;
    begin
-      Marshall_Reference (Buffer'Access, Obj);
+      Broca.CDR.Refs.Marshall (Buffer'Access, Obj);
+      --  Marshall_Reference (Buffer'Access, Obj);
       declare
          Result : constant CORBA.String
            := Broca.IOR.Buffer_To_IOR_String

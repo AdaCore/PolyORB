@@ -31,9 +31,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Broca.Refs;
+--  with Broca.Refs;
 with Broca.POA;
 with PortableServer.AdapterActivator;
+with CORBA.Impl;
 
 package body PortableServer.AdapterActivator.Impl is
    function To_Ref (Self : Object_Ptr)
@@ -41,8 +42,10 @@ package body PortableServer.AdapterActivator.Impl is
       Res : PortableServer.AdapterActivator.Ref;
    begin
       Set (Res,
-           Broca.Refs.Ref_Ptr
+           CORBA.Impl.Object_Ptr
            (Broca.POA.Create_Internal_Skeleton (Servant (Self))));
+      --  Broca.Refs.Ref_Ptr
+      --  (Broca.POA.Create_Internal_Skeleton (Servant (Self))));
       return Res;
    end To_Ref;
 end PortableServer.AdapterActivator.Impl;

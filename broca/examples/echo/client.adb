@@ -58,7 +58,6 @@ begin
 
    --  sending message
    Sent_Msg := CORBA.To_CORBA_String (Standard.String'("Hello Ada !"));
-   --  Sent_Msg := CORBA.To_CORBA_String (Standard.String'("Hello!"));
    Rcvd_Msg := Echo.echoString (myecho, Sent_Msg);
 
    --  printing result
