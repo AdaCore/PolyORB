@@ -29,10 +29,11 @@ with Ada.Command_Line;  use Ada.Command_Line;
 
 with GNAT.Command_Line; use GNAT.Command_Line;
 with GNAT.IO_Aux;       use GNAT.IO_Aux;
-with GNAT.OS_Lib;
+with GNAT.OS_Lib;       use GNAT.OS_Lib;
 
 with Idl_Fe.Types;
 with Idl_Fe.Parser;
+with Idl_Fe.Lexer;
 with Errors;
 
 with Ada_Be.Expansion;
@@ -55,7 +56,8 @@ procedure Idlac is
       Put_Line (Current_Error, "  -q    Be quiet.");
       Put_Line (Current_Error, "  -cppargs ARGS");
       Put_Line (Current_Error, "        Pass ARGS to the C++ preprocessor.");
-      GNAT.OS_Lib.OS_Exit (1);
+      Put_Line (Current_Error, "  -I dir is a shortcut for -cppargs -I dir.");
+      OS_Exit (1);
    end Usage;
 
    File_Name : Idl_Fe.Types.String_Cacc;
@@ -72,8 +74,12 @@ begin
         ('-', False, "cppargs");
 
       loop
-         case Getopt ("i k p q") is
-            when ASCII.Nul => exit;
+         case Getopt ("I: i k p q") is
+            when Ascii.NUL => exit;
+
+            when 'I' =>
+               Idl_Fe.Lexer.Add_Argument ("-I");
+               Idl_Fe.Lexer.Add_Argument (Parameter);
 
             when 'i' =>
                Generate_Impl_Template
@@ -116,8 +122,12 @@ begin
    --  If file does not exist, issue an error message unless it works after
    --  adding an "idl" extension.
 
-   if not File_Exists (File_Name.all) then
-      if File_Exists (File_Name.all & ".idl") then
+   if not File_Exists (File_Name.all)
+     or else not Is_Regular_File (File_Name.all)
+   then
+      if File_Exists (File_Name.all & ".idl")
+        and then Is_Regular_File (File_Name.all & ".idl")
+      then
          File_Name := new String'(File_Name.all & ".idl");
       else
          Put_Line (Current_Error, "No such file: " & File_Name.all);

@@ -231,6 +231,16 @@ package Idl_Fe.Lexer is
 
 
 
+   -----------------------------------------------------
+   --  Tools and constants for the preprocessor call  --
+   -----------------------------------------------------
+
+   --  Adds an argument to be given to the preprocessor
+   procedure Add_Argument (Str : String);
+
+
+
+
 private
 
    -----------------------------------
@@ -495,16 +505,6 @@ private
    --
    --  IDL Syntax and semantics, CORBA V2.3 § 3.3
    function Scan_Preprocessor return Boolean;
-
-
-
-   -----------------------------------------------------
-   --  Tools and constants for the preprocessor call  --
-   -----------------------------------------------------
-
-   --  Adds an argument to be given to the preprocessor
-   procedure Add_Argument (Str : String);
-
 
 
 
