@@ -122,7 +122,5 @@ sys_dep_definition_file.txt -u
 
 ##############################################################
 clean :
-	rm *.ali *.o *~
-	rm Ada_Sys_Dep
-	rm sys_dep.adb
+	rm *.ali *.o *~ Ada_Sys_Dep sys_dep.ads
 
