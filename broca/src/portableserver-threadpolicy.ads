@@ -1,6 +1,6 @@
 with PortableServer;
-with Corba;
-with Corba.Policy;
+with CORBA;
+with CORBA.Policy;
 
 package PortableServer.ThreadPolicy is
    type Ref is new CORBA.Policy.Ref with null record;

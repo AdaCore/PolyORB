@@ -3,7 +3,7 @@ with CORBA.Object;
 with Broca.Object;
 with Broca.Buffers; use Broca.Buffers;
 
-package Broca.Giop is
+package Broca.GIOP is
    --  Declare a few constants for GIOP version 1.0.
 
    --  GIOP::MsgType
@@ -107,7 +107,7 @@ package Broca.Giop is
       record
          Buffer : Buffer_Descriptor;
          Request_Id : CORBA.Unsigned_Long;
-         Profile : Broca.Object.Profile_Acc;
+         Profile : Broca.Object.Profile_Ptr;
          Connection : Broca.Object.Connection_Acc;
          Nbr_Tries : Natural := 0;
       end record;
@@ -115,7 +115,7 @@ package Broca.Giop is
    --  Send a request.
    procedure Send_Request_Size
      (Handler   : in out Request_Handler;
-      Object    : in Broca.Object.Object_Acc;
+      Object    : in Broca.Object.Object_Ptr;
       Operation : in CORBA.Identifier);
 
    procedure Send_Request_Marshall
@@ -131,8 +131,8 @@ package Broca.Giop is
 
    procedure Send_Request_Send
      (Handler          : in out Request_Handler;
-      Object           : in Broca.Object.Object_Acc;
+      Object           : in Broca.Object.Object_Ptr;
       Reponse_Expected : in Boolean;
       Result           : out Send_Request_Result_Type);
 
-end Broca.Giop;
+end Broca.GIOP;

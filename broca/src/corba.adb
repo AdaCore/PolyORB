@@ -1,6 +1,6 @@
 with Broca.Exceptions;
 
-package body Corba is
+package body CORBA is
    procedure Get_Members
      (From : in Ada.Exceptions.Exception_Occurrence;
       To   : out System_Exception_Members)
@@ -51,5 +51,5 @@ package body Corba is
 --         (Ada.Strings.Unbounded.Length
 --          (Ada.Strings.Unbounded.Unbounded_String (S)));
 --    end Length;
-end Corba;
+end CORBA;
 

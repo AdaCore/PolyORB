@@ -99,7 +99,7 @@ package Broca.Poa is
    type Skeleton is new Broca.Refs.Ref_Type with
       record
          --  IOR created for this object.
-         Ior : Broca.Buffers.Buffer_Descriptor;
+         IOR : Broca.Buffers.Buffer_Descriptor;
 
          P_Servant : PortableServer.Servant;
 

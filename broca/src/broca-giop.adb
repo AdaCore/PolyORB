@@ -3,12 +3,12 @@ with Broca.Marshalling;  use Broca.Marshalling;
 with Broca.Exceptions;
 with Broca.Flags;
 with Broca.Sequences;
-with Broca.Orb;
+with Broca.ORB;
 
 with Broca.Debug;
 pragma Elaborate_All (Broca.Debug);
 
-package body Broca.Giop is
+package body Broca.GIOP is
 
    Flag : constant Natural := Broca.Debug.Is_Active ("broca.giop");
    procedure O is new Broca.Debug.Output (Flag);
@@ -183,7 +183,7 @@ package body Broca.Giop is
       Marshall (Buffer, Request_Id);
 
       --  Reply status
-      Marshall (Buffer, Broca.Giop.System_Exception);
+      Marshall (Buffer, Broca.GIOP.System_Exception);
 
       --  Exception
       Broca.Exceptions.Marshall (Buffer, Occurence);
@@ -231,7 +231,7 @@ package body Broca.Giop is
       Marshall (Buffer, Request_Id);
 
       --  Reply status
-      Marshall (Buffer, Broca.Giop.Location_Forward);
+      Marshall (Buffer, Broca.GIOP.Location_Forward);
 
       --  Reference
       Broca.Refs.Marshall (Buffer, Broca.Refs.Ref (Reference));
@@ -243,7 +243,7 @@ package body Broca.Giop is
 
    procedure Send_Request_Size
      (Handler   : in out Request_Handler;
-      Object    : in Broca.Object.Object_Acc;
+      Object    : in Broca.Object.Object_Ptr;
       Operation : in CORBA.Identifier)
    is
       use Broca.Marshalling;
@@ -294,7 +294,7 @@ package body Broca.Giop is
    is
       use Broca.Marshalling;
    begin
-      Marshall_GIOP_Header (Handler.Buffer, Broca.Giop.Request);
+      Marshall_GIOP_Header (Handler.Buffer, Broca.GIOP.Request);
 
       --  Service context
       Marshall (Handler.Buffer, CORBA.Unsigned_Long (No_Context));
@@ -324,7 +324,7 @@ package body Broca.Giop is
 
    procedure Send_Request_Send
      (Handler          : in out Request_Handler;
-      Object           : in Broca.Object.Object_Acc;
+      Object           : in Broca.Object.Object_Ptr;
       Reponse_Expected : in Boolean;
       Result           : out Send_Request_Result_Type)
    is
@@ -385,26 +385,26 @@ package body Broca.Giop is
       --  Reply status
       Unmarshall (Handler.Buffer, Reply_Status);
       case Reply_Status is
-         when Broca.Giop.No_Exception =>
+         when Broca.GIOP.No_Exception =>
             Result := Sr_Reply;
             return;
 
-         when Broca.Giop.System_Exception =>
+         when Broca.GIOP.System_Exception =>
             Broca.Exceptions.Unmarshall_And_Raise (Handler.Buffer);
 
-         when Broca.Giop.Location_Forward =>
+         when Broca.GIOP.Location_Forward =>
             declare
                New_Ref : CORBA.Object.Ref;
             begin
-               Broca.Orb.IOR_To_Object (Handler.Buffer, New_Ref);
+               Broca.ORB.IOR_To_Object (Handler.Buffer, New_Ref);
                --  FIXME: check type, use a lock ?
                Object.Profiles :=
-                 Broca.Object.Object_Acc (CORBA.Object.Get (New_Ref)).Profiles;
+                 Broca.Object.Object_Ptr (CORBA.Object.Get (New_Ref)).Profiles;
             end;
             Result := Sr_Forward;
             return;
 
-         when Broca.Giop.User_Exception =>
+         when Broca.GIOP.User_Exception =>
             Result := Sr_User_Exception;
             return;
 
@@ -485,4 +485,4 @@ package body Broca.Giop is
       Result := Unsigned_Long_To_LocateStatusType (UL);
    end Unmarshall;
 
-end Broca.Giop;
+end Broca.GIOP;

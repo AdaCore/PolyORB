@@ -15,7 +15,7 @@ package body Broca.Repository is
    begin
       pragma Debug (O ("Register : enter"));
       pragma Debug (O ("Create_Ref : Repository_Id = " &
-                       CORBA.To_Standard_String(Corba.String(Class.all.Type_Id))));
+                       CORBA.To_Standard_String(CORBA.String(Class.all.Type_Id))));
       --  Simply add it to the list.
       Class.Next := Classes;
       Classes := Class;
@@ -30,7 +30,7 @@ package body Broca.Repository is
    begin
       pragma Debug (O ("Create_Ref : enter"));
       pragma Debug (O ("Create_Ref : Repository_Id = " &
-                       CORBA.To_Standard_String(Corba.String(Type_Id))));
+                       CORBA.To_Standard_String(CORBA.String(Type_Id))));
       El := Classes;
       while El /= null loop
          if El.Type_Id = Type_Id then

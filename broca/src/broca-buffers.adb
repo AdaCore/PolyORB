@@ -42,18 +42,6 @@ package body Broca.Buffers is
       Buffer.Little_Endian := Is_Little_Endian;
    end Allocate_Buffer;
 
-   ---------------------------------
-   -- Allocate_Buffer_And_Set_Pos --
-   ---------------------------------
-
-   procedure Allocate_Buffer_And_Set_Pos
-     (Buffer : in out Buffer_Descriptor;
-      Size   : in Buffer_Index_Type) is
-   begin
-      Fix_Buffer_Size (Buffer, Size);
-      Buffer.Pos := Size;
-   end Allocate_Buffer_And_Set_Pos;
-
    -----------------------------------
    -- Allocate_Buffer_And_Clear_Pos --
    -----------------------------------

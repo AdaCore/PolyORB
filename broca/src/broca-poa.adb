@@ -33,7 +33,7 @@ package body Broca.Poa is
                          return Skeleton_Access
    is
       use Broca.Refs;
-      Res : Broca.Refs.Ref_Acc;
+      Res : Broca.Refs.Ref_Ptr;
    begin
       Res := CORBA.Object.Get (Ref);
       if Res = null or else Res.all not in Skeleton'Class then
@@ -48,7 +48,7 @@ package body Broca.Poa is
                                   return Internal_Skeleton_Access
    is
       use Broca.Refs;
-      Res : Broca.Refs.Ref_Acc;
+      Res : Broca.Refs.Ref_Ptr;
    begin
       Res := CORBA.Object.Get (Ref);
       if Res = null or else Res.all not in Internal_Skeleton'Class then
@@ -65,7 +65,7 @@ package body Broca.Poa is
    begin
       Res := new Internal_Skeleton;
       Res.P_Servant := P_Servant;
-      Broca.Refs.Inc_Usage (Broca.Refs.Ref_Acc (Res));
+      Broca.Refs.Inc_Usage (Broca.Refs.Ref_Ptr (Res));
       return Res;
    end Create_Internal_Skeleton;
 end Broca.Poa;

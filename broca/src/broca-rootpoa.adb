@@ -12,7 +12,7 @@ with Broca.Refs;
 with Broca.Exceptions;
 with Broca.Poa; use Broca.Poa;
 with Broca.Sequences;
-with Broca.Orb;
+with Broca.ORB;
 with Broca.Vararray;
 with Broca.Buffers;
 with Broca.Server;
@@ -22,7 +22,7 @@ with Broca.Marshalling;
 with Broca.Flags;
 with Ada.Task_Attributes;
 pragma Elaborate_All (Broca.Vararray);
-pragma Elaborate_All (Broca.Orb);
+pragma Elaborate_All (Broca.ORB);
 pragma Elaborate_All (Broca.Refs);
 pragma Elaborate_All (CORBA.Object);
 pragma Elaborate_All (Broca.Server);
@@ -131,7 +131,7 @@ package body Broca.Rootpoa is
       if Arg then
          null;
       end if;
-      Broca.Orb.Poa_State_Changed (El);
+      Broca.ORB.Poa_State_Changed (El);
    end State_Changed_Iterator;
 
    procedure Etherealize_Iterator
@@ -301,7 +301,7 @@ package body Broca.Rootpoa is
          --  a fat pointer.
          Map_Lock : Broca.Locks.Mutex_Type;
       end record;
-   type Object_Acc is access all Object;
+   type Object_Ptr is access all Object;
    function Activate_Object
      (Self : access Object; P_Servant : PortableServer.Servant)
       return PortableServer.ObjectId;
@@ -652,7 +652,7 @@ package body Broca.Rootpoa is
       Obj.P_Servant := P_Servant;
       Obj.Object_Id := Oid;
       Obj.Poa := POA_Object_Access (Self);
-      Broca.Refs.Inc_Usage (Broca.Refs.Ref_Acc (Obj));
+      Broca.Refs.Inc_Usage (Broca.Refs.Ref_Ptr (Obj));
 
       --  The servant is now active
       if Self.Servant_Policy = RETAIN then
@@ -664,7 +664,7 @@ package body Broca.Rootpoa is
       end if;
 
       Broca.Server.Build_Ior
-        (Obj.Ior, Type_Id, Broca.Poa.POA_Object_Access (Self), Key);
+        (Obj.IOR, Type_Id, Broca.Poa.POA_Object_Access (Self), Key);
 
       Broca.Buffers.Destroy (Key);
 
@@ -738,7 +738,7 @@ package body Broca.Rootpoa is
       Obj := Create_Skeleton (Self, Slot, null, Intf, Oid);
 
       --  Create the reference.
-      CORBA.Object.Set (Res, Broca.Refs.Ref_Acc (Obj));
+      CORBA.Object.Set (Res, Broca.Refs.Ref_Ptr (Obj));
       return Res;
    end Create_Reference;
 
@@ -764,7 +764,7 @@ package body Broca.Rootpoa is
       Obj := Create_Skeleton (Self, Slot, null, Intf, Oid);
 
       --  Create the reference.
-      CORBA.Object.Set (Res, Broca.Refs.Ref_Acc (Obj));
+      CORBA.Object.Set (Res, Broca.Refs.Ref_Ptr (Obj));
       return Res;
    end Create_Reference_With_Id;
 
@@ -898,7 +898,7 @@ package body Broca.Rootpoa is
       A_Servant : PortableServer.Servant;
       A_Poa : PortableServer.POA.Ref;
       Is_Cleanup : Boolean;
-      A_Ref : Broca.Refs.Ref_Acc;
+      A_Ref : Broca.Refs.Ref_Ptr;
    begin
       Is_Cleanup := Self.POA_Manager = null
         or else Broca.Poa.Is_Inactive (Self.POA_Manager.all);
@@ -912,7 +912,7 @@ package body Broca.Rootpoa is
          then
             Sm := To_Internal_Skeleton (Self.Servant_Manager);
             A_Servant := Self.Object_Map (Slot).Skeleton.P_Servant;
-            PortableServer.POA.Set (A_Poa, Broca.Refs.Ref_Acc (Self));
+            PortableServer.POA.Set (A_Poa, Broca.Refs.Ref_Ptr (Self));
             begin
                --  Wait for completions on all outstanding requests before
                --  etherealize the object.
@@ -947,13 +947,13 @@ package body Broca.Rootpoa is
       end if;
 
       --  FIXME: not very clean: destroy the object self.
-      A_Ref := Broca.Refs.Ref_Acc (Self);
+      A_Ref := Broca.Refs.Ref_Ptr (Self);
       Broca.Refs.Dec_Usage (A_Ref);
    end Cleanup;
 
    procedure Set_Cleanup_Call_Back (Self : access Object) is
    begin
-      Broca.Refs.Inc_Usage (Broca.Refs.Ref_Acc (Self));
+      Broca.Refs.Inc_Usage (Broca.Refs.Ref_Ptr (Self));
       if Self.POA_Manager /= null then
          Broca.Poa.Inc_Usage (Self.POA_Manager.all);
       end if;
@@ -973,7 +973,7 @@ package body Broca.Rootpoa is
             end if;
          end loop;
          if To_Clean then
-            Broca.Refs.Inc_Usage (Broca.Refs.Ref_Acc (Self));
+            Broca.Refs.Inc_Usage (Broca.Refs.Ref_Ptr (Self));
             Broca.Server.Request_Cleanup (Broca.Poa.POA_Object_Access (Self));
          end if;
       end if;
@@ -988,7 +988,7 @@ package body Broca.Rootpoa is
          raise PortableServer.POA.ObjectNotActive;
       end if;
       if Clean_Slot (Self, Slot) then
-         Broca.Refs.Inc_Usage (Broca.Refs.Ref_Acc (Self));
+         Broca.Refs.Inc_Usage (Broca.Refs.Ref_Ptr (Self));
          Broca.Server.Request_Cleanup (Broca.Poa.POA_Object_Access (Self));
       end if;
    end Deactivate_Object;
@@ -1025,7 +1025,7 @@ package body Broca.Rootpoa is
          A_Servant := null;
       end if;
 
-      PortableServer.POA.Set (A_Poa, Broca.Refs.Ref_Acc (Self));
+      PortableServer.POA.Set (A_Poa, Broca.Refs.Ref_Ptr (Self));
 
       if A_Servant = null then
          pragma Debug (O ("Giop_invoke : A_Servant is null"));
@@ -1157,7 +1157,7 @@ package body Broca.Rootpoa is
    is
       use CORBA;
       Child : POA_Object_Access;
-      Res : Object_Acc;
+      Res : Object_Ptr;
    begin
       --  Fail if there is already a POA with the same name.
       Child := Self.Children;
@@ -1172,7 +1172,7 @@ package body Broca.Rootpoa is
 
       if Child = null then
          Res := new Object;
-         Broca.Refs.Inc_Usage (Broca.Refs.Ref_Acc (Res));
+         Broca.Refs.Inc_Usage (Broca.Refs.Ref_Ptr (Res));
          --  Link it.
          Res.Parent := POA_Object_Access (Self);
          Res.Brother := Self.Children;
@@ -1181,7 +1181,7 @@ package body Broca.Rootpoa is
          --  Internal data.
          Res.Name := Adapter_Name;
       else
-         Res := Object_Acc (Child);
+         Res := Object_Ptr (Child);
       end if;
 
       Broca.Server.Register_POA (POA_Object_Access (Res));
@@ -1207,7 +1207,7 @@ package body Broca.Rootpoa is
       else
          Res.POA_Manager := new Poa_Manager_Type;
       end if;
-      Broca.Refs.Inc_Usage (Broca.Refs.Ref_Acc (Res.POA_Manager));
+      Broca.Refs.Inc_Usage (Broca.Refs.Ref_Ptr (Res.POA_Manager));
 
       return POA_Object_Access (Res);
    end Create_POA;
@@ -1245,8 +1245,8 @@ package body Broca.Rootpoa is
             Unregister_All (Self.Brother);
          end if;
          Broca.Server.Unregister_POA (Self);
-         Broca.Orb.Poa_State_Changed (Self);
-         Broca.Refs.Dec_Usage (Broca.Refs.Ref_Acc (Self.POA_Manager));
+         Broca.ORB.Poa_State_Changed (Self);
+         Broca.Refs.Dec_Usage (Broca.Refs.Ref_Ptr (Self.POA_Manager));
          Self.POA_Manager := null;
       end Unregister_All;
 
@@ -1254,14 +1254,14 @@ package body Broca.Rootpoa is
       begin
          if Self.Children /= null then
             Destroy_All (Self.Children);
-            Broca.Refs.Dec_Usage (Broca.Refs.Ref_Acc (Self.Children));
+            Broca.Refs.Dec_Usage (Broca.Refs.Ref_Ptr (Self.Children));
          end if;
          if Self.Brother /= null then
             Destroy_All (Self.Brother);
-            Broca.Refs.Dec_Usage (Broca.Refs.Ref_Acc (Self.Brother));
+            Broca.Refs.Dec_Usage (Broca.Refs.Ref_Ptr (Self.Brother));
          end if;
          PortableServer.AdapterActivator.Set (Self.Activator, null);
-         Broca.Refs.Dec_Usage (Broca.Refs.Ref_Acc (Self.POA_Manager));
+         Broca.Refs.Dec_Usage (Broca.Refs.Ref_Ptr (Self.POA_Manager));
          PortableServer.ServantManager.Set (Self.Servant_Manager, null);
          if Etherealize_Objects and then Self.Servant_Policy = RETAIN then
             Deactivate (Self);
@@ -1304,11 +1304,11 @@ package body Broca.Rootpoa is
          if Child.Name = Adapter_Name then
             if Child.POA_Manager = Ghost_Poa_Manager then
                --  The poa is under creation.
-               Broca.Refs.Inc_Usage (Broca.Refs.Ref_Acc (Child));
+               Broca.Refs.Inc_Usage (Broca.Refs.Ref_Ptr (Child));
                All_POAs_Lock.Unlock_W;
                Child.Creation_Lock.Wait;
                All_POAs_Lock.Lock_W;
-               Broca.Refs.Dec_Usage (Broca.Refs.Ref_Acc (Child));
+               Broca.Refs.Dec_Usage (Broca.Refs.Ref_Ptr (Child));
                goto Again;
             end if;
             return Child;
@@ -1331,10 +1331,10 @@ package body Broca.Rootpoa is
          --  This child POA prevents simultaneous creation of several POAs
          --  with the same name.
          Res := Create_POA
-           (Object_Acc (Self), Adapter_Name, Ghost_Poa_Manager,
+           (Object_Ptr (Self), Adapter_Name, Ghost_Poa_Manager,
             ORB_CTRL_MODEL, PortableServer.TRANSIENT, UNIQUE_ID, SYSTEM_ID,
             IMPLICIT_ACTIVATION, RETAIN, USE_ACTIVE_OBJECT_MAP_ONLY);
-         PortableServer.POA_Forward.Set (Poa_Ref, Broca.Refs.Ref_Acc (Self));
+         PortableServer.POA_Forward.Set (Poa_Ref, Broca.Refs.Ref_Ptr (Self));
 
          All_POAs_Lock.Unlock_W;
 
@@ -1367,7 +1367,7 @@ package body Broca.Rootpoa is
             Unlink_POA (Res);
             Broca.Server.Unregister_POA (Res);
             Res.Creation_Lock.Unlock;
-            Broca.Orb.Poa_State_Changed (Res);
+            Broca.ORB.Poa_State_Changed (Res);
             --  FIXME:  the memory must be freed by dec_usage when poa_ref
             --  is finalized.  Check this.
             return null;
@@ -1381,15 +1381,15 @@ begin
    --  9.3.2  Processing States
    --  The RootPOA is therefore initially in the holding state.
    Default_Poa_Manager := new Poa_Manager_Type;
-   Broca.Refs.Inc_Usage (Broca.Refs.Ref_Acc (Default_Poa_Manager));
+   Broca.Refs.Inc_Usage (Broca.Refs.Ref_Ptr (Default_Poa_Manager));
 
    --  Build the ghost POA manager.
    Ghost_Poa_Manager := new Poa_Manager_Type;
-   Broca.Refs.Inc_Usage (Broca.Refs.Ref_Acc (Ghost_Poa_Manager));
+   Broca.Refs.Inc_Usage (Broca.Refs.Ref_Ptr (Ghost_Poa_Manager));
 
    --  Build the RootPOA.
    Root_Poa := new Object;
-   Broca.Refs.Inc_Usage (Broca.Refs.Ref_Acc (Root_Poa));
+   Broca.Refs.Inc_Usage (Broca.Refs.Ref_Ptr (Root_Poa));
    Root_Poa.POA_Manager :=
      Broca.Poa.POAManager_Object_Access (Default_Poa_Manager);
    --  9.3.8
@@ -1416,8 +1416,8 @@ begin
    declare
       Obj_Ref : CORBA.Object.Ref;
    begin
-      CORBA.Object.Set (Obj_Ref, Broca.Refs.Ref_Acc (Root_Poa));
-      Broca.Orb.Register_Initial_Reference
-        (Broca.Orb.Root_Poa_Objectid, Obj_Ref);
+      CORBA.Object.Set (Obj_Ref, Broca.Refs.Ref_Ptr (Root_Poa));
+      Broca.ORB.Register_Initial_Reference
+        (Broca.ORB.Root_Poa_Objectid, Obj_Ref);
    end;
 end Broca.Rootpoa;

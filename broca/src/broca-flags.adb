@@ -4,8 +4,8 @@ with Ada.Calendar;
 
 package body Broca.Flags is
    --  Scan all options from the command line and interprete corba options.
-   --  Corba options begins with "-ORB" and can have an optional argument.
-   --  Corba options are not removed from the command line, which can be
+   --  CORBA options begins with "-ORB" and can have an optional argument.
+   --  CORBA options are not removed from the command line, which can be
    --  a problem for the user program, eg considere this one:
    --  ./my_server -ORBopt foo bar
    --  Is `foo' the argument of `-ORBopt' or the first argument of the program.

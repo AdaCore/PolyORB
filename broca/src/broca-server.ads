@@ -29,7 +29,7 @@ package Broca.Server is
    --  Need only to update IOR.POS.
    --  OBJECT_KEY must be 4-aligned
    procedure Marshall_Size_Profile (Server : access Server_Type;
-                                    Ior : in out Broca.Buffers.Buffer_Descriptor;
+                                    IOR : in out Broca.Buffers.Buffer_Descriptor;
                                     Object_Key : Broca.Buffers.Buffer_Descriptor)
       is abstract;
    --  During the building of an IOR, the procedure is called to marshall a
@@ -38,7 +38,7 @@ package Broca.Server is
    --  In particular, it must be zero for no profile.
    --  OBJECT_KEY must be 4-aligned
    procedure Marshall_Profile (Server : access Server_Type;
-                               Ior : in out Broca.Buffers.Buffer_Descriptor;
+                               IOR : in out Broca.Buffers.Buffer_Descriptor;
                                Object_Key : Broca.Buffers.Buffer_Descriptor)
       is abstract;
 

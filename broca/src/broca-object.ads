@@ -33,9 +33,9 @@ package Broca.Object is
    function Find_Connection (Profile : access Profile_Type)
                              return Connection_Acc is abstract;
 
-   type Profile_Acc is access all Profile_Type'Class;
+   type Profile_Ptr is access all Profile_Type'Class;
    type Profile_Acc_Array is
-      array (CORBA.Unsigned_Long range <>) of Profile_Acc;
+      array (CORBA.Unsigned_Long range <>) of Profile_Ptr;
    type Profile_Acc_Array_Acc is access Profile_Acc_Array;
 
    type Object_Type is new Broca.Refs.Ref_Type with
@@ -44,8 +44,8 @@ package Broca.Object is
          Profiles : Profile_Acc_Array_Acc;
       end record;
 
-   type Object_Acc is access all Object_Type;
+   type Object_Ptr is access all Object_Type;
 
    --  Find a profile for a message.
-   function Find_Profile (Object : Object_Acc) return Profile_Acc;
+   function Find_Profile (Object : Object_Ptr) return Profile_Ptr;
 end Broca.Object;

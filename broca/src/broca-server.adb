@@ -6,16 +6,17 @@ with PortableServer;
 with Broca.Buffers;     use Broca.Buffers;
 with Broca.Exceptions;
 with Broca.Marshalling;
-with Broca.Giop;
-with Broca.Orb;
+with Broca.GIOP;
+with Broca.ORB;
 with Broca.Stream;
 with Broca.Flags;
-pragma Elaborate_All (Broca.Orb);
+pragma Elaborate_All (Broca.ORB);
 
 with Broca.Debug;
 pragma Elaborate_All (Broca.Debug);
 
 package body Broca.Server is
+
    Flag : constant Natural := Broca.Debug.Is_Active ("broca.server");
    procedure O is new Broca.Debug.Output (Flag);
 
@@ -618,10 +619,10 @@ package body Broca.Server is
                               Buffer : in out Broca.Buffers.Buffer_Descriptor);
       procedure Marshall_Size_Profile
         (Server : access Wait_Server_Type;
-         Ior : in out Broca.Buffers.Buffer_Descriptor;
+         IOR : in out Broca.Buffers.Buffer_Descriptor;
          Object_Key : Broca.Buffers.Buffer_Descriptor);
       procedure Marshall_Profile (Server : access Wait_Server_Type;
-                                  Ior : in out Broca.Buffers.Buffer_Descriptor;
+                                  IOR : in out Broca.Buffers.Buffer_Descriptor;
                                   Object_Key : Broca.Buffers.Buffer_Descriptor);
 
       procedure Perform_Work (Server : access Wait_Server_Type;
@@ -644,14 +645,14 @@ package body Broca.Server is
 
       procedure Marshall_Size_Profile
         (Server : access Wait_Server_Type;
-         Ior : in out Broca.Buffers.Buffer_Descriptor;
+         IOR : in out Broca.Buffers.Buffer_Descriptor;
          Object_Key : Broca.Buffers.Buffer_Descriptor) is
       begin
          return;
       end Marshall_Size_Profile;
 
       procedure Marshall_Profile (Server : access Wait_Server_Type;
-                                  Ior : in out Broca.Buffers.Buffer_Descriptor;
+                                  IOR : in out Broca.Buffers.Buffer_Descriptor;
                                   Object_Key : Broca.Buffers.Buffer_Descriptor)
       is
       begin
@@ -760,7 +761,7 @@ package body Broca.Server is
 
       --  Service context
       Unmarshall (Buffer, Context);
-      if Context /= Broca.Giop.No_Context then
+      if Context /= Broca.GIOP.No_Context then
          pragma Debug (O ("Handle_Request : incorrect context" & Context'Img));
          Broca.Exceptions.Raise_Bad_Param;
       end if;
@@ -800,7 +801,7 @@ package body Broca.Server is
                when E : CORBA.Object_Not_Exist =>
                   Broca.GIOP.Compute_GIOP_Header_Size (Buffer);
                   Broca.GIOP.Compute_New_Size (Buffer, Request_Id, E);
-                  Broca.GIOP.Marshall_GIOP_Header (Buffer, Broca.Giop.Reply);
+                  Broca.GIOP.Marshall_GIOP_Header (Buffer, Broca.GIOP.Reply);
                   Broca.GIOP.Marshall (Buffer, Request_Id, E);
 
                when E : PortableServer.ForwardRequest =>
@@ -812,7 +813,7 @@ package body Broca.Server is
                      Broca.GIOP.Compute_New_Size
                        (Buffer, Request_Id, FRM.Forward_Reference);
                      Broca.GIOP.Marshall_GIOP_Header
-                       (Buffer, Broca.Giop.Reply);
+                       (Buffer, Broca.GIOP.Reply);
                      Broca.GIOP.Marshall
                        (Buffer, Request_Id, FRM.Forward_Reference);
                   end;
@@ -884,7 +885,7 @@ package body Broca.Server is
    is
       use Broca.Poa;
       use Broca.Marshalling;
-      use Broca.Giop;
+      use Broca.GIOP;
       use Broca.Stream;
       Message_Type : MsgType;
       Message_Size : CORBA.Unsigned_Long;
@@ -905,12 +906,12 @@ package body Broca.Server is
       Unlock_Receive (Stream);
 
       case Message_Type is
-         when Broca.Giop.Request =>
+         when Broca.GIOP.Request =>
             Log ("handle request message");
 
             Handle_Request (Stream, Buffer);
 
-         when Broca.Giop.Locate_Request =>
+         when Broca.GIOP.Locate_Request =>
             Log ("handle locate_request message");
 
             --  request id
@@ -923,10 +924,10 @@ package body Broca.Server is
             --  FIXME.
             Broca.GIOP.Compute_GIOP_Header_Size (Buffer);
             Compute_New_Size (Buffer, Request_Id);
-            Compute_New_Size (Buffer, Broca.Giop.Object_Here);
-            Broca.GIOP.Marshall_GIOP_Header (Buffer, Broca.Giop.Locate_Reply);
+            Compute_New_Size (Buffer, Broca.GIOP.Object_Here);
+            Broca.GIOP.Marshall_GIOP_Header (Buffer, Broca.GIOP.Locate_Reply);
             Marshall (Buffer, Request_Id);
-            Broca.GIOP.Marshall (Buffer, Broca.Giop.Object_Here);
+            Broca.GIOP.Marshall (Buffer, Broca.GIOP.Object_Here);
 
             Lock_Send (Stream);
             Send (Stream, Buffer);
@@ -956,7 +957,7 @@ package body Broca.Server is
                         Poa : Broca.Poa.POA_Object_Access;
                         Key : Broca.Buffers.Buffer_Descriptor) is
       use Broca.Marshalling;
-      Ior : Buffer_Descriptor;
+      IOR : Buffer_Descriptor;
       Object_Key : Broca.Buffers.Buffer_Descriptor;
       Nbr_Profiles : CORBA.Unsigned_Long;
       Server : Server_Acc;
@@ -997,7 +998,7 @@ package body Broca.Server is
          Server := Server_Table.Get_Server_By_Id (N);
          exit when Server = null;
          Old_Size := Size (IOR);
-         Marshall_Size_Profile (Server, Ior, Object_Key);
+         Marshall_Size_Profile (Server, IOR, Object_Key);
          if Old_Size /= Size (IOR) then
             Nbr_Profiles := Nbr_Profiles + 1;
          end if;
@@ -1005,7 +1006,7 @@ package body Broca.Server is
 
       if Nbr_Profiles = 0 then
          Allocate_Buffer_And_Clear_Pos (IOR, 0);
-         Target := Ior;
+         Target := IOR;
          return;
       end if;
 
@@ -1017,7 +1018,7 @@ package body Broca.Server is
       for N in Server_Id_Type loop
          Server := Server_Table.Get_Server_By_Id (N);
          exit when Server = null;
-         Marshall_Profile (Server, Ior, Object_Key);
+         Marshall_Profile (Server, IOR, Object_Key);
       end loop;
 
       Destroy (Object_Key);
@@ -1026,10 +1027,10 @@ package body Broca.Server is
    end Build_Ior;
 
    --  Create an ORB server.
-   type This_Orb_Type is new Broca.Orb.Orb_Type with null record;
-   procedure Run (Orb : in out This_Orb_Type);
+   type This_Orb_Type is new Broca.ORB.Orb_Type with null record;
+   procedure Run (ORB : in out This_Orb_Type);
    procedure Poa_State_Changed
-     (Orb : in out This_Orb_Type; Poa : Broca.Poa.POA_Object_Access);
+     (ORB : in out This_Orb_Type; Poa : Broca.Poa.POA_Object_Access);
 
    procedure Serv;
 
@@ -1043,14 +1044,14 @@ package body Broca.Server is
       end loop;
    exception
       when E : others =>
-         Ada.Text_IO.Put ("Orb task Server: exception ");
+         Ada.Text_IO.Put ("ORB task Server: exception ");
          Ada.Text_IO.Put (Ada.Exceptions.Exception_Name (E));
          Ada.Text_IO.Put (": ");
          Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Message (E));
-         Ada.Text_IO.Put_Line ("Orb task Server shut down");
+         Ada.Text_IO.Put_Line ("ORB task Server shut down");
    end Serv;
 
-   procedure Run (Orb : in out This_Orb_Type) is
+   procedure Run (ORB : in out This_Orb_Type) is
       task type Server_Task_Type is
       end Server_Task_Type;
 
@@ -1066,7 +1067,7 @@ package body Broca.Server is
    end Run;
 
    procedure Poa_State_Changed
-     (Orb : in out This_Orb_Type; Poa : Broca.Poa.POA_Object_Access)
+     (ORB : in out This_Orb_Type; Poa : Broca.Poa.POA_Object_Access)
    is
    begin
       Log ("unqueue requests");
@@ -1083,6 +1084,6 @@ package body Broca.Server is
    end Request_Cleanup;
 
 begin
-   Broca.Orb.Register_Orb
-     (new This_Orb_Type'(Broca.Orb.Orb_Type with null record));
+   Broca.ORB.Register_Orb
+     (new This_Orb_Type'(Broca.ORB.Orb_Type with null record));
 end Broca.Server;

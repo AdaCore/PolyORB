@@ -24,21 +24,22 @@ package Broca.Refs is
      (Buffer : in out Broca.Buffers.Buffer_Descriptor;
       Value  : in Ref_Type);
 
-   type Ref_Acc is access all Ref_Type'Class;
+   type Ref_Ptr is access all Ref_Type'Class;
 
-   --  Handle the usage counter, unless OBJ is null of the counter is disabled.
-   procedure Inc_Usage (Obj : Ref_Acc);
-   procedure Dec_Usage (Obj : in out Ref_Acc);
+   --  Handle the usage counter, unless Obj is null or the counter is
+   --  disabled.
+   procedure Inc_Usage (Obj : Ref_Ptr);
+   procedure Dec_Usage (Obj : in out Ref_Ptr);
 
    type Ref is new Ada.Finalization.Controlled with private;
-   --  The base type of all references.
-   --  Inside CORBA (and Broca), this type is often derived but never extended.
-   --  It contains one field, which designate the referenced object.
+   --  The base type of all references. Inside CORBA (and Broca), this
+   --  type is often derived but never extended. It contains one
+   --  field, which designate the referenced object.
 
-   function Get (Self : Ref) return Ref_Acc;
-   --  Get inner Ref_Type object.
+   function Get (Self : Ref) return Ref_Ptr;
+   --  Get inner Ref_Type object
 
-   procedure Set (Self : in out Ref; Referenced : Ref_Acc);
+   procedure Set (Self : in out Ref; Referenced : Ref_Ptr);
    --  Set the object (can destroyed the previous one, if it was the only
    --  reference).
 
@@ -60,7 +61,7 @@ private
 
    type Ref is new Ada.Finalization.Controlled with
       record
-         A_Ref : Ref_Acc := null;
+         A_Ref : Ref_Ptr := null;
       end record;
 
    procedure Initialize (Object : in out Ref);

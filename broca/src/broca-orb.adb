@@ -8,16 +8,16 @@ with Broca.Buffers;
 with Broca.Refs;
 with Broca.Object;
 with Broca.Repository;
-with Broca.Iiop;
+with Broca.IIOP;
 
 with Broca.Debug;
 pragma Elaborate_All (Broca.Debug);
 
-package body Broca.Orb is
+package body Broca.ORB is
    Flag : constant Natural := Broca.Debug.Is_Active ("broca.orb");
    procedure O is new Broca.Debug.Output (Flag);
 
-   procedure IOR_To_Object (Ior : in out Broca.Buffers.Buffer_Descriptor;
+   procedure IOR_To_Object (IOR : in out Broca.Buffers.Buffer_Descriptor;
                             Res : out CORBA.Object.Ref'Class)
    is
       use Broca.Marshalling;
@@ -25,18 +25,16 @@ package body Broca.Orb is
       Nbr_Profiles : CORBA.Unsigned_Long;
       Tag : CORBA.Iop.Profile_Id;
       Type_Id : CORBA.String;
-      Obj : Broca.Object.Object_Acc;
+      Obj : Broca.Object.Object_Ptr;
       Endianess : Boolean;
    begin
       pragma Debug (O ("Ior_To_Object : enter"));
-      --  The IOR is an encapsulation (defined in 13.3.3) as described in
-      --  11.6.6
-      --  Extract the endianness
-      Unmarshall (Ior, Endianess);
+      --  Extract endianness
+      Unmarshall (IOR, Endianess);
       Broca.Buffers.Set_Endianess (IOR, Endianess);
 
       --  Unmarshall type id.
-      Unmarshall (Ior, Type_Id);
+      Unmarshall (IOR, Type_Id);
       declare
          A_Ref : CORBA.Object.Ref'Class :=
            Broca.Repository.Create_Ref (CORBA.RepositoryId (Type_Id));
@@ -52,17 +50,17 @@ package body Broca.Orb is
 
          --  Get the access to the internal object.
          Obj :=
-           Broca.Object.Object_Acc (Broca.Refs.Get (Broca.Refs.Ref (A_Ref)));
+           Broca.Object.Object_Ptr (Broca.Refs.Get (Broca.Refs.Ref (A_Ref)));
 
-         Unmarshall (Ior, Nbr_Profiles);
+         Unmarshall (IOR, Nbr_Profiles);
 
          Obj.Profiles :=
           new Broca.Object.Profile_Acc_Array (1 .. Nbr_Profiles);
          for I in 1 .. Nbr_Profiles loop
-            Unmarshall (Ior, Tag);
+            Unmarshall (IOR, Tag);
             case Tag is
                when CORBA.Iop.Tag_Internet_Iop =>
-                  Broca.Iiop.Create_Profile (Ior, Obj.Profiles (I));
+                  Broca.IIOP.Create_Profile (IOR, Obj.Profiles (I));
                when others =>
                   Broca.Exceptions.Raise_Bad_Param;
             end case;
@@ -113,13 +111,13 @@ package body Broca.Orb is
 
    The_Orb : Orb_Access := null;
 
-   procedure Register_Orb (Orb : Orb_Access) is
+   procedure Register_Orb (ORB : Orb_Access) is
    begin
       if The_Orb /= null then
          --  Only one ORB can register.
          Broca.Exceptions.Raise_Internal (1000, CORBA.Completed_No);
       end if;
-      The_Orb := Orb;
+      The_Orb := ORB;
    end Register_Orb;
 
    procedure Run is
@@ -135,6 +133,6 @@ package body Broca.Orb is
    begin
       Poa_State_Changed (The_Orb.all, Poa);
    end Poa_State_Changed;
-end Broca.Orb;
+end Broca.ORB;
 
 

@@ -1,5 +1,12 @@
 1999-08-25  Laurent Pautet  <pautet@scapin.enst.fr>
 
+	* broca-inet_server.adb: Fix wrong length computation in
+ 	Marshall_Profile.
+
+	* all files: Reformatting.
+	
+	* broca-buffers.adb: Remove Allocate_Buffer_And_Set_Pos.
+
 	* all files: Buffer_Descriptor is now encapsulated.
 
 1999-08-23  Laurent Pautet  <pautet@scapin.enst.fr>

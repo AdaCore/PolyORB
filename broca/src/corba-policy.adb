@@ -1,7 +1,7 @@
 with Broca.Policy;
 with Broca.Object;
 
-package body Corba.Policy is
+package body CORBA.Policy is
    function Get_Policy_Type (Self: Ref) return Policytype is
    begin
       return Broca.Policy.Get_Policy_Type
@@ -10,7 +10,7 @@ package body Corba.Policy is
 
    function Copy (Self: Ref) return Ref is
    begin
-      return Ref'(A_Ref => Broca.Object.Ref_Acc (Broca.Policy.Copy
+      return Ref'(A_Ref => Broca.Object.Ref_Ptr (Broca.Policy.Copy
                   (Broca.Policy.Policy_Object_Type'Class (Self.A_Ref.all))));
    end Copy;
-end Corba.Policy;
+end CORBA.Policy;

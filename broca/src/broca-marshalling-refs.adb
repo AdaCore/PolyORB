@@ -1,4 +1,4 @@
-with Broca.Orb;
+with Broca.ORB;
 with Broca.Refs;
 
 package body Broca.Marshalling.Refs is
@@ -41,7 +41,7 @@ package body Broca.Marshalling.Refs is
    is
        New_Ref : CORBA.Object.Ref;
    begin
-     Broca.Orb.IOR_To_Object (Stream, New_Ref);
+     Broca.ORB.IOR_To_Object (Stream, New_Ref);
      Broca.Refs.Set (Broca.Refs.Ref (Result), Broca.Refs.Get
                      (Broca.Refs.Ref (New_Ref)));
    end Unmarshall;

@@ -5,8 +5,8 @@ with Broca.Poa;
 with Broca.Buffers;
 pragma Elaborate_All (CORBA);
 
-package Broca.Orb is
-   procedure IOR_To_Object (Ior : in out Broca.Buffers.Buffer_Descriptor;
+package Broca.ORB is
+   procedure IOR_To_Object (IOR : in out Broca.Buffers.Buffer_Descriptor;
                             Res : out CORBA.Object.Ref'Class);
 
    function List_Initial_Services return CORBA.ORB.ObjectIdList;
@@ -20,15 +20,15 @@ package Broca.Orb is
    --  Internal tricks to avoid to a client to contain any part of the server.
    --  The server part must register itself (only one server is allowed).
    type Orb_Type is abstract tagged null record;
-   procedure Run (Orb : in out Orb_Type) is abstract;
+   procedure Run (ORB : in out Orb_Type) is abstract;
    --  A state of a poa has changed.
    procedure Poa_State_Changed
-     (Orb : in out Orb_Type; Poa : Broca.Poa.POA_Object_Access) is
+     (ORB : in out Orb_Type; Poa : Broca.Poa.POA_Object_Access) is
       abstract;
 
    type Orb_Access is access all Orb_Type'Class;
 
-   procedure Register_Orb (Orb : Orb_Access);
+   procedure Register_Orb (ORB : Orb_Access);
    procedure Run;
    procedure Poa_State_Changed (Poa : Broca.Poa.POA_Object_Access);
 
@@ -45,4 +45,4 @@ private
    Interface_Repository_Objectid : constant CORBA.ORB.ObjectId :=
      CORBA.ORB.ObjectId
      (CORBA.String'(CORBA.To_CORBA_String ("InterfaceRepository")));
-end Broca.Orb;
+end Broca.ORB;

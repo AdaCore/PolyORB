@@ -9,20 +9,31 @@ with Sockets.Naming;
 with Broca.Debug;
 pragma Elaborate_All (Broca.Debug);
 
-package body Broca.Iiop is
+package body Broca.IIOP is
+
    Flag : constant Natural := Broca.Debug.Is_Active ("broca.iiop");
    procedure O is new Broca.Debug.Output (Flag);
-
-   function Get_Object_Key (Profile : Profile_Iiop_Type)
-                            return Broca.Sequences.Octet_Sequence is
-   begin
-      return Profile.Object_Key;
-   end Get_Object_Key;
 
    function Port_To_Network_Port (Port : CORBA.Unsigned_Short)
      return Interfaces.C.unsigned_short;
 
-   function Port_To_Network_Port (Port : CORBA.Unsigned_Short)
+   --------------------
+   -- Get_Object_Key --
+   --------------------
+
+   function Get_Object_Key
+     (Profile : Profile_Iiop_Type)
+     return Broca.Sequences.Octet_Sequence is
+   begin
+      return Profile.Object_Key;
+   end Get_Object_Key;
+
+   --------------------------
+   -- Port_To_Network_Port --
+   --------------------------
+
+   function Port_To_Network_Port
+     (Port : CORBA.Unsigned_Short)
      return Interfaces.C.unsigned_short is
    begin
       if Broca.Buffers.Is_Little_Endian then
@@ -39,7 +50,7 @@ package body Broca.Iiop is
 
    procedure Create_Profile
      (Buffer : in out Buffer_Descriptor;
-      Profile : out Broca.Object.Profile_Acc)
+      Profile : out Broca.Object.Profile_Ptr)
    is
       use Broca.Marshalling;
 
@@ -54,12 +65,12 @@ package body Broca.Iiop is
       --  Extract length of the sequence.
       Unmarshall (Buffer, Profile_Length);
 
-      --  profile_data is an encapsulation, so extract little_endian now.
+      --  Profile_Data is an encapsulation. Extract endian.
       Old_Endian := Get_Endianess (Buffer);
       Unmarshall (Buffer, New_Endian);
       Set_Endianess (Buffer, New_Endian);
 
-      --  Extract version.
+      --  Extract version
       Unmarshall (Buffer, Res.Iiop_Version.Major);
       Unmarshall (Buffer, Res.Iiop_Version.Minor);
 
@@ -264,4 +275,4 @@ package body Broca.Iiop is
                                          with Strand => Strand);
    end Find_Connection;
 
-end Broca.Iiop;
+end Broca.IIOP;

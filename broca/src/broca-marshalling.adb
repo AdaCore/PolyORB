@@ -1,7 +1,7 @@
 with Ada.Unchecked_Conversion;
 with Ada.Strings.Unbounded;
+
 with Broca.Exceptions;
-with CORBA;
 
 with Broca.Debug;
 pragma Elaborate_All (Broca.Debug);
@@ -107,6 +107,14 @@ package body Broca.Marshalling is
       Value  : in CORBA.Double) is
    begin
       Compute_New_Size (Buffer, 8, 8);
+   end Compute_New_Size;
+
+   procedure Compute_New_Size
+     (Buffer : in out Buffer_Descriptor;
+      Value  : in CORBA.Object.Ref'Class)
+   is
+   begin
+      raise Program_Error;
    end Compute_New_Size;
 
    procedure Compute_New_Size
@@ -230,6 +238,14 @@ package body Broca.Marshalling is
    begin
       Align_Size (Buffer, D_Size);
       Write (Buffer, Double_To_Buffer_Type (Value));
+   end Marshall;
+
+   procedure Marshall
+     (Buffer : in out Buffer_Descriptor;
+      Value  : in CORBA.Object.Ref'Class)
+   is
+   begin
+      raise Program_Error;
    end Marshall;
 
    procedure Marshall
@@ -413,6 +429,14 @@ package body Broca.Marshalling is
          Revert (Bytes);
       end if;
       Result := Buffer_Type_To_Double (Bytes);
+   end Unmarshall;
+
+   procedure Unmarshall
+     (Buffer : in out Buffer_Descriptor;
+      Result : out CORBA.Object.Ref'Class)
+   is
+   begin
+      raise Program_Error;
    end Unmarshall;
 
    procedure Unmarshall

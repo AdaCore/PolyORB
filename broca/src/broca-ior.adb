@@ -1,13 +1,19 @@
-with Ada.Strings.Unbounded;
 with Broca.Exceptions;
 
-package body Broca.Ior is
+package body Broca.IOR is
+
    --  FIXME: to do: null IOR
 
-   --  Convert a string representing an IOR, as decribed in CORBA V2.2 11.6.6,
-   --  into a buffer ready for unmarshalling.
-   function Ior_String_To_Buffer (IOR : CORBA.String) return Buffer_Descriptor is
-      package U renames Ada.Strings.Unbounded;
+   type Char_Array is array (Byte range <>) of Character;
+   Xdigits : constant Char_Array (0 .. 15) := "0123456789abcdef";
+
+   --  Convert a string representing an IOR, as decribed in CORBA V2.2
+   --  11.6.6, into a buffer ready for unmarshalling.
+
+   function IOR_String_To_Buffer
+     (IOR : CORBA.String)
+     return Buffer_Descriptor
+   is
       S      : constant String := To_Standard_String (IOR);
       Buffer : Buffer_Descriptor;
       Length : Natural := S'Length;
@@ -46,14 +52,13 @@ package body Broca.Ior is
          Write (Buffer, Bytes);
       end;
       return Buffer;
-   end Ior_String_To_Buffer;
+   end IOR_String_To_Buffer;
 
-   type Char_Array is array (Byte range <>) of Character;
-   Xdigits : constant Char_Array (0 .. 15) := "0123456789abcdef";
+   --------------------------
+   -- Buffer_To_IOR_String --
+   --------------------------
 
-   --  Convert a buffer containing an marshalled contents of an IOR into
-   --  a string.
-   function Buffer_To_Ior_String
+   function Buffer_To_IOR_String
      (Buffer : Buffer_Descriptor)
      return CORBA.String
    is
@@ -70,6 +75,6 @@ package body Broca.Ior is
          IOR (6 + 2 * Natural (I)) := Xdigits (Bytes (I) mod 16);
       end loop;
       return To_CORBA_String (IOR);
-   end Buffer_To_Ior_String;
+   end Buffer_To_IOR_String;
 
-end Broca.Ior;
+end Broca.IOR;

@@ -7,7 +7,7 @@ with Interfaces.C; use Interfaces.C;
 with Interfaces.C.Strings;
 with Broca.Exceptions;
 with Broca.Marshalling;
-with Broca.Giop;
+with Broca.GIOP;
 with Broca.Stream;
 with Broca.Flags;
 with Broca.Server;
@@ -239,7 +239,7 @@ package body Broca.Inet_Server is
       use Broca.Marshalling;
       use Sockets.Constants;
       use Interfaces.C;
-      use Broca.Giop;
+      use Broca.GIOP;
       Res : C.int;
       Sock : Interfaces.C.int;
       Sock_Name : Sockaddr_In;
@@ -323,12 +323,12 @@ package body Broca.Inet_Server is
          Polls (Fd_Pos) := Polls (Nbr_Fd);
          Nbr_Fd := Nbr_Fd - 1;
          goto Again;
-      elsif Res /= Broca.Giop.Message_Header_Size then
+      elsif Res /= Broca.GIOP.Message_Header_Size then
          Broca.Exceptions.Raise_Comm_Failure;
       end if;
 
       Allocate_Buffer_And_Clear_Pos
-        (Buffer, Broca.Giop.Message_Header_Size);
+        (Buffer, Broca.GIOP.Message_Header_Size);
       Write (Buffer, Bytes);
 
       --  The message was accepted.
@@ -354,10 +354,10 @@ package body Broca.Inet_Server is
                            Buffer : in out Broca.Buffers.Buffer_Descriptor);
    procedure Marshall_Size_Profile
      (Server : access Fd_Server_Type;
-      Ior : in out Broca.Buffers.Buffer_Descriptor;
+      IOR : in out Broca.Buffers.Buffer_Descriptor;
       Object_Key : Broca.Buffers.Buffer_Descriptor);
    procedure Marshall_Profile (Server : access Fd_Server_Type;
-                               Ior : in out Broca.Buffers.Buffer_Descriptor;
+                               IOR : in out Broca.Buffers.Buffer_Descriptor;
                                Object_Key : Broca.Buffers.Buffer_Descriptor);
 
    procedure Perform_Work (Server : access Fd_Server_Type;
@@ -410,7 +410,7 @@ package body Broca.Inet_Server is
    begin
       Marshall (IOR, CORBA.Iop.Tag_Internet_Iop);
 
-      Marshall (IOR, CORBA.Unsigned_Long (Size_Left (IOR)));
+      Marshall (IOR, CORBA.Unsigned_Long (Size_Left (IOR) - UL_Size));
 
       -- Endianess
       Marshall (IOR, Is_Little_Endian);

@@ -3,7 +3,7 @@ with Ada.Exceptions;
 with CORBA;
 with Broca.Exceptions;
 with Broca.Refs;
-with Broca.Orb;
+with Broca.ORB;
 with PortableServer.POA;
 
 package body PortableServer is
@@ -27,7 +27,7 @@ package body PortableServer is
    begin
       return PortableServer.POA.Convert.To_Forward
         (POA.To_Ref
-         (Broca.Orb.Resolve_Initial_References (Broca.Orb.Root_Poa_Objectid)));
+         (Broca.ORB.Resolve_Initial_References (Broca.ORB.Root_Poa_Objectid)));
    end Get_Default_POA;
 
    package Address_To_Ref_Acc_Conversions is
@@ -52,7 +52,7 @@ package body PortableServer is
          Broca.Exceptions.Raise_Bad_Param;
       end if;
       Broca.Exceptions.Get_Member (From, Addr);
-      CORBA.Object.Set (Res, Broca.Refs.Ref_Acc (To_Pointer (Addr)));
+      CORBA.Object.Set (Res, Broca.Refs.Ref_Ptr (To_Pointer (Addr)));
       To := ForwardRequest_Members'(CORBA.IDL_Exception_Members with Res);
    end Get_Members;
 end PortableServer;

@@ -28,12 +28,6 @@ package Broca.Buffers is
    procedure Allocate_Buffer (Buffer : in out Buffer_Descriptor);
    --  Allocate the buffer using pos and clear pos. Use local endianess.
 
-   procedure Allocate_Buffer_And_Set_Pos
-     (Buffer : in out Buffer_Descriptor;
-      Size   : in Buffer_Index_Type);
-   --  Be sure Buffer.Buffer is at least of length Size.  Set
-   --  Buffer.Pos to Size. Endianess is already set.
-
    procedure Allocate_Buffer_And_Clear_Pos
      (Buffer : in out Buffer_Descriptor;
       Size   : in Buffer_Index_Type);

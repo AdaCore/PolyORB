@@ -7,7 +7,7 @@ with Broca.Locks;
 with Sockets.Thin;
 with Interfaces.C;
 
-package Broca.Iiop is
+package Broca.IIOP is
    type Version_Type is
       record
          Major : CORBA.Octet;
@@ -58,10 +58,10 @@ package Broca.Iiop is
 
    procedure Create_Profile
      (Buffer : in out Buffer_Descriptor;
-      Profile : out Broca.Object.Profile_Acc);
+      Profile : out Broca.Object.Profile_Ptr);
 
 private
    function Get_Object_Key (Profile : Profile_Iiop_Type)
                             return Broca.Sequences.Octet_Sequence;
 
-end Broca.Iiop;
+end Broca.IIOP;

@@ -23,7 +23,7 @@ package body PortableServer.POAManager is
                             return POAManager_Object_Access
    is
       use Broca.Refs;
-      Res : Broca.Refs.Ref_Acc;
+      Res : Broca.Refs.Ref_Ptr;
    begin
       Res := Get (Self);
       if Res = null or else Res.all not in POAManager_Object'Class then
