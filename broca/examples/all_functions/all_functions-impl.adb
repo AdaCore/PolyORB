@@ -1,8 +1,11 @@
+with Ada.Text_IO;
 with Broca.Exceptions; use Broca.Exceptions;
 with All_Functions.Skel;
 pragma Elaborate (All_Functions.Skel);
 
 package body all_functions.Impl is
+
+   Oneway_Value : CORBA.Short := 0;
 
    function Get_the_attribute
      (Self : access Object)
@@ -222,18 +225,28 @@ package body all_functions.Impl is
      (Self : access Object)
    is
    begin
-      null;
+      Oneway_Value := 1;
+      Ada.Text_IO.Put_Line ("In oneway_void_proc");
+      delay 5.0;
+      Oneway_Value := 2;
    end oneway_void_proc;
 
    procedure oneway_in_proc
      (Self : access Object;
       a : in CORBA.Short;
-      b : in CORBA.Short;
-      c : in CORBA.Short)
+      b : in CORBA.Short)
    is
    begin
-      null;
+      Oneway_Value := a;
+      Ada.Text_IO.Put_Line ("In oneway_in_proc");
+      delay 5.0;
+      Oneway_Value := b;
    end oneway_in_proc;
 
+   function oneway_checker (Self : access Object) return CORBA.Short is
+   begin
+      Ada.Text_IO.Put_Line ("In oneway_checker");
+      return Oneway_Value;
+   end oneway_checker;
 
 end all_functions.Impl;

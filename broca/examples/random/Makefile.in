@@ -90,7 +90,7 @@ DISTCLEANFILES = client server random.ads random.adb                         ran
 
 IDLAC = ../../idlac/idlac
 
-EXAMPLES_GNATMAKE_FLAGS = -I$(srcdir)/../generic                           -I../../src                           -I$(srcdir)/../../src                           -I../../adasockets/src                           -I$(srcdir)/../../adasockets/src                           -g -O2
+EXAMPLES_GNATMAKE_FLAGS = -I$(srcdir)/../generic                           -I../../src                           -I$(srcdir)/../../src                           -I../../adasockets/src                           -I$(srcdir)/../../adasockets/src                           -g -O2 -m -gnata
 
 
 CLEANFILES = *.o *.ali b~*.*

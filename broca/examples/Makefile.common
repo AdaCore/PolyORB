@@ -5,7 +5,7 @@ EXAMPLES_GNATMAKE_FLAGS = -I$(srcdir)/../generic \
                           -I$(srcdir)/../../src \
                           -I../../adasockets/src \
                           -I$(srcdir)/../../adasockets/src \
-                          -g -O2
+                          -g -O2 -m -gnata
 
 CLEANFILES = *.o *.ali b~*.*
 

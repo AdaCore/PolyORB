@@ -198,16 +198,28 @@ begin
    Output ("test in and out and inout param function", Ok);
 
    begin
+      Ada.Text_IO.Put_Line ("Calling void proc");
       Oneway_Void_Proc (MyObj);
-      Ok := True;
+      delay 1.0;
+      Ada.Text_IO.Put_Line ("Calling oneway checker");
+      Ok := Oneway_Checker (MyObj) = 1;
+      if Ok then
+         delay 5.0;
+         Ok := Oneway_Checker (Myobj) = 2;
+      end if;
     exception when others =>
        Ok := False;
     end;
     Output ("test void one way procedure", Ok);
 
     begin
-       Oneway_In_Proc (MyObj, 1, 2, 3);
-       Ok := True;
+       Oneway_In_Proc (MyObj, 10, 20);
+       delay 1.0;
+       Ok := Oneway_Checker (Myobj) = 10;
+       if Ok then
+          delay 5.0;
+          Ok := Oneway_Checker (MyObj) = 20;
+       end if;
     exception when others =>
        Ok := False;
     end;

@@ -129,8 +129,9 @@ package all_functions.Impl is
    procedure oneway_in_proc
      (Self : access Object;
       a : in CORBA.Short;
-      b : in CORBA.Short;
-      c : in CORBA.Short);
+      b : in CORBA.Short);
+
+   function oneway_checker (Self : access Object) return CORBA.Short;
 
 private
 
