@@ -33,7 +33,7 @@
 
 --  $Id$
 
-with PolyORB.Utils.Report;
+with Test000_Common;
 
 with PolyORB.Utils.RT_Calendar;
 pragma Elaborate_All (PolyORB.Utils.RT_Calendar);
@@ -43,49 +43,7 @@ pragma Warnings (Off, PolyORB.Utils.RT_Calendar);
 --  rely on rt_calendar: this is just to simplify the testing
 --  procedure
 
-with PolyORB.Calendar;
-with PolyORB.Initialization;
-
 procedure Test001 is
-   use PolyORB.Utils.Report;
-   use PolyORB.Calendar;
-
 begin
-   PolyORB.Initialization.Initialize_World;
-
-   declare
-      Clock1 : Time_Type'Class := Clock;
-      Clock2 : Time_Type_Access;
-      Duree  : Duration;
-
-      Year    : Year_Number;
-      Month   : Month_Number;
-      Day     : Day_Number;
-      Seconds : Day_Duration;
-   begin
-
-      New_Test ("Tasking policies");
-
-      Clock2 := Create;
-      Clock2.all := Clock;
-
-      Output ("Comparison between two clocks", Clock1 <= Clock2.all);
-
-      Duree := Clock2.all - Clock1;
-      Clock1 := Clock2.all + 2 * Duree;
-      Output ("Additions and substractions", Clock1 > Clock2.all);
-
-      Split (Clock1,
-             Year => Year,
-             Month => Month,
-             Day => Day,
-             Seconds => Seconds);
-      Clock2.all := Time_Of (Year => Year,
-                             Month => Month,
-                             Day => Day,
-                             Seconds => Seconds);
-      Output ("Time splitting/construction", Clock1 = Clock2.all);
-
-      End_Report;
-   end;
+   Test000_Common.Run_Tests;
 end Test001;

@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                              T E S T 0 0 0                               --
+--                       T E S T 0 0 0 _ C O M M O N                        --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -33,13 +33,52 @@
 
 --  $Id$
 
-with PolyORB.Setup.No_Tasking_Server;
-pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
-pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
+with PolyORB.Calendar;
+with PolyORB.Initialization;
+with PolyORB.Utils.Report;
 
-with Test000_Common;
+package body Test000_Common is
 
-procedure Test000 is
-begin
-   Test000_Common.Run_Tests;
-end Test000;
+   use PolyORB.Utils.Report;
+   use PolyORB.Calendar;
+
+   procedure Run_Tests is
+   begin
+      PolyORB.Initialization.Initialize_World;
+
+      declare
+         Clock1 : Time_Type'Class := Clock;
+         Clock2 : Time_Type_Access;
+         Duree  : Duration;
+
+         Year    : Year_Number;
+         Month   : Month_Number;
+         Day     : Day_Number;
+         Seconds : Day_Duration;
+      begin
+
+         Clock2 := Create;
+         Clock2.all := Clock;
+
+         Output ("Comparison between two clocks", Clock1 <= Clock2.all);
+
+         Duree := Clock2.all - Clock1;
+         Clock1 := Clock2.all + 2 * Duree;
+         Output ("Additions and substractions", Clock1 > Clock2.all);
+
+         Split (Clock1,
+                Year => Year,
+                Month => Month,
+                Day => Day,
+                Seconds => Seconds);
+         Clock2.all := Time_Of (Year => Year,
+                                Month => Month,
+                                Day => Day,
+                                Seconds => Seconds);
+         Output ("Time splitting/construction", Clock1 = Clock2.all);
+
+         End_Report;
+      end;
+   end Run_Tests;
+
+end Test000_Common;

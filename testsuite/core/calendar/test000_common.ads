@@ -2,9 +2,9 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                              T E S T 0 0 0                               --
+--                       T E S T 0 0 0 _ C O M M O N                        --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
 --            Copyright (C) 2003 Free Software Foundation, Inc.             --
 --                                                                          --
@@ -33,13 +33,8 @@
 
 --  $Id$
 
-with PolyORB.Setup.No_Tasking_Server;
-pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
-pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
+package Test000_Common is
 
-with Test000_Common;
+   procedure Run_Tests;
 
-procedure Test000 is
-begin
-   Test000_Common.Run_Tests;
-end Test000;
+end Test000_Common;
