@@ -1,6 +1,16 @@
 module M1 {
   typedef string My_String;
 
+  typedef sequence<octet> Encap1;
+  typedef sequence<octet> Encap2;
+
+  module M2 {
+    typedef sequence<octet> Encap3;
+    typedef sequence<octet> Encap4;
+  };
+
+  typedef sequence<octet> Encap5;
+
   interface Echo {
     string echoMy_String (in My_String s);
   };

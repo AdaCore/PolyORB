@@ -3,7 +3,7 @@ with CORBA.Object;
 with PortableServer;
 with PortableServer.POA;
 with PortableServer.ServantManager;
-pragma Elaborate_All (PortableServer.ServantManager);
+pragma Elaborate_All (CORBA.Object, PortableServer.ServantManager);
 
 package GenericServer is
    type String_Acc is access String;
