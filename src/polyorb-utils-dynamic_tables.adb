@@ -61,8 +61,7 @@ package body PolyORB.Utils.Dynamic_Tables is
 
    procedure Allocate
      (T   : in out Instance;
-      Num : Integer := 1)
-   is
+      Num :        Integer := 1) is
    begin
       T.P.Last_Val := T.P.Last_Val + Num;
 
@@ -94,12 +93,13 @@ package body PolyORB.Utils.Dynamic_Tables is
    -- First --
    -----------
 
-   function First (T : in Instance) return Table_Index_Type is
-   begin
+   function First (T : in Instance) return Table_Index_Type
+   is
       pragma Warnings (Off);
       pragma Unreferenced (T);
       pragma Warnings (On);
 
+   begin
       return First_Index;
    end First;
 
@@ -116,11 +116,11 @@ package body PolyORB.Utils.Dynamic_Tables is
       end if;
    end Increment_Last;
 
-   ----------
-   -- Init --
-   ----------
+   ----------------
+   -- Initialize --
+   ----------------
 
-   procedure Init (T : in out Instance)
+   procedure Initialize (T : in out Instance)
    is
       Old_Length : constant Integer := T.P.Length;
 
@@ -147,7 +147,7 @@ package body PolyORB.Utils.Dynamic_Tables is
 
          Reallocate (T);
       end if;
-   end Init;
+   end Initialize;
 
    ----------
    -- Last --
@@ -215,10 +215,7 @@ package body PolyORB.Utils.Dynamic_Tables is
    -- Set_Last --
    --------------
 
-   procedure Set_Last
-     (T : in out Instance;
-      New_Val : Table_Index_Type)
-   is
+   procedure Set_Last (T : in out Instance; New_Val : Table_Index_Type) is
    begin
       T.P.Last_Val := Integer (New_Val);
 
