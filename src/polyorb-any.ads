@@ -49,6 +49,9 @@ package PolyORB.Any is
    type Any_Ptr is access all Any;
    --  The end of this part is after the typecode part;
 
+   type Content is abstract tagged private;
+   type Any_Content_Ptr is access all Content'Class;
+
    function Image (A : Any) return Standard.String;
    --  For debugging purposes.
 
@@ -625,6 +628,17 @@ package PolyORB.Any is
    function Image (NV : NamedValue) return Standard.String;
    --  For debugging purposes.
 
+   package Internals is
+
+      --  The following need to be exposed for CORBA.Object.Helper.
+
+      procedure Set_Value
+        (Obj : in out Any; The_Value : in Any_Content_Ptr);
+      procedure Inc_Usage
+        (Obj : in Any);
+
+   end Internals;
+
 private
 
    --  Null_String : constant CORBA.String :=
@@ -658,7 +672,6 @@ private
 
 
    type Content is abstract tagged null record;
-   type Any_Content_Ptr is access all Content'Class;
    Null_Content_Ptr : constant Any_Content_Ptr := null;
    type Any_Content_Ptr_Ptr is access all Any_Content_Ptr;
    Null_Content_Ptr_Ptr : constant Any_Content_Ptr_Ptr := null;
