@@ -11,6 +11,7 @@ else
    FILE=$1
 fi
 sed '
+/:.*arning/d
 s,\t, ,g
 s,//.*,,g
 s,  *, ,g

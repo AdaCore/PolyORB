@@ -1038,7 +1038,9 @@ procedure Mknodes is
    begin
       Write_Str ("pragma Warnings (Off);");
       Write_Eol;
-      W_With ("Debug");
+      Get_Name_String (Module_Name);
+      Name_Buffer (Name_Len - 4 .. Name_Len) := "Debug";
+      W_With (Name_Buffer (1 .. Name_Len));
       W_With ("Locations");
       W_With ("Types");
       Write_Str ("package body ");

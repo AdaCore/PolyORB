@@ -1,0 +1,30 @@
+2004-05-31  Saber Souli <souli@enst.fr>
+	* backend-be_ada.adb : This package Visite IDL tree nodes, and
+	generate the appropriate Ada node following the ADA Language
+	Specification. Actually I did't take in consideration specific
+	mapping introduced by using PolyORB, I let this in later's stage,
+	after completing all the OMG mappings specification. 
+	Here are the actual mapping implemented : Module, Interface (only
+	attribute setter and getter generation is completed),
+	typedef (Not completed yet), Base type mapping.  
+	* backend-be_ada-nutils.ad[s,b] : Contain several routines to
+	simplify the creation of ada tree nodes. 
+	* backend-be_ada-nodes.idl : added Derived_Type_Spec in
+	order to make the representation of this kind of declaration
+	possible. Added Record_Type_Spec to manage record specification.
+	Added Ada_Function_Spec and Ada_Procedure_Spec to manage
+	subprogramme prototype declaration. 
+	* backend-be_ada-debug.adb : simplify  debug of the Ada tree.
+	* backend-be_ada-file-generation : Generate ada file
+	source. Now the generated source is printed in the user screen.  
+
+	* USAGE : 
+	- Before Building IAC, you must change backend-be_ada-nodes.adb by
+	replacing "with Nodes; use Nodes;" with "with
+	Backend.BE_Ada-Debug; use Backend.BE_Ada.Debug;".   
+	- To activate the ada source generation, you must execute
+	IAC with "-x ada" flag.
+	- The Idl file must containe only Module, interface, and attribute
+	declarations. 
+ 
+

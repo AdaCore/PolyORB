@@ -1,3 +1,71 @@
+2004-06-01  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* usage.adb, backend.adb, backend.ads, backend-config.adb: Adapt to new
+	organization that is a usage per backend.
+
+	* backend-be_idl.adb, backend-be_idl.ads: Provide flag -b to set
+	base to output integer literal. Provide a usage procedure.
+
+	* backend-be_ada.adb, backend-be_ada.ads: Provide flag -t to dump
+	Ada tree. Provide a usage procedure.
+
+	* flags.adb: Scan command line in two phases. First, detect the
+	backend language if there is one. Second, use Getopt by setting
+	cpparg and backend language as sections (see GNAT.Command_Line).
+	In command like 'iac -ds tin.idl -idl -b 8', '-ds' is considered
+	as a general flag and '-b 8' is considered as an IDL backend flag.
+
+	* backend-be_idl.adb, backend-be_idl.ads: Add Configure
+	procedure. Fix generation of members (readonly missing),
+	operations (oneway missing), of values (base to use). Start
+	generating union type.
+	
+	* backend-be_ada.adb, backend-be_ada.ads: Add Configure procedure.
+
+	* backend.adb, backend.ads: Define Configure procedure for
+	backends and add it as Register parameter. This configure
+	procedure is supposed to read flags specific to backend using
+	GNAT.Command_Line.Getopt.
+
+	* backend-config.adb: Initialize configure procedure for backends
+	IDL and Ada.
+
+	
+
+2004-05-31  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* analyzer.adb: Do not try to analyze predefined types. Add
+	location to error message when invalid constant type
+	detected. Expand enumerators as constants and do not cause new
+	errors when enumeration type is incorrect. Re-implement attributes
+	and operations inheritance and other inherited entities visibility
+	as overloading declarations were not properly detected. Skip
+	scoped name analyzis when attribute Reference is already set.
+  
+	* scopes.adb, scopes.ads: Clarify some routines and add
+	comments. Fix bugs in special scoping of type names due to a
+	misunderstanding of the document. Re-implement scoping.
+
+	* debug.adb: Filter new attributes.
+
+	* parser.adb: Adapt code to new scoped name and identifier
+	constructors signature.
+
+	* nutils.adb, nutils.ads: Add a function to detect a non module
+	entity (different from specification or module). Enrich scoped
+	name and identifier constructors with new attributes (needed for
+	expansion).
+
+	* nodes.idl: Add Potential_Scope to deal with type names. Make
+	nodes Simple_Declarator and Complex_Declarator contiguous.
+
+2004-05-30  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* debug.adb: Filter some more attributes.
+
+	* backend-be_idl.adb: Fix output for raises clause in an operation
+	declaration and for no-parameter operation declaration.
+
 2004-05-26  Laurent Pautet  <pautet@dorine.enst.fr>
 
 	* lexer.adb: Scan properly identifier. Do not return a token

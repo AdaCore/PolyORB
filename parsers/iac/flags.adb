@@ -1,3 +1,4 @@
+with Ada.Command_Line; use Ada.Command_Line;
 with GNAT.Command_Line; use GNAT.Command_Line;
 
 with Backend;
@@ -20,12 +21,34 @@ package body Flags is
    -- Scan_Flags --
    ----------------
 
-   procedure Scan_Flags is
+   procedure Scan_Flags
+   is
+      Found_Language : Boolean := False;
    begin
-      Initialize_Option_Scan ('-', False, "cppargs");
+      Initialize_Option_Scan;
+      for I in 1 .. Argument_Count loop
+         Set_Str_To_Name_Buffer (Argument (I));
+         if Name_Buffer (1) = '-'
+           and then Name_Len > 1
+           and then Backend.Is_Valid_Language (Name_Buffer (2 .. Name_Len))
+         then
+            if Found_Language then
+               raise Invalid_Switch;
+            end if;
+            Backend.Set_Current_Language (Name_Buffer (2 .. Name_Len));
+            Found_Language := True;
+         end if;
+      end loop;
 
+      Set_Str_To_Name_Buffer  ("cppargs");
+      if Found_Language then
+         Add_Char_To_Name_Buffer (' ');
+         Add_Str_To_Name_Buffer  (Backend.Current_Language);
+      end if;
+
+      Initialize_Option_Scan ('-', False, Name_Buffer (1 .. Name_Len));
       loop
-         case Getopt ("E I: c g! x: d?") is
+         case Getopt ("E I: c g! d?") is
             when ASCII.NUL =>
                exit;
 
@@ -35,9 +58,6 @@ package body Flags is
             when 'I' =>
                Add_CPP_Flag ("-I");
                Add_CPP_Flag (Parameter);
-
-            when 'x' =>
-               Backend.Set_Language (Parameter);
 
             when 'g' =>
                declare
@@ -88,9 +108,23 @@ package body Flags is
          end case;
       end loop;
 
-      Set_Str_To_Name_Buffer (Get_Argument);
-      if Name_Len /= 0 then
-         Main_Source := Name_Find;
+      if Main_Source = No_Name then
+         Set_Str_To_Name_Buffer (Get_Argument);
+         if Name_Len /= 0 then
+            Main_Source := Name_Find;
+         end if;
+      end if;
+
+      if Found_Language then
+         Goto_Section (Backend.Current_Language);
+         Backend.Configure;
+      end if;
+
+      if Main_Source = No_Name then
+         Set_Str_To_Name_Buffer (Get_Argument);
+         if Name_Len /= 0 then
+            Main_Source := Name_Find;
+         end if;
       end if;
    end Scan_Flags;
 

@@ -1167,11 +1167,7 @@ package body Parser is
       if Token = T_Error then
          return No_Node;
       end if;
-      return
-        Make_Identifier
-          (Token_Location,
-           Token_Name,
-           No_Node);
+      return Make_Identifier (Token_Location, Token_Name, No_Node, No_Node);
    end P_Identifier;
 
    -------------------------------
@@ -1794,13 +1790,12 @@ package body Parser is
 
       if Next_Token = T_Colon_Colon then
          Scan_Token;  --  past '::'
-         Identifier :=
-           Make_Identifier
-             (Token_Location,
-              Root_Name,
-              No_Node);
-         Scoped_Name := New_Node (K_Scoped_Name, Token_Location);
-         Bind_Identifier_To_Entity  (Identifier, Scoped_Name);
+         Identifier  := Make_Identifier
+           (Token_Location, Root_Name, No_Node, No_Node);
+         Scoped_Name := New_Node
+           (K_Scoped_Name, Token_Location);
+         Bind_Identifier_To_Entity
+           (Identifier, Scoped_Name);
       end if;
 
       --  start loop with an identifier
