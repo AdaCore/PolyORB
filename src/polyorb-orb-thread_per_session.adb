@@ -67,15 +67,70 @@ package body PolyORB.ORB.Thread_Per_Session is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-   task type Session_Thread is
-      entry Start (A_W    : in Watcher_Access;
-                   A_Msg : Message'Class;
-                   A_S   : Session_Access;
-                   A_ORB : ORB_Access;
-                   A_N   : Natural);
-   end Session_Thread;
+   N : Natural := 0;
+   --  For debugging purposes.
 
-   type Session_Thread_Access is access Session_Thread;
+   A_W   : Watcher_Access := null;
+   A_S   : Session_Access := null;
+   A_ORB : ORB_Access     := null;
+   A_N   : Natural        := 0;
+   --  This variables are used to initialized the threads local variables.
+   --  They are used to replaced the accept statement
+
+   Thread_Init_Watcher    : Watcher_Access := null;
+   Thread_Init_Version_Id : Version_Id;
+   --  This Watcher and his associated Version Id are used during
+   --  the initialisation of a thread.
+
+   -------------------------
+   -- Main_Session_Thread --
+   -------------------------
+
+   --  This procedure is a parameterless procedure used as
+   --  the body of the threads
+   procedure Main_Session_Thread;
+
+   procedure Main_Session_Thread
+   is
+      W   : Watcher_Access;
+      V   : Version_Id;
+      S   : Session_Access;
+      Q   : Request_Info;
+      ORB : ORB_Access;
+      Id  : Natural;
+   begin
+         pragma Debug (O ("Session Thread number "
+                          & Integer'Image (N)
+                          & " is starting"));
+         --  initialisation of local variables of the thread
+         Id := A_N;
+         ORB := A_ORB;
+         W := A_W;
+         S := A_S;
+         --  initialisation of the session's variables
+         Create (W);
+         Set_Request_Watcher (S, W);
+         Lookup (W, V);
+         --  release of the watcher
+         Update (Thread_Init_Watcher);
+      loop
+         pragma Debug (O ("Thread number"
+                          & Integer'Image (Id)
+                          & " is waiting"));
+         Differ (W, V);
+         Lookup (W, V);
+         Get_First_Request (S, Q);
+         pragma Debug (O ("Thread number"
+                          & Integer'Image (Id)
+                          & " is executing Job"));
+         Jobs.Run (Q.Job);
+         Jobs.Free (Q.Job);
+         pragma Debug (O ("Thread number"
+                          & Integer'Image (Id)
+                          & " has executed Job"));
+      end loop;
+   end Main_Session_Thread;
+
 
    ----------------------------------
    -- Handle_New_Server_Connection --
@@ -162,9 +217,6 @@ package body PolyORB.ORB.Thread_Per_Session is
       --  (XXX just in case).
    end Idle;
 
-   N : Natural := 0;
-   --  For debugging purposes.
-
    ------------------------------
    -- Queue_Request_To_Handler --
    ------------------------------
@@ -174,7 +226,6 @@ package body PolyORB.ORB.Thread_Per_Session is
       ORB : ORB_Access;
       Msg : Message'Class)
    is
-      Dummy_Task : Session_Thread_Access;
    begin
       pragma Warnings (Off);
       pragma Unreferenced (P);
@@ -190,16 +241,20 @@ package body PolyORB.ORB.Thread_Per_Session is
                --  Session request watcher is null : create task to
                --  handle this session.
                N := N + 1;
-               Dummy_Task := new Session_Thread;
-               Dummy_Task.Start (W, Msg, S, ORB, N);
-
-            else
+               A_W := W;
+               A_S := S;
+               A_ORB := ORB;
+               A_N := N;
+               Create_Task (Main_Session_Thread'Access);
+               Differ (Thread_Init_Watcher, Thread_Init_Version_Id);
+               Lookup (Thread_Init_Watcher, Thread_Init_Version_Id);
+               --  wait until the end of thread initialisation before emiting
+            end if;
                --  Session request watcher is not null, ie a task is
                --  already handling jobs from this session : emit the
                --  queue_request message.
                Emit_No_Reply
                  (Component_Access (ORB), Msg);
-            end if;
          exception
             when E : others =>
                O ("Got exception while sending request_to_handler");
@@ -211,63 +266,15 @@ package body PolyORB.ORB.Thread_Per_Session is
       end if;
    end Queue_Request_To_Handler;
 
-   --------------------
-   -- Session_Thread --
-   --------------------
-
-   task body Session_Thread
-   is
-      W   : Watcher_Access;
-      V   : Version_Id;
-      S   : Session_Access;
-      Q   : Request_Info;
-      ORB : ORB_Access;
-      Id   : Natural;
-   begin
-      accept Start (A_W   : in Watcher_Access;
-                    A_Msg : Message'Class;
-                    A_S   : Session_Access;
-                    A_ORB : ORB_Access;
-                    A_N   : Natural)
-      do
-         Id := A_N;
-         pragma Debug (O ("Session Thread number "
-                          & Integer'Image (N)
-                          & " is starting"));
-
-         ORB := A_ORB;
-         W := A_W;
-         S := A_S;
-         Create (W);
-         Set_Request_Watcher (A_S, W);
-         Lookup (W, V);
-         pragma Debug (O ("Emit to the Session"));
-         Emit_No_Reply (Component_Access (ORB), A_Msg);
-      end Start;
-
-      loop
-         pragma Debug (O ("Thread number"
-                          & Integer'Image (Id)
-                          & " is waiting"));
-         Differ (W, V);
-         Lookup (W, V);
-         Get_First_Request (S, Q);
-         pragma Debug (O ("Thread number"
-                          & Integer'Image (Id)
-                          & " is executing Job"));
-         Jobs.Run (Q.Job);
-         Jobs.Free (Q.Job);
-         pragma Debug (O ("Thread number"
-                          & Integer'Image (Id)
-                          & " has executed Job"));
-      end loop;
-
-   end Session_Thread;
-
+   ----------------
+   -- Initialize --
+   ----------------
    procedure Initialize;
    procedure Initialize is
    begin
       Setup.The_Tasking_Policy := new Thread_Per_Session_Policy;
+      Create (Thread_Init_Watcher);
+      Lookup (Thread_Init_Watcher, Thread_Init_Version_Id);
    end Initialize;
 
    use PolyORB.Initialization;
