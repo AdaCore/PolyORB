@@ -22,6 +22,11 @@ do
  then
    polyorb_dir="$polyorb_dir -I${includedir}/polyorb/corba/cos -I${includedir}/polyorb/corba/rtcorba -I${includedir}/polyorb/corba/portableinterceptor"
    polyorb_lib="$polyorb_lib -lpolyorb-corba-rtcorba -lpolyorb-corba-portableinterceptor"
+   polyorb_lib="$polyorb_lib -lpolyorb-corba-cos-event -lpolyorb-corba-cos-naming -lpolyorb-corba-cos-time"
+   for S in $services
+   do
+      polyorb_lib="$polyorb_lib -lpolyorb-corba-cos-${S}-impl"
+   done
    corba_idl_dir="-I${includedir}/polyorb/corba/cos"
  fi 
 

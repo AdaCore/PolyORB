@@ -1,20 +1,23 @@
-include $(srcdir)/../Makefile.common
+include $(top_srcdir)/cos/Makefile.common
 
 alidir = $(includedir)/polyorb/corba/cos
 
-COS_GNATMAKE_FLAGS = -z -I$(srcdir) \
-	-I../event \
-	-I$(srcdir)/../event \
-	-I$(COS_DIRS) \
-	-I../../src \
-	-I$(srcdir)/../../src
+COS_DIRS=$(top_builddir)/idls/cos/time
 
-corba_exe=
+COS_GNATMAKE_FLAGS = -I$(COS_DIRS)
 
-PROGS = @APPLI_EXES@
+#
+# Building libpolyorb-corba-cos-time-impl library
+#
 
-COS_DIRS=../../idls/cos/time
+ADA_SPECS_WITH_BODY = \
+	costime-timeservice-impl.ads \
+	costime-tio-impl.ads \
+	costime-uto-impl.ads \
+	time_utils.ads
 
-install-data-local:
-	$(INSTALL) -d $(DESTDIR)$(alidir)
-	for f in $(srcdir)/cos*.ad[bs] $(srcdir)/time*.ad[bs]; do $(INSTALL) -m 444 $$f $(DESTDIR)$(alidir); done
+lib_LTLIBRARIES = libpolyorb-corba-cos-time-impl.la
+
+libpolyorb_corba_cos_time_impl_la_SOURCES =
+libpolyorb_corba_cos_time_impl_la_LIBADD  = $(ADA_LIBADD)
+libpolyorb_corba_cos_time_impl_la_LDFLAGS = -no-undefined -version-info $(LIBVERSIONINFO)
