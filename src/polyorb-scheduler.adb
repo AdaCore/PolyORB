@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -448,7 +448,7 @@ package body PolyORB.Scheduler is
       else
 
          Idle_Tasks := Idle_Tasks + 1;
-         Set_State_Idle (TI.all, Allocate_CV);
+         Set_State_Idle (TI.all, Allocate_CV, Scheduler_Mutex);
 
          pragma Debug (O ("Task is now idle"));
          pragma Debug (O2 (Status));

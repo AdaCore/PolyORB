@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -88,10 +88,12 @@ package body PolyORB.Task_Info is
 
    procedure Set_State_Idle
      (TI        : in out Task_Info;
-      Condition :        PTCV.Condition_Access) is
+      Condition :        PTCV.Condition_Access;
+      Mutex     :        PTM.Mutex_Access) is
    begin
       TI.State     := Idle;
       TI.Condition := Condition;
+      TI.Mutex     := Mutex;
    end Set_State_Idle;
 
    -----------------------
@@ -104,6 +106,7 @@ package body PolyORB.Task_Info is
       TI.State     := Running;
       TI.Selector  := null;
       TI.Condition := null;
+      TI.Mutex     := null;
    end Set_State_Running;
 
    -----------
@@ -138,6 +141,15 @@ package body PolyORB.Task_Info is
    begin
       return TI.Exit_Condition /= null and then TI.Exit_Condition.all;
    end Exit_Condition;
+
+   -----------
+   -- Mutex --
+   -----------
+
+   function Mutex (TI : Task_Info) return PTM.Mutex_Access is
+   begin
+      return TI.Mutex;
+   end Mutex;
 
    ------------------------
    -- Set_Exit_Condition --
@@ -189,6 +201,7 @@ package body PolyORB.Task_Info is
       TI.State     := Unscheduled;
       TI.Selector  := null;
       TI.Condition := null;
+      TI.Mutex     := null;
    end Set_State_Unscheduled;
 
    ---------------------------

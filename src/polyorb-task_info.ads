@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -39,8 +39,9 @@
 --  $Id$
 
 with PolyORB.Asynch_Ev;
-with PolyORB.Tasking.Threads;
 with PolyORB.Tasking.Condition_Variables;
+with PolyORB.Tasking.Mutexes;
+with PolyORB.Tasking.Threads;
 with PolyORB.Types;
 
 package PolyORB.Task_Info is
@@ -48,6 +49,7 @@ package PolyORB.Task_Info is
    pragma Elaborate_Body;
 
    package PTCV renames PolyORB.Tasking.Condition_Variables;
+   package PTM  renames PolyORB.Tasking.Mutexes;
 
    type Task_Kind is (Permanent, Transient);
    --  A Permanent task executes ORB.Run indefinitely.
@@ -80,7 +82,8 @@ package PolyORB.Task_Info is
 
    procedure Set_State_Idle
      (TI        : in out Task_Info;
-      Condition :        PTCV.Condition_Access);
+      Condition :        PTCV.Condition_Access;
+      Mutex     :        PTM.Mutex_Access);
    pragma Inline (Set_State_Idle);
    --  The task refereed by TI will go Idle;
    --  signaling condition variable Condition will awake it.
@@ -110,6 +113,10 @@ package PolyORB.Task_Info is
      return PTCV.Condition_Access;
    pragma Inline (Condition);
    --  Return Condition Variable the Task referred by TI is blocked on
+
+   function Mutex (TI : Task_Info) return PTM.Mutex_Access;
+   pragma Inline (Mutex);
+   --  Return Mutex used by the Task referred by TI when blocking.
 
    procedure Set_Id (TI : in out Task_Info);
    pragma Inline (Set_Id);
@@ -177,6 +184,10 @@ private
       Condition : Tasking.Condition_Variables.Condition_Access;
       --  Condition Variable on which Task referred by Id is
       --  blocked; meaningful only when State is Idle.
+
+      Mutex : Tasking.Mutexes.Mutex_Access;
+      --  Mutex used by the Task referred by TI when blocking;
+      --  meaningful only when State is Idle.
 
    end record;
 

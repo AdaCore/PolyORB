@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -179,10 +179,12 @@ package body PolyORB.ORB.Thread_Pool is
    is
       pragma Warnings (Off);
       pragma Unreferenced (P);
+      pragma Unreferenced (ORB);
       pragma Warnings (On);
 
       package PTI  renames PolyORB.Task_Info;
       package PTCV renames PolyORB.Tasking.Condition_Variables;
+
    begin
       pragma Debug (O ("Thread "
                        & Image (Current_Task)
@@ -190,7 +192,7 @@ package body PolyORB.ORB.Thread_Pool is
 
       --  Precondition: ORB_Lock is held.
 
-      PTCV.Wait (PTI.Condition (This_Task), ORB.ORB_Lock);
+      PTCV.Wait (PTI.Condition (This_Task), PTI.Mutex (This_Task));
 
       --  Post condition: ORB_Lock is held.
 
