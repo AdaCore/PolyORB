@@ -171,6 +171,7 @@ install-data-local: all-local install-dirs-local install-extra-libs
 		fi; \
 	done
 	${AR} cq ${GARLIC}/libgarlic.a ${OBJECTS}
+	${RANLIB} ${GARLIC}/libgarlic.a
 	chmod a+r ${GARLIC}/*
 	chmod a-w ${GARLIC}/*
 
