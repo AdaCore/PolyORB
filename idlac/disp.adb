@@ -231,31 +231,39 @@ package body Disp is
 --          when K_Unsigned_Long_Long =>
 --             Put_Line ("unsigned long long");
 
---          when K_Char =>
---             Put_Line ("char");
+         when K_Char =>
+            Put_Line ("char");
 
---          when K_Wchar =>
---             Put_Line ("wchar");
+         when K_Wide_Char =>
+            Put_Line ("wide_char");
 
---          when K_Boolean =>
---             Put_Line ("boolean");
+         when K_Boolean =>
+            Put_Line ("boolean");
 
---          when K_Object =>
---             Put_Line ("object");
+         when K_Object =>
+            Put_Line ("object");
 
---          when K_Octet =>
---             Put_Line ("octet");
+         when K_Octet =>
+            Put_Line ("octet");
 
---          when K_Any =>
---             Put_Line ("any");
+         when K_Any =>
+            Put_Line ("any");
 
---          when K_String =>
---             if N_String (N).Bound = null then
---                Put_Line ("string (unbounded)");
---             else
---                Put_Line ("string bounds:");
---                Disp_Tree (N_String (N).Bound.all, N_Indent, Full);
---             end if;
+         when K_String =>
+            if N_String (N).Bound = null then
+               Put_Line ("string (unbounded)");
+            else
+               Put_Line ("string bounds:");
+               Disp_Tree (N_String (N).Bound.all, N_Indent, Full);
+            end if;
+
+         when K_Wide_String =>
+            if N_Wide_String (N).Bound = null then
+               Put_Line ("string (unbounded)");
+            else
+               Put_Line ("string bounds:");
+               Disp_Tree (N_Wide_String (N).Bound.all, N_Indent, Full);
+            end if;
 
          when K_Param =>
             Put ("param ");
@@ -395,6 +403,9 @@ package body Disp is
                Disp_List (N_Enum (N).Enumerators, N_Indent + Offset, True);
             end if;
 
+         when K_ValueBase =>
+            Put_Line ("ValueBase");
+
 --          when K_Enumerator =>
 --             Put_Line ("enumerator: " & Get_Name (N_Enumerator (N)));
 
@@ -407,15 +418,15 @@ package body Disp is
             Disp_List (N_Type_Declarator (N).Declarators,
                        N_Indent + Offset, Full);
 
---          when K_Sequence =>
---             Put_Line ("sequence");
---             Disp_Indent (N_Indent, "type:");
---             Disp_Tree (N_Sequence (N).S_Type.all, N_Indent + Offset, full);
---             if N_Sequence (N).Bound /= null then
---                Disp_Indent (N_Indent, "bound:");
---                Disp_Tree (N_Sequence (N).Bound.all,
---                          N_Indent + Offset, Full);
---             end if;
+         when K_Sequence =>
+            Put_Line ("sequence");
+            Disp_Indent (N_Indent, "type:");
+            Disp_Tree (N_Sequence (N).S_Type.all, N_Indent + Offset, Full);
+            if N_Sequence (N).Bound /= null then
+               Disp_Indent (N_Indent, "bound:");
+               Disp_Tree (N_Sequence (N).Bound.all,
+                         N_Indent + Offset, Full);
+            end if;
 
          when K_Const =>
             Put_Line ("const " & Get_Name (N_Const (N)));
@@ -423,6 +434,13 @@ package body Disp is
             Disp_Tree (N_Const (N).Const_Type.all, N_Indent + Offset, Full);
             Disp_Indent (N_Indent, "expr:");
             Disp_Tree (N_Const (N).Expression.all, N_Indent + Offset, Full);
+
+         when K_Fixed =>
+            Put_Line ("fixed(" &
+                      Fixed_Digits'Image (N_Fixed (N).Digits_Nb) &
+                      "," &
+                      Integer'Image (N_Fixed (N).Scale) &
+                      ")");
 
          when K_Native =>
             Put_Line ("native:" & Get_Name (N_Const (N)));

@@ -1991,19 +1991,54 @@ package body Parse is
            | T_Unsigned =>
             Parse_Integer_Type (Result, Success);
          when T_Char =>
-            Parse_Char_Type (Result, Success);
+            declare
+               Res : N_Char_Acc;
+            begin
+               Parse_Char_Type (Res, Success);
+               Result := N_Root_Acc (Res);
+            end;
          when T_Wchar =>
-            Parse_Wide_Char_Type (Result, Success);
+            declare
+               Res : N_Wide_Char_Acc;
+            begin
+               Parse_Wide_Char_Type (Res, Success);
+               Result := N_Root_Acc (Res);
+            end;
          when T_Boolean =>
-            Parse_Boolean_Type (Result, Success);
+            declare
+               Res : N_Boolean_Acc;
+            begin
+               Parse_Boolean_Type (Res, Success);
+               Result := N_Root_Acc (Res);
+            end;
          when T_Octet =>
-            Parse_Octet_Type (Result, Success);
+            declare
+               Res : N_Octet_Acc;
+            begin
+               Parse_Octet_Type (Res, Success);
+               Result := N_Root_Acc (Res);
+            end;
          when T_Any =>
-            Parse_Any_Type (Result, Success);
+            declare
+               Res : N_Any_Acc;
+            begin
+               Parse_Any_Type (Res, Success);
+               Result := N_Root_Acc (Res);
+            end;
          when T_Object =>
-            Parse_Object_Type (Result, Success);
+            declare
+               Res : N_Object_Acc;
+            begin
+               Parse_Object_Type (Res, Success);
+               Result := N_Root_Acc (Res);
+            end;
          when T_ValueBase =>
-            Parse_Value_Base_Type (Result, Success);
+            declare
+               Res : N_ValueBase_Acc;
+            begin
+               Parse_Value_Base_Type (Res, Success);
+               Result := N_Root_Acc (Res);
+            end;
          when others =>
             raise Errors.Internal_Error;
       end case;
@@ -2084,20 +2119,38 @@ package body Parse is
    procedure Parse_Template_Type_Spec (Result : out N_Root_Acc;
                                        Success : out Boolean) is
    begin
-      Result := null;
-      Success := False;
---       case Token is
---          when T_Sequence =>
---             return N_Root_Acc (Parse_Sequence_Type);
---          when T_String =>
---             return N_Root_Acc (Parse_String_Type);
---          when T_Wstring =>
---             return N_Root_Acc (Parse_Wide_String_Type);
---          when T_Fixed =>
---             return N_Root_Acc (Parse_Fixed_Pt_Type);
---          when others =>
---             raise Errors.Internal_Error;
---       end case;
+      case Get_Token is
+         when T_Sequence =>
+            declare
+               Res : N_Sequence_Acc;
+            begin
+               Parse_Sequence_Type (Res, Success);
+               Result := N_Root_Acc (Res);
+            end;
+         when T_String =>
+            declare
+               Res : N_String_Acc;
+            begin
+               Parse_String_Type (Res, Success);
+               Result := N_Root_Acc (Res);
+            end;
+         when T_Wstring =>
+            declare
+               Res : N_Wide_String_Acc;
+            begin
+               Parse_Wide_String_Type (Res, Success);
+               Result := N_Root_Acc (Res);
+            end;
+         when T_Fixed =>
+            declare
+               Res : N_Fixed_Acc;
+            begin
+               Parse_Fixed_Pt_Type (Res, Success);
+               Result := N_Root_Acc (Res);
+            end;
+         when others =>
+            raise Errors.Internal_Error;
+      end case;
    end Parse_Template_Type_Spec;
 
    ------------------------------
@@ -2106,20 +2159,31 @@ package body Parse is
    procedure Parse_Constr_Type_Spec (Result : out N_Root_Acc;
                                      Success : out Boolean) is
    begin
-      Result := null;
-      Success := False;
---       case Token is
---          when T_Struct =>
---             return N_Root_Acc (Parse_Struct_Type);
---          when T_Union =>
---             return N_Root_Acc (Parse_Union_Type);
---          when T_Enum =>
---             return N_Root_Acc (Parse_Enum_Type);
---          when others =>
---             Errors.Parser_Error ("constructed type expected",
---                                  Errors.Error);
---             raise Errors.Internal_Error;
---       end case;
+      case Get_Token is
+         when T_Struct =>
+            declare
+               Res : N_Struct_Acc;
+            begin
+               Parse_Struct_Type (Res, Success);
+               Result := N_Root_Acc (Res);
+            end;
+         when T_Union =>
+            declare
+               Res : N_Union_Acc;
+            begin
+               Parse_Union_Type (Res, Success);
+               Result := N_Root_Acc (Res);
+            end;
+         when T_Enum =>
+            declare
+               Res : N_Enum_Acc;
+            begin
+               Parse_Enum_Type (Res, Success);
+               Result := N_Root_Acc (Res);
+            end;
+         when others =>
+            raise Errors.Internal_Error;
+      end case;
    end Parse_Constr_Type_Spec;
 
    -------------------------
@@ -2200,7 +2264,7 @@ package body Parse is
    -----------------------
    --  Parse_Char_Type  --
    -----------------------
-   procedure Parse_Char_Type (Result : in out N_Root_Acc;
+   procedure Parse_Char_Type (Result : in out N_Char_Acc;
                               Success : out Boolean) is
    begin
       Result := null;
@@ -2210,7 +2274,7 @@ package body Parse is
    ----------------------------
    --  Parse_Wide_Char_Type  --
    ----------------------------
-   procedure Parse_Wide_Char_Type (Result : in out N_Root_Acc;
+   procedure Parse_Wide_Char_Type (Result : in out N_Wide_Char_Acc;
                                    Success : out Boolean) is
    begin
       Result := null;
@@ -2220,7 +2284,7 @@ package body Parse is
    --------------------------
    --  Parse_Boolean_Type  --
    --------------------------
-   procedure Parse_Boolean_Type (Result : in out N_Root_Acc;
+   procedure Parse_Boolean_Type (Result : in out N_Boolean_Acc;
                                  Success : out Boolean) is
    begin
       Result := null;
@@ -2230,7 +2294,7 @@ package body Parse is
    ------------------------
    --  Parse_Octet_Type  --
    ------------------------
-   procedure Parse_Octet_Type (Result : in out N_Root_Acc;
+   procedure Parse_Octet_Type (Result : in out N_Octet_Acc;
                                Success : out Boolean) is
    begin
       Result := null;
@@ -2240,7 +2304,7 @@ package body Parse is
    ----------------------
    --  Parse_Any_Type  --
    ----------------------
-   procedure Parse_Any_Type (Result : in out N_Root_Acc;
+   procedure Parse_Any_Type (Result : in out N_Any_Acc;
                              Success : out Boolean) is
    begin
       Result := null;
@@ -2250,7 +2314,7 @@ package body Parse is
    -------------------------
    --  Parse_Object_Type  --
    -------------------------
-   procedure Parse_Object_Type (Result : in out N_Root_Acc;
+   procedure Parse_Object_Type (Result : in out N_Object_Acc;
                                 Success : out Boolean) is
    begin
       Result := null;
@@ -2364,6 +2428,71 @@ package body Parse is
 --       return Res;
    end Parse_Enum_Type;
 
+   ---------------------------
+   --  Parse_Sequence_Type  --
+   ---------------------------
+   procedure Parse_Sequence_Type (Result : out N_Sequence_Acc;
+                                  Success : out Boolean) is
+   begin
+      Result := null;
+      Success := False;
+--       Res : N_Sequence_Acc;
+--    begin
+--       Res := new N_Sequence;
+--       Set_Location (Res.all, Get_Location);
+--       Expect (T_Sequence);
+--       Scan_Expect (T_Less);
+--       Next_Token;
+--       Res.S_Type := Parse_Simple_Type_Spec;
+--       if Token = T_Comma then
+--          Next_Token;
+--          Res.Bound := Parse_Const_Exp;
+--       else
+--          Res.Bound := null;
+--       end if;
+--       Expect (T_Greater);
+--       Next_Token;
+--       return Res;
+   end Parse_Sequence_Type;
+
+   -------------------------
+   --  Parse_String_Type  --
+   -------------------------
+   procedure Parse_String_Type (Result : out N_String_Acc;
+                                Success : out Boolean) is
+   begin
+      Result := null;
+      Success := False;
+--       Res : N_String_Acc;
+--    begin
+--       Res := new N_String;
+--       Set_Location (Res.all, Get_Location);
+--       Expect (T_String);
+--       Next_Token;
+--       if Token = T_Less then
+--          Next_Token;
+--          Res.Bound := Parse_Const_Exp;
+--          Expect (T_Greater);
+--          Next_Token;
+--       end if;
+--       return Res;
+   end Parse_String_Type;
+
+   ------------------------------
+   --  Parse_Wide_String_Type  --
+   ------------------------------
+   procedure Parse_Wide_String_Type (Result : out N_Wide_String_Acc;
+                                     Success : out Boolean) is
+   begin
+      Result := null;
+      Success := False;
+--    begin
+--       Errors.Parser_Error ("can't parse wide string type",
+--                             Errors.Error);
+--       raise Errors.Internal_Error;
+--       return null;
+   end Parse_Wide_String_Type;
+
    ------------------------
    --  Parse_Except_Dcl  --
    ------------------------
@@ -2416,10 +2545,24 @@ package body Parse is
 --       end case;
    end Parse_Param_Type_Spec;
 
+   ---------------------------
+   --  Parse_Fixed_Pt_Type  --
+   ---------------------------
+   procedure Parse_Fixed_Pt_Type (Result : out N_Fixed_Acc;
+                                  Success : out Boolean) is
+   begin
+      Result := null;
+      Success := False;
+--       Errors.Parser_Error ("can't parse fixed pt type",
+--                             Errors.Error);
+--       raise Errors.Internal_Error;
+--       return null;
+   end Parse_Fixed_Pt_Type;
+
    -----------------------------
    --  Parse_Value_Base_Type  --
    -----------------------------
-   procedure Parse_Value_Base_Type (Result : in out N_Root_Acc;
+   procedure Parse_Value_Base_Type (Result : in out N_ValueBase_Acc;
                                     Success : out Boolean) is
    begin
       Result := null;
@@ -2809,46 +2952,7 @@ package body Parse is
 --       return Parse_Or_Expr;
 --    end Parse_Const_Exp;
 
---    --  Rule 66:
---    --  <string_type> ::= "string" "<" <positive_int_const> ">"
---    --                |   "string"
---    function Parse_String_Type return N_String_Acc is
---       Res : N_String_Acc;
---    begin
---       Res := new N_String;
---       Set_Location (Res.all, Get_Location);
---       Expect (T_String);
---       Next_Token;
---       if Token = T_Less then
---          Next_Token;
---          Res.Bound := Parse_Const_Exp;
---          Expect (T_Greater);
---          Next_Token;
---       end if;
---       return Res;
---    end Parse_String_Type;
 
---    --  Rule 67:
---    --  <wide_string_type> ::= "wstring" "<" <positive_int_const> ">"
---    --                     |   "wstring"
---    function Parse_Wide_String_Type return N_Root_Acc is
---    begin
---       Errors.Parser_Error ("can't parse wide string type",
---                             Errors.Error);
---       raise Errors.Internal_Error;
---       return null;
---    end Parse_Wide_String_Type;
-
---    --  Rule 81:
---    --  <fixed_pt_type>  ::= "fixed" "<" <positive_int_const> ","
---    --                       <integer_literal> ">"
---    function Parse_Fixed_Pt_Type return N_Root_Acc is
---    begin
---       Errors.Parser_Error ("can't parse fixed pt type",
---                             Errors.Error);
---       raise Errors.Internal_Error;
---       return null;
---    end Parse_Fixed_Pt_Type;
 
 --    --  Rule 70:
 --    --  <attr_dcl> ::= [ "readonly" ] "attribute" <param_type_spec>
@@ -2874,29 +2978,6 @@ package body Parse is
 --    end Parse_Attr_Dcl;
 
 
---    --  Rule 65:
---    --  <sequence_type> ::= "sequence" "<" <simple_type_spec>
---    --                      "," <positive_int_const> ">"
---    --                  |   "sequence" "<" <simple_type_spec> ">"
---    function Parse_Sequence_Type return N_Sequence_Acc is
---       Res : N_Sequence_Acc;
---    begin
---       Res := new N_Sequence;
---       Set_Location (Res.all, Get_Location);
---       Expect (T_Sequence);
---       Scan_Expect (T_Less);
---       Next_Token;
---       Res.S_Type := Parse_Simple_Type_Spec;
---       if Token = T_Comma then
---          Next_Token;
---          Res.Bound := Parse_Const_Exp;
---       else
---          Res.Bound := null;
---       end if;
---       Expect (T_Greater);
---       Next_Token;
---       return Res;
---    end Parse_Sequence_Type;
 
 --    --  Rule 35:
 --    --  <declarator> ::= <simple_declarator>

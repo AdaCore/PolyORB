@@ -436,32 +436,32 @@ private
 
    --  Rule 63
    --  <char_type> ::= "char"
-   procedure Parse_Char_Type (Result : in out N_Root_Acc;
+   procedure Parse_Char_Type (Result : in out N_Char_Acc;
                               Success : out Boolean);
 
    --  Rule 64
    --  <wide_char_type> ::= "wchar"
-   procedure Parse_Wide_Char_Type (Result : in out N_Root_Acc;
+   procedure Parse_Wide_Char_Type (Result : in out N_Wide_Char_Acc;
                                    Success : out Boolean);
 
    --  Rule 65
    --  <boolean_type> ::= "boolean"
-   procedure Parse_Boolean_Type (Result : in out N_Root_Acc;
+   procedure Parse_Boolean_Type (Result : in out N_Boolean_Acc;
                                  Success : out Boolean);
 
    --  Rule 66
    --  <octet_type> ::= "octet"
-   procedure Parse_Octet_Type (Result : in out N_Root_Acc;
+   procedure Parse_Octet_Type (Result : in out N_Octet_Acc;
                                Success : out Boolean);
 
    --  Rule 67
    --  <any_type> ::= "any"
-   procedure Parse_Any_Type (Result : in out N_Root_Acc;
+   procedure Parse_Any_Type (Result : in out N_Any_Acc;
                              Success : out Boolean);
 
    --  Rule 68
    --  <object_type> ::= "object"
-   procedure Parse_Object_Type (Result : in out N_Root_Acc;
+   procedure Parse_Object_Type (Result : in out N_Object_Acc;
                                 Success : out Boolean);
 
    --  Rule 69
@@ -495,6 +495,24 @@ private
    --  Rule 79
    --  <enumerator> ::= <identifier>
 
+   --  Rule 80
+   --  <sequence_type> ::= "sequence" "<" <simple_type_spec>
+   --                      "," <positive_int_const> ">"
+   --                  |   "sequence" "<" <simple_type_spec> ">"
+   procedure Parse_Sequence_Type (Result : out N_Sequence_Acc;
+                                  Success : out Boolean);
+   --  Rule 81
+   --  <string_type> ::= "string" "<" <positive_int_const> ">"
+   --                |   "string"
+   procedure Parse_String_Type (Result : out N_String_Acc;
+                                Success : out Boolean);
+
+   --  Rule 82
+   --  <wide_string_type> ::= "wstring" "<" <positive_int_const> ">"
+   --                     |   "wstring"
+   procedure Parse_Wide_String_Type (Result : out N_Wide_String_Acc;
+                                     Success : out Boolean);
+
    --  Rule 86
    --  <except_dcl> ::= "exception" <identifier> "{" <member>* "}"
    procedure Parse_Except_Dcl (Result : out N_Exception_Acc;
@@ -508,9 +526,15 @@ private
    procedure Parse_Param_Type_Spec (Result : out N_Root_Acc;
                                     Success : out Boolean);
 
+   --  Rule 96
+   --  <fixed_pt_type>  ::= "fixed" "<" <positive_int_const> ","
+   --                       <positive_int_const> ">"
+   procedure Parse_Fixed_Pt_Type (Result : out N_Fixed_Acc;
+                                  Success : out Boolean);
+
    --  Rule 98
    --  <value_base_type> ::= "ValueBase"
-   procedure Parse_Value_Base_Type (Result : in out N_Root_Acc;
+   procedure Parse_Value_Base_Type (Result : in out N_ValueBase_Acc;
                                     Success : out Boolean);
 
 
@@ -646,32 +670,11 @@ private
 --    --  <const_expr> ::= <or_expr>
 --    function Parse_Const_Exp return N_Root_Acc is
 
---    --  Rule 66:
---    --  <string_type> ::= "string" "<" <positive_int_const> ">"
---    --                |   "string"
---    function Parse_String_Type return N_String_Acc is
-
---    --  Rule 67:
---    --  <wide_string_type> ::= "wstring" "<" <positive_int_const> ">"
---    --                     |   "wstring"
---    function Parse_Wide_String_Type return N_Root_Acc is
-
---    --  Rule 81:
---    --  <fixed_pt_type>  ::= "fixed" "<" <positive_int_const> ","
---    --                       <integer_literal> ">"
---    function Parse_Fixed_Pt_Type return N_Root_Acc is
-
 --    --
 --    --  Rule 70:
 --    --  <attr_dcl> ::= [ "readonly" ] "attribute" <param_type_spec>
 --    --                 <simple_declarator> { "," <simple_declarator> }*
 --    procedure Parse_Attr_Dcl (List : in out Node_List) is
-
---    --  Rule 65:
---    --  <sequence_type> ::= "sequence" "<" <simple_type_spec>
---    --                      "," <positive_int_const> ">"
---    --                  |   "sequence" "<" <simple_type_spec> ">"
---    function Parse_Sequence_Type return N_Sequence_Acc is
 
 --    --  Rule 35:
 --    --  <declarator> ::= <simple_declarator>

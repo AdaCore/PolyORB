@@ -197,58 +197,66 @@ package body Tree is
    ----------------
    --  Get_Kind  --
    ----------------
---    function Get_Kind (N : N_Char) return Node_Kind is
---    begin
---       return K_Char;
---    end Get_Kind;
+   function Get_Kind (N : N_Char) return Node_Kind is
+   begin
+      return K_Char;
+   end Get_Kind;
 
    ----------------
    --  Get_Kind  --
    ----------------
---    function Get_Kind (N : N_Wchar) return Node_Kind is
---    begin
---       return K_Wchar;
---    end Get_Kind;
+   function Get_Kind (N : N_Wide_Char) return Node_Kind is
+   begin
+      return K_Wide_Char;
+   end Get_Kind;
 
    ----------------
    --  Get_Kind  --
    ----------------
---    function Get_Kind (N : N_Boolean) return Node_Kind is
---    begin
---       return K_Boolean;
---    end Get_Kind;
+   function Get_Kind (N : N_Boolean) return Node_Kind is
+   begin
+      return K_Boolean;
+   end Get_Kind;
 
    ----------------
    --  Get_Kind  --
    ----------------
---    function Get_Kind (N : N_Octet) return Node_Kind is
---    begin
---       return K_Octet;
---    end Get_Kind;
+   function Get_Kind (N : N_Octet) return Node_Kind is
+   begin
+      return K_Octet;
+   end Get_Kind;
 
    ----------------
    --  Get_Kind  --
    ----------------
---    function Get_Kind (N : N_Any) return Node_Kind is
---    begin
---       return K_Any;
---    end Get_Kind;
+   function Get_Kind (N : N_Any) return Node_Kind is
+   begin
+      return K_Any;
+   end Get_Kind;
 
    ----------------
    --  Get_Kind  --
    ----------------
---    function Get_Kind (N : N_Object) return Node_Kind is
---    begin
---       return K_Object;
---    end Get_Kind;
+   function Get_Kind (N : N_Object) return Node_Kind is
+   begin
+      return K_Object;
+   end Get_Kind;
 
    ----------------
    --  Get_Kind  --
    ----------------
---    function Get_Kind (N : N_String) return Node_Kind is
---    begin
---       return K_String;
---    end Get_Kind;
+   function Get_Kind (N : N_String) return Node_Kind is
+   begin
+      return K_String;
+   end Get_Kind;
+
+   ----------------
+   --  Get_Kind  --
+   ----------------
+   function Get_Kind (N : N_Wide_String) return Node_Kind is
+   begin
+      return K_Wide_String;
+   end Get_Kind;
 
    ----------------
    --  Get_Kind  --
@@ -450,10 +458,10 @@ package body Tree is
    ----------------
    --  Get_Kind  --
    ----------------
---    function Get_Kind (N : N_Sequence) return Node_Kind is
---    begin
---       return K_Sequence;
---    end Get_Kind;
+   function Get_Kind (N : N_Sequence) return Node_Kind is
+   begin
+      return K_Sequence;
+   end Get_Kind;
 
    ----------------
    --  Get_Kind  --
@@ -466,9 +474,25 @@ package body Tree is
    ----------------
    --  Get_Kind  --
    ----------------
+   function Get_Kind (N : N_Fixed) return Node_Kind is
+   begin
+      return K_Fixed;
+   end Get_Kind;
+
+   ----------------
+   --  Get_Kind  --
+   ----------------
    function Get_Kind (N : N_Native) return Node_Kind is
    begin
       return K_Native;
+   end Get_Kind;
+
+   ----------------
+   --  Get_Kind  --
+   ----------------
+   function Get_Kind (N : N_ValueBase) return Node_Kind is
+   begin
+      return K_ValueBase;
    end Get_Kind;
 
 end Tree;

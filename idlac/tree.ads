@@ -137,9 +137,9 @@ package Tree is
 --    type N_Attribute_Acc is access all N_Attribute;
 --    function Get_Kind (N : N_Attribute) return Node_Kind;
 
---    --  Types.
---    type N_Types is abstract new N_Root with null record;
---    function Get_Kind (N : N_Types) return Node_Kind is abstract;
+   --  Types.
+   type N_Types is abstract new N_Root with null record;
+   function Get_Kind (N : N_Types) return Node_Kind is abstract;
 
 --    --  Void type.
 --    type N_Void is new N_Types with null record;
@@ -182,37 +182,51 @@ package Tree is
 --    type N_Unsigned_Long_Long is new N_Types with null record;
 --    function Get_Kind (N : N_Unsigned_Long_Long) return Node_Kind;
 
---    --  Char type.
---    type N_Char is new N_Types with null record;
---    function Get_Kind (N : N_Char) return Node_Kind;
+   --  Char type.
+   type N_Char is new N_Types with null record;
+   type N_Char_Acc is access all N_Char;
+   function Get_Kind (N : N_Char) return Node_Kind;
 
---    --  Wchar type.
---    type N_Wchar is new N_Types with null record;
---    function Get_Kind (N : N_Wchar) return Node_Kind;
+   --  Wchar type.
+   type N_Wide_Char is new N_Types with null record;
+   type N_Wide_Char_Acc is access all N_Wide_Char;
+   function Get_Kind (N : N_Wide_Char) return Node_Kind;
 
---    --  Boolean type.
---    type N_Boolean is new N_Types with null record;
---    function Get_Kind (N : N_Boolean) return Node_Kind;
+   --  Boolean type.
+   type N_Boolean is new N_Types with null record;
+   type N_Boolean_Acc is access all N_Boolean;
+   function Get_Kind (N : N_Boolean) return Node_Kind;
 
---    --  Octet type.
---    type N_Octet is new N_Types with null record;
---    function Get_Kind (N : N_Octet) return Node_Kind;
+   --  Octet type.
+   type N_Octet is new N_Types with null record;
+   type N_Octet_Acc is access all N_Octet;
+   function Get_Kind (N : N_Octet) return Node_Kind;
 
---    --  Any type.
---    type N_Any is new N_Types with null record;
---    function Get_Kind (N : N_Any) return Node_Kind;
+   --  Any type.
+   type N_Any is new N_Types with null record;
+   type N_Any_Acc is access all N_Any;
+   function Get_Kind (N : N_Any) return Node_Kind;
 
---    --  Object type.
---    type N_Object is new N_Types with null record;
---    function Get_Kind (N : N_Object) return Node_Kind;
+   --  Object type.
+   type N_Object is new N_Types with null record;
+   type N_Object_Acc is access all N_Object;
+   function Get_Kind (N : N_Object) return Node_Kind;
 
---    --  String type
---    --  If BOUND = null, then this is an unbounded string.
---    type N_String is new N_Types with record
---       Bound : N_Root_Acc;
---    end record;
---    type N_String_Acc is access all N_String;
---    function Get_Kind (N : N_String) return Node_Kind;
+   --  String type
+   --  If BOUND = null, then this is an unbounded string.
+   type N_String is new N_Types with record
+      Bound : N_Root_Acc;
+   end record;
+   type N_String_Acc is access all N_String;
+   function Get_Kind (N : N_String) return Node_Kind;
+
+   --  Wide String type
+   --  If BOUND = null, then this is an unbounded string.
+   type N_Wide_String is new N_Types with record
+      Bound : N_Root_Acc;
+   end record;
+   type N_Wide_String_Acc is access all N_Wide_String;
+   function Get_Kind (N : N_Wide_String) return Node_Kind;
 
    type Param_Mode is (Mode_In, Mode_Out, Mode_Inout);
    type N_Param is new N_Named with record
@@ -279,13 +293,13 @@ package Tree is
    type N_Type_Declarator_Acc is access all N_Type_Declarator;
    function Get_Kind (N : N_Type_Declarator) return Node_Kind;
 
---    --  If BOUND is null, then this is an unbounded sequence.
---    type N_Sequence is new N_Root with record
---       S_Type : N_Root_Acc;
---       Bound : N_Root_Acc;
---    end record;
---    type N_Sequence_Acc is access all N_Sequence;
---    function Get_Kind (N : N_Sequence) return Node_Kind;
+   --  If BOUND is null, then this is an unbounded sequence.
+   type N_Sequence is new N_Root with record
+      S_Type : N_Root_Acc;
+      Bound : N_Root_Acc;
+   end record;
+   type N_Sequence_Acc is access all N_Sequence;
+   function Get_Kind (N : N_Sequence) return Node_Kind;
 
 --    type N_Expr is abstract new N_Root with null record;
 --    type N_Expr_Acc is access all N_Expr;
@@ -375,6 +389,19 @@ package Tree is
    end record;
    type N_Const_Acc is access all N_Const;
    function Get_Kind (N : N_Const) return Node_Kind;
+
+   type Fixed_Digits is new Natural range 1 .. 31;
+   type N_Fixed is new N_Types with record
+      Digits_Nb : Fixed_Digits;
+      Scale : Integer;
+   end record;
+   type N_Fixed_Acc is access all N_Fixed;
+   function Get_Kind (N : N_Fixed) return Node_Kind;
+
+   --  ValueBase type.
+   type N_ValueBase is new N_Types with null record;
+   type N_ValueBase_Acc is access all N_ValueBase;
+   function Get_Kind (N : N_ValueBase) return Node_Kind;
 
 
 --
