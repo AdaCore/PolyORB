@@ -195,7 +195,7 @@ case "$CM_REPOSITORY" in
   *)
     echo "Using currently directory as is"
     ;;
-fi
+esac
 
 ###################################################
 # Launch build process
