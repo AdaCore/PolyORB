@@ -70,13 +70,8 @@ package body Droopi.Protocols.GIOP.GIOP_1_1 is
       Marshall (Buffer, Minor_Version);
 
       --  Flags
-      if Endianness (Buffer.all) = Little_Endian then
-         Flags := Flags or 2**Endianness_Bit;
-      end if;
-
-      if Fragment_Next = True then
-         Flags := Flags or 2**Fragment_Bit;
-      end if;
+      Set (Flags, Endianness_Bit, Endianness (Buffer.all) = Little_Endian);
+      Set (Flags, Fragment_Bit, Fragment_Next);
 
       Marshall (Buffer, Flags);
 

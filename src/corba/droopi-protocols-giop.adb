@@ -354,17 +354,13 @@ package body Droopi.Protocols.GIOP is
       else
          Message_Endianness := Big_Endian;
       end if;
-
-
+      pragma Debug (O ("Message_Endianness = " & Message_Endianness'Img));
       Set_Endianness (Buffer, Message_Endianness);
-
 
       --  Magic
       for I in Message_Magic'Range loop
-
          Message_Magic (I) := Stream_Element
            (Types.Octet'(Unmarshall (Buffer)));
-
       end loop;
 
       if Message_Magic /= Magic then
@@ -385,16 +381,18 @@ package body Droopi.Protocols.GIOP is
       end if;
 
       Flags := Unmarshall (Buffer);
-      if (Flags and 2 ** Endianness_Bit) /= 0 then
+      if Is_Set (Flags, Endianness_Bit) then
          Endianness := Little_Endian;
       else
          Endianness := Big_Endian;
       end if;
 
+      pragma Debug (O ("Flags =" & Flags'Img));
+
       pragma Assert (Message_Endianness = Endianness);
 
       if Message_Minor_Version /= Ver0 then
-         Fragment_Next := ((Flags and 2 ** Fragment_Bit) /= 0);
+         Fragment_Next := Is_Set (Flags, Fragment_Bit);
       end if;
 
 
@@ -1593,6 +1591,25 @@ package body Droopi.Protocols.GIOP is
       Release (S.Buffer_Out);
    end Handle_Disconnect;
 
+   procedure Set
+     (Bit_Field : in out Types.Octet;
+      Bit_Order : Bit_Order_Type;
+      Bit_Value : Boolean) is
+   begin
+      if Bit_Value then
+         Bit_Field := Bit_Field or (2 ** Bit_Order);
+      else
+         Bit_Field := Bit_Field and not (2 ** Bit_Order);
+      end if;
+   end Set;
+
+   function Is_Set
+     (Bit_Field : Types.Octet;
+      Bit_Order : Bit_Order_Type)
+     return Boolean is
+   begin
+      return (Bit_Field and (2 ** Bit_Order)) /= 0;
+   end Is_Set;
 
 end Droopi.Protocols.GIOP;
 

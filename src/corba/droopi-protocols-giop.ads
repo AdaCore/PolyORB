@@ -41,8 +41,6 @@ package Droopi.Protocols.GIOP is
    Maximum_Message_Size : constant Stream_Element_Offset;
    Byte_Order_Offset    : constant Stream_Element_Offset;
    Max_Data_Received    : constant Integer;
-   Endianness_Bit       : constant Integer;
-   Fragment_Bit         : constant Integer;
 
    Max_Nb_Tries         : constant Integer;
 
@@ -404,10 +402,29 @@ private
 
    Max_Data_Received : constant Integer := 1024;
 
-   Endianness_Bit : constant Integer := 1;
-
-   Fragment_Bit : constant Integer := 2;
-
    Max_Nb_Tries : constant Integer := 100;
+
+   subtype Bit_Order_Type is Integer
+     range 0 .. Types.Octet'Size;
+
+   function Is_Set
+     (Bit_Field : Types.Octet;
+      Bit_Order : Bit_Order_Type)
+     return Boolean;
+   pragma Inline (Is_Set);
+   --  True if, and only if, the bit of order
+   --  Bit_Order is set in Bit_Field.
+   --  (Bit_Order = 0 is the least significant bit).
+
+   procedure Set
+     (Bit_Field : in out Types.Octet;
+      Bit_Order : Bit_Order_Type;
+      Bit_Value : Boolean);
+   pragma Inline (Set);
+   --  Set the value of bit Bit_Order in Bit_Field
+   --  to 1 if Bit_Value = True, to 0 otherwise.
+
+   Endianness_Bit : constant Bit_Order_Type := 0;
+   Fragment_Bit   : constant Bit_Order_Type := 1;
 
 end Droopi.Protocols.GIOP;
