@@ -18,15 +18,11 @@ procedure Client is
    Ior : Corba.String := Corba.To_Corba_String
      ("IOR:019f00402800000049444c3a6f6d672e6f72672f436f734e616d696e672f4e616d6"
       & "96e67436f6e746578743a312e3000010000000000000028000000010100000e000000"
-      & "3133372e3139342e31342e333000d1070c0000003701508f7454f45200000002") ;
+      & "3133372e3139342e31342e333000d1070c0000003703ee7d00cb167700000002") ;
 
    Root_context : Cosnaming.Namingcontext.Ref ;
    ObjName : Cosnaming.Name := Cosnaming.Name (Cosnaming.IDL_SEQUENCE_NameComponent.Null_Sequence) ;
    El : NameComponent ;
-
-   Context : Cosnaming.Namingcontext.Ref ;
-   Context_Name : Cosnaming.Name := Cosnaming.Name (Cosnaming.IDL_SEQUENCE_NameComponent.Null_Sequence) ;
-   Context_El : Cosnaming.NameComponent ;
 
    Myecho : Echo.Ref ;
 
@@ -43,23 +39,8 @@ begin
           Kind => IString(Corba.To_Corba_String(Standard.String'("object")))) ;
    ObjName := ObjName & El ;
 
-   -- compute the name of a new context
-   Context_El := (Id => Cosnaming.IString(Corba.To_Corba_String(Standard.String'("champagne"))),
-                  Kind => Cosnaming.IString(Corba.To_Corba_String(Standard.String'("context")))) ;
-   Context_Name := Context_Name & Context_El ;
-
-   begin
-      -- build a new context
-      Context := Cosnaming.Namingcontext.Bind_New_Context (Root_Context, Context_Name) ;
-   exception
-      when COSNAMING.NAMINGCONTEXT.ALREADYBOUND =>
-         Cosnaming.Namingcontext.Rebind_Context (Root_Context,
-                                                 Context_Name,
-                                                 Context) ;
-   end;
-
    -- get the object
-   Myecho := Echo.To_Ref(Cosnaming.Namingcontext.Resolve(Context,ObjName)) ;
+   Myecho := Echo.To_Ref(Cosnaming.Namingcontext.Resolve(Root_Context,ObjName)) ;
 
    if (Echo.Is_Nil(Myecho)) then
       Put_Line ("main : Unable to get an echo Object") ;
