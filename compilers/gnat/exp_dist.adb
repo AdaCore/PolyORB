@@ -254,7 +254,7 @@ package body Exp_Dist is
    --  pointing on the designated type.
 
    procedure Build_RPC_Receiver_Body
-     (RPC_Receiver :     Entity_Id;
+     (RPC_Receiver : Entity_Id;
       Request      : out Entity_Id;
       Subp_Id      : out Entity_Id;
       Stmts        : out List_Id;
@@ -362,10 +362,10 @@ package body Exp_Dist is
    --  operations.
 
    type Stub_Structure is record
-      Stub_Type           : Entity_Id;
-      Stub_Type_Access    : Entity_Id;
-      RPC_Receiver_Decl   : Node_Id;
-      RACW_Type           : Entity_Id;
+      Stub_Type         : Entity_Id;
+      Stub_Type_Access  : Entity_Id;
+      RPC_Receiver_Decl : Node_Id;
+      RACW_Type         : Entity_Id;
    end record;
    --  This structure is necessary because of the two phases analysis of
    --  a RACW declaration occurring in the same Remote_Types package as the
@@ -419,13 +419,13 @@ package body Exp_Dist is
    --  Mapping between a RCI subprogram and the corresponding calling stubs
 
    procedure Add_Stub_Type
-     (Designated_Type     : Entity_Id;
-      RACW_Type           : Entity_Id;
-      Decls               : List_Id;
-      Stub_Type           : out Entity_Id;
-      Stub_Type_Access    : out Entity_Id;
-      RPC_Receiver_Decl   : out Node_Id;
-      Existing            : out Boolean);
+     (Designated_Type    : Entity_Id;
+      RACW_Type         : Entity_Id;
+      Decls             : List_Id;
+      Stub_Type         : out Entity_Id;
+      Stub_Type_Access  : out Entity_Id;
+      RPC_Receiver_Decl : out Node_Id;
+      Existing          : out Boolean);
    --  Add the declaration of the stub type, the access to stub type and the
    --  object RPC receiver at the end of Decls. If these already exist,
    --  then nothing is added in the tree but the right values are returned
@@ -519,8 +519,8 @@ package body Exp_Dist is
    --  subprogram for Add_RAST_Features.
 
    procedure Specific_Build_Stub_Type
-     (RACW_Type : Entity_Id;
-      Stub_Type : Entity_Id;
+     (RACW_Type         : Entity_Id;
+      Stub_Type         : Entity_Id;
       Stub_Type_Decl    : out Node_Id;
       RPC_Receiver_Decl : out Node_Id);
    --  Build a type declaration for the stub type associated with an RACW
@@ -531,6 +531,8 @@ package body Exp_Dist is
    package GARLIC_Support is
 
       --  Support for generating DSA code that uses the GARLIC PCS
+
+      --  Specs need commenting here ???
 
       procedure Add_RACW_Features
         (RACW_Type         : Entity_Id;
@@ -577,8 +579,8 @@ package body Exp_Dist is
          Decls    : List_Id);
 
       procedure Build_Stub_Type
-        (RACW_Type : Entity_Id;
-         Stub_Type : Entity_Id;
+        (RACW_Type         : Entity_Id;
+         Stub_Type         : Entity_Id;
          Stub_Type_Decl    : out Node_Id;
          RPC_Receiver_Decl : out Node_Id);
 
@@ -938,7 +940,7 @@ package body Exp_Dist is
       Insertion_Node  : Node_Id;
       Decls           : List_Id)
    is
-      --  Set sloc of generated declaration copy of insertion node sloc, so
+      --  Set Sloc of generated declaration copy of insertion node Sloc, so
       --  the declarations are recognized as belonging to the current package.
 
       Loc : constant Source_Ptr := Sloc (Insertion_Node);
@@ -952,7 +954,7 @@ package body Exp_Dist is
 
       Current_Insertion_Node : Node_Id := Insertion_Node;
 
-      RPC_Receiver : Entity_Id;
+      RPC_Receiver                   : Entity_Id;
       RPC_Receiver_Statements        : List_Id;
       RPC_Receiver_Case_Alternatives : constant List_Id := New_List;
       RPC_Receiver_Request           : Entity_Id;
@@ -996,7 +998,6 @@ package body Exp_Dist is
       --  receiver for this type.
 
       if Present (Primitive_Operations (Designated_Type)) then
-
          Overload_Counter_Table.Reset;
 
          Current_Primitive_Elmt :=
@@ -1202,11 +1203,12 @@ package body Exp_Dist is
    --  Start of processing for Add_RAS_Dereference_TSS
 
    begin
-
       --  The Dereference TSS for a remote access-to-subprogram type
       --  has the form:
-      --  [function|procedure] ras_typeRD (RAS_Value, <RAS_Parameters>)
-      --     [return <>]
+
+      --    [function|procedure] ras_typeRD (RAS_Value, <RAS_Parameters>)
+      --       [return <>]
+
       --  and is called whenever a value of a RAS type is dereferenced.
 
       --  First construct a list of parameter specifications:
@@ -2740,7 +2742,7 @@ package body Exp_Dist is
    -----------------------------
 
    procedure Build_RPC_Receiver_Body
-     (RPC_Receiver :     Entity_Id;
+     (RPC_Receiver : Entity_Id;
       Request      : out Entity_Id;
       Subp_Id      : out Entity_Id;
       Stmts        : out List_Id;
@@ -2839,6 +2841,7 @@ package body Exp_Dist is
                               Defining_Identifier (Parameter);
       begin
          --  The expression that will be built is of the form:
+
          --    if not Same_Partition (Parameter, Controlling_Parameter) then
          --      raise Constraint_Error;
          --    end if;
@@ -3769,7 +3772,6 @@ package body Exp_Dist is
    procedure Expand_Calling_Stubs_Bodies (Unit_Node : Node_Id) is
       Spec  : constant Node_Id := Specification (Unit_Node);
       Decls : constant List_Id := Visible_Declarations (Spec);
-
    begin
       New_Scope (Scope_Of_Spec (Spec));
       Add_Calling_Stubs_To_Declarations
@@ -4203,8 +4205,7 @@ package body Exp_Dist is
                    Make_Identifier (Loc, Name_Addr)),
             Etyp   => RTE (RE_Unsigned_64)));
 
-         --  Build the code fragment corresponding to the marshalling of a null
-         --  object.
+         --  Build code fragment corresponding to marshalling of a null object
 
          Null_Statements := New_List (
 
@@ -4556,13 +4557,14 @@ package body Exp_Dist is
       ---------------------
 
       procedure Build_Stub_Type
-        (RACW_Type : Entity_Id;
-         Stub_Type : Entity_Id;
+        (RACW_Type         : Entity_Id;
+         Stub_Type         : Entity_Id;
          Stub_Type_Decl    : out Node_Id;
          RPC_Receiver_Decl : out Node_Id)
       is
-         Loc : constant Source_Ptr := Sloc (Stub_Type);
+         Loc    : constant Source_Ptr := Sloc (Stub_Type);
          Is_RAS : constant Boolean := not Comes_From_Source (RACW_Type);
+
       begin
          Stub_Type_Decl :=
            Make_Full_Type_Declaration (Loc,
@@ -5830,7 +5832,8 @@ package body Exp_Dist is
       procedure Add_RAST_Features
         (Vis_Decl : Node_Id;
          RAS_Type : Entity_Id;
-         Decls    : List_Id) is
+         Decls    : List_Id)
+      is
       begin
          Add_RAS_Access_TSS (Vis_Decl);
 
@@ -6424,13 +6427,14 @@ package body Exp_Dist is
       ---------------------
 
       procedure Build_Stub_Type
-        (RACW_Type : Entity_Id;
-         Stub_Type : Entity_Id;
+        (RACW_Type         : Entity_Id;
+         Stub_Type         : Entity_Id;
          Stub_Type_Decl    : out Node_Id;
          RPC_Receiver_Decl : out Node_Id)
       is
          Loc : constant Source_Ptr := Sloc (Stub_Type);
          pragma Unreferenced (RACW_Type);
+
       begin
          Stub_Type_Decl :=
            Make_Full_Type_Declaration (Loc,
@@ -8980,7 +8984,6 @@ package body Exp_Dist is
             --  the primitive spec. For all other cases, we use a serialized
             --  name so that multiple generations of the same procedure do not
             --  clash.
-
             if Is_Tagged_Type (Typ) then
                return Make_Defining_Identifier (Loc, Nam);
             else
@@ -9113,6 +9116,7 @@ package body Exp_Dist is
          Set_Ekind (Snam, E_Procedure);
          Set_Etype (Snam, Standard_Void_Type);
       end if;
+
       Set_TSS (Typ, Snam);
    end Set_Renaming_TSS;
 
@@ -9174,8 +9178,8 @@ package body Exp_Dist is
    ------------------------------
 
    procedure Specific_Build_Stub_Type
-     (RACW_Type : Entity_Id;
-      Stub_Type : Entity_Id;
+     (RACW_Type         : Entity_Id;
+      Stub_Type         : Entity_Id;
       Stub_Type_Decl    : out Node_Id;
       RPC_Receiver_Decl : out Node_Id)
    is
