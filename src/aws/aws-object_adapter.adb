@@ -46,31 +46,31 @@ package body AWS.Object_Adapter is
    begin
       pragma Debug (O ("Unknown_Adapter: asked for <" & Name & ">"));
 
-      PolyORB.POA_Policies.Policy_Sequences.Append
+      PolyORB.POA_Policies.Policy_Lists.Append
         (Policies, PolyORB.POA_Policies.Request_Processing_Policy.
          Use_Default_Servant.Create.all'Access);
 
       --  This is what we need
 
-      PolyORB.POA_Policies.Policy_Sequences.Append
+      PolyORB.POA_Policies.Policy_Lists.Append
         (Policies, PolyORB.POA_Policies.Id_Uniqueness_Policy.
          Multiple.Create.all'Access);
 
       --  This is required by Use_Default_Servant
 
-      PolyORB.POA_Policies.Policy_Sequences.Append
+      PolyORB.POA_Policies.Policy_Lists.Append
         (Policies, PolyORB.POA_Policies.Lifespan_Policy.
          Persistent.Create.all'Access);
 
       --  To get rid of the ";pf=..." in URIs
 
-      PolyORB.POA_Policies.Policy_Sequences.Append
+      PolyORB.POA_Policies.Policy_Lists.Append
         (Policies, PolyORB.POA_Policies.Servant_Retention_Policy.
          Non_Retain.Create.all'Access);
 
       --  To get rid of the ";sys" in URIs
 
-      PolyORB.POA_Policies.Policy_Sequences.Append
+      PolyORB.POA_Policies.Policy_Lists.Append
         (Policies, PolyORB.POA_Policies.Implicit_Activation_Policy.
          No_Activation.Create.all'Access);
 

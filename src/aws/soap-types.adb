@@ -91,7 +91,7 @@ package body SOAP.Types is
       use PolyORB.Types;
       use PolyORB.Any.TypeCode;
 
-      O : Object_Access := From_Any (NV.Argument);
+      O : constant Object_Access := From_Any (NV.Argument);
    begin
       pragma Debug (L.Output ("From_NamedValue: processing nv_arg named "
                               & To_String (NV.Name)));
@@ -1156,7 +1156,7 @@ package body SOAP.Types is
          begin
             for Index in 1 .. Number_Of_Elements loop
                declare
-                  New_Object : Object_Access :=
+                  New_Object : constant Object_Access :=
                     From_Any
                     (PolyORB.Any.Get_Aggregate_Element
                      (Item, PolyORB_Type_Of_Elements,
@@ -1189,7 +1189,7 @@ package body SOAP.Types is
                      (Item, PolyORB.Any.TypeCode.Member_Type
                       (PolyORB.Any.Get_Type (Item), Index - 1),
                       PolyORB.Types.Unsigned_Long (Index - 1)));
-                  New_Object : Object_Access := From_Any (Element);
+                  New_Object : constant Object_Access := From_Any (Element);
 
                begin
                   New_Object.Name := To_Unbounded_String
