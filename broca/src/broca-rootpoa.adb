@@ -1343,10 +1343,14 @@ package body Broca.RootPOA is
 --           end;
 --
 
+         pragma Debug (O ("GIOP_Invoke: Setting current object ID."));
          Task_Attributes.Set_Current_Object (Oid);
+         pragma Debug (O ("GIOP_Invoke: Setting current POA."));
          Task_Attributes.Set_Current_POA
            (PortableServer.POA.Convert.To_Forward (A_POA));
+         pragma Debug (O ("GIOP_Invoke: Setting Has_Context."));
          Task_Attributes.Set_Has_Context;
+         pragma Debug (O ("GIOP_Invoke: All task attributes positioned."));
 
          begin
             pragma Debug
