@@ -58,12 +58,15 @@ package System.Garlic.Options is
    Is_Boot_Mirror   : Boolean;
    Is_Boot_Server   : Boolean;
    Is_Pure_Client   : Boolean;
+   Local_Launch     : Boolean;
    Connection_Hits  : Natural;
    Detach           : Boolean;
    Nolaunch         : Boolean;
    Reconnection     : Types.Reconnection_Type;
    Termination      : Types.Termination_Type;
    Partition_Name   : Utils.String_Access;
+   Rsh_Command      : Utils.String_Access;
+   Rsh_Options      : Utils.String_Access;
    Execution_Mode   : Types.Execution_Mode_Type;
    Trace_File_Name  : Utils.String_Access;
    Checksum         : Types.Word;
@@ -86,6 +89,8 @@ package System.Garlic.Options is
 
    procedure Set_Light_PCS (Default : in Boolean);
 
+   procedure Set_Local_Launch (Default : in Boolean);
+
    procedure Set_Nolaunch (Default : in Boolean);
 
    procedure Set_Partition_Name (Name : in String);
@@ -93,6 +98,10 @@ package System.Garlic.Options is
    procedure Set_Pure_Client (Default : in Boolean);
 
    procedure Set_Reconnection (Default : in Types.Reconnection_Type);
+
+   procedure Set_Rsh_Command (Default : in String);
+
+   procedure Set_Rsh_Options (Default : in String);
 
    procedure Set_Self_Location (Default : in String);
 
