@@ -121,12 +121,9 @@ package body PolyORB.Setup.Test is
      (DAP  : in out Decorated_Access_Point;
       Port : Port_Type) is
    begin
-      Put ("Socket...");
-
       Create_Socket (DAP.Socket);
 
-      DAP.Address.Addr := Addresses
-        (Get_Host_By_Name ("localhost"), 1);
+      DAP.Address.Addr := Any_Inet_Addr;
       DAP.Address.Port := Port;
 
       --  Allow reuse of local addresses.
@@ -146,7 +143,7 @@ package body PolyORB.Setup.Test is
       else
          Put_Line (" (null profile factory!)");
       end if;
-      Put_Line (" done.");
+      Put_Line (" done, listening at " & Image (DAP.Address));
    end Initialize_Socket;
 
    --  The 'test' access point.
@@ -210,7 +207,7 @@ package body PolyORB.Setup.Test is
       --------------------------------------
 
       Put ("Creating Test/Echo access point... ");
-      Initialize_Socket (Test_Access_Point, 9998);
+      Initialize_Socket (Test_Access_Point, Any_Port);
       Register_Access_Point
         (ORB    => The_ORB,
          TAP    => Test_Access_Point.SAP,
@@ -225,7 +222,7 @@ package body PolyORB.Setup.Test is
 
       Put ("Creating GIOP access point...");
 
-      Initialize_Socket (GIOP_Access_Point, 10000);
+      Initialize_Socket (GIOP_Access_Point, Any_Port);
       Chain_Factories ((0 => Slicer_Factory'Unchecked_Access,
                         1 => GIOP_Protocol'Unchecked_Access));
       Register_Access_Point
@@ -239,7 +236,7 @@ package body PolyORB.Setup.Test is
       --------------------------------------------
 
       Put ("Creating SRP access point... ");
-      Initialize_Socket (SRP_Access_Point, 10002);
+      Initialize_Socket (SRP_Access_Point, Any_Port);
       Register_Access_Point
         (ORB    => The_ORB,
          TAP    => SRP_Access_Point.SAP,

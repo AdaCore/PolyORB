@@ -49,9 +49,12 @@ package PolyORB.Transport.Sockets is
    procedure Create
      (SAP     : in out Socket_Access_Point;
       Socket  :        Socket_Type;
-      Address :        Sock_Addr_Type);
+      Address : in out Sock_Addr_Type);
    --  Initialise SAP: bind Socket to Address, listen on it,
    --  and set up the corresponding Socket_Access_Point.
+   --  On entry, Address.Port may be 0, in which case the system
+   --  will assign an available port number itself. On return,
+   --  Address is always set to the actual address used.
 
    function Create_Event_Source
      (TAP : Socket_Access_Point)

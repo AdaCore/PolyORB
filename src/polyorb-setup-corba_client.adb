@@ -35,27 +35,21 @@
 --  $Id$
 
 with PolyORB.Configurator;
-with PolyORB.Binding_Data.IIOP;
-with PolyORB.Protocols.GIOP;
-with PolyORB.Smart_Pointers;
-with PolyORB.ORB.No_Tasking;
+
 with PolyORB.ORB;
+with PolyORB.ORB.No_Tasking;
+with PolyORB.Binding_Data.IIOP;
 with PolyORB.Binding_Data.SOAP;
 
 pragma Elaborate_All (PolyORB.Configurator);
-pragma Elaborate_All (PolyORB.Binding_Data.IIOP);
-pragma Elaborate_All (PolyORB.Protocols.GIOP);
-pragma Elaborate_All (PolyORB.Smart_Pointers);
-pragma Elaborate_All (PolyORB.ORB.No_Tasking);
 pragma Elaborate_All (PolyORB.ORB);
+pragma Elaborate_All (PolyORB.ORB.No_Tasking);
+pragma Elaborate_All (PolyORB.Binding_Data.IIOP);
 pragma Elaborate_All (PolyORB.Binding_Data.SOAP);
 
-pragma Warnings (Off, PolyORB.Configurator);
-pragma Warnings (Off, PolyORB.Binding_Data.IIOP);
-pragma Warnings (Off, PolyORB.Protocols.GIOP);
-pragma Warnings (Off, PolyORB.Smart_Pointers);
-pragma Warnings (Off, PolyORB.ORB.No_Tasking);
 pragma Warnings (Off, PolyORB.ORB);
+pragma Warnings (Off, PolyORB.ORB.No_Tasking);
+pragma Warnings (Off, PolyORB.Binding_Data.IIOP);
 pragma Warnings (Off, PolyORB.Binding_Data.SOAP);
 
 package body PolyORB.Setup.CORBA_Client is

@@ -39,7 +39,6 @@ with CORBA.ORB;
 with all_types.Helper; use all_types, all_types.Helper;
 with Report;    use Report;
 
---  with Broca.Naming_Tools; use Broca.Naming_Tools;
 with PolyORB.Setup.CORBA_Client;
 pragma Warnings (Off, PolyORB.Setup.CORBA_Client);
 

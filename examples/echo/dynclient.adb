@@ -32,8 +32,6 @@
 
 --  $Id$
 
-with PolyORB.Setup.CORBA_Client;
-
 --   echo dynamic client.
 with Ada.Command_Line;
 with Ada.Text_IO;      use Ada.Text_IO;
@@ -45,8 +43,8 @@ with CORBA.NVList;
 with CORBA.ORB;
 --  with Broca.Naming_Tools; use Broca.Naming_Tools;
 
+with PolyORB.Setup.CORBA_Client;
 pragma Warnings (Off, PolyORB.Setup.CORBA_Client);
---  Just elaborate it.
 
 procedure DynClient is
    Sent_Msg : CORBA.String := To_CORBA_String ("Hello Dynamic World");
@@ -61,6 +59,7 @@ procedure DynClient is
    Result_Name : CORBA.String := To_CORBA_String ("Result");
    Recv_Msg : CORBA.String;
    Iter : Natural := 1;
+
 begin
    if Ada.Command_Line.Argument_Count < 1 then
       Put_Line ("usage : client <IOR_string_from_server>|-i [niter]");

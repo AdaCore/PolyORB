@@ -51,13 +51,17 @@ package body PolyORB.Transport.Sockets is
    procedure Create
      (SAP     : in out Socket_Access_Point;
       Socket  :        Socket_Type;
-      Address :        Sock_Addr_Type) is
+      Address : in out Sock_Addr_Type) is
    begin
-      SAP.Socket := Socket;
-      SAP.Addr   := Address;
+      Bind_Socket (Socket, Address);
+      Listen_Socket (Socket);
 
-      Bind_Socket (SAP.Socket, Address);
-      Listen_Socket (SAP.Socket);
+      SAP.Socket := Socket;
+      SAP.Addr   := Get_Socket_Name (Socket);
+      if SAP.Addr.Addr = Any_Inet_Addr then
+         SAP.Addr.Addr := Addresses (Get_Host_By_Name (Host_Name), 1);
+      end if;
+      Address := SAP.Addr;
    end Create;
 
    function Create_Event_Source

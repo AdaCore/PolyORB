@@ -31,19 +31,17 @@ with Ada.Command_Line; use Ada.Command_Line;
 with Ada.Text_IO;      use Ada.Text_IO;
 with CORBA.ORB;
 --  with Broca.Naming_Tools; use Broca.Naming_Tools;
-with PolyORB.Setup.CORBA_Client;
 
 with Echo;
 
+with PolyORB.Setup.CORBA_Client;
 pragma Warnings (Off, PolyORB.Setup.CORBA_Client);
---  Just elaborate it.
 
 procedure Client is
    Sent_Msg, Rcvd_Msg : CORBA.String;
    myecho : Echo.Ref;
 
 begin
-
    if Argument_Count < 1 then
       Put_Line ("usage : client <IOR_string_from_server>|-i");
       return;
