@@ -1,7 +1,7 @@
 1999-05-20  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* xe_stubs.adb: Simulate --nolaunch on the command line when the
-	starter is Ada or None. Fixes recent regressions.
+	starter is Shell or None. Fixes recent regressions.
 
 1999-05-18  Laurent Pautet  <pautet@scapin.enst.fr>
 
