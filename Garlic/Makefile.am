@@ -110,7 +110,7 @@ $(FILTERSSOURCES) \
 $(COMMONSOURCES)
 
 CLEANFILES = *.ali s-garcon.ads *.o s-gtplsp.ads s-gaosli.ads s-gaprco.adb \
-	s-garser.adb
+	s-garser.adb $(FILTERSOBJECTS)
 
 SUFFIXES = .adb .ads .ali .o .xrb
 
