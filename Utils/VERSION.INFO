@@ -12,7 +12,7 @@
 #
 # Current version
 #
-dsa_version='1.01'
+dsa_version='1.02'
 gnat_version='3.07'
 
 #
