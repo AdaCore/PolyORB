@@ -19,7 +19,6 @@
 ----                                                               ----
 -----------------------------------------------------------------------
 
---with Ada ;
 with Ada.Exceptions ;
 with System.Address_To_Access_Conversions ;
 with Ada.Unchecked_Conversion ;
@@ -139,6 +138,8 @@ package body OmniRopeAndKey is
    end ;
 
 
+   -- Raise_Ada_Exception
+   ----------------------
    procedure Raise_Ada_Exception (Self : in Object'Class ;
                                   Msg : in String) is
    begin

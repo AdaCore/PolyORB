@@ -21,9 +21,9 @@
 omniObject_C2Ada::omniObject_C2Ada (omniObjectManager *p,
 				    Ada_OmniObject *Ada_Ptr) : omniObject (p)
 {
-  // Appel du constructeur de omniObject et initialisation
-  // du pointeur sur l'objet Ada associe
-  Ada_OmniObject_Ptr = Ada_Ptr;
+  // calls the omniObject constructor and initialise the pointer
+  // on the Ada_OmniObject Ada_OmniObject_Pointer ;
+  Ada_OmniObject_Pointer = Ada_Ptr;
 };
 
 
@@ -40,9 +40,9 @@ omniObject_C2Ada::omniObject_C2Ada(const char *repoId,
 									  profiles,
 									  release)
 {
-  // Appel du constructeur de omniObject et initialisation
-  // du pointeur sur l'objet Ada associe
-  Ada_OmniObject_Ptr = Ada_Ptr;  
+  // calls the omniObject constructor and initialise the pointer
+  // on the Ada_OmniObject Ada_OmniObject_Pointer ;
+  Ada_OmniObject_Pointer = Ada_Ptr;  
 };
 
 
@@ -51,8 +51,10 @@ omniObject_C2Ada::dispatch(GIOP_S &giop,
 			   const char *operation,
 			   _CORBA_Boolean response_expected)
 {
-  return Ada_OmniObject_Ptr->dispatch(giop,
-				      operation,
-				      response_expected);
+  return Ada_OmniObject_Pointer->dispatch(giop,
+					  operation,
+					  response_expected);
+  // calls dispatch on the Ada_OmniObject pointed by Ada_OmniObject_Pointer
+  // This function allows the C code to call the Ada function dispatch
 };
 

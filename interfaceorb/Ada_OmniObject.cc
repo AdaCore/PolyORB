@@ -1,12 +1,13 @@
 ////////////////////////////////////////////////////////////////////////////
 ////                                                                    ////
-////     This class is as well a C class as an Ada Class (see           ////
+////     This class is both a C class and an Ada Class (see             ////
 ////     omniObject.ads). It is wrapped around omniObject_C2Ada         ////
 ////     in order to avoid the presence of non default construc-        ////
 ////     tors.                                                          ////
 ////     So, it provides the same functions as omniObject_C2Ada         ////
 ////     except that constructors are replaced by Init functions.       ////
-////     It has also a pointer on the omniObject_C2Ada                  ////
+////     It has also a pointer on the underlining omniObject_C2Ada      ////
+////     object                                                         ////
 ////                                                                    ////
 ////                                                                    ////
 ////                Date : 02/16/99                                     ////
@@ -17,6 +18,12 @@
 
 
 #include "Ada_OmniObject.hh"
+
+Ada_OmniObject::Ada_OmniObject ()
+{
+  Init_Ok = false;
+};
+// default constructor
 
 void
 Ada_OmniObject::Init (omniObjectManager *p)
@@ -59,17 +66,11 @@ Ada_OmniObject::PR_IRRepositoryId(const char* s) {
     return;
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of PR_IRRepositoryId without initialising object.");
+    raise_ada_exception ("Call of Ada_OmniObject::PR_IRRepositoryId without initialising object.");
   }
 };
       
  
-Ada_OmniObject::Ada_OmniObject ()
-{
-  Init_Ok = false;
-};
-// default constructor
-
 void
 Ada_OmniObject::setRopeAndKey(const omniRopeAndKey& l,_CORBA_Boolean keepIOP=1)
 {
@@ -80,7 +81,7 @@ Ada_OmniObject::setRopeAndKey(const omniRopeAndKey& l,_CORBA_Boolean keepIOP=1)
     return;
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of setRopeAndKey without initialising object.");
+    raise_ada_exception ("Call of Ada_OmniObject::setRopeAndKey without initialising object.");
   }
 };
 
@@ -92,7 +93,7 @@ Ada_OmniObject::getRopeAndKey(omniRopeAndKey& l) {
     return C_OmniObject->getRopeAndKey(l);
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of getRopeAndKey without initialising object.");
+    raise_ada_exception ("Call of Ada_OmniObject::getRopeAndKey without initialising object.");
   }
 }
       
@@ -106,16 +107,11 @@ Ada_OmniObject::assertObjectExistent() {
     return;
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of assertObjectExistent without initialising object.");    
+    raise_ada_exception ("Call of Ada_OmniObject::assertObjectExistent without initialising object.");    
   }
 }
 
 
-extern _CORBA_Boolean dispatch(GIOP_S &,
-			       const char *operation,
-			       _CORBA_Boolean response_expected);
-// See implementation in omniobject.ads
-  
 _CORBA_Boolean
 Ada_OmniObject::is_proxy() {
   if (Init_Ok) {
@@ -124,10 +120,15 @@ Ada_OmniObject::is_proxy() {
     return C_OmniObject->is_proxy();
   } else {
     // else raise an Ada Exception
-   raise_ada_exception ("Call of is_proxy without initialising object.");    
+   raise_ada_exception ("Call of Ada_OmniObject::is_proxy without initialising object.");    
   }
 }
 
+extern _CORBA_Boolean dispatch(GIOP_S &,
+			       const char *operation,
+			       _CORBA_Boolean response_expected);
+// See implementation in omniobject.adb
+  
 extern void
 Ada_OmniObject::raise_ada_exception (const char *msg);
 // See implementation in omniobject.adb

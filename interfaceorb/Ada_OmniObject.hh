@@ -26,10 +26,14 @@ class omniObject_C2Ada;
 
 class Ada_OmniObject {
 
-protected:
+public:
 
+  Ada_OmniObject ();
+  // default constructor
+  
   void Init (omniObjectManager *p);
-  // Initialisation of a local object
+  // Initialisation of a local object via call to the
+  // omniObject_C2Ada constructor on C_OmniObject
   
   void Init (const char *repoId,
 	     Rope *r,
@@ -37,16 +41,12 @@ protected:
 	     size_t keysize,
 	     IOP::TaggedProfileList *profiles,
 	     _CORBA_Boolean release); 
-  // Initialisation of a proxy object
+  // Initialisation of a proxy object via call to the
+  // omniObject_C2Ada constructor on C_OmniObject
   
   void  PR_IRRepositoryId(const char* s);
   // calls the PR_IRRepositoryId function of C_OmniObject
 
-public:
-
-  Ada_OmniObject ();
-  // default constructor
-  
   void setRopeAndKey(const omniRopeAndKey& l,_CORBA_Boolean keepIOP=1);
   // calls the setRopeAndKey function of C_OmniObject
   
@@ -56,14 +56,16 @@ public:
   void assertObjectExistent();
   // calls the assertObjectExistent function of C_OmniObject
   
-  _CORBA_Boolean dispatch(GIOP_S &,
-			  const char *operation,
-			  _CORBA_Boolean response_expected);
-  // default dispatch function for all the hierarchie of
-  // Ada Objects. The implementation is made in Ada.
-  
   _CORBA_Boolean is_proxy();
   // calls the is_proxy function of C_OmniObject
+
+  virtual _CORBA_Boolean dispatch(GIOP_S &,
+				  const char *operation,
+				  _CORBA_Boolean response_expected);
+  // default dispatch function for all the hierarchie of
+  // Ada Objects. The implementation is made in Ada.
+  // (see omniobject.adb)
+  
 
 private:
   omniObject_C2Ada *C_OmniObject;

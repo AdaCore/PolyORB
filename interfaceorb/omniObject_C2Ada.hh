@@ -52,7 +52,7 @@ protected:
   // Ada_OmniObject must have full acces to this class
   
 private:
-  Ada_OmniObject* Ada_OmniObject_Ptr;
+  Ada_OmniObject* Ada_OmniObject_Pointer;
   // pointer on a Ada_Omniobject which contains the real dispatch function
 };
 
