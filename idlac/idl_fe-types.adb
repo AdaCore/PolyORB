@@ -286,13 +286,13 @@ package body Idl_Fe.Types is
       end if;
    end Append_Node;
 
-   ---------------------
-   --  Insert_Before  --
-   ---------------------
+   -------------------
+   -- Insert_Before --
+   -------------------
 
    procedure Insert_Before
-     (List : in out Node_List;
-      Node : Node_Id;
+     (List   : in out Node_List;
+      Node   : Node_Id;
       Before : Node_Id)
    is
       Cell : Node_List;
@@ -309,9 +309,9 @@ package body Idl_Fe.Types is
       end if;
    end Insert_Before;
 
-   --------------------
-   --  Insert_After  --
-   --------------------
+   ------------------
+   -- Insert_After --
+   ------------------
 
    procedure Insert_After
      (List : in Node_List;
