@@ -296,7 +296,7 @@ package body PolyORB.Configuration is
 
    procedure Set_Conf
      (Section, Key : String;
-      Value        : String);
+      Value        : String)
    is
       K : constant String := Make_Global_Key (Section, Key);
       P : String_Ptr := Variables.Lookup (K, null);
