@@ -1,5 +1,7 @@
 with Broca.Protected_Objects;
-pragma Elaborate (Broca.Protected_Objects);
-pragma Warnings (Off, Broca.Protected_Objects);
+pragma Elaborate_All (Broca.Protected_Objects);
 
-package body Broca.Configuration is end Broca.Configuration;
+package body Broca.Configuration is
+begin
+   Broca.Protected_Objects.Initialize;
+end Broca.Configuration;
