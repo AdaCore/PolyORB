@@ -39,6 +39,7 @@ with Idl_Fe.Tree;           use Idl_Fe.Tree;
 with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree.Synthetic;
 
 with Ada_Be.Identifiers;    use Ada_Be.Identifiers;
+with Ada_Be.Temporaries;    use Ada_Be.Temporaries;
 with Ada_Be.Debug;
 pragma Elaborate_All (Ada_Be.Debug);
 
@@ -187,6 +188,10 @@ package body Ada_Be.Idl2Ada.Helper is
       Helper_Name :        String);
    --  Add a semantic dependency and an initialization dependency in CU
    --  upon Helper_Name
+
+   function Loop_Parameter (Dim : Natural) return String;
+   --  Return a unique name for the Dim'th loop parameter
+   --  for iteration over an array.
 
    ----------------------------------------------
    -- End of internal subprograms declarations --
@@ -2461,39 +2466,39 @@ package body Ada_Be.Idl2Ada.Helper is
             PL (CU, "Result : "
                 & Ada_Type_Name (Node)
                 & ";");
-            PL (CU, "J : CORBA.Unsigned_Long := 0;");
+            PL (CU, "use type CORBA.Unsigned_Long;");
+            PL (CU, T_J & " : CORBA.Unsigned_Long := 0;");
             DI (CU);
             PL (CU, "begin");
             II (CU);
 
             declare
-               Bounds_It : Node_Iterator;
+               Bounds_It  : Node_Iterator;
                Bound_Node : Node_Id;
-               Number : Integer := 0;
+               Dim        : Natural := 0;
+
             begin
                Init (Bounds_It, Array_Bounds (Node));
 
                while not Is_End (Bounds_It) loop
                   Get_Next_Node (Bounds_It, Bound_Node);
 
-                  Put (CU, "for I"
-                       & Img (Number)
-                       & " in 0 .. ");
+                  Put (CU, "for " & Loop_Parameter (Dim) & " in 0 .. ");
                   Gen_Node_Stubs_Spec (CU, Bound_Node);
                   PL (CU, " - 1 loop");
-                  Number := Number + 1;
+                  Dim := Dim + 1;
                   II (CU);
                end loop;
 
                Put (CU, "Result ");
-               for I in 0 .. Number - 1 loop
+               for I in 0 .. Dim - 1 loop
                   if I = 0 then
                      Put (CU, "(");
                   else
                      Put (CU, ", ");
                   end if;
-                  Put (CU, "I" & Img (I));
-                  if I = Number - 1 then
+                  Put (CU, Loop_Parameter (I));
+                  if I = Dim - 1 then
                      Put (CU, ")");
                   end if;
                end loop;
@@ -2506,10 +2511,10 @@ package body Ada_Be.Idl2Ada.Helper is
                PL (CU, "(CORBA.Get_Aggregate_Element");
                PL (CU, " (Item, "
                    & Ada_Full_TC_Name (Type_Node)
-                   & ", J));");
+                   & ", " & T_J & "));");
                DI (CU);
-               PL (CU, "J := J + 1;");
-               for I in 1 .. Number loop
+               PL (CU, T_J & " := " & T_J & " + 1;");
+               for J in 1 .. Dim loop
                   DI (CU);
                   PL (CU, "end loop;");
                end loop;
@@ -2550,33 +2555,31 @@ package body Ada_Be.Idl2Ada.Helper is
             II (CU);
 
             declare
-               Bounds_It : Node_Iterator;
+               Bounds_It  : Node_Iterator;
                Bound_Node : Node_Id;
-               Number : Natural := 0;
+               Dim        : Natural := 0;
             begin
                Init (Bounds_It, Array_Bounds (Node));
 
                while not Is_End (Bounds_It) loop
                   Get_Next_Node (Bounds_It, Bound_Node);
 
-                  Put (CU, "for I"
-                       & Img (Number)
-                       & " in 0 .. ");
+                  Put (CU, "for " & Loop_Parameter (Dim) & " in 0 .. ");
                   Gen_Node_Stubs_Spec (CU, Bound_Node);
                   PL (CU, " - 1 loop");
-                  Number := Number + 1;
+                  Dim := Dim + 1;
                   II (CU);
                end loop;
 
                PL (CU, "CORBA.Add_Aggregate_Element (Result,");
                Put (CU, "                             "
                     & Helper_Name
-                    & ".To_Any (Item (I0");
-               for I in 1 .. Number - 1 loop
-                  Put (CU, ", I" & Img (I));
+                    & ".To_Any (Item (" & Loop_Parameter (0));
+               for I in 1 .. Dim - 1 loop
+                  Put (CU, ", " & Loop_Parameter (I));
                end loop;
                PL (CU, ")));");
-               for I in 1 .. Number loop
+               for J in 1 .. Dim loop
                   DI (CU);
                   PL (CU, "end loop;");
                end loop;
@@ -2785,26 +2788,35 @@ package body Ada_Be.Idl2Ada.Helper is
    ------------------
 
    procedure Gen_Array_TC
-     (CU        : in out Compilation_Unit;
-      Element_Type_Node : in     Node_Id;
-      Decl_Node : in     Node_Id)
+     (CU                : in out Compilation_Unit;
+      Element_Type_Node :        Node_Id;
+      Decl_Node         :        Node_Id)
    is
+      procedure Rec_Gen_Array_TC
+        (CU                : in out Compilation_Unit;
+         It                : in out Node_Iterator;
+         First_Bound       :        Boolean;
+         Index             :        Integer;
+         Element_Type_Node :        Node_Id;
+         Decl_Node         :        Node_Id);
+      --  Recursively generate the typecode for the component subtype
+      --  of an array, then generate the typecode for the array itself.
+      --  This is node by advancing the bounds iterator one step, to
+      --  unwind one dimension, until no bounds remain, at which point
+      --  we reference the typecode for the ultimate element type.
+
+      ----------------------
+      -- Rec_Gen_Array_TC --
+      ----------------------
 
       procedure Rec_Gen_Array_TC
-        (CU             : in out Compilation_Unit;
-         It             : in out Node_Iterator;
-         First_Bound    : in     Boolean;
-         Index          : in     Integer;
-         Element_Type_Node      : in     Node_Id;
-         Decl_Node      : in     Node_Id);
-
-      procedure Rec_Gen_Array_TC
-        (CU             : in out Compilation_Unit;
-         It             : in out Node_Iterator;
-         First_Bound    : in     Boolean;
-         Index          : in     Integer;
-         Element_Type_Node      : in     Node_Id;
-         Decl_Node      : in     Node_Id) is
+        (CU                : in out Compilation_Unit;
+         It                : in out Node_Iterator;
+         First_Bound       :        Boolean;
+         Index             :        Integer;
+         Element_Type_Node :        Node_Id;
+         Decl_Node         :        Node_Id)
+      is
          Bound_Node : Node_Id;
          Last_Bound : Boolean := False;
       begin
@@ -2850,11 +2862,28 @@ package body Ada_Be.Idl2Ada.Helper is
         (CU, Bounds_It, True, 0, Element_Type_Node, Decl_Node);
    end Gen_Array_TC;
 
+   --------------------
+   -- Loop_Parameter --
+   --------------------
+
+   function Loop_Parameter (Dim : Natural) return String is
+   begin
+      return T_J & Img (Dim);
+   end Loop_Parameter;
+
+   -------------------------
+   -- Raise_From_Any_Name --
+   -------------------------
+
    function Raise_From_Any_Name (Node : Node_Id) return String is
    begin
       pragma Assert (Kind (Node) = K_Exception);
       return "Raise_" & Ada_Name (Node) & "_From_Any";
    end Raise_From_Any_Name;
+
+   -------------------
+   -- Type_Modifier --
+   -------------------
 
    function Type_Modifier (Node : in Node_Id) return String is
    begin
@@ -2882,8 +2911,11 @@ package body Ada_Be.Idl2Ada.Helper is
       end if;
 
       return "CORBA.VTM_NONE";
-
    end Type_Modifier;
+
+   ----------------
+   -- Visibility --
+   ----------------
 
    function Visibility (Node : in Node_Id) return String is
    begin
@@ -2894,4 +2926,5 @@ package body Ada_Be.Idl2Ada.Helper is
          return "CORBA.PRIVATE_MEMBER";
       end if;
    end Visibility;
+
 end Ada_Be.Idl2Ada.Helper;

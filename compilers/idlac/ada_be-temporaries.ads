@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -57,6 +57,8 @@ package Ada_Be.Temporaries is
    T_Result_Name         : constant String;
    T_Operation_Name      : constant String;
 
+   T_J                   : constant String;
+
 private
 
    T_Handler             : constant String := "Handler_Ü";
@@ -79,5 +81,6 @@ private
    T_Result_Name         : constant String := "Result_Name_Ü";
    T_Operation_Name      : constant String := "Operation_Name_Ü";
 
+   T_J                   : constant String := "J_Ü";
 
 end Ada_Be.Temporaries;
