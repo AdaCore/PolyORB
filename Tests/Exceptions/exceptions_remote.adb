@@ -26,4 +26,11 @@ package body Exceptions_Remote is
                        "This is the User error message");
    end Raise_User_Error;
 
+   procedure Raise_Hidden_User_Error is
+      Hidden_User_Error : exception;
+   begin
+      Raise_Exception (Hidden_User_Error'Identity,
+                       "This is the Hidden error message");
+   end Raise_Hidden_User_Error;
+
 end Exceptions_Remote;

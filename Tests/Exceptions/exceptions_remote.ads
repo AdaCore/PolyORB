@@ -12,5 +12,6 @@ package Exceptions_Remote is
    procedure Raise_Program_Error;
    procedure Raise_Constraint_Error;
    procedure Raise_User_Error;
+   procedure Raise_Hidden_User_Error;
 
 end Exceptions_Remote;

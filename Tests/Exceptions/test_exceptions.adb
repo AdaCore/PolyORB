@@ -50,4 +50,12 @@ begin
          Put_Line ("Bogus: " & Exception_Name (Bogus) & " raised");
          Put_Line ("with message " & Exception_Message (Bogus));
    end;
+   begin
+      Put_Line ("Trying to raise Hidden_User_Error");
+      Raise_Hidden_User_Error;
+   exception
+      when Error : others =>
+         Put_Line (Exception_Name (Error) & " raised");
+         Put_Line ("with message " & Exception_Message (Error));
+   end;
 end Test_Exceptions;
