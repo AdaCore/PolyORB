@@ -13,9 +13,10 @@ package body Corba.Value is
    --  why we override this method for interfaces is to avoid
    --  the remote call. There cannot be any remote call with valuetypes
    --  so let's keep it simple like that.
+
    function Is_A
      (Self : in Base;
-      Type_Id : CORBA.RepositoryId)
+      Logical_Type_Id : Standard.String)
       return CORBA.Boolean
    is
       Is_A_Operation : Broca.Value.Value_Skel.Is_A_Type;
@@ -34,7 +35,7 @@ package body Corba.Value is
 
       --  Call it operation
       return
-        Is_A_Operation (Type_Id);
+        Is_A_Operation (Logical_Type_Id);
 
    end Is_A;
 

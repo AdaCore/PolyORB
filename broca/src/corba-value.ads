@@ -58,9 +58,10 @@ package CORBA.Value is
    --  implement To_Ref and To_Abstract_Ref for valuetypes.
    --  (Fabien)
    --  Shall we raise an issue to OMG ?
+
    function Is_A
      (Self : in Base;
-      Type_Id : CORBA.RepositoryId)
+      Logical_Type_Id : Standard.String)
       return CORBA.Boolean;
 
 
