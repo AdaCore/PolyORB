@@ -213,7 +213,11 @@ package System.PolyORB_Interface is
 
    procedure Get_Unique_Remote_Pointer
      (Handler : in out RACW_Stub_Type_Access);
-   --  Get a unique pointer on a remote object
+   --  Get a unique pointer on a remote object. On entry, Handler
+   --  is expected to be a pointer to a local variable; on exist,
+   --  it is a pointer to a variable allocated on the heap (either
+   --  a newly allocated instance, or a previous existing instance
+   --  for the same remote object).
 
    function To_PolyORB_String (S : String)
      return PolyORB.Types.Identifier

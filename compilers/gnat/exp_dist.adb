@@ -113,6 +113,16 @@ package body Exp_Dist is
    --                        than using the 'Write on the object itself
    --    Nod               : used to provide sloc for generated code
 
+   function Build_Get_Unique_RP_Call
+     (Loc       : Source_Ptr;
+      Pointer   : Entity_Id;
+      Stub_Type : Entity_Id)
+      return List_Id;
+   --  Build a call to Get_Unique_Remote_Pointer (Pointer),
+   --  followed by a tag fixup (Get_Unique_Remote_Pointer may have
+   --  changed Pointer'Tag to RACW_Stub_Type'Tag, while the desired
+   --  tag is that of Stub_Type).
+
    function Build_Subprogram_Calling_Stubs
      (Vis_Decl                 : Node_Id;
       Subp_Id                  : Node_Id;
@@ -775,6 +785,46 @@ package body Exp_Dist is
       end if;
    end Add_RACW_Features;
 
+   ------------------------------
+   -- Build_Get_Unique_RP_Call --
+   ------------------------------
+
+   function Build_Get_Unique_RP_Call
+     (Loc       : Source_Ptr;
+      Pointer   : Entity_Id;
+      Stub_Type : Entity_Id)
+      return List_Id is
+   begin
+      return New_List (
+
+        Make_Procedure_Call_Statement (Loc,
+          Name                   =>
+            New_Occurrence_Of (RTE (RE_Get_Unique_Remote_Pointer), Loc),
+          Parameter_Associations => New_List (
+            Unchecked_Convert_To (RTE (RE_RACW_Stub_Type_Access),
+              New_Occurrence_Of (Pointer, Loc)))),
+
+        Make_Assignment_Statement (Loc,
+          Name =>
+            Make_Selected_Component (Loc,
+              Prefix =>
+                New_Occurrence_Of (Pointer, Loc),
+              Selector_Name =>
+                New_Occurrence_Of (Tag_Component
+                  (Designated_Type (Etype (Pointer))), Loc)),
+          Expression =>
+            Make_Attribute_Reference (Loc,
+              Prefix =>
+                New_Occurrence_Of (Stub_Type, Loc),
+              Attribute_Name =>
+                Name_Tag)));
+
+      --  Note: The assignment to Pointer._Tag is possible only because
+      --  we carefully ensured that Stub_Type has exactly the same layout
+      --  as System.PolyORB_Interface.RACW_Stub_Type.
+
+   end Build_Get_Unique_RP_Call;
+
    -----------------------
    -- Add_RACW_From_Any --
    -----------------------
@@ -817,6 +867,10 @@ package body Exp_Dist is
                             Make_Defining_Identifier
                               (Loc, New_Internal_Name ('A'));
 
+      Local_Stub        : constant Entity_Id  :=
+                            Make_Defining_Identifier
+                              (Loc, New_Internal_Name ('L'));
+
       Stubbed_Result    : constant Entity_Id  :=
                             Make_Defining_Identifier
                               (Loc, New_Internal_Name ('S'));
@@ -842,9 +896,20 @@ package body Exp_Dist is
                 New_Occurrence_Of (Any_Parameter, Loc)))),
 
         Make_Object_Declaration (Loc,
+          Defining_Identifier => Local_Stub,
+          Aliased_Present     => True,
+          Object_Definition   => New_Occurrence_Of (Stub_Type, Loc)),
+
+        Make_Object_Declaration (Loc,
           Defining_Identifier => Stubbed_Result,
           Object_Definition   =>
-            New_Occurrence_Of (Stub_Type_Access, Loc)),
+            New_Occurrence_Of (Stub_Type_Access, Loc),
+          Expression          =>
+            Make_Attribute_Reference (Loc,
+              Prefix =>
+                New_Occurrence_Of (Local_Stub, Loc),
+              Attribute_Name =>
+                Name_Unchecked_Access)),
 
         Make_Object_Declaration (Loc,
           Defining_Identifier => Is_Local,
@@ -855,6 +920,8 @@ package body Exp_Dist is
           Defining_Identifier => Addr,
           Object_Definition =>
             New_Occurrence_Of (RTE (RE_Address), Loc)));
+      Set_Etype (Stubbed_Result, Stub_Type_Access);
+      --  Build_Get_Unique_RP_Call needs the type of Stubbed_Result.
 
       --  If the ref Is_Nil, return a null pointer.
 
@@ -889,12 +956,6 @@ package body Exp_Dist is
       Stub_Statements := New_List (
 
         Make_Assignment_Statement (Loc,
-          Name       => New_Occurrence_Of (Stubbed_Result, Loc),
-          Expression =>
-            Make_Allocator (Loc,
-              New_Occurrence_Of (Stub_Type, Loc))),
-
-        Make_Assignment_Statement (Loc,
           Name       => Make_Selected_Component (Loc,
             Prefix        => New_Occurrence_Of (Stubbed_Result, Loc),
             Selector_Name => Make_Identifier (Loc, Name_Target)),
@@ -919,14 +980,10 @@ package body Exp_Dist is
             Selector_Name => Make_Identifier (Loc, Name_Asynchronous)),
           Expression =>
             New_Occurrence_Of (
-              Defining_Identifier (Asynchronous_Node), Loc)),
+              Defining_Identifier (Asynchronous_Node), Loc)));
 
-        Make_Procedure_Call_Statement (Loc,
-          Name                   =>
-            New_Occurrence_Of (RTE (RE_Get_Unique_Remote_Pointer), Loc),
-          Parameter_Associations => New_List (
-            Unchecked_Convert_To (RTE (RE_RACW_Stub_Type_Access),
-              New_Occurrence_Of (Stubbed_Result, Loc)))));
+      Append_List_To (Stub_Statements,
+        Build_Get_Unique_RP_Call (Loc, Stubbed_Result, Stub_Type));
       --  XXX Houston we have a problem. Here, the Asynchronous flag
       --  in the stub type is set if, and only if, the RACW type has
       --  a pragma Asynchronous. This is incorrect for RACWs that
@@ -1314,6 +1371,9 @@ package body Exp_Dist is
       Source_Address    : constant Entity_Id :=
                             Make_Defining_Identifier
                               (Loc, New_Internal_Name ('P'));
+      Local_Stub        : constant Entity_Id  :=
+                            Make_Defining_Identifier
+                              (Loc, New_Internal_Name ('L'));
       Stubbed_Result    : constant Entity_Id  :=
                             Make_Defining_Identifier
                               (Loc, New_Internal_Name ('S'));
@@ -1373,9 +1433,23 @@ package body Exp_Dist is
             New_Occurrence_Of (RTE (RE_Unsigned_64), Loc)),
 
         Make_Object_Declaration (Loc,
+          Defining_Identifier => Local_Stub,
+          Aliased_Present     => True,
+          Object_Definition   =>
+            New_Occurrence_Of (Stub_Type, Loc)),
+
+        Make_Object_Declaration (Loc,
           Defining_Identifier => Stubbed_Result,
           Object_Definition   =>
-            New_Occurrence_Of (Stub_Type_Access, Loc)));
+            New_Occurrence_Of (Stub_Type_Access, Loc),
+          Expression          =>
+            Make_Attribute_Reference (Loc,
+              Prefix =>
+                New_Occurrence_Of (Local_Stub, Loc),
+              Attribute_Name =>
+                Name_Unchecked_Access)));
+      Set_Etype (Stubbed_Result, Stub_Type_Access);
+      --  Build_Get_Unique_RP_Call needs this information.
 
       --  Read the source Partition_ID and RPC_Receiver from incoming stream
 
@@ -1438,12 +1512,6 @@ package body Exp_Dist is
       Remote_Statements := New_List (
 
         Make_Assignment_Statement (Loc,
-          Name       => New_Occurrence_Of (Stubbed_Result, Loc),
-          Expression =>
-            Make_Allocator (Loc,
-              New_Occurrence_Of (Stub_Type, Loc))),
-
-        Make_Assignment_Statement (Loc,
           Name       => Make_Selected_Component (Loc,
             Prefix        => New_Occurrence_Of (Stubbed_Result, Loc),
             Selector_Name => Make_Identifier (Loc, Name_Origin)),
@@ -1473,13 +1541,8 @@ package body Exp_Dist is
           Expression =>
             New_Occurrence_Of (Asynchronous_Flag, Loc)));
 
-      Append_To (Remote_Statements,
-        Make_Procedure_Call_Statement (Loc,
-          Name                   =>
-            New_Occurrence_Of (RTE (RE_Get_Unique_Remote_Pointer), Loc),
-          Parameter_Associations => New_List (
-            Unchecked_Convert_To (RTE (RE_RACW_Stub_Type_Access),
-              New_Occurrence_Of (Stubbed_Result, Loc)))));
+      Append_List_To (Remote_Statements,
+        Build_Get_Unique_RP_Call (Loc, Stubbed_Result, Stub_Type));
 
       Append_To (Remote_Statements,
         Make_Assignment_Statement (Loc,
@@ -2000,6 +2063,8 @@ package body Exp_Dist is
         Stubs_Table.Get (Desig);
       pragma Assert (Stub_Elements /= Empty_Stub_Structure);
 
+      Local_Stub : constant Entity_Id :=
+        Make_Defining_Identifier (Loc, New_Internal_Name ('L'));
       Stub_Ptr : constant Entity_Id :=
         Make_Defining_Identifier (Loc, New_Internal_Name ('S'));
 
@@ -2063,30 +2128,25 @@ package body Exp_Dist is
 
       Proc_Decls := New_List (
         Make_Object_Declaration (Loc,
+          Defining_Identifier => Local_Stub,
+          Aliased_Present     => True,
+          Object_Definition   =>
+            New_Occurrence_Of (Stub_Elements.Stub_Type, Loc)),
+
+        Make_Object_Declaration (Loc,
           Defining_Identifier =>
             Stub_Ptr,
-          Constant_Present    => True,
           Object_Definition   =>
             New_Occurrence_Of (Stub_Elements.Stub_Type_Access, Loc),
           Expression          =>
-            Make_Allocator (Loc,
-              New_Occurrence_Of (
-                Stub_Elements.Stub_Type, Loc))),
+            Make_Attribute_Reference (Loc,
+              Prefix => New_Occurrence_Of (Local_Stub, Loc),
+              Attribute_Name => Name_Unchecked_Access)),
 
         Make_Object_Declaration (Loc,
           Defining_Identifier => Return_Value,
           Object_Definition   =>
-            New_Occurrence_Of (Fat_Type, Loc),
-          Expression =>
-            Make_Aggregate (Loc,
-              Component_Associations => New_List (
-                Make_Component_Association (Loc,
-                  Choices =>
-                    New_List (Make_Identifier (Loc, Name_Ras)),
-                  Expression =>
-                    Unchecked_Convert_To (RACW_Type,
-                       New_Occurrence_Of (
-                         Stub_Ptr, Loc)))))),
+            New_Occurrence_Of (Fat_Type, Loc)),
 
         Make_Object_Declaration (Loc,
           Defining_Identifier => Subp_Ref,
@@ -2097,6 +2157,8 @@ package body Exp_Dist is
           Defining_Identifier => Is_Local,
           Object_Definition   =>
             New_Occurrence_Of (Standard_Boolean, Loc)));
+      Set_Etype (Stub_Ptr, Stub_Elements.Stub_Type_Access);
+      --  Build_Get_Unique_RP_Call needs this information.
 
       --  Initialize the fields of the record type with the appropriate data
 
@@ -2168,6 +2230,22 @@ package body Exp_Dist is
       --  type, to which a pragma Asynchronous applies.
       --  Parameter Asynch_P is true when the procedure is asynchronous;
       --  Expression Asynch_T is true when the type is asynchronous.
+
+      Append_List_To (Proc_Statements,
+        Build_Get_Unique_RP_Call
+          (Loc, Stub_Ptr, Stub_Elements.Stub_Type));
+
+      Append_To (Proc_Statements,
+        Make_Assignment_Statement (Loc,
+          Name =>
+            Make_Selected_Component (Loc,
+              Prefix =>
+                New_Occurrence_Of (Return_Value, Loc),
+              Selector_Name =>
+                Make_Identifier (Loc, Name_Ras)),
+          Expression =>
+            Unchecked_Convert_To (RACW_Type,
+              New_Occurrence_Of (Stub_Ptr, Loc))));
 
       Append_To (Proc_Statements,
         Make_Return_Statement (Loc,
@@ -3316,6 +3394,7 @@ package body Exp_Dist is
           Defining_Identifier => Stub_Type_Access,
           Type_Definition     =>
             Make_Access_To_Object_Definition (Loc,
+              All_Present => True,
               Subtype_Indication => New_Occurrence_Of (Stub_Type, Loc)));
 
       Append_To (Decls, Stub_Type_Access_Declaration);

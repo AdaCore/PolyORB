@@ -36,7 +36,6 @@ with Ada.Characters.Handling;
 with Ada.Exceptions;
 with Ada.Streams;
 with Ada.Unchecked_Conversion;
-with Ada.Unchecked_Deallocation;
 
 with System.Address_To_Access_Conversions;
 with System.RPC;
@@ -155,9 +154,6 @@ package body System.PolyORB_Interface is
       Key        => RACW_Stub_Type_Access,
       Hash       => Hash,
       Equal      => Compare_Content);
-
-   procedure Free is
-      new Ada.Unchecked_Deallocation (RACW_Stub_Type, RACW_Stub_Type_Access);
 
    --  When a RACW must be constructed to designate a local object,
    --  an object identifier is created using the address of the object.
@@ -973,14 +969,23 @@ package body System.PolyORB_Interface is
       PolyORB.Tasking.Soft_Links.Enter_Critical_Section;
       Answer := Objects_HTable.Get (Handler);
       if Answer = null then
-         Objects_HTable.Set (Handler, Handler);
+         Answer := new RACW_Stub_Type;
+
+         --  We leak memory here each time we receive a new
+         --  unique value of a remote access to classwide or
+         --  remote access to subprogram type.
+
+         Answer.Origin   := Handler.Origin;
+         Answer.Receiver := Handler.Receiver;
+         Answer.Target   := Handler.Target;
+         Answer.Addr     := Handler.Addr;
+         Answer.Asynchronous := Handler.Asynchronous;
+
+         Objects_HTable.Set (Answer, Answer);
       else
          PolyORB.Smart_Pointers.Dec_Usage (Handler.Target);
-         --  Corresponds to a call to Adjust in generated code,
-         --  at the time Handler was instantiated.
-         Free (Handler);
-         Handler := Answer;
       end if;
+      Handler := Answer;
       PolyORB.Tasking.Soft_Links.Leave_Critical_Section;
    end Get_Unique_Remote_Pointer;
 
