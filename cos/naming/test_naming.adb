@@ -86,6 +86,7 @@ procedure Test_Naming is
       Cd,
       Rmdir,
       Mount,
+      Bind,
       Df);
 
    Syntax_Error : exception;
@@ -112,7 +113,8 @@ procedure Test_Naming is
          Chdir  => M ("chdir <D>, change current dir to <D>"),
          Cd     => M ("   (alias for CHDIR)"),
          Rmdir  => M ("rmdir <D>, remove dir <D>"),
-         Mount  => M ("mount <D> <IOR>, bind dir <D> to a given dir <IOR>"),
+         Mount  => M ("mount <D> <IOR>, bind dir name <D> to dir <IOR>"),
+         Bind   => M ("bind <N> <IOR>, bind object name <N> to object <IOR>"),
          Df     => M ("df [<D>], print <IOR> of a given dir <D> [def = <.>]"));
 
    function From
@@ -548,16 +550,20 @@ begin
                      destroy (Iterator);
                   end;
 
-               when Mount =>
+               when Mount | Bind =>
                   if Argc /= 3 then
                      raise Syntax_Error;
                   end if;
                   Argv := Argument (3);
                   CORBA.ORB.String_To_Object
                     (CORBA.To_CORBA_String (Argv.all), Obj);
-                  Dir  := NamingContext.Helper.To_Ref (Obj);
                   Argv := Argument (2);
-                  bind_context (From (Argv.all), To_Name (Argv.all), Dir);
+                  if Cmmd = Mount then
+                     Dir  := NamingContext.Helper.To_Ref (Obj);
+                     bind_context (From (Argv.all), To_Name (Argv.all), Dir);
+                  else
+                     bind (From (Argv.all), To_Name (Argv.all), Obj);
+                  end if;
 
                when Df =>
 
