@@ -93,7 +93,7 @@ typeprefix CORBA "omg.org"
     interface SequenceDef;
     interface StringDef;
 //PolyORB:IL:    interface StructDef;
-//PolyORB:IL:    interface TypeCode;
+    interface TypeCode;
     interface TypedefDef;
 //PolyORB:IL:    interface UnionDef;
 //PolyORB:IL:    interface ValueDef;
@@ -102,10 +102,6 @@ typeprefix CORBA "omg.org"
     interface WstringDef;
 
     typedef string Identifier;
-
-//PolyORB:AB:
-    interface TypeCode {};
-//PolyORB:AE:
 
 // Chapter 3: IDL Syntax and Semantics
 #include <CORBA_StandardExceptions.idl>
@@ -123,7 +119,7 @@ typeprefix CORBA "omg.org"
 
 // more Chapter 4: ORB Interface
 // CORBA_TypeCode.idl depends on CORBA_InterfaceRepository.idl
-//PolyORB:IL:#include <CORBA_TypeCode.idl>
+#include <CORBA_TypeCode.idl>
 
 // Chapter 5: Value Type Semantics
 //PolyORB:NI:#include <CORBA_CustomMarshal.idl>

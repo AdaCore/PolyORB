@@ -257,6 +257,17 @@ package body Ada_Be.Expansion is
    --  Subprogram bodies from here
    --------------------------------------------------
 
+   -----------------------------------------------------------------
+   --  Predefined CORBA entities, which processed by special way  --
+   -----------------------------------------------------------------
+
+   CORBA_TypeCode_Node : Node_Id := No_Node;
+   --  Declaration of CORBA::TypeCode
+   --  CORBA::TypeCode interface don't have instantiated forward declaration
+   --  package, thus we always must use full declaration node, independed
+   --  of existence of forward declaration in used orb.idl or TypeCode.idl
+   --  file.
+
    -----------------
    -- Expand_Node --
    -----------------
@@ -569,8 +580,6 @@ package body Ada_Be.Expansion is
 
          Append_Node_To_Contents (Node, CORBA_IR_Root_Node);
 
-         --  Relocate CORBA Interface Repository entities
-
          Push_Scope (CORBA_IR_Root_Node);
 
          declare
@@ -585,6 +594,17 @@ package body Ada_Be.Expansion is
             Init (Iterator, CORBA_Contents);
             while not Is_End (Iterator) loop
                Get_Next_Node (Iterator, Current);
+
+               --  Detect and store Nodes for the CORBA entities that
+               --  require special processing
+
+               if Kind (Current) = K_Interface
+                 and then Ada_Name (Current) = "TypeCode"
+               then
+                  CORBA_TypeCode_Node := Current;
+               end if;
+
+               --  Relocate CORBA Interface Repository entities
 
                if Is_CORBA_IR_Entity (Current) then
                   Append_Node_To_Contents (CORBA_IR_Root_Node, Current);
@@ -866,6 +886,8 @@ package body Ada_Be.Expansion is
    procedure Expand_Attribute (Node : in Node_Id) is
    begin
       pragma Assert (Kind (Node) = K_Attribute);
+
+      Expand_Node (A_Type (Node));
       Expand_Attribute_Or_State_Member
         (Node,
          A_Type (Node),
@@ -1638,7 +1660,19 @@ package body Ada_Be.Expansion is
       end Create_Forward_Declaration;
 
    begin
-      if Kind (V) /= K_Interface and then Kind (V) /= K_ValueType then
+      --  Special processing of CORBA::TypeCode: we always refer to
+      --  the full interface declaration
+
+      if V = CORBA_TypeCode_Node then
+         return;
+
+      elsif Kind (V) = K_Forward_Interface
+        and then Forward (V) = CORBA_TypeCode_Node
+      then
+         Set_Value (Node, Forward (V));
+         return;
+
+      elsif Kind (V) /= K_Interface and then Kind (V) /= K_ValueType then
          return;
       end if;
 
