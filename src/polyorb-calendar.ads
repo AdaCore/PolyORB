@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  PolYORB.Calendar provides a uniform API to manipulate time, close
+--  PolyORB.Calendar provides a uniform API to manipulate time, close
 --  to Ada.Calendar. It is compatible with the No Tasking, Full
 --  Tasking and Ravenscar profiles.
 

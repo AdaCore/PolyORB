@@ -53,7 +53,7 @@ package PolyORB.Binding_Objects is
    function Get_Component (X : Smart_Pointers.Ref)
      return PolyORB.Components.Component_Access;
    --  Return the top component of the Binding_Object
-   --  designatedby reference X.
+   --  designated by reference X.
 
    function Get_Endpoint (X : Smart_Pointers.Ref)
      return PolyORB.Transport.Transport_Endpoint_Access;
