@@ -15,7 +15,12 @@ with Corba.Object ;
 with Corba.Boa ;
 with Omniobject ;
 
+with Adabroker_Debug ;
+pragma Elaborate(Adabroker_Debug) ;
+
 package Corba.Orb is
+
+   Debug : constant Boolean := Adabroker_Debug.Is_Active("corba.orb") ;
 
 
    type Object is tagged record

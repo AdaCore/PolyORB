@@ -10,17 +10,6 @@
 ----                                                               ----
 -----------------------------------------------------------------------
 
--- A Faire :
-
--- ecrire ici dexu fonctions C_Object_To_String et C_string_to_object
--- ce sont les fonctions du C++ que l'on importe
-
--- implementer les 3 fonctions declarees ici en calquant le code
--- d'omniORB, corbaOrb.cc L348
-
--- il faudra peut-etre avoir un object Nil_object dans omniobject
--- (je n'en sais rien)
-
 with System ;
 with System.Address_To_Access_Conversions ;
 with Ada.Exceptions ;
@@ -31,9 +20,9 @@ with Omniobject ;
 use type Omniobject.Object_Ptr ;
 
 with Corba.Object ; use Corba.Object ;
+with Adabroker_Debug ; use Adabroker_Debug ;
 
 package body Corba.Orb is
-
 
    --------------------------------------------------
    ---             omniORB2 specific             ----
@@ -57,6 +46,9 @@ package body Corba.Orb is
       package A2a is new System.Address_To_Access_Conversions(Object) ;
       function Conv is new Ada.Unchecked_Conversion(A2a.Object_Pointer, Object_Ptr);
    begin
+
+      pragma Debug(Output(Debug, "In Corba.Orb.Orb_Init"))  ;
+
       C_Orb_Name := Interfaces.C.Strings.New_String(Orb_Name) ;
       -- Never deallocated, but it may be used by the ORB
       -- and this function is called only once

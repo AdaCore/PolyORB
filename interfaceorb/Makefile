@@ -158,7 +158,8 @@ corba-exceptions.o : corba-exceptions.ads corba-exceptions.adb
 ################################################
 adaonly: corba.ali corba-object.ali giop_s.ali giop.ali omni.ali \
 netbufferedstream.ali corba-command_line.ali  \
-omniproxycalldesc.ali omniproxycallwrapper.ali
+omniproxycalldesc.ali omniproxycallwrapper.ali \
+adabroker_debug.ali
 
 .SUFFIXES: .adb .ali
 
@@ -183,6 +184,8 @@ omniproxycalldesc.ali: omniproxycalldesc.ads omniproxycalldesc.adb
 
 omniproxycallwrapper.ali: omniproxycallwrapper.ads omniproxycallwrapper.adb \
 omniproxycalldesc.ali corba-object.ali
+
+adabroker_debug.ali: adabroker_debug.ads adabroker_debug.adb
 
 ##############################################################
 clean :
