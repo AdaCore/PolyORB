@@ -1262,9 +1262,9 @@ package body Exp_Dist is
                     Name_Access))));
       end if;
 
-         --  Do not analyze RPC receiver at this stage since it will otherwise
-         --  reference subprograms that have not been analyzed yet. It will
-         --  be analyzed in the regular flow.
+      --  Do not analyze RPC receiver at this stage since it will otherwise
+      --  reference subprograms that have not been analyzed yet. It will
+      --  be analyzed in the regular flow.
 
    end Add_RACW_Primitive_Declarations_And_Bodies;
 
@@ -2294,6 +2294,7 @@ package body Exp_Dist is
           Parameter_Associations => New_List (
             Unchecked_Convert_To (RTE (RE_RACW_Stub_Type_Access),
               New_Occurrence_Of (Pointer, Loc)))),
+
         Make_Assignment_Statement (Loc,
           Name =>
             Make_Selected_Component (Loc,
@@ -2625,6 +2626,15 @@ package body Exp_Dist is
       end if;
 
       pragma Assert (No (Stub_Type) or else Present (Controlling_Parameter));
+
+      if Dynamically_Asynchronous then
+         Asynchronous_Expr :=
+           Make_Selected_Component (Loc,
+             Prefix        =>
+               New_Occurrence_Of (Controlling_Parameter, Loc),
+             Selector_Name =>
+               Make_Identifier (Loc, Name_Asynchronous));
+      end if;
 
       Specific_Build_General_Calling_Stubs
         (Decls                 => Decls,
