@@ -39,7 +39,10 @@ with PolyORB.CORBA_P.Server_Tools;
 with PolyORB.Exceptions;
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
+
 with PolyORB.Initialization;
+pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
+
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Utils.Strings;
 
