@@ -137,15 +137,6 @@ package body PolyORB.POA.Basic_POA is
      return POA_Manager.POAManager_Access;
    --  Return the POA Manager associated to 'OA'.
 
-   ----------------------
-   -- Global POA Table --
-   ----------------------
-
-   Global_POATable : POATable;
-
-   --  This table is used to shortcut POA recursive search, when
-   --  possible. It contains all registred POAs with full path name.
-
    ------------------------------------
    --  Code of additional functions  --
    ------------------------------------
@@ -480,10 +471,7 @@ package body PolyORB.POA.Basic_POA is
    ---------------------
 
    procedure Create_Root_POA
-     (New_Obj_Adapter : access Basic_Obj_Adapter)
-   is
-      use PolyORB.POA_Types.POA_HTables;
-
+     (New_Obj_Adapter : access Basic_Obj_Adapter) is
    begin
       pragma Debug (O ("Create Root_POA"));
 
@@ -508,9 +496,6 @@ package body PolyORB.POA.Basic_POA is
 
       --  Use default policies.
       Init_With_Default_Policies (New_Obj_Adapter);
-
-      --  Initialize Global POA Table
-      Initialize (Global_POATable);
    end Create_Root_POA;
 
    ---------------------------------------------
@@ -628,12 +613,6 @@ package body PolyORB.POA.Basic_POA is
          return;
       end if;
 
-      --  Insert POA into Global_POATable
-      pragma Debug (O ("Insert POA into Global_POATable"));
-      Insert (Global_POATable,
-              To_Standard_String (New_Obj_Adapter.Absolute_Address),
-              POA_Types.Obj_Adapter_Access (New_Obj_Adapter));
-
       --  Return the created POA.
       pragma Debug (O ("POA " & To_String (Adapter_Name) & " created."));
 
@@ -655,12 +634,6 @@ package body PolyORB.POA.Basic_POA is
       Name : constant String := To_Standard_String (Self.Name);
    begin
       pragma Debug (O ("Start destroying POA: " & Name));
-
-      --  Remove 'Self' from Global POA Table
-      pragma Debug (O ("Removing POA from Global POA Table"));
-      PolyORB.POA_Types.POA_HTables.Delete
-        (Global_POATable,
-         To_Standard_String (Self.Absolute_Address));
 
       --  Destroy all children
       if Self.Children /= null
@@ -921,135 +894,74 @@ package body PolyORB.POA.Basic_POA is
       use PolyORB.Exceptions;
       use PolyORB.POA_Types.POA_HTables;
 
-      --------------------------
-      -- Find_POA_Recursively --
-      --------------------------
-
-      procedure Find_POA_Recursively
-        (Self        : access Basic_Obj_Adapter;
-         Name        :        String;
-         Activate_It :        Boolean;
-         POA         :    out Obj_Adapter_Access;
-         Error       : in out PolyORB.Exceptions.Error_Container);
-      --  Looks for 'name', searching from 'Self', using a recursive search.
-      --  If necessary, will invoke AdapterActivator call backs.
-
-      procedure Find_POA_Recursively
-        (Self        : access Basic_Obj_Adapter;
-         Name        :        String;
-         Activate_It :        Boolean;
-         POA         :    out Obj_Adapter_Access;
-         Error       : in out PolyORB.Exceptions.Error_Container)
-      is
-
-         A_Child     : Obj_Adapter_Access;
-         Split_Point : constant Integer
-           := PolyORB.Utils.Find (Name, Name'First, POA_Path_Separator);
-         Result : Boolean;
-
-      begin
-         if Found (Error) then
-            return;
-         end if;
-
-         pragma Debug (O ("Find_POA_Recursively: enter, Name = " & Name));
-
-         if Name'Length = 0 then
-            POA := Obj_Adapter_Access (Self);
-            return;
-         end if;
-
-         pragma Assert (Split_Point /= Name'First);
-
-         if Self.Children /= null then
-            A_Child := PolyORB.POA.Obj_Adapter_Access
-              (Lookup (Self.Children.all,
-                       Name (Name'First .. Split_Point - 1), null));
-         end if;
-
-         if A_Child /= null then
-            Find_POA
-              (Basic_Obj_Adapter (A_Child.all)'Access,
-               Name (Split_Point + 1 .. Name'Last),
-               Activate_It,
-               POA,
-               Error);
-
-         else
-            if Activate_It
-              and then Self.Adapter_Activator /= null
-            then
-               Unknown_Adapter
-                 (Self.Adapter_Activator,
-                  Self,
-                  Name (Name'First .. Split_Point - 1),
-                  Result,
-                  Error);
-
-               if Found (Error) then
-                  return;
-               end if;
-
-               if not Result then
-                  Throw (Error,
-                         AdapterNonExistent_E,
-                         Null_Member);
-               end if;
-
-               Find_POA
-                 (Self,
-                  Name,
-                  Activate_It,
-                  POA,
-                  Error);
-            else
-               POA := null;
-
-               Throw (Error,
-                      AdapterNonExistent_E,
-                      Null_Member);
-            end if;
-         end if;
-      end Find_POA_Recursively;
-
-      Full_POA_Name : constant String
-        := To_Standard_String (Self.Absolute_Address)
-        & POA_Path_Separator
-        & Name;
+      A_Child     : Obj_Adapter_Access;
+      Split_Point : constant Integer
+        := PolyORB.Utils.Find (Name, Name'First, POA_Path_Separator);
+      Result : Boolean;
 
    begin
+      if Found (Error) then
+         return;
+      end if;
 
-      --  Name is null => We were looking for ourself
+      pragma Debug (O ("Find_POA: enter, Name = " & Name));
+
       if Name'Length = 0 then
          POA := Obj_Adapter_Access (Self);
          return;
       end if;
 
-      --  Then look up 'name' in Global POA Table
-      pragma Debug (O ("Find_POA: enter, Name = "
-                       & Full_POA_Name));
+      pragma Assert (Split_Point /= Name'First);
 
-      POA := PolyORB.POA.Obj_Adapter_Access
-        (Lookup
-         (Global_POATable,
-          Full_POA_Name,
-          null));
-
-      if POA /= null then
-         pragma Debug (O ("Found POA in Global_POATable"));
-         return;
+      if Self.Children /= null then
+         A_Child := PolyORB.POA.Obj_Adapter_Access
+           (Lookup (Self.Children.all,
+                    Name (Name'First .. Split_Point - 1), null));
       end if;
 
-      --  Then make a recursive look up, activating POA if necessary.
+      if A_Child /= null then
+         Find_POA
+           (Basic_Obj_Adapter (A_Child.all)'Access,
+            Name (Split_Point + 1 .. Name'Last),
+            Activate_It,
+            POA,
+            Error);
 
-      pragma Debug (O ("Looking for " & Name & " recursively"));
+      else
+         if Activate_It
+           and then Self.Adapter_Activator /= null
+         then
+            Unknown_Adapter
+              (Self.Adapter_Activator,
+               Self,
+               Name (Name'First .. Split_Point - 1),
+               Result,
+               Error);
 
-      Find_POA_Recursively
-        (Self,
-         Name,
-         Activate_It,
-         POA,
-         Error);
+            if Found (Error) then
+               return;
+            end if;
+
+            if not Result then
+               Throw (Error,
+                      AdapterNonExistent_E,
+                      Null_Member);
+            end if;
+
+            Find_POA
+              (Self,
+               Name,
+               Activate_It,
+               POA,
+               Error);
+         else
+            POA := null;
+
+            Throw (Error,
+                   AdapterNonExistent_E,
+                   Null_Member);
+         end if;
+      end if;
 
    end Find_POA;
 

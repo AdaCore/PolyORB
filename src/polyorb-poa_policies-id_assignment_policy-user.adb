@@ -33,7 +33,6 @@
 
 with PolyORB.Log;
 with PolyORB.Objects;
-with PolyORB.Object_Maps.User;
 with PolyORB.POA;
 with PolyORB.POA_Policies.Lifespan_Policy;
 with PolyORB.POA_Types;
@@ -92,22 +91,6 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.User is
    begin
       return "ID_ASSIGNMENT_POLICY.USER_ID";
    end Policy_Id;
-
-   -----------------------
-   -- Create_Object_Map --
-   -----------------------
-
-   function Create_Object_Map
-     (Self : User_Id_Policy)
-     return PolyORB.Object_Maps.Object_Map_Access
-   is
-      pragma Warnings (Off);
-      pragma Unreferenced (Self);
-      pragma Warnings (On);
-
-   begin
-      return new PolyORB.Object_Maps.User.User_Object_Map;
-   end Create_Object_Map;
 
    ------------------------------
    -- Assign_Object_Identifier --

@@ -33,6 +33,8 @@
 
 with CORBA;
 
+with PolyORB.Smart_Pointers;
+
 package body PolyORB.CORBA_P.AdapterActivator is
 
    ------------
@@ -41,16 +43,11 @@ package body PolyORB.CORBA_P.AdapterActivator is
 
    procedure Create
      (Self :    out PPT.AdapterActivator_Access;
-      AA   : access PortableServer.AdapterActivator.Ref'Class)
-   is
-      Activator : Object_Ptr := new Object;
-
+      AA   : access PortableServer.AdapterActivator.Ref'Class) is
    begin
       Self := new CORBA_AdapterActivator;
-      Activator.AA := AA_Ptr (AA);
 
-      Set (CORBA_AdapterActivator (Self.all),
-           PolyORB.Smart_Pointers.Entity_Ptr (Activator));
+      CORBA_AdapterActivator (Self.all).AA := AA_Ptr (AA);
    end Create;
 
    ---------------------------
@@ -59,12 +56,9 @@ package body PolyORB.CORBA_P.AdapterActivator is
 
    function Get_Adapter_Activator
      (Self : CORBA_AdapterActivator)
-     return PortableServer.AdapterActivator.Ref'Class
-   is
-      Activator : constant Object_Ptr := Object_Ptr (Entity_Of (Self));
-
+     return PortableServer.AdapterActivator.Ref'Class is
    begin
-      return Activator.AA.all;
+      return Self.AA.all;
    end Get_Adapter_Activator;
 
    ---------------------
@@ -82,16 +76,13 @@ package body PolyORB.CORBA_P.AdapterActivator is
 
       CORBA_POA : PortableServer.POA_Forward.Ref;
 
-      Activator : PortableServer.AdapterActivator.Ref'Class
-        := PortableServer.AdapterActivator.Ref'Class
-        (Get_Adapter_Activator (Self.all));
    begin
       PortableServer.POA_Forward.Set
         (CORBA_POA,
          PolyORB.Smart_Pointers.Entity_Ptr (Parent));
 
       Result := PortableServer.AdapterActivator.Unknown_Adapter
-        (Activator,
+        (PortableServer.AdapterActivator.Ref'Class (Self.AA.all),
          CORBA_POA,
          CORBA.To_CORBA_String (Name));
 

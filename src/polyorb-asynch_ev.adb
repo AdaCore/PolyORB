@@ -39,20 +39,11 @@ with Ada.Unchecked_Deallocation;
 
 package body PolyORB.Asynch_Ev is
 
-   ----------------
-   -- Notepad_Of --
-   ----------------
-
-   function Notepad_Of
-     (AES : Asynch_Ev_Source_Access)
+   function Notepad_Of (AES : Asynch_Ev_Source_Access)
      return Annotations.Notepad_Access is
    begin
       return AES.Notes'Access;
    end Notepad_Of;
-
-   -----------------------
-   -- Unregister_Source --
-   -----------------------
 
    procedure Unregister_Source
      (AES : Asynch_Ev_Source_Access) is
@@ -60,10 +51,6 @@ package body PolyORB.Asynch_Ev is
       pragma Assert (AES /= null and then AES.Monitor /= null);
       Unregister_Source (AES.Monitor.all, AES);
    end Unregister_Source;
-
-   -------------
-   -- Destroy --
-   -------------
 
    procedure Destroy
      (AES : in out Asynch_Ev_Source_Access)

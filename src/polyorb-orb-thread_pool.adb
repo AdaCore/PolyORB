@@ -256,19 +256,19 @@ package body PolyORB.ORB.Thread_Pool is
 begin
    Register_Module
      (Module_Info'
-      (Name      => +"orb.thread_pool",
+      (Name => +"orb.thread_pool",
        Conflicts => +"no_tasking",
-       Depends   => +"soft_links",
-       Provides  => +"orb.tasking_policy",
-       Init      => Initialize_Tasking_Policy_Access'Access));
+       Depends => +"soft_links",
+       Provides => +"orb.tasking_policy",
+       Init => Initialize_Tasking_Policy_Access'Access));
 
    Register_Module
      (Module_Info'
-      (Name      => +"orb.threads_init",
+      (Name => +"orb.threads_init",
        Conflicts => +"no_tasking",
-       Depends   => +"orb",
-       Provides  => +"orb.tasking_policy_init",
-       Init      => Initialize_Threads'Access));
+       Depends => +"orb",
+       Provides => +"orb.tasking_policy_init",
+       Init => Initialize_Threads'Access));
 
    --  Two Register_Module are needed because, on one hand, the
    --  variable Setup.The_Tasking_Policy must be initialized before

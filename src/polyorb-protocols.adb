@@ -61,14 +61,11 @@ package body PolyORB.Protocols is
    -- Finalize --
    --------------
 
-   procedure Finalize
-     (S : in out Session)
-   is
+   procedure Finalize (S : in out Session) is
+   begin
       pragma Warnings (Off);
       pragma Unreferenced (S);
       pragma Warnings (On);
-
-   begin
       pragma Debug (O ("Finalizing Session."));
       null;
    end Finalize;
@@ -93,30 +90,25 @@ package body PolyORB.Protocols is
 
    function Handle_Message
      (Sess : access Session;
-      S    :        Components.Message'Class)
+      S : Components.Message'Class)
      return Components.Message'Class
    is
       Nothing : Components.Null_Message;
       Req : Request_Access;
-
    begin
       pragma Debug
         (O ("Handling message of type "
             & Ada.Tags.External_Tag (S'Tag)));
       if S in Connect_Indication then
          Handle_Connect_Indication (Session_Access (Sess));
-
       elsif S in Connect_Confirmation then
          Handle_Connect_Confirmation (Session_Access (Sess));
-
       elsif S in Disconnect_Indication then
          Handle_Disconnect (Session_Access (Sess));
-
       elsif S in Data_Indication then
          Handle_Data_Indication
            (Session_Access (Sess),
             Data_Indication (S).Data_Amount);
-
       elsif S in Unmarshall_Arguments then
          declare
             Args : PolyORB.Any.NVList.Ref
@@ -126,10 +118,8 @@ package body PolyORB.Protocols is
               (Session_Access (Sess), Args);
             return Unmarshalled_Arguments'(Args => Args);
          end;
-
       elsif S in Set_Server then
          Sess.Server := Set_Server (S).Server;
-
       elsif S in Execute_Request then
          declare
             use type Binding_Data.Profile_Access;
@@ -214,11 +204,9 @@ package body PolyORB.Protocols is
 
       elsif S in Disconnect_Request then
          return Emit (Lower (Sess), S);
-
       else
          raise Components.Unhandled_Message;
       end if;
-
       return Nothing;
    end Handle_Message;
 
@@ -228,7 +216,8 @@ package body PolyORB.Protocols is
 
    function Get_Task_Info
      (S : in Session_Access)
-     return PolyORB.Annotations.Notepad_Access is
+     return PolyORB.Annotations.Notepad_Access
+   is
    begin
       return S.N;
    end Get_Task_Info;
@@ -239,7 +228,8 @@ package body PolyORB.Protocols is
 
    procedure Set_Task_Info
      (S : in Session_Access;
-      N : PolyORB.Annotations.Notepad_Access) is
+      N : PolyORB.Annotations.Notepad_Access)
+   is
    begin
       S.N := N;
    end Set_Task_Info;

@@ -50,7 +50,7 @@ Items still requiring attention
   
 * Clarify the uniform interface of representations:
   create a PolyORB.Representations.CDR.CDR_Representation
-  type (derived from P.R.Representation), idem for SOAP.
+  type (derived from P.R.Representation).
 
 * Extend Transport framework with a new abstract class
   Transport_Access_Point_Name with a bind() primitive operation

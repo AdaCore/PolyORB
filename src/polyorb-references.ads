@@ -62,8 +62,8 @@ package PolyORB.References is
    --  same object.
 
    procedure Create_Reference
-     (Profiles :     Profile_Array;
-      Type_Id  :     String;
+     (Profiles : Profile_Array;
+      Type_Id  : String;
       R        : out Ref);
    --  Create a reference with Profiles as its profiles.
    --  The returned ref R is nil iff Profiles'Length = 0.
