@@ -1,0 +1,21 @@
+ZIPOBJECTS = \
+s-gafizi.o
+
+ZIPSOURCES = \
+${srcdir}/s-gafizi.ads ${srcdir}/s-gafizi.adb
+
+install-zip-libs:
+	if test ! -f zlib.tar; then \
+		${UNZIP} zlib.tar.gz;\
+	fi
+	${RM} -r zlib
+	${TAR} xf zlib.tar
+	(cd zlib; make CC=$(CC) libz.a)
+	${CP} -p zlib/libz.a ${GARLIC}
+	${RANLIB} ${GARLIC}/libz.a
+
+ZIPINSTALL=install-zip-libs
+
+FILTEROBJECTS += $(ZIPOBJECTS)
+FILTERSOURCES += $(ZIPSOURCES)
+FILTERINSTALL += $(ZIPINSTALL)
