@@ -224,10 +224,13 @@ package body Ada_Be.Idl2Ada is
    -- Helper subprograms --
    ------------------------
 
-   function Ada_Type_Name
-     (Node : Node_Id)
-     return String;
+   function Ada_Type_Name (Node : Node_Id)
+                           return String;
    --  The name of the Ada type that maps Node.
+
+   function Ada_TC_Name (Node : Node_Id)
+                         return String;
+   --  The name of the typecode corresponding to an Ada type
 
    function Ada_Type_Defining_Name
      (Node : Node_Id)
@@ -3173,6 +3176,109 @@ package body Ada_Be.Idl2Ada is
       end case;
    end Ada_Type_Name;
 
+   ------------------
+   --  Ada_TC_Name --
+   ------------------
+
+   function Ada_TC_Name
+     (Node : Node_Id)
+     return String
+   is
+      NK : constant Node_Kind
+        := Kind (Node);
+      Prefix : constant String := "TC_";
+   begin
+      case NK is
+--          when
+--            K_Interface         |
+--            K_Forward_Interface |
+--            K_ValueType         |
+--            K_Forward_ValueType =>
+--       return Prefix & Ada_Name (Node) & "." & Ada_Type_Defining_Name (Node);
+
+--          when K_Sequence_Instance =>
+--             return Ada_Full_Name (Node) & ".Sequence";
+
+--          when K_String_Instance =>
+--             return Ada_Full_Name (Node) & ".Bounded_String";
+
+         when
+           K_Enum       |
+           K_Union      |
+           K_Struct     |
+           K_Declarator =>
+            return Prefix & Ada_Name (Node);
+
+         when K_Scoped_Name =>
+            return Ada_TC_Name (Value (Node));
+
+         when K_Short =>
+            return "CORBA." & Prefix & "Short";
+
+         when K_Long =>
+            return "CORBA." & Prefix & "Long";
+
+         when K_Long_Long =>
+            return "CORBA." & Prefix & "Long_Long";
+
+         when K_Unsigned_Short =>
+            return "CORBA." & Prefix & "Unsigned_Short";
+
+         when K_Unsigned_Long =>
+            return "CORBA." & Prefix & "Unsigned_Long";
+
+         when K_Unsigned_Long_Long =>
+            return "CORBA." & Prefix & "Unsigned_Long_Long";
+
+         when K_Char =>
+            return "CORBA." & Prefix & "Char";
+
+         when K_Wide_Char =>
+            return "CORBA." & Prefix & "Wide_Char";
+
+         when K_Boolean =>
+            return "CORBA." & Prefix & "Boolean";
+
+         when K_Float =>
+            return "CORBA." & Prefix & "Float";
+
+         when K_Double =>
+            return "CORBA." & Prefix & "Double";
+
+         when K_Long_Double =>
+            return "CORBA." & Prefix & "Long_Double";
+
+         when K_String =>
+            return "CORBA." & Prefix & "String";
+
+         when K_Wide_String =>
+            return "CORBA." & Prefix & "Wide_String";
+
+         when K_Octet =>
+            return "CORBA." & Prefix & "Octet";
+
+         when K_Object =>
+            return "CORBA." & Prefix & "Object.Ref";
+
+         when K_Any =>
+            return "CORBA." & Prefix & "Any";
+
+         when others =>
+            --  Improper use: node N is not
+            --  mapped to an Ada type.
+
+            Error
+              ("A " & NK'Img
+               & " does not denote a type. So there's no TypeCode"
+               & " associated with it.",
+               Fatal, Get_Location (Node));
+
+            --  Keep the compiler happy.
+            raise Program_Error;
+
+      end case;
+   end Ada_TC_Name;
+
    procedure Add_With_Entity
      (CU : in out Compilation_Unit;
       Node : Node_Id)
@@ -3338,7 +3444,7 @@ package body Ada_Be.Idl2Ada is
    end Ada_Operation_Name;
 
    function Idl_Operation_Id
-     (Node : Node_Id)
+    (Node : Node_Id)
      return String is
    begin
       pragma Assert (Kind (Node) = K_Operation);
@@ -3442,8 +3548,7 @@ package body Ada_Be.Idl2Ada is
             --  TypeCode
 
             NL (Helper_Spec);
-            PL (Helper_Spec, "TC_"
-                & Ada_Name (Node)
+            PL (Helper_Spec, Ada_TC_Name (Node)
                 & " : constant CORBA.TypeCode.Object := ");
             II (Helper_Spec);
             PL (Helper_Spec, "CORBA.TypeCode.TC_Enum;");
@@ -3488,8 +3593,8 @@ package body Ada_Be.Idl2Ada is
             II (Helper_Body);
             PL (Helper_Body, "Result : CORBA.Any := ");
             II (Helper_Body);
-            PL (Helper_Body, "CORBA.Get_Empty_Any_Aggregate (TC_"
-                & Ada_Name (Node)
+            PL (Helper_Body, "CORBA.Get_Empty_Any_Aggregate ("
+                & Ada_TC_Name (Node)
                 & ");");
             DI (Helper_Body);
             DI (Helper_Body);
@@ -3506,18 +3611,14 @@ package body Ada_Be.Idl2Ada is
             DI (Helper_Body);
             PL (Helper_Body, "end To_Any;");
 
-
-
-
-
             --  to fill in the typecode TC_<name of the type>
---             PL (CU, "Add_Parameter (TC_"
---                 & Ada_Name (Node)
+--             PL (CU, "Add_Parameter ("
+--                 & Ada_TC_Name (Node)
 --                 & ", To_Any ("
 --                 & Ada_Name (Node)
 --                 & "));");
---             PL (CU, "Add_Parameter (TC_"
---                 & Ada_Name (Node)
+--             PL (CU, "Add_Parameter ("
+--                 & Ada_TC_Name (Node)
 --                 & ", To_Any ("
 --                 & Idl_Repository_Id (Node)
 --                 & "));");
@@ -3528,10 +3629,209 @@ package body Ada_Be.Idl2Ada is
 --                Init (It, Enumerators (Node));
 --                while not Is_End (It) loop
 --                   Get_Next_Node (It, E_Node);
---                   PL (CU, "Add_Parameter (TC_"
---                       & Ada_Name (Node)
+--                   PL (CU, "Add_Parameter ("
+--                       & Ada_TC_Name (Node)
 --                       & ", To_Any ("
 --                       & Ada_Name (E_Node)
+--                       & "));");
+--                end loop;
+--             end;
+
+--          when K_Struct =>
+--             --  typecode generation
+--             NL (Helper_Spec);
+--             PL (Helper_Spec, Ada_TC_Name (Node)
+--                 & " : constant CORBA.TypeCode.Object := ");
+--             II (Helper_Spec);
+--             PL (Helper_Spec, "CORBA.TypeCode.TC_Struct;");
+--             DI (Helper_Spec);
+
+--             --  from_any function
+--             NL (Helper_Spec);
+--             Gen_From_Any_Profile (Helper_Spec, Node);
+--             PL (Helper_Spec, ";");
+
+--             NL (Helper_Spec);
+--             Gen_To_Any_Profile (Helper_Spec, Node);
+--             PL (Helper_Spec, ";");
+
+--             Add_With (Helper_Body,
+--                       "CORBA",
+--                       Use_It => True);
+--             NL (Helper_Body);
+--             Gen_From_Any_Profile (Helper_Body, Node);
+--             PL (Helper_Body, " is");
+--             II (Helper_Body);
+--             PL (Helper_Body, "Index : CORBA.Any;");
+--             declare
+--                It   : Node_Iterator;
+--                Member_Node : Node_Id;
+--             begin
+--                Init (It, Members (Node));
+--                while not Is_End (It) loop
+--                   Get_Next_Node (It, Member_Node);
+--                   declare
+--                      It2   : Node_Iterator;
+--                      Decl_Node : Node_Id;
+--                   begin
+--                      Init (It2, Decl (Member_Node));
+--                      while not Is_End (It2) loop
+--                         Get_Next_Node (It2, Decl_Node);
+--                         PL (Helper_Body, "Result_"
+--                             & Ada_Name (Decl_Node)
+--                             & " : "
+--                             & Ada_Type_Name (M_Type (Member_Node))
+--                             & ";");
+--                      end loop;
+--                   end;
+--                end loop;
+--             end;
+--             DI (Helper_Body);
+--             PL (Helper_Body, "begin");
+--             II (Helper_Body);
+--             declare
+--                It   : Node_Iterator;
+--                Member_Node : Node_Id;
+--                I : Integer := 0;
+--             begin
+--                Init (It, Members (Node));
+--                while not Is_End (It) loop
+--                   Get_Next_Node (It, Member_Node);
+--                   declare
+--                      It2   : Node_Iterator;
+--                      Decl_Node : Node_Id;
+--                   begin
+--                      Init (It2, Decl (Member_Node));
+--                      while not Is_End (It2) loop
+--                         Get_Next_Node (It2, Decl_Node);
+--                         PL (Helper_Body,
+--                             "Index := CORBA.Get_Aggregate_Element (Item,");
+--                         PL (Helper_Body,
+--                             "                                      "
+--                             & Ada_TC_Name (M_Type (Member_Node))
+--                             & ",");
+--                         PL (Helper_Body,
+--                             "                                      "
+--                             & "CORBA.Unsigned_Long ("
+--                             & Integer'Image (I)
+--                             &"));");
+--                         PL (Helper_Body, "Result_"
+--                             & Ada_Name (Decl_Node)
+--                             & " := From_Any (Index);");
+--                         I := I + 1;
+--                      end loop;
+--                   end;
+--                end loop;
+--             end;
+--             PL (Helper_Body, "return");
+--             II (Helper_Body);
+--             declare
+--                First_Member : Boolean := True;
+--                Begin_Of_Line : String (1 .. 1) := "(";
+--                End_Of_Line : String (1 .. 2) := ", ";
+--                It   : Node_Iterator;
+--                Member_Node : Node_Id;
+--             begin
+--                Init (It, Members (Node));
+--                while not Is_End (It) loop
+--                   Get_Next_Node (It, Member_Node);
+--                   declare
+--                      It2   : Node_Iterator;
+--                      Decl_Node : Node_Id;
+--                   begin
+--                      Init (It2, Decl (Member_Node));
+--                      while not Is_End (It2) loop
+--                         Get_Next_Node (It2, Decl_Node);
+--                         if Is_End (It) and Is_End (It2) then
+--                            End_Of_Line := ");";
+--                         end if;
+--                         PL (Helper_Body, Begin_Of_Line
+--                             & Ada_Name (Decl_Node)
+--                             & " => Result_"
+--                             & Ada_Name (Decl_Node)
+--                             & End_Of_Line);
+--                         if First_Member then
+--                            First_Member := False;
+--                            Begin_Of_Line := " ";
+--                         end if;
+--                      end loop;
+--                   end;
+--                end loop;
+--             end;
+--             DI (Helper_Body);
+--             DI (Helper_Body);
+--             PL (Helper_Body, "end From_Any;");
+
+--             --  to_any function
+--             NL (Helper_Body);
+--             Gen_To_Any_Profile (Helper_Body, Node);
+--             PL (Helper_Body, " is");
+--             II (Helper_Body);
+--             PL (Helper_Body, "Result : CORBA.Any := ");
+--             II (Helper_Body);
+--             PL (Helper_Body, "CORBA.Get_Empty_Any_Aggregate ("
+--                 & Ada_TC_Name (Node)
+--                 & ");");
+--             DI (Helper_Body);
+--             DI (Helper_Body);
+--             PL (Helper_Body, "begin");
+--             II (Helper_Body);
+--             declare
+--                It   : Node_Iterator;
+--                Member_Node : Node_Id;
+--             begin
+--                Init (It, Members (Node));
+--                while not Is_End (It) loop
+--                   Get_Next_Node (It, Member_Node);
+--                   declare
+--                      It2   : Node_Iterator;
+--                      Decl_Node : Node_Id;
+--                   begin
+--                      Init (It2, Decl (Member_Node));
+--                      while not Is_End (It2) loop
+--                         Get_Next_Node (It2, Decl_Node);
+--                         PL (Helper_Body, "CORBA.Add_Aggregate_Element");
+--                         II (Helper_Body);
+--                         PL (Helper_Body, "(Result,");
+--                         PL (Helper_Body, " CORBA.To_Any (Item."
+--                             & Ada_Name (Decl_Node)
+--                             & "));");
+--                         DI (Helper_Body);
+--                      end loop;
+--                   end;
+--                end loop;
+--             end;
+--             PL (Helper_Body, "return Result;");
+--             DI (Helper_Body);
+--             PL (Helper_Body, "end To_Any;");
+
+            --  to fill in the typecode TC_<name of the type>
+--             PL (CU, "Add_Parameter ("
+--                 & Ada_TC_Name (Node)
+--                 & ", To_Any ("
+--                 & Ada_Name (Node)
+--                 & "));");
+--             PL (CU, "Add_Parameter ("
+--                 & Ada_TC_Name (Node)
+--                 & ", To_Any ("
+--                 & Idl_Repository_Id (Node)
+--                 & "));");
+--             declare
+--                It   : Node_Iterator;
+--                Member_Node : Node_Id;
+--             begin
+--                Init (It, Members (Node));
+--                while not Is_End (It) loop
+--                   Get_Next_Node (It, Member_Node);
+--                   PL (CU, "Add_Parameter ("
+--                       & Ada_TC_Name (Node)
+--                       & ", To_Any ("
+--                       & Ada_TC_Name (Member_Node)
+--                       & "));");
+--                   PL (CU, "Add_Parameter ("
+--                       & Ada_TC_Name (Node)
+--                       & ", To_Any ("
+--                       & Ada_Name (Member_Node)
 --                       & "));");
 --                end loop;
 --             end;

@@ -531,6 +531,48 @@ procedure DynClient is
         (CORBA.Request.Return_Value (Request).Argument);
    end EchoColor;
 
+--    function EchoStruct
+--      (Self : in CORBA.Object.Ref;
+--       Arg : in All_Types.Simple_Struct)
+--       return All_Types.Simple_Struct is
+--       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoStruct");
+--       Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
+--       Request : CORBA.Request.Object;
+--       Ctx : CORBA.Context.Ref;
+--       Argument : CORBA.Any;
+--       Arg_List : CORBA.NVList.Ref;
+--       Result : CORBA.NamedValue;
+--       Result_Name : CORBA.String := To_CORBA_String ("Result");
+--       Result_Value : All_Types.Simple_Struct :=
+--         (0, To_CORBA_String ("Not successfull"));
+--    begin
+--       --  creating the argument list
+--       Argument := All_Types.Helper.To_Any (Arg);
+--       CORBA.NVList.Add_Item (Arg_List,
+--                              Arg_Name,
+--                              Argument,
+--                              CORBA.ARG_IN);
+--       --  setting the result type
+--       Result := (Name => Identifier (Result_Name),
+--                  Argument => All_Types.Helper.To_Any (Result_Value),
+--                  Arg_Modes => 0);
+--       --  creating a request
+--       CORBA.Object.Create_Request (Myall_Types,
+--                                    Ctx,
+--                                    Operation_Name,
+--                                    Arg_List,
+--                                    Result,
+--                                    Request,
+--                                    0);
+--       --  sending message
+--       CORBA.Request.Invoke (Request, 0);
+--       --  FIXME : not logical
+--       CORBA.NVList.Free (Arg_List);
+--       --  getting the answer
+--       return All_Types.Helper.From_Any
+--         (CORBA.Request.Return_Value (Request).Argument);
+--    end EchoStruct;
+
 begin
    if Ada.Command_Line.Argument_Count < 1 then
       Ada.Text_IO.Put_Line
@@ -545,26 +587,47 @@ begin
    CORBA.ORB.String_To_Object (IOR, Myall_types);
 
    loop
+      --  boolean
       Output ("test boolean", echoBoolean (Myall_types, True) = True);
+      --  short
       Output ("test short", echoShort (Myall_types, 123) = 123);
+      --  long
       Output ("test long",  echoLong (Myall_types, 456) = 456);
+      --  unsigned_short
       Output ("test unsigned_short", echoUShort (Myall_types, 456) = 456);
+      --  unsigned_long
       Output ("test unsigned_long", echoULong (Myall_types, 123) = 123);
+      --  float
       Output ("test float", echoFloat (Myall_types, 2.7) = 2.7);
+      --  double
       Output ("test double", echoDouble (Myall_types, 3.14) = 3.14);
+      --  char
       Output ("test char", echoChar (Myall_types, 'A') = 'A');
+      --  octet
       Output ("test octet", echoOctet (Myall_types, 5) = 5);
+      --  string
       Output ("test string",
               To_Standard_String
               (echoString (Myall_types, To_CORBA_String ("hello"))) = "hello");
+      --  CORBA.Object.Ref
       declare
          X : CORBA.Object.Ref;
       begin
          X := echoRef (Myall_types, Myall_types);
          Output ("test self reference", echoLong (X, 31337) = 31337);
       end;
+      --  enum
       Output ("test enum", echoColor (Myall_types, All_Types.Blue) =
               All_Types.Blue);
+      Output ("test fixed point", False);
+      --  struct
+--       declare
+--          Test_Struct : constant All_Types.simple_struct
+--            := (123, To_CORBA_String ("Hello world!"));
+--       begin
+--          Output ("test struct",
+--                  echoStruct (Myall_types, Test_Struct) = Test_Struct);
+--       end;
       exit when One_Shot;
    end loop;
 
