@@ -508,7 +508,7 @@ package body OmniObject is
                                 Success : out Sys_Dep.C_Boolean) ;
    pragma Import (CPP,
                   C_Get_Rope_And_Key,
-                  "getRopeAndKey__C10omniObjectR14omniRopeAndKey") ;
+                  "getRopeAndKey__14Ada_OmniObjectR14omniRopeAndKeyRb") ;
    -- wrapper around  Ada_OmniObject function getRopeAndKey
    -- (see Ada_OmniObject.hh)
 

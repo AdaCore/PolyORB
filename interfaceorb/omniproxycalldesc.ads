@@ -88,12 +88,12 @@ package omniProxyCallDesc is
 
 
    procedure Unmarshal_Returned_Values (Self : in out Object ;
-                                        Giop_Client: in Giop_C.Object ) is abstract ;
+                                        Giop_Client: in out Giop_C.Object ) is abstract ;
    -- unmarshalls the returned values of the subprogram from a Giop_C object
 
 
    procedure User_Exception (Self : in Object ;
-                             Giop_Client : in Giop_C.Object ;
+                             Giop_Client : in out Giop_C.Object ;
                              RepoId : in CORBA.String) ;
    -- must be overloaded by call descs which have exceptions
 

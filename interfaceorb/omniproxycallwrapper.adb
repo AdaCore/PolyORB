@@ -210,7 +210,7 @@ package body omniProxyCallWrapper is
                   Unneeded_Result : Corba.Boolean ;
                begin
                   -- unmarshall the object
-                  Corba.Object.UnMarshal (Obj_Ref,Giop_Client) ;
+                  Corba.Object.UnMarshall (Obj_Ref,Giop_Client) ;
                   -- inform the ORB that the request was completed
                   Giop_C.Request_Completed(Giop_Client) ;
                   -- verify that the object is not null

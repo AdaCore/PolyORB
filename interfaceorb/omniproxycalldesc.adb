@@ -64,7 +64,7 @@ package body omniProxyCallDesc is
    -- User_Exception
    -----------------
    procedure User_Exception (Self : in Object ;
-                             Giop_Client : in Giop_C.Object ;
+                             Giop_Client : in out Giop_C.Object ;
                              RepoId : in CORBA.String) is
    begin
       if Self.Pd_Has_User_Exception then
