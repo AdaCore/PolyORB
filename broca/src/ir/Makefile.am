@@ -52,11 +52,11 @@ corba-repository_root-valuememberdef.adb \
 corba-repository_root-nativedef.adb 
 
 GNATMAKE_FLAGS=	-I${srcdir} -I.. -I${srcdir}/.. ${ADASOCKETS_INCLUDE} \
-                -m -g -O -largs ${ADASOCKETS_LIBS}
+                -m -g -O -gnata -largs ${ADASOCKETS_LIBS}
 
 IDLAC= ../../idlac/idlac
 
-NAMING= -I../../cos/naming
+NAMING= -I${srcdir}/../../cos/naming
 
 if ENABLE_IR
 all-local: server client print

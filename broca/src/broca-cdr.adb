@@ -1347,8 +1347,8 @@ package body Broca.CDR is
       Equiv  : String (1 .. Natural (Length) - 1);
 
    begin
-      pragma Debug (O ("Unmarshall (String) : enter"));
-      pragma Debug (O ("Unmarshall (String) : length is " &
+      pragma Debug (O ("Unmarshall (String): enter"));
+      pragma Debug (O ("Unmarshall (String): length is " &
                     CORBA.Unsigned_Long'Image (Length)));
       for I in Equiv'Range loop
          Equiv (I) := Character'Val (CORBA.Char'Pos
@@ -1360,7 +1360,7 @@ package body Broca.CDR is
          Broca.Exceptions.Raise_Marshal;
       end if;
 
-      pragma Debug (O ("Unmarshall (String) : end"));
+      pragma Debug (O ("Unmarshall (String): -> " & Equiv));
 
       return Equiv;
    end Unmarshall;
@@ -2160,17 +2160,16 @@ package body Broca.CDR is
    function Unmarshall (Buffer : access Buffer_Type)
      return Encapsulation
    is
-      Length : CORBA.Unsigned_Long;
+      Length : constant CORBA.Unsigned_Long := Unmarshall (Buffer);
    begin
-      pragma Debug (O ("Unmarshall (Encapsulation) : enter"));
-      Length := Unmarshall (Buffer);
+      pragma Debug (O ("Unmarshall (Encapsulation): length is" & Length'Img));
       declare
          E : Encapsulation (1 .. Index_Type (Length));
       begin
          for I in E'Range loop
             E (I) := BO_Octet (CORBA.Octet'(Unmarshall (Buffer)));
          end loop;
-         pragma Debug (O ("Unmarshall (Encapsulation) : end"));
+         pragma Debug (O ("Unmarshall (Encapsulation): end"));
          return E;
       end;
    end Unmarshall;
