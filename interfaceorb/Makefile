@@ -186,7 +186,7 @@ sys_dep.ali : sys_dep.ads sys_dep.adb
 # from ads files
 ################
 Ada_ads_files: \
-corba-sequences.ali
+corba-sequences.ali omniowproxycalldesc.ali
 
 .SUFFIXES: .ads .ali
 
@@ -196,6 +196,8 @@ corba-sequences.ali
 
 corba-sequences.ali : corba-sequences.ads
 	$(ADA_COMP) $(DO_NOT_LINK) corba-sequences.ads
+
+omniowproxycalldesc.ali: omniowproxycalldesc.ads corba.ali giop_c.ali
 
 
 

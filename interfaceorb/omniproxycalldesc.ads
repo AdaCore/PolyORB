@@ -33,10 +33,12 @@
 ----   -----------                                                 ----
 ----                                                               ----
 ----      This is a root class. For each subprogram of an IDL      ----
-----    interface, a descendant of this class has to be provided.  ----
+----    interface, which is not declared "one way", a descendant   ----
+----    of this class has to be provided.                          ----
 ----    It contains al the information to make the remote call :   ----
 ----    arguments, results, exceptions, and how to send them on/   ----
 ----    reveive them from a giop.                                  ----
+----    ( see proxyCall.h )                                        ----
 ----                                                               ----
 ----                                                               ----
 ----   authors : Sebastien Ponce, Fabien Azavant                   ----
@@ -61,7 +63,7 @@ package omniProxyCallDesc is
 
    procedure Init (Self : in out Object ;
                    Has_Exceptions : Corba.Boolean := False ) ;
-   -- Ses the boolean Pd_Has_User_Exception
+   -- Set the boolean Pd_Has_User_Exception
 
 
    function Operation (Self : in Object)
