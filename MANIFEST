@@ -911,6 +911,8 @@ src/polyorb-representations-cdr.ads
 src/polyorb-representations-test.adb
 src/polyorb-representations-test.ads
 src/polyorb-representations.ads
+src/polyorb-request_qos.adb
+src/polyorb-request_qos.ads
 src/polyorb-request_scheduler-servant_lane.adb
 src/polyorb-request_scheduler-servant_lane.ads
 src/polyorb-request_scheduler.adb
