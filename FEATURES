@@ -52,20 +52,28 @@ middleware.
   - Thread Per Request;
   - Single Thread (if 'No Tasking' tasking runtime is used).
 
+- ORB Controller's policy to control concurrency patterns used to
+  synchronize the middleware internal threads:
+  - Basic;
+  - Half Sync/Half Async;
+  - Leader/Followers;
+  - No Tasking.
+
 Configuration options are detailed in the PolyORB User's Guide.
 
                                -----------
                                -- CORBA --
                                -----------
 
-PolyORB implements a CORBA application personality that supports:
+PolyORB implements a CORBA application personality, compatible with
+the OMG's specifications, that supports:
 
 - Static invocation models based on generated stub and skeletons,
 - Dynamic Invocation Interface (DII), 
 - Dynamic Skeleton Interface (DSI), 
 
 It also provides an implementation of the CORBA Portable Object
-Adapter (POA). 
+Adapter (POA); CORBA PortableInterceptors; and RT-CORBA 1.1.
 
 CORBA Services
 --------------
@@ -89,8 +97,20 @@ It supports all common IDL constructs; yet it does not support the
 following advanced constructs: value-type, abstract interfaces.
 
                               ----------
+                              -- MOMA --
+                              ----------
+
+PolyORB offers the Message Oriented Middleware for Ada (MOMA)
+personality. It proposes an API comparable to Sun's Java Message
+Service, and supports Publish/Subscribe and Point-to-Point.
+
+                              ----------
                               -- GIOP --
                               ----------
+
+GIOP is the Generic Inter-ORB Protocol, defined as part of the CORBA
+specifications to support Inter-ORB communications. PolyORB follows
+this specification and proposes the following instances of GIOP:
 
 IIOP
 ----
