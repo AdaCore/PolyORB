@@ -59,19 +59,51 @@ with PolyORB.Tasking.Soft_Links; use PolyORB.Tasking.Soft_Links;
 with PolyORB.Log;
 with Priority_Queue;
 
+with PolyORB.Tasking.Threads;
+with PolyORB.Tasking.Mutexes;
+with PolyORB.Tasking.Condition_Variables;
+
 package body CosEventChannelAdmin.EventChannel.Impl is
 
    use  PolyORB.CORBA_P.Server_Tools;
 
-   --------------------------------
-   --    Priority_Queue_Engine   --
-   --------------------------------
+   use PolyORB.Tasking.Condition_Variables;
+   use PolyORB.Tasking.Mutexes;
+   use PolyORB.Tasking.Threads;
 
-   task type Priority_Queue_Engine is
-      entry Connect (Channel : in Object_Ptr);
-   end Priority_Queue_Engine;
+   A_S   : Object_Ptr := null;
+   --  This variable is used to initialize the threads local variable.
+   --  it is used to replace the 'accept' statement.
 
-   type Priority_Queue_Engine_Access is access Priority_Queue_Engine;
+   Session_Mutex : Mutex_Access;
+   Session_Taken : Condition_Access;
+   --  Synchornisation of task initialization.
+
+   T_Initialized : Boolean := False;
+
+   procedure Ensure_Initialization;
+   pragma Inline (Ensure_Initialization);
+   --  Ensure that the Mutexes are initialized
+
+   ---------------------------
+   -- Ensure_Initialization --
+   ---------------------------
+
+   procedure Ensure_Initialization is
+   begin
+      if T_Initialized then
+         return;
+      end if;
+      Create (Session_Mutex);
+      Create (Session_Taken);
+      T_Initialized := True;
+   end Ensure_Initialization;
+
+   ---------------------------
+   -- Priority_Queue_Engine --
+   ---------------------------
+
+   procedure Priority_Queue_Engine;
 
    -----------
    -- Debug --
@@ -89,42 +121,41 @@ package body CosEventChannelAdmin.EventChannel.Impl is
 
    type Event_Channel_Record is
       record
-         This     : Object_Ptr;
-         Consumer : ConsumerAdmin.Impl.Object_Ptr;
-         Supplier : SupplierAdmin.Impl.Object_Ptr;
-         Queue    : Priority_Queue.Priority_Queue_Access;
-         Engine   : Priority_Queue_Engine_Access;
+         This            : Object_Ptr;
+         Consumer        : ConsumerAdmin.Impl.Object_Ptr;
+         Supplier        : SupplierAdmin.Impl.Object_Ptr;
+         Queue           : Priority_Queue.Priority_Queue_Access;
+         Engine_Launch   : Boolean := False;
       end record;
 
    --------------------------------
    --    Priority_Queue_Engine   --
    --------------------------------
 
-   task body Priority_Queue_Engine is
+   procedure Priority_Queue_Engine is
       Data  : CORBA.Any;
       This  : Object_Ptr;
       Queue : Priority_Queue.Priority_Queue_Access;
    begin
+      --  Thread initialization.
+      Ensure_Initialization;
+      This := A_S;
+      --  A_S is a global variable used to pass an argument to this task
+      --  This is initialized
+      --  we can let For_Consumers go
+      Enter (Session_Mutex);
+      Signal (Session_Taken);
+      Leave (Session_Mutex);
       loop
-         select
-            accept Connect (Channel : in Object_Ptr)
-            do
-               This := Channel;
-            end Connect;
-         or
-            terminate;
-         end select;
-         loop
-            Enter_Critical_Section;
-            Queue := This.X.Queue;
-            Leave_Critical_Section;
-            begin
-               Priority_Queue.Pop (Queue, Data);
-            exception when others =>
-               exit;
-            end;
-            ConsumerAdmin.Impl.Post (This.X.Consumer, Data);
-         end loop;
+         Enter_Critical_Section;
+         Queue := This.X.Queue;
+         Leave_Critical_Section;
+         begin
+            Priority_Queue.Pop (Queue, Data);
+         exception when others =>
+            exit;
+         end;
+         ConsumerAdmin.Impl.Post (This.X.Consumer, Data);
       end loop;
    end Priority_Queue_Engine;
 
@@ -173,16 +204,19 @@ package body CosEventChannelAdmin.EventChannel.Impl is
      return ConsumerAdmin.Ref
    is
       R : ConsumerAdmin.Ref;
-
    begin
       pragma Debug (O ("create consumer admin for channel"));
-
       Servant_To_Reference (Servant (Self.X.Consumer), R);
-      if Self.X.Engine = null then
-         Self.X.Engine := new Priority_Queue_Engine;
-            Self.X.Engine.Connect (Self.X.This);
+      if Self.X.Engine_Launch = False then
+         Self.X.Engine_Launch := True;
+         Ensure_Initialization;
+         Enter (Session_Mutex);
+         A_S := Self.X.This;
+         Create_Task (Priority_Queue_Engine'Access);
+         Wait (Session_Taken, Session_Mutex);
+         --  wait A_S initialization in Priority_Queue_Engine
+         Leave (Session_Mutex);
       end if;
-
       return R;
    end For_Consumers;
 
