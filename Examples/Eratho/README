@@ -1,0 +1,28 @@
+This is a distributed Prime Finder program. 
+
+Each partition is in charge of testing whether a given number is
+divisible by its local prime. If not, then a RPC is performed and the
+next task running on the next partition is asked to perform the same
+divisibility test with the next prime number. If there is no more
+prime to test, then the current number is a new prime. A new cell is
+allocated on the partition and the current number is added to the
+local prime table of this partition.
+
+When numbers between 2 .. 50 have been tested, partitions terminate
+and a distributed termination detection is activated.
+
+There are four examples of the same program.
+
+    spiral (Plain RPC) --- (+ Object oriented) ---> dynamic
+
+       |                                               |
+(+ Asynchronous)                                (+ Asynchronous) 
+       |                                               |
+       v                                               v
+
+    cycle              --- (+ Object oriented) ---> absolute
+
+To build this program, once in the "Examples/Eratho" directory, type
+"make". To execute the distributed program type "./mainloop".
+
+
