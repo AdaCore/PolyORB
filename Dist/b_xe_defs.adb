@@ -194,7 +194,7 @@ begin
             PCS_NAME := new String'(Remove (A, "PCS_NAME"));
 
          elsif Match (A, "PSNAME") then
-            Windows_NT := (Remove (A, "DEFPROTOCOLDATA") = "Windows/NT");
+            Windows_NT := (Remove (A, "PSNAME") = "Windows/NT");
 
          elsif Mode = None then
             Compiler_Switches.Append (new String'(A));
