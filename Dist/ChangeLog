@@ -2,6 +2,12 @@ Mon Feb 24 09:18:50 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
 
 	* xe_parse.adb: Add a general Write_Error_Message procedure.
 	Update Declare_Subprogram to handle new subprogram definition.
+
+	* xe.ads, xe.adb: Add function Is_Variable_Initialized and include
+	is Set_Variable_* Variable_Is_Initialized.
+
+	* xe_parse.adb, xe_parse.ads: Rewrite tree output. Remove junk
+ 	code. 
 	
 	* xe_scan.adb: Fix a bug (string without end delimiter).
 

@@ -89,6 +89,8 @@ package XE_Utils is
    function "=" (X, Y : Unit_Type) return Boolean renames Types."=";
    function "=" (X, Y : ALI_Id) return Boolean renames Types."=";
 
+   function "<=" (X, Y : Int) return Boolean renames Types."<=";
+
    procedure Close (FD : File_Descriptor) renames GNAT.Os_Lib.Close;
 
    Directory_Separator : constant Character := GNAT.Os_Lib.Directory_Separator;

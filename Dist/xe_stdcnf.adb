@@ -322,12 +322,10 @@ package body XE_Stdcnf is
 
       Declare_Subprogram
         (Pragma_Prefix & Str_To_Id ("starter"),
+         Pragma_Starter,
          True,
          Null_Location,
          Pragma_Starter_Node);
-
-      --  To easily retrieve the enumeration literal.
-      Set_Pragma_Kind (Pragma_Starter_Node, Pragma_Starter);
 
       Declare_Subprogram_Parameter
         (Str_To_Id ("method"),
@@ -344,12 +342,10 @@ package body XE_Stdcnf is
 
       Declare_Subprogram
         (Pragma_Prefix & Str_To_Id ("import"),
+         Pragma_Import,
          True,
          Null_Location,
          Pragma_Import_Node);
-
-      --  To easily retrieve the enumeration literal.
-      Set_Pragma_Kind (Pragma_Import_Node, Pragma_Import);
 
       Declare_Subprogram_Parameter
         (Str_To_Id ("convention"),
@@ -378,12 +374,10 @@ package body XE_Stdcnf is
 
       Declare_Subprogram
         (Pragma_Prefix & Str_To_Id ("boot_server"),
+         Pragma_Boot_Server,
          True,
          Null_Location,
          Pragma_Boot_Server_Node);
-
-      --  To easily retrieve the enumeration literal.
-      Set_Pragma_Kind (Pragma_Boot_Server_Node, Pragma_Boot_Server);
 
       Declare_Subprogram_Parameter
         (Str_To_Id ("protocol_name"),
@@ -405,12 +399,10 @@ package body XE_Stdcnf is
 
       Declare_Subprogram
         (Pragma_Prefix & Str_To_Id ("version"),
+         Pragma_Version,
          True,
          Null_Location,
          Pragma_Version_Node);
-
-      --  To easily retrieve the enumeration literal.
-      Set_Pragma_Kind (Pragma_Version_Node, Pragma_Version);
 
       Declare_Subprogram_Parameter
         (Str_To_Id ("check"),

@@ -76,14 +76,14 @@ package body XE is
    --     node_1 : next declaration
    --     node_2 : variable type
    --     node_3 : component list | subprogram (1)
-   --     flag_1 : unused
+   --     flag_1 : initialized
    --     value  : enumeration type value
    --  component
    --     node_1 : next component
    --     node_2 : component type
    --     node_3 : component value
-   --     flag_1 : is an attribute
-   --     value  : used when enumeration type
+   --     flag_1 : initialized
+   --     value  : attribute kind
    --  statement
    --     node_1 : next declaration
    --     node_2 : subprogram call
@@ -224,19 +224,6 @@ package body XE is
          Nodes.Table (List).Node_2 := Value;
       end if;
    end Add_Variable_Component;
-
-   ------------------------------
-   -- Component_Is_Initialized --
-   ------------------------------
-
-   procedure Component_Is_Initialized
-     (Component_Node : Component_Id;
-      Is_Initialized : Boolean) is
-      Node : Node_Id := Node_Id (Component_Node);
-   begin
-      pragma Assert (Is_Component (Node));
-      Nodes.Table (Node).Flag_1 := Is_Initialized;
-   end Component_Is_Initialized;
 
    -------------
    -- Convert --
@@ -654,7 +641,7 @@ package body XE is
       Node  : Node_Id := Node_Id (Variable_Node);
       Ntype : Type_Id;
    begin
-      pragma Assert (Is_Variable (Node));
+      pragma Assert (Is_Variable_Initialized (Variable_Node));
       Ntype := Get_Variable_Type (Variable_Node);
       pragma Assert (Get_Component_List_Size (Ntype) = 0);
       return Nodes.Table (Node).Value;
@@ -723,6 +710,7 @@ package body XE is
      return Variable_Id is
       Node  : Node_Id := Node_Id (Variable_Node);
    begin
+      pragma Assert (Is_Variable_Initialized (Variable_Node));
       return Variable_Id (Nodes.Table (Node).Node_3);
    end Get_Variable_Value;
 
@@ -854,6 +842,19 @@ package body XE is
       pragma Assert (Node /= Null_Node);
       return Is_Of_Kind (Node, K_Variable);
    end Is_Variable;
+
+   -----------------------------
+   -- Is_Variable_Initialized --
+   -----------------------------
+
+   function Is_Variable_Initialized
+     (Variable_Node : Variable_Id)
+     return Boolean is
+      Node : Node_Id := Node_Id (Variable_Node);
+   begin
+      pragma Assert (Is_Variable (Node));
+      return Nodes.Table (Node).Flag_1;
+   end Is_Variable_Initialized;
 
    ------------------------------------
    -- Next_Configuration_Declaration --
@@ -1027,6 +1028,7 @@ package body XE is
       Node : Node_Id := Node_Id (Variable_Node);
    begin
       pragma Assert (Is_Variable (Node));
+      Nodes.Table (Node).Flag_1 := True;
       Nodes.Table (Node).Value := Scalar_Value;
    end Set_Scalar_Value;
 
@@ -1101,6 +1103,7 @@ package body XE is
       Node  : Node_Id := Node_Id (Variable_Node);
    begin
       pragma Assert (Is_Variable (Node));
+      Nodes.Table (Node).Flag_1 := True;
       Nodes.Table (Node).Node_3 := Node_Id (Value_Node);
    end Set_Variable_Value;
 

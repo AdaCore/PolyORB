@@ -224,11 +224,6 @@ package XE is
       Component_Node  : in Component_Id);
    --  Add a component to the variable component list.
 
-   procedure Component_Is_Initialized
-     (Component_Node : in Component_Id;
-      Is_Initialized : in Boolean);
-   --  Has this component a value.
-
    function Convert (Item : Attribute_Type) return Int;
 
    function Convert (Item : Int) return Attribute_Type;
@@ -434,6 +429,10 @@ package XE is
      (Node : Node_Id)
      return Boolean;
    pragma Inline (Is_Variable);
+
+   function Is_Variable_Initialized
+     (Variable_Node : Variable_Id)
+     return Boolean;
 
    procedure Next_Configuration_Declaration
      (Declaration_Node   : in out Node_Id);

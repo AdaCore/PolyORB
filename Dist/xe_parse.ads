@@ -145,16 +145,6 @@ package XE_Parse is
    procedure Initialize;
    --  Elaboration code.
 
-   function Is_Expression_Of_Type
-     (Expr_Node : Node_Id;
-      Type_Node : Type_Id)
-      return Boolean;
-   --  When Expr_Node is a variable, compares the given type and the
-   --  variable type. When Expr_Node is a function, compares the given type
-   --  and the type of the returned parameter.
-
-   function  Match    (L : Token_List_Type) return Boolean;
-
    procedure Match_Actual_With_Formal
      (Subprogram_Node : in Subprogram_Id);
    --  Parse a subprogram call and associate actual parameters to formal
@@ -188,51 +178,33 @@ package XE_Parse is
    procedure Parse;
    --  Main procedure.
 
-   procedure Print
-     (Node : in Node_Id;
-      Head : in String);
-   --  Print any node with string Head at the beginning of each line.
-
-   procedure Print
-     (Node : in Type_Id;
-      Head : in String);
-   --  Print a type node with its component and attributes.
-
-   procedure Print
-     (Node : in Variable_Id;
-      Head : in String);
-   --  Print a variable node with its values and its attributes.
-
-   procedure Print
-     (Node : in Parameter_Id;
-      Head : in String);
-   --  Print a parameter node with its value.
-
-   procedure Print
-     (Node : in Component_Id;
-      Head : in String;
-      Attr : in Boolean);
-   --  Print a component node. If Attr is true, print only attribute
-   --  components.  If not, print only standard components.
-
-   procedure Print
-     (Node : in Subprogram_Id;
-      Head : in String);
-   --  Print a subprogram node with its formal parameter list.
-
-   procedure Print
-     (Node : in Statement_Id;
-      Head : in String);
-   --  Print a statement node.
-
-   procedure Print
-     (Node : in Configuration_Id;
-      Head : in String);
-   --  Print a configuration node.
-
    procedure Print;
    --  Print node tree for debugging purpose. The global variable
    --  Configuration_Node is used as tree root.
+
+   procedure Print_Component
+     (Node : in Component_Id;
+      Many : in Int);
+
+   procedure Print_Parameter
+     (Node : in Parameter_Id;
+      Many : in Int);
+
+   procedure Print_Statement
+     (Node : in Statement_Id;
+      Many : in Int);
+
+   procedure Print_Subprogram
+     (Node : in Subprogram_Id;
+      Many : in Int);
+
+   procedure Print_Type
+     (Node : in Type_Id;
+      Many : in Int);
+
+   procedure Print_Variable
+     (Node : in Variable_Id;
+      Many : in Int);
 
    procedure Search_Actual_Parameter
      (Actual_Name : in  Name_Id;
