@@ -98,7 +98,7 @@ is
    begin
       pragma Warnings (Off);
       pragma Unreferenced (Self);
-      pragma Unreferenced (Other_Policies);
+      pragma Unreferenced (OA);
       pragma Unreferenced (U_Oid);
       pragma Warnings (On);
       null;
