@@ -1,3 +1,3 @@
-ADABROKER_TOP = ../..
-ADABROKER_CURRENT = examples/echo
-include $(ADABROKER_TOP)/config/config.mk
+BROCA_TOP=../..
+BROCA_CURRENT=example/echo
+include $(BROCA_TOP)/config/config.mk

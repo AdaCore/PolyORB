@@ -1,5 +1,5 @@
 --  A stream type suitable for generation of Ada source code.
---  $Id: //depot/adabroker/main/idlac/ada_be-source_streams.adb#7 $
+--  $Id: //depot/adabroker/release-1/idlac/ada_be-source_streams.adb#1 $
 
 with Ada.Characters.Handling; use Ada.Characters.Handling;
 with Ada.Characters.Latin_1; use Ada.Characters.Latin_1;
