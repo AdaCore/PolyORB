@@ -45,8 +45,8 @@ procedure Evoluted is
    end Usage;
 
    Is_Test : Boolean := False;
-   Message_Count : Integer;
-   Message_Size : Integer;
+   Message_Count : Integer := 100;
+   Message_Size : Integer  := 100;
    Nmax : Integer;
    type String_Ptr is access String;
    Payload : String_Ptr;
