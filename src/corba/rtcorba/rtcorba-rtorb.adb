@@ -236,6 +236,8 @@ package body RTCORBA.RTORB is
       pragma Unreferenced (Self);
       pragma Warnings (On);
 
+      use PolyORB.RTCORBA_P.ThreadPoolManager;
+
    begin
       if not Lane_Registered (Threadpool) then
          raise InvalidThreadpool;
