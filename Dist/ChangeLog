@@ -1,3 +1,57 @@
+2004-09-08  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* xe_list.adb: Call Compile and Build with the proper Silent
+	parameter in order to preserve the usual output. Remove monolithic
+	partition main subprograms used to compile the overall system (as
+	well as its ali and object files).
+	For CA22-003 (inconsistency of exception mode).
+	
+	* xe_back.adb: Invoke gnat make instead of gnat compile to compile
+	the partition main subprogram. Therefore, an inconsistency of
+	exception mode results in recompiling garlic. However, gnat make
+	may think that the partition is incomplete (bodies from
+	non-collocated RCI units may be missing). Keep gnat make
+	silent. Then bind and link as usual.
+	For CA22-003 (inconsistency of exception mode).
+
+	* xe_main.adb: Do not forget to remove temporary files in case of
+	unknown exceptions.
+	For CA22-003 (inconsistency of exception mode).
+
+	* xe_utils.adb, xe_utils.ads: Add to subprograms Compile and Build
+	a parameter Silent in order to keep gnat compile and gnat make
+	really silent (especially in case of an already known error).
+	For CA22-003 (inconsistency of exception mode).
+
+	* xe_io.adb: Output an error message when we cannot create a
+	directory.
+	For CA22-003 (inconsistency of exception mode).
+
+2004-09-05  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* xe_main.adb: Do not catch unknown exceptions in order to get the
+	backtrace.
+	For CA22-003.
+
+	* xe_utils.adb: Pass -f flag to gnat make.
+	For CA22-003.
+
+	* xe_back.adb: Move Normalize_CWD in the package dedicated to
+	IOs. Remove the executable suffix from the partition executable
+	in the launching command in order to have a platform independant
+	code.
+	For CA22-003.
+ 
+	* xe_io.adb, xe_io.ads: Add Normalize_CWD. Compute Program_Name in
+	such a way that it is platform independant (no executable suffix).
+	Format pathname in order to be platform independant (always in
+	Unix style). Add a function to remove the executable suffix.
+	For CA22-003.
+
+	* xe_list.adb: Skip unknown tokens or empty lines. Format pathname
+	in order to be platform independant (always in Unix style).
+	For CA22-003.
+
 2004-09-01  Laurent Pautet  <pautet@dorine.enst.fr>
 
 	* xe_back.adb: Generate internal files to take into account
