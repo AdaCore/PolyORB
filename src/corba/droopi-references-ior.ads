@@ -30,6 +30,14 @@ package Droopi.References.IOR is
      (Buffer : access Buffer_Type)
    return  IOR_Type;
 
+   function Object_To_String
+     (IOR : IOR_Type)
+      return CORBA.String;
+
+   function  String_To_Object
+     (Str : CORBA.String)
+     return IOR_Type;
+
    type Marshall_Profile_Body_Type is access procedure
      (Buffer  : access Buffers.Buffer_Type;
       Profile : access Profile_Type'Class);
