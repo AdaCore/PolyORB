@@ -73,7 +73,7 @@ package body System.Partition_Interface is
 
    function Convert is
       new Ada.Unchecked_Conversion
-     (RPC.RPC_Receiver, System.Address);
+     (RPC_Receiver, System.Address);
 
    procedure Setup_RAS_Proxies
      (Subprograms : in RCI_Subp_Info_Array;
@@ -545,7 +545,7 @@ package body System.Partition_Interface is
 
    procedure Register_Receiving_Stub
      (Name          : in Unit_Name;
-      Receiver      : in System.RPC.RPC_Receiver;
+      Receiver      : in RPC_Receiver;
       Version       : in String := "";
       Subp_Info     : in System.Address;
       Subp_Info_Len : in Integer)

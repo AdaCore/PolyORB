@@ -165,9 +165,4 @@ package System.Garlic.Streams is
      new Ada.Unchecked_Deallocation
      (Params_Stream_Type, Params_Stream_Access);
 
-   type RPC_Receiver is
-      access procedure (Params : access Streams.Params_Stream_Type;
-                        Result : access Streams.Params_Stream_Type);
-   --  Similar to System.RPC.RPC_Receiver
-
 end System.Garlic.Streams;

@@ -41,6 +41,8 @@ with Ada.Unchecked_Deallocation;
 
 with Interfaces;
 
+with System.Partition_Interface;
+
 with System.Garlic;              use System.Garlic;
 with System.Garlic.Debug;        use System.Garlic.Debug;
 with System.Garlic.Exceptions;   use System.Garlic.Exceptions;
@@ -90,7 +92,8 @@ package body System.RPC.Server is
      (Self : in out Outer_Abort_Handler_Type);
 
    function Convert is
-      new Ada.Unchecked_Conversion (System.Address, Streams.RPC_Receiver);
+      new Ada.Unchecked_Conversion
+        (System.Address, System.Partition_Interface.RPC_Receiver);
 
    --  This package handles a pool of anonymous tasks which will be used
    --  by System.RPC to handle incoming calls.
@@ -481,7 +484,7 @@ package body System.RPC.Server is
      (Params   : Streams.Params_Stream_Access;
       Result   : Streams.Params_Stream_Access)
    is
-      Receiver : Streams.RPC_Receiver;
+      Receiver : System.Partition_Interface.RPC_Receiver;
    begin
       pragma Debug (D ("Job to achieve"));
 
@@ -490,7 +493,8 @@ package body System.RPC.Server is
 
       Receiver := Convert
         (System.Address (Interfaces.Unsigned_64'Input (Params)));
-      Receiver (Params, Result);
+      Receiver (System.Partition_Interface.Request_Access'(
+                  Params => Params.all'Access, Result => Result.all'Access));
 
       pragma Debug (D ("Job achieved without abortion"));
    end Execute_Remote_Subprogram;
