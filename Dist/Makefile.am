@@ -9,7 +9,8 @@ GNATMAKE = @GNATMAKE@
 GNATSRC = @GNAT_SOURCE@
 GARLIC = $(libdir)/garlic
 GNATFLAGS = -gnatpg @GNATFLAGS@
-RSH = @RSH@
+RSH_CMD = @RSH_CMD@
+RSH_OPT = @RSH_OPT@
 srcdir = @srcdir@
 
 bin_PROGRAMS = gnatdist
@@ -35,42 +36,36 @@ xe_sysdep.adb: xe_sysdep-std.adb xe_sysdep-nt.adb
 
 xe_defs.adb: Makefile
 	@echo Generating xe_defs.adb
+	@$(RM) xe_defs.adb
 	@if [ "$(PSNAME)" = "Windows NT" ]; then \
-	   echo "with XE_Reg;" >xe_defs.adb;\
-	   echo "package body XE_Defs is" >>xe_defs.adb;\
-	   echo "   GARLIC_Dir : aliased constant String" >>xe_defs.adb;\
-	   echo "      := \"$(GARLIC)\";" >>xe_defs.adb;\
-	   for i in GARLIC; do \
-		echo "   function Get_"$$i"_Dir return String_Access is"; \
-		echo "   begin"; \
-		echo "      if GNAT.OS_Lib.Is_Directory ("$$i"_Dir) then"; \
-		echo "         return new String'("$$i"_Dir);"; \
-		echo "      else"; \
-		echo "         return XE_Reg.Get_"$$i"_Dir;"; \
-		echo "      end if;"; \
-		echo "   end Get_"$$i"_Dir;"; \
-	   done >> xe_defs.adb; \
-	   echo "   function Get_Rsh_Command return String is" >>xe_defs.adb;\
-	   echo "   begin" >>xe_defs.adb;\
-	   echo "      return \"$(RSH)\";" >>xe_defs.adb;\
-	   echo "   end Get_Rsh_Command;" >>xe_defs.adb;\
-	   echo "end XE_Defs;" >>xe_defs.adb;\
-	else \
-	   echo "package body XE_Defs is" >xe_defs.adb;\
-	   echo "   GARLIC_Dir : aliased constant String" >>xe_defs.adb;\
-	   echo "      := \"$(GARLIC)\";" >>xe_defs.adb;\
-	   for i in GARLIC; do \
-		echo "   function Get_"$$i"_Dir return String_Access is"; \
-		echo "   begin"; \
-		echo "      return new String'("$$i"_Dir);"; \
-		echo "   end Get_"$$i"_Dir;"; \
-	   done >> xe_defs.adb; \
-	   echo "   function Get_Rsh_Command return String is" >>xe_defs.adb;\
-	   echo "   begin" >>xe_defs.adb;\
-	   echo "      return \"$(RSH)\";" >>xe_defs.adb;\
-	   echo "   end Get_Rsh_Command;" >>xe_defs.adb;\
-	   echo "end XE_Defs;" >>xe_defs.adb;\
+	   echo "with XE_Reg;" >>xe_defs.adb;\
 	fi
+	@echo "package body XE_Defs is" >>xe_defs.adb;
+	@echo "   GARLIC_Dir : aliased constant String" >>xe_defs.adb;
+	@echo "      := \"$(GARLIC)\";" >>xe_defs.adb;
+	@for i in GARLIC; do \
+	  echo "   function Get_"$$i"_Dir return String_Access is"; \
+	  echo "   begin"; \
+	  if [ "$(PSNAME)" = "Windows NT" ]; then \
+	    echo "      if GNAT.OS_Lib.Is_Directory ("$$i"_Dir) then"; \
+	    echo "         return new String'("$$i"_Dir);"; \
+	    echo "      end if;"; \
+	    echo "      return XE_Reg.Get_"$$i"_Dir;"; \
+	  else \
+	    echo "      return new String'("$$i"_Dir);"; \
+	  fi; \
+	  echo "   end Get_"$$i"_Dir;"; \
+	done >> xe_defs.adb; 
+	@echo "   function Get_Rsh_Command return String is" >>xe_defs.adb;
+	@echo "   begin" >>xe_defs.adb;
+	@echo "      return \"$(RSH_CMD)\";" >>xe_defs.adb;
+	@echo "   end Get_Rsh_Command;" >>xe_defs.adb;
+	@echo "" >>xe_defs.adb;
+	@echo "   function Get_Rsh_Options return String is" >>xe_defs.adb;
+	@echo "   begin" >>xe_defs.adb;
+	@echo "      return \"$(RSH_OPT)\";" >>xe_defs.adb;
+	@echo "   end Get_Rsh_Options;" >>xe_defs.adb;
+	@echo "end XE_Defs;" >>xe_defs.adb;
 
 xe_defs.o: xe_defs.ads xe_defs.adb
 	$(ADA) -c -g -O2 -gnatp -I$(srcdir) -I$(GNATSRC) xe_defs.adb

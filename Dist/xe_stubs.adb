@@ -741,6 +741,11 @@ package body XE_Stubs is
                   else
                      Dwrite_Line (FD, 2, "True, ", Host, ",");
                   end if;
+                  Name_Len := 0;
+                  Add_Str_To_Name_Buffer ("""");
+                  Add_Str_To_Name_Buffer (Get_Rsh_Options);
+                  Add_Str_To_Name_Buffer (""",");
+                  Dwrite_Line (FD, 2, Name_Buffer (1 .. Name_Len));
                   Dwrite_Line (FD, 2, """", Get_Absolute_Exec (Partition),
                                " ", Get_Command_Line  (Partition), """);");
                end if;

@@ -1,3 +1,13 @@
+2000-01-24  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* xe_stubs.adb: Provide a new parameter Rsh_Options to Launch.
+
+	* xe_lead.adb: Provide a new command line argument of the remote
+	shell command.
+
+	* Makefile.am, Makefile.in: Substitute RSH to RSH_CMD and define a 
+	new variable RSH_OPT.
+
 1999-12-21  Laurent Pautet  <pautet@inf.enst.fr>
 
 	* xe_back.adb: Do not allow nultiple definitions of application

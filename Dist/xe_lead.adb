@@ -110,7 +110,9 @@ procedure XE_Lead is
          Write_Str  (FD, Get_Rsh_Command);
          Write_Str  (FD, " $");
          Write_Name (FD, Partitions.Table (Partition).Name);
-         Write_Str  (FD, "_HOST """);
+         Write_Str  (FD, "_HOST ");
+         Write_Str  (FD, Get_Rsh_Options);
+         Write_Str  (FD, " """);
       end if;
 
       Write_Name (FD, Get_Absolute_Exec (Partition));
