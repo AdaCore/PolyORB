@@ -48,7 +48,7 @@ package body Parse is
    --  an identifier ou a literal)
 
    --  buffer length
-   Buffer_Length : constant Natural := 4;
+   Buffer_Length : constant Natural := 5;
 
    --  a type for indexes on the buffer
    type Buffer_Index is mod Buffer_Length;
@@ -145,6 +145,20 @@ package body Parse is
       end if;
       return Token_Buffer (Current_Index + 1);
    end View_Next_Token;
+
+   ----------------------------
+   --  View_Next_Next_Token  --
+   ----------------------------
+   function View_Next_Next_Token return Idl_Token is
+   begin
+      if Current_Index = Newest_Index then
+         Get_Token_From_Lexer;
+      end if;
+      if Current_Index = Newest_Index - 1 then
+         Get_Token_From_Lexer;
+      end if;
+      return Token_Buffer (Current_Index + 2);
+   end View_Next_Next_Token;
 
    --------------------------
    --  Get_Token_Location  --
@@ -1783,7 +1797,7 @@ package body Parse is
       if not Success then
          return;
       end if;
-      Parse_Simple_Declarator (N_Named_Acc (Result), Success);
+      Parse_Simple_Declarator (Result.Declarator, Success);
       return;
    end Parse_Init_Param_Decl;
 
@@ -1857,7 +1871,7 @@ package body Parse is
                Res := new N_Native;
                Set_Location (Res.all, Get_Token_Location);
                Next_Token;
-               Parse_Simple_Declarator (N_Named_Acc (Res), Success);
+               Parse_Simple_Declarator (Res.Declarator, Success);
                if not Success then
                   Result := null;
                   return;
@@ -2193,22 +2207,59 @@ package body Parse is
                                 Success : out Boolean) is
    begin
       Result := Nil_List;
-      Success := False;
---    procedure Parse_Declarators (List : in out Node_List) is
---       El : N_Declarator_Acc;
---    begin
---       loop
---          El := Parse_Declarator;
---          Append_Node (List, N_Root_Acc (El));
---          exit when Token /= T_Comma;
---          Next_Token;
---       end loop;
+      declare
+         Res : N_Declarator_Acc;
+      begin
+         Parse_Declarator (Res, Success);
+         if not Success then
+            return;
+         else
+            Append_Node (Result, N_Root_Acc (Res));
+         end if;
+      end;
+      while Get_Token = T_Comma loop
+         Next_Token;
+         declare
+            Res : N_Declarator_Acc;
+         begin
+            Parse_Declarator (Res, Success);
+            if not Success then
+               return;
+            else
+               Append_Node (Result, N_Root_Acc (Res));
+            end if;
+         end;
+      end loop;
+      return;
    end Parse_Declarators;
+
+   ------------------------
+   --  Parse_Declarator  --
+   ------------------------
+   procedure Parse_Declarator (Result : out N_Declarator_Acc;
+                               Success : out Boolean) is
+   begin
+      if Get_Token /= T_Identifier then
+         Errors.Parser_Error ("Identifier expected.",
+                              Errors.Error,
+                              Get_Token_Location);
+         Success := False;
+         Result := null;
+         return;
+      else
+         if View_Next_Token = T_Left_Sbracket then
+            Parse_Complex_Declarator (Result, Success);
+         else
+            Parse_Simple_Declarator (Result, Success);
+         end if;
+      end if;
+      return;
+   end Parse_Declarator;
 
    -------------------------------
    --  Parse_Simple_Declarator  --
    -------------------------------
-   procedure Parse_Simple_Declarator (Result : in out N_Named_Acc;
+   procedure Parse_Simple_Declarator (Result : out N_Declarator_Acc;
                                       Success : out Boolean) is
       Definition : Identifier_Definition_Acc;
    begin
@@ -2230,16 +2281,26 @@ package body Parse is
                Errors.Error,
                Get_Token_Location);
          else
+            Result := new N_Declarator;
+            Set_Location (Result.all, Get_Token_Location);
             --  no previous definition
             if not Add_Identifier (Result,
                                    Get_Token_String) then
                raise Errors.Internal_Error;
             end if;
+            Result.Array_Bounds := Nil_List;
          end if;
       end if;
       Success := True;
       return;
    end Parse_Simple_Declarator;
+
+   --------------------------------
+   --  Parse_Complex_Declarator  --
+   --------------------------------
+   procedure Parse_Complex_Declarator (Result : out N_Declarator_Acc;
+                                       Success : out Boolean)
+     renames Parse_Array_Declarator;
 
    ------------------------------
    --  Parse_Floating_Pt_Type  --
@@ -2247,8 +2308,25 @@ package body Parse is
    procedure Parse_Floating_Pt_Type (Result : in out N_Root_Acc;
                                      Success : out Boolean) is
    begin
-      Result := null;
-      Success := False;
+      case Get_Token is
+         when T_Float =>
+            Next_Token;
+            Result := new N_Float;
+            Set_Location (Result.all, Get_Token_Location);
+         when T_Double =>
+            Next_Token;
+            Result := new N_Double;
+            Set_Location (Result.all, Get_Token_Location);
+         when T_Long =>
+            Next_Token;
+            Next_Token;
+            Result := new N_Long_Double;
+            Set_Location (Result.all, Get_Token_Location);
+         when others =>
+               raise Errors.Internal_Error;
+      end case;
+      Success := True;
+      return;
    end Parse_Floating_Pt_Type;
 
    --------------------------
@@ -2257,9 +2335,151 @@ package body Parse is
    procedure Parse_Integer_Type (Result : in out N_Root_Acc;
                                  Success : out Boolean) is
    begin
-      Result := null;
-      Success := False;
+      case Get_Token is
+         when T_Long
+           | T_Short =>
+            Parse_Signed_Int (Result, Success);
+         when T_Unsigned =>
+            Parse_Unsigned_Int (Result, Success);
+         when others =>
+            raise Errors.Internal_Error;
+      end case;
    end Parse_Integer_Type;
+
+   ------------------------
+   --  Parse_Signed_Int  --
+   ------------------------
+   procedure Parse_Signed_Int (Result : in out N_Root_Acc;
+                               Success : out Boolean) is
+   begin
+      case Get_Token is
+         when T_Long =>
+            if View_Next_Token = T_Long then
+               Parse_Signed_Longlong_Int (Result, Success);
+            else
+               Parse_Signed_Long_Int (Result, Success);
+            end if;
+         when T_Short =>
+            Parse_Signed_Short_Int (Result, Success);
+         when others =>
+            raise Errors.Internal_Error;
+      end case;
+   end Parse_Signed_Int;
+
+   ------------------------------
+   --  Parse_Signed_Short_Int  --
+   ------------------------------
+   procedure Parse_Signed_Short_Int (Result : in out N_Root_Acc;
+                                     Success : out Boolean) is
+   begin
+      Next_Token;
+      Result := new N_Short;
+      Set_Location (Result.all, Get_Token_Location);
+      Success := True;
+   end Parse_Signed_Short_Int;
+
+   -----------------------------
+   --  Parse_Signed_Long_Int  --
+   -----------------------------
+   procedure Parse_Signed_Long_Int (Result : in out N_Root_Acc;
+                                    Success : out Boolean) is
+   begin
+      Next_Token;
+      Result := new N_Long;
+      Set_Location (Result.all, Get_Token_Location);
+      Success := True;
+   end Parse_Signed_Long_Int;
+
+   ---------------------------------
+   --  Parse_Signed_Longlong_Int  --
+   ---------------------------------
+   procedure Parse_Signed_Longlong_Int (Result : in out N_Root_Acc;
+                                        Success : out Boolean) is
+   begin
+      Next_Token;
+      Next_Token;
+      Result := new N_Long_Long;
+      Set_Location (Result.all, Get_Token_Location);
+      Success := True;
+   end Parse_Signed_Longlong_Int;
+
+   --------------------------
+   --  Parse_Unsigned_Int  --
+   --------------------------
+   procedure Parse_Unsigned_Int (Result : in out N_Root_Acc;
+                                 Success : out Boolean) is
+   begin
+      case View_Next_Token is
+         when T_Long =>
+            if View_Next_Next_Token = T_Long then
+               Parse_Unsigned_Longlong_Int (Result, Success);
+            else
+               Parse_Unsigned_Long_Int (Result, Success);
+            end if;
+         when T_Short =>
+            Parse_Unsigned_Short_Int (Result, Success);
+         when others =>
+            declare
+               Loc : Errors.Location;
+            begin
+               Loc := Get_Previous_Token_Location;
+               Loc.Col := Loc.Col + 9;
+               Errors.Parser_Error (Ada.Characters.Latin_1.Quotation &
+                                    "short" &
+                                    Ada.Characters.Latin_1.Quotation &
+                                    " or " &
+                                    Ada.Characters.Latin_1.Quotation &
+                                    "long" &
+                                    Ada.Characters.Latin_1.Quotation &
+                                    " expected after unsigned.",
+                                    Errors.Error,
+                                    Loc);
+               Success := False;
+               Result := null;
+               return;
+            end;
+      end case;
+   end Parse_Unsigned_Int;
+
+   --------------------------------
+   --  Parse_Unsigned_Short_Int  --
+   --------------------------------
+   procedure Parse_Unsigned_Short_Int (Result : in out N_Root_Acc;
+                                       Success : out Boolean) is
+   begin
+      Next_Token;
+      Next_Token;
+      Result := new N_Unsigned_Short;
+      Set_Location (Result.all, Get_Token_Location);
+      Success := True;
+   end Parse_Unsigned_Short_Int;
+
+   -------------------------------
+   --  Parse_Unsigned_Long_Int  --
+   -------------------------------
+   procedure Parse_Unsigned_Long_Int (Result : in out N_Root_Acc;
+                                      Success : out Boolean) is
+   begin
+      Next_Token;
+      Next_Token;
+      Result := new N_Unsigned_Long;
+      Set_Location (Result.all, Get_Token_Location);
+      Success := True;
+   end Parse_Unsigned_Long_Int;
+
+   -----------------------------------
+   --  Parse_Unsigned_Longlong_Int  --
+   -----------------------------------
+   procedure Parse_Unsigned_Longlong_Int (Result : in out N_Root_Acc;
+                                          Success : out Boolean) is
+   begin
+      Next_Token;
+      Next_Token;
+      Next_Token;
+      Result := new N_Unsigned_Long_Long;
+      Set_Location (Result.all, Get_Token_Location);
+      Success := True;
+   end Parse_Unsigned_Longlong_Int;
 
    -----------------------
    --  Parse_Char_Type  --
@@ -2267,8 +2487,10 @@ package body Parse is
    procedure Parse_Char_Type (Result : in out N_Char_Acc;
                               Success : out Boolean) is
    begin
-      Result := null;
-      Success := False;
+      Next_Token;
+      Result := new N_Char;
+      Set_Location (Result.all, Get_Token_Location);
+      Success := True;
    end Parse_Char_Type;
 
    ----------------------------
@@ -2277,8 +2499,10 @@ package body Parse is
    procedure Parse_Wide_Char_Type (Result : in out N_Wide_Char_Acc;
                                    Success : out Boolean) is
    begin
-      Result := null;
-      Success := False;
+      Next_Token;
+      Result := new N_Wide_Char;
+      Set_Location (Result.all, Get_Token_Location);
+      Success := True;
    end Parse_Wide_Char_Type;
 
    --------------------------
@@ -2287,8 +2511,10 @@ package body Parse is
    procedure Parse_Boolean_Type (Result : in out N_Boolean_Acc;
                                  Success : out Boolean) is
    begin
-      Result := null;
-      Success := False;
+      Next_Token;
+      Result := new N_Boolean;
+      Set_Location (Result.all, Get_Token_Location);
+      Success := True;
    end Parse_Boolean_Type;
 
    ------------------------
@@ -2297,8 +2523,10 @@ package body Parse is
    procedure Parse_Octet_Type (Result : in out N_Octet_Acc;
                                Success : out Boolean) is
    begin
-      Result := null;
-      Success := False;
+      Next_Token;
+      Result := new N_Octet;
+      Set_Location (Result.all, Get_Token_Location);
+      Success := True;
    end Parse_Octet_Type;
 
    ----------------------
@@ -2307,8 +2535,10 @@ package body Parse is
    procedure Parse_Any_Type (Result : in out N_Any_Acc;
                              Success : out Boolean) is
    begin
-      Result := null;
-      Success := False;
+      Next_Token;
+      Result := new N_Any;
+      Set_Location (Result.all, Get_Token_Location);
+      Success := True;
    end Parse_Any_Type;
 
    -------------------------
@@ -2492,6 +2722,16 @@ package body Parse is
 --       raise Errors.Internal_Error;
 --       return null;
    end Parse_Wide_String_Type;
+
+   ------------------------------
+   --  Parse_Array_Declarator  --
+   ------------------------------
+   procedure Parse_Array_Declarator (Result : out N_Declarator_Acc;
+                                     Success : out Boolean) is
+   begin
+      Result := null;
+      Success := False;
+   end Parse_Array_Declarator;
 
    ------------------------
    --  Parse_Except_Dcl  --
@@ -2994,22 +3234,6 @@ package body Parse is
 --    --
 --    --  Rule 69:
 --    --  <fixed_array_size> ::= "[" <positive_int_const> "]"
---    function Parse_Declarator return N_Declarator_Acc is
---       Res : N_Declarator_Acc;
---    begin
---       Res := new N_Declarator;
---       Set_Location (Res.all, Get_Location);
---       Expect (T_Identifier);
---       Add_Identifier (Res);
---       Next_Token;
---       while Token = T_Left_Sbracket loop
---          Next_Token;
---          Append_Node (Res.Array_Bounds, Parse_Const_Exp);
---          Expect (T_Right_Sbracket);
---          Next_Token;
---       end loop;
---       return Res;
---    end Parse_Declarator;
 
 --    --  Rule 55:
 --    --  <member_list> ::= <member>+

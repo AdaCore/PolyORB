@@ -147,8 +147,17 @@ valuetype value48 {
 /* Test of Rule 45 */
 typedef sequence <Error>;
 
+/* Test of rule 50 */
+union union1 switch (boolean) {
+  case true : long ;
+  default : short short1;
+};
+
 /* Test of rule 51 */
 valuetype value49 {
   factory factory1 (in long);
   factory factory1 (in long l, in short l);
 };
+
+/* Test of rule 59 */
+unsigned Error;

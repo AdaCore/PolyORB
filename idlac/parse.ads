@@ -67,6 +67,10 @@ private
    --  it. If necessary get it from the lexer and put it in the buffer
    function View_Next_Token return Idl_Token;
 
+   --  Returns the next token in the token stream without consuming
+   --  it. If necessary get it from the lexer and put it in the buffer
+   function View_Next_Next_Token return Idl_Token;
+
    --  Returns the location of the current_token
    function Get_Token_Location return Errors.Location;
 
@@ -388,10 +392,21 @@ private
    procedure Parse_Declarators (Result : out Node_List;
                                 Success : out Boolean);
 
+   --  Rule 50
+   --  <declarator> ::= <simple_declarator>
+   --               |   <complex_declarator>
+   procedure Parse_Declarator (Result : out N_Declarator_Acc;
+                               Success : out Boolean);
+
    --  Rule 51
    --  <simple_declarator> ::= <identifier>
-   procedure Parse_Simple_Declarator (Result : in out N_Named_Acc;
+   procedure Parse_Simple_Declarator (Result : out N_Declarator_Acc;
                                       Success : out Boolean);
+
+   --  Rule 52
+   --  <complex_declarator> ::= <array_declarator>
+   procedure Parse_Complex_Declarator (Result : out N_Declarator_Acc;
+                                       Success : out Boolean);
 
    --  Rule 53
    --  <floating_pt_type> ::= "float"
@@ -410,29 +425,45 @@ private
    --  <signed_int> ::= <signed_short_int>
    --               |   <signed_long_int>
    --               |   <signed_longlong_int>
+   procedure Parse_Signed_Int (Result : in out N_Root_Acc;
+                               Success : out Boolean);
 
    --  Rule 56
    --  <signed_short_int> ::= "short"
+   procedure Parse_Signed_Short_Int (Result : in out N_Root_Acc;
+                                     Success : out Boolean);
 
    --  Rule 57
    --  <signed_long_int> := "long"
+   procedure Parse_Signed_Long_Int (Result : in out N_Root_Acc;
+                                    Success : out Boolean);
 
    --  Rule 58
    --  <signed_longlong_int> ::= "long" "long"
+   procedure Parse_Signed_Longlong_Int (Result : in out N_Root_Acc;
+                                        Success : out Boolean);
 
    --  Rule 59
    --  <unsigned_int> ::= <unsigned_short_int>
    --                 |   <unsigned_long_int>
    --                 |   <unsigned_longlong_int>
+   procedure Parse_Unsigned_Int (Result : in out N_Root_Acc;
+                                 Success : out Boolean);
 
    --  Rule 60
    --  <unsigned_short_int> ::= "unsigned" "short"
+   procedure Parse_Unsigned_Short_Int (Result : in out N_Root_Acc;
+                                       Success : out Boolean);
 
    --  Rule 61
    --  <unsigned_long_int> ::= "unsigned" "long"
+   procedure Parse_Unsigned_Long_Int (Result : in out N_Root_Acc;
+                                      Success : out Boolean);
 
    --  Rule 62
    --  <unsigned_longlong_int> ::= "unsigned" "long" "long"
+   procedure Parse_Unsigned_Longlong_Int (Result : in out N_Root_Acc;
+                                          Success : out Boolean);
 
    --  Rule 63
    --  <char_type> ::= "char"
@@ -511,6 +542,11 @@ private
    --  <wide_string_type> ::= "wstring" "<" <positive_int_const> ">"
    --                     |   "wstring"
    procedure Parse_Wide_String_Type (Result : out N_Wide_String_Acc;
+                                     Success : out Boolean);
+
+   --  Rule 83
+   --  <array_declarator> ::= <identifier> <fixed_array_size>+
+   procedure Parse_Array_Declarator (Result : out N_Declarator_Acc;
                                      Success : out Boolean);
 
    --  Rule 86
@@ -676,16 +712,9 @@ private
 --    --                 <simple_declarator> { "," <simple_declarator> }*
 --    procedure Parse_Attr_Dcl (List : in out Node_List) is
 
---    --  Rule 35:
---    --  <declarator> ::= <simple_declarator>
---    --               |   <complex_declarator>
 --    --
---    --  Rule 37:
---    --  <complex_declarator> ::= <array_declarator>
---    --
---    --  Rule 68:
---    --  <array_declarator> ::= <identifier> <fixed_array_size>+
---    --
+
+
 --    --  Rule 69:
 --    --  <fixed_array_size> ::= "[" <positive_int_const> "]"
 --    function Parse_Declarator return N_Declarator_Acc is

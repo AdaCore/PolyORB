@@ -204,32 +204,32 @@ package body Disp is
 --          when K_Void =>
 --             Put_Line ("void");
 
---          when K_Float =>
---             Put_Line ("float");
+         when K_Float =>
+            Put_Line ("float");
 
---          when K_Double =>
---             Put_Line ("double");
+         when K_Double =>
+            Put_Line ("double");
 
---          when K_Long_Double =>
---             Put_Line ("long double");
+         when K_Long_Double =>
+            Put_Line ("long double");
 
---          when K_Short =>
---             Put_Line ("short");
+         when K_Short =>
+            Put_Line ("short");
 
---          when K_Long =>
---             Put_Line ("long");
+         when K_Long =>
+            Put_Line ("long");
 
---          when K_Long_Long =>
---             Put_Line ("long long");
+         when K_Long_Long =>
+            Put_Line ("long long");
 
---          when K_Unsigned_Long =>
---             Put_Line ("unsigned long");
+         when K_Unsigned_Long =>
+            Put_Line ("unsigned long");
 
---          when K_Unsigned_Short =>
---             Put_Line ("unsigned short");
+         when K_Unsigned_Short =>
+            Put_Line ("unsigned short");
 
---          when K_Unsigned_Long_Long =>
---             Put_Line ("unsigned long long");
+         when K_Unsigned_Long_Long =>
+            Put_Line ("unsigned long long");
 
          when K_Char =>
             Put_Line ("char");
@@ -276,7 +276,7 @@ package body Disp is
                   Put ("inout");
             end case;
             Put (' ');
-            Put_Line (Get_Name (N_Param (N)));
+            Disp_Tree (N_Param (N).Declarator.all, N_Indent + Offset, False);
             Disp_Indent (N_Indent, "type:");
             Disp_Tree (N_Param (N).Param_Type.all, N_Indent + Offset, False);
 
