@@ -5012,6 +5012,7 @@ package body Exp_Dist is
                 Out_Present         => Out_Present (Current_Parameter),
                 Expression          =>
                   New_Copy_Tree (Expression (Current_Parameter))));
+
             if Is_Entity_Name (Current_Type) then
                Set_Etype (New_Identifier, Entity (Current_Type));
             else
@@ -5050,32 +5051,6 @@ package body Exp_Dist is
       end if;
 
    end Copy_Specification;
-
---     function Copy_Specification
---       (Loc         : Source_Ptr;
---        Spec        : Node_Id;
---        Object_Type : Entity_Id := Empty;
---        Stub_Type   : Entity_Id := Empty;
---        New_Name    : Name_Id   := No_Name)
---        return        Node_Id
---     is
---        Map : constant Elist_Id := New_Elmt_List;
---     begin
---        if Object_Type /= Empty then
---           pragma Assert (Stub_Type /= Empty);
---           Append_Elmt (Node => Object_Type, To => Map);
---           Append_Elmt (Node => Stub_Type,   To => Map);
---        end if;
---
---        if New_Name /= No_Name then
---           Append_Elmt (Node => Defining_Unit_Name (Spec), To => Map);
---           Append_Elmt (
---             Node => Make_Defining_Identifier (Loc, New_Name),
---             To   => Map);
---        end if;
---
---        return Copy_Tree_Redefining_Entities (Spec, Map, Loc);
---     end Copy_Specification;
 
    ---------------------------
    -- Could_Be_Asynchronous --
