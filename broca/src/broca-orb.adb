@@ -44,8 +44,6 @@ with Broca.Repository;
 with Broca.IIOP;
 with Broca.IOP;
 
-with CORBA.Impl;
-
 with Broca.Debug;
 pragma Elaborate_All (Broca.Debug);
 
