@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/corba-forward.adb#3 $
+--  $Id: //droopi/main/src/corba/corba-forward.adb#4 $
 
 package body CORBA.Forward is
 
@@ -39,7 +39,13 @@ package body CORBA.Forward is
 
       --  FIXME: Minimal implementation.
 
-      function From_Forward (The_Forward : in Ref) return Ref_Type
+      ------------------
+      -- From_Forward --
+      ------------------
+
+      function From_Forward
+        (The_Forward : in Ref)
+        return Ref_Type
       is
          Res : Ref_Type;
       begin
@@ -47,7 +53,13 @@ package body CORBA.Forward is
          return Res;
       end From_Forward;
 
-      function To_Forward (The_Ref : in Ref_Type) return Ref
+      ----------------
+      -- To_Forward --
+      ----------------
+
+      function To_Forward
+        (The_Ref : in Ref_Type)
+        return Ref
       is
          Res : Ref;
       begin
