@@ -14,7 +14,6 @@ with Ada.Tags ;
 with Omniobject ;
 use type Omniobject.Object_Ptr ;
 with Omniropeandkey ; use Omniropeandkey ;
-with Corba.Dynamic_Type ;
 
 package body Corba.Object is
 
@@ -174,34 +173,14 @@ package body Corba.Object is
       end if ;
    end ;
 
-
-   -- String_To_Object
-   -------------------
-   procedure String_to_Object (From : in CORBA.String;
-                               To : out CORBA.Object.Ref'class) is
-      RepoId : Corba.String ;
+   -- Set_Fields
+   -------------
+   procedure Set_Fields(Self : in out Ref'Class ;
+                        O : in Omniobject.Object_Ptr  ;
+                        Dt : in Constant_Ref_Ptr ) is
    begin
-      -- Get the omniobject
-      To.Omniobj := Omniobject.String_To_Object(From) ;
-
-      -- if the result is correct
-      if not (To.Omniobj = null) then
-
-         -- check if the omniobject we got can be put into
-         -- To (type implied the repoId)
-         RepoId := Omniobject.Get_Repository_Id(To.Omniobj.all) ;
-
-         if Is_A(To, RepoId) then
-            To.Dynamic_Type :=
-              Corba.Dynamic_Type.Get_Dynamic_Type_From_Repository_Id(From) ;
-            return ;
-         end if ;
-      end if ;
-
-      -- otherwise, the operation is illegal return Nil_Ref
-      -- in the right class
-      To := Get_Nil_Ref(To) ;
-
+      Self.Omniobj := O ;
+      Self.Dynamic_Type := Dt ;
    end ;
 
 

@@ -256,6 +256,16 @@ package NetBufferedStream is
    -- Ada equivalent of C procedure C_UnMarshall_8
 
 
+   --------------- For Corba.String ---------------------
+
+   procedure Marshall (A : in Corba.String ;
+                       S : in out Object'Class);
+
+   procedure UnMarshall (A : out Corba.String ;
+                         S : in out Object'Class);
+   ----------------------------------------------------
+
+
    function C_Is_Reusing_Existing_Connection (Self : in Object'Class)
                                               return Sys_Dep.C_Boolean;
    pragma Import (C,C_Is_Reusing_Existing_Connection,"isReUsingExistingConnection__CQ26Strand4Sync") ;

@@ -45,3 +45,5 @@ package Corba.Dynamic_Type is
    -- this procedure registers a new static object in the list
 
 end ;
+
+

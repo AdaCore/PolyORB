@@ -71,6 +71,11 @@ package Corba.Object is
    --------------------------------------------------
    ---        AdaBroker  specific                 ---
    --------------------------------------------------
+   procedure Set_Fields(Self : in out Ref'Class ;
+                        O : in Omniobject.Object_Ptr  ;
+                        Dt : in Constant_Ref_Ptr ) ;
+   -- sets omniobj and Dynamic_Type for this object
+
    function Get_Dynamic_Type(Self: in Ref) return Ref'Class ;
    function Get_Nil_Ref(Self: in Ref) return Ref ;
 
@@ -85,10 +90,6 @@ package Corba.Object is
    function Object_To_String (Self : in CORBA.Object.Ref'class)
                               return CORBA.String ;
    -- returns the IOR corresponding to this object
-
-   procedure String_to_Object (From : in CORBA.String;
-                               To : out CORBA.Object.Ref'class) ;
-   -- creates an object out of an IOR
 
    function Get_Profile_List (Obj : in Ref)
                               return Iop.Tagged_Profile_List ;

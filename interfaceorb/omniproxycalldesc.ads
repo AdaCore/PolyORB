@@ -4,6 +4,13 @@
 ----                                                               ----
 ----                  package omniProxyCallDesc                    ----
 ----                                                               ----
+----      This is a root class. For each subprogram of an IDL      ----
+----    interface, a descendant of this class has to be provided.  ----
+----    It contains al the information to make the remote call :   ----
+----    arguments, results, exceptions, and how to send them on/   ----
+----    reveive them from a giop.                                  ----
+----                                                               ----
+----                                                               ----
 ----   authors : Sebastien Ponce, Fabien Azavant                   ----
 ----   date    : 02/08/99                                          ----
 ----                                                               ----
@@ -22,6 +29,12 @@ package omniProxyCallDesc is
    procedure Init (Self : in out Object ;
                    Has_Exceptions : Corba.Boolean := False ) ;
 
+
+   function Operation (Self : in Object)
+                       return CORBA.String is abstract ;
+
+   procedure Free(Self : in out Object) is abstract ;
+
    function Aligned_Size(Self : in Object ;
                           Size_In: in Corba.Unsigned_Long )
      return Corba.Unsigned_Long is abstract ;
@@ -39,15 +52,12 @@ package omniProxyCallDesc is
    procedure User_Exception (Self : in Object ;
                              Giop_Client : in Giop_C.Object ;
                              RepoId : in CORBA.String) ;
+   -- must be overloaded by call descs which have exceptions
 
    function Has_User_Exceptions (Self : in Object)
                                  return CORBA.Boolean ;
+   -- returns Pd_Has_User_Exception
 
-   function Operation_Len (Self : in Object)
-                           return Integer ;
-
-   function Operation (Self : in Object)
-                       return CORBA.String ;
 
 private
 

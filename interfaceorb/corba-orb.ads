@@ -43,8 +43,7 @@ package Corba.Orb is
    -- Object string_to_object (in string str);
    -- client-side
    procedure String_to_Object (From : in CORBA.String;
-                               To : out CORBA.Object.Ref'class)
-     renames Corba.Object.String_To_Object ;
+                               To : out CORBA.Object.Ref'class) ;
 
    -- string object_to_string (in Object obj);
    -- server-side
@@ -62,7 +61,7 @@ package Corba.Orb is
    -- initializes and returns the ORB with parameters of the command line
 
 
-   function BOA_Init(Self : in Object'Class ;
+   function BOA_Init(Self : in Object_ptr ;
                      Boa_Name : in Standard.String)
                      return Corba.Boa.Object_Ptr ;
    -- initializes and returns the BOA

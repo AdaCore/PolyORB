@@ -346,6 +346,21 @@ package body NetBufferedStream is
       C_UnMarshall_8 (C_A,C_S) ;
    end;
 
+   --------------- For Corba.String ---------------------
+
+   procedure Marshall (A : in Corba.String ;
+                       S : in out Object'Class) is
+   begin
+      null ;
+   end ;
+
+
+   procedure UnMarshall (A : out Corba.String ;
+                         S : in out Object'Class) is
+   begin
+      null ;
+   end ;
+   ----------------------------------------------------
 
    -- Is_Reusing_Existing_Connection
    ---------------------------------
