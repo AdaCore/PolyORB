@@ -35,7 +35,7 @@
 
 
 with System.Garlic.OS_Lib;
-with System.IO;
+with GNAT.IO;
 
 package body System.Garlic.Debug is
 
@@ -210,8 +210,8 @@ package body System.Garlic.Debug is
          if Flag then
             pragma Assert (Banner /= null);
             Semaphore.P;
-            System.IO.Put (Banner.all);
-            System.IO.Put_Line (Message);
+            GNAT.IO.Put (Banner.all);
+            GNAT.IO.Put_Line (Message);
             Semaphore.V;
          end if;
       end if;

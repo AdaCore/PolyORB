@@ -38,7 +38,6 @@ with System.Garlic.Debug; use System.Garlic.Debug;
 with System.Garlic.Protocols;
 with System.Garlic.Termination;
 with System.Garlic.Utils;
-with Unchecked_Deallocation;
 
 package body System.Garlic.Heart is
 
@@ -284,7 +283,7 @@ package body System.Garlic.Heart is
         (What    : in Ada.Exceptions.Exception_Id;
          Message : in String := "")
       is
-         procedure Free is new Unchecked_Deallocation (String, String_Ptr);
+         procedure Free is new Ada.Unchecked_Deallocation (String, String_Ptr);
       begin
          Free (Msg);
          Exc := What;

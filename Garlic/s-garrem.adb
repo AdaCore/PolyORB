@@ -33,7 +33,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Text_IO;
+with GNAT.IO;
 with Interfaces.C.Strings;
 with System.Garlic.Constants; use System.Garlic.Constants;
 with System.Garlic.Thin; use System.Garlic.Thin;
@@ -145,8 +145,8 @@ package body System.Garlic.Remote is
       Buffer : String (1 .. 64);
       Last   : Natural;
    begin
-      Ada.Text_IO.Put ("Host for """ & Partition & """: ");
-      Ada.Text_IO.Get_Line (Buffer, Last);
+      GNAT.IO.Put ("Host for """ & Partition & """: ");
+      GNAT.IO.Get_Line (Buffer, Last);
       return Buffer (1 .. Last);
    end Get_Host;
 
