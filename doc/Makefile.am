@@ -1,4 +1,5 @@
 info_TEXINFOS = polyorb_ug.texi
+man_MANS = ab_names.1 idlac.1 polyorb-config.1 polyorb.7
 
 all-local: polyorb_ug.html polyorb_ug.pdf polyorb_ug.ps polyorb_ug.txt
 
