@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.9 $
+//                            $Revision: 1.10 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -403,7 +403,7 @@ adabe_module::produce_stream_ads (dep_list & withlist,
   maincode += "use type CORBA.Unsigned_Long; \n";
 
   withlist.add ("CORBA");
-  withlist.add ("Broca.Types");
+  withlist.add ("Broca.Buffers");
 
   maincode += "package " + get_ada_full_name () + ".Stream is\n";
   

@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.5 $
+//                            $Revision: 1.6 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -196,7 +196,7 @@ adabe_exception::produce_skel_adb (dep_list & with,
   body +=
     "                  Reply_Size :=\n"
     "                     Stream.Pos - Broca.Giop.Message_Header_Size;\n"
-    "                  Increase_Buffer_And_Clear_Pos (Stream, Stream.Pos);\n"
+    "                  Allocate_Buffer_And_Clear_Pos (Stream, Stream.Pos);\n"
     "\n"
     "                  Broca.Giop.Create_Giop_Header\n"
     "                     (Stream, Broca.Giop.Reply,\n"
@@ -233,7 +233,7 @@ adabe_exception::produce_stream_ads (dep_list & with,
 
   with.add (pack);
   with.add ("Broca.Marshalling");
-  with.add ("Broca.Types");
+  with.add ("Broca.Buffers");
 
   UTL_ScopeActiveIterator activator (this, UTL_Scope::IK_decls);
   // We must define marshall, unmarshall and align size only if
@@ -243,7 +243,7 @@ adabe_exception::produce_stream_ads (dep_list & with,
 
   body +=
     "   procedure Unmarshall_And_Raise_" + get_ada_local_name () + "\n"
-    "      (Stream : in out Broca.Types.Buffer_Descriptor);\n"
+    "      (Stream : in out Broca.Buffers.Buffer_Descriptor);\n"
     "\n"
     "   procedure Raise_" + get_ada_local_name () + "\n"
     "      (Bod : " + get_ada_local_name () + "_Members);\n";
@@ -272,7 +272,7 @@ adabe_exception::produce_stream_adb (dep_list & with,
       // declaration of the function marshall.
       marshall += 
 	"   procedure Marshall\n"
-	"     (Stream : in out Broca.Types.Buffer_Descriptor;\n"
+	"     (Stream : in out Broca.Buffers.Buffer_Descriptor;\n"
 	"      Val : in " + get_ada_local_name () + "_Members)\n"
 	"   is\n"
 	"   begin\n";
@@ -280,7 +280,7 @@ adabe_exception::produce_stream_adb (dep_list & with,
       // Declaration of the function unmarshall.
       unmarshall +=
 	"   procedure Unmarshall\n"
-	"     (Stream : in out Broca.Types.Buffer_Descriptor;\n"
+	"     (Stream : in out Broca.Buffers.Buffer_Descriptor;\n"
 	"      Res : out " + get_ada_local_name () + "_Members)\n"
 	"   is\n"
 	"   begin\n";
@@ -288,7 +288,7 @@ adabe_exception::produce_stream_adb (dep_list & with,
       // Declaration of the function align_size.
       marshall_size +=
 	"   procedure Marshall_Size\n"
-	"     (Stream : in out Broca.Types.Buffer_Descriptor;\n"
+	"     (Stream : in out Broca.Buffers.Buffer_Descriptor;\n"
 	"      Val : in " + get_ada_local_name () + "_Members)\n"
 	"   is\n"
 	"   begin\n";
@@ -324,7 +324,7 @@ adabe_exception::produce_stream_adb (dep_list & with,
 
       body +=
 	"   procedure Unmarshall_And_Raise_" + get_ada_local_name () + "\n"
-	"      (Stream : in out Broca.Types.Buffer_Descriptor)\n"
+	"      (Stream : in out Broca.Buffers.Buffer_Descriptor)\n"
 	"   is\n"
 	"      Bod : Broca.Exceptions.IDL_Exception_Members_Acc;\n"
 	"   begin\n"

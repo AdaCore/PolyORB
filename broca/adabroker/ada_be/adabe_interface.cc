@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.5 $
+//                            $Revision: 1.6 $
 //                                                                          //
 //         Copyright (C) 1999 ENST Paris University, France.                //
 //                                                                          //
@@ -546,7 +546,7 @@ adabe_interface::produce_skel_ads (dep_list & with,
   // Add OmniORB to the with clauses.
   with.add ("CORBA");
   with.add ("PortableServer");
-  with.add ("Broca.Types");
+  with.add ("Broca.Buffers");
 
   // Header of the package.
   body += "package " + get_ada_full_name () + ".Skel is\n\n";
@@ -662,7 +662,7 @@ adabe_interface::produce_skel_ads (dep_list & with,
     "      Operation : String;\n"
     "      Request_Id : CORBA.Unsigned_Long;\n"
     "      Reponse_Expected : CORBA.Boolean;\n"
-    "      Stream : in out Broca.Types.Buffer_Descriptor);\n";
+    "      Stream : in out Broca.Buffers.Buffer_Descriptor);\n";
 
   // End of the package
   body += "end " + get_ada_full_name () + ".Skel;\n";
@@ -729,12 +729,12 @@ adabe_interface::produce_skel_adb (dep_list & with,
     "      Operation : String;\n"
     "      Request_Id : CORBA.Unsigned_Long;\n"
     "      Reponse_Expected : CORBA.Boolean;\n"
-    "      Stream : in out Broca.Types.Buffer_Descriptor)\n"
+    "      Stream : in out Broca.Buffers.Buffer_Descriptor)\n"
     "   is\n"
     "      use Broca.Marshalling;\n"
     "      use Broca.Marshalling.Refs;\n"
-    "      use Broca.Types;\n"
-    "      Reply_Size : Broca.Types.Buffer_Index_Type;\n"
+    "      use Broca.Buffers;\n"
+    "      Reply_Size : Broca.Buffers.Buffer_Index_Type;\n"
     "   begin\n";
 
   // Generate what is necessary for the first parent

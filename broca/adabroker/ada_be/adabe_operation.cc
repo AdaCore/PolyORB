@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.8 $
+//                            $Revision: 1.9 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -536,7 +536,7 @@ adabe_operation::produce_skel_adb (dep_list & with,
 	  "            Marshall_Size (Stream, Returns);\n";
       body +=
 	"            Reply_Size := Stream.Pos - Broca.Giop.Message_Header_Size;\n"
-	"            Increase_Buffer_And_Clear_Pos (Stream, Stream.Pos);\n"
+	"            Allocate_Buffer_And_Clear_Pos (Stream, Stream.Pos);\n"
 	"\n"
 	"            Broca.Giop.Create_Giop_Header\n"
 	"              (Stream, Broca.Giop.Reply,\n"

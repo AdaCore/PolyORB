@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.5 $
+//                            $Revision: 1.6 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -200,7 +200,7 @@ adabe_typedef::produce_stream_adb (dep_list & with,
   body += arg2;
   body +=
     "   procedure Marshall\n"
-    "      (Stream : in out Broca.Types.Buffer_descriptor;\n"
+    "      (Stream : in out Broca.Buffers.Buffer_descriptor;\n"
     "       Val : " + get_ada_local_name () + ")\n"
     "   is\n"
     "   begin\n"
@@ -208,7 +208,7 @@ adabe_typedef::produce_stream_adb (dep_list & with,
     "   end Marshall;\n"
     "\n"
     "   procedure Unmarshall\n"
-    "      (Stream : in out Broca.Types.Buffer_descriptor;\n"
+    "      (Stream : in out Broca.Buffers.Buffer_descriptor;\n"
     "       Res : out " + get_ada_local_name () + ")\n"
     "   is\n"
     "      Tmp : " + name + ";\n"
@@ -218,7 +218,7 @@ adabe_typedef::produce_stream_adb (dep_list & with,
     "   end Unmarshall;\n"
     "\n"
     "   procedure Marshall_Size\n"
-    "      (Stream : in out Broca.Types.Buffer_descriptor;\n"
+    "      (Stream : in out Broca.Buffers.Buffer_descriptor;\n"
     "       Val : " + get_ada_local_name () + ")\n"
     "   is\n"
     "   begin\n"
