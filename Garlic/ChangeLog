@@ -1,3 +1,9 @@
+2000-04-30  Laurent Pautet  <pautet@inf.enst.fr>
+
+	* s-gardfs.adb, s-garsto.adb: Get rid of GNAT.Task_Lock because it 
+	raises a wrong ceiling violation using FSU threads. Use
+	Garlic.Soft_Links instead.
+
 2000-04-20  Laurent Pautet  <pautet@inf.enst.fr>
 
 	* Makefile.am, Makefile.in: Add s-shamem files to the GNAT files
