@@ -24,18 +24,27 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Text_IO;
+with Ada.Text_IO; use Ada.Text_IO;
 with GNAT.OS_Lib;
 
-package body Idl_Fe.Errors is
+package body Errors is
 
    -------------------------
    --  Location handling  --
    -------------------------
 
+   --  nice display of a natural
+   function Nat_To_String (Val : Natural) return String;
+
+   --  display an error
+   procedure Display_Error (Message : in String;
+                            Level : in Error_Kind;
+                            Loc : Location);
+
    ---------------------
    --  Nat_To_String  --
    ---------------------
+
    function Nat_To_String (Val : Natural) return String is
       Res : String := Natural'Image (Val);
    begin
@@ -45,6 +54,7 @@ package body Idl_Fe.Errors is
    ------------------------
    --  Display_Location  --
    ------------------------
+
    function Display_Location (Loc : in Location) return String is
    begin
       if Loc.Filename /= null then
@@ -92,48 +102,29 @@ package body Idl_Fe.Errors is
    begin
       case Level is
          when Fatal =>
-            Ada.Text_IO.Put ("FATAL ERROR occured");
+            Put (Current_Error, "FATAL ERROR occured");
          when Error =>
-            Ada.Text_IO.Put ("ERROR occured");
+            Put (Current_Error, "ERROR occured");
          when Warning =>
-            Ada.Text_IO.Put ("WARNING occured");
+            Put (Current_Error, "WARNING occured");
       end case;
       if Loc.Line > 0 then
-         Ada.Text_IO.Put (" at " & Display_Location (Loc));
+         Put (Current_Error, " at " & Display_Location (Loc));
       end if;
-      Ada.Text_IO.New_Line;
-      Ada.Text_IO.Put ("    ");
-      Ada.Text_IO.Put_Line (Message);
-      Ada.Text_IO.New_Line;
+      New_Line (Current_Error);
+      Put (Current_Error, "    ");
+      Put_Line (Current_Error, Message);
+      New_Line (Current_Error);
    end Display_Error;
 
-   -------------------
-   --  Lexer_Error  --
-   -------------------
-   procedure Lexer_Error (Message : in String;
-                          Level : in Error_Kind;
-                          Loc : Errors.Location)is
-   begin
-      case Level is
-         when Fatal =>
-            null;
-         when Error =>
-            Error_Count := Error_Count + 1;
-         when Warning =>
-            Warning_Count := Warning_Count + 1;
-      end case;
-      Display_Error (Message, Level, Loc);
-      if Level = Fatal then
-         raise Fatal_Error;
-      end if;
-   end Lexer_Error;
+   -----------
+   -- Error --
+   -----------
 
-   --------------------
-   --  Parser_Error  --
-   --------------------
-   procedure Parser_Error (Message : in String;
-                           Level : in Error_Kind;
-                           Loc : in Location)is
+   procedure Error
+     (Message : in String;
+      Level : in Error_Kind;
+      Loc : in Location) is
    begin
       case Level is
          when Fatal =>
@@ -147,11 +138,12 @@ package body Idl_Fe.Errors is
       if Level = Fatal then
          raise Fatal_Error;
       end if;
-   end Parser_Error;
+   end Error;
 
    ----------------
    --  Is_Error  --
    ----------------
+
    function Is_Error return Boolean is
    begin
       return Error_Count > 0;
@@ -160,6 +152,7 @@ package body Idl_Fe.Errors is
    ------------------
    --  Is_Warning  --
    ------------------
+
    function Is_Warning return Boolean is
    begin
       return Warning_Count > 0;
@@ -168,6 +161,7 @@ package body Idl_Fe.Errors is
    --------------------
    --  Error_Number  --
    --------------------
+
    function Error_Number return Natural is
    begin
       return Error_Count;
@@ -176,9 +170,10 @@ package body Idl_Fe.Errors is
    ----------------------
    --  Warning_Number  --
    ----------------------
+
    function Warning_Number return Natural is
    begin
       return Warning_Count;
    end Warning_Number;
 
-end Idl_Fe.Errors;
+end Errors;

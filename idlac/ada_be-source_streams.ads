@@ -88,11 +88,13 @@ package Ada_BE.Source_Streams is
 
    procedure Generate
      (Unit : Compilation_Unit;
-      Is_Generic_Instanciation : Boolean := False);
+      Is_Generic_Instanciation : Boolean := False;
+      To_Stdout : Boolean := False);
    --  Produce the source code for Unit.
    --  If Is_Generic_Instanciation, then Unit's Kind must
    --  be Unit_Spec, and Unit must be a library-level
    --  instanciation of a generic package.
+   --  If To_Stdout, the code is emitted to standard output.
 
 private
 

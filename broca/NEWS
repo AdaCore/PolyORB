@@ -1,6 +1,21 @@
 AdaBroker news
 --------------
 
+New features in version XXX
+===========================
+
+New command line switch: '-p', output all generated
+packages concatenated on standard output (in a form
+suitable for gnatchop).
+
+Incompatible changes in version XXX
+===================================
+
+When invoking idlac with the '-i' command line switch
+to generate an implementation template, only the implementation
+template (and not the stubs, skeletons and streams packages)
+is produced.
+
 New features in version 1.0pre1
 ===============================
 

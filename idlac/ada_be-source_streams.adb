@@ -181,7 +181,8 @@ package body Ada_Be.Source_Streams is
 
    procedure Generate
      (Unit : Compilation_Unit;
-      Is_Generic_Instanciation : Boolean := False)
+      Is_Generic_Instanciation : Boolean := False;
+      To_Stdout : Boolean := False)
    is
       function Ada_File_Name
         (Full_Name : String;
@@ -212,52 +213,68 @@ package body Ada_Be.Source_Streams is
 
       use Ada.Text_IO;
 
-      File : File_Type;
-      File_Name : String
-        := Ada_File_Name (Unit.Library_Unit_Name.all, Unit.Kind);
-      Dep_Node : Dependency := Unit.Context_Clause;
+      procedure Emit_Source_Code
+        (File : in File_Type);
+
+      procedure Emit_Source_Code
+        (File : in File_Type)
+      is
+         Dep_Node : Dependency := Unit.Context_Clause;
+      begin
+         while Dep_Node /= null loop
+            Put (File, "with " & Dep_Node.Library_Unit.all & ";");
+            if Dep_Node.Use_It then
+               Put_Line (File, " use " & Dep_Node.Library_Unit.all & ";");
+            else
+               New_Line (File);
+            end if;
+            case Dep_Node.Elab_Control is
+               when Elaborate_All =>
+                  Put_Line (File, "pragma Elaborate_All ("
+                            & Dep_Node.Library_Unit.all & ");");
+               when Elaborate =>
+                  Put_Line (File, "pragma Elaborate ("
+                            & Dep_Node.Library_Unit.all & ");");
+               when None =>
+                  null;
+            end case;
+            Dep_Node := Dep_Node.Next;
+         end loop;
+
+         if Unit.Context_Clause /= null then
+            New_Line (File);
+         end if;
+
+         Put (File, "package ");
+         if Unit.Kind = Unit_Body then
+            Put (File, "body ");
+         end if;
+         Put_Line (File, Unit.Library_Unit_Name.all & " is");
+         Put (File, To_String (Unit.Library_Item));
+
+         if not Is_Generic_Instanciation then
+            Put_Line (File, "end " & Unit.Library_Unit_Name.all & ";");
+         end if;
+      end Emit_Source_Code;
+
    begin
       if Unit.Empty then
          return;
       end if;
 
-      Create (File, Out_File, File_Name);
-      while Dep_Node /= null loop
-         Put (File, "with " & Dep_Node.Library_Unit.all & ";");
-         if Dep_Node.Use_It then
-            Put_Line (File, " use " & Dep_Node.Library_Unit.all & ";");
-         else
-            New_Line (File);
-         end if;
-         case Dep_Node.Elab_Control is
-            when Elaborate_All =>
-               Put_Line (File, "pragma Elaborate_All ("
-                         & Dep_Node.Library_Unit.all & ");");
-            when Elaborate =>
-               Put_Line (File, "pragma Elaborate ("
-                         & Dep_Node.Library_Unit.all & ");");
-            when None =>
-               null;
-         end case;
-         Dep_Node := Dep_Node.Next;
-      end loop;
-
-      if Unit.Context_Clause /= null then
-         New_Line (File);
+      if To_Stdout then
+         Emit_Source_Code (Current_Output);
+      else
+         declare
+            File_Name : String
+              := Ada_File_Name (Unit.Library_Unit_Name.all, Unit.Kind);
+            File : File_Type;
+         begin
+            Create (File, Out_File, File_Name);
+            Emit_Source_Code (File);
+            Close (File);
+         end;
       end if;
-
-      Put (File, "package ");
-      if Unit.Kind = Unit_Body then
-         Put (File, "body ");
-      end if;
-      Put_Line (File, Unit.Library_Unit_Name.all & " is");
-      Put (File, To_String (Unit.Library_Item));
-
-      if not Is_Generic_Instanciation then
-         Put_Line (File, "end " & Unit.Library_Unit_Name.all & ";");
-      end if;
-
-      Close (File);
    end Generate;
 
    procedure Free is

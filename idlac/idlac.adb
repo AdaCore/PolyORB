@@ -33,7 +33,7 @@ with GNAT.OS_Lib;
 
 with Idl_Fe.Types;
 with Idl_Fe.Parser;
-with Idl_Fe.Errors;
+with Errors;
 
 with Ada_Be.Expansion;
 with Ada_Be.Idl2Ada;
@@ -47,13 +47,14 @@ procedure Idlac is
 
    procedure Usage is
    begin
-      Put_Line ("Usage: " & Command_Name
+      Put_Line (Current_Error, "Usage: " & Command_Name
                 & " [-i] [-k] idl_file [-cppargs ...]");
-      Put_Line ("  -i    Generate implementation template.");
-      Put_Line ("  -k    Keep temporary files.");
-      Put_Line ("  -q    Be quiet.");
-      Put_Line ("  -cppargs ARGS");
-      Put_Line ("        Pass ARGS to the C++ preprocessor.");
+      Put_Line (Current_Error, "  -i    Generate implementation template.");
+      Put_Line (Current_Error, "  -k    Keep temporary files.");
+      Put_Line (Current_Error, "  -p    Produce source on standard output.");
+      Put_Line (Current_Error, "  -q    Be quiet.");
+      Put_Line (Current_Error, "  -cppargs ARGS");
+      Put_Line (Current_Error, "        Pass ARGS to the C++ preprocessor.");
       GNAT.OS_Lib.OS_Exit (1);
    end Usage;
 
@@ -62,6 +63,7 @@ procedure Idlac is
 
    Generate_Impl_Template : Boolean := False;
    Keep_Temporary_Files : Boolean := False;
+   To_Stdout : Boolean := False;
    Verbose : Boolean := True;
 
 begin
@@ -70,7 +72,7 @@ begin
         ('-', False, "cppargs");
 
       loop
-         case Getopt ("i k q") is
+         case Getopt ("i k p q") is
             when Ascii.NUL => exit;
 
             when 'i' =>
@@ -80,6 +82,9 @@ begin
             when 'k' =>
                Keep_Temporary_Files
                  := True;
+
+            when 'p' =>
+               To_Stdout := True;
 
             when 'q' =>
                Verbose := False;
@@ -92,7 +97,7 @@ begin
 
       File_Name := new String'(Get_Argument);
       if File_Name.all'Length = 0 then
-         Put_Line ("No file name specified.");
+         Put_Line (Current_Error, "No file name specified.");
          Usage;
       end if;
 
@@ -101,10 +106,10 @@ begin
 
    exception
       when Invalid_Switch    =>
-         Put_Line ("Invalid Switch " & Full_Switch);
+         Put_Line (Current_Error, "Invalid Switch " & Full_Switch);
          Usage;
       when Invalid_Parameter =>
-         Put_Line ("No parameter for " & Full_Switch);
+         Put_Line (Current_Error, "No parameter for " & Full_Switch);
          Usage;
    end;
 
@@ -115,7 +120,7 @@ begin
       if File_Exists (File_Name.all & ".idl") then
          File_Name := new String'(File_Name.all & ".idl");
       else
-         Put_Line ("No such file: " & File_Name.all);
+         Put_Line (Current_Error, "No such file: " & File_Name.all);
          Usage;
       end if;
    end if;
@@ -129,28 +134,30 @@ begin
    --  Parse input
    Rep := Idl_Fe.Parser.Parse_Specification;
 
-   if Idl_Fe.Errors.Is_Error then
+   if Errors.Is_Error then
 
-      Ada.Text_IO.Put
-        (Natural'Image (Idl_Fe.Errors.Error_Number) &
-         " error(s)");
-      if Idl_Fe.Errors.Is_Warning then
-         Ada.Text_IO.Put_Line
-           (" and " &
-            Natural'Image (Idl_Fe.Errors.Warning_Number) &
-            " warning(s)");
+      Put (Current_Error,
+           Natural'Image (Errors.Error_Number)
+           & " error(s)");
+      if Errors.Is_Warning then
+         Put_Line
+           (Current_Error,
+            " and "
+            & Natural'Image (Errors.Warning_Number)
+            & " warning(s)");
       end if;
-      Ada.Text_IO.Put_Line (" during parsing.");
+      Put_Line (Current_Error, " during parsing.");
 
       return;
 
    elsif Verbose then
-      if Idl_Fe.Errors.Is_Warning then
-         Ada.Text_IO.Put_Line
-           (Natural'Image (Idl_Fe.Errors.Warning_Number) &
-            " warning(s) during parsing.");
+      if Errors.Is_Warning then
+         Put_Line
+           (Current_Error,
+            Natural'Image (Errors.Warning_Number)
+            & " warning(s) during parsing.");
       else
-         Ada.Text_IO.Put_Line ("Successfully parsed.");
+         Put_Line (Current_Error, "Successfully parsed.");
       end if;
    end if;
 
@@ -159,6 +166,8 @@ begin
 
    --  Generate code
    Ada_Be.Idl2Ada.Generate
-     (Rep, Implement => Generate_Impl_Template);
+     (Rep,
+      Implement => Generate_Impl_Template,
+      To_Stdout => To_Stdout);
 
 end Idlac;

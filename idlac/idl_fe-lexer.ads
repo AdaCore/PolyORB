@@ -25,7 +25,7 @@
 ------------------------------------------------------------------------------
 
 with Idl_Fe.Types; use Idl_Fe.Types;
-with Idl_Fe.Errors;
+with Errors;
 
 package Idl_Fe.Lexer is
 
@@ -204,7 +204,7 @@ package Idl_Fe.Lexer is
    -------------------------------------
 
    --  Returns the location of the current_token
-   function Get_Lexer_Location return Idl_Fe.Errors.Location;
+   function Get_Lexer_Location return Errors.Location;
 
    --  If the current token is an identifier, a literal or a pragma,
    --  returns its string value
@@ -244,7 +244,7 @@ private
    --  returns the real location in the parsed file. The word real
    --  means that the column number was changed to take the
    --  tabulations into account
-   function Get_Real_Location return Idl_Fe.Errors.Location;
+   function Get_Real_Location return Errors.Location;
 
    --  Reads the next line
    procedure Read_Line;

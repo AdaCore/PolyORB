@@ -31,11 +31,15 @@ package Ada_Be.Idl2Ada is
 
    procedure Generate
      (Node      : in Node_Id;
-      Implement : Boolean := False);
+      Implement : Boolean := False;
+      To_Stdout : Boolean := False);
    --  Generate the Ada mapping of the IDL tree
    --  rooted at Node.
-   --  If Implement is true, also produce a template
+   --  If Implement is true, produce only a template
    --  for the Impl package of each interface, to
    --  be completed by the user.
+   --  If To_Stdout is true, all produced source code
+   --  is emitted on standard output (e. g. for use
+   --  with GNATCHOP).
 
 end Ada_Be.Idl2Ada;

@@ -26,7 +26,7 @@
 
 with Idl_Fe.Lexer; use Idl_Fe.Lexer;
 with Idl_Fe.Types; use Idl_Fe.Types;
-with Idl_Fe.Errors;
+with Errors;
 with Ada.Unchecked_Deallocation;
 
 package Idl_Fe.Parser is
@@ -85,16 +85,16 @@ private
    function View_Next_Next_Token return Idl_Token;
 
    --  Returns the location of the current_token
-   function Get_Token_Location return Idl_Fe.Errors.Location;
+   function Get_Token_Location return Errors.Location;
 
    --  Returns the location of the previous token
-   function Get_Previous_Token_Location return Idl_Fe.Errors.Location;
+   function Get_Previous_Token_Location return Errors.Location;
 
    --  Returns the location of the previous token
-   function Get_Previous_Previous_Token_Location return Idl_Fe.Errors.Location;
+   function Get_Previous_Previous_Token_Location return Errors.Location;
 
    --  Returns the location of the current_token
-   function Get_Next_Token_Location return Idl_Fe.Errors.Location;
+   function Get_Next_Token_Location return Errors.Location;
 
 
    --  The next three methods unreference a pointer without any

@@ -24,7 +24,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Idl_Fe.Errors;
+with Errors;
 with Ada.Unchecked_Deallocation;
 
 package Idl_Fe.Types is
@@ -47,7 +47,7 @@ package Idl_Fe.Types is
    type Param_Mode is (Mode_In, Mode_Inout, Mode_Out);
 
    --  To manipulate the location of a node
-   subtype Location is Idl_Fe.Errors.Location;
+   subtype Location is Errors.Location;
    procedure Set_Location (N : Node_Id;
                            Loc : Location);
    function Get_Location (N : Node_Id) return Location;

@@ -61,7 +61,7 @@ package body Ada_Be.Debug is
    is
    begin
       if Flag /= 0 then
-         Put_Line (Flag_Table (Flag).all & " : " & Message);
+         Put_Line (Current_Error, Flag_Table (Flag).all & ": " & Message);
       end if;
    end Output;
 

@@ -27,7 +27,7 @@
 with Ada.Text_IO;
 with GNAT.Command_Line;
 with Idl_Fe.Lexer; use Idl_Fe.Lexer;
-with Idl_Fe.Errors;
+with Errors;
 
 procedure testlexer is
    Token : Idl_Fe.Lexer.Idl_Token;
@@ -62,6 +62,6 @@ begin
       exit when Token = T_Eof;
    end loop;
 exception
-   when Idl_Fe.Errors.Fatal_Error =>
+   when Errors.Fatal_Error =>
       null;
 end testlexer;

@@ -24,18 +24,16 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Text_IO;
-
 with Idl_Fe.Types;          use Idl_Fe.Types;
 with Idl_Fe.Tree;           use Idl_Fe.Tree;
 with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree.Synthetic;
 with Idl_Fe.Tree.Low_Level; use Idl_Fe.Tree.Low_Level;
-with Idl_Fe.Errors;         use Idl_Fe.Errors;
 
 with Ada_Be.Identifiers;    use Ada_Be.Identifiers;
 with Ada_Be.Debug;
 pragma Elaborate (Ada_Be.Debug);
 
+with Errors;                use Errors;
 with Utils;                 use Utils;
 
 with GNAT.HTable;
@@ -249,13 +247,13 @@ package body Ada_Be.Expansion is
 
       type Header_Num is range 0 .. 1024;
       function Hash is new GNAT.HTable.Hash (Header_Num);
-      function Hash (A : Idl_Fe.Errors.File_Name_Ptr) return Header_Num;
-      function Hash (A : Idl_Fe.Errors.File_Name_Ptr) return Header_Num is
+      function Hash (A : Errors.File_Name_Ptr) return Header_Num;
+      function Hash (A : Errors.File_Name_Ptr) return Header_Num is
       begin
          return Hash (A.all);
       end Hash;
-      function Equals (A, B : Idl_Fe.Errors.File_Name_Ptr) return Boolean;
-      function Equals (A, B : Idl_Fe.Errors.File_Name_Ptr) return Boolean is
+      function Equals (A, B : Errors.File_Name_Ptr) return Boolean;
+      function Equals (A, B : Errors.File_Name_Ptr) return Boolean is
       begin
          return A.all = B.all;
       end Equals;
@@ -263,7 +261,7 @@ package body Ada_Be.Expansion is
         (Header_Num,
          Node_Id,
          No_Node,
-         Idl_Fe.Errors.File_Name_Ptr,
+         Errors.File_Name_Ptr,
          Hash,
          Equals);
 
@@ -278,8 +276,8 @@ package body Ada_Be.Expansion is
       while not Is_End (Iterator) loop
          declare
             Current : Node_Id;
-            Loc : Idl_Fe.Errors.Location;
-            Filename : Idl_Fe.Errors.File_Name_Ptr;
+            Loc : Errors.Location;
+            Filename : Errors.File_Name_Ptr;
 
             Idl_File_Node : Node_Id;
             Success : Boolean;
@@ -898,9 +896,9 @@ package body Ada_Be.Expansion is
          Get_Next_Node (It, D_Node);
 
          if Kind (D_Node) /= K_Declarator then
-            Ada.Text_IO.Put_Line
-              ("ERROR: Unexpected " & Kind (D_Node)'Img);
-            raise Program_Error;
+            Error
+              ("Unexpected " & Kind (D_Node)'Img,
+               Fatal, Get_Location (D_Node));
          end if;
 
          if not Is_Empty (Array_Bounds (D_Node)) then
@@ -1125,10 +1123,14 @@ package body Ada_Be.Expansion is
             --  Improper use: node N is not
             --  mapped to an Ada type.
 
-            Ada.Text_IO.Put_Line ("Error: A "
-                                  & NK'Img
-                                  & " cannot be used in a sequence.");
+            Error ("A " & NK'Img
+                   & " cannot be used in a sequence.",
+                   Fatal,
+                   Get_Location (Node));
+
+            --  Keep the compiler happy.
             raise Program_Error;
+
       end case;
    end Sequence_Type_Name;
 

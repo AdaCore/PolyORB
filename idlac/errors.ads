@@ -26,7 +26,7 @@
 
 with Ada.Unchecked_Deallocation;
 
-package Idl_Fe.Errors is
+package Errors is
 
    -------------------------
    --  Types Definitions  --
@@ -73,8 +73,6 @@ package Idl_Fe.Errors is
    --  code normally
    type Error_Kind is (Fatal, Error, Warning);
 
-
-
    -------------------------
    --  Location handling  --
    -------------------------
@@ -89,37 +87,24 @@ package Idl_Fe.Errors is
    --  Error handling  --
    ----------------------
 
-   --  deals with a Lexer error, raise it if level is fatal
-   procedure Lexer_Error (Message : in String;
-                          Level : in Error_Kind;
-                          Loc : Location);
+   procedure Error
+     (Message : in String;
+      Level : in Error_Kind;
+      Loc : in Location);
+   --  Produce an error message. Fatal_Error is raised if
+   --  Level is Fatal.
 
-   --  deals with a Parser error, raise it if level is fatal
-   procedure Parser_Error (Message : in String;
-                           Level : in Error_Kind;
-                           Loc : in Location);
-
-   --  was there any errors ?
    function Is_Error return Boolean;
+   --  was there any errors ?
 
-   --  was there any warning ?
    function Is_Warning return Boolean;
+   --  was there any warning ?
 
-   --  returns the number of errors
    function Error_Number return Natural;
+   --  returns the number of errors
 
-   --  returns the number of warnings
    function Warning_Number return Natural;
+   --  returns the number of warnings
 
 
-private
-
-   --  nice display of a natural
-   function Nat_To_String (Val : Natural) return String;
-
-   --  display an error
-   procedure Display_Error (Message : in String;
-                            Level : in Error_Kind;
-                            Loc : Location);
-
-end Idl_Fe.Errors;
+end Errors;

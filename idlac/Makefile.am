@@ -1,8 +1,8 @@
 SUBDIRS = testsuite
 
-all-local: testparser testlexer testexpansion testgen idlac
+all-local: testparser testlexer testgen idlac
 
-testparser testlexer testexpansion testgen idlac: force $(TREE_FILES)
+testparser testlexer testgen idlac: force $(TREE_FILES)
 	$(GNATMAKE) -I. -I$(srcdir) $(GNATFLAGS) $@
 
 TREE_FILES=idl_fe-tree.ads idl_fe-tree.adb
@@ -19,7 +19,7 @@ autoconf:
 
 CLEANFILES = *.o *.ali b~*.ads b~*.adb
 
-DISTCLEANFILES = $(TREE_FILES) testparser testlexer testexpansion testgen idlac
+DISTCLEANFILES = $(TREE_FILES) testparser testlexer testgen idlac
 
 force::
 

@@ -34,15 +34,15 @@ with Utils; use Utils;
 with Idl_Fe.Lexer; use Idl_Fe.Lexer;
 with Idl_Fe.Types; use Idl_Fe.Types;
 with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree, Idl_Fe.Tree.Synthetic;
-with Idl_Fe.Errors;
+with Errors;
 with Idl_Fe.Debug;
 pragma Elaborate_All (Idl_Fe.Debug);
 
 package body Idl_Fe.Parser is
 
-   --------------
-   --   Debug  --
-   --------------
+   -----------
+   -- Debug --
+   -----------
 
    Flag : constant Natural
      := Idl_Fe.Debug.Is_Active ("idl_fe.parser");
@@ -91,7 +91,7 @@ package body Idl_Fe.Parser is
    --  the buffers themself
    Token_Buffer : array (Buffer_Index) of Idl_Token
      := (others => T_Error);
-   Location_Buffer : array (Buffer_Index) of Idl_Fe.Errors.Location
+   Location_Buffer : array (Buffer_Index) of Errors.Location
      := (others => (Dirname => null, Filename => null, Line => 0, Col => 0));
    String_Buffer : array (Buffer_Index) of String_Ptr
      := (others => null);
@@ -214,7 +214,7 @@ package body Idl_Fe.Parser is
    --  Get_Token_Location  --
    --------------------------
 
-   function Get_Token_Location return Idl_Fe.Errors.Location is
+   function Get_Token_Location return Errors.Location is
    begin
       pragma Debug (O ("Get_Token_Location : enter & end"));
       return Location_Buffer (Current_Index);
@@ -224,7 +224,7 @@ package body Idl_Fe.Parser is
    --  Get_Previous_Token_Location  --
    -----------------------------------
 
-   function Get_Previous_Token_Location return Idl_Fe.Errors.Location is
+   function Get_Previous_Token_Location return Errors.Location is
    begin
       pragma Debug (O ("Get_Previous_Token_Location : enter," &
                        " Current_Index - 1 = " &
@@ -237,7 +237,7 @@ package body Idl_Fe.Parser is
    -----------------------------------
 
    function Get_Previous_Previous_Token_Location
-     return Idl_Fe.Errors.Location is
+     return Errors.Location is
    begin
       return Location_Buffer (Current_Index - 2);
    end Get_Previous_Previous_Token_Location;
@@ -246,7 +246,7 @@ package body Idl_Fe.Parser is
    --  Get_Next_Token_Location  --
    -------------------------------
 
-   function Get_Next_Token_Location return Idl_Fe.Errors.Location is
+   function Get_Next_Token_Location return Errors.Location is
    begin
       return Location_Buffer (Current_Index + 1);
    end Get_Next_Token_Location;
@@ -284,7 +284,7 @@ package body Idl_Fe.Parser is
    -------------------------------
 
    procedure Divide_T_Greater_Greater is
-      Loc : Idl_Fe.Errors.Location := Get_Token_Location;
+      Loc : Errors.Location := Get_Token_Location;
    begin
       if Get_Token /= T_Greater_Greater then
          return;
@@ -480,9 +480,9 @@ package body Idl_Fe.Parser is
             end if;
          end loop;
          if Def_Nb = 0 then
-            Idl_Fe.Errors.Parser_Error
+            Errors.Error
               ("Definition expected : a specification may not be empty.",
-               Idl_Fe.Errors.Error,
+               Errors.Error,
                Get_Token_Location);
          end if;
       end;
@@ -542,11 +542,11 @@ package body Idl_Fe.Parser is
 
                when others =>
                   declare
-                     Loc : Idl_Fe.Errors.Location;
+                     Loc : Errors.Location;
                   begin
                      Loc := Get_Token_Location;
                      Loc.Col := Loc.Col + 9;
-                     Idl_Fe.Errors.Parser_Error
+                     Errors.Error
                        (Ada.Characters.Latin_1.Quotation &
                         "interface" &
                         Ada.Characters.Latin_1.Quotation &
@@ -555,7 +555,7 @@ package body Idl_Fe.Parser is
                         "valuetype" &
                         Ada.Characters.Latin_1.Quotation &
                         " expected after the abstract keyword.",
-                        Idl_Fe.Errors.Error,
+                        Errors.Error,
                         Get_Token_Location);
                      Success := False;
                      Result := No_Node;
@@ -613,8 +613,8 @@ package body Idl_Fe.Parser is
             return;
 
          when others =>
-            Idl_Fe.Errors.Parser_Error ("definition expected.",
-                                 Idl_Fe.Errors.Error,
+            Errors.Error ("definition expected.",
+                                 Errors.Error,
                                  Get_Token_Location);
             Result := No_Node;
             Success := False;
@@ -622,9 +622,9 @@ package body Idl_Fe.Parser is
             return;
       end case;
       if Get_Token /= T_Semi_Colon then
-         Idl_Fe.Errors.Parser_Error
+         Errors.Error
            ("';' expected at the end of a definition.",
-            Idl_Fe.Errors.Error,
+            Errors.Error,
             Get_Token_Location);
          Success := False;
       else
@@ -680,15 +680,15 @@ package body Idl_Fe.Parser is
                         else
                            --  else raise an error
                            declare
-                              Loc : Idl_Fe.Errors.Location;
+                              Loc : Errors.Location;
                            begin
                               Loc := Types.Get_Location
                                 (Find_Identifier_Node (Get_Token_String));
-                              Idl_Fe.Errors.Parser_Error
+                              Errors.Error
                                 ("This module name is already defined in" &
                                  " this scope : " &
-                                 Idl_Fe.Errors.Display_Location (Loc),
-                                 Idl_Fe.Errors.Error,
+                                 Errors.Display_Location (Loc),
+                                 Errors.Error,
                                  Get_Token_Location);
                            end;
                         end if;
@@ -708,9 +708,9 @@ package body Idl_Fe.Parser is
                                       "current scope is : " &
                                       Name (Get_Current_Scope)));
                      if Get_Token = T_Right_Cbracket then
-                        Idl_Fe.Errors.Parser_Error
+                        Errors.Error
                           ("definition expected : a module may not be empty.",
-                           Idl_Fe.Errors.Error,
+                           Errors.Error,
                            Get_Token_Location);
                      end if;
                      while Get_Token /= T_Right_Cbracket and
@@ -738,12 +738,12 @@ package body Idl_Fe.Parser is
                   Success := True;
                when others =>
                   declare
-                     Loc : Idl_Fe.Errors.Location;
+                     Loc : Errors.Location;
                   begin
                      Loc := Get_Token_Location;
                      Loc.Col := Loc.Col + Get_Token_String'Length + 1;
-                     Idl_Fe.Errors.Parser_Error ("'{' expected. ",
-                                          Idl_Fe.Errors.Error,
+                     Errors.Error ("'{' expected. ",
+                                          Errors.Error,
                                           Loc);
                   end;
                   Result := No_Node;
@@ -751,12 +751,12 @@ package body Idl_Fe.Parser is
             end case;
          when others =>
             declare
-               Loc : Idl_Fe.Errors.Location;
+               Loc : Errors.Location;
             begin
                Loc := Get_Previous_Token_Location;
                Loc.Col := Loc.Col + 7;
-               Idl_Fe.Errors.Parser_Error ("Identifier expected. ",
-                                    Idl_Fe.Errors.Error,
+               Errors.Error ("Identifier expected. ",
+                                    Errors.Error,
                                     Loc);
             end;
             Result := No_Node;
@@ -803,15 +803,15 @@ package body Idl_Fe.Parser is
                --  Check if they are both of the same abstract kind
                if Abst (Definition.Node) /= Abst (Res) then
                   declare
-                     Loc : Idl_Fe.Errors.Location;
+                     Loc : Errors.Location;
                   begin
                         Loc := Types.Get_Location
                           (Definition.Node);
-                        Idl_Fe.Errors.Parser_Error
+                        Errors.Error
                           ("Forward declaration "
-                           & Idl_Fe.Errors.Display_Location (Loc)
+                           & Errors.Display_Location (Loc)
                            & " has not the same abstract type",
-                           Idl_Fe.Errors.Error,
+                           Errors.Error,
                            Get_Previous_Token_Location);
                   end;
                end if;
@@ -827,15 +827,15 @@ package body Idl_Fe.Parser is
                end if;
             else
                declare
-                  Loc : Idl_Fe.Errors.Location;
+                  Loc : Errors.Location;
                begin
                   Loc := Types.Get_Location
                     (Find_Identifier_Node (Get_Token_String));
-                  Idl_Fe.Errors.Parser_Error
+                  Errors.Error
                     ("This interface name is already declared in" &
                      " this scope : " &
-                     Idl_Fe.Errors.Display_Location (Loc),
-                     Idl_Fe.Errors.Error,
+                     Errors.Display_Location (Loc),
+                     Errors.Error,
                      Get_Token_Location);
                   Success := False;
                   Result := No_Node;
@@ -848,20 +848,20 @@ package body Idl_Fe.Parser is
             Fd_Res := No_Node;
             Set_Forward (Res, No_Node);
             if not Add_Identifier (Res, Get_Token_String) then
-               raise Idl_Fe.Errors.Internal_Error;
+               raise Errors.Internal_Error;
             end if;
             Set_Default_Repository_Id (Res);
             Definition := Find_Identifier_Definition (Get_Token_String);
          end if;
       else
          declare
-            Loc : Idl_Fe.Errors.Location;
+            Loc : Errors.Location;
          begin
             Loc := Get_Previous_Token_Location;
             Loc.Col := Loc.Col + 10;
-            Idl_Fe.Errors.Parser_Error
+            Errors.Error
               (" identifier expected after 'interface'",
-               Idl_Fe.Errors.Error,
+               Errors.Error,
                Loc);
             Success := False;
             Result := No_Node;
@@ -875,14 +875,14 @@ package body Idl_Fe.Parser is
          --  is it another forward declaration
          if Fd_Res /= No_Node then
             declare
-               Loc : Idl_Fe.Errors.Location;
+               Loc : Errors.Location;
             begin
                Loc := Types.Get_Location (Fd_Res);
-               Idl_Fe.Errors.Parser_Error
+               Errors.Error
                  ("interface already forward declared in" &
                   " this scope : " &
-                  Idl_Fe.Errors.Display_Location (Loc),
-                  Idl_Fe.Errors.Warning,
+                  Errors.Display_Location (Loc),
+                  Errors.Warning,
                   Get_Token_Location);
                --  Why bother to do the following
                --  since we have produced a parser error anyway?
@@ -973,10 +973,10 @@ package body Idl_Fe.Parser is
            | T_Typedef =>
             Parse_Type_Dcl (Result, Success);
          when others =>
-            Idl_Fe.Errors.Parser_Error
+            Errors.Error
               ("declaration of a type, a constant, an exception, " &
                "an attribute or an operation expected",
-               Idl_Fe.Errors.Error,
+               Errors.Error,
                Get_Token_Location);
             Success := False;
             Result := No_Node;
@@ -986,8 +986,8 @@ package body Idl_Fe.Parser is
          return;
       end if;
       if Get_Token /= T_Semi_Colon then
-         Idl_Fe.Errors.Parser_Error ("';' expected",
-                                     Idl_Fe.Errors.Error,
+         Errors.Error ("';' expected",
+                                     Errors.Error,
                                      Get_Token_Location);
          Go_To_End_Of_Export;
       else
@@ -1026,20 +1026,20 @@ package body Idl_Fe.Parser is
                   if Is_In_Pointed_List (Parents (Result), Name) then
                      pragma Debug (O ("Parse_Interface_Dcl_End : duplicated " &
                                       "inheritance"));
-                     Idl_Fe.Errors.Parser_Error ("An interface may not " &
+                     Errors.Error ("An interface may not " &
                                                  "directly inherit more " &
                                                  "than once from another one.",
-                                                 Idl_Fe.Errors.Error,
+                                                 Errors.Error,
                                                  Get_Token_Location);
                   else
                      pragma Debug (O ("Parse_Interface_Dcl_End : non " &
                                       "duplicated inheritance"));
                      --  verify the abstraction of the inherited interface
                      if Abst (Result) and not Abst (Value (Name)) then
-                        Idl_Fe.Errors.Parser_Error
+                        Errors.Error
                           ("An abstract interface may not inherit from " &
                            "a statefull one.",
-                           Idl_Fe.Errors.Error,
+                           Errors.Error,
                            Get_Token_Location);
                      end if;
                      --  verify that the imported interface does not
@@ -1054,11 +1054,11 @@ package body Idl_Fe.Parser is
                         --  one of the attribute or operation of the
                         --  new interface to be imported was already
                         --  defined in the previously imported ones
-                        Idl_Fe.Errors.Parser_Error
+                        Errors.Error
                           ("The attribute or operation definitions "&
                            " in this interface clashes with the definitions " &
                            "of the previouly imported ones.",
-                           Idl_Fe.Errors.Error,
+                           Errors.Error,
                            Get_Token_Location);
                      end if;
                   end if;
@@ -1072,13 +1072,13 @@ package body Idl_Fe.Parser is
          Next_Token;
       else
          declare
-            Loc : Idl_Fe.Errors.Location;
+            Loc : Errors.Location;
          begin
             Loc := Get_Previous_Token_Location;
             Loc.Col := Loc.Col + Get_Previous_Token_String'Length + 1;
-            Idl_Fe.Errors.Parser_Error
+            Errors.Error
               ("'{' expected",
-               Idl_Fe.Errors.Error,
+               Errors.Error,
                Loc);
             Success := False;
             return;
@@ -1149,15 +1149,15 @@ package body Idl_Fe.Parser is
         Result /= No_Node then
          if Kind (Value (Result)) /= K_Interface then
             if Kind (Value (Result)) = K_Forward_Interface then
-               Idl_Fe.Errors.Parser_Error
+               Errors.Error
                  ("the inherited scoped name should denote a statefull " &
                   "interface, not a forwarded one.",
-                  Idl_Fe.Errors.Error,
+                  Errors.Error,
                   Get_Previous_Token_Location);
             else
-               Idl_Fe.Errors.Parser_Error
+               Errors.Error
                  ("the inherited scoped name should denote an interface",
-                  Idl_Fe.Errors.Error,
+                  Errors.Error,
                   Get_Previous_Token_Location);
             end if;
          end if;
@@ -1186,15 +1186,15 @@ package body Idl_Fe.Parser is
       if Get_Token = T_Colon_Colon then
          Scope := Get_Root_Scope;
          pragma Debug (O ("Parse_Scoped_Name : root scope is defined at " &
-                          Idl_Fe.Errors.Display_Location
+                          Errors.Display_Location
                           (Get_Location (Scope))));
       else
          --  token should be an identifier
          if Get_Token /= T_Identifier then
-            Idl_Fe.Errors.Parser_Error
+            Errors.Error
               (" identifier or '::' expected at the " &
                "beginning of a scoped name",
-               Idl_Fe.Errors.Error,
+               Errors.Error,
                Get_Token_Location);
             Success := False;
             Result := No_Node;
@@ -1206,10 +1206,10 @@ package body Idl_Fe.Parser is
          --  If it does not correspond to a previously defined scope
          if A_Name = No_Node then
             pragma Debug (O ("Parse_Scoped_Name : name is null"));
-            Idl_Fe.Errors.Parser_Error
+            Errors.Error
               ("Bad identifier in scoped name : " &
                "this identifier does not exist",
-               Idl_Fe.Errors.Error,
+               Errors.Error,
                Get_Token_Location);
             Go_To_End_Of_Scoped_Name;
             Success := True;
@@ -1260,10 +1260,10 @@ package body Idl_Fe.Parser is
          if View_Next_Token = T_Colon_Colon then
             --  Is the identifier a scope?
             if not Is_Scope (A_Name) then
-               Idl_Fe.Errors.Parser_Error
+               Errors.Error
                  ("Bad identifier in scoped name : " &
                   "this identifier does not denote a scope",
-                  Idl_Fe.Errors.Error,
+                  Errors.Error,
                   Get_Token_Location);
                Go_To_End_Of_Scoped_Name;
                Success := True;
@@ -1286,9 +1286,9 @@ package body Idl_Fe.Parser is
             Next_Token;
             --  we should have an identifier here
             if Get_Token /= T_Identifier then
-               Idl_Fe.Errors.Parser_Error
+               Errors.Error
                  (" identifier expected in the scoped name",
-                  Idl_Fe.Errors.Error,
+                  Errors.Error,
                   Get_Token_Location);
                Success := False;
                Result := No_Node;
@@ -1300,10 +1300,10 @@ package body Idl_Fe.Parser is
               (Scope, Get_Token_String);
             --  if it does not exist
             if Def = null then
-               Idl_Fe.Errors.Parser_Error
+               Errors.Error
                  ("Bad identifier in scoped name : " &
                   "This identifier does not exist in the given scope",
-                  Idl_Fe.Errors.Error,
+                  Errors.Error,
                   Get_Token_Location);
                Go_To_End_Of_Scoped_Name;
                Success := True;
@@ -1315,10 +1315,10 @@ package body Idl_Fe.Parser is
             --  current identifier should denote a node
             if View_Next_Token = T_Colon_Colon then
                if not Is_Scope (A_Name) then
-                  Idl_Fe.Errors.Parser_Error
+                  Errors.Error
                     ("Bad identifier in scoped name : " &
                      "this identifier does not denote a scope",
-                     Idl_Fe.Errors.Error,
+                     Errors.Error,
                      Get_Token_Location);
                   Go_To_End_Of_Scoped_Name;
                   Success := True;
@@ -1367,9 +1367,9 @@ package body Idl_Fe.Parser is
            and Get_Current_Scope = A_Name then
             --  recursivity is allowed through sequences
             if View_Previous_Previous_Token /= T_Sequence then
-               Idl_Fe.Errors.Parser_Error
+               Errors.Error
                  ("Recursive definitions not allowed",
-                  Idl_Fe.Errors.Error,
+                  Errors.Error,
                   Get_Token_Location);
                Success := False;
                Result := No_Node;
@@ -1410,7 +1410,7 @@ package body Idl_Fe.Parser is
          when T_ValueType =>
             Parse_Direct_Value (Result, Success);
          when others =>
-            raise Idl_Fe.Errors.Internal_Error;
+            raise Errors.Internal_Error;
       end case;
       pragma Debug (O2 ("Initialize_Local_Object : end"));
       return;
@@ -1425,15 +1425,15 @@ package body Idl_Fe.Parser is
       pragma Debug (O2 ("Parse_Custom_Value : enter"));
       if Get_Token /= T_ValueType then
          declare
-            Loc : Idl_Fe.Errors.Location;
+            Loc : Errors.Location;
          begin
             Loc := Get_Previous_Token_Location;
             Loc.Col := Loc.Col + 7;
-            Idl_Fe.Errors.Parser_Error (Ada.Characters.Latin_1.Quotation &
+            Errors.Error (Ada.Characters.Latin_1.Quotation &
                                  "valuetype" &
                                  Ada.Characters.Latin_1.Quotation &
                                  " expected after custom keyword.",
-                                 Idl_Fe.Errors.Error,
+                                 Errors.Error,
                                  Loc);
          end;
          Result := No_Node;
@@ -1442,12 +1442,12 @@ package body Idl_Fe.Parser is
          Next_Token;
          if Get_Token /= T_Identifier then
             declare
-               Loc : Idl_Fe.Errors.Location;
+               Loc : Errors.Location;
             begin
                Loc := Get_Previous_Token_Location;
                Loc.Col := Loc.Col + 10;
-               Idl_Fe.Errors.Parser_Error ("identifier expected.",
-                                    Idl_Fe.Errors.Error,
+               Errors.Error ("identifier expected.",
+                                    Errors.Error,
                                     Loc);
             end;
             Result := No_Node;
@@ -1469,15 +1469,15 @@ package body Idl_Fe.Parser is
       pragma Debug (O2 ("Parse_Abstract_Value : enter"));
       if Get_Token /= T_ValueType then
          declare
-            Loc : Idl_Fe.Errors.Location;
+            Loc : Errors.Location;
          begin
             Loc := Get_Previous_Token_Location;
             Loc.Col := Loc.Col + 9;
-            Idl_Fe.Errors.Parser_Error (Ada.Characters.Latin_1.Quotation &
+            Errors.Error (Ada.Characters.Latin_1.Quotation &
                                  "valuetype" &
                                  Ada.Characters.Latin_1.Quotation &
                                  "expected after abstract keyword.",
-                                 Idl_Fe.Errors.Error,
+                                 Errors.Error,
                                  Loc);
          end;
          Result := No_Node;
@@ -1487,12 +1487,12 @@ package body Idl_Fe.Parser is
          pragma Debug (O ("Parse_Abstract_Value : check for identifier"));
          if Get_Token /= T_Identifier then
             declare
-               Loc : Idl_Fe.Errors.Location;
+               Loc : Errors.Location;
             begin
                Loc := Get_Previous_Token_Location;
                Loc.Col := Loc.Col + 10;
-               Idl_Fe.Errors.Parser_Error ("identifier expected.",
-                                    Idl_Fe.Errors.Error,
+               Errors.Error ("identifier expected.",
+                                    Errors.Error,
                                     Loc);
             end;
             Result := No_Node;
@@ -1517,14 +1517,14 @@ package body Idl_Fe.Parser is
                   end;
                when others =>
                   declare
-                     Loc : Idl_Fe.Errors.Location;
+                     Loc : Errors.Location;
                   begin
                      Loc := Get_Token_Location;
                      Loc.Col := Loc.Col + Get_Token_String'Length;
-                     Idl_Fe.Errors.Parser_Error ("Bad value definition. " &
+                     Errors.Error ("Bad value definition. " &
                                           "Inheritance specification, '{'" &
                                           " or ';' expected.",
-                                          Idl_Fe.Errors.Error,
+                                          Errors.Error,
                                           Loc);
                   end;
                   Result := No_Node;
@@ -1546,12 +1546,12 @@ package body Idl_Fe.Parser is
       Next_Token;
       if Get_Token /= T_Identifier then
          declare
-            Loc : Idl_Fe.Errors.Location;
+            Loc : Errors.Location;
          begin
             Loc := Get_Previous_Token_Location;
             Loc.Col := Loc.Col + 10;
-            Idl_Fe.Errors.Parser_Error ("identifier expected.",
-                                 Idl_Fe.Errors.Error,
+            Errors.Error ("identifier expected.",
+                                 Errors.Error,
                                  Loc);
          end;
          Result := No_Node;
@@ -1603,14 +1603,14 @@ package body Idl_Fe.Parser is
                end;
             when others =>
                declare
-                  Loc : Idl_Fe.Errors.Location;
+                  Loc : Errors.Location;
                begin
                   Loc := Get_Token_Location;
                   Loc.Col := Loc.Col + Get_Token_String'Length;
-                  Idl_Fe.Errors.Parser_Error ("Bad value definition. " &
+                  Errors.Error ("Bad value definition. " &
                                        "Type, inheritance specification, " &
                                        "'{' or ';' expected.",
-                                       Idl_Fe.Errors.Error,
+                                       Errors.Error,
                                        Loc);
                end;
                Result := No_Node;
@@ -1659,12 +1659,12 @@ package body Idl_Fe.Parser is
             end;
 
          else
-            Idl_Fe.Errors.Parser_Error
+            Errors.Error
             ("The identifier used for this valuetype is already "
              & "defined in the same scope : " &
-             Idl_Fe.Errors.Display_Location
+             Errors.Display_Location
              (Get_Location (Definition.Node)),
-             Idl_Fe.Errors.Error,
+             Errors.Error,
              Get_Token_Location);
             Set_Forward (Result, No_Node);
          end if;
@@ -1672,7 +1672,7 @@ package body Idl_Fe.Parser is
          --  no previous definition
          Set_Forward (Result, No_Node);
          if not Add_Identifier (Result, Get_Token_String) then
-            raise Idl_Fe.Errors.Internal_Error;
+            raise Errors.Internal_Error;
          end if;
          Set_Default_Repository_Id (Result);
 
@@ -1699,13 +1699,13 @@ package body Idl_Fe.Parser is
          --  else, it was already tested before
          --  Then, the previous token is an identifier
          declare
-            Loc : Idl_Fe.Errors.Location;
+            Loc : Errors.Location;
          begin
             Loc := Get_Token_Location;
             Loc.Col := Loc.Col + Get_Previous_Token_String'Length;
-                  Idl_Fe.Errors.Parser_Error ("Bad value definition. " &
+                  Errors.Error ("Bad value definition. " &
                                        "'{' expected.",
-                                       Idl_Fe.Errors.Error,
+                                       Errors.Error,
                                        Loc);
          end;
          Success := False;
@@ -1767,26 +1767,26 @@ package body Idl_Fe.Parser is
          if Definition.Parent_Scope = Get_Current_Scope and
            Kind (Definition.Node) = K_Forward_ValueType then
             --  nothing to do : this new forward declaration is useless
-            Idl_Fe.Errors.Parser_Error
+            Errors.Error
               ("This valuetype was already declared forward : " &
-               Idl_Fe.Errors.Display_Location
+               Errors.Display_Location
                (Get_Location (Definition.Node)),
-               Idl_Fe.Errors.Warning,
+               Errors.Warning,
                Get_Token_Location);
          else
-            Idl_Fe.Errors.Parser_Error
+            Errors.Error
               ("The identifier used for this valuetype is already "
                & "defined in the same scope : " &
-             Idl_Fe.Errors.Display_Location
+             Errors.Display_Location
                (Get_Location (Definition.Node)),
-               Idl_Fe.Errors.Error,
+               Errors.Error,
                Get_Token_Location);
          end if;
       else
          --  no previous forward
          if not Add_Identifier (Result,
                                 Get_Token_String) then
-            raise Idl_Fe.Errors.Internal_Error;
+            raise Errors.Internal_Error;
          end if;
          Set_Default_Repository_Id (Result);
          Add_Int_Val_Forward (Result);
@@ -1815,23 +1815,23 @@ package body Idl_Fe.Parser is
          if Definition.Parent_Scope = Get_Current_Scope and
            Kind (Definition.Node) = K_Forward_ValueType then
             --  nothing to do : this new forward declaration is useless
-            Idl_Fe.Errors.Parser_Error
+            Errors.Error
               ("This valuetype was forward declared : " &
-               Idl_Fe.Errors.Display_Location
+               Errors.Display_Location
                (Get_Location (Definition.Node)) &
                ". It can not be a boxed one.",
-               Idl_Fe.Errors.Error,
+               Errors.Error,
                Get_Previous_Token_Location);
             --  To avoid a second error, due to the non declaration
             --  of the forward value
             Add_Int_Val_Definition (Definition.Node);
          else
-            Idl_Fe.Errors.Parser_Error
+            Errors.Error
               ("The identifier used for this valuetype is already "
                & "defined in the same scope : " &
-               Idl_Fe.Errors.Display_Location
+               Errors.Display_Location
                (Get_Location (Definition.Node)),
-               Idl_Fe.Errors.Error,
+               Errors.Error,
                Get_Token_Location);
          end if;
          Next_Token;
@@ -1864,7 +1864,7 @@ package body Idl_Fe.Parser is
             end;
             if not Add_Identifier (Result,
                                    Name.all) then
-               raise Idl_Fe.Errors.Internal_Error;
+               raise Errors.Internal_Error;
             end if;
             Set_Default_Repository_Id (Result);
 
@@ -1886,16 +1886,16 @@ package body Idl_Fe.Parser is
          Next_Token;
          if Get_Token = T_Truncatable then
             if Abst (Result) then
-               Idl_Fe.Errors.Parser_Error
+               Errors.Error
                  ("The truncatable modifier may not " &
                   "be used in an abstract value.",
-                  Idl_Fe.Errors.Error,
+                  Errors.Error,
                   Get_Token_Location);
             elsif Custom (Result) then
-               Idl_Fe.Errors.Parser_Error
+               Errors.Error
                  ("The truncatable modifier may not " &
                   "be used in a custom value.",
-                  Idl_Fe.Errors.Error,
+                  Errors.Error,
                   Get_Token_Location);
             else
                Set_Truncatable (Result, True);
@@ -1915,19 +1915,19 @@ package body Idl_Fe.Parser is
                   when K_ValueType =>
                      if Abst (Result) then
                         if not Abst (Value (Name)) then
-                           Idl_Fe.Errors.Parser_Error
+                           Errors.Error
                              ("An abstract value may not inherit from a " &
                               "stateful one.",
-                              Idl_Fe.Errors.Error,
+                              Errors.Error,
                               Get_Token_Location);
                         end if;
                      else
                         if Abst (Value (Name)) and then
                           Truncatable (Result) then
-                           Idl_Fe.Errors.Parser_Error
+                           Errors.Error
                              ("The truncatable modifier may not be used " &
                               "for an abstract value inheritance.",
-                              Idl_Fe.Errors.Error,
+                              Errors.Error,
                               Get_Token_Location);
                         end if;
                      end if;
@@ -1935,32 +1935,32 @@ package body Idl_Fe.Parser is
                                   Append_Node (Parents (Result),
                                                Name));
                   when K_Forward_ValueType =>
-                     Idl_Fe.Errors.Parser_Error
+                     Errors.Error
                        ("A value may not inherit from a forward declared" &
                         " value whose definition has not yet been seen.",
-                        Idl_Fe.Errors.Error,
+                        Errors.Error,
                         Get_Token_Location);
                   when K_Boxed_ValueType =>
-                     Idl_Fe.Errors.Parser_Error
+                     Errors.Error
                        ("A value may not inherit from a boxed value.",
-                        Idl_Fe.Errors.Error,
+                        Errors.Error,
                         Get_Token_Location);
                   when K_Interface
                     | K_Forward_Interface =>
-                     Idl_Fe.Errors.Parser_Error
+                     Errors.Error
                        ("A value may not inherit from an interface. "&
                         "It can only support it.",
-                        Idl_Fe.Errors.Error,
+                        Errors.Error,
                         Get_Token_Location);
                   when others =>
                      declare
-                        Loc : Idl_Fe.Errors.Location;
+                        Loc : Errors.Location;
                      begin
                         Loc := Get_Previous_Token_Location;
                         Loc.Col := Loc.Col + 2;
-                        Idl_Fe.Errors.Parser_Error
+                        Errors.Error
                           ("Value name expected.",
-                           Idl_Fe.Errors.Error,
+                           Errors.Error,
                            Loc);
                      end;
                end case;
@@ -1987,18 +1987,18 @@ package body Idl_Fe.Parser is
                                          "parent is a valuetype"));
                         if Is_In_Pointed_List (Parents (Result), Name) then
                            --  already inherited
-                           Idl_Fe.Errors.Parser_Error
+                           Errors.Error
                              ("A value may not directly inherit more than " &
                               "once from another one.",
-                              Idl_Fe.Errors.Error,
+                              Errors.Error,
                               Get_Token_Location);
                         else
                            if not Abst (Value (Name)) then
-                              Idl_Fe.Errors.Parser_Error
+                              Errors.Error
                                 ("A stateful value may only derive from a " &
                                  "single stateful value and this one must " &
                                  "be the first element in the inheritance.",
-                                 Idl_Fe.Errors.Error,
+                                 Errors.Error,
                                  Get_Token_Location);
                            end if;
                            Set_Parents (Result,
@@ -2006,32 +2006,32 @@ package body Idl_Fe.Parser is
                                                      Name));
                         end if;
                      when K_Forward_ValueType =>
-                        Idl_Fe.Errors.Parser_Error
+                        Errors.Error
                           ("A value may not inherit from a forward declared" &
                            " value whose definition has not yet been seen.",
-                           Idl_Fe.Errors.Error,
+                           Errors.Error,
                            Get_Token_Location);
                      when K_Boxed_ValueType =>
-                        Idl_Fe.Errors.Parser_Error
+                        Errors.Error
                           ("A value may not inherit from a boxed value.",
-                           Idl_Fe.Errors.Error,
+                           Errors.Error,
                            Get_Token_Location);
                      when K_Interface
                         | K_Forward_Interface =>
-                        Idl_Fe.Errors.Parser_Error
+                        Errors.Error
                           ("A value may not inherit from an interface. "&
                            "It can only support it.",
-                        Idl_Fe.Errors.Error,
+                        Errors.Error,
                            Get_Token_Location);
                      when others =>
                         declare
-                           Loc : Idl_Fe.Errors.Location;
+                           Loc : Errors.Location;
                         begin
                            Loc := Get_Previous_Token_Location;
                            Loc.Col := Loc.Col + 2;
-                           Idl_Fe.Errors.Parser_Error
+                           Errors.Error
                              ("Value name expected.",
-                              Idl_Fe.Errors.Error,
+                              Errors.Error,
                               Loc);
                         end;
                   end case;
@@ -2069,29 +2069,29 @@ package body Idl_Fe.Parser is
                                          Append_Node (Supports (Result),
                                                       Name));
                         when K_Forward_Interface =>
-                           Idl_Fe.Errors.Parser_Error
+                           Errors.Error
                              ("A value may not support a forward declared" &
                               " interface whose declaration has not yet " &
                               "been seen.",
-                              Idl_Fe.Errors.Error,
+                              Errors.Error,
                               Get_Token_Location);
                         when K_Boxed_ValueType
                           | K_ValueType
                           | K_Forward_ValueType =>
-                           Idl_Fe.Errors.Parser_Error
+                           Errors.Error
                              ("A value may not support another value. " &
                               " However, it can inherit from it.",
-                              Idl_Fe.Errors.Error,
+                              Errors.Error,
                               Get_Token_Location);
                         when others =>
                            declare
-                              Loc : Idl_Fe.Errors.Location;
+                              Loc : Errors.Location;
                            begin
                               Loc := Get_Previous_Token_Location;
                               Loc.Col := Loc.Col + 9;
-                              Idl_Fe.Errors.Parser_Error
+                              Errors.Error
                                 ("Value name expected.",
-                                 Idl_Fe.Errors.Error,
+                                 Errors.Error,
                                  Loc);
                            end;
                      end case;
@@ -2114,21 +2114,21 @@ package body Idl_Fe.Parser is
                               if Is_In_Pointed_List (Supports (Result),
                                                      Name) then
                                  --  already inherited
-                                 Idl_Fe.Errors.Parser_Error
+                                 Errors.Error
                                    ("A value may not directly support " &
                                     "a given interface more than once.",
-                                    Idl_Fe.Errors.Error,
+                                    Errors.Error,
                                     Get_Token_Location);
                               else
                                  if not Abst (Result)
                                    and then not Abst (Value (Name)) then
                                     if Non_Abstract_Interface then
-                                       Idl_Fe.Errors.Parser_Error
+                                       Errors.Error
                                          ("A stateful value may support " &
                                           "only " &
                                           "one non abstract interface. This " &
                                           "is the second one.",
-                                          Idl_Fe.Errors.Error,
+                                          Errors.Error,
                                           Get_Token_Location);
                                     else
                                        Non_Abstract_Interface := True;
@@ -2140,29 +2140,29 @@ package body Idl_Fe.Parser is
                                                  Name));
                               end if;
                            when K_Forward_Interface =>
-                              Idl_Fe.Errors.Parser_Error
+                              Errors.Error
                                 ("A value may not support a forward declared" &
                                  " interface whose declaration has not yet " &
                                  "been seen.",
-                                 Idl_Fe.Errors.Error,
+                                 Errors.Error,
                                  Get_Token_Location);
                            when K_Boxed_ValueType
                              | K_ValueType
                              | K_Forward_ValueType =>
-                              Idl_Fe.Errors.Parser_Error
+                              Errors.Error
                                 ("A value may not support another value. " &
                                  " However, it can inherit from it.",
-                                 Idl_Fe.Errors.Error,
+                                 Errors.Error,
                                  Get_Token_Location);
                            when others =>
                               declare
-                                 Loc : Idl_Fe.Errors.Location;
+                                 Loc : Errors.Location;
                               begin
                                  Loc := Get_Previous_Token_Location;
                                  Loc.Col := Loc.Col + 9;
-                                 Idl_Fe.Errors.Parser_Error
+                                 Errors.Error
                                    ("Value name expected.",
-                                    Idl_Fe.Errors.Error,
+                                    Errors.Error,
                                     Loc);
                               end;
                         end case;
@@ -2178,17 +2178,17 @@ package body Idl_Fe.Parser is
             Success := True;
          when others =>
             declare
-               Loc : Idl_Fe.Errors.Location;
+               Loc : Errors.Location;
             begin
                Loc := Get_Previous_Token_Location;
                Loc.Col := Loc.Col + Get_Previous_Token_String'Length;
-               Idl_Fe.Errors.Parser_Error
+               Errors.Error
                  ("',', " &
                   Ada.Characters.Latin_1.Quotation &
                   "supports" &
                   Ada.Characters.Latin_1.Quotation &
                   " or '{' expected.",
-                  Idl_Fe.Errors.Error,
+                  Errors.Error,
                   Loc);
                Success := False;
             end;
@@ -2250,8 +2250,8 @@ package body Idl_Fe.Parser is
          when T_Factory =>
             Parse_Init_Dcl (Result, Success);
          when others =>
-            Idl_Fe.Errors.Parser_Error ("value_element expected.",
-                                 Idl_Fe.Errors.Error,
+            Errors.Error ("value_element expected.",
+                                 Errors.Error,
                                  Get_Token_Location);
             Result := No_Node;
             Success := False;
@@ -2273,7 +2273,7 @@ package body Idl_Fe.Parser is
          when T_Private =>
             Set_Is_Public (Result, False);
          when others =>
-            raise Idl_Fe.Errors.Internal_Error;
+            raise Errors.Internal_Error;
       end case;
       Next_Token;
       declare
@@ -2302,9 +2302,9 @@ package body Idl_Fe.Parser is
          return;
       end if;
       if Get_Token /= T_Semi_Colon then
-         Idl_Fe.Errors.Parser_Error ("missing ';' at the end of the state " &
+         Errors.Error ("missing ';' at the end of the state " &
                               "declaration.",
-                              Idl_Fe.Errors.Error,
+                              Errors.Error,
                               Get_Token_Location);
          Success := False;
       else
@@ -2322,16 +2322,16 @@ package body Idl_Fe.Parser is
    begin
       if View_Next_Token /= T_Identifier then
          declare
-            Loc : Idl_Fe.Errors.Location;
+            Loc : Errors.Location;
          begin
             Loc := Get_Token_Location;
             Loc.Col := Loc.Col + 8;
-            Idl_Fe.Errors.Parser_Error ("Identifier expected after keyword " &
+            Errors.Error ("Identifier expected after keyword " &
                                  Ada.Characters.Latin_1.Quotation &
                                  "factory" &
                                  Ada.Characters.Latin_1.Quotation &
                                  ".",
-                                 Idl_Fe.Errors.Error,
+                                 Errors.Error,
                                  Loc);
          end;
          Success := False;
@@ -2347,19 +2347,19 @@ package body Idl_Fe.Parser is
             Definition : Identifier_Definition_Acc :=
               Find_Identifier_Definition (Get_Token_String);
          begin
-            Idl_Fe.Errors.Parser_Error
+            Errors.Error
               ("The identifier used for this initializer is already "
                & "defined in the same scope : " &
-               Idl_Fe.Errors.Display_Location
+               Errors.Display_Location
                (Get_Location (Definition.Node)),
-               Idl_Fe.Errors.Error,
+               Errors.Error,
                Get_Token_Location);
          end;
       else
          --  no previous definition
          if not Add_Identifier (Result,
                                 Get_Token_String) then
-            raise Idl_Fe.Errors.Internal_Error;
+            raise Errors.Internal_Error;
          end if;
          Set_Default_Repository_Id (Result);
 
@@ -2367,13 +2367,13 @@ package body Idl_Fe.Parser is
       Next_Token;
       if Get_Token /= T_Left_Paren then
          declare
-            Loc : Idl_Fe.Errors.Location;
+            Loc : Errors.Location;
          begin
             Loc := Get_Previous_Token_Location;
             Loc.Col := Loc.Col + Get_Previous_Token_String'Length;
-            Idl_Fe.Errors.Parser_Error
+            Errors.Error
               ("missing '(' in initializer declaration.",
-               Idl_Fe.Errors.Error,
+               Errors.Error,
                Loc);
          end;
          Success := False;
@@ -2403,9 +2403,9 @@ package body Idl_Fe.Parser is
                end if;
             else
                if Get_Token /= T_Right_Paren then
-                  Idl_Fe.Errors.Parser_Error ("missing ')' at the end of " &
+                  Errors.Error ("missing ')' at the end of " &
                                        "initializer declaration.",
-                                       Idl_Fe.Errors.Error,
+                                       Errors.Error,
                                        Get_Token_Location);
                   Success := False;
                   return;
@@ -2416,9 +2416,9 @@ package body Idl_Fe.Parser is
       --  consumes the T_Right_Parenthesis
       Next_Token;
       if Get_Token /= T_Semi_Colon then
-         Idl_Fe.Errors.Parser_Error ("missing ';' at the end of initializer " &
+         Errors.Error ("missing ';' at the end of initializer " &
                               "declaration.",
-                              Idl_Fe.Errors.Error,
+                              Errors.Error,
                               Get_Token_Location);
          Success := False;
          return;
@@ -2477,14 +2477,14 @@ package body Idl_Fe.Parser is
             Next_Token;
          when T_Out
            | T_Inout =>
-            Idl_Fe.Errors.Parser_Error
+            Errors.Error
               ("an initializer parameter can only be " &
                "in mode " &
                Ada.Characters.Latin_1.Quotation &
                "in" &
                Ada.Characters.Latin_1.Quotation &
                ".",
-               Idl_Fe.Errors.Error,
+               Errors.Error,
                Get_Token_Location);
             Next_Token;
          when T_Float
@@ -2503,19 +2503,19 @@ package body Idl_Fe.Parser is
            | T_Wstring
            | T_Identifier
            | T_Colon_Colon =>
-            Idl_Fe.Errors.Parser_Error
+            Errors.Error
               ("an initializer parameter should begin " &
                "with keyword " &
                Ada.Characters.Latin_1.Quotation &
                "in" &
                Ada.Characters.Latin_1.Quotation &
                ".",
-               Idl_Fe.Errors.Error,
+               Errors.Error,
                Get_Token_Location);
          when others =>
-            Idl_Fe.Errors.Parser_Error
+            Errors.Error
               ("bad initializer parameter declaration.",
-               Idl_Fe.Errors.Error,
+               Errors.Error,
                Get_Token_Location);
             Success := False;
             Result := No_Node;
@@ -2569,8 +2569,8 @@ package body Idl_Fe.Parser is
          return;
       end if;
       if Get_Token /= T_Identifier then
-         Idl_Fe.Errors.Parser_Error ("Identifier expected.",
-                                     Idl_Fe.Errors.Error,
+         Errors.Error ("Identifier expected.",
+                                     Errors.Error,
                                      Get_Token_Location);
          Success := False;
          return;
@@ -2581,17 +2581,17 @@ package body Idl_Fe.Parser is
                Definition : Identifier_Definition_Acc :=
                  Find_Identifier_Definition (Get_Token_String);
             begin
-               Idl_Fe.Errors.Parser_Error
+               Errors.Error
                  ("This identifier is already defined in this scope : " &
-                  Idl_Fe.Errors.Display_Location
+                  Errors.Display_Location
                   (Get_Location (Definition.Node)),
-                  Idl_Fe.Errors.Error,
+                  Errors.Error,
                   Get_Token_Location);
             end;
          else
             --  no previous definition
             if not Add_Identifier (Result, Get_Token_String) then
-               raise Idl_Fe.Errors.Internal_Error;
+               raise Errors.Internal_Error;
             end if;
             Set_Default_Repository_Id (Result);
 
@@ -2600,12 +2600,12 @@ package body Idl_Fe.Parser is
       Next_Token;
       if Get_Token /= T_Equal then
          declare
-            Loc : Idl_Fe.Errors.Location;
+            Loc : Errors.Location;
          begin
             Loc := Get_Previous_Token_Location;
             Loc.Col := Loc.Col + Get_Previous_Token_String'Length;
-            Idl_Fe.Errors.Parser_Error ("'=' expected in const declaration.",
-                                 Idl_Fe.Errors.Error,
+            Errors.Error ("'=' expected in const declaration.",
+                                 Errors.Error,
                                  Loc);
          end;
          case Get_Token is
@@ -2726,13 +2726,13 @@ package body Idl_Fe.Parser is
                      Invalid_Type := True;
                   end if;
                   if Invalid_Type then
-                     Idl_Fe.Errors.Parser_Error
+                     Errors.Error
                        ("Invalid type in constant. The " &
                         "scoped name should refer to " &
                         "an integer, char, wide_char, " &
                         "boolean, floating_pt, string, " &
                         "wide_string, octet or enum type.",
-                        Idl_Fe.Errors.Error,
+                        Errors.Error,
                         Get_Token_Location);
                      Success := False;
                   end if;
@@ -2741,8 +2741,8 @@ package body Idl_Fe.Parser is
          when T_Octet =>
             Parse_Octet_Type (Result, Success);
          when others =>
-            Idl_Fe.Errors.Parser_Error ("constant type expected.",
-                                 Idl_Fe.Errors.Error,
+            Errors.Error ("constant type expected.",
+                                 Errors.Error,
                                  Get_Token_Location);
             Success := False;
             Result := No_Node;
@@ -2757,7 +2757,7 @@ package body Idl_Fe.Parser is
    procedure Parse_Const_Exp (Result : out Node_Id;
                               Constant_Type : in Node_Id;
                               Success : out Boolean) is
-      Loc : Idl_Fe.Errors.Location;
+      Loc : Errors.Location;
       C_Type : Constant_Value_Ptr;
    begin
       pragma Debug (O2 ("Parse_Const_Exp : enter"));
@@ -2875,10 +2875,10 @@ package body Idl_Fe.Parser is
                      C_Type := new Constant_Value (Kind => C_Enum);
                      C_Type.Enum_Name := S_Type (Constant_Type);
                   when others =>
-                     raise Idl_Fe.Errors.Internal_Error;
+                     raise Errors.Internal_Error;
                end case;
             when others =>
-               raise Idl_Fe.Errors.Internal_Error;
+               raise Errors.Internal_Error;
          end case;
       else
          C_Type := new Constant_Value (Kind => C_No_Kind);
@@ -2907,7 +2907,7 @@ package body Idl_Fe.Parser is
          declare
             Res : Node_Id;
             Res_Right : Node_Id;
-            Loc : Idl_Fe.Errors.Location;
+            Loc : Errors.Location;
          begin
             pragma Debug (O ("Parse_Or_Expr : '|' detected"));
             Loc := Get_Token_Location;
@@ -2962,7 +2962,7 @@ package body Idl_Fe.Parser is
                     (Res, new Constant_Value (Kind => C_No_Kind));
                end if;
             else
-               Errors.Parser_Error ("The | operation is not defined " &
+               Errors.Error ("The | operation is not defined " &
                                     "on this type.",
                                     Errors.Error,
                                     Loc);
@@ -2992,7 +2992,7 @@ package body Idl_Fe.Parser is
          declare
             Res : Node_Id;
             Res_Right : Node_Id;
-            Loc : Idl_Fe.Errors.Location;
+            Loc : Errors.Location;
          begin
             Loc := Get_Token_Location;
             Next_Token;
@@ -3042,7 +3042,7 @@ package body Idl_Fe.Parser is
                     (Res, new Constant_Value (Kind => C_No_Kind));
                end if;
             else
-               Errors.Parser_Error ("The ^ operation is not defined " &
+               Errors.Error ("The ^ operation is not defined " &
                                     "on this type.",
                                     Errors.Error,
                                     Loc);
@@ -3072,7 +3072,7 @@ package body Idl_Fe.Parser is
          declare
             Res : Node_Id;
             Res_Right : Node_Id;
-            Loc : Idl_Fe.Errors.Location;
+            Loc : Errors.Location;
          begin
             Loc := Get_Token_Location;
             Next_Token;
@@ -3122,7 +3122,7 @@ package body Idl_Fe.Parser is
                     (Res, new Constant_Value (Kind => C_No_Kind));
                end if;
             else
-               Errors.Parser_Error ("The & operation is not defined " &
+               Errors.Error ("The & operation is not defined " &
                                     "on this type.",
                                     Errors.Error,
                                     Loc);
@@ -3154,7 +3154,7 @@ package body Idl_Fe.Parser is
          declare
             Res : Node_Id;
             Res_Right : Node_Id;
-            Loc : Idl_Fe.Errors.Location;
+            Loc : Errors.Location;
             Shl : Boolean;
          begin
             --  if we have a t_greater_greater and no expression
@@ -3231,7 +3231,7 @@ package body Idl_Fe.Parser is
                     Expr_Value (Right (Res)).Integer_Value > 63
                   then
                      if Expr_Value (Right (Res)).Integer_Value < 0 then
-                        Errors.Parser_Error ("The right operand must be " &
+                        Errors.Error ("The right operand must be " &
                                              "positive. The shift operation " &
                                              "will be ignored.",
                                              Errors.Error,
@@ -3239,7 +3239,7 @@ package body Idl_Fe.Parser is
                         Expr_Value (Res).Integer_Value :=
                           Expr_Value (Left (Res)).Integer_Value;
                      else
-                        Errors.Parser_Error ("The right operand must be " &
+                        Errors.Error ("The right operand must be " &
                                              "less than 64. The result will " &
                                              "be put to 0.",
                                              Errors.Error,
@@ -3263,7 +3263,7 @@ package body Idl_Fe.Parser is
                     (Res, new Constant_Value (Kind => C_No_Kind));
                end if;
             else
-               Errors.Parser_Error ("The << and >> operations are not " &
+               Errors.Error ("The << and >> operations are not " &
                                     "defined on this type.",
                                     Errors.Error,
                                     Loc);
@@ -3294,7 +3294,7 @@ package body Idl_Fe.Parser is
          declare
             Res : Node_Id;
             Res_Right : Node_Id;
-            Loc : Idl_Fe.Errors.Location;
+            Loc : Errors.Location;
             Plus : Boolean;
          begin
             Loc := Get_Token_Location;
@@ -3420,11 +3420,11 @@ package body Idl_Fe.Parser is
                      if Expr_Value (Res).Digits_Nb - Expr_Value (Res).Scale >
                        Expr_Type.Digits_Nb - Expr_Type.Scale or
                        Expr_Value (Res).Scale > Expr_Type.Scale then
-                        Idl_Fe.Errors.Parser_Error
+                        Errors.Error
                           ("The specified type for this fixed point " &
                            "constant is not enough precise for its value. " &
                            "A more precise type will be used.",
-                           Idl_Fe.Errors.Error,
+                           Errors.Error,
                            Get_Token_Location);
                         declare
                            Value : Constant_Value_Ptr := Expr_Value (Res);
@@ -3444,7 +3444,7 @@ package body Idl_Fe.Parser is
                     (Res, new Constant_Value (Kind => C_No_Kind));
                end if;
             else
-               Errors.Parser_Error ("The + and - operations are not defined " &
+               Errors.Error ("The + and - operations are not defined " &
                                     "on this type.",
                                     Errors.Error,
                                     Loc);
@@ -3476,7 +3476,7 @@ package body Idl_Fe.Parser is
          declare
             Res : Node_Id;
             Res_Right : Node_Id;
-            Loc : Idl_Fe.Errors.Location;
+            Loc : Errors.Location;
             type Operator_Type is (Mul, Div, Modulo);
             Op : Operator_Type;
          begin
@@ -3550,10 +3550,10 @@ package body Idl_Fe.Parser is
                           Expr_Value (Right (Res)).Integer_Value;
                      elsif Op = Div then
                         if Expr_Value (Right (Res)).Integer_Value = 0 then
-                           Idl_Fe.Errors.Parser_Error
+                           Errors.Error
                              ("The second operand of the division is 0. " &
                               "The operation will be ignored.",
-                              Idl_Fe.Errors.Error,
+                              Errors.Error,
                               Loc);
                            Expr_Value (Res).Integer_Value :=
                              Expr_Value (Left (Res)).Integer_Value;
@@ -3564,10 +3564,10 @@ package body Idl_Fe.Parser is
                         end if;
                      else
                         if Expr_Value (Right (Res)).Integer_Value = 0 then
-                           Idl_Fe.Errors.Parser_Error
+                           Errors.Error
                              ("The second operand of the modulo is 0. " &
                               "The modulo operation will be ignored.",
-                              Idl_Fe.Errors.Error,
+                              Errors.Error,
                               Loc);
                            Expr_Value (Res).Integer_Value :=
                              Expr_Value (Left (Res)).Integer_Value;
@@ -3594,10 +3594,10 @@ package body Idl_Fe.Parser is
                           Expr_Value (Right (Res)).Float_Value;
                      else
                         if Expr_Value (Right (Res)).Float_Value = 0.0 then
-                           Idl_Fe.Errors.Parser_Error
+                           Errors.Error
                              ("The second operand of the division is 0. " &
                               "The operation will be ignored.",
-                              Idl_Fe.Errors.Error,
+                              Errors.Error,
                               Loc);
                            Expr_Value (Res).Float_Value :=
                              Expr_Value (Left (Res)).Float_Value;
@@ -3626,10 +3626,10 @@ package body Idl_Fe.Parser is
                                       Expr_Value (Right (Res)));
                         else
                            if Expr_Value (Right (Res)).Fixed_Value = 0 then
-                              Idl_Fe.Errors.Parser_Error
+                              Errors.Error
                                 ("The second operand of the division is 0. " &
                                  "The operation will be ignored.",
-                                 Idl_Fe.Errors.Error,
+                                 Errors.Error,
                                  Loc);
                               Expr_Value (Res).Fixed_Value :=
                                 Expr_Value (Left (Res)).Fixed_Value;
@@ -3650,11 +3650,11 @@ package body Idl_Fe.Parser is
                      if Expr_Value (Res).Digits_Nb - Expr_Value (Res).Scale >
                        Expr_Type.Digits_Nb - Expr_Type.Scale or
                        Expr_Value (Res).Scale > Expr_Type.Scale then
-                        Idl_Fe.Errors.Parser_Error
+                        Errors.Error
                           ("The specified type for this fixed point " &
                            "constant is not enough precise for its value. " &
                            "A more precise type will be used.",
-                           Idl_Fe.Errors.Error,
+                           Errors.Error,
                            Get_Token_Location);
                         declare
                            Value : Constant_Value_Ptr := Expr_Value (Res);
@@ -3675,12 +3675,12 @@ package body Idl_Fe.Parser is
                end if;
             else
                if Op = Modulo then
-                  Errors.Parser_Error ("The % operation is not defined " &
+                  Errors.Error ("The % operation is not defined " &
                                        "on this type.",
                                        Errors.Error,
                                        Loc);
                else
-                  Errors.Parser_Error ("The * and / operations are not " &
+                  Errors.Error ("The * and / operations are not " &
                                        "defined on this type.",
                                        Errors.Error,
                                        Loc);
@@ -3704,7 +3704,7 @@ package body Idl_Fe.Parser is
                                Expr_Type : in Constant_Value_Ptr) is
       type Operator_Type is (Plus, Minus, Tilde);
       Op : Operator_Type;
-      Loc : Idl_Fe.Errors.Location;
+      Loc : Errors.Location;
    begin
       pragma Debug (O2 ("Parse_Unary_Expr : enter"));
       case Get_Token is
@@ -3830,12 +3830,12 @@ package body Idl_Fe.Parser is
                end if;
             else
                if Op = Tilde then
-                  Errors.Parser_Error ("The ~ operation is not defined " &
+                  Errors.Error ("The ~ operation is not defined " &
                                        "on this type.",
                                        Errors.Error,
                                        Loc);
                else
-                  Errors.Parser_Error ("The unary + and - operations are " &
+                  Errors.Error ("The unary + and - operations are " &
                                        "not defined on this type.",
                                        Errors.Error,
                                        Loc);
@@ -3890,10 +3890,10 @@ package body Idl_Fe.Parser is
                            if not Is_In_List
                              (Enumerators (Expr_Type.Enum_Name),
                               Value (Local_Res)) then
-                              Idl_Fe.Errors.Parser_Error
+                              Errors.Error
                                 ("The specified type for this constant " &
                                  "does not match with its value.",
-                                 Idl_Fe.Errors.Error,
+                                 Errors.Error,
                                  Get_Token_Location);
                               Set_Expr_Value
                                 (Result,
@@ -3909,17 +3909,17 @@ package body Idl_Fe.Parser is
                         else
                            Set_Expr_Value
                              (Result, new Constant_Value (Kind => C_No_Kind));
-                           Idl_Fe.Errors.Parser_Error
+                           Errors.Error
                              ("The specified type for this constant " &
                               "does not match with its value.",
-                              Idl_Fe.Errors.Error,
+                              Errors.Error,
                               Get_Token_Location);
                         end if;
                      else
                         --  If no constant and no enum value, error
-                        Idl_Fe.Errors.Parser_Error
+                        Errors.Error
                           ("This scoped name must denote a constant value",
-                           Idl_Fe.Errors.Error,
+                           Errors.Error,
                            Get_Token_Location);
                         Result := No_Node;
                      end if;
@@ -3954,16 +3954,16 @@ package body Idl_Fe.Parser is
                return;
             end if;
             if Get_Token /= T_Right_Paren then
-               Idl_Fe.Errors.Parser_Error ("')' expected at the end  of ." &
+               Errors.Error ("')' expected at the end  of ." &
                                            "a constant expression.",
-                                           Idl_Fe.Errors.Error,
+                                           Errors.Error,
                                            Get_Token_Location);
                Success := False;
                return;
             end if;
             Next_Token;
          when others =>
-            Errors.Parser_Error ("primary expression expected.",
+            Errors.Error ("primary expression expected.",
                                  Errors.Error,
                                  Get_Token_Location);
             Result := No_Node;
@@ -4075,10 +4075,10 @@ package body Idl_Fe.Parser is
       else
          Set_Expr_Value (Result,
                          new Constant_Value (Kind => C_No_Kind));
-         Idl_Fe.Errors.Parser_Error
+         Errors.Error
            ("The specified type for this constant " &
             "does not match with its value.",
-            Idl_Fe.Errors.Error,
+            Errors.Error,
             Get_Token_Location);
       end if;
       Next_Token;
@@ -4167,7 +4167,7 @@ package body Idl_Fe.Parser is
                Result :=  Res;
             end;
          when others =>
-            raise Idl_Fe.Errors.Internal_Error;
+            raise Errors.Internal_Error;
       end case;
       pragma Debug (O2 ("Parse_Type_Dcl : end"));
       return;
@@ -4242,8 +4242,8 @@ package body Idl_Fe.Parser is
            | T_Union =>
             Parse_Constr_Type_Spec (Result, Success);
          when others =>
-            Idl_Fe.Errors.Parser_Error ("type specification expected.",
-                                 Idl_Fe.Errors.Error,
+            Errors.Error ("type specification expected.",
+                                 Errors.Error,
                                  Get_Token_Location);
             Success := False;
             Result := No_Node;
@@ -4336,10 +4336,10 @@ package body Idl_Fe.Parser is
                      Not_A_Type := True;
                   end if;
                   if Not_A_Type then
-                     Idl_Fe.Errors.Parser_Error
+                     Errors.Error
                        ("This scoped name does not denote an "
                         & " acceptable type for a Simple_Type_Spec.",
-                        Idl_Fe.Errors.Error,
+                        Errors.Error,
                         Get_Token_Location);
                   end if;
                end;
@@ -4347,15 +4347,15 @@ package body Idl_Fe.Parser is
          when T_Enum
            | T_Struct
            | T_Union =>
-            Idl_Fe.Errors.Parser_Error ("simple type specification " &
+            Errors.Error ("simple type specification " &
                                         "expected. No constructed " &
                                         "type allowed here.",
-                                        Idl_Fe.Errors.Error,
+                                        Errors.Error,
                                         Get_Token_Location);
             Parse_Constr_Type_Spec (Result, Success);
          when others =>
-            Idl_Fe.Errors.Parser_Error ("simple type specification expected.",
-                                        Idl_Fe.Errors.Error,
+            Errors.Error ("simple type specification expected.",
+                                        Errors.Error,
                                         Get_Token_Location);
             Result := No_Node;
             Success := False;
@@ -4434,7 +4434,7 @@ package body Idl_Fe.Parser is
                Result := Res;
             end;
          when others =>
-            raise Idl_Fe.Errors.Internal_Error;
+            raise Errors.Internal_Error;
       end case;
       pragma Debug (O2 ("Parse_Base_Type_Spec : end"));
       return;
@@ -4476,7 +4476,7 @@ package body Idl_Fe.Parser is
                Result := Res;
             end;
          when others =>
-            raise Idl_Fe.Errors.Internal_Error;
+            raise Errors.Internal_Error;
       end case;
    end Parse_Template_Type_Spec;
 
@@ -4509,7 +4509,7 @@ package body Idl_Fe.Parser is
                Result := Res;
             end;
          when others =>
-            raise Idl_Fe.Errors.Internal_Error;
+            raise Errors.Internal_Error;
       end case;
    end Parse_Constr_Type_Spec;
 
@@ -4557,8 +4557,8 @@ package body Idl_Fe.Parser is
    begin
       pragma Debug (O2 ("parse_declarator : enter"));
       if Get_Token /= T_Identifier then
-         Idl_Fe.Errors.Parser_Error ("Identifier expected.",
-                              Idl_Fe.Errors.Error,
+         Errors.Error ("Identifier expected.",
+                              Errors.Error,
                               Get_Token_Location);
          Success := False;
          Result := No_Node;
@@ -4584,8 +4584,8 @@ package body Idl_Fe.Parser is
                                       Success : out Boolean) is
    begin
       if Get_Token /= T_Identifier then
-         Idl_Fe.Errors.Parser_Error ("Identifier expected.",
-                              Idl_Fe.Errors.Error,
+         Errors.Error ("Identifier expected.",
+                              Errors.Error,
                               Get_Token_Location);
          Success := False;
          return;
@@ -4602,11 +4602,11 @@ package body Idl_Fe.Parser is
                Definition := Find_Identifier_Definition (Get_Token_String);
                pragma Debug (O ("Parse_Simple_Declarator : not redefinable " &
                                 " after definition"));
-               Idl_Fe.Errors.Parser_Error
+               Errors.Error
                  ("This identifier is already defined in this scope : " &
-                  Idl_Fe.Errors.Display_Location
+                  Errors.Display_Location
                   (Get_Location (Definition.Node)),
-                  Idl_Fe.Errors.Error,
+                  Errors.Error,
                   Get_Token_Location);
             end;
          end if;
@@ -4654,7 +4654,7 @@ package body Idl_Fe.Parser is
             Result := Make_Long_Double;
             Set_Location (Result, Get_Token_Location);
          when others =>
-               raise Idl_Fe.Errors.Internal_Error;
+               raise Errors.Internal_Error;
       end case;
       Success := True;
       return;
@@ -4673,7 +4673,7 @@ package body Idl_Fe.Parser is
          when T_Unsigned =>
             Parse_Unsigned_Int (Result, Success);
          when others =>
-            raise Idl_Fe.Errors.Internal_Error;
+            raise Errors.Internal_Error;
       end case;
    end Parse_Integer_Type;
 
@@ -4693,7 +4693,7 @@ package body Idl_Fe.Parser is
          when T_Short =>
             Parse_Signed_Short_Int (Result, Success);
          when others =>
-            raise Idl_Fe.Errors.Internal_Error;
+            raise Errors.Internal_Error;
       end case;
    end Parse_Signed_Int;
 
@@ -4751,11 +4751,11 @@ package body Idl_Fe.Parser is
             Parse_Unsigned_Short_Int (Result, Success);
          when others =>
             declare
-               Loc : Idl_Fe.Errors.Location;
+               Loc : Errors.Location;
             begin
                Loc := Get_Previous_Token_Location;
                Loc.Col := Loc.Col + 9;
-               Idl_Fe.Errors.Parser_Error (Ada.Characters.Latin_1.Quotation &
+               Errors.Error (Ada.Characters.Latin_1.Quotation &
                                     "short" &
                                     Ada.Characters.Latin_1.Quotation &
                                     " or " &
@@ -4763,7 +4763,7 @@ package body Idl_Fe.Parser is
                                     "long" &
                                     Ada.Characters.Latin_1.Quotation &
                                     " expected after unsigned.",
-                                    Idl_Fe.Errors.Error,
+                                    Errors.Error,
                                     Loc);
                Success := False;
                Result := No_Node;
@@ -4895,13 +4895,13 @@ package body Idl_Fe.Parser is
       Next_Token;
       if Get_Token /= T_Identifier then
          declare
-            Loc : Idl_Fe.Errors.Location;
+            Loc : Errors.Location;
          begin
             Loc := Get_Previous_Token_Location;
             Loc.Col := Loc.Col + 7;
-            Idl_Fe.Errors.Parser_Error
+            Errors.Error
               ("identifier expected in struct declaration.",
-               Idl_Fe.Errors.Error,
+               Errors.Error,
                Loc);
             Result := No_Node;
             Success := False;
@@ -4914,11 +4914,11 @@ package body Idl_Fe.Parser is
             Definition : Identifier_Definition_Acc :=
               Find_Identifier_Definition (Get_Token_String);
          begin
-            Idl_Fe.Errors.Parser_Error
+            Errors.Error
               ("This identifier is already defined in this scope : " &
-               Idl_Fe.Errors.Display_Location
+               Errors.Display_Location
                (Get_Location (Definition.Node)),
-               Idl_Fe.Errors.Error,
+               Errors.Error,
                Get_Token_Location);
          end;
       end if;
@@ -4934,13 +4934,13 @@ package body Idl_Fe.Parser is
       Next_Token;
       if Get_Token /= T_Left_Cbracket then
          declare
-            Loc : Idl_Fe.Errors.Location;
+            Loc : Errors.Location;
          begin
             Loc := Get_Previous_Token_Location;
             Loc.Col := Loc.Col + Get_Previous_Token_String'Length;
-            Idl_Fe.Errors.Parser_Error
+            Errors.Error
               ("'{' expected in struct definition.",
-               Idl_Fe.Errors.Error,
+               Errors.Error,
                Loc);
             Success := False;
             return;
@@ -4961,9 +4961,9 @@ package body Idl_Fe.Parser is
          return;
       end if;
       if Get_Token /= T_Right_Cbracket then
-         Idl_Fe.Errors.Parser_Error
+         Errors.Error
            ("'}' expected at the end of struct definition.",
-            Idl_Fe.Errors.Error,
+            Errors.Error,
             Get_Token_Location);
          Success := False;
          return;
@@ -4983,9 +4983,9 @@ package body Idl_Fe.Parser is
       pragma Debug (O2 ("Parse_Member_List : enter"));
       Result := Nil_List;
       if Get_Token = T_Right_Cbracket then
-         Idl_Fe.Errors.Parser_Error
+         Errors.Error
            ("member expected : a struct may not be empty.",
-            Idl_Fe.Errors.Error,
+            Errors.Error,
             Get_Token_Location);
       else
          loop
@@ -5014,7 +5014,7 @@ package body Idl_Fe.Parser is
    procedure Parse_Member (Result : out Node_Id;
                            Success : out Boolean) is
       Type_Spec : Node_Id;
-      Loc : Idl_Fe.Errors.Location;
+      Loc : Errors.Location;
    begin
       pragma Debug (O2 ("Parse_Member : enter"));
       Loc := Get_Token_Location;
@@ -5038,9 +5038,9 @@ package body Idl_Fe.Parser is
          return;
       end if;
       if Get_Token /= T_Semi_Colon then
-         Idl_Fe.Errors.Parser_Error
+         Errors.Error
            ("';' expected at the end of member declaration.",
-            Idl_Fe.Errors.Error,
+            Errors.Error,
             Get_Token_Location);
          Success := False;
          return;
@@ -5061,13 +5061,13 @@ package body Idl_Fe.Parser is
       Next_Token;
       if Get_Token /= T_Identifier then
          declare
-            Loc : Idl_Fe.Errors.Location;
+            Loc : Errors.Location;
          begin
             Loc := Get_Previous_Token_Location;
             Loc.Col := Loc.Col + 6;
-            Idl_Fe.Errors.Parser_Error
+            Errors.Error
               ("identifier expected in union definition.",
-               Idl_Fe.Errors.Error,
+               Errors.Error,
                Loc);
             Result := No_Node;
             Success := False;
@@ -5080,11 +5080,11 @@ package body Idl_Fe.Parser is
             Definition : Identifier_Definition_Acc :=
               Find_Identifier_Definition (Get_Token_String);
          begin
-            Idl_Fe.Errors.Parser_Error
+            Errors.Error
               ("This identifier is already defined in this scope : " &
-               Idl_Fe.Errors.Display_Location
+               Errors.Display_Location
                (Get_Location (Definition.Node)),
-               Idl_Fe.Errors.Error,
+               Errors.Error,
                Get_Token_Location);
          end;
       end if;
@@ -5101,13 +5101,13 @@ package body Idl_Fe.Parser is
       Next_Token;
       if Get_Token /= T_Switch then
          declare
-            Loc : Idl_Fe.Errors.Location;
+            Loc : Errors.Location;
          begin
             Loc := Get_Previous_Token_Location;
             Loc.Col := Loc.Col + Get_Previous_Token_String'Length;
-            Idl_Fe.Errors.Parser_Error
+            Errors.Error
               ("switch expected in union definition.",
-               Idl_Fe.Errors.Error,
+               Errors.Error,
                Loc);
             Result := No_Node;
             Success := False;
@@ -5117,17 +5117,17 @@ package body Idl_Fe.Parser is
       Next_Token;
       if Get_Token /= T_Left_Paren then
          declare
-            Loc : Idl_Fe.Errors.Location;
+            Loc : Errors.Location;
          begin
             Loc := Get_Previous_Token_Location;
             Loc.Col := Loc.Col + 2;
-            Idl_Fe.Errors.Parser_Error
+            Errors.Error
               ("'(' expected after " &
                Ada.Characters.Latin_1.Quotation &
                "switch" &
                Ada.Characters.Latin_1.Quotation &
                ".",
-               Idl_Fe.Errors.Error,
+               Errors.Error,
                Loc);
             Result := No_Node;
             Success := False;
@@ -5148,10 +5148,10 @@ package body Idl_Fe.Parser is
          return;
       end if;
       if Get_Token /= T_Right_Paren then
-         Idl_Fe.Errors.Parser_Error
+         Errors.Error
            ("')' expected at the end of switch " &
             "specification.",
-            Idl_Fe.Errors.Error,
+            Errors.Error,
             Get_Token_Location);
          Success := False;
          Pop_Scope;
@@ -5160,13 +5160,13 @@ package body Idl_Fe.Parser is
       Next_Token;
       if Get_Token /= T_Left_Cbracket then
          declare
-            Loc : Idl_Fe.Errors.Location;
+            Loc : Errors.Location;
          begin
             Loc := Get_Previous_Token_Location;
             Loc.Col := Loc.Col + 2;
-            Idl_Fe.Errors.Parser_Error
+            Errors.Error
               ("'{' expected at the beginning of union.",
-               Idl_Fe.Errors.Error,
+               Errors.Error,
                Loc);
             Result := No_Node;
             Success := False;
@@ -5189,9 +5189,9 @@ package body Idl_Fe.Parser is
          return;
       end if;
       if Get_Token /= T_Right_Cbracket then
-            Idl_Fe.Errors.Parser_Error
+            Errors.Error
               ("'}' expected at the end of union.",
-               Idl_Fe.Errors.Error,
+               Errors.Error,
                Get_Token_Location);
             Result := No_Node;
             Success := False;
@@ -5253,20 +5253,20 @@ package body Idl_Fe.Parser is
                      Invalid_Type := True;
                   end if;
                   if Invalid_Type then
-                     Idl_Fe.Errors.Parser_Error
+                     Errors.Error
                        ("Invalid type in switch. The " &
                         "scoped name should refer to " &
                         "an integer, char, boolean or " &
                         " enum type.",
-                        Idl_Fe.Errors.Error,
+                        Errors.Error,
                         Get_Token_Location);
                   end if;
                end;
             end if;
          when others =>
-            Idl_Fe.Errors.Parser_Error
+            Errors.Error
               ("switch type expected.",
-               Idl_Fe.Errors.Error,
+               Errors.Error,
                Get_Token_Location);
             Success := False;
             Result := No_Node;
@@ -5286,17 +5286,17 @@ package body Idl_Fe.Parser is
       pragma Debug (O2 ("Parse_Switch_Body : enter"));
       Result := Nil_List;
       if Get_Token = T_Right_Cbracket then
-         Idl_Fe.Errors.Parser_Error
+         Errors.Error
            ("case clause expected : " &
             "a union may not be empty.",
-            Idl_Fe.Errors.Error,
+            Errors.Error,
             Get_Token_Location);
       else
          loop
             declare
                Case_Clause : Node_Id;
                Case_Success : Boolean;
-               Loc : Idl_Fe.Errors.Location;
+               Loc : Errors.Location;
             begin
                pragma Debug (O ("Parse_Switch_Body : new case clause"));
                Loc := Get_Token_Location;
@@ -5309,9 +5309,9 @@ package body Idl_Fe.Parser is
                   Append_Node (Result, Case_Clause);
                   if Default_Clause then
                      if Is_In_List (Labels (Case_Clause), No_Node) then
-                        Idl_Fe.Errors.Parser_Error
+                        Errors.Error
                           ("default clause already appeared.",
-                           Idl_Fe.Errors.Error,
+                           Errors.Error,
                            Loc);
                      end if;
                   else
@@ -5337,7 +5337,7 @@ package body Idl_Fe.Parser is
                          Switch_Type : in Node_Id;
                          Success : out Boolean) is
       Default_Label : Boolean := False;
-      Loc : Idl_Fe.Errors.Location;
+      Loc : Errors.Location;
    begin
       pragma Debug (O2 ("Parse_Case : enter"));
       Loc := Get_Token_Location;
@@ -5346,7 +5346,7 @@ package body Idl_Fe.Parser is
            | T_Default =>
             null;
          when others =>
-            Idl_Fe.Errors.Parser_Error ("invalid case label : " &
+            Errors.Error ("invalid case label : " &
                                  Ada.Characters.Latin_1.Quotation &
                                  "case" &
                                  Ada.Characters.Latin_1.Quotation &
@@ -5355,7 +5355,7 @@ package body Idl_Fe.Parser is
                                  "default" &
                                  Ada.Characters.Latin_1.Quotation &
                                  " expected.",
-                                 Idl_Fe.Errors.Error,
+                                 Errors.Error,
                                  Get_Token_Location);
             Result := No_Node;
             Success := False;
@@ -5382,9 +5382,9 @@ package body Idl_Fe.Parser is
          end;
       end loop;
       if Default_Label and then Get_Length (Labels (Result)) > 1 then
-         Idl_Fe.Errors.Parser_Error ("Some labels are use less since you " &
+         Errors.Error ("Some labels are use less since you " &
                                      "one of them is the default clause",
-                                     Idl_Fe.Errors.Warning,
+                                     Errors.Warning,
                                      Loc);
       end if;
       pragma Debug (O ("Parse_case : all label parsed"));
@@ -5405,9 +5405,9 @@ package body Idl_Fe.Parser is
          return;
       end if;
       if Get_Token /= T_Semi_Colon then
-         Idl_Fe.Errors.Parser_Error
+         Errors.Error
            ("';' expected at the end of case clause.",
-            Idl_Fe.Errors.Error,
+            Errors.Error,
             Get_Token_Location);
       else
          Next_Token;
@@ -5427,7 +5427,7 @@ package body Idl_Fe.Parser is
       case Get_Token is
          when T_Case =>
             declare
-               Loc : Idl_Fe.Errors.Location;
+               Loc : Errors.Location;
             begin
                Next_Token;
                Loc := Get_Token_Location;
@@ -5437,10 +5437,10 @@ package body Idl_Fe.Parser is
                end if;
                --  Verifying that a clause does not appear twice
 --                if not Add_Used_Value (Result) then
---                   Idl_Fe.Errors.Parser_Error
+--                   Errors.Error
 --                     ("This value was already taken into " &
 --                      "account in this switch statement.",
---                      Idl_Fe.Errors.Warning,
+--                      Errors.Warning,
 --                      Loc);
 --                end if;
             end;
@@ -5449,12 +5449,12 @@ package body Idl_Fe.Parser is
             Result := No_Node;
             Success := True;
          when others =>
-            raise Idl_Fe.Errors.Internal_Error;
+            raise Errors.Internal_Error;
       end case;
       if Get_Token /= T_Colon then
-         Idl_Fe.Errors.Parser_Error
+         Errors.Error
            ("':' expected at the end of case label.",
-            Idl_Fe.Errors.Error,
+            Errors.Error,
             Get_Token_Location);
       else
          Next_Token;
@@ -5490,14 +5490,14 @@ package body Idl_Fe.Parser is
       Next_Token;
       if Get_Token /= T_Identifier then
          declare
-            Loc : Idl_Fe.Errors.Location;
+            Loc : Errors.Location;
          begin
             Loc := Get_Previous_Token_Location;
             Loc.Col := Loc.Col + 5;
-            Idl_Fe.Errors.Parser_Error
+            Errors.Error
               ("identifier expected in enumeration " &
                "definition.",
-               Idl_Fe.Errors.Error,
+               Errors.Error,
                Loc);
             Result := No_Node;
             Success := False;
@@ -5513,17 +5513,17 @@ package body Idl_Fe.Parser is
             Definition : Identifier_Definition_Acc :=
               Find_Identifier_Definition (Get_Token_String);
          begin
-            Idl_Fe.Errors.Parser_Error
+            Errors.Error
               ("This identifier is already defined in this scope : " &
-               Idl_Fe.Errors.Display_Location
+               Errors.Display_Location
                (Get_Location (Definition.Node)),
-               Idl_Fe.Errors.Error,
+               Errors.Error,
                Get_Token_Location);
             return;
          end;
       else
          if not Add_Identifier (Result, Get_Token_String) then
-            raise Idl_Fe.Errors.Internal_Error;
+            raise Errors.Internal_Error;
          end if;
          Set_Default_Repository_Id (Result);
 
@@ -5531,13 +5531,13 @@ package body Idl_Fe.Parser is
       Next_Token;
       if Get_Token /= T_Left_Cbracket then
          declare
-            Loc : Idl_Fe.Errors.Location;
+            Loc : Errors.Location;
          begin
             Loc := Get_Previous_Token_Location;
             Loc.Col := Loc.Col + Get_Previous_Token_String'Length;
-            Idl_Fe.Errors.Parser_Error
+            Errors.Error
               ("'{' expected in enumeration definition.",
-               Idl_Fe.Errors.Error,
+               Errors.Error,
                Loc);
             Result := No_Node;
             Success := False;
@@ -5546,10 +5546,10 @@ package body Idl_Fe.Parser is
       end if;
       Next_Token;
       if Get_Token = T_Right_Cbracket then
-         Idl_Fe.Errors.Parser_Error
+         Errors.Error
            ("identifier expected : " &
             "an enumeration may not be empty.",
-            Idl_Fe.Errors.Error,
+            Errors.Error,
             Get_Token_Location);
       else
          declare
@@ -5576,10 +5576,10 @@ package body Idl_Fe.Parser is
                   end if;
                   Count := Count + 1;
                   if Count = Idl_Enum_Max + 1 then
-                     Idl_Fe.Errors.Parser_Error
+                     Errors.Error
                        ("two much possible values in this " &
                         "enumeration : maximum is 2^32.",
-                        Idl_Fe.Errors.Error,
+                        Errors.Error,
                         Get_Token_Location);
                   end if;
                   Set_Enumerators (Result,
@@ -5590,10 +5590,10 @@ package body Idl_Fe.Parser is
          end;
       end if;
       if Get_Token /= T_Right_Cbracket then
-         Idl_Fe.Errors.Parser_Error
+         Errors.Error
            ("'}' expected at the end of enumeration " &
             "definition.",
-            Idl_Fe.Errors.Error,
+            Errors.Error,
             Get_Token_Location);
          Go_To_Next_Right_Cbracket;
          if Get_Token = T_Right_Cbracket then
@@ -5616,8 +5616,8 @@ package body Idl_Fe.Parser is
                                Success : out Boolean) is
    begin
       if Get_Token /= T_Identifier then
-         Idl_Fe.Errors.Parser_Error ("Identifier expected.",
-                              Idl_Fe.Errors.Error,
+         Errors.Error ("Identifier expected.",
+                              Errors.Error,
                               Get_Token_Location);
          Success := False;
          return;
@@ -5630,17 +5630,17 @@ package body Idl_Fe.Parser is
                Definition : Identifier_Definition_Acc :=
                  Find_Identifier_Definition (Get_Token_String);
             begin
-               Idl_Fe.Errors.Parser_Error
+               Errors.Error
                  ("This identifier is already defined in this scope : " &
-                  Idl_Fe.Errors.Display_Location
+                  Errors.Display_Location
                   (Get_Location (Definition.Node)),
-                  Idl_Fe.Errors.Error,
+                  Errors.Error,
                   Get_Token_Location);
             end;
          else
             --  no previous definition
             if not Add_Identifier (Result, Get_Token_String) then
-               raise Idl_Fe.Errors.Internal_Error;
+               raise Errors.Internal_Error;
             end if;
             Set_Default_Repository_Id (Result);
 
@@ -5661,9 +5661,9 @@ package body Idl_Fe.Parser is
       pragma Debug (O2 ("Parse_Sequence_Type : Enter"));
       Next_Token;
       if Get_Token /= T_Less then
-         Idl_Fe.Errors.Parser_Error
+         Errors.Error
            ("'<' expected in sequence definition.",
-            Idl_Fe.Errors.Error,
+            Errors.Error,
             Get_Token_Location);
          Success := False;
          return;
@@ -5688,17 +5688,17 @@ package body Idl_Fe.Parser is
                        Idl_Token'Image (Get_Token)));
       --  should divide the greater_greater token!
       if Get_Token = T_Greater_Greater then
-         Idl_Fe.Errors.Parser_Error
+         Errors.Error
            ("'>>' could be considered as a constant operation." &
             "You should better insert a space between the two '>'.",
-            Idl_Fe.Errors.Warning,
+            Errors.Warning,
             Get_Token_Location);
          Divide_T_Greater_Greater;
       end if;
       if Get_Token /= T_Comma and Get_Token /= T_Greater then
-         Idl_Fe.Errors.Parser_Error
+         Errors.Error
            ("',' or '>' expected in sequence definition.",
-            Idl_Fe.Errors.Error,
+            Errors.Error,
             Get_Token_Location);
          Success := False;
          return;
@@ -5721,10 +5721,10 @@ package body Idl_Fe.Parser is
 
       --  should divide the greater_greater token!
       if Get_Token = T_Greater_Greater then
-         Idl_Fe.Errors.Parser_Error
+         Errors.Error
            ("'>>' could be considered as a constant operation." &
             "You should better insert a space between the two '>'.",
-            Idl_Fe.Errors.Warning,
+            Errors.Warning,
             Get_Token_Location);
          Divide_T_Greater_Greater;
       end if;
@@ -5733,10 +5733,10 @@ package body Idl_Fe.Parser is
          when T_Greater =>
             Next_Token;
          when others =>
-            Idl_Fe.Errors.Parser_Error
+            Errors.Error
               ("'>' expected at the end of "
                & "sequence definition.",
-               Idl_Fe.Errors.Error,
+               Errors.Error,
                Get_Token_Location);
             Success := False;
             return;
@@ -5767,9 +5767,9 @@ package body Idl_Fe.Parser is
             return;
          end if;
          if Get_Token /= T_Greater then
-            Idl_Fe.Errors.Parser_Error
+            Errors.Error
               ("'>' expected in string definition.",
-               Idl_Fe.Errors.Error,
+               Errors.Error,
                Get_Token_Location);
             Success := False;
             return;
@@ -5804,9 +5804,9 @@ package body Idl_Fe.Parser is
             return;
          end if;
          if Get_Token /= T_Greater then
-            Idl_Fe.Errors.Parser_Error
+            Errors.Error
               ("'>' expected in wide string definition.",
-               Idl_Fe.Errors.Error,
+               Errors.Error,
                Get_Token_Location);
             Success := False;
             return;
@@ -5836,11 +5836,11 @@ package body Idl_Fe.Parser is
             Definition : Identifier_Definition_Acc :=
               Find_Identifier_Definition (Get_Token_String);
          begin
-            Idl_Fe.Errors.Parser_Error
+            Errors.Error
               ("This identifier is already defined in this scope : " &
-               Idl_Fe.Errors.Display_Location
+               Errors.Display_Location
                (Get_Location (Definition.Node)),
-               Idl_Fe.Errors.Error,
+               Errors.Error,
                Get_Token_Location);
          end;
       end if;
@@ -5890,13 +5890,13 @@ package body Idl_Fe.Parser is
       end if;
       if Get_Token /= T_Right_Sbracket then
          declare
-            Loc : Idl_Fe.Errors.Location;
+            Loc : Errors.Location;
          begin
             Loc := Get_Previous_Token_Location;
             Loc.Col := Loc.Col + Get_Previous_Token_String'Length;
-            Idl_Fe.Errors.Parser_Error
+            Errors.Error
               ("']' expected in array definition.",
-               Idl_Fe.Errors.Error,
+               Errors.Error,
                Loc);
          end;
          Success := False;
@@ -5923,9 +5923,9 @@ package body Idl_Fe.Parser is
          Set_Is_Readonly (El, False);
       end if;
       if Get_Token /= T_Attribute then
-         Idl_Fe.Errors.Parser_Error
+         Errors.Error
            ("'attribute' expected",
-            Idl_Fe.Errors.Error,
+            Errors.Error,
             Get_Token_Location);
          Result := No_Node;
          Success := False;
@@ -5946,9 +5946,9 @@ package body Idl_Fe.Parser is
          return;
       end if;
       if Get_Token /= T_Identifier then
-         Idl_Fe.Errors.Parser_Error
+         Errors.Error
            ("identifier expected",
-            Idl_Fe.Errors.Error,
+            Errors.Error,
             Get_Token_Location);
          Result := No_Node;
          Success := False;
@@ -5994,9 +5994,9 @@ package body Idl_Fe.Parser is
       pragma Debug (O ("Parse_Except_Dcl : first token " &
                        Idl_Token'Image (Get_Token)));
       if Get_Token /= T_Exception then
-         Idl_Fe.Errors.Parser_Error
+         Errors.Error
            ("'exception' expected",
-            Idl_Fe.Errors.Error,
+            Errors.Error,
             Get_Token_Location);
          Success := False;
          Result := No_Node;
@@ -6007,9 +6007,9 @@ package body Idl_Fe.Parser is
       Set_Location (Result, Get_Token_Location);
       Next_Token;
       if Get_Token /= T_Identifier then
-         Idl_Fe.Errors.Parser_Error
+         Errors.Error
            ("identifier expected",
-            Idl_Fe.Errors.Error,
+            Errors.Error,
             Get_Token_Location);
          Success := False;
          return;
@@ -6021,11 +6021,11 @@ package body Idl_Fe.Parser is
             Definition : Identifier_Definition_Acc :=
               Find_Identifier_Definition (Get_Token_String);
          begin
-            Idl_Fe.Errors.Parser_Error
+            Errors.Error
               ("This identifier is already defined in this scope : " &
-               Idl_Fe.Errors.Display_Location
+               Errors.Display_Location
                (Get_Location (Definition.Node)),
-               Idl_Fe.Errors.Error,
+               Errors.Error,
                Get_Token_Location);
             Success := False;
             return;
@@ -6038,9 +6038,9 @@ package body Idl_Fe.Parser is
                        Idl_Token'Image (Get_Token)));
       Next_Token;
       if Get_Token /= T_Left_Cbracket then
-         Idl_Fe.Errors.Parser_Error
+         Errors.Error
            ("'{' expected",
-            Idl_Fe.Errors.Error,
+            Errors.Error,
             Get_Token_Location);
          Success := False;
          return;
@@ -6099,9 +6099,9 @@ package body Idl_Fe.Parser is
          return;
       end if;
       if Get_Token /= T_Identifier then
-         Idl_Fe.Errors.Parser_Error
+         Errors.Error
            ("Identifier expected in operation declaration.",
-            Idl_Fe.Errors.Error,
+            Errors.Error,
             Get_Token_Location);
          Success := False;
          return;
@@ -6112,11 +6112,11 @@ package body Idl_Fe.Parser is
                Definition : Identifier_Definition_Acc :=
                  Find_Identifier_Definition (Get_Token_String);
             begin
-               Idl_Fe.Errors.Parser_Error
+               Errors.Error
                  ("This identifier is already defined in this scope : " &
-                  Idl_Fe.Errors.Display_Location
+                  Errors.Display_Location
                   (Get_Location (Definition.Node)),
-                  Idl_Fe.Errors.Error,
+                  Errors.Error,
                   Get_Token_Location);
                pragma Debug (O ("Parse_op_dcl : bad identifier"));
                Result := No_Node;
@@ -6127,7 +6127,7 @@ package body Idl_Fe.Parser is
             --  no previous definition
             if not Add_Identifier (Result,
                                    Get_Token_String) then
-                  raise Idl_Fe.Errors.Internal_Error;
+                  raise Errors.Internal_Error;
             end if;
             Set_Default_Repository_Id (Result);
 
@@ -6205,10 +6205,10 @@ package body Idl_Fe.Parser is
             Parse_Param_Type_Spec (Result, Success);
             return;
          when others =>
-            Idl_Fe.Errors.Parser_Error
+            Errors.Error
               ("void" &
                " or type specification expected.",
-               Idl_Fe.Errors.Error,
+               Errors.Error,
                Get_Token_Location);
             Success := False;
             Result := No_Node;
@@ -6225,13 +6225,13 @@ package body Idl_Fe.Parser is
       Result := Nil_List;
       if Get_Token /= T_Left_Paren then
          declare
-            Loc : Idl_Fe.Errors.Location;
+            Loc : Errors.Location;
          begin
             Loc := Get_Previous_Token_Location;
             Loc.Col := Loc.Col + Get_Previous_Token_String'Length;
-            Idl_Fe.Errors.Parser_Error
+            Errors.Error
               ("'(' expected in operation definition.",
-               Idl_Fe.Errors.Error,
+               Errors.Error,
                Loc);
          end;
          Success := False;
@@ -6263,10 +6263,10 @@ package body Idl_Fe.Parser is
          end;
       end loop;
       if Get_Token /= T_Right_Paren then
-         Idl_Fe.Errors.Parser_Error
+         Errors.Error
            ("')' expected at the end of the " &
             "parameters definition.",
-            Idl_Fe.Errors.Error,
+            Errors.Error,
             Get_Token_Location);
          Success := False;
          return;
@@ -6351,9 +6351,9 @@ package body Idl_Fe.Parser is
          when T_Inout =>
             Result := Mode_Inout;
          when others =>
-            Idl_Fe.Errors.Parser_Error
+            Errors.Error
               ("mode expected (in, out or inout).",
-               Idl_Fe.Errors.Error,
+               Errors.Error,
                Get_Token_Location);
             Result := Mode_In;
             Success := False;
@@ -6374,13 +6374,13 @@ package body Idl_Fe.Parser is
       Next_Token;
       if Get_Token /= T_Left_Paren then
          declare
-            Loc : Idl_Fe.Errors.Location;
+            Loc : Errors.Location;
          begin
             Loc := Get_Previous_Token_Location;
             Loc.Col := Loc.Col + 7;
-            Idl_Fe.Errors.Parser_Error
+            Errors.Error
               ("'(' expected in raises statement.",
-               Idl_Fe.Errors.Error,
+               Errors.Error,
                Loc);
          end;
          Success := False;
@@ -6389,14 +6389,14 @@ package body Idl_Fe.Parser is
       Next_Token;
       if Get_Token = T_Right_Paren then
          declare
-            Loc : Idl_Fe.Errors.Location;
+            Loc : Errors.Location;
          begin
             Loc := Get_Previous_Token_Location;
             Loc.Col := Loc.Col + 1;
-            Idl_Fe.Errors.Parser_Error
+            Errors.Error
               ("scoped_name expected : a raise statement " &
                "may not be empty.",
-               Idl_Fe.Errors.Error,
+               Errors.Error,
                Loc);
          end;
          Next_Token;
@@ -6412,10 +6412,10 @@ package body Idl_Fe.Parser is
          end if;
          if Name /= No_Node then
             if Kind (Value (Name)) /= K_Exception then
-               Idl_Fe.Errors.Parser_Error
+               Errors.Error
                  ("This scoped name is supposed " &
                   "to denote an exception.",
-                  Idl_Fe.Errors.Error,
+                  Errors.Error,
                   Get_Token_Location);
             end if;
          end if;
@@ -6433,16 +6433,16 @@ package body Idl_Fe.Parser is
             end if;
             if Name /= No_Node then
                if Kind (Value (Name)) /= K_Exception then
-                  Idl_Fe.Errors.Parser_Error
+                  Errors.Error
                     ("This scoped name is supposed " &
                      "to denote an exception.",
-                     Idl_Fe.Errors.Error,
+                     Errors.Error,
                      Get_Token_Location);
                elsif Is_In_Pointed_List (Result, Name) then
-                  Idl_Fe.Errors.Parser_Error
+                  Errors.Error
                     ("An operation may not raise twice " &
                      "a given exception.",
-                     Idl_Fe.Errors.Error,
+                     Errors.Error,
                      Get_Token_Location);
                else
                   Append_Node (Result, Name);
@@ -6451,10 +6451,10 @@ package body Idl_Fe.Parser is
          end;
       end loop;
       if Get_Token /= T_Right_Paren then
-         Idl_Fe.Errors.Parser_Error
+         Errors.Error
            ("')' expected at the end of the " &
             "raises statement.",
-            Idl_Fe.Errors.Error,
+            Errors.Error,
             Get_Token_Location);
          Success := False;
          return;
@@ -6473,13 +6473,13 @@ package body Idl_Fe.Parser is
       Next_Token;
       if Get_Token /= T_Left_Paren then
          declare
-            Loc : Idl_Fe.Errors.Location;
+            Loc : Errors.Location;
          begin
             Loc := Get_Previous_Token_Location;
             Loc.Col := Loc.Col + 7;
-            Idl_Fe.Errors.Parser_Error
+            Errors.Error
               ("'(' expected in context statement.",
-               Idl_Fe.Errors.Error,
+               Errors.Error,
                Loc);
          end;
          Success := False;
@@ -6488,14 +6488,14 @@ package body Idl_Fe.Parser is
       Next_Token;
       if Get_Token = T_Right_Paren then
          declare
-            Loc : Idl_Fe.Errors.Location;
+            Loc : Errors.Location;
          begin
             Loc := Get_Previous_Token_Location;
             Loc.Col := Loc.Col + 1;
-            Idl_Fe.Errors.Parser_Error
+            Errors.Error
               ("string literal expected : a context " &
                "statement may not be empty.",
-               Idl_Fe.Errors.Error,
+               Errors.Error,
                Loc);
          end;
          Next_Token;
@@ -6539,10 +6539,10 @@ package body Idl_Fe.Parser is
          end;
       end loop;
       if Get_Token /= T_Right_Paren then
-         Idl_Fe.Errors.Parser_Error
+         Errors.Error
            ("')' expected at the end of the " &
             "context statement.",
-            Idl_Fe.Errors.Error,
+            Errors.Error,
             Get_Token_Location);
          Success := False;
          return;
@@ -6634,19 +6634,19 @@ package body Idl_Fe.Parser is
                      Not_A_Type := True;
                   end if;
                   if Not_A_Type then
-                     Idl_Fe.Errors.Parser_Error
+                     Errors.Error
                        ("A Scoped_Named with a S_Type of "
                         & Img (Kind (S_Type (Result)))
                         & " is not acceptable as a Param_Type.",
-                        Idl_Fe.Errors.Error,
+                        Errors.Error,
                         Get_Token_Location);
                   end if;
                end;
             end if;
          when others =>
-            Idl_Fe.Errors.Parser_Error
+            Errors.Error
               ("param type specifier expected.",
-               Idl_Fe.Errors.Error,
+               Errors.Error,
                Get_Token_Location);
             Success := False;
       end case;
@@ -6663,9 +6663,9 @@ package body Idl_Fe.Parser is
       Result := Make_Fixed;
       Set_Location (Result, Get_Previous_Token_Location);
       if Get_Token /= T_Less then
-         Idl_Fe.Errors.Parser_Error
+         Errors.Error
            ("'<' expected in fixed point type definition.",
-            Idl_Fe.Errors.Error,
+            Errors.Error,
             Get_Token_Location);
          Success := False;
          return;
@@ -6685,17 +6685,17 @@ package body Idl_Fe.Parser is
       end if;
       if Expr_Value (Digits_Nb (Result)).Integer_Value < 0 or
         Expr_Value (Digits_Nb (Result)).Integer_Value > 31 then
-         Idl_Fe.Errors.Parser_Error
+         Errors.Error
            ("invalid number of digits in fixed point " &
             "type definition : it should be in range " &
             "0 .. 31.",
-            Idl_Fe.Errors.Error,
+            Errors.Error,
             Get_Token_Location);
       end if;
       if Get_Token /= T_Comma then
-         Idl_Fe.Errors.Parser_Error
+         Errors.Error
            ("',' expected in fixed point type definition.",
-            Idl_Fe.Errors.Error,
+            Errors.Error,
             Get_Token_Location);
          Success := False;
          return;
@@ -6715,17 +6715,17 @@ package body Idl_Fe.Parser is
       end if;
       if Expr_Value (Digits_Nb (Result)).Integer_Value <
         Expr_Value (Scale (Result)).Integer_Value then
-         Idl_Fe.Errors.Parser_Error
+         Errors.Error
            ("invalid scale in fixed point " &
             "type definition : it should be less " &
             "than or equal to the number of digits.",
-            Idl_Fe.Errors.Error,
+            Errors.Error,
             Get_Token_Location);
       end if;
       if Get_Token /= T_Greater then
-         Idl_Fe.Errors.Parser_Error
+         Errors.Error
            ("'>' expected in fixed point type definition.",
-            Idl_Fe.Errors.Error,
+            Errors.Error,
             Get_Token_Location);
          Success := False;
          return;
@@ -6843,9 +6843,9 @@ package body Idl_Fe.Parser is
       Success := False;
       Next_Token;
       if Get_Token /= T_Identifier then
-         Idl_Fe.Errors.Parser_Error
+         Errors.Error
            ("pragma identifier expected",
-            Idl_Fe.Errors.Error,
+            Errors.Error,
             Get_Token_Location);
          Go_To_End_Of_Pragma;
          return;
@@ -6882,9 +6882,9 @@ package body Idl_Fe.Parser is
                                      String_Constant_Type);
                Free (String_Constant_Type);
                if not Res_Success then
-                  Idl_Fe.Errors.Parser_Error
+                  Errors.Error
                     ("Repository ID expected.",
-                     Idl_Fe.Errors.Error,
+                     Errors.Error,
                      Get_Token_Location);
                   Go_To_End_Of_Pragma;
                   return;
@@ -6892,9 +6892,9 @@ package body Idl_Fe.Parser is
 
                if Name_Node /= No_Node then
                   if Is_Explicit_Repository_Id (Value (Name_Node)) then
-                     Idl_Fe.Errors.Parser_Error
+                     Errors.Error
                        ("Entity already has an explicit repository ID.",
-                        Idl_Fe.Errors.Error,
+                        Errors.Error,
                         Get_Token_Location);
                      Go_To_End_Of_Pragma;
                      return;
@@ -6928,9 +6928,9 @@ package body Idl_Fe.Parser is
                Parse_String_Literal
                  (String_Lit_Node, Res_Success, Val);
                if not Res_Success then
-                  Idl_Fe.Errors.Parser_Error
+                  Errors.Error
                     ("Repository ID prefix expected.",
-                     Idl_Fe.Errors.Error,
+                     Errors.Error,
                      Get_Token_Location);
                   Go_To_End_Of_Pragma;
                   return;
@@ -6945,18 +6945,18 @@ package body Idl_Fe.Parser is
             end;
 
          else
-            Idl_Fe.Errors.Parser_Error
+            Errors.Error
             ("Unknown pragma: " & Pragma_Id & ", will be ignored.",
-             Idl_Fe.Errors.Warning,
+             Errors.Warning,
              Get_Token_Location);
             Go_To_End_Of_Pragma;
             return;
          end if;
 
          if Get_Token /= T_End_Pragma then
-            Idl_Fe.Errors.Parser_Error
+            Errors.Error
               ("unexpected end of pragma line : the end will be ignored.",
-               Idl_Fe.Errors.Error,
+               Errors.Error,
                Get_Token_Location);
             Go_To_End_Of_Pragma;
             return;
@@ -7070,7 +7070,7 @@ package body Idl_Fe.Parser is
                   Result := Character'Val (Pos);
                end;
             when others =>
-               raise Idl_Fe.Errors.Internal_Error;
+               raise Errors.Internal_Error;
          end case;
       else
          Result := S (S'First);
@@ -7172,7 +7172,7 @@ package body Idl_Fe.Parser is
                   Result := Wide_Character'Val (Pos);
                end;
             when others =>
-               raise Idl_Fe.Errors.Internal_Error;
+               raise Errors.Internal_Error;
          end case;
       else
          Result :=  Wide_Character'Val
@@ -7218,7 +7218,7 @@ package body Idl_Fe.Parser is
                   I := I + 1;
                end loop;
             when others =>
-               raise Idl_Fe.Errors.Internal_Error;
+               raise Errors.Internal_Error;
          end case;
          pragma Debug (O2 ("Get_Integer_Literal : end"));
          return Result;
@@ -7244,10 +7244,10 @@ package body Idl_Fe.Parser is
          when others =>
             Set_Expr_Value (Result,
                             new Constant_Value (Kind => C_No_Kind));
-            Idl_Fe.Errors.Parser_Error
+            Errors.Error
               ("The specified type for this constant " &
                "does not match with its value.",
-               Idl_Fe.Errors.Error,
+               Errors.Error,
                Get_Token_Location);
       end case;
       Next_Token;
@@ -7289,10 +7289,10 @@ package body Idl_Fe.Parser is
          end loop;
          if Expr_Type.String_Length >= 0 then
             if L > Integer (Expr_Type.String_Length) then
-               Idl_Fe.Errors.Parser_Error
+               Errors.Error
                  ("This value does not match with the specified type : " &
                   "the string is too long.",
-                  Idl_Fe.Errors.Error,
+                  Errors.Error,
                   Get_Token_Location);
             end if;
          end if;
@@ -7302,9 +7302,9 @@ package body Idl_Fe.Parser is
    begin
       pragma Debug (O2 ("Parse_String_Literal : enter"));
       if Get_Token /= T_Lit_String then
-         Idl_Fe.Errors.Parser_Error
+         Errors.Error
            ("String literal expected here.",
-            Idl_Fe.Errors.Error,
+            Errors.Error,
             Get_Token_Location);
          Result := No_Node;
          Success := False;
@@ -7320,10 +7320,10 @@ package body Idl_Fe.Parser is
       else
          Set_Expr_Value (Result,
                          new Constant_Value (Kind => C_No_Kind));
-         Idl_Fe.Errors.Parser_Error
+         Errors.Error
            ("The specified type for this constant " &
             "does not match with its value.",
-            Idl_Fe.Errors.Error,
+            Errors.Error,
             Get_Token_Location);
       end if;
       Next_Token;
@@ -7363,10 +7363,10 @@ package body Idl_Fe.Parser is
          end loop;
          if Expr_Type.WString_Length >= 0 then
             if L > Integer (Expr_Type.WString_Length) then
-               Idl_Fe.Errors.Parser_Error
+               Errors.Error
                  ("This value does not match with the specified type : " &
                   "the string is too long.",
-                  Idl_Fe.Errors.Error,
+                  Errors.Error,
                   Get_Token_Location);
             end if;
          end if;
@@ -7375,9 +7375,9 @@ package body Idl_Fe.Parser is
 
    begin
       if Get_Token /= T_Lit_Wide_String then
-         Idl_Fe.Errors.Parser_Error
+         Errors.Error
            ("Wide string literal expected here.",
-            Idl_Fe.Errors.Error,
+            Errors.Error,
             Get_Token_Location);
          Result := No_Node;
          Success := False;
@@ -7392,10 +7392,10 @@ package body Idl_Fe.Parser is
       else
          Set_Expr_Value (Result,
                          new Constant_Value (Kind => C_No_Kind));
-         Idl_Fe.Errors.Parser_Error
+         Errors.Error
            ("The specified type for this constant " &
             "does not match with its value.",
-            Idl_Fe.Errors.Error,
+            Errors.Error,
             Get_Token_Location);
       end if;
       Next_Token;
@@ -7427,10 +7427,10 @@ package body Idl_Fe.Parser is
       else
          Set_Expr_Value (Result,
                          new Constant_Value (Kind => C_No_Kind));
-         Idl_Fe.Errors.Parser_Error
+         Errors.Error
            ("The specified type for this constant " &
             "does not match with its value.",
-            Idl_Fe.Errors.Error,
+            Errors.Error,
             Get_Token_Location);
       end if;
       Next_Token;
@@ -7462,10 +7462,10 @@ package body Idl_Fe.Parser is
       else
          Set_Expr_Value (Result,
                          new Constant_Value (Kind => C_No_Kind));
-         Idl_Fe.Errors.Parser_Error
+         Errors.Error
            ("The specified type for this constant " &
             "does not match with its value.",
-            Idl_Fe.Errors.Error,
+            Errors.Error,
             Get_Token_Location);
       end if;
       Next_Token;
@@ -7544,10 +7544,10 @@ package body Idl_Fe.Parser is
          when others =>
             Set_Expr_Value (Result,
                             new Constant_Value (Kind => C_No_Kind));
-            Idl_Fe.Errors.Parser_Error
+            Errors.Error
               ("The specified type for this constant " &
                "does not match with its value.",
-               Idl_Fe.Errors.Error,
+               Errors.Error,
                Get_Token_Location);
       end case;
       Next_Token;
@@ -7612,11 +7612,11 @@ package body Idl_Fe.Parser is
          if (L1 /= 0 and
              Idl_Integer (L1) > Expr_Type.Digits_Nb - Expr_Type.Scale) or
            (Idl_Integer (L2 - Last_Zeros_Nb) > Expr_Type.Scale) then
-            Idl_Fe.Errors.Parser_Error
+            Errors.Error
               ("The specified type for this constant " &
                "is not enough precise for this value. " &
                "A more precise type will be used.",
-               Idl_Fe.Errors.Error,
+               Errors.Error,
                Get_Token_Location);
             Set_Expr_Value (Result,
                             new Constant_Value (Kind => C_General_Fixed));
@@ -7640,10 +7640,10 @@ package body Idl_Fe.Parser is
       else
          Set_Expr_Value (Result,
                          new Constant_Value (Kind => C_No_Kind));
-         Idl_Fe.Errors.Parser_Error
+         Errors.Error
            ("The specified type for this constant " &
             "does not match with its value.",
-            Idl_Fe.Errors.Error,
+            Errors.Error,
             Get_Token_Location);
       end if;
       Next_Token;
@@ -7666,10 +7666,10 @@ package body Idl_Fe.Parser is
          Old_Value : Constant_Value_Ptr := Expr_Value (Node);
       begin
          pragma Debug (O2 ("Integer_Precision_Exceeded : enter"));
-         Idl_Fe.Errors.Parser_Error
+         Errors.Error
            ("The specified type for this integer constant " &
             "does not allow this value",
-            Idl_Fe.Errors.Error,
+            Errors.Error,
             Get_Token_Location);
          Set_Expr_Value
            (Node,
@@ -7683,10 +7683,10 @@ package body Idl_Fe.Parser is
          Old_Value : Constant_Value_Ptr := Expr_Value (Node);
       begin
          pragma Debug (O2 ("Float_Precision_Exceeded : enter"));
-         Idl_Fe.Errors.Parser_Error
+         Errors.Error
            ("The specified type for this floating point constant " &
             "does not allow this value",
-            Idl_Fe.Errors.Error,
+            Errors.Error,
             Get_Token_Location);
          Set_Expr_Value
            (Node,
@@ -7700,11 +7700,11 @@ package body Idl_Fe.Parser is
          Old_Value : Constant_Value_Ptr := Expr_Value (Node);
       begin
          pragma Debug (O2 ("Fixed_Precision_Exceeded : enter"));
-         Idl_Fe.Errors.Parser_Error
+         Errors.Error
            ("invalid number of digits in fixed point " &
             "type definition : it should be in range " &
             "0 .. 31.",
-            Idl_Fe.Errors.Error,
+            Errors.Error,
             Get_Token_Location);
          Set_Expr_Value
            (Node,
@@ -7917,29 +7917,29 @@ package body Idl_Fe.Parser is
                if Value.Digits_Nb - Value.Scale >
                  Value_Type.Digits_Nb - Value_Type.Scale or
                  Value.Scale > Value_Type.Scale then
-                  Idl_Fe.Errors.Parser_Error
+                  Errors.Error
                     ("The specified type for this fixed point " &
                      "constant is not enough precise for its value. " &
                      "A more precise type will be used.",
-                     Idl_Fe.Errors.Error,
+                     Errors.Error,
                      Get_Token_Location);
                end if;
             when C_Enum =>
                if Value.Enum_Name /= Value_Type.Enum_Name then
-                  Idl_Fe.Errors.Parser_Error
+                  Errors.Error
                     ("The specified type for this enum constant " &
                      "does not match with its value.",
-                     Idl_Fe.Errors.Error,
+                     Errors.Error,
                      Get_Token_Location);
                end if;
             when others =>
                null;
          end case;
       else
-         Idl_Fe.Errors.Parser_Error
+         Errors.Error
            ("The specified type for this constant " &
             "does not match with its value.",
-            Idl_Fe.Errors.Error,
+            Errors.Error,
             Get_Token_Location);
       end if;
       null;
@@ -7956,10 +7956,10 @@ package body Idl_Fe.Parser is
          return;
       end if;
       if To_Lower (S (S'First)) not in LC_A .. LC_Z then
-         Idl_Fe.Errors.Parser_Error ("invalid string for context " &
+         Errors.Error ("invalid string for context " &
                               "declaration : the first character " &
                               "must be an alphabetic one.",
-                              Idl_Fe.Errors.Error,
+                              Errors.Error,
                               Get_Token_Location);
          return;
       end if;
@@ -7968,11 +7968,11 @@ package body Idl_Fe.Parser is
            and S (I) not in '0' .. '9'
            and S (I) /= '.'
            and S (I) /= '_' then
-            Idl_Fe.Errors.Parser_Error ("invalid string for context " &
+            Errors.Error ("invalid string for context " &
                                  "declaration : it may only content " &
                                  "alphabetic, digit, period, underscore " &
                                  "characters plus an asterisk at the end.",
-                                 Idl_Fe.Errors.Error,
+                                 Errors.Error,
                                  Get_Token_Location);
             return;
          end if;
@@ -7982,11 +7982,11 @@ package body Idl_Fe.Parser is
         and S (S'Last) /= '.'
         and S (S'Last) /= '_'
         and S (S'Last) /= '*' then
-         Idl_Fe.Errors.Parser_Error ("invalid string for context " &
+         Errors.Error ("invalid string for context " &
                               "declaration : the last character may only " &
                               "be an alphabetic, digit, period, " &
                               "underscore or asterisk character.",
-                              Idl_Fe.Errors.Error,
+                              Errors.Error,
                               Get_Token_Location);
          return;
       end if;

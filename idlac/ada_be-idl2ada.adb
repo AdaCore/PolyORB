@@ -24,20 +24,18 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Text_IO; use Ada.Text_IO;
-
-with Idl_Fe.Types; use Idl_Fe.Types;
-with Idl_Fe.Tree;  use Idl_Fe.Tree;
+with Idl_Fe.Types;          use Idl_Fe.Types;
+with Idl_Fe.Tree;           use Idl_Fe.Tree;
 with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree.Synthetic;
 
-with Ada_Be.Identifiers; use Ada_Be.Identifiers;
+with Ada_Be.Identifiers;    use Ada_Be.Identifiers;
 with Ada_Be.Source_Streams; use Ada_Be.Source_Streams;
-with Ada_Be.Temporaries; use Ada_Be.Temporaries;
+with Ada_Be.Temporaries;    use Ada_Be.Temporaries;
 with Ada_Be.Debug;
 pragma Elaborate (Ada_Be.Debug);
 
-
-with Utils; use Utils;
+with Errors;                use Errors;
+with Utils;                 use Utils;
 
 package body Ada_Be.Idl2Ada is
 
@@ -61,7 +59,8 @@ package body Ada_Be.Idl2Ada is
 
    procedure Gen_Scope
      (Node : Node_Id;
-      Implement : Boolean);
+      Implement : Boolean;
+      To_Stdout : Boolean);
    --  Generate all the files for scope Node.
    --  The implementation templates for interfaces is
    --  generated only if Implement is true.
@@ -237,7 +236,8 @@ package body Ada_Be.Idl2Ada is
 
    procedure Generate
      (Node : in Node_Id;
-      Implement : Boolean := False)
+      Implement : Boolean := False;
+      To_Stdout : Boolean := False)
    is
       S_Node : Node_Id;
       It : Node_Iterator;
@@ -247,14 +247,15 @@ package body Ada_Be.Idl2Ada is
       Init (It, Contents (Node));
       while not Is_End (It) loop
          Get_Next_Node (It, S_Node);
-         Gen_Scope (S_Node, Implement);
+         Gen_Scope (S_Node, Implement, To_Stdout);
       end loop;
 
    end Generate;
 
    procedure Gen_Scope
      (Node : Node_Id;
-      Implement : Boolean)
+      Implement : Boolean;
+      To_Stdout : Boolean)
    is
       Stubs_Name : constant String
         := Ada_Full_Name (Node);
@@ -324,7 +325,7 @@ package body Ada_Be.Idl2Ada is
                             & " is defined in a child unit.");
 
                      end if;
-                     Gen_Scope (Decl_Node, Implement);
+                     Gen_Scope (Decl_Node, Implement, To_Stdout);
                   else
                      Gen_Node_Stubs_Spec
                        (Stubs_Spec, Decl_Node);
@@ -428,7 +429,7 @@ package body Ada_Be.Idl2Ada is
                while not Is_End (It) loop
                   Get_Next_Node (It, Export_Node);
                   if Is_Gen_Scope (Export_Node) then
-                     Gen_Scope (Export_Node, Implement);
+                     Gen_Scope (Export_Node, Implement, To_Stdout);
                   else
                      Gen_Node_Stubs_Spec
                        (Stubs_Spec, Export_Node);
@@ -560,15 +561,16 @@ package body Ada_Be.Idl2Ada is
       NL (Impl_Spec);
       NL (Impl_Body);
 
-      Generate (Stubs_Spec);
-      Generate (Stubs_Body);
-      Generate (Stream_Spec);
-      Generate (Stream_Body);
-      Generate (Skel_Spec);
-      Generate (Skel_Body);
       if Implement then
-         Generate (Impl_Spec);
-         Generate (Impl_Body);
+         Generate (Impl_Spec, False, To_Stdout);
+         Generate (Impl_Body, False, To_Stdout);
+      else
+         Generate (Stubs_Spec, False, To_Stdout);
+         Generate (Stubs_Body, False, To_Stdout);
+         Generate (Stream_Spec, False, To_Stdout);
+         Generate (Stream_Body, False, To_Stdout);
+         Generate (Skel_Spec, False, To_Stdout);
+         Generate (Skel_Body, False, To_Stdout);
       end if;
    end Gen_Scope;
 
@@ -1116,6 +1118,8 @@ package body Ada_Be.Idl2Ada is
                NL (CU);
                if Is_Function then
                   PL (CU, "return Result;");
+               else
+                  PL (CU, "null;");
                end if;
                DI (CU);
                PL (CU, "end " & Ada_Operation_Name (Node) & ";");
@@ -1982,6 +1986,10 @@ package body Ada_Be.Idl2Ada is
                   Member_Node : Node_Id;
                begin
                   Init (It, Members (Node));
+                  if Is_End (It) then
+                     PL (CU, "--  Empty structure.");
+                     PL (CU, "null;");
+                  end if;
                   while not Is_End (It) loop
                      Get_Next_Node (It, Member_Node);
 
@@ -2021,6 +2029,9 @@ package body Ada_Be.Idl2Ada is
                   Member_Node : Node_Id;
                begin
                   Init (It, Members (Node));
+                  if Is_End (It) then
+                     PL (CU, "--  Empty structure.");
+                  end if;
                   while not Is_End (It) loop
                      Get_Next_Node (It, Member_Node);
 
@@ -2289,7 +2300,7 @@ package body Ada_Be.Idl2Ada is
                NL (CU);
                PL (CU, "is");
                II (CU);
-               PL (CU, "use " & Ada_Name (Node));
+               PL (CU, "use " & Ada_Name (Node) & ";");
                DI (CU);
             else
                PL (CU, " is");
@@ -2490,11 +2501,10 @@ package body Ada_Be.Idl2Ada is
             Gen_Node_Default (CU, Operand (Node));
 
          when others =>
-            Ada.Text_IO.Put_Line
-              ("Error: Don't know what to do with a "
-               & Kind (Node)'Img & " node.");
-            raise Program_Error;
-
+            Error
+              ("Don't know what to do with a "
+               & Kind (Node)'Img & " node.",
+               Fatal, Get_Location (Node));
       end case;
    end Gen_Node_Default;
 
@@ -2601,10 +2611,14 @@ package body Ada_Be.Idl2Ada is
             --  Improper use: node N is not
             --  mapped to an Ada type.
 
-            Ada.Text_IO.Put_Line ("Error: A "
-                                  & NK'Img
-                                  & " does not denote a type.");
+            Error
+              ("A " & NK'Img
+               & " does not denote a type.",
+               Fatal, Get_Location (Node));
+
+            --  Keep the compiler happy.
             raise Program_Error;
+
       end case;
    end Ada_Type_Name;
 
@@ -2656,10 +2670,10 @@ package body Ada_Be.Idl2Ada is
             Add_With (CU, "CORBA");
 
          when others =>
-            Ada.Text_IO.Put_Line ("Error: A "
-                                  & NK'Img
-                                  & " is not a mapped entity.");
-            raise Program_Error;
+            Error
+              ("A " & NK'Img
+               & " is not a mapped entity.",
+               Fatal, Get_Location (Node));
       end case;
    end Add_With_Entity;
 
@@ -2738,11 +2752,10 @@ package body Ada_Be.Idl2Ada is
             --  Improper use: node N is not
             --  mapped to an Ada type.
 
-            Ada.Text_IO.Put_Line
-              ("Error: A "
-               & NK'Img
-               & " does not denote a streamable type.");
-            raise Program_Error;
+            Error
+              ("A " & NK'Img
+               & " does not denote a streamable type.",
+               Fatal, Get_Location (Node));
       end case;
    end Add_With_Stream;
 

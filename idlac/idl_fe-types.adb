@@ -27,7 +27,7 @@
 with Ada.Unchecked_Deallocation;
 with System;
 with GNAT.Case_Util;
-with Idl_Fe.Errors;
+with Errors;
 with Idl_Fe.Lexer;
 with Idl_Fe.Tree; use Idl_Fe.Tree;
 with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree.Synthetic;
@@ -60,9 +60,9 @@ package body Idl_Fe.Types is
 
    procedure Set_Location
      (N : Node_Id;
-      Loc : Idl_Fe.Errors.Location) is
-      Loc2 : Idl_Fe.Errors.Location;
-      use Idl_Fe.Errors;
+      Loc : Errors.Location) is
+      Loc2 : Errors.Location;
+      use Errors;
    begin
       Loc2.Col := Loc.Col;
       Loc2.Line := Loc.Line;
@@ -82,7 +82,7 @@ package body Idl_Fe.Types is
 
    function Get_Location
      (N : Node_Id)
-     return Idl_Fe.Errors.Location is
+     return Errors.Location is
    begin
       return Loc (N);
    end Get_Location;
@@ -496,7 +496,7 @@ package body Idl_Fe.Types is
       if Definition  /= null then
          return Definition.Node;
       else
-         raise Idl_Fe.Errors.Fatal_Error;
+         raise Errors.Fatal_Error;
       end if;
    end Get_Node;
 
@@ -898,7 +898,7 @@ package body Idl_Fe.Types is
       if Current_Scope = null then
          pragma Debug (O ("Push_Scope : current_scope is null."));
          pragma Debug (O ("Push_Scope : root scope is defined at " &
-                          Idl_Fe.Errors.Display_Location
+                          Errors.Display_Location
                           (Get_Location (Scope))));
          Root_Scope := Stack;
       end if;
@@ -977,12 +977,12 @@ package body Idl_Fe.Types is
          while not Is_End (Forward_Defs) loop
             Get_Next_Node (Forward_Defs, Forward_Def);
 
-            Idl_Fe.Errors.Parser_Error
+            Errors.Error
               ("The forward declaration " &
-               Idl_Fe.Errors.Display_Location
+               Errors.Display_Location
                (Get_Location (Forward_Def)) &
                " is not implemented.",
-               Idl_Fe.Errors.Error,
+               Errors.Error,
                Get_Location (Old_Scope.Scope));
          end loop;
       end if;
@@ -1249,7 +1249,7 @@ package body Idl_Fe.Types is
    begin
       if A_Definition.Node = No_Node
         or else Definition (Node) /= null then
-         raise Idl_Fe.Errors.Internal_Error;
+         raise Errors.Internal_Error;
       end if;
 
       Set_Definition (A_Definition.Node, null);
@@ -1455,7 +1455,7 @@ package body Idl_Fe.Types is
         Imported_Table (Scope).Content_Table.Table (Index).Definition;
       if Definition_Test /= null then
          if Definition_Test /= Definition then
-            raise Idl_Fe.Errors.Internal_Error;
+            raise Errors.Internal_Error;
          end if;
       end if;
       Imported_Table (Scope).Content_Table.
@@ -1550,10 +1550,10 @@ package body Idl_Fe.Types is
             pragma Debug (O ("Find_Inherited_Identifier_Definition : " &
                              "Many definitions found in inheritance"));
 
-            Idl_Fe.Errors.Parser_Error ("Multiple definitions found" &
+            Errors.Error ("Multiple definitions found" &
                                         " in inheritance : ambiguous " &
                                         "referance",
-                                        Idl_Fe.Errors.Error,
+                                        Errors.Error,
                                         Idl_Fe.Lexer.Get_Lexer_Location);
 
             Node := Head (Result_List);
