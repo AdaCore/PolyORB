@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.5 $
+--                            $Revision: 1.6 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -37,6 +37,7 @@ package CORBA.NVList is
 
    type Object is private;
 
+
    procedure Add_Item
      (Self       : in out Object;
       Item_Name  : in     Identifier;
@@ -55,6 +56,33 @@ package CORBA.NVList is
 
    Null_Object : constant Object;
 
+   --  implementation defined
+
+   procedure Revert
+     (Self : in out Object);
+   --  revert a list
+
+   type Iterator is limited private;
+
+   procedure Start
+     (I   : in out Iterator;
+      Nvl : in     Object);
+
+   function  Done
+     (I   : in     Iterator)
+     return CORBA.Boolean;
+
+   procedure Next
+     (I   : in out Iterator);
+
+   function Get
+     (I   : in     Iterator)
+     return CORBA.NamedValue;
+
+   procedure Set_Argument
+     (I   : in out Iterator;
+      A   : in     CORBA.Any);
+
 private
    --  implementation defined
 
@@ -63,6 +91,10 @@ private
    type Cell is record
       Value : CORBA.NamedValue;
       Next : Cell_Ptr;
+   end record;
+
+   type Iterator is record
+      This : Cell_Ptr;
    end record;
 
    --  the implementation should maintain Args_Count to the current

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.8 $
+--                            $Revision: 1.9 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -36,7 +36,7 @@
 --  This package is wrapped around a C++ class whose name is
 --  Ada_netBufferedStream. (see Ada_netBufferedStream.hh) It provides two
 --  types of methods : the C functions of the Ada_netBufferedStream class
---  and their equivalent in Ada. (he first ones have a C_ prefix.)  In
+--  and their equivalent in Ada. (the first ones have a C_ prefix.)  In
 --  addition, there is a raise_ada_exception function that allows C
 --  functions to raise the ada No_Initialisation exception.  At last, there
 --  is only one Init procedure in place of two in Ada_netBufferedStream
@@ -997,5 +997,36 @@ package body AdaBroker.NetBufferedStream is
       --  Transform the result into an Ada type
       return Sysdep.To_Boolean (C_Result);
    end Is_Reusing_Existing_Connection;
+
+
+   -----------------
+   --  DII stuff  --
+   -----------------
+
+   procedure Marshall
+     (A : in CORBA.Any;
+      S : in out Object'Class) is
+   begin
+      null;
+   end Marshall;
+
+   procedure Unmarshall
+     (A : out CORBA.Any;
+      S : in out Object'Class) is
+   begin
+      A := CORBA.To_Any (CORBA.Long (0));
+      --  to be fixed
+   end Unmarshall;
+
+   function Align_Size
+     (A              : in CORBA.Any;
+      Initial_Offset : in CORBA.Unsigned_Long;
+      N              : in CORBA.Unsigned_Long := 1)
+      return CORBA.Unsigned_Long is
+   begin
+      return Initial_Offset; -- to fix
+   end Align_Size;
+
+
 
 end AdaBroker.NetBufferedStream;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.23 $
+--                            $Revision: 1.24 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -261,6 +261,25 @@ package body CORBA is
       return The_Any;
    end To_Any;
 
+   function To_Any (From : in CORBA.Float)
+                    return CORBA.Any is
+      The_Any : CORBA.Any;
+      Tco : CORBA.TypeCode.Object;
+   begin
+      CORBA.TypeCode.Set (Tco, Tk_Float);
+      The_Any := (new C_Float' (Value => From), Tco);
+      return The_Any;
+   end To_Any;
+
+   function To_Any (From : in CORBA.Double)
+                    return CORBA.Any is
+      The_Any : CORBA.Any;
+      Tco : CORBA.TypeCode.Object;
+   begin
+      CORBA.TypeCode.Set (Tco, Tk_Double);
+      The_Any := (new C_Double' (Value => From), Tco);
+      return The_Any;
+   end To_Any;
 
    -------------------------------------
    --  From_Any conversion functions  --
@@ -285,6 +304,17 @@ package body CORBA is
          raise Bad_Typecode;
       end if;
       Tmp := C_Short_Ptr (From.The_Value);
+      return Tmp.Value;
+   end From_Any;
+
+   function From_Any (From : in CORBA.Any)
+                      return CORBA.Long is
+      Tmp : C_Long_Ptr;
+   begin
+      if (TypeCode.Kind (From.The_Type) /= Tk_Long) then
+         raise Bad_Typecode;
+      end if;
+      Tmp := C_Long_Ptr (From.The_Value);
       return Tmp.Value;
    end From_Any;
 
@@ -340,6 +370,28 @@ package body CORBA is
          raise Bad_Typecode;
       end if;
       Tmp := C_String_Ptr (From.The_Value);
+      return Tmp.Value;
+   end From_Any;
+
+   function From_Any (From : in CORBA.Any)
+                      return CORBA.Float is
+      Tmp : C_Float_Ptr;
+   begin
+      if (TypeCode.Kind (From.The_Type) /= Tk_Float) then
+         raise Bad_Typecode;
+      end if;
+      Tmp := C_Float_Ptr (From.The_Value);
+      return Tmp.Value;
+   end From_Any;
+
+   function From_Any (From : in CORBA.Any)
+                      return CORBA.Double is
+      Tmp : C_Double_Ptr;
+   begin
+      if (TypeCode.Kind (From.The_Type) /= Tk_Double) then
+         raise Bad_Typecode;
+      end if;
+      Tmp := C_Double_Ptr (From.The_Value);
       return Tmp.Value;
    end From_Any;
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.72 $
+--                            $Revision: 1.73 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -84,6 +84,13 @@ package CORBA.Object is
    Nil_Ref : constant Ref;
 
 
+   procedure Set_Implementation
+     (Self : in out Ref'Class;
+      Imp  : in     AdaBroker.OmniORB.OmniObject_Ptr);
+   --  used as a work around to build a Ref from an OmnoObject_Ptr
+   --  in AdaBroker.OmniProxyCallWrapperDyn_Invoke
+
+
    -----------------------------
    --  DII related functions  --
    -----------------------------
@@ -104,6 +111,7 @@ package CORBA.Object is
    --     (Self : in Ref)
    --      return CORBA.InterfaceDef.Ref;
 
+
    procedure Create_Request
    --  the only way for a client to build dynamically a request
    --  he may use Add_Arg method (corba-request) after that
@@ -111,9 +119,10 @@ package CORBA.Object is
       Ctx       : in     CORBA.Context.Object;
       Operation : in     Identifier;
       Arg_List  : in     CORBA.NVList.Object;
-      Result    : access NamedValue;
+      Result    : in out NamedValue;
       Request   :    out CORBA.Request.Object;
-      Req_Flags : in     Flags);
+      Req_Flags : in     Flags;
+      Returns   :    out Status);
 
 
 private

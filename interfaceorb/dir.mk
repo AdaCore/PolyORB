@@ -50,7 +50,8 @@ ADASSRCS      = \
 		corba-sequences-bounded.ads \
 		corba-sequences-unbounded.ads \
 		corba-sequences.ads \
-		corba.ads
+		corba.ads \
+		dynamic_proxy.ads
 
 ADABSRCS      = \
 		corba-forward.adb \

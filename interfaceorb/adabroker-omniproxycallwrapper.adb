@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.8 $
+--                            $Revision: 1.9 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -129,6 +129,20 @@ package body AdaBroker.OmniProxyCallWrapper is
         := CORBA.Object.Get_Implementation (Obj);
       --  Pointer on the underlying omniobject
 
+   begin
+      Invoke (OmniObj_Ptr, Call_Desc);
+   end Invoke;
+
+
+   procedure Invoke
+     (OmniObj_Ptr : AdaBroker.OmniORB.OmniObject_Ptr;
+      Call_Desc   : in out OmniProxyCallDesc.Object'Class)
+   is
+      --  This is a traduction into Ada of the C++ function invoke in
+      --  proxyCall.cc L 46
+      --
+      --  Does not take into account : - omniORB's tracelevel
+
       Retries : CORBA.Unsigned_Long := 0;
       --  Current number of retries
 
@@ -157,6 +171,7 @@ package body AdaBroker.OmniProxyCallWrapper is
 
    begin
       loop
+
          pragma Debug
            (O ("invoke : enter, retries = " &
                CORBA.Unsigned_Long'Image (Retries)));
@@ -494,6 +509,9 @@ package body AdaBroker.OmniProxyCallWrapper is
          end;
       end loop;
    end Invoke;
+
+
+
 
    -------------
    -- One_Way --

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.5 $
+--                            $Revision: 1.6 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -49,6 +49,11 @@ package AdaBroker.OmniProxyCallWrapper is
    procedure Invoke
      (Obj       : in CORBA.Object.Ref'Class;
       Call_Desc : in out OmniProxyCallDesc.Object'Class);
+   --  Calls the following one in case of static invocation
+
+   procedure Invoke
+     (OmniObj_Ptr : AdaBroker.OmniORB.OmniObject_Ptr;
+      Call_Desc   : in out OmniProxyCallDesc.Object'Class);
    --  Reimplemented in Ada to call the C++ ORB (modified by Fabien)
    --
    --  Previous solution : wrapper around void invoke(omniObject* o,

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.66 $
+--                            $Revision: 1.67 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -154,6 +154,17 @@ package body CORBA.Object is
       return Self.OmniObj;
    end Get_Implementation;
 
+   --------------------------
+   --  Set_implementation  --
+   --------------------------
+
+   procedure Set_Implementation
+     (Self : in out Ref'Class;
+      Imp  : in     AdaBroker.OmniORB.OmniObject_Ptr) is
+   begin
+      Self.OmniObj := Imp;
+   end Set_Implementation;
+
    ----------------
    -- Initialize --
    ----------------
@@ -228,18 +239,24 @@ package body CORBA.Object is
                              Ctx       : in     CORBA.Context.Object;
                              Operation : in     CORBA.Identifier;
                              Arg_List  : in     CORBA.NVList.Object;
-                             Result    : access CORBA.NamedValue;
+                             Result    : in out CORBA.NamedValue;
                              Request   :    out CORBA.Request.Object;
-                             Req_Flags : in     CORBA.Flags) is
+                             Req_Flags : in     CORBA.Flags;
+                             Returns   :    out Status) is
       --  to be fixed
+      Target : AdaBroker.OmniORB.OmniObject_Ptr := Self.OmniObj;
    begin
+      pragma Debug (O ("Create_Request : enter"));
       CORBA.Request.Set (Request,
-                         Ctx,
+                         Target,
                          Operation,
                          Arg_List,
                          Result,
-                         Req_Flags);
-      --  Self is not used now ???
+                         Req_Flags,
+                         Returns);
+      Returns := 0; --  temporary (for compil)
+      --  we don't use the context now
+      pragma Debug (O ("Create_Request : leave"));
    end Create_Request;
 
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.12 $
+--                            $Revision: 1.13 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -509,6 +509,9 @@ package body AdaBroker.OmniORB is
       C_Result : System.Address;
       Result   : OmniObject_Ptr;
    begin
+
+      pragma Debug (O (CORBA.To_Standard_String (From)));
+
       --  Transform arguments into C types ...
       C_From := Strings.New_String (To_Standard_String (From));
 
@@ -520,6 +523,7 @@ package body AdaBroker.OmniORB is
 
       --  Transform result
       if  C_Result = System.Null_Address then
+         pragma Debug (O ("C_Result = Null_Adress"));
          return null;
 
       else

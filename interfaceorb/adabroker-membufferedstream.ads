@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.5 $
+--                            $Revision: 1.6 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -36,7 +36,7 @@
 --  This unit is wrapped around a C++ class whose name is
 --  Ada_memBufferedStream. (see Ada_memBufferedStream.hh) It provides two
 --  types of methods : the C functions of the Ada_memBufferedStream class
---  and their equivalent in Ada. (he first ones have a C_ prefix.)  In
+--  and their equivalent in Ada. (the first ones have a C_ prefix.)  In
 --  addition, there is a raise_ada_exception function that allows C
 --  functions to raise the ada No_Initialisation exception.  At last, there
 --  is only one Init procedure in place of two in Ada_memBufferedStream

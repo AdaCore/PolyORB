@@ -2,11 +2,11 @@
 --                                                                          --
 --                          ADABROKER COMPONENTS                            --
 --                                                                          --
---                        C O R B A . R E Q U E S T                         --
+--                       D Y N A M I C . P R O X Y                          --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.6 $
+--                            $Revision: 1.1 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -29,71 +29,79 @@
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
 --             AdaBroker is maintained by ENST Paris University.            --
---                     (email: broker@inf.enst.fr)                          --
+--                  (email: adabroker-devel@ada.eu.org)                     --
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with CORBA;
 with CORBA.NVList;
---  with CORBA.Context;
-with AdaBroker.OmniORB;
+with AdaBroker.OmniProxyCallDesc;
+with AdaBroker.GIOP_C;
+use CORBA;
 
+package Dynamic_Proxy is
 
-package CORBA.Request is
+   type Operation_Proxy is
+     new AdaBroker.OmniProxyCallDesc.Object with private;
 
-   type Object is private;
+   type Operation_Type is (Operation_Function, Operation_Procedure);
 
-   procedure Add_Arg
-     (Self : in out Object;
-      Arg  : in     NamedValue);
+   procedure Init
+     (Self : in out Operation_Proxy;
+      Op   : in     CORBA.Identifier;
+      Args : in     CORBA.NVList.Object;
+      Res  : in     NamedValue;
+      Ot   : in     Operation_Type);
 
-   procedure Invoke
-     (Self         : in out Object;
-      Invoke_Flags : in     Flags); --  no legal value listed in the spec !
+   function Get_Function_Result
+     (Self : in Operation_Proxy)
+      return NamedValue;
+   --  Returns the return value for remote functions
 
-   procedure Delete
-     (Self : in out Object);
+   function Get_Procedure_Result
+     (Self     : in Operation_Proxy)
+      return NVList.Object;
+   --  Returns the OUT values for remore procedures
 
-   procedure Send
-     (Self         : in out Object;
-      Invoke_Flags : in     Flags);
+   --
+   --  the functions below override the ones of OmniProxyCallDesc
+   --
 
-   procedure Get_Response
-     (Self           : in out Object;
-      Response_Flags : in     Flags);
+   function Operation
+     (Self : in Operation_Proxy)
+      return CORBA.String;
+   --  Returns the name of the subprogram
 
-   --  implementation defined
+   function Align_Size
+     (Self    : in Operation_Proxy;
+      Size_In : in CORBA.Unsigned_Long)
+      return CORBA.Unsigned_Long;
+   --  Computes the size needed to marshall the arguments contained in the NV
 
-   procedure Set
-     (Self       :    out CORBA.Request.Object;
-      OmniObj    : in     AdaBroker.OmniORB.OmniObject_Ptr;
-      Operation  : in     CORBA.Identifier;
-      Arg_List   : in     CORBA.NVList.Object;
-      Result     : in     CORBA.NamedValue;
-      Req_Flags  : in     CORBA.Flags;
-      Returns    : in     Status);
+   procedure Marshal_Arguments
+     (Self        : in     Operation_Proxy;
+      GIOP_Client : in out AdaBroker.GIOP_C.Object);
+   --  Marshalling of the arguments of the operation (from the NamedValues)
 
-   function Return_Value
-     (Self : in CORBA.Request.Object)
-     return CORBA.NamedValue;
-   --  to get the return value when request was a function
-
-   function Return_Arguments
-     (Self : in CORBA.Request.Object)
-      return CORBA.NVList.Object;
-   --  to get the arguments when requestwas a procedure
-
+   procedure Unmarshal_Returned_Values
+     (Self        : in out Operation_Proxy;
+      GIOP_Client : in out AdaBroker.GIOP_C.Object);
+   --  Unmarshall the returned value (to a NamedValue)
 
 private
-   --  implementation defined
 
-   type Object is
+   procedure Unmarshal_Returned_Value
+     (Self        : in     Operation_Proxy;
+      GIOP_Client : in out AdaBroker.GIOP_C.Object;
+      A           :    out Any;
+      Tck         : in     TCKind);
+
+   type Operation_Proxy is  new AdaBroker.OmniProxyCallDesc.Object with
       record
-         Target     : AdaBroker.OmniORB.OmniObject_Ptr;
-         Operation  : CORBA.Identifier;
-         Args_List  : CORBA.NVList.Object;
-         Result     : CORBA.NamedValue;
-         Req_Flags  : CORBA.Flags;
-         Returns    : CORBA.Status;
+         Op_Type        : Operation_Type;
+         Op_Name        : CORBA.Identifier;
+         Args           : NVList.Object;
+         Private_Result : NamedValue;
       end record;
 
-end CORBA.Request;
+end Dynamic_Proxy;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.10 $
+--                            $Revision: 1.11 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -130,6 +130,7 @@ package body CORBA.Object.OmniORB is
    begin
       To.OmniObj := AdaBroker.OmniORB.String_To_Object (From);
 
+
       if To.OmniObj /= null then
 
          Source_Ref := Id_To_Ref (To.OmniObj.Interface);
@@ -143,10 +144,13 @@ package body CORBA.Object.OmniORB is
          if Is_A (Source_Ref.all, Target_Rep) then
             return;
          end if;
+
       end if;
 
       --  Illegal conversion.
       To.OmniObj := null;
+      pragma Debug (O ("To.OmniObj = null"));
+
    end String_To_Object;
 
    --------------------------------

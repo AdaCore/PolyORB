@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.2 $
+--                            $Revision: 1.3 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -33,7 +33,18 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Dynamic_Proxy;
+use Dynamic_Proxy;
+with AdaBroker.OmniProxyCallWrapper;
+
+with AdaBroker.Debug;
+pragma Elaborate_All (Adabroker.Debug);
+
 package body CORBA.Request is
+
+   Flag : constant Natural
+      := AdaBroker.Debug.Is_Active ("corba.request");
+   procedure O is new AdaBroker.Debug.Output (Flag);
 
    -------------
    -- Add_Arg --
@@ -44,7 +55,7 @@ package body CORBA.Request is
       Arg  : in     NamedValue)
    is
    begin
-      null;
+      CORBA.NVList.Add_Item (Self.Args_List, Arg);
    end Add_Arg;
 
    ------------
@@ -55,8 +66,34 @@ package body CORBA.Request is
      (Self         : in out Object;
       Invoke_Flags : in     Flags)
    is
+      Operation : Operation_Proxy;
+      Op_Type   : Operation_Type;
    begin
-      null;
+      --  set a proxy for the operation
+      if CORBA.TypeCode.Kind (Get_Type (Self.Result.Argument)) =  Tk_Void then
+         Op_Type := Operation_Procedure;
+      else
+         Op_Type := Operation_Function;
+      end if;
+      Init (Operation,
+            Self.Operation,
+            Self.Args_List,
+            Self.Result,
+            Op_Type);
+      pragma Debug (O ("Request.Invoke : dynamic proxy initialized"));
+      --  invoke
+      AdaBroker.OmniProxyCallWrapper.Invoke (Self.Target, Operation);
+
+      case Op_Type is
+         when Operation_Function =>
+            --  we have a function
+            Self.Result := Get_Function_Result (Operation);
+         when Operation_Procedure =>
+            --  we have a procedure
+            Self.Args_List := Get_Procedure_Result (Operation);
+      end case;
+
+      pragma Debug (O ("Request.Invoke : dynamic invocation done"));
    end Invoke;
 
    ------------
@@ -104,19 +141,43 @@ package body CORBA.Request is
 
    procedure Set
      (Self       :    out CORBA.Request.Object;
-      Ctx        : in     CORBA.Context.Object;
+      OmniObj    : in     AdaBroker.OmniORB.OmniObject_Ptr;
       Operation  : in     CORBA.Identifier;
       Arg_List   : in     CORBA.NVList.Object;
-      Result     : access CORBA.NamedValue;
-      Req_Flags  : in     CORBA.Flags) is
+      Result     : in     CORBA.NamedValue;
+      Req_Flags  : in     CORBA.Flags;
+      Returns    : in     Status) is
    begin
-      Self := (null, --  contexts used not implemented at all for now
+      Self := (OmniObj,
                Operation,
                Arg_List,
-               Ptr (Result),
-               Req_Flags);
+               Result,
+               Req_Flags,
+               Returns);
+      pragma Debug
+        (O ("a new request has been set with following return value"));
+      pragma Debug
+        (O ("id = " & CORBA.To_Standard_String (Result.Name)));
    end Set;
 
+   --------------------
+   --  Return_Value  --
+   --------------------
 
+   function Return_Value
+     (Self : in CORBA.Request.Object)
+      return CORBA.NamedValue
+   is
+   begin
+      return Self.Result;
+   end Return_Value;
+
+   function Return_Arguments
+     (Self : in CORBA.Request.Object)
+      return CORBA.NVList.Object
+   is
+   begin
+      return Self.Args_List;
+   end Return_Arguments;
 
 end CORBA.Request;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.5 $
+--                            $Revision: 1.6 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -297,6 +297,29 @@ package AdaBroker.NetBufferedStream is
       return CORBA.Boolean;
    --  Indicates whether the netbufferedstream is reusing an existing
    --  connection or not.  (see rope.h L400 for more details)
+
+
+   -----------
+   --  DII  --
+   -----------
+
+   procedure Marshall
+     (A : in CORBA.Any;
+      S : in out Object'Class);
+   --  Marshalls a CORBA.Any into a netbufferedstream object
+
+   procedure Unmarshall
+     (A : out CORBA.Any;
+      S : in out Object'Class);
+   --  Unmarshalls a CORBA.Any from a netbufferedstream object
+
+   function Align_Size
+     (A              : in CORBA.Any;
+      Initial_Offset : in CORBA.Unsigned_Long;
+      N              : in CORBA.Unsigned_Long := 1)
+      return CORBA.Unsigned_Long;
+   --  Compute the size needed to marshall A into S
+
 
 private
 

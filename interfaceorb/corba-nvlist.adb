@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.2 $
+--                            $Revision: 1.3 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -33,7 +33,14 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with AdaBroker.Debug;
+pragma Elaborate_All (Adabroker.Debug);
+
 package body CORBA.NVList is
+
+   Flag : constant Natural
+      := AdaBroker.Debug.Is_Active ("dynamic_proxy");
+   procedure O is new AdaBroker.Debug.Output (Flag);
 
    --------------
    -- Add_Item --
@@ -79,5 +86,63 @@ package body CORBA.NVList is
    begin
       Count := Self.Args_Count;
    end Get_Count;
+
+   --------------
+   --  Revert  --
+   --------------
+
+   procedure Revert
+     (Self : in out Object)
+   is
+      Tmp : Object := Null_Object;
+      It  : Iterator;
+   begin
+      Start (It, Self);
+      while not Done (It) loop
+         Add_Item (Tmp, Get (It));
+         Next (It);
+      end loop;
+      Self := Tmp;
+   end Revert;
+
+   ----------------
+   --  Iterator  --
+   ----------------
+
+   procedure Start
+     (I   : in out Iterator;
+      Nvl : in     Object) is
+   begin
+      I.This := Nvl.List;
+   end Start;
+
+   function  Done
+     (I   : in     Iterator)
+      return CORBA.Boolean is
+   begin
+      return I.This = null;
+   end Done;
+
+   procedure Next
+     (I   : in out Iterator) is
+   begin
+      I.This := I.This.Next;
+   end Next;
+
+   function Get
+     (I   : in     Iterator)
+      return CORBA.NamedValue is
+   begin
+      return I.This.Value;
+   end Get;
+
+   procedure Set_Argument
+     (I   : in out Iterator;
+      A   : in     CORBA.Any)
+   is
+   begin
+      I.This.Value.Argument := A;
+   end Set_Argument;
+
 
 end CORBA.NVList;

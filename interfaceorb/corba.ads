@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.50 $
+--                            $Revision: 1.51 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -273,7 +273,7 @@ package CORBA is
       --  choice of a list implementation may be temporary
       type Object is
          record
-            Kind : CORBA.TCKind;
+            Kind : CORBA.TCKind := Tk_Void;
             Parameters : Cell_Ptr := null;
          end record;
 
@@ -290,14 +290,22 @@ package CORBA is
    function To_Any (From : in CORBA.Boolean)        return CORBA.Any;
    function To_Any (From : in CORBA.Char)           return CORBA.Any;
    function To_Any (From : in CORBA.String)         return CORBA.Any;
+   --  the following ones are not in the spec (forgotten?)
+   function To_Any (From : in CORBA.Float)          return CORBA.Any;
+   function To_Any (From : in CORBA.Double)         return CORBA.Any;
+
 
    function From_Any (From : in CORBA.Any) return CORBA.Octet;
    function From_Any (From : in CORBA.Any) return CORBA.Short;
+   function From_Any (From : in CORBA.Any) return CORBA.Long;
    function From_Any (From : in CORBA.Any) return CORBA.Unsigned_Short;
    function From_Any (From : in CORBA.Any) return CORBA.Unsigned_Long;
    function From_Any (From : in CORBA.Any) return CORBA.Boolean;
    function From_Any (From : in CORBA.Any) return CORBA.Char;
    function From_Any (From : in CORBA.Any) return CORBA.String;
+   --  the following ones are not in the spec (forgotten?)
+   function From_Any (From : in CORBA.Any) return CORBA.Float;
+   function From_Any (From : in CORBA.Any) return CORBA.Double;
 
 
    type Identifier is new CORBA.String;
@@ -354,6 +362,7 @@ package CORBA is
    type Union_Case_Error_Members is
     new System_Exception_Members with null record;
 
+
    -----------------------
    -- omniORB2 specific --
    -----------------------
@@ -375,6 +384,7 @@ package CORBA is
     new System_Exception_Members with null record;
    type Wrong_Transaction_Members is
     new System_Exception_Members with null record;
+
 
 private
 
@@ -428,6 +438,18 @@ private
          Value : CORBA.String;
       end record;
    type C_String_Ptr is access all C_String;
+
+   type C_Float is new Content with
+      record
+         Value : CORBA.Float;
+      end record;
+   type C_Float_Ptr is access all C_Float;
+
+   type C_Double is new Content with
+      record
+         Value : CORBA.Double;
+      end record;
+   type C_Double_Ptr is access all C_Double;
 
 
    type Any is
