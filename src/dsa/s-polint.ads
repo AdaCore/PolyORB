@@ -38,7 +38,6 @@
 --  of this package must be reflected in the code generator.
 
 with Ada.Streams;
-with Interfaces;
 
 with System.RPC;
 with System.Unsigned_Types;
@@ -208,7 +207,7 @@ package System.PolyORB_Interface is
 
       Asynchronous : Boolean;
    end record;
-   type RACW_Stub_Type_Access is access RACW_Stub_Type;
+   type RACW_Stub_Type_Access is access all RACW_Stub_Type;
    --  This type is used by the expansion to implement distributed objects.
    --  Do not change its definition or its layout without updating
    --  exp_dist.adb.

@@ -330,7 +330,6 @@ package body System.PolyORB_Interface is
    function Compare_Content (Left, Right : RACW_Stub_Type_Access)
      return Boolean
    is
-      use Interfaces;
       use System.RPC;
 
       Left_Object, Right_Object : PolyORB.References.Ref;
@@ -340,8 +339,6 @@ package body System.PolyORB_Interface is
       Set (Right_Object, Right.Target);
 
       return Left /= null and then Right /= null
-        and then Left.Origin = Right.Origin
-        and then Left.Receiver = Right.Receiver
         and then Left.Addr = Right.Addr
         and then PolyORB.References.Is_Same_Object
         (Left_Object, Right_Object);
@@ -1062,8 +1059,6 @@ package body System.PolyORB_Interface is
          --  unique value of a remote access to classwide or
          --  remote access to subprogram type.
 
-         Answer.Origin   := Handler.Origin;
-         Answer.Receiver := Handler.Receiver;
          Answer.Target   := Handler.Target;
          Answer.Addr     := Handler.Addr;
          Answer.Asynchronous := Handler.Asynchronous;

@@ -1001,6 +1001,9 @@ package Rtsfind is
      RE_Get_Passive_Partition_Id,        -- System.Partition_Interface
      RE_Get_Local_Partition_Id,          -- System.Partition_Interface
      RE_Get_RCI_Package_Receiver,        -- System.Partition_Interface
+     RE_Get_Unique_Remote_Pointer,       -- System.Partition_Interface
+     RE_RACW_Stub_Type,                  -- System.Partition_Interface
+     RE_RACW_Stub_Type_Access,           -- System.Partition_Interface
      RE_Raise_Program_Error_For_E_4_18,  -- System.Partition_Interface
      RE_Raise_Program_Error_Unknown_Tag, -- System.Partition_Interface
      RE_Register_Passive_Package,        -- System.Partition_Interface
@@ -1063,9 +1066,6 @@ package Rtsfind is
      RE_RCI_Locator,                     -- System.PolyORB_Interface
      RE_RCI_Subp_Info,                   -- System.PolyORB_Interface
      RE_RCI_Subp_Info_Array,             -- System.PolyORB_Interface
-     RE_RACW_Stub_Type,                  -- System.PolyORB_Interface
-     RE_RACW_Stub_Type_Access,           -- System.PolyORB_Interface
-     RE_Get_Unique_Remote_Pointer,       -- System.PolyORB_Interface
      RE_Get_RAS_Ref,                     -- System.PolyORB_Interface
      RE_Asynchronous_P_To_Sync_Scope,    -- System.PolyORB_Interface
      RE_Buffer_Stream_Type,              -- System.PolyORB_Interface
@@ -2069,6 +2069,9 @@ package Rtsfind is
      RE_Get_Passive_Partition_Id         => System_Partition_Interface,
      RE_Get_Local_Partition_Id           => System_Partition_Interface,
      RE_Get_RCI_Package_Receiver         => System_Partition_Interface,
+     RE_Get_Unique_Remote_Pointer        => System_Partition_Interface,
+     RE_RACW_Stub_Type                   => System_Partition_Interface,
+     RE_RACW_Stub_Type_Access            => System_Partition_Interface,
      RE_Raise_Program_Error_For_E_4_18   => System_Partition_Interface,
      RE_Raise_Program_Error_Unknown_Tag  => System_Partition_Interface,
      RE_Register_Passive_Package         => System_Partition_Interface,
@@ -2119,9 +2122,6 @@ package Rtsfind is
      RE_RCI_Locator                      => System_PolyORB_Interface,
      RE_RCI_Subp_Info                    => System_PolyORB_Interface,
      RE_RCI_Subp_Info_Array              => System_PolyORB_Interface,
-     RE_RACW_Stub_Type                   => System_PolyORB_Interface,
-     RE_RACW_Stub_Type_Access            => System_PolyORB_Interface,
-     RE_Get_Unique_Remote_Pointer        => System_PolyORB_Interface,
      RE_Get_RAS_Ref                      => System_PolyORB_Interface,
      RE_Asynchronous_P_To_Sync_Scope     => System_PolyORB_Interface,
      RE_Buffer_Stream_Type               => System_PolyORB_Interface,

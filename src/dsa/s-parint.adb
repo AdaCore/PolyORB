@@ -35,17 +35,7 @@
 
 --  $Id$
 
-with System.PolyORB_Interface;
-
 package body System.Partition_Interface is
-
-   function Get_Active_Partition_ID
-     (Name : Unit_Name)
-      return RPC.Partition_ID
-     renames System.PolyORB_Interface.Get_Active_Partition_ID;
-
-   function Get_Local_Partition_ID return RPC.Partition_ID
-     renames System.PolyORB_Interface.Get_Local_Partition_ID;
 
 --    pragma Warnings (Off); -- supress warnings for unreferenced formals
 
@@ -84,28 +74,14 @@ package body System.Partition_Interface is
 --       null;
 --    end Check;
 
---    -----------------------------
---    -- Get_Active_Partition_Id --
---    -----------------------------
+   -----------------------------
+   -- Get_Active_Partition_Id --
+   -----------------------------
 
---    function Get_Active_Partition_ID
---      (Name : Unit_Name)
---       return System.RPC.Partition_ID
---    is
---       P : Pkg_List := Pkg_Head;
---       N : String   := Lower (Name);
-
---    begin
---       while P /= null loop
---          if P.Name.all = N then
---             return Get_Local_Partition_ID;
---          end if;
-
---          P := P.Next;
---       end loop;
-
---       return M;
---    end Get_Active_Partition_ID;
+   function Get_Active_Partition_ID
+     (Name : Unit_Name)
+      return RPC.Partition_ID
+     renames System.PolyORB_Interface.Get_Active_Partition_ID;
 
 --    ------------------------
 --    -- Get_Active_Version --
@@ -119,14 +95,12 @@ package body System.Partition_Interface is
 --       return "";
 --    end Get_Active_Version;
 
---    ----------------------------
---    -- Get_Local_Partition_Id --
---    ----------------------------
+   ----------------------------
+   -- Get_Local_Partition_Id --
+   ----------------------------
 
---    function Get_Local_Partition_ID return System.RPC.Partition_ID is
---    begin
---       return System.RPC.Partition_ID (PID mod M);
---    end Get_Local_Partition_ID;
+   function Get_Local_Partition_ID return RPC.Partition_ID
+     renames System.PolyORB_Interface.Get_Local_Partition_ID;
 
 --    ------------------------------
 --    -- Get_Passive_Partition_ID --
@@ -164,30 +138,13 @@ package body System.Partition_Interface is
 --       return 0;
 --    end Get_RCI_Package_Receiver;
 
---    -------------------------------
---    -- Get_Unique_Remote_Pointer --
---    -------------------------------
+   -------------------------------
+   -- Get_Unique_Remote_Pointer --
+   -------------------------------
 
---    procedure Get_Unique_Remote_Pointer
---      (Handler : in out RACW_Stub_Type_Access)
---    is
---    begin
---       null;
---    end Get_Unique_Remote_Pointer;
-
---    ------------
---    -- Launch --
---    ------------
-
---    procedure Launch
---      (Rsh_Command  : in String;
---       Name_Is_Host : in Boolean;
---       General_Name : in String;
---       Command_Line : in String)
---    is
---    begin
---       null;
---    end Launch;
+   procedure Get_Unique_Remote_Pointer
+     (Handler : in out RACW_Stub_Type_Access)
+     renames System.PolyORB_Interface.Get_Unique_Remote_Pointer;
 
 --    -----------
 --    -- Lower --
@@ -207,18 +164,6 @@ package body System.Partition_Interface is
 
 --       return T;
 --    end Lower;
-
---    ------------------------------------
---    -- Raise_Program_Error_For_E_4_18 --
---    ------------------------------------
-
---    procedure Raise_Program_Error_For_E_4_18 is
---    begin
---       Ada.Exceptions.Raise_Exception
---         (Program_Error'Identity,
---         "Illegal usage of remote access to class-wide type."
---         & " See RM E.4(18)");
---    end Raise_Program_Error_For_E_4_18;
 
 --    -------------------------------------
 --    -- Raise_Program_Error_Unknown_Tag --

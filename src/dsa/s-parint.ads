@@ -39,6 +39,7 @@
 --  with Interfaces;
 with System.RPC;
 
+with System.PolyORB_Interface;
 package System.Partition_Interface is
 
    pragma Elaborate_Body;
@@ -51,16 +52,18 @@ package System.Partition_Interface is
 
 --    type Main_Subprogram_Type is access procedure;
 
+   subtype RACW_Stub_Type is System.PolyORB_Interface.RACW_Stub_Type;
 --    type RACW_Stub_Type is tagged record
 --       Origin       : RPC.Partition_ID;
 --       Receiver     : Interfaces.Unsigned_64;
 --       Addr         : Interfaces.Unsigned_64;
 --       Asynchronous : Boolean;
 --    end record;
---    type RACW_Stub_Type_Access is access RACW_Stub_Type;
---    --  This type is used by the expansion to implement distributed objects.
---    --  Do not change its definition or its layout without updating
---    --  exp_dist.adb.
+   subtype RACW_Stub_Type_Access is
+     System.PolyORB_Interface.RACW_Stub_Type_Access;
+   --  This type is used by the expansion to implement distributed objects.
+   --  Do not change its definition or its layout without updating
+   --  exp_dist.adb.
 
 --    procedure Check
 --      (Name    : in Unit_Name;
@@ -95,26 +98,9 @@ package System.Partition_Interface is
 --       return Interfaces.Unsigned_64;
 --    --  Similar in some respects to RCI_Info.Get_RCI_Package_Receiver
 
---    procedure Get_Unique_Remote_Pointer
---      (Handler : in out RACW_Stub_Type_Access);
---    --  Get a unique pointer on a remote object
-
---    procedure Launch
---      (Rsh_Command  : in String;
---       Name_Is_Host : in Boolean;
---       General_Name : in String;
---       Command_Line : in String);
---    --  General_Name represents the name of the machine or the name of the
---    --  partition (depending on the value of Name_Is_Host). Command_Line
---    --  holds the extra options that will be given on the command line.
---    --  Rsh_Command is typically "rsh", that will be used to launch the
---    --  other partition.
-
---    procedure Raise_Program_Error_For_E_4_18;
---    pragma No_Return (Raise_Program_Error_For_E_4_18);
---    --  Raise Program_Error with an error message explaining why it has been
---    --  raised. The rule in E.4 (18) is tricky and misleading for most users
---    --  of the distributed systems annex.
+   procedure Get_Unique_Remote_Pointer
+     (Handler : in out RACW_Stub_Type_Access);
+   --  Get a unique pointer on a remote object
 
 --    procedure Raise_Program_Error_Unknown_Tag
 --      (E : in Ada.Exceptions.Exception_Occurrence);
