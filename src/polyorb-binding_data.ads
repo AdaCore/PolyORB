@@ -34,9 +34,7 @@
 --  Management of binding data, i. e. the elements of information
 --  that designate a remote middleware TSAP.
 
---  $Id: //droopi/main/src/polyorb-binding_data.ads#20 $
-
-with Ada.Finalization;
+--  $Id: //droopi/main/src/polyorb-binding_data.ads#21 $
 
 with PolyORB.Components;
 with PolyORB.Asynch_Ev;
@@ -47,6 +45,8 @@ with PolyORB.Transport;
 with PolyORB.Types;
 with PolyORB.Filters;
 
+with PolyORB.Binding_Data_Base;
+
 package PolyORB.Binding_Data is
 
    pragma Elaborate_Body;
@@ -56,7 +56,7 @@ package PolyORB.Binding_Data is
    ----------------------------------------------
 
    type Profile_Type is abstract
-     new Ada.Finalization.Limited_Controlled with private;
+     new PolyORB.Binding_Data_Base.Profile_Type_Base with private;
    type Profile_Access is access all Profile_Type'Class;
    --  A profile is an element of information that contains:
    --    - a profile tag identifying a communication system and a
@@ -208,7 +208,7 @@ private
      := (Profile_Preference'First + Profile_Preference'Last) / 2;
 
    type Profile_Type is
-     abstract new Ada.Finalization.Limited_Controlled with record
+     abstract new PolyORB.Binding_Data_Base.Profile_Type_Base with record
         Object_Id    : Objects.Object_Id_Access;
         Continuation : PolyORB.Smart_Pointers.Ref;
      end record;
