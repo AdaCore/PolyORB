@@ -120,8 +120,8 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
       use PolyORB.POA_Policies.Id_Assignment_Policy;
       use PolyORB.POA_Policies.Id_Uniqueness_Policy;
 
-      POA : constant PolyORB.POA.Obj_Adapter_Access
-        := PolyORB.POA.Obj_Adapter_Access (OA);
+      POA : constant PolyORB.POA.Obj_Adapter_Access :=
+        PolyORB.POA.Obj_Adapter_Access (OA);
 
    begin
       pragma Debug (O ("Retain_Servant_Association: enter"));
@@ -168,8 +168,8 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
       --  Store Entry in Object Map
 
       declare
-         The_Entry : Object_Map_Entry_Access
-           := Get_By_Id (POA.Active_Object_Map.all, U_Oid);
+         The_Entry : Object_Map_Entry_Access :=
+           Get_By_Id (POA.Active_Object_Map.all, U_Oid);
       begin
          if The_Entry = null then
             pragma Debug (O ("The entry is null, inserting new entry"));
@@ -218,8 +218,8 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
 
       use PolyORB.Exceptions;
 
-      POA : constant PolyORB.POA.Obj_Adapter_Access
-        := PolyORB.POA.Obj_Adapter_Access (OA);
+      POA : constant PolyORB.POA.Obj_Adapter_Access :=
+        PolyORB.POA.Obj_Adapter_Access (OA);
 
       An_Entry : Object_Map_Entry_Access;
    begin
@@ -238,8 +238,10 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
             ObjectNotActive_E,
             Null_Member);
       else
+
          --  Free the Unmarshalled_Oid_Access and the entry.
          --  Note: The servant has to be freed by the application.
+
          Free (An_Entry.Oid);
          Free (An_Entry);
       end if;
@@ -261,8 +263,8 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
 
       use PolyORB.POA_Policies.Id_Uniqueness_Policy;
 
-      POA : constant PolyORB.POA.Obj_Adapter_Access
-        := PolyORB.POA.Obj_Adapter_Access (OA);
+      POA : constant PolyORB.POA.Obj_Adapter_Access :=
+        PolyORB.POA.Obj_Adapter_Access (OA);
       An_Entry : Object_Map_Entry_Access;
    begin
       if POA.Active_Object_Map /= null then
@@ -303,8 +305,8 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
       use PolyORB.POA_Policies.Lifespan_Policy;
 
       An_Entry : Object_Map_Entry_Access;
-      POA      : constant PolyORB.POA.Obj_Adapter_Access
-        := PolyORB.POA.Obj_Adapter_Access (OA);
+      POA      : constant PolyORB.POA.Obj_Adapter_Access :=
+        PolyORB.POA.Obj_Adapter_Access (OA);
 
    begin
       Ensure_Lifespan
@@ -321,13 +323,21 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
                        & To_Standard_String (U_Oid.Id)
                        & "'"));
 
+      if POA.Active_Object_Map = null then
+         pragma Debug (O ("Active Object Map is null!"));
+         Servant := null;
+         return;
+      end if;
+
       Lock_R (POA.Map_Lock);
       An_Entry := Get_By_Id (POA.Active_Object_Map.all, U_Oid);
       Unlock_R (POA.Map_Lock);
 
       if An_Entry /= null then
+         pragma Debug (O ("Object found"));
          Servant := An_Entry.Servant;
       else
+         pragma Debug (O ("Object not found"));
          Servant := null;
       end if;
    end Retained_Id_To_Servant;
