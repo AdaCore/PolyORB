@@ -81,11 +81,11 @@ package body PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl is
       Requestor : PolyORB.Components.Component_Access)
       return PolyORB.Components.Message'Class
    is
-      --  use PolyORB.Components;
-      --  Result : constant Components.Message'Class := Emit (Requestor,
-      --                                                    Msg);
       use PolyORB.Servants;
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
       return Execute_Servant (Servant_Access (Requestor), Msg);
    end Handle_Request_Execution;
 end PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl;
