@@ -1,12 +1,4 @@
-# Path to idlac
-
-IDLAC_DIR = $(top_builddir)/compilers/idlac
-IDLAC     = $(IDLAC_DIR)/idlac
-
-# Compiler and linker
-
-LINKER   = $(top_builddir)/support/linker
-COMPILER = $(top_builddir)/support/adacompiler
+include $(top_srcdir)/Makefile.common
 
 #
 # PolyORB's libraries
@@ -63,11 +55,7 @@ POLYORB_INCS = -I$(srcdir) \
 # Compilation flags
 #
 
-GNATMAKE_FLAGS = \
-	$(POLYORB_INCS) \
-	$(XMLADA_INCS) \
-	$(COS_GNATMAKE_FLAGS) \
-	$(GNATFLAGS)
+ADAFLAGS = $(GNATFLAGS) $(COS_ADAFLAGS) $(POLYORB_INCS) $(XMLADA_INCS)
 
 #
 # Compute source files to be compiled
@@ -111,33 +99,17 @@ all-local:: $(PROGS) $(EXTRA)
 # How to compile the various files
 #
 
-SUFFIXES = .idl .adb .ads .lo
-
-.idl.ads .idl.adb:
-	$(IDLAC) -I$(srcdir) $<
-
 .adb.ali:
-	$(GNATMAKE_FOR_TARGET) -c $< $(GNATMAKE_FLAGS)
-
-.adb.lo:
-	@chmod a+x $(COMPILER)
-	$(LIBTOOL) --mode=compile $(COMPILER) -c $(GNATMAKE_FLAGS) $<
-
-.ads.lo:
-	@chmod a+x $(COMPILER)
-	$(LIBTOOL) --mode=compile $(COMPILER) -c $(GNATMAKE_FLAGS) $< 
+	$(GNATMAKE_FOR_TARGET) -c $< $(ADAFLAGS)
 
 .PHONY: force
 
-$(IDLAC): force
-	cd $(IDLAC_DIR) && $(MAKE)
+FORCE_IDLAC=force
 
 $(PROGS): $(FORCE) $(GEN)
-	$(GNATMAKE_FOR_TARGET) $@  $(POLYORB_INCS) \
-        $(XMLADA_INCS) \
+	$(GNATMAKE_FOR_TARGET) $@ \
         -m \
-        $(COS_GNATMAKE_FLAGS) \
-        -cargs $(GNATFLAGS) \
+        $(ADAFLAGS) \
 	-bargs $(BARGS) \
 	-largs $(LDFLAGS) \
 	--LINK=$(LINKER) \

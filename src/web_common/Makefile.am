@@ -32,24 +32,9 @@ LINK = $(LIBTOOL) --mode=link $(ADA) -o libpolyorb-web_common.la
 
 ADAFLAGS = -i -I. -I$(srcdir) -I.. -I$(srcdir)/.. $(GNATFLAGS)
 
-ADACOMPILER = ../../support/adacompiler
-
-SUFFIXES = .adb .ads .lo .ali
-
-.adb.lo:
-	@chmod a+x $(ADACOMPILER)
-	$(LIBTOOL) --mode=compile $(ADACOMPILER) -c $(ADAFLAGS) $<
-
-.ads.lo:
-	@chmod a+x $(ADACOMPILER)
-	$(LIBTOOL) --mode=compile $(ADACOMPILER) -c $(ADAFLAGS) $<
-
 install-data-local:
 	$(INSTALL) -d $(DESTDIR)$(alidir)
 	for f in $(srcdir)/*.ad[bs] *.ali; do $(INSTALL) -m 444 $$f $(DESTDIR)$(alidir); done
-
-depend-local: all
-	$(srcdir)/../../support/mkdep -I$(srcdir)/.. $(srcdir)
 
 ### DO NOT REMOVE THIS LINE, IT IS USED BY MAKEDEPEND ###
 aws.lo:aws.ads 

@@ -51,27 +51,9 @@ LINK = $(LIBTOOL) $(ADA) -o libpolyorb-moma.la
 ADAFLAGS = -I. -I$(srcdir) -I.. -I$(srcdir)/.. \
 	$(XMLADA_INCS) $(GNATFLAGS)
 
-ADACOMPILER = ../../support/adacompiler
-
-SUFFIXES = .adb .ads .lo .ali .c
-
-.c.lo:
-	$(LTCOMPILE) -c $<
-
-.adb.lo:
-	@chmod a+x $(ADACOMPILER)
-	$(LIBTOOL) --mode=compile $(ADACOMPILER) -c $(ADAFLAGS) $<
-
-.ads.lo:
-	@chmod a+x $(ADACOMPILER)
-	$(LIBTOOL) --mode=compile $(ADACOMPILER) -c $(ADAFLAGS) $<
-
 install-data-local:
 	$(INSTALL) -d $(DESTDIR)$(alidir)
 	for f in $(srcdir)/*.ad[bs] *.ali; do $(INSTALL) -m 444 $$f $(DESTDIR)$(alidir); done
-
-depend-local: all
-	$(srcdir)/../../support/mkdep -I$(srcdir)/.. $(srcdir)
 
 ### DO NOT REMOVE THIS LINE, IT IS USED BY MAKEDEPEND ###
 moma.lo:moma.ads 

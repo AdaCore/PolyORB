@@ -53,8 +53,6 @@ DISTCLEANFILES = @APPLI_EXES@ @SERVICE_EXES@
 
 all-local:  @APPLI_EXES@ @SERVICE_EXES@
 
-SUFFIXES = .idl .ads .adb
-
 .idl.ads:
 	$(IDLAC) $(IDLAC_FLAGS) $<
 

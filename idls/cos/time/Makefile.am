@@ -4,7 +4,7 @@ alidir = $(includedir)/polyorb/corba/cos
 
 IDL=$(srcdir)/CosTime.idl
 
-COS_GNATMAKE_FLAGS = -I$(top_srcdir)/cos/time
+COS_ADAFLAGS = -I$(top_srcdir)/cos/time
 
 GEN_SPECS_WITH_BODY= \
   costime-helper.ads \

@@ -46,24 +46,9 @@ LINK = $(LIBTOOL) $(ADA) -o libpolyorb-aws.la
 
 ADAFLAGS = -i -I. -I$(srcdir) -I.. -I$(srcdir)/.. -I$(srcdir)/../web_common -I$(srcdir)/../aws_orig $(GNATFLAGS)
 
-ADACOMPILER = ../../support/adacompiler
-
-SUFFIXES = .adb .ads .lo .ali
-
-.adb.lo:
-	@chmod a+x $(ADACOMPILER)
-	$(LIBTOOL) --mode=compile $(ADACOMPILER) -c $(ADAFLAGS) $<
-
-.ads.lo:
-	@chmod a+x $(ADACOMPILER)
-	$(LIBTOOL) --mode=compile $(ADACOMPILER) -c $(ADAFLAGS) $<
-
 install-data-local:
 	$(INSTALL) -d $(DESTDIR)$(alidir)
 	for f in $(srcdir)/*.ad[bs] *.ali; do $(INSTALL) -m 444 $$f $(DESTDIR)$(alidir); done
-
-depend-local: all
-	$(srcdir)/../../support/mkdep -I$(srcdir)/.. $(srcdir) -I$(srcdir)/../web_common -I$(srcdir)/../aws_orig
 
 ### DO NOT REMOVE THIS LINE, IT IS USED BY MAKEDEPEND ###
 aws-client.lo:aws-client.adb aws-client.ads aws-headers.ads aws-headers-set.adb aws-headers-set.ads aws-headers-values.ads aws-response.adb aws-response.ads aws-response-set.adb aws-response-set.ads aws-status.ads ./../polyorb.ads ./../polyorb-annotations.ads ./../polyorb-any.adb ./../polyorb-any.ads ./../polyorb-any-exceptionlist.ads ./../polyorb-any-nvlist.ads ./../polyorb-asynch_ev.ads ./../polyorb-binding_data.ads ./../polyorb-buffers.ads ./../polyorb-components.ads ./../polyorb-exceptions.ads ./../polyorb-filters.ads ./../polyorb-initialization.ads ./../polyorb-jobs.ads ./../polyorb-log.adb ./../polyorb-log.ads ./../polyorb-objects.ads ./../polyorb-opaque.ads ./../polyorb-opaque-chunk_pools.adb ./../polyorb-opaque-chunk_pools.ads ./../polyorb-references.ads ./../polyorb-references-uri.ads ./../polyorb-requests.ads ./../polyorb-sequences.ads ./../polyorb-sequences-unbounded.adb ./../polyorb-sequences-unbounded.ads ./../polyorb-smart_pointers.ads ./../polyorb-sockets.ads ./../polyorb-sockets_initialization.ads ./../polyorb-task_info.ads ./../polyorb-tasking.ads ./../polyorb-tasking-condition_variables.ads ./../polyorb-tasking-mutexes.ads ./../polyorb-tasking-threads.ads ./../polyorb-transport.ads ./../polyorb-types.adb ./../polyorb-types.ads ./../polyorb-utils.ads ./../polyorb-utils-chained_lists.adb ./../polyorb-utils-chained_lists.ads ./../polyorb-utils-simple_flags.adb ./../polyorb-utils-simple_flags.ads ./../polyorb-utils-strings.ads ./../polyorb-utils-strings-lists.ads soap-message.ads soap-message-payload.ads soap-message-response.ads soap-parameters.ads soap-types.ads 

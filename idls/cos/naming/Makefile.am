@@ -4,7 +4,7 @@ alidir = $(includedir)/polyorb/corba/cos
 
 IDL=$(srcdir)/CosNaming.idl
 
-COS_GNATMAKE_FLAGS = -I$(top_srcdir)/cos/naming
+COS_ADAFLAGS = -I$(top_srcdir)/cos/naming
 
 GEN_SPECS_WITH_BODY= \
   cosnaming-bindingiterator-helper.ads \

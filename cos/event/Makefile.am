@@ -4,7 +4,7 @@ alidir = $(includedir)/polyorb/corba/cos
 
 COS_DIRS=$(top_builddir)/idls/cos/event
 
-COS_GNATMAKE_FLAGS = -I$(COS_DIRS)
+COS_ADAFLAGS = -I$(COS_DIRS)
 
 #
 # Building libpolyorb-corba-cos-event-impl library

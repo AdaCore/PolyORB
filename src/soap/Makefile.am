@@ -46,13 +46,8 @@ LINK = $(LIBTOOL) $(ADA) -o libpolyorb-soap.la
 ADAFLAGS = -I. -I$(srcdir) -I.. -I$(srcdir)/.. \
 	$(XMLADA_INCS) -I$(srcdir)/../web_common $(GNATFLAGS)
 
-ADACOMPILER = ../../support/adacompiler
-CC = $(CC_FOR_TARGET)
-
 GNATPRFH = ../../compilers/gnatprfh/gnatprfh
 GEN_HTTP_BODY = $(srcdir)/gen_http_body
-
-SUFFIXES = .adb .ads .lo .ali .c
 
 polyorb-http_methods.adb: $(GEN_HTTP_BODY) $(srcdir)/polyorb-http_methods.ads
 	$(GEN_HTTP_BODY) $(GNATPRFH) $(srcdir) Method
@@ -60,20 +55,9 @@ polyorb-http_methods.adb: $(GEN_HTTP_BODY) $(srcdir)/polyorb-http_methods.ads
 polyorb-http_headers.adb: $(GEN_HTTP_BODY) $(srcdir)/polyorb-http_headers.ads
 	$(GEN_HTTP_BODY) $(GNATPRFH) $(srcdir) Header
 
-.adb.lo:
-	@chmod a+x $(ADACOMPILER)
-	$(LIBTOOL) --mode=compile $(ADACOMPILER) -c $(ADAFLAGS) $<
-
-.ads.lo:
-	@chmod a+x $(ADACOMPILER)
-	$(LIBTOOL) --mode=compile $(ADACOMPILER) -c $(ADAFLAGS) $<
-
 install-data-local:
 	$(INSTALL) -d $(DESTDIR)$(alidir)
 	for f in $(srcdir)/*.ad[bs] *.ali; do $(INSTALL) -m 444 $$f $(DESTDIR)$(alidir); done
-
-depend-local: all
-	$(srcdir)/../../support/mkdep -I$(srcdir)/.. $(srcdir) -I$(srcdir)/../web_common
 
 ### DO NOT REMOVE THIS LINE, IT IS USED BY MAKEDEPEND ###
 polyorb-binding_data-soap.lo:./../polyorb.ads ./../polyorb-annotations.ads ./../polyorb-any.ads ./../polyorb-any-exceptionlist.ads ./../polyorb-any-nvlist.ads ./../polyorb-asynch_ev.ads ./../polyorb-binding_data.ads polyorb-binding_data-soap.adb polyorb-binding_data-soap.ads ./../polyorb-binding_objects.ads ./../polyorb-buffers.ads ./../polyorb-components.adb ./../polyorb-components.ads ./../polyorb-exceptions.ads ./../polyorb-filters.ads polyorb-filters-http.ads polyorb-http_methods.ads ./../polyorb-initialization.ads ./../polyorb-jobs.ads ./../polyorb-log.adb ./../polyorb-log.ads ./../polyorb-obj_adapters.ads ./../polyorb-objects.ads ./../polyorb-opaque.ads ./../polyorb-opaque-chunk_pools.adb ./../polyorb-opaque-chunk_pools.ads ./../polyorb-orb.ads ./../polyorb-orb_controller.ads ./../polyorb-orb-interface.ads ./../polyorb-parameters.ads ./../polyorb-poa_policies.ads ./../polyorb-poa_policies-thread_policy.ads ./../polyorb-protocols.ads polyorb-protocols-soap_pr.ads ./../polyorb-references.ads ./../polyorb-references-ior.ads ./../polyorb-references-uri.ads ./../polyorb-representations.ads ./../polyorb-representations-cdr.ads ./../polyorb-requests.ads ./../polyorb-request_scheduler.ads ./../polyorb-sequences.ads ./../polyorb-sequences-unbounded.adb ./../polyorb-sequences-unbounded.ads ./../polyorb-servants.ads ./../polyorb-setup.ads ./../polyorb-smart_pointers.ads polyorb-soap_p.ads polyorb-soap_p-message.ads polyorb-soap_p-message-payload.ads polyorb-soap_p-parameters.ads ./../polyorb-sockets.ads ./../polyorb-sockets_initialization.ads ./../polyorb-task_info.ads ./../polyorb-tasking.ads ./../polyorb-tasking-condition_variables.ads ./../polyorb-tasking-mutexes.ads ./../polyorb-tasking-threads.ads ./../polyorb-transport.ads ./../polyorb-transport-connected.ads ./../polyorb-transport-connected-sockets.ads ./../polyorb-transport-handlers.ads ./../polyorb-types.adb ./../polyorb-types.ads ./../polyorb-utils.adb ./../polyorb-utils.ads ./../polyorb-utils-chained_lists.adb ./../polyorb-utils-chained_lists.ads ./../polyorb-utils-simple_flags.adb ./../polyorb-utils-simple_flags.ads ./../polyorb-utils-sockets.ads ./../polyorb-utils-strings.adb ./../polyorb-utils-strings.ads ./../polyorb-utils-strings-lists.adb ./../polyorb-utils-strings-lists.ads 

@@ -1,5 +1,4 @@
-IDLAC = $(top_builddir)/compilers/idlac/idlac
-LINKER = $(top_builddir)/support/linker
+include $(top_srcdir)/Makefile.common
 
 corba_lib=-I$(top_builddir)/src/corba/libpolyorb-corba.la
 giop_lib=-I$(top_builddir)/src/giop/libpolyorb-giop.la -I$(top_builddir)/src/giop/iiop/libpolyorb-giop-iiop.la -I$(top_builddir)/src/giop/diop/libpolyorb-giop-diop.la -I$(top_builddir)/src/giop/miop/libpolyorb-giop-miop.la
@@ -44,18 +43,8 @@ DISTCLEANFILES = @APPLI_EXES@ @SERVICE_EXES@
 
 all-local:  @APPLI_EXES@ @SERVICE_EXES@
 
-SUFFIXES = .idl .ads .adb
-
-.idl.ads:
-	$(IDLAC) $(IDLAC_FLAGS) $<
-
-.idl.adb:
-	$(IDLAC) $(IDLAC_FLAGS) $<
-
-@APPLI_EXES@ @SERVICE_EXES@: src $(idl)
+@APPLI_EXES@ @SERVICE_EXES@: src
 	$(GNATMAKE_FOR_TARGET) $@ $($@_FLAGS) $(GNATMAKE_FLAGS)
-
-$(idl): $(idl).ads
 
 src:
 	cd $(top_builddir)/src && $(MAKE)
