@@ -7,40 +7,81 @@
 
 \begin{document}
 \maketitle
+
+\section{PolyORB's implemented POA policies.}
+
 \begin{center}
-\begin {tabular}{|l|l|c|c|c|}
+\begin {tabular}{|l|l|c|c|c|c|}
 \hline
 \textbf{Policy Type}&\textbf{Policy Name}&
-\textbf{Min. CORBA}&\textbf{PolyORB}&\textbf{Default}(2)\\
+\textbf{Min.}&\textbf{RootPOA}&\textbf{PolyORB}&\textbf{Default}(2)\\
 \hline
 \hline
-Thread             &ORB Control               &X&X&X\\
-                   &Single Thread             & &X& \\
-	           &Main Thread               & &X& \\
+Thread             &ORB Control               &X&X&X&X\\
+                   &Single Thread             & & &X& \\
+	           &Main Thread               & & &X& \\
 \hline
-LifeSpan           &Transient                 &X&X(1)&X\\
-		   &Persistant                &X&X(1)& \\
+LifeSpan           &Transient                 &X&X&X(1)&X\\
+		   &Persistant                &X& &X(1)& \\
 \hline
-ObjecId Uniqueness &Unique Id                 &X&X(1)&X\\
-	           &Multiple Id               &X&X(1)& \\
+ObjecId Uniqueness &Unique Id                 &X&X&X(1)&X\\
+	           &Multiple Id               &X& &X(1)& \\
 \hline
-Id Assignment      &System Id                 &X&X(1)&X\\
-	           &User Id                   &X&X(1)& \\
+Id Assignment      &System Id                 &X&X&X(1)&X\\
+	           &User Id                   &X& &X(1)& \\
 \hline
-Servant Retention  &Retain                    &X&X(1)&X\\
-	           &Non Retain                & &X(1)& \\
+Servant Retention  &Retain                    &X&X&X(1)&X\\
+	           &Non Retain                & & &X(1)& \\
 \hline
-Request Processing &Use Active Object Map Only&X&X(1)&X\\
-	           &Use Default Servant       & &X(1)& \\
-	           &Use Servant Manager       & & & \\
+Request Processing &Use Active Object Map Only&X&X&X(1)&X\\
+	           &Use Default Servant       & & &X(1)& \\
+	           &Use Servant Manager       & & & & \\
 \hline
-Implicit Activation&Implicit Activation       & & & \\
-	           &No Implicit Activation    &X&X(1)&X\\
+Implicit Activation&Implicit Activation       & &X& & \\
+	           &No Implicit Activation    &X& &X(1)&X\\
 \hline
 \end{tabular}
 \begin{enumerate}
-\item \textit{Implemented but maybe not tested}
+\item \textit{Implemented but not (fully) tested}
 \item \textit{Default POA policies as defined by CORBA for the RootPOA}
 \end{enumerate}
 \end{center}
+
+\section{Incompatibilities between POA policies}
+
+{\it Taken from CORBA 3.0 specifications and testsuite.}
+
+The following algorithm applies:
+
+\begin{verbatim}
+
+   function Are_Policies_Valid
+     (Tp : ThreadPolicyValue;
+      Lp : LifespanPolicyValue;
+      Up : IdUniquenessPolicyValue;
+      Ap : IdAssignmentPolicyValue;
+      Ip : ImplicitActivationPolicyValue;
+      Sp : ServantRetentionPolicyValue;
+      Rp : RequestProcessingPolicyValue)
+     return Boolean is
+   begin
+      if (Up = UNIQUE_ID and then Sp = NON_RETAIN)
+        or else (Sp = NON_RETAIN
+                 and then not (Rp = USE_DEFAULT_SERVANT
+                               or Rp = USE_SERVANT_MANAGER))
+        or else (Ip = IMPLICIT_ACTIVATION
+                 and then not (Ap = SYSTEM_ID and Sp = RETAIN))
+        or else (Rp = USE_ACTIVE_OBJECT_MAP_ONLY and then Sp /= RETAIN)
+        or else (Rp = USE_DEFAULT_SERVANT and then Up /= MULTIPLE_ID)
+      then
+         return False;
+      else
+         return True;
+      end if;
+   end Are_Policies_Valid;
+
+\end{verbatim}
+
+
+
 \end{document}
