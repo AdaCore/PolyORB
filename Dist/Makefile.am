@@ -13,6 +13,7 @@ RSH = @RSH@
 
 bin_SCRIPTS = gnatdist
 libexec_PROGRAMS = dist1
+libexec_SCRIPTS = xe-gcc
 dist1_DEPENDENCIES = xe_defs.o sdefault.o
 dist1_SOURCES =
 dist1_LDADD =
