@@ -1,57 +1,47 @@
-with Echo.Skeleton ;
-with Corba ;
+with CORBA.Object.OmniORB;
+with Echo.Skel;
+with CORBA;
+package body Echo.Impl is 
 
-
-package body Echo.Impl is
-
-
-   -----------------------
-   -- IDL definitions   --
-   -----------------------
-
-   function echoString(Self : access Object; mesg : in Corba.String) return Corba.String is
-   begin
-      return mesg ;
-   end ;
-
+   function echoString
+     (Self : access Object;
+      mesg : in CORBA.String)
+      return CORBA.String
+   is
+   begin 
+      return mesg;
+   end echoString;
 
    -----------------------------------------------------------
    --  Implementations objects are controlled, you can add  --
    --  instructions in the following functions as specified --
    -----------------------------------------------------------
 
-   -- Initialize
-   -------------
-   procedure Initialize(Self : in Out Object) is
+   procedure Initialize (Self : in out Object) is
    begin
-      AdaBroker.Omniobject.Initialize(AdaBroker.Omniobject.Implemented_Object(Self)) ;
-      Init_Local_Object(Self,
-                        Repository_Id,
-                        Echo.Skeleton.Dispatch'Access,
-                        Echo.Is_A'Access) ;
-      -- You can add things *BELOW* this line
+      AdaBroker.OmniORB.Initialize
+        (AdaBroker.OmniORB.ImplObject (Self),
+         Echo.Repository_Id);
+      -- Add user code *BELOW* this line
+   end Initialize;
 
-   end Initialize ;
-
-
-   -- Adjust
-   ---------
-   procedure Adjust(Self: in out Object) is
+   procedure Adjust (Self: in out Object) is
    begin
-      AdaBroker.Omniobject.Adjust(AdaBroker.Omniobject.Implemented_Object(Self)) ;
-      -- You can add things *BELOW* this line
+      AdaBroker.OmniORB.Adjust
+        (AdaBroker.OmniORB.ImplObject (Self));
+      -- Add user code *BELOW* this line
+   end Adjust;
 
-   end Adjust ;
-
-
-   -- Finalize
-   -----------
-   procedure Finalize(Self : in out Object) is
+   procedure Finalize (Self : in out Object) is
    begin
+      -- Add user code *BEFORE* this line
+      AdaBroker.OmniORB.Finalize
+        (AdaBroker.OmniORB.ImplObject (Self));
+   end Finalize;
 
-      -- You can add things *BEFORE* this line
-      AdaBroker.Omniobject.Finalize(AdaBroker.Omniobject.Implemented_Object(Self)) ;
-   end Finalize ;
-
-
-end Echo.Impl ;
+begin
+   CORBA.Object.OmniORB.Register
+     (Echo.Repository_Id,
+      Echo.Nil_Ref,
+      Echo.Skel.Dispatch'Access);
+end Echo.Impl;
