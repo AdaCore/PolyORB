@@ -36,7 +36,7 @@
 --  $Id$
 
 with CORBA.Object;
-with CORBA.Sequences.Unbounded_AT;
+with CORBA.Sequences.Unbounded;
 
 package CORBA.Policy is
 
@@ -51,9 +51,9 @@ package CORBA.Policy is
    function Copy (Self : Ref) return Ref'Class;
 
    package IDL_Sequence_Policy is new
-     CORBA.Sequences.Unbounded_AT (Ref, Ref_Access);
-   --  Note : Ref is an abstract type, thus we cannot use
-   --  CORBA.Sequences.Unbounded and use this package instead.
+     CORBA.Sequences.Unbounded (Ref_Access);
+   --  Note : Ref is an abstract type, thus we cannot instantiate a
+   --  sequence of Ref, we use a sequence of Ref_Access instead.
 
    subtype PolicyList is IDL_Sequence_Policy.Sequence;
 

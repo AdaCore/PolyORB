@@ -436,7 +436,6 @@ src/corba/corba-request.ads
 src/corba/corba-sequences.ads
 src/corba/corba-sequences-bounded.ads
 src/corba/corba-sequences-unbounded.ads
-src/corba/corba-sequences-unbounded_at.ads
 src/corba/corba-serverrequest.adb
 src/corba/corba-serverrequest.ads
 src/corba/corba.adb
@@ -709,8 +708,6 @@ src/polyorb-requests.adb
 src/polyorb-requests.ads
 src/polyorb-sequences-bounded.adb
 src/polyorb-sequences-bounded.ads
-src/polyorb-sequences-unbounded_at.ads
-src/polyorb-sequences-unbounded_at.adb
 src/polyorb-sequences-unbounded-search.adb
 src/polyorb-sequences-unbounded-search.ads
 src/polyorb-sequences-unbounded.adb
