@@ -13,8 +13,8 @@ output=/infres/shalmaneser/quinot/polyorb-output
 
 Revolutedp_pids=""
 
-hosts=valjean:esmeralda2:lantier:donjuan:candide:gavroche:elvire:cosette:folcoche:roland:quasimodo:chimene:arsene:isengrin:fracasse:
-#nadja:goriot:esmeralda:javert:fracasse:blizzard:aurelien:
+hosts=valjean:lantier:donjuan:candide:gavroche:elvire:cosette:folcoche:roland:quasimodo:chimene:arsene:isengrin:fracasse:
+#nadja:goriot:esmeralda:javert:fracasse:blizzard:aurelien:esmeralda2:
 
 nhosts=`echo $hosts | tr -cd : | wc -c`
 size=100
@@ -23,10 +23,12 @@ cli_per_host=1
 nmax=$nhosts
 ulimit -c unlimited
 kill=false
+broadcast=""
 
-while getopts ks:c:n:N: opt; do
+while getopts bks:c:n:N: opt; do
   case "$opt" in
     k) kill=true ;;
+    b) broadcast="-b" ;;
     s) size=$OPTARG ;;
     c) count=$OPTARG ;;
     N) cli_per_host=$OPTARG ;;
@@ -57,11 +59,18 @@ now=`date +"%F_%T" | tr -d :`
 output=$output/$now
 mkdir $output
 
-echo "output=$output" > $output/00PARAMETERS
-echo "size=$size" >> $output/00PARAMETERS
-echo "count=$count" >> $output/00PARAMETERS
-echo "nmax=$nmax" >> $output/00PARAMETERS
-echo "cli_per_host=$cli_per_host" >> $output/00PARAMETERS
+(
+  echo "output=$output"
+  echo "size=$size"
+  echo "count=$count"
+  echo "nmax=$nmax"
+  echo "cli_per_host=$cli_per_host"
+  if [ "$brodcast" = "-b" ]; then
+    echo "broadcast=true"
+  else
+    echo "broadcast=false"
+  fi
+) > $output/00PARAMETERS
 
 echo "000 init"
 sed "s/^/    /" $output/00PARAMETERS

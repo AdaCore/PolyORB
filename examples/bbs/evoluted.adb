@@ -1,3 +1,6 @@
+--  Evoluted BBS client
+--  $Id$
+
 with Ada.Command_Line; use Ada.Command_Line;
 with Ada.Exceptions;
 with Ada.Text_IO;      use Ada.Text_IO;
@@ -45,6 +48,7 @@ procedure Evoluted is
    end Usage;
 
    Is_Test : Boolean := False;
+   Test_Broadcast : Boolean := False;
    Message_Count : Integer := 100;
    Message_Size : Integer  := 100;
    Nmax : Integer;
@@ -66,8 +70,11 @@ procedure Evoluted is
 
 begin
    loop
-      case Getopt ("c: n: s:") is
+      case Getopt ("b c: n: s:") is
          when ASCII.NUL => exit;
+
+         when 'b' =>
+            Test_Broadcast := True;
 
          when 'c' =>
             Message_Count := Integer'Value (Parameter);
@@ -107,7 +114,11 @@ begin
       -- Automated test section --
       ----------------------------
 
-      Expected_Messages := 2 * Nmax * Message_Count;
+      Expected_Messages := Nmax * Message_Count;
+      if Test_Broadcast then
+         Expected_Messages := Expected_Messages * 2;
+      end if;
+
       Payload := new String'(1 .. Message_Size => 'X');
 
       Put_Line ("Expecting"
@@ -124,10 +135,12 @@ begin
          declare
             Iter : constant String := Integer'Image (K);
          begin
-            Post_Message
-              (Sender  => Name_Of (Penpal'Access),
-               Message => "B" & Iter & ":" & Penpal_Name
-                 & ":" & Payload.all);
+            if Test_Broadcast then
+               Post_Message
+                 (Sender  => Name_Of (Penpal'Access),
+                  Message => "B" & Iter & ":" & Penpal_Name
+                    & ":" & Payload.all);
+            end if;
 
             for J in 0 .. Nmax - 1 loop
                declare
