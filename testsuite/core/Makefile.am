@@ -19,6 +19,7 @@ SUBDIRS = \
 	naming \
 	obj_adapters \
 	poa \
+	random \
 	tasking
 
 CLEANFILES = config-stamp
