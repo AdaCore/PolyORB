@@ -290,7 +290,9 @@ package body Droopi.Representations.SRP is
       pragma Debug (O ("Coded URL : " & Coded_URL.all));
 
       for I in Coded_URL.all'Range loop
-         null;
+         Align_Marshall_Copy
+           (Buffer, Stream_Element_Array'
+            (1 => Stream_Element (Character'Pos (Coded_URL.all (I)))));
       end loop;
 
    end Marshall_From_Any;

@@ -77,11 +77,10 @@ package body Droopi.Protocols.SRP is
    begin
       Release_Contents (B.all);
       Data := CORBA.To_Any
-        (CORBA.To_CORBA_String ("200 OK" & ASCII.CR & ASCII.LF));
+        (CORBA.To_CORBA_String ("200 OK" & ASCII.CR & ASCII.LF &
+                               Image (R) & ASCII.CR & ASCII.LF));
       Marshall_From_Any (Rep.all, B, Data);
-      --  Marshall_String (Rep, B, "200 OK" & ASCII.CR & ASCII.LF);
-      --  Marshall_String (Rep, B, "Request: "
-      --                   & Image (R) & ASCII.CR & ASCII.LF);
+
       Emit_No_Reply (Lower (S), Data_Out'(Out_Buf => B));
    end Send_Reply;
 
