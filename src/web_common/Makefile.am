@@ -9,7 +9,8 @@ ADA_SPECS_WITH_BODY = \
 	aws-url-raise_url_error.ads \
 	aws-mime.ads \
 	aws-utils.ads \
-	md5.ads
+	md5.ads \
+	soap-utils.ads
 
 ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
 	aws.ads \
