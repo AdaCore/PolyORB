@@ -639,6 +639,7 @@ package body Ada_Be.Idl2Ada.Skel is
                            PL (CU, "return;");
                            DI (CU);
                            PL (CU, "end;");
+                           DI (CU);
                         end;
                      end loop;
                   end;
@@ -710,25 +711,22 @@ package body Ada_Be.Idl2Ada.Skel is
                           := Helper_Unit (Original_Operation_Type (Node));
                      begin
                         Add_With (CU, Prefix);
-                        Put (CU, T_Argument & T_Result
-                             & " := " & Prefix
-                             & ".To_Any"
-                             & " (");
+
+                        if Is_Function then
+                           PL (CU, "CORBA.ServerRequest.Set_Result");
+                           PL (CU, "  (Request, ");
+                           II (CU);
+                           PL (CU, Prefix & ".To_Any ("
+                               & T_Result & "));");
+                           DI (CU);
+                        else
+                           PL (CU, "CORBA.ServerRequest.Set_Result");
+                           PL (CU, "  (Request, ");
+                           II (CU);
+                           PL (CU, Prefix & ".To_Any (Returns));");
+                           DI (CU);
+                        end if;
                      end;
-
-                     if Is_Function then
-                        Gen_Forward_Conversion
-                          (CU, Original_Operation_Type (Node),
-                           "From_Forward", T_Result);
-                     else
-                        Gen_Forward_Conversion
-                          (CU, Original_Operation_Type (Node),
-                           "From_Forward", "Returns");
-                     end if;
-
-                     PL (CU, ");");
-                     PL (CU, "CORBA.ServerRequest.Set_Result (Request, "
-                         & T_Argument & T_Result & ");");
                   end if;
                end if;
 

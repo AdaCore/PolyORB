@@ -295,12 +295,14 @@ package body Ada_Be.Idl2Ada.Helper is
       end case;
    end Gen_Node_Body;
 
-   ----------------------------
-   --  Gen_From_Any_Profile  --
-   ----------------------------
+   --------------------------
+   -- Gen_From_Any_Profile --
+   --------------------------
+
    procedure Gen_From_Any_Profile
      (CU        : in out Compilation_Unit;
-      Type_Node : in Node_Id) is
+      Type_Node : in Node_Id)
+   is
    begin
       Add_With (CU, "CORBA");
       PL (CU, "function From_Any (Item : in CORBA.Any)");
@@ -310,25 +312,27 @@ package body Ada_Be.Idl2Ada.Helper is
       DI (CU);
    end Gen_From_Any_Profile;
 
-   --------------------------
-   --  Gen_To_Any_Profile  --
-   --------------------------
+   ------------------------
+   -- Gen_To_Any_Profile --
+   ------------------------
+
    procedure Gen_To_Any_Profile
      (CU        : in out Compilation_Unit;
-      Type_Node : in Node_Id) is
+      Type_Node : in Node_Id)
+   is
    begin
       Add_With (CU, "CORBA");
-      PL (CU, "function To_Any (Item : in "
+      PL (CU, "function To_Any");
+      PL (CU, "  (Item : in "
           & Ada_Type_Name (Type_Node)
           & ")");
-      II (CU);
-      Put (CU, "return CORBA.Any");
-      DI (CU);
+      Put (CU, "  return CORBA.Any");
    end Gen_To_Any_Profile;
 
-   --------------------------
-   --  Gen_Interface_Spec  --
-   --------------------------
+   ------------------------
+   -- Gen_Interface_Spec --
+   ------------------------
+
    procedure Gen_Interface_Spec
      (CU        : in out Compilation_Unit;
       Node      : in     Node_Id) is
@@ -355,10 +359,8 @@ package body Ada_Be.Idl2Ada.Helper is
          NL (CU);
          Add_With (CU, "CORBA");
          PL (CU, Ada_TC_Name (Node)
-             & " : CORBA.TypeCode.Object :=");
-         II (CU);
-         PL (CU, "CORBA.TypeCode.TC_Object;");
-         DI (CU);
+             & " : CORBA.TypeCode.Object");
+         PL (CU, "  := CORBA.TypeCode.TC_Object;");
 
          --  From_Any
          NL (CU);
@@ -405,10 +407,8 @@ package body Ada_Be.Idl2Ada.Helper is
          NL (CU);
          Add_With (CU, "CORBA");
          PL (CU, Ada_TC_Name (Node)
-             & " : CORBA.TypeCode.Object :=");
-         II (CU);
-         PL (CU, "CORBA.TypeCode.TC_Object;");
-         DI (CU);
+             & " : CORBA.TypeCode.Object");
+         PL (CU, "  := CORBA.TypeCode.TC_Object;");
 
          --  From_Any
          NL (CU);
