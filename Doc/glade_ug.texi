@@ -1273,6 +1273,8 @@ environment variables.
 * Partition Attribute Passive::  
 * Partition Attribute Data_Location::  
 * Partition Attribute Allow_Light_PCS::  
+* Pragma Priority::             
+* Partition Attribute Priority::  
 * Partition Attribute Host::    
 * Pragma Import::               
 * Partition Attribute Directory::  
@@ -1550,7 +1552,7 @@ PRAGMA ::=
 
 @item
 The default method consists in launching partitions from the main
-partition Ada subprogram using a remote shell.
+partition Ada subprogram using a remote shell (see below).
 
 @item
 The user may ask for a Shell script that starts the different partitions
@@ -1566,6 +1568,27 @@ to launch the different partitions. The user may have to provide on the
 command line the boot server location (see @ref{Architecture of GLADE PCS}).
 
 @end itemize
+
+@subsection Pragma Remote_Shell
+
+When pragma Starter is Ada or Shell, the main partition launches the
+other partitions. The remote shell used as a default is determined
+during GLADE configuration and installation. It is either rsh, remsh or
+the argument passed to --with-rshcmd=[ARG]. The pragma Remote_Shell
+allows the user to override the default.
+
+@smallexample
+
+PRAGMA ::=
+   @b{pragma} Remote_Shell
+     ([Command =>] STRING_LITERAL,
+      [Options =>] STRING_LITERAL);
+
+@end smallexample
+
+The Command parameter indicates the name of the remote shell command
+name and the Options parameter corresponds to the additional flags to
+pass to the remote shell command.
 
 @node Pragma Boot_Location, Partition Attribute Self_Location, Pragma Starter, The Configuration Language
 @subsection Pragma Boot_Location
@@ -1688,7 +1711,7 @@ As passive partitions cannot be activated, it is not possible to provide
 a location list as a data_location attribute. It is not possible to
 change dynamically its location either.
 
-@node  Partition Attribute Allow_Light_PCS, Partition Attribute Host, Partition Attribute Data_Location, The Configuration Language
+@node  Partition Attribute Allow_Light_PCS, Pragma Priority, Partition Attribute Data_Location, The Configuration Language
 @subsection Partition Attribute Allow_Light_PCS
 
 On some circumstances, GLADE can detect that a partition does not need
@@ -1716,7 +1739,56 @@ REPRESENTATION_CLAUSE ::=
 
 @end smallexample
 
-@node Partition Attribute Host, Pragma Import, Partition Attribute Allow_Light_PCS, The Configuration Language
+@node Pragma Priority, , Partition Attribute Allow_Light_PCS, The Configuration Language
+@subsection Pragma Priority
+
+It might be necessary for real-time applications to get control over the
+priority at which a remote procedure call is executed. By default,
+GARLIC sends the priority of the client to the server which sets the
+priority of an anonymous task to this value. The pragma Priority allows
+to decide which priority policy should apply in the distributed
+application.
+
+@smallexample
+
+PRIORITY_POLICY_LITERAL ::= Server_Declared
+                          | Client_Propagated
+
+PRAGMA ::=
+   @b{pragma} Priority ([Policy =>] PRIORITY_POLICY_LITERAL);
+
+@end smallexample
+
+@itemize @bullet
+
+@item
+The default policy Client_Propagated consists in propagating the client
+priority to the server.
+
+@item
+The policy Server_Declared consists in executing the remote procedure
+call at a priority specific to the partition. This priority can be
+set using the partition attribute Priority.
+
+@end itemize
+
+@node Partition Attribute Priority, Partition Attribute Host, Pragma Priority, The Configuration Language
+@subsection Partition Attribute Priority
+
+This attribute allows to set the priority at which level a remote
+procedure call is executed on a server when the priority policy is
+Server_Declared. By default, the default priority of the anonymous task
+is the default task priority.
+
+@smallexample
+
+REPRESENTATION_CLAUSE ::=
+   @b{for} PARTITION_IDENTIFIER'Priority @b{use} INTEGER_LITERAL;
+
+@end smallexample
+
+
+@node Partition Attribute Host, Pragma Import, Partition Attribute Priority, The Configuration Language
 @subsection Partition Attribute Host
 
 Logical nodes (or partitions) can be mapped onto physical nodes. The
@@ -2721,7 +2793,11 @@ priorities, because two partitions may have different priority ranges
 and policies. Nevertheless, GLADE preserves the caller priority. This
 priority is marshaled and unmarshaled during the remote procedure call
 and the priority of the anonymous task on the server is set to the
-caller priority. There is no way currently to disable this feature.
+caller priority.
+
+This default policy can be modified by using pragma Priority
+@ref{Pragma Priority} and partition attribute
+Priority @ref{Partition Attribute Priority}.
 
 @node Remote Call Abortion, User Filter Implementation, Priority Inheritance, GLADE Internals
 @subsection Remote Call Abortion
