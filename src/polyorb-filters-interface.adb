@@ -4,7 +4,7 @@
 --                                                                          --
 --            P O L Y O R B . F I L T E R S . I N T E R F A C E             --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
 --                Copyright (C) 2001 Free Software Fundation                --
 --                                                                          --

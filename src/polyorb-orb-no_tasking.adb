@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---            P O L Y O R B . O R B . T A S K _ P O L I C I E S             --
+--               P O L Y O R B . O R B . N O _ T A S K I N G                --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
