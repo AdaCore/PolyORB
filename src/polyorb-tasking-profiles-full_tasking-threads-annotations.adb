@@ -32,17 +32,46 @@
 ------------------------------------------------------------------------------
 
 with Ada.Task_Attributes;
+with Ada.Unchecked_Deallocation;
 
 with PolyORB.Initialization;
+with PolyORB.Smart_Pointers;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.Tasking.Profiles.Full_Tasking.Threads.Annotations is
 
    use PolyORB.Annotations;
+   use PolyORB.Smart_Pointers;
 
-   package Task_Notepad is new Ada.Task_Attributes (Notepad_Access, null);
+   type Notepad_Ref is new Ref with null record;
+
+   Nil_Ref : constant Notepad_Ref
+     := (PolyORB.Smart_Pointers.Ref with null record);
+
+   type Notepad_Entity is new Non_Controlled_Entity with record
+      Notepad : PolyORB.Annotations.Notepad_Access := null;
+   end record;
+
+   procedure Finalize (Object : in out Notepad_Entity);
+
+   package Task_Notepad_Wrapper is
+      new Ada.Task_Attributes (Notepad_Ref, Nil_Ref);
 
    Current_TAF : Full_Tasking_TAF_Access;
+
+   --------------
+   -- Finalize --
+   --------------
+
+   procedure Finalize (Object : in out Notepad_Entity) is
+      procedure Free is new Ada.Unchecked_Deallocation
+        (Notepad, Notepad_Access);
+   begin
+      if Object.Notepad /= null then
+         Destroy (Object.Notepad.all);
+         Free (Object.Notepad);
+      end if;
+   end Finalize;
 
    --------------------------------
    -- Get_Current_Thread_Notepad --
@@ -54,17 +83,17 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads.Annotations is
    is
       pragma Unreferenced (TAF);
 
-      N : Notepad_Access;
+      Thread_Entity : Entity_Ptr := Entity_Of (Task_Notepad_Wrapper.Value);
 
    begin
-      N := Task_Notepad.Value;
-
-      if N = null then
-         N := new Notepad;
-         Task_Notepad.Set_Value (N);
+      if Thread_Entity = null then
+         Thread_Entity := new Notepad_Entity;
+         Notepad_Entity (Thread_Entity.all).Notepad := new Notepad;
+         Set (Task_Notepad_Wrapper.Reference.all,
+              Thread_Entity);
       end if;
 
-      return N;
+      return Notepad_Entity (Thread_Entity.all).Notepad;
    end Get_Current_Thread_Notepad;
 
    ----------------
