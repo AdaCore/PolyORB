@@ -2396,7 +2396,6 @@ package body Exp_Dist is
                  Entity (Subtype_Mark (Spec)), Loc));
 
          Set_Ekind (Proc, E_Function);
-
          Set_Etype (Proc,
            New_Occurrence_Of (Entity (Subtype_Mark (Spec)), Loc));
 
@@ -2447,7 +2446,7 @@ package body Exp_Dist is
             Make_Handled_Sequence_Of_Statements (Loc,
               Statements => Proc_Statements));
 
-      Set_TSS (Fat_Type, Defining_Unit_Name (Proc_Spec));
+      Set_TSS (Fat_Type, Proc);
    end Add_RAS_Dereference_TSS;
 
    procedure Add_RAS_From_Any
@@ -2986,6 +2985,11 @@ package body Exp_Dist is
                              New_Occurrence_Of (
                                Subp_Dist_Name, Loc),
                            Attribute_Name => Name_Address),
+                         Make_Attribute_Reference (Loc,
+                           Prefix =>
+                             New_Occurrence_Of (
+                               Subp_Dist_Name, Loc),
+                           Attribute_Name => Name_Length),
                          Make_Attribute_Reference (Loc,
                            Prefix =>
                              New_Occurrence_Of (Subp_Def, Loc),
@@ -5259,10 +5263,47 @@ package body Exp_Dist is
      (Def : Entity_Id)
       return String_Id
    is
-      Result : constant String_Id :=
+      Result : String_Id :=
         Subprogram_Identifier_Table.Get (Def);
-      pragma Assert (Result /= No_String);
+
+      Current_Declaration : Node_Id;
+      Current_Subp        : Entity_Id;
+      Current_Subp_Str    : String_Id;
    begin
+      if Result = No_String then
+         --  We are looking up this subprogram's identifier
+         --  outside of the context of generating calling
+         --  or receiving stubs; hence, we are processing
+         --  a 'Access attribute_reference for an RCI subprogram,
+         --  for the purpose of obtaining a RAS value.
+
+         pragma Assert
+           (Is_Remote_Call_Interface (Scope (Def))
+              and then
+              (Nkind (Parent (Def)) = N_Procedure_Specification
+                 or else
+               Nkind (Parent (Def)) = N_Function_Specification));
+
+         Current_Declaration :=
+           First (Visible_Declarations
+             (Package_Specification_Of_Scope (Scope (Def))));
+
+         while Current_Declaration /= Empty loop
+            if Nkind (Current_Declaration) = N_Subprogram_Declaration
+              and then Comes_From_Source (Current_Declaration)
+            then
+               Current_Subp := Defining_Unit_Name (Specification (
+                 Current_Declaration));
+               Assign_Subprogram_Identifier (
+                 Current_Subp, Current_Subp_Str);
+               if Current_Subp = Def then
+                  Result := Current_Subp_Str;
+               end if;
+            end if;
+            Next (Current_Declaration);
+         end loop;
+      end if;
+      pragma Assert (Result /= No_String);
       return Result;
    end Get_Subprogram_Identifier;
 

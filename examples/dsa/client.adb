@@ -14,7 +14,7 @@ pragma Warnings (On);
 
 procedure Client is
    S : constant String := "Hello DSA world!";
-   --  RAS : RCI.echo_RAS;
+   RAS : RCI.echo_RAS;
 
    procedure Try_RACW (Name : String);
    procedure Try_RACW (Name : String) is
@@ -34,12 +34,9 @@ begin
    Put_Line ("I said: " & S);
    Put_Line ("The server replied: "
      & RCI.echoString (S));
-   --  RAS := RCI.echoString'Access;
-   --  Put_Line ("through RAS: " & RAS.all (S));
-   --  XXX RAS not working currently because Subprogram_Identifiers are
-   --  not computed when neither generating RCI receiving stubs nor
-   --  calling stubs. Could be fixed by a s-polint query based on
-   --  subprogram address.
+   RAS := RCI.echoString'Access;
+   Put_Line ("through RAS: " & RAS (S & " (RASI)"));
+   Put_Line ("through RAS: " & RAS.all (S & " (RASE)"));
 
    Try_RACW ("");
    Try_RACW ("Elvis");

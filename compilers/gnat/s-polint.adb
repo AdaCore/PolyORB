@@ -610,10 +610,6 @@ package body System.PolyORB_Interface is
             It : Receiving_Stub_Lists.Iterator :=
               First (All_Receiving_Stubs);
 
-            package Str_Addr_Conversion is
-               new System.Address_To_Access_Conversions (String);
-            use Str_Addr_Conversion;
-
             Addr : System.Address := System.Null_Address;
             Receiver : Servant_Access := null;
 
@@ -624,20 +620,44 @@ package body System.PolyORB_Interface is
             --  of linear search) and should probably be optimized
             --  in some way.
 
+            pragma Debug (O ("Looking up RAS ref for " &
+                               Subprogram_Name & " in " &
+                               Pkg_Name));
+
             All_Stubs :
             while not Last (It) loop
                declare
                   S : Receiving_Stub renames Value (It).all;
                begin
                   if S.Kind = Pkg_Stub and then S.Name.all = Pkg_Name then
+                     pragma Debug (O ("Found package!"));
+                     pragma Assert (S.Subp_Info /= null);
                      for J in S.Subp_Info'Range loop
-                        if To_Pointer (S.Subp_Info (J).Name).all
-                          = Subprogram_Name
-                        then
-                           Addr := S.Subp_Info (J).Addr;
-                           Receiver := S.Receiver;
-                           exit All_Stubs;
-                        end if;
+                        declare
+                           Info : RCI_Subp_Info
+                             renames S.Subp_Info (J);
+
+                           subtype Fixed_Str is
+                             String (1 .. Info.Name_Length);
+
+                           package Str_Addr_Conversion is
+                              new System.Address_To_Access_Conversions
+                             (Fixed_Str);
+                           use Str_Addr_Conversion;
+                        begin
+                           if To_Pointer (Info.Name).all
+                             = Subprogram_Name
+                           then
+                              pragma Debug (O ("Found subprogram!"));
+                              Addr := Info.Addr;
+                              Receiver := S.Receiver;
+                              exit All_Stubs;
+                           else
+                              pragma Debug (O ("Skipping subprogram: "
+                                & To_Pointer (Info.Name).all));
+                              null;
+                           end if;
+                        end;
                      end loop;
                   end if;
                end;

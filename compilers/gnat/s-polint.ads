@@ -38,7 +38,8 @@ package System.PolyORB_Interface is
    --  exported by the unit.
 
    type RCI_Subp_Info is record
-      Name : System.Address;
+      Name        : System.Address;
+      Name_Length : Integer;
       --  Subprogram distribution identifier
 
       Addr : System.Address;
