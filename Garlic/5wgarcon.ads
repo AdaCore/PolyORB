@@ -42,14 +42,45 @@ package System.Garlic.Constants is
    Sock_Stream    : constant := 1;
    So_Reuseaddr   : constant := 4;
    Sol_Socket     : constant := 16#ffff#;
+
+   Ewouldblock    : constant := 10035;
+   Einprogress    : constant := 10036;
+   Ealready       : constant := 10037;
+   Eisconn        : constant := 10056;
+   Econnrefused   : constant := 10061;
    Host_Not_Found : constant := 11001;
    Try_Again      : constant := 11002;
    No_Recovery    : constant := 11003;
    No_Data        : constant := 11004;
    No_Address     : constant := 11004;
 
+   Eintr          : constant := 4;
+   Eagain         : constant := 11;
+   So_Rcvbuf      : constant := 16#1002#;
+   Sigterm        : constant := 15;
+
+   Fioasync       : constant := 16#8004667d#;
+   Fasync         : constant := Fioasync;
+
    O_Rdonly       : constant := 0;
    O_Wronly       : constant := 1;
    O_Rdwr         : constant := 2;
+
+   Tcp_Nodelay    : constant := -1;
+   Fndelay        : constant := -1;
+   F_Getfl        : constant := -1;
+   F_Setfl        : constant := -1;
+   F_Setown       : constant := -1;
+   Fiossaioown    : constant := F_Setown;
+   Sigkill        : constant := -1;
+   Pollin         : constant := -1;
+   Pollpri        : constant := -1;
+   Pollout        : constant := -1;
+   Pollerr        : constant := -1;
+   Pollhup        : constant := -1;
+   Pollnval       : constant := -1;
+   I_Setsig       : constant := -1;
+   S_Rdnorm       : constant := -1;
+   S_Wrnorm       : constant := -1;
 
 end System.Garlic.Constants;
