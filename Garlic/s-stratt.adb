@@ -1240,20 +1240,27 @@ package body System.Stream_Attributes is
       U : Unsigned := 0;
       P : Integer;
       S : SEA (1 .. SF_L) := (others => 0);
+      V : Short_Float;
 
    begin
-      F := abs (Item);
+      if Item'Valid then
+         V := Item;
+      else
+         V := 0.0;
+      end if;
+
+      F := abs (V);
 
       --  Signed zero.
-      if Item = 0.0 then
+      if V = 0.0 then
 
          U := 0;
 
       else
 
          --  Signed infinites.
-         if Item <= Short_Float'Safe_First or else
-            Short_Float'Safe_Last <= Item then
+         if V <= Short_Float'Safe_First or else
+            Short_Float'Safe_Last <= V then
             E := E_Last;
 
          else
@@ -1315,7 +1322,7 @@ package body System.Stream_Attributes is
       end if;
 
       --  Store the sign and the first exponent byte.
-      if Short_Float'Copy_Sign (1.0, Item) = -1.0 then
+      if Short_Float'Copy_Sign (1.0, V) = -1.0 then
          S (1) := SE (U + BS);
       else
          S (1) := SE (U);
@@ -1348,20 +1355,27 @@ package body System.Stream_Attributes is
       U : Unsigned;
       P : Integer;
       S : SEA (1 .. F_L) := (others => 0);
+      V : Float;
 
    begin
-      F := abs (Item);
+      if Item'Valid then
+         V := Item;
+      else
+         V := 0.0;
+      end if;
+
+      F := abs (V);
 
       --  Signed zero.
-      if Item = 0.0 then
+      if V = 0.0 then
 
          U := 0;
 
       else
 
          --  Signed infinites.
-         if Item <= Float'Safe_First or else
-            Float'Safe_Last <= Item then
+         if V <= Float'Safe_First or else
+            Float'Safe_Last <= V then
             E := E_Last;
 
          else
@@ -1423,7 +1437,7 @@ package body System.Stream_Attributes is
       end if;
 
       --  Store the sign and the first exponent byte.
-      if Float'Copy_Sign (1.0, Item) = -1.0 then
+      if Float'Copy_Sign (1.0, V) = -1.0 then
          S (1) := SE (U + BS);
       else
          S (1) := SE (U);
@@ -1456,20 +1470,27 @@ package body System.Stream_Attributes is
       U : Unsigned;
       P : Integer;
       S : SEA (1 .. LF_L) := (others => 0);
+      V : Long_Float;
 
    begin
-      F := abs (Item);
+      if Item'Valid then
+         V := Item;
+      else
+         V := 0.0;
+      end if;
+
+      F := abs (V);
 
       --  Signed zero.
-      if Item = 0.0 then
+      if V = 0.0 then
 
          U := 0;
 
       else
 
          --  Signed infinites.
-         if Item <= Long_Float'Safe_First or else
-            Long_Float'Safe_Last <= Item then
+         if V <= Long_Float'Safe_First or else
+            Long_Float'Safe_Last <= V then
             E := E_Last;
 
          else
@@ -1531,7 +1552,7 @@ package body System.Stream_Attributes is
       end if;
 
       --  Store the sign and the first exponent byte.
-      if Long_Float'Copy_Sign (1.0, Item) = -1.0 then
+      if Long_Float'Copy_Sign (1.0, V) = -1.0 then
          S (1) := SE (U + BS);
       else
          S (1) := SE (U);
@@ -1564,20 +1585,27 @@ package body System.Stream_Attributes is
       U : Unsigned;
       P : Integer;
       S : SEA (1 .. LLF_L) := (others => 0);
+      V : Long_Long_Float;
 
    begin
-      F := abs (Item);
+      if Item'Valid then
+         V := Item;
+      else
+         V := 0.0;
+      end if;
+
+      F := abs (V);
 
       --  Signed zero.
-      if Item = 0.0 then
+      if V = 0.0 then
 
          U := 0;
 
       else
 
          --  Signed infinites.
-         if Item <= Long_Long_Float'Safe_First or else
-            Long_Long_Float'Safe_Last <= Item then
+         if V <= Long_Long_Float'Safe_First or else
+            Long_Long_Float'Safe_Last <= V then
             E := E_Last;
 
          else
@@ -1639,7 +1667,7 @@ package body System.Stream_Attributes is
       end if;
 
       --  Store the sign and the first exponent byte.
-      if Long_Long_Float'Copy_Sign (1.0, Item) = -1.0 then
+      if Long_Long_Float'Copy_Sign (1.0, V) = -1.0 then
          S (1) := SE (U + BS);
       else
          S (1) := SE (U);
