@@ -6,7 +6,7 @@ configuration Test_Abort is
    for part1'Storage_Dir use "XXXXX/bin";
 
    part2 : partition := (Remote_Abort);
-   for part2'Host use YYYYY;
+   for part2'Host use "YYYYY";
    for part2'Storage_Dir use "XXXXX/bin";
 
    procedure Test_Abort is in part1;
