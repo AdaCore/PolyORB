@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---          Copyright (C) 1992-1997 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-1998 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -63,6 +63,9 @@ pragma Elaborate_Body (Table);
       --  integer type. The effect is roughly to declare:
 
       --    Table : array (Table_Low_Bound .. <>) of Table_Component_Type;
+
+      --  Table_Component_Type may be any Ada type, but note that default
+      --  initialization will NOT occur for the array components.
 
       --  The Table_Initial values controls the allocation of the table when
       --  it is first allocated, either by default, or by an explicit Init

@@ -613,13 +613,44 @@ pragma Preelaborate (Types);
 
    Empty_Time_Stamp : constant Time_Stamp_Type := (others => ' ');
    --  Type used to represent an empty or missing time stamp. Looks less
-   --  than any real time stamp if two time stamps are compared.
+   --  than any real time stamp if two time stamps are compared. Note that
+   --  although this is not a private type, clients should not rely on the
+   --  exact way in which this string is represented, and instead should
+   --  use the subprograms below.
 
    function "="  (Left, Right : Time_Stamp_Type) return Boolean;
-   --  The equality test on time stamps allows a 2 second difference in
-   --  time stamps on the same date to be be counted as equal. This deals
-   --  with rounding effects in library file time stamps caused by copying
-   --  operations during installation, particularly on WinNT.
+   function "<=" (Left, Right : Time_Stamp_Type) return Boolean;
+   function ">=" (Left, Right : Time_Stamp_Type) return Boolean;
+   function "<"  (Left, Right : Time_Stamp_Type) return Boolean;
+   function ">"  (Left, Right : Time_Stamp_Type) return Boolean;
+   --  Comparison functions on time stamps. Note that two time stamps
+   --  are defined as being equal if they have the same day/month/year
+   --  and the hour/minutes/seconds values are within 2 seconds of one
+   --  another. This deals with rounding effects in library file time
+   --  stamps caused by copying operations during installation. We have
+   --  particularly noticed that WinNT seems susceptible to such changes.
+   --  Note: the Empty_Time_Stamp value looks equal to itself, and less
+   --  than any non-empty time stamp value.
+
+   procedure Split_Time_Stamp
+     (TS      : Time_Stamp_Type;
+      Year    : out Nat;
+      Month   : out Nat;
+      Day     : out Nat;
+      Hour    : out Nat;
+      Minutes : out Nat;
+      Seconds : out Nat);
+   --  Given a time stamp, decompose it into its components
+
+   procedure Make_Time_Stamp
+     (Year    : Nat;
+      Month   : Nat;
+      Day     : Nat;
+      Hour    : Nat;
+      Minutes : Nat;
+      Seconds : Nat;
+      TS      : out Time_Stamp_Type);
+   --  Given the components of a time stamp, initialize the value
 
    -----------------------------------------------
    -- Types used for Pragma Suppress Management --

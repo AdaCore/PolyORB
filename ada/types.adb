@@ -35,27 +35,20 @@
 
 package body Types is
 
+   -----------------------
+   -- Local Subprograms --
+   -----------------------
+
+   function V (T : Time_Stamp_Type; X : Time_Stamp_Index) return Nat;
+   --  Extract two decimal digit value from time stamp
+
    ---------
    -- "=" --
    ---------
 
    function "=" (Left, Right : Time_Stamp_Type) return Boolean is
-      Thi : Time_Stamp_Type;
-      Tlo : Time_Stamp_Type;
-
-      Slo : Nat;
-      Shi : Nat;
-
-      function V (T : Time_Stamp_Type; X : Time_Stamp_Index) return Nat;
-      --  Extract two decimal digit value from time stamp
-
-      function V (T : Time_Stamp_Type; X : Time_Stamp_Index) return Nat is
-      begin
-         return 10 * (Character'Pos (T (X))     - Character'Pos ('0')) +
-                      Character'Pos (T (X + 1)) - Character'Pos ('0');
-      end V;
-
-   --  Start of processing for "="
+      Sleft  : Nat;
+      Sright : Nat;
 
    begin
       if String (Left) = String (Right) then
@@ -63,20 +56,11 @@ package body Types is
 
       elsif Left (1) = ' ' or else Right (1) = ' ' then
          return False;
+      end if;
 
       --  In the following code we check for a difference of 2 seconds or less
 
-      elsif Left < Right then
-         Tlo := Left;
-         Thi := Right;
-
-      else
-         Tlo := Right;
-         Thi := Left;
-      end if;
-
-      --  Now the smaller (older) of the two time stamps is in Tlo, the larger
-      --  (more recent) is in Thi. Recall that the time stamp format is:
+      --  Recall that the time stamp format is:
 
       --     Y  Y  Y  Y  M  M  D  D  H  H  M  M  S  S
       --    01 02 03 04 05 06 07 08 09 10 11 12 13 14
@@ -86,14 +70,50 @@ package body Types is
       --  and even if they do we err on the safe side, ie we say that the time
       --  stamps are different.
 
-      Slo := V (Tlo, 13) + 60 * (V (Tlo, 11) + 60 * V (Tlo, 09));
-      Shi := V (Thi, 13) + 60 * (V (Thi, 11) + 60 * V (Thi, 09));
+      Sright := V (Right, 13) + 60 * (V (Right, 11) + 60 * V (Right, 09));
+      Sleft  := V (Left,  13) + 60 * (V (Left,  11) + 60 * V (Left,  09));
 
       --  So the check is: dates must be the same, times differ 2 sec at most
 
-      return Shi <= Slo + 2
+      return abs (Sleft - Sright) <= 2
          and then String (Left (1 .. 8)) = String (Right (1 .. 8));
    end "=";
+
+   ---------
+   -- "<" --
+   ---------
+
+   function "<" (Left, Right : Time_Stamp_Type) return Boolean is
+   begin
+      return not (Left = Right) and then String (Left) < String (Right);
+   end "<";
+
+   ---------
+   -- ">" --
+   ---------
+
+   function ">" (Left, Right : Time_Stamp_Type) return Boolean is
+   begin
+      return not (Left = Right) and then String (Left) > String (Right);
+   end ">";
+
+   ----------
+   -- "<=" --
+   ----------
+
+   function "<=" (Left, Right : Time_Stamp_Type) return Boolean is
+   begin
+      return not (Left > Right);
+   end "<=";
+
+   ----------
+   -- ">=" --
+   ----------
+
+   function ">=" (Left, Right : Time_Stamp_Type) return Boolean is
+   begin
+      return not (Left < Right);
+   end ">=";
 
    -------------------
    -- Get_Char_Code --
@@ -143,5 +163,73 @@ package body Types is
    begin
       return (C <= 255);
    end In_Character_Range;
+
+   ---------------------
+   -- Make_Time_Stamp --
+   ---------------------
+
+   procedure Make_Time_Stamp
+     (Year    : Nat;
+      Month   : Nat;
+      Day     : Nat;
+      Hour    : Nat;
+      Minutes : Nat;
+      Seconds : Nat;
+      TS      : out Time_Stamp_Type)
+   is
+      Z : constant := Character'Pos ('0');
+
+   begin
+      TS (01) := Character'Val (Z + Year / 1000);
+      TS (02) := Character'Val (Z + (Year / 100) mod 10);
+      TS (03) := Character'Val (Z + (Year / 10) mod 10);
+      TS (04) := Character'Val (Z + Year mod 10);
+      TS (05) := Character'Val (Z + Month / 10);
+      TS (06) := Character'Val (Z + Month mod 10);
+      TS (07) := Character'Val (Z + Day / 10);
+      TS (08) := Character'Val (Z + Day mod 10);
+      TS (09) := Character'Val (Z + Hour / 10);
+      TS (10) := Character'Val (Z + Hour mod 10);
+      TS (11) := Character'Val (Z + Minutes / 10);
+      TS (12) := Character'Val (Z + Minutes mod 10);
+      TS (13) := Character'Val (Z + Seconds / 10);
+      TS (14) := Character'Val (Z + Seconds mod 10);
+   end Make_Time_Stamp;
+
+   ----------------------
+   -- Split_Time_Stamp --
+   ----------------------
+
+   procedure Split_Time_Stamp
+     (TS      : Time_Stamp_Type;
+      Year    : out Nat;
+      Month   : out Nat;
+      Day     : out Nat;
+      Hour    : out Nat;
+      Minutes : out Nat;
+      Seconds : out Nat)
+   is
+
+   begin
+      --     Y  Y  Y  Y  M  M  D  D  H  H  M  M  S  S
+      --    01 02 03 04 05 06 07 08 09 10 11 12 13 14
+
+      Year    := 100 * V (TS, 01) + V (TS, 03);
+      Month   := V (TS, 05);
+      Day     := V (TS, 07);
+      Hour    := V (TS, 09);
+      Minutes := V (TS, 11);
+      Seconds := V (TS, 13);
+   end Split_Time_Stamp;
+
+   -------
+   -- V --
+   -------
+
+   function V (T : Time_Stamp_Type; X : Time_Stamp_Index) return Nat is
+   begin
+      return 10 * (Character'Pos (T (X))     - Character'Pos ('0')) +
+                   Character'Pos (T (X + 1)) - Character'Pos ('0');
+   end V;
 
 end Types;
