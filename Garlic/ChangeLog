@@ -1,6 +1,10 @@
 Wed Nov 27 18:42:47 1996  Samuel Tardieu  <sam@inf.enst.fr>
 
+	* s-stratt.adb: Added pragma Suppress for range and overflow
+	  checks.
+
 	* s-gaseli.adb: Changed the protocol to make it simpler.
+	  Changed this stupid protocol one more time.
 
 Tue Nov 26 15:52:33 1996  Samuel Tardieu  <sam@inf.enst.fr>
 

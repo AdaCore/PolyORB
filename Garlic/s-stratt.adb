@@ -41,6 +41,9 @@ with Interfaces;  use Interfaces;
 
 package body System.Stream_Attributes is
 
+   pragma Suppress (Range_Check);
+   pragma Suppress (Overflow_Check);
+
    use UST;
 
    Err : exception renames Ada.IO_Exceptions.Data_Error;

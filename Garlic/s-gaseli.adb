@@ -34,12 +34,21 @@
 ------------------------------------------------------------------------------
 
 with Interfaces.C;
+with System.Garlic.Debug; use System.Garlic.Debug;
 with System.Garlic.Heart; use System.Garlic.Heart;
 with System.Garlic.Physical_Location; use System.Garlic.Physical_Location;
 with System.Garlic.Termination; use System.Garlic.Termination;
 with System.Garlic.Utils; use System.Garlic.Utils;
 
 package body System.Garlic.Serial_Line is
+
+   Private_Debug_Key : constant Debug_Key :=
+     Debug_Initialize ("SERIAL", "(s-gaseli): ");
+   procedure D
+     (Level   : in Debug_Level;
+      Message : in String;
+      Key     : in Debug_Key := Private_Debug_Key)
+     renames Print_Debug_Info;
 
    --  This system implements serial communication. The connection is
    --  established as follow: nothing happens :-)
@@ -66,15 +75,19 @@ package body System.Garlic.Serial_Line is
    use type C.int;
    use type System.RPC.Partition_ID;
 
+   pragma Linker_Options ("/inf/soft/infthes/tardieu/Ada/DSA/Garlic/serial.o");
+   pragma Linker_Options ("-lnsl");
+   pragma Linker_Options ("-lsocket");
+
    function Open_Device return C.int;
    pragma Import (C, Open_Device, "open_device");
 
-   function Put_Packet (Buffer : access Ada.Streams.Stream_Element_Array;
+   function Put_Packet (Buffer : System.Address;
                         Length : C.int)
      return C.int;
    pragma Import (C, Put_Packet, "put_packet");
 
-   function Get_Packet (Buffer : access Ada.Streams.Stream_Element_Array;
+   function Get_Packet (Buffer : System.Address;
                         Length : C.int)
      return C.int;
    pragma Import (C, Get_Packet, "get_packet");
@@ -129,10 +142,10 @@ package body System.Garlic.Serial_Line is
          Params_P : aliased Ada.Streams.Stream_Element_Array :=
            To_Stream_Element_Array (Params'Access);
       begin
-         if Put_Packet (Params_P'Access, Params_P'Length) /= C_Success then
+         if Put_Packet (Params_P'Address, Params_P'Length) /= C_Success then
             raise System.RPC.Communication_Error;
          end if;
-         if Get_Packet (Params_P'Access, Params_P'Length) /= C_Success then
+         if Get_Packet (Params_P'Address, Params_P'Length) /= C_Success then
             raise System.RPC.Communication_Error;
          end if;
          To_Params_Stream_Type (Params_P, Result'Access);
@@ -193,18 +206,9 @@ package body System.Garlic.Serial_Line is
    ---------------------
 
    procedure Open_Connection is
-      Partition : constant System.RPC.Partition_ID :=
-        Get_My_Partition_ID_Immediately;
    begin
       if Open_Device /= C_Success then
          raise System.RPC.Communication_Error;
-      end if;
-      if Partition /= Get_Boot_Server then
-         if Partition = Null_Partition_ID then
-            Set_My_Partition_ID (Ask_For_Partition_ID);
-         else
-            Send_My_Partition_ID;
-         end if;
       end if;
    end Open_Connection;
 
@@ -217,9 +221,30 @@ package body System.Garlic.Serial_Line is
       Partition : in System.RPC.Partition_ID;
       Data      : access Ada.Streams.Stream_Element_Array)
    is
+      use type Ada.Streams.Stream_Element_Offset;
+      Length   : constant Ada.Streams.Stream_Element_Offset   :=
+        Data'Length - Unused_Space;
+      Length_Size : constant Ada.Streams.Stream_Element_Count :=
+        Get_Length_Size;
+      Length_P : aliased Ada.Streams.Stream_Element_Array (1 .. Length_Size);
+      Length_V : aliased System.RPC.Params_Stream_Type (0);
    begin
+      if Get_My_Partition_ID_Immediately = Null_Partition_ID then
+         --  Ugly !!!
+         Set_My_Partition_ID (2);
+      end if;
+      Ada.Streams.Stream_Element_Offset'Write (Length_V'Access, Length);
+      Length_P := To_Stream_Element_Array (Length_V'Access);
       Serial_Lock.Lock;
-      if Put_Packet (Data, Data'Length) /= C_Success then
+      pragma Debug (D (D_Debug, "Sending" &
+                       Ada.Streams.Stream_Element_Offset'Image
+                       (Data'Length - Unused_Space) & " bytes"));
+      if Put_Packet (Length_P'Address, C.int (Length_Size)) /= C_Success then
+         Serial_Lock.Unlock;
+         raise System.RPC.Communication_Error;
+      end if;
+      if Put_Packet (Data (Data'First + Unused_Space) 'Address,
+                     C.int (Data'Length - Unused_Space)) /= C_Success then
          Serial_Lock.Unlock;
          raise System.RPC.Communication_Error;
       end if;
@@ -238,7 +263,7 @@ package body System.Garlic.Serial_Line is
          Params_P : aliased Ada.Streams.Stream_Element_Array :=
            To_Stream_Element_Array (Params'Access);
       begin
-         if Put_Packet (Params_P'Access, Params_P'Length) /= C_Success then
+         if Put_Packet (Params_P'Address, Params_P'Length) /= C_Success then
             raise System.RPC.Communication_Error;
          end if;
       end;
@@ -275,11 +300,13 @@ package body System.Garlic.Serial_Line is
    -------------------
 
    task body Serial_Waiter is
-      Length_Size : constant Ada.Streams.Stream_Element_Count :=
-        Get_Length_Size;
+      Length_Size : Ada.Streams.Stream_Element_Count;
    begin
-      Add_Non_Terminating_Task;
       accept Start;
+
+      Add_Non_Terminating_Task;
+
+      Length_Size := Get_Length_Size;
 
       loop
          declare
@@ -288,7 +315,7 @@ package body System.Garlic.Serial_Line is
             Length_I : aliased System.RPC.Params_Stream_Type (Length_Size);
             Length   : Ada.Streams.Stream_Element_Count;
          begin
-            if Get_Packet (Length_P'Access, Length_P'Size) /= C_Success then
+            if Get_Packet (Length_P'Address, Length_P'Length) /= C_Success then
                raise System.RPC.Communication_Error;
             end if;
             To_Params_Stream_Type (Length_P, Length_I'Access);
@@ -297,7 +324,8 @@ package body System.Garlic.Serial_Line is
                Buffer_P : aliased Ada.Streams.Stream_Element_Array :=
                  (1 .. Length => 0);
             begin
-               if Get_Packet (Buffer_P'Access, Buffer_P'Size) /= C_Success then
+               if Get_Packet (Buffer_P'Address, Buffer_P'Length) /=
+                 C_Success then
                   raise System.RPC.Communication_Error;
                end if;
                Has_Arrived (Global_Protocol.Other, Buffer_P);
