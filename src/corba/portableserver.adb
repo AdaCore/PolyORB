@@ -32,7 +32,7 @@
 
 --  $Id$
 
-with PolyORB;
+with PolyORB.Any;
 with PolyORB.CORBA_P.Names;
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
@@ -61,6 +61,7 @@ package body PortableServer is
    begin
       if Msg in Execute_Request then
          declare
+            use PolyORB.Any;
             use PolyORB.Requests;
             use CORBA.ServerRequest;
 
@@ -70,6 +71,18 @@ package body PortableServer is
             Invoke (DynamicImplementation'Class (Self.all)'Access,
                     CORBA.ServerRequest.Object_Ptr (R));
             --  Redispatch
+
+            Pump_Up_Arguments
+              (Dst_Args => R.Args, Src_Args => R.Out_Args,
+               Direction => ARG_OUT,
+               Ignore_Src_Mode => False);
+            --  Copy back inout and out arguments from Out_Args
+            --  to Args, so the requestor finds them where
+            --  it expects.
+
+            --  XXX If a method has IN and OUT args and R.Args
+            --  contains only the IN arguments (and no empty
+            --  Any's for the OUT ones) what happens?
 
             return Executed_Request'(Req => R);
          end;

@@ -32,15 +32,14 @@
 
 --  $Id$
 
-with PolyORB.Types;
-
 package body CORBA.NVList is
 
    procedure Add_Item
      (Self       :    Ref;
       Item_Name  : in Identifier;
       Item       : in CORBA.Any;
-      Item_Flags : in Flags) is
+      Item_Flags : in Flags)
+   is
    begin
       PolyORB.Any.NVList.Add_Item
         (To_PolyORB_Ref (Self),
@@ -50,14 +49,15 @@ package body CORBA.NVList is
 
    procedure Add_Item
      (Self : Ref;
-      Item : in CORBA.NamedValue) is
+      Item : in CORBA.NamedValue)
+   is
+      PItem : PolyORB.Any.NamedValue;
+      for PItem'Address use Item'Address;
+      pragma Import (Ada, PItem);
+      --  Ugly but necessary; see comments in
+      --  CORBA.Request.Create_Request.
    begin
-      PolyORB.Any.NVList.Add_Item
-        (To_PolyORB_Ref (Self),
-         PolyORB.Any.NamedValue'
-         (Name      => PolyORB.Types.Identifier (Item.Name),
-          Argument  => Item.Argument,
-          Arg_Modes => Item.Arg_Modes));
+      PolyORB.Any.NVList.Add_Item (To_PolyORB_Ref (Self), PItem);
    end Add_Item;
 
    function Get_Count (Self : Ref) return CORBA.Long is

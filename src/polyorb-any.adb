@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.adb#13 $
+--  $Id: //droopi/main/src/polyorb-any.adb#14 $
 
 with Ada.Tags;
 
@@ -2370,18 +2370,30 @@ package body PolyORB.Any is
       if TypeCode.Kind (Get_Precise_Type (Dest))
         /= TypeCode.Kind (Get_Precise_Type (Src))
       then
+         pragma Debug (O ("Copy any value from: " & Image (Get_Precise_Type (Src))));
+         pragma Debug (O ("  to: " & Image (Get_Precise_Type (Dest))));
          raise TypeCode.Bad_TypeCode;
       end if;
 
       Lock_W (Dest.Any_Lock);
-      if Dest.The_Value.all /= Null_Content_Ptr then
-         Deallocate (Dest.The_Value.all);
-         --  We can do a simple deallocate/replacement here
-         --  because The_Value.all.all is not alised (ie
-         --  it is pointed to only by the Any_Content_Ptr
-         --  The_Value.all).
+
+      if TypeCode.Kind (Get_Precise_Type (Src)) /= Tk_Void
+        and then Dest.The_Value /= Src.The_Value
+      then
+
+         --  For non-void, non-identical Any instances,
+         --  deallocate old Dest contents and duplicate
+         --  Src contents.
+
+         if Dest.The_Value.all /= Null_Content_Ptr then
+            Deallocate (Dest.The_Value.all);
+            --  We can do a simple deallocate/replacement here
+            --  because The_Value.all.all is not alised (ie
+            --  it is pointed to only by the Any_Content_Ptr
+            --  The_Value.all).
+         end if;
+         Dest.The_Value.all := Duplicate (Get_Value (Src));
       end if;
-      Dest.The_Value.all := Duplicate (Get_Value (Src));
       Unlock_W (Dest.Any_Lock);
    end Copy_Any_Value;
 

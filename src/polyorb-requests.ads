@@ -89,12 +89,18 @@ package PolyORB.Requests is
       Operation : Types.Identifier;
 
       Args      : Any.NVList.Ref;
-      --  The arguments to the request. The Protocol layer
-      --  MAY set this component directly OR set the following
-      --  component instead. The Application layer MUST NOT
-      --  access this component directly, and MUST use operation
-      --  Arguments below to retrieve the arguments from an
-      --  invocation.
+      --  The arguments to the request, for transmission
+      --  from caller to callee.
+
+      --  On the server side, the Protocol layer MAY set this
+      --  component directly OR set the following component
+      --  instead. The Application layer MUST NOT access this
+      --  component directly, and MUST use operation Arguments
+      --  below to retrieve the arguments from an invocation and
+      --  set up the structure for returned (out-mode) arguments.
+
+      Out_Args : Any.NVList.Ref;
+      --  Same as Args but for transmission from callee to caller.
 
       Deferred_Arguments_Session : Components.Component_Access;
       --  If Args have not been unmarshalled at the time the
@@ -175,10 +181,11 @@ package PolyORB.Requests is
    --  For debugging purposes.
 
    procedure Pump_Up_Arguments
-     (A_Args : in out Any.NVList.Ref;
-      P_Args : Any.NVList.Ref;
-      Direction : Any.Flags);
-   --  Copy arguments of direction Direction (or INOUT) from received
+     (Dst_Args        : in out Any.NVList.Ref;
+      Src_Args        :        Any.NVList.Ref;
+      Direction       :        Any.Flags;
+      Ignore_Src_Mode :        Boolean        := True);
+   --  True arguments of direction Direction (or INOUT) from received
    --  protocol arguments list P_Args (either from a request, on server
    --  side, or for a reply, on client side) into A_Args.
 

@@ -225,8 +225,9 @@ package body PolyORB.Protocols.SOAP_Pr is
       --  XXX assumes that method result is arg #1.
 
       PolyORB.Requests.Pump_Up_Arguments
-        (A_Args => R.Args, P_Args => Return_Args,
+        (Dst_Args => R.Args, Src_Args => Return_Args,
          Direction => ARG_OUT);
+      --  XXX Ignore_Src_Mode => True!
 
       Components.Emit_No_Reply
         (S.Server,
@@ -294,6 +295,7 @@ package body PolyORB.Protocols.SOAP_Pr is
                Type_Id => "", R => Target);
             --  Create a temporary, typeless reference for this object.
 
+            Result.Name := To_PolyORB_String ("Result");
             Create_Request
               (Target    => Target,
                Operation => Standard.SOAP.Message.Payload.Procedure_Name (M),

@@ -103,9 +103,10 @@ package body PolyORB.Requests is
    end Invoke;
 
    procedure Pump_Up_Arguments
-     (A_Args : in out Any.NVList.Ref;
-      P_Args : Any.NVList.Ref;
-      Direction : Any.Flags)
+     (Dst_Args        : in out Any.NVList.Ref;
+      Src_Args        :        Any.NVList.Ref;
+      Direction       :        Any.Flags;
+      Ignore_Src_Mode :        Boolean        := True)
    is
       use PolyORB.Components;
 
@@ -114,8 +115,9 @@ package body PolyORB.Requests is
       use PolyORB.Any.NVList.Internals;
       use PolyORB.Any.NVList.Internals.NV_Sequence;
 
-      P_Arg_Index : Integer := 1;
-      --  Index in Self.Args (protocol layer arguments)
+      Src_Arg_Index : Integer := 1;
+      Src_Arg_Count : constant Integer
+        := Integer (Get_Count (Src_Args));
    begin
       pragma Assert (Direction = ARG_IN or else Direction = ARG_OUT);
 
@@ -123,24 +125,24 @@ package body PolyORB.Requests is
       --  are pumping arguments from an incoming request message
       --  into the request that will be processed by the
       --  actual application object. In this case, we know
-      --  that arguments in A_Args have their correct canonical
-      --  modes and names. We assume that P_Args only contain
-      --  arguments whose actual mode (as specifid in A_Args) is
+      --  that arguments in Dst_Args have their correct canonical
+      --  modes and names. We assume that Src_Args only contain
+      --  arguments whose actual mode (as specifid in Dst_Args) is
       --  ARG_IN or ARG_INOUT, possibly without names. If without
-      --  names, we assume that they are in the order of A_Args.
+      --  names, we assume that they are in the order of Dst_Args.
 
       --  When direction is ARG_OUT, we are a client and
       --  we are pumping up INOUT and OUT arguments from an
       --  incoming reply message into the request that will be
       --  handed back to the client appplication object.
-      --  (no return value must be present in P_Args, only
-      --  actual arguments). We assue that P_Args only contain
+      --  (no return value must be present in Src_Args, only
+      --  actual arguments). We assue that Src_Args only contain
       --  arguments whose actual mode is ARG_INOUT or ARG_OUT,
       --  possibly without names, and if without names in the
-      --  order of A_Args.
+      --  order of Dst_Args.
 
       --  Note that we cannot rely on the mode indications in
-      --  P_Args because some protocols (eg SOAP) do not
+      --  Src_Args because some protocols (eg SOAP) do not
       --  set it correcly (more specifically SOAP does not support
       --  deferred unmarshalling, and insist on unmarshalling Self.Args
       --  before Arguments is called. Consequence: 'OUT' mode arguments
@@ -149,7 +151,7 @@ package body PolyORB.Requests is
       --  of arguments is the same in Args and Self.Args.)
 
       --  XXX actually for now we do not check names at all:
-      --  we skip P_Args with the wrong direction and then assume
+      --  we skip Src_Args with the wrong direction and then assume
       --  strict positional association.
       --  If we were brave guys, we should attempt
       --  should be made to reconcile argument names and argument types
@@ -157,27 +159,46 @@ package body PolyORB.Requests is
       --  support for both named and positional parameter associations.)
 
 
-      for A_Arg_Index in 1 .. Get_Count (A_Args) loop
+      for Dst_Arg_Index in 1 .. Get_Count (Dst_Args) loop
          --  Index in Args (application layer arguments)
          declare
-            A_Arg : NamedValue
-              := Element_Of (List_Of (A_Args).all,
-                             Integer (A_Arg_Index));
+            Dst_Arg : NamedValue
+              := Element_Of (List_Of (Dst_Args).all,
+                             Integer (Dst_Arg_Index));
          begin
-            if A_Arg.Arg_Modes = ARG_INOUT
-              or else A_Arg.Arg_Modes = Direction
+            if Dst_Arg.Arg_Modes = ARG_INOUT
+              or else Dst_Arg.Arg_Modes = Direction
             then
-               --  This arguments needs to be pumped up from the
-               --  P_Args list.
 
-               declare
-                  P_Arg : constant NamedValue
-                    := Element_Of (List_Of (P_Args).all, P_Arg_Index);
-               begin
-                  Copy_Any_Value (A_Arg.Argument, P_Arg.Argument);
-                  --  These MUST be type-compatible!
-               end;
-               P_Arg_Index := P_Arg_Index + 1;
+               --  This arguments needs to be pumped up from the
+               --  Src_Args list. If Ignore_Arg_Mode is True,
+               --  we assume that Src contains only arguments
+               --  that actually need to be copied, else we check
+               --  the arg modes of Src args and copy only those
+               --  that need to, according to Direction.
+
+               loop
+                  declare
+                     Src_Arg : constant NamedValue
+                       := Element_Of (List_Of (Src_Args).all, Src_Arg_Index);
+                  begin
+                     if Ignore_Src_Mode
+                       or else Src_Arg.Arg_Modes = ARG_INOUT
+                       or else Src_Arg.Arg_Modes = Direction
+                     then
+                        Copy_Any_Value (Dst_Arg.Argument, Src_Arg.Argument);
+                        Src_Arg_Index := Src_Arg_Index + 1;
+                        --  These MUST be type-compatible!
+                        exit;
+                     else
+                        Src_Arg_Index := Src_Arg_Index + 1;
+                        if Src_Arg_Index > Src_Arg_Count then
+                           raise Program_Error;
+                        end if;
+                     end if;
+                  end;
+
+               end loop;
             end if;
          end;
       end loop;
@@ -204,6 +225,7 @@ package body PolyORB.Requests is
                (Args => Args));
          begin
             pragma Assert (Reply in Unmarshalled_Arguments);
+            pragma Debug (O ("Unmarshalled deferred arguments"));
             Args := Unmarshalled_Arguments (Reply).Args;
             Self.Args := Args;
          end;
@@ -216,9 +238,10 @@ package body PolyORB.Requests is
          pragma Debug (O ("in Arguments: " & Image (Self.Args)));
 
          Pump_Up_Arguments
-           (A_Args => Args, P_Args => Self.Args,
+           (Dst_Args => Args, Src_Args => Self.Args,
             Direction => Any.ARG_IN);
       end if;
+      Self.Out_Args := Args;
    end Arguments;
 
    function Image (Req : Request) return String
