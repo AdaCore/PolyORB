@@ -2,33 +2,40 @@ GNATFLAGS = -g -O2 -gnatfy -gnatwae -gnatoa -fstack-check
 GNATMAKE = gnatmake
 INCLUDE = -I../common_files/
 CMD = ${GNATMAKE} ${GNATFLAGS} ${INCLUDE}
+NODESTEMP = nodes.tmp
 
 all: axil
 
-axil: lexer parser FORCE
+axil: lexer parser
 	${CMD} axil
 
-parser: FORCE
+parser: nodes
 	${CMD} parser
 
-lexer: FORCE
+lexer:
 	${CMD} lexer
 
-nutils: FORCE
+nutils:
 	${CMD} nutils
 
-nodes: debug FORCE
+createnodes:
+	-../common_files/mknodes nodes.idl > ${NODESTEMP}
+	-gnatchop -w ${NODESTEMP}
+	-rm -f ${NODESTEMP}
+
+nodes: createnodes debug
 	${CMD} nodes
 
-debug: FORCE
+debug:
 	${CMD} debug
 
-clean: FORCE
+clean:
 	-rm -f *.ali *.o
 	-rm -f *~
 	-rm -f b~axil.ad*
+	-rm -f *.tmp
+	-rm -f nodes.ads
+	-rm -f nodes.adb
 
-allclean: clean
+realclean: clean
 	-rm -f axil
-
-FORCE:

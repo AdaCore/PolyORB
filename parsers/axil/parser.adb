@@ -21,6 +21,10 @@ package body Parser is
 --   Cat_Device      : constant Natural :=  9;
 --   Cat_System      : constant Natural := 10;
 
+   procedure Add_Package_Items (S : Node_Id; D : Node_Id);
+   --  Add all package items of S into D (i.e. all items and properties)
+   --  S and D are K_Package_Items type
+
    function P_AADL_Declaration return Node_Id;
    function P_AADL_Specification return Node_Id;
 
@@ -33,6 +37,17 @@ package body Parser is
    function P_Port_Group return Node_Id;
    function P_Property_Set return Node_Id;
    function P_System_Instance return Node_Id;
+
+   -----------------------
+   -- Add_Package_Items --
+   -----------------------
+
+   procedure Add_Package_Items (S : Node_Id; D : Node_Id) is
+   begin
+      --  TODO
+      Append_List_To_List (Items (S), Items (D));
+      Append_List_To_List (Properties (S), Properties (D));
+   end Add_Package_Items;
 
    ------------------------
    -- P_AADL_Declaration --
@@ -155,15 +170,15 @@ package body Parser is
       Defining_Name  : List_Id;      --  package name
       Identifier     : Node_Id;      --  current identifier
       Package_Spec   : Node_Id;      --  result
-      Current_Items  : List_Id;      --  items parsed by P_Package_Items
-      Public_Items   : List_Id;      --  all public items of the package
-      Private_Items  : List_Id;      --  all private items of the package
+      Current_Items  : Node_Id;      --  items parsed by P_Package_Items
+      Public_Items   : Node_Id;      --  all public items of the package
+      Private_Items  : Node_Id;      --  all private items of the package
 
    begin
       Package_Spec  := No_Node;
       Defining_Name := New_List (K_Package_Name, Token_Location);
-      Public_Items  := New_List (K_Package_Items, Token_Location);
-      Private_Items := New_List (K_Package_Items, Token_Location);
+      Public_Items  := New_Node (K_Package_Items, Token_Location);
+      Private_Items := New_Node (K_Package_Items, Token_Location);
 
       loop
          Scan_Token;
@@ -185,11 +200,13 @@ package body Parser is
 
       loop
          if Token = T_Public then
-            Current_Items := List_Id (P_Package_Items);
-            Append_List_To_List (Current_Items, Public_Items);
+            Current_Items := P_Package_Items;
+            --  TODO
+            Add_Package_Items (Current_Items, Public_Items);
          elsif Token = T_Private then
-            Current_Items := List_Id (P_Package_Items);
-            Append_List_To_List (Current_Items, Private_Items);
+            Current_Items := P_Package_Items;
+            --  TODO
+            Add_Package_Items (Current_Items, Private_Items);
          elsif Token = T_End then
             exit;
          else
@@ -198,6 +215,11 @@ package body Parser is
                 & Image_Current_Token);
          end if;
       end loop;
+
+      Package_Spec := New_Node (K_Package_Spec, Token_Location);
+      Set_Full_Name (Package_Spec, Defining_Name);
+      Set_Public_Package_Items (Package_Spec, Public_Items);
+      Set_Private_Package_Items (Package_Spec, Private_Items);
 
       return Package_Spec;
    end P_Package_Specification;
