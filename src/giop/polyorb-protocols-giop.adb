@@ -116,17 +116,6 @@ package body PolyORB.Protocols.GIOP is
    --  Subprograms related to the global Request_Id counter.
    --  (actually used only on the GIOP client side).
 
-   ----------------
-   -- Initialize --
-   ----------------
-
-   procedure Initialize;
-
-   procedure Initialize is
-   begin
-      Create (GIOP_Lock);
-   end Initialize;
-
    --  Other internal subprograms
 
    procedure Add_Pending_Request
@@ -144,6 +133,10 @@ package body PolyORB.Protocols.GIOP is
    --  Retrieve a pending request of Ses by its request id.
    --  If Delete is True, the request is removed from the pending list.
    --  If no pending request has that id, GIOP_Error is raised.
+
+   -------------------------
+   -- Get_Pending_Request --
+   -------------------------
 
    function Get_Pending_Request
      (Ses    : access GIOP_Session;
@@ -814,10 +807,20 @@ package body PolyORB.Protocols.GIOP is
         := Reserve (Buffer_Out, Message_Header_Size);
       N : Request_Note;
       Request_Id : Types.Unsigned_Long renames N.Id;
+      CORBA_Occurence : PolyORB.Any.Any;
 
-      CORBA_Occurence : PolyORB.Any.Any
-        := PolyORB.GIOP_P.Exceptions.To_CORBA_Exception (Occurence);
    begin
+      if Exception_Type = System_Exception then
+         CORBA_Occurence :=
+           PolyORB.GIOP_P.Exceptions.To_CORBA_Exception (Occurence);
+         --  If it is a system exception we need to translate it to a GIOP
+         --  specific exception occurence.
+
+      else
+         CORBA_Occurence := Occurence;
+         --  It is a user exception, nothing is done.
+
+      end if;
 
       Get_Note (Request.Notepad, N);
 
@@ -1578,9 +1581,13 @@ package body PolyORB.Protocols.GIOP is
      (Buffer : Buffer_Access;
       Info   : out Any.Any)
    is
+      use PolyORB.GIOP_P.Exceptions;
+
+      Exception_Name : constant String
+        := Extract_System_Exception_Name (Unmarshall (Buffer));
    begin
       Info := Any.Get_Empty_Any
-        (Exceptions.System_Exception_TypeCode (Unmarshall (Buffer)));
+        (PolyORB.Exceptions.System_Exception_TypeCode (Exception_Name));
       Unmarshall_To_Any
         (Buffer, Info);
    end Unmarshall_System_Exception_To_Any;
@@ -1989,23 +1996,14 @@ package body PolyORB.Protocols.GIOP is
               := To_Standard_String (TypeCode.Id (TC));
             EType : Reply_Status_Type;
          begin
-            if EId'Length > PolyORB.Exceptions.PolyORB_Root'Length
-              and then EId
-              (EId'First .. EId'First
-               + PolyORB.Exceptions.PolyORB_Prefix'Length - 1)
-              = PolyORB.Exceptions.PolyORB_Prefix
-            then
+            if PolyORB.Exceptions.Is_System_Exception (EId) then
                EType := System_Exception;
             else
                EType := User_Exception;
             end if;
             pragma Debug
               (O ("Send_Reply: " & Reply_Status_Type'Image (EType)));
-            pragma Debug (O (EId));
-            pragma Debug (O (EId
-              (EId'First .. EId'First
-               + PolyORB.Exceptions.PolyORB_Prefix'Length - 1)));
-            pragma Debug (O (PolyORB.Exceptions.PolyORB_Prefix));
+            pragma Debug (O ("Exception Repositoy Id: " & EId));
             Exception_Reply
               (S, Buffer_Out, R, EType,
                R.Exception_Info, Fragment_Next);
@@ -2251,6 +2249,17 @@ package body PolyORB.Protocols.GIOP is
    begin
       return (Bit_Field and (2 ** Bit_Order)) /= 0;
    end Is_Set;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize;
+
+   procedure Initialize is
+   begin
+      Create (GIOP_Lock);
+   end Initialize;
 
    use PolyORB.Initialization;
    use PolyORB.Initialization.String_Lists;

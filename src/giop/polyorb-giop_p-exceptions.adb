@@ -50,6 +50,31 @@ package body PolyORB.GIOP_P.Exceptions is
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
+   CORBA_Exc_Root : constant String := "IDL:omg.org/CORBA/";
+   CORBA_Exc_Version   : constant String := ":1.0";
+   --  CORBA exceptions root and version.
+
+   -----------------------------------
+   -- Extract_System_Exception_Name --
+   -----------------------------------
+
+   function Extract_System_Exception_Name (Name : Standard.String)
+                                          return Standard.String
+   is
+      CER_Length : constant Natural :=  CORBA_Exc_Root'Length;
+      CEV_Length : constant Natural :=  CORBA_Exc_Version'Length;
+   begin
+      if Name (Name'First .. Name'First + CER_Length - 1) /=
+        CORBA_Exc_Root then
+         raise Program_Error;
+      end if;
+      pragma Debug (O ("System exception name:"
+                       & Name (Name'First + CER_Length
+                               .. Name'Last - CEV_Length)));
+
+      return Name (Name'First + CER_Length .. Name'Last - CEV_Length);
+   end Extract_System_Exception_Name;
+
    ---------------------------------
    -- To_CORBA_Exception_TypeCode --
    ---------------------------------
@@ -62,12 +87,11 @@ package body PolyORB.GIOP_P.Exceptions is
      (TC : PolyORB.Any.TypeCode.Object)
      return PolyORB.Any.TypeCode.Object
    is
-      CORBA_Exc_NameSpace : constant String := "IDL:";
-      CORBA_Root : constant PolyORB.Types.String
-        := To_PolyORB_String ("CORBA/");
-      CORBA_Exc_Version   : constant PolyORB.Types.String
-        := To_PolyORB_String (":1.0");
-      --  CORBA exceptions namespace and version.
+      CORBA_Root_PTS : constant PolyORB.Types.String
+        := To_PolyORB_String (CORBA_Exc_Root);
+
+      CORBA_Exc_Version_PTS : constant PolyORB.Types.String
+        := To_PolyORB_String (CORBA_Exc_Version);
 
       Name : constant String := To_Standard_String (From_Any
         (TypeCode.Get_Parameter (TC, PolyORB.Types.Unsigned_Long (1))));
@@ -88,17 +112,9 @@ package body PolyORB.GIOP_P.Exceptions is
       TypeCode.Add_Parameter (Result_TC, To_Any
                               (To_PolyORB_String (Internal_Name)));
 
-      --  RepositoryId : 'IDL:<Name>:1.0'
-      if Name (Name'First .. Name'First + CORBA_Exc_NameSpace'Length - 1)
-        /= CORBA_Exc_NameSpace then
-         New_Name := To_PolyORB_String (CORBA_Exc_NameSpace)
-           & CORBA_Root
-           & To_PolyORB_String (Internal_Name)
-           & CORBA_Exc_Version;
-      else
-         pragma Debug (O ("No modification required"));
-         return TC;
-      end if;
+      New_Name := CORBA_Root_PTS
+        & To_PolyORB_String (Internal_Name)
+        & CORBA_Exc_Version_PTS;
 
       pragma Debug (O ("New exception name is : "
                        & To_Standard_String (New_Name)));

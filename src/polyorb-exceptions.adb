@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-exceptions.adb#6 $
+--  $Id: //droopi/main/src/polyorb-exceptions.adb#7 $
 
 with Ada.Unchecked_Conversion;
 
@@ -641,7 +641,6 @@ package body PolyORB.Exceptions is
       --  Never reached (Raiser raises an exception.)
    end Raise_From_Any;
 
-
    --------------------------
    -- TC_Completion_Status --
    --------------------------
@@ -664,7 +663,8 @@ package body PolyORB.Exceptions is
       TypeCode.Add_Parameter
         (TC, To_Any (To_PolyORB_String ("completion_status")));
       TypeCode.Add_Parameter
-        (TC, To_Any (To_PolyORB_String ("IDL:CORBA/completion_status:1.0")));
+        (TC, To_Any (To_PolyORB_String
+                     ("IDL:omg.org/CORBA/completion_status:1.0")));
 
       for C in Completion_Status'Range loop
          TypeCode.Add_Parameter
@@ -705,24 +705,20 @@ package body PolyORB.Exceptions is
    -------------------------------
 
    function System_Exception_TypeCode
-     (Name : PolyORB.Types.RepositoryId)
+     (Name : Standard.String)
      return Any.TypeCode.Object
    is
       TC : TypeCode.Object := TypeCode.TC_Except;
-      Internal_Name : constant Standard.String
-        := To_Internal_Name (To_Standard_String (Name));
-   begin
-      pragma Debug (O ("Constructing exception TypeCode for : "
-                       & Internal_Name));
 
+   begin
       --  Name
       TypeCode.Add_Parameter (TC,
-                              To_Any (To_PolyORB_String (Internal_Name)));
+                              To_Any (To_PolyORB_String (Name)));
 
       --  RepositoryId : 'INTERNAL:<Name>:1.0'
       TypeCode.Add_Parameter
         (TC, To_Any (To_PolyORB_String (PolyORB_Prefix)
-             & To_PolyORB_String (Internal_Name)
+             & To_PolyORB_String (Name)
              & PolyORB_Exc_Version));
 
       --  Component 'minor'
@@ -748,10 +744,10 @@ package body PolyORB.Exceptions is
      (E : Ada.Exceptions.Exception_Occurrence)
       return PolyORB.Any.Any
    is
-      Name : RepositoryId;
+      Name    : RepositoryId;
       Members : System_Exception_Members;
-      TC : TypeCode.Object;
-      Result : Any.Any;
+      TC      : TypeCode.Object;
+      Result  : Any.Any;
    begin
       begin
          Name := Occurrence_To_Name (E);
@@ -763,7 +759,7 @@ package body PolyORB.Exceptions is
       end;
 
       --  Construct exception typecode
-      TC := System_Exception_TypeCode (Name);
+      TC := System_Exception_TypeCode (To_Standard_String (Name));
 
       Result := Get_Empty_Any_Aggregate (TC);
       Add_Aggregate_Element (Result, To_Any (Members.Minor));

@@ -41,7 +41,7 @@
 --   is stored and the Get_Members function created a new
 --   object from a derivation of Exception_Members
 
---  $Id: //droopi/main/src/polyorb-exceptions.ads#3 $
+--  $Id: //droopi/main/src/polyorb-exceptions.ads#4 $
 
 with Ada.Exceptions;
 
@@ -414,7 +414,7 @@ package PolyORB.Exceptions is
    pragma No_Return (Raise_From_Any);
 
    function System_Exception_TypeCode
-     (Name : PolyORB.Types.RepositoryId)
+     (Name : Standard.String)
      return PolyORB.Any.TypeCode.Object;
    --  Return the TypeCode corresponding to the indicated
    --  system exception name.
