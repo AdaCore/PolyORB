@@ -208,8 +208,10 @@ package body System.Garlic.TCP is
                NT     : Incoming_Connection_Handler_Access;
             begin
                Add_Non_Terminating_Task;
+               D (D_Debug, "Before Net.C_Accept");
                FD := Net.C_Accept (Self_Host.FD, To_Sockaddr_Access (Sin),
                                    Length'Access);
+               D (D_Debug, "After Net.C_Accept");
                Sub_Non_Terminating_Task;
                if FD = Failure then
                   raise Communication_Error;
@@ -451,7 +453,9 @@ package body System.Garlic.TCP is
             begin
                Add_Non_Terminating_Task;
                begin
+                  D (D_Debug, "Physical receive will be called");
                   Physical_Receive (FD, Header_P);
+                  D (D_Debug, "Physical receive has been called");
                exception
                   when Communication_Error =>
                      Sub_Non_Terminating_Task;
@@ -617,7 +621,9 @@ package body System.Garlic.TCP is
       Code    : C.int;
    begin
       while Rest > 0 loop
+
          Code := Net.C_Read (FD, To_Chars_Ptr (Current), Rest);
+
          if Code <= 0 then
             raise Communication_Error;
          end if;

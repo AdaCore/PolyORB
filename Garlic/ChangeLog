@@ -1,3 +1,8 @@
+Sun Sep 15 17:27:30 1996  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-garhea.adb: Added an Emergency_Stop in the Shutdown procedure
+	  (see the procedure for explanation).
+
 Thu Sep 12 14:55:27 1996  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* mkdep: Change the way dependencies are generated. This one seems
