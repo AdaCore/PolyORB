@@ -46,12 +46,15 @@ with Ada.Exceptions;
 with PolyORB.Configuration;
 with PolyORB.CORBA_P.Exceptions;
 with PolyORB.Dynamic_Dict;
+with PolyORB.Initialization;
 with PolyORB.Log;
 with PolyORB.ORB;
 with PolyORB.Objects;
 with PolyORB.References.IOR;
 with PolyORB.Setup;
 with PolyORB.Smart_Pointers;
+with PolyORB.Utils.Strings;
+with PolyORB.Utils.Strings.Lists;
 
 package body CORBA.ORB is
 
@@ -67,6 +70,10 @@ package body CORBA.ORB is
    package Referenced_Objects is new PolyORB.Dynamic_Dict
      (Value => CORBA.Object.Ref, No_Value => Nil_Ref);
    --  For initial references.
+
+   procedure Initialize;
+   --  Perform internal initialization: setup initial references.
+   --  Called from within the initialization framework.
 
    ---------------------
    -- Create_Alias_TC --
@@ -418,18 +425,21 @@ package body CORBA.ORB is
    -- Initialize --
    ----------------
 
-   procedure Initialize (ORB_Name : in Standard.String)
-   is
-      pragma Warnings (Off);
-      pragma Unreferenced (ORB_Name);
-      pragma Warnings (On);
+   Initialized : Boolean := False;
 
+   procedure Initialize is
       RootPOA : CORBA.Object.Ref;
    begin
+      if Initialized then
+         return;
+      end if;
+
       CORBA.Object.Set
         (RootPOA, PolyORB.Smart_Pointers.Entity_Ptr
-         (Object_Adapter (The_ORB)));
-      Referenced_Objects.Register ("RootPOA", RootPOA);
+           (Object_Adapter (The_ORB)));
+      Register_Initial_Reference
+        (To_CORBA_String ("RootPOA"), RootPOA);
+
       declare
          Naming_IOR : constant Standard.String
            := PolyORB.Configuration.Get_Conf
@@ -441,6 +451,16 @@ package body CORBA.ORB is
                To_CORBA_String (Naming_IOR));
          end if;
       end;
+      Initialized := True;
+   end Initialize;
+
+   procedure Initialize (ORB_Name : in Standard.String)
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (ORB_Name);
+      pragma Warnings (On);
+   begin
+      null;
    end Initialize;
 
    ----------------------
@@ -468,4 +488,16 @@ package body CORBA.ORB is
       return Result;
    end Create_Reference;
 
+   use PolyORB.Initialization;
+   use PolyORB.Utils.Strings;
+   use PolyORB.Utils.Strings.Lists;
+
+begin
+   Register_Module
+     (Module_Info'
+      (Name => +"corba.orb",
+       Conflicts => Empty,
+       Depends => +"orb",
+       Provides => +"initial_references",
+       Init => Initialize'Access));
 end CORBA.ORB;
