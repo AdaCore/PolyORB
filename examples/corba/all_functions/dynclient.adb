@@ -308,8 +308,11 @@ procedure Dynclient is
       Ctx : CORBA.Context.Ref;
       Argument_A : CORBA.Any := CORBA.To_Any (A);
       Argument_B : CORBA.Any := CORBA.To_Any (B);
+      pragma Warnings (Off);
+      --  C and D are referenced before they have a value.
       Argument_C : CORBA.Any := CORBA.To_Any (C);
       Argument_D : CORBA.Any := CORBA.To_Any (D);
+      pragma Warnings (On);
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
       Result_Name : CORBA.String := To_CORBA_String ("Result");
@@ -494,7 +497,10 @@ procedure Dynclient is
       Request : CORBA.Request.Object;
       Ctx : CORBA.Context.Ref;
       Argument_A : CORBA.Any := CORBA.To_Any (A);
+      pragma Warnings (Off);
+      --  B is referenced before it has a value.
       Argument_B : CORBA.Any := CORBA.To_Any (B);
+      pragma Warnings (On);
       Argument_C : CORBA.Any := CORBA.To_Any (C);
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
@@ -626,9 +632,12 @@ procedure Dynclient is
       Arg_Name_C : CORBA.Identifier := To_CORBA_String ("c");
       Request : CORBA.Request.Object;
       Ctx : CORBA.Context.Ref;
+      pragma Warnings (Off);
+      --  A, B, and C are referenced before they have a value.
       Argument_A : CORBA.Any := CORBA.To_Any (A);
       Argument_B : CORBA.Any := CORBA.To_Any (B);
       Argument_C : CORBA.Any := CORBA.To_Any (C);
+      pragma Warnings (On);
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
       Result_Name : CORBA.String := To_CORBA_String ("Result");
@@ -734,8 +743,11 @@ procedure Dynclient is
       Ctx : CORBA.Context.Ref;
       Argument_A : CORBA.Any := CORBA.To_Any (A);
       Argument_B : CORBA.Any := CORBA.To_Any (B);
+      pragma Warnings (Off);
+      --  C and D are referenced before they have a value.
       Argument_C : CORBA.Any := CORBA.To_Any (C);
       Argument_D : CORBA.Any := CORBA.To_Any (D);
+      pragma Warnings (On);
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
       Result_Name : CORBA.String := To_CORBA_String ("Result");
@@ -866,10 +878,13 @@ procedure Dynclient is
       Arg_Name_D : CORBA.Identifier := To_CORBA_String ("d");
       Request : CORBA.Request.Object;
       Ctx : CORBA.Context.Ref;
+      pragma Warnings (Off);
+      --  A and D are referenced before they have a value
       Argument_A : CORBA.Any := CORBA.To_Any (A);
+      Argument_D : CORBA.Any := CORBA.To_Any (D);
+      pragma Warnings (On);
       Argument_B : CORBA.Any := CORBA.To_Any (B);
       Argument_C : CORBA.Any := CORBA.To_Any (C);
-      Argument_D : CORBA.Any := CORBA.To_Any (D);
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
       Result_Name : CORBA.String := To_CORBA_String ("Result");
@@ -932,7 +947,10 @@ procedure Dynclient is
       Request : CORBA.Request.Object;
       Ctx : CORBA.Context.Ref;
       Argument_A : CORBA.Any := CORBA.To_Any (A);
+      pragma Warnings (Off);
+      --  B is referenced before it has a value.
       Argument_B : CORBA.Any := CORBA.To_Any (B);
+      pragma Warnings (On);
       Argument_C : CORBA.Any := CORBA.To_Any (C);
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;

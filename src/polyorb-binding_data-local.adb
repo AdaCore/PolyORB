@@ -60,7 +60,6 @@ package body PolyORB.Binding_Data.Local is
      (Oid : Objects.Object_Id;
       P   : out Local_Profile_Type) is
    begin
-      pragma Assert (P.Object_Id = null);
       P.Object_Id := new Object_Id'(Oid);
       pragma Assert (P.Object_Id /= null);
    end Create_Local_Profile;

@@ -605,57 +605,57 @@ private
    --  <floating_pt_type> ::= "float"
    --                     |   "double"
    --                     |   "long" "double"
-   procedure Parse_Floating_Pt_Type (Result : in out Node_Id;
+   procedure Parse_Floating_Pt_Type (Result : out Node_Id;
                                      Success : out Boolean);
 
    --  Rule 54
    --  <integer_type> ::= <signed_int>
    --                 |   <unsigned_int>
-   procedure Parse_Integer_Type (Result : in out Node_Id;
+   procedure Parse_Integer_Type (Result : out Node_Id;
                                  Success : out Boolean);
 
    --  Rule 55
    --  <signed_int> ::= <signed_short_int>
    --               |   <signed_long_int>
    --               |   <signed_longlong_int>
-   procedure Parse_Signed_Int (Result : in out Node_Id;
+   procedure Parse_Signed_Int (Result : out Node_Id;
                                Success : out Boolean);
 
    --  Rule 56
    --  <signed_short_int> ::= "short"
-   procedure Parse_Signed_Short_Int (Result : in out Node_Id;
+   procedure Parse_Signed_Short_Int (Result : out Node_Id;
                                      Success : out Boolean);
 
    --  Rule 57
    --  <signed_long_int> := "long"
-   procedure Parse_Signed_Long_Int (Result : in out Node_Id;
+   procedure Parse_Signed_Long_Int (Result : out Node_Id;
                                     Success : out Boolean);
 
    --  Rule 58
    --  <signed_longlong_int> ::= "long" "long"
-   procedure Parse_Signed_Longlong_Int (Result : in out Node_Id;
+   procedure Parse_Signed_Longlong_Int (Result : out Node_Id;
                                         Success : out Boolean);
 
    --  Rule 59
    --  <unsigned_int> ::= <unsigned_short_int>
    --                 |   <unsigned_long_int>
    --                 |   <unsigned_longlong_int>
-   procedure Parse_Unsigned_Int (Result : in out Node_Id;
+   procedure Parse_Unsigned_Int (Result : out Node_Id;
                                  Success : out Boolean);
 
    --  Rule 60
    --  <unsigned_short_int> ::= "unsigned" "short"
-   procedure Parse_Unsigned_Short_Int (Result : in out Node_Id;
+   procedure Parse_Unsigned_Short_Int (Result : out Node_Id;
                                        Success : out Boolean);
 
    --  Rule 61
    --  <unsigned_long_int> ::= "unsigned" "long"
-   procedure Parse_Unsigned_Long_Int (Result : in out Node_Id;
+   procedure Parse_Unsigned_Long_Int (Result : out Node_Id;
                                       Success : out Boolean);
 
    --  Rule 62
    --  <unsigned_longlong_int> ::= "unsigned" "long" "long"
-   procedure Parse_Unsigned_Longlong_Int (Result : in out Node_Id;
+   procedure Parse_Unsigned_Longlong_Int (Result : out Node_Id;
                                           Success : out Boolean);
 
    --  Rule 63

@@ -1985,6 +1985,9 @@ package body Ada_Be.Idl2Ada is
 
                            Add_With (CU, Prefix);
 
+                           PL (CU, "pragma Warnings (Off);");
+                           --  Argument of To_Any may be referenced before it
+                           --  has a value.
                            PL (CU, T_Argument & Arg_Name & " : CORBA.Any");
                            PL (CU, "  := " & Prefix & ".To_Any");
                            Put (CU, "  (");
@@ -1992,6 +1995,7 @@ package body Ada_Be.Idl2Ada is
                              (CU, Param_Type (P_Node),
                               "From_Forward", Arg_Name);
                            PL (CU, ");");
+                           PL (CU, "pragma Warnings (On);");
                         end;
                      end if;
                   end loop;

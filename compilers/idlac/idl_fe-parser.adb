@@ -4848,7 +4848,7 @@ package body Idl_Fe.Parser is
    ------------------------------
    --  Parse_Floating_Pt_Type  --
    ------------------------------
-   procedure Parse_Floating_Pt_Type (Result : in out Node_Id;
+   procedure Parse_Floating_Pt_Type (Result : out Node_Id;
                                      Success : out Boolean) is
    begin
       case Get_Token is
@@ -4872,7 +4872,7 @@ package body Idl_Fe.Parser is
    --------------------------
    --  Parse_Integer_Type  --
    --------------------------
-   procedure Parse_Integer_Type (Result : in out Node_Id;
+   procedure Parse_Integer_Type (Result : out Node_Id;
                                  Success : out Boolean) is
    begin
       case Get_Token is
@@ -4889,7 +4889,7 @@ package body Idl_Fe.Parser is
    ------------------------
    --  Parse_Signed_Int  --
    ------------------------
-   procedure Parse_Signed_Int (Result : in out Node_Id;
+   procedure Parse_Signed_Int (Result : out Node_Id;
                                Success : out Boolean) is
    begin
       case Get_Token is
@@ -4909,7 +4909,7 @@ package body Idl_Fe.Parser is
    ------------------------------
    --  Parse_Signed_Short_Int  --
    ------------------------------
-   procedure Parse_Signed_Short_Int (Result : in out Node_Id;
+   procedure Parse_Signed_Short_Int (Result : out Node_Id;
                                      Success : out Boolean) is
    begin
       Next_Token;
@@ -4920,7 +4920,7 @@ package body Idl_Fe.Parser is
    -----------------------------
    --  Parse_Signed_Long_Int  --
    -----------------------------
-   procedure Parse_Signed_Long_Int (Result : in out Node_Id;
+   procedure Parse_Signed_Long_Int (Result : out Node_Id;
                                     Success : out Boolean) is
    begin
       Next_Token;
@@ -4931,7 +4931,7 @@ package body Idl_Fe.Parser is
    ---------------------------------
    --  Parse_Signed_Longlong_Int  --
    ---------------------------------
-   procedure Parse_Signed_Longlong_Int (Result : in out Node_Id;
+   procedure Parse_Signed_Longlong_Int (Result : out Node_Id;
                                         Success : out Boolean) is
    begin
       Next_Token;
@@ -4943,7 +4943,7 @@ package body Idl_Fe.Parser is
    --------------------------
    --  Parse_Unsigned_Int  --
    --------------------------
-   procedure Parse_Unsigned_Int (Result : in out Node_Id;
+   procedure Parse_Unsigned_Int (Result : out Node_Id;
                                  Success : out Boolean) is
    begin
       case View_Next_Token is
@@ -4981,7 +4981,7 @@ package body Idl_Fe.Parser is
    --------------------------------
    --  Parse_Unsigned_Short_Int  --
    --------------------------------
-   procedure Parse_Unsigned_Short_Int (Result : in out Node_Id;
+   procedure Parse_Unsigned_Short_Int (Result : out Node_Id;
                                        Success : out Boolean) is
    begin
       Next_Token;
@@ -4993,7 +4993,7 @@ package body Idl_Fe.Parser is
    -------------------------------
    --  Parse_Unsigned_Long_Int  --
    -------------------------------
-   procedure Parse_Unsigned_Long_Int (Result : in out Node_Id;
+   procedure Parse_Unsigned_Long_Int (Result : out Node_Id;
                                       Success : out Boolean) is
    begin
       Next_Token;
@@ -5005,7 +5005,7 @@ package body Idl_Fe.Parser is
    -----------------------------------
    --  Parse_Unsigned_Longlong_Int  --
    -----------------------------------
-   procedure Parse_Unsigned_Longlong_Int (Result : in out Node_Id;
+   procedure Parse_Unsigned_Longlong_Int (Result : out Node_Id;
                                           Success : out Boolean) is
    begin
       Next_Token;
