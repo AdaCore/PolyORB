@@ -8,10 +8,6 @@ TESTS=  polyorb-test-no_tasking \
 all: $(TESTS)
 
 $(TESTS): force
-	$(GNATMAKE) -c \
-	-I../src -I../src/corba -I../src/soap $(XMLADA_INCLUDE) echo-impl.adb \
-	-cargs -g -O2 -Wall -gnatfa -gnatwu -gnatwe -gnatwl -bargs $(BARGS) \
-	-largs $(XMLADA_LIBS)
 	$(GNATMAKE) -I../src -I../src/corba -I../src/soap $(XMLADA_INCLUDE) $@ \
 	-cargs $(GNATFLAGS) \
 	-largs $(LDFLAGS) \

@@ -3,11 +3,16 @@ LINKER = $(EXAMPLES_ROOT)/../support/linker
 
 GNATMAKE_FLAGS = \
 	-I$(srcdir) \
-	-I$(srcdir)/$(EXAMPLES_ROOT) \
+	-I$(srcdir)/$(EXAMPELS_ROOT) \
 	-I$(srcdir)/$(EXAMPLES_ROOT)/generic \
 	-I$(srcdir)/$(EXAMPLES_ROOT)/../src \
 	-I$(srcdir)/$(EXAMPLES_ROOT)/../src/corba \
 	-I$(srcdir)/$(EXAMPLES_ROOT)/../src/soap \
+	-I$(EXAMPLES_ROOT) \
+	-I$(EXAMPLES_ROOT)/generic \
+	-I$(EXAMPLES_ROOT)/src \
+	-I$(EXAMPLES_ROOT)/src/corba \
+	-I$(EXAMPLES_ROOT)/src/soap \
 	$(XMLADA_INCLUDE) \
 	-g -O2 -m -gnata \
 	$(EXAMPLE_GNATMAKE_FLAGS) \
