@@ -78,7 +78,7 @@ AC_GNAT_SOURCE
 #
 # Check that the GNAT version is recent enough for this version of GLADE
 #
-AM_ADA_PREREQ(980208, 3.11w)
+AM_ADA_PREREQ(980804, 3.11b-beta)
 #
 # Platform specific
 #
