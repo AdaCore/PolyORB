@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -58,10 +58,6 @@ package RTCORBA.Current is
       To   : in RTCORBA.Priority);
 
 private
-
-   Unset_Priority : constant RTCORBA.Priority := -1;
-   --  This special value denotes an unset priority value for
-   --  Current_Object.
 
    type Ref is new CORBA.Current.Ref with null record;
 

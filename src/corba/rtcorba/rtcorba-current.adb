@@ -48,6 +48,10 @@ with PolyORB.Utils.Strings.Lists;
 
 package body RTCORBA.Current is
 
+   Unset_Priority : constant RTCORBA.Priority := -1;
+   --  This special value denotes an unset priority value for
+   --  Current_Object.
+
    type Current_Object is new PolyORB.Smart_Pointers.Entity with record
       Id             : PolyORB.Tasking.Threads.Thread_Id;
       Last_Value_Set : RTCORBA.Priority := Unset_Priority;
@@ -137,7 +141,8 @@ package body RTCORBA.Current is
       --  Consistency check: To is in range 0 .. 32767
 
       if To < 0 then
-         --  Note: To is a CORBA.Short, thus To < 32767 is always true.
+         --  Implementation Note: To is a CORBA.Short, thus To < 32767
+         --  is always true.
 
          CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
       end if;
