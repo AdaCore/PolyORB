@@ -111,8 +111,6 @@ private
    --  and the semaphore associated with a thread, with the knownledge of
    --  of a session access
 
-   type Session_Thread_Info_Access is access all Session_Thread_Info;
-
    procedure Add_Request
      (S  : in Session_Thread_Info;
       RI :    Request_Info);
