@@ -1,3 +1,9 @@
+1999-05-15  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* xe_parse.adb: Main subprogram cannot be a child subprogram (fix
+	6510-G02 or 6510-006). Check configuration name conflict (fix
+	6510-G01 or 6510-005).
+
 1999-05-06  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* xe_check.adb, xe_back.adb: Resolve a visibility conflict.

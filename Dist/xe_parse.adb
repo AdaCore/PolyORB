@@ -789,6 +789,8 @@ package body XE_Parse is
       Conf_Name := Token_Name;
       Conf_Sloc := Get_Token_Location;
 
+      Check_Not_Declared   (Conf_Name, Conf_Sloc);
+
       --  We have the real configuration node. Let's use this one.
 
       Create_Configuration (Conf_Node, Conf_Name);
@@ -1019,9 +1021,15 @@ package body XE_Parse is
       Procedure_Name := Token_Name;
       Procedure_Sloc := Get_Token_Location;
 
-      Take_Token ((Tok_Is, Tok_Semicolon));
+      Take_Token ((Tok_Is, Tok_Semicolon, Tok_Dot));
 
       Search_Variable (Procedure_Name, Ada_Unit_Type_Node, Ada_Unit_Node);
+
+      if Token = Tok_Dot then
+         Write_Error_Message
+           (Get_Token_Location,
+            "main subprogram cannot be a child subprogram");
+      end if;
 
       --  This procedure has to be declared when this statement is
       --  a declaration or when it has not been already declared.
