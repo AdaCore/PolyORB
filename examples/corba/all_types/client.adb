@@ -56,7 +56,8 @@ begin
    CORBA.ORB.Initialize ("ORB");
    if Ada.Command_Line.Argument_Count < 1 then
       Ada.Text_IO.Put_Line
-         ("usage : client <IOR_string_from_server|name|-i> [howmany [longonly]]");
+        ("usage : client <IOR_string_from_server|name|-i> "
+         & "[howmany [longonly]]");
       return;
    end if;
 
@@ -80,7 +81,7 @@ begin
    Start := Clock;
    while Howmany > 0 loop
       declare
-         L : Unsigned_Long := echoULong (Myall_Types, 123);
+         L : constant Unsigned_Long := echoULong (Myall_types, 123);
       begin
          if Echo_Long_Only then
             pragma Assert (L = 123);
