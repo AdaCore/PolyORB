@@ -11,6 +11,8 @@
 -----------------------------------------------------------------------
 
 with Ada.Tags ;
+with Omniobject ;
+use type Omniobject.Object_Ptr ;
 
 package body Corba.Object is
 
@@ -24,7 +26,10 @@ package body Corba.Object is
    ---------
    function Is_Nil(Self: in Ref'Class) return Boolean is
    begin
-      return Self.Is_Nil ;
+      if Self.Omniobj = null then
+         return True ;
+      else return Is_Nil(Self.Omniobj) ;
+      end if ;
    end ;
 
 
@@ -32,8 +37,9 @@ package body Corba.Object is
    ----------
    procedure Release (Self : in out Ref'class) is
    begin
-      -- to be implemented
-      null ;
+      Omniobject.Release(Self.Omniobj) ;
+      Self.Omniobj := null ;
+      Self.Dynamic_Type := null ;
    end ;
 
 
@@ -268,44 +274,28 @@ package body Corba.Object is
 
    -- Adjust
    ---------
-   procedure Adjust (Self: in out Ref)
-     renames Initialize;
+   procedure Adjust (Self: in out Ref) is
+   begin
+      if not Is_Nil(Self) then
+         Omniobject.Duplicate(Self.Omniobj) ;
+      end if ;
+   end ;
 
    -- Finalize
    -----------
    procedure Finalize (Self: in out Ref) is
    begin
-      null ;
-      -- nothing to do for the moment
-      -- releases the underlying C++ pointer
-   end ;
-
-   --------------------------------------------------
-   ---     real implementations of objects        ---
-   --------------------------------------------------
-
-   -- Initialize
-   -------------
-   procedure Initialize (Self: in out Object) is
-   begin
-      null ;
-   end ;
-
-
-   -- Adjust
-   ---------
-   procedure Adjust (Self: in out Object)
-     renames Initialize;
-
-   -- Finalize
-   -----------
-   procedure Finalize (Self: in out Object) is
-   begin
-      null ;
+      if not Is_Nil(Self) then
+         Omniobject.Release(Self.Omniobj) ;
+      end if ;
    end ;
 
 
 end Corba.Object ;
+
+
+
+
 
 
 

@@ -28,7 +28,7 @@ package Omni is
    -- wrapper around omni_C2Ada function objectToString
    -- (see omni_C2Ada.hh)
 
-   function Object_To_String (Obj : in OmniObject.AdaObject)
+   function Object_To_String (Obj : in OmniObject.Object)
                               return String ;
    -- Ada equivalent of C function C_Init
 
@@ -40,7 +40,7 @@ package Omni is
    -- (see omni_C2Ada.hh)
 
    function String_To_Object (Str : in String)
-                              return OmniObject.AdaObject ;
+                              return OmniObject.Object ;
     -- Ada equivalent of C function C_Init
 
 

@@ -27,10 +27,117 @@ with System.Address_To_Access_Conversions ;
 
 package body OmniObject is
 
-   --------------------------------------------------
-   ---              Object is the                 ---
-   ---        equivalent of the C++ class         ---
-   --------------------------------------------------
+
+   -----------------------------------------------
+   --         Implemented_Object                --
+   --       this is the type of local           --
+   --      implementations of objects           --
+   -- it is the root of all XXX.Impl.Object     --
+   -----------------------------------------------
+
+   -- Is_Nil
+   ---------
+   function Is_Nil(Self : in Implemented_Object) return Corba.Boolean is
+   begin
+      if Self.Omniobj = null then
+         return True ;
+      else return Is_Nil(Self.Omniobj.all) ;
+      end if ;
+   end ;
+
+
+
+   -- Set_Repository_Id
+   --------------------
+   procedure Set_Repository_Id(Self : in out Implemented_Object ;
+                               Repo_Id : in Corba.String) is
+      Ex_Mb : Corba.System_Exception_Members := (0, Corba.COMPLETED_NO) ;
+   begin
+      if Is_Nil(Self) then
+         Corba.Raise_Corba_Exception(Corba.Inv_Objref'Identity, Ex_Mb) ;
+      end if ;
+
+      if Is_Proxy(Self.Omniobj.all) then
+         Corba.Raise_Corba_Exception(Corba.Inv_Objref'Identity, Ex_mb) ;
+      end if ;
+
+      Set_Repository_Id(Self.Omniobj.all, Repo_Id) ;
+
+   end ;
+
+
+   -- Initialize
+   -------------
+   procedure Initialize (Self: in out Implemented_Object) is
+      type Ptr is access all Implemented_Object ;
+      function To_Implemented_Object_Object_Ptr is
+        new Ada.Unchecked_Conversion (Ptr, Implemented_Object_Ptr);
+   begin
+      Self.Omniobj := new Object ;
+      Self.Omniobj.all.Implobj := To_Implemented_Object_Object_Ptr(Self'Access) ;
+   end ;
+
+
+   -- Adjust
+   -----------
+   procedure Adjust (Self: in out Implemented_Object) is
+   begin
+      if not Is_Nil(Self) then
+         declare
+            RepoId : Corba.String := Get_Repository_Id(Self.Omniobj.all) ;
+         begin
+            Initialize(Self) ;
+            Set_Repository_Id(Self, RepoID) ;
+         end ;
+      end if ;
+   end ;
+
+   -- Finalize
+   -----------
+   procedure Finalize (Self: in out Implemented_Object) is
+   begin
+      if not Is_Nil(Self) then
+         Self.Omniobj.Implobj := null ;
+         Release(Self.Omniobj.all) ;
+         Self.Omniobj := null ;
+      end if ;
+   end ;
+
+
+
+   -----------------------------------------------
+   --             Omniobject                    --
+   --     this type is imported from C++        --
+   --   it is the equivalent of omniObject      --
+   -----------------------------------------------
+
+
+    -- Is_Nil
+   ---------
+   function Is_Nil(Self : in Object'class) return Corba.Boolean is
+   begin
+      return True ;
+      -- call the C++ is_nil
+   end ;
+
+   -- Set_Repository_Id
+   --------------------
+   procedure Set_Repository_Id(Self : in out Object'class ;
+                               Repo_Id : in Corba.String) is
+   begin
+      -- calls PR_IRRepositoryId in C++
+      null ;
+   end ;
+
+   -- Get_Repository_Id
+   --------------------
+   function Get_Repository_Id(Self : in Object'class)
+                              return Corba.String is
+   begin
+      -- calls NP_IRrepositoryId in C++
+      return Corba.To_Corba_String("") ;
+   end ;
+
 
    -- Init
    -------
@@ -176,6 +283,38 @@ package body OmniObject is
                               Ada_Orl_Response_Expected) ;
       -- ... and transforms the result into a C type
       return Sys_Dep.Boolean_Ada_To_C (Ada_Result) ;
+   end ;
+
+
+   -- Dispatch
+   -----------
+   function Dispatch(Self: in Object'Class ;
+                     Orls: in Giop_S.Object ;
+                     Orl_Op : in String ;
+                     Orl_Response_Expected : in Boolean)
+                     return Boolean is
+   begin
+      -- ARGUMENTS : corba.string ?? corba.boolean ??
+      -- to be implemented
+      -- should never be called on a proxy object
+      return False ;
+   end ;
+
+
+   -- Duplicate
+   ------------
+   procedure Duplicate(Self : in Object'class) is
+   begin
+      null ;
+      -- to be implemented
+   end ;
+
+   -- Release
+   ------------
+   procedure Release(Self : in Object'class) is
+   begin
+      null ;
+      -- to be implemented
    end ;
 
 

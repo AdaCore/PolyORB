@@ -35,15 +35,124 @@ with OmniRopeAndKey ;
 
 package OmniObject is
 
-   type Object is abstract tagged limited record
+
+
+   -----------------------------------------------
+   --         Implemented_Object                --
+   --       this is the type of local           --
+   --      implementations of objects           --
+   -- it is the root of all XXX.Impl.Object     --
+   -----------------------------------------------
+   --            TYPE DEFINITION                --
+   -----------------------------------------------
+
+   type Implemented_Object is tagged private ;
+
+   type Implemented_Object_Ptr is access all Implemented_Object'Class ;
+
+
+   -----------------------------------------------
+   --             Omniobject                    --
+   --     this type is imported from C++        --
+   --   it is the equivalent of omniObject      --
+   -----------------------------------------------
+   --            TYPE DEFINITION                --
+   -----------------------------------------------
+   type Object is tagged limited record
       Table : Interfaces.CPP.Vtable_Ptr ;
+      Implobj : Implemented_Object_Ptr := null ;
    end record ;
-
-   type Object_Ptr is access all Object ;
-
+   -- the pointer implobj is null for proxy object
    pragma CPP_Class (Object);
    pragma CPP_Vtable (Object,Table,2);
    -- This object is wrapped around Ada_OmniObject (see Ada_OmniObject.hh)
+
+   type Object_Ptr is access all Object'Class ;
+
+
+
+   -----------------------------------------------
+   --         Implemented_Object                --
+   --       this is the type of local           --
+   --      implementations of objects           --
+   -- it is the root of all XXX.Impl.Object     --
+   -----------------------------------------------
+   --        SUBPROGRAMS DECLARATION            --
+   -----------------------------------------------
+
+   function Is_Nil(Self : in Implemented_Object) return Corba.Boolean ;
+
+   procedure Set_Repository_Id(Self : in out Implemented_Object ;
+                               Repo_Id : in Corba.String) ;
+
+
+   -----------------------------------------------
+   --             Omniobject                    --
+   --     this type is imported from C++        --
+   --   it is the equivalent of omniObject      --
+   -----------------------------------------------
+   --        SUBPROGRAMS DECLARATION            --
+   -----------------------------------------------
+
+   function Is_Nil(Self : in Object'Class) return Corba.Boolean ;
+
+   procedure Duplicate(Self : in Object'Class) ;
+   -- calls the C++ equivalent :
+   -- omni::objectDuplicate(omniObject*)
+
+   procedure Release(Self : in Object'Class) ;
+   -- calls the C++ equivalent :
+   -- omni::objectRelease(omniObject*)
+
+private
+
+
+
+   -----------------------------------------------
+   --         Implemented_Object                --
+   --       this is the type of local           --
+   --      implementations of objects           --
+   -- it is the root of all XXX.Impl.Object     --
+   -----------------------------------------------
+   --           PRIVATE PART                    --
+   -----------------------------------------------
+
+
+  type Implemented_Object is new Ada.Finalization.Controlled with record
+      Omniobj : Object_Ptr ;
+   end record ;
+
+
+   procedure Initialize (Self: in out Implemented_Object);
+   -- create the underlying Omniobject
+   -- both objects point on one another
+
+   procedure Adjust (Self: in out Implemented_Object) ;
+   -- create the underlying Omniobject
+   -- both objects point on one another
+   -- sets the repository ID
+
+
+   procedure Finalize (Self: in out Implemented_Object);
+   -- release the underlying omniobject
+
+   -----------------------------------------------
+   --             Omniobject                    --
+   --     this type is imported from C++        --
+   --   it is the equivalent of omniObject      --
+   -----------------------------------------------
+   --           PRIVATE PART                    --
+   -----------------------------------------------
+
+
+
+
+   procedure Set_Repository_Id(Self : in out Object'class ;
+                               Repo_Id : in Corba.String) ;
+
+   function Get_Repository_Id(Self : in Object'class)
+                              return Corba.String ;
+
 
    procedure C_Init (Self : in out Object'Class ;
                      Manager : in System.Address) ;
@@ -151,12 +260,11 @@ package OmniObject is
    -- This function is implemented in Ada and exported to C
    -- it calls th Ada function Dispatch
 
-   function Dispatch (Self : in Object ;
+   function Dispatch (Self : in Object'Class ;
                       Orls : in Giop_S.Object ;
                       Orl_Op : in String ;
                       Orl_Response_Expected : in Boolean)
-                      return Boolean is abstract ;
-   pragma CPP_Virtual(Dispatch) ;
+                      return Boolean ;
    -- Ada equivalent of C function C_Dispatch
    -- this function is called by the C one
    -- It is not implemented here but in the sub-classes of omniObject
@@ -168,13 +276,10 @@ package OmniObject is
 
 
 
-private
-
    function Constructor return Object'Class;
    pragma CPP_Constructor (Constructor);
    pragma Import (CPP,Constructor,"__14Ada_OmniObject");
    -- wrapped around the C constructor of Ada_OmniObject
-
 
 
 end OmniObject ;

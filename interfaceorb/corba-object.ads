@@ -10,7 +10,7 @@
 ----                                                               ----
 -----------------------------------------------------------------------
 
- with Omniobject ;
+with Omniobject ;
 
 -- with Omniobjectmanager, Omniropeandkey ;
 
@@ -21,14 +21,9 @@ with Ada.Finalization ;
 
 package Corba.Object is
 
-   -- proxy objects are references to implementations
    type Ref is tagged private ;
    type Ref_Ptr is access all Ref'Class ;
    Nil_Ref : constant Ref ;
-
-   -- objects are real implementations of the object
-   type Object is tagged private ;
-   type Object_Ptr is access all Object'Class ;
 
    --I boolean is_nil();
    function Is_Nil(Self: in Ref'Class) return Boolean;
@@ -36,13 +31,6 @@ package Corba.Object is
 
    --I void release();
    procedure Release (Self : in out Ref'class);
-   -- Not implemented in omniORB
-   -- neither here
-   --
-   -- NONONONONONONONONONONONONO
-   -- it is implemented !!! (objectRef.cc
-   -- here, we can call finalize on the object,
-   -- and that will call release on the C++ object
 
    --I Object duplicate();
    -- use assignment
@@ -198,48 +186,38 @@ private
    --------------------------------------------------
 
    type Ref is new Ada.Finalization.Controlled with record
+      Omniobj : Omniobject.Object_Ptr := null ;
       Dynamic_Type : Ref_Ptr := null ;
-      Is_Nil : Boolean := False ;
    end record ;
 
    procedure Initialize (Self: in out Ref);
-   -- called each time a Ref object is created
-   -- initializes the Dynamic_Object pointer
-   -- creates the underlying C object
+   -- nothing to do
 
    procedure Adjust (Self: in out Ref);
-   -- called each time you duplicate a Ref object using :=
-   -- update the value of the Dynamic_Object pointer
+   -- duplicate the underlying omniobject
 
    procedure Finalize (Self: in out Ref);
-   -- called each time a Ref object must be trashed
-   -- releases the underlying C pointer
+   -- release th underlying omniobject
 
-   Nil_Ref : constant Ref := ( Ada.Finalization.Controlled with
-                               Dynamic_Type => null,
-                               Is_Nil => True) ;
+   Nil_Ref : constant Ref := (Ada.Finalization.Controlled with
+                              Omniobj => null,
+                              Dynamic_Type => null);
 
-   --------------------------------------------------
-   ---     real implementations of objects        ---
-   --------------------------------------------------
-   type Object is new Ada.Finalization.Controlled with null record ;
-
-
-   procedure Initialize (Self: in out Object);
-   -- called each time a Ref object is created
-   -- initializes the Dynamic_Object pointer
-   -- creates the underlying C object
-
-   procedure Adjust (Self: in out Object);
-   -- called each time you duplicate a Ref object using :=
-   -- update the value of the Dynamic_Object pointer
-
-   procedure Finalize (Self: in out Object);
-   -- called each time a Ref object must be trashed
-   -- releases the underlying C pointer
 
 
 end Corba.Object ;
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

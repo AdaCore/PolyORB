@@ -134,7 +134,7 @@ omni_C2Ada.o: omni_C2Ada.hh omni_C2Ada.cc
 # compilation of files that do not depend on C++
 ################################################
 adaonly: corba.ali corba-object.ali giop_s.ali giop.ali omni.ali \
-bufferedstream.ali netbufferedstream.ali 
+netbufferedstream.ali 
 
 .SUFFIXES: .adb .ali
 
