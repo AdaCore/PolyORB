@@ -331,6 +331,8 @@ package body Ada_Be.Idl2Ada.Helper is
             II (CU);
             PL (CU, Raise_From_Any_Name (Node) & "'Access);");
             DI (CU);
+            Divert (CU, Initialization_Dependencies);
+            PL (CU, "& ""exceptions""");
             Divert (CU, Visible_Declarations);
          when others =>
             null;
