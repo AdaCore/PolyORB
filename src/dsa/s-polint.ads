@@ -50,6 +50,7 @@ with PolyORB.Any.ObjRef;
 with PolyORB.Buffers;
 with PolyORB.Components;
 with PolyORB.Obj_Adapters;
+with PolyORB.Opaque;
 with PolyORB.POA_Config;
 with PolyORB.References;
 with PolyORB.Requests;
@@ -581,7 +582,6 @@ private
       return PolyORB.Components.Message'Class;
    pragma Inline (Execute_Servant);
 
-
    --  During elaboration, each RCI package and each distributed
    --  object type registers a Receiving_Stub entry. These need
    --  to be available as soon as this spec is elaborated (before
@@ -623,6 +623,9 @@ private
 
    type Buffer_Stream_Type is new Ada.Streams.Root_Stream_Type with record
       Buf : PolyORB.Buffers.Buffer_Access;
+      Arr : PolyORB.Opaque.Zone_Access;
    end record;
+
+   procedure Finalize (X : in out Buffer_Stream_Type);
 
 end System.PolyORB_Interface;
