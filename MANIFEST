@@ -1277,6 +1277,7 @@ support/run_script.adb
 tools/Makefile.am
 tools/Makefile.common
 tools/Makefile.in
+tools/README
 tools/po_catref/Makefile.am
 tools/po_catref/Makefile.in
 tools/po_catref/common.adb
