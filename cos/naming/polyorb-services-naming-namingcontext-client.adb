@@ -33,7 +33,6 @@
 
 --  with PolyORB.Services.Naming.BindingIterator;
 --  with PolyORB.Services.Naming.BindingIterator.Helper;
---  $Id$
 
 with PolyORB.Services.Naming.NamingContext.Helper;
 with PolyORB.Services.Naming.Helper;
