@@ -92,8 +92,7 @@ package body PolyORB.POA_Types is
 
    function "="
      (Left, Right : in Unmarshalled_Oid)
-     return Standard.Boolean
-   is
+     return Standard.Boolean is
    begin
       if Left.Id = Right.Id
         and then Left.System_Generated = Right.System_Generated
@@ -110,8 +109,7 @@ package body PolyORB.POA_Types is
 
    function Image
      (Oid : Object_Id)
-     return Types.String
-   is
+     return Types.String is
    begin
       return To_PolyORB_String
         (PolyORB.Objects.To_String (PolyORB.Objects.Object_Id (Oid)));
@@ -126,11 +124,25 @@ package body PolyORB.POA_Types is
       System_Generated : in Types.Boolean;
       Persistency_Flag : in Lifespan_Cookie;
       Creator          : in Types.String)
-     return Unmarshalled_Oid_Access
-   is
+     return Unmarshalled_Oid_Access is
    begin
       return new Unmarshalled_Oid'
-        (Creator => Creator, Id => Name,
+        (Creator => Creator,
+         Id => Name,
+         System_Generated => System_Generated,
+         Persistency_Flag => Persistency_Flag);
+   end Create_Id;
+
+   function Create_Id
+     (Name             : in Types.String;
+      System_Generated : in Boolean;
+      Persistency_Flag : in Time_Stamp;
+      Creator          : in Types.String)
+     return Unmarshalled_Oid is
+   begin
+      return Unmarshalled_Oid'
+        (Creator => Creator,
+         Id => Name,
          System_Generated => System_Generated,
          Persistency_Flag => Persistency_Flag);
    end Create_Id;
@@ -150,6 +162,19 @@ package body PolyORB.POA_Types is
           Persistency_Flag => Persistency_Flag,
           Creator          => Creator));
    end Create_Id;
+
+   --------------
+   -- Get_Name --
+   --------------
+
+   function Get_Name
+     (Oid : Object_Id)
+     return Types.String
+   is
+      U_Oid : constant Unmarshalled_Oid := Oid_To_U_Oid (Oid);
+   begin
+      return U_Oid.Id;
+   end Get_Name;
 
    ---------------
    -- Get_ULong --
@@ -269,7 +294,7 @@ package body PolyORB.POA_Types is
    ------------------
 
    function Oid_To_U_Oid
-     (Oid : access Object_Id)
+     (Oid : Object_Id)
      return Unmarshalled_Oid
    is
       Index : Stream_Element_Offset;
@@ -281,13 +306,13 @@ package body PolyORB.POA_Types is
    begin
       Index := Oid'First;
       Get_String
-        (Stream_Element_Array (Oid.all), Index, Creator);
+        (Stream_Element_Array (Oid), Index, Creator);
       Get_String
-        (Stream_Element_Array (Oid.all), Index, Id);
+        (Stream_Element_Array (Oid), Index, Id);
       Get_Boolean
-        (Stream_Element_Array (Oid.all), Index, System_Generated);
+        (Stream_Element_Array (Oid), Index, System_Generated);
       Get_ULong
-        (Stream_Element_Array (Oid.all), Index, Persistency_Flag);
+        (Stream_Element_Array (Oid), Index, Persistency_Flag);
       pragma Assert (Index = Oid'Last + 1);
 
       return Unmarshalled_Oid'
@@ -295,6 +320,14 @@ package body PolyORB.POA_Types is
          Id => Id,
          System_Generated => System_Generated,
          Persistency_Flag => Lifespan_Cookie (Persistency_Flag));
+   end Oid_To_U_Oid;
+
+   function Oid_To_U_Oid
+     (Oid : access Object_Id)
+     return Unmarshalled_Oid is
+
+   begin
+      return Oid_To_U_Oid (Oid.all);
    end Oid_To_U_Oid;
 
    ------------------
@@ -305,17 +338,15 @@ package body PolyORB.POA_Types is
      (U_Oid : Unmarshalled_Oid)
      return Object_Id_Access
    is
-      Oid                : Object_Id_Access;
-   begin
-      Oid := new Object_Id'
-        (Object_Id
-         (Put_String    (U_Oid.Creator)
-          & Put_String  (U_Oid.Id)
-          & Put_Boolean (U_Oid.System_Generated)
-          & Put_ULong   (U_Oid.Persistency_Flag)));
+      Oid   : constant Object_Id := U_Oid_To_Oid (U_Oid);
 
-      pragma Debug (O ("Oid is " & Image (Oid.all)));
-      return Oid;
+      Oid_A : Object_Id_Access;
+
+   begin
+      Oid_A := new Object_Id'(Oid);
+
+      pragma Debug (O ("Oid is " & Image (Oid)));
+      return Oid_A;
    end U_Oid_To_Oid;
 
    function U_Oid_To_Oid

@@ -62,7 +62,7 @@ package PolyORB.POA_Types is
    --  A piece of information embedded in an object id by the lifespan
    --  policy for control of reference validity across ORB executions.
 
-   --  Base types for the PolyORB POA
+   --  Base types for the PolyORB POA.
 
    type Obj_Adapter is abstract new PolyORB.Obj_Adapters.Obj_Adapter
       with null record;
@@ -115,18 +115,37 @@ package PolyORB.POA_Types is
       Persistency_Flag : in Time_Stamp;
       Creator          : in Types.String)
      return Unmarshalled_Oid_Access;
-   --  Create an Unmarshalled_Oid
+   pragma Inline (Create_Id);
+   --  Create an Unmarshalled_Oid_Access.
 
    function Create_Id
      (Name             : in Types.String;
       System_Generated : in Boolean;
       Persistency_Flag : in Time_Stamp;
       Creator          : in Types.String)
+     return Unmarshalled_Oid;
+   pragma Inline (Create_Id);
+
+   --  Create an Unmarshalled_Oid.
+   function Create_Id
+     (Name             : in Types.String;
+      System_Generated : in Boolean;
+      Persistency_Flag : in Time_Stamp;
+      Creator          : in Types.String)
      return Object_Id_Access;
+   pragma Inline (Create_Id);
    --  Create an Unmarshalled_Oid, and then marshall it into an Object_Id
+
+   function Get_Name (Oid : Object_Id) return Types.String;
+   --  Return 'Name' component marshalled in Oid.
 
    function Oid_To_U_Oid
      (Oid : access Object_Id)
+     return Unmarshalled_Oid;
+   --  Unmarshall an Object_Id into a Unmarshalled_Oid
+
+   function Oid_To_U_Oid
+     (Oid : Object_Id)
      return Unmarshalled_Oid;
    --  Unmarshall an Object_Id into a Unmarshalled_Oid
 
