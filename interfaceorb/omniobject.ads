@@ -149,7 +149,7 @@ package OmniObject is
    ---            miscellaneous                ---
    -----------------------------------------------
 
-   procedure Init_Local_Object (Self : in out Implemented_Object'Class ;
+   procedure Init_Local_Object (Self : in out Implemented_Object ;
                                 Repo_Id : in Corba.String ;
                                 Disp : in Dispatch_Procedure ;
                                 Isa : in Is_A_Function ) ;

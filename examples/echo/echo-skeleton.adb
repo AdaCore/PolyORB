@@ -26,7 +26,7 @@ package body Echo.Skeleton is
       if Orl_Op = "echoString" then
          declare
             mesg : Corba.String ;
-            Result : corba.string ;
+            Result : Echo.string ;
             Mesg_Size : Corba.Unsigned_Long ;
          begin
             -- unmarshalls arguments
@@ -53,4 +53,3 @@ package body Echo.Skeleton is
    end ;
 
 end Echo.Skeleton  ;
-

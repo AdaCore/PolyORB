@@ -519,6 +519,14 @@ void
 adabe_interface::produce_impl_adb(dep_list& with, string &body, string &previous)
 {
   if (n_inherits() > 1) return ;
+    
+  // If there is an ancestor, get its name
+  string ancestor ;
+  if (n_inherits()) {
+    ancestor= adabe_interface::narrow_from_decl(inherits()[0])->get_ada_full_name();
+    with.add(ancestor);
+  }
+
   adabe_global::set_adabe_current_file(this);
   with.add(get_ada_full_name() + ".Skeleton") ;
   body += "\n\n" ;
@@ -558,11 +566,18 @@ adabe_interface::produce_impl_adb(dep_list& with, string &body, string &previous
   body += "   -------------\n" ;
   body += "   procedure Initialize(Self : in out Object) is\n" ;
   body += "   begin\n" ;
-  body += "      Omniobject.Init_Local_Object(Omniobject.Implemented_Object(Self),\n" ;
-  body += "                                 Repository_Id,\n" ;
-  body += "                                 " ;
+  body += "      " ;
+  if(n_inherits()) {
+    body += ancestor + ".Initialize(" + ancestor + ".Object(" ;
+  } else {
+    body += "Omniobject.Initialize(Omniobject.Implemented_Object(" ;
+  }
+  body += "Self)) ;\n" ;
+  body += "      Init_Local_Object(Self,\n" ;
+  body += "                        Repository_Id,\n" ;
+  body += "                        " ;
   body += get_ada_full_name() + ".Skeleton.Dispatch'Access,\n" ;
-  body += "                                 " ;
+  body += "                        " ;
   body += get_ada_full_name() + ".Is_A'Access) ;\n" ;
   body += "      -- You can add things *BELOW* this line\n" ;
   body += "   end Initialize ;\n\n\n" ;
@@ -570,7 +585,13 @@ adabe_interface::produce_impl_adb(dep_list& with, string &body, string &previous
   body += "   ---------\n" ;
   body += "   procedure Adjust(Self: in out Object) is\n" ;
   body += "   begin\n" ;
-  body += "      Omniobject.Adjust(Omniobject.Implemented_Object(Self)) ;\n" ;
+  body += "   " ;
+  if(n_inherits()) {
+    body += ancestor + ".Adjust(" + ancestor + ".Object(" ;
+  } else {
+    body += "Omniobject.Adjust(Omniobject.Implemented_Object(" ;
+  }
+  body += "Self)) ;\n" ;
   body += "      -- You can add things *BELOW* this line\n" ;
   body += "   end Adjust ;\n\n\n" ;
   body += "   -- Finalize\n" ;
@@ -578,7 +599,13 @@ adabe_interface::produce_impl_adb(dep_list& with, string &body, string &previous
   body += "   procedure Finalize(Self : in out Object) is\n" ;
   body += "   begin\n" ;
   body += "      -- You can add things *BEFORE* this line\n" ;
-  body += "      Omniobject.Finalize(Omniobject.Implemented_Object(Self)) ;\n"  ;
+  body += "   " ;
+  if(n_inherits()) {
+    body += ancestor + ".Finalize(" + ancestor + ".Object(" ;
+  } else {
+    body += "Omniobject.Finalize(Omniobject.Implemented_Object(" ;
+  }
+  body += "Self)) ;\n" ;
   body += "   end Finalize ;\n\n\n" ;
   body += "end " + get_ada_full_name() + ".Impl ;\n";
 }

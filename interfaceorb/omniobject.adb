@@ -96,14 +96,13 @@ package body OmniObject is
 
    -- Init_Local_Object
    --------------------
-   procedure Init_Local_Object (Self : in out Implemented_Object'Class ;
+   procedure Init_Local_Object (Self : in out Implemented_Object ;
                                 Repo_Id : in Corba.String ;
                                 Disp : in Dispatch_Procedure ;
                                 Isa : in Is_A_Function ) is
       C_Repoid : Interfaces.C.Strings.Chars_Ptr ;
    begin
       pragma Debug(Output(Omni_Fin,"Omniobject.Init_Local_Object")) ;
-      Initialize(Implemented_Object(Self)) ;
       if not Is_Nil(Self) then
          C_Repoid := Interfaces.C.Strings.New_String(Corba.To_Standard_String(Repo_Id)) ;
          C_Init_Local_Object (Self.Omniobj.all, C_repoid) ;

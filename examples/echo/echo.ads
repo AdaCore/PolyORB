@@ -45,7 +45,7 @@ package Echo is
    --       Not in Spec       --
    -----------------------------
 
-   Repository_Id : Corba.String := Corba.To_Corba_String("IDL:Echo:1.0") ;
+   Repository_Id : constant Corba.String := Corba.To_Corba_String("IDL:Echo:1.0") ;
    function Get_Repository_Id(Self : in Ref)
                               return Corba.String ;
 
