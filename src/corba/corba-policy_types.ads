@@ -1,7 +1,5 @@
 package CORBA.Policy_Types is
 
-   subtype PolicyType is CORBA.Short range 16 .. 22;
-
    THREAD_POLICY_ID               : constant PolicyType := 16;
    LIFESPAN_POLICY_ID             : constant PolicyType := 17;
    ID_UNIQUENESS_POLICY_ID        : constant PolicyType := 18;

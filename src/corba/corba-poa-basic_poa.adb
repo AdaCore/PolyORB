@@ -1,9 +1,12 @@
+with Ada.Real_Time;
+
 with Sequences.Unbounded;
 with Sequences.Unbounded.Search;
 with Droopi.Log;
 pragma Elaborate_All (Droopi.Log);
 
 with CORBA.Policy_Types;
+with CORBA.Policy_Values;
 
 package body CORBA.POA.Basic_POA is
 
@@ -17,9 +20,15 @@ package body CORBA.POA.Basic_POA is
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
+   function Get_Boot_Time return Time_Stamp;
+
    function Get_Child (Adapter :    Obj_Adapter_Access;
                        Name    : in String)
                       return POA_Types.Obj_Adapter_Access;
+
+   procedure Init_With_User_Policies (OA       : Obj_Adapter_Access;
+                                      Policies : Policy.PolicyList_Access);
+   procedure Init_With_Default_Policies (OA : Obj_Adapter_Access);
 
    ---------------
    -- Get_Child --
@@ -53,6 +62,135 @@ package body CORBA.POA.Basic_POA is
       end if;
    end Get_Child;
 
+   -------------------
+   -- Get_Boot_Time --
+   -------------------
+
+   function Get_Boot_Time
+     return Time_Stamp
+   is
+      use Ada.Real_Time;
+      T  : Time;
+      SC : Seconds_Count;
+      TS : Time_Span;
+   begin
+      T := Clock;
+      Split (T, SC, TS);
+
+      return Time_Stamp (Unsigned_Long (SC));
+   end Get_Boot_Time;
+
+   -----------------------------
+   -- Init_With_User_Policies --
+   -----------------------------
+
+   procedure Init_With_User_Policies (OA       : Obj_Adapter_Access;
+                                      Policies : Policy.PolicyList_Access)
+   is
+      A_Policy : Policy_Access;
+   begin
+      for I in 1 .. Policy_Sequences.Length (Policies.all) loop
+         A_Policy := Policy_Sequences.Element_Of (Policies.all, I);
+         case A_Policy.Policy_Type is
+            when THREAD_POLICY_ID =>
+               if OA.Thread_Policy /= null then
+                  O ("Duplicate in ThreadPolicy: using last one");
+               end if;
+               OA.Thread_Policy
+                 := Create (ThreadPolicy (A_Policy.all));
+
+            when LIFESPAN_POLICY_ID =>
+               if OA.Lifespan_Policy /= null then
+                  O ("Duplicate in LifespanPolicy: using last one");
+               end if;
+               OA.Lifespan_Policy
+                 := Create (LifespanPolicy (A_Policy.all));
+
+            when ID_UNIQUENESS_POLICY_ID =>
+               if OA.Id_Uniqueness_Policy /= null then
+                  O ("Duplicate in IdUniquenessPolicy: using last one");
+               end if;
+               OA.Id_Uniqueness_Policy
+                 := Create (IdUniquenessPolicy (A_Policy.all));
+
+            when ID_ASSIGNEMENT_POLICY_ID =>
+               if OA.Id_Assignement_Policy /= null then
+                  O ("Duplicate in IdAssignementPolicy: using last one");
+               end if;
+               OA.Id_Assignement_Policy
+                 := Create (IdAssignementPolicy (A_Policy.all));
+
+            when SERVANT_RETENTION_POLICY_ID =>
+               if OA.Servant_Retention_Policy /= null then
+                  O ("Duplicate in ServantRetentionPolicy: using last one");
+               end if;
+               OA.Servant_Retention_Policy
+                 := Create (ServantRetentionPolicy (A_Policy.all));
+
+            when REQUEST_PROCESSING_POLICY_ID =>
+               if OA.Request_Processing_Policy /= null then
+                  O ("Duplicate in RequestProcessingPolicy: using last one");
+               end if;
+               OA.Request_Processing_Policy
+                 := Create (RequestProcessingPolicy (A_Policy.all));
+
+            when IMPLICIT_ACTIVATION_POLICY_ID =>
+               if OA.Implicit_Activation_Policy /= null then
+                  O ("Duplicate in ImplicitActivationPolicy: using last one");
+               end if;
+               OA.Implicit_Activation_Policy
+                 := Create (ImplicitActivationPolicy (A_Policy.all));
+
+            when others =>
+               null;
+               O ("Unknown policy ignored");
+         end case;
+      end loop;
+   end Init_With_User_Policies;
+
+   --------------------------------
+   -- Init_With_Default_Policies --
+   --------------------------------
+
+   procedure Init_With_Default_Policies (OA : Obj_Adapter_Access)
+   is
+      use CORBA.Policy_Values;
+   begin
+      if OA.Thread_Policy = null then
+         OA.Thread_Policy := Create_Thread_Policy (ORB_CTRL_MODEL);
+      end if;
+
+      if OA.Lifespan_Policy = null then
+         OA.Lifespan_Policy
+           := Create_Lifespan_Policy (Policy_Values.TRANSIENT);
+      end if;
+
+      if OA.Id_Uniqueness_Policy = null then
+         OA.Id_Uniqueness_Policy :=
+           Create_Id_Uniqueness_Policy (UNIQUE_ID);
+      end if;
+
+      if OA.Id_Assignement_Policy = null then
+         OA.Id_Assignement_Policy :=
+           Create_Id_Assignement_Policy (SYSTEM_ID);
+      end if;
+
+      if OA.Servant_Retention_Policy = null then
+         OA.Servant_Retention_Policy :=
+           Create_Servant_Retention_Policy (RETAIN);
+      end if;
+
+      if OA.Request_Processing_Policy = null then
+         OA.Request_Processing_Policy :=
+           Create_Request_Processing_Policy (USE_ACTIVE_OBJECT_MAP_ONLY);
+      end if;
+
+      if OA.Implicit_Activation_Policy = null then
+         OA.Implicit_Activation_Policy :=
+           Create_Implicit_Activation_Policy (NO_IMPLICIT_ACTIVATION);
+      end if;
+   end Init_With_Default_Policies;
+
    ----------------
    -- Create_POA --
    ----------------
@@ -69,6 +207,8 @@ package body CORBA.POA.Basic_POA is
       O ("Enter Basic_POA.Create_POA");
       --  ??? Add check code here
 
+      --  If self is null, that means that the poa to create is the RootPOA
+
       --  Look if there is already a child with this name
       if Self /= null
         and then Self.Children /= null
@@ -79,9 +219,15 @@ package body CORBA.POA.Basic_POA is
       end if;
 
       --  Create new object adapter
-      New_Obj_Adapter        := new Obj_Adapter;
-      New_Obj_Adapter.Name   := Adapter_Name;
-      New_Obj_Adapter.Father := POA_Types.Obj_Adapter_Access (Self);
+      New_Obj_Adapter           := new Obj_Adapter;
+      New_Obj_Adapter.Boot_Time := Get_Boot_Time;
+      if Self /= null then
+         New_Obj_Adapter.Father := POA_Types.Obj_Adapter_Access (Self);
+         New_Obj_Adapter.Name   := Adapter_Name;
+      else
+         New_Obj_Adapter.Name   := To_CORBA_String ("RootPOA");
+      end if;
+
       if A_POAManager = null then
          --  New_Obj_Adapter.POA_Manager := new POA_Manager;
          --  ??? Use factory instead
@@ -91,34 +237,14 @@ package body CORBA.POA.Basic_POA is
       end if;
 
       --  Init policies with those given by the user
-      if Policies /= null then
-         declare
-            A_Policy : Policy_Access;
-         begin
-            for I in 1 .. Policy_Sequences.Length (Policies.all) loop
-               A_Policy := Policy_Sequences.Element_Of (Policies.all, I);
-               case A_Policy.Policy_Type is
-                  when THREAD_POLICY_ID =>
-                     if New_Obj_Adapter.Thread_Policy /= null then
-                        O ("Duplicate in ThreadPolicy: using last one");
-                        --  ??? What is the desired behavior in this case?
-                     end if;
-                     New_Obj_Adapter.Thread_Policy
-                       := new ThreadPolicy'(ThreadPolicy (A_Policy.all));
-                     --  ??? etc. Check code first
-                  when others =>
-                     null;
-               end case;
-            end loop;
-         end;
+      --  (not for the RootPOA)
+      if Self /= null
+        and then Policies /= null then
+         Init_With_User_Policies (New_Obj_Adapter, Policies);
       end if;
 
-      --  Use default policy if not provided by the user
-      if New_Obj_Adapter.Thread_Policy = null then
-         --  New_Obj_Adapter.Thread_Policy := new ThreadPolicy'(THREAD_POLICY_ID);
-         --  ??? Should use policies factory
-         null;
-      end if;
+      --  Use default policies if not provided by the user
+      Init_With_Default_Policies (New_Obj_Adapter);
 
       --  ??? Check compatibilities between policies
 
@@ -126,12 +252,9 @@ package body CORBA.POA.Basic_POA is
 
       --  ??? Register new obj_adapter as a sibling of the current POA
 
-      if Self /= null then
-         Self.Name := To_CORBA_String ("Bla");
-      end if;
-
       return New_Obj_Adapter;
    end Create_POA;
+
 
    ------------
    -- Create --
@@ -142,7 +265,95 @@ package body CORBA.POA.Basic_POA is
    begin
       null;
    end Create;
-   --  Initialize.
+
+   --------------------------
+   -- Create_Thread_Policy --
+   --------------------------
+
+   function Create_Thread_Policy (Value : ThreadPolicyValue)
+                                 return ThreadPolicy_Access
+   is
+      use CORBA.Policy.Thread_Policy;
+   begin
+      return Create (Value);
+   end Create_Thread_Policy;
+
+   ----------------------------
+   -- Create_Lifespan_Policy --
+   ----------------------------
+
+   function Create_Lifespan_Policy (Value : LifespanPolicyValue)
+                                 return LifespanPolicy_Access
+   is
+      use CORBA.Policy.Lifespan_Policy;
+   begin
+      return Create (Value);
+   end Create_Lifespan_Policy;
+
+   ---------------------------------
+   -- Create_Id_Uniqueness_Policy --
+   ---------------------------------
+
+   function Create_Id_Uniqueness_Policy
+     (Value : IdUniquenessPolicyValue)
+     return IdUniquenessPolicy_Access
+   is
+      use CORBA.Policy.Id_Uniqueness_Policy;
+   begin
+      return Create (Value);
+   end Create_Id_Uniqueness_Policy;
+
+   ----------------------------------
+   -- Create_Id_Assignement_Policy --
+   ----------------------------------
+
+   function Create_Id_Assignement_Policy
+     (Value : IdAssignementPolicyValue)
+     return IdAssignementPolicy_Access
+   is
+      use CORBA.Policy.Id_Assignement_Policy;
+   begin
+      return Create (Value);
+   end Create_Id_Assignement_Policy;
+
+   -------------------------------------
+   -- Create_Servent_Retention_Policy --
+   -------------------------------------
+
+   function Create_Servant_Retention_Policy
+     (Value : ServantRetentionPolicyValue)
+     return ServantRetentionPolicy_Access
+   is
+      use CORBA.Policy.Servant_Retention_Policy;
+   begin
+      return Create (Value);
+   end Create_Servant_Retention_Policy;
+
+   --------------------------------------
+   -- Create_Request_Processing_Policy --
+   --------------------------------------
+
+   function Create_Request_Processing_Policy
+     (Value : RequestProcessingPolicyValue)
+     return RequestProcessingPolicy_Access
+   is
+      use CORBA.Policy.Request_Processing_Policy;
+   begin
+      return Create (Value);
+   end Create_Request_Processing_Policy;
+
+   ---------------------------------------
+   -- Create_Implicit_Activation_Policy --
+   ---------------------------------------
+
+   function Create_Implicit_Activation_Policy
+     (Value : ImplicitActivationPolicyValue)
+     return ImplicitActivationPolicy_Access
+   is
+      use CORBA.Policy.Implicit_Activation_Policy;
+   begin
+      return Create (Value);
+   end Create_Implicit_Activation_Policy;
 
    -------------
    -- Destroy --
@@ -153,7 +364,6 @@ package body CORBA.POA.Basic_POA is
    begin
       null;
    end Destroy;
-   --  Finalize.
 
    ------------
    -- Export --
@@ -179,8 +389,6 @@ package body CORBA.POA.Basic_POA is
    begin
       null;
    end Unexport;
-   --  Id is an object identifier attributed by OA.
-   --  The corresponding association is suppressed.
 
    ------------------------
    -- Get_Empty_Arg_List --

@@ -27,8 +27,8 @@ package CORBA.POA is
    type Obj_Adapter is abstract new CORBA.POA_Types.Obj_Adapter with
       record
          Name                       : CORBA.String;
-         POA_Manager                : CORBA.POA_Manager.POAManager_Access
-           := null;
+         Boot_Time                  : Time_Stamp;
+         POA_Manager                : CORBA.POA_Manager.POAManager_Access;
          Object_Map                 : CORBA.Object_Map.Object_Map_Access;
          --  ??? Access?
 

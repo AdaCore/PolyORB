@@ -18,49 +18,51 @@ with Droopi.Objects;         use Droopi.Objects;
 with Sequences.Unbounded;
 with Unchecked_Deallocation;
 
+with Ada.Real_Time;
+
 ---------------------
 -- CORBA.POA_Types --
 ---------------------
 
 package CORBA.POA_Types is
 
+   subtype Time_Stamp is Unsigned_Long;
+
+   --  Base types for CORBA
+
    type Obj_Adapter is abstract new Droopi.Obj_Adapters.Obj_Adapter
      with null record;
    type Obj_Adapter_Access is access all Obj_Adapter'Class;
+
+   type Servant is abstract new Droopi.Objects.Servant with null record;
+   type Servant_Access is access all Servant'Class;
 
    package POA_Sequences is new Sequences.Unbounded (Obj_Adapter_Access);
    subtype POAList is POA_Sequences.Sequence;
    type POAList_Access is access all POAList;
 
-   type Persistency_Flag is null record;
-
    type Object_Id is new Droopi.Objects.Object_Id;
    type Object_Id_Access is access all Object_Id;
-
-   type Servant is abstract new Droopi.Objects.Servant with null record;
-   type Servant_Access is access all Servant'Class;
 
    type Unmarshalled_Oid is
      record
          Id               : CORBA.String;
          System_Generated : CORBA.Boolean;
-         Persistency_Flag : CORBA.Long;
-         --  ??? How do we implement the PERSISTENT policy?
+         Persistency_Flag : Time_Stamp;
      end record;
    type Unmarshalled_Oid_Access is access Unmarshalled_Oid;
-   --  The unmarshalled Object_Id
 
    function Create_Id
      (Name             : in CORBA.String;
       System_Generated : in CORBA.Boolean;
-      Persistency_Flag : in CORBA.Long)
+      Persistency_Flag : in Time_Stamp)
      return Unmarshalled_Oid_Access;
    --  Create an Unmarshalled_Oid
 
    function Create_Id
      (Name             : in CORBA.String;
       System_Generated : in CORBA.Boolean;
-      Persistency_Flag : in CORBA.Long)
+      Persistency_Flag : in Time_Stamp)
      return Object_Id_Access;
    --  Create an Unmarshalled_Oid, and then marshall it into an Object_Id
 

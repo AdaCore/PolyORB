@@ -1,6 +1,7 @@
 with Droopi.Representations.CDR; use Droopi.Representations.CDR;
 with Droopi.Buffers;             use Droopi.Buffers;
 with Ada.Streams;
+with Ada.Unchecked_Conversion;
 
 package body CORBA.POA_Types is
 
@@ -13,7 +14,7 @@ package body CORBA.POA_Types is
    function Create_Id
      (Name             : in CORBA.String;
       System_Generated : in CORBA.Boolean;
-      Persistency_Flag : in CORBA.Long)
+      Persistency_Flag : in Time_Stamp)
      return Unmarshalled_Oid_Access
    is
       U_Oid : Unmarshalled_Oid_Access;
@@ -31,12 +32,13 @@ package body CORBA.POA_Types is
    function Create_Id
      (Name             : in CORBA.String;
       System_Generated : in CORBA.Boolean;
-      Persistency_Flag : in CORBA.Long)
+      Persistency_Flag : in Time_Stamp)
      return Object_Id_Access
    is
+      U_Oid : Unmarshalled_Oid_Access;
    begin
-      return Create_Id (Name, System_Generated, Persistency_Flag);
-      --  ??? needs to be implemented
+      U_Oid := Create_Id (Name, System_Generated, Persistency_Flag);
+      return U_Oid_To_Oid (U_Oid);
    end Create_Id;
 
    ------------------
@@ -51,9 +53,9 @@ package body CORBA.POA_Types is
         := Stream_Element_Array (Oid.all);
       Buffer           : aliased Buffer_Type;
 
-      Id               : CORBA.String;
-      System_Generated : CORBA.Boolean := True;
-      Persistency_Flag : CORBA.Long    := 1;
+      Id               : String;
+      System_Generated : Boolean;
+      Persistency_Flag : Unsigned_Long;
    begin
 
       Decapsulate (Stream'Access, Buffer'Access);
@@ -62,8 +64,9 @@ package body CORBA.POA_Types is
       Persistency_Flag := Unmarshall (Buffer'Access);
       Release_Contents (Buffer);
 
-      U_Oid := new Unmarshalled_Oid'(Id, System_Generated, Persistency_Flag);
-
+      U_Oid := new Unmarshalled_Oid'(Id,
+                                     System_Generated,
+                                     Time_Stamp (Persistency_Flag));
       return U_Oid;
    end Oid_To_U_Oid;
 
@@ -75,18 +78,16 @@ package body CORBA.POA_Types is
                          return Object_Id_Access
    is
       Buffer             : Buffer_Access := new Buffer_Type;
-      Initial_Position   : Stream_Element_Offset;
       Oid                : Object_Id_Access;
-      Hello              : CORBA.String := To_CORBA_String ("Hello");
    begin
+
       Start_Encapsulation (Buffer);
       Marshall (Buffer, U_Oid.Id);
       Marshall (Buffer, U_Oid.System_Generated);
-      Marshall (Buffer, U_Oid.Persistency_Flag);
+      Marshall (Buffer, Unsigned_Long (U_Oid.Persistency_Flag));
 
       Oid := new Object_Id'(Object_Id (Encapsulate (Buffer)));
       Release (Buffer);
-
       return Oid;
    end U_Oid_To_Oid;
 end CORBA.POA_Types;
