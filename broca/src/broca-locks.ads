@@ -106,8 +106,11 @@ private
    use Broca.Soft_Links;
 
    type Rw_Lock_Type is limited record
-      Readers_Barrier : Barrier_Access;
-      Writers_Barrier : Barrier_Access;
+      Guard_Values : Watcher_Access;
+      --  This watcher is updated each time an attribute
+      --  of the Rw_Lock_Type that is used in a guard clause
+      --  is changed.
+
       Readers_Waiting : Natural := 0;
       Writers_Waiting : Natural := 0;
 

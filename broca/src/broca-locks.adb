@@ -120,8 +120,7 @@ package body Broca.Locks is
                        & Rw_Lock_Counter'Img));
       Result.Serial := Rw_Lock_Counter;
       Leave_Critical_Section;
-      Create (Result.Readers_Barrier);
-      Create (Result.Writers_Barrier);
+      Create (Result.Guard_Values);
       L := Result;
    end Create;
 
@@ -132,12 +131,13 @@ package body Broca.Locks is
    begin
       pragma Debug
         (O ("Rw_Lock: final/Serial =" & L.Serial'Img));
-      Destroy (L.Readers_Barrier);
-      Destroy (L.Writers_Barrier);
+      Destroy (L.Guard_Values);
       Free (L);
    end Destroy;
 
-   procedure Lock_W (L : access Rw_Lock_Type) is
+   procedure Lock_W (L : access Rw_Lock_Type)
+   is
+      Version : Version_Id;
    begin
       pragma Debug (O ("Lock_W Serial =" & L.Serial'Img));
 
@@ -145,14 +145,13 @@ package body Broca.Locks is
          Enter_Critical_Section;
          L.Writers_Waiting := L.Writers_Waiting + 1;
          exit when L.Count = 0;
+         Lookup (L.Guard_Values.all, Version);
          Leave_Critical_Section;
 
-         --  XXX RACE CONDITION!
-         --  Signal could be called here -- and lost...
-         --  ... before we enter Wait.
-         --  (probably same elsewhere in this unit.)
-
-         Wait (L.Writers_Barrier.all);
+         Differ (L.Guard_Values.all, Version);
+         --  Wait until the condition may have changed
+         --  from the value it had when we were within
+         --  the critical section.
       end loop;
 
       L.Count := -1;
@@ -160,7 +159,9 @@ package body Broca.Locks is
       Leave_Critical_Section;
    end Lock_W;
 
-   procedure Lock_R (L : access Rw_Lock_Type) is
+   procedure Lock_R (L : access Rw_Lock_Type)
+   is
+      Version : Version_Id;
    begin
 
       pragma Debug (O ("Lock_R"));
@@ -173,8 +174,10 @@ package body Broca.Locks is
            and then L.Count < L.Max_Count
            and then L.Writers_Waiting = 0;
 
+         Lookup (L.Guard_Values.all, Version);
          Leave_Critical_Section;
-         Wait (L.Readers_Barrier.all);
+
+         Differ (L.Guard_Values.all, Version);
       end loop;
 
       L.Count := L.Count + 1;
@@ -192,8 +195,7 @@ package body Broca.Locks is
       else
          L.Count := 0;
       end if;
-      Signal_All (L.Readers_Barrier.all, False);
-      Signal (L.Writers_Barrier.all);
+      Update (L.Guard_Values.all);
       Leave_Critical_Section;
    end Unlock_W;
 
@@ -207,8 +209,7 @@ package body Broca.Locks is
       else
          L.Count := L.Count - 1;
       end if;
-      Signal_All (L.Readers_Barrier.all, False);
-      Signal (L.Writers_Barrier.all);
+      Update (L.Guard_Values.all);
       Leave_Critical_Section;
    end Unlock_R;
 
@@ -218,6 +219,7 @@ package body Broca.Locks is
    begin
       Enter_Critical_Section;
       L.Max_Count := Max;
+      Update (L.Guard_Values.all);
       Leave_Critical_Section;
    end Set_Max_Count;
 
