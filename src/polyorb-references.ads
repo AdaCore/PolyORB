@@ -44,8 +44,6 @@ with PolyORB.Utils.Strings;
 
 package PolyORB.References is
 
-   pragma Elaborate_Body;
-
    type Profile_Array is array (Integer range <>) of
      Binding_Data.Profile_Access;
 
@@ -84,24 +82,6 @@ package PolyORB.References is
    --  True iff R is a Nil reference, i.e. a reference that
    --  does not designate any object.
 
-   procedure Get_Binding_Info
-     (R   :     Ref;
-      BOC : out Components.Component_Access;
-      Pro : out Binding_Data.Profile_Access);
-   --  Retrieve the binding object associated with R, if R is bound.
-   --  Otherwise, return null.
-
-   procedure Set_Binding_Info
-     (R   : Ref;
-      BOC : Components.Component_Access;
-      Pro : Binding_Data.Profile_Access);
-   --  Set BOC to be the binding object associated with R.
-   --  R must not be already bound.
-
-   procedure Share_Binding_Info
-     (Dest   : Ref;
-      Source : Ref);
-
    function Image (R : Ref) return String;
    --  For debugging purposes.
 
@@ -113,7 +93,25 @@ package PolyORB.References is
    procedure Deallocate is new Ada.Unchecked_Deallocation
      (Ref, Ref_Ptr);
 
+   procedure Get_Binding_Info
+     (R   :     Ref'Class;
+      BOC : out Components.Component_Access;
+      Pro : out Binding_Data.Profile_Access);
+   --  Retrieve the binding object associated with R, if R is bound.
+   --  Otherwise, return null.
+
 private
+
+   procedure Set_Binding_Info
+     (R   : Ref'Class;
+      BOC : Components.Component_Access;
+      Pro : Binding_Data.Profile_Access);
+   --  Set BOC to be the binding object associated with R.
+   --  R must not be already bound.
+
+   procedure Share_Binding_Info
+     (Dest   : Ref'Class;
+      Source : Ref'Class);
 
    Nil_Ref : constant Ref := (PolyORB.Smart_Pointers.Ref with null record);
 

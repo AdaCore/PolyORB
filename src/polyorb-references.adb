@@ -90,7 +90,7 @@ package body PolyORB.References is
    -- Local declarations --
    ------------------------
 
-   function Ref_Info_Of (R : Ref) return Reference_Info_Access;
+   function Ref_Info_Of (R : Ref'Class) return Reference_Info_Access;
    --  Obtain the object reference information from R.
 
    --  When an object reference is bound (i.e. associated at
@@ -165,7 +165,7 @@ package body PolyORB.References is
    ----------------------
 
    procedure Get_Binding_Info
-     (R   :     Ref;
+     (R   :     Ref'Class;
       BOC : out Components.Component_Access;
       Pro : out Binding_Data.Profile_Access)
    is
@@ -289,7 +289,7 @@ package body PolyORB.References is
    -----------------
 
    function Ref_Info_Of
-     (R : Ref)
+     (R : Ref'Class)
      return Reference_Info_Access
    is
       E : constant Entity_Ptr := Entity_Of (R);
@@ -316,7 +316,7 @@ package body PolyORB.References is
    ----------------------
 
    procedure Set_Binding_Info
-     (R   : Ref;
+     (R   : Ref'Class;
       BOC : Components.Component_Access;
       Pro : Binding_Data.Profile_Access)
    is
@@ -337,8 +337,8 @@ package body PolyORB.References is
    ------------------------
 
    procedure Share_Binding_Info
-     (Dest   : Ref;
-      Source : Ref)
+     (Dest   : Ref'Class;
+      Source : Ref'Class)
    is
       RD : constant Reference_Info_Access := Ref_Info_Of (Dest);
       RS : constant Reference_Info_Access := Ref_Info_Of (Source);
