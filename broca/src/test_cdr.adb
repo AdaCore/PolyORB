@@ -4,7 +4,7 @@ with CORBA;       use CORBA;
 
 procedure Test_CDR is
 
-   Stream : aliased Buffer_Type;
+   Stream, Inner1, Inner2 : aliased Buffer_Type;
 
    procedure Dump (S : access Buffer_Type);
 
@@ -51,7 +51,15 @@ procedure Test_CDR is
    end Dump;
 
 begin
+   Initialize (Inner1'Access, Big_Endian);
+   Initialize (Inner2'Access, Little_Endian);
+   Marshall (Inner1'Access, CORBA.Unsigned_Long'(16#1234ABCD#));
+   Marshall (Inner2'Access, CORBA.Unsigned_Long'(16#1234ABCD#));
+
    Marshall (Stream'Access, True);
    Marshall (Stream'Access, CORBA.Unsigned_Long'(16#1234ABCD#));
+   Marshall (Stream'Access, CORBA.Unsigned_Long'(16#1234ABCD#));
+   Marshall (Stream'Access, Inner1);
+   Marshall (Stream'Access, Inner2);
    Dump (Stream'Access);
 end Test_CDR;

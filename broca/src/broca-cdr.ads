@@ -24,6 +24,13 @@ package Broca.CDR is
       Content : in Octet_Array);
    --  Read endianess from content and prepare the buffer to be worked on
 
+   procedure Initialize
+     (Buffer    : access Buffer_Type;
+      Endianess : in Endianess_Type);
+   --  Initialize a buffer explicitely with an endianess type. If you want
+   --  to work with the default endianess, do not initialize the buffer
+   --  at all, it will be done automatically.
+
    function Get_Content (Buffer : access Buffer_Type)
      return Octet_Array;
    --  Return an octet array representing the stream to be sent

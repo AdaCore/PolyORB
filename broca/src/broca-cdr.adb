@@ -90,10 +90,7 @@ package body Broca.CDR is
 
    procedure Initialize (Buffer : in out Buffer_Type) is
    begin
-      Buffer.Endianess := Local_Endianess;
-      Buffer.Content   := new Octet_Array (0 .. -1);
-      Buffer.Index     := 0;
-      Marshall (Buffer'Access, Buffer.Endianess = Little_Endian);
+      Initialize (Buffer'Access, Local_Endianess);
    end Initialize;
 
    ----------------
@@ -114,6 +111,21 @@ package body Broca.CDR is
       else
          Buffer.Endianess := Big_Endian;
       end if;
+   end Initialize;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize
+     (Buffer    : access Buffer_Type;
+      Endianess : in Endianess_Type)
+   is
+   begin
+      Buffer.Endianess := Endianess;
+      Buffer.Content   := new Octet_Array (0 .. -1);
+      Buffer.Index     := 0;
+      Marshall (Buffer, Buffer.Endianess = Little_Endian);
    end Initialize;
 
    --------------
