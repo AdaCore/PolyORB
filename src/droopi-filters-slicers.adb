@@ -5,6 +5,7 @@
 
 with Droopi.Filters.Interface;
 with Droopi.Log;
+pragma Elaborate_All (Droopi.Log);
 
 package body Droopi.Filters.Slicers is
 
