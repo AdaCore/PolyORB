@@ -36,11 +36,12 @@ with Ada.Strings.Unbounded;
 
 with CORBA;
 
-with Broca.CDR; use Broca.CDR;
+with Broca.CDR;         use Broca.CDR;
+with Broca.Environment; use Broca.Environment;
 with Broca.Exceptions;
 with Broca.Sequences;
-with Broca.Opaque; use Broca.Opaque;
-with Broca.Buffers;      use Broca.Buffers;
+with Broca.Opaque;      use Broca.Opaque;
+with Broca.Buffers;     use Broca.Buffers;
 with Broca.Object;
 
 with Broca.Debug;
@@ -578,4 +579,10 @@ package body Broca.GIOP is
       return Unsigned_Long_To_LocateStatusType (Unmarshall (Buffer));
    end Unmarshall;
 
+   User_Principal : constant String := Get_Conf (Principal, Principal_Default);
+begin
+   if User_Principal /= "" then
+      Set_Default_Principal
+        (Ada.Strings.Unbounded.To_Unbounded_String (User_Principal));
+   end if;
 end Broca.GIOP;

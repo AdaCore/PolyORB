@@ -37,9 +37,42 @@ with System;
 
 package body Broca.Environment is
 
+   function Fetch (Key : String) return String;
+   --  Get the string from a file (if Key starts with file: and the file
+   --  exists, otherwise it is an empty string), or the string itself
+   --  otherwise.
+
    function Get_Env (Key : String; Default : String := "") return String;
 
    function Lookup (Key : String; Default : String := "") return String;
+
+   -----------
+   -- Fetch --
+   -----------
+
+   function Fetch (Key : String) return String is
+   begin
+      if Key'Length > 4
+        and then Key (Key'First .. Key'First + 4) = "file:"
+      then
+         declare
+            Filename : constant String := Key (Key'First + 5 .. Key'Last);
+            File     : File_Type;
+            Result   : String (1 .. 1024);
+            Last     : Natural;
+         begin
+            Open (File, In_File, Filename);
+            Get_Line (File, Result, Last);
+            Close (File);
+            return Result (1 .. Last);
+         exception
+            when Name_Error =>
+               return "";
+         end;
+      else
+         return Key;
+      end if;
+   end Fetch;
 
    ---------
    -- Get --
@@ -49,9 +82,9 @@ package body Broca.Environment is
       From_Env : constant String := Get_Env (Key);
    begin
       if From_Env /= "" then
-         return From_Env;
+         return Fetch (From_Env);
       else
-         return Lookup (Key, Default);
+         return Fetch (Lookup (Key, Default));
       end if;
    end Get_Conf;
 

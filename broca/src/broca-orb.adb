@@ -164,6 +164,7 @@ package body Broca.ORB is
 
    function Build_Remote_Naming_Reference return CORBA.Object.Ref is
       use Broca.Environment;
+      IOR  : constant String   := Get_Conf (Naming_IOR, Naming_IOR_Default);
       Host : constant String   := Get_Conf (Naming_Host, Naming_Host_Default);
       Port : constant Positive :=
         Positive'Value (Get_Conf (Naming_Port, Naming_Port_Default));
@@ -171,6 +172,10 @@ package body Broca.ORB is
       Obj     : Broca.Object.Object_Ptr := new Broca.Object.Object_Type;
       Result  : CORBA.Object.Ref;
    begin
+      if IOR /= "" then
+         String_To_Object (CORBA.To_CORBA_String (IOR), Result);
+         return Result;
+      end if;
       Obj.Type_Id             :=
         CORBA.To_CORBA_String
         (Broca.Names.OMG_RepositoryId ("CosNaming/NamingContext"));
