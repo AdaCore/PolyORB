@@ -199,6 +199,13 @@ package body Idl_Fe.Tree.Synthetic is
       return Expr_Value (Node).Boolean_Value;
    end Boolean_Value;
 
+   function Enum_Value
+     (Node : Node_Id)
+     return Node_Id is
+   begin
+      return Expr_Value (Node).Enum_Value;
+   end Enum_Value;
+
    procedure Set_String_Value
      (Node : Node_Id;
       Val  : String) is

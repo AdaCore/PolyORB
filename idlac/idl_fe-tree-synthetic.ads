@@ -111,8 +111,11 @@ package Idl_Fe.Tree.Synthetic is
    function Boolean_Value
      (Node : Node_Id)
      return Boolean;
+   function Enum_Value
+     (Node : Node_Id)
+     return Node_Id;
    --  Return the value of a constant expression
-   --  node as an {integer,string,boolean}.
+   --  node as an {integer,string,boolean,enumerator}.
 
    procedure Set_String_Value
      (Node : Node_Id;
