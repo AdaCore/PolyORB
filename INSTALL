@@ -28,6 +28,17 @@
 
 This file details the compilation and installation of PolyORB.
 
+Supported Platforms
+-------------------
+
+PolyORB has been compiled and successfully tested on the following platforms:
+
+- FreeBSD
+- HP-UX
+- Linux
+- Solaris
+- Windows
+
 Build requirements
 ------------------
 
@@ -67,7 +78,7 @@ Available options for the 'configure' script include:
                             CORBA, DSA, MOMA
   --with-proto-perso=".." : personalities to build, among
                             GIOP, SOAP, SRP
-  --with-services=".." : services to build : naming, ir
+  --with-services=".." : services to build : event,ir, naming, time
   --enable-shared : build shared libraries.
   --enable-debug  : enable debugging information generation and supplementary
                     runtime checks.
