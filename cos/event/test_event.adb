@@ -411,8 +411,6 @@ procedure Test_Event is
    end Produce_Event;
 
 
-   Ada.Text_IO.Put_Line ("Server starting.");
-   CORBA.ORB.Initialize ("ORB");
    -------------
    -- To_Name --
    -------------
