@@ -58,18 +58,8 @@ package body PolyORB.References.URI is
       String_To_Profile_Body : String_To_Profile_Body_Type;
    end record;
 
-   function "=" (A, B : Profile_Record) return Boolean;
-
-   function "=" (A, B : Profile_Record) return Boolean is
-      use PolyORB.Types;
-
-   begin
-      return A.Tag = B.Tag;
-   end "=";
-
    package Profile_Record_List is
-      new PolyORB.Utils.Chained_Lists (Profile_Record, "=");
-
+      new PolyORB.Utils.Chained_Lists (Profile_Record);
    use Profile_Record_List;
 
    Callbacks : Profile_Record_List.List;
@@ -135,7 +125,7 @@ package body PolyORB.References.URI is
 
       T := Get_Profile_Tag (P.all);
 
-      while Iter /= Last (Callbacks) loop
+      while not Last (Iter) loop
          declare
             Info : constant Profile_Record := Value (Iter).all;
          begin
