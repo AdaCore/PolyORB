@@ -1,3 +1,5 @@
+with Ada.Text_IO;
+
 with Idl_Fe.Types;          use Idl_Fe.Types;
 with Idl_Fe.Tree;           use Idl_Fe.Tree;
 with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree.Synthetic;
@@ -7,6 +9,8 @@ with Idl_Fe.Errors;         use Idl_Fe.Errors;
 with Ada_Be.Identifiers;    use Ada_Be.Identifiers;
 with Ada_Be.Debug;
 pragma Elaborate (Ada_Be.Debug);
+
+with Utils;                 use Utils;
 
 with GNAT.HTable;
 
@@ -33,25 +37,82 @@ package body Ada_Be.Expansion is
      (Node : in Node_Id);
    procedure Expand_Ben_Idl_File
      (Node : in Node_Id);
+   --  Expand all subnodes.
+
    procedure Expand_Interface
      (Node : in Node_Id);
+   --  First expand all subnodes,
+   --  then copy inherited methods and attributes
+   --  from ancestors.
+
    procedure Expand_Attribute
      (Node : in Node_Id);
+   --  Expand an attribute into the corresponding _get_
+   --  and _set_ operations.
+
+   procedure Expand_Operation
+     (Node : Node_Id);
+   --  Expand each formal parameter.
+   --  FIXME: Should expand non-void function with inout or out
+   --    formals into void function with a supplementary
+   --    Returns out formal.
+   procedure Expand_Param
+     (Node : Node_Id);
+   --  Expand Param_Type.
+
    procedure Expand_Exception
      (Node : in Node_Id);
+   --  Expand an exception into a _Members struct.
+
+   procedure Expand_Type_Declarator
+     (Node : Node_Id);
+   --  Expand the denoted type.
+
+   procedure Expand_Struct
+     (Node : Node_Id);
+   procedure Expand_Member
+     (Node : Node_Id);
+   --  Expand struct members: for each member, expand M_Type.
+
+   procedure Expand_Union
+     (Node : Node_Id);
+   procedure Expand_Case
+     (Node : Node_Id);
+   --  Expand union: for each case, expand Case_Type.
+   --  FIXME: Should expand Switch_Type into a Scoped Name
+   --    if it is an Enum
+
+   procedure Expand_Sequence
+     (Node : Node_Id);
+   --  Replace a Sequence node by a reference to
+   --  a Sequence_Instance node. The Sequence Instance
+   --  node is also inserted as a declaration in the current
+   --  scope.
 
    ----------------------
    -- Utility routines --
    ----------------------
 
+   Current_Position_In_List : Node_Id
+     := No_Node;
    procedure Expand_Node_List
-     (List : in Node_List);
+     (List : in Node_List;
+      Set_Current_Position : in Boolean);
    --  Expand a whole list of nodes
+   --  The global variable Current_Position_In_List is set
+   --  before each node is expanded.
 
    procedure Append_Node_To_Contents
      (Parent : Node_Id;
       Child : Node_Id);
    --  Append a node to the contents node_list of parent
+
+   function Sequence_Type_Name
+     (Node : Node_Id)
+     return String;
+   --  The name corresponding to type Node as used
+   --  to construct the name of an instance of
+   --  CORBA.Sequences.Bounded or CORBA.Sequences.Unbounded.
 
    -----------------
    -- Expand_Node --
@@ -70,10 +131,27 @@ package body Ada_Be.Expansion is
             Expand_Interface (Node);
          when K_Attribute =>
             Expand_Attribute (Node);
+         when K_Operation =>
+            Expand_Operation (Node);
          when K_Exception =>
             Expand_Exception (Node);
          when K_Ben_Idl_File =>
             Expand_Ben_Idl_File (Node);
+
+         when K_Type_Declarator =>
+            Expand_Type_Declarator (Node);
+         when K_Struct =>
+            Expand_Struct (Node);
+         when K_Member =>
+            Expand_Member (Node);
+         when K_Union =>
+            Expand_Union (Node);
+         when K_Case =>
+            Expand_Case (Node);
+
+         when K_Sequence =>
+            Expand_Sequence (Node);
+
          when others =>
             null;
       end case;
@@ -175,7 +253,7 @@ package body Ada_Be.Expansion is
          end;
       end loop;
 
-      Expand_Node_List (Contents (New_Repository));
+      Expand_Node_List (Contents (New_Repository), True);
       --  Pop_Scope;
    end Expand_Repository;
 
@@ -188,7 +266,7 @@ package body Ada_Be.Expansion is
    begin
       pragma Assert (Kind (Node) = K_Module);
       Push_Scope (Node);
-      Expand_Node_List (Contents (Node));
+      Expand_Node_List (Contents (Node), True);
       --  Pop_Scope;
    end Expand_Module;
 
@@ -200,7 +278,7 @@ package body Ada_Be.Expansion is
    begin
       pragma Assert (Kind (Node) = K_Ben_Idl_File);
       Push_Scope (Node);
-      Expand_Node_List (Contents (Node));
+      Expand_Node_List (Contents (Node), True);
       --  Pop_Scope;
    end Expand_Ben_Idl_File;
 
@@ -288,7 +366,7 @@ package body Ada_Be.Expansion is
       Push_Scope (Node);
 
       Export_List := Contents (Node);
-      Expand_Node_List (Export_List);
+      Expand_Node_List (Export_List, True);
       --  First expand the interface's exports
       --  (eg, attributes are expanded into operations.)
 
@@ -425,6 +503,18 @@ package body Ada_Be.Expansion is
       end loop;
    end Expand_Attribute;
 
+   procedure Expand_Operation
+     (Node : in Node_Id) is
+   begin
+      Expand_Node_List (Parameters (Node), False);
+   end Expand_Operation;
+
+   procedure Expand_Param
+     (Node : in Node_Id) is
+   begin
+      Expand_Node (Param_Type (Node));
+   end Expand_Param;
+
    procedure Expand_Exception
      (Node : in Node_Id) is
    begin
@@ -439,12 +529,17 @@ package body Ada_Be.Expansion is
            := Contents (Enclosing_Scope);
          Success : Boolean;
       begin
+         pragma Debug (O ("Expand_Exception: "
+                          & Ada_Name (Node)));
+
          Success := Add_Identifier
            (Members_Struct, Ada_Name (Node) & "_Members");
          pragma Assert (Success);
 
          Set_Members (Members_Struct, Members (Node));
          Set_Is_Exception_Members (Members_Struct, True);
+         Expand_Struct (Members_Struct);
+
          Insert_Before
            (List => Enclosing_List,
             Node => Members_Struct,
@@ -455,6 +550,79 @@ package body Ada_Be.Expansion is
       end;
    end Expand_Exception;
 
+   procedure Expand_Type_Declarator
+     (Node : Node_Id) is
+   begin
+      Expand_Node (T_Type (Node));
+   end Expand_Type_Declarator;
+
+   procedure Expand_Struct
+     (Node : Node_Id) is
+   begin
+      Expand_Node_List (Members (Node), False);
+   end Expand_Struct;
+
+   procedure Expand_Member
+     (Node : Node_Id) is
+   begin
+      Expand_Node (M_Type (Node));
+   end Expand_Member;
+
+   procedure Expand_Union
+     (Node : Node_Id) is
+   begin
+      Expand_Node_List (Cases (Node), False);
+   end Expand_Union;
+
+   procedure Expand_Case
+     (Node : Node_Id) is
+   begin
+      Expand_Node (Case_Type (Node));
+   end Expand_Case;
+
+   procedure Expand_Sequence
+     (Node : Node_Id)
+   is
+      Sequence_Node : Node_Id
+        := Node;
+      Seq_Ref_Node : Node_Id
+        := Make_Scoped_Name;
+      Seq_Inst_Node : Node_Id
+        := Make_Sequence_Instance;
+      Success : Boolean;
+   begin
+      Expand_Node (Sequence_Type (Node));
+
+      Success := Add_Identifier
+        (Seq_Inst_Node,
+         "IDL_" & Sequence_Type_Name (Node));
+      pragma Assert (Success);
+      --  FIXME: If the identifier is not available
+      --  in the current scope, that means that the
+      --  correct sequence type has already been created.
+      --  We should reuse it.
+
+      declare
+         Current_Gen_Scope : constant Node_Id
+           := Get_Current_Gen_Scope;
+         Current_Scope_Contents : Node_List;
+      begin
+         pragma Assert (Is_Gen_Scope (Current_Gen_Scope));
+         Current_Scope_Contents
+           := Contents (Current_Gen_Scope);
+         Insert_Before
+           (Current_Scope_Contents,
+            Seq_Inst_Node,
+            Before => Current_Position_In_List);
+         Set_Contents (Current_Gen_Scope, Current_Scope_Contents);
+      end;
+
+      Set_Value (Seq_Ref_Node, Seq_Inst_Node);
+      Set_S_Type (Seq_Ref_Node, Seq_Inst_Node);
+      Replace_Node (Sequence_Node, Seq_Ref_Node);
+      Set_Sequence (Seq_Inst_Node, Sequence_Node);
+   end Expand_Sequence;
+
    -----------------------------------------
    --          private utilities          --
    -----------------------------------------
@@ -463,11 +631,19 @@ package body Ada_Be.Expansion is
    --  Expand_Node_List --
    -----------------------
 
-   procedure Expand_Node_List (List : in Node_List) is
+   procedure Expand_Node_List
+     (List : in Node_List;
+     Set_Current_Position : in Boolean) is
    begin
       if List /= Nil_List then
+         if Set_Current_Position then
+            Current_Position_In_List := List.Car;
+         end if;
          Expand_Node (List.Car);
-         Expand_Node_List (List.Cdr);
+         Expand_Node_List (List.Cdr, Set_Current_Position);
+      end if;
+      if Set_Current_Position then
+         Current_Position_In_List := No_Node;
       end if;
    end Expand_Node_List;
 
@@ -482,5 +658,93 @@ package body Ada_Be.Expansion is
       Set_Contents
         (Parent, Append_Node (Contents (Parent), Child));
    end Append_Node_To_Contents;
+
+   function Sequence_Type_Name
+     (Node : Node_Id)
+     return String
+   is
+      NK : constant Node_Kind
+        := Kind (Node);
+   begin
+      case NK is
+
+         when K_Sequence =>
+            if Bound (Node) = No_Node then
+               return "SEQUENCE_"
+                 & Sequence_Type_Name (Sequence_Type (Node));
+            else
+               return "SEQUENCE_"
+                 & Sequence_Type_Name (Sequence_Type (Node))
+                 & Img (Integer_Value (Bound (Node)));
+            end if;
+
+         when K_Scoped_Name =>
+            declare
+               Full_Name : String
+                 := Ada_Full_Name (Value (Node));
+            begin
+               for I in Full_Name'Range loop
+                  if Full_Name (I) = '.' then
+                     Full_Name (I) := '_';
+                  end if;
+               end loop;
+               return Full_Name;
+            end;
+
+         when K_Short =>
+            return "short";
+
+         when K_Long =>
+            return "long";
+
+         when K_Long_Long =>
+            return "long_long";
+
+         when K_Unsigned_Short =>
+            return "unsigned_short";
+
+         when K_Unsigned_Long =>
+            return "unsigned_long";
+
+         when K_Unsigned_Long_Long =>
+            return "unsigned_long_long";
+
+         when K_Char =>
+            return "char";
+
+         when K_Wide_Char =>
+            return "wide_char";
+
+         when K_Boolean =>
+            return "boolean";
+
+         when K_Float =>
+            return "float";
+
+         when K_Double =>
+            return "double";
+
+         when K_Long_Double =>
+            return "long_double";
+
+         when K_String =>
+            return "string";
+
+         when K_Wide_String =>
+            return "wide_string";
+
+         when K_Octet =>
+            return "octet";
+
+         when others =>
+            --  Improper use: node N is not
+            --  mapped to an Ada type.
+
+            Ada.Text_IO.Put_Line ("Error: A "
+                                  & NK'Img
+                                  & " cannot be used in a sequence.");
+            raise Program_Error;
+      end case;
+   end Sequence_Type_Name;
 
 end Ada_Be.Expansion;

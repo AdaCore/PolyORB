@@ -251,5 +251,10 @@ ValueBase
 Ben_Idl_File <-- Named
   Contents : Node_List
 
+Sequence_Instance <-- Named
+  Sequence : Node_Id
+  --  The Sequence node for which this instance was
+  --  created.
+
 END
 

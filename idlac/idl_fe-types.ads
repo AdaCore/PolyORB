@@ -226,31 +226,36 @@ package Idl_Fe.Types is
    --  Scopes are stacked and create an identifier space.
    --  In a scope, an identifier has at most one meaning.
 
-   --  Get the root (the oldest) and current (the newest) scope.
    function Get_Root_Scope return Node_Id;
    function Get_Current_Scope return Node_Id;
+   --  Get the root (the oldest) and current (the newest) scope.
 
-   --  Get the scope of the current scope
+   function Get_Current_Gen_Scope
+     return Node_Id;
+   --  Return the current repository, idl file, module,
+   --  interface or valuetype.
+
    function Get_Previous_Scope return Node_Id;
+   --  Get the scope of the current scope
 
+   procedure Push_Scope (Scope : Node_Id);
    --  Create a new scope, defined by a Scope node, add it in
    --  the current scope, and activate it.
-   procedure Push_Scope (Scope : Node_Id);
 
-   --  Unstack the current scope.
    procedure Pop_Scope;
+   --  Unstack the current scope.
 
    --  In order to ensure that each forward definition of a value
    --  or an interface is implemented in the same scope, here are
    --  some methods to take forward declarations and implementations
    --  into account
 
-   --  To add a forward declaration in the list
    procedure Add_Int_Val_Forward (Node : in Node_Id);
+   --  To add a forward declaration in the list
 
+   procedure Add_Int_Val_Definition (Node : in Node_Id);
    --  To take an implementation into account and remove the
    --  corresponding forward declaration from the list.
-   procedure Add_Int_Val_Definition (Node : in Node_Id);
 
    --------------------------
    -- Identifiers handling --

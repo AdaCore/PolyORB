@@ -37,7 +37,7 @@ package Idl_Fe.Tree.Synthetic is
      (Node : Node_Id)
      return Boolean;
    --  True iff Node is a generable Scope (ie K_Repository,
-   --  K_Module, K_Interface or K_ValueType).
+   --  K_Ben_Idl_File, K_Module, K_Interface or K_ValueType).
 
    function Name
      (Node : in Node_Id)
@@ -83,5 +83,16 @@ package Idl_Fe.Tree.Synthetic is
    --  are ignored during the exploration.
    --  It is up to the caller to Free the returned Node_List
    --  after use.
+
+   function Integer_Value
+     (Node : Node_Id)
+     return Integer;
+   --  Return the value of a numeric constant expression
+   --  node as an integer.
+   --  FIXME: This should be done in the parser with full
+   --    arithmetic evalutaion. This will work only for
+   --    expressions that are numeric literals.
+   --    This function is here just for lack of a better
+   --    way of handling numeric literals.
 
 end Idl_Fe.Tree.Synthetic;

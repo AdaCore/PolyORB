@@ -236,4 +236,14 @@ package body Idl_Fe.Tree.Synthetic is
       return Result;
    end All_Ancestors;
 
+   function Integer_Value
+     (Node : Node_Id)
+     return Integer is
+      O_Node : constant Node_Id
+        := Operand (Node);
+   begin
+      return Integer'Value
+        (String_Value (O_Node).all);
+   end Integer_Value;
+
 end Idl_Fe.Tree.Synthetic;

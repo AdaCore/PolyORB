@@ -581,8 +581,29 @@ package body Idl_Fe.Types is
       return Current_Scope.Scope;
    end Get_Current_Scope;
 
+   ---------------------------
+   -- Get_Current_Gen_Scope --
+   ---------------------------
+
+   function Get_Current_Gen_Scope
+     return Node_Id
+   is
+      Scope : Scope_Stack_Acc
+        := Current_Scope;
+   begin
+      while Scope /= null
+        and then not Is_Gen_Scope (Scope.Scope) loop
+         Scope := Scope.Parent;
+      end loop;
+      if Scope /= null then
+         return Scope.Scope;
+      else
+         return No_Node;
+      end if;
+   end Get_Current_Gen_Scope;
+
    -------------------------
-   --  Get_Current_Scope  --
+   --  Get_Previous_Scope  --
    -------------------------
 
    function Get_Previous_Scope

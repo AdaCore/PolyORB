@@ -26,12 +26,15 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  with Broca.Exceptions; use Broca.Exceptions;
 with all_types.Skel;
+with Broca.Exceptions; use Broca.Exceptions;
 pragma Elaborate (all_types.Skel);
 pragma Warnings (Off, all_types.Skel);
 
 package body all_types.Impl is
+
+   type IDL_Exception_Members_Ptr is
+     access all CORBA.IDL_Exception_Members'Class;
 
    function echoBoolean
      (Self : access Object;
@@ -158,23 +161,16 @@ package body all_types.Impl is
       return arg;
    end echoMatrix;
 
---     procedure testException
---       (Self : access Object;
---        arg : in CORBA.Long)
---     is
---        Members : IDL_Exception_Members_Ptr
---           := new My_Exception_Members'(Info => arg);
---        --  FIXME: introducing potential memory leak in server.
---     begin
---        Broca.Exceptions.User_Raise_Exception
---          (My_Exception'Identity, Members);
---     end testException;
    procedure testException
      (Self : access Object;
       arg : in CORBA.Long)
    is
+      Members : IDL_Exception_Members_Ptr
+         := new My_Exception_Members'(info => arg);
+      --  FIXME: introducing potential memory leak in server.
    begin
-      return;
+      Broca.Exceptions.User_Raise_Exception
+        (My_Exception'Identity, Members.all);
    end testException;
 
    function echoStruct
@@ -193,14 +189,14 @@ package body all_types.Impl is
       return arg;
    end echoUnion;
 
---     function echoUsequence
---       (Self : access Object;
---        arg : in U_sequence)
---       return U_Sequence
---     is
---     begin
---        return arg;
---     end echoUsequence;
+   function echoUsequence
+     (Self : access Object;
+      arg : in U_sequence)
+     return U_Sequence
+   is
+   begin
+      return arg;
+   end echoUsequence;
 
    procedure Set_MyColor
      (Self : access Object;

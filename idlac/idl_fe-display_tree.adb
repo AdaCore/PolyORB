@@ -203,7 +203,11 @@ package body Idl_Fe.Display_Tree is
                if Is_Oneway (N) then
                   Put ("oneway ");
                end if;
-               Put_Line (Name (N));
+               Put (Name (N));
+               if Is_Implicit_Inherited (N) then
+                  Put (" (implicit inherited)");
+               end if;
+               New_Line;
                Disp_Indent (N_Indent, "type:");
                Disp_Tree (Operation_Type (N), N_Indent + Offset, Full);
                if Parameters (N) /= Nil_List then
@@ -519,6 +523,10 @@ package body Idl_Fe.Display_Tree is
          when K_Ben_Idl_File =>
             Put_Line ("ben_idl_file " & Name (N));
             Disp_List (Contents (N), N_Indent, Full);
+
+         when K_Sequence_Instance =>
+            Put_Line ("sequence_instance " & Name (N));
+            Disp_Tree (Sequence (N), N_Indent, Full);
 
             --  ************************** --
          when others =>

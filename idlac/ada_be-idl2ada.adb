@@ -94,7 +94,7 @@ package body Ada_Be.Idl2Ada is
 
    procedure Gen_Marshall_Profile
      (CU        : in out Compilation_Unit;
-      Type_Name : in String);
+      Type_Node : in Node_Id);
    --  Generate the profile for the Marshall procedure
    --  of a type.
    --  FIXME: This is marshall-by-value.
@@ -105,7 +105,7 @@ package body Ada_Be.Idl2Ada is
 
    procedure Gen_Unmarshall_Profile
      (CU        : in out Compilation_Unit;
-      Type_Name : in String);
+      Type_Node : in Node_Id);
    --  Generate the profile for the Unmarshall function
    --  of a type.
    --  FIXME: This is unmarshall-by-value (see above).
@@ -887,8 +887,34 @@ package body Ada_Be.Idl2Ada is
             DI (CU);
             PL (CU, "end record;");
 
-         when K_Sequence =>
-            null;
+         when K_Sequence_Instance =>
+            NL (CU);
+            PL (CU, "package " & Name (Node) & " is");
+            declare
+               S_Node : constant Node_Id
+                 := Sequence (Node);
+               B_Node : constant Node_Id
+                 := Bound (S_Node);
+            begin
+               if B_Node /= No_Node then
+                  Add_With (CU, "CORBA.Sequences.Bounded",
+                            Use_It => False,
+                            Elab_Control => Elaborate_All);
+                  PL (CU, "  new CORBA.Sequences.Bounded");
+                  PL (CU, "    ("
+                      & Ada_Type_Name (Sequence_Type (S_Node))
+                      & ", " & Img (Integer_Value (B_Node))
+                      & ");");
+               else
+                  Add_With (CU, "CORBA.Sequences.Unbounded",
+                            Use_It => False,
+                            Elab_Control => Elaborate_All);
+                  PL (CU, "  new CORBA.Sequences.Unbounded");
+                  PL (CU, "    ("
+                      & Ada_Type_Name (Sequence_Type (S_Node))
+                      & ");");
+               end if;
+            end;
 
          when K_Struct =>
             NL (CU);
@@ -1630,20 +1656,16 @@ package body Ada_Be.Idl2Ada is
             null;
 
          when
-           K_Interface |
-           K_Enum      |
-           K_Union     |
-           K_Struct    =>
-            declare
-               Type_Name : constant String
-                 := Ada_Type_Name (Node);
-            begin
-               NL (CU);
-               Gen_Marshall_Profile (CU, Type_Name);
-               PL (CU, ";");
-               Gen_Unmarshall_Profile (CU, Type_Name);
-               PL (CU, ";");
-            end;
+           K_Interface         |
+           K_Enum              |
+           K_Union             |
+           K_Struct            |
+           K_Sequence_Instance =>
+            NL (CU);
+            Gen_Marshall_Profile (CU, Node);
+            PL (CU, ";");
+            Gen_Unmarshall_Profile (CU, Node);
+            PL (CU, ";");
 
          when K_Type_Declarator =>
 
@@ -1664,10 +1686,10 @@ package body Ada_Be.Idl2Ada is
 
                         NL (CU);
                         Gen_Marshall_Profile
-                          (CU, Ada_Name (Decl_Node));
+                          (CU, Decl_Node);
                         PL (CU, ";");
                         Gen_Unmarshall_Profile
-                          (CU, Ada_Name (Decl_Node));
+                          (CU, Decl_Node);
                         PL (CU, ";");
                      end loop;
                   end;
@@ -1867,7 +1889,7 @@ package body Ada_Be.Idl2Ada is
                  := Ada_Type_Name (Node);
             begin
                NL (CU);
-               Gen_Marshall_Profile (CU, S_Name);
+               Gen_Marshall_Profile (CU, Node);
                PL (CU, " is");
                PL (CU, "begin");
                II (CU);
@@ -1904,7 +1926,7 @@ package body Ada_Be.Idl2Ada is
                PL (CU, "end Marshall;");
 
                NL (CU);
-               Gen_Unmarshall_Profile (CU, S_Name);
+               Gen_Unmarshall_Profile (CU, Node);
                NL (CU);
                PL (CU, "is");
                II (CU);
@@ -1951,7 +1973,7 @@ package body Ada_Be.Idl2Ada is
                  := Ada_Type_Name (Node);
             begin
                NL (CU);
-               Gen_Marshall_Profile (CU, U_Name);
+               Gen_Marshall_Profile (CU, Node);
                PL (CU, " is");
                PL (CU, "begin");
                II (CU);
@@ -1993,7 +2015,7 @@ package body Ada_Be.Idl2Ada is
                PL (CU, "end Marshall;");
 
                NL (CU);
-               Gen_Unmarshall_Profile (CU, U_Name);
+               Gen_Unmarshall_Profile (CU, Node);
                NL (CU);
                PL (CU, "is");
                II (CU);
@@ -2058,7 +2080,7 @@ package body Ada_Be.Idl2Ada is
                Add_With (CU, "Broca.CDR", Use_It => True);
 
                NL (CU);
-               Gen_Marshall_Profile (CU, E_Name);
+               Gen_Marshall_Profile (CU, Node);
                PL (CU, " is");
                PL (CU, "begin");
                II (CU);
@@ -2070,7 +2092,7 @@ package body Ada_Be.Idl2Ada is
                PL (CU, "end Marshall;");
 
                NL (CU);
-               Gen_Unmarshall_Profile (CU, E_Name);
+               Gen_Unmarshall_Profile (CU, Node);
                PL (CU, " is");
                PL (CU, "begin");
                II (CU);
@@ -2112,7 +2134,7 @@ package body Ada_Be.Idl2Ada is
                         begin
                            NL (CU);
                            Gen_Marshall_Profile
-                             (CU, Type_Name);
+                             (CU, Decl_Node);
                            PL (CU, " is");
                            PL (CU, "begin");
                            II (CU);
@@ -2132,7 +2154,7 @@ package body Ada_Be.Idl2Ada is
 
                            NL (CU);
                            Gen_Unmarshall_Profile
-                             (CU, Type_Name);
+                             (CU, Decl_Node);
                            if Array_Dimensions = 0 then
                               PL (CU, " is");
                               PL (CU, "begin");
@@ -2165,32 +2187,74 @@ package body Ada_Be.Idl2Ada is
             end;
 
          when K_Interface =>
-            declare
-               I_Name : constant String
-                 := Ada_Type_Name (Node);
-            begin
-               NL (CU);
-               Gen_Marshall_Profile (CU, I_Name);
-               PL (CU, " is");
-               PL (CU, "begin");
-               II (CU);
-               PL (CU, "Marshall_Reference (Buffer, Val);");
-               DI (CU);
-               PL (CU, "end Marshall;");
+            NL (CU);
+            Gen_Marshall_Profile (CU, Node);
+            PL (CU, " is");
+            PL (CU, "begin");
+            II (CU);
+            PL (CU, "Marshall_Reference (Buffer, Val);");
+            DI (CU);
+            PL (CU, "end Marshall;");
 
-               NL (CU);
-               Gen_Unmarshall_Profile (CU, I_Name);
-               PL (CU, " is");
-               II (CU);
-               PL (CU, "New_Ref : Ref;");
-               DI (CU);
-               PL (CU, "begin");
-               II (CU);
-               PL (CU, "Unmarshall_Reference (Buffer, New_Ref);");
-               PL (CU, "return New_Ref;");
-               DI (CU);
-               PL (CU, "end Unmarshall;");
-            end;
+            NL (CU);
+            Gen_Unmarshall_Profile (CU, Node);
+            PL (CU, " is");
+            II (CU);
+            PL (CU, "New_Ref : Ref;");
+            DI (CU);
+            PL (CU, "begin");
+            II (CU);
+            PL (CU, "Unmarshall_Reference (Buffer, New_Ref);");
+            PL (CU, "return New_Ref;");
+            DI (CU);
+            PL (CU, "end Unmarshall;");
+
+         when K_Sequence_Instance =>
+
+            NL (CU);
+            Gen_Marshall_Profile (CU, Node);
+            PL (CU, " is");
+            II (CU);
+            PL (CU, "use " & Ada_Name (Node) & ";");
+            NL (CU);
+            PL (CU, "Elements : constant Element_Array");
+            PL (CU, "  := To_Element_Array (Val);");
+            DI (CU);
+            PL (CU, "begin");
+            II (CU);
+            PL (CU, "Marshall");
+            PL (CU, "  (Buffer, CORBA.Unsigned_Long (Elements'Length));");
+
+            Add_With_Stream (CU, Sequence_Type (Sequence (Node)));
+            PL (CU, "for I in Elements'Range loop");
+            II (CU);
+            PL (CU, "Marshall (Buffer, Elements (I));");
+            DI (CU);
+            PL (CU, "end loop;");
+            DI (CU);
+            PL (CU, "end Marshall;");
+
+            NL (CU);
+            Gen_Unmarshall_Profile (CU, Node);
+            NL (CU);
+            PL (CU, "is");
+            II (CU);
+            PL (CU, "use " & Ada_Name (Node) & ";");
+            NL (CU);
+            PL (CU, "Length : constant CORBA.Unsigned_Long");
+            PL (CU, "  := Unmarshall (Buffer);");
+            PL (CU, "Elements : Element_Array (1 .. Integer (Length));");
+            DI (CU);
+            PL (CU, "begin");
+            II (CU);
+            PL (CU, "for I in Elements'Range loop");
+            II (CU);
+            PL (CU, "Elements (I) := Unmarshall (Buffer);");
+            DI (CU);
+            PL (CU, "end loop;");
+            PL (CU, "return To_Sequence (Elements);");
+            DI (CU);
+            PL (CU, "end Unmarshall;");
 
          when others =>
             null;
@@ -2296,22 +2360,24 @@ package body Ada_Be.Idl2Ada is
 
    procedure Gen_Marshall_Profile
      (CU        : in out Compilation_Unit;
-      Type_Name : in String) is
+      Type_Node : in Node_Id) is
    begin
       Add_With (CU, "Broca.Buffers", Use_It => True);
       PL (CU, "procedure Marshall");
       PL (CU, "  (Buffer : access Buffer_Type;");
-      Put (CU, "   Val    : in " & Type_Name & ")");
+      Put (CU, "   Val    : in "
+           & Ada_Type_Name (Type_Node) & ")");
    end Gen_Marshall_Profile;
 
    procedure Gen_Unmarshall_Profile
      (CU        : in out Compilation_Unit;
-      Type_Name : in String) is
+      Type_Node : in Node_Id) is
    begin
       Add_With (CU, "Broca.Buffers", Use_It => True);
       PL (CU, "function Unmarshall");
       PL (CU, "  (Buffer : access Buffer_Type)");
-      Put      (CU, "  return " & Type_Name);
+      Put (CU, "  return "
+           & Ada_Type_Name (Type_Node));
    end Gen_Unmarshall_Profile;
 
    function Ada_Type_Name
@@ -2325,18 +2391,18 @@ package body Ada_Be.Idl2Ada is
          when K_Interface =>
             return Ada_Full_Name (Node) & ".Ref";
 
+         when K_Sequence_Instance =>
+            return Ada_Full_Name (Node) & ".Sequence";
+
          when
-           K_Enum   |
-           K_Union  |
-           K_Struct =>
-            return Ada_Name (Node);
+           K_Enum       |
+           K_Union      |
+           K_Struct     |
+           K_Declarator =>
+            return Ada_Full_Name (Node);
 
          when K_Scoped_Name =>
             return Ada_Type_Name (Value (Node));
-
-         when K_Declarator =>
-            --  A type created by a typedef.
-            return Ada_Full_Name (Node);
 
          when K_Short =>
             return "CORBA.Short";
@@ -2406,10 +2472,11 @@ package body Ada_Be.Idl2Ada is
             Add_With (CU, Ada_Full_Name (Node));
 
          when
-           K_Enum   |
-           K_Union  |
-           K_Struct |
-           K_Declarator =>
+           K_Enum              |
+           K_Union             |
+           K_Struct            |
+           K_Declarator        |
+           K_Sequence_Instance =>
             Add_With (CU, Ada_Full_Name (Parent_Scope (Node)));
 
          when K_Scoped_Name =>
@@ -2454,10 +2521,11 @@ package body Ada_Be.Idl2Ada is
                       Use_It => True);
 
          when
-           K_Enum   |
-           K_Union  |
-           K_Struct |
-           K_Declarator =>
+           K_Enum              |
+           K_Union             |
+           K_Struct            |
+           K_Declarator        |
+           K_Sequence_Instance =>
             Add_With (CU, Ada_Full_Name (Parent_Scope (Node))
                       & Stream_Suffix,
                       Use_It => True);
