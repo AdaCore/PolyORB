@@ -3,7 +3,7 @@ Announcing the release of PolyORB 1.0p
 
 Ada Core Technologies, ACT Europe, and the PolyORB team are proud to
 announce the first public release of PolyORB:
-  PolyORB 1.0p (http://libre.act-europe.fr/polyorb/).
+  PolyORB 1.0p (http://libre.adacore.com/polyorb/).
 
 This release contains a CORBA-compliant instantiation of the PolyORB
 generic middleware. It includes:

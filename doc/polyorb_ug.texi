@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#41 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#42 $
 
 @include version.texi
 
@@ -460,7 +460,7 @@ environments.
 
 You may find more information on PolyORB, including technical and
 scientific papers on PolyORB, on the project website:
-@url{http://libre.act-europe.fr/polyorb}
+@url{http://libre.adacore.com/polyorb/}
 
 @i{Note: PolyORB is the project formerly known as DROOPI, a Distributed
 Reusable Object-Oriented Polymorphic Infrastructure}
@@ -511,7 +511,7 @@ Ada 95 compiler: GNAT 3.16a1 (or later), GNAT 5.02a1 (or later), GCC
 Optional: 
 
 @itemize @bullet
-@item XML/Ada (@url{http://libre.act-europe.fr/xmlada/}) if you
+@item XML/Ada (@url{http://libre.adacore.com/xmlada/}) if you
 want to build the SOAP protocol personality.
 @end itemize
 

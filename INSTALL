@@ -22,8 +22,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore.                       --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -40,7 +40,7 @@ Ada 95 compiler:
   GNAT Pro 5.02a1 or later
   GCC 3.4.1       or later
 
-Optional: XML/Ada (http://libre.act-europe.fr/xmlada/) if you want to
+Optional: XML/Ada (http://libre.adacore.com/xmlada/) if you want to
 build the SOAP protocol personality.
 
 Note: per construction, the macro 'configure' uses to find your GNAT
