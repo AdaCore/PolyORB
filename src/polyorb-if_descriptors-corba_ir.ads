@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                 P O L Y O R B . O B J _ A D A P T E R S                  --
+--      P O L Y O R B . I F _ D E S C R I P T O R S . C O R B A _ I R       --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--                Copyright (C) 2002 Free Software Fundation                --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,42 +30,29 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Abstract interface for Interface Descriptors: services
---  that provide meta-data regarding the signatures of methods.
+--  An Interface Descriptor that uses the CORBA Interface Repository.
 
 --  $Id$
 
-with PolyORB.Any;
-with PolyORB.Any.NVList;
+package PolyORB.If_Descriptors.CORBA_IR is
 
-with PolyORB.References;
-with PolyORB.Requests;
-with PolyORB.Smart_Pointers;
-
-package PolyORB.If_Descriptors is
-
-   type If_Descriptor is abstract new Smart_Pointers.Entity
-     with private;
-   type If_Descriptor_Access is access all If_Descriptor'Class;
+   type IR_If_Descriptor is new If_Descriptor with private;
 
    function Get_Empty_Arg_List
-     (If_Desc : access If_Descriptor;
+     (If_Desc : access IR_If_Descriptor;
       Object  :        PolyORB.References.Ref;
       Method  :        Requests.Operation_Id)
-     return Any.NVList.Ref is abstract;
-   --  Return the paramter profile of the given method, so the
-   --  protocol layer can unmarshall the message into a Request object.
+     return Any.NVList.Ref;
 
    function Get_Empty_Result
-     (If_Desc : access If_Descriptor;
+     (If_Desc : access IR_If_Descriptor;
       Object  :        PolyORB.References.Ref;
       Method  :        Requests.Operation_Id)
-     return Any.Any is abstract;
-   --  Return the result profile of the given method.
+     return Any.Any;
 
 private
 
-   type If_Descriptor is abstract new Smart_Pointers.Entity
+   type IR_If_Descriptor is new If_Descriptor
      with null record;
 
-end PolyORB.If_Descriptors;
+end PolyORB.If_Descriptors.CORBA_IR;

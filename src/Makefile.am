@@ -96,7 +96,6 @@ ADA_SPECS_WITH_BODY = \
 ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
 		polyorb.ads \
 		polyorb-constants.ads \
-		polyorb-if_descriptors.ads \
 		polyorb-objects-interface.ads \
 		polyorb-orb-interface.ads \
 		polyorb-poa_manager.ads \
