@@ -14,7 +14,6 @@ with Droopi.Any.NVList;
 with Droopi.Filters;
 with Droopi.Filters.Slicers;
 with Droopi.Log;
-with Droopi.Tasking;
 with Droopi.Obj_Adapters.Simple;
 with Droopi.Objects;
 with Droopi.ORB.Thread_Pool;
@@ -30,6 +29,8 @@ with Droopi.Protocols;
 with Droopi.Protocols.Echo;
 with Droopi.Protocols.GIOP;
 with Droopi.Protocols.SRP;
+
+with Droopi.Protected_Objects;
 
 with Droopi.References;
 with Droopi.References.IOR;
@@ -145,7 +146,7 @@ begin
    --  Logging subsystem. Start this one first so we can debug
    --  problems in others.
 
-   Droopi.Tasking.Initialize;
+   Droopi.Protected_Objects.Initialize;
    Put (" tasking");
    --  Setup soft links.
 
