@@ -37,13 +37,15 @@ with Ada.Text_IO;
 with PolyORB.Initialization;
 with PolyORB.Utils.Strings;
 
-with PolyORB.Report;
+with PolyORB.Utils.Report;
 
 procedure Test000 is
 
    use Ada.Text_IO;
+
    use PolyORB.Initialization;
    use PolyORB.Initialization.String_Lists;
+   use PolyORB.Utils.Report;
    use PolyORB.Utils.Strings;
 
    generic
@@ -95,6 +97,6 @@ begin
 
    Initialize_World;
 
-   PolyORB.Report.Output ("Test initialization #0", True);
-   PolyORB.Report.End_Report;
+   Output ("Test initialization #0", True);
+   End_Report;
 end Test000;

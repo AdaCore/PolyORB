@@ -1,8 +1,10 @@
 with PolyORB.Dynamic_Dict;
 
-with PolyORB.Report;
+with PolyORB.Utils.Report;
 
 procedure Test000 is
+
+   use PolyORB.Utils.Report;
 
    type String_Access is access all String;
 
@@ -53,11 +55,11 @@ procedure Test000 is
             if Result = null
               or else Result.all /= "foo" then
 
-               PolyORB.Report.Output ("Regression occured for key "
-                              & Values (K).all
-                              & " at stage #"
-                              & Integer'Image (J),
-                              False);
+               Output ("Regression occured for key "
+                       & Values (K).all
+                       & " at stage #"
+                       & Integer'Image (J),
+                       False);
                raise Program_Error;
             end if;
          end loop;
@@ -67,10 +69,10 @@ procedure Test000 is
          My_Dict.Unregister (Values (J).all);
       end loop;
 
-      PolyORB.Report.Output ("Regression did not occured", True);
+      Output ("Regression did not occured", True);
    exception
       when others =>
-         PolyORB.Report.Output ("Regression test failed", False);
+         Output ("Regression test failed", False);
 
    end Test_Regression;
 
@@ -105,11 +107,11 @@ procedure Test000 is
                if Content = null
                  or else Value /= Content.all then
 
-                  PolyORB.Report.Output ("Regression occured for key "
-                                 & Key
-                                 & " at stage #"
-                                 & Integer'Image (How_Many),
-                                 False);
+                  Output ("Regression occured for key "
+                          & Key
+                          & " at stage #"
+                          & Integer'Image (How_Many),
+                          False);
                   raise Program_Error;
                end if;
             end;
@@ -130,14 +132,14 @@ procedure Test000 is
             Test_Lookup (J);
          end;
       end loop;
-      PolyORB.Report.Output ("Register", True);
+      Output ("Register", True);
 
    end Test_Register;
 
 begin
-   PolyORB.Report.Output ("Initialization", True);
+   Output ("Initialization", True);
    Test_Register (500);
    Test_Regression;
-   PolyORB.Report.End_Report;
+   End_Report;
 
 end Test000;

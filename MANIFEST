@@ -264,8 +264,6 @@ examples/Makefile.am
 examples/Makefile.common
 examples/Makefile.in
 examples/README
-examples/common/report.adb
-examples/common/report.ads
 examples/corba/Makefile.am
 examples/corba/Makefile.in
 examples/corba/README
@@ -839,6 +837,8 @@ src/polyorb-utils-hfunctions.ads
 src/polyorb-utils-htables-perfect.adb
 src/polyorb-utils-htables-perfect.ads
 src/polyorb-utils-htables.ads
+src/polyorb-utils-report.adb
+src/polyorb-utils-report.ads
 src/polyorb-utils-simple_flags.adb
 src/polyorb-utils-simple_flags.ads
 src/polyorb-utils-strings-lists.adb
@@ -925,8 +925,6 @@ support/run_script.adb
 testsuite/Makefile.am
 testsuite/Makefile.common
 testsuite/Makefile.in
-testsuite/common/polyorb-report.adb
-testsuite/common/polyorb-report.ads
 testsuite/core/Makefile.am
 testsuite/core/Makefile.in
 testsuite/core/initialization/Makefile.am

@@ -1,4 +1,4 @@
-with PolyORB.Report;
+with PolyORB.Utils.Report;
 
 with PolyORB.Profiles.Full_Tasking;
 pragma Elaborate_All (PolyORB.Profiles.Full_Tasking);
@@ -13,6 +13,8 @@ package body Test002_Common is
    use PolyORB.Tasking.Threads;
    use PolyORB.Tasking.Condition_Variables;
    use PolyORB.Tasking.Mutexes;
+
+   use PolyORB.Utils.Report;
 
    My_Thread_Factory  : Thread_Factory_Access;
 
@@ -70,10 +72,10 @@ package body Test002_Common is
       Create (My_Mutex);
       Enter (My_Mutex);
       Wait (Global_CV, My_Mutex);
-      PolyORB.Report.Output ("End task: "
-                             & Image
-                             (Get_Current_Thread_Id (My_Thread_Factory)),
-                             True);
+      Output ("End task: "
+              & Image
+              (Get_Current_Thread_Id (My_Thread_Factory)),
+              True);
       Leave (My_Mutex);
    end Wait_Task;
 
@@ -103,17 +105,17 @@ package body Test002_Common is
             null;
          end;
       end loop;
-      PolyORB.Report.Output ("Wait before signal", True);
+      Output ("Wait before signal", True);
       delay 4.0;
       Signal (Global_CV);
       delay 4.0;
-      PolyORB.Report.Output ("Wait before signal", True);
+      Output ("Wait before signal", True);
       delay 4.0;
       Signal (Global_CV);
       delay 4.0;
-      PolyORB.Report.Output ("End signals", True);
+      Output ("End signals", True);
       Broadcast (Global_CV);
-      PolyORB.Report.Output ("Broadcast", True);
+      Output ("Broadcast", True);
 
    end Test_CV;
 

@@ -38,7 +38,7 @@ with Ada.Text_IO;
 with PolyORB.Initialization;
 with PolyORB.POA.Basic_POA;
 with PolyORB.POA_Config.Minimum;
-with PolyORB.Report;
+with PolyORB.Utils.Report;
 
 with PolyORB.Setup.No_Tasking_Server;
 pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
@@ -59,7 +59,7 @@ begin
      (new PolyORB.POA_Config.Minimum.Minimum_Configuration);
 
    Test_Common.Test_Simple_OA (new Basic_Obj_Adapter);
-   PolyORB.Report.End_Report;
+   PolyORB.Utils.Report.End_Report;
 
 exception
    when E : others =>
@@ -67,6 +67,6 @@ exception
                 & Exception_Name (E)
                 & " : "
                 & Exception_Message (E));
-      PolyORB.Report.Output ("END TESTS", False);
+      PolyORB.Utils.Report.Output ("END TESTS", False);
 
 end Test001;

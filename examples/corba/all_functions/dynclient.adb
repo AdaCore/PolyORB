@@ -9,14 +9,14 @@ with CORBA.Request;
 with CORBA.NVList;
 with CORBA.ORB;
 
-with Report; use Report;
+with PolyORB.Utils.Report;
 
 with PolyORB.Setup.Client;
 pragma Warnings (Off, PolyORB.Setup.Client);
 
 procedure Dynclient is
---   pragma Warnings (Off);
-   --  XXX Does not pass style checks...
+
+   use PolyORB.Utils.Report;
 
    IOR : CORBA.String;
    Myall_Functions : CORBA.Object.Ref;

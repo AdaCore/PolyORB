@@ -35,9 +35,9 @@
 with Ada.Text_IO;
 
 with PolyORB.Initialization;
+with PolyORB.Utils.Report;
 with PolyORB.Utils.Strings;
 
-with PolyORB.Report;
 
 procedure Test002 is
 
@@ -45,6 +45,7 @@ procedure Test002 is
 
    use PolyORB.Initialization;
    use PolyORB.Initialization.String_Lists;
+   use PolyORB.Utils.Report;
    use PolyORB.Utils.Strings;
 
    generic
@@ -89,14 +90,14 @@ begin
 
    Initialize_World;
 
-   PolyORB.Report.Output ("Test initialization #2", False);
+   Output ("Test initialization #2", False);
 
 exception
    when PolyORB.Initialization.Unresolved_Dependency =>
-      PolyORB.Report.Output ("Test initialization #2", True);
-      PolyORB.Report.End_Report;
+      Output ("Test initialization #2", True);
+      End_Report;
 
    when others =>
-      PolyORB.Report.Output ("Test initialization #2", False);
+      Output ("Test initialization #2", False);
 
 end Test002;

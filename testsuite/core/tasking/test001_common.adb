@@ -1,4 +1,4 @@
-with PolyORB.Report;
+with PolyORB.Utils.Report;
 
 with PolyORB.Profiles.Full_Tasking;
 pragma Elaborate_All (PolyORB.Profiles.Full_Tasking);
@@ -11,6 +11,7 @@ with System;
 package body Test001_Common is
 
    use PolyORB.Tasking.Threads;
+   use PolyORB.Utils.Report;
 
    My_Thread_Factory  : Thread_Factory_Access;
 
@@ -77,8 +78,8 @@ package body Test001_Common is
    procedure Test_Task_Creation
      (Nb_Of_Tasks : Natural := 1000) is
    begin
-      PolyORB.Report.New_Test ("Generate test with"
-                               & Natural'Image (Nb_Of_Tasks) & " tasks");
+      New_Test ("Generate test with"
+                & Natural'Image (Nb_Of_Tasks) & " tasks");
 
       for J in 1 .. Nb_Of_Tasks loop
          declare
@@ -93,7 +94,7 @@ package body Test001_Common is
             null;
          end;
       end loop;
-      PolyORB.Report.Output ("Done", True);
+      Output ("Done", True);
    end Test_Task_Creation;
 
    --------------------------
@@ -117,7 +118,7 @@ package body Test001_Common is
 
       Set_Priority (My_Thread_Factory, Get_Thread_Id (T), P_In);
       P_Out := Get_Priority (My_Thread_Factory, Get_Thread_Id (T));
-      PolyORB.Report.Output ("Test priority" & P_Out'Img, P_In = P_Out);
+      Output ("Test priority" & P_Out'Img, P_In = P_Out);
    end Test_Task_Priorities;
 
 end Test001_Common;

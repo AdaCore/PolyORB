@@ -118,6 +118,7 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-utils-dynamic_tables.ads \
 		polyorb-utils-hfunctions-mul.ads \
 		polyorb-utils-htables-perfect.ads \
+		polyorb-utils-report.ads \
 		polyorb-utils-simple_flags.ads \
 		polyorb-utils-strings.ads \
 		polyorb-utils-strings-lists.ads \

@@ -5,16 +5,21 @@ with CORBA; use CORBA;
 with CORBA.ORB;
 
 with all_functions; use all_functions;
-with Report; use Report;
+
+with PolyORB.Utils.Report;
 
 with PolyORB.Setup.Client;
 pragma Warnings (Off, PolyORB.Setup.Client);
 
 procedure Client is
+
+   use PolyORB.Utils.Report;
+
    IOR : CORBA.String;
    MyObj : all_functions.Ref;
    I, J, K, L, M : CORBA.Short;
    Ok : Boolean;
+
 begin
    CORBA.ORB.Initialize ("ORB");
 

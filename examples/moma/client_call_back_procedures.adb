@@ -37,8 +37,7 @@ with MOMA.Messages.MBytes;
 
 with PolyORB.Annotations;
 with PolyORB.Types;
-
-with Report;
+with PolyORB.Utils.Report;
 
 package body Client_Call_Back_Procedures is
 
@@ -51,8 +50,7 @@ package body Client_Call_Back_Procedures is
 
    use PolyORB.Annotations;
    use PolyORB.Types;
-
-   use Report;
+   use PolyORB.Utils.Report;
 
    --------------------
    -- Get_Byte_Value --

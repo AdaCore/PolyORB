@@ -6,7 +6,7 @@ with PolyORB.References.IOR;
 with PolyORB.ORB;
 with PolyORB.Setup;
 
-with PolyORB.Report;
+with PolyORB.Utils.Report;
 with Test_Servant;
 
 package body Test_Common is
@@ -16,6 +16,7 @@ package body Test_Common is
    use PolyORB.Objects;
    use PolyORB.ORB;
    use PolyORB.Setup;
+   use PolyORB.Utils.Report;
 
    use Test_Servant;
 
@@ -36,13 +37,13 @@ package body Test_Common is
       --  Link object adapter with ORB.
       Set_Object_Adapter (The_ORB, Obj_Adapter);
 
-      PolyORB.Report.Output ("Created Object Adapter", True);
+      Output ("Created Object Adapter", True);
 
       --  Create Servant.
       S1 := new My_Servant;
       S1.Nb    := 1;
       S1.Name  := To_PolyORB_String ("Servant1");
-      PolyORB.Report.Output ("Servant Created", True);
+      Output ("Servant Created", True);
 
       --  Servant manipulation tests.
 
@@ -58,7 +59,7 @@ package body Test_Common is
          Create_Reference (The_ORB, My_Id, "POLYORB:TEST_SERVANT:1.0", My_Ref);
          --  Obtain object reference.
 
-         PolyORB.Report.Output ("Registered object", True);
+         Output ("Registered object", True);
 
          declare
             IOR : constant String :=
@@ -68,16 +69,16 @@ package body Test_Common is
             pragma Unreferenced (IOR);
             pragma Warnings (On);
          begin
-            PolyORB.Report.Output ("IOR created", True);
+            Output ("IOR created", True);
          end;
 
          PolyORB.Obj_Adapters.Unexport (Obj_Adapter, My_Id);
-         PolyORB.Report.Output ("Unregistered object", True);
+         Output ("Unregistered object", True);
       end;
 
       --  Destroy object adapter
       PolyORB.Obj_Adapters.Destroy (Obj_Adapter);
-      PolyORB.Report.Output ("Destroyed Object Adapter", True);
+      Output ("Destroyed Object Adapter", True);
    end Test_Simple_OA;
 
 

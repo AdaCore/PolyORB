@@ -2,9 +2,9 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                              T E S T 0 0 0                               --
+--                       P O L Y O R B . R E P O R T                        --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
 --             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
@@ -30,39 +30,18 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
+--  This package provides utility functions to display example and
+--  testsuite outputs.
 
-with Ada.Exceptions;
-with Ada.Text_IO;
+--  $Id: //droopi/main/src/polyorb-utils-report.ads#1 $
 
-with PolyORB.Initialization;
-with PolyORB.Obj_Adapters.Simple;
-with PolyORB.Utils.Report;
+package PolyORB.Utils.Report is
 
-with PolyORB.Setup.No_Tasking_Server;
-pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
-pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
+   procedure New_Test (Test_Name : String);
 
-with Test_Common;
+   procedure Output (Message : String;
+                     Result  : Boolean);
 
-procedure Test000 is
+   procedure End_Report;
 
-   use Ada.Text_IO;
-   use Ada.Exceptions;
-
-   use PolyORB.Obj_Adapters.Simple;
-
-begin
-   PolyORB.Initialization.Initialize_World;
-   Test_Common.Test_Simple_OA (new Simple_Obj_Adapter);
-   PolyORB.Utils.Report.End_Report;
-
-exception
-   when E : others =>
-      Put_Line ("Got exception "
-                & Exception_Name (E)
-                & " : "
-                & Exception_Message (E));
-      PolyORB.Utils.Report.Output ("END TESTS", False);
-
-end Test000;
+end PolyORB.Utils.Report;

@@ -50,14 +50,16 @@ with PolyORB.Objects;
 with PolyORB.Servants;
 with PolyORB.Types;
 
-with PolyORB.Report;
+with PolyORB.Utils.Report;
 with Test_Servant;
 
 procedure Test000 is
 
    use Ada.Text_IO;
    use Ada.Exceptions;
+
    use PolyORB.Types;
+   use PolyORB.Utils.Report;
 
    Incorrect_Execution : exception;
    Correct_Execution   : exception;
@@ -80,15 +82,15 @@ procedure Test000 is
 
       --  Root POA creation
       PolyORB.POA.Create (Root_POA);
-      PolyORB.Report.Output ("RootPOA creation", True);
+      Output ("RootPOA creation", True);
 
       --  Root POA destruction
       PolyORB.POA.Destroy (Root_POA);
-      PolyORB.Report.Output ("RootPOA destruction", True);
+      Output ("RootPOA destruction", True);
 
    exception
       when others =>
-         PolyORB.Report.Output ("RootPOA creation/destruction", False);
+         Output ("RootPOA creation/destruction", False);
          raise;
 
    end Test_Root_POA;
@@ -139,7 +141,7 @@ procedure Test000 is
       OA3 := PolyORB.POA.Create_POA
         (OA1, To_PolyORB_String ("POA3"), PM1, Policies);
 
-      PolyORB.Report.Output ("Child POA construction", True);
+      Output ("Child POA construction", True);
 
       Ok := False;
       begin
@@ -152,23 +154,23 @@ procedure Test000 is
          when others =>
             raise;
       end;
-      PolyORB.Report.Output ("Raised Adapter_Already_Exists", Ok);
+      Output ("Raised Adapter_Already_Exists", Ok);
 
       Ok := False;
       if OA1.POA_Manager = OA3.POA_Manager then
          Ok := True;
       end if;
-      PolyORB.Report.Output ("Same POA Manager", Ok);
+      Output ("Same POA Manager", Ok);
 
       Ok := False;
       if OA1.POA_Manager /= OA2.POA_Manager then
          Ok := True;
       end if;
-      PolyORB.Report.Output ("Implicit creation of a POA Manager", Ok);
+      Output ("Implicit creation of a POA Manager", Ok);
 
       --  POA recursive destruction.
       PolyORB.POA.Destroy (Root_POA);
-      PolyORB.Report.Output ("POA recursive destruction", True);
+      Output ("POA recursive destruction", True);
 
    exception
       when others =>
@@ -208,10 +210,10 @@ procedure Test000 is
 
             Ok : Boolean := False;
          begin
-            PolyORB.Report.Output ("Servant activation", True);
+            Output ("Servant activation", True);
 
             Deactivate_Object (Root_POA, Id1);
-            PolyORB.Report.Output ("Servant deactivation", True);
+            Output ("Servant deactivation", True);
 
             begin
                Deactivate_Object (Root_POA, Id1);
@@ -220,7 +222,7 @@ procedure Test000 is
                when Object_Not_Active =>
                   Ok := True;
             end;
-            PolyORB.Report.Output ("Raised Object_Not_Active", Ok);
+            Output ("Raised Object_Not_Active", Ok);
 
             PolyORB.POA.Destroy (Root_POA);
 
@@ -254,10 +256,10 @@ procedure Test000 is
             PolyORB.POA.Destroy (Root_POA);
          end;
 
-         PolyORB.Report.Output ("Raised Servant_Already_Active", False);
+         Output ("Raised Servant_Already_Active", False);
       exception
          when Servant_Already_Active =>
-            PolyORB.Report.Output ("Raised Servant_Already_Active", True);
+            Output ("Raised Servant_Already_Active", True);
 
          when others =>
             raise;
@@ -387,7 +389,7 @@ procedure Test000 is
                raise Incorrect_Execution;
             end if;
             PolyORB.POA.Destroy (Root_POA);
-            PolyORB.Report.Output ("Servant_To_Id", True);
+            Output ("Servant_To_Id", True);
          end;
       end;
 
@@ -407,14 +409,14 @@ procedure Test000 is
             PolyORB.POA.Destroy (Root_POA);
          end;
       end;
-      PolyORB.Report.Output ("Raised Servant_Not_Active", False);
+      Output ("Raised Servant_Not_Active", False);
 
    exception
       when Servant_Not_Active =>
-         PolyORB.Report.Output ("Raised Servant_Not_Active", True);
+         Output ("Raised Servant_Not_Active", True);
 
       when others =>
-         PolyORB.Report.Output ("Raised Servant_Not_Active", False);
+         Output ("Raised Servant_Not_Active", False);
          raise;
 
    end Test_Servant_To_Id;
@@ -452,11 +454,11 @@ procedure Test000 is
 
          begin
             if S1 /= S2 then
-               PolyORB.Report.Output ("Id_to_Servant", False);
+               Output ("Id_to_Servant", False);
             end if;
 
             PolyORB.POA.Destroy (Root_POA);
-            PolyORB.Report.Output ("Id_to_Servant", True);
+            Output ("Id_to_Servant", True);
          end;
       end;
 
@@ -484,7 +486,7 @@ procedure Test000 is
          end;
 
          PolyORB.POA.Destroy (Root_POA);
-         PolyORB.Report.Output ("Raised Object_Not_Active", Ok);
+         Output ("Raised Object_Not_Active", Ok);
       end;
 
    exception
@@ -503,7 +505,7 @@ begin
    Test_Servant_To_Id;
    Test_Id_To_Servant;
 
-   PolyORB.Report.End_Report;
+   End_Report;
 
 exception
    when E : others =>
@@ -511,6 +513,6 @@ exception
                 & Exception_Name (E)
                 & " : "
                 & Exception_Message (E));
-      PolyORB.Report.Output ("END TESTS", False);
+      Output ("END TESTS", False);
 
 end Test000;

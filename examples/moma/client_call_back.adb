@@ -59,8 +59,7 @@ with PolyORB.Initialization;
 with PolyORB.References;
 with PolyORB.References.IOR;
 with PolyORB.Types;
-
-with Report;
+with PolyORB.Utils.Report;
 
 procedure Client_Call_Back is
 
@@ -80,8 +79,7 @@ procedure Client_Call_Back is
 
    use PolyORB.References;
    use PolyORB.Types;
-
-   use Report;
+   use PolyORB.Utils.Report;
 
    Pool_Ref           : PolyORB.References.Ref := PolyORB.References.Nil_Ref;
    MOMA_Factory       : Connection_Factory;

@@ -66,8 +66,7 @@ with PolyORB.Initialization;
 with PolyORB.References;
 with PolyORB.References.IOR;
 with PolyORB.Types;
-
-with Report;
+with PolyORB.Utils.Report;
 
 procedure Client is
 
@@ -86,8 +85,7 @@ procedure Client is
    use PolyORB.References;
    use PolyORB.Services.Naming.Tools;
    use PolyORB.Types;
-
-   use Report;
+   use PolyORB.Utils.Report;
 
    Arg1               : MOMA.Types.String;
    Arg2               : MOMA.Types.String;

@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                              T E S T 0 0 1                               --
+--                       P O L Y O R B . R E P O R T                        --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,90 +30,59 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
+--  $Id: //droopi/main/src/polyorb-utils-report.adb#1 $
 
 with Ada.Text_IO;
 
-with PolyORB.Initialization;
-with PolyORB.Utils.Strings;
+package body PolyORB.Utils.Report is
 
-with PolyORB.Utils.Report;
+   Max : constant Natural := 60;
+   Passed : Boolean := True;
 
-procedure Test001 is
+   ------------
+   -- Output --
+   ------------
 
-   use Ada.Text_IO;
-
-   use PolyORB.Initialization;
-   use PolyORB.Initialization.String_Lists;
-   use PolyORB.Utils.Report;
-   use PolyORB.Utils.Strings;
-
-   generic
-      Name : String;
-   procedure Init;
-
-   procedure Init is
+   procedure Output
+     (Message : in String;
+      Result  : in Boolean)
+   is
+      Line : String (1 .. Max) := (others => '.');
+      Last : Natural := Message'Length;
    begin
-      Put_Line ("Initializing module " & Name);
-   end Init;
+      if Last > Max then
+         Last := Max;
+      end if;
 
-   procedure Init_Foo is new Init ("foo");
-   procedure Init_Bar is new Init ("bar");
-   procedure Init_Bazooka is new Init ("bazooka");
-   procedure Init_Fred is new Init ("fred");
+      Line (1 .. Last) := Message (Message'First .. Message'First + Last - 1);
 
-   Empty_List : String_Lists.List;
+      if Result then
+         Ada.Text_IO.Put_Line (Line & ": PASSED");
+      else
+         Ada.Text_IO.Put_Line (Line & ": FAILED");
+      end if;
 
-begin
-   Register_Module
-     (Module_Info'
-      (Name => +"foo",
-       Conflicts => Empty_List,
-       Depends => Empty_List,
-       Provides => Empty_List,
-       Init => Init_Foo'Unrestricted_Access));
+      Passed := Passed and then Result;
+   end Output;
 
-   Register_Module
-     (Module_Info'
-      (Name => +"bazaar",
-       Conflicts => Empty_List,
-       Depends => Empty_List,
-       Provides => Empty_List,
-       Init => Init_Foo'Unrestricted_Access));
+   ----------------
+   -- End_Report --
+   ----------------
 
-   Register_Module
-     (Module_Info'
-      (Name => +"bar",
-       Depends => Empty_List & "foo" & "baz",
-       Conflicts => Empty_List,
-       Provides => Empty_List,
-       Init => Init_Bar'Unrestricted_Access));
+   procedure End_Report is
+   begin
+      Output ("END TESTS", Passed);
+   end End_Report;
 
-   Register_Module
-     (Module_Info'
-      (Name => +"bazooka",
-       Depends => Empty_List,
-       Conflicts => Empty_List,
-       Provides => Empty_List & "baz",
-       Init => Init_Bazooka'Unrestricted_Access));
+   --------------
+   -- New_Test --
+   --------------
 
-   Register_Module
-     (Module_Info'
-      (Name => +"fred",
-       Depends => Empty_List & "bar" & "foo",
-       Conflicts => Empty_List & "bazaar",
-       Provides => Empty_List,
-       Init => Init_Fred'Unrestricted_Access));
+   procedure New_Test (Test_Name : String) is
+   begin
+      Ada.Text_IO.New_Line;
+      Ada.Text_IO.Put_Line ("==> Begin test " & Test_Name & " <==");
+   end New_Test;
 
-   Initialize_World;
-   Output ("Test initialization #1", False);
+end PolyORB.Utils.Report;
 
-exception
-   when PolyORB.Initialization.Conflict =>
-      Output ("Test initialization #1", True);
-      End_Report;
-
-   when others =>
-      Output ("Test initialization #1", False);
-
-end Test001;

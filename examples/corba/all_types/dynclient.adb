@@ -41,7 +41,7 @@ with CORBA.ContextList;
 with CORBA.ExceptionList;
 with CORBA.ORB;
 
-with Report;    use Report;
+with PolyORB.Utils.Report;
 
 with all_types; use all_types;
 with all_types.Helper;
@@ -53,6 +53,8 @@ with PolyORB.Setup.Client;
 pragma Warnings (Off, PolyORB.Setup.Client);
 
 procedure DynClient is
+
+   use PolyORB.Utils.Report;
 
    pragma Warnings (Off);
 

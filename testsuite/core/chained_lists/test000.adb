@@ -2,9 +2,12 @@ with Ada.Exceptions;
 with Ada.Text_IO; use Ada.Text_IO;
 
 with PolyORB.Utils.Chained_Lists;
-with PolyORB.Report; use PolyORB.Report;
+with PolyORB.Utils.Report;
 
 procedure Test000 is
+
+   use PolyORB.Utils.Report;
+
    package Ls is new PolyORB.Utils.Chained_Lists (Integer);
    use Ls;
    type A is array (Integer range <>) of Integer;

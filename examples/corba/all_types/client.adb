@@ -35,7 +35,7 @@ with CORBA.Object;
 with CORBA.ORB;
 
 with all_types.Helper; use all_types, all_types.Helper;
-with Report;    use Report;
+with PolyORB.Utils.Report;
 
 with PolyORB.Setup.Client;
 pragma Warnings (Off, PolyORB.Setup.Client);
@@ -43,6 +43,9 @@ pragma Warnings (Off, PolyORB.Setup.Client);
 with PolyORB.CORBA_P.Naming_Tools; use PolyORB.CORBA_P.Naming_Tools;
 
 procedure Client is
+
+   use PolyORB.Utils.Report;
+
    Myall_types : all_types.Ref;
    Ok : Boolean;
    Howmany : Integer := 1;

@@ -1,4 +1,4 @@
-with PolyORB.Report;
+with PolyORB.Utils.Report;
 
 with PolyORB.Profiles.Full_Tasking;
 pragma Elaborate_All (PolyORB.Profiles.Full_Tasking);
@@ -11,6 +11,8 @@ package body Test003_Common is
 
    use PolyORB.Tasking.Threads;
    use PolyORB.Tasking.Advanced_Mutexes;
+
+   use PolyORB.Utils.Report;
 
    My_Thread_Factory  : Thread_Factory_Access;
 
@@ -61,19 +63,19 @@ package body Test003_Common is
 
    procedure Wait_Task is
    begin
-      PolyORB.Report.Output
+      Output
         ("Enter task: "
          & Image (Get_Current_Thread_Id (My_Thread_Factory)),
          True);
       Enter (Global_AM);
-      PolyORB.Report.Output
+      Output
         ("Task "
          & Image (Get_Current_Thread_Id (My_Thread_Factory))
          & " entered.",
          True);
       delay 10.0;
       Leave (Global_AM);
-      PolyORB.Report.Output
+      Output
         ("End task: "
          & Image (Get_Current_Thread_Id (My_Thread_Factory)),
          True);

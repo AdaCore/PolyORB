@@ -25,9 +25,7 @@ POLYORB_INCS = -I$(srcdir) -I$(srcdir)/$(EXAMPLES_ROOT)/../src -I$(EXAMPLES_ROOT
 
 GNATMAKE_FLAGS = \
 	-I$(srcdir)/$(EXAMPLES_ROOT) \
-	-I$(srcdir)/$(EXAMPLES_ROOT)/common \
 	-I$(EXAMPLES_ROOT) \
-	-I$(EXAMPLES_ROOT)/common \
 	$(POLYORB_INCS) \
 	$(XMLADA_INCS) \
 	-m \
