@@ -65,7 +65,7 @@ package body Ada_Be.Idl2Ada.Value_Skel is
 
             --  Write the store only if the operation
             --  is not inherited from another valuetype.
-            if Oldest_ValueType_That_Has_It (Node) = Parent_Scope (Node) then
+            if Oldest_Supporting_ValueType (Node) = Parent_Scope (Node) then
                declare
                   Opname : constant String
                     := Ada_Operation_Name (Node);
@@ -190,7 +190,7 @@ package body Ada_Be.Idl2Ada.Value_Skel is
                declare
                   Original_VT_Name : constant String
                     := Ada_Full_Name
-                    (Oldest_ValueType_That_Has_It (Node));
+                    (Oldest_Supporting_ValueType (Node));
                begin
                   Put (CU,
                        Original_VT_Name);

@@ -36,8 +36,8 @@ Named
   --  copy of the node (used for inherited operation
   --  and attribute nodes).
   Repository_Id_Identifier : Node_Id
-  --  A Named node that holds the name of the Ada constant
-  --  that contains the node's repository ID.
+  --  Expansion attribute: A Named node that holds the name
+  --  of the Ada constant that contains the node's repository ID.
 
 Scope <-- Named
   Identifier_List : Identifier_Definition_List
@@ -119,10 +119,11 @@ Operation <-- Scope
   Is_Directly_Supported : Boolean := False
   --  Expansion attribute: this operation is copied
   --  from one of this valuetype's supported interfaces
-  Oldest_ValueType_That_Has_It : Node_Id := No_Node
+  Oldest_Supporting_ValueType : Node_Id := No_Node
   --  Expansion attribute: when an operation is copied down
   --  to a valuetype from a supported interface, then this attribute
-  --  is set to this valuetype.
+  --  is set to this valuetype; it keeps its value when copied down
+  --  to derived valuetypes.
 
 Attribute
   Is_Readonly : Boolean

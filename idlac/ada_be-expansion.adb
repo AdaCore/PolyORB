@@ -232,7 +232,7 @@ package body Ada_Be.Expansion is
       From : Node_Id;
       Implicit_Inherited : Boolean;
       Directly_Supported : Boolean;
-      Oldest_ValueType_That_Has_It : Node_Id;
+      Oldest_Supporting_ValueType : Node_Id;
       Parents_Seen : in out Node_List);
    --  Recursively copy all operations from K_Interface
    --  or K_ValueType
@@ -244,7 +244,7 @@ package body Ada_Be.Expansion is
    --  and the Is_Implicit_Inherited attribute is set
    --  to Implicit_Inherited.
 
-   --  Directly_Supported and Oldest_ValueType_That_Has_It
+   --  Directly_Supported and Oldest_Supporting_ValueType
    --  are valuetype attributes. See nodes.txt for their
    --  meaning
 
@@ -534,7 +534,7 @@ package body Ada_Be.Expansion is
       From : Node_Id;
       Implicit_Inherited : Boolean;
       Directly_Supported : Boolean;
-      Oldest_ValueType_That_Has_It : Node_Id;
+      Oldest_Supporting_ValueType : Node_Id;
       Parents_Seen : in out Node_List)
    is
       Ops_It : Node_Iterator;
@@ -565,9 +565,9 @@ package body Ada_Be.Expansion is
               (New_O_Node, Implicit_Inherited);
             Set_Is_Directly_Supported
               (New_O_Node, Directly_Supported);
-            if (Oldest_ValueType_That_Has_It /= No_Node) then
-               Set_Oldest_ValueType_That_Has_It
-                 (New_O_Node, Oldest_ValueType_That_Has_It);
+            if (Oldest_Supporting_ValueType /= No_Node) then
+               Set_Oldest_Supporting_ValueType
+                 (New_O_Node, Oldest_Supporting_ValueType);
             end if;
             Append_Node (Into, New_O_Node);
          end if;
@@ -583,7 +583,7 @@ package body Ada_Be.Expansion is
            (Into, Parent, Value (I_Node),
             Implicit_Inherited,
             Directly_Supported,
-            Oldest_ValueType_That_Has_It,
+            Oldest_Supporting_ValueType,
             Parents_Seen);
       end loop;
    end Recursive_Copy_Operations;
@@ -624,7 +624,7 @@ package body Ada_Be.Expansion is
             From => Value (Primary_Parent),
             Implicit_Inherited => True,
             Directly_Supported => False,
-            Oldest_ValueType_That_Has_It => No_Node,
+            Oldest_Supporting_ValueType => No_Node,
             Parents_Seen => Parents_Seen);
       end if;
 
@@ -638,7 +638,7 @@ package body Ada_Be.Expansion is
             From => Value (I_Node),
             Implicit_Inherited => False,
             Directly_Supported => False,
-            Oldest_ValueType_That_Has_It => No_Node,
+            Oldest_Supporting_ValueType => No_Node,
             Parents_Seen => Parents_Seen);
       end loop;
 
@@ -685,7 +685,7 @@ package body Ada_Be.Expansion is
                    => True,
             Directly_Supported
                    => False,
-            Oldest_ValueType_That_Has_It
+            Oldest_Supporting_ValueType
                    => No_Node,
             Parents_Seen => Parents_Seen);
       end if;
@@ -702,7 +702,7 @@ package body Ada_Be.Expansion is
             From => Value (I_Node),
             Implicit_Inherited => False,
             Directly_Supported => False,
-            Oldest_ValueType_That_Has_It => No_Node,
+            Oldest_Supporting_ValueType => No_Node,
             Parents_Seen => Parents_Seen);
       end loop;
 
@@ -718,7 +718,7 @@ package body Ada_Be.Expansion is
             From => Value (I_Node),
             Implicit_Inherited => False,
             Directly_Supported => True,
-            Oldest_ValueType_That_Has_It => Node,
+            Oldest_Supporting_ValueType => Node,
             Parents_Seen => Interfaces_Seen);
       end loop;
 
@@ -865,7 +865,7 @@ package body Ada_Be.Expansion is
                Set_Original_Node (Get_Method, Node);
 
                if Kind (Node) = K_State_Member then
-                  Set_Oldest_ValueType_That_Has_It
+                  Set_Oldest_Supporting_ValueType
                     (Get_Method, Parent_Scope (Current_Declarator));
                end if;
 
@@ -918,7 +918,7 @@ package body Ada_Be.Expansion is
                Set_Original_Node (Set_Method, Node);
 
                if Kind (Node) = K_State_Member then
-                  Set_Oldest_ValueType_That_Has_It
+                  Set_Oldest_Supporting_ValueType
                     (Set_Method, Parent_Scope (Current_Declarator));
                end if;
                --  add the node to the node list
@@ -983,9 +983,9 @@ package body Ada_Be.Expansion is
       end if;
 
       --  If this operation is defined in valuetype,
-      --  set its "Oldest_ValueType_That_Has_It" attribute
+      --  set its "Oldest_Supporting_ValueType" attribute
       if Kind (Parent_Scope (Node)) = K_ValueType then
-         Set_Oldest_ValueType_That_Has_It
+         Set_Oldest_Supporting_ValueType
            (Node, Parent_Scope (Node));
       end if;
 

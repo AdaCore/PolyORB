@@ -383,7 +383,7 @@ package body Ada_Be.Idl2Ada is
                  := Kind (Operation_Type (Node)) /= K_Void;
                Original_VT_Name : constant String
                  := Ada_Full_Name
-                 (Oldest_ValueType_That_Has_It (Node));
+                 (Oldest_Supporting_ValueType (Node));
             begin
                if not Is_Implicit_Inherited (Node) then
                   Add_With (CU, Parent_Scope_Name (Node)
