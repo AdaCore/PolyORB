@@ -331,7 +331,14 @@ s-gtplsp.ads: ${srcdir}/${TCP_PLATFORM}
 split: ${srcdir}/split.adb
 	$(GNATMAKE) -m -o split ${srcdir}/split.adb
 
-all-local: ${SOURCES} ${OBJECTS}
+# We need to recompile all the GNAT library units depending
+# on System.Stream_Attributes, the recompile-gnatlib script
+# does the job. Note that this kludge should go away as soon
+# as we have an easy way to recompile the library.
+gnatlib-rebuild:
+	$(srcdir)/recompile-gnatlib
+
+all-local: ${SOURCES} gnatlib-rebuild ${OBJECTS}
 
 fast: ${SOURCES} s-rpcdum.ads
 	@gnatmake -m -c -a ${CFLAGS} ${INCFLAGS} ${GNATFLAGS} s-rpcdum
