@@ -770,6 +770,8 @@ src/polyorb-utils-htables-perfect.adb
 src/polyorb-utils-htables-perfect.ads
 src/polyorb-utils-htables.adb
 src/polyorb-utils-htables.ads
+src/polyorb-utils-semaphores.adb
+src/polyorb-utils-semaphores.ads
 src/polyorb-utils-simple_flags.adb
 src/polyorb-utils-simple_flags.ads
 src/polyorb-utils-srp.adb
