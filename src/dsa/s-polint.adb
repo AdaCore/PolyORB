@@ -565,8 +565,6 @@ package body System.PolyORB_Interface is
                   --  IDL skel.
 
                   declare
-                     use PolyORB.Exceptions;
-
                      n             : PolyORB.Services.Naming.Name;
                      pragma Warnings (Off, n);
                      --  Accessed before it has a value (by To_Any).
@@ -578,8 +576,6 @@ package body System.PolyORB_Interface is
 
                      Result      : Object_Ref;
                      Arg_List    : NVList_Ref;
-
-                     Error       : Error_Container;
                   begin
                      --  Create argument list
 
@@ -590,11 +586,7 @@ package body System.PolyORB_Interface is
                         Argument_n,
                         ARG_IN);
 
-                     Request_Arguments (EMsg.Req, Arg_List, Error);
-
-                     if Found (Error) then
-                        PolyORB.DSA_P.Exceptions.Raise_From_Error (Error);
-                     end if;
+                     Request_Arguments (EMsg.Req, Arg_List);
 
                      declare
                         package ISNC renames
@@ -660,10 +652,7 @@ package body System.PolyORB_Interface is
                then
 
                   declare
-                     use PolyORB.Exceptions;
-
                      Arg_List    : NVList_Ref;
-                     Error       : Error_Container;
                   begin
 
                      -----------------------
@@ -674,11 +663,7 @@ package body System.PolyORB_Interface is
                      --  the partition on which this RCI unit resides.
 
                      NVList_Create (Arg_List);
-                     Request_Arguments (EMsg.Req, Arg_List, Error);
-
-                     if Found (Error) then
-                        PolyORB.DSA_P.Exceptions.Raise_From_Error (Error);
-                     end if;
+                     Request_Arguments (EMsg.Req, Arg_List);
 
                      --  Must call Arguments (with an empty Arg_List)
                      --  to notify the protocol personality that this
@@ -1561,6 +1546,37 @@ package body System.PolyORB_Interface is
    begin
       PolyORB.Buffers.Release (Stream.Buf);
    end Release_Buffer;
+
+   -----------------------
+   -- Request_Arguments --
+   -----------------------
+
+   procedure Request_Arguments
+     (R     :        PolyORB.Requests.Request_Access;
+      Args  : in out PolyORB.Any.NVList.Ref)
+   is
+      Error : PolyORB.Exceptions.Error_Container;
+   begin
+      PolyORB.Requests.Arguments (R, Args, Error);
+      if PolyORB.Exceptions.Found (Error) then
+         PolyORB.DSA_P.Exceptions.Raise_From_Error (Error);
+      end if;
+   end Request_Arguments;
+
+   ---------------------
+   -- Request_Set_Out --
+   ---------------------
+
+   procedure Request_Set_Out
+     (R     : PolyORB.Requests.Request_Access)
+   is
+      Error : PolyORB.Exceptions.Error_Container;
+   begin
+      PolyORB.Requests.Set_Out_Args (R, Error);
+      if PolyORB.Exceptions.Found (Error) then
+         PolyORB.DSA_P.Exceptions.Raise_From_Error (Error);
+      end if;
+   end Request_Set_Out;
 
    ---------------
    -- Any_To_BS --
