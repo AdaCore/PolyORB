@@ -49,53 +49,55 @@ package body PolyORB.Tasking.Semaphores is
    ------------
 
    procedure Create (S : out Semaphore_Access) is
-      S                     : Semaphore_Type;
-      The_Mutex_Factory     : PTM.Mutex_Factory := PTM.Get_Mutex_Factory;
-      The_Condition_Factory : PTCV.Condition_Factory
-        := PTM.Get_Condition_Factory;
+      Result                : Semaphore;
+      The_Mutex_Factory     : PTM.Mutex_Factory_Access
+        := PTM.Get_Mutex_Factory;
+      The_Condition_Factory : PTCV.Condition_Factory_Access
+        := PTCV.Get_Condition_Factory;
    begin
-      S.Value := 0;
-      S.Mutex := PTM.Create (The_Mutex_Factory);
-      S.Condition := PTCV.Create (The_Condition_Factory);
-      return new Semaphore'(S);
+      Result.Value := 0;
+      Result.Mutex := PTM.Create (The_Mutex_Factory);
+      Result.Condition := PTCV.Create (The_Condition_Factory);
+      S := new Semaphore'(Result);
    end Create;
 
    procedure Destroy (S : in out Semaphore_Access) is
-      The_Mutex_Factory     : PTM.Mutex_Factory := PTM.Get_Mutex_Factory;
-      The_Condition_Factory : PTCV.Condition_Factory
-        := PTM.Get_Condition_Factory;
+      The_Mutex_Factory     : PTM.Mutex_Factory_Access
+        := PTM.Get_Mutex_Factory;
+      The_Condition_Factory : PTCV.Condition_Factory_Access
+        := PTCV.Get_Condition_Factory;
    begin
-      PTM.Destroy (The_Mutex_Factory, S.Mutex);
-      PTCV.Destroy (The_Condition_Factory, S.Condition);
+      PTM.Destroy (The_Mutex_Factory.all, S.Mutex);
+      PTCV.Destroy (The_Condition_Factory.all, S.Condition);
       Free (S);
    end Destroy;
 
    procedure Up (S : Semaphore_Access) is
    begin
-      Enter (M.Mutex.all);
+      PTM.Enter (S.Mutex.all);
       S.Value := S.Value + 1;
-      PTCV.Signal (M.Condition_Variables);
-      Leave (M.Mutex.all);
+      PTCV.Signal (S.Condition.all);
+      PTM.Leave (S.Mutex.all);
    end Up;
 
    procedure Down (S : Semaphore_Access) is
    begin
-      Enter (M.Mutex.all);
+      PTM.Enter (S.Mutex.all);
 
-      while Value = 0 loop
-         Wait (M.Condition.all, M.Mutex);
+      while S.Value = 0 loop
+         PTCV.Wait (S.Condition.all, S.Mutex);
       end loop;
-      Value := Value - 1;
+      S.Value := S.Value - 1;
 
-      Leave (M.Mutex.all);
+      PTM.Leave (S.Mutex.all);
    end Down;
 
    function State (S : Semaphore_Access) return Natural is
       Result : Integer;
    begin
-      Enter (M.Mutex.all);
+      PTM.Enter (S.Mutex.all);
       Result := S.Value;
-      Leave (M.Mutex.all);
+      PTM.Leave (S.Mutex.all);
       return Result;
    end State;
 

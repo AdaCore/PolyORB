@@ -60,21 +60,21 @@ package PolyORB.Tasking.Semaphores is
    --  return the current value of the semaphore.
 
 private
-   
+
    package PTM renames PolyORB.Tasking.Mutexes;
-   
+
    package PTCV renames PolyORB.Tasking.Condition_Variables;
-   
+
    type Semaphore is record
       Value     : Natural;
       --  Current value of the semaphore.
-      
+
       Mutex     : PTM.Mutex_Access;
       --  Used to assure mutual exclusion for Up, Down and State.
-      
+
       Condition : PTCV.Condition_Access;
       --  Used the implement the blocking call to Down.
-      
+
    end record;
 
 end PolyORB.Tasking.Semaphores;
