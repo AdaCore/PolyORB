@@ -33,11 +33,12 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Task_Identification;    use Ada.Task_Identification;
+with Ada.Task_Attributes;
 with Ada.Dynamic_Priorities;
 
+with GNAT.Task_Lock;
+
 with System;                     use System;
-with System.Soft_Links;          use System.Soft_Links;
 with System.Garlic.Soft_Links;   use System.Garlic.Soft_Links;
 with System.Garlic.Types;        use System.Garlic.Types;
 with System.Tasking;
@@ -51,25 +52,20 @@ package body System.Garlic.Tasking is
 
    use type System.Tasking.Task_ID;
 
+   package LLTA is new Ada.Task_Attributes (Natural, 0);
+   use LLTA;
+   --  Lock Level Task Attribute
+
    Environment_Task : constant System.Tasking.Task_ID := System.Tasking.Self;
    --  The environment task. Self will be set to it at elaboration time.
 
-   Critical_Section : Protected_Adv_Mutex_Type;
-
    type Watcher_PO is limited record
-      Mutex : Mutex_PO_Access;
       Queue : Mutex_PO_Access;
       Count : Natural;
       Value : Version_Id;
    end record;
 
-   type Adv_Mutex_PO is limited record
-      Mutex     : Mutex_PO_Access;
-      Current   : Ada.Task_Identification.Task_Id;
-      pragma Atomic (Current);
-      Level     : Natural;
-      pragma Atomic (Level);
-   end record;
+   type Adv_Mutex_PO is limited null record;
    --  This is a classical critical section except that when a task try to
    --  Enter a critical section several times without leaving it first it
    --  is not blocked and can continue. Leave keeps track of the number of
@@ -80,6 +76,9 @@ package body System.Garlic.Tasking is
    procedure Free is
      new Ada.Unchecked_Deallocation (Watcher_PO, Watcher_PO_Access);
 
+   procedure Lock;
+   procedure Unlock;
+
    ------------
    -- Create --
    ------------
@@ -89,7 +88,6 @@ package body System.Garlic.Tasking is
    begin
       W.X := new Watcher_PO;
       W.X.Value := V;
-      W.X.Mutex := new Mutex_PO;
       W.X.Count := 0;
       W.X.Queue := new Mutex_PO;
       return new Protected_Watcher_Type'(W);
@@ -100,13 +98,8 @@ package body System.Garlic.Tasking is
    ------------
 
    function Create return Adv_Mutex_Access is
-      M : Protected_Adv_Mutex_Type;
    begin
-      M.X         := new Adv_Mutex_PO;
-      M.X.Mutex   := new Mutex_PO;
-      M.X.Current := Null_Task_Id;
-      M.X.Level   := 0;
-      return new Protected_Adv_Mutex_Type'(M);
+      return new Protected_Adv_Mutex_Type;
    end Create;
 
    ------------
@@ -114,10 +107,8 @@ package body System.Garlic.Tasking is
    ------------
 
    function Create return Mutex_Access is
-      M : Protected_Mutex_Type;
    begin
-      M.X := new Mutex_PO;
-      return new Protected_Mutex_Type'(M);
+      return new Protected_Mutex_Type;
    end Create;
 
    -------------
@@ -127,12 +118,6 @@ package body System.Garlic.Tasking is
    procedure Destroy (W : in out Protected_Watcher_Type) is
    begin
       if W.X /= null then
-         if W.X.Mutex /= null then
-            Free (W.X.Mutex);
-         end if;
-         if W.X.Queue /= null then
-            Free (W.X.Queue);
-         end if;
          Free (W.X);
       end if;
    end Destroy;
@@ -144,9 +129,6 @@ package body System.Garlic.Tasking is
    procedure Destroy (M : in out Protected_Adv_Mutex_Type) is
    begin
       if M.X /= null then
-         if M.X.Mutex /= null then
-            Free (M.X.Mutex);
-         end if;
          Free (M.X);
       end if;
    end Destroy;
@@ -169,11 +151,13 @@ package body System.Garlic.Tasking is
    procedure Differ (W : in Protected_Watcher_Type; V : in Version_Id)
    is
       Updated : Boolean;
+
    begin
       pragma Assert (W.X /= null);
+      pragma Assert (Value = 0);
+
       loop
-         Abort_Defer.all;
-         W.X.Mutex.Enter;
+         Lock;
          Updated := (W.X.Value /= V);
          if not Updated then
 
@@ -181,14 +165,13 @@ package body System.Garlic.Tasking is
             --  block this task.
 
             if W.X.Count = 0
-              and then not W.X.Queue.Is_Busy
+              and then W.X.Queue.Is_Busy
             then
                W.X.Queue.Enter;
             end if;
             W.X.Count := W.X.Count + 1;
          end if;
-         W.X.Mutex.Leave;
-         Abort_Undefer.all;
+         Unlock;
          exit when Updated;
          W.X.Queue.Enter;
       end loop;
@@ -200,9 +183,7 @@ package body System.Garlic.Tasking is
 
    procedure Enter (M : in Protected_Mutex_Type) is
    begin
-      pragma Assert (M.X /= null);
-      Abort_Defer.all;
-      M.X.Enter;
+      Lock;
    end Enter;
 
    -----------
@@ -210,17 +191,8 @@ package body System.Garlic.Tasking is
    -----------
 
    procedure Enter (M : in Protected_Adv_Mutex_Type) is
-      Self : constant Task_Id := Current_Task;
    begin
-      pragma Assert (M.X /= null);
-      if M.X.Current /= Self then
-         pragma Assert (M.X.Mutex /= null);
-         M.X.Mutex.Enter;
-         pragma Assert (M.X.Current = Null_Task_Id);
-         pragma Assert (M.X.Level   = 0);
-         M.X.Current := Self;
-      end if;
-      M.X.Level := M.X.Level + 1;
+      Lock;
    end Enter;
 
    ----------------------------
@@ -229,7 +201,7 @@ package body System.Garlic.Tasking is
 
    procedure Enter_Critical_Section is
    begin
-      Enter (Critical_Section);
+      Lock;
    end Enter_Critical_Section;
 
    --------------------------
@@ -265,10 +237,6 @@ package body System.Garlic.Tasking is
 
    procedure Initialize is
    begin
-      Critical_Section.X         := new Adv_Mutex_PO;
-      Critical_Section.X.Mutex   := new Mutex_PO;
-      Critical_Section.X.Current := Null_Task_Id;
-      Critical_Section.X.Level   := 0;
       Register_Enter_Critical_Section (Enter_Critical_Section'Access);
       Register_Leave_Critical_Section (Leave_Critical_Section'Access);
       Register_Watcher_Creation_Function (Create'Access);
@@ -299,15 +267,7 @@ package body System.Garlic.Tasking is
 
    procedure Leave (M : in Protected_Adv_Mutex_Type) is
    begin
-      pragma Assert (M.X /= null
-                     and then M.X.Mutex /= null
-                     and then M.X.Current = Current_Task
-                     and then M.X.Level > 0);
-      M.X.Level := M.X.Level - 1;
-      if M.X.Level = 0 then
-         M.X.Current := Null_Task_Id;
-         M.X.Mutex.Leave;
-      end if;
+      Unlock;
    end Leave;
 
    -----------
@@ -316,9 +276,7 @@ package body System.Garlic.Tasking is
 
    procedure Leave (M : in Protected_Mutex_Type) is
    begin
-      pragma Assert (M.X /= null);
-      M.X.Leave;
-      Abort_Undefer.all;
+      Unlock;
    end Leave;
 
    ----------------------------
@@ -327,7 +285,7 @@ package body System.Garlic.Tasking is
 
    procedure Leave_Critical_Section is
    begin
-      Leave (Critical_Section);
+      Unlock;
    end Leave_Critical_Section;
 
    ----------------
@@ -339,6 +297,16 @@ package body System.Garlic.Tasking is
       System.Tasking.Debug.List_Tasks;
    end List_Tasks;
 
+   ----------
+   -- Lock --
+   ----------
+
+   procedure Lock is
+   begin
+      GNAT.Task_Lock.Lock;
+      Set_Value (Value + 1);
+   end Lock;
+
    ------------
    -- Lookup --
    ------------
@@ -346,9 +314,9 @@ package body System.Garlic.Tasking is
    procedure Lookup (W : in Protected_Watcher_Type; V : out Version_Id) is
    begin
       pragma Assert (W.X /= null);
-      W.X.Mutex.Enter;
+      Lock;
       V := W.X.Value;
-      W.X.Mutex.Leave;
+      Unlock;
    end Lookup;
 
    --------------
@@ -396,14 +364,23 @@ package body System.Garlic.Tasking is
    end Set_Priority;
 
    ------------
+   -- Unlock --
+   ------------
+
+   procedure Unlock is
+   begin
+      Set_Value (Value - 1);
+      GNAT.Task_Lock.Unlock;
+   end Unlock;
+
+   ------------
    -- Update --
    ------------
 
    procedure Update (W : in out Protected_Watcher_Type) is
    begin
       pragma Assert (W.X /= null);
-      Abort_Defer.all;
-      W.X.Mutex.Enter;
+      Lock;
       W.X.Value := W.X.Value + 1;
 
       --  Resume at least W.X.Count but maybe less than W.X.Count if
@@ -413,8 +390,7 @@ package body System.Garlic.Tasking is
          W.X.Queue.Leave;
       end loop;
       W.X.Count := 0;
-      W.X.Mutex.Leave;
-      Abort_Undefer.all;
+      Unlock;
    end Update;
 
 end System.Garlic.Tasking;
