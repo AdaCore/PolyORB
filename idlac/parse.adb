@@ -72,7 +72,7 @@ package body Parse is
       if Token = T_Colon_Colon then
          Scope := Get_Root_Scope;
       else
-         Name := Find_Identifier;
+         Name := Find_Identifier_Node;
          Next_Token;
          if Token /= T_Colon_Colon then
             if Name = null then
@@ -91,7 +91,7 @@ package body Parse is
          Next_Token;
          Scope := N_Scope_Acc (Name);
          Expect (T_Identifier);
-         Name := Find_Identifier_In_Scope (Scope);
+         Name := Find_Identifier_Node (Scope);
          Next_Token;
          exit when Token /= T_Colon_Colon;
       end loop;
@@ -249,7 +249,7 @@ package body Parse is
       Next_Token;
       Push_Scope (Res);
       Res.Parameters := Parse_Parameter_Dcls;
-      Pop_Scope (Res);
+      Pop_Scope;
       if Token = T_Raises then
          Scan_Expect (T_Left_Paren);
          Next_Token;
@@ -960,7 +960,7 @@ package body Parse is
          Append_Node (Res.Cases, N_Root_Acc (Parse_Case));
          exit when Token = T_Right_Cbracket;
       end loop;
-      Pop_Scope (Res);
+      Pop_Scope;
       Next_Token;
       return Res;
    end Parse_Union_Type;
@@ -979,7 +979,7 @@ package body Parse is
       Push_Scope (Res);
       Parse_Member_List (Res.Members);
       Expect (T_Right_Cbracket);
-      Pop_Scope (Res);
+      Pop_Scope;
       Next_Token;
       return Res;
    end Parse_Struct_Type;
@@ -1161,7 +1161,7 @@ package body Parse is
       Parse_Interface_Body (Res.Contents);
       Expect (T_Right_Cbracket);
       Next_Token;
-      Pop_Scope (Res);
+      Pop_Scope;
       return Res;
    end Parse_Interface_Dcl;
 
@@ -1180,7 +1180,7 @@ package body Parse is
       Set_Location (Res.all, Get_Location);
       Next_Token;
       Expect (T_Identifier);
-      Name := Find_Identifier;
+      Name := Find_Identifier_Definition;
       if Name /= null then
          --  There is a forward declaration for this interface.
          --  FIXME: check for redefinition.
@@ -1192,7 +1192,7 @@ package body Parse is
          Fd_Res := null;
          Res.Forward := null;
          Add_Identifier (Res);
-         Name := Find_Identifier;
+         Name := Find_Identifier_Definition;
       end if;
       Next_Token;
       if Token = T_Semi_Colon then
@@ -1313,7 +1313,7 @@ package body Parse is
          exit when Token = T_Right_Cbracket;
       end loop;
       Next_Token;
-      Pop_Scope (Res);
+      Pop_Scope;
       return Res;
    end Parse_Module;
 
@@ -1331,7 +1331,7 @@ package body Parse is
          Append_Node (Res.Contents, Parse_Definition);
          exit when Token = T_Eof;
       end loop;
-      Pop_Scope (Res);
+      Pop_Scope;
       return Res;
    end Parse_Specification;
 end Parse;

@@ -118,6 +118,14 @@ package Types is
    type Identifier_Definition is private;
    type Identifier_Definition_Acc is access Identifier_Definition;
 
+   --  Definition of a list of identifier_definition
+   type Identifier_Definition_List is private;
+
+   --  Identifiers are numbered, in order to make comparaison
+   --  easier and static. Each number is unique.
+   type Uniq_Id is new Natural;
+   Nil_Uniq_Id : constant Uniq_Id;
+
 
 
    ---------------------------
@@ -145,7 +153,8 @@ package Types is
    --  Return the named node corresponding to the identifier
    --  definition.
    --  Raises fatal_error if Cell is a null pointer
-   function Get_Node (Cell : Identifier_Definition_Acc) return N_Named_Acc;
+   function Get_Node (Definition : Identifier_Definition_Acc)
+                      return N_Named_Acc;
 
 
 
@@ -154,22 +163,18 @@ package Types is
    ----------------------
 
    --  Scopes are stacked and create an identifier space.
-   --  In a scope, an identifier has at most one meaning : a node.
-   --  Therefore, there is no overload.
-   --  For the research, the current scope is considered, and if an
-   --  identifier has no meaning in the scope, the parent scope is
-   --  looked for.
+   --  In a scope, an identifier has at most one meaning.
 
    --  Get the root (the oldest) and current (the newest) scope.
    function Get_Root_Scope return N_Scope_Acc;
    function Get_Current_Scope return N_Scope_Acc;
 
-   --  Create a new scope, defined by a node, add it in the current scope,
-   --  and activate it.
+   --  Create a new scope, defined by a N_scope node, add it in
+   --  the current scope, and activate it.
    procedure Push_Scope (Scope : access N_Scope'Class);
 
-   --  Unstack the current scope.  SCOPE is used to check coherency.
-   procedure Pop_Scope (Scope : access N_Scope'Class);
+   --  Unstack the current scope.
+   procedure Pop_Scope;
 
 
 
@@ -177,128 +182,94 @@ package Types is
    --  identifiers handling  --
    ----------------------------
 
-   --  Identifiers are numbered, in order to make comparaison easier and
-   --  static.
-   --  Package Idents provide the list of well-known identifiers.
-   type Uniq_Id is new Natural;
+   --  Get the uniq_id from an identifier
+   function Get_identifier (Identifier : String) return Uniq_Id;
 
+   --  Find the current identifier definition.
+   --  The current identifier is the one just scanned by the lexer
+   --  If this identifier is not defined, returns a null pointer.
+   function Find_Identifier_Definition return Identifier_Definition_Acc;
 
-   --  Get the uniq_id from a string.
-   function Add_Identifier (Id : String_Cacc) return Uniq_Id;
-   function Get_identifier (Id : String) return Uniq_Id;
+   --  Find the node corresponding to the current identifier.
+   --  The current identifier is the one just scanned by the lexer
+   --  If this identifier is not defined, returns a null pointer.
+   function Find_Identifier_Node return N_Named_Acc;
+
+   --  Find the node corresponding to the current identifier in a
+   --  given scope.
+   --  The current identifier is the one just scanned by the lexer
+   --  If this identifier is not defined in the given scope,
+   --  returns a null pointer.
+   function Find_Identifier_Node (Scope : N_Scope_Acc)
+                                  return N_Named_Acc;
 
    --  Change the definition (associed node) of CELL.
-   --  Must be called with care.
+   --  only used in the case of a forward interface definition
    procedure Redefine_Identifier
-     (Cell : Identifier_Definition_Acc; Node : access N_Named'Class);
+     (Definition : Identifier_Definition_Acc; Node : access N_Named'Class);
 
-   --  Find the current identifier (this that was just scaned) and returns
-   --  the node that defined it.
-   --  Return null if no node defines it.
-   function Find_Identifier return N_Named_Acc;
-
-   function Find_Identifier return Identifier_Definition_Acc;
-
-   --  Find the current identifier in a scope.
-   function Find_Identifier_In_Scope (Scope : N_Scope_Acc)
-                                      return N_Named_Acc;
-
-   --  Add the current identifier in the current scope, with its node.
-   --  Raise identifier_redefined if the identifier was already in the
-   --  scope.
-   Identifier_Redefined : exception;
-   procedure Add_Identifier (Node : access N_Named'Class);
-
-   --  Import an identifier from an other scope (this is checked) to the
-   --  current scope.
-   --  If the identifier was already defined (but not imported) in the current
-   --  scope, this has no effect (except the check).
-   --  If the identifier was already imported in the current scope, this
-   --  cancel the meaning of the identifier, so that find_identifier returns
-   --  null.  However, the identifier can be defined.
-   procedure Import_Identifier (Node : N_Named_Acc);
-
-   --  Import an identifier from an other scope to the current scope.
-   --  The identifier must not have been defined (or it returns false), and
-   --  can't be imported or defined.
-   --  Return TRUE in case of success.
-   function Import_Uniq_Identifier (Node : N_Named_Acc) return Boolean;
+   --  Creates an identifier definition for the current identifier
+   --  and add it to the current scope.
+   --  Node is the node where the identifier is defined.
+   --  Returns true if successfull, false if the identifier was
+   --  already in this scope.
+   function Add_Identifier (Node : access N_Named'Class) return Boolean;
 
 
 private
 
+   --  The basic node only contains its location (filename, line,
+   --  column)
    type N_Root is abstract tagged record
       Loc : Errors.Location;
---      Back_End : N_Back_End_Acc := null;
    end record;
 
    Nil_Node : constant N_Root_Acc := null;
 
+   --  A named node contains its identifier definition
    type N_Named is abstract new N_Root with record
-      Cell : Identifier_Definition_Acc;
+      Definition : Identifier_Definition_Acc;
    end record;
 
+   --  A scope contains all the definitions of the enclosed
+   --  identifiers
    type N_Scope is abstract new N_Named with record
-      Identifier_List : Identifier_Definition_Acc;
+      Identifier_List : Identifier_Definition_List;
    end record;
 
-   --  A scope cells is directly linked to Node, to the node that has
-   --  created the scope and the the previous scope cell (if the identifier
-   --  has been redefined inside an enclosed scope).
+   --  An identifier definition contains the following :
+   --    - the name of the identifier
+   --    - the uniq_id of the identifier
+   --    - the node in which it was defined
+   --    - the previous definition of the same identifier (if overloaded)
+   --    - a pointer on the parent scope of the node
    type Identifier_Definition is record
-      --  Index of the identifier.
-      --  This is mainly used to restore the previous meaning of the
-      --  identifier, when the scope is exited.
-      Identifier : Uniq_Id;
-
-      --  The node refered by the identifier.
+      Name : String_Cacc := null;
+      Id : Uniq_Id;
       Node : N_Named_Acc;
-
-      --  The previous scope_cell, ie OLD is the previous meaning of the
-      --  identifier.
-      Old : Identifier_Definition_Acc;
-
-      --  scope_cell of a scope are linked.
-      Next : Identifier_Definition_Acc;
-
-      --  cells with the same identifier are linked.
-      Link : Identifier_Definition_Acc;
-
-      --  Node that has created the scope.
-      Parent : N_Scope_Acc;
+      Previous_Definition : Identifier_Definition_Acc;
+      Parent_Scope : N_Scope_Acc;
    end record;
 
+   --  classical definition of a list for the identifier_definition_list
+   type Identifier_Definition_Cell;
+   type Identifier_Definition_List is access Identifier_Definition_Cell;
+   type Identifier_Definition_Cell is record
+      Definition : Identifier_Definition;
+      Next : Identifier_Definition_List;
+   end record;
 
-   --  Identifiers are looked for throught an hash table.
-   --  Currently, the number of entries in the hash table is fixed, and
-   --  collision are stored in another array.
+   Nil_Uniq_Id : constant Uniq_Id := 0;
 
-   --  Overview of scope:
-   --
-   --  hash_table:
-   --                 +---------------+-------------+-----------+
-   --                 |  id_A         |    id_B     |  id_C     |
-   --                 | link     mean |             |           |
-   --                 +--+----------+-+-------------+-----------+
-   --                    | ^        |         ^
-   --        +-----------|-|--------|+        |
-   --        V           V |        ||        |
-   --  +-------+      +----+-----+  || +------+---+
-   --  | Scope |<-----+ scope    |  |+-+ scope    |
-   --  | node  |      |  cell    +--|->|  cell    +--->null
-   --  +-------+      +--+-----+-+  |  +-+--------+
-   --                    |     +----|-----------------> Node
-   --                    |   +------+    |
-   --                    V   V           V
-   --                 +----------+      null
-   --           <-----+ scope    |
-   --                 |  cell    +----> null
-   --                 +--+-----+-+
-   --                    |     |
-   --                    V     +----------------------> Node
-   --                   null
+
+
 --
 --   INUTILE ???
+--
+--   type N_Root is abstract tagged record
+--      Loc : Errors.Location;
+--      Back_End : N_Back_End_Acc := null;
+--   end record;
 --
 --    subtype Binary_Node_Kind is Node_Kind range K_Or .. K_Mod;
 --
@@ -317,6 +288,25 @@ private
 --  private
 --
 --    type N_Back_End is abstract tagged null record;
+--
+--   function Add_Identifier (Id : String_Cacc) return Uniq_Id;
+--
+--
+--    --  Import an identifier from an other scope (this is checked) to the
+--    --  current scope.
+--    --  If the identifier was already defined (but not imported) in the
+--    --  current
+--    --  scope, this has no effect (except the check).
+--    --  If the identifier was already imported in the current scope, this
+--    --  cancel the meaning of the identifier, so that find_identifier returns
+--    --  null.  However, the identifier can be defined.
+--    procedure Import_Identifier (Node : N_Named_Acc);
+--
+--    --  Import an identifier from an other scope to the current scope.
+--    --  Return TRUE in case of success, false if the identifier was
+--    --  already defined in the current scope and cannot be imported.
+--    function Import_Uniq_Identifier (Node : N_Named_Acc) return Boolean;
+--
 
 
 end Types;
