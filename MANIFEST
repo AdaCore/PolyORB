@@ -157,6 +157,8 @@ interfaceorb/corba-sequences-unbounded.ads
 interfaceorb/corba.adb
 interfaceorb/corba.ads
 interfaceorb/dir.mk
+interfaceorb/dynamic_proxy.adb
+interfaceorb/dynamic_proxy.ads
 interfaceorb/omniObject_C2Ada.cc
 interfaceorb/omniObject_C2Ada.hh
 interfaceorb/proxyObjectFactory_C2Ada.cc
