@@ -1,4 +1,6 @@
 COPYING
+FEATURES
+INSTALL
 MANIFEST
 Makefile.am
 Makefile.in
