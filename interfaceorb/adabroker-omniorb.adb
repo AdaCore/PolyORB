@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.10 $
+--                            $Revision: 1.11 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -607,7 +607,9 @@ package body AdaBroker.OmniORB is
       C_Other  : System.Address
         := Address_To_OmniObject.To_Address (From_OmniObject_Ptr (Other));
    begin
+      pragma Debug (O ("enter Is_Equivalent"));
       C_Result := C_Is_Equivalent (Self, C_Other);
+      pragma Debug (O ("leave Is_Equivalent " & C_Result'Img));
       return Sysdep.To_Boolean (C_Result);
    end Is_Equivalent;
 
