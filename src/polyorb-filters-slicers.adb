@@ -107,17 +107,17 @@ package body PolyORB.Filters.Slicers is
             pragma Debug (O ("Expected" & F.Data_Expected'Img
                              & " bytes, received"
                              & Data_Received'Img));
-            pragma Assert
-              (Data_Received = Length (F.In_Buf) - F.Buffer_Length);
-            --  Integrity check: Receive_Buffer must have increased
-            --  Length (F.In_Buf) by exactly the amount of data received.
-
             if F.In_Buf = null
               or else Data_Received > F.Data_Expected
             then
                raise Unexpected_Data;
                --  This exception will be propagated to the ORB.
             end if;
+
+            pragma Assert
+              (Data_Received = Length (F.In_Buf) - F.Buffer_Length);
+            --  Integrity check: Receive_Buffer must have increased
+            --  Length (F.In_Buf) by exactly the amount of data received.
 
             F.Data_Expected := F.Data_Expected - Data_Received;
             F.Buffer_Length := Length (F.In_Buf);
