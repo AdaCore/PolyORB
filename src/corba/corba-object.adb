@@ -91,7 +91,7 @@ package body CORBA.Object is
      return CORBA.Object.Ref'Class
    is
       Operation_Name   : constant CORBA.Identifier
-        := CORBA.To_CORBA_String ("get_interface");
+        := CORBA.To_CORBA_String ("_interface");
 
       Request          : CORBA.Request.Object;
       Ctx              : constant CORBA.Context.Ref
@@ -485,6 +485,7 @@ package body CORBA.Object is
       begin
          Set (CORBA_Ref, E);
       end Convert_To_CORBA_Ref;
+
    end Internals;
 
    ---------------

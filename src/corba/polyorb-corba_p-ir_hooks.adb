@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---             P O L Y O R B . C O R B A _ P . I R _ T O O L S              --
+--             P O L Y O R B . C O R B A _ P . I R _ H O O K S              --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--            Copyright (C) 2005 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,77 +31,26 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Initialization;
-with PolyORB.Utils.Strings;
+package body PolyORB.CORBA_P.IR_Hooks is
 
-with CORBA.Object;
-with CORBA.ORB;
-with CORBA.Repository_Root.Repository.Helper;
-with PolyORB.CORBA_P.IR_Hooks;
+   --------------------------------------
+   -- Default_Get_Interface_Definition --
+   --------------------------------------
 
-package body PolyORB.CORBA_P.IR_Tools is
-
-   function Get_Interface_Definition
-     (Id : in CORBA.RepositoryId)
-      return CORBA.Object.Ref'Class;
-   --  Actual implementation of the Interface Repository hook routine
-   --  to be used when the Interface Repository is available.
-
-   procedure Initialize;
-
-   Repo_Root_Ref : CORBA.Repository_Root.Repository.Ref;
-
-   ----------------
-   -- Initialize --
-   ----------------
-
-   procedure Initialize is
-   begin
-      PolyORB.CORBA_P.IR_Hooks.Get_Interface_Definition :=
-        Get_Interface_Definition'Access;
-   end Initialize;
-
-   ------------------------------
-   -- Get_Interface_Definition --
-   ------------------------------
-
-   function Get_Interface_Definition
+   function Default_Get_Interface_Definition
      (Id : in CORBA.RepositoryId)
       return CORBA.Object.Ref'Class
    is
+      pragma Unreferenced (Id);
+
+      Result : CORBA.Object.Ref;
+
    begin
-      return CORBA.Repository_Root.Repository.lookup_id (Get_IR_Root, Id);
-   end Get_Interface_Definition;
+      CORBA.Raise_Intf_Repos
+        (CORBA.System_Exception_Members'
+         (Minor     => 1,
+          Completed => CORBA.Completed_No));
+      return Result;
+   end Default_Get_Interface_Definition;
 
-   -----------------
-   -- Get_IR_Root --
-   -----------------
-
-   function Get_IR_Root return CORBA.Repository_Root.Repository.Ref is
-   begin
-      if CORBA.Repository_Root.Repository.Is_Nil (Repo_Root_Ref) then
-         Repo_Root_Ref :=
-           CORBA.Repository_Root.Repository.Helper.To_Ref
-           (CORBA.ORB.Resolve_Initial_References
-            (CORBA.ORB.To_CORBA_String ("InterfaceRepository")));
-      end if;
-
-      return Repo_Root_Ref;
-   end Get_IR_Root;
-
-begin
-   declare
-      use PolyORB.Initialization;
-      use PolyORB.Initialization.String_Lists;
-      use PolyORB.Utils.Strings;
-   begin
-      Register_Module
-        (Module_Info'
-         (Name       => +"corba_p.ir_tools",
-          Conflicts => Empty,
-          Depends   => Empty,
-          Provides  => Empty,
-          Implicit  => False,
-          Init      => Initialize'Access));
-   end;
-end PolyORB.CORBA_P.IR_Tools;
+end PolyORB.CORBA_P.IR_Hooks;

@@ -622,6 +622,8 @@ src/corba/polyorb-corba_p-exceptions.ads
 src/corba/polyorb-corba_p-initial_references.adb
 src/corba/polyorb-corba_p-initial_references.ads
 src/corba/polyorb-corba_p-interceptors_hooks.ads
+src/corba/polyorb-corba_p-ir_hooks.adb
+src/corba/polyorb-corba_p-ir_hooks.ads
 src/corba/polyorb-corba_p-local.adb
 src/corba/polyorb-corba_p-local.ads
 src/corba/polyorb-corba_p-names.adb
