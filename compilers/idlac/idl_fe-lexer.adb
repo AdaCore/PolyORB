@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/idl_fe-lexer.adb#8 $
+--  $Id: //droopi/main/compilers/idlac/idl_fe-lexer.adb#9 $
 
 with Ada.Command_Line;
 with Ada.Text_IO;
@@ -1148,15 +1148,15 @@ package body Idl_Fe.Lexer is
    Arg_Count : Positive := 1;
 
 
-   --------------------
-   --  Add_Argument  --
-   --------------------
+   ------------------
+   -- Add_Argument --
+   ------------------
+
    procedure Add_Argument (Str : String) is
    begin
       Args (Arg_Count) := new String'(Str);
       Arg_Count := Arg_Count + 1;
    end Add_Argument;
-
 
    ----------------------------------------------------
    --  The main methods : initialize and next_token  --
@@ -1420,7 +1420,7 @@ package body Idl_Fe.Lexer is
         := Argument_String_To_List
           (Platform.CPP_Preprocessor);
    begin
-      for J in CPP_Arg_List'Range loop
+      for J in CPP_Arg_List'First + 1 .. CPP_Arg_List'Last loop
          Add_Argument (CPP_Arg_List (J).all);
       end loop;
 
@@ -1455,8 +1455,8 @@ package body Idl_Fe.Lexer is
       Add_Argument (Tmp_File_Name);
       Args (Arg_Count) := new String'(Filename);
       Spawn (Locate_Exec_On_Path
-               (Args (Args'First).all).all,
-             Args (Args'First + 1 .. Arg_Count),
+               (CPP_Arg_List (CPP_Arg_List'First).all).all,
+             Args (Args'First .. Arg_Count),
              Spawn_Result);
       pragma Debug (O ("Initialize: preprocessing done"));
       if not Spawn_Result then
