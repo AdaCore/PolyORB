@@ -28,6 +28,7 @@
 
 with Binderr; use Binderr;
 with Butil;   use Butil;
+with Debug;   use Debug;
 with Namet;   use Namet;
 with Opt;     use Opt;
 with Osint;   use Osint;
@@ -799,6 +800,35 @@ package body ALI is
          Unit.Table (Unit.Last).Version        := "00000000";
          Unit.Table (Unit.Last).First_With     := Withs.Last + 1;
 
+         if Debug_Flag_U then
+            Write_Str (" ----> reading unit ");
+            Write_Unit_Name (Unit.Table (Unit.Last).Uname);
+            Write_Str (" from file ");
+            Write_Name (Unit.Table (Unit.Last).Sfile);
+            Write_Eol;
+         end if;
+
+         --  Check for duplicated unit in different files
+
+         declare
+            Info : constant Int := Get_Name_Table_Info
+                                     (Unit.Table (Unit.Last).Uname);
+         begin
+            if Info /= 0
+              and then Unit.Table (Unit.Last).Sfile /=
+                       Unit.Table (Unit_Id (Info)).Sfile
+            then
+               Error_Msg ("duplicate unit name");
+               Error_Msg_Name_1 := Unit.Table (Unit.Last).Uname;
+               Error_Msg_Name_2 := Unit.Table (Unit.Last).Sfile;
+               Error_Msg ("unit & found in file %");
+               Error_Msg_Name_1 := Unit.Table (Unit_Id (Info)).Uname;
+               Error_Msg_Name_2 := Unit.Table (Unit_Id (Info)).Sfile;
+               Error_Msg ("unit & found in file %");
+               raise Unrecoverable_Error;
+            end if;
+         end;
+
          Set_Name_Table_Info (Unit.Table (Unit.Last).Uname, Int (Unit.Last));
 
          --  Scan out possible version and other parameters
@@ -1054,7 +1084,6 @@ package body ALI is
             Lbuf : String (1 .. 16_000);
             Llen : Natural := 0;
             Lptr : Natural;
-            HC   : Natural;
             Dup  : Boolean;
             Tptr : Natural;
 

@@ -70,12 +70,6 @@ package body Ada.Exceptions is
    --  or 16#xxxx_xxxx_xxxx_xxxx# for 64-bit addresses. Hex characters
    --  are in upper case.
 
-   procedure Raise_No_Msg (E : Exception_Id);
---   pragma No_Return (Raise_No_Msg);
-   pragma Export (C, Raise_No_Msg, "__gnat_raise");
-   --  Raises an exception with no message with given exception id value.
-   --  Abort is deferred before the raise call.
-
    procedure Raise_Current_Excep (E : Exception_Id);
 --   pragma No_Return (Raise_Current_Excep);
    pragma Export (C, Raise_Current_Excep, "__gnat_raise_nodefer_with_msg");
@@ -87,14 +81,6 @@ package body Ada.Exceptions is
    --  This external name for Raise_Current_Excep is historical, and probably
    --  should be changed but for now we keep it, because gdb knows about it.
    --  The parameter is also present for historical compatibility. ???
-
-   procedure Raise_With_C_Msg
-     (E : Exception_Id;
-      M : SSL.Big_String_Ptr);
---   pragma No_Return (Raise_With_C_Msg);
-   --  Raises an exception with with given exception id value and message.
-   --  M is a null terminated string with the message to be raised. Abort
-   --  is deferred before the raise call.
 
    procedure Raise_With_Msg (E : Exception_Id);
 --   pragma No_Return (Raise_With_Msg);

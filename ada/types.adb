@@ -64,6 +64,8 @@ package body Types is
       elsif Left (1) = ' ' or else Right (1) = ' ' then
          return False;
 
+      --  In the following code we check for a difference of 2 seconds or less
+
       elsif Left < Right then
          Tlo := Left;
          Thi := Right;
@@ -73,20 +75,24 @@ package body Types is
          Thi := Left;
       end if;
 
-      --  Here we check for a difference of 2 seconds or less. The smaller
-      --  of the two time stamps is in Thi, the larger is in Tlo. Recall
-      --  that the time stamp format is:
+      --  Now the smaller (older) of the two time stamps is in Tlo, the larger
+      --  (more recent) is in Thi. Recall that the time stamp format is:
 
       --     Y  Y  M  M  D  D  H  H  M  M  S  S
       --    01 02 03 04 05 06 07 08 09 10 11 12
 
       --  Note that we do not bother to worry about shifts in the day.
       --  It seems unlikely that such shifts could ever occur in practice
+      --  and even if they do we err on the safe side, ie we say that the time
+      --  stamps are different.
 
       Slo := V (Tlo, 11) + 60 * (V (Tlo, 09) + 60 * V (Tlo, 07));
       Shi := V (Thi, 11) + 60 * (V (Thi, 09) + 60 * V (Thi, 07));
 
-      return Shi <= Slo + 2;
+      --  So the check is: dates must be the same, times differ 2 sec at most
+
+      return Shi <= Slo + 2
+         and then String (Left (1 .. 6)) = String (Right (1 .. 6));
    end "=";
 
    ---------

@@ -329,6 +329,14 @@ pragma Elaborate_Body (OS_Lib);
    --  diagnostic information should be given if possible, or entry made
    --  to the debugger if that is possible).
 
+   function Errno return Integer;
+   pragma Import (C, Errno, "__get_errno");
+   --  Return the task-safe last error number.
+
+   procedure Set_Errno (Errno : Integer);
+   pragma Import (C, Set_Errno, "__set_errno");
+   --  Set the task-safe error number.
+
    Directory_Separator : constant Character;
    --  The character that is used to separate parts of a pathname.
 

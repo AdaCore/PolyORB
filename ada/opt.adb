@@ -33,11 +33,40 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Fname;   use Fname;
 with Namet;   use Namet;
 with System;  use System;
 with Tree_IO; use Tree_IO;
 
 package body Opt is
+
+   ------------------
+   -- Check_Ada_95 --
+   ------------------
+
+   function Check_Ada_95 (File_Name : File_Name_Type) return Boolean is
+      Save_Ada_83_Mode : constant Boolean := Ada_83;
+
+   begin
+      --  If internal unit, set Ada 95 mode.
+
+      if Is_Internal_File_Name
+           (Fname => File_Name,
+            Renamings_Included => True)
+      then
+         Ada_83 := False;
+         Ada_95 := True;
+
+      --  Otherwise Initialize Ada_83 mode from compiler switches
+
+      else
+         Ada_83 := Ada_83_Switch;
+         Ada_95 := not Ada_83;
+      end if;
+
+      return Save_Ada_83_Mode;
+
+   end Check_Ada_95;
 
    ---------------
    -- Tree_Read --

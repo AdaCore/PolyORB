@@ -127,7 +127,7 @@ package body Debug is
    --  dr
    --  ds
    --  dt
-   --  du
+   --  du  List units as they are acquired
    --  dv
    --  dw
    --  dx
@@ -367,6 +367,8 @@ package body Debug is
    --  dn  List details of manipulation of Num_Pred values during execution of
    --      the algorithm used to determine a correct order of elaboration. This
    --      is useful in diagnosing any problems in its behavior.
+
+   --  du  List unit name and file name for each unit as it is read in
 
    ------------------------------------------------------------
    -- Documentation for the Debug Flags used in package Make --

@@ -1,6 +1,6 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                         GNAT COMPILER COMPONENTS                         --
+--                         GNAT RUN-TIME COMPONENTS                         --
 --                                                                          --
 --                       A D A . E X C E P T I O N S                        --
 --                                                                          --
@@ -8,10 +8,32 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
--- This specification is adapted from the Ada Reference Manual for use with --
--- GNAT.  In accordance with the copyright of that document, you can freely --
--- copy and modify this specification,  provided that if you redistribute a --
--- modified version,  any changes that you have made are clearly indicated. --
+--          Copyright (C) 1992-1997 Free Software Foundation, Inc.          --
+--                                                                          --
+-- This specification is derived from the Ada Reference Manual for use with --
+-- GNAT. The copyright notice above, and the license provisions that follow --
+-- apply solely to the  contents of the part following the private keyword. --
+--                                                                          --
+-- GNAT is free software;  you can  redistribute it  and/or modify it under --
+-- terms of the  GNU General Public License as published  by the Free Soft- --
+-- ware  Foundation;  either version 2,  or (at your option) any later ver- --
+-- sion.  GNAT is distributed in the hope that it will be useful, but WITH- --
+-- OUT ANY WARRANTY;  without even the  implied warranty of MERCHANTABILITY --
+-- or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License --
+-- for  more details.  You should have  received  a copy of the GNU General --
+-- Public License  distributed with GNAT;  see file COPYING.  If not, write --
+-- to  the Free Software Foundation,  59 Temple Place - Suite 330,  Boston, --
+-- MA 02111-1307, USA.                                                      --
+--                                                                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+-- GNAT was originally developed  by the GNAT team at  New York University. --
+-- It is now maintained by Ada Core Technologies Inc (http://www.gnat.com). --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -29,7 +51,6 @@ package Ada.Exceptions is
    Null_Occurrence : constant Exception_Occurrence;
 
    function Exception_Name (X : Exception_Occurrence) return String;
-   pragma Inline (Exception_Name);
    --  Same as Exception_Name (Exception_Identity (X))
 
    function Exception_Name (X : Exception_Id) return String;
@@ -46,7 +67,6 @@ package Ada.Exceptions is
    procedure Reraise_Occurrence (X : Exception_Occurrence);
 
    function Exception_Identity (X : Exception_Occurrence) return Exception_Id;
-   pragma Inline (Exception_Identity);
 
    function Exception_Information (X : Exception_Occurrence) return String;
    --  The format of the exception information is as follows:
@@ -161,6 +181,21 @@ private
    --  the compiler generated code (using Rtsfind, which does not respect
    --  the private barrier, so we can place this function in the private
    --  part where the compiler can find it, but the spec is unchanged.)
+
+   procedure Raise_No_Msg (E : Exception_Id);
+--   pragma No_Return (Raise_No_Msg);
+   pragma Export (C, Raise_No_Msg, "__gnat_raise");
+   --  Raises an exception with no message with given exception id value.
+   --  Abort is deferred before the raise call.
+
+   procedure Raise_With_C_Msg
+     (E : Exception_Id;
+      M : SSL.Big_String_Ptr);
+   pragma Export (Ada, Raise_With_C_Msg, "ada__exceptions__raise_with_c_msg");
+--   pragma No_Return (Raise_With_C_Msg);
+   --  Raises an exception with with given exception id value and message.
+   --  M is a null terminated string with the message to be raised. Abort
+   --  is deferred before the raise call.
 
    procedure Reraise_Occurrence_No_Defer (X : Exception_Occurrence);
    --  Exactly like Reraise_Occurrence, except that abort is not deferred
