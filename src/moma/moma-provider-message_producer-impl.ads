@@ -32,13 +32,13 @@
 
 --  $Id$
 
+with MOMA.Types;
 with PolyORB.References;
-with PolyORB.Types;
 
 package MOMA.Provider.Message_Producer.Impl is
 
    function Publish (Self    : in PolyORB.References.Ref;
-                     Message : in PolyORB.Types.String)
-                     return PolyORB.Types.String;
+                     Message : in MOMA.Types.String)
+                     return MOMA.Types.String;
 
 end MOMA.Provider.Message_Producer.Impl;

@@ -4,7 +4,7 @@ package body MOMA.Messages.MArrays is
    -- Read_Array --
    ----------------
 
-   function Read_Array return Array_Type is
+   function Read_Array return MOMA.Types.Array_Type is
    begin
       pragma Warnings (Off);
       return Read_Array;
@@ -15,7 +15,7 @@ package body MOMA.Messages.MArrays is
    -- Set_Array --
    ---------------
 
-   procedure Set_Array (Value : Array_Type) is
+   procedure Set_Array (Value : MOMA.Types.Array_Type) is
    begin
       pragma Warnings (Off);
       pragma Unreferenced (Value);

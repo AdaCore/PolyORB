@@ -32,15 +32,15 @@
 
 --  $Id$
 
-with PolyORB.Log;
-with PolyORB.Types;
+with MOMA.Types;
 with MOMA.Message_Pool.Warehouse;
+with PolyORB.Log;
 
 package body MOMA.Message_Pool.Impl is
 
-   use PolyORB.Log;
-   use PolyORB.Types;
+   use MOMA.Types;
    use MOMA.Message_Pool.Warehouse;
+   use PolyORB.Log;
 
    package L is new PolyORB.Log.Facility_Log ("moma.message_pool.impl");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
@@ -58,13 +58,13 @@ package body MOMA.Message_Pool.Impl is
    -- Publish --
    -------------
 
-   function Publish (Message : in PolyORB.Types.String)
-                     return PolyORB.Types.String is
+   function Publish (Message : in MOMA.Types.String)
+                     return MOMA.Types.String is
       Temp : constant String := Integer'Image (Message_Id);
       Key  : constant String := "M" & Temp (2 .. Temp'Last);
       --  Dummy Key construction, should be analyzed from message
    begin
-      pragma Debug (O ("Got new message " & To_String (Message)
+      pragma Debug (O ("Got new message " & To_Standard_String (Message)
                        & " with Key " & Key));
 
       Ensure_Initialization (W);
@@ -73,18 +73,19 @@ package body MOMA.Message_Pool.Impl is
 
       Register (W, Key, Message);
 
-      return To_PolyORB_String (Key);
+      return To_MOMA_String (Key);
    end Publish;
 
    ---------
    -- Get --
    ---------
 
-   function Get (Message_Id : in PolyORB.Types.String)
-                 return PolyORB.Types.String is
+   function Get (Message_Id : in MOMA.Types.String)
+                 return MOMA.Types.String is
    begin
-      pragma Debug (O ("Sending back message " & To_String (Message_Id)));
-      return Lookup (W, To_String (Message_Id));
+      pragma Debug (O ("Sending back message "
+                       & To_Standard_String (Message_Id)));
+      return Lookup (W, To_Standard_String (Message_Id));
    end Get;
 
 end MOMA.Message_Pool.Impl;

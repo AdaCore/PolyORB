@@ -33,7 +33,7 @@
 --  $Id$
 
 with Ada.Calendar; use Ada.Calendar;
-with Temp; use Temp;
+with MOMA.Types;
 with MOMA.Destinations;
 with PolyORB.References;
 
@@ -48,10 +48,10 @@ package MOMA.Message_Producers is
    procedure Set_Persistent (Self : in out Message_Producer;
                              Persistent : Boolean);
 
-   function Get_Priority (Self : Message_Producer) return Priority;
+   function Get_Priority (Self : Message_Producer) return MOMA.Types.Priority;
 
    procedure Set_Priority (Self : in out Message_Producer;
-                           Value : Priority);
+                           Value : MOMA.Types.Priority);
 
    function Get_Time_To_Live (Self : Message_Producer) return Time;
 
@@ -71,7 +71,7 @@ package MOMA.Message_Producers is
 
 private
    type Message_Producer is abstract tagged record
-      Priority_Level : Priority;
+      Priority_Level : MOMA.Types.Priority;
       Persistent     : Boolean;
       TTL            : Time;
       Destination    : MOMA.Destinations.Destination;

@@ -57,7 +57,8 @@ package body MOMA.Message_Producers is
    -- Get_Persistent --
    --------------------
 
-   function Get_Persistent (Self : Message_Producer) return Boolean is
+   function Get_Persistent (Self : Message_Producer)
+                            return Boolean is
    begin
       return Self.Persistent;
    end Get_Persistent;
@@ -66,7 +67,8 @@ package body MOMA.Message_Producers is
    -- Get_Priority --
    ------------------
 
-   function Get_Priority (Self : Message_Producer) return Priority is
+   function Get_Priority (Self : Message_Producer)
+                          return MOMA.Types.Priority is
    begin
       return Self.Priority_Level;
    end Get_Priority;
@@ -75,7 +77,8 @@ package body MOMA.Message_Producers is
    -- Get_Ref --
    -------------
 
-   function Get_Ref (Self : Message_Producer) return PolyORB.References.Ref is
+   function Get_Ref (Self : Message_Producer)
+                     return PolyORB.References.Ref is
    begin
       return Self.Ref;
    end Get_Ref;
@@ -84,7 +87,8 @@ package body MOMA.Message_Producers is
    -- Get_Time_To_Live --
    ----------------------
 
-   function Get_Time_To_Live (Self : Message_Producer) return Time is
+   function Get_Time_To_Live (Self : Message_Producer)
+                              return Time is
    begin
       return Self.TTL;
    end Get_Time_To_Live;
@@ -114,7 +118,7 @@ package body MOMA.Message_Producers is
    ------------------
 
    procedure Set_Priority (Self : in out Message_Producer;
-                           Value : Priority) is
+                           Value : MOMA.Types.Priority) is
    begin
       Self.Priority_Level := Value;
    end Set_Priority;

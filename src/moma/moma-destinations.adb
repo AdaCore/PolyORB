@@ -47,7 +47,7 @@ package body MOMA.Destinations is
    -- Get_Name --
    --------------
 
-   function Get_Name (Self : Destination) return PolyORB.Types.String is
+   function Get_Name (Self : Destination) return MOMA.Types.String is
    begin
       return Self.Name;
    end Get_Name;
@@ -57,7 +57,7 @@ package body MOMA.Destinations is
    --------------
 
    procedure Set_Name (Self : in out Destination;
-                       Name : PolyORB.Types.String) is
+                       Name : MOMA.Types.String) is
    begin
       Self.Name := Name;
    end Set_Name;

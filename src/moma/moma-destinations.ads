@@ -32,17 +32,17 @@
 
 --  $Id$
 
-with PolyORB.Types;
+with MOMA.Types;
 with PolyORB.References;
 
 package MOMA.Destinations is
 
    type Destination is tagged private;
 
-   function Get_Name (Self : Destination) return PolyORB.Types.String;
+   function Get_Name (Self : Destination) return MOMA.Types.String;
 
    procedure Set_Name (Self : in out Destination;
-                       Name : PolyORB.Types.String);
+                       Name : MOMA.Types.String);
 
    function Get_Ref (Self : Destination) return PolyORB.References.Ref;
 
@@ -53,7 +53,7 @@ package MOMA.Destinations is
 
 private
    type Destination is tagged record
-      Name : PolyORB.Types.String;
+      Name : MOMA.Types.String;
       Ref  : PolyORB.References.Ref;
    end record;
 end MOMA.Destinations;

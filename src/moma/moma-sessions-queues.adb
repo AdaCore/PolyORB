@@ -38,6 +38,7 @@ with MOMA.Message_Consumers;
 with MOMA.Message_Producers;
 with MOMA.Provider.Message_Consumer;
 with MOMA.Provider.Message_Producer;
+with MOMA.Types;
 with PolyORB.MOMA_P.Tools;
 with PolyORB.References;
 
@@ -55,7 +56,7 @@ package body MOMA.Sessions.Queues is
 
    function Create_Queue
      (Connection : MOMA.Connections.Queues.Queue;
-      Queue_Name : PolyORB.Types.String)
+      Queue_Name : MOMA.Types.String)
       return MOMA.Destinations.Destination
    is
       Dest_Queue : MOMA.Destinations.Destination;
@@ -71,10 +72,10 @@ package body MOMA.Sessions.Queues is
 
    function Create_Session
      (Transacted : Boolean;
-      Acknowledge_Mode : Acknowledge_Type)
-      return Sessions.Queues.Queue
+      Acknowledge_Mode : MOMA.Types.Acknowledge_Type)
+      return MOMA.Sessions.Queues.Queue
    is
-      Queue : Sessions.Queues.Queue;
+      Queue : MOMA.Sessions.Queues.Queue;
    begin
       Queue.Transacted := Transacted;
       Queue.Acknowledge_Mode := Acknowledge_Mode;
@@ -123,7 +124,7 @@ package body MOMA.Sessions.Queues is
 
    function Create_Receiver
      (Queue : MOMA.Destinations.Destination;
-      Message_Selector : String)
+      Message_Selector : MOMA.Types.String)
       return MOMA.Message_Consumers.Queues.Queue
    is
    begin

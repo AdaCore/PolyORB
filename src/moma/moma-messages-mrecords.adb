@@ -4,7 +4,7 @@ package body MOMA.Messages.MRecords is
    -- Read_Record --
    -----------------
 
-   function Read_Record return Record_Type is
+   function Read_Record return MOMA.Types.Record_Type is
    begin
       pragma Warnings (Off);
       return Read_Record;
@@ -15,7 +15,7 @@ package body MOMA.Messages.MRecords is
    -- Set_Record --
    ----------------
 
-   procedure Set_Record (Value : Record_Type) is
+   procedure Set_Record (Value : MOMA.Types.Record_Type) is
    begin
       pragma Warnings (Off);
       pragma Unreferenced (Value);

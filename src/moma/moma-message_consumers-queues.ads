@@ -32,10 +32,11 @@
 
 --  $Id$
 
+with Ada.Calendar; use Ada.Calendar;
+
 with MOMA.Destinations.Queues;
 with MOMA.Messages;
-with Ada.Calendar; use Ada.Calendar;
-with PolyORB.Types;
+with MOMA.Types;
 
 package MOMA.Message_Consumers.Queues is
 
@@ -43,7 +44,7 @@ package MOMA.Message_Consumers.Queues is
 
    function Get_Queue return MOMA.Destinations.Queues.Queue;
 
-   function Receive (Self : Queue) return PolyORB.Types.String;
+   function Receive (Self : Queue) return MOMA.Types.String;
 
    function Receive (Timeout : Time) return MOMA.Messages.Message;
 

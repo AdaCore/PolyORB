@@ -32,11 +32,9 @@
 
 --  $Id$
 
-with PolyORB.Types;
+with MOMA.Types;
 
 package body MOMA.Connections is
-
-   use PolyORB.Types;
 
    -----------
    -- Close --
@@ -51,9 +49,10 @@ package body MOMA.Connections is
    -- Get_Client_Id --
    -------------------
 
-   function Get_Client_Id (Self : Connection) return String is
+   function Get_Client_Id (Self : Connection)
+                           return MOMA.Types.String is
    begin
-      return To_String (Self.Client_Id);
+      return Self.Client_Id;
    end Get_Client_Id;
 
    -------------------
@@ -61,9 +60,9 @@ package body MOMA.Connections is
    -------------------
 
    procedure Set_Client_Id (Self : in out Connection;
-                            Client_Id : String) is
+                            Client_Id : MOMA.Types.String) is
    begin
-      Self.Client_Id := To_PolyORB_String (Client_Id);
+      Self.Client_Id := Client_Id;
    end Set_Client_Id;
 
    -------------
@@ -107,7 +106,7 @@ package body MOMA.Connections is
    -- Get_Meta_Data --
    -------------------
 
-   function Get_Meta_Data return Meta_Data is
+   function Get_Meta_Data return MOMA.Types.Meta_Data is
    begin
       return 0;
    end Get_Meta_Data;

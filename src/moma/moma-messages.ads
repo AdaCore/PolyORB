@@ -32,9 +32,9 @@
 
 --  $Id$
 
+with Ada.Calendar;
 with MOMA.Destinations;
-with Ada.Calendar; use Ada.Calendar;
-with Temp; use Temp;
+with MOMA.Types;
 
 package MOMA.Messages is
 
@@ -44,7 +44,7 @@ package MOMA.Messages is
 
    procedure Clear_Body;
 
-   function Get_Property (Name : String) return Property_Type;
+   function Get_Property (Name : String) return MOMA.Types.Property_Type;
 
    function Get_Correlation_Id return String;
 
@@ -53,18 +53,18 @@ package MOMA.Messages is
    function Get_Destination
      return MOMA.Destinations.Destination is abstract;
 
-   function Get_Expiration return Time;
+   function Get_Expiration return Ada.Calendar.Time;
 
    function Get_Message_Id return String;
 
-   function Get_Priority return Priority;
+   function Get_Priority return MOMA.Types.Priority;
 
    function Get_Redelivered return Boolean;
 
    function Get_Reply_To
      return MOMA.Destinations.Destination is abstract;
 
-   function Get_Timestamp return Time;
+   function Get_Timestamp return Ada.Calendar.Time;
 
    function Get_Type return String;
 
@@ -74,7 +74,7 @@ package MOMA.Messages is
 
    function Property_Exists (Name : String) return Boolean;
 
-   procedure Set_Property (Name : String; Value : Property_Type);
+   procedure Set_Property (Name : String; Value : MOMA.Types.Property_Type);
 
    procedure Set_Correlation_Id (Correlation_Id : String);
 
@@ -82,17 +82,17 @@ package MOMA.Messages is
 
    procedure Set_Destination (Destination : MOMA.Destinations.Destination);
 
-   procedure Set_Expiration (Expiration : Time);
+   procedure Set_Expiration (Expiration : Ada.Calendar.Time);
 
    procedure Set_Message_Id (Id : String);
 
-   procedure Set_Priority (Value : Priority);
+   procedure Set_Priority (Value : MOMA.Types.Priority);
 
    procedure Set_Redelivered (Redelivered : Boolean);
 
    procedure Set_Reply_To (Reply_To : MOMA.Destinations.Destination);
 
-   procedure Set_Timestamp (Timestamp : Time);
+   procedure Set_Timestamp (Timestamp : Ada.Calendar.Time);
 
    -- Abstract Functions and Procedures --
 

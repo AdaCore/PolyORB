@@ -33,10 +33,8 @@
 --  $Id$
 
 with MOMA.Message_Consumers;
-with PolyORB.Types;
+with MOMA.Types;
 with PolyORB.References;
-
-with Temp; use Temp;
 
 package MOMA.Connections is
 
@@ -44,10 +42,10 @@ package MOMA.Connections is
 
    procedure Close;
 
-   function Get_Client_Id (Self : Connection) return String;
+   function Get_Client_Id (Self : Connection) return MOMA.Types.String;
 
    procedure Set_Client_Id (Self : in out Connection;
-                            Client_Id : String);
+                            Client_Id : MOMA.Types.String);
 
    function Get_Ref (Self : Connection) return PolyORB.References.Ref;
 
@@ -58,7 +56,7 @@ package MOMA.Connections is
 
    procedure Stop;
 
-   function Get_Meta_Data return Meta_Data;
+   function Get_Meta_Data return MOMA.Types.Meta_Data;
 
 
    function Create_Consumer return Message_Consumers.Message_Consumer
@@ -78,7 +76,7 @@ package MOMA.Connections is
 
 private
    type Connection is abstract tagged record
-      Client_Id : PolyORB.Types.String;
+      Client_Id : MOMA.Types.String;
       Ref : PolyORB.References.Ref;
    end record;
 

@@ -32,12 +32,14 @@
 
 --  $Id$
 
+with MOMA.Types;
+
 package MOMA.Message_Pool.Impl is
 
-   function Publish (Message : in PolyORB.Types.String)
-                     return PolyORB.Types.String;
+   function Publish (Message : in MOMA.Types.String)
+                     return MOMA.Types.String;
 
-   function Get (Message_Id : in PolyORB.Types.String)
-                 return PolyORB.Types.String;
+   function Get (Message_Id : in MOMA.Types.String)
+                 return MOMA.Types.String;
 
 end MOMA.Message_Pool.Impl;

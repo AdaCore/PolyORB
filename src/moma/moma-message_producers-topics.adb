@@ -30,7 +30,7 @@ package body MOMA.Message_Producers.Topics is
    procedure Publish
      (Message : MOMA.Messages.Message'Class;
       Persistent : Boolean;
-      Priority_Value : Priority;
+      Priority_Value : MOMA.Types.Priority;
       TTL : Time)
    is
    begin

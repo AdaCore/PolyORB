@@ -38,35 +38,19 @@ with MOMA.Message_Consumers.Topics;
 
 package MOMA.Connections.Topics is
 
-   -------------------
-   --  Object Topic --
-   -------------------
-
    type Topic is new Connection with null record;
 
-   -------------------------------
-   --  Create_Consumer Function --
-   -------------------------------
-
-   function Create_Consumer (Topic : Destinations.Topics.Topic;
+   function Create_Consumer (Topic : MOMA.Destinations.Topics.Topic;
                              Message_Selector : String)
-                            return Message_Consumers.Topics.Topic;
-
-   ------------------------------
-   --  Create_Session Function --
-   ------------------------------
+                             return MOMA.Message_Consumers.Topics.Topic;
 
    function Create_Session (Self : Topic;
                             Transacted : Boolean;
-                            Ackowledge_Mode : Acknowledge_Type)
-                           return Sessions.Topics.Topic;
+                            Ackowledge_Mode : MOMA.Types.Acknowledge_Type)
+                            return MOMA.Sessions.Topics.Topic;
 
-   --------------------------------------
-   -- Create_Durable_Consumer Function --
-   --------------------------------------
-
-   function Create_Durable_Consumer  (Topic : Destinations.Topics.Topic;
+   function Create_Durable_Consumer  (Topic : MOMA.Destinations.Topics.Topic;
                                       Message_Selector : String)
-                                     return Message_Consumers.Topics.Topic;
+                                      return Message_Consumers.Topics.Topic;
 
 end MOMA.Connections.Topics;

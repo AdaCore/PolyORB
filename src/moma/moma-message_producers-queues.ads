@@ -34,8 +34,7 @@
 
 with MOMA.Destinations.Queues;
 with MOMA.Messages;
-with Temp; use Temp;
-with PolyORB.Types;
+with MOMA.Types;
 
 package MOMA.Message_Producers.Queues is
 
@@ -44,11 +43,11 @@ package MOMA.Message_Producers.Queues is
    function Get_Queue return MOMA.Destinations.Queues.Queue;
 
    procedure Send (Self    : Queue;
-                   Message : PolyORB.Types.String);
+                   Message : MOMA.Types.String);
 
    procedure Send (Message        : MOMA.Messages.Message'Class;
                    Persistent     : Boolean;
-                   Priority_Value : Priority;
+                   Priority_Value : MOMA.Types.Priority;
                    TTL            : Time);
 
 end MOMA.Message_Producers.Queues;

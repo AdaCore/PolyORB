@@ -36,10 +36,10 @@ package MOMA.Destinations.Topics is
 
    type Topic is new Destination with null record;
 
-   function Get_Name (Self : Topic) return PolyORB.Types.String;
+   function Get_Name (Self : Topic) return MOMA.Types.String;
 
    procedure Set_Name (Self : in out Topic;
-                       Name : PolyORB.Types.String);
+                       Name : MOMA.Types.String);
 
    function Get_Ref (Self : Topic) return PolyORB.References.Ref;
 

@@ -53,11 +53,10 @@ package body MOMA.Messages is
    ----------------------------
    --  Get_Property Function --
    ----------------------------
-   function Get_Property (Name : String) return Property_Type is
+   function Get_Property (Name : String) return MOMA.Types.Property_Type is
    begin
       pragma Warnings (Off);
       return Get_Property (Name);
-      pragma Unreferenced (Name);
       pragma Warnings (On);
    end Get_Property;
 
@@ -80,7 +79,7 @@ package body MOMA.Messages is
    ------------------------------
    --  Get_Expiration Function --
    ------------------------------
-   function Get_Expiration return Time is
+   function Get_Expiration return Ada.Calendar.Time is
    begin
       pragma Warnings (Off);
       return Get_Expiration;
@@ -98,7 +97,7 @@ package body MOMA.Messages is
    ----------------------------
    --  Get_Priority Function --
    ----------------------------
-   function Get_Priority return Priority is
+   function Get_Priority return MOMA.Types.Priority is
    begin
       pragma Warnings (Off);
       return Get_Priority;
@@ -116,7 +115,7 @@ package body MOMA.Messages is
    -----------------------------
    --  Get_Timestamp Function --
    -----------------------------
-   function Get_Timestamp return Time is
+   function Get_Timestamp return Ada.Calendar.Time is
    begin
       pragma Warnings (Off);
       return Get_Timestamp;
@@ -154,7 +153,7 @@ package body MOMA.Messages is
    -----------------------------
    --  Set_Property Procedure --
    -----------------------------
-   procedure Set_Property (Name : String; Value : Property_Type) is
+   procedure Set_Property (Name : String; Value : MOMA.Types.Property_Type) is
    begin
       pragma Warnings (Off);
       pragma Unreferenced (Name);
@@ -199,7 +198,7 @@ package body MOMA.Messages is
    -------------------------------
    --  Set_Expiration Procedure --
    -------------------------------
-   procedure Set_Expiration (Expiration : Time) is
+   procedure Set_Expiration (Expiration : Ada.Calendar.Time) is
    begin
       pragma Warnings (Off);
       pragma Unreferenced (Expiration);
@@ -221,7 +220,7 @@ package body MOMA.Messages is
    -----------------------------
    --  Set_Priority Procedure --
    -----------------------------
-   procedure Set_Priority (Value : Priority) is
+   procedure Set_Priority (Value : MOMA.Types.Priority) is
    begin
       pragma Warnings (Off);
       pragma Unreferenced (Value);
@@ -254,7 +253,7 @@ package body MOMA.Messages is
    ------------------------------
    --  Set_Timestamp Procedure --
    ------------------------------
-   procedure Set_Timestamp (Timestamp : Time) is
+   procedure Set_Timestamp (Timestamp : Ada.Calendar.Time) is
    begin
       pragma Warnings (Off);
       pragma Unreferenced (Timestamp);

@@ -34,21 +34,19 @@
 
 with PolyORB.References;
 with PolyORB.References.IOR;
-with PolyORB.Types;
 with MOMA.Connections;
 
 package body MOMA.Connection_Factories.Queues is
 
    use PolyORB.References;
    use PolyORB.References.IOR;
-   use PolyORB.Types;
    use MOMA.Connections;
 
    ------------
    -- Create --
    ------------
 
-   function Create (IOR_String : PolyORB.Types.String)
+   function Create (IOR_String : MOMA.Types.String)
                     return MOMA.Connections.Queues.Queue
    is
       Queue : MOMA.Connections.Queues.Queue;

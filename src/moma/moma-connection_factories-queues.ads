@@ -46,7 +46,7 @@ package MOMA.Connection_Factories.Queues is
    -- Functions Create --
    ----------------------
 
-   function Create (IOR_String : PolyORB.Types.String)
+   function Create (IOR_String : MOMA.Types.String)
                     return MOMA.Connections.Queues.Queue;
 
    function Create (Username : String; Password : String)

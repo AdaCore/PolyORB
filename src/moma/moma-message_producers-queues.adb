@@ -108,7 +108,7 @@ package body MOMA.Message_Producers.Queues is
    procedure Send
      (Message        : MOMA.Messages.Message'Class;
       Persistent     : Boolean;
-      Priority_Value : Priority;
+      Priority_Value : MOMA.Types.Priority;
       TTL            : Time)
    is
    begin

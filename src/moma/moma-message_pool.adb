@@ -32,17 +32,21 @@
 
 --  $Id$
 
-with PolyORB.Any; use PolyORB.Any;
-with PolyORB.Any.NVList; use PolyORB.Any.NVList;
+with PolyORB.Any;
+with PolyORB.Any.NVList;
 with PolyORB.Log;
-with PolyORB.Types; use PolyORB.Types;
-with PolyORB.Requests; use PolyORB.Requests;
+with PolyORB.Types;
+with PolyORB.Requests;
 
 with MOMA.Message_Pool.Impl;
 
 package body MOMA.Message_Pool is
 
+   use PolyORB.Any;
+   use PolyORB.Any.NVList;
    use PolyORB.Log;
+   use PolyORB.Types;
+   use PolyORB.Requests;
 
    package L is new PolyORB.Log.Facility_Log ("moma.message_pool");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)

@@ -71,8 +71,8 @@ package body MOMA.Connections.Topics is
    function Create_Session
      (Self : Topic;
       Transacted : Boolean;
-      Ackowledge_Mode : Acknowledge_Type)
-      return Sessions.Topics.Topic
+      Ackowledge_Mode : MOMA.Types.Acknowledge_Type)
+      return MOMA.Sessions.Topics.Topic
    is
    begin
       pragma Warnings (Off);

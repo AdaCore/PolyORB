@@ -32,30 +32,30 @@
 
 --  $Id$
 
+with MOMA.Connections.Queues;
 with MOMA.Destinations;
 with MOMA.Message_Consumers.Queues;
 with MOMA.Message_Producers.Queues;
-with PolyORB.Types;
-with MOMA.Connections.Queues;
+with MOMA.Types;
 
 package MOMA.Sessions.Queues is
 
    type Queue is new Session with null record;
 
    function Create_Queue (Connection : MOMA.Connections.Queues.Queue;
-                          Queue_Name : PolyORB.Types.String)
+                          Queue_Name : MOMA.Types.String)
                           return MOMA.Destinations.Destination;
 
-   function Create_Session (Transacted : Boolean;
-                            Acknowledge_Mode : Acknowledge_Type)
-                            return Sessions.Queues.Queue;
+   function Create_Session (Transacted       : Boolean;
+                            Acknowledge_Mode : MOMA.Types.Acknowledge_Type)
+                            return MOMA.Sessions.Queues.Queue;
 
    function Create_Receiver (Self : Queue;
                              Dest : MOMA.Destinations.Destination)
                              return MOMA.Message_Consumers.Queues.Queue;
 
-   function Create_Receiver (Queue : MOMA.Destinations.Destination;
-                             Message_Selector : String)
+   function Create_Receiver (Queue            : MOMA.Destinations.Destination;
+                             Message_Selector : MOMA.Types.String)
                              return MOMA.Message_Consumers.Queues.Queue;
 
    function Create_Sender (Self : Queue;

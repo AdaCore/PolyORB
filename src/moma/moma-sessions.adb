@@ -112,8 +112,8 @@ package body MOMA.Sessions is
    --------------------------
 
    function Create_Text_Message
-     (Value : String)
-      return Messages.MTexts.MText
+     (Value : MOMA.Types.String)
+      return MOMA.Messages.MTexts.MText
    is
    begin
       pragma Warnings (Off);

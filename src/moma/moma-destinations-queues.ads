@@ -36,10 +36,10 @@ package MOMA.Destinations.Queues is
 
    type Queue is new Destination with null record;
 
-   function Get_Name (Self : Queue) return PolyORB.Types.String;
+   function Get_Name (Self : Queue) return MOMA.Types.String;
 
    procedure Set_Name (Self : in out Queue;
-                       Name : PolyORB.Types.String);
+                       Name : MOMA.Types.String);
 
    function Get_Ref (Self : Queue) return PolyORB.References.Ref;
 

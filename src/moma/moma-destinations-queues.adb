@@ -47,7 +47,7 @@ package body MOMA.Destinations.Queues is
    -- Get_Name --
    --------------
 
-   function Get_Name (Self : Queue) return PolyORB.Types.String is
+   function Get_Name (Self : Queue) return MOMA.Types.String is
    begin
       return Self.Name;
    end Get_Name;
@@ -57,7 +57,7 @@ package body MOMA.Destinations.Queues is
    --------------
 
    procedure Set_Name (Self : in out Queue;
-                       Name : PolyORB.Types.String) is
+                       Name : MOMA.Types.String) is
    begin
       Self.Name := Name;
    end Set_Name;
