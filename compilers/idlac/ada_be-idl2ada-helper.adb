@@ -2426,6 +2426,7 @@ package body Ada_Be.Idl2Ada.Helper is
          if Is_Array then
             Gen_Array_TC (CU, Type_Node, Node);
          else
+            Add_With (CU, Ada_Helper_Name (Type_Node));
             PL (CU, "CORBA.TypeCode.Internals.Add_Parameter ("
                 & Ada_TC_Name (Node)
                 & ", CORBA.To_Any (Name));");
