@@ -96,22 +96,32 @@ package body Exp_Hlpr is
 
    --  Common subprograms for building record helpers
 
+   function Empty_Start_Dimen
+     (Loc   : Source_Ptr;
+      Dimen : Integer)
+      return List_Id;
+   --  Return Empty.
+
+   generic
+      with function Build_Start_Dimen
+        (Loc   : Source_Ptr;
+         Dimen : Integer)
+         return List_Id
+        is Empty_Start_Dimen;
    function Make_Array_Iterator
      (Subprogram    : Entity_Id;
       Arry          : Entity_Id;
       Innermost_Stm : Node_Id;
-      Indices       : List_Id;
-      Start_Dimen   : Entity_Id := Empty)
+      Indices       : List_Id)
       return Node_Id;
    --  Build nested loop statements that iterate over the elements
    --  of an array Arry. Statement Innermost_Stm is executed
    --  for each element; Indices is the list of indices to be used
    --  in the construction of the indexed component that denotes
    --  the current element. Subprogram is the entity for the subprogram
-   --  for which this iterator is generated. If Start_Dimen is not Empty,
-   --  it must be the name of a subprogram taking one integer parameter,
-   --  to be executed at the beginning of each dimension. The actual for
-   --  the parameter is the rank of the dimension.
+   --  for which this iterator is generated. Build_Start_Dimen returns
+   --  an optional list of statements to be executed at the beginning of
+   --  each dimension.
 
    generic
       with procedure Process_One_Field (E : Entity_Id);
@@ -486,6 +496,9 @@ package body Exp_Hlpr is
       elsif (Is_Array_Type (Typ) and then Is_Constrained (Typ)) then
 
          declare
+
+            function Make_From_Any_Array_Iterator is new Make_Array_Iterator;
+
             Assign_Component : Node_Id;
             Indices : constant List_Id := New_List;
 
@@ -552,7 +565,7 @@ package body Exp_Hlpr is
                            Make_Integer_Literal (Loc, 1))))));
 
             Append_To (Stms,
-              Make_Array_Iterator (Fnam,
+              Make_From_Any_Array_Iterator (Fnam,
                 Res,
                 Assign_Component,
                 Indices));
@@ -926,6 +939,8 @@ package body Exp_Hlpr is
       elsif (Is_Array_Type (Typ) and then Is_Constrained (Typ)) then
 
          declare
+            function Make_To_Any_Array_Iterator is new Make_Array_Iterator;
+
             Indices : constant List_Id := New_List;
             Component : Node_Id;
          begin
@@ -942,7 +957,7 @@ package body Exp_Hlpr is
             Set_Etype (Component, Component_Type (Typ));
 
             Append_To (Stms,
-              Make_Array_Iterator (Fnam,
+              Make_To_Any_Array_Iterator (Fnam,
                 Expr_Parameter,
                 Make_Procedure_Call_Statement (Loc,
                   Name =>
@@ -1497,6 +1512,20 @@ package body Exp_Hlpr is
       end if;
    end Compile_Stream_Body_In_Scope;
 
+   -----------------------
+   -- Empty_Start_Dimen --
+   -----------------------
+
+   function Empty_Start_Dimen
+     (Loc   : Source_Ptr;
+      Dimen : Integer)
+      return List_Id
+   is
+      pragma Unreferenced (Loc, Dimen);
+   begin
+      return No_List;
+   end Empty_Start_Dimen;
+
    ------------------------
    -- Find_Inherited_TSS --
    ------------------------
@@ -1622,15 +1651,14 @@ package body Exp_Hlpr is
      (Subprogram    : Entity_Id;
       Arry          : Entity_Id;
       Innermost_Stm : Node_Id;
-      Indices       : List_Id;
-      Start_Dimen   : Entity_Id := Empty)
+      Indices       : List_Id)
       return Node_Id
    is
       Loc       : constant Source_Ptr := Sloc (Subprogram);
       Typ       : constant Entity_Id  := Etype (Arry);
       Ndim      : constant Pos        := Number_Dimensions (Typ);
       Inner_Stm : Node_Id             := Innermost_Stm;
-
+      Stm_List  : List_Id;
    begin
       for J in 1 .. Ndim loop
          Append_To (Indices,
@@ -1658,17 +1686,13 @@ package body Exp_Hlpr is
          --  is required at the beginning of each dimension. Call the
          --  appropriate subprogram (Start_Dimen).
 
-         if Present (Start_Dimen) then
+         Stm_List := Build_Start_Dimen (Loc, Integer (J));
+         if Present (Stm_List) then
+            Append_To (Stm_List, Inner_Stm);
             Inner_Stm := Make_Block_Statement (Loc,
-              Handled_Sequence_Of_Statements =>
+              Handled_Statement_Sequence =>
                 Make_Handled_Sequence_Of_Statements (Loc,
-                  Statements => New_List (
-                    Make_Procedure_Call_Statement (Loc,
-                      Name =>
-                        New_Occurrence_Of (Start_Dimen, Loc),
-                      Parameter_Associations =>
-                        New_List (Make_Integer_Literal (Loc, J))),
-                    Inner_Stm)));
+                  Statements => Stm_List));
          end if;
 
       end loop;
