@@ -72,6 +72,12 @@ package body PolyORB.Servants.Group_Servants is
    function Handle_Unmarshall_Arguments
      (Self : access Group_Servant;
       Msg  :        Components.Message'Class)
+     return Components.Message'Class;
+   --  Dispatch arguments between targets
+
+   function Handle_Unmarshall_Arguments
+     (Self : access Group_Servant;
+      Msg  :        Components.Message'Class)
       return Components.Message'Class
    is
       use PolyORB.Protocols.Interface;

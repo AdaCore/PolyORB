@@ -108,8 +108,9 @@ package PolyORB.Protocols.SRP is
    --  Handle disconnection from user.
 
    procedure Handle_Unmarshall_Arguments
-     (Ses : access SRP_Session;
-      Args : in out Any.NVList.Ref);
+     (Ses   : access SRP_Session;
+      Args  : in out Any.NVList.Ref;
+      Error : in out Exceptions.Error_Container);
 
    procedure Handle_Flush (S : access SRP_Session);
 

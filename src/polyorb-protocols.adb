@@ -62,8 +62,10 @@ package body PolyORB.Protocols is
    ---------------------------------
 
    procedure Handle_Unmarshall_Arguments
-     (S    : access Session;
-      Args : in out Any.NVList.Ref) is
+     (S     : access Session;
+      Args  : in out Any.NVList.Ref;
+      Error : in out Exceptions.Error_Container)
+   is
    begin
       raise Program_Error;
       --  By default: no support for deferred arguments unmarshalling.
@@ -80,8 +82,11 @@ package body PolyORB.Protocols is
       S    :        Components.Message'Class)
      return Components.Message'Class
    is
+      use PolyORB.Exceptions;
+
       Nothing : Components.Null_Message;
-      Req : Request_Access;
+      Req     : Request_Access;
+      Error   : Exceptions.Error_Container;
 
    begin
       pragma Debug
@@ -107,8 +112,13 @@ package body PolyORB.Protocols is
               := Unmarshall_Arguments (S).Args;
          begin
             Handle_Unmarshall_Arguments
-              (Session_Access (Sess), Args);
-            return Unmarshalled_Arguments'(Args => Args);
+              (Session_Access (Sess), Args, Error);
+
+            if Found (Error) then
+               return Arguments_Error'(Error => Error);
+            else
+               return Unmarshalled_Arguments'(Args => Args);
+            end if;
          end;
 
       elsif S in Flush then
@@ -161,19 +171,30 @@ package body PolyORB.Protocols is
                   Unmarshall_Arguments'(Args => Args));
 
             begin
-               pragma Assert (Reply in Unmarshalled_Arguments);
-               pragma Debug (O ("Unmarshalled deferred arguments"));
-               Req.Args := Unmarshalled_Arguments (Reply).Args;
-               Req.Result.Argument := Get_Empty_Result
-                 (Desc, Req.Target,
-                  Types.To_Standard_String (Req.Operation));
-               Req.Deferred_Arguments_Session := null;
-               pragma Debug (O ("Proxying request: " & Image (Req.all)));
+               pragma Assert (Reply in Unmarshalled_Arguments
+                                or else Reply in Arguments_Error);
+               if Reply in Unmarshalled_Arguments then
+                  pragma Debug (O ("Unmarshalled deferred arguments"));
+                  Req.Args := Unmarshalled_Arguments (Reply).Args;
+                  Req.Result.Argument := Get_Empty_Result
+                    (Desc, Req.Target,
+                     Types.To_Standard_String (Req.Operation));
+                  Req.Deferred_Arguments_Session := null;
+                  pragma Debug (O ("Proxying request: " & Image (Req.all)));
+
+               else
+                  pragma Debug (O ("Unmarshall deferred arguments error"));
+                  Req.Exception_Info :=
+                    Error_To_Any (Arguments_Error (Reply).Error);
+               end if;
             end;
 
          end if;
 
-         Invoke_Request (Session_Access (Sess), Req, Execute_Request (S).Pro);
+         if not Found (Error) then
+            Invoke_Request
+              (Session_Access (Sess), Req, Execute_Request (S).Pro);
+         end if;
 
          --  At this point, the request has been sent to the server
          --  'With_Transport' synchronisation policy has been completed.
@@ -182,6 +203,10 @@ package body PolyORB.Protocols is
            or else Is_Set (Sync_Call_Back, Req.Req_Flags)
          then
             Req.Completed := True;
+         end if;
+
+         if Found (Error) then
+            return Executed_Request'(Req => Req);
          end if;
 
       elsif S in Executed_Request then

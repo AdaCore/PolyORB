@@ -49,6 +49,7 @@ with PolyORB.Binding_Data;
 with PolyORB.Binding_Data.Local;
 with PolyORB.Binding_Data.SOAP;
 with PolyORB.Buffer_Sources;
+with PolyORB.Exceptions;
 with PolyORB.Filters.AWS_Interface;
 with PolyORB.Filters.Interface;
 with PolyORB.HTTP_Methods;
@@ -274,9 +275,12 @@ package body PolyORB.Protocols.SOAP_Pr is
    end Process_Reply;
 
    procedure Handle_Unmarshall_Arguments
-     (S    : access SOAP_Session;
-      Args : in out PolyORB.Any.NVList.Ref)
+     (S     : access SOAP_Session;
+      Args  : in out PolyORB.Any.NVList.Ref;
+      Error : in out PolyORB.Exceptions.Error_Container)
    is
+      pragma Unreferenced (Error);
+
       Src : aliased Buffer_Sources.Input_Source;
    begin
       Buffer_Sources.Set_Buffer (Src, S.In_Buf);
@@ -338,6 +342,8 @@ package body PolyORB.Protocols.SOAP_Pr is
             Args : Any.NVList.Ref;
             --  Nil (not initialised).
 
+            Error : PolyORB.Exceptions.Error_Container;
+
          begin
             Create_Local_Profile
               (The_Oid.all, Local_Profile_Type (Target_Profile.all));
@@ -349,7 +355,7 @@ package body PolyORB.Protocols.SOAP_Pr is
 
             Result.Name := To_PolyORB_String ("Result");
 
-            Handle_Unmarshall_Arguments (S, Args);
+            Handle_Unmarshall_Arguments (S, Args, Error);
 
             --  As SOAP is a self-described protocol, we can set the
             --  argument list without waiting for the someone to tell

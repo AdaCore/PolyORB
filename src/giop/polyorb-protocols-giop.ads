@@ -91,8 +91,9 @@ package PolyORB.Protocols.GIOP is
      (Sess : access GIOP_Session);
 
    procedure Handle_Unmarshall_Arguments
-     (Sess : access GIOP_Session;
-      Args : in out Any.NVList.Ref);
+     (Sess  : access GIOP_Session;
+      Args  : in out Any.NVList.Ref;
+      Error : in out Exceptions.Error_Container);
 
    procedure Handle_Flush (Sess : access GIOP_Session);
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2001 Free Software Foundation, Inc.             --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Interface for Sessions.
+--  Interface for Sessions
 
 --  $Id$
 
@@ -48,6 +48,10 @@ package PolyORB.Protocols.Interface is
       Args : Any.NVList.Ref;
    end record;
 
+   type Arguments_Error is new Components.Message with record
+      Error : Exceptions.Error_Container;
+   end record;
+
    type Flush is new Components.Message with null record;
 
    --  When a Session receives a method invocation request,
@@ -61,5 +65,10 @@ package PolyORB.Protocols.Interface is
    --  be sent to the Session with a properly-type NVList in it
    --  so the unmarshalling can take place. An Unmarshalled_Arguments
    --  message is returned.
+
+   --  If an error is dectected when unmarshalling, then
+   --  Arguments_Error is returned.
+
+   --  The Flush message reinitializes the session object.
 
 end PolyORB.Protocols.Interface;

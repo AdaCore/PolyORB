@@ -267,12 +267,12 @@ package body PolyORB.Protocols.GIOP is
    ---------------------------------
 
    procedure Handle_Unmarshall_Arguments
-     (Sess : access GIOP_Session;
-      Args : in out Any.NVList.Ref)
+     (Sess  : access GIOP_Session;
+      Args  : in out Any.NVList.Ref;
+      Error : in out Exceptions.Error_Container)
    is
       use PolyORB.Exceptions;
 
-      Error : Exceptions.Error_Container;
    begin
       pragma Debug (O ("Unmarshalling_Request_Arguments"));
       pragma Assert (Sess.State = Waiting_Unmarshalling);
@@ -286,15 +286,6 @@ package body PolyORB.Protocols.GIOP is
          --  An error in the marshalling of wchar data implies the
          --  server did not provide a valid codeset service
          --  context. We convert this exception to Bad_Param 23.
-
-         --  XXX doing further processing requires modifying
-         --  Handle_Unmarshall_Arguments signature. To be
-         --  investigated.
-
-         Catch (Error);
-         raise Program_Error;
-         --  XXX We cannot silently ignore any error. For now,
-         --  we raise this exception. To be investigated.
       end if;
 
       Expect_GIOP_Header (Sess);

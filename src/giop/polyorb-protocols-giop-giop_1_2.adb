@@ -410,6 +410,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       use PolyORB.Binding_Data;
       use PolyORB.Binding_Data.Local;
       use PolyORB.Components;
+      use PolyORB.Exceptions;
       use PolyORB.Obj_Adapters;
       use PolyORB.ORB;
       use PolyORB.ORB.Interface;
@@ -430,7 +431,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       Req         : Request_Access;
       QoS         : PolyORB.Request_QoS.QoS_Parameter_Lists.List;
       CS          : Code_Set_Context_Access;
-
+      Error       : Exceptions.Error_Container;
       Result      : Any.NamedValue;
       --  Dummy NamedValue for Create_Request;
       --  the actual Result is set by the called method.
@@ -500,7 +501,14 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
                --  XXX change state name. We are not waiting for
                --  unmarshalling: we do it now. See next line.
 
-               Handle_Unmarshall_Arguments (S, Args);
+               Handle_Unmarshall_Arguments (S, Args, Error);
+
+               if Found (Error) then
+                  Catch (Error);
+                  raise Program_Error;
+                  --  XXX We cannot silently ignore any error. For now,
+                  --  we raise this exception. To be investigated.
+               end if;
 
             else
                pragma Debug (O ("Unmarshalling of arguments deferred"));

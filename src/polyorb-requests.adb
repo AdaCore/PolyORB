@@ -740,10 +740,16 @@ package body PolyORB.Requests is
                Unmarshall_Arguments'
                (Args => Args));
          begin
-            pragma Assert (Reply in Unmarshalled_Arguments);
-            pragma Debug (O ("Unmarshalled deferred arguments"));
-            Args := Unmarshalled_Arguments (Reply).Args;
-            Self.Args := Args;
+            pragma Assert (Reply in Unmarshalled_Arguments
+                             or else Reply in Arguments_Error);
+            if Reply in Unmarshalled_Arguments then
+               pragma Debug (O ("Unmarshalled deferred arguments"));
+               Args := Unmarshalled_Arguments (Reply).Args;
+               Self.Args := Args;
+            else
+               pragma Debug (O ("Unmarshalling deferred arguments error"));
+               Error := Arguments_Error (Reply).Error;
+            end if;
          end;
          Self.Deferred_Arguments_Session := null;
 

@@ -361,9 +361,12 @@ package body PolyORB.Protocols.SRP is
    ---------------------------------
 
    procedure Handle_Unmarshall_Arguments
-     (Ses : access SRP_Session;
-      Args : in out Any.NVList.Ref)
+     (Ses   : access SRP_Session;
+      Args  : in out Any.NVList.Ref;
+      Error : in out Exceptions.Error_Container)
    is
+      pragma Unreferenced (Error);
+
    begin
       Unmarshall (Args, Ses.SRP_Info);
    end Handle_Unmarshall_Arguments;

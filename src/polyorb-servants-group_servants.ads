@@ -149,6 +149,7 @@ private
       Args_Src    : PolyORB.Components.Component_Access;
       --  Current Args list
       Args        : PolyORB.Any.NVList.Ref;
+      Error       : PolyORB.Exceptions.Error_Container;
       --  Proxy state
       State       : Proxy_State := Not_Ready;
       --  Mutex to avoid concurrent proxy access
@@ -163,12 +164,6 @@ private
       Msg  :        Components.Message'Class)
      return Components.Message'Class;
    --  Function used to intercept Unmarshall_Arguments message
-
-   function Handle_Unmarshall_Arguments
-     (Self : access Group_Servant;
-      Msg  :        Components.Message'Class)
-     return Components.Message'Class;
-   --  Dispatch arguments between targets
 
    function Execute_Servant
      (Self : access Group_Servant;

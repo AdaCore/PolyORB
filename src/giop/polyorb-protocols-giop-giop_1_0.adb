@@ -259,6 +259,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       use PolyORB.ORB;
       use PolyORB.ORB.Interface;
       use PolyORB.Components;
+      use PolyORB.Exceptions;
       use PolyORB.Binding_Data;
       use PolyORB.Binding_Data.Local;
       use PolyORB.Obj_Adapters;
@@ -279,6 +280,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       Target      : References.Ref;
       Req         : Request_Access;
       QoS         : PolyORB.Request_QoS.QoS_Parameter_Lists.List;
+      Error       : Exceptions.Error_Container;
 
       Result      : Any.NamedValue;
       --  Dummy NamedValue for Create_Request;
@@ -317,8 +319,14 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
 
       if not Is_Nil (Args) then
          pragma Debug (O ("Immediate arguments unmarshalling"));
-         Handle_Unmarshall_Arguments
-           (S, Args);
+         Handle_Unmarshall_Arguments (S, Args, Error);
+
+         if Found (Error) then
+            Catch (Error);
+            raise Program_Error;
+            --  XXX We cannot silently ignore any error. For now,
+            --  we raise this exception. To be investigated.
+         end if;
 
       else
          pragma Debug (O ("Unmarshalling of arguments deferred"));
