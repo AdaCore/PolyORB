@@ -1,8 +1,8 @@
 Announcing the release of PolyORB 1.0p
 ======================================
 
-Ada Core Technologies and ACT Europe are proud to announce the first
-public release of PolyORB:
+Ada Core Technologies, ACT Europe, and the PolyORB team are proud to
+announce the first public release of PolyORB:
   PolyORB 1.0p (http://libre.act-europe.fr/polyorb/).
 
 This release contains a CORBA-compliant instantiation of the PolyORB
@@ -50,25 +50,25 @@ distribution programming paradigms such as Web Services, Message
 Oriented Middleware (MOM), or to implement application-specific
 middleware.
 
-Basically, middleware are framework that hide the complex issues of
-distribution and provide the programmer with high-level abstractions
-that enable easy and transparent construction of distributed
-applications. A number of different standards exist for creating
-object-oriented distributed applications. These standards offer two
-subsystems that enable interaction between application partitions:
+Middleware provides a framework that hides the complex issues of
+distribution, and offers the programmer high-level abstractions that
+allow easy and transparent construction of distributed applications.
+A number of different standards exist for creating object-oriented
+distributed applications. These standards define two subsystems that
+enable interaction between application partitions:
 
     * the API seen by the developer's applicative objects;
 
     * the protocol used by the middleware environment to interact with
       other nodes in the distributed application.
 
-Besides, middleware provide implementation guidelines as well as
+Middleware implementations also offer programming guidelines as well as
 development tools to ease the construction of large heterogeneous
-distributed systems. Yet, many issues typical to distributed
-programming may arise: application architectural choice, configuration
+distributed systems. Many issues typical to distributed programming may
+still arise: application architectural choice, configuration
 or deployment. Since there is no "one size fits all" architecture,
 choosing the adequate distribution middleware in its most appropriate
-configuration is a key design point that dramatically impact the
+configuration is a key design point that dramatically impacts the
 design and performance of an application.
 
 Consequently, applications need to rapidly tailor middleware to the
@@ -85,7 +85,7 @@ Remote Method Invocation (RMI), the Distributed System Annex of Ada
 PolyORB: a generic middleware with an instance per distribution model
 ---------------------------------------------------------------------
 
-Typical middleware implementations for one platform supports only one
+Typical middleware implementations for one platform support only one
 set of such interfaces, pre-defined configuration capabilities and
 cannot interoperate with other platforms. In addition to traditional
 middleware implementations, PolyORB proposes an original architecture
@@ -103,18 +103,18 @@ same architecture.
 
 The decoupling of application and protocol personalities, and the
 support for multiple simultaneous personalities within the same
-running middleware are key features required for the construction of
+running middleware, are key features required for the construction of
 interoperable distributed applications. This allows PolyORB to
 communicate with middleware that implement different distribution
 standards: PolyORB provides middleware-to-middleware interoperability
 (M2M).
 
-Besides, PolyORB's modularity allows for the easy extension or
-modification of its core components and personalities to meet specific
-requirements. Thus standard compliant or specific personalities can be
-created in a unique process, from early stage prototyping to full
-featured implementation. The PolyORB architecture also permits the
-automatic, just-in-time creation of proxies between incompatible
+PolyORB's modularity allows for easy extension and replacement of its
+core and personality components, in order to meet specific requirements.
+In this way, standard or application-specific personalities can be
+created in a streamlined process, from early stage prototyping to
+full-featured implementation. The PolyORB architecture also allows
+the automatic, just-in-time creation of proxies between incompatible
 environments.
 
 PolyORB currently supports the following personalities (in the main
