@@ -1,3 +1,8 @@
+2003-12-11  Samuel Tardieu  <sam@rfc1149.net>
+
+	* glade_ug.texi: Change two instances of Wait_Until_Restart into
+	Block_Until_Restart.
+
 2003-12-07  Laurent Pautet  <pautet@enst.fr>
 
 	* glade_ug.texi: Update documentation about priority policies and
