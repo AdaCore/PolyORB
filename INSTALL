@@ -47,7 +47,7 @@ in Doc/install_guide.txt.
      the native threads library, not the FSU one.
 
 2. Configure GLADE
-   GLADE use standard the GNU configuration method. Run 
+   GLADE uses standard the GNU configuration method. Run 
            ./configure  [configuration parameters]
 
    configuration parameters can be used to define the

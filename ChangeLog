@@ -1,3 +1,7 @@
+1998-04-12  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* INSTALL: Fix typo.
+
 1998-04-09  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* MANIFEST: Remove Garlic/s-garthi.ads, and add
