@@ -1,6 +1,9 @@
+with Sequences;
+
 package body Droopi.Object_Map is
 
    use Object_Map_Entry_Seqs;
+   use Sequences;
 
    ---------
    -- Add --
@@ -119,6 +122,9 @@ package body Droopi.Object_Map is
       end if;
       An_Entry := Element_Of (O_Map.Map, Index);
       return An_Entry;
+   exception
+      when Index_Error =>
+         raise Index_Out_Of_Bounds;
    end Get_By_Index;
 
    ------------
@@ -175,6 +181,9 @@ package body Droopi.Object_Map is
          Replace_Element (O_Map.Map, Index, Null_Entry);
       end if;
       return To_Remove;
+   exception
+      when Index_Error =>
+         raise Index_Out_Of_Bounds;
    end Remove_By_Index;
 
 end Droopi.Object_Map;

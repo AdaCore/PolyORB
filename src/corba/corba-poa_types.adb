@@ -39,70 +39,54 @@ package body CORBA.POA_Types is
       --  ??? needs to be implemented
    end Create_Id;
 
-   ----------------
-   -- Unmarshall --
-   ----------------
+   ------------------
+   -- Oid_To_U_Oid --
+   ------------------
 
-   function Unmarshall (Oid : Object_Id_Access) return Unmarshalled_Oid_Access
+   function Oid_To_U_Oid (Oid : Object_Id_Access)
+                         return Unmarshalled_Oid_Access
    is
       U_Oid            : Unmarshalled_Oid_Access;
-      Stream           : Stream_Element_Array
+      Stream           : aliased Stream_Element_Array
         := Stream_Element_Array (Oid.all);
---       Encapsule        : aliased Encapsulation
---         := Encapsulation (Stream_Element_Array (Oid.all));
-
       Buffer           : aliased Buffer_Type;
-      Initial_Position : Stream_Element_Offset;
+
       Id               : CORBA.String;
       System_Generated : CORBA.Boolean := True;
       Persistency_Flag : CORBA.Long    := 1;
    begin
---      Start_Encapsulation (Buffer'Access);
 
-      Initial_Position := CDR_Position (Buffer'Access);
-
-      --       Decapsulate (Encapsule'Access, Buffer'Access);
-      Marshall (Buffer'Access, Stream);
-      Set_Initial_Position (Buffer'Access, Initial_Position);
---       Persistency_Flag := Unmarshall (Buffer'Access);
---       System_Generated := Unmarshall (Buffer'Access);
+      Decapsulate (Stream'Access, Buffer'Access);
       Id               := Unmarshall (Buffer'Access);
+      System_Generated := Unmarshall (Buffer'Access);
+      Persistency_Flag := Unmarshall (Buffer'Access);
+      Release_Contents (Buffer);
+
       U_Oid := new Unmarshalled_Oid'(Id, System_Generated, Persistency_Flag);
 
       return U_Oid;
-   end Unmarshall;
+   end Oid_To_U_Oid;
 
-   --------------
-   -- Marshall --
-   --------------
+   ------------------
+   -- U_Oid_To_Oid --
+   ------------------
 
-   function Marshall (U_Oid : Unmarshalled_Oid_Access) return Object_Id_Access
+   function U_Oid_To_Oid (U_Oid : Unmarshalled_Oid_Access)
+                         return Object_Id_Access
    is
-      Buffer, Tmp_Buffer : aliased Buffer_Type;
+      Buffer             : Buffer_Access := new Buffer_Type;
       Initial_Position   : Stream_Element_Offset;
       Oid                : Object_Id_Access;
       Hello              : CORBA.String := To_CORBA_String ("Hello");
    begin
---       Initial_Position := CDR_Position (Buffer'Access);
---       Start_Encapsulation (Buffer'Access);
---       --      Start_Encapsulation (Tmp_Buffer'Access);
+      Start_Encapsulation (Buffer);
+      Marshall (Buffer, U_Oid.Id);
+      Marshall (Buffer, U_Oid.System_Generated);
+      Marshall (Buffer, U_Oid.Persistency_Flag);
 
-      Initial_Position := CDR_Position (Buffer'Access);
-      Marshall (Buffer'Access, U_Oid.Id);
---       Marshall (Tmp_Buffer'Access, U_Oid.System_Generated);
---       Prepend  (Tmp_Buffer, Buffer'Access);
---       Marshall (Tmp_Buffer'Access, U_Oid.Persistency_Flag);
---       Prepend  (Tmp_Buffer, Buffer'Access);
---       Set_Initial_Position (Buffer'Access, Initial_Position);
+      Oid := new Object_Id'(Object_Id (Encapsulate (Buffer)));
+      Release (Buffer);
 
-      declare
-         Stream : Stream_Element_Array := Unmarshall (Buffer'Access);
-      begin
-         Oid     := new Object_Id'(Object_Id (Stream));
-      end;
-
-      Release_Contents (Buffer);
---       Release_Contents (Tmp_Buffer);
       return Oid;
-   end Marshall;
+   end U_Oid_To_Oid;
 end CORBA.POA_Types;

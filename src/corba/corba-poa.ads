@@ -49,13 +49,12 @@ package CORBA.POA is
    type Obj_Adapter_Access is access all Obj_Adapter'Class;
    --  The POA object
 
-   procedure Create_POA
-     (New_POA      : out Obj_Adapter_Access;
-      Self         :     Obj_Adapter_Access;
-      Adapter_Name :     String;
-      A_POAManager :     POA_Manager.POAManager_Access;
-      Policies     :     Policy.PolicyList_Access)
-      is abstract;
+   function Create_POA
+     (Self         : Obj_Adapter_Access;
+      Adapter_Name : String;
+      A_POAManager : POA_Manager.POAManager_Access;
+      Policies     : Policy.PolicyList_Access)
+     return Obj_Adapter_Access is abstract;
    --  Create a POA given its name and a list of policies
    --  Policies are optionnal : defaults values are provided
 
