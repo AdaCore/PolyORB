@@ -40,7 +40,7 @@ with PolyORB.References.IOR;
 with PolyORB.Binding_Data;
 with PolyORB.Types;
 
-package PolyORB.Protocols.GIOP.GIOP_1_0 is
+private package PolyORB.Protocols.GIOP.GIOP_1_0 is
 
    pragma Elaborate_Body;
 

@@ -43,7 +43,6 @@ with PolyORB.References;
 with PolyORB.References.IOR;
 with PolyORB.Requests;
 with PolyORB.Sequences.Unbounded;
-with PolyORB.Storage_Pools;
 with PolyORB.Types;
 with PolyORB.Representations.CDR;
 
@@ -57,135 +56,8 @@ package PolyORB.Protocols.GIOP is
 
    GIOP_Error : exception;
 
-   --    package Arg_Seq is new Sequences.Unbounded (Any.NamedValue);
-
-   Message_Header_Size  : constant Stream_Element_Offset;
-   Maximum_Message_Size : constant Stream_Element_Offset;
-   Byte_Order_Offset    : constant Stream_Element_Offset;
-   Max_Data_Received    : constant Integer;
-
-   Max_Nb_Tries         : constant Integer;
-
    type GIOP_Session is new Session with private;
    type GIOP_Protocol is new Protocol with private;
-
-   type Sync_Scope is (NONE, WITH_TRANSPORT, WITH_SERVER, WITH_TARGET);
-
-   type IOR_Addressing_Info is record
-      Selected_Profile_Index : Types.Unsigned_Long;
-      IOR                    : References.IOR.IOR_Type;
-   end record;
-
-   type IOR_Addressing_Info_Access is access all IOR_Addressing_Info;
-   for IOR_Addressing_Info_Access'Storage_Pool
-     use PolyORB.Storage_Pools.Debug_Pool;
-
-   type Addressing_Disposition is (Key_Addr, Profile_Addr, Reference_Addr);
-
-   type Target_Address (Address_Type : Addressing_Disposition) is record
-      case Address_Type is
-         when Key_Addr =>
-            Object_Key : Objects.Object_Id_Access;
-         when Profile_Addr  =>
-            Profile : Binding_Data.Profile_Access;
-         when Reference_Addr  =>
-            Ref : IOR_Addressing_Info_Access;
-      end case;
-   end record;
-
-   type Target_Address_Access is access all Target_Address;
-   for Target_Address_Access'Storage_Pool
-     use PolyORB.Storage_Pools.Debug_Pool;
-
-   procedure Free is
-      new Ada.Unchecked_Deallocation
-     (Target_Address, Target_Address_Access);
-
-   --  GIOP:: MsgType
-   type Msg_Type is
-     (Request,
-      Reply,
-      Cancel_Request,
-      Locate_Request,
-      Locate_Reply,
-      Close_Connection,
-      Message_Error,
-      Fragment);
-
-   --  GIOP::ReplyStatusType
-   type Reply_Status_Type is
-     (No_Exception,
-      User_Exception,
-      System_Exception,
-      Location_Forward,
-      Location_Forward_Perm,
-      Needs_Addressing_Mode);
-
-   --  GIOP::LocateStatusType
-   type Locate_Status_Type is
-     (Unknown_Object,
-      Object_Here,
-      Object_Forward,
-      Object_Forward_Perm,
-      Loc_System_Exception,
-      Loc_Needs_Addressing_Mode);
-
-   type Pending_Request is private;
-
-   type Send_Request_Result_Type is
-     (Sr_No_Reply,
-      Sr_Reply,
-      Sr_User_Exception,
-      Sr_Forward,
-      Sr_Forward_Perm,
-      Sr_Needs_Addressing_Mode
-      );
-
-   type Locate_Request_Result_Type is
-     (Sr_Unknown_Object,
-      Sr_Object_Here,
-      Sr_Object_Forward,
-      Sr_Object_Forward_Perm,
-      Sr_Loc_System_Exception,
-      Sr_Loc_Needs_Addressing_Mode
-      );
-
-   type ServiceId is
-     (Transaction_Service,
-      Code_Sets,
-      Chain_By_Pass_Check,
-      Chain_By_Pass_Info,
-      Logical_Thread_Id,
-      Bi_Dir_IIOP,
-      Sending_Context_Run_Time,
-      Invocation_Policies,
-      Forwarded_Identity,
-      Unknown_Exception_Info);
-
-   procedure Initialize;
-   procedure Finalize;
-
-   -------------------
-   -- Store_Profile --
-   -------------------
-
-   procedure Store_Profile
-    (Ses     : access GIOP_Session;
-     Profile : Profile_Access);
-   --  XXX What does this procedure do?
-   --  Why does it need to be visible?
-
-   -------------------
-   -- Store_Request --
-   -------------------
-
-   procedure Store_Request
-     (Ses     : access GIOP_Session;
-      R       :        Requests.Request_Access;
-      Profile :        Profile_Access;
-      Pending :    out Pending_Request);
-   --  XXX What does this procedure do?
-   --  Why does it need to be visible?
 
    -----------------
    -- Set_Version --
@@ -236,6 +108,99 @@ package PolyORB.Protocols.GIOP is
       Octets : access Representations.CDR.Encapsulation);
 
 private
+
+   type Sync_Scope is (NONE, WITH_TRANSPORT, WITH_SERVER, WITH_TARGET);
+
+   type Addressing_Disposition is (Key_Addr, Profile_Addr, Reference_Addr);
+
+   --  GIOP:: MsgType
+   type Msg_Type is
+     (Request,
+      Reply,
+      Cancel_Request,
+      Locate_Request,
+      Locate_Reply,
+      Close_Connection,
+      Message_Error,
+      Fragment);
+
+   --  GIOP::ReplyStatusType
+   type Reply_Status_Type is
+     (No_Exception,
+      User_Exception,
+      System_Exception,
+      Location_Forward,
+      Location_Forward_Perm,
+      Needs_Addressing_Mode);
+
+   --  GIOP::LocateStatusType
+   type Locate_Status_Type is
+     (Unknown_Object,
+      Object_Here,
+      Object_Forward,
+      Object_Forward_Perm,
+      Loc_System_Exception,
+      Loc_Needs_Addressing_Mode);
+
+   type Send_Request_Result_Type is
+     (Sr_No_Reply,
+      Sr_Reply,
+      Sr_User_Exception,
+      Sr_Forward,
+      Sr_Forward_Perm,
+      Sr_Needs_Addressing_Mode
+      );
+
+   type Locate_Request_Result_Type is
+     (Sr_Unknown_Object,
+      Sr_Object_Here,
+      Sr_Object_Forward,
+      Sr_Object_Forward_Perm,
+      Sr_Loc_System_Exception,
+      Sr_Loc_Needs_Addressing_Mode
+      );
+
+   type ServiceId is
+     (Transaction_Service,
+      Code_Sets,
+      Chain_By_Pass_Check,
+      Chain_By_Pass_Info,
+      Logical_Thread_Id,
+      Bi_Dir_IIOP,
+      Sending_Context_Run_Time,
+      Invocation_Policies,
+      Forwarded_Identity,
+      Unknown_Exception_Info);
+
+   type IOR_Addressing_Info is record
+      Selected_Profile_Index : Types.Unsigned_Long;
+      IOR                    : References.IOR.IOR_Type;
+   end record;
+   type IOR_Addressing_Info_Access is access all IOR_Addressing_Info;
+
+   type Target_Address (Address_Type : Addressing_Disposition) is record
+      case Address_Type is
+         when Key_Addr =>
+            Object_Key : Objects.Object_Id_Access;
+         when Profile_Addr  =>
+            Profile : Binding_Data.Profile_Access;
+         when Reference_Addr  =>
+            Ref : IOR_Addressing_Info_Access;
+      end case;
+   end record;
+   type Target_Address_Access is access all Target_Address;
+
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Target_Address, Target_Address_Access);
+
+   type Pending_Request is record
+       Req             : Requests.Request_Access;
+       Target_Profile  : Binding_Data.Profile_Access;
+   end record;
+   --  XXX This type should be removed, and Get_Reference_Info on Req.Target
+   --  should be used instead when it is necessary to access the target
+   --  profile.
+   package Pend_Req_Seq is new Sequences.Unbounded (Pending_Request);
 
    -------------------------
    -- Marshalling helpers --
@@ -372,16 +337,6 @@ private
          Character'Pos ('I'),
          Character'Pos ('O'),
          Character'Pos ('P'));
-
-   type Pending_Request is
-     record
-       Req             : Requests.Request_Access;
-       Target_Profile  : Binding_Data.Profile_Access;
-     end record;
-
-   package Pend_Req_Seq is new Sequences.Unbounded (Pending_Request);
-
-   package Req_Seq is new Sequences.Unbounded (Requests.Request_Access);
 
    type GIOP_State is
      (Expect_Header,

@@ -119,23 +119,27 @@ package body PolyORB.Protocols.GIOP is
    -- Initialize --
    ----------------
 
+   procedure Initialize;
+
    procedure Initialize is
    begin
       Create (Counter_Lock);
    end Initialize;
 
-   --------------
-   -- Finalize --
-   --------------
+   --  Other internal subprograms
 
-   procedure Finalize is
-   begin
-      Destroy (Counter_Lock);
-   end Finalize;
+   procedure Add_Pending_Request
+     (Ses     : access GIOP_Session;
+      R       :        Requests.Request_Access;
+      Profile :        Profile_Access;
+      Pending :    out Pending_Request);
+   --  Add R to the list of pending requests on S. Profile is the
+   --  profile of R's target reference that was used to bind that
+   --  reference to Ses.
 
-   ---------------------
-   -- Gest_Request_Id --
-   ---------------------
+   --------------------
+   -- Get_Request_Id --
+   --------------------
 
    function Get_Request_Id return Types.Unsigned_Long
    is
@@ -1110,21 +1114,6 @@ package body PolyORB.Protocols.GIOP is
       return null;
    end Select_Profile;
 
-   -------------------
-   -- Store_Profile --
-   -------------------
-
-   procedure Store_Profile
-     (Ses      :  access GIOP_Session;
-      Profile  :  Profile_Access)
-   is
-   begin
-      pragma Assert (Ses.Current_Profile = null);
-      --  Else we would leak memory.
-
-      Ses.Current_Profile := Profile;
-   end Store_Profile;
-
    ----------------
    -- Initialize --
    ----------------
@@ -1180,11 +1169,11 @@ package body PolyORB.Protocols.GIOP is
       S.State := Expect_Header;
    end Expect_Message;
 
-   -------------------
-   -- Store_Request --
-   -------------------
+   -------------------------
+   -- Add_Pending_Request --
+   -------------------------
 
-   procedure Store_Request
+   procedure Add_Pending_Request
      (Ses     :  access GIOP_Session;
       R       :  Requests.Request_Access;
       Profile :  Profile_Access;
@@ -1195,10 +1184,9 @@ package body PolyORB.Protocols.GIOP is
       Set_Note
         (R.Notepad, Request_Note'
          (Annotations.Note with Id => Get_Request_Id));
-      Pending  := Pending_Request'
-        (Req => R, Target_Profile => Profile);
+      Pending  := Pending_Request'(Req => R, Target_Profile => Profile);
       Append (Ses.Pending_Rq, Pending);
-   end Store_Request;
+   end Add_Pending_Request;
 
    -----------------
    -- Set_Version --
@@ -1313,8 +1301,6 @@ package body PolyORB.Protocols.GIOP is
       use References;
 
       use PolyORB.Objects;
-
-      use Req_Seq;
 
       Request_Id        :  Types.Unsigned_Long;
       Response_Expected :  Boolean;
@@ -1647,7 +1633,7 @@ package body PolyORB.Protocols.GIOP is
                Release (Ses.Buffer_In);
                Release (Ses.Buffer_Out);
 
-               Store_Request (Ses, Current_Req.Req, Prof, Current_Req);
+               Add_Pending_Request (Ses, Current_Req.Req, Prof, Current_Req);
 
                GIOP.Invoke_Request
                  (GIOP_Session (New_Ses.all)'Access,
@@ -1734,7 +1720,13 @@ package body PolyORB.Protocols.GIOP is
       end if;
 
       Release_Contents (S.Buffer_Out.all);
-      Store_Request (S, R, S.Current_Profile, Current_Req);
+      declare
+         Binding_Object : Components.Component_Access;
+         Profile : Binding_Data.Profile_Access;
+      begin
+         References.Get_Binding_Info (R.Target, Binding_Object, Profile);
+         Add_Pending_Request (S, R, Profile, Current_Req);
+      end;
 
       --  fragmentation not yet implemented
       --  Message_Size:= Length (Buf1);
@@ -1855,7 +1847,6 @@ package body PolyORB.Protocols.GIOP is
       use Buffers;
       use Representations.CDR;
       use PolyORB.Filters.Interface;
-      use Req_Seq;
       Fragment_Next : Boolean := False;
    begin
 
@@ -2172,7 +2163,7 @@ begin
      (Module_Info'
       (Name => +"protocols.giop",
        Conflicts => Empty,
-       Depends => Empty,
+       Depends => +"tasking.mutexes",
        Provides => Empty,
        Init => Initialize'Access));
 end PolyORB.Protocols.GIOP;

@@ -49,13 +49,12 @@ package PolyORB.Representations.CDR is
 
    pragma Elaborate_Body;
 
-   ----------------------------------------
-   -- The Encapsulation view of a buffer --
-   ----------------------------------------
+   -------------------------------------------------
+   -- The Encapsulation view of a CDR data stream --
+   -------------------------------------------------
 
-   --  A buffer is a sequence of bytes that can be
-   --  turned into an opaque Encapsulation object
-   --  and back.
+   --  A CDR data stream is a sequence of bytes that can be
+   --  turned into an opaque Encapsulation object and back.
 
    subtype Encapsulation is Stream_Element_Array;
 
@@ -79,10 +78,9 @@ package PolyORB.Representations.CDR is
    --  The lifespan of the actual Octets array
    --  shall be no less than that of Buffer.
 
-
-   ---------------------------------------------
-   -- Marshaling and unmarshaling subprograms --
-   ---------------------------------------------
+   ------------------------------------------------
+   -- Marshaliling and unmarshalling subprograms --
+   ------------------------------------------------
 
    procedure Marshall
      (Buffer : access Buffer_Type;
@@ -304,8 +302,9 @@ package PolyORB.Representations.CDR is
    function Unmarshall (Buffer : access Buffer_Type)
      return PolyORB.Any.Any;
 
-   --  The next three marshall or unmarshall the value of the any and
-   --  not the any type itself.
+   --  The next three subprograms marshall or unmarshall the value of
+   --  the Any, not the Any type itself (i.e. they do not marshall Data's
+   --  typecode).
 
    procedure Marshall_From_Any
      (Buffer : access Buffer_Type;
@@ -314,11 +313,13 @@ package PolyORB.Representations.CDR is
      (Buffer : access Buffer_Type;
       Data   : in PolyORB.Any.Any);
 
-   --  This procedure unmarshalls an Any in Result.
+   procedure Unmarshall_To_Any
+     (Buffer : access Buffer_Type;
+      Result : in out PolyORB.Any.Any);
+   --  Unmarshall the value of Result from Buffer. Result must have
+   --  a valid TypeCode, which defines what kind of value is unmarshalled.
    --  If Result already has a value, then its memory location
-   --  will be reused. Otherwise, a new location will be created
-   procedure Unmarshall_To_Any (Buffer : access Buffer_Type;
-                                Result : in out PolyORB.Any.Any);
+   --  will be reused. Otherwise, a new location will be allocated.
 
    procedure Marshall
      (Buffer : access Buffer_Type;
@@ -329,7 +330,6 @@ package PolyORB.Representations.CDR is
 
    function Unmarshall (Buffer : access Buffer_Type)
      return PolyORB.Any.TypeCode.Object;
-
 
    procedure Marshall
      (Buffer : access Buffer_Type;
@@ -395,4 +395,3 @@ package PolyORB.Representations.CDR is
    end Fixed_Point;
 
 end  PolyORB.Representations.CDR;
-

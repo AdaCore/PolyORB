@@ -6,6 +6,11 @@ $Id$
 Items still requiring attention
 -------------------------------
 
+* Clarify the uniform interface of representations:
+  either create a PolyORB.Representations.CDR.CDR_Representation
+  type (derived from P.R.Representation) or remove P.R.Representation
+  altogether.
+
 * Fix memory leaks (to be checked with Debug_Pools disabled!)
 
 * Extend Transport framework with a new abstract class

@@ -165,7 +165,6 @@ package body PolyORB.Binding_Data.IIOP is
            renames GIOP_Session
            (Upper (Filter).all);
       begin
-         Store_Profile (S'Access, Prof);
          Set_Version
            (S'Access,
             Profile.Major_Version,
