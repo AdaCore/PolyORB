@@ -12,8 +12,26 @@
 with CORBA;
 
 with Droopi.Buffers;      use Droopi.Buffers;
+with Sequences.Unbounded;
 
 package Droopi.References.IOR is
+
+
+   type Marshall_Profile_Body_Type is access procedure
+     (Buffer  : access Buffers.Buffer_Type;
+      Profile : Profile_Access);
+
+   type Unmarshall_Profile_Body_Type is access function
+     (Buffer  : access Buffers.Buffer_Type)
+     return Profile_Access;
+
+   type Profile_Record is record
+      Tag                     : Profile_Tag;
+      Marshall_Profile_Body   : Marshall_Profile_Body_Type;
+      Unmarshall_Profile_Body : Unmarshall_Profile_Body_Type;
+   end record;
+
+   package Profile_Record_Seq is new Sequences.Unbounded (Profile_Record);
 
    type IOR_Type is record
       Ref : Droopi.References.Ref;
@@ -38,25 +56,17 @@ package Droopi.References.IOR is
      (Str : CORBA.String)
      return IOR_Type;
 
-   type Marshall_Profile_Body_Type is access procedure
-     (Buffer  : access Buffers.Buffer_Type;
-      Profile : Profile_Access);
 
-   type Unmarshall_Profile_Body_Type is access function
-     (Buffer  : access Buffers.Buffer_Type)
-     return Profile_Access;
-
-   type Profile_Record is record
-      Marshall_Profile_Body   : Marshall_Profile_Body_Type;
-      Unmarshall_Profile_Body : Unmarshall_Profile_Body_Type;
-   end record;
+   Callbacks : Profile_Record_Seq.Sequence;
 
    procedure Register
      (Profile                 : in Profile_Tag;
       Marshall_Profile_Body   : in Marshall_Profile_Body_Type;
       Unmarshall_Profile_Body : in Unmarshall_Profile_Body_Type);
 
-   Callbacks : array (Tag_Internet_IOP .. Tag_Multiple_Components)
-     of Profile_Record;
+
+
+   --   Callbacks : array (Tag_Internet_IOP .. Tag_Multiple_Components)
+   --   of Profile_Record;
 
 end Droopi.References.IOR;

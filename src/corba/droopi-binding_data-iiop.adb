@@ -165,7 +165,7 @@ package body Droopi.Binding_Data.IIOP is
    is
 
       IIOP_Profile : IIOP_Profile_Type renames IIOP_Profile_Type (Profile.all);
-      Profile_Body : Buffer_Access;
+      Profile_Body : Buffer_Access := new Buffer_Type;
 
    begin
 
