@@ -59,23 +59,27 @@ info: $(GUIDE).info
 
 html: $(GUIDE).html
 
-images: ${SOURCES} ${IMAGES}
+txtfiles: ${SOURCES}
 	make `echo $(SOURCES) | sed 's,\([^ ][^ ]*\),\1.txt,g'`;
-	make `echo $(SOURCES) | sed 's,\([^ ][^ ]*\),\1.eps,g'`;
+
+jpegfiles: epsfiles
 	make `echo $(SOURCES) | sed 's,\([^ ][^ ]*\),\1.jpeg,g'`;
-	make `echo $(IMAGES)  | sed 's,\([^ ][^ ]*\),\1.eps,g'`;
 	make `echo $(IMAGES)  | sed 's,\([^ ][^ ]*\),\1.jpeg,g'`;
 
-$(GUIDE).html: $(GUIDE).texi images
+epsfiles:
+	make `echo $(SOURCES) | sed 's,\([^ ][^ ]*\),\1.eps,g'`;
+	make `echo $(IMAGES)  | sed 's,\([^ ][^ ]*\),\1.eps,g'`;
+
+$(GUIDE).html: $(GUIDE).texi jpegfiles
 	makeinfo --html $(GUIDE).texi
 
-$(GUIDE).info: $(GUIDE).texi images
+$(GUIDE).info: $(GUIDE).texi txtfiles
 	makeinfo $<
 
 $(GUIDE).ps: $(GUIDE).dvi
 	dvips -o $(GUIDE).ps $(GUIDE).dvi
 
-$(GUIDE).dvi: $(GUIDE).texi images
+$(GUIDE).dvi: $(GUIDE).texi epsfiles
 	texi2dvi $(GUIDE).texi
 
 ${SOURCES}: all-srcs.ada

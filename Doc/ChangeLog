@@ -1,3 +1,7 @@
+1999-01-05  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* glade_ug.texi: Include user guide.
+
 1999-01-01  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* glade_ug.texi: More on tutorial and DSA/CORBA comparison.
