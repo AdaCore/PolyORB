@@ -25,6 +25,8 @@ adasockets/src/sockets-multicast.adb
 adasockets/src/sockets-multicast.ads
 adasockets/src/sockets-naming.adb
 adasockets/src/sockets-naming.ads
+adasockets/src/sockets-stream_io.adb
+adasockets/src/sockets-stream_io.ads
 adasockets/src/sockets-thin.ads
 adasockets/src/sockets-utils.adb
 adasockets/src/sockets-utils.ads
