@@ -22,14 +22,14 @@ ADA_BODIES = $(ADA_SPECS_WITH_BODY:.ads=.adb)
 
 ADA_LIBADD = $(ADA_SPECS:.ads=.lo)
 
-lib_LTLIBRARIES = libpolyorb-miop.la
-libpolyorb_miop_la_SOURCES =
-libpolyorb_miop_la_LIBADD = $(ADA_LIBADD)
-libpolyorb_miop_la_LDFLAGS = -no-undefined -version-info $(LIBVERSIONINFO)
+lib_LTLIBRARIES = libpolyorb-giop-miop.la
+libpolyorb_giop_miop_la_SOURCES =
+libpolyorb_giop_miop_la_LIBADD = $(ADA_LIBADD)
+libpolyorb_giop_miop_la_LDFLAGS = -no-undefined -version-info $(LIBVERSIONINFO)
 
 CLEANFILES = *.ali
 
-LINK = $(LIBTOOL) --mode=link $(ADA) -o libpolyorb-miop.la
+LINK = $(LIBTOOL) --mode=link $(ADA) -o libpolyorb-giop-miop.la
 
 ADAFLAGS = -I. -I$(srcdir) -I.. -I$(srcdir)/.. -I../../ -I$(srcdir)/../.. $(GNATFLAGS)
 

@@ -16,14 +16,14 @@ ADA_BODIES = $(ADA_SPECS_WITH_BODY:.ads=.adb)
 
 ADA_LIBADD = $(ADA_SPECS:.ads=.lo)
 
-lib_LTLIBRARIES = libpolyorb-iiop.la
-libpolyorb_iiop_la_SOURCES =
-libpolyorb_iiop_la_LIBADD = $(ADA_LIBADD)
-libpolyorb_iiop_la_LDFLAGS = -no-undefined -version-info $(LIBVERSIONINFO)
+lib_LTLIBRARIES = libpolyorb-giop-iiop.la
+libpolyorb_giop_iiop_la_SOURCES =
+libpolyorb_giop_iiop_la_LIBADD = $(ADA_LIBADD)
+libpolyorb_giop_iiop_la_LDFLAGS = -no-undefined -version-info $(LIBVERSIONINFO)
 
 CLEANFILES = *.ali
 
-LINK = $(LIBTOOL) $(ADA) -o libpolyorb-iiop.la
+LINK = $(LIBTOOL) $(ADA) -o libpolyorb-giop-iiop.la
 
 ADAFLAGS = -I. -I$(srcdir) -I.. -I$(srcdir)/.. -I../../ -I$(srcdir)/../.. $(GNATFLAGS)
 
