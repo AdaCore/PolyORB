@@ -1,3 +1,8 @@
+1999-08-24  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* s-stratt.adb: Initialize variables in some unmarshalling
+	procedures (wide characters, short integers).
+
 1999-08-20  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-ganobl.adb: Remove useless with clause.

@@ -410,7 +410,7 @@ package body System.Stream_Attributes is
    function I_WC (Stream : access RST) return Wide_Character is
       S : XDR_S_WC;
       L : SEO;
-      U : XDR_WC;
+      U : XDR_WC := 0;
 
    begin
       Ada.Streams.Read (Stream.all, S, L);
@@ -833,7 +833,7 @@ package body System.Stream_Attributes is
    function I_SI (Stream : access RST) return Short_Integer is
       S : XDR_S_SI;
       L : SEO;
-      U : XDR_SU;
+      U : XDR_SU := 0;
 
    begin
       Ada.Streams.Read (Stream.all, S, L);
@@ -863,7 +863,7 @@ package body System.Stream_Attributes is
    function I_I (Stream : access RST) return Integer is
       S : XDR_S_I;
       L : SEO;
-      U : XDR_U;
+      U : XDR_U := 0;
 
    begin
       Ada.Streams.Read (Stream.all, S, L);
