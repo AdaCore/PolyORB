@@ -667,7 +667,7 @@ package body XE_Stubs is
                   Peer := Channels.Table (CID).Lower.My_Partition;
                   CID  := Channels.Table (CID).Upper.Next_Channel;
                end if;
-               if Filter = No_Filter_Name then
+               if Filter /= No_Filter_Name then
                   Dwrite_Str  (FD, "   Set_Channel_Filter (""");
                   Dwrite_Name (FD, Partitions.Table (Peer).Name);
                   Dwrite_Str  (FD, """, """);
