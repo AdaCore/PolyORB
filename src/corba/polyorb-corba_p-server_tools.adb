@@ -80,22 +80,24 @@ package body PolyORB.CORBA_P.Server_Tools is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-   procedure Initiate_RootPOA;
+   procedure Initialize_RootPOA;
+   --  Initialize Root POA
 
-   ----------------------
-   -- Initiate_RootPOA --
-   ----------------------
+   Root_POA_Initialized : Boolean := False;
 
-   Root_POA        : PortableServer.POA.Ref;
-   Root_POA_Object : PolyORB.POA.Obj_Adapter_Access;
+   ------------------------
+   -- Initialize_RootPOA --
+   ------------------------
 
-   procedure Initiate_RootPOA
+   procedure Initialize_RootPOA
    is
       use PolyORB.Exceptions;
 
+      Root_POA        : PortableServer.POA.Ref;
+      Root_POA_Object : PolyORB.POA.Obj_Adapter_Access;
+
       Error : Error_Container;
    begin
-      pragma Assert (Root_POA_Object = null);
       pragma Debug (O ("Initializing Root POA configuration..."));
       PolyORB.POA_Config.Set_Configuration
         (new PolyORB.POA_Config.Root_POA.Root_POA_Configuration);
@@ -128,17 +130,18 @@ package body PolyORB.CORBA_P.Server_Tools is
       CORBA.ORB.Register_Initial_Reference
         (CORBA.ORB.To_CORBA_String ("RootPOA"),
          CORBA.Object.Ref (Root_POA));
-   end Initiate_RootPOA;
+
+      Root_POA_Initialized := True;
+   end Initialize_RootPOA;
 
    ------------------
    -- Get_Root_POA --
    ------------------
 
-   function Get_Root_POA
-     return PortableServer.POA.Ref is
+   function Get_Root_POA return PortableServer.POA.Ref is
    begin
-      if CORBA.Object.Is_Nil (CORBA.Object.Ref (Root_POA)) then
-         Initiate_RootPOA;
+      if not Root_POA_Initialized then
+         Initialize_RootPOA;
       end if;
 
       return PortableServer.POA.To_Ref
@@ -150,11 +153,15 @@ package body PolyORB.CORBA_P.Server_Tools is
    -- Initiate_Server --
    ---------------------
 
-   procedure Initiate_Server (Start_New_Task : Boolean := False)
-   is
+   procedure Initiate_Server (Start_New_Task : Boolean := False) is
+      Root_POA : PortableServer.POA.Ref
+        := PortableServer.POA.To_Ref
+        (CORBA.ORB.Resolve_Initial_References
+         (CORBA.ORB.To_CORBA_String ("RootPOA")));
+
    begin
-      if CORBA.Object.Is_Nil (CORBA.Object.Ref (Root_POA)) then
-         Initiate_RootPOA;
+      if not Root_POA_Initialized then
+         Initialize_RootPOA;
       end if;
 
       PortableServer.POAManager.Activate
@@ -177,20 +184,27 @@ package body PolyORB.CORBA_P.Server_Tools is
 
    procedure Initiate_Servant
      (S : in PortableServer.Servant;
-      R : out CORBA.Object.Ref'Class) is
+      R : out CORBA.Object.Ref'Class)
+   is
+      Root_POA : PortableServer.POA.Ref;
+
    begin
       pragma Debug (O ("Initiate_Servant : enter"));
 
-      if CORBA.Object.Is_Nil (CORBA.Object.Ref (Root_POA)) then
-         Initiate_RootPOA;
+      if not Root_POA_Initialized then
+         Initialize_RootPOA;
       end if;
+
+      Root_POA := PortableServer.POA.To_Ref
+        (CORBA.ORB.Resolve_Initial_References
+         (CORBA.ORB.To_CORBA_String ("RootPOA")));
 
       pragma Debug (O ("Initiate_Servant : ready to "
                        & "call CORBA.Object.Set"));
 
       CORBA.Object.Set
-        (R, CORBA.Object.Object_Of
-         (PortableServer.POA.Servant_To_Reference (Root_POA, S)));
+         (R, CORBA.Object.Object_Of
+          (PortableServer.POA.Servant_To_Reference (Root_POA, S)));
 
       pragma Debug (O ("Initiate_Servant : end"));
    end Initiate_Servant;
@@ -201,11 +215,18 @@ package body PolyORB.CORBA_P.Server_Tools is
 
    procedure Reference_To_Servant
      (R : in CORBA.Object.Ref'Class;
-      S : out PortableServer.Servant) is
+      S : out PortableServer.Servant)
+   is
+      Root_POA : PortableServer.POA.Ref;
+
    begin
-      if CORBA.Object.Is_Nil (CORBA.Object.Ref (Root_POA)) then
-         Initiate_RootPOA;
+      if not Root_POA_Initialized then
+         Initialize_RootPOA;
       end if;
+
+      Root_POA := PortableServer.POA.To_Ref
+        (CORBA.ORB.Resolve_Initial_References
+         (CORBA.ORB.To_CORBA_String ("RootPOA")));
 
       S := PortableServer.POA.Reference_To_Servant
         (Root_POA, CORBA.Object.Ref (R));
