@@ -4023,6 +4023,7 @@ package body Exp_Dist is
       return Node_Id
    is
       Loc : constant Source_Ptr := Sloc (RPC_Receiver);
+
    begin
       return
         Make_Procedure_Specification (Loc,

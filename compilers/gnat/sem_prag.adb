@@ -546,7 +546,8 @@ package body Sem_Prag is
       procedure Set_Exported (E : Entity_Id; Arg : Node_Id);
       --  This procedure sets the Is_Exported flag for the given entity,
       --  checking that the entity was not previously imported. Arg is
-      --  the argument that specified the entity.
+      --  the argument that specified the entity. A check is also made
+      --  for exporting inappropriate entities.
 
       procedure Set_Extended_Import_Export_External_Name
         (Internal_Ent : Entity_Id;
@@ -3278,11 +3279,15 @@ package body Sem_Prag is
             end if;
          end if;
 
+         if Is_Type (E) then
+            Error_Msg_NE
+              ("exporting a type has no effect?", Arg, E);
+         end if;
+
          if Inside_A_Generic then
             Error_Msg_NE
               ("all instances of& will have the same external name?", Arg, E);
          end if;
-
       end Set_Exported;
 
       ----------------------------------------------
@@ -4948,6 +4953,7 @@ package body Sem_Prag is
                end loop Innr;
 
                if Citem = N then
+                  Set_Error_Posted (N);
                   Error_Pragma_Arg
                     ("argument of pragma% is not with'ed unit", Arg);
                end if;
@@ -5160,6 +5166,28 @@ package body Sem_Prag is
          --     [, [Mechanism        =>] MECHANISM]
          --     [, [Result_Mechanism =>] MECHANISM_NAME]);
 
+         --  EXTERNAL_SYMBOL ::=
+         --    IDENTIFIER
+         --  | static_string_EXPRESSION
+
+         --  PARAMETER_TYPES ::=
+         --    null
+         --  | SUBTYPE_MARK @{, SUBTYPE_MARK@}
+
+         --  MECHANISM ::=
+         --    MECHANISM_NAME
+         --  | (MECHANISM_ASSOCIATION @{, MECHANISM_ASSOCIATION@})
+
+         --  MECHANISM_ASSOCIATION ::=
+         --    [formal_parameter_NAME =>] MECHANISM_NAME
+
+         --  MECHANISM_NAME ::=
+         --    Value
+         --  | Reference
+         --  | Descriptor [([Class =>] CLASS_NAME)]
+
+         --  CLASS_NAME ::= ubs | ubsb | uba | s | sb | a | nca
+
          when Pragma_Export_Function => Export_Function : declare
             Args  : Args_List (1 .. 6);
             Names : constant Name_List (1 .. 6) := (
@@ -5198,6 +5226,28 @@ package body Sem_Prag is
          --     [, [External =>] EXTERNAL_SYMBOL]
          --     [, [Size     =>] EXTERNAL_SYMBOL]);
 
+         --  EXTERNAL_SYMBOL ::=
+         --    IDENTIFIER
+         --  | static_string_EXPRESSION
+
+         --  PARAMETER_TYPES ::=
+         --    null
+         --  | SUBTYPE_MARK @{, SUBTYPE_MARK@}
+
+         --  MECHANISM ::=
+         --    MECHANISM_NAME
+         --  | (MECHANISM_ASSOCIATION @{, MECHANISM_ASSOCIATION@})
+
+         --  MECHANISM_ASSOCIATION ::=
+         --    [formal_parameter_NAME =>] MECHANISM_NAME
+
+         --  MECHANISM_NAME ::=
+         --    Value
+         --  | Reference
+         --  | Descriptor [([Class =>] CLASS_NAME)]
+
+         --  CLASS_NAME ::= ubs | ubsb | uba | s | sb | a | nca
+
          when Pragma_Export_Object => Export_Object : declare
             Args  : Args_List (1 .. 3);
             Names : constant Name_List (1 .. 3) := (
@@ -5227,6 +5277,28 @@ package body Sem_Prag is
          --     [, [External         =>] EXTERNAL_SYMBOL,]
          --     [, [Parameter_Types  =>] (PARAMETER_TYPES)]
          --     [, [Mechanism        =>] MECHANISM]);
+
+         --  EXTERNAL_SYMBOL ::=
+         --    IDENTIFIER
+         --  | static_string_EXPRESSION
+
+         --  PARAMETER_TYPES ::=
+         --    null
+         --  | SUBTYPE_MARK @{, SUBTYPE_MARK@}
+
+         --  MECHANISM ::=
+         --    MECHANISM_NAME
+         --  | (MECHANISM_ASSOCIATION @{, MECHANISM_ASSOCIATION@})
+
+         --  MECHANISM_ASSOCIATION ::=
+         --    [formal_parameter_NAME =>] MECHANISM_NAME
+
+         --  MECHANISM_NAME ::=
+         --    Value
+         --  | Reference
+         --  | Descriptor [([Class =>] CLASS_NAME)]
+
+         --  CLASS_NAME ::= ubs | ubsb | uba | s | sb | a | nca
 
          when Pragma_Export_Procedure => Export_Procedure : declare
             Args  : Args_List (1 .. 4);
@@ -5278,6 +5350,28 @@ package body Sem_Prag is
          --     [, [External         =>] EXTERNAL_SYMBOL,]
          --     [, [Parameter_Types  =>] (PARAMETER_TYPES)]
          --     [, [Mechanism        =>] MECHANISM]);
+
+         --  EXTERNAL_SYMBOL ::=
+         --    IDENTIFIER
+         --  | static_string_EXPRESSION
+
+         --  PARAMETER_TYPES ::=
+         --    null
+         --  | SUBTYPE_MARK @{, SUBTYPE_MARK@}
+
+         --  MECHANISM ::=
+         --    MECHANISM_NAME
+         --  | (MECHANISM_ASSOCIATION @{, MECHANISM_ASSOCIATION@})
+
+         --  MECHANISM_ASSOCIATION ::=
+         --    [formal_parameter_NAME =>] MECHANISM_NAME
+
+         --  MECHANISM_NAME ::=
+         --    Value
+         --  | Reference
+         --  | Descriptor [([Class =>] CLASS_NAME)]
+
+         --  CLASS_NAME ::= ubs | ubsb | uba | s | sb | a | nca
 
          when Pragma_Export_Valued_Procedure =>
          Export_Valued_Procedure : declare
@@ -5759,6 +5853,28 @@ package body Sem_Prag is
          --     [, [Result_Mechanism         =>] MECHANISM_NAME]
          --     [, [First_Optional_Parameter =>] IDENTIFIER]);
 
+         --  EXTERNAL_SYMBOL ::=
+         --    IDENTIFIER
+         --  | static_string_EXPRESSION
+
+         --  PARAMETER_TYPES ::=
+         --    null
+         --  | SUBTYPE_MARK @{, SUBTYPE_MARK@}
+
+         --  MECHANISM ::=
+         --    MECHANISM_NAME
+         --  | (MECHANISM_ASSOCIATION @{, MECHANISM_ASSOCIATION@})
+
+         --  MECHANISM_ASSOCIATION ::=
+         --    [formal_parameter_NAME =>] MECHANISM_NAME
+
+         --  MECHANISM_NAME ::=
+         --    Value
+         --  | Reference
+         --  | Descriptor [([Class =>] CLASS_NAME)]
+
+         --  CLASS_NAME ::= ubs | ubsb | uba | s | sb | a | nca
+
          when Pragma_Import_Function => Import_Function : declare
             Args  : Args_List (1 .. 7);
             Names : constant Name_List (1 .. 7) := (
@@ -5800,6 +5916,10 @@ package body Sem_Prag is
          --     [, [External =>] EXTERNAL_SYMBOL]
          --     [, [Size     =>] EXTERNAL_SYMBOL]);
 
+         --  EXTERNAL_SYMBOL ::=
+         --    IDENTIFIER
+         --  | static_string_EXPRESSION
+
          when Pragma_Import_Object => Import_Object : declare
             Args  : Args_List (1 .. 3);
             Names : constant Name_List (1 .. 3) := (
@@ -5830,6 +5950,28 @@ package body Sem_Prag is
          --     [, [Parameter_Types          =>] (PARAMETER_TYPES)]
          --     [, [Mechanism                =>] MECHANISM]
          --     [, [First_Optional_Parameter =>] IDENTIFIER]);
+
+         --  EXTERNAL_SYMBOL ::=
+         --    IDENTIFIER
+         --  | static_string_EXPRESSION
+
+         --  PARAMETER_TYPES ::=
+         --    null
+         --  | SUBTYPE_MARK @{, SUBTYPE_MARK@}
+
+         --  MECHANISM ::=
+         --    MECHANISM_NAME
+         --  | (MECHANISM_ASSOCIATION @{, MECHANISM_ASSOCIATION@})
+
+         --  MECHANISM_ASSOCIATION ::=
+         --    [formal_parameter_NAME =>] MECHANISM_NAME
+
+         --  MECHANISM_NAME ::=
+         --    Value
+         --  | Reference
+         --  | Descriptor [([Class =>] CLASS_NAME)]
+
+         --  CLASS_NAME ::= ubs | ubsb | uba | s | sb | a | nca
 
          when Pragma_Import_Procedure => Import_Procedure : declare
             Args  : Args_List (1 .. 5);
@@ -5867,6 +6009,28 @@ package body Sem_Prag is
          --     [, [Parameter_Types          =>] (PARAMETER_TYPES)]
          --     [, [Mechanism                =>] MECHANISM]
          --     [, [First_Optional_Parameter =>] IDENTIFIER]);
+
+         --  EXTERNAL_SYMBOL ::=
+         --    IDENTIFIER
+         --  | static_string_EXPRESSION
+
+         --  PARAMETER_TYPES ::=
+         --    null
+         --  | SUBTYPE_MARK @{, SUBTYPE_MARK@}
+
+         --  MECHANISM ::=
+         --    MECHANISM_NAME
+         --  | (MECHANISM_ASSOCIATION @{, MECHANISM_ASSOCIATION@})
+
+         --  MECHANISM_ASSOCIATION ::=
+         --    [formal_parameter_NAME =>] MECHANISM_NAME
+
+         --  MECHANISM_NAME ::=
+         --    Value
+         --  | Reference
+         --  | Descriptor [([Class =>] CLASS_NAME)]
+
+         --  CLASS_NAME ::= ubs | ubsb | uba | s | sb | a | nca
 
          when Pragma_Import_Valued_Procedure =>
          Import_Valued_Procedure : declare

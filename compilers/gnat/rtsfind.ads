@@ -180,6 +180,14 @@ package Rtsfind is
       System_Bit_Ops,
       System_Boolean_Array_Operations,
       System_Checked_Pools,
+      System_Compare_Array_Signed_16,
+      System_Compare_Array_Signed_32,
+      System_Compare_Array_Signed_64,
+      System_Compare_Array_Signed_8,
+      System_Compare_Array_Unsigned_16,
+      System_Compare_Array_Unsigned_32,
+      System_Compare_Array_Unsigned_64,
+      System_Compare_Array_Unsigned_8,
       System_Exception_Table,
       System_Exceptions,
       System_Exn_Flt,
@@ -298,7 +306,6 @@ package Rtsfind is
       System_Storage_Elements,
       System_Storage_Pools,
       System_Stream_Attributes,
-      System_String_Compare,
       System_String_Ops,
       System_String_Ops_Concat_3,
       System_String_Ops_Concat_4,
@@ -627,6 +634,24 @@ package Rtsfind is
      RE_Vector_Xor,                      -- System_Boolean_Array_Operations,
 
      RE_Checked_Pool,                    -- System.Checked_Pools
+
+     RE_Compare_Array_S8,                -- System.Compare_Array_Signed_8
+     RE_Compare_Array_S8_Unaligned,      -- System.Compare_Array_Signed_8
+
+     RE_Compare_Array_S16,               -- System.Compare_Array_Signed_16
+
+     RE_Compare_Array_S32,               -- System.Compare_Array_Signed_16
+
+     RE_Compare_Array_S64,               -- System.Compare_Array_Signed_16
+
+     RE_Compare_Array_U8,                -- System.Compare_Array_Unsigned_8
+     RE_Compare_Array_U8_Unaligned,      -- System.Compare_Array_Unsigned_8
+
+     RE_Compare_Array_U16,               -- System.Compare_Array_Unsigned_16
+
+     RE_Compare_Array_U32,               -- System.Compare_Array_Unsigned_16
+
+     RE_Compare_Array_U64,               -- System.Compare_Array_Unsigned_16
 
      RE_Register_Exception,              -- System.Exception_Table
 
@@ -1249,9 +1274,6 @@ package Rtsfind is
      RE_W_U,                             -- System.Stream_Attributes
      RE_W_WC,                            -- System.Stream_Attributes
 
-     RE_Str_Compare,                     -- System.String_Compare
-     RE_Str_Compare_Bytes,               -- System.String_Compare
-
      RE_Str_Concat,                      -- System.String_Ops
      RE_Str_Concat_CC,                   -- System.String_Ops
      RE_Str_Concat_CS,                   -- System.String_Ops
@@ -1670,6 +1692,24 @@ package Rtsfind is
      RE_Vector_Nor                       => System_Boolean_Array_Operations,
      RE_Vector_Nxor                      => System_Boolean_Array_Operations,
      RE_Vector_Xor                       => System_Boolean_Array_Operations,
+
+     RE_Compare_Array_S8                 => System_Compare_Array_Signed_8,
+     RE_Compare_Array_S8_Unaligned       => System_Compare_Array_Signed_8,
+
+     RE_Compare_Array_S16                => System_Compare_Array_Signed_16,
+
+     RE_Compare_Array_S32                => System_Compare_Array_Signed_32,
+
+     RE_Compare_Array_S64                => System_Compare_Array_Signed_64,
+
+     RE_Compare_Array_U8                 => System_Compare_Array_Unsigned_8,
+     RE_Compare_Array_U8_Unaligned       => System_Compare_Array_Unsigned_8,
+
+     RE_Compare_Array_U16                => System_Compare_Array_Unsigned_16,
+
+     RE_Compare_Array_U32                => System_Compare_Array_Unsigned_32,
+
+     RE_Compare_Array_U64                => System_Compare_Array_Unsigned_64,
 
      RE_Register_Exception               => System_Exception_Table,
 
@@ -2291,9 +2331,6 @@ package Rtsfind is
      RE_W_SU                             => System_Stream_Attributes,
      RE_W_U                              => System_Stream_Attributes,
      RE_W_WC                             => System_Stream_Attributes,
-
-     RE_Str_Compare                      => System_String_Compare,
-     RE_Str_Compare_Bytes                => System_String_Compare,
 
      RE_Str_Concat                       => System_String_Ops,
      RE_Str_Normalize                    => System_String_Ops,
