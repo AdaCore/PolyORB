@@ -76,6 +76,10 @@ package PolyORB.POA_Types is
       with null record;
    type Obj_Adapter_Access is access all Obj_Adapter'Class;
 
+   type Obj_Adapter_Ref is new PolyORB.Smart_Pointers.Ref with null record;
+
+   Null_POA_Ref : Obj_Adapter_Ref;
+
    ----------------------------------
    -- Object Interface description --
    ----------------------------------
@@ -101,7 +105,7 @@ package PolyORB.POA_Types is
    --------------
 
    package POA_HTables is new PolyORB.Utils.HTables.Perfect
-     (Obj_Adapter_Access,
+     (Obj_Adapter_Ref,
       PolyORB.Utils.HFunctions.Hyper.Hash_Hyper_Parameters,
       PolyORB.Utils.HFunctions.Hyper.Default_Hash_Parameters,
       PolyORB.Utils.HFunctions.Hyper.Hash,

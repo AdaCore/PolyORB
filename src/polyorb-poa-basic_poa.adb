@@ -382,6 +382,9 @@ package body PolyORB.POA.Basic_POA is
       Child :        Basic_Obj_Adapter_Access)
    is
       use PolyORB.POA_Types.POA_HTables;
+      use PolyORB.Smart_Pointers;
+
+      Ref : Obj_Adapter_Ref;
 
    begin
       pragma Debug (O (To_Standard_String (Self.Name)
@@ -393,10 +396,11 @@ package body PolyORB.POA.Basic_POA is
          Initialize (Self.Children.all);
       end if;
 
+      Set (Ref, Entity_Ptr (Child));
+
       Insert (Self.Children.all,
               To_Standard_String (Child.Name),
-              POA_Types.Obj_Adapter_Access (Child));
-
+              Ref);
    end Register_Child;
 
    ----------------------
@@ -550,6 +554,7 @@ package body PolyORB.POA.Basic_POA is
       use PolyORB.POA_Types.POA_HTables;
 
       New_Obj_Adapter : Basic_Obj_Adapter_Access;
+      Ref : Obj_Adapter_Ref;
 
    begin
       pragma Debug (O ("Creating POA: " & To_String (Adapter_Name)));
@@ -573,8 +578,10 @@ package body PolyORB.POA.Basic_POA is
       if Self.Children /= null then
          pragma Debug (O ("Check if a POA with the same name exists."));
 
-         if Lookup (Self.Children.all,
-                    To_Standard_String (Adapter_Name), null) /= null then
+         if not Is_Null (Lookup (Self.Children.all,
+                                 To_Standard_String (Adapter_Name),
+                                 Null_POA_Ref))
+         then
             Throw (Error,
                    AdapterAlreadyExists_E,
                    Null_Members'(Null_Member));
@@ -650,10 +657,13 @@ package body PolyORB.POA.Basic_POA is
       --  Insert POA into Global_POATable
 
       pragma Debug (O ("Insert POA into Global_POATable"));
+
+      Set (Ref, PolyORB.Smart_Pointers.Entity_Ptr (New_Obj_Adapter));
+
       Insert (Global_POATable,
               POA_Path_Separator
               & To_Standard_String (New_Obj_Adapter.Absolute_Address),
-              POA_Types.Obj_Adapter_Access (New_Obj_Adapter));
+              Ref);
 
       --  Return the created POA.
 
@@ -695,7 +705,8 @@ package body PolyORB.POA.Basic_POA is
             A_Child : Basic_Obj_Adapter_Access;
          begin
             while not Last (It) loop
-               A_Child := Basic_Obj_Adapter (Value (It).all)'Access;
+               A_Child
+                 := Basic_Obj_Adapter (Entity_Of (Value (It)).all)'Access;
 
                Destroy (A_Child,
                         Etherealize_Objects,
@@ -1026,9 +1037,10 @@ package body PolyORB.POA.Basic_POA is
          --  Check Self's children
 
          if Self.Children /= null then
-            A_Child := PolyORB.POA.Obj_Adapter_Access
-              (Lookup (Self.Children.all,
-                       Name (Name'First .. Split_Point - 1), null));
+            A_Child := Obj_Adapter_Access
+              (Entity_Of (Lookup (Self.Children.all,
+                                  Name (Name'First .. Split_Point - 1),
+                                  Null_POA_Ref)));
          end if;
 
          if A_Child /= null then
@@ -1103,15 +1115,11 @@ package body PolyORB.POA.Basic_POA is
          pragma Debug (O ("Find_POA: enter, Name = "
                           & Full_POA_Name));
 
-         --  XXX: Suppressed lookup in Global POA HTable, as of
-         --  2003/09/05, Global POA HTable is not updated when CORBA's POA
-         --  finalizes a reference on a POA.
-
---         POA := PolyORB.POA.Obj_Adapter_Access
---           (Lookup
---            (Global_POATable,
---             Full_POA_Name,
---             null));
+         POA := PolyORB.POA.Obj_Adapter_Access
+           (Entity_Of (Lookup
+                       (Global_POATable,
+                        Full_POA_Name,
+                        Null_POA_Ref)));
 
          POA := null;
 

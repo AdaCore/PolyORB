@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poa.adb#51 $
+--  $Id: //droopi/main/src/corba/portableserver-poa.adb#52 $
 
 with Ada.Exceptions;
 
@@ -379,6 +379,7 @@ package body PortableServer.POA is
    is
       use type PolyORB.POA_Types.POATable_Access;
       use PolyORB.POA_Types.POA_HTables;
+      use PolyORB.POA_Types;
       use PolyORB.Smart_Pointers;
       use IDL_Sequence_POA_Forward;
 
@@ -400,7 +401,7 @@ package body PortableServer.POA is
                pragma Debug (O ("++"));
                Append (Result,
                        Convert.To_Forward
-                       (Create_Ref (Entity_Ptr (Value (It)))));
+                       (Create_Ref (Entity_Of (Value (It)))));
                Next (It);
             end loop;
          end;
