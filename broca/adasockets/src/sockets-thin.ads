@@ -6,7 +6,7 @@
 --                                                                         --
 --                                S p e c                                  --
 --                                                                         --
---                        $ReleaseVersion: 0.1.6 $                         --
+--                        $ReleaseVersion$                         --
 --                                                                         --
 --                        Copyright (C) 1998-2000                          --
 --             École Nationale Supérieure des Télécommunications           --
@@ -142,11 +142,8 @@ package Sockets.Thin is
    pragma Convention (C, Hostent_Access);
    --  Access to host entry
 
-   type Caddr_T is new Strings.chars_ptr;
-   --  Type Caddr_T is in fact a (char *)
-
    type Iovec is record
-      Iov_Base : Caddr_T;
+      Iov_Base : System.Address;
       Iov_Len  : C.int;
    end record;
    pragma Convention (C, Iovec);
@@ -157,11 +154,11 @@ package Sockets.Thin is
    --  Access to Iovec structure
 
    type Msghdr is record
-      Msg_Name         : Caddr_T;
+      Msg_Name         : System.Address;
       Msg_Namelen      : C.int;
       Msg_Iov          : Iovec_Access;
       Msg_Iovlen       : C.int;
-      Msg_Accrights    : Caddr_T;
+      Msg_Accrights    : System.Address;
       Msg_Accrightslen : C.int;
    end record;
    pragma Convention (C, Msghdr);
