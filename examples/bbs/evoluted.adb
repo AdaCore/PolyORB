@@ -1,4 +1,5 @@
 with Ada.Command_Line; use Ada.Command_Line;
+with Ada.Exceptions;
 with Ada.Text_IO;      use Ada.Text_IO;
 with Ada.Real_Time;    use Ada.Real_Time;
 with Exceptions;       use Exceptions;
@@ -6,6 +7,8 @@ with Evoluted_Pkg;     use Evoluted_Pkg;
 with Server;           use Server;
 with Common;
 with Utils;
+
+with PolyORB.Dynamic_Dict;
 
 with GNAT.Command_Line; use GNAT.Command_Line;
 with GNAT.OS_Lib;
@@ -16,6 +19,20 @@ procedure Evoluted is
 
    procedure Usage;
    --  Print usage
+
+   package Penpals_Cache is new PolyORB.Dynamic_Dict
+     (Penpal_Pointer, null);
+
+   function Cache_Get_Penpal (P : String) return Penpal_Pointer;
+   function Cache_Get_Penpal (P : String) return Penpal_Pointer is
+      PP : Penpal_Pointer := Penpals_Cache.Lookup (P, null);
+   begin
+      if PP = null then
+         PP := Get_Penpal (P);
+         Penpals_Cache.Register (P, PP);
+      end if;
+      return PP;
+   end Cache_Get_Penpal;
 
    -----------
    -- Usage --
@@ -118,7 +135,7 @@ begin
                begin
                   Common.New_Message
                     (Sender    => Name_Of (Penpal'Access),
-                     Recipient => Get_Penpal (To),
+                     Recipient => Cache_Get_Penpal (To),
                      Message   => "P" & Iter & ":"
                        & Penpal_Name & ":" & To
                        & ":" & Payload.all);
@@ -133,10 +150,15 @@ begin
       while not Recv_Done loop
          delay 0.1;
       end loop;
-      Put_Line ("Elapsed :"
-                  & Integer'Image
-                  ((Clock - Start) / Nanoseconds (1))
-               & " ns");
+      declare
+         Elapsed : constant Duration
+           := To_Duration (Clock - Start);
+      begin
+         Put_Line ("Elapsed :" & Duration'Image (Elapsed));
+      exception
+         when E : others =>
+            Put_Line (Ada.Exceptions.Exception_Information (E));
+      end;
       GNAT.OS_Lib.OS_Exit (0);
    end;
 exception
