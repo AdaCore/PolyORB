@@ -70,9 +70,9 @@ begin
       --     does not exist.
 
       declare
-         S : constant Integer := Get_Conf_Suffix'Length;
          N : Name_Id := Next_Main_Source;
          L : Integer;
+         S : constant Integer := Get_Conf_Suffix'Length;
       begin
 
          Get_Name_String (N);
