@@ -89,6 +89,11 @@ begin
 
    pragma Debug (D (D_Elaborate, "Entering partition startup phase"));
 
+   --  Before starting anything, we start the number of non-terminating task
+   --  launched by the system in the Termination package.
+
+   System.Garlic.Termination.Init_Non_Terminating_Tasks;
+
    --  Phase (1) (see s-garlic.ads)
 
    System.Garlic.Services.Initialize;

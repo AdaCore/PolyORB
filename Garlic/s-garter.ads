@@ -64,6 +64,9 @@ package System.Garlic.Termination is
    procedure Shutdown;
    --  Shutdown any active task.
 
+   procedure Init_Non_Terminating_Tasks;
+   --  Get the value from system.
+
    procedure Initialize;
    --  Initialization.
 

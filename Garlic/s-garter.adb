@@ -225,6 +225,17 @@ package body System.Garlic.Termination is
       end loop;
    end Initiate_Synchronization;
 
+   --------------------------------
+   -- Init_Non_Terminating_Tasks --
+   --------------------------------
+
+   procedure Init_Non_Terminating_Tasks is
+   begin
+      while Get_Active_Task_Count /= 1 loop
+         Add_Non_Terminating_Task;
+      end loop;
+   end Init_Non_Terminating_Tasks;
+
    ----------------
    -- Initialize --
    ----------------
