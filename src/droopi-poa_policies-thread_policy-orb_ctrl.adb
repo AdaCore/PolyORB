@@ -1,4 +1,4 @@
-package body Droopi.POA_Policies.Thread_Policy.ORB_Ctrl is
+package body PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl is
 
    ------------
    -- Create --
@@ -26,7 +26,7 @@ package body Droopi.POA_Policies.Thread_Policy.ORB_Ctrl is
 
    procedure Check_Compatibility
      (Self : ORB_Ctrl_Policy;
-      OA   : Droopi.POA_Types.Obj_Adapter_Access)
+      OA   : PolyORB.POA_Types.Obj_Adapter_Access)
    is
    begin
       null;
@@ -44,4 +44,4 @@ package body Droopi.POA_Policies.Thread_Policy.ORB_Ctrl is
       Free (ORB_Ctrl_Policy_Access (Ptr));
    end Free;
 
-end Droopi.POA_Policies.Thread_Policy.ORB_Ctrl;
+end PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl;

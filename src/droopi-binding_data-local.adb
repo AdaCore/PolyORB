@@ -3,9 +3,9 @@
 
 --  $Id$
 
-package body Droopi.Binding_Data.Local is
+package body PolyORB.Binding_Data.Local is
 
-   use Droopi.Objects;
+   use PolyORB.Objects;
 
    procedure Initialize (P : in out Local_Profile_Type) is
    begin
@@ -74,7 +74,7 @@ package body Droopi.Binding_Data.Local is
 
    function Image (Prof : Local_Profile_Type) return String is
    begin
-      return "Object_Id : " & Droopi.Objects.Image (Prof.Object_Id.all);
+      return "Object_Id : " & PolyORB.Objects.Image (Prof.Object_Id.all);
    end Image;
 
-end Droopi.Binding_Data.Local;
+end PolyORB.Binding_Data.Local;

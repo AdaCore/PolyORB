@@ -5,10 +5,10 @@
 
 with Ada.Streams;
 
-with Droopi.Buffers;
-with Droopi.Components;
+with PolyORB.Buffers;
+with PolyORB.Components;
 
-package Droopi.Filters.Slicers is
+package PolyORB.Filters.Slicers is
 
    pragma Elaborate_Body;
 
@@ -36,4 +36,4 @@ private
       S : Components.Message'Class)
      return Components.Message'Class;
 
-end Droopi.Filters.Slicers;
+end PolyORB.Filters.Slicers;

@@ -5,9 +5,9 @@
 
 with Sequences.Unbounded;
 
-with Droopi.Soft_Links;
+with PolyORB.Soft_Links;
 
-package Droopi.Obj_Adapters.Simple is
+package PolyORB.Obj_Adapters.Simple is
 
    pragma Elaborate_Body;
 
@@ -91,4 +91,4 @@ private
       Lock : Soft_Links.Adv_Mutex_Access;
    end record;
 
-end Droopi.Obj_Adapters.Simple;
+end PolyORB.Obj_Adapters.Simple;

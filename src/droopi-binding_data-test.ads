@@ -2,9 +2,9 @@
 
 --  $Id$
 
-with Droopi.Sockets;
+with PolyORB.Sockets;
 
-package Droopi.Binding_Data.Test is
+package PolyORB.Binding_Data.Test is
 
    pragma Elaborate_Body;
 
@@ -64,4 +64,4 @@ private
         Address : Sockets.Sock_Addr_Type;
      end record;
 
-end Droopi.Binding_Data.Test;
+end PolyORB.Binding_Data.Test;

@@ -2,9 +2,9 @@
 
 --  $Id$
 
-with Droopi.ORB;
+with PolyORB.ORB;
 
-package Droopi.Setup.CORBA_Client is
+package PolyORB.Setup.CORBA_Client is
 
    pragma Elaborate_Body;
 
@@ -17,4 +17,4 @@ package Droopi.Setup.CORBA_Client is
    --  SL_Init must initialize one of the Soft_Links implementations.
    --  TP must be the chosen ORB tasking policy.
 
-end Droopi.Setup.CORBA_Client;
+end PolyORB.Setup.CORBA_Client;

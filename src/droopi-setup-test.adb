@@ -9,46 +9,46 @@ with Ada.Text_IO; use Ada.Text_IO;
 with CORBA;
 --  For To_Standard_String (display of stringified IOR).
 
-with Droopi.Any;
-with Droopi.Any.NVList;
-with Droopi.Filters;
-with Droopi.Filters.Slicers;
-with Droopi.Log;
-with Droopi.Obj_Adapters.Simple;
-with Droopi.Objects;
-with Droopi.ORB.Interface;
+with PolyORB.Any;
+with PolyORB.Any.NVList;
+with PolyORB.Filters;
+with PolyORB.Filters.Slicers;
+with PolyORB.Log;
+with PolyORB.Obj_Adapters.Simple;
+with PolyORB.Objects;
+with PolyORB.ORB.Interface;
 
-with Droopi.Binding_Data.Test;
-with Droopi.Binding_Data.IIOP;
-with Droopi.Binding_Data.SRP;
+with PolyORB.Binding_Data.Test;
+with PolyORB.Binding_Data.IIOP;
+with PolyORB.Binding_Data.SRP;
 
-with Droopi.Components;
+with PolyORB.Components;
 
-with Droopi.Protocols;
-with Droopi.Protocols.Echo;
-with Droopi.Protocols.GIOP;
-with Droopi.Protocols.SRP;
+with PolyORB.Protocols;
+with PolyORB.Protocols.Echo;
+with PolyORB.Protocols.GIOP;
+with PolyORB.Protocols.SRP;
 
-with Droopi.References;
-with Droopi.References.IOR;
+with PolyORB.References;
+with PolyORB.References.IOR;
 
-with Droopi.Requests;
+with PolyORB.Requests;
 
-with Droopi.Smart_Pointers;
-with Droopi.Sockets;
-with Droopi.Test_Object;
-with Droopi.Transport.Sockets;
-with Droopi.Types;
+with PolyORB.Smart_Pointers;
+with PolyORB.Sockets;
+with PolyORB.Test_Object;
+with PolyORB.Transport.Sockets;
+with PolyORB.Types;
 
-package body Droopi.Setup.Test is
+package body PolyORB.Setup.Test is
 
-   use Droopi.Binding_Data;
-   use Droopi.Filters;
-   use Droopi.Objects;
-   use Droopi.ORB;
-   use Droopi.Sockets;
-   use Droopi.Transport;
-   use Droopi.Transport.Sockets;
+   use PolyORB.Binding_Data;
+   use PolyORB.Filters;
+   use PolyORB.Objects;
+   use PolyORB.ORB;
+   use PolyORB.Sockets;
+   use PolyORB.Transport;
+   use PolyORB.Transport.Sockets;
 
    Obj_Adapter : Obj_Adapters.Obj_Adapter_Access;
    My_Servant : Servant_Access;
@@ -140,7 +140,7 @@ package body Droopi.Setup.Test is
 
       Put ("Initializing subsystems...");
 
-      Droopi.Log.Initialize;
+      PolyORB.Log.Initialize;
       Put (" logging");
       --  Logging subsystem. Start this one first so we can debug
       --  problems in others.
@@ -149,7 +149,7 @@ package body Droopi.Setup.Test is
       Put (" soft-links");
       --  Setup soft links.
 
-      Droopi.Smart_Pointers.Initialize;
+      PolyORB.Smart_Pointers.Initialize;
       Put (" smart-pointers");
       --  Depends on Soft_Links.
 
@@ -157,7 +157,7 @@ package body Droopi.Setup.Test is
       -- Initialize personality-specific stuff --
       -------------------------------------------
 
-      Droopi.Binding_Data.IIOP.Initialize;
+      PolyORB.Binding_Data.IIOP.Initialize;
       Put (" binding-iiop");
 
       --------------------------
@@ -166,7 +166,7 @@ package body Droopi.Setup.Test is
 
       Setup.The_ORB := new ORB.ORB_Type (TP);
 
-      Droopi.ORB.Create (Setup.The_ORB.all);
+      PolyORB.ORB.Create (Setup.The_ORB.all);
       Put (" ORB");
 
       Put_Line (" done");
@@ -281,12 +281,12 @@ package body Droopi.Setup.Test is
          ---------------------------------------
 
          declare
-            use Droopi.Any;
-            use Droopi.Any.NVList;
-            use Droopi.Components;
-            use Droopi.ORB.Interface;
-            use Droopi.Requests;
-            use Droopi.Types;
+            use PolyORB.Any;
+            use PolyORB.Any.NVList;
+            use PolyORB.Components;
+            use PolyORB.ORB.Interface;
+            use PolyORB.Requests;
+            use PolyORB.Types;
 
             Req : Request_Access;
             Args : Any.NVList.Ref;
@@ -305,12 +305,12 @@ package body Droopi.Setup.Test is
                Create (Args);
                Add_Item
                  (Args,
-                  To_Droopi_String ("waitAndEchoString"),
-                  To_Any (To_Droopi_String (Arg1)),
+                  To_PolyORB_String ("waitAndEchoString"),
+                  To_Any (To_PolyORB_String (Arg1)),
                   ARG_IN);
                Add_Item
                  (Args,
-                  To_Droopi_String ("waitAndEchoString"),
+                  To_PolyORB_String ("waitAndEchoString"),
                   To_Any (Long (Arg2)),
                   ARG_IN);
 
@@ -355,4 +355,4 @@ package body Droopi.Setup.Test is
       end if;
    end Run_Test;
 
-end Droopi.Setup.Test;
+end PolyORB.Setup.Test;

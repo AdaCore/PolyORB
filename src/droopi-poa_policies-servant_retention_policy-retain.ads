@@ -1,6 +1,6 @@
 with Ada.Unchecked_Deallocation;
 
-package Droopi.POA_Policies.Servant_Retention_Policy.Retain is
+package PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
 
    type Retain_Policy is new ServantRetentionPolicy with null record;
    type Retain_Policy_Access is access all Retain_Policy;
@@ -9,7 +9,7 @@ package Droopi.POA_Policies.Servant_Retention_Policy.Retain is
 
    procedure Check_Compatibility
      (Self : Retain_Policy;
-      OA   : Droopi.POA_Types.Obj_Adapter_Access);
+      OA   : PolyORB.POA_Types.Obj_Adapter_Access);
 
    function Policy_Id
      (Self : Retain_Policy)
@@ -17,29 +17,29 @@ package Droopi.POA_Policies.Servant_Retention_Policy.Retain is
 
    function Activate_Object
      (Self      : Retain_Policy;
-      OA        : Droopi.POA_Types.Obj_Adapter_Access;
+      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
       P_Servant : Servant_Access)
      return Object_Id_Access;
 
    procedure Activate_Object_With_Id
      (Self      : Retain_Policy;
-      OA        : Droopi.POA_Types.Obj_Adapter_Access;
+      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
       P_Servant : Servant_Access;
       Oid       : Object_Id);
 
    procedure Deactivate
      (Self      : Retain_Policy;
-      OA        : Droopi.POA_Types.Obj_Adapter_Access;
+      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
       Oid       : Object_Id);
 
    function Servant_To_Id
      (Self      : Retain_Policy;
-      OA        : Droopi.POA_Types.Obj_Adapter_Access;
+      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
       P_Servant : Servant_Access) return Object_Id_Access;
 
    function Id_To_Servant
      (Self  : Retain_Policy;
-      OA    : Droopi.POA_Types.Obj_Adapter_Access;
+      OA    : PolyORB.POA_Types.Obj_Adapter_Access;
       U_Oid : Unmarshalled_Oid_Access)
      return Servant_Access;
 
@@ -51,4 +51,4 @@ package Droopi.POA_Policies.Servant_Retention_Policy.Retain is
      (Retain_Policy,
       Retain_Policy_Access);
 
-end Droopi.POA_Policies.Servant_Retention_Policy.Retain;
+end PolyORB.POA_Policies.Servant_Retention_Policy.Retain;

@@ -2,8 +2,8 @@
 
 --  $Id$
 
-with Droopi.Components;
-with Droopi.POA_Types;
+with PolyORB.Components;
+with PolyORB.POA_Types;
 with CORBA;
 
 package CORBA.Test_Object is
@@ -12,7 +12,7 @@ package CORBA.Test_Object is
 
    use CORBA;
 
-   type My_Object is new Droopi.POA_Types.Servant with null record;
+   type My_Object is new PolyORB.POA_Types.Servant with null record;
 
    procedure Create (O : in out My_Object);
 
@@ -31,8 +31,8 @@ package CORBA.Test_Object is
 
    function Handle_Message
      (Obj : access My_Object;
-      Msg : Droopi.Components.Message'Class)
-     return Droopi.Components.Message'Class;
+      Msg : PolyORB.Components.Message'Class)
+     return PolyORB.Components.Message'Class;
 
 end CORBA.Test_Object;
 

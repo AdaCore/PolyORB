@@ -4,21 +4,21 @@
 
 with Ada.Streams; use Ada.Streams;
 
-with Droopi.Buffers; use Droopi.Buffers;
-with Droopi.Sockets;
-with Droopi.Storage_Pools;
-with Droopi.Types;
+with PolyORB.Buffers; use PolyORB.Buffers;
+with PolyORB.Sockets;
+with PolyORB.Storage_Pools;
+with PolyORB.Types;
 
 with Sequences.Unbounded;
 
-package Droopi.Binding_Data.IIOP is
+package PolyORB.Binding_Data.IIOP is
 
    pragma Elaborate_Body;
 
    type IIOP_Profile_Type is new Profile_Type with private;
 
    type Octets_Access is access all Stream_Element_Array;
-   for Octets_Access'Storage_Pool use Droopi.Storage_Pools.Debug_Pool;
+   for Octets_Access'Storage_Pool use PolyORB.Storage_Pools.Debug_Pool;
 
    type Tagged_Component is record
       Tag            : Types.Unsigned_Long;
@@ -104,4 +104,4 @@ private
       Address : Sockets.Sock_Addr_Type;
    end record;
 
-end Droopi.Binding_Data.IIOP;
+end PolyORB.Binding_Data.IIOP;

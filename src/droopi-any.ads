@@ -34,10 +34,10 @@
 with Ada.Finalization;
 with Ada.Unchecked_Deallocation;
 
-with Droopi.Locks;
-with Droopi.Types; use Droopi.Types;
+with PolyORB.Locks;
+with PolyORB.Types; use PolyORB.Types;
 
-package Droopi.Any is
+package PolyORB.Any is
 
    pragma Elaborate_Body;
 
@@ -900,7 +900,7 @@ private
       The_Type     : TypeCode.Object;
       As_Reference : Boolean := False;
       Ref_Counter  : Natural_Ptr;
-      Any_Lock     : Droopi.Locks.Rw_Lock_Access;
+      Any_Lock     : PolyORB.Locks.Rw_Lock_Access;
    end record;
 
    --  Some methods to deal with the Any fields.
@@ -937,4 +937,4 @@ private
    ARG_INOUT :     constant Flags := 2;
    IN_COPY_VALUE : constant Flags := 3;
 
-end Droopi.Any;
+end PolyORB.Any;

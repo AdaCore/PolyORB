@@ -2,10 +2,10 @@
 
 --  $Id$
 
-with Droopi.Components;
-with Droopi.ORB;
+with PolyORB.Components;
+with PolyORB.ORB;
 
-package Droopi.References.Binding is
+package PolyORB.References.Binding is
 
    pragma Elaborate_Body;
 
@@ -27,4 +27,4 @@ package Droopi.References.Binding is
    --  Raised when an attempt is made to bind a reference
    --  that is null or has no supported profile.
 
-end Droopi.References.Binding;
+end PolyORB.References.Binding;

@@ -1,12 +1,12 @@
-with Droopi.CORBA_P.Exceptions; use Droopi.CORBA_P.Exceptions;
+with PolyORB.CORBA_P.Exceptions; use PolyORB.CORBA_P.Exceptions;
 --  XXX remove dep on CORBA_P!
 
-with Droopi.POA;
-with Droopi.Types;
+with PolyORB.POA;
+with PolyORB.Types;
 
-package body Droopi.POA_Policies.Lifespan_Policy.Transient is
+package body PolyORB.POA_Policies.Lifespan_Policy.Transient is
 
-   use Droopi.Types;
+   use PolyORB.Types;
 
    ------------
    -- Create --
@@ -23,7 +23,7 @@ package body Droopi.POA_Policies.Lifespan_Policy.Transient is
 
    procedure Check_Compatibility
      (Self : Transient_Policy;
-      OA   : Droopi.POA_Types.Obj_Adapter_Access)
+      OA   : PolyORB.POA_Types.Obj_Adapter_Access)
    is
    begin
       null;
@@ -46,10 +46,10 @@ package body Droopi.POA_Policies.Lifespan_Policy.Transient is
 
    function Get_Time_Stamp
      (P  : Transient_Policy;
-      OA : Droopi.POA_Types.Obj_Adapter_Access)
+      OA : PolyORB.POA_Types.Obj_Adapter_Access)
      return Time_Stamp is
    begin
-      return Droopi.POA.Obj_Adapter_Access (OA).Boot_Time;
+      return PolyORB.POA.Obj_Adapter_Access (OA).Boot_Time;
    end Get_Time_Stamp;
 
    ---------------------
@@ -58,11 +58,11 @@ package body Droopi.POA_Policies.Lifespan_Policy.Transient is
 
    procedure Ensure_Lifespan
      (P     : Transient_Policy;
-      OA    : Droopi.POA_Types.Obj_Adapter_Access;
+      OA    : PolyORB.POA_Types.Obj_Adapter_Access;
       U_Oid : Unmarshalled_Oid_Access) is
    begin
       if U_Oid.Persistency_Flag
-        /= Droopi.POA.Obj_Adapter_Access (OA).Boot_Time
+        /= PolyORB.POA.Obj_Adapter_Access (OA).Boot_Time
       then
          Raise_Bad_Param;
       end if;
@@ -80,4 +80,4 @@ package body Droopi.POA_Policies.Lifespan_Policy.Transient is
       Free (Transient_Policy_Access (Ptr));
    end Free;
 
-end Droopi.POA_Policies.Lifespan_Policy.Transient;
+end PolyORB.POA_Policies.Lifespan_Policy.Transient;

@@ -4,7 +4,7 @@
 
 with Ada.Unchecked_Deallocation;
 
-package body Droopi.Asynch_Ev is
+package body PolyORB.Asynch_Ev is
 
    function Notepad_Of (AES : Asynch_Ev_Source_Access)
      return Annotations.Notepad_Access is
@@ -29,4 +29,4 @@ package body Droopi.Asynch_Ev is
       Free (AES);
    end Destroy;
 
-end Droopi.Asynch_Ev;
+end PolyORB.Asynch_Ev;

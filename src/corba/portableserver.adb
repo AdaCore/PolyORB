@@ -31,23 +31,23 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Droopi;
-with Droopi.Requests;
-with Droopi.Objects.Interface;
+with PolyORB;
+with PolyORB.Requests;
+with PolyORB.Objects.Interface;
 
 package body PortableServer is
 
    function Handle_Message
      (Self : access DynamicImplementation;
-      Msg  : Droopi.Components.Message'Class)
-     return Droopi.Components.Message'Class
+      Msg  : PolyORB.Components.Message'Class)
+     return PolyORB.Components.Message'Class
    is
-      use Droopi.Objects.Interface;
+      use PolyORB.Objects.Interface;
 
    begin
       if Msg in Execute_Request then
          declare
-            use Droopi.Requests;
+            use PolyORB.Requests;
             use CORBA.ServerRequest;
 
             R : constant Request_Access
@@ -60,7 +60,7 @@ package body PortableServer is
             return Executed_Request'(Req => R);
          end;
       else
-         raise Droopi.Components.Unhandled_Message;
+         raise PolyORB.Components.Unhandled_Message;
       end if;
    end Handle_Message;
 
@@ -68,7 +68,7 @@ package body PortableServer is
      (For_Servant : Servant_Base)
      return POA_Forward.Ref is
    begin
-      raise Droopi.Not_Implemented;
+      raise PolyORB.Not_Implemented;
       return Get_Default_POA (For_Servant);
    end Get_Default_POA;
 
@@ -76,7 +76,7 @@ package body PortableServer is
      (From : in CORBA.Exception_Occurrence;
       To   : out ForwardRequest_Members) is
    begin
-      raise Droopi.Not_Implemented;
+      raise PolyORB.Not_Implemented;
    end Get_Members;
 
 end PortableServer;

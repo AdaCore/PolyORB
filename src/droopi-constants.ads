@@ -1,8 +1,8 @@
---  Constants for the DROOPI system.
+--  Constants for the PolyORB system.
 
 --  $Id$
 
-package Droopi.Constants is
+package PolyORB.Constants is
 
    pragma Pure;
 
@@ -12,4 +12,4 @@ private
 
    Forever : constant Duration := Duration'Last;
 
-end Droopi.Constants;
+end PolyORB.Constants;

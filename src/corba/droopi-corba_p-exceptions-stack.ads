@@ -33,7 +33,7 @@
 
 with CORBA;
 
-package Droopi.CORBA_P.Exceptions.Stack is
+package PolyORB.CORBA_P.Exceptions.Stack is
 
    pragma Elaborate_Body;
 
@@ -57,7 +57,7 @@ package Droopi.CORBA_P.Exceptions.Stack is
    --  Exc_Mbr. Store its members in a stack. If the stack size is
    --  bigger than stack_size, the oldest members are thrown away.
 
-end Droopi.CORBA_P.Exceptions.Stack;
+end PolyORB.CORBA_P.Exceptions.Stack;
 
 
 

@@ -1,6 +1,6 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                          DROOPI COMPONENTS                               --
+--                          PolyORB COMPONENTS                               --
 --                                                                          --
 --                         C O R B A. G I O P                               --
 --                                                                          --
@@ -16,23 +16,23 @@ with CORBA;
 
 with Sequences.Unbounded;
 
-with Droopi.Buffers;
-with Droopi.Binding_Data;
-with Droopi.References;
-with Droopi.References.IOR;
-with Droopi.Requests;
-with Droopi.Objects;
-with Droopi.ORB;
-with Droopi.Storage_Pools;
-with Droopi.Types;
-with Droopi.Representations.CDR;
+with PolyORB.Buffers;
+with PolyORB.Binding_Data;
+with PolyORB.References;
+with PolyORB.References.IOR;
+with PolyORB.Requests;
+with PolyORB.Objects;
+with PolyORB.ORB;
+with PolyORB.Storage_Pools;
+with PolyORB.Types;
+with PolyORB.Representations.CDR;
 
-package Droopi.Protocols.GIOP is
+package PolyORB.Protocols.GIOP is
 
    --  Body requires child units GIOP_<version>:
    --  no elab control pragmas.
 
-   use Droopi.Binding_Data;
+   use PolyORB.Binding_Data;
    use ORB;
 
    GIOP_Error : exception;
@@ -58,7 +58,7 @@ package Droopi.Protocols.GIOP is
 
    type IOR_Addressing_Info_Access is access all IOR_Addressing_Info;
    for IOR_Addressing_Info_Access'Storage_Pool
-     use Droopi.Storage_Pools.Debug_Pool;
+     use PolyORB.Storage_Pools.Debug_Pool;
 
    type Addressing_Disposition is (Key_Addr, Profile_Addr, Reference_Addr);
 
@@ -75,7 +75,7 @@ package Droopi.Protocols.GIOP is
 
    type Target_Address_Access is access all Target_Address;
    for Target_Address_Access'Storage_Pool
-     use Droopi.Storage_Pools.Debug_Pool;
+     use PolyORB.Storage_Pools.Debug_Pool;
 
    procedure Free is
       new Ada.Unchecked_Deallocation
@@ -257,7 +257,7 @@ private
    --  procedure Marshall_Location_Forward
    --   (Buffer           : access Buffers.Buffer_Type;
    --    Request_Id       : in  Types.Unsigned_Long;
-   --    Forward_Ref      : in  Droopi.References.Ref);
+   --    Forward_Ref      : in  PolyORB.References.Ref);
 
 
    procedure Marshall_Cancel_Request
@@ -315,7 +315,7 @@ private
    procedure Location_Forward_Reply
      (Ses             : access GIOP_Session;
       Request         :  Requests.Request_Access;
-      Forward_Ref     : in Droopi.References.IOR.IOR_Type;
+      Forward_Ref     : in PolyORB.References.IOR.IOR_Type;
       Fragment_Next   : out Boolean);
 
    procedure Need_Addressing_Mode_Message
@@ -440,4 +440,4 @@ private
    function Get_Request_Id return Types.Unsigned_Long;
    --  Obtain a new, unique request identifier.
 
-end Droopi.Protocols.GIOP;
+end PolyORB.Protocols.GIOP;

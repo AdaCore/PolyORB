@@ -5,7 +5,7 @@
 
 --  $Id$
 
-package Droopi.Soft_Links is
+package PolyORB.Soft_Links is
 
    pragma Preelaborate;
 
@@ -222,4 +222,4 @@ package Droopi.Soft_Links is
    --  Return an integer representing T unambiguously
    --  (typically intended for hashing purposes).
 
-end Droopi.Soft_Links;
+end PolyORB.Soft_Links;

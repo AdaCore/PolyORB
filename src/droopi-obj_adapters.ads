@@ -3,15 +3,15 @@
 
 --  $Id$
 
-with Droopi.Any;
-with Droopi.Any.NVList;
+with PolyORB.Any;
+with PolyORB.Any.NVList;
 
-with Droopi.Components;
-with Droopi.Objects; use Droopi.Objects;
-with Droopi.Requests;
-with Droopi.Smart_Pointers;
+with PolyORB.Components;
+with PolyORB.Objects; use PolyORB.Objects;
+with PolyORB.Requests;
+with PolyORB.Smart_Pointers;
 
-package Droopi.Obj_Adapters is
+package PolyORB.Obj_Adapters is
 
    type Obj_Adapter is abstract new Smart_Pointers.Entity
      with private;
@@ -32,7 +32,7 @@ package Droopi.Obj_Adapters is
 
    procedure Set_ORB
      (OA      : access Obj_Adapter;
-      The_ORB :        Droopi.Components.Component_Access);
+      The_ORB :        PolyORB.Components.Component_Access);
    --  Set the ORB whose OA is attached to.
 
    --------------------------------------
@@ -90,9 +90,9 @@ private
 
    type Obj_Adapter is abstract new Smart_Pointers.Entity with
       record
-         ORB : Droopi.Components.Component_Access;
+         ORB : PolyORB.Components.Component_Access;
          --  The ORB the OA is attached to. Needs to be casted into an
          --  ORB_Access when used.
       end record;
 
-end Droopi.Obj_Adapters;
+end PolyORB.Obj_Adapters;

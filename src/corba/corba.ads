@@ -38,8 +38,8 @@ with Ada.Unchecked_Deallocation;
 
 with Interfaces;
 
-with Droopi.Any;
-with Droopi.Types;
+with PolyORB.Any;
+with PolyORB.Types;
 
 package CORBA is
 
@@ -67,7 +67,7 @@ package CORBA is
    subtype Boolean            is Standard.Boolean;
    --  type    String             is
    --    new Ada.Strings.Unbounded.Unbounded_String;
-   subtype String is Droopi.Types.String;
+   subtype String is PolyORB.Types.String;
    type    Wide_String        is
      new Ada.Strings.Wide_Unbounded.Unbounded_Wide_String;
 
@@ -154,22 +154,22 @@ package CORBA is
    -------------
 
    --  type Identifier is new CORBA.String;
-   subtype Identifier is Droopi.Types.Identifier;
+   subtype Identifier is PolyORB.Types.Identifier;
    Null_Identifier : constant Identifier := Identifier (Null_String);
 
    function "=" (X, Y : Identifier) return Boolean
-     renames Droopi.Types."=";
+     renames PolyORB.Types."=";
 
    function To_Standard_String (S : Identifier) return Standard.String
-     renames Droopi.Types.To_Standard_String;
+     renames PolyORB.Types.To_Standard_String;
    function To_CORBA_String (S : Standard.String) return Identifier
-     renames Droopi.Types.To_Droopi_String;
+     renames PolyORB.Types.To_PolyORB_String;
 
-   subtype RepositoryId is Droopi.Types.RepositoryId;
+   subtype RepositoryId is PolyORB.Types.RepositoryId;
    Null_RepositoryId : constant RepositoryId := RepositoryId (Null_String);
 
    function "=" (X, Y : RepositoryId) return Boolean
-     renames Droopi.Types."=";
+     renames PolyORB.Types."=";
 
    function To_Standard_String
      (S : RepositoryId)
@@ -390,10 +390,10 @@ package CORBA is
    --  Any  --
    -----------
 
-   subtype Any is Droopi.Any.Any;
-   subtype Any_Ptr is Droopi.Any.Any;
+   subtype Any is PolyORB.Any.Any;
+   subtype Any_Ptr is PolyORB.Any.Any;
    function Image (A : Any) return Standard.String
-     renames Droopi.Any.Image;
+     renames PolyORB.Any.Image;
 
    ---------------
    -- TypeCodes --
@@ -401,20 +401,20 @@ package CORBA is
 
    --  See spec CORBA V2.3, Ada Langage Mapping 1.33
 
-   subtype TCKind is Droopi.Any.TCKind;
+   subtype TCKind is PolyORB.Any.TCKind;
 
-   subtype ValueModifier is Droopi.Any.ValueModifier;
+   subtype ValueModifier is PolyORB.Any.ValueModifier;
    VTM_NONE        : constant ValueModifier;
    VTM_CUSTOM      : constant ValueModifier;
    VTM_ABSTRACT    : constant ValueModifier;
    VTM_TRUNCATABLE : constant ValueModifier;
 
-   subtype Visibility is Droopi.Any.Visibility;
+   subtype Visibility is PolyORB.Any.Visibility;
 
    PRIVATE_MEMBER : constant Visibility;
    PUBLIC_MEMBER  : constant Visibility;
 
-   package TypeCode renames Droopi.Any.TypeCode;
+   package TypeCode renames PolyORB.Any.TypeCode;
    --  XXX This is not actually correct, because D.A.TypeCode
    --  uses 'pure' (member-less) Ada exceptions, while CORBA.TypeCode
    --  is expected to use CORBA exceptions (with members).
@@ -612,27 +612,27 @@ package CORBA is
    -----------------
 
    --  type Flags is new CORBA.Unsigned_Long;
-   subtype Flags is Droopi.Any.Flags;
+   subtype Flags is PolyORB.Any.Flags;
 
    ARG_IN :        constant Flags;
    ARG_OUT :       constant Flags;
    ARG_INOUT :     constant Flags;
    IN_COPY_VALUE : constant Flags;
 
-   subtype NamedValue is Droopi.Any.NamedValue;
+   subtype NamedValue is PolyORB.Any.NamedValue;
 
    function Image (NV : NamedValue) return Standard.String;
    --  For debugging purposes.
 
 private
 
-   VTM_NONE        : constant ValueModifier := Droopi.Any.VTM_NONE;
-   VTM_CUSTOM      : constant ValueModifier := Droopi.Any.VTM_CUSTOM;
-   VTM_ABSTRACT    : constant ValueModifier := Droopi.Any.VTM_ABSTRACT;
-   VTM_TRUNCATABLE : constant ValueModifier := Droopi.Any.VTM_TRUNCATABLE;
+   VTM_NONE        : constant ValueModifier := PolyORB.Any.VTM_NONE;
+   VTM_CUSTOM      : constant ValueModifier := PolyORB.Any.VTM_CUSTOM;
+   VTM_ABSTRACT    : constant ValueModifier := PolyORB.Any.VTM_ABSTRACT;
+   VTM_TRUNCATABLE : constant ValueModifier := PolyORB.Any.VTM_TRUNCATABLE;
 
-   PRIVATE_MEMBER : constant Visibility := Droopi.Any.PRIVATE_MEMBER;
-   PUBLIC_MEMBER  : constant Visibility := Droopi.Any.PRIVATE_MEMBER;
+   PRIVATE_MEMBER : constant Visibility := PolyORB.Any.PRIVATE_MEMBER;
+   PUBLIC_MEMBER  : constant Visibility := PolyORB.Any.PRIVATE_MEMBER;
 
    pragma Inline (To_Any);
    pragma Inline (From_Any);
@@ -646,9 +646,9 @@ private
    --  Named_Value --
    ------------------
 
-   ARG_IN :        constant Flags := Droopi.Any.ARG_IN;
-   ARG_OUT :       constant Flags := Droopi.Any.ARG_OUT;
-   ARG_INOUT :     constant Flags := Droopi.Any.ARG_INOUT;
-   IN_COPY_VALUE : constant Flags := Droopi.Any.IN_COPY_VALUE;
+   ARG_IN :        constant Flags := PolyORB.Any.ARG_IN;
+   ARG_OUT :       constant Flags := PolyORB.Any.ARG_OUT;
+   ARG_INOUT :     constant Flags := PolyORB.Any.ARG_INOUT;
+   IN_COPY_VALUE : constant Flags := PolyORB.Any.IN_COPY_VALUE;
 
 end CORBA;

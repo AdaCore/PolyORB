@@ -2,8 +2,8 @@
 
 with Sequences.Unbounded.Search;
 
-with Droopi.Log;
-pragma Elaborate_All (Droopi.Log);
+with PolyORB.Log;
+pragma Elaborate_All (PolyORB.Log);
 
 package body CORBA.ExceptionList is
 
@@ -11,9 +11,9 @@ package body CORBA.ExceptionList is
    -- Debug --
    -----------
 
-   use Droopi.Log;
+   use PolyORB.Log;
 
-   package L is new Droopi.Log.Facility_Log ("corba.exceptionlist");
+   package L is new PolyORB.Log.Facility_Log ("corba.exceptionlist");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -98,7 +98,7 @@ package body CORBA.ExceptionList is
    is
       Obj : Object_Ptr := Object_Ptr (Object_Of (Self));
 
-      use Droopi.Types;
+      use PolyORB.Types;
 
       function Match
         (Item : TypeCode.Object;

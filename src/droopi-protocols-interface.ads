@@ -2,10 +2,10 @@
 
 --  $Id$
 
-with Droopi.Any.NVList;
-with Droopi.Components;
+with PolyORB.Any.NVList;
+with PolyORB.Components;
 
-package Droopi.Protocols.Interface is
+package PolyORB.Protocols.Interface is
 
    type Unmarshall_Arguments is new Components.Message with record
       Args : Any.NVList.Ref;
@@ -27,4 +27,4 @@ package Droopi.Protocols.Interface is
    --  so the unmarshalling can take place. An Unmarshalled_Arguments
    --  message is returned.
 
-end Droopi.Protocols.Interface;
+end PolyORB.Protocols.Interface;

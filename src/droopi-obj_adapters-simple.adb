@@ -6,9 +6,9 @@
 with Ada.Streams; use Ada.Streams;
 with Ada.Unchecked_Conversion;
 
-package body Droopi.Obj_Adapters.Simple is
+package body PolyORB.Obj_Adapters.Simple is
 
-   use Droopi.Soft_Links;
+   use PolyORB.Soft_Links;
    use Object_Map_Entry_Seqs;
 
    subtype Simple_OA_Oid is Stream_Element_Array
@@ -237,4 +237,4 @@ package body Droopi.Obj_Adapters.Simple is
       Servant := null;
    end Release_Servant;
 
-end Droopi.Obj_Adapters.Simple;
+end PolyORB.Obj_Adapters.Simple;

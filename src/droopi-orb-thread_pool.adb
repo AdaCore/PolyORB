@@ -2,17 +2,17 @@
 
 with Ada.Exceptions;
 
-with Droopi.Log;
-with Droopi.Jobs;
-with Droopi.Components;
-with Droopi.Filters.Interface;
+with PolyORB.Log;
+with PolyORB.Jobs;
+with PolyORB.Components;
+with PolyORB.Filters.Interface;
 
 with Locked_Queue;
 
 pragma Elaborate_All (Locked_Queue);
-pragma Elaborate_All (Droopi.Log);
+pragma Elaborate_All (PolyORB.Log);
 
-package body Droopi.ORB.Thread_Pool is
+package body PolyORB.ORB.Thread_Pool is
 
    --  The tread pool works in the following manner :
    --
@@ -28,14 +28,14 @@ package body Droopi.ORB.Thread_Pool is
    -- Local declarations --
    ------------------------
 
-   use Droopi.Components;
-   use Droopi.Filters.Interface;
-   use Droopi.Log;
-   use Droopi.Soft_Links;
-   use Droopi.Components;
+   use PolyORB.Components;
+   use PolyORB.Filters.Interface;
+   use PolyORB.Log;
+   use PolyORB.Soft_Links;
+   use PolyORB.Components;
 
-   package L is new Droopi.Log.Facility_Log
-     ("droopi.orb.thread_pool");
+   package L is new PolyORB.Log.Facility_Log
+     ("polyorb.orb.thread_pool");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -198,4 +198,4 @@ package body Droopi.ORB.Thread_Pool is
       end loop;
    end Initialize;
 
-end Droopi.ORB.Thread_Pool;
+end PolyORB.ORB.Thread_Pool;

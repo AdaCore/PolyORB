@@ -2,10 +2,10 @@
 
 --  $Id$
 
-with Droopi.Components;
-with Droopi.Requests;
+with PolyORB.Components;
+with PolyORB.Requests;
 
-package Droopi.Objects.Interface is
+package PolyORB.Objects.Interface is
 
    type Execute_Request is new Components.Message with record
       Req : Requests.Request_Access;
@@ -20,4 +20,4 @@ package Droopi.Objects.Interface is
    end record;
    --  Returned by a servant after Req has been executed.
 
-end Droopi.Objects.Interface;
+end PolyORB.Objects.Interface;

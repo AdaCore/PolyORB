@@ -1,4 +1,4 @@
-package Droopi.ORB.Thread_Per_Session is
+package PolyORB.ORB.Thread_Per_Session is
 
    pragma Elaborate_Body;
 
@@ -36,5 +36,5 @@ private
 
    type Thread_Per_Session_Policy is new Tasking_Policy_Type with null record;
 
-end Droopi.ORB.Thread_Per_Session;
+end PolyORB.ORB.Thread_Per_Session;
 

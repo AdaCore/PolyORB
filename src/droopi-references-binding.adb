@@ -4,21 +4,21 @@
 
 with Ada.Tags;
 
-with Droopi.Binding_Data.Local;
-with Droopi.Components;
-with Droopi.Filters;
-with Droopi.Log;
-pragma Elaborate_All (Droopi.Log);
+with PolyORB.Binding_Data.Local;
+with PolyORB.Components;
+with PolyORB.Filters;
+with PolyORB.Log;
+pragma Elaborate_All (PolyORB.Log);
 
-with Droopi.Obj_Adapters;
-with Droopi.ORB;
-with Droopi.Transport;
+with PolyORB.Obj_Adapters;
+with PolyORB.ORB;
+with PolyORB.Transport;
 
-package body Droopi.References.Binding is
+package body PolyORB.References.Binding is
 
-   use Droopi.Log;
+   use PolyORB.Log;
 
-   package L is new Droopi.Log.Facility_Log ("droopi.references.binding");
+   package L is new PolyORB.Log.Facility_Log ("polyorb.references.binding");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -91,7 +91,7 @@ package body Droopi.References.Binding is
 
                --  ==> When binding a local reference, an OA
                --      is needed. Where do we obtain it from?
-               --      Droopi.References cannot depend on Obj_Adapters!
+               --      PolyORB.References cannot depend on Obj_Adapters!
                --      ... but D.R.Binding can depend on anything.
 
                --      We also need to know what profiles are local,
@@ -100,8 +100,8 @@ package body Droopi.References.Binding is
 
             else
                declare
-                  use Droopi.Components;
-                  use Droopi.Filters;
+                  use PolyORB.Components;
+                  use PolyORB.Filters;
 
                   Binding_Object : Components.Component_Access;
                   New_TE      : Transport.Transport_Endpoint_Access;
@@ -118,7 +118,7 @@ package body Droopi.References.Binding is
 
                   pragma Debug (O ("Creating new binding object"));
 
-                  Droopi.Binding_Data.Bind_Profile
+                  PolyORB.Binding_Data.Bind_Profile
                     (P.all, New_TE, Component_Access (New_Filter));
                   ORB.Register_Endpoint
                     (Local_ORB, New_TE, New_Filter, Client);
@@ -144,4 +144,4 @@ package body Droopi.References.Binding is
       end;
    end Bind;
 
-end Droopi.References.Binding;
+end PolyORB.References.Binding;

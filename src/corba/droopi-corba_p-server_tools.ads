@@ -5,7 +5,7 @@
 with CORBA.Object;
 with PortableServer;
 
-package Droopi.CORBA_P.Server_Tools is
+package PolyORB.CORBA_P.Server_Tools is
 
    pragma Elaborate_Body;
 
@@ -27,4 +27,4 @@ package Droopi.CORBA_P.Server_Tools is
      (S : in PortableServer.Servant;
       R : out CORBA.Object.Ref'Class);
 
-end Droopi.CORBA_P.Server_Tools;
+end PolyORB.CORBA_P.Server_Tools;

@@ -2,20 +2,20 @@
 
 --  $Id$
 
-with Droopi.Filters;
+with PolyORB.Filters;
 
-with Droopi.Protocols.Echo;
+with PolyORB.Protocols.Echo;
 --  The TEST profile is bound to the Echo invocation protocol.
 
-with Droopi.Transport.Sockets;
+with PolyORB.Transport.Sockets;
 --  The TEST profile denotes an Echo protocol stack instanciated
 --  over a TCP socket.
 
-package body Droopi.Binding_Data.Test is
+package body PolyORB.Binding_Data.Test is
 
-   use Droopi.Objects;
-   use Droopi.Sockets;
-   use Droopi.Transport.Sockets;
+   use PolyORB.Objects;
+   use PolyORB.Sockets;
+   use PolyORB.Transport.Sockets;
 
    procedure Initialize (P : in out Test_Profile_Type) is
    begin
@@ -46,10 +46,10 @@ package body Droopi.Binding_Data.Test is
       TE      : out Transport.Transport_Endpoint_Access;
       Session : out Components.Component_Access)
    is
-      use Droopi.Filters;
-      use Droopi.Protocols.Echo;
-      use Droopi.Sockets;
-      use Droopi.Transport.Sockets;
+      use PolyORB.Filters;
+      use PolyORB.Protocols.Echo;
+      use PolyORB.Sockets;
+      use PolyORB.Transport.Sockets;
 
       S : Socket_Type;
       Remote_Addr : Sock_Addr_Type := Profile.Address;
@@ -116,7 +116,7 @@ package body Droopi.Binding_Data.Test is
    function Image (Prof : Test_Profile_Type) return String is
    begin
       return "Address : " & Image (Prof.Address) &
-        ", Object_Id : " & Droopi.Objects.Image (Prof.Object_Id.all);
+        ", Object_Id : " & PolyORB.Objects.Image (Prof.Object_Id.all);
    end Image;
 
-end Droopi.Binding_Data.Test;
+end PolyORB.Binding_Data.Test;

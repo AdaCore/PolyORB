@@ -1,7 +1,7 @@
 
 ------------------------------------------------------------------------------
 --                                                                          --
---                          DROOPI COMPONENTS                               --
+--                          PolyORB COMPONENTS                               --
 --                                                                          --
 --                        SOAP Protocols                                    --
 --                                                                          --
@@ -11,14 +11,14 @@
 
 
 
-with Droopi.Representations.SOAP;
-with Droopi.Any.NVList;
-with Droopi.Types;
+with PolyORB.Representations.SOAP;
+with PolyORB.Any.NVList;
+with PolyORB.Types;
 
 
-package Droopi.Protocols.SOAP is
+package PolyORB.Protocols.SOAP is
 
-   use Droopi.Representations.SOAP;
+   use PolyORB.Representations.SOAP;
 
    Version_Missmatch    : constant Natural;
    Must_Understand      : constant Natural;
@@ -33,8 +33,8 @@ package Droopi.Protocols.SOAP is
 
 
    procedure Request_To_SOAP_Method
-     (Operation : Droopi.Types.Identifier;
-      Args  : Droopi.Any.NVList.Ref;
+     (Operation : PolyORB.Types.Identifier;
+      Args  : PolyORB.Any.NVList.Ref;
       Uri : XML_String;
       Method : out XML_Component_Access);
 
@@ -79,43 +79,43 @@ private
    Invalid_Request      : constant Natural := 300;
    Application_Faulted  : constant Natural := 400;
 
-   SOAP_Tag : constant XML_String := To_Droopi_String
+   SOAP_Tag : constant XML_String := To_PolyORB_String
                ("SOAP-ENV:");
 
-   Envelope_Tag : constant XML_String := To_Droopi_String
+   Envelope_Tag : constant XML_String := To_PolyORB_String
                ("Envelope");
 
-   Body_Tag : constant XML_String := To_Droopi_String
+   Body_Tag : constant XML_String := To_PolyORB_String
                ("Body");
 
-   Header_Tag : constant XML_String := To_Droopi_String
+   Header_Tag : constant XML_String := To_PolyORB_String
                ("Header");
 
-   Encoding_Style_Tag : constant XML_String := To_Droopi_String
+   Encoding_Style_Tag : constant XML_String := To_PolyORB_String
                ("encodingStyle");
 
-   Encoding_Style_Uri : constant XML_String := To_Droopi_String
+   Encoding_Style_Uri : constant XML_String := To_PolyORB_String
      ("""http://schemas.xmlsoap.org/soap/encoding/""");
 
-   Envelope_Uri : constant XML_String := To_Droopi_String
+   Envelope_Uri : constant XML_String := To_PolyORB_String
      ("""http://schemas.xmlsoap.org/soap/envelope/""");
 
    Fault_Tag  : constant XML_String :=
-                       To_Droopi_String ("fault");
+                       To_PolyORB_String ("fault");
 
    Faultcode_Tag  : constant XML_String :=
-                       To_Droopi_String ("faultcode");
+                       To_PolyORB_String ("faultcode");
    Runcode_Tag : constant XML_String :=
-                       To_Droopi_String ("runcode");
+                       To_PolyORB_String ("runcode");
    Faultstring_Tag : constant XML_String :=
-                       To_Droopi_String ("faultstring");
+                       To_PolyORB_String ("faultstring");
    Detail_Tag : constant XML_String :=
-                       To_Droopi_String ("detail");
+                       To_PolyORB_String ("detail");
 
    Method_Tag_Reference : constant XML_String :=
-             To_Droopi_String ("m");
+             To_PolyORB_String ("m");
    Header_Tag_Reference : constant XML_String :=
-             To_Droopi_String ("t");
+             To_PolyORB_String ("t");
 
 
-end Droopi.Protocols.SOAP;
+end PolyORB.Protocols.SOAP;

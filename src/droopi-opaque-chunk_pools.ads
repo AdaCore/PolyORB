@@ -1,6 +1,6 @@
 --  Pools of memory chunks, with associated client metadata.
 
---  $Id: //droopi/main/src/droopi-opaque-chunk_pools.ads#4 $
+--  $Id: //droopi/main/src/droopi-opaque-chunk_pools.ads#5 $
 
 with Ada.Finalization;
 
@@ -11,12 +11,12 @@ generic
 
    Null_Metadata : Chunk_Metadata;
 
-package Droopi.Opaque.Chunk_Pools is
+package PolyORB.Opaque.Chunk_Pools is
 
    pragma Preelaborate;
 
    use Ada.Streams;
-   use Droopi.Opaque;
+   use PolyORB.Opaque;
 
    type Chunk (Size : Stream_Element_Count) is
      new Ada.Finalization.Limited_Controlled with private;
@@ -102,5 +102,5 @@ private
       --  of dynamically-allocated chunks.
    end record;
 
-end Droopi.Opaque.Chunk_Pools;
+end PolyORB.Opaque.Chunk_Pools;
 

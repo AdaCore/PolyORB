@@ -1,15 +1,15 @@
 with Ada.Text_IO; use Ada.Text_IO;
 
-with Droopi.POA.Basic_POA;
-with Droopi.POA;
+with PolyORB.POA.Basic_POA;
+with PolyORB.POA;
 with CORBA.Policy;
-with Droopi.POA_Types;
-with Droopi.POA_Manager;
+with PolyORB.POA_Types;
+with PolyORB.POA_Manager;
 
-with Droopi.Log;
-with Droopi.No_Tasking;
-with Droopi.Smart_Pointers;
-with Droopi.Objects;
+with PolyORB.Log;
+with PolyORB.No_Tasking;
+with PolyORB.Smart_Pointers;
+with PolyORB.Objects;
 
 package body CORBA.Test_POA is
 
@@ -53,16 +53,16 @@ package body CORBA.Test_POA is
       -------------------------------
 
       Print_Title ("Initialize subsystems");
-      Droopi.Log.Initialize;
+      PolyORB.Log.Initialize;
       Put_Line ("Initialize logging");
       --  Logging subsystem. Start this one first so we can debug
       --  problems in others.
 
-      Droopi.No_Tasking.Initialize;
+      PolyORB.No_Tasking.Initialize;
       Put_Line ("Use No-tasking");
       --  Setup soft links.
 
-      Droopi.Smart_Pointers.Initialize;
+      PolyORB.Smart_Pointers.Initialize;
       Put_Line ("Initialize smart-pointers");
       --  Depends on Soft_Links.
 
@@ -159,8 +159,8 @@ package body CORBA.Test_POA is
 
       --  Root POA creation
       declare
-         use Droopi.POA;
-         use Droopi.POA.Basic_POA;
+         use PolyORB.POA;
+         use PolyORB.POA.Basic_POA;
          OA1 : Obj_Adapter_Access;
          OA2 : aliased Basic_Obj_Adapter;
       begin
@@ -175,11 +175,11 @@ package body CORBA.Test_POA is
 
       --  POA tree
       declare
-         use Droopi.POA;
+         use PolyORB.POA;
          use CORBA.Policy;
          use CORBA.Policy.Policy_Sequences;
-         use Droopi.POA.Basic_POA;
-         use Droopi.POA_Manager;
+         use PolyORB.POA.Basic_POA;
+         use PolyORB.POA_Manager;
          OA1, OA2, OA3, OA4 : Obj_Adapter_Access;
          Policies           : PolicyList_Access
            := new PolicyList;
@@ -225,8 +225,8 @@ package body CORBA.Test_POA is
 
       --  Single POA destruction
       declare
-         use Droopi.POA;
-         use Droopi.POA.Basic_POA;
+         use PolyORB.POA;
+         use PolyORB.POA.Basic_POA;
          OA1 : Obj_Adapter_Access;
       begin
          Print_Test_Text ("Single POA destruction");
@@ -250,11 +250,11 @@ package body CORBA.Test_POA is
 
       --  POA tree destruction
       declare
-         use Droopi.POA;
+         use PolyORB.POA;
          use CORBA.Policy;
          use CORBA.Policy.Policy_Sequences;
-         use Droopi.POA.Basic_POA;
-         use Droopi.POA_Manager;
+         use PolyORB.POA.Basic_POA;
+         use PolyORB.POA_Manager;
          OA1, OA2, OA3, OA4 : Obj_Adapter_Access;
          Policies           : PolicyList_Access
            := new PolicyList;
@@ -298,8 +298,8 @@ package body CORBA.Test_POA is
    is
    begin
       declare
-         use Droopi.POA;
-         use Droopi.POA.Basic_POA;
+         use PolyORB.POA;
+         use PolyORB.POA.Basic_POA;
          S1  : My_Servant_Access;
       begin
          Print_Test_Text ("Test Activate_Object");
@@ -309,12 +309,12 @@ package body CORBA.Test_POA is
          S1.Name  := To_CORBA_String ("Servant1");
 
          declare
-            use Droopi.POA;
+            use PolyORB.POA;
             OA1 : Obj_Adapter_Access := Create_Root_POA;
             pragma Warnings (Off);
-            Id1 : Droopi.POA_Types.Object_Id
+            Id1 : PolyORB.POA_Types.Object_Id
               := Activate_Object (OA1.all'Access,
-                                  Droopi.POA_Types.Servant_Access (S1));
+                                  PolyORB.POA_Types.Servant_Access (S1));
             pragma Warnings (On);
          begin
             Destroy (OA1, True, True);
@@ -323,12 +323,12 @@ package body CORBA.Test_POA is
          declare
             OA1 : Obj_Adapter_Access := Create_Root_POA;
             pragma Warnings (Off);
-            Id1 : Droopi.POA_Types.Object_Id
+            Id1 : PolyORB.POA_Types.Object_Id
               := Activate_Object (OA1.all'Access,
-                                  Droopi.POA_Types.Servant_Access (S1));
-            Id2 : Droopi.POA_Types.Object_Id
+                                  PolyORB.POA_Types.Servant_Access (S1));
+            Id2 : PolyORB.POA_Types.Object_Id
               := Activate_Object (OA1.all'Access,
-                                  Droopi.POA_Types.Servant_Access (S1));
+                                  PolyORB.POA_Types.Servant_Access (S1));
             pragma Warnings (On);
          begin
             Destroy (OA1, True, True);
@@ -350,8 +350,8 @@ package body CORBA.Test_POA is
    is
    begin
       declare
-         use Droopi.POA;
-         use Droopi.POA.Basic_POA;
+         use PolyORB.POA;
+         use PolyORB.POA.Basic_POA;
          OA1    : Obj_Adapter_Access;
          S1, S2 : My_Servant_Access;
       begin
@@ -367,28 +367,28 @@ package body CORBA.Test_POA is
          S2.Name  := To_CORBA_String ("Servant2");
 
          declare
-            use Droopi.POA;
+            use PolyORB.POA;
             OA1 : Obj_Adapter_Access := Create_Root_POA;
-            Id1 : Droopi.POA_Types.Object_Id
+            Id1 : PolyORB.POA_Types.Object_Id
               := Activate_Object (OA1.all'Access,
-                                  Droopi.POA_Types.Servant_Access (S1));
+                                  PolyORB.POA_Types.Servant_Access (S1));
          begin
             Deactivate_Object (OA1.all'Access, Id1);
             Activate_Object_With_Id (OA1.all'Access,
-                                     Droopi.POA_Types.Servant_Access (S1),
+                                     PolyORB.POA_Types.Servant_Access (S1),
                                      Id1);
             Destroy (OA1, True, True);
          end;
 
          declare
-            use Droopi.POA;
+            use PolyORB.POA;
             OA1 : Obj_Adapter_Access := Create_Root_POA;
-            Id1 : Droopi.POA_Types.Object_Id
+            Id1 : PolyORB.POA_Types.Object_Id
               := Activate_Object (OA1.all'Access,
-                                  Droopi.POA_Types.Servant_Access (S1));
+                                  PolyORB.POA_Types.Servant_Access (S1));
          begin
             Activate_Object_With_Id (OA1.all'Access,
-                                     Droopi.POA_Types.Servant_Access (S2),
+                                     PolyORB.POA_Types.Servant_Access (S2),
                                      Id1);
             Destroy (OA1, True, True);
          exception
@@ -397,20 +397,20 @@ package body CORBA.Test_POA is
          end;
 
          declare
-            use Droopi.POA;
+            use PolyORB.POA;
             OA1 : Obj_Adapter_Access := Create_Root_POA;
             pragma Warnings (Off);
-            Id1 : Droopi.POA_Types.Object_Id
+            Id1 : PolyORB.POA_Types.Object_Id
               := Activate_Object (OA1.all'Access,
-                                  Droopi.POA_Types.Servant_Access (S1));
+                                  PolyORB.POA_Types.Servant_Access (S1));
             pragma Warnings (On);
-            Id2 : Droopi.POA_Types.Object_Id
+            Id2 : PolyORB.POA_Types.Object_Id
               := Activate_Object (OA1.all'Access,
-                                  Droopi.POA_Types.Servant_Access (S2));
+                                  PolyORB.POA_Types.Servant_Access (S2));
          begin
             Deactivate_Object (OA1.all'Access, Id2);
             Activate_Object_With_Id (OA1.all'Access,
-                                     Droopi.POA_Types.Servant_Access (S1),
+                                     PolyORB.POA_Types.Servant_Access (S1),
                                      Id2);
             Destroy (OA1, True, True);
       exception
@@ -433,8 +433,8 @@ package body CORBA.Test_POA is
    is
    begin
       declare
-         use Droopi.POA;
-         use Droopi.POA.Basic_POA;
+         use PolyORB.POA;
+         use PolyORB.POA.Basic_POA;
          S1  : My_Servant_Access;
       begin
          Print_Test_Text ("Test Deactivate_Object");
@@ -444,12 +444,12 @@ package body CORBA.Test_POA is
          S1.Name  := To_CORBA_String ("Servant1");
 
          declare
-            use Droopi.POA;
+            use PolyORB.POA;
             OA1 : Obj_Adapter_Access := Create_Root_POA;
             pragma Warnings (Off);
-            Id1 : Droopi.POA_Types.Object_Id
+            Id1 : PolyORB.POA_Types.Object_Id
               := Activate_Object (OA1.all'Access,
-                                  Droopi.POA_Types.Servant_Access (S1));
+                                  PolyORB.POA_Types.Servant_Access (S1));
             pragma Warnings (On);
          begin
             Deactivate_Object (OA1.all'Access, Id1);
@@ -459,9 +459,9 @@ package body CORBA.Test_POA is
          declare
             OA1 : Obj_Adapter_Access := Create_Root_POA;
             pragma Warnings (Off);
-            Id1 : Droopi.POA_Types.Object_Id
+            Id1 : PolyORB.POA_Types.Object_Id
               := Activate_Object (OA1.all'Access,
-                                  Droopi.POA_Types.Servant_Access (S1));
+                                  PolyORB.POA_Types.Servant_Access (S1));
             pragma Warnings (On);
          begin
             Deactivate_Object (OA1.all'Access, Id1);
@@ -486,8 +486,8 @@ package body CORBA.Test_POA is
    is
    begin
       declare
-         use Droopi.POA;
-         use Droopi.POA.Basic_POA;
+         use PolyORB.POA;
+         use PolyORB.POA.Basic_POA;
          S1  : My_Servant_Access;
       begin
          Print_Test_Text ("Test Servant_To_Id");
@@ -497,15 +497,15 @@ package body CORBA.Test_POA is
          S1.Name  := To_CORBA_String ("Servant1");
 
          declare
-            use Droopi.POA;
-            use Droopi.Objects;
+            use PolyORB.POA;
+            use PolyORB.Objects;
             OA1 : Obj_Adapter_Access := Create_Root_POA;
-            Id1 : Droopi.POA_Types.Object_Id
+            Id1 : PolyORB.POA_Types.Object_Id
               := Activate_Object (OA1.all'Access,
-                                  Droopi.POA_Types.Servant_Access (S1));
-            Id2 : Droopi.POA_Types.Object_Id
+                                  PolyORB.POA_Types.Servant_Access (S1));
+            Id2 : PolyORB.POA_Types.Object_Id
               := Servant_To_Id (OA1.all'Access,
-                                Droopi.POA_Types.Servant_Access (S1));
+                                PolyORB.POA_Types.Servant_Access (S1));
          begin
             if Id1 /= Id2 then
                raise Incorrect_Execution;
@@ -516,9 +516,9 @@ package body CORBA.Test_POA is
          declare
             OA1 : Obj_Adapter_Access := Create_Root_POA;
             pragma Warnings (Off);
-            Id2 : Droopi.POA_Types.Object_Id
+            Id2 : PolyORB.POA_Types.Object_Id
               := Servant_To_Id (OA1.all'Access,
-                                Droopi.POA_Types.Servant_Access (S1));
+                                PolyORB.POA_Types.Servant_Access (S1));
             pragma Warnings (On);
          begin
             Destroy (OA1, True, True);
@@ -540,8 +540,8 @@ package body CORBA.Test_POA is
    is
    begin
       declare
-         use Droopi.POA;
-         use Droopi.POA.Basic_POA;
+         use PolyORB.POA;
+         use PolyORB.POA.Basic_POA;
          S1  : My_Servant_Access;
       begin
          Print_Test_Text ("Test Id_To_Servant");
@@ -551,11 +551,11 @@ package body CORBA.Test_POA is
          S1.Name  := To_CORBA_String ("Servant1");
 
          declare
-            use Droopi.POA;
+            use PolyORB.POA;
             OA1 : Obj_Adapter_Access := Create_Root_POA;
-            Id1 : Droopi.POA_Types.Object_Id
+            Id1 : PolyORB.POA_Types.Object_Id
               := Activate_Object (OA1.all'Access,
-                                  Droopi.POA_Types.Servant_Access (S1));
+                                  PolyORB.POA_Types.Servant_Access (S1));
             S2 : My_Servant_Access
               := My_Servant_Access
               (Id_To_Servant (OA1.all'Access, Id1));
@@ -568,9 +568,9 @@ package body CORBA.Test_POA is
 
          declare
             OA1 : Obj_Adapter_Access := Create_Root_POA;
-            Id1 : Droopi.POA_Types.Object_Id
+            Id1 : PolyORB.POA_Types.Object_Id
               := Activate_Object (OA1.all'Access,
-                                  Droopi.POA_Types.Servant_Access (S1));
+                                  PolyORB.POA_Types.Servant_Access (S1));
             S2 : My_Servant_Access;
          begin
             Deactivate_Object (OA1.all'Access, Id1);
@@ -599,8 +599,8 @@ package body CORBA.Test_POA is
    pragma Warnings (Off);
    function Handle_Message
      (S   : access My_Servant;
-      Msg : Droopi.Components.Message'Class)
-     return Droopi.Components.Message'Class
+      Msg : PolyORB.Components.Message'Class)
+     return PolyORB.Components.Message'Class
    is
    begin
       return Handle_Message (S, Msg);

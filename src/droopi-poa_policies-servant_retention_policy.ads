@@ -1,6 +1,6 @@
-with Droopi.POA_Types;     use Droopi.POA_Types;
+with PolyORB.POA_Types;     use PolyORB.POA_Types;
 
-package Droopi.POA_Policies.Servant_Retention_Policy is
+package PolyORB.POA_Policies.Servant_Retention_Policy is
 
    type ServantRetentionPolicy is abstract new Policy with null record;
    subtype Servant_Retention_Policy is ServantRetentionPolicy;
@@ -18,7 +18,7 @@ package Droopi.POA_Policies.Servant_Retention_Policy is
 
    function Activate_Object
      (Self      : ServantRetentionPolicy;
-      OA        : Droopi.POA_Types.Obj_Adapter_Access;
+      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
       P_Servant : Servant_Access)
      return Object_Id_Access is abstract;
    --  Case RETAIN:
@@ -30,7 +30,7 @@ package Droopi.POA_Policies.Servant_Retention_Policy is
 
    procedure Activate_Object_With_Id
      (Self      : ServantRetentionPolicy;
-      OA        : Droopi.POA_Types.Obj_Adapter_Access;
+      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
       P_Servant : Servant_Access;
       Oid       : Object_Id) is abstract;
    --  Case RETAIN:
@@ -43,7 +43,7 @@ package Droopi.POA_Policies.Servant_Retention_Policy is
 
    procedure Deactivate
      (Self      : ServantRetentionPolicy;
-      OA        : Droopi.POA_Types.Obj_Adapter_Access;
+      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
       Oid       : Object_Id) is abstract;
    --  Case RETAIN:
    --  Deactivates an object from the Active Object Map; waits for the
@@ -53,7 +53,7 @@ package Droopi.POA_Policies.Servant_Retention_Policy is
    --  Raises WrongPolicy
 
    function Servant_To_Id (Self      : ServantRetentionPolicy;
-                           OA        : Droopi.POA_Types.Obj_Adapter_Access;
+                           OA        : PolyORB.POA_Types.Obj_Adapter_Access;
                            P_Servant : Servant_Access) return Object_Id_Access
      is abstract;
    --  Case RETAIN:
@@ -64,7 +64,7 @@ package Droopi.POA_Policies.Servant_Retention_Policy is
    --    Returns null
 
    function Id_To_Servant (Self      : ServantRetentionPolicy;
-                           OA        : Droopi.POA_Types.Obj_Adapter_Access;
+                           OA        : PolyORB.POA_Types.Obj_Adapter_Access;
                            U_Oid     : Unmarshalled_Oid_Access)
                           return Servant_Access
       is abstract;
@@ -74,4 +74,4 @@ package Droopi.POA_Policies.Servant_Retention_Policy is
    --  Case NON_RETAIN:
    --    Raises WrongPolicy.
 
-end Droopi.POA_Policies.Servant_Retention_Policy;
+end PolyORB.POA_Policies.Servant_Retention_Policy;

@@ -4,10 +4,10 @@
 
 with Sequences.Unbounded;
 
-with Droopi.Binding_Data; use Droopi.Binding_Data;
-with Droopi.Smart_Pointers;
+with PolyORB.Binding_Data; use PolyORB.Binding_Data;
+with PolyORB.Smart_Pointers;
 
-package Droopi.References is
+package PolyORB.References is
 
    pragma Elaborate_Body;
 
@@ -38,9 +38,9 @@ private
 
    subtype Profile_Seq is Profile_Seqs.Sequence;
 
-   type Ref is new Droopi.Smart_Pointers.Ref with null record;
+   type Ref is new PolyORB.Smart_Pointers.Ref with null record;
 
-   type Reference_Info is new Droopi.Smart_Pointers.Entity with
+   type Reference_Info is new PolyORB.Smart_Pointers.Entity with
       record
          Profiles : Profile_Seq;
          --  The collection of tagged profiles that designate
@@ -50,4 +50,4 @@ private
 
    procedure Finalize (RI : in out Reference_Info);
 
-end Droopi.References;
+end PolyORB.References;

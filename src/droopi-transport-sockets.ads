@@ -3,9 +3,9 @@
 
 --  $Id$
 
-with Droopi.Sockets; use Droopi.Sockets;
+with PolyORB.Sockets; use PolyORB.Sockets;
 
-package Droopi.Transport.Sockets is
+package PolyORB.Transport.Sockets is
 
    pragma Elaborate_Body;
 
@@ -70,4 +70,4 @@ private
         Addr   : Sock_Addr_Type;
      end record;
 
-end Droopi.Transport.Sockets;
+end PolyORB.Transport.Sockets;

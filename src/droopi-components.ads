@@ -7,7 +7,7 @@ with Ada.Finalization;
 with Sequences.Unbounded;
 pragma Elaborate_All (Sequences.Unbounded);
 
-package Droopi.Components is
+package PolyORB.Components is
 
    pragma Elaborate_Body;
 
@@ -141,4 +141,4 @@ private
       Msg : Message'Class)
      return Message'Class;
 
-end Droopi.Components;
+end PolyORB.Components;

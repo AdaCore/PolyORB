@@ -11,25 +11,25 @@
 
 --  $Id$
 
-with Droopi.Binding_Data;        use Droopi.Binding_Data;
-with Droopi.Binding_Data.IIOP;
-with Droopi.Log;
-pragma Elaborate_All (Droopi.Log);
-with Droopi.Protocols;           use Droopi.Protocols;
-with Droopi.Representations.CDR; use Droopi.Representations.CDR;
+with PolyORB.Binding_Data;        use PolyORB.Binding_Data;
+with PolyORB.Binding_Data.IIOP;
+with PolyORB.Log;
+pragma Elaborate_All (PolyORB.Log);
+with PolyORB.Protocols;           use PolyORB.Protocols;
+with PolyORB.Representations.CDR; use PolyORB.Representations.CDR;
 
-with Droopi.Types;
+with PolyORB.Types;
 
-package body Droopi.Protocols.GIOP.GIOP_1_2 is
+package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
-   use Droopi.Buffers;
-   use Droopi.Log;
-   use Droopi.Objects;
-   use Droopi.References;
-   use Droopi.References.IOR;
-   use Droopi.Types;
+   use PolyORB.Buffers;
+   use PolyORB.Log;
+   use PolyORB.Objects;
+   use PolyORB.References;
+   use PolyORB.References.IOR;
+   use PolyORB.Types;
 
-   package L is new Droopi.Log.Facility_Log ("droopi.protocols.giop.giop_1_2");
+   package L is new PolyORB.Log.Facility_Log ("polyorb.protocols.giop.giop_1_2");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -91,7 +91,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
    is
       use Representations.CDR;
       use Binding_Data.IIOP;
-      use Droopi.References.IOR;
+      use PolyORB.References.IOR;
       Reserved : constant Types.Octet := 0;
 
    begin
@@ -221,7 +221,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
     (Buffer        :   access Buffers.Buffer_Type;
      Request_Id    :   in  Types.Unsigned_Long;
      Reply_Type    :   in  Reply_Status_Type;
-     Target_Ref    :   in  Droopi.References.IOR.IOR_Type)
+     Target_Ref    :   in  PolyORB.References.IOR.IOR_Type)
    is
       use Representations.CDR;
       use References.IOR;
@@ -537,4 +537,4 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
       return Addressing_Disposition'Val (Value);
    end Unmarshall;
 
-end Droopi.Protocols.GIOP.GIOP_1_2;
+end PolyORB.Protocols.GIOP.GIOP_1_2;

@@ -1,14 +1,14 @@
 package body CORBA.Object_Map.Sequence_Map is
 
    use Active_Object_Map;
-   use Droopi.POA_Types;
+   use PolyORB.POA_Types;
 
    ----------------------
    -- Is_Servant_Equal --
    ----------------------
 
    function Is_Servant_Equal (Item : in Object_Map_Entry_Access;
-                              To   : in Droopi.POA_Types.Servant_Access)
+                              To   : in PolyORB.POA_Types.Servant_Access)
                              return Boolean
    is
    begin
@@ -21,7 +21,7 @@ package body CORBA.Object_Map.Sequence_Map is
 
    function Is_Object_Id_Equal
      (Item : in Object_Map_Entry_Access;
-      To   : in Droopi.POA_Types.Unmarshalled_Oid_Access)
+      To   : in PolyORB.POA_Types.Unmarshalled_Oid_Access)
      return Boolean
    is
    begin
@@ -103,7 +103,7 @@ package body CORBA.Object_Map.Sequence_Map is
    -------------------
 
    function Is_Servant_In (O_Map : in Seq_Object_Map;
-                           Item  : in Droopi.POA_Types.Servant_Access)
+                           Item  : in PolyORB.POA_Types.Servant_Access)
                           return Boolean
    is
    begin
@@ -116,7 +116,7 @@ package body CORBA.Object_Map.Sequence_Map is
 
    function Is_Object_Id_In
      (O_Map  : in Seq_Object_Map;
-      Item   : in Droopi.POA_Types.Unmarshalled_Oid_Access)
+      Item   : in PolyORB.POA_Types.Unmarshalled_Oid_Access)
      return Boolean
    is
    begin
@@ -128,7 +128,7 @@ package body CORBA.Object_Map.Sequence_Map is
    ---------------
 
    function Get_By_Id (O_Map  : in Seq_Object_Map;
-                       Item   : in Droopi.POA_Types.Unmarshalled_Oid_Access)
+                       Item   : in PolyORB.POA_Types.Unmarshalled_Oid_Access)
                       return Object_Map_Entry_Access
    is
       An_Entry : Object_Map_Entry_Access;
@@ -148,7 +148,7 @@ package body CORBA.Object_Map.Sequence_Map is
    --------------------
 
    function Get_By_Servant (O_Map  : in Seq_Object_Map;
-                            Item   : in Droopi.POA_Types.Servant_Access)
+                            Item   : in PolyORB.POA_Types.Servant_Access)
                            return Object_Map_Entry_Access
    is
       An_Entry : Object_Map_Entry_Access;
@@ -188,7 +188,7 @@ package body CORBA.Object_Map.Sequence_Map is
    ------------
 
    function Remove (O_Map : access Seq_Object_Map;
-                    Item  : in     Droopi.POA_Types.Unmarshalled_Oid_Access)
+                    Item  : in     PolyORB.POA_Types.Unmarshalled_Oid_Access)
                    return Object_Map_Entry_Access
    is
    begin

@@ -8,7 +8,7 @@ generic
    type Key is (<>);
    type Value is private;
 
-package Droopi.Static_Dict is
+package PolyORB.Static_Dict is
 
    pragma Preelaborate;
 
@@ -31,5 +31,5 @@ private
 
    type Dict is array (Key'Range) of Value;
 
-end Droopi.Static_Dict;
+end PolyORB.Static_Dict;
 

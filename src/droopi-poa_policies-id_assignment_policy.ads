@@ -1,6 +1,6 @@
-with Droopi.POA_Types;     use Droopi.POA_Types;
+with PolyORB.POA_Types;     use PolyORB.POA_Types;
 
-package Droopi.POA_Policies.Id_Assignment_Policy is
+package PolyORB.POA_Policies.Id_Assignment_Policy is
 
    type IdAssignmentPolicy is abstract new Policy with null record;
    subtype Id_Assignment_Policy is IdAssignmentPolicy;
@@ -18,7 +18,7 @@ package Droopi.POA_Policies.Id_Assignment_Policy is
 
    function Activate_Object
      (Self   : IdAssignmentPolicy;
-      OA     : Droopi.POA_Types.Obj_Adapter_Access;
+      OA     : PolyORB.POA_Types.Obj_Adapter_Access;
       Object : Servant_Access) return Object_Id_Access
       is abstract;
    --  Add an object to the Active Object Map, and return a
@@ -26,7 +26,7 @@ package Droopi.POA_Policies.Id_Assignment_Policy is
 
    procedure Activate_Object_With_Id
      (Self   : IdAssignmentPolicy;
-      OA     : Droopi.POA_Types.Obj_Adapter_Access;
+      OA     : PolyORB.POA_Types.Obj_Adapter_Access;
       Object : Servant_Access;
       Oid    : Object_Id)
       is abstract;
@@ -46,7 +46,7 @@ package Droopi.POA_Policies.Id_Assignment_Policy is
 
    procedure Ensure_Oid_Uniqueness
      (Self  : IdAssignmentPolicy;
-      OA    : Droopi.POA_Types.Obj_Adapter_Access;
+      OA    : PolyORB.POA_Types.Obj_Adapter_Access;
       U_Oid : Unmarshalled_Oid_Access)
       is abstract;
    --  Checks if the Object_Id is not yet in use.
@@ -58,13 +58,13 @@ package Droopi.POA_Policies.Id_Assignment_Policy is
 
    procedure Remove_Entry
      (Self  : IdAssignmentPolicy;
-      OA    : Droopi.POA_Types.Obj_Adapter_Access;
+      OA    : PolyORB.POA_Types.Obj_Adapter_Access;
       U_Oid : Unmarshalled_Oid_Access)
       is abstract;
    --  Removes an entry from the Active Object Map
 
    function Id_To_Servant (Self  : IdAssignmentPolicy;
-                           OA    : Droopi.POA_Types.Obj_Adapter_Access;
+                           OA    : PolyORB.POA_Types.Obj_Adapter_Access;
                            U_Oid : Unmarshalled_Oid_Access)
                           return Servant_Access
       is abstract;
@@ -75,4 +75,4 @@ package Droopi.POA_Policies.Id_Assignment_Policy is
      (P   : in     IdAssignmentPolicy;
       Ptr : in out Policy_Access) is abstract;
 
-end Droopi.POA_Policies.Id_Assignment_Policy;
+end PolyORB.POA_Policies.Id_Assignment_Policy;

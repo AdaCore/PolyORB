@@ -4,21 +4,21 @@
 
 with Ada.Streams;
 
-with Droopi.Any;
-with Droopi.Buffers;
-with Droopi.Types;
-with Droopi.Utils.SRP;
+with PolyORB.Any;
+with PolyORB.Buffers;
+with PolyORB.Types;
+with PolyORB.Utils.SRP;
 
-package Droopi.Representations.SRP is
+package PolyORB.Representations.SRP is
 
    pragma Elaborate_Body;
 
    use Ada.Streams;
 
-   use Droopi.Any;
-   use Droopi.Buffers;
-   use Droopi.Types;
-   use Droopi.Utils.SRP;
+   use PolyORB.Any;
+   use PolyORB.Buffers;
+   use PolyORB.Types;
+   use PolyORB.Utils.SRP;
 
    type Rep_SRP is new Representation with private;
    type Rep_SRP_Access is access all Rep_SRP;
@@ -67,25 +67,25 @@ package Droopi.Representations.SRP is
                          NV     : in out NamedValue);
 
    function Unmarshall (Buffer : access Buffer_Type)
-                       return Droopi.Types.Boolean;
+                       return PolyORB.Types.Boolean;
 
    function Unmarshall (Buffer : access Buffer_Type)
-                       return Droopi.Types.Octet;
+                       return PolyORB.Types.Octet;
 
    function Unmarshall (Buffer : access Buffer_Type)
-                       return Droopi.Types.Char;
+                       return PolyORB.Types.Char;
 
    function Unmarshall (Buffer : access Buffer_Type)
-                       return Droopi.Types.Unsigned_Short;
+                       return PolyORB.Types.Unsigned_Short;
 
    function Unmarshall (Buffer : access Buffer_Type)
-                       return Droopi.Types.Unsigned_Long;
+                       return PolyORB.Types.Unsigned_Long;
 
    function Unmarshall (Buffer : access Buffer_Type)
-                       return Droopi.Types.Short;
+                       return PolyORB.Types.Short;
 
    function Unmarshall (Buffer : access Buffer_Type)
-                       return Droopi.Types.Long;
+                       return PolyORB.Types.Long;
 
    function Unmarshall (Buffer : access Buffer_Type)
                        return Stream_Element_Array;
@@ -100,10 +100,10 @@ package Droopi.Representations.SRP is
                        return Types.String;
 
    function Unmarshall (Buffer : access Buffer_Type)
-                       return Droopi.Any.TypeCode.Object;
+                       return PolyORB.Any.TypeCode.Object;
 
    function Unmarshall (Buffer : access Buffer_Type)
-                       return Droopi.Any.Any;
+                       return PolyORB.Any.Any;
 
    -----------------
    -- MARSHALLING --
@@ -115,35 +115,35 @@ package Droopi.Representations.SRP is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   :        Droopi.Types.Boolean);
+      Data   :        PolyORB.Types.Boolean);
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   :        Droopi.Types.Char);
+      Data   :        PolyORB.Types.Char);
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   :        Droopi.Types.Wchar);
+      Data   :        PolyORB.Types.Wchar);
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   :        Droopi.Types.Octet);
+      Data   :        PolyORB.Types.Octet);
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in Droopi.Types.Unsigned_Short);
+      Data   : in PolyORB.Types.Unsigned_Short);
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in Droopi.Types.Unsigned_Long);
+      Data   : in PolyORB.Types.Unsigned_Long);
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in Droopi.Types.Short);
+      Data   : in PolyORB.Types.Short);
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in Droopi.Types.Long);
+      Data   : in PolyORB.Types.Long);
 
    procedure Marshall
      (Buffer : access Buffer_Type;
@@ -151,7 +151,7 @@ package Droopi.Representations.SRP is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in Droopi.Types.String);
+      Data   : in PolyORB.Types.String);
 
    procedure Marshall
      (Buffer : access Buffer_Type;
@@ -159,11 +159,11 @@ package Droopi.Representations.SRP is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in Droopi.Any.Any);
+      Data   : in PolyORB.Any.Any);
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in Droopi.Any.TypeCode.Object);
+      Data   : in PolyORB.Any.TypeCode.Object);
 
    procedure Marshall_From_Any
      (R      : Rep_SRP;
@@ -172,7 +172,7 @@ package Droopi.Representations.SRP is
 
    procedure Marshall_From_Any
      (Buffer : access Buffer_Type;
-      Data   : Droopi.Any.Any);
+      Data   : PolyORB.Any.Any);
 
    procedure Unmarshall_To_Any
      (R      : Rep_SRP;
@@ -181,7 +181,7 @@ package Droopi.Representations.SRP is
 
    procedure Unmarshall_To_Any
      (Buffer : access Buffer_Type;
-      Result : in out Droopi.Any.Any);
+      Result : in out PolyORB.Any.Any);
 
    --  The following methods are specific to Rep_SRP and are
    --  here only to facilitate testing of other parts of the ORB.
@@ -223,4 +223,4 @@ private
 
    type Rep_SRP is new Representation with null record;
 
-end Droopi.Representations.SRP;
+end PolyORB.Representations.SRP;

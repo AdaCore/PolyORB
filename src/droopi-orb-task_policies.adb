@@ -2,19 +2,19 @@
 
 --  $Id$
 
-with Droopi.Components;
-with Droopi.Filters.Interface;
-with Droopi.Log;
-pragma Elaborate_All (Droopi.Log);
+with PolyORB.Components;
+with PolyORB.Filters.Interface;
+with PolyORB.Log;
+pragma Elaborate_All (PolyORB.Log);
 
-package body Droopi.ORB.Task_Policies is
+package body PolyORB.ORB.Task_Policies is
 
-   use Droopi.Components;
-   use Droopi.Filters.Interface;
-   use Droopi.Log;
+   use PolyORB.Components;
+   use PolyORB.Filters.Interface;
+   use PolyORB.Log;
 
-   package L is new Droopi.Log.Facility_Log
-     ("droopi.orb.tasking_policies");
+   package L is new PolyORB.Log.Facility_Log
+     ("polyorb.orb.tasking_policies");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -81,4 +81,4 @@ package body Droopi.ORB.Task_Policies is
       Emit_No_Reply (Component_Access (ORB), Msg);
    end Queue_Request_To_Handler;
 
-end Droopi.ORB.Task_Policies;
+end PolyORB.ORB.Task_Policies;

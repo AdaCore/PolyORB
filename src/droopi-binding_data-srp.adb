@@ -2,20 +2,20 @@
 
 --  $Id$
 
-with Droopi.Filters;
+with PolyORB.Filters;
 
-with Droopi.Protocols.SRP;
+with PolyORB.Protocols.SRP;
 --  The SRP profile is bound to the SRP invocation protocol.
 
-with Droopi.Transport.Sockets;
+with PolyORB.Transport.Sockets;
 --  The TEST profile denotes an SRP protocol stack instanciated
 --  over a TCP socket.
 
-package body Droopi.Binding_Data.SRP is
+package body PolyORB.Binding_Data.SRP is
 
-   use Droopi.Objects;
-   use Droopi.Sockets;
-   use Droopi.Transport.Sockets;
+   use PolyORB.Objects;
+   use PolyORB.Sockets;
+   use PolyORB.Transport.Sockets;
 
    procedure Initialize (P : in out SRP_Profile_Type) is
    begin
@@ -46,9 +46,9 @@ package body Droopi.Binding_Data.SRP is
       TE      : out Transport.Transport_Endpoint_Access;
       Session : out Components.Component_Access)
    is
-      use Droopi.Protocols.SRP;
-      use Droopi.Sockets;
-      use Droopi.Transport.Sockets;
+      use PolyORB.Protocols.SRP;
+      use PolyORB.Sockets;
+      use PolyORB.Transport.Sockets;
 
       S : Socket_Type;
       Remote_Addr : Sock_Addr_Type := Profile.Address;
@@ -111,7 +111,7 @@ package body Droopi.Binding_Data.SRP is
    function Image (Prof : SRP_Profile_Type) return String is
    begin
       return "Address : " & Image (Prof.Address) &
-        ", Object_Id : " & Droopi.Objects.Image (Prof.Object_Id.all);
+        ", Object_Id : " & PolyORB.Objects.Image (Prof.Object_Id.all);
    end Image;
 
-end Droopi.Binding_Data.SRP;
+end PolyORB.Binding_Data.SRP;

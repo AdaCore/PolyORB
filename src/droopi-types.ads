@@ -8,7 +8,7 @@ with Ada.Strings.Unbounded;
 with Ada.Strings.Wide_Unbounded;
 with Ada.Unchecked_Deallocation;
 
-package Droopi.Types is
+package PolyORB.Types is
 
    pragma Preelaborate;
 
@@ -84,7 +84,7 @@ package Droopi.Types is
    -- String conversion functions --
    ---------------------------------
 
-   function To_Droopi_String
+   function To_PolyORB_String
      (Source : Standard.String)
      return String;
 
@@ -92,7 +92,7 @@ package Droopi.Types is
      (Source : String)
      return Standard.String;
 
-   function To_Droopi_Wide_String
+   function To_PolyORB_Wide_String
      (Source : Standard.Wide_String)
      return Wide_String;
 
@@ -100,15 +100,15 @@ package Droopi.Types is
      (Source : Wide_String)
      return Standard.Wide_String;
 
-   type Identifier is new Droopi.Types.String;
-   type RepositoryId is new Droopi.Types.String;
-   type ScopedName is new Droopi.Types.String;
+   type Identifier is new PolyORB.Types.String;
+   type RepositoryId is new PolyORB.Types.String;
+   type ScopedName is new PolyORB.Types.String;
 
 private
 
-   pragma Inline (To_Droopi_String);
+   pragma Inline (To_PolyORB_String);
    pragma Inline (To_Standard_String);
-   pragma Inline (To_Droopi_Wide_String);
+   pragma Inline (To_PolyORB_Wide_String);
    pragma Inline (To_Standard_Wide_String);
 
-end Droopi.Types;
+end PolyORB.Types;

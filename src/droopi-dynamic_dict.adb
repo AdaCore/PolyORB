@@ -5,7 +5,7 @@
 with Ada.Unchecked_Deallocation;
 with GNAT.HTable;
 
-package body Droopi.Dynamic_Dict is
+package body PolyORB.Dynamic_Dict is
 
    --------------------------------------------------------
    -- A hash table that stores the Value associated with --
@@ -95,4 +95,4 @@ package body Droopi.Dynamic_Dict is
       raise Not_Implemented;
    end Unregister;
 
-end Droopi.Dynamic_Dict;
+end PolyORB.Dynamic_Dict;

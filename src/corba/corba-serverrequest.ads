@@ -2,7 +2,7 @@
 
 --  $Id$
 
-with Droopi.Requests;
+with PolyORB.Requests;
 
 with CORBA.NVList;
 
@@ -19,8 +19,8 @@ package CORBA.ServerRequest is
 --         void                set_exception(in any val);
 --     };
 
-   subtype Object is Droopi.Requests.Request;
-   subtype Object_Ptr is Droopi.Requests.Request_Access;
+   subtype Object is PolyORB.Requests.Request;
+   subtype Object_Ptr is PolyORB.Requests.Request_Access;
 
    function Operation (O : Object) return Identifier;
    procedure Arguments (O : access Object; NV : in out NVList.Ref);
@@ -29,22 +29,22 @@ package CORBA.ServerRequest is
    procedure Set_Exception (O : Object; Val : Any);
 
    --------------------------------------
-   -- The following is DROOPI-specific --
+   -- The following is PolyORB-specific --
    --------------------------------------
 
---    function To_Droopi_Request
+--    function To_PolyORB_Request
 --      (O : access Object)
---      return Droopi.Requests.Request_Access;
+--      return PolyORB.Requests.Request_Access;
 
 --    function To_CORBA_ServerRequest
---      (R : Droopi.Requests.Request_Access)
+--      (R : PolyORB.Requests.Request_Access)
 --      return Object_Ptr;
 
 --  private
 
---    type Object is new Droopi.Requests.Request with null record;
+--    type Object is new PolyORB.Requests.Request with null record;
 
---    pragma Inline (To_Droopi_Request);
+--    pragma Inline (To_PolyORB_Request);
 --    pragma Inline (To_CORBA_ServerRequest);
 
 end CORBA.ServerRequest;

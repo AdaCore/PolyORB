@@ -4,15 +4,15 @@
 
 with Ada.Tags;
 
-with Droopi.Filters.Interface;
-with Droopi.Log;
-pragma Elaborate_All (Droopi.Log);
+with PolyORB.Filters.Interface;
+with PolyORB.Log;
+pragma Elaborate_All (PolyORB.Log);
 
-package body Droopi.Filters is
+package body PolyORB.Filters is
 
-   use Droopi.Log;
+   use PolyORB.Log;
 
-   package L is new Droopi.Log.Facility_Log ("droopi.filters");
+   package L is new PolyORB.Log.Facility_Log ("polyorb.filters");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -105,4 +105,4 @@ package body Droopi.Filters is
       return F;
    end Create_Filter_Chain;
 
-end Droopi.Filters;
+end PolyORB.Filters;

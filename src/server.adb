@@ -34,9 +34,9 @@ with CORBA.Impl;
 
 with PortableServer;
 
-with Droopi.CORBA_P.Server_Tools; use Droopi.CORBA_P.Server_Tools;
-pragma Elaborate (Droopi.CORBA_P.Server_Tools);
-with Droopi.POA_Types;
+with PolyORB.CORBA_P.Server_Tools; use PolyORB.CORBA_P.Server_Tools;
+pragma Elaborate (PolyORB.CORBA_P.Server_Tools);
+with PolyORB.POA_Types;
 
 with GNAT.Command_Line;  use GNAT.Command_Line;
 with Ada.Text_IO;
@@ -71,8 +71,8 @@ begin
       Obj : constant Object_Ptr
         := new Echo.Impl.Object;
    begin
-      Droopi.POA_Types.Servant_Access
-        (To_Droopi_Servant
+      PolyORB.POA_Types.Servant_Access
+        (To_PolyORB_Servant
          (CORBA.Impl.Object (Obj.all)'Access)).If_Desc.External_Name
         := CORBA.To_CORBA_String ("IDL:Echo:1.0");
 

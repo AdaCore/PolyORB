@@ -2,10 +2,10 @@
 
 --  $Id$
 
-with Droopi.POA_Types; use Droopi.POA_Types;
-with Droopi.Smart_Pointers;
+with PolyORB.POA_Types; use PolyORB.POA_Types;
+with PolyORB.Smart_Pointers;
 
-package Droopi.POA_Manager is
+package PolyORB.POA_Manager is
 
    --  Unit has no proper body: no elab control necessary.
 
@@ -24,7 +24,7 @@ package Droopi.POA_Manager is
 
    Invalid_Obj_Adapter : exception;
 
-   type Hold_Servant_Base is abstract new Droopi.POA_Types.Servant
+   type Hold_Servant_Base is abstract new PolyORB.POA_Types.Servant
      with null record;
    type Hold_Servant_Base_Access is
      access all Hold_Servant_Base'Class;
@@ -91,4 +91,4 @@ private
       Managed_POAs  : POAList_Access;
    end record;
 
-end Droopi.POA_Manager;
+end PolyORB.POA_Manager;

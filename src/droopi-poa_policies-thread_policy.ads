@@ -1,6 +1,6 @@
-with Droopi.POA_Types;
+with PolyORB.POA_Types;
 
-package Droopi.POA_Policies.Thread_Policy is
+package PolyORB.POA_Policies.Thread_Policy is
 
    type ThreadPolicy is abstract new Policy with null record;
    subtype Thread_Policy is ThreadPolicy;
@@ -12,11 +12,11 @@ package Droopi.POA_Policies.Thread_Policy is
    --  possible Policy
 
    procedure Check_Compatibility (Self : ThreadPolicy;
-                                  OA   : Droopi.POA_Types.Obj_Adapter_Access)
+                                  OA   : PolyORB.POA_Types.Obj_Adapter_Access)
       is abstract;
 
    procedure Free (P   : in     ThreadPolicy;
                    Ptr : in out Policy_Access)
       is abstract;
 
-end Droopi.POA_Policies.Thread_Policy;
+end PolyORB.POA_Policies.Thread_Policy;

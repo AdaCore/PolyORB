@@ -4,10 +4,10 @@ package body CORBA.Impl is
 
    function Handle_Message
      (Self : access Object;
-      Msg  : Droopi.Components.Message'Class)
-     return Droopi.Components.Message'Class
+      Msg  : PolyORB.Components.Message'Class)
+     return PolyORB.Components.Message'Class
    is
-      use Droopi.Components;
+      use PolyORB.Components;
 
       Res : Null_Message;
    begin
@@ -17,17 +17,17 @@ package body CORBA.Impl is
 
    function Handle_Message
      (Self : access Implementation;
-      Msg  : Droopi.Components.Message'Class)
-     return Droopi.Components.Message'Class is
+      Msg  : PolyORB.Components.Message'Class)
+     return PolyORB.Components.Message'Class is
    begin
       return Handle_Message (Self.As_Object, Msg);
    end Handle_Message;
 
-   function To_Droopi_Servant (S : access Object)
-     return Droopi.Objects.Servant_Access is
+   function To_PolyORB_Servant (S : access Object)
+     return PolyORB.Objects.Servant_Access is
    begin
       return S.Neutral_View'Access;
-   end To_Droopi_Servant;
+   end To_PolyORB_Servant;
 
    function "=" (X, Y : Implementation) return Boolean
    is

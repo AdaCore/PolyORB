@@ -4,28 +4,28 @@
 
 with Ada.Streams; use Ada.Streams;
 
-with Droopi.Transport.Sockets;
-with Droopi.Protocols.GIOP;
-with Droopi.Protocols;
-with Droopi.Representations.CDR;
-with Droopi.Filters;
-with Droopi.Filters.Slicers;
-with Droopi.Sockets;
-with Droopi.Objects;
-with Droopi.References.IOR;
-with Droopi.Types;
+with PolyORB.Transport.Sockets;
+with PolyORB.Protocols.GIOP;
+with PolyORB.Protocols;
+with PolyORB.Representations.CDR;
+with PolyORB.Filters;
+with PolyORB.Filters.Slicers;
+with PolyORB.Sockets;
+with PolyORB.Objects;
+with PolyORB.References.IOR;
+with PolyORB.Types;
 
 with Sequences.Unbounded;
 
-package body Droopi.Binding_Data.IIOP is
+package body PolyORB.Binding_Data.IIOP is
 
 
-   use Droopi.Representations.CDR;
-   use Droopi.Objects;
-   use Droopi.Transport.Sockets;
-   use Droopi.Sockets;
-   use Droopi.References.IOR;
-   use Droopi.Types;
+   use PolyORB.Representations.CDR;
+   use PolyORB.Objects;
+   use PolyORB.Transport.Sockets;
+   use PolyORB.Sockets;
+   use PolyORB.References.IOR;
+   use PolyORB.Types;
 
    procedure Marshall_Socket
         (Buffer   : access Buffer_Type;
@@ -74,12 +74,12 @@ package body Droopi.Binding_Data.IIOP is
       TE      : out Transport.Transport_Endpoint_Access;
       Filter  : out Components.Component_Access)
    is
-      use Droopi.Components;
-      use Droopi.Protocols;
-      use Droopi.Protocols.GIOP;
-      use Droopi.Sockets;
-      use Droopi.Filters;
-      use Droopi.Filters.Slicers;
+      use PolyORB.Components;
+      use PolyORB.Protocols;
+      use PolyORB.Protocols.GIOP;
+      use PolyORB.Sockets;
+      use PolyORB.Filters;
+      use PolyORB.Filters.Slicers;
 
       Sock : Socket_Type;
       Remote_Addr : Sock_Addr_Type := Profile.Address;
@@ -151,7 +151,7 @@ package body Droopi.Binding_Data.IIOP is
       Oid : Objects.Object_Id)
      return Profile_Access
    is
-      use Droopi.Transport.Sockets;
+      use PolyORB.Transport.Sockets;
       use Component_Seq;
 
       Result : constant Profile_Access
@@ -259,7 +259,7 @@ package body Droopi.Binding_Data.IIOP is
         Sock     : Sockets.Sock_Addr_Type)
 
    is
-      Str  : Types.String := To_Droopi_String (Image (Sock.Addr));
+      Str  : Types.String := To_PolyORB_String (Image (Sock.Addr));
    begin
 
       --  Marshalling of the Host as a string
@@ -333,7 +333,7 @@ package body Droopi.Binding_Data.IIOP is
    function Image (Prof : IIOP_Profile_Type) return String is
    begin
       return "Address : " & Image (Prof.Address) &
-        ", Object_Id : " & Droopi.Objects.Image (Prof.Object_Id.all);
+        ", Object_Id : " & PolyORB.Objects.Image (Prof.Object_Id.all);
    end Image;
 
-end Droopi.Binding_Data.IIOP;
+end PolyORB.Binding_Data.IIOP;

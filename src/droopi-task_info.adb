@@ -4,7 +4,7 @@
 
 --  $Id$
 
-package body Droopi.Task_Info is
+package body PolyORB.Task_Info is
 
    procedure Set_Status_Blocked
      (TI       : in out Task_Info;
@@ -54,4 +54,4 @@ package body Droopi.Task_Info is
       return TI.Watcher;
    end Watcher;
 
-end Droopi.Task_Info;
+end PolyORB.Task_Info;

@@ -6,41 +6,41 @@ with Ada.Unchecked_Deallocation;
 
 with CORBA;
 
-with Droopi.Obj_Adapters;
-with Droopi.Objects;         use Droopi.Objects;
-with Droopi.Any;
-with Droopi.Any.NVList;
-with Droopi.Requests;
-with Droopi.Storage_Pools;
-with Droopi.Types; use Droopi.Types;
+with PolyORB.Obj_Adapters;
+with PolyORB.Objects;         use PolyORB.Objects;
+with PolyORB.Any;
+with PolyORB.Any.NVList;
+with PolyORB.Requests;
+with PolyORB.Storage_Pools;
+with PolyORB.Types; use PolyORB.Types;
 with Sequences.Unbounded;
 
 ---------------------
--- Droopi.POA_Types --
+-- PolyORB.POA_Types --
 ---------------------
 
-package Droopi.POA_Types is
+package PolyORB.POA_Types is
 
    pragma Elaborate_Body;
 
-   Invalid_Object_Id : exception renames Droopi.Obj_Adapters.Invalid_Object_Id;
-   Invalid_Method    : exception renames Droopi.Obj_Adapters.Invalid_Method;
+   Invalid_Object_Id : exception renames PolyORB.Obj_Adapters.Invalid_Object_Id;
+   Invalid_Method    : exception renames PolyORB.Obj_Adapters.Invalid_Method;
 
    subtype Time_Stamp is Unsigned_Long;
 
    --  Base types for CORBA
 
-   type Obj_Adapter is abstract new Droopi.Obj_Adapters.Obj_Adapter
+   type Obj_Adapter is abstract new PolyORB.Obj_Adapters.Obj_Adapter
       with null record;
    type Obj_Adapter_Access is access all Obj_Adapter'Class;
 
    type Parameter_Profile_Description is
-     access function (Method : Droopi.Requests.Operation_Id)
-                     return Droopi.Any.NVList.Ref;
+     access function (Method : PolyORB.Requests.Operation_Id)
+                     return PolyORB.Any.NVList.Ref;
 
    type Result_Profile_Description is
-     access function (Method : Droopi.Requests.Operation_Id)
-                     return Droopi.Any.Any;
+     access function (Method : PolyORB.Requests.Operation_Id)
+                     return PolyORB.Any.Any;
 
    type Interface_Description is record
       External_Name : Types.String;
@@ -50,7 +50,7 @@ package Droopi.POA_Types is
       RP_Desc : Result_Profile_Description;
    end record;
 
-   type Servant is abstract new Droopi.Objects.Servant with
+   type Servant is abstract new PolyORB.Objects.Servant with
       record
          If_Desc : Interface_Description;
          --  Description of the most derived interface supported
@@ -65,10 +65,10 @@ package Droopi.POA_Types is
    subtype POAList is POA_Sequences.Sequence;
    type POAList_Access is access all POAList;
 
-   subtype Object_Id is Droopi.Objects.Object_Id;
-   subtype Object_Id_Access is Droopi.Objects.Object_Id_Access;
+   subtype Object_Id is PolyORB.Objects.Object_Id;
+   subtype Object_Id_Access is PolyORB.Objects.Object_Id_Access;
    function "=" (X, Y : Object_Id_Access) return Boolean
-     renames Droopi.Objects."=";
+     renames PolyORB.Objects."=";
 
    type Unmarshalled_Oid is
      record
@@ -119,10 +119,10 @@ package Droopi.POA_Types is
      return Object_Id_Access;
    --  Marshall an Unmarshalled_Oid into an Object_Id
 
-   procedure Free (X : in out Droopi.POA_Types.Object_Id_Access)
-     renames Droopi.Objects.Free;
+   procedure Free (X : in out PolyORB.POA_Types.Object_Id_Access)
+     renames PolyORB.Objects.Free;
 
    procedure Free is new Ada.Unchecked_Deallocation
      (Unmarshalled_Oid, Unmarshalled_Oid_Access);
 
-end Droopi.POA_Types;
+end PolyORB.POA_Types;

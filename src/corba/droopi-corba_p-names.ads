@@ -2,7 +2,7 @@
 
 --  $Id$
 
-package Droopi.CORBA_P.Names is
+package PolyORB.CORBA_P.Names is
 
    pragma Pure;
 
@@ -16,4 +16,4 @@ private
    pragma Inline (OMG_Version);
    pragma Inline (OMG_RepositoryId);
 
-end Droopi.CORBA_P.Names;
+end PolyORB.CORBA_P.Names;

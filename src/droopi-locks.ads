@@ -1,13 +1,13 @@
 --  Inter-process synchronisation objects.
 
---  $Id: //droopi/main/src/droopi-locks.ads#3 $
+--  $Id: //droopi/main/src/droopi-locks.ads#4 $
 
-with Droopi.Soft_Links;
+with PolyORB.Soft_Links;
 
-package Droopi.Locks is
+package PolyORB.Locks is
 
    pragma Elaborate_Body;
-   --  Body depends on Droopi.Log. Removing that dep
+   --  Body depends on PolyORB.Log. Removing that dep
    --  would allow promoting this unit to Preelaborate.
 
    ----------------------------
@@ -35,7 +35,7 @@ package Droopi.Locks is
 
 private
 
-   use Droopi.Soft_Links;
+   use PolyORB.Soft_Links;
 
    type Rw_Lock_Type is limited record
       Guard_Values : Watcher_Access;
@@ -58,4 +58,4 @@ private
          --  Maximum number of readers.
    end record;
 
-end Droopi.Locks;
+end PolyORB.Locks;

@@ -4,13 +4,13 @@
 
 with Ada.Unchecked_Deallocation;
 
-with Droopi.POA_Types; use Droopi.POA_Types;
-with Droopi.Locks;
-with Droopi.Components;
+with PolyORB.POA_Types; use PolyORB.POA_Types;
+with PolyORB.Locks;
+with PolyORB.Components;
 with Locked_Queue;
 pragma Elaborate_All (Locked_Queue);
 
-package Droopi.POA_Manager.Basic_Manager is
+package PolyORB.POA_Manager.Basic_Manager is
 
    pragma Elaborate_Body;
 
@@ -18,7 +18,7 @@ package Droopi.POA_Manager.Basic_Manager is
    type Basic_POA_Manager_Access is access all Basic_POA_Manager;
 
    Invalid_Obj_Adapter : exception
-     renames Droopi.POA_Manager.Invalid_Obj_Adapter;
+     renames PolyORB.POA_Manager.Invalid_Obj_Adapter;
 
    ----------------------------------------------------------------------
    --  Procedures and functions to implement the POAManager interface  --
@@ -89,8 +89,8 @@ package Droopi.POA_Manager.Basic_Manager is
 
    function Handle_Message
      (Obj : access Hold_Servant;
-      Msg :        Droopi.Components.Message'Class)
-     return Droopi.Components.Message'Class;
+      Msg :        PolyORB.Components.Message'Class)
+     return PolyORB.Components.Message'Class;
 
 private
    Queue_Size : constant Positive := 10;
@@ -99,7 +99,7 @@ private
    type Queue_Element is
       record
          OA  : Obj_Adapter_Access;
-         --         Msg : Droopi.Components.Message;
+         --         Msg : PolyORB.Components.Message;
          --  ??? How do we queue de messages?
       end record;
    type Queue_Element_Access is access all Queue_Element;
@@ -112,13 +112,13 @@ private
          Usage_Count     : Integer := 0;
          Holded_Requests : Requests_Queue;
 
-         State_Lock      : Droopi.Locks.Rw_Lock_Access;
+         State_Lock      : PolyORB.Locks.Rw_Lock_Access;
          --  Lock the state
-         Count_Lock      : Droopi.Locks.Rw_Lock_Access;
+         Count_Lock      : PolyORB.Locks.Rw_Lock_Access;
          --  Lock on the usage counter
-         POAs_Lock       : Droopi.Locks.Rw_Lock_Access;
+         POAs_Lock       : PolyORB.Locks.Rw_Lock_Access;
          --  Lock on the sequence of managed POAs
-         Queue_Lock      : Droopi.Locks.Rw_Lock_Access;
+         Queue_Lock      : PolyORB.Locks.Rw_Lock_Access;
          --  Lock on the queue of pending requests
       end record;
 
@@ -141,6 +141,6 @@ private
    procedure Free is new Ada.Unchecked_Deallocation
      (Hold_Servant, Hold_Servant_Access);
 
-end Droopi.POA_Manager.Basic_Manager;
+end PolyORB.POA_Manager.Basic_Manager;
 
 

@@ -1,6 +1,6 @@
 with Ada.Unchecked_Deallocation;
 
-package Droopi.POA_Policies.Id_Uniqueness_Policy.Unique is
+package PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique is
 
    type Unique_Id_Policy is new IdUniquenessPolicy with null record;
    type Unique_Id_Policy_Access is access all Unique_Id_Policy;
@@ -9,7 +9,7 @@ package Droopi.POA_Policies.Id_Uniqueness_Policy.Unique is
 
    procedure Check_Compatibility
      (Self : Unique_Id_Policy;
-      OA   : Droopi.POA_Types.Obj_Adapter_Access);
+      OA   : PolyORB.POA_Types.Obj_Adapter_Access);
 
    function Policy_Id
      (Self : Unique_Id_Policy)
@@ -17,12 +17,12 @@ package Droopi.POA_Policies.Id_Uniqueness_Policy.Unique is
 
    procedure Ensure_Servant_Uniqueness
      (Self      : Unique_Id_Policy;
-      OA        : Droopi.POA_Types.Obj_Adapter_Access;
+      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
       P_Servant : Servant_Access);
 
    function Servant_To_Id
      (Self      : Unique_Id_Policy;
-      OA        : Droopi.POA_Types.Obj_Adapter_Access;
+      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
       P_Servant : Servant_Access)
      return Object_Id_Access;
 
@@ -34,4 +34,4 @@ package Droopi.POA_Policies.Id_Uniqueness_Policy.Unique is
      (Unique_Id_Policy,
       Unique_Id_Policy_Access);
 
-end Droopi.POA_Policies.Id_Uniqueness_Policy.Unique;
+end PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique;

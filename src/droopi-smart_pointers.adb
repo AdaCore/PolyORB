@@ -35,19 +35,19 @@ with Ada.Exceptions;
 with Ada.Unchecked_Deallocation;
 with Ada.Tags;
 
-with Droopi.Log;
-pragma Elaborate_All (Droopi.Log);
+with PolyORB.Log;
+pragma Elaborate_All (PolyORB.Log);
 
-with Droopi.Soft_Links;
+with PolyORB.Soft_Links;
 
-package body Droopi.Smart_Pointers is
+package body PolyORB.Smart_Pointers is
 
-   use Droopi.Log;
-   use Droopi.Soft_Links;
+   use PolyORB.Log;
+   use PolyORB.Soft_Links;
 
    Counter_Lock : Mutex_Access;
 
-   package L is new Droopi.Log.Facility_Log ("droopi.refs");
+   package L is new PolyORB.Log.Facility_Log ("polyorb.refs");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -211,4 +211,4 @@ package body Droopi.Smart_Pointers is
       return The_Ref.A_Ref;
    end Entity_Of;
 
-end Droopi.Smart_Pointers;
+end PolyORB.Smart_Pointers;

@@ -1,6 +1,6 @@
 --  $Id$
 
-package body Droopi.Dict is
+package body PolyORB.Dict is
 
    use Dict_Entry_Seqs;
 
@@ -79,4 +79,4 @@ package body Droopi.Dict is
       Delete (D.Entries, Index, Index);
    end Remove_By_Index;
 
-end Droopi.Dict;
+end PolyORB.Dict;

@@ -47,7 +47,7 @@ package body PortableServer.AdapterActivator is
 --         (Impl.Object'Class (Object_Of (Self).all),
 --          Parent, Name, Res);
 --       return Res;
-      raise Droopi.Not_Implemented;
+      raise PolyORB.Not_Implemented;
       return False;
    end Unknown_Adapter;
 

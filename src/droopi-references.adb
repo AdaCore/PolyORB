@@ -5,15 +5,15 @@
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Tags;
 
-with Droopi.Log;
-pragma Elaborate_All (Droopi.Log);
+with PolyORB.Log;
+pragma Elaborate_All (PolyORB.Log);
 
-package body Droopi.References is
+package body PolyORB.References is
 
-   use Droopi.Log;
-   use Droopi.Smart_Pointers;
+   use PolyORB.Log;
+   use PolyORB.Smart_Pointers;
 
-   package L is new Droopi.Log.Facility_Log ("droopi.references");
+   package L is new PolyORB.Log.Facility_Log ("polyorb.references");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -78,4 +78,4 @@ package body Droopi.References is
       end loop;
    end Finalize;
 
-end Droopi.References;
+end PolyORB.References;

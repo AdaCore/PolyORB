@@ -3,7 +3,7 @@
 with CORBA.AbstractBase;
 pragma Elaborate_All (CORBA.AbstractBase);
 
-with Droopi.Any.NVList;
+with PolyORB.Any.NVList;
 
 package CORBA.NVList is
 
@@ -29,7 +29,7 @@ package CORBA.NVList is
    --  Free and Free_Memory are no-ops in Ada.
 
    -----------------------------------------
-   -- The following is specific to DROOPI --
+   -- The following is specific to PolyORB --
    -----------------------------------------
 
    procedure Create (Self : out Ref);
@@ -41,8 +41,8 @@ package CORBA.NVList is
    function Item (Self : Ref; Index : CORBA.Long)
      return CORBA.NamedValue;
 
-   function To_Droopi_Ref (Self : Ref) return Droopi.Any.NVList.Ref;
-   function To_CORBA_Ref (Self : Droopi.Any.NVList.Ref) return Ref;
+   function To_PolyORB_Ref (Self : Ref) return PolyORB.Any.NVList.Ref;
+   function To_CORBA_Ref (Self : PolyORB.Any.NVList.Ref) return Ref;
 
 private
 
@@ -51,7 +51,7 @@ private
    pragma Inline (Add_Item);
    pragma Inline (Get_Count);
    pragma Inline (Free);
-   pragma Inline (To_Droopi_Ref);
+   pragma Inline (To_PolyORB_Ref);
    pragma Inline (To_CORBA_Ref);
    pragma Inline (Create);
 

@@ -2,18 +2,18 @@
 
 --  $Id$
 
-with Droopi.Obj_Adapters;
-with Droopi.POA;
-with Droopi.POA.Basic_POA; use Droopi.POA.Basic_POA;
-with Droopi.POA_Config;
-with Droopi.POA_Config.Minimum;
+with PolyORB.Obj_Adapters;
+with PolyORB.POA;
+with PolyORB.POA.Basic_POA; use PolyORB.POA.Basic_POA;
+with PolyORB.POA_Config;
+with PolyORB.POA_Config.Minimum;
 --  XXX hardcoded configuration!!!!!!
-with Droopi.Setup;
-with Droopi.Setup.Test; use Droopi.Setup.Test;
-with Droopi.Smart_Pointers;
-with Droopi.No_Tasking;
+with PolyORB.Setup;
+with PolyORB.Setup.Test; use PolyORB.Setup.Test;
+with PolyORB.Smart_Pointers;
+with PolyORB.No_Tasking;
 --  XXX hardcoded tasking policy!!!
-with Droopi.ORB.Task_Policies;
+with PolyORB.ORB.Task_Policies;
 
 with CORBA.Impl;
 pragma Warnings (Off, CORBA.Impl);
@@ -29,14 +29,14 @@ with PortableServer.POA;
 with PortableServer.POAManager;
 pragma Elaborate_All (PortableServer.POA);
 
-with Droopi.Log;
-pragma Elaborate_All (Droopi.Log);
+with PolyORB.Log;
+pragma Elaborate_All (PolyORB.Log);
 
-package body Droopi.CORBA_P.Server_Tools is
+package body PolyORB.CORBA_P.Server_Tools is
 
-   use Droopi.Log;
+   use PolyORB.Log;
 
-   package L is new Droopi.Log.Facility_Log ("droopi.corba_p.server_tools");
+   package L is new PolyORB.Log.Facility_Log ("polyorb.corba_p.server_tools");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -44,7 +44,7 @@ package body Droopi.CORBA_P.Server_Tools is
 
 --    task type ORBTask is
 --       pragma Storage_Size
---         (Droopi.CORBA_P.Parameters.Server_Tasks_Storage_Size);
+--         (PolyORB.CORBA_P.Parameters.Server_Tasks_Storage_Size);
 --    end ORBTask;
 --    type ORBTaskPtr is access ORBTask;
 
@@ -72,8 +72,8 @@ package body Droopi.CORBA_P.Server_Tools is
       Setup_Done := True;
 
       Initialize_Test_Server
-        (Droopi.No_Tasking.Initialize'Access,
-         new Droopi.ORB.Task_Policies.No_Tasking);
+        (PolyORB.No_Tasking.Initialize'Access,
+         new PolyORB.ORB.Task_Policies.No_Tasking);
 
 
       Initialize_Test_Access_Points;
@@ -85,25 +85,25 @@ package body Droopi.CORBA_P.Server_Tools is
 
    procedure Initiate_RootPOA is
       --  RootPOAStr  : CORBA.String;
-      Obj_Adapter : Droopi.POA.Obj_Adapter_Access;
+      Obj_Adapter : PolyORB.POA.Obj_Adapter_Access;
    begin
       Ensure_Setup;
 
       pragma Debug (O ("Initializing OA configuration... "));
-      Droopi.POA_Config.Set_Configuration
-        (new Droopi.POA_Config.Minimum.Minimum_Configuration);
+      PolyORB.POA_Config.Set_Configuration
+        (new PolyORB.POA_Config.Minimum.Minimum_Configuration);
       pragma Debug (O ("Creating object adapter... "));
-      Obj_Adapter := new Droopi.POA.Basic_POA.Basic_Obj_Adapter;
-      Droopi.POA.Basic_POA.Create (Basic_Obj_Adapter (Obj_Adapter.all)'Access);
+      Obj_Adapter := new PolyORB.POA.Basic_POA.Basic_Obj_Adapter;
+      PolyORB.POA.Basic_POA.Create (Basic_Obj_Adapter (Obj_Adapter.all)'Access);
       --  Create object adapter
 
-      Droopi.ORB.Set_Object_Adapter
-        (Droopi.Setup.The_ORB,
-         Droopi.Obj_Adapters.Obj_Adapter_Access (Obj_Adapter));
+      PolyORB.ORB.Set_Object_Adapter
+        (PolyORB.Setup.The_ORB,
+         PolyORB.Obj_Adapters.Obj_Adapter_Access (Obj_Adapter));
       --  Link object adapter with ORB.
 
       PortableServer.POA.Set
-        (Root_POA, Droopi.Smart_Pointers.Entity_Ptr (Obj_Adapter));
+        (Root_POA, PolyORB.Smart_Pointers.Entity_Ptr (Obj_Adapter));
 
 --       RootPOAStr := CORBA.To_CORBA_String ("RootPOA");
 --       Root_POA   := PortableServer.POA.To_Ref
@@ -183,4 +183,4 @@ package body Droopi.CORBA_P.Server_Tools is
      (S : in PortableServer.Servant;
       R : out CORBA.Object.Ref'Class) renames Initiate_Servant;
 
-end Droopi.CORBA_P.Server_Tools;
+end PolyORB.CORBA_P.Server_Tools;

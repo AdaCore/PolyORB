@@ -26,7 +26,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Droopi.Setup.CORBA_Client;
+with PolyORB.Setup.CORBA_Client;
 
 --   echo dynamic client.
 with Ada.Command_Line;
@@ -39,8 +39,8 @@ with CORBA.NVList;
 with CORBA.ORB;
 --  with Broca.Naming_Tools; use Broca.Naming_Tools;
 
-pragma Elaborate_All (Droopi.Setup.CORBA_Client);
-pragma Warnings (Off, Droopi.Setup.CORBA_Client);
+pragma Elaborate_All (PolyORB.Setup.CORBA_Client);
+pragma Warnings (Off, PolyORB.Setup.CORBA_Client);
 --  Just elaborate it.
 
 procedure DynClient is

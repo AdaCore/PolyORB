@@ -1,16 +1,16 @@
 --  Base types for the various configuration axes (policies)
---  of the DROOPI Portable Object Adapter (libreally inspired from
+--  of the PolyORB Portable Object Adapter (libreally inspired from
 --  the POA specification in CORBA).
 
 --  $Id$
 
 with Sequences.Unbounded;
 
-with Droopi.POA_Types;
-with Droopi.Dynamic_Dict;
-pragma Elaborate_All (Droopi.Dynamic_Dict);
+with PolyORB.POA_Types;
+with PolyORB.Dynamic_Dict;
+pragma Elaborate_All (PolyORB.Dynamic_Dict);
 
-package Droopi.POA_Policies is
+package PolyORB.POA_Policies is
 
    --  No proper body: no elaboration control.
 
@@ -22,13 +22,13 @@ package Droopi.POA_Policies is
    type PolicyList_Access is access all PolicyList;
 
    package Policy_Repository is
-      new Droopi.Dynamic_Dict (Droopi.POA_Policies.Policy_Access);
+      new PolyORB.Dynamic_Dict (PolyORB.POA_Policies.Policy_Access);
 
    function Policy_Id (Self : Policy) return String is abstract;
 
    procedure Check_Compatibility
      (Self : Policy;
-      OA   : Droopi.POA_Types.Obj_Adapter_Access)
+      OA   : PolyORB.POA_Types.Obj_Adapter_Access)
       is abstract;
    --  Check the compatibility of the current policy with the
    --  other policies of the object adapter.
@@ -42,4 +42,4 @@ package Droopi.POA_Policies is
       Ptr : in out Policy_Access)
      is abstract;
 
-end Droopi.POA_Policies;
+end PolyORB.POA_Policies;

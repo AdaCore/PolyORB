@@ -2,19 +2,19 @@
 
 --  $Id$
 
-with Droopi.Log;
-pragma Elaborate_All (Droopi.Log);
-with Droopi.ORB;
-with Droopi.ORB.Interface;
-with Droopi.Protocols.Interface;
-with Droopi.Setup;
+with PolyORB.Log;
+pragma Elaborate_All (PolyORB.Log);
+with PolyORB.ORB;
+with PolyORB.ORB.Interface;
+with PolyORB.Protocols.Interface;
+with PolyORB.Setup;
 
-package body Droopi.Requests is
+package body PolyORB.Requests is
 
-   use Droopi.Log;
-   use Droopi.Types;
+   use PolyORB.Log;
+   use PolyORB.Types;
 
-   package L is new Droopi.Log.Facility_Log ("droopi.requests");
+   package L is new PolyORB.Log.Facility_Log ("polyorb.requests");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -33,10 +33,10 @@ package body Droopi.Requests is
      )
    is
       Res : constant Request_Access := new Request;
-      Result_Any : Droopi.Any.Any := Any.Get_By_Ref (Result.Argument);
+      Result_Any : PolyORB.Any.Any := Any.Get_By_Ref (Result.Argument);
    begin
       Res.Target    := Target;
-      Res.Operation := To_Droopi_String (Operation);
+      Res.Operation := To_PolyORB_String (Operation);
       Res.Args      := Arg_List;
       Res.Deferred_Arguments_Session := Deferred_Arguments_Session;
       Res.Result    :=
@@ -49,12 +49,12 @@ package body Droopi.Requests is
 
    procedure Invoke (Self : Request_Access)
    is
-      use Droopi.ORB;
-      use Droopi.ORB.Interface;
-      use Droopi.Setup;
+      use PolyORB.ORB;
+      use PolyORB.ORB.Interface;
+      use PolyORB.Setup;
 
    begin
-      Droopi.ORB.Queue_Request_To_Handler
+      PolyORB.ORB.Queue_Request_To_Handler
         (The_ORB.Tasking_Policy, The_ORB,
          Queue_Request'
          (Request   => Self,
@@ -117,4 +117,4 @@ package body Droopi.Requests is
          return S1 & " with non-representable arguments";
    end Image;
 
-end Droopi.Requests;
+end PolyORB.Requests;

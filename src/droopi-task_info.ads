@@ -4,10 +4,10 @@
 
 --  $Id$
 
-with Droopi.Asynch_Ev;
-with Droopi.Soft_Links; use Droopi.Soft_Links;
+with PolyORB.Asynch_Ev;
+with PolyORB.Soft_Links; use PolyORB.Soft_Links;
 
-package Droopi.Task_Info is
+package PolyORB.Task_Info is
 
    pragma Elaborate_Body;
 
@@ -69,4 +69,4 @@ private
       --  Meaningful only when Status = Idle
    end record;
 
-end Droopi.Task_Info;
+end PolyORB.Task_Info;

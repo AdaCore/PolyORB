@@ -1,15 +1,15 @@
---  Initialization of a DROOPI server.
+--  Initialization of a PolyORB server.
 --  This package has several child procedures, corresponding
 --  to different compile-time configurations.
 
 --  $Id$
 
-with Droopi.ORB;
+with PolyORB.ORB;
 
-package Droopi.Setup is
+package PolyORB.Setup is
 
    --  No proper body: no need for elab control pragma.
 
-   The_ORB : Droopi.ORB.ORB_Access;
+   The_ORB : PolyORB.ORB.ORB_Access;
 
-end Droopi.Setup;
+end PolyORB.Setup;

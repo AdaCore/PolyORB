@@ -1,7 +1,7 @@
-with Droopi.POA_Types;     use Droopi.POA_Types;
+with PolyORB.POA_Types;     use PolyORB.POA_Types;
 
 
-package Droopi.POA_Policies.Lifespan_Policy is
+package PolyORB.POA_Policies.Lifespan_Policy is
 
    type LifespanPolicy is abstract new Policy with null record;
    subtype Lifespan_Policy is LifespanPolicy;
@@ -13,11 +13,11 @@ package Droopi.POA_Policies.Lifespan_Policy is
    --  possible Policy
 
    function Get_Time_Stamp (P  : LifespanPolicy;
-                            OA : Droopi.POA_Types.Obj_Adapter_Access)
+                            OA : PolyORB.POA_Types.Obj_Adapter_Access)
                            return Time_Stamp is abstract;
 
    procedure Ensure_Lifespan (P     : LifespanPolicy;
-                              OA    : Droopi.POA_Types.Obj_Adapter_Access;
+                              OA    : PolyORB.POA_Types.Obj_Adapter_Access;
                               U_Oid : Unmarshalled_Oid_Access)
       is abstract;
    --  PERSISTENT:
@@ -31,4 +31,4 @@ package Droopi.POA_Policies.Lifespan_Policy is
      (P   : in     LifespanPolicy;
       Ptr : in out Policy_Access) is abstract;
 
-end Droopi.POA_Policies.Lifespan_Policy;
+end PolyORB.POA_Policies.Lifespan_Policy;

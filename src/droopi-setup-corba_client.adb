@@ -4,27 +4,27 @@
 
 with Ada.Text_IO; use Ada.Text_IO;
 
-with Droopi.Log;
-pragma Elaborate_All (Droopi.Log);
+with PolyORB.Log;
+pragma Elaborate_All (PolyORB.Log);
 
-with Droopi.Binding_Data.IIOP;
-pragma Elaborate_All (Droopi.Binding_Data.IIOP);
+with PolyORB.Binding_Data.IIOP;
+pragma Elaborate_All (PolyORB.Binding_Data.IIOP);
 
-with Droopi.Protocols.GIOP;
-pragma Elaborate_All (Droopi.Protocols.GIOP);
+with PolyORB.Protocols.GIOP;
+pragma Elaborate_All (PolyORB.Protocols.GIOP);
 
-with Droopi.Smart_Pointers;
-pragma Elaborate_All (Droopi.Smart_Pointers);
+with PolyORB.Smart_Pointers;
+pragma Elaborate_All (PolyORB.Smart_Pointers);
 
-with Droopi.No_Tasking;
-with Droopi.ORB.Task_Policies;
+with PolyORB.No_Tasking;
+with PolyORB.ORB.Task_Policies;
 
-with Droopi.ORB;
-pragma Elaborate_All (Droopi.ORB);
+with PolyORB.ORB;
+pragma Elaborate_All (PolyORB.ORB);
 
-package body Droopi.Setup.CORBA_Client is
+package body PolyORB.Setup.CORBA_Client is
 
-   use Droopi.ORB;
+   use PolyORB.ORB;
 
    procedure Initialize_CORBA_Client
      (SL_Init : Parameterless_Procedure;
@@ -37,7 +37,7 @@ package body Droopi.Setup.CORBA_Client is
 
       Put ("Initializing subsystems...");
 
-      Droopi.Log.Initialize;
+      PolyORB.Log.Initialize;
       Put (" logging");
       --  Logging subsystem. Start this one first so we can debug
       --  problems in others.
@@ -46,7 +46,7 @@ package body Droopi.Setup.CORBA_Client is
       Put (" soft-links");
       --  Setup soft links.
 
-      Droopi.Smart_Pointers.Initialize;
+      PolyORB.Smart_Pointers.Initialize;
       Put (" smart-pointers");
       --  Depends on Soft_Links.
 
@@ -54,10 +54,10 @@ package body Droopi.Setup.CORBA_Client is
       -- Initialize personality-specific stuff --
       -------------------------------------------
 
-      Droopi.Binding_Data.IIOP.Initialize;
+      PolyORB.Binding_Data.IIOP.Initialize;
       Put (" binding-iiop");
 
-      Droopi.Protocols.GIOP.Initialize;
+      PolyORB.Protocols.GIOP.Initialize;
       Put (" protocols-giop");
 
       --------------------------
@@ -66,7 +66,7 @@ package body Droopi.Setup.CORBA_Client is
 
       Setup.The_ORB := new ORB.ORB_Type (TP);
 
-      Droopi.ORB.Create (Setup.The_ORB.all);
+      PolyORB.ORB.Create (Setup.The_ORB.all);
       Put (" ORB");
 
       Put_Line (" done");
@@ -74,8 +74,8 @@ package body Droopi.Setup.CORBA_Client is
 
 begin
 
-   Droopi.Setup.CORBA_Client.Initialize_CORBA_Client
-     (Droopi.No_Tasking.Initialize'Access,
-      new Droopi.ORB.Task_Policies.No_Tasking);
+   PolyORB.Setup.CORBA_Client.Initialize_CORBA_Client
+     (PolyORB.No_Tasking.Initialize'Access,
+      new PolyORB.ORB.Task_Policies.No_Tasking);
 
-end Droopi.Setup.CORBA_Client;
+end PolyORB.Setup.CORBA_Client;

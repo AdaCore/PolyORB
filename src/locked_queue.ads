@@ -1,6 +1,6 @@
 --  $Id$
 
-with Droopi.Soft_Links;
+with PolyORB.Soft_Links;
 
 --  This package implements a basic thread-safe bounded queue.
 
@@ -70,14 +70,14 @@ private
    type Queue is record
       Max_Count  : Positive;
 
-      State_Lock : Droopi.Soft_Links.Mutex_Access;
+      State_Lock : PolyORB.Soft_Links.Mutex_Access;
       --  This locks the global state of the queue, and should be
       --  taken when modifying First, Last and Count fields.
 
-      Full_Lock  : Droopi.Soft_Links.Mutex_Access;
+      Full_Lock  : PolyORB.Soft_Links.Mutex_Access;
       --  This lock is taken when the queue is full.
 
-      Empty_Lock : Droopi.Soft_Links.Mutex_Access;
+      Empty_Lock : PolyORB.Soft_Links.Mutex_Access;
       --  This lock is taken when the queue is empty.
 
       First      : Queue_Node_Access := null;

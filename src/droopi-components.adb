@@ -7,16 +7,16 @@ pragma Warnings (Off, Ada.Tags);
 --  Only used within pragma Debug.
 with Ada.Unchecked_Deallocation;
 
-with Droopi.Log;
-pragma Elaborate_All (Droopi.Log);
+with PolyORB.Log;
+pragma Elaborate_All (PolyORB.Log);
 
-package body Droopi.Components is
+package body PolyORB.Components is
 
    use Ada.Tags;
-   use Droopi.Log;
+   use PolyORB.Log;
    use Component_Seqs;
 
-   package L is new Droopi.Log.Facility_Log ("droopi.components");
+   package L is new PolyORB.Log.Facility_Log ("polyorb.components");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -166,4 +166,4 @@ package body Droopi.Components is
       raise Unhandled_Message;
    end Handle_Message;
 
-end Droopi.Components;
+end PolyORB.Components;

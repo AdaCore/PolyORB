@@ -4,9 +4,9 @@
 
 with Sequences.Unbounded;
 
-with Droopi.Annotations;
+with PolyORB.Annotations;
 
-package Droopi.Asynch_Ev is
+package PolyORB.Asynch_Ev is
 
    pragma Elaborate_Body;
 
@@ -16,7 +16,7 @@ package Droopi.Asynch_Ev is
    --  connection to the outside world.
    --  outside world.)
 
-   --  Such components are represented within DROOPI as Asynch_Ev_Source
+   --  Such components are represented within PolyORB as Asynch_Ev_Source
    --  objects. These objects are registered in collections called
    --  Asynch_Ev_Monitors.
 
@@ -38,7 +38,7 @@ package Droopi.Asynch_Ev is
    function Notepad_Of (AES : Asynch_Ev_Source_Access)
      return Annotations.Notepad_Access;
    pragma Inline (Notepad_Of);
-   --  An Asynch_Ev_Source is an annotable object (cf. Droopi.Annotations),
+   --  An Asynch_Ev_Source is an annotable object (cf. PolyORB.Annotations),
    --  so clients can associate it with any information that is necessary
    --  to process events that occur on it.
    --  This functions returns an access to AES' Notepad component.
@@ -92,7 +92,7 @@ package Droopi.Asynch_Ev is
    --  Return when one event source in AEM has had an event.
    --  If no event happened within Timeout, an empty array is returned.
    --  Note that a Timeout of 0.0 returns immediatly.
-   --  A Timeout of Droopi.Constants.Forever means to not return
+   --  A Timeout of PolyORB.Constants.Forever means to not return
    --  until an event occurs.
 
    procedure Abort_Check_Sources
@@ -115,4 +115,4 @@ private
       Sources : Source_Seq;
    end record;
 
-end Droopi.Asynch_Ev;
+end PolyORB.Asynch_Ev;

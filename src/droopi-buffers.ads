@@ -1,22 +1,22 @@
 --  Buffer management
 
---  $Id: //droopi/main/src/droopi-buffers.ads#12 $
+--  $Id: //droopi/main/src/droopi-buffers.ads#13 $
 
 with System;
 --  For bit-order information.
 
 with Ada.Streams;   use Ada.Streams;
 
-with Droopi.Opaque; use Droopi.Opaque;
+with PolyORB.Opaque; use PolyORB.Opaque;
 --  General opaque data storage types.
 
-with Droopi.Opaque.Chunk_Pools;
+with PolyORB.Opaque.Chunk_Pools;
 --  Chunked memory storage.
 
-with Droopi.Sockets;
+with PolyORB.Sockets;
 --  Low-level IO operations.
 
-package Droopi.Buffers is
+package PolyORB.Buffers is
 
    pragma Elaborate_Body;
 
@@ -363,7 +363,7 @@ private
       --  the system.
 
       procedure Write_To_Socket
-        (S          : Droopi.Sockets.Socket_Type;
+        (S          : PolyORB.Sockets.Socket_Type;
          Iovec_Pool : access Iovec_Pool_Type);
       --  Write the contents of Iovec_Pool onto S.
 
@@ -444,4 +444,4 @@ private
       --  Length of stored data.
    end record;
 
-end Droopi.Buffers;
+end PolyORB.Buffers;

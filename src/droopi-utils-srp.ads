@@ -4,12 +4,12 @@
 
 with Ada.Unchecked_Deallocation;
 
-with Droopi.Any;
-with Droopi.Objects; use Droopi.Objects;
-with Droopi.Types; use Droopi.Types;
---  with Droopi.Types; use Droopi.Types;
+with PolyORB.Any;
+with PolyORB.Objects; use PolyORB.Objects;
+with PolyORB.Types; use PolyORB.Types;
+--  with PolyORB.Types; use PolyORB.Types;
 
-package Droopi.Utils.SRP is
+package PolyORB.Utils.SRP is
 
    pragma Elaborate_Body;
 
@@ -57,4 +57,4 @@ package Droopi.Utils.SRP is
    procedure Free_Arg_Info is new Ada.Unchecked_Deallocation
      (Arg_Info, Arg_Info_Ptr);
 
-end Droopi.Utils.SRP;
+end PolyORB.Utils.SRP;

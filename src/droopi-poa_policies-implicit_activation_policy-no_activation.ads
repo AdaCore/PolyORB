@@ -1,6 +1,6 @@
 with Ada.Unchecked_Deallocation;
 
-package Droopi.POA_Policies.Implicit_Activation_Policy.No_Activation is
+package PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation is
 
    type No_Activation_Policy is new ImplicitActivationPolicy with null record;
    type No_Activation_Policy_Access is access all No_Activation_Policy;
@@ -9,7 +9,7 @@ package Droopi.POA_Policies.Implicit_Activation_Policy.No_Activation is
 
    procedure Check_Compatibility
      (Self : No_Activation_Policy;
-      OA   : Droopi.POA_Types.Obj_Adapter_Access);
+      OA   : PolyORB.POA_Types.Obj_Adapter_Access);
 
    function Policy_Id
      (Self : No_Activation_Policy)
@@ -17,7 +17,7 @@ package Droopi.POA_Policies.Implicit_Activation_Policy.No_Activation is
 
    function Activate_Servant
      (Self      : No_Activation_Policy;
-      OA        : Droopi.POA_Types.Obj_Adapter_Access;
+      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
       P_Servant : Servant_Access)
      return Object_Id_Access;
 
@@ -28,4 +28,4 @@ package Droopi.POA_Policies.Implicit_Activation_Policy.No_Activation is
       new Ada.Unchecked_Deallocation (No_Activation_Policy,
                                       No_Activation_Policy_Access);
 
-end Droopi.POA_Policies.Implicit_Activation_Policy.No_Activation;
+end PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation;

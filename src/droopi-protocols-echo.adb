@@ -5,35 +5,35 @@
 with Ada.Exceptions;
 with Ada.Unchecked_Deallocation;
 
-with Droopi.Any.NVList;
+with PolyORB.Any.NVList;
 
-with Droopi.Binding_Data.Local;
-with Droopi.Buffers;
-with Droopi.Filters;
-with Droopi.Filters.Interface;
-with Droopi.Log;
-pragma Elaborate_All (Droopi.Log);
+with PolyORB.Binding_Data.Local;
+with PolyORB.Buffers;
+with PolyORB.Filters;
+with PolyORB.Filters.Interface;
+with PolyORB.Log;
+pragma Elaborate_All (PolyORB.Log);
 
-with Droopi.Obj_Adapters;
-with Droopi.Objects;
-with Droopi.ORB;
-with Droopi.ORB.Interface;
-with Droopi.References;
-with Droopi.Requests; use Droopi.Requests;
+with PolyORB.Obj_Adapters;
+with PolyORB.Objects;
+with PolyORB.ORB;
+with PolyORB.ORB.Interface;
+with PolyORB.References;
+with PolyORB.Requests; use PolyORB.Requests;
 
-with Droopi.Representations.Test; use Droopi.Representations.Test;
-with Droopi.Types; use Droopi.Types;
+with PolyORB.Representations.Test; use PolyORB.Representations.Test;
+with PolyORB.Types; use PolyORB.Types;
 
-package body Droopi.Protocols.Echo is
+package body PolyORB.Protocols.Echo is
 
-   use Droopi.Components;
-   use Droopi.Filters;
-   use Droopi.Filters.Interface;
-   use Droopi.Log;
-   use Droopi.ORB;
-   use Droopi.ORB.Interface;
+   use PolyORB.Components;
+   use PolyORB.Filters;
+   use PolyORB.Filters.Interface;
+   use PolyORB.Log;
+   use PolyORB.ORB;
+   use PolyORB.ORB.Interface;
 
-   package L is new Droopi.Log.Facility_Log ("droopi.protocols.echo");
+   package L is new PolyORB.Log.Facility_Log ("polyorb.protocols.echo");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -45,7 +45,7 @@ package body Droopi.Protocols.Echo is
    is
    begin
 
-      --  This should be factored in Droopi.Protocols.
+      --  This should be factored in PolyORB.Protocols.
 
       Session := new Echo_Session;
       Set_Allocation_Class (Session.all, Dynamic);
@@ -195,7 +195,7 @@ package body Droopi.Protocols.Echo is
             Args   := Obj_Adapters.Get_Empty_Arg_List
               (Object_Adapter (ORB), Oid, Method);
             Result :=
-              (Name     => To_Droopi_String ("Result"),
+              (Name     => To_PolyORB_String ("Result"),
                Argument => Obj_Adapters.Get_Empty_Result
                (Object_Adapter (ORB), Oid, Method),
                Arg_Modes => 0);
@@ -245,5 +245,5 @@ package body Droopi.Protocols.Echo is
 
    end Handle_Disconnect;
 
-end Droopi.Protocols.Echo;
+end PolyORB.Protocols.Echo;
 

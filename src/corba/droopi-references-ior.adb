@@ -1,5 +1,5 @@
 ------------------------------------------------------------------------------
---                     DROOPI COMPONENTS
+--                     PolyORB COMPONENTS
 --                       IOR BODY                                           --
 ------------------------------------------------------------------------------
 
@@ -8,27 +8,27 @@
 with Ada.Streams; use Ada.Streams;
 
 with CORBA;
-with Droopi.Buffers; use Droopi.Buffers;
-with Droopi.Log;
-pragma Elaborate_All (Droopi.Log);
+with PolyORB.Buffers; use PolyORB.Buffers;
+with PolyORB.Log;
+pragma Elaborate_All (PolyORB.Log);
 
-with Droopi.Utils;
-with Droopi.Representations.CDR;
-with Droopi.CORBA_P.Exceptions;
+with PolyORB.Utils;
+with PolyORB.Representations.CDR;
+with PolyORB.CORBA_P.Exceptions;
 with Sequences.Unbounded;
-with Droopi.Binding_Data;
-with Droopi.Types;
+with PolyORB.Binding_Data;
+with PolyORB.Types;
 
-package body Droopi.References.IOR is
+package body PolyORB.References.IOR is
 
-   use Droopi.Log;
-   use Droopi.Utils;
-   use Droopi.Representations.CDR;
-   use Droopi.CORBA_P.Exceptions;
-   use Droopi.Binding_Data;
+   use PolyORB.Log;
+   use PolyORB.Utils;
+   use PolyORB.Representations.CDR;
+   use PolyORB.CORBA_P.Exceptions;
+   use PolyORB.Binding_Data;
    use Profile_Record_Seq;
 
-   package L is new Droopi.Log.Facility_Log ("droopi.references.ior");
+   package L is new PolyORB.Log.Facility_Log ("polyorb.references.ior");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -44,7 +44,7 @@ package body Droopi.References.IOR is
      (Buffer : access Buffer_Type;
       Value  : in IOR_Type)
    is
-      use Droopi.Types;
+      use PolyORB.Types;
       use Profile_Seqs;
       Profs  : Profile_Array := Profiles_Of (Value.Ref);
       Counter  : Integer := 0;
@@ -82,7 +82,7 @@ package body Droopi.References.IOR is
      (Buffer : access Buffer_Type)
    return  IOR_Type
    is
-      use Droopi.Types;
+      use PolyORB.Types;
       use CORBA;
       use Profile_Seqs;
 
@@ -169,7 +169,7 @@ package body Droopi.References.IOR is
       return IOR_Type
    is
       use CORBA;
-      use Droopi.Buffers;
+      use PolyORB.Buffers;
       Buf     : Buffer_Access := new Buffer_Type;
       IOR     : IOR_Type;
       S       : constant String
@@ -214,4 +214,4 @@ package body Droopi.References.IOR is
    end Register;
 
 
-end Droopi.References.IOR;
+end PolyORB.References.IOR;

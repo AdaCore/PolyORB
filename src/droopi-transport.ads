@@ -5,16 +5,16 @@
 
 with Ada.Streams; use Ada.Streams;
 
-with Droopi.Annotations;
-with Droopi.Asynch_Ev;
-with Droopi.Buffers;
-with Droopi.Components;
+with PolyORB.Annotations;
+with PolyORB.Asynch_Ev;
+with PolyORB.Buffers;
+with PolyORB.Components;
 
-package Droopi.Transport is
+package PolyORB.Transport is
 
    pragma Elaborate_Body;
 
-   use Droopi.Asynch_Ev;
+   use PolyORB.Asynch_Ev;
 
    -------------------------------------------------------------
    -- A transport service access point:                       --
@@ -33,7 +33,7 @@ package Droopi.Transport is
    function Notepad_Of (TAP : Transport_Access_Point_Access)
      return Annotations.Notepad_Access;
    pragma Inline (Notepad_Of);
-   --  A TAP is an annotable object (cf. Droopi.Annotations),
+   --  A TAP is an annotable object (cf. PolyORB.Annotations),
    --  so clients can associate it with any information they see fit.
    --  This functions returns an access to TAP's Notepad component.
 
@@ -122,7 +122,7 @@ private
 
    type Transport_Access_Point
       is abstract new Components.Component with record
-         Notepad : aliased Droopi.Annotations.Notepad;
+         Notepad : aliased PolyORB.Annotations.Notepad;
       end record;
 
    type Transport_Endpoint
@@ -134,4 +134,4 @@ private
          Max    : Ada.Streams.Stream_Element_Count;
       end record;
 
-end Droopi.Transport;
+end PolyORB.Transport;

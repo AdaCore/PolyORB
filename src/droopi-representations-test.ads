@@ -2,9 +2,9 @@
 
 --  $Id$
 
-with Droopi.Buffers; use Droopi.Buffers;
+with PolyORB.Buffers; use PolyORB.Buffers;
 
-package Droopi.Representations.Test is
+package PolyORB.Representations.Test is
 
    pragma Elaborate_Body;
 
@@ -53,4 +53,4 @@ private
 
    type Rep_Test is new Representation with null record;
 
-end Droopi.Representations.Test;
+end PolyORB.Representations.Test;

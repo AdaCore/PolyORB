@@ -1,21 +1,21 @@
 
-with Droopi.Representations.SOAP;
-with Droopi.Representations.SOAP.Any;
+with PolyORB.Representations.SOAP;
+with PolyORB.Representations.SOAP.Any;
 
-with Droopi.Any.NVList;
-with Droopi.Types;
-with Droopi.Requests;
+with PolyORB.Any.NVList;
+with PolyORB.Types;
+with PolyORB.Requests;
 
-package body Droopi.Protocols.SOAP  is
+package body PolyORB.Protocols.SOAP  is
 
-   use Droopi.Any;
-   use Droopi.Any.NVList;
-   use Droopi.Types;
-   use Droopi.Representations.SOAP.Any;
+   use PolyORB.Any;
+   use PolyORB.Any.NVList;
+   use PolyORB.Types;
+   use PolyORB.Representations.SOAP.Any;
 
    procedure Request_To_SOAP_Method
-     (Operation : Droopi.Types.Identifier;
-      Args  : Droopi.Any.NVList.Ref;
+     (Operation : PolyORB.Types.Identifier;
+      Args  : PolyORB.Any.NVList.Ref;
       Uri : XML_String;
       Method : out XML_Component_Access)
    is
@@ -86,7 +86,7 @@ package body Droopi.Protocols.SOAP  is
       Set_Parent (XML_Comp_Fault, XML_Comp_Body);
 
       Initialize (XML_Comp_Faultcode, Faultcode_Tag,
-         To_Droopi_String (Integer'Image (Faultcode)), Xsd_Simple);
+         To_PolyORB_String (Integer'Image (Faultcode)), Xsd_Simple);
       Add_Child (XML_Comp_Fault, XML_Comp_Faultcode);
       Set_Parent (XML_Comp_Faultcode, XML_Comp_Fault);
 
@@ -135,4 +135,4 @@ package body Droopi.Protocols.SOAP  is
       return S;
    end To_XML_String;
 
-end Droopi.Protocols.SOAP;
+end PolyORB.Protocols.SOAP;

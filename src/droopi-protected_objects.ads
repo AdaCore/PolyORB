@@ -2,9 +2,9 @@
 
 with Ada.Task_Identification;
 
-with Droopi.Soft_Links;
+with PolyORB.Soft_Links;
 
-package Droopi.Protected_Objects is
+package PolyORB.Protected_Objects is
 
    pragma Elaborate_Body;
 
@@ -146,4 +146,4 @@ private
         X : Ada.Task_Identification.Task_Id;
      end record;
 
-end Droopi.Protected_Objects;
+end PolyORB.Protected_Objects;

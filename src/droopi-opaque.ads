@@ -1,11 +1,11 @@
 --  Storage of opaque data.
 
---  $Id: //droopi/main/src/droopi-opaque.ads#3 $
+--  $Id: //droopi/main/src/droopi-opaque.ads#4 $
 
 with Ada.Streams; use Ada.Streams;
 with Ada.Unchecked_Deallocation;
 
-package Droopi.Opaque is
+package PolyORB.Opaque is
 
    pragma Preelaborate;
 
@@ -31,4 +31,4 @@ package Droopi.Opaque is
 
    subtype Alignment_Type is Stream_Element_Offset range 1 .. 8;
 
-end Droopi.Opaque;
+end PolyORB.Opaque;

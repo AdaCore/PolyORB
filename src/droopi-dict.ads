@@ -13,7 +13,7 @@ generic
    with function "=" (K1 : Key; K2 : Key) return Boolean is <>;
    with function "=" (V1 : Value; K2 : Value) return Boolean is <>;
 
-package Droopi.Dict is
+package PolyORB.Dict is
 
    Bad_Element : exception;
    Duplicate_Key : exception;
@@ -51,5 +51,5 @@ private
       Entries : Dict_Entry_Seqs.Sequence;
    end record;
 
-end Droopi.Dict;
+end PolyORB.Dict;
 

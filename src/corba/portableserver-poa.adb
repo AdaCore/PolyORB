@@ -33,17 +33,17 @@
 
 with Ada.Exceptions;
 
-with Droopi.Log;
-pragma Elaborate_All (Droopi.Log);
-with Droopi.ORB;
-with Droopi.POA;
-with Droopi.POA_Manager;
-with Droopi.POA_Types;
-with Droopi.References;
-with Droopi.Setup;
-with Droopi.Smart_Pointers;
+with PolyORB.Log;
+pragma Elaborate_All (PolyORB.Log);
+with PolyORB.ORB;
+with PolyORB.POA;
+with PolyORB.POA_Manager;
+with PolyORB.POA_Types;
+with PolyORB.References;
+with PolyORB.Setup;
+with PolyORB.Smart_Pointers;
 
-with Droopi.CORBA_P.Exceptions;
+with PolyORB.CORBA_P.Exceptions;
 
 --  with PortableServer.ServantManager.Impl;
 --  with PortableServer.ServantActivator.Impl;
@@ -51,18 +51,18 @@ with Droopi.CORBA_P.Exceptions;
 
 package body PortableServer.POA is
 
-   use Droopi.Log;
+   use PolyORB.Log;
 
-   package L is new Droopi.Log.Facility_Log ("portableserver.poa");
+   package L is new PolyORB.Log.Facility_Log ("portableserver.poa");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
 
    function Create_Ref
-     (Referenced : Droopi.Smart_Pointers.Entity_Ptr) return Ref;
+     (Referenced : PolyORB.Smart_Pointers.Entity_Ptr) return Ref;
 
    function Create_Ref
-     (Referenced : Droopi.Smart_Pointers.Entity_Ptr) return Ref
+     (Referenced : PolyORB.Smart_Pointers.Entity_Ptr) return Ref
    is
       Res : Ref;
    begin
@@ -77,7 +77,7 @@ package body PortableServer.POA is
       use Ada.Exceptions;
    begin
       if Exception_Identity (From) /= AdapterAlreadyExists'Identity then
-         Droopi.CORBA_P.Exceptions.Raise_Bad_Param;
+         PolyORB.CORBA_P.Exceptions.Raise_Bad_Param;
       end if;
       To := AdapterAlreadyExists_Members'
         (CORBA.IDL_Exception_Members with null record);
@@ -89,7 +89,7 @@ package body PortableServer.POA is
       use Ada.Exceptions;
    begin
       if Exception_Identity (From) /= AdapterNonExistent'Identity then
-         Droopi.CORBA_P.Exceptions.Raise_Bad_Param;
+         PolyORB.CORBA_P.Exceptions.Raise_Bad_Param;
       end if;
       To := AdapterNonExistent_Members'
         (CORBA.IDL_Exception_Members with null record);
@@ -98,38 +98,38 @@ package body PortableServer.POA is
    function To_Ref (Self : CORBA.Object.Ref'Class) return Ref is
    begin
       if CORBA.Object.Entity_Of (Self).all
-        not in Droopi.POA.Obj_Adapter'Class then
-         Droopi.CORBA_P.Exceptions.Raise_Bad_Param;
+        not in PolyORB.POA.Obj_Adapter'Class then
+         PolyORB.CORBA_P.Exceptions.Raise_Bad_Param;
       end if;
       return Create_Ref (CORBA.Object.Entity_Of (Self));
    end To_Ref;
 
    function To_POA
      (Self : Ref)
-     return Droopi.POA.Obj_Adapter_Ptr;
+     return PolyORB.POA.Obj_Adapter_Ptr;
 
    function To_POA
      (Self : Ref)
-     return Droopi.POA.Obj_Adapter_Ptr
+     return PolyORB.POA.Obj_Adapter_Ptr
    is
-      use Droopi.Smart_Pointers;
+      use PolyORB.Smart_Pointers;
 
-      Res : constant Droopi.Smart_Pointers.Entity_Ptr
+      Res : constant PolyORB.Smart_Pointers.Entity_Ptr
         := Entity_Of (Self);
 
    begin
-      if Res = null or else Res.all not in Droopi.POA.Obj_Adapter'Class then
-         Droopi.CORBA_P.Exceptions.Raise_Bad_Param;
+      if Res = null or else Res.all not in PolyORB.POA.Obj_Adapter'Class then
+         PolyORB.CORBA_P.Exceptions.Raise_Bad_Param;
       end if;
 
       declare
-         use Droopi.POA_Manager;
+         use PolyORB.POA_Manager;
 
-         The_POA : constant Droopi.POA.Obj_Adapter_Ptr
-           := Droopi.POA.Obj_Adapter_Ptr (Res);
+         The_POA : constant PolyORB.POA.Obj_Adapter_Ptr
+           := PolyORB.POA.Obj_Adapter_Ptr (Res);
       begin
          if Is_Nil (The_POA.POA_Manager) then
-            Droopi.CORBA_P.Exceptions.Raise_Object_Not_Exist;
+            PolyORB.CORBA_P.Exceptions.Raise_Object_Not_Exist;
          end if;
 
          return The_POA;
@@ -145,7 +145,7 @@ package body PortableServer.POA is
    begin
       return Ref'
         (Create_Ref
-         (Droopi.Smart_Pointers.Entity_Ptr
+         (PolyORB.Smart_Pointers.Entity_Ptr
           (To_POA (Self).Father)));
    end Get_The_Parent;
 
@@ -153,14 +153,14 @@ package body PortableServer.POA is
      (Self : Ref)
      return PortableServer.POAManager.Ref
    is
-      use Droopi.Smart_Pointers;
+      use PolyORB.Smart_Pointers;
       use PortableServer.POAManager;
 
       Res : PortableServer.POAManager.Ref;
 
    begin
       pragma Debug (O ("Get_The_POAManager: enter"));
-      Set (Res, Entity_Ptr (Droopi.POA_Manager.Entity_Of
+      Set (Res, Entity_Ptr (PolyORB.POA_Manager.Entity_Of
                             (To_POA (Self).POA_Manager)));
       pragma Debug (O ("Get_The_POAManager: leave"));
       return Res;
@@ -170,7 +170,7 @@ package body PortableServer.POA is
      (Self : Ref)
      return PortableServer.ServantManager.Ref
    is
-      POA : constant Droopi.POA.Obj_Adapter_Ptr
+      POA : constant PolyORB.POA.Obj_Adapter_Ptr
         := To_POA (Self);
 
    begin
@@ -181,7 +181,7 @@ package body PortableServer.POA is
 
       --  return USE_SERVANT_MANAGER
       --    (POA.Request_Processing_Policy).Servant_Manager
-      raise Droopi.Not_Implemented;
+      raise PolyORB.Not_Implemented;
       return Get_Servant_Manager (Self);
    end Get_Servant_Manager;
 
@@ -193,7 +193,7 @@ package body PortableServer.POA is
 --       package PSSA renames PortableServer.ServantActivator;
 --       package PSSL renames PortableServer.ServantLocator;
 
-      POA : constant Droopi.POA.Obj_Adapter_Ptr
+      POA : constant PolyORB.POA.Obj_Adapter_Ptr
         := To_POA (Self);
 --       Servant_Manager : constant PSSM.Impl.Object_Ptr
 --         := PSSM.Impl.Object_Ptr (PSSM.Entity_Of (Imgr));
@@ -212,11 +212,11 @@ package body PortableServer.POA is
 --          (POA.Servant_Policy = NON_RETAIN
 --           and then Servant_Manager.all not in PSSL.Impl.Object'Class))
 --       then
---          Droopi.CORBA_P.Exceptions.Raise_Bad_Param;
+--          PolyORB.CORBA_P.Exceptions.Raise_Bad_Param;
 --       end if;
 
 --       POA.Servant_Manager := Imgr;
-      raise Droopi.Not_Implemented;
+      raise PolyORB.Not_Implemented;
    end Set_Servant_Manager;
 
    function Get_The_Activator
@@ -224,7 +224,7 @@ package body PortableServer.POA is
      return PortableServer.AdapterActivator.Ref is
    begin
       --  return To_POA (Self).Activator;
-      raise Droopi.Not_Implemented;
+      raise PolyORB.Not_Implemented;
       return Get_The_Activator (Self);
    end Get_The_Activator;
 
@@ -233,7 +233,7 @@ package body PortableServer.POA is
       To   : in PortableServer.AdapterActivator.Ref) is
    begin
       --  To_POA (Self).Activator := To;
-      raise Droopi.Not_Implemented;
+      raise PolyORB.Not_Implemented;
    end Set_The_Activator;
 
    ----------------
@@ -254,9 +254,9 @@ package body PortableServer.POA is
      return Ref'Class
    is
       pragma Warnings (Off);
-      Res : Droopi.POA.Obj_Adapter_Ptr;
+      Res : PolyORB.POA.Obj_Adapter_Ptr;
       --  XXX Never assigned a value.
-      POA : constant Droopi.POA.Obj_Adapter_Ptr
+      POA : constant PolyORB.POA.Obj_Adapter_Ptr
         := To_POA (Self);
       --  XXX Never referenced.
       pragma Warnings (On);
@@ -277,25 +277,25 @@ package body PortableServer.POA is
          (Ap = IMPLICIT_ACTIVATION
           and then (Ip /= SYSTEM_ID or else Sp /= RETAIN))
       then
-         Droopi.CORBA_P.Exceptions.Raise_Bad_Param;
+         PolyORB.CORBA_P.Exceptions.Raise_Bad_Param;
       end if;
 
 --       begin
 --          Lock_W (All_POAs_Lock);
---          Res := Droopi.POA.Create_POA
+--          Res := PolyORB.POA.Create_POA
 --            (POA,
 --             Adapter_Name,
 --             POAManager_Object_Ptr
 --             (PortableServer.POAManager.Entity_Of (A_POAManager)),
 --             Tp, Lp, Up, Ip, Ap, Sp, Rp);
 --          Unlock_W (All_POAs_Lock);
---          return Create_Ref (Droopi.Smart_Pointers.Entity_Ptr (Res));
+--          return Create_Ref (PolyORB.Smart_Pointers.Entity_Ptr (Res));
 --       exception
 --          when others =>
 --             Unlock_W (All_POAs_Lock);
 --             raise;
 --       end;
-      raise Droopi.Not_Implemented;
+      raise PolyORB.Not_Implemented;
       return Create_Ref (null);
    end Create_POA;
 
@@ -309,17 +309,17 @@ package body PortableServer.POA is
       Activate_It  : CORBA.Boolean)
       return Ref'Class
    is
---       The_POA : constant Droopi.POA.Obj_Adapter_Ptr
+--       The_POA : constant PolyORB.POA.Obj_Adapter_Ptr
 --         := To_POA (Self);
    begin
 --       Lock_W (All_POAs_Lock);
 --       declare
---          POA_Ref : constant Droopi.POA.Ref'Class
---            := Droopi.POA.Find_POA
+--          POA_Ref : constant PolyORB.POA.Ref'Class
+--            := PolyORB.POA.Find_POA
 --            (The_POA, Adapter_Name, Activate_It);
 
 --          Res : Ref
---            := Create_Ref (Droopi.Smart_Pointers.Entity_Ptr
+--            := Create_Ref (PolyORB.Smart_Pointers.Entity_Ptr
 --                           (POA_Object_Of (POA_Ref)));
 --       begin
 --          Unlock_W (All_POAs_Lock);
@@ -330,7 +330,7 @@ package body PortableServer.POA is
 
 --          return Res;
 --       end;
-      raise Droopi.Not_Implemented;
+      raise PolyORB.Not_Implemented;
       return Create_Ref (null);
    end Find_POA;
 
@@ -343,16 +343,16 @@ package body PortableServer.POA is
       Etherealize_Objects : in CORBA.Boolean;
       Wait_For_Completion : in CORBA.Boolean)
    is
-      POA : constant Droopi.POA.Obj_Adapter_Ptr
+      POA : constant PolyORB.POA.Obj_Adapter_Ptr
         := To_POA (Self);
 
    begin
-      --  Droopi.POA.Destroy_POA
+      --  PolyORB.POA.Destroy_POA
       --    (POA, Etherealize_Objects, Wait_For_Completion);
       --  FIXME: Huh, SELF is still a reference to an invalid POA.
       --    --> file an issue against the spec to have Ref converted
       --        to an 'in out' arg...
-      raise Droopi.Not_Implemented;
+      raise PolyORB.Not_Implemented;
    end Destroy;
 
    -----------------
@@ -363,7 +363,7 @@ package body PortableServer.POA is
      (Self : Ref)
      return Servant
    is
---       POA : constant Droopi.POA.Obj_Adapter_Ptr
+--       POA : constant PolyORB.POA.Obj_Adapter_Ptr
 --         := To_POA (Self);
 
    begin
@@ -376,7 +376,7 @@ package body PortableServer.POA is
 --       end if;
 
 --       return POA.Default_Servant;
-      raise Droopi.Not_Implemented;
+      raise PolyORB.Not_Implemented;
       return Get_Servant (Self);
    end Get_Servant;
 
@@ -388,7 +388,7 @@ package body PortableServer.POA is
      (Self      : in Ref;
       P_Servant : in Servant)
    is
---       POA : constant Droopi.POA.Obj_Adapter_Ptr
+--       POA : constant PolyORB.POA.Obj_Adapter_Ptr
 --         := To_POA (Self);
 
    begin
@@ -397,7 +397,7 @@ package body PortableServer.POA is
 --       end if;
 
 --       POA.Default_Servant := P_Servant;
-      raise Droopi.Not_Implemented;
+      raise PolyORB.Not_Implemented;
    end Set_Servant;
 
    ---------------------
@@ -409,7 +409,7 @@ package body PortableServer.POA is
       P_Servant : Servant)
      return ObjectId
    is
-      POA : constant Droopi.POA.Obj_Adapter_Ptr
+      POA : constant PolyORB.POA.Obj_Adapter_Ptr
         := To_POA (Self);
 
    begin
@@ -420,8 +420,8 @@ package body PortableServer.POA is
 --          raise WrongPolicy;
 --       end if;
 
---       return Droopi.POA.Activate_Object (POA, P_Servant);
-      raise Droopi.Not_Implemented;
+--       return PolyORB.POA.Activate_Object (POA, P_Servant);
+      raise PolyORB.Not_Implemented;
       return Activate_Object (Self, P_Servant);
    end Activate_Object;
 
@@ -434,7 +434,7 @@ package body PortableServer.POA is
       Oid       : in ObjectId;
       P_Servant : in Servant)
    is
-      POA : constant Droopi.POA.Obj_Adapter_Ptr
+      POA : constant PolyORB.POA.Obj_Adapter_Ptr
         := To_POA (Self);
 
    begin
@@ -443,8 +443,8 @@ package body PortableServer.POA is
 --          raise WrongPolicy;
 --       end if;
 
---       Droopi.POA.Activate_Object_With_Id (POA, Oid, P_Servant);
-      raise Droopi.Not_Implemented;
+--       PolyORB.POA.Activate_Object_With_Id (POA, Oid, P_Servant);
+      raise PolyORB.Not_Implemented;
    end Activate_Object_With_Id;
 
    -----------------------
@@ -455,7 +455,7 @@ package body PortableServer.POA is
      (Self : in Ref;
       Oid  : in ObjectId)
    is
-      POA : constant Droopi.POA.Obj_Adapter_Ptr
+      POA : constant PolyORB.POA.Obj_Adapter_Ptr
         := To_POA (Self);
 
    begin
@@ -464,8 +464,8 @@ package body PortableServer.POA is
 --          raise WrongPolicy;
 --       end if;
 
---       Droopi.POA.Deactivate_Object (POA, Oid);
-      raise Droopi.Not_Implemented;
+--       PolyORB.POA.Deactivate_Object (POA, Oid);
+      raise PolyORB.Not_Implemented;
    end Deactivate_Object;
 
    ----------------------
@@ -477,7 +477,7 @@ package body PortableServer.POA is
       Intf : CORBA.RepositoryId)
       return CORBA.Object.Ref
    is
-      POA : constant Droopi.POA.Obj_Adapter_Ptr
+      POA : constant PolyORB.POA.Obj_Adapter_Ptr
         := To_POA (Self);
 
    begin
@@ -485,8 +485,8 @@ package body PortableServer.POA is
 --          raise WrongPolicy;
 --       end if;
 
---       return Droopi.POA.Create_Reference (POA, Intf);
-      raise Droopi.Not_Implemented;
+--       return PolyORB.POA.Create_Reference (POA, Intf);
+      raise PolyORB.Not_Implemented;
       return Create_Reference (Self, Intf);
    end Create_Reference;
 
@@ -500,11 +500,11 @@ package body PortableServer.POA is
       Intf : CORBA.RepositoryId)
       return CORBA.Object.Ref
    is
-      POA : constant Droopi.POA.Obj_Adapter_Ptr
+      POA : constant PolyORB.POA.Obj_Adapter_Ptr
         := To_POA (Self);
 
    begin
-      raise Droopi.Not_Implemented;
+      raise PolyORB.Not_Implemented;
       return Create_Reference_With_Id (Self, Oid, Intf);
    end Create_Reference_With_Id;
 
@@ -517,7 +517,7 @@ package body PortableServer.POA is
       P_Servant : Servant)
      return ObjectId
    is
-      POA : constant Droopi.POA.Obj_Adapter_Ptr
+      POA : constant PolyORB.POA.Obj_Adapter_Ptr
         := To_POA (Self);
 
    begin
@@ -530,8 +530,8 @@ package body PortableServer.POA is
 --          raise WrongPolicy;
 --       end if;
 
---       return Droopi.POA.Servant_To_Skeleton (POA, P_Servant).Object_Id;
-      raise Droopi.Not_Implemented;
+--       return PolyORB.POA.Servant_To_Skeleton (POA, P_Servant).Object_Id;
+      raise PolyORB.Not_Implemented;
       return Servant_To_Id (Self, P_Servant);
    end Servant_To_Id;
 
@@ -543,18 +543,18 @@ package body PortableServer.POA is
      (Self : Ref; P_Servant : Servant)
      return CORBA.Object.Ref
    is
-      POA  : constant Droopi.POA.Obj_Adapter_Ptr := To_POA (Self);
-      Oid : aliased Droopi.Objects.Object_Id
-        := Droopi.POA.Export (POA, To_Droopi_Servant (P_Servant));
+      POA  : constant PolyORB.POA.Obj_Adapter_Ptr := To_POA (Self);
+      Oid : aliased PolyORB.Objects.Object_Id
+        := PolyORB.POA.Export (POA, To_PolyORB_Servant (P_Servant));
       --  XXX
       --  There is a pending possibility that Export is incorrect.
       --  See caveats in its body.
 
-      The_Ref : Droopi.References.Ref;
-      The_Ref_Info : constant Droopi.Smart_Pointers.Entity_Ptr
+      The_Ref : PolyORB.References.Ref;
+      The_Ref_Info : constant PolyORB.Smart_Pointers.Entity_Ptr
         := new CORBA.Object.Reference_Info;
       Result : CORBA.Object.Ref;
---      Skel : Droopi.POA.Skeleton_Ptr;
+--      Skel : PolyORB.POA.Skeleton_Ptr;
    begin
 --       --  FIXME: If Servant_To_Reference is called in the context
 --       --    of executing a request on the given servant, there are
@@ -569,15 +569,15 @@ package body PortableServer.POA is
 --       Skel := Servant_To_Skeleton
 --         (POA, P_Servant, Called_From_Servant_To_Reference => True);
 
---       return Droopi.POA.Skeleton_To_Ref (Skel.all);
+--       return PolyORB.POA.Skeleton_To_Ref (Skel.all);
 
-      Droopi.ORB.Create_Reference (Droopi.Setup.The_ORB, Oid'Access, The_Ref);
+      PolyORB.ORB.Create_Reference (PolyORB.Setup.The_ORB, Oid'Access, The_Ref);
       --  Obtain object reference.
 
       declare
          The_Type_Id : constant CORBA.String
-           := Droopi.POA_Types.Servant
-           (To_Droopi_Servant (P_Servant).all).If_Desc.External_Name;
+           := PolyORB.POA_Types.Servant
+           (To_PolyORB_Servant (P_Servant).all).If_Desc.External_Name;
       begin
          pragma Debug
            (O ("Creating a Reference_Info with type "
@@ -587,9 +587,9 @@ package body PortableServer.POA is
             Type_Id => The_Type_Id);
       end;
       --  XXX Type_Id should be obtained by Servant.If_Desc.External_Name
-      --  *if* Servant was a Droopi.POA_Types.Servant. Unfortunately, Servant
+      --  *if* Servant was a PolyORB.POA_Types.Servant. Unfortunately, Servant
       --  is a PortableServer.Servant_Base'Class, which has nothing in common
-      --  with Droopi.POA_Types.Servant.
+      --  with PolyORB.POA_Types.Servant.
       --  -> should use Servant.Neutral_View.If_Desc.External_Name.
 
       CORBA.Object.Set (Result, The_Ref_Info);
@@ -604,17 +604,17 @@ package body PortableServer.POA is
      (Self : Ref;
       Reference : CORBA.Object.Ref'Class) return ObjectId
    is
-      POA : constant Droopi.POA.Obj_Adapter_Ptr := To_POA (Self);
-      --  Skel : Droopi.POA.Skeleton_Ptr;
+      POA : constant PolyORB.POA.Obj_Adapter_Ptr := To_POA (Self);
+      --  Skel : PolyORB.POA.Skeleton_Ptr;
 
    begin
---       Skel := Droopi.POA.Ref_To_Skeleton (Reference);
+--       Skel := PolyORB.POA.Ref_To_Skeleton (Reference);
 --       if POA_Object_Of (Skel.POA) /= POA_Object_Ptr (POA) then
 --          raise WrongAdapter;
 --       end if;
 
 --       return Skel.Object_Id;
-      raise Droopi.Not_Implemented;
+      raise PolyORB.Not_Implemented;
       return Reference_To_Id (Self, Reference);
    end Reference_To_Id;
 
@@ -627,11 +627,11 @@ package body PortableServer.POA is
       Reference : CORBA.Object.Ref'Class)
      return Servant
    is
-      POA  : constant Droopi.POA.Obj_Adapter_Ptr := To_POA (Self);
-      --  Skel : Droopi.POA.Skeleton_Ptr;
+      POA  : constant PolyORB.POA.Obj_Adapter_Ptr := To_POA (Self);
+      --  Skel : PolyORB.POA.Skeleton_Ptr;
 
    begin
---       Skel := Droopi.POA.Ref_To_Skeleton (Reference);
+--       Skel := PolyORB.POA.Ref_To_Skeleton (Reference);
 --       if POA_Object_Of (Skel.POA) /= POA_Object_Ptr (POA) then
 --          raise WrongAdapter;
 --       end if;
@@ -642,8 +642,8 @@ package body PortableServer.POA is
 --          raise WrongPolicy;
 --       end if;
 
---       return Droopi.POA.Skeleton_To_Servant (POA, Skel);
-      raise Droopi.Not_Implemented;
+--       return PolyORB.POA.Skeleton_To_Servant (POA, Skel);
+      raise PolyORB.Not_Implemented;
       return Reference_To_Servant (Self, Reference);
    end Reference_To_Servant;
 
@@ -656,22 +656,22 @@ package body PortableServer.POA is
       Oid  : ObjectId)
      return Servant
    is
-      POA : constant Droopi.POA.Obj_Adapter_Ptr
+      POA : constant PolyORB.POA.Obj_Adapter_Ptr
         := To_POA (Self);
-      --  Skel : Droopi.POA.Skeleton_Ptr;
+      --  Skel : PolyORB.POA.Skeleton_Ptr;
 
    begin
 --       if POA.Servant_Policy /= RETAIN then
 --          raise WrongPolicy;
 --       end if;
 
---       Skel := Droopi.POA.Id_To_Skeleton (POA, Oid);
+--       Skel := PolyORB.POA.Id_To_Skeleton (POA, Oid);
 --       if Skel.P_Servant = null then
 --          raise PortableServer.POA.ObjectNotActive;
 --       end if;
 
 --       return Skel.P_Servant;
-      raise Droopi.Not_Implemented;
+      raise PolyORB.Not_Implemented;
       return Id_To_Servant (Self, Oid);
    end Id_To_Servant;
 
@@ -683,22 +683,22 @@ package body PortableServer.POA is
      (Self : Ref; Oid : ObjectId)
      return CORBA.Object.Ref
    is
-      POA  : constant Droopi.POA.Obj_Adapter_Ptr
+      POA  : constant PolyORB.POA.Obj_Adapter_Ptr
         := To_POA (Self);
-      --  Skel : Droopi.POA.Skeleton_Ptr;
+      --  Skel : PolyORB.POA.Skeleton_Ptr;
 
    begin
 --       if POA.Servant_Policy /= RETAIN then
 --          raise WrongPolicy;
 --       end if;
 
---       Skel := Droopi.POA.Id_To_Skeleton (POA, Oid);
+--       Skel := PolyORB.POA.Id_To_Skeleton (POA, Oid);
 --       if Skel.P_Servant = null then
 --          raise PortableServer.POA.ObjectNotActive;
 --       end if;
 
---       return Droopi.POA.Skeleton_To_Ref (Skel.all);
-      raise Droopi.Not_Implemented;
+--       return PolyORB.POA.Skeleton_To_Ref (Skel.all);
+      raise PolyORB.Not_Implemented;
       return Id_To_Reference (Self, Oid);
    end Id_To_Reference;
 

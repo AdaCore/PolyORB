@@ -34,10 +34,10 @@
 with Ada.Strings.Unbounded;
 with Ada.Exceptions; use Ada.Exceptions;
 with CORBA; use CORBA;
-with Droopi.CORBA_P.Exceptions.Stack;
-with Droopi.CORBA_P.Names; use Droopi.CORBA_P.Names;
+with PolyORB.CORBA_P.Exceptions.Stack;
+with PolyORB.CORBA_P.Names; use PolyORB.CORBA_P.Names;
 
-package body Droopi.CORBA_P.Exceptions is
+package body PolyORB.CORBA_P.Exceptions is
 
    -----------------------
    -- Exception mapping --
@@ -138,7 +138,7 @@ package body Droopi.CORBA_P.Exceptions is
    procedure User_Get_Members
      (Occurrence : CORBA.Exception_Occurrence;
       Members : out CORBA.IDL_Exception_Members'Class)
-     renames Droopi.CORBA_P.Exceptions.Stack.Get_Members;
+     renames PolyORB.CORBA_P.Exceptions.Stack.Get_Members;
    --  Extract members from a user exception occurence
 
    ------------------------
@@ -147,7 +147,7 @@ package body Droopi.CORBA_P.Exceptions is
 
    procedure User_Purge_Members
      (Occurrence : CORBA.Exception_Occurrence)
-     renames Droopi.CORBA_P.Exceptions.Stack.Purge_Members;
+     renames PolyORB.CORBA_P.Exceptions.Stack.Purge_Members;
 
    --------------------------
    -- User_Raise_Exception --
@@ -156,7 +156,7 @@ package body Droopi.CORBA_P.Exceptions is
    procedure User_Raise_Exception
      (Id : Ada.Exceptions.Exception_Id;
       Members : IDL_Exception_Members'Class)
-     renames Droopi.CORBA_P.Exceptions.Stack.Raise_Exception;
+     renames PolyORB.CORBA_P.Exceptions.Stack.Raise_Exception;
    --  Raise a user exception with the specified members.
 
    -------------------------------
@@ -479,4 +479,4 @@ package body Droopi.CORBA_P.Exceptions is
       raise Program_Error;
    end Occurrence_To_Name;
 
-end Droopi.CORBA_P.Exceptions;
+end PolyORB.CORBA_P.Exceptions;

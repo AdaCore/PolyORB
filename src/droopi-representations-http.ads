@@ -8,7 +8,7 @@
 
 with Ada.Streams;
 
-package  DROOPI.Representations.HTTP is
+package  PolyORB.Representations.HTTP is
 
    pragma Elaborate_Body;
 
@@ -26,4 +26,4 @@ package  DROOPI.Representations.HTTP is
    function Decode (B64_Data : in String) return Ada.Streams.Stream_Element_Array;
    --  Decode Data using the base64 algorithm
 
-end  DROOPI.Representations.HTTP;
+end  PolyORB.Representations.HTTP;

@@ -1,41 +1,41 @@
 --  with Ada.Exceptions;
 with Ada.Streams; use Ada.Streams;
 
-with Droopi.Any;
-with Droopi.Any.NVList;
+with PolyORB.Any;
+with PolyORB.Any.NVList;
 
-with Droopi.Binding_Data.Local;
-with Droopi.Buffers;
-with Droopi.Filters;
-with Droopi.Filters.Interface;
-with Droopi.Log;
-pragma Elaborate_All (Droopi.Log);
+with PolyORB.Binding_Data.Local;
+with PolyORB.Buffers;
+with PolyORB.Filters;
+with PolyORB.Filters.Interface;
+with PolyORB.Log;
+pragma Elaborate_All (PolyORB.Log);
 
-with Droopi.Obj_Adapters;
-with Droopi.Objects;
-with Droopi.Opaque;
-with Droopi.ORB;
-with Droopi.ORB.Interface;
-with Droopi.References;
-with Droopi.Requests; use Droopi.Requests;
+with PolyORB.Obj_Adapters;
+with PolyORB.Objects;
+with PolyORB.Opaque;
+with PolyORB.ORB;
+with PolyORB.ORB.Interface;
+with PolyORB.References;
+with PolyORB.Requests; use PolyORB.Requests;
 
-with Droopi.Representations.SRP; use Droopi.Representations.SRP;
-with Droopi.Utils;
-with Droopi.Utils.SRP; use Droopi.Utils.SRP;
-with Droopi.Types;
+with PolyORB.Representations.SRP; use PolyORB.Representations.SRP;
+with PolyORB.Utils;
+with PolyORB.Utils.SRP; use PolyORB.Utils.SRP;
+with PolyORB.Types;
 
-package body Droopi.Protocols.SRP is
+package body PolyORB.Protocols.SRP is
 
-   use Droopi.Any;
-   use Droopi.Components;
-   use Droopi.Filters;
-   use Droopi.Filters.Interface;
-   use Droopi.Log;
-   use Droopi.ORB;
-   use Droopi.ORB.Interface;
-   use Droopi.Types;
+   use PolyORB.Any;
+   use PolyORB.Components;
+   use PolyORB.Filters;
+   use PolyORB.Filters.Interface;
+   use PolyORB.Log;
+   use PolyORB.ORB;
+   use PolyORB.ORB.Interface;
+   use PolyORB.Types;
 
-   package L is new Droopi.Log.Facility_Log ("droopi.protocols.srp");
+   package L is new PolyORB.Log.Facility_Log ("polyorb.protocols.srp");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -47,7 +47,7 @@ package body Droopi.Protocols.SRP is
       Session : out Filter_Access)
    is
    begin
-      --  This should be factored in Droopi.Protocols.
+      --  This should be factored in PolyORB.Protocols.
 
       Session := new SRP_Session;
       Set_Allocation_Class (Session.all, Dynamic);
@@ -80,7 +80,7 @@ package body Droopi.Protocols.SRP is
    procedure Request_Received (S : access SRP_Session)
    is
       use Binding_Data.Local;
-      use Droopi.Obj_Adapters;
+      use PolyORB.Obj_Adapters;
 
       Info_SRP : Split_SRP;
 
@@ -88,7 +88,7 @@ package body Droopi.Protocols.SRP is
       Args   : Any.NVList.Ref;
       Result : Any.NamedValue;
 
---      Method : String_Ptr := new Types.String'(To_Droopi_String ("bidon"));
+--      Method : String_Ptr := new Types.String'(To_PolyORB_String ("bidon"));
 --       Oid    : Objects.Object_Id_Access :=
 --         new Objects.Object_Id'(To_Oid ("01000000"));
 
@@ -127,7 +127,7 @@ package body Droopi.Protocols.SRP is
 
       --  Get the result profile for the method called and create an
       --  appropriate Any.NamedValue for the result
-      Result := (Name     => To_Droopi_String ("Result"),
+      Result := (Name     => To_PolyORB_String ("Result"),
                  Argument =>  Obj_Adapters.Get_Empty_Result
                    (Object_Adapter (ORB), Info_SRP.Oid.all,
                     To_Standard_String (Info_SRP.Method.all)),
@@ -168,7 +168,7 @@ package body Droopi.Protocols.SRP is
    procedure Send_Reply (S : access SRP_Session; R : Request_Access)
    is
       use Buffers;
-      use Droopi.Objects;
+      use PolyORB.Objects;
       use Representations.SRP;
 
       --  CRLF : constant String := ASCII.CR & ASCII.LF;
@@ -176,10 +176,10 @@ package body Droopi.Protocols.SRP is
       B : Buffer_Access renames S.Buffer_Out;
    begin
       Release_Contents (B.all);
-      Set_SRP_Method (To_Droopi_String ("Reply"), SRP_Info);
+      Set_SRP_Method (To_PolyORB_String ("Reply"), SRP_Info);
       Set_SRP_Oid (To_Oid ("00000000"), SRP_Info);
-      Set_SRP_Arg (To_Droopi_String ("Data"),
-                   To_Any (To_Droopi_String ("200 OK" & Image (R.all))),
+      Set_SRP_Arg (To_PolyORB_String ("Data"),
+                   To_Any (To_PolyORB_String ("200 OK" & Image (R.all))),
                    SRP_Info);
 
       --  Data := Join (SRP_Info);
@@ -338,7 +338,7 @@ package body Droopi.Protocols.SRP is
 --             --  Used only to get the types used by the method called
 
 --             declare
---                use Droopi.Any;
+--                use PolyORB.Any;
 --                Simple_Arg : Any.NamedValue;
 --                Arg_Any : Any.Any;
 --             begin
@@ -401,10 +401,10 @@ package body Droopi.Protocols.SRP is
 --                         null;
 --                   end case;
 --  --               while Current /= null loop
---  --                Arg_Any := To_Any (To_Droopi_String (Current.Value.all));
+--  --                Arg_Any := To_Any (To_PolyORB_String (Current.Value.all));
 
 --                   Simple_Arg
---                     := (Name      => To_Droopi_String (Current.Name.all),
+--                     := (Name      => To_PolyORB_String (Current.Name.all),
 --                         Argument  => Arg_Any,
 --                         Arg_Modes => Any.ARG_IN);
 --                   Any.NVList.Add_Item (Args, Simple_Arg);
@@ -413,7 +413,7 @@ package body Droopi.Protocols.SRP is
 --             end;
 
 --             Result :=
---               (Name     => To_Droopi_String ("Result"),
+--               (Name     => To_PolyORB_String ("Result"),
 --                Argument => Obj_Adapters.Get_Empty_Result
 --                (Object_Adapter (ORB).all, Oid, Method),
 --                Arg_Modes => 0);
@@ -473,7 +473,7 @@ package body Droopi.Protocols.SRP is
 --                                          Oid    : out Objects.Object_Id;
 --                                          Method : out Types.String)
    is
-      use Droopi.Objects;
+      use PolyORB.Objects;
    begin
       Method.all := Unmarshall (Buffer);
 
@@ -496,7 +496,7 @@ package body Droopi.Protocols.SRP is
    procedure Unmarshall_Args (Buffer : access Buffer_Type;
                               Args   : in out Any.NVList.Ref)
    is
-      use Droopi.Any.NVList;
+      use PolyORB.Any.NVList;
       use Internals;
       use Internals.NV_Sequence;
 
@@ -534,11 +534,11 @@ package body Droopi.Protocols.SRP is
 
    procedure Unmarshall (Args : in out Any.NVList.Ref; Info_SRP : Split_SRP)
    is
-      use Droopi.Any.NVList;
+      use PolyORB.Any.NVList;
       use Internals;
       use Internals.NV_Sequence;
-      use Droopi.Opaque;
-      use Droopi.Utils;
+      use PolyORB.Opaque;
+      use PolyORB.Utils;
 
       Args_List   : NV_Sequence_Access;
       Current_Arg : Arg_Info_Ptr := Info_SRP.Args;
@@ -587,4 +587,4 @@ package body Droopi.Protocols.SRP is
       end loop;
    end Unmarshall;
 
-end Droopi.Protocols.SRP;
+end PolyORB.Protocols.SRP;

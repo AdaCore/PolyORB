@@ -7,25 +7,25 @@ with Ada.Tags;
 
 with GNAT.HTable;
 
-with Droopi.Log;
-pragma Elaborate_All (Droopi.Log);
+with PolyORB.Log;
+pragma Elaborate_All (PolyORB.Log);
 
-with Droopi.Smart_Pointers;
+with PolyORB.Smart_Pointers;
 
 with CORBA.AbstractBase;
 with CORBA.ORB;
 
 package body CORBA.Object is
 
-   use Droopi.Log;
-   use Droopi.Smart_Pointers;
+   use PolyORB.Log;
+   use PolyORB.Smart_Pointers;
 
-   package L is new Droopi.Log.Facility_Log ("corba.object");
+   package L is new PolyORB.Log.Facility_Log ("corba.object");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
-   type Internal_Object is new Droopi.Smart_Pointers.Entity with record
-      The_Object : Droopi.Objects.Object_Id_Access;
+   type Internal_Object is new PolyORB.Smart_Pointers.Entity with record
+      The_Object : PolyORB.Objects.Object_Id_Access;
    end record;
    type Internal_Object_Access is access all Internal_Object;
 
@@ -55,7 +55,7 @@ package body CORBA.Object is
      return CORBA.Boolean
    is
    begin
-      raise Droopi.Not_Implemented;
+      raise PolyORB.Not_Implemented;
       return Is_A (Self, Logical_Type_Id);
    end Is_A;
 
@@ -68,7 +68,7 @@ package body CORBA.Object is
       Other_Object : Ref'Class)
      return Boolean
    is
-      use Droopi.Smart_Pointers;
+      use PolyORB.Smart_Pointers;
    begin
       return (Entity_Of (Self) = Entity_Of (Other_Object));
    end Is_Equivalent;
@@ -79,7 +79,7 @@ package body CORBA.Object is
 
    function Is_Nil (Self : in Ref) return CORBA.Boolean is
    begin
-      return Is_Nil (Droopi.Smart_Pointers.Ref (Self));
+      return Is_Nil (PolyORB.Smart_Pointers.Ref (Self));
    end Is_Nil;
 
    ------------------
@@ -88,7 +88,7 @@ package body CORBA.Object is
 
    function Non_Existent (Self : Ref) return CORBA.Boolean is
    begin
-      raise Droopi.Not_Implemented;
+      raise PolyORB.Not_Implemented;
       return Non_Existent (Self);
    end Non_Existent;
 
@@ -148,7 +148,7 @@ package body CORBA.Object is
 
    procedure Release (Self : in out Ref) is
    begin
-      Release (Droopi.Smart_Pointers.Ref (Self));
+      Release (PolyORB.Smart_Pointers.Ref (Self));
    end Release;
 
    function  Object_To_String
@@ -177,38 +177,38 @@ package body CORBA.Object is
 --    ---------------------
 
 --    function To_CORBA_Object
---      (O : in Droopi.Objects.Object_Id)
+--      (O : in PolyORB.Objects.Object_Id)
 --      return Ref
 --    is
 --       Result : Ref;
 --       Internal : Internal_Object_Access;
 --    begin
 --       Internal := new Internal_Object;
---       Internal.The_Object := new Droopi.Objects.Object_Id'(O);
+--       Internal.The_Object := new PolyORB.Objects.Object_Id'(O);
 
---       Droopi.Smart_Pointers.Set
---         (Droopi.Smart_Pointers.Ref (Result),
+--       PolyORB.Smart_Pointers.Set
+--         (PolyORB.Smart_Pointers.Ref (Result),
 --          Entity_Ptr (Internal));
 --       return Result;
 --    end To_CORBA_Object;
 
    ----------------------
-   -- To_Droopi_Object --
+   -- To_PolyORB_Object --
    ----------------------
 
-   function To_Droopi_Object
+   function To_PolyORB_Object
      (R : in Ref)
-     return Droopi.Objects.Object_Id
+     return PolyORB.Objects.Object_Id
    is
    begin
       return Internal_Object_Access (Entity_Of (R)).The_Object.all;
-   end To_Droopi_Object;
+   end To_PolyORB_Object;
 
-   function To_Droopi_Ref
+   function To_PolyORB_Ref
      (R : in Ref)
-     return Droopi.References.Ref
+     return PolyORB.References.Ref
    is
-      E : constant Droopi.Smart_Pointers.Entity_Ptr
+      E : constant PolyORB.Smart_Pointers.Entity_Ptr
         := Entity_Of (R);
    begin
       if E = null then
@@ -217,16 +217,16 @@ package body CORBA.Object is
       pragma Debug
         (O ("Converting entity of type "
             & Ada.Tags.External_Tag (E.all'Tag)
-            & " into Droopi ref"));
+            & " into PolyORB ref"));
       if E.all in Reference_Info then
          return Reference_Info (E.all).IOR.Ref;
       else
          --  Must "export" (in the Jonathan sense)
          --  this interface to make it remotely
          --  callable, i.e. must construct or retrieve
-         --  a Droopi.References.Reference for this entity.
-         raise Droopi.Not_Implemented;
+         --  a PolyORB.References.Reference for this entity.
+         raise PolyORB.Not_Implemented;
       end if;
-   end To_Droopi_Ref;
+   end To_PolyORB_Ref;
 
 end CORBA.Object;

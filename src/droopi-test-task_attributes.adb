@@ -1,13 +1,13 @@
---  Simple test case for Droopi.Soft_Links.Task_Attributes.
+--  Simple test case for PolyORB.Soft_Links.Task_Attributes.
 
 --  $Id$
 
 with Ada.Text_IO; use Ada.Text_IO;
 
-with Droopi.Soft_Links;
-with Droopi.No_Tasking;
+with PolyORB.Soft_Links;
+with PolyORB.No_Tasking;
 
-package body  Droopi.Test.Task_Attributes is
+package body  PolyORB.Test.Task_Attributes is
 
    package Attr1 is new Soft_Links.Task_Attributes
      (Integer, 123);
@@ -44,4 +44,4 @@ begin
    Put_Line ("Attr1: 789 =" & Attr1.Value'Img);
    Put_Line ("Attr2: B = " & Attr2.Value'Img);
 
-end Droopi.Test.Task_Attributes;
+end PolyORB.Test.Task_Attributes;

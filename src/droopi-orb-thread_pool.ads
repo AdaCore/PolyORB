@@ -2,7 +2,7 @@
 
 --  $Id$
 
-package Droopi.ORB.Thread_Pool is
+package PolyORB.ORB.Thread_Pool is
 
    pragma Elaborate_Body;
 
@@ -52,4 +52,4 @@ private
 
    type Thread_Pool_Policy is new Tasking_Policy_Type with null record;
 
-end Droopi.ORB.Thread_Pool;
+end PolyORB.ORB.Thread_Pool;

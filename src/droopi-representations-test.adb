@@ -2,7 +2,7 @@
 
 --  $Id$
 
-package body Droopi.Representations.Test is
+package body PolyORB.Representations.Test is
 
    procedure Marshall_From_Any
      (R      : Rep_Test;
@@ -78,4 +78,4 @@ package body Droopi.Representations.Test is
       return S (S'First .. Last);
    end Unmarshall_String;
 
-end Droopi.Representations.Test;
+end PolyORB.Representations.Test;

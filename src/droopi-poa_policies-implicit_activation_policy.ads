@@ -1,6 +1,6 @@
-with Droopi.POA_Types;     use Droopi.POA_Types;
+with PolyORB.POA_Types;     use PolyORB.POA_Types;
 
-package Droopi.POA_Policies.Implicit_Activation_Policy is
+package PolyORB.POA_Policies.Implicit_Activation_Policy is
 
    type ImplicitActivationPolicy is abstract new Policy with null record;
    subtype Implicit_Activation_Policy is ImplicitActivationPolicy;
@@ -14,7 +14,7 @@ package Droopi.POA_Policies.Implicit_Activation_Policy is
    --  possible Policy
 
    function Activate_Servant (Self      : ImplicitActivationPolicy;
-                              OA        : Droopi.POA_Types.Obj_Adapter_Access;
+                              OA        : PolyORB.POA_Types.Obj_Adapter_Access;
                               P_Servant : Servant_Access)
                              return Object_Id_Access
       is abstract;
@@ -27,4 +27,4 @@ package Droopi.POA_Policies.Implicit_Activation_Policy is
                    Ptr : in out Policy_Access)
       is abstract;
 
-end Droopi.POA_Policies.Implicit_Activation_Policy;
+end PolyORB.POA_Policies.Implicit_Activation_Policy;

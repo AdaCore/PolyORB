@@ -6,7 +6,7 @@ with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Interfaces;
 use Ada;
 
-package body  DROOPI.Representations.HTTP is
+package body  PolyORB.Representations.HTTP is
 
    ----------------
    -- Decode_URL --
@@ -217,5 +217,5 @@ package body  DROOPI.Representations.HTTP is
       return Result (1 .. R - 1 - Pad);
    end Decode;
 
-end  DROOPI.Representations.HTTP;
+end  PolyORB.Representations.HTTP;
 

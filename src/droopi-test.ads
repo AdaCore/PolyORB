@@ -2,8 +2,8 @@
 
 --  $Id$
 
-package Droopi.Test is
+package PolyORB.Test is
 
    pragma Pure;
 
-end Droopi.Test;
+end PolyORB.Test;

@@ -2,14 +2,14 @@
 --  An implementation of this map needs to be able to access an entry
 --  by its index (an Integer).
 
-with Droopi.POA_Types;
+with PolyORB.POA_Types;
 
 package CORBA.Object_Map is
 
    type Object_Map_Entry is abstract tagged
       record
-         Oid     : Droopi.POA_Types.Unmarshalled_Oid_Access;
-         Servant : Droopi.POA_Types.Servant_Access;
+         Oid     : PolyORB.POA_Types.Unmarshalled_Oid_Access;
+         Servant : PolyORB.POA_Types.Servant_Access;
       end record;
    type Object_Map_Entry_Access is access all Object_Map_Entry'Class;
 
@@ -29,26 +29,26 @@ package CORBA.Object_Map is
    --  Replace an element in the map, given an index
 
    function Is_Servant_In (O_Map : in Object_Map;
-                           Item  : in Droopi.POA_Types.Servant_Access)
+                           Item  : in PolyORB.POA_Types.Servant_Access)
                           return Boolean is abstract;
    --  Checks if a servant is already in the map
    --  (and return True if it is the case)
 
    function Is_Object_Id_In
      (O_Map  : in Object_Map;
-      Item   : in Droopi.POA_Types.Unmarshalled_Oid_Access)
+      Item   : in PolyORB.POA_Types.Unmarshalled_Oid_Access)
      return Boolean is abstract;
    --  Checks if an object_id is already used in the map
    --  (and return True if it is the case)
 
    function Get_By_Id (O_Map : in Object_Map;
-                       Item  : in Droopi.POA_Types.Unmarshalled_Oid_Access)
+                       Item  : in PolyORB.POA_Types.Unmarshalled_Oid_Access)
                       return Object_Map_Entry_Access is abstract;
    --  Given an Object_Id, looks for the corresponding map entry.
    --  If not found, returns null.
 
    function Get_By_Servant (O_Map  : in Object_Map;
-                            Item   : in Droopi.POA_Types.Servant_Access)
+                            Item   : in PolyORB.POA_Types.Servant_Access)
                            return Object_Map_Entry_Access is abstract;
    --  Given a servant, looks for the corresponding map entry
    --  Doesn't check that the servant is only once in the map
@@ -61,7 +61,7 @@ package CORBA.Object_Map is
    --  If Index is out of bounds, returns null.
 
    function Remove (O_Map : access Object_Map;
-                    Item  : in     Droopi.POA_Types.Unmarshalled_Oid_Access)
+                    Item  : in     PolyORB.POA_Types.Unmarshalled_Oid_Access)
                    return Object_Map_Entry_Access is abstract;
    --  Given an Object_Id, removes an entry from the map
    --  and returns it . A null value means

@@ -1,6 +1,6 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                          DROOPI COMPONENTS                               --
+--                          PolyORB COMPONENTS                               --
 --                                                                          --
 --                          C O R B A . C D R                               --
 --                                                                          --
@@ -11,26 +11,26 @@ with Ada.Unchecked_Conversion;
 with Ada.Streams;
 with Ada.Exceptions;
 
-with Droopi.Any; use Droopi.Any;
+with PolyORB.Any; use PolyORB.Any;
 
-with Droopi.Buffers; use Droopi.Buffers;
-with Droopi.Opaque;  use Droopi.Opaque;
-with Droopi.Log;
-pragma Elaborate_All (Droopi.Log);
+with PolyORB.Buffers; use PolyORB.Buffers;
+with PolyORB.Opaque;  use PolyORB.Opaque;
+with PolyORB.Log;
+pragma Elaborate_All (PolyORB.Log);
 
 with CORBA;
-with Droopi.CORBA_P.Exceptions;
-with Droopi.CORBA_P.Exceptions.Stack;
-with Droopi.Types;
+with PolyORB.CORBA_P.Exceptions;
+with PolyORB.CORBA_P.Exceptions.Stack;
+with PolyORB.Types;
 
-package body Droopi.Representations.CDR is
+package body PolyORB.Representations.CDR is
 
-   use Droopi.Log;
-   use Droopi.CORBA_P.Exceptions;
-   use Droopi.CORBA_P.Exceptions.Stack;
-   use Droopi.Types;
+   use PolyORB.Log;
+   use PolyORB.CORBA_P.Exceptions;
+   use PolyORB.CORBA_P.Exceptions.Stack;
+   use PolyORB.Types;
 
-   package L is new Droopi.Log.Facility_Log ("droopi.representations.cdr");
+   package L is new PolyORB.Log.Facility_Log ("polyorb.representations.cdr");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -44,7 +44,7 @@ package body Droopi.Representations.CDR is
       Set_Initial_Position (Buffer, 0);
       Marshall
         (Buffer,
-         Droopi.Types.Boolean
+         PolyORB.Types.Boolean
          (Endianness (Buffer.all) = Little_Endian));
       --  An encapsulation starts with a Boolean value
       --  which is True if the remainder of the buffer is
@@ -59,8 +59,8 @@ package body Droopi.Representations.CDR is
       Z : constant Zone_Access
         := Zone_Access'(Octets.all'Unchecked_Access);
    begin
-      if Droopi.Types.Boolean'Val
-        (Droopi.Types.Octet (Octets (Octets'First))) then
+      if PolyORB.Types.Boolean'Val
+        (PolyORB.Types.Octet (Octets (Octets'First))) then
          Endianness := Little_Endian;
       else
          Endianness := Big_Endian;
@@ -157,22 +157,22 @@ package body Droopi.Representations.CDR is
 
    function To_Long_Long is
       new Ada.Unchecked_Conversion
-        (Droopi.Types.Unsigned_Long_Long, Droopi.Types.Long_Long);
+        (PolyORB.Types.Unsigned_Long_Long, PolyORB.Types.Long_Long);
    function To_Unsigned_Long_Long is
       new Ada.Unchecked_Conversion
-        (Droopi.Types.Long_Long, Droopi.Types.Unsigned_Long_Long);
+        (PolyORB.Types.Long_Long, PolyORB.Types.Unsigned_Long_Long);
    function To_Long is
       new Ada.Unchecked_Conversion
-        (Droopi.Types.Unsigned_Long, Droopi.Types.Long);
+        (PolyORB.Types.Unsigned_Long, PolyORB.Types.Long);
    function To_Unsigned_Long is
       new Ada.Unchecked_Conversion
-        (Droopi.Types.Long, Droopi.Types.Unsigned_Long);
+        (PolyORB.Types.Long, PolyORB.Types.Unsigned_Long);
    function To_Short is
       new Ada.Unchecked_Conversion
-        (Droopi.Types.Unsigned_Short, Droopi.Types.Short);
+        (PolyORB.Types.Unsigned_Short, PolyORB.Types.Short);
    function To_Unsigned_Short is
       new Ada.Unchecked_Conversion
-        (Droopi.Types.Short, Droopi.Types.Unsigned_Short);
+        (PolyORB.Types.Short, PolyORB.Types.Unsigned_Short);
 
    -------------------------------------------
    --  Conversions for floating point types --
@@ -184,22 +184,22 @@ package body Droopi.Representations.CDR is
 
    function To_Unsigned_Long is
       new Ada.Unchecked_Conversion
-        (Droopi.Types.Float, Droopi.Types.Unsigned_Long);
+        (PolyORB.Types.Float, PolyORB.Types.Unsigned_Long);
    function To_Float is
       new Ada.Unchecked_Conversion
-        (Droopi.Types.Unsigned_Long, Droopi.Types.Float);
+        (PolyORB.Types.Unsigned_Long, PolyORB.Types.Float);
    function To_Double_Buf is
       new Ada.Unchecked_Conversion
-        (Droopi.Types.Double, Double_Buf);
+        (PolyORB.Types.Double, Double_Buf);
    function To_Double is
       new Ada.Unchecked_Conversion
-        (Double_Buf, Droopi.Types.Double);
+        (Double_Buf, PolyORB.Types.Double);
    --   function To_Long_Double_Buf is
    --      new Ada.Unchecked_Conversion
-   --       (Droopi.Types.Long_Double, Long_Double_Buf);
+   --       (PolyORB.Types.Long_Double, Long_Double_Buf);
    --   function To_Long_Double is
    --      new Ada.Unchecked_Conversion
-   --       (Long_Double_Buf, Droopi.Types.Long_Double);
+   --       (Long_Double_Buf, PolyORB.Types.Long_Double);
 
 
    ----------------------------------
@@ -210,27 +210,27 @@ package body Droopi.Representations.CDR is
    --  Marshalling of a Boolean
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   :        Droopi.Types.Boolean) is
+      Data   :        PolyORB.Types.Boolean) is
    begin
       pragma Debug (O ("Marshall (Boolean) : enter"));
-      Marshall (Buffer, Droopi.Types.Octet'(Droopi.Types.Boolean'Pos (Data)));
+      Marshall (Buffer, PolyORB.Types.Octet'(PolyORB.Types.Boolean'Pos (Data)));
       pragma Debug (O ("Marshall (Boolean) : end"));
    end Marshall;
 
    --  Marshalling of a character
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   :        Droopi.Types.Char) is
+      Data   :        PolyORB.Types.Char) is
    begin
       pragma Debug (O ("Marshall (Char) : enter"));
-      Marshall (Buffer, Droopi.Types.Octet'(Droopi.Types.Char'Pos (Data)));
+      Marshall (Buffer, PolyORB.Types.Octet'(PolyORB.Types.Char'Pos (Data)));
       pragma Debug (O ("Marshall (Char) : end"));
    end Marshall;
 
    --  Marshalling of a wide character
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   :        Droopi.Types.Wchar)
+      Data   :        PolyORB.Types.Wchar)
    is
 
    begin
@@ -238,26 +238,26 @@ package body Droopi.Representations.CDR is
       Align_Marshall_Big_Endian_Copy
         (Buffer,
          Stream_Element_Array'
-         (Stream_Element (Droopi.Types.Wchar'Pos (Data) / 256),
-         Stream_Element (Droopi.Types.Wchar'Pos (Data) mod 256)), 2);
+         (Stream_Element (PolyORB.Types.Wchar'Pos (Data) / 256),
+         Stream_Element (PolyORB.Types.Wchar'Pos (Data) mod 256)), 2);
       pragma Debug (O ("Marshall (WChar) : end"));
    end Marshall;
 
    --  Marshalling of a Octet
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   :        Droopi.Types.Octet) is
+      Data   :        PolyORB.Types.Octet) is
    begin
       pragma Debug (O ("Marshall (Octet) : enter"));
       Align_Marshall_Copy (Buffer, (1 => Stream_Element
-                           (Droopi.Types.Octet'(Data))), 1);
+                           (PolyORB.Types.Octet'(Data))), 1);
       pragma Debug (O ("Marshall (Octet) : end"));
    end Marshall;
 
    --  Marshalling of an unsigned short
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   :        Droopi.Types.Unsigned_Short)
+      Data   :        PolyORB.Types.Unsigned_Short)
    is
 
    begin
@@ -273,7 +273,7 @@ package body Droopi.Representations.CDR is
    --  Marshalling of an unsigned long
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   :        Droopi.Types.Unsigned_Long)
+      Data   :        PolyORB.Types.Unsigned_Long)
    is
 
    begin
@@ -291,7 +291,7 @@ package body Droopi.Representations.CDR is
    --  Marshalling of an unsigned long long
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   :        Droopi.Types.Unsigned_Long_Long) is
+      Data   :        PolyORB.Types.Unsigned_Long_Long) is
    begin
       pragma Debug (O ("Marshall (ULongLong) : enter"));
       Align_Marshall_Big_Endian_Copy
@@ -311,7 +311,7 @@ package body Droopi.Representations.CDR is
    --  Marshalling of a long long
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   :        Droopi.Types.Long_Long) is
+      Data   :        PolyORB.Types.Long_Long) is
    begin
       pragma Debug (O ("Marshall (LongLong) : enter"));
       Marshall (Buffer, To_Unsigned_Long_Long (Data));
@@ -321,7 +321,7 @@ package body Droopi.Representations.CDR is
    --  Marshalling of a long
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   :        Droopi.Types.Long) is
+      Data   :        PolyORB.Types.Long) is
    begin
       pragma Debug (O ("Marshall (Long) : enter"));
       Marshall (Buffer, To_Unsigned_Long (Data));
@@ -331,7 +331,7 @@ package body Droopi.Representations.CDR is
    --  Marshalling of a short
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   :        Droopi.Types.Short) is
+      Data   :        PolyORB.Types.Short) is
    begin
       pragma Debug (O ("Marshall (Short) : enter"));
       Marshall (Buffer, To_Unsigned_Short (Data));
@@ -341,7 +341,7 @@ package body Droopi.Representations.CDR is
    --  Marshalling of a float
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   :        Droopi.Types.Float) is
+      Data   :        PolyORB.Types.Float) is
    begin
       pragma Debug (O ("Marshall (Float) : enter"));
       Marshall (Buffer, To_Unsigned_Long (Data));
@@ -351,7 +351,7 @@ package body Droopi.Representations.CDR is
    --  Marshalling of a double
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   :        Droopi.Types.Double)
+      Data   :        PolyORB.Types.Double)
    is
       Buf : Double_Buf := To_Double_Buf (Data);
    begin
@@ -363,7 +363,7 @@ package body Droopi.Representations.CDR is
    --  Marshalling of a long double
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   :        Droopi.Types.Long_Double)
+      Data   :        PolyORB.Types.Long_Double)
    is
       --  FIXME LONG DOUBLE
       --   Buf : Long_Double_Buf := To_Long_Double_Buf (Data);
@@ -381,11 +381,11 @@ package body Droopi.Representations.CDR is
    begin
       pragma Debug (O ("Marshall (String) : enter"));
 
-      Marshall (Buffer, Droopi.Types.Unsigned_Long'(Data'Length + 1));
+      Marshall (Buffer, PolyORB.Types.Unsigned_Long'(Data'Length + 1));
       for I in Data'Range loop
-         Marshall (Buffer, Droopi.Types.Char (Data (I)));
+         Marshall (Buffer, PolyORB.Types.Char (Data (I)));
       end loop;
-      Marshall (Buffer, Droopi.Types.Char (ASCII.Nul));
+      Marshall (Buffer, PolyORB.Types.Char (ASCII.Nul));
 
       pragma Debug (O ("Marshall (String) : end"));
    end Marshall;
@@ -393,89 +393,89 @@ package body Droopi.Representations.CDR is
    --  Marshalling of a Corba String
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   :        Droopi.Types.String) is
+      Data   :        PolyORB.Types.String) is
    begin
-      pragma Debug (O ("Marshall (Droopi.Types.String) : enter"));
-      Marshall (Buffer, Droopi.Types.To_Standard_String (Data));
-      pragma Debug (O ("Marshall (Droopi.Types.String) : end"));
+      pragma Debug (O ("Marshall (PolyORB.Types.String) : enter"));
+      Marshall (Buffer, PolyORB.Types.To_Standard_String (Data));
+      pragma Debug (O ("Marshall (PolyORB.Types.String) : end"));
    end Marshall;
 
-   --  Marshall for Droopi.Types.Wide_String could also
+   --  Marshall for PolyORB.Types.Wide_String could also
    --  be implemented as a call to a Marshall for
-   --  Standard.Wide_String, just as Droopi.Types.String/Standard.String.
+   --  Standard.Wide_String, just as PolyORB.Types.String/Standard.String.
 
    --  Marshalling of a wide string
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   :        Droopi.Types.Wide_String)
+      Data   :        PolyORB.Types.Wide_String)
    is
       Equiv : constant Wide_String
-        := Droopi.Types.To_Wide_String (Data)
+        := PolyORB.Types.To_Wide_String (Data)
         & Standard.Wide_Character'Val (0);
 
       --  XXXXX: Val (0) is suspicious ...
    begin
-      pragma Debug (O ("Marshall (Droopi.Types.Wide_String) : enter"));
-      pragma Debug (O ("Marshall (Droopi.Types.Wide_String) : length is "
-                       & Droopi.Types.Unsigned_Long'Image (Equiv'Length)));
+      pragma Debug (O ("Marshall (PolyORB.Types.Wide_String) : enter"));
+      pragma Debug (O ("Marshall (PolyORB.Types.Wide_String) : length is "
+                       & PolyORB.Types.Unsigned_Long'Image (Equiv'Length)));
 
-      Marshall (Buffer, Droopi.Types.Unsigned_Long'(Equiv'Length));
+      Marshall (Buffer, PolyORB.Types.Unsigned_Long'(Equiv'Length));
       for I in Equiv'Range loop
          Marshall
-           (Buffer, Droopi.Types.Wchar'Val
+           (Buffer, PolyORB.Types.Wchar'Val
             (Wide_Character'Pos (Equiv (I))));
       end loop;
 
-      pragma Debug (O ("Marshall (Droopi.Types.Wide_String) : end"));
+      pragma Debug (O ("Marshall (PolyORB.Types.Wide_String) : end"));
    end Marshall;
 
    --  Marshalling of a Corba Identifier
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   :        Droopi.Types.Identifier) is
+      Data   :        PolyORB.Types.Identifier) is
    begin
       pragma Debug (O ("Marshall (Identifier) : enter"));
-      Marshall (Buffer, Droopi.Types.String (Data));
+      Marshall (Buffer, PolyORB.Types.String (Data));
       pragma Debug (O ("Marshall (Identifier) : end"));
    end Marshall;
 
    --  Marshalling of a Corba Scoped Name
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   :        Droopi.Types.ScopedName) is
+      Data   :        PolyORB.Types.ScopedName) is
    begin
       pragma Debug (O ("Marshall (ScopedName) : enter"));
-      Marshall (Buffer, Droopi.Types.String (Data));
+      Marshall (Buffer, PolyORB.Types.String (Data));
       pragma Debug (O ("Marshall (ScopedName) : end"));
    end Marshall;
 
    --  Marshalling of a Corba Repository Identifier
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   :        Droopi.Types.RepositoryId) is
+      Data   :        PolyORB.Types.RepositoryId) is
    begin
       pragma Debug (O ("Marshall (RepositoryId) : enter"));
-      Marshall (Buffer, Droopi.Types.String (Data));
+      Marshall (Buffer, PolyORB.Types.String (Data));
       pragma Debug (O ("Marshall (RepositoryId) : end"));
    end Marshall;
 
    --  Marshalling of a Corba Value Modifier type (short)
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   :        Droopi.Any.ValueModifier) is
+      Data   :        PolyORB.Any.ValueModifier) is
    begin
       pragma Debug (O ("Marshall (ValueModifier) : enter"));
-      Marshall (Buffer, Droopi.Types.Short (Data));
+      Marshall (Buffer, PolyORB.Types.Short (Data));
       pragma Debug (O ("Marshall (ValueModifier) : end"));
    end Marshall;
 
    --  Marshalling of a Corba Visibility Type (short)
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   :        Droopi.Any.Visibility) is
+      Data   :        PolyORB.Any.Visibility) is
    begin
       pragma Debug (O ("Marshall (Visibility) : enter"));
-      Marshall (Buffer, Droopi.Types.Short (Data));
+      Marshall (Buffer, PolyORB.Types.Short (Data));
       pragma Debug (O ("Marshall (Visibility) : end"));
    end Marshall;
 
@@ -483,7 +483,7 @@ package body Droopi.Representations.CDR is
    --  Marshalling of Corba Any Type
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   :        Droopi.Any.Any) is
+      Data   :        PolyORB.Any.Any) is
    begin
       pragma Debug (O ("Marshall (Any) : enter"));
       Marshall (Buffer, Get_Type (Data));
@@ -494,16 +494,16 @@ package body Droopi.Representations.CDR is
 
    procedure Marshall_From_Any
      (Buffer : access Buffer_Type;
-      Data   :        Droopi.Any.Any)
+      Data   :        PolyORB.Any.Any)
    is
-      Data_Type : Droopi.Any.TypeCode.Object
-        := Droopi.Any.Get_Precise_Type (Data);
+      Data_Type : PolyORB.Any.TypeCode.Object
+        := PolyORB.Any.Get_Precise_Type (Data);
    begin
       pragma Debug (O ("Marshall_From_Any : enter"));
       --  pragma Debug
-      --  (0 (Debug_Any(Droopi.Any.TypeCode.Kind (Data_Type)'Pos)))
+      --  (0 (Debug_Any(PolyORB.Any.TypeCode.Kind (Data_Type)'Pos)))
 
-      case Droopi.Any.TypeCode.Kind (Data_Type) is
+      case PolyORB.Any.TypeCode.Kind (Data_Type) is
 
          when Tk_Null | Tk_Void =>
             pragma Debug (O ("Marshall_From_Any : dealing with void or null"));
@@ -511,48 +511,48 @@ package body Droopi.Representations.CDR is
 
          when Tk_Short =>
             pragma Debug (O ("Marshall_From_Any : dealing with a short"));
-            Marshall (Buffer, Droopi.Types.Short'(From_Any (Data)));
+            Marshall (Buffer, PolyORB.Types.Short'(From_Any (Data)));
 
 
          when Tk_Long =>
             pragma Debug (O ("Marshall_From_Any : dealing with a long"));
-            Marshall (Buffer, Droopi.Types.Long'(From_Any (Data)));
+            Marshall (Buffer, PolyORB.Types.Long'(From_Any (Data)));
 
          when Tk_Ushort =>
             pragma Debug (O ("Marshall_From_Any : dealing with a Ushort"));
-            Marshall (Buffer, Droopi.Types.Unsigned_Short'(From_Any (Data)));
+            Marshall (Buffer, PolyORB.Types.Unsigned_Short'(From_Any (Data)));
 
          when Tk_Ulong =>
             pragma Debug (O ("Marshall_From_Any : dealing with a Ulong"));
-            Marshall (Buffer, Droopi.Types.Unsigned_Long'(From_Any (Data)));
+            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(From_Any (Data)));
 
          when Tk_Float =>
             pragma Debug (O ("Marshall_From_Any : dealing with a float"));
-            Marshall (Buffer, Droopi.Types.Float'(From_Any (Data)));
+            Marshall (Buffer, PolyORB.Types.Float'(From_Any (Data)));
 
          when Tk_Double =>
             pragma Debug (O ("Marshall_From_Any : dealing with a double"));
-            Marshall (Buffer, Droopi.Types.Double'(From_Any (Data)));
+            Marshall (Buffer, PolyORB.Types.Double'(From_Any (Data)));
 
          when Tk_Boolean =>
             pragma Debug (O ("Marshall_From_Any : dealing with a boolean"));
-            Marshall (Buffer, Droopi.Types.Boolean'(From_Any (Data)));
+            Marshall (Buffer, PolyORB.Types.Boolean'(From_Any (Data)));
 
          when Tk_Char =>
             pragma Debug (O ("Marshall_From_Any : dealing with a char"));
-            Marshall (Buffer, Droopi.Types.Char'(From_Any (Data)));
+            Marshall (Buffer, PolyORB.Types.Char'(From_Any (Data)));
 
          when Tk_Octet =>
             pragma Debug (O ("Marshall_From_Any : dealing with an octet"));
-            Marshall (Buffer, Droopi.Types.Octet'(From_Any (Data)));
+            Marshall (Buffer, PolyORB.Types.Octet'(From_Any (Data)));
 
          when Tk_Any =>
             pragma Debug (O ("Marshall_From_Any : dealing with an any"));
-            Marshall (Buffer, Droopi.Any.Any'(From_Any (Data)));
+            Marshall (Buffer, PolyORB.Any.Any'(From_Any (Data)));
 
          when Tk_TypeCode =>
             pragma Debug (O ("Marshall_From_Any : dealing with a typecode"));
-            Marshall (Buffer, Droopi.Any.TypeCode.Object'(From_Any (Data)));
+            Marshall (Buffer, PolyORB.Any.TypeCode.Object'(From_Any (Data)));
 
          when Tk_Principal =>
             --  FIXME : to be done
@@ -561,47 +561,47 @@ package body Droopi.Representations.CDR is
 
          when Tk_Objref =>
             pragma Debug (O ("Marshall_From_Any : dealing with an objRef"));
-            --  Marshall (Buffer, Droopi.Types.Object.Helper.From_Any (Data));
+            --  Marshall (Buffer, PolyORB.Types.Object.Helper.From_Any (Data));
             null;
 
 
          when Tk_Struct =>
             declare
-                  Nb : constant Droopi.Types.Unsigned_Long
-                        := Droopi.Any.Get_Aggregate_Count (Data);
-                  Value : Droopi.Any.Any;
+                  Nb : constant PolyORB.Types.Unsigned_Long
+                        := PolyORB.Any.Get_Aggregate_Count (Data);
+                  Value : PolyORB.Any.Any;
             begin
                pragma Debug (O ("Marshall_From_Any : dealing with a struct"));
                for I in 0 .. Nb - 1 loop
-                  Value := Droopi.Any.Get_Aggregate_Element
-                     (Data, Droopi.Any.TypeCode.Member_Type (Data_Type, I), I);
+                  Value := PolyORB.Any.Get_Aggregate_Element
+                     (Data, PolyORB.Any.TypeCode.Member_Type (Data_Type, I), I);
                   Marshall_From_Any (Buffer, Value);
                end loop;
             end;
 
          when Tk_Union =>
             declare
-               Nb : Droopi.Types.Unsigned_Long;
-               Value, Label_Value : Droopi.Any.Any;
+               Nb : PolyORB.Types.Unsigned_Long;
+               Value, Label_Value : PolyORB.Any.Any;
             begin
                pragma Debug (O ("Marshall_From_Any : dealing with an union"));
                Label_Value := Get_Aggregate_Element
                  (Data,
-                  Droopi.Any.TypeCode.Discriminator_Type (Data_Type),
-                  Droopi.Types.Unsigned_Long (0));
+                  PolyORB.Any.TypeCode.Discriminator_Type (Data_Type),
+                  PolyORB.Types.Unsigned_Long (0));
                pragma Debug (O ("Marshall_From_Any : got the label"));
                Marshall_From_Any (Buffer, Label_Value);
                pragma Debug (O ("Marshall_From_Any : label marshalled"));
-               Nb := Droopi.Any.Get_Aggregate_Count (Data);
+               Nb := PolyORB.Any.Get_Aggregate_Count (Data);
                pragma Debug (O ("Marshall_From_Any : aggregate count = "
-                                & Droopi.Types.Unsigned_Long'Image (Nb)));
+                                & PolyORB.Types.Unsigned_Long'Image (Nb)));
                if Nb > 1 then
                   for I in 1 .. Nb - 1 loop
                      pragma Debug (O ("Marshall_From_Any : inside loop, I = "
                                       & Unsigned_Long'Image (I)));
-                     Value := Droopi.Any.Get_Aggregate_Element
+                     Value := PolyORB.Any.Get_Aggregate_Element
                        (Data,
-                        Droopi.Any.TypeCode.Member_Type_With_Label
+                        PolyORB.Any.TypeCode.Member_Type_With_Label
                         (Data_Type, Label_Value, I - 1),
                         I);
                      pragma Debug (O ("Marshall_From_Any : about "
@@ -615,33 +615,33 @@ package body Droopi.Representations.CDR is
             pragma Debug (O ("Marshall_From_Any : dealing with an enum"));
             Marshall_From_Any
               (Buffer,
-               Droopi.Any.Get_Aggregate_Element
+               PolyORB.Any.Get_Aggregate_Element
                (Data,
-                Droopi.Any.TypeCode.TC_Unsigned_Long,
-                Droopi.Types.Unsigned_Long (0)));
+                PolyORB.Any.TypeCode.TC_Unsigned_Long,
+                PolyORB.Types.Unsigned_Long (0)));
 
          when Tk_String =>
             pragma Debug (O ("Marshall_From_Any : dealing with a string"));
-            Marshall (Buffer, Droopi.Types.String'(From_Any (Data)));
+            Marshall (Buffer, PolyORB.Types.String'(From_Any (Data)));
 
          when Tk_Sequence =>
             declare
-               Nb : constant Droopi.Types.Unsigned_Long :=
-                 Droopi.Any.Get_Aggregate_Count (Data);
-               Value : Droopi.Any.Any;
+               Nb : constant PolyORB.Types.Unsigned_Long :=
+                 PolyORB.Any.Get_Aggregate_Count (Data);
+               Value : PolyORB.Any.Any;
             begin
                pragma Debug (O
                   ("Marshall_From_Any : dealing with a sequence"));
-               Value := Droopi.Any.Get_Aggregate_Element
+               Value := PolyORB.Any.Get_Aggregate_Element
                  (Data,
-                  Droopi.Any.TypeCode.TC_Unsigned_Long,
-                  Droopi.Types.Unsigned_Long (0));
+                  PolyORB.Any.TypeCode.TC_Unsigned_Long,
+                  PolyORB.Types.Unsigned_Long (0));
                Marshall_From_Any (Buffer, Value);
                if Nb /= 0 then
                   for I in 1 .. Nb - 1 loop
-                     Value := Droopi.Any.Get_Aggregate_Element
+                     Value := PolyORB.Any.Get_Aggregate_Element
                        (Data,
-                        Droopi.Any.TypeCode.Content_Type (Data_Type),
+                        PolyORB.Any.TypeCode.Content_Type (Data_Type),
                         I);
                      Marshall_From_Any (Buffer, Value);
                   end loop;
@@ -651,29 +651,29 @@ package body Droopi.Representations.CDR is
          when Tk_Array =>
 
             declare
-               Nb : constant Droopi.Types.Unsigned_Long :=
-                 Droopi.Any.Get_Aggregate_Count (Data);
-               Value : Droopi.Any.Any;
-               Content_True_Type : Droopi.Any.TypeCode.Object :=
-                 Droopi.Any.TypeCode.Content_Type (Data_Type);
+               Nb : constant PolyORB.Types.Unsigned_Long :=
+                 PolyORB.Any.Get_Aggregate_Count (Data);
+               Value : PolyORB.Any.Any;
+               Content_True_Type : PolyORB.Any.TypeCode.Object :=
+                 PolyORB.Any.TypeCode.Content_Type (Data_Type);
             begin
                pragma Debug (O ("Marshall_From_Any : dealing with an array"));
 
-               while Droopi.Any.TypeCode.Kind (Content_True_Type) = Tk_Array
+               while PolyORB.Any.TypeCode.Kind (Content_True_Type) = Tk_Array
                loop
                   Content_True_Type :=
-                    Droopi.Any.TypeCode.Content_Type (Content_True_Type);
+                    PolyORB.Any.TypeCode.Content_Type (Content_True_Type);
                end loop;
 
                for I in 0 .. Nb - 1 loop
-                  Value := Droopi.Any.Get_Aggregate_Element
+                  Value := PolyORB.Any.Get_Aggregate_Element
                     (Data,
                      Content_True_Type,
                      I);
                   pragma Debug (O ("Marshall_From_Any : value kind is "
-                                   & Droopi.Any.TCKind'Image
-                                   (Droopi.Any.TypeCode.Kind
-                                    (Droopi.Any.Get_Type (Value)))));
+                                   & PolyORB.Any.TCKind'Image
+                                   (PolyORB.Any.TypeCode.Kind
+                                    (PolyORB.Any.Get_Type (Value)))));
                   Marshall_From_Any (Buffer, Value);
                end loop;
             end;
@@ -686,16 +686,16 @@ package body Droopi.Representations.CDR is
 
          when Tk_Except =>
             declare
-               Nb : constant Droopi.Types.Unsigned_Long :=
-                 Droopi.Any.Get_Aggregate_Count (Data);
-               Value : Droopi.Any.Any;
+               Nb : constant PolyORB.Types.Unsigned_Long :=
+                 PolyORB.Any.Get_Aggregate_Count (Data);
+               Value : PolyORB.Any.Any;
             begin
                pragma Debug
                  (O ("Marshall_From_Any : dealing with an exception"));
                for I in 0 .. Nb - 1 loop
-                  Value := Droopi.Any.Get_Aggregate_Element
+                  Value := PolyORB.Any.Get_Aggregate_Element
                     (Data,
-                     Droopi.Any.TypeCode.Member_Type (Data_Type, I),
+                     PolyORB.Any.TypeCode.Member_Type (Data_Type, I),
                      I);
                   Marshall_From_Any (Buffer, Value);
                end loop;
@@ -703,73 +703,73 @@ package body Droopi.Representations.CDR is
 
          when Tk_Longlong =>
             pragma Debug (O ("Marshall_From_Any : dealing with a long long"));
-            Marshall (Buffer, Droopi.Types.Long_Long'(From_Any (Data)));
+            Marshall (Buffer, PolyORB.Types.Long_Long'(From_Any (Data)));
 
          when Tk_Ulonglong =>
             pragma Debug (O ("Marshall_From_Any : dealing with a ULongLong"));
             Marshall
               (Buffer,
-               Droopi.Types.Unsigned_Long_Long'(From_Any (Data)));
+               PolyORB.Types.Unsigned_Long_Long'(From_Any (Data)));
 
          when Tk_Longdouble =>
             pragma Debug
               (O ("Marshall_From_Any : dealing with a long double"));
-            Marshall (Buffer, Droopi.Types.Long_Double'(From_Any (Data)));
+            Marshall (Buffer, PolyORB.Types.Long_Double'(From_Any (Data)));
 
          when Tk_Widechar =>
             pragma Debug (O ("Marshall_From_Any : dealing with a Wchar"));
-            Marshall (Buffer, Droopi.Types.Wchar'(From_Any (Data)));
+            Marshall (Buffer, PolyORB.Types.Wchar'(From_Any (Data)));
 
          when Tk_Wstring =>
             pragma Debug
               (O ("Marshall_From_Any : dealing with a wide string"));
-            Marshall (Buffer, Droopi.Types.Wide_String'(From_Any (Data)));
+            Marshall (Buffer, PolyORB.Types.Wide_String'(From_Any (Data)));
 
          when Tk_Fixed =>
             --  declare
-            --   Digit,Scale: Droopi.Any.Any;
+            --   Digit,Scale: PolyORB.Any.Any;
             --  begin
             --   pragma Debug (O ("Marshall_From_Any : dealing with a fixed"));
             --   Digit:=Get_Aggregate_Element
             --           (Data,
-            --            Droopi.Any.TypeCode.TC_Unsigned_Long,
-            --            Droopi.Any.TypeCode.Fixed_Digits(Data_Type),
-            --            Droopi.Types.Unsigned_Long(0));
+            --            PolyORB.Any.TypeCode.TC_Unsigned_Long,
+            --            PolyORB.Any.TypeCode.Fixed_Digits(Data_Type),
+            --            PolyORB.Types.Unsigned_Long(0));
             --   Marshall_From_Any(Buffer,Digit);
             --   Scale:=Get_Aggregate_Element
             --           (Data,
-            --            Droopi.Any.TypeCode.Fixed_Scale(Data_Type),
-            --            Droopi.Types.Unsigned_Long(1));
+            --            PolyORB.Any.TypeCode.Fixed_Scale(Data_Type),
+            --            PolyORB.Types.Unsigned_Long(1));
             --   Marshall_From_Any(Buffer,Scale);
             --   end;
             null;
 
          when Tk_Value =>
             --  declare
-            --     Nb: Droopi.Types.Unsigned_Long;
+            --     Nb: PolyORB.Types.Unsigned_Long;
             --     Value_Modifier, Value_TypeCode,
-            --         Value_Visibility : Droopi.Any.Any;
+            --         Value_Visibility : PolyORB.Any.Any;
             --  begin
             --    pragma Debug
             --        (O ("Marshall_From_Any : dealing with a value"));
-            --    Value_Modifier:= Droopi.Any.Get_Aggregate_Element
+            --    Value_Modifier:= PolyORB.Any.Get_Aggregate_Element
             --         (Data,
-            --          Droopi.Any.TypeCode.Type_Modifier(Data_Type),
-            --          Droopi.Types.Unsigned_Long(0));
+            --          PolyORB.Any.TypeCode.Type_Modifier(Data_Type),
+            --          PolyORB.Types.Unsigned_Long(0));
             --  pragma Debug (0 ("Marshall_From_Any: got the value_modifier"));
             --    Marshall_From_Any(Buffer,Val_Modifier);
-            --    Nb := Droopi.Any.Get_Aggregate_Count(Data);
+            --    Nb := PolyORB.Any.Get_Aggregate_Count(Data);
             --    if Nb>1 then
             --     while I<Nb-1 loop
 
-            --       Value_Value:= Droopi.Any.Get_Aggregate_Element
+            --       Value_Value:= PolyORB.Any.Get_Aggregate_Element
             --         (Data,
-            --          Droopi.Any.TypeCode.Member_Type (Data_Type, I),
+            --          PolyORB.Any.TypeCode.Member_Type (Data_Type, I),
             --          I);
             --       I:=I+1;
-            --       Value_Visibility:=  Droopi.Any.Get_Aggregate_Element
+            --       Value_Visibility:=  PolyORB.Any.Get_Aggregate_Element
             --         (Data,
-            --          Droopi.Any.TypeCode.Member_Visibility(Data_Type, I),
+            --          PolyORB.Any.TypeCode.Member_Visibility(Data_Type, I),
             --          I);
             --       Marshall_From_Any(Buffer, Value);
             --       I:=I+2;
@@ -782,10 +782,10 @@ package body Droopi.Representations.CDR is
 
          when Tk_Valuebox =>
             pragma Debug (O ("Marshall_From_Any : dealing with a valuebox"));
-            Marshall_From_Any (Buffer, Droopi.Any.Get_Aggregate_Element
-                 (Data, Droopi.Any.TypeCode.Member_Type (Data_Type,
-                 Droopi.Types.Unsigned_Long (0)),
-                 Droopi.Types.Unsigned_Long (0)));
+            Marshall_From_Any (Buffer, PolyORB.Any.Get_Aggregate_Element
+                 (Data, PolyORB.Any.TypeCode.Member_Type (Data_Type,
+                 PolyORB.Types.Unsigned_Long (0)),
+                 PolyORB.Types.Unsigned_Long (0)));
 
          when Tk_Native =>
             pragma Debug (O ("Marshall_From_Any : dealing with a native"));
@@ -807,85 +807,85 @@ package body Droopi.Representations.CDR is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   :        Droopi.Any.TypeCode.Object)
+      Data   :        PolyORB.Any.TypeCode.Object)
    is
       Complex_Buffer : Buffer_Access;
    begin
       pragma Debug (O ("Marshall (Typecode) : enter"));
       pragma Debug (O ("Marshall (Typecode) : kind is " &
-                       TCKind'Image (Droopi.Any.TypeCode.Kind (Data))));
-      case Droopi.Any.TypeCode.Kind (Data) is
+                       TCKind'Image (PolyORB.Any.TypeCode.Kind (Data))));
+      case PolyORB.Any.TypeCode.Kind (Data) is
          when Tk_Null =>
-            Marshall (Buffer, Droopi.Types.Unsigned_Long'(0));
+            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(0));
          when Tk_Void =>
-            Marshall (Buffer, Droopi.Types.Unsigned_Long'(1));
+            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(1));
          when Tk_Short =>
-            Marshall (Buffer, Droopi.Types.Unsigned_Long'(2));
+            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(2));
          when Tk_Long =>
-            Marshall (Buffer, Droopi.Types.Unsigned_Long'(3));
+            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(3));
          when Tk_Ushort =>
-            Marshall (Buffer, Droopi.Types.Unsigned_Long'(4));
+            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(4));
          when Tk_Ulong =>
-            Marshall (Buffer, Droopi.Types.Unsigned_Long'(5));
+            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(5));
          when Tk_Float =>
-            Marshall (Buffer, Droopi.Types.Unsigned_Long'(6));
+            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(6));
          when Tk_Double =>
-            Marshall (Buffer, Droopi.Types.Unsigned_Long'(7));
+            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(7));
          when Tk_Boolean =>
-            Marshall (Buffer, Droopi.Types.Unsigned_Long'(8));
+            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(8));
          when Tk_Char =>
-            Marshall (Buffer, Droopi.Types.Unsigned_Long'(9));
+            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(9));
          when Tk_Octet =>
-            Marshall (Buffer, Droopi.Types.Unsigned_Long'(10));
+            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(10));
          when Tk_Any =>
-            Marshall (Buffer, Droopi.Types.Unsigned_Long'(11));
+            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(11));
          when Tk_TypeCode =>
             pragma Debug (O ("Marshall (TypeCode) : dealing with a TypeCode"));
-            Marshall (Buffer, Droopi.Types.Unsigned_Long'(12));
+            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(12));
          when Tk_Principal =>
-            Marshall (Buffer, Droopi.Types.Unsigned_Long'(13));
+            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(13));
          when Tk_Objref =>
             pragma Debug (O ("Marshall (TypeCode) : dealing with an ObjRef"));
-            Marshall (Buffer, Droopi.Types.Unsigned_Long'(14));
+            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(14));
             pragma Debug (O ("Marshall (TypeCode) : it has "
-                             & Droopi.Types.Unsigned_Long'Image
-                             (Droopi.Any.TypeCode.Parameter_Count (Data))
+                             & PolyORB.Types.Unsigned_Long'Image
+                             (PolyORB.Any.TypeCode.Parameter_Count (Data))
                              & " parameters"));
-            Marshall (Buffer, Droopi.Any.TypeCode.Id (Data));
-            Marshall (Buffer, Droopi.Any.TypeCode.Name (Data));
+            Marshall (Buffer, PolyORB.Any.TypeCode.Id (Data));
+            Marshall (Buffer, PolyORB.Any.TypeCode.Name (Data));
          when Tk_Struct =>
             pragma Debug (O ("Marshall (TypeCode) : dealing with a struct"));
-            Marshall (Buffer, Droopi.Types.Unsigned_Long'(15));
+            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(15));
             Start_Encapsulation (Complex_Buffer);
             pragma Debug (O ("Marshall (TypeCode) : marshalling the id"));
             Marshall (Complex_Buffer,
-                      Droopi.Any.TypeCode.Id (Data));
+                      PolyORB.Any.TypeCode.Id (Data));
             pragma Debug (O ("Marshall (TypeCode) : marshalling the name"));
             Marshall (Complex_Buffer,
-                      Droopi.Any.TypeCode.Name (Data));
+                      PolyORB.Any.TypeCode.Name (Data));
             declare
-               Nb : Droopi.Types.Unsigned_Long :=
-                 Droopi.Any.TypeCode.Member_Count (Data);
+               Nb : PolyORB.Types.Unsigned_Long :=
+                 PolyORB.Any.TypeCode.Member_Count (Data);
             begin
                pragma Debug (O ("Marshall (TypeCode) : " &
                                 "marshalling the members. Nb = "
-                                & Droopi.Types.Unsigned_Long'Image (Nb)));
+                                & PolyORB.Types.Unsigned_Long'Image (Nb)));
                Marshall (Complex_Buffer, Nb);
                if Nb /= 0 then
                   for I in 0 .. Nb - 1 loop
                      pragma Debug (O ("Marshall (TypeCode) : about "
                                       & "to marshall a new  member"));
                      Marshall (Complex_Buffer,
-                               Droopi.Any.TypeCode.Member_Name (Data, I));
+                               PolyORB.Any.TypeCode.Member_Name (Data, I));
                      pragma Debug
                        (O ("Marshall (TypeCode) : marshalling "
                            & "the type ("
                            & TCKind'Image
                            (TypeCode.Kind
-                            (Droopi.Any.TypeCode.Member_Type (Data, I)))
+                            (PolyORB.Any.TypeCode.Member_Type (Data, I)))
                            & ")"));
                      Marshall (Complex_Buffer,
-                               Droopi.Any.TypeCode.Member_Type (Data, I));
+                               PolyORB.Any.TypeCode.Member_Type (Data, I));
                      pragma Debug (O ("Marshall (TypeCode) : "
                                       & "member marshalled"));
                   end loop;
@@ -895,57 +895,57 @@ package body Droopi.Representations.CDR is
             Marshall (Buffer, Encapsulate (Complex_Buffer));
             Release (Complex_Buffer);
          when Tk_Union =>
-            Marshall (Buffer, Droopi.Types.Unsigned_Long'(16));
+            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(16));
             Start_Encapsulation (Complex_Buffer);
             Marshall
               (Complex_Buffer,
-               Droopi.Any.TypeCode.Id (Data));
+               PolyORB.Any.TypeCode.Id (Data));
             Marshall
               (Complex_Buffer,
-               Droopi.Any.TypeCode.Name (Data));
+               PolyORB.Any.TypeCode.Name (Data));
             Marshall
               (Complex_Buffer,
-               Droopi.Any.TypeCode.Discriminator_Type (Data));
+               PolyORB.Any.TypeCode.Discriminator_Type (Data));
             Marshall
               (Complex_Buffer,
-               Droopi.Any.TypeCode.Default_Index (Data));
+               PolyORB.Any.TypeCode.Default_Index (Data));
             declare
-               Nb : Droopi.Types.Unsigned_Long :=
-                 Droopi.Any.TypeCode.Member_Count (Data);
+               Nb : PolyORB.Types.Unsigned_Long :=
+                 PolyORB.Any.TypeCode.Member_Count (Data);
             begin
                Marshall (Complex_Buffer, Nb);
                if Nb /= 0 then
                   for I in 0 .. Nb - 1 loop
                      Marshall_From_Any
                        (Complex_Buffer,
-                        Droopi.Any.TypeCode.Member_Label (Data, I));
+                        PolyORB.Any.TypeCode.Member_Label (Data, I));
                      Marshall
                        (Complex_Buffer,
-                        Droopi.Any.TypeCode.Member_Name (Data, I));
+                        PolyORB.Any.TypeCode.Member_Name (Data, I));
                      Marshall
                        (Complex_Buffer,
-                        Droopi.Any.TypeCode.Member_Type (Data, I));
+                        PolyORB.Any.TypeCode.Member_Type (Data, I));
                   end loop;
                end if;
             end;
             Marshall (Buffer, Encapsulate (Complex_Buffer));
             Release (Complex_Buffer);
          when Tk_Enum =>
-            Marshall (Buffer, Droopi.Types.Unsigned_Long'(17));
+            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(17));
             Start_Encapsulation (Complex_Buffer);
             Marshall (Complex_Buffer,
-                      Droopi.Any.TypeCode.Id (Data));
+                      PolyORB.Any.TypeCode.Id (Data));
             Marshall (Complex_Buffer,
-                      Droopi.Any.TypeCode.Name (Data));
+                      PolyORB.Any.TypeCode.Name (Data));
             declare
-               Nb : Droopi.Types.Unsigned_Long :=
-                 Droopi.Any.TypeCode.Member_Count (Data);
+               Nb : PolyORB.Types.Unsigned_Long :=
+                 PolyORB.Any.TypeCode.Member_Count (Data);
             begin
                Marshall (Complex_Buffer, Nb);
                if Nb /= 0 then
                   for I in 0 .. Nb - 1 loop
                      Marshall (Complex_Buffer,
-                               Droopi.Any.TypeCode.Member_Name (Data, I));
+                               PolyORB.Any.TypeCode.Member_Name (Data, I));
                   end loop;
                end if;
             end;
@@ -953,143 +953,143 @@ package body Droopi.Representations.CDR is
             Release (Complex_Buffer);
          when Tk_String =>
             pragma Debug (O ("marshall (typecode) : dealing with a string"));
-            Marshall (Buffer, Droopi.Types.Unsigned_Long'(18));
+            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(18));
             pragma Debug (O ("marshall (typecode) : " &
                              "about to marshall length : " &
-                             Droopi.Types.Unsigned_Long'Image
-                             (Droopi.Any.TypeCode.Length (Data))));
-            Marshall (Buffer, Droopi.Any.TypeCode.Length (Data));
+                             PolyORB.Types.Unsigned_Long'Image
+                             (PolyORB.Any.TypeCode.Length (Data))));
+            Marshall (Buffer, PolyORB.Any.TypeCode.Length (Data));
             pragma Debug (O ("marshall (typecode) : length marshalled"));
          when Tk_Sequence =>
-            Marshall (Buffer, Droopi.Types.Unsigned_Long'(19));
+            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(19));
             Start_Encapsulation (Complex_Buffer);
             Marshall (Complex_Buffer,
-                      Droopi.Any.TypeCode.Content_Type (Data));
+                      PolyORB.Any.TypeCode.Content_Type (Data));
             Marshall (Complex_Buffer,
-                      Droopi.Any.TypeCode.Length (Data));
+                      PolyORB.Any.TypeCode.Length (Data));
             Marshall (Buffer, Encapsulate (Complex_Buffer));
             Release (Complex_Buffer);
          when Tk_Array =>
-            Marshall (Buffer, Droopi.Types.Unsigned_Long'(20));
+            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(20));
             Start_Encapsulation (Complex_Buffer);
             Marshall (Complex_Buffer,
-                      Droopi.Any.TypeCode.Content_Type (Data));
+                      PolyORB.Any.TypeCode.Content_Type (Data));
             Marshall (Complex_Buffer,
-                      Droopi.Any.TypeCode.Length (Data));
+                      PolyORB.Any.TypeCode.Length (Data));
             Marshall (Buffer, Encapsulate (Complex_Buffer));
             Release (Complex_Buffer);
          when Tk_Alias =>
-            Marshall (Buffer, Droopi.Types.Unsigned_Long'(21));
+            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(21));
             Start_Encapsulation (Complex_Buffer);
             Marshall (Complex_Buffer,
-                      Droopi.Any.TypeCode.Id (Data));
+                      PolyORB.Any.TypeCode.Id (Data));
             Marshall (Complex_Buffer,
-                      Droopi.Any.TypeCode.Name (Data));
+                      PolyORB.Any.TypeCode.Name (Data));
             Marshall (Complex_Buffer,
-                      Droopi.Any.TypeCode.Content_Type (Data));
+                      PolyORB.Any.TypeCode.Content_Type (Data));
             Marshall (Buffer, Encapsulate (Complex_Buffer));
             Release (Complex_Buffer);
          when Tk_Except =>
-            Marshall (Buffer, Droopi.Types.Unsigned_Long'(22));
+            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(22));
             Start_Encapsulation (Complex_Buffer);
             Marshall (Complex_Buffer,
-                      Droopi.Any.TypeCode.Id (Data));
+                      PolyORB.Any.TypeCode.Id (Data));
             Marshall (Complex_Buffer,
-                      Droopi.Any.TypeCode.Name (Data));
+                      PolyORB.Any.TypeCode.Name (Data));
             declare
-               Nb : Droopi.Types.Unsigned_Long :=
-                 Droopi.Any.TypeCode.Member_Count (Data);
+               Nb : PolyORB.Types.Unsigned_Long :=
+                 PolyORB.Any.TypeCode.Member_Count (Data);
             begin
                Marshall (Complex_Buffer, Nb);
                if Nb /= 0 then
                   for I in 0 .. Nb - 1 loop
                      Marshall (Complex_Buffer,
-                               Droopi.Any.TypeCode.Member_Name (Data, I));
+                               PolyORB.Any.TypeCode.Member_Name (Data, I));
                      Marshall (Complex_Buffer,
-                               Droopi.Any.TypeCode.Member_Type (Data, I));
+                               PolyORB.Any.TypeCode.Member_Type (Data, I));
                   end loop;
                end if;
             end;
             Marshall (Buffer, Encapsulate (Complex_Buffer));
             Release (Complex_Buffer);
          when Tk_Longlong =>
-            Marshall (Buffer, Droopi.Types.Unsigned_Long'(23));
+            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(23));
          when Tk_Ulonglong =>
-            Marshall (Buffer, Droopi.Types.Unsigned_Long'(24));
+            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(24));
          when Tk_Longdouble =>
-            Marshall (Buffer, Droopi.Types.Unsigned_Long'(25));
+            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(25));
          when Tk_Widechar =>
-            Marshall (Buffer, Droopi.Types.Unsigned_Long'(26));
+            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(26));
          when Tk_Wstring =>
-            Marshall (Buffer, Droopi.Types.Unsigned_Long'(27));
-            Marshall (Buffer, Droopi.Any.TypeCode.Length (Data));
+            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(27));
+            Marshall (Buffer, PolyORB.Any.TypeCode.Length (Data));
          when Tk_Fixed =>
-            Marshall (Buffer, Droopi.Types.Unsigned_Long'(28));
-            Marshall (Buffer, Droopi.Any.TypeCode.Fixed_Digits (Data));
-            Marshall (Buffer, Droopi.Any.TypeCode.Fixed_Scale (Data));
+            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(28));
+            Marshall (Buffer, PolyORB.Any.TypeCode.Fixed_Digits (Data));
+            Marshall (Buffer, PolyORB.Any.TypeCode.Fixed_Scale (Data));
          when Tk_Value =>
-            Marshall (Buffer, Droopi.Types.Unsigned_Long'(29));
+            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(29));
             Start_Encapsulation (Complex_Buffer);
             Marshall
               (Complex_Buffer,
-               Droopi.Any.TypeCode.Id (Data));
+               PolyORB.Any.TypeCode.Id (Data));
             Marshall
               (Complex_Buffer,
-               Droopi.Any.TypeCode.Name (Data));
+               PolyORB.Any.TypeCode.Name (Data));
             Marshall
               (Complex_Buffer,
-               Droopi.Any.TypeCode.Type_Modifier (Data));
+               PolyORB.Any.TypeCode.Type_Modifier (Data));
             Marshall
               (Complex_Buffer,
-               Droopi.Any.TypeCode.Concrete_Base_Type (Data));
+               PolyORB.Any.TypeCode.Concrete_Base_Type (Data));
             declare
-               Nb : Droopi.Types.Unsigned_Long :=
-                 Droopi.Any.TypeCode.Member_Count (Data);
+               Nb : PolyORB.Types.Unsigned_Long :=
+                 PolyORB.Any.TypeCode.Member_Count (Data);
             begin
                Marshall (Complex_Buffer, Nb);
                if Nb /= 0 then
                   for I in 0 .. Nb - 1 loop
                      Marshall
                        (Complex_Buffer,
-                        Droopi.Any.TypeCode.Member_Name (Data, I));
+                        PolyORB.Any.TypeCode.Member_Name (Data, I));
                      Marshall
                        (Complex_Buffer,
-                        Droopi.Any.TypeCode.Member_Type (Data, I));
+                        PolyORB.Any.TypeCode.Member_Type (Data, I));
                      Marshall
                        (Complex_Buffer,
-                        Droopi.Any.TypeCode.Member_Visibility (Data, I));
+                        PolyORB.Any.TypeCode.Member_Visibility (Data, I));
                   end loop;
                end if;
             end;
             Marshall (Buffer, Encapsulate (Complex_Buffer));
             Release (Complex_Buffer);
          when Tk_Valuebox =>
-            Marshall (Buffer, Droopi.Types.Unsigned_Long'(30));
+            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(30));
             Start_Encapsulation (Complex_Buffer);
             Marshall (Complex_Buffer,
-                      Droopi.Any.TypeCode.Id (Data));
+                      PolyORB.Any.TypeCode.Id (Data));
             Marshall (Complex_Buffer,
-                      Droopi.Any.TypeCode.Name (Data));
+                      PolyORB.Any.TypeCode.Name (Data));
             Marshall (Complex_Buffer,
-                      Droopi.Any.TypeCode.Content_Type (Data));
+                      PolyORB.Any.TypeCode.Content_Type (Data));
             Marshall (Buffer, Encapsulate (Complex_Buffer));
             Release (Complex_Buffer);
          when Tk_Native =>
-            Marshall (Buffer, Droopi.Types.Unsigned_Long'(31));
+            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(31));
             Start_Encapsulation (Complex_Buffer);
             Marshall (Complex_Buffer,
-                      Droopi.Any.TypeCode.Id (Data));
+                      PolyORB.Any.TypeCode.Id (Data));
             Marshall (Complex_Buffer,
-                      Droopi.Any.TypeCode.Name (Data));
+                      PolyORB.Any.TypeCode.Name (Data));
             Marshall (Buffer, Encapsulate (Complex_Buffer));
             Release (Complex_Buffer);
          when Tk_Abstract_Interface =>
-            Marshall (Buffer, Droopi.Types.Unsigned_Long'(32));
+            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(32));
             Start_Encapsulation (Complex_Buffer);
             Marshall (Complex_Buffer,
-                      Droopi.Any.TypeCode.Id (Data));
+                      PolyORB.Any.TypeCode.Id (Data));
             Marshall (Complex_Buffer,
-                      Droopi.Any.TypeCode.Name (Data));
+                      PolyORB.Any.TypeCode.Name (Data));
             Marshall (Buffer, Encapsulate (Complex_Buffer));
             Release (Complex_Buffer);
       end case;
@@ -1098,7 +1098,7 @@ package body Droopi.Representations.CDR is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in Droopi.Any.NamedValue) is
+      Data   : in PolyORB.Any.NamedValue) is
    begin
       pragma Debug (O ("Marshall (NamedValue) : enter"));
       Marshall_From_Any (Buffer, Data.Argument);
@@ -1110,9 +1110,9 @@ package body Droopi.Representations.CDR is
    --     Data   : in Encapsulation) is
    --  begin
    --     pragma Debug (O ("Marshall (Encapsulation) : enter"));
-   --     Marshall (Buffer, Droopi.Types.Unsigned_Long (Data'Length));
+   --     Marshall (Buffer, PolyORB.Types.Unsigned_Long (Data'Length));
    --     for I in Data'Range loop
-   --        Marshall (Buffer, Droopi.Types.Octet (Data (I)));
+   --        Marshall (Buffer, PolyORB.Types.Octet (Data (I)));
    --     end loop;
    --     pragma Debug (O ("Marshall (Encapsulation) : end"));
    --  end Marshall;
@@ -1125,91 +1125,91 @@ package body Droopi.Representations.CDR is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : access Droopi.Types.Octet) is
+      Data   : access PolyORB.Types.Octet) is
    begin
       Marshall (Buffer, Data.all);
    end Marshall;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : access Droopi.Types.Char) is
+      Data   : access PolyORB.Types.Char) is
    begin
       Marshall (Buffer, Data.all);
    end Marshall;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : access Droopi.Types.Wchar) is
+      Data   : access PolyORB.Types.Wchar) is
    begin
       Marshall (Buffer, Data.all);
    end Marshall;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : access Droopi.Types.Boolean) is
+      Data   : access PolyORB.Types.Boolean) is
    begin
       Marshall (Buffer, Data.all);
    end Marshall;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : access Droopi.Types.Short) is
+      Data   : access PolyORB.Types.Short) is
    begin
       Marshall (Buffer, Data.all);
    end Marshall;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : access Droopi.Types.Unsigned_Short) is
+      Data   : access PolyORB.Types.Unsigned_Short) is
    begin
       Marshall (Buffer, Data.all);
    end Marshall;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : access Droopi.Types.Long) is
+      Data   : access PolyORB.Types.Long) is
    begin
       Marshall (Buffer, Data.all);
    end Marshall;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : access Droopi.Types.Long_Long) is
+      Data   : access PolyORB.Types.Long_Long) is
    begin
       Marshall (Buffer, Data.all);
    end Marshall;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : access Droopi.Types.Unsigned_Long) is
+      Data   : access PolyORB.Types.Unsigned_Long) is
    begin
       Marshall (Buffer, Data.all);
    end Marshall;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : access Droopi.Types.Unsigned_Long_Long) is
+      Data   : access PolyORB.Types.Unsigned_Long_Long) is
    begin
       Marshall (Buffer, Data.all);
    end Marshall;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : access Droopi.Types.Float) is
+      Data   : access PolyORB.Types.Float) is
    begin
       Marshall (Buffer, Data.all);
    end Marshall;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : access Droopi.Types.Double) is
+      Data   : access PolyORB.Types.Double) is
    begin
       Marshall (Buffer, Data.all);
    end Marshall;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : access Droopi.Types.Long_Double) is
+      Data   : access PolyORB.Types.Long_Double) is
    begin
       Marshall (Buffer, Data.all);
    end Marshall;
@@ -1223,77 +1223,77 @@ package body Droopi.Representations.CDR is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : access Droopi.Types.String) is
+      Data   : access PolyORB.Types.String) is
    begin
       Marshall (Buffer, Data.all);
    end Marshall;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : access Droopi.Types.Wide_String) is
+      Data   : access PolyORB.Types.Wide_String) is
    begin
       Marshall (Buffer, Data.all);
    end Marshall;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : access Droopi.Types.Identifier) is
+      Data   : access PolyORB.Types.Identifier) is
    begin
       Marshall (Buffer, Data.all);
    end Marshall;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : access Droopi.Types.ScopedName) is
+      Data   : access PolyORB.Types.ScopedName) is
    begin
       Marshall (Buffer, Data.all);
    end Marshall;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : access Droopi.Types.RepositoryId) is
+      Data   : access PolyORB.Types.RepositoryId) is
    begin
       Marshall (Buffer, Data.all);
    end Marshall;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : access Droopi.Any.ValueModifier) is
+      Data   : access PolyORB.Any.ValueModifier) is
    begin
       Marshall (Buffer, Data.all);
    end Marshall;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : access Droopi.Any.Visibility) is
+      Data   : access PolyORB.Any.Visibility) is
    begin
       Marshall (Buffer, Data.all);
    end Marshall;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : access Droopi.Any.Any) is
+      Data   : access PolyORB.Any.Any) is
    begin
       Marshall (Buffer, Data.all);
    end Marshall;
 
    procedure Marshall_From_Any
      (Buffer : access Buffer_Type;
-      Data   : access Droopi.Any.Any) is
+      Data   : access PolyORB.Any.Any) is
    begin
       Marshall_From_Any (Buffer, Data.all);
    end Marshall_From_Any;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : access Droopi.Any.TypeCode.Object) is
+      Data   : access PolyORB.Any.TypeCode.Object) is
    begin
       Marshall (Buffer, Data.all);
    end Marshall;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : access Droopi.Any.NamedValue) is
+      Data   : access PolyORB.Any.NamedValue) is
    begin
       Marshall (Buffer, Data.all);
    end Marshall;
@@ -1302,7 +1302,7 @@ package body Droopi.Representations.CDR is
    --   (Buffer : access Buffer_Type;
    --    Data   : access Encapsulation) is
    --  begin
-   --    Marshall (Buffer, Droopi.Types.Unsigned_Long (Data'Length));
+   --    Marshall (Buffer, PolyORB.Types.Unsigned_Long (Data'Length));
    --    Insert_Raw_Data (Buffer, Data'Length,
    --    Opaque_Pointer'(Zone => Zone_Access(Data), Offset => 0));
    --  end Marshall;
@@ -1313,103 +1313,103 @@ package body Droopi.Representations.CDR is
 
    function Unmarshall
      (Buffer : access Buffer_Type)
-     return Droopi.Types.Boolean is
+     return PolyORB.Types.Boolean is
    begin
       pragma Debug (O ("Unmarshall (Boolean) : enter & end"));
-      return Droopi.Types.Boolean'Val
-        (Droopi.Types.Octet'(Unmarshall (Buffer)));
+      return PolyORB.Types.Boolean'Val
+        (PolyORB.Types.Octet'(Unmarshall (Buffer)));
    end Unmarshall;
 
    function Unmarshall
      (Buffer : access Buffer_Type)
-     return Droopi.Types.Char is
+     return PolyORB.Types.Char is
    begin
       pragma Debug (O ("Unmarshall (Char) : enter & end"));
-      return Droopi.Types.Char'Val
-        (Droopi.Types.Octet'(Unmarshall (Buffer)));
+      return PolyORB.Types.Char'Val
+        (PolyORB.Types.Octet'(Unmarshall (Buffer)));
    end Unmarshall;
 
    function Unmarshall
      (Buffer : access Buffer_Type)
-     return Droopi.Types.Wchar
+     return PolyORB.Types.Wchar
    is
       Octets : constant Stream_Element_Array
         := Align_Unmarshall_Big_Endian_Copy (Buffer, 2, 2);
    begin
       pragma Debug (O ("Unmarshall (WChar) : enter & end"));
-      return Droopi.Types.Wchar'Val
-        (Droopi.Types.Unsigned_Long (Octets (Octets'First)) * 256 +
-         Droopi.Types.Unsigned_Long (Octets (Octets'First + 1)));
+      return PolyORB.Types.Wchar'Val
+        (PolyORB.Types.Unsigned_Long (Octets (Octets'First)) * 256 +
+         PolyORB.Types.Unsigned_Long (Octets (Octets'First + 1)));
    end Unmarshall;
 
    function Unmarshall
      (Buffer : access Buffer_Type)
-     return Droopi.Types.Octet
+     return PolyORB.Types.Octet
    is
       Result : constant Stream_Element_Array
         := Align_Unmarshall_Copy (Buffer, 1, 1);
    begin
       pragma Debug (O ("Unmarshall (Octet) : enter & end"));
-      return Droopi.Types.Octet (Result (Result'First));
+      return PolyORB.Types.Octet (Result (Result'First));
    end Unmarshall;
 
    function Unmarshall
      (Buffer : access Buffer_Type)
-     return Droopi.Types.Unsigned_Short
+     return PolyORB.Types.Unsigned_Short
    is
       Octets : constant Stream_Element_Array
         := Align_Unmarshall_Big_Endian_Copy (Buffer, 2, 2);
    begin
       pragma Debug (O ("Unmarshall (UShort) : enter & end"));
-      return Droopi.Types.Unsigned_Short (Octets (Octets'First)) * 256 +
-        Droopi.Types.Unsigned_Short (Octets (Octets'First + 1));
+      return PolyORB.Types.Unsigned_Short (Octets (Octets'First)) * 256 +
+        PolyORB.Types.Unsigned_Short (Octets (Octets'First + 1));
    end Unmarshall;
 
    function Unmarshall
      (Buffer : access Buffer_Type)
-     return Droopi.Types.Unsigned_Long
+     return PolyORB.Types.Unsigned_Long
    is
       Octets : constant Stream_Element_Array
         := Align_Unmarshall_Big_Endian_Copy (Buffer, 4, 4);
    begin
       pragma Debug (O ("Unmarshall (ULong) : enter & end"));
-      return Droopi.Types.Unsigned_Long (Octets (Octets'First)) * 256**3
-        + Droopi.Types.Unsigned_Long (Octets (Octets'First + 1)) * 256**2
-        + Droopi.Types.Unsigned_Long (Octets (Octets'First + 2)) * 256
-        + Droopi.Types.Unsigned_Long (Octets (Octets'First + 3));
+      return PolyORB.Types.Unsigned_Long (Octets (Octets'First)) * 256**3
+        + PolyORB.Types.Unsigned_Long (Octets (Octets'First + 1)) * 256**2
+        + PolyORB.Types.Unsigned_Long (Octets (Octets'First + 2)) * 256
+        + PolyORB.Types.Unsigned_Long (Octets (Octets'First + 3));
       --  Hard-coded expression will be optimized by the compiler
       --  as shifts+adds.
    end Unmarshall;
 
    function Unmarshall
      (Buffer : access Buffer_Type)
-     return Droopi.Types.Unsigned_Long_Long
+     return PolyORB.Types.Unsigned_Long_Long
    is
       Octets : constant Stream_Element_Array
         := Align_Unmarshall_Big_Endian_Copy (Buffer, 8, 8);
    begin
       pragma Debug (O ("Unmarshall (ULongLong) : enter & end"));
-      return Droopi.Types.Unsigned_Long_Long (Octets (Octets'First)) * 256**7
-        + Droopi.Types.Unsigned_Long_Long (Octets (Octets'First + 1)) * 256**6
-        + Droopi.Types.Unsigned_Long_Long (Octets (Octets'First + 2)) * 256**5
-        + Droopi.Types.Unsigned_Long_Long (Octets (Octets'First + 3)) * 256**4
-        + Droopi.Types.Unsigned_Long_Long (Octets (Octets'First + 4)) * 256**3
-        + Droopi.Types.Unsigned_Long_Long (Octets (Octets'First + 5)) * 256**2
-        + Droopi.Types.Unsigned_Long_Long (Octets (Octets'First + 6)) * 256
-        + Droopi.Types.Unsigned_Long_Long (Octets (Octets'First + 7));
+      return PolyORB.Types.Unsigned_Long_Long (Octets (Octets'First)) * 256**7
+        + PolyORB.Types.Unsigned_Long_Long (Octets (Octets'First + 1)) * 256**6
+        + PolyORB.Types.Unsigned_Long_Long (Octets (Octets'First + 2)) * 256**5
+        + PolyORB.Types.Unsigned_Long_Long (Octets (Octets'First + 3)) * 256**4
+        + PolyORB.Types.Unsigned_Long_Long (Octets (Octets'First + 4)) * 256**3
+        + PolyORB.Types.Unsigned_Long_Long (Octets (Octets'First + 5)) * 256**2
+        + PolyORB.Types.Unsigned_Long_Long (Octets (Octets'First + 6)) * 256
+        + PolyORB.Types.Unsigned_Long_Long (Octets (Octets'First + 7));
       --  Hard-coded expression will be optimized by the compiler
       --  as shifts+adds.
    end Unmarshall;
 
    function Unmarshall (Buffer : access Buffer_Type)
-     return Droopi.Types.Long_Long is
+     return PolyORB.Types.Long_Long is
    begin
       pragma Debug (O ("Unmarshall (LongLong) : enter & end"));
       return To_Long_Long (Unmarshall (Buffer));
    end Unmarshall;
 
    function Unmarshall (Buffer : access Buffer_Type)
-     return Droopi.Types.Long
+     return PolyORB.Types.Long
    is
    begin
       pragma Debug (O ("Unmarshall (Long) : enter & end"));
@@ -1417,7 +1417,7 @@ package body Droopi.Representations.CDR is
    end Unmarshall;
 
    function Unmarshall (Buffer : access Buffer_Type)
-     return Droopi.Types.Short
+     return PolyORB.Types.Short
    is
    begin
       pragma Debug (O ("Unmarshall (Short) : enter & end"));
@@ -1425,7 +1425,7 @@ package body Droopi.Representations.CDR is
    end Unmarshall;
 
    function Unmarshall (Buffer : access Buffer_Type)
-     return Droopi.Types.Float
+     return PolyORB.Types.Float
    is
    begin
       pragma Debug (O ("Unmarshall (Float) : enter & end"));
@@ -1434,7 +1434,7 @@ package body Droopi.Representations.CDR is
 
    function Unmarshall
      (Buffer : access Buffer_Type)
-     return Droopi.Types.Double
+     return PolyORB.Types.Double
    is
       Octets : constant Stream_Element_Array
         := Align_Unmarshall_Host_Endian_Copy (Buffer, 8, 8);
@@ -1444,38 +1444,38 @@ package body Droopi.Representations.CDR is
    end Unmarshall;
 
    function Unmarshall (Buffer : access Buffer_Type)
-     return Droopi.Types.Long_Double is
+     return PolyORB.Types.Long_Double is
       --  Octets : constant Stream_Element_Array :=
       --  Align_Unmarshall_Host_Endian_Copy (Buffer, 12, 8);
    begin
       --  raise Not_Implemented;
       --  pragma Debug (O ("Unmarshall (LongDouble) : enter & end"));
       --  return To_Long_Double (Long_Double_Buf (Octets));
-      return Droopi.Types.Long_Double (0);
+      return PolyORB.Types.Long_Double (0);
    end Unmarshall;
 
    function Unmarshall
      (Buffer : access Buffer_Type)
      return Standard.String
    is
-      Length : constant Droopi.Types.Unsigned_Long
+      Length : constant PolyORB.Types.Unsigned_Long
         := Unmarshall (Buffer);
       Equiv  : String (1 .. Natural (Length) - 1);
 
    begin
       pragma Debug (O ("Unmarshall (String): enter"));
       pragma Debug (O ("Unmarshall (String): length is " &
-                    Droopi.Types.Unsigned_Long'Image (Length)));
+                    PolyORB.Types.Unsigned_Long'Image (Length)));
       for I in Equiv'Range loop
          Equiv (I) := Character'Val
-           (Droopi.Types.Char'Pos
+           (PolyORB.Types.Char'Pos
             (Unmarshall (Buffer)));
       end loop;
 
-      if Character'Val (Droopi.Types.Char'Pos (Unmarshall (Buffer)))
+      if Character'Val (PolyORB.Types.Char'Pos (Unmarshall (Buffer)))
         /= ASCII.Nul
       then
-         Droopi.CORBA_P.Exceptions.Raise_Marshal;
+         PolyORB.CORBA_P.Exceptions.Raise_Marshal;
       end if;
 
       pragma Debug (O ("Unmarshall (String): -> " & Equiv));
@@ -1485,81 +1485,81 @@ package body Droopi.Representations.CDR is
 
    function Unmarshall
      (Buffer : access Buffer_Type)
-     return Droopi.Types.String is
+     return PolyORB.Types.String is
    begin
-      return Droopi.Types.To_Droopi_String (Unmarshall (Buffer));
+      return PolyORB.Types.To_PolyORB_String (Unmarshall (Buffer));
    end Unmarshall;
 
    function Unmarshall (Buffer : access Buffer_Type)
-     return Droopi.Types.Wide_String
+     return PolyORB.Types.Wide_String
    is
-      Length : constant Droopi.Types.Unsigned_Long
+      Length : constant PolyORB.Types.Unsigned_Long
         := Unmarshall (Buffer);
       Equiv  : Wide_String (1 .. Natural (Length));
    begin
       pragma Debug (O ("Unmarshall (Wide_String) : enter"));
       pragma Debug (O ("Unmarshall (Wide_String) : length is " &
-                    Droopi.Types.Unsigned_Long'Image (Length)));
+                    PolyORB.Types.Unsigned_Long'Image (Length)));
       for I in Equiv'Range loop
-         Equiv (I) := Wide_Character'Val (Droopi.Types.Wchar'Pos
+         Equiv (I) := Wide_Character'Val (PolyORB.Types.Wchar'Pos
                                           (Unmarshall (Buffer)));
       end loop;
       pragma Debug (O ("Unmarshall (Wide_String) : end"));
-      return Droopi.Types.To_Droopi_Wide_String
+      return PolyORB.Types.To_PolyORB_Wide_String
         (Equiv (1 .. Equiv'Length - 1));
    end Unmarshall;
 
    function Unmarshall
      (Buffer : access Buffer_Type)
-     return Droopi.Types.Identifier is
+     return PolyORB.Types.Identifier is
    begin
       pragma Debug (O ("Unmarshall (Identifier) : enter & end"));
-      return Droopi.Types.Identifier
-        (Droopi.Types.String'(Unmarshall (Buffer)));
+      return PolyORB.Types.Identifier
+        (PolyORB.Types.String'(Unmarshall (Buffer)));
    end Unmarshall;
 
    function Unmarshall
      (Buffer : access Buffer_Type)
-     return Droopi.Types.ScopedName is
+     return PolyORB.Types.ScopedName is
    begin
       pragma Debug (O ("Unmarshall (ScopedName) : enter & end"));
-      return Droopi.Types.ScopedName
-        (Droopi.Types.String'(Unmarshall (Buffer)));
+      return PolyORB.Types.ScopedName
+        (PolyORB.Types.String'(Unmarshall (Buffer)));
    end Unmarshall;
 
    function Unmarshall
      (Buffer : access Buffer_Type)
-     return Droopi.Types.RepositoryId is
+     return PolyORB.Types.RepositoryId is
    begin
       pragma Debug (O ("Unmarshall (RepositoryId) : enter & end"));
-      return Droopi.Types.RepositoryId
-        (Droopi.Types.String'(Unmarshall (Buffer)));
+      return PolyORB.Types.RepositoryId
+        (PolyORB.Types.String'(Unmarshall (Buffer)));
    end Unmarshall;
 
    function Unmarshall
      (Buffer : access Buffer_Type)
-     return Droopi.Any.ValueModifier is
+     return PolyORB.Any.ValueModifier is
    begin
       pragma Debug (O ("Unmarshall (ValueModifier) : enter & end"));
-      return Droopi.Any.ValueModifier
-        (Droopi.Types.Short'(Unmarshall (Buffer)));
+      return PolyORB.Any.ValueModifier
+        (PolyORB.Types.Short'(Unmarshall (Buffer)));
    end Unmarshall;
 
    function Unmarshall
      (Buffer : access Buffer_Type)
-     return Droopi.Any.Visibility is
+     return PolyORB.Any.Visibility is
    begin
       pragma Debug (O ("Unmarshall (Visibility) : enter & end"));
-      return Droopi.Any.Visibility
-        (Droopi.Types.Short'(Unmarshall (Buffer)));
+      return PolyORB.Any.Visibility
+        (PolyORB.Types.Short'(Unmarshall (Buffer)));
    end Unmarshall;
 
    function Unmarshall
      (Buffer : access Buffer_Type)
-     return Droopi.Any.Any
+     return PolyORB.Any.Any
    is
-      Result : Droopi.Any.Any;
-      Tc     : constant Droopi.Any.TypeCode.Object
+      Result : PolyORB.Any.Any;
+      Tc     : constant PolyORB.Any.TypeCode.Object
         := Unmarshall (Buffer);
    begin
       pragma Debug (O ("Unmarshall (Any) : enter"));
@@ -1571,18 +1571,18 @@ package body Droopi.Representations.CDR is
 
    procedure Unmarshall_To_Any
      (Buffer : access Buffer_Type;
-      Result : in out Droopi.Any.Any)
+      Result : in out PolyORB.Any.Any)
    is
-      Tc       : constant Droopi.Any.TypeCode.Object
+      Tc       : constant PolyORB.Any.TypeCode.Object
         := Get_Precise_Type (Result);
       Is_Empty : constant Boolean
-        := Droopi.Any.Is_Empty (Result);
+        := PolyORB.Any.Is_Empty (Result);
 
    begin
       pragma Debug (O ("Unmarshall_To_Any : enter"));
       pragma Debug
         (O ("Unmarshall_To_Any : Any_Type is " &
-            Droopi.Any.TCKind'Image (TypeCode.Kind (Tc))));
+            PolyORB.Any.TCKind'Image (TypeCode.Kind (Tc))));
 
       case Any.TypeCode.Kind (Tc) is
          when Tk_Null | Tk_Void =>
@@ -1593,7 +1593,7 @@ package body Droopi.Representations.CDR is
             begin
                pragma Debug (O ("Unmarshall_To_Any : dealing with a short"));
                pragma Debug (O ("Unmarshall_To_Any : its value is "
-                                & Droopi.Types.Short'Image (S)));
+                                & PolyORB.Types.Short'Image (S)));
                Set_Any_Value (Result, S);
             end;
          when Tk_Long =>
@@ -1618,7 +1618,7 @@ package body Droopi.Representations.CDR is
             end;
          when Tk_Float =>
             declare
-               F : Droopi.Types.Float := Unmarshall (Buffer);
+               F : PolyORB.Types.Float := Unmarshall (Buffer);
             begin
                Set_Any_Value (Result, F);
             end;
@@ -1630,7 +1630,7 @@ package body Droopi.Representations.CDR is
             end;
          when Tk_Boolean =>
             declare
-               B : Droopi.Types.Boolean := Unmarshall (Buffer);
+               B : PolyORB.Types.Boolean := Unmarshall (Buffer);
             begin
                Set_Any_Value (Result, B);
             end;
@@ -1642,7 +1642,7 @@ package body Droopi.Representations.CDR is
             end;
          when Tk_Octet =>
             declare
-               O : Droopi.Types.Octet := Unmarshall (Buffer);
+               O : PolyORB.Types.Octet := Unmarshall (Buffer);
             begin
                Set_Any_Value (Result, O);
             end;
@@ -1665,19 +1665,19 @@ package body Droopi.Representations.CDR is
             null;
          when Tk_Objref =>
             --  declare
-            --     O : Droopi.Types.Object.Ref := Unmarshall (Buffer);
+            --     O : PolyORB.Types.Object.Ref := Unmarshall (Buffer);
             --  begin
-            --     Droopi.Types.Object.Helper.Set_Any_Value (Result, O);
+            --     PolyORB.Types.Object.Helper.Set_Any_Value (Result, O);
             --  end;
             null;
          when Tk_Struct =>
             declare
                Nb : Unsigned_Long :=
                  TypeCode.Member_Count (Tc);
-               Arg : Droopi.Any.Any;
+               Arg : PolyORB.Any.Any;
             begin
                pragma Debug (O ("unmarshall_to_any : dealing with a struct"));
-               Droopi.Any.Set_Any_Aggregate_Value (Result);
+               PolyORB.Any.Set_Any_Aggregate_Value (Result);
                pragma Debug (O ("unmarshall_to_any : about to "
                                 & "unmarshall parameters"));
                if Nb /= 0 then
@@ -1704,7 +1704,7 @@ package body Droopi.Representations.CDR is
          when Tk_Union =>
             declare
                Nb : Unsigned_Long;
-               Label, Arg : Droopi.Any.Any;
+               Label, Arg : PolyORB.Any.Any;
             begin
                pragma Debug (O ("Unmarshall_To_Any : dealing with an union"));
                Set_Any_Aggregate_Value (Result);
@@ -1714,7 +1714,7 @@ package body Droopi.Representations.CDR is
                   Label := Get_Aggregate_Element
                     (Result,
                      TypeCode.Discriminator_Type (Tc),
-                     Droopi.Types.Unsigned_Long (0));
+                     PolyORB.Types.Unsigned_Long (0));
                end if;
                Unmarshall_To_Any (Buffer, Label);
                if Is_Empty then
@@ -1724,7 +1724,7 @@ package body Droopi.Representations.CDR is
                end if;
                pragma Debug (O ("Unmarshall_To_Any : about to call "
                                 & "member_count_with_label"));
-               Nb := Droopi.Any.TypeCode.Member_Count_With_Label (Tc, Label);
+               Nb := PolyORB.Any.TypeCode.Member_Count_With_Label (Tc, Label);
                if Nb > 0 then
                   for I in 0 .. Nb - 1 loop
                      if Is_Empty then
@@ -1745,7 +1745,7 @@ package body Droopi.Representations.CDR is
             end;
          when Tk_Enum =>
             declare
-               Arg : Droopi.Any.Any;
+               Arg : PolyORB.Any.Any;
             begin
                Set_Any_Aggregate_Value (Result);
                if Is_Empty then
@@ -1754,7 +1754,7 @@ package body Droopi.Representations.CDR is
                   Arg := Get_Aggregate_Element
                     (Result,
                      TC_Unsigned_Long,
-                     Droopi.Types.Unsigned_Long (0));
+                     PolyORB.Types.Unsigned_Long (0));
                end if;
                Unmarshall_To_Any (Buffer, Arg);
                if Is_Empty then
@@ -1763,7 +1763,7 @@ package body Droopi.Representations.CDR is
             end;
          when Tk_String =>
             declare
-               S : Droopi.Types.String := Unmarshall (Buffer);
+               S : PolyORB.Types.String := Unmarshall (Buffer);
             begin
                Set_Any_Value (Result, S);
             end;
@@ -1771,12 +1771,12 @@ package body Droopi.Representations.CDR is
             declare
                Nb : Unsigned_Long := Unmarshall (Buffer);
                Max_Nb : Unsigned_Long := TypeCode.Length (Tc);
-               Arg : Droopi.Any.Any;
+               Arg : PolyORB.Any.Any;
             begin
                pragma Debug
                  (O ("Unmarshall_To_Any : dealing with a sequence"));
                if Max_Nb > 0 and then Nb > Max_Nb then
-                  Droopi.CORBA_P.Exceptions.Raise_Marshal;
+                  PolyORB.CORBA_P.Exceptions.Raise_Marshal;
                end if;
                Set_Any_Aggregate_Value (Result);
                pragma Debug (O ("Unmarshall_To_Any : aggregate value set"));
@@ -1788,7 +1788,7 @@ package body Droopi.Representations.CDR is
                   Arg := Get_Aggregate_Element
                     (Result,
                      TC_Unsigned_Long,
-                     Droopi.Types.Unsigned_Long (0));
+                     PolyORB.Types.Unsigned_Long (0));
                   Set_Any_Value (Arg, Nb);
                end if;
                if Nb /= 0 then
@@ -1809,11 +1809,11 @@ package body Droopi.Representations.CDR is
          when Tk_Array =>
             declare
                Nb : Unsigned_Long := TypeCode.Length (Tc);
-               Content_True_Type : Droopi.Any.TypeCode.Object :=
+               Content_True_Type : PolyORB.Any.TypeCode.Object :=
                  TypeCode.Content_Type (Tc);
-               Arg : Droopi.Any.Any;
+               Arg : PolyORB.Any.Any;
             begin
-               while Droopi.Any.TypeCode.Kind (Content_True_Type) = Tk_Array
+               while PolyORB.Any.TypeCode.Kind (Content_True_Type) = Tk_Array
                loop
                   Nb := Nb * TypeCode.Length (Content_True_Type);
                   Content_True_Type :=
@@ -1843,7 +1843,7 @@ package body Droopi.Representations.CDR is
             declare
                Nb : Unsigned_Long :=
                  TypeCode.Member_Count (Tc);
-               Arg : Droopi.Any.Any;
+               Arg : PolyORB.Any.Any;
             begin
                Set_Any_Aggregate_Value (Result);
                if Nb /= 0 then
@@ -1890,14 +1890,14 @@ package body Droopi.Representations.CDR is
             end;
          when Tk_Wstring =>
             declare
-               Ws : Droopi.Types.Wide_String := Unmarshall (Buffer);
+               Ws : PolyORB.Types.Wide_String := Unmarshall (Buffer);
             begin
                Set_Any_Value (Result, Ws);
             end;
          when Tk_Fixed =>
             --  FIXME : to be done
             --  declare
-            --   Arg1,Arg2:Droopi.Any.Any;
+            --   Arg1,Arg2:PolyORB.Any.Any;
             --  begin
             --    pragma Debug(0 ("unmarshall_to_any: dealing with a fixed"));
             --    Set_Any_Aggregate_Value(Result);
@@ -1907,7 +1907,7 @@ package body Droopi.Representations.CDR is
             --      Arg1:= Get_Aggregate_Element
             --             (Result,
             --              TypeCode.Fixed_Digits(Tc),
-            --              Droopi.Types.Unsigned_Long(0));
+            --              PolyORB.Types.Unsigned_Long(0));
             --    end if;
             --    Unmarshall_To_Any(Buffer, Arg1);
             --    if Is_Empty then
@@ -1920,7 +1920,7 @@ package body Droopi.Representations.CDR is
             --       Arg2:= Get_Aggregate_Element
             --             (Result,
             --              TypeCode.Fixed_Digits(Tc),
-            --              Droopi.Types.Unsigned_Long(0));
+            --              PolyORB.Types.Unsigned_Long(0));
             --    end if;
             --    Unmarshall_To_Any(Buffer, Arg2);
             --    if Is_Empty then
@@ -1933,8 +1933,8 @@ package body Droopi.Representations.CDR is
          when Tk_Value =>
 
             --  declare
-            --   Val_Modifier,Arg: Droopi.Any.Any;
-            --   Nb: Droopi.Types.Unsigned_Long:=
+            --   Val_Modifier,Arg: PolyORB.Any.Any;
+            --   Nb: PolyORB.Types.Unsigned_Long:=
             --          TypeCode.Member_Count(Tc);
 
             --  begin
@@ -1945,7 +1945,7 @@ package body Droopi.Representations.CDR is
             --     Val_Modifier:= Get_Aggregate_Element
             --               (Result,
             --                TypeCode.Discriminator_Type(Tc),
-            --                Droopi.Types.Unsigned_Long(0));
+            --                PolyORB.Types.Unsigned_Long(0));
             --   end if;
             --   Unmarshall_To_Any(Buffer,Val_Modifier);
             --   if Is_Empty then
@@ -1978,12 +1978,12 @@ package body Droopi.Representations.CDR is
             --     Set_Any_Aggregate_Value(Result);
             --     if Is_Empty then
             --       Arg:= Get_Empty_Any(TypeCode.Member_Type
-            --              (Tc,Droopi.Types.Unsigned_Long(0)));
+            --              (Tc,PolyORB.Types.Unsigned_Long(0)));
             --     else
-            --       Arg:= Droopi.Any.Get_Aggregate_Element
+            --       Arg:= PolyORB.Any.Get_Aggregate_Element
             --                 (Result,
-            --                  Droopi.Any.TypeCode.Member_Type(Tc,
-            --                  Droopi.Types.Unsigned_Long(0)));
+            --                  PolyORB.Any.TypeCode.Member_Type(Tc,
+            --                  PolyORB.Types.Unsigned_Long(0)));
             --     end if;
             --     Unmarshall_To_Any(Buffer,Arg);
             --     if Is_Empty then
@@ -2003,65 +2003,65 @@ package body Droopi.Representations.CDR is
 
    function Unmarshall
      (Buffer : access Buffer_Type)
-     return Droopi.Any.TypeCode.Object
+     return PolyORB.Any.TypeCode.Object
    is
-      Nb : Droopi.Types.Unsigned_Long := Unmarshall (Buffer);
-      Result : Droopi.Any.TypeCode.Object;
+      Nb : PolyORB.Types.Unsigned_Long := Unmarshall (Buffer);
+      Result : PolyORB.Any.TypeCode.Object;
    begin
       --  XXX The hardcoded values in this case should be replaced
       --  by symbolic constants.
       pragma Debug (O ("Unmarshall (TypeCode) : enter"));
       case Nb is
          when 0 =>
-            Result := Droopi.Any.TypeCode.TC_Null;
+            Result := PolyORB.Any.TypeCode.TC_Null;
          when 1 =>
-            Result := Droopi.Any.TypeCode.TC_Void;
+            Result := PolyORB.Any.TypeCode.TC_Void;
          when 2 =>
-            Result := Droopi.Any.TypeCode.TC_Short;
+            Result := PolyORB.Any.TypeCode.TC_Short;
          when 3 =>
-            Result := Droopi.Any.TypeCode.TC_Long;
+            Result := PolyORB.Any.TypeCode.TC_Long;
          when 4 =>
-            Result := Droopi.Any.TypeCode.TC_Unsigned_Short;
+            Result := PolyORB.Any.TypeCode.TC_Unsigned_Short;
          when 5 =>
-            Result := Droopi.Any.TypeCode.TC_Unsigned_Long;
+            Result := PolyORB.Any.TypeCode.TC_Unsigned_Long;
          when 6 =>
-            Result := Droopi.Any.TypeCode.TC_Float;
+            Result := PolyORB.Any.TypeCode.TC_Float;
          when 7 =>
-            Result := Droopi.Any.TypeCode.TC_Double;
+            Result := PolyORB.Any.TypeCode.TC_Double;
          when 8 =>
-            Result := Droopi.Any.TypeCode.TC_Boolean;
+            Result := PolyORB.Any.TypeCode.TC_Boolean;
          when 9 =>
-            Result := Droopi.Any.TypeCode.TC_Char;
+            Result := PolyORB.Any.TypeCode.TC_Char;
          when 10 =>
-            Result := Droopi.Any.TypeCode.TC_Octet;
+            Result := PolyORB.Any.TypeCode.TC_Octet;
          when 11 =>
-            Result := Droopi.Any.TypeCode.TC_Any;
+            Result := PolyORB.Any.TypeCode.TC_Any;
          when 12 =>
             pragma Debug (O ("Unmarshall (TypeCode) : "
                              & "dealing with a TypeCode"));
-            Result := Droopi.Any.TypeCode.TC_TypeCode;
+            Result := PolyORB.Any.TypeCode.TC_TypeCode;
          when 13 =>
-            Result := Droopi.Any.TypeCode.TC_Principal;
+            Result := PolyORB.Any.TypeCode.TC_Principal;
          when 14 =>
-            Result := Droopi.Any.TypeCode.TC_Object;
+            Result := PolyORB.Any.TypeCode.TC_Object;
             declare
-               Id : Droopi.Types.String := Unmarshall (Buffer);
-               Name : Droopi.Types.String := Unmarshall (Buffer);
+               Id : PolyORB.Types.String := Unmarshall (Buffer);
+               Name : PolyORB.Types.String := Unmarshall (Buffer);
             begin
-               Droopi.Any.TypeCode.Add_Parameter
+               PolyORB.Any.TypeCode.Add_Parameter
                  (Result, To_Any (Name));
-               Droopi.Any.TypeCode.Add_Parameter
+               PolyORB.Any.TypeCode.Add_Parameter
                  (Result, To_Any (Id));
             end;
          when 15 =>
-            Result := Droopi.Any.TypeCode.TC_Struct;
+            Result := PolyORB.Any.TypeCode.TC_Struct;
             declare
                Complex_Encap :  aliased Encapsulation
                  := Unmarshall (Buffer);
                Complex_Buffer : Buffer_Access := null;
-               Id, Name, Member_Name : Droopi.Types.String;
-               Nb : Droopi.Types.Unsigned_Long;
-               Member_Type : Droopi.Any.TypeCode.Object;
+               Id, Name, Member_Name : PolyORB.Types.String;
+               Nb : PolyORB.Types.Unsigned_Long;
+               Member_Type : PolyORB.Any.TypeCode.Object;
             begin
                pragma Debug (O ("unmarshall (TypeCode) : dealing "
                                 & "with a struct"));
@@ -2069,31 +2069,31 @@ package body Droopi.Representations.CDR is
                Id   := Unmarshall (Complex_Buffer);
                Name := Unmarshall (Complex_Buffer);
                Nb   := Unmarshall (Complex_Buffer);
-               Droopi.Any.TypeCode.Add_Parameter
+               PolyORB.Any.TypeCode.Add_Parameter
                  (Result, To_Any (Name));
-               Droopi.Any.TypeCode.Add_Parameter
+               PolyORB.Any.TypeCode.Add_Parameter
                  (Result, To_Any (Id));
                if Nb /= 0 then
                   for I in 0 .. Nb - 1 loop
                      Member_Name := Unmarshall (Complex_Buffer);
                      Member_Type := Unmarshall (Complex_Buffer);
-                     Droopi.Any.TypeCode.Add_Parameter
+                     PolyORB.Any.TypeCode.Add_Parameter
                        (Result, To_Any (Member_Type));
-                     Droopi.Any.TypeCode.Add_Parameter
+                     PolyORB.Any.TypeCode.Add_Parameter
                        (Result, To_Any (Member_Name));
                   end loop;
                end if;
             end;
          when 16 =>
-            Result := Droopi.Any.TypeCode.TC_Union;
+            Result := PolyORB.Any.TypeCode.TC_Union;
             declare
                Complex_Encap : aliased Encapsulation
                  := Unmarshall (Buffer);
                Complex_Buffer : Buffer_Access := null;
-               Id, Name, Member_Name : Droopi.Types.String;
-               Nb, Default_Index : Droopi.Types.Unsigned_Long;
-               Discriminator_Type, Member_Type : Droopi.Any.TypeCode.Object;
-               Member_Label : Droopi.Any.Any;
+               Id, Name, Member_Name : PolyORB.Types.String;
+               Nb, Default_Index : PolyORB.Types.Unsigned_Long;
+               Discriminator_Type, Member_Type : PolyORB.Any.TypeCode.Object;
+               Member_Label : PolyORB.Any.Any;
             begin
                Decapsulate (Complex_Encap'Access, Complex_Buffer);
                Id := Unmarshall (Complex_Buffer);
@@ -2101,13 +2101,13 @@ package body Droopi.Representations.CDR is
                Discriminator_Type := Unmarshall (Complex_Buffer);
                Default_Index := Unmarshall (Complex_Buffer);
                Nb := Unmarshall (Complex_Buffer);
-               Droopi.Any.TypeCode.Add_Parameter
+               PolyORB.Any.TypeCode.Add_Parameter
                  (Result, To_Any (Name));
-               Droopi.Any.TypeCode.Add_Parameter
+               PolyORB.Any.TypeCode.Add_Parameter
                  (Result, To_Any (Id));
-               Droopi.Any.TypeCode.Add_Parameter
+               PolyORB.Any.TypeCode.Add_Parameter
                  (Result, To_Any (Discriminator_Type));
-               Droopi.Any.TypeCode.Add_Parameter
+               PolyORB.Any.TypeCode.Add_Parameter
                  (Result, To_Any (Default_Index));
                if Nb /= 0 then
                   for I in 0 .. Nb - 1 loop
@@ -2115,172 +2115,172 @@ package body Droopi.Representations.CDR is
                      Unmarshall_To_Any (Complex_Buffer, Member_Label);
                      Member_Name := Unmarshall (Complex_Buffer);
                      Member_Type := Unmarshall (Complex_Buffer);
-                     Droopi.Any.TypeCode.Add_Parameter
+                     PolyORB.Any.TypeCode.Add_Parameter
                        (Result, Member_Label);
-                     Droopi.Any.TypeCode.Add_Parameter
+                     PolyORB.Any.TypeCode.Add_Parameter
                        (Result, To_Any (Member_Type));
-                     Droopi.Any.TypeCode.Add_Parameter
+                     PolyORB.Any.TypeCode.Add_Parameter
                        (Result, To_Any (Member_Name));
                   end loop;
                end if;
             end;
          when 17 =>
-            Result := Droopi.Any.TypeCode.TC_Enum;
+            Result := PolyORB.Any.TypeCode.TC_Enum;
             declare
                Complex_Encap :  aliased Encapsulation
                  := Unmarshall (Buffer);
                Complex_Buffer :  Buffer_Access := null;
-               Id, Name, Member_Name : Droopi.Types.String;
-               Nb : Droopi.Types.Unsigned_Long;
+               Id, Name, Member_Name : PolyORB.Types.String;
+               Nb : PolyORB.Types.Unsigned_Long;
             begin
                Decapsulate (Complex_Encap'Access, Complex_Buffer);
                Id := Unmarshall (Complex_Buffer);
                Name := Unmarshall (Complex_Buffer);
                Nb := Unmarshall (Complex_Buffer);
-               Droopi.Any.TypeCode.Add_Parameter
+               PolyORB.Any.TypeCode.Add_Parameter
                  (Result, To_Any (Name));
-               Droopi.Any.TypeCode.Add_Parameter
+               PolyORB.Any.TypeCode.Add_Parameter
                  (Result, To_Any (Id));
                if Nb /= 0 then
                   for I in 0 .. Nb - 1 loop
                      Member_Name := Unmarshall (Complex_Buffer);
-                     Droopi.Any.TypeCode.Add_Parameter
+                     PolyORB.Any.TypeCode.Add_Parameter
                        (Result, To_Any (Member_Name));
                   end loop;
                end if;
             end;
          when 18 =>
-            Result := Droopi.Any.TypeCode.TC_String;
+            Result := PolyORB.Any.TypeCode.TC_String;
             declare
-               Length : Droopi.Types.Unsigned_Long;
+               Length : PolyORB.Types.Unsigned_Long;
             begin
                Length := Unmarshall (Buffer);
-               Droopi.Any.TypeCode.Add_Parameter
+               PolyORB.Any.TypeCode.Add_Parameter
                  (Result, To_Any (Length));
             end;
          when 19 =>
-            Result := Droopi.Any.TypeCode.TC_Sequence;
+            Result := PolyORB.Any.TypeCode.TC_Sequence;
             declare
                Complex_Encap :  aliased Encapsulation
                  := Unmarshall (Buffer);
                Complex_Buffer : Buffer_Access := null;
-               Length : Droopi.Types.Unsigned_Long;
-               Content_Type : Droopi.Any.TypeCode.Object;
+               Length : PolyORB.Types.Unsigned_Long;
+               Content_Type : PolyORB.Any.TypeCode.Object;
             begin
                Decapsulate (Complex_Encap'Access, Complex_Buffer);
                Content_Type := Unmarshall (Complex_Buffer);
                Length := Unmarshall (Complex_Buffer);
-               Droopi.Any.TypeCode.Add_Parameter
+               PolyORB.Any.TypeCode.Add_Parameter
                  (Result, To_Any (Length));
-               Droopi.Any.TypeCode.Add_Parameter
+               PolyORB.Any.TypeCode.Add_Parameter
                  (Result, To_Any (Content_Type));
             end;
          when 20 =>
-            Result := Droopi.Any.TypeCode.TC_Array;
+            Result := PolyORB.Any.TypeCode.TC_Array;
             declare
                Complex_Encap : aliased Encapsulation
                  := Unmarshall (Buffer);
                Complex_Buffer : Buffer_Access := null;
-               Length : Droopi.Types.Unsigned_Long;
-               Content_Type : Droopi.Any.TypeCode.Object;
+               Length : PolyORB.Types.Unsigned_Long;
+               Content_Type : PolyORB.Any.TypeCode.Object;
             begin
                Decapsulate (Complex_Encap'Access, Complex_Buffer);
                Content_Type := Unmarshall (Complex_Buffer);
                Length := Unmarshall (Complex_Buffer);
-               Droopi.Any.TypeCode.Add_Parameter
+               PolyORB.Any.TypeCode.Add_Parameter
                  (Result, To_Any (Length));
-               Droopi.Any.TypeCode.Add_Parameter
+               PolyORB.Any.TypeCode.Add_Parameter
                  (Result, To_Any (Content_Type));
             end;
          when 21 =>
-            Result := Droopi.Any.TypeCode.TC_Alias;
+            Result := PolyORB.Any.TypeCode.TC_Alias;
             declare
                Complex_Encap : aliased Encapsulation
                  := Unmarshall (Buffer);
                Complex_Buffer : Buffer_Access := null;
-               Id, Name : Droopi.Types.String;
-               Content_Type : Droopi.Any.TypeCode.Object;
+               Id, Name : PolyORB.Types.String;
+               Content_Type : PolyORB.Any.TypeCode.Object;
             begin
                Decapsulate (Complex_Encap'Access, Complex_Buffer);
                Id := Unmarshall (Complex_Buffer);
                Name := Unmarshall (Complex_Buffer);
                Content_Type := Unmarshall (Complex_Buffer);
-               Droopi.Any.TypeCode.Add_Parameter
+               PolyORB.Any.TypeCode.Add_Parameter
                  (Result, To_Any (Name));
-               Droopi.Any.TypeCode.Add_Parameter
+               PolyORB.Any.TypeCode.Add_Parameter
                  (Result, To_Any (Id));
-               Droopi.Any.TypeCode.Add_Parameter
+               PolyORB.Any.TypeCode.Add_Parameter
                  (Result, To_Any (Content_Type));
             end;
          when 22 =>
-            Result := Droopi.Any.TypeCode.TC_Except;
+            Result := PolyORB.Any.TypeCode.TC_Except;
             declare
                Complex_Encap : aliased Encapsulation
                  := Unmarshall (Buffer);
                Complex_Buffer : Buffer_Access := null;
-               Id, Name, Member_Name : Droopi.Types.String;
-               Nb : Droopi.Types.Unsigned_Long;
-               Member_Type : Droopi.Any.TypeCode.Object;
+               Id, Name, Member_Name : PolyORB.Types.String;
+               Nb : PolyORB.Types.Unsigned_Long;
+               Member_Type : PolyORB.Any.TypeCode.Object;
             begin
                Decapsulate (Complex_Encap'Access, Complex_Buffer);
                Id := Unmarshall (Complex_Buffer);
                Name := Unmarshall (Complex_Buffer);
                Nb := Unmarshall (Complex_Buffer);
-               Droopi.Any.TypeCode.Add_Parameter
+               PolyORB.Any.TypeCode.Add_Parameter
                  (Result, To_Any (Name));
-               Droopi.Any.TypeCode.Add_Parameter
+               PolyORB.Any.TypeCode.Add_Parameter
                  (Result, To_Any (Id));
                if Nb /= 0 then
                   for I in 0 .. Nb - 1 loop
                      Member_Name := Unmarshall (Complex_Buffer);
                      Member_Type := Unmarshall (Complex_Buffer);
-                     Droopi.Any.TypeCode.Add_Parameter
+                     PolyORB.Any.TypeCode.Add_Parameter
                        (Result, To_Any (Member_Type));
-                     Droopi.Any.TypeCode.Add_Parameter
+                     PolyORB.Any.TypeCode.Add_Parameter
                        (Result, To_Any (Member_Name));
                   end loop;
                end if;
             end;
          when 23 =>
-            Result := Droopi.Any.TypeCode.TC_Long_Long;
+            Result := PolyORB.Any.TypeCode.TC_Long_Long;
          when 24 =>
-            Result := Droopi.Any.TypeCode.TC_Unsigned_Long_Long;
+            Result := PolyORB.Any.TypeCode.TC_Unsigned_Long_Long;
          when 25 =>
-            Result := Droopi.Any.TypeCode.TC_Long_Double;
+            Result := PolyORB.Any.TypeCode.TC_Long_Double;
          when 26 =>
-            Result := Droopi.Any.TypeCode.TC_Wchar;
+            Result := PolyORB.Any.TypeCode.TC_Wchar;
          when 27 =>
-            Result := Droopi.Any.TypeCode.TC_Wide_String;
+            Result := PolyORB.Any.TypeCode.TC_Wide_String;
             declare
-               Length : Droopi.Types.Unsigned_Long;
+               Length : PolyORB.Types.Unsigned_Long;
             begin
                Length := Unmarshall (Buffer);
-               Droopi.Any.TypeCode.Add_Parameter
+               PolyORB.Any.TypeCode.Add_Parameter
                  (Result, To_Any (Length));
             end;
          when 28 =>
-            Result := Droopi.Any.TypeCode.TC_Fixed;
+            Result := PolyORB.Any.TypeCode.TC_Fixed;
             declare
-               Fixed_Digits : Droopi.Types.Unsigned_Short;
-               Fixed_Scale : Droopi.Types.Short;
+               Fixed_Digits : PolyORB.Types.Unsigned_Short;
+               Fixed_Scale : PolyORB.Types.Short;
             begin
                Fixed_Digits := Unmarshall (Buffer);
                Fixed_Scale := Unmarshall (Buffer);
-               Droopi.Any.TypeCode.Add_Parameter
+               PolyORB.Any.TypeCode.Add_Parameter
                  (Result, To_Any (Fixed_Digits));
-               Droopi.Any.TypeCode.Add_Parameter
+               PolyORB.Any.TypeCode.Add_Parameter
                  (Result, To_Any (Fixed_Scale));
             end;
          when 29 =>
-            Result := Droopi.Any.TypeCode.TC_Value;
+            Result := PolyORB.Any.TypeCode.TC_Value;
             declare
                Complex_Encap : aliased Encapsulation
                  := Unmarshall (Buffer);
                Complex_Buffer : Buffer_Access := null;
-               Id, Name, Member_Name : Droopi.Types.String;
-               Type_Modifier, Visibility : Droopi.Types.Short;
-               Nb : Droopi.Types.Unsigned_Long;
-               Concrete_Base_Type, Member_Type : Droopi.Any.TypeCode.Object;
+               Id, Name, Member_Name : PolyORB.Types.String;
+               Type_Modifier, Visibility : PolyORB.Types.Short;
+               Nb : PolyORB.Types.Unsigned_Long;
+               Concrete_Base_Type, Member_Type : PolyORB.Any.TypeCode.Object;
             begin
                Decapsulate (Complex_Encap'Access, Complex_Buffer);
                Id := Unmarshall (Complex_Buffer);
@@ -2288,82 +2288,82 @@ package body Droopi.Representations.CDR is
                Type_Modifier := Unmarshall (Complex_Buffer);
                Concrete_Base_Type := Unmarshall (Complex_Buffer);
                Nb := Unmarshall (Complex_Buffer);
-               Droopi.Any.TypeCode.Add_Parameter
+               PolyORB.Any.TypeCode.Add_Parameter
                  (Result, To_Any (Name));
-               Droopi.Any.TypeCode.Add_Parameter
+               PolyORB.Any.TypeCode.Add_Parameter
                  (Result, To_Any (Id));
-               Droopi.Any.TypeCode.Add_Parameter
+               PolyORB.Any.TypeCode.Add_Parameter
                  (Result, To_Any (Type_Modifier));
-               Droopi.Any.TypeCode.Add_Parameter
+               PolyORB.Any.TypeCode.Add_Parameter
                  (Result, To_Any (Concrete_Base_Type));
                if Nb /= 0 then
                   for I in 0 .. Nb - 1 loop
                      Member_Name := Unmarshall (Complex_Buffer);
                      Member_Type := Unmarshall (Complex_Buffer);
                      Visibility := Unmarshall (Complex_Buffer);
-                     Droopi.Any.TypeCode.Add_Parameter
+                     PolyORB.Any.TypeCode.Add_Parameter
                        (Result, To_Any (Visibility));
-                     Droopi.Any.TypeCode.Add_Parameter
+                     PolyORB.Any.TypeCode.Add_Parameter
                        (Result, To_Any (Member_Type));
-                     Droopi.Any.TypeCode.Add_Parameter
+                     PolyORB.Any.TypeCode.Add_Parameter
                        (Result, To_Any (Member_Name));
                   end loop;
                end if;
             end;
          when 30 =>
-            Result := Droopi.Any.TypeCode.TC_Valuebox;
+            Result := PolyORB.Any.TypeCode.TC_Valuebox;
             declare
                Complex_Encap :  aliased Encapsulation
                  := Unmarshall (Buffer);
                Complex_Buffer : Buffer_Access := null;
-               Id, Name : Droopi.Types.String;
-               Content_Type : Droopi.Any.TypeCode.Object;
+               Id, Name : PolyORB.Types.String;
+               Content_Type : PolyORB.Any.TypeCode.Object;
             begin
                Decapsulate (Complex_Encap'Access, Complex_Buffer);
                Id := Unmarshall (Complex_Buffer);
                Name := Unmarshall (Complex_Buffer);
                Content_Type := Unmarshall (Complex_Buffer);
-               Droopi.Any.TypeCode.Add_Parameter
+               PolyORB.Any.TypeCode.Add_Parameter
                  (Result, To_Any (Name));
-               Droopi.Any.TypeCode.Add_Parameter
+               PolyORB.Any.TypeCode.Add_Parameter
                  (Result, To_Any (Id));
-               Droopi.Any.TypeCode.Add_Parameter
+               PolyORB.Any.TypeCode.Add_Parameter
                  (Result, To_Any (Content_Type));
             end;
          when 31 =>
-            Result := Droopi.Any.TypeCode.TC_Native;
+            Result := PolyORB.Any.TypeCode.TC_Native;
             declare
                Complex_Encap :  aliased Encapsulation
                  := Unmarshall (Buffer);
                Complex_Buffer :  Buffer_Access := null;
-               Id, Name : Droopi.Types.String;
+               Id, Name : PolyORB.Types.String;
             begin
                Decapsulate (Complex_Encap'Access, Complex_Buffer);
                Id := Unmarshall (Complex_Buffer);
                Name := Unmarshall (Complex_Buffer);
-               Droopi.Any.TypeCode.Add_Parameter
+               PolyORB.Any.TypeCode.Add_Parameter
                  (Result, To_Any (Name));
-               Droopi.Any.TypeCode.Add_Parameter
+               PolyORB.Any.TypeCode.Add_Parameter
                  (Result, To_Any (Id));
             end;
          when 32 =>
-            Result := Droopi.Any.TypeCode.TC_Abstract_Interface;
+            Result := PolyORB.Any.TypeCode.TC_Abstract_Interface;
             declare
                Complex_Encap :  aliased Encapsulation
                  := Unmarshall (Buffer);
                Complex_Buffer : Buffer_Access := null;
-               Id, Name : Droopi.Types.String;
+               Id, Name : PolyORB.Types.String;
             begin
                Decapsulate (Complex_Encap'Access, Complex_Buffer);
                Id := Unmarshall (Complex_Buffer);
                Name := Unmarshall (Complex_Buffer);
-               Droopi.Any.TypeCode.Add_Parameter
+               PolyORB.Any.TypeCode.Add_Parameter
                  (Result, To_Any (Name));
-               Droopi.Any.TypeCode.Add_Parameter
+               PolyORB.Any.TypeCode.Add_Parameter
                  (Result, To_Any (Id));
             end;
          when others =>
-            Droopi.CORBA_P.Exceptions.Raise_Marshal;
+            PolyORB.CORBA_P.Exceptions.Raise_Marshal;
       end case;
       pragma Debug (O ("Unmarshall (TypeCode) : end"));
       return Result;
@@ -2371,17 +2371,17 @@ package body Droopi.Representations.CDR is
 
    function  Unmarshall
      (Buffer : access Buffer_Type)
-      return Droopi.Any.NamedValue
+      return PolyORB.Any.NamedValue
    is
-      NV  :  Droopi.Any.NamedValue;
+      NV  :  PolyORB.Any.NamedValue;
    begin
       pragma Debug (O ("Unmarshall (NamedValue) : enter"));
       pragma Debug (O ("Unmarshall (NamedValue) : is_empty := "
-                       & Boolean'Image (Droopi.Any.Is_Empty
+                       & Boolean'Image (PolyORB.Any.Is_Empty
                                         (NV.Argument))));
       Unmarshall_To_Any (Buffer, NV.Argument);
       pragma Debug (O ("Unmarshall (NamedValue) : is_empty := "
-                       & Boolean'Image (Droopi.Any.Is_Empty
+                       & Boolean'Image (PolyORB.Any.Is_Empty
                                         (NV.Argument))));
       pragma Debug (O ("Unmarshall (NamedValue) : end"));
       return NV;
@@ -2391,7 +2391,7 @@ package body Droopi.Representations.CDR is
    --   function Unmarshall (Buffer : access Buffer_Type)
    --     return Encapsulation
    --   is
-   --      Length : constant Droopi.Types.Unsigned_Long := Unmarshall (Buffer);
+   --      Length : constant PolyORB.Types.Unsigned_Long := Unmarshall (Buffer);
    --   begin
    --      pragma Debug (O ("Unmarshall (Encapsulation):
    --                length is" & Length'Img));
@@ -2399,7 +2399,7 @@ package body Droopi.Representations.CDR is
    --         E : Encapsulation (1 .. Stream_Element_Offset(Length));
    --      begin
    --         for I in E'Range loop
-   --            E (I) := Stream_Element(Droopi.Types.Octet'
+   --            E (I) := Stream_Element(PolyORB.Types.Octet'
    --                (Unmarshall (Buffer)));
    --         end loop;
    --         pragma Debug (O ("Unmarshall (Encapsulation): end"));
@@ -2546,7 +2546,7 @@ package body Droopi.Representations.CDR is
 
 --   procedure Marshall
 --     (Buffer : access Buffer_Type;
---      Data : in Droopi.Types.AbstractBase.Ref'Class) is
+--      Data : in PolyORB.Types.AbstractBase.Ref'Class) is
 --   begin
       --  !!!!!!!!!!!!!!!!!
       --  FIXME: I've just noticed that abstract interfaces must be
@@ -2555,20 +2555,20 @@ package body Droopi.Representations.CDR is
       --  !!!!!!!!!!!!!!!!!
 
       --  1. if Data is a valuetype, call the valuetype marshalling function
---    if Data in Droopi.Types.Value.Base'Class then
---       Droopi.CORBA_P.Value.Stream.Marshall (Buffer,
---                                    Droopi.Types.Value.Base'Class (Data));
+--    if Data in PolyORB.Types.Value.Base'Class then
+--       PolyORB.CORBA_P.Value.Stream.Marshall (Buffer,
+--                                    PolyORB.Types.Value.Base'Class (Data));
 
          --  2. check if Data is a nil ref, raise marshall if true
---    elsif Droopi.Types.AbstractBase.Is_Nil (Data) then
---       Droopi.CORBA_P.Exceptions.Raise_Marshal;
+--    elsif PolyORB.Types.AbstractBase.Is_Nil (Data) then
+--       PolyORB.CORBA_P.Exceptions.Raise_Marshal;
 
          --  3. If Data is an abstract interface and the referenced object is
          --     a valuetype, then call the valuetype marshalling function.
          --  In practice, just check if the referenced object is a valuetype.
---    elsif Droopi.Types.AbstractBase.Object_Of (Data).all
---   in Droopi.Types.Value.Impl_Base'Class then
-         --  Droopi.CORBA_P.Value.Stream.Marshall (Buffer,
+--    elsif PolyORB.Types.AbstractBase.Object_Of (Data).all
+--   in PolyORB.Types.Value.Impl_Base'Class then
+         --  PolyORB.CORBA_P.Value.Stream.Marshall (Buffer,
          --                             Data);
 --       null;
          --  Not implemented yet
@@ -2578,12 +2578,12 @@ package body Droopi.Representations.CDR is
          --  Make a redispatching call on the designated
          --  object.
 --       declare
---            P : constant Droopi.Types.Impl.Object_Ptr
---              := Droopi.Types.AbstractBase.Object_Of (Data);
+--            P : constant PolyORB.Types.Impl.Object_Ptr
+--              := PolyORB.Types.AbstractBase.Object_Of (Data);
 --         begin
---            Droopi.Types.Impl.Marshall
+--            PolyORB.Types.Impl.Marshall
 --              (Buffer,
---               Droopi.Types.Impl.Object'Class (P.all));
+--               PolyORB.Types.Impl.Object'Class (P.all));
 --         end;
 --      end if;
 --   end Marshall;
@@ -2594,14 +2594,14 @@ package body Droopi.Representations.CDR is
 
 --   procedure Unmarshall
 --     (Buffer : access Buffer_Type;
---      Data : in out Droopi.Types.AbstractBase.Ref'Class) is
---      Obj : constant Droopi.CORBA_P.Object.Object_Ptr
---        := new Droopi.CORBA_P.Object.Object_Type (Local_Object => False);
+--      Data : in out PolyORB.Types.AbstractBase.Ref'Class) is
+--      Obj : constant PolyORB.CORBA_P.Object.Object_Ptr
+--        := new PolyORB.CORBA_P.Object.Object_Type (Local_Object => False);
 --   begin
---      Droopi.CORBA_P.Object.Unmarshall
---        (Buffer, Droopi.CORBA_P.Object.Object_Type (Obj.all));
---      Droopi.Types.AbstractBase.Set
---        (Data, Droopi.Types.Impl.Object_Ptr (Obj));
+--      PolyORB.CORBA_P.Object.Unmarshall
+--        (Buffer, PolyORB.CORBA_P.Object.Object_Type (Obj.all));
+--      PolyORB.Types.AbstractBase.Set
+--        (Data, PolyORB.Types.Impl.Object_Ptr (Obj));
 --   end Unmarshall;
 
    ----------------
@@ -2610,8 +2610,8 @@ package body Droopi.Representations.CDR is
 
 --   function Unmarshall
 --     (Buffer : access Buffer_Type)
---     return Droopi.Types.Object.Ref is
---      New_Ref : Droopi.Types.Object.Ref;
+--     return PolyORB.Types.Object.Ref is
+--      New_Ref : PolyORB.Types.Object.Ref;
 --   begin
 --      Unmarshall (Buffer, New_Ref);
 --*     return New_Ref;
@@ -2627,14 +2627,14 @@ package body Droopi.Representations.CDR is
    is
       Members : CORBA.System_Exception_Members;
    begin
-      Droopi.CORBA_P.Exceptions.Get_Members (Excpt, Members);
+      PolyORB.CORBA_P.Exceptions.Get_Members (Excpt, Members);
       Marshall
-        (Buffer, Droopi.Types.String
-         (Droopi.CORBA_P.Exceptions.Occurrence_To_Name (Excpt)));
+        (Buffer, PolyORB.Types.String
+         (PolyORB.CORBA_P.Exceptions.Occurrence_To_Name (Excpt)));
       Marshall (Buffer, Types.Unsigned_Long (Members.Minor));
       Marshall
         (Buffer, Types.Unsigned_Long
-         (Droopi.CORBA_P.Exceptions.To_Unsigned_Long
+         (PolyORB.CORBA_P.Exceptions.To_Unsigned_Long
           (Members.Completed)));
    end Marshall;
 
@@ -2643,15 +2643,15 @@ package body Droopi.Representations.CDR is
    is
       use Ada.Exceptions;
 
-      Minor      : Droopi.Types.Unsigned_Long;
-      Status     : Droopi.Types.Unsigned_Long;
+      Minor      : PolyORB.Types.Unsigned_Long;
+      Status     : PolyORB.Types.Unsigned_Long;
       Identity   : Exception_Id;
-      Repository : Droopi.Types.String;
+      Repository : PolyORB.Types.String;
 
    begin
       Repository := Unmarshall (Buffer);
-      Identity := Droopi.CORBA_P.Exceptions.Get_ExcepId_By_RepositoryId
-        (Droopi.Types.To_Standard_String (Repository));
+      Identity := PolyORB.CORBA_P.Exceptions.Get_ExcepId_By_RepositoryId
+        (PolyORB.Types.To_Standard_String (Repository));
 
       if Identity = Null_Id then
          --  If not found, this is a marshal error.
@@ -2665,11 +2665,11 @@ package body Droopi.Representations.CDR is
 
       --  Raise the exception
 
-      Droopi.CORBA_P.Exceptions.Stack.Raise_Exception
+      PolyORB.CORBA_P.Exceptions.Stack.Raise_Exception
         (Identity,
          CORBA.System_Exception_Members'
          (CORBA.Unsigned_Long (Minor),
-          Droopi.CORBA_P.Exceptions.To_Completion_Status
+          PolyORB.CORBA_P.Exceptions.To_Completion_Status
           (CORBA.Unsigned_Long (Status))));
    end Unmarshall_And_Raise;
 
@@ -2685,9 +2685,9 @@ package body Droopi.Representations.CDR is
 
    begin
       pragma Debug (O ("Marshall (Encapsulation) : enter"));
-      Marshall (Buffer, Droopi.Types.Unsigned_Long (Data'Length));
+      Marshall (Buffer, PolyORB.Types.Unsigned_Long (Data'Length));
       for I in Data'Range loop
-         Marshall (Buffer, Droopi.Types.Octet (Data (I)));
+         Marshall (Buffer, PolyORB.Types.Octet (Data (I)));
       end loop;
       pragma Debug (O ("Marshall (Encapsulation) : end"));
    end Marshall;
@@ -2706,7 +2706,7 @@ package body Droopi.Representations.CDR is
      (Buffer : access Buffer_Type)
      return Stream_Element_Array
    is
-      Length : constant Droopi.Types.Unsigned_Long := Unmarshall (Buffer);
+      Length : constant PolyORB.Types.Unsigned_Long := Unmarshall (Buffer);
    begin
       pragma Debug (O ("Unmarshall (Encapsulation): length is" & Length'Img));
       declare
@@ -2714,7 +2714,7 @@ package body Droopi.Representations.CDR is
       begin
          for I in E'Range loop
             E (I) := Stream_Element
-                     (Droopi.Types.Octet'(Unmarshall (Buffer)));
+                     (PolyORB.Types.Octet'(Unmarshall (Buffer)));
          end loop;
          pragma Debug (O ("Unmarshall (Encapsulation): end"));
          return E;
@@ -2771,9 +2771,9 @@ package body Droopi.Representations.CDR is
 
    package body Fixed_Point is
 
-      Fixed_Positive_Zero : constant Droopi.Types.Octet
+      Fixed_Positive_Zero : constant PolyORB.Types.Octet
         := 16#C#;
-      Fixed_Negative : constant Droopi.Types.Octet
+      Fixed_Negative : constant PolyORB.Types.Octet
         := 16#D#;
 
       procedure Marshall
@@ -2820,8 +2820,8 @@ package body Droopi.Representations.CDR is
 
             for I in Offset .. Offset + N_Digits loop
                declare
-                  Digit : constant Droopi.Types.Octet
-                    := Droopi.Types.Octet (Val / Bias);
+                  Digit : constant PolyORB.Types.Octet
+                    := PolyORB.Types.Octet (Val / Bias);
                begin
                   if I mod 2 = 0 then
                      Octets (Stream_Element_Offset (I / 2))
@@ -2850,7 +2850,7 @@ package body Droopi.Representations.CDR is
         (Buffer : access Buffer_Type)
          return F
       is
-         O : Droopi.Types.Octet;
+         O : PolyORB.Types.Octet;
          Result : F := 0.0;
       begin
          loop
@@ -2858,17 +2858,17 @@ package body Droopi.Representations.CDR is
             if O / 16 > 9
               or else
               (O mod 16 > 9
-               and then O mod 16 /= Droopi.Types.Octet (Fixed_Positive_Zero)
-               and then O mod 16 /= Droopi.Types.Octet (Fixed_Negative))
+               and then O mod 16 /= PolyORB.Types.Octet (Fixed_Positive_Zero)
+               and then O mod 16 /= PolyORB.Types.Octet (Fixed_Negative))
             then
-               Droopi.CORBA_P.Exceptions.Raise_Marshal;
+               PolyORB.CORBA_P.Exceptions.Raise_Marshal;
             end if;
 
             Result := Result * 10 + F (O / 16) * F'Delta;
             if O mod 16 < 10 then
                Result := Result * 10 + F (O mod 16) * F'Delta;
             else
-               if O mod 16 = Droopi.Types.Octet (Fixed_Negative) then
+               if O mod 16 = PolyORB.Types.Octet (Fixed_Negative) then
                   Result := -Result;
                end if;
                exit;
@@ -2880,4 +2880,4 @@ package body Droopi.Representations.CDR is
 
    end Fixed_Point;
 
-end Droopi.Representations.CDR;
+end PolyORB.Representations.CDR;

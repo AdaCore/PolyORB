@@ -1,6 +1,6 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                          DROOPI COMPONENTS                               --
+--                          PolyORB COMPONENTS                               --
 --                                                                          --
 --                             G I O P . G I O P 1.0                        --
 --                                                                          --
@@ -13,13 +13,13 @@ with Ada.Streams; use Ada.Streams;
 
 with CORBA;
 
-with Droopi.Buffers;
-with Droopi.References;
-with Droopi.References.IOR;
-with Droopi.Binding_Data;
-with Droopi.Types;
+with PolyORB.Buffers;
+with PolyORB.References;
+with PolyORB.References.IOR;
+with PolyORB.Binding_Data;
+with PolyORB.Types;
 
-package Droopi.Protocols.GIOP.GIOP_1_0 is
+package PolyORB.Protocols.GIOP.GIOP_1_0 is
 
    pragma Elaborate_Body;
 
@@ -51,7 +51,7 @@ package Droopi.Protocols.GIOP.GIOP_1_0 is
    procedure Marshall_Location_Forward
     (Buffer           : access Buffers.Buffer_Type;
      Request_Id       : in  Types.Unsigned_Long;
-     Forward_Ref      : in  Droopi.References.IOR.IOR_Type);
+     Forward_Ref      : in  PolyORB.References.IOR.IOR_Type);
 
 
    ------------------------------------
@@ -81,4 +81,4 @@ private
    Major_Version : constant Types.Octet := 1;
    Minor_Version : constant Types.Octet := 0;
 
-end Droopi.Protocols.GIOP.GIOP_1_0;
+end PolyORB.Protocols.GIOP.GIOP_1_0;

@@ -5,17 +5,17 @@
 
 with Ada.Unchecked_Deallocation;
 
-with Droopi.Filters.Interface;
-with Droopi.Log;
-pragma Elaborate_All (Droopi.Log);
+with PolyORB.Filters.Interface;
+with PolyORB.Log;
+pragma Elaborate_All (PolyORB.Log);
 
-package body Droopi.Transport is
+package body PolyORB.Transport is
 
-   use Droopi.Components;
-   use Droopi.Filters.Interface;
-   use Droopi.Log;
+   use PolyORB.Components;
+   use PolyORB.Filters.Interface;
+   use PolyORB.Log;
 
-   package L is new Droopi.Log.Facility_Log ("droopi.transport");
+   package L is new PolyORB.Log.Facility_Log ("polyorb.transport");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -58,7 +58,7 @@ package body Droopi.Transport is
       Msg : Components.Message'Class)
      return Components.Message'Class
    is
-      use Droopi.Buffers;
+      use PolyORB.Buffers;
 
       Nothing : Components.Null_Message;
    begin
@@ -109,4 +109,4 @@ package body Droopi.Transport is
       return Nothing;
    end Handle_Message;
 
-end Droopi.Transport;
+end PolyORB.Transport;

@@ -1,6 +1,6 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                          DROOPI COMPONENTS                               --
+--                          PolyORB COMPONENTS                               --
 --                                                                          --
 --                        SOAP Representations of Any                       --
 --                                                                          --
@@ -12,24 +12,24 @@
 
 
 
-with Droopi.Any;
+with PolyORB.Any;
 
-package Droopi.Representations.SOAP.Any is
+package PolyORB.Representations.SOAP.Any is
 
    procedure Any_To_XML_Components
        (Name     :  Types.Identifier;
-        Param    :  Droopi.Any.Any;
+        Param    :  PolyORB.Any.Any;
         XML_Comp :  out XML_Component_Access);
 
    procedure Array_To_XML_Components
-      (Param    : Droopi.Any.Any;
+      (Param    : PolyORB.Any.Any;
        XML_Comp : out XML_Component_Access);
 
    procedure Struct_To_XML_Components
      (Name     : Types.Identifier;
-      Param    : Droopi.Any.Any;
+      Param    : PolyORB.Any.Any;
       XML_Comp : out XML_Component_Access);
 
 
 
-end Droopi.Representations.SOAP.Any;
+end PolyORB.Representations.SOAP.Any;

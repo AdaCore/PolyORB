@@ -8,7 +8,7 @@
 with Sequences.Unbounded;
 pragma Elaborate_All (Sequences.Unbounded);
 
-package Droopi.Annotations is
+package PolyORB.Annotations is
 
    pragma Elaborate_Body;
 
@@ -46,4 +46,4 @@ private
    --  whose full view is tagged within its immediate scope,
    --  which is illegal.
 
-end Droopi.Annotations;
+end PolyORB.Annotations;

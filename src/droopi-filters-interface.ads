@@ -4,10 +4,10 @@
 
 with Ada.Streams; use Ada.Streams;
 
-with Droopi.Buffers; use Droopi.Buffers;
-with Droopi.Components; use Droopi.Components;
+with PolyORB.Buffers; use PolyORB.Buffers;
+with PolyORB.Components; use PolyORB.Components;
 
-package Droopi.Filters.Interface is
+package PolyORB.Filters.Interface is
 
    -----------------------------
    -- Filter_Factory messages --
@@ -77,5 +77,5 @@ package Droopi.Filters.Interface is
       --  The data to be sent down.
    end record;
 
-end Droopi.Filters.Interface;
+end PolyORB.Filters.Interface;
 

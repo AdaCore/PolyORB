@@ -2,9 +2,9 @@
 
 with Ada.Unchecked_Deallocation;
 
-package body Droopi.No_Tasking is
+package body PolyORB.No_Tasking is
 
-   use Droopi.Soft_Links;
+   use PolyORB.Soft_Links;
 
    ------------
    -- Create --
@@ -292,4 +292,4 @@ package body Droopi.No_Tasking is
       return 0;
    end To_Integer;
 
-end Droopi.No_Tasking;
+end PolyORB.No_Tasking;

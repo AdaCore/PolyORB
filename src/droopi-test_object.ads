@@ -2,18 +2,18 @@
 
 --  $Id$
 
-with Droopi.Components;
-with Droopi.Obj_Adapters.Simple;
-with Droopi.Objects;
-with Droopi.Types;
+with PolyORB.Components;
+with PolyORB.Obj_Adapters.Simple;
+with PolyORB.Objects;
+with PolyORB.Types;
 
-package Droopi.Test_Object is
+package PolyORB.Test_Object is
 
    pragma Elaborate_Body;
 
-   use Droopi.Types;
+   use PolyORB.Types;
 
-   type My_Object is new Droopi.Objects.Servant with null record;
+   type My_Object is new PolyORB.Objects.Servant with null record;
 
    function waitAndEchoString
      (O : My_Object;
@@ -40,5 +40,5 @@ package Droopi.Test_Object is
      return Obj_Adapters.Simple.Interface_Description;
    pragma Inline (If_Desc);
 
-end Droopi.Test_Object;
+end PolyORB.Test_Object;
 

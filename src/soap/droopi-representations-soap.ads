@@ -1,6 +1,6 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                          DROOPI COMPONENTS                               --
+--                          PolyORB COMPONENTS                               --
 --                                                                          --
 --                        SOAP Representations                              --
 --                                                                          --
@@ -13,14 +13,14 @@
 
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
-with Droopi.Types; use Droopi.Types;
-with Droopi.Any;
+with PolyORB.Types; use PolyORB.Types;
+with PolyORB.Any;
 with Sequences.Unbounded;
 
 
-package Droopi.Representations.SOAP is
+package PolyORB.Representations.SOAP is
 
-   use Droopi.Any;
+   use PolyORB.Any;
 
    type XML_String is new Types.String;
 
@@ -57,7 +57,7 @@ package Droopi.Representations.SOAP is
 
 
 
-   Droopi_Types_To_XML_Types :
+   PolyORB_Types_To_XML_Types :
       constant array (TCKind'Range) of Xsd_Kind
        := (Tk_Short => Xsd_Short,
            Tk_Long  => Xsd_Int,
@@ -73,20 +73,20 @@ package Droopi.Representations.SOAP is
            Tk_Ulonglong => Xsd_Unsigned_Long,
            others => Xsd_Undefined);
 
-   Droopi_Types_To_Xsd_Strings :
-    constant array (Xsd_Kind'Range) of Droopi.Types.String
-     := (Xsd_Short => To_Droopi_String ("short"),
-         Xsd_Int  => To_Droopi_String ("int"),
-         Xsd_Unsigned_Short => To_Droopi_String ("unsigned short"),
-         Xsd_Unsigned_Int => To_Droopi_String ("unsigned int"),
-         Xsd_Float => To_Droopi_String ("float"),
-         Xsd_Double => To_Droopi_String ("double"),
-         Xsd_Boolean => To_Droopi_String ("boolean"),
-         Xsd_Byte  => To_Droopi_String ("byte"),
-         Xsd_String =>  To_Droopi_String ("string"),
-         Xsd_Long => To_Droopi_String ("long"),
-         Xsd_Unsigned_Long => To_Droopi_String ("unsigned long"),
-         others => To_Droopi_String ("undefined"));
+   PolyORB_Types_To_Xsd_Strings :
+    constant array (Xsd_Kind'Range) of PolyORB.Types.String
+     := (Xsd_Short => To_PolyORB_String ("short"),
+         Xsd_Int  => To_PolyORB_String ("int"),
+         Xsd_Unsigned_Short => To_PolyORB_String ("unsigned short"),
+         Xsd_Unsigned_Int => To_PolyORB_String ("unsigned int"),
+         Xsd_Float => To_PolyORB_String ("float"),
+         Xsd_Double => To_PolyORB_String ("double"),
+         Xsd_Boolean => To_PolyORB_String ("boolean"),
+         Xsd_Byte  => To_PolyORB_String ("byte"),
+         Xsd_String =>  To_PolyORB_String ("string"),
+         Xsd_Long => To_PolyORB_String ("long"),
+         Xsd_Unsigned_Long => To_PolyORB_String ("unsigned long"),
+         others => To_PolyORB_String ("undefined"));
 
    SOAP_Error : exception;
    Unexpected_Token : exception;
@@ -274,24 +274,24 @@ private
 
    Name_Space_Uri : XML_String;
 
-   Array_Tag : constant XML_String := To_Droopi_String
+   Array_Tag : constant XML_String := To_PolyORB_String
                ("SOAP-ENC:Array");
 
-   Array_Type_Tag : constant XML_String := To_Droopi_String
+   Array_Type_Tag : constant XML_String := To_PolyORB_String
                ("SOAP-ENC:ArrayType=");
 
-   Array_Member_Tag :  constant XML_String := To_Droopi_String
+   Array_Member_Tag :  constant XML_String := To_PolyORB_String
                ("SOAP-ENC:");
 
 
-   Ur_Type_Tag : constant XML_String := To_Droopi_String
+   Ur_Type_Tag : constant XML_String := To_PolyORB_String
                ("SOAP-ENC:ur-type");
 
 
-   Namespace_Tag : constant XML_String := To_Droopi_String
+   Namespace_Tag : constant XML_String := To_PolyORB_String
                ("xmlns:");
 
-end Droopi.Representations.SOAP;
+end PolyORB.Representations.SOAP;
 
 
 

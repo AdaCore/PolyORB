@@ -1,6 +1,6 @@
 with Ada.Unchecked_Deallocation;
 
-package Droopi.POA_Policies.Id_Assignment_Policy.System is
+package PolyORB.POA_Policies.Id_Assignment_Policy.System is
 
    type System_Id_Policy is new IdAssignmentPolicy with null record;
    type System_Id_Policy_Access is access all System_Id_Policy;
@@ -9,7 +9,7 @@ package Droopi.POA_Policies.Id_Assignment_Policy.System is
 
    procedure Check_Compatibility
      (Self : System_Id_Policy;
-      OA   : Droopi.POA_Types.Obj_Adapter_Access);
+      OA   : PolyORB.POA_Types.Obj_Adapter_Access);
 
    function Policy_Id
      (Self : System_Id_Policy)
@@ -19,12 +19,12 @@ package Droopi.POA_Policies.Id_Assignment_Policy.System is
 
    function Activate_Object
      (Self   : System_Id_Policy;
-      OA     : Droopi.POA_Types.Obj_Adapter_Access;
+      OA     : PolyORB.POA_Types.Obj_Adapter_Access;
       Object : Servant_Access) return Object_Id_Access;
 
    procedure Activate_Object_With_Id
      (Self   : System_Id_Policy;
-      OA     : Droopi.POA_Types.Obj_Adapter_Access;
+      OA     : PolyORB.POA_Types.Obj_Adapter_Access;
       Object : Servant_Access;
       Oid    : Object_Id);
 
@@ -34,16 +34,16 @@ package Droopi.POA_Policies.Id_Assignment_Policy.System is
 
    procedure Ensure_Oid_Uniqueness
      (Self  : System_Id_Policy;
-      OA    : Droopi.POA_Types.Obj_Adapter_Access;
+      OA    : PolyORB.POA_Types.Obj_Adapter_Access;
       U_Oid : Unmarshalled_Oid_Access);
 
    procedure Remove_Entry
      (Self  : System_Id_Policy;
-      OA    : Droopi.POA_Types.Obj_Adapter_Access;
+      OA    : PolyORB.POA_Types.Obj_Adapter_Access;
       U_Oid : Unmarshalled_Oid_Access);
 
    function Id_To_Servant (Self  : System_Id_Policy;
-                           OA    : Droopi.POA_Types.Obj_Adapter_Access;
+                           OA    : PolyORB.POA_Types.Obj_Adapter_Access;
                            U_Oid : Unmarshalled_Oid_Access)
                           return Servant_Access;
 
@@ -55,4 +55,4 @@ package Droopi.POA_Policies.Id_Assignment_Policy.System is
      (System_Id_Policy,
       System_Id_Policy_Access);
 
-end Droopi.POA_Policies.Id_Assignment_Policy.System;
+end PolyORB.POA_Policies.Id_Assignment_Policy.System;

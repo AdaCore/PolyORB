@@ -7,7 +7,7 @@ with CORBA.Object;
 with CORBA.NVList;
 with CORBA.Context;
 
-with Droopi.References;
+with PolyORB.References;
 
 package CORBA.ORB is
 
@@ -166,7 +166,7 @@ package CORBA.ORB is
      (ORB_Name : in Standard.String);
 
    function Create_Reference (Object : in CORBA.Object.Ref)
-     return Droopi.References.Ref;
+     return PolyORB.References.Ref;
    --  Create an object reference that designates object Oid
    --  within this ORB.
 

@@ -2,7 +2,7 @@
 
 --  $Id$
 
-package body Droopi.POA_Config is
+package body PolyORB.POA_Config is
 
    The_Configuration : Configuration_Access;
 
@@ -19,5 +19,5 @@ package body Droopi.POA_Config is
       return The_Configuration;
    end Configuration;
 
-end Droopi.POA_Config;
+end PolyORB.POA_Config;
 

@@ -30,7 +30,7 @@ generic
    with function Is_Null (Item : in Map_Entry) return Boolean is <>;
    with function Null_Entry return Map_Entry is <>;
 
-package Droopi.Object_Map is
+package PolyORB.Object_Map is
 
    type Object_Map is private;
    type Object_Map_Access is access all Object_Map;
@@ -105,5 +105,5 @@ private
          Map : aliased Object_Map_Entry_Seq;
       end record;
 
-end Droopi.Object_Map;
+end PolyORB.Object_Map;
 

@@ -2,14 +2,14 @@
 
 --  $Id$
 
-with Droopi.Components;
-with Droopi.Jobs;
-with Droopi.Requests;
+with PolyORB.Components;
+with PolyORB.Jobs;
+with PolyORB.Requests;
 
-package Droopi.ORB.Interface is
+package PolyORB.ORB.Interface is
 
    type Queue_Job is new Components.Message with record
-      Job : Droopi.Jobs.Job_Access;
+      Job : PolyORB.Jobs.Job_Access;
    end record;
    --  Queue Job for execution by the receiving ORB.
    --  No reply (the job will be executed asynchronously).
@@ -29,4 +29,4 @@ package Droopi.ORB.Interface is
    --  The client the responsible of the destruction of
    --  the Request after its execution is completed.
 
-end Droopi.ORB.Interface;
+end PolyORB.ORB.Interface;

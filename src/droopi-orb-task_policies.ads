@@ -2,7 +2,7 @@
 
 --  $Id$
 
-package Droopi.ORB.Task_Policies is
+package PolyORB.ORB.Task_Policies is
 
    pragma Elaborate_Body;
 
@@ -43,4 +43,4 @@ private
 
    type No_Tasking is new Tasking_Policy_Type with null record;
 
-end Droopi.ORB.Task_Policies;
+end PolyORB.ORB.Task_Policies;

@@ -6,33 +6,33 @@ with Ada.Exceptions;
 with Ada.Real_Time;
 with Ada.Tags;
 
-with Droopi.Annotations;
-with Droopi.Constants;
-with Droopi.Filters;
-with Droopi.Filters.Interface;
-with Droopi.Log;
-pragma Elaborate_All (Droopi.Log);
+with PolyORB.Annotations;
+with PolyORB.Constants;
+with PolyORB.Filters;
+with PolyORB.Filters.Interface;
+with PolyORB.Log;
+pragma Elaborate_All (PolyORB.Log);
 
-with Droopi.Objects.Interface;
-with Droopi.ORB.Interface;
-with Droopi.Task_Info;
-with Droopi.References.Binding;
-with Droopi.Soft_Links;
-with Droopi.Transport;
+with PolyORB.Objects.Interface;
+with PolyORB.ORB.Interface;
+with PolyORB.Task_Info;
+with PolyORB.References.Binding;
+with PolyORB.Soft_Links;
+with PolyORB.Transport;
 
-package body Droopi.ORB is
+package body PolyORB.ORB is
 
-   use Droopi.Annotations;
-   use Droopi.Asynch_Ev;
-   use Droopi.Components;
-   use Droopi.Filters;
-   use Droopi.Jobs;
-   use Droopi.Log;
-   use Droopi.Requests;
-   use Droopi.Soft_Links;
-   use Droopi.Transport;
+   use PolyORB.Annotations;
+   use PolyORB.Asynch_Ev;
+   use PolyORB.Components;
+   use PolyORB.Filters;
+   use PolyORB.Jobs;
+   use PolyORB.Log;
+   use PolyORB.Requests;
+   use PolyORB.Soft_Links;
+   use PolyORB.Transport;
 
-   package L is new Droopi.Log.Facility_Log ("droopi.orb");
+   package L is new PolyORB.Log.Facility_Log ("polyorb.orb");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -68,7 +68,7 @@ package body Droopi.ORB is
 
       Create (ORB.Idle_Tasks);
 
-      ORB.Job_Queue := Droopi.Jobs.Create_Queue;
+      ORB.Job_Queue := PolyORB.Jobs.Create_Queue;
       ORB.Shutdown := False;
       ORB.Polling  := False;
       Leave (ORB.ORB_Lock.all);
@@ -253,7 +253,7 @@ package body Droopi.ORB is
             begin
 
                if Monitors'Length = 1 then
-                  Timeout := Droopi.Constants.Forever;
+                  Timeout := PolyORB.Constants.Forever;
                else
                   Timeout := 0.0;
                end if;
@@ -641,7 +641,7 @@ package body Droopi.ORB is
    begin
       Enter (ORB.ORB_Lock.all);
       declare
-         use Droopi.Binding_Data;
+         use PolyORB.Binding_Data;
          use TAP_Seqs;
 
          TAPs : constant Element_Array
@@ -661,10 +661,10 @@ package body Droopi.ORB is
 
    function Handle_Message
      (ORB : access ORB_Type;
-      Msg : Droopi.Components.Message'Class)
-     return Droopi.Components.Message'Class
+      Msg : PolyORB.Components.Message'Class)
+     return PolyORB.Components.Message'Class
    is
-      use Droopi.Objects.Interface;
+      use PolyORB.Objects.Interface;
 
       Result : Components.Null_Message;
    begin
@@ -699,7 +699,7 @@ package body Droopi.ORB is
       elsif Msg in Executed_Request then
 
          declare
-            use Droopi.Task_Info;
+            use PolyORB.Task_Info;
 
             Req : Requests.Request
               renames Executed_Request (Msg).Req.all;
@@ -732,4 +732,4 @@ package body Droopi.ORB is
       return Result;
    end Handle_Message;
 
-end Droopi.ORB;
+end PolyORB.ORB;

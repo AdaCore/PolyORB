@@ -4,7 +4,7 @@
 
 with Ada.Streams;
 
-package Droopi.Utils is
+package PolyORB.Utils is
 
    pragma Pure;
 
@@ -20,4 +20,4 @@ package Droopi.Utils is
    --  Return the Stream_Element_Array represented by the
    --  string of hexadecimal digits contaned in S.
 
-end Droopi.Utils;
+end PolyORB.Utils;

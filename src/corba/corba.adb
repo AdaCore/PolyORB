@@ -31,23 +31,23 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Droopi.CORBA_P.Exceptions;
+with PolyORB.CORBA_P.Exceptions;
 
-with Droopi.Log;
-pragma Elaborate_All (Droopi.Log);
+with PolyORB.Log;
+pragma Elaborate_All (PolyORB.Log);
 
-with Droopi.Types;
+with PolyORB.Types;
 
 package body CORBA is
 
-   use Droopi.Log;
-   use Droopi.Any;
+   use PolyORB.Log;
+   use PolyORB.Any;
 
-   package L is new Droopi.Log.Facility_Log ("corba");
+   package L is new PolyORB.Log.Facility_Log ("corba");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
-   package L2 is new Droopi.Log.Facility_Log ("corba_refcnt");
+   package L2 is new PolyORB.Log.Facility_Log ("corba_refcnt");
    procedure O2 (Message : in Standard.String; Level : Log_Level := Debug)
      renames L2.Output;
 
@@ -58,12 +58,12 @@ package body CORBA is
    function To_CORBA_String
      (Source : Standard.String)
      return CORBA.String
-     renames Droopi.Types.To_Droopi_String;
+     renames PolyORB.Types.To_PolyORB_String;
 
    function To_Standard_String
      (Source : CORBA.String)
      return Standard.String
-     renames Droopi.Types.To_Standard_String;
+     renames PolyORB.Types.To_Standard_String;
 
    function To_CORBA_Wide_String
      (Source : Standard.Wide_String)
@@ -90,12 +90,12 @@ package body CORBA is
    function To_CORBA_String
      (S : Standard.String)
      return CORBA.RepositoryId
-     renames Droopi.Types.To_Droopi_String;
+     renames PolyORB.Types.To_PolyORB_String;
 
    function To_Standard_String
      (S : CORBA.RepositoryId)
      return Standard.String
-     renames Droopi.Types.To_Standard_String;
+     renames PolyORB.Types.To_Standard_String;
 
    function To_Standard_String
      (S : ScopedName)
@@ -117,7 +117,7 @@ package body CORBA is
    procedure Get_Members
      (From : in Ada.Exceptions.Exception_Occurrence;
       To   : out System_Exception_Members)
-     renames Droopi.CORBA_P.Exceptions.Get_Members;
+     renames PolyORB.CORBA_P.Exceptions.Get_Members;
 
 
    ----------------------
@@ -153,7 +153,7 @@ package body CORBA is
       To : out PolicyError_Members)
    is
    begin
-      Droopi.CORBA_P.Exceptions.User_Get_Members (From, To);
+      PolyORB.CORBA_P.Exceptions.User_Get_Members (From, To);
    end Get_Members;
 
 
@@ -166,199 +166,199 @@ package body CORBA is
      (From : Ada.Exceptions.Exception_Occurrence;
       To   : out UnknownUserException_Members) is
    begin
-      Droopi.CORBA_P.Exceptions.User_Get_Members (From, To);
+      PolyORB.CORBA_P.Exceptions.User_Get_Members (From, To);
    end Get_Members;
 
    function "=" (Left, Right : in Any) return Boolean
-     renames Droopi.Any."=";
+     renames PolyORB.Any."=";
 
    function To_Any (Item : in Short) return Any is
    begin
-      return Droopi.Any.To_Any (Droopi.Types.Short (Item));
+      return PolyORB.Any.To_Any (PolyORB.Types.Short (Item));
    end To_Any;
 
    function To_Any (Item : in Long) return Any is
    begin
-      return Droopi.Any.To_Any (Droopi.Types.Long (Item));
+      return PolyORB.Any.To_Any (PolyORB.Types.Long (Item));
    end To_Any;
 
    function To_Any (Item : in Long_Long) return Any is
    begin
-      return Droopi.Any.To_Any (Droopi.Types.Long_Long (Item));
+      return PolyORB.Any.To_Any (PolyORB.Types.Long_Long (Item));
    end To_Any;
 
    function To_Any (Item : in Unsigned_Short) return Any is
    begin
-      return Droopi.Any.To_Any (Droopi.Types.Unsigned_Short (Item));
+      return PolyORB.Any.To_Any (PolyORB.Types.Unsigned_Short (Item));
    end To_Any;
 
    function To_Any (Item : in Unsigned_Long) return Any is
    begin
-      return Droopi.Any.To_Any (Droopi.Types.Unsigned_Long (Item));
+      return PolyORB.Any.To_Any (PolyORB.Types.Unsigned_Long (Item));
    end To_Any;
 
    function To_Any (Item : in Unsigned_Long_Long) return Any is
    begin
-      return Droopi.Any.To_Any (Droopi.Types.Unsigned_Long_Long (Item));
+      return PolyORB.Any.To_Any (PolyORB.Types.Unsigned_Long_Long (Item));
    end To_Any;
 
    function To_Any (Item : in CORBA.Float) return Any is
    begin
-      return Droopi.Any.To_Any (Droopi.Types.Float (Item));
+      return PolyORB.Any.To_Any (PolyORB.Types.Float (Item));
    end To_Any;
 
    function To_Any (Item : in Double) return Any is
    begin
-      return Droopi.Any.To_Any (Droopi.Types.Double (Item));
+      return PolyORB.Any.To_Any (PolyORB.Types.Double (Item));
    end To_Any;
 
    function To_Any (Item : in Long_Double) return Any is
    begin
-      return Droopi.Any.To_Any (Droopi.Types.Long_Double (Item));
+      return PolyORB.Any.To_Any (PolyORB.Types.Long_Double (Item));
    end To_Any;
 
    function To_Any (Item : in Boolean) return Any is
    begin
-      return Droopi.Any.To_Any (Droopi.Types.Boolean (Item));
+      return PolyORB.Any.To_Any (PolyORB.Types.Boolean (Item));
    end To_Any;
 
    function To_Any (Item : in Char) return Any is
    begin
-      return Droopi.Any.To_Any (Droopi.Types.Char (Item));
+      return PolyORB.Any.To_Any (PolyORB.Types.Char (Item));
    end To_Any;
 
    function To_Any (Item : in Wchar) return Any is
    begin
-      return Droopi.Any.To_Any (Droopi.Types.Wchar (Item));
+      return PolyORB.Any.To_Any (PolyORB.Types.Wchar (Item));
    end To_Any;
 
    function To_Any (Item : in Octet) return Any is
    begin
-      return Droopi.Any.To_Any (Droopi.Types.Octet (Item));
+      return PolyORB.Any.To_Any (PolyORB.Types.Octet (Item));
    end To_Any;
 
    function To_Any (Item : in Any) return Any
-     renames Droopi.Any.To_Any;
+     renames PolyORB.Any.To_Any;
 
    function To_Any (Item : in TypeCode.Object) return Any
-     renames Droopi.Any.To_Any;
+     renames PolyORB.Any.To_Any;
 
 --    begin
---       return Droopi.Any.To_Any (Item);
+--       return PolyORB.Any.To_Any (Item);
 --    end To_Any;
 
    function To_Any (Item : in CORBA.String) return Any is
    begin
-      return Droopi.Any.To_Any (Droopi.Types.String (Item));
+      return PolyORB.Any.To_Any (PolyORB.Types.String (Item));
    end To_Any;
 
    function To_Any (Item : in CORBA.Wide_String) return Any is
    begin
-      return Droopi.Any.To_Any (Droopi.Types.Wide_String (Item));
+      return PolyORB.Any.To_Any (PolyORB.Types.Wide_String (Item));
    end To_Any;
 
 
    function From_Any (Item : in Any) return Short is
    begin
       return Short
-        (Droopi.Types.Short'(Droopi.Any.From_Any (Item)));
+        (PolyORB.Types.Short'(PolyORB.Any.From_Any (Item)));
    end From_Any;
 
    function From_Any (Item : in Any) return Long is
    begin
       return Long
-        (Droopi.Types.Long'(Droopi.Any.From_Any (Item)));
+        (PolyORB.Types.Long'(PolyORB.Any.From_Any (Item)));
    end From_Any;
 
    function From_Any (Item : in Any) return Long_Long is
    begin
       return Long_Long
-        (Droopi.Types.Long_Long'(Droopi.Any.From_Any (Item)));
+        (PolyORB.Types.Long_Long'(PolyORB.Any.From_Any (Item)));
    end From_Any;
 
    function From_Any (Item : in Any) return Unsigned_Short is
    begin
       return Unsigned_Short
-        (Droopi.Types.Unsigned_Short'(Droopi.Any.From_Any (Item)));
+        (PolyORB.Types.Unsigned_Short'(PolyORB.Any.From_Any (Item)));
    end From_Any;
 
    function From_Any (Item : in Any) return Unsigned_Long is
    begin
       return Unsigned_Long
-        (Droopi.Types.Unsigned_Long'(Droopi.Any.From_Any (Item)));
+        (PolyORB.Types.Unsigned_Long'(PolyORB.Any.From_Any (Item)));
    end From_Any;
 
    function From_Any (Item : in Any) return Unsigned_Long_Long is
    begin
       return Unsigned_Long_Long
-        (Droopi.Types.Unsigned_Long_Long'(Droopi.Any.From_Any (Item)));
+        (PolyORB.Types.Unsigned_Long_Long'(PolyORB.Any.From_Any (Item)));
    end From_Any;
 
    function From_Any (Item : in Any) return CORBA.Float is
    begin
       return CORBA.Float
-        (Droopi.Types.Float'(Droopi.Any.From_Any (Item)));
+        (PolyORB.Types.Float'(PolyORB.Any.From_Any (Item)));
    end From_Any;
 
    function From_Any (Item : in Any) return Double is
    begin
       return Double
-        (Droopi.Types.Double'(Droopi.Any.From_Any (Item)));
+        (PolyORB.Types.Double'(PolyORB.Any.From_Any (Item)));
    end From_Any;
 
    function From_Any (Item : in Any) return Long_Double is
    begin
       return Long_Double
-        (Droopi.Types.Long_Double'(Droopi.Any.From_Any (Item)));
+        (PolyORB.Types.Long_Double'(PolyORB.Any.From_Any (Item)));
    end From_Any;
 
    function From_Any (Item : in Any) return Boolean is
    begin
       return Boolean
-        (Droopi.Types.Boolean'(Droopi.Any.From_Any (Item)));
+        (PolyORB.Types.Boolean'(PolyORB.Any.From_Any (Item)));
    end From_Any;
 
    function From_Any (Item : in Any) return Char is
    begin
       return Char
-        (Droopi.Types.Char'(Droopi.Any.From_Any (Item)));
+        (PolyORB.Types.Char'(PolyORB.Any.From_Any (Item)));
    end From_Any;
 
    function From_Any (Item : in Any) return Wchar is
    begin
       return Wchar
-        (Droopi.Types.Wchar'(Droopi.Any.From_Any (Item)));
+        (PolyORB.Types.Wchar'(PolyORB.Any.From_Any (Item)));
    end From_Any;
 
    function From_Any (Item : in Any) return Octet is
    begin
       return Octet
-        (Droopi.Types.Octet'(Droopi.Any.From_Any (Item)));
+        (PolyORB.Types.Octet'(PolyORB.Any.From_Any (Item)));
    end From_Any;
 
    function From_Any (Item : in Any) return Any
-     renames Droopi.Any.From_Any;
+     renames PolyORB.Any.From_Any;
 
    function From_Any (Item : in Any) return TypeCode.Object
-     renames Droopi.Any.From_Any;
+     renames PolyORB.Any.From_Any;
 
    function From_Any (Item : in Any) return CORBA.String is
    begin
       return CORBA.String
-        (Droopi.Types.String'(Droopi.Any.From_Any (Item)));
+        (PolyORB.Types.String'(PolyORB.Any.From_Any (Item)));
    end From_Any;
 
    function From_Any (Item : in Any) return CORBA.Wide_String is
    begin
       return CORBA.Wide_String
-        (Droopi.Types.Wide_String'(Droopi.Any.From_Any (Item)));
+        (PolyORB.Types.Wide_String'(PolyORB.Any.From_Any (Item)));
    end From_Any;
 
    ----------------
    --  Get_Type  --
    ----------------
    function Get_Type (The_Any : in Any) return  TypeCode.Object
-     renames Droopi.Any.Get_Type;
+     renames PolyORB.Any.Get_Type;
 --    is
 --    begin
 --       pragma Debug (O ("Get_Type : enter & end"));
@@ -369,7 +369,7 @@ package body CORBA is
    --  Get_Precise_Type  --
    ------------------------
    function Get_Precise_Type (The_Any : in Any) return  TypeCode.Object
-     renames Droopi.Any.Get_Precise_Type;
+     renames PolyORB.Any.Get_Precise_Type;
 --    is
 --       Result : TypeCode.Object := Get_Type (The_Any);
 --    begin
@@ -385,7 +385,7 @@ package body CORBA is
    procedure Set_Type
      (The_Any  : in out Any;
       The_Type : in     TypeCode.Object)
-     renames Droopi.Any.Set_Type;
+     renames PolyORB.Any.Set_Type;
 --    begin
 --       The_Any.The_Type := The_Type;
 --    end Set_Type;
@@ -396,7 +396,7 @@ package body CORBA is
    procedure Iterate_Over_Any_Elements (In_Any : in Any) is
    begin
       --  null;
-      raise Droopi.Not_Implemented;
+      raise PolyORB.Not_Implemented;
    end Iterate_Over_Any_Elements;
 
    ---------------------
@@ -404,14 +404,14 @@ package body CORBA is
    ---------------------
 
    function Get_Empty_Any (Tc : TypeCode.Object) return Any
-     renames Droopi.Any.Get_Empty_Any;
+     renames PolyORB.Any.Get_Empty_Any;
 
    ----------------
    --  Is_Empty  --
    ----------------
 
    function Is_Empty (Any_Value : in Any) return Boolean
-     renames Droopi.Any.Is_Empty;
+     renames PolyORB.Any.Is_Empty;
 
    ---------------------
    --  Set_Any_Value  --
@@ -421,130 +421,130 @@ package body CORBA is
      (Any_Value : in out CORBA.Any;
       Value     :        Short) is
    begin
-      Droopi.Any.Set_Any_Value
-        (Any_Value, Droopi.Types.Short (Value));
+      PolyORB.Any.Set_Any_Value
+        (Any_Value, PolyORB.Types.Short (Value));
    end Set_Any_Value;
 
    procedure Set_Any_Value
      (Any_Value : in out CORBA.Any;
       Value : Long) is
    begin
-      Droopi.Any.Set_Any_Value
-        (Any_Value, Droopi.Types.Long (Value));
+      PolyORB.Any.Set_Any_Value
+        (Any_Value, PolyORB.Types.Long (Value));
    end Set_Any_Value;
 
    procedure Set_Any_Value
      (Any_Value : in out CORBA.Any;
       Value : Long_Long) is
    begin
-      Droopi.Any.Set_Any_Value
-        (Any_Value, Droopi.Types.Long_Long (Value));
+      PolyORB.Any.Set_Any_Value
+        (Any_Value, PolyORB.Types.Long_Long (Value));
    end Set_Any_Value;
 
    procedure Set_Any_Value
      (Any_Value : in out CORBA.Any;
       Value : Unsigned_Short) is
    begin
-      Droopi.Any.Set_Any_Value
-        (Any_Value, Droopi.Types.Unsigned_Short (Value));
+      PolyORB.Any.Set_Any_Value
+        (Any_Value, PolyORB.Types.Unsigned_Short (Value));
    end Set_Any_Value;
 
    procedure Set_Any_Value
      (Any_Value : in out CORBA.Any;
       Value : Unsigned_Long) is
    begin
-      Droopi.Any.Set_Any_Value
-        (Any_Value, Droopi.Types.Unsigned_Long (Value));
+      PolyORB.Any.Set_Any_Value
+        (Any_Value, PolyORB.Types.Unsigned_Long (Value));
    end Set_Any_Value;
 
    procedure Set_Any_Value
      (Any_Value : in out CORBA.Any;
       Value : Unsigned_Long_Long) is
    begin
-      Droopi.Any.Set_Any_Value
-        (Any_Value, Droopi.Types.Unsigned_Long_Long (Value));
+      PolyORB.Any.Set_Any_Value
+        (Any_Value, PolyORB.Types.Unsigned_Long_Long (Value));
    end Set_Any_Value;
 
    procedure Set_Any_Value
      (Any_Value : in out CORBA.Any;
       Value : CORBA.Float) is
    begin
-      Droopi.Any.Set_Any_Value
-        (Any_Value, Droopi.Types.Float (Value));
+      PolyORB.Any.Set_Any_Value
+        (Any_Value, PolyORB.Types.Float (Value));
    end Set_Any_Value;
 
    procedure Set_Any_Value
      (Any_Value : in out CORBA.Any;
       Value : Double) is
    begin
-      Droopi.Any.Set_Any_Value
-        (Any_Value, Droopi.Types.Double (Value));
+      PolyORB.Any.Set_Any_Value
+        (Any_Value, PolyORB.Types.Double (Value));
    end Set_Any_Value;
 
    procedure Set_Any_Value
      (Any_Value : in out CORBA.Any;
       Value : Long_Double) is
    begin
-      Droopi.Any.Set_Any_Value
-        (Any_Value, Droopi.Types.Long_Double (Value));
+      PolyORB.Any.Set_Any_Value
+        (Any_Value, PolyORB.Types.Long_Double (Value));
    end Set_Any_Value;
 
    procedure Set_Any_Value
      (Any_Value : in out CORBA.Any;
       Value : Boolean) is
    begin
-      Droopi.Any.Set_Any_Value
-        (Any_Value, Droopi.Types.Boolean (Value));
+      PolyORB.Any.Set_Any_Value
+        (Any_Value, PolyORB.Types.Boolean (Value));
    end Set_Any_Value;
 
    procedure Set_Any_Value
      (Any_Value : in out CORBA.Any;
       Value : Char) is
    begin
-      Droopi.Any.Set_Any_Value
-        (Any_Value, Droopi.Types.Char (Value));
+      PolyORB.Any.Set_Any_Value
+        (Any_Value, PolyORB.Types.Char (Value));
    end Set_Any_Value;
 
    procedure Set_Any_Value
      (Any_Value : in out CORBA.Any;
       Value : Wchar) is
    begin
-      Droopi.Any.Set_Any_Value
-        (Any_Value, Droopi.Types.Wchar (Value));
+      PolyORB.Any.Set_Any_Value
+        (Any_Value, PolyORB.Types.Wchar (Value));
    end Set_Any_Value;
 
    procedure Set_Any_Value
      (Any_Value : in out CORBA.Any;
       Value : Octet) is
    begin
-      Droopi.Any.Set_Any_Value
-        (Any_Value, Droopi.Types.Octet (Value));
+      PolyORB.Any.Set_Any_Value
+        (Any_Value, PolyORB.Types.Octet (Value));
    end Set_Any_Value;
 
    procedure Set_Any_Value
      (Any_Value : in out CORBA.Any;
       Value : Any)
-     renames Droopi.Any.Set_Any_Value;
+     renames PolyORB.Any.Set_Any_Value;
 
    procedure Set_Any_Value
      (Any_Value : in out CORBA.Any;
       Value : TypeCode.Object)
-     renames Droopi.Any.Set_Any_Value;
+     renames PolyORB.Any.Set_Any_Value;
 
    procedure Set_Any_Value
      (Any_Value : in out CORBA.Any;
       Value : CORBA.String) is
    begin
-      Droopi.Any.Set_Any_Value
-        (Any_Value, Droopi.Types.String (Value));
+      PolyORB.Any.Set_Any_Value
+        (Any_Value, PolyORB.Types.String (Value));
    end Set_Any_Value;
 
    procedure Set_Any_Value
      (Any_Value : in out CORBA.Any;
       Value : CORBA.Wide_String) is
    begin
-      Droopi.Any.Set_Any_Value
-        (Any_Value, Droopi.Types.Wide_String (Value));
+      PolyORB.Any.Set_Any_Value
+        (Any_Value, PolyORB.Types.Wide_String (Value));
    end Set_Any_Value;
 
 
@@ -554,7 +554,7 @@ package body CORBA is
 
    procedure Set_Any_Aggregate_Value
      (Any_Value : in out CORBA.Any)
-     renames Droopi.Any.Set_Any_Aggregate_Value;
+     renames PolyORB.Any.Set_Any_Aggregate_Value;
 
    ---------------------------
    --  Get_Aggregate_Count  --
@@ -562,7 +562,7 @@ package body CORBA is
 
    function Get_Aggregate_Count (Value : Any) return Unsigned_Long is
    begin
-      return Unsigned_Long (Droopi.Any.Get_Aggregate_Count (Value));
+      return Unsigned_Long (PolyORB.Any.Get_Aggregate_Count (Value));
    end Get_Aggregate_Count;
 
    -----------------------------
@@ -572,7 +572,7 @@ package body CORBA is
    procedure Add_Aggregate_Element
      (Value   : in out Any;
       Element : in     Any)
-     renames Droopi.Any.Add_Aggregate_Element;
+     renames PolyORB.Any.Add_Aggregate_Element;
 
    -----------------------------
    --  Get_Aggregate_Element  --
@@ -584,8 +584,8 @@ package body CORBA is
       Index : CORBA.Unsigned_Long)
      return Any is
    begin
-      return Droopi.Any.Get_Aggregate_Element
-        (Value, Tc, Droopi.Types.Unsigned_Long (Index));
+      return PolyORB.Any.Get_Aggregate_Element
+        (Value, Tc, PolyORB.Types.Unsigned_Long (Index));
    end Get_Aggregate_Element;
 
    -------------------------------
@@ -595,10 +595,10 @@ package body CORBA is
    function Get_Empty_Any_Aggregate
      (Tc : CORBA.TypeCode.Object)
      return Any
-     renames Droopi.Any.Get_Empty_Any_Aggregate;
+     renames PolyORB.Any.Get_Empty_Any_Aggregate;
 
    function Image (NV : NamedValue) return Standard.String
-     renames Droopi.Any.Image;
+     renames PolyORB.Any.Image;
 
 end CORBA;
 

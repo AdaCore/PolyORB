@@ -4,35 +4,35 @@
 
 with Ada.Real_Time;
 
-with Droopi.Log;
-pragma Elaborate_All (Droopi.Log);
+with PolyORB.Log;
+pragma Elaborate_All (PolyORB.Log);
 
-with Droopi.Objects;
-with Droopi.Smart_Pointers;
+with PolyORB.Objects;
+with PolyORB.Smart_Pointers;
 
 with CORBA;
-with Droopi.CORBA_P.Exceptions; use Droopi.CORBA_P.Exceptions;
+with PolyORB.CORBA_P.Exceptions; use PolyORB.CORBA_P.Exceptions;
 --  For CORBA exceptions (XXX should not!)
 
-with Droopi.Types;
+with PolyORB.Types;
 
-with Droopi.POA_Types;
-with Droopi.POA_Manager.Basic_Manager;
-with Droopi.POA_Config;
+with PolyORB.POA_Types;
+with PolyORB.POA_Manager.Basic_Manager;
+with PolyORB.POA_Config;
 
-package body Droopi.POA.Basic_POA is
+package body PolyORB.POA.Basic_POA is
 
-   use Droopi.Types;
+   use PolyORB.Types;
 
    use POA_Types;
 
-   use Droopi.Locks;
-   use Droopi.Log;
-   use Droopi.POA_Policies;
-   use Droopi.POA_Manager;
-   use Droopi.POA_Manager.Basic_Manager;
+   use PolyORB.Locks;
+   use PolyORB.Log;
+   use PolyORB.POA_Policies;
+   use PolyORB.POA_Manager;
+   use PolyORB.POA_Manager.Basic_Manager;
 
-   package L is new Droopi.Log.Facility_Log ("corba.poa.basic_poa");
+   package L is new PolyORB.Log.Facility_Log ("corba.poa.basic_poa");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -51,7 +51,7 @@ package body Droopi.POA.Basic_POA is
 
    procedure Init_With_User_Policies
      (OA       : access Basic_Obj_Adapter;
-      Policies : Droopi.POA_Policies.PolicyList_Access);
+      Policies : PolyORB.POA_Policies.PolicyList_Access);
 
    procedure Init_With_Default_Policies
      (OA : access Basic_Obj_Adapter);
@@ -79,10 +79,10 @@ package body Droopi.POA.Basic_POA is
 
    function Find_Servant
      (OA       : access Basic_Obj_Adapter;
-      Id       :        Droopi.Objects.Object_Id;
+      Id       :        PolyORB.Objects.Object_Id;
       Do_Check :        Check_State)
-     return Droopi.Objects.Servant_Access;
-   --  The Find_Servant from Droopi, plus a parameter.
+     return PolyORB.Objects.Servant_Access;
+   --  The Find_Servant from PolyORB, plus a parameter.
    --  If check is NO_CHECK, the POA doesn't check its state.
 
    function POA_Manager_Of (OA : access Basic_Obj_Adapter)
@@ -91,7 +91,7 @@ package body Droopi.POA.Basic_POA is
    function POA_Manager_Of (OA : access Basic_Obj_Adapter)
      return POA_Manager.POAManager_Access
    is
-      use Droopi.Smart_Pointers;
+      use PolyORB.Smart_Pointers;
 
       E : constant Entity_Ptr := Entity_Of (OA.POA_Manager);
    begin
@@ -118,7 +118,7 @@ package body Droopi.POA.Basic_POA is
       if Adapter.Children /= null then
          for I in 1 .. Length (Adapter.Children.all) loop
             A_Child := Element_Of (Adapter.Children.all, I);
-            if Droopi.POA.Obj_Adapter_Access (A_Child).Name = Name then
+            if PolyORB.POA.Obj_Adapter_Access (A_Child).Name = Name then
                return A_Child;
             end if;
          end loop;
@@ -150,7 +150,7 @@ package body Droopi.POA.Basic_POA is
 
    procedure Set_Policies
      (OA       : access Basic_Obj_Adapter;
-      Policies : Droopi.POA_Policies.PolicyList_Access;
+      Policies : PolyORB.POA_Policies.PolicyList_Access;
       Default  : Boolean);
    --  Set OA policies from the values in Policies.
    --  If Default is True, set only those policies that
@@ -159,7 +159,7 @@ package body Droopi.POA.Basic_POA is
 
    procedure Set_Policies
      (OA       : access Basic_Obj_Adapter;
-      Policies : Droopi.POA_Policies.PolicyList_Access;
+      Policies : PolyORB.POA_Policies.PolicyList_Access;
       Default  : Boolean)
    is
       use Policy_Sequences;
@@ -261,7 +261,7 @@ package body Droopi.POA.Basic_POA is
 
    procedure Init_With_User_Policies
      (OA       : access Basic_Obj_Adapter;
-      Policies : Droopi.POA_Policies.PolicyList_Access) is
+      Policies : PolyORB.POA_Policies.PolicyList_Access) is
    begin
       pragma Debug (O ("Init Basic_POA with user provided policies"));
       Set_Policies (OA, Policies, Default => False);
@@ -276,8 +276,8 @@ package body Droopi.POA.Basic_POA is
    begin
       pragma Debug (O ("Init Basic_POA with default policies"));
       Set_Policies
-        (OA, Droopi.POA_Config.Default_Policies
-         (Droopi.POA_Config.Configuration.all),
+        (OA, PolyORB.POA_Config.Default_Policies
+         (PolyORB.POA_Config.Configuration.all),
          Default => True);
    end Init_With_Default_Policies;
 
@@ -292,25 +292,25 @@ package body Droopi.POA.Basic_POA is
       pragma Debug (O ("Check compatibilities between policies"));
       Check_Compatibility
         (OA.Thread_Policy.all,
-         Droopi.POA_Types.Obj_Adapter_Access (OA));
+         PolyORB.POA_Types.Obj_Adapter_Access (OA));
       Check_Compatibility
         (OA.Lifespan_Policy.all,
-         Droopi.POA_Types.Obj_Adapter_Access (OA));
+         PolyORB.POA_Types.Obj_Adapter_Access (OA));
       Check_Compatibility
         (OA.Id_Uniqueness_Policy.all,
-         Droopi.POA_Types.Obj_Adapter_Access (OA));
+         PolyORB.POA_Types.Obj_Adapter_Access (OA));
       Check_Compatibility
         (OA.Id_Assignment_Policy.all,
-         Droopi.POA_Types.Obj_Adapter_Access (OA));
+         PolyORB.POA_Types.Obj_Adapter_Access (OA));
       Check_Compatibility
         (OA.Servant_Retention_Policy.all,
-         Droopi.POA_Types.Obj_Adapter_Access (OA));
+         PolyORB.POA_Types.Obj_Adapter_Access (OA));
       Check_Compatibility
         (OA.Request_Processing_Policy.all,
-         Droopi.POA_Types.Obj_Adapter_Access (OA));
+         PolyORB.POA_Types.Obj_Adapter_Access (OA));
       Check_Compatibility
         (OA.Implicit_Activation_Policy.all,
-         Droopi.POA_Types.Obj_Adapter_Access (OA));
+         PolyORB.POA_Types.Obj_Adapter_Access (OA));
    end Check_Policies_Compatibility;
 
    --------------------
@@ -322,7 +322,7 @@ package body Droopi.POA.Basic_POA is
       Child :        Basic_Obj_Adapter_Access)
      return Positive
    is
-      use Droopi.POA_Types.POA_Sequences;
+      use PolyORB.POA_Types.POA_Sequences;
    begin
       pragma Debug (O (To_Standard_String (Self.Name)
                        & "registers child "
@@ -334,12 +334,12 @@ package body Droopi.POA.Basic_POA is
          if Element_Of (Sequence (Self.Children.all), I) = null then
             Replace_Element (Sequence (Self.Children.all),
                              I,
-                             Droopi.POA_Types.Obj_Adapter_Access (Child));
+                             PolyORB.POA_Types.Obj_Adapter_Access (Child));
             return I;
          end if;
       end loop;
       Append (Sequence (Self.Children.all),
-              Droopi.POA_Types.Obj_Adapter_Access (Child));
+              PolyORB.POA_Types.Obj_Adapter_Access (Child));
       return Length (Sequence (Self.Children.all));
    end Register_Child;
 
@@ -388,7 +388,7 @@ package body Droopi.POA.Basic_POA is
    procedure Destroy_Locks
      (OA : in out Basic_Obj_Adapter)
    is
-      use Droopi.Locks;
+      use PolyORB.Locks;
    begin
       if OA.Children_Lock /= null then
          Destroy (OA.Children_Lock);
@@ -409,7 +409,7 @@ package body Droopi.POA.Basic_POA is
       if not Is_Nil (OA.POA_Manager) then
          Remove_POA
            (POA_Manager_Of (OA),
-            Droopi.POA_Types.Obj_Adapter_Access (OA));
+            PolyORB.POA_Types.Obj_Adapter_Access (OA));
          Set (OA.POA_Manager, null);
       end if;
       Destroy_Policies (OA.all);
@@ -436,8 +436,8 @@ package body Droopi.POA.Basic_POA is
 
       --  Create new Obj Adapter
       New_Obj_Adapter.Boot_Time        := Get_Boot_Time;
-      New_Obj_Adapter.Name             := To_Droopi_String ("RootPOA");
-      New_Obj_Adapter.Absolute_Address := To_Droopi_String ("");
+      New_Obj_Adapter.Name             := To_PolyORB_String ("RootPOA");
+      New_Obj_Adapter.Absolute_Address := To_PolyORB_String ("");
 
       Create (New_Obj_Adapter.Children_Lock);
       Create (New_Obj_Adapter.Map_Lock);
@@ -449,8 +449,8 @@ package body Droopi.POA.Basic_POA is
          POA_Types.Obj_Adapter_Access (New_Obj_Adapter));
 
       --  Create and initialize policies factory
-      Droopi.POA_Config.Initialize
-        (Droopi.POA_Config.Configuration.all);
+      PolyORB.POA_Config.Initialize
+        (PolyORB.POA_Config.Configuration.all);
 
       --  Use default policies
       Init_With_Default_Policies (New_Obj_Adapter);
@@ -468,7 +468,7 @@ package body Droopi.POA.Basic_POA is
      (Self         : access Basic_Obj_Adapter;
       Adapter_Name :        Types.String;
       A_POAManager :        POA_Manager.POAManager_Access;
-      Policies     :        Droopi.POA_Policies.PolicyList_Access)
+      Policies     :        PolyORB.POA_Policies.PolicyList_Access)
      return Obj_Adapter_Access
    is
       New_Obj_Adapter : Basic_Obj_Adapter_Access;
@@ -485,7 +485,7 @@ package body Droopi.POA.Basic_POA is
          --  we add the new child.
          Children_Locked := True;
          if Get_Child (Self, To_Standard_String (Adapter_Name)) /= null then
-            Droopi.CORBA_P.Exceptions.Raise_Adapter_Already_Exists;
+            PolyORB.CORBA_P.Exceptions.Raise_Adapter_Already_Exists;
          end if;
       end if;
 
@@ -502,14 +502,14 @@ package body Droopi.POA.Basic_POA is
          Create (POA_Manager_Of (New_Obj_Adapter));
          Register_POA
            (POA_Manager_Of (New_Obj_Adapter),
-            Droopi.POA_Types.Obj_Adapter_Access (New_Obj_Adapter));
+            PolyORB.POA_Types.Obj_Adapter_Access (New_Obj_Adapter));
       else
          Set
            (New_Obj_Adapter.POA_Manager,
             Smart_Pointers.Entity_Ptr (A_POAManager));
          Register_POA
            (A_POAManager,
-            Droopi.POA_Types.Obj_Adapter_Access (New_Obj_Adapter));
+            PolyORB.POA_Types.Obj_Adapter_Access (New_Obj_Adapter));
       end if;
 
       --  Init policies with those given by the user
@@ -530,7 +530,7 @@ package body Droopi.POA.Basic_POA is
       Index := Register_Child (Self, New_Obj_Adapter);
       if Length (Self.Absolute_Address) > 0 then
          New_Obj_Adapter.Absolute_Address := Self.Absolute_Address
-           & To_Droopi_String (".") & Adapter_Name;
+           & To_PolyORB_String (".") & Adapter_Name;
       else
          New_Obj_Adapter.Absolute_Address
            := Self.Absolute_Address & Adapter_Name;
@@ -545,7 +545,7 @@ package body Droopi.POA.Basic_POA is
    exception
       when CORBA.Adapter_Already_Exists =>
          --  Reraise exception
-         Droopi.CORBA_P.Exceptions.Raise_Adapter_Already_Exists;
+         PolyORB.CORBA_P.Exceptions.Raise_Adapter_Already_Exists;
          return null;
       when others =>
          Destroy_OA (New_Obj_Adapter);
@@ -561,8 +561,8 @@ package body Droopi.POA.Basic_POA is
       Etherealize_Objects : in     Boolean;
       Wait_For_Completion : in     Boolean)
    is
-      use Droopi.POA_Types.POA_Sequences;
-      A_Child : Droopi.POA.Obj_Adapter_Access;
+      use PolyORB.POA_Types.POA_Sequences;
+      A_Child : PolyORB.POA.Obj_Adapter_Access;
       Name    : Types.String := Self.Name;
    begin
       pragma Debug (O ("Start destroying POA "
@@ -572,7 +572,7 @@ package body Droopi.POA.Basic_POA is
       Lock_W (Self.Children_Lock);
       if Self.Children /= null then
          for I in 1 .. Length (Sequence (Self.Children.all)) loop
-            A_Child := Droopi.POA.Obj_Adapter_Access
+            A_Child := PolyORB.POA.Obj_Adapter_Access
               (Element_Of (Sequence (Self.Children.all), I));
             Destroy
               (A_Child.all'Access,
@@ -586,7 +586,7 @@ package body Droopi.POA.Basic_POA is
       --  Tell father to remove current POA from its list of children
       if Self.Father /= null then
          Remove_POA_By_Name
-           (Droopi.POA.Obj_Adapter_Access (Self.Father).all'Access,
+           (PolyORB.POA.Obj_Adapter_Access (Self.Father).all'Access,
             Self.Name);
       end if;
 
@@ -631,7 +631,7 @@ package body Droopi.POA.Basic_POA is
       Oid       : in     Object_Id)
    is
    begin
-      --  Droopi.POA_Policies.Servant_Retention_Policy.
+      --  PolyORB.POA_Policies.Servant_Retention_Policy.
       --    Activate_Object_With_Id
       Activate_Object_With_Id
         (Self.Servant_Retention_Policy.all,
@@ -651,7 +651,7 @@ package body Droopi.POA.Basic_POA is
    begin
       Deactivate
         (Self.Servant_Retention_Policy.all,
-         Droopi.POA_Types.Obj_Adapter_Access (Self),
+         PolyORB.POA_Types.Obj_Adapter_Access (Self),
          Oid);
       --  XXX ??? Wait for completion?
    end Deactivate_Object;
@@ -677,7 +677,7 @@ package body Droopi.POA.Basic_POA is
    end Servant_To_Id;
 
    ---------------------------------------------------------------
-   --  Procedures and functions neither in Corba nor in Droopi  --
+   --  Procedures and functions neither in Corba nor in PolyORB  --
    ---------------------------------------------------------------
 
    -------------------
@@ -706,7 +706,7 @@ package body Droopi.POA.Basic_POA is
       Name : Types.String)
      return Basic_Obj_Adapter_Access
    is
-      use Droopi.POA_Types.POA_Sequences;
+      use PolyORB.POA_Types.POA_Sequences;
       Split_Point      : Natural := Index (Name, ".");
       Remaining_Name   : Types.String;
       A_Child_Name     : Types.String;
@@ -783,7 +783,7 @@ package body Droopi.POA.Basic_POA is
       for I in 1 .. Length (Self.Children.all) loop
          A_Child := Element_Of (Self.Children.all, I);
          if A_Child /= null
-           and then Droopi.POA.Obj_Adapter_Access (A_Child).Name = Child_Name
+           and then PolyORB.POA.Obj_Adapter_Access (A_Child).Name = Child_Name
          then
             Replace_Element (Sequence (Self.Children.all), I, null);
             return;
@@ -792,7 +792,7 @@ package body Droopi.POA.Basic_POA is
    end Remove_POA_By_Name;
 
    ---------------------------------------------------
-   --  Procedures and functions required by Droopi  --
+   --  Procedures and functions required by PolyORB  --
    ---------------------------------------------------
 
    ------------
@@ -822,11 +822,11 @@ package body Droopi.POA.Basic_POA is
 
    function Export
      (OA  : access Basic_Obj_Adapter;
-      Obj :        Droopi.Objects.Servant_Access)
-     return Droopi.Objects.Object_Id
+      Obj :        PolyORB.Objects.Servant_Access)
+     return PolyORB.Objects.Object_Id
    is
-      Id : constant Droopi.Objects.Object_Id
-        := Droopi.Objects.Object_Id
+      Id : constant PolyORB.Objects.Object_Id
+        := PolyORB.Objects.Object_Id
         (Activate_Object (OA, Servant_Access (Obj)));
 
       --  XXX Is it approriate to call Activate_Object
@@ -855,7 +855,7 @@ package body Droopi.POA.Basic_POA is
       --  trivial question.
    begin
       pragma Debug (O ("Exporting Servant, resulting Id is "
-                       & Droopi.Objects.To_String (Id)));
+                       & PolyORB.Objects.To_String (Id)));
       return Id;
    end Export;
 
@@ -865,7 +865,7 @@ package body Droopi.POA.Basic_POA is
 
    procedure Unexport
      (OA : access Basic_Obj_Adapter;
-      Id :        Droopi.Objects.Object_Id)
+      Id :        PolyORB.Objects.Object_Id)
    is
    begin
       Deactivate_Object (OA, Object_Id (Id));
@@ -877,15 +877,15 @@ package body Droopi.POA.Basic_POA is
 
    function Get_Empty_Arg_List
      (OA     : access Basic_Obj_Adapter;
-      Oid    : Droopi.Objects.Object_Id;
-      Method : Droopi.Requests.Operation_Id)
-     return Droopi.Any.NVList.Ref
+      Oid    : PolyORB.Objects.Object_Id;
+      Method : PolyORB.Requests.Operation_Id)
+     return PolyORB.Any.NVList.Ref
    is
       S : Servant_Access;
-      Nil_Result : Droopi.Any.NVList.Ref;
+      Nil_Result : PolyORB.Any.NVList.Ref;
    begin
       pragma Debug (O ("Get_Empty_Arg_List for Id "
-                       & Droopi.Objects.To_String (Oid)));
+                       & PolyORB.Objects.To_String (Oid)));
       S := Servant_Access (Find_Servant (OA, Oid, NO_CHECK));
       if S.If_Desc.PP_Desc /= null then
          return S.If_Desc.PP_Desc (Method);
@@ -911,19 +911,19 @@ package body Droopi.POA.Basic_POA is
 
    function Get_Empty_Result
      (OA     : access Basic_Obj_Adapter;
-      Oid    : Droopi.Objects.Object_Id;
-      Method : Droopi.Requests.Operation_Id)
-     return Droopi.Any.Any
+      Oid    : PolyORB.Objects.Object_Id;
+      Method : PolyORB.Requests.Operation_Id)
+     return PolyORB.Any.Any
    is
       S : Servant_Access;
    begin
       pragma Debug (O ("Get_Empty_Result for Id "
-                       & Droopi.Objects.To_String (Oid)));
+                       & PolyORB.Objects.To_String (Oid)));
       S := Servant_Access (Find_Servant (OA, Oid, NO_CHECK));
       if S.If_Desc.RP_Desc /= null then
          return S.If_Desc.RP_Desc (Method);
       end if;
-      raise Droopi.Not_Implemented;
+      raise PolyORB.Not_Implemented;
       --  Cf. comment above.
    end Get_Empty_Result;
 
@@ -933,8 +933,8 @@ package body Droopi.POA.Basic_POA is
 
    function Find_Servant
      (OA : access Basic_Obj_Adapter;
-      Id :        Droopi.Objects.Object_Id)
-     return Droopi.Objects.Servant_Access
+      Id :        PolyORB.Objects.Object_Id)
+     return PolyORB.Objects.Servant_Access
    is
    begin
       return Find_Servant (OA, Id, CHECK);
@@ -946,9 +946,9 @@ package body Droopi.POA.Basic_POA is
 
    function Find_Servant
      (OA       : access Basic_Obj_Adapter;
-      Id       :        Droopi.Objects.Object_Id;
+      Id       :        PolyORB.Objects.Object_Id;
       Do_Check :        Check_State)
-     return Droopi.Objects.Servant_Access
+     return PolyORB.Objects.Servant_Access
    is
       U_Oid  : Unmarshalled_Oid_Access
         := Oid_To_U_Oid (Object_Id (Id));
@@ -960,12 +960,12 @@ package body Droopi.POA.Basic_POA is
                --  ??? Do we have to do something special for INACTIVE
             when HOLDING =>
                declare
-                  S : Droopi.Objects.Servant_Access;
+                  S : PolyORB.Objects.Servant_Access;
                begin
-                  S := Droopi.Objects.Servant_Access
+                  S := PolyORB.Objects.Servant_Access
                     (Get_Hold_Servant
                      (POA_Manager_Of (OA),
-                      Droopi.POA_Types.Obj_Adapter_Access (OA)));
+                      PolyORB.POA_Types.Obj_Adapter_Access (OA)));
                   return S;
                end;
             when others =>
@@ -985,14 +985,14 @@ package body Droopi.POA.Basic_POA is
          pragma Debug
            (O ("OA : " & To_Standard_String (The_OA.Name)
                & " looks for servant associated with Id "
-               & Droopi.Objects.To_String (Id)));
+               & PolyORB.Objects.To_String (Id)));
 
          if The_OA /= null then
-            return Droopi.Objects.Servant_Access
+            return PolyORB.Objects.Servant_Access
               (Id_To_Servant (The_OA, Id));
          else
             raise Invalid_Object_Id;
-            --  This is an exception from Droopi
+            --  This is an exception from PolyORB
          end if;
       end;
    end Find_Servant;
@@ -1003,11 +1003,11 @@ package body Droopi.POA.Basic_POA is
 
    procedure Release_Servant
      (OA      : access Basic_Obj_Adapter;
-      Id      :        Droopi.Objects.Object_Id;
-      Servant : in out Droopi.Objects.Servant_Access)
+      Id      :        PolyORB.Objects.Object_Id;
+      Servant : in out PolyORB.Objects.Servant_Access)
    is
    begin
       null;
    end Release_Servant;
 
-end Droopi.POA.Basic_POA;
+end PolyORB.POA.Basic_POA;

@@ -1,8 +1,8 @@
 --  $Id$
 
-with Droopi.Soft_Links;
+with PolyORB.Soft_Links;
 
-package Droopi.No_Tasking is
+package PolyORB.No_Tasking is
 
    pragma Elaborate_Body;
 
@@ -139,4 +139,4 @@ private
       Is_Null : Boolean := True;
    end record;
 
-end Droopi.No_Tasking;
+end PolyORB.No_Tasking;

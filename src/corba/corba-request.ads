@@ -8,7 +8,7 @@ with CORBA.ContextList;
 with CORBA.ExceptionList;
 with CORBA.NVList;
 
-with Droopi.Requests;
+with PolyORB.Requests;
 
 package CORBA.Request is
 
@@ -44,26 +44,26 @@ package CORBA.Request is
 
    --  XXX incomplete!
 
-   --  The following is specific to DROOPI.
+   --  The following is specific to PolyORB.
 
-   function To_Droopi_Request
+   function To_PolyORB_Request
      (Request : Object)
-     return Droopi.Requests.Request_Access;
+     return PolyORB.Requests.Request_Access;
 
    function To_CORBA_Request
-     (Request : Droopi.Requests.Request_Access)
+     (Request : PolyORB.Requests.Request_Access)
      return Object;
 
 private
 
    type Object is record
-      The_Request : Droopi.Requests.Request_Access;
+      The_Request : PolyORB.Requests.Request_Access;
    end record;
    --  XXX Would it not be simpler to declare
-   --  type Object is new Droopi.Requests.Request_Access; ?
+   --  type Object is new PolyORB.Requests.Request_Access; ?
    --  (as is presently done in CORBA.ServerRequest!)
 
-   pragma Inline (To_Droopi_Request);
+   pragma Inline (To_PolyORB_Request);
    pragma Inline (To_CORBA_Request);
 
 end CORBA.Request;

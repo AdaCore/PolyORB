@@ -1,8 +1,8 @@
---  Logging support for DROOPI
+--  Logging support for PolyORB
 
 --  $Id$
 
-package Droopi.Log is
+package PolyORB.Log is
 
    pragma Elaborate_Body;
 
@@ -54,4 +54,4 @@ package Droopi.Log is
 
    end Facility_Log;
 
-end Droopi.Log;
+end PolyORB.Log;

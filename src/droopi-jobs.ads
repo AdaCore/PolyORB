@@ -2,7 +2,7 @@
 
 --  $Id$
 
-package Droopi.Jobs is
+package PolyORB.Jobs is
 
    pragma Preelaborate;
 
@@ -74,4 +74,4 @@ private
       First, Last : Queue_Element_Access;
    end record;
 
-end Droopi.Jobs;
+end PolyORB.Jobs;

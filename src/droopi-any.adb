@@ -33,20 +33,20 @@
 
 with Ada.Tags;
 
-with Droopi.Locks;
-with Droopi.Log;
-pragma Elaborate_All (Droopi.Log);
+with PolyORB.Locks;
+with PolyORB.Log;
+pragma Elaborate_All (PolyORB.Log);
 
-package body Droopi.Any is
+package body PolyORB.Any is
 
-   use Droopi.Locks;
-   use Droopi.Log;
+   use PolyORB.Locks;
+   use PolyORB.Log;
 
-   package L is new Droopi.Log.Facility_Log ("droopi.any");
+   package L is new PolyORB.Log.Facility_Log ("polyorb.any");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
-   package L2 is new Droopi.Log.Facility_Log ("droopi.any_refcnt");
+   package L2 is new PolyORB.Log.Facility_Log ("polyorb.any_refcnt");
    procedure O2 (Message : in Standard.String; Level : Log_Level := Debug)
      renames L2.Output;
 
@@ -132,7 +132,7 @@ package body Droopi.Any is
                   Id_Left  : constant RepositoryId := Id (Left);
                   Id_Right : constant RepositoryId := Id (Right);
                   Null_RepositoryId : constant RepositoryId
-                    := RepositoryId'(To_Droopi_String (""));
+                    := RepositoryId'(To_PolyORB_String (""));
                begin
                   if Id_Left /= Null_RepositoryId
                     and then Id_Right /= Null_RepositoryId
@@ -306,7 +306,7 @@ package body Droopi.Any is
               | Tk_Abstract_Interface
               | Tk_Except =>
                declare
-                  Res : Droopi.Types.String;
+                  Res : PolyORB.Types.String;
                begin
                   Res := From_Any (Get_Parameter (Self, 1));
                   return RepositoryId (Res);
@@ -334,7 +334,7 @@ package body Droopi.Any is
               | Tk_Abstract_Interface
               | Tk_Except =>
                declare
-                  Res : Droopi.Types.String;
+                  Res : PolyORB.Types.String;
                begin
                   Res := From_Any (Get_Parameter (Self, 0));
                   return Identifier (Res);
@@ -379,7 +379,7 @@ package body Droopi.Any is
       is
          Param_Nb : constant Unsigned_Long
            := Parameter_Count (Self);
-         Res      : Droopi.Types.String;
+         Res      : PolyORB.Types.String;
       begin
          --  See the big explanation after the declaration of
          --  typecode.object in the private part of corba.typecode
@@ -1581,7 +1581,7 @@ package body Droopi.Any is
       TypeCode.Add_Parameter (Tco, To_Any (Unsigned_Long (0)));
       --  the string is supposed to be unbounded
       Set_Value (Result, new Content_String'
-                 (Value => new Droopi.Types.String' (Item)));
+                 (Value => new PolyORB.Types.String' (Item)));
       Set_Type (Result, Tco);
       pragma Debug (O ("To_Any (String) : end"));
       Inc_Usage (Result);
@@ -2040,7 +2040,7 @@ package body Droopi.Any is
    --  Set_Any_Value  --
    ---------------------
    procedure Set_Any_Value (Any_Value : in out Any;
-                            Value : in Droopi.Types.String) is
+                            Value : in PolyORB.Types.String) is
       use TypeCode;
    begin
       if TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_String then
@@ -2051,7 +2051,7 @@ package body Droopi.Any is
          Content_String_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
-           new Content_String'(Value => new Droopi.Types.String' (Value));
+           new Content_String'(Value => new PolyORB.Types.String' (Value));
       end if;
       Unlock_W (Any_Value.Any_Lock);
    end Set_Any_Value;
@@ -2704,7 +2704,7 @@ package body Droopi.Any is
                        return Any_Content_Ptr is
    begin
       return new Content_String'
-        (Value => new Droopi.Types.String'
+        (Value => new PolyORB.Types.String'
          (Content_String_Ptr (Object).Value.all));
    end Duplicate;
 
@@ -2807,7 +2807,7 @@ package body Droopi.Any is
    begin
       pragma Debug (O2 ("Initialize"));
       Object.Ref_Counter := new Natural'(1);
-      Droopi.Locks.Create (Object.Any_Lock);
+      PolyORB.Locks.Create (Object.Any_Lock);
       Object.The_Value := new Any_Content_Ptr'(Null_Content_Ptr);
    end Initialize;
 
@@ -2832,7 +2832,7 @@ package body Droopi.Any is
          end if;
          pragma Debug (O2 ("Adjust : Duplication processed"));
          Object.Ref_Counter := new Natural'(1);
-         Droopi.Locks.Create (Object.Any_Lock);
+         PolyORB.Locks.Create (Object.Any_Lock);
       end if;
       pragma Debug (O2 ("Adjust : end"));
    end Adjust;
@@ -2941,7 +2941,7 @@ package body Droopi.Any is
          pragma Debug (O2 ("Dec_Usage : counter deallocated"));
          Unlock_W (Obj.Any_Lock);
          pragma Debug (O2 ("Dec_Usage : lock released, DESTROYING"));
-         Droopi.Locks.Destroy (Obj.Any_Lock);
+         PolyORB.Locks.Destroy (Obj.Any_Lock);
       end if;
       pragma Debug (O2 ("Dec_Usage : end"));
    end Dec_Usage;
@@ -2973,4 +2973,4 @@ package body Droopi.Any is
         & " = " & Image (NV.Argument);
    end Image;
 
-end Droopi.Any;
+end PolyORB.Any;

@@ -2,7 +2,7 @@
 
 --  $Id$
 
-package Droopi.POA_Config.Minimum is
+package PolyORB.POA_Config.Minimum is
 
    pragma Elaborate_Body;
 
@@ -13,11 +13,11 @@ package Droopi.POA_Config.Minimum is
 
    function Default_Policies
      (C : Minimum_Configuration)
-     return Droopi.POA_Policies.PolicyList_Access;
+     return PolyORB.POA_Policies.PolicyList_Access;
 
 private
 
    type Minimum_Configuration is new Configuration_Type
      with null record;
 
-end Droopi.POA_Config.Minimum;
+end PolyORB.POA_Config.Minimum;

@@ -18,11 +18,11 @@
 
 --  $Id$
 
-with Droopi.Components; use Droopi.Components;
+with PolyORB.Components; use PolyORB.Components;
 
-package Droopi.Filters is
+package PolyORB.Filters is
 
-   --  Body requires child unit Droopi.Filters.Interface:
+   --  Body requires child unit PolyORB.Filters.Interface:
    --  no elab control pragma.
 
    ----------------------------------------------------
@@ -43,7 +43,7 @@ package Droopi.Filters is
 
    --------------------------------------------------------
    -- Filters communicate by exchanging Data_Units,      --
-   -- defined in child package Droopi.Filters.Interface. --
+   -- defined in child package PolyORB.Filters.Interface. --
    --                                                    --
    -- Filters can be chained. A chain of filters is      --
    -- created from a chain of filter factories.          --
@@ -85,4 +85,4 @@ private
 
    type Factory is abstract new Filter with null record;
 
-end Droopi.Filters;
+end PolyORB.Filters;

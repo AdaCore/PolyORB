@@ -6,7 +6,7 @@ generic
 
    type Value is private;
 
-package Droopi.Dynamic_Dict is
+package PolyORB.Dynamic_Dict is
 
    pragma Elaborate_Body;
 
@@ -23,4 +23,4 @@ package Droopi.Dynamic_Dict is
    procedure Unregister
      (K : String);
 
-end Droopi.Dynamic_Dict;
+end PolyORB.Dynamic_Dict;

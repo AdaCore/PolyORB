@@ -1,18 +1,18 @@
---  $Id: //droopi/main/src/corba/droopi-corba_p-exceptions-stack.adb#1 $
+--  $Id: //droopi/main/src/corba/droopi-corba_p-exceptions-stack.adb#2 $
 
 with Ada.Unchecked_Deallocation;
 
-with Droopi.Log;
-pragma Elaborate_All (Droopi.Log);
+with PolyORB.Log;
+pragma Elaborate_All (PolyORB.Log);
 
-with Droopi.Soft_Links;
+with PolyORB.Soft_Links;
 
-package body Droopi.CORBA_P.Exceptions.Stack is
+package body PolyORB.CORBA_P.Exceptions.Stack is
 
-   use Droopi.Log;
-   use Droopi.Soft_Links;
+   use PolyORB.Log;
+   use PolyORB.Soft_Links;
 
-   package L is new Droopi.Log.Facility_Log ("broca.exceptions.stack");
+   package L is new PolyORB.Log.Facility_Log ("broca.exceptions.stack");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -151,7 +151,7 @@ package body Droopi.CORBA_P.Exceptions.Stack is
          --  Too many exceptions were raised and this member is no
          --  longer available.
 
-         Droopi.CORBA_P.Exceptions.Raise_Imp_Limit;
+         PolyORB.CORBA_P.Exceptions.Raise_Imp_Limit;
       end if;
 
       --  Remove member from list.
@@ -326,4 +326,4 @@ package body Droopi.CORBA_P.Exceptions.Stack is
       return V;
    end Value;
 
-end Droopi.CORBA_P.Exceptions.Stack;
+end PolyORB.CORBA_P.Exceptions.Stack;

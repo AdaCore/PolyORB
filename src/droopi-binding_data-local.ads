@@ -3,9 +3,9 @@
 
 --  $Id$
 
-with Droopi.Objects;
+with PolyORB.Objects;
 
-package Droopi.Binding_Data.Local is
+package PolyORB.Binding_Data.Local is
 
    pragma Elaborate_Body;
 
@@ -50,4 +50,4 @@ private
       Object_Id : Objects.Object_Id_Access;
    end record;
 
-end Droopi.Binding_Data.Local;
+end PolyORB.Binding_Data.Local;

@@ -2,7 +2,7 @@
 
 --  $Id$
 
-package body Droopi.Representations is
+package body PolyORB.Representations is
 
    ---------
    -- Rev --
@@ -129,4 +129,4 @@ package body Droopi.Representations is
         (Data_Address.Offset .. Data_Address.Offset + Size - 1);
    end Align_Unmarshall_Copy;
 
-end Droopi.Representations;
+end PolyORB.Representations;

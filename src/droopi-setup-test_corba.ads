@@ -3,10 +3,10 @@
 
 --  $Id$
 
-package Droopi.Setup.Test_CORBA is
+package PolyORB.Setup.Test_CORBA is
 
    pragma Elaborate_Body;
 
    procedure Initialize_CORBA_Test_Object;
 
-end Droopi.Setup.Test_CORBA;
+end PolyORB.Setup.Test_CORBA;

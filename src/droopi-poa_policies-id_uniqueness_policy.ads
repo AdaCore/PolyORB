@@ -1,6 +1,6 @@
-with Droopi.POA_Types;               use Droopi.POA_Types;
+with PolyORB.POA_Types;               use PolyORB.POA_Types;
 
-package Droopi.POA_Policies.Id_Uniqueness_Policy is
+package PolyORB.POA_Policies.Id_Uniqueness_Policy is
 
    type IdUniquenessPolicy is abstract new Policy with null record;
    subtype Id_Uniqueness_Policy is IdUniquenessPolicy;
@@ -17,7 +17,7 @@ package Droopi.POA_Policies.Id_Uniqueness_Policy is
 
    procedure Ensure_Servant_Uniqueness
      (Self      : IdUniquenessPolicy;
-      OA        : Droopi.POA_Types.Obj_Adapter_Access;
+      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
       P_Servant : Servant_Access)
      is abstract;
    --  Case UNIQUE_ID:
@@ -27,7 +27,7 @@ package Droopi.POA_Policies.Id_Uniqueness_Policy is
    --  Does nothing
 
    function Servant_To_Id (Self      : IdUniquenessPolicy;
-                           OA        : Droopi.POA_Types.Obj_Adapter_Access;
+                           OA        : PolyORB.POA_Types.Obj_Adapter_Access;
                            P_Servant : Servant_Access) return Object_Id_Access
       is abstract;
    --  Case UNIQUE_ID:
@@ -37,4 +37,4 @@ package Droopi.POA_Policies.Id_Uniqueness_Policy is
    --  Case MULTIPLE_ID:
    --    Returns null.
 
-end Droopi.POA_Policies.Id_Uniqueness_Policy;
+end PolyORB.POA_Policies.Id_Uniqueness_Policy;

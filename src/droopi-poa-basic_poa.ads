@@ -4,17 +4,17 @@
 
 with Ada.Unchecked_Deallocation;
 
-with Droopi.Any;
-with Droopi.Any.NVList;
-with Droopi.Objects;
-with Droopi.POA_Policies;
-with Droopi.Requests;
+with PolyORB.Any;
+with PolyORB.Any.NVList;
+with PolyORB.Objects;
+with PolyORB.POA_Policies;
+with PolyORB.Requests;
 
-package Droopi.POA.Basic_POA is
+package PolyORB.POA.Basic_POA is
 
    pragma Elaborate_Body;
 
-   type Basic_Obj_Adapter is new Droopi.POA.Obj_Adapter
+   type Basic_Obj_Adapter is new PolyORB.POA.Obj_Adapter
      with private;
    type Basic_Obj_Adapter_Access is access all Basic_Obj_Adapter;
    --  The POA object
@@ -27,7 +27,7 @@ package Droopi.POA.Basic_POA is
      (Self         : access Basic_Obj_Adapter;
       Adapter_Name :        Types.String;
       A_POAManager :        POA_Manager.POAManager_Access;
-      Policies     :        Droopi.POA_Policies.PolicyList_Access)
+      Policies     :        PolyORB.POA_Policies.PolicyList_Access)
      return Obj_Adapter_Access;
    --  Create a POA given its name and a list of policies
    --  Policies are optionnal : defaults values are provided
@@ -62,7 +62,7 @@ package Droopi.POA.Basic_POA is
      return Servant_Access;
 
    --------------------------------------------------------
-   --  Functions and procedures to interface with Droopi --
+   --  Functions and procedures to interface with PolyORB --
    --------------------------------------------------------
 
    procedure Create
@@ -73,37 +73,37 @@ package Droopi.POA.Basic_POA is
 
    function Export
      (OA  : access Basic_Obj_Adapter;
-      Obj :        Droopi.Objects.Servant_Access)
-     return Droopi.Objects.Object_Id;
+      Obj :        PolyORB.Objects.Servant_Access)
+     return PolyORB.Objects.Object_Id;
 
    procedure Unexport
      (OA : access Basic_Obj_Adapter;
-      Id :        Droopi.Objects.Object_Id);
+      Id :        PolyORB.Objects.Object_Id);
 
    function Get_Empty_Arg_List
      (OA     : access Basic_Obj_Adapter;
-      Oid    : Droopi.Objects.Object_Id;
-      Method : Droopi.Requests.Operation_Id)
-     return Droopi.Any.NVList.Ref;
+      Oid    : PolyORB.Objects.Object_Id;
+      Method : PolyORB.Requests.Operation_Id)
+     return PolyORB.Any.NVList.Ref;
 
    function Get_Empty_Result
      (OA     : access Basic_Obj_Adapter;
-      Oid    : Droopi.Objects.Object_Id;
-      Method : Droopi.Requests.Operation_Id)
-     return Droopi.Any.Any;
+      Oid    : PolyORB.Objects.Object_Id;
+      Method : PolyORB.Requests.Operation_Id)
+     return PolyORB.Any.Any;
 
    function Find_Servant
      (OA : access Basic_Obj_Adapter;
-      Id :        Droopi.Objects.Object_Id)
-     return Droopi.Objects.Servant_Access;
+      Id :        PolyORB.Objects.Object_Id)
+     return PolyORB.Objects.Servant_Access;
 
    procedure Release_Servant
      (OA      : access Basic_Obj_Adapter;
-      Id      :        Droopi.Objects.Object_Id;
-      Servant : in out Droopi.Objects.Servant_Access);
+      Id      :        PolyORB.Objects.Object_Id;
+      Servant : in out PolyORB.Objects.Servant_Access);
 
    -------------------------------------------------
-   --  Utilities, neither in CORBA nor in Droopi  --
+   --  Utilities, neither in CORBA nor in PolyORB  --
    -------------------------------------------------
 
    procedure Copy_Obj_Adapter
@@ -126,7 +126,7 @@ package Droopi.POA.Basic_POA is
 
 private
 
-   type Basic_Obj_Adapter is new Droopi.POA.Obj_Adapter
+   type Basic_Obj_Adapter is new PolyORB.POA.Obj_Adapter
      with null record;
 
    procedure Free is new Ada.Unchecked_Deallocation
@@ -134,4 +134,4 @@ private
 
    type Check_State is (CHECK, NO_CHECK);
 
-end Droopi.POA.Basic_POA;
+end PolyORB.POA.Basic_POA;

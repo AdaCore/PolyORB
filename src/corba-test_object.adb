@@ -4,36 +4,36 @@
 
 with Ada.Exceptions;
 
-with Droopi.Any;
-with Droopi.Any.NVList;
+with PolyORB.Any;
+with PolyORB.Any.NVList;
 
-with Droopi.Components;
-with Droopi.Log;
-pragma Elaborate_All (Droopi.Log);
+with PolyORB.Components;
+with PolyORB.Log;
+pragma Elaborate_All (PolyORB.Log);
 
-with Droopi.Objects.Interface;
-with Droopi.Requests;
-with Droopi.Types;
+with PolyORB.Objects.Interface;
+with PolyORB.Requests;
+with PolyORB.Types;
 
 with CORBA;
-with Droopi.POA_Types;
+with PolyORB.POA_Types;
 
 package body CORBA.Test_Object is
 
-   use Droopi.Any;
-   use Droopi.Log;
-   use Droopi.Objects.Interface;
-   use Droopi.Requests;
+   use PolyORB.Any;
+   use PolyORB.Log;
+   use PolyORB.Objects.Interface;
+   use PolyORB.Requests;
    use CORBA;
 
-   package L is new Droopi.Log.Facility_Log ("corba.test_object");
+   package L is new PolyORB.Log.Facility_Log ("corba.test_object");
    procedure Output (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
    function "=" (Left, Right : My_Object)
                 return Standard.Boolean
    is
-      use Droopi.POA_Types;
+      use PolyORB.POA_Types;
    begin
       return (Left.If_Desc = Right.If_Desc);
    end "=";
@@ -70,11 +70,11 @@ package body CORBA.Test_Object is
 
    function Handle_Message
      (Obj : access My_Object;
-      Msg : Droopi.Components.Message'Class)
-     return Droopi.Components.Message'Class is
-      use Droopi.Any.NVList;
-      use Droopi.Any.NVList.Internals;
-      use Droopi.Types;
+      Msg : PolyORB.Components.Message'Class)
+     return PolyORB.Components.Message'Class is
+      use PolyORB.Any.NVList;
+      use PolyORB.Any.NVList.Internals;
+      use PolyORB.Types;
    begin
       pragma Debug (Output ("Handle Message : enter"));
       if Msg in Execute_Request then
@@ -85,8 +85,8 @@ package body CORBA.Test_Object is
               Internals.List_Of (Req.all.Args);
          begin
             pragma Debug (Output ("The server is executing the request:"
-                             & Droopi.Requests.Image (Req.all)));
-            if Req.all.Operation = To_Droopi_String ("echoString") then
+                             & PolyORB.Requests.Image (Req.all)));
+            if Req.all.Operation = To_PolyORB_String ("echoString") then
                declare
                   echoString_Arg : CORBA.String :=
                     From_Any (NV_Sequence.Element_Of
@@ -107,12 +107,12 @@ package body CORBA.Test_Object is
                   pragma Debug (Output ("Result: " & Image (Req.Result)));
                end;
             else
-               raise Droopi.Components.Unhandled_Message;
+               raise PolyORB.Components.Unhandled_Message;
             end if;
             return Executed_Request'(Req => Req);
          end;
       else
-         raise Droopi.Components.Unhandled_Message;
+         raise PolyORB.Components.Unhandled_Message;
       end if;
 
    exception
@@ -125,33 +125,33 @@ package body CORBA.Test_Object is
    end Handle_Message;
 
    function Get_Parameter_Profile
-     (Method : Droopi.Requests.Operation_Id)
-     return Droopi.Any.NVList.Ref;
+     (Method : PolyORB.Requests.Operation_Id)
+     return PolyORB.Any.NVList.Ref;
 
    function Get_Result_Profile
-     (Method : Droopi.Requests.Operation_Id)
-     return Droopi.Any.Any;
+     (Method : PolyORB.Requests.Operation_Id)
+     return PolyORB.Any.Any;
 
    function Get_Parameter_Profile
-     (Method : Droopi.Requests.Operation_Id)
-     return Droopi.Any.NVList.Ref
+     (Method : PolyORB.Requests.Operation_Id)
+     return PolyORB.Any.NVList.Ref
    is
-      use Droopi.Any;
-      use Droopi.Any.NVList;
-      use Droopi.Types;
+      use PolyORB.Any;
+      use PolyORB.Any.NVList;
+      use PolyORB.Types;
 
-      Result : Droopi.Any.NVList.Ref;
+      Result : PolyORB.Any.NVList.Ref;
    begin
-      Droopi.Any.NVList.Create (Result);
+      PolyORB.Any.NVList.Create (Result);
       pragma Debug
         (Output ("Parameter profile for " & Method & " requested."));
       if Method = "echoString" then
          Add_Item (Result,
-                   (Name => To_Droopi_String ("S"),
+                   (Name => To_PolyORB_String ("S"),
                     Argument => Get_Empty_Any (TypeCode.TC_String),
                     Arg_Modes => ARG_IN));
       elsif Method = "echoInteger" then
-         Add_Item (Result, (Name => To_Droopi_String ("I"),
+         Add_Item (Result, (Name => To_PolyORB_String ("I"),
                             Argument => Get_Empty_Any (TypeCode.TC_Long),
                             Arg_Modes => ARG_IN));
       else
@@ -161,10 +161,10 @@ package body CORBA.Test_Object is
    end Get_Parameter_Profile;
 
    function Get_Result_Profile
-     (Method : Droopi.Requests.Operation_Id)
-     return Droopi.Any.Any
+     (Method : PolyORB.Requests.Operation_Id)
+     return PolyORB.Any.Any
    is
-      use Droopi.Any;
+      use PolyORB.Any;
 
    begin
       pragma Debug (Output ("Result profile for " & Method & " requested."));

@@ -34,16 +34,16 @@
 with Ada.Unchecked_Deallocation;
 --  For Iovec_Pools.Free.
 
-with Droopi.Log;
-pragma Elaborate_All (Droopi.Log);
+with PolyORB.Log;
+pragma Elaborate_All (PolyORB.Log);
 
-package body Droopi.Buffers is
+package body PolyORB.Buffers is
 
-   use Droopi.Log;
+   use PolyORB.Log;
    use Buffer_Chunk_Pools;
    use Iovec_Pools;
 
-   package L is new Droopi.Log.Facility_Log ("droopi.buffers");
+   package L is new PolyORB.Log.Facility_Log ("polyorb.buffers");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -369,10 +369,10 @@ package body Droopi.Buffers is
    is
       Data : Opaque_Pointer;
       Last : Stream_Element_Offset;
-      Addr : Droopi.Sockets.Sock_Addr_Type;
+      Addr : PolyORB.Sockets.Sock_Addr_Type;
    begin
       Allocate_And_Insert_Cooked_Data (Buffer, Max, Data);
-      Droopi.Sockets.Receive_Socket
+      PolyORB.Sockets.Receive_Socket
         (Socket => Socket,
          Item   => Data.Zone (Data.Offset .. Data.Offset + Max - 1),
          Last   => Last,
@@ -711,10 +711,10 @@ package body Droopi.Buffers is
       end Release;
 
       procedure Write_To_Socket
-        (S          : Droopi.Sockets.Socket_Type;
+        (S          : PolyORB.Sockets.Socket_Type;
          Iovec_Pool : access Iovec_Pool_Type)
       is
-         use Droopi.Sockets;
+         use PolyORB.Sockets;
 
          Vecs : Iovec_Array := Iovecs (Iovec_Pool.all);
 
@@ -788,5 +788,5 @@ package body Droopi.Buffers is
 
    end Iovec_Pools;
 
-end Droopi.Buffers;
+end PolyORB.Buffers;
 

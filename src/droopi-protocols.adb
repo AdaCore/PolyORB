@@ -5,22 +5,22 @@
 with Ada.Tags;
 with Ada.Unchecked_Deallocation;
 
-with Droopi.Filters.Interface;
-with Droopi.Log;
-pragma Elaborate_All (Droopi.Log);
-with Droopi.Objects.Interface;
-with Droopi.Protocols.Interface;
+with PolyORB.Filters.Interface;
+with PolyORB.Log;
+pragma Elaborate_All (PolyORB.Log);
+with PolyORB.Objects.Interface;
+with PolyORB.Protocols.Interface;
 
-package body Droopi.Protocols is
+package body PolyORB.Protocols is
 
-   use Droopi.Components;
-   use Droopi.Filters.Interface;
-   use Droopi.Log;
-   use Droopi.Objects.Interface;
-   use Droopi.ORB.Interface;
-   use Droopi.Protocols.Interface;
+   use PolyORB.Components;
+   use PolyORB.Filters.Interface;
+   use PolyORB.Log;
+   use PolyORB.Objects.Interface;
+   use PolyORB.ORB.Interface;
+   use PolyORB.Protocols.Interface;
 
-   package L is new Droopi.Log.Facility_Log ("droopi.protocols");
+   package L is new PolyORB.Log.Facility_Log ("polyorb.protocols");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -62,7 +62,7 @@ package body Droopi.Protocols is
          Handle_Data_Indication (Session_Access (Sess));
       elsif S in Unmarshall_Arguments then
          declare
-            Args : Droopi.Any.NVList.Ref
+            Args : PolyORB.Any.NVList.Ref
               := Unmarshall_Arguments (S).Args;
          begin
             Handle_Unmarshall_Arguments
@@ -93,14 +93,14 @@ package body Droopi.Protocols is
          --    * a session should not ever receive Queue_Request
          --      (this is a message from the ORB interface!)
          --    * Put_Line must NEVER EVER be used at all.
-         --      debugging messages MUST use the Droopi.Log mechanism.
+         --      debugging messages MUST use the PolyORB.Log mechanism.
          --
          --  Therefore disabling all the branch.
          --  Thomas 20010823
          raise Program_Error;
 --          Ada.Text_IO.Put_Line ("message is queue request");
 --          Sess.Pending_Request := Queue_Request (S);
---          Droopi.Soft_Links.Update (Sess.Request_Watcher);
+--          PolyORB.Soft_Links.Update (Sess.Request_Watcher);
       else
          raise Components.Unhandled_Message;
       end if;
@@ -124,7 +124,7 @@ package body Droopi.Protocols is
 
    function Get_Request_Watcher
      (S : in Session_Access)
-     return Droopi.Soft_Links.Watcher_Access
+     return PolyORB.Soft_Links.Watcher_Access
    is
    begin
       return S.Request_Watcher;
@@ -136,7 +136,7 @@ package body Droopi.Protocols is
 
    procedure Set_Request_Watcher
      (S : in Session_Access;
-      W : Droopi.Soft_Links.Watcher_Access)
+      W : PolyORB.Soft_Links.Watcher_Access)
    is
    begin
       S.Request_Watcher := W;
@@ -154,4 +154,4 @@ package body Droopi.Protocols is
       return S.Pending_Request;
    end Get_Pending_Request;
 
-end Droopi.Protocols;
+end PolyORB.Protocols;

@@ -3,22 +3,22 @@
 with Ada.Unchecked_Conversion;
 with Ada.Unchecked_Deallocation;
 
-with Droopi.Log;
-pragma Elaborate_All (Droopi.Log);
+with PolyORB.Log;
+pragma Elaborate_All (PolyORB.Log);
 
 pragma Warnings (Off);
 with System.Soft_Links;
 pragma Warnings (On);
 --  Internal GNAT unit.
 
-with Droopi.Soft_Links;  use Droopi.Soft_Links;
+with PolyORB.Soft_Links;  use PolyORB.Soft_Links;
 
-package body Droopi.Protected_Objects is
+package body PolyORB.Protected_Objects is
 
    use Ada.Task_Identification;
-   use Droopi.Log;
+   use PolyORB.Log;
 
-   package L is new Droopi.Log.Facility_Log ("droopi.protected_objects");
+   package L is new PolyORB.Log.Facility_Log ("polyorb.protected_objects");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -501,4 +501,4 @@ package body Droopi.Protected_Objects is
       return Task_Id_To_Integer (T.X);
    end To_Integer;
 
-end Droopi.Protected_Objects;
+end PolyORB.Protected_Objects;

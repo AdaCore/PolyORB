@@ -1,6 +1,6 @@
-with Droopi.Objects;
-with Droopi.Smart_Pointers;
-with Droopi.References.IOR;
+with PolyORB.Objects;
+with PolyORB.Smart_Pointers;
+with PolyORB.References.IOR;
 
 with CORBA.AbstractBase;
 with CORBA.Context;
@@ -81,24 +81,24 @@ package CORBA.Object is
      (Obj : in CORBA.Object.Ref'Class)
      return CORBA.String;
 
-   function To_Droopi_Object
+   function To_PolyORB_Object
      (R : in Ref)
-     return Droopi.Objects.Object_Id;
+     return PolyORB.Objects.Object_Id;
    --  XXX What is this supposed to do?
-   --   It is not possible in general to associate a Droopi Object_Id
+   --   It is not possible in general to associate a PolyORB Object_Id
    --   with a CORBA.Object.Ref. This can be done only when R designates
    --   an object located on this middleware instance.
 
-   function To_Droopi_Ref
+   function To_PolyORB_Ref
      (R : in Ref)
-     return Droopi.References.Ref;
+     return PolyORB.References.Ref;
 
-   type Reference_Info is new Droopi.Smart_Pointers.Entity with record
-      IOR : Droopi.References.IOR.IOR_Type;
+   type Reference_Info is new PolyORB.Smart_Pointers.Entity with record
+      IOR : PolyORB.References.IOR.IOR_Type;
    end record;
    --  XXX Actually, type info from IOR_Type should be moved into
-   --  Droopi.References.Reference_Info, and then IOR_Type can be
-   --  suppressed completely, and Droopi.References.Ref/Reference_Info
+   --  PolyORB.References.Reference_Info, and then IOR_Type can be
+   --  suppressed completely, and PolyORB.References.Ref/Reference_Info
    --  can be used instead.
 
 private

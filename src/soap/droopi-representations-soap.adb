@@ -1,6 +1,6 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                          DROOPI COMPONENTS                               --
+--                          PolyORB COMPONENTS                               --
 --                                                                          --
 --                        SOAP Representations                              --
 --                                                                          --
@@ -12,19 +12,19 @@
 with Ada.Strings.Unbounded;
 with Ada.Characters.Handling;      use Ada.Characters.Handling;
 
-with Droopi.Types;
-with Droopi.Any;
-with Droopi.Log;
+with PolyORB.Types;
+with PolyORB.Any;
+with PolyORB.Log;
 
 with Sequences.Unbounded;
 
-package body Droopi.Representations.SOAP is
+package body PolyORB.Representations.SOAP is
 
-   use Droopi.Types;
-   use Droopi.Any;
-   use Droopi.Log;
+   use PolyORB.Types;
+   use PolyORB.Any;
+   use PolyORB.Log;
 
-   package L is new Droopi.Log.Facility_Log ("droopi.protocols.soap");
+   package L is new PolyORB.Log.Facility_Log ("polyorb.protocols.soap");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -82,9 +82,9 @@ package body Droopi.Representations.SOAP is
    begin
       Comp.Tag := XML_String (Name);
       if Arg > 0 then
-         Comp.Value := To_Droopi_String (Erase_Space (Str));
+         Comp.Value := To_PolyORB_String (Erase_Space (Str));
       else
-         Comp.Value := To_Droopi_String (Str);
+         Comp.Value := To_PolyORB_String (Str);
       end if;
       XML_Comp := new XML_Component'(Comp);
    end To_XML_Component;
@@ -99,9 +99,9 @@ package body Droopi.Representations.SOAP is
    begin
       Comp.Tag := XML_String (Name);
       if Arg > 0 then
-         Comp.Value := To_Droopi_String (Erase_Space (Str));
+         Comp.Value := To_PolyORB_String (Erase_Space (Str));
       else
-         Comp.Value := To_Droopi_String (Str);
+         Comp.Value := To_PolyORB_String (Str);
       end if;
       XML_Comp := new XML_Component'(Comp);
    end To_XML_Component;
@@ -116,9 +116,9 @@ package body Droopi.Representations.SOAP is
    begin
       Comp.Tag := XML_String (Name);
       if Arg > 0 then
-         Comp.Value := To_Droopi_String (Erase_Space (Str));
+         Comp.Value := To_PolyORB_String (Erase_Space (Str));
       else
-         Comp.Value := To_Droopi_String (Str);
+         Comp.Value := To_PolyORB_String (Str);
       end if;
       XML_Comp := new XML_Component'(Comp);
    end To_XML_Component;
@@ -133,9 +133,9 @@ package body Droopi.Representations.SOAP is
    begin
       Comp.Tag := XML_String (Name);
       if Arg > 0 then
-         Comp.Value := To_Droopi_String (Erase_Space (Str));
+         Comp.Value := To_PolyORB_String (Erase_Space (Str));
       else
-         Comp.Value := To_Droopi_String (Str);
+         Comp.Value := To_PolyORB_String (Str);
       end if;
       XML_Comp := new XML_Component'(Comp);
    end To_XML_Component;
@@ -150,9 +150,9 @@ package body Droopi.Representations.SOAP is
    begin
       Comp.Tag := XML_String (Name);
       if Arg > 0 then
-         Comp.Value := To_Droopi_String (Erase_Space (Str));
+         Comp.Value := To_PolyORB_String (Erase_Space (Str));
       else
-         Comp.Value := To_Droopi_String (Str);
+         Comp.Value := To_PolyORB_String (Str);
       end if;
       XML_Comp := new XML_Component'(Comp);
    end To_XML_Component;
@@ -167,9 +167,9 @@ package body Droopi.Representations.SOAP is
    begin
       Comp.Tag := XML_String (Name);
       if Arg > 0 then
-         Comp.Value := To_Droopi_String (Erase_Space (Str));
+         Comp.Value := To_PolyORB_String (Erase_Space (Str));
       else
-         Comp.Value := To_Droopi_String (Str);
+         Comp.Value := To_PolyORB_String (Str);
       end if;
       XML_Comp := new XML_Component'(Comp);
    end To_XML_Component;
@@ -185,9 +185,9 @@ package body Droopi.Representations.SOAP is
    begin
       Comp.Tag := XML_String (Name);
       if Arg > 0.0 then
-         Comp.Value := To_Droopi_String (Erase_Space (Str));
+         Comp.Value := To_PolyORB_String (Erase_Space (Str));
       else
-         Comp.Value := To_Droopi_String (Str);
+         Comp.Value := To_PolyORB_String (Str);
       end if;
       XML_Comp := new XML_Component'(Comp);
    end To_XML_Component;
@@ -203,9 +203,9 @@ package body Droopi.Representations.SOAP is
    begin
       Comp.Tag := XML_String (Name);
       if Arg > 0.0 then
-         Comp.Value := To_Droopi_String (Erase_Space (Str));
+         Comp.Value := To_PolyORB_String (Erase_Space (Str));
       else
-         Comp.Value := To_Droopi_String (Str);
+         Comp.Value := To_PolyORB_String (Str);
       end if;
       XML_Comp := new XML_Component'(Comp);
    end To_XML_Component;
@@ -218,7 +218,7 @@ package body Droopi.Representations.SOAP is
       Comp : XML_Component;
    begin
       Comp.Tag := XML_String (Name);
-      Comp.Value :=  To_Droopi_String
+      Comp.Value :=  To_PolyORB_String
          (Types.Boolean'Image (Arg));
       XML_Comp := new XML_Component'(Comp);
    end To_XML_Component;
@@ -247,9 +247,9 @@ package body Droopi.Representations.SOAP is
    begin
       Comp.Tag := XML_String (Name);
       if Arg > 0 then
-         Comp.Value := To_Droopi_String (Erase_Space (Str));
+         Comp.Value := To_PolyORB_String (Erase_Space (Str));
       else
-         Comp.Value := To_Droopi_String (Str);
+         Comp.Value := To_PolyORB_String (Str);
       end if;
       XML_Comp := new XML_Component'(Comp);
    end To_XML_Component;
@@ -565,7 +565,7 @@ package body Droopi.Representations.SOAP is
    begin
       Token := Next_Token (Str);
 
-      if Token /= To_Droopi_String ("<") then
+      if Token /= To_PolyORB_String ("<") then
          raise Unexpected_Token;
       end if;
       Parse_Component (XML_Comp, Str);
@@ -573,7 +573,7 @@ package body Droopi.Representations.SOAP is
 
 
 
-end Droopi.Representations.SOAP;
+end PolyORB.Representations.SOAP;
 
 
 

@@ -1,4 +1,4 @@
-package body Droopi.Utils is
+package body PolyORB.Utils is
 
    use Ada.Streams;
 
@@ -85,4 +85,4 @@ package body Droopi.Utils is
       return A;
    end To_Stream_Element_Array;
 
-end Droopi.Utils;
+end PolyORB.Utils;

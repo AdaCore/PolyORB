@@ -1,16 +1,16 @@
-with Droopi.CORBA_P.Exceptions;
-with Droopi.Log;
-pragma Elaborate_All (Droopi.Log);
+with PolyORB.CORBA_P.Exceptions;
+with PolyORB.Log;
+pragma Elaborate_All (PolyORB.Log);
 
-package body Droopi.POA_Manager.Basic_Manager is
+package body PolyORB.POA_Manager.Basic_Manager is
 
-   use Droopi.Locks;
-   use Droopi.CORBA_P.Exceptions;
-   use Droopi.Log;
+   use PolyORB.Locks;
+   use PolyORB.CORBA_P.Exceptions;
+   use PolyORB.Log;
    use Requests_Queue_P;
 
-   package L is new Droopi.Log.Facility_Log
-     ("droopi.poa_manager.basic_manager");
+   package L is new PolyORB.Log.Facility_Log
+     ("polyorb.poa_manager.basic_manager");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -146,7 +146,7 @@ package body Droopi.POA_Manager.Basic_Manager is
 
    procedure Create (M : access Basic_POA_Manager)
    is
-      use Droopi.POA_Types.POA_Sequences;
+      use PolyORB.POA_Types.POA_Sequences;
    begin
       pragma Debug (O ("Create a new Basic_POA_Manager"));
       Create (M.State_Lock);
@@ -175,7 +175,7 @@ package body Droopi.POA_Manager.Basic_Manager is
      (Self : access Basic_POA_Manager;
       OA   : Obj_Adapter_Access)
    is
-      use Droopi.POA_Types.POA_Sequences;
+      use PolyORB.POA_Types.POA_Sequences;
    begin
       pragma Debug (O ("Register a new POA"));
       Lock_W (Self.POAs_Lock);
@@ -200,7 +200,7 @@ package body Droopi.POA_Manager.Basic_Manager is
      (Self : access Basic_POA_Manager;
       OA   : Obj_Adapter_Access)
    is
-      use Droopi.POA_Types.POA_Sequences;
+      use PolyORB.POA_Types.POA_Sequences;
       A_Child : Obj_Adapter_Access;
    begin
       pragma Debug (O ("Remove a POA"));
@@ -363,11 +363,11 @@ package body Droopi.POA_Manager.Basic_Manager is
 
    function Handle_Message
      (Obj : access Hold_Servant;
-      Msg :        Droopi.Components.Message'Class)
-     return Droopi.Components.Message'Class
+      Msg :        PolyORB.Components.Message'Class)
+     return PolyORB.Components.Message'Class
    is
       S            : Hold_Servant_Access;
-      Null_Message : Droopi.Components.Null_Message;
+      Null_Message : PolyORB.Components.Null_Message;
    begin
       pragma Debug (O ("Hold Servant queues message"));
       --      Obj.Queue_Entry.Msg := Msg;
@@ -378,4 +378,4 @@ package body Droopi.POA_Manager.Basic_Manager is
       return Null_Message;
    end Handle_Message;
 
-end Droopi.POA_Manager.Basic_Manager;
+end PolyORB.POA_Manager.Basic_Manager;

@@ -2,15 +2,15 @@
 
 with Unchecked_Deallocation;
 
-with Droopi.Log;
-pragma Elaborate_All (Droopi.Log);
+with PolyORB.Log;
+pragma Elaborate_All (PolyORB.Log);
 
 package body Locked_Queue is
 
-   use Droopi.Log;
-   use Droopi.Soft_Links;
+   use PolyORB.Log;
+   use PolyORB.Soft_Links;
 
-   package L is new Droopi.Log.Facility_Log
+   package L is new PolyORB.Log.Facility_Log
      ("locked_queue");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;

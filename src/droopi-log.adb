@@ -3,12 +3,12 @@
 with Ada.Text_IO; use Ada.Text_IO;
 with Ada.Characters.Handling;
 
-with Droopi.Dynamic_Dict;
-pragma Elaborate_All (Droopi.Dynamic_Dict);
+with PolyORB.Dynamic_Dict;
+pragma Elaborate_All (PolyORB.Dynamic_Dict);
 
-package body Droopi.Log is
+package body PolyORB.Log is
 
-   package Log_Level_Dict is new Droopi.Dynamic_Dict (Log_Level);
+   package Log_Level_Dict is new PolyORB.Dynamic_Dict (Log_Level);
    --  A hash table that stores the logging level associated
    --  with each facility.
 
@@ -144,7 +144,7 @@ package body Droopi.Log is
    is
       --  XXX Should be merged with a global configration file!
 
-      Filename : constant String := "droopi_log.conf";
+      Filename : constant String := "polyorb_log.conf";
 
       File : File_Type;
       Line : String (1 .. 256);
@@ -169,4 +169,4 @@ package body Droopi.Log is
       null;
    end Initialize;
 
-end Droopi.Log;
+end PolyORB.Log;

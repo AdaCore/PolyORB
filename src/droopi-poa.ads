@@ -2,44 +2,44 @@
 
 --  $Id$
 
-with Droopi.Locks;
+with PolyORB.Locks;
 
-with Droopi.POA_Types;     use Droopi.POA_Types;
-with Droopi.POA_Manager;
+with PolyORB.POA_Types;     use PolyORB.POA_Types;
+with PolyORB.POA_Manager;
 
 with CORBA;
 with CORBA.Object_Map;
 
-with Droopi.Types;
+with PolyORB.Types;
 
-with Droopi.POA_Policies;
-with Droopi.POA_Policies.Thread_Policy;
-with Droopi.POA_Policies.Request_Processing_Policy;
-with Droopi.POA_Policies.Id_Assignment_Policy;
-with Droopi.POA_Policies.Id_Uniqueness_Policy;
-with Droopi.POA_Policies.Servant_Retention_Policy;
-with Droopi.POA_Policies.Lifespan_Policy;
-with Droopi.POA_Policies.Implicit_Activation_Policy;
+with PolyORB.POA_Policies;
+with PolyORB.POA_Policies.Thread_Policy;
+with PolyORB.POA_Policies.Request_Processing_Policy;
+with PolyORB.POA_Policies.Id_Assignment_Policy;
+with PolyORB.POA_Policies.Id_Uniqueness_Policy;
+with PolyORB.POA_Policies.Servant_Retention_Policy;
+with PolyORB.POA_Policies.Lifespan_Policy;
+with PolyORB.POA_Policies.Implicit_Activation_Policy;
 
-package Droopi.POA is
+package PolyORB.POA is
 
-   use Droopi.POA_Policies.Thread_Policy;
-   use Droopi.POA_Policies.Request_Processing_Policy;
-   use Droopi.POA_Policies.Id_Assignment_Policy;
-   use Droopi.POA_Policies.Id_Uniqueness_Policy;
-   use Droopi.POA_Policies.Servant_Retention_Policy;
-   use Droopi.POA_Policies.Lifespan_Policy;
-   use Droopi.POA_Policies.Implicit_Activation_Policy;
+   use PolyORB.POA_Policies.Thread_Policy;
+   use PolyORB.POA_Policies.Request_Processing_Policy;
+   use PolyORB.POA_Policies.Id_Assignment_Policy;
+   use PolyORB.POA_Policies.Id_Uniqueness_Policy;
+   use PolyORB.POA_Policies.Servant_Retention_Policy;
+   use PolyORB.POA_Policies.Lifespan_Policy;
+   use PolyORB.POA_Policies.Implicit_Activation_Policy;
 
    --  Unit has no proper body: no elab control necessary.
 
-   Invalid_Object_Id : exception renames Droopi.POA_Types.Invalid_Object_Id;
-   Invalid_Method    : exception renames Droopi.POA_Types.Invalid_Method;
+   Invalid_Object_Id : exception renames PolyORB.POA_Types.Invalid_Object_Id;
+   Invalid_Method    : exception renames PolyORB.POA_Types.Invalid_Method;
 
-   type Obj_Adapter is abstract new Droopi.POA_Types.Obj_Adapter with
+   type Obj_Adapter is abstract new PolyORB.POA_Types.Obj_Adapter with
       record
          Name                       : Types.String;
-         POA_Manager                : Droopi.POA_Manager.Ref;
+         POA_Manager                : PolyORB.POA_Manager.Ref;
          Boot_Time                  : Time_Stamp;
          Absolute_Address           : Types.String;
          Active_Object_Map          : CORBA.Object_Map.Object_Map_Access;
@@ -58,8 +58,8 @@ package Droopi.POA is
          Children                   : POAList_Access     := null;
 
          --  Locks
-         Children_Lock              : Droopi.Locks.Rw_Lock_Access;
-         Map_Lock                   : Droopi.Locks.Rw_Lock_Access;
+         Children_Lock              : PolyORB.Locks.Rw_Lock_Access;
+         Map_Lock                   : PolyORB.Locks.Rw_Lock_Access;
       end record;
 
    --  The POA object
@@ -68,7 +68,7 @@ package Droopi.POA is
 
    type Obj_Adapter_Access is access all Obj_Adapter'Class;
    --  XXX
-   --  for Obj_Adapter_Access'Storage_Pool use Droopi.Storage_Pools.Debug_Pool;
+   --  for Obj_Adapter_Access'Storage_Pool use PolyORB.Storage_Pools.Debug_Pool;
 
    subtype Obj_Adapter_Ptr is Obj_Adapter_Access;
    --  XXX for easier porting of legacy AdaBroker code.
@@ -81,7 +81,7 @@ package Droopi.POA is
      (Self         : access Obj_Adapter;
       Adapter_Name :        Types.String;
       A_POAManager :        POA_Manager.POAManager_Access;
-      Policies     :        Droopi.POA_Policies.PolicyList_Access)
+      Policies     :        PolyORB.POA_Policies.PolicyList_Access)
      return Obj_Adapter_Access
       is abstract;
    --  Create a POA given its name and a list of policies
@@ -165,4 +165,4 @@ package Droopi.POA is
       Child_Name :        Types.String)
      is abstract;
 
-end Droopi.POA;
+end PolyORB.POA;

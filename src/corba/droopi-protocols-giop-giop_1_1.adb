@@ -2,7 +2,7 @@
 --                                                                          --
 --                          ADABROKER COMPONENTS                            --
 --                                                                          --
---                           DROOPI.G I O P. GIOP 1.1                       --
+--                           PolyORB.G I O P. GIOP 1.1                       --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -18,22 +18,22 @@ with Ada.Strings.Unbounded;
 
 with CORBA;
 
-with Droopi.Buffers;             use Droopi.Buffers;
-with Droopi.Binding_Data;        use Droopi.Binding_Data;
-with Droopi.Binding_Data.IIOP;
-with Droopi.Log;
-pragma Elaborate_All (Droopi.Log);
-with Droopi.Protocols;           use Droopi.Protocols;
-with Droopi.References;          use Droopi.References;
-with Droopi.Representations.CDR; use Droopi.Representations.CDR;
-with Droopi.Types;
+with PolyORB.Buffers;             use PolyORB.Buffers;
+with PolyORB.Binding_Data;        use PolyORB.Binding_Data;
+with PolyORB.Binding_Data.IIOP;
+with PolyORB.Log;
+pragma Elaborate_All (PolyORB.Log);
+with PolyORB.Protocols;           use PolyORB.Protocols;
+with PolyORB.References;          use PolyORB.References;
+with PolyORB.Representations.CDR; use PolyORB.Representations.CDR;
+with PolyORB.Types;
 
-package body Droopi.Protocols.GIOP.GIOP_1_1 is
+package body PolyORB.Protocols.GIOP.GIOP_1_1 is
 
-   use Droopi.Log;
-   use Droopi.Types;
+   use PolyORB.Log;
+   use PolyORB.Types;
 
-   package L is new Droopi.Log.Facility_Log ("droopi.protocols.giop.giop_1_1");
+   package L is new PolyORB.Log.Facility_Log ("polyorb.protocols.giop.giop_1_1");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -56,7 +56,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_1 is
    is
 
       use Representations.CDR;
-      use Droopi.Buffers;
+      use PolyORB.Buffers;
       Flags : Types.Octet := 0;
 
    begin
@@ -208,7 +208,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_1 is
    procedure Marshall_Location_Forward
     (Buffer           : access Buffer_Type;
      Request_Id       : in  Types.Unsigned_Long;
-     Forward_Ref      : in  Droopi.References.IOR.IOR_Type)
+     Forward_Ref      : in  PolyORB.References.IOR.IOR_Type)
    is
       use References.IOR;
    begin
@@ -261,7 +261,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_1 is
       Object_Key        : out Objects.Object_Id_Access;
       Operation         : out Types.String)
    is
-      use Droopi.Objects;
+      use PolyORB.Objects;
       Service_Context1  : Types.Unsigned_Long := Unmarshall (Buffer);
       Service_Context2  : Types.Unsigned_Long := Unmarshall (Buffer);
       Reserved          : Types.Octet;
@@ -334,4 +334,4 @@ package body Droopi.Protocols.GIOP.GIOP_1_1 is
 
    end Unmarshall_Reply_Message;
 
-end Droopi.Protocols.GIOP.GIOP_1_1;
+end PolyORB.Protocols.GIOP.GIOP_1_1;

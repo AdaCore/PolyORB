@@ -4,12 +4,12 @@
 
 with GNAT.Regpat;
 
-with Droopi.Any;
-with Droopi.Types;
+with PolyORB.Any;
+with PolyORB.Types;
 
-package body Droopi.Utils.SRP is
+package body PolyORB.Utils.SRP is
 
-   use Droopi.Any;
+   use PolyORB.Any;
 
    --------------------
    -- Set_SRP_Method --
@@ -85,7 +85,7 @@ package body Droopi.Utils.SRP is
       Match (Compile (Regexp_Req_OID), To_Standard_String (S), Matches);
       --  Stores the name of the function/procedure called
       Result.Method :=
-        new Types.String'(To_Droopi_String
+        new Types.String'(To_PolyORB_String
                           (Slice (S, Matches (1).First, Matches (1).Last)));
       --  ???
       --  Put_Line (Result.Method.all);
@@ -99,7 +99,7 @@ package body Droopi.Utils.SRP is
       --  Put_Line (To_String (Result.Oid.all));
 
       --  Stores the last string containing the arguments
-      Args_Ptr := new Types.String'(To_Droopi_String
+      Args_Ptr := new Types.String'(To_PolyORB_String
                                     (Slice (S,
                                             Matches (3).First,
                                             Matches (3).Last)));
@@ -111,17 +111,17 @@ package body Droopi.Utils.SRP is
          Match (Compile (Regexp_Args),
                 To_Standard_String (Args_Ptr.all),
                 Matches);
-         Current.Name := new Types.String'(To_Droopi_String
+         Current.Name := new Types.String'(To_PolyORB_String
                                            (Slice (Args_Ptr.all,
                                                    Matches (1).First,
                                                    Matches (1).Last)));
-         Current.Value := new Types.String'(To_Droopi_String
+         Current.Value := new Types.String'(To_PolyORB_String
                                             (Slice (Args_Ptr.all,
                                                     Matches (2).First,
                                                     Matches (2).Last)));
 
          --  Create a new String with the remaining arguments
-         Args_Ptr := new Types.String'(To_Droopi_String
+         Args_Ptr := new Types.String'(To_PolyORB_String
                                        (Slice (Args_Ptr.all,
                                                Matches (3).First,
                                                Matches (3).Last)));
@@ -144,13 +144,13 @@ package body Droopi.Utils.SRP is
 
 --    function Split (Data : Any.Any) return Split_SRP
 --    is
---       Bidon : Split_SRP := (new Types.String'(To_Droopi_String ("Bidon")),
+--       Bidon : Split_SRP := (new Types.String'(To_PolyORB_String ("Bidon")),
 --                             new Object_Id'(To_Oid ("01000000")),
 --                             null);
 --    begin
 --       raise Not_Implemented;
 --       return Bidon;
---  --      return Split (To_Droopi_String (Any.From_Any (Data)));
+--  --      return Split (To_PolyORB_String (Any.From_Any (Data)));
 --    end Split;
 
    ----------
@@ -172,7 +172,7 @@ package body Droopi.Utils.SRP is
 --          end if;
 --          Current_Arg := Current_Arg.Next;
       end loop;
-      return Any.To_Any (Types.To_Droopi_String (To_String (URL)));
+      return Any.To_Any (Types.To_PolyORB_String (To_String (URL)));
    end Join;
 
-end Droopi.Utils.SRP;
+end PolyORB.Utils.SRP;

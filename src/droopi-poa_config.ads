@@ -2,9 +2,9 @@
 
 --  $Id$
 
-with Droopi.POA_Policies;
+with PolyORB.POA_Policies;
 
-package Droopi.POA_Config is
+package PolyORB.POA_Config is
 
    pragma Elaborate_Body;
 
@@ -19,7 +19,7 @@ package Droopi.POA_Config is
 
    function Default_Policies
      (C : Configuration_Type)
-     return Droopi.POA_Policies.PolicyList_Access
+     return PolyORB.POA_Policies.PolicyList_Access
       is abstract;
    --  Return the list of default OA policies for this configuration.
 
@@ -36,4 +36,4 @@ private
    pragma Inline (Set_Configuration);
    pragma Inline (Configuration);
 
-end Droopi.POA_Config;
+end PolyORB.POA_Config;

@@ -6,14 +6,14 @@
 with Ada.Tags;
 with Ada.Unchecked_Deallocation;
 
-with Droopi.Log;
-pragma Elaborate_All (Droopi.Log);
+with PolyORB.Log;
+pragma Elaborate_All (PolyORB.Log);
 
-package body Droopi.Binding_Data is
+package body PolyORB.Binding_Data is
 
-   use Droopi.Log;
+   use PolyORB.Log;
 
-   package L is new Droopi.Log.Facility_Log ("droopi.binding_data");
+   package L is new PolyORB.Log.Facility_Log ("polyorb.binding_data");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -45,4 +45,4 @@ package body Droopi.Binding_Data is
       Profile.Binding_Object := BO;
    end Set_Binding_Object;
 
-end Droopi.Binding_Data;
+end PolyORB.Binding_Data;

@@ -2,9 +2,9 @@
 
 --  $Id$
 
-with Droopi.Sockets;
+with PolyORB.Sockets;
 
-package Droopi.Asynch_Ev.Sockets is
+package PolyORB.Asynch_Ev.Sockets is
 
    pragma Elaborate_Body;
 
@@ -33,7 +33,7 @@ package Droopi.Asynch_Ev.Sockets is
      (AEM : Socket_Event_Monitor);
 
    function Create_Event_Source
-     (Socket : Droopi.Sockets.Socket_Type)
+     (Socket : PolyORB.Sockets.Socket_Type)
      return Asynch_Ev_Source_Access;
 
    function AEM_Factory_Of (AES : Socket_Event_Source)
@@ -43,12 +43,12 @@ private
 
    type Socket_Event_Source is new Asynch_Ev_Source
      with record
-        Socket : Droopi.Sockets.Socket_Type;
+        Socket : PolyORB.Sockets.Socket_Type;
      end record;
 
    type Socket_Event_Monitor is new Asynch_Ev_Monitor
      with record
-        Selector : Droopi.Sockets.Selector_Type;
+        Selector : PolyORB.Sockets.Selector_Type;
      end record;
 
-end Droopi.Asynch_Ev.Sockets;
+end PolyORB.Asynch_Ev.Sockets;

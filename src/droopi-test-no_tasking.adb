@@ -2,16 +2,16 @@
 
 --  $Id$
 
-with Droopi.Setup.Test; use Droopi.Setup.Test;
-with Droopi.No_Tasking;
-with Droopi.ORB.Task_Policies;
+with PolyORB.Setup.Test; use PolyORB.Setup.Test;
+with PolyORB.No_Tasking;
+with PolyORB.ORB.Task_Policies;
 
-procedure Droopi.Test.No_Tasking is
+procedure PolyORB.Test.No_Tasking is
 begin
    Initialize_Test_Server
-     (Droopi.No_Tasking.Initialize'Access,
-      new Droopi.ORB.Task_Policies.No_Tasking);
+     (PolyORB.No_Tasking.Initialize'Access,
+      new PolyORB.ORB.Task_Policies.No_Tasking);
    Initialize_Test_Access_Points;
    Initialize_Test_Object;
    Run_Test;
-end Droopi.Test.No_Tasking;
+end PolyORB.Test.No_Tasking;

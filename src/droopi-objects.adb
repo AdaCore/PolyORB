@@ -4,9 +4,9 @@
 
 with Ada.Unchecked_Deallocation;
 
-with Droopi.Utils;
+with PolyORB.Utils;
 
-package body Droopi.Objects is
+package body PolyORB.Objects is
 
    procedure Free (X : in out Object_Id_Access)
    is
@@ -29,4 +29,4 @@ package body Droopi.Objects is
    function Image (Oid : Object_Id) return String
      renames To_String;
 
-end Droopi.Objects;
+end PolyORB.Objects;

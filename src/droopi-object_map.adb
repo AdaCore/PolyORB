@@ -1,6 +1,6 @@
 with Sequences;
 
-package body Droopi.Object_Map is
+package body PolyORB.Object_Map is
 
    use Object_Map_Entry_Seqs;
    use Sequences;
@@ -202,4 +202,4 @@ package body Droopi.Object_Map is
          raise Index_Out_Of_Bounds;
    end Remove_By_Index;
 
-end Droopi.Object_Map;
+end PolyORB.Object_Map;

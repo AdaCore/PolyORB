@@ -1,15 +1,15 @@
 
-with Droopi.Any;
-with Droopi.Types;
+with PolyORB.Any;
+with PolyORB.Types;
 
 
-package body Droopi.Representations.SOAP.Any  is
+package body PolyORB.Representations.SOAP.Any  is
 
-   use Droopi.Any;
+   use PolyORB.Any;
 
    procedure Any_To_XML_Components
       (Name     :  Types.Identifier;
-       Param    :  Droopi.Any.Any;
+       Param    :  PolyORB.Any.Any;
        XML_Comp :  out XML_Component_Access)
    is
       Tc :  TCKind := TypeCode.Kind (Get_Precise_Type (Param));
@@ -65,31 +65,31 @@ package body Droopi.Representations.SOAP.Any  is
 
 
    procedure Array_To_XML_Components
-     (Param    : Droopi.Any.Any;
+     (Param    : PolyORB.Any.Any;
       XML_Comp : out XML_Component_Access)
    is
 
-      Nb : constant Droopi.Types.Unsigned_Long :=
-             Droopi.Any.Get_Aggregate_Count (Param);
-      Data_Type : Droopi.Any.TypeCode.Object
-        := Droopi.Any.Get_Precise_Type (Param);
-      Value : Droopi.Any.Any;
-      Content_True_Type : Droopi.Any.TypeCode.Object :=
-            Droopi.Any.TypeCode.Content_Type (Data_Type);
+      Nb : constant PolyORB.Types.Unsigned_Long :=
+             PolyORB.Any.Get_Aggregate_Count (Param);
+      Data_Type : PolyORB.Any.TypeCode.Object
+        := PolyORB.Any.Get_Precise_Type (Param);
+      Value : PolyORB.Any.Any;
+      Content_True_Type : PolyORB.Any.TypeCode.Object :=
+            PolyORB.Any.TypeCode.Content_Type (Data_Type);
       Comp : XML_Component;
       Array_Content_Type : Xsd_Kind;
       Type_Tag : XML_String;
       Member_Tag : XML_String := XML_Null_String;
 
    begin
-      while Droopi.Any.TypeCode.Kind (Content_True_Type) = Tk_Array
+      while PolyORB.Any.TypeCode.Kind (Content_True_Type) = Tk_Array
       loop
          Content_True_Type :=
-             Droopi.Any.TypeCode.Content_Type (Content_True_Type);
+             PolyORB.Any.TypeCode.Content_Type (Content_True_Type);
       end loop;
 
-      Array_Content_Type :=  Droopi_Types_To_XML_Types
-           (Droopi.Any.TypeCode.Kind
+      Array_Content_Type :=  PolyORB_Types_To_XML_Types
+           (PolyORB.Any.TypeCode.Kind
            (Content_True_Type));
 
       if Array_Content_Type  = Xsd_Undefined then
@@ -98,7 +98,7 @@ package body Droopi.Representations.SOAP.Any  is
                Array_Content_Type = Xsd_Array then
             Type_Tag := "xsd:" & Array_Type_Tag;
       else
-            Type_Tag :=  XML_String (Droopi_Types_To_Xsd_Strings
+            Type_Tag :=  XML_String (PolyORB_Types_To_Xsd_Strings
                  (Array_Content_Type));
             Member_Tag :=  Array_Member_Tag & Type_Tag;
       end if;
@@ -110,7 +110,7 @@ package body Droopi.Representations.SOAP.Any  is
       declare
          Element_Comp : XML_Component_Access;
 
-         Nb_Str  : XML_String := To_Droopi_String
+         Nb_Str  : XML_String := To_PolyORB_String
                  (Types.Unsigned_Long'Image (Nb));
 
       begin
@@ -120,7 +120,7 @@ package body Droopi.Representations.SOAP.Any  is
 
          --  Building the members
          for I in 0 .. Nb - 1 loop
-            Value := Droopi.Any.Get_Aggregate_Element (Param,
+            Value := PolyORB.Any.Get_Aggregate_Element (Param,
                      Content_True_Type, I);
             Any_To_XML_Components (Types.Identifier (Member_Tag),
                   Value, Element_Comp);
@@ -133,14 +133,14 @@ package body Droopi.Representations.SOAP.Any  is
 
    procedure Struct_To_XML_Components
      (Name     : Types.Identifier;
-      Param    : Droopi.Any.Any;
+      Param    : PolyORB.Any.Any;
       XML_Comp : out XML_Component_Access)
    is
-      Data_Type : Droopi.Any.TypeCode.Object
-        := Droopi.Any.Get_Precise_Type (Param);
-      Nb : Droopi.Types.Unsigned_Long :=
-           Droopi.Any.TypeCode.Member_Count (Data_Type);
-      Member : Droopi.Any.Any;
+      Data_Type : PolyORB.Any.TypeCode.Object
+        := PolyORB.Any.Get_Precise_Type (Param);
+      Nb : PolyORB.Types.Unsigned_Long :=
+           PolyORB.Any.TypeCode.Member_Count (Data_Type);
+      Member : PolyORB.Any.Any;
       Member_Name : Types.Identifier;
       Comp : XML_Component;
    begin
@@ -155,9 +155,9 @@ package body Droopi.Representations.SOAP.Any  is
 
          if Nb /= 0 then
             for I in 1 .. Nb loop
-               Member_Name := Droopi.Any.TypeCode.Member_Name (Data_Type, I);
-               Member := Droopi.Any.Get_Aggregate_Element
-                    (Param, Droopi.Any.TypeCode.Member_Type
+               Member_Name := PolyORB.Any.TypeCode.Member_Name (Data_Type, I);
+               Member := PolyORB.Any.Get_Aggregate_Element
+                    (Param, PolyORB.Any.TypeCode.Member_Type
                      (Data_Type, I), I);
                Any_To_XML_Components (Member_Name, Member, Element_Comp);
                Add_Child (XML_Comp, Element_Comp);
@@ -170,4 +170,4 @@ package body Droopi.Representations.SOAP.Any  is
 
 
 
-end  Droopi.Representations.SOAP.Any;
+end  PolyORB.Representations.SOAP.Any;

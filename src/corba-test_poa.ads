@@ -1,5 +1,5 @@
-with Droopi.POA_Types;
-with Droopi.Components;
+with PolyORB.POA_Types;
+with PolyORB.Components;
 
 package CORBA.Test_POA is
 
@@ -8,7 +8,7 @@ package CORBA.Test_POA is
    Incorrect_Execution : exception;
    Correct_Execution   : exception;
 
-   type My_Servant is new Droopi.POA_Types.Servant with
+   type My_Servant is new PolyORB.POA_Types.Servant with
      record
         Nb   : Integer;
         Name : String;
@@ -17,9 +17,9 @@ package CORBA.Test_POA is
 
    function Handle_Message
      (S   : access My_Servant;
-      Msg : Droopi.Components.Message'Class)
+      Msg : PolyORB.Components.Message'Class)
 
-     return Droopi.Components.Message'Class;
+     return PolyORB.Components.Message'Class;
 
    function "=" (Left, Right : My_Servant)
      return Standard.Boolean;

@@ -1,21 +1,21 @@
 --  A protocol similar to the HTTP protocol
 --  SRP : Simple Request Protocol
 
-with Droopi.Any;
-with Droopi.Any.NVList;
-with Droopi.Buffers;
-with Droopi.Objects;
---  with Droopi.ORB;
-with Droopi.Types;
-with Droopi.Utils.SRP;
+with PolyORB.Any;
+with PolyORB.Any.NVList;
+with PolyORB.Buffers;
+with PolyORB.Objects;
+--  with PolyORB.ORB;
+with PolyORB.Types;
+with PolyORB.Utils.SRP;
 
-package Droopi.Protocols.SRP is
+package PolyORB.Protocols.SRP is
    pragma Elaborate_Body;
 
-   use Droopi.Buffers;
-   use Droopi.Objects;
-   use Droopi.Utils.SRP;
---   use Droopi.ORB;
+   use PolyORB.Buffers;
+   use PolyORB.Objects;
+   use PolyORB.Utils.SRP;
+--   use PolyORB.ORB;
 
    SRP_Error : exception;
 
@@ -84,4 +84,4 @@ private
       Buffer_Out         : Buffers.Buffer_Access;
    end record;
 
-end Droopi.Protocols.SRP;
+end PolyORB.Protocols.SRP;

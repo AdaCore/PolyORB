@@ -1,16 +1,16 @@
 --  Management of binding data, i. e. the elements of information
 --  that designate a remote middleware TSAP.
 
---  $Id: //droopi/main/src/droopi-binding_data.ads#15 $
+--  $Id: //droopi/main/src/droopi-binding_data.ads#16 $
 
 with Ada.Finalization;
 
-with Droopi.Components;
-with Droopi.Objects;
-with Droopi.Transport;
-with Droopi.Types;
+with PolyORB.Components;
+with PolyORB.Objects;
+with PolyORB.Transport;
+with PolyORB.Types;
 
-package Droopi.Binding_Data is
+package PolyORB.Binding_Data is
 
    pragma Elaborate_Body;
 
@@ -129,7 +129,7 @@ private
    Tag_Internet_IOP        : constant Profile_Tag := 0;
    Tag_Multiple_Components : constant Profile_Tag := 1;
 
-   --  Tags defined by DROOPI
+   --  Tags defined by PolyORB
 
    Tag_Local               : constant Profile_Tag := 16#7fffff00#;
    Tag_SRP                 : constant Profile_Tag := 16#7fffff02#;
@@ -152,4 +152,4 @@ private
 
    type Profile_Factory is abstract tagged limited null record;
 
-end Droopi.Binding_Data;
+end PolyORB.Binding_Data;

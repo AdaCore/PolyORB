@@ -2,7 +2,7 @@
 
 --  $Id$
 
-package body Droopi.CORBA_P.Names is
+package body PolyORB.CORBA_P.Names is
 
    Prefix  : constant String := "omg.org";
    Version : constant String := "1.0";
@@ -34,4 +34,4 @@ package body Droopi.CORBA_P.Names is
       return Version;
    end OMG_Version;
 
-end Droopi.CORBA_P.Names;
+end PolyORB.CORBA_P.Names;

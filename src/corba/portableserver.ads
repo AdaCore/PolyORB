@@ -31,8 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Droopi.Components;
-with Droopi.Objects;
+with PolyORB.Components;
+with PolyORB.Objects;
 
 with CORBA;
 with CORBA.Object;
@@ -93,7 +93,7 @@ package PortableServer is
    -- ObjectId --
    --------------
 
-   type ObjectId is new Droopi.Objects.Object_Id;
+   type ObjectId is new PolyORB.Objects.Object_Id;
 
    ------------------------------
    -- Exception ForwardRequest --
@@ -223,7 +223,7 @@ private
 
    function Handle_Message
      (Self : access DynamicImplementation;
-      Msg  : Droopi.Components.Message'Class)
-     return Droopi.Components.Message'Class;
+      Msg  : PolyORB.Components.Message'Class)
+     return PolyORB.Components.Message'Class;
 
 end PortableServer;

@@ -1,10 +1,10 @@
 --  Pools of memory chunks, with associated client metadata.
 
---  $Id: //droopi/main/src/droopi-opaque-chunk_pools.adb#3 $
+--  $Id: //droopi/main/src/droopi-opaque-chunk_pools.adb#4 $
 
 with Ada.Unchecked_Deallocation;
 
-package body Droopi.Opaque.Chunk_Pools is
+package body PolyORB.Opaque.Chunk_Pools is
 
    procedure Initialize (X : in out Chunk) is
    begin
@@ -114,5 +114,5 @@ package body Droopi.Opaque.Chunk_Pools is
       return A_Chunk.Metadata'Access;
    end Metadata;
 
-end Droopi.Opaque.Chunk_Pools;
+end PolyORB.Opaque.Chunk_Pools;
 

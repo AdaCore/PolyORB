@@ -1,10 +1,10 @@
-with Droopi.CORBA_P.Exceptions; use Droopi.CORBA_P.Exceptions;
-with Droopi.Locks;              use Droopi.Locks;
+with PolyORB.CORBA_P.Exceptions; use PolyORB.CORBA_P.Exceptions;
+with PolyORB.Locks;              use PolyORB.Locks;
 
-with Droopi.POA;
+with PolyORB.POA;
 with CORBA.Object_Map;
 
-package body Droopi.POA_Policies.Id_Uniqueness_Policy.Unique is
+package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique is
 
    ------------
    -- Create --
@@ -21,7 +21,7 @@ package body Droopi.POA_Policies.Id_Uniqueness_Policy.Unique is
 
    procedure Check_Compatibility
      (Self : Unique_Id_Policy;
-      OA   : Droopi.POA_Types.Obj_Adapter_Access) is
+      OA   : PolyORB.POA_Types.Obj_Adapter_Access) is
    begin
       null;
    end Check_Compatibility;
@@ -43,13 +43,13 @@ package body Droopi.POA_Policies.Id_Uniqueness_Policy.Unique is
 
    procedure Ensure_Servant_Uniqueness
      (Self      : Unique_Id_Policy;
-      OA        : Droopi.POA_Types.Obj_Adapter_Access;
+      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
       P_Servant : Servant_Access)
    is
       use CORBA.Object_Map;
 
-      P_OA : Droopi.POA.Obj_Adapter_Access
-        := Droopi.POA.Obj_Adapter_Access (OA);
+      P_OA : PolyORB.POA.Obj_Adapter_Access
+        := PolyORB.POA.Obj_Adapter_Access (OA);
    begin
       if P_OA.Active_Object_Map /= null then
          Lock_R (P_OA.Map_Lock);
@@ -65,12 +65,12 @@ package body Droopi.POA_Policies.Id_Uniqueness_Policy.Unique is
    -------------------
 
    function Servant_To_Id (Self      : Unique_Id_Policy;
-                           OA        : Droopi.POA_Types.Obj_Adapter_Access;
+                           OA        : PolyORB.POA_Types.Obj_Adapter_Access;
                            P_Servant : Servant_Access) return Object_Id_Access
    is
       use CORBA.Object_Map;
-      P_OA        : Droopi.POA.Obj_Adapter_Access
-        := Droopi.POA.Obj_Adapter_Access (OA);
+      P_OA        : PolyORB.POA.Obj_Adapter_Access
+        := PolyORB.POA.Obj_Adapter_Access (OA);
       An_Entry    : Object_Map_Entry_Access;
    begin
       if P_OA.Active_Object_Map /= null then
@@ -95,4 +95,4 @@ package body Droopi.POA_Policies.Id_Uniqueness_Policy.Unique is
       Free (Unique_Id_Policy_Access (Ptr));
    end Free;
 
-end Droopi.POA_Policies.Id_Uniqueness_Policy.Unique;
+end PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique;

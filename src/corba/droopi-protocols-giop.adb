@@ -14,53 +14,53 @@ with Ada.Streams;                use Ada.Streams;
 
 with Sequences.Unbounded;
 
-with Droopi.Any;
-with Droopi.Annotations;
-with Droopi.Any.NVList;
-with Droopi.Buffers;             use Droopi.Buffers;
-with Droopi.Opaque;
-with Droopi.Binding_Data;        use Droopi.Binding_Data;
-with Droopi.Binding_Data.IIOP;
-with Droopi.Binding_Data.Local;
-with Droopi.Components;
-with Droopi.Filters;
-with Droopi.Filters.Interface;
-with Droopi.Log;
-pragma Elaborate_All (Droopi.Log);
-with Droopi.Obj_Adapters;
-with Droopi.Objects;
-with Droopi.Objects.Interface;
-with Droopi.ORB;
-with Droopi.ORB.Interface;
-with Droopi.Protocols;           use Droopi.Protocols;
-with Droopi.Protocols.GIOP.GIOP_1_0;
-with Droopi.Protocols.GIOP.GIOP_1_1;
-with Droopi.Protocols.GIOP.GIOP_1_2;
-with Droopi.References;
-with Droopi.References.IOR;
-with Droopi.Representations;     use Droopi.Representations;
-with Droopi.Representations.CDR;
-with Droopi.Requests;
-with Droopi.Transport;
-with Droopi.Types;
-with Droopi.Soft_Links;
+with PolyORB.Any;
+with PolyORB.Annotations;
+with PolyORB.Any.NVList;
+with PolyORB.Buffers;             use PolyORB.Buffers;
+with PolyORB.Opaque;
+with PolyORB.Binding_Data;        use PolyORB.Binding_Data;
+with PolyORB.Binding_Data.IIOP;
+with PolyORB.Binding_Data.Local;
+with PolyORB.Components;
+with PolyORB.Filters;
+with PolyORB.Filters.Interface;
+with PolyORB.Log;
+pragma Elaborate_All (PolyORB.Log);
+with PolyORB.Obj_Adapters;
+with PolyORB.Objects;
+with PolyORB.Objects.Interface;
+with PolyORB.ORB;
+with PolyORB.ORB.Interface;
+with PolyORB.Protocols;           use PolyORB.Protocols;
+with PolyORB.Protocols.GIOP.GIOP_1_0;
+with PolyORB.Protocols.GIOP.GIOP_1_1;
+with PolyORB.Protocols.GIOP.GIOP_1_2;
+with PolyORB.References;
+with PolyORB.References.IOR;
+with PolyORB.Representations;     use PolyORB.Representations;
+with PolyORB.Representations.CDR;
+with PolyORB.Requests;
+with PolyORB.Transport;
+with PolyORB.Types;
+with PolyORB.Soft_Links;
 
-package body Droopi.Protocols.GIOP is
+package body PolyORB.Protocols.GIOP is
 
-   use Droopi.Any.NVList;
-   use Droopi.Binding_Data.IIOP;
-   use Droopi.Components;
-   use Droopi.Log;
-   use Droopi.ORB;
-   use Droopi.ORB.Interface;
-   use Droopi.Requests;
-   use Droopi.Representations.CDR;
-   use Droopi.Transport;
-   use Droopi.Types;
-   use Droopi.Annotations;
-   use Droopi.Soft_Links;
+   use PolyORB.Any.NVList;
+   use PolyORB.Binding_Data.IIOP;
+   use PolyORB.Components;
+   use PolyORB.Log;
+   use PolyORB.ORB;
+   use PolyORB.ORB.Interface;
+   use PolyORB.Requests;
+   use PolyORB.Representations.CDR;
+   use PolyORB.Transport;
+   use PolyORB.Types;
+   use PolyORB.Annotations;
+   use PolyORB.Soft_Links;
 
-   package L is new Droopi.Log.Facility_Log ("droopi.protocols.giop");
+   package L is new PolyORB.Log.Facility_Log ("polyorb.protocols.giop");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -74,7 +74,7 @@ package body Droopi.Protocols.GIOP is
    --  Global variable Current_Request_Id must be accessed
    --  only with Counter_Lock locked.
 
-   --  A note can be attached to a DROOPI request to augment
+   --  A note can be attached to a PolyORB request to augment
    --  it with personality-specific information. The GIOP stack
    --  uses such a note to associate the Request with its
    --  Request_Id.
@@ -173,16 +173,16 @@ package body Droopi.Protocols.GIOP is
      (S      : access GIOP_Session;
       Octets : access Encapsulation)
    is
-      use Droopi.Representations.CDR;
-      use Droopi.Opaque;
+      use PolyORB.Representations.CDR;
+      use PolyORB.Opaque;
 
       Endianness1 : Endianness_Type;
       Z : constant Zone_Access
         := Zone_Access'(Octets.all'Unchecked_Access);
    begin
 
-      if Droopi.Types.Boolean'Val
-        (Droopi.Types.Octet (Octets (Octets'First)))
+      if PolyORB.Types.Boolean'Val
+        (PolyORB.Types.Octet (Octets (Octets'First)))
       then
          Endianness1 := Little_Endian;
       else
@@ -469,7 +469,7 @@ package body Droopi.Protocols.GIOP is
    is
       use Internals;
       use Internals.NV_Sequence;
-      use Droopi.Objects;
+      use PolyORB.Objects;
 
       Header_Space  : constant Reservation
         := Reserve (Ses.Buffer_Out, Message_Header_Size);
@@ -736,7 +736,7 @@ package body Droopi.Protocols.GIOP is
    procedure Location_Forward_Reply
      (Ses             : access GIOP_Session;
       Request         : Requests.Request_Access;
-      Forward_Ref     : in Droopi.References.IOR.IOR_Type;
+      Forward_Ref     : in PolyORB.References.IOR.IOR_Type;
       Fragment_Next   : out Boolean)
 
    is
@@ -1039,11 +1039,11 @@ package body Droopi.Protocols.GIOP is
      (Buffer  : access Buffer_Type) return
       Profile_Access
    is
-      use Droopi.References;
-      use Droopi.References.IOR;
+      use PolyORB.References;
+      use PolyORB.References.IOR;
 
-      New_Ref    : Droopi.References.IOR.IOR_Type := Unmarshall (Buffer);
-      Prof_Array : Droopi.References.Profile_Array
+      New_Ref    : PolyORB.References.IOR.IOR_Type := Unmarshall (Buffer);
+      Prof_Array : PolyORB.References.Profile_Array
         := Profiles_Of (New_Ref.Ref);
 
    begin
@@ -1154,9 +1154,9 @@ package body Droopi.Protocols.GIOP is
      (Ses : access GIOP_Session;
       Args : in out Any.NVList.Ref)
    is
-      use Droopi.Any;
-      use Droopi.Any.NVList.Internals;
-      use Droopi.Any.NVList.Internals.NV_Sequence;
+      use PolyORB.Any;
+      use PolyORB.Any.NVList.Internals;
+      use PolyORB.Any.NVList.Internals.NV_Sequence;
 
       List     : NV_Sequence_Access;
       Temp_Arg : Any.NamedValue;
@@ -1193,7 +1193,7 @@ package body Droopi.Protocols.GIOP is
       use Binding_Data.Local;
       use References;
 
-      use Droopi.Objects;
+      use PolyORB.Objects;
 
       use Req_Seq;
 
@@ -1273,7 +1273,7 @@ package body Droopi.Protocols.GIOP is
       end if;
 
 --       Result :=
---         (Name     => To_Droopi_String ("Result"),
+--         (Name     => To_PolyORB_String ("Result"),
 --          Argument => Obj_Adapters.Get_Empty_Result
 --          (Object_Adapter (ORB),
 --           Object_Key.all,
@@ -1320,7 +1320,7 @@ package body Droopi.Protocols.GIOP is
       Set_Note
         (Req.Notepad, Request_Note'(Annotations.Note with Id => Request_Id));
 
-      Droopi.ORB.Queue_Request_To_Handler
+      PolyORB.ORB.Queue_Request_To_Handler
         (ORB.Tasking_Policy, ORB,
          Queue_Request'
          (Request => Req,
@@ -1513,9 +1513,9 @@ package body Droopi.Protocols.GIOP is
    is
       use Buffers;
       use Binding_Data.IIOP;
-      use Droopi.Filters.Interface;
-      use Droopi.Objects;
-      use Droopi.Requests;
+      use PolyORB.Filters.Interface;
+      use PolyORB.Objects;
+      use PolyORB.Requests;
 
       Fragment_Next  : Boolean := False;
       Current_Req    : aliased Pending_Request;
@@ -1579,7 +1579,7 @@ package body Droopi.Protocols.GIOP is
      (S : access GIOP_Session;
       R : Requests.Request_Access)
    is
-      use Droopi.Filters.Interface;
+      use PolyORB.Filters.Interface;
       use Pend_Req_Seq;
       Current_Req   : aliased Pending_Request;
       Pending_Note  : Request_Note;
@@ -1623,7 +1623,7 @@ package body Droopi.Protocols.GIOP is
    is
       use Buffers;
       use Representations.CDR;
-      use Droopi.Filters.Interface;
+      use PolyORB.Filters.Interface;
       use Req_Seq;
       Fragment_Next : Boolean := False;
    begin
@@ -1875,5 +1875,5 @@ package body Droopi.Protocols.GIOP is
       return (Bit_Field and (2 ** Bit_Order)) /= 0;
    end Is_Set;
 
-end Droopi.Protocols.GIOP;
+end PolyORB.Protocols.GIOP;
 

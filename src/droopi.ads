@@ -1,11 +1,11 @@
---  The top of the DROOPI architecture.
+--  The top of the PolyORB architecture.
 --  $Id$
 
-package Droopi is
+package PolyORB is
 
    pragma Pure;
 
    Not_Implemented : exception;
    --  Raised when a non-implemented feature is called.
 
-end Droopi;
+end PolyORB;

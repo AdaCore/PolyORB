@@ -2,18 +2,18 @@
 
 --  $Id$
 
-with Droopi.Constants;
+with PolyORB.Constants;
 
-with Droopi.Log;
-pragma Elaborate_All (Droopi.Log);
+with PolyORB.Log;
+pragma Elaborate_All (PolyORB.Log);
 
-package body Droopi.Asynch_Ev.Sockets is
+package body PolyORB.Asynch_Ev.Sockets is
 
-   use Droopi.Log;
-   use Droopi.Sockets;
+   use PolyORB.Log;
+   use PolyORB.Sockets;
 
-   package L is new Droopi.Log.Facility_Log
-     ("droopi.asynch_ev.sockets");
+   package L is new PolyORB.Log.Facility_Log
+     ("polyorb.asynch_ev.sockets");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -91,7 +91,7 @@ package body Droopi.Asynch_Ev.Sockets is
 
       if T = Constants.Forever then
          --  Convert special value of Timeout.
-         T := Droopi.Sockets.Forever;
+         T := PolyORB.Sockets.Forever;
       end if;
 
       Check_Selector
@@ -144,7 +144,7 @@ package body Droopi.Asynch_Ev.Sockets is
    end Abort_Check_Sources;
 
    function Create_Event_Source
-     (Socket : Droopi.Sockets.Socket_Type)
+     (Socket : PolyORB.Sockets.Socket_Type)
      return Asynch_Ev_Source_Access
    is
       Result : constant Asynch_Ev_Source_Access
@@ -169,4 +169,4 @@ package body Droopi.Asynch_Ev.Sockets is
       return Create_Socket_Event_Monitor'Access;
    end AEM_Factory_Of;
 
-end Droopi.Asynch_Ev.Sockets;
+end PolyORB.Asynch_Ev.Sockets;

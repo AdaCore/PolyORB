@@ -11,11 +11,11 @@
 
 with CORBA;
 
-with Droopi.Buffers;      use Droopi.Buffers;
+with PolyORB.Buffers;      use PolyORB.Buffers;
 
 with Sequences.Unbounded;
 
-package Droopi.References.IOR is
+package PolyORB.References.IOR is
 
 
    type Marshall_Profile_Body_Type is access procedure
@@ -40,7 +40,7 @@ package Droopi.References.IOR is
    --  (within the IDL typing model).
 
    type IOR_Type is record
-      Ref : Droopi.References.Ref;
+      Ref : PolyORB.References.Ref;
       Type_Id  : CORBA.String;
    end record;
 
@@ -71,4 +71,4 @@ private
 
    Callbacks : Profile_Record_Seq.Sequence;
 
-end Droopi.References.IOR;
+end PolyORB.References.IOR;

@@ -4,15 +4,15 @@
 
 with Ada.Streams;
 
-with Droopi.Any.NVList;
-with Droopi.Buffers;
-with Droopi.Components;
-with Droopi.Filters; use Droopi.Filters;
-with Droopi.Requests; use Droopi.Requests;
-with Droopi.Soft_Links; use Droopi.Soft_Links;
-with Droopi.ORB.Interface;
+with PolyORB.Any.NVList;
+with PolyORB.Buffers;
+with PolyORB.Components;
+with PolyORB.Filters; use PolyORB.Filters;
+with PolyORB.Requests; use PolyORB.Requests;
+with PolyORB.Soft_Links; use PolyORB.Soft_Links;
+with PolyORB.ORB.Interface;
 
-package Droopi.Protocols is
+package PolyORB.Protocols is
 
    --  A protocol is a factory of sessions. Each session corresponds
    --  to a connection to a remote protocol entity.
@@ -40,12 +40,12 @@ package Droopi.Protocols is
 
    procedure Set_Request_Watcher
      (S : in Session_Access;
-      W : Droopi.Soft_Links.Watcher_Access);
+      W : PolyORB.Soft_Links.Watcher_Access);
    --
 
    function Get_Request_Watcher
      (S : in Session_Access)
-     return Droopi.Soft_Links.Watcher_Access;
+     return PolyORB.Soft_Links.Watcher_Access;
    --  Return the request watcher associated with session.
 
    function Get_Pending_Request
@@ -117,12 +117,12 @@ private
 
    type Session is abstract new Filters.Filter with record
       Server          : Components.Component_Access;
-      Request_Watcher : Droopi.Soft_Links.Watcher_Access := null;
+      Request_Watcher : PolyORB.Soft_Links.Watcher_Access := null;
       Pending_Request : ORB.Interface.Queue_Request;
       --  XXX Change 'Pending' to something else (see above).
       --  XXX Storage of a Message'Class is questionable (Messages
       --    are supposed to be synchronously delivered, as per the
-      --    documentation in the spec of Droopi.Components.
+      --    documentation in the spec of PolyORB.Components.
       --    Store-and-forward behaviour is not expected.)
    end record;
 
@@ -131,4 +131,4 @@ private
       In_Buf : Buffers.Buffer_Access;
       Max    : Ada.Streams.Stream_Element_Count);
 
-end Droopi.Protocols;
+end PolyORB.Protocols;

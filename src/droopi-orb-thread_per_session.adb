@@ -1,39 +1,39 @@
 with Ada.Exceptions;
 
-with Droopi.Log;
-with Droopi.Jobs;
-with Droopi.Components;
-with Droopi.Filters;
-with Droopi.Filters.Interface;
-with Droopi.ORB.Interface;
+with PolyORB.Log;
+with PolyORB.Jobs;
+with PolyORB.Components;
+with PolyORB.Filters;
+with PolyORB.Filters.Interface;
+with PolyORB.ORB.Interface;
 
-with Droopi.Protocols;
+with PolyORB.Protocols;
 
 with Locked_Queue;
 pragma Elaborate_All (Locked_Queue);
 
-pragma Elaborate_All (Droopi.Log);
+pragma Elaborate_All (PolyORB.Log);
 
-package body Droopi.ORB.Thread_Per_Session is
+package body PolyORB.ORB.Thread_Per_Session is
 
    ------------------------
    -- Local declarations --
    ------------------------
 
-   use Droopi.Asynch_Ev;
-   use Droopi.Components;
-   use Droopi.Filters;
-   use Droopi.Filters.Interface;
-   use Droopi.Log;
-   use Droopi.Soft_Links;
-   use Droopi.Annotations;
-   use Droopi.Components;
-   use Droopi.Transport;
-   use Droopi.Protocols;
-   use Droopi.ORB.Interface;
+   use PolyORB.Asynch_Ev;
+   use PolyORB.Components;
+   use PolyORB.Filters;
+   use PolyORB.Filters.Interface;
+   use PolyORB.Log;
+   use PolyORB.Soft_Links;
+   use PolyORB.Annotations;
+   use PolyORB.Components;
+   use PolyORB.Transport;
+   use PolyORB.Protocols;
+   use PolyORB.ORB.Interface;
 
-   package L is new Droopi.Log.Facility_Log
-     ("droopi.orb.thread_per_session");
+   package L is new PolyORB.Log.Facility_Log
+     ("polyorb.orb.thread_per_session");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -55,7 +55,7 @@ package body Droopi.ORB.Thread_Per_Session is
    type Queue_Access is access Request_Queue.Queue;
 
    type Queue_Indication is
-     new Droopi.Filters.Interface.Data_Indication
+     new PolyORB.Filters.Interface.Data_Indication
      with record
         Queue : Queue_Access;
      end record;
@@ -222,4 +222,4 @@ package body Droopi.ORB.Thread_Per_Session is
 
    end Session_Thread;
 
-end Droopi.ORB.Thread_Per_Session;
+end PolyORB.ORB.Thread_Per_Session;

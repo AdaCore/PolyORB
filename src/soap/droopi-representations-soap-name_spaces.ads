@@ -1,6 +1,6 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                          DROOPI COMPONENTS                               --
+--                          PolyORB COMPONENTS                               --
 --                                                                          --
 --                        SOAP Name Spaces                                  --
 --                                                                          --
@@ -11,16 +11,16 @@
 
 
 
-with Droopi.Representations.SOAP;
-with Droopi.Obj_Adapters.Simple;
-with Droopi.Objects;
-with Droopi.Requests;
+with PolyORB.Representations.SOAP;
+with PolyORB.Obj_Adapters.Simple;
+with PolyORB.Objects;
+with PolyORB.Requests;
 with Sequences.Unbounded;
 
-package Droopi.Representations.SOAP.Name_Spaces is
+package PolyORB.Representations.SOAP.Name_Spaces is
 
-   use Droopi.Obj_Adapters.Simple;
-   use Droopi.Objects;
+   use PolyORB.Obj_Adapters.Simple;
+   use PolyORB.Objects;
 
    NS_Free      : constant Integer := 0;
    Number_Of_NS : constant Integer := 50;
@@ -54,7 +54,7 @@ package Droopi.Representations.SOAP.Name_Spaces is
      (Element  : XML_Component_Access;
       Urn    : XML_String);
 
-   procedure Add_Droopi_Method
+   procedure Add_PolyORB_Method
      (OA     : access Simple_Obj_Adapter;
       Oid    : Object_Id;
       Method : Requests.Operation_Id;
@@ -69,4 +69,4 @@ private
      Reference : Integer := 0;
    end record;
 
-end Droopi.Representations.SOAP.Name_Spaces;
+end PolyORB.Representations.SOAP.Name_Spaces;

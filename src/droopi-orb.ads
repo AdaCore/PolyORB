@@ -1,33 +1,33 @@
 --  The ORB core module: main loop and scheduler.
 --  Role: * to coordinate operation of the various subsystems.
 --        * to gateway asynchronous external events to the
---          syncrhonous messaging architecture used within DROOPI.
+--          syncrhonous messaging architecture used within PolyORB.
 
 --  $Id$
 
 with Sequences.Unbounded;
 
-with Droopi.Annotations;
+with PolyORB.Annotations;
 
-with Droopi.Requests;
-with Droopi.Asynch_Ev;
-with Droopi.Binding_Data;
-with Droopi.Components;
-with Droopi.Filters;
-with Droopi.Jobs;
-with Droopi.Obj_Adapters;
-with Droopi.Objects;
-with Droopi.References;
-with Droopi.Soft_Links;
-with Droopi.Transport;
-with Droopi.Task_Info;
+with PolyORB.Requests;
+with PolyORB.Asynch_Ev;
+with PolyORB.Binding_Data;
+with PolyORB.Components;
+with PolyORB.Filters;
+with PolyORB.Jobs;
+with PolyORB.Obj_Adapters;
+with PolyORB.Objects;
+with PolyORB.References;
+with PolyORB.Soft_Links;
+with PolyORB.Transport;
+with PolyORB.Task_Info;
 
-package Droopi.ORB is
+package PolyORB.ORB is
 
-   use Droopi.Asynch_Ev;
-   use Droopi.Annotations;
-   use Droopi.Transport;
-   use Droopi.Components;
+   use PolyORB.Asynch_Ev;
+   use PolyORB.Annotations;
+   use PolyORB.Transport;
+   use PolyORB.Components;
 
    ----------------------------------
    -- Abstract tasking policy type --
@@ -58,7 +58,7 @@ package Droopi.ORB is
 
    type ORB_Type
      (Tasking_Policy : access Tasking_Policy_Type'Class)
-      is new Droopi.Components.Component with private;
+      is new PolyORB.Components.Component with private;
    type ORB_Access is access all ORB_Type;
 
    -------------------------------
@@ -110,7 +110,7 @@ package Droopi.ORB is
 
    type Boolean_Access is access all Boolean;
    type Task_Info_Access_Access is
-     access all Droopi.Task_Info.Task_Info_Access;
+     access all PolyORB.Task_Info.Task_Info_Access;
 
    type Exit_Condition_T is record
       Condition : Boolean_Access;
@@ -203,8 +203,8 @@ package Droopi.ORB is
 
    function Handle_Message
      (ORB : access ORB_Type;
-      Msg : Droopi.Components.Message'Class)
-     return Droopi.Components.Message'Class;
+      Msg : PolyORB.Components.Message'Class)
+     return PolyORB.Components.Message'Class;
 
 private
 
@@ -219,7 +219,7 @@ private
    subtype TAP_Seq is TAP_Seqs.Sequence;
 
    type ORB_Type (Tasking_Policy : access Tasking_Policy_Type'Class)
-   is new Droopi.Components.Component with record
+   is new PolyORB.Components.Component with record
 
       -----------------------------------
       -- Mutex for access to ORB state --
@@ -334,4 +334,4 @@ private
 
    procedure Run (J : access Request_Job);
 
-end Droopi.ORB;
+end PolyORB.ORB;

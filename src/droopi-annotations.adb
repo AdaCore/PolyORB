@@ -8,7 +8,7 @@
 with Ada.Tags;
 with Ada.Unchecked_Deallocation;
 
-package body Droopi.Annotations is
+package body PolyORB.Annotations is
 
    use Ada.Tags;
 
@@ -61,4 +61,4 @@ package body Droopi.Annotations is
       NP := Notepad (Note_Seqs.Null_Sequence);
    end Destroy;
 
-end Droopi.Annotations;
+end PolyORB.Annotations;

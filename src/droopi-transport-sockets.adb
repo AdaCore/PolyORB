@@ -3,16 +3,16 @@
 
 --  $Id$
 
-with Droopi.Asynch_Ev.Sockets;
-with Droopi.Log;
-pragma Elaborate_All (Droopi.Log);
+with PolyORB.Asynch_Ev.Sockets;
+with PolyORB.Log;
+pragma Elaborate_All (PolyORB.Log);
 
-package body Droopi.Transport.Sockets is
+package body PolyORB.Transport.Sockets is
 
-   use Droopi.Asynch_Ev.Sockets;
-   use Droopi.Log;
+   use PolyORB.Asynch_Ev.Sockets;
+   use PolyORB.Log;
 
-   package L is new Droopi.Log.Facility_Log ("droopi.transport.sockets");
+   package L is new PolyORB.Log.Facility_Log ("polyorb.transport.sockets");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -77,7 +77,7 @@ package body Droopi.Transport.Sockets is
    is
       Data_Received : Stream_Element_Count;
    begin
-      Droopi.Buffers.Receive_Buffer
+      PolyORB.Buffers.Receive_Buffer
         (Buffer, TE.Socket, Size, Data_Received);
 
       if Data_Received = 0 then
@@ -95,7 +95,7 @@ package body Droopi.Transport.Sockets is
       Buffer : Buffers.Buffer_Access)
    is
    begin
-      Droopi.Buffers.Send_Buffer (Buffer, TE.Socket);
+      PolyORB.Buffers.Send_Buffer (Buffer, TE.Socket);
    end Write;
 
    procedure Close (TE : in out Socket_Endpoint) is
@@ -104,4 +104,4 @@ package body Droopi.Transport.Sockets is
       TE.Socket := No_Socket;
    end Close;
 
-end Droopi.Transport.Sockets;
+end PolyORB.Transport.Sockets;

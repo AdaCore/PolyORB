@@ -1,12 +1,12 @@
-with Droopi.CORBA_P.Exceptions; use Droopi.CORBA_P.Exceptions;
+with PolyORB.CORBA_P.Exceptions; use PolyORB.CORBA_P.Exceptions;
 with CORBA.Object_Map.Sequence_Map;
 
-with Droopi.POA;
-with Droopi.POA_Policies.Lifespan_Policy;
-with Droopi.Locks;                  use Droopi.Locks;
-with Droopi.Types; use Droopi.Types;
+with PolyORB.POA;
+with PolyORB.POA_Policies.Lifespan_Policy;
+with PolyORB.Locks;                  use PolyORB.Locks;
+with PolyORB.Types; use PolyORB.Types;
 
-package body Droopi.POA_Policies.Id_Assignment_Policy.System is
+package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
 
    ------------
    -- Create --
@@ -23,7 +23,7 @@ package body Droopi.POA_Policies.Id_Assignment_Policy.System is
 
    procedure Check_Compatibility
      (Self : System_Id_Policy;
-      OA   : Droopi.POA_Types.Obj_Adapter_Access)
+      OA   : PolyORB.POA_Types.Obj_Adapter_Access)
    is
    begin
       null;
@@ -56,15 +56,15 @@ package body Droopi.POA_Policies.Id_Assignment_Policy.System is
 
    function Activate_Object
      (Self   : System_Id_Policy;
-      OA     : Droopi.POA_Types.Obj_Adapter_Access;
+      OA     : PolyORB.POA_Types.Obj_Adapter_Access;
       Object : Servant_Access) return Object_Id_Access
    is
       use CORBA.Object_Map;
       use CORBA.Object_Map.Sequence_Map;
-      use Droopi.POA_Policies.Lifespan_Policy;
+      use PolyORB.POA_Policies.Lifespan_Policy;
 
-      P_OA      : Droopi.POA.Obj_Adapter_Access
-        := Droopi.POA.Obj_Adapter_Access (OA);
+      P_OA      : PolyORB.POA.Obj_Adapter_Access
+        := PolyORB.POA.Obj_Adapter_Access (OA);
       New_Entry : Seq_Object_Map_Entry_Access;
       New_U_Oid : Unmarshalled_Oid_Access;
       Index     : Integer;
@@ -81,7 +81,7 @@ package body Droopi.POA_Policies.Id_Assignment_Policy.System is
       Index := Add (P_OA.Active_Object_Map.all'Access,
                     Object_Map_Entry_Access (New_Entry));
 
-      New_U_Oid.Id := To_Droopi_String (Integer'Image (Index));
+      New_U_Oid.Id := To_PolyORB_String (Integer'Image (Index));
       New_U_Oid.System_Generated := True;
       New_U_Oid.Persistency_Flag := Get_Time_Stamp (P_OA.Lifespan_Policy.all,
                                                     OA);
@@ -96,14 +96,14 @@ package body Droopi.POA_Policies.Id_Assignment_Policy.System is
 
    procedure Activate_Object_With_Id
      (Self   : System_Id_Policy;
-      OA     : Droopi.POA_Types.Obj_Adapter_Access;
+      OA     : PolyORB.POA_Types.Obj_Adapter_Access;
       Object : Servant_Access;
       Oid    : Object_Id)
    is
       use CORBA.Object_Map.Sequence_Map;
       use CORBA.Object_Map;
-      P_OA      : Droopi.POA.Obj_Adapter_Access
-        := Droopi.POA.Obj_Adapter_Access (OA);
+      P_OA      : PolyORB.POA.Obj_Adapter_Access
+        := PolyORB.POA.Obj_Adapter_Access (OA);
       New_U_Oid : Unmarshalled_Oid_Access
         := Oid_To_U_Oid (Oid);
       New_Entry : Seq_Object_Map_Entry_Access;
@@ -140,14 +140,14 @@ package body Droopi.POA_Policies.Id_Assignment_Policy.System is
 
    procedure Ensure_Oid_Uniqueness
      (Self  : System_Id_Policy;
-      OA    : Droopi.POA_Types.Obj_Adapter_Access;
+      OA    : PolyORB.POA_Types.Obj_Adapter_Access;
       U_Oid : Unmarshalled_Oid_Access)
    is
       use CORBA.Object_Map.Sequence_Map;
       use CORBA.Object_Map;
       An_Entry : Object_Map_Entry_Access;
-      P_OA      : Droopi.POA.Obj_Adapter_Access
-        := Droopi.POA.Obj_Adapter_Access (OA);
+      P_OA      : PolyORB.POA.Obj_Adapter_Access
+        := PolyORB.POA.Obj_Adapter_Access (OA);
       Index : Integer := Integer'Value (To_Standard_String (U_Oid.Id));
    begin
       Lock_R (P_OA.Map_Lock);
@@ -164,7 +164,7 @@ package body Droopi.POA_Policies.Id_Assignment_Policy.System is
 
    procedure Remove_Entry
      (Self  : System_Id_Policy;
-      OA    : Droopi.POA_Types.Obj_Adapter_Access;
+      OA    : PolyORB.POA_Types.Obj_Adapter_Access;
       U_Oid : Unmarshalled_Oid_Access)
    is
       use CORBA.Object_Map.Sequence_Map;
@@ -172,8 +172,8 @@ package body Droopi.POA_Policies.Id_Assignment_Policy.System is
       An_Entry : Object_Map_Entry_Access;
       Index    : Integer
         := Integer'Value (To_Standard_String (U_Oid.Id));
-      P_OA     : Droopi.POA.Obj_Adapter_Access
-        := Droopi.POA.Obj_Adapter_Access (OA);
+      P_OA     : PolyORB.POA.Obj_Adapter_Access
+        := PolyORB.POA.Obj_Adapter_Access (OA);
    begin
       Lock_W (P_OA.Map_Lock);
       An_Entry := Get_By_Index (P_OA.Active_Object_Map.all, Index);
@@ -193,7 +193,7 @@ package body Droopi.POA_Policies.Id_Assignment_Policy.System is
    -------------------
 
    function Id_To_Servant (Self  : System_Id_Policy;
-                           OA    : Droopi.POA_Types.Obj_Adapter_Access;
+                           OA    : PolyORB.POA_Types.Obj_Adapter_Access;
                            U_Oid : Unmarshalled_Oid_Access)
                           return Servant_Access
    is
@@ -202,8 +202,8 @@ package body Droopi.POA_Policies.Id_Assignment_Policy.System is
       An_Entry : Object_Map_Entry_Access;
       Index    : Integer
         := Integer'Value (To_Standard_String (U_Oid.Id));
-      P_OA     : Droopi.POA.Obj_Adapter_Access
-        := Droopi.POA.Obj_Adapter_Access (OA);
+      P_OA     : PolyORB.POA.Obj_Adapter_Access
+        := PolyORB.POA.Obj_Adapter_Access (OA);
       Servant  : Servant_Access;
    begin
       Lock_R (P_OA.Map_Lock);
@@ -226,4 +226,4 @@ package body Droopi.POA_Policies.Id_Assignment_Policy.System is
       Free (System_Id_Policy_Access (Ptr));
    end Free;
 
-end Droopi.POA_Policies.Id_Assignment_Policy.System;
+end PolyORB.POA_Policies.Id_Assignment_Policy.System;

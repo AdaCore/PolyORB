@@ -3,19 +3,19 @@
 
 --  $Id$
 
-with Droopi.Filters.Interface;
-with Droopi.Log;
-pragma Elaborate_All (Droopi.Log);
+with PolyORB.Filters.Interface;
+with PolyORB.Log;
+pragma Elaborate_All (PolyORB.Log);
 
-package body Droopi.Filters.Slicers is
+package body PolyORB.Filters.Slicers is
 
    use Ada.Streams;
 
-   use Droopi.Buffers;
-   use Droopi.Filters.Interface;
-   use Droopi.Log;
+   use PolyORB.Buffers;
+   use PolyORB.Filters.Interface;
+   use PolyORB.Log;
 
-   package L is new Droopi.Log.Facility_Log ("droopi.filters.slicers");
+   package L is new PolyORB.Log.Facility_Log ("polyorb.filters.slicers");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -24,7 +24,7 @@ package body Droopi.Filters.Slicers is
      (Fact   : access Slicer_Factory;
       Slicer : out Filter_Access)
    is
-      use Droopi.Components;
+      use PolyORB.Components;
 
       Res : constant Filter_Access := new Slicer_Filter;
    begin
@@ -113,4 +113,4 @@ package body Droopi.Filters.Slicers is
       return Res;
    end Handle_Message;
 
-end Droopi.Filters.Slicers;
+end PolyORB.Filters.Slicers;

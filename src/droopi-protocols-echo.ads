@@ -2,9 +2,9 @@
 
 --  $Id$
 
-with Droopi.Buffers;
+with PolyORB.Buffers;
 
-package Droopi.Protocols.Echo is
+package PolyORB.Protocols.Echo is
 
    pragma Elaborate_Body;
 
@@ -48,4 +48,4 @@ private
       Out_Buffer : Buffers.Buffer_Access;
    end record;
 
-end Droopi.Protocols.Echo;
+end PolyORB.Protocols.Echo;

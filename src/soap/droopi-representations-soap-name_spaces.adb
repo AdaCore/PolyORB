@@ -1,6 +1,6 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                          DROOPI COMPONENTS                               --
+--                          PolyORB COMPONENTS                               --
 --                                                                          --
 --                        SOAP Name Spaces                                  --
 --                                                                          --
@@ -10,17 +10,17 @@
 
 
 
-with Droopi.Any;
-with Droopi.Any.NVList;
-with Droopi.Representations.SOAP;
-with Droopi.Obj_Adapters.Simple;
-with Droopi.Requests;
+with PolyORB.Any;
+with PolyORB.Any.NVList;
+with PolyORB.Representations.SOAP;
+with PolyORB.Obj_Adapters.Simple;
+with PolyORB.Requests;
 
-with Droopi.Protocols.SOAP;
+with PolyORB.Protocols.SOAP;
 
 with Sequences.Unbounded;
 
-package body Droopi.Representations.SOAP.Name_Spaces is
+package body PolyORB.Representations.SOAP.Name_Spaces is
 
    use Namespace_Seq;
 
@@ -137,21 +137,21 @@ package body Droopi.Representations.SOAP.Name_Spaces is
    end Add_Name;
 
 
-   procedure Add_Droopi_Method
+   procedure Add_PolyORB_Method
      (OA     : access Simple_Obj_Adapter;
       Oid    : Object_Id;
       Method : Requests.Operation_Id;
       Urn    : XML_String)
    is
-      use Droopi.Obj_Adapters.Simple;
-      use Droopi.Protocols.SOAP;
+      use PolyORB.Obj_Adapters.Simple;
+      use PolyORB.Protocols.SOAP;
       XML_Comp : XML_Component_Access;
       Args : Any.NVList.Ref;
    begin
       Args := Get_Empty_Arg_List (OA, Oid, Method);
-      Request_To_SOAP_Method (To_Droopi_String (Method), Args, Urn, XML_Comp);
+      Request_To_SOAP_Method (To_PolyORB_String (Method), Args, Urn, XML_Comp);
       Add_Name (XML_Comp, Urn);
-   end Add_Droopi_Method;
+   end Add_PolyORB_Method;
 
 
-end Droopi.Representations.SOAP.Name_Spaces;
+end PolyORB.Representations.SOAP.Name_Spaces;

@@ -2,7 +2,7 @@
 
 with Ada.Unchecked_Deallocation;
 
-package body Droopi.Jobs is
+package body PolyORB.Jobs is
 
    procedure Free (X : in out Job_Access)
    is
@@ -64,4 +64,4 @@ package body Droopi.Jobs is
       return Result;
    end Fetch_Job;
 
-end Droopi.Jobs;
+end PolyORB.Jobs;

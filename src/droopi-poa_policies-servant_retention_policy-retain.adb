@@ -1,12 +1,12 @@
-with Droopi.CORBA_P.Exceptions;          use Droopi.CORBA_P.Exceptions;
-with Droopi.POA_Policies.Id_Assignment_Policy;
-with Droopi.POA_Policies.Id_Uniqueness_Policy;
-with Droopi.POA_Policies.Lifespan_Policy;
-with Droopi.POA_Policies.Request_Processing_Policy;
-with Droopi.POA_Policies.Implicit_Activation_Policy;
-with Droopi.POA;
+with PolyORB.CORBA_P.Exceptions;          use PolyORB.CORBA_P.Exceptions;
+with PolyORB.POA_Policies.Id_Assignment_Policy;
+with PolyORB.POA_Policies.Id_Uniqueness_Policy;
+with PolyORB.POA_Policies.Lifespan_Policy;
+with PolyORB.POA_Policies.Request_Processing_Policy;
+with PolyORB.POA_Policies.Implicit_Activation_Policy;
+with PolyORB.POA;
 
-package body Droopi.POA_Policies.Servant_Retention_Policy.Retain is
+package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
 
    ------------
    -- Create --
@@ -23,7 +23,7 @@ package body Droopi.POA_Policies.Servant_Retention_Policy.Retain is
 
    procedure Check_Compatibility
      (Self : Retain_Policy;
-      OA   : Droopi.POA_Types.Obj_Adapter_Access)
+      OA   : PolyORB.POA_Types.Obj_Adapter_Access)
    is
    begin
       null;
@@ -46,15 +46,15 @@ package body Droopi.POA_Policies.Servant_Retention_Policy.Retain is
 
    function Activate_Object
      (Self      : Retain_Policy;
-      OA        : Droopi.POA_Types.Obj_Adapter_Access;
+      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
       P_Servant : Servant_Access)
      return Object_Id_Access
    is
-      use Droopi.POA_Policies.Id_Assignment_Policy;
-      use Droopi.POA_Policies.Id_Uniqueness_Policy;
+      use PolyORB.POA_Policies.Id_Assignment_Policy;
+      use PolyORB.POA_Policies.Id_Uniqueness_Policy;
 
-      POA : constant Droopi.POA.Obj_Adapter_Access
-        := Droopi.POA.Obj_Adapter_Access (OA);
+      POA : constant PolyORB.POA.Obj_Adapter_Access
+        := PolyORB.POA.Obj_Adapter_Access (OA);
       P : constant Id_Assignment_Policy_Access
         := POA.Id_Assignment_Policy;
    begin
@@ -73,16 +73,16 @@ package body Droopi.POA_Policies.Servant_Retention_Policy.Retain is
 
    procedure Activate_Object_With_Id
      (Self      : Retain_Policy;
-      OA        : Droopi.POA_Types.Obj_Adapter_Access;
+      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
       P_Servant : Servant_Access;
       Oid       : Object_Id)
    is
-      use Droopi.POA_Policies.Id_Assignment_Policy;
-      use Droopi.POA_Policies.Id_Uniqueness_Policy;
-      use Droopi.POA_Policies.Lifespan_Policy;
+      use PolyORB.POA_Policies.Id_Assignment_Policy;
+      use PolyORB.POA_Policies.Id_Uniqueness_Policy;
+      use PolyORB.POA_Policies.Lifespan_Policy;
 
-      POA       : constant Droopi.POA.Obj_Adapter_Access
-        := Droopi.POA.Obj_Adapter_Access (OA);
+      POA       : constant PolyORB.POA.Obj_Adapter_Access
+        := PolyORB.POA.Obj_Adapter_Access (OA);
       U_Oid     : Unmarshalled_Oid_Access
         := Oid_To_U_Oid (Oid);
    begin
@@ -110,14 +110,14 @@ package body Droopi.POA_Policies.Servant_Retention_Policy.Retain is
 
    procedure Deactivate
      (Self      : Retain_Policy;
-      OA        : Droopi.POA_Types.Obj_Adapter_Access;
+      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
       Oid       : Object_Id)
    is
-      use Droopi.POA_Policies.Id_Assignment_Policy;
-      use Droopi.POA_Policies.Request_Processing_Policy;
+      use PolyORB.POA_Policies.Id_Assignment_Policy;
+      use PolyORB.POA_Policies.Request_Processing_Policy;
 
-      POA       : constant Droopi.POA.Obj_Adapter_Access
-        := Droopi.POA.Obj_Adapter_Access (OA);
+      POA       : constant PolyORB.POA.Obj_Adapter_Access
+        := PolyORB.POA.Obj_Adapter_Access (OA);
 
       U_Oid     : Unmarshalled_Oid_Access
         := Oid_To_U_Oid (Oid);
@@ -136,15 +136,15 @@ package body Droopi.POA_Policies.Servant_Retention_Policy.Retain is
 
    function Servant_To_Id
      (Self      : Retain_Policy;
-      OA        : Droopi.POA_Types.Obj_Adapter_Access;
+      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
       P_Servant : Servant_Access)
      return Object_Id_Access
    is
-      use Droopi.POA_Policies.Id_Uniqueness_Policy;
-      use Droopi.POA_Policies.Implicit_Activation_Policy;
+      use PolyORB.POA_Policies.Id_Uniqueness_Policy;
+      use PolyORB.POA_Policies.Implicit_Activation_Policy;
 
-      POA : constant Droopi.POA.Obj_Adapter_Access
-        := Droopi.POA.Obj_Adapter_Access (OA);
+      POA : constant PolyORB.POA.Obj_Adapter_Access
+        := PolyORB.POA.Obj_Adapter_Access (OA);
       Oid : Object_Id_Access;
    begin
       Oid := Servant_To_Id
@@ -164,11 +164,11 @@ package body Droopi.POA_Policies.Servant_Retention_Policy.Retain is
 
    function Id_To_Servant
      (Self  : Retain_Policy;
-      OA    : Droopi.POA_Types.Obj_Adapter_Access;
+      OA    : PolyORB.POA_Types.Obj_Adapter_Access;
       U_Oid : Unmarshalled_Oid_Access)
      return Servant_Access
    is
-      use Droopi.POA_Policies.Id_Assignment_Policy;
+      use PolyORB.POA_Policies.Id_Assignment_Policy;
    begin
       return Id_To_Servant
         (POA.Obj_Adapter_Access (OA).Id_Assignment_Policy.all,
@@ -187,5 +187,5 @@ package body Droopi.POA_Policies.Servant_Retention_Policy.Retain is
       Free (Retain_Policy_Access (Ptr));
    end Free;
 
-end Droopi.POA_Policies.Servant_Retention_Policy.Retain;
+end PolyORB.POA_Policies.Servant_Retention_Policy.Retain;
 

@@ -4,28 +4,28 @@
 
 with Ada.Exceptions;
 
-with Droopi.Any;
-with Droopi.Any.NVList;
+with PolyORB.Any;
+with PolyORB.Any.NVList;
 
-with Droopi.Components;
-with Droopi.Log;
-pragma Elaborate_All (Droopi.Log);
+with PolyORB.Components;
+with PolyORB.Log;
+pragma Elaborate_All (PolyORB.Log);
 
-with Droopi.Obj_Adapters;
-with Droopi.Obj_Adapters.Simple;
-with Droopi.Objects.Interface;
-with Droopi.Requests;
-with Droopi.Types;
+with PolyORB.Obj_Adapters;
+with PolyORB.Obj_Adapters.Simple;
+with PolyORB.Objects.Interface;
+with PolyORB.Requests;
+with PolyORB.Types;
 
-package body Droopi.Test_Object is
+package body PolyORB.Test_Object is
 
-   use Droopi.Any;
-   use Droopi.Log;
-   use Droopi.Objects.Interface;
-   use Droopi.Requests;
-   use Droopi.Types;
+   use PolyORB.Any;
+   use PolyORB.Log;
+   use PolyORB.Objects.Interface;
+   use PolyORB.Requests;
+   use PolyORB.Types;
 
-   package L is new Droopi.Log.Facility_Log ("droopi.test_object");
+   package L is new PolyORB.Log.Facility_Log ("polyorb.test_object");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -77,8 +77,8 @@ package body Droopi.Test_Object is
      (Obj : access My_Object;
       Msg : Components.Message'Class)
      return Components.Message'Class is
-      use Droopi.Any.NVList;
-      use Droopi.Any.NVList.Internals;
+      use PolyORB.Any.NVList;
+      use PolyORB.Any.NVList.Internals;
    begin
       pragma Debug (O ("Handle Message : enter"));
       if Msg in Execute_Request then
@@ -89,8 +89,8 @@ package body Droopi.Test_Object is
               Internals.List_Of (Req.all.Args);
          begin
             pragma Debug (O ("The server is executing the request:"
-                             & Droopi.Requests.Image (Req.all)));
-            if Req.all.Operation = To_Droopi_String ("echoString") then
+                             & PolyORB.Requests.Image (Req.all)));
+            if Req.all.Operation = To_PolyORB_String ("echoString") then
                declare
                   echoString_Arg : Types.String :=
                     From_Any (NV_Sequence.Element_Of
@@ -101,7 +101,7 @@ package body Droopi.Test_Object is
                   pragma Debug (O ("Result: " & Image (Req.Result)));
                end;
             elsif
-              Req.all.Operation = To_Droopi_String ("waitAndEchoString")
+              Req.all.Operation = To_PolyORB_String ("waitAndEchoString")
             then
                declare
                   waitAndEchoString_Arg1 : Types.String :=
@@ -128,12 +128,12 @@ package body Droopi.Test_Object is
                   pragma Debug (O ("Result: " & Image (Req.Result)));
                end;
             else
-               raise Droopi.Components.Unhandled_Message;
+               raise PolyORB.Components.Unhandled_Message;
             end if;
             return Executed_Request'(Req => Req);
          end;
       else
-         raise Droopi.Components.Unhandled_Message;
+         raise PolyORB.Components.Unhandled_Message;
       end if;
 
    exception
@@ -167,18 +167,18 @@ package body Droopi.Test_Object is
       pragma Debug (O ("Parameter profile for " & Method & " requested."));
       if Method = "echoString" then
          Add_Item (Result,
-                   (Name => To_Droopi_String ("S"),
+                   (Name => To_PolyORB_String ("S"),
                     Argument => Get_Empty_Any (TypeCode.TC_String),
                     Arg_Modes => ARG_IN));
       elsif Method = "echoInteger" then
-         Add_Item (Result, (Name => To_Droopi_String ("I"),
+         Add_Item (Result, (Name => To_PolyORB_String ("I"),
                             Argument => Get_Empty_Any (TypeCode.TC_Long),
                             Arg_Modes => ARG_IN));
       elsif Method = "waitAndEchoString" then
-         Add_Item (Result, (Name => To_Droopi_String ("S"),
+         Add_Item (Result, (Name => To_PolyORB_String ("S"),
                             Argument => Get_Empty_Any (TypeCode.TC_String),
                             Arg_Modes => ARG_IN));
-         Add_Item (Result, (Name => To_Droopi_String ("I"),
+         Add_Item (Result, (Name => To_PolyORB_String ("I"),
                             Argument => Get_Empty_Any (TypeCode.TC_Long),
                             Arg_Modes => ARG_IN));
       else
@@ -214,5 +214,5 @@ package body Droopi.Test_Object is
          RP_Desc => Get_Result_Profile'Access);
    end If_Desc;
 
-end Droopi.Test_Object;
+end PolyORB.Test_Object;
 

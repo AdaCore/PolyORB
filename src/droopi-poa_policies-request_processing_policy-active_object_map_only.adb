@@ -1,10 +1,10 @@
-with Droopi.CORBA_P.Exceptions; use Droopi.CORBA_P.Exceptions;
-with Droopi.POA_Policies.Servant_Retention_Policy;
-with Droopi.POA_Policies.Servant_Retention_Policy.Retain;
-with Droopi.POA;
+with PolyORB.CORBA_P.Exceptions; use PolyORB.CORBA_P.Exceptions;
+with PolyORB.POA_Policies.Servant_Retention_Policy;
+with PolyORB.POA_Policies.Servant_Retention_Policy.Retain;
+with PolyORB.POA;
 
 package body
-  Droopi.POA_Policies.Request_Processing_Policy.Active_Object_Map_Only
+  PolyORB.POA_Policies.Request_Processing_Policy.Active_Object_Map_Only
 is
 
    ------------
@@ -22,9 +22,9 @@ is
 
    procedure Check_Compatibility
      (Self : Active_Map_Only_Policy;
-      OA   : Droopi.POA_Types.Obj_Adapter_Access)
+      OA   : PolyORB.POA_Types.Obj_Adapter_Access)
    is
-      use Droopi.CORBA_P.Exceptions;
+      use PolyORB.CORBA_P.Exceptions;
 
    begin
       if not
@@ -52,7 +52,7 @@ is
 
    procedure Etherealize_All
      (Self  : Active_Map_Only_Policy;
-      OA    : Droopi.POA_Types.Obj_Adapter_Access;
+      OA    : PolyORB.POA_Types.Obj_Adapter_Access;
       U_Oid : Unmarshalled_Oid_Access)
    is
    begin
@@ -65,10 +65,10 @@ is
 
    function Servant_To_Id
      (Self  : Active_Map_Only_Policy;
-      OA    : Droopi.POA_Types.Obj_Adapter_Access;
+      OA    : PolyORB.POA_Types.Obj_Adapter_Access;
       P_Servant : Servant_Access) return Object_Id_Access
    is
-      use Droopi.POA_Policies.Servant_Retention_Policy;
+      use PolyORB.POA_Policies.Servant_Retention_Policy;
 
       Oid : constant Object_Id_Access
         := Servant_To_Id
@@ -86,10 +86,10 @@ is
 
    function Id_To_Servant
      (Self : Active_Map_Only_Policy;
-      OA   : Droopi.POA_Types.Obj_Adapter_Access;
+      OA   : PolyORB.POA_Types.Obj_Adapter_Access;
       Oid  : Object_Id) return Servant_Access
    is
-      use Droopi.POA_Policies.Servant_Retention_Policy;
+      use PolyORB.POA_Policies.Servant_Retention_Policy;
 
       U_Oid   : constant Unmarshalled_Oid_Access
         := Oid_To_U_Oid (Oid);
@@ -117,4 +117,4 @@ is
       Free (Active_Map_Only_Policy_Access (Ptr));
    end Free;
 
-end Droopi.POA_Policies.Request_Processing_Policy.Active_Object_Map_Only;
+end PolyORB.POA_Policies.Request_Processing_Policy.Active_Object_Map_Only;

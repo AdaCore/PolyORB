@@ -11,7 +11,7 @@ with CORBA.ORB;
 with CORBA.NVList;
 --  with CORBA.Context;
 --  with CORBA.Object;
-with Droopi.CORBA_P.Exceptions;
+with PolyORB.CORBA_P.Exceptions;
 with CORBA; use CORBA;
 pragma Elaborate_All (CORBA);
 
@@ -77,7 +77,7 @@ package body Echo.Impl is
          return;
       end;
    end if;
-   Droopi.CORBA_P.Exceptions.Raise_Bad_Operation;
+   PolyORB.CORBA_P.Exceptions.Raise_Bad_Operation;
    end Invoke;
 
    function Primary_Interface (Self : access Object; -- ....

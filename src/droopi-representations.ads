@@ -4,11 +4,11 @@
 
 with Ada.Streams;
 
-with Droopi.Any;
-with Droopi.Buffers;
-with Droopi.Opaque;
+with PolyORB.Any;
+with PolyORB.Buffers;
+with PolyORB.Opaque;
 
-package Droopi.Representations is
+package PolyORB.Representations is
 
    pragma Elaborate_Body;
 
@@ -34,8 +34,8 @@ package Droopi.Representations is
 private
 
    use Ada.Streams;
-   use Droopi.Buffers;
-   use Droopi.Opaque;
+   use PolyORB.Buffers;
+   use PolyORB.Opaque;
 
    type Representation is abstract tagged limited null record;
 
@@ -99,4 +99,4 @@ private
    --  Align Buffer on Alignment, then unmarshall a copy
    --  of Size octets from Buffer's data, as is.
 
-end Droopi.Representations;
+end PolyORB.Representations;

@@ -16,12 +16,12 @@ with Ada.Streams; use Ada.Streams;
 
 with CORBA;
 
-with Droopi.Buffers;
-with Droopi.References;
-with Droopi.References.IOR;
-with Droopi.Types;
+with PolyORB.Buffers;
+with PolyORB.References;
+with PolyORB.References.IOR;
+with PolyORB.Types;
 
-package Droopi.Protocols.GIOP.GIOP_1_2 is
+package PolyORB.Protocols.GIOP.GIOP_1_2 is
 
    pragma Elaborate_Body;
 
@@ -61,7 +61,7 @@ package Droopi.Protocols.GIOP.GIOP_1_2 is
     (Buffer        : access Buffers.Buffer_Type;
      Request_Id    : Types.Unsigned_Long;
      Reply_Type    : in Reply_Status_Type;
-     Target_Ref    : in  Droopi.References.IOR.IOR_Type);
+     Target_Ref    : in  PolyORB.References.IOR.IOR_Type);
 
    procedure Marshall_Needs_Addressing_Mode
     (Buffer              : access Buffers.Buffer_Type;
@@ -137,4 +137,4 @@ private
    Minor_Version : constant Types.Octet
      := 2;
 
-end Droopi.Protocols.GIOP.GIOP_1_2;
+end PolyORB.Protocols.GIOP.GIOP_1_2;

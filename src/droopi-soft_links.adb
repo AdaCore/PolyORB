@@ -2,7 +2,7 @@
 
 with Ada.Unchecked_Deallocation;
 
-package body Droopi.Soft_Links is
+package body PolyORB.Soft_Links is
 
    Barrier_Create   : Barrier_Creation_Function;
    Mutex_Create     : Mutex_Creation_Function;
@@ -270,4 +270,4 @@ package body Droopi.Soft_Links is
       return Get_Null_Task.all;
    end Null_Task;
 
-end Droopi.Soft_Links;
+end PolyORB.Soft_Links;

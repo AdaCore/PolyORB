@@ -3,16 +3,16 @@
 with Ada.Strings.Unbounded;
 with Ada.Tags;
 
-with Droopi.Log;
-pragma Elaborate_All (Droopi.Log);
+with PolyORB.Log;
+pragma Elaborate_All (PolyORB.Log);
 
-with Droopi.Locks; use Droopi.Locks;
+with PolyORB.Locks; use PolyORB.Locks;
 
-package body Droopi.Any.NVList is
+package body PolyORB.Any.NVList is
 
-   use Droopi.Log;
+   use PolyORB.Log;
 
-   package L is new Droopi.Log.Facility_Log ("corba.nvlist");
+   package L is new PolyORB.Log.Facility_Log ("corba.nvlist");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -112,7 +112,7 @@ package body Droopi.Any.NVList is
    is
       Object : constant Object_Ptr := Create_Object;
    begin
-      Set (NVList, Droopi.Smart_Pointers.Entity_Ptr (Object));
+      Set (NVList, PolyORB.Smart_Pointers.Entity_Ptr (Object));
    end Create;
 
    function Image (NVList : Ref) return Standard.String
@@ -142,7 +142,7 @@ package body Droopi.Any.NVList is
 --     --------------
 --
 --     procedure Marshall
---       (Buffer : access Droopi.Buffers.Buffer_Type;
+--       (Buffer : access PolyORB.Buffers.Buffer_Type;
 --        Data   : Ref) is
 --        Actual_Ref : constant Object_Ptr
 --          := Object_Ptr (Entity_Of (Data));
@@ -159,7 +159,7 @@ package body Droopi.Any.NVList is
 --                (O ("Marshall : NV type is "
 --                    & Ada.Tags.External_Tag
 --                    (Get_Value (List (Index).Argument).all'Tag)));
---              Droopi.CDR.Marshall (Buffer, List (Index));
+--              PolyORB.CDR.Marshall (Buffer, List (Index));
 --           end if;
 --        end loop;
 --        pragma Debug (O ("Marshall : end"));
@@ -170,7 +170,7 @@ package body Droopi.Any.NVList is
 --     ----------------
 --
 --     procedure Unmarshall
---       (Buffer : access Droopi.Buffers.Buffer_Type;
+--       (Buffer : access PolyORB.Buffers.Buffer_Type;
 --        Data : in out Ref)
 --     is
 --        Actual_Ref : constant Object_Ptr
@@ -187,7 +187,7 @@ package body Droopi.Any.NVList is
 --              pragma Debug (O ("Unmarshall : is_empty := "
 --                               & Boolean'Image (CORBA.Is_Empty
 --                                   (List (Index).Argument))));
---              Droopi.CDR.Unmarshall (Buffer, List (Index));
+--              PolyORB.CDR.Unmarshall (Buffer, List (Index));
 --              pragma Debug (O ("Unmarshall : is_empty := "
 --                               & Boolean'Image (CORBA.Is_Empty
 --                                                (List (Index).Argument))));
@@ -224,4 +224,4 @@ package body Droopi.Any.NVList is
 
    end Internals;
 
-end Droopi.Any.NVList;
+end PolyORB.Any.NVList;

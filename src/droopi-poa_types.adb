@@ -1,9 +1,9 @@
-with Droopi.Representations.CDR; use Droopi.Representations.CDR;
-with Droopi.Buffers;             use Droopi.Buffers;
-with Droopi.Types;
+with PolyORB.Representations.CDR; use PolyORB.Representations.CDR;
+with PolyORB.Buffers;             use PolyORB.Buffers;
+with PolyORB.Types;
 with Ada.Streams;
 
-package body Droopi.POA_Types is
+package body PolyORB.POA_Types is
 
    use Ada.Streams;
    use CORBA;
@@ -35,8 +35,8 @@ package body Droopi.POA_Types is
      return Types.String
    is
    begin
-      return To_Droopi_String
-        (Droopi.Objects.To_String (Droopi.Objects.Object_Id (Oid)));
+      return To_PolyORB_String
+        (PolyORB.Objects.To_String (PolyORB.Objects.Object_Id (Oid)));
    end Image;
 
    ---------------
@@ -89,10 +89,10 @@ package body Droopi.POA_Types is
         := Stream_Element_Array (Oid.all);
       Buffer           : aliased Buffer_Type;
 
-      Id               : Droopi.Types.String;
-      System_Generated : Droopi.Types.Boolean;
-      Persistency_Flag : Droopi.Types.Unsigned_Long;
-      Creator          : Droopi.Types.String;
+      Id               : PolyORB.Types.String;
+      System_Generated : PolyORB.Types.Boolean;
+      Persistency_Flag : PolyORB.Types.Unsigned_Long;
+      Creator          : PolyORB.Types.String;
    begin
 
       Decapsulate (Stream'Access, Buffer'Access);
@@ -142,14 +142,14 @@ package body Droopi.POA_Types is
    begin
 
       Start_Encapsulation (Buffer);
-      Marshall (Buffer, Droopi.Types.String (U_Oid.Id));
-      Marshall (Buffer, Droopi.Types.Boolean (U_Oid.System_Generated));
-      Marshall (Buffer, Droopi.Types.Unsigned_Long (U_Oid.Persistency_Flag));
-      Marshall (Buffer, Droopi.Types.String (U_Oid.Creator));
+      Marshall (Buffer, PolyORB.Types.String (U_Oid.Id));
+      Marshall (Buffer, PolyORB.Types.Boolean (U_Oid.System_Generated));
+      Marshall (Buffer, PolyORB.Types.Unsigned_Long (U_Oid.Persistency_Flag));
+      Marshall (Buffer, PolyORB.Types.String (U_Oid.Creator));
 
       Oid := new Object_Id'(Object_Id (Encapsulate (Buffer)));
       Release (Buffer);
       return Oid;
    end U_Oid_To_Oid;
 
-end Droopi.POA_Types;
+end PolyORB.POA_Types;

@@ -1,6 +1,6 @@
 with Ada.Unchecked_Deallocation;
 
-package Droopi.POA_Policies.Thread_Policy.ORB_Ctrl is
+package PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl is
 
    type ORB_Ctrl_Policy is new ThreadPolicy with null record;
    type ORB_Ctrl_Policy_Access is access all ORB_Ctrl_Policy;
@@ -9,7 +9,7 @@ package Droopi.POA_Policies.Thread_Policy.ORB_Ctrl is
 
    procedure Check_Compatibility
      (Self : ORB_Ctrl_Policy;
-      OA   : Droopi.POA_Types.Obj_Adapter_Access);
+      OA   : PolyORB.POA_Types.Obj_Adapter_Access);
 
    function Policy_Id
      (Self : ORB_Ctrl_Policy)
@@ -23,4 +23,4 @@ package Droopi.POA_Policies.Thread_Policy.ORB_Ctrl is
      (ORB_Ctrl_Policy,
       ORB_Ctrl_Policy_Access);
 
-end Droopi.POA_Policies.Thread_Policy.ORB_Ctrl;
+end PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl;

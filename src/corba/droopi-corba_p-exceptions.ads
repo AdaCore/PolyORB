@@ -44,7 +44,7 @@
 with Ada.Exceptions;
 with CORBA; use CORBA;
 
-package Droopi.CORBA_P.Exceptions is
+package PolyORB.CORBA_P.Exceptions is
 
    -----------------------------------------
    --  Declarations for user exceptions.  --
@@ -212,7 +212,7 @@ package Droopi.CORBA_P.Exceptions is
       Status : Completion_Status := Completed_No);
    pragma No_Return (Raise_Bad_TypeCode);
 
-end Droopi.CORBA_P.Exceptions;
+end PolyORB.CORBA_P.Exceptions;
 
 
 

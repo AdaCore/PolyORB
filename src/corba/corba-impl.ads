@@ -1,18 +1,18 @@
 --  $Id$
 
-with Droopi.Components;
-with Droopi.Objects;
-with Droopi.POA_Types;
-with Droopi.Smart_Pointers;
+with PolyORB.Components;
+with PolyORB.Objects;
+with PolyORB.POA_Types;
+with PolyORB.Smart_Pointers;
 
 package CORBA.Impl is
 
    pragma Elaborate_Body;
 
-   type Object is abstract new Droopi.Smart_Pointers.Entity
+   type Object is abstract new PolyORB.Smart_Pointers.Entity
      with private;
    --  type Object_Ptr is access all Object'Class;
-   subtype Object_Ptr is Droopi.Smart_Pointers.Entity_Ptr;
+   subtype Object_Ptr is PolyORB.Smart_Pointers.Entity_Ptr;
    --  Object_Ptr is the return type of CORBA.AbstractBase.Object_Of.
    --  It may either designate an actual local object
    --  (a CORBA.Impl.Object'Class), or a surrogate thereof
@@ -20,16 +20,16 @@ package CORBA.Impl is
 
    function Handle_Message
      (Self : access Object;
-      Msg  : Droopi.Components.Message'Class)
-     return Droopi.Components.Message'Class;
+      Msg  : PolyORB.Components.Message'Class)
+     return PolyORB.Components.Message'Class;
 
-   function To_Droopi_Servant (S : access Object)
-     return Droopi.Objects.Servant_Access;
+   function To_PolyORB_Servant (S : access Object)
+     return PolyORB.Objects.Servant_Access;
 
 private
 
    type Implementation (As_Object : access Object'Class)
-   is new Droopi.POA_Types.Servant with null record;
+   is new PolyORB.POA_Types.Servant with null record;
    --  The CORBA personality is based on the Portable Object Adapter.
 
    function "=" (X, Y : Implementation) return Boolean;
@@ -37,13 +37,13 @@ private
    --  As a descendant of Component, Implementation is a limited type!
    function Handle_Message
      (Self : access Implementation;
-      Msg  : Droopi.Components.Message'Class)
-     return Droopi.Components.Message'Class;
+      Msg  : PolyORB.Components.Message'Class)
+     return PolyORB.Components.Message'Class;
 
-   type Object is abstract new Droopi.Smart_Pointers.Entity with
+   type Object is abstract new PolyORB.Smart_Pointers.Entity with
    record
       Neutral_View : aliased Implementation (Object'Access);
-      --  The Droopi (personality-neutral) view of this servant.
+      --  The PolyORB (personality-neutral) view of this servant.
    end record;
 
 end CORBA.Impl;

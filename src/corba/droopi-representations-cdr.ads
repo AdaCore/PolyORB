@@ -10,11 +10,11 @@ with Ada.Streams; use Ada.Streams;
 
 with CORBA;
 
-with Droopi.Buffers; use Droopi.Buffers;
-with Droopi.Any;
-with Droopi.Types;
+with PolyORB.Buffers; use PolyORB.Buffers;
+with PolyORB.Any;
+with PolyORB.Types;
 
-package Droopi.Representations.CDR is
+package PolyORB.Representations.CDR is
 
    pragma Elaborate_Body;
 
@@ -55,133 +55,133 @@ package Droopi.Representations.CDR is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : access Droopi.Types.Octet);
+      Data   : access PolyORB.Types.Octet);
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in Droopi.Types.Octet);
+      Data   : in PolyORB.Types.Octet);
 
    function Unmarshall (Buffer : access Buffer_Type)
-     return Droopi.Types.Octet;
+     return PolyORB.Types.Octet;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : access Droopi.Types.Char);
+      Data   : access PolyORB.Types.Char);
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in Droopi.Types.Char);
-
-   function Unmarshall (Buffer : access Buffer_Type)
-     return Droopi.Types.Char;
-
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : access Droopi.Types.Wchar);
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : in Droopi.Types.Wchar);
+      Data   : in PolyORB.Types.Char);
 
    function Unmarshall (Buffer : access Buffer_Type)
-     return Droopi.Types.Wchar;
+     return PolyORB.Types.Char;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : access Droopi.Types.Boolean);
+      Data   : access PolyORB.Types.Wchar);
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in Droopi.Types.Boolean);
-
-   function Unmarshall (Buffer : access Buffer_Type)
-     return Droopi.Types.Boolean;
-
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : access Droopi.Types.Unsigned_Short);
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : in Droopi.Types.Unsigned_Short);
+      Data   : in PolyORB.Types.Wchar);
 
    function Unmarshall (Buffer : access Buffer_Type)
-     return Droopi.Types.Unsigned_Short;
+     return PolyORB.Types.Wchar;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : access Droopi.Types.Unsigned_Long);
+      Data   : access PolyORB.Types.Boolean);
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in Droopi.Types.Unsigned_Long);
-
-   function Unmarshall (Buffer : access Buffer_Type)
-     return Droopi.Types.Unsigned_Long;
-
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : access Droopi.Types.Unsigned_Long_Long);
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : in Droopi.Types.Unsigned_Long_Long);
+      Data   : in PolyORB.Types.Boolean);
 
    function Unmarshall (Buffer : access Buffer_Type)
-     return Droopi.Types.Unsigned_Long_Long;
+     return PolyORB.Types.Boolean;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : access Droopi.Types.Short);
+      Data   : access PolyORB.Types.Unsigned_Short);
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in Droopi.Types.Short);
-
-   function Unmarshall (Buffer : access Buffer_Type)
-     return Droopi.Types.Short;
-
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : access Droopi.Types.Long);
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : in Droopi.Types.Long);
+      Data   : in PolyORB.Types.Unsigned_Short);
 
    function Unmarshall (Buffer : access Buffer_Type)
-     return Droopi.Types.Long;
+     return PolyORB.Types.Unsigned_Short;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : access Droopi.Types.Long_Long);
+      Data   : access PolyORB.Types.Unsigned_Long);
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in Droopi.Types.Long_Long);
-
-   function Unmarshall (Buffer : access Buffer_Type)
-     return Droopi.Types.Long_Long;
-
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : access Droopi.Types.Float);
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : in Droopi.Types.Float);
+      Data   : in PolyORB.Types.Unsigned_Long);
 
    function Unmarshall (Buffer : access Buffer_Type)
-     return Droopi.Types.Float;
+     return PolyORB.Types.Unsigned_Long;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : access Droopi.Types.Double);
+      Data   : access PolyORB.Types.Unsigned_Long_Long);
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in Droopi.Types.Double);
-
-   function Unmarshall (Buffer : access Buffer_Type)
-     return Droopi.Types.Double;
-
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : access Droopi.Types.Long_Double);
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : in Droopi.Types.Long_Double);
+      Data   : in PolyORB.Types.Unsigned_Long_Long);
 
    function Unmarshall (Buffer : access Buffer_Type)
-     return Droopi.Types.Long_Double;
+     return PolyORB.Types.Unsigned_Long_Long;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : access PolyORB.Types.Short);
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : in PolyORB.Types.Short);
+
+   function Unmarshall (Buffer : access Buffer_Type)
+     return PolyORB.Types.Short;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : access PolyORB.Types.Long);
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : in PolyORB.Types.Long);
+
+   function Unmarshall (Buffer : access Buffer_Type)
+     return PolyORB.Types.Long;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : access PolyORB.Types.Long_Long);
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : in PolyORB.Types.Long_Long);
+
+   function Unmarshall (Buffer : access Buffer_Type)
+     return PolyORB.Types.Long_Long;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : access PolyORB.Types.Float);
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : in PolyORB.Types.Float);
+
+   function Unmarshall (Buffer : access Buffer_Type)
+     return PolyORB.Types.Float;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : access PolyORB.Types.Double);
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : in PolyORB.Types.Double);
+
+   function Unmarshall (Buffer : access Buffer_Type)
+     return PolyORB.Types.Double;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : access PolyORB.Types.Long_Double);
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : in PolyORB.Types.Long_Double);
+
+   function Unmarshall (Buffer : access Buffer_Type)
+     return PolyORB.Types.Long_Double;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
@@ -195,136 +195,136 @@ package Droopi.Representations.CDR is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : access Droopi.Types.String);
+      Data   : access PolyORB.Types.String);
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in Droopi.Types.String);
+      Data   : in PolyORB.Types.String);
 
    function Unmarshall (Buffer : access Buffer_Type)
-     return Droopi.Types.String;
+     return PolyORB.Types.String;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : access Droopi.Types.Wide_String);
+      Data   : access PolyORB.Types.Wide_String);
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in Droopi.Types.Wide_String);
-
-   function Unmarshall (Buffer : access Buffer_Type)
-     return Droopi.Types.Wide_String;
-
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : access Droopi.Types.Identifier);
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : in Droopi.Types.Identifier);
+      Data   : in PolyORB.Types.Wide_String);
 
    function Unmarshall (Buffer : access Buffer_Type)
-     return Droopi.Types.Identifier;
+     return PolyORB.Types.Wide_String;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : access Droopi.Types.ScopedName);
+      Data   : access PolyORB.Types.Identifier);
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in Droopi.Types.ScopedName);
-
-   function Unmarshall (Buffer : access Buffer_Type)
-     return Droopi.Types.ScopedName;
-
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : access Droopi.Types.RepositoryId);
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : in Droopi.Types.RepositoryId);
+      Data   : in PolyORB.Types.Identifier);
 
    function Unmarshall (Buffer : access Buffer_Type)
-     return Droopi.Types.RepositoryId;
+     return PolyORB.Types.Identifier;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : access Droopi.Any.ValueModifier);
+      Data   : access PolyORB.Types.ScopedName);
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in Droopi.Any.ValueModifier);
-
-   function Unmarshall (Buffer : access Buffer_Type)
-     return Droopi.Any.ValueModifier;
-
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : access Droopi.Any.Visibility);
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : in Droopi.Any.Visibility);
+      Data   : in PolyORB.Types.ScopedName);
 
    function Unmarshall (Buffer : access Buffer_Type)
-     return Droopi.Any.Visibility;
+     return PolyORB.Types.ScopedName;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : access Droopi.Any.Any);
+      Data   : access PolyORB.Types.RepositoryId);
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in Droopi.Any.Any);
+      Data   : in PolyORB.Types.RepositoryId);
 
    function Unmarshall (Buffer : access Buffer_Type)
-     return Droopi.Any.Any;
+     return PolyORB.Types.RepositoryId;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : access PolyORB.Any.ValueModifier);
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : in PolyORB.Any.ValueModifier);
+
+   function Unmarshall (Buffer : access Buffer_Type)
+     return PolyORB.Any.ValueModifier;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : access PolyORB.Any.Visibility);
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : in PolyORB.Any.Visibility);
+
+   function Unmarshall (Buffer : access Buffer_Type)
+     return PolyORB.Any.Visibility;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : access PolyORB.Any.Any);
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : in PolyORB.Any.Any);
+
+   function Unmarshall (Buffer : access Buffer_Type)
+     return PolyORB.Any.Any;
 
    --  The next three marshall or unmarshall the value of the any and
    --  not the any type itself.
 
    procedure Marshall_From_Any
      (Buffer : access Buffer_Type;
-      Data   : access Droopi.Any.Any);
+      Data   : access PolyORB.Any.Any);
    procedure Marshall_From_Any
      (Buffer : access Buffer_Type;
-      Data   : in Droopi.Any.Any);
+      Data   : in PolyORB.Any.Any);
 
    --  This procedure unmarshalls an Any in Result.
    --  If Result already has a value, then its memory location
    --  will be reused. Otherwise, a new location will be created
    procedure Unmarshall_To_Any (Buffer : access Buffer_Type;
-                                Result : in out Droopi.Any.Any);
+                                Result : in out PolyORB.Any.Any);
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : access Droopi.Any.TypeCode.Object);
+      Data   : access PolyORB.Any.TypeCode.Object);
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in Droopi.Any.TypeCode.Object);
+      Data   : in PolyORB.Any.TypeCode.Object);
 
    function Unmarshall (Buffer : access Buffer_Type)
-     return Droopi.Any.TypeCode.Object;
+     return PolyORB.Any.TypeCode.Object;
 
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in Droopi.Any.NamedValue);
+      Data   : in PolyORB.Any.NamedValue);
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : access Droopi.Any.NamedValue);
+      Data   : access PolyORB.Any.NamedValue);
 
    function  Unmarshall (Buffer : access Buffer_Type)
-             return Droopi.Any.NamedValue;
+             return PolyORB.Any.NamedValue;
 
    --  Marshalling and unmashalling of object references
    --  (but not valuetypes)
 
 --   procedure Marshall
 --     (Buffer : access Buffer_Type;
---      Data   : in Droopi.Types.AbstractBase.Ref'Class);
+--      Data   : in PolyORB.Types.AbstractBase.Ref'Class);
 
 --   procedure Unmarshall
 --     (Buffer : access Buffer_Type;
---      Data : in out Droopi.Types.AbstractBase.Ref'Class);
+--      Data : in out PolyORB.Types.AbstractBase.Ref'Class);
 
 --   function Unmarshall
 --     (Buffer : access Buffer_Type)
---     return Droopi.Types.Object.Ref;
+--     return PolyORB.Types.Object.Ref;
 
    --  Marshalling and unmarshalling of system exceptions
 
@@ -364,5 +364,5 @@ package Droopi.Representations.CDR is
                            return F;
    end Fixed_Point;
 
-end  Droopi.Representations.CDR;
+end  PolyORB.Representations.CDR;
 

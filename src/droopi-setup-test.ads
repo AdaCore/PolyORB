@@ -2,11 +2,11 @@
 
 --  $Id$
 
-with Droopi.ORB;
-with Droopi.References;
-pragma Elaborate_All (Droopi.References);
+with PolyORB.ORB;
+with PolyORB.References;
+pragma Elaborate_All (PolyORB.References);
 
-package Droopi.Setup.Test is
+package PolyORB.Setup.Test is
 
    pragma Elaborate_Body;
 
@@ -25,10 +25,10 @@ package Droopi.Setup.Test is
    procedure Initialize_Test_Object;
    --  Create the test object implementation.
 
-   My_Ref : Droopi.References.Ref;
+   My_Ref : PolyORB.References.Ref;
    --  Object reference designating the created test object.
 
    procedure Run_Test;
    --  Execute the test server.
 
-end Droopi.Setup.Test;
+end PolyORB.Setup.Test;

@@ -3,7 +3,7 @@
 
 --  $Id$
 
-package body Droopi.Static_Dict is
+package body PolyORB.Static_Dict is
 
    function New_Dict return Dict_Access is
    begin
@@ -26,5 +26,5 @@ package body Droopi.Static_Dict is
       D (K) := V;
    end Register;
 
-end Droopi.Static_Dict;
+end PolyORB.Static_Dict;
 

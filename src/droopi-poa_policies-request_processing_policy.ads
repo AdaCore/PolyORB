@@ -1,6 +1,6 @@
-with Droopi.POA_Types;     use Droopi.POA_Types;
+with PolyORB.POA_Types;     use PolyORB.POA_Types;
 
-package Droopi.POA_Policies.Request_Processing_Policy is
+package PolyORB.POA_Policies.Request_Processing_Policy is
 
    type RequestProcessingPolicy is abstract new Policy with null record;
    subtype Request_Processing_Policy is RequestProcessingPolicy;
@@ -13,7 +13,7 @@ package Droopi.POA_Policies.Request_Processing_Policy is
    --  possible Request Processing Policy
 
    procedure Etherealize_All (Self  : RequestProcessingPolicy;
-                              OA    : Droopi.POA_Types.Obj_Adapter_Access;
+                              OA    : PolyORB.POA_Types.Obj_Adapter_Access;
                               U_Oid : Unmarshalled_Oid_Access)
       is abstract;
    --  If a servant manager is used, etherealize the servant(s) associated
@@ -24,7 +24,7 @@ package Droopi.POA_Policies.Request_Processing_Policy is
       is abstract;
 
    function Servant_To_Id (Self      : RequestProcessingPolicy;
-                           OA        : Droopi.POA_Types.Obj_Adapter_Access;
+                           OA        : PolyORB.POA_Types.Obj_Adapter_Access;
                            P_Servant : Servant_Access) return Object_Id_Access
      is abstract;
    --  Case USE_ACTIVE_OBJECT_MAP_ONLY:
@@ -37,7 +37,7 @@ package Droopi.POA_Policies.Request_Processing_Policy is
    --    Same than USE_ACTIVE_OBJECT_MAP_ONLY
 
    function Id_To_Servant (Self : RequestProcessingPolicy;
-                           OA   : Droopi.POA_Types.Obj_Adapter_Access;
+                           OA   : PolyORB.POA_Types.Obj_Adapter_Access;
                            Oid  : Object_Id) return Servant_Access
       is abstract;
    --  Case USE_OBJECT_MAP_ONLY:
@@ -54,4 +54,4 @@ package Droopi.POA_Policies.Request_Processing_Policy is
    --    to create it. If there's not servant manager, raises Obj_Adapter
    --    with minor code 4.
 
-end Droopi.POA_Policies.Request_Processing_Policy;
+end PolyORB.POA_Policies.Request_Processing_Policy;

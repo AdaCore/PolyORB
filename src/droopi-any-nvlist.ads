@@ -3,13 +3,13 @@
 with Sequences.Unbounded;
 pragma Elaborate_All (Sequences.Unbounded);
 
-with Droopi.Any;
-with Droopi.Types;
-with Droopi.Smart_Pointers;
+with PolyORB.Any;
+with PolyORB.Types;
+with PolyORB.Smart_Pointers;
 
-package Droopi.Any.NVList is
+package PolyORB.Any.NVList is
 
-   type Ref is new Droopi.Smart_Pointers.Ref with null record;
+   type Ref is new PolyORB.Smart_Pointers.Ref with null record;
 
    procedure Add_Item
      (Self       :    Ref;
@@ -23,7 +23,7 @@ package Droopi.Any.NVList is
       Item : in NamedValue);
    --  Add a NamedValue to this NVList.
 
-   function Get_Count (Self : Ref) return Droopi.Types.Long;
+   function Get_Count (Self : Ref) return PolyORB.Types.Long;
    --  Return the number of items in this NVList.
 
    procedure Free (Self : Ref);
@@ -31,7 +31,7 @@ package Droopi.Any.NVList is
    --  Free and Free_Memory are no-ops in Ada.
 
    -----------------------------------------
-   -- The following is specific to DROOPI --
+   -- The following is specific to PolyORB --
    -----------------------------------------
 
    procedure Create (NVList : out Ref);
@@ -56,7 +56,7 @@ private
 
    package NV_Sequence renames Internals.NV_Sequence;
 
-   type Object is new Droopi.Smart_Pointers.Entity with record
+   type Object is new PolyORB.Smart_Pointers.Entity with record
       List : aliased NV_Sequence.Sequence := NV_Sequence.Null_Sequence;
    end record;
 
@@ -67,4 +67,4 @@ private
    function Create_Object return Object_Ptr;
    --  Create a new and empty Object
 
-end Droopi.Any.NVList;
+end PolyORB.Any.NVList;

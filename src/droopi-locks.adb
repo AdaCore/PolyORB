@@ -1,19 +1,19 @@
 --  Inter-process synchronisation objects.
 
---  $Id: //droopi/main/src/droopi-locks.adb#3 $
+--  $Id: //droopi/main/src/droopi-locks.adb#4 $
 
 with Ada.Unchecked_Deallocation;
 
-with Droopi.Log;
-pragma Elaborate_All (Droopi.Log);
+with PolyORB.Log;
+pragma Elaborate_All (PolyORB.Log);
 
-with Droopi.Soft_Links; use Droopi.Soft_Links;
+with PolyORB.Soft_Links; use PolyORB.Soft_Links;
 
-package body Droopi.Locks is
+package body PolyORB.Locks is
 
-   use Droopi.Log;
+   use PolyORB.Log;
 
-   package L is new Droopi.Log.Facility_Log ("droopi.locks");
+   package L is new PolyORB.Log.Facility_Log ("polyorb.locks");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -133,4 +133,4 @@ package body Droopi.Locks is
       Leave_Critical_Section;
    end Set_Max_Count;
 
-end Droopi.Locks;
+end PolyORB.Locks;

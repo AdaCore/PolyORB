@@ -23,32 +23,32 @@ with Ada.Exceptions;
 
 with Sequences.Unbounded;
 
-with Droopi.Dynamic_Dict;
-pragma Elaborate_All (Droopi.Dynamic_Dict);
+with PolyORB.Dynamic_Dict;
+pragma Elaborate_All (PolyORB.Dynamic_Dict);
 
-with Droopi.ORB;
-with Droopi.ORB.Task_Policies;
-with Droopi.Objects;
-with Droopi.References.IOR;
-with Droopi.Setup;
-with Droopi.Smart_Pointers;
+with PolyORB.ORB;
+with PolyORB.ORB.Task_Policies;
+with PolyORB.Objects;
+with PolyORB.References.IOR;
+with PolyORB.Setup;
+with PolyORB.Smart_Pointers;
 
-with Droopi.Log;
-pragma Elaborate_All (Droopi.Log);
+with PolyORB.Log;
+pragma Elaborate_All (PolyORB.Log);
 
 package body CORBA.ORB is
 
-   use Droopi.Log;
-   use Droopi.ORB.Task_Policies;
-   use Droopi.ORB;
-   use Droopi.Setup;
+   use PolyORB.Log;
+   use PolyORB.ORB.Task_Policies;
+   use PolyORB.ORB;
+   use PolyORB.Setup;
 
-   package L is new Droopi.Log.Facility_Log ("corba.orb");
+   package L is new PolyORB.Log.Facility_Log ("corba.orb");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
    package Referenced_Objects is
-      new Droopi.Dynamic_Dict (CORBA.Object.Ref);
+      new PolyORB.Dynamic_Dict (CORBA.Object.Ref);
 
 --    type Referenced_Object is record
 --       Identifier : ObjectId;
@@ -72,7 +72,7 @@ package body CORBA.ORB is
       return CORBA.TypeCode.Object
    is
    begin
-      raise Droopi.Not_Implemented;
+      raise PolyORB.Not_Implemented;
       return create_alias_tc (Id, Name, Original_Type);
    end create_alias_tc;
 
@@ -86,7 +86,7 @@ package body CORBA.ORB is
       return CORBA.TypeCode.Object
    is
    begin
-      raise Droopi.Not_Implemented;
+      raise PolyORB.Not_Implemented;
       return create_array_tc (Length, Element_Type);
    end create_array_tc;
 
@@ -100,7 +100,7 @@ package body CORBA.ORB is
       return CORBA.TypeCode.Object
    is
    begin
-      raise Droopi.Not_Implemented;
+      raise PolyORB.Not_Implemented;
       return create_fixed_tc (IDL_Digits, scale);
    end create_fixed_tc;
 
@@ -114,7 +114,7 @@ package body CORBA.ORB is
       return CORBA.TypeCode.Object
    is
    begin
-      raise Droopi.Not_Implemented;
+      raise PolyORB.Not_Implemented;
       return create_interface_tc (Id, Name);
    end create_interface_tc;
 
@@ -128,7 +128,7 @@ package body CORBA.ORB is
    is
    begin
       if Count /= 0 then
-         raise Droopi.Not_Implemented;
+         raise PolyORB.Not_Implemented;
          --  XXX How should the list be populated?
       else
          CORBA.NVList.Create (New_List);
@@ -145,7 +145,7 @@ package body CORBA.ORB is
       return CORBA.TypeCode.Object
    is
    begin
-      raise Droopi.Not_Implemented;
+      raise PolyORB.Not_Implemented;
       return create_native_tc (Id, Name);
    end create_native_tc;
 
@@ -171,7 +171,7 @@ package body CORBA.ORB is
       return CORBA.TypeCode.Object
    is
    begin
-      raise Droopi.Not_Implemented;
+      raise PolyORB.Not_Implemented;
       return create_recursive_sequence_tc (Bound, Offset);
    end create_recursive_sequence_tc;
 
@@ -185,7 +185,7 @@ package body CORBA.ORB is
       return CORBA.TypeCode.Object
    is
    begin
-      raise Droopi.Not_Implemented;
+      raise PolyORB.Not_Implemented;
       return create_sequence_tc (Bound, Element_Type);
    end create_sequence_tc;
 
@@ -198,7 +198,7 @@ package body CORBA.ORB is
       return CORBA.TypeCode.Object
    is
    begin
-      raise Droopi.Not_Implemented;
+      raise PolyORB.Not_Implemented;
       return create_string_tc (Bound);
    end create_string_tc;
 
@@ -211,7 +211,7 @@ package body CORBA.ORB is
       return CORBA.TypeCode.Object
    is
    begin
-      raise Droopi.Not_Implemented;
+      raise PolyORB.Not_Implemented;
       return create_wstring_tc (Bound);
    end create_wstring_tc;
 
@@ -223,7 +223,7 @@ package body CORBA.ORB is
       return CORBA.Context.Ref
    is
    begin
-      raise Droopi.Not_Implemented;
+      raise PolyORB.Not_Implemented;
       return Get_Default_Context;
    end Get_Default_Context;
 
@@ -237,7 +237,7 @@ package body CORBA.ORB is
       Returns             :    out CORBA.Boolean)
    is
    begin
-      raise Droopi.Not_Implemented;
+      raise PolyORB.Not_Implemented;
    end Get_Service_Information;
 
    ---------------------------
@@ -246,7 +246,7 @@ package body CORBA.ORB is
 
    function List_Initial_Services return ObjectIdList is
    begin
-      raise Droopi.Not_Implemented;
+      raise PolyORB.Not_Implemented;
       return List_Initial_Services;
    end List_Initial_Services;
 
@@ -285,7 +285,7 @@ package body CORBA.ORB is
 
    procedure Run is
    begin
-      Droopi.ORB.Run (The_ORB, May_Poll => True);
+      PolyORB.ORB.Run (The_ORB, May_Poll => True);
    end Run;
 
    --------------
@@ -305,12 +305,12 @@ package body CORBA.ORB is
      (Obj : in CORBA.Object.Ref'Class)
       return CORBA.String
    is
-      use Droopi.Smart_Pointers;
+      use PolyORB.Smart_Pointers;
 
       E : constant Entity_Ptr := CORBA.Object.Entity_Of (Obj);
    begin
       if E /= null and then E.all in Object.Reference_Info'Class then
-         return Droopi.References.IOR.Object_To_String
+         return PolyORB.References.IOR.Object_To_String
            (Object.Reference_Info (E.all).IOR);
       else
          --  XXX
@@ -336,11 +336,11 @@ package body CORBA.ORB is
      (From : in     CORBA.String;
       To   : in out CORBA.Object.Ref'Class)
    is
-      Ref_Info : constant Droopi.Smart_Pointers.Entity_Ptr
+      Ref_Info : constant PolyORB.Smart_Pointers.Entity_Ptr
         := new Object.Reference_Info;
    begin
       Object.Reference_Info (Ref_Info.all).IOR
-        := Droopi.References.IOR.String_To_Object (From);
+        := PolyORB.References.IOR.String_To_Object (From);
       CORBA.Object.Set (To, Ref_Info);
    end String_To_Object;
 
@@ -368,8 +368,8 @@ package body CORBA.ORB is
       My_Policy := new No_Tasking;
       --  ??? Must implement other policies !!
 
-      The_ORB := new Droopi.ORB.ORB_Type (My_Policy);
-      Droopi.ORB.Create (The_ORB.all);
+      The_ORB := new PolyORB.ORB.ORB_Type (My_Policy);
+      PolyORB.ORB.Create (The_ORB.all);
    end Initialize;
 
    ----------------------
@@ -377,19 +377,19 @@ package body CORBA.ORB is
    ----------------------
 
    function Create_Reference (Object : in CORBA.Object.Ref)
-                             return Droopi.References.Ref
+                             return PolyORB.References.Ref
    is
-      Result : Droopi.References.Ref;
+      Result : PolyORB.References.Ref;
 
-      Oid    : Droopi.Objects.Object_Id_Access
-        := new Droopi.Objects.Object_Id'
-        (CORBA.Object.To_Droopi_Object (Object));
+      Oid    : PolyORB.Objects.Object_Id_Access
+        := new PolyORB.Objects.Object_Id'
+        (CORBA.Object.To_PolyORB_Object (Object));
    begin
       if The_ORB = null then
          raise Internal;
       end if;
 
-      Droopi.ORB.Create_Reference
+      PolyORB.ORB.Create_Reference
         (The_ORB,
          Oid,
          Result);

@@ -1,10 +1,10 @@
---  The root of all DROOPI packages that are specific to the
+--  The root of all PolyORB packages that are specific to the
 --  CORBA personality.
 
 --  $Id$
 
-package Droopi.CORBA_P is
+package PolyORB.CORBA_P is
 
    pragma Pure;
 
-end Droopi.CORBA_P;
+end PolyORB.CORBA_P;
