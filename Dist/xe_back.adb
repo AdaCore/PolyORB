@@ -43,14 +43,6 @@ package body XE_Back is
 
    Min_Width : constant := 11;
 
-   procedure Add_Location
-     (First : in out LID_Type;
-      Last  : in out LID_Type;
-      Major : in Name_Id;
-      Minor : in Name_Id);
-   --  Read major and minor from variable and add this pair to
-   --  partition location list.
-
    procedure Build_New_Channel
      (Channel   : in Variable_Id);
    --  Retrieve the two partitions and attributes previously parsed in
@@ -211,7 +203,7 @@ package body XE_Back is
       LID := Locations.Last;
       Locations.Table (LID).Major := Major;
       Locations.Table (LID).Minor := Minor;
-      Locations.Table (LID).Next := Null_LID;
+      Locations.Table (LID).Next  := Null_LID;
 
       --  Link this new location to the end of the partition location
       --  list.
@@ -552,7 +544,8 @@ package body XE_Back is
          Termination     => Unknown_Termination,
          Reconnection    => Unknown_Reconnection,
          Task_Pool       => No_Task_Pool,
-         Light_PCS       => True,
+         RCI_Or_RACW     => False,
+         Use_Tasking     => False,
          Passive         => Bunknown,
          Filter          => No_Filter_Name,
          Executable_File => No_Name,
@@ -789,14 +782,14 @@ package body XE_Back is
       return Dir (DSA_Dir, Configuration, Partitions.Table (P).Name);
    end Get_Internal_Dir;
 
-   -------------------
-   -- Get_Light_PCS --
-   -------------------
+   ---------------------
+   -- Get_RCI_Or_RACW --
+   ---------------------
 
-   function Get_Light_PCS (P : PID_Type) return Boolean is
+   function Get_RCI_Or_RACW (P : PID_Type) return Boolean is
    begin
-      return Partitions.Table (P).Light_PCS;
-   end Get_Light_PCS;
+      return Partitions.Table (P).RCI_Or_RACW;
+   end Get_RCI_Or_RACW;
 
    -------------------------
    -- Get_Main_Subprogram --
@@ -940,6 +933,24 @@ package body XE_Back is
       return Task_Pool;
    end Get_Task_Pool;
 
+   -----------------
+   -- Get_Tasking --
+   -----------------
+
+   function Get_Tasking (P : PID_Type) return Boolean is
+   begin
+      return Partitions.Table (P).Use_Tasking;
+   end Get_Tasking;
+
+   -----------------
+   -- Get_Tasking --
+   -----------------
+
+   function Get_Tasking (A : ALI_Id) return Character is
+   begin
+      return ALIs.Table (A).Task_Dispatching_Policy;
+   end Get_Tasking;
+
    ---------------------
    -- Get_Termination --
    ---------------------
@@ -992,14 +1003,15 @@ package body XE_Back is
       P : PID_Type;
       C : CID_Type;
       N : Partition_Name_Type;
+      F : LID_Type := Null_LID;
+      L : LID_Type := Null_LID;
 
    begin
-      Locations.Increment_Last;
-      Def_Data_Location := Locations.Last;
-      Locations.Table (Def_Data_Location).Major
-        := Str_To_Id (Get_Def_Storage_Name);
-      Locations.Table (Def_Data_Location).Minor
-        := Str_To_Id (Get_Def_Storage_Data);
+      Add_Location
+        (F, L,
+         Str_To_Id (Get_Def_Storage_Name),
+         Str_To_Id (Get_Def_Storage_Data));
+      Def_Data_Location := F;
 
       N := Get_Node_Name (Node_Id (Partition_Type_Node));
       Create_Partition (N, Null_Node, P);
@@ -1022,7 +1034,7 @@ package body XE_Back is
       C := Channels.Last;
       Channels.Table (C).Name := Get_Node_Name (Node_Id (Channel_Type_Node));
 
-      Channels.Table (C).Filter             := No_Filter_Name;
+      Channels.Table (C).Filter := No_Filter_Name;
       Default_Channel := C;
 
    end Initialize;
@@ -1191,14 +1203,14 @@ package body XE_Back is
       Set_Name_Table_Info (N, Int (H));
    end Set_HID;
 
-   -------------------
-   -- Set_Light_PCS --
-   -------------------
+   ---------------------
+   -- Set_RCI_Or_RACW --
+   ---------------------
 
-   procedure Set_Light_PCS (P : PID_Type; B : Boolean) is
+   procedure Set_RCI_Or_RACW (P : PID_Type; B : Boolean) is
    begin
-      Partitions.Table (P).Light_PCS := B;
-   end Set_Light_PCS;
+      Partitions.Table (P).RCI_Or_RACW := B;
+   end Set_RCI_Or_RACW;
 
    -----------------------------
    -- Set_Partition_Attribute --
@@ -1695,9 +1707,9 @@ package body XE_Back is
       Partitions.Table (P).Reconnection := R;
    end Set_Reconnection;
 
-   ------------------------
+   -----------------
    -- Set_Storage --
-   ------------------------
+   -----------------
 
    procedure Set_Storage
      (P : in PID_Type;
@@ -1705,6 +1717,26 @@ package body XE_Back is
    begin
       Partitions.Table (P).Mem_Location := L;
    end Set_Storage;
+
+   -----------------
+   -- Set_Tasking --
+   -----------------
+
+   procedure Set_Tasking
+     (P : in PID_Type;
+      B : in Boolean) is
+   begin
+      Partitions.Table (P).Use_Tasking := B;
+   end Set_Tasking;
+
+   -----------------
+   -- Set_Tasking --
+   -----------------
+
+   procedure Set_Tasking (A : ALI_Id; Tasking : Character) is
+   begin
+      ALIs.Table (A).Task_Dispatching_Policy := Tasking;
+   end Set_Tasking;
 
    ---------------------
    -- Set_Termination --

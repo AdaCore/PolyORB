@@ -176,7 +176,8 @@ package XE_Back is
       Reconnection    : XE.Reconnection_Type;
       Task_Pool       : Task_Pool_Type;
       Filter          : Filter_Name_Type;
-      Light_PCS       : Boolean;
+      RCI_Or_RACW     : Boolean;
+      Use_Tasking     : Boolean;
       Passive         : XE.Boolean_Type;
       Executable_File : Types.File_Name_Type;
       Partition_Dir   : Types.File_Name_Type;
@@ -252,6 +253,14 @@ package XE_Back is
    --  Assign a Conf Unit to a partition. This unit is declared in the
    --  configuration file (it is not yet mapped to an ada unit).
 
+   procedure Add_Location
+     (First : in out LID_Type;
+      Last  : in out LID_Type;
+      Major : in Types.Name_Id;
+      Minor : in Types.Name_Id);
+   --  Read major and minor from variable and add this pair to
+   --  partition location list.
+
    function Already_Loaded (Unit : Types.Name_Id) return Boolean;
    --  Check that this unit has not been previously loaded in order
    --  to avoid multiple entries in GNAT tables.
@@ -306,8 +315,13 @@ package XE_Back is
    function Get_Host            (P : PID_Type) return Types.Name_Id;
    --  Look for host into partitions. If null, return default.
 
-   function Get_Light_PCS       (P : PID_Type) return Boolean;
-   --  Return true when a partition has neither RCI nor RACW.
+   function Get_RCI_Or_RACW     (P : PID_Type) return Boolean;
+   --  Return true when a partition has either RCI or RACW.
+
+   function Get_Tasking         (P : PID_Type) return Boolean;
+   --  Return true when a partition uses tasking.
+
+   function  Get_Tasking (A : ALI.ALI_Id) return Character;
 
    function Get_Main_Subprogram (P : PID_Type) return Main_Subprogram_Type;
    --  Look for main_subprogram into partitions. If null, return default.
@@ -375,9 +389,15 @@ package XE_Back is
    procedure Set_CUID
      (N : in Types.Name_Id; U : in CUID_Type);
 
-   procedure Set_Light_PCS
+   procedure Set_RCI_Or_RACW
      (P : in PID_Type; B : in Boolean);
-   --  Set when neither RCI nor RACW are present.
+   --  Set to true when either RCI or RACW are present.
+
+   procedure Set_Tasking
+     (P : in PID_Type; B : in Boolean);
+   --  Set to true when no tasking is needed.
+
+   procedure Set_Tasking (A : ALI.ALI_Id; Tasking : Character);
 
    procedure Set_HID
      (N : in Types.Name_Id; H : in HID_Type);
