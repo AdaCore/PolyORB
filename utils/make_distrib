@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: //droopi/main/utils/make_distrib#19 $
+# $Id: //droopi/main/utils/make_distrib#20 $
 #
 # This script builds a compressed archive suitable for distribution.
 #
@@ -79,7 +79,7 @@ dir=$2
 prev=`pwd`
 tmp=${TMPDIR-/var/tmp}/make_distrib.$$
 mkdir -p ${tmp}/${dir}
-trap "rm -fr ${tmp}" 0
+trap "cd /; rm -fr ${tmp}" 0
 
 ###################################################
 # Retrieve all files in repository
@@ -119,7 +119,7 @@ __EOF__
     head|HEAD) tagsep=# ;;
     *)         tagsep=@ ;;
   esac
-  p4 sync ...${tagsep}${tag}
+  (unset PWD; p4 sync ...${tagsep}${tag})
   rc=$?
   set -e
   p4 client -d ${client}
