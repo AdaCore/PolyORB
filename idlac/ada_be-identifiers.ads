@@ -12,7 +12,7 @@ package Ada_Be.Identifiers is
      return String;
    --  The Ada full name of K_Named Node.
 
-   function Scope_Name
+   function Parent_Scope_Name
      (Node : Node_Id)
      return String;
    --  The Ada full name of the scope where K_Named

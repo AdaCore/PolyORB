@@ -4149,6 +4149,7 @@ package body Idl_Fe.Parser is
          end;
       end if;
       Result := Make_Struct;
+      Set_Is_Exception_Members (Result, False);
       Set_Location (Result, Get_Token_Location);
       if not Add_Identifier (Result, Get_Token_String) then
          --  the error was raised before

@@ -180,8 +180,14 @@ package Idl_Fe.Types is
 
    --  Function that take a node list and remove all the redondant items
    --  returns the resulting node list
-   --  usefull for the inheritance treatement
+   --  useful for the inheritance treatement
    function Simplify_Node_List (In_List : Node_List) return Node_List;
+
+   procedure Merge_List
+     (Into : in out Node_List;
+      From : in Node_List);
+   --  Appends all nodes of list From to list Into, unless they are
+   --  in it already.
 
    ----------------------------------------
    --  Type of an identifier definition  --
@@ -343,7 +349,7 @@ package Idl_Fe.Types is
 
    --  Find the identifier in the scope's parents (in each one recursively)
    --  add the different definitions to the node list
-   --  it is usefull for looking in the inherited interfaces or value types
+   --  it is useful for looking in the inherited interfaces or value types
    procedure Find_Identifier_In_Inheritance (Name : in String;
                                              Scope : in Node_Id;
                                              List : in out Node_List);

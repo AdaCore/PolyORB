@@ -207,11 +207,108 @@ package body Ada_Be.Expansion is
    --  Expand_Interface --
    -----------------------
 
-   procedure Expand_Interface (Node : in Node_Id) is
+   function All_Secondary_Ancestors
+     (Node : Node_Id)
+     return Node_List;
+   --  List all the ancestors of K_Interface/K_ValueType Node,
+   --  except its first parent and the ancestors of its first
+   --  parent. It is up to the caller to Free the returned
+   --  Node_List after use.
+
+   function All_Operations
+     (Node : Node_Id)
+     return Node_List;
+   --  Return the operations defined within K_Interface Node.
+   --  It is up to the caller to Free the returned Node_List
+   --  after use.
+
+   function All_Secondary_Ancestors
+     (Node : Node_Id)
+     return Node_List
+   is
+      Parents_List : constant Node_List
+        := Parents (Node);
+      Exclude_List : Node_List
+        := Nil_List;
+      Secondary_Ancestors_List : Node_List
+        := Nil_List;
+   begin
+      pragma Assert (False
+        or else Kind (Node) = K_Interface
+        or else Kind (Node) = K_ValueType);
+
+      if not Is_Empty (Parents_List) then
+         Append_Node (Exclude_List, Value (Head (Parents_List)));
+         Merge_List (Exclude_List,
+                     All_Ancestors (Value (Head (Parents_List))));
+         Secondary_Ancestors_List := All_Ancestors (Node, Exclude_List);
+         Free (Exclude_List);
+      end if;
+      return Secondary_Ancestors_List;
+   end All_Secondary_Ancestors;
+
+   function All_Operations
+     (Node : Node_Id)
+     return Node_List
+   is
+      Ops : Node_List
+        := Nil_List;
+      It : Node_Iterator;
+      E_Node : Node_Id;
+   begin
+      pragma Assert (Kind (Node) = K_Interface);
+
+      Init (It, Contents (Node));
+      while not Is_End (It) loop
+         E_Node := Get_Node (It);
+         Next (It);
+
+         if Kind (E_Node) = K_Operation then
+            pragma Assert (not Is_In_List (Ops, E_Node));
+            Append_Node (Ops, E_Node);
+         end if;
+      end loop;
+
+      return Ops;
+   end All_Operations;
+
+   procedure Expand_Interface
+     (Node : in Node_Id)
+   is
+      Export_List : Node_List;
+
+      Secondary_Ancestors : Node_List
+        := All_Secondary_Ancestors (Node);
+      It : Node_Iterator;
+      A_Node : Node_Id;
    begin
       pragma Assert (Kind (Node) = K_Interface);
       Push_Scope (Node);
-      Expand_Node_List (Contents (Node));
+
+      Export_List := Contents (Node);
+      Expand_Node_List (Export_List);
+      --  First expand the interface's exports
+      --  (eg, attributes are expanded into operations.)
+
+      Init (It, Secondary_Ancestors);
+      while not Is_End (It) loop
+         A_Node := Get_Node (It);
+         Next (It);
+
+         declare
+            Ops : Node_List
+              := All_Operations (A_Node);
+         begin
+            Merge_List
+              (Into => Export_List,
+               From => Ops);
+            Free (Ops);
+         end;
+      end loop;
+      Free (Secondary_Ancestors);
+
+      Set_Contents (Node, Export_List);
+
       --  Pop_Scope;
    end Expand_Interface;
 
@@ -347,6 +444,7 @@ package body Ada_Be.Expansion is
          pragma Assert (Success);
 
          Set_Members (Members_Struct, Members (Node));
+         Set_Is_Exception_Members (Members_Struct, True);
          Insert_Before
            (List => Enclosing_List,
             Node => Members_Struct,

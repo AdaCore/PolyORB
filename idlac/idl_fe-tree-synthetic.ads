@@ -49,4 +49,24 @@ package Idl_Fe.Tree.Synthetic is
      return Node_Id;
    --  The scope wherein a K_Named node was declared.
 
+   function Idl_Repository_Id
+     (Node : in Node_Id)
+     return String;
+   --  Return a poor ersatz of a Repository ID in OMG IDL
+   --  format for K_Named Node (as defined in "10.6 RepositoryIds").
+   --  In particular, #pragma prefix, #pragma version & the like
+   --  are *NOT* taken into account. FIXME: provide a proper implementation
+   --  of this attribute.
+
+   function All_Ancestors
+     (Node : Node_Id;
+      Exclude : Node_List := Nil_List)
+     return Node_List;
+   --  Return the list of all ancestors (direct or
+   --  indirect) of K_Interface Node.
+   --  If Exclude is not Nil_List, all nodes in Exclude
+   --  are ignored during the exploration.
+   --  It is up to the caller to Free the returned Node_List
+   --  after use.
+
 end Idl_Fe.Tree.Synthetic;

@@ -450,7 +450,12 @@ package body Idl_Fe.Display_Tree is
 --             raise Errors.Internal_Error;
 
          when K_Struct =>
-            Put_Line ("struct " & Name (N));
+            Put ("struct " & Name (N));
+            if Is_Exception_Members (N) then
+               Put_Line (" (exception members)");
+            else
+               New_Line;
+            end if;
             if Full then
                Disp_Indent (N_Indent, "members:");
                Disp_List (Members (N), N_Indent + Offset, True);

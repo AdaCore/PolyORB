@@ -11,20 +11,21 @@ pragma Elaborate (Idl_Fe.Debug);
 
 package body Idl_Fe.Types is
 
-   --------------
-   --   Debug  --
-   --------------
+   -----------
+   -- Debug --
+   -----------
 
    Flag : constant Natural := Idl_Fe.Debug.Is_Active ("idl_fe.types");
    procedure O is new Idl_Fe.Debug.Output (Flag);
 
-   --------------------------------------------
-   --  Root of the tree parsed from the idl  --
-   --------------------------------------------
+   --------------------------------------
+   -- Root of the tree parsed from IDL --
+   --------------------------------------
 
-   --------------------
-   --  Set_Location  --
-   --------------------
+   ------------------
+   -- Set_Location --
+   ------------------
+
    procedure Set_Location
      (N : Node_Id;
       Loc : Idl_Fe.Errors.Location) is
@@ -43,9 +44,10 @@ package body Idl_Fe.Types is
       Set_Loc (N, Loc2);
    end Set_Location;
 
-   --------------------
-   --  Get_Location  --
-   --------------------
+   ------------------
+   -- Get_Location --
+   ------------------
+
    function Get_Location
      (N : Node_Id)
      return Idl_Fe.Errors.Location is
@@ -53,13 +55,14 @@ package body Idl_Fe.Types is
       return Loc (N);
    end Get_Location;
 
-   -----------------------
-   --  A list of nodes  --
-   -----------------------
+   ---------------------
+   -- A list of nodes --
+   ---------------------
 
-   ------------
-   --  Init  --
-   ------------
+   ----------
+   -- Init --
+   ----------
+
    procedure Init (It : out Node_Iterator; List : Node_List) is
    begin
       It := Node_Iterator (List);
@@ -269,6 +272,24 @@ package body Idl_Fe.Types is
       end loop;
       return Result_List;
    end Simplify_Node_List;
+
+   procedure Merge_List
+     (Into : in out Node_List;
+      From : in Node_List)
+   is
+      It : Node_Iterator;
+      N : Node_Id;
+   begin
+      Init (It, From);
+      while not Is_End (It) loop
+         N := Get_Node (It);
+         Next (It);
+
+         if not Is_In_List (Into, N) then
+            Append_Node (Into, N);
+         end if;
+      end loop;
+   end Merge_List;
 
    -----------------------------
    --  Identifier definition  --

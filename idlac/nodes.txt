@@ -153,6 +153,7 @@ Case
 
 Struct <-- Scope
   Members : Node_List
+  Is_Exception_Members : Boolean
 
 Enum <-- Named
   Enumerators : Node_List

@@ -13,7 +13,7 @@ package body Ada_Be.Identifiers is
             return Ada_Full_Name (Value (Node));
 
          when K_Ben_Idl_File =>
-            return Name (Node);
+            return Ada_Name (Node);
 
          when K_Repository =>
             --  XXX Should be an error.
@@ -24,25 +24,23 @@ package body Ada_Be.Identifiers is
                P_Node : constant Node_Id
                  := Parent_Scope (Node);
             begin
-               if P_Node = No_Node then
-                  return "NO_PARENT." & Name (Node);
-               end if;
+               pragma Assert (P_Node /= No_Node);
 
                if Kind (P_Node) = K_Ben_Idl_File
                  and then Is_Gen_Scope (Node) then
-                  return Name (Node);
+                  return Ada_Name (Node);
                else
                   --  return Ada_Full_Name (Parent_Scope (Node))
-                  --    & "." & Name (Node);
+                  --    & "." & Ada_Name (Node);
                   --  XXX TEMPORARY WORKAROUND
                   declare
                      FN : constant String
                        := Ada_Full_Name (Parent_Scope (Node));
                   begin
                      if FN'Length = 0 then
-                        return Name (Node);
+                        return Ada_Name (Node);
                      else
-                        return FN & "." & Name (Node);
+                        return FN & "." & Ada_Name (Node);
                      end if;
                   end;
                end if;
@@ -79,11 +77,11 @@ package body Ada_Be.Identifiers is
       return Result (First .. Result'Last);
    end Ada_Name;
 
-   function Scope_Name
+   function Parent_Scope_Name
      (Node : Node_Id)
      return String is
    begin
       return Ada_Full_Name (Parent_Scope (Node));
-   end Scope_Name;
+   end Parent_Scope_Name;
 
 end Ada_Be.Identifiers;

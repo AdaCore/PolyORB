@@ -402,22 +402,64 @@ package body Ada_Be.Idl2Ada is
                      end if;
                   end if;
 
-                  --  XXX Declare also inherited subprograms
-                  --  (for multiple inheritance.) -> Expansion ?
+                  --  Methods inherited from parents other that
+                  --  the first one are added to the interface's
+                  --  exports list by the expander.
+
                end loop;
             end;
 
-            --  XXX Declare Repository_Id
-            --  XXX (This is a temporary workaround)
             Add_With (Stubs_Spec, "CORBA",
                       Use_It => False,
                       Elab_Control => Elaborate_All);
             NL (Stubs_Spec);
             PL (Stubs_Spec, "Repository_Id : constant CORBA.RepositoryId");
-            PL (Stubs_Spec, "  := CORBA.To_CORBA_String (""IDL:"
-                & Ada_Full_Name (Node) & ":1.0"");");
+            PL (Stubs_Spec, "  := CORBA.To_CORBA_String ("""
+                & Idl_Repository_Id (Node) & """);");
+            NL (Stubs_Spec);
+            PL (Stubs_Spec, "function Is_A");
+            PL (Stubs_Spec, "  (Self : Ref;");
+            PL (Stubs_Spec, "   Type_Id : CORBA.RepositoryId)");
+            PL (Stubs_Spec, "  return CORBA.Boolean;");
 
-            --  XXX Declare and implement Is_A
+            NL (Stubs_Body);
+            PL (Stubs_Body, "function Is_A");
+            PL (Stubs_Body, "  (Self : Ref;");
+            PL (Stubs_Body, "   Type_Id : CORBA.RepositoryId)");
+            PL (Stubs_Body, "  return CORBA.Boolean");
+            PL (Stubs_Body, "is");
+            II (Stubs_Body);
+            PL (Stubs_Body, "use CORBA;");
+            DI (Stubs_Body);
+            PL (Stubs_Body, "begin");
+            II (Stubs_Body);
+            PL (Stubs_Body, "return Type_Id = Repository_Id");
+            PL (Stubs_Body, "  or else Type_Id =");
+            PL (Stubs_Body, "    CORBA.To_CORBA_String");
+            PL (Stubs_Body, "      (""IDL:omg.org/CORBA/OBJECT:1.0"")");
+
+            declare
+               Parents : Node_List
+                 := All_Ancestors (Node);
+               It : Node_Iterator;
+               P_Node : Node_Id;
+            begin
+               Init (It, Parents);
+               while not Is_End (It) loop
+                  P_Node := Get_Node (It);
+                  Next (It);
+
+                  Add_With (Stubs_Body, Ada_Full_Name (P_Node));
+                  PL (Stubs_Body, "  or else Type_Id = "
+                      & Ada_Full_Name (P_Node)
+                      & ".Repository_Id");
+               end loop;
+               Free (Parents);
+            end;
+
+            PL (Stubs_Body, "  or else False;");
+            DI (Stubs_Body);
+            PL (Stubs_Body, "end Is_A;");
 
             Gen_To_Ref (Stubs_Spec, Stubs_Body);
 
@@ -488,7 +530,6 @@ package body Ada_Be.Idl2Ada is
 
             NL (CU);
             if Parents (Node) = Nil_List then
-               Add_With (CU, "CORBA.Object");
                Put (CU, "type Ref is new CORBA.Object.Ref");
             else
                declare
@@ -671,18 +712,15 @@ package body Ada_Be.Idl2Ada is
 
          when K_Exception =>
 
-            --  XXX Wait for expansion.
-            null;
---              Add_With (CU, "Ada.Exceptions");
---              NL (CU);
---              PL (CU, Ada_Name (Node) & " : exception;");
---              NL (CU);
---              PL (CU, "procedure Get_Members");
---              PL (CU, "  (From : Ada.Exceptions.Exception_Occurrence;");
---              --  XXX FIXME & Ada_Name (Members_Type (Node))
---              PL (CU, "   To   : out "
---                  & Ada_Name (Node) & "_Members"
---                  & ");");
+            Add_With (CU, "Ada.Exceptions");
+            NL (CU);
+            PL (CU, Ada_Name (Node) & " : exception;");
+            NL (CU);
+            PL (CU, "procedure Get_Members");
+            PL (CU, "  (From : Ada.Exceptions.Exception_Occurrence;");
+            PL (CU, "   To   : out "
+                & Ada_Name (Members_Type (Node))
+                & ");");
 
          when K_Member =>
 
@@ -852,25 +890,34 @@ package body Ada_Be.Idl2Ada is
 
          when K_Struct =>
             NL (CU);
-            PL (CU, "type " & Ada_Name (Node)
-                      & " is record");
-            II (CU);
+            Put (CU, "type " & Ada_Name (Node) & " is ");
+            if Is_Exception_Members (Node) then
+               NL (CU);
+               PL (CU, "  new CORBA.IDL_Exception_Members");
+               Put (CU, "  with ");
+            end if;
 
-            declare
-               It   : Node_Iterator;
-               Member_Node : Node_Id;
-            begin
-               Init (It, Members (Node));
-               while not Is_End (It) loop
-                  Member_Node := Get_Node (It);
-                  Next (It);
-                  Gen_Node_Stubs_Spec (CU, Member_Node);
+            if Is_Empty (Members (Node)) then
+               PL (CU, "null record;");
+            else
+               PL (CU, "record");
+               II (CU);
 
-               end loop;
-            end;
+               declare
+                  It   : Node_Iterator;
+                  Member_Node : Node_Id;
+               begin
+                  Init (It, Members (Node));
+                  while not Is_End (It) loop
+                     Member_Node := Get_Node (It);
+                     Next (It);
+                     Gen_Node_Stubs_Spec (CU, Member_Node);
+                  end loop;
+               end;
 
-            DI (CU);
-            PL (CU, "end record;");
+               DI (CU);
+               PL (CU, "end record;");
+            end if;
 
          when K_ValueBase =>
             null;
@@ -1128,7 +1175,7 @@ package body Ada_Be.Idl2Ada is
          end if;
          PL (CU, Ada_Full_Name (I_Node) & Impl_Suffix
              & "." & Ada_Name (Node));
-         PL (CU, "  (Object_Ptr (Obj),");
+         Put (CU, "  (Object_Ptr (Obj)");
          II (CU);
          declare
             It   : Node_Iterator;
@@ -1140,14 +1187,11 @@ package body Ada_Be.Idl2Ada is
                P_Node := Get_Node (It);
                Next (It);
 
+               PL (CU, ",");
                Put (CU, "IDL_"
                     & Ada_Name (Declarator (P_Node)));
-               if Is_End (It) then
-                  PL (CU, ");");
-               else
-                  PL (CU, ",");
-               end if;
             end loop;
+            PL (CU, ");");
          end;
          DI (CU);
 
@@ -1183,16 +1227,15 @@ package body Ada_Be.Idl2Ada is
                II (CU);
                PL (CU, "Repository_Id : constant CORBA.String");
                PL (CU, "  := CORBA.To_CORBA_String ("""
-                   & "XXXexcRepoIdXXX" & """);");
-               PL (CU, "Members : "
-               --  XXX   & Ada_Full_Name (Members_Type (E_Node))
-                   & Ada_Full_Name (E_Node) & "_Members"
+                   & Idl_Repository_Id (E_Node) & """);");
+               PL (CU, T_Members & " : "
+                   & Ada_Type_Name (Members_Type (E_Node))
                    & ";");
                DI (CU);
                PL (CU, "begin");
                II (CU);
-               PL (CU, Scope_Name (E_Node)
-                   & ".Get_Members (E, Members);");
+               PL (CU, Parent_Scope_Name (E_Node)
+                   & ".Get_Members (E, " & T_Members & ");");
                NL (CU);
                PL (CU, "--  Marshall service context");
                PL (CU, "Marshall");
@@ -1212,9 +1255,8 @@ package body Ada_Be.Idl2Ada is
                NL (CU);
                PL (CU, "--  Marshall exception");
                PL (CU, "Marshall (Reply_Buffer, Repository_Id);");
-               --  XXX Wait for expansion
-               --  XXX Add_With_Stream (CU, Members_Type (E_Node));
-               PL (CU, "Marshall (Reply_Buffer, Members);");
+               Add_With_Stream (CU, Members_Type (E_Node));
+               PL (CU, "Marshall (Reply_Buffer, " & T_Members & ");");
                PL (CU, "return;");
                DI (CU);
                PL (CU, "end;");
@@ -1389,9 +1431,19 @@ package body Ada_Be.Idl2Ada is
                                 (CU, "--  Marshall in and inout arguments.");
                               First := False;
                            end if;
-                           PL
-                             (CU, "Marshall (" & T_Handler & ".Buffer'Access, "
-                              & Ada_Name (Declarator (P_Node)) & ");");
+                           PL (CU, "Marshall");
+                           PL (CU, "  ("
+                               & T_Handler & ".Buffer'Access, ");
+                           if Is_Interface_Type (Param_Type (P_Node)) then
+                              --  The formal is class-wide: type cast it before
+                              --  use.
+                              PL (CU, "   "
+                                  & Ada_Type_Name (Param_Type (P_Node)));
+                              PL (CU, "     ("
+                                  & Ada_Name (Declarator (P_Node)) & "));");
+                           else
+                              PL (CU, Ada_Name (Declarator (P_Node)) & ");");
+                           end if;
                         when others =>
                            null;
                      end case;
@@ -1499,10 +1551,9 @@ package body Ada_Be.Idl2Ada is
                      II (CU);
                      PL (CU, "declare");
                      II (CU);
+                     Add_With_Stream (CU, Members_Type (E_Node));
                      PL (CU, T_Members & " : constant "
-                         & Ada_Full_Name (E_Node) & "_Members");
-                     --  & Ada_Full_Name (Members_Type (E_Node)));
-                     --  XXX Add_With_Stream (Members_Type (E_Node))
+                         & Ada_Type_Name (Members_Type (E_Node)));
                      PL (CU, "  := Unmarshall (" & T_Handler &
                          ".Buffer'Access);");
                      DI (CU);
@@ -1539,23 +1590,18 @@ package body Ada_Be.Idl2Ada is
             end;
 
          when K_Exception =>
-            --  XXX Wait for expansion
-            null;
-
---              Add_With (CU, "Broca.Exceptions");
---
---              NL (CU);
---              PL (CU, "procedure Get_Members");
---              PL (CU, "  (From : Ada.Exceptions.Exception_Occurrence;");
---              --  XXX FIXME & Ada_Name (Members_Type (Node))
---              PL (CU, "   To   : out "
---                  & Ada_Name (Node) & "_Members"
---                  & ") is");
---              PL (CU, "begin");
---              II (CU);
---              PL (CU, "Broca.Exceptions.User_Get_Members (From, To);");
---              DI (CU);
---              PL (CU, "end Get_Members;");
+            Add_With (CU, "Broca.Exceptions");
+            NL (CU);
+            PL (CU, "procedure Get_Members");
+            PL (CU, "  (From : Ada.Exceptions.Exception_Occurrence;");
+            PL (CU, "   To   : out "
+                & Ada_Name (Members_Type (Node))
+                & ") is");
+            PL (CU, "begin");
+            II (CU);
+            PL (CU, "Broca.Exceptions.User_Get_Members (From, To);");
+            DI (CU);
+            PL (CU, "end Get_Members;");
 
 
          when others =>
@@ -2096,8 +2142,9 @@ package body Ada_Be.Idl2Ada is
                               Gen_Array_Iterator
                                 (CU, T_Returns, Array_Dimensions,
                                  T_Returns & " % := Unmarshall (Buffer);");
+
+                              PL (CU, "return " & T_Returns & ";");
                            end if;
-                           PL (CU, "return " & T_Returns & ";");
 
                            DI (CU);
                            PL (CU, "end Unmarshall;");
@@ -2468,6 +2515,7 @@ package body Ada_Be.Idl2Ada is
      (Stubs_Spec : in out Compilation_Unit;
       Stubs_Body : in out Compilation_Unit) is
    begin
+      Add_With (Stubs_Spec, "CORBA.Object");
       NL (Stubs_Spec);
       PL (Stubs_Spec, "function Unchecked_To_Ref");
       PL (Stubs_Spec, "  (The_Ref : in CORBA.Object.Ref'Class)");
