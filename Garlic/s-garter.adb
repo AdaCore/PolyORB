@@ -37,6 +37,7 @@ with System.Garlic.Debug;         use System.Garlic.Debug;
 with System.Garlic.Heart;         use System.Garlic.Heart;
 with System.Garlic.Options;
 with System.Garlic.Priorities;
+with System.Garlic.Soft_Links;    use System.Garlic.Soft_Links;
 with System.Garlic.Streams;       use System.Garlic.Streams;
 with System.Garlic.Types;         use System.Garlic.Types;
 with System.Task_Primitives.Operations;
@@ -53,6 +54,27 @@ package body System.Garlic.Termination is
       Message : in String;
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
+
+   procedure Add_Non_Terminating_Task;
+   --  Let Garlic know that a task is not going to terminate and that
+   --  it should not be taken into account during distributed termination.
+
+   procedure Sub_Non_Terminating_Task;
+   --  Let Garlic know that a task is no longer a non terminating task.
+
+   procedure Shutdown;
+   --  Shutdown any active task
+
+   procedure Initialize;
+   --  Initialization
+
+   procedure Activity_Detected;
+   --  Some activity has been detected. This means that the current
+   --  shutdown procedure (if any) must be terminated.
+
+   procedure Local_Termination;
+   --  Terminate when Garlic tasks and the environment task are the only
+   --  active tasks. Don't bother with other partitions.
 
    protected Count is
       procedure Increment;
@@ -200,37 +222,41 @@ package body System.Garlic.Termination is
    ------------------------------
 
    procedure Initiate_Synchronization is
-      Id     : Stamp   := Termination_Watcher.Get_Stamp;
-      Count  : Natural := 0;
+      Id     : Stamp                 := Termination_Watcher.Get_Stamp;
+      Count  : Natural               := 0;
       Latest : constant Partition_ID := Latest_Allocated_Partition_ID;
    begin
       for Partition in Get_Boot_Server + 1 .. Latest loop
-         declare
-            Params : aliased Params_Stream_Type (0);
-         begin
-            pragma Debug
-              (D (D_Debug,
-                  "Sending shutdown query to partition" & Partition'Img));
-            Termination_Code'Write (Params'Access, Set_Stamp);
-            Stamp'Write (Params'Access, Id);
-            Send (Partition, Shutdown_Synchronization, Params'Access);
-            Count := Count + 1;
-         exception
-            when Communication_Error => null;
-         end;
+         if Termination_Policy (Partition) /= Local_Termination then
+            declare
+               Params : aliased Params_Stream_Type (0);
+            begin
+               pragma Debug
+                 (D (D_Debug,
+                     "Sending shutdown query to partition" & Partition'Img));
+               Termination_Code'Write (Params'Access, Set_Stamp);
+               Stamp'Write (Params'Access, Id);
+               Send (Partition, Shutdown_Synchronization, Params'Access);
+               Count := Count + 1;
+            exception
+               when Communication_Error => null;
+            end;
+         end if;
       end loop;
       pragma Debug (D (D_Debug, "Sent" & Count'Img & " messages"));
       Termination_Watcher.Messages_Sent (Count);
       for Partition in Get_Boot_Server + 1 .. Latest loop
-         declare
-            Params : aliased Params_Stream_Type (0);
-         begin
-            Termination_Code'Write (Params'Access, Check_Stamp);
-            Stamp'Write (Params'Access, Id);
-            Send (Partition, Shutdown_Synchronization, Params'Access);
-         exception
-            when Communication_Error => null;
-         end;
+         if Termination_Policy (Partition) /= Local_Termination then
+            declare
+               Params : aliased Params_Stream_Type (0);
+            begin
+               Termination_Code'Write (Params'Access, Check_Stamp);
+               Stamp'Write (Params'Access, Id);
+               Send (Partition, Shutdown_Synchronization, Params'Access);
+            exception
+               when Communication_Error => null;
+            end;
+         end if;
       end loop;
    end Initiate_Synchronization;
 
@@ -245,7 +271,9 @@ package body System.Garlic.Termination is
         Options.Termination /= Deferred_Termination then
          Dummy := new Termination_Service;
       end if;
-      Receive (Shutdown_Synchronization, Receive_Message'Access);
+      if Options.Termination /= Local_Termination then
+         Receive (Shutdown_Synchronization, Receive_Message'Access);
+      end if;
    end Initialize;
 
    -----------------------
@@ -379,31 +407,57 @@ package body System.Garlic.Termination is
             declare
                function Clock return Duration
                  renames System.Task_Primitives.Operations.Clock;
+               Ready    : Boolean := True;
                Id       : Stamp;
                Success  : Boolean;
                End_Time : Duration;
             begin
-               Termination_Watcher.Increment_Stamp;
-               Id := Termination_Watcher.Get_Stamp;
-               Initiate_Synchronization;
+               --  First of all, check if there is any alive partition whose
+               --  termination is local. If this is the case, that means
+               --  that these partitions have not terminated yet.
 
-               Success  := False;
-               End_Time := Clock + Time_To_Synchronize;
-               while Clock < End_Time loop
-                  --  The following construction is against all the quality
-                  --  and style guidelines; but they cannot be applied here:
-                  --  we do NOT care if this is not executed in time, since
-                  --  that means that some other activity took place. If this
-                  --  is the case, then it is likely that we do not want to
-                  --  terminate anymore.
-
-                  delay Polling_Interval;
-
-                  if Termination_Watcher.Result_Is_Available then
-                     Termination_Watcher.Termination_Accepted (Id, Success);
+               for Partition in Get_Boot_Server + 1 ..
+                 Latest_Allocated_Partition_ID loop
+                  if Blocking_Partition (Partition) then
+                     pragma Debug (D (D_Debug,
+                                      "Partition" & Partition'Img &
+                                      " has not terminated"));
+                     Ready := False;
                      exit;
                   end if;
                end loop;
+
+               if Ready then
+
+                  Termination_Watcher.Increment_Stamp;
+                  Id := Termination_Watcher.Get_Stamp;
+                  Initiate_Synchronization;
+
+                  Success  := False;
+                  End_Time := Clock + Time_To_Synchronize;
+                  while Clock < End_Time loop
+
+                     --  The following construction is against all the
+                     --  quality and style guidelines; but they cannot be
+                     --  applied here: we do NOT care if this is not
+                     --  executed in time, since that means that some other
+                     --  activity took place. If this is the case, then it
+                     --  is likely that we do not want to terminate anymore.
+
+                     delay Polling_Interval;
+
+                     if Termination_Watcher.Result_Is_Available then
+                        Termination_Watcher.Termination_Accepted (Id, Success);
+                        exit;
+                     end if;
+                  end loop;
+
+               else
+                  --  Success is impossible because some partitions with
+                  --  local termination are still alive.
+
+                  Success := False;
+               end if;
 
                pragma Debug
                  (D (D_Debug,
@@ -545,4 +599,11 @@ package body System.Garlic.Termination is
 
    end Termination_Watcher;
 
+begin
+   Register_Add_Non_Terminating_Task (Add_Non_Terminating_Task'Access);
+   Register_Sub_Non_Terminating_Task (Sub_Non_Terminating_Task'Access);
+   Register_Termination_Shutdown (Shutdown'Access);
+   Register_Termination_Initialize (Initialize'Access);
+   Register_Activity_Detected (Activity_Detected'Access);
+   Register_Local_Termination (Local_Termination'Access);
 end System.Garlic.Termination;

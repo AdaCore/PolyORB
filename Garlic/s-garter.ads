@@ -50,28 +50,7 @@ package System.Garlic.Termination is
    --  may be improved provided that the interface of this package is
    --  not changed.
 
-   procedure Add_Non_Terminating_Task;
-   pragma Inline (Add_Non_Terminating_Task);
-   --  Let Garlic know that a task is not going to terminate and that
-   --  it should not be taken into account during distributed termination.
-
-   procedure Sub_Non_Terminating_Task;
-   pragma Inline (Add_Non_Terminating_Task);
-   --  Let Garlic know that a task is no longer a non terminating task.
-
-   procedure Shutdown;
-   --  Shutdown any active task
-
-   procedure Initialize;
-   --  Initialization
-
-   procedure Activity_Detected;
-   pragma Inline (Activity_Detected);
-   --  Some activity has been detected. This means that the current
-   --  shutdown procedure (if any) must be terminated.
-
-   procedure Local_Termination;
-   --  Terminate when Garlic tasks and the environment task are the only
-   --  active tasks. Don't bother with other partitions.
+   --  All the subprograms have been embedded into the body, because a
+   --  soft-links mechanism is used to reference them.
 
 end System.Garlic.Termination;
