@@ -166,7 +166,7 @@ package body PolyORB.Requests is
       function Name_Exists
         (Name : Types.Identifier; From : Iterator)
          return Boolean;
-      --  Ture iff the list on which From iterates contains
+      --  True iff the list on which From iterates contains
       --  a namedvalue whose name is Name between the position
       --  denoted by From and the end of the list.
 
