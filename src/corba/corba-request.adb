@@ -99,7 +99,6 @@ package body CORBA.Request is
       pragma Warnings (Off);
       pragma Unreferenced
         (Ctx,
-         Exc_List,
          Ctxt_List,
          Req_Flags);
       pragma Warnings (On);
@@ -117,6 +116,7 @@ package body CORBA.Request is
          Arg_List  => CORBA.NVList.To_PolyORB_Ref (Arg_List),
          --  Result    => PResult,
          Result    => PAAC.To_Pointer (Result'Address).all,
+         Exc_List  => CORBA.ExceptionList.To_PolyORB_Ref (Exc_List),
          Req       => Request.The_Request);
    end Create_Request;
 

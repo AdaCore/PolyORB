@@ -32,6 +32,7 @@
 
 --  $Id$
 
+with PolyORB.Any;
 with PolyORB.Binding_Data;        use PolyORB.Binding_Data;
 with PolyORB.Binding_Data.IIOP;
 with PolyORB.Log;
@@ -220,20 +221,18 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
 
 
-   -------------------------------------
-   --  Exception Marshall
-   -------------------------------------
+   ------------------------
+   -- Marshall_Exception --
+   ------------------------
 
    procedure Marshall_Exception
-    (Buffer      : access Buffers.Buffer_Type;
-     Request_Id  : Types.Unsigned_Long;
-     Reply_Type  : in Reply_Status_Type;
-     Occurence   : in Any.Any)
-
+     (Buffer     : access Buffers.Buffer_Type;
+      Request_Id :        Types.Unsigned_Long;
+      Reply_Type : in     Reply_Status_Type;
+      Occurrence : in     Any.Any)
    is
       use  Representations.CDR;
    begin
-
       pragma Assert (Reply_Type in User_Exception .. System_Exception);
 
       --  Request id
@@ -251,14 +250,13 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       end loop;
 
       --  Occurrence
-      Marshall_From_Any (Buffer, Occurence);
+      Marshall (Buffer, Any.TypeCode.Id (Any.Get_Type (Occurrence)));
+      Marshall_From_Any (Buffer, Occurrence);
    end  Marshall_Exception;
 
-
-
-   -------------------------------------
-   -- Location Forward Reply Marshall --
-   -------------------------------------
+   -------------------------------
+   -- Marshall_Location_Forward --
+   -------------------------------
 
    procedure Marshall_Location_Forward
     (Buffer        :   access Buffers.Buffer_Type;

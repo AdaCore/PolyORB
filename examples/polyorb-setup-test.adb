@@ -43,6 +43,7 @@ with CORBA.Object;
 with CORBA.ORB;
 
 with PolyORB.Any;
+with PolyORB.Any.ExceptionList;
 with PolyORB.Any.NVList;
 with PolyORB.Components;
 with PolyORB.Obj_Adapters.Simple;
@@ -164,6 +165,7 @@ package body PolyORB.Setup.Test is
                   "waitAndEchoString",
                   Args,
                   Result,
+                  PolyORB.Any.ExceptionList.Nil_Ref,
                   Req);
                Put_Line ("Done...");
 

@@ -62,10 +62,10 @@ package PolyORB.Protocols.GIOP.GIOP_1_0 is
      Request_Id  : in Types.Unsigned_Long);
 
    procedure Marshall_Exception
-    (Buffer           : access Buffers.Buffer_Type;
-     Request_Id       : in Types.Unsigned_Long;
-     Exception_Type   : in Reply_Status_Type;
-     Occurence        : in Any.Any);
+     (Buffer         : access Buffers.Buffer_Type;
+      Request_Id     : in     Types.Unsigned_Long;
+      Exception_Type : in     Reply_Status_Type;
+      Occurrence     : in     Any.Any);
 
    procedure Marshall_Location_Forward
     (Buffer           : access Buffers.Buffer_Type;

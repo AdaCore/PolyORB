@@ -38,6 +38,7 @@ with Ada.Unchecked_Deallocation;
 
 with PolyORB.Annotations;
 with PolyORB.Any;
+with PolyORB.Any.ExceptionList;
 with PolyORB.Any.NVList;
 with PolyORB.Components;
 with PolyORB.References;
@@ -108,6 +109,11 @@ package PolyORB.Requests is
       --  set to the Session on which the arguments are
       --  waiting to be unmarshalled.
 
+      Arguments_Called : Boolean := False;
+      --  Flag set to True once the Arguments operation has been
+      --  called on this request, to prevent it from being called
+      --  again.
+
       --  When creating a Request object with deferred arguments,
       --  it is the Protocol layer's responsibility to ensure that
       --  consistent information is presented when
@@ -117,11 +123,16 @@ package PolyORB.Requests is
       --  The result returned by the object after execution of
       --  this request.
 
+      Exc_List   : PolyORB.Any.ExceptionList.Ref;
+      --  The list of user exceptions potentially raised by
+      --  this request.
+      --  XXX This is client-side info. How do we construct it
+      --      on a proxy object?
+
       Exception_Info : Any.Any;
       --  If non-empty, information relatuve to an exception
       --  raised during execution of this request.
 
-      --  Exc_List   : CORBA.ExceptionList.Ref;
       --  Ctxt_List  : CORBA.ContextList.Ref;
       --  Req_Flags  : CORBA.Flags;
 
@@ -162,7 +173,8 @@ package PolyORB.Requests is
       Operation : in     Operation_Id;
       Arg_List  : in     Any.NVList.Ref;
       Result    : in out Any.NamedValue;
-      --  Exc_List  : in     ExceptionList.Ref;
+      Exc_List  : in     Any.ExceptionList.Ref
+        := Any.ExceptionList.Nil_Ref;
       --  Ctxt_List : in     ContextList.Ref;
       Req       :    out Request_Access;
       --  Req_Flags : in     Flags;

@@ -34,6 +34,7 @@
 
 with Ada.Streams; use Ada.Streams;
 
+with PolyORB.Any;
 with PolyORB.Buffers;             use PolyORB.Buffers;
 with PolyORB.Binding_Data;        use PolyORB.Binding_Data;
 with PolyORB.Binding_Data.IIOP;
@@ -196,7 +197,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
     (Buffer           : access Buffer_Type;
      Request_Id       : in Types.Unsigned_Long;
      Exception_Type   : in Reply_Status_Type;
-     Occurence        : in Any.Any)
+     Occurrence       : in Any.Any)
    is
       use Representations.CDR;
    begin
@@ -216,7 +217,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
       Marshall (Buffer, Exception_Type);
 
       --  Occurrence
-      Marshall_From_Any (Buffer, Occurence);
+      Marshall (Buffer, Any.TypeCode.Id (Any.Get_Type (Occurrence)));
+      Marshall_From_Any (Buffer, Occurrence);
    end Marshall_Exception;
 
    -------------------------------------

@@ -38,6 +38,7 @@ with Sequences.Unbounded;
 
 with PolyORB.Any;
 with PolyORB.Annotations;
+with PolyORB.Any.ExceptionList;
 with PolyORB.Any.NVList;
 with PolyORB.Binding_Data;        use PolyORB.Binding_Data;
 with PolyORB.Binding_Data.IIOP;
@@ -1486,6 +1487,9 @@ package body PolyORB.Protocols.GIOP is
          raise GIOP_Error;
       end loop;
 
+      pragma Debug (O ("Received reply with status "
+                       & Reply_Status_Type'Image (Reply_Status)));
+
       case Reply_Status is
 
          when No_Exception =>
@@ -1512,9 +1516,37 @@ package body PolyORB.Protocols.GIOP is
                Objects.Interface.Executed_Request'
                (Req => Current_Req.Req));
 
-         when
-           User_Exception |
-           Needs_Addressing_Mode =>
+         when User_Exception =>
+            declare
+               RepositoryId : constant PolyORB.Types.String
+                 := Unmarshall (Ses.Buffer_In);
+               Except_Index : constant PolyORB.Types.Unsigned_Long
+                 := Any.ExceptionList.Search_Exception_Id
+                 (Current_Req.Req.Exc_List, RepositoryId);
+            begin
+               if Except_Index = 0 then
+                  --  Current_Req.Req.Exception_Info
+                  --    := To_Any (UNKNOWN);
+                  raise Not_Implemented;
+               else
+                  Current_Req.Req.Exception_Info
+                    := PolyORB.Any.Get_Empty_Any
+                    (Any.ExceptionList.Item
+                     (Current_Req.Req.Exc_List, Except_Index));
+                  Unmarshall_To_Any
+                    (Ses.Buffer_In,
+                     Current_Req.Req.Exception_Info);
+                  pragma Debug
+                    (O ("Exception: "
+                        & Any.Image (Current_Req.Req.Exception_Info)));
+               end if;
+               Emit_No_Reply
+                 (Component_Access (ORB),
+                  Objects.Interface.Executed_Request'
+                  (Req => Current_Req.Req));
+            end;
+
+         when Needs_Addressing_Mode =>
 --             Current_Req.Req.Exception_Info
 --               := To_Any (Not_Implemented);
 
@@ -1752,6 +1784,7 @@ package body PolyORB.Protocols.GIOP is
       Release_Contents (S.Buffer_Out.all);
 
       if PolyORB.Any.Is_Empty (R.Exception_Info) then
+         pragma Debug (O ("Send_Reply: No exception."));
          No_Exception_Reply (S, R, Fragment_Next);
       else
          declare
@@ -1773,6 +1806,8 @@ package body PolyORB.Protocols.GIOP is
             else
                EType := User_Exception;
             end if;
+            pragma Debug
+              (O ("Send_Reply: " & Reply_Status_Type'Image (EType)));
             Exception_Reply
               (S, R, EType, R.Exception_Info, Fragment_Next);
          end;

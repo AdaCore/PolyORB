@@ -60,9 +60,9 @@ package CORBA.NVList is
    procedure Free_Memory (Self : Ref) renames Free;
    --  Free and Free_Memory are no-ops in Ada.
 
-   -----------------------------------------
+   ------------------------------------------
    -- The following is specific to PolyORB --
-   -----------------------------------------
+   ------------------------------------------
 
    procedure Create (Self : out Ref);
    --  XXX THIS MUST BE REPLACED BY AN OVERRIDING OF

@@ -32,152 +32,86 @@
 
 --  $Id$
 
-with Sequences.Unbounded.Search;
-
-with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
-with PolyORB.Smart_Pointers;
-
 package body CORBA.ExceptionList is
 
-   -----------
-   -- Debug --
-   -----------
-
-   use PolyORB.Log;
-
-   package L is new PolyORB.Log.Facility_Log ("corba.exceptionlist");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
-     renames L.Output;
-
-   --------------
-   -- Finalize --
-   --------------
-
-   procedure Finalize (Obj : in out Object) is
+   function To_PolyORB_Ref
+     (Self : Ref)
+     return PolyORB.Any.ExceptionList.Ref
+   is
+      Result : PolyORB.Any.ExceptionList.Ref;
    begin
-      Exception_Sequence.Delete
-        (Obj.List, 1, Exception_Sequence.Length (Obj.List));
-   end Finalize;
+      PolyORB.Any.ExceptionList.Set (Result, Entity_Of (Self));
+      return Result;
+   end To_PolyORB_Ref;
 
-   -----------------
-   --  Get_Count  --
-   -----------------
+   function To_CORBA_Ref
+     (Self : PolyORB.Any.ExceptionList.Ref)
+     return Ref
+   is
+      Result : Ref;
+   begin
+      Set (Result, PolyORB.Any.ExceptionList.Entity_Of (Self));
+      return Result;
+   end To_CORBA_Ref;
+
+   ---------------
+   -- Shortcuts --
+   ---------------
+
+   function "+" (Self : Ref) return PolyORB.Any.ExceptionList.Ref
+     renames To_PolyORB_Ref;
+   function "+" (Self : PolyORB.Any.ExceptionList.Ref) return Ref
+     renames To_CORBA_Ref;
+
+   use PolyORB.Any.ExceptionList;
+
    function Get_Count
      (Self : in Ref)
-      return CORBA.Unsigned_Long is
-      Obj : Object_Ptr := Object_Ptr (Object_Of (Self));
+     return CORBA.Unsigned_Long is
    begin
-      return CORBA.Unsigned_Long (Exception_Sequence.Length (Obj.List));
+      return CORBA.Unsigned_Long (Get_Count (+Self));
    end Get_Count;
 
-   -----------
-   --  Add  --
-   -----------
    procedure Add
      (Self : in Ref;
       Exc : in CORBA.TypeCode.Object)
    is
-      Obj : Object_Ptr := Object_Ptr (Object_Of (Self));
    begin
-      Exception_Sequence.Append (Obj.List, Exc);
+      Add (+Self, Exc);
    end Add;
-
-   ----------
-   -- Item --
-   ----------
 
    function Item
      (Self : in Ref;
       Index : in CORBA.Unsigned_Long)
       return CORBA.TypeCode.Object
    is
-      Obj : Object_Ptr := Object_Ptr (Object_Of (Self));
    begin
-      return Exception_Sequence.Element_Of (Obj.List, Positive (Index));
+      return Item (+Self, PolyORB.Types.Unsigned_Long (Index));
    end Item;
 
-   --------------
-   --  Remove  --
-   --------------
    procedure Remove
      (Self : in Ref;
       Index : in CORBA.Unsigned_Long)
    is
-      Obj : Object_Ptr := Object_Ptr (Object_Of (Self));
    begin
-      Exception_Sequence.Delete (Obj.List, Positive (Index), 1);
+      Remove (+Self, PolyORB.Types.Unsigned_Long (Index));
    end Remove;
 
-   -------------------
-   -- Create_Object --
-   -------------------
-
-   function Create_Object return Object_Ptr;
-
-   function Create_Object return Object_Ptr
-   is
-      Result : constant CORBA.ExceptionList.Object_Ptr
-        := new Object;
-   begin
-      Result.List := Exception_Sequence.Null_Sequence;
-      return Result;
-   end Create_Object;
-
    procedure Create_List (Self : out Ref) is
-      Result : Ref;
+      Result : PolyORB.Any.ExceptionList.Ref;
    begin
-      Set (Result, PolyORB.Smart_Pointers.Entity_Ptr (Create_Object));
-      Self := Result;
+      Create_List (Result);
+      Self := +Result;
    end Create_List;
 
-   ---------------------------
-   --  Search_Exception_Id  --
-   ---------------------------
    function Search_Exception_Id
      (Self : in Ref;
       Name : in CORBA.RepositoryId)
      return CORBA.Unsigned_Long
    is
-      Obj : Object_Ptr := Object_Ptr (Object_Of (Self));
-
-      use PolyORB.Types;
-
-      function Match
-        (Item : TypeCode.Object;
-         Needle : CORBA.RepositoryId)
-        return Boolean;
-
-      function Match
-        (Item : TypeCode.Object;
-         Needle : CORBA.RepositoryId)
-        return Boolean is
-      begin
-         pragma Debug
-           (O ("Match : Id (Item) = """ &
-               To_Standard_String (CORBA.TypeCode.Id (Item)) &
-               """ and Needle = """ &
-               To_Standard_String (Needle) &
-               """"));
-         return CORBA.TypeCode.Id (Item)
-           = PolyORB.Types.RepositoryId (Needle);
-      end Match;
-
-      package Exception_Search is new Exception_Sequence.Search
-        (CORBA.RepositoryId, Match);
-
    begin
-      pragma Debug (O ("Search_Exception_Id : Obj.list length is " &
-                       CORBA.Unsigned_Long'Image (Get_Count (Self))));
-      pragma Debug (O ("Search_Exception_Id : Name = """ &
-                       To_Standard_String (Name) & """"));
-      pragma Debug (O ("Search_Exception_Id : first excpt id = """ &
-                       To_Standard_String
-                       (TypeCode.Id
-                        (Exception_Sequence.Element_Of
-                         (Obj.List, 1))) & """"));
       return CORBA.Unsigned_Long
-        (Exception_Search.Index (Obj.List, Name));
+        (Search_Exception_Id (+Self, PolyORB.Types.String (Name)));
    end Search_Exception_Id;
 
 end CORBA.ExceptionList;

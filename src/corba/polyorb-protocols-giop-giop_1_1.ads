@@ -77,7 +77,7 @@ package PolyORB.Protocols.GIOP.GIOP_1_1  is
     (Buffer           : access Buffers.Buffer_Type;
      Request_Id       : in Types.Unsigned_Long;
      Exception_Type   : in Reply_Status_Type;
-     Occurence        : in Any.Any);
+     Occurrence       : in Any.Any);
 
 
    procedure Marshall_Location_Forward

@@ -180,10 +180,11 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
    end Marshall_No_Exception;
 
    procedure Marshall_Exception
-     (Buffer           : access Buffer_Type;
-      Request_Id       : in Types.Unsigned_Long;
-      Exception_Type   : in Reply_Status_Type;
-      Occurence        : in Any.Any) is
+     (Buffer         : access Buffer_Type;
+      Request_Id     : in     Types.Unsigned_Long;
+      Exception_Type : in     Reply_Status_Type;
+      Occurrence     : in     Any.Any)
+   is
    begin
 
       pragma Assert (Exception_Type in User_Exception  .. System_Exception);
@@ -198,7 +199,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       Marshall (Buffer, Exception_Type);
 
       --  Occurrence
-      Marshall_From_Any (Buffer, Occurence);
+      Marshall (Buffer, Any.TypeCode.Id (Any.Get_Type (Occurrence)));
+      Marshall_From_Any (Buffer, Occurrence);
    end  Marshall_Exception;
 
    -------------------------------

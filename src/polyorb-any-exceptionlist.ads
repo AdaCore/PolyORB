@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                  C O R B A . E X C E P T I O N L I S T                   --
+--            P O L Y O R B . A N Y . E X C E P T I O N L I S T             --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--                Copyright (C) 2002 Free Software Fundation                --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -32,62 +32,64 @@
 
 --  $Id$
 
-with CORBA.AbstractBase;
-pragma Elaborate_All (CORBA.AbstractBase);
+with PolyORB.Any;
+with PolyORB.Smart_Pointers;
+pragma Elaborate_All (PolyORB.Smart_Pointers);
+with PolyORB.Types;
 
-with PolyORB.Any.ExceptionList;
+with Sequences.Unbounded;
+pragma Elaborate (Sequences.Unbounded);
 
-package CORBA.ExceptionList is
+package PolyORB.Any.ExceptionList is
 
    pragma Elaborate_Body;
 
-   type Ref is new CORBA.AbstractBase.Ref with null record;
+   type Ref is new PolyORB.Smart_Pointers.Ref with null record;
    Nil_Ref : constant Ref;
+
+   type Object is new PolyORB.Smart_Pointers.Entity with private;
+   type Object_Ptr is access all Object;
+
+   procedure Finalize (Obj : in out Object);
 
    function Get_Count
      (Self : in Ref)
-     return CORBA.Unsigned_Long;
+     return PolyORB.Types.Unsigned_Long;
 
    procedure Add
      (Self : in Ref;
-      Exc : in CORBA.TypeCode.Object);
+      Exc : in PolyORB.Any.TypeCode.Object);
 
    function Item
      (Self : in Ref;
-      Index : in CORBA.Unsigned_Long)
-     return CORBA.TypeCode.Object;
+      Index : in PolyORB.Types.Unsigned_Long)
+     return PolyORB.Any.TypeCode.Object;
 
    procedure Remove
      (Self : in Ref;
-      Index : in CORBA.Unsigned_Long);
+      Index : in PolyORB.Types.Unsigned_Long);
 
    procedure Create_List (Self : out Ref);
 
    function Search_Exception_Id
      (Self : in Ref;
-      Name : in CORBA.RepositoryId)
-     return CORBA.Unsigned_Long;
-
-   ------------------------------------------
-   -- The following is specific to PolyORB --
-   ------------------------------------------
-
-   function To_PolyORB_Ref (Self : Ref)
-     return PolyORB.Any.ExceptionList.Ref;
-   function To_CORBA_Ref (Self : PolyORB.Any.ExceptionList.Ref)
-     return Ref;
+      Name : in PolyORB.Types.String)
+     return PolyORB.Types.Unsigned_Long;
 
 private
 
+   --  The actual implementation of an ExceptionList:
+   --  a list of TypeCode
+
+   package Exception_Sequences is new Sequences.Unbounded
+     (PolyORB.Any.TypeCode.Object);
+
+   type Object is new PolyORB.Smart_Pointers.Entity with record
+      List : Exception_Sequences.Sequence
+        := Exception_Sequences.Null_Sequence;
+   end record;
+
    Nil_Ref : constant Ref
-     := (CORBA.AbstractBase.Nil_Ref with null record);
+     := (PolyORB.Smart_Pointers.Ref with null record);
 
-   pragma Inline
-     (Get_Count,
-      Add,
-      Item,
-      Remove,
-      Create_List,
-      Search_Exception_Id);
-
-end CORBA.ExceptionList;
+end PolyORB.Any.ExceptionList;

@@ -57,7 +57,8 @@ package body PolyORB.Requests is
       Operation : in     Operation_Id;
       Arg_List  : in     Any.NVList.Ref;
       Result    : in out Any.NamedValue;
-      --  Exc_List  : in     ExceptionList.Ref;
+      Exc_List  : in     Any.ExceptionList.Ref
+        := Any.ExceptionList.Nil_Ref;
       --  Ctxt_List : in     ContextList.Ref;
       Req       :    out Request_Access;
       --  Req_Flags : in     Flags
@@ -75,6 +76,7 @@ package body PolyORB.Requests is
         (Name      => Result.Name,
          Argument  => Result_Any,
          Arg_Modes => Result.Arg_Modes);
+      Res.Exc_List  := Exc_List;
 
       Req := Res;
    end Create_Request;
@@ -213,6 +215,12 @@ package body PolyORB.Requests is
       use Components;
 
    begin
+      if Self.Arguments_Called then
+         pragma Debug (O ("Arguments called twice"));
+         raise Program_Error;
+      end if;
+      Self.Arguments_Called := True;
+
       if Is_Nil (Self.Args) then
          pragma Assert (Self.Deferred_Arguments_Session /= null);
          declare
