@@ -51,19 +51,20 @@ procedure XE_Lead is
      (Partition : in PID_Type)
    is
       LID : LID_Type;
+
    begin
       if Def_Boot_Location_First = Null_LID then
-         Write_Str  (FD, "BOOT_SERVER=tcp://`hostname`:");
+         Write_Str  (FD, "BOOT_LOCATION=tcp://`hostname`:");
          Write_Str  (FD, "`echo 000$$ | sed 's,^.*\(...\),5\1,'`");
          Write_Eol  (FD);
       else
-         LID := Partitions.Table (Partition).First_Location;
-         Write_Str  (FD, "BOOT_SERVER='");
+         LID := Partitions.Table (Partition).F_Net_Location;
+         Write_Str  (FD, "BOOT_LOCATION='");
          loop
-            Write_Name (FD, Locations.Table (LID).Protocol_Name);
+            Write_Name (FD, Locations.Table (LID).Major);
             Write_Str  (FD, "://");
-            Write_Name (FD, Locations.Table (LID).Protocol_Data);
-            LID := Locations.Table (LID).Next_Location;
+            Write_Name (FD, Locations.Table (LID).Minor);
+            LID := Locations.Table (LID).Next;
             exit when LID = Null_LID;
             Write_Str  (FD, " ");
          end loop;
@@ -76,7 +77,7 @@ procedure XE_Lead is
    -- Set_Host --
    --------------
 
-   procedure Set_Host        (Partition : in PID_Type) is
+   procedure Set_Host (Partition : in PID_Type) is
       Host : Name_Id := Get_Host (Partition);
 
    begin
@@ -106,6 +107,7 @@ procedure XE_Lead is
    procedure Set_Launcher (Partition  : in PID_Type) is
       Ext_Quote : Character := '"';  -- "
       Int_Quote : Character := ''';  -- '
+
    begin
 
       --  For the main partition, the command should be
@@ -132,7 +134,7 @@ procedure XE_Lead is
       Write_Str  (FD, (1 => Int_Quote));
 
       Write_Str  (FD, " --boot_location " &
-                  Int_Quote & "$BOOT_SERVER" & Int_Quote);
+                  Int_Quote & "$BOOT_LOCATION" & Int_Quote);
       Write_Name (FD, Get_Command_Line (Partition));
       if Partition /= Main_Partition then
          Write_Str  (FD, " --detach &" & Ext_Quote);
@@ -144,7 +146,6 @@ procedure XE_Lead is
    end Set_Launcher;
 
 begin
-
    if Default_Starter /= None_Import and then not Quiet_Mode then
       Message ("generating starter", Main_Subprogram);
    end if;
@@ -200,13 +201,13 @@ begin
                     Partitions.Table (PID).Name & Exe_Suffix;
                   Main_Executable : Main_Subprogram_Type :=
                     Main_Subprogram & Exe_Suffix;
-                  D               : Storage_Dir_Name_Type;
+                  D               : Directory_Name_Type;
                begin
-                  D := Partitions.Table (PID).Storage_Dir;
-                  if D = No_Storage_Dir then
-                     D := Partitions.Table (Default_Partition).Storage_Dir;
+                  D := Partitions.Table (PID).Directory;
+                  if D = No_Directory then
+                     D := Partitions.Table (Default_Partition).Directory;
                   end if;
-                  if D = No_Storage_Dir then
+                  if D = No_Directory then
                      Copy_With_File_Stamp
                        (Source         => P,
                         Target         => Main_Executable,
@@ -225,5 +226,4 @@ begin
       when None_Import => null;
 
    end case;
-
 end XE_Lead;
