@@ -19,7 +19,7 @@
 #
 # $Name:  $
 #
-# $Id: //depot/adabroker/main/WWW/bugs/RT-submit-pr.cgi#4 $
+# $Id: //depot/adabroker/main/WWW/bugs/RT-submit-pr.cgi#5 $
 #
 ####################################################################
  
@@ -47,7 +47,6 @@ $main::end_prio = 70;
 # Begin processing
  
 $main::oh_cgi = new CGI;
-$main::oh_cgi->use_named_parameters(1);
  
 if ( ! $main::oh_cgi->param() ) {
   &show_form();
