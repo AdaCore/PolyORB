@@ -527,20 +527,24 @@ package body PolyORB.Representations.CDR is
             pragma Debug (O ("Marshall_From_Any : dealing with an objRef"));
             Marshall (Buffer, CORBA.Object.Helper.From_Any (Data));
 
-         when Tk_Struct =>
+         when Tk_Struct | Tk_Except =>
             declare
                Nb : constant PolyORB.Types.Unsigned_Long
                  := PolyORB.Any.Get_Aggregate_Count (Data);
                Value : PolyORB.Any.Any;
             begin
-               pragma Debug (O ("Marshall_From_Any : dealing with a struct"));
-               for I in 0 .. Nb - 1 loop
-                  Value := PolyORB.Any.Get_Aggregate_Element
-                    (Data,
-                     PolyORB.Any.TypeCode.Member_Type
-                     (Data_Type, I), I);
-                  Marshall_From_Any (Buffer, Value);
-               end loop;
+               pragma Debug
+                 (O ("Marshall_From_Any: dealing with a struct or exception"));
+
+               if Nb /= 0 then
+                  for I in 0 .. Nb - 1 loop
+                     Value := PolyORB.Any.Get_Aggregate_Element
+                       (Data,
+                        PolyORB.Any.TypeCode.Member_Type
+                        (Data_Type, I), I);
+                     Marshall_From_Any (Buffer, Value);
+                  end loop;
+               end if;
             end;
 
          when Tk_Union =>
@@ -600,6 +604,7 @@ package body PolyORB.Representations.CDR is
                  (Data,
                   PolyORB.Any.TypeCode.TC_Unsigned_Long,
                   PolyORB.Types.Unsigned_Long (0));
+               pragma Assert (Nb = From_Any (Value));
                Marshall_From_Any (Buffer, Value);
 
                for I in 1 .. Nb loop
@@ -628,17 +633,19 @@ package body PolyORB.Representations.CDR is
                     PolyORB.Any.TypeCode.Content_Type (Content_True_Type);
                end loop;
 
-               for I in 0 .. Nb - 1 loop
-                  Value := PolyORB.Any.Get_Aggregate_Element
-                    (Data,
-                     Content_True_Type,
-                     I);
-                  pragma Debug (O ("Marshall_From_Any : value kind is "
-                                   & PolyORB.Any.TCKind'Image
-                                   (PolyORB.Any.TypeCode.Kind
-                                    (PolyORB.Any.Get_Type (Value)))));
-                  Marshall_From_Any (Buffer, Value);
-               end loop;
+               if Nb /= 0 then
+                  for I in 0 .. Nb - 1 loop
+                     Value := PolyORB.Any.Get_Aggregate_Element
+                       (Data,
+                        Content_True_Type,
+                        I);
+                     pragma Debug (O ("Marshall_From_Any : value kind is "
+                                      & PolyORB.Any.TCKind'Image
+                                      (PolyORB.Any.TypeCode.Kind
+                                       (PolyORB.Any.Get_Type (Value)))));
+                     Marshall_From_Any (Buffer, Value);
+                  end loop;
+               end if;
             end;
 
          when Tk_Alias =>
@@ -646,23 +653,6 @@ package body PolyORB.Representations.CDR is
             pragma Debug (O ("Marshall_From_Any : dealing with an alias"));
             pragma Assert (False);
             raise Program_Error;
-
-         when Tk_Except =>
-            declare
-               Nb : constant PolyORB.Types.Unsigned_Long :=
-                 PolyORB.Any.Get_Aggregate_Count (Data);
-               Value : PolyORB.Any.Any;
-            begin
-               pragma Debug
-                 (O ("Marshall_From_Any : dealing with an exception"));
-               for I in 0 .. Nb - 1 loop
-                  Value := PolyORB.Any.Get_Aggregate_Element
-                    (Data,
-                     PolyORB.Any.TypeCode.Member_Type (Data_Type, I),
-                     I);
-                  Marshall_From_Any (Buffer, Value);
-               end loop;
-            end;
 
          when Tk_Longlong =>
             pragma Debug (O ("Marshall_From_Any : dealing with a long long"));
@@ -1679,14 +1669,15 @@ package body PolyORB.Representations.CDR is
                Nb := PolyORB.Any.TypeCode.Member_Count_With_Label (Tc, Label);
                pragma Debug (O ("Now unmarshalling"
                                 & Unsigned_Long'Image (Nb) & " elements"));
-               for I in 0 .. Nb - 1 loop
-                  Val := Get_Empty_Any
-                    (TypeCode.Member_Type_With_Label
-                     (Tc, Label, I));
-                  Unmarshall_To_Any (Buffer, Val);
-                  Add_Aggregate_Element (Arg, Val);
-               end loop;
-
+               if I /= 0 then
+                  for I in 0 .. Nb - 1 loop
+                     Val := Get_Empty_Any
+                       (TypeCode.Member_Type_With_Label
+                        (Tc, Label, I));
+                     Unmarshall_To_Any (Buffer, Val);
+                     Add_Aggregate_Element (Arg, Val);
+                  end loop;
+               end if;
                Copy_Any_Value (Result, Arg);
                --  XXX Inefficient, see comment for Tk_Struct above.
             end;
@@ -1713,7 +1704,7 @@ package body PolyORB.Representations.CDR is
 
          when Tk_Sequence =>
             declare
-               Nb : Unsigned_Long := Unmarshall (Buffer);
+               Nb : PolyORB.Types.Unsigned_Long := Unmarshall (Buffer);
                Max_Nb : Unsigned_Long := TypeCode.Length (Tc);
                Arg : PolyORB.Any.Any
                  := Get_Empty_Any_Aggregate (Get_Type (Result));
@@ -1730,11 +1721,13 @@ package body PolyORB.Representations.CDR is
                      & Unsigned_Long'Image (Nb) & " elements"));
                Add_Aggregate_Element (Arg, To_Any (Nb));
 
-               for I in 0 .. Nb - 1 loop
+               for I in 1 .. Nb loop
                   Val := Get_Empty_Any (TypeCode.Content_Type (Tc));
                   Unmarshall_To_Any (Buffer, Val);
                   Add_Aggregate_Element (Arg, Val);
                end loop;
+               pragma Debug (O ("Unmarshalled sequence."));
+
                Copy_Any_Value (Result, Arg);
             end;
 
@@ -1760,14 +1753,14 @@ package body PolyORB.Representations.CDR is
                  (O ("Unmarshall_To_Any: unmarshalling"
                      & Unsigned_Long'Image (Nb) & " elements"));
 
-               for I in 0 .. Nb - 1 loop
+               for I in 1 .. Nb loop
                   Val := Get_Empty_Any (Content_True_Type);
                   Unmarshall_To_Any (Buffer, Val);
                   Add_Aggregate_Element (Arg, Val);
                end loop;
-               pragma Debug (O ("Unmarshall_From_Any: array elements done."));
+               pragma Debug (O ("Unmarshall_To_Any: array elements done."));
                Copy_Any_Value (Result, Arg);
-               pragma Debug (O ("Unmarshall_From_Any: Copy_Value done."));
+               pragma Debug (O ("Unmarshall_To_Any: Copy_Value done."));
             end;
 
          when Tk_Alias =>
