@@ -234,7 +234,7 @@ package XE_Parse is
      (Subprogram_Node : in     XE.Subprogram_Id;
       Convention      : in     Convention_Type;
       Formal_Name     : in out Types.Name_Id;
-      Formal_Type     : in out XE.Type_Id;
+      Formal_Type     :    out XE.Type_Id;
       Parameter_Node  : in out XE.Parameter_Id);
    --  Search for a formal parameter that has no actual associated
    --  parameter. This choice should follow Convention requirements. If
