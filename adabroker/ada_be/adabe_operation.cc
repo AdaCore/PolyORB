@@ -24,6 +24,9 @@
 *************************************************************************************************/
 #include <adabe.h>
 
+////////////////////////////////////////////////////////////////////////
+////////////////      constructor    ///////////////////////////////////
+////////////////////////////////////////////////////////////////////////
 adabe_operation::adabe_operation(AST_Type *rt, AST_Operation::Flags fl,
 		 UTL_ScopedName *n,UTL_StrList *p)
                 : AST_Operation(rt, fl, n, p),
@@ -34,6 +37,9 @@ adabe_operation::adabe_operation(AST_Type *rt, AST_Operation::Flags fl,
 {
 }
 
+////////////////////////////////////////////////////////////////////////
+////////////////     produce_ads     ///////////////////////////////////
+////////////////////////////////////////////////////////////////////////
 void
 adabe_operation::produce_ads(dep_list& with,string &body, string &previous)
 {
@@ -92,6 +98,9 @@ adabe_operation::produce_ads(dep_list& with,string &body, string &previous)
   set_already_defined ();
 }
 
+////////////////////////////////////////////////////////////////////////
+////////////////     produce_adb     ///////////////////////////////////
+////////////////////////////////////////////////////////////////////////
 void
 adabe_operation::produce_adb(dep_list& with,string &body, string &previous)
 {
@@ -169,6 +178,9 @@ adabe_operation::produce_adb(dep_list& with,string &body, string &previous)
   body += "   end ;\n\n";
 }
 
+////////////////////////////////////////////////////////////////////////
+////////////////     produce_impl_ads     //////////////////////////////
+////////////////////////////////////////////////////////////////////////
 void
 adabe_operation::produce_impl_ads(dep_list& with,string &body, string &previous)
 {
@@ -219,6 +231,9 @@ adabe_operation::produce_impl_ads(dep_list& with,string &body, string &previous)
     }
 }
 
+////////////////////////////////////////////////////////////////////////
+////////////////     produce_impl_adb     //////////////////////////////
+////////////////////////////////////////////////////////////////////////
 void
 adabe_operation::produce_impl_adb(dep_list& with,string &body, string &previous)
 {
@@ -274,6 +289,9 @@ adabe_operation::produce_impl_adb(dep_list& with,string &body, string &previous)
   body += "\n\n" ;
 }
 
+////////////////////////////////////////////////////////////////////////
+////////////////     produce_proxies_ads     ///////////////////////////
+////////////////////////////////////////////////////////////////////////
 void
 adabe_operation::produce_proxies_ads(dep_list& with,string &body, string &private_definition)
 {
@@ -374,6 +392,9 @@ adabe_operation::produce_proxies_ads(dep_list& with,string &body, string &privat
   private_definition += "\n" ;
 }
 
+////////////////////////////////////////////////////////////////////////
+////////////////     produce_proxies_adb     ///////////////////////////
+////////////////////////////////////////////////////////////////////////
 void
 adabe_operation::produce_proxies_adb(dep_list& with,string &body,
 				     string &private_definition)
@@ -552,6 +573,9 @@ adabe_operation::produce_proxies_adb(dep_list& with,string &body,
   }
 }
 
+////////////////////////////////////////////////////////////////////////
+////////////////     produce_skel_adb     //////////////////////////////
+////////////////////////////////////////////////////////////////////////
 void
 adabe_operation::produce_skel_adb(dep_list& with,string &body, string &private_definition)
 {
@@ -593,8 +617,7 @@ adabe_operation::produce_skel_adb(dep_list& with,string &body, string &private_d
       body += " ;\n";
     }
 
-  if ((!no_out) || (is_function()))
-    body += "            Mesg_Size : Corba.Unsigned_Long ;\n";
+  body += "            Mesg_Size : Corba.Unsigned_Long ;\n";
 
   body += "         begin\n";
 
@@ -616,19 +639,20 @@ adabe_operation::produce_skel_adb(dep_list& with,string &body, string &private_d
   body += call_args;
   body += ") ;\n";
 
+  body += "            -- compute the size of the replied message\n";
+  body += "            Mesg_Size := Giop_S.Reply_Header_Size ;\n";
   if ((!no_out) || (is_function())) {
-    body += "            -- compute the size of the replied message\n";
-    body += "            Mesg_Size := Giop_S.Reply_Header_Size ;\n";
     body += "            Mesg_Size := Align_Size (Result, Mesg_Size) ;\n";
-
-    body += "            -- Initialisation of the reply\n";
-    body += "            Giop_S.Initialize_Reply (Orls, Giop.NO_EXCEPTION, Mesg_Size) ;\n";
-
-    body += "            -- Marshall the arguments\n";
-
-    body += marshall;
-    if (is_function()) body += "            Marshall (Result, Orls) ;\n";
   }
+  body += "            -- Initialisation of the reply\n";
+  body += "            Giop_S.Initialize_Reply (Orls, Giop.NO_EXCEPTION, Mesg_Size) ;\n";
+  
+  body += "            -- Marshall the arguments\n";
+  body += marshall;
+
+  if (is_function())
+    body += "            Marshall (Result, Orls) ;\n";
+  
 
   body += "            -- inform the orb\n";
   body += "            Giop_S.Reply_Completed (Orls) ;\n";
@@ -663,38 +687,9 @@ adabe_operation::produce_skel_adb(dep_list& with,string &body, string &private_d
   body += "      end if ;\n\n";
 }
 
-bool  
-adabe_operation::is_function()
-{
-  AST_Argument::Direction test = AST_Argument::dir_IN;
-  bool ret = !(return_is_void());
-#ifdef DEBUG_OPERATION
-  bool test2 = true;
-  cerr << "ret value for this method is " << ret << endl;
-  cerr << "true is " << test2 << endl;
-#endif
-  UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
-  while ((!i.is_done()) && (ret))
-    {
-      AST_Decl *e = i.item();
-      if (e->node_type() == AST_Decl::NT_argument) ret = (((AST_Argument::narrow_from_decl(e))->direction()) == test);
-      i.next();
-    }
-  return(ret);
-}
-
-bool
-adabe_operation::return_is_void()
-{
-  AST_Decl *rtype = return_type();
-  if ((rtype->node_type() == AST_Decl::NT_pre_defined) &&
-      (AST_PredefinedType::narrow_from_decl(rtype)->pt()
-          == AST_PredefinedType::PT_void))
-    return true;
-  else
-    return false;
-}
-
+////////////////////////////////////////////////////////////////////////
+////////////////     produce_marshal_adb     ///////////////////////////
+////////////////////////////////////////////////////////////////////////
 void
 adabe_operation::produce_marshal_adb(dep_list &with, string &body, string &previous)
 {
@@ -731,6 +726,38 @@ adabe_operation::produce_marshal_adb(dep_list &with, string &body, string &previ
     }
 }
 
+
+bool  
+adabe_operation::is_function()
+{
+  AST_Argument::Direction test = AST_Argument::dir_IN;
+  bool ret = !(return_is_void());
+#ifdef DEBUG_OPERATION
+  bool test2 = true;
+  cerr << "ret value for this method is " << ret << endl;
+  cerr << "true is " << test2 << endl;
+#endif
+  UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
+  while ((!i.is_done()) && (ret))
+    {
+      AST_Decl *e = i.item();
+      if (e->node_type() == AST_Decl::NT_argument) ret = (((AST_Argument::narrow_from_decl(e))->direction()) == test);
+      i.next();
+    }
+  return(ret);
+}
+
+bool
+adabe_operation::return_is_void()
+{
+  AST_Decl *rtype = return_type();
+  if ((rtype->node_type() == AST_Decl::NT_pre_defined) &&
+      (AST_PredefinedType::narrow_from_decl(rtype)->pt()
+          == AST_PredefinedType::PT_void))
+    return true;
+  else
+    return false;
+}
 
 IMPL_NARROW_METHODS1(adabe_operation, AST_Operation)
 IMPL_NARROW_FROM_DECL(adabe_operation)
