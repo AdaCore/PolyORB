@@ -36,8 +36,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PortableServer;
 
 package RTCORBA.PriorityTransform is

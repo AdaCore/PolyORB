@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.RTCORBA_P.PriorityModelPolicy;
 
 package body RTCORBA.PriorityModelPolicy is
