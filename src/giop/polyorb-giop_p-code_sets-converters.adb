@@ -63,9 +63,10 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
       Native               : Converter_Factory;
       Fallback             : Converter_Factory;
       Conversions          : Conversion_Lists.List;
+
       Conversion_Code_Sets : Code_Set_Id_List;
-      --  This list containt summary of supported conversion code sets.
-      --  It used for avoid it creation for each processed request.
+      --  Cache of supported conversion code sets, used to avoid re-creation
+      --  of the list for each processed request.
    end record;
 
    package Info_Lists is new PolyORB.Utils.Chained_Lists (Info_Record);
@@ -85,9 +86,10 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
       Native               : Wide_Converter_Factory;
       Fallback             : Wide_Converter_Factory;
       Conversions          : Wide_Conversion_Lists.List;
+
       Conversion_Code_Sets : Code_Set_Id_List;
-      --  This list containt summary of supported conversion code sets.
-      --  It used for avoid it creation for each processed request.
+      --  Cache of supported conversion code sets, used to avoid re-creation
+      --  of the list for each processed request.
    end record;
 
    package Wide_Info_Lists is
