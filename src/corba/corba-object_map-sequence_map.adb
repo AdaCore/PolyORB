@@ -9,11 +9,11 @@ package body CORBA.Object_Map.Sequence_Map is
    ----------------------
 
    function Is_Servant_Equal (Item : in Object_Map_Entry_Access;
-                              To   : in Droopi.Objects.Servant_Access)
+                              To   : in CORBA.POA_Types.Servant_Access)
                              return Boolean
    is
    begin
-      return (Item.Servant = To);
+      return (Item.Servant.all = To.all);
    end Is_Servant_Equal;
 
    ------------------------
@@ -26,7 +26,7 @@ package body CORBA.Object_Map.Sequence_Map is
      return Boolean
    is
    begin
-      return (Item.Oid = To);
+      return (Item.Oid.all = To.all);
    end Is_Object_Id_Equal;
 
    -------------
@@ -79,26 +79,36 @@ package body CORBA.Object_Map.Sequence_Map is
    -- Add --
    ---------
 
-   function Add (O_Map : in Object_Map_Access;
-                 Obj   : in Object_Map_Entry_Access)
+   function Add (O_Map : access Seq_Object_Map;
+                 Obj   : in     Object_Map_Entry_Access)
                 return Integer
    is
-      Map : Seq_Object_Map_Access := Seq_Object_Map_Access (O_Map);
    begin
-      return Active_Object_Map.Add (Map.Map, Obj);
+      return Active_Object_Map.Add (O_Map.Map.all'Access, Obj);
    end Add;
+
+   ----------------------
+   -- Replace_By_Index --
+   ----------------------
+
+   procedure Replace_By_Index (O_Map : access Seq_Object_Map;
+                               Obj   : in     Object_Map_Entry_Access;
+                               Index : in     Integer)
+   is
+   begin
+      Active_Object_Map.Replace_By_Index (O_Map.Map.all'Access, Obj, Index);
+   end Replace_By_Index;
 
    -------------------
    -- Is_Servant_In --
    -------------------
 
-   function Is_Servant_In (O_Map  : in Object_Map_Access;
-                           Item   : in Droopi.Objects.Servant_Access)
+   function Is_Servant_In (O_Map : in Seq_Object_Map;
+                           Item  : in CORBA.POA_Types.Servant_Access)
                           return Boolean
    is
-      Map : Seq_Object_Map_Access := Seq_Object_Map_Access (O_Map);
    begin
-      return Active_Object_Map.Is_Servant_In (Map.Map, Item);
+      return Active_Object_Map.Is_Servant_In (O_Map.Map.all, Item);
    end Is_Servant_In;
 
    ---------------------
@@ -106,78 +116,96 @@ package body CORBA.Object_Map.Sequence_Map is
    ---------------------
 
    function Is_Object_Id_In
-     (O_Map  : in Object_Map_Access;
+     (O_Map  : in Seq_Object_Map;
       Item   : in CORBA.POA_Types.Unmarshalled_Oid_Access)
      return Boolean
    is
-      Map : Seq_Object_Map_Access := Seq_Object_Map_Access (O_Map);
    begin
-      return Active_Object_Map.Is_Object_Id_In (Map.Map, Item);
+      return Active_Object_Map.Is_Object_Id_In (O_Map.Map.all, Item);
    end Is_Object_Id_In;
 
    ---------------
    -- Get_By_Id --
    ---------------
 
-   function Get_By_Id (O_Map  : in Object_Map_Access;
+   function Get_By_Id (O_Map  : in Seq_Object_Map;
                        Item   : in CORBA.POA_Types.Unmarshalled_Oid_Access)
                       return Object_Map_Entry_Access
    is
-      Map : Seq_Object_Map_Access := Seq_Object_Map_Access (O_Map);
+      An_Entry : Object_Map_Entry_Access;
    begin
-      return Active_Object_Map.Get_By_Id (Map.Map, Item);
+      An_Entry := Active_Object_Map.Get_By_Id (O_Map.Map.all, Item);
+      if Is_Null (An_Entry) then
+         return null;
+      end if;
+      return An_Entry;
+   exception
+      when Index_Out_Of_Bounds =>
+         return null;
    end Get_By_Id;
 
    --------------------
    -- Get_By_Servant --
    --------------------
 
-   function Get_By_Servant (O_Map  : in Object_Map_Access;
-                            Item   : in Droopi.Objects.Servant_Access)
+   function Get_By_Servant (O_Map  : in Seq_Object_Map;
+                            Item   : in CORBA.POA_Types.Servant_Access)
                            return Object_Map_Entry_Access
    is
-      Map : Seq_Object_Map_Access := Seq_Object_Map_Access (O_Map);
+      An_Entry : Object_Map_Entry_Access;
    begin
-      return Active_Object_Map.Get_By_Servant (Map.Map, Item);
+      An_Entry := Active_Object_Map.Get_By_Servant (O_Map.Map.all, Item);
+      if Is_Null (An_Entry) then
+         return null;
+      end if;
+      return An_Entry;
+   exception
+      when Index_Out_Of_Bounds =>
+         return null;
    end Get_By_Servant;
 
    ------------------
    -- Get_By_Index --
    ------------------
 
-   function Get_By_Index (O_Map : in Object_Map_Access;
+   function Get_By_Index (O_Map : in Seq_Object_Map;
                           Index : in Integer)
                          return Object_Map_Entry_Access
    is
-      Map : Seq_Object_Map_Access := Seq_Object_Map_Access (O_Map);
+      An_Entry : Object_Map_Entry_Access;
    begin
-      return Active_Object_Map.Get_By_Index (Map.Map, Index);
+      An_Entry := Active_Object_Map.Get_By_Index (O_Map.Map.all, Index);
+      if Is_Null (An_Entry) then
+         return null;
+      end if;
+      return An_Entry;
+   exception
+      when Index_Out_Of_Bounds =>
+         return null;
    end Get_By_Index;
 
    ------------
    -- Remove --
    ------------
 
-   function Remove (O_Map  : in Object_Map_Access;
-                    Item   : in CORBA.POA_Types.Unmarshalled_Oid_Access)
+   function Remove (O_Map : access Seq_Object_Map;
+                    Item  : in     CORBA.POA_Types.Unmarshalled_Oid_Access)
                    return Object_Map_Entry_Access
    is
-      Map : Seq_Object_Map_Access := Seq_Object_Map_Access (O_Map);
    begin
-      return Active_Object_Map.Remove (Map.Map, Item);
+      return Active_Object_Map.Remove (O_Map.Map.all'Access, Item);
    end Remove;
 
    ---------------------
    -- Remove_By_Index --
    ---------------------
 
-   function Remove_By_Index (O_Map : in Object_Map_Access;
-                             Index : in Integer)
+   function Remove_By_Index (O_Map : access Seq_Object_Map;
+                             Index : in     Integer)
                             return Object_Map_Entry_Access
    is
-      Map : Seq_Object_Map_Access := Seq_Object_Map_Access (O_Map);
    begin
-      return Active_Object_Map.Remove_By_Index (Map.Map, Index);
+      return Active_Object_Map.Remove_By_Index (O_Map.Map.all'Access, Index);
    end Remove_By_Index;
 
 end CORBA.Object_Map.Sequence_Map;

@@ -32,60 +32,63 @@ generic
 
 package Droopi.Object_Map is
 
-   pragma Elaborate_Body;
-
    type Object_Map is private;
    type Object_Map_Access is access all Object_Map;
 
    Index_Out_Of_Bounds : exception;
 
-   function Add (O_Map : in Object_Map_Access;
-                 Obj   : in Map_Entry)
+   function Add (O_Map : access Object_Map;
+                 Obj   : in     Map_Entry)
                 return Integer;
    --  Adds a new entry in the map
    --  and returns it's index
 
-   function Is_Servant_In (O_Map  : in Object_Map_Access;
+   procedure Replace_By_Index (O_Map : access Object_Map;
+                               Obj   : in     Map_Entry;
+                               Index : in     Integer);
+   --  Replace element with index Index by Obj
+
+   function Is_Servant_In (O_Map  : in Object_Map;
                            Item   : in Servant)
                           return Boolean;
    --  Checks if a servant is already in the map
    --  (and return True if it is the case)
 
-   function Is_Object_Id_In (O_Map  : in Object_Map_Access;
+   function Is_Object_Id_In (O_Map  : in Object_Map;
                              Item   : in Object_Id)
                             return Boolean;
    --  Checks if an object_id is already used in the map
    --  (and return True if it is the case)
 
-   function Get_By_Id (O_Map  : in Object_Map_Access;
+   function Get_By_Id (O_Map  : in Object_Map;
                        Item   : in Object_Id)
                       return Map_Entry;
    --  Given an Object_Id, looks for the corresponding map entry
    --  Returns Null_Entry if not found
 
-   function Get_By_Servant (O_Map  : in Object_Map_Access;
+   function Get_By_Servant (O_Map  : in Object_Map;
                             Item   : in Servant)
                            return Map_Entry;
    --  Given a servant, looks for the corresponding map entry
    --  Doesn't check that the servant is only once in the map
    --  Returns Null_Entry if not found;
 
-   function Get_By_Index (O_Map : in Object_Map_Access;
+   function Get_By_Index (O_Map : in Object_Map;
                           Index : in Integer)
                          return Map_Entry;
    --  Given an index, returns the corrsponding map entry
    --  Raises Index_Out_Of_Bounds if Index
    --  is out of the map bounds.
 
-   function Remove (O_Map  : in Object_Map_Access;
-                    Item   : in Object_Id)
+   function Remove (O_Map : access Object_Map;
+                    Item  : in     Object_Id)
                    return Map_Entry;
    --  Given an object_Id, removes an entry from the map
    --  and returns it (for the function). A null value means
    --  that the object_id wasn't in the map.
 
-   function Remove_By_Index (O_Map : in Object_Map_Access;
-                             Index : in Integer)
+   function Remove_By_Index (O_Map : access Object_Map;
+                             Index : in     Integer)
                             return Map_Entry;
    --  Given an index, removes an entry from the map
    --  and returns it. A null value means that the index
@@ -99,7 +102,7 @@ private
 
    type Object_Map is
       record
-         Map : Object_Map_Entry_Seq;
+         Map : aliased Object_Map_Entry_Seq;
       end record;
 
 end Droopi.Object_Map;

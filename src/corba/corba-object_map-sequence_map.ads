@@ -15,7 +15,7 @@ package CORBA.Object_Map.Sequence_Map is
    --  Functions required by the generic package Droopi.Object_Map
 
    function Is_Servant_Equal (Item : in Object_Map_Entry_Access;
-                              To   : in Droopi.Objects.Servant_Access)
+                              To   : in CORBA.POA_Types.Servant_Access)
                              return Boolean;
 
    function Is_Object_Id_Equal
@@ -30,7 +30,7 @@ package CORBA.Object_Map.Sequence_Map is
 
    package Active_Object_Map is
       new Droopi.Object_Map (Object_Map_Entry_Access,
-                             Droopi.Objects.Servant_Access,
+                             CORBA.POA_Types.Servant_Access,
                              CORBA.POA_Types.Unmarshalled_Oid_Access);
    --  Instanciation of the generic package Droopi.Object_Map
 
@@ -44,50 +44,55 @@ package CORBA.Object_Map.Sequence_Map is
    procedure Free_Map (S_Map : in out Seq_Object_Map_Access);
    --  Frees a Seq_Object_Map object
 
-   function Add (O_Map : in Object_Map_Access;
-                 Obj   : in Object_Map_Entry_Access)
+   function Add (O_Map : access Seq_Object_Map;
+                 Obj   : in     Object_Map_Entry_Access)
                 return Integer;
    --  Adds a new entry in the map
    --  and returns it's index
 
-   function Is_Servant_In (O_Map  : in Object_Map_Access;
-                           Item   : in Droopi.Objects.Servant_Access)
+   procedure Replace_By_Index (O_Map : access Seq_Object_Map;
+                               Obj   : in     Object_Map_Entry_Access;
+                               Index : in     Integer);
+   --  Replace an element in the map, given an index
+
+   function Is_Servant_In (O_Map  : in Seq_Object_Map;
+                           Item   : in CORBA.POA_Types.Servant_Access)
                           return Boolean;
    --  Checks if a servant is already in the map
    --  (and return True if it is the case)
 
    function Is_Object_Id_In
-     (O_Map  : in Object_Map_Access;
+     (O_Map  : in Seq_Object_Map;
       Item   : in CORBA.POA_Types.Unmarshalled_Oid_Access)
      return Boolean;
    --  Checks if an object_id is already used in the map
    --  (and return True if it is the case)
 
-   function Get_By_Id (O_Map  : in Object_Map_Access;
+   function Get_By_Id (O_Map  : in Seq_Object_Map;
                        Item   : in CORBA.POA_Types.Unmarshalled_Oid_Access)
                       return Object_Map_Entry_Access;
    --  Given an Object_Id, looks for the corresponding map entry
 
-   function Get_By_Servant (O_Map  : in Object_Map_Access;
-                            Item   : in Droopi.Objects.Servant_Access)
+   function Get_By_Servant (O_Map  : in Seq_Object_Map;
+                            Item   : in CORBA.POA_Types.Servant_Access)
                            return Object_Map_Entry_Access;
    --  Given a servant, looks for the corresponding map entry
    --  Doesn't check that the servant is only once in the map
 
-   function Get_By_Index (O_Map : in Object_Map_Access;
+   function Get_By_Index (O_Map : in Seq_Object_Map;
                           Index : in Integer)
                          return Object_Map_Entry_Access;
    --  Given an index, returns the corrsponding map entry
 
-   function Remove (O_Map  : in Object_Map_Access;
-                    Item   : in CORBA.POA_Types.Unmarshalled_Oid_Access)
+   function Remove (O_Map : access Seq_Object_Map;
+                    Item  : in     CORBA.POA_Types.Unmarshalled_Oid_Access)
                    return Object_Map_Entry_Access;
    --  Given an Object_Id, removes an entry from the map
    --  and returns it . A null value means
    --  that the object_id wasn't in the map.
 
-   function Remove_By_Index (O_Map : in Object_Map_Access;
-                             Index : in Integer)
+   function Remove_By_Index (O_Map : access Seq_Object_Map;
+                             Index : in     Integer)
                             return Object_Map_Entry_Access;
    --  Given an index, removes an entry from the map
    --  and returns it. A null value means that the index
