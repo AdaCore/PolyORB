@@ -1779,10 +1779,10 @@ package body Exp_Dist is
 
       Actuals : List_Id;
 
---        Dummy_Register_Name : Name_Id;
---        Dummy_Register_Spec : Node_Id;
---        Dummy_Register_Decl : Node_Id;
---        Dummy_Register_Body : Node_Id;
+      Dummy_Register_Name : Name_Id;
+      Dummy_Register_Spec : Node_Id;
+      Dummy_Register_Decl : Node_Id;
+      Dummy_Register_Body : Node_Id;
 
    begin
       --  Building receiving stubs consist in several operations:
@@ -2065,56 +2065,57 @@ package body Exp_Dist is
       Analyze (Last (Decls));
 
 
---        --  Construction of the dummy package used to register the package
---        --  receiving stubs on the nameserver.
+      --  Construction of the dummy package used to register the package
+      --  receiving stubs on the nameserver.
 
---        Dummy_Register_Name := New_Internal_Name ('P');
+      Dummy_Register_Name := New_Internal_Name ('P');
 
---        Dummy_Register_Spec :=
---          Make_Package_Specification (Loc,
---            Defining_Unit_Name   =>
---              Make_Defining_Identifier (Loc, Dummy_Register_Name),
---            Visible_Declarations => No_List,
---            End_Label => Empty);
+      Dummy_Register_Spec :=
+        Make_Package_Specification (Loc,
+          Defining_Unit_Name   =>
+            Make_Defining_Identifier (Loc, Dummy_Register_Name),
+          Visible_Declarations => No_List,
+          End_Label => Empty);
 
---        Dummy_Register_Decl :=
---          Make_Package_Declaration (Loc,
---            Specification => Dummy_Register_Spec);
+      Dummy_Register_Decl :=
+        Make_Package_Declaration (Loc,
+          Specification => Dummy_Register_Spec);
 
---        Append_To (Decls,
---          Dummy_Register_Decl);
---        Analyze (Dummy_Register_Decl);
+      Append_To (Decls, Dummy_Register_Decl);
+      Analyze (Dummy_Register_Decl);
 
---        Dummy_Register_Body :=
---          Make_Package_Body (Loc,
---            Defining_Unit_Name         =>
---              Make_Defining_Identifier (Loc, Dummy_Register_Name),
---            Declarations               => No_List,
+      Dummy_Register_Body :=
+        Make_Package_Body (Loc,
+          Defining_Unit_Name         =>
+            Make_Defining_Identifier (Loc, Dummy_Register_Name),
+          Declarations               => No_List,
 
---            Handled_Statement_Sequence =>
---              Make_Handled_Sequence_Of_Statements (Loc,
---                Statements => New_List (
---                  Make_Procedure_Call_Statement (Loc,
---                    Name                   =>
---                      New_Occurrence_Of
---                         (RTE (RE_Register_Receiving_Stub), Loc),
---                    Parameter_Associations => New_List (
---                      Make_String_Literal (Loc,
---                        Strval => Get_Pkg_Name_String_Id (Pkg_Spec)),
---                      Make_Attribute_Reference (Loc,
---                        Prefix         =>
---                          New_Occurrence_Of (Pkg_RPC_Receiver, Loc),
---                        Attribute_Name =>
---                          Name_Unrestricted_Access),
---                      Make_Attribute_Reference (Loc,
---                        Prefix         =>
---                          New_Occurrence_Of
---                             (Defining_Entity (Pkg_Spec), Loc),
---                        Attribute_Name =>
---                          Name_Version))))));
+          Handled_Statement_Sequence =>
+            Make_Handled_Sequence_Of_Statements (Loc,
+              Statements => New_List (
+                Make_Procedure_Call_Statement (Loc,
+                  Name                   =>
+                    New_Occurrence_Of
+                       (RTE (RE_Register_Receiving_Stub), Loc),
+                  Parameter_Associations => New_List (
+                    Make_String_Literal (Loc,
+                      Strval => Get_Pkg_Name_String_Id (Pkg_Spec)),
+                    Make_Attribute_Reference (Loc,
+                      Prefix         =>
+                        New_Occurrence_Of (
+                          Defining_Identifier (
+                            Pkg_RPC_Receiver_Object), Loc),
+                      Attribute_Name =>
+                        Name_Unrestricted_Access),
+                    Make_Attribute_Reference (Loc,
+                      Prefix         =>
+                        New_Occurrence_Of
+                           (Defining_Entity (Pkg_Spec), Loc),
+                      Attribute_Name =>
+                        Name_Version))))));
 
---        Append_To (Decls, Dummy_Register_Body);
---        Analyze (Dummy_Register_Body);
+      Append_To (Decls, Dummy_Register_Body);
+      Analyze (Dummy_Register_Body);
    end Add_Receiving_Stubs_To_Declarations;
 
    -------------------

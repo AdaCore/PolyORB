@@ -178,7 +178,7 @@ package System.PolyORB_Interface is
       Val  : PolyORB.Any.Any)
      renames PolyORB.Requests.Set_Result;
 
-   --  RPC receiver objets are PolyORB components
+   --  RPC receiver objets are specialized PolyORB components
 
    type Message_Handler_Access is access
      function (M : PolyORB.Components.Message'Class)
@@ -187,10 +187,19 @@ package System.PolyORB_Interface is
    type Component is new PolyORB.Components.Component with record
       Handler : Message_Handler_Access;
    end record;
+   type Component_Access is access all Component;
+
    function Handle_Message
      (Self : access Component;
       Msg  : PolyORB.Components.Message'Class)
       return PolyORB.Components.Message'Class;
+
+   procedure Register_Receiving_Stub
+     (Name     : in String;
+      Receiver : in Component_Access;
+      Version  : in String := "");
+   --  Register the fact that the Name receiving stub is now elaborated.
+   --  Register the access value to the package RPC_Receiver procedure.
 
    subtype Message is PolyORB.Components.Message;
    subtype Null_Message is PolyORB.Components.Null_Message;
