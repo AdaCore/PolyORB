@@ -927,7 +927,10 @@ package body XE_Check is
          --  to be different from No_Name. This is true with
          --  Compile_Sources when Source was successfully compiled.
 
-         if Source /= File and then not Marked (Unit) then
+         if Source /= File
+           and then Unit /= No_Name
+           and then not Marked (Unit)
+         then
             Compile_RCI_Spec_Only (Unit, File);
          end if;
       end loop;
