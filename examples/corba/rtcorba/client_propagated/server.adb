@@ -123,7 +123,7 @@ begin
 
    Output ("ORB is configured", True);
 
-   New_Test ("RTORB");
+   New_Test ("CLIENT_PROPAGATED server");
 
    declare
       use RTCORBA.IDL_SEQUENCE_RTCORBA_ThreadpoolLane;

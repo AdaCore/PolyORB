@@ -118,7 +118,7 @@ begin
       return;
    end if;
 
-   New_Test ("RT-Echo client");
+   New_Test ("CLIENT_PROPAGATED client");
 
    CORBA.ORB.Initialize ("ORB");
 
