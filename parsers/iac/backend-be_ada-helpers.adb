@@ -2,14 +2,14 @@ with Namet;     use Namet;
 with Values;     use Values;
 
 with Frontend.Nodes;   use Frontend.Nodes;
-with Frontend.Debug;
+--  with Frontend.Debug;
 
 with Backend.BE_Ada.Expand;  use Backend.BE_Ada.Expand;
 with Backend.BE_Ada.IDL_To_Ada;  use Backend.BE_Ada.IDL_To_Ada;
 with Backend.BE_Ada.Nodes;   use Backend.BE_Ada.Nodes;
 with Backend.BE_Ada.Nutils;  use Backend.BE_Ada.Nutils;
 with Backend.BE_Ada.Runtime; use Backend.BE_Ada.Runtime;
-with Backend.BE_Ada.Debug;
+--  with Backend.BE_Ada.Debug;
 
 package body Backend.BE_Ada.Helpers is
 
@@ -724,9 +724,6 @@ package body Backend.BE_Ada.Helpers is
                M := RE (RE_To_Any_0);
             elsif Kind (Type_Spec (Declaration (E))) = K_Scoped_Name then
                N := Identifier (Reference (Type_Spec (Declaration (E))));
-               Frontend.Debug.W_Node_Id (N);
-               Backend.BE_Ada.Debug.W_Node_Id
-                 (Next_Node (Next_Node (Helper_Node (BE_Node (N)))));
                M := Expand_Designator
                  (Next_Node (Next_Node (Helper_Node (BE_Node (N)))));
                N := Map_Designator (N);

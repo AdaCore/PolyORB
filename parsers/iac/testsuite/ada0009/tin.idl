@@ -1,0 +1,13 @@
+module m1 {
+  typedef boolean b1; 
+  interface i1 {
+    typedef  float t1; 
+  }; 
+  interface i2 {
+    attribute i1::t1 attr1; 
+    attribute m1::b1 bool;
+  };
+  interface i3 {
+    typedef i1::t1 new_float; 
+  }; 
+};

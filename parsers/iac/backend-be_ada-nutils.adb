@@ -330,6 +330,12 @@ package body Backend.BE_Ada.Nutils is
          VN (V) := Name_Find;
       end loop;
 
+      for G in Pragma_Id loop
+         Set_Str_To_Name_Buffer (Pragma_Id'Image (G));
+         Set_Str_To_Name_Buffer (Name_Buffer (8 .. Name_Len));
+         Capitalize (Name_Buffer (1 .. Name_Len));
+         GN (G) := Name_Find;
+      end loop;
 
    end Initialize;
 
@@ -738,6 +744,21 @@ package body Backend.BE_Ada.Nutils is
       Set_Parameter_Mode (P, Parameter_Mode);
       return P;
    end Make_Parameter_Specification;
+
+   ---------------------------
+   -- Make_Pragma_Statement --
+   ---------------------------
+
+   function Make_Pragma_Statement
+     (Expression : Node_Id)
+     return Node_Id
+   is
+      N : Node_Id;
+   begin
+      N := New_Node (K_Pragma_Statement);
+      Set_Expression (N, Expression);
+      return N;
+   end Make_Pragma_Statement;
 
    ---------------------------
    -- Make_Record_Aggregate --
@@ -1170,6 +1191,38 @@ package body Backend.BE_Ada.Nutils is
       Set_Is_Generated
         (Package_Specification (Main_Package (X)), True);
    end Set_Main_Spec;
+
+   -----------------------
+   -- Set_Skeleton_Body --
+   -----------------------
+
+   procedure Set_Skeleton_Body (N : Node_Id := No_Node) is
+      X : Node_Id := N;
+   begin
+      if No (X) then
+         X := Table (Last).Current_Entity;
+      end if;
+      Table (Last).Current_Package :=
+        Package_Implementation (Skeleton_Package (X));
+      Set_Is_Generated
+        (Package_Implementation (Skeleton_Package (X)), True);
+   end Set_Skeleton_Body;
+
+   -----------------------
+   -- Set_Skeleton_Spec --
+   -----------------------
+
+   procedure Set_Skeleton_Spec (N : Node_Id := No_Node) is
+      X : Node_Id := N;
+   begin
+      if No (X) then
+         X := Table (Last).Current_Entity;
+      end if;
+      Table (Last).Current_Package :=
+        Package_Specification (Skeleton_Package (X));
+      Set_Is_Generated
+        (Package_Specification (Skeleton_Package (X)), True);
+   end Set_Skeleton_Spec;
 
    -----------------
    -- To_Ada_Name --

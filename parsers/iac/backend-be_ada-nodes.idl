@@ -185,6 +185,10 @@ module Backend::BE_Ada::Nodes {
     Value_Id   Value; 
   };
 
+  interface Pragma_Statement : Node_Id {
+    Node_Id   Expression; 
+  };
+
   /***************/
   /* Other nodes */
   /***************/

@@ -17,6 +17,7 @@ with Backend.BE_Ada.Nodes;
 with Backend.BE_Ada.Helpers;
 with Backend.BE_Ada.Impls;
 with Backend.BE_Ada.Stubs;
+with Backend.BE_Ada.Skels;
 
 
 package body Backend.BE_Ada is
@@ -122,6 +123,7 @@ package body Backend.BE_Ada is
       Stubs.Package_Spec.Visit (E);
       Set_Helper_Spec;
       Helpers.Package_Spec.Visit (E);
+      Skels.Package_Spec.Visit (E);
       Set_Main_Body;
       Stubs.Package_Body.Visit (E);
       Set_Helper_Body;

@@ -217,6 +217,11 @@ package Backend.BE_Ada.Nutils is
 
    TN : array (Type_Id) of Name_Id;
 
+   type Pragma_Id is
+     (Pragma_Elaborate_Body);
+
+   GN : array (Pragma_Id) of Name_Id;
+
    procedure Add_With_Package
      (P : Node_Id);
 
@@ -364,6 +369,10 @@ package Backend.BE_Ada.Nutils is
       Parameter_Mode      : Mode_Id := Mode_In)
       return                Node_Id;
 
+   function Make_Pragma_Statement
+     (Expression : Node_Id)
+     return Node_Id;
+
    function Make_Record_Aggregate
      (L : List_Id)
      return Node_Id;
@@ -423,6 +432,9 @@ package Backend.BE_Ada.Nutils is
 
    procedure Set_Main_Body (N : Node_Id := No_Node);
    procedure Set_Main_Spec (N : Node_Id := No_Node);
+
+   procedure Set_Skeleton_Body (N : Node_Id := No_Node);
+   procedure Set_Skeleton_Spec (N : Node_Id := No_Node);
 
    function To_Ada_Name (N : Name_Id) return Name_Id;
 

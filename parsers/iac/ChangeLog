@@ -1,3 +1,15 @@
+2004-07-30  Saber Souli  <souli@neraka.enst.fr>
+
+	* testsuite/ada000[9,4]/tin.idl: Tests nested entities.
+
+	* backend-be_ada-skels.adb: New file : generate skeletons (now it
+	generate only skeletons specs). 
+
+	* backend-be_ada-nodes.idl: Add Pragma_Statement node. 
+
+	* backend-be_ada-generator.adb: Generate Pragma_Statement. 
+	
+
 2004-07-29  Saber Souli  <souli@neraka.enst.fr>
 
 	* backend-be_ada-helpers.adb: Link helpers  nodes to the

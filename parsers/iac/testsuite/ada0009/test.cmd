@@ -9,6 +9,7 @@ cp ../../Makefile.ada ./Makefile > /dev/null
 iac -ada -h ../tin.idl > iac.ada
 gnatchop -w iac.ada > /dev/null
 rm -f *idl_file*
+rm -f m1-skel*
 make > /dev/null 2>$LOG
 CODE=$?
 if [ $CODE != 0 ]; then

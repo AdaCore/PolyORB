@@ -31,6 +31,7 @@ package body Backend.BE_Ada.Generator is
    procedure Generate_Package_Specification (N : Node_Id);
    procedure Generate_Parameter (N : Node_Id);
    procedure Generate_Parameter_List (L : List_Id);
+   procedure Generate_Pragma_Statement (N : Node_Id);
    procedure Generate_Record_Aggregate (N : Node_Id);
    procedure Generate_Record_Definition (N : Node_Id);
    procedure Generate_Record_Type_Definition (N : Node_Id);
@@ -111,6 +112,9 @@ package body Backend.BE_Ada.Generator is
 
          when K_Package_Specification =>
             Generate_Package_Specification (N);
+
+         when K_Pragma_Statement =>
+            Generate_Pragma_Statement (N);
 
          when K_Record_Aggregate =>
             Generate_Record_Aggregate (N);
@@ -748,6 +752,17 @@ package body Backend.BE_Ada.Generator is
       Write (Tok_Right_Paren);
       Decrement_Indentation;
    end Generate_Parameter_List;
+
+   -------------------------------
+   -- Generate_Pragma_Statement --
+   -------------------------------
+
+   procedure Generate_Pragma_Statement (N : Node_Id) is
+   begin
+      Write (Tok_Pragma);
+      Write_Space;
+      Generate (Expression (N));
+   end Generate_Pragma_Statement;
 
    -------------------------------
    -- Generate_Record_Aggregate --
