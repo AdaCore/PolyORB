@@ -38,9 +38,6 @@
 --                                                                         --
 -----------------------------------------------------------------------------
 
-with Ada.Streams;
-with Interfaces.C;
-
 package Sockets is
 
    pragma Pure;
