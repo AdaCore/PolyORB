@@ -212,5 +212,24 @@ is
              Null_Members'(Null_Member));
    end Get_Servant;
 
+   ----------------------------
+   -- Ensure_Servant_Manager --
+   ----------------------------
+
+   procedure Ensure_Servant_Manager
+     (Self  :        Active_Map_Only_Policy;
+      Error : in out PolyORB.Exceptions.Error_Container)
+   is
+      pragma Warnings (Off); --  WAG:3.15
+      pragma Unreferenced (Self);
+      pragma Warnings (On); --  WAG:3.15
+
+      use PolyORB.Exceptions;
+
+   begin
+      Throw (Error,
+             WrongPolicy_E,
+             Null_Members'(Null_Member));
+   end Ensure_Servant_Manager;
 
 end PolyORB.POA_Policies.Request_Processing_Policy.Active_Object_Map_Only;

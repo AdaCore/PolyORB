@@ -73,4 +73,9 @@ package PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
       Servant :    out Servants.Servant_Access;
       Error   : in out PolyORB.Exceptions.Error_Container);
 
+   procedure Ensure_Servant_Manager_Type
+     (Self    :        Non_Retain_Policy;
+      Manager :        ServantManager'Class;
+      Error   : in out PolyORB.Exceptions.Error_Container);
+
 end PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain;

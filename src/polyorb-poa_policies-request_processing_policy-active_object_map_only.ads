@@ -72,4 +72,8 @@ is
       Servant :    out Servants.Servant_Access;
       Error   : in out PolyORB.Exceptions.Error_Container);
 
+   procedure Ensure_Servant_Manager
+     (Self  :        Active_Map_Only_Policy;
+      Error : in out PolyORB.Exceptions.Error_Container);
+
 end PolyORB.POA_Policies.Request_Processing_Policy.Active_Object_Map_Only;

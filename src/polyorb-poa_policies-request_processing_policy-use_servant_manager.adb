@@ -108,11 +108,17 @@ is
       Error   : in out PolyORB.Exceptions.Error_Container)
    is
       pragma Warnings (Off);
-      pragma Unreferenced (Self, OA, U_Oid, Error);
+      pragma Unreferenced (Self, OA, U_Oid);
       pragma Warnings (On);
+
+      use PolyORB.Exceptions;
+
    begin
       Servant := null;
-      --      raise Not_Implemented;
+
+      Throw (Error,
+             WrongPolicy_E,
+             Null_Member);
    end Id_To_Servant;
 
    -----------------
@@ -163,5 +169,21 @@ is
              WrongPolicy_E,
              Null_Members'(Null_Member));
    end Get_Servant;
+
+   ----------------------------
+   -- Ensure_Servant_Manager --
+   ----------------------------
+
+   procedure Ensure_Servant_Manager
+     (Self  :        Use_Servant_Manager_Policy;
+      Error : in out PolyORB.Exceptions.Error_Container)
+   is
+      pragma Warnings (Off); --  WAG:3.15
+      pragma Unreferenced (Self);
+      pragma Unreferenced (Error);
+      pragma Warnings (On); --  WAG:3.15
+   begin
+      null;
+   end Ensure_Servant_Manager;
 
 end PolyORB.POA_Policies.Request_Processing_Policy.Use_Servant_Manager;

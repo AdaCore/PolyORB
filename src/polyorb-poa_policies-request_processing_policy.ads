@@ -89,4 +89,9 @@ package PolyORB.POA_Policies.Request_Processing_Policy is
       Error   : in out PolyORB.Exceptions.Error_Container)
       is abstract;
 
+   procedure Ensure_Servant_Manager
+     (Self  :        RequestProcessingPolicy;
+      Error : in out PolyORB.Exceptions.Error_Container)
+      is abstract;
+
 end PolyORB.POA_Policies.Request_Processing_Policy;

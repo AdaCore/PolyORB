@@ -34,6 +34,8 @@
 --  XXX to be up to date, we should complete implementation of
 --   - CORBA.ORB.Shutdown
 
+--  XXX should test find_poa, POA self destruction
+
 --  $Id$
 
 with Ada.Exceptions;
@@ -56,6 +58,8 @@ with CORBA.Object;
 with CORBA.ORB;
 with CORBA.Policy;
 
+with PortableServer.AdapterActivator;
+
 with PortableServer.POA;
 with PortableServer.POAManager;
 
@@ -70,6 +74,7 @@ with PortableServer.ThreadPolicy;
 with Echo.Helper;
 with Echo.Impl;
 
+with Test_AdapterActivator;
 with Test_Job;
 
 procedure Test000 is
@@ -262,9 +267,10 @@ procedure Test000 is
    --  configuration for a CORBA POA.
 
    procedure Test_POA_Creation;
-   --  Test PolyORB accepts only valid POA policies combination,
+   --  Test PortableServer accepts only valid POA policies combination,
 
    procedure Test_POA_API;
+   --  Test full POA API.
 
    -------------------
    -- Test_Root_POA --
@@ -1549,6 +1555,8 @@ procedure Test000 is
       Output ("Test_POA_API", Result);
    end Test_POA_API;
 
+   use Test_AdapterActivator;
+
 begin
    Init_Test;
    Test_Root_POA;
@@ -1558,6 +1566,7 @@ begin
    Test_Conversion (Get_Root_POA);
    Test_POA_Creation;
    Test_POA_API;
+   Run_Test_AdapterActivator;
    End_Report;
 
    GNAT.OS_Lib.OS_Exit (1);

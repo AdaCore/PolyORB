@@ -190,4 +190,28 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
       Servant := null;
    end Retained_Id_To_Servant;
 
+   ---------------------------------
+   -- Ensure_Servant_Manager_Type --
+   ---------------------------------
+
+   procedure Ensure_Servant_Manager_Type
+     (Self    :        Non_Retain_Policy;
+      Manager :        ServantManager'Class;
+      Error   : in out PolyORB.Exceptions.Error_Container)
+   is
+      pragma Warnings (Off); --  WAG:3.15
+      pragma Unreferenced (Self);
+      pragma Warnings (On); --  WAG:3.15
+
+      use PolyORB.Exceptions;
+
+   begin
+      if Manager not in ServantLocator'Class then
+         Throw (Error,
+                Obj_Adapter_E,
+                System_Exception_Members'(Minor     => 4,
+                                          Completed => Completed_No));
+      end if;
+   end Ensure_Servant_Manager_Type;
+
 end PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain;

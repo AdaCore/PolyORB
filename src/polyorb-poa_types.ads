@@ -39,8 +39,11 @@ with Ada.Unchecked_Deallocation;
 
 with PolyORB.Any;
 with PolyORB.Any.NVList;
+with PolyORB.Exceptions;
 with PolyORB.Obj_Adapters;
 with PolyORB.Objects;
+with PolyORB.Servants;
+with PolyORB.Smart_Pointers;
 with PolyORB.Types;
 with PolyORB.Utils.HFunctions.Mul;
 with PolyORB.Utils.HTables.Perfect;
@@ -210,6 +213,93 @@ package PolyORB.POA_Types is
 
    procedure Free (X : in out PolyORB.POA_Types.Object_Id_Access)
      renames PolyORB.Objects.Free;
+
+   --------------------------
+   -- POA Callback objects --
+   --------------------------
+
+   --  AdapterActivator
+
+   type AdapterActivator is abstract new Smart_Pointers.Ref with null record;
+
+   type AdapterActivator_Access is access all AdapterActivator'Class;
+
+   procedure Unknown_Adapter
+     (Self   : access AdapterActivator;
+      Parent : access Obj_Adapter'Class;
+      Name   : in     String;
+      Result :    out Boolean;
+      Error  : in out PolyORB.Exceptions.Error_Container)
+     is abstract;
+
+   procedure Free is new Ada.Unchecked_Deallocation
+     (AdapterActivator'Class, AdapterActivator_Access);
+
+   --  Servant Manager
+
+   type ServantManager is abstract new Smart_Pointers.Ref with null record;
+
+   type ServantManager_Access is access all ServantManager'Class;
+
+   procedure Free is new Ada.Unchecked_Deallocation
+     (ServantManager'Class, ServantManager_Access);
+
+   --  Servant Activator
+
+   type ServantActivator is abstract new ServantManager with null record;
+
+   type ServantActivator_Access is access all ServantActivator'Class;
+
+   function Incarnate
+     (Self    : access ServantActivator;
+      Oid     : in     Object_Id;
+      Adapter : access Obj_Adapter'Class)
+     return PolyORB.Servants.Servant_Access
+      is abstract;
+
+   procedure Etherealize
+     (Self                  : access ServantActivator;
+      Oid                   : in     Object_Id;
+      Adapter               : access Obj_Adapter'Class;
+      Serv                  : in     PolyORB.Servants.Servant_Access;
+      Cleanup_In_Progress   : in     Boolean;
+      Remaining_Activations : in     Boolean)
+      is abstract;
+
+   procedure Free is new Ada.Unchecked_Deallocation
+     (ServantActivator'Class, ServantActivator_Access);
+
+   --  Servant Locator
+
+   type ServantLocator is abstract new ServantManager with null record;
+
+   type ServantLocator_Access is access all ServantLocator'Class;
+
+   type Cookie_Base is tagged null record;
+   --  User defined cookie type
+
+   type Cookie is access all Cookie_Base'Class;
+
+   procedure Preinvoke
+     (Self       : access ServantLocator;
+      Oid        : in     Object_Id;
+      Adapter    : access Obj_Adapter'Class;
+      Operation  : in     PolyORB.Types.Identifier;
+      The_Cookie : out    Cookie;
+      Returns    : out    PolyORB.Servants.Servant_Access)
+     is abstract;
+
+   procedure Postinvoke
+     (Self        : access ServantLocator;
+      Oid         : in     Object_Id;
+      Adapter     : access Obj_Adapter'Class;
+      Operation   : in     PolyORB.Types.Identifier;
+      The_Cookie  : in     Cookie;
+      The_Servant : in     PolyORB.Servants.Servant_Access)
+      is abstract;
+
+   procedure Free is new Ada.Unchecked_Deallocation
+     (ServantLocator'Class, ServantLocator_Access);
 
 private
 

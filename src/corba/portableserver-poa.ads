@@ -36,7 +36,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poa.ads#8 $
+--  $Id: //droopi/main/src/corba/portableserver-poa.ads#9 $
 
 with Ada.Exceptions;
 
@@ -98,19 +98,19 @@ package PortableServer.POA is
 
    function Get_The_Activator
      (Self : in Ref)
-     return PortableServer.AdapterActivator.Ref;
+     return PortableServer.AdapterActivator.Ref'Class;
 
    procedure Set_The_Activator
-     (Self : in Ref;
-      To   : in PortableServer.AdapterActivator.Ref);
+     (Self : in     Ref;
+      To   : access PortableServer.AdapterActivator.Ref'Class);
 
    function Get_Servant_Manager
      (Self : in Ref)
-     return PortableServer.ServantManager.Ref;
+     return PortableServer.ServantManager.Ref'Class;
 
    procedure Set_Servant_Manager
-     (Self : in Ref;
-      Imgr : in PortableServer.ServantManager.Ref);
+     (Self : in     Ref;
+      Imgr : access PortableServer.ServantManager.Ref'Class);
 
    function Get_Servant
      (Self : in Ref)

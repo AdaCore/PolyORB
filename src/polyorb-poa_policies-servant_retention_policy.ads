@@ -87,4 +87,10 @@ package PolyORB.POA_Policies.Servant_Retention_Policy is
    --  Case NON_RETAIN:
    --    Raises WrongPolicy.
 
+   procedure Ensure_Servant_Manager_Type
+     (Self    :        ServantRetentionPolicy;
+      Manager :        ServantManager'Class;
+      Error   : in out PolyORB.Exceptions.Error_Container)
+      is abstract;
+
 end PolyORB.POA_Policies.Servant_Retention_Policy;

@@ -80,44 +80,51 @@ package PolyORB.POA is
    -- POA Obj_Adapter type. --
    ---------------------------
 
-   type Obj_Adapter is abstract new PolyORB.POA_Types.Obj_Adapter with
-      record
-         Name                       : Types.String;
-         Boot_Time                  : Time_Stamp;
-         Absolute_Address           : Types.String;
+   type Obj_Adapter is abstract new PolyORB.POA_Types.Obj_Adapter with record
 
-         POA_Manager                : PolyORB.POA_Manager.Ref;
-         --  POA Manager attached to this POA.
+      Name                       : Types.String;
+      Boot_Time                  : Time_Stamp;
+      Absolute_Address           : Types.String;
 
-         Active_Object_Map          : PolyORB.Object_Maps.Object_Map_Access;
-         --  The active object map (NULL if the policies used for this POA
-         --  do not require one).
+      POA_Manager                : PolyORB.POA_Manager.Ref;
+      --  POA Manager attached to this POA.
 
-         Default_Servant            : Servants.Servant_Access;
-         --  The default servant (NULL if the policies used for this POA
-         --  do not require one).
+      Adapter_Activator          : AdapterActivator_Access;
+      --  Adapter Activator attached to this POA (null if not used).
 
-         --  Policies (one of each is required)
-         Thread_Policy              : ThreadPolicy_Access             := null;
-         Request_Processing_Policy  : RequestProcessingPolicy_Access  := null;
-         Id_Assignment_Policy       : IdAssignmentPolicy_Access       := null;
-         Id_Uniqueness_Policy       : IdUniquenessPolicy_Access       := null;
-         Servant_Retention_Policy   : ServantRetentionPolicy_Access   := null;
-         Lifespan_Policy            : LifespanPolicy_Access           := null;
-         Implicit_Activation_Policy : ImplicitActivationPolicy_Access := null;
+      Active_Object_Map          : PolyORB.Object_Maps.Object_Map_Access;
+      --  The active object map (null if the policies used for this POA
+      --  do not require one).
 
-         Father : Obj_Adapter_Access;
-         --  Parent POA.
+      Default_Servant            : Servants.Servant_Access;
+      --  The default servant (null if the policies used for this POA
+      --  do not require one).
 
-         Children : POATable_Access;
-         --  All child-POAs of this POA.
+      Servant_Manager            : ServantManager_Access;
+      --  The servant manager (null if the policies used for this POA
+      --  do not require one).
 
-         POA_Lock                   : Tasking.Rw_Locks.Rw_Lock_Access;
-         Children_Lock              : Tasking.Rw_Locks.Rw_Lock_Access;
-         Map_Lock                   : Tasking.Rw_Locks.Rw_Lock_Access;
-         --  Locks
+      --  Policies (one of each is required)
+      Thread_Policy              : ThreadPolicy_Access             := null;
+      Request_Processing_Policy  : RequestProcessingPolicy_Access  := null;
+      Id_Assignment_Policy       : IdAssignmentPolicy_Access       := null;
+      Id_Uniqueness_Policy       : IdUniquenessPolicy_Access       := null;
+      Servant_Retention_Policy   : ServantRetentionPolicy_Access   := null;
+      Lifespan_Policy            : LifespanPolicy_Access           := null;
+      Implicit_Activation_Policy : ImplicitActivationPolicy_Access := null;
 
-      end record;
+      Father                     : Obj_Adapter_Access;
+      --  Parent POA.
+
+      Children                   : POATable_Access;
+      --  All child-POAs of this POA.
+
+      POA_Lock                   : Tasking.Rw_Locks.Rw_Lock_Access;
+      Children_Lock              : Tasking.Rw_Locks.Rw_Lock_Access;
+      Map_Lock                   : Tasking.Rw_Locks.Rw_Lock_Access;
+      --  Locks
+
+   end record;
 
    type Obj_Adapter_Access is access all Obj_Adapter'Class;
    --  The POA object
@@ -140,10 +147,12 @@ package PolyORB.POA is
    --  Policies are optionnal : defaults values are provided.
    --  Compability of 'Policies' is checked.
 
-   function Find_POA
-     (Self : access Obj_Adapter;
-      Name : String)
-     return Obj_Adapter_Access
+   procedure Find_POA
+     (Self        : access Obj_Adapter;
+      Name        :        String;
+      Activate_It :        Boolean;
+      POA         :    out Obj_Adapter_Access;
+      Error       : in out PolyORB.Exceptions.Error_Container)
       is abstract;
    --  Starting from given POA, looks for the POA in all the descendancy whose
    --  name is Name. Returns null if not found.
@@ -232,6 +241,18 @@ package PolyORB.POA is
    procedure Set_Servant
      (Self    : access Obj_Adapter;
       Servant :        Servants.Servant_Access;
+      Error   : in out PolyORB.Exceptions.Error_Container)
+      is abstract;
+
+   procedure Get_Servant_Manager
+     (Self    : access Obj_Adapter;
+      Manager :    out ServantManager_Access;
+      Error   : in out PolyORB.Exceptions.Error_Container)
+      is abstract;
+
+   procedure Set_Servant_Manager
+     (Self    : access Obj_Adapter;
+      Manager :        ServantManager_Access;
       Error   : in out PolyORB.Exceptions.Error_Container)
       is abstract;
 

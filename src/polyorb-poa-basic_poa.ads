@@ -67,10 +67,12 @@ package PolyORB.POA.Basic_POA is
       POA          :    out Obj_Adapter_Access;
       Error        : in out PolyORB.Exceptions.Error_Container);
 
-   function Find_POA
-     (Self : access Basic_Obj_Adapter;
-      Name : String)
-     return Obj_Adapter_Access;
+   procedure Find_POA
+     (Self        : access Basic_Obj_Adapter;
+      Name        :        String;
+      Activate_It :        Boolean;
+      POA         :    out Obj_Adapter_Access;
+      Error       : in out PolyORB.Exceptions.Error_Container);
 
    procedure Destroy
      (Self                : access Basic_Obj_Adapter;
@@ -115,6 +117,16 @@ package PolyORB.POA.Basic_POA is
    procedure Set_Servant
      (Self    : access Basic_Obj_Adapter;
       Servant :        Servants.Servant_Access;
+      Error   : in out PolyORB.Exceptions.Error_Container);
+
+   procedure Get_Servant_Manager
+     (Self    : access Basic_Obj_Adapter;
+      Manager :    out ServantManager_Access;
+      Error   : in out PolyORB.Exceptions.Error_Container);
+
+   procedure Set_Servant_Manager
+     (Self    : access Basic_Obj_Adapter;
+      Manager :        ServantManager_Access;
       Error   : in out PolyORB.Exceptions.Error_Container);
 
    --------------------------------------------------

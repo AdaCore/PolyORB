@@ -36,12 +36,15 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-servantmanager.ads#3 $
+--  $Id: //droopi/main/src/corba/portableserver-servantmanager.ads#4 $
 
-with CORBA;
 with CORBA.Object;
 
 package PortableServer.ServantManager is
+
+   type Ref is new CORBA.Object.Ref with private;
+
+private
 
    type Ref is new CORBA.Object.Ref with null record;
 

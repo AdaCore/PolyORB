@@ -36,27 +36,33 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-servantactivator.ads#3 $
+--  $Id: //droopi/main/src/corba/portableserver-servantactivator.ads#4 $
 
 with CORBA;
 with PortableServer.ServantManager;
-with PortableServer.POA;
 
 package PortableServer.ServantActivator is
 
-   type Ref is new PortableServer.ServantManager.Ref with null record;
+   type Ref is new PortableServer.ServantManager.Ref with private;
+
+   type SA_Ptr is access all PortableServer.ServantActivator.Ref'Class;
 
    function Incarnate
      (Self    : in Ref;
       Oid     : in ObjectId;
-      Adapter : in PortableServer.POA.Ref) return Servant;
+      Adapter : in PortableServer.POA_Forward.Ref)
+     return PortableServer.Servant;
 
    procedure Etherealize
-     (Self    : in Ref;
-      Oid     : in PortableServer.ObjectId;
-      Adapter : in PortableServer.POA_Forward.Ref;
-      Serv    : in PortableServer.Servant;
-      Cleanup_In_Progress : in CORBA.Boolean;
+     (Self                  : in Ref;
+      Oid                   : in PortableServer.ObjectId;
+      Adapter               : in PortableServer.POA_Forward.Ref;
+      Serv                  : in PortableServer.Servant;
+      Cleanup_In_Progress   : in CORBA.Boolean;
       Remaining_Activations : in CORBA.Boolean);
+
+private
+
+   type Ref is new PortableServer.ServantManager.Ref with null record;
 
 end PortableServer.ServantActivator;

@@ -74,4 +74,8 @@ package PolyORB.POA_Policies.Request_Processing_Policy.Use_Servant_Manager is
       Servant :    out Servants.Servant_Access;
       Error   : in out PolyORB.Exceptions.Error_Container);
 
+   procedure Ensure_Servant_Manager
+     (Self  :        Use_Servant_Manager_Policy;
+      Error : in out PolyORB.Exceptions.Error_Container);
+
 end PolyORB.POA_Policies.Request_Processing_Policy.Use_Servant_Manager;

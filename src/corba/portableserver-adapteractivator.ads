@@ -36,14 +36,15 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-adapteractivator.ads#4 $
+--  $Id: //droopi/main/src/corba/portableserver-adapteractivator.ads#5 $
 
---  with CORBA;
 with CORBA.Object;
 
 package PortableServer.AdapterActivator is
 
    type Ref is new CORBA.Object.Ref with private;
+
+   type AA_Ptr is access all PortableServer.AdapterActivator.Ref'Class;
 
    function Unknown_Adapter
      (Self   : Ref;

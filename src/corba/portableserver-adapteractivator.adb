@@ -31,9 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  with PortableServer.AdapterActivator.Impl;
-
---  $Id: //droopi/main/src/corba/portableserver-adapteractivator.adb#5 $
+--  $Id: //droopi/main/src/corba/portableserver-adapteractivator.adb#6 $
 
 package body PortableServer.AdapterActivator is
 
@@ -47,13 +45,13 @@ package body PortableServer.AdapterActivator is
       Name   : CORBA.String)
       return Boolean
    is
-      --  Res : Boolean;
+      pragma Warnings (Off); --  WAG:3.15
+      pragma Unreferenced (Self);
+      pragma Unreferenced (Parent);
+      pragma Unreferenced (Name);
+      pragma Warnings (On); --  WAG:3.15
+
    begin
---       Impl.Unknown_Adapter
---         (Impl.Object'Class (Object_Of (Self).all),
---          Parent, Name, Res);
---       return Res;
-      raise PolyORB.Not_Implemented;
       return False;
    end Unknown_Adapter;
 

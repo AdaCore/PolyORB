@@ -36,36 +36,48 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-servantlocator.ads#3 $
+--  $Id: //droopi/main/src/corba/portableserver-servantlocator.ads#4 $
 
 with CORBA;
+
 with PortableServer.ServantManager;
-with PortableServer.POA;
+
+with PolyORB.POA_Types;
 
 package PortableServer.ServantLocator is
 
-   type Ref is new PortableServer.ServantManager.Ref
-     with null record;
+   type Ref is new PortableServer.ServantManager.Ref with private;
 
-   type Cookie_Base is tagged null record;
-   --  ... implementation defined, tagged type Cookie is access all
-   --  Cookie_Base'CLASS;
+   type SL_Ptr is access all PortableServer.ServantLocator.Ref'Class;
+
+   type Root_Cookie is new PolyORB.POA_Types.Cookie_Base with private;
+
+   type Cookie_Base is new Root_Cookie with private;
+
    type Cookie is access all Cookie_Base'Class;
 
    procedure Preinvoke
-     (Self       : in Ref;
-      Oid        : in ObjectId;
-      Adapter    : in PortableServer.POA.Ref;
-      Operation  : in CORBA.Identifier;
+     (Self       : in  Ref;
+      Oid        : in  ObjectId;
+      Adapter    : in  PortableServer.POA_Forward.Ref;
+      Operation  : in  CORBA.Identifier;
       The_Cookie : out Cookie;
       Returns    : out Servant);
 
    procedure Postinvoke
      (Self        : in Ref;
       Oid         : in ObjectId;
-      Adapter     : in PortableServer.POA.Ref;
+      Adapter     : in PortableServer.POA_Forward.Ref;
       Operation   : in CORBA.Identifier;
       The_Cookie  : in Cookie;
       The_Servant : in Servant);
+
+private
+
+   type Ref is new PortableServer.ServantManager.Ref with null record;
+
+   type Root_Cookie is new PolyORB.POA_Types.Cookie_Base with null record;
+
+   type Cookie_Base is new Root_Cookie with null record;
 
 end PortableServer.ServantLocator;
