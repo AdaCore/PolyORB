@@ -1,4 +1,4 @@
-
+pragma Style_Checks (Off);
 
 package CXE4001_Partition_A is
   pragma Remote_Call_Interface;
