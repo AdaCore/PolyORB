@@ -125,29 +125,12 @@ begin
 
       Root_POA : PortableServer.POA.Ref;
 
-   begin
-      New_Test ("RTPOA");
+      procedure Test_SERVER_DECLARED_1;
+      procedure Test_SERVER_DECLARED_2;
+      procedure Test_CLIENT_PROPAGATED_1;
+      procedure Test_CLIENT_PROPAGATED_2;
 
-      --  Retrieve RT ORB
-
-      RT_ORB := RTCORBA.RTORB.To_Ref
-        (Resolve_Initial_References
-         (To_CORBA_String ("RTORB")));
-
-      Output ("Retrieved reference on RT ORB", True);
-
-      --  Retrieve Root POA
-
-      Root_POA := PortableServer.POA.To_Ref
-        (CORBA.ORB.Resolve_Initial_References
-         (CORBA.ORB.To_CORBA_String ("RootPOA")));
-
-      PortableServer.POAManager.Activate
-        (PortableServer.POA.Get_The_POAManager (Root_POA));
-
-      Output ("Retrieved and activated Root POA", True);
-
-      declare
+      procedure Test_SERVER_DECLARED_1 is
          Obj_Server : constant CORBA.Impl.Object_Ptr := new Echo.Impl.Object;
          Priority_Model_Policy_Ref_Server : RTCORBA.PriorityModelPolicy.Ref;
          Child_POA_Server : RTPortableServer.POA.Ref;
@@ -239,9 +222,10 @@ begin
          end;
 
          Destroy (PortableServer.POA.Ref (Child_POA_Server), False, False);
-      end;
+         Output ("done", True);
+      end Test_SERVER_DECLARED_1;
 
-      declare
+      procedure Test_SERVER_DECLARED_2 is
          Obj_Server : constant CORBA.Impl.Object_Ptr := new Echo.Impl.Object;
          Priority_Model_Policy_Ref_Server : RTCORBA.PriorityModelPolicy.Ref;
          Child_POA_Server : RTPortableServer.POA.Ref;
@@ -333,13 +317,12 @@ begin
          exception
             when PortableServer.POA.WrongPolicy =>
                Output ("Activate_Object_With_Priority raise exception", False);
-               raise;
          end;
 
          Destroy (PortableServer.POA.Ref (Child_POA_Server), False, False);
-      end;
+      end Test_SERVER_DECLARED_2;
 
-      declare
+      procedure Test_CLIENT_PROPAGATED_1 is
          Obj_Client : constant CORBA.Impl.Object_Ptr := new Echo.Impl.Object;
          Priority_Model_Policy_Ref_Client : RTCORBA.PriorityModelPolicy.Ref;
          Child_POA_Client : RTPortableServer.POA.Ref;
@@ -428,13 +411,14 @@ begin
                     False);
          exception
             when PortableServer.POA.WrongPolicy =>
-            Output ("Activate_Object_With_Priority raised an exception", True);
+               Output ("Activate_Object_With_Priority raised an exception",
+                       True);
          end;
 
          Destroy (PortableServer.POA.Ref (Child_POA_Client), False, False);
-      end;
+      end Test_CLIENT_PROPAGATED_1;
 
-      declare
+      procedure Test_CLIENT_PROPAGATED_2 is
          Obj_Client : constant CORBA.Impl.Object_Ptr := new Echo.Impl.Object;
          Priority_Model_Policy_Ref_Client : RTCORBA.PriorityModelPolicy.Ref;
          Child_POA_Client : RTPortableServer.POA.Ref;
@@ -508,11 +492,38 @@ begin
          end;
 
          Destroy (PortableServer.POA.Ref (Child_POA_Client), False, False);
-      end;
+      end Test_CLIENT_PROPAGATED_2;
+
+   begin
+      New_Test ("RTPOA");
+
+      --  Retrieve RT ORB
+
+      RT_ORB := RTCORBA.RTORB.To_Ref
+        (Resolve_Initial_References
+         (To_CORBA_String ("RTORB")));
+
+      Output ("Retrieved reference on RT ORB", True);
+
+      --  Retrieve Root POA
+
+      Root_POA := PortableServer.POA.To_Ref
+        (CORBA.ORB.Resolve_Initial_References
+         (CORBA.ORB.To_CORBA_String ("RootPOA")));
+
+      PortableServer.POAManager.Activate
+        (PortableServer.POA.Get_The_POAManager (Root_POA));
+
+      Output ("Retrieved and activated Root POA", True);
+
+      Test_SERVER_DECLARED_1;
+      Test_SERVER_DECLARED_2;
+
+      Test_CLIENT_PROPAGATED_1;
+      Test_CLIENT_PROPAGATED_2;
+
+      End_Report;
    end;
-
-   End_Report;
-
 exception
    when E : others =>
       New_Line;
