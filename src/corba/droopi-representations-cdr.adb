@@ -32,8 +32,6 @@ package body Droopi.Representations.CDR is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-   Octet_Order : constant Integer := 256;
-
    -------------------------
    -- Start_Encapsulation --
    -------------------------
@@ -97,18 +95,6 @@ package body Droopi.Representations.CDR is
    --    (Data:in F;
    --     Order: Integer) return Stream_Element_Array;
    --  Align Octets on Array of octets
-
-   function Sum_Octet
-     (Octets : Stream_Element_Array;
-      Order :  Integer) return CORBA.Unsigned_Long;
-
-   function Sum_Octet
-     (Octets  : Stream_Element_Array;
-      Order   : Integer) return CORBA.Unsigned_Long_Long;
-
-
-   --  Return the Ulong stored in a array of octets
-
 
    procedure Align_Marshall_Big_Endian_Copy
      (Buffer    : access Buffer_Type;
@@ -1351,7 +1337,12 @@ package body Droopi.Representations.CDR is
         Align_Unmarshall_Big_Endian_Copy (Buffer, 4, 4);
    begin
       pragma Debug (O ("Unmarshall (ULong) : enter & end"));
-      return Sum_Octet (Octets, 4);
+      return CORBA.Unsigned_Long (Octets (Octets'First)) * 256**3
+        + CORBA.Unsigned_Long (Octets (Octets'First + 1)) * 256**2
+        + CORBA.Unsigned_Long (Octets (Octets'First + 2)) * 256
+        + CORBA.Unsigned_Long (Octets (Octets'First + 3));
+      --  Hard-coded expression will be optimized by the compiler
+      --  as shifts+adds.
    end Unmarshall;
 
    function Unmarshall (Buffer : access Buffer_Type)
@@ -1360,7 +1351,16 @@ package body Droopi.Representations.CDR is
         Align_Unmarshall_Big_Endian_Copy (Buffer, 8, 8);
    begin
       pragma Debug (O ("Unmarshall (ULongLong) : enter & end"));
-      return Sum_Octet (Octets, 8);
+      return CORBA.Unsigned_Long_Long (Octets (Octets'First)) * 256**7
+        + CORBA.Unsigned_Long_Long (Octets (Octets'First + 1)) * 256**6
+        + CORBA.Unsigned_Long_Long (Octets (Octets'First + 2)) * 256**5
+        + CORBA.Unsigned_Long_Long (Octets (Octets'First + 3)) * 256**4
+        + CORBA.Unsigned_Long_Long (Octets (Octets'First + 4)) * 256**3
+        + CORBA.Unsigned_Long_Long (Octets (Octets'First + 5)) * 256**2
+        + CORBA.Unsigned_Long_Long (Octets (Octets'First + 6)) * 256
+        + CORBA.Unsigned_Long_Long (Octets (Octets'First + 7));
+      --  Hard-coded expression will be optimized by the compiler
+      --  as shifts+adds.
    end Unmarshall;
 
    function Unmarshall (Buffer : access Buffer_Type)
@@ -2342,55 +2342,19 @@ package body Droopi.Representations.CDR is
    --   end Unmarshall;
 
    ---------
-   --  Rev : reverse the order of the bytes
+   -- Rev --
    ---------
 
-   function Rev (Octets : Stream_Element_Array) return Stream_Element_Array is
-      Result :  Stream_Element_Array (Octets'Range);
+   function Rev (Octets : Stream_Element_Array)
+     return Stream_Element_Array
+   is
+      Result : Stream_Element_Array (Octets'Range);
    begin
       for I in Octets'Range loop
          Result (Octets'Last - I + Octets'First) := Octets (I);
       end loop;
       return Result;
    end Rev;
-
-   -----------------------------------------------------
-   --  return the Ulong stored in a array of octets
-   ---------------------------------------------------
-
-   function Sum_Octet
-     (Octets  : Stream_Element_Array;
-      Order   : Integer) return CORBA.Unsigned_Long
-   is
-      use CORBA;
-      Result : CORBA.Unsigned_Long := 0;
-   begin
-      for I in 0 .. Order - 1 loop
-         Result := Result + CORBA.Unsigned_Long (Octets
-                   (Octets'First + Stream_Element_Offset (I)))
-                   * CORBA.Unsigned_Long (Octet_Order **
-                   (Order - I - 1));
-      end loop;
-      return Result;
-   end Sum_Octet;
-
-
-   function Sum_Octet
-     (Octets  : Stream_Element_Array;
-      Order   : Integer) return CORBA.Unsigned_Long_Long
-   is
-      use CORBA;
-      Result : CORBA.Unsigned_Long_Long  := 0;
-   begin
-      for I in 0 .. Order - 1 loop
-         Result := Result + CORBA.Unsigned_Long_Long (Octets
-                 (Octets'First + Stream_Element_Offset (I)))
-                 * CORBA.Unsigned_Long_Long
-                  (Octet_Order ** (Order - I - 1));
-      end loop;
-      return Result;
-   end Sum_Octet;
-
 
    ------------------------------------
    -- Align_Marshall_Big_Endian_Copy --
