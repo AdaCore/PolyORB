@@ -34,6 +34,7 @@
 
 --  $Id$
 
+with PolyORB.Initialization;
 with PolyORB.Setup.Test_SOA;
 with PolyORB.Setup.Test_POA;
 
@@ -43,6 +44,7 @@ pragma Warnings (Off, PolyORB.Setup.Thread_Pool_Server);
 
 procedure PolyORB.Test.Thread_Pool_POA is
 begin
+   PolyORB.Initialization.Initialize_World;
    PolyORB.Setup.Test_POA.Initialize_Test_Object;
    PolyORB.Setup.Test_SOA.Run_Test;
 end PolyORB.Test.Thread_Pool_POA;

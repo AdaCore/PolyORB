@@ -34,16 +34,16 @@
 
 --  $Id$
 
+with PolyORB.Initialization;
 with PolyORB.Setup.Test_SOA;
-
 with PolyORB.Setup.Thread_Pool_Server;
-pragma Elaborate_All (PolyORB.Setup.Thread_Pool_Server);
 pragma Warnings (Off, PolyORB.Setup.Thread_Pool_Server);
 
 procedure PolyORB.Test.Thread_Pool is
    use PolyORB.Setup.Test_SOA;
 
 begin
+   PolyORB.Initialization.Initialize_World;
    Initialize_Test_Object;
    Run_Test;
 end PolyORB.Test.Thread_Pool;

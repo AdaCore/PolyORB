@@ -54,6 +54,4 @@ pragma Warnings (Off, PolyORB.Setup.Server);
 
 package body PolyORB.Setup.Thread_Pool_Server is
 
-begin
-   PolyORB.Initialization.Initialize_World;
 end PolyORB.Setup.Thread_Pool_Server;

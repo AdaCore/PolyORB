@@ -37,8 +37,9 @@
 with Ada.Command_Line;
 with Ada.Text_IO;
 
+with PolyORB.Initialization;
+
 with PolyORB.Setup.Thread_Pool_Server;
-pragma Elaborate_All (PolyORB.Setup.Thread_Pool_Server);
 pragma Warnings (Off, PolyORB.Setup.Thread_Pool_Server);
 --  XXX this package should be renamed to PolyORB.Setup.Thread_Pool_Node ...
 
@@ -114,6 +115,7 @@ procedure Client_MOMA is
    --------------------
 
 begin
+   PolyORB.Initialization.Initialize_World;
    --  Argument check.
    if Argument_Count /= 2 then
       Put_Line ("usage : client_moma <IOR_string_from_orb_server> \");
