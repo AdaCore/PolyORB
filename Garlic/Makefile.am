@@ -24,8 +24,6 @@ PLATFORM            = @PLATFORM_SPECIFIC@
 
 TCP_PLATFORM_SOURCE = @TCP_PLATFORM_SOURCE@
 
-TCP_PLATFORM        = 5${PLATFORM}gtplsp.ads
-TCP_PLATFORM_BODY   = 5${PLATFORM}gtplsp.adb
 CONSTANTS_PLATFORM  = ${srcdir}/5${PLATFORM}garcon.ads
 
 EXTRA_LIBS = @EXTRA_LIBS@
@@ -87,6 +85,7 @@ s-gartyp.o\
 s-garuni.o\
 s-garuti.o\
 s-gasoli.o\
+s-gatcop.o\
 s-parint.o\
 s-rpc.o\
 s-rpcpoo.o\
@@ -123,6 +122,7 @@ ${srcdir}/s-gartyp.ads ${srcdir}/s-gartyp.adb \
 ${srcdir}/s-garuni.ads ${srcdir}/s-garuni.adb \
 ${srcdir}/s-garuti.ads ${srcdir}/s-garuti.adb \
 ${srcdir}/s-gasoli.ads ${srcdir}/s-gasoli.adb \
+${srcdir}/s-gatcop.ads \
 ${srcdir}/s-gastha.ads ${srcdir}/s-gastha.adb \
 ${srcdir}/s-parint.ads ${srcdir}/s-parint.adb \
 ${srcdir}/s-rpc.ads    ${srcdir}/s-rpc.adb    \
@@ -189,12 +189,6 @@ s-galiop.ads:
 	fi
 	@echo "" >>s-galiop.ads
 	@echo "end System.Garlic.Linker_Options;" >>s-galiop.ads
-
-s-gtplsp.ads: ${srcdir}/${TCP_PLATFORM}
-	cp ${srcdir}/${TCP_PLATFORM} s-gtplsp.ads
-
-s-gtplsp.adb: ${srcdir}/${TCP_PLATFORM_BODY}
-	cp ${srcdir}/${TCP_PLATFORM_BODY} s-gtplsp.adb
 
 split: ${srcdir}/split.adb
 	$(GNATMAKE) -m -o split ${srcdir}/split.adb

@@ -42,7 +42,7 @@ with System.Garlic.Priorities;
 with System.Garlic.Soft_Links;
 with System.Garlic.TCP;
 pragma Elaborate (System.Garlic.TCP);
-with System.Garlic.TCP.Platform_Specific;
+with System.Garlic.TCP.Operations;
 with System.Garlic.Thin;                  use System.Garlic.Thin;
 
 package body System.Garlic.Non_Blocking is
@@ -59,6 +59,9 @@ package body System.Garlic.Non_Blocking is
      renames Print_Debug_Info;
 
    use C, Strings;
+
+   Use_Poll : constant Boolean := False;
+   --  We HAVE to solve this issue later (???)
 
    Safety_Delay : constant Duration := 1.0;
    --  A SIGIO will be simulated every Safety_Delay seconds, to make
@@ -144,6 +147,14 @@ package body System.Garlic.Non_Blocking is
    end Selection;
    --  This task is in charge of calling C_Select
 
+   procedure Check
+     (Socket : in     Descriptors;
+      R_Mask : in out Boolean;
+      S_Mask : in out Boolean);
+   --  Check if socket could be used to recv data or to send data. This
+   --  procedure should be used in a protected object because the variables
+   --  above are used as shared variables.
+
    SVR4_Stream_IO : Boolean := False;
    --  Will be set to True if SVR4 stream io operations are detected
 
@@ -177,27 +188,48 @@ package body System.Garlic.Non_Blocking is
          Flags  : in int;
          Result : out int)
       when True is
-         Dummy : int;
-         Empty : Boolean;
+         Dummy  : int;
+         Empty  : Boolean;
+         R_Mask : Boolean := True;
+         S_Mask : Boolean := False;
       begin
+
+         pragma Debug
+           (D (D_Debug,
+               "Entry recv on" & RRFD'Img &
+               " for" & Len'Img & " bytes"));
 
          --  We have to handle len = 0 separatly because recv does
          --  not behave the same way on different platforms.
 
          if Len = 0 then
-            Timeout.all  := Immediat;
-            Rfds.all := 2 ** Integer (RRFD);
-            Dummy := C_Select (RRFD + 1, Rfds, null, null, Timeout);
-            Empty := Rfds.all = 0;
+            Check (RRFD, R_Mask, S_Mask);
+            if R_Mask then
+               Dummy  := Thin.C_Recv (RRFD, Buf, Len, Flags);
+            end if;
+            Empty := not R_Mask;
          else
-            Dummy := Thin.C_Recv (RRFD, Buf, Len, Flags);
-            Empty := Dummy = Thin.Failure and then Errno = Ewouldblock;
+            Dummy  := Thin.C_Recv (RRFD, Buf, Len, Flags);
+            pragma Debug (D (D_Debug, "length = " & Len'Img));
+            pragma Debug (D (D_Debug, "dummy  = " & Dummy'Img));
+            if Dummy < 0 then
+               pragma Debug (D (D_Debug, "errno  = " & Errno'Img));
+               null;
+            end if;
+            if Dummy > 0 then
+               Empty := False;
+            elsif Dummy < 0 then
+               Empty := Errno = Ewouldblock or else Errno = Eintr;
+            else
+               Empty := True;
+            end if;
          end if;
          if Empty then
             Recv_Mask (RRFD) := True;
             if RRFD > Max_FD then
                Max_FD := RRFD;
             end if;
+            Ready_Recv_Mask (RRFD) := False;
             requeue Recv_Requeue (RRFD) with abort;
          else
             Result := Dummy;
@@ -214,22 +246,49 @@ package body System.Garlic.Non_Blocking is
          Flags  : in int;
          Result : out int)
       when Ready_Recv_Mask (RRFD) is
+         Dummy : int;
+         Empty : Boolean;
       begin
-         if Len > 0 then
-            Result := Thin.C_Recv (RRFD, Buf, Len, Flags);
+
+         pragma Debug
+           (D (D_Debug,
+               "Entry recv_requeue on" & RRFD'Img &
+               " for" & Len'Img & " bytes"));
+
+         if Len = 0 then
+            Dummy  := Thin.C_Recv (RRFD, Buf, Len, Flags);
+            Empty  := False;
          else
-            Result := 0;
+            Dummy  := Thin.C_Recv (RRFD, Buf, Len, Flags);
+            pragma Debug (D (D_Debug, "length = " & Len'Img));
+            pragma Debug (D (D_Debug, "dummy  = " & Dummy'Img));
+            if Dummy < 0 then
+               pragma Debug (D (D_Debug, "errno  = " & Errno'Img));
+               null;
+            end if;
+            if Dummy > 0 then
+               Empty := False;
+            elsif Dummy < 0 then
+               Empty := Errno = Ewouldblock or else Errno = Eintr;
+            else
+               Empty := True;
+            end if;
          end if;
-         Recv_Mask (RRFD) := False;
          Ready_Recv_Mask (RRFD) := False;
-         if Max_FD = RRFD then
-            Max_FD := -1;
-            for I in reverse Descriptors'First .. RRFD loop
-               if Recv_Mask (I) or Send_Mask (I) then
-                  Max_FD := I;
-                  exit;
-               end if;
-            end loop;
+         if Empty then
+            requeue Recv_Requeue (RRFD) with abort;
+         else
+            Result := Dummy;
+            Recv_Mask (RRFD) := False;
+            if Max_FD = RRFD then
+               Max_FD := -1;
+               for I in reverse Descriptors'First .. RRFD loop
+                  if Recv_Mask (I) or Send_Mask (I) then
+                     Max_FD := I;
+                     exit;
+                  end if;
+               end loop;
+            end if;
          end if;
       end Recv_Requeue;
 
@@ -262,27 +321,46 @@ package body System.Garlic.Non_Blocking is
          Flags  : in int;
          Result : out int)
       when True is
-         Dummy : int;
-         Empty : Boolean;
+         Dummy  : int;
+         Empty  : Boolean;
+         R_Mask : Boolean := False;
+         S_Mask : Boolean := True;
       begin
+
+         pragma Debug
+           (D (D_Debug,
+               "Entry send on" & RSFD'Img &
+               " for" & Len'Img & " bytes"));
 
          --  We have to handle len = 0 separatly because send does
          --  not behave the same way on different platforms.
 
          if Len = 0 then
-            Timeout.all  := Immediat;
-            Sfds.all := 2 ** Integer (RSFD);
-            Dummy := C_Select (RSFD + 1, null, Sfds, null, Timeout);
-            Empty := Sfds.all = 0;
+            Check (RSFD, R_Mask, S_Mask);
+            Dummy := 0;
+            Empty := not S_Mask;
          else
-            Dummy := Thin.C_Send (RSFD, Buf, Len, Flags);
-            Empty := Dummy = Thin.Failure and then Errno = Ewouldblock;
+            Dummy  := Thin.C_Send (RSFD, Buf, Len, Flags);
+            pragma Debug (D (D_Debug, "length = " & Len'Img));
+            pragma Debug (D (D_Debug, "dummy  = " & Dummy'Img));
+            if Dummy < 0 then
+               pragma Debug (D (D_Debug, "errno  = " & Errno'Img));
+               null;
+            end if;
+            if Dummy > 0 then
+               Empty := False;
+            elsif Dummy < 0 then
+               Empty := Errno = Ewouldblock; --  or else Errno = Eagain;
+            else
+               Empty := True;
+            end if;
          end if;
          if Empty then
             Send_Mask (RSFD) := True;
             if RSFD > Max_FD then
                Max_FD := RSFD;
             end if;
+            Ready_Send_Mask (RSFD) := False;
             requeue Send_Requeue (RSFD) with abort;
          else
             Result := Dummy;
@@ -299,22 +377,49 @@ package body System.Garlic.Non_Blocking is
          Flags  : in int;
          Result : out int)
       when Ready_Send_Mask (RSFD) is
+         Dummy : int;
+         Empty : Boolean;
       begin
-         if Len > 0 then
-            Result := Thin.C_Send (RSFD, Buf, Len, Flags);
+
+         pragma Debug
+           (D (D_Debug,
+               "Entry send_requeue on" & RSFD'Img &
+               " for" & Len'Img & " bytes"));
+
+         if Len = 0 then
+            Dummy := 0;
+            Empty := False;
          else
-            Result := 0;
+            Dummy  := Thin.C_Send (RSFD, Buf, Len, Flags);
+            pragma Debug (D (D_Debug, "length = " & Len'Img));
+            pragma Debug (D (D_Debug, "dummy  = " & Dummy'Img));
+            if Dummy < 0 then
+               pragma Debug (D (D_Debug, "errno  = " & Errno'Img));
+               null;
+            end if;
+            if Dummy > 0 then
+               Empty := False;
+            elsif Dummy < 0 then
+               Empty := Errno = Ewouldblock; --  or else Errno = Eagain;
+            else
+               Empty := True;
+            end if;
          end if;
-         Send_Mask (RSFD) := False;
          Ready_Send_Mask (RSFD) := False;
-         if Max_FD = RSFD then
-            Max_FD := -1;
-            for I in reverse Descriptors'First .. RSFD loop
-               if Recv_Mask (I) or Send_Mask (I) then
-                  Max_FD := I;
-                  exit;
-               end if;
-            end loop;
+         if Empty then
+            requeue Send_Requeue (RSFD) with abort;
+         else
+            Result := Dummy;
+            Send_Mask (RSFD) := False;
+            if Max_FD = RSFD then
+               Max_FD := -1;
+               for I in reverse Descriptors'First .. RSFD loop
+                  if Recv_Mask (I) or Send_Mask (I) then
+                     Max_FD := I;
+                     exit;
+                  end if;
+               end loop;
+            end if;
          end if;
       end Send_Requeue;
 
@@ -334,11 +439,9 @@ package body System.Garlic.Non_Blocking is
       Dummy_CP : chars_ptr := Null_Ptr;
    begin
       Set_Asynchronous_Non_Blocking (S);
-      pragma Debug
-        (D (D_Debug, "Blocking until there is something to accept"));
+      pragma Debug (D (D_Debug, "Blocking until something to accept"));
       Asynchronous.Recv (S) (Dummy_CP, 0, 0, Dummy);
-      pragma Debug
-        (D (D_Debug, "There is something to accept"));
+      pragma Debug (D (D_Debug, "There is something to accept"));
       return Thin.C_Accept (S, Addr, Addrlen);
    end C_Accept;
 
@@ -427,6 +530,71 @@ package body System.Garlic.Non_Blocking is
       return Count;
    end C_Send;
 
+   -----------
+   -- Check --
+   -----------
+
+   procedure Check
+     (Socket : in     Descriptors;
+      R_Mask : in out Boolean;
+      S_Mask : in out Boolean) is
+      Dummy   : int;
+      Rfds    : aliased Fd_Set;
+      Sfds    : aliased Fd_Set;
+      Pfd     : aliased Pollfd;
+      Timeout : aliased Timeval;
+   begin
+      if Use_Poll then
+
+         --  There is something to do on this file descriptor
+
+         Pfd.Fd := Socket;
+         Pfd.Events := 0;
+
+         if R_Mask then
+            Pfd.Events := Pfd.Events + Pollin;
+         end if;
+
+         if S_Mask then
+            Pfd.Events := Pfd.Events + Pollout;
+         end if;
+
+         Dummy := Thin.C_Poll (Pfd'Address, 1, 0);
+
+         R_Mask := (Pfd.Revents / Pollin) mod 2 = 1;
+         S_Mask := (Pfd.Revents / Pollout) mod 2 = 1;
+
+      else
+
+         if R_Mask then
+            Rfds := 2 ** Integer (Socket);
+            pragma Debug (D (D_Debug, "select recv :" & Socket'Img));
+         else
+            Rfds := 0;
+         end if;
+
+         if S_Mask then
+            Sfds := 2 ** Integer (Socket);
+            pragma Debug (D (D_Debug, "select send :" & Socket'Img));
+         else
+            Sfds := 0;
+         end if;
+
+         Timeout := Immediat;
+         Dummy   := C_Select (Socket + 1,
+                              Rfds'Unchecked_Access,
+                              Sfds'Unchecked_Access,
+                              null,
+                              Timeout'Unchecked_Access);
+         pragma Debug (D (D_Debug, "select value :" & Dummy'Img));
+
+         R_Mask := Rfds /= 0;
+         S_Mask := Sfds /= 0;
+
+      end if;
+
+   end Check;
+
    ---------------
    -- Selection --
    ---------------
@@ -453,55 +621,7 @@ package body System.Garlic.Non_Blocking is
             for I in RFD'First .. Max loop
 
                if RFD (I) or else SFD (I) then
-
-                  if TCP.Platform_Specific.Use_Poll then
-
-                     --  There is something to do on this file descriptor
-
-                     Pfd.Fd := I;
-                     Pfd.Events := 0;
-
-                     if RFD (I) then
-                        Pfd.Events := Pfd.Events + Pollin;
-                     end if;
-
-                     if SFD (I) then
-                        Pfd.Events := Pfd.Events + Pollout;
-                     end if;
-
-                     Dummy := Thin.C_Poll (Pfd'Address, 1, 0);
-
-                     RFD (I) := (Pfd.Revents / Pollin) mod 2 = 1;
-                     SFD (I) := (Pfd.Revents / Pollout) mod 2 = 1;
-
-                  else
-
-                     Timeout.all  := Immediat;
-
-                     if RFD (I) then
-                        Rfds.all := 2 ** Integer (I);
-                        pragma Debug
-                          (D (D_Debug, "select recv :" & I'Img));
-                     else
-                        Rfds.all := 0;
-                     end if;
-
-                     if SFD (I) then
-                        Sfds.all := 2 ** Integer (I);
-                        pragma Debug
-                          (D (D_Debug, "select send :" & I'Img));
-                     else
-                        Sfds.all := 0;
-                     end if;
-
-                     Dummy := C_Select (I + 1, Rfds, Sfds, null, Timeout);
-                     pragma Debug (D (D_Debug, "select value :" & Dummy'Img));
-
-                     RFD (I) := Rfds.all /= 0;
-                     SFD (I) := Sfds.all /= 0;
-
-                  end if;
-
+                  Check (I, RFD (I), SFD (I));
                end if;
 
             end loop;

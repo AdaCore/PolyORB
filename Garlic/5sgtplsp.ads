@@ -33,14 +33,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with System.Garlic.Thin;
-pragma Warnings (Off, System.Garlic.Thin);
-
 package System.Garlic.TCP.Platform_Specific is
 
-   --  Solaris version of this package.
-
-   package Net renames System.Garlic.Thin;
+   --  This is the Solaris version of this package.
 
 private
 

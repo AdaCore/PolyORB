@@ -43,6 +43,7 @@ with System.Garlic.Debug;                 use System.Garlic.Debug;
 with System.Garlic.Exceptions;            use System.Garlic.Exceptions;
 with System.Garlic.Heart;                 use System.Garlic.Heart;
 with System.Garlic.Naming;                use System.Garlic.Naming;
+with System.Garlic.TCP.Operations;
 with System.Garlic.Network_Utilities;     use System.Garlic.Network_Utilities;
 with System.Garlic.Options;
 with System.Garlic.Physical_Location;     use System.Garlic.Physical_Location;
@@ -51,6 +52,7 @@ with System.Garlic.Soft_Links;            use System.Garlic.Soft_Links;
 with System.Garlic.Streams;               use System.Garlic.Streams;
 with System.Garlic.Thin;                  use System.Garlic.Thin;
 with System.Garlic.TCP.Platform_Specific;
+pragma Warnings (Off, System.Garlic.TCP.Platform_Specific);
 with System.Storage_Elements;             use System.Storage_Elements;
 
 package body System.Garlic.TCP is
@@ -79,7 +81,7 @@ package body System.Garlic.TCP is
    use type C.unsigned_short;
    --  Shortcuts
 
-   package Net renames Platform_Specific.Net;
+   package Net renames System.Garlic.TCP.Operations;
 
    In_Address_Any : constant Naming.Address := Any_Address;
 

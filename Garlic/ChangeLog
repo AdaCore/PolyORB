@@ -1,3 +1,26 @@
+1998-07-26  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* isthrbio.adb: New source file used to detect whether we have a
+	thread blocking io gnat rts. Use 'select' with timeout to do so.
+	
+	* s-ganobl.adb, s-gartcp.adb: Don't use with
+	System.Garlic.TCP.Platform_Specific.Net anymore but
+	System.Garlic.TCP.Operations instead. This new file is created at
+	configuration time and decide to use a process blocking io mode or 
+	the thread blocking io mode.
+
+	* s-ganobl.adb : Create a new procedure Check to test if we can
+ 	send or receive a message on a socket. This encapsulate the use of
+ 	Poll or Select. Fix some problems on Linux using FSU threads.
+
+	* Makefile.am, Makefile.in: Remove generation of s-gtplsp.ads as
+	this is now done during configuration file. Add new object and
+	source files: s-gatcop.ads s-gatcop.o.
+
+	* 5sgtplsp.ads: Remove renaming of
+ 	System.Garlic.TCP.Platform_Specific.Net to System.Garlic.Thin as
+ 	this mode is now detected during configuration.
+
 1998-07-23  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-gafizi.adb: target_bytes should be initialized before
