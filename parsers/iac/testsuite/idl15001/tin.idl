@@ -1,0 +1,10 @@
+module M {
+  typedef long Long; // Error: Long clashes with keyword long
+  typedef long TheThing;
+  interface I {
+    typedef long MyLong;
+    myLong op1( // Error: inconsistent capitalization
+               in TheThing thething // Error: TheThing clashes with thething
+	       );
+  };
+};

@@ -1,0 +1,130 @@
+//
+// Copyright (c) 1997 X/Open Company Ltd., A member of The Open Group.
+//
+// All rights reserved. No part of this source code may be reproduced,
+// stored in a retrieval system, or transmitted, in any form or by any
+// means, electronic, mechanical, photocopying, recording or otherwise,
+// except as stated in the end-user licence agreement, without the prior
+// permission of the copyright owners.
+//
+// Developed for X/Open by ApTest Ireland Limited.
+//
+// Project: CORVAL2
+//
+
+
+typedef sequence<sequence<float,18> ,18>  GoldenDelicous;
+
+typedef sequence<sequence<double> >  CrabApple[13];
+
+typedef sequence<sequence<double,15> >  Cinnamon;
+
+typedef sequence<sequence<double,11> ,7>  JuniperBerries[10];
+
+typedef sequence<sequence<long> ,19>  Mustard;
+
+typedef sequence<sequence<long,12> >  Thyme[6];
+
+typedef sequence<sequence<short> >  Tarragon;
+
+typedef sequence<sequence<short> ,9>  Cress[7];
+
+interface idlServer {
+
+  exception GoldenDelicousExcpt{
+    ::GoldenDelicous ex1;
+  };
+
+  attribute ::GoldenDelicous GoldenDelicousAttr;
+
+  ::GoldenDelicous GoldenDelicousOp(
+    in    ::GoldenDelicous p1,
+    out   ::GoldenDelicous p2,
+    inout ::GoldenDelicous p3
+  ) raises (GoldenDelicousExcpt);
+
+  exception CrabAppleExcpt{
+    ::CrabApple ex1;
+  };
+
+  attribute ::CrabApple CrabAppleAttr;
+
+  ::CrabApple CrabAppleOp(
+    in    ::CrabApple p1,
+    out   ::CrabApple p2,
+    inout ::CrabApple p3
+  ) raises (CrabAppleExcpt);
+
+  exception CinnamonExcpt{
+    ::Cinnamon ex1;
+  };
+
+  attribute ::Cinnamon CinnamonAttr;
+
+  ::Cinnamon CinnamonOp(
+    in    ::Cinnamon p1,
+    out   ::Cinnamon p2,
+    inout ::Cinnamon p3
+  ) raises (CinnamonExcpt);
+
+  exception JuniperBerriesExcpt{
+    ::JuniperBerries ex1;
+  };
+
+  attribute ::JuniperBerries JuniperBerriesAttr;
+
+  ::JuniperBerries JuniperBerriesOp(
+    in    ::JuniperBerries p1,
+    out   ::JuniperBerries p2,
+    inout ::JuniperBerries p3
+  ) raises (JuniperBerriesExcpt);
+
+  exception MustardExcpt{
+    ::Mustard ex1;
+  };
+
+  attribute ::Mustard MustardAttr;
+
+  ::Mustard MustardOp(
+    in    ::Mustard p1,
+    out   ::Mustard p2,
+    inout ::Mustard p3
+  ) raises (MustardExcpt);
+
+  exception ThymeExcpt{
+    ::Thyme ex1;
+  };
+
+  attribute ::Thyme ThymeAttr;
+
+  ::Thyme ThymeOp(
+    in    ::Thyme p1,
+    out   ::Thyme p2,
+    inout ::Thyme p3
+  ) raises (ThymeExcpt);
+
+  exception TarragonExcpt{
+    ::Tarragon ex1;
+  };
+
+  attribute ::Tarragon TarragonAttr;
+
+  ::Tarragon TarragonOp(
+    in    ::Tarragon p1,
+    out   ::Tarragon p2,
+    inout ::Tarragon p3
+  ) raises (TarragonExcpt);
+
+  exception CressExcpt{
+    ::Cress ex1;
+  };
+
+  attribute ::Cress CressAttr;
+
+  ::Cress CressOp(
+    in    ::Cress p1,
+    out   ::Cress p2,
+    inout ::Cress p3
+  ) raises (CressExcpt);
+};
+

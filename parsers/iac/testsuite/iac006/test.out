@@ -1,0 +1,6 @@
+tin.idl:1:12: value not in range of type of "long"
+tin.idl:2:19: invalid operand types for operator "+"
+tin.idl:3:13: value not in range of type of "octet"
+tin.idl:4:38: value not in range of type of "long" or "unsigned long"
+tin.idl:5:33: value not in range of type of "long" or "unsigned long"
+iac: 5 error(s)

@@ -1,0 +1,10 @@
+#!/bin/sh
+IFILE=$1;
+shift;
+OFILE=$1;
+shift;
+if [ "$CPPEXEC" = "gnu-cpp" ]; then
+    cpp -E -C -x c++ -ansi $* -o $OFILE $IFILE
+else
+    mico-cpp $IFILE $OFILE $*
+fi

@@ -1,0 +1,279 @@
+module Backend::BE_Ada::Nodes {
+
+  /******************/
+  /* Internal types */
+  /******************/
+
+  typedef octet   Mode_Id;
+  typedef octet   Operator_Id;
+  typedef long    Name_Id;
+
+  /******************/
+  /* Internal nodes */
+  /******************/
+
+  interface Node_Id {
+    Node_Id    Next_Node;
+  };
+
+  interface Definition : Node_Id {
+    Node_Id    Identifier;
+  };
+
+  interface List_Id {
+    Node_Id    First_Node;
+    Node_Id    Last_Node;
+  };
+
+  interface Ada_Identifier : Node_Id {
+    Name_Id    Name;
+    Node_Id    Node;
+  };
+
+
+  /*****************/
+  /* Literal nodes */
+  /*****************/
+
+  interface Literal : Node_Id {
+    Name_Id    Literal;
+  };
+
+
+  /********************/
+  /* Expression nodes */
+  /********************/
+
+  interface Expression : Node_Id {
+    Operator_Id Operator;
+    Node_Id     Left_Expr;
+    Node_Id     Right_Expr;
+  };
+
+
+  /******************/
+  /* Constant nodes */
+  /******************/
+
+  interface Constant_Declaration : Definition {
+    Node_Id    Type_Spec;
+    Node_Id    Expression;
+  };
+
+
+  /*****************/
+  /* Package nodes */
+  /*****************/
+
+  interface Ada_Pragma : Node_Id {
+    Node_Id    Identifier;
+    Name_Id    Comment; /* To explain why this pragma is necessary */
+  };
+
+  interface Ada_Pragma_List : List_Id {
+  };
+
+  interface Ada_With_List : List_Id {
+  };
+
+  interface Ada_With : Node_Id {
+    Node_Id    Identifier;
+    boolean    Do_Use;
+    List_Id    Pragma_List;
+  };
+
+  interface Ada_Definition_List : List_Id {
+  };
+
+  interface Ada_Package_List : List_Id {
+  };
+
+  interface Ada_Package_Spec : Node_Id {
+    Name_Id    Prologue;
+    List_Id    Package_With;
+    List_Id    Ada_Public;
+    List_Id    Ada_Private;
+  };
+
+  interface Ada_Package_Body : Node_Id {
+    Name_Id    Prologue;
+    List_Id    Package_With;
+    List_Id    Declarations;
+    List_Id    Pack_Body;
+  };
+
+  interface Ada_Packages : Node_Id {
+    Node_Id    Identifier;
+    Node_Id    Parent;
+    Node_Id    Package_Spec;
+    Node_Id    Package_Body;
+  };
+
+
+  /********************/
+  /* Subprogram nodes */
+  /********************/
+
+  interface Ada_Argument : Node_Id {
+    Node_Id    Identifier;
+    Mode_Id    Argument_Mode;
+    Node_Id    Arg_Type ;
+  };
+
+  interface Ada_Function : Definition {
+    List_Id    Argument_List;
+    Node_Id    Return_Type;
+    List_Id    Declarations;
+    List_Id    Func_Body;
+  };
+
+  interface Ada_Procedure : Definition {
+    List_Id    Argument_List;
+    List_Id    Declarations;
+    List_Id    Proc_Body;
+  };
+
+
+  /***************/
+  /* Other nodes */
+  /***************/
+
+  interface Package_Instantiation : Definition {
+    Node_Id      Generic_Package;
+    List_Id      Argument_List;  
+  };
+
+  interface Var_Declaration : Definition {
+    Node_Id    Type_Spec;
+    Node_Id    Expression;
+  };
+
+  interface Ada_Comment : Definition {
+  };
+
+
+  /**************/
+  /* Type nodes */
+  /**************/
+
+  interface Type_Declaration : Definition {
+    Node_Id     Type_Spec;
+  };
+
+
+  /***************/
+  /* Array nodes */
+  /***************/
+
+  interface Array_Size_List : List_Id {};
+  interface Array_Type : Node_Id {
+    Node_Id     Type_Spec;
+    List_Id     Array_Sizes;
+  };
+
+
+  /****************/
+  /* Member nodes */
+  /****************/
+
+  interface Member : Node_Id {
+    Node_Id    Identifier;
+    Node_Id    Type_Spec;
+  };
+  interface Member_List : List_Id {};
+
+
+  /*********************/
+  /* Scoped name nodes */
+  /*********************/
+
+  interface Scoped_Name : Node_Id {
+    Node_Id     Identifier;
+    Node_Id     Reference;
+    boolean     Is_Record;
+    List_Id     Members;
+  };
+
+
+  /******************/
+  /* Stucture nodes */
+  /******************/
+
+  interface Structure_Type : Node_Id {
+    List_Id      Members;
+  };
+
+
+  /***************/
+  /* Union nodes */
+  /***************/
+
+  interface Case_Label_List : List_Id {};
+  interface Switch_Alternative : Node_Id {
+    List_Id    Labels;
+    Node_Id    Element;
+  };
+
+  interface Element : Node_Id {
+    Node_Id    Identifier;
+    Node_Id    Type_Spec;
+  };
+
+  interface Switch_Type_Body : List_Id {};
+  interface Union_Type : Node_Id {
+    Node_Id    Switch_Type_Spec;
+    List_Id    Switch_Type_Body;
+  };
+
+
+  /*********************/
+  /* Enumeration nodes */
+  /*********************/
+
+  interface Enumerator_List : List_Id {
+  };
+  interface Enumeration_Type : Node_Id {
+    List_Id    Enumerators;
+  };
+
+
+  /*******************/
+  /* Exception nodes */
+  /*******************/
+
+  interface Exception_Declaration : Definition {
+  };
+  interface Exception_Members : Node_Id {
+    List_Id      Members;
+  };
+
+
+  /*********************/
+  /* Fixed point nodes */
+  /*********************/
+
+  interface Fixed_Point_Type : Node_Id {
+    Name_Id    N_Digits;
+    Name_Id    N_Delta;
+  };
+
+  /*******************/
+  /* Base type nodes */
+  /*******************/
+
+  interface Base_Type {};
+  interface _Float : Base_Type {};
+  interface _Double : Base_Type {};
+  interface Long_Double : Base_Type {};
+  interface _Short : Base_Type {};
+  interface _Long : Base_Type {};
+  interface Long_Long : Base_Type {};
+  interface Unsigned_Short : Base_Type {};
+  interface Unsigned_Long : Base_Type {};
+  interface Unsigned_Long_Long : Base_Type {};
+  interface _Char : Base_Type {};
+  interface Wide_Char : Base_Type {};
+  interface _Octet : Base_Type {};
+  interface _Boolean : Base_Type {};
+  interface _String : Base_Type {};
+};

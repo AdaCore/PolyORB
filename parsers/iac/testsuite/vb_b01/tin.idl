@@ -1,0 +1,4 @@
+// IDL-Spec for testgroup: valuetype
+// Purpose: basic features of valuetype
+
+valuetype ShortValue short;
