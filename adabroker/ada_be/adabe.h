@@ -81,6 +81,7 @@ public:
 
   void produce_ads (dep_list with,string &String, string &previousdefinition);
   void produce_adb (dep_list with,string &String, string &previousdefinition);
+  void produce_impl_ads (dep_list with,string &String, string &previousdefinition);
   //produce the ada name of the type
   
 private:
@@ -181,6 +182,9 @@ public:
   //produce a field in the header
   produce_adb (dep_list with,string &String, string &previousdefinition);    
   //produce a field in the body
+  produce_impl_ads (dep_list with,string &String, string &previousdefinition); /////useless
+  //produce a field in the implementation header
+
   DEF_NARROW_METHODS1(adabe_field, AST_Field);
   DEF_NARROW_FROM_DECL(adabe_field);
 
@@ -205,6 +209,8 @@ public:
   //produce an union in the header
   void produce_adb(dep_list with,string &String, string &previousdefinition);
   //produce the name of the union in the body
+  void produce_impl_ads(dep_list with,string &String, string &previousdefinition);
+  //produce an union in the implementation header
   
   //  void produce_adb(std::fstream& s);
   //  void produce_impl_ads(std::fstream& s);
@@ -223,7 +229,9 @@ public:
   //constructor
   
   produce_ads(dep_list, string, string, AST_Concretetype*);
-  //produce a branch of the union
+  //produce a branch of the union in the header
+  produce_impl_ads(dep_list, string, string, AST_Concretetype*); //////////// useless
+  //produce a branch of the union in the implementation header
 
   DEF_NARROW_METHODS1(adabe_union_branch, AST_UnionBranch);
   DEF_NARROW_FROM_DECL(adabe_union_branch);
@@ -253,6 +261,9 @@ public:
   //produce the name of the structure
   void produce_adb(dep_list with,string &String, string &previousdefinition);
   //produce the name of the structure in the body
+  void produce_impl_ads(dep_list with,string &String, string &previousdefinition);
+  //produce the structure in the implementation header
+
 };
 
 
@@ -335,6 +346,9 @@ public:
   //produce an argument of an operation in the header
   produce_adb(dep_list with,string &String, string &previousdefinition);
   //produce an argument of an operation in the body
+  produce_impl_ads(dep_list with,string &String, string &previousdefinition); /////////useless
+  //produce an argument of an operation in the implementation header
+
   DEF_NARROW_METHODS1(adabe_argument, AST_Argument);
   DEF_NARROW_FROM_DECL(adabe_argument);
 
@@ -357,6 +371,8 @@ public:
   //produce an attribute in the header
   void produce_adb(dep_list with,string &String, string &previousdefinition);
   //produce an attribute in the body
+  void produce_impl_ads(dep_list with,string &String, string &previousdefinition);
+  //produce an attribute in the implementation header
 
   //  void produce_adb(std::fstream& s);
   //  void produce_impl_ads(std::fstream& s);
@@ -384,6 +400,8 @@ public:
   //produce an operation in the header
   void produce_adb(dep_list with,string &String, string &previousdefinition);
   //produce an operation in the body
+  void produce_impl_ads(dep_list with,string &String, string &previousdefinition);
+  //produce an operation in the implementation header
 
   //  void produce_adb(std::fstream& s);
   //  void produce_impl_ads(std::fstream& s);
@@ -409,6 +427,8 @@ public:
 
   void produce_ads(dep_list with,string &String, string &previousdefinition);
   //produce a typedef in the header
+  void produce_impl_ads(dep_list with,string &String, string &previousdefinition);
+  //produce a typedef in the implementation header
 
   //  void produce_adb(std::fstream& s);
   //  void produce_impl_ads(std::fstream& s);
@@ -434,6 +454,8 @@ public:
   //produce an interface in the header
   void produce_adb(dep_list with,string &String, string &previousdefinition);
   //produce an interface in the body
+  void produce_impl_ads(dep_list with,string &String, string &previousdefinition);
+  //produce an interface in the implementation header
   
   //  void produce_adb(std::fstream& s);
   //  void produce_impl_ads(std::fstream& s);
@@ -456,6 +478,8 @@ public:
 
   void produce_ads(dep_list with,string &String, string &previousdefinition);
   //produce the interface forward in the header
+  void produce_impl_ads(dep_list with,string &String, string &previousdefinition);
+  //produce the interface forward in the implementation header
 
   //  void produce_adb(std::fstream& s);
   //  void produce_impl_ads(std::fstream& s);

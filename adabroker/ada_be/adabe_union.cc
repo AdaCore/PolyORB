@@ -34,8 +34,8 @@ adabe_union::dump_name(dep_list with,string &String, string &previousdefinition)
   /*
       if (!is_imported(with))
       {
-          if (!is_already_defined)
-                     &previousdefinition += produce_ads( with, String, previousdefinition);
+          if (!is_already_defined())
+                      produce_ads( with, String, previousdefinition);
            return get_ada_name();}
       return get_ada_full_name();	   
   */

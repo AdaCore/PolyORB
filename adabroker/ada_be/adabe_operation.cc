@@ -84,7 +84,7 @@ adabe_operation::produce_adb(dep_list with,string &String, string &previousdefin
        argument.produce_ads(with, &String, &previousdefinition);
     }
     name = return_type_cast.dump_name( with, &String, &previousdefinition);
-    name_of_the_package = ???????????????????????????????????????????????????????????????????????????????????????????????
+    name_of_the_package = (cast of 'defined_in()' in an ast_interface).get_ada_name()
     String += ") return " + name +" is \n";
     String += "Opcd : " + name_of_the_package + ".Proxies." + get_ada_name() + "_Proxy ;\n"
     String += "Result : " + name +";\n";
@@ -120,7 +120,7 @@ adabe_operation::produce_adb(dep_list with,string &String, string &previousdefin
            String += ", Result : out " + name + ") is\n";
 	   }
     else   String += ") is \n";
-    name_of_the_package = ???????????????????????????????????????????????????????????????????????????????????????????????
+    name_of_the_package = (cast of 'defined_in()' in an ast_interface).get_ada_name()
     String += "Opcd : " + name_of_the_package + ".Proxies." + get_ada_name() + "_Proxy ;\n"
     String += "begin \n";
     String += "Assert_Ref_Not_Nil(Self);";
@@ -156,7 +156,7 @@ adabe_operation::produce_impl_ads(dep_list with,string &String, string &previous
        string += ","
        cast the node into his NT type
        if it is an argument
-       argument.produce_ads(with, &String, &previousdefinition);
+       argument.produce_impl_ads(with, &String, &previousdefinition);
     }
     string += ") return " + return_type_cast.dump_name( with, &String, &previousdefinition) + ";";
   }
@@ -168,7 +168,7 @@ adabe_operation::produce_impl_ads(dep_list with,string &String, string &previous
        string += ","
        cast the node into his NT type
        if it is an argument
-       argument.produce_ads(dep_list with,string &String, string &previousdefinition);
+       argument.produce_impl_ads(dep_list with,string &String, string &previousdefinition);
     }
     string += ", Result : out " return_type_cast.dump_name(dep_list with,string &String, string &previousdefinition) + ");";
   }

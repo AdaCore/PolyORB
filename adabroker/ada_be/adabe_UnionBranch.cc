@@ -18,7 +18,7 @@ adabe_union_branch::produce_ads(dep_list with,string &String, string &previousde
       previousdefinition += temp;
 
  */
-
+/////////////////////// peut etre inutile ///////////////////////
 void
 adabe_union_branch::produce_impl_ads(dep_list with,string &String, string &previousdefinition, AST_ConcreteType *concrete);
 /*
