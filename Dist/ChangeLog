@@ -1,3 +1,10 @@
+Thu Nov 27 15:13:27 1997  Laurent Pautet  <pautet@esmeralda.enst.fr>
+
+	* xe_stubs.adb: When an exception is raised from the user code,
+ 	some finalization code has to executed (for instance, local
+ 	termination). Catch exception, execute finalization code and
+	re-raise exception. Fix partially 4827-G01.
+
 Tue Nov 18 19:55:03 1997  Laurent Pautet  <pautet@esmeralda.enst.fr>
 
 	* xe_check.adb: Fix incorrect test concerning configuration of

@@ -930,12 +930,23 @@ package body XE_Stubs is
          end if;
       end if;
 
-      --  When we exit main subprogram, just terminate.
-      if Get_Termination (PID) = Local_Termination then
-         Dwrite_Str  (FD, "   system.garlic.termination.local_termination;");
-         Dwrite_Eol  (FD);
-      end if;
+      for B in False .. True loop
 
+         --  When we exit main subprogram, just terminate.
+         if Get_Termination (PID) = Local_Termination then
+            Dwrite_Str (FD, "   system.garlic.termination.local_termination;");
+            Dwrite_Eol (FD);
+         end if;
+
+         exit when B;
+
+         Dwrite_Str  (FD, "   exception when others =>");
+         Dwrite_Eol  (FD);
+
+      end loop;
+      
+      Dwrite_Str  (FD, "      raise;");
+      Dwrite_Eol  (FD);
       Dwrite_Str  (FD, "end ");
       Dwrite_Name (FD, Partition_Main_Name);
       Dwrite_Str  (FD, ";");
