@@ -1,3 +1,12 @@
+Mon Sep 30 11:43:01 1996  Laurent Pautet  <pautet@quasimodo.enst.fr>
+
+	* xe_stubs.adb: Use configuration name as partition main
+	subprogram. File stamp checking has been a little bit improved.
+
+Sun Sep 29 18:33:58 1996  Laurent Pautet  <pautet@quasimodo.enst.fr>
+
+	* xe_utils.adb: Later has been changed to More_Recent.
+
 Mon Sep 23 18:23:05 1996  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* xe.adb: Get_Host, Get_Command_Line, Get_Absolute_Exec,

@@ -32,7 +32,7 @@ package XE_Utils is
 
    --  This package is intended to provide all the OS facilities
 
-   function Later (File1, File2 : Name_Id) return Boolean;
+   function More_Recent (File1, File2 : Name_Id) return Boolean;
 
    Obj_Suffix   : Name_Id;
    ALI_Suffix   : Name_Id;

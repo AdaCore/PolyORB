@@ -138,14 +138,14 @@ package body XE_Utils is
       Args : Argument_List);
    --  Execute gnatlink and add gnatdist flags
 
-   -----------
-   -- Later --
-   -----------
+   -----------------
+   -- More_Recent --
+   -----------------
 
-   function Later (File1, File2 : Name_Id) return Boolean is
+   function More_Recent (File1, File2 : Name_Id) return Boolean is
    begin
       return Source_File_Stamp (File1) > Source_File_Stamp (File2);
-   end Later;
+   end More_Recent;
 
    -------------
    -- Execute --
@@ -676,24 +676,23 @@ package body XE_Utils is
       Change_Dir (DSA_Dir & Dir_Sep_Id & Partition);
 
       Execute_Gcc
-        (Partition & ADB_Suffix,
+        (Configuration & ADB_Suffix,
          (I_Current_Dir,
           I_Caller_Dir,
           I_G_Parent_Dir)
          );
 
       --  I_Garlic_Dir is not included here because it was added by the
-      --  gnatdist shell script. If in the future gnatdist becomes this
-      --  executable, the I_Garlic_Dir directive will be needed here.
+      --  gnatdist shell script.
 
       Execute_Bind
-        (Partition & ALI_Suffix,
+        (Configuration & ALI_Suffix,
          (I_Current_Dir,
           I_Caller_Dir,
           I_G_Parent_Dir)
          );
       Execute_Link
-        (Partition & ALI_Suffix,
+        (Configuration & ALI_Suffix,
          Exec,
          (L_Current_Dir,
           L_Caller_Dir,

@@ -164,7 +164,7 @@ procedure XE_Stubs is
       FD    : File_Descriptor;
       Fname : File_Name_Type := DSA_Dir & Dir_Sep_Id &
                                 PName & Dir_Sep_Id &
-                                PName & ADB_Suffix;
+                                Configuration & ADB_Suffix;
       Host  : Name_Id;
       Main  : Name_Id;
 
@@ -178,15 +178,15 @@ procedure XE_Stubs is
             Write_Str (" does not exist");
             Write_Eol;
          end if;
-      elsif Later (Configuration_File, Fname) then
+      elsif More_Recent (Configuration_File, Fname) then
          if Verbose_Mode then
             Write_Program_Name;
             Write_Str (": ");
-            Write_Name (Fname);
-            Write_Stamp (Fname);
-            Write_Str (" is newer than ");
             Write_Name (Configuration_File);
             Write_Stamp (Configuration_File);
+            Write_Str (" is more recent than ");
+            Write_Name (Fname);
+            Write_Stamp (Fname);
             Write_Eol;
          end if;
       else
@@ -277,7 +277,7 @@ procedure XE_Stubs is
       end if;
 
       Write_Str  (FD, "procedure ");
-      Write_Name (FD, PName);
+      Write_Name (FD, Configuration);
       Write_Str  (FD, " is");
       Write_Eol  (FD);
 
@@ -398,7 +398,7 @@ procedure XE_Stubs is
       end if;
 
       Write_Str  (FD, "end ");
-      Write_Name (FD, PName);
+      Write_Name (FD, Configuration);
       Write_Str  (FD, ";");
       Write_Eol  (FD);
 
@@ -546,19 +546,20 @@ procedure XE_Stubs is
             Write_Eol;
          end if;
          Obsolete := True;
-      elsif not Obsolete and then Later (Full_RCI_Spec, Caller_Body) then
+      elsif not Obsolete and then More_Recent (Full_RCI_Spec, Caller_Body) then
          if Verbose_Mode then
             Write_Program_Name;
             Write_Str (": ");
-            Write_Name (Caller_Body);
-            Write_Stamp (Caller_Body);
-            Write_Str (" is older than ");
             Write_Name (Full_RCI_Spec);
             Write_Stamp (Full_RCI_Spec);
+            Write_Str (" is more recent than ");
+            Write_Name (Caller_Body);
+            Write_Stamp (Caller_Body);
             Write_Eol;
          end if;
          Obsolete := True;
       end if;
+
       if not Obsolete and then not Is_Regular_File (Caller_Object) then
          if Verbose_Mode then
             Write_Program_Name;
@@ -568,19 +569,20 @@ procedure XE_Stubs is
             Write_Eol;
          end if;
          Obsolete := True;
-      elsif not Obsolete and then Later (Caller_Body, Caller_Object) then
+      elsif not Obsolete and then More_Recent (Caller_Body, Caller_Object) then
          if Verbose_Mode then
             Write_Program_Name;
             Write_Str (": ");
             Write_Name (Caller_Body);
             Write_Stamp (Caller_Body);
-            Write_Str (" is older than ");
+            Write_Str (" is more recent than ");
             Write_Name (Caller_Object);
             Write_Stamp (Caller_Object);
             Write_Eol;
          end if;
          Obsolete := True;
       end if;
+
       if not Obsolete and then not Is_Regular_File (Caller_ALI) then
          if Verbose_Mode then
             Write_Program_Name;
@@ -590,26 +592,27 @@ procedure XE_Stubs is
             Write_Eol;
          end if;
          Obsolete := True;
-      elsif not Obsolete and then  Later (Caller_Body, Caller_ALI) then
+      elsif not Obsolete and then More_Recent (Caller_Body, Caller_ALI) then
          if Verbose_Mode then
             Write_Program_Name;
             Write_Str (": ");
             Write_Name (Caller_Body);
             Write_Stamp (Caller_Body);
-            Write_Str (" is older than ");
+            Write_Str (" is more recent than ");
             Write_Name (Caller_ALI);
             Write_Stamp (Caller_ALI);
             Write_Eol;
          end if;
          Obsolete := True;
       end if;
-      if not Obsolete and then Later (Full_ALI_File, Caller_ALI) then
+
+      if not Obsolete and then More_Recent (Full_ALI_File, Caller_ALI) then
          if Verbose_Mode then
             Write_Program_Name;
             Write_Str (": ");
             Write_Name (Full_ALI_File);
             Write_Stamp (Full_ALI_File);
-            Write_Str (" is older than ");
+            Write_Str (" is more recent than ");
             Write_Name (Caller_ALI);
             Write_Stamp (Caller_ALI);
             Write_Eol;
@@ -629,8 +632,8 @@ procedure XE_Stubs is
          end if;
 
          Change_Dir (Caller_Dir);
-         Build_RCI_Caller (RCI_Body,
-                           G_Parent_Dir & Dir_Sep_Id & Full_RCI_Spec);
+         Build_RCI_Caller
+           (RCI_Body, G_Parent_Dir & Dir_Sep_Id & Full_RCI_Spec);
          Compile_RCI_Caller (RCI_Body);
          Change_Dir (G_Parent_Dir);
 
@@ -659,13 +662,14 @@ procedure XE_Stubs is
             Write_Eol;
          end if;
          Obsolete := True;
-      elsif not Obsolete and then Later (Full_RCI_Body, Receiver_Body) then
+      elsif not Obsolete and then
+         More_Recent (Full_RCI_Body, Receiver_Body) then
          if Verbose_Mode then
             Write_Program_Name;
             Write_Str (": ");
             Write_Name (Full_RCI_Body);
             Write_Stamp (Full_RCI_Body);
-            Write_Str (" is older than ");
+            Write_Str (" is more recent than ");
             Write_Name (Receiver_Body);
             Write_Stamp (Receiver_Body);
             Write_Eol;
@@ -681,13 +685,14 @@ procedure XE_Stubs is
             Write_Eol;
          end if;
          Obsolete := True;
-      elsif not Obsolete and then Later (Receiver_Body, Receiver_Object) then
+      elsif not Obsolete and then
+         More_Recent (Receiver_Body, Receiver_Object) then
          if Verbose_Mode then
             Write_Program_Name;
             Write_Str (": ");
             Write_Name (Receiver_Body);
             Write_Stamp (Receiver_Body);
-            Write_Str (" is older than ");
+            Write_Str (" is more recent than ");
             Write_Name (Receiver_Object);
             Write_Stamp (Receiver_Object);
             Write_Eol;
@@ -703,26 +708,28 @@ procedure XE_Stubs is
             Write_Eol;
          end if;
          Obsolete := True;
-      elsif not Obsolete and then Later (Receiver_Body, Receiver_ALI) then
+      elsif not Obsolete and then
+         More_Recent (Receiver_Body, Receiver_ALI) then
          if Verbose_Mode then
             Write_Program_Name;
             Write_Str (": ");
             Write_Name (Receiver_Body);
             Write_Stamp (Receiver_Body);
-            Write_Str (" is older than ");
+            Write_Str (" is more recent than ");
             Write_Name (Receiver_ALI);
             Write_Stamp (Receiver_ALI);
             Write_Eol;
          end if;
          Obsolete := True;
       end if;
-      if not Obsolete and then Later (Full_ALI_File, Receiver_ALI) then
+      if not Obsolete and then
+         More_Recent (Full_ALI_File, Receiver_ALI) then
          if Verbose_Mode then
             Write_Program_Name;
             Write_Str (": ");
             Write_Name (Full_ALI_File);
             Write_Stamp (Full_ALI_File);
-            Write_Str (" is older than ");
+            Write_Str (" is more recent than ");
             Write_Name (Receiver_ALI);
             Write_Stamp (Receiver_ALI);
             Write_Eol;
@@ -742,8 +749,8 @@ procedure XE_Stubs is
          end if;
 
          Change_Dir (Receiver_Dir);
-         Build_RCI_Receiver (RCI_Body,
-                             G_Parent_Dir & Dir_Sep_Id & Full_RCI_Body);
+         Build_RCI_Receiver
+           (RCI_Body, G_Parent_Dir & Dir_Sep_Id & Full_RCI_Body);
          Compile_RCI_Receiver (RCI_Body);
          Change_Dir (G_Parent_Dir);
 
