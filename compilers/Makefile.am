@@ -2,5 +2,5 @@
 #CIAO=	ciao
 #endif
 
-SUBDIRS=idlac gnatprfh
+SUBDIRS=	idlac gnatprfh
 # $(CIAO)
