@@ -1415,7 +1415,10 @@ package body Idl_Fe.Lexer is
       Add_Argument ("-E");
       Add_Argument ("-C");
       Add_Argument ("-x");
-      Add_Argument ("c++");
+      Add_Argument ("c");
+      --  FIXME: The GCC3 preprocessor won't accept '-x c++'
+      --  unless the C++ *compiler* has been built as well.
+      --  For now, just use '-x c'.
       Add_Argument ("-ansi");
 
       Goto_Section ("cppargs");
