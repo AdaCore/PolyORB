@@ -1,3 +1,8 @@
+1999-05-29  Pascal Obry  <obry@gnat.com>
+	
+	* s-garsta.adb: Remove withed unit System.Garlic.Exceptions that
+	is not needed. Will fix the nightly build failures.
+
 1999-05-19  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-garopt.adb: Fix use of Default_Boot_Server for Ada starter
