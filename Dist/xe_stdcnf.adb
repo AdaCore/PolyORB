@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2000 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2001 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -133,6 +133,18 @@ package body XE_Stdcnf is
       for R in Reconnection_Img'Range loop
          Declare_Variable
            (To_Lower (Reconnection_Img (R)),
+            Integer_Type_Node,
+            Null_Location,
+            Variable_Node);
+         Set_Scalar_Value (Variable_Node, Int (R));
+      end loop;
+
+      --  type priority_policy. To easily retrieve the enumeration
+      --  literal and their image.
+
+      for R in Priority_Policy_Img'Range loop
+         Declare_Variable
+           (To_Lower (Priority_Policy_Img (R)),
             Integer_Type_Node,
             Null_Location,
             Variable_Node);
@@ -326,6 +338,14 @@ package body XE_Stdcnf is
          Attribute_Node => Attribute_Node);
 
       Declare_Type_Attribute
+        (Type_Node      => Partition_Type_Node,
+         Attribute_Name => Str_To_Id ("priority"),
+         Attr_Type_Node => Integer_Type_Node,
+         Attribute_Kind => Attribute_Priority,
+         Attribute_Sloc => Null_Location,
+         Attribute_Node => Attribute_Node);
+
+      Declare_Type_Attribute
         (Type_Node        => Partition_Type_Node,
          Attribute_Name   => Str_To_Id ("filter"),
          Attr_Type_Node   => String_Type_Node,
@@ -472,7 +492,7 @@ package body XE_Stdcnf is
 
       --  pragma priority ... or
       --  procedure pragma__priority
-      --    (propagate : type__boolean);
+      --    (propagate : type__priority_policy);
 
       Declare_Subprogram
         (Pragma_Prefix & "priority",
@@ -482,8 +502,8 @@ package body XE_Stdcnf is
          Pragma_Priority_Node);
 
       Declare_Subprogram_Parameter
-        (Str_To_Id ("propagate"),
-         Boolean_Type_Node,
+        (Str_To_Id ("policy"),
+         Integer_Type_Node,
          Pragma_Priority_Node,
          Null_Location,
          Parameter_Node);

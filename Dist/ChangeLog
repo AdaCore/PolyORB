@@ -1,3 +1,12 @@
+2001-05-30  Laurent Pautet  <pautet@arlequin.enst.fr>
+
+	* xe.ads, xe.adb, xe_stubs.adb, xe_back.adb, xe_back.ads,
+	xe_stdcnf.adb: Add pragma Priority_Policy to choose between
+	CLient_Propagated and Server_Decalred priority policy. Add
+	partition attribute priority to set anonymous tasks priority.
+
+	* all: Update copyright.
+	
 2001-02-08  Laurent Pautet  <pautet@arlequin.enst.fr>
 
 	* xe.ads, xe_back.adb, xe_back.ads, xe_lead.adb, xe_stubs.adb: Add

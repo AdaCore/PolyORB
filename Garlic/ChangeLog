@@ -1,13 +1,41 @@
+2001-05-30  Laurent Pautet  <pautet@arlequin.enst.fr>
+
+	* s-gafizi.adb: Fix incorrect offset in compression. Bug found by
+	regression tests. This patch is included in 3.14a1.
+
+	* s-gaprtc.adb: Fix bug introduced by fix for 8605-009. Replace
+	Close_Ignoring_Socket with Close_Socket_Ignoring_Error. This patch
+	is included in 3.14a1.
+
+	* s-garpri.ads, s-garpri.adb, s-gaprma.ads, s-gaprma.adb:
+	Implement suggestions from IRTTAW'99 and add some enhancements
+	taken from CORBA Real-Time. Introduce priority policy which
+	indicates whether the client propagates its priority on the server
+	or the server executes with its own priority. Introduce the
+	server anonymous task priority. Add a global priority type and
+	mapping procedures to native priority.
+
+	* s-rpcser.adb, s-rpc.adb: Use new priority management. Fix a bug
+	of priority inversion. Also reset task to its initial priority
+	after a RPC.
+	
+	* s-gaprre.adb: Fix a bug of priority inversion.
+
+	* all: Update copyright.
+
+	* Makefile.am, Makefile.in: Add s-garpri.adb, s-gaprma.ads,
+	s-gaprma.adb.
+	
 2001-03-08  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-garstr.ads, s-garstr.adb: Do not use storage pools anymore as the
 	interaction with soft-links and the elaboration order causes
-	some problems.
+	some problems. This patch is included in 3.14a1.
 
 	* Makefile.am: Update dependencies.
 
 	* s-gasoli.ads: Make lock structures limited and pass them in-out
-	when it is logical to do so.
+	when it is logical to do so. This patch is included in 3.14a1.
 
 	* s-ganota.ads, s-ganota.adb: Ditto.
 
@@ -18,9 +46,10 @@
 	Test that in case of contention, the task holding the lock is not
 	terminated.
 	Rewrite the watcher to remove all interaction with any other lock.
+	This patch is included in 3.14a1.
 
 	* s-gardeb.ads, s-gardeb.adb: Add new procedure to debug the global
-	lock.
+	lock. This patch is included in 3.14a1.
 
 	* DALL, UNDALL: New variable S_GARTAS to debug the global lock.
 
@@ -49,7 +78,7 @@
 	elaboration phase. Fix 8605-004.
 
 	* s-gaprtc.adb: Ignore exceptions raised in Close_Socket. Fix
-	8605-009.
+	8605-009. This patch is included in 3.14a1.
  
 2001-01-31  Laurent Pautet  <pautet@arlequin.enst.fr>
 

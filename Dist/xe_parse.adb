@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2000 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2001 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -1297,14 +1297,17 @@ package body XE_Parse is
 
       --  Save the context. Try to find a matching attribute (some
       --  attributes are overloaded). If the attempt fails, then reset
-      --  the context and try another aattribute. If this attribute is
+      --  the context and try another attribute. If this attribute is
       --  not overloaded, then a failure is a fatal error and errors
       --  have to be printed.
 
       loop
          begin
             Save_Context (Configuration_Node, Context);
-            Take_Token ((Tok_Identifier, Tok_String_Literal, Tok_Left_Paren));
+            Take_Token ((Tok_Identifier,
+                         Tok_String_Literal,
+                         Tok_Numeric_Literal,
+                         Tok_Left_Paren));
             Expr_Name := Token_Name;
             Expr_Sloc := Get_Token_Location;
             Attr_Type := Get_Component_Type (Attr_Node);
@@ -1335,6 +1338,15 @@ package body XE_Parse is
 
                Set_Token_Location (Expr_Sloc);
                P_Aggregate_Assignment (Expr_Node);
+
+            --  If aggregate literal, declare an anonymous variable.
+
+            elsif Token = Tok_Numeric_Literal then
+               Declare_Literal
+                 (Expr_Name,
+                  Integer_Type_Node,
+                  Expr_Sloc,
+                  Variable_Id (Expr_Node));
 
             --  Otherwise, retrieve the declaration.
 
