@@ -202,12 +202,12 @@ begin
 
       Thread_Pool_Id_1 := Create_Threadpool_With_Lanes
         (RT_ORB,
-         1,
-         Lanes,
-         False,
-         False,
-         1,
-         0);
+         Stacksize               => 262_144,
+         Lanes                   => Lanes,
+         Allow_Borrowing         => False,
+         Allow_Request_Buffering => False,
+         Max_Buffered_Requests   => 1,
+         Max_Request_Buffer_Size => 0);
 
       Thread_Pool_Policy_Ref_1 := RTCORBA.RTORB.Create_Threadpool_Policy
            (RT_ORB, Thread_Pool_Id_1);

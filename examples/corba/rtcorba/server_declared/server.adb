@@ -195,7 +195,7 @@ begin
 
       Thread_Pool_Id_1 := RTCORBA.RTORB.Create_Threadpool
         (RT_ORB,
-         Stacksize               => 1,
+         Stacksize               => 262_144,
          Static_Threads          => 2,
          Dynamic_Threads         => 0,
          Default_Priority        => Default_Priority_1,
@@ -268,7 +268,7 @@ begin
 
       Thread_Pool_Id_2 := RTCORBA.RTORB.Create_Threadpool
         (RT_ORB,
-         Stacksize               => 1,
+         Stacksize               => 262_144,
          Static_Threads          => 2,
          Dynamic_Threads         => 0,
          Default_Priority        => Default_Priority_2,
