@@ -156,7 +156,6 @@ cos/event/costypedeventcomm-typedpushconsumer-impl.adb
 cos/event/costypedeventcomm-typedpushconsumer-impl.ads
 cos/ir/Makefile.am
 cos/ir/Makefile.in
-cos/ir/client.adb
 cos/ir/corba-orb-typecode.adb
 cos/ir/corba-orb-typecode.ads
 cos/ir/corba-repository_root-aliasdef-impl.adb
@@ -215,7 +214,6 @@ cos/ir/ir.idl
 cos/ir/polyorb-corba_p-ir_tools.adb
 cos/ir/polyorb-corba_p-ir_tools.ads
 cos/ir/print.adb
-cos/ir/server.adb
 cos/ir/typecode.sh
 cos/naming/File.idl
 cos/naming/Makefile.am
