@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -32,14 +32,23 @@
 ------------------------------------------------------------------------------
 
 with PolyORB.CORBA_P.Policy;
-
+with PolyORB.CORBA_P.Policy_Management;
+with PolyORB.Initialization;
 with PolyORB.Smart_Pointers;
+with PolyORB.Utils.Strings;
 
 package body PortableServer.IdUniquenessPolicy is
 
+   use CORBA;
    use CORBA.Policy;
-
+   use CORBA.TypeCode;
    use PolyORB.CORBA_P.Policy;
+   use PolyORB.CORBA_P.Policy_Management;
+
+   function Create_IdUniquenessPolicy
+     (The_Type : in CORBA.PolicyType;
+      Value    : in CORBA.Any)
+     return CORBA.Policy.Ref;
 
    ------------
    -- To_Ref --
@@ -94,4 +103,79 @@ package body PortableServer.IdUniquenessPolicy is
                          (CORBA.Policy.Ref (Self)).all)));
    end Get_Value;
 
+   -------------------------------
+   -- Create_IdUniquenessPolicy --
+   -------------------------------
+
+   function Create_IdUniquenessPolicy
+     (The_Type : in CORBA.PolicyType;
+      Value    : in CORBA.Any)
+     return CORBA.Policy.Ref
+   is
+   begin
+      pragma Assert (The_Type = ID_UNIQUENESS_POLICY_ID);
+
+      if Get_Type (Value) /= TC_IdUniquenessPolicyValue then
+         Raise_PolicyError ((Reason => BAD_POLICY_TYPE));
+      end if;
+
+      declare
+         Index : CORBA.Any
+           := CORBA.Get_Aggregate_Element (Value,
+                                           CORBA.TC_Unsigned_Long,
+                                           CORBA.Unsigned_Long (0));
+         Position : constant CORBA.Unsigned_Long := CORBA.From_Any (Index);
+      begin
+         if Position not in
+           IdUniquenessPolicyValue'Pos (IdUniquenessPolicyValue'First) ..
+           IdUniquenessPolicyValue'Pos (IdUniquenessPolicyValue'Last)
+         then
+            Raise_PolicyError ((Reason => BAD_POLICY_VALUE));
+         end if;
+      end;
+
+      declare
+         Result : CORBA.Policy.Ref;
+         Entity : constant PolyORB.Smart_Pointers.Entity_Ptr
+           := new Policy_Object_Type;
+      begin
+         Set_Policy_Type (Policy_Object_Type (Entity.all), The_Type);
+         Set_Policy_Value (Policy_Object_Type (Entity.all), Value);
+
+         CORBA.Policy.Set (Result, Entity);
+
+         return Result;
+      end;
+   end Create_IdUniquenessPolicy;
+
+   -----------------------------
+   -- Deferred_Initialization --
+   -----------------------------
+
+   procedure Deferred_Initialization;
+
+   procedure Deferred_Initialization is
+   begin
+      Register
+        (ID_UNIQUENESS_POLICY_ID,
+         Create_IdUniquenessPolicy (ID_UNIQUENESS_POLICY_ID,
+                                    To_Any (UNIQUE_ID)),
+         Create_IdUniquenessPolicy'Access,
+         False,
+         True);
+   end Deferred_Initialization;
+
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
+   use PolyORB.Utils.Strings;
+
+begin
+   Register_Module
+     (Module_Info'
+      (Name      => +"portableserver.iduniquenesspolicy",
+       Conflicts => Empty,
+       Depends   => Empty,
+       Provides  => Empty,
+       Implicit  => False,
+       Init      => Deferred_Initialization'Access));
 end PortableServer.IdUniquenessPolicy;

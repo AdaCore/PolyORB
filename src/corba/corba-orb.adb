@@ -46,7 +46,7 @@ with Ada.Exceptions;
 with PolyORB.CORBA_P.Initial_References;
 with PolyORB.CORBA_P.Local;
 with PolyORB.CORBA_P.ORB_Init;
-with PolyORB.CORBA_P.Policy;
+with PolyORB.CORBA_P.Policy_Management;
 
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
@@ -57,7 +57,6 @@ with PolyORB.Objects;
 with PolyORB.Parameters;
 with PolyORB.References.IOR;
 with PolyORB.Setup;
-with PolyORB.Smart_Pointers;
 with PolyORB.Utils.Strings.Lists;
 
 package body CORBA.ORB is
@@ -720,20 +719,22 @@ package body CORBA.ORB is
       Val      :    Any)
      return CORBA.Policy.Ref
    is
-      use PolyORB.CORBA_P.Policy;
+      use PolyORB.CORBA_P.Policy_Management;
 
-      Result : CORBA.Policy.Ref;
-
-      Entity : constant PolyORB.Smart_Pointers.Entity_Ptr :=
-        new Policy_Object_Type;
+      Factory : Policy_Factory;
 
    begin
-      Set_Policy_Type (Policy_Object_Type (Entity.all), The_Type);
-      Set_Policy_Value (Policy_Object_Type (Entity.all), Val);
+      if not Is_Registered (The_Type) then
+         Raise_PolicyError ((Reason => BAD_POLICY));
+      end if;
 
-      CORBA.Policy.Set (Result, Entity);
+      Factory := Get_Policy_Factory (The_Type);
 
-      return Result;
+      if Factory = null then
+         Raise_PolicyError ((Reason => UNSUPPORTED_POLICY));
+      end if;
+
+      return Factory (The_Type, Val);
    end Create_Policy;
 
    -----------------
@@ -782,7 +783,6 @@ package body CORBA.ORB is
         (Section => "corba", Key => "naming_ior", Default => "");
 
    begin
-
       --  Register initial reference for NamingService
 
       if Naming_IOR /= "" then

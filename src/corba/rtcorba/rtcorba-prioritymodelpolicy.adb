@@ -34,11 +34,14 @@
 with CORBA.Policy;
 
 with PolyORB.CORBA_P.POA_Config;
+with PolyORB.CORBA_P.Policy;
+with PolyORB.CORBA_P.Policy_Management;
 
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.POA_Policies;
+with PolyORB.Smart_Pointers;
 with PolyORB.RTCORBA_P.PriorityModelPolicy;
 with PolyORB.RTCORBA_P.Setup;
 with PolyORB.Tasking.Priorities;
@@ -48,11 +51,22 @@ with RTCORBA.PriorityMapping;
 
 package body RTCORBA.PriorityModelPolicy is
 
+   use CORBA;
+   use CORBA.TypeCode;
+
+   use PolyORB.CORBA_P.Policy;
+   use PolyORB.CORBA_P.Policy_Management;
+
    use PolyORB.RTCORBA_P.PriorityModelPolicy;
 
    function Priority_Model_Policy_Allocator
      (Self : in CORBA.Policy.Ref)
      return PolyORB.POA_Policies.Policy_Access;
+
+   function Create_PriorityModelPolicy
+     (The_Type : in CORBA.PolicyType;
+      Value    : in CORBA.Any)
+     return CORBA.Policy.Ref;
 
    ------------
    -- To_Ref --
@@ -122,6 +136,37 @@ package body RTCORBA.PriorityModelPolicy is
                      External_Priority (Get_Server_Priority (To_Ref (Self))));
    end Priority_Model_Policy_Allocator;
 
+   ---------------------------------
+   -- Create_PriorityModelPolicy --
+   ---------------------------------
+
+   function Create_PriorityModelPolicy
+     (The_Type : in CORBA.PolicyType;
+      Value    : in CORBA.Any)
+     return CORBA.Policy.Ref
+   is
+   begin
+      pragma Assert (The_Type = THREADPOOL_POLICY_TYPE);
+
+      if Get_Type (Value) /= TC_Unsigned_Long then
+         Raise_PolicyError ((Reason => BAD_POLICY_TYPE));
+      end if;
+
+      declare
+         Result : CORBA.Policy.Ref;
+         Entity : constant PolyORB.Smart_Pointers.Entity_Ptr
+           := new Policy_Object_Type;
+
+      begin
+         Set_Policy_Type (Policy_Object_Type (Entity.all), The_Type);
+         Set_Policy_Value (Policy_Object_Type (Entity.all), Value);
+
+         CORBA.Policy.Set (Result, Entity);
+
+         return Result;
+      end;
+   end Create_PriorityModelPolicy;
+
    ------------------------
    -- Get_Priority_Model --
    ------------------------
@@ -153,6 +198,14 @@ package body RTCORBA.PriorityModelPolicy is
       PolyORB.CORBA_P.POA_Config.Register
         (PRIORITY_MODEL_POLICY_TYPE,
          Priority_Model_Policy_Allocator'Access);
+
+      Register
+        (THREADPOOL_POLICY_TYPE,
+         Create_PriorityModelPolicy (THREADPOOL_POLICY_TYPE,
+                                     To_Any (CORBA.Unsigned_Long (0))),
+         Create_PriorityModelPolicy'Access,
+         False,
+         True);
    end Initialize;
 
    use PolyORB.Initialization;
