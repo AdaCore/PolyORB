@@ -56,6 +56,7 @@ with System ;
 
 with Rope ;
 with Corba ;
+with Sys_Dep ;
 
 package OmniRopeAndKey is
 

@@ -24,6 +24,9 @@ with Ada.Unchecked_Conversion ;
 with Ada.Exceptions ;
 with Ada.Strings.Unbounded ;
 
+with Corba ;
+use type Corba.Unsigned_Long ;
+
 package body Giop_C is
 
 
@@ -62,6 +65,7 @@ package body Giop_C is
                                    Objkey : in System.Address ;
                                    Objkeysize : in Interfaces.C.Unsigned_Long ;
                                    Opname : in Interfaces.C.Strings.Chars_Ptr ;
+                                   Opnamesize : in Interfaces.C.Unsigned_Long ;
                                    MsgSize : in Interfaces.C.Unsigned_Long ;
                                    Oneway : in Sys_Dep.C_Boolean) ;
    pragma Import (C,C_Initialize_Request,"InitialiseRequest__10Ada_Giop_cPCvUiPCcUiUib") ;
@@ -75,13 +79,14 @@ package body Giop_C is
    procedure Initialize_Request (Self : in Object'Class ;
                                  Objkey : in Corba.Octet ;
                                  Objkeysize : in Corba.Unsigned_Long ;
-                                 Opname : in CORBA.STRING ;
+                                 Opname : in Corba.STRING ;
                                  MsgSize : in Corba.Unsigned_Long ;
-                                 Oneway : in CORBA.Boolean) is
+                                 Oneway : in Corba.Boolean) is
       C_Objkey : System.Address ;
       C_Objkeysize : Interfaces.C.Unsigned_Long ;
       Ada_Opname : String := Ada.Strings.Unbounded.To_String (Ada.Strings.Unbounded.Unbounded_String (Opname)) ;
       C_Opname : Interfaces.C.Strings.Chars_Ptr ;
+      C_OpnameSize : Interfaces.C.Unsigned_Long ;
       C_MsgSize : Interfaces.C.Unsigned_Long ;
       C_Oneway : Sys_Dep.C_Boolean ;
    begin
@@ -90,6 +95,8 @@ package body Giop_C is
       C_Objkeysize := Ada_To_C_Unsigned_Long (Objkeysize) ;
       C_Opname := Interfaces.C.Strings.New_String (Ada_Opname) ;
       -- desallocation in a few lines
+      C_Opnamesize := Ada_To_C_Unsigned_Long (Corba.Length (Opname)
+                                              + Corba.Unsigned_Long (1)) ;
       C_MsgSize := Ada_To_C_Unsigned_Long (MsgSize) ;
       C_Oneway := Sys_Dep.Boolean_Ada_To_C (Oneway) ;
       -- ... and calls the C procedure
@@ -97,6 +104,7 @@ package body Giop_C is
                             C_Objkey,
                             C_Objkeysize,
                             C_Opname,
+                            C_Opnamesize,
                             C_MsgSize,
                             C_Oneway) ;
       -- desallocation of C_Opname
