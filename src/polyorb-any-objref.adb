@@ -54,7 +54,6 @@ package body PolyORB.Any.ObjRef is
 
       Set_Value (Result, Content);
       Set_Type (Result, TypeCode.TC_Object);
-      --  Inc_Usage (Result);
 
       return Result;
    end To_Any;
