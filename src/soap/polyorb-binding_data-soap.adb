@@ -55,6 +55,9 @@ package body PolyORB.Binding_Data.SOAP is
    use PolyORB.Sockets;
    use PolyORB.Protocols.HTTP;
 
+   SOAP_Profile_Preference : Profile_Preference
+     := Preference_Default + 1;
+
    procedure Initialize (P : in out SOAP_Profile_Type) is
    begin
       P.Object_Id := null;
@@ -101,8 +104,8 @@ package body PolyORB.Binding_Data.SOAP is
       Sock : Socket_Type;
       Remote_Addr : Sock_Addr_Type := Profile.Address;
 
-      Pro  : aliased SOAP_Protocol;
-      Sli  : aliased HTTP_Filter_Factory;
+      Proto   : aliased SOAP_Protocol;
+      HTTP_FF : aliased HTTP_Filter_Factory;
       Prof : Profile_Access := new SOAP_Profile_Type;
       TProf : SOAP_Profile_Type
         renames SOAP_Profile_Type (Prof.all);
@@ -117,10 +120,11 @@ package body PolyORB.Binding_Data.SOAP is
       TE := new Socket_Endpoint;
       Create (Socket_Endpoint (TE.all), Sock);
 
-      Chain_Factories ((0 => Sli'Unchecked_Access,
-                        1 => Pro'Unchecked_Access));
+      Chain_Factories ((0 => HTTP_FF'Unchecked_Access,
+                        1 => Proto'Unchecked_Access));
 
-      Filter := Component_Access (Create_Filter_Chain (Sli'Unchecked_Access));
+      Filter := Component_Access
+        (Create_Filter_Chain (HTTP_FF'Unchecked_Access));
 
       TProf.Address := Remote_Addr;
       TProf.Target_URL := Profile.Target_URL;
@@ -145,7 +149,7 @@ package body PolyORB.Binding_Data.SOAP is
      (Profile : SOAP_Profile_Type)
      return Profile_Preference is
    begin
-      return Preference_Default;
+      return SOAP_Profile_Preference;
    end Get_Profile_Preference;
 
    procedure Create_Factory
@@ -184,16 +188,18 @@ package body PolyORB.Binding_Data.SOAP is
       TResult : SOAP_Profile_Type
         renames SOAP_Profile_Type (Result.all);
 
-      URL_Obj : URL_Object := URL_Parse (To_Standard_String (URL));
+      URL_Obj : constant URL_Object
+        := URL_Parse (To_Standard_String (URL));
 
    begin
+      TResult.Target_URL := URL;
+
       IP_Addr := Addresses (Get_Host_By_Name
             (To_Standard_String (URL_Obj.Server_Name)));
       TResult.Address := Sock_Addr_Type'
         (Family => Family_Inet,
          Addr   => IP_Addr,
          Port   => Port_Type (URL_Obj.Port));
-      TResult.Target_URL := URL;
       TResult.Object_Id := new Object_Id'(Base64_To_Oid (URL_Obj.URI));
       return Result;
    end Create_Profile;
@@ -211,9 +217,8 @@ package body PolyORB.Binding_Data.SOAP is
      return String
    is
    begin
-      return " ";
+      return "<SOAP profile>";
    end Image;
-
 
    function Base64_To_Oid
      (S : Types.String)
@@ -234,7 +239,5 @@ package body PolyORB.Binding_Data.SOAP is
       return To_PolyORB_String (Base64_Encode
        (Stream_Element_Array (O)));
    end Oid_To_Base64;
-
-
 
 end PolyORB.Binding_Data.SOAP;

@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/echo-impl.ads#5 $
+--  $Id: //droopi/main/src/echo-impl.ads#6 $
 
 with PortableServer.POA;
 with CORBA.ServerRequest;
@@ -51,15 +51,14 @@ package Echo.Impl is
 
    procedure Invoke
      (Self : access Object;
-      Request : in CORBA.ServerRequest.Object_ptr);
+      Request : in CORBA.ServerRequest.Object_Ptr);
 
    function Primary_Interface (Self : access Object; -- ....
       POA_Ptr : PortableServer.POA.Ref) return String;
 
 private
 
-   type Object is
-     new PortableServer.DynamicImplementation with record
+   type Object is new PortableServer.DynamicImplementation with record
       --  Insert components to hold the state
       --  of the implementation object.
       null;

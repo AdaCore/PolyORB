@@ -148,6 +148,8 @@ TESTS=  polyorb-test-no_tasking \
 tests: $(TESTS)
 
 $(TESTS): all
+	$(GNATMAKE) -c -I. -Icorba -Isoap echo-impl.adb -cargs -g -O2 -Wall -gnatfa -gnatwu -gnatwe -gnatwl
+	# No style checks for this one!
 	$(GNATMAKE) -I. -Icorba -Isoap $@ -cargs $(GNATFLAGS) -largs $(LDFLAGS)
 
 ### DO NOT REMOVE THIS LINE, IT IS USED BY MAKEDEPEND ###

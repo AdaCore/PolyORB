@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/echo-impl.adb#8 $
+--  $Id: //droopi/main/src/echo-impl.adb#9 $
 
 with Ada.Text_IO;
 
@@ -67,50 +67,48 @@ package body Echo.Impl is
       Request : in CORBA.ServerRequest.Object_ptr)
    is
       Operation : Standard.String
-         := CORBA.To_Standard_String (CORBA.ServerRequest.Operation (Request.all));
+        := CORBA.To_Standard_String (CORBA.ServerRequest.Operation (Request.all));
    begin
+      if Operation = "echoString" then
+         declare
+            Mesg            : CORBA.String;
+            Arg_Name_Ü_Mesg : CORBA.Identifier := To_CORBA_String ("Mesg");
+            Argument_Ü_Mesg : CORBA.Any := CORBA.To_Any (Mesg);
 
-   if Operation = "echoString" then
-
-      declare
-         Mesg            : CORBA.String;
-         Arg_Name_Ü_Mesg : CORBA.Identifier := To_CORBA_String ("Mesg");
-         Argument_Ü_Mesg : CORBA.Any := CORBA.To_Any (Mesg);
-
-         Result_Ü        : CORBA.String;
-         Argument_Ü_Result_Ü : CORBA.Any ;
-         --  Ctx_Ü           : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
-         Arg_List_Ü      : CORBA.NVList.Ref;
-      begin
-         --  Create argument list
-
-         CORBA.ORB.Create_List (0, Arg_List_Ü);
-         CORBA.NVList.Add_Item (Arg_List_Ü,
-                                Arg_Name_Ü_Mesg,
-                                Argument_Ü_Mesg,
-                                CORBA.ARG_IN);
-
-         CORBA.ServerRequest.Arguments (Request, Arg_List_Ü);
-
+            Result_Ü        : CORBA.String;
+            Argument_Ü_Result_Ü : CORBA.Any ;
+            --  Ctx_Ü           : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
+            Arg_List_Ü      : CORBA.NVList.Ref;
          begin
-            --  Convert arguments from their Any
+            --  Create argument list
 
-            Mesg := From_Any (Argument_Ü_Mesg);
-            Result_Ü := echoString (Self, Mesg);
+            CORBA.ORB.Create_List (0, Arg_List_Ü);
+            CORBA.NVList.Add_Item (Arg_List_Ü,
+                                   Arg_Name_Ü_Mesg,
+                                   Argument_Ü_Mesg,
+                                   CORBA.ARG_IN);
+
+            CORBA.ServerRequest.Arguments (Request, Arg_List_Ü);
+
+            begin
+               --  Convert arguments from their Any
+
+               Mesg := From_Any (Argument_Ü_Mesg);
+               Result_Ü := echoString (Self, Mesg);
+            end;
+
+            -- Set Result
+
+            Argument_Ü_Result_Ü := CORBA.To_Any (Result_Ü);
+            CORBA.ServerRequest.Set_Result (Request, Argument_Ü_Result_Ü);
+            return;
          end;
-
-         -- Set Result
-
-         Argument_Ü_Result_Ü := CORBA.To_Any (Result_Ü);
-         CORBA.ServerRequest.Set_Result (Request, Argument_Ü_Result_Ü);
-         return;
-      end;
-   end if;
-   PolyORB.CORBA_P.Exceptions.Raise_Bad_Operation;
+      end if;
+      PolyORB.CORBA_P.Exceptions.Raise_Bad_Operation;
    end Invoke;
 
    function Primary_Interface (Self : access Object; -- ....
-      POA_Ptr : PortableServer.POA.Ref) return String is 
+                               POA_Ptr : PortableServer.POA.Ref) return String is
    begin
       return "IDL:Echo:1.0";
    end Primary_Interface;
