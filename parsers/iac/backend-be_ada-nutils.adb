@@ -284,10 +284,26 @@ package body Backend.BE_Ada.Nutils is
    ---------------------
    -- Make_Designator --
    ---------------------
+   function Make_Designator (K : FEN.Node_Kind) return Node_Id is
+      use FEN;
+      N : Node_Id;
+      I : Node_Id;
+      P : Node_Id;
+   begin
+      Set_Str_To_Name_Buffer ("CORBA");
+      I := Make_Defining_Identifier (Name_Find);
+      P := New_Node (K_Designator);
+      Set_Defining_Identifier (P, I);
+      I := Make_Defining_Identifier (CORBA_Type (K));
+      N := New_Node (K_Designator);
+      Set_Defining_Identifier (N, I);
+      Set_Parent_Unit_Name (N, P);
+
+      return N;
+   end Make_Designator;
 
    function Make_Designator (Entity : Node_Id) return Node_Id is
       use FEN;
-      I : Node_Id;
       P : Node_Id;
       N : Node_Id;
       K : FEN.Node_Kind;
@@ -308,15 +324,7 @@ package body Backend.BE_Ada.Nutils is
          end if;
 
       elsif K in FEN.K_Float .. FEN.K_Value_Base then
-         Set_Str_To_Name_Buffer ("CORBA");
-         I := Make_Defining_Identifier (Name_Find);
-         P := New_Node (K_Designator);
-         Set_Defining_Identifier (P, I);
-         I := Make_Defining_Identifier (CORBA_Type (K));
-         N := New_Node (K_Designator);
-         Set_Defining_Identifier (N, I);
-         Set_Parent_Unit_Name (N, P);
-
+         N := Make_Designator (K);
       else
          raise Program_Error;
       end if;
@@ -512,6 +520,23 @@ package body Backend.BE_Ada.Nutils is
       Set_Record_Definition (N, Record_Definition);
       return N;
    end Make_Record_Type_Definition;
+
+   --------------------------
+   -- Make_Subprogram_Call --
+   --------------------------
+
+   function Make_Subprogram_Call
+     (Defining_Identifier : Node_Id;
+      Actual_Parameter_Part : List_Id)
+     return Node_Id
+   is
+      N : Node_Id;
+   begin
+      N := New_Node (K_Subprogram_Call);
+      Set_Defining_Identifier (N, Defining_Identifier);
+      Set_Actual_Parameter_Part (N, Actual_Parameter_Part);
+      return N;
+   end Make_Subprogram_Call;
 
    ------------------------------------
    -- Make_Subprogram_Implementation --

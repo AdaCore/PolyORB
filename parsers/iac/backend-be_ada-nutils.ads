@@ -76,6 +76,10 @@ package Backend.BE_Ada.Nutils is
      return Node_Id;
 
    function Make_Designator
+     (K : FEN.Node_Kind)
+     return Node_Id;
+
+   function Make_Designator
      (Entity : Node_Id)
      return Node_Id;
 
@@ -122,6 +126,11 @@ package Backend.BE_Ada.Nutils is
       Is_Abstract_Type  : Boolean := False;
       Is_Tagged_Type    : Boolean := False;
       Is_Limited_Type   : Boolean := False)
+     return Node_Id;
+
+   function Make_Subprogram_Call
+     (Defining_Identifier : Node_Id;
+      Actual_Parameter_Part : List_Id)
      return Node_Id;
 
    function Make_Subprogram_Implementation

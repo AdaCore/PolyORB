@@ -139,6 +139,7 @@ package body Backend.BE_Ada.Generator is
    procedure Generate_Parameter_List (L : List_Id);
    procedure Generate_Record_Definition (N : Node_Id);
    procedure Generate_Record_Type_Definition (N : Node_Id);
+   procedure Generate_Subprogram_Call (N : Node_Id);
    procedure Generate_Subprogram_Implementation (N : Node_Id);
    procedure Generate_Subprogram_Specification (N : Node_Id);
    procedure Generate_Type_Spec (N : Node_Id);
@@ -201,6 +202,9 @@ package body Backend.BE_Ada.Generator is
 
          when K_Record_Type_Definition =>
             Generate_Record_Type_Definition (N);
+
+         when K_Subprogram_Call =>
+            Generate_Subprogram_Call (N);
 
          when K_Subprogram_Specification =>
             Generate_Subprogram_Specification (N);
@@ -630,6 +634,32 @@ package body Backend.BE_Ada.Generator is
       end if;
    end Generate_Record_Type_Definition;
 
+   ------------------------------
+   -- Generate_Subprogram_Call --
+   ------------------------------
+
+   procedure Generate_Subprogram_Call (N : Node_Id) is
+      L : List_Id;
+      P : Node_Id;
+   begin
+      Generate (Defining_Identifier (N));
+      L := Actual_Parameter_Part (N);
+      if not Is_Empty (L) then
+         Write_Space;
+         Write (Tok_Left_Paren);
+         P := First_Node (L);
+         while Present (P) loop
+            Generate (P);
+            P := Next_Node (P);
+            if Present (P) then
+               Write (Tok_Comma);
+               Write_Space;
+            end if;
+         end loop;
+         Write (Tok_Right_Paren);
+      end if;
+   end Generate_Subprogram_Call;
+
    ----------------------------------------
    -- Generate_Subprogram_Implementation --
    ----------------------------------------
@@ -637,15 +667,27 @@ package body Backend.BE_Ada.Generator is
    procedure Generate_Subprogram_Implementation (N : Node_Id) is
       D : List_Id;
       S : List_Id;
+      P : Node_Id;
+      M : Node_Id;
    begin
       D := Declarations (N);
       S := Statements (N);
-      Generate_Subprogram_Specification (Specification (N));
+      P := Specification (N);
+      Generate (P);
       Write_Space;
       Write (Tok_Is);
       Write_Eol;
+
       if not Is_Empty (D)  then
-         null; -- Generate Declarations
+         Increment_Indentation;
+         M := First_Node (D);
+         while Present (M) loop
+            Generate (M);
+            Write (Tok_Semicolon);
+            Write_Eol;
+            M := Next_Node (M);
+         end loop;
+         Decrement_Indentation;
       end if;
       Write_Indentation;
       Write (Tok_Begin);
@@ -659,11 +701,10 @@ package body Backend.BE_Ada.Generator is
          Write_Eol;
       end if;
       Decrement_Indentation;
-
       Write_Indentation;
       Write (Tok_End);
       Write_Space;
-      Write_Name (Name (Defining_Identifier (Specification (N))));
+      Generate (Defining_Identifier (P));
    end Generate_Subprogram_Implementation;
 
    ---------------------------------------

@@ -2,6 +2,5 @@ interface EnumTests {
   enum Color {Red, Blue, Green}; 
   const Color Rouge = Red; 
   attribute Color attr_enum; 
-  Color modif_enum (inout Color C); 
-  
-}; 
+  Color modif_enum (inout Color C);   
+};

@@ -110,6 +110,15 @@ module Backend::BE_Ada::Nodes {
     List_Id    Statements;
   };
 
+  interface Subprogram_Call : Definition {
+    List_Id    Actual_Parameter_Part; 
+  };
+  
+  interface Parameter_Association : Node_Id{
+    Node_Id    Selector_Name; 
+    Node_Id    Actual_Parameter; 
+  };  
+
   interface Full_Type_Declaration : Definition {
     Node_Id    Type_Definition;
   };
@@ -129,9 +138,6 @@ module Backend::BE_Ada::Nodes {
     List_Id      Parameter_List;  
   };
 
-  interface Variable_Declaration : Definition {
-    Node_Id      Variable_Type;
-  };
 
   interface Ada_Comment : Definition {
   };
