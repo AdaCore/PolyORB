@@ -47,7 +47,7 @@ module Frontend::Nodes {
     Node_Id    Corresponding_Entity;
     Node_Id    Scope_Entity;
     Node_Id    Potential_Scope;
-    boolean    Explicitely_Visible;
+    boolean    Visible;
     boolean    Implicitely_Visible;
     Node_Id    Next_Identifier;
   };
@@ -259,6 +259,7 @@ module Frontend::Nodes {
   interface Scoped_Name : Definition {
     Node_Id     Reference;
     Node_Id     Parent_Entity;
+    long        Depth;
     Node_Id     Next_Scoped_Name;
   };
 

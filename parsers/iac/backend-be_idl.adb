@@ -715,17 +715,17 @@ package body Backend.BE_IDL is
    -- Generate_Scoped_Name --
    --------------------------
 
-   procedure Generate_Scoped_Name (E : Node_Id)
-   is
+   procedure Generate_Scoped_Name (E : Node_Id) is
+
       procedure Generate_Reference_Name (E : Node_Id);
 
       -----------------------------
       -- Generate_Reference_Name --
       -----------------------------
 
-      procedure Generate_Reference_Name (E : Node_Id)
-      is
+      procedure Generate_Reference_Name (E : Node_Id) is
          S : constant Node_Id := Scope_Entity (E);
+
       begin
          if Kind (S) /= K_Specification then
             Generate_Reference_Name (Identifier (S));
@@ -734,21 +734,14 @@ package body Backend.BE_IDL is
          Write_Name (IDL_Name (E));
       end Generate_Reference_Name;
 
-      P : constant Node_Id := Parent_Entity (E);
       R : constant Node_Id := Reference (E);
 
    begin
       if Kind (R) = K_Constant_Declaration then
          Generate (Value (R));
 
-      elsif Present (P) then
-         if Kind (Reference (P)) /= K_Specification then
-            Generate (P);
-            Write (T_Colon_Colon);
-         end if;
-         Generate (Identifier (E));
       else
-         Generate_Reference_Name (Identifier (Reference (E)));
+         Generate_Reference_Name (Identifier (R));
       end if;
    end Generate_Scoped_Name;
 

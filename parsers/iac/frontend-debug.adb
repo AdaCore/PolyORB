@@ -156,7 +156,7 @@ package body Frontend.Debug is
         or else A = "BE_Node"
         or else A = "Homonym"
         or else A = "Name"
-        or else A = "Explicitely_Visible"
+        or else A = "Visible"
         or else A = "Implicitely_Visible"
         or else A = "Scoped_Identifiers"
         or else A = "Next_Identifier"

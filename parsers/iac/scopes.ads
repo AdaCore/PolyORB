@@ -5,7 +5,7 @@ with Types; use Types;
 package Scopes is
 
    --  Scope_Entity and Visibility:
-   --  ---------------------
+   --  ----------------------------
    --
    --  To handle scope, iac uses two dedicated node attributes : Scope_Entity
    --  and Potential_Scope. Scope_Entity designates the regular scope of the
@@ -14,8 +14,8 @@ package Scopes is
    --  names and inherited interfaces.
    --
    --  To handle visibility, iac uses two dedicated node attributes :
-   --  Explicitely_Visible and Implicitely_Visible. The normal
-   --  visibility rules are handled by Explicitely_Visible when
+   --  Visible and Implicitely_Visible. The normal
+   --  visibility rules are handled by Visible when
    --  Implicitely_Visible is used only in the context of inherited
    --  interfaces. In the scope of an inherited interface, entities
    --  like attributes and operations are inherited (scoped and
@@ -57,12 +57,6 @@ package Scopes is
    --  Find the currently visible definition for a given identifier,
    --  that is to say the first entry in the visibility chain
    --  (implemented using the homonyms chain).
-
-   procedure Make_Implicitely_Visible (N : Node_Id; Visible : Boolean);
-   --  When an interface inherits from other interfaces, the entities
-   --  from these interfaces become visibible. This procedure is
-   --  intended to fullfil this task. Note that scoped names which are
-   --  present in the scopes of these interfaces are not made visible.
 
    procedure Enter_Name_In_Scope (N : Node_Id);
    --  Detect naming conflict with N. In case of success, add N to the

@@ -410,109 +410,102 @@ package body Analyzer is
 
    procedure Analyze_Interface_Declaration (E : Node_Id) is
 
-      procedure Inherit_From_Interface (P : Node_Id);
+      procedure Inherit_From_Interface (Parent : Node_Id);
+      --  Add into the scope of the child interface all the entities
+      --  from the scope of the parent interfaces. To do so, for each
+      --  entity of a parent interface create a new identifier
+      --  referencing the entity while the entity is still bound to
+      --  its initial identifier.
 
       ----------------------------
       -- Inherit_From_Interface --
       ----------------------------
 
-      procedure Inherit_From_Interface (P : Node_Id)
-      is
-         E : Node_Id;
-         N : Node_Id;
-         K : Node_Kind;
+      procedure Inherit_From_Interface (Parent : Node_Id) is
+         Entity     : Node_Id;
+         Identifier : Node_Id;
 
       begin
-         N := Scoped_Identifiers (P);
-         while Present (N) loop
-            E := Corresponding_Entity (N);
-            K := Kind (E);
-            if K = K_Operation_Declaration then
-               null;
+         Identifier := Scoped_Identifiers (Parent);
+         while Present (Identifier) loop
+            Entity := Corresponding_Entity (Identifier);
 
-            elsif K in K_Simple_Declarator .. K_Complex_Declarator
-              and then Kind (Declaration (E)) = K_Attribute_Declaration
+            --  Do not add to the scope a scoped name that was
+            --  introduced in a parent scope. If the interface
+            --  inherits from parent entities, this is a new scope in
+            --  which the names introduced for the parents are no
+            --  longer considered.
+
+            if Present (Entity)
+               and then Kind (Entity) /= K_Scoped_Name
             then
-               null;
-
-            else
-               E := No_Node;
+               Enter_Name_In_Scope
+                 (Make_Identifier
+                   (Loc (Entity),
+                    IDL_Name (Identifier),
+                    Entity,
+                    Current_Scope));
             end if;
-
-            if Present (E) then
-               E := Make_Identifier
-                 (Loc (E), IDL_Name (N), E, Scope_Entity (N));
-               Enter_Name_In_Scope (E);
-
-            else
-               Make_Implicitely_Visible (N, True);
-            end if;
-            N := Next_Entity (N);
+            Identifier := Next_Entity (Identifier);
          end loop;
       end Inherit_From_Interface;
 
-      I : Node_Id;
-      C : Node_Id;
-      S : List_Id;
-      N : Node_Id;
+      Parent     : Node_Id;
+      Definition : Node_Id;
+      Scope_Name : Node_Id;
 
    begin
       Enter_Name_In_Scope (Identifier (E));
 
-      --  Analyze interface names, enter them in scope and make them
-      --  visible. Enter their attributes and operations as well and
-      --  made other entities visible.
+      --  Analyze interface names in the current scope (before pushing
+      --  a new scope and inheriting from other interfaces).
 
-      Push_Scope (E);
-      S := Interface_Spec (E);
-      if not Is_Empty (S) then
-         I := First_Entity (S);
-         while Present (I) loop
-            Analyze (I);
-            C := Reference (I);
-            if Present (C) then
-               if Kind (C) = K_Interface_Declaration then
-                  Inherit_From_Interface (C);
+      Scope_Name := First_Entity (Interface_Spec (E));
+      while Present (Scope_Name) loop
+         Analyze (Scope_Name);
+         Parent := Reference (Scope_Name);
+         if Present (Parent) then
+            if Kind (Parent) /= K_Interface_Declaration then
+               if Kind (Parent) = K_Forward_Interface_Declaration then
+                  Error_Loc (1) := Loc (E);
+                  DE ("interface cannot inherit " &
+                      "from a forward-declared interface");
 
                else
-                  if Kind (C) = K_Forward_Interface_Declaration then
-                     Error_Loc (1) := Loc (E);
-                     DE ("interface cannot inherit " &
-                         "from a forward-declared interface");
-
-                  else
-                     Error_Loc (1) := Loc (E);
-                     DE ("interface cannot inherit " &
-                         "from a non-interface");
-                  end if;
+                  Error_Loc (1) := Loc (E);
+                  DE ("interface cannot inherit " &
+                      "from a non-interface");
                end if;
+
+               --  Do not consider this interface later on.
+
+               Set_Reference (Scope_Name, No_Node);
             end if;
-            I := Next_Entity (I);
-         end loop;
-      end if;
+         end if;
+         Scope_Name := Next_Entity (Scope_Name);
+      end loop;
 
-      --  We append and analyze the new entities of the current interface
+      --  Push a new scope and then inherit from the parent
+      --  interfaces.
 
-      N := First_Entity (Interface_Body (E));
-      while Present (N) loop
-         Analyze (N);
-         N := Next_Entity (N);
+      Push_Scope (E);
+      Scope_Name := First_Entity (Interface_Spec (E));
+      while Present (Scope_Name) loop
+         Parent := Reference (Scope_Name);
+         if Present (Parent) then
+            Inherit_From_Interface (Parent);
+         end if;
+         Scope_Name := Next_Entity (Scope_Name);
+      end loop;
+
+      --  Append and analyze the interface entities
+
+      Definition := First_Entity (Interface_Body (E));
+      while Present (Definition) loop
+         Analyze (Definition);
+         Definition := Next_Entity (Definition);
       end loop;
       Pop_Scope;
-
-      --  Remove visibility on the parent interfaces entities
-
-      S := Interface_Spec (E);
-      if not Is_Empty (S) then
-         I := First_Entity (S);
-         while Present (I) loop
-            C := Reference (I);
-            if Present (C) then
-               null;
-            end if;
-            I := Next_Entity (I);
-         end loop;
-      end if;
    end Analyze_Interface_Declaration;
 
    ---------------------
@@ -661,14 +654,13 @@ package body Analyzer is
    -- Analyze_Scoped_Name --
    -------------------------
 
-   procedure Analyze_Scoped_Name (E : Node_Id)
-   is
+   procedure Analyze_Scoped_Name (E : Node_Id) is
       P : Node_Id := Parent_Entity (E);
       N : Node_Id := Identifier (E);
       C : Node_Id;
+
    begin
-      --  This scoped name has already been analyzed because probably
-      --  expanded.
+      --  This scoped name has already been analyzed.
 
       if Present (Reference (E)) then
          return;
@@ -677,7 +669,7 @@ package body Analyzer is
       --  Analyze single scoped name. First we have to find a possible
       --  visible entity. If there is one, associate the reference to
       --  the designated entity and check whether the casing is
-      --  correct.
+      --  correct. Enter the name in the scope.
 
       if No (P) then
          if Name (N) = No_Name then
@@ -694,7 +686,7 @@ package body Analyzer is
 
       --  Analyze multiple scoped names. Analyze parent P first and
       --  then and the entity itself. Find the entity in the
-      --  newly-computed parent scope. Check whether the scope is a
+      --  newly-analyzed parent scope. Check whether the scope is a
       --  correct scope for a scoped name (not an operation for
       --  instance).
 
@@ -704,21 +696,32 @@ package body Analyzer is
          if Present (P) then
             if Is_A_Scope (P) then
                C := Node_Explicitly_In_Scope (N, P);
-               if Present (C) then
-                  Set_Reference (E, C);
-                  Check_Identifier (N, Identifier (C));
+               if No (C) then
+                  Error_Loc (1)  := Loc (N);
+                  Error_Name (1) := IDL_Name (N);
+                  Error_Name (2) := IDL_Name (Identifier (P));
+                  DE ("#not declared in#");
+                  return;
+               end if;
+               Set_Reference (E, C);
+               Check_Identifier (N, Identifier (C));
 
---                 else
---                    Error_Loc (1)  := Loc (N);
---                    Error_Name (1) := IDL_Name (N);
---                    Error_Name (2) := IDL_Name (Identifier (P));
---                    DE ("#not declared in#");
+               --  If this scoped name is the full scoped name (and
+               --  not a part of the scoped name), if this designates
+               --  a type name and if the scope is a non-module
+               --  entity, then enter the name in the scope.
+
+               if Depth (E) = 0
+                 and then Is_A_Type (C)
+                 and then Is_A_Non_Module (Current_Scope)
+               then
+                  Enter_Name_In_Scope (N);
                end if;
 
             else
                N := Identifier (P);
                Error_Loc  (1) := Loc (N);
-               Error_Name (1) := Name (N);
+               Error_Name (1) := IDL_Name (N);
                DE ("#does not form a scope");
             end if;
          end if;
@@ -809,6 +812,8 @@ package body Analyzer is
       Switch_Type : Node_Id := Switch_Type_Spec (E);
    begin
       Enter_Name_In_Scope (Identifier (E));
+
+      Push_Scope (E);
       Analyze (Switch_Type);
 
       --  Check that switch type is a discrete type
@@ -881,6 +886,7 @@ package body Analyzer is
             exit;
          end if;
       end loop;
+      Pop_Scope;
    end Analyze_Union_Type;
 
    -----------------------------------

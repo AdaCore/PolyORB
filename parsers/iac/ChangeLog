@@ -1,3 +1,39 @@
+2004-07-01  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* frontend-nodes.idl: Remove Explicitely_Visible and
+	Implicitely_Visible attributes and use Visible attribute instead
+	(see below). Add a Depth attribute in Scoped_Name in order to
+	detect whether in a recursive procedure concerning scoped names we
+	analyze the tail of a scoped name (depth = 0) or not.
+	
+	* parser.adb: Always create an inheritance specification even if
+	it appears to be empty. This simplifies the analyzis later
+	on. Compute depth attribute of scoped names.
+
+	* scopes.adb, scopes.ads: Redesign the inheritance mechanism since
+	inherited entities were made implicitely visible and were not
+	introduced in the scope (using Explicitely_Visible and
+	Implicitely_Visible attributes). This was plain since it is
+	possible to designate an inherited entity by prefixing the entity
+	with the derived interface. In this new scheme, inherited entities
+	are introduced in the scope and removed as soon as they are
+	overriden. An inherited entity E is introduced in the scope of a
+	derived interface as an identifier I which corresponding entity is
+	E. Note that the corresponding identifier of E is its original
+	identifier J and not the newly-created identifier I. In other
+	words, J and I refer to E when E only refers J. Remove
+	Explicitely_Visible and Implicitely_Visible attributes and use
+	only Visible attribute. Fix Remove_From_Homonyms implementation
+	since this was buggy because of the two previous attributes.
+
+	* analyzer.adb: Improve the way inheritance is handled as said
+	above. Analyze scoped names designating parent interface in the
+	scope of the enclosing entity of the derived interface and not in
+	the scope of the derived interface. Moreover special rules for
+	type names only apply to the tail of the scoped name (and to each
+	sub scoped name as done before). Create a scope when entering a
+	union type.
+
 2004-06-30  Laurent Pautet  <pautet@dorine.enst.fr>
 
 	* backend-be_ada-generator.adb: Minor reformatting.

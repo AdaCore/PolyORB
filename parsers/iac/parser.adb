@@ -1300,12 +1300,15 @@ package body Parser is
       Identifier := P_Identifier;
       Bind_Identifier_To_Entity (Identifier, Node);
 
+      --  Always create an interface inheritance specifier even if it
+      --  is left empty.
+
+      Interface_Spec := New_List (K_Interface_Name_List, Token_Location);
+      Set_Interface_Spec (Node, Interface_Spec);
+
       --  Parse interface inheritance specifier
 
       if Next_Token = T_Colon then
-         Interface_Spec := New_List (K_Interface_Name_List, Token_Location);
-         Set_Interface_Spec (Node, Interface_Spec);
-
          Scan_Token; --  past ':'
 
          loop
@@ -1768,6 +1771,7 @@ package body Parser is
       Scoped_Name : Node_Id := No_Node;
       Parent      : Node_Id := No_Node;
       Identifier  : Node_Id;
+      Scope_Depth : Int;
 
    begin
       --  Scoped name starts with a '::'
@@ -1797,6 +1801,14 @@ package body Parser is
 
          exit when Next_Token /= T_Colon_Colon;
          Scan_Token; --  past '::'
+      end loop;
+
+      Parent      := Parent_Entity (Scoped_Name);
+      Scope_Depth := Depth (Scoped_Name);
+      while Present (Parent) loop
+         Scope_Depth := Scope_Depth + 1;
+         Set_Depth (Parent, Scope_Depth);
+         Parent := Parent_Entity (Parent);
       end loop;
 
       return Scoped_Name;
