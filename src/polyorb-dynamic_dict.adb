@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,6 +34,7 @@
 
 --  $Id$
 
+with PolyORB.Utils.HFunctions.Mul;
 with PolyORB.Utils.HTables.Perfect;
 
 package body PolyORB.Dynamic_Dict is
@@ -44,7 +45,12 @@ package body PolyORB.Dynamic_Dict is
    --------------------------------------------------------
 
    package Perfect_Htable is
-      new PolyORB.Utils.HTables.Perfect (Value);
+      new PolyORB.Utils.HTables.Perfect
+     (Value,
+      PolyORB.Utils.HFunctions.Mul.Hash_Mul_Parameters,
+      PolyORB.Utils.HFunctions.Mul.Default_Hash_Parameters,
+      PolyORB.Utils.HFunctions.Mul.Hash,
+      PolyORB.Utils.HFunctions.Mul.Next_Hash_Parameters);
 
    use Perfect_Htable;
 
@@ -54,7 +60,7 @@ package body PolyORB.Dynamic_Dict is
 
    procedure Ensure_Initialization;
    pragma Inline (Ensure_Initialization);
-   --  Ensure that T was initialized
+   --  Ensure that T is initialized.
 
    ---------------------------
    -- Ensure_Initialization --
@@ -75,8 +81,7 @@ package body PolyORB.Dynamic_Dict is
 
    function Lookup
      (K : String)
-      return Value
-   is
+      return Value is
    begin
       Ensure_Initialization;
       return Lookup (T, K);
@@ -87,13 +92,10 @@ package body PolyORB.Dynamic_Dict is
    function Lookup
      (K : String;
       Default : Value)
-     return Value
-   is
-      V : Value;
+     return Value is
    begin
       Ensure_Initialization;
-      V := Lookup (T, K, Default);
-      return V;
+      return Lookup (T, K, Default);
    end Lookup;
 
    --------------
@@ -102,8 +104,7 @@ package body PolyORB.Dynamic_Dict is
 
    procedure Register
      (K : String;
-      V : Value)
-   is
+      V : Value) is
    begin
       Ensure_Initialization;
       Insert (T, K, V);
@@ -114,8 +115,7 @@ package body PolyORB.Dynamic_Dict is
    ----------------
 
    procedure Unregister
-     (K : String)
-   is
+     (K : String) is
    begin
       Ensure_Initialization;
       Delete (T, K);

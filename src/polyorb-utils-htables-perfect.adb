@@ -58,7 +58,7 @@ package body PolyORB.Utils.HTables.Perfect is
    function Is_Injective
      (ST_Index : Natural;
       T        : Hash_Table)
-      return Boolean;
+     return Boolean;
    --  Return true iff the hash function associated to the subtable at
    --  position subtable ST_Index is injective.
 
@@ -102,7 +102,7 @@ package body PolyORB.Utils.HTables.Perfect is
 
    procedure Initialize
      (T      : out Hash_Table;
-      HParam :     Hash_Mul_Parameters := Default_Hash_Mul_Parameters;
+      HParam :     Hash_Parameters := Default_Hash_Parameters;
       Max    :     Natural);
    --  Initialize the hash table.
    --  'HParam' are the hash function parameters,
@@ -216,9 +216,9 @@ package body PolyORB.Utils.HTables.Perfect is
             Elements (J).ST_Index := ST_Index;
 
             Elements (J).ST_Offset :=
-              Hash_Mul (Elements (J).Key.all,
-                        Subtables (ST_Index).HParam,
-                        Subtables (ST_Index).Max);
+              Hash (Elements (J).Key.all,
+                    Subtables (ST_Index).HParam,
+                    Subtables (ST_Index).Max);
 
          end if;
       end loop;
@@ -231,7 +231,7 @@ package body PolyORB.Utils.HTables.Perfect is
    function Is_Injective
      (ST_Index : Natural;
       T        : Hash_Table)
-      return Boolean
+     return Boolean
    is
       Elements : Dynamic_Element_Array.Table_Ptr renames T.Elements.Table;
       Subtables : Dynamic_Subtable_Array.Table_Ptr renames T.Subtables.Table;
@@ -264,7 +264,7 @@ package body PolyORB.Utils.HTables.Perfect is
       Subtables : Dynamic_Subtable_Array.Table_Ptr renames T.Subtables.Table;
 
    begin
-      Subtables (ST_Index).HParam := Default_Hash_Mul_Parameters;
+      Subtables (ST_Index).HParam := Default_Hash_Parameters;
 
       loop
          Rehash_Subtable (ST_Index, T);
@@ -272,7 +272,7 @@ package body PolyORB.Utils.HTables.Perfect is
          exit when Is_Injective (ST_Index, T);
 
          Subtables (ST_Index).HParam :=
-           Next_Hash_Mul_Parameters (Subtables (ST_Index).HParam);
+           Next_Hash_Parameters (Subtables (ST_Index).HParam);
       end loop;
 
       pragma Assert (Is_Injective (ST_Index, T));
@@ -366,25 +366,25 @@ package body PolyORB.Utils.HTables.Perfect is
 
       --  Find a hash function for the table
 
-      T.Info.HParam := Default_Hash_Mul_Parameters;
+      T.Info.HParam := Default_Hash_Parameters;
       loop
 
          --  Reinitialize the subtables paramters
 
          for J in First (T.Subtables) .. Last (T.Subtables) loop
             Subtables (J).Count  := 0;
-            Subtables (J).HParam := Default_Hash_Mul_Parameters;
+            Subtables (J).HParam := Default_Hash_Parameters;
          end loop;
 
          --  Find the repartition of the elements among the subtables
 
          for J in 0 .. T.Info.Count - 1 loop
-               Elements (J).ST_Index :=
-                 Hash_Mul (Elements (J).Key.all,
-                           T.Info.HParam,
-                           T.Info.N_Subtables);
-               Subtables (Elements (J).ST_Index).Count
-                 := Subtables (Elements (J).ST_Index).Count + 1;
+            Elements (J).ST_Index :=
+              Hash (Elements (J).Key.all,
+                    T.Info.HParam,
+                    T.Info.N_Subtables);
+            Subtables (Elements (J).ST_Index).Count
+              := Subtables (Elements (J).ST_Index).Count + 1;
 
          end loop;
 
@@ -418,7 +418,7 @@ package body PolyORB.Utils.HTables.Perfect is
 
          exit when Max_Sum <= 44 * T.Info.High / 3;
 
-         T.Info.HParam := Next_Hash_Mul_Parameters (T.Info.HParam);
+         T.Info.HParam := Next_Hash_Parameters (T.Info.HParam);
 
       end loop;
 
@@ -436,7 +436,7 @@ package body PolyORB.Utils.HTables.Perfect is
       for J in 0 .. T.Info.Count - 1 loop
 
          ST_Index := Elements (J).ST_Index;
-         ST_Offset := Hash_Mul
+         ST_Offset := Hash
            (Elements (J).Key.all,
             Subtables (ST_Index).HParam,
             Subtables (ST_Index).Max);
@@ -460,7 +460,7 @@ package body PolyORB.Utils.HTables.Perfect is
                   ST_Index := Elements (J).ST_Index;
 
                   if Elements (J).Used then
-                     ST_Offset := Hash_Mul
+                     ST_Offset := Hash
                        (Elements (J).Key.all,
                         Subtables (ST_Index).HParam,
                         Subtables (ST_Index).Max);
@@ -481,7 +481,7 @@ package body PolyORB.Utils.HTables.Perfect is
 
                   ST_Index := Elements (J).ST_Index;
                   if Elements (J).Used then
-                     ST_Offset := Hash_Mul
+                     ST_Offset := Hash
                        (Elements (J).Key.all,
                         Subtables (ST_Index).HParam,
                         Subtables (ST_Index).Max);
@@ -502,7 +502,7 @@ package body PolyORB.Utils.HTables.Perfect is
          if Subtables (J).Count > 1 then
             Process_Subtable (J, T);
          elsif Subtables (J).Count = 0 then
-            Subtables (J).HParam := Default_Hash_Mul_Parameters;
+            Subtables (J).HParam := Default_Hash_Parameters;
          end if;
       end loop;
 
@@ -553,7 +553,7 @@ package body PolyORB.Utils.HTables.Perfect is
 
    procedure Initialize
      (T      : out Hash_Table;
-      HParam :     Hash_Mul_Parameters := Default_Hash_Mul_Parameters;
+      HParam :     Hash_Parameters := Default_Hash_Parameters;
       Max    :     Natural)
    is
       Elements : Dynamic_Element_Array.Table_Ptr renames T.Elements.Table;
@@ -768,13 +768,13 @@ package body PolyORB.Utils.HTables.Perfect is
       Index : Natural;
 
    begin
-      ST_Index  := Hash_Mul (Key,
-                             T.Info.HParam,
-                             T.Info.N_Subtables);
+      ST_Index  := Hash (Key,
+                         T.Info.HParam,
+                         T.Info.N_Subtables);
 
-      ST_Offset := Hash_Mul (Key,
-                             Subtables (ST_Index).HParam,
-                             Subtables (ST_Index).Max);
+      ST_Offset := Hash (Key,
+                         Subtables (ST_Index).HParam,
+                         Subtables (ST_Index).Max);
 
       Index := Subtables (ST_Index).First + ST_Offset;
 
@@ -838,7 +838,7 @@ package body PolyORB.Utils.HTables.Perfect is
 
    procedure Initialize
      (T      : out Table_Instance;
-      HParam :     Hash_Mul_Parameters := Default_Hash_Mul_Parameters;
+      HParam :     Hash_Parameters := Default_Hash_Parameters;
       Max    :     Natural := Default_Max) is
    begin
       T.T := new Table;
@@ -910,7 +910,7 @@ package body PolyORB.Utils.HTables.Perfect is
      (T           : Table_Instance;
       Key         : String;
       Error_Value : Item)
-      return Item
+     return Item
    is
       Items : Dynamic_Item_Array.Table_Ptr renames T.T.Items.Table;
 
@@ -930,7 +930,7 @@ package body PolyORB.Utils.HTables.Perfect is
    function Lookup
      (T   : Table_Instance;
       Key : String)
-      return Item
+     return Item
    is
       Items : Dynamic_Item_Array.Table_Ptr renames T.T.Items.Table;
 

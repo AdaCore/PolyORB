@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -37,16 +37,12 @@
 
 with PolyORB.Any;
 with PolyORB.Tasking.Rw_Locks;
+with PolyORB.Utils.HFunctions.Mul;
 with PolyORB.Utils.HTables.Perfect;
 
 with MOMA.Types;
 
 package MOMA.Provider.Warehouse is
-
-   package Perfect_Htable is
-      new PolyORB.Utils.HTables.Perfect (PolyORB.Any.Any);
-
-   use Perfect_Htable;
 
    Key_Not_Found : exception;
 
@@ -89,6 +85,15 @@ package MOMA.Provider.Warehouse is
    --  XXX Warning : not safe in case of multiple message pools !!!!
 
 private
+
+   package Perfect_Htable is
+      new PolyORB.Utils.HTables.Perfect
+     (PolyORB.Any.Any,
+      PolyORB.Utils.HFunctions.Mul.Hash_Mul_Parameters,
+      PolyORB.Utils.HFunctions.Mul.Default_Hash_Parameters,
+      PolyORB.Utils.HFunctions.Mul.Hash,
+      PolyORB.Utils.HFunctions.Mul.Next_Hash_Parameters);
+   use Perfect_Htable;
 
    type Warehouse is record
       T             : Table_Instance;

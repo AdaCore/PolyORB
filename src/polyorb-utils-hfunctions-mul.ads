@@ -35,6 +35,8 @@
 --  Hash_Mul computes for string S = (Si)i the sum of the elements
 --     Hi (S) = (( K * Si ) mod Prime) mod Size
 
+--  Note: we have no proof this class of functions is universal or not.
+
 --  $Id$
 
 package PolyORB.Utils.HFunctions.Mul is
@@ -47,30 +49,32 @@ package PolyORB.Utils.HFunctions.Mul is
       Prime : Natural;
       Size  : Natural)
      return Natural;
+   --  Hash function implemented by this package.
+   --  S: key to hash,
+   --  (K, Prime): Hash function parameters,
+   --  Size: restrict results to range O .. Size - 1.
 
-   type Hash_Mul_Parameters is private;
+   type Hash_Mul_Parameters is new Hash_Parameters with private;
 
-   Default_Hash_Mul_Parameters : constant Hash_Mul_Parameters;
-
-   function Hash_Mul
+   function Hash
      (S     : String;
       Param : Hash_Mul_Parameters;
       Size  : Natural)
      return Natural;
 
-   function Next_Hash_Mul_Parameters
+   function Default_Hash_Parameters
+     return Hash_Mul_Parameters;
+   pragma Inline (Default_Hash_Parameters);
+
+   function Next_Hash_Parameters
      (Param : Hash_Mul_Parameters)
      return Hash_Mul_Parameters;
 
 private
-   type Hash_Mul_Parameters is record
+
+   type Hash_Mul_Parameters is new Hash_Parameters with record
       K     : Natural;
       Prime : Natural;
    end record;
-
-   Default_Prime : constant := 1777771;
-
-   Default_Hash_Mul_Parameters : constant Hash_Mul_Parameters
-     := Hash_Mul_Parameters'(K => 1, Prime => Default_Prime);
 
 end PolyORB.Utils.HFunctions.Mul;

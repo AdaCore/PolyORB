@@ -34,6 +34,13 @@
 
 package body PolyORB.Utils.HFunctions.Mul is
 
+   Default_Prime : constant := 1777771;
+
+   Default_Hash_Mul_Parameters_Value : constant Hash_Mul_Parameters
+     := Hash_Mul_Parameters'(Hash_Parameters with
+                             K => 1,
+                             Prime => Default_Prime);
+
    --------------
    -- Hash_Mul --
    --------------
@@ -45,10 +52,12 @@ package body PolyORB.Utils.HFunctions.Mul is
       Size  : Natural)
       return Natural
    is
+      Lambda : constant := 65599;
+
       Result : Long_Long_Integer := 0;
    begin
       for J in S'Range loop
-         Result := (Result * 65599
+         Result := (Result * Lambda
                     + Long_Long_Integer (Character'Pos (S (J)))
                     * Long_Long_Integer (K))
            mod Long_Long_Integer (Prime);
@@ -57,29 +66,44 @@ package body PolyORB.Utils.HFunctions.Mul is
       return Natural (Result mod Long_Long_Integer (Size));
    end Hash_Mul;
 
-   function Hash_Mul
+   ----------
+   -- Hash --
+   ----------
+
+   function Hash
      (S     : String;
       Param : Hash_Mul_Parameters;
       Size  : Natural)
      return Natural is
    begin
       return Hash_Mul (S, Param.K, Param.Prime, Size);
-   end Hash_Mul;
+   end Hash;
 
-   ------------------------------
-   -- Next_Hash_Mul_Parameters --
-   ------------------------------
+   -----------------------------
+   -- Default_Hash_Parameters --
+   -----------------------------
 
-   function Next_Hash_Mul_Parameters
+   function Default_Hash_Parameters
+     return Hash_Mul_Parameters is
+   begin
+      return Default_Hash_Mul_Parameters_Value;
+   end Default_Hash_Parameters;
+
+   --------------------------
+   -- Next_Hash_Parameters --
+   --------------------------
+
+   function Next_Hash_Parameters
      (Param : Hash_Mul_Parameters)
      return Hash_Mul_Parameters is
    begin
       if Param.K = Param.Prime then
-         raise Program_Error;
+         return Default_Hash_Mul_Parameters_Value;
+         --  We wrap around.
       end if;
 
       return Hash_Mul_Parameters'(K => Param.K + 1, Prime => Param.Prime);
-   end Next_Hash_Mul_Parameters;
+   end Next_Hash_Parameters;
 
 end PolyORB.Utils.HFunctions.Mul;
 

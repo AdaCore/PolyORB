@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Parent package of Hash functions.
+--  Root package of Hash functions.
 
 --  Some definitions used in child packages:
 
@@ -49,5 +49,33 @@
 package PolyORB.Utils.HFunctions is
 
    pragma Pure;
+
+   --  Each child package must implement the following functions to be
+   --  used as hash functions class by HTables packages:
+
+   type Hash_Parameters is abstract tagged private;
+   --  Hash_Parameters holds information that uniquely identify one
+   --  member of a hash functions class. It is a placeholder for this
+   --  specific hash function parameters.
+
+   function Hash
+     (S     : String;
+      Param : Hash_Parameters;
+      Size  : Natural)
+     return Natural is abstract;
+   --  Hash the key S.
+
+   function Default_Hash_Parameters
+     return Hash_Parameters is abstract;
+   --  Return default Hash_Parameters.
+
+   function Next_Hash_Parameters
+     (Param : Hash_Parameters)
+     return Hash_Parameters is abstract;
+   --  Return next Hash_Parameters.
+
+private
+
+   type Hash_Parameters is abstract tagged null record;
 
 end PolyORB.Utils.HFunctions;

@@ -39,21 +39,37 @@
 --  - O (1) worst-case time for lookups and deletions,
 --  - O (1) amortized expected time for insertions.
 
+--  Note: A major hypothesis made by this algorithm is that the Hash
+--  function provided during instanciation is universal.
+
 --  $Id$
 
 with PolyORB.Utils.Dynamic_Tables;
-with PolyORB.Utils.HFunctions.Mul;
 with PolyORB.Utils.Strings;
 
 generic
    type Item is private;
+
+   type Hash_Parameters is private;
+
+   with function Default_Hash_Parameters
+     return Hash_Parameters;
+
+   with function Hash
+     (Key   : String;
+      Param : Hash_Parameters;
+      Size  : Natural)
+     return Natural;
+
+   with function Next_Hash_Parameters
+     (Param : Hash_Parameters)
+     return Hash_Parameters;
 
 package PolyORB.Utils.HTables.Perfect is
 
    pragma Preelaborate;
 
    use PolyORB.Utils.Strings;
-   use PolyORB.Utils.HFunctions.Mul;
 
    No_Key : exception renames PolyORB.Utils.HTables.No_Key;
 
@@ -70,7 +86,7 @@ package PolyORB.Utils.HTables.Perfect is
 
    procedure Initialize
      (T      : out Table_Instance;
-      HParam :     Hash_Mul_Parameters := Default_Hash_Mul_Parameters;
+      HParam :     Hash_Parameters := Default_Hash_Parameters;
       Max    :     Natural := Default_Max);
    --  Initialize the hash table.
    --  'HParam' are the hash function parameters,
@@ -149,12 +165,12 @@ private
    --  'Subtable' type.
 
    type Subtable is record
-      First  : Natural;             --  'First subtable index.
-      Last   : Natural;             --  'Last subtable index.
-      Count  : Natural;             --  Number of keys stored.
-      High   : Natural;             --  Highest count before reorganization.
-      Max    : Natural;             --  Subtable maximum size.
-      HParam : Hash_Mul_Parameters; --  Hash parameters.
+      First  : Natural;         --  'First subtable index.
+      Last   : Natural;         --  'Last subtable index.
+      Count  : Natural;         --  Number of keys stored.
+      High   : Natural;         --  Highest count before reorganization.
+      Max    : Natural;         --  Subtable maximum size.
+      HParam : Hash_Parameters; --  Hash parameters.
    end record;
 
    package Dynamic_Subtable_Array is new
@@ -166,11 +182,10 @@ private
    --  'Table_Info' type.
 
    type Table_Info is record
-      Count        : Natural;             --  Number of keys stored in all
-                                          --  Subtables.
-      High         : Natural;             --  Highest Count before resizing.
-      N_Subtables  : Natural;             --  Number of subtables.
-      HParam       : Hash_Mul_Parameters; --  Hash parameters.
+      Count        : Natural;         --  Number of keys stored in Subtables.
+      High         : Natural;         --  Highest Count before resizing.
+      N_Subtables  : Natural;         --  Number of subtables.
+      HParam       : Hash_Parameters; --  Hash parameters.
    end record;
 
    --  The Hash table index.
