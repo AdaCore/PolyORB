@@ -120,6 +120,12 @@ package body Droopi.ORB is
             Filter_Factory_Chain : Filters.Factory_Access;
             --  Factory of Filter (protocol stack) components.
 
+            Profile_Factory : Binding_Data.Profile_Factory_Access;
+            --  Factory of profiles capable of associating the
+            --  address of TAP and the specification of the
+            --  protocol implemented by Filter_Factory_Chain
+            --  with an object id.
+
          when A_TE_AES =>
             TE : Transport_Endpoint_Access;
             --  Transport_Endpoint component (connected to a
@@ -320,7 +326,8 @@ package body Droopi.ORB is
    procedure Register_Access_Point
      (ORB   : access ORB_Type;
       TAP   : Transport_Access_Point_Access;
-      Chain : Filters.Factory_Access)
+      Chain : Filters.Factory_Access;
+      PF    : Binding_Data.Profile_Factory_Access)
    is
       New_AES : Asynch_Ev_Source_Access;
    begin
@@ -331,7 +338,8 @@ package body Droopi.ORB is
                 ORB_Note'(Annotations.Note with D =>
                             (Kind   => A_TAP_AES,
                              TAP    => TAP,
-                             Filter_Factory_Chain => Chain)));
+                             Filter_Factory_Chain => Chain,
+                             Profile_Factory => PF)));
       --  Set link from AES to TAP.
 
       Enter (ORB.ORB_Lock.all);
