@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# make_distrib,v 1.10 1996/05/14 07:26:34 tardieu Exp
+# $Id$
 #
 # This script builds a distribution. The only parameter is the name
 # of the distribution (.tar.gz will be appened). Only files tagged with
@@ -12,25 +12,38 @@
 #
 
 if [ $# = 0 ]; then
-   echo "Usage: $0 [-k] tag dir";
+   echo "Usage: $0 [-k|-prcs] tag dir";
    exit 0;
 fi;
 
+prcs=false
+kk=
+
 case $1 in
-  -k*) kk=$1; shift;;
-  *)   kk=;;
+  -k*)   kk=$1; shift;;
+  -prcs) prcs=true; shift;;
+  *)     ;;
 esac
 tag=$1
 dir=$2
-root=`cat CVS/Root`
-name=`sed -e "s,${root}/,," < CVS/Repository`
-echo Extracting module ${name} from ${root} using tag ${tag}
 prev=`pwd`
 tmp=/tmp/t$$
 mkdir ${tmp}
-cd ${tmp}
-cvs -d ${root} co ${kk} -r ${tag} -d ${dir} ${name}
-cd ${dir}
+if $prcs; then
+  name=`echo *.prj | sed -e 's/\.prj//'`
+  echo Extracting module ${name} from prcs using tag ${tag}
+  cd ${tmp}
+  mkdir ${dir}
+  cd ${dir}
+  prcs checkout -r${tag} ${name}
+else
+  root=`cat CVS/Root`
+  name=`sed -e "s,${root}/,," < CVS/Repository`
+  echo Extracting module ${name} from ${root} using tag ${tag}
+  cd ${tmp}
+  cvs -d ${root} co ${kk} -r ${tag} -d ${dir} ${name}
+  cd ${dir}
+fi
 if [ -f Utils/VERSION.INFO ]; then
   echo "Sourcing version file, then deleting it"
   . Utils/VERSION.INFO
@@ -45,12 +58,6 @@ find . -name Makefile.in -exec touch {} \;
 sleep 1
 find . -name configure -exec touch {} \;
 sleep 1
-#echo Configuring
-#./configure
-#echo Building the distribution
-#make
-#echo Building the examples
-#(cd Examples && make)
 echo Adapting modes
 chmod -R og=u-w .
 flist=""
@@ -59,9 +66,8 @@ for i in `cat MANIFEST`; do
   flist="${flist} ${dir}/${i}"
 done
 cd ..
-tar cvf ${dir}.tar `ls -tr ${flist}`
+tar cvf ${dir}.tar ${flist}
 gzip --best ${dir}.tar
 mv ${dir}.tar.gz ${prev}
 cd ${prev}
 rm -rf ${tmp}
-#pgp -sb ${dir}.tar.gz

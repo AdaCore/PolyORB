@@ -276,7 +276,6 @@ ada/g-os_lib.ads
 ada/gnat.ads
 ada/gnatvsn.ads
 ada/hostparm.ads
-ada/interfac.ads
 ada/krunch.adb
 ada/krunch.ads
 ada/make.adb
@@ -289,8 +288,6 @@ ada/osint.adb
 ada/osint.ads
 ada/output.adb
 ada/output.ads
-ada/s-arit64.adb
-ada/s-arit64.ads
 ada/s-assert.adb
 ada/s-assert.ads
 ada/s-exctab.adb
