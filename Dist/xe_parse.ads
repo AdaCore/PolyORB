@@ -26,117 +26,117 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with XE;       use XE;
-with XE_Scan;  use XE_Scan;
-with XE_Utils; use XE_Utils;
+with Types;
+with XE;
+with XE_Scan;
 
 package XE_Parse is
 
    type Convention_Type is (Named, Positional);
 
-   Attribute_Prefix : Name_Id;
-   Type_Prefix      : Name_Id;
-   Pragma_Prefix    : Name_Id;
+   Attribute_Prefix : Types.Name_Id;
+   Type_Prefix      : Types.Name_Id;
+   Pragma_Prefix    : Types.Name_Id;
 
-   Unbounded        : constant Int     := Int'Last;
+   Unbounded        : constant Types.Int := Types.Int'Last;
 
    procedure Check_Not_Declared
-     (Declaration_Name : in Name_Id;
-      Declaration_Sloc : in Location_Type);
+     (Declaration_Name : in Types.Name_Id;
+      Declaration_Sloc : in XE_Scan.Location_Type);
    --  Check that such a declaration has not already been done.
 
    procedure Declare_Literal
-     (Literal_Name : in  Name_Id;
-      Literal_Type : in  Type_Id;
-      Literal_Sloc : in  Location_Type;
-      Literal_Node : out Variable_Id);
+     (Literal_Name : in  Types.Name_Id;
+      Literal_Type : in  XE.Type_Id;
+      Literal_Sloc : in  XE_Scan.Location_Type;
+      Literal_Node : out XE.Variable_Id);
 
    procedure Declare_Procedure_Call
-     (Subprogram_Node : in Subprogram_Id);
+     (Subprogram_Node : in XE.Subprogram_Id);
    --  Declare a call to a procedure. A statement node is created and
    --  contains an entire copy of the subprogram node.
 
    procedure Declare_Subprogram
-     (Subprogram_Name  : in  Name_Id;
-      Pragma_Kind      : in  Pragma_Type;
+     (Subprogram_Name  : in  Types.Name_Id;
+      Pragma_Kind      : in  XE.Pragma_Type;
       Is_A_Procedure   : in  Boolean;
-      Subprogram_Sloc  : in  Location_Type;
-      Subprogram_Node  : out Subprogram_Id);
+      Subprogram_Sloc  : in  XE_Scan.Location_Type;
+      Subprogram_Node  : out XE.Subprogram_Id);
    --  Declare a subprogram into the configuration context. This subprogram
    --  is possibly a function. At this point, the subprogram has no
    --  parameter.
 
    procedure Declare_Subprogram_Parameter
-     (Parameter_Name  : in  Name_Id;
-      Para_Type_Node  : in  Type_Id;
-      Subprogram_Node : in  Subprogram_Id;
-      Parameter_Sloc  : in  Location_Type;
-      Parameter_Node  : out Parameter_Id);
+     (Parameter_Name  : in  Types.Name_Id;
+      Para_Type_Node  : in  XE.Type_Id;
+      Subprogram_Node : in  XE.Subprogram_Id;
+      Parameter_Sloc  : in  XE_Scan.Location_Type;
+      Parameter_Node  : out XE.Parameter_Id);
    --  Declare a parameter for a subprogram. The last parameter corresponds
    --  to a returned value when the subprogram is a function.
 
    procedure Declare_Type
-     (Type_Name : in  Name_Id;
-      Type_Kind : in  Predefined_Type;
-      List_Size : in  Int;
-      Comp_Type : in  Type_Id;
+     (Type_Name : in  Types.Name_Id;
+      Type_Kind : in  XE.Predefined_Type;
+      List_Size : in  Types.Int;
+      Comp_Type : in  XE.Type_Id;
       Is_Frozen : in  Boolean;
-      Type_Sloc : in  Location_Type;
-      Type_Node : out Type_Id);
+      Type_Sloc : in  XE_Scan.Location_Type;
+      Type_Node : out XE.Type_Id);
    --  Declare a new type into the configuration context. If List_Size is
    --  zero, it is non component list type. If List_Size is Unbounded, then
    --  it is an unbounded array. Otherwise, it is a component list.
 
    procedure Declare_Type_Attribute
-     (Type_Node          : in Type_Id;
-      Attribute_Name     : in Name_Id;
-      Attr_Type_Node     : in Type_Id;
-      Attribute_Kind     : in Attribute_Type;
-      Attribute_Sloc     : in Location_Type;
-      Attribute_Node     : out Attribute_Id);
+     (Type_Node          : in XE.Type_Id;
+      Attribute_Name     : in Types.Name_Id;
+      Attr_Type_Node     : in XE.Type_Id;
+      Attribute_Kind     : in XE.Attribute_Type;
+      Attribute_Sloc     : in XE_Scan.Location_Type;
+      Attribute_Node     : out XE.Attribute_Id);
    --  Declare an attribute for a given type. This procedure creates a
    --  component of type Attr_Type_Node and includes it in the type
    --  component list.
 
    procedure Declare_Type_Component
-     (Type_Node          : in Type_Id;
-      Component_Name     : in Name_Id;
-      Comp_Type_Node     : in Type_Id;
-      Component_Sloc     : in Location_Type;
-      Component_Node     : out Component_Id);
+     (Type_Node          : in XE.Type_Id;
+      Component_Name     : in Types.Name_Id;
+      Comp_Type_Node     : in XE.Type_Id;
+      Component_Sloc     : in XE_Scan.Location_Type;
+      Component_Node     : out XE.Component_Id);
    --  Declare a component for a given type. This procedure creates a
    --  component of type Comp_Type_Node and includes it in the type
    --  component list.
 
    procedure Declare_Variable
-     (Variable_Name : in  Name_Id;
-      Variable_Type : in  Type_Id;
-      Variable_Sloc : in  Location_Type;
-      Variable_Node : out Variable_Id);
+     (Variable_Name : in  Types.Name_Id;
+      Variable_Type : in  XE.Type_Id;
+      Variable_Sloc : in  XE_Scan.Location_Type;
+      Variable_Node : out XE.Variable_Id);
    --  Declare a new variable into the configuration context. This variable
    --  of name Variable_Name is of type Variable_Type. Allocate the
    --  component nodes if needed (not attributes).
 
    procedure Declare_Variable_Component
-     (Variable_Node      : in Variable_Id;
-      Component_Name     : in Name_Id;
-      Component_Type     : in Type_Id;
-      Component_Value    : in Variable_Id;
-      Attribute_Kind     : in Attribute_Type;
-      Component_Sloc     : in Location_Type;
-      Component_Node     : out Component_Id);
+     (Variable_Node      : in  XE.Variable_Id;
+      Component_Name     : in  Types.Name_Id;
+      Component_Type     : in  XE.Type_Id;
+      Component_Value    : in  XE.Variable_Id;
+      Attribute_Kind     : in  XE.Attribute_Type;
+      Component_Sloc     : in  XE_Scan.Location_Type;
+      Component_Node     : out XE.Component_Id);
    --  Add a component for a given variable. This component is possibly an
    --  attribute and is initialized to Component_Value.  The component type
    --  is given by Component_Type.
 
    procedure Duplicate_Component
-     (Source : in Component_Id;
-      Target : out Component_Id);
+     (Source : in  XE.Component_Id;
+      Target : out XE.Component_Id);
    --  Duplicate component, attribute or not, but do not duplicate
    --  component value.
 
    procedure Duplicate_Variable
-     (Source, Target : in Variable_Id);
+     (Source, Target : in XE.Variable_Id);
    --  Duplicate all the content except attributes.
 
    procedure Exit_On_Parsing_Error;
@@ -146,12 +146,12 @@ package XE_Parse is
    --  Elaboration code.
 
    procedure Match_Actual_With_Formal
-     (Subprogram_Node : in Subprogram_Id);
+     (Subprogram_Node : in XE.Subprogram_Id);
    --  Parse a subprogram call and associate actual parameters to formal
    --  parameters.
 
    procedure P_Aggregate_Assignement
-     (Variable_Node   : in Variable_Id);
+     (Variable_Node   : in XE.Variable_Id);
    --  Parse an aggregat assignement.
 
    procedure P_Configuration_Body;
@@ -171,8 +171,8 @@ package XE_Parse is
    procedure P_Representation_Clause;
 
    procedure P_Variable_List_Declaration
-     (Previous_Name   : in Name_Id;
-      Previous_Sloc   : in Location_Type);
+     (Previous_Name   : in Types.Name_Id;
+      Previous_Sloc   : in XE_Scan.Location_Type);
    --  Parse a list of identifiers.
 
    procedure Parse;
@@ -183,67 +183,67 @@ package XE_Parse is
    --  Configuration_Node is used as tree root.
 
    procedure Print_Component
-     (Node : in Component_Id;
-      Many : in Int);
+     (Node : in XE.Component_Id;
+      Many : in Types.Int);
 
    procedure Print_Parameter
-     (Node : in Parameter_Id;
-      Many : in Int);
+     (Node : in XE.Parameter_Id;
+      Many : in Types.Int);
 
    procedure Print_Statement
-     (Node : in Statement_Id;
-      Many : in Int);
+     (Node : in XE.Statement_Id;
+      Many : in Types.Int);
 
    procedure Print_Subprogram
-     (Node : in Subprogram_Id;
-      Many : in Int);
+     (Node : in XE.Subprogram_Id;
+      Many : in Types.Int);
 
    procedure Print_Type
-     (Node : in Type_Id;
-      Many : in Int);
+     (Node : in XE.Type_Id;
+      Many : in Types.Int);
 
    procedure Print_Variable
-     (Node : in Variable_Id;
-      Many : in Int);
+     (Node : in XE.Variable_Id;
+      Many : in Types.Int);
 
    procedure Search_Actual_Parameter
-     (Actual_Name : in  Name_Id;
-      Actual_Type : in  Type_Id;
-      Actual_Node : out Variable_Id);
+     (Actual_Name : in  Types.Name_Id;
+      Actual_Type : in  XE.Type_Id;
+      Actual_Node : out XE.Variable_Id);
    --  Similar to Search_Variable but check name *and* type.
 
    procedure Search_Component
-     (Component_Name : in  Name_Id;
-      Type_Node      : in  Type_Id;
-      Component_Node : out Component_Id);
+     (Component_Name : in  Types.Name_Id;
+      Type_Node      : in  XE.Type_Id;
+      Component_Node : out XE.Component_Id);
    --  Search for the first occurrence of a component Component_Name in a
    --  type Type_Node. If unsuccessful, returns Null_Component.
 
    procedure Search_Component
-     (Component_Name : in  Name_Id;
-      Variable_Node  : in  Variable_Id;
-      Component_Node : out Component_Id);
+     (Component_Name : in  Types.Name_Id;
+      Variable_Node  : in  XE.Variable_Id;
+      Component_Node : out XE.Component_Id);
    --  Search for the first occurrence of a component Component_Name in a
    --  variable Variable_Node. If unsuccessful, returns Null_Component.
 
    procedure Search_Declaration
-     (Declaration_Name : in  Name_Id;
-      Declaration_Node : out Node_Id);
+     (Declaration_Name : in  Types.Name_Id;
+      Declaration_Node : out XE.Node_Id);
    --  Search for the first occurrence of a declaration
    --  Declaration_Name. If unsuccessful, returns Null_Node.
 
    procedure Search_Function_Returned_Parameter
-     (Function_Node  : in Subprogram_Id;
-      Parameter_Node : out Parameter_Id);
+     (Function_Node  : in  XE.Subprogram_Id;
+      Parameter_Node : out XE.Parameter_Id);
    --  Search for the last parameter of this subprogram. This is by
    --  convention the returned parameter.
 
    procedure Search_Matching_Parameter
-     (Subprogram_Node : in Subprogram_Id;
-      Convention      : in Convention_Type;
-      Formal_Name     : in out Name_Id;
-      Formal_Type     : in out Type_Id;
-      Parameter_Node  : in out Parameter_Id);
+     (Subprogram_Node : in     XE.Subprogram_Id;
+      Convention      : in     Convention_Type;
+      Formal_Name     : in out Types.Name_Id;
+      Formal_Type     : in out XE.Type_Id;
+      Parameter_Node  : in out XE.Parameter_Id);
    --  Search for a formal parameter that has no actual associated
    --  parameter. This choice should follow Convention requirements. If
    --  Convention is Named, then returns Parameter_Node of name
@@ -251,53 +251,53 @@ package XE_Parse is
    --  and returns also its name in Formal_Name.
 
    procedure Search_Pragma
-     (Pragma_Name : in  Name_Id;
-      Pragma_Kind : out Pragma_Type;
-      Pragma_Node : out Subprogram_Id);
+     (Pragma_Name : in  Types.Name_Id;
+      Pragma_Kind : out XE.Pragma_Type;
+      Pragma_Node : out XE.Subprogram_Id);
    --  Search for the first occurrence of a pragma Pragma_Name. If
    --  unsuccessful, returns Null_Pragma. If successful, Pragma_Kind is set
    --  to its corresponding litteral. Otherwise, it is set to
    --  Pragma_Unknown.
 
    procedure Search_Subprogram
-     (Subprogram_Name : in  Name_Id;
-      Subprogram_Node : out Subprogram_Id);
+     (Subprogram_Name : in  Types.Name_Id;
+      Subprogram_Node : out XE.Subprogram_Id);
    --  Search for the first occurrence of a subprogram Subprogram_Name. If
    --  unsuccessful, returns Null_Subprogram.
 
    procedure Search_Type
-     (Type_Name : in  Name_Id;
-      Type_Kind : out Predefined_Type;
-      Type_Node : out Type_Id);
+     (Type_Name : in  Types.Name_Id;
+      Type_Kind : out XE.Predefined_Type;
+      Type_Node : out XE.Type_Id);
    --  Search for the first occurrence of a type Type_Name. If
    --  unsuccessful, returns Null_Type. If successful, Type_Kind is set to
    --  its corresponding litteral. Otherwise, it is set to
    --  Pre_Type_Unknown.
 
    procedure Search_Uninitialized_Component
-     (Variable_Node  : in  Variable_Id;
-      Component_Type : in  Type_Id;
-      Component_Node : out Component_Id);
+     (Variable_Node  : in  XE.Variable_Id;
+      Component_Type : in  XE.Type_Id;
+      Component_Node : out XE.Component_Id);
    --  Search for the first occurrence of an uninitialized component in a
    --  variable Variable_Node. Attributes are discarded. If unsuccessful,
    --  returns Null_Component.
 
    procedure Search_Variable
-     (Variable_Name : in  Name_Id;
-      Variable_Node : out Variable_Id);
+     (Variable_Name : in  Types.Name_Id;
+      Variable_Node : out XE.Variable_Id);
    --  Search for the first occurrence of a variable Variable_Name. If
    --  unsuccessful, returns Null_Variable.
 
    procedure Search_Variable
-     (Variable_Name : in  Name_Id;
-      Variable_Type : in  Type_Id;
-      Variable_Node : out Variable_Id);
+     (Variable_Name : in  Types.Name_Id;
+      Variable_Type : in  XE.Type_Id;
+      Variable_Node : out XE.Variable_Id);
    --  Search for the first occurrence of a variable Variable_Name. If
    --  unsuccessful, returns Null_Variable. Check Varaible_Type also.
 
    procedure Set_Node_Location
-     (Node     : in Node_Id;
-      Location : in Location_Type);
+     (Node     : in XE.Node_Id;
+      Location : in XE_Scan.Location_Type);
    --  Set SLOC node to Location.
 
    procedure T_Apostrophe;
@@ -344,8 +344,8 @@ package XE_Parse is
 
    procedure T_Use;
 
-   procedure Take_Token (T : in Token_Type);
+   procedure Take_Token (T : in XE.Token_Type);
 
-   procedure Take_Token (L : in Token_List_Type);
+   procedure Take_Token (L : in XE.Token_List_Type);
 
 end XE_Parse;

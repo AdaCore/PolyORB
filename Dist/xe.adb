@@ -26,9 +26,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with ALI;          use ALI;
 with Namet;        use Namet;
 with Output;       use Output;
-with XE_Utils;     use XE_Utils;
+with Table;
+with Types;        use Types;
 
 package body XE is
 

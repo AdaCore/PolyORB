@@ -30,6 +30,7 @@ with Csets;
 with Namet;         use Namet;
 with Osint;         use Osint;
 with Output;        use Output;
+with Types;         use Types;
 with XE;            use XE;
 with XE_Utils;      use XE_Utils;
 

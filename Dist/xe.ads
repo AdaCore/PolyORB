@@ -26,8 +26,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Table;
-with XE_Utils;   use XE_Utils;
+with Types;
 
 package XE is
 
@@ -40,7 +39,7 @@ package XE is
 
    --  Keyword --
 
-   type Token_Type is new Int range 100 .. 126;
+   type Token_Type is new Types.Int range 100 .. 126;
 
    Tok_Unknown         : constant Token_Type := 100;  -- (0)  Identifier
    Tok_String_Literal  : constant Token_Type := 101;  -- (1)  string literal
@@ -77,7 +76,7 @@ package XE is
 
    -- Attribute_Type --
 
-   type Attribute_Type is new Int range 200 .. 209;
+   type Attribute_Type is new Types.Int range 200 .. 209;
 
    Attribute_Unknown      : constant Attribute_Type := 200;
    Attribute_Host         : constant Attribute_Type := 201;
@@ -93,7 +92,7 @@ package XE is
 
    -- Pragma_Type --
 
-   type Pragma_Type is new Int range 300 .. 305;
+   type Pragma_Type is new Types.Int range 300 .. 305;
 
    Pragma_Unknown         : constant Pragma_Type := 300;
    Pragma_Starter         : constant Pragma_Type := 301;
@@ -105,7 +104,7 @@ package XE is
 
    -- Import_Method_Type --
 
-   type Import_Method_Type is new Int range 341 .. 343;
+   type Import_Method_Type is new Types.Int range 341 .. 343;
 
    Ada_Import             : constant Import_Method_Type := 341;
    Shell_Import           : constant Import_Method_Type := 342;
@@ -114,7 +113,7 @@ package XE is
 
    -- Predefined_Type --
 
-   type Predefined_Type is new Int range 401 .. 411;
+   type Predefined_Type is new Types.Int range 401 .. 411;
 
    Pre_Type_Partition       : constant Predefined_Type := 401;
    Pre_Type_Channel         : constant Predefined_Type := 402;
@@ -131,7 +130,7 @@ package XE is
 
    -- Termination_Type --
 
-   type Termination_Type is new Int range 500 .. 503;
+   type Termination_Type is new Types.Int range 500 .. 503;
 
    Unknown_Termination  : constant Termination_Type := 500;
    Local_Termination    : constant Termination_Type := 501;
@@ -141,7 +140,7 @@ package XE is
 
    -- Node_Id --
 
-   type Node_Id          is new Int range 10_000 .. 99_999;
+   type Node_Id          is new Types.Int range 10_000 .. 99_999;
    type Type_Id          is new Node_Id;
    type Variable_Id      is new Node_Id;
    type Component_Id     is new Node_Id;
@@ -188,16 +187,16 @@ package XE is
 
    -- Internal System Names --
 
-   ISN_List_Comp            : Name_Id;
-   ISN_Array_Comp           : Name_Id;
-   ISN_Proc_Main            : Name_Id;
-   ISN_Appl_Main            : Name_Id;
-   ISN_Return_Par           : Name_Id;
-   ISN_Subpro_Par           : Name_Id;
-   ISN_Proc_Call            : Name_Id;
+   ISN_List_Comp            : Types.Name_Id;
+   ISN_Array_Comp           : Types.Name_Id;
+   ISN_Proc_Main            : Types.Name_Id;
+   ISN_Appl_Main            : Types.Name_Id;
+   ISN_Return_Par           : Types.Name_Id;
+   ISN_Subpro_Par           : Types.Name_Id;
+   ISN_Proc_Call            : Types.Name_Id;
 
 
-   Configuration_File       : File_Name_Type  := No_File;
+   Configuration_File       : Types.File_Name_Type  := Types.No_File;
 
 
    -- GNATDIST flags --
@@ -229,59 +228,59 @@ package XE is
       Component_Node  : in Component_Id);
    --  Add a component to the variable component list.
 
-   function Convert (Item : Attribute_Type) return Int;
+   function Convert (Item : Attribute_Type) return Types.Int;
 
-   function Convert (Item : Int) return Attribute_Type;
+   function Convert (Item : Types.Int) return Attribute_Type;
 
-   function Convert (Item : Pragma_Type) return Int;
+   function Convert (Item : Pragma_Type) return Types.Int;
 
-   function Convert (Item : Int) return Pragma_Type;
+   function Convert (Item : Types.Int) return Pragma_Type;
 
-   function Convert (Item : Import_Method_Type) return Int;
+   function Convert (Item : Import_Method_Type) return Types.Int;
 
-   function Convert (Item : Int) return Import_Method_Type;
+   function Convert (Item : Types.Int) return Import_Method_Type;
 
-   function Convert (Item : Predefined_Type) return Int;
+   function Convert (Item : Predefined_Type) return Types.Int;
 
-   function Convert (Item : Int) return Predefined_Type;
+   function Convert (Item : Types.Int) return Predefined_Type;
 
-   function Convert (Item : Termination_Type) return Int;
+   function Convert (Item : Termination_Type) return Types.Int;
 
-   function Convert (Item : Int) return Termination_Type;
+   function Convert (Item : Types.Int) return Termination_Type;
 
    procedure Create_Component
      (Component_Node : out Component_Id;
-      Component_Name : in  Name_Id);
+      Component_Name : in  Types.Name_Id);
    pragma Inline (Create_Component);
 
    procedure Create_Configuration
      (Configuration_Node : out Configuration_Id;
-      Configuration_Name : in  Name_Id);
+      Configuration_Name : in  Types.Name_Id);
    pragma Inline (Create_Configuration);
 
    procedure Create_Parameter
      (Parameter_Node : out Parameter_Id;
-      Parameter_Name : in  Name_Id);
+      Parameter_Name : in  Types.Name_Id);
    pragma Inline (Create_Parameter);
 
    procedure Create_Statement
      (Statement_Node : out Statement_Id;
-      Statement_Name : in  Name_Id);
+      Statement_Name : in  Types.Name_Id);
    pragma Inline (Create_Statement);
 
    procedure Create_Subprogram
      (Subprogram_Node : out Subprogram_Id;
-      Subprogram_Name : in  Name_Id);
+      Subprogram_Name : in  Types.Name_Id);
    pragma Inline (Create_Subprogram);
 
    procedure Create_Type
      (Type_Node : out Type_Id;
-      Type_Name : in  Name_Id);
+      Type_Name : in  Types.Name_Id);
    pragma Inline (Create_Type);
 
    procedure Create_Variable
      (Variable_Node : out Variable_Id;
-      Variable_Name : in  Name_Id);
+      Variable_Name : in  Types.Name_Id);
    pragma Inline (Create_Variable);
 
    procedure First_Configuration_Declaration
@@ -320,7 +319,7 @@ package XE is
 
    function Get_Component_List_Size
      (Type_Node : Type_Id)
-     return Int;
+     return Types.Int;
    --  When the type is an array type or a list type, this function returns
    --  the size of the array or the list. Otherwise, it returns 0 (neither
    --  a list nor an array).
@@ -336,13 +335,13 @@ package XE is
 
    function Get_Node_Name
      (Node : Node_Id)
-     return Name_Id;
+     return Types.Name_Id;
    pragma Inline (Get_Node_Name);
 
    procedure Get_Node_SLOC
      (Node  : in Node_Id;
-      Loc_X : out Int;
-      Loc_Y : out Int);
+      Loc_X : out Types.Int;
+      Loc_Y : out Types.Int);
    pragma Inline (Get_Node_SLOC);
 
    function  Get_Parameter_Type
@@ -358,7 +357,7 @@ package XE is
 
    function  Get_Scalar_Value
      (Variable_Node : Variable_Id)
-      return Int;
+      return Types.Int;
    --  Return a scalar rather than a variable as a value.
 
    function  Get_Subprogram_Call
@@ -367,7 +366,7 @@ package XE is
    --  This statement is a procedure call. This returns a copy of the
    --  subprogram call with the initialized parameters in it.
 
-   function  Get_Token (N : Name_Id) return Token_Type;
+   function  Get_Token (N : Types.Name_Id) return Token_Type;
 
    function  Get_Type_Kind
      (Type_Node : Type_Id)
@@ -476,7 +475,7 @@ package XE is
 
    procedure Set_Component_List_Size
      (Type_Node : in Type_Id;
-      List_Size : in Int);
+      List_Size : in Types.Int);
    --  This type becomes an component list type. List_size indicates
    --  whether it is a constrained array or not.
 
@@ -492,8 +491,8 @@ package XE is
 
    procedure Set_Node_SLOC
      (Node  : in Node_Id;
-      Loc_X : in Int;
-      Loc_Y : in Int);
+      Loc_X : in Types.Int;
+      Loc_Y : in Types.Int);
    pragma Inline (Set_Node_SLOC);
 
    procedure Set_Parameter_Type
@@ -508,7 +507,7 @@ package XE is
 
    procedure Set_Scalar_Value
      (Variable_Node : in Variable_Id;
-      Scalar_Value  : in Int);
+      Scalar_Value  : in Types.Int);
    --  See Get_Scalar_Value.
 
    procedure Set_Subprogram_Call

@@ -26,8 +26,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with GNAT.OS_Lib; use GNAT.OS_Lib;
 with Namet;       use Namet;
 with Osint;       use Osint;
+with Types;       use Types;
 with XE;          use XE;
 with XE_Back;     use XE_Back;
 with XE_Defs;     use XE_Defs;
@@ -183,7 +185,7 @@ begin
                         Maybe_Symbolic => True);
                   else
                      Copy_With_File_Stamp
-                       (Source         => Dir & Dir_Sep_Id & PName,
+                       (Source         => Join (Dir, Dir_Sep_Id, PName),
                         Target         => Main_Subprogram,
                         Maybe_Symbolic => True);
                   end if;

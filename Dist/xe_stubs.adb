@@ -33,6 +33,9 @@ with XE_Back;          use XE_Back;
 with XE_Defs;          use XE_Defs;
 with XE_Utils;         use XE_Utils;
 
+with ALI;         use ALI;
+with GNAT.OS_Lib; use GNAT.OS_Lib;
+with Types;       use Types;
 with Unchecked_Deallocation;
 
 package body XE_Stubs is
@@ -101,7 +104,7 @@ package body XE_Stubs is
 
    begin
 
-      Get_Name_String (Original_Dir & Dir_Sep_Id);
+      Get_Name_String (Join (Original_Dir, Dir_Sep_Id));
       Root_Dir_Len := Name_Len;
       Root_Dir := new String'(Name_Buffer (1 .. Root_Dir_Len));
 
@@ -131,14 +134,15 @@ package body XE_Stubs is
          if Partitions.Table (PID).To_Build then
 
             Partitions.Table (PID).Executable_File :=
-              Partitions.Table (PID).Name & Exe_Suffix;
+              Join (Partitions.Table (PID).Name, Exe_Suffix);
             Dir  := Get_Storage_Dir (PID);
             if Dir /= No_Storage_Dir then
                if not Is_Directory (Dir) then
                   Create_Dir (Dir);
                end if;
                Partitions.Table (PID).Executable_File :=
-                 Dir & Dir_Sep_Id & Partitions.Table (PID).Executable_File;
+                 Join (Dir, Dir_Sep_Id,
+                       Partitions.Table (PID).Executable_File);
             end if;
 
             Dir := Get_Partition_Dir (PID);
@@ -174,9 +178,9 @@ package body XE_Stubs is
                      Copy_Stub (Receiver_Dir, Dir, Unit.Table (U).My_ALI);
 
                      Most_Recent_Stamp
-                       (PID, Dir & Dir_Sep_Id &
-                             Receiver_Dir & Dir_Sep_Id &
-                             Lib_File_Name (Unit.Table (U).Sfile));
+                       (PID, Join (Dir, Dir_Sep_Id,
+                                   Receiver_Dir, Dir_Sep_Id,
+                                   Lib_File_Name (Unit.Table (U).Sfile)));
 
                      Set_Light_PCS (PID, False);
 
@@ -185,9 +189,9 @@ package body XE_Stubs is
                      Delete_Stub (Dir, Unit.Table (U).Sfile);
 
                      Most_Recent_Stamp
-                       (PID, Dir & Dir_Sep_Id &
-                             Caller_Dir & Dir_Sep_Id &
-                             Lib_File_Name (Unit.Table (U).Sfile));
+                       (PID, Join (Dir, Dir_Sep_Id,
+                                   Caller_Dir, Dir_Sep_Id,
+                                   Lib_File_Name (Unit.Table (U).Sfile)));
 
                      if Unit.Table (U).Has_RACW_Type then
                         Set_Light_PCS (PID, False);
@@ -265,12 +269,16 @@ package body XE_Stubs is
       --  of gnat.adc.
 
       Caller_Object   :=
-        Caller_Dir & Strip_Suffix (Dir_Sep_Id & RCI_Spec) & Obj_Suffix;
+        Join (Caller_Dir,
+              Strip_Suffix (Join (Dir_Sep_Id, RCI_Spec)),
+              Obj_Suffix);
       Receiver_Object :=
-        Receiver_Dir & Strip_Suffix (Dir_Sep_Id & RCI_Body) & Obj_Suffix;
+        Join (Receiver_Dir,
+              Strip_Suffix (Join (Dir_Sep_Id, RCI_Body)),
+              Obj_Suffix);
 
-      Caller_ALI      := Strip_Suffix (Caller_Object) & ALI_Suffix;
-      Receiver_ALI    := Strip_Suffix (Receiver_Object) & ALI_Suffix;
+      Caller_ALI   := Join (Strip_Suffix (Caller_Object), ALI_Suffix);
+      Receiver_ALI := Join (Strip_Suffix (Receiver_Object), ALI_Suffix);
 
       --  Do we need to regenerate the caller stub and its ali.
       Obsolete := False;
@@ -279,7 +287,8 @@ package body XE_Stubs is
             Write_Missing_File (Caller_Object);
          end if;
          Obsolete := True;
-      elsif not Obsolete and then Full_RCI_Spec > Caller_Object then
+      elsif not Obsolete
+        and then Stamp (Full_RCI_Spec) > Stamp (Caller_Object) then
          if Verbose_Mode then
             Write_Stamp_Comparison (Full_RCI_Spec, Caller_Object);
          end if;
@@ -291,14 +300,16 @@ package body XE_Stubs is
             Write_Missing_File (Caller_ALI);
          end if;
          Obsolete := True;
-      elsif not Obsolete and then Full_RCI_Spec > Caller_ALI then
+      elsif not Obsolete
+        and then Stamp (Full_RCI_Spec) > Stamp (Caller_ALI) then
          if Verbose_Mode then
             Write_Stamp_Comparison (Full_RCI_Spec, Caller_ALI);
          end if;
          Obsolete := True;
       end if;
 
-      if not Obsolete and then Full_ALI_File > Caller_ALI then
+      if not Obsolete
+        and then Stamp (Full_ALI_File) > Stamp (Caller_ALI) then
          if Verbose_Mode then
             Write_Stamp_Comparison (Full_ALI_File, Caller_ALI);
          end if;
@@ -325,7 +336,8 @@ package body XE_Stubs is
             Write_Missing_File (Receiver_Object);
          end if;
          Obsolete := True;
-      elsif not Obsolete and then Full_RCI_Body > Receiver_Object then
+      elsif not Obsolete
+        and then Stamp (Full_RCI_Body) > Stamp (Receiver_Object) then
          if Verbose_Mode then
             Write_Stamp_Comparison (Full_RCI_Body, Receiver_Object);
          end if;
@@ -336,13 +348,15 @@ package body XE_Stubs is
             Write_Missing_File (Receiver_ALI);
          end if;
          Obsolete := True;
-      elsif not Obsolete and then Full_RCI_Body > Receiver_ALI then
+      elsif not Obsolete
+        and then Stamp (Full_RCI_Body) > Stamp (Receiver_ALI) then
          if Verbose_Mode then
             Write_Stamp_Comparison (Full_RCI_Body, Receiver_ALI);
          end if;
          Obsolete := True;
       end if;
-      if not Obsolete and then Full_ALI_File > Receiver_ALI then
+      if not Obsolete
+        and then Stamp (Full_ALI_File) > Stamp (Receiver_ALI) then
          if Verbose_Mode then
             Write_Stamp_Comparison (Full_ALI_File, Receiver_ALI);
          end if;
@@ -378,21 +392,21 @@ package body XE_Stubs is
       for U in ALIs.Table (A).First_Unit .. ALIs.Table (A).Last_Unit loop
          case Unit.Table (U).Utype is
             when Is_Body =>
-               ADB_Src := Source_Dir & Dir_Sep_Id & Unit.Table (U).Sfile;
-               ADB_Tgt := Target_Dir & Dir_Sep_Id & Unit.Table (U).Sfile;
+               ADB_Src := Join (Source_Dir, Dir_Sep_Id, Unit.Table (U).Sfile);
+               ADB_Tgt := Join (Target_Dir, Dir_Sep_Id, Unit.Table (U).Sfile);
             when Is_Spec_Only =>
-               ADB_Src := Source_Dir & Dir_Sep_Id & Unit.Table (U).Sfile;
-               ADB_Tgt := Target_Dir & Dir_Sep_Id & Unit.Table (U).Sfile;
+               ADB_Src := Join (Source_Dir, Dir_Sep_Id, Unit.Table (U).Sfile);
+               ADB_Tgt := Join (Target_Dir, Dir_Sep_Id, Unit.Table (U).Sfile);
             when others =>
                null;
          end case;
       end loop;
 
-      ALI_Src := Strip_Suffix (ADB_Src) & ALI_Suffix;
-      ALI_Tgt := Strip_Suffix (ADB_Tgt) & ALI_Suffix;
+      ALI_Src := Join (Strip_Suffix (ADB_Src), ALI_Suffix);
+      ALI_Tgt := Join (Strip_Suffix (ADB_Tgt), ALI_Suffix);
 
-      Obj_Src := Strip_Suffix (ADB_Src) & Obj_Suffix;
-      Obj_Tgt := Strip_Suffix (ADB_Tgt) & Obj_Suffix;
+      Obj_Src := Join (Strip_Suffix (ADB_Src), Obj_Suffix);
+      Obj_Tgt := Join (Strip_Suffix (ADB_Tgt), Obj_Suffix);
 
       --  Copy the stubs from source directory to the target directory.
 
@@ -429,8 +443,8 @@ package body XE_Stubs is
 
       Partition   := Partitions.Table (PID) .Name;
       Elaboration :=
-        Partitions.Table (PID).Partition_Dir &
-        Dir_Sep_Id & Elaboration_File & ADB_Suffix;
+        Join (Partitions.Table (PID).Partition_Dir,
+              Dir_Sep_Id, Elaboration_File, ADB_Suffix);
 
       if Building_Script then
          Write_Str  (Standout, "cat >");
@@ -644,8 +658,8 @@ package body XE_Stubs is
    begin
 
       Main_File   :=
-        Partitions.Table (PID).Partition_Dir &
-        Dir_Sep_Id & Partition_Main_File & ADB_Suffix;
+        Join (Partitions.Table (PID).Partition_Dir,
+              Dir_Sep_Id, Partition_Main_File, ADB_Suffix);
 
       if Building_Script then
          Write_Str  (Standout, "cat >");
@@ -893,7 +907,7 @@ package body XE_Stubs is
 
    begin
       Stamp_File := Partitions.Table (PID).Partition_Dir;
-      Stamp_File := Stamp_File & Dir_Sep_Id & Build_Stamp_File;
+      Stamp_File := Join (Stamp_File, Dir_Sep_Id, Build_Stamp_File);
       Executable := Partitions.Table (PID).Executable_File;
       Create    (FD, Stamp_File);
       Write_Str (FD, String (Source_File_Stamp (Configuration_File)));
@@ -909,11 +923,11 @@ package body XE_Stubs is
 
    procedure Delete_Stub (Source_Dir, Base_Name  : in File_Name_Type) is
       ALI_Src : File_Name_Type
-        := Source_Dir & Dir_Sep_Id & Base_Name & ALI_Suffix;
+        := Join (Source_Dir, Dir_Sep_Id, Base_Name, ALI_Suffix);
       Obj_Src : File_Name_Type
-        :=  Source_Dir & Dir_Sep_Id & Base_Name & Obj_Suffix;
+        :=  Join (Source_Dir, Dir_Sep_Id, Base_Name, Obj_Suffix);
       ADB_Src : File_Name_Type
-        := Source_Dir & Dir_Sep_Id & Base_Name & ADB_Suffix;
+        := Join (Source_Dir, Dir_Sep_Id, Base_Name, ADB_Suffix);
    begin
 
       if Is_Regular_File (ALI_Src) then
@@ -936,7 +950,7 @@ package body XE_Stubs is
 
    procedure Mark_Units_On_Partition
      (PID : in PID_Type;
-      ALI : in ALI_Id) is
+      Lib : in ALI_Id) is
 
       Current_ALI : ALI_Id;
       Continue    : Boolean;
@@ -944,17 +958,17 @@ package body XE_Stubs is
    begin
 
       if Debug_Mode then
-         Message ("mark ali file ", ALIs.Table (ALI).Afile);
+         Message ("mark ali file ", ALIs.Table (Lib).Afile);
       end if;
 
       --  Mark this unit to avoid infinite recursive search.
-      for I in ALIs.Table (ALI).First_Unit ..
-               ALIs.Table (ALI).Last_Unit loop
+      for I in ALIs.Table (Lib).First_Unit ..
+               ALIs.Table (Lib).Last_Unit loop
          Set_PID (Unit.Table (I).Uname, PID);
       end loop;
 
-      for I in ALIs.Table (ALI).First_Unit ..
-               ALIs.Table (ALI).Last_Unit loop
+      for I in ALIs.Table (Lib).First_Unit ..
+               ALIs.Table (Lib).Last_Unit loop
          for J in Unit.Table (I).First_With ..
                   Unit.Table (I).Last_With loop
 
@@ -1026,21 +1040,21 @@ package body XE_Stubs is
 
       Dir := Partitions.Table (PID).Partition_Dir;
 
-      Get_Name_String (Inc_Path_Flag & Dir);
+      Get_Name_String (Join (Inc_Path_Flag, Dir));
       Inc := new String'(Name_Buffer (1 .. Name_Len));
-      Get_Name_String (Lib_Path_Flag & Dir);
+      Get_Name_String (Join (Lib_Path_Flag, Dir));
       Lib := new String'(Name_Buffer (1 .. Name_Len));
 
       Execute_Gcc
-        (Dir & Dir_Sep_Id & Elaboration_File & ADB_Suffix,
-         Dir & Dir_Sep_Id & Elaboration_File & Obj_Suffix,
+        (Join (Dir, Dir_Sep_Id, Elaboration_File, ADB_Suffix),
+         Join (Dir, Dir_Sep_Id, Elaboration_File, Obj_Suffix),
          (GNATLib_Compile_Flag,
           I_GARLIC_Dir)
          );
 
       Execute_Gcc
-        (Dir & Dir_Sep_Id & Partition_Main_File & ADB_Suffix,
-         Dir & Dir_Sep_Id & Partition_Main_File & Obj_Suffix,
+        (Join (Dir, Dir_Sep_Id, Partition_Main_File, ADB_Suffix),
+         Join (Dir, Dir_Sep_Id, Partition_Main_File, Obj_Suffix),
          (Inc, I_Caller_Dir, I_Current_Dir)
          );
 
@@ -1049,12 +1063,12 @@ package body XE_Stubs is
 
 
       Execute_Bind
-        (Dir & Dir_Sep_Id & Partition_Main_File & ALI_Suffix,
+        (Join (Dir, Dir_Sep_Id, Partition_Main_File, ALI_Suffix),
          (Inc, I_Caller_Dir, I_Current_Dir)
          );
 
       Execute_Link
-        (Dir & Dir_Sep_Id & Partition_Main_File & ALI_Suffix,
+        (Join (Dir, Dir_Sep_Id, Partition_Main_File, ALI_Suffix),
          Partitions.Table (PID).Executable_File,
          (Lib, L_Caller_Dir, L_Current_Dir)
          );
@@ -1088,15 +1102,14 @@ package body XE_Stubs is
             Write_Missing_File (Executable);
          end if;
          return True;
-      elsif Most_Recent > Executable then
+      elsif Stamp (Most_Recent) > Stamp (Executable) then
          if Verbose_Mode then
             Write_Stamp_Comparison (Most_Recent, Executable);
          end if;
          return True;
       end if;
-      Stamp_File :=
-        Partitions.Table (PID).Partition_Dir &
-        Dir_Sep_Id & Build_Stamp_File;
+      Stamp_File := Join (Partitions.Table (PID).Partition_Dir,
+                          Dir_Sep_Id, Build_Stamp_File);
       if not Is_Regular_File (Stamp_File) then
          if Verbose_Mode then
             Write_Missing_File (Stamp_File);
@@ -1113,6 +1126,10 @@ package body XE_Stubs is
          Ptr := Ptr + 1;
       end loop;
       Conf_Stamp2 := Source_File_Stamp (Configuration_File);
+      if Verbose_Mode then
+         Message ("Stamp of conf. file is ", No_Name, String (Conf_Stamp1));
+         Message ("Stamp of stamp file is ", No_Name, String (Conf_Stamp2));
+      end if;
       if Conf_Stamp1 /= Conf_Stamp2 then
          if Verbose_Mode then
             Message ("Configuration file is obsolete");
@@ -1131,6 +1148,10 @@ package body XE_Stubs is
          Ptr := Ptr + 1;
       end loop;
       Exec_Stamp2 := Source_File_Stamp (Executable);
+      if Verbose_Mode then
+         Message ("Stamp of exec. file is ", No_Name, String (Exec_Stamp1));
+         Message ("Stamp of stamp file is ", No_Name, String (Exec_Stamp2));
+      end if;
       if Exec_Stamp1 /= Exec_Stamp2 then
          if Verbose_Mode then
             Message ("Executable file is obsolete");
@@ -1170,14 +1191,14 @@ package body XE_Stubs is
          when 'a' =>
             case S (N + 1) is
                when 'L' | 'O' | 'I' =>
-                  if S (N + 2) /= Separator then
+                  if S (N + 2) /= Directory_Separator then
                      Update (S, N + 2);
                   end if;
                when others =>
                   null;
             end case;
          when 'I' | 'L' | 'A' =>
-            if S (N + 1) /= Separator and then
+            if S (N + 1) /= Directory_Separator and then
                S (N + 1) /= '-' then
                Update (S, N + 1);
             end if;

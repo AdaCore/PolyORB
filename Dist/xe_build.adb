@@ -26,8 +26,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with GNAT.OS_Lib;      use GNAT.OS_Lib;
 with Namet;            use Namet;
 with Osint;            use Osint;
+with Types;            use Types;
 with XE;               use XE;
 with XE_Back;          use XE_Back;
 with XE_Check;         use XE_Check;
@@ -47,7 +49,7 @@ begin
 
    XE_Utils.Initialize;
 
-   if Osint.Number_Of_Files = 0 then
+   if Number_Of_Files = 0 then
       XE_Usage;
 
    else

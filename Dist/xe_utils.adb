@@ -37,6 +37,7 @@ with Namet;          use Namet;
 with Opt;
 with Osint;          use Osint;
 with Output;         use Output;
+with Types;          use Types;
 with XE;             use XE;
 with XE_Defs;        use XE_Defs;
 
@@ -86,22 +87,6 @@ package body XE_Utils is
    --  Workaround : bad object file generated during stub generation
 
    No_Args          : constant Argument_List (1 .. 0) := (others => null);
-
-   ---------
-   -- "&" --
-   ---------
-
-   function "&" (Prefix, Suffix : Name_Id) return Name_Id is
-   begin
-      if Prefix = No_Name then
-         return Suffix;
-      elsif Suffix = No_Name then
-         return Prefix;
-      end if;
-      Get_Name_String (Prefix);
-      Get_Name_String_And_Append (Suffix);
-      return Name_Find;
-   end "&";
 
    function Locate
      (Exec_Name  : String;
@@ -255,7 +240,7 @@ package body XE_Utils is
       for Index in Dir_Name'Range loop
 
          --  XXXXX
-         if Dir_Name (Index) = Separator and then Index > 1 and then
+         if Dir_Name (Index) = Directory_Separator and then Index > 1 and then
             not Is_Directory (Dir_Name (1 .. Index - 1)) then
             Execute (Mkdir, (1 => new String'(Dir_Name (1 .. Index - 1))));
          elsif Index = Dir_Name'Last then
@@ -585,16 +570,16 @@ package body XE_Utils is
 
       DSA_Dir        := Str_To_Id ("dsa");
 
-      Caller_Dir     := DSA_Dir & Dir_Sep_Id & Private_Id &
-                       Dir_Sep_Id & Caller_Id;
-      Receiver_Dir   := DSA_Dir & Dir_Sep_Id & Private_Id &
-                       Dir_Sep_Id & Receiver_Id;
+      Caller_Dir     := Join (DSA_Dir, Dir_Sep_Id, Private_Id,
+                              Dir_Sep_Id, Caller_Id);
+      Receiver_Dir   := Join (DSA_Dir, Dir_Sep_Id, Private_Id,
+                              Dir_Sep_Id, Receiver_Id);
 
-      Original_Dir   := Parent_Dir & Dir_Sep_Id &
-                        Parent_Dir & Dir_Sep_Id &
-                        Parent_Dir;
+      Original_Dir   := Join (Parent_Dir, Dir_Sep_Id,
+                              Parent_Dir, Dir_Sep_Id,
+                              Parent_Dir);
 
-      PWD_Id         := Str_To_Id ("`pwd`") & Dir_Sep_Id;
+      PWD_Id         := Join (Str_To_Id ("`pwd`"), Dir_Sep_Id);
 
       Build_Stamp_File    := Str_To_Id ("glade.sta");
       Elaboration_File    := Str_To_Id ("s-garela");
@@ -616,39 +601,39 @@ package body XE_Utils is
          Name_Buffer (Name_Len + 1 .. Name_Len + Len) := Dir.all;
          L_GARLIC_Dir := new String'(Name_Buffer (1 .. Name_Len + Len));
 
-         Name := Inc_Path_Flag & Dot_Sep_Id;
+         Name := Join (Inc_Path_Flag, Dot_Sep_Id);
          Get_Name_String (Name);
          I_Current_Dir := new String'(Name_Buffer (1 .. Name_Len));
 
-         Name := Inc_Path_Flag & Parent_Dir & Dir_Sep_Id & Parent_Dir &
-           Dir_Sep_Id & Private_Id & Dir_Sep_Id & Caller_Id & Dir_Sep_Id;
-         Get_Name_String (Name);
-         I_Caller_Dir  := new String'(Name_Buffer (1 .. Name_Len));
-
-         Name := Inc_Path_Flag & DSA_Dir &
-           Dir_Sep_Id & Private_Id & Dir_Sep_Id & Caller_Id & Dir_Sep_Id;
-         Get_Name_String (Name);
-         I_DSA_Caller_Dir := new String'(Name_Buffer (1 .. Name_Len));
-
-         Name := Inc_Path_Flag & Parent_Dir & Dir_Sep_Id & Parent_Dir &
-           Dir_Sep_Id & Parent_Dir & Dir_Sep_Id;
-         I_Original_Dir := new String'(Name_Buffer (1 .. Name_Len));
-
-         Name := Lib_Path_Flag & Dot_Sep_Id;
+         Name := Join (Lib_Path_Flag, Dot_Sep_Id);
          L_Current_Dir := new String'(Name_Buffer (1 .. Name_Len));
 
-         Name := Lib_Path_Flag & Parent_Dir & Dir_Sep_Id & Parent_Dir &
-           Dir_Sep_Id & Private_Id & Dir_Sep_Id & Caller_Id & Dir_Sep_Id;
-         Get_Name_String (Name);
+         Name := Join (Parent_Dir, Dir_Sep_Id,
+                       Parent_Dir, Dir_Sep_Id,
+                       Private_Id, Dir_Sep_Id,
+                       Caller_Id);
+         Get_Name_String (Join (Inc_Path_Flag, Name));
+         I_Caller_Dir  := new String'(Name_Buffer (1 .. Name_Len));
+
+         Get_Name_String (Join (Lib_Path_Flag, Name));
          L_Caller_Dir  := new String'(Name_Buffer (1 .. Name_Len));
 
-         Name := Lib_Path_Flag & DSA_Dir &
-           Dir_Sep_Id & Private_Id & Dir_Sep_Id & Caller_Id & Dir_Sep_Id;
-         Get_Name_String (Name);
+         Name := Join (DSA_Dir, Dir_Sep_Id,
+                       Private_Id, Dir_Sep_Id,
+                       Caller_Id);
+         Get_Name_String (Join (Inc_Path_Flag, Name));
+         I_DSA_Caller_Dir := new String'(Name_Buffer (1 .. Name_Len));
+
+         Get_Name_String (Join (Lib_Path_Flag, Name));
          L_DSA_Caller_Dir := new String'(Name_Buffer (1 .. Name_Len));
 
-         Name := Lib_Path_Flag & Parent_Dir & Dir_Sep_Id & Parent_Dir &
-           Dir_Sep_Id & Parent_Dir & Dir_Sep_Id;
+         Name := Join (Parent_Dir, Dir_Sep_Id,
+                       Parent_Dir, Dir_Sep_Id,
+                       Parent_Dir);
+         Get_Name_String (Join (Inc_Path_Flag, Name));
+         I_Original_Dir := new String'(Name_Buffer (1 .. Name_Len));
+
+         Get_Name_String (Join (Lib_Path_Flag, Name));
          L_Original_Dir := new String'(Name_Buffer (1 .. Name_Len));
 
          for Next_Arg in 1 .. Argument_Count loop
@@ -731,8 +716,55 @@ package body XE_Utils is
    begin
       Get_Name_String (File);
       return Name_Len = 0 or else
-        (Name_Buffer (1) /= Separator and then Name_Buffer (1) /= '/');
+        (Name_Buffer (1) /= Directory_Separator
+         and then Name_Buffer (1) /= '/');
    end Is_Relative_Dir;
+
+   ----------
+   -- Join --
+   ----------
+
+   function Join
+     (N1 : Types.File_Name_Type;
+      N2 : Types.File_Name_Type;
+      N3 : Types.File_Name_Type := No_File;
+      N4 : Types.File_Name_Type := No_File;
+      N5 : Types.File_Name_Type := No_File;
+      N6 : Types.File_Name_Type := No_File;
+      N7 : Types.File_Name_Type := No_File)
+      return Types.File_Name_Type is
+   begin
+      Name_Len := 0;
+      if N1 = No_File then
+         return Name_Find;
+      end if;
+      Get_Name_String_And_Append (N1);
+      if N2 = No_File then
+         return Name_Find;
+      end if;
+      Get_Name_String_And_Append (N2);
+      if N3 = No_File then
+         return Name_Find;
+      end if;
+      Get_Name_String_And_Append (N3);
+      if N4 = No_File then
+         return Name_Find;
+      end if;
+      Get_Name_String_And_Append (N4);
+      if N5 = No_File then
+         return Name_Find;
+      end if;
+      Get_Name_String_And_Append (N5);
+      if N6 = No_File then
+         return Name_Find;
+      end if;
+      Get_Name_String_And_Append (N6);
+      if N7 = No_File then
+         return Name_Find;
+      end if;
+      Get_Name_String_And_Append (N7);
+      return Name_Find;
+   end Join;
 
    ------------
    -- Locate --
@@ -751,22 +783,6 @@ package body XE_Utils is
       end if;
       return Prog;
    end Locate;
-
-   ---------
-   -- ">" --
-   ---------
-
-   function ">" (File1, File2 : Name_Id) return Boolean is
-   begin
-      if Source_File_Stamp (File1) > Source_File_Stamp (File2) then
-         if Debug_Mode then
-            Write_Stamp_Comparison (File1, File2);
-         end if;
-         return True;
-      else
-         return False;
-      end if;
-   end ">";
 
    -------------
    -- Message --
@@ -798,6 +814,15 @@ package body XE_Utils is
       end if;
       Write_Eol;
    end Message;
+
+   -----------
+   -- Stamp --
+   -----------
+
+   function Stamp (F : File_Name_Type) return String is
+   begin
+      return String (Source_File_Stamp (F));
+   end Stamp;
 
    ---------------
    -- Str_To_Id --
@@ -927,7 +952,7 @@ package body XE_Utils is
      (File : in File_Name_Type) is
    begin
       Write_Str (" (");
-      Write_Str (String (Source_File_Stamp (File)));
+      Write_Str (Stamp (File));
       Write_Str (")");
    end Write_File_Stamp;
 

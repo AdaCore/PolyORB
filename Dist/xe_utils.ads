@@ -27,116 +27,57 @@
 ------------------------------------------------------------------------------
 
 with Unchecked_Deallocation;
-with ALI;
 with GNAT.OS_Lib;
 with Types;
 
 package XE_Utils is
 
-   subtype Int                 is Types.Int;
-   subtype Name_Id             is Types.Name_Id;
-   subtype File_Name_Type      is Types.File_Name_Type;
-   subtype Unit_Name_Type      is Types.Unit_Name_Type;
-   subtype Source_Ptr          is Types.Source_Ptr;
-   subtype Source_Buffer_Ptr   is Types.Source_Buffer_Ptr;
-   subtype Text_Ptr            is Types.Text_Ptr;
-   subtype Text_Buffer_Ptr     is Types.Text_Buffer_Ptr;
-   subtype Time_Stamp_Type     is Types.Time_Stamp_Type;
+   Obj_Suffix    : Types.File_Name_Type;
+   Exe_Suffix    : Types.File_Name_Type;
 
-   subtype File_Descriptor     is GNAT.OS_Lib.File_Descriptor;
-   subtype String_Access       is GNAT.OS_Lib.String_Access;
-   subtype Argument_List       is GNAT.OS_Lib.Argument_List;
+   ALI_Suffix    : Types.File_Name_Type;
+   ADS_Suffix    : Types.File_Name_Type;
+   ADB_Suffix    : Types.File_Name_Type;
 
-   subtype ALI_Id              is ALI.ALI_Id;
-   subtype Unit_Id             is ALI.Unit_Id;
-   subtype Main_Program_Type   is ALI.Main_Program_Type;
-   subtype Unit_Type           is ALI.Unit_Type;
+   Spec_Suffix   : Types.File_Name_Type;
+   Body_Suffix   : Types.File_Name_Type;
 
-   No_Stamp   : constant Time_Stamp_Type   := Types.Empty_Time_Stamp;
+   Com_Sep_Id    : Types.File_Name_Type;
+   Dir_Sep_Id    : Types.File_Name_Type;
+   Dot_Sep_Id    : Types.File_Name_Type;
 
-   No_Name    : constant Name_Id           := Types.No_Name;
-   No_File    : constant File_Name_Type    := Types.No_File;
+   DSA_Dir       : Types.File_Name_Type;
+   Caller_Dir    : Types.File_Name_Type;
+   Receiver_Dir  : Types.File_Name_Type;
+   Parent_Dir    : Types.File_Name_Type;
+   Original_Dir  : Types.File_Name_Type;
 
-   Standout   : constant File_Descriptor   := GNAT.OS_Lib.Standout;
+   Inc_Path_Flag : Types.Name_Id;
+   Lib_Path_Flag : Types.Name_Id;
 
-   No_ALI_Id  : constant ALI_Id            := ALI.No_ALI_Id;
-   None       : constant Main_Program_Type := ALI.None;
-   No_Unit_Id : constant Unit_Id           := ALI.No_Unit_Id;
+   I_Current_Dir    : GNAT.OS_Lib.String_Access;
+   I_Caller_Dir     : GNAT.OS_Lib.String_Access;
+   I_DSA_Caller_Dir : GNAT.OS_Lib.String_Access;
+   I_Original_Dir   : GNAT.OS_Lib.String_Access;
 
-   Is_Spec      : constant Unit_Type       := ALI.Is_Spec;
-   Is_Spec_Only : constant Unit_Type       := ALI.Is_Spec_Only;
-   Is_Body      : constant Unit_Type       := ALI.Is_Body;
-   Is_Body_Only : constant Unit_Type       := ALI.Is_Body_Only;
+   L_Current_Dir    : GNAT.OS_Lib.String_Access;
+   L_Caller_Dir     : GNAT.OS_Lib.String_Access;
+   L_DSA_Caller_Dir : GNAT.OS_Lib.String_Access;
+   L_Original_Dir   : GNAT.OS_Lib.String_Access;
 
-   procedure Free is new Unchecked_Deallocation (String, String_Access);
+   GNATLib_Compile_Flag  : GNAT.OS_Lib.String_Access;
 
-   package Unit  renames ALI.Unit;
-   package ALIs  renames ALI.ALIs;
-   package Withs renames ALI.Withs;
+   PWD_Id                : Types.File_Name_Type;
 
-   Directory_Separator : constant Character := GNAT.OS_Lib.Directory_Separator;
+   Build_Stamp_File      : Types.File_Name_Type;
+   Elaboration_File      : Types.File_Name_Type;
+   Elaboration_Name      : Types.File_Name_Type;
+   Partition_Main_File   : Types.File_Name_Type;
+   Partition_Main_Name   : Types.File_Name_Type;
 
-   First_Source_Ptr : constant Source_Ptr   := Types.First_Source_Ptr;
-   EOF              : constant Character    := Types.EOF;
-
-   --  This package is intended to provide all the OS facilities
-
-   Obj_Suffix   : File_Name_Type;
-   Exe_Suffix   : File_Name_Type;
-
-   ALI_Suffix   : File_Name_Type;
-   ADS_Suffix   : File_Name_Type;
-   ADB_Suffix   : File_Name_Type;
-
-   Spec_Suffix  : File_Name_Type;
-   Body_Suffix  : File_Name_Type;
-
-   Com_Sep_Id   : File_Name_Type;
-   Dir_Sep_Id   : File_Name_Type;
-   Dot_Sep_Id   : File_Name_Type;
-
-   DSA_Dir      : File_Name_Type;
-   Caller_Dir   : File_Name_Type;
-   Receiver_Dir : File_Name_Type;
-   Parent_Dir   : File_Name_Type;
-   Original_Dir : File_Name_Type;
-
-   Inc_Path_Flag         : Name_Id;
-   Lib_Path_Flag         : Name_Id;
-
-   I_Current_Dir    : String_Access;
-   --  := new String' ("-I.");
-   I_Caller_Dir     : String_Access;
-   --  := new String' ("-I../../private/caller/");
-   I_DSA_Caller_Dir : String_Access;
-   --  := new String' ("-Idsa/private/caller/");
-   I_Original_Dir   : String_Access;
-   --  := new String' ("-I../../../");
-
-   L_Current_Dir    : String_Access;
-   --  := new String' ("-L.");
-   L_Caller_Dir     : String_Access;
-   --  := new String' ("-L../../private/caller");
-   L_DSA_Caller_Dir : String_Access;
-   --  := new String' ("-Ldsa/private/caller");
-   L_Original_Dir   : String_Access;
-   --  := new String' ("-L../../../");
-
-   GNATLib_Compile_Flag  : String_Access;
-
-   PWD_Id       : File_Name_Type;
-
-   Build_Stamp_File      : File_Name_Type;
-   Elaboration_File      : File_Name_Type;
-   Elaboration_Name      : File_Name_Type;
-   Partition_Main_File   : File_Name_Type;
-   Partition_Main_Name   : File_Name_Type;
-
-   A_GARLIC_Dir          : String_Access;
-   I_GARLIC_Dir          : String_Access;
-   L_GARLIC_Dir          : String_Access;
-
-   Separator : Character renames Directory_Separator;
+   A_GARLIC_Dir          : GNAT.OS_Lib.String_Access;
+   I_GARLIC_Dir          : GNAT.OS_Lib.String_Access;
+   L_GARLIC_Dir          : GNAT.OS_Lib.String_Access;
 
    -- Exceptions --
 
@@ -147,147 +88,128 @@ package XE_Utils is
    Usage_Error         : exception;   --  Command line error
    Not_Yet_Implemented : exception;
 
-   function "&" (Prefix, Suffix : File_Name_Type) return File_Name_Type;
+   function Join
+     (N1 : Types.File_Name_Type;
+      N2 : Types.File_Name_Type;
+      N3 : Types.File_Name_Type := Types.No_File;
+      N4 : Types.File_Name_Type := Types.No_File;
+      N5 : Types.File_Name_Type := Types.No_File;
+      N6 : Types.File_Name_Type := Types.No_File;
+      N7 : Types.File_Name_Type := Types.No_File)
+      return Types.File_Name_Type;
 
-   function "+" (X, Y : Int) return Int renames Types."+";
-   function "+" (X, Y : Text_Ptr) return Text_Ptr renames Types."+";
-   function "-" (X, Y : Int) return Int renames Types."-";
-
-   function "-" (X, Y : Text_Ptr) return Text_Ptr renames Types."-";
-
-   function "<=" (X, Y : Int) return Boolean renames Types."<=";
-
-   function "=" (X, Y : Int) return Boolean renames Types."=";
-   function "=" (X, Y : Name_Id) return Boolean renames Types."=";
-
-   function "=" (X, Y : Text_Ptr) return Boolean renames Types."=";
-   function "=" (X, Y : Text_Buffer_Ptr) return Boolean renames Types."=";
-   function "=" (X, Y : Source_Buffer_Ptr) return Boolean renames Types."=";
-   function "=" (X, Y : Time_Stamp_Type) return Boolean renames Types."=";
-
-   function "=" (X, Y : Main_Program_Type) return Boolean renames ALI."=";
-   function "=" (X, Y : Unit_Type) return Boolean renames ALI."=";
-   function "=" (X, Y : ALI_Id) return Boolean renames ALI."=";
-
-   function ">" (X, Y : Int) return Boolean renames Types.">";
-   function ">" (X, Y : Time_Stamp_Type) return Boolean renames Types.">";
-
-   procedure Change_Dir (To : in File_Name_Type);
-   procedure Close (FD : File_Descriptor) renames GNAT.OS_Lib.Close;
+   procedure Change_Dir (To : in Types.File_Name_Type);
 
    procedure Compile_RCI_Caller
-     (Source, Object : in File_Name_Type);
+     (Source, Object : in Types.File_Name_Type);
    --  Compile the caller stubs (-gnatzC).
 
    procedure Compile_RCI_Receiver
-     (Source, Object : in File_Name_Type);
+     (Source, Object : in Types.File_Name_Type);
    --  Compile the receiver stubs (-gnatzR).
 
    procedure Copy_With_File_Stamp
-     (Source, Target : in File_Name_Type;
+     (Source, Target : in Types.File_Name_Type;
       Maybe_Symbolic : in Boolean := False);
-   --  Basically, this procedure copies source into target and
-   --  preserves file stamps.
+   --  Copy source into target and preserves file stamps.
 
    procedure Create
-     (File : in out File_Descriptor;
-      Name : in File_Name_Type;
+     (File : in out GNAT.OS_Lib.File_Descriptor;
+      Name : in Types.File_Name_Type;
       Exec : in Boolean := False);
-   procedure Create_Dir
-     (To : in File_Name_Type);
-   procedure Delete
-     (File : in File_Name_Type);
 
-   procedure Execute (Prog : String_Access; Args : Argument_List);
+   procedure Create_Dir
+     (To : in Types.File_Name_Type);
+
+   procedure Delete
+     (File : in Types.File_Name_Type);
+
+   procedure Execute
+     (Prog : in GNAT.OS_Lib.String_Access;
+      Args : in GNAT.OS_Lib.Argument_List);
    --  Execute the command and raise Fatal Error if not successful
 
    procedure Execute_Bind
-     (Lib  : in File_Name_Type;
-      Args : in Argument_List);
+     (Lib  : in Types.File_Name_Type;
+      Args : in GNAT.OS_Lib.Argument_List);
    --  Execute gnatbind and add gnatdist flags
 
    procedure Execute_Gcc
-     (File   : in File_Name_Type;
-      Object : in File_Name_Type;
-      Args   : in Argument_List);
+     (File   : in Types.File_Name_Type;
+      Object : in Types.File_Name_Type;
+      Args   : in GNAT.OS_Lib.Argument_List);
    --  Execute gcc and add gnatdist compilation flags
 
    procedure Execute_Link
-     (Lib  : in File_Name_Type;
-      Exec : in File_Name_Type;
-      Args : in Argument_List);
+     (Lib  : in Types.File_Name_Type;
+      Exec : in Types.File_Name_Type;
+      Args : in GNAT.OS_Lib.Argument_List);
    --  Execute gnatlink and add gnatdist flags
 
-   function  GNAT_Style (N : Name_Id) return String;
+   procedure Free is
+     new Unchecked_Deallocation (String, GNAT.OS_Lib.String_Access);
+
+   function  GNAT_Style (N : Types.Name_Id) return String;
    --  Return a string that approx. follows GNAT style.
 
    procedure Initialize;
-   procedure Initialize_ALI renames ALI.Initialize_ALI;
 
-   function Is_Directory    (File : File_Name_Type) return Boolean;
-   function Is_Regular_File (File : File_Name_Type) return Boolean;
-   function Is_Relative_Dir (File : File_Name_Type) return Boolean;
-
-   function ">" (File1, File2 : Name_Id) return Boolean;
+   function Is_Directory    (File : Types.File_Name_Type) return Boolean;
+   function Is_Regular_File (File : Types.File_Name_Type) return Boolean;
+   function Is_Relative_Dir (File : Types.File_Name_Type) return Boolean;
 
    procedure Message
-     (S1 : in String  := "";
-      S2 : in Name_Id := No_Name;
-      S3 : in String  := "";
-      S4 : in Name_Id := No_Name;
-      S5 : in String  := "");
+     (S1 : in String        := "";
+      S2 : in Types.Name_Id := Types.No_Name;
+      S3 : in String        := "";
+      S4 : in Types.Name_Id := Types.No_Name;
+      S5 : in String        := "");
 
-   procedure Read_ALI
-     (Id : ALI_Id) renames ALI.Read_ALI;
+   function Stamp (F : Types.File_Name_Type) return String;
 
-   function  Scan_ALI
-     (F : File_Name_Type; T : Text_Buffer_Ptr)
-      return ALI_Id renames ALI.Scan_ALI;
-
-   function Str_To_Id (S : String) return Name_Id;
+   function Str_To_Id (S : String) return Types.Name_Id;
    --  Set into name table and return id.
 
-   function Strlen (Name : in Name_Id) return Natural;
+   function Strlen (Name : in Types.Name_Id) return Natural;
 
    procedure To_Lower (S : in out String);
-   procedure To_Lower (N : in out Name_Id);
+   procedure To_Lower (N : in out Types.Name_Id);
 
    function U_To_N
-     (U : in Unit_Name_Type)
-      return Name_Id;
+     (U : in Types.Unit_Name_Type)
+      return Types.Name_Id;
    --  Strip %[bs] from U.
 
-   procedure Unlink_File
-     (File : in File_Name_Type);
+   procedure Unlink_File (File : in Types.File_Name_Type);
 
-   procedure Write_Compile_Command (Name : in File_Name_Type);
+   procedure Write_Compile_Command (Name : in Types.File_Name_Type);
    --  Generates on standard-out the command needed to compile
    --  a sub-tree from a given package.
 
    procedure Write_Eol
-     (File   : in File_Descriptor;
+     (File   : in GNAT.OS_Lib.File_Descriptor;
       Stdout : in Boolean := False);
 
    procedure Write_File_Stamp
-     (File : in File_Name_Type);
+     (File : in Types.File_Name_Type);
 
    procedure Write_Missing_File
-     (File  : in File_Name_Type);
+     (File  : in Types.File_Name_Type);
 
    procedure Write_Name
-     (File   : in File_Descriptor;
-      Name   : in File_Name_Type;
+     (File   : in GNAT.OS_Lib.File_Descriptor;
+      Name   : in Types.File_Name_Type;
       Stdout : in Boolean := False);
 
    procedure Write_Stamp_Comparison
-     (Newer, Older   : in File_Name_Type);
+     (Newer, Older   : in Types.File_Name_Type);
 
    procedure Write_Str
-     (File   : in File_Descriptor;
+     (File   : in GNAT.OS_Lib.File_Descriptor;
       Line   : in String;
       Stdout : in Boolean := False);
 
    procedure Write_Unit_Name
-     (U : in Unit_Name_Type);
+     (U : in Types.Unit_Name_Type);
 
 end XE_Utils;

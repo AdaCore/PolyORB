@@ -26,11 +26,14 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with ALI;              use ALI;
 with Fname;            use Fname;
+with GNAT.OS_Lib;      use GNAT.OS_Lib;
 with Make;             use Make;
 with Namet;            use Namet;
 with Opt;
 with Osint;            use Osint;
+with Types;            use Types;
 with XE;               use XE;
 with XE_Back;          use XE_Back;
 with XE_Utils;         use XE_Utils;
@@ -89,56 +92,53 @@ package body XE_Check is
 
       begin
 
-         if not Already_Loaded (Unit) then
-
-            File_Name := File_Name_Of_Body (Unit);
+         File_Name := File_Name_Of_Body (Unit);
+         if Full_Source_Name (File_Name) = No_File then
+            File_Name := File_Name_Of_Spec (Unit);
             if Full_Source_Name (File_Name) = No_File then
-               File_Name := File_Name_Of_Spec (Unit);
-               if Full_Source_Name (File_Name) = No_File then
-                  Message ("""", Unit, """ cannot be found");
-                  Exit_Program (E_Fatal);
-               end if;
+               Message ("""", Unit, """ cannot be found");
+               Exit_Program (E_Fatal);
             end if;
-
-            --  This file has to be explicitly loaded. If the library
-            --  is a readonly library, it won't be loaded by gnatmake
-            --  but we need to load this library in the ALI table.
-            Lib_File := Lib_File_Name (File_Name);
-            Full_Lib_File := Full_Lib_File_Name (Lib_File);
-            if Full_Lib_File /= No_File and then
-              Is_Readonly_Library (Full_Lib_File) then
-               Text := Read_Library_Info (Lib_File);
-               ALI := Scan_ALI (Lib_File, Text);
-               Most_Recent := No_File;
-
-            else
-               Compile_Sources
-                 (Main_Source           => File_Name,
-                  Args                  => Args,
-                  First_Compiled_File   => Compiled,
-                  Most_Recent_Obj_File  => Object,
-                  Most_Recent_Obj_Stamp => Stamp,
-                  Main_Unit             => Main,
-                  Missing_Alis          => Missing_Alis,
-                  Check_Readonly_Files  => Opt.Check_Readonly_Files,
-                  Dont_Execute          => No_Recompilation,
-                  Force_Compilations    => Opt.Force_Compilations,
-                  In_Place_Mode         => Opt.In_Place_Mode,
-                  Initialize_Ali_Data   => False,
-                  Max_Process           => Opt.Maximum_Processes);
-
-               if Compiled = No_File then
-                  Most_Recent := Object;
-               else
-                  Most_Recent := Compiled;
-               end if;
-
-               if Building_Script then
-                  Write_Compile_Command (File_Name);
-               end if;
-            end if;
-
          end if;
+
+         --  This file has to be explicitly loaded. If the library
+         --  is a readonly library, it won't be loaded by gnatmake
+         --  but we need to load this library in the ALI table.
+         Lib_File := Lib_File_Name (File_Name);
+         Full_Lib_File := Full_Lib_File_Name (Lib_File);
+         if Full_Lib_File /= No_File and then
+           Is_Readonly_Library (Full_Lib_File) then
+            Text := Read_Library_Info (Lib_File);
+            ALI := Scan_ALI (Lib_File, Text);
+            Most_Recent := No_File;
+
+         else
+            Compile_Sources
+              (Main_Source           => File_Name,
+               Args                  => Args,
+               First_Compiled_File   => Compiled,
+               Most_Recent_Obj_File  => Object,
+               Most_Recent_Obj_Stamp => Stamp,
+               Main_Unit             => Main,
+               Missing_Alis          => Missing_Alis,
+               Check_Readonly_Files  => Opt.Check_Readonly_Files,
+               Dont_Execute          => No_Recompilation,
+               Force_Compilations    => Opt.Force_Compilations,
+               In_Place_Mode         => Opt.In_Place_Mode,
+               Initialize_Ali_Data   => False,
+               Max_Process           => Opt.Maximum_Processes);
+
+            if Compiled = No_File then
+               Most_Recent := Object;
+            else
+               Most_Recent := Object_File_Name (Compiled);
+            end if;
+
+            if Building_Script then
+               Write_Compile_Command (File_Name);
+            end if;
+         end if;
+
       end Recompile;
 
    begin
@@ -188,7 +188,11 @@ package body XE_Check is
          --  they are present. It is also a way to load the ali files
          --  in the ALIs table.
          Recompile (CUnit.Table (U).CUname, CUnit.Table (U).Most_Recent);
-
+         if Verbose_Mode then
+            Message ("Unit ", CUnit.Table (U).CUname,
+                     " has ", CUnit.Table (U).Most_Recent,
+                     " as the most recent file");
+         end if;
       end loop;
 
       if Debug_Mode then
@@ -358,7 +362,7 @@ package body XE_Check is
                   Parent := Get_Parent (Child);
                   exit when Parent = No_Name;
 
-                  CUID := Get_CUID (Parent & Spec_Suffix);
+                  CUID := Get_CUID (Join (Parent, Spec_Suffix));
                   if CUID /= Null_CUID then
 
                      --  The child has to be on its parent partition.
@@ -428,19 +432,19 @@ package body XE_Check is
               Partitions.Table (Channels.Table (C).Lower.My_Partition).Name;
             Upper :=
               Partitions.Table (Channels.Table (C).Upper.My_Partition).Name;
-            Set_CID (Lower & Parent_Dir & Upper, Null_CID);
+            Set_CID (Join (Lower, Parent_Dir, Upper), Null_CID);
          end loop;
          for C in Channels.First + 1 .. Channels.Last loop
             Lower :=
               Partitions.Table (Channels.Table (C).Lower.My_Partition).Name;
             Upper :=
               Partitions.Table (Channels.Table (C).Upper.My_Partition).Name;
-            if Get_CID (Lower & Parent_Dir & Upper) /= Null_CID then
+            if Get_CID (Join (Lower, Parent_Dir, Upper)) /= Null_CID then
                Message ("two channels define """, Lower,
                         """ and """, Upper, """ pair");
                Inconsistent := True;
             end if;
-            Set_CID (Lower & Parent_Dir & Upper, C);
+            Set_CID (Join (Lower, Parent_Dir, Upper), C);
          end loop;
       end;
 
