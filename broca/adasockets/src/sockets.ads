@@ -134,6 +134,10 @@ package Sockets is
       Typ       : in Socket_Type   := SOCK_STREAM);
    --  Create a socketpair.
 
+   function Get_FD (Socket : in Socket_FD)
+     return Interfaces.C.int;
+   --  Get a socket's FD field
+
    ---------------------------------
    -- String-oriented subprograms --
    ---------------------------------

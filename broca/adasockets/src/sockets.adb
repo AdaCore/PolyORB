@@ -190,6 +190,17 @@ package body Sockets is
       return Result;
    end Get;
 
+   ------------
+   -- Get FD --
+   ------------
+
+   function Get_FD (Socket : in Socket_FD)
+     return Interfaces.C.int
+   is
+   begin
+      return Socket.FD;
+   end Get_FD;
+
    --------------
    -- Get_Line --
    --------------

@@ -1,5 +1,13 @@
 -*- outline -*-
 
+* New in AdaSockets 0.1.9
+
+** Add a new function Get_FD.
+
+A new function Get_FD has been added in the Sockets package to let GtkAda users
+add this descriptor to the list of descriptors to watch. Patch sent by
+Bobby D. Bryant <bdbryant@mail.utexas.edu>.
+
 * New in AdaSockets 0.1.8
 
 ** Change the building process
