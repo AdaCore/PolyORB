@@ -40,8 +40,6 @@ with Ada.Task_Identification;
 with Ada.Unchecked_Conversion;
 
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
-
 with PolyORB.Log;
 with PolyORB.Utils.Strings;
 
@@ -97,17 +95,17 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
    -- P_To_A_Task_Id --
    --------------------
 
+   pragma Style_Checks (Off);  -- WAG: 5.02
    function P_To_A_Task_Id (TID : PTT.Thread_Id)
      return Ada.Task_Identification.Task_Id
    is
       function STID_To_ATID is new Ada.Unchecked_Conversion
-        (System.Tasking.Task_ID, Ada.Task_Identification.Task_Id);
+        (System.Tasking.Task_Id, Ada.Task_Identification.Task_Id);
    begin
-      pragma Style_Checks (Off);  -- WAG: 5.02
       --  Casing of To_Task_ID has changed.
-      return STID_To_ATID (System.Tasking.To_Task_ID (PTT.To_Address (TID)));
-      pragma Style_Checks (On);  -- WAG: 5.02
+      return STID_To_ATID (System.Tasking.To_Task_Id (PTT.To_Address (TID)));
    end P_To_A_Task_Id;
+   pragma Style_Checks (On);  -- WAG: 5.02
 
    --------------------
    -- A_To_P_Task_Id --
@@ -117,7 +115,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
      return PTT.Thread_Id
    is
       function ATID_To_STID is new Ada.Unchecked_Conversion
-        (Ada.Task_Identification.Task_Id, System.Tasking.Task_ID);
+        (Ada.Task_Identification.Task_Id, System.Tasking.Task_Id);
    begin
       return PTT.To_Thread_Id
         (System.Tasking.To_Address (ATID_To_STID (ATID)));
