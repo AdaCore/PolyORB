@@ -131,6 +131,24 @@ package PolyORB.Utils.HTables.Perfect is
    --  the flag Used to False. Deallocations appears only after reorganisation
    --  of the table or a sub-table (procedure Insert)
 
+   -----------------------------------------
+   -- Iterator on Table_Instance elements --
+   -----------------------------------------
+
+   type Iterator is private;
+
+
+   function First (T : Table_Instance)
+                  return Iterator;
+
+   function Value (I : Iterator)
+                  return Item_Access;
+
+   function Last (I : Iterator)
+                 return Boolean;
+
+   procedure Next (I : in out Iterator);
+
 private
    --  A Hash table is the agregation of an Hash_Table index table
    --  (non-generic) and and an array of item (generic) which contains
@@ -219,5 +237,10 @@ private
    --  with the Keys. We can note that HTable.Elements.all and Items.all
    --  have the same size. Indeed if a Key is stored in HTable.Elements(i)
    --  then his value is stored in Items(HTable.Elements(i).Item_Index)
+
+   type Iterator is record
+      On_Table : Table_Instance;
+      Position : Natural := 0;
+   end record;
 
 end PolyORB.Utils.HTables.Perfect;
