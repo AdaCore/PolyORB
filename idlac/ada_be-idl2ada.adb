@@ -1429,8 +1429,8 @@ package body Ada_Be.Idl2Ada is
 
          when K_Object =>
             null;
-         when K_Any =>
-            null;
+--         when K_Any =>
+--            null;
          when K_Void =>
             null;
 
@@ -2933,7 +2933,8 @@ package body Ada_Be.Idl2Ada is
            K_Boolean            |
            K_String             |
            K_Wide_String        |
-           K_Octet              =>
+           K_Octet              |
+           K_Any                =>
             Add_With (CU, "CORBA");
             Put (CU, Ada_Type_Name (Node));
 
