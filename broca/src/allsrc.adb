@@ -31,8 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Broca.Basic_Startup;
-pragma Warnings (Off, Broca.Basic_Startup);
+with Broca.Server_Tools;
+pragma Warnings (Off, Broca.Server_Tools);
 
 procedure Allsrc is
 begin
