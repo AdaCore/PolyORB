@@ -9,19 +9,20 @@ package Backend is
    --  Return language previously set. Null string when uninitialized.
 
    type Configure_Procedure is access procedure;
-
    procedure Configure;
    --  Configure backend with specific flags. To do so scan flags
    --  using Getopt from GNAT.Command_Line.
 
    type Generate_Procedure is access procedure (Root : Node_Id);
-
    procedure Generate (Root : Node_Id);
    --  Generate code for the current language.
+
+   type Usage_Procedure is access procedure (Indent : Natural);
 
    procedure Register
      (Generate  : Generate_Procedure;
       Configure : Configure_Procedure;
+      Usage     : Usage_Procedure;
       Language  : String;
       Comments  : String);
    --  Register a new language with its code generation procedure, its

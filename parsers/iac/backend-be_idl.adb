@@ -13,7 +13,7 @@ package body Backend.BE_IDL is
    Space_Increment : constant := 2;
    N_Space         : Natural  := 0;
 
-   Default_Base : Natural := 10;
+   Default_Base : Natural := 0;
 
    procedure Decrement_Indentation;
    procedure Increment_Indentation;
@@ -914,6 +914,21 @@ package body Backend.BE_IDL is
    begin
       Dummy (E);
    end Generate_Value_Forward_Declaration;
+
+   -----------
+   -- Usage --
+   -----------
+
+   procedure Usage (Indent : Natural) is
+      Hdr : constant String (1 .. Indent - 1) := (others => ' ');
+   begin
+      Write_Str (Hdr);
+      Write_Str ("-b n     Base to output integer literal");
+      Write_Eol;
+      Write_Str (Hdr);
+      Write_Str ("         As a default (zero) use base from input");
+      Write_Eol;
+   end Usage;
 
    -----------
    -- Write --

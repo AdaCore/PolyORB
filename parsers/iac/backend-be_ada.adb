@@ -1,5 +1,7 @@
-with Types; use Types;
+with GNAT.Command_Line; use GNAT.Command_Line;
+
 with Nodes; use Nodes;
+with Types; use Types;
 
 pragma Warnings (Off);
 with Backend.BE_Ada.Nodes;
@@ -22,7 +24,7 @@ package body Backend.BE_Ada is
 
    procedure Generate_Type_Declaration (E : Node_Id);
    procedure Generate_Specification (E : Node_Id);
-   function G_Package (E : Node_Id) return Node_Id;
+   function Generate_Package (E : Node_Id) return Node_Id;
    function Package_Name (E : Node_Id) return String;
    function Full_Package_Name (E : Node_Id) return String;
    function Visit_Interface (E : Node_Id)return Node_Id;
@@ -30,17 +32,64 @@ package body Backend.BE_Ada is
 
    use Inheritance_Stack;
 
+   D_Tree   : Boolean := False;
+   pragma Unreferenced (D_Tree);
+
    ---------------
    -- Configure --
    ---------------
 
    procedure Configure is
    begin
-      null;
+      loop
+         case Getopt ("t") is
+            when ASCII.NUL =>
+               exit;
+
+            when 't' =>
+               D_Tree := True;
+
+            when others =>
+               raise Program_Error;
+         end case;
+      end loop;
    end Configure;
 
+   -------------------
+   -- Current_Scope --
+   -------------------
+
+   function Current_Package return Node_Id is
+   begin
+      if Last = No_Inheritance_Depth then
+         return No_Node;
+      else
+         return Table (Last).Node;
+      end if;
+   end Current_Package;
+
+   -----------------------
+   -- Full_Package_Name --
+   -----------------------
+
+   function Full_Package_Name (E : Node_Id) return String is
+      use Ada.Strings.Unbounded;
+      Scope_Mark : constant String := ".";
+      Full_Name : Unbounded_String;
+      P : Node_Id;
+   begin
+      Full_Name := To_Unbounded_String (Package_Name (E));
+      P := BE.Parent (E);
+      while P /= No_Node loop
+
+         Insert (Full_Name, 1, Package_Name (P) & Scope_Mark);
+         P := BE.Parent (P);
+      end loop;
+      return To_String (Full_Name);
+   end Full_Package_Name;
+
    --------------
-   --  Generate --
+   -- Generate --
    --------------
 
    procedure Generate (E : Node_Id) is
@@ -56,8 +105,6 @@ package body Backend.BE_Ada is
             Write_Line ("Others");
       end case;
 
-
-
       D := BE.First_Node (Ada_Packages);
       while Present (D) loop
          Write_Line (Full_Package_Name (D));
@@ -65,19 +112,40 @@ package body Backend.BE_Ada is
       end loop;
    end Generate;
 
+   ------------------------
+   --  Generate_Package  --
+   ------------------------
 
-   procedure Generate_Type_Declaration (E : Node_Id)  is
-      pragma Unreferenced (E);
+   function Generate_Package (E : Node_Id) return Node_Id is
+
+      Node : Node_Id;
+      Id : Node_Id;
+      Pkg_Spec : Node_Id;
+      Pkg_Body : Node_Id;
+      Ada_Name : Name_Id;
+      Parent_Node : Node_Id;
+
    begin
-      --   Write_Line ("Type Definition");
-      null;
-   end Generate_Type_Declaration;
-
-
-   function Visite_Module (E : Node_Id) return Node_Id is
-   begin
-      return G_Package (E);
-   end Visite_Module;
+      Node := New_Node (BE.K_Ada_Packages, No_Location);
+      Id := New_Node (BE.K_Ada_Identifier, No_Location);
+      Ada_Name := Map_Id_Name_Idl2Ada (Name (Identifier (E)));
+      BE.Set_Name (Id, Ada_Name);
+      BE.Set_Identifier (Node, Id);
+      Parent_Node := Current_Package;
+      BE.Set_Parent (Node, Parent_Node);
+      case Kind (E) is
+         when K_Module =>
+            Pkg_Spec := No_Node;
+            BE.Set_Package_Spec (Node, Pkg_Spec);
+            Pkg_Body := No_Node;
+            BE.Set_Package_Body (Node, Pkg_Body);
+         when K_Interface_Declaration =>
+            null;
+         when others =>
+            Write_Line ("In progress....Generate_Package");
+      end case;
+      return Node;
+   end Generate_Package;
 
    ----------------------------
    -- Generate_Specification --
@@ -113,65 +181,31 @@ package body Backend.BE_Ada is
          end case;
          D := Next_Node (D);
       end loop;
-
    end Generate_Specification;
 
-   -----------------------
-   --  Gererate Module  --
-   -----------------------
+   -------------------------------
+   -- Generate_Type_Declaration --
+   -------------------------------
 
-
-
-   function G_Package (E : Node_Id) return Node_Id is
-
-      Node : Node_Id;
-      Id : Node_Id;
-      Pkg_Spec : Node_Id;
-      Pkg_Body : Node_Id;
-      Ada_Name : Name_Id;
-      Parent_Node : Node_Id;
-
+   procedure Generate_Type_Declaration (E : Node_Id)  is
+      pragma Unreferenced (E);
    begin
-      Node := New_Node (BE.K_Ada_Packages, No_Location);
-      Id := New_Node (BE.K_Ada_Identifier, No_Location);
-      Ada_Name := Map_Id_Name_Idl2Ada (Name (Identifier (E)));
-      BE.Set_Name (Id, Ada_Name);
-      BE.Set_Identifier (Node, Id);
-      Parent_Node := Current_Package;
-      BE.Set_Parent (Node, Parent_Node);
-      case Kind (E) is
-         when K_Module =>
-            Pkg_Spec := No_Node;
-            BE.Set_Package_Spec (Node, Pkg_Spec);
-            Pkg_Body := No_Node;
-            BE.Set_Package_Body (Node, Pkg_Body);
-         when K_Interface_Declaration =>
-            null;
-         when others =>
-            Write_Line ("In progress....G_Package");
-      end case;
-      return Node;
-   end G_Package;
+      --   Write_Line ("Type Definition");
+      null;
+   end Generate_Type_Declaration;
 
+   ------------------
+   -- Package_Name --
+   ------------------
 
-   -------------------
-   -- Current_Scope --
-   -------------------
-
-   function Current_Package return Node_Id is
+   function Package_Name (E : Node_Id) return String is
    begin
-      if Last = No_Inheritance_Depth then
-         return No_Node;
-      else
-         return Table (Last).Node;
-      end if;
-   end Current_Package;
+      return Get_Name_String (BE.Name (BE.Identifier (E)));
+   end Package_Name;
 
-   procedure Push_Package (E : Node_Id) is
-   begin
-      Increment_Last;
-      Table (Last).Node := E;
-   end Push_Package;
+   -----------------
+   -- Pop_Package --
+   -----------------
 
    procedure Pop_Package is
    begin
@@ -182,31 +216,45 @@ package body Backend.BE_Ada is
       end if;
    end Pop_Package;
 
-   function Package_Name (E : Node_Id) return String is
-   begin
-      return Get_Name_String (BE.Name (BE.Identifier (E)));
-   end Package_Name;
+   ------------------
+   -- Push_Package --
+   ------------------
 
-   function Full_Package_Name (E : Node_Id) return String is
-      use Ada.Strings.Unbounded;
-      Scope_Mark : constant String := ".";
-      Full_Name : Unbounded_String;
-      P : Node_Id;
+   procedure Push_Package (E : Node_Id) is
    begin
-      Full_Name := To_Unbounded_String (Package_Name (E));
-      P := BE.Parent (E);
-      while P /= No_Node loop
+      Increment_Last;
+      Table (Last).Node := E;
+   end Push_Package;
 
-         Insert (Full_Name, 1, Package_Name (P) & Scope_Mark);
-         P := BE.Parent (P);
-      end loop;
-      return To_String (Full_Name);
-   end Full_Package_Name;
+   -----------
+   -- Usage --
+   -----------
+
+   procedure Usage (Indent : Natural) is
+      Hdr : constant String (1 .. Indent - 1) := (others => ' ');
+   begin
+      Write_Str (Hdr);
+      Write_Str ("-t       Dump Ada tree");
+      Write_Eol;
+   end Usage;
+
+   ---------------------
+   -- Visit_Interface --
+   ---------------------
 
    function Visit_Interface (E : Node_Id) return Node_Id is
       pragma Unreferenced (E);
    begin
       return No_Node;
    end Visit_Interface;
+
+   -------------------
+   -- Visite_Module --
+   -------------------
+
+   function Visite_Module (E : Node_Id) return Node_Id is
+   begin
+      return Generate_Package (E);
+   end Visite_Module;
 
 end Backend.BE_Ada;

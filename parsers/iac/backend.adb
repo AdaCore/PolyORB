@@ -10,6 +10,7 @@ package body Backend is
       Comments  : String_Access;
       Generate  : Generate_Procedure;
       Configure : Configure_Procedure;
+      Usage     : Usage_Procedure;
    end record;
 
    Table   : array (1 .. 8) of Backend_Record;
@@ -69,6 +70,7 @@ package body Backend is
    procedure Register
      (Generate  : Generate_Procedure;
       Configure : Configure_Procedure;
+      Usage     : Usage_Procedure;
       Language  : String;
       Comments  : String)
    is
@@ -84,6 +86,7 @@ package body Backend is
       end loop;
       Last := Last + 1;
       Table (Last).Generate  := Generate;
+      Table (Last).Usage     := Usage;
       Table (Last).Configure := Configure;
       Table (Last).Language  := new String'(Language);
       Table (Last).Comments  := new String'(Comments);
@@ -122,10 +125,13 @@ package body Backend is
          declare
             Language : constant String := Table (I).Language.all;
             Comments : constant String := Table (I).Comments.all;
+            Usage    : constant Usage_Procedure := Table (I).Usage;
          begin
             S (L .. L + Language'Length - 1) := Language;
             S (C .. C + Comments'Length - 1) := Comments;
             Write_Line (S (1 .. C + Comments'Length - 1));
+            Usage (C);
+            Write_Eol;
          end;
       end loop;
    end Write_Languages;
