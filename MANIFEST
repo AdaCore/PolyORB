@@ -145,17 +145,11 @@ Examples/Messages/pingpong.cfg
 Examples/Messages/rci.adb
 Examples/Messages/rci.ads
 Examples/Messages/pure.ads
-Garlic/5agtplsp.ads
 Garlic/5egtplsp.ads
-Garlic/5ggtplsp.ads
-Garlic/5lgtplsp.ads
-Garlic/5pgtplsp.ads
 Garlic/5sgtplsp.ads
-Garlic/5ugtplsp.ads
 Garlic/5wgarcon.ads
 Garlic/5wgtplsp.ads
 Garlic/5wgtplsp.adb
-Garlic/5xgtplsp.ads
 Garlic/DALL
 Garlic/Makefile.am
 Garlic/Makefile.in
@@ -164,6 +158,7 @@ Garlic/UNDALL
 Garlic/config.h.in
 Garlic/constants.c
 Garlic/constants.sh
+Garlic/isthrbio.adb
 Garlic/linktest.adb
 Garlic/s-gafizi.adb
 Garlic/s-ganobl.adb

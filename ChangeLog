@@ -1,3 +1,14 @@
+1998-07-26  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* MANIFEST: Remove some 5*files because the thread-blocking-io
+	mode does not depend on the system but on the gnat rts. Add
+	isthrbio.adb which tests the thread-blocking-io mode.
+
+	* configure.in, configure: Check whether gnat rts is thread block
+ 	io or not. This has to be done during configuration because
+	Makefile will be modified accordingly (NOBLTCP*). The system
+	dependent files will be updated during installation.
+
 1998-06-16  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* MANIFEST: Include Garlic/linktest.adb into the distribution.

@@ -205,15 +205,35 @@ TCP_INCLUDED=""
 AC_MSG_RESULT([tcp])
 ])
 if test "$TCP_INCLUDED" = ""; then
-  AC_MSG_CHECKING([thread-blocking I/O])
-    if grep Non_Blocking $srcdir/Garlic/5${PLATFORM_SPECIFIC}gtplsp.ads \
-      > /dev/null 2>&1; then
+  if test -f $srcdir/Garlic/5${PLATFORM_SPECIFIC}gtplsp.ads; then
+    cp $srcdir/Garlic/5${PLATFORM_SPECIFIC}gtplsp.ads \
+       $srcdir/Garlic/s-gtplsp.ads
+  else
+    cp $srcdir/Garlic/5egtplsp.ads $srcdir/Garlic/s-gtplsp.ads
+  fi;
+  if test -f $srcdir/Garlic/5${PLATFORM_SPECIFIC}gtplsp.adb; then
+    cp $srcdir/Garlic/5${PLATFORM_SPECIFIC}gtplsp.adb \
+       $srcdir/Garlic/s-gtplsp.adb
+  fi;
+  AC_ARG_ENABLE(thread-blocking-io,
+  [  --enable-thread-blocking-io  Turn on thread blocking io mode],
+  [
+   echo "with System.Garlic.TCP.Non_Blocking;"     >$srcdir/Garlic/s-gatcop.ads
+   echo "package System.Garlic.TCP.Operations"    >>$srcdir/Garlic/s-gatcop.ads
+   echo "   renames System.Garlic.Non_Blocking;"  >>$srcdir/Garlic/s-gatcop.ads
+  ],
+  [
+    AC_MSG_CHECKING([thread-blocking I/O])
+    gnatmake -q -a isthrbio.adb -I$srcdir/Garlic;
+    if isthrbio${EXEEXT} $srcdir/Garlic/s-gatcop.ads; then
 	AC_MSG_RESULT([no])
 	PROTOCOLSSOURCES="${PROTOCOLSSOURCES} \$(NOBLTCPSOURCES)"
 	PROTOCOLSOBJECTS="${PROTOCOLSOBJECTS} \$(NOBLTCPOBJECTS)"
     else
 	AC_MSG_RESULT([yes])
     fi
+    rm -f isthrbio${EXEEXT} *.o *.ali
+  ])
 fi
 AC_SUBST(PROTOCOLSSOURCES)
 AC_SUBST(PROTOCOLSOBJECTS)
