@@ -146,10 +146,6 @@ $(PROGS): $(FORCE) $(GEN)
 
 force::
 	cd $(top_builddir)/src && $(MAKE)
-	for dir in $(COS_DIRS);\
-	do\
-	  (cd $$dir && $(MAKE));\
-	done
 
 gen: $(GEN)
 
