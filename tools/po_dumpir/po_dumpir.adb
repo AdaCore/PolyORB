@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                                P R I N T                                 --
+--                            P O _ D U M P I R                             --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -54,9 +54,10 @@ with PolyORB.Setup.Client;
 pragma Elaborate_All (PolyORB.Setup.Client);
 pragma Warnings (Off, PolyORB.Setup.Client);
 
-procedure Print is
+procedure PO_DumpIR is
 
    use Ada.Text_IO;
+
    use CORBA;
    use CORBA.Repository_Root;
 
@@ -76,8 +77,13 @@ procedure Print is
      (Des : Contained.Description;
       Inc : Standard.String);
 
-   procedure Print_TypeCode (TC  : CORBA.TypeCode.Object;
-                            Inc : Standard.String)
+   --------------------
+   -- Print_TypeCode --
+   --------------------
+
+   procedure Print_TypeCode
+     (TC  : CORBA.TypeCode.Object;
+      Inc : Standard.String)
    is
    begin
       case CORBA.TypeCode.Kind (TC) is
@@ -118,10 +124,10 @@ procedure Print is
             begin
                Put ("Struct  :");
                if L /= 0 then
-                  for I in 0 .. L - 1 loop
+                  for J in 0 .. L - 1 loop
                      Put_Line (" ");
                      Put (Inc & "    ");
-                     Print_TypeCode (TypeCode.Member_Type (TC, I),
+                     Print_TypeCode (TypeCode.Member_Type (TC, J),
                                      Inc & "    ");
                   end loop;
                else
@@ -138,10 +144,10 @@ procedure Print is
                Print_TypeCode (TypeCode.Discriminator_Type (TC),
                                Inc & "        ");
                if L /= 0 then
-                  for I in 0 .. L - 1 loop
+                  for J in 0 .. L - 1 loop
                      Put_Line (" ");
                      Put (Inc & "    ");
-                     Print_TypeCode (TypeCode.Member_Type (TC, I),
+                     Print_TypeCode (TypeCode.Member_Type (TC, J),
                                      Inc & "    ");
                   end loop;
                else
@@ -174,10 +180,10 @@ procedure Print is
             begin
                Put ("Exception  :");
                if L /= 0 then
-                  for I in 0 .. L - 1 loop
+                  for J in 0 .. L - 1 loop
                      Put_Line (" ");
                      Put (Inc & "    ");
-                     Print_TypeCode (TypeCode.Member_Type (TC, I),
+                     Print_TypeCode (TypeCode.Member_Type (TC, J),
                                      Inc & "    ");
                   end loop;
                else
@@ -214,30 +220,39 @@ procedure Print is
       end case;
    end Print_TypeCode;
 
+   -----------------------------
+   -- Print_ParDescriptionSeq --
+   -----------------------------
 
-
-   procedure Print_ParDescriptionSeq (Des : ParDescriptionSeq;
-                                      Inc : Standard.String)
+   procedure Print_ParDescriptionSeq
+     (Des : ParDescriptionSeq;
+      Inc : Standard.String)
    is
       package PDS renames IDL_Sequence_CORBA_ParameterDescription;
       A : PDS.Element_Array
         := PDS.To_Element_Array (PDS.Sequence (Des));
+
    begin
-      for I in A'Range loop
-         Put_Line (Inc & "Param " & Integer'Image (I) & " : ");
+      for J in A'Range loop
+         Put_Line (Inc & "Param " & Integer'Image (J) & " : ");
          Put (Inc & "    type   : ");
-         Print_TypeCode (A (I).IDL_Type, Inc & "        ");
+         Print_TypeCode (A (J).IDL_Type, Inc & "        ");
          Put_Line (" ");
          Put_Line (Inc & "    name   : " &
-                   CORBA.To_Standard_String (CORBA.String ((A (I).Name))));
+                   CORBA.To_Standard_String (CORBA.String ((A (J).Name))));
          Put_Line (Inc & "    mode   : " &
-                   ParameterMode'Image (A (I).Mode));
+                   ParameterMode'Image (A (J).Mode));
       end loop;
    end Print_ParDescriptionSeq;
 
+   -----------------------
+   -- Print_Description --
+   -----------------------
 
-   procedure Print_Description (Des : Contained.Description;
-                                Inc : Standard.String) is
+   procedure Print_Description
+     (Des : Contained.Description;
+      Inc : Standard.String)
+   is
    begin
       case Des.kind is
          when
@@ -332,19 +347,25 @@ procedure Print is
       end case;
    end Print_Description;
 
-   procedure Print_Contents (In_Seq : ContainedSeq;
-                            Inc : Standard.String) is
+   --------------------
+   -- Print_Contents --
+   --------------------
 
+   procedure Print_Contents
+     (In_Seq : ContainedSeq;
+      Inc   : Standard.String)
+   is
       package Contained_For_Seq renames
         CORBA.Repository_Root.  IDL_Sequence_CORBA_Contained_Forward;
       Cont_Array : Contained_For_Seq.Element_Array
         := Contained_For_Seq.To_Element_Array
         (Contained_For_Seq.Sequence (In_Seq));
       use Contained;
+
    begin
-      for I in Cont_Array'Range loop
+      for J in Cont_Array'Range loop
          declare
-            The_Ref : Contained.Ref := Convert_Forward.To_Ref (Cont_Array (I));
+            The_Ref : Contained.Ref := Convert_Forward.To_Ref (Cont_Array (J));
          begin
             Put_Line (Inc & "Node     : " &
                       DefinitionKind'Image
@@ -365,7 +386,8 @@ procedure Print is
             Print_Description (Contained.describe (The_Ref), Inc);
             Put_Line (" ");
 
-            --  recursivity
+            --  Recursivity
+
             case Contained.get_def_kind (The_Ref) is
                when dk_Module =>
                   declare
@@ -454,4 +476,4 @@ begin
    New_Line;
    Put_Line ("End of Print Interface Repository client!");
 
-end Print;
+end PO_DumpIR;

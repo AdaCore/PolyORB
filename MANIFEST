@@ -1250,6 +1250,9 @@ tools/po_catref/polyorb-giop_p-tagged_components-policies-print.adb
 tools/po_catref/polyorb-giop_p-tagged_components-policies-print.ads
 tools/po_catref/polyorb-giop_p-tagged_components-print.adb
 tools/po_catref/polyorb-giop_p-tagged_components-print.ads
+tools/po_dumpir/Makefile.am
+tools/po_dumpir/Makefile.in
+tools/po_dumpir/po_dumpir
 tools/po_names/Makefile.am
 tools/po_names/Makefile.in
 tools/po_names/po_names.adb
