@@ -185,7 +185,6 @@ package body Evoluted_Pkg is
    is
    begin
       Received_Counter.Message_Received;
-      Ada.Text_IO.Put ("<" & Received_Msgs'Img & " > ");
       Common.New_Message
         (Sender, Penpal_Type (Recipient.all)'Access, Message);
    end New_Message;
