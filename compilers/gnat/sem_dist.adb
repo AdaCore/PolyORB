@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---          Copyright (C) 1992-2003, Free Software Foundation, Inc.         --
+--          Copyright (C) 1992-2004, Free Software Foundation, Inc.         --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -507,8 +507,12 @@ package body Sem_Dist is
                   Make_Component_Declaration (Loc,
                     Defining_Identifier =>
                       Make_Defining_Identifier (Loc, Name_Ras),
-                    Subtype_Indication  =>
-                      New_Occurrence_Of (RACW_Type, Loc))))));
+                    Component_Definition =>
+                      Make_Component_Definition (Loc,
+                        Aliased_Present     =>
+                          False,
+                        Subtype_Indication  =>
+                          New_Occurrence_Of (RACW_Type, Loc)))))));
       Insert_After (Subpkg_Decl, Fat_Type_Decl);
       Set_Equivalent_Type (User_Type, Fat_Type);
       Set_Corresponding_Remote_Type (Fat_Type, User_Type);

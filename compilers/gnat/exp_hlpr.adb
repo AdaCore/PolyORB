@@ -1144,7 +1144,7 @@ package body Exp_Hlpr is
                Rdef : constant Node_Id :=
                  Type_Definition (Declaration_Node (Typ));
                Counter : Int := 0;
-               Elements : List_Id := New_List;
+               Elements : constant List_Id := New_List;
 
                procedure TA_Rec_Add_Process_Element
                  (Stmts     :        List_Id;

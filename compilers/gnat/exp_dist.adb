@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---          Copyright (C) 1992-2003 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2004 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -57,17 +57,19 @@ package body Exp_Dist is
    --  The following model has been used to implement distributed objects:
    --  given a designated type D and a RACW type R, then a record of the
    --  form:
+
    --    type Stub is tagged record
    --       [...declaration similar to s-parint.ads RACW_Stub_Type...]
    --    end record;
+
    --  is built. This type has two properties:
-   --
+
    --    1) Since it has the same structure than RACW_Stub_Type, it can be
    --       converted to and from this type to make it suitable for
    --       System.Partition_Interface.Get_Unique_Remote_Pointer in order
    --       to avoid memory leaks when the same remote object arrive on the
    --       same partition by following different pathes
-   --
+
    --    2) It also has the same dispatching table as the designated type D,
    --       and thus can be used as an object designated by a value of type
    --       R on any partition other than the one on which the object has
@@ -503,7 +505,7 @@ package body Exp_Dist is
      (Def :     Entity_Id;
       Id  : out String_Id)
    is
-      Sdef : Source_Ptr := Sloc (Def);
+      Sdef : constant Source_Ptr := Sloc (Def);
       Tdef : Source_Buffer_Ptr;
       N    : constant Name_Id := Chars (Def);
 
@@ -2075,6 +2077,8 @@ package body Exp_Dist is
 
       Proc_Spec : Node_Id;
       Proc_Body : Node_Id;
+      pragma Unreferenced (Proc_Body);
+      --  Body of a TSS.
 
       Proc : Node_Id;
 
@@ -2196,7 +2200,7 @@ package body Exp_Dist is
             Make_Selected_Component (Loc,
               Prefix        => New_Occurrence_Of (Stub_Ptr, Loc),
               Selector_Name => Make_Identifier (Loc, Name_Addr)))));
-      --  At this point Addr is Null_Address if the reference is remote,
+      --  At this point Addr is 0 if the reference is remote,
       --  and the local address of the real subprogram otherwise.
 
       Append_To (Proc_Statements,
@@ -2332,6 +2336,8 @@ package body Exp_Dist is
 
       Proc_Spec : Node_Id;
       Proc_Body : Node_Id;
+      pragma Unreferenced (Proc_Body);
+      --  Body of a TSS.
 
       Param_Specs : constant List_Id := New_List;
       Param_Assoc_Direct : constant List_Id := New_List;
@@ -3355,32 +3361,48 @@ package body Exp_Dist is
                     Make_Component_Declaration (Loc,
                       Defining_Identifier =>
                         Make_Defining_Identifier (Loc, Name_Origin),
-                      Subtype_Indication  =>
-                        New_Occurrence_Of (RTE (RE_Partition_ID), Loc)),
+                      Component_Definition =>
+                        Make_Component_Definition (Loc,
+                          Aliased_Present    => False,
+                          Subtype_Indication =>
+                            New_Occurrence_Of (RTE (RE_Partition_ID), Loc))),
 
                     Make_Component_Declaration (Loc,
                       Defining_Identifier =>
                         Make_Defining_Identifier (Loc, Name_Receiver),
-                      Subtype_Indication  =>
-                        New_Occurrence_Of (RTE (RE_Unsigned_64), Loc)),
+                      Component_Definition =>
+                        Make_Component_Definition (Loc,
+                          Aliased_Present    => False,
+                          Subtype_Indication =>
+                            New_Occurrence_Of (RTE (RE_Unsigned_64), Loc))),
 
                     Make_Component_Declaration (Loc,
                       Defining_Identifier =>
                         Make_Defining_Identifier (Loc, Name_Target),
-                      Subtype_Indication  =>
-                        New_Occurrence_Of (RTE (RE_Entity_Ptr), Loc)),
+                      Component_Definition =>
+                        Make_Component_Definition (Loc,
+                          Aliased_Present     =>
+                            False,
+                          Subtype_Indication  =>
+                            New_Occurrence_Of (RTE (RE_Entity_Ptr), Loc))),
 
                     Make_Component_Declaration (Loc,
                       Defining_Identifier =>
                         Make_Defining_Identifier (Loc, Name_Addr),
-                      Subtype_Indication  =>
-                        New_Occurrence_Of (RTE (RE_Address), Loc)),
+                      Component_Definition =>
+                        Make_Component_Definition (Loc,
+                          Aliased_Present    => False,
+                          Subtype_Indication =>
+                            New_Occurrence_Of (RTE (RE_Address), Loc))),
 
                     Make_Component_Declaration (Loc,
                       Defining_Identifier =>
                         Make_Defining_Identifier (Loc, Name_Asynchronous),
-                      Subtype_Indication  =>
-                        New_Reference_To (Standard_Boolean, Loc))))));
+                      Component_Definition =>
+                        Make_Component_Definition (Loc,
+                          Aliased_Present    => False,
+                          Subtype_Indication =>
+                            New_Occurrence_Of (Standard_Boolean, Loc)))))));
 
       Append_To (Decls, Stub_Type_Declaration);
       Analyze (Stub_Type_Declaration);
@@ -5708,8 +5730,9 @@ package body Exp_Dist is
 
       return
         Etype (Subtype_Indication (
-          First (Component_Items (Component_List (
-            Type_Definition (Declaration_Node (Record_Type)))))));
+          Component_Definition (
+           First (Component_Items (Component_List (
+            Type_Definition (Declaration_Node (Record_Type))))))));
    end Underlying_RACW_Type;
 
 end Exp_Dist;
