@@ -10,6 +10,7 @@
 ----------------------------------------------------------------------------
 
 with Giop_S, Corba.Object, OmniORB ;
+with Corba.Implementation_Defined ;
 
 package Echo.Impl is
 
@@ -17,7 +18,7 @@ package Echo.Impl is
    ----                spec                      ----
    --------------------------------------------------
 
-   type Object is new Corba.Object.Ref with private;
+   type Object is new Corba.Implementation_Defined.Object with private;
 
    function EchoString(Self : access Object;
                          Message : in Corba.String) return Corba.String ;

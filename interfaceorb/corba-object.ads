@@ -14,7 +14,7 @@ with Omniobject, NetBufferedStream, MemBufferedStream ;
 
 package Corba.Object is
 
-   type Ref is tagged limited private;
+   type Ref is tagged private;
 
    --I boolean is_nil();
    function Is_Nil(Self: in Ref'Class) return Boolean;
@@ -101,13 +101,16 @@ package Corba.Object is
 
 private
 
+   type Internal_Object ;
 
+   type Dynamic_Type(Ptr : access Internal_Object'Class) is limited null record ;
 
-   type Dynamic_Type(Ptr : access Ref'Class) is limited null record ;
-
-   type Ref is tagged limited record
-      Dynamic_Object : Dynamic_Type(Ref'Access) ;
+   type Internal_Object is tagged limited record
+      Dynamic_Object : Dynamic_Type(Internal_Object'Access) ;
    end record ;
 
-end Corba.Object ;
+   type Ref is access all Internal_Object'Class ;
+
+   end Corba.Object ;
+
 

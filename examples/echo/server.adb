@@ -9,7 +9,7 @@
 ----                                                                    ----
 ----------------------------------------------------------------------------
 
-with Corba.Orb, Corba.Boa ;
+with Corba, Corba.Orb, Corba.Boa ;
 with Text_IO ;
 with Echo.Impl ;
 
@@ -27,7 +27,7 @@ begin
    Corba.Boa.Object_Is_Ready(Server) ;
 
    -- getting this object's IOR
-   Text_IO.Put_Line(To_Standard_String(Corba.Orb.Object_To_String(Server))) ;
+   Text_IO.Put_Line(Corba.To_Standard_String(Corba.Orb.Object_To_String(Server))) ;
 
 
    -- telling the BOA we are ready
