@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -37,16 +37,16 @@
 
 with Ada.Streams.Stream_IO;
 
-with System;
+--  with System;
 
 with PolyORB.Any;
-with PolyORB.Buffers;
-with PolyORB.Opaque;
-with PolyORB.Representations.CDR.Common;
+--  with PolyORB.Buffers;
+--  with PolyORB.Opaque;
+--  with PolyORB.Representations.CDR.Common;
 with PolyORB.Tasking.Rw_Locks;
 with PolyORB.Utils.HTables.Perfect;
 
-with MOMA.Messages;
+--  with MOMA.Messages;
 
 package body PolyORB.MOMA_P.Provider.Warehouse is
 
@@ -54,12 +54,12 @@ package body PolyORB.MOMA_P.Provider.Warehouse is
    use Ada.Streams.Stream_IO;
 
    use PolyORB.Any;
-   use PolyORB.Buffers;
-   use PolyORB.Opaque;
-   use PolyORB.Representations.CDR.Common;
+--   use PolyORB.Buffers;
+--   use PolyORB.Opaque;
+--   use PolyORB.Representations.CDR.Common;
    use PolyORB.Tasking.Rw_Locks;
 
-   use MOMA.Messages;
+--   use MOMA.Messages;
    use MOMA.Types;
 
    ---------------------------
@@ -91,12 +91,13 @@ package body PolyORB.MOMA_P.Provider.Warehouse is
       return PolyORB.Any.Any
    is
       Result      : PolyORB.Any.Any;
-      Stream_File : Ada.Streams.Stream_IO.File_Type;
-      Buffer      : constant Buffer_Access := new Buffer_Type;
-      Data        : Opaque_Pointer;
-      Last        : Ada.Streams.Stream_Element_Offset;
-      Received    : Ada.Streams.Stream_Element_Count;
+--        Stream_File : Ada.Streams.Stream_IO.File_Type;
+--        Buffer      : constant Buffer_Access := new Buffer_Type;
+--        Data        : Opaque_Pointer;
+--        Last        : Ada.Streams.Stream_Element_Offset;
+--        Received    : Ada.Streams.Stream_Element_Count;
       Temp        : Warehouse := W;
+
    begin
       Ensure_Initialization (Temp);
 
@@ -111,24 +112,30 @@ package body PolyORB.MOMA_P.Provider.Warehouse is
                raise Key_Not_Found;
          end;
       else
-         Ada.Streams.Stream_IO.Open (Stream_File, In_File, "message_" & K);
-         Allocate_And_Insert_Cooked_Data (Buffer, 1024, Data);
-         declare
-            Z_Addr : constant System.Address := Data;
-            Z : Stream_Element_Array (0 .. 1023);
-            for Z'Address use Z_Addr;
-            pragma Import (Ada, Z);
-         begin
-            Ada.Streams.Stream_IO.Read (Stream_File, Z, Last);
-         end;
+--           Ada.Streams.Stream_IO.Open (Stream_File, In_File, "message_" & K);
+--           Allocate_And_Insert_Cooked_Data (Buffer, 1024, Data);
+--           declare
+--              Z_Addr : constant System.Address := Data;
+--              Z : Stream_Element_Array (0 .. 1023);
+--              for Z'Address use Z_Addr;
+--              pragma Import (Ada, Z);
+--           begin
+--              Ada.Streams.Stream_IO.Read (Stream_File, Z, Last);
+--           end;
 
-         Received := Last + 1;
-         Unuse_Allocation (Buffer, 1024 - Received);
-         Ada.Streams.Stream_IO.Close (Stream_File);
+--           Received := Last + 1;
+--           Unuse_Allocation (Buffer, 1024 - Received);
+--           Ada.Streams.Stream_IO.Close (Stream_File);
 
-         Set_Type (Result, TC_MOMA_Message);
-         Rewind (Buffer);
-         Unmarshall_To_Any (Buffer, Result);
+--           Set_Type (Result, TC_MOMA_Message);
+--           Rewind (Buffer);
+--           Unmarshall_To_Any (Buffer, Result);
+
+         raise PolyORB.Not_Implemented;
+         --  XXX This code is now deactivated (as of 9/17/04): We
+         --  cannot rely on the Rewind primitive which is
+         --  deprecated. Besides, we need to find an efficient way to
+         --  store a buffer into a file.
       end if;
 
       return Result;
@@ -161,8 +168,8 @@ package body PolyORB.MOMA_P.Provider.Warehouse is
       K :        String;
       V :        PolyORB.Any.Any)
    is
-      Stream_File : Ada.Streams.Stream_IO.File_Type;
-      Buffer      : constant Buffer_Access := new Buffer_Type;
+--        Stream_File : Ada.Streams.Stream_IO.File_Type;
+--        Buffer      : constant Buffer_Access := new Buffer_Type;
    begin
       Ensure_Initialization (W);
 
@@ -172,12 +179,19 @@ package body PolyORB.MOMA_P.Provider.Warehouse is
          Unlock_W (W.T_Lock);
 
       else
-         Marshall_From_Any (Buffer, V);
+--       Marshall_From_Any (Buffer, V);
+--       Ada.Streams.Stream_IO.Create (Stream_File, Out_File, "message_" & K);
 
-         Ada.Streams.Stream_IO.Create (Stream_File, Out_File, "message_" & K);
-         Ada.Streams.Stream_IO.Write (Stream_File,
-                                      To_Stream_Element_Array (Buffer));
-         Ada.Streams.Stream_IO.Close (Stream_File);
+--       Ada.Streams.Stream_IO.Write (Stream_File,
+--                                    To_Stream_Element_Array (Buffer));
+--       Ada.Streams.Stream_IO.Close (Stream_File);
+
+         --  XXX This code is now deactivated (as of 9/17/04): We
+         --  cannot rely on the Rewind primitive which is
+         --  deprecated. Besides, we need to find an efficient way to
+         --  store a buffer into a file.
+
+         raise PolyORB.Not_Implemented;
       end if;
 
    end Register;
