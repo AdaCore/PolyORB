@@ -342,7 +342,7 @@ package body System.Garlic.Streams is
          --  packets.
 
          declare
-            Insert : Node_Ptr :=
+            Insert : constant Node_Ptr :=
              new Node (Stream_Element_Count'Max (Node_Size, Length));
          begin
             Insert.Next  := Stream.First;

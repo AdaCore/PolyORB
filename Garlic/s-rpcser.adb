@@ -514,7 +514,7 @@ package body System.RPC.Server is
 
    procedure Initialize is
       Identifier : Task_Identifier_Access;
-      Handler    : System.Garlic.Soft_Links.Abort_Handler_Access
+      Handler    : constant System.Garlic.Soft_Links.Abort_Handler_Access
         := new Outer_Abort_Handler_Type;
 
    begin

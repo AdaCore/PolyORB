@@ -131,7 +131,7 @@ package body System.Partition_Interface is
       Version : in String;
       RCI     : in Boolean := True)
    is
-      Caller : Caller_List := new Caller_Node;
+      Caller : constant Caller_List := new Caller_Node;
    begin
       Caller.Name    := new String'(Name);
       Caller.Version := new String'(Version);
