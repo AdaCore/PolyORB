@@ -855,6 +855,21 @@ package body PolyORB.ORB is
             null;
          end if;
 
+         if Is_Set (Sync_None, J.Request.Req_Flags) then
+
+            --  At this point, the request has been queued, the
+            --  Sync_None synchronisation policy has been completed.
+            --  We bounce back the response to the requesting task.
+
+            pragma Debug (O ("Sync_None completed"));
+
+            J.Request.Completed := True;
+
+            Emit_No_Reply (J.Requestor,
+                           Servants.Interface.Executed_Request'
+                           (Req => J.Request));
+         end if;
+
          --  Bind target reference to a servant if this is a local reference,
          --  or a surrogate if this is remote reference.
 
@@ -900,11 +915,11 @@ package body PolyORB.ORB is
             --  synchronization: we can send an Executed_Request
             --  message to the client prior to run the request.
 
-            pragma Debug (O ("With_Server completed, sending incomplete"
-                             & " Executed_Request message"));
+            pragma Debug (O ("With_Server completed, sending"
+                             & " Acknowledge_Request message"));
 
             Emit_No_Reply (J.Requestor,
-                           Servants.Interface.Executed_Request'
+                           Servants.Interface.Acknowledge_Request'
                            (Req => J.Request));
          end if;
 

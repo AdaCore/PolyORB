@@ -237,6 +237,13 @@ package body PolyORB.Protocols is
             Destroy_Request (Req);
          end;
 
+      elsif S in Acknowledge_Request then
+         if Is_Set (Sync_With_Server,
+                    Acknowledge_Request (S).Req.Req_Flags)
+         then
+            Send_Reply (Session_Access (Sess), Acknowledge_Request (S).Req);
+         end if;
+
       elsif S in Disconnect_Request then
          return Emit (Lower (Sess), S);
 

@@ -59,4 +59,10 @@ package PolyORB.Servants.Interface is
    --  emitted asynchronously to the requesting component if
    --  Null_Message was returned as the reply for Execute_Request.
 
+   type Acknowledge_Request is new Components.Message with record
+      Req : Requests.Request_Access;
+   end record;
+   --  Acknowledge the reception of Req. This message can be a
+   --  synchronous reply to Execute_Request.
+
 end PolyORB.Servants.Interface;
