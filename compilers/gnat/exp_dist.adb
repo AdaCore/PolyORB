@@ -1265,6 +1265,7 @@ package body Exp_Dist is
                     Make_Case_Statement_Alternative (Loc,
                       Discrete_Choices => New_List (
                         Make_Integer_Literal (Loc, Current_Primitive_Number)),
+
                       Statements       => New_List (
                         Make_Procedure_Call_Statement (Loc,
                           Name                   =>
@@ -2622,30 +2623,10 @@ package body Exp_Dist is
 
       else
          --  The remote subprogram is a procedure. We do not need any inner
-         --  block in this case.
-
-         if Dynamically_Asynchronous then
-            Append_To (Outer_Decls,
-              Make_Object_Declaration (Loc,
-                Defining_Identifier => Dynamic_Async,
-                Object_Definition   =>
-                  New_Occurrence_Of (Standard_Boolean, Loc)));
-
---              Append_To (Statements,
---                Make_Attribute_Reference (Loc,
---              Prefix         => New_Occurrence_Of (Standard_Boolean, Loc),
---                  Attribute_Name => Name_Read,
---                  Expressions    => New_List (
---                    New_Occurrence_Of (Stream_Parameter, Loc),
---                    New_Occurrence_Of (Dynamic_Async, Loc))));
---  XXX TBD asynchronous: assign Dynamic_Async flag.
---  20020512 actually nothing tbd here, because when a subprogram
---  is dynamically asynchronous, the indication of whether a call is
---  asynchronous or not is managed by the sync_scope attibute of
---  the request, and is handled entirely in the protocol layer.
---  ==> the whole Dynamcally_Asynch stuff in build_subprogram_receiving_stubs
---  should be dropped altogether.
-         end if;
+         --  block in this case. No specific processing is required here for
+         --  the dynamically asynchronous case: the indication of whether call
+         --  is asynchronous or not is managed by the Sync_Scope attibute of
+         --  the request, and is handled entirely in the protocol layer.
 
          Append_To (After_Statements,
            Make_Procedure_Call_Statement (Loc,
@@ -5843,7 +5824,6 @@ package body Exp_Dist is
                      Subtype_Mark =>
                        New_Occurrence_Of (RACW_Type, Loc)))),
              Subtype_Mark => New_Occurrence_Of (RTE (RE_TypeCode), Loc));
-         --  Dummy 'access RACW' argument, just for overload.
 
          --  NOTE: The usage occurrences of RACW_Parameter must
          --  refer to the entity in the declaration spec, not those
@@ -6526,7 +6506,6 @@ package body Exp_Dist is
                    Make_Access_Definition (Loc,
                      Subtype_Mark => New_Occurrence_Of (RAS_Type, Loc)))),
              Subtype_Mark => New_Occurrence_Of (RTE (RE_TypeCode), Loc));
-         --  Dummy 'access RAS' argument, just for overload.
 
          --  NOTE: The usage occurrences of RAS_Parameter must
          --  refer to the entity in the declaration spec, not those
@@ -9268,7 +9247,6 @@ package body Exp_Dist is
                      --  Use a variable here to force proper freezing of Tnam
 
                       Expression          => Make_Null (Loc)));
-                  --  Use a variable here to force proper freezing of Tnam.
 
                   --  Normally, calling _TypeCode with a null access parameter
                   --  should raise Constraint_Error, but this check is
@@ -9667,7 +9645,6 @@ package body Exp_Dist is
                        (Make_Constructed_TypeCode
                         (RTE (RE_TC_Union), Union_TC_Params),
                         Parameters);
-                     --  Add union in enclosing parameter list.
 
                      --  Build union parameters
 
