@@ -175,7 +175,7 @@ adabe_interface::produce_ads(dep_list &with, string &body, string &previous)
   body += "   function Get_Nil_Ref(Self : in Ref)\n";
   body += "                        return Ref ;\n\n"; 
 
-  body += "   procedure Free is new Unchecked_Deallocation(Ref, Ref_Ptr) ;\n\n" ;
+  body += "   procedure Free is new Ada.Unchecked_Deallocation(Ref, Ref_Ptr) ;\n\n" ;
   // forward declarated
 
   if (pd_is_forwarded == true)           

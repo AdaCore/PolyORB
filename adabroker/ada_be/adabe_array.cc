@@ -146,7 +146,7 @@ adabe_array::produce_marshal_adb(dep_list& with,string &body, string &previous)
   if (b->has_fixed_size())
     {
       body += "   begin\n";
-      body += "      return Align_Size (A'First, Initial_Offset, N * ";
+      body += "      return Align_Size (A(A'First), Initial_Offset, N * ";
       unsigned long size = 1;
       for (unsigned int i=0; i < n_dims(); i++) {
 	AST_Expression::AST_ExprValue* v = dims()[i]->ev();
