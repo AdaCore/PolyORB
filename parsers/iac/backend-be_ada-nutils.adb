@@ -284,6 +284,18 @@ package body Backend.BE_Ada.Nutils is
       return No_Node;
    end Mk_Node_Ada_Procedure;
 
+   -------------------------------
+   --  Mk_Node_Enumeration_Type --
+   -------------------------------
+   function Mk_Node_Enumeration_Type (L : List_Id) return Node_Id is
+      Enum_Node : Node_Id;
+   begin
+      Enum_Node := New_Node (K_Enumeration_Type, No_Location);
+      Set_Enumerators (Enum_Node, L);
+      return Enum_Node;
+   end Mk_Node_Enumeration_Type;
+
+
    --------------------------------------
    -- Mk_Node_Simple_Derived_Type_Def  --
    --------------------------------------
@@ -293,15 +305,25 @@ package body Backend.BE_Ada.Nutils is
       Node : Node_Id;
       Nested_Node : Node_Id;
    begin
-      Node := New_Node (K_Type_Declaration, No_Location);
+
       Nested_Node := New_Node (K_Derived_Type_Definition, No_Location);
       Set_Identifier (Nested_Node, Type_Spec_Node);
       Set_Is_Abstract (Nested_Node, False);
-      Set_Identifier (Node, Identifier_Node);
-      Set_Type_Spec (Node, Nested_Node);
+      Node := Mk_Node_Type_Declaration
+        (Identifier_Node, Nested_Node);
       return Node;
    end Mk_Node_Simple_Derived_Type_Def;
 
-
-
+   -------------------------------
+   --  Mk_Node_Type_Declaration --
+   -------------------------------
+   function Mk_Node_Type_Declaration
+     (Type_Identifier : Node_Id; Type_Spec : Node_Id) return Node_Id is
+      Node : Node_Id;
+   begin
+      Node := New_Node (K_Type_Declaration, No_Location);
+      Set_Identifier (Node, Type_Identifier);
+      Set_Type_Spec (Node, Type_Spec);
+      return Node;
+   end Mk_Node_Type_Declaration;
 end Backend.BE_Ada.Nutils;

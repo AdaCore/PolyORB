@@ -453,6 +453,7 @@ module Nodes {
   interface Enumerator_List : List_Id {};
   interface Enumeration_Type : Definition {
     List_Id     Enumerators;
+    Node_Id     Ada_Node; 
   };
 
 

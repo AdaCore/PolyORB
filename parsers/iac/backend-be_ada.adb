@@ -32,12 +32,15 @@ package body Backend.BE_Ada is
    function Make_Ada_Typedef_Node
      (Identifier_Name : String;
       Type_Spec : Node_Id) return Node_Id;
-   procedure Visite_Specification (E : Node_Id);
+   --   function Map_Enumeration_Type (E : Node_Id) return Node_Id;
+   function Visit_Constant_Declaration (E : Node_Id) return Node_Id;
+   function Visit_Enumeration_Type (E : Node_Id) return Node_Id;
+   procedure Visit_Specification (E : Node_Id);
 
    function Visit_Interface (E : Node_Id)return Node_Id;
-   function Visite_Module (E : Node_Id) return Node_Id;
-   function Visite_Operation_Declaration (E : Node_Id) return Node_Id;
-   function Visite_Type_Declaration (E : Node_Id) return List_Id;
+   function Visit_Module (E : Node_Id) return Node_Id;
+   function Visit_Operation_Declaration (E : Node_Id) return Node_Id;
+   function Visit_Type_Declaration (E : Node_Id) return List_Id;
 
    function Image (N : Node_Kind) return String;
 
@@ -250,7 +253,7 @@ package body Backend.BE_Ada is
       Ada_Packages := New_List (BE.K_Ada_Package_List, No_Location);
       case Kind (E) is
          when K_Specification =>
-            Visite_Specification (E);
+            Visit_Specification (E);
          when others =>
             Write_Line ("Others");
       end case;
@@ -276,6 +279,8 @@ package body Backend.BE_Ada is
 
          when K_Scoped_Name =>
             Node := Ada_Node (Reference (E));
+         when K_Enumeration_Type =>
+            Node := No_Node;
          when others =>
             Set_Str_To_Name_Buffer (Image (Kind (E)));
             Error_Name (1) := Name_Find;
@@ -386,6 +391,7 @@ package body Backend.BE_Ada is
       return Type_Def;
    end Make_Ada_Typedef_Node;
 
+
    -----------
    -- Usage --
    -----------
@@ -398,8 +404,50 @@ package body Backend.BE_Ada is
    end Usage;
 
 
+   --------------------------------
+   -- Visit_Constant_Declaration --
+   --------------------------------
+   function Visit_Constant_Declaration (E : Node_Id) return Node_Id is
+      pragma Unreferenced (E);
+   begin
+      return No_Node;
+   end Visit_Constant_Declaration;
 
 
+   -----------------------------
+   --  Visit_Enumeration_Type --
+   -----------------------------
+   function Visit_Enumeration_Type (E : Node_Id) return Node_Id is
+      L : constant List_Id
+        := Enumerators (E); --  IDL Enumerators List.
+      D : Node_Id;
+      Enumerator_Node : Node_Id;
+      Enumerators_List : List_Id := No_List;
+      Type_Spec_Node : Node_Id;
+      Type_Identifier : Node_Id;
+      Type_Declaration : Node_Id;
+   begin
+      D := First_Node (L);
+      while Present (D) loop
+         Enumerator_Node :=
+           Mk_Node_Ada_Identifier
+           (Map_Identifier_Name_2Ada (IDL_Name (Identifier (D))));
+         Append_Node_To_List
+           (Enumerator_Node, Enumerators_List);
+         D := Next_Node (D);
+      end loop;
+      Type_Spec_Node := Mk_Node_Enumeration_Type (Enumerators_List);
+      Type_Identifier := Mk_Node_Ada_Identifier
+        (Map_Identifier_Name_2Ada (IDL_Name (Identifier (E))));
+      Type_Declaration :=
+        Mk_Node_Type_Declaration (Type_Identifier, Type_Spec_Node);
+      Set_Ada_Node (E, Type_Declaration);
+      return Type_Declaration;
+   end Visit_Enumeration_Type;
+
+   ----------------------
+   --  Visit_Interface --
+   ----------------------
    function Visit_Interface (E : Node_Id) return Node_Id is
       Pkg : Node_Id;
       Pkg_Spec : Node_Id;
@@ -435,11 +483,17 @@ package body Backend.BE_Ada is
                      Attribute_Setter_Procedure_Spec (N, Public_Decl);
                   end if;
                when K_Operation_Declaration =>
-                  Ada_Public_Node := Visite_Operation_Declaration (N);
+                  Ada_Public_Node := Visit_Operation_Declaration (N);
                   Append_Node_To_List (Ada_Public_Node, Public_Decl);
                when K_Type_Declaration =>
-                  Ada_Public_List := Visite_Type_Declaration (N);
+                  Ada_Public_List := Visit_Type_Declaration (N);
                   Append_List_To_List (Ada_Public_List, Public_Decl);
+               when K_Enumeration_Type =>
+                  Ada_Public_Node := Visit_Enumeration_Type (N);
+                  Append_Node_To_List (Ada_Public_Node, Public_Decl);
+               when K_Constant_Declaration =>
+                  Ada_Public_Node := Visit_Constant_Declaration (N);
+                  Append_Node_To_List (Ada_Public_Node, Public_Decl);
                when others =>
                   Set_Str_To_Name_Buffer (Image (Kind (N)));
                   Error_Name (1) := Name_Find;
@@ -454,9 +508,9 @@ package body Backend.BE_Ada is
 
 
    ------------------------------------
-   --   Visite_Operation_Declaration --
+   --   Visit_Operation_Declaration --
    ------------------------------------
-   function Visite_Operation_Declaration (E : Node_Id) return Node_Id is
+   function Visit_Operation_Declaration (E : Node_Id) return Node_Id is
       Operation_Identifier : Node_Id;
       Return_Type_Node : Node_Id;
       Ada_Argument_List : List_Id := No_List;
@@ -512,24 +566,24 @@ package body Backend.BE_Ada is
            (Operation_Identifier, Ada_Argument_List, Return_Type_Node);
       end if;
 
-   end Visite_Operation_Declaration;
+   end Visit_Operation_Declaration;
 
 
    ----------------------
-   --   Visite_Module  --
+   --   Visit_Module  --
    ----------------------
-   function Visite_Module (E : Node_Id) return Node_Id is
+   function Visit_Module (E : Node_Id) return Node_Id is
       Package_Node : Node_Id;
    begin
       Package_Node := G_Package (E);
       return Package_Node;
-   end Visite_Module;
+   end Visit_Module;
 
 
    -------------------------------
-   -- Visite Specification Node --
+   -- Visit Specification Node --
    -------------------------------
-   procedure Visite_Specification (E : Node_Id) is
+   procedure Visit_Specification (E : Node_Id) is
       List_Def : List_Id;
       D      : Node_Id;
       Ada_Node : Node_Id;
@@ -542,14 +596,14 @@ package body Backend.BE_Ada is
          case Kind (D) is
 
             when K_Module =>
-               Ada_Node := Visite_Module (D);
+               Ada_Node := Visit_Module (D);
                Append_Node_To_List (Ada_Node, Ada_Packages);
                Push_Package (Ada_Node);
-               Visite_Specification (D); -- Visit  definitions of the module
+               Visit_Specification (D); -- Visit  definitions of the module
                Pop_Package;
 
             when K_Type_Declaration =>
-               --    Ada_List := Visite_Type_Declaration (D);
+               --    Ada_List := Visit_Type_Declaration (D);
                null;
             when K_Interface_Declaration =>
                Ada_Node := Visit_Interface (D);
@@ -560,12 +614,12 @@ package body Backend.BE_Ada is
          end case;
          D := Next_Node (D);
       end loop;
-   end Visite_Specification;
+   end Visit_Specification;
 
    -------------------------------
-   --   Visite_Type_Declaration --
+   --   Visit_Type_Declaration --
    -------------------------------
-   function Visite_Type_Declaration (E : Node_Id) return List_Id is
+   function Visit_Type_Declaration (E : Node_Id) return List_Id is
       Type_Spec_Node : Node_Id;
       Declarators_List : List_Id;  --    := Declarators (E);
       D : Node_Id;
@@ -588,7 +642,7 @@ package body Backend.BE_Ada is
          D := Next_Node (D);
       end loop;
       return Result_List;
-   end Visite_Type_Declaration;
+   end Visit_Type_Declaration;
 
 end Backend.BE_Ada;
 

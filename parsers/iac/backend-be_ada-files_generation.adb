@@ -18,6 +18,8 @@ package body Backend.BE_Ada.FILES_Generation is
    procedure Generate_Argument (E : Node_Id);
    procedure Generate_Argument_List (L : List_Id);
    procedure Generate_Derived_Type (E : Node_Id);
+   procedure Generate_Enumeration_Type (E : Node_Id);
+   procedure Generate_Identifier (E : Node_Id);
    procedure Generate_Package (E : Node_Id);
    procedure Generate_Package_Spec (E : Node_Id);
    procedure Generate_Package_Body (E : Node_Id);
@@ -199,6 +201,42 @@ package body Backend.BE_Ada.FILES_Generation is
       end if;
    end Generate_Derived_Type;
 
+   --------------------------------
+   --  Generate_Enumeration_Type --
+   --------------------------------
+   procedure Generate_Enumeration_Type (E : Node_Id) is
+      Enumerators_List : constant List_Id := Enumerators (E);
+      D : Node_Id;
+   begin
+
+      if Enumerators_List = No_List then
+         return;  -- problem not fixed
+      end if;
+      W_Small_Indents;
+      N_Small_Indents := N_Small_Indents + 1;
+      Write_Str ("(");
+      D := First_Node (Enumerators_List);
+      while Present (D) loop
+         Generate_Identifier (D);
+         D := Next_Node (D);
+         if D /= No_Node then
+            Write_Str (", ");
+            W_Small_Indents;
+         end if;
+      end loop;
+      Write_Str (")");
+      N_Small_Indents := N_Small_Indents - 1;
+   end Generate_Enumeration_Type;
+
+   --------------------------
+   --  Generate_Identifier --
+   --------------------------
+   procedure Generate_Identifier (E : Node_Id) is
+   begin
+      Write_Str
+        (Get_Name_String (Name (E)));
+   end Generate_Identifier;
+
    ------------------------
    --   Generate Package --
    ------------------------
@@ -231,6 +269,7 @@ package body Backend.BE_Ada.FILES_Generation is
          Ada_Private_List := Ada_Private (E);
       end if;
       N_Indents := 0;
+      N_Small_Indents := 1;
       Generate_Package_With (Package_With_List);
       Write_Package_Spec_Header (Current_Package);
       N_Indents := N_Indents + 1;
@@ -256,6 +295,7 @@ package body Backend.BE_Ada.FILES_Generation is
       Write_Line ("end "
                   & Full_Package_Name (Current_Package) & ";");
    end Generate_Package_Body;
+
 
    -----------------------------
    --   Generate Package With --
@@ -313,7 +353,11 @@ package body Backend.BE_Ada.FILES_Generation is
          when K_Ada_Identifier =>
             Write_Str (Get_Name_String (Name (E)));
          when K_Type_Declaration =>
+            --   Temp solutions.
+            Write_Str (Full_Package_Name (Current_Package) & ".");
             Write_Str (Get_Name_String (Name (Identifier (E))));
+         when K_Enumeration_Type =>
+            Generate_Enumeration_Type (E);
          when others =>
             Set_Str_To_Name_Buffer (Image (Kind (E)));
             Error_Name (1) := Name_Find;
