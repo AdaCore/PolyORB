@@ -13,17 +13,26 @@
 ----                                                               ----
 -----------------------------------------------------------------------
 
-with Interfaces.C ;
+with Ada.Command_Line ;  use Ada.Command_Line ;
+with Interfaces.C ; use Interfaces.C ;
 with System ;
 
 package Corba.Command_Line is
 
-   -- this function rebuilts the C command line
-   -- be careful :
-   -- if the program's name is myprog,
-   -- and the command line is "myprog -verbose"
-   -- this function returns both myprog and -verbose
-   procedure Get_Command_Line(C_Argc : out Interfaces.C.Int ;
-                              C_Argv : out System.Address) ;
+   -- pseudo int that can be given as argument
+   -- to a C function
+   Argc : constant Interfaces.C.Int := Interfaces.C.Int(Argument_Count+1) ;
+
+
+   -- pseudo char** that can be given as argument
+   -- to a C function
+   function Argv return System.Address ;
+
+
+private
+
+   Pd_Argv : System.Address  ;
+
+   function Get_Command_Line return System.Address ;
 
 end Corba.Command_Line ;

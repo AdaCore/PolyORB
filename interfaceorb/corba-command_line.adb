@@ -16,27 +16,43 @@
 with Ada.Command_Line ;  use Ada.Command_Line ;
 with Interfaces.C ; use Interfaces.C ;
 with Interfaces.C.Strings ; use Interfaces.C.Strings ;
-
+with System.Address_To_Access_Conversions ;
 
 package body Corba.Command_Line is
 
 
-   procedure Get_Command_Line(C_Argc : out Interfaces.C.Int ;
-                              C_Argv : out System.Address) is
-      Argc :  Natural := Argument_Count ;
-      CArgc : Size_T := Size_T(Argc) ;
-      Argv : Interfaces.C.Strings.Chars_Ptr_Array(0..CArgc) ;
+   -- Argv
+   -------
+   function Argv return System.Address is
    begin
-      Argv(0) := New_String("name_of_the_program") ;
+      return Pd_Argv ;
+   end ;
+
+
+   -- Get_Command_Line
+   -------------------
+   function Get_Command_Line return System.Address is
+
+      type Array_Ptr is access Chars_Ptr_Array ;
+
+      Argv_Ptr : Array_Ptr := new Chars_Ptr_Array(0..Size_T(Argument_Count)) ;
+
+      package A2a  is new System.Address_To_Access_Conversions(Chars_Ptr_Array) ;
+
+   begin
+      Argv_Ptr.all(0) := New_String("name_of_the_program") ;
       for I in 1..Argument_Count loop
          declare
             S : Size_T := Size_T(I) ;
          begin
-            Argv(S) := New_String(Argument(I)) ;
+            Argv_Ptr.all(S) := New_String(Argument(I)) ;
          end ;
       end loop ;
-      C_Argc := Interfaces.C.Int(CArgc+1) ;
-      C_Argv := Argv'Address ;
+      return A2a.To_address(A2a.Object_Pointer(Argv_Ptr)) ;
    end ;
+
+begin
+
+   Pd_Argv := Get_Command_Line ;
 
 end Corba.Command_Line ;
