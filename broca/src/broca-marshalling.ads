@@ -58,10 +58,6 @@ package Broca.Marshalling is
 
    procedure Compute_New_Size
      (Buffer : in out Buffer_Descriptor;
-      Value  : in CORBA.Object.Ref'Class);
-
-   procedure Compute_New_Size
-     (Buffer : in out Buffer_Descriptor;
       Value  : in String);
 
    procedure Compute_New_Size
@@ -106,10 +102,6 @@ package Broca.Marshalling is
    procedure Marshall
      (Buffer : in out Buffer_Descriptor;
       Value  : in CORBA.Double);
-
-   procedure Marshall
-     (Buffer : in out Buffer_Descriptor;
-      Value  : in CORBA.Object.Ref'Class);
 
    procedure Marshall
      (Buffer : in out Buffer_Descriptor;
@@ -159,10 +151,6 @@ package Broca.Marshalling is
    procedure Unmarshall
      (Buffer : in out Buffer_Descriptor;
       Result : out CORBA.Double);
-
-   procedure Unmarshall
-     (Buffer : in out Buffer_Descriptor;
-      Result : out CORBA.Object.Ref'Class);
 
    procedure Skip_String (Buffer : in out Buffer_Descriptor);
    --  Unmarshall String and ignore result.
