@@ -152,6 +152,8 @@ package body System.Garlic.Group is
 
          Send_Next_Mirror (Group_Service, Inner_Query'Access);
       end if;
+   exception when others =>
+      Throw (Error, "Data error in Group.Handle_Request");
    end Handle_Request;
 
    ----------------

@@ -547,6 +547,8 @@ package body System.Garlic.Filters is
                return;
             end if;
          end if;
+      exception when others =>
+         Throw (Error, "Data error in Filters.Internal_Handler");
       end Internal_Handler;
 
    begin

@@ -421,6 +421,8 @@ package body System.Garlic.Termination is
             Activate_Shutdown;
 
       end case;
+   exception when others =>
+      Throw (Error, "Data error in Termination.Handle_Request");
    end Handle_Request;
 
    ----------------

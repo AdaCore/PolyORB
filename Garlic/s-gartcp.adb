@@ -1030,8 +1030,9 @@ package body System.Garlic.Tcp is
             Dummy : C.int;
          begin
             Outgoings.Enter;
+            Info := Outgoings.Get_Component (Partition);
             if not Info.Closed then
-               Dummy := C_Close (Info.Socket);
+               Dummy := Net.C_Close (Info.Socket);
                Info.Closed := True;
             end if;
             Outgoings.Set_Component (Partition, Info);
