@@ -1,3 +1,8 @@
+Thu Apr 10 22:31:39 1997  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* user_guide.txt: Add documentation on the default installed
+ 	filter and the default used filter.
+
 Wed Feb 12 10:50:01 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
 
 	* user_guide.txt: Building a shell script is not the

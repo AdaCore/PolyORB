@@ -347,6 +347,10 @@ depending on the configuration of the distributed application.
    Configuring filtering
    ---------------------
 
+   As a default, no filtering is performed by GLADE. As a default, the
+   compression filter is available. Therefore, you can configure your
+   distributed application in order to use this filter.
+
    The configuration language not only knows about partitions, it also knows
    about the connections between them. Such a connection is called a "Channel"
    and represents a bi-directional link between two partitions. In order to
