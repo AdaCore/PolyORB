@@ -1,3 +1,9 @@
+1998-02-12  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* configure.in: Correct typo.
+
+	* README: Add missing 's' to Ada Core Technologies.
+
 1998-02-12  Laurent Guerby  <guerby@gnat.com>
 
 	* MANIFEST: Replace Garlic/DOFF by Garlic/UNDALL.
