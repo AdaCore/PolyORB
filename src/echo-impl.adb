@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/echo-impl.adb#10 $
+--  $Id: //droopi/main/src/echo-impl.adb#11 $
 
 with Ada.Text_IO;
 
@@ -57,7 +57,8 @@ package body Echo.Impl is
 
       --  Insert implementation of echoString
       Result := Mesg;
-      Ada.Text_IO.Put_Line (CORBA.To_Standard_String (Mesg));
+      Ada.Text_IO.Put_Line ("In Echo.Impl.echoString:"
+        & CORBA.To_Standard_String (Mesg));
       return Result;
    end echoString;
 
