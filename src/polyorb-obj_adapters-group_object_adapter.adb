@@ -75,6 +75,7 @@ package body PolyORB.Obj_Adapters.Group_Object_Adapter is
    begin
       Finalize (GOA.Registered_Groups);
       Destroy (GOA.Lock);
+      Destroy (Obj_Adapter (GOA.all)'Access);
    end Destroy;
 
    --------------------------------------

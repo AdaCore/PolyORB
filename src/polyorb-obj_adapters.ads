@@ -36,6 +36,7 @@
 
 --  $Id$
 
+with PolyORB.Annotations;
 with PolyORB.Any;
 with PolyORB.Any.NVList;
 with PolyORB.Components;
@@ -55,7 +56,7 @@ package PolyORB.Obj_Adapters is
    procedure Create (OA : access Obj_Adapter) is abstract;
    --  Initialize.
 
-   procedure Destroy (OA : access Obj_Adapter) is abstract;
+   procedure Destroy (OA : access Obj_Adapter);
    --  Finalize.
 
    procedure Set_ORB
@@ -185,13 +186,32 @@ package PolyORB.Obj_Adapters is
    --  adapter types, in which case the above two operations
    --  shall raise PolyORB.Not_Implemented.
 
+   ----------------------------
+   -- Annotations management --
+   ----------------------------
+
+   procedure Set_Note
+     (OA : access Obj_Adapter;
+      N  : in     Annotations.Note'Class);
+
+   procedure Get_Note
+     (OA : access Obj_Adapter;
+      N  :    out Annotations.Note'Class);
+
+   procedure Get_Note
+     (OA      : access Obj_Adapter;
+      N       :    out Annotations.Note'Class;
+      Default : in     Annotations.Note'Class);
+
 private
 
    type Obj_Adapter is abstract new Smart_Pointers.Entity with
       record
-         ORB : Components.Component_Access;
+         ORB     : Components.Component_Access;
          --  The ORB the OA is attached to. Needs to be cast into an
          --  ORB_Access when used.
+
+         Notepad : Annotations.Notepad;
       end record;
 
 end PolyORB.Obj_Adapters;

@@ -39,6 +39,7 @@ with Ada.Unchecked_Deallocation;
 
 with PolyORB.Exceptions;
 with PolyORB.Log;
+with PolyORB.Obj_Adapters;
 with PolyORB.Objects;
 with PolyORB.POA_Config;
 with PolyORB.POA_Manager.Basic_Manager;
@@ -1363,6 +1364,7 @@ package body PolyORB.POA is
 
    begin
       Destroy (The_OA, True, True);
+      Obj_Adapters.Destroy (Obj_Adapters.Obj_Adapter (OA.all)'Access);
    end Destroy;
 
    ------------

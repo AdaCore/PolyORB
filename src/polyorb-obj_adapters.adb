@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,6 +34,15 @@
 --  $Id$
 
 package body PolyORB.Obj_Adapters is
+
+   -------------
+   -- Destroy --
+   -------------
+
+   procedure Destroy (OA : access Obj_Adapter) is
+   begin
+      Annotations.Destroy (OA.Notepad);
+   end Destroy;
 
    -------------
    -- Set_ORB --
@@ -141,5 +150,42 @@ package body PolyORB.Obj_Adapters is
       return Proxy_To_Ref (OA, Oid);
       pragma Warnings (On);
    end Proxy_To_Ref;
+
+   --------------
+   -- Set_Note --
+   --------------
+
+   procedure Set_Note
+     (OA : access Obj_Adapter;
+      N  : in     Annotations.Note'Class)
+   is
+   begin
+      Annotations.Set_Note (OA.Notepad, N);
+   end Set_Note;
+
+   --------------
+   -- Get_Note --
+   --------------
+
+   procedure Get_Note
+     (OA : access Obj_Adapter;
+      N  :    out Annotations.Note'Class)
+   is
+   begin
+      Annotations.Get_Note (OA.Notepad, N);
+   end Get_Note;
+
+   --------------
+   -- Get_Note --
+   --------------
+
+   procedure Get_Note
+     (OA      : access Obj_Adapter;
+      N       :    out Annotations.Note'Class;
+      Default : in     Annotations.Note'Class)
+   is
+   begin
+      Annotations.Get_Note (OA.Notepad, N, Default);
+   end Get_Note;
 
 end PolyORB.Obj_Adapters;
