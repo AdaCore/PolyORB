@@ -190,9 +190,9 @@ procedure Dynclient is
       Arg_Name_C : CORBA.Identifier := To_CORBA_String ("c");
       Request : CORBA.Request.Object;
       Ctx : CORBA.Context.Ref;
-      Argument_A : CORBA.Any := Get_Empty_Any (CORBA.TC_Short);
-      Argument_B : CORBA.Any := Get_Empty_Any (CORBA.TC_Short);
-      Argument_C : CORBA.Any := Get_Empty_Any (CORBA.TC_Short);
+      Argument_A : CORBA.Any := CORBA.To_Any (A);
+      Argument_B : CORBA.Any := CORBA.To_Any (B);
+      Argument_C : CORBA.Any := CORBA.To_Any (C);
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
       Result_Name : CORBA.String := To_CORBA_String ("Result");
@@ -287,8 +287,8 @@ procedure Dynclient is
       Ctx : CORBA.Context.Ref;
       Argument_A : CORBA.Any := CORBA.To_Any (A);
       Argument_B : CORBA.Any := CORBA.To_Any (B);
-      Argument_C : CORBA.Any := Get_Empty_Any (CORBA.TC_Short);
-      Argument_D : CORBA.Any := Get_Empty_Any (CORBA.TC_Short);
+      Argument_C : CORBA.Any := CORBA.To_Any (C);
+      Argument_D : CORBA.Any := CORBA.To_Any (D);
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
       Result_Name : CORBA.String := To_CORBA_String ("Result");
@@ -401,10 +401,10 @@ procedure Dynclient is
       Arg_Name_D : CORBA.Identifier := To_CORBA_String ("d");
       Request : CORBA.Request.Object;
       Ctx : CORBA.Context.Ref;
-      Argument_A : CORBA.Any := Get_Empty_Any (CORBA.TC_Short);
+      Argument_A : CORBA.Any := CORBA.To_Any (A);
       Argument_B : CORBA.Any := CORBA.To_Any (B);
       Argument_C : CORBA.Any := CORBA.To_Any (C);
-      Argument_D : CORBA.Any := Get_Empty_Any (CORBA.TC_Short);
+      Argument_D : CORBA.Any := CORBA.To_Any (D);
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
       Result_Name : CORBA.String := To_CORBA_String ("Result");
@@ -461,7 +461,7 @@ procedure Dynclient is
       Request : CORBA.Request.Object;
       Ctx : CORBA.Context.Ref;
       Argument_A : CORBA.Any := CORBA.To_Any (A);
-      Argument_B : CORBA.Any := Get_Empty_Any (CORBA.TC_Short);
+      Argument_B : CORBA.Any := CORBA.To_Any (B);
       Argument_C : CORBA.Any := CORBA.To_Any (C);
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
@@ -588,10 +588,10 @@ procedure Dynclient is
       Arg_Name_Returns : CORBA.Identifier := To_CORBA_String ("returns");
       Request : CORBA.Request.Object;
       Ctx : CORBA.Context.Ref;
-      Argument_A : CORBA.Any := Get_Empty_Any (CORBA.TC_Short);
-      Argument_B : CORBA.Any := Get_Empty_Any (CORBA.TC_Short);
-      Argument_C : CORBA.Any := Get_Empty_Any (CORBA.TC_Short);
-      Argument_Returns : CORBA.Any := Get_Empty_Any (CORBA.TC_Short);
+      Argument_A : CORBA.Any := CORBA.To_Any (A);
+      Argument_B : CORBA.Any := CORBA.To_Any (B);
+      Argument_C : CORBA.Any := CORBA.To_Any (C);
+      Argument_Returns : CORBA.Any := CORBA.To_Any (Returns);
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
       Result_Name : CORBA.String := To_CORBA_String ("Result");
@@ -615,7 +615,7 @@ procedure Dynclient is
                              CORBA.ARG_OUT);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (CORBA.TC_Short),
+                 Argument => Get_Empty_Any (CORBA.TC_Void),
                  Arg_Modes => 0);
       --  creating a request
       CORBA.Object.Create_Request (Myall_Functions,
@@ -647,7 +647,7 @@ procedure Dynclient is
       Ctx : CORBA.Context.Ref;
       Argument_A : CORBA.Any := CORBA.To_Any (A);
       Argument_B : CORBA.Any := CORBA.To_Any (B);
-      Argument_Returns : CORBA.Any := Get_Empty_Any (CORBA.TC_Void);
+      Argument_Returns : CORBA.Any := CORBA.To_Any (Returns);
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
       Result_Name : CORBA.String := To_CORBA_String ("Result");
@@ -667,7 +667,7 @@ procedure Dynclient is
                              CORBA.ARG_OUT);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (CORBA.TC_Short),
+                 Argument => Get_Empty_Any (CORBA.TC_Void),
                  Arg_Modes => 0);
       --  creating a request
       CORBA.Object.Create_Request (Myall_Functions,
@@ -700,9 +700,9 @@ procedure Dynclient is
       Ctx : CORBA.Context.Ref;
       Argument_A : CORBA.Any := CORBA.To_Any (A);
       Argument_B : CORBA.Any := CORBA.To_Any (B);
-      Argument_C : CORBA.Any := Get_Empty_Any (CORBA.TC_Short);
-      Argument_D : CORBA.Any := Get_Empty_Any (CORBA.TC_Short);
-      Argument_Returns : CORBA.Any := Get_Empty_Any (CORBA.TC_Short);
+      Argument_C : CORBA.Any := CORBA.To_Any (C);
+      Argument_D : CORBA.Any := CORBA.To_Any (D);
+      Argument_Returns : CORBA.Any := CORBA.To_Any (Returns);
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
       Result_Name : CORBA.String := To_CORBA_String ("Result");
@@ -730,7 +730,7 @@ procedure Dynclient is
                              CORBA.ARG_OUT);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (CORBA.TC_Short),
+                 Argument => Get_Empty_Any (CORBA.TC_Void),
                  Arg_Modes => 0);
       --  creating a request
       CORBA.Object.Create_Request (Myall_Functions,
@@ -768,7 +768,7 @@ procedure Dynclient is
       Argument_B : CORBA.Any := CORBA.To_Any (B);
       Argument_C : CORBA.Any := CORBA.To_Any (C);
       Argument_D : CORBA.Any := CORBA.To_Any (D);
-      Argument_Returns : CORBA.Any := Get_Empty_Any (CORBA.TC_Short);
+      Argument_Returns : CORBA.Any := CORBA.To_Any (Returns);
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
       Result_Name : CORBA.String := To_CORBA_String ("Result");
@@ -796,7 +796,7 @@ procedure Dynclient is
                              CORBA.ARG_OUT);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (CORBA.TC_Short),
+                 Argument => Get_Empty_Any (CORBA.TC_Void),
                  Arg_Modes => 0);
       --  creating a request
       CORBA.Object.Create_Request (Myall_Functions,
@@ -819,8 +819,8 @@ procedure Dynclient is
    procedure Out_Inout_Fun (Self : in CORBA.Object.Ref;
                             A : out CORBA.Short;
                             B : in out CORBA.Short;
-                            C : out CORBA.Short;
-                            D : in out CORBA.Short;
+                            C : in out CORBA.Short;
+                            D : out CORBA.Short;
                             Returns : out CORBA.Short) is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("out_inout_fun");
       Arg_Name_A : CORBA.Identifier := To_CORBA_String ("a");
@@ -830,11 +830,11 @@ procedure Dynclient is
       Arg_Name_Returns : CORBA.Identifier := To_CORBA_String ("returns");
       Request : CORBA.Request.Object;
       Ctx : CORBA.Context.Ref;
-      Argument_A : CORBA.Any := Get_Empty_Any (CORBA.TC_Short);
+      Argument_A : CORBA.Any := CORBA.To_Any (A);
       Argument_B : CORBA.Any := CORBA.To_Any (B);
-      Argument_C : CORBA.Any := Get_Empty_Any (CORBA.TC_Short);
+      Argument_C : CORBA.Any := CORBA.To_Any (C);
       Argument_D : CORBA.Any := CORBA.To_Any (D);
-      Argument_Returns : CORBA.Any := Get_Empty_Any (CORBA.TC_Short);
+      Argument_Returns : CORBA.Any := CORBA.To_Any (Returns);
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
       Result_Name : CORBA.String := To_CORBA_String ("Result");
@@ -851,18 +851,18 @@ procedure Dynclient is
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name_C,
                              Argument_C,
-                             CORBA.ARG_OUT);
+                             CORBA.ARG_INOUT);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name_D,
                              Argument_D,
-                             CORBA.ARG_INOUT);
+                             CORBA.ARG_OUT);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name_Returns,
                              Argument_Returns,
                              CORBA.ARG_OUT);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (CORBA.TC_Short),
+                 Argument => Get_Empty_Any (CORBA.TC_Void),
                  Arg_Modes => 0);
       --  creating a request
       CORBA.Object.Create_Request (Myall_Functions,
@@ -898,9 +898,9 @@ procedure Dynclient is
       Request : CORBA.Request.Object;
       Ctx : CORBA.Context.Ref;
       Argument_A : CORBA.Any := CORBA.To_Any (A);
-      Argument_B : CORBA.Any := Get_Empty_Any (CORBA.TC_Short);
+      Argument_B : CORBA.Any := CORBA.To_Any (B);
       Argument_C : CORBA.Any := CORBA.To_Any (C);
-      Argument_Returns : CORBA.Any := Get_Empty_Any (CORBA.TC_Short);
+      Argument_Returns : CORBA.Any := CORBA.To_Any (Returns);
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
       Result_Name : CORBA.String := To_CORBA_String ("Result");
@@ -924,7 +924,7 @@ procedure Dynclient is
                              CORBA.ARG_OUT);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (CORBA.TC_Short),
+                 Argument => Get_Empty_Any (CORBA.TC_Void),
                  Arg_Modes => 0);
       --  creating a request
       CORBA.Object.Create_Request (Myall_Functions,
@@ -1079,7 +1079,6 @@ begin
       Ok := (I = 10) and then (J = 11) and then (K = 12);
    exception when others =>
       Ok := False;
-      null;
    end;
    Output ("test out param procedure", Ok);
 
@@ -1091,7 +1090,6 @@ begin
       Ok := (I = 3 and then J = 4);
    exception when others =>
       Ok := False;
-      null;
    end;
    Output ("test in out param procedure", Ok);
 
@@ -1103,7 +1101,6 @@ begin
       Ok := (I = 3 and then J = 4);
    exception when others =>
       Ok := False;
-      null;
    end;
    Output ("test in and out param procedure", Ok);
 
@@ -1115,7 +1112,6 @@ begin
       Ok := (I = 36) and then (J = 40);
    exception when others =>
       Ok := False;
-      null;
    end;
    Output ("test in and inout param procedure", Ok);
 
@@ -1128,7 +1124,6 @@ begin
       Ok := (I = 45) and then (J = 46) and then (K = 47) and then (L = 48);
    exception when others =>
       Ok := False;
-      null;
    end;
    Output ("test inout and out param procedure", Ok);
 
@@ -1140,7 +1135,6 @@ begin
       Ok := (I = -54) and then (J = 80);
    exception when others =>
       Ok := False;
-      null;
    end;
    Output ("test in and out and inout param procedure", Ok);
 
@@ -1157,7 +1151,6 @@ begin
       Ok := (I = 5) and then (J = 6) and then (K = 7) and then (L = 10);
    exception when others =>
       Ok := False;
-      null;
    end;
    Output ("test out param function", Ok);
 
@@ -1170,7 +1163,6 @@ begin
       Ok := (I = 2) and then (J = 3) and then (L = 5);
    exception when others =>
       Ok := False;
-      null;
    end;
    Output ("test inout param function", Ok);
 
@@ -1182,7 +1174,6 @@ begin
       Ok := (I = 2) and then (J = 1) and then (K = 3);
    exception when others =>
       Ok := False;
-      null;
    end;
    Output ("test in and out param function", Ok);
 
@@ -1195,7 +1186,6 @@ begin
       Ok := (I = -2) and then (J = -4) and then (K = -6);
    exception when others =>
       Ok := False;
-      null;
    end;
    Output ("test in and inout param function", Ok);
 
@@ -1211,7 +1201,6 @@ begin
         and then (L = -3) and then (M = -7);
    exception when others =>
       Ok := False;
-      null;
    end;
    Output ("test out and inout param function", Ok);
 
@@ -1224,7 +1213,6 @@ begin
       Ok := (I = 86) and then (J = 83) and then (K = -1);
    exception when others =>
       Ok := False;
-      null;
    end;
    Output ("test in and out and inout param function", Ok);
 
@@ -1236,9 +1224,9 @@ begin
          delay 5.0;
          Ok := Oneway_Checker (Myall_Functions) = 2;
       end if;
-    exception when others =>
-       Ok := False;
-    end;
+--    exception when others =>
+--       Ok := False;
+   end;
     Output ("test void one way procedure", Ok);
 
     begin
