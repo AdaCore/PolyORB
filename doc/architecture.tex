@@ -1336,6 +1336,29 @@ Le mécanisme de composants flexibles décrit dans la section
   correspondant aux composants déclarés dans leur paquetage père.
 \end{description}
 
+\subsubsection{Annotations}
+
+Le motif de conception «~Annotations~» décrit dans la section
+\ref{sec:annotations} est réalisé au moyen des types déclarés
+dans le paquetage Droopi.Annotations.
+
+\subsubsection{Gestion de mémoire}
+
+Plusieurs unités contribuent dans Droopi à l'allocation et à la désallocation
+de mémoire~:
+
+\begin{description}
+\item[Droopi.Storage\_Pools] déclare les pools de stockage utilisés par
+  certains autres composants de \droopi{}, et centralise ainsi la configuration
+  de cet aspect.
+\item[Droopi.Smart\_Pointers] fournit un mécanisme de pointeurs
+  effectuant automatiquement un comptage de références sur les objets
+  désignés, et désallouant chaque objet lorsqu'il n'est plus désigné
+  par aucune référence.
+\item[Droopi.Buffers] offre un système de tampons pour la réception
+  et l'émission de flots d'octets au moyen des services de transport.
+\end{description}
+
 \subsubsection{Manipulation des données utilisateurs}
 
 Le paquetage Droopi.Any permet de manipuler toute donnée
@@ -1394,6 +1417,10 @@ les objets de type «~Protocol~».
 \item[Droopi.Protocols.GIOP] déclare les types concrets correspondants
   à toutes les versions du protocole GIOP de CORBA, indépendemment
   du type de canal de transport utilisé.
+%%  ./droopi-protocols-echo.ads
+%%  ./droopi-protocols-soap.ads
+%%  ./droopi-protocols-srp.ads
+%%  ./droopi-protocols.ads
 \end{description}
 
 \subsection{Représentation}
@@ -1451,17 +1478,32 @@ par les adaptateurs d'objets.
   est proposée dans Droopi.POA\_Config.Minimum.
 \end{description}
 
-%%  ./droopi-annotations.ads
+\subsection{Nommage}
+
+%%  ./droopi-references-binding.ads
+%%  ./droopi-references.ads
+
+\subsection{Liaison (\emph{binding})}
+
 
 %%  ./droopi-binding_data-local.ads
 %%  ./droopi-binding_data-srp.ads
 %%  ./droopi-binding_data-test.ads
 %%  ./droopi-binding_data.ads
 
-%%  ./droopi-buffers.ads
+
+
+
+
+
+
+
+
 %%  ./droopi-constants.ads
+
 %%  ./droopi-dict.ads
 %%  ./droopi-dynamic_dict.ads
+%%  ./droopi-static_dict.ads
 
 
 %%  ./droopi-jobs.ads
@@ -1492,32 +1534,24 @@ par les adaptateurs d'objets.
 %%  
 %%  ./droopi-poa_types.ads
 
-%%  ./droopi-protocols-echo.ads
-%%  ./droopi-protocols-soap.ads
-%%  ./droopi-protocols-srp.ads
-%%  ./droopi-protocols.ads
 
-%%  ./droopi-references-binding.ads
-%%  ./droopi-references.ads
 
 %%  ./droopi-requests.ads
+
 %%  ./droopi-setup-corba_client.ads
 %%  ./droopi-setup-test.ads
 %%  ./droopi-setup-test_corba.ads
 %%  ./droopi-setup.ads
-%%  ./droopi-smart_pointers.ads
-%%  ./droopi-static_dict.ads
+
 %%  ./droopi-storage_pools.ads
 %%  ./droopi-task_info.ads
-%%  ./droopi-test-task_attributes.ads
-%%  ./droopi-test.ads
+
 %%  ./droopi-test_object.ads
 %%  ./droopi-types.ads
 %%  ./droopi-utils-srp.ads
 %%  ./droopi-utils.ads
 %%  ./droopi.ads
-%%  
-%%  
+
 %%  ./corba-test_object.ads
 %%  ./corba-test_poa.ads
 %%  ./corba/corba-abstractbase.ads
@@ -1537,11 +1571,13 @@ par les adaptateurs d'objets.
 %%  ./corba/corba-serverrequest.ads
 %%  ./corba/corba.ads
 %%  ./corba/droopi-binding_data-iiop.ads
+
 %%  ./corba/droopi-corba_p-exceptions-stack.ads
 %%  ./corba/droopi-corba_p-exceptions.ads
 %%  ./corba/droopi-corba_p-names.ads
 %%  ./corba/droopi-corba_p-server_tools.ads
 %%  ./corba/droopi-corba_p.ads
+
 %%  ./corba/droopi-protocols-giop-giop_1_0.ads
 %%  ./corba/droopi-protocols-giop-giop_1_1.ads
 %%  ./corba/droopi-protocols-giop-giop_1_2.ads
@@ -1576,7 +1612,10 @@ Parallèles et relations avec d'autres systèmes de répartition basés
 sur d'autres paradigmes que les objets répartis~:
 \begin{itemize}
 \item mémoire partagée~;
-\item passage de messages (MPI, MOM~: JMS, mqseries...)
+\item passage de messages (MPI, MOM~: JMS, mqSeries...)
+  Un MOM (\emph{Message Oriented Middleware}) en Ada a été prototypé
+  en utilisant \droopi{} comme sous-système de communication.
+  Son API est calqué sur les classes JMS.
 \end{itemize}
 
 Considérer ces autres systèmes de répartition selon deux angles~:
