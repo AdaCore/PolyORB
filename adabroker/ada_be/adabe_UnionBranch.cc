@@ -75,10 +75,14 @@ adabe_union_branch::produce_marshal_adb (dep_list& with,
   align_size += ",Tmp) ;\n";
 }
 
-static string
+string
 produce_disc_value( AST_ConcreteType* t,AST_Expression* exp)
 {
   ostrstream ost;
+#ifdef DEBUG_UNION_BRANCH
+  //  cerr << "Le case vaut string : " << ost.str() << endl;
+#endif
+
   if (t->node_type() != AST_Decl::NT_enum)
     {
       AST_Expression::AST_ExprValue *v = exp->ev();
@@ -91,6 +95,9 @@ produce_disc_value( AST_ConcreteType* t,AST_Expression* exp)
 	   ost << v->u.usval;
 	   break;
 	 case AST_Expression::EV_long:
+#ifdef DEBUG_UNION_BRANCH
+  cerr << "Le case vaut : " << v->u.lval << endl;
+#endif
 	   ost << v->u.lval;
 	   break;
 	 case AST_Expression::EV_ulong:
@@ -99,6 +106,9 @@ produce_disc_value( AST_ConcreteType* t,AST_Expression* exp)
 	 case AST_Expression::EV_bool:
 	   return ((v->u.bval == 0) ? "FALSE" : "TRUE");
 	 case AST_Expression::EV_char:        
+#ifdef DEBUG_UNION_BRANCH
+  cerr << "Le case vaut : " << v->u.cval << endl;
+#endif
 	   ost <<  v->u.cval;
 	     //	    if (c >= ' ' && c <= '~')
 	     //	      s << "'" << c << "'";
@@ -120,6 +130,9 @@ produce_disc_value( AST_ConcreteType* t,AST_Expression* exp)
       adabe_enum_val* v = adabe_enum_val::narrow_from_decl(adabe_enum::narrow_from_decl(t)->lookup_by_value(exp));
       return (v->get_ada_local_name());
     }
+#ifdef DEBUG_UNION_BRANCH
+  cerr << "Le case vaut string : " << ost.str() << endl;
+#endif
   return ost.str();
 }
 IMPL_NARROW_METHODS1(adabe_union_branch, AST_UnionBranch)
