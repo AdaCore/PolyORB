@@ -194,6 +194,8 @@ package PolyORB.POA is
       Child_Name :        Types.String)
      is abstract;
 
+   Invalid_Name : exception;
+
    Invalid_Policy : exception;
    Adapter_Inactive : exception;
    Adapter_Already_Exists : exception;

@@ -59,6 +59,8 @@ package body PolyORB.POA.Basic_POA is
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
+   POA_Path_Separator : constant String := "/";
+
    ----------------------------------------------------------
    --  Declaration of additional procedures and functions  --
    ----------------------------------------------------------
@@ -496,10 +498,15 @@ package body PolyORB.POA.Basic_POA is
    is
       New_Obj_Adapter : Basic_Obj_Adapter_Access;
       Children_Locked : Boolean := False;
-      Index           : Positive;
+      Child_Id : Integer;
+
    begin
-      --  Adapter_Name should be not empty
-      pragma Assert (Adapter_Name /= "");
+      --  Validity checks on Adapter_Name
+      if Adapter_Name = ""
+        or else Index (Adapter_Name, POA_Path_Separator) /= 0
+      then
+         raise PolyORB.POA.Invalid_Name;
+      end if;
 
       --  Look if there is already a child with this name
       if Self.Children /= null then
@@ -550,10 +557,11 @@ package body PolyORB.POA.Basic_POA is
       if not Children_Locked then
          Lock_W (Self.Children_Lock);
       end if;
-      Index := Register_Child (Self, New_Obj_Adapter);
+
+      Child_Id := Register_Child (Self, New_Obj_Adapter);
       if Length (Self.Absolute_Address) > 0 then
          New_Obj_Adapter.Absolute_Address := Self.Absolute_Address
-           & To_PolyORB_String (".") & Adapter_Name;
+           & To_PolyORB_String (POA_Path_Separator) & Adapter_Name;
       else
          New_Obj_Adapter.Absolute_Address
            := Self.Absolute_Address & Adapter_Name;
@@ -728,7 +736,10 @@ package body PolyORB.POA.Basic_POA is
      return Basic_Obj_Adapter_Access
    is
       use PolyORB.POA_Types.POA_Sequences;
-      Split_Point      : Natural := Index (Name, ".");
+
+      Split_Point      : constant Natural
+        := Index (Name, POA_Path_Separator);
+
       Remaining_Name   : Types.String;
       A_Child_Name     : Types.String;
       A_Child          : Obj_Adapter_Access;
@@ -736,24 +747,22 @@ package body PolyORB.POA.Basic_POA is
       if Name = "" then
          return Basic_Obj_Adapter_Access (Self);
       end if;
+
       if Split_Point /= 0 then
          A_Child_Name := Head (Name, Split_Point - 1);
          Remaining_Name := Tail (Name, Length (Name) - Split_Point);
       else
          A_Child_Name := Name;
       end if;
+
       for I in 1 .. Length (Sequence (Self.Children.all)) loop
-         A_Child := Obj_Adapter_Access (Element_Of
-                                        (Sequence (Self.Children.all),
-                                         I));
+         A_Child := Obj_Adapter_Access
+           (Element_Of (Sequence (Self.Children.all), I));
+
          if A_Child.Name = A_Child_Name then
-            if Remaining_Name /= "" then
-               return Find_POA_Recursively
-                 (Basic_Obj_Adapter (A_Child.all)'Access,
-                  Remaining_Name);
-            else
-               return Basic_Obj_Adapter_Access (A_Child);
-            end if;
+            return Find_POA_Recursively
+              (Basic_Obj_Adapter (A_Child.all)'Access,
+               Remaining_Name);
          end if;
       end loop;
       return null;
