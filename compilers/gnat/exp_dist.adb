@@ -160,9 +160,9 @@ package body Exp_Dist is
    --  Add a subprogram body for RAS Dereference TSS
 
    procedure Add_RAS_Proxy_And_Analyze
-     (Decls              :     List_Id;
-      Vis_Decl           :     Node_Id;
-      All_Calls_Remote_E :     Entity_Id;
+     (Decls              : List_Id;
+      Vis_Decl           : Node_Id;
+      All_Calls_Remote_E : Entity_Id;
       Proxy_Object_Addr  : out Entity_Id);
    --  Add the proxy type necessary to call the subprogram declared
    --  by Vis_Decl through a remote access to subprogram type.
@@ -377,6 +377,7 @@ package body Exp_Dist is
    --  designated type. RACW_Type is any of the RACW types pointing on this
    --  designated type, it is used here to save an anonymous type creation
    --  for each primitive operation.
+   --
    --  For a RACW that implements a RAS, no RPC receiver subprogram is
    --  generated. In the GARLIC case, no other RPC receiver object exists,
    --  and instead RPC_Receiver_Decl is the declaration after which the
@@ -528,11 +529,11 @@ package body Exp_Dist is
       --  Support for generating DSA code that uses the GARLIC PCS
 
       procedure Add_RACW_Features
-        (RACW_Type           : Entity_Id;
-         Stub_Type           : Entity_Id;
-         Stub_Type_Access    : Entity_Id;
-         RPC_Receiver_Decl   : Node_Id;
-         Declarations        : List_Id);
+        (RACW_Type         : Entity_Id;
+         Stub_Type         : Entity_Id;
+         Stub_Type_Access  : Entity_Id;
+         RPC_Receiver_Decl : Node_Id;
+         Declarations      : List_Id);
 
       procedure Add_RAST_Features
         (Vis_Decl : Node_Id;
@@ -546,12 +547,12 @@ package body Exp_Dist is
       --  Support for generating DSA code that uses the PolyORB PCS
 
       procedure Add_RACW_Features
-        (RACW_Type           : Entity_Id;
-         Desig               : Entity_Id;
-         Stub_Type           : Entity_Id;
-         Stub_Type_Access    : Entity_Id;
-         RPC_Receiver_Decl   : Node_Id;
-         Declarations        : List_Id);
+        (RACW_Type         : Entity_Id;
+         Desig             : Entity_Id;
+         Stub_Type         : Entity_Id;
+         Stub_Type_Access  : Entity_Id;
+         RPC_Receiver_Decl : Node_Id;
+         Declarations      : List_Id);
 
       procedure Add_RAST_Features
         (Vis_Decl : Node_Id;
@@ -565,6 +566,7 @@ package body Exp_Dist is
    ------------------------------------
 
    RCI_Cache : Node_Id;
+   --  Needs comments ???
 
    Output_From_Constrained : constant array (Boolean) of Name_Id :=
      (False => Name_Output,
@@ -616,6 +618,7 @@ package body Exp_Dist is
       Reserve_NamingContext_Methods;
 
       Current_Declaration := First (Visible_Declarations (Pkg_Spec));
+
       while Present (Current_Declaration) loop
          if Nkind (Current_Declaration) = N_Subprogram_Declaration
            and then Comes_From_Source (Current_Declaration)
@@ -833,10 +836,8 @@ package body Exp_Dist is
 
       Current_Insertion_Node : Node_Id := Insertion_Node;
 
-      RPC_Receiver : constant Entity_Id
-        := Make_Defining_Identifier (Loc, New_Internal_Name ('H'));
-
-      RPC_Receiver_Statements        : List_Id          := No_List;
+      RPC_Receiver : Entity_Id;
+      RPC_Receiver_Statements        : List_Id;
       RPC_Receiver_Case_Alternatives : constant List_Id := New_List;
       RPC_Receiver_Request           : Entity_Id        := Empty;
       RPC_Receiver_Subp_Id           : Entity_Id        := Empty;
@@ -865,6 +866,8 @@ package body Exp_Dist is
       end if;
 
       if not Is_RAS then
+         RPC_Receiver := Make_Defining_Identifier (Loc,
+                           New_Internal_Name ('P'));
          Build_RPC_Receiver_Body (
            RPC_Receiver => RPC_Receiver,
            Request      => RPC_Receiver_Request,
@@ -1219,9 +1222,9 @@ package body Exp_Dist is
    -------------------------------
 
    procedure Add_RAS_Proxy_And_Analyze
-     (Decls              :     List_Id;
-      Vis_Decl           :     Node_Id;
-      All_Calls_Remote_E :     Entity_Id;
+     (Decls              : List_Id;
+      Vis_Decl           : Node_Id;
+      All_Calls_Remote_E : Entity_Id;
       Proxy_Object_Addr  : out Entity_Id)
    is
       Loc : constant Source_Ptr := Sloc (Vis_Decl);
@@ -1416,10 +1419,10 @@ package body Exp_Dist is
 
    procedure Add_RAST_Features (Vis_Decl : Node_Id) is
       RAS_Type : constant Entity_Id :=
-        Equivalent_Type (Defining_Identifier (Vis_Decl));
+                   Equivalent_Type (Defining_Identifier (Vis_Decl));
 
-      Spec : constant Node_Id :=
-        Specification (Unit (Enclosing_Lib_Unit_Node (Vis_Decl)));
+      Spec  : constant Node_Id :=
+                Specification (Unit (Enclosing_Lib_Unit_Node (Vis_Decl)));
       Decls : List_Id := Private_Declarations (Spec);
 
    begin
@@ -1482,7 +1485,8 @@ package body Exp_Dist is
       Current_Subprogram_Number : Int := First_RCI_Subprogram_Id;
 
       Subp_Info_Array : constant Entity_Id :=
-        Make_Defining_Identifier (Loc, New_Internal_Name ('I'));
+                          Make_Defining_Identifier (Loc,
+                            Chars => New_Internal_Name ('I'));
 
       Subp_Info_List : constant List_Id := New_List;
 
@@ -1513,8 +1517,6 @@ package body Exp_Dist is
       --      elaboration part, whose job is to register the receiving
       --      part of this RCI package on the name server. This is done
       --      by calling System.Partition_Interface.Register_Receiving_Stub
-
-      --  The RPC receiver subprogram
 
       Build_RPC_Receiver_Body (
         RPC_Receiver => Pkg_RPC_Receiver,
@@ -1547,7 +1549,6 @@ package body Exp_Dist is
             Subp_Index,
           Object_Definition   =>
             New_Occurrence_Of (Standard_Integer, Loc)));
-
       Append_To (Pkg_RPC_Receiver_Statements,
         Make_Procedure_Call_Statement (Loc,
           Name =>
@@ -1754,7 +1755,6 @@ package body Exp_Dist is
             end;
 
             Current_Subprogram_Number := Current_Subprogram_Number + 1;
-
          end if;
 
          Next (Current_Declaration);
@@ -1914,23 +1914,23 @@ package body Exp_Dist is
    -------------------
 
    procedure Add_Stub_Type
-     (Designated_Type     : Entity_Id;
-      RACW_Type           : Entity_Id;
-      Decls               : List_Id;
-      Stub_Type           : out Entity_Id;
-      Stub_Type_Access    : out Entity_Id;
-      RPC_Receiver_Decl   : out Node_Id;
-      Existing            : out Boolean)
+     (Designated_Type   : Entity_Id;
+      RACW_Type         : Entity_Id;
+      Decls             : List_Id;
+      Stub_Type         : out Entity_Id;
+      Stub_Type_Access  : out Entity_Id;
+      RPC_Receiver_Decl : out Node_Id;
+      Existing          : out Boolean)
    is
       Loc : constant Source_Ptr := Sloc (RACW_Type);
 
       Stub_Elements : constant Stub_Structure :=
                         Stubs_Table.Get (Designated_Type);
 
-      Stub_Type_Declaration           : Node_Id;
-      Stub_Type_Access_Declaration    : Node_Id;
+      Stub_Type_Declaration        : Node_Id;
+      Stub_Type_Access_Declaration : Node_Id;
 
-      Object_RPC_Receiver             : Entity_Id;
+      Object_RPC_Receiver : Entity_Id;
 
    begin
       if Stub_Elements /= Empty_Stub_Structure then
@@ -2851,7 +2851,7 @@ package body Exp_Dist is
       ----------------------------
 
       procedure Insert_Partition_Check (Parameter : Node_Id) is
-         Condition         : Node_Id;
+         Condition : Node_Id;
          pragma Unreferenced (Parameter);
       begin
          --  The expression that will be built is of the form:
@@ -2920,7 +2920,6 @@ package body Exp_Dist is
                                            (Spec_To_Use));
          begin
             while Present (Current_Parameter) loop
-
                if
                  Is_RACW_Controlling_Formal (Current_Parameter, Stub_Type)
                then
@@ -3843,20 +3842,20 @@ package body Exp_Dist is
       --  Local subprograms
 
       procedure Add_RACW_Read_Attribute
-        (RACW_Type           : Entity_Id;
-         Stub_Type           : Entity_Id;
-         Stub_Type_Access    : Entity_Id;
-         Declarations        : List_Id);
+        (RACW_Type        : Entity_Id;
+         Stub_Type        : Entity_Id;
+         Stub_Type_Access : Entity_Id;
+         Declarations     : List_Id);
       --  Add Read attribute in Decls for the RACW type. The Read attribute
       --  is added right after the RACW_Type declaration while the body is
       --  inserted after Declarations.
 
       procedure Add_RACW_Write_Attribute
-        (RACW_Type           : Entity_Id;
-         Stub_Type           : Entity_Id;
-         Stub_Type_Access    : Entity_Id;
-         RPC_Receiver        : Node_Id;
-         Declarations        : List_Id);
+        (RACW_Type        : Entity_Id;
+         Stub_Type        : Entity_Id;
+         Stub_Type_Access : Entity_Id;
+         RPC_Receiver     : Node_Id;
+         Declarations     : List_Id);
       --  Same thing for the Write attribute
 
       function Stream_Parameter return Node_Id;
@@ -3877,17 +3876,18 @@ package body Exp_Dist is
       -----------------------
 
       procedure Add_RACW_Features
-        (RACW_Type           : Entity_Id;
-         Stub_Type           : Entity_Id;
-         Stub_Type_Access    : Entity_Id;
-         RPC_Receiver_Decl   : Node_Id;
-         Declarations        : List_Id)
+        (RACW_Type         : Entity_Id;
+         Stub_Type         : Entity_Id;
+         Stub_Type_Access  : Entity_Id;
+         RPC_Receiver_Decl : Node_Id;
+         Declarations      : List_Id)
       is
          RPC_Receiver : Node_Id;
          Is_RAS       : constant Boolean := not Comes_From_Source (RACW_Type);
 
       begin
          Loc := Sloc (RACW_Type);
+
          if Is_RAS then
 
             --  For a RAS, the RPC receiver is that of the RCI unit,
@@ -3925,10 +3925,10 @@ package body Exp_Dist is
       -----------------------------
 
       procedure Add_RACW_Read_Attribute
-        (RACW_Type           : Entity_Id;
-         Stub_Type           : Entity_Id;
-         Stub_Type_Access    : Entity_Id;
-         Declarations        : List_Id)
+        (RACW_Type        : Entity_Id;
+         Stub_Type        : Entity_Id;
+         Stub_Type_Access : Entity_Id;
+         Declarations     : List_Id)
       is
          Proc_Decl : Node_Id;
          Attr_Decl : Node_Id;
@@ -4153,11 +4153,11 @@ package body Exp_Dist is
       ------------------------------
 
       procedure Add_RACW_Write_Attribute
-        (RACW_Type           : Entity_Id;
-         Stub_Type           : Entity_Id;
-         Stub_Type_Access    : Entity_Id;
-         RPC_Receiver        : Node_Id;
-         Declarations        : List_Id)
+        (RACW_Type        : Entity_Id;
+         Stub_Type        : Entity_Id;
+         Stub_Type_Access : Entity_Id;
+         RPC_Receiver     : Node_Id;
+         Declarations     : List_Id)
       is
          Body_Node : Node_Id;
          Proc_Decl : Node_Id;
@@ -4168,7 +4168,7 @@ package body Exp_Dist is
          Remote_Statements : List_Id;
          Null_Statements   : List_Id;
 
-         Procedure_Name    : constant Name_Id := New_Internal_Name ('R');
+         Procedure_Name : constant Name_Id := New_Internal_Name ('R');
 
       begin
          --  Build the code fragment corresponding to the marshalling of a
@@ -4305,17 +4305,18 @@ package body Exp_Dist is
          --  corresponding record type.
 
          RACW_Type : constant Entity_Id :=
-           Underlying_RACW_Type (Ras_Type);
+                       Underlying_RACW_Type (Ras_Type);
          Desig     : constant Entity_Id :=
-           Etype (Designated_Type (RACW_Type));
+                       Etype (Designated_Type (RACW_Type));
 
          Stub_Elements : constant Stub_Structure :=
-           Stubs_Table.Get (Desig);
+                           Stubs_Table.Get (Desig);
          pragma Assert (Stub_Elements /= Empty_Stub_Structure);
 
          Proc : constant Entity_Id :=
                   Make_Defining_Identifier (Loc,
                     Chars => Make_TSS_Name (Ras_Type, TSS_RAS_Access));
+
          Proc_Spec : Node_Id;
 
          --  Formal parameters
@@ -4343,8 +4344,8 @@ package body Exp_Dist is
 
          --  Common local variables
 
-         Proc_Decls        : List_Id;
-         Proc_Statements   : List_Id;
+         Proc_Decls      : List_Id;
+         Proc_Statements : List_Id;
 
          Origin : constant Entity_Id :=
                     Make_Defining_Identifier (Loc,
@@ -4640,6 +4641,7 @@ package body Exp_Dist is
       Current_Subp        : Entity_Id;
       Current_Subp_Str    : String_Id;
       Current_Subp_Number : Int := First_RCI_Subprogram_Id;
+
    begin
       if Result.Str_Identifier = No_String then
 
@@ -4978,12 +4980,12 @@ package body Exp_Dist is
       -----------------------
 
       procedure Add_RACW_Features
-        (RACW_Type           : Entity_Id;
-         Desig               : Entity_Id;
-         Stub_Type           : Entity_Id;
-         Stub_Type_Access    : Entity_Id;
-         RPC_Receiver_Decl   : Node_Id;
-         Declarations        : List_Id)
+        (RACW_Type         : Entity_Id;
+         Desig             : Entity_Id;
+         Stub_Type         : Entity_Id;
+         Stub_Type_Access  : Entity_Id;
+         RPC_Receiver_Decl : Node_Id;
+         Declarations      : List_Id)
       is
          pragma Warnings (Off);
          pragma Unreferenced (RPC_Receiver_Decl);
@@ -6458,12 +6460,13 @@ package body Exp_Dist is
    --------------------------------
 
    procedure Specific_Add_RACW_Features
-     (RACW_Type           : Entity_Id;
-      Desig               : Entity_Id;
-      Stub_Type           : Entity_Id;
-      Stub_Type_Access    : Entity_Id;
-      RPC_Receiver_Decl   : Node_Id;
-      Declarations        : List_Id) is
+     (RACW_Type         : Entity_Id;
+      Desig             : Entity_Id;
+      Stub_Type         : Entity_Id;
+      Stub_Type_Access  : Entity_Id;
+      RPC_Receiver_Decl : Node_Id;
+      Declarations      : List_Id)
+   is
    begin
       case Get_PCS_Name is
          when Name_PolyORB_DSA =>
@@ -6492,7 +6495,8 @@ package body Exp_Dist is
    procedure Specific_Add_RAST_Features
      (Vis_Decl : Node_Id;
       RAS_Type : Entity_Id;
-      Decls    : List_Id) is
+      Decls    : List_Id)
+   is
    begin
       case Get_PCS_Name is
          when Name_PolyORB_DSA =>
