@@ -1,3 +1,10 @@
+2003-01-20  Pascal Obry <obry@gnat.com>
+
+	* Makefile.am, Makefile.in:
+	(inlining): Add -I. to gnatmake's options for GNAT to be able to
+	 find the .o and .ali after compilation.
+	Fixes C119-003.
+
 2002-12-02  Laurent Pautet  <pautet@arlequin.enst.fr>
 
 	* Makefile.am, Makefile.in: Fix include path as we compile in the
