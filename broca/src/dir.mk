@@ -55,7 +55,7 @@ $(lib): $(ADA_OBJS)
 
 $(ADA_OBJS): allsrc.o
 
-allsrc.o:
+allsrc.o: $(ADA_SRCS)
 	$(GNATMAKE) $(BROCA_FLAGS) allsrc; \
 
 clean::
