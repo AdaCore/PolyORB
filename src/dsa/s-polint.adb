@@ -104,10 +104,10 @@ package body System.PolyORB_Interface is
       --  Indicates whetger this info is relative to a
       --  RACW type or a RCI.
 
-      Name                : String_Ptr;
+      Name                : PolyORB.Utils.Strings.String_Ptr;
       --  Fully qualified name of the RACW or RCI
 
-      Version             : String_Ptr;
+      Version             : PolyORB.Utils.Strings.String_Ptr;
       --  For RCIs only: library unit version
 
       Receiver            : Servant_Access;
