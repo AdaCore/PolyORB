@@ -314,20 +314,23 @@ package body PortableServer is
    ------------------------
 
    function String_To_ObjectId (Id : String) return ObjectId is
+      Oid : ObjectId (1 .. Id'Length);
+      pragma Import (Ada, Oid);
+      for Oid'Address use Id (Id'First)'Address;
    begin
-      return ObjectId (PolyORB.Objects.Hex_String_To_Oid (Id));
+      return Oid;
    end String_To_ObjectId;
 
    ------------------------
-   -- Objectid_To_String --
+   -- ObjectId_To_String --
    ------------------------
 
-   function ObjectId_To_String
-     (Id : ObjectId)
-     return String is
+   function ObjectId_To_String (Id : ObjectId) return String is
+      Str : String (1 .. Id'Length);
+      pragma Import (Ada, Str);
+      for Str'Address use Id (Id'First)'Address;
    begin
-      return PolyORB.Objects.Oid_To_Hex_String (
-               PolyORB.Objects.Object_Id (Id));
+      return Str;
    end ObjectId_To_String;
 
    -----------------
