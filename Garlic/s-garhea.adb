@@ -42,6 +42,7 @@ with System.Garlic.Filters;           use System.Garlic.Filters;
 with System.Garlic.Options;           use System.Garlic.Options;
 with System.Garlic.Partitions;        use System.Garlic.Partitions;
 with System.Garlic.Protocols;         use System.Garlic.Protocols;
+with System.Garlic.Storages;          use System.Garlic.Storages;
 with System.Garlic.Soft_Links;
 with System.Garlic.Streams;           use System.Garlic.Streams;
 with System.Garlic.Trace;             use System.Garlic.Trace;
@@ -178,6 +179,8 @@ package body System.Garlic.Heart is
       --  Set connection hits back to normal.
 
       Set_Connection_Hits (Options.Def_Connection_Hits);
+      pragma Debug (D ("Activate storages shutdown"));
+      Storages.Shutdown;
       pragma Debug (D ("Activate protocols shutdown"));
       Protocols.Shutdown;
       pragma Debug (D ("Activate trace shutdown"));
