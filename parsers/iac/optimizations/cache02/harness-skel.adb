@@ -19,6 +19,10 @@ package body Harness.Skel is
          in Harness.Impl.Object'Class;
    end Servant_Is_A;
 
+   Arg_Name_U_Arg : CORBA.Identifier;
+   Argument_U_arg : CORBA.Any;
+
+
    procedure Invoke
      (Self : in PortableServer.Servant;
       Request : in CORBA.ServerRequest.Object_Ptr)
@@ -71,12 +75,7 @@ package body Harness.Skel is
       then
          declare
             arg : CORBA.Unsigned_Long;
-            Arg_Name_U_arg : constant CORBA.Identifier :=
-              CORBA.To_CORBA_String
-                 ("arg");
-            Argument_U_arg : CORBA.Any :=
-              CORBA.Get_Empty_Any
-                 (CORBA.TC_Unsigned_Long);
+
             Result_ü : CORBA.Unsigned_Long;
          begin
             CORBA.NVList.Add_Item
@@ -116,16 +115,25 @@ package body Harness.Skel is
            (Harness.Repository_Id),
          Servant_Is_A'Access,
          Invoke'Access);
+      Arg_Name_U_Arg := CORBA.To_CORBA_String
+        ("arg");
+      Argument_U_arg := CORBA.Get_Empty_Any
+        (CORBA.TC_Unsigned_Long);
    end Deferred_Initialization;
 
 begin
-   PolyORB.Initialization.Register_Module
-     (PolyORB.Initialization.Module_Info'
-        (Name => PolyORB.Utils.Strings."+"
-           ("Harness.Skel"),
-         Conflicts => PolyORB.Utils.Strings.Lists.Empty,
-         Depends => PolyORB.Utils.Strings.Lists.Empty,
-         Provides => PolyORB.Utils.Strings.Lists.Empty,
-         Implicit => False,
-         Init => Deferred_Initialization'Access));
+   declare
+      List : PolyORB.Utils.Strings.Lists.List;
+   begin
+      PolyORB.Utils.Strings.Lists.Append (List, "smart_pointers");
+      PolyORB.Initialization.Register_Module
+        (PolyORB.Initialization.Module_Info'
+         (Name => PolyORB.Utils.Strings."+"
+          ("Harness.Skel"),
+          Conflicts => PolyORB.Utils.Strings.Lists.Empty,
+          Depends => List,
+          Provides => PolyORB.Utils.Strings.Lists.Empty,
+          Implicit => False,
+          Init => Deferred_Initialization'Access));
+   end;
 end Harness.Skel;

@@ -7,7 +7,6 @@ with PolyORB.Any;
 with PolyORB.CORBA_P.Interceptors_Hooks;
 with PolyORB.CORBA_P.Exceptions;
 with PolyORB.References;
-with PolyORB.Smart_Pointers;
 with PolyORB.Utils.Strings;
 with PolyORB.Utils.Strings.Lists;
 with PolyORB.Initialization;

@@ -1,3 +1,15 @@
+2004-09-02  Saber Souli  <souli@localhost.localdomain>
+
+	* optimizations/cache02/Makefile (SHELL): Change compilations flags to undo style cheking.  
+
+	* optimizations/cache02/harness-skel.adb:  Make constant local variable of Invoke global. 
+
+2004-08-30  Saber Souli  <souli@loozy.rezel.enst.fr>
+
+	* backend-be_ada-nutils.ads: Add pragma inline entity in Pragma_Id.  
+
+	* backend-be_ada-stubs.adb: Use direct function to initialize the result_ü variable in stubs code. 
+
 2004-08-27  Saber Souli  <souli@loozy.rezel.enst.fr>
 
 	* testsuite/all_types/all_types.idl: Add struct tests. 
