@@ -94,7 +94,7 @@ package body CORBA.ORB is
    end Create_Alias_Tc;
 
    ---------------------
-   -- create_array_tc --
+   -- Create_Array_Tc --
    ---------------------
 
    function Create_Array_Tc
@@ -111,7 +111,7 @@ package body CORBA.ORB is
    end Create_Array_Tc;
 
    ---------------------
-   -- create_fixed_tc --
+   -- Create_Fixed_Tc --
    ---------------------
 
    function Create_Fixed_Tc
@@ -128,7 +128,7 @@ package body CORBA.ORB is
    end Create_Fixed_Tc;
 
    -------------------------
-   -- create_interface_tc --
+   -- Create_Interface_Tc --
    -------------------------
 
    function Create_Interface_Tc
@@ -148,23 +148,25 @@ package body CORBA.ORB is
    -- Create_List --
    -----------------
 
-   pragma Warnings (Off);
-   --  Parameter 'Count' below is only a hint.
-   --  In this implementation, it is ignored.
    procedure Create_List
      (Count    : in     CORBA.Long;
       New_List :    out CORBA.NVList.Ref)
    is
    begin
+      pragma Warnings (Off);
+      --  Parameter 'Count' below is only a hint.
+      --  In this implementation, it is ignored.
+      pragma Unreferenced (Count);
+      pragma Warnings (On);
+
       CORBA.NVList.Create (New_List);
    end Create_List;
-   pragma Warnings (On);
 
    procedure Create_List (New_List : out CORBA.ExceptionList.Ref)
      renames CORBA.ExceptionList.Create_List;
 
    ----------------------
-   -- create_native_tc --
+   -- Create_Native_Tc --
    ----------------------
 
    function Create_Native_Tc
@@ -193,7 +195,7 @@ package body CORBA.ORB is
    end Create_Policy;
 
    ----------------------------------
-   -- create_recursive_sequence_tc --
+   -- Create_Recursive_Sequence_Tc --
    ----------------------------------
 
    function Create_Recursive_Sequence_Tc
@@ -210,7 +212,7 @@ package body CORBA.ORB is
    end Create_Recursive_Sequence_Tc;
 
    ------------------------
-   -- create_sequence_tc --
+   -- Create_Sequence_Tc --
    ------------------------
 
    function Create_Sequence_Tc
@@ -227,7 +229,7 @@ package body CORBA.ORB is
    end Create_Sequence_Tc;
 
    ----------------------
-   -- create_string_tc --
+   -- Create_String_Tc --
    ----------------------
 
    function Create_String_Tc
@@ -243,7 +245,7 @@ package body CORBA.ORB is
    end Create_String_Tc;
 
    -----------------------
-   -- create_wstring_tc --
+   -- Create_Wstring_Tc --
    -----------------------
 
    function Create_Wstring_Tc
@@ -498,6 +500,6 @@ begin
       (Name => +"corba.orb",
        Conflicts => Empty,
        Depends => +"orb",
-       Provides => +"initial_references",
+       Provides => +"corba.initial_references",
        Init => Initialize'Access));
 end CORBA.ORB;
