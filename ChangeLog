@@ -1,3 +1,7 @@
+2004-01-08  Samuel Tardieu  <sam@rfc1149.net>
+
+	* NEWS: Fix typo.
+
 2003-12-16  Laurent Pautet  <pautet@dorine.enst.fr>
 
 	* configure, aclocal.m4, support/ada.m4: Take into account "PRO"

@@ -11,7 +11,7 @@ Bug fixes
 ---------
 
 *   When a pure client partition was dying during a RPC, the server
-    was unable to terminate because it was trying forver to send the
+    was unable to terminate because it was trying forever to send the
     result of the RPC.
 
 
