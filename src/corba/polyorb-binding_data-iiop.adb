@@ -36,10 +36,11 @@
 
 with Ada.Streams; use Ada.Streams;
 
-with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization);
+with PolyORB.Configuration;
 with PolyORB.Filters;
 with PolyORB.Filters.Slicers;
+with PolyORB.Initialization;
+pragma Elaborate_All (PolyORB.Initialization);
 with PolyORB.Protocols;
 with PolyORB.Protocols.GIOP;
 with PolyORB.Representations.CDR;
@@ -65,9 +66,19 @@ package body PolyORB.Binding_Data.IIOP is
     (Buffer   : access Buffer_Type;
      Sock     : out Sockets.Sock_Addr_Type);
 
+   Preference : Profile_Preference;
+   --  Global variable: the preference to be returned
+   --  by Get_Profile_Preference for IIOP profiles.
 
    procedure Initialize is
+      Preference_Offset : constant String
+        := PolyORB.Configuration.Get_Conf
+        (Section => "corba",
+         Key     => "polyorb.binding_data.iiop.preference",
+         Default => "0");
    begin
+      Preference := Preference_Default + Profile_Preference'Value
+        (Preference_Offset);
       Register
        (Tag_Internet_IOP,
         Marshall_IIOP_Profile_Body'Access,
@@ -157,7 +168,7 @@ package body PolyORB.Binding_Data.IIOP is
      (Profile : IIOP_Profile_Type)
      return Profile_Preference is
    begin
-      return Preference_Default;
+      return Preference;
    end Get_Profile_Preference;
 
    procedure Create_Factory

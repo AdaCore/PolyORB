@@ -37,6 +37,7 @@
 with Ada.Streams; use Ada.Streams;
 
 with PolyORB.Any;
+with PolyORB.Configuration;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization);
 with PolyORB.Filters;
@@ -65,6 +66,10 @@ package body PolyORB.Binding_Data.SOAP is
    --  use PolyORB.Sockets;
    use PolyORB.Transport.Sockets;
    use PolyORB.Types;
+
+   Preference : Profile_Preference;
+   --  Global variable: the preference to be returned
+   --  by Get_Profile_Preference for SOAP profiles.
 
    procedure Marshall_Socket
      (Buffer   : access Buffer_Type;
@@ -150,7 +155,7 @@ package body PolyORB.Binding_Data.SOAP is
      (Profile : SOAP_Profile_Type)
      return Profile_Preference is
    begin
-      return Preference_Default;
+      return Preference;
    end Get_Profile_Preference;
 
    function Get_URI_Path
@@ -288,9 +293,18 @@ package body PolyORB.Binding_Data.SOAP is
       use PolyORB.Any;
       use PolyORB.Any.TypeCode;
 
+      Preference_Offset : constant String
+        := PolyORB.Configuration.Get_Conf
+        (Section => "soap",
+         Key     => "polyorb.binding_data.soap.preference",
+         Default => "0");
+
       function "+" (S : Standard.String) return Types.String
         renames To_PolyORB_String;
    begin
+      Preference := Preference_Default + Profile_Preference'Value
+        (Preference_Offset);
+
       TC_Sock_Addr := Any.TypeCode.TC_Struct;
       Add_Parameter (TC_Sock_Addr, To_Any (+"sock_addr"));
       Add_Parameter (TC_Sock_Addr, To_Any (+"IDL:sock_addr:1.0"));
