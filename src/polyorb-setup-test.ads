@@ -34,7 +34,6 @@
 
 --  $Id$
 
-with PolyORB.ORB;
 with PolyORB.References;
 pragma Elaborate_All (PolyORB.References);
 
@@ -52,9 +51,9 @@ package PolyORB.Setup.Test is
 
    type Parameterless_Procedure is access procedure;
 
-   procedure Initialize_Test_Server
-     (SL_Init : Parameterless_Procedure;
-      TP : ORB.Tasking_Policy_Access);
+   procedure Initialize_Test_Server;
+--      (SL_Init : Parameterless_Procedure;
+--       TP : ORB.Tasking_Policy_Access);
    --  Initialize middleware subsystems and create ORB.
    --  SL_Init must initialize one of the Soft_Links implementations.
    --  TP must be the chosen ORB tasking policy.

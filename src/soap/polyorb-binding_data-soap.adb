@@ -37,6 +37,8 @@
 with Ada.Streams; use Ada.Streams;
 
 with PolyORB.Any;
+with PolyORB.Configurator;
+pragma Elaborate_All (PolyORB.Configurator);
 with PolyORB.Filters;
 with PolyORB.Filters.HTTP;
 with PolyORB.ORB.Interface;
@@ -51,6 +53,7 @@ with PolyORB.Representations.CDR;
 --  say that the notion of IOR is cross-platform!).
 
 with PolyORB.Transport.Sockets;
+with PolyORB.Utils.Strings;
 
 package body PolyORB.Binding_Data.SOAP is
 
@@ -350,4 +353,16 @@ package body PolyORB.Binding_Data.SOAP is
         ", Object_Id : " & PolyORB.Objects.Image (Prof.Object_Id.all);
    end Image;
 
+   use PolyORB.Configurator;
+   use PolyORB.Configurator.String_Lists;
+   use PolyORB.Utils.Strings;
+
+begin
+   Register_Module
+     (Module_Info'
+      (Name => +"binding_data.soap",
+       Conflicts => Empty,
+       Depends => Empty,
+       Provides => Empty,
+       Init => Initialize'Access));
 end PolyORB.Binding_Data.SOAP;

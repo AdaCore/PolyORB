@@ -34,19 +34,20 @@
 
 with Ada.Exceptions;
 
-with PolyORB.Log;
-with PolyORB.Jobs;
 with PolyORB.Components;
+with PolyORB.Configurator;
+pragma Elaborate_All (PolyORB.Configurator);
 with PolyORB.Filters;
 with PolyORB.Filters.Interface;
-with PolyORB.ORB.Interface;
-
-with PolyORB.Protocols;
-
+with PolyORB.Jobs;
 with PolyORB.Locked_Queue;
 pragma Elaborate_All (PolyORB.Locked_Queue);
-
+with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
+with PolyORB.ORB.Interface;
+with PolyORB.Protocols;
+with PolyORB.Setup;
+with PolyORB.Utils.Strings;
 
 package body PolyORB.ORB.Thread_Per_Session is
 
@@ -256,4 +257,22 @@ package body PolyORB.ORB.Thread_Per_Session is
 
    end Session_Thread;
 
+   procedure Initialize;
+   procedure Initialize is
+   begin
+      Setup.The_Tasking_Policy := new Thread_Per_Session_Policy;
+   end Initialize;
+
+   use PolyORB.Configurator;
+   use PolyORB.Configurator.String_Lists;
+   use PolyORB.Utils.Strings;
+
+begin
+   Register_Module
+     (Module_Info'
+      (Name => +"orb.thread_per_session",
+       Conflicts => +"no_tasking",
+       Depends => +"soft_links",
+       Provides => +"orb.tasking_policy",
+       Init => Initialize'Access));
 end PolyORB.ORB.Thread_Per_Session;

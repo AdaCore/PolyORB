@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-
-
 --  $Id$
 
 with Ada.Streams; use Ada.Streams;
@@ -236,22 +234,20 @@ package body PolyORB.References.IOR is
 
    end String_To_Object;
 
-
    --------------
    -- Register --
    --------------
 
-
    procedure Register
      (Profile     : in Profile_Tag;
       Marshall_Profile_Body   : in Marshall_Profile_Body_Type;
-      Unmarshall_Profile_Body : in Unmarshall_Profile_Body_Type) is
-
-      Elt : constant Profile_Record := (Profile, Marshall_Profile_Body,
-                                        Unmarshall_Profile_Body);
+      Unmarshall_Profile_Body : in Unmarshall_Profile_Body_Type)
+   is
+      Elt : constant Profile_Record
+        := (Profile, Marshall_Profile_Body,
+            Unmarshall_Profile_Body);
    begin
       Append (Callbacks, Elt);
    end Register;
-
 
 end PolyORB.References.IOR;

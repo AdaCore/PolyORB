@@ -2,9 +2,9 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---            P O L Y O R B . O R B . T A S K _ P O L I C I E S             --
+--               P O L Y O R B . O R B . N O _ T A S K I N G                --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
 --                Copyright (C) 2001 Free Software Fundation                --
 --                                                                          --
@@ -34,83 +34,45 @@
 
 --  $Id$
 
-with PolyORB.Components;
-with PolyORB.Filters.Interface;
-with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
+package PolyORB.ORB.No_Tasking is
 
-package body PolyORB.ORB.Task_Policies is
+   pragma Elaborate_Body;
 
-   use PolyORB.Components;
-   use PolyORB.Filters.Interface;
-   use PolyORB.Log;
+   ---------------------------------------------------------
+   -- Simple policy for configuration without any tasking --
+   ---------------------------------------------------------
 
-   package L is new PolyORB.Log.Facility_Log
-     ("polyorb.orb.tasking_policies");
-   procedure O (Message : in String; Level : Log_Level := Debug)
-     renames L.Output;
+   --  This policy may be used for the creation of a low-profile
+   --  ORB that does not depend on the Ada tasking runtime library.
+   --  It is suitable for use in a node that contains only an
+   --  environment task.
+
+   type No_Tasking is new Tasking_Policy_Type with private;
 
    procedure Handle_New_Server_Connection
      (P   : access No_Tasking;
       ORB : ORB_Access;
-      C   : Active_Connection) is
-   begin
-      pragma Debug (O ("No_Tasking: new server connection"));
-      Insert_Source (ORB, C.AES);
-      Components.Emit_No_Reply
-        (Component_Access (C.TE),
-         Connect_Indication'(null record));
-
-      --  The newly-created channel will be monitored
-      --  by general-purpose ORB tasks.
-   end Handle_New_Server_Connection;
+      C   : Active_Connection);
 
    procedure Handle_New_Client_Connection
      (P   : access No_Tasking;
       ORB : ORB_Access;
-      C   : Active_Connection) is
-   begin
-      pragma Debug (O ("No_Tasking: new client connection"));
-      Insert_Source (ORB, C.AES);
-      Components.Emit_No_Reply
-        (Component_Access (C.TE),
-         Connect_Confirmation'(null record));
-
-      --  The newly-created channel will be monitored
-      --  by general-purpose ORB tasks.
-   end Handle_New_Client_Connection;
+      C   : Active_Connection);
 
    procedure Handle_Request_Execution
      (P   : access No_Tasking;
       ORB : ORB_Access;
-      RJ  : access Jobs.Job'Class) is
-   begin
-      pragma Debug (O ("No_Tasking: request execution"));
+      RJ  : access Jobs.Job'Class);
 
-      Jobs.Run (RJ);
-      --  No tasking: execute the request in the current task.
-   end Handle_Request_Execution;
-
-   procedure Idle (P : access No_Tasking; ORB : ORB_Access) is
-   begin
-      pragma Debug (O ("No_Tasking: Idle (BAD BAD!)"));
-      raise Program_Error;
-      --  When there is no tasking, the (only) task in the
-      --  application may not go idle, since this would
-      --  block the whole system forever.
-   end Idle;
-
-   ------------------------------
-   -- Queue_Request_To_Handler --
-   ------------------------------
+   procedure Idle (P : access No_Tasking; ORB : ORB_Access);
 
    procedure Queue_Request_To_Handler
      (P   : access No_Tasking;
       ORB : ORB_Access;
-      Msg : Message'Class)
-   is
-   begin
-      Emit_No_Reply (Component_Access (ORB), Msg);
-   end Queue_Request_To_Handler;
+      Msg : Message'Class);
 
-end PolyORB.ORB.Task_Policies;
+private
+
+   type No_Tasking is new Tasking_Policy_Type with null record;
+
+end PolyORB.ORB.No_Tasking;

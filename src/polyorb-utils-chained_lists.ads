@@ -53,6 +53,11 @@ package PolyORB.Utils.Chained_Lists is
    procedure Prepend (L : in out List; I : T);
    procedure Append (L : in out List; I : T);
 
+   Empty : constant List;
+
+   function "+" (I : T) return List;
+   --  Make a list with I as its only element.
+
    function "&" (I : T; L : List) return List;
    --  Prepend I to L.
 
@@ -70,6 +75,8 @@ package PolyORB.Utils.Chained_Lists is
    pragma Inline (Next);
    pragma Inline (Prepend);
    pragma Inline (Append);
+   pragma Inline ("+");
+   pragma Inline ("&");
 
 private
 
@@ -86,5 +93,7 @@ private
       First : Node_Access;
       Last : Node_Access;
    end record;
+
+   Empty : constant List := (null, null);
 
 end PolyORB.Utils.Chained_Lists;

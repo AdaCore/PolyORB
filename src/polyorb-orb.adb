@@ -39,18 +39,21 @@ with Ada.Real_Time;
 with Ada.Tags;
 
 with PolyORB.Annotations;
+with PolyORB.Configurator;
+pragma Elaborate_All (PolyORB.Configurator);
 with PolyORB.Constants;
 with PolyORB.Filters;
 with PolyORB.Filters.Interface;
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
-
 with PolyORB.Objects.Interface;
 with PolyORB.ORB.Interface;
-with PolyORB.Task_Info;
 with PolyORB.References.Binding;
+with PolyORB.Setup;
 with PolyORB.Soft_Links;
+with PolyORB.Task_Info;
 with PolyORB.Transport;
+with PolyORB.Utils.Strings;
 
 package body PolyORB.ORB is
 
@@ -147,7 +150,7 @@ package body PolyORB.ORB is
       Q   : access Job_Queue)
      return Boolean is
    begin
-      if not Empty (Q) then
+      if not Is_Empty (Q) then
          declare
             Job : Job_Access := Fetch_Job (Q);
          begin
@@ -407,7 +410,7 @@ package body PolyORB.ORB is
       Result : Boolean;
    begin
       Enter (ORB.ORB_Lock.all);
-      Result := not Empty (ORB.Job_Queue);
+      Result := not Is_Empty (ORB.Job_Queue);
       Leave (ORB.ORB_Lock.all);
       return Result;
    end Work_Pending;
@@ -807,4 +810,23 @@ package body PolyORB.ORB is
       return Result;
    end Handle_Message;
 
+   procedure Initialize;
+   procedure Initialize is
+   begin
+      Setup.The_ORB := new ORB_Type (Setup.The_Tasking_Policy);
+      Create (Setup.The_ORB.all);
+   end Initialize;
+
+   use PolyORB.Configurator;
+   use PolyORB.Configurator.String_Lists;
+   use PolyORB.Utils.Strings;
+
+begin
+   Register_Module
+     (Module_Info'
+      (Name => +"orb",
+       Conflicts => Empty,
+       Depends => +"soft_links" & "orb.tasking_policy",
+       Provides => Empty,
+       Init => Initialize'Access));
 end PolyORB.ORB;

@@ -30,16 +30,19 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-smart_pointers.adb#3 $
+--  $Id: //droopi/main/src/polyorb-smart_pointers.adb#4 $
 
 with Ada.Exceptions;
 with Ada.Unchecked_Deallocation;
 with Ada.Tags;
 
+with PolyORB.Configurator;
+pragma Elaborate_All (PolyORB.Configurator);
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
 
 with PolyORB.Soft_Links;
+with PolyORB.Utils.Strings;
 
 package body PolyORB.Smart_Pointers is
 
@@ -213,4 +216,16 @@ package body PolyORB.Smart_Pointers is
       return The_Ref.A_Ref;
    end Entity_Of;
 
+   use PolyORB.Configurator;
+   use PolyORB.Configurator.String_Lists;
+   use PolyORB.Utils.Strings;
+
+begin
+   Register_Module
+     (Module_Info'
+      (Name => +"smart_pointers",
+       Conflicts => Empty,
+       Depends => +"soft_links",
+       Provides => Empty,
+       Init => Initialize'Access));
 end PolyORB.Smart_Pointers;

@@ -36,24 +36,25 @@
 
 with Ada.Streams; use Ada.Streams;
 
-with PolyORB.Transport.Sockets;
-with PolyORB.Protocols.GIOP;
-with PolyORB.Protocols;
-with PolyORB.Representations.CDR;
+with PolyORB.Configurator;
+pragma Elaborate_All (PolyORB.Configurator);
 with PolyORB.Filters;
 with PolyORB.Filters.Slicers;
+with PolyORB.Protocols;
+with PolyORB.Protocols.GIOP;
+with PolyORB.Representations.CDR;
 with PolyORB.References.IOR;
+with PolyORB.Transport.Sockets;
+with PolyORB.Utils.Strings;
 
 with Sequences.Unbounded;
 
 package body PolyORB.Binding_Data.IIOP is
 
-
    use PolyORB.Representations.CDR;
    use PolyORB.Objects;
-   use PolyORB.Transport.Sockets;
-   use PolyORB.Sockets;
    use PolyORB.References.IOR;
+   use PolyORB.Transport.Sockets;
    use PolyORB.Types;
 
    procedure Marshall_Socket
@@ -191,7 +192,9 @@ package body PolyORB.Binding_Data.IIOP is
 
    function Is_Local_Profile
      (PF : access IIOP_Profile_Factory;
-      P : Profile_Access) return Boolean is
+      P : Profile_Access) return Boolean
+   is
+      use type PolyORB.Sockets.Sock_Addr_Type;
    begin
       return P.all in IIOP_Profile_Type
         and then IIOP_Profile_Type (P.all).Address = PF.Address;
@@ -277,10 +280,11 @@ package body PolyORB.Binding_Data.IIOP is
    end Unmarshall_IIOP_Profile_Body;
 
    procedure Marshall_Socket
-       (Buffer   : access Buffer_Type;
-        Sock     : Sockets.Sock_Addr_Type)
-
+     (Buffer : access Buffer_Type;
+      Sock   : Sockets.Sock_Addr_Type)
    is
+      use PolyORB.Sockets;
+
       Str  : Types.String := To_PolyORB_String (Image (Sock.Addr));
    begin
 
@@ -294,10 +298,11 @@ package body PolyORB.Binding_Data.IIOP is
 
 
    procedure Unmarshall_Socket
-    (Buffer   : access Buffer_Type;
-     Sock     : out Sockets.Sock_Addr_Type)
-
+    (Buffer : access Buffer_Type;
+     Sock   : out Sockets.Sock_Addr_Type)
    is
+      use PolyORB.Sockets;
+
       Str  : Types.String := Unmarshall (Buffer);
       Port : Types.Unsigned_Short;
    begin
@@ -353,9 +358,22 @@ package body PolyORB.Binding_Data.IIOP is
    -----------
 
    function Image (Prof : IIOP_Profile_Type) return String is
+      use PolyORB.Sockets;
    begin
       return "Address : " & Image (Prof.Address) &
         ", Object_Id : " & PolyORB.Objects.Image (Prof.Object_Id.all);
    end Image;
 
+   use PolyORB.Configurator;
+   use PolyORB.Configurator.String_Lists;
+   use PolyORB.Utils.Strings;
+
+begin
+   Register_Module
+     (Module_Info'
+      (Name => +"binding_data.iiop",
+       Conflicts => Empty,
+       Depends => Empty,
+       Provides => Empty,
+       Init => Initialize'Access));
 end PolyORB.Binding_Data.IIOP;

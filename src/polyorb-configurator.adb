@@ -34,14 +34,20 @@
 
 --  $Id$
 
-with Ada.Text_IO;
-
 with PolyORB.Dynamic_Dict;
 pragma Elaborate_All (PolyORB.Dynamic_Dict);
+with PolyORB.Log;
+pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Utils.Chained_Lists;
 pragma Elaborate_All (PolyORB.Utils.Chained_Lists);
 
 package body PolyORB.Configurator is
+
+   use PolyORB.Log;
+
+   package L is new PolyORB.Log.Facility_Log ("polyorb.configurator");
+   procedure O (Message : in String; Level : Log_Level := Debug)
+     renames L.Output;
 
    -----------------------------
    -- Private data structures --
@@ -88,7 +94,7 @@ package body PolyORB.Configurator is
       M : Module;
    begin
       M.Info := Info;
-      Prepend (World, new Module'(M));
+      Append (World, new Module'(M));
    end Register_Module;
 
    --------------------------
@@ -126,11 +132,10 @@ package body PolyORB.Configurator is
          Duplicate : constant Module_Access
            := Lookup_Module (Name);
       begin
-         --  Ada.Text_IO.Put_Line ("Registering " & Name);
+         pragma Debug (O ("Registering " & Name));
          if Duplicate /= null then
-            Ada.Text_IO.Put_Line
-              (Name & " already registered by "
-               & Duplicate.Info.Name.all);
+            O (Name & " already registered by "
+               & Duplicate.Info.Name.all, Critical);
             raise Conflict;
          end if;
          World_Dict.Register (Name, Module);
@@ -164,9 +169,8 @@ package body PolyORB.Configurator is
          while not Last (SI) loop
             Conflicting := Lookup_Module (Value (SI).all);
             if Conflicting /= null then
-               Ada.Text_IO.Put_Line
-                 ("Conflict between " & Current.Info.Name.all
-                  & " and " & Conflicting.Info.Name.all);
+               O ("Conflict between " & Current.Info.Name.all
+                  & " and " & Conflicting.Info.Name.all, Critical);
                raise Conflict;
             end if;
             Next (SI);
@@ -192,6 +196,9 @@ package body PolyORB.Configurator is
       end loop;
    exception
       when World_Dict.Key_Not_Found =>
+         O ("Unresolved dependency: "
+            & Current.Info.Name.all & " -> "
+            & Value (SI).all, Critical);
          raise Unresolved_Dependency;
       when others =>
          raise;
@@ -202,7 +209,7 @@ package body PolyORB.Configurator is
       Dep : Module_Access;
    begin
       if M.In_Progress then
-         Ada.Text_IO.Put_Line (M.Info.Name.all & " is part of a cycle.");
+         O (M.Info.Name.all & " is part of a cycle.", Critical);
          raise Circular_Dependency;
       end if;
 
@@ -215,6 +222,7 @@ package body PolyORB.Configurator is
          end if;
          Next (MI);
       end loop;
+      pragma Debug (O ("Initializing " & M.Info.Name.all));
       M.Info.Init.all;
       M.Visited := True;
       M.In_Progress := False;

@@ -44,6 +44,7 @@ with CORBA;
 with PolyORB.Any;
 with PolyORB.Any.NVList;
 with PolyORB.Components;
+with PolyORB.Configurator;
 with PolyORB.Filters;
 with PolyORB.Filters.Slicers;
 with PolyORB.Obj_Adapters.Simple;
@@ -199,45 +200,7 @@ package body PolyORB.Setup.Test is
    --  filter chain created at initialisation.)
 
    procedure Initialize_Test_Server
-     (SL_Init : Parameterless_Procedure;
-      TP : ORB.Tasking_Policy_Access) is
-   begin
-
-      -------------------------------
-      -- Initialize all subsystems --
-      -------------------------------
-
-      Put ("Initializing subsystems...");
-
-      SL_Init.all;
-      Put (" soft-links");
-      --  Setup soft links.
-
-      PolyORB.Smart_Pointers.Initialize;
-      Put (" smart-pointers");
-      --  Depends on Soft_Links.
-
-      -------------------------------------------
-      -- Initialize personality-specific stuff --
-      -------------------------------------------
-
-      PolyORB.Binding_Data.IIOP.Initialize;
-      Put (" binding-iiop");
-
-      PolyORB.Binding_Data.SOAP.Initialize;
-      Put (" binding-soap");
-
-      --------------------------
-      -- Create ORB singleton --
-      --------------------------
-
-      Setup.The_ORB := new ORB.ORB_Type (TP);
-
-      PolyORB.ORB.Create (Setup.The_ORB.all);
-      Put (" ORB");
-
-      Put_Line (" done");
-   end Initialize_Test_Server;
+     renames PolyORB.Configurator.Initialize_World;
 
    procedure Initialize_Test_Access_Points is
    begin

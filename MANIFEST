@@ -244,8 +244,8 @@ src/polyorb-opaque-chunk_pools.ads
 src/polyorb-opaque.adb
 src/polyorb-opaque.ads
 src/polyorb-orb-interface.ads
-src/polyorb-orb-task_policies.adb
-src/polyorb-orb-task_policies.ads
+src/polyorb-orb-no_tasking.adb
+src/polyorb-orb-no_tasking.ads
 src/polyorb-orb-thread_per_session.adb
 src/polyorb-orb-thread_per_session.ads
 src/polyorb-orb-thread_pool.adb

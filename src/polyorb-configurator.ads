@@ -35,6 +35,7 @@
 --  $Id$
 
 with PolyORB.Utils.Chained_Lists;
+pragma Elaborate_All (PolyORB.Utils.Chained_Lists);
 with PolyORB.Utils.Strings;
 
 package PolyORB.Configurator is

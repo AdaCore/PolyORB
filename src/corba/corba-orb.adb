@@ -57,11 +57,12 @@ with Ada.Exceptions;
 
 with Sequences.Unbounded;
 
+with PolyORB.Configurator;
+
 with PolyORB.Dynamic_Dict;
 pragma Elaborate_All (PolyORB.Dynamic_Dict);
 
 with PolyORB.ORB;
-with PolyORB.ORB.Task_Policies;
 with PolyORB.Objects;
 with PolyORB.References.IOR;
 with PolyORB.Setup;
@@ -71,7 +72,6 @@ pragma Elaborate_All (PolyORB.Log);
 package body CORBA.ORB is
 
    use PolyORB.Log;
-   use PolyORB.ORB.Task_Policies;
    use PolyORB.ORB;
    use PolyORB.Setup;
 
@@ -358,19 +358,14 @@ package body CORBA.ORB is
    -- Initialize --
    ----------------
 
-   procedure Initialize
-     (ORB_Name : in Standard.String)
-   is
-      My_Policy : Tasking_Policy_Access;
+   procedure Initialize (ORB_Name : in Standard.String) is
    begin
-      if The_ORB /= null then
+      PolyORB.Configurator.Initialize_World;
+   exception
+      when PolyORB.Configurator.Already_Initialized =>
          raise Initialization_Failure;
-      end if;
-      My_Policy := new No_Tasking;
-      --  ??? Must implement other policies !!
-
-      The_ORB := new PolyORB.ORB.ORB_Type (My_Policy);
-      PolyORB.ORB.Create (The_ORB.all);
+      when others =>
+         raise;
    end Initialize;
 
    ----------------------

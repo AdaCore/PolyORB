@@ -69,9 +69,7 @@ package body PolyORB.Utils.Chained_Lists is
       I := Iterator (I.Next);
    end Next;
 
-   procedure Prepend
-     (L : in out List;
-      I : T) is
+   procedure Prepend (L : in out List; I : T) is
    begin
       L.First := new Node'(Next => L.First, Value => new T'(I));
       if L.Last = null then
@@ -79,12 +77,8 @@ package body PolyORB.Utils.Chained_Lists is
       end if;
    end Prepend;
 
-   procedure Append
-     (L : in out List;
-      I : T)
-   is
-      N : constant Node_Access
-        := new Node'(Next => null, Value => new T'(I));
+   procedure Append (L : in out List; I : T) is
+      N : constant Node_Access := new Node'(Next => null, Value => new T'(I));
    begin
       if L.Last = null then
          L.First := N;
@@ -94,6 +88,12 @@ package body PolyORB.Utils.Chained_Lists is
          L.Last := N;
       end if;
    end Append;
+
+   function "+" (I : T) return List is
+      N : constant Node_Access := new Node'(Next => null, Value => new T'(I));
+   begin
+      return List'(First => N, Last => N);
+   end "+";
 
    function "&" (I : T; L : List) return List is
       LL : List := L;
