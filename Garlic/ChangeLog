@@ -1,3 +1,8 @@
+1999-01-22  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* s-gartcp.adb (Initialize): Do not use "localhost" directly
+	but translate it into the offical name.
+
 1999-01-12  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-garuti.adb: Fix unitialized level problem in

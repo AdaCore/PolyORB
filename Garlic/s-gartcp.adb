@@ -558,11 +558,16 @@ package body System.Garlic.TCP is
 
             Self.Location := Split_Data (Self_Data.all);
             declare
-               Name : String := Name_Of (Image (Self.Location.Addr));
+               N1 : String := Name_Of (Image (Self.Location.Addr));
+               N2 : String := Name_Of ("localhost");
+               N3 : String := Name_Of (Image (Current_Host.Addr));
             begin
-               if Name /= "localhost"
-                 and then Name /= Name_Of (Image (Current_Host.Addr))
+               if N1 /= N2
+                 and then N1 /= N3
                then
+                  pragma Debug (D ("Self_Data " & N1 & " does not match:"));
+                  pragma Debug (D (" - " & N2));
+                  pragma Debug (D (" - " & N3));
                   Ada.Exceptions.Raise_Exception
                     (Program_Error'Identity,
                      "Incorrect tcp self location: " & Self_Data.all);
