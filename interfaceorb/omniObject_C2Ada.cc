@@ -80,28 +80,6 @@ omniObject_C2Ada::omniObject_C2Ada(const char *repoId,
 };
 
 
-// get_omniObject_C2Ada
-//---------------------
-omniObject_C2Ada *
-omniObject_C2Ada::get_omniObject_C2Ada (omniObject *omniobj)
-{
-  // creates a omniObject_C2Ada object (and its associated Ada_Omniobject)
-  // out of an omniObject
-  
-  Ada_OmniObject *ada_omniobj = new Ada_OmniObject ();
-  // makes a new empty Ada_Omniobject
-  
-  omniObject_C2Ada *result = (omniObject_C2Ada *) omniobj;
-  // cast the omniobj object into an omniObject_C2Ada object
-  
-  ada_omniobj->Init (result);
-  // initialize the Ada_Omniobject object with this new omniObject_C2Ada object
-  
-  result->Ada_OmniObject_Pointer = ada_omniobj;
-  // and makes the new omniObject_C2Ada object point on ada_omniobj 
-  
-  return result;
-};
 
 
 // dispatch
@@ -139,4 +117,9 @@ omniObject_C2Ada::get_Ada_OmniObject ()
 {
   return Ada_OmniObject_Pointer;
 }
+
+
+
+
+
 

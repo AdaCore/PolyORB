@@ -77,9 +77,6 @@ public:
   ~omniObject_C2Ada() {}
   // destructor of class
   
-  static omniObject_C2Ada *get_omniObject_C2Ada (omniObject *omniobj) ;
-  // makes an omniObject_C2Ada out of an omniObject
-  
   virtual _CORBA_Boolean dispatch(GIOP_S &,const char *operation,
 				  _CORBA_Boolean response_expected);
   // overwrites omniObject::dispatch

@@ -55,8 +55,9 @@ main: C_files Ada_adb_files Ada_ads_files Sys_Dep
 # compilation of C++ files
 ##########################
 C_files : \
-Ada_exceptions.o Ada_Giop_c.o Ada_Giop_s.o Ada_memBufferedStream.o \
-Ada_netBufferedStream.o Ada_OmniObject.o Ada_OmniRopeAndKey.o \
+Ada_exceptions.o Ada_Giop_c.o Ada_Giop_s.o \
+Ada_memBufferedStream.o Ada_netBufferedStream.o Ada_OmniObject.o \
+Ada_OmniRopeAndKey.o omniObject_C2Ada.o proxyObjectFactory_C2Ada.o \
 omniObject_C2Ada.o proxyObjectFactory_C2Ada.o  
 
 .SUFFIXES: .cc .o
@@ -215,6 +216,15 @@ clean :
 	rm *.ali *.o *~
 	rm Ada_Sys_Dep
 	rm sys_dep.adb
+
+
+toto: toto.o
+	g++ -o toto -Wl,-rpath,../omniORB_2.7.0/lib/i586_linux_2.0_glibc \
+-L../omniORB_2.7.0/lib/i586_linux_2.0_glibc \
+toto.o $(CPP_LINK_FILES) \
+-lomniORB2 -lomniDynamic2 -lomnithread -lpthread -ltcpwrapGK
+
+
 
 
 

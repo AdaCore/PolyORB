@@ -58,7 +58,6 @@ with System ;
 with Corba ;
 with Giop_S ;
 with Sys_Dep ;
-with OmniObjectManager ;
 with Iop ;
 with Rope ;
 with OmniRopeAndKey ;
