@@ -125,12 +125,12 @@ begin
          exit when Config.Protocol_Table (I) = null;
          if Config.Protocol_Table (I) = Boot_Protocol then
             Set_Boot_Data (Boot_Protocol, True, Boot_Data, Is_Master);
-            Set_Is_Boot_Partition (Is_Master);
-            Set_My_Location (To_Location (Boot_Protocol,
-                                          Get_Info (Boot_Protocol)));
+            Is_Boot_Partition (Is_Master);
+            Set_My_Location
+              (To_Location (Boot_Protocol, Get_Info (Boot_Protocol)));
             if Is_Master then
-               Set_Boot_Location (To_Location (Boot_Protocol,
-                                               Get_Info (Boot_Protocol)));
+               Set_Boot_Location
+                 (To_Location (Boot_Protocol, Get_Info (Boot_Protocol)));
             else
                Set_Boot_Location (To_Location (Boot_Protocol, Boot_Data));
             end if;
@@ -157,7 +157,12 @@ begin
    --  Phase (8) (see s-garlic.ads)
 
    declare
-      Partition : constant System.RPC.Partition_ID := Get_My_Partition_ID;
+      --  First, let boot server know about this partition.
+      P : constant System.RPC.Partition_ID := Get_My_Partition_ID;
+
+      --  Then, let this partition know about boot server.
+      D : constant Partition_Data := Get_Partition_Data (Get_Boot_Server);
+
    begin
       null;
    end;
