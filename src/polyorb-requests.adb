@@ -140,8 +140,10 @@ package body PolyORB.Requests is
    procedure Destroy_Request
      (R : in out Request_Access) is
    begin
-      Annotations.Destroy (R.Notepad);
-      Free (R);
+      if R /= null then
+         Annotations.Destroy (R.Notepad);
+         Free (R);
+      end if;
    end Destroy_Request;
 
    ------------
