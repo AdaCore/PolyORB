@@ -36,7 +36,7 @@ client.stubs/polyorb-dsa_p-partitions.ali: $(DSA_SRC)/polyorb-dsa_p-partitions.a
 	@-mkdir client.stubs
 	$(GNATMAKE_FOR_TARGET) -u $(DSA_SRC)/polyorb-dsa_p-partitions.ads $(client_FLAGS) $(GNATMAKE_FLAGS) -cargs -gnatzc -o client.stubs/polyorb-dsa_p-partitions.o
 
-clean: clean-stubs
+clean: clean-stubs clean-am
 clean-stubs:
 	rm -fr server.stubs client.stubs
 
