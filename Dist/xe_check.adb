@@ -143,16 +143,20 @@ package body XE_Check is
 
       end if;
 
+      declare
+         Node : XE.Node_Id;
+      begin
+         First_Configuration_Declaration (Configuration_Node, Node);
+         while Node /= Null_Node loop
+            Set_Name_Table_Info (Get_Node_Name (Node), 0);
+            Next_Configuration_Declaration (Node);
+         end loop;
+      end;
+
       --  Set configured unit name key to No_Ali_Id.       (1)
 
       for U in CUnit.First .. CUnit.Last loop
          Set_ALI_Id (CUnit.Table (U).CUname, No_ALI_Id);
-      end loop;
-
-      --  Set partition name key to Null_PID.              (4-1)
-
-      for P in Partitions.First .. Partitions.Last loop
-         Set_PID (Partitions.Table (P).Name, Null_PID);
       end loop;
 
       --  Set ada unit name key to null.                   (2)
@@ -165,17 +169,27 @@ package body XE_Check is
          Set_ALI_Id (Name_Find, Unit.Table (U).My_ALI);
       end loop;
 
+      declare
+         Node : XE.Node_Id;
+      begin
+         First_Configuration_Declaration (Configuration_Node, Node);
+         while Node /= Null_Node loop
+            if Get_Name_Table_Info (Get_Node_Name (Node)) /= 0 then
+               Write_Program_Name;
+               Write_Str  (": """);
+               Write_Name (Get_Node_Name (Node));
+               Write_Str  (""" conflicts with application ada unit");
+               Write_Eol;
+               raise Parsing_Error;
+            end if;
+            Next_Configuration_Declaration (Node);
+         end loop;
+      end;
+
       --  Set partition name key to Null_PID.              (4)
 
       for P in Partitions.First .. Partitions.Last loop
-         if Get_PID (Partitions.Table (P).Name) /= Null_PID then
-            Write_Program_Name;
-            Write_Str  (": """);
-            Write_Name (Partitions.Table (P).Name);
-            Write_Str  (""" conflicts with application ada unit");
-            Write_Eol;
-            raise Parsing_Error;
-         end if;
+         Set_PID (Partitions.Table (P).Name, Null_PID);
       end loop;
 
       if not Quiet_Output then
