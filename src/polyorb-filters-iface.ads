@@ -33,17 +33,22 @@
 
 --  Messages exchanged by Filter components.
 
-with Ada.Streams; use Ada.Streams;
+with Ada.Streams;
 
 with PolyORB.Binding_Objects;
-with PolyORB.Buffers; use PolyORB.Buffers;
-with PolyORB.Components; use PolyORB.Components;
+with PolyORB.Buffers;
+with PolyORB.Components;
 with PolyORB.Errors;
 with PolyORB.Types;
 
 package PolyORB.Filters.Iface is
 
    pragma Elaborate_Body;
+
+   use Ada.Streams;
+
+   use PolyORB.Buffers;
+   use PolyORB.Components;
 
    ---------------------
    -- Filter messages --
