@@ -7,16 +7,26 @@ import string, sys, re, os, glob
 
 def get_subdirs (dir):
   res = [dir]
+  vars = {}
   for l in open (dir + "/Makefile.am", "r").readlines ():
-    m = re.match ("^SUBDIRS\s*=\s*(.*)$", l)
-  
+    m = re.match ("^([A-Z]*)\s*=\s*(.*)$", l)
+    
     if m:
+      if len (m.group (2)) > 0:
+        vars[m.group (1)] = m.group (2)
+
+      if m.group (1) != 'SUBDIRS':
+        continue
+
       dirs = map (lambda s, d=dir: d + "/" + s,
-        string.split (m.group (1), ' '))
+        string.split (m.group (2), ' '))
   
       for d in dirs:
         if re.match (dir + "/\.?$", d):
           continue
+        d = re.sub("\\$\\(([^)]*)\\)", lambda mm, v=vars: v[mm.group (1)], d)
+
+        print "Recursing into " + d
         sub = get_subdirs (d)
         for dd in sub:
           if not (dd in res):
