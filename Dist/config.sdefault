@@ -1,13 +1,32 @@
 #!/bin/sh
-S1=`type gcc | sed 's/gcc is //' | sed 's%/bin/gcc%%'`
-S2=`gcc -c -dumpversion`
+S1="/usr/local/lib/gcc-lib/`gcc -dumpmachine`/`gcc -dumpversion`/adainclude/"
+S2="/usr/local/lib/gcc-lib/`gcc -dumpmachine`/`gcc -dumpversion`/adalib/"
 S3=`gcc -c -dumpmachine`
+for i in `gnatls -v | sed -e '1,/Source Search Path/ d' | \
+                      sed -e '/Object Search Path/,$ d' | \
+                      grep -v 'Current_Directory'`; do
+  if [ -f ${i}i-c.ads ]; then
+    S1=${i}
+    break
+  fi
+done
+for i in `gnatls -v | sed -e '1,/Object Search Path/ d' | \
+                      grep -v 'Current_Directory'`; do
+  if [ -f ${i}libgnat.a ]; then
+    S2=${i}
+    break
+  fi
+done
+if test "x$1" = "xpathtolib"; then
+  echo "${S2}libgnat.a"
+  exit 0
+fi
 cat >sdefault.adb <<EOF
 package body Sdefault is
    S1 : aliased constant String
-      := "${S1}/lib/gcc-lib/${S3}/${S2}/adainclude/";
+      := "${S1}";
    S2 : aliased constant String
-      := "${S1}/lib/gcc-lib/${S3}/${S2}/adalib/";
+      := "${S2}";
    S3 : aliased constant String
       := "${S3}/";
    function Include_Dir_Default_Name return String_Ptr is

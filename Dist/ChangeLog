@@ -1,3 +1,10 @@
+Sat Sep 13 14:32:15 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* config.sdefault: Use output of gnatls to find the right include
+	and object directories. Also output the path to libgnat.a when
+	used with the 'pathtolib' argument. Make it work with a
+	non-standard or cross installation.
+
 Fri Sep 12 18:52:20 1997  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* xe_utils.adb, xe_scan.adb, xe_lead.adb, xe_build.adb,
