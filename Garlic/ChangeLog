@@ -1,22 +1,17 @@
 Tue Sep 30 15:57:24 1997  Laurent Pautet  <pautet@quasimodo.enst.fr>
 
+	* s-stratt.adb: Change some type sizes to be more portable on
+ 	alpha (Thin_Pointer).
+
 	* 2agtplsp.ads: Add alpha specific unit.
 
-Mon Sep 22 16:05:48 1997  Samuel Tardieu  <sam@inf.enst.fr>
+	* 2lgtplsp.ads: Fix confusion between a/l codes.
 
-	* s-garter.ads: Revert previous bogus checkin.
+	* DALL, UNDALL: Add FILTER env. var.
 
-	* s-garter.adb: Revert previous bogus checkin.
+	* s-garnam.adb: Fix incorrect Unchecked_Conversion (alpha).
 
-	* s-garsta.adb: Revert previous bogus checkin.
-
-Fri Sep 19 19:49:05 1997  Samuel Tardieu  <sam@inf.enst.fr>
-
-	* s-garsta.adb: Use it.
-
-	* s-garter.ads: Add Init_Non_Terminating_Tasks.
-
-	* s-garter.adb: Ditto.
+	* s-garrem.adb: Fix problem with Starter Ada + Import Shell.
 
 Wed Sep 17 19:17:43 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
@@ -55,11 +50,6 @@ Wed Sep 17 15:11:39 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-garrem.adb: Recognize special host names (imported from shell) 
 	  that must not be resolved by the name resolver.
-
-Sun Sep 14 15:55:58 1997  Samuel Tardieu  <sam@inf.enst.fr>
-
-	* s-garhea.adb: Set System.Standard_Library.Local_Partition_ID as
-	  soon as the local PID is known. Used for exceptions.
 
 Sat Sep 13 14:31:14 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
