@@ -340,6 +340,7 @@ package body System.Garlic.Heart is
       Error : in out Error_Type)
    is
    begin
+      PID := Self_PID;
 
       --  The current partition has a fake partition id and partition info.
 
@@ -561,7 +562,9 @@ package body System.Garlic.Heart is
         (Partition, Opcode, Query'Access, Reply'Access, Error);
       Deallocate (Query);
 
-      if not Empty (Reply'Access) then
+      if not Found (Error)
+        and then not Empty (Reply'Access)
+      then
          pragma Debug (D ("Send reply to" & Partition'Img));
          Send (Partition, Opcode, Reply'Access, Error);
       end if;
