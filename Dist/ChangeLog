@@ -1,3 +1,8 @@
+2000-01-31  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* Makefile.am: Do not fail when removing a non-existing file when
+ 	using a non-GNU make (HPUX).
+
 2000-01-27  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* xe_lead.adb: Run remote command in background (a '&' was missing 

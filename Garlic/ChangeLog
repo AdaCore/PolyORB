@@ -1,5 +1,13 @@
 2000-01-31  Laurent Pautet  <pautet@scapin.enst.fr>
 
+	* Makefile.zip: Change pattern matching rules to explicit rules
+	for non-GNU make (HPUX).
+
+	* Makefile.am: Change pattern matching rules into suffix rules for
+ 	non-GNU make (HPUX).
+
+2000-01-31  Laurent Pautet  <pautet@scapin.enst.fr>
+
 	* Makefile.zip: Typo in zipOBJECTS and zipSOURCES.
 
 2000-01-29  Laurent Pautet  <pautet@scapin.enst.fr>
