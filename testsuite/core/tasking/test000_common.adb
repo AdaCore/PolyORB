@@ -923,7 +923,7 @@ package body Test000_Common is
          null;
    end Test_1;
 
-   Acc : PTT.Thread_Id_Access;
+   Acc : PTT.Thread_Id;
    pragma Atomic (Acc);
 
    ------------
@@ -933,9 +933,9 @@ package body Test000_Common is
    procedure Test_2 is
       use PolyORB.Tasking.Threads;
    begin
-      Acc := new Thread_Id'Class'(Get_Current_Thread_Id (My_Thread_Factory));
+      Acc := Get_Current_Thread_Id (My_Thread_Factory);
       Tempo;
-      if Acc.all = Get_Current_Thread_Id (My_Thread_Factory) then
+      if Acc = Get_Current_Thread_Id (My_Thread_Factory) then
          Counter.Increase;
       end if;
       Synchro_Joiner.Signal_End;
