@@ -130,7 +130,7 @@ package body PolyORB.Requests is
          Req.Req_Flags := Req_Flags;
       end if;
 
-      Set_QoS (Req, Fetch_QoS (Req.Target));
+      Set_Request_QoS (Req, Fetch_QoS (Req.Target));
 
       if Dependent_Binding_Object /= null then
          Smart_Pointers.Set

@@ -561,7 +561,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
            Smart_Pointers.Entity_Ptr
          (S.Dependent_Binding_Object));
 
-      PolyORB.Request_QoS.Set_QoS (Req, QoS);
+      PolyORB.Request_QoS.Set_Request_QoS (Req, QoS);
 
       Set_Note
         (Req.Notepad,
@@ -1161,7 +1161,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
       Marshall_Service_Context_List
         (Buffer,
-         PolyORB.Request_QoS.Get_QoS (R.Req),
+         PolyORB.Request_QoS.Get_Request_QoS (R.Req),
          Ctx.CS_Context);
 
       --  Arguments
@@ -1466,7 +1466,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       Marshall (Buffer, Ctx.Reply_Status);
       Marshall_Service_Context_List
        (Buffer,
-        PolyORB.Request_QoS.Get_QoS (R),
+        PolyORB.Request_QoS.Get_Reply_QoS (R),
         null);
       --  CodeSets service context sent only in Request message.
    end Marshall_GIOP_Header_Reply;

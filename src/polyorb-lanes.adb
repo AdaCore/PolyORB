@@ -296,9 +296,14 @@ package body PolyORB.Lanes is
 
       declare
          Parameter : constant QoS_Parameter
-           := Extract_Parameter (Static_Priority, RJ.Request);
+           := Extract_Request_Parameter (Static_Priority, RJ.Request);
 
       begin
+         if Parameter.Kind /= None then
+            Add_Reply_QoS (RJ.Request, Parameter);
+            --  XXX May be we do that only if Kind = Static_Priority ???
+         end if;
+
          if Parameter.Kind = Static_Priority then
             pragma Debug (O ("About to queue a job at priority"
                              & Parameter.OP'Img));

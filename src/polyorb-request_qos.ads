@@ -84,16 +84,21 @@ package PolyORB.Request_QoS is
    --  sending a request to the target denoted by Ref. This functions
    --  iterated over the different call-backs.
 
-   function Extract_Parameter
+   function Extract_Request_Parameter
      (Kind : QoS_Kind;
       Req  : PR.Request_Access)
      return QoS_Parameter;
    --  Return QoS parameter of type Kind from QoS, or a QoS_Parameter
    --  of kind None if no parameter matches Kind.
 
-   procedure Set_QoS (Req : PR.Request_Access; QoS : QoS_Parameters);
+   procedure Set_Request_QoS (Req : PR.Request_Access; QoS : QoS_Parameters);
 
-   function Get_QoS (Req : PR.Request_Access) return QoS_Parameters;
+   function Get_Request_QoS (Req : PR.Request_Access) return QoS_Parameters;
+
+   procedure Add_Reply_QoS (Req : PR.Request_Access; QoS : QoS_Parameter);
+   --  Add (replace if exists) passed QoS to the list of reply QoSs.
+
+   function Get_Reply_QoS (Req : PR.Request_Access) return QoS_Parameters;
 
    type Fetch_QoS_CB is access function
      (Ref : PolyORB.References.Ref)

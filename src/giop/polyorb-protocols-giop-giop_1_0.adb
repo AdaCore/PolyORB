@@ -362,7 +362,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
            Smart_Pointers.Entity_Ptr
          (S.Dependent_Binding_Object));
 
-      PolyORB.Request_QoS.Set_QoS (Req, QoS);
+      PolyORB.Request_QoS.Set_Request_QoS (Req, QoS);
 
       Set_Note
         (Req.Notepad,
@@ -541,7 +541,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       Header_Space := Reserve (Buffer, GIOP_Header_Size);
       Marshall_Service_Context_List
         (Buffer,
-         PolyORB.Request_QoS.Get_QoS (R.Req),
+         PolyORB.Request_QoS.Get_Request_QoS (R.Req),
          null);
       Marshall (Buffer, R.Request_Id);
       Marshall (Buffer, Resp_Exp);
@@ -751,7 +751,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
    begin
       Marshall_Service_Context_List
         (Buffer,
-         PolyORB.Request_QoS.Get_QoS (R),
+         PolyORB.Request_QoS.Get_Reply_QoS (R),
          null);
       Marshall (Buffer, Ctx.Request_Id);
       Marshall (Buffer, Ctx.Reply_Status);
