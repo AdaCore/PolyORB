@@ -271,11 +271,13 @@ package body CosNaming.NamingContext.Impl is
       Last : NameComponent;
 
    begin
+      pragma Debug (O ("Bind_Context: enter"));
       Get_Ctx_And_Last_NC (Self, N, Len, Ctx, Last);
+      pragma Debug (O ("Bind_Context: len is" & Len'Img));
 
       if Len /= 1 then
+         pragma Debug (O ("Bind_Context: binding relative name " & To_String (Last.Id)));
          NamingContext.Bind_Context (Ctx, To_Name (Last), NC);
-
       else
          declare
             BON : String := Encode (Self.Self, Last);
@@ -442,6 +444,7 @@ package body CosNaming.NamingContext.Impl is
       use Names;
 
    begin
+      pragma Debug (O ("Get_Ctx_And_Last_NC: enter"));
       Valid (Self.Self);
 
       Lock;
@@ -461,11 +464,13 @@ package body CosNaming.NamingContext.Impl is
 
          if Len > 1 then
             Current_Idx := NCA'First;
+            pragma Debug (O ("Get_Ctx_And_Last_NC: resolve " & To_String (NCA (Current_Idx).Id)));
             Current_Obj := Resolve (Self, To_Name (NCA (Current_Idx)));
             Current_Ctx := NamingContext.Helper.To_Ref (Current_Obj);
 
             Current_Idx := Current_Idx + 1;
             while Current_Idx < NCA'Last loop
+               pragma Debug (O ("Get_Ctx_And_Last_NC: resolve " & To_String (NCA (Current_Idx).Id)));
                Current_Obj := Resolve (Current_Ctx,
                                        To_Name (NCA (Current_Idx)));
                Current_Ctx := NamingContext.Helper.To_Ref (Current_Obj);

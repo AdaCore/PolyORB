@@ -5,13 +5,14 @@ use CosNaming, CosNaming.NamingContext, CosNaming.NamingContext.Helper;
 
 package body Naming_Tools is
 
-   function Split_Path (Path : String) return NameComponent_Array;
-   --  Split a sequence of name component specifications separated
-   --  with '/' characters into a name component array.
+   subtype NameComponent_Array is
+     CosNaming.IDL_SEQUENCE_CosNaming_NameComponent.Element_Array;
 
-   function Split_Component (Component : String) return NameComponent;
-   --  Split a name component specification of the form ID '.' KIND
-   --  (where KIND contains no periods) into a NameComponent.
+   function Retrieve_Context
+     (Name   : in CosNaming.Name)
+     return Ref;
+   --  Return a CosNaming.NamingContext.Ref that designates the
+   --  NamingContext registered as Name.
 
    --------------
    -- Finalize --
@@ -30,24 +31,24 @@ package body Naming_Tools is
    ------------
 
    function Locate
-     (Name : NameComponent_Array)
+     (Name : CosNaming.Name)
      return CORBA.Object.Ref
    is
       RNS  : constant NamingContext.Ref :=
         To_Ref (CORBA.ORB.Resolve_Initial_References
                 (CORBA.ORB.To_Corba_String ("NamingService")));
-      N    : constant CosNaming.Name
-        := CosNaming.To_Sequence (Name);
    begin
-      return resolve (RNS, N);
+      return resolve (RNS, Name);
    end Locate;
-
 
    ------------
    -- Locate --
    ------------
 
-   function Locate (IOR_Or_Name : String) return CORBA.Object.Ref is
+   function Locate
+     (IOR_Or_Name : String;
+      Sep : Character := '/')
+     return CORBA.Object.Ref is
    begin
       if IOR_Or_Name (IOR_Or_Name'First .. IOR_Or_Name'First + 3) = "IOR:" then
          declare
@@ -59,8 +60,39 @@ package body Naming_Tools is
          end;
       end if;
 
-      return Locate (Split_Path (IOR_Or_Name));
+      return Locate (Parse_Name (IOR_Or_Name, Sep));
    end Locate;
+
+   ----------------------
+   -- Retrieve_Context --
+   ----------------------
+
+   function Retrieve_Context
+     (Name   : in CosNaming.Name)
+     return Ref
+   is
+      Cur : NamingContext.Ref :=
+        To_Ref (CORBA.ORB.Resolve_Initial_References
+                (CORBA.ORB.To_Corba_String ("NamingService")));
+      Ref : NamingContext.Ref;
+      N : CosNaming.Name;
+
+      NCA : constant NameComponent_Array
+        := CosNaming.To_Element_Array (Name);
+
+   begin
+      for I in NCA'Range loop
+         N := CosNaming.To_Sequence ((1 => NCA (I)));
+         begin
+            Ref := To_Ref (Resolve (Cur, N));
+         exception
+            when NotFound =>
+               Ref := Bind_New_Context (Cur, N);
+         end;
+         Cur := Ref;
+      end loop;
+      return Cur;
+   end Retrieve_Context;
 
    --------------
    -- Register --
@@ -69,22 +101,29 @@ package body Naming_Tools is
    procedure Register
      (Name   : in String;
       Ref    : in CORBA.Object.Ref;
-      Rebind : in Boolean := False)
+      Rebind : in Boolean := False;
+      Sep    : in Character := '/')
    is
-      RNS : constant NamingContext.Ref :=
-        To_Ref (CORBA.ORB.Resolve_Initial_References
-                (CORBA.ORB.To_Corba_String ("NamingService")));
-      N   : CosNaming.Name;
-      NC  : NameComponent;
+      Context : NamingContext.Ref;
+      NCA : constant NameComponent_Array :=
+        CosNaming.To_Element_Array (Parse_Name (Name, Sep));
+      N : constant CosNaming.Name := CosNaming.To_Sequence
+        ((1 => NCA (NCA'Last)));
    begin
-      NC.Kind := CosNaming.To_CORBA_String ("");
-      NC.Id   := CosNaming.To_CORBA_String (Name);
-      Append (N, NC);
-      bind (RNS, N, Ref);
+      if NCA'Length = 1 then
+         Context := To_Ref
+           (CORBA.ORB.Resolve_Initial_References
+            (CORBA.ORB.To_Corba_String ("NamingService")));
+      else
+         Context := Retrieve_Context
+           (CosNaming.To_Sequence (NCA (NCA'First .. NCA'Last - 1)));
+      end if;
+
+      bind (Context, N, Ref);
    exception
       when Namingcontext.AlreadyBound =>
          if Rebind then
-            NamingContext.rebind (RNS, N, Ref);
+            NamingContext.rebind (Context, N, Ref);
          else
             raise;
          end if;
@@ -98,51 +137,74 @@ package body Naming_Tools is
      (Guard  : in out Server_Guard;
       Name   : in String;
       Ref    : in CORBA.Object.Ref;
-      Rebind : in Boolean := False)
+      Rebind : in Boolean := False;
+      Sep    : in Character := '/')
    is
    begin
-      Register (Name, Ref, Rebind);
+      Register (Name, Ref, Rebind, Sep);
       Guard.Name := CORBA.To_CORBA_String (Name);
    end Register;
 
    ----------------
-   -- Split_Path --
+   -- Parse_Name --
    ----------------
 
-   function Split_Path (Path : String) return NameComponent_Array
+   function Parse_Name
+     (Name : String;
+      Sep  : Character := '/')
+     return CosNaming.Name
    is
-      use CosNaming.IDL_SEQUENCE_CosNaming_NameComponent;
+      Result    : CosNaming.Name;
+      Unescaped : String (Name'Range);
+      First     : Integer := Unescaped'First;
+      Last      : Integer := Unescaped'First - 1;
+      Last_Unescaped_Period : Integer := Unescaped'First - 1;
 
-      Slash : constant Natural := Index (Path, "/", Ada.Strings.Backward);
-      N     : Name;
+      Seen_Backslash : Boolean := False;
+      End_Of_NC : Boolean := False;
    begin
-      if Slash = 0 then
-         return (1 => Split_Component (Path));
-      else
-         return Split_Path (Path (Path'First .. Slash - 1))
-           & Split_Component (Path (Slash + 1 .. Path'Last));
-      end if;
-   end Split_Path;
+      for I in Name'Range loop
+         if not Seen_Backslash and then Name (I) = '\' then
+            Seen_Backslash := True;
+         else
+            --  Seen_Backslash and seeing an escaped character
+            --  *or* seeing a non-escaped non-backslash character.
 
-   ---------------------
-   -- Split_Component --
-   ---------------------
+            if not Seen_Backslash and then Name (I) = Sep then
+               --  Seeing a non-escaped Sep
+               End_Of_NC := True;
+            else
+               --  Seeing a non-escaped non-backslash, non-Sep
+               --  character, or seeing an escaped character.
+               Last := Last + 1;
+               Unescaped (Last) := Name (I);
+               End_Of_NC := I = Name'Last;
+            end if;
 
-   function Split_Component (Component : String) return NameComponent is
-      Period : constant Natural := Index (Component, ".", Ada.Strings.Backward);
-   begin
-      if Period = 0 then
-         return NameComponent'
-           (Id   => To_CORBA_String (Component),
-            Kind => To_CORBA_String (""));
-      else
-         return NameComponent'
-           (Id   => To_CORBA_String
-            (Component (Component'First .. Period - 1)),
-            Kind => To_CORBA_String
-            (Component (Period + 1 .. Component'Last)));
-      end if;
-   end Split_Component;
+            if not Seen_Backslash and then Name (I) = '.' then
+               Last_Unescaped_Period := Last;
+            end if;
+
+            if End_Of_NC then
+               if Last_Unescaped_Period < First then
+                  Last_Unescaped_Period := Last + 1;
+               end if;
+               Append
+                 (Result, NameComponent'
+                  (Id   => To_CORBA_String
+                   (Unescaped (First .. Last_Unescaped_Period - 1)),
+                   Kind => To_CORBA_String
+                   (Unescaped (Last_Unescaped_Period + 1 .. Last))));
+               Last_Unescaped_Period := Last;
+               First := Last + 1;
+            end if;
+
+            Seen_Backslash := Name (I) = '\' and then not Seen_Backslash;
+         end if;
+      end loop;
+
+      return Result;
+   end Parse_Name;
 
    ----------------
    -- Unregister --
