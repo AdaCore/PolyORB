@@ -416,7 +416,7 @@ EOF
 done
 
 
-for F in `${FIND} ${srcdir}/src/${P} -name 'polyorb-setup-*_access_points-*.ads'`
+for F in `${FIND} ${srcdir}/src/${P} -name 'polyorb-setup-access_points-*.ads'`
 do
    U=`${AWK} '/^package/{print $2}' ${F}`
    cat >>${PROTO_SERVER_WITHS} <<EOF
