@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -38,16 +38,28 @@ package body PolyORB.POA_Config is
 
    The_Configuration : Configuration_Access;
 
+   -----------------------
+   -- Set_Configuration --
+   -----------------------
+
    procedure Set_Configuration
      (C : Configuration_Access) is
    begin
-      pragma Assert (The_Configuration = null and then C /= null);
+      pragma Assert (The_Configuration = null
+                       and then C /= null);
+
       The_Configuration := C;
    end Set_Configuration;
 
-   function Configuration return Configuration_Access is
+   -------------------
+   -- Configuration --
+   -------------------
+
+   function Configuration
+     return Configuration_Access is
    begin
       pragma Assert (The_Configuration /= null);
+
       return The_Configuration;
    end Configuration;
 
