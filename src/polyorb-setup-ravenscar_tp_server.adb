@@ -42,6 +42,10 @@ with PolyORB.ORB.Thread_Pool;
 pragma Warnings (Off, PolyORB.ORB.Thread_Pool);
 pragma Elaborate_All (PolyORB.ORB.Thread_Pool);
 
+with PolyORB.ORB_Controller.Basic;
+pragma Warnings (Off, PolyORB.ORB_Controller.Basic);
+pragma Elaborate_All (PolyORB.ORB_Controller.Basic);
+
 with PolyORB.Setup.Tasking.Ravenscar;
 pragma Elaborate_All (PolyORB.Setup.Tasking.Ravenscar);
 

@@ -48,6 +48,10 @@ with PolyORB.Setup.Tasking.Full_Tasking;
 pragma Elaborate_All (PolyORB.Setup.Tasking.Full_Tasking);
 pragma Warnings (Off, PolyORB.Setup.Tasking.Full_Tasking);
 
+with PolyORB.ORB_Controller.Basic;
+pragma Warnings (Off, PolyORB.ORB_Controller.Basic);
+pragma Elaborate_All (PolyORB.ORB_Controller.Basic);
+
 package body PolyORB.Setup.Thread_Pool_Server is
 
 end PolyORB.Setup.Thread_Pool_Server;

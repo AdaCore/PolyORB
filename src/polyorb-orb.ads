@@ -45,11 +45,10 @@ with PolyORB.Filters;
 with PolyORB.Jobs;
 with PolyORB.Obj_Adapters;
 with PolyORB.Objects;
+with PolyORB.ORB_Controller;
 with PolyORB.References;
 with PolyORB.Requests;
-with PolyORB.Scheduler;
 with PolyORB.Smart_Pointers;
-with PolyORB.Tasking.Mutexes;
 with PolyORB.Task_Info;
 with PolyORB.Transport;
 with PolyORB.Types;
@@ -57,14 +56,13 @@ with PolyORB.Utils.Chained_Lists;
 
 package PolyORB.ORB is
 
-   package PAE  renames PolyORB.Asynch_Ev;
-   package PBD  renames PolyORB.Binding_Data;
-   package PC   renames PolyORB.Components;
-   package PF   renames PolyORB.Filters;
-   package PJ   renames PolyORB.Jobs;
-   package PS   renames PolyORB.Scheduler;
-   package PT   renames PolyORB.Transport;
-   package PTM  renames PolyORB.Tasking.Mutexes;
+   package PAE renames PolyORB.Asynch_Ev;
+   package PBD renames PolyORB.Binding_Data;
+   package PC  renames PolyORB.Components;
+   package PF  renames PolyORB.Filters;
+   package PJ  renames PolyORB.Jobs;
+   package POC renames PolyORB.ORB_Controller;
+   package PT  renames PolyORB.Transport;
 
    type Request_Job is new PJ.Job with private;
 
@@ -90,8 +88,9 @@ package PolyORB.ORB is
 
    --  XXX this is not a server object !!!
 
-   type ORB_Type (Tasking_Policy : access Tasking_Policy_Type'Class)
-      is new PolyORB.Components.Component with private;
+   type ORB_Type (Tasking_Policy : access Tasking_Policy_Type'Class;
+                  ORB_Controller :        POC.ORB_Controller_Access)
+   is new PolyORB.Components.Component with private;
 
    type ORB_Access is access all ORB_Type;
 
@@ -287,7 +286,7 @@ private
 
    procedure Run (J : access Request_Job);
    --  Overload the abstract Run primitive for Job:
-   --  dispatch through tasking policy.
+   --  dispatch through ORB's tasking policy.
 
    procedure Run_Request (J : access Request_Job);
    --  Execute the request associated with J within the
@@ -311,35 +310,9 @@ private
    -- A server object --
    ---------------------
 
-   type ORB_Type (Tasking_Policy : access Tasking_Policy_Type'Class)
+   type ORB_Type (Tasking_Policy : access Tasking_Policy_Type'Class;
+                  ORB_Controller :        POC.ORB_Controller_Access)
    is new PolyORB.Components.Component with record
-
-      -----------------------------------
-      -- Mutex for access to ORB state --
-      -----------------------------------
-
-      ORB_Lock : PTM.Mutex_Access;
-
-      -----------------------
-      -- Scheduling Policy --
-      -----------------------
-
-      Scheduling_Policy : PS.Scheduling_Policy_Access;
-
-      ------------------
-      -- Server state --
-      ------------------
-
-      Job_Queue  : PJ.Job_Queue_Access;
-      --  The queue of jobs to be processed by ORB tasks.
-
-      Monitors : Monitor_List;
-      --  The set of asynchronous event monitors to be watched
-      --  by ORB tasks.
-
-      Number_Of_Monitors : Natural := 0;
-      --  Length of list 'Monitors'. This value is precomputed as it
-      --  is written seldom, read often.
 
       Transport_Access_Points : TAP_List;
       --  The set of transport access points managed by this ORB.

@@ -72,17 +72,30 @@ package body PolyORB.Task_Info is
       return TI.Selector;
    end Selector;
 
+   -------------
+   -- Timeout --
+   -------------
+
+   function Timeout (TI : Task_Info) return Duration is
+   begin
+      pragma Assert (TI.State = Blocked);
+
+      return TI.Timeout;
+   end Timeout;
+
    -----------------------
    -- Set_State_Blocked --
    -----------------------
 
    procedure Set_State_Blocked
      (TI       : in out Task_Info;
-      Selector :        Asynch_Ev.Asynch_Ev_Monitor_Access)
+      Selector :        Asynch_Ev.Asynch_Ev_Monitor_Access;
+      Timeout  :        Duration)
    is
    begin
       TI.State    := Blocked;
       TI.Selector := Selector;
+      TI.Timeout  := Timeout;
    end Set_State_Blocked;
 
    --------------------
@@ -104,9 +117,13 @@ package body PolyORB.Task_Info is
    -- Set_State_Running --
    -----------------------
 
-   procedure Set_State_Running (TI : in out Task_Info) is
+   procedure Set_State_Running
+     (TI  : in out Task_Info;
+      Job :        Jobs.Job_Access)
+   is
    begin
       TI.State     := Running;
+      TI.Job       := Job;
       TI.Selector  := null;
       TI.Condition := null;
       TI.Mutex     := null;
@@ -195,10 +212,20 @@ package body PolyORB.Task_Info is
       pragma Assert (TI.State /= Unscheduled);
 
       TI.State     := Unscheduled;
+      TI.Job       := null;
       TI.Selector  := null;
       TI.Condition := null;
       TI.Mutex     := null;
    end Set_State_Unscheduled;
+
+   --------------------------
+   -- Set_State_Terminated --
+   --------------------------
+
+   procedure Set_State_Terminated (TI : in out Task_Info) is
+   begin
+      TI.State := Terminated;
+   end Set_State_Terminated;
 
    ---------------------------
    -- Request_Abort_Polling --
@@ -221,5 +248,23 @@ package body PolyORB.Task_Info is
 
       return TI.Abort_Polling;
    end Abort_Polling;
+
+   --------
+   -- Id --
+   --------
+
+   function Id (TI : Task_Info) return PolyORB.Tasking.Threads.Thread_Id is
+   begin
+      return TI.Id;
+   end Id;
+
+   ---------
+   -- Job --
+   ---------
+
+   function Job (TI : Task_Info) return Jobs.Job_Access is
+   begin
+      return TI.Job;
+   end Job;
 
 end PolyORB.Task_Info;

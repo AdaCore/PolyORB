@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Information about running ORB tasks.
+--  Information about running ORB tasks
 
 --  This package is used to store and retrieve information
 --  concerning the status of tasks that execute ORB functions.
@@ -39,6 +39,7 @@
 --  $Id$
 
 with PolyORB.Asynch_Ev;
+with PolyORB.Jobs;
 with PolyORB.Tasking.Condition_Variables;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Tasking.Threads;
@@ -48,6 +49,7 @@ package PolyORB.Task_Info is
 
    pragma Elaborate_Body;
 
+   package PAE  renames PolyORB.Asynch_Ev;
    package PTCV renames PolyORB.Tasking.Condition_Variables;
    package PTM  renames PolyORB.Tasking.Mutexes;
 
@@ -56,6 +58,11 @@ package PolyORB.Task_Info is
    --  A Transient task executes ORB.Run until a given exit condition
    --  is met. Transient tasks are lent to neutral core middleware by
    --  user activities.
+
+   Task_Kind_For_Exit_Condition : constant array (Boolean)
+     of Task_Kind := (True => Permanent, False => Transient);
+   --  The task kind according to whether Exit_Condition
+   --  is null (True) or not.
 
    type Task_State is (Unscheduled, Running, Blocked, Idle, Terminated);
    --  An Unscheduled task is waiting for rescheduling.
@@ -76,9 +83,10 @@ package PolyORB.Task_Info is
 
    procedure Set_State_Blocked
      (TI       : in out Task_Info;
-      Selector :        Asynch_Ev.Asynch_Ev_Monitor_Access);
+      Selector :        Asynch_Ev.Asynch_Ev_Monitor_Access;
+      Timeout  :        Duration);
    pragma Inline (Set_State_Blocked);
-   --  The task refereed by TI will be blocked on Selector
+   --  The task refereed by TI will be blocked on Selector for Timeout seconds
 
    procedure Set_State_Idle
      (TI        : in out Task_Info;
@@ -88,14 +96,18 @@ package PolyORB.Task_Info is
    --  The task refereed by TI will go Idle;
    --  signaling condition variable Condition will awake it.
 
-   procedure Set_State_Running (TI : in out Task_Info);
+   procedure Set_State_Running (TI : in out Task_Info; Job : Jobs.Job_Access);
    pragma Inline (Set_State_Running);
-   --  The task refereed by TI is now running;
+   --  The task refereed by TI is now in Running state, and will execute Job;
    --  this procedure resets Selector or Condition it was blocked on.
 
    procedure Set_State_Unscheduled (TI : in out Task_Info);
    pragma Inline (Set_State_Unscheduled);
    --  The task refereed by TI is now unaffected.
+
+   procedure Set_State_Terminated (TI : in out Task_Info);
+   pragma Inline (Set_State_Terminated);
+   --  The task refereed by TI has terminated its job.
 
    function State (TI : Task_Info) return Task_State;
    pragma Inline (State);
@@ -106,6 +118,10 @@ package PolyORB.Task_Info is
      return Asynch_Ev.Asynch_Ev_Monitor_Access;
    pragma Inline (Selector);
    --  Return Selector the task referred by TI is blocked on
+
+   function Timeout (TI : Task_Info) return Duration;
+   pragma Inline (Timeout);
+   --  Return Timeout before stopping blocking
 
    function Condition (TI : Task_Info) return PTCV.Condition_Access;
    pragma Inline (Condition);
@@ -152,6 +168,14 @@ package PolyORB.Task_Info is
    pragma Inline (Image);
    --  For debug purposes
 
+   function Id (TI : Task_Info) return PolyORB.Tasking.Threads.Thread_Id;
+   pragma Inline (Id);
+   --  Return thread id associated to TI
+
+   function Job (TI : Task_Info) return Jobs.Job_Access;
+   pragma Inline (Job);
+   --  Return job associated to TI
+
 private
 
    type Task_Info (Kind : Task_Kind) is record
@@ -171,9 +195,15 @@ private
       Exit_Condition : PolyORB.Types.Boolean_Ptr := null;
       --  Exit condition; meaningful only when Kind = Transient
 
+      Job : Jobs.Job_Access;
+      --  Job to run, meaningful only when State is Running
+
       Selector  : Asynch_Ev.Asynch_Ev_Monitor_Access;
       --  Monitor on which Task referred by Id is blocked;
       --  meaningful only when State is Blocked.
+
+      Timeout : Duration;
+      --  Timeout before stopping polling when Blocked
 
       Condition : Tasking.Condition_Variables.Condition_Access;
       --  Condition Variable on which Task referred by Id is

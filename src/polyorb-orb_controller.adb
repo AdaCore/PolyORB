@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                 P O L Y O R B . S E T U P . C L I E N T                  --
+--               P O L Y O R B . O R B _ C O N T R O L L E R                --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--            Copyright (C) 2004 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,26 +31,48 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Set up a simple ORB to act as a client.
+--  $Id$
 
-with PolyORB.Setup.Tasking.No_Tasking;
-pragma Warnings (Off, PolyORB.Setup.Tasking.No_Tasking);
-pragma Elaborate_All (PolyORB.Setup.Tasking.No_Tasking);
+package body PolyORB.ORB_Controller is
 
-with PolyORB.ORB.No_Tasking;
-pragma Warnings (Off, PolyORB.ORB.No_Tasking);
-pragma Elaborate_All (PolyORB.ORB.No_Tasking);
+   My_Factory : ORB_Controller_Factory_Access;
 
-with PolyORB.ORB_Controller.Basic;
-pragma Warnings (Off, PolyORB.ORB_Controller.Basic);
-pragma Elaborate_All (PolyORB.ORB_Controller.Basic);
+   ------------
+   -- Create --
+   ------------
 
-with PolyORB.Parameters.File;
-pragma Warnings (Off, PolyORB.Parameters.File);
-pragma Elaborate_All (PolyORB.Parameters.File);
+   procedure Create (O : out ORB_Controller_Access) is
+   begin
+      pragma Assert (My_Factory /= null);
 
-@PROTO_CLIENT_WITHS@
+      O := Create (My_Factory);
+   end Create;
 
-package body PolyORB.Setup.Client is
+   -------------------------------------
+   -- Register_ORB_Controller_Factory --
+   -------------------------------------
 
-end PolyORB.Setup.Client;
+   procedure Register_ORB_Controller_Factory
+     (OCF : ORB_Controller_Factory_Access)
+   is
+   begin
+      pragma Assert (My_Factory = null);
+      My_Factory := OCF;
+   end Register_ORB_Controller_Factory;
+
+   ------------
+   -- Status --
+   ------------
+
+   function Status (O : access ORB_Controller) return String is
+   begin
+      return "Tot:" & Natural'Image (O.Registered_Tasks)
+        & " U:" & Natural'Image (O.Unscheduled_Tasks)
+        & " R:" & Natural'Image (O.Running_Tasks)
+        & " B:" & Natural'Image (O.Blocked_Tasks)
+        & " I:" & Natural'Image (O.Idle_Tasks)
+        & "| PJ:" & Natural'Image (O.Number_Of_Pending_Jobs)
+        & " AES:" & Natural'Image (O.Number_Of_AES);
+   end Status;
+
+end PolyORB.ORB_Controller;

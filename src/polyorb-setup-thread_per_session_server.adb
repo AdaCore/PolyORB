@@ -40,6 +40,10 @@ with PolyORB.ORB.Thread_Per_Session;
 pragma Elaborate_All (PolyORB.ORB.Thread_Per_Session);
 pragma Warnings (Off, PolyORB.ORB.Thread_Per_Session);
 
+with PolyORB.ORB_Controller.Basic;
+pragma Warnings (Off, PolyORB.ORB_Controller.Basic);
+pragma Elaborate_All (PolyORB.ORB_Controller.Basic);
+
 with PolyORB.Setup.Server;
 pragma Elaborate_All (PolyORB.Setup.Server);
 pragma Warnings (Off, PolyORB.Setup.Server);
