@@ -55,10 +55,6 @@ with System.Garlic.Name_Table;
 pragma Elaborate_All (System.Garlic.Name_Table);
 pragma Warnings (Off, System.Garlic.Name_Table);
 
-with System.Garlic.Naming;
-pragma Elaborate_All (System.Garlic.Naming);
-pragma Warnings (Off, System.Garlic.Naming);
-
 with System.Garlic.Options;           use System.Garlic.Options;
 pragma Elaborate_All (System.Garlic.Options);
 
@@ -76,8 +72,8 @@ pragma Elaborate_All (System.Garlic.Storages.Config);
 with System.Garlic.Protocols.Config;
 pragma Elaborate_All (System.Garlic.Protocols.Config);
 
-with System.Garlic.Services;
-pragma Elaborate_All (System.Garlic.Services);
+with System.Garlic.Remote;
+pragma Elaborate_All (System.Garlic.Remote);
 
 with System.Garlic.Streams;
 pragma Elaborate_All (System.Garlic.Streams);
@@ -139,13 +135,10 @@ begin
    System.Garlic.Elaboration.Initialize;
    System.Garlic.Options.Initialize_User_Options;
 
-   --  (2) The elaboration code of System.Garlic.Startup initializes
-   --      all the soft links (the implementation of barrier, mutex and
-   --      semaphores).
-   --      The elaboration code of System.Garlic.Startup detaches the
+   --  (2) The elaboration code of System.Garlic.Startup detaches the
    --      processus if needed.
 
-   System.Garlic.Services.Initialize;
+   System.Garlic.Remote.Detach;
 
    --  (3) The elaboration code of System.Garlic.Startup initializes
    --      all the non-configurable units depending on soft links.
@@ -230,6 +223,7 @@ begin
                   True,
                   Performed,
                   Error);
+
                if Found (Error) then
                   Raise_Communication_Error (Error);
                end if;
@@ -385,6 +379,16 @@ begin
    Filters.Initialize;
    Units.Initialize;
    Trace.Initialize;
+
+   Remote.Launch_Registered_Partitions;
+
+   for P in First_Protocol .. Last_Protocol loop
+      Self_Protocol := Protocols.Protocol_Table (P);
+      Activate (Self_Protocol, Error);
+      if Found (Error) then
+         Raise_Communication_Error (Error);
+      end if;
+   end loop;
 
    pragma Debug (Partitions.Dump_Partition_Table (Private_Debug_Key));
 
