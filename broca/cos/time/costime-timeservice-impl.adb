@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Broca.Basic_Startup;
+with Broca.Server_Tools;
 with Costime.TIO.Helper;
 with CosTime.TIO.Impl;
 with CosTime.TimeService.Skel;
@@ -57,12 +57,12 @@ package body CosTime.TimeService.Impl is
      return CosTime.TIO.Ref
    is
       Result : constant TIO_Ptr := new TIO.Impl.Object;
-      R      : CORBA.Object.Ref;
+      R      : CosTime.TIO.Ref;
    begin
       Result.Interval := (lower_bound => lower, upper_bound => upper);
-      Broca.Basic_Startup.Initiate_Servant
+      Broca.Server_Tools.Initiate_Servant
         (PortableServer.Servant (Result), R);
-      return TIO.Helper.To_Ref (R);
+      return R;
    end new_interval;
 
    ------------------------
@@ -77,14 +77,14 @@ package body CosTime.TimeService.Impl is
      return CosTime.UTO.Ref
    is
       Result : constant UTO_Ptr := new UTO.Impl.Object;
-      R      : CORBA.Object.Ref;
+      R      : CosTime.UTO.Ref;
    begin
       Result.Time := time;
       Result.Inaccuracy := inaccuracy;
       Result.Tdf := tdf;
-      Broca.Basic_Startup.Initiate_Servant
+      Broca.Server_Tools.Initiate_Servant
         (PortableServer.Servant (Result), R);
-      return UTO.Helper.To_Ref (R);
+      return R;
    end new_universal_time;
 
    ---------------------------

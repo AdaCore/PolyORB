@@ -13,14 +13,17 @@ with CosEventChannelAdmin.ProxyPullConsumer.Impl;
 with CosEventChannelAdmin.ProxyPushConsumer;
 with CosEventChannelAdmin.ProxyPushConsumer.Impl;
 
+with CosEventChannelAdmin.SupplierAdmin.Helper;
 with CosEventChannelAdmin.SupplierAdmin.Skel;
 
-with Broca.Basic_Startup; use Broca.Basic_Startup;
+with Broca.Server_Tools; use Broca.Server_Tools;
 with Broca.Soft_Links;    use  Broca.Soft_Links;
 
 with CORBA.Impl;
 
 with CORBA.Sequences.Unbounded;
+
+with PortableServer; use PortableServer;
 
 package body CosEventChannelAdmin.SupplierAdmin.Impl is
 
@@ -47,7 +50,7 @@ package body CosEventChannelAdmin.SupplierAdmin.Impl is
      return Object_Ptr
    is
       Supplier : Object_Ptr;
-      My_Ref   : CORBA.Object.Ref;
+      My_Ref   : SupplierAdmin.Ref;
 
    begin
       Supplier        := new Object;
@@ -55,7 +58,7 @@ package body CosEventChannelAdmin.SupplierAdmin.Impl is
       Supplier.X.This    := Supplier;
       Supplier.X.Channel := Channel;
       Create (Supplier.X.Mutex);
-      Initiate_Servant (PortableServer.Servant (Supplier), My_Ref);
+      Initiate_Servant (Servant (Supplier), My_Ref);
       return Supplier;
    end Create;
 
@@ -73,8 +76,8 @@ package body CosEventChannelAdmin.SupplierAdmin.Impl is
    begin
       Enter  (Self.X.Mutex);
       Consumer := ProxyPushConsumer.Impl.Create (Self.X.This);
+      Servant_To_Reference (Servant (Consumer), Its_Ref);
       PushConsumers.Append (Self.X.Pushs, Consumer);
-      ProxyPushConsumer.Set (Its_Ref, CORBA.Impl.Object_Ptr (Consumer));
       Leave  (Self.X.Mutex);
       return Its_Ref;
    end Obtain_Push_Consumer;
@@ -93,8 +96,8 @@ package body CosEventChannelAdmin.SupplierAdmin.Impl is
    begin
       Enter  (Self.X.Mutex);
       Consumer := ProxyPullConsumer.Impl.Create (Self.X.This);
+      Servant_To_Reference (Servant (Consumer), Its_Ref);
       PullConsumers.Append (Self.X.Pulls, Consumer);
-      ProxyPullConsumer.Set (Its_Ref, CORBA.Impl.Object_Ptr (Consumer));
       Leave  (Self.X.Mutex);
       return Its_Ref;
    end Obtain_Pull_Consumer;

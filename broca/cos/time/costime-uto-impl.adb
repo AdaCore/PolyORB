@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Broca.Basic_Startup;
+with Broca.Server_Tools;
 with CosTime.TIO.Helper;
 with CosTime.TIO.Impl;
 with CosTime.UTO.Helper;
@@ -56,14 +56,14 @@ package body CosTime.UTO.Impl is
      return Ref
    is
       Result : constant UTO_Ptr := new Object;
-      R      : CORBA.Object.Ref;
+      R      : Ref;
    begin
       Result.Time := Self.Time + Current_Time;
       Result.Inaccuracy := Self.Inaccuracy + Current_Inaccuracy;
       Result.Tdf := Self.Tdf + Current_Tdf;
-      Broca.Basic_Startup.Initiate_Servant
+      Broca.Server_Tools.Initiate_Servant
         (PortableServer.Servant (Result), R);
-      return Helper.To_Ref (R);
+      return R;
    end absolute_time;
 
    ------------------
@@ -160,14 +160,13 @@ package body CosTime.UTO.Impl is
      return TIO_Forward.Ref
    is
       Result : constant TIO_Ptr := new CosTime.TIO.Impl.Object;
-      R      : CORBA.Object.Ref;
+      R      : TIO_Forward.Ref;
    begin
       Result.Interval.Lower_Bound := Self.Time - Self.Tdf;
       Result.Interval.Upper_Bound := Self.Time + Self.Tdf;
-      Broca.Basic_Startup.Initiate_Servant
+      Broca.Server_Tools.Initiate_Servant
         (PortableServer.Servant (Result), R);
-      return CosTime.TIO.Convert_Forward.To_Forward
-        (CosTime.TIO.Helper.To_Ref (R));
+      return R;
    end interval;
 
    ----------------------
@@ -181,14 +180,13 @@ package body CosTime.UTO.Impl is
    is
       Other_Time : constant TimeT   := get_time (uto);
       Result     : constant TIO_Ptr := new CosTime.TIO.Impl.Object;
-      R          : CORBA.Object.Ref;
+      R          : TIO_Forward.Ref;
    begin
       Result.Interval.Lower_Bound := TimeT'Min (Self.Time, Other_Time);
       Result.Interval.Upper_Bound := TimeT'Max (Self.Time, Other_Time);
-      Broca.Basic_Startup.Initiate_Servant
+      Broca.Server_Tools.Initiate_Servant
         (PortableServer.Servant (Result), R);
-      return CosTime.TIO.Convert_Forward.To_Forward
-        (CosTime.TIO.Helper.To_Ref (R));
+      return R;
    end time_to_interval;
 
 end CosTime.UTO.Impl;

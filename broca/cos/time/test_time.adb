@@ -32,7 +32,7 @@
 ------------------------------------------------------------------------------
 
 with Ada.Text_IO;                use Ada.Text_IO;
-with Broca.Basic_Startup;
+with Broca.Server_Tools;
 with CORBA.Object;
 with CosTime;                    use CosTime;
 with CosTime.TimeService;        use CosTime.TimeService;
@@ -50,7 +50,6 @@ package body Test_Time is
 
    type TimeService_Ptr is access CosTime.TimeService.Impl.Object;
 
-   R   : CORBA.Object.Ref;
    Ref : CosTime.TimeService.Ref;
 
    UTO1, UTO2 : UTO.Ref;
@@ -79,12 +78,11 @@ package body Test_Time is
    end Display;
 
 begin
-   Broca.Basic_Startup.Initiate_Server;
-   Broca.Basic_Startup.Initiate_Servant
+   Broca.Server_Tools.Initiate_Server;
+   Broca.Server_Tools.Initiate_Servant
      (PortableServer.Servant
       (Timeservice_Ptr'(new CosTime.TimeService.Impl.Object)),
-      R);
-   Ref := CosTime.TimeService.Helper.To_Ref (R);
+      Ref);
    UTO1 := Universal_Time (Ref);
    Display (UTO1);
    Put_Line ("Waiting for 3 seconds");

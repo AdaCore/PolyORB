@@ -19,8 +19,8 @@ with File;                         use File;
 with File.Impl;
 with File.Helper;
 
-with Broca.Basic_Startup;
-pragma Elaborate (Broca.Basic_Startup);
+with Broca.Server_Tools;
+pragma Elaborate (Broca.Server_Tools);
 
 procedure Test_Naming is
 
@@ -245,7 +245,8 @@ procedure Test_Naming is
          return "";
 
       elsif N'Length = 1 then
-         return To_Standard_String (N (N'First).Id);
+         return To_Standard_String (N (N'First).Id) & ASCII.HT &
+                To_Standard_String (N (N'First).Kind);
 
       else
          return To_Standard_String (N (N'First).Id) & Sep &
@@ -270,19 +271,13 @@ procedure Test_Naming is
    Cmmd    : Command;
 
 begin
-   Broca.Basic_Startup.Initiate_Server;
+   Broca.Server_Tools.Initiate_Server;
 
    Ada.Text_IO.Put_Line ("create root directory");
-   WDR := NamingContext.Impl.New_Context;
+   Broca.Server_Tools.Servant_To_Reference
+     (PortableServer.Servant (NamingContext.Impl.Create), WDR);
 
-   begin
-      Bind_Context (WDR, Here, WDR);
-   exception
-      when E : others =>
-         Ada.Text_IO.Put_Line ("Uh-oh: " & Ada.Exceptions.Exception_Information (E));
-         Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Message (E));
-         raise;
-   end;
+   Bind_Context (WDR, Here, WDR);
    Bind_Context (WDR, Back, WDR);
 
    loop
@@ -330,7 +325,8 @@ begin
                      raise Syntax_Error;
                   end if;
                   Argv  := Argument (2);
-                  Dir := NamingContext.Impl.New_Context;
+                  Broca.Server_Tools.Servant_To_Reference
+                    (PortableServer.Servant (NamingContext.Impl.Create), Dir);
                   Bind_Context (From (Argv), To_Name (Argv), Dir);
                   Bind_Context (Dir, Here, Dir);
                   Bind_Context (Dir, Back, Parent (Argv));

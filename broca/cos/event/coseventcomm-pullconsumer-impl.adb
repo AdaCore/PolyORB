@@ -3,16 +3,19 @@
 --  by AdaBroker (http://adabroker.eu.org/)
 ----------------------------------------------
 
+with CosEventComm.PullConsumer.Helper;
 with CosEventComm.PullConsumer.Skel;
 
 with CosEventChannelAdmin; use CosEventChannelAdmin;
 
 with CosEventChannelAdmin.ProxyPullSupplier;
 
-with Broca.Basic_Startup; use  Broca.Basic_Startup;
+with Broca.Server_Tools; use  Broca.Server_Tools;
 with Broca.Soft_Links;    use  Broca.Soft_Links;
 
 with CORBA.Impl;
+
+with PortableServer; use PortableServer;
 
 package body CosEventComm.PullConsumer.Impl is
 
@@ -40,7 +43,7 @@ package body CosEventComm.PullConsumer.Impl is
          raise AlreadyConnected;
       end if;
       Self.X.Peer := Proxy;
-      PullConsumer.Set (My_Ref, CORBA.Impl.Object_Ptr (Self.X.This));
+      Servant_To_Reference (Servant (Self.X.This), My_Ref);
       ProxyPullSupplier.Connect_Pull_Consumer (Proxy, My_Ref);
       Leave (Self.X.Mutex);
    end Connect_Proxy_Pull_Supplier;
@@ -52,14 +55,14 @@ package body CosEventComm.PullConsumer.Impl is
    function Create return Object_Ptr
    is
       Consumer : Object_Ptr;
-      My_Ref   : CORBA.Object.Ref;
+      My_Ref   : PullConsumer.Ref;
 
    begin
       Consumer        := new Object;
       Consumer.X      := new Pull_Consumer_Record;
       Consumer.X.This := Consumer;
       Create (Consumer.X.Mutex);
-      Initiate_Servant (PortableServer.Servant (Consumer), My_Ref);
+      Initiate_Servant (Servant (Consumer), My_Ref);
       return Consumer;
    end Create;
 

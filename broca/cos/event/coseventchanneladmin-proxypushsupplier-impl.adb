@@ -11,12 +11,13 @@ with CosEventChannelAdmin; use CosEventChannelAdmin;
 
 with CosEventChannelAdmin.ConsumerAdmin;
 
+with CosEventChannelAdmin.ProxyPushSupplier.Helper;
 with CosEventChannelAdmin.ProxyPushSupplier.Skel;
 
-with Broca.Basic_Startup; use Broca.Basic_Startup;
+with Broca.Server_Tools; use Broca.Server_Tools;
 with Broca.Soft_Links;    use  Broca.Soft_Links;
 
-with PortableServer;
+with PortableServer; use PortableServer;
 
 with CORBA.Object;
 
@@ -62,7 +63,7 @@ package body CosEventChannelAdmin.ProxyPushSupplier.Impl is
    function Create (Admin : ConsumerAdmin.Impl.Object_Ptr) return Object_Ptr
    is
       Supplier : ProxyPushSupplier.Impl.Object_Ptr;
-      My_Ref   : CORBA.Object.Ref;
+      My_Ref   : ProxyPushSupplier.Ref;
 
    begin
       Supplier         := new Object;
@@ -70,7 +71,7 @@ package body CosEventChannelAdmin.ProxyPushSupplier.Impl is
       Supplier.X.This  := Supplier;
       Supplier.X.Admin := Admin;
       Create (Supplier.X.Mutex);
-      Initiate_Servant (PortableServer.Servant (Supplier), My_Ref);
+      Initiate_Servant (Servant (Supplier), My_Ref);
       return Supplier;
    end Create;
 

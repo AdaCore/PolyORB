@@ -8,7 +8,7 @@ with Broca.RootPOA;
 pragma Elaborate (Broca.RootPOA);
 pragma Elaborate_All (PortableServer.POA);
 
-package body Broca.Basic_Startup is
+package body Broca.Server_Tools is
 
    Root_POA : PortableServer.POA.Ref;
 
@@ -58,13 +58,36 @@ package body Broca.Basic_Startup is
 
    procedure Initiate_Servant
      (S : in PortableServer.Servant;
-      R : out CORBA.Object.Ref) is
+      R : out CORBA.Object.Ref'Class) is
    begin
       if CORBA.Object.Is_Nil (CORBA.Object.Ref (Root_POA)) then
          Initiate_RootPOA;
       end if;
 
-      R := PortableServer.POA.Servant_To_Reference (Root_POA, S);
+      CORBA.Object.Set
+        (CORBA.Object.Ref (R),
+         CORBA.Object.Object_Of
+         (PortableServer.POA.Servant_To_Reference (Root_POA, S)));
    end Initiate_Servant;
 
-end Broca.Basic_Startup;
+   --------------------------
+   -- Reference_To_Servant --
+   --------------------------
+
+   procedure Reference_To_Servant
+     (R : in CORBA.Object.Ref'Class;
+      S : out PortableServer.Servant) is
+   begin
+      if CORBA.Object.Is_Nil (CORBA.Object.Ref (Root_POA)) then
+         Initiate_RootPOA;
+      end if;
+
+      S := PortableServer.POA.Reference_To_Servant
+        (Root_POA, CORBA.Object.Ref (R));
+   end Reference_To_Servant;
+
+   procedure Servant_To_Reference
+     (S : in PortableServer.Servant;
+      R : out CORBA.Object.Ref'Class) renames Initiate_Servant;
+
+end Broca.Server_Tools;

@@ -41,7 +41,9 @@ with CORBA.Object;
 with CORBA.Impl;
 with CORBA.ORB;
 
-with Broca.Basic_Startup;
+with Broca.Server_Tools; use Broca.Server_Tools;
+
+with PortableServer; use PortableServer;
 
 with Menu; use Menu;
 
@@ -113,7 +115,7 @@ procedure Test_Event is
                A := EventChannel.For_Consumers (Channel);
                P := ConsumerAdmin.Obtain_Pull_Supplier (A);
                E := PullConsumer.Helper.To_Ref (Entity);
-               O := PullConsumer.Object_Of (E);
+               Reference_To_Servant (E, Servant (O));
                PullConsumer.Impl.Connect_Proxy_Pull_Supplier
                  (PullConsumer.Impl.Object_Ptr (O), P);
             end;
@@ -128,7 +130,7 @@ procedure Test_Event is
                A := EventChannel.For_Suppliers (Channel);
                P := SupplierAdmin.Obtain_Pull_Consumer (A);
                E := PullSupplier.Helper.To_Ref (Entity);
-               O := PullSupplier.Object_Of (E);
+               Reference_To_Servant (E, Servant (O));
                PullSupplier.Impl.Connect_Proxy_Pull_Consumer
                  (PullSupplier.Impl.Object_Ptr (O), P);
             end;
@@ -143,7 +145,7 @@ procedure Test_Event is
                A := EventChannel.For_Consumers (Channel);
                P := ConsumerAdmin.Obtain_Push_Supplier (A);
                E := PushConsumer.Helper.To_Ref (Entity);
-               O := PushConsumer.Object_Of (E);
+               Reference_To_Servant (E, Servant (O));
                PushConsumer.Impl.Connect_Proxy_Push_Supplier
                  (PushConsumer.Impl.Object_Ptr (O), P);
             end;
@@ -158,7 +160,7 @@ procedure Test_Event is
                A := EventChannel.For_Suppliers (Channel);
                P := SupplierAdmin.Obtain_Push_Consumer (A);
                E := PushSupplier.Helper.To_Ref (Entity);
-               O := PushSupplier.Object_Of (E);
+               Reference_To_Servant (E, Servant (O));
                PushSupplier.Impl.Connect_Proxy_Push_Consumer
                  (PushSupplier.Impl.Object_Ptr (O), P);
             end;
@@ -188,7 +190,7 @@ procedure Test_Event is
 
             begin
                C := PullConsumer.Helper.To_Ref (Entity);
-               O := PullConsumer.Object_Of (C);
+               Reference_To_Servant (C, Servant (O));
                A := PullConsumer.Impl.Pull (PullConsumer.Impl.Object_Ptr (O));
                return To_Standard_String (From_Any (A));
             end;
@@ -199,7 +201,7 @@ procedure Test_Event is
 
             begin
                C := PushConsumer.Helper.To_Ref (Entity);
-               O := PushConsumer.Object_Of (C);
+               Reference_To_Servant (C, Servant (O));
                A := PushConsumer.Impl.Pull (PushConsumer.Impl.Object_Ptr (O));
                return To_Standard_String (From_Any (A));
             end;
@@ -221,56 +223,46 @@ procedure Test_Event is
       case Kind is
          when K_Channel =>
             declare
-               C : EventChannel.Impl.Object_Ptr;
                R : EventChannel.Ref;
 
             begin
-               C := EventChannel.Impl.Create;
-               EventChannel.Set (R, CORBA.Impl.Object_Ptr (C));
+               Servant_To_Reference (Servant (EventChannel.Impl.Create), R);
                Entity := CORBA.Object.Ref (R);
             end;
 
          when K_PullConsumer =>
             declare
-               C : PullConsumer.Impl.Object_Ptr;
                R : PullConsumer.Ref;
 
             begin
-               C := PullConsumer.Impl.Create;
-               PullConsumer.Set (R, CORBA.Impl.Object_Ptr (C));
+               Servant_To_Reference (Servant (PullConsumer.Impl.Create), R);
                Entity := CORBA.Object.Ref (R);
             end;
 
          when K_PullSupplier =>
             declare
-               S : PullSupplier.Impl.Object_Ptr;
                R : PullSupplier.Ref;
 
             begin
-               S := PullSupplier.Impl.Create;
-               PullSupplier.Set (R, CORBA.Impl.Object_Ptr (S));
+               Servant_To_Reference (Servant (PullSupplier.Impl.Create), R);
                Entity := CORBA.Object.Ref (R);
             end;
 
          when K_PushConsumer =>
             declare
-               C : PushConsumer.Impl.Object_Ptr;
                R : PushConsumer.Ref;
 
             begin
-               C := PushConsumer.Impl.Create;
-               PushConsumer.Set (R, CORBA.Impl.Object_Ptr (C));
+               Servant_To_Reference (Servant (PushConsumer.Impl.Create), R);
                Entity := CORBA.Object.Ref (R);
             end;
 
          when K_PushSupplier =>
             declare
-               S : PushSupplier.Impl.Object_Ptr;
                R : PushSupplier.Ref;
 
             begin
-               S := PushSupplier.Impl.Create;
-               PushSupplier.Set (R, CORBA.Impl.Object_Ptr (S));
+               Servant_To_Reference (Servant (PushSupplier.Impl.Create), R);
                Entity := CORBA.Object.Ref (R);
             end;
       end case;
@@ -334,7 +326,7 @@ procedure Test_Event is
 
             begin
                S := PullSupplier.Helper.To_Ref (Entity);
-               O := PullSupplier.Object_Of (S);
+               Reference_To_Servant (S, Servant (O));
                PullSupplier.Impl.Push (PullSupplier.Impl.Object_Ptr (O), A);
             end;
 
@@ -344,7 +336,7 @@ procedure Test_Event is
 
             begin
                S := PushSupplier.Helper.To_Ref (Entity);
-               O := PushSupplier.Object_Of (S);
+               Reference_To_Servant (S, Servant (O));
                PushSupplier.Impl.Push (PushSupplier.Impl.Object_Ptr (O), A);
             end;
 
@@ -382,7 +374,7 @@ procedure Test_Event is
          Ada.Text_IO.Put_Line
            (C'Img & Ascii.HT & Help_Messages (C).all);
          if C = Create then
-            Ada.Text_IO.Put (Ascii.HT & "with <kind> in");
+            Ada.Text_IO.Put (Ascii.HT & "<kind> in");
             for E in Entity_Kind'Range loop
                declare
                   I : String := E'Img;
@@ -402,10 +394,10 @@ procedure Test_Event is
    Kind    : Entity_Kind;
 
 begin
-   Broca.Basic_Startup.Initiate_Server;
+   Initiate_Server;
 
    if Count ("enter naming IOR [otherwise create one]: ") = 0 then
-      Ctx := NamingContext.Impl.New_Context;
+      Servant_To_Reference (Servant (NamingContext.Impl.Create), Ctx);
       Ada.Text_IO.Put_Line
         (CORBA.To_Standard_String
          (CORBA.Object.Object_To_String

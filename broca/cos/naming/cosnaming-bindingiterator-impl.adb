@@ -1,8 +1,12 @@
 with CORBA;
+
+with CosNaming.BindingIterator.Helper;
 with CosNaming.BindingIterator.Skel;
 pragma Elaborate (CosNaming.BindingIterator.Skel);
 
 with Ada.Unchecked_Deallocation;
+
+with Broca.Server_Tools;
 
 with GNAT.Task_Lock; use GNAT.Task_Lock;
 
@@ -13,6 +17,33 @@ package body CosNaming.BindingIterator.Impl is
    procedure Free is
       new Ada.Unchecked_Deallocation
      (Bindings.Element_Array, Binding_Element_Array_Ptr);
+
+   ------------
+   -- Create --
+   ------------
+
+   function Create return Object_Ptr is
+      Obj : Object_Ptr;
+
+   begin
+      Obj := new Object;
+      Obj.Self := Obj;
+      return Obj;
+   end Create;
+
+   -------------
+   -- Destroy --
+   -------------
+
+   procedure Destroy
+     (Self : access Object) is
+   begin
+      Lock;
+      if Self.Table /= null then
+         Free (Self.Table);
+      end if;
+      Unlock;
+   end Destroy;
 
    --------------
    -- Next_One --
@@ -62,19 +93,5 @@ package body CosNaming.BindingIterator.Impl is
       end if;
       Unlock;
    end Next_N;
-
-   -------------
-   -- Destroy --
-   -------------
-
-   procedure Destroy
-     (Self : access Object) is
-   begin
-      Lock;
-      if Self.Table /= null then
-         Free (Self.Table);
-      end if;
-      Unlock;
-   end Destroy;
 
 end CosNaming.BindingIterator.Impl;

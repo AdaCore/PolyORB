@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Broca.Basic_Startup;
+with Broca.Server_Tools;
 with CORBA;
 with CosTime.TIO.Helper;
 with CosTime.TIO.Skel;
@@ -116,15 +116,13 @@ package body CosTime.TIO.Impl is
       A_Interval : IntervalT renames Self.Interval;
       B_Interval : constant IntervalT := get_time_interval (interval);
       Result     : constant TIO_Ptr := new Object;
-      R          : CORBA.Object.Ref;
    begin
       Do_Overlap (A_Interval => Self.Interval,
                   B_Interval => get_time_interval (interval),
                   Overlaps   => Result.Interval,
                   Returns    => Returns);
-      Broca.Basic_Startup.Initiate_Servant
-        (PortableServer.Servant (Result), R);
-      overlap := Helper.To_Ref (R);
+      Broca.Server_Tools.Initiate_Servant
+        (PortableServer.Servant (Result), overlap);
    end overlaps;
 
    -----------
@@ -142,15 +140,13 @@ package body CosTime.TIO.Impl is
       B_Interval : constant IntervalT   := (Lower_Bound => Tim - Ina,
                                             Upper_Bound => Tim + Ina);
       Result     : constant TIO_Ptr := new Object;
-      R          : CORBA.Object.Ref;
    begin
       Do_Overlap (A_Interval => Self.Interval,
                   B_Interval => B_Interval,
                   Overlaps   => Result.Interval,
                   Returns    => Returns);
-      Broca.Basic_Startup.Initiate_Servant
-        (PortableServer.Servant (Result), R);
-      overlap := Helper.To_Ref (R);
+      Broca.Server_Tools.Initiate_Servant
+        (PortableServer.Servant (Result), overlap);
    end spans;
 
    ----------
@@ -162,15 +158,15 @@ package body CosTime.TIO.Impl is
      return UTO.Ref
    is
       Result : constant UTO_Ptr := new UTO.Impl.Object;
-      R      : CORBA.Object.Ref;
+      R      : UTO.Ref;
    begin
       Result.Time :=
         (Self.Interval.Upper_Bound - Self.Interval.Lower_Bound) / 2;
       Result.Inaccuracy := InaccuracyT
         (Self.Interval.Upper_Bound - Self.Interval.Lower_Bound);
-      Broca.Basic_Startup.Initiate_Servant
+      Broca.Server_Tools.Initiate_Servant
         (PortableServer.Servant (Result), R);
-      return UTO.Helper.To_Ref (R);
+      return R;
    end time;
 
 end CosTime.TIO.Impl;

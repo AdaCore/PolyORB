@@ -13,14 +13,17 @@ with CosEventChannelAdmin.ProxyPushSupplier;
 with CosEventChannelAdmin.ProxyPushSupplier.Helper;
 with CosEventChannelAdmin.ProxyPushSupplier.Impl;
 
+with CosEventChannelAdmin.ConsumerAdmin.Helper;
 with CosEventChannelAdmin.ConsumerAdmin.Skel;
 
-with Broca.Basic_Startup; use Broca.Basic_Startup;
+with Broca.Server_Tools; use Broca.Server_Tools;
 with Broca.Soft_Links;    use  Broca.Soft_Links;
 
 with CORBA.Sequences.Unbounded;
 
 with CORBA.Impl;
+
+with PortableServer; use PortableServer;
 
 package body CosEventChannelAdmin.ConsumerAdmin.Impl is
 
@@ -47,7 +50,7 @@ package body CosEventChannelAdmin.ConsumerAdmin.Impl is
      return Object_Ptr
    is
       Consumer : Object_Ptr;
-      My_Ref   : CORBA.Object.Ref;
+      My_Ref   : ConsumerAdmin.Ref;
 
    begin
       Consumer        := new Object;
@@ -55,7 +58,7 @@ package body CosEventChannelAdmin.ConsumerAdmin.Impl is
       Create (Consumer.X.Mutex);
       Consumer.X.This    := Consumer;
       Consumer.X.Channel := Channel;
-      Initiate_Servant (PortableServer.Servant (Consumer), My_Ref);
+      Initiate_Servant (Servant (Consumer), My_Ref);
       return Consumer;
    end Create;
 
@@ -73,7 +76,7 @@ package body CosEventChannelAdmin.ConsumerAdmin.Impl is
    begin
       Enter  (Self.X.Mutex);
       Supplier := ProxyPullSupplier.Impl.Create (Self.X.This);
-      ProxyPullSupplier.Set (Its_Ref, CORBA.Impl.Object_Ptr (Supplier));
+      Servant_To_Reference (Servant (Supplier), Its_Ref);
       PullSuppliers.Append (Self.X.Pulls, Supplier);
       Leave  (Self.X.Mutex);
       return Its_Ref;
@@ -93,7 +96,7 @@ package body CosEventChannelAdmin.ConsumerAdmin.Impl is
    begin
       Enter  (Self.X.Mutex);
       Supplier := ProxyPushSupplier.Impl.Create (Self.X.This);
-      ProxyPushSupplier.Set (Its_Ref, CORBA.Impl.Object_Ptr (Supplier));
+      Servant_To_Reference (Servant (Supplier), Its_Ref);
       PushSuppliers.Append (Self.X.Pushs, Supplier);
       Leave  (Self.X.Mutex);
       return Its_Ref;

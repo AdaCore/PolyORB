@@ -7,13 +7,15 @@ package CosNaming.BindingIterator.Impl is
 
    type Binding_Element_Array_Ptr is access Bindings.Element_Array;
 
+   type Object;
+   type Object_Ptr is access all Object'Class;
    type Object is
      new PortableServer.Servant_Base with
       record
+         Self  : Object_Ptr;
          Index : Natural;
          Table : Binding_Element_Array_Ptr;
       end record;
-   type Object_Ptr is access all Object'Class;
 
    procedure Next_One
      (Self    : access Object;
@@ -28,5 +30,7 @@ package CosNaming.BindingIterator.Impl is
 
    procedure Destroy
      (Self : access Object);
+
+   function Create return Object_Ptr;
 
 end CosNaming.BindingIterator.Impl;

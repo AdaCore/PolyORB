@@ -9,12 +9,15 @@ with CosEventChannelAdmin; use CosEventChannelAdmin;
 
 with CosEventChannelAdmin.ProxyPushSupplier;
 
+with CosEventComm.PushConsumer.Helper;
 with CosEventComm.PushConsumer.Skel;
 
-with Broca.Basic_Startup; use  Broca.Basic_Startup;
+with Broca.Server_Tools; use  Broca.Server_Tools;
 with Broca.Soft_Links;    use  Broca.Soft_Links;
 
 with CORBA.Impl;
+
+with PortableServer; use PortableServer;
 
 package body CosEventComm.PushConsumer.Impl is
 
@@ -35,7 +38,7 @@ package body CosEventComm.PushConsumer.Impl is
    function Create return Object_Ptr
    is
       Consumer : Object_Ptr;
-      My_Ref   : CORBA.Object.Ref;
+      My_Ref   : PushConsumer.Ref;
 
    begin
       Consumer         := new Object;
@@ -44,7 +47,7 @@ package body CosEventComm.PushConsumer.Impl is
       Consumer.X.Empty := True;
       Create (Consumer.X.Watcher);
       Create (Consumer.X.Mutex);
-      Initiate_Servant (PortableServer.Servant (Consumer), My_Ref);
+      Initiate_Servant (Servant (Consumer), My_Ref);
       return Consumer;
    end Create;
 
@@ -91,7 +94,7 @@ package body CosEventComm.PushConsumer.Impl is
    begin
       Enter (Self.X.Mutex);
       Self.X.Peer := Proxy;
-      PushConsumer.Set (My_Ref, CORBA.Impl.Object_Ptr (Self.X.This));
+      Servant_To_Reference (Servant (Self.X.This), My_Ref);
       ProxyPushSupplier.Connect_Push_Consumer (Proxy, My_Ref);
       Leave (Self.X.Mutex);
    end Connect_Proxy_Push_Supplier;

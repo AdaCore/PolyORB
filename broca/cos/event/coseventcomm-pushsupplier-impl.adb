@@ -3,16 +3,19 @@
 --  by AdaBroker (http://adabroker.eu.org/)
 ----------------------------------------------
 
+with CosEventComm.PushSupplier.Helper;
 with CosEventComm.PushSupplier.Skel;
 
 with CosEventChannelAdmin; use CosEventChannelAdmin;
 
 with CosEventChannelAdmin.ProxyPushConsumer;
 
-with Broca.Basic_Startup; use  Broca.Basic_Startup;
+with Broca.Server_Tools; use  Broca.Server_Tools;
 with Broca.Soft_Links;    use  Broca.Soft_Links;
 
 with CORBA.Impl;
+
+with PortableServer; use PortableServer;
 
 package body CosEventComm.PushSupplier.Impl is
 
@@ -51,10 +54,28 @@ package body CosEventComm.PushSupplier.Impl is
    begin
       Enter (Self.X.Mutex);
       Self.X.Peer := Proxy;
-      PushSupplier.Set (My_Ref, CORBA.Impl.Object_Ptr (Self.X.This));
+      Servant_To_Reference (Servant (Self.X.This), My_Ref);
       ProxyPushConsumer.Connect_Push_Supplier (Proxy, My_Ref);
       Leave (Self.X.Mutex);
    end Connect_Proxy_Push_Consumer;
+
+   ------------
+   -- Create --
+   ------------
+
+   function Create return Object_Ptr
+   is
+      Supplier : Object_Ptr;
+      My_Ref   : PushSupplier.Ref;
+
+   begin
+      Supplier := new Object;
+      Supplier.X := new Push_Supplier_Record;
+      Supplier.X.This := Supplier;
+      Create (Supplier.X.Mutex);
+      Initiate_Servant (Servant (Supplier), My_Ref);
+      return Supplier;
+   end Create;
 
    ----------
    -- Push --
@@ -68,23 +89,5 @@ package body CosEventComm.PushSupplier.Impl is
       ProxyPushConsumer.Push (Self.X.Peer, Data);
       Leave (Self.X.Mutex);
    end Push;
-
-   ------------
-   -- Create --
-   ------------
-
-   function Create return Object_Ptr
-   is
-      Supplier : Object_Ptr;
-      My_Ref   : CORBA.Object.Ref;
-
-   begin
-      Supplier := new Object;
-      Supplier.X := new Push_Supplier_Record;
-      Supplier.X.This := Supplier;
-      Create (Supplier.X.Mutex);
-      Initiate_Servant (PortableServer.Servant (Supplier), My_Ref);
-      return Supplier;
-   end Create;
 
 end CosEventComm.PushSupplier.Impl;

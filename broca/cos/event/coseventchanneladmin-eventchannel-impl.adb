@@ -9,10 +9,13 @@ with CosEventChannelAdmin.SupplierAdmin.Impl;
 with CosEventChannelAdmin.ConsumerAdmin;
 with CosEventChannelAdmin.ConsumerAdmin.Impl;
 
+with CosEventChannelAdmin.EventChannel.Helper;
 with CosEventChannelAdmin.EventChannel.Skel;
 
-with Broca.Basic_Startup; use  Broca.Basic_Startup;
+with Broca.Server_Tools; use  Broca.Server_Tools;
 with Broca.Soft_Links;    use  Broca.Soft_Links;
+
+with PortableServer; use PortableServer;
 
 with CORBA.Impl;
 
@@ -37,7 +40,7 @@ package body CosEventChannelAdmin.EventChannel.Impl is
    function Create return Object_Ptr
    is
       Channel : Object_Ptr;
-      My_Ref  : CORBA.Object.Ref;
+      My_Ref  : EventChannel.Ref;
 
    begin
       Channel            := new Object;
@@ -46,7 +49,7 @@ package body CosEventChannelAdmin.EventChannel.Impl is
       Channel.X.Consumer := ConsumerAdmin.Impl.Create (Channel);
       Channel.X.Supplier := SupplierAdmin.Impl.Create (Channel);
       Create (Channel.X.Mutex);
-      Initiate_Servant (PortableServer.Servant (Channel), My_Ref);
+      Initiate_Servant (Servant (Channel), My_Ref);
       return Channel;
    end Create;
 
@@ -71,7 +74,7 @@ package body CosEventChannelAdmin.EventChannel.Impl is
       R : ConsumerAdmin.Ref;
 
    begin
-      ConsumerAdmin.Set (R, CORBA.Impl.Object_Ptr (Self.X.Consumer));
+      Servant_To_Reference (Servant (Self.X.Consumer), R);
       return R;
    end For_Consumers;
 
@@ -86,7 +89,7 @@ package body CosEventChannelAdmin.EventChannel.Impl is
       R : SupplierAdmin.Ref;
 
    begin
-      SupplierAdmin.Set (R, CORBA.Impl.Object_Ptr (Self.X.Supplier));
+      Servant_To_Reference (Servant (Self.X.Supplier), R);
       return R;
    end For_Suppliers;
 

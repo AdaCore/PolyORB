@@ -6,14 +6,17 @@
 with CORBA;
 with CORBA.Impl;
 
+with CosEventComm.PullSupplier.Helper;
 with CosEventComm.PullSupplier.Skel;
 
 with CosEventChannelAdmin; use CosEventChannelAdmin;
 
 with CosEventChannelAdmin.ProxyPullConsumer;
 
-with Broca.Basic_Startup; use  Broca.Basic_Startup;
+with Broca.Server_Tools; use  Broca.Server_Tools;
 with Broca.Soft_Links;    use  Broca.Soft_Links;
+
+with PortableServer; use PortableServer;
 
 package body CosEventComm.PullSupplier.Impl is
 
@@ -40,7 +43,7 @@ package body CosEventComm.PullSupplier.Impl is
    begin
       Enter (Self.X.Mutex);
       Self.X.Peer := Proxy;
-      PullSupplier.Set (My_Ref, CORBA.Impl.Object_Ptr (Self.X.This));
+      Servant_To_Reference (Servant (Self.X.This), My_Ref);
       ProxyPullConsumer.Connect_Pull_Supplier (Proxy, My_Ref);
       Leave (Self.X.Mutex);
    end Connect_Proxy_Pull_Consumer;
@@ -52,7 +55,7 @@ package body CosEventComm.PullSupplier.Impl is
    function Create return Object_Ptr
    is
       Supplier : Object_Ptr;
-      My_Ref   : CORBA.Object.Ref;
+      My_Ref   : PullSupplier.Ref;
 
    begin
       Supplier         := new Object;
@@ -61,7 +64,7 @@ package body CosEventComm.PullSupplier.Impl is
       Supplier.X.Empty := True;
       Create (Supplier.X.Mutex);
       Create (Supplier.X.Watcher);
-      Initiate_Servant (PortableServer.Servant (Supplier), My_Ref);
+      Initiate_Servant (Servant (Supplier), My_Ref);
       return Supplier;
    end Create;
 

@@ -17,11 +17,15 @@ package CosEventChannelAdmin.SupplierAdmin.Impl is
 
    function Obtain_Push_Consumer
      (Self : access Object)
-     return CosEventChannelAdmin.ProxyPushConsumer.Ref;
+     return ProxyPushConsumer.Ref;
 
    function Obtain_Pull_Consumer
      (Self : access Object)
-     return CosEventChannelAdmin.ProxyPullConsumer.Ref;
+     return ProxyPullConsumer.Ref;
+
+   ------------------------
+   -- AdaBroker specific --
+   ------------------------
 
    function Create
      (Channel : CosEventChannelAdmin.EventChannel.Impl.Object_Ptr)
