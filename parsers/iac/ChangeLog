@@ -1,5 +1,14 @@
 2004-06-01  Laurent Pautet  <pautet@dorine.enst.fr>
 
+	* usage.adb, backend.adb, backend.ads, backend-config.adb: Adapt to new
+	organization that is a usage per backend.
+
+	* backend-be_idl.adb, backend-be_idl.ads: Provide flag -b to set
+	base to output integer literal. Provide a usage procedure.
+
+	* backend-be_ada.adb, backend-be_ada.ads: Provide flag -t to dump
+	Ada tree. Provide a usage procedure.
+
 	* flags.adb: Scan command line in two phases. First, detect the
 	backend language if there is one. Second, use Getopt by setting
 	cpparg and backend language as sections (see GNAT.Command_Line).
