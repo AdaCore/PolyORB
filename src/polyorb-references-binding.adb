@@ -269,12 +269,17 @@ package body PolyORB.References.Binding is
             pragma Debug (O ("Binding non-local profile"));
             pragma Debug (O ("Creating new binding object"));
 
-            Servant := PolyORB.Binding_Data.Bind_Profile
-              (Selected_Profile.all, Component_Access (Local_ORB));
+            PolyORB.Binding_Data.Bind_Profile
+              (Selected_Profile.all, Component_Access (Local_ORB),
+               Servant, Error);
             --  The Session itself acts as a remote surrogate
             --  of the designated object.
 
-            pragma Debug (O ("Cacheing binding info"));
+            if Found (Error) then
+               return;
+            end if;
+
+            pragma Debug (O ("Caching binding info"));
             Pro := Selected_Profile;
             Set_Binding_Info (R, Servant, Selected_Profile);
             pragma Debug (O ("... done"));

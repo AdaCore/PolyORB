@@ -46,10 +46,11 @@ package PolyORB.Binding_Data.SRP is
    procedure Duplicate  (P1 : SRP_Profile_Type; P2 : out SRP_Profile_Type);
    procedure Release    (P : in out SRP_Profile_Type);
 
-   function Bind_Profile
-     (Profile : SRP_Profile_Type;
-      The_ORB : Components.Component_Access)
-     return Components.Component_Access;
+   procedure Bind_Profile
+     (Profile :     SRP_Profile_Type;
+      The_ORB :     Components.Component_Access;
+      Servant : out Components.Component_Access;
+      Error   : out Exceptions.Error_Container);
 
    function Get_Profile_Tag
      (Profile : SRP_Profile_Type)

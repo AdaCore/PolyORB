@@ -65,11 +65,13 @@ package body PolyORB.Binding_Data.SRP is
       Free (P.Object_Id);
    end Release;
 
-   function Bind_Profile
-     (Profile : SRP_Profile_Type;
-      The_ORB : Components.Component_Access)
-     return Components.Component_Access
+   procedure Bind_Profile
+     (Profile :     SRP_Profile_Type;
+      The_ORB :     Components.Component_Access;
+      Servant : out Components.Component_Access;
+      Error   : out Exceptions.Error_Container)
    is
+      use PolyORB.Exceptions;
       use PolyORB.ORB;
       use PolyORB.Protocols.SRP;
       use PolyORB.Sockets;
@@ -91,7 +93,12 @@ package body PolyORB.Binding_Data.SRP is
          TE,
          Filters.Filter_Access (Session),
          ORB.Client);
-      return Session;
+      Servant := Session;
+
+   exception
+      when Sockets.Socket_Error =>
+         Throw (Error, Comm_Failure_E, System_Exception_Members'
+                (Minor => 0, Completed => Completed_Maybe));
    end Bind_Profile;
 
    function Get_Profile_Tag

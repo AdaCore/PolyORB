@@ -77,21 +77,6 @@ package body PolyORB.Binding_Data.DIOP is
    --  Global variable: the preference to be returned
    --  by Get_Profile_Preference for DIOP profiles.
 
-   ---------------
-   -- Duplicate --
-   ---------------
-
-   procedure Duplicate
-     (P1 : DIOP_Profile_Type; P2 : out DIOP_Profile_Type) is
-   begin
-      P2.Continuation := P1.Continuation;
-      if P1.Object_Id /= null then
-         P2.Object_Id := new Object_Id'(P1.Object_Id.all);
-      else
-         P2.Object_Id := null;
-      end if;
-   end Duplicate;
-
    -------------
    -- Release --
    -------------
@@ -107,10 +92,11 @@ package body PolyORB.Binding_Data.DIOP is
    -- Bind_Profile --
    ------------------
 
-   function Bind_Profile
-     (Profile : DIOP_Profile_Type;
-      The_ORB : Components.Component_Access)
-     return Components.Component_Access
+   procedure Bind_Profile
+     (Profile :     DIOP_Profile_Type;
+      The_ORB :     Components.Component_Access;
+      Servant : out Components.Component_Access;
+      Error   : out Exceptions.Error_Container)
    is
       use PolyORB.ORB;
       use PolyORB.Components;
@@ -126,6 +112,10 @@ package body PolyORB.Binding_Data.DIOP is
         new Socket_Out_Endpoint;
       Pro         : aliased DIOP_Protocol;
       Filter      : Filters.Filter_Access;
+
+      pragma Warnings (Off); --  WAG:3.15
+      pragma Unreferenced (Error);
+      pragma Warnings (On); --  WAG:3.15
 
    begin
       pragma Debug (O ("Bind DIOP profile: enter"));
@@ -153,7 +143,7 @@ package body PolyORB.Binding_Data.DIOP is
 
       begin
          pragma Debug (O ("Bind DIOP profile: leave"));
-         return S'Access;
+         Servant := S'Access;
       end;
    end Bind_Profile;
 

@@ -75,21 +75,6 @@ package body PolyORB.Binding_Data.IIOP is
    --  Global variable: the preference to be returned
    --  by Get_Profile_Preference for IIOP profiles.
 
-   ---------------
-   -- Duplicate --
-   ---------------
-
-   procedure Duplicate
-     (P1 : IIOP_Profile_Type; P2 : out IIOP_Profile_Type) is
-   begin
-      P2.Continuation := P1.Continuation;
-      if P1.Object_Id /= null then
-         P2.Object_Id := new Object_Id'(P1.Object_Id.all);
-      else
-         P2.Object_Id := null;
-      end if;
-   end Duplicate;
-
    -------------
    -- Release --
    -------------
@@ -105,19 +90,21 @@ package body PolyORB.Binding_Data.IIOP is
    -- Bind_Profile --
    ------------------
 
-   function Bind_Profile
-     (Profile : IIOP_Profile_Type;
-      The_ORB : Components.Component_Access)
-     return Components.Component_Access
+   procedure Bind_Profile
+     (Profile :     IIOP_Profile_Type;
+      The_ORB :     Components.Component_Access;
+      Servant : out Components.Component_Access;
+      Error   : out Exceptions.Error_Container)
    is
-      use PolyORB.ORB;
       use PolyORB.Components;
+      use PolyORB.Exceptions;
+      use PolyORB.Filters;
+      use PolyORB.Filters.Slicers;
+      use PolyORB.ORB;
       use PolyORB.Protocols;
       use PolyORB.Protocols.GIOP;
       use PolyORB.Protocols.GIOP.IIOP;
       use PolyORB.Sockets;
-      use PolyORB.Filters;
-      use PolyORB.Filters.Slicers;
 
       Sock        : Socket_Type;
       Remote_Addr : Sock_Addr_Type := Profile.Address;
@@ -157,8 +144,12 @@ package body PolyORB.Binding_Data.IIOP is
 
       begin
          pragma Debug (O ("Bind IIOP profile: leave"));
-         return S'Access;
+         Servant := S'Access;
       end;
+   exception
+      when Sockets.Socket_Error =>
+         Throw (Error, Comm_Failure_E, System_Exception_Members'
+                (Minor => 0, Completed => Completed_Maybe));
    end Bind_Profile;
 
    ---------------------

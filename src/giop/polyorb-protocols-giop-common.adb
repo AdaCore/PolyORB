@@ -523,13 +523,22 @@ package body PolyORB.Protocols.GIOP.Common is
 
                New_Sess : Session_Access;
                Prof     : Profile_Access;
+               Error    : Exceptions.Error_Container;
             begin
                Prof := Select_Profile (Sess.Buffer_In);
-               New_Sess := Session_Access
-                 (Binding_Data.Bind_Profile
-                    (Prof.all, Component_Access (ORB)));
-
+               Binding_Data.Bind_Profile
+                 (Prof.all, Component_Access (ORB),
+                  Component_Access (New_Sess), Error);
                Release (Sess.Buffer_In);
+
+               if Exceptions.Found (Error) then
+                  Exceptions.Catch (Error);
+                  raise GIOP_Error;
+                  --  XXX is this the proper thing to do?
+                  --  Actually we should set the exception info in the
+                  --  corresponding request, and then emit Executed_Request
+                  --  (as is done in the case of an initial bind failure).
+               end if;
 
                Req.Target_Profile := Prof;
                Invoke_Request

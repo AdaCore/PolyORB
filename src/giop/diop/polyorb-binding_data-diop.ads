@@ -42,11 +42,9 @@ package PolyORB.Binding_Data.DIOP is
 
    use PolyORB.Buffers;
 
-   --  DIOP Profile
    type DIOP_Profile_Type is new Profile_Type with private;
    type DIOP_Profile_Factory is new Profile_Factory with private;
 
-   procedure Duplicate  (P1 : DIOP_Profile_Type; P2 : out DIOP_Profile_Type);
    procedure Release    (P : in out DIOP_Profile_Type);
 
    function Create_Profile
@@ -59,10 +57,11 @@ package PolyORB.Binding_Data.DIOP is
       P  : access Profile_Type'Class)
       return Boolean;
 
-   function Bind_Profile
-     (Profile : DIOP_Profile_Type;
-      The_ORB : Components.Component_Access)
-     return Components.Component_Access;
+   procedure Bind_Profile
+     (Profile :     DIOP_Profile_Type;
+      The_ORB :     Components.Component_Access;
+      Servant : out Components.Component_Access;
+      Error   : out Exceptions.Error_Container);
 
    function Get_Profile_Tag
      (Profile : DIOP_Profile_Type)

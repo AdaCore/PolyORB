@@ -81,21 +81,6 @@ package body PolyORB.Binding_Data.UIPMC is
    --  Global variable: the preference to be returned
    --  by Get_Profile_Preference for UIPMC profiles.
 
-   ---------------
-   -- Duplicate --
-   ---------------
-
-   procedure Duplicate
-     (P1 : UIPMC_Profile_Type; P2 : out UIPMC_Profile_Type) is
-   begin
-      P2.Continuation := P1.Continuation;
-      if P1.Object_Id /= null then
-         P2.Object_Id := new Object_Id'(P1.Object_Id.all);
-      else
-         P2.Object_Id := null;
-      end if;
-   end Duplicate;
-
    -------------
    -- Release --
    -------------
@@ -112,10 +97,11 @@ package body PolyORB.Binding_Data.UIPMC is
    -- Bind_Profile --
    ------------------
 
-   function Bind_Profile
-     (Profile : UIPMC_Profile_Type;
-      The_ORB : Components.Component_Access)
-     return Components.Component_Access
+   procedure Bind_Profile
+     (Profile :     UIPMC_Profile_Type;
+      The_ORB :     Components.Component_Access;
+      Servant : out Components.Component_Access;
+      Error   : out Exceptions.Error_Container)
    is
       use PolyORB.Components;
       use PolyORB.Filters;
@@ -136,6 +122,10 @@ package body PolyORB.Binding_Data.UIPMC is
       Pro         : aliased UIPMC_Protocol;
       M_Fact      : aliased MIOP_Out_Factory;
       Filter      : Filters.Filter_Access;
+
+      pragma Warnings (Off); --  WAG:3.15
+      pragma Unreferenced (Error);
+      pragma Warnings (On); --  WAG:3.15
 
    begin
       pragma Debug (O ("Bind UIPMC profile: enter"));
@@ -171,7 +161,7 @@ package body PolyORB.Binding_Data.UIPMC is
          C : Component renames Component (Upper (Filter).all);
       begin
          pragma Debug (O ("Bind UIPMC profile: leave"));
-         return C'Access;
+         Servant := C'Access;
       end;
    end Bind_Profile;
 

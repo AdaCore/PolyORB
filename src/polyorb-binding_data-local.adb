@@ -42,41 +42,6 @@ package body PolyORB.Binding_Data.Local is
 
    use PolyORB.Objects;
 
-   ----------------
-   -- Initialize --
-   ----------------
-
-   procedure Initialize
-     (P : in out Local_Profile_Type) is
-   begin
-      P.Object_Id := null;
-   end Initialize;
-
-   --------------
-   -- Finalize --
-   --------------
-
-   procedure Finalize
-     (P : in out Local_Profile_Type) is
-   begin
-      Release (P);
-   end Finalize;
-
-   ---------------
-   -- Duplicate --
-   ---------------
-
-   procedure Duplicate
-     (P1 : Local_Profile_Type; P2 : out Local_Profile_Type) is
-   begin
-      P2.Continuation := P1.Continuation;
-      if P1.Object_Id /= null then
-         P2.Object_Id := new Object_Id'(P1.Object_Id.all);
-      else
-         P2.Object_Id := null;
-      end if;
-   end Duplicate;
-
    -------------
    -- Release --
    -------------
@@ -95,7 +60,6 @@ package body PolyORB.Binding_Data.Local is
      (Oid : Objects.Object_Id;
       P   : out Local_Profile_Type) is
    begin
-      Initialize (P);
       P.Object_Id := new Object_Id'(Oid);
       pragma Assert (P.Object_Id /= null);
    end Create_Local_Profile;
@@ -104,14 +68,14 @@ package body PolyORB.Binding_Data.Local is
    -- Bind_Profile --
    -------------------
 
-   function Bind_Profile
-     (Profile : Local_Profile_Type;
-      The_ORB : Components.Component_Access)
-     return Components.Component_Access
+   procedure Bind_Profile
+     (Profile :     Local_Profile_Type;
+      The_ORB :     Components.Component_Access;
+      Servant : out Components.Component_Access;
+      Error   : out Exceptions.Error_Container)
    is
       pragma Warnings (Off); -- WAG:3.15
-      pragma Unreferenced (Profile);
-      pragma Unreferenced (The_ORB);
+      pragma Unreferenced (Profile, The_ORB, Servant, Error);
       pragma Warnings (On); -- WAG:3.15
 
    begin
@@ -120,11 +84,9 @@ package body PolyORB.Binding_Data.Local is
       --  is handled specially in PolyORB.References.Bind,
       --  but could be implemented as (mostly):
 
-      --  return Components.Component_Access
+      --  Servant := Components.Component_Access
       --    (Find_Servant
       --     (Object_Adapter (Local_ORB), Profile.Object_Id));
-
-      return null;
    end Bind_Profile;
 
    ---------------------

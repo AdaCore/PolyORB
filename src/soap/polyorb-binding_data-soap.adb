@@ -85,21 +85,6 @@ package body PolyORB.Binding_Data.SOAP is
    --  Global variable: the preference to be returned
    --  by Get_Profile_Preference for SOAP profiles.
 
-   ---------------
-   -- Duplicate --
-   ---------------
-
-   procedure Duplicate
-     (P1 : SOAP_Profile_Type; P2 : out SOAP_Profile_Type) is
-   begin
-      P2.Continuation := P1.Continuation;
-      if P1.Object_Id /= null then
-         P2.Object_Id := new Object_Id'(P1.Object_Id.all);
-      else
-         P2.Object_Id := null;
-      end if;
-   end Duplicate;
-
    -------------
    -- Release --
    -------------
@@ -114,16 +99,18 @@ package body PolyORB.Binding_Data.SOAP is
    -- Bind_Profile --
    ------------------
 
-   function Bind_Profile
-     (Profile : SOAP_Profile_Type;
-      The_ORB : Components.Component_Access)
-     return Components.Component_Access
+   procedure Bind_Profile
+     (Profile :     SOAP_Profile_Type;
+      The_ORB :     Components.Component_Access;
+      Servant : out Components.Component_Access;
+      Error   : out Exceptions.Error_Container)
    is
       use PolyORB.Components;
+      use PolyORB.Exceptions;
+      use PolyORB.Filters;
       use PolyORB.ORB;
       use PolyORB.Protocols;
       use PolyORB.Sockets;
-      use PolyORB.Filters;
 
       Sock : Socket_Type;
       Remote_Addr : Sock_Addr_Type := Profile.Address;
@@ -132,6 +119,7 @@ package body PolyORB.Binding_Data.SOAP is
       TE   : constant Transport.Transport_Endpoint_Access :=
         new Socket_Endpoint;
       Filter : Filter_Access;
+
    begin
       Create_Socket (Sock);
       Connect_Socket (Sock, Remote_Addr);
@@ -151,7 +139,12 @@ package body PolyORB.Binding_Data.SOAP is
          ORB.Client);
       --  Register the endpoint and lowest filter with the ORB.
 
-      return Component_Access (Upper (Filter));
+      Servant := Component_Access (Upper (Filter));
+
+   exception
+      when Sockets.Socket_Error =>
+         Throw (Error, Comm_Failure_E, System_Exception_Members'
+                (Minor => 0, Completed => Completed_Maybe));
    end Bind_Profile;
 
    ---------------------

@@ -34,16 +34,17 @@
 --  Management of binding data, i. e. the elements of information
 --  that designate a remote middleware TSAP.
 
---  $Id: //droopi/main/src/polyorb-binding_data.ads#27 $
+--  $Id: //droopi/main/src/polyorb-binding_data.ads#28 $
 
-with PolyORB.Components;
 with PolyORB.Asynch_Ev;
+with PolyORB.Components;
+with PolyORB.Exceptions;
+with PolyORB.Filters;
 with PolyORB.Objects;
 with PolyORB.Smart_Pointers;
 pragma Elaborate_All (PolyORB.Smart_Pointers);
 with PolyORB.Transport;
 with PolyORB.Types;
-with PolyORB.Filters;
 
 package PolyORB.Binding_Data is
 
@@ -68,10 +69,6 @@ package PolyORB.Binding_Data is
 
    procedure Release (P : in out Profile_Type) is abstract;
    --  Free profile data
-
-   procedure Duplicate
-     (P1 : Profile_Type; P2 : out Profile_Type) is abstract;
-   --  Replaces the ':=' operator, as we handle a limited type.
 
    subtype Profile_Tag is Types.Unsigned_Long;
 
@@ -103,10 +100,11 @@ package PolyORB.Binding_Data is
      return Objects.Object_Id_Access;
    --  Retrieve the opaque object key from Profile.
 
-   function Bind_Profile
-     (Profile : Profile_Type;
-      The_ORB : Components.Component_Access)
-     return Components.Component_Access
+   procedure Bind_Profile
+     (Profile :     Profile_Type;
+      The_ORB :     Components.Component_Access;
+      Servant : out Components.Component_Access;
+      Error   : out Exceptions.Error_Container)
       is abstract;
    --  Retrieve a transport endpoint and an attached protocol
    --  stack instance (or create new ones) that match this profile,

@@ -45,7 +45,6 @@ package PolyORB.Binding_Data.IIOP is
    type IIOP_Profile_Type is new Profile_Type with private;
    type IIOP_Profile_Factory is new Profile_Factory with private;
 
-   procedure Duplicate  (P1 : IIOP_Profile_Type; P2 : out IIOP_Profile_Type);
    procedure Release    (P : in out IIOP_Profile_Type);
 
    function Create_Profile
@@ -58,10 +57,11 @@ package PolyORB.Binding_Data.IIOP is
       P  : access Profile_Type'Class)
       return Boolean;
 
-   function Bind_Profile
-     (Profile : IIOP_Profile_Type;
-      The_ORB : Components.Component_Access)
-     return Components.Component_Access;
+   procedure Bind_Profile
+     (Profile :     IIOP_Profile_Type;
+      The_ORB :     Components.Component_Access;
+      Servant : out Components.Component_Access;
+      Error   : out Exceptions.Error_Container);
 
    function Get_Profile_Tag
      (Profile : IIOP_Profile_Type)
