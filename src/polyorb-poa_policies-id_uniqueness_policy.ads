@@ -39,9 +39,8 @@ package PolyORB.POA_Policies.Id_Uniqueness_Policy is
    use PolyORB.POA_Types;
 
    type IdUniquenessPolicy is abstract new Policy with null record;
-   subtype Id_Uniqueness_Policy is IdUniquenessPolicy;
+
    type IdUniquenessPolicy_Access is access all IdUniquenessPolicy'Class;
-   subtype Id_Uniqueness_Policy_Access is IdUniquenessPolicy_Access;
 
    procedure Ensure_Servant_Uniqueness
      (Self      :        IdUniquenessPolicy;

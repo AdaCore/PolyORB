@@ -34,13 +34,15 @@
 package PolyORB.POA_Policies.Id_Uniqueness_Policy.Multiple is
 
    type Multiple_Id_Policy is new IdUniquenessPolicy with null record;
+
    type Multiple_Id_Policy_Access is access all Multiple_Id_Policy;
 
-   function Create return Multiple_Id_Policy_Access;
+   function Create
+     return Multiple_Id_Policy_Access;
 
    procedure Check_Compatibility
-     (Self           : Multiple_Id_Policy;
-      Other_Policies : AllPolicies;
+     (Self           :        Multiple_Id_Policy;
+      Other_Policies :        AllPolicies;
       Error          : in out PolyORB.Exceptions.Error_Container);
 
    function Policy_Id

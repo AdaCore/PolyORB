@@ -37,7 +37,8 @@ package PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique is
 
    type Unique_Id_Policy_Access is access all Unique_Id_Policy;
 
-   function Create return Unique_Id_Policy_Access;
+   function Create
+     return Unique_Id_Policy_Access;
 
    procedure Check_Compatibility
      (Self           :        Unique_Id_Policy;
