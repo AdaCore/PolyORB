@@ -1,266 +1,215 @@
-----------------------------------------------------------------------------
-----                                                                    ----
-----     This in an example which is hand-written                       ----
-----     for the echo object (corresponds to eg2_clt.cc in omniORB      ----
-----                                                                    ----
-----                client                                              ----
-----                                                                    ----
-----                authors : Fabien Azavant, Sebastien Ponce           ----
-----                                                                    ----
-----------------------------------------------------------------------------
-
-
-with Ada.Command_Line ;
-with Text_Io ; use Text_Io ;
-with Corba, Corba.Orb, Corba.Boa, Corba.Object ;
-with All_Functions ; use All_Functions ;
-use Corba ;
+with Ada.Command_Line;
+with Text_IO; use Text_IO;
+with CORBA; use CORBA;
+with CORBA.ORB;
+with CORBA.BOA;
+with CORBA.Object;
+with All_Functions; use All_Functions;
+with Report; use Report;
 
 procedure Client is
 
-   -- Initialization of the ORB
-   Orb : Corba.Orb.Object := Corba.Orb.Orb_Init("omniORB2");
+   ORB : CORBA.ORB.Object := CORBA.ORB.ORB_Init ("omniORB2");
 
-   Sent_Msg, Rcvd_Msg, IOR : CORBA.String ;
+   Sent_Msg, Rcvd_Msg, IOR : CORBA.String;
 
-   myobj : All_Functions.Ref ;
-   I, J, K, L, M : Corba.Short ;
+   MyObj : All_Functions.Ref;
+   I, J, K, L, M : CORBA.Short;
+   Ok : Boolean;
 
 begin
 
    if Ada.Command_Line.Argument_Count < 1 then
-      Put_Line ("usage : client <IOR_string_from_server>") ;
-      return ;
-   end if ;
+      Put_Line ("usage : client <IOR_string_from_server>");
+      return;
+   end if;
 
-   -- transforms the Ada string into Corba.String
-   IOR := Corba.To_Corba_String(Ada.Command_Line.Argument(1)) ;
+   IOR := CORBA.To_CORBA_String (Ada.Command_Line.Argument (1));
+   CORBA.ORB.String_To_Object (IOR, MyObj);
 
-   -- getting the Corba.Object
-   Corba.Orb.String_To_Object(IOR, myobj) ;
+   Output ("test not nil reference", not Is_Nil (MyObj));
 
-   -- checking if it worked
-   if All_Functions.Is_Nil(myobj) then
-      Put_Line("main : cannot invoke on a nil reference") ;
-      return ;
-   end if ;
+   Set_The_Attribute (MyObj, 24);
+   Output ("test attribute", Get_The_Attribute (MyObj) = 24);
 
-   Put_Line("Setting the attribute to 24 ") ;
-   Set_The_Attribute(Myobj, Corba.Short(24)) ;
-   Put_Line("Setting the attribute -> OK ") ;
-   Put_Line("") ;
+   Output ("test readonly attribute", Get_The_Readonly_Attribute (MyObj) = 18);
 
-   Put_Line("Getting the attribute ... ") ;
-   I := Get_The_Attribute(Myobj) ;
-   Put_Line("Got the attribute -> " & Corba.Short'Image(I)) ;
-   Put_Line("") ;
+   begin
+      Ok := True;
+      Void_Proc (MyObj);
+   exception when others =>
+      Ok := False;
+   end;
+   Output ("test void procedure", Ok);
 
-   Put_Line("Getting the readonly attribute : expecting 18 ") ;
-   I := Get_The_Readonly_Attribute(Myobj) ;
-   Put_Line("Got the readonly_attribute -> " & Corba.Short'Image(I)) ;
-   Put_Line("") ;
+   begin
+      In_Proc (MyObj, 1, 2, 3);
+      Ok := True;
+   exception when others =>
+      Ok := False;
+   end;
+   Output ("test in param procedure", Ok);
 
-   Put_Line("void_proc ... ") ;
-   Void_Proc(Myobj) ;
-   Put_Line("void_proc -> OK ") ;
-   Put_Line("") ;
+   begin
+      Ok := False;
+      Out_Proc (MyObj, I, J, K);
+      Ok := (I = 10) and then (J = 11) and then (K = 12);
+   exception when others =>
+      null;
+   end;
+   Output ("test out param procedure", Ok);
 
-   Put_Line("in_proc(1,2,3)") ;
-   I := 1 ;
-   J := 2 ;
-   K := 3 ;
-   In_Proc(Myobj, I, J, K) ;
-   Put_Line("in_proc -> OK") ;
-   Put_Line("") ;
+   begin
+      Ok := False;
+      I  := 2;
+      J  := 3;
+      Inout_Proc (MyObj, I, J);
+      Ok := (I = 3 and then J = 4);
+   exception when others =>
+      null;
+   end;
+   Output ("test in out param procedure", Ok);
 
-   Put_Line("out_proc : expecting 10, 11, 12") ;
-   Out_Proc(Myobj, I, J, K) ;
-   Put_Line("out_proc : "
-            & Corba.Short'Image(I)
-            & ", "
-            & Corba.Short'Image(J)
-            & ", "
-            & Corba.Short'Image(K)) ;
-   Put_Line("") ;
+   begin
+      Ok := False;
+      I := 1;
+      J := 2;
+      In_Out_Proc (MyObj, 1, 2, I, J);
+      Ok := (I = 3 and then J = 4);
+   exception when others =>
+      null;
+   end;
+   Output ("test in and out param procedure", Ok);
 
-   Put_Line("inout_proc : expecting 3, 4") ;
-   I := 2 ;
-   J := 3 ;
-   Inout_Proc(Myobj, I, J) ;
-   Put_Line("inout_proc : "
-            & Corba.Short'Image(I)
-            & ", "
-            & Corba.Short'Image(J)) ;
-   Put_Line("") ;
+   begin
+      Ok := False;
+      I  := -4;
+      J  := -5;
+      In_Inout_Proc (MyObj, 1, I, 3, J);
+      Ok := (I = 36) and then (J = 40);
+   exception when others =>
+      null;
+   end;
+   Output ("test in and inout param procedure", Ok);
 
-   Put_Line("in_out_proc (1,2), expecting 3,4") ;
-   In_Out_Proc(Myobj, I,J,K,L) ;
-   Put_Line("in_out_proc "
-            & Corba.Short'Image(K)
-            & ", "
-            & Corba.Short'Image(L)) ;
-   Put_Line("") ;
+   begin
+      I := -11;
+      J := -21;
+      K := -31;
+      K := -41;
+      Out_Inout_Proc (MyObj, I, J, K, L);
+      Ok := (I = 45) and then (J = 46) and then (K = 47) and then (L = 48);
+   exception when others =>
+      null;
+   end;
+   Output ("test inout and out param procedure", Ok);
 
-   Put_Line("in_inout_proc(-1,-2,-3,-4), expecting -1, 36, -3, 40") ;
-   I := -1 ;
-   J := -2 ;
-   K := -3 ;
-   L := -4 ;
-   In_Inout_Proc(Myobj, I,J,K,L) ;
-   Put_Line("in_inout_proc -> OK"
-            & Corba.Short'Image(i)
-            & ", "
-            & Corba.Short'Image(j)
-            & ", "
-            & Corba.Short'Image(K)
-            & ", "
-            & Corba.Short'Image(L)) ;
-   Put_Line("") ;
+   begin
+      Ok := False;
+      I := 78;
+      J := 79;
+      In_Out_Inout_Proc (MyObj, 1, I, J);
+      Ok := (I = -54) and then (J = 80);
+   exception when others =>
+      null;
+   end;
+   Output ("test in and out and inout param procedure", Ok);
 
-   Put_Line("out_inout_proc(-11,-21,-31,-41), expecting 45,46,47,48") ;
-   I := -11 ;
-   J := -21 ;
-   K := -31 ;
-   K := -41 ;
-   Out_Inout_Proc(Myobj, I,J,K,L) ;
-   Put_Line("out_inout_proc ->  "
-               & Corba.Short'Image(i)
-               & ", "
-               & Corba.Short'Image(j)
-               & ", "
-               & Corba.Short'Image(k)
-               & ", "
-               & Corba.Short'Image(l)) ;
-   Put_Line("") ;
+   Output ("test void function", Void_Fun (MyObj) = 3);
+   Output ("test in param function", In_Fun (MyObj, 1, 2, 3) = 7);
 
-   Put_Line("in_out_inout_proc, expecting 78, -54 ,81") ;
-   I := 78 ;
-   J := 79 ;
-   K := 80 ;
-   In_Out_Inout_Proc(Myobj, I,J,K) ;
-   Put_Line("in_out_inout_proc -> "
-               & Corba.Short'Image(i)
-               & ", "
-               & Corba.Short'Image(j)
-               & ", "
-               & Corba.Short'Image(k)) ;
-   Put_Line("") ;
+   begin
+      Ok := False;
+      I := 1;
+      J := 2;
+      K := 3;
+      L := 4;
+      Out_Fun (MyObj, I, J, K, L);
+      Ok := (I = 5) and then (J = 6) and then (K = 7) and then (L = 10);
+   exception when others =>
+      null;
+   end;
+   Output ("test out param function", Ok);
 
-   Put_Line("void_fun ... expecting 3 ") ;
-   I:= 0 ;
-   I := Void_Fun(Myobj) ;
-   Put_Line("void_fun  " & Short'Image(I)) ;
-   Put_Line("") ;
+   begin
+      Ok := False;
+      I := 1;
+      J := 2;
+      K := 3;
+      Inout_Fun (MyObj, I, J, L);
+      Ok := (I = 2) and then (J = 3) and then (L = 5);
+   exception when others =>
+      null;
+   end;
+   Output ("test inout param function", Ok);
 
+   begin
+      Ok := False;
+      I := 10;
+      J := 11;
+      In_Out_Fun (MyObj, 1, 2, I, J, K);
+      Ok := (I = 2) and then (J = 1) and then (K = 3);
+   exception when others =>
+      null;
+   end;
+   Output ("test in and out param function", Ok);
 
-   Put_Line("in_fun(1,2,3), expecting 7") ;
-   I := 1 ;
-   J := 2 ;
-   K := 3 ;
-   L := In_Fun(Myobj, I, J, K) ;
-   Put_Line("in_fun -> " & Short'Image(L)) ;
-   Put_Line("") ;
+   begin
+      Ok := False;
+      I := -1;
+      J := -2;
+      K := -3;
+      In_Inout_Fun (MyObj, -1, I, -2, J, K);
+      Ok := (I = -2) and then (J = -4) and then (K = -6);
+   exception when others =>
+      null;
+   end;
+   Output ("test in and inout param function", Ok);
 
-   Put_Line("out_fun : expecting 5,6,7,10") ;
-   Out_Fun(Myobj, I, J, K, L) ;
-   Put_Line("out_fun : "
-            & Corba.Short'Image(I)
-            & ", "
-            & Corba.Short'Image(J)
-            & ", "
-            & Corba.Short'Image(K)
-            & ", "
-            & Corba.Short'Image(L)) ;
-   Put_Line("") ;
+   begin
+      Ok := False;
+      I := -1;
+      J := -2;
+      K := -3;
+      L := -4;
+      M := -5;
+      Out_Inout_Fun (MyObj, I, J, K, L, M);
+      Ok := (I = -2) and then (J = -1) and then (K = -2)
+        and then (L = -3) and then (M = -7);
+   exception when others =>
+      null;
+   end;
+   Output ("test out and inout param function", Ok);
 
-   Put_Line("inout_fun : expecting 3, 4, 7") ;
-   I := 2 ;
-   J := 3 ;
-   Inout_Fun(Myobj, I, J, L) ;
-   Put_Line("inout_fun : "
-            & Corba.Short'Image(I)
-            & ", "
-            & Corba.Short'Image(j)
-            & ", "
-            & Corba.Short'Image(l)) ;
-   Put_Line("") ;
+   begin
+      Ok := False;
+      I := -1;
+      J := -2;
+      K := -3;
+      In_Out_Inout_Fun (MyObj, 85, I, J, K);
+      Ok := (I = 86) and then (J = 83) and then (K = -1);
+   exception when others =>
+      null;
+   end;
+   Output ("test in and out and inout param function", Ok);
 
-   Put_Line("in_out_fun, expecting 11, 10, 21") ;
-   I := 10 ;
-   J := 11 ;
-   In_Out_Fun(Myobj, I,J,K,L, M) ;
-   Put_Line("in_out_fun -> "
-            & Corba.Short'Image(I)
-            & ", "
-            & Corba.Short'Image(J)
-            & ", "
-            & Corba.Short'Image(M)) ;
-   Put_Line("") ;
+   begin
+      Oneway_Void_Proc (MyObj);
+      Ok := True;
+   exception when others =>
+      Ok := False;
+   end;
+   Output ("test void one way procedure", Ok);
 
-   Put_Line("in_inout_fun, expecting 53, 107, 12, 46, 153") ;
-   I := 53 ;
-   J := 54 ;
-   K := 12 ;
-   L := 34 ;
-   In_Inout_Fun(Myobj, I,J,K,L,M) ;
-   Put_Line("in_inout_fun -> "
-            & Corba.Short'Image(I)
-            & ", "
-            & Corba.Short'Image(j)
-            & ", "
-            & Corba.Short'Image(k)
-            & ", "
-            & Corba.Short'Image(l)
-            & ", "
-            & Corba.Short'Image(M)) ;
-   Put_Line("") ;
+   begin
+      Oneway_In_Proc (MyObj, 1, 2, 3);
+      Ok := True;
+   exception when others =>
+      Ok := False;
+   end;
+   Output ("test in param one way procedure", Ok);
 
-   Put_Line("out_inout_fun, expecting -86, -85, 86, 85, 1") ;
-   J := -86 ;
-   K := 85 ;
-   Out_Inout_Fun(Myobj, I,J,K,L,M) ;
-   Put_Line("out_inout_fun -> "
-            & Corba.Short'Image(I)
-            & ", "
-            & Corba.Short'Image(j)
-            & ", "
-            & Corba.Short'Image(k)
-            & ", "
-            & Corba.Short'Image(l)
-            & ", "
-            & Corba.Short'Image(M)) ;
-   Put_Line("") ;
-
-   Put_Line("in_out_inout_fun, expecting 15, 16, -30, -1") ;
-   I := 15 ;
-   K := -45 ;
-   In_Out_Inout_Fun(Myobj, I,J,K,L) ;
-   Put_Line("in_out_inout_fun -> OK"
-            & Corba.Short'Image(I)
-            & ", "
-            & Corba.Short'Image(j)
-            & ", "
-            & Corba.Short'Image(k)
-            & ", "
-            & Corba.Short'Image(l)) ;
-   Put_Line("") ;
-
-
-   Put_Line("oneway_void_proc ... ") ;
-   Oneway_Void_Proc(Myobj) ;
-   Put_Line("void_proc -> OK ") ;
-   Put_Line("") ;
-
-   Put_Line("onewayin_proc(1,2,3)") ;
-   I := 1 ;
-   J := 2 ;
-   K := 3 ;
-   Oneway_In_Proc(Myobj, I, J, K) ;
-   Put_Line("in_proc -> OK") ;
-   Put_Line("") ;
-
-
-end Client ;
+end Client;
 
 
 
