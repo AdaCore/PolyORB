@@ -33,13 +33,16 @@
 
 with CORBA;
 with PortableServer;
+with RTCORBA;
 
 package Echo.Impl is
 
    --  My own implementation of echo object.
    --  This is simply used to define the operations.
 
-   type Object is new PortableServer.Servant_Base with null record;
+   type Object is new PortableServer.Servant_Base with record
+      Priority : RTCORBA.Priority;
+   end record;
 
    type Object_Acc is access Object;
 

@@ -206,6 +206,10 @@ package body PolyORB.ORB_Controller.No_Tasking is
             --  it asks for scheduling.
 
             null;
+
+         when Idle_Awake =>
+            null;
+
       end case;
 
       pragma Debug (O2 (Status (O)));

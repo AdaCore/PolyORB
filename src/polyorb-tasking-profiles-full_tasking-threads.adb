@@ -58,10 +58,11 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
 
    --  Task types.
 
-   task type Generic_Task (P : System.Priority) is
+   task type Generic_Task (P : System.Priority; S : Natural) is
       --  All purpose generic task that executes a 'Runnable'
 
       pragma Priority (P);
+      pragma Storage_Size (S);
 
       entry Initialize (T : PTT.Thread_Access);
       --  Initialize the task.
@@ -71,11 +72,6 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
          C   : PTT.Runnable_Controller_Access);
       --  Start the task.
 
-      pragma Storage_Size
-        (PolyORB.Parameters.Get_Conf
-           ("tasking",
-            "polyorb.tasking.threads.storage_size",
-            262_144));
    end Generic_Task;
 
    type Generic_Task_Access is access Generic_Task;
@@ -137,6 +133,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
      (TF               : access Full_Tasking_Thread_Factory_Type;
       Name             : String := "";
       Default_Priority : System.Any_Priority := System.Default_Priority;
+      Storage_Size     : Natural := 0;
       R                : PTT.Runnable_Access;
       C                : PTT.Runnable_Controller_Access)
      return PTT.Thread_Access
@@ -148,13 +145,23 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
       T : constant Full_Tasking_Thread_Access
         := new Full_Tasking_Thread_Type;
       GT : Generic_Task_Access;
+
    begin
       T.Priority := System.Priority
         (PolyORB.Parameters.Get_Conf
            ("tasking", "polyorb.tasking.threads." & Name & ".priority",
             Default_Priority));
 
-      GT := new Generic_Task (T.Priority);
+      if Storage_Size = 0 then
+         T.Stack_Size := PolyORB.Parameters.Get_Conf
+           ("tasking",
+            "polyorb.tasking.threads.storage_size",
+            PTT.Default_Storage_Size);
+      else
+         T.Stack_Size := Storage_Size;
+      end if;
+
+      GT := new Generic_Task (T.Priority, T.Stack_Size);
       GT.Initialize (PTT.Thread_Access (T));
       GT.Start (R, C);
       return PTT.Thread_Access (T);
@@ -164,14 +171,22 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
      (TF               : access Full_Tasking_Thread_Factory_Type;
       Name             : String := "";
       Default_Priority : System.Any_Priority := System.Default_Priority;
+      Storage_Size     : Natural := 0;
       P                : PTT.Parameterless_Procedure)
      return PTT.Thread_Access
    is
       R : constant PTT.Runnable_Access := new Simple_Runnable;
+
    begin
       Simple_Runnable (R.all).Main_Subprogram := P;
+
       return Run_In_Task
-        (TF, Name, Default_Priority, R, new PTT.Runnable_Controller);
+        (TF,
+         Name,
+         Default_Priority,
+         Storage_Size,
+         R,
+         new PTT.Runnable_Controller);
    end Run_In_Task;
 
    ------------------

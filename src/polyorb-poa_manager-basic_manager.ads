@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -52,9 +52,9 @@ package PolyORB.POA_Manager.Basic_Manager is
    type Basic_POA_Manager is new POAManager with private;
    type Basic_POA_Manager_Access is access all Basic_POA_Manager;
 
-   ----------------------------------------------------------------------
-   --  Procedures and functions to implement the POAManager interface  --
-   ----------------------------------------------------------------------
+   --------------------------------------------------------------------
+   -- Procedures and functions to implement the POAManager interface --
+   --------------------------------------------------------------------
 
    procedure Activate
      (Self  : access Basic_POA_Manager;
@@ -74,13 +74,11 @@ package PolyORB.POA_Manager.Basic_Manager is
       Etherealize_Objects :        Boolean;
       Wait_For_Completion :        Boolean);
 
-   function Get_State
-     (Self : Basic_POA_Manager)
-     return State;
+   function Get_State (Self : Basic_POA_Manager) return State;
 
-   ---------------------------------------------------------------
-   --  Procedures and functions specific to the implementation  --
-   ---------------------------------------------------------------
+   -------------------------------------------------------------
+   -- Procedures and functions specific to the implementation --
+   -------------------------------------------------------------
 
    procedure Create (M : access Basic_POA_Manager);
 
@@ -97,9 +95,9 @@ package PolyORB.POA_Manager.Basic_Manager is
       OA   :        Obj_Adapter_Access)
      return PolyORB.Servants.Servant_Access;
 
-   -----------------------------------
-   --  Holding state implementation --
-   -----------------------------------
+   ----------------------------------
+   -- Holding state implementation --
+   ----------------------------------
 
    --  When the POAManager is in the HOLDING state:
    --    A new entry to the queue is created, along with a Hold_Servant
@@ -110,8 +108,8 @@ package PolyORB.POA_Manager.Basic_Manager is
    --  When the POAManager changes again to the ACTIVE state:
    --    The requests in the queue are re-sent to the POA, that will send them
    --    to the ORB to be executed again.
-   --    Beware that the requests are queued in the ORB queue, and are not
-   --    first.
+   --    Note that the requests are queued in the ORB queue, using ORB
+   --    queueing policy.
 
    type Hold_Servant is new PolyORB.Servants.Servant with private;
    type Hold_Servant_Access is access all Hold_Servant;
@@ -120,37 +118,34 @@ package PolyORB.POA_Manager.Basic_Manager is
      (Obj : access Hold_Servant;
       Msg :        PolyORB.Components.Message'Class)
      return PolyORB.Components.Message'Class;
-   --  Implementation of the Hold_Servant servant.
+   --  Implementation of the Hold_Servant servant
 
 private
+
+   package POA_Lists is
+      new PolyORB.Utils.Chained_Lists (Obj_Adapter_Access, "=", True);
+   subtype POAList is POA_Lists.List;
 
    package Requests_Queue_P is
       new PolyORB.Utils.Chained_Lists (Execute_Request);
    subtype Requests_Queue is Requests_Queue_P.List;
 
    type Basic_POA_Manager is new POAManager with record
-      Usage_Count     : Integer := 0;
-      --  XXX bad name.
-      --  Number of POA managed by the POA Manager.
+      Current_State : State;
 
-      State_Lock      : PolyORB.Tasking.Mutexes.Mutex_Access;
-      --  Lock the state.
+      Managed_POAs  : POAList;
 
-      Count_Lock      : PolyORB.Tasking.Mutexes.Mutex_Access;
-      --  Lock on the usage counter.
-
-      POAs_Lock       : PolyORB.Tasking.Mutexes.Mutex_Access;
-      --  Lock on the sequence of managed POAs.
+      Lock : PolyORB.Tasking.Mutexes.Mutex_Access;
+      --  Lock the POA Manager
 
       PM_Hold_Servant : Hold_Servant_Access := null;
-      --  Reference to the holding servant.
+      --  Reference to the holding servant
 
       Held_Requests : Requests_Queue;
-      --  List of requests held by the POAManager.
-
-      Queue_Lock      : PolyORB.Tasking.Mutexes.Mutex_Access;
-      --  Lock on the queue of pending requests.
+      --  List of requests held by the POAManager
    end record;
+
+   procedure Finalize (Self : in out Basic_POA_Manager);
 
    type Hold_Servant is new PolyORB.Servants.Servant with record
       PM : Basic_POA_Manager_Access := null;

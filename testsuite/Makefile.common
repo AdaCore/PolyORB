@@ -1,7 +1,6 @@
-IDLAC = $(top_builddir)/compilers/idlac/idlac
-LINKER = $(top_builddir)/support/linker
+include $(top_srcdir)/Makefile.common
 
-corba_lib=-I$(top_builddir)/src/corba/libpolyorb-corba.la -I$(EXAMPLES_ROOT)/../src/corba/rtcorba/libpolyorb-corba-rtcorba.la
+corba_lib=-I$(top_builddir)/src/corba/libpolyorb-corba.la -I$(top_builddir)/src/corba/rtcorba/libpolyorb-corba-rtcorba.la
 giop_lib=-I$(top_builddir)/src/giop/libpolyorb-giop.la -I$(top_builddir)/src/giop/iiop/libpolyorb-giop-iiop.la -I$(top_builddir)/src/giop/diop/libpolyorb-giop-diop.la -I$(top_builddir)/src/giop/miop/libpolyorb-giop-miop.la
 moma_lib=-I$(top_builddir)/src/moma/libpolyorb-moma.la
 soap_lib=-I$(top_builddir)/src/soap/libpolyorb-soap.la 
@@ -14,7 +13,10 @@ naming_inc=-I$(top_srcdir)/cos/naming -I$(top_builddir)/cos/naming \
            -I$(top_builddir)/idls/cos/naming
 time_inc=-I$(top_srcdir)/cos/time -I$(top_builddir)/cos/time \
            -I$(top_builddir)/idls/cos/time
-corba_inc=-I$(top_srcdir)/src/corba -I$(top_builddir)/src/corba $(naming_inc) $(time_inc) -I$(top_srcdir)/src/corba/portableinterceptor -I$(top_builddir)/src/corba/portableinterceptor -I$(top_srcdir)/src/corba/rtcorba -I$(top_builddir)/src/corba/rtcorba
+event_inc=-I$(top_srcdir)/cos/event -I$(top_builddir)/cos/event \
+           -I$(top_builddir)/idls/cos/event
+
+corba_inc=-I$(top_srcdir)/src/corba -I$(top_builddir)/src/corba $(naming_inc) $(time_inc) $(event_inc) -I$(top_srcdir)/src/corba/portableinterceptor -I$(top_builddir)/src/corba/portableinterceptor -I$(top_srcdir)/src/corba/rtcorba -I$(top_builddir)/src/corba/rtcorba
 giop_inc=-I$(top_srcdir)/src/giop -I$(top_builddir)/src/giop -I$(top_srcdir)/src/giop/iiop -I$(top_builddir)/src/giop/iiop -I$(top_srcdir)/src/giop/diop -I$(top_builddir)/src/giop/diop -I$(top_builddir)/src/giop/iiop -I$(top_srcdir)/src/giop/miop -I$(top_builddir)/src/giop/miop
 moma_inc=-I$(top_srcdir)/src/moma -I$(top_builddir)/src/moma
 soap_inc=-I$(top_srcdir)/src/soap -I$(top_builddir)/src/soap
@@ -43,14 +45,6 @@ CLEANFILES = b~*.* *.o *.ali
 DISTCLEANFILES = @APPLI_EXES@ @SERVICE_EXES@
 
 all-local:  @APPLI_EXES@ @SERVICE_EXES@
-
-SUFFIXES = .idl .ads .adb
-
-.idl.ads:
-	$(IDLAC) $(IDLAC_FLAGS) $<
-
-.idl.adb:
-	$(IDLAC) $(IDLAC_FLAGS) $<
 
 @APPLI_EXES@ @SERVICE_EXES@: src $(idl)
 	$(GNATMAKE_FOR_TARGET) $@ $($@_FLAGS) $(GNATMAKE_FLAGS)

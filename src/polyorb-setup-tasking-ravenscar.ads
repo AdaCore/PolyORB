@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -36,6 +36,9 @@
 --  $Id$
 
 with System;
+
+with PolyORB.Tasking.Profiles.Ravenscar.Threads.Annotations;
+
 with PolyORB.Tasking.Profiles.Ravenscar.Threads;
 with PolyORB.Tasking.Profiles.Ravenscar.Mutexes;
 with PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables;
@@ -54,7 +57,10 @@ generic
    --  Number of preallocated mutexes.
 
    Task_Priority                  : System.Priority;
-   --  Priority affected  to the tasks of the pool.
+   --  Priority affected to the tasks of the pool.
+
+   Storage_Size                   : Natural;
+   --  Stack size of the system tasks.
 
 package PolyORB.Setup.Tasking.Ravenscar is
 
@@ -62,7 +68,10 @@ package PolyORB.Setup.Tasking.Ravenscar is
       new PolyORB.Tasking.Profiles.Ravenscar.Threads
      (Number_Of_Application_Tasks,
       Number_Of_System_Tasks,
-      Task_Priority);
+      Task_Priority,
+      Storage_Size);
+
+   package Thread_Annotations_Package is new Threads_Package.Annotations;
 
    package Conditions_Package is
       new PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables

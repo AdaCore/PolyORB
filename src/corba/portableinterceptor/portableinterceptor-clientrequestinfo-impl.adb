@@ -206,8 +206,8 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
       return ReplyStatus
    is
    begin
-      if Self.Point /= Send_Request
-        and then Self.Point /= Send_Poll
+      if Self.Point = Send_Request
+        or else Self.Point = Send_Poll
       then
          CORBA.Raise_Bad_Inv_Order
           (CORBA.Bad_Inv_Order_Members'(Minor     => 14,

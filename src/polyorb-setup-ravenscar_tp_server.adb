@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -61,7 +61,8 @@ package body PolyORB.Setup.Ravenscar_TP_Server is
       Number_Of_System_Tasks      => 20,
       Number_Of_Conditions        => 1_000,
       Number_Of_Mutexes           => 1_000,
-      Task_Priority               => System.Default_Priority);
+      Task_Priority               => System.Default_Priority,
+      Storage_Size                => 262_144);
 
    pragma Unreferenced (Ravenscar_Profile_Instance);
    --  There is no direct reference on this package: it only

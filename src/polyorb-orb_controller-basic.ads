@@ -99,19 +99,10 @@ private
    package PTM renames PolyORB.Tasking.Mutexes;
    package PTCV renames PolyORB.Tasking.Condition_Variables;
 
-   --  Under this ORB controller implementation, several tasks may go
-   --  idle. Each idle task waits on a specific condition variable.
-
-   type Idle_Task is record
-      CV : PTCV.Condition_Access;
-      TI : PTI.Task_Info_Access;
-   end record;
-
-   package Idle_Task_Lists is
-      new PolyORB.Utils.Chained_Lists (Idle_Task);
+   package Task_Lists renames PTI.Task_Lists;
 
    package CV_Lists is
-      new PolyORB.Utils.Chained_Lists (PTCV.Condition_Access, PTCV."=");
+     new PolyORB.Utils.Chained_Lists (PTCV.Condition_Access, PTCV."=");
 
    type ORB_Controller_Basic is new ORB_Controller with record
 
@@ -128,7 +119,7 @@ private
       -- Idle tasks --
       ----------------
 
-      Idle_Task_List : Idle_Task_Lists.List;
+      Idle_Task_List : Task_Lists.List;
       --  List of idle tasks
 
       Free_CV : CV_Lists.List;

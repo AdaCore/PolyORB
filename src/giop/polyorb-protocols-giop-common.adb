@@ -197,7 +197,7 @@ package body PolyORB.Protocols.GIOP.Common is
 
       --  Marshall reply header
 
-      Marshall_GIOP_Header_Reply (Sess.Implem, Sess, Buffer_Out);
+      Marshall_GIOP_Header_Reply (Sess.Implem, Sess, Request, Buffer_Out);
 
       case Reply_Status is
          when User_Exception | System_Exception =>

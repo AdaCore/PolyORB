@@ -31,8 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Task_Attributes;
-
+with PolyORB.Annotations;
 with PolyORB.Asynch_Ev;
 with PolyORB.Constants;
 with PolyORB.Initialization;
@@ -40,17 +39,19 @@ pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Log;
 with PolyORB.Parameters;
-with PolyORB.Tasking.Threads;
+with PolyORB.Tasking.Threads.Annotations;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.ORB_Controller.Leader_Followers is
 
+   use PolyORB.Annotations;
    use PolyORB.Jobs;
    use PolyORB.Log;
    use PolyORB.Task_Info;
    use PolyORB.Tasking.Condition_Variables;
    use PolyORB.Tasking.Mutexes;
    use PolyORB.Tasking.Threads;
+   use PolyORB.Tasking.Threads.Annotations;
 
    package L is
       new PolyORB.Log.Facility_Log
@@ -76,15 +77,10 @@ package body PolyORB.ORB_Controller.Leader_Followers is
      (O : access ORB_Controller_Leader_Followers);
    --  Awake one idle task, if any. Elso do nothing.
 
-   type LF_Task_Attribute is record
+   type LF_Task_Note is new PolyORB.Annotations.Note with record
       TI  : Thread_Id;
       Job : Job_Access;
    end record;
-
-   Default_Attribute : constant LF_Task_Attribute := (Null_Thread_Id, null);
-
-   package Attributes is
-      new Ada.Task_Attributes (LF_Task_Attribute, Default_Attribute);
 
    -------------------
    -- Register_Task --
@@ -100,7 +96,8 @@ package body PolyORB.ORB_Controller.Leader_Followers is
       O.Registered_Tasks := O.Registered_Tasks + 1;
       O.Unscheduled_Tasks := O.Unscheduled_Tasks + 1;
 
-      Attributes.Set_Value ((Id (TI.all), null));
+      Set_Note (Get_Current_Thread_Notepad.all,
+                LF_Task_Note'(Note with TI => Id (TI.all), Job => null));
 
       pragma Debug (O1 ("Register_Task: leave"));
       pragma Debug (O2 (Status (O)));
@@ -110,14 +107,8 @@ package body PolyORB.ORB_Controller.Leader_Followers is
    -- Disable_Polling --
    ---------------------
 
-   procedure Disable_Polling
-     (O : access ORB_Controller_Leader_Followers)
-   is
+   procedure Disable_Polling (O : access ORB_Controller_Leader_Followers) is
    begin
-
-      --  Prevent all tasks to poll.
-
-      O.Polling_Abort_Counter := O.Polling_Abort_Counter + 1;
 
       --  Force all tasks currently waiting on event sources to abort
 
@@ -132,7 +123,9 @@ package body PolyORB.ORB_Controller.Leader_Followers is
            (Selector (O.Blocked_Task_Info.all).all);
 
          pragma Debug (O1 ("Disable_Polling: waiting abort is complete"));
+         O.Polling_Abort_Counter := O.Polling_Abort_Counter + 1;
          Wait (O.Polling_Completed, O.ORB_Lock);
+         O.Polling_Abort_Counter := O.Polling_Abort_Counter - 1;
 
          pragma Debug (O1 ("Disable_Polling: aborting done"));
       end if;
@@ -144,9 +137,6 @@ package body PolyORB.ORB_Controller.Leader_Followers is
 
    procedure Enable_Polling (O : access ORB_Controller_Leader_Followers) is
    begin
-
-      O.Polling_Abort_Counter := O.Polling_Abort_Counter - 1;
-
       if O.Polling_Abort_Counter = 0 then
 
          --  Allocate one task to poll on AES
@@ -263,21 +253,30 @@ package body PolyORB.ORB_Controller.Leader_Followers is
 
             --  O.Number_Of_AES := O.Number_Of_AES - 1;
 
-            if Attributes.Value.TI = E.By_Task
-              and then Attributes.Value.Job = null
-            then
+            declare
+               Note : LF_Task_Note;
 
-               --  Queue event directly into task attribute
+            begin
+               Get_Note (Get_Current_Thread_Notepad.all, Note);
 
-               Attributes.Set_Value
-                 (LF_Task_Attribute'(E.By_Task, E.Event_Job));
-            else
+               if Note.TI = E.By_Task
+                 and then Note.Job = null
+               then
 
-               --  Queue event to main job queue
+                  --  Queue event directly into task attribute
 
-               PJ.Queue_Job (O.Job_Queue, E.Event_Job);
-               Try_Allocate_One_Task (O);
-            end if;
+                  Set_Note
+                    (Get_Current_Thread_Notepad.all,
+                     LF_Task_Note'(Annotations.Note
+                                   with TI => E.By_Task, Job => E.Event_Job));
+               else
+
+                  --  Queue event to main job queue
+
+                  PJ.Queue_Job (O.Job_Queue, E.Event_Job);
+                  Try_Allocate_One_Task (O);
+               end if;
+            end;
 
          when Queue_Request_Job =>
 
@@ -288,21 +287,32 @@ package body PolyORB.ORB_Controller.Leader_Followers is
 
                --  Queue event to main job queue
 
-               if Attributes.Value.TI = Current_Task
-                 and then Attributes.Value.Job = null
-               then
+               declare
+                  Note : LF_Task_Note;
 
-                  --  Queue event directly into task attribute
-                  pragma Debug (O1 ("Queue request in task area"));
+               begin
+                  Get_Note
+                    (Get_Current_Thread_Notepad.all,
+                     Note);
 
-                  Attributes.Set_Value
-                    (LF_Task_Attribute'(Attributes.Value.TI, E.Request_Job));
+                  if Note.TI = Current_Task
+                    and then Note.Job = null
+                  then
+                     --  Queue event directly into task attribute
 
-               else
-                  O.Number_Of_Pending_Jobs := O.Number_Of_Pending_Jobs + 1;
-                  PJ.Queue_Job (O.Job_Queue, E.Request_Job);
-                  Try_Allocate_One_Task (O);
-               end if;
+                     pragma Debug (O1 ("Queue request in task area"));
+
+                     Set_Note
+                       (Get_Current_Thread_Notepad.all,
+                        LF_Task_Note'(Annotations.Note
+                                      with TI => Note.TI,
+                                      Job => E.Request_Job));
+                  else
+                     O.Number_Of_Pending_Jobs := O.Number_Of_Pending_Jobs + 1;
+                     PJ.Queue_Job (O.Job_Queue, E.Request_Job);
+                     Try_Allocate_One_Task (O);
+                  end if;
+               end;
             end if;
 
          when Request_Result_Ready =>
@@ -360,6 +370,10 @@ package body PolyORB.ORB_Controller.Leader_Followers is
 
                   null;
             end case;
+
+         when Idle_Awake =>
+            List_Detach (E.Awakened_Task.all, O.Idle_Task_List);
+
       end case;
 
       pragma Debug (O2 (Status (O)));
@@ -373,6 +387,8 @@ package body PolyORB.ORB_Controller.Leader_Followers is
      (O  : access ORB_Controller_Leader_Followers;
       TI :        PTI.Task_Info_Access)
    is
+      Note : LF_Task_Note;
+
    begin
       pragma Debug (O1 ("Schedule_Task " & PTI.Image (TI.all) & ": enter"));
 
@@ -381,6 +397,7 @@ package body PolyORB.ORB_Controller.Leader_Followers is
       --  Update counters
 
       O.Unscheduled_Tasks := O.Unscheduled_Tasks - 1;
+      Get_Note (Get_Current_Thread_Notepad.all, Note);
 
       --  Recompute TI status
 
@@ -393,16 +410,19 @@ package body PolyORB.ORB_Controller.Leader_Followers is
 
          Set_State_Terminated (TI.all);
 
-      elsif Attributes.Value.Job /= null then
+      elsif Note.Job /= null then
 
          --  Process locally queued job
 
          O.Running_Tasks := O.Running_Tasks + 1;
 
          declare
-            Job : constant Job_Access := Attributes.Value.Job;
+            Job : constant Job_Access := Note.Job;
          begin
-            Attributes.Set_Value (LF_Task_Attribute'(Id (TI.all), null));
+            Set_Note
+              (Get_Current_Thread_Notepad.all,
+               LF_Task_Note'(Annotations.Note
+                             with TI => Note.TI, Job => null));
 
             Set_State_Running (TI.all, Job);
          end;
@@ -440,14 +460,9 @@ package body PolyORB.ORB_Controller.Leader_Followers is
 
          O.Idle_Tasks := O.Idle_Tasks + 1;
 
-         declare
-            CV : constant PTCV.Condition_Access := Allocate_CV (O);
-
-         begin
-            Set_State_Idle (TI.all, CV, O.ORB_Lock);
-
-            Idle_Task_Lists.Append (O.Idle_Task_List, Idle_Task'(CV, TI));
-         end;
+         Set_State_Idle (TI.all, Allocate_CV (O), O.ORB_Lock);
+         Idle_Task_Lists.Append (O.Idle_Task_List, TI);
+         List_Attach (TI.all, Task_Lists.First (O.Idle_Task_List));
 
          pragma Debug (O1 ("Task is now idle"));
          pragma Debug (O2 (Status (O)));
@@ -511,7 +526,7 @@ package body PolyORB.ORB_Controller.Leader_Followers is
    procedure Awake_One_Idle_Task
      (O : access ORB_Controller_Leader_Followers)
    is
-      Task_To_Awake : Idle_Task;
+      Task_To_Awake : Task_Info_Access;
 
    begin
       if O.Idle_Tasks > 0 then
@@ -525,8 +540,9 @@ package body PolyORB.ORB_Controller.Leader_Followers is
          --  Signal one idle task, and puts its CV in Free_CV
 
          Idle_Task_Lists.Extract_First (O.Idle_Task_List, Task_To_Awake);
-         Signal (Task_To_Awake.CV);
-         CV_Lists.Append (O.Free_CV, Task_To_Awake.CV);
+         List_Attach (Task_To_Awake.all, Task_Lists.Last (O.Idle_Task_List));
+         Signal (Condition (Task_To_Awake.all));
+         CV_Lists.Append (O.Free_CV, Condition (Task_To_Awake.all));
 
       else
          pragma Debug (O1 ("No idle task !"));
@@ -706,7 +722,8 @@ begin
       (Name      => +"orb_controller.leader_followers",
        Conflicts => +"orb.no_tasking",
        Depends   => +"tasking.condition_variables"
-       &"tasking.mutexes",
+       &"tasking.mutexes"
+       & "request_scheduler?",
        Provides  => +"orb_controller",
        Implicit  => False,
        Init      => Initialize'Access));

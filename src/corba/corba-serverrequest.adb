@@ -36,6 +36,7 @@
 --  $Id$
 
 with PolyORB.Any.NVList;
+with PolyORB.CORBA_P.Exceptions;
 with PolyORB.CORBA_P.Interceptors_Hooks;
 with PolyORB.Log;
 with PolyORB.Exceptions;
@@ -53,9 +54,7 @@ package body CORBA.ServerRequest is
    -- Operation --
    ---------------
 
-   function Operation
-     (O : Object)
-     return Identifier is
+   function Operation (O : Object) return Identifier is
    begin
       return Identifier (O.Operation);
    end Operation;
@@ -64,23 +63,19 @@ package body CORBA.ServerRequest is
    -- Arguments --
    ---------------
 
-   procedure Arguments
-     (O  : access Object;
-      NV : in out NVList.Ref)
-   is
+   procedure Arguments (O : access Object; NV : in out NVList.Ref) is
       use PolyORB.Exceptions;
 
       PolyORB_Args : PolyORB.Any.NVList.Ref
         := CORBA.NVList.To_PolyORB_Ref (NV);
       Error : Error_Container;
+
    begin
       PolyORB.Requests.Arguments
         (PolyORB.Requests.Request_Access (O), PolyORB_Args, Error);
 
       if Found (Error) then
-         raise PolyORB.Unknown;
-         --  XXX we should do something if we find a PolyORB exception
-
+         PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
       end if;
 
       NV := CORBA.NVList.To_CORBA_Ref (PolyORB_Args);
@@ -94,27 +89,67 @@ package body CORBA.ServerRequest is
    -- Set_Result --
    ----------------
 
-   procedure Set_Result
-     (O   : access Object;
-      Val :        Any) is
+   procedure Set_Result (O : access Object; Val : Any) is
+      use PolyORB.Exceptions;
+
+      Error : Error_Container;
+
    begin
       PolyORB.Requests.Set_Result
         (PolyORB.Requests.Request_Access (O),
-         CORBA.Internals.To_PolyORB_Any (Val));
+         CORBA.Internals.To_PolyORB_Any (Val),
+         Error);
+
+      if Found (Error) then
+         PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
+      end if;
    end Set_Result;
 
    -------------------
    -- Set_Exception --
    -------------------
 
-   procedure Set_Exception
-     (Obj : access Object;
-      Val :        Any) is
+   procedure Set_Exception (Obj : access Object; Val : Any) is
+      use PolyORB.Any;
+      use PolyORB.Any.TypeCode;
+
+      use type PolyORB.Any.TypeCode.Object;
+
+      Exception_Any : constant PolyORB.Any.Any
+        := CORBA.Internals.To_PolyORB_Any (Val);
+
    begin
       pragma Debug
         (O ("Server notifies exception: "
-            & PolyORB.Any.Image (CORBA.Internals.To_PolyORB_Any (Val))));
-      Obj.Exception_Info := CORBA.Internals.To_PolyORB_Any (Val);
+            & PolyORB.Any.Image (Exception_Any)));
+
+      if Kind (Get_Type (Exception_Any)) /= PolyORB.Any.Tk_Except then
+         declare
+            use PolyORB.Exceptions;
+
+            Error : Error_Container;
+
+            Member : constant System_Exception_Members
+              := (Minor => 21, Completed => Completed_No);
+         begin
+            Throw (Error, Bad_Param_E, Member);
+
+            PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
+         end;
+      end if;
+
+      --  Implementation Note: if the Any denotes an unlisted user
+      --  exception, the CORBA specifications (8.3.1) manadate that
+      --
+      --  1. the server receives a BAD_PARAM system exception,
+      --  or
+      --  2. the client will receive an UNKNOWN exception.
+      --
+      --  1. cannot be asserted by our implementation, we retained 2.
+      --  2. is made on the client side, when the middleware processes
+      --  the request.
+
+      Obj.Exception_Info := Exception_Any;
 
       if Server_Intermediate /= null then
          Server_Intermediate (PolyORB.Requests.Request_Access (Obj), False);

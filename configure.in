@@ -30,14 +30,18 @@ AC_CHECK_PROG(SED, sed, sed)
 AC_CHECK_PROG(FIND, find, find)
 AC_CHECK_PROG(PYTHON, python, python)
 AC_CHECK_PROG(GREP, grep, grep)
+AC_CHECK_PROG(GNATCHOP, gnatchop, gnatchop)
+AM_PROG_ADA
+AM_CROSS_PROG_ADA
 AM_PROG_WORKING_ADA
 AM_CROSS_PROG_WORKING_ADA
-AM_HAS_GNAT_SOCKETS_COPY
-AM_HAS_GNAT_OS_LIB_CLOSE_WITH_STATUS
-AC_CHECK_PROG(GNATCHOP, gnatchop, gnatchop)
-AC_EXEEXT
 AM_PROG_GNATMAKE
 AM_CROSS_PROG_GNATMAKE
+AM_HAS_GNAT_SOCKETS_COPY
+AM_HAS_GNAT_OS_LIB_CLOSE_WITH_STATUS
+AM_HAS_PRAGMA_PROFILE_RAVENSCAR
+AM_HAS_PRAGMA_PROFILE_WARNINGS
+AC_EXEEXT
 AM_CROSS_PROG_CC
 AM_ENABLE_SHARED(no)
 AM_ENABLE_STATIC(yes)
@@ -302,20 +306,6 @@ then
 fi
 
 ##########################################
-# Warn on restrictions violations
-##########################################
-
-AC_ARG_ENABLE(restriction-warnings,
-[  --enable-restrictions-warnings  Warn on violation of restrictions],
-[if [[ "$enableval" = "yes" ]]; then
-  DISABLE_RESTRICTION_WARNINGS=""
-else
-  DISABLE_RESTRICTION_WARNINGS="--  "
-fi],
-[DISABLE_RESTRICTION_WARNINGS="--  "])
-AC_SUBST(DISABLE_RESTRICTION_WARNINGS)
-
-##########################################
 # Check for maintainer (debug) mode.
 ##########################################
 
@@ -350,6 +340,7 @@ AM_CONDITIONAL(DEBUG, test x$debug = xtrue)
 host_tmp=$host
 host=$target
 AM_PROG_LIBTOOL
+AC_LIBTOOL_HAS_TAG
 host=$host_tmp
 
 ##########################################
@@ -390,7 +381,7 @@ EOF
 EOF
 
 for F in `${FIND} ${srcdir}/src/${P} -type f \
-        | ${GREP} 'polyorb-setup-[[a-z]]*\.ads'`
+        | ${GREP} 'polyorb-setup-[[a-z]]*\.ads$'`
 do
    U=`${AWK} '/^package/{print $2}' ${F}`
    cat >>${PROTO_SERVER_WITHS} <<EOF
@@ -490,6 +481,7 @@ AC_OUTPUT([
 	src/polyorb-setup-client.adb
 	src/polyorb-setup-server.adb
 	src/polyorb-sockets_copy.adb
+        src/ravenscar.adc
         src/ravenscar_compatible.adc
 	idls/Makefile
 	idls/cos/Makefile
@@ -508,9 +500,11 @@ AC_OUTPUT([
 	examples/corba/echo/Makefile
 	examples/corba/random/Makefile
 	examples/corba/rtcorba/Makefile
+	examples/corba/rtcorba/client_propagated/Makefile
 	examples/corba/rtcorba/server_declared/Makefile
 	examples/corba/send/Makefile
 	examples/dsa/Makefile
+	examples/dsa/gnat.adc
 	examples/bbs/Makefile
 	examples/moma/Makefile
 	examples/aws/Makefile
@@ -519,11 +513,13 @@ AC_OUTPUT([
 	testsuite/corba/Makefile
 	testsuite/corba/all_exceptions/Makefile
 	testsuite/corba/cos/Makefile
+	testsuite/corba/cos/event/Makefile
 	testsuite/corba/cos/naming/Makefile
 	testsuite/corba/cos/time/Makefile
 	testsuite/corba/harness/Makefile
 	testsuite/corba/local/Makefile
 	testsuite/corba/portableinterceptor/Makefile
+	testsuite/corba/portableinterceptor/test000/Makefile
 	testsuite/corba/portableserver/Makefile
 	testsuite/corba/rtcorba/Makefile
 	testsuite/corba/rtcorba/rtcurrent/Makefile

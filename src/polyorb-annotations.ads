@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -46,6 +46,10 @@ package PolyORB.Annotations is
 
    type Note is abstract tagged private;
    --  A note that can be attached to an object.
+
+   procedure Destroy (N : in out Note);
+   --  Return any associated resource to the system. This primitive is
+   --  called for every note in a notepad being destroyed.
 
    type Notepad is private;
    type Notepad_Access is access all Notepad;

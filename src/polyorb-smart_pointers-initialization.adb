@@ -50,7 +50,7 @@ package body PolyORB.Smart_Pointers.Initialization is
    ------------------------------------
 
    function Entity_External_Tag
-     (X : Non_Controlled_Entity'Class)
+     (X : Unsafe_Entity'Class)
       return String;
    function Ref_External_Tag
      (X : Ref'Class)
@@ -58,7 +58,7 @@ package body PolyORB.Smart_Pointers.Initialization is
    --  Return the external representation of X'Tag.
 
    function Entity_External_Tag
-     (X : Non_Controlled_Entity'Class)
+     (X : Unsafe_Entity'Class)
       return String is
    begin
       return Ada.Tags.External_Tag (X'Tag);

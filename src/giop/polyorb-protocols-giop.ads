@@ -132,7 +132,8 @@ private
      (Pending_Request, Pending_Request_Access);
 
    package Pend_Req_List is
-      new PolyORB.Utils.Chained_Lists (Pending_Request_Access);
+     new PolyORB.Utils.Chained_Lists
+       (Pending_Request_Access, Doubly_Chained => True);
 
    --------------------
    -- GIOP Send Mode --
@@ -283,6 +284,7 @@ private
    procedure Marshall_GIOP_Header_Reply
      (Implem  : access GIOP_Implem;
       S       : access Session'Class;
+      R       : Request_Access;
       Buffer  : access PolyORB.Buffers.Buffer_Type)
       is abstract;
 
@@ -456,14 +458,6 @@ private
    ---------------------------------
    -- Marshall Unmarshall helpers --
    ---------------------------------
-
-   --  Context_List
-   procedure Marshall_Service_Context_List
-     (Buffer : access Buffers.Buffer_Type);
-
-   procedure Unmarshall_Service_Context_List
-     (Buffer : access Buffers.Buffer_Type);
-   --  XXX Dummy unmarshalling for Service Context List.
 
    procedure Unmarshall_System_Exception_To_Any
      (Buffer : PolyORB.Buffers.Buffer_Access;

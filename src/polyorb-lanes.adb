@@ -35,6 +35,7 @@
 
 with PolyORB.Log;
 with PolyORB.ORB;
+with PolyORB.Request_QoS;
 
 package body PolyORB.Lanes is
 
@@ -55,15 +56,12 @@ package body PolyORB.Lanes is
    ---------
 
    procedure Run (R : access Lane_Runnable) is
-      Done_Something : Boolean := False;
-
    begin
       pragma Debug (O ("Entering lane's main loop"));
 
       Enter (R.L.Lock);
       loop
          pragma Debug (O ("Inside lane's main loop"));
-         Done_Something := False;
 
          --  If R has a job to process, go for it
 
@@ -75,7 +73,6 @@ package body PolyORB.Lanes is
             Enter (R.L.Lock);
 
             R.J := null;
-            Done_Something := True;
          end if;
 
          --  Then process queued jobs
@@ -93,23 +90,20 @@ package body PolyORB.Lanes is
                   Leave (R.L.Lock);
                   PolyORB.ORB.Run (PolyORB.ORB.Request_Job (Job.all)'Access);
                   Enter (R.L.Lock);
-                  Done_Something := True;
                end;
             end loop;
          end if;
 
-         if not Done_Something then
-            pragma Debug (O ("Gazobubo"));
-            null;
-         end if;
+         --  Test wether the task shall exit
 
-         --  Finally go idle
+         exit when R.L.Clean_Up_In_Progress or else R.Dynamically_Allocated;
+
+         --  else go idle
 
          pragma Debug (O ("No job to process, go idle"));
 
          Idle (R);
 
-         exit when R.L.Clean_Up_In_Progress;
       end loop;
 
       Leave (R.L.Lock);
@@ -186,14 +180,21 @@ package body PolyORB.Lanes is
 
          begin
             New_Runnable.L := Result;
+            New_Runnable.Dynamically_Allocated := False;
 
-            Result.Threads (J)
-              := Run_In_Task
-              (TF               => Get_Thread_Factory,
-               Name => "",
-               Default_Priority => ORB_Priority,
-               R                => Runnable_Access (New_Runnable),
-               C                => new Runnable_Controller);
+            declare
+               T : constant Thread_Access :=
+                 Run_In_Task
+                 (TF               => Get_Thread_Factory,
+                  Name             => "",
+                  Default_Priority => ORB_Priority,
+                  Storage_Size     => Stack_Size,
+                  R                => Runnable_Access (New_Runnable),
+                  C                => new Runnable_Controller);
+               pragma Unreferenced (T);
+            begin
+               null;
+            end;
          end;
       end loop;
 
@@ -244,7 +245,7 @@ package body PolyORB.Lanes is
 
       Enter (L.Lock);
 
-      --  First, try to directly queue job on one taks
+      --  First, try to directly queue job on one task
 
       declare
          use type Idle_Task_Lists.List;
@@ -269,13 +270,45 @@ package body PolyORB.Lanes is
          end if;
       end;
 
-      --  else, queue job in common queue
+      --  else, queue job in common job queue
 
-      if L.Buffer_Request then
+      if L.Buffer_Request
+        and then Length (L.Job_Queue) < Natural (L.Max_Buffered_Requests)
+      then
          pragma Debug (O ("Queue job on job queue"));
 
          Queue_Job (L.Job_Queue, J);
          Leave (L.Lock);
+
+         --  Eventually, create a new task
+
+         if L.Dynamic_Threads_Created < L.Dynamic_Number_Of_Threads then
+            declare
+               New_Runnable : constant Lane_Runnable_Access
+                 := new Lane_Runnable;
+
+            begin
+               New_Runnable.L := Lane_Access (L);
+               New_Runnable.Dynamically_Allocated := True;
+
+               declare
+                  T : constant Thread_Access :=
+                    Run_In_Task
+                    (TF               => Get_Thread_Factory,
+                     Name             => "",
+                     Default_Priority => L.ORB_Priority,
+                     Storage_Size     => L.Stack_Size,
+                     R                => Runnable_Access (New_Runnable),
+                     C                => new Runnable_Controller);
+                  pragma Unreferenced (T);
+               begin
+                  null;
+               end;
+            end;
+
+            L.Dynamic_Threads_Created := L.Dynamic_Threads_Created + 1;
+         end if;
+
          return;
       end if;
 
@@ -289,18 +322,40 @@ package body PolyORB.Lanes is
 
    procedure Queue_Job
      (L : access Lanes_Set;
-      P :        External_Priority;
       J :        Job_Access)
    is
+      use PolyORB.Request_QoS;
+      use PolyORB.Request_QoS.QoS_Parameter_Lists;
+
+      RJ : PolyORB.ORB.Request_Job renames PolyORB.ORB.Request_Job (J.all);
+
    begin
       --  XXX should find a way to do this in O (1)
 
-      for K in L.Set'Range loop
-         if L.Set (K).all.Ext_Priority = P then
-            Queue_Job (L.Set (K).all.Job_Queue, J);
-            return;
+      declare
+         Parameter : constant QoS_Parameter
+           := Extract_Parameter (Static_Priority, RJ.Request);
+
+      begin
+         if Parameter.Kind = Static_Priority then
+            pragma Debug (O ("About to queue a job at priority"
+                             & Parameter.OP'Img));
+
+            for K in L.Set'Range loop
+               pragma Debug (O ("Testing lane, priority"
+                                & L.Set (K).all.ORB_Priority'Img));
+
+               if L.Set (K).all.Ext_Priority = Parameter.EP then
+                  Queue_Job (L.Set (K), J);
+                  return;
+               end if;
+            end loop;
+         else
+            pragma Debug
+              (O ("Cannot queue job, no lane matches request priority"));
+            raise Program_Error;
          end if;
-      end loop;
+      end;
    end Queue_Job;
 
    ----------

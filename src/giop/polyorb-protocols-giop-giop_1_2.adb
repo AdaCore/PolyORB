@@ -39,6 +39,7 @@ with PolyORB.Buffers;
 with PolyORB.Components;
 with PolyORB.Exceptions;
 with PolyORB.Filters;
+with PolyORB.GIOP_P.Service_Contexts;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 with PolyORB.Log;
@@ -50,6 +51,7 @@ with PolyORB.Parameters;
 with PolyORB.References.Binding;
 with PolyORB.References.IOR;
 with PolyORB.Representations.CDR;
+with PolyORB.Request_QoS;
 with PolyORB.Smart_Pointers;
 with PolyORB.Utils.Strings;
 
@@ -57,6 +59,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
    use PolyORB.Buffers;
    use PolyORB.Components;
+   use PolyORB.GIOP_P.Service_Contexts;
    use PolyORB.Log;
    use PolyORB.Objects;
    use PolyORB.Representations.CDR;
@@ -106,7 +109,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       Request_Id : in out Types.Unsigned_Long;
       Sync       :    out Sync_Scope;
       Target_Ref :    out Target_Address_Access;
-      Operation  :    out Types.String);
+      Operation  :    out Types.String;
+      QoS        :    out PolyORB.Request_QoS.QoS_Parameter_Lists.List);
 
    -----------------------------------
    -- Internal function declaration --
@@ -210,6 +214,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
             declare
                Request_Id   : Types.Unsigned_Long;
                Reply_Status : Reply_Status_Type;
+               QoS : PolyORB.Request_QoS.QoS_Parameter_Lists.List;
+
             begin
                if CDR_Position (Sess.Buffer_In) = GIOP_Header_Size then
                   Request_Id := Unmarshall (Sess.Buffer_In);
@@ -220,7 +226,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
                end if;
 
                Reply_Status := Unmarshall (Sess.Buffer_In);
-               Unmarshall_Service_Context_List (Sess.Buffer_In);
+               Unmarshall_Service_Context_List (Sess.Buffer_In, QoS);
                Common_Reply_Received (Sess'Access, Request_Id, Reply_Status);
             end;
 
@@ -398,6 +404,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       Def_Args    : Component_Access;
       Target      : References.Ref;
       Req         : Request_Access;
+      QoS         : PolyORB.Request_QoS.QoS_Parameter_Lists.List;
 
       Result      : Any.NamedValue;
       --  Dummy NamedValue for Create_Request;
@@ -418,7 +425,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
          Request_Id,
          Sync,
          Target_Addr,
-         Operation);
+         Operation,
+         QoS);
 
       case Sync is
          when WITH_TARGET =>
@@ -505,6 +513,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
          Dependent_Binding_Object =>
            Smart_Pointers.Entity_Ptr
          (S.Dependent_Binding_Object));
+
+      PolyORB.Request_QoS.Set_QoS (Req, QoS);
 
       Set_Note
         (Req.Notepad,
@@ -1002,7 +1012,9 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
       --  Service context
 
-      Marshall_Service_Context_List (Buffer);
+      Marshall_Service_Context_List
+        (Buffer,
+         PolyORB.Request_QoS.Get_QoS (R.Req));
 
       --  Arguments
 
@@ -1162,7 +1174,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       Request_Id : in out Types.Unsigned_Long;
       Sync       :    out Sync_Scope;
       Target_Ref :    out Target_Address_Access;
-      Operation  :    out Types.String)
+      Operation  :    out Types.String;
+      QoS        :    out PolyORB.Request_QoS.QoS_Parameter_Lists.List)
    is
       use Representations.CDR;
       use PolyORB.Types;
@@ -1170,6 +1183,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       Received_Flags : Types.Octet;
       Address_Disp   : Addressing_Disposition;
       Sink           : Types.Octet;
+
    begin
 
       --  Request Id has been read before in fragmenting packet
@@ -1269,7 +1283,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
       --  Service context
 
-      Unmarshall_Service_Context_List (Buffer);
+      Unmarshall_Service_Context_List (Buffer, QoS);
    end Unmarshall_Request_Message;
 
    --------------------------------
@@ -1279,6 +1293,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
    procedure Marshall_GIOP_Header_Reply
      (Implem  : access GIOP_Implem_1_2;
       S       : access Session'Class;
+      R       : Request_Access;
       Buffer  : access PolyORB.Buffers.Buffer_Type)
    is
       pragma Warnings (Off);
@@ -1290,7 +1305,9 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
    begin
       Marshall (Buffer, Ctx.Request_Id);
       Marshall (Buffer, Ctx.Reply_Status);
-      Marshall_Service_Context_List (Buffer);
+      Marshall_Service_Context_List
+       (Buffer,
+        PolyORB.Request_QoS.Get_QoS (R));
    end Marshall_GIOP_Header_Reply;
 
    -----------------------------

@@ -7,6 +7,16 @@ module CORBA {
   typedef string ScopedName;
   typedef string RepositoryId;
   interface TypeCode {};
+
+  ////////////////////
+  //  See implementation note in CORBA.Repository_Root for a
+  //  discussion about this declaration.
+
+  typedef short Visibility;
+  const Visibility PRIVATE_MEMBER = 0;
+  const Visibility PUBLIC_MEMBER  = 1;
+  ////////////////////
+
   module Repository_Root {
     enum DefinitionKind {
 #       pragma version DefinitionKind 2.3
@@ -87,12 +97,16 @@ module CORBA {
 
     ///////////////////
 
-
     ////////////////////
-    typedef short Visibility;
-    const Visibility PRIVATE_MEMBER = 0;
-    const Visibility PUBLIC_MEMBER  = 1;
-    
+    //  See implementation note in CORBA.Repository_Root for a
+    //  discussion about the removal of this declaration.
+    //
+    //  typedef short Visibility;
+    //  const Visibility PRIVATE_MEMBER = 0;
+    //  const Visibility PUBLIC_MEMBER  = 1;
+    ////////////////////
+
+
     struct ValueMember {
 #       pragma version ValueMember 2.3
         Identifier                      name;

@@ -123,7 +123,7 @@ begin
 
    Output ("ORB is configured", True);
 
-   New_Test ("RTORB");
+   New_Test ("SERVER_DECLARED server");
 
    declare
       RT_ORB : RTCORBA.RTORB.Ref;
@@ -195,13 +195,13 @@ begin
 
       Thread_Pool_Id_1 := RTCORBA.RTORB.Create_Threadpool
         (RT_ORB,
-         Stacksize               => 1,
+         Stacksize               => 262_144,
          Static_Threads          => 2,
          Dynamic_Threads         => 0,
          Default_Priority        => Default_Priority_1,
          Allow_Request_Buffering => False,
          Max_Buffered_Requests   => 1,
-         Max_Request_Buffer_Size => 1);
+         Max_Request_Buffer_Size => 0);
 
       Output ("Thread Pool created with id"
               & RTCORBA.ThreadpoolId'Image (Thread_Pool_Id_1), True);
@@ -230,6 +230,8 @@ begin
       Output ("Create Child POA with these policies", True);
 
       --  Set up new object and attach it to Child_POA
+
+      Echo.Impl.Object (Obj_Server_1.all).Priority := Default_Priority_1;
 
       Ref_Server_1 := PortableServer.POA.Servant_To_Reference
         (PortableServer.POA.Ref (Child_POA_Server_1),
@@ -266,13 +268,13 @@ begin
 
       Thread_Pool_Id_2 := RTCORBA.RTORB.Create_Threadpool
         (RT_ORB,
-         Stacksize               => 1,
+         Stacksize               => 262_144,
          Static_Threads          => 2,
          Dynamic_Threads         => 0,
          Default_Priority        => Default_Priority_2,
          Allow_Request_Buffering => True,
          Max_Buffered_Requests   => 1,
-         Max_Request_Buffer_Size => 1);
+         Max_Request_Buffer_Size => 0);
 
       Output ("Thread Pool created with id"
               & RTCORBA.ThreadpoolId'Image (Thread_Pool_Id_2), True);
@@ -301,6 +303,8 @@ begin
       Output ("Create Child POA with these policies", True);
 
       --  Set up new object and attach it to Child_POA
+
+      Echo.Impl.Object (Obj_Server_2.all).Priority := Default_Priority_2;
 
       Ref_Server_2 := PortableServer.POA.Servant_To_Reference
         (PortableServer.POA.Ref (Child_POA_Server_2),

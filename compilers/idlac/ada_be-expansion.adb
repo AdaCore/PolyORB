@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/ada_be-expansion.adb#20 $
+--  $Id: //droopi/main/compilers/idlac/ada_be-expansion.adb#21 $
 
 with Idl_Fe.Types;          use Idl_Fe.Types;
 with Idl_Fe.Tree;           use Idl_Fe.Tree;
@@ -899,7 +899,15 @@ package body Ada_Be.Expansion is
                Set_Operation_Type (Get_Method, The_Type);
                --  parameters
                Set_Parameters (Get_Method, Nil_List);
-               Set_Raises (Get_Method, Nil_List);
+               if Kind (Node) = K_Attribute then
+                  if Is_Readonly (Node) then
+                     Set_Raises (Get_Method, Raises (Node));
+                  else
+                     Set_Raises (Get_Method, Get_Raises (Node));
+                  end if;
+               else
+                  Set_Raises (Get_Method, Nil_List);
+               end if;
                Set_Contexts (Get_Method, Nil_List);
                Set_Original_Node (Get_Method, Node);
 
@@ -952,7 +960,11 @@ package body Ada_Be.Expansion is
 
                   Set_Parameters (Set_Method, Params);
                end;
-               Set_Raises (Set_Method, Nil_List);
+               if Kind (Node) = K_Attribute then
+                  Set_Raises (Set_Method, Set_Raises (Node));
+               else
+                  Set_Raises (Set_Method, Nil_List);
+               end if;
                Set_Contexts (Set_Method, Nil_List);
                Set_Original_Node (Set_Method, Node);
 

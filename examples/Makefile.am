@@ -1,5 +1,3 @@
-LINKER=	../support/linker
-
 corba_dir = corba
 dsa_dir   = dsa bbs
 moma_dir  = moma

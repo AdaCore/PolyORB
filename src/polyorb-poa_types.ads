@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -47,8 +47,6 @@ with PolyORB.Smart_Pointers;
 with PolyORB.Types;
 with PolyORB.Utils.HFunctions.Hyper;
 with PolyORB.Utils.HTables.Perfect;
-
-with PolyORB.Sequences.Unbounded;
 
 package PolyORB.POA_Types is
 
@@ -97,16 +95,6 @@ package PolyORB.POA_Types is
       PP_Desc : Parameter_Profile_Description;
       RP_Desc : Result_Profile_Description;
    end record;
-
-   -------------
-   -- POAList --
-   -------------
-
-   package POA_Sequences is new PolyORB.Sequences.Unbounded
-     (Obj_Adapter_Access);
-
-   subtype POAList is POA_Sequences.Sequence;
-   type POAList_Access is access all POAList;
 
    --------------
    -- POATable --

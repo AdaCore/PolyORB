@@ -1,11 +1,17 @@
-corba_exe=test000
-idl=test000_idl
-include $(srcdir)/../../Makefile.common
+AUTOMAKE_OPTIONS = foreign no-dependencies
+ACLOCAL_AMFLAGS = -I support
 
-CLEANFILES += $(idl)_idl_file.ads $(idl)_idl_file.adb $(idl)_idl_file-helper.ads $(idl)_idl_file-helper.adb $(idl).ads $(idl).adb $(idl)-skel.ads $(idl)-skel.adb $(idl)-stream.ads $(idl)-stream.adb $(idl)-helper.ads $(idl)-helper.adb $(idl)-delegate.ads $(idl)-delegate.adb $(idl)-ir_info.adb $(idl)-ir_info.ads $(idl)_idl_file-ir_info.adb $(idl)_idl_file-ir_info.ads
+corba_dir =
+dsa_dir   =
+moma_dir  =
 
-CLEANFILES += $(idl)-testinterface_idl_file.ads $(idl)-testinterface_idl_file.adb $(idl)-testinterface_idl_file-helper.ads $(idl)-testinterface_idl_file-helper.adb $(idl)-testinterface.ads $(idl)-testinterface.adb $(idl)-testinterface-skel.ads $(idl)-testinterface-skel.adb $(idl)-testinterface-stream.ads $(idl)-testinterface-stream.adb $(idl)-testinterface-helper.ads $(idl)-testinterface-helper.adb $(idl)-testinterface-delegate.ads $(idl)-testinterface-delegate.adb $(idl)-testinterface-ir_info.adb $(idl)-testinterface-ir_info.ads $(idl)-testinterface_idl_file-ir_info.adb $(idl)-testinterface_idl_file-ir_info.ads
+giop_dir  =
+soap_dir  =
+srp_dir   =
 
-test000_idl.ads: test000_idl.idl
-	$(IDLAC) $(IDLAC_FLAGS) $<
-	rm -f portableinterceptor*.ad[sb]
+SUBDIRS = test000
+
+CLEANFILES = config-stamp
+
+depend:
+	cd src && ${MAKE} depend

@@ -32,6 +32,7 @@
 ------------------------------------------------------------------------------
 
 with PolyORB.CORBA_P.Interceptors;
+with PolyORB.CORBA_P.Interceptors_Slots;
 with PolyORB.Exceptions;
 
 package body PortableInterceptor.ORBInitInfo.Impl is
@@ -136,13 +137,12 @@ package body PortableInterceptor.ORBInitInfo.Impl is
      (Self : access Object)
       return PortableInterceptor.SlotId
    is
-      pragma Unreferenced (Self);
-
-      Result : PortableInterceptor.SlotId;
-
    begin
-      raise PolyORB.Not_Implemented;
-      return Result;
+      if Self.Post_Init_Done then
+         CORBA.Raise_Object_Not_Exist (CORBA.Default_Sys_Member);
+      end if;
+
+      return PolyORB.CORBA_P.Interceptors_Slots.Allocate_Slot_Id;
    end Allocate_Slot_Id;
 
    ----------------
@@ -196,6 +196,7 @@ package body PortableInterceptor.ORBInitInfo.Impl is
       pragma Assert (not Self.Post_Init_Done);
 
       Self.Post_Init_Done := True;
+      PolyORB.CORBA_P.Interceptors_Slots.ORB_Initializer_Done := True;
    end Post_Init_Done;
 
    -------------------------

@@ -72,6 +72,7 @@ with Sinput;   use Sinput;
 with Snames;   use Snames;
 with Stringt;  use Stringt;
 with Stylesw;  use Stylesw;
+with Table;
 with Targparm; use Targparm;
 with Tbuild;   use Tbuild;
 with Ttypes;
@@ -137,6 +138,26 @@ package body Sem_Prag is
    --  Note: All these pragmas are implemented exactly following the DEC
    --  design and implementation and are intended to be fully compatible
    --  with the use of these pragmas in the DEC Ada compiler.
+
+   --------------------------------------------
+   -- Checking for Duplicated External Names --
+   --------------------------------------------
+
+   --  It is suspicious if two separate Export pragmas use the same external
+   --  name. The following table is used to diagnose this situation so that
+   --  an appropriate warning can be issued.
+
+   --  The Node_Id stored is for the N_String_Literal node created to
+   --  hold the value of the external name. The Sloc of this node is
+   --  used to cross-reference the location of the duplication.
+
+   package Externals is new Table.Table (
+     Table_Component_Type => Node_Id,
+     Table_Index_Type     => Int,
+     Table_Low_Bound      => 0,
+     Table_Initial        => 100,
+     Table_Increment      => 100,
+     Table_Name           => "Name_Externals");
 
    -------------------------------------
    -- Local Subprograms and Variables --
@@ -308,6 +329,16 @@ package body Sem_Prag is
       procedure Check_At_Most_N_Arguments (N : Nat);
       --  Check there are no more than N arguments present
 
+      procedure Check_Component (Comp : Node_Id);
+      --  Examine Unchecked_Union component for correct use of per-object
+      --  constrained subtypes.
+
+      procedure Check_Duplicated_Export_Name (Nam : Node_Id);
+      --  Nam is an N_String_Literal node containing the external name set
+      --  by an Import or Export pragma (or extended Import or Export pragma).
+      --  This procedure checks for possible duplications if this is the
+      --  export case, and if found, issues an appropriate error message.
+
       procedure Check_First_Subtype (Arg : Node_Id);
       --  Checks that Arg, whose expression is an entity name referencing
       --  a subtype, does not reference a type that is not a first subtype.
@@ -364,6 +395,10 @@ package body Sem_Prag is
       --  would normally be invalid (they only apply to the original template
       --  and to library level instantiations), and they are simply ignored,
       --  which is implemented by rewriting them as null statements.
+
+      procedure Check_Variant (Variant : Node_Id);
+      --  Check Unchecked_Union variant for lack of nested variants and
+      --  presence of at least one component.
 
       procedure Error_Pragma (Msg : String);
       pragma No_Return (Error_Pragma);
@@ -896,6 +931,69 @@ package body Sem_Prag is
          end if;
       end Check_At_Most_N_Arguments;
 
+      ---------------------
+      -- Check_Component --
+      ---------------------
+
+      procedure Check_Component (Comp : Node_Id) is
+      begin
+         if Nkind (Comp) = N_Component_Declaration then
+            declare
+               Sindic : constant Node_Id :=
+                          Subtype_Indication (Component_Definition (Comp));
+
+            begin
+               if Nkind (Sindic) = N_Subtype_Indication then
+
+                  --  Ada 2005 (AI-216): If a component subtype is subject to
+                  --  a per-object constraint, then the component type shall
+                  --  be an Unchecked_Union.
+
+                  if Has_Per_Object_Constraint (Defining_Identifier (Comp))
+                    and then
+                      not Is_Unchecked_Union (Etype (Subtype_Mark (Sindic)))
+                  then
+                     Error_Msg_N ("component subtype subject to per-object" &
+                       " constraint must be an Unchecked_Union", Comp);
+                  end if;
+               end if;
+            end;
+         end if;
+      end Check_Component;
+
+      ----------------------------------
+      -- Check_Duplicated_Export_Name --
+      ----------------------------------
+
+      procedure Check_Duplicated_Export_Name (Nam : Node_Id) is
+         String_Val : constant String_Id := Strval (Nam);
+
+      begin
+         --  We are only interested in the export case, and in the case of
+         --  generics, it is the instance, not the template, that is the
+         --  problem (the template will generate a warning in any case).
+
+         if not Inside_A_Generic
+           and then (Prag_Id = Pragma_Export
+                       or else
+                     Prag_Id = Pragma_Export_Procedure
+                       or else
+                     Prag_Id = Pragma_Export_Valued_Procedure
+                       or else
+                     Prag_Id = Pragma_Export_Function)
+         then
+            for J in Externals.First .. Externals.Last loop
+               if String_Equal (String_Val, Strval (Externals.Table (J))) then
+                  Error_Msg_Sloc := Sloc (Externals.Table (J));
+                  Error_Msg_N ("external name duplicates name given#", Nam);
+                  exit;
+               end if;
+            end loop;
+
+            Externals.Append (Nam);
+         end if;
+      end Check_Duplicated_Export_Name;
+
       -------------------------
       -- Check_First_Subtype --
       -------------------------
@@ -1356,6 +1454,37 @@ package body Sem_Prag is
             end if;
          end if;
       end Check_Valid_Library_Unit_Pragma;
+
+      -------------------
+      -- Check_Variant --
+      -------------------
+
+      procedure Check_Variant (Variant : Node_Id) is
+         Clist : constant Node_Id := Component_List (Variant);
+         Comp  : Node_Id;
+
+      begin
+         if Present (Variant_Part (Clist)) then
+            Error_Msg_N
+              ("Unchecked_Union may not have nested variants",
+               Variant_Part (Clist));
+         end if;
+
+         if not Is_Non_Empty_List (Component_Items (Clist)) then
+            Error_Msg_N
+              ("Unchecked_Union may not have empty component list",
+               Variant);
+            return;
+         end if;
+
+         Comp := First (Component_Items (Clist));
+         while Present (Comp) loop
+
+            Check_Component (Comp);
+            Next (Comp);
+
+         end loop;
+      end Check_Variant;
 
       ------------------
       -- Error_Pragma --
@@ -3275,9 +3404,7 @@ package body Sem_Prag is
          --  If there is no link name, just set the external name
 
          if No (Link_Nam) then
-            Set_Encoded_Interface_Name
-              (Get_Base_Subprogram (Subprogram_Def),
-               Adjust_External_Name_Case (Expr_Value_S (Ext_Nam)));
+            Link_Nam := Adjust_External_Name_Case (Expr_Value_S (Ext_Nam));
 
          --  For the Link_Name case, the given literal is preceded by an
          --  asterisk, which indicates to GCC that the given name should
@@ -3296,10 +3423,11 @@ package body Sem_Prag is
 
             Link_Nam :=
               Make_String_Literal (Sloc (Link_Nam), End_String);
-
-            Set_Encoded_Interface_Name
-              (Get_Base_Subprogram (Subprogram_Def), Link_Nam);
          end if;
+
+         Set_Encoded_Interface_Name
+           (Get_Base_Subprogram (Subprogram_Def), Link_Nam);
+         Check_Duplicated_Export_Name (Link_Nam);
       end Process_Interface_Name;
 
       -----------------------------------------
@@ -3740,8 +3868,8 @@ package body Sem_Prag is
 
          else
             Set_Encoded_Interface_Name (Internal_Ent, New_Name);
+            Check_Duplicated_Export_Name (New_Name);
          end if;
-
       end Set_Extended_Import_Export_External_Name;
 
       ------------------
@@ -5668,9 +5796,9 @@ package body Sem_Prag is
                Source_Location);
          end Eliminate;
 
-         --------------------------
-         --  Explicit_Overriding --
-         --------------------------
+         -------------------------
+         -- Explicit_Overriding --
+         -------------------------
 
          when Pragma_Explicit_Overriding =>
             Check_Valid_Configuration_Pragma;
@@ -9692,6 +9820,14 @@ package body Sem_Prag is
                Tdef  := Type_Definition (Declaration_Node (Typ));
                Clist := Component_List (Tdef);
 
+               Comp := First (Component_Items (Clist));
+               while Present (Comp) loop
+
+                  Check_Component (Comp);
+                  Next (Comp);
+
+               end loop;
+
                if No (Clist) or else No (Variant_Part (Clist)) then
                   Error_Msg_N
                     ("Unchecked_Union must have variant part",
@@ -9700,60 +9836,12 @@ package body Sem_Prag is
                end if;
 
                Vpart := Variant_Part (Clist);
-
-               if Is_Non_Empty_List (Component_Items (Clist)) then
-                  Error_Msg_N
-                    ("components before variant not allowed " &
-                     "in Unchecked_Union",
-                     First (Component_Items (Clist)));
-               end if;
-
                Variant := First (Variants (Vpart));
                while Present (Variant) loop
-                  Clist := Component_List (Variant);
 
-                  if Present (Variant_Part (Clist)) then
-                     Error_Msg_N
-                       ("Unchecked_Union may not have nested variants",
-                        Variant_Part (Clist));
-                  end if;
-
-                  if not Is_Non_Empty_List (Component_Items (Clist)) then
-                     Error_Msg_N
-                       ("Unchecked_Union may not have empty component list",
-                        Variant);
-                     return;
-                  end if;
-
-                  Comp := First (Component_Items (Clist));
-
-                  if Nkind (Comp) = N_Component_Declaration then
-
-                     if Present (Expression (Comp)) then
-                        Error_Msg_N
-                          ("default initialization not allowed " &
-                           "in Unchecked_Union",
-                           Expression (Comp));
-                     end if;
-
-                     declare
-                        Sindic : constant Node_Id :=
-                          Subtype_Indication (Component_Definition (Comp));
-
-                     begin
-                        if Nkind (Sindic) = N_Subtype_Indication then
-                           Check_Static_Constraint (Constraint (Sindic));
-                        end if;
-                     end;
-                  end if;
-
-                  if Present (Next (Comp)) then
-                     Error_Msg_N
-                       ("Unchecked_Union variant can have only one component",
-                        Next (Comp));
-                  end if;
-
+                  Check_Variant (Variant);
                   Next (Variant);
+
                end loop;
             end if;
 

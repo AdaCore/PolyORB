@@ -1,1 +1,20 @@
+#
+# Common Makefile fragments for the PolyORB runtime library
+# $Id$
+#
+
 GNATFLAGS+=	-gnatg
+
+depend:
+	for d in $(SUBDIRS);do \
+		(cd $$d; \
+		 ${MAKE} depend-local; \
+		 if [ "$$d" != "." ]; then \
+		   ${MAKE} depend; \
+		 fi); \
+	done
+
+depend-local: all
+	$(top_srcdir)/support/mkdep $(ADAFLAGS) $(srcdir)
+
+include $(top_srcdir)/Makefile.common

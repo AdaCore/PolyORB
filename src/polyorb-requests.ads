@@ -252,7 +252,13 @@ package PolyORB.Requests is
       --  appended. Identification is used to specify the capailities
       --  of the server personality.
 
-   procedure Set_Result (Self : Request_Access; Val  : Any.Any);
+   procedure Set_Result (Self : Request_Access; Val : Any.Any);
+   --  Set the value of Self's result to Val. Assert no error has been thrown
+
+   procedure Set_Result
+     (Self  :        Request_Access;
+      Val   :        Any.Any;
+      Error : in out Error_Container);
    --  Set the value of Self's result to Val
 
    procedure Set_Out_Args

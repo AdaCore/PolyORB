@@ -31,12 +31,13 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  RTCORBA specifications defines objects that are programming
---  language objects rather than CORBA objects. Therefore the normal
---  mechanism for coupling an implementation to the code that uses it
---  (an object reference) does not apply. Implementation must provides
---  specific mechanisms to enable this coupling.
-
+--  Implementation Notes: RTCORBA specifications defines objects that
+--  are (Ada) programming language objects rather than CORBA
+--  objects. Therefore the normal mechanism for coupling an
+--  implementation to the code that uses it (an object reference) does
+--  not apply. The implementation must provide specific mechanisms to
+--  enable this coupling.
+--
 --  This package provides accessors to configure them. It supports the
 --  following objects:
 --  * PriorityMapping

@@ -81,7 +81,8 @@ private
    end record;
 
    package Source_Lists is
-      new PolyORB.Utils.Chained_Lists (Asynch_Ev_Source_Access);
+     new PolyORB.Utils.Chained_Lists
+       (Asynch_Ev_Source_Access, Doubly_Chained => True);
 
    type Socket_Event_Monitor is new Asynch_Ev_Monitor with record
       Selector      : PolyORB.Sockets.Selector_Type;

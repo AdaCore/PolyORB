@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/idl_fe-parser.adb#15 $
+--  $Id: //droopi/main/compilers/idlac/idl_fe-parser.adb#18 $
 
 with Ada.Characters.Latin_1;
 with Ada.Unchecked_Deallocation;
@@ -831,15 +831,19 @@ package body Idl_Fe.Parser is
 
    procedure Parse_Interface
      (Result : out  Node_Id;
-      Success : out Boolean) is
+      Success : out Boolean)
+   is
       Res : Node_Id;
-      Fd_Res : Node_Id;
+      Prev_Decl : Node_Id;
       Definition : Identifier_Definition_Acc;
+
    begin
       pragma Debug (O2 ("Parse_Interface: enter"));
-      --  interface header.
+
       Res := Make_Interface (Get_Token_Location);
+
       --  is the interface abstracted
+
       if Get_Token = T_Abstract then
          Set_Abst (Res, True);
          Set_Local (Res, False);
@@ -856,19 +860,28 @@ package body Idl_Fe.Parser is
          Set_Abst (Res, False);
          Set_Local (Res, False);
       end if;
+
       Set_Location (Res, Get_Token_Location);
       Set_Initial_Current_Prefix (Res);
       Next_Token;
+
       --  Expect an identifier
       if Get_Token = T_Identifier then
+
          Definition := Find_Identifier_Definition
            (Get_Token_String, Get_Lexer_Location);
-         --  Is there a previous definition and in the same scope !
+         --  Retrieve previous definition
+
          if not Is_Redefinable (Get_Token_String, Get_Lexer_Location) then
-            --  is it a forward declaration
-            if Definition.Parent_Scope = Get_Current_Scope and
-              Kind (Definition.Node) = K_Forward_Interface then
-               --  Check if they are both of the same abstract kind
+
+            --  Is previous definition a forward declaration?
+
+            if Definition.Parent_Scope = Get_Current_Scope
+              and then Kind (Definition.Node) = K_Forward_Interface
+            then
+
+               --  Check consistency of the 'abstract' property
+
                if Abst (Definition.Node) /= Abst (Res) then
                   declare
                      Loc : Errors.Location;
@@ -883,14 +896,15 @@ package body Idl_Fe.Parser is
                            Get_Previous_Token_Location);
                   end;
                end if;
-               Fd_Res := Get_Node (Definition);
+
+               Prev_Decl := Get_Node (Definition);
                if View_Next_Token /= T_Semi_Colon then
-                  Set_Forward (Fd_Res, Res);
-                  Set_Forward (Res, Fd_Res);
+                  Set_Forward (Prev_Decl, Res);
+                  Set_Forward (Res, Prev_Decl);
                   Redefine_Identifier (Definition, Res);
                   --  The forward declaration is now implemented.
-                  Add_Int_Val_Definition (Fd_Res);
-                  Set_Repository_Id (Res, Repository_Id (Fd_Res));
+                  Add_Int_Val_Definition (Prev_Decl);
+                  Set_Repository_Id (Res, Repository_Id (Prev_Decl));
                end if;
             else
                declare
@@ -907,13 +921,14 @@ package body Idl_Fe.Parser is
                      Get_Token_Location);
                   Success := False;
                   Result := No_Node;
-                  Fd_Res := No_Node;
+                  Prev_Decl := No_Node;
                   return;
                end;
             end if;
+
          else
             pragma Debug (O ("Parse_Interface : identifier not defined"));
-            Fd_Res := No_Node;
+            Prev_Decl := No_Node;
             Set_Forward (Res, No_Node);
             if not Add_Identifier (Res, Get_Token_String) then
                raise Errors.Internal_Error;
@@ -922,6 +937,7 @@ package body Idl_Fe.Parser is
             Definition := Find_Identifier_Definition
               (Get_Token_String, Get_Lexer_Location);
          end if;
+
       else
          declare
             Loc : Errors.Location;
@@ -939,17 +955,23 @@ package body Idl_Fe.Parser is
       end if;
       pragma Debug (O ("Parse_Interface : identifier parsed"));
       Next_Token;
-      --  Hups, this was just a forward declaration.
+
       if Get_Token = T_Semi_Colon then
-         --  is it another forward declaration
-         if Fd_Res /= No_Node then
+
+         --  Forward declaration
+
+         Set_Kind (Res, K_Forward_Interface);
+         Success := True;
+         Result := Res;
+
+         if Prev_Decl /= No_Node then
             declare
                Loc : Errors.Location;
             begin
-               Loc := Types.Get_Location (Fd_Res);
+               Loc := Types.Get_Location (Prev_Decl);
                Errors.Error
                  ("interface already forward declared in" &
-                  " this scope : " &
+                  " this scope: " &
                   Errors.Location_To_String (Loc),
                   Errors.Warning,
                   Get_Token_Location);
@@ -957,49 +979,35 @@ package body Idl_Fe.Parser is
                --  allows multiple forward declarations of an
                --  interface.
 
-               Fd_Res := Make_Forward_Interface (Get_Location (Res));
-               Set_Forward (Fd_Res, No_Node);
-               Set_Abst (Fd_Res, Abst (Res));
-               Set_Repository_Id (Fd_Res, Repository_Id (Res));
-
-               --  FIXME : we must deallocate this node : Free (Res);
-               Success := True;
-               Result := Fd_Res;
-               return;
             end;
          else
-            Fd_Res := Make_Forward_Interface (Get_Location (Res));
-            Set_Forward (Fd_Res, No_Node);
-            Set_Abst (Fd_Res, Abst (Res));
-            Redefine_Identifier (Definition, Fd_Res);
-            Set_Repository_Id (Fd_Res, Repository_Id (Res));
-
             --  Add a forward declaration
-            Add_Int_Val_Forward (Fd_Res);
-            --  FIXME : we must deallocate this node : Free (Res);
-            Result := Fd_Res;
-            Success := True;
-            return;
+            Add_Int_Val_Forward (Res);
          end if;
+
       else
-         --  use the Interface4 rule
+
+         --  Full interface declaration, parse remainder
+
          Parse_Interface_Dcl_End (Res, Success);
          if not Success then
             Result := No_Node;
          else
             Result := Res;
          end if;
-         return;
       end if;
-      return;
+
       pragma Debug (O2 ("Parse_Interface: end"));
    end Parse_Interface;
 
-   --------------------
-   --  Parse_Export  --
-   --------------------
-   procedure Parse_Export (Result : out Node_Id;
-                           Success : out Boolean) is
+   ------------------
+   -- Parse_Export --
+   ------------------
+
+   procedure Parse_Export
+     (Result : out Node_Id;
+      Success : out Boolean)
+   is
    begin
       case Get_Token is
          when T_Readonly | T_Attribute =>
@@ -6233,11 +6241,18 @@ package body Idl_Fe.Parser is
    ---------------------
    --  Parse_Attr_Dcl --
    ---------------------
-   procedure Parse_Attr_Dcl (Result : out Node_Id;
-                             Success : out Boolean) is
+
+   procedure Parse_Attr_Dcl
+     (Result  : out Node_Id;
+      Success : out Boolean)
+   is
       El : Node_Id;
    begin
       El := Make_Attribute (Get_Token_Location);
+      Set_Raises (El, Nil_List);
+      Set_Get_Raises (El, Nil_List);
+      Set_Set_Raises (El, Nil_List);
+
       if Get_Token = T_Readonly then
          Set_Is_Readonly (El, True);
          Next_Token;
@@ -6254,7 +6269,7 @@ package body Idl_Fe.Parser is
          return;
       end if;
       Next_Token;
-      pragma Debug (O ("Parse_Attr_dcl :" &
+      pragma Debug (O ("Parse_Attr_Dcl :" &
                        Idl_Token'Image (Get_Token)));
       declare
          Node : Node_Id;
@@ -6288,21 +6303,69 @@ package body Idl_Fe.Parser is
             Append_Node_To_Declarators (El, Res);
          end if;
       end;
-      while Get_Token = T_Comma loop
-         Next_Token;
+      if Get_Token = T_Comma then
+         while Get_Token = T_Comma loop
+            Next_Token;
+            declare
+               Res : Node_Id;
+            begin
+               Parse_Declarator (Res, El, Success);
+               if not Success then
+                  Result := No_Node;
+                  Success := False;
+                  return;
+               else
+                  Append_Node_To_Declarators (El, Res);
+               end if;
+            end;
+         end loop;
+      elsif Get_Token = T_Raises then
+         if not Is_Readonly (El) then
+            Errors.Error
+              ("raises statement may be used only with readonly attributes",
+               Errors.Error,
+               Get_Token_Location);
+            Result := No_Node;
+            Success := False;
+            return;
+         end if;
          declare
-            Res : Node_Id;
+            Node : Node_List;
          begin
-            Parse_Declarator (Res, El, Success);
-            if not Success then
-               Result := No_Node;
-               Success := False;
-               return;
-            else
-               Append_Node_To_Declarators (El, Res);
-            end if;
+            Node := Raises (El);
+            Parse_Raises_Expr (Node, Success);
+            Set_Raises (El, Node);
          end;
-      end loop;
+         if not Success then
+            return;
+         end if;
+      elsif Get_Token = T_SetRaises
+        or else Get_Token = T_GetRaises
+      then
+         if Is_Readonly (El) then
+            Errors.Error
+              ("getraises/setraises are acceptable only for "
+                 & "non readonly attributes",
+               Errors.Error,
+               Get_Token_Location);
+            Result := No_Node;
+            Success := False;
+            return;
+         end if;
+         declare
+            Node_Get : Node_List;
+            Node_Set : Node_List;
+         begin
+            Node_Get := Get_Raises (El);
+            Node_Set := Set_Raises (El);
+            Parse_Attr_Raises_Expr (Node_Get, Node_Set, Success);
+            Set_Get_Raises (El, Node_Get);
+            Set_Set_Raises (El, Node_Set);
+         end;
+         if not Success then
+            return;
+         end if;
+      end if;
       Result := El;
    end Parse_Attr_Dcl;
 
@@ -6690,97 +6753,8 @@ package body Idl_Fe.Parser is
    procedure Parse_Raises_Expr (Result : out Node_List;
                                 Success : out Boolean) is
    begin
-      Result := Nil_List;
       Next_Token;
-      if Get_Token /= T_Left_Paren then
-         declare
-            Loc : Errors.Location;
-         begin
-            Loc := Get_Previous_Token_Location;
-            Loc.Col := Loc.Col + 7;
-            Errors.Error
-              ("'(' expected in raises statement.",
-               Errors.Error,
-               Loc);
-         end;
-         Success := False;
-         return;
-      end if;
-      Next_Token;
-      if Get_Token = T_Right_Paren then
-         declare
-            Loc : Errors.Location;
-         begin
-            Loc := Get_Previous_Token_Location;
-            Loc.Col := Loc.Col + 1;
-            Errors.Error
-              ("scoped_name expected : a raise statement " &
-               "may not be empty.",
-               Errors.Error,
-               Loc);
-         end;
-         Next_Token;
-         Success := True;
-         return;
-      end if;
-      declare
-         Name : Node_Id;
-      begin
-         Parse_Scoped_Name (Name, Success);
-         if not Success then
-            return;
-         end if;
-         if Name /= No_Node then
-            if Kind (Value (Name)) /= K_Exception then
-               Errors.Error
-                 ("This scoped name is supposed " &
-                  "to denote an exception.",
-                  Errors.Error,
-                  Get_Token_Location);
-            end if;
-         end if;
-         Append_Node (Result, Name);
-      end;
-      while Get_Token = T_Comma loop
-         Next_Token;
-         declare
-            Name : Node_Id;
-         begin
-            Parse_Scoped_Name (Name, Success);
-            if not Success then
-               Go_To_Next_Semi_Colon;
-               return;
-            end if;
-            if Name /= No_Node then
-               if Kind (Value (Name)) /= K_Exception then
-                  Errors.Error
-                    ("This scoped name is supposed " &
-                     "to denote an exception.",
-                     Errors.Error,
-                     Get_Token_Location);
-               elsif Is_In_Pointed_List (Result, Name) then
-                  Errors.Error
-                    ("An operation may not raise twice " &
-                     "a given exception.",
-                     Errors.Error,
-                     Get_Token_Location);
-               else
-                  Append_Node (Result, Name);
-               end if;
-            end if;
-         end;
-      end loop;
-      if Get_Token /= T_Right_Paren then
-         Errors.Error
-           ("')' expected at the end of the " &
-            "raises statement.",
-            Errors.Error,
-            Get_Token_Location);
-         Success := False;
-         return;
-      end if;
-      Next_Token;
-      return;
+      Parse_Exception_List (Result, Success, "raises");
    end Parse_Raises_Expr;
 
    --------------------------
@@ -7083,6 +7057,105 @@ package body Idl_Fe.Parser is
       Success := False;
    end Parse_Value_Base_Type;
 
+   --------------------------
+   -- Parse_Exception_List --
+   --------------------------
+
+   procedure Parse_Exception_List
+     (Result    :    out Node_List;
+      Success   :    out Boolean;
+      Statement : in     String)
+   is
+   begin
+      Result := Nil_List;
+      if Get_Token /= T_Left_Paren then
+         declare
+            Loc : Errors.Location;
+         begin
+            Loc := Get_Previous_Token_Location;
+            Loc.Col := Loc.Col + 7;
+            Errors.Error
+              ("'(' expected in " & Statement & " statement.",
+               Errors.Error,
+               Loc);
+         end;
+         Success := False;
+         return;
+      end if;
+      Next_Token;
+      if Get_Token = T_Right_Paren then
+         declare
+            Loc : Errors.Location;
+         begin
+            Loc := Get_Previous_Token_Location;
+            Loc.Col := Loc.Col + 1;
+            Errors.Error
+              ("scoped_name expected : a " & Statement & " statement " &
+               "may not be empty.",
+               Errors.Error,
+               Loc);
+         end;
+         Next_Token;
+         Success := True;
+         return;
+      end if;
+      declare
+         Name : Node_Id;
+      begin
+         Parse_Scoped_Name (Name, Success);
+         if not Success then
+            return;
+         end if;
+         if Name /= No_Node then
+            if Kind (Value (Name)) /= K_Exception then
+               Errors.Error
+                 ("This scoped name is supposed " &
+                  "to denote an exception.",
+                  Errors.Error,
+                  Get_Token_Location);
+            end if;
+         end if;
+         Append_Node (Result, Name);
+      end;
+      while Get_Token = T_Comma loop
+         Next_Token;
+         declare
+            Name : Node_Id;
+         begin
+            Parse_Scoped_Name (Name, Success);
+            if not Success then
+               Go_To_Next_Semi_Colon;
+               return;
+            end if;
+            if Name /= No_Node then
+               if Kind (Value (Name)) /= K_Exception then
+                  Errors.Error
+                    ("This scoped name is supposed " &
+                     "to denote an exception.",
+                     Errors.Error,
+                     Get_Token_Location);
+               elsif Is_In_Pointed_List (Result, Name) then
+                  Errors.Error
+                    ("An operation may not raise twice " &
+                     "a given exception.",
+                     Errors.Error,
+                     Get_Token_Location);
+               else
+                  Append_Node (Result, Name);
+               end if;
+            end if;
+         end;
+      end loop;
+      if Get_Token /= T_Right_Paren then
+         Errors.Error
+           ("')' expected at the end of the " & Statement & " statement.",
+            Errors.Error,
+            Get_Token_Location);
+         Success := False;
+         return;
+      end if;
+      Next_Token;
+   end Parse_Exception_List;
 
    ------------------------------
    --  Inheritance management  --
@@ -7165,6 +7238,44 @@ package body Idl_Fe.Parser is
       return Result;
    end Interface_Is_Importable;
 
+
+   ----------------------------
+   -- Parse_Attr_Raises_Expr --
+   ----------------------------
+
+   procedure Parse_Attr_Raises_Expr
+     (Result_Get : out Node_List;
+      Result_Set : out Node_List;
+      Success    : out Boolean)
+   is
+   begin
+      Result_Get := Nil_List;
+      Result_Set := Nil_List;
+
+      if Get_Token = T_GetRaises then
+         Next_Token;
+         Parse_Exception_List (Result_Get, Success, "getraises");
+      end if;
+      if not Success then
+         return;
+      end if;
+
+      if Get_Token = T_SetRaises then
+         Next_Token;
+         Parse_Exception_List (Result_Set, Success, "setraises");
+         if not Success then
+            return;
+         end if;
+
+         if Get_Token = T_GetRaises then
+            Errors.Error
+              ("getraises statement must preceed setraises statement",
+               Errors.Error,
+               Get_Token_Location);
+            Success := False;
+         end if;
+      end if;
+   end Parse_Attr_Raises_Expr;
 
    --------------------------
    --  Parsing of pragmas  --

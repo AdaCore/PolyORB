@@ -4,6 +4,7 @@
 
 NATIVE_ADA="@ADA@"
 CROSS_ADA="@ADA_FOR_TARGET@"
+SED="@SED@"
 
 case "`basename "$0"`" in
   native-*)
@@ -26,12 +27,12 @@ while [ $# -gt 1 ]; do
         cline="$cline$1 "
         ;;
       -I*)
-        include_path="$include_path:`echo $1 | sed s/^-I//`"
+        include_path="$include_path:`echo $1 | ${SED} -e 's/^-I//'`"
         cline="$cline$1 "
         ;;
       -aI*)
-        cline="$cline"`echo "$1" | sed s/^-aI/-I/`" "
-        include_path="$include_path:`echo $1 | sed s/^-aI//`"
+        cline="$cline"`echo "$1" | ${SED} -e 's/^-aI/-I/'`" "
+        include_path="$include_path:`echo $1 | ${SED} -e 's/^-aI//'`"
         ;;
       -aO*)
         ;;
@@ -45,7 +46,7 @@ done
 tmp="tmp$$"
 trap "rm -rf $tmp" 0 1 2 3 15
 mkdir $tmp
-newname=$tmp/`echo $1 | sed -e 's,^\.libs/\(.*\).lo$,\1.o,'`
+newname=$tmp/`echo $1 | ${SED} -e 's,^\.libs/\(.*\).lo$,\1.o,'`
 
 add_cfg_pragma_file() {
   case "${cfg_pragma_arg}" in
@@ -60,7 +61,7 @@ add_cfg_pragma_file() {
 _IFS="${IFS}"
 IFS=": 	"
 for srcdir in `echo $include_path`; do
-  srcdir=`echo ${srcdir} | sed 's,^./,,'`
+  srcdir=`echo ${srcdir} | ${SED} -e 's,^./,,'`
   for cfg_pragma_file in ${srcdir}/*.adc; do
     if [ ! -f "${cfg_pragma_file}" ]; then
        # Case where no configuration pragmas file exists

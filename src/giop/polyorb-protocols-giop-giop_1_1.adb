@@ -36,6 +36,7 @@ with Ada.Unchecked_Deallocation;
 with PolyORB.Any;
 with PolyORB.Binding_Data.Local;
 with PolyORB.Buffers;
+with PolyORB.GIOP_P.Service_Contexts;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 with PolyORB.Log;
@@ -45,12 +46,14 @@ with PolyORB.ORB.Interface;
 with PolyORB.Parameters;
 with PolyORB.References;
 with PolyORB.Representations.CDR;
+with PolyORB.Request_QoS;
 with PolyORB.Smart_Pointers;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.Protocols.GIOP.GIOP_1_1 is
 
    use PolyORB.Buffers;
+   use PolyORB.GIOP_P.Service_Contexts;
    use PolyORB.Log;
    use PolyORB.Objects;
    use PolyORB.Representations.CDR;
@@ -89,7 +92,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
       Resp_Exp   :    out Boolean;
       Object_Key :    out PolyORB.Objects.Object_Id_Access;
       Operation  :    out Types.String;
-      Principal  :    out Types.String);
+      Principal  :    out Types.String;
+      QoS        :    out PolyORB.Request_QoS.QoS_Parameter_Lists.List);
 
    -----------------------------------
    -- Internal function declaration --
@@ -191,13 +195,15 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
             if Sess.Role /= Client then
                raise GIOP_Error;
             end if;
-            Unmarshall_Service_Context_List (Sess.Buffer_In);
             declare
                Request_Id   : constant Types.Unsigned_Long :=
                  Unmarshall (Sess.Buffer_In);
                Reply_Status : constant Reply_Status_Type :=
                  Unmarshall (Sess.Buffer_In);
+               QoS : PolyORB.Request_QoS.QoS_Parameter_Lists.List;
             begin
+               Unmarshall_Service_Context_List (Sess.Buffer_In, QoS);
+
                Common_Reply_Received (Sess'Access, Request_Id, Reply_Status);
             end;
 
@@ -297,7 +303,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
       Def_Args    : Component_Access;
       Target      : References.Ref;
       Req         : Request_Access;
-
+      QoS         : PolyORB.Request_QoS.QoS_Parameter_Lists.List;
       Result      : Any.NamedValue;
       --  Dummy NamedValue for Create_Request;
       --  the actual Result  is set by the called method.n
@@ -316,7 +322,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
          Resp_Exp,
          Object_Key,
          Operation,
-         Principal);
+         Principal,
+         QoS);
 
       if Resp_Exp then
          Req_Flags := Sync_With_Target;
@@ -370,6 +377,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
          Dependent_Binding_Object =>
            Smart_Pointers.Entity_Ptr
          (S.Dependent_Binding_Object));
+
+      PolyORB.Request_QoS.Set_QoS (Req, QoS);
 
       Set_Note
         (Req.Notepad,
@@ -523,7 +532,9 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
       Buffer := new Buffer_Type;
       Header_Buffer := new Buffer_Type;
       Header_Space := Reserve (Buffer, GIOP_Header_Size);
-      Marshall_Service_Context_List (Buffer);
+      Marshall_Service_Context_List
+        (Buffer,
+         PolyORB.Request_QoS.Get_QoS (R.Req));
       Marshall (Buffer, R.Request_Id);
       Marshall (Buffer, Resp_Exp);
       for J in 1 .. 3 loop
@@ -600,6 +611,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
       use PolyORB.Types;
 
       It           : Iterator := First (List_Of (Args).all);
+      First        : Boolean  := True;
       Arg          : Element_Access;
       Message_Size : Types.Unsigned_Long;
    begin
@@ -614,8 +626,9 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
             pragma Debug (O ("Marshalling argument "
                              & Types.To_Standard_String (Arg.Name)
                                & " = " & Image (Arg.Argument)));
-            if First (It) then
+            if First then
                Pad_Align (Buffer, First_Arg_Alignment);
+               First := False;
             end if;
             Marshall (Buffer, Arg.all);
          end if;
@@ -742,15 +755,18 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
       Resp_Exp          :    out Types.Boolean;
       Object_Key        :    out PolyORB.Objects.Object_Id_Access;
       Operation         :    out Types.String;
-      Principal         :    out Types.String)
+      Principal         :    out Types.String;
+      QoS               :    out PolyORB.Request_QoS.QoS_Parameter_Lists.List)
    is
       use Representations.CDR;
       use PolyORB.Types;
 
       Sink : Types.Octet;
+
    begin
       --  Service context
-      Unmarshall_Service_Context_List (Buffer);
+
+      Unmarshall_Service_Context_List (Buffer, QoS);
 
       --  Request id
       Request_Id := Unmarshall (Buffer);
@@ -791,6 +807,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
    procedure Marshall_GIOP_Header_Reply
      (Implem  : access GIOP_Implem_1_1;
       S       : access Session'Class;
+      R       : Request_Access;
       Buffer  : access PolyORB.Buffers.Buffer_Type)
    is
       pragma Warnings (Off);
@@ -800,7 +817,9 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
       Sess    : GIOP_Session renames GIOP_Session (S.all);
       Ctx     : GIOP_Ctx_1_1 renames GIOP_Ctx_1_1 (Sess.Ctx.all);
    begin
-      Marshall_Service_Context_List (Buffer);
+      Marshall_Service_Context_List
+        (Buffer,
+         PolyORB.Request_QoS.Get_QoS (R));
       Marshall (Buffer, Ctx.Request_Id);
       Marshall (Buffer, Ctx.Reply_Status);
    end Marshall_GIOP_Header_Reply;

@@ -53,6 +53,7 @@ with PolyORB.Utils.Strings.Lists;
 
 package body RTCORBA.RTORB is
 
+   use CORBA;
    use PolyORB.Tasking.Priorities;
 
    type RTORB_Object is new PolyORB.Smart_Pointers.Entity with null record;
@@ -139,8 +140,17 @@ package body RTCORBA.RTORB is
 
       use PolyORB.Lanes;
 
-      New_Lane : constant Lane_Root_Access
-        := Lane_Root_Access (Create
+      New_Lane : Lane_Root_Access;
+      Lane_Index : RTCORBA.ThreadpoolId;
+
+   begin
+      if Max_Request_Buffer_Size /= 0 then
+         --  See note in package specification
+
+         Raise_Bad_Param (Default_Sys_Member);
+      end if;
+
+      New_Lane := Lane_Root_Access (Create
         (PolyORB.RTCORBA_P.To_ORB_Priority (Default_Priority),
          External_Priority (Default_Priority),
          Natural (Static_Threads),
@@ -150,9 +160,6 @@ package body RTCORBA.RTORB is
          PolyORB.Types.Unsigned_Long (Max_Buffered_Requests),
          PolyORB.Types.Unsigned_Long (Max_Request_Buffer_Size)));
 
-      Lane_Index : RTCORBA.ThreadpoolId;
-
-   begin
       PolyORB.RTCORBA_P.ThreadPoolManager.Register_Lane
         (New_Lane,
          Lane_Index);
@@ -176,15 +183,24 @@ package body RTCORBA.RTORB is
    is
       pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Self);
-      pragma Unreferenced (Allow_Borrowing);
       pragma Warnings (On); --  WAG:3.15
 
       use PolyORB.Lanes;
 
-      New_Lane : constant Lane_Root_Access := new Lanes_Set (Length (Lanes));
+      New_Lane : Lane_Root_Access;
       Lane_Index : RTCORBA.ThreadpoolId;
 
    begin
+      if Max_Request_Buffer_Size /= 0
+        or else Allow_Borrowing
+      then
+         --  See note in package specification
+
+         Raise_Bad_Param (Default_Sys_Member);
+      end if;
+
+      New_Lane := new Lanes_Set (Length (Lanes));
+
       for J in 1 .. Length (Lanes) loop
          Add_Lane
            (Lanes_Set (New_Lane.all),
@@ -220,7 +236,13 @@ package body RTCORBA.RTORB is
       pragma Unreferenced (Self);
       pragma Warnings (On);
 
+      use PolyORB.RTCORBA_P.ThreadPoolManager;
+
    begin
+      if not Lane_Registered (Threadpool) then
+         raise InvalidThreadpool;
+      end if;
+
       PolyORB.RTCORBA_P.ThreadPoolManager.Unregister_Lane (Threadpool);
    end Destroy_Threadpool;
 

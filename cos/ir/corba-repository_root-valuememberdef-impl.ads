@@ -24,7 +24,7 @@ package CORBA.Repository_Root.ValueMemberDef.Impl is
                    Version : CORBA.Repository_Root.VersionSpec;
                    Defined_In : CORBA.Repository_Root.Container_Forward.Ref;
                    Type_Def : CORBA.Repository_Root.IDLType.Ref;
-                   IDL_Access : CORBA.Repository_Root.Visibility);
+                   IDL_Access : CORBA.Visibility);
 
    function get_type
      (Self : access Object)
@@ -40,11 +40,11 @@ package CORBA.Repository_Root.ValueMemberDef.Impl is
 
    function get_access
      (Self : access Object)
-     return CORBA.Repository_Root.Visibility;
+     return CORBA.Visibility;
 
    procedure set_access
      (Self : access Object;
-      To : in CORBA.Repository_Root.Visibility);
+      To : in CORBA.Visibility);
 
    --  override this from contained
    function describe
@@ -56,7 +56,7 @@ private
    type Object is new CORBA.Repository_Root.Contained.Impl.Object with record
       --  the IDL_Type is the type of the type_def
       Type_Def : CORBA.Repository_Root.IDLType.Ref;
-      IDL_Access : CORBA.Repository_Root.Visibility;
+      IDL_Access : CORBA.Visibility;
    end record;
 
 end CORBA.Repository_Root.ValueMemberDef.Impl;

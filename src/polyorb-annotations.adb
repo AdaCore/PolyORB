@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -134,10 +134,18 @@ package body PolyORB.Annotations is
         (Note'Class, Note_Access);
    begin
       while not Last (It) loop
+         Destroy (Value (It).all.all);
          Free (Value (It).all);
          Next (It);
       end loop;
       Deallocate (NP);
+   end Destroy;
+
+   procedure Destroy (N : in out Note) is
+      pragma Unreferenced (N);
+
+   begin
+      null;
    end Destroy;
 
 end PolyORB.Annotations;

@@ -41,23 +41,47 @@ package PolyORB.Smart_Pointers is
 
    pragma Preelaborate;
 
-   ------------
-   -- Entity --
-   ------------
+   ------------------------
+   -- Task-unsafe entity --
+   ------------------------
 
-   type Non_Controlled_Entity is abstract tagged limited private;
+   type Unsafe_Entity is abstract tagged limited private;
 
-   procedure Finalize (X : in out Non_Controlled_Entity);
-   --  Entity is the base type of all objects that can be
+   procedure Finalize (X : in out Unsafe_Entity);
+   --  Unsafe_Entity is the base type of all objects that can be
    --  referenced. It contains a Counter, which is the number of
    --  references to this object, and is automatically destroyed when
    --  the counter reaches 0. Before the entity is destroyed,
    --  the Finalize operation is called. NOTE however that
-   --  Non_Controlled_Entity is *not* a controlled type: Finalize
+   --  Unsafe_Entity is *not* a controlled type: Finalize
    --  is *only* called when an Entity is destroyed as a result
    --  of its reference counter dropping to 0.
 
-   type Entity_Ptr is access all Non_Controlled_Entity'Class;
+   type Entity_Ptr is access all Unsafe_Entity'Class;
+
+   procedure Entity_Lock (X : in out Unsafe_Entity);
+   procedure Entity_Unlock (X : in out Unsafe_Entity);
+   --  Lock/unlock operations to be overloaded by derived types
+   --  if they need to be made task-safe. These operations must
+   --  guarantee mutual exclusion on accesses to the reference
+   --  counter.
+
+   ----------------------
+   -- Task-safe entity --
+   ----------------------
+
+   type Non_Controlled_Entity is abstract new Unsafe_Entity with private;
+   --  Same as Unsafe_Entity, but accesses to the reference counter are
+   --  made task safe through calls to the Entity_Lock and Entity_Unlock
+   --  operations.
+
+   procedure Entity_Lock (X : in out Non_Controlled_Entity);
+   procedure Entity_Unlock (X : in out Non_Controlled_Entity);
+   --  Mutex operations
+
+   ---------------------------------
+   -- Controlled task-safe entity --
+   ---------------------------------
 
    type Entity is abstract new Non_Controlled_Entity with private;
 
@@ -119,15 +143,26 @@ package PolyORB.Smart_Pointers is
 
 private
 
+   ------------------------
+   -- Task-unsafe entity --
+   ------------------------
+
+   type Unsafe_Entity is abstract tagged limited record
+      Counter : Integer := 0;
+      --  Reference counter.
+   end record;
+
+   ----------------------
+   -- Task-safe entity --
+   ----------------------
+
    Counter_Lock : Tasking.Mutexes.Mutex_Access;
    --  Global mutex used to guarantee consistency of concurrent
    --  accesses to entity reference counters. To be created by
    --  a child unit during PolyORB initialization.
 
-   type Non_Controlled_Entity is abstract tagged limited record
-      Counter : Integer := 0;
-      --  Reference counter.
-   end record;
+   type Non_Controlled_Entity is abstract new Unsafe_Entity
+     with null record;
 
    type Entity_Controller (E : access Entity'Class)
       is new Ada.Finalization.Limited_Controlled
@@ -158,7 +193,7 @@ private
    --  declare hooks to be initialized during elaboration.
 
    type Entity_External_Tag_Hook is access
-     function (X : Non_Controlled_Entity'Class)
+     function (X : Unsafe_Entity'Class)
      return String;
 
    type Ref_External_Tag_Hook is access

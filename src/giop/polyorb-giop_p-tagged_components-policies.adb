@@ -171,7 +171,7 @@ package body PolyORB.GIOP_P.Tagged_Components.Policies is
    begin
       while not Last (It) loop
          Free (Value (It).P_Value);
-         Remove (C.Policies, It);
+         Next (It);
       end loop;
 
       Deallocate (C.Policies);

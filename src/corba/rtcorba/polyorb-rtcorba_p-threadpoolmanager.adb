@@ -147,8 +147,14 @@ package body PolyORB.RTCORBA_P.ThreadPoolManager is
    ---------------------
 
    procedure Unregister_Lane (Index : RTCORBA.ThreadpoolId) is
-      It : Iterator;
+      function Index_Equality (TP : Thread_Pool) return Boolean;
 
+      function Index_Equality (TP : Thread_Pool) return Boolean is
+      begin
+         return TP.Index = Index;
+      end Index_Equality;
+
+      procedure Remove is new Remove_G (Index_Equality);
    begin
       --  Destroy associated lane
 
@@ -157,16 +163,7 @@ package body PolyORB.RTCORBA_P.ThreadPoolManager is
       --  Remove index from Thread_Pools list
 
       Enter (Thread_Pool_List_Lock);
-      It := First (Thread_Pools);
-
-      while not Last (It) loop
-         if Value (It).Index = Index then
-            Remove (Thread_Pools, It);
-            exit;
-         end if;
-         Next (It);
-      end loop;
-
+      Remove (Thread_Pools, All_Occurrences => False);
       Leave (Thread_Pool_List_Lock);
    end Unregister_Lane;
 

@@ -36,6 +36,7 @@
 --  $Id$
 
 with System;
+with PolyORB.Types;
 
 package PolyORB.Tasking.Priorities is
 
@@ -83,6 +84,28 @@ package PolyORB.Tasking.Priorities is
    type External_Priority is new Integer;
 
    Invalid_Priority : constant External_Priority;
+
+   ----------------------
+   -- Priority mapping --
+   ----------------------
+
+   --  These funcitons define mapping between ORB_Priority and
+   --  External_Priority. When False, Returns indicate the mapping was
+   --  not possible.
+
+   type To_External_Priority_T is access procedure
+     (Value    : in  ORB_Priority;
+      Result   : out External_Priority;
+      Returns  : out PolyORB.Types.Boolean);
+
+   type To_ORB_Priority_T is access procedure
+     (Value    : in  External_Priority;
+      Result   : out ORB_Priority;
+      Returns  : out PolyORB.Types.Boolean);
+
+   To_External_Priority : To_External_Priority_T;
+
+   To_ORB_Priority : To_ORB_Priority_T;
 
 private
    Default_Component_Priority : constant ORB_Component_Priority

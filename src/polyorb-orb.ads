@@ -64,8 +64,6 @@ package PolyORB.ORB is
    package POC renames PolyORB.ORB_Controller;
    package PT  renames PolyORB.Transport;
 
-   type Request_Job is new PJ.Job with private;
-
    ----------------------------------
    -- Abstract tasking policy type --
    ----------------------------------
@@ -93,6 +91,16 @@ package PolyORB.ORB is
    is new PolyORB.Components.Component with private;
 
    type ORB_Access is access all ORB_Type;
+
+   -----------------
+   -- Request_Job --
+   -----------------
+
+   type Request_Job is new PJ.Job with record
+      ORB       : ORB_Access;
+      Request   : Requests.Request_Access;
+      Requestor : Components.Component_Access;
+   end record;
 
    -------------------------------
    -- Tasking policy operations --
@@ -277,12 +285,6 @@ private
    --------------------------------------------
    -- Job type for method execution requests --
    --------------------------------------------
-
-   type Request_Job is new PJ.Job with record
-      ORB       : ORB_Access;
-      Request   : Requests.Request_Access;
-      Requestor : Components.Component_Access;
-   end record;
 
    procedure Run (J : access Request_Job);
    --  Overload the abstract Run primitive for Job:

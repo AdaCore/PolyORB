@@ -77,7 +77,7 @@ package body PolyORB.Smart_Pointers is
      (Obj : in out Entity_Ptr)
    is
       procedure Free is new Ada.Unchecked_Deallocation
-        (Non_Controlled_Entity'Class, Entity_Ptr);
+        (Unsafe_Entity'Class, Entity_Ptr);
 
    begin
       pragma Assert (Obj.Counter /= -1);
@@ -85,7 +85,7 @@ package body PolyORB.Smart_Pointers is
                        & Entity_External_Tag (Obj.all)));
 
       pragma Assert (Counter_Lock /= null);
-      Enter (Counter_Lock);
+      Entity_Lock (Obj.all);
       pragma Debug (O ("Dec_Usage: Counter"
                        & Natural'Image (Obj.Counter)
                        & " ->"
@@ -97,7 +97,7 @@ package body PolyORB.Smart_Pointers is
          pragma Debug (O ("Dec_Usage: deallocating "
                           & Entity_External_Tag (Obj.all)));
 
-         Leave (Counter_Lock);
+         Entity_Unlock (Obj.all);
          --  Releasing Counter_Lock at this stage is sufficient to
          --  ensure that only one task finalizes 'Obj.all' and
          --  frees 'Obj'.
@@ -110,7 +110,7 @@ package body PolyORB.Smart_Pointers is
 
          Free (Obj);
       else
-         Leave (Counter_Lock);
+         Entity_Unlock (Obj.all);
       end if;
 
       pragma Debug (O ("Leaving Dec_Usage"));
@@ -167,7 +167,7 @@ package body PolyORB.Smart_Pointers is
    end Finalize;
 
    procedure Finalize
-     (X : in out Non_Controlled_Entity)
+     (X : in out Unsafe_Entity)
    is
       pragma Warnings (Off);
       pragma Unreferenced (X);
@@ -248,5 +248,41 @@ package body PolyORB.Smart_Pointers is
    begin
       return The_Ref.A_Ref;
    end Entity_Of;
+
+   -----------------
+   -- Entity_Lock --
+   -----------------
+
+   procedure Entity_Lock (X : in out Unsafe_Entity) is
+      pragma Unreferenced (X);
+
+   begin
+      null;
+   end Entity_Lock;
+
+   procedure Entity_Lock (X : in out Non_Controlled_Entity) is
+      pragma Unreferenced (X);
+
+   begin
+      Enter (Counter_Lock);
+   end Entity_Lock;
+
+   -------------------
+   -- Entity_Unlock --
+   -------------------
+
+   procedure Entity_Unlock (X : in out Unsafe_Entity) is
+      pragma Unreferenced (X);
+
+   begin
+      null;
+   end Entity_Unlock;
+
+   procedure Entity_Unlock (X : in out Non_Controlled_Entity) is
+      pragma Unreferenced (X);
+
+   begin
+      Leave (Counter_Lock);
+   end Entity_Unlock;
 
 end PolyORB.Smart_Pointers;

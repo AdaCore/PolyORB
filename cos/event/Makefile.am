@@ -4,7 +4,7 @@ alidir = $(includedir)/polyorb/corba/cos
 
 COS_DIRS=$(top_builddir)/idls/cos/event
 
-COS_GNATMAKE_FLAGS = -I$(COS_DIRS)
+COS_ADAFLAGS = -I$(COS_DIRS)
 
 #
 # Building libpolyorb-corba-cos-event-impl library
@@ -27,7 +27,8 @@ ADA_SPECS_WITH_BODY = \
 	costypedeventchanneladmin-typedproxypullsupplier-impl.ads \
 	costypedeventchanneladmin-typedproxypushconsumer-impl.ads \
 	costypedeventchanneladmin-typedsupplieradmin-impl.ads \
-	costypedeventcomm-typedpullsupplier-impl.ads
+	costypedeventcomm-typedpullsupplier-impl.ads \
+	costypedeventcomm-typedpushconsumer-impl.ads
 
 lib_LTLIBRARIES = libpolyorb-corba-cos-event-impl.la
 

@@ -508,12 +508,19 @@ package CORBA.Repository_Root is
       Is_Abstract     : CORBA.Boolean;
    end record;
 
+   --  Implementation Note: the IDL-to-Ada mapping specifications
+   --  states that the Visibility type is part of the CORBA package
+   --  specification. However, this type is defined in the
+   --  specification of the Interface Repository, and thus should be
+   --  in this package. The definition of the Visibility type is in
+   --  the CORBA package.
+
    --  typedef Visibility
-
-   type Visibility is new CORBA.Short;
-
-   PRIVATE_MEMBER : constant Visibility := 0;
-   PUBLIC_MEMBER  : constant Visibility := 1;
+   --
+   --  type Visibility is new CORBA.Short;
+   --
+   --  PRIVATE_MEMBER : constant Visibility := 0;
+   --  PUBLIC_MEMBER  : constant Visibility := 1;
 
    --  struct ValueMember
 
@@ -524,7 +531,7 @@ package CORBA.Repository_Root is
       Version    : CORBA.Repository_Root.VersionSpec;
       IDL_Type   : CORBA.TypeCode.Object;
       Type_Def   : CORBA.Repository_Root.IDLType_Forward.Ref;
-      IDL_Access : CORBA.Repository_Root.Visibility;
+      IDL_Access : CORBA.Visibility;
    end record;
 
    --  typedef ValueMemberSeq

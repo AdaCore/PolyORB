@@ -38,6 +38,7 @@
 generic
    type T is private;
    with function "=" (X, Y : T) return Boolean is <>;
+   Doubly_Chained : Boolean := False;
 package PolyORB.Utils.Chained_Lists is
 
    pragma Preelaborate;
@@ -60,10 +61,6 @@ package PolyORB.Utils.Chained_Lists is
 
    function First (L : List) return Iterator;
    --  Return an iterator on L positioned at L's first element.
-
-   function First (I : Iterator) return Boolean;
-   --  True when I is positioned at the first element of the
-   --  underlying list.
 
    function Value (I : Iterator) return Element_Access;
    --  Return an access to the value of the list element currently
@@ -89,13 +86,28 @@ package PolyORB.Utils.Chained_Lists is
 
    procedure Insert (L : in out List; I : T; Before : in out Iterator);
    --  Insert I into L before the designated position.
+   --  If Before is not either First (L) or Last (L), then the
+   --  list must be doubly linked for the operation to succeed
+   --  (Program_Error will be raised if it is not).
 
    procedure Remove (L : in out List; I : in out Iterator);
    --  Remove the item designated by I from L, and advance I to the next
-   --  item in L.
+   --  item in L. This procedure can be used only if Doubly_Chained is
+   --  True (Program_Error will be raised if not).
 
-   procedure Remove (L : in out List; I : T);
-   --  Remove all occurences of value I from list L.
+   generic
+      with function Predicate (X : T) return Boolean;
+   procedure Remove_G
+     (L : in out List;
+      All_Occurrences : Boolean := True);
+   --  Remove from L items for which Predicate is True. If All_Occurrences
+   --  is True, remove all such items, else only the first such item (if any).
+
+   procedure Remove
+     (L : in out List;
+      I : T;
+      All_Occurrences : Boolean := True);
+   --  Remove first/all occurences of value I from list L.
 
    Empty : constant List;
    --  A list that contains no elements.
@@ -127,7 +139,6 @@ private
    pragma Inline (Prepend);
    pragma Inline (Append);
    pragma Inline (Insert);
-   pragma Inline (Remove);
    pragma Inline ("+");
    pragma Inline ("&");
 
@@ -135,7 +146,14 @@ private
    type Node_Access is access all Node;
    type Node is record
       Value : aliased T;
+      --  Value associated with this list node
+
       Next  : Node_Access;
+      --  Next node
+
+      Prev  : Node_Access;
+      --  Previous node (null for first node on list,
+      --  unused if Doubly_Chained is False).
    end record;
 
    type Iterator is record

@@ -1,4 +1,3 @@
-EXAMPLES_ROOT=..
 #EXAMPLE = dsa-dummy
 EXAMPLE = bbs
 

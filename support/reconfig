@@ -2,6 +2,14 @@
 
 EDIT_CONFIGURE_IN=false
 
+# Find a version of awk that supports gsub
+NAWK=`which nawk 2> /dev/null`
+if [ -x "${NAWK}" ]; then
+  : nawk found
+else
+  NAWK=awk
+fi
+
 set -e
 
 usage() {
@@ -26,7 +34,7 @@ if ${EDIT_CONFIGURE_IN}
 then
   echo "Editing configure.in"
   mv configure.in configure.in.orig
-  awk '
+  ${NAWK} '
     BEGIN { st = 0; nf = 0; }
     FILENAME == "MANIFEST" {
       manifest[nf++] = $0;
@@ -53,8 +61,17 @@ then
   rm -f configure.in.orig
 fi
 
+rm -f aclocal.m4 support/libtool.m4 configure
+
 echo "Libtoolizing"
-libtoolize --copy --force
+# If libtoolize advises us to get a particular version of libtool.m4,
+# copy it locally.
+libtool_m4=`libtoolize --copy --force | sed -n -e '/You should add the contents of \`\([^'\'']*\)'\''.*$/s//\1/p'`
+if [ -n "$libtool_m4" ]; then
+  cp $libtool_m4 support/libtool.m4
+else
+  touch support/libtool.m4
+fi
 
 echo "Running aclocal"
 aclocal -I support
@@ -66,18 +83,24 @@ echo "Running automake"
 automake --add-missing
 
 echo "Generating IDL tree accessors"
-(cd compilers/idlac && python make_nodes.py nodes.txt > xxx \
- && gnatchop -w xxx && rm -f xxx)
+(cd compilers/idlac && python make_nodes.py nodes.txt > nodes.ada \
+ && gnatchop -w nodes.ada && rm -f nodes.ada)
 
 echo "Doing the necessary date modifications"
-find . -name configure.in -exec touch {} \;
-sleep 1
-find . -name aclocal.m4 -exec touch {} \;
-sleep 1
-find . -name Makefile.in -exec touch {} \;
-sleep 1
-find . -name configure -exec touch {} \;
-sleep 1
-find . -name stamp-h.in -exec touch {} \;
-sleep 1
-find . -name config.h.in -exec touch {} \;
+for f in \
+  configure.in	\
+  aclocal.m4	\
+  Makefile.in	\
+  configure	\
+  stamp-h.in	\
+  config.h.in
+do
+  find . -name $f | while read ff
+  do
+    # Solaris' touch(1) requires the touched file to be writable
+    chmod +w $ff
+    touch $ff
+    chmod -w $ff
+  done
+  sleep 1
+done

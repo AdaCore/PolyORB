@@ -73,8 +73,7 @@ package body PolyORB.Parameters.File is
    -----------------------------
 
    procedure Load_Configuration_File (Conf_File_Name : String) is
-      Current_Section : String_Ptr
-        := +Environment_Configuration_Section;
+      Current_Section : String_Ptr := null;
       Current_Line : Integer := 0;
 
       procedure Set_Current_Section (S : String);
@@ -143,6 +142,13 @@ package body PolyORB.Parameters.File is
                        := Find (Line (Line'First .. Last),
                                 Line'First, '=');
                   begin
+                     if Current_Section = null then
+                        O ("Assignment out of any section on line" &
+                           Integer'Image (Current_Line) &
+                           ": " & Line (Line'First .. Last));
+                        raise Syntax_Error;
+                     end if;
+
                      if Eq not in Line'First + 1 .. Last - 1 then
                         O ("Syntax error on line" &
                            Integer'Image (Current_Line) &

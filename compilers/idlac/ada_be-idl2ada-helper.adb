@@ -504,7 +504,8 @@ package body Ada_Be.Idl2Ada.Helper is
 
          PL (CU, Ada_TC_Name (Node)
              & " : CORBA.TypeCode.Object");
-         PL (CU, "  := CORBA.Object.TC_Object;");
+         PL (CU, "  := CORBA.TypeCode.Internals.To_CORBA_Object "
+             & "(PolyORB.Any.TypeCode.TC_Object);");
 
          --  From_Any
          NL (CU);

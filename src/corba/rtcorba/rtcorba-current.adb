@@ -39,23 +39,24 @@ with RTCORBA.PriorityMapping;
 with PolyORB.CORBA_P.Initial_References;
 with PolyORB.RTCORBA_P.Setup;
 
+with PolyORB.Annotations;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Smart_Pointers;
-with PolyORB.Tasking.Threads;
+with PolyORB.Tasking.Priorities;
+with PolyORB.Tasking.Threads.Annotations;
 with PolyORB.Utils.Strings.Lists;
+with PolyORB.Request_QoS.Priority;
 
 package body RTCORBA.Current is
 
-   Unset_Priority : constant RTCORBA.Priority := -1;
-   --  This special value denotes an unset priority value for
-   --  Current_Object.
+   use PolyORB.Annotations;
+   use PolyORB.Tasking.Priorities;
+   use PolyORB.Tasking.Threads.Annotations;
+   use PolyORB.Request_QoS.Priority;
 
-   type Current_Object is new PolyORB.Smart_Pointers.Entity with record
-      Id             : PolyORB.Tasking.Threads.Thread_Id;
-      Last_Value_Set : RTCORBA.Priority := Unset_Priority;
-   end record;
+   type Current_Object is new PolyORB.Smart_Pointers.Entity with null record;
 
    function Create return CORBA.Object.Ref;
    --  Create a RTCORBA.Current.Ref
@@ -64,17 +65,13 @@ package body RTCORBA.Current is
    -- Create --
    ------------
 
-   function Create return CORBA.Object.Ref
-   is
+   function Create return CORBA.Object.Ref is
       Result : Ref;
 
       Current : constant PolyORB.Smart_Pointers.Entity_Ptr
         := new Current_Object;
 
    begin
-      Current_Object (Current.all).Id
-        := PolyORB.Tasking.Threads.Current_Task;
-
       Set (Result, Current);
 
       return CORBA.Object.Ref (Result);
@@ -109,15 +106,17 @@ package body RTCORBA.Current is
      (Self : in Ref)
      return RTCORBA.Priority
    is
-      Returns : RTCORBA.Priority;
-   begin
-      Returns := Current_Object (Entity_Of (Self).all).Last_Value_Set;
+      pragma Unreferenced (Self);
 
-      if Returns = Unset_Priority then
+      Note : Thread_Priority_Note;
+   begin
+      Get_Note (Get_Current_Thread_Notepad.all, Note, Default_Note);
+
+      if Note.Priority = Invalid_Priority then
          CORBA.Raise_Initialize (CORBA.Default_Sys_Member);
       end if;
 
-      return Returns;
+      return RTCORBA.Priority (Note.Priority);
    end Get_The_Priority;
 
    ----------------------
@@ -128,6 +127,8 @@ package body RTCORBA.Current is
      (Self : in Ref;
       To   : in RTCORBA.Priority)
    is
+      pragma Unreferenced (Self);
+
       use type PolyORB.RTCORBA_P.Setup.PriorityMapping_Access;
 
       Success : CORBA.Boolean;
@@ -165,23 +166,33 @@ package body RTCORBA.Current is
                                             Completed => CORBA.Completed_No));
       end if;
 
-      --  Update current object
-
       declare
+
          use PolyORB.Tasking.Threads;
 
-         Current : PolyORB.Smart_Pointers.Entity_Ptr;
-      begin
-         Current := Entity_Of (Self);
+         Note : Thread_Priority_Note;
+         Notepad : constant Notepad_Access := Get_Current_Thread_Notepad;
 
-         Current_Object (Current.all).Last_Value_Set := To;
+      begin
+         Get_Note (Notepad.all, Note, Default_Note);
 
          --  Modify priority
 
-         Set_Priority
-           (Get_Thread_Factory,
-            Current_Object (Current.all).Id,
-            Integer (New_Priority));
+         if Note.Priority /= External_Priority (New_Priority)
+           or else Get_Priority (Get_Thread_Factory, Current_Task)
+           /= Integer (New_Priority)
+         then
+            Set_Priority
+              (Get_Thread_Factory,
+               Current_Task,
+               Integer (New_Priority));
+         end if;
+
+         --  Update current object
+
+         Note.Priority := External_Priority (To);
+         Set_Note (Notepad.all, Note);
+
       end;
    end Set_The_Priority;
 
@@ -191,8 +202,7 @@ package body RTCORBA.Current is
 
    procedure Initialize;
 
-   procedure Initialize
-   is
+   procedure Initialize is
       use PolyORB.CORBA_P.Initial_References;
 
    begin
@@ -208,7 +218,8 @@ begin
      (Module_Info'
       (Name      => +"rtcorba.current",
        Conflicts => Empty,
-       Depends   => +"corba.initial_references",
+       Depends   => +"corba.initial_references"
+       & "tasking.annotations",
        Provides  => Empty,
        Implicit  => False,
        Init      => Initialize'Access));

@@ -1,12 +1,4 @@
-# Path to idlac
-
-IDLAC_DIR = $(top_builddir)/compilers/idlac
-IDLAC     = $(IDLAC_DIR)/idlac
-
-# Compiler and linker
-
-LINKER   = $(top_builddir)/support/linker
-COMPILER = $(top_builddir)/support/adacompiler
+include $(top_srcdir)/Makefile.common
 
 #
 # PolyORB's libraries
@@ -63,11 +55,7 @@ POLYORB_INCS = -I$(srcdir) \
 # Compilation flags
 #
 
-GNATMAKE_FLAGS = \
-	$(POLYORB_INCS) \
-	$(XMLADA_INCS) \
-	$(COS_GNATMAKE_FLAGS) \
-	$(GNATFLAGS)
+ADAFLAGS=	$(GNATFLAGS) $(COS_ADAFLAGS) $(POLYORB_INCS) $(XMLADA_INCS)
 
 #
 # Compute source files to be compiled
@@ -82,67 +70,27 @@ ADA_ALIS = $(ADA_SPECS:.ads=.ali)
 ADA_LIBADD = $(ADA_SPECS:.ads=.lo)
 
 #
-# How to build a library
-#
-
-LINK = $(LIBTOOL) $(ADA) -o $(lib_LTLIBRARIES)
-
-#
 # File to be cleaned
 #
 
 CLEANFILES = b~*.* *.o *.ali
 
-DISTCLEANFILES = $(PROGS)
-
-#
-# Executables to be compiled
-#
-
-PROGS= @APPLI_EXES@ @SERVICE_EXES@
-
 #
 # Local targets
 #
 
-all-local:: $(PROGS) $(EXTRA)
+all-local:: $(EXTRA)
 
 #
 # How to compile the various files
 #
 
-SUFFIXES = .idl .adb .ads .lo
-
-.idl.ads .idl.adb:
-	$(IDLAC) -I$(srcdir) $<
-
 .adb.ali:
-	$(GNATMAKE_FOR_TARGET) -c $< $(GNATMAKE_FLAGS)
-
-.adb.lo:
-	@chmod a+x $(COMPILER)
-	$(LIBTOOL) --mode=compile $(COMPILER) -c $(GNATMAKE_FLAGS) $<
-
-.ads.lo:
-	@chmod a+x $(COMPILER)
-	$(LIBTOOL) --mode=compile $(COMPILER) -c $(GNATMAKE_FLAGS) $< 
+	$(GNATMAKE_FOR_TARGET) -c $< $(ADAFLAGS)
 
 .PHONY: force
 
-$(IDLAC): force
-	cd $(IDLAC_DIR) && $(MAKE)
-
-$(PROGS): $(FORCE) $(GEN)
-	$(GNATMAKE_FOR_TARGET) $@  $(POLYORB_INCS) \
-        $(XMLADA_INCS) \
-        -m \
-        $(COS_GNATMAKE_FLAGS) \
-        -cargs $(GNATFLAGS) \
-	-bargs $(BARGS) \
-	-largs $(LDFLAGS) \
-	--LINK=$(LINKER) \
-        $(POLYORB_LIBS) $(XMLADA_LIBS) 
-
+FORCE_IDLAC=force
 
 force::
 	cd $(top_builddir)/src && $(MAKE)
@@ -152,12 +100,6 @@ gen: $(GEN)
 #
 # Files to be installed
 #
-
-install-exec-local:
-	$(INSTALL) -d $(DESTDIR)$(bindir)
-	for p in $(PROGS); do \
-	    $(INSTALL_PROGRAM) $$p $(DESTDIR)$(bindir)/$$p; \
-	done
 
 install-data-local:
 	$(INSTALL) -d $(DESTDIR)$(alidir)

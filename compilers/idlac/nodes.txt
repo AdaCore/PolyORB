@@ -13,7 +13,7 @@
 --
 --    Accessors will have the name Field and Set_Field.
 --
---  $Id: //droopi/main/compilers/idlac/nodes.txt#9 $
+--  $Id: //droopi/main/compilers/idlac/nodes.txt#10 $
 --
 
 START
@@ -141,6 +141,9 @@ Attribute
   Is_Readonly : Boolean
   A_Type : Node_Id
   Declarators : Node_List
+  Raises : Node_List
+  Get_Raises : Node_List
+  Set_Raises : Node_List
 
 Void
 

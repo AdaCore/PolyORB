@@ -33,7 +33,14 @@
 
 --  $Id$
 
+with PolyORB.Initialization;
+with PolyORB.Tasking.Priorities;
+with PolyORB.Types;
+with PolyORB.Utils.Strings;
+
 package body PolyORB.RTCORBA_P.Setup is
+
+   use PolyORB.Tasking.Priorities;
 
    Current_Priority_Mapping : PriorityMapping_Access;
    Current_Priority_Transform : PriorityTransform_Access;
@@ -88,4 +95,76 @@ package body PolyORB.RTCORBA_P.Setup is
       return Current_Priority_Transform;
    end Get_Priority_Transform;
 
+   --------------------------
+   -- To_External_Priority --
+   --------------------------
+
+   procedure To_External_Priority
+     (Value    : in  ORB_Priority;
+      Result   : out External_Priority;
+      Returns  : out PolyORB.Types.Boolean);
+
+   procedure To_External_Priority
+     (Value    : in  ORB_Priority;
+      Result   : out External_Priority;
+      Returns  : out PolyORB.Types.Boolean)
+   is
+   begin
+      RTCORBA.PriorityMapping.To_CORBA
+        (Current_Priority_Mapping.all,
+         RTCORBA.NativePriority (Value),
+         RTCORBA.Priority (Result),
+         Returns);
+   end To_External_Priority;
+
+   ---------------------
+   -- To_ORB_Priority --
+   ---------------------
+
+   procedure To_ORB_Priority
+     (Value    : in  External_Priority;
+      Result   : out ORB_Priority;
+      Returns  : out PolyORB.Types.Boolean);
+
+   procedure To_ORB_Priority
+     (Value    : in  External_Priority;
+      Result   : out ORB_Priority;
+      Returns  : out PolyORB.Types.Boolean)
+   is
+   begin
+      RTCORBA.PriorityMapping.To_Native
+        (Current_Priority_Mapping.all,
+         RTCORBA.Priority (Value),
+         RTCORBA.NativePriority (Result),
+         Returns);
+   end To_ORB_Priority;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize;
+
+   procedure Initialize is
+   begin
+      PolyORB.Tasking.Priorities.To_External_Priority
+        := To_External_Priority'Access;
+
+      PolyORB.Tasking.Priorities.To_ORB_Priority
+        := To_ORB_Priority'Access;
+   end Initialize;
+
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
+   use PolyORB.Utils.Strings;
+
+begin
+   Register_Module
+     (Module_Info'
+      (Name      => +"rtcorba_p.setup",
+       Conflicts => Empty,
+       Depends   => Empty,
+       Provides  => Empty,
+       Implicit  => False,
+       Init      => Initialize'Access));
 end PolyORB.RTCORBA_P.Setup;

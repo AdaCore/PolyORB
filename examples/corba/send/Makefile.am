@@ -1,4 +1,3 @@
-EXAMPLES_ROOT=	../..
 EXAMPLE = print
 
 corba_exe=send listener 

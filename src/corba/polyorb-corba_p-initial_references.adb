@@ -215,7 +215,7 @@ begin
      (Module_Info'
       (Name      => +"polyorb.corba_p.initial_references",
        Conflicts => Empty,
-       Depends   => Empty,
+       Depends   => +"references?",
        Provides  => +"corba.initial_references",
        Implicit  => False,
        Init      => Initialize'Access));

@@ -7,7 +7,7 @@ IDL=$(srcdir)/CosEventChannelAdmin.idl \
     $(srcdir)/CosTypedEventChannelAdmin.idl \
     $(srcdir)/CosTypedEventComm.idl
 
-COS_GNATMAKE_FLAGS = -I$(top_srcdir)/cos/event
+COS_ADAFLAGS = -I$(top_srcdir)/cos/event
 
 GEN_SPECS_WITH_BODY= \
   coseventchanneladmin-consumeradmin-helper.ads \
@@ -90,7 +90,7 @@ $(GEN_BODIES): $(GEN)
 
 $(ADA_LIBADD): $(GEN)
 
-DISTCLEANFILES += $(GEN) $(GEN_BODIES)
+DISTCLEANFILES = $(GEN) $(GEN_BODIES)
 
 #
 # Building libpolyorb-corba-cos-event library

@@ -348,6 +348,10 @@ package body PolyORB.ORB is
                --  re-assert it before returning.
 
                Idle (ORB.Tasking_Policy, This_Task, ORB_Access (ORB));
+               Notify_Event
+                 (ORB.ORB_Controller,
+                  Event'(Kind          => Idle_Awake,
+                         Awakened_Task => This_Task'Unchecked_Access));
 
             when Terminated =>
 
@@ -397,7 +401,7 @@ package body PolyORB.ORB is
             Exit_Condition.Task_Info.all := null;
          end if;
 
-         Set_State_Unscheduled (This_Task);
+         Set_State_Terminated (This_Task);
          Unregister_Task (ORB.ORB_Controller, This_Task'Unchecked_Access);
 
          raise;

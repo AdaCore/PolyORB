@@ -32,10 +32,20 @@
 ------------------------------------------------------------------------------
 
 with CORBA.Object;
+with CORBA.Repository_Root;
 
-with PolyORB;
+with PolyORB.Annotations;
+with PolyORB.Any.ExceptionList;
+with PolyORB.Any.NVList;
+with PolyORB.CORBA_P.Interceptors_Slots;
 
 package body PortableInterceptor.RequestInfo.Impl is
+
+   use Dynamic;
+
+   function To_CORBA_ParameterMode (Mode : in PolyORB.Any.Flags)
+      return CORBA.Repository_Root.ParameterMode;
+   --  Convert PolyORB parameter mode flag to CORBA::ParameterMode.
 
    -------------------
    -- Get_Arguments --
@@ -43,13 +53,27 @@ package body PortableInterceptor.RequestInfo.Impl is
 
    function Get_Arguments
      (Self : access Object)
-      return Dynamic.ParameterList
+      return ParameterList
    is
-      pragma Unreferenced (Self);
+      use PolyORB.Any.NVList.Internals;
+      use PolyORB.Any.NVList.Internals.NV_Lists;
 
-      Result : Dynamic.ParameterList;
+      Result : ParameterList;
+      Iter   : Iterator := First (List_Of (Self.Request.Args).all);
    begin
-      raise PolyORB.Not_Implemented;
+      while not Last (Iter) loop
+         declare
+            Arg : constant Element_Access := Value (Iter);
+         begin
+            Append
+              (Result,
+               Parameter'
+                 (CORBA.Internals.To_CORBA_Any (Arg.Argument),
+                  To_CORBA_ParameterMode (Arg.Arg_Modes)));
+            Next (Iter);
+         end;
+      end loop;
+
       return Result;
    end Get_Arguments;
 
@@ -72,13 +96,19 @@ package body PortableInterceptor.RequestInfo.Impl is
 
    function Get_Exceptions
      (Self : access Object)
-      return Dynamic.ExceptionList
+      return ExceptionList
    is
-      pragma Unreferenced (Self);
+      use PolyORB.Any.ExceptionList;
 
-      Result : Dynamic.ExceptionList;
+      Result : ExceptionList;
    begin
-      raise PolyORB.Not_Implemented;
+      for J in 1 .. Get_Count (Self.Request.Exc_List) loop
+         Append
+           (Result,
+            CORBA.TypeCode.Internals.To_CORBA_Object
+              (Item (Self.Request.Exc_List, J)));
+      end loop;
+
       return Result;
    end Get_Exceptions;
 
@@ -214,13 +244,14 @@ package body PortableInterceptor.RequestInfo.Impl is
       Id   : in     SlotId)
       return CORBA.Any
    is
-      pragma Unreferenced (Self);
-      pragma Unreferenced (Id);
+      use PolyORB.Annotations;
+      use PolyORB.CORBA_P.Interceptors_Slots;
 
-      Result : CORBA.Any;
+      Note : Slots_Note;
    begin
-      raise PolyORB.Not_Implemented;
-      return Result;
+      Get_Note (Self.Request.Notepad, Note, Invalid_Slots_Note);
+
+      return Get_Slot (Note, Id);
    end Get_Slot;
 
    ----------
@@ -242,18 +273,9 @@ package body PortableInterceptor.RequestInfo.Impl is
            "IDL:omg.org/CORBA/Object:1.0");
    end Is_A;
 
---   function Get_Operation_Context
---     (Self : access Object)
---      return Dynamic.RequestContext;
---
 --   function Get_Sync_Scope
 --     (Self : access Object)
 --      return Messaging.SyncScope;
---
---   function Get_Slot
---     (Self : access Object;
---      Id   : in     PortableInterceptor.SlotId)
---      return CORBA.Any;
 --
 --   function Get_Request_Service_Context
 --     (Self : access Object;
@@ -276,5 +298,30 @@ package body PortableInterceptor.RequestInfo.Impl is
    begin
       Self.Request := Request;
    end Init;
+
+   ----------------------------
+   -- To_CORBA_ParameterMode --
+   ----------------------------
+
+   function To_CORBA_ParameterMode (Mode : in PolyORB.Any.Flags)
+      return CORBA.Repository_Root.ParameterMode
+   is
+      use type PolyORB.Any.Flags;
+   begin
+      if Mode = PolyORB.Any.ARG_IN then
+         return CORBA.Repository_Root.PARAM_IN;
+
+      elsif Mode = PolyORB.Any.ARG_OUT then
+         return CORBA.Repository_Root.PARAM_OUT;
+
+      elsif Mode = PolyORB.Any.ARG_INOUT then
+         return CORBA.Repository_Root.PARAM_INOUT;
+
+      else
+         --  PolyORB.Any.IN_COPY_VALUE and others
+         raise PolyORB.Not_Implemented;
+
+      end if;
+   end To_CORBA_ParameterMode;
 
 end PortableInterceptor.RequestInfo.Impl;

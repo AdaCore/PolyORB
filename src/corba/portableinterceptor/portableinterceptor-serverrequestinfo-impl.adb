@@ -34,9 +34,13 @@
 with CORBA;
 with PortableInterceptor.RequestInfo;
 
-with PolyORB.CORBA_P.Interceptors; use PolyORB.CORBA_P.Interceptors;
+with PolyORB.Annotations;
+with PolyORB.CORBA_P.Interceptors;
+with PolyORB.CORBA_P.Interceptors_Slots;
 
 package body PortableInterceptor.ServerRequestInfo.Impl is
+
+   use PolyORB.CORBA_P.Interceptors;
 
 --   -------------------------------
 --   -- Add_Reply_Service_Context --
@@ -78,6 +82,7 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
       --  then the arguments is not available and No_Resource (with minor
       --  code 1) raised. If Set_Exception called after Arguments then
       --  interception point called only once from Arguments.
+
       if not Self.Args_Present then
          CORBA.Raise_No_Resources
           (CORBA.No_Resources_Members'(Minor     => 1,
@@ -123,6 +128,15 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
           (CORBA.Bad_Inv_Order_Members'(Minor     => 14,
                                         Completed => CORBA.Completed_No));
       end if;
+
+      --  XXX Is exceptions list available on server side ? Comment in
+      --  PolyORB.Request say that Exc_List member is a client side
+      --  information, thus we should raise NO_RESOURCES exception with
+      --  standard minor code 1.
+
+      CORBA.Raise_No_Resources
+       (CORBA.No_Resources_Members'(Minor     => 1,
+                                    Completed => CORBA.Completed_No));
 
       return
         RequestInfo.Impl.Get_Exceptions
@@ -356,8 +370,14 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
       Id   : in     PortableInterceptor.SlotId;
       Data : in     CORBA.Any)
    is
+      use PolyORB.Annotations;
+      use PolyORB.CORBA_P.Interceptors_Slots;
+
+      Note : Slots_Note;
    begin
-      raise PolyORB.Not_Implemented;
+      Get_Note (Self.Request.Notepad, Note, Invalid_Slots_Note);
+      Set_Slot (Note, Id, Data);
+      Set_Note (Self.Request.Notepad, Note);
    end Set_Slot;
 
    -----------------

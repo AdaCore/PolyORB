@@ -40,7 +40,8 @@ procedure Test000 is
 
    use PolyORB.Utils.Report;
 
-   package Ls is new PolyORB.Utils.Chained_Lists (Integer);
+   package Ls is new PolyORB.Utils.Chained_Lists
+     (Integer, Doubly_Chained => True);
    use Ls;
    type A is array (Integer range <>) of Integer;
 
@@ -91,5 +92,18 @@ begin
 
    Insert (L3, 444, Before => It);
    Output ("insert", To_Array (L3) = (666, 123, 444, 456, 789));
+
+   declare
+      function Range_400_499 (X : Integer) return Boolean;
+      function Range_400_499 (X : Integer) return Boolean is
+      begin
+         return X in 400 .. 499;
+      end Range_400_499;
+      procedure Remove is new Ls.Remove_G (Range_400_499);
+   begin
+      Remove (L3, All_Occurrences => True);
+      Output ("remove multiple", To_Array (L3) = (666, 123, 789));
+   end;
+
    End_Report;
 end Test000;

@@ -33,6 +33,10 @@
 
 --  $Id$
 
+with PolyORB.Tasking.Profiles.No_Tasking.Threads.Annotations;
+pragma Elaborate_All (PolyORB.Tasking.Profiles.No_Tasking.Threads.Annotations);
+pragma Warnings (Off, PolyORB.Tasking.Profiles.No_Tasking.Threads.Annotations);
+
 with PolyORB.Tasking.Profiles.No_Tasking.Threads;
 pragma Elaborate_All (PolyORB.Tasking.Profiles.No_Tasking.Threads);
 pragma Warnings (Off, PolyORB.Tasking.Profiles.No_Tasking.Threads);
