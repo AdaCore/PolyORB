@@ -1,6 +1,8 @@
 #! /bin/sh
 
 EDIT_CONFIGURE_IN=false
+
+# Find a version of awk that supports gsub
 NAWK=`which nawk 2> /dev/null`
 if [ -x "${NAWK}" ]; then
   : nawk found
@@ -62,6 +64,8 @@ fi
 rm -f aclocal.m4 support/libtool.m4
 
 echo "Libtoolizing"
+# If libtoolize adises us to get a particular version of libtool.m4,
+# copy it locally.
 libtool_m4=`libtoolize --copy --force | sed -n -e '/You should add the contents of \`\([^'\'']*\)'\''.*$/s//\1/p'`
 if [ -n "$libtool_m4" ]; then
   cp $libtool_m4 support/libtool.m4
@@ -79,8 +83,8 @@ echo "Running automake"
 automake --add-missing
 
 echo "Generating IDL tree accessors"
-(cd compilers/idlac && python make_nodes.py nodes.txt > xxx \
- && gnatchop -w xxx && rm -f xxx)
+(cd compilers/idlac && python make_nodes.py nodes.txt > nodes.ada \
+ && gnatchop -w nodes.ada && rm -f nodes.ada)
 
 echo "Doing the necessary date modifications"
 for f in \
@@ -93,6 +97,7 @@ for f in \
 do
   find . -name $f | while read ff
   do
+    # Solaris' touch(1) requires the touched file to be writable
     chmod +w $ff
     touch $ff
     chmod -w $ff
