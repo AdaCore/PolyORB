@@ -159,6 +159,9 @@ package body Make is
    --  Created to print longer messages with time stamps information.
    --  What are the parameters here ???
 
+   function "&" (Left, Right : String) return String;
+   --  Concatenation routine
+
    -----------------------
    -- Gnatmake Routines --
    -----------------------
@@ -201,9 +204,19 @@ package body Make is
    -- Compiler, Binder & Linker Data and Subprograms --
    ----------------------------------------------------
 
-   Gcc       : String_Access := GNAT.OS_Lib.Locate_Exec_On_Path ("gcc");
-   Gnatbind  : String_Access := GNAT.OS_Lib.Locate_Exec_On_Path ("gnatbind");
-   Gnatlink  : String_Access := GNAT.OS_Lib.Locate_Exec_On_Path ("gnatlink");
+   Gcc             : String_Access := new String'("gcc");
+   Gnatbind        : String_Access := new String'("gnatbind");
+   Gnatlink        : String_Access := new String'("gnatlink");
+   --  Default compiler, binder, linker programs
+
+   Gcc_Path        : String_Access :=
+                       GNAT.OS_Lib.Locate_Exec_On_Path (Gcc.all);
+   Gnatbind_Path   : String_Access :=
+                       GNAT.OS_Lib.Locate_Exec_On_Path (Gnatbind.all);
+   Gnatlink_Path   : String_Access :=
+                       GNAT.OS_Lib.Locate_Exec_On_Path (Gnatlink.all);
+   --  Path for compiler, binder, linker programs, defaulted now for gnatdist.
+   --  Changed later if overridden on command line.
 
    Output_Flag     : constant String_Access := new String'("-o");
    Comp_Flag       : constant String_Access := new String'("-c");
@@ -224,6 +237,13 @@ package body Make is
    File_Name_Seen : Boolean := False;
    --  Set to true after having seen at least one file name.
    --  Used in Scan_Make_Arg only, but must be a global variable.
+
+   Optimize_Or_Debug_Present : Boolean := False;
+   --  True when -g or -O has been selected
+
+   Default_Optimization_Option : constant String := "-O2";
+   --  Default optimization chosen when none has been specified on
+   --  the command line and debugging is off.
 
    type Make_Program_Type is (None, Compiler, Binder, Linker);
 
@@ -275,6 +295,18 @@ package body Make is
 
    procedure Scan_Make_Arg (Argv : String);
    --  Scan make arguments. Argv is a single argument to be processed.
+
+   ---------
+   -- "&" --
+   ---------
+
+   function "&" (Left, Right : String) return String is
+      Result : String (1 .. Left'Length + Right'Length);
+   begin
+      Result (1 .. Left'Length) := Left;
+      Result (Left'Length + 1 .. Result'Last) := Right;
+      return Result;
+   end "&";
 
    ----------------
    -- Add_Switch --
@@ -418,10 +450,14 @@ package body Make is
       Bind_Last := Bind_Last + 1;
       Bind_Args (Bind_Last) := new String'(Name_Buffer (1 .. Name_Len));
 
-      Display ("gnatbind", Bind_Args (Args'First .. Bind_Last));
+      Display (Gnatbind.all, Bind_Args (Args'First .. Bind_Last));
+
+      if Gnatbind_Path = null then
+         Osint.Fail ("error, unable to locate " & Gnatbind.all);
+      end if;
 
       GNAT.OS_Lib.Spawn
-        (Gnatbind.all, Bind_Args (Args'First .. Bind_Last), Success);
+        (Gnatbind_Path.all, Bind_Args (Args'First .. Bind_Last), Success);
 
       if not Success then
          raise Bind_Failed;
@@ -782,17 +818,17 @@ package body Make is
       -----------------
 
       procedure Add_Process (Pid : Process_Id; S, L : File_Name_Type) is
-         I : constant Positive := Outstanding_Compiles + 1;
+         OC1 : constant Positive := Outstanding_Compiles + 1;
 
       begin
-         pragma Assert (I <= Max_Process);
+         pragma Assert (OC1 <= Max_Process);
          pragma Assert (Pid /= Invalid_Pid);
 
-         Running_Compile (I).Pid              := Pid;
-         Running_Compile (I).Full_Source_File := S;
-         Running_Compile (I).Lib_File         := L;
+         Running_Compile (OC1).Pid              := Pid;
+         Running_Compile (OC1).Full_Source_File := S;
+         Running_Compile (OC1).Lib_File         := L;
 
-         Outstanding_Compiles := I;
+         Outstanding_Compiles := OC1;
       end Add_Process;
 
       --------------------
@@ -870,8 +906,8 @@ package body Make is
               Name_Len > 4
               and then Name_Buffer (Name_Len - 3 .. Name_Len - 1) = ".ad"
               and then (Name_Buffer (Name_Len) = 'b'
-                        or else Name_Buffer (Name_Len) = 's'
-                        or else Name_Buffer (Name_Len) = 'a');
+                         or else Name_Buffer (Name_Len) = 's'
+                         or else Name_Buffer (Name_Len) = 'a');
          end Ada_File_Name;
 
       --  Start of processing for Compile
@@ -941,11 +977,15 @@ package body Make is
          Comp_Last := Comp_Last + 1;
          Comp_Args (Comp_Last) := new String'(Name_Buffer (1 .. Name_Len));
 
-         Display ("gcc", Comp_Args (Args'First .. Comp_Last));
+         Display (Gcc.all, Comp_Args (Args'First .. Comp_Last));
+
+         if Gcc_Path = null then
+            Osint.Fail ("error, unable to locate " & Gcc.all);
+         end if;
 
          return
            GNAT.OS_Lib.Non_Blocking_Spawn
-             (Gcc.all, Comp_Args (Args'First .. Comp_Last));
+             (Gcc_Path.all, Comp_Args (Args'First .. Comp_Last));
       end Compile;
 
       ---------------
@@ -1123,16 +1163,18 @@ package body Make is
 
             --  If the library file is an Ada library skip it
 
-            if Full_Lib_File /= No_File and then
-              In_Ada_Lib_Dir (Full_Lib_File) then
+            if Full_Lib_File /= No_File
+              and then In_Ada_Lib_Dir (Full_Lib_File)
+            then
                Verbose_Msg
                  (Lib_File, "is in an Ada library", Ind => No_Indent);
 
             --  If the library file is a read-only library skip it
 
-            elsif Full_Lib_File /= No_File and then
-              not Check_Readonly_Files and then
-              Is_Readonly_Library (Full_Lib_File) then
+            elsif Full_Lib_File /= No_File
+              and then not Check_Readonly_Files
+              and then Is_Readonly_Library (Full_Lib_File)
+            then
                Verbose_Msg
                  (Lib_File, "is a read-only library", Ind => No_Indent);
 
@@ -1181,7 +1223,7 @@ package body Make is
                   end if;
 
                else
-                  --  Is this the first file we have to compile ?
+                  --  Is this the first file we have to compile?
 
                   if First_Compiled_File = No_File then
                      First_Compiled_File  := Full_Source_File;
@@ -1194,8 +1236,8 @@ package body Make is
 
                   if In_Place_Mode then
 
-                     --  If the library file was not found, then
-                     --  save the library file near the source file.
+                     --  If the library file was not found, then save the
+                     --  library file near the source file.
 
                      if Full_Lib_File = No_File then
                         Get_Name_String (Full_Source_File);
@@ -1210,8 +1252,8 @@ package body Make is
 
                         Lib_File := Name_Find;
 
-                     --  If the library file was found, then
-                     --  save the library file in the same place.
+                     --  If the library file was found, then save the
+                     --  library file in the same place.
 
                      else
                         Lib_File := Full_Lib_File;
@@ -1460,7 +1502,7 @@ package body Make is
       --  Package initializations. The order of calls is important here.
 
       Output.Set_Standard_Error;
-      Osint.Initialize (Osint.Make); --  Reads gnatmake switches
+      Osint.Initialize (Osint.Make); --  reads gnatmake switches
 
       Gcc_Switches.Init;
       Binder_Switches.Init;
@@ -1475,6 +1517,14 @@ package body Make is
          Scan_Make_Arg (Argument (Next_Arg));
          Next_Arg := Next_Arg + 1;
       end loop Scan_Args;
+
+      --  If no optimization or debugging option has been given on the
+      --  command line, then use the default option as an additional
+      --  compilation switch.
+
+      if not Optimize_Or_Debug_Present then
+         Add_Switch (Default_Optimization_Option, Compiler);
+      end if;
 
       Osint.Add_Default_Search_Dirs;
 
@@ -1612,7 +1662,8 @@ package body Make is
          --  Line for -n
 
          Write_Switch_Char;
-         Write_Str ("n       Check if objects are up to date");
+         Write_Str ("n       Check objects up to date, output next file ");
+         Write_Str ("to compile if not");
          Write_Eol;
 
          --  Line for -o
@@ -1789,7 +1840,6 @@ package body Make is
             Normalized_CWD,
             Binder,
             Pos => Binder_Switches.First);
-
       end if;
 
       --  If the input name to gnatmake has a suffix, then use it as is
@@ -1823,6 +1873,10 @@ package body Make is
       Display_Commands (not Opt.Quiet_Output);
 
       --  Here is where the make process is started
+
+      Gcc_Path       := GNAT.OS_Lib.Locate_Exec_On_Path (Gcc.all);
+      Gnatbind_Path  := GNAT.OS_Lib.Locate_Exec_On_Path (Gnatbind.all);
+      Gnatlink_Path  := GNAT.OS_Lib.Locate_Exec_On_Path (Gnatlink.all);
 
       Recursive_Compilation_Step : declare
          Args : Argument_List (1 .. Gcc_Switches.Last);
@@ -1900,12 +1954,17 @@ package body Make is
             Write_Eol;
          end if;
 
-         --  This block of code needs a comment ???
+         --  Stop after compile step if any of:
+         --  1) -n (Dont_Execute) specified
+         --  2) -l (List_Dependencies) specified (also sets Dont_Execute
+         --     above, so this is probably superfluous).
+         --  3) -c (Compile_Only) specified
+         --  4) Made unit cannot be a main unit
 
          if Opt.Dont_Execute
            or Opt.List_Dependencies
            or Opt.Compile_Only
-           or Has_Missing_Alis
+           or not Is_Main_Unit
          then
             return;
          end if;
@@ -1988,10 +2047,17 @@ package body Make is
       Exit_Program (E_Success);
 
    exception
-      when Bind_Failed        => Osint.Fail ("*** bind failed.");
-      when Compilation_Failed => Exit_Program (E_Fatal);
-      when Link_Failed        => Osint.Fail ("*** link failed.");
-      when others             => Osint.Fail ("INTERNAL ERROR. Please report.");
+      when Bind_Failed =>
+         Osint.Fail ("*** bind failed.");
+
+      when Compilation_Failed =>
+         Exit_Program (E_Fatal);
+
+      when Link_Failed =>
+         Osint.Fail ("*** link failed.");
+
+      when others =>
+         Osint.Fail ("INTERNAL ERROR. Please report.");
 
    end Gnatmake;
 
@@ -2006,8 +2072,8 @@ package body Make is
 
          --  Unmark source files which were previously marked & enqueued.
 
-         for I in Q.First .. Q.Last - 1 loop
-            Unmark (Source_File => Q.Table (I));
+         for J in Q.First .. Q.Last - 1 loop
+            Unmark (Source_File => Q.Table (J));
          end loop;
       end if;
 
@@ -2055,9 +2121,13 @@ package body Make is
       Get_Name_String (Ali_File);
       Link_Args (Args'Last + 1) := new String'(Name_Buffer (1 .. Name_Len));
 
-      Display ("gnatlink", Link_Args);
+      Display (Gnatlink.all, Link_Args);
 
-      GNAT.OS_Lib.Spawn (Gnatlink.all, Link_Args, Success);
+      if Gnatlink_Path = null then
+         Osint.Fail ("error, unable to locate " & Gnatlink.all);
+      end if;
+
+      GNAT.OS_Lib.Spawn (Gnatlink_Path.all, Link_Args, Success);
 
       if not Success then
          raise Link_Failed;
@@ -2083,8 +2153,7 @@ package body Make is
       for A in ALIs.First .. ALIs.Last loop
          Lib_Name := ALIs.Table (A).Afile;
 
-         --  If In_Place_Mode, then we have to provide the full library file
-         --  name.
+         --  We have to provide the full library file name in In_Place_Mode
 
          if Opt.In_Place_Mode then
             Lib_Name := Full_Lib_File_Name (Lib_Name);
@@ -2262,6 +2331,61 @@ package body Make is
       elsif Program_Args /= None then
          Add_Switch (Argv, Program_Args);
 
+      --  Handle non-default compiler, binder, linker
+
+      elsif Argv'Length > 2 and then Argv (1 .. 2) = "--" then
+         if Argv'Length > 6
+           and then Argv (1 .. 6) = "--GCC="
+         then
+            declare
+               Program_Args : Argument_List_Access :=
+                                Argument_String_To_List
+                                  (Argv (7 .. Argv'Last));
+
+            begin
+               Gcc := new String'(Program_Args.all (1).all);
+
+               for J in 2 .. Program_Args.all'Last loop
+                  Add_Switch (Program_Args.all (J).all, Compiler);
+               end loop;
+            end;
+
+         elsif Argv'Length > 11
+           and then Argv (1 .. 11) = "--GNATBIND="
+         then
+            declare
+               Program_Args : Argument_List_Access :=
+                                Argument_String_To_List
+                                  (Argv (12 .. Argv'Last));
+
+            begin
+               Gnatbind := new String'(Program_Args.all (1).all);
+
+               for J in 2 .. Program_Args.all'Last loop
+                  Add_Switch (Program_Args.all (J).all, Binder);
+               end loop;
+            end;
+
+         elsif Argv'Length > 11
+           and then Argv (1 .. 11) = "--GNATLINK="
+         then
+            declare
+               Program_Args : Argument_List_Access :=
+                                Argument_String_To_List
+                                  (Argv (12 .. Argv'Last));
+            begin
+               Gnatlink := new String'(Program_Args.all (1).all);
+
+               for J in 2 .. Program_Args.all'Last loop
+                  Add_Switch (Program_Args.all (J).all, Linker);
+               end loop;
+            end;
+
+         else
+            Fail ("Unknown switch: ", Argv);
+
+         end if;
+
       --  If we have seen a regular switch process it
 
       elsif Argv (1) = Switch_Character or else Argv (1) = '-' then
@@ -2334,6 +2458,7 @@ package body Make is
          then
             Add_Switch (Argv, Compiler);
             Add_Switch (Argv, Linker);
+            Optimize_Or_Debug_Present := True;
 
          --  -m
 
@@ -2354,7 +2479,12 @@ package body Make is
          then
             Add_Switch (Argv, Compiler);
 
-         --  All other options are handled by Scan_Switches.
+            --  Recognize -O as being an optimization flag
+            if Argv (2) = 'O' then
+               Optimize_Or_Debug_Present := True;
+            end if;
+
+         --  All other options are handled by Scan_Switches
 
          else
             Scan_Switches (Argv);

@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---   Copyright (C) 1992,1993,1994,1995,1996 Free Software Foundation, Inc.  --
+--          Copyright (C) 1992-1997 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -204,7 +204,7 @@ package body Tree_IO is
       Data : constant SP := To_SP (Addr);
       --  Data buffer to be read as an indexable array of bytes
 
-      OP : Int := 1;
+      OP : Pos := 1;
       --  Pointer to next byte of data buffer to be read into
 
       B : Byte;
@@ -426,7 +426,7 @@ package body Tree_IO is
       Data : constant SP := To_SP (Addr);
       --  Pointer to data to be written, converted to array type
 
-      IP : Int := 1;
+      IP : Pos := 1;
       --  Input buffer pointer, next byte to be processed
 
       NC : Nat range 0 .. Max_Count := 0;
@@ -446,7 +446,7 @@ package body Tree_IO is
                Write_Str ("==>    uncompressed:  ");
                Write_Int (NC);
                Write_Str (", starting at ");
-               Write_Int (IP - Int (NC));
+               Write_Int (IP - NC);
                Write_Eol;
             end if;
 

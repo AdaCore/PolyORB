@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---   Copyright (C) 1992,1993,1994,1995,1996 Free Software Foundation, Inc.  --
+--          Copyright (C) 1992-1997 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -63,6 +63,84 @@ package body GNAT.OS_Lib is
       return String_Access;
    --  Converts a C String to an Ada String.  Are we doing this to avoid
    --  withing Interfaces.C.Strings ???
+
+   -----------------------------
+   -- Argument_String_To_List --
+   -----------------------------
+
+   function Argument_String_To_List
+     (Arg_String : String)
+      return Argument_List_Access
+   is
+      Max_Args : Integer := Arg_String'Length;
+      New_Argv : Argument_List (1 .. Max_Args);
+      New_Argc : Natural := 0;
+      Idx      : Integer;
+
+   begin
+      Idx := Arg_String'First;
+
+      loop
+         declare
+            Quoted   : Boolean := False;
+            Backqd   : Boolean := False;
+            Old_Idx  : Integer;
+
+         begin
+            Old_Idx := Idx;
+
+            loop
+               --  A vanilla space is the end of an argument
+
+               if not Backqd and then not Quoted
+                 and then Arg_String (Idx) = ' '
+               then
+                  exit;
+
+               --  Start of a quoted string
+
+               elsif not Backqd and then not Quoted
+                 and then Arg_String (Idx) = '"'
+               then
+                  Quoted := True;
+
+               --  End of a quoted string and end of an argument
+
+               elsif not Backqd and then Quoted
+                 and then Arg_String (Idx) = '"'
+               then
+                  Idx := Idx + 1;
+                  exit;
+
+               --  Following character is backquoted
+
+               elsif Arg_String (Idx) = '\' then
+                  Backqd := True;
+
+               --  Turn off backquoting after advancing one character
+
+               elsif Backqd then
+                  Backqd := False;
+
+               end if;
+
+               Idx := Idx + 1;
+               exit when Idx > Arg_String'Last;
+            end loop;
+
+            --  Found an argument
+
+            New_Argc := New_Argc + 1;
+            New_Argv (New_Argc) :=
+              new String'(Arg_String (Old_Idx .. Idx - 1));
+            Idx := Idx + 1;
+         end;
+
+         exit when Idx > Arg_String'Last;
+      end loop;
+
+      return new Argument_List'(New_Argv (1 .. New_Argc));
+   end Argument_String_To_List;
 
    ---------------------
    -- C_String_Length --

@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                              --
 --                                                                          --
---     Copyright (C) 1992,1993,1994,1995 Free Software Foundation, Inc.     --
+--          Copyright (C) 1992-1997 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -53,9 +53,11 @@ package Tree_IO is
    --  after this call.
 
    procedure Tree_Read_Data (Addr : Address; Length : Int);
-   --  Reads Length bytes of information into memory starting at Addr. The
-   --  data must have been written with a call to Tree_Write_Data with the
-   --  same length. Tree_Format_Error is raised if this is not the case.
+   --  Checks that the Length provided is the same as what has been provided
+   --  to the corresponding Tree_Write_Data from the current tree file,
+   --  Tree_Format_Error is raised if it is not the case. If Length is
+   --  correct and non zero, reads Length bytes of information into memory
+   --  starting at Addr from the current tree file.
 
    procedure Tree_Read_Bool (B : out Boolean);
    --  Reads a single boolean value. The boolean value must have been written
@@ -79,7 +81,8 @@ package Tree_IO is
    --  after this call.
 
    procedure Tree_Write_Data (Addr : Address; Length : Int);
-   --  Writes Length bytes of data starting at Addr to current tree file.
+   --  Writes Length then, if Length is not null, Length bytes of data
+   --  starting at Addr to current tree file
 
    procedure Tree_Write_Bool (B : Boolean);
    --  Writes a single boolean value to the current tree file

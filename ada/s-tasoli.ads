@@ -40,9 +40,14 @@
 --  the links are initialized to dummy non-tasking versions, and then if the
 --  tasking is initialized, they are reset to the real tasking versions.
 
+with Ada.Exceptions;
+
 package System.Tasking_Soft_Links is
 
    pragma Elaborate_Body;
+
+   subtype EOA is Ada.Exceptions.Exception_Occurrence_Access;
+   subtype EO  is Ada.Exceptions.Exception_Occurrence;
 
    --  First we have the access subprogram types used to establish the links.
    --  The approach is to establish variables containing access subprogram
@@ -57,6 +62,9 @@ package System.Tasking_Soft_Links is
    type Get_Integer_Call is access function return Integer;
    type Set_Integer_Call is access procedure (Len : Integer);
 
+   type Get_EOA_Call     is access function return EOA;
+   type Set_EOA_Call     is access procedure (Excep : EOA);
+
    --  Suppress checks on all these types, since we know corrresponding
    --  values can never be null (the soft links are always initialized).
 
@@ -66,6 +74,8 @@ package System.Tasking_Soft_Links is
    pragma Suppress (Access_Check, Set_Address_Call);
    pragma Suppress (Access_Check, Get_Integer_Call);
    pragma Suppress (Access_Check, Set_Integer_Call);
+   pragma Suppress (Access_Check, Get_EOA_Call);
+   pragma Suppress (Access_Check, Set_EOA_Call);
 
    --  Declarations for the no tasking versions of the required routines
 
@@ -90,12 +100,14 @@ package System.Tasking_Soft_Links is
    --  Release lock set by Task_Lock (non-tasking case, does nothing)
 
    Abort_Defer : No_Param_Proc := Abort_Defer_NT'Access;
+   pragma Suppress (Access_Check, Abort_Defer);
    --  Defer task abortion (task/non-task case as appropriate)
 
    Abort_Handler : No_Param_Proc := Abort_Handler_NT'Access;
    --  Handle task abortion (task/non-task case as appropriate)
 
    Abort_Undefer : No_Param_Proc := Abort_Undefer_NT'Access;
+   pragma Suppress (Access_Check, Abort_Undefer);
    --  Undefer task abortion (task/non-task case as appropriate)
 
    Check_Abort_Status : Get_Integer_Call := Check_Abort_Status_NT'Access;
@@ -121,12 +133,6 @@ package System.Tasking_Soft_Links is
    Get_Jmpbuf_Address : Get_Address_Call := Get_Jmpbuf_Address_NT'Access;
    Set_Jmpbuf_Address : Set_Address_Call := Set_Jmpbuf_Address_NT'Access;
 
-   function  Get_GNAT_Exception_NT return  Address;
-   procedure Set_GNAT_Exception_NT (Addr : Address);
-
-   Get_Gnat_Exception : Get_Address_Call := Get_GNAT_Exception_NT'Access;
-   Set_Gnat_Exception : Set_Address_Call := Set_GNAT_Exception_NT'Access;
-
    function  Get_Sec_Stack_Addr_NT return  Address;
    procedure Set_Sec_Stack_Addr_NT (Addr : Address);
 
@@ -139,18 +145,9 @@ package System.Tasking_Soft_Links is
    Get_Exc_Stack_Addr : Get_Address_Call := Get_Exc_Stack_Addr_NT'Access;
    Set_Exc_Stack_Addr : Set_Address_Call := Set_Exc_Stack_Addr_NT'Access;
 
+   function  Get_Current_Excep_NT return EOA;
 
-   function  Get_Message_Length_NT return Integer;
-   procedure Set_Message_Length_NT (Len : Integer);
-
-   Get_Message_Length : Get_Integer_Call := Get_Message_Length_NT'Access;
-   Set_Message_Length : Set_Integer_Call := Set_Message_Length_NT'Access;
-
-   function  Get_Message_Addr_NT return Address;
-   procedure Set_Message_Addr_NT (Addr : Address);
-
-   Get_Message_Addr : Get_Address_Call := Get_Message_Addr_NT'Access;
-   Set_Message_Addr : Set_Address_Call := Set_Message_Addr_NT'Access;
+   Get_Current_Excep : Get_EOA_Call := Get_Current_Excep_NT'Access;
 
    ---------------------------
    --  Master_Id Soft-Links --
@@ -164,9 +161,9 @@ package System.Tasking_Soft_Links is
    procedure Enter_Master_NT;
    procedure Complete_Master_NT;
 
-   Current_Master    : Get_Integer_Call :=  Current_Master_NT'Access;
-   Enter_Master      : No_Param_Proc    :=  Enter_Master_NT'Access;
-   Complete_Master   : No_Param_Proc    :=  Complete_Master_NT'Access;
+   Current_Master  : Get_Integer_Call :=  Current_Master_NT'Access;
+   Enter_Master    : No_Param_Proc    :=  Enter_Master_NT'Access;
+   Complete_Master : No_Param_Proc    :=  Complete_Master_NT'Access;
 
    --------------------------------
    -- Secondary Stack Soft-Links --

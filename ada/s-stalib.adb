@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                              --
 --                                                                          --
---          Copyright (C) 1995,1996 Free Software Foundation, Inc.          --
+--          Copyright (C) 1995-1997 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -36,8 +36,8 @@
 with System.Tasking_Soft_Links;
 --  Referenced directly from generated code
 
-with System.Task_Specific_Data;
---  Referenced directly from exception handling routines
+with System.Task_Specific_Data; use System.Task_Specific_Data;
+--  Referenced directly from exception handling routines in this unit
 
 package body System.Standard_Library is
 

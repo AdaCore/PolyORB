@@ -1,14 +1,14 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                          GNAT RUNTIME COMPONENTS                         --
+--                         GNAT RUNTIME COMPONENTS                          --
 --                                                                          --
---                    S Y S T E M . A S S E R T I O N S                     --
+--                     G N A T . H E A P _ S O R T _ A                      --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision$                             --
+--                            $Revision$                              --
 --                                                                          --
---          Copyright (C) 1992-1997 Free Software Foundation, Inc.          --
+--          Copyright (C) 1994,1995 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -33,12 +33,33 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-package System.Assertions is
+--  This package provides a heapsort routine that works with access to
+--  subprogram parameters, so that it can be used with different types with
+--  shared sorting code. See also GNAT.Heap_Sort_G, the generic version,
+--  which is a little more efficient, but does not allow code sharing.
 
-   Assert_Failure : exception;
-   --  Exception raised when assertion fails
+package GNAT.Heap_Sort_A is
+pragma Preelaborate (Heap_Sort_A);
 
-   procedure Raise_Assert_Failure (Msg : String);
-   --  Called to raise Assert_Failure with given message
+   --  The data to be sorted is assumed to be indexed by integer values from
+   --  1 to N, where N is the number of items to be sorted. In addition, the
+   --  index value zero is used for a temporary location used during the sort.
 
-end System.Assertions;
+   type Move_Procedure is access procedure (From : Natural; To : Natural);
+   --  A pointer to a procedure that moves the data item with index From to
+   --  the data item with index To. An index value of zero is used for moves
+   --  from and to the single temporary location used by the sort.
+
+   type Lt_Function is access function (Op1, Op2 : Natural) return Boolean;
+   --  A pointer to a function that compares two items and returns True if
+   --  the item with index Op1 is less than the item with index Op2, and False
+   --  if the Op1 item is greater than or equal to the Op2 item.
+
+   procedure Sort (N : Positive; Move : Move_Procedure; Lt : Lt_Function);
+   --  This procedures sorts items indexed from 1 to N into ascending order
+   --  making calls to Lt to do required comparisons, and Move to move items
+   --  around. Note that, as described above, both Move and Lt use a single
+   --  temporary location with index value zero. This sort is not stable,
+   --  i.e. the order of equal elements in the input is not preserved.
+
+end GNAT.Heap_Sort_A;

@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                              --
 --                                                                          --
---   Copyright (C) 1992,1993,1994,1995,1996 Free Software Foundation, Inc.  --
+--          Copyright (C) 1992-1997 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -33,25 +33,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Note: it would be much simpler to use Ada.Exceptions.Raise_Exception,
---  but that would drag in a lot of the runtime, and especially in the
---  compiler itself, which uses assertions, we do not want these extra
---  units included indirectly as a result of using assertions. The result
---  is that we duplicate subtantial chunks of Ada.Exceptions in this unit.
-
-with System;
-with System.Task_Specific_Data; use System.Task_Specific_Data;
-with System.Standard_Library;
-with Unchecked_Conversion;
+with Ada.Exceptions;
 
 package body System.Assertions is
-
-   type Buffer_Ptr is access System.Standard_Library.Exception_Message_Buffer;
-   --  A thin pointer to String
-
-   function To_Buffer_Ptr is
-     new Unchecked_Conversion (System.Address, Buffer_Ptr);
-   --  Conversion from address to string access for exception msg manipulation
 
    --------------------------
    -- Raise_Assert_Failure --
@@ -59,28 +43,7 @@ package body System.Assertions is
 
    procedure Raise_Assert_Failure (Msg : String) is
    begin
-      --  Set message in place with negative length. There is a special
-      --  arrangement with regard to negative lengths. When a negative
-      --  length is set, then the next call to set the length to zero
-      --  (which will happen when the exception is raised using the
-      --  normal assert statement), results in negating the length so
-      --  it now has the proper positive value.
-
-      Set_Message_Length (-Msg'Length);
-      To_Buffer_Ptr (Get_Message_Addr).all (1 .. Msg'Length) := Msg;
-
-      --  The following is for back compatibility with the bootstrap
-      --  path, and can be removed later on.
-
-      Assert_Msg (1 .. Msg'Length) := Msg;
-      Assert_Msg_Length := Msg'Length;
-
-      --  Now raise the actual exception. This looks like a raise with no
-      --  message, but because of the special handling for negative lengths
-      --  as set above, this acts as a raise with message.
-
-      raise Assert_Failure;
-
+      Ada.Exceptions.Raise_Exception (Assert_Failure'Identity, Msg);
    end Raise_Assert_Failure;
 
 end System.Assertions;

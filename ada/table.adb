@@ -63,6 +63,10 @@ package body Table is
       --  in Max. Works correctly to do an initial allocation if the table
       --  is currently null.
 
+      function Tree_Get_Table_Address return Address;
+      --  Return Null_Address if the table length is zero,
+      --  Table (First)'Address if not.
+
       --------------
       -- Allocate --
       --------------
@@ -183,7 +187,8 @@ package body Table is
 
          if Table = null then
             Table := malloc (New_Size);
-         else
+
+         elsif New_Size > 0 then
             Table :=
               realloc
                 (memblock => Table,
@@ -258,6 +263,19 @@ package body Table is
          end if;
       end Set_Last;
 
+      ----------------------------
+      -- Tree_Get_Table_Address --
+      ----------------------------
+
+      function Tree_Get_Table_Address return Address is
+      begin
+         if Length = 0 then
+            return Null_Address;
+         else
+            return Table (First)'Address;
+         end if;
+      end Tree_Get_Table_Address;
+
       ---------------
       -- Tree_Read --
       ---------------
@@ -270,12 +288,13 @@ package body Table is
       begin
          Tree_Read_Int (Max);
          Last_Val := Max;
+         Length := Max - Min + 1;
          Reallocate;
 
          Tree_Read_Data
-           (Table (First)'Address,
-            (Last_Val - Int (First) + 1) *
-              Table_Type'Component_Size / Storage_Unit);
+           (Tree_Get_Table_Address,
+             (Last_Val - Int (First) + 1) *
+               Table_Type'Component_Size / Storage_Unit);
       end Tree_Read;
 
       ----------------
@@ -289,7 +308,7 @@ package body Table is
       begin
          Tree_Write_Int (Int (Last));
          Tree_Write_Data
-           (Table (First)'Address,
+           (Tree_Get_Table_Address,
             (Last_Val - Int (First) + 1) *
               Table_Type'Component_Size / Storage_Unit);
       end Tree_Write;

@@ -79,11 +79,11 @@ package body Debug is
    --  dI
    --  dJ
    --  dK
-   --  dL
+   --  dL   Output trace information on elaboration checking
    --  dM
    --  dN
    --  dO
-   --  dP
+   --  dP   Do not check for controlled objects in preelaborable packages
    --  dQ
    --  dR
    --  dS
@@ -310,6 +310,16 @@ package body Debug is
    --  dG   Do not compile generics. Normally generics are compiled, this
    --       switch is provided to cause GNAT to operate in a manner compatible
    --       with earlier versions of GNAT which did not compile generics.
+
+   --  dL   Output trace information on elaboration checking. This debug
+   --       switch causes output to be generated showing each call or
+   --       instantiation as it is checked, and the progress of the recursive
+   --       trace through calls at elaboration time.
+
+   --  dP   Do not check for controlled objects in preelaborable packages.
+   --       RM 10.2.1(9) forbids the use of library level controlled objects
+   --       in preelaborable packages, but this restriction is a huge pain,
+   --       especially in the predefined library units.
 
    --  d1   Error msgs have node numbers where possible. Normally error
    --       messages have only source locations. This option is useful when

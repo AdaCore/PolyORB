@@ -6,17 +6,17 @@
 #
 rm -rf ../newada
 mkdir ../newada
-rm sdefault.adb
+rm -f sdefault.adb
 make dist1
 echo -n Analyzing dependencies... >& 2
-for i in `gnatmake -a -gnatpg -g -gnata -gnato -I../ada \
+for i in `gnatmake -a -gnatpg -g -gnata -gnato -I../gnat -I../ada \
    xe_build.adb -o dist1 -M | sed -e 's/^.*://' | sed -e 's/\\\\//'`; do
 cp $i ../newada/ 2> /dev/null
 echo -n . >& 2
 done
 echo
-rm ../newada/xe*
-rm ../newada/sdefault.adb
+rm -f ../newada/xe*
+rm -f ../newada/sdefault.adb
 echo Diffing directories
 for i in ../ada/*(.); do
 if [ ! -f ../newada/`basename $i` ]; then

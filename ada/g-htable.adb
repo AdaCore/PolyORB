@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision$                              --
+--                            $Revision$                             --
 --                                                                          --
 --          Copyright (C) 1992-1997 Free Software Foundation, Inc.          --
 --                                                                          --
@@ -136,8 +136,8 @@ package body GNAT.HTable is
       type Element_Wrapper;
       type Elmt_Ptr is access all Element_Wrapper;
       type Element_Wrapper is record
-         K : Key;
-         E : Element;
+         K    : Key;
+         E    : Element;
          Next : Elmt_Ptr;
       end record;
 
@@ -190,7 +190,7 @@ package body GNAT.HTable is
          if Tmp = null then
             return No_Element;
          else
-            return Tab.Get (K).E;
+            return Tmp.E;
          end if;
       end Get;
    end Simple_HTable;
@@ -200,17 +200,21 @@ package body GNAT.HTable is
    ----------
 
    function Hash (Key : String) return Header_Num is
-      type S is mod 2**8;
 
-      Size : constant S := S (Header_Num'Last - Header_Num'First + 1);
-      Tmp  : S := 0;
+      type Uns is mod 2 ** 32;
+
+      function Rotate_Left (Value : Uns; Amount : Natural) return Uns;
+      pragma Import (Intrinsic, Rotate_Left);
+
+      Tmp : Uns := 0;
 
    begin
       for J in Key'Range loop
-         Tmp := Tmp xor S (Character'Pos (Key (J)));
+         Tmp := Rotate_Left (Tmp, 1) + Character'Pos (Key (J));
       end loop;
 
-      return Header_Num'First + Header_Num'Base (Tmp mod Size);
+      return Header_Num'First +
+               Header_Num'Base (Tmp mod Header_Num'Range_Length);
    end Hash;
 
 end GNAT.HTable;

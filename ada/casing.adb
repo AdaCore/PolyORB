@@ -1,8 +1,8 @@
------------------------------------------------------------------------------
+------------------------------------------------------------------------------
 --                                                                          --
 --                         GNAT COMPILER COMPONENTS                         --
 --                                                                          --
---            S Y S T E M . T A S K _ S P E C I F I C _ D A T A             --
+--                               C A S I N G                                --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -33,105 +33,85 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with System.Tasking_Soft_Links;
+with Csets;    use Csets;
+with Namet;    use Namet;
+with Opt;      use Opt;
+with Types;    use Types;
+with Widechar; use Widechar;
 
-with Unchecked_Conversion;
-with Unchecked_Deallocation;
-
-package body System.Task_Specific_Data is
-
-   package TSL renames System.Tasking_Soft_Links;
-
-   ------------------------
-   -- Get_Jmpbuf_Address --
-   ------------------------
-
-   function Get_Jmpbuf_Address return  Address is
-   begin
-      return TSL.Get_Jmpbuf_Address.all;
-   end Get_Jmpbuf_Address;
-
-   ------------------------
-   -- Set_Jmpbuf_Address --
-   ------------------------
-
-   procedure Set_Jmpbuf_Address (Addr : Address) is
-   begin
-      TSL.Set_Jmpbuf_Address (Addr);
-   end Set_Jmpbuf_Address;
-
-   ------------------------
-   -- Get_Sec_Stack_Addr --
-   ------------------------
-
-   function Get_Sec_Stack_Addr return  Address is
-   begin
-      return TSL.Get_Sec_Stack_Addr.all;
-   end Get_Sec_Stack_Addr;
-
-   ------------------------
-   -- Set_Sec_Stack_Addr --
-   ------------------------
-
-   procedure Set_Sec_Stack_Addr (Addr : Address) is
-   begin
-      TSL.Set_Sec_Stack_Addr (Addr);
-   end Set_Sec_Stack_Addr;
-
-   ------------------------
-   -- Get_Exc_Stack_Addr --
-   ------------------------
-
-   function Get_Exc_Stack_Addr return  Address is
-   begin
-      return TSL.Get_Exc_Stack_Addr.all;
-   end Get_Exc_Stack_Addr;
-
-   ------------------------
-   -- Set_Exc_Stack_Addr --
-   ------------------------
-
-   procedure Set_Exc_Stack_Addr (Addr : Address) is
-   begin
-      TSL.Set_Exc_Stack_Addr (Addr);
-   end Set_Exc_Stack_Addr;
-
-   -----------------------
-   -- Get_Current_Excep --
-   -----------------------
-
-   function Get_Current_Excep return EOA is
-   begin
-      return TSL.Get_Current_Excep.all;
-   end Get_Current_Excep;
-
-   ------------------------
-   -- Get_GNAT_Exception --
-   ------------------------
-
-   function Get_GNAT_Exception return Ada.Exceptions.Exception_Id is
-   begin
-      return Ada.Exceptions.Exception_Identity (Get_Current_Excep.all);
-   end Get_GNAT_Exception;
+package body Casing is
 
    ----------------
-   -- Create_TSD --
+   -- Set_Casing --
    ----------------
 
-   procedure Create_TSD (New_TSD : in out TSD) is
+   procedure Set_Casing (C : Casing_Type; D : Casing_Type := Mixed_Case) is
+      Ptr : Natural;
+
+      Actual_Casing : Casing_Type;
+      --  Set from C or D as appropriate
+
+      After_Und : Boolean := True;
+      --  True at start of string, and after an underline character or after
+      --  any other special character that is not a normal identifier char).
+
    begin
-      --  Allocate 10K secondary stack
+      if C /= Unknown then
+         Actual_Casing := C;
+      else
+         Actual_Casing := D;
+      end if;
 
-      TSL.SS_Init (New_TSD.Sec_Stack_Addr, 10*1024);
-   end Create_TSD;
+      Ptr := 1;
 
-   -----------------
-   -- Destroy_TSD --
-   -----------------
+      while Ptr <= Name_Len loop
+         if Name_Buffer (Ptr) = Ascii.ESC
+           or else (Upper_Half_Encoding
+                     and then Name_Buffer (Ptr) in Upper_Half_Character)
+         then
+            Skip_Wide (Name_Buffer, Ptr);
+            After_Und := False;
 
-   procedure Destroy_TSD (Old_TSD : in out TSD) is
+         elsif Name_Buffer (Ptr) = '_'
+            or else not Identifier_Char (Name_Buffer (Ptr))
+         then
+            After_Und := True;
+            Ptr := Ptr + 1;
+
+         elsif Is_Lower_Case_Letter (Name_Buffer (Ptr)) then
+            if Actual_Casing = All_Upper_Case
+              or else (After_Und and then Actual_Casing = Mixed_Case)
+            then
+               Name_Buffer (Ptr) := Fold_Upper (Name_Buffer (Ptr));
+            end if;
+
+            After_Und := False;
+            Ptr := Ptr + 1;
+
+         elsif Is_Upper_Case_Letter (Name_Buffer (Ptr)) then
+            if Actual_Casing = All_Lower_Case
+              or else (not After_Und and then Actual_Casing = Mixed_Case)
+            then
+               Name_Buffer (Ptr) := Fold_Lower (Name_Buffer (Ptr));
+            end if;
+
+            After_Und := False;
+            Ptr := Ptr + 1;
+
+         else  --  all other characters
+            After_Und := False;
+            Ptr := Ptr + 1;
+         end if;
+      end loop;
+   end Set_Casing;
+
+   ------------------------
+   -- Set_All_Upper_Case --
+   ------------------------
+
+   procedure Set_All_Upper_Case is
    begin
-      TSL.SS_Free (Old_TSD.Sec_Stack_Addr);
-   end Destroy_TSD;
+      Set_Casing (All_Upper_Case);
+   end Set_All_Upper_Case;
 
-end System.Task_Specific_Data;
+end Casing;

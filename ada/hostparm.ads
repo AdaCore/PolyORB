@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                              --
 --                                                                          --
---   Copyright (C) 1992,1993,1994,1995,1996 Free Software Foundation, Inc.  --
+--          Copyright (C) 1992-1997 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -81,5 +81,18 @@ pragma Pure (Hostparm);
    Exclude_Missing_Objects : constant Boolean := True;
    --  If set to true, gnatbind will exclude from consideration all
    --  non-existent .o files.
+
+   Zero_Cost_Exceptions : constant Boolean := False;
+   --  This switch is set to True if zero cost exceptions are implemented
+   --  on the current target. See unit Ada.Exceptions for full details.
+
+   Proc_Info_Used : constant Boolean := False;
+   --  This switch is relevant only if Zero_Cost_Exceptions is True. It
+   --  indicates whether or not Proc_Info values are required for this
+   --  target. If Proc_Info_Used is false, then procedure descriptors
+   --  are only built for procedures with exception handlers, and the
+   --  Proc_Info values are always null. If Proc_Info_Used is True,
+   --  the procedure descriptors are built for all procedures with the
+   --  appropriate Proc_Info value.
 
 end Hostparm;

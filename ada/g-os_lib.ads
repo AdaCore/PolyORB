@@ -264,6 +264,10 @@ pragma Elaborate_Body (OS_Lib);
    --  of the array should be 1, and the length of the array indicates
    --  the number of arguments.
 
+   type Argument_List_Access is access all Argument_List;
+   --  Type used to return an Argument_List without dragging in secondary
+   --  stack.
+
    procedure Spawn
      (Program_Name : String;
       Args         : Argument_List;
@@ -300,6 +304,12 @@ pragma Elaborate_Body (OS_Lib);
    --  has terminated (matching the value returned from Non_Blocking_Spawn).
    --  Success is set to True if this sub-process terminated successfully.
    --  If Pid = Invalid_Id, there were no subprocesses left to wait on.
+
+   function Argument_String_To_List
+     (Arg_String : String)
+      return Argument_List_Access;
+   --  Take a string that is a program and it's arguments and parse it into
+   --  an Argument_List.
 
    -------------------
    -- Miscellaneous --

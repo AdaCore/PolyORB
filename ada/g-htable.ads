@@ -42,7 +42,7 @@ pragma Preelaborate (HTable);
 
    --  A simple hash table abstraction, easy to instanciate, easy to use.
    --  The table associates one element to one key with the procedure Set.
-   --  Get retreives the Element stored for a given Key. The efficiency of
+   --  Get retrieves the Element stored for a given Key. The efficiency of
    --  retrieval is function of the size of the Table parameterized by
    --  Header_Num and the hashing function Hash.
 
@@ -64,7 +64,7 @@ pragma Preelaborate (HTable);
    package Simple_HTable is
 
       procedure Set (K : Key; E : Element);
-      --  Associate an element with a given key. Overrides any previously
+      --  Associates an element with a given key. Overrides any previously
       --  associated element.
 
       function  Get (K : Key) return Element;
@@ -81,7 +81,7 @@ pragma Preelaborate (HTable);
    --  Simple_HTable but designed to allow complete control over the
    --  allocation of necessary data structures. Particularly useful when
    --  dynamic allocation is not desired. The model is that "Element"
-   --  contains its own Key that can be retreived by "Get_Key". Furthermore,
+   --  contains its own Key that can be retrieved by "Get_Key". Furthermore,
    --  "Element" provides a link that can be used by the HTable for linking
    --   elements with same hash codes:
 
@@ -99,7 +99,7 @@ pragma Preelaborate (HTable);
       type Header_Num is range <>;
       --  An integer type indicating the number and range of hash headers.
 
-      type Element is limited private;
+      type Element (<>) is limited private;
       --  The type of element to be stored
 
       type Elmt_Ptr is private;
@@ -122,8 +122,13 @@ pragma Preelaborate (HTable);
    package Static_HTable is
 
       procedure Reset;
-      --  Reset the HTable. This is only needed if the same table is reused
-      --  in a new context. It removes all elements from the table.
+      --  Resets the hash table by setting all its elements to Null_Ptr. The
+      --  effect is to clear the hash table so that it can be reused. For the
+      --  most common case where Elmt_Ptr is an access type, and Null_Ptr is
+      --  null, this is only needed if the same table is reused in a new
+      --  context. If Elmt_Ptr is other than an access type, or Null_Ptr is
+      --  other than null, then Reset must be called before the first use
+      --  of the hash table.
 
       procedure Set (E : Elmt_Ptr);
       --  Insert the element pointer in the HTable
@@ -133,7 +138,7 @@ pragma Preelaborate (HTable);
       --  or null if none.
 
       procedure Remove (K : Key);
-      --  Remove the latest inserted element pointer associated with the
+      --  Removes the latest inserted element pointer associated with the
       --  given key if any, does nothing if none.
 
    end Static_HTable;

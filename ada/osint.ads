@@ -160,6 +160,27 @@ package Osint is
    --  opened, or Name = No_File, and all blank time stamp is returned (this is
    --  not an error situation).
 
+   function To_Canonical_Dir_Spec
+     (Host_Dir     : String;
+      Prefix_Style : Boolean)
+      return String_Access;
+   --  Convert a host syntax directory specification (e.g. on a VMS host:
+   --  "SYS$DEVICE:[DIR]") to canonical (Unix) syntax (e.g. "/sys$device/dir").
+   --  If Prefix_Style then make it a valid file specification prefix.
+   --  A file specification prefix is a directory specification that
+   --  can be appended with a simple file specification to yield a valid
+   --  absolute or relative path to a file. On a conversion to Unix syntax
+   --  this simply means the spec has a trailing slash ("/").
+
+   function To_Canonical_File_Spec
+     (Host_File : String)
+      return String_Access;
+   --  Convert a host syntax file specification (e.g. on a VMS host:
+   --  "SYS$DEVICE:[DIR]FILE.EXT;69 to canonical (Unix) syntax (e.g.
+   --  "/sys$device/dir/file.ext.69"). The To_Canonical... routines
+   --  are used in GNATCmd for converting command line input to syntax
+   --  understood by the spawned Gnat tools.
+
    -------------------------
    -- Search Dir Routines --
    -------------------------
@@ -464,10 +485,23 @@ package Osint is
    --  containing the binder output. The format of this file is described
    --  in the package Bindfmt.
 
-   procedure Create_Binder_Output (Output_Filename : String);
-   --  Creates the binder output file corresponding to the library information
-   --  file for the main program (i.e. for the file returned by the previous
-   --  call to Next_Main_Lib_File).
+   procedure Create_Binder_Output
+     (Output_Filename : String;
+      Typ             : Character;
+      Bfile           : out Name_Id);
+   --  Creates the binder output file. Typ is one of
+   --
+   --    'c'   create output file for case of generating C
+   --    'b'   create body file for case of generating Ada
+   --    's'   create spec file for case of generating Ada
+   --
+   --  If Output_Filename is null, then a default name is used based on
+   --  the name of the most recently accessed main source file name. If
+   --  Output_Filename is non-null then it is the full path name of the
+   --  file to be output (in the case of Ada, it must have an extension
+   --  of adb, and the spec file is created by changing the last character
+   --  from b to s. On return, Bfile also contains the Name_Id for the
+   --  generated file name.
 
    procedure Write_Binder_Info (Info : String);
    --  Writes the contents of the referenced string to the binder output file

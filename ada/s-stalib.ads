@@ -33,12 +33,12 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  This package is included in all programs. It contains references to the
---  set of packages that are required to be part of every Ada program. A
---  special mechanism is required to ensure that these are loaded, since it
---  may be the case in some programs that the only references to these
---  required packages are from C code or from code generated directly by
---  Gigi, an in both cases the binder is not aware of such references.
+--  This package is included in all programs. It contains declarations that
+--  are required to be part of every Ada program. A special mechanism is
+--  required to ensure that these are loaded, since it may be the case in
+--  some programs that the only references to these required packages are
+--  from C code or from code generated directly by Gigi, an in both cases
+--  the binder is not aware of such references.
 
 --  System.Standard_Library also includes data that must be present in every
 --  program, in particular the definitions of all the standard and also some
@@ -53,41 +53,63 @@ with Unchecked_Conversion;
 
 package System.Standard_Library is
 
-   -------------------------------------
-   -- Exception Declarations and Data --
-   -------------------------------------
-
-   Exception_Msg_Max : constant := 200;
-   --  Maximum length of message in exception occurrence
-
-   subtype Exception_Message_Buffer is String (1 .. 200);
-   --  The Task specific buffer for exception messages. This buffer is used
-   --  for holding non-huge messages during the popping of the primary
-   --  stack. For bigger messages, dynamic allocation is used.
-
    type Big_String_Ptr is access all String (Positive);
-   --  A non-fat pointer type for exception names
+   --  A non-fat pointer type for null terminated strings
 
    function To_Ptr is
      new Unchecked_Conversion (System.Address, Big_String_Ptr);
 
+   -------------------------------------
+   -- Exception Declarations and Data --
+   -------------------------------------
+
    type Exception_Data;
    type Exception_Data_Ptr is access all Exception_Data;
-   --  an equivalent of Exception_Id but that doesn't drag Ada.Exception
+   --  an equivalent of Exception_Id that is public
 
    --  The following record defines the underlying representation of exceptions
 
+   --  WARNING! Any changes to this may need to be reflectd in the following
+   --  locations in the compiler and runtime code:
+
+   --    1. The Internal_Exception routine in s-exctab.adb
+   --    2. The processing in gigi that tests Not_Handled_By_Others
+   --    3. Expand_N_Exception_Declaration in Exp_Ch11
+   --    4. The construction of the exception type in Cstand
+
    type Exception_Data is record
-      Handled_By_Others : Boolean;
-      C1                : Character;
-      C2                : Character;
-      C3                : Character;
-      Name_Length       : Natural;
-      Full_Name         : Big_String_Ptr;
-      HTable_Ptr        : Exception_Data_Ptr;
+      Not_Handled_By_Others : Boolean;
+      --  Normally set False, indicating that the exception is handled in the
+      --  usual way by others (i.e. an others handler handles the exception).
+      --  Set True to indicate that this exception is not caught by others
+      --  handlers, but must be explicitly named in a handler. This latter
+      --  setting is currently used by the Abort_Signal.
+
+      Lang : String (1 .. 3);
+      --  A 3-character string indicating the language raising the exception.
+      --  This field is not currently used, it is set to "Ada" for exceptions
+      --  defined by an Ada program.
+
+      Name_Length : Natural;
+      --  Length of fully expanded name of exception
+
+      Full_Name : Big_String_Ptr;
+      --  Fully expanded name of exception, null terminated
+
+      HTable_Ptr : Exception_Data_Ptr;
+      --  Hash table pointer used to link entries together in the hash table
+      --  built (by Register_Exception in s-exctab.adb) for converting between
+      --  identities and names.
+
+      Import_Code : Integer;
+      --  Value for imported exceptions. Needed only for the handling of
+      --  Import/Export_Exception for the VMS case, but present in all
+      --  implementations (we might well extend this mechanism for other
+      --  systems in the future).
+
    end record;
 
-   --  Definitions for standard predefined exceptions defined in Standard.
+   --  Definitions for standard predefined exceptions defined in Standard,
 
    --  Why are the Nul's necessary here, seems like they should not be
    --  required, since Gigi is supposed to add a Nul to each name ???
@@ -103,58 +125,52 @@ package System.Standard_Library is
    --  separate version of s-stalib.ads for use in Ada 83 mode.
 
    Constraint_Error_Def : aliased Exception_Data :=
-        (Handled_By_Others => False,
-         C1                => 'A',
-         C2                => 'd',
-         C3                => 'a',
-         Name_Length       => Constraint_Error_Name'Length,
-         Full_Name         => To_Ptr (Constraint_Error_Name'Address),
-         HTable_Ptr        => null);
+     (Not_Handled_By_Others => False,
+      Lang                  => "Ada",
+      Name_Length           => Constraint_Error_Name'Length,
+      Full_Name             => To_Ptr (Constraint_Error_Name'Address),
+      HTable_Ptr            => null,
+      Import_Code           => 0);
 
    Numeric_Error_Def : aliased Exception_Data :=
-        (Handled_By_Others => False,
-         C1                => 'A',
-         C2                => 'd',
-         C3                => 'a',
-         Name_Length       => Numeric_Error_Name'Length,
-         Full_Name         => To_Ptr (Numeric_Error_Name'Address),
-         HTable_Ptr        => null);
+     (Not_Handled_By_Others => False,
+      Lang                  => "Ada",
+      Name_Length           => Numeric_Error_Name'Length,
+      Full_Name             => To_Ptr (Numeric_Error_Name'Address),
+      HTable_Ptr            => null,
+      Import_Code           => 0);
 
    Program_Error_Def : aliased Exception_Data :=
-        (Handled_By_Others => False,
-         C1                => 'A',
-         C2                => 'd',
-         C3                => 'a',
-         Name_Length       => Program_Error_Name'Length,
-         Full_Name         => To_Ptr (Program_Error_Name'Address),
-         HTable_Ptr        => null);
+     (Not_Handled_By_Others => False,
+      Lang                  => "Ada",
+      Name_Length           => Program_Error_Name'Length,
+      Full_Name             => To_Ptr (Program_Error_Name'Address),
+      HTable_Ptr            => null,
+      Import_Code           => 0);
 
    Storage_Error_Def : aliased Exception_Data :=
-        (Handled_By_Others => False,
-         C1                => 'A',
-         C2                => 'd',
-         C3                => 'a',
-         Name_Length       => Storage_Error_Name'Length,
-         Full_Name         => To_Ptr (Storage_Error_Name'Address),
-         HTable_Ptr        => null);
+     (Not_Handled_By_Others => False,
+      Lang                  => "Ada",
+      Name_Length           => Storage_Error_Name'Length,
+      Full_Name             => To_Ptr (Storage_Error_Name'Address),
+      HTable_Ptr            => null,
+      Import_Code           => 0);
 
    Tasking_Error_Def : aliased Exception_Data :=
-        (Handled_By_Others => False,
-         C1                => 'A',
-         C2                => 'd',
-         C3                => 'a',
-         Name_Length       => Tasking_Error_Name'Length,
-         Full_Name         => To_Ptr (Tasking_Error_Name'Address),
-         HTable_Ptr        => null);
+     (Not_Handled_By_Others => False,
+      Lang                  => "Ada",
+      Name_Length           => Tasking_Error_Name'Length,
+      Full_Name             => To_Ptr (Tasking_Error_Name'Address),
+      HTable_Ptr            => null,
+      Import_Code           => 0);
 
    Abort_Signal_Def : aliased Exception_Data :=
-        (Handled_By_Others => True,
-         C1                => 'A',
-         C2                => 'd',
-         C3                => 'a',
-         Name_Length       => Abort_Signal_Name'Length,
-         Full_Name         => To_Ptr (Abort_Signal_Name'Address),
-         HTable_Ptr        => null);
+     (Not_Handled_By_Others => True,
+      Lang                  => "Ada",
+      Name_Length           => Abort_Signal_Name'Length,
+      Full_Name             => To_Ptr (Abort_Signal_Name'Address),
+      HTable_Ptr            => null,
+      Import_Code           => 0);
 
    pragma Export (C, Constraint_Error_Def, "constraint_error");
    pragma Export (C, Numeric_Error_Def,    "numeric_error");
@@ -162,6 +178,15 @@ package System.Standard_Library is
    pragma Export (C, Storage_Error_Def,    "storage_error");
    pragma Export (C, Tasking_Error_Def,    "tasking_error");
    pragma Export (C, Abort_Signal_Def,     "_abort_signal");
+
+   Local_Partition_ID : Natural := 0;
+   --  This variable contains the local Partition_ID that will be used when
+   --  building exception occurrences. In distributed mode, it will be
+   --  set by each partition to the correct value during the elaboration.
+
+   -----------------
+   -- Subprograms --
+   -----------------
 
    procedure Abort_Undefer_Direct;
    pragma Inline (Abort_Undefer_Direct);

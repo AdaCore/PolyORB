@@ -31,7 +31,7 @@
 
 package Gnatvsn is
 
-   Gnat_Version_String : constant String := "3.10b (970811)";
+   Gnat_Version_String : constant String := "3.11w (971029)";
    --  Version output when GNAT (compiler), GNATBIND, or GNATMAKE is run
    --  (with -gnatv switch set)
    --  WARNING: some gnatmail scripts (at least make-bin and corcs) rely on

@@ -2,13 +2,13 @@
 --                                                                          --
 --                         GNAT COMPILER COMPONENTS                         --
 --                                                                          --
---                      S Y S T E M . A R I T H _ 6 4                       --
+--                               C A S I N G                                --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision$                              --
+--                            $Revision$                             --
 --                                                                          --
---        Copyright (C) 1994,1995,1996 Free Software Foundation, Inc.       --
+--   Copyright (C) 1992,1993,1994,1995,1996 Free Software Foundation, Inc.  --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -33,52 +33,55 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  This unit provides software routines for doing arithmetic on 64-bit
---  signed integer values in cases where either overflow checking is
---  required, or intermediate results are longer than 64 bits.
+package Casing is
 
-with Interfaces;
+   --  This package contains data and subprograms to support the feature that
+   --  recognizes the letter case styles used in the source program being
+   --  compiled, and uses this information for error message formatting, and
+   --  for recognizing reserved words that are misused as identifiers.
 
-package System.Arith_64 is
-pragma Pure (Arith_64);
+   -------------------------------
+   -- Case Control Declarations --
+   -------------------------------
 
-   subtype Int64 is Interfaces.Integer_64;
+   --  Declaration of type for describing casing convention
 
-   function Add_With_Ovflo_Check (X, Y : Int64) return Int64;
-   --  Raises Constraint_Error if sum of operands overflows 64 bits,
-   --  otherwise returns the 64-bit signed integer sum.
+   type Casing_Type is (
 
-   function Subtract_With_Ovflo_Check (X, Y : Int64) return Int64;
-   --  Raises Constraint_Error if difference of operands overflows 64
-   --  bits, otherwise returns the 64-bit signed integer difference.
+      All_Upper_Case,
+      --  All letters are upper case
 
-   function Multiply_With_Ovflo_Check (X, Y : Int64) return Int64;
-   --  Raises Constraint_Error if product of operands overflows 64
-   --  bits, otherwise returns the 64-bit signed integer difference.
+      All_Lower_Case,
+      --  All letters are lower case
 
-   procedure Scaled_Divide
-     (X, Y, Z : Int64;
-      Q, R    : out Int64;
-      Round   : Boolean);
-   --  Performs the division of (X * Y) / Z, storing the quotient in Q
-   --  and the remainder in R. Constraint_Error is raised if Z is zero,
-   --  or if the quotient does not fit in 64-bits. Round indicates if
-   --  the result should be rounded. If Round is False, then Q, R are
-   --  the normal quotient and remainder from a truncating division.
-   --  If Round is True, then Q is the rounded quotient. the remainder
-   --  R is not affected by the setting of the Round flag.
+      Mixed_Case,
+      --  The initial letter, and any letters after underlines are upper case.
+      --  All other letters are lower case
 
-   procedure Double_Divide
-     (X, Y, Z : Int64;
-      Q, R    : out Int64;
-      Round   : Boolean);
-   --  Performs the division X / (Y * Z), storing the quotient in Q and
-   --  the remainder in R. Constraint_Error is raised if Y or Z is zero.
-   --  Round indicates if the result should be rounded. If Round is False,
-   --  then Q, R are the normal quotient and remainder from a truncating
-   --  division. If Round is True, then Q is the rounded quotient. The
-   --  remainder R is not affected by the setting of the Round flag. The
-   --  result is known to be in range except for the noted possibility of
-   --  Y or Z being zero, so no other overflow checks are required.
+      Unknown
+      --  Used if an identifier does not distinguish between the above cases,
+      --  (e.g. X, Y_3, M4, A_B, or if it is inconsistent ABC_def).
+   );
 
-end System.Arith_64;
+   ------------------------------
+   -- Case Control Subprograms --
+   ------------------------------
+
+   procedure Set_Casing (C : Casing_Type; D : Casing_Type := Mixed_Case);
+   --  Takes the name stored in the first Name_Len positions of Name_Buffer
+   --  and modifies it to be consistent with the casing given by C, or if
+   --  C = Unknown, then with the casing given by D. The name is basically
+   --  treated as an identifier, except that special separator characters
+   --  other than underline are permitted and treated like underlines (this
+   --  handles cases like minus and period in unit names, apostrophes in error
+   --  messages, angle brackets in names like <any_type>, etc).
+
+   procedure Set_All_Upper_Case;
+   pragma Inline (Set_All_Upper_Case);
+   --  This procedure is called with an identifier name stored in Name_Buffer.
+   --  On return, the identifier is converted to all upper case. The call is
+   --  equivalent to Set_Casing (All_Upper_Case).
+
+   --  See also Scn.Determine_Token_Casing
+
+end Casing;

@@ -30,8 +30,9 @@
 --  of Ada Library Information (ALI) acquired from the ALI files generated
 --  by the front end.
 
+with Casing; use Casing;
 with Table;
-with Types; use Types;
+with Types;  use Types;
 
 package ALI is
 
@@ -225,12 +226,26 @@ package ALI is
       Utype : Unit_Type;
       --  Type of entry
 
+      Is_Generic : Boolean;
+      --  True for generic unit (i.e. a generic declaration, or a generic
+      --  body). False for a non-geneic unit.
+
       Unit_Kind : Character;
       --  Indicates the nature of the unit. 'p' for Packages and 's' for
       --  subprograms.
 
       Version : Version_String;
       --  Version of unit
+
+      Icasing : Casing_Type;
+      --  Indicates casing of identifiers in source file for this unit. This
+      --  is used for informational output, and also for constructing the
+      --  main unit if it is being built in Ada.
+
+      Kcasing : Casing_Type;
+      --  Indicates casing of keyowords in source file for this unit. This
+      --  is used for informational output, and also for constructing the
+      --  main unit if it is being built in Ada.
 
    end record;
 

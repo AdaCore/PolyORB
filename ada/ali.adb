@@ -792,6 +792,9 @@ package body ALI is
          Unit.Table (Unit.Last).RCI            := False;
          Unit.Table (Unit.Last).Remote_Types   := False;
          Unit.Table (Unit.Last).Has_RACW_Type  := False;
+         Unit.Table (Unit.Last).Is_Generic     := False;
+         Unit.Table (Unit.Last).Icasing        := Mixed_Case;
+         Unit.Table (Unit.Last).Kcasing        := All_Lower_Case;
          Unit.Table (Unit.Last).Elaborate_Body := False;
          Unit.Table (Unit.Last).Version        := "00000000";
          Unit.Table (Unit.Last).First_With     := Withs.Last + 1;
@@ -822,6 +825,47 @@ package body ALI is
                Check_At_End_Of_Field;
                Unit.Table (Unit.Last).Elaborate_Body := True;
 
+            --  GE parameter (generic)
+
+            elsif C = 'G' then
+               Checkc ('E');
+               Check_At_End_Of_Field;
+               Unit.Table (Unit.Last).Is_Generic := True;
+
+            --  IL/IU parameters
+
+            elsif C = 'I' then
+               C := Getc;
+
+               if C = 'L' then
+                  Unit.Table (Unit.Last).Icasing := All_Lower_Case;
+
+               elsif C = 'U' then
+                  Unit.Table (Unit.Last).Icasing := All_Upper_Case;
+
+               else
+                  Fatal_Error;
+               end if;
+
+               Check_At_End_Of_Field;
+
+            --  KM/KU parameters
+
+            elsif C = 'K' then
+               C := Getc;
+
+               if C = 'M' then
+                  Unit.Table (Unit.Last).Kcasing := Mixed_Case;
+
+               elsif C = 'U' then
+                  Unit.Table (Unit.Last).Kcasing := All_Upper_Case;
+
+               else
+                  Fatal_Error;
+               end if;
+
+               Check_At_End_Of_Field;
+
             --  NE parameter (no elaboration)
 
             elsif C = 'N' then
@@ -834,15 +878,10 @@ package body ALI is
             elsif C = 'P' then
                C := Getc;
 
-               --  PR parameter (preelaborate) (also allow PRE for back
-               --  compatibility with versions 2.03 and earlier)
+               --  PR parameter (preelaborate)
 
                if C = 'R' then
-                  if not At_End_Of_Field then
-                     Checkc ('E');
-                     Check_At_End_Of_Field;
-                  end if;
-
+                  Check_At_End_Of_Field;
                   Unit.Table (Unit.Last).Preelab := True;
 
                --  PU parameter (pure)
@@ -1012,7 +1051,7 @@ package body ALI is
          Checkc ('"');
 
          declare
-            Lbuf : String (1 .. 200);
+            Lbuf : String (1 .. 16_000);
             Llen : Natural := 0;
             Lptr : Natural;
             HC   : Natural;
@@ -1310,6 +1349,7 @@ package body ALI is
 
             --  If minimal recompilation is in action, replace the stamp
             --  of the source file in the table if checksums match.
+
             --  ??? It is probably worth updating the ALI file with a new
             --  field to avoid recomputing it each time.
 

@@ -44,6 +44,10 @@ with System.WCh_Con; use System.WCh_Con;
 
 package Opt is
 
+   Ada_Bind_File : Boolean := False;
+   --  GNATBIND
+   --  Set True if binder file to be generated in Ada rather than C
+
    Ada_83_Switch : Boolean := False;
    --  GNAT, GNATF
    --  This is the value of the command line switch for Ada 83 mode. At the
@@ -121,21 +125,13 @@ package Opt is
      (No_Stubs,
       --  Normal mode, no generation/compilation of distribution stubs
 
-      Compile_Receiver_Stub_Spec,
-      --  The unit being compiled is the body of the receiver stubs, and
-      --  the corresponding spec will be generated appropriately.
-
-      Compile_Caller_Stub_Spec,
-      --  The unit being compiled is the body of the caller stubs, and
-      --  the corresponding spec will be generated appropriately
-
       Generate_Receiver_Stub_Body,
-      --  The unit being compiled is the RCI spec, and the compiler will
-      --  generate the body for the receiver stubs.
+      --  The unit being compiled is the RCI body, and the compiler will
+      --  generate the body for the receiver stubs and compile it.
 
       Generate_Caller_Stub_Body);
       --  The unit being compiled is the RCI spec, and the compiler will
-      --  generate the body for the caller stubs.
+      --  generate the body for the caller stubs and compile it.
 
    subtype Debug_Level_Value is Nat range 0 .. 3;
    Debugger_Level : Debug_Level_Value := 0;

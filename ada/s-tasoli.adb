@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---   Copyright (C) 1992,1993,1994,1995,1996 Free Software Foundation, Inc.  --
+--          Copyright (C) 1992-1997 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -45,10 +45,6 @@ package body System.Tasking_Soft_Links is
    NT_Exc_Stack : array (0 .. 8192) of aliased Character;
    for NT_Exc_Stack'Alignment use Standard'Maximum_Alignment;
 
-   --  Allocate a default buffer for the Exception Message
-
-   NT_Message : System.Standard_Library.Exception_Message_Buffer;
-
    NT_TSD : System.Task_Specific_Data.TSD;
 
    --------------------
@@ -77,7 +73,6 @@ package body System.Tasking_Soft_Links is
    begin
       null;
    end Abort_Undefer_NT;
-
 
    ---------------------------
    -- Check_Abort_Status_NT --
@@ -159,7 +154,7 @@ package body System.Tasking_Soft_Links is
    -- Get_Jmpbuf_Address_NT --
    ---------------------------
 
-   function  Get_Jmpbuf_Address_NT return  Address is
+   function Get_Jmpbuf_Address_NT return  Address is
    begin
       return NT_TSD.Jmpbuf_Address;
    end Get_Jmpbuf_Address_NT;
@@ -174,28 +169,10 @@ package body System.Tasking_Soft_Links is
    end Set_Jmpbuf_Address_NT;
 
    ---------------------------
-   -- Get_GNAT_Exception_NT --
-   ---------------------------
-
-   function  Get_GNAT_Exception_NT return  Address is
-   begin
-      return NT_TSD.GNAT_Exception;
-   end Get_GNAT_Exception_NT;
-
-   ---------------------------
-   -- Get_GNAT_Exception_NT --
-   ---------------------------
-
-   procedure Set_GNAT_Exception_NT (Addr : Address) is
-   begin
-      NT_TSD.GNAT_Exception := Addr;
-   end Set_GNAT_Exception_NT;
-
-   ---------------------------
    -- Get_Sec_Stack_Addr_NT --
    ---------------------------
 
-   function  Get_Sec_Stack_Addr_NT return  Address is
+   function Get_Sec_Stack_Addr_NT return  Address is
    begin
       return NT_TSD.Sec_Stack_Addr;
    end Get_Sec_Stack_Addr_NT;
@@ -213,7 +190,7 @@ package body System.Tasking_Soft_Links is
    -- Set_Sec_Stack_Addr_NT --
    ---------------------------
 
-   function  Get_Exc_Stack_Addr_NT return Address is
+   function Get_Exc_Stack_Addr_NT return Address is
    begin
       return NT_TSD.Exc_Stack_Addr;
    end Get_Exc_Stack_Addr_NT;
@@ -227,44 +204,15 @@ package body System.Tasking_Soft_Links is
       NT_TSD.Exc_Stack_Addr := Addr;
    end Set_Exc_Stack_Addr_NT;
 
-   ---------------------------
-   -- Get_Message_Length_NT --
-   ---------------------------
+   --------------------------
+   -- Get_Current_Excep_NT --
+   --------------------------
 
-   function Get_Message_Length_NT return Integer is
+   function Get_Current_Excep_NT return EOA is
    begin
-      return NT_TSD.Message_Length;
-   end Get_Message_Length_NT;
-
-   ---------------------------
-   -- Set_Message_Length_NT --
-   ---------------------------
-
-   procedure Set_Message_Length_NT (Len : Integer) is
-   begin
-      NT_TSD.Message_Length := Len;
-   end Set_Message_Length_NT;
-
-
-   ---------------------------
-   -- Get_Message_Addr_NT --
-   ---------------------------
-
-   function  Get_Message_Addr_NT return  Address is
-   begin
-      return NT_TSD.Message_Addr;
-   end Get_Message_Addr_NT;
-
-   -------------------------
-   -- Set_Message_Addr_NT --
-   -------------------------
-
-   procedure Set_Message_Addr_NT (Addr : Address) is
-   begin
-      NT_TSD.Message_Addr := Addr;
-   end Set_Message_Addr_NT;
+      return NT_TSD.Current_Excep'Access;
+   end Get_Current_Excep_NT;
 
 begin
    NT_TSD.Exc_Stack_Addr := NT_Exc_Stack (8192)'Address;
-   NT_TSD.Message_Addr   := NT_Message'Address;
 end System.Tasking_Soft_Links;

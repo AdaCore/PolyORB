@@ -301,7 +301,7 @@ package body Fname is
       if Name_Len > 8 then
          return False;
 
-      --  Definitely predefined if prefix is a- g- i- or s-
+      --  Definitely predefined if prefix is a- i- or s-
 
       elsif Name_Len > 2
         and then Name_Buffer (2) = '-'

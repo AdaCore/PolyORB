@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---   Copyright (C) 1992,1993,1994,1995,1996 Free Software Foundation, Inc.  --
+--          Copyright (C) 1992-1997 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -35,20 +35,43 @@
 
 --  This package contains an interface for manipulation of task specific data
 
+with Ada.Exceptions;
+
 package System.Task_Specific_Data is
+
+   subtype EOA is Ada.Exceptions.Exception_Occurrence_Access;
+   subtype EO  is Ada.Exceptions.Exception_Occurrence;
 
    --  Here we define a single type that encapsulates the various task
    --  specific data. This type is used to store the necessary data into
-   --  the Task_Control_Block. This record could use detailed comments ???
+   --  the Task_Control_Block.
 
    type TSD is
       record
          Jmpbuf_Address : Address := Null_Address;
-         GNAT_Exception : Address := Null_Address;
+         --  Address of jump buffer used to store the address of the
+         --  current longjmp/setjmp buffer for exception management.
+         --  These buffers are threaded into a stack, and the address
+         --  here is the top of the stack. A null address means that
+         --  no exception handler is currently active.
+
          Sec_Stack_Addr : Address := Null_Address;
+         --  Address of currently allocated secondary stack
+
          Exc_Stack_Addr : Address := Null_Address;
-         Message_Length : Integer := 0;
-         Message_Addr   : Address := Null_Address;
+         --  Address of a task-specific stack used for the propagation of
+         --  exceptions in response to synchronous faults. This alternate
+         --  stack is necessary when propagating Storage_Error resulting
+         --  from a stack overflow, as the task's primary stack is full.
+         --  This is currently only used on the SGI, and this value stays
+         --  null on other platforms.
+
+         Current_Excep : aliased EO;
+         --  Exception occurrence that contains the information for the
+         --  current exception. Note that any exception in the same task
+         --  destroys this information, so the data in this variable must
+         --  be copied out before another exception can occur.
+
       end record;
 
    --  This package just re-exports the Get/Set routines for the various
@@ -60,54 +83,19 @@ package System.Task_Specific_Data is
    procedure Set_Jmpbuf_Address (Addr : Address);
    pragma Inline (Get_Jmpbuf_Address);
    pragma Inline (Set_Jmpbuf_Address);
-   --  These routines provide a task specific address used to store the
-   --  address of the current longjmp/setjmp jump buffer for exception
-   --  management (under the current scheme which uses longjmp/setjmp)
-
-   function  Get_GNAT_Exception return  Address;
-   procedure Set_GNAT_Exception (Addr : Address);
-   pragma Inline (Get_GNAT_Exception);
-   pragma Inline (Set_GNAT_Exception);
-   --  These routines provide a task specific address used to temporarily
-   --  store the address of the current exception during propagation.
 
    function  Get_Sec_Stack_Addr return  Address;
    procedure Set_Sec_Stack_Addr (Addr : Address);
    pragma Inline (Get_Sec_Stack_Addr);
    pragma Inline (Set_Sec_Stack_Addr);
-   --  These routines provide a task specific address used to reference
-   --  the currently allocated secondary stack.
 
    function  Get_Exc_Stack_Addr return Address;
    procedure Set_Exc_Stack_Addr (Addr : Address);
    pragma Inline (Get_Exc_Stack_Addr);
    pragma Inline (Set_Exc_Stack_Addr);
-   --  These routines provide the address of a task-specific stack used
-   --  for the propagation of exceptions in response to synchronous faults.
-   --  This alternate stack is necessary when propagating Storage_Error
-   --  resulting from a stack overflow, as the task's primary stack is
-   --  exhausted. Non-SGI platforms may implement these as dummy bodies.
 
-   function  Get_Message_Length return Integer;
-   procedure Set_Message_Length (Len : Integer);
-   pragma Inline (Get_Message_Length);
-   pragma Inline (Set_Message_Length);
-   --  These routines provide access to the length of the currently raised
-   --  exception's message. O means no message. Negative values have a
-   --  special purpose in connection with Assert_Failure (see description
-   --  in System.Assertions (s-assert.adb) for explanation). If a negative
-   --  value is set using Set_Message_Length, then a subsequent call to
-   --  Set_Message_Length with an argument of zero will, instead of setting
-   --  the length to zero, change the sign of the previously set negative
-   --  length.
-
-   function  Get_Message_Addr return Address;
-   procedure Set_Message_Addr (Addr : Address);
-   pragma Inline (Get_Message_Addr);
-   pragma Inline (Set_Message_Addr);
-   --  These routines provide access to the buffer containing the currently
-   --  raised exception's message. The actual message is:
-   --    To_Big_String_Ptr (Get_Message_Addr).all (1 .. Get_Message_Length)
+   function  Get_Current_Excep return EOA;
+   pragma Inline (Get_Current_Excep);
 
    procedure Create_TSD (New_TSD : in out TSD);
    --  Called from s-tassta when a new thread is created to perform
@@ -116,5 +104,11 @@ package System.Task_Specific_Data is
    procedure Destroy_TSD (Old_TSD : in out TSD);
    --  Called from s-tassta  just before a thread is destroyed to perform
    --  any required finalization.
+
+   function Get_GNAT_Exception return Ada.Exceptions.Exception_Id;
+   pragma Inline (Get_GNAT_Exception);
+   --  This function obtains the Exception_Id from the Exception_Occurrence
+   --  referenced by the Current_Excep field of the task specific data, i.e.
+   --  the call is equivalent to Exception_Identity (Get_Current_Excep.all)
 
 end System.Task_Specific_Data;

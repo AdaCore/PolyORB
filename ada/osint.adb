@@ -115,6 +115,17 @@ package body Osint is
    --  gnat.adc, only the compilation environment directory is searched,
    --  i.e. the directory where the ali an object files are written
 
+   function C_String_Length (S : Address) return Integer;
+   --  Returns the length of a C string.  Does check for null address
+   --  (returns 0).
+
+   function To_Path_String_Access
+     (Path_Addr : Address;
+      Path_Len  : Integer)
+      return String_Access;
+   --  Converts a C String to an Ada String.  Are we doing this to avoid
+   --  withing Interfaces.C.Strings ???
+
    ------------------------------
    -- Other Local Declarations --
    ------------------------------
@@ -338,7 +349,11 @@ package body Osint is
    -- Create_Binder_Output --
    --------------------------
 
-   procedure Create_Binder_Output (Output_Filename : String) is
+   procedure Create_Binder_Output
+     (Output_Filename : String;
+      Typ             : Character;
+      Bfile           : out Name_Id)
+   is
       File_Name : String_Ptr;
       Findex1   : Natural;
       Findex2   : Natural;
@@ -350,10 +365,17 @@ package body Osint is
       if Output_Filename /= "" then
          Name_Buffer (Output_Filename'Range) := Output_Filename;
          Name_Buffer (Output_Filename'Last + 1) := Ascii.NUL;
+
+         if Typ = 's' then
+            Name_Buffer (Output_Filename'Last) := 's';
+         end if;
+
          Name_Len := Output_Filename'Last;
 
       else
+         Name_Buffer (1) := 'b';
          File_Name := File_Names (Current_File_Name_Index);
+
          Findex1 := File_Name'First;
 
          --  The ali file might be specified by a full path name. However,
@@ -376,15 +398,48 @@ package body Osint is
             Findex2 := Findex2 + 1;
          end loop;
 
-         Name_Buffer (1 .. 2) := "b_";
          Flength := Findex2 - Findex1;
+
+         if Maximum_File_Name_Length > 0 then
+
+            --  Make room for the extra two characters in "b?"
+
+            while Int (Flength) > Maximum_File_Name_Length - 2 loop
+               Findex2 := Findex2 - 1;
+               Flength := Findex2 - Findex1;
+            end loop;
+         end if;
+
          Name_Buffer (3 .. Flength + 2) := File_Name (Findex1 .. Findex2 - 1);
          Name_Buffer (Flength + 3) := '.';
-         Name_Buffer (Flength + 4) := 'c';
-         Name_Buffer (Flength + 5) := Ascii.NUL;
-         Name_Len := Flength + 4;
+
+         --  C bind file, name is b_xxx.c
+
+         if Typ = 'c' then
+            Name_Buffer (2) := '_';
+            Name_Buffer (Flength + 4) := 'c';
+            Name_Buffer (Flength + 5) := Ascii.NUL;
+            Name_Len := Flength + 4;
+
+         --  Ada bind file, name is b~xxx.adb or b~xxx.ads
+         --  (with $ instead of ~ in VMS)
+
+         else
+            if Hostparm.OpenVMS then
+               Name_Buffer (2) := '$';
+            else
+               Name_Buffer (2) := '~';
+            end if;
+
+            Name_Buffer (Flength + 4) := 'a';
+            Name_Buffer (Flength + 5) := 'd';
+            Name_Buffer (Flength + 6) := Typ;
+            Name_Buffer (Flength + 7) := Ascii.NUL;
+            Name_Len := Flength + 6;
+         end if;
       end if;
 
+      Bfile := Name_Find;
       Create_File_And_Check (Output_FD, Text);
 
    end Create_Binder_Output;
@@ -1097,13 +1152,8 @@ package body Osint is
             L2 : Natural := S2'Length;
 
          begin
-            if Distribution_Stub_Mode /= Generate_Caller_Stub_Body
-                 and then
-               Distribution_Stub_Mode /= Generate_Receiver_Stub_Body
-            then
-               if L2 <= L1 or else S2 (L2 - L1 + 1 .. L2) /= S1.all then
-                  Fail ("incorrect object file extension");
-               end if;
+            if L2 <= L1 or else S2 (L2 - L1 + 1 .. L2) /= S1.all then
+               Fail ("incorrect object file extension");
             end if;
          end;
       end if;
@@ -1164,10 +1214,26 @@ package body Osint is
 
    procedure Add_Default_Search_Dirs is
 
+
+      Search_Dir  : String_Access;
+      Search_Path : String_Access;
+
       procedure Add_Search_Dir
         (Search_Dir            : String_Access;
          Additional_Source_Dir : Boolean);
       --  Needs documentation ???
+
+      function Get_Libraries_From_Registry return String_Ptr;
+      --  On Windows systems, get the list of installed standard libraries
+      --  from the registry key:
+      --  HKEY_LOCAL_MACHINE\SOFTWARE\Ada Core Technologies\
+      --                             GNAT\Standard Libraries
+      --  Return an empty string on other systems
+
+      function Update_Path (Path : String_Ptr) return String_Ptr;
+      --  Update the specified path to replace the prefix with
+      --  the location where GNAT is installed.   See the file prefix.c
+      --  in GCC for more details.
 
       procedure Add_Search_Dir
         (Search_Dir            : String_Access;
@@ -1181,10 +1247,59 @@ package body Osint is
          end if;
       end Add_Search_Dir;
 
-      Search_Dir  : String_Access;
-      Search_Path : String_Access;
+      function Get_Libraries_From_Registry return String_Ptr is
+         function C_Get_Libraries_From_Registry return Address;
+         pragma Import (C, C_Get_Libraries_From_Registry,
+                        "Get_Libraries_From_Registry");
+         function Strlen (Str : Address) return Integer;
+         pragma Import (C, Strlen, "strlen");
+         procedure Strncpy (X : Address; Y : Address; Length : Integer);
+         pragma Import (C, Strncpy, "strncpy");
+         Result_Ptr : Address;
+         Result_Length : Integer;
+         Out_String : String_Ptr;
 
-   --  Begin of Add_Default_Search_Dirs
+      begin
+
+         Result_Ptr := C_Get_Libraries_From_Registry;
+         Result_Length := Strlen (Result_Ptr);
+
+         Out_String := new String (1 .. Result_Length);
+         Strncpy (Out_String.all'Address, Result_Ptr, Result_Length);
+         return Out_String;
+      end Get_Libraries_From_Registry;
+
+      function Update_Path (Path : String_Ptr) return String_Ptr is
+
+         function C_Update_Path (Path, Component : Address) return Address;
+         pragma Import (C, C_Update_Path, "update_path");
+
+         function Strlen (Str : Address) return Integer;
+         pragma Import (C, Strlen, "strlen");
+
+         procedure Strncpy (X : Address; Y : Address; Length : Integer);
+         pragma Import (C, Strncpy, "strncpy");
+
+         In_Length      : constant Integer := Path'Length;
+         In_String      : String (1 .. In_Length + 1);
+         Component_Name : aliased String := "GNAT" & ASCII.NUL;
+         Result_Ptr     : Address;
+         Result_Length  : Integer;
+         Out_String     : String_Ptr;
+
+      begin
+         In_String (1 .. In_Length) := Path.all;
+         In_String (In_Length + 1) := Ascii.NUL;
+         Result_Ptr := C_Update_Path (In_String'Address,
+                                      Component_Name'Address);
+         Result_Length := Strlen (Result_Ptr);
+
+         Out_String := new String (1 .. Result_Length);
+         Strncpy (Out_String.all'Address, Result_Ptr, Result_Length);
+         return Out_String;
+      end Update_Path;
+
+   --  Start of processing for Add_Default_Search_Dirs
 
    begin
       --  After the locations specified on the command line, the next places
@@ -1208,9 +1323,22 @@ package body Osint is
          end loop;
       end loop;
 
+      --  For WIN32 systems, look for any system libraries defined in
+      --  the registry.  These are added to both source and object
+      --  directories.
+
+      Search_Path := String_Access (Get_Libraries_From_Registry);
+      Get_Next_Dir_In_Path_Init (Search_Path);
+      loop
+         Search_Dir := Get_Next_Dir_In_Path (Search_Path);
+         exit when Search_Dir = null;
+         Add_Search_Dir (Search_Dir, False);
+         Add_Search_Dir (Search_Dir, True);
+      end loop;
+
       --  The last place to look are the defaults
 
-      Search_Path := String_Access (Include_Dir_Default_Name);
+      Search_Path := String_Access (Update_Path (Include_Dir_Default_Name));
       Get_Next_Dir_In_Path_Init (Search_Path);
       loop
          Search_Dir := Get_Next_Dir_In_Path (Search_Path);
@@ -1218,7 +1346,7 @@ package body Osint is
          Add_Search_Dir (Search_Dir, True);
       end loop;
 
-      Search_Path := String_Access (Object_Dir_Default_Name);
+      Search_Path := String_Access (Update_Path (Object_Dir_Default_Name));
       Get_Next_Dir_In_Path_Init (Search_Path);
       loop
          Search_Dir := Get_Next_Dir_In_Path (Search_Path);
@@ -1897,6 +2025,119 @@ package body Osint is
    begin
       null;
    end Stub_Output_Stop;
+
+   ---------------------
+   -- C_String_Length --
+   ---------------------
+
+   function C_String_Length (S : Address) return Integer is
+      function Strlen (S : Address) return Integer;
+      pragma Import (C, Strlen, "strlen");
+
+   begin
+      if S = Null_Address then
+         return 0;
+      else
+         return Strlen (S);
+      end if;
+   end C_String_Length;
+
+   ---------------------------
+   -- To_Canonical_Dir_Spec --
+   ---------------------------
+
+   function To_Canonical_Dir_Spec
+     (Host_Dir     : String;
+      Prefix_Style : Boolean)
+      return String_Access
+   is
+      function To_Canonical_Dir_Spec
+        (Host_Dir : Address;
+         Prefix_Flag : Integer)
+         return Address;
+      pragma Import (C, To_Canonical_Dir_Spec, "to_canonical_dir_spec");
+
+      C_Host_Dir      : String (1 .. Host_Dir'Length + 1);
+      Canonical_Dir_Addr : Address;
+      Canonical_Dir_Len  : Integer;
+
+   begin
+      C_Host_Dir (1 .. Host_Dir'Length) := Host_Dir;
+      C_Host_Dir (C_Host_Dir'Last)      := Ascii.NUL;
+
+      if Prefix_Style then
+         Canonical_Dir_Addr := To_Canonical_Dir_Spec (C_Host_Dir'Address, 1);
+      else
+         Canonical_Dir_Addr := To_Canonical_Dir_Spec (C_Host_Dir'Address, 0);
+      end if;
+      Canonical_Dir_Len := C_String_Length (Canonical_Dir_Addr);
+
+      if Canonical_Dir_Len = 0 then
+         return null;
+      else
+         return To_Path_String_Access (Canonical_Dir_Addr, Canonical_Dir_Len);
+      end if;
+   end To_Canonical_Dir_Spec;
+
+   ----------------------------
+   -- To_Canonical_File_Spec --
+   ----------------------------
+
+   function To_Canonical_File_Spec
+     (Host_File : String)
+      return String_Access
+   is
+      function To_Canonical_File_Spec (Host_File : Address) return Address;
+      pragma Import (C, To_Canonical_File_Spec, "to_canonical_file_spec");
+
+      C_Host_File      : String (1 .. Host_File'Length + 1);
+      Canonical_File_Addr : Address;
+      Canonical_File_Len  : Integer;
+
+   begin
+      C_Host_File (1 .. Host_File'Length) := Host_File;
+      C_Host_File (C_Host_File'Last)      := Ascii.NUL;
+
+      Canonical_File_Addr := To_Canonical_File_Spec (C_Host_File'Address);
+      Canonical_File_Len  := C_String_Length (Canonical_File_Addr);
+
+      if Canonical_File_Len = 0 then
+         return null;
+      else
+         return To_Path_String_Access
+                  (Canonical_File_Addr, Canonical_File_Len);
+      end if;
+   end To_Canonical_File_Spec;
+
+   ---------------------------
+   -- To_Path_String_Access --
+   ---------------------------
+
+   function To_Path_String_Access
+     (Path_Addr : Address;
+      Path_Len  : Integer)
+      return String_Access is
+
+      subtype Path_String is String (1 .. Path_Len);
+      type    Path_String_Access is access Path_String;
+
+      function Address_To_Access is new
+        Unchecked_Conversion (Source => Address,
+                              Target => Path_String_Access);
+
+      Path_Access : Path_String_Access := Address_To_Access (Path_Addr);
+
+      Return_Val  : String_Access;
+
+   begin
+      Return_Val := new String (1 .. Path_Len);
+
+      for J in 1 .. Path_Len loop
+         Return_Val (J) := Path_Access (J);
+      end loop;
+
+      return Return_Val;
+   end To_Path_String_Access;
 
    -----------------
    -- Tree_Create --

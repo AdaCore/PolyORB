@@ -159,14 +159,14 @@ package body System.Exception_Table is
       if Res = null  then
          Dyn_Copy := new String'(Copy);
 
-         Res := new Exception_Data'(
-              Handled_By_Others => False,
-              C1                => 'A',
-              C2                => 'd',
-              C3                => 'a',
-              Name_Length       => Copy'Length,
-              Full_Name         => To_Ptr (Dyn_Copy.all'Address),
-              HTable_Ptr        => null);
+         Res :=
+           new Exception_Data'
+             (Not_Handled_By_Others => False,
+              Lang                  => "Ada",
+              Name_Length           => Copy'Length,
+              Full_Name             => To_Ptr (Dyn_Copy.all'Address),
+              HTable_Ptr            => null,
+              Import_Code           => 0);
 
          Register_Exception (Res);
       end if;

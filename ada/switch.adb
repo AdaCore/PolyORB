@@ -128,6 +128,17 @@ package body Switch is
                raise Bad_Switch;
             end if;
 
+         --  Processing for -A switch
+
+         elsif C = 'A' then
+            Ptr := Ptr + 1;
+
+            if Program = Binder then
+               Ada_Bind_File := True;
+            else
+               raise Bad_Switch;
+            end if;
+
          --  Processing for -b switch
 
          elsif C = 'b' then
@@ -149,6 +160,17 @@ package body Switch is
                Check_Only := True;
             elsif Program = Make then
                Compile_Only := True;
+            else
+               raise Bad_Switch;
+            end if;
+
+         --  Processing for -C switch
+
+         elsif C = 'C' then
+            Ptr := Ptr + 1;
+
+            if Program = Binder then
+               Ada_Bind_File := False;
             else
                raise Bad_Switch;
             end if;
@@ -614,19 +636,11 @@ package body Switch is
               and then Distribution_Stub_Mode = No_Stubs
             then
                case Switches (Ptr) is
-                  when 'R' =>
-                     Distribution_Stub_Mode := Compile_Receiver_Stub_Spec;
-
-                  when 'C' =>
-                     Distribution_Stub_Mode := Compile_Caller_Stub_Spec;
-
                   when 'r' =>
                      Distribution_Stub_Mode := Generate_Receiver_Stub_Body;
-                     Operating_Mode := Check_Semantics;
 
                   when 'c' =>
                      Distribution_Stub_Mode := Generate_Caller_Stub_Body;
-                     Operating_Mode := Check_Semantics;
 
                   when others =>
                      raise Bad_Switch;
