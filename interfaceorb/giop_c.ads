@@ -48,7 +48,7 @@
 -----------------------------------------------------------------------
 -----------------------------------------------------------------------
 
-
+with Ada.Finalization ;
 with Interfaces.C ;
 with Interfaces.CPP ;
 with Interfaces.C.Strings ;
@@ -80,8 +80,9 @@ package Giop_C is
    -- (see Ada_Giop_c.hh)
 
 
-   type Object_Ptr is access all Object ;
-   -- type pointer on type Object
+   type Controlled_Wrapper is new Ada.Finalization.Limited_Controlled with record
+      Real : Object ;
+   end record ;
 
 
    procedure Init (Self : in out Object'Class ;
@@ -89,6 +90,11 @@ package Giop_C is
    -- Ada constructor of the class.
    -- This function must be called after each declaration of
    -- an Object object. If it is not, you can not use the object.
+
+
+   procedure Free(Self : in out Object'Class) ;
+   pragma Import(CPP, Free, "Free__10Ada_Giop_c") ;
+   -- deletes the underlying C pointer
 
 
    procedure Initialize_Request (Self : in Object'Class ;
@@ -121,6 +127,9 @@ package Giop_C is
 
 
 private
+
+   procedure Finalize(Self : in out Controlled_Wrapper) ;
+   -- calls free on the underlying object
 
    function Constructor1 return Object'Class;
    pragma CPP_Constructor (Constructor1);

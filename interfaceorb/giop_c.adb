@@ -208,5 +208,13 @@ package body Giop_C is
       return  Corba.Unsigned_Long (C_Result) ;
    end;
 
+
+   -- Finalize
+   -----------
+   procedure Finalize(Self : in out Controlled_Wrapper) is
+   begin
+      Free(Self.Real) ;
+   end ;
+
 end Giop_C ;
 

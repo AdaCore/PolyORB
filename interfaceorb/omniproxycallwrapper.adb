@@ -97,7 +97,7 @@ package body omniProxyCallWrapper is
       -- true if this is not the first Sync object instantiated to
       -- use the Strand. False otherwise.
 
-      Giop_Client : Giop_C.Object ;
+      Giop_Client : Giop_C.Controlled_Wrapper ;
       -- Giop_c object used forcommunications with the ORB
 
       Message_Size : Corba.Unsigned_Long ;
@@ -136,10 +136,10 @@ package body omniProxyCallWrapper is
 
          pragma Debug(Output(Debug, "Corba.omniproxycallwrapper.invoke : Got The rope"));
 
-         Giop_C.Init (Giop_Client, The_Rope) ;
+         Giop_C.Init (Giop_Client.Real, The_Rope) ;
 
          -- do the giop_client reuse an existing connection ?
-         Reuse := Netbufferedstream.Is_Reusing_Existing_Connection(Giop_Client) ;
+         Reuse := Netbufferedstream.Is_Reusing_Existing_Connection(Giop_Client.Real) ;
 
          pragma Debug(Output(Debug, "Corba.omniproxycallwrapper.invoke : key_size = "
                              & Corba.Unsigned_Long'Image
@@ -163,7 +163,7 @@ package body omniProxyCallWrapper is
                              "Corba.omniproxycallwrapper.invoke : Message_Size :=" & Corba.Unsigned_Long'Image (Message_Size)));
 
          -- Initialize the request
-         Giop_C.Initialize_Request(Giop_Client,
+         Giop_C.Initialize_Request(Giop_Client.Real,
                                    Omniropeandkey.Get_Key(Rope_And_Key),
                                    Omniropeandkey.Key_Size(Rope_And_Key),
                                    OmniProxycalldesc.Operation(Call_Desc),
@@ -174,21 +174,22 @@ package body omniProxyCallWrapper is
                              "Corba.omniproxycallwrapper.invoke : initialise_request completed"));
 
          -- Marshal the arguments to the operation
-         Omniproxycalldesc.Marshal_Arguments (Call_Desc, Giop_Client) ;
+         Omniproxycalldesc.Marshal_Arguments (Call_Desc, Giop_Client.Real) ;
 
          pragma Debug(Output(Debug,
                              "Corba.omniproxycallwrapper.invoke : marshal_arguments completed"));
 
          -- wait for the reply
-          Giop_C.Receive_Reply(Giop_Client, result);
+          Giop_C.Receive_Reply(Giop_Client.Real, result);
 
           case Result is
             when Giop.NO_EXCEPTION =>
                -- unmarshal the results and out/inout arguments
                Omniproxycalldesc.Unmarshal_Returned_Values(Call_Desc,
-                                                           Giop_Client) ;
+                                                           Giop_Client.Real) ;
                -- inform the ORB that the request was completed
-               Giop_C.Request_Completed(Giop_Client) ;
+               Giop_C.Request_Completed(Giop_Client.Real) ;
+               pragma Debug(Output(Debug, "omniproxycallwrapper.invoke : result Unmarshalled")) ;
                return ;
 
             when Giop.USER_EXCEPTION =>
@@ -198,7 +199,7 @@ package body omniProxyCallWrapper is
                      Excpt_Members : Corba.Unknown_Members ;
                   begin
                      -- inform the ORB that the message was skiped
-                     Giop_C.Request_Completed(Giop_Client,True) ;
+                     Giop_C.Request_Completed(Giop_Client.Real,True) ;
                      -- raise an Unknown exception
                      Excpt_Members := (0, Corba.Completed_Maybe) ;
                      Corba.Raise_Corba_Exception(Corba.Unknown'Identity,
@@ -211,12 +212,12 @@ package body omniProxyCallWrapper is
                RepoID : Corba.String ;
             begin
                -- UnMarshalls the RepoID
-               Netbufferedstream.UnMarshall (RepoID,Giop_Client) ;
+               Netbufferedstream.UnMarshall (RepoID,Giop_Client.Real) ;
 
                -- may be simplified,
                -- it was done like this in C++ for memory allocation
                Omniproxycalldesc.User_Exception(Call_Desc,
-                                                Giop_Client,
+                                                Giop_Client.Real,
                                                 RepoID) ;
 
                -- never reach this point,
@@ -235,7 +236,7 @@ package body omniProxyCallWrapper is
 
             when Giop.SYSTEM_EXCEPTION =>
                -- inform the ORB that the message was skiped
-               Giop_C.Request_Completed(Giop_Client, True) ;
+               Giop_C.Request_Completed(Giop_Client.Real, True) ;
                -- and raise a fatal exception
                Ada.Exceptions.Raise_Exception(Corba.AdaBroker_Fatal_Error'Identity,
                                               "Giop.SYSTEM_EXCEPTION should not be returned"
@@ -254,9 +255,9 @@ package body omniProxyCallWrapper is
                   Unneeded_Result : Corba.Boolean ;
                begin
                   -- unmarshall the object
-                  Corba.Object.UnMarshall (Obj_Ref,Giop_Client) ;
+                  Corba.Object.UnMarshall (Obj_Ref,Giop_Client.Real) ;
                   -- inform the ORB that the request was completed
-                  Giop_C.Request_Completed(Giop_Client) ;
+                  Giop_C.Request_Completed(Giop_Client.Real) ;
                   -- verify that the object is not null
                   if Corba.Object.Is_Nil(Obj_Ref) then
                      declare
@@ -412,7 +413,7 @@ package body omniProxyCallWrapper is
       -- true if this is not the first Sync object instantiated to
       -- use the Strand. False otherwise.
 
-      Giop_Client : Giop_C.Object ;
+      Giop_Client : Giop_C.Controlled_Wrapper ;
       -- Giop_c object used for communications with the ORB
 
       Message_Size : Corba.Unsigned_Long ;
@@ -435,10 +436,10 @@ package body omniProxyCallWrapper is
          Omniobject.Get_Rope_And_Key(OmniObj_Ptr.all,Rope_And_Key,Is_Fwd) ;
 
          -- Get a GIOP driven strand
-         Giop_C.Init (Giop_Client, Omniropeandkey.Get_Rope(Rope_And_Key)) ;
+         Giop_C.Init (Giop_Client.Real, Omniropeandkey.Get_Rope(Rope_And_Key)) ;
 
          -- do the giop_client reuse an existing connection ?
-         Reuse := Netbufferedstream.Is_Reusing_Existing_Connection(Giop_Client) ;
+         Reuse := Netbufferedstream.Is_Reusing_Existing_Connection(Giop_Client.Real) ;
 
          -- Calculates the size of the message
          -- first the size of the header
@@ -451,7 +452,7 @@ package body omniProxyCallWrapper is
                                                        Message_Size) ;
 
          -- Initialise the request
-         Giop_C.Initialize_Request(Giop_Client,
+         Giop_C.Initialize_Request(Giop_Client.Real,
                                    Omniropeandkey.Get_Key(Rope_And_Key),
                                    Omniropeandkey.Key_Size(Rope_And_Key),
                                    OmniProxycalldesc.Operation(Call_Desc),
@@ -459,22 +460,22 @@ package body omniProxyCallWrapper is
                                    True);
 
          -- Marshal the arguments to the operation
-         Omniproxycalldesc.Marshal_Arguments (Call_Desc, Giop_Client) ;
+         Omniproxycalldesc.Marshal_Arguments (Call_Desc, Giop_Client.Real) ;
 
          -- wait for the reply
-         Giop_C.Receive_Reply(Giop_Client,result) ;
+         Giop_C.Receive_Reply(Giop_Client.Real,result) ;
 
          case Result is
 
             when Giop.NO_EXCEPTION =>
                -- inform the ORB that the request was completed
-               Giop_C.Request_Completed(Giop_Client) ;
+               Giop_C.Request_Completed(Giop_Client.Real) ;
                return ;
 
             when Giop.USER_EXCEPTION |
               Giop.SYSTEM_EXCEPTION |
               Giop.LOCATION_FORWARD =>
-               Giop_C.Request_Completed(Giop_Client,True) ;
+               Giop_C.Request_Completed(Giop_Client.Real,True) ;
                Ada.Exceptions.Raise_Exception (Corba.AdaBroker_Fatal_Error'Identity,
                                                "GIOP_C::ReceiveReply() returned unexpected code on oneway" &
                                                Corba.CRLF & "in method One_Way" &

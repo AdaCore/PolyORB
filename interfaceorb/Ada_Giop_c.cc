@@ -49,13 +49,17 @@
 
 #include "Ada_Giop_c.hh"
 #include "Ada_exceptions.hh"
-//#include <omniORB2/CORBA.h>
+
+// DEBUG is defined at the beginning of each file
+// and undefined at the end
+//#define DEBUG
 
 
 // Default Constructor
 //--------------------
 Ada_Giop_c::Ada_Giop_c () : Ada_netBufferedStream::Ada_netBufferedStream ()
 {
+  // everything is done in the constructor of the parent
 };
 
   
@@ -64,9 +68,34 @@ Ada_Giop_c::Ada_Giop_c () : Ada_netBufferedStream::Ada_netBufferedStream ()
 void
 Ada_Giop_c::Init (Rope *r)
 {
+  if (C_Object) {
+    // if we already have an object, release it
+    // before creating a new one !
+    delete (GIOP_C*) C_Object ;
+  }
+
+#ifdef DEBUG
+  else {
+    cerr << "Ada_Giop_c::Init : initializing new Giop_c" << endl ;
+  }
+#endif
+
   C_Object = new GIOP_C (r);
   Init_Ok = true;
 };
+
+
+// Free
+//-----
+void
+Ada_Giop_c::Free()
+{
+  if (C_Object) {
+    delete (GIOP_C*) C_Object ;
+    C_Object = 0 ;
+  }
+  Init_Ok = false ;
+}
 
 
 // InitialiseRequest
@@ -101,7 +130,6 @@ Ada_Giop_c::ReceiveReply(GIOP::ReplyStatusType &result)
 {
   try {
     if (Init_Ok) {
-      throw CORBA::UNKNOWN(0,CORBA::COMPLETED_MAYBE);
       // if Initialisation was made then call the corresponding
       // function on C_Object
       GIOP::ReplyStatusType tmp = ((GIOP_C *) C_Object)->ReceiveReply();
@@ -131,3 +159,5 @@ Ada_Giop_c::RequestCompleted(_CORBA_Boolean skip)
     raise_ada_exception ("Call of Ada_Giop_c::RequestCompleted without initialising object.");
   }
 };
+
+#undef DEBUG

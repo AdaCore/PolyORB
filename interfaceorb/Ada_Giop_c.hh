@@ -61,6 +61,9 @@ public:
   // Initialisation of Ada_Giop_c, calls the
   // underlying GIOP_C constructor
   
+  void Free() ;
+  // deletes the underlying C pointer
+
   void InitialiseRequest(const void          *objkey,
 			 const size_t         objkeysize,
 			 const char          *opname,

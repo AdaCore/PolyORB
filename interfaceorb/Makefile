@@ -13,6 +13,9 @@ ADA_COMP = gnatgcc -gnatf $(ADA_DEBUG)
 # Ada preprocessor
 ADA_PREP = gnatprep
 
+# Ada make
+GNATMAKE = gnatmake -gnatf -gnata
+
 # C++ compiler
 CPP_COMP = g++
 
@@ -49,7 +52,7 @@ OMNIORB_LIBS += -I $(OMNIORB_PATH)/src/lib/omniORB2/orbcore/
 
 
 main: C_files Sys_Dep
-	gnatmake adabroker.ads
+	$(GNATMAKE) adabroker.ads
 
 ##########################
 # compilation of C++ files

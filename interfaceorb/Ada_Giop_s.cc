@@ -49,16 +49,12 @@
 
 #include "Ada_Giop_s.hh"
 
-// DEBUG
-#include "omniORB2/CORBA.h"
-// end DEGUN
 
 // Default Constructor
 //--------------------
-Ada_Giop_s::Ada_Giop_s ()
+Ada_Giop_s::Ada_Giop_s () : Ada_netBufferedStream::Ada_netBufferedStream ()
 {
-  Init_Ok = false;
-  C_Object = NULL;
+  // everything is done in the constructor of the parent
 };
 
   

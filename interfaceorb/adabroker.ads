@@ -9,7 +9,7 @@ with Corba.Sequences.Bounded ;
 with Corba.Sequences.Unbounded ;
 with Corba.Sequences ;
 with Corba ;
--- with Exceptions ;
+with Exceptions ;
 with Giop ;
 with Giop_C ;
 with Giop_S ;

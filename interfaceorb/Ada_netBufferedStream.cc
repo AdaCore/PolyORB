@@ -56,7 +56,7 @@
 //----------------------
 Ada_netBufferedStream::Ada_netBufferedStream ()
 {
-  C_Object = NULL;
+  C_Object = 0 ;
   Init_Ok = false;
 };
 
