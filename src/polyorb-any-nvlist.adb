@@ -55,7 +55,8 @@ package body PolyORB.Any.NVList is
      (Self       :    Ref;
       Item_Name  : in Identifier;
       Item       : in Any;
-      Item_Flags : in Flags) is
+      Item_Flags : in Flags)
+   is
    begin
       pragma Debug (O ("Add_Item (4 params) : enter"));
       --  pragma Debug (O ("Add_Item (4 params) : Item type is "
@@ -73,6 +74,10 @@ package body PolyORB.Any.NVList is
                        & Positive'Image (Get_Counter (Item))));
       pragma Debug (O ("Add_Item (4 params) : end"));
    end Add_Item;
+
+   --------------
+   -- Add_Item --
+   --------------
 
    procedure Add_Item
      (Self : Ref;
@@ -93,8 +98,7 @@ package body PolyORB.Any.NVList is
    -- Finalize --
    --------------
 
-   procedure Finalize
-     (X : in out Object) is
+   procedure Finalize (X : in out Object) is
    begin
       Internals.NV_Lists.Deallocate (X.List);
    end Finalize;
@@ -103,14 +107,12 @@ package body PolyORB.Any.NVList is
    -- Free --
    ----------
 
-   procedure Free
-     (Self : Ref)
-   is
+   procedure Free (Self : Ref) is
+   begin
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
 
-   begin
       pragma Debug (O ("Free"));
       null;
    end Free;
@@ -119,9 +121,8 @@ package body PolyORB.Any.NVList is
    -- Get_Count --
    ---------------
 
-   function Get_Count
-     (Self : Ref)
-     return Types.Long is
+   function Get_Count (Self : Ref) return Types.Long
+   is
    begin
       if Is_Null (Self) then
          return 0;
@@ -134,8 +135,7 @@ package body PolyORB.Any.NVList is
    -- Create --
    ------------
 
-   procedure Create
-     (NVList : out Ref) is
+   procedure Create (NVList : out Ref) is
    begin
       Set (NVList, PolyORB.Smart_Pointers.Entity_Ptr'(new Object));
    end Create;
@@ -144,9 +144,7 @@ package body PolyORB.Any.NVList is
    -- Image --
    -----------
 
-   function Image
-     (NVList : Ref)
-     return Standard.String
+   function Image (NVList : Ref) return Standard.String
    is
       use NV_Lists;
 
@@ -178,9 +176,7 @@ package body PolyORB.Any.NVList is
 
    package body Internals is
 
-      function List_Of
-        (NVList : Ref)
-        return NV_List_Access
+      function List_Of (NVList : Ref) return NV_List_Access
       is
          use type PolyORB.Smart_Pointers.Entity_Ptr;
          Entity : constant PolyORB.Smart_Pointers.Entity_Ptr

@@ -6,7 +6,7 @@ AC_CONFIG_AUX_DIR(support)
 ##########################################
 
 AC_CANONICAL_SYSTEM
-AM_INIT_AUTOMAKE(polyorb,0.1)
+AM_INIT_AUTOMAKE(polyorb,1.0a)
 LIBVERSIONINFO=0:0:0
 AC_SUBST(LIBVERSIONINFO)
 
