@@ -26,29 +26,26 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Csets;
-with Debug;
-with ALI;              use ALI;
+with Make;             use Make;
 with Namet;            use Namet;
 with Osint;            use Osint;
-with Types;            use Types;
 with Output;           use Output;
-with XE_Usage;
-with XE_Parse;         use XE_Parse;
+with XE;               use XE;
 with XE_Back;          use XE_Back;
+with XE_Check;         use XE_Check;
+with XE_Parse;         use XE_Parse;
 with XE_Scan;          use XE_Scan;
 with XE_Stubs;         use XE_Stubs;
-with XE_Lead;
-with XE_Check;         use XE_Check;
 with XE_Utils;         use XE_Utils;
-with GNAT.Os_Lib;      use GNAT.Os_Lib;
-with XE;               use XE;
-with Make;             use Make;
+
+with Debug;
 with Opt;
+with XE_Lead;
+with XE_Usage;
+
 procedure XE_Build is
 
    Suffix    : constant String := ".cfg";
-   File_Name : File_Name_Type;
 
 begin
 
@@ -88,59 +85,38 @@ begin
       --     Next_Main_Source or Next_Main_Source + ".cfg" if the latter
       --     does not exist.
 
-      File_Name := Next_Main_Source;
-      Get_Name_String (File_Name);
-
       declare
-         L1 : Natural := Name_Len;
-         L2 : Natural := Name_Len + Suffix'Length;
-         N1 : String (1 .. L1);
-         N2 : String (1 .. L2);
-
+         N : Name_Id := Next_Main_Source;
+         L : Integer;
+         S : Integer := Suffix'Length;
       begin
-         N1 := Name_Buffer (N1'Range);
-         N2 (N1'Range) := N1;
-         N2 (L1 + 1 .. L2) := Suffix;
+
+         Get_Name_String (N);
+         L := Name_Len;
+
+         --  Remove suffix if needed.
+         if L > S and then Name_Buffer (L - S + 1 .. L) = Suffix then
+            L := L - S;
+            N := Name_Find;
+         else
+            Name_Buffer (L + 1 .. L + S) := Suffix;
+            Name_Len := L + S;
+            N := Name_Find;
+         end if;
 
          --  If the filename is not already correct.
-         if not Is_Regular_File (N1) then
+         if not Is_Regular_File (N) then
 
-            --  Try filename + suffix.
-            if Is_Regular_File (N2) then
-               Name_Len := L2;
-               Name_Buffer (N2'Range) := N2;
-               File_Name := Name_Find;
-
-            --  No configuration file can be found. Extract the suffix
-            --  if any and output an error message.
-
-            else
-               if Debug_Mode then
-                  Write_Program_Name;
-                  Write_Str (": ");
-                  Write_Str (N1 (1 .. L1));
-                  Write_Str (" or ");
-                  Write_Str (N2 (1 .. L2));
-                  Write_Str (" were not found");
-                  Write_Eol;
-               end if;
-               if L1 > Suffix'Length and then
-                 N1 (L1 - Suffix'Length + 1 .. L1) = Suffix then
-                  L1 := L1 - Suffix'Length;
-               end if;
-               Write_Program_Name;
-               Write_Str (": ");
-               Write_Str (N1 (1 .. L1));
-               Write_Str ("[");
-               Write_Str (Suffix);
-               Write_Str ("] not found ");
-               Write_Eol;
-               Exit_Program (E_Fatal);
-            end if;
+            Write_Program_Name;
+            Write_Str  (": ");
+            Write_Name (N);
+            Write_Str  (" not found");
+            Write_Eol;
+            Exit_Program (E_Fatal);
+         else
+            Configuration_File := N;
          end if;
       end;
-
-      Configuration_File := File_Name;
 
       if Building_Script then
          Write_Str (Standout, "#! /bin/sh");

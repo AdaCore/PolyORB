@@ -26,7 +26,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Types;        use Types;
+with XE_Utils;     use XE_Utils;
 with XE;           use XE;
 package XE_Scan is
 

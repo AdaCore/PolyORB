@@ -26,38 +26,20 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Fname;        use Fname;
-with Output;       use Output;
-with Osint;        use Osint;
 with Namet;        use Namet;
-with GNAT.Os_Lib;  use GNAT.Os_Lib;
+with Output;       use Output;
 with XE_Utils;     use XE_Utils;
-with XE_Defs;      use XE_Defs;
-with Types;
 
 package body XE is
 
-   use type Types.Name_Id;
-   use type Types.Unit_Name_Type;
-   use type Types.Int;
-
-   subtype Name_Id        is Types.Name_Id;
-   subtype Unit_Name_Type is Types.Unit_Name_Type;
-   subtype Int            is Types.Int;
-
    type Node_Kind is
-      (K_Null,
+      (K_Configuration,
        K_List,
        K_Type,
        K_Subprogram,
        K_Statement,
        K_Component,
        K_Variable);
-
-   type List_Kind is
-      (K_Declaration_List,
-       K_Parameter_List,
-       K_Component_List);
 
    type Node_Type is
       record
@@ -109,30 +91,19 @@ package body XE is
    --     flag_1 : unused
    --     value  : unused
 
+   function Is_List
+     (Node : Node_Id)
+     return Boolean;
+
    function Is_Of_Kind
      (Node : Node_Id;
       Kind : Node_Kind)
-     return Boolean;
-
-   function Is_Component_List
-     (Node : Node_Id)
-     return Boolean;
-
-   function Is_Declaration_List
-     (Node : Node_Id)
-     return Boolean;
-
-   function Is_Parameter_List
-     (Node : Node_Id)
      return Boolean;
 
    procedure Create_Node
      (Node : out Node_Id;
       Name : in  Name_Id;
       Kind : in  Node_Kind);
-
-   function Convert (Item : List_Kind) return Int;
-   function Convert (Item : Int) return List_Kind;
 
    package Nodes is new Table
      (Table_Component_Type => Node_Type,
@@ -145,72 +116,6 @@ package body XE is
    Context_Root_Node   : Node_Id := Null_Node;
    Function_Type_Node  : Node_Id := Null_Node;
    Procedure_Type_Node : Node_Id := Null_Node;
-
-   ---------------------------
-   -- Add_Channel_Partition --
-   ---------------------------
-
-   procedure Add_Channel_Partition
-     (Partition : in Partition_Name_Type; To : in CID_Type) is
-      PID : PID_Type := Get_PID (Partition);
-   begin
-      if Verbose_Mode then
-         Write_Program_Name;
-         Write_Str  (": add partition ");
-         Write_Name (Partition);
-         Write_Str  (" to channel ");
-         Write_Name (Channels.Table (To).Name);
-         Write_Eol;
-      end if;
-      if Channels.Table (To).Lower = Null_PID then
-         Channels.Table (To).Lower := PID;
-      elsif PID > Channels.Table (To).Lower then
-         Channels.Table (To).Upper := PID;
-      else
-         Channels.Table (To).Upper := Channels.Table (To).Lower;
-         Channels.Table (To).Lower := PID;
-      end if;
-   end Add_Channel_Partition;
-
-   -------------------
-   -- Add_Conf_Unit --
-   -------------------
-
-   procedure Add_Conf_Unit
-     (CU : in CUnit_Name_Type;
-      To : in PID_Type) is
-   begin
-
-      if Verbose_Mode then
-         Write_Program_Name;
-         Write_Str  (": configuring unit ");
-         Write_Name (CU);
-         Write_Str  (" on partition ");
-         Write_Name (Partitions.Table (To).Name);
-         Write_Eol;
-      end if;
-
-      --  Mark this configured unit as already partitioned.
-      Set_PID (CU, To);
-
-      --  The same unit can be multiply declared especially if
-      --  this unit is a normal package.
-      CUnit.Increment_Last;
-      CUnit.Table (CUnit.Last).Partition := To;
-      CUnit.Table (CUnit.Last).CUname    := CU;
-      CUnit.Table (CUnit.Last).My_ALI    := No_ALI_Id;
-      CUnit.Table (CUnit.Last).My_Unit   := No_Unit_Id;
-      CUnit.Table (CUnit.Last).Next      := Null_CUID;
-
-      --  Update partition single linked list of configured units.
-      if Partitions.Table (To).First_Unit = Null_CUID then
-         Partitions.Table (To).First_Unit := CUnit.Last;
-      else
-         CUnit.Table (Partitions.Table (To).Last_Unit).Next := CUnit.Last;
-      end if;
-      Partitions.Table (To).Last_Unit := CUnit.Last;
-
-   end Add_Conf_Unit;
 
    ------------------------------
    -- Add_Subprogram_Parameter --
@@ -225,7 +130,7 @@ package body XE is
    begin
       pragma Assert (Is_Subprogram (Node));
       List := Nodes.Table (Node).Node_3;
-      pragma Assert (Is_Parameter_List (List));
+      pragma Assert (Is_List (List));
       if Nodes.Table (List).Node_2 = Null_Node then
          Nodes.Table (List).Node_1 := Value;
          Nodes.Table (List).Node_2 := Value;
@@ -248,7 +153,7 @@ package body XE is
    begin
       pragma Assert (Is_Type (Node));
       List := Nodes.Table (Node).Node_3;
-      pragma Assert (Is_Component_List (List));
+      pragma Assert (Is_List (List));
       if Nodes.Table (List).Node_2 = Null_Node then
          Nodes.Table (List).Node_1 := Value;
          Nodes.Table (List).Node_2 := Value;
@@ -271,7 +176,7 @@ package body XE is
    begin
       pragma Assert (Is_Variable (Node));
       List := Nodes.Table (Node).Node_3;
-      pragma Assert (Is_Component_List (List));
+      pragma Assert (Is_List (List));
       if Nodes.Table (List).Node_2 = Null_Node then
          Nodes.Table (List).Node_1 := Value;
          Nodes.Table (List).Node_2 := Value;
@@ -280,27 +185,6 @@ package body XE is
          Nodes.Table (List).Node_2 := Value;
       end if;
    end Add_Variable_Component;
-
-   --------------------
-   -- Already_Loaded --
-   --------------------
-
-   function Already_Loaded (Unit : Name_Id) return Boolean is
-   begin
-      Get_Name_String (Unit);
-      Name_Len := Name_Len + 1;
-      Name_Buffer (Name_Len) := '%';
-      Name_Len := Name_Len + 1;
-      Name_Buffer (Name_Len) := 'b';
-      if Get_Name_Table_Info (Name_Find) /= 0 then
-         return True;
-      end if;
-      Name_Buffer (Name_Len) := 's';
-      if Get_Name_Table_Info (Name_Find) /= 0 then
-         return True;
-      end if;
-      return False;
-   end Already_Loaded;
 
    -----------------------------------
    -- Add_Configuration_Declaration --
@@ -334,18 +218,18 @@ package body XE is
       end if;
    end Add_Configuration_Declaration;
 
-   -----------------------------
-   -- Component_Is_An_Attribute --
-   -----------------------------
+   ------------------------
+   -- Set_Attribute_Kind --
+   ------------------------
 
-   procedure Component_Is_An_Attribute
+   procedure Set_Attribute_Kind
      (Component_Node : in Component_Id;
-      Attribute_Node : in Boolean) is
+      Attribute_Kind : in Attribute_Type) is
       Node : Node_Id := Node_Id (Component_Node);
    begin
       pragma Assert (Is_Component (Node));
-      Nodes.Table (Node).Flag_1 := Attribute_Node;
-   end Component_Is_An_Attribute;
+      Nodes.Table (Node).Value := Convert (Attribute_Kind);
+   end Set_Attribute_Kind;
 
    -------------
    -- Convert --
@@ -473,125 +357,6 @@ package body XE is
       return Termination_Type (Item);
    end Convert;
 
-   -------------
-   -- Convert --
-   -------------
-   function Convert (Item : List_Kind) return Int is
-   begin
-      return Int (List_Kind'Pos (Item));
-   end Convert;
-
-   -------------
-   -- Convert --
-   -------------
-
-   function Convert (Item : Int) return List_Kind is
-   begin
-      return List_Kind'Val (Item);
-   end Convert;
-
-   ------------------
-   -- Copy_Channel --
-   ------------------
-
-   procedure Copy_Channel
-     (Name : in Channel_Name_Type;
-      Many : in Int) is
-      CID  : CID_Type;
-      CCID : CID_Type;
-   begin
-      if Verbose_Mode then
-         Write_Program_Name;
-         Write_Str  (": create Channel ");
-         Write_Name (Name);
-         Write_Str  (" (");
-         Write_Int  (Many);
-         if Many > 1 then
-            Write_Str (" copies)");
-         else
-            Write_Str (" copy)");
-         end if;
-         Write_Eol;
-      end if;
-
-      CCID := Get_CID (Name);
-      for I in 1 .. Many loop
-         Channels.Increment_Last;
-         CID := Channels.Last;
-         Set_CID (Name, CID);
-         Channels.Table (CID).Name  := Channels.Table (CID).Name;
-
-         --  This is stupid, but let's do it.
-         Channels.Table (CID).Lower := Channels.Table (CID).Lower;
-         Channels.Table (CID).Upper := Channels.Table (CID).Upper;
-      end loop;
-   end Copy_Channel;
-
-   --------------------
-   -- Copy_Partition --
-   --------------------
-
-   procedure Copy_Partition
-     (Name : in Partition_Name_Type;
-      Many : in Int) is
-      PID  : PID_Type;
-      CPID : PID_Type;
-      CUID : CUID_Type;
-   begin
-      if Verbose_Mode then
-         Write_Program_Name;
-         Write_Str  (": create partition ");
-         Write_Name (Name);
-         Write_Str  (" (");
-         Write_Int  (Many);
-         if Many > 1 then
-            Write_Str (" copies)");
-         else
-            Write_Str (" copy)");
-         end if;
-         Write_Eol;
-      end if;
-
-      CPID := Get_PID (Name);
-      for I in 1 .. Many loop
-         Partitions.Increment_Last;
-         PID := Partitions.Last;
-         Set_PID (Name, PID);
-         Partitions.Table (PID).Name := Name;
-         CUID := Partitions.Table (CPID).First_Unit;
-         while CUID /= Null_CUID loop
-            Add_Conf_Unit (CUnit.Table (CUID).CUname, PID);
-            CUID := CUnit.Table (CUID).Next;
-         end loop;
-      end loop;
-   end Copy_Partition;
-
-   --------------------
-   -- Create_Channel --
-   --------------------
-
-   procedure Create_Channel
-     (Name : in Channel_Name_Type;
-      CID  : out CID_Type) is
-      Channel : CID_Type;
-   begin
-      if Verbose_Mode then
-         Write_Program_Name;
-         Write_Str  (": create channel ");
-         Write_Name (Name);
-         Write_Eol;
-      end if;
-
-      Channels.Increment_Last;
-      Channel := Channels.Last;
-      Set_CID (Name, Channel);
-      Channels.Table (Channel).Name            := Name;
-      Channels.Table (Channel).Lower           := Null_PID;
-      Channels.Table (Channel).Upper           := Null_PID;
-      Channels.Table (Channel).Filter          := No_Filter_Name;
-      CID := Channel;
-   end Create_Channel;
-
    ----------------------
    -- Create_Component --
    ----------------------
@@ -599,10 +364,8 @@ package body XE is
    procedure Create_Component
      (Component_Node : out Component_Id;
       Component_Name : in  Name_Id) is
-      Node : Node_Id;
    begin
-      Create_Node (Node, Component_Name, K_Component);
-      Component_Node := Component_Id (Node);
+      Create_Node (Node_Id (Component_Node), Component_Name, K_Component);
    end Create_Component;
 
    --------------------------
@@ -612,11 +375,9 @@ package body XE is
    procedure Create_Configuration
      (Configuration_Node : out Configuration_Id;
       Configuration_Name : in  Name_Id) is
-      Node : Node_Id;
    begin
-      Create_Node (Node, Configuration_Name, K_List);
-      Nodes.Table (Node).Value := Convert (K_Declaration_List);
-      Configuration_Node := Configuration_Id (Node);
+      Create_Node
+        (Node_Id (Configuration_Node), Configuration_Name, K_Configuration);
    end Create_Configuration;
 
    -----------------
@@ -634,7 +395,7 @@ package body XE is
       Nodes.Table (Nodes.Last).Node_1   := Null_Node;
       Nodes.Table (Nodes.Last).Node_2   := Null_Node;
       Nodes.Table (Nodes.Last).Node_3   := Null_Node;
-      Nodes.Table (Nodes.Last).Flag_1   := True;
+      Nodes.Table (Nodes.Last).Flag_1   := False;
       Nodes.Table (Nodes.Last).Value    := 0;
       Node := Nodes.Last;
    end Create_Node;
@@ -649,38 +410,6 @@ package body XE is
    begin
       Create_Node (Node_Id (Parameter_Node), Parameter_Name, K_Variable);
    end Create_Parameter;
-
-   ----------------------
-   -- Create_Partition --
-   ----------------------
-
-   procedure Create_Partition
-     (Name : in Partition_Name_Type;
-      PID  : out PID_Type) is
-      Partition : PID_Type;
-   begin
-      if Verbose_Mode then
-         Write_Program_Name;
-         Write_Str  (": create partition ");
-         Write_Name (Name);
-         Write_Eol;
-      end if;
-
-      Partitions.Increment_Last;
-      Partition := Partitions.Last;
-      Set_PID (Name, Partition);
-      Partitions.Table (Partition).Name            := Name;
-      Partitions.Table (Partition).Host            := Null_Host;
-      Partitions.Table (Partition).Storage_Dir     := No_Storage_Dir;
-      Partitions.Table (Partition).Command_Line    := No_Command_Line;
-      Partitions.Table (Partition).Main_Subprogram := No_Name;
-      Partitions.Table (Partition).Termination     := Unknown_Termination;
-      Partitions.Table (Partition).First_Unit      := Null_CUID;
-      Partitions.Table (Partition).Last_Unit       := Null_CUID;
-      Partitions.Table (Partition).To_Build        := True;
-      Partitions.Table (Partition).Most_Recent     := Configuration_File;
-      PID := Partition;
-   end Create_Partition;
 
    ----------------------
    -- Create_Statement --
@@ -707,7 +436,6 @@ package body XE is
    begin
       Create_Node (Node, Subprogram_Name, K_Subprogram);
       Create_Node (List, Str_To_Id ("parameter__list"), K_List);
-      Nodes.Table (List).Value := Convert (K_Parameter_List);
       Nodes.Table (Node).Node_3 := List;
       Subprogram_Node := Subprogram_Id (Node);
    end Create_Subprogram;
@@ -759,7 +487,7 @@ package body XE is
    begin
       pragma Assert (Is_Subprogram (Node) or else Is_Statement (Node));
       List := Nodes.Table (Node).Node_3;
-      pragma Assert (Is_Parameter_List (List));
+      pragma Assert (Is_List (List));
       Parameter_Node := Parameter_Id (Nodes.Table (List).Node_1);
    end First_Subprogram_Parameter;
 
@@ -775,7 +503,7 @@ package body XE is
    begin
       pragma Assert (Is_Type (Node));
       List := Nodes.Table (Node).Node_3;
-      pragma Assert (Is_Component_List (List));
+      pragma Assert (Is_List (List));
       Component_Node := Component_Id (Nodes.Table (List).Node_1);
    end First_Type_Component;
 
@@ -791,64 +519,9 @@ package body XE is
    begin
       pragma Assert (Is_Variable (Node));
       List := Nodes.Table (Node).Node_3;
-      pragma Assert (Is_Component_List (List));
+      pragma Assert (Is_List (List));
       Component_Node := Component_Id (Nodes.Table (List).Node_1);
    end First_Variable_Component;
-
-   -----------------------
-   -- Get_Absolute_Exec --
-   -----------------------
-
-   function Get_Absolute_Exec (P : in PID_Type) return Name_Id is
-      Dir  : Name_Id := Partitions.Table (P).Storage_Dir;
-      Name : Name_Id renames Partitions.Table (P).Name;
-   begin
-
-      if Dir = No_Storage_Dir then
-         Dir := Default_Storage_Dir;
-      end if;
-
-      if Dir = No_Storage_Dir then
-
-         --  No storage dir means current directory
-
-         return PWD_Id & Name;
-
-      else
-         Get_Name_String (Dir);
-         if Name_Buffer (1) /= Separator and then
-           Name_Buffer (1) /= '/' then
-
-            --  The storage dir is relative
-
-            return PWD_Id & Dir & Dir_Sep_Id & Name;
-
-         end if;
-
-         --  Write the dir as it has been written
-
-         return Dir & Dir_Sep_Id & Name;
-
-      end if;
-
-   end Get_Absolute_Exec;
-
-   ----------------
-   -- Get_ALI_Id --
-   ----------------
-
-   function Get_ALI_Id (N : Name_Id) return ALI_Id is
-      Info : Int;
-   begin
-      Info := Get_Name_Table_Info (N);
-      case Info is
-         when Int (ALI_Id'First) .. Int (ALI_Id'Last) =>
-            null;
-         when others =>
-            Info := Int (No_ALI_Id);
-      end case;
-      return ALI_Id (Info);
-   end Get_ALI_Id;
 
    ----------------------------
    -- Get_Array_Element_Type --
@@ -863,49 +536,18 @@ package body XE is
       return Type_Id (Nodes.Table (Node).Node_2);
    end Get_Array_Element_Type;
 
-   -------------
-   -- Get_CID --
-   -------------
+   ------------------------------
+   -- Is_Component_Initialized --
+   ------------------------------
 
-   function Get_CID (N : Name_Id) return CID_Type is
-      Info : Int;
-   begin
-      Info := Get_Name_Table_Info (N);
-      if Info in Int (CID_Type'First) .. Int (CID_Type'Last) then
-         return CID_Type (Info);
-      else
-         return Null_CID;
-      end if;
-   end Get_CID;
-
-   ----------------------
-   -- Get_Command_Line --
-   ----------------------
-
-   function Get_Command_Line    (P : in PID_Type) return Command_Line_Type is
-      Cmd : Command_Line_Type := Partitions.Table (P).Command_Line;
-   begin
-
-      if Cmd = No_Command_Line then
-         Cmd := Default_Command_Line;
-      end if;
-
-      return Cmd;
-
-   end Get_Command_Line;
-
-   ------------------------
-   -- Get_Component_Mark --
-   ------------------------
-
-   function Get_Component_Mark
+   function Is_Component_Initialized
      (Component_Node : Component_Id)
-      return Int is
+      return Boolean is
       Node : Node_Id := Node_Id (Component_Node);
    begin
       pragma Assert (Is_Component (Node));
-      return Nodes.Table (Node).Value;
-   end Get_Component_Mark;
+      return Nodes.Table (Node).Flag_1;
+   end Is_Component_Initialized;
 
    ------------------------
    -- Get_Component_Type --
@@ -929,97 +571,9 @@ package body XE is
       return Node_Id is
       Node  : Node_Id := Node_Id (Component_Node);
    begin
-      pragma Assert (Has_Component_A_Value (Component_Node));
+      pragma Assert (Is_Component_Initialized (Component_Node));
       return Nodes.Table (Node).Node_3;
    end Get_Component_Value;
-
-   --------------
-   -- Get_CUID --
-   --------------
-
-   function Get_CUID (N : Name_Id) return CUID_Type is
-      Info : Int;
-   begin
-      Info := Get_Name_Table_Info (N);
-      if Info in Int (CUID_Type'First) .. Int (CUID_Type'Last) then
-         return CUID_Type (Info);
-      else
-         return Null_CUID;
-      end if;
-   end Get_CUID;
-
-   ----------------
-   -- Get_Filter --
-   ----------------
-
-   function Get_Filter          (C : CID_Type) return Name_Id is
-      F : Name_Id := Channels.Table (C).Filter;
-   begin
-
-      if F = No_Filter_Name then
-         F := Default_Filter;
-      end if;
-      return F;
-
-   end Get_Filter;
-
-   --------------
-   -- Get_Host --
-   --------------
-
-   function Get_Host            (P : in PID_Type) return Name_Id is
-      H : Host_Id := Partitions.Table (P).Host;
-   begin
-
-      if H = Null_Host then
-         H := Default_Host;
-      end if;
-
-      if H /= Null_Host then
-         if not Hosts.Table (H).Static then
-            if Hosts.Table (H).Import = Shell_Import then
-               return  Str_To_Id ("""`") &
-                       Hosts.Table (H).External &
-                       Str_To_Id (" ") &
-                       Partitions.Table (P).Name &
-                       Str_To_Id ("`""");
-            elsif Hosts.Table (H).Import = Ada_Import then
-               return  Hosts.Table (H).External &
-                       Str_To_Id ("(") &
-                       Partitions.Table (P).Name &
-                       Str_To_Id (")");
-            end if;
-            raise Parsing_Error;
-         else
-            return Str_To_Id ("""") &
-                   Hosts.Table (H).Name &
-                   Str_To_Id ("""");
-         end if;
-
-      else
-         return No_Name;
-
-      end if;
-
-   end Get_Host;
-
-   -------------------------
-   -- Get_Main_Subprogram --
-   -------------------------
-
-   function Get_Main_Subprogram
-     (P : in PID_Type)
-      return Main_Subprogram_Type is
-      Main : Main_Subprogram_Type := Partitions.Table (P).Main_Subprogram;
-   begin
-
-      if Main = No_Main_Subprogram then
-         Main := Default_Main;
-      end if;
-
-      return Main;
-
-   end Get_Main_Subprogram;
 
    -------------------
    -- Get_Node_Name --
@@ -1082,77 +636,6 @@ package body XE is
       return Get_Variable_Type (Variable_Id (Parameter_Node));
    end Get_Parameter_Type;
 
-   -----------------------
-   -- Get_Partition_Dir --
-   -----------------------
-
-   function Get_Partition_Dir (P : in PID_Type) return File_Name_Type is
-   begin
-      return DSA_Dir &
-        Dir_Sep_Id & Configuration &
-        Dir_Sep_Id & Partitions.Table (P).Name;
-   end Get_Partition_Dir;
-
-   -------------
-   -- Get_PID --
-   -------------
-
-   function Get_PID (N : Name_Id) return PID_Type is
-      Info : Int;
-   begin
-      Info := Get_Name_Table_Info (N);
-      if Info in Int (PID_Type'First) .. Int (PID_Type'Last) then
-         return PID_Type (Info);
-      else
-         return Null_PID;
-      end if;
-   end Get_PID;
-
-   -----------------------
-   -- Get_Relative_Exec --
-   -----------------------
-
-   function Get_Relative_Exec (P : in PID_Type) return Name_Id is
-      Dir  : Name_Id := Partitions.Table (P).Storage_Dir;
-      Name : Name_Id renames Partitions.Table (P).Name;
-   begin
-
-      if Dir = No_Storage_Dir then
-         Dir := Default_Storage_Dir;
-      end if;
-
-      if Dir = No_Storage_Dir then
-
-         --  No storage dir means current directory
-
-         return Name;
-
-      else
-
-         --  The storage dir is relative
-
-         return Dir & Dir_Sep_Id & Name;
-
-      end if;
-
-   end Get_Relative_Exec;
-
-   ---------------------
-   -- Get_Storage_Dir --
-   ---------------------
-
-   function Get_Storage_Dir (P : in PID_Type) return Storage_Dir_Name_Type is
-      Storage_Dir : Storage_Dir_Name_Type := Partitions.Table (P).Storage_Dir;
-   begin
-
-      if Storage_Dir = No_Storage_Dir then
-         Storage_Dir := Default_Storage_Dir;
-      end if;
-
-      return Storage_Dir;
-
-   end Get_Storage_Dir;
-
    ------------------------
    -- Get_Subprogram_Call --
    ------------------------
@@ -1178,17 +661,6 @@ package body XE is
       pragma Assert (Is_Subprogram (Node));
       return Nodes.Table (Node).Value;
    end Get_Subprogram_Mark;
-
-   ---------------------
-   -- Get_Termination --
-   ---------------------
-
-   function Get_Termination
-     (P : in PID_Type)
-      return Termination_Type is
-   begin
-      return Partitions.Table (P).Termination;
-   end Get_Termination;
 
    ---------------
    -- Get_Token --
@@ -1217,34 +689,6 @@ package body XE is
       pragma Assert (Is_Type (Node));
       return Nodes.Table (Node).Value;
    end Get_Type_Mark;
-
-   -----------------
-   -- Get_Unit_Id --
-   -----------------
-
-   function Get_Unit_Id (N : Name_Id) return Unit_Id is
-      Info : Int;
-   begin
-      Info := Get_Name_Table_Info (N);
-      case Info is
-         when Int (Unit_Id'First) .. Int (Unit_Id'Last) =>
-            null;
-         when others =>
-            Info := Int (No_Unit_Id);
-      end case;
-      return Unit_Id (Info);
-   end Get_Unit_Id;
-
-   --------------------
-   -- Get_Unit_Sfile --
-   --------------------
-
-   function Get_Unit_Sfile (U : in Unit_Id) return File_Name_Type is
-   begin
-      Get_Name_String (Unit.Table (U).Sfile);
-      Name_Len := Name_Len - 4;
-      return Name_Find;
-   end Get_Unit_Sfile;
 
    -----------------------
    -- Get_Variable_Mark --
@@ -1284,19 +728,6 @@ package body XE is
       return Variable_Id (Nodes.Table (Node).Node_3);
    end Get_Variable_Value;
 
-   ---------------------------
-   -- Has_Component_A_Value --
-   ---------------------------
-
-   function Has_Component_A_Value
-     (Component_Node : Component_Id)
-     return Boolean is
-      Node  : Node_Id := Node_Id (Component_Node);
-   begin
-      pragma Assert (Is_Component (Node));
-      return Nodes.Table (Node).Node_3 /= Null_Node;
-   end Has_Component_A_Value;
-
    ---------------------
    -- Is_Array_A_List --
    ---------------------
@@ -1310,7 +741,7 @@ package body XE is
       pragma Assert (Is_Type (Node));
       pragma Assert (Get_Array_Element_Type (Array_Type_Node) /= Null_Type);
       List := Nodes.Table (Node).Node_3;
-      pragma Assert (Is_Component_List (List));
+      pragma Assert (Is_List (List));
       return Nodes.Table (List).Flag_1;
    end Is_Array_A_List;
 
@@ -1323,30 +754,18 @@ package body XE is
       return Is_Of_Kind (Node, K_Component);
    end Is_Component;
 
-   -----------------------------
-   -- Is_Component_An_Attribute --
-   -----------------------------
+   ------------------------
+   -- Get_Attribute_Kind --
+   ------------------------
 
-   function Is_Component_An_Attribute
+   function Get_Attribute_Kind
      (Component_Node : in Component_Id)
-      return Boolean is
+      return Attribute_Type is
       Node : Node_Id := Node_Id (Component_Node);
    begin
       pragma Assert (Is_Component (Node));
-      return Nodes.Table (Node).Flag_1;
-   end Is_Component_An_Attribute;
-
-   -----------------------
-   -- Is_Component_List --
-   -----------------------
-
-   function Is_Component_List
-     (Node : in Node_Id)
-      return Boolean is
-   begin
-      return Nodes.Table (Node).Kind = K_List and then
-             Convert (Nodes.Table (Node).Value) = K_Component_List;
-   end Is_Component_List;
+      return Convert (Nodes.Table (Node).Value);
+   end Get_Attribute_Kind;
 
    ----------------------
    -- Is_Configuration --
@@ -1354,21 +773,17 @@ package body XE is
 
    function Is_Configuration (Node : Node_Id) return Boolean is
    begin
-      return Is_Of_Kind (Node, K_List) and then
-             Convert (Nodes.Table (Node).Value) = K_Declaration_List;
+      return Is_Of_Kind (Node, K_Configuration);
    end Is_Configuration;
 
-   -------------------------
-   -- Is_Declaration_List --
-   -------------------------
+   -------------
+   -- Is_List --
+   -------------
 
-   function Is_Declaration_List
-     (Node : in Node_Id)
-      return Boolean is
+   function Is_List (Node : Node_Id) return Boolean is
    begin
-      return Nodes.Table (Node).Kind = K_List and then
-             Convert (Nodes.Table (Node).Value) = K_Declaration_List;
-   end Is_Declaration_List;
+      return Is_Of_Kind (Node, K_List);
+   end Is_List;
 
    ----------------
    -- Is_Of_Kind --
@@ -1382,27 +797,6 @@ package body XE is
       pragma Assert (Node /= Null_Node);
       return Nodes.Table (Node).Kind = Kind;
    end Is_Of_Kind;
-
-   -----------------------
-   -- Is_Parameter_List --
-   -----------------------
-
-   function Is_Parameter_List
-     (Node : in Node_Id)
-      return Boolean is
-   begin
-      return Nodes.Table (Node).Kind = K_List and then
-             Convert (Nodes.Table (Node).Value) = K_Parameter_List;
-   end Is_Parameter_List;
-
-   ------------
-   -- Is_Set --
-   ------------
-
-   function Is_Set (Partition : PID_Type) return Boolean is
-   begin
-      return Partitions.Table (Partition).Last_Unit /= Null_CUID;
-   end Is_Set;
 
    ------------------
    -- Is_Statement --
@@ -1467,44 +861,6 @@ package body XE is
       return Is_Of_Kind (Node, K_Variable);
    end Is_Variable;
 
-   --------------------
-   -- Load_All_Units --
-   --------------------
-
-   procedure Load_All_Units (From : Unit_Name_Type) is
-      File : File_Name_Type;
-      Lib  : File_Name_Type;
-      Text : Text_Buffer_Ptr;
-   begin
-      if Verbose_Mode then
-         Write_Program_Name;
-         Write_Str  (": loading all units from ");
-         Write_Name (From);
-         Write_Eol;
-      end if;
-      if Already_Loaded (From) then
-         return;
-      end if;
-      File := From & ADB_Suffix;
-      if Full_Source_Name (File) = No_Name then
-         File := From & ADS_Suffix;
-         if Full_Source_Name (File) = No_Name then
-            Write_Program_Name;
-            Write_Str (": no spec or body found for unit ");
-            Write_Name (From);
-            Write_Eol;
-            raise Fatal_Error;
-         end if;
-      end if;
-      Lib  := Lib_File_Name (File);
-      Text := Read_Library_Info (Lib);
-      if Text = null then
-         Write_Missing_File (Lib);
-         raise Fatal_Error;
-      end if;
-      Read_ALI (Scan_ALI (Lib, Text));
-   end Load_All_Units;
-
    ------------------------------------
    -- Next_Configuration_Declaration --
    ------------------------------------
@@ -1549,15 +905,6 @@ package body XE is
       Component_Node := Component_Id (Nodes.Table (Node).Node_1);
    end Next_Variable_Component;
 
-   ----------------
-   -- Set_ALI_Id --
-   ----------------
-
-   procedure Set_ALI_Id (N : Name_Id; A : ALI_Id) is
-   begin
-      Set_Name_Table_Info (N, Int (A));
-   end Set_ALI_Id;
-
    --------------------
    -- Set_Array_Type --
    --------------------
@@ -1572,32 +919,22 @@ package body XE is
       pragma Assert (Is_Type (Node));
       Nodes.Table (Node).Node_2 := Node_Id (Element_Type_Node);
       Create_Node (List, Str_To_Id ("pragma__n__array"), K_List);
-      Nodes.Table (List).Value := Convert (K_Component_List);
       Nodes.Table (List).Flag_1 := Array_Is_A_List;
       Nodes.Table (Node).Node_3 := List;
    end Set_Array_Type;
 
-   -------------
-   -- Set_CID --
-   -------------
+   ------------------------------
+   -- Component_Is_Initialized --
+   ------------------------------
 
-   procedure Set_CID (N : Name_Id; C : CID_Type) is
-   begin
-      Set_Name_Table_Info (N, Int (C));
-   end Set_CID;
-
-   ------------------------
-   -- Set_Component_Mark --
-   ------------------------
-
-   procedure Set_Component_Mark
+   procedure Component_Is_Initialized
      (Component_Node : Component_Id;
-      Component_Mark : Int) is
+      Is_Initialized : Boolean) is
       Node : Node_Id := Node_Id (Component_Node);
    begin
       pragma Assert (Is_Component (Node));
-      Nodes.Table (Node).Value := Component_Mark;
-   end Set_Component_Mark;
+      Nodes.Table (Node).Flag_1 := Is_Initialized;
+   end Component_Is_Initialized;
 
    ------------------------
    -- Set_Component_Type --
@@ -1624,17 +961,9 @@ package body XE is
       Node  : Node_Id := Node_Id (Component_Node);
    begin
       pragma Assert (Is_Component (Node));
+      Nodes.Table (Node).Flag_1 := True;
       Nodes.Table (Node).Node_3 := Value_Node;
    end Set_Component_Value;
-
-   -------------
-   -- Set_CUID --
-   -------------
-
-   procedure Set_CUID (N : Name_Id; U : CUID_Type) is
-   begin
-      Set_Name_Table_Info (N, Int (U));
-   end Set_CUID;
 
    ------------------------
    -- Set_Parameter_Mark --
@@ -1659,15 +988,6 @@ package body XE is
    begin
       Set_Variable_Type (Variable_Id (Parameter_Node), Parameter_Type);
    end Set_Parameter_Type;
-
-   -------------
-   -- Set_PID --
-   -------------
-
-   procedure Set_PID (N : Name_Id; P : PID_Type) is
-   begin
-      Set_Name_Table_Info (N, Int (P));
-   end Set_PID;
 
    ------------------------
    -- Set_Subprogram_Call --
@@ -1724,15 +1044,6 @@ package body XE is
       Nodes.Table (Node).Value := Type_Mark;
    end Set_Type_Mark;
 
-   -----------------
-   -- Set_Unit_Id --
-   -----------------
-
-   procedure Set_Unit_Id (N : Name_Id; U : Unit_Id) is
-   begin
-      Set_Name_Table_Info (N, Int (U));
-   end Set_Unit_Id;
-
    -----------------------
    -- Set_Variable_Mark --
    -----------------------
@@ -1761,7 +1072,6 @@ package body XE is
       Nodes.Table (Node).Node_2 := Node_Id (Variable_Type);
       if Get_Array_Element_Type (Variable_Type) /= Null_Type then
          Create_Node (List, Str_To_Id ("record"), K_List);
-         Nodes.Table (List).Value := Convert (K_Component_List);
          Nodes.Table (Node).Node_3 := List;
       end if;
    end Set_Variable_Type;
@@ -1778,177 +1088,6 @@ package body XE is
       pragma Assert (Is_Variable (Node));
       Nodes.Table (Node).Node_3 := Node_Id (Value_Node);
    end Set_Variable_Value;
-
-   -------------------------
-   --  Show_Configuration --
-   -------------------------
-
-   procedure Show_Configuration is
-
-      Main         : Main_Subprogram_Type;
-      Host         : Host_Id;
-      Storage_Dir  : Storage_Dir_Name_Type;
-      Command_Line : Command_Line_Type;
-
-   begin
-      Write_Str (" ------------------------------");
-      Write_Eol;
-      Write_Str (" ---- Configuration report ----");
-      Write_Eol;
-      Write_Str (" ------------------------------");
-      Write_Eol;
-      Write_Str ("Configuration :");
-      Write_Eol;
-      Write_Str ("   Name        : ");
-      Write_Name (Configuration);
-      Write_Eol;
-
-      Write_Str ("   Main        : ");
-      Write_Name (Main_Subprogram);
-      Write_Eol;
-
-      Write_Str ("   Starter     : ");
-      case Starter_Method is
-         when Ada_Starter =>
-            Write_Str ("Ada code");
-         when Shell_Starter =>
-            Write_Str ("shell script");
-         when None_Starter =>
-            Write_Str ("none");
-      end case;
-      Write_Eol;
-
-      if Protocol_Name /= No_Name then
-         Write_Str  ("   Protocol    : ");
-         Write_Name (Protocol_Name);
-         Write_Str  ("://");
-         Write_Name (Protocol_Data);
-         Write_Eol;
-      end if;
-      Write_Eol;
-
-      for P in Partitions.First .. Partitions.Last loop
-         declare
-            I : Partition_Type renames Partitions.Table (P);
-            U : CUID_Type;
-         begin
-            Write_Str ("Partition ");
-            Write_Name (I.Name);
-            Write_Eol;
-
-            Main := Get_Main_Subprogram (P);
-            if Main /= No_Main_Subprogram then
-               Write_Str ("   Main        : ");
-               Write_Name (Main);
-               Write_Eol;
-            end if;
-
-            Host := I.Host;
-            if Host = Null_Host then
-               Host := Default_Host;
-            end if;
-
-            if Host /= Null_Host then
-               Write_Str ("   Host        : ");
-               if Hosts.Table (Host).Static then
-                  Write_Name (Hosts.Table (Host).Name);
-               else
-                  Write_Str ("function call :: ");
-                  Write_Name (Hosts.Table (Host).External);
-                  case Hosts.Table (Host).Import is
-                     when None_Import =>
-                        null;
-                     when Ada_Import =>
-                        Write_Str (" (ada)");
-                     when Shell_Import =>
-                        Write_Str (" (shell)");
-                  end case;
-               end if;
-               Write_Eol;
-            end if;
-
-            Storage_Dir := Get_Storage_Dir (P);
-            if Storage_Dir /= No_Storage_Dir then
-               Write_Str ("   Storage     : ");
-               Write_Name (Storage_Dir);
-               Write_Eol;
-            end if;
-
-            Command_Line := Get_Command_Line (P);
-            if Command_Line /= No_Command_Line then
-               Write_Str ("   Command     : ");
-               Write_Name (Command_Line);
-               Write_Eol;
-            end if;
-
-            if Get_Termination (P) /= Unknown_Termination then
-               Write_Str ("   Termination : ");
-               case Get_Termination (P) is
-                  when Local_Termination =>
-                     Write_Str ("local");
-                  when Global_Termination =>
-                     Write_Str ("global");
-                  when Deferred_Termination =>
-                     Write_Str ("deferred");
-                  when Unknown_Termination =>
-                     null;
-               end case;
-               Write_Eol;
-            end if;
-
-            if I.First_Unit /= Null_CUID then
-               Write_Str ("   Units       : ");
-               Write_Eol;
-               U := I.First_Unit;
-               while U /= Null_CUID loop
-                  Write_Str ("             - ");
-                  Write_Name (CUnit.Table (U).CUname);
-                  if Unit.Table (CUnit.Table (U).My_Unit).RCI then
-                     Write_Str (" (rci) ");
-                  else
-                     Write_Str (" (normal)");
-                  end if;
-                  Write_Eol;
-                  U := CUnit.Table (U).Next;
-               end loop;
-               Write_Eol;
-            end if;
-         end;
-      end loop;
-      Write_Str (" -------------------------------");
-      Write_Eol;
-      if Channels.First <= Channels.Last then
-         Write_Eol;
-         declare
-            P : PID_Type;
-            F : Name_Id;
-         begin
-            for C in Channels.First .. Channels.Last loop
-               Write_Str  ("Channel ");
-               Write_Name (Channels.Table (C).Name);
-               Write_Eol;
-               Write_Str     ("   Partition 1 : ");
-               P := Channels.Table (C).Lower;
-               Write_Name (Partitions.Table (P).Name);
-               Write_Eol;
-               Write_Str     ("   Partition 2 : ");
-               P := Channels.Table (C).Upper;
-               Write_Name (Partitions.Table (P).Name);
-               Write_Eol;
-               F := Get_Filter (C);
-               if F /= No_Filter_Name then
-                  Write_Str  ("   Filter      : ");
-                  Write_Name (F);
-                  Write_Eol;
-               end if;
-               Write_Eol;
-            end loop;
-         end;
-         Write_Str (" -------------------------------");
-         Write_Eol;
-      end if;
-
-   end Show_Configuration;
 
    ---------------
    -- Str_To_Id --
@@ -1986,29 +1125,6 @@ package body XE is
       pragma Assert (Is_Type (Node));
       Nodes.Table (Node).Flag_1 := Extensible;
    end Type_Is_Frozen;
-
-   ------------------
-   -- More_Recent_Stamp --
-   ------------------
-
-   procedure More_Recent_Stamp (P : in PID_Type; F : in File_Name_Type) is
-   begin
-      if More_Recent (F, Partitions.Table (P).Most_Recent) then
-         if Debug_Mode then
-            Write_Program_Name;
-            Write_Str   (": ");
-            Write_Name  (F);
-            Write_File_Stamp (F);
-            Write_Str   (", ");
-            Write_Name  (Partitions.Table (P).Name);
-            Write_Str   ("'s most recent file (previously ");
-            Write_File_Stamp (Partitions.Table (P).Most_Recent);
-            Write_Str   (")");
-            Write_Eol;
-         end if;
-         Partitions.Table (P).Most_Recent := F;
-      end if;
-   end More_Recent_Stamp;
 
    ----------------
    -- Write_SLOC --

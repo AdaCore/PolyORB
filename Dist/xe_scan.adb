@@ -28,10 +28,10 @@
 
 with Csets;
 with Namet;         use Namet;
-with Types;         use Types;
 with Osint;         use Osint;
 with Output;        use Output;
 with XE;            use XE;
+with XE_Utils;      use XE_Utils;
 
 package body XE_Scan is
 

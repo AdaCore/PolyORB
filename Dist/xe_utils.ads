@@ -26,10 +26,80 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Types;       use Types;
-with GNAT.OS_Lib; use GNAT.OS_Lib;
-with XE_Defs;     use XE_Defs;
+with ALI;
+with GNAT.OS_Lib;
+with Opt;
+with Types;
+
 package XE_Utils is
+
+   subtype Int                 is Types.Int;
+   subtype Name_Id             is Types.Name_Id;
+   subtype File_Name_Type      is Types.File_Name_Type;
+   subtype Unit_Name_Type      is Types.Unit_Name_Type;
+   subtype Source_Ptr          is Types.Source_Ptr;
+   subtype Source_Buffer_Ptr   is Types.Source_Buffer_Ptr;
+   subtype Text_Ptr            is Types.Text_Ptr;
+   subtype Text_Buffer_Ptr     is Types.Text_Buffer_Ptr;
+   subtype Time_Stamp_Type     is Types.Time_Stamp_Type;
+
+   subtype File_Descriptor     is GNAT.Os_Lib.File_Descriptor;
+   subtype String_Access       is GNAT.Os_Lib.String_Access;
+
+   subtype ALI_Id              is ALI.ALI_Id;
+   subtype Unit_Id             is ALI.Unit_Id;
+   subtype Main_Program_Type   is ALI.Main_Program_Type;
+   subtype Unit_Type           is ALI.Unit_Type;
+
+   No_Name    : constant Name_Id           := Types.No_Name;
+   No_File    : constant File_Name_Type    := Types.No_File;
+
+   Standout   : constant File_Descriptor   := GNAT.Os_Lib.Standout;
+
+   No_ALI_Id  : constant ALI_Id            := ALI.No_ALI_Id;
+   None       : constant Main_Program_Type := ALI.None;
+   No_Unit_Id : constant Unit_Id           := ALI.No_Unit_Id;
+
+   Is_Body      : constant Unit_Type       := ALI.Is_Body;
+   Is_Spec_Only : constant Unit_Type       := ALI.Is_Spec_Only;
+
+   Check_Internal_Files : Boolean          := Opt.Check_Internal_Files;
+   Force_Compilations   : Boolean          := Opt.Force_Compilations;
+
+   package Unit  renames ALI.Unit;
+   package ALIs  renames ALI.ALIs;
+   package Withs renames ALI.Withs;
+
+   function "=" (X, Y : Int) return Boolean renames Types."=";
+   function ">" (X, Y : Int) return Boolean renames Types.">";
+   function "+" (X, Y : Int) return Int renames Types."+";
+   function "-" (X, Y : Int) return Int renames Types."-";
+
+   function "=" (X, Y : Name_Id) return Boolean renames Types."=";
+
+   function "=" (X, Y : Text_Ptr) return Boolean renames Types."=";
+   function "=" (X, Y : Text_Buffer_Ptr) return Boolean renames Types."=";
+   function "=" (X, Y : Source_Buffer_Ptr) return Boolean renames Types."=";
+
+   function "+" (X, Y : Text_Ptr) return Text_Ptr renames Types."+";
+   function "-" (X, Y : Text_Ptr) return Text_Ptr renames Types."-";
+
+   function ">" (X, Y : Time_Stamp_Type) return Boolean renames Types."=";
+   function "=" (X, Y : Main_Program_Type) return Boolean renames Types."=";
+   function "=" (X, Y : Unit_Type) return Boolean renames Types."=";
+   function "=" (X, Y : ALI_Id) return Boolean renames Types."=";
+
+   procedure Close (FD : File_Descriptor) renames GNAT.Os_Lib.Close;
+
+   Directory_Separator : constant Character := GNAT.Os_Lib.Directory_Separator;
+
+   procedure Read_ALI (Id : ALI_Id) renames ALI.Read_ALI;
+   function Scan_ALI (F : File_Name_Type; T : Text_Buffer_Ptr)
+                      return ALI_Id renames ALI.Scan_ALI;
+   procedure Initialize_ALI renames ALI.Initialize_ALI;
+
+   First_Source_Ptr : constant Source_Ptr   := Types.First_Source_Ptr;
+   EOF              : constant Character    := Types.EOF;
 
    --  This package is intended to provide all the OS facilities
 
@@ -55,6 +125,7 @@ package XE_Utils is
 
    PWD_Id       : File_Name_Type;
 
+   Build_Stamp_File      : File_Name_Type;
    Elaboration_Name      : File_Name_Type;
    Elaboration_Full_Name : File_Name_Type;
 
@@ -64,23 +135,13 @@ package XE_Utils is
    --  Basically, this procedure copies source into target and
    --  preserves file stamps.
 
-   procedure Build_RCI_Caller
+   procedure Expand_And_Compile_RCI_Caller
      (Source, Target : in File_Name_Type);
    --  Generates the source's caller stubs into target (-gnatzc).
 
-   procedure Build_RCI_Receiver
+   procedure Expand_And_Compile_RCI_Receiver
      (Source, Target : in File_Name_Type);
    --  Generates the source's receiver stubs into target (-gnatzr).
-
-   procedure Build_Partition
-     (Partition  : in Name_Id;
-      Executable : in File_Name_Type);
-   --  Generates the partition ada main subprogram (generation
-   --  of Ada code, compilation, bind and link).
-
-   procedure Build_Compile_Command (Name : in File_Name_Type);
-   --  Generates on standard-out the command needed to compile
-   --  a sub-tree from a given package.
 
    procedure Compile_RCI_Caller
      (Source    : in File_Name_Type);
@@ -107,8 +168,18 @@ package XE_Utils is
    procedure Delete
      (File : in File_Name_Type);
 
+   procedure Produce_Partition_Executable
+     (Partition     : in Name_Id;
+      Executable    : in File_Name_Type);
+   --  Generates the partition ada main subprogram (compilation, bind and
+   --  link).
+
    procedure Unlink_File
      (File : in File_Name_Type);
+
+   procedure Write_Compile_Command (Name : in File_Name_Type);
+   --  Generates on standard-out the command needed to compile
+   --  a sub-tree from a given package.
 
    procedure Write_Eol
      (File   : in File_Descriptor;
@@ -144,6 +215,15 @@ package XE_Utils is
    function "&" (Prefix, Suffix : File_Name_Type) return File_Name_Type;
 
    procedure Initialize;
+
+   -- Exceptions --
+
+   Fatal_Error         : exception;   --  Operating system error
+   Scanning_Error      : exception;   --  Error during scanning
+   Parsing_Error       : exception;   --  Error during parsing
+   Partitioning_Error  : exception;   --  Error during partitionning
+   Usage_Error         : exception;   --  Command line error
+   Not_Yet_Implemented : exception;
 
 end XE_Utils;
 

@@ -40,7 +40,7 @@ begin
       Write_Eol;
    end if;
    Write_Str ("Usage: ");
-   Osint.Write_Program_Name;
+   Write_Program_Name;
    Write_Str (" [options] name[.cfg] {[partition]}");
    Write_Str (" {[-cargs opts] [-bargs opts] [-largs opts]}");
    Write_Eol;
@@ -67,6 +67,6 @@ begin
    Write_Str ("  -largs opts      Arguments to be passed to the linker");
    Write_Eol;
 
-   Osint.Exit_Program (Osint.E_Fatal);
+   Exit_Program (E_Fatal);
 
 end XE_Usage;

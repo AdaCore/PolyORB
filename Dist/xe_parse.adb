@@ -143,7 +143,7 @@ package body XE_Parse is
       Component_Name     : in Name_Id;
       Component_Type     : in Type_Id;
       Component_Value    : in Variable_Id;
-      Is_An_Attribute    : in Boolean;
+      Attribute_Kind     : in Attribute_Type;
       Component_Sloc     : in Location_Type;
       Component_Node     : out Component_Id);
    --  Add a component for a given variable. This component is possibly an
@@ -315,7 +315,7 @@ package body XE_Parse is
    --  its corresponding litteral. Otherwise, it is set to
    --  Pre_Type_Unknown.
 
-   procedure Search_Unused_Component
+   procedure Search_Uninitialized_Component
      (Variable_Node  : in  Variable_Id;
       Component_Type : in  Type_Id;
       Component_Node : out Component_Id);
@@ -720,7 +720,7 @@ package body XE_Parse is
          Attribute_Sloc,
          Component_Id (A));
 
-      Set_Component_Mark        (Component_Id (A), Int (Attribute_Kind));
+      Set_Attribute_Kind        (Component_Id (A), Attribute_Kind);
       Attribute_Node := A;
 
    end Declare_Type_Attribute;
@@ -740,7 +740,7 @@ package body XE_Parse is
 
       Create_Component          (C, Component_Name);
       Set_Component_Type        (C, Comp_Type_Node);
-      Component_Is_An_Attribute (C, False);
+      Set_Attribute_Kind        (C, Attribute_Unknown);
       Add_Type_Component        (Type_Node, C);
       Set_Node_Location         (Node_Id (C), Component_Sloc);
       Component_Node            := C;
@@ -776,9 +776,9 @@ package body XE_Parse is
         not Is_Array_A_List (Variable_Type) then
          First_Type_Component (Variable_Type, C);
          while C /= Null_Component loop
-            if not Is_Component_An_Attribute (C) then
+            if Get_Attribute_Kind (C) = Attribute_Unknown then
                Duplicate_Component (C, X);
-               Add_Variable_Component (V, C);
+               Add_Variable_Component (V, X);
             end if;
             Next_Type_Component (C);
          end loop;
@@ -798,7 +798,7 @@ package body XE_Parse is
       Component_Name     : in Name_Id;
       Component_Type     : in Type_Id;
       Component_Value    : in Variable_Id;
-      Is_An_Attribute    : in Boolean;
+      Attribute_Kind     : in Attribute_Type;
       Component_Sloc     : in Location_Type;
       Component_Node     : out Component_Id) is
       C : Component_Id;
@@ -806,7 +806,7 @@ package body XE_Parse is
 
       Create_Component          (C, Component_Name);
       Set_Component_Type        (C, Component_Type);
-      Component_Is_An_Attribute (C, Is_An_Attribute);
+      Set_Attribute_Kind        (C, Attribute_Kind);
       Set_Component_Value       (C, Node_Id (Component_Value));
       Add_Variable_Component    (Variable_Node, C);
       Set_Node_Location         (Node_Id (C), Component_Sloc);
@@ -824,14 +824,15 @@ package body XE_Parse is
       C : Component_Id;
       N : Name_Id;
       T : Type_Id;
-      M : Int;
+      A : Attribute_Type;
    begin
       N := Get_Node_Name (Node_Id (Source));
       T := Get_Component_Type (Source);
-      M := Get_Component_Mark (Source);
+      A := Get_Attribute_Kind (Source);
       Create_Component   (C, N);
       Set_Component_Type (C, T);
-      Set_Component_Mark (C, M);
+      Set_Attribute_Kind (C, A);
+      Component_Is_Initialized (C, False);
       Target := C;
    end Duplicate_Component;
 
@@ -846,6 +847,7 @@ package body XE_Parse is
       X : Component_Id;
       V : Variable_Id;
    begin
+
       pragma Assert (Get_Variable_Type (Source) = Get_Variable_Type (Target));
 
       T := Get_Variable_Type (Source);
@@ -853,14 +855,11 @@ package body XE_Parse is
       --  Do we need to assign a element list or a single element ?
 
       if Get_Array_Element_Type (T) /= Null_Type then
-
-         --  Assign a list ...
-
          First_Variable_Component (Source, C);
          while C /= Null_Component loop
-            if not Is_Component_An_Attribute (C) then
+            if Get_Attribute_Kind (C) = Attribute_Unknown then
                Duplicate_Component (C, X);
-               Add_Variable_Component (Target, C);
+               Add_Variable_Component (Target, X);
                V := Variable_Id (Get_Component_Value (C));
                Set_Component_Value (X, Node_Id (V));
             end if;
@@ -1547,13 +1546,13 @@ package body XE_Parse is
                Component_Name     => Component_Unit,
                Component_Type     => List_Element_Type,
                Component_Value    => Expression_Node,
-               Is_An_Attribute    => False,
+               Attribute_Kind     => Attribute_Unknown,
                Component_Sloc     => Expression_Sloc,
                Component_Node     => List_Element_Node);
 
          else
 
-            Search_Unused_Component
+            Search_Uninitialized_Component
               (Variable_Node,
                List_Element_Type,
                List_Element_Node);
@@ -1961,7 +1960,7 @@ package body XE_Parse is
                Component_Name     => Procedure_Unit,
                Component_Type     => Ada_Unit_Type_Node,
                Component_Value    => Unit_Node,
-               Is_An_Attribute    => False,
+               Attribute_Kind     => Attribute_Unknown,
                Component_Sloc     => Unit_Sloc,
                Component_Node     => Component_Node);
 
@@ -1993,6 +1992,7 @@ package body XE_Parse is
       Direct_Node : Node_Id;
       Direct_Type : Type_Id;
       Attr_Name   : Name_Id;
+      Attr_Sloc   : Location_Type;
       Attr_Type   : Type_Id;
       Attr_Node   : Component_Id;
       Expr_Name   : Name_Id;
@@ -2048,6 +2048,7 @@ package body XE_Parse is
 
       T_Identifier;
       Attr_Name := Token_Name;
+      Attr_Sloc := Get_Token_Location;
 
       --  Attributes are always prefixed by Attribute_Prefix.
 
@@ -2058,12 +2059,19 @@ package body XE_Parse is
 
       --  Check that this attribute is a legal attribute for the given type.
 
-      if Attr_Node = Null_Component or else
-         not Is_Component_An_Attribute (Attr_Node) then
+      if Attr_Node = Null_Component then
          Write_Location (Get_Token_Location);
          Write_Str  ("unrecognized attribute """);
          Write_Name (Attr_Name);
          Write_Str  ("""");
+         Write_Eol;
+         Exit_On_Parsing_Error;
+
+      elsif Get_Attribute_Kind (Attr_Node) = Attribute_Unknown then
+         Write_Location (Get_Token_Location);
+         Write_Str  ("component """);
+         Write_Name (Attr_Name);
+         Write_Str  (""" is not an attribute");
          Write_Eol;
          Exit_On_Parsing_Error;
       end if;
@@ -2123,8 +2131,8 @@ package body XE_Parse is
             Attr_Name,
             Attr_Type,
             Variable_Id (Expr_Node),
-            True,
-            Expr_Sloc,
+            Get_Attribute_Kind (Attr_Node),
+            Attr_Sloc,
             Attr_Node);
 
       end if;
@@ -2162,6 +2170,7 @@ package body XE_Parse is
 
          --  Declare a temporary variable of any type.
 
+         --  XXXXX: Don't use partition_type.
          Declare_Variable
            (Configuration_Node,
             Previous_Name,
@@ -2175,15 +2184,11 @@ package body XE_Parse is
          --  declared variable.
 
          P_Variable_List_Declaration (Variable_Name, Variable_Sloc);
+
+         --  Variable can now be fully described.
+
          Search_Variable (Variable_Name, Variable_Node);
-
-         --  Update the temporary variable type with variable_node type
-
-         Update_Variable
-           (Conf_Node          => Configuration_Node,
-            Variable_Name      => Previous_Name,
-            Variable_Type      => Get_Variable_Type (Variable_Node),
-            Variable_Node      => Previous_Node);
+         Set_Variable_Type (Previous_Node, Get_Variable_Type (Variable_Node));
 
          --  If previous variable has been initialized, initialize
          --  this newly declared variable as well.
@@ -2397,13 +2402,13 @@ package body XE_Parse is
       Item  : Node_Id;
       Value : Node_Id;
    begin
-      if Is_Component_An_Attribute (Node) = Attr then
+      if (Get_Attribute_Kind (Node) /= Attribute_Unknown) = Attr then
          Write_Str  (Head);
          Write_Name (Get_Node_Name (Node_Id (Node)));
          Write_Str  (" : ");
          Item := Node_Id (Get_Component_Type (Node));
          Write_Name (Get_Node_Name (Item));
-         if Has_Component_A_Value (Node) then
+         if Is_Component_Initialized (Node) then
             Value := Get_Component_Value (Node);
             Write_Eol;
             Write_Str (Head);
@@ -2784,11 +2789,11 @@ package body XE_Parse is
 
    end Search_Type;
 
-   -----------------------------
-   -- Search_Unused_Component --
-   -----------------------------
+   ------------------------------------
+   -- Search_Uninitialized_Component --
+   ------------------------------------
 
-   procedure Search_Unused_Component
+   procedure Search_Uninitialized_Component
      (Variable_Node  : in  Variable_Id;
       Component_Type : in  Type_Id;
       Component_Node : out Component_Id) is
@@ -2800,12 +2805,12 @@ package body XE_Parse is
       while C /= Null_Component loop
          T := Get_Component_Type (C);
          exit when T = Component_Type and then
-           not Has_Component_A_Value (C);
+           not Is_Component_Initialized (C);
          Next_Variable_Component (C);
       end loop;
       Component_Node := C;
 
-   end Search_Unused_Component;
+   end Search_Uninitialized_Component;
 
    ---------------------
    -- Search_Variable --

@@ -26,17 +26,16 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Osint;            use Osint;
-with Namet;            use Namet;
-with Opt;
-with Output;           use Output;
 with Fname;            use Fname;
-with ALI;              use ALI;
-with Types;            use Types;
-with XE_Utils;         use XE_Utils;
-with XE;               use XE;
-with Make;             use Make;
 with GNAT.Os_Lib;      use GNAT.Os_Lib;
+with Make;             use Make;
+with Namet;            use Namet;
+with Osint;            use Osint;
+with Output;           use Output;
+with XE;               use XE;
+with XE_Back;          use XE_Back;
+with XE_Utils;         use XE_Utils;
+
 package body XE_Check is
 
    --  Once this procedure called, we have the following properties:
@@ -95,14 +94,14 @@ package body XE_Check is
                Most_Recent_Obj_File  => Obj,
                Most_Recent_Obj_Stamp => Stamp,
                Main_Unit             => Main,
-               Check_Internal_Files  => Opt.Check_Internal_Files,
+               Check_Internal_Files  => Check_Internal_Files,
                Dont_Execute          => False,
-               Force_Compilations    => Opt.Force_Compilations,
+               Force_Compilations    => Force_Compilations,
                Initialize_Ali_Data   => False,
                Max_Process           => 1);
 
             if Building_Script then
-               XE_Utils.Build_Compile_Command (Name);
+               Write_Compile_Command (Name);
             end if;
 
          end if;

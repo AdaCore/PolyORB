@@ -26,16 +26,13 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Fname;            use Fname;
-with Osint;            use Osint;
 with Namet;            use Namet;
+with Osint;            use Osint;
 with Output;           use Output;
-with ALI;              use ALI;
-with Types;            use Types;
-with XE_Defs;          use XE_Defs;
-with XE_Utils;         use XE_Utils;
 with XE;               use XE;
-with GNAT.Os_Lib;      use GNAT.Os_Lib;
+with XE_Back;          use XE_Back;
+with XE_Utils;         use XE_Utils;
+
 with Unchecked_Deallocation;
 
 package body XE_Stubs is
@@ -48,7 +45,11 @@ package body XE_Stubs is
 
    Executable : File_Name_Type;
 
-   Separator : Character renames GNAT.Os_Lib.Directory_Separator;
+   procedure Build_Partition
+     (Partition  : in PID_Type;
+      Executable : in File_Name_Type);
+   --  Generates the partition ada main subprogram (generation
+   --  of Ada code, compilation, bind and link).
 
    procedure Build_Stub (Base_Name : in File_Name_Type;
                          Spec_Only : in Boolean);
@@ -100,6 +101,51 @@ package body XE_Stubs is
    procedure Update_Switch (S : in out String_Access);
    --  For a given '-I' switch (or equivalent -L -a*), update it
    --  if it is a relative path and add ../../.. at the beginning.
+
+   ---------------------
+   -- Build_Partition --
+   ---------------------
+
+   procedure Build_Partition
+     (Partition  : in PID_Type;
+      Executable : in File_Name_Type) is
+
+      Part_Name : Name_Id := Partitions.Table (Partition).Name;
+      Exec_File : File_Name_Type := Executable;
+
+      Directory : File_Name_Type
+        := DSA_Dir & Dir_Sep_Id & Configuration & Dir_Sep_Id & Part_Name;
+      Stmp_File : File_Name_Type
+        := Directory & Dir_Sep_Id & Build_Stamp_File;
+
+   begin
+
+      if not Is_Regular_File (Exec_File) or else
+        not Is_Regular_File (Stmp_File) or else
+        More_Recent (Executable, Stmp_File) or else
+        More_Recent (Partitions.Table (Partition).Most_Recent, Executable) then
+
+         Change_Dir (Directory);
+
+         if not Quiet_Output then
+            Write_Program_Name;
+            Write_Str  (": building partition ");
+            Write_Name (Part_Name);
+            Write_Eol;
+         end if;
+
+         --  Is it a relative storage directory ?
+         if Is_Relative_Dir (Executable) then
+            Exec_File := Original_Dir & Dir_Sep_Id & Executable;
+         end if;
+
+         Produce_Partition_Executable (Part_Name, Exec_File);
+
+      end if;
+
+      Change_Dir (Original_Dir);
+
+   end Build_Partition;
 
    ----------------
    -- Build_Stub --
@@ -191,7 +237,7 @@ package body XE_Stubs is
          end if;
 
          Change_Dir (Caller_Dir);
-         Build_RCI_Caller
+         Expand_And_Compile_RCI_Caller
            (RCI_Body, Original_Dir & Dir_Sep_Id & Full_RCI_Spec);
          Compile_RCI_Caller (RCI_Body);
          Change_Dir (Original_Dir);
@@ -268,7 +314,7 @@ package body XE_Stubs is
          end if;
 
          Change_Dir (Receiver_Dir);
-         Build_RCI_Receiver
+         Expand_And_Compile_RCI_Receiver
            (RCI_Body, Original_Dir & Dir_Sep_Id & Full_RCI_Body);
          Compile_RCI_Receiver (RCI_Body);
          Change_Dir (Original_Dir);
@@ -873,24 +919,7 @@ package body XE_Stubs is
                Executable := Directory & Dir_Sep_Id & Executable;
             end if;
 
-            if not Is_Regular_File (Executable) or else
-              More_Recent (Partitions.Table (PID).Most_Recent, Executable) then
-
-               if not Quiet_Output then
-                  Write_Program_Name;
-                  Write_Str  (": building partition ");
-                  Write_Name (Partitions.Table (PID).Name);
-                  Write_Eol;
-               end if;
-
-               --  Is it a relative storage directory ?
-               if Is_Relative_Dir (Executable) then
-                  Executable := Original_Dir & Dir_Sep_Id & Executable;
-               end if;
-
-               Build_Partition (Partitions.Table (PID).Name, Executable);
-
-            end if;
+            Build_Partition (PID, Executable);
 
          end if;
 

@@ -26,13 +26,12 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Types;       use Types;
 with Namet;       use Namet;
-with XE_Utils;    use XE_Utils;
-with GNAT.Os_Lib; use GNAT.Os_Lib;
-with Output;      use Output;
 with Osint;       use Osint;
+with Output;      use Output;
 with XE;          use XE;
+with XE_Back;     use XE_Back;
+with XE_Utils;    use XE_Utils;
 
 procedure XE_Lead is
 

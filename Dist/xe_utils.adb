@@ -25,19 +25,16 @@
 --                 (email: glade-report@act-europe.fr)                      --
 --                                                                          --
 ------------------------------------------------------------------------------
-with ALI;
-with Fname;
+
 with System;
 with Unchecked_Deallocation;
+
+with GNAT.Os_Lib;    use GNAT.Os_Lib;
 with Namet;          use Namet;
-with Opt;
 with Osint;          use Osint;
 with Output;         use Output;
-with Sinput;         use Sinput;
-with Types;          use Types;
-with GNAT.Os_Lib;    use GNAT.Os_Lib;
-with XE_Defs;        use XE_Defs;
 with XE;             use XE;
+with XE_Defs;        use XE_Defs;
 
 package body XE_Utils is
 
@@ -150,10 +147,10 @@ package body XE_Utils is
    end "&";
 
    ---------------------------
-   -- Build_Compile_Command --
+   -- Write_Compile_Command --
    ---------------------------
 
-   procedure Build_Compile_Command (Name : in File_Name_Type) is
+   procedure Write_Compile_Command (Name : in File_Name_Type) is
    begin
       Write_Str  (Standout, Gnatmake.all);
       Write_Str  (Standout, " -c ");
@@ -163,66 +160,14 @@ package body XE_Utils is
       end loop;
       Write_Name (Standout, Name);
       Write_Eol  (Standout);
-   end Build_Compile_Command;
+   end Write_Compile_Command;
 
-   ---------------------
-   -- Build_Partition --
-   ---------------------
+   -----------------------------------
+   -- Expand_And_Compile_RCI_Caller --
+   -----------------------------------
 
-   procedure Build_Partition
-     (Partition   : in Name_Id;
-      Executable  : in File_Name_Type) is
-
-      Dir_Name : File_Name_Type
-        := DSA_Dir & Dir_Sep_Id & Configuration & Dir_Sep_Id & Partition;
-
-   begin
-
-      Change_Dir (Dir_Name);
-
-      Execute_Gcc
-        (Elaboration_Name & ADB_Suffix,
-         (GNATLib_Compile_Flag,
-          I_Original_Dir,
-             I_GARLIC_Dir)
-         );
-
-      Execute_Gcc
-        (Partition & ADB_Suffix,
-         (I_Current_Dir,
-          I_Caller_Dir,
-          I_Original_Dir)
-         );
-
-      --  I_Garlic_Dir is not included here because it was added by the
-      --  gnatdist shell script.
-
-
-      Execute_Bind
-        (Partition & ALI_Suffix,
-         (I_Current_Dir,
-          I_Caller_Dir,
-          I_Original_Dir)
-            );
-
-      Execute_Link
-        (Partition & ALI_Suffix,
-         Executable,
-         (L_Current_Dir,
-          L_Caller_Dir,
-          L_Original_Dir,
-          L_GARLIC_Dir)
-         );
-
-         Change_Dir (Original_Dir);
-
-   end Build_Partition;
-
-   ----------------------
-   -- Build_RCI_Caller --
-   ----------------------
-
-   procedure Build_RCI_Caller (Source, Target : in File_Name_Type) is
+   procedure Expand_And_Compile_RCI_Caller
+     (Source, Target : in File_Name_Type) is
       Source_Name_Len : Natural := Strlen (Source);
       Target_Name_Len : Natural := Strlen (Target);
       Source_Name     : String (1 .. Source_Name_Len);
@@ -238,13 +183,14 @@ package body XE_Utils is
          (Sem_Only_Flag,
           Caller_Build_Flag,
           I_GARLIC_Dir));
-   end Build_RCI_Caller;
+   end Expand_And_Compile_RCI_Caller;
 
-   ------------------------
-   -- Build_RCI_Receiver --
-   ------------------------
+   -------------------------------------
+   -- Expand_And_Compile_RCI_Receiver --
+   -------------------------------------
 
-   procedure Build_RCI_Receiver (Source, Target : in File_Name_Type) is
+   procedure Expand_And_Compile_RCI_Receiver
+     (Source, Target : in File_Name_Type) is
       Source_Name_Len : Natural := Strlen (Source);
       Target_Name_Len : Natural := Strlen (Target);
       Source_Name     : String (1 .. Source_Name_Len);
@@ -260,7 +206,7 @@ package body XE_Utils is
          (Sem_Only_Flag,
           Receiver_Build_Flag,
           I_GARLIC_Dir));
-   end Build_RCI_Receiver;
+   end Expand_And_Compile_RCI_Receiver;
 
    ----------------
    -- Change_Dir --
@@ -283,7 +229,7 @@ package body XE_Utils is
          Write_Str (": Cannot change dir to ");
          Write_Name (To);
          Write_Eol;
-         raise XE.Fatal_Error;
+         raise Fatal_Error;
       end if;
 
       if Building_Script then
@@ -388,7 +334,7 @@ package body XE_Utils is
          Write_Str  (": cannot create file ");
          Write_Name (Name);
          Write_Eol;
-         raise XE.Fatal_Error;
+         raise Fatal_Error;
       end if;
 
       if Exec then
@@ -479,7 +425,7 @@ package body XE_Utils is
          Write_Str (Prog.all);
          Write_Str (" failed");
          Write_Eol;
-         raise XE.Fatal_Error;
+         raise Fatal_Error;
       end if;
 
    end Execute;
@@ -722,6 +668,7 @@ package body XE_Utils is
 
       PWD_Id         := Str_To_Id ("`pwd`") & Dir_Sep_Id;
 
+      Build_Stamp_File      := Str_To_Id ("glade.sta");
       Elaboration_Name      := Str_To_Id ("s-garela");
       Elaboration_Full_Name := Str_To_Id ("System.Garlic.Elaboration");
 
@@ -838,6 +785,57 @@ package body XE_Utils is
       return Source_File_Stamp (File1) > Source_File_Stamp (File2);
    end More_Recent;
 
+   ----------------------------------
+   -- Produce_Partition_Executable --
+   ----------------------------------
+
+   procedure Produce_Partition_Executable
+     (Partition     : in Name_Id;
+      Executable    : in File_Name_Type) is
+
+      FD : File_Descriptor;
+
+   begin
+
+      Execute_Gcc
+        (Elaboration_Name & ADB_Suffix,
+         (GNATLib_Compile_Flag,
+          I_Original_Dir,
+          I_GARLIC_Dir)
+         );
+
+      Execute_Gcc
+        (Partition & ADB_Suffix,
+         (I_Current_Dir,
+          I_Caller_Dir,
+          I_Original_Dir)
+         );
+
+      --  I_Garlic_Dir is not included here because it was added by the
+      --  gnatdist shell script.
+
+
+      Execute_Bind
+        (Partition & ALI_Suffix,
+         (I_Current_Dir,
+          I_Caller_Dir,
+          I_Original_Dir)
+            );
+
+      Execute_Link
+        (Partition & ALI_Suffix,
+         Executable,
+         (L_Current_Dir,
+          L_Caller_Dir,
+          L_Original_Dir,
+          L_GARLIC_Dir)
+         );
+
+      Create (FD, Build_Stamp_File);
+      Close  (FD);
+
+   end Produce_Partition_Executable;
+
    ------------
    -- Strlen --
    ------------
@@ -878,7 +876,7 @@ package body XE_Utils is
       if EOL'Length /= Write (File, EOL'Address, EOL'Length) then
          Write_Str ("error : disk full");
          Write_Eol;
-         raise XE.Fatal_Error;
+         raise Fatal_Error;
       end if;
 
       if Stdout then
@@ -948,7 +946,7 @@ package body XE_Utils is
          if Write (File, Name_Buffer'Address, Name_Len) /= Name_Len then
             Write_Str ("error : disk full");
             Write_Eol;
-            raise XE.Fatal_Error;
+            raise Fatal_Error;
          end if;
 
          if Stdout then
@@ -993,7 +991,7 @@ package body XE_Utils is
       if Write (File, Line'Address, Line'Length) /= Line'Length then
          Write_Str ("error : disk full");
          Write_Eol;
-         raise XE.Fatal_Error;
+         raise Fatal_Error;
       end if;
 
       if Stdout then
