@@ -42,9 +42,6 @@ package System.RPC is
    type Partition_ID is
      range System.Garlic.Types.Null_Partition_ID ..
        System.Garlic.Types.Last_Partition_ID;
-   --  This type must not be modified without checking the code in
-   --  a-except.adb, since it expects a Partition_ID whose string
-   --  representation fits on two characters.
 
    Communication_Error : exception;
 
