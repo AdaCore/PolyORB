@@ -49,6 +49,7 @@ procedure XE_Build is
 begin
 
    XE_Utils.Initialize;
+   XE_Stubs.Initialize;
 
    if Number_Of_Files = 0 then
       XE_Usage;
