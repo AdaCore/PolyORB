@@ -1,9 +1,11 @@
 #!/bin/sh
 
 make clean
-if [ $? != 0 ]; then exit $?; fi
+a=$?
+if [ $a != 0 ]; then exit $a; fi
 make
-if [ $? != 0 ]; then exit $?; fi
+a=$?
+if [ $a != 0 ]; then exit $a; fi
 
 n=0
 for i in `cat testsuite/MANIFEST | grep -v '^#'`; do
