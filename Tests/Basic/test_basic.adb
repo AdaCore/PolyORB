@@ -9,6 +9,8 @@ with Text_IO; use Text_IO;
 procedure Test_Basic is
 
 begin
+   Put_Line ("Local partition is" & Integer'Image (Text_IO'Partition_ID));
+   Put_Line ("Remote partition is" & Integer'Image (Remote'Partition_ID));
    select
       delay 2000.0;
       Put_Line ("Failed (couldn't connect the remote partition)");

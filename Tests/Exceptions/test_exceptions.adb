@@ -5,9 +5,19 @@
 with Ada.Exceptions; use Ada.Exceptions;
 with Interfaces.C;
 with Exceptions_Remote; use Exceptions_Remote;
-with Text_IO; use Text_IO;
+with Ada.Text_IO; use Ada.Text_IO;
 
 procedure Test_Exceptions is
+
+   procedure Print_Exception (E : in Exception_Occurrence) is
+      Name : constant String := Exception_Name (E);
+   begin
+      Put_Line ("Exception name length:" & Natural'Image (Name'Length));
+      for I in Name'Range loop
+         Put_Line ("Char" & Positive'Image (I) & " is """ &
+                   Name (I) & """" & Natural'Image (Character'Pos (Name (I))));
+      end loop;
+   end Print_Exception;
 
    Program_Erro : exception;
 
@@ -32,6 +42,7 @@ begin
                    Exception_Message (Error));
       when Bogus : others =>
          Put_Line ("Bogus: " & Exception_Name (Bogus) & " raised");
+         Print_Exception (Bogus);
    end;
    begin
       Raise_No_Error;
