@@ -176,6 +176,7 @@ package body Backend.BE_Ada.Skels is
          TC               : Node_Id;
          From_Any_Helper  : Node_Id;
          To_Any_Helper    : Node_Id;
+         FE               : Node_Id;
 
       begin
          --  Implementation.Object'Class (Self.All)'Access
@@ -349,11 +350,17 @@ package body Backend.BE_Ada.Skels is
          --  Set Result
 
          if Present (Return_Type (S)) then
-            if Is_Base_Type (FE_Node (Return_Type (S))) then
+            FE := FE_Node (Return_Type (S));
+
+            if Is_Base_Type (FE) then
                To_Any_Helper := RE (RE_To_Any_0);
             else
+               if FEN.Kind (FE) = K_Scoped_Name then
+                  FE := Reference (FE);
+               end if;
+
                To_Any_Helper := Helper_Node
-                 (BE_Node (Identifier (FE_Node (Return_Type (S)))));
+                 (BE_Node (Identifier (FE)));
                To_Any_Helper := Expand_Designator
                  (Next_Node (Next_Node (To_Any_Helper)));
             end if;

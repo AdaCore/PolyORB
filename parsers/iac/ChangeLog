@@ -1,4 +1,8 @@
-2004-08-27  Saber Souli  <souli@localhost.localdomain>
+2004-08-27  Saber Souli  <souli@loozy.rezel.enst.fr>
+
+	* backend-be_ada-skels.adb: Fixed a bug (consider Scoped_Name in return_type of subprograms).  
+
+2004-08-27  Saber Souli  <souli@loozy.rezel.enst.fr>
 
 	* backend-be_ada-stubs.adb: Add underscore to operation name in the operation initialization.  
 

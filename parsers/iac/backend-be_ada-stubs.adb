@@ -22,7 +22,6 @@ package body Backend.BE_Ada.Stubs is
    package BEN renames Backend.BE_Ada.Nodes;
    package FEU renames Frontend.Nutils;
 
-
    function Marshaller_Body
      (Subp_Spec : Node_Id) return List_Id;
    function Marshaller_Declarations
