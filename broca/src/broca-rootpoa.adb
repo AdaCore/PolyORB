@@ -1061,15 +1061,14 @@ package body Broca.RootPOA is
       Servant_Manager : constant PSSA.Impl.Object_Ptr
         := PSSA.Impl.Object_Ptr
         (PSSM.Object_Of (Self.Servant_Manager));
+
       --  FIXME: Constraint_Error will be raised if
-      --  Self.Servant_Manager is not a PS.ServantActivator.
+      --    Self.Servant_Manager is not a PS.ServantActivator.
 
       A_Servant : PortableServer.Servant;
       A_POA : PortableServer.POA.Ref;
       Is_Cleanup : Boolean;
-      --  XXX remove
-      --  (see end of procedure)
-      --  A_Ref : Broca.Refs.Ref_Ptr;
+
    begin
       Is_Cleanup := False
         or else Self.POA_Manager = null
@@ -1119,11 +1118,8 @@ package body Broca.RootPOA is
          Broca.POA.Dec_Usage (Self.POA_Manager.all);
       end if;
 
-      --  FIXME: not very clean: destroy the object self.
-      --  XXX Remove this and ensure that the object is
-      --    destroyed.
-      --  A_Ref := Broca.Refs.Ref_Ptr (Self);
-      --  Broca.Refs.Dec_Usage (A_Ref);
+      --  FIXME: Should ensure that the object pointed by A_Ref
+      --     is destroyed.
    end Cleanup;
 
    procedure Set_Cleanup_Call_Back (Self : access Object'Class) is

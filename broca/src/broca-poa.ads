@@ -123,15 +123,12 @@ package Broca.POA is
    type Object_Key_Ptr is access all Broca.Buffers.Encapsulation;
 
    type Skeleton is new CORBA.Impl.Object with
-   --  type Skeleton is new Broca.Refs.Entity with
       record
          Type_Id    : CORBA.RepositoryId;
          Object_Key : Object_Key_Ptr;
 
          P_Servant  : PortableServer.Servant;
 
-         --  XXX remove
-         --  POA : Broca.POA.POA_Object_Ptr;
          POA        : Ref;
 
          --  ObjectId.
@@ -209,7 +206,7 @@ package Broca.POA is
          --  Any access to the single linked list of children is protected by
          --  all_poa_lock.
 
-         --  XXX These must be changed to Broca.POA.Ref.
+         --  FIXME: Should these be changed to Broca.POA.Ref?
 
          --  CHILDREN is protected by LINK_LOCK.
          Children : POA_Object_Ptr;
