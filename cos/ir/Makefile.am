@@ -200,7 +200,8 @@ GEN= \
 
 $(GEN): $(srcdir)/ir.idl $(srcdir)/typecode.sh $(IDLAC)
 	$(IDLAC) $(srcdir)/ir.idl
-	$(SH) $(srcdir)/typecode.sh $(SED) $(RM) $(GEN)
+	@chmod +x $(srcdir)/typecode.sh
+	$(srcdir)/typecode.sh $(SED) $(RM) $(GEN)
 
 DISTCLEANFILES += ${GEN}
 
