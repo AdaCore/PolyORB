@@ -504,10 +504,12 @@ package body XE_Check is
          Loc : Name_Id;
       begin
          for L in Locations.First .. Locations.Last loop
-            Get_Name_String (Locations.Table (L).Major);
-            if Name_Len = 0 then
+            if Locations.Table (L).Major = No_Name then
+               Name_Len := 0;
                Add_Str_To_Name_Buffer ("://");
-               Get_Name_String_And_Append (Locations.Table (L).Minor);
+               if Locations.Table (L).Minor /= No_Name then
+                  Get_Name_String_And_Append (Locations.Table (L).Minor);
+               end if;
                Loc := Name_Find;
                Message ("missing location name in", Quote (Loc));
                Error := True;
