@@ -69,6 +69,11 @@ package all_types.Impl is
       arg : in CORBA.Unsigned_Long)
       return CORBA.Unsigned_Long;
 
+   function echoULLong
+     (Self : access Object;
+      arg : in CORBA.Unsigned_Long_Long)
+      return CORBA.Unsigned_Long_Long;
+
    function echoFloat
      (Self : access Object;
       arg : in CORBA.Float)

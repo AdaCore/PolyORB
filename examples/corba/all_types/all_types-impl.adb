@@ -91,6 +91,15 @@ package body all_types.Impl is
       return arg;
    end echoULong;
 
+   function echoULLong
+     (Self : access Object;
+      arg : in CORBA.Unsigned_Long_Long)
+      return CORBA.Unsigned_Long_Long
+   is
+   begin
+      return arg;
+   end echoULLong;
+
    function echoFloat
      (Self : access Object;
       arg : in CORBA.Float)
