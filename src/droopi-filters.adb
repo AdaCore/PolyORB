@@ -14,11 +14,6 @@ package body Droopi.Filters is
       return F.Lower;
    end Lower;
 
-   function Server_Of (F : access Filter) return Schedulers.Server_Access is
-   begin
-      return F.Server;
-   end Server_Of;
-
    function Create_Filter_Chain (FChain : Factory_Chain_Access)
      return Filter_Access
    is

@@ -16,9 +16,6 @@ package Droopi.Requests is
    -- Request --
    -------------
 
-   type Request is limited private;
-   type Request_Access is access all Request;
-
    type String_Ptr is access String;
    procedure Free is new Ada.Unchecked_Deallocation
      (String, String_Ptr);
@@ -26,6 +23,19 @@ package Droopi.Requests is
 
    subtype Operation_Id is String;
    --  XXX DUMMY VERSION of Operation_Id
+
+   type Request is limited record
+      --  Ctx        : CORBA.Context.Ref;
+      Target    : References.Ref;
+      Operation : String_Ptr;
+      Args      : CORBA.NVList.Ref;
+      Result    : CORBA.NamedValue;
+      --  Exc_List   : CORBA.ExceptionList.Ref;
+      --  Ctxt_List  : CORBA.ContextList.Ref;
+      --  Req_Flags  : CORBA.Flags;
+   end record;
+
+   type Request_Access is access all Request;
 
    procedure Create_Request
      (Target    : in     References.Ref;
@@ -43,22 +53,7 @@ package Droopi.Requests is
    procedure Destroy_Request
      (Req : in out Request_Access);
 
-   procedure Execute_Request (Req : in out Request);
-
    function Image (Req : Request) return String;
    --  For debugging purposes.
-
-private
-
-   type Request is tagged limited record
-      --  Ctx        : CORBA.Context.Ref;
-      Target    : References.Ref;
-      Operation : String_Ptr;
-      Args      : CORBA.NVList.Ref;
-      Result    : CORBA.NamedValue;
-      --  Exc_List   : CORBA.ExceptionList.Ref;
-      --  Ctxt_List  : CORBA.ContextList.Ref;
-      --  Req_Flags  : CORBA.Flags;
-   end record;
 
 end Droopi.Requests;

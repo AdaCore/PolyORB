@@ -22,7 +22,6 @@ package Droopi.Filters is
 
    procedure Connect_Lower (F : access Filter; Lower : Component_Access);
    function Lower (F : access Filter) return Component_Access;
-   function Server_Of (F : access Filter) return Schedulers.Server_Access;
 
    --------------------------------------------------
    -- Filters communicate by exchanging Data_Units --
@@ -32,6 +31,10 @@ package Droopi.Filters is
    subtype Data_Unit is Root_Data_Unit'Class;
 
    package Data_Units is
+
+      type Set_Server is new Root_Data_Unit with record
+         Server : Schedulers.Server_Access;
+      end record;
 
       type Set_Buffer is new Root_Data_Unit with record
          Buffer : Buffer_Access;
@@ -101,7 +104,6 @@ package Droopi.Filters is
 private
 
    type Filter is abstract new Component with record
-      Server : Schedulers.Server_Access;
       Lower  : Component_Access;
       Upper  : Component_Access;
    end record;

@@ -139,6 +139,17 @@ package body Droopi.ORB is
       AES : Asynch_Ev_Source_Access)
    is
       Note : ORB_Note;
+
+      procedure Set_Server (F : Filter_Access; S : Server_Access);
+
+      procedure Set_Server (F : Filter_Access; S : Server_Access)
+      is
+         Reply : constant Message'Class
+           := Emit (Component_Access (F), Filters.Data_Units.Set_Server'(Server => S));
+      begin
+         null;
+      end Set_Server;
+
    begin
       Get_Note (Notepad_Of (AES).all, Note);
       case Note.D.Kind is
@@ -161,6 +172,8 @@ package body Droopi.ORB is
                Connect_Upper (New_TE, Component_Access (New_Filter));
                Connect_Lower (New_Filter, Component_Access (New_TE));
                --  Connect filter to transport.
+
+               Set_Server (New_Filter, Server_Access (ORB));
 
                Set_Note (Notepad_Of (New_AES).all,
                          ORB_Note'(Annotations.Note with D =>
@@ -420,11 +433,21 @@ package body Droopi.ORB is
    begin
       pragma Debug (O ("Run Request_Job: enter"));
       pragma Assert (J.Req /= null);
-      Requests.Execute_Request (J.Req.all);
-      pragma Debug (O ("Run Request_Job: executed request"));
-      --  Execute request.
 
-      --  Send_Result (Session, Result);
+      declare
+--           Oid : constant Objects.Object_Id
+--             := Extract_Local_Object_Id (J.Req.Target);
+--
+--           Servant : constant Objects.Servant_Access
+--             := Find_Servant (ORB.Object_Adapter, Oid);
+      begin
+         pragma Debug (O ("Executing: " & Requests.Image (J.Req.all)));
+         --  Objects.Execute_Request (Servant, J.Req.all);
+         null;
+         pragma Debug (O ("Run Request_Job: executed request"));
+      end;
+
+      --  Send_Result (Session, J.Req);
       --  Send back answer.
 
       Destroy_Request (J.Req);

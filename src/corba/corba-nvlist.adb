@@ -117,14 +117,21 @@ package body CORBA.NVList is
       use NV_Sequence;
 
       Obj : constant Object_Ptr := Object_Ptr (Object_Of (NVList));
-      NVs : constant Element_Array := To_Element_Array (Obj.List);
       Result : Ada.Strings.Unbounded.Unbounded_String;
    begin
-      for I in NVs'Range loop
-         Ada.Strings.Unbounded.Append (Result, Image (NVs (I)));
-      end loop;
+      if Obj /= null then
+         declare
+            NVs : constant Element_Array := To_Element_Array (Obj.List);
+         begin
+            for I in NVs'Range loop
+               Ada.Strings.Unbounded.Append (Result, Image (NVs (I)));
+            end loop;
 
-      return Ada.Strings.Unbounded.To_String (Result);
+            return Ada.Strings.Unbounded.To_String (Result);
+         end;
+      else
+         return ("(null list)");
+      end if;
    end Image;
 
 --     --------------

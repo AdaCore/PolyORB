@@ -8,6 +8,7 @@ with Droopi.Buffers;
 with Droopi.Components;
 with Droopi.Filters; use Droopi.Filters;
 with Droopi.Requests; use Droopi.Requests;
+with Droopi.Schedulers;
 
 package Droopi.Protocols is
 
@@ -96,25 +97,13 @@ private
 
    type Protocol is abstract new Filters.Factory with null record;
 
-   type Session is abstract new Filters.Filter with null record;
+   type Session is abstract new Filters.Filter with record
+      Server : Schedulers.Server_Access;
+   end record;
 
    procedure Expect_Data
      (S      : access Session;
       In_Buf : Buffers.Buffer_Access;
       Max    : Ada.Streams.Stream_Element_Count);
-
-   --  XXX remove
---     with record
---       Server  : Schedulers.Server_Access;
---       Channel : Channels.Channel_Access;
---     end record;
-
---     type Session_Channel is new Channels.Channel with record
---        Session : Session_Access;
---        --  Uplink to the associated session.
---     end record;
---
---     procedure Signal_Data (SC : access Session_Channel);
---     procedure Signal_Connection_Closed (SC : access Session_Channel);
 
 end Droopi.Protocols;

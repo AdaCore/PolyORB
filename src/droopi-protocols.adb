@@ -30,6 +30,8 @@ package body Droopi.Protocols is
          Handle_Disconnect (Session_Access (Sess));
       elsif S in Data_Indication then
          Handle_Data_Indication (Session_Access (Sess));
+      elsif S in Set_Server then
+         Sess.Server := Set_Server (S).Server;
       else
          raise Components.Unhandled_Message;
       end if;

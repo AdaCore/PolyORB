@@ -44,24 +44,6 @@ package body Droopi.Requests is
       Free (Req);
    end Destroy_Request;
 
-   procedure Execute_Request
-     (Req : in out Request)
-   is
-      The_Result : constant String_Ptr := new String'
-        ("Your request " & Image (Req)
-         & " was executed."
-         & ASCII.CR & ASCII.LF);
-   begin
-      pragma Debug (O ("Execute: enter"));
-      pragma Debug
-        (O ("Result is « "
-            & The_Result (The_Result'First .. The_Result'Last - 2)
-            & " »."));
-      --  XXX TODO
-      --  Request.Res := The_Result;
-      null;
-   end Execute_Request;
-
    function Image (Req : Request) return String is
    begin
       return "Request: " & Req.Operation.all

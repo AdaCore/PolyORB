@@ -4,9 +4,13 @@
 
 with Ada.Exceptions;
 
+with CORBA;
+with CORBA.NVList;
+
 with Droopi.Buffers;
 with Droopi.Log;
-with Droopi.Schedulers; use Droopi.Schedulers;
+with Droopi.Schedulers;
+with Droopi.References;
 with Droopi.Requests; use Droopi.Requests;
 
 with Droopi.Representations.Test; use Droopi.Representations.Test;
@@ -100,6 +104,8 @@ package body Droopi.Protocols.Echo is
            := Split (Unmarshall_String (Rep, S.Buffer));
 
          Req : Request_Access := null;
+         Args   : CORBA.NVList.Ref;
+         Result : CORBA.NamedValue;
       begin
          Buffers.Release_Contents (S.Buffer.all);
          --  Clear buffer
@@ -114,13 +120,14 @@ package body Droopi.Protocols.Echo is
 --                 Operation => Argv (1).all,
 --                 Args      => Argv (3).all);
 
-            --  XXX hack
-            if Server_Of (S) = null then
-               pragma Debug (O ("XXX Ooops! null scheduler."));
-               null;
-            else
-               Schedulers.Queue_Request (Server_Of (S), Req);
-            end if;
+            Create_Request
+              (Target    => References.Nil_Ref,
+               Operation => Argv (1).all,
+               Arg_List  => Args,
+               Result    => Result,
+               Req       => Req);
+
+            Schedulers.Queue_Request (S.Server, Req);
 
          exception
             when E : others =>
