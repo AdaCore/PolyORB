@@ -120,7 +120,6 @@ Examples/LightBank/simcity.cfg
 Examples/LightBank/types.ads
 Examples/Messages/Makefile.am
 Examples/Messages/Makefile.in
-Examples/Messages/localhost
 Examples/Messages/main.adb
 Examples/Messages/pingpong.cfg
 Examples/Messages/rci.adb
