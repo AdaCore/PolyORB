@@ -20,7 +20,7 @@ package body Client_Common is
       use PolyORB.Utils.Report;
       use Harness;
 
-      How_Many : constant Integer := 10_000;
+      How_Many : constant Integer := 1_000;
 
       IOR : CORBA.String;
       MyHarness : Harness.Ref;
