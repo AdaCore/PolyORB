@@ -4,9 +4,9 @@
 --                                                                          --
 --              P O L Y O R B . P A R A M E T E R S . F I L E               --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -66,6 +66,28 @@ package body PolyORB.Parameters.File is
       end if;
    end O;
 
+   ---------------------
+   -- Fetch_From_File --
+   ---------------------
+
+   function Fetch_From_File (Key : String) return String;
+
+   function Fetch_From_File (Key : String) return String is
+      Filename : constant String := Key (Key'First + 5 .. Key'Last);
+      File     : File_Type;
+      Result   : String (1 .. 1024);
+      Last     : Natural;
+   begin
+      Open (File, In_File, Filename);
+      Get_Line (File, Result, Last);
+      Close (File);
+      return Result (1 .. Last);
+
+   exception
+      when Name_Error =>
+         return "";
+   end Fetch_From_File;
+
    -----------------------------
    -- Load_Configuration_File --
    -----------------------------
@@ -75,7 +97,7 @@ package body PolyORB.Parameters.File is
       Current_Line : Integer := 0;
 
       procedure Set_Current_Section (S : String);
-      --  Enter a new section named S.
+      --  Enter a new section named S
 
       procedure Set_Current_Section (S : String) is
       begin
@@ -97,7 +119,8 @@ package body PolyORB.Parameters.File is
          Open (Conf_File, In_File, Conf_File_Name);
       exception
          when Name_Error =>
-            --  No configuration file.
+            --  No configuration file
+
             pragma Debug (O ("No " & Conf_File_Name & " configuration file."));
             return;
       end;
@@ -185,6 +208,7 @@ package body PolyORB.Parameters.File is
       Load_Configuration_File (Configuration_File_Name);
       --  Load PolyORB's configuration file
 
+      Fetch_From_File_Hook := Fetch_From_File'Access;
    end Initialize;
 
    use PolyORB.Initialization;

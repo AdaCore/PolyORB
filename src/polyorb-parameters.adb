@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                    P O L Y O R B . P A R A M T E R S                     --
+--                   P O L Y O R B . P A R A M E T E R S                    --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,15 +26,14 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  PolyORB runtime configuration facility.
 
 with Ada.Characters.Handling;
-with Ada.Text_IO;
 
 with Interfaces.C.Strings;
 with System;
@@ -46,7 +45,6 @@ with PolyORB.Utils.Strings;
 package body PolyORB.Parameters is
 
    use Ada.Characters.Handling;
-   use Ada.Text_IO;
 
    use Interfaces.C;
    use Interfaces.C.Strings;
@@ -139,22 +137,10 @@ package body PolyORB.Parameters is
 
    function Fetch (Key : String) return String is
    begin
-      if PolyORB.Utils.Has_Prefix (Key, "file:") then
-         declare
-            Filename : constant String := Key (Key'First + 5 .. Key'Last);
-            File     : File_Type;
-            Result   : String (1 .. 1024);
-            Last     : Natural;
-         begin
-            Open (File, In_File, Filename);
-            Get_Line (File, Result, Last);
-            Close (File);
-            return Result (1 .. Last);
-
-         exception
-            when Name_Error =>
-               return "";
-         end;
+      if PolyORB.Utils.Has_Prefix (Key, "file:")
+        and then Fetch_From_File_Hook /= null
+      then
+         return Fetch_From_File_Hook.all (Key);
 
       else
          return Key;
