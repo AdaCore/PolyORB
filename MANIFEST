@@ -13,6 +13,8 @@ Dist/xe_front.adb
 Dist/xe_front.ads
 Dist/xe_io.adb
 Dist/xe_io.ads
+Dist/xe_list.adb
+Dist/xe_list.ads
 Dist/xe_load.adb
 Dist/xe_load.ads
 Dist/xe_main.adb
