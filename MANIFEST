@@ -126,15 +126,6 @@ Examples/Messages/pingpong.cfg
 Examples/Messages/rci.adb
 Examples/Messages/rci.ads
 Examples/Messages/pure.ads
-Examples/RACW/Makefile.am
-Examples/RACW/Makefile.in
-Examples/RACW/common.ads
-Examples/RACW/controller.adb
-Examples/RACW/controller.ads
-Examples/RACW/main.adb
-Examples/RACW/racw.cfg
-Examples/RACW/worker_pkg.adb
-Examples/RACW/worker_pkg.ads
 Garlic/2agtplsp.ads
 Garlic/2egtplsp.ads
 Garlic/2ggtplsp.ads
