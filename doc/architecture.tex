@@ -1,0 +1,240 @@
+%% Architecture de DROOPI
+%% $Id$
+
+\documentclass[12pt,a4paper]{article}
+\usepackage{slashbox}
+\usepackage{interop}
+\usepackage[T1]{fontenc}
+\usepackage[latin1]{inputenc}
+\usepackage[francais]{babel}
+\usepackage{graphics}
+\usepackage{array}
+
+\title{Architecture de DROOPI}
+\author{Thomas Quinot}
+
+\begin{document}
+
+\maketitle
+
+\section{Position du problème}
+
+\subsection{Contexte}
+% Les entités qu'on va être amenés à faire coopérer
+
+On s'intéresse à quatre classes d'entités~:
+\begin{itemize}
+\item serveurs DSA~;
+\item clients DSA~;
+\item serveurs CORBA~;
+\item clients CORBA.
+\end{itemize}
+qu'on se propose de faire interopérer.
+
+Toute entité est rattachée à un ORB qui est chargé d'assurer les fonctions
+liées à la répartition nécessaires aux besoins de l'entité.
+
+Une entité DSA (client ou serveur) peut être rattachée à un ORB GLADE
+(le code existant), ou bien à un ORB générique DROOPI (possédant une
+personnalité DSA).
+
+Une entité CORBA (client ou serveur) peut être rattachée à un ORB CORBA
+(AdaBroker par exemple), ou bien à un ORB générique DROOPI (possédant
+une personnalité CORBA).
+
+Un ORB possède deux façades~:
+\begin{itemize}
+\item une façade qu'il présente aux entités (clients
+  ou serveurs) qui lui sont rattachées~;
+\item une façade qu'il présente à d'autres ORBs à travers un
+  réseau de communication et des protocoles de communication inter-ORB.
+\end{itemize}
+
+Chacune de ces façades possède plusieurs variantes~; le choix d'une
+variante détermine une personnalité.
+
+L'objectif de DROOPI est de découpler ces deux façades. D'une part, une entité
+peut se rattacher à un ORB DROOPI au moyen d'une des personnalités de cet ORB
+(paramétrant la façade «~entité~»). D'autre part, un ORB distants peut invoquer
+une méthode sur cette entité en transmettant une demande d'invocation à DROOPI
+au moyen d'une (autre) personnalité (paramétrant la façade «~ORB~»).
+
+\subsection{Domaine}
+% Limitation du scope de l'étude
+
+Nous souhaitons limiter notre étude à un ensemble de cas précis.
+
+Nous identifions les cas d'interopérations possibles par une matrice~:
+
+{
+\newcommand{\RH}[1]{\raisebox{-1ex}[0pt][1em]{\makebox[1em][l]{\rotatebox{45}{#1}}}}
+\def\myrule{\relax}
+\vspace{1cm}
+\begin{tabular}{l|*{4}{c!{\myrule}}@{\gdef\myrule{\vline}}}
+\backslashbox{Client}{Serveur}
+& \RH{DSA DROOPI}
+& \RH{DSA GLADE}
+& \RH{CORBA DROOPI}
+& \RH{CORBA AdaBroker}  \\ \hline\hline
+DSA DROOPI      & 3 & 6 & 5 & 5  \\\hline
+DSA GLADE       & 6 & 1 & 8 & 8  \\\hline
+CORBA DROOPI    & 4 & 7 & 2 & 2  \\\hline
+CORBA AdaBroker & 4 & 7 & 2 & 1  \\\hline
+\end{tabular}
+}
+
+\begin{enumerate}
+\item %1
+  Ne fait pas intervenir DROOPI.
+\item %2
+  La personnalité CORBA de DROOPI implémente les specs CORBA de l'OMG.
+  Cela suppose un support par un compilateur IDL.
+\item %3
+  La personnalité DSA de DROOPI implémente l'annexe des systèmes
+  répartis d'\ada{}. Cela suppose un support dans le compilateur.
+\item %4
+  Découplage des personnalités. Situation fonctionnellement
+  équivalente (pour le développeur d'application répartie) à CIAO,
+  mais sans avoir besoin d'un proxy.
+\item %5
+  Réciproque du précédent.
+\item %6
+  Suppose le support par DROOPI du protocole actuel de GLADE.
+\item %7
+  Suppose le support du protocole actuel de GLADE \emph{et} d'un
+  mécanisme permettant de retransmettre une requête reçue par un subrogé
+  «~serveur~» à un subrogé «~client~», pour continuation.\\
+  Situation identique à CIAO (avec proxy).
+\item %8
+  Réciproqe du précédent.
+\end{enumerate}
+
+\section{Découpage}
+\subsection{Client}
+
+Un client DROOPI dispose d'une description de service dans une
+personnalité donnée. Cette description de service va permettre
+de générer~:
+\begin{itemize}
+\item des stubs génériques~;
+\item des stubs spécifiques (par ex. fonction de sérialisation
+  d'un objet de type «~requête~»)~;
+\item des fonctions de représentation des types de données
+  manipulées.
+\end{itemize}
+
+Un serveur DROOPI dispose d'une description de service dans une
+personnalité donnée. Cette description de service va permettre
+de générer~:
+\begin{itemize}
+\item un squelette génériques~;
+\item un squelette spécifique (fonction de désérialisation
+  des objets requêtes)~;
+\item des fonctions de représentation des types de données
+  manipulées.
+\end{itemize}
+
+Si on souhaite supporter plusieurs familles de représentations
+différentes (eg. CDR (CORBA) \emph{et} XDR (GLADE)), alors il faut disposer
+des descriptions des types de données pour chaque personnalité
+associée.
+
+\subsection{Mécanisme d'interopérabilité}
+
+Par un moyen à définir, l'utilisateur peut traduire des descriptions
+de service d'une personnalité en descriptions de services d'une autre
+personnalité. À partir des deux descriptions, un client de l'une
+peut attaquer un serveur de l'autre.
+
+Cette facette peut, dans un premier temps, être réalisée par traduction
+manuelle. On laisse l'automatisation de cette phase à des travaux
+annexes ou futurs.
+
+\subsection{Objets communs de l'ORB}
+
+\subsection{Communication objects}
+\subsubsection{Transport channel termination point}
+
+$\leftrightarrow$ une socket de comm.
+
+Primitives~: read/write/close
+
+Doit pourvoir participer à un poll (e/s asynchrones, liées au mécanisme
+de gestion des événements dans l'ORB).
+
+Un point de terminaison connecté est associé à un seul protocole.
+
+\subsubsection{Transport service access point}
+
+$\leftrightarrow$ une socket en écoute.
+
+Doit pouvoir participer à un poll.
+
+Fournit des primitives bind/accept.
+
+Agit comme une factory de transport channel termination points.
+
+Un TSAP est rattaché à un seul protocole.
+
+\subsection{Appel de méthodes}
+\subsubsection{Protocoles de requêtes}
+
+Les souches et les squelettes spécifiques d'une personnalité interagissent
+avec des composants génériques de l'ORB. Cette interaction consiste en
+des échanges de SDUs définies par le méta-modèle~:
+\begin{description}
+\item[Primitive Method-invocation-REQUEST]
+\item[Événement Method-invocation-INDICATION]
+\item[Primitive Method-invocation-RESPONSE]
+\item[Événement Method-invocation-CONFIRMATION]
+\end{description}
+
+Les points d'accès à ces SDUs posent la limite entre le comportement
+spécifique d'une personnalité (vue par l'utilisateur) et le comportement
+générique.
+
+La traduction de ces SDU en échange de PDUs pose la limite entre le comportement
+générique et le comportement spécifique d'une personnalité (vue par les autres ORBs).
+
+Question~: est-il pertinent de définir plusieurs personnalités pour le dialogue inter-ORB~?
+En ce qui concerne DSA, de toute façon on devra modifier le compilateur pour implémenter
+DSA/DROOPI. La nécessité de conserver le protocole GLADE existant n'est donc pas évidente.
+Par ailleurs, Java/RMI tend à converger vers l'utilisation de GIOP. On peut donc, à la limite,
+décider que la communication entre ORBs \emph{se fait en GIOP} et que toute la partie «~protocole
+inter-ORB~» relève du comportement générique.
+
+Cela supprime une dimension de personnalisation, donc moins de souplesse \emph{mais} simplification
+de l'architecture, et évitement d'une explosion dans la combinatoire personnalités utilisateur/
+personnalités protocole (code généré pour chaque objet \emph{et} chaque protocole supporté).
+Une alternative à cette combinatoire est l'utilisation d'un référentiel d'interfaces générique
+contenant la description des méthodes dans un formalisme approprié, permettant à tout
+protocole de savoir comment sérialiser et désérialiser les appels à chaque méthode.
+
+\subsubsection{Sérialisation}
+
+Pour tout type de données (existant dans le contexte d'une personnalité utilisateur)
+il faut établir des fonctions de sérialisation (dans le contexte d'une personnalité protocole).
+
+\begin{itemize}
+\item Si on prend le parti de ne supporter que la représentation CDR, le problème est résolu
+  (on sait générer un encodeur CDR pour tout type de donnée de toute personnalité).
+
+\item Si on prend le parti de supporter plusieurs modèles de représentation,
+  \begin{itemize}
+
+  \item soit on doit faire face à une combinatoire quadratique (générer, pour chaque objet, autant
+    d'encodeurs que de protocoles supportés --- et alors où est la généricité de l'ORB ?),
+
+  \item soit on doit générer dans chaque personnalité utilisateur des fonctions de conversion
+    des données vers des types \emph{auto-descriptifs} de manière à ce que chaque encodeur
+    (dans une personnalité protocole) implémente (différemment) un même comportement générique.
+    Ces types auto-descriptifs seront similaires aux \emph{Any} de CORBA~; cette approche ressemble
+    à l'idée qui consiste à construire un ORB CORBA en partant de l'invocation dynamique.
+
+    Cela impose peut-être que le modèle de types de DROOPI (ie le modèle de description des types
+    auto-descriptifs) soit aussi riche que celui de DSA ($>$ CORBA) (notion par exemple d'argument
+    non-contraint pour lesquels une représentation particulière est nécessaire ??)
+  \end{itemize}
+\end{itemize}
+
+\end{document}

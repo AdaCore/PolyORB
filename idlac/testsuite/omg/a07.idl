@@ -1,5 +1,0 @@
-
-typedef string Name;
-
-typedef string<512> Title;
-

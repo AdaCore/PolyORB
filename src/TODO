@@ -1,0 +1,40 @@
+TODO for Droopi
+---------------
+
+$Id$
+
+Items still requiring attention
+-------------------------------
+
+* Support logging to syslog (also for Java ?)
+* Unified runtime configuration file
+  (modifications to Droopi.Log).
+* Droopi.Buffers: remove mentions of CDR.
+* When a connection is closed, release all associated
+  resources in a top-down fashion.
+* A single-task client configuration.
+* A multi-tasking server configuration.
+* A multi-tasking client configuration.
+* A mechanism for use of non-connected message passing
+  protocols (eg UDP).
+* A mechanism for optional implementation of reliable
+  message delivery over a non-reliable message delivery
+  protocol (eg UDP with ack/retransmission)
+
+Items processed
+---------------
+
+* Data reception: when the protocol knows how much data will
+  arrive, preallocate so that unmarshalling is guaranteed
+  to be presented with contiguous data.
+  When it does not, Receive_Buffer should call Receive_Socket
+  with Length no greater than the available space in the
+  chunk, and advance the current position by the exact
+  size of the received data (2770).
+
+* Rework Droopi.ORB event handling:
+  The event handling loop must occur within the critical
+  section (because it must mask certain sockets).
+  Jobs should be created for each event, which will be
+  actually processed by ORB tasks (2770).
+

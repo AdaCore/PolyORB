@@ -1,0 +1,13 @@
+--  CODING GUIDELINES
+--       for the
+--   DROOPI project
+
+The Ada 95 Quality & Style Guide is included by reference.
+
+Every package that can be declared Pure shall, then:
+every package that can be Preelaborate shall.
+
+Keep elaboration code minimal. Perform initialization explicitly.
+
+No direct use of protected objects. All synchronisation is
+to be performed through Droopi.Soft_Links.
