@@ -48,13 +48,13 @@ package RTCosScheduling is
    UnknownName : exception;
 
    UnknownName_Repository_Id : constant Standard.String
-     := "IDL:RTCosScheduling/UnknownName:1.0";
+     := "IDL:omg.org/RTCosScheduling/UnknownName:1.0";
 
    procedure Get_Members
      (From : Ada.Exceptions.Exception_Occurrence;
       To   : out UnknownName_Members);
 
    Repository_Id : constant Standard.String
-     := "IDL:RTCosScheduling:1.0";
+     := "IDL:omg.org/RTCosScheduling:1.0";
 
 end RTCosScheduling;

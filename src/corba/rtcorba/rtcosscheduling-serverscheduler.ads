@@ -55,7 +55,7 @@ package RTCosScheduling.ServerScheduler is
      return PortableServer.POA.Ref;
 
    create_POA_Repository_Id : constant Standard.String
-     := "IDL:RTCosScheduling/ServerScheduler/create_POA:1.0";
+     := "IDL:omg.org/RTCosScheduling/ServerScheduler/create_POA:1.0";
 
    procedure Schedule_Object
      (Self : in Local_Ref;
@@ -63,9 +63,9 @@ package RTCosScheduling.ServerScheduler is
       Name : in CORBA.String);
 
    schedule_object_Repository_Id : constant Standard.String
-     := "IDL:RTCosScheduling/ServerScheduler/schedule_object:1.0";
+     := "IDL:omg.org/RTCosScheduling/ServerScheduler/schedule_object:1.0";
 
    Repository_Id : constant Standard.String
-     := "IDL:RTCosScheduling/ServerScheduler:1.0";
+     := "IDL:omg.org/RTCosScheduling/ServerScheduler:1.0";
 
 end RTCosScheduling.ServerScheduler;

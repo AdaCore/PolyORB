@@ -47,9 +47,9 @@ package RTCosScheduling.ClientScheduler is
       Activity_Name : in CORBA.String);
 
    schedule_activity_Repository_Id : constant Standard.String
-     := "IDL:RTCosScheduling/ClientScheduler/schedule_activity:1.0";
+     := "IDL:omg.org/RTCosScheduling/ClientScheduler/schedule_activity:1.0";
 
    Repository_Id : constant Standard.String
-     := "IDL:RTCosScheduling/ClientScheduler:1.0";
+     := "IDL:omg.org/RTCosScheduling/ClientScheduler:1.0";
 
 end RTCosScheduling.ClientScheduler;
