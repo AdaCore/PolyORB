@@ -15,6 +15,6 @@
 //PolyORB:NI:            in boolean              constr_policy
 //PolyORB:NI:        ); 
 //PolyORB:NI:    };
-//PolyORB:NI:
-//PolyORB:NI:    typedef sequence <DomainManager> DomainManagersList;
+
+    typedef sequence <DomainManager> DomainManagersList;
 

@@ -35,12 +35,20 @@ with PolyORB.Initialization;
 with PolyORB.Utils.Strings;
 
 with CORBA.Object.Helper;
+with PolyORB.Sequences.Unbounded.CORBA_Helper;
 
 package body CORBA.DomainManager.Helper is
 
+   package IDL_Sequence_CORBA_DomainManager_Helper is
+     new IDL_Sequence_CORBA_DomainManager.CORBA_Helper
+     (Element_To_Any   => To_Any,
+      Element_From_Any => From_Any);
+
    procedure Deferred_Initialization;
 
-   TC_DomainManager_Cache : TypeCode.Object;
+   TC_DomainManager_Cache                    : TypeCode.Object;
+   TC_IDL_Sequence_CORBA_DomainManager_Cache : TypeCode.Object;
+   TC_DomainManagersList_Cache               : TypeCode.Object;
 
    -----------------------------
    -- Deferred_Initialization --
@@ -54,11 +62,38 @@ package body CORBA.DomainManager.Helper is
         (TC_DomainManager_Cache, To_Any (To_CORBA_String ("DomainManager")));
       TypeCode.Internals.Add_Parameter
         (TC_DomainManager_Cache, To_Any (To_CORBA_String (Repository_Id)));
+
+      IDL_Sequence_CORBA_DomainManager_Helper.Initialize (TC_DomainManager);
+      TC_IDL_Sequence_CORBA_DomainManager_Cache :=
+        IDL_Sequence_CORBA_DomainManager_Helper.Sequence_TC;
+
+      TC_DomainManagersList_Cache :=
+        TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Alias);
+      TypeCode.Internals.Add_Parameter
+        (TC_DomainManagersList_Cache,
+         To_Any (To_CORBA_String ("DomainManagersList")));
+      TypeCode.Internals.Add_Parameter
+        (TC_DomainManagersList_Cache,
+         To_Any (To_CORBA_String ("IDL:CORBA_A/DomainManagersList:1.0")));
+      TypeCode.Internals.Add_Parameter
+        (TC_DomainManagersList_Cache,
+         To_Any (TC_IDL_Sequence_CORBA_DomainManager));
    end Deferred_Initialization;
 
    --------------
    -- From_Any --
    --------------
+
+   function From_Any (Item : in Any)
+     return IDL_Sequence_CORBA_DomainManager.Sequence
+     renames IDL_Sequence_CORBA_DomainManager_Helper.From_Any;
+
+   function From_Any (Item : in Any) return DomainManagersList is
+      Result : constant IDL_Sequence_CORBA_DomainManager.Sequence
+        := From_Any (Item);
+   begin
+      return DomainManagersList (Result);
+   end From_Any;
 
    function From_Any (Item : in Any) return Ref is
    begin
@@ -74,9 +109,39 @@ package body CORBA.DomainManager.Helper is
       return TC_DomainManager_Cache;
    end TC_DomainManager;
 
+   ---------------------------
+   -- TC_DomainManagersList --
+   ---------------------------
+
+   function TC_DomainManagersList return TypeCode.Object is
+   begin
+      return TC_DomainManagersList_Cache;
+   end TC_DomainManagersList;
+
+   -----------------------------------------
+   -- TC_IDL_Sequence_CORBA_DomainManager --
+   -----------------------------------------
+
+   function TC_IDL_Sequence_CORBA_DomainManager return TypeCode.Object is
+   begin
+      return TC_IDL_Sequence_CORBA_DomainManager_Cache;
+   end TC_IDL_Sequence_CORBA_DomainManager;
+
    ------------
    -- To_Any --
    ------------
+
+   function To_Any (Item : in IDL_Sequence_CORBA_DomainManager.Sequence)
+      return Any
+      renames IDL_Sequence_CORBA_DomainManager_Helper.To_Any;
+
+   function To_Any (Item : in DomainManagersList) return Any is
+      Result : Any
+        := To_Any (IDL_Sequence_CORBA_DomainManager.Sequence (Item));
+   begin
+      CORBA.Set_Type (Result, TC_DomainManagersList);
+      return Result;
+   end To_Any;
 
    function To_Any (Item : in Ref) return Any is
       Result : Any := Object.Helper.To_Any (Object.Ref (Item));

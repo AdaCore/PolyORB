@@ -38,6 +38,7 @@
 
 with CORBA.Object;
 with CORBA.Policy;
+with CORBA.Sequences.Unbounded;
 
 package CORBA.DomainManager is
 
@@ -51,7 +52,16 @@ package CORBA.DomainManager is
    function Is_A
      (Self            : in Ref;
       Logical_Type_Id : in Standard.String)
-      return CORBA.Boolean;
+     return CORBA.Boolean;
+
+   --  Implementation note: this Sequence type should be defined in
+   --  package CORBA. Yet, this would create circular dependencies
+   --  between CORBA and CORBA.Sequences.
+
+   package IDL_Sequence_CORBA_DomainManager is
+     new CORBA.Sequences.Unbounded (Ref);
+
+   type DomainManagersList is new IDL_Sequence_CORBA_DomainManager.Sequence;
 
 private
 

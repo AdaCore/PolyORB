@@ -38,6 +38,7 @@ package body PolyORB.CORBA_P.Policy_Management is
    type Policy_Info is record
       Registered          : Boolean := False;
       POA_Level           : Boolean;
+      Domain_Level        : Boolean;
       ORB_Level           : Boolean;
       Thread_Level        : Boolean;
       Reference_Level     : Boolean;
@@ -96,6 +97,9 @@ package body PolyORB.CORBA_P.Policy_Management is
                if not Is_Reference_Policy (The_Type) then
                   CORBA.Raise_No_Permission (CORBA.Default_Sys_Member);
                end if;
+
+            when Domain_Level =>
+               raise Program_Error;
 
          end case;
 
@@ -179,6 +183,20 @@ package body PolyORB.CORBA_P.Policy_Management is
       return Result;
    end Get_Policy_Overrides;
 
+   ----------------------
+   -- Is_Domain_Policy --
+   ----------------------
+
+   function Is_Domain_Policy
+     (The_Type : in CORBA.PolicyType)
+     return Boolean
+   is
+   begin
+      pragma Assert (Policy_Registry (The_Type).Registered);
+
+      return Policy_Registry (The_Type).Domain_Level;
+   end Is_Domain_Policy;
+
    -------------------
    -- Is_ORB_Policy --
    -------------------
@@ -244,6 +262,20 @@ package body PolyORB.CORBA_P.Policy_Management is
       return Policy_Registry (The_Type).Thread_Level;
    end Is_Thread_Policy;
 
+   ---------------------------------
+   -- Policy_System_Default_Value --
+   ---------------------------------
+
+   function Policy_System_Default_Value
+     (The_Type : in CORBA.PolicyType)
+     return CORBA.Policy.Ref
+   is
+   begin
+      pragma Assert (Policy_Registry (The_Type).Registered);
+
+      return Policy_Registry (The_Type).System_Default;
+   end Policy_System_Default_Value;
+
    -----------------------
    -- Raise_PolicyError --
    -----------------------
@@ -267,6 +299,7 @@ package body PolyORB.CORBA_P.Policy_Management is
       ORB_Level           : in Boolean                  := False;
       Thread_Level        : in Boolean                  := False;
       Reference_Level     : in Boolean                  := False;
+      Domain_Level        : in Boolean                  := False;
       Factory             : in Policy_Factory           := null;
       Compatibility_Check : in Compatibility_Check_Proc := null;
       Reconciliation      : in Reconciliation_Proc      := null;
@@ -276,6 +309,7 @@ package body PolyORB.CORBA_P.Policy_Management is
       Policy_Registry (The_Type) :=
         (Registered          => True,
          POA_Level           => POA_Level,
+         Domain_Level        => Domain_Level,
          ORB_Level           => ORB_Level,
          Thread_Level        => Thread_Level,
          Reference_Level     => Reference_Level,

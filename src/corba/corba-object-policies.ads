@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---           C O R B A . D O M A I N M A N A G E R . H E L P E R            --
+--                C O R B A . O B J E C T . P O L I C I E S                 --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -36,35 +36,38 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.Object;
+with CORBA.DomainManager;
+with CORBA.Policy;
 
-package CORBA.DomainManager.Helper is
+package CORBA.Object.Policies is
 
-   function Unchecked_To_Ref (The_Ref : in Object.Ref'Class) return Ref;
+   function Get_Policy
+     (Self        : in Ref;
+      Policy_Type : in PolicyType)
+      return CORBA.Policy.Ref;
 
-   function To_Ref (The_Ref : in Object.Ref'Class) return Ref;
+   function Get_Domain_Managers
+     (Self : in Ref'Class)
+      return CORBA.DomainManager.DomainManagersList;
 
-   function TC_DomainManager return TypeCode.Object;
+   procedure Set_Policy_Overrides
+     (Self     : in Ref'Class;
+      Policies : in CORBA.Policy.PolicyList;
+      Set_Add  : in SetOverrideType);
 
-   function From_Any (Item : in Any) return Ref;
+   function Get_Client_Policy
+     (Self     : in Ref'Class;
+      The_Type : in PolicyType)
+      return CORBA.Policy.Ref;
 
-   function To_Any (Item : in Ref) return Any;
+   function Get_Policy_Overrides
+     (Self  : in Ref'Class;
+      Types : in CORBA.Policy.PolicyTypeSeq)
+      return CORBA.Policy.PolicyList;
 
-   --  DomainManager sequence
+--   procedure Validate_Connection
+--     (Self                  : in     Ref;
+--      Inconsistent_Policies :    out CORBA.Policy.PolicyList;
+--      Result                :    out Boolean);
 
-   function TC_IDL_Sequence_CORBA_DomainManager return TypeCode.Object;
-
-   function From_Any (Item : in Any)
-      return IDL_Sequence_CORBA_DomainManager.Sequence;
-
-   function To_Any
-     (Item : in IDL_Sequence_CORBA_DomainManager.Sequence)
-      return Any;
-
-   function TC_DomainManagersList return TypeCode.Object;
-
-   function From_Any (Item : in Any) return DomainManagersList;
-
-   function To_Any (Item : in DomainManagersList) return Any;
-
-end CORBA.DomainManager.Helper;
+end CORBA.Object.Policies;

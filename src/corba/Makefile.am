@@ -17,6 +17,7 @@ ADA_SPECS_WITH_BODY = \
 	corba-impl.ads \
 	corba-nvlist.ads \
 	corba-object-helper.ads \
+	corba-object-policies.ads \
 	corba-object.ads \
 	corba-orb.ads \
 	corba-policy-helper.ads \

@@ -50,7 +50,7 @@ package PolyORB.CORBA_P.Policy_Management is
    Null_Policy : CORBA.Policy.Ref;
 
    type Policy_Override_Level is
-     (POA_Level, ORB_Level, Thread_Level, Reference_Level);
+     (POA_Level, Domain_Level, ORB_Level, Thread_Level, Reference_Level);
    --  Level of policy overrides
 
    type Policy_Factory is
@@ -74,6 +74,11 @@ package PolyORB.CORBA_P.Policy_Management is
      return Boolean;
    --  Return True iff The_Type is a POA level policy
 
+   function Is_Domain_Policy
+     (The_Type : in CORBA.PolicyType)
+     return Boolean;
+   --  Return True iff The_Type is a Domain level policy
+
    function Is_ORB_Policy
      (The_Type : in CORBA.PolicyType)
      return Boolean;
@@ -88,6 +93,11 @@ package PolyORB.CORBA_P.Policy_Management is
      (The_Type : in CORBA.PolicyType)
      return Boolean;
    --  Return True iff The_Type is an object reference policy
+
+   function Policy_System_Default_Value
+     (The_Type : in CORBA.PolicyType)
+     return CORBA.Policy.Ref;
+   --  Return system default value for given policy type
 
    procedure Add_Policy_Overrides
      (To       : in out Policy_List;
@@ -137,6 +147,7 @@ package PolyORB.CORBA_P.Policy_Management is
       ORB_Level           : in Boolean                  := False;
       Thread_Level        : in Boolean                  := False;
       Reference_Level     : in Boolean                  := False;
+      Domain_Level        : in Boolean                  := False;
       Factory             : in Policy_Factory           := null;
       Compatibility_Check : in Compatibility_Check_Proc := null;
       Reconciliation      : in Reconciliation_Proc      := null;
@@ -144,6 +155,7 @@ package PolyORB.CORBA_P.Policy_Management is
    --  Register CORBA Policy and define allowed policy usage.
    --   - The_Type            : policy id
    --   - POA_Level           : policy is allowed at POA level
+   --   - Domain_Level        : policy is allowed at Domain level
    --   - ORB_Level           : policy is allowed at ORB level
    --   - Thread_Level        : policy is allowed at thread level
    --   - Reference_Level     : policy is allowed at object reference level
