@@ -47,9 +47,10 @@ def read_MANIFEST (dir):
   MANIFEST = []
   for l in open ("MANIFEST", "r").readlines ():
     l = l[:-1]
-    MANIFEST.append (l)
-    if l[-3:] == ".in":
-      MANIFEST.append (l[:-3])
+    if re.match (dir + "/[^/]*$", l):
+      MANIFEST.append (l)
+      if l[-3:] == ".in":
+        MANIFEST.append (l[:-3])
       
   return MANIFEST
 
