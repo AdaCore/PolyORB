@@ -1106,10 +1106,10 @@ package body Droopi.Any is
 
    function Image (A : Any) return Standard.String is
    begin
-      case TypeCode.Parameter_Count (A.The_Type) is
-         when 0 =>
-            return "<No parameter>";
-         when others =>
+--       case TypeCode.Parameter_Count (A.The_Type) is
+--          when 0 =>
+--             return "<No parameter>";
+--          when others =>
             case TypeCode.Kind (A.The_Type) is
                when Tk_Short =>
                   return Short'Image (From_Any (A));
@@ -1142,7 +1142,7 @@ package body Droopi.Any is
                when others =>
                   return "<No standard type>";
             end case;
-      end case;
+--      end case;
    end Image;
 
    -----------
