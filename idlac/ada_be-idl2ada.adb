@@ -641,7 +641,7 @@ package body Ada_Be.Idl2Ada is
                      Gen_Node_Stubs_Spec
                        (Stubs_Spec, Decl_Node);
 
-                     if False then
+                     if True then
                      --  XXX change this to allow an idlac CLI flag to choose
                      --  between static and dynamic (DII) client stub
                      --  generation.
@@ -764,7 +764,7 @@ package body Ada_Be.Idl2Ada is
                      Gen_Node_Stubs_Spec
                        (Stubs_Spec, Export_Node);
 
-                     if False then
+                     if True then
                      --  XXX change to allow for stub style selection.
                         Gen_Node_Stubs_Body (Stubs_Body, Export_Node);
                      else
