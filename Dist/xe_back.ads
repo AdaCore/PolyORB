@@ -165,7 +165,7 @@ package XE_Back is
 
    -- Tables --
 
-   package Partitions  is new Table
+   package Partitions  is new Table.Table
      (Table_Component_Type => Partition_Type,
       Table_Index_Type     => PID_Type,
       Table_Low_Bound      => First_PID,
@@ -173,7 +173,7 @@ package XE_Back is
       Table_Increment      => 100,
       Table_Name           => "Partition");
 
-   package Hosts  is new Table
+   package Hosts  is new Table.Table
      (Table_Component_Type => Host_Type,
       Table_Index_Type     => HID_Type,
       Table_Low_Bound      => First_HID,
@@ -181,7 +181,7 @@ package XE_Back is
       Table_Increment      => 100,
       Table_Name           => "Host");
 
-   package Channels  is new Table
+   package Channels  is new Table.Table
      (Table_Component_Type => Channel_Type,
       Table_Index_Type     => CID_Type,
       Table_Low_Bound      => First_CID,
@@ -189,7 +189,7 @@ package XE_Back is
       Table_Increment      => 100,
       Table_Name           => "Channel");
 
-   package CUnit is new Table
+   package CUnit is new Table.Table
      (Table_Component_Type => Conf_Unit_Type,
       Table_Index_Type     => CUID_Type,
       Table_Low_Bound      => First_CUID,

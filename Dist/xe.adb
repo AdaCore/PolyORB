@@ -102,7 +102,7 @@ package body XE is
    --  is Pre_Type_Ada_Unit, then the value of this variable is a
    --  subprogram.
 
-   package Nodes is new Table
+   package Nodes is new Table.Table
      (Table_Component_Type => Node_Type,
       Table_Index_Type     => Node_Id,
       Table_Low_Bound      => First_Node,

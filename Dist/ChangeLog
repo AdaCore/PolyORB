@@ -1,3 +1,7 @@
+Fri Mar 28 18:17:59 1997  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* xe.adb, xe_back.ads: Adapt to new Table package.
+
 Thu Mar 27 16:33:18 1997  Laurent Pautet  <pautet@marvin.enst.fr>
 
 	* xe_utils.ads: Fix bad renaming that was not detected before.
