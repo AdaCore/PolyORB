@@ -3,10 +3,7 @@
   (Cyrille, 11 Apr 97)
 * Provide a tk script (graphical tool) (Laurent, 2 Oct 97)
 * Add a Linda implementation (Laurent, 2 Oct 97)
-* Port on NT and SGI
-* Continue the documentation
 * Check why adding extra explicit conversion of a RACW into the same RACW type
   makes GNAT generate extra checks that are not bogus in the new expansion
   scheme (Sam, 28 Feb 98)
-* Unblock caller when remote partition dies during a remote call
-  (Laurent, 15 Jul 98)
+* Control concurrency at several levels (partition, package, subprogram)
