@@ -76,4 +76,41 @@ package body PolyORB.Obj_Adapters is
       return new Object_Id'(To_Oid (S (S'First + 1 .. S'Last)));
    end Rel_URI_To_Oid;
 
+   function Is_Proxy_Oid (Id : access Object_Id)
+     return Boolean
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (Id);
+      pragma Warnings (On);
+   begin
+      return False;
+      --  In the default implementation, proxy object
+      --  Ids are not supported, and thus no oid is
+      --  a proxy oid.
+   end Is_Proxy_Oid;
+
+   function To_Proxy_Oid (R : References.Ref)
+     return Object_Id_Access
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (R);
+      pragma Warnings (On);
+   begin
+      raise Not_Implemented;
+      return null;
+   end To_Proxy_Oid;
+
+   function To_Ref (Proxy_Oid : access Object_Id)
+     return References.Ref
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (R);
+      pragma Warnings (On);
+   begin
+      raise PolyORB.Not_Implemented;
+      pragma Warnings (Off);
+      return To_Ref (Proxy_Oid);
+      pragma Warnings (On);
+   end To_Ref;
+
 end PolyORB.Obj_Adapters;

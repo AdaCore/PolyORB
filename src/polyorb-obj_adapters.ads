@@ -40,6 +40,7 @@ with PolyORB.Any.NVList;
 
 with PolyORB.Components;
 with PolyORB.Objects; use PolyORB.Objects;
+with PolyORB.References;
 with PolyORB.Requests;
 with PolyORB.Smart_Pointers;
 with PolyORB.Types;
@@ -137,6 +138,29 @@ package PolyORB.Obj_Adapters is
    --  a relative URI. A default implementation of these
    --  functions is provided; actual object adapters may
    --  overload them if desired.
+
+   --------------------------------
+   -- Proxy namespace management --
+   --------------------------------
+
+   --  The object id name space is managed entirely by the
+   --  object adapter. Consequently, the OA is also responsible
+   --  for assigning object IDs to virtual proxy objects
+   --  corresponding to object references for which we act as
+   --  a proxy.
+
+   function Is_Proxy_Oid (Id : access Object_Id)
+     return Boolean;
+
+   function To_Proxy_Oid (R : References.Ref)
+     return Object_Id_Access;
+
+   function To_Ref (Proxy_Oid : access Object_Id)
+     return References.Ref;
+
+   --  These operations may be left unimplemented by some object
+   --  adapter types, in which case the above two operations
+   --  shall raise PolyORB.Not_Implemented.
 
 private
 

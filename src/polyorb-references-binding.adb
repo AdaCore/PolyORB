@@ -42,6 +42,7 @@ with PolyORB.Filters;
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Obj_Adapters;
+with PolyORB.Objects;
 with PolyORB.ORB;
 with PolyORB.Transport;
 with PolyORB.Types;
@@ -91,6 +92,9 @@ package body PolyORB.References.Binding is
          Best_Preference : Profile_Preference
            := Profile_Preference'First;
          Best_Profile_Index : Integer := Profiles'Last + 1;
+
+         Object_Id : PolyORB.Objects.Object_Id_Access;
+
       begin
          --  XXX should probably rework the two-phase preference
          --  -> bind mechanism, else we could have a case where
@@ -128,23 +132,38 @@ package body PolyORB.References.Binding is
 
             Pro := P;
             if P.all in Local_Profile_Type
-              or else Is_Profile_Local (Local_ORB, P) then
-               --  Easy case: local profile.
-               --  Resolve object id within local object adapter.
-               Servant := Components.Component_Access
-                 (Find_Servant
-                  (Object_Adapter (Local_ORB),
-                   Get_Object_Key (P.all)));
+              or else Is_Profile_Local (Local_ORB, P)
+            then
 
-               --  ==> When binding a local reference, an OA
-               --      is needed. Where do we obtain it from?
-               --      PolyORB.References cannot depend on Obj_Adapters!
-               --      ... but D.R.Binding can depend on anything.
+               --  Local profile
 
-               --      We also need to know what profiles are local,
-               --      presumably by sending the ORB an Is_Local_Profile
-               --      query for each profile (for the condition below).
+               Object_Id := Get_Object_Key (P.all);
 
+               if Is_Proxy_Oid (Object_Id) then
+                  declare
+                     Continuation : PolyORB.References.Ref
+                       := To_Ref (Object_Id);
+                  begin
+                     --  Attach (Continuation, P);
+                     --  XXX need to keep Continuation in
+                     --  an annotation on P so as to not
+                     --  destroy the binding before P is release.
+                     Bind (Continuation, Local_ORB, Servant, Pro);
+                  end;
+               else
+                     --  Real local object
+                     Servant := Components.Component_Access
+                       (Find_Servant
+                        (Object_Adapter (Local_ORB), Object_Id));
+
+                     --  ==> When binding a local reference, an OA
+                     --      is needed. Where do we obtain it from?
+                     --      PolyORB.References cannot depend on Obj_Adapters!
+                     --      ... but D.R.Binding can depend on anything.
+                     --      We also need to know what profiles are local,
+                     --      presumably by sending the ORB an Is_Local_Profile
+                     --      query for each profile (for the condition below).
+               end if;
             else
                declare
                   use PolyORB.Components;
