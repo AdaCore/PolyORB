@@ -40,6 +40,11 @@ package PolyORB.Utils is
 
    pragma Pure;
 
+   function Hex_Value (C : Character) return Integer;
+   --  The integer value corresponding to hexadecimal digit C.
+   --  If C is not a valid hexadecimal digit, Constraint_Error
+   --  is raised.
+
    function To_String
      (A : Ada.Streams.Stream_Element_Array)
      return String;

@@ -38,15 +38,26 @@ with Ada.Unchecked_Deallocation;
 
 package body PolyORB.Utils.Chained_Lists is
 
+   function Length (L : List) return Natural is
+      N : List := L;
+      C : Natural := 0;
+   begin
+      while N /= null loop
+         C := C + 1;
+         N := N.Next;
+      end loop;
+      return C;
+   end Length;
+
    function First (L : List) return Iterator is
    begin
       return Iterator (L);
    end First;
 
-   function Element (I : Iterator) return Element_Access is
+   function Value (I : Iterator) return Element_Access is
    begin
       return I.Value;
-   end Element;
+   end Value;
 
    function Last (I : Iterator) return Boolean is
    begin

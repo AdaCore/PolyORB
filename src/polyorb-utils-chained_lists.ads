@@ -44,8 +44,9 @@ package PolyORB.Utils.Chained_Lists is
    type Iterator is private;
    type Element_Access is access T;
 
+   function Length (L : List) return Natural;
    function First (L : List) return Iterator;
-   function Element (I : Iterator) return Element_Access;
+   function Value (I : Iterator) return Element_Access;
    function Last (I : Iterator) return Boolean;
    procedure Next (I : in out Iterator);
 
@@ -59,7 +60,7 @@ package PolyORB.Utils.Chained_Lists is
    procedure Deallocate (L : in out List);
 
    pragma Inline (First);
-   pragma Inline (Element);
+   pragma Inline (Value);
    pragma Inline (Last);
    pragma Inline (Next);
    pragma Inline (Prepend);

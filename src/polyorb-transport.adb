@@ -100,6 +100,7 @@ package body PolyORB.Transport is
          declare
             DE : Data_Expected renames Data_Expected (Msg);
          begin
+            pragma Assert (DE.In_Buf /= null);
             TE.In_Buf := DE.In_Buf;
             TE.Max    := DE.Max;
          end;
@@ -108,11 +109,11 @@ package body PolyORB.Transport is
          pragma Debug (O ("Data received"));
 
          if TE.In_Buf = null then
-            O ("Unexpected data!");
+            O ("Unexpected data (no buffer)");
 
+            Close (Transport_Endpoint'Class (TE.all));
             raise Connection_Closed;
             --  Notify the ORB that the socket was disconnected.
-            --  XXX what to do? who closes what?
          end if;
 
          declare
@@ -123,12 +124,18 @@ package body PolyORB.Transport is
             if Size = 0 then
                O ("Connection closed.");
 
+               Close (Transport_Endpoint'Class (TE.all));
                raise Connection_Closed;
                --  Notify the ORB that the socket was disconnected.
-               --  XXX what to do? who closes what?
+               --  The sender of the Data_Indication message is
+               --  reponsible for handling this exception and ckisubg
+               --  the transport endpoint, if necessary.
             end if;
 
-            return Emit (TE.Upper, Msg);
+            return Emit (TE.Upper, Data_Indication'(Data_Amount => Size));
+            --  Note: this component guarantees that the upper layers will
+            --  only receive Data_Indications with a non-zero Data_Amount.
+
          end;
       elsif Msg in Data_Out then
          Write (Transport_Endpoint'Class (TE.all), Data_Out (Msg).Out_Buf);

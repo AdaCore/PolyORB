@@ -43,6 +43,7 @@ with PolyORB.Utils.Chained_Lists;
 pragma Elaborate_All (PolyORB.Utils.Chained_Lists);
 with PolyORB.HTTP_Methods;
 with PolyORB.ORB;
+with PolyORB.Types;
 
 package PolyORB.Filters.HTTP is
 
@@ -58,17 +59,45 @@ package PolyORB.Filters.HTTP is
 
 private
 
-   type HTTP_Filter_Factory is new Factory with null record;
-
-   type HTTP_State is (Start_Line, Header, Entity);
-   --  An HTTP session is either expecting a (request or response)
-   --  message start line, a generic message header, or an entity
-   --  constituting a message body?
-
    type HTTP_Version is record
      Major : Natural;
      Minor : Natural;
    end record;
+
+   -------------------------------------
+   -- Terminals of the message syntax --
+   -------------------------------------
+
+   CRLF             : constant String := ASCII.CR & ASCII.LF;
+
+   HTTP_Slash       : constant String := "HTTP/";
+   --  in HTTP-Version
+
+   Encoding_Chunked  : constant String := "chunked";
+   Encoding_Identity : constant String := "identity";
+   --  in transfer-coding
+
+   Default_HTTP_Version : constant HTTP_Version
+     := (Major => 1, Minor => 1);
+
+   -----------
+   -- Types --
+   -----------
+
+   type HTTP_Filter_Factory is new Factory with null record;
+
+   type HTTP_State is
+     (Start_Line,
+      Header,
+      Chunk_Size,
+      Entity);
+   --  An HTTP session is either expecting a (request or response)
+   --  message start line, a generic message header, or an entity
+   --  constituting a message body?
+
+   subtype Line_By_Line is HTTP_State range Start_Line .. Chunk_Size;
+   --  In these states, message data is processed by entire lines
+   --  terminated by CRLF.
 
    function Image (V : HTTP_Version) return String;
 
@@ -93,21 +122,47 @@ private
       --  Data received in In_Buf and not processed yet
       --  (reset when changing states).
 
-      --------------------------------------------
-      -- Parameters concerning the HTTP message --
-      -- currently being processed              --
-      --------------------------------------------
+      ----------------------------------------------------------
+      -- Parameters concerning the HTTP message               --
+      -- currently being processed.                           --
+      -- Whenever a member is added here, its                 --
+      -- initialization must be added to Clear_Message_State. --
+      ----------------------------------------------------------
 
       Version : HTTP_Version;
-      Status  : Natural;
+      Status  : Integer;
 
       Request_Method : PolyORB.HTTP_Methods.Method;
       Request_URI    : String_Ptr;
 
-      Content_Length    : Natural;
+      Content_Length    : Integer;
       Transfer_Encoding : String_Lists.List;
+      --  Values of the corresponding HTTP headers.
+
+      Chunked : Boolean;
+      --  Applied transfer encodings, in REVERSE order
+      --  (consequence: if Length (Transfer_Encoding) > 0 then
+      --    First (Tranfer_Encoding) MUST have the value "chunked"
+      --  (RFC 2616 3.6), and in this case Chunked is True).
+
+      Transfer_Length : Integer;
+      --  The size of the currently expected chunk of data.
+      --  -1 means expect data of unspecified length;
+      --  0 means that all the expected data for this message
+      --  has been received, and can now be signalled to the
+      --  upper layer.
+
+      Entity : PolyORB.Types.String;
+      --  The contents of the entity, as transferred by the
+      --  peer, according to the encoding specified in
+      --  Transfer_Encoding.
    end record;
 
+   procedure Clear_Message_State (F : in out HTTP_Filter);
+   --  Reset all message state members in F to their
+   --  initialization values.
+
+   procedure Initialize (F : in out HTTP_Filter);
    procedure Finalize (F : in out HTTP_Filter);
 
    function Handle_Message

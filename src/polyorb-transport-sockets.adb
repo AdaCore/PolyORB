@@ -132,7 +132,9 @@ package body PolyORB.Transport.Sockets is
 
    procedure Close (TE : in out Socket_Endpoint) is
    begin
-      Close_Socket (TE.Socket);
+      if TE.Socket /= No_Socket then
+         Close_Socket (TE.Socket);
+      end if;
       TE.Socket := No_Socket;
    end Close;
 

@@ -68,9 +68,6 @@ package body PolyORB.Utils is
          'f' => 15,
          others => -1);
 
-   function Hex_Value (C : Character) return Integer;
-   --  Self-explanatory.
-
    ---------------
    -- Hex_Value --
    ---------------
