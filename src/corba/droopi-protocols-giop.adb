@@ -1110,7 +1110,7 @@ package body Droopi.Protocols.GIOP is
       Target_Ref  : Target_Address_Access;
 
       ORB : constant ORB_Access := ORB_Access (Ses.Server);
-      Temp_Arg : Any.NamedValue_Access;
+      Temp_Arg : Any.NamedValue;
       List     : NV_Sequence_Access;
 
    begin
@@ -1154,14 +1154,20 @@ package body Droopi.Protocols.GIOP is
       --  Unmarshalling of arguments
       List :=  List_Of (Args);
       for I in 1 .. Get_Count (Args) loop
-         Temp_Arg := new NamedValue'(NV_Sequence.Element_Of
-                 (List.all, Positive (I)));
+         Temp_Arg :=  NV_Sequence.Element_Of
+           (List.all, Positive (I));
          if False
-             or else Temp_Arg.Arg_Modes = ARG_IN
-             or else Temp_Arg.Arg_Modes = ARG_INOUT
+           or else Temp_Arg.Arg_Modes = ARG_IN
+           or else Temp_Arg.Arg_Modes = ARG_INOUT
          then
             Unmarshall_To_Any (Ses.Buffer_In, Temp_Arg.Argument);
          end if;
+         NV_Sequence.Replace_Element
+           (List.all, Positive (I), Temp_Arg);
+         --  XXX This is very inefficient because of multiple
+         --    copies of an Any. The Unmarshall_To_Any should
+         --    be done in-place on the actual Element_Array
+         --    deep within List...
       end loop;
 
       Result :=
