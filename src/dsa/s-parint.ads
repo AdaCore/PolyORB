@@ -32,6 +32,8 @@
 ------------------------------------------------------------------------------
 
 --  This version is for PolyORB.
+--  For each entity, we document whether it is shared with the
+--  default GNAT implementation, or with the GLADE implementation.
 
 --  $Id$
 
@@ -44,15 +46,20 @@ package System.Partition_Interface is
 
    pragma Elaborate_Body;
 
+   type DSA_Implementation_Name is (No_DSA, GLADE_DSA, PolyORB_DSA);
+   DSA_Implementation : constant DSA_Implementation_Name := PolyORB_DSA;
+
 --    type Subprogram_Id is new Natural;
 --    --  This type is used exclusively by stubs
 
    subtype Unit_Name is String;
    --  Name of Ada units
+   --  SHARED: GNAT,GLADE,PolyORB
 
 --    type Main_Subprogram_Type is access procedure;
 
    subtype RACW_Stub_Type is System.PolyORB_Interface.RACW_Stub_Type;
+   --  SHARED: none
 --    type RACW_Stub_Type is tagged record
 --       Origin       : RPC.Partition_ID;
 --       Receiver     : Interfaces.Unsigned_64;
@@ -61,6 +68,7 @@ package System.Partition_Interface is
 --    end record;
    subtype RACW_Stub_Type_Access is
      System.PolyORB_Interface.RACW_Stub_Type_Access;
+   --  SHARED: none
    --  This type is used by the expansion to implement distributed objects.
    --  Do not change its definition or its layout without updating
    --  exp_dist.adb.
@@ -75,6 +83,8 @@ package System.Partition_Interface is
    function Get_Active_Partition_ID
      (Name : Unit_Name)
       return RPC.Partition_ID;
+   --  SHARED: GNAT,GLADE,PolyORB
+   --  IMPL-SHARED: none
    --  Similar in some respects to RCI_Info.Get_Active_Partition_ID
 
 --    function Get_Active_Version
@@ -83,6 +93,8 @@ package System.Partition_Interface is
 --    --  Similar in some respects to Get_Active_Partition_ID
 
    function Get_Local_Partition_ID return RPC.Partition_ID;
+   --  SHARED: GNAT,GLADE,PolyORB
+   --  IMPL-SHARED: none
    --  Return the Partition_ID of the current partition
 
 --    function Get_Passive_Partition_ID
@@ -100,11 +112,15 @@ package System.Partition_Interface is
 
    procedure Get_Unique_Remote_Pointer
      (Handler : in out RACW_Stub_Type_Access);
+   --  SHARED: GNAT,GLADE,PolyORB
+   --  IMPL-SHARED: none
    --  Get a unique pointer on a remote object
 
    procedure Raise_Program_Error_Unknown_Tag
      (E : in Ada.Exceptions.Exception_Occurrence);
    pragma No_Return (Raise_Program_Error_Unknown_Tag);
+   --  SHARED: GNAT,GLADE,PolyORB
+   --  IMPL-SHARED: GNAT,GLADE,PolyORB
    --  Raise Program_Error with the same message as E one
 
 --    procedure Register_Receiving_Stub
