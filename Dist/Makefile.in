@@ -281,7 +281,8 @@ force:
 
 gnatdist$(EXEEXT): $(gnatdist_DEPENDENCIES) force
 	$(GNATMAKE) -m $(GNATFLAGS) -I. -I$(srcdir) -I$(GNATSRC) \
-	   $(srcdir)/xe_build.adb -o gnatdist$(EXEEXT) -largs $(LIBS)
+	   $(srcdir)/xe_build.adb -o gnatdist$(EXEEXT) \
+	   -bargs -static -largs $(LIBS)
 
 xe_sysdep.adb: xe_sysdep-std.adb xe_sysdep-nt.adb
 	@echo Selecting xe_sysdep.adb
@@ -346,7 +347,7 @@ xe_defs.o: xe_defs.ads xe_defs.adb
 	$(ADA) -c -g -O2 -gnatp -I$(srcdir) -I$(GNATSRC) xe_defs.adb
 
 xe_sysdep.o: xe_sysdep.ads xe_sysdep.adb
-	$(ADA) -c -g -O2 -gnatpg -I$(srcdir) -I$(GNATSRC) xe_sysdep.adb
+	$(ADA) -c -g -O2 -gnatp -I$(srcdir) -I$(GNATSRC) xe_sysdep.adb
 
 sdefault.adb: $(srcdir)/config.sdefault
 	@if [ -f $(GNATSRC)/sdefault.adb ]; then \

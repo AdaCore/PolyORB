@@ -1,3 +1,7 @@
+2002-01-28  Laurent Pautet  <pautet@arlequin.enst.fr>
+
+	* Makefile.am, Makefile.in: Add -bargs -static to fix 9728-002.
+
 2002-01-25  Laurent Pautet  <pautet@arlequin.enst.fr>
 
 	* xe_sysdep-nt.adb: Add a pragma Unreferenced to an unused
