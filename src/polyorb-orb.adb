@@ -575,7 +575,7 @@ package body PolyORB.ORB is
       A_Note  : AES_Note;
       ORB_Acc : constant ORB_Access := ORB_Access (ORB);
    begin
-      pragma Debug (O ("Register_Acces_Point: enter"));
+      pragma Debug (O ("Register_Access_Point: enter"));
 
       --  Set link from AES to TAP, Chain and PF.
 
@@ -605,7 +605,7 @@ package body PolyORB.ORB is
 
       Insert_Source (ORB_Acc, New_AES);
 
-      pragma Debug (O ("Register_Acces_Point: leave"));
+      pragma Debug (O ("Register_Access_Point: leave"));
    end Register_Access_Point;
 
    ----------------------
@@ -962,21 +962,8 @@ package body PolyORB.ORB is
               (O ("Run_Request: got " & Ada.Tags.External_Tag (Result'Tag)));
 
             if Result not in Null_Message then
-               --  An answer was synchronously provided by the
-               --  servant: send it back to the requesting party
-               --  iff it is required.
-
-               if Is_Set (Sync_With_Target, J.Request.Req_Flags)
-                 or else Is_Set (Sync_Call_Back, J.Request.Req_Flags)
-               then
-                  Emit_No_Reply (J.Requestor, Result);
-               end if;
+               Emit_No_Reply (J.Requestor, Result);
             end if;
-
-            --  XXX Should that be Emit? Should there be a reply
-            --      from Requestor?
-            --  XXX Who frees the Request object?
-
          end;
          pragma Debug (O ("Run_Request: executed request"));
       end;
