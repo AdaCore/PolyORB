@@ -1,5 +1,4 @@
-#BROCA_ADASOCKET = $(BROCA_TOP)/adasockets-0.1.3/src
-BROCA_ADASOCKET = /usr/lib/adasockets
+BROCA_ADASOCKET = $(BROCA_TOP)/adasockets-0.1.3/src
 GNATMAKE = gnatmake
 ADA_FLAGS = -O2 -g -gnatf -gnatwu -gnatwl -I$(BROCA_ADASOCKET)
 BROCA_FLAGS = $(ADA_FLAGS) -I$(BROCA_TOP)/src -I..
