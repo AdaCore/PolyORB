@@ -41,9 +41,7 @@ with PolyORB.Binding_Data;
 with PolyORB.Components;
 with PolyORB.Filters; use PolyORB.Filters;
 with PolyORB.Requests; use PolyORB.Requests;
-with PolyORB.Soft_Links; use PolyORB.Soft_Links;
-with PolyORB.Jobs;
-with PolyORB.Utils.Chained_Lists;
+with PolyORB.Annotations;
 
 package PolyORB.Protocols is
 
@@ -59,12 +57,6 @@ package PolyORB.Protocols is
    type Session is abstract new Filters.Filter with private;
    type Session_Access is access all Session'Class;
 
-   type Request_Info is record
-      Job : Jobs.Job_Access;
-   end record;
-
-   package Request_Queue is new PolyORB.Utils.Chained_Lists (Request_Info);
-
    procedure Create
      (Proto   : access Protocol;
       Session : out Filter_Access)
@@ -79,33 +71,33 @@ package PolyORB.Protocols is
    -- Primitives needed with some tasking policies --
    --------------------------------------------------
 
-   procedure Set_Request_Watcher
+   procedure Set_Task_Info
      (S : in Session_Access;
-      W : PolyORB.Soft_Links.Watcher_Access);
-   --  Set the request watcher associated with session
+      N : PolyORB.Annotations.Notepad_Access);
+   --  Set the notes associated with session
 
-   function Get_Request_Watcher
+   function Get_Task_Info
      (S : in Session_Access)
-     return PolyORB.Soft_Links.Watcher_Access;
-   --  Return the request watcher associated with session.
+      return PolyORB.Annotations.Notepad_Access;
+   --  Return the notes  associated with session.
 
-   procedure Get_First_Request
-     (S      : in out Session_Access;
-      Result : out Request_Info);
+   --  procedure Get_First_Request
+   --  (S      : in out Session_Access;
+   --   Result : out Request_Info);
    --  Return in Result the first request in the list associated with session.
 
-   procedure Add_Request
-     (S : in out Session_Access;
-      RI : Request_Info);
+   ---  procedure Add_Request
+   --  (S : in out Session_Access;
+   --   RI : Request_Info);
    --  Add a request RI at the end of the list associated with the session.
 
-   function Is_Open
-     (S : in Session_Access)
-      return Boolean;
+   --  function Is_Open
+   --      (S : in Session_Access)
+   --       return Boolean;
    --  return false if the session is about to be closed
 
-   procedure Can_Close_Session
-     (S : in Session_Access);
+   --    procedure Can_Close_Session
+   --      (S : in Session_Access);
 
    -----------------------------------------------------
    -- Protocol primitives (interface to upper layers) --
@@ -174,11 +166,10 @@ private
    type Protocol is abstract new Filters.Factory with null record;
 
    type Session is abstract new Filters.Filter with record
-      Server          : Components.Component_Access;
-      Request_Watcher : PolyORB.Soft_Links.Watcher_Access := null;
-      Request_List    : Request_Queue.List;
-      Is_Open         : Boolean := True;
-      Finalize_Watcher : PolyORB.Soft_Links.Watcher_Access := null;
+      Server : Components.Component_Access;
+      N      : PolyORB.Annotations.Notepad_Access := null;
+      --  Is_Open         : Boolean := True;
+      --  Finalize_Watcher : PolyORB.Soft_Links.Watcher_Access := null;
    end record;
 
 end PolyORB.Protocols;

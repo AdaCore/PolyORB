@@ -81,6 +81,22 @@ package body PolyORB.ORB.Thread_Pool is
                        & " is released"));
    end Main_Thread_Pool;
 
+   ------------------------------------
+   -- Handle_Close_Server_Connection --
+   ------------------------------------
+
+   procedure Handle_Close_Server_Connection
+     (P   : access Thread_Pool_Policy;
+      TE  :        Transport_Endpoint_Access)
+   is
+   begin
+      pragma Warnings (Off);
+      pragma Unreferenced (P);
+      pragma Unreferenced (TE);
+      pragma Warnings (On);
+      null;
+   end Handle_Close_Server_Connection;
+
    ----------------------------------
    -- Handle_New_Server_Connection --
    ----------------------------------

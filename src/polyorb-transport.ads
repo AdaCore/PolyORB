@@ -153,6 +153,9 @@ package PolyORB.Transport is
 
    procedure Close (TE : in out Transport_Endpoint) is abstract;
 
+   function Upper (TE : Transport_Endpoint_Access)
+                   return Components.Component_Access;
+
 private
 
    type Transport_Access_Point

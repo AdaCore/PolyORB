@@ -54,6 +54,10 @@ package PolyORB.ORB.No_Tasking is
       ORB : ORB_Access;
       C   : Active_Connection);
 
+   procedure Handle_Close_Server_Connection
+     (P   : access No_Tasking;
+      TE  :        Transport_Endpoint_Access);
+
    procedure Handle_New_Client_Connection
      (P   : access No_Tasking;
       ORB : ORB_Access;

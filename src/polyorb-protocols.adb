@@ -50,7 +50,6 @@ package body PolyORB.Protocols is
    use PolyORB.Log;
    use PolyORB.Objects.Interface;
    use PolyORB.Protocols.Interface;
-   use Request_Queue;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.protocols");
    procedure O (Message : in String; Level : Log_Level := Debug)
@@ -62,19 +61,23 @@ package body PolyORB.Protocols is
 
    procedure Finalize (S : in out Session)
    is
-      V : Version_Id;
+      --  V : Version_Id;
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (S);
+      pragma Warnings (On);
       pragma Debug (O ("Finalizing Session."));
-      if S.Request_Watcher /= null then
-         Create (S.Finalize_Watcher);
-         Lookup (S.Finalize_Watcher, V);
-         S.Is_Open := False;
-         Update (S.Request_Watcher);
-         Differ (S.Finalize_Watcher, V);
-         Destroy (S.Request_Watcher);
-         Destroy (S.Finalize_Watcher);
-         Deallocate (S.Request_List);
-      end if;
+      --      if S.Request_Watcher /= null then
+      --  Create (S.Finalize_Watcher);
+      --  Lookup (S.Finalize_Watcher, V);
+      --  S.Is_Open := False;
+      --  Update (S.Request_Watcher);
+      --  Differ (S.Finalize_Watcher, V);
+      --  Destroy (S.Request_Watcher);
+      --  Destroy (S.Finalize_Watcher);
+      --  Deallocate (S.Request_List);
+      --  end if;
+      null;
    end Finalize;
 
    ---------------------------------
@@ -210,80 +213,80 @@ package body PolyORB.Protocols is
    end Handle_Message;
 
    -------------------------
-   -- Get_Request_Watcher --
+   -- Get_Task_Info --
    -------------------------
 
-   function Get_Request_Watcher
+   function Get_Task_Info
      (S : in Session_Access)
-     return PolyORB.Soft_Links.Watcher_Access
+     return PolyORB.Annotations.Notepad_Access
    is
    begin
-      return S.Request_Watcher;
-   end Get_Request_Watcher;
+      return S.N;
+   end Get_Task_Info;
 
    -------------------------
    -- Set_Request_Watcher --
    -------------------------
 
-   procedure Set_Request_Watcher
+   procedure Set_Task_Info
      (S : in Session_Access;
-      W : PolyORB.Soft_Links.Watcher_Access)
+      N : PolyORB.Annotations.Notepad_Access)
    is
    begin
-      S.Request_Watcher := W;
-   end Set_Request_Watcher;
+      S.N := N;
+   end Set_Task_Info;
 
-   -------------------------
-   -- Get_First_Request --
-   -------------------------
+   --    -------------------------
+   --    -- Get_First_Request --
+   --    -------------------------
 
-   procedure Get_First_Request
-     (S      : in out Session_Access;
-      Result : out Request_Info)
-   is
-   begin
-      pragma Debug (O ("Get Length : "
-                       & Integer'Image (Length (S.Request_List))));
-      Request_Queue.Extract_Element (S.Request_List, 0, Result);
-      pragma Debug (O ("Get Length : "
-                       & Integer'Image (Length (S.Request_List))));
-   end Get_First_Request;
+   --    procedure Get_First_Request
+   --      (S      : in out Session_Access;
+   --       Result : out Request_Info)
+   --    is
+   --    begin
+   --       pragma Debug (O ("Get Length : "
+   --                        & Integer'Image (Length (S.Request_List))));
+   --       Request_Queue.Extract_Element (S.Request_List, 0, Result);
+   --       pragma Debug (O ("Get Length : "
+   --                        & Integer'Image (Length (S.Request_List))));
+   --    end Get_First_Request;
 
-   -----------------
-   -- Add_Request --
-   -----------------
-   procedure Add_Request
-     (S : in out Session_Access;
-      RI : Request_Info)
-   is
-   begin
-      pragma Debug (O ("Add Length : "
-                       & Integer'Image (Length (S.Request_List))));
-      Request_Queue.Append (S.Request_List, RI);
-      pragma Debug (O ("Add Length : "
-                       & Integer'Image (Length (S.Request_List))));
-      Update (S.Request_Watcher);
-   end Add_Request;
+   --    -----------------
+   --    -- Add_Request --
+   --    -----------------
+   --    procedure Add_Request
+   --      (S : in out Session_Access;
+   --       RI : Request_Info)
+   --    is
+   --    begin
+   --       pragma Debug (O ("Add Length : "
+   --                        & Integer'Image (Length (S.Request_List))));
+   --       Request_Queue.Append (S.Request_List, RI);
+   --       pragma Debug (O ("Add Length : "
+   --                        & Integer'Image (Length (S.Request_List))));
+   --       Update (S.Request_Watcher);
+   --    end Add_Request;
 
    -------------
    -- Is_Open --
    -------------
-   function Is_Open
-     (S : in Session_Access)
-     return Boolean
-   is
-   begin
-      return S.Is_Open;
-   end Is_Open;
+   --  function Is_Open
+   --      (S : in Session_Access)
+   --      return Boolean
+   --    is
+   --    begin
+   --       return S.Is_Open;
+   --    end Is_Open;
 
    -----------------------
    -- Can_Close_Session --
    -----------------------
-   procedure Can_Close_Session
-     (S : Session_Access)
-   is
-   begin
-      Update (S.Finalize_Watcher);
-   end Can_Close_Session;
+   --    procedure Can_Close_Session
+   --      (S : Session_Access)
+   --    is
+   --    begin
+   --       Update (S.Finalize_Watcher);
+   --    end Can_Close_Session;
 
 end PolyORB.Protocols;

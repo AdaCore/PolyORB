@@ -282,6 +282,8 @@ package body PolyORB.ORB is
                   --  Close has been called on the transport endpoint.
                   --  Both the Endpoint and the associated AES must
                   --  now be destroyed.
+                  Handle_Close_Server_Connection
+                    (ORB.Tasking_Policy, Note.D.TE);
 
                   Destroy (Note.D.TE);
                   --  Destroy the transport endpoint and the associated

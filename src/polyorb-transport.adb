@@ -169,4 +169,15 @@ package body PolyORB.Transport is
       return Nothing;
    end Handle_Message;
 
+   -----------
+   -- Upper --
+   -----------
+
+   function Upper (TE : Transport_Endpoint_Access)
+                   return Components.Component_Access
+   is
+   begin
+      return TE.Upper;
+   end Upper;
+
 end PolyORB.Transport;

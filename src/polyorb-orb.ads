@@ -119,6 +119,11 @@ package PolyORB.ORB is
    --  Create the necessary processing resources for newly-created
    --  communication endpoint AS on server side.
 
+   procedure Handle_Close_Server_Connection
+     (P   : access Tasking_Policy_Type;
+      TE  :        Transport_Endpoint_Access) is abstract;
+   --  Do necessary processing when a connection is closed
+
    procedure Handle_New_Client_Connection
      (P   : access Tasking_Policy_Type;
       ORB : ORB_Access;

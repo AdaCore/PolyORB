@@ -33,8 +33,19 @@
 
 --  $Id$
 
+with Ada.Unchecked_Deallocation;
+with PolyORB.Log; use PolyORB.Log;
 
 package body PolyORB.Utils.Semaphores is
+
+   package L is new PolyORB.Log.Facility_Log
+     ("polyorb.utils.semaphores");
+
+   procedure O (Message : in String; Level : Log_Level := Debug)
+     renames L.Output;
+
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Semaphore, Semaphore_Access);
 
    function State (S : Semaphore_Access) return Natural
    is
@@ -55,31 +66,54 @@ package body PolyORB.Utils.Semaphores is
    procedure Up (S : Semaphore_Access)
    is
    begin
+      pragma Debug (O ("Entering Up"));
       Enter (S.Full_Lock);
       if S.N = 0 then
+         pragma Debug (O ("Up : Leaving Is_Empty"));
          Leave (S.Is_Empty);
       end if;
       S.N := S.N + 1;
       Leave (S.Full_Lock);
+      pragma Debug (O ("Leaving Up"));
    end Up;
 
    procedure Down (S : Semaphore_Access)
    is
    begin
-      Enter (S.Down_Lock);
-      Enter (S.Full_Lock);
-      if S.N = 0 then
-         Leave (S.Full_Lock);
-         Enter (S.Is_Empty);
-         Leave (S.Is_Empty);
+      if S /= null then
+         pragma Debug (O ("Entering Down"));
+         Enter (S.Down_Lock);
          Enter (S.Full_Lock);
+         if S.N = 0 then
+            pragma Debug (O ("Down : Leaving Full_Lock"));
+            Leave (S.Full_Lock);
+            pragma Debug (O ("Down : Entering Is_Empty"));
+            Enter (S.Is_Empty);
+            pragma Debug (O ("Down : Leaving Is_Empty"));
+            Leave (S.Is_Empty);
+            Enter (S.Full_Lock);
+         end if;
+         S.N := S.N - 1;
+         if S.N = 0 then
+            pragma Debug (O ("Down : Entering Is_Empty"));
+            Enter (S.Is_Empty);
+         end if;
+         Leave (S.Full_Lock);
+         Leave (S.Down_Lock);
+         pragma Debug (O ("Leaving  Down"));
+      else
+         raise Constraint_Error;
       end if;
-      S.N := S.N - 1;
-      if S.N = 0 then
-         Enter (S.Is_Empty);
-      end if;
-      Leave (S.Full_Lock);
-      Leave (S.Down_Lock);
    end Down;
+
+   procedure Destroy (S : in out Semaphore_Access)
+   is
+   begin
+      Destroy (S.Is_Empty);
+      Destroy (S.Down_Lock);
+      Destroy (S.Full_Lock);
+      Free (S);
+      S := null;
+   end Destroy;
 
 end PolyORB.Utils.Semaphores;

@@ -49,6 +49,10 @@ package PolyORB.ORB.Thread_Pool is
       ORB : ORB_Access;
       C   : Active_Connection);
 
+   procedure Handle_Close_Server_Connection
+     (P   : access Thread_Pool_Policy;
+      TE  :        Transport_Endpoint_Access);
+
    procedure Handle_New_Client_Connection
      (P   : access Thread_Pool_Policy;
       ORB : ORB_Access;

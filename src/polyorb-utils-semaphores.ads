@@ -45,6 +45,8 @@ package PolyORB.Utils.Semaphores is
 
    procedure Create (S : out Semaphore_Access);
 
+   procedure Destroy (S : in out Semaphore_Access);
+
    procedure Up (S : Semaphore_Access);
 
    procedure Down (S : Semaphore_Access);
