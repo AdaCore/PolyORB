@@ -1,4 +1,4 @@
-------------------------------------------------------------------------------
+-----------------------------------------------------------------------------
 --                              Ada Web Server                              --
 --                                                                          --
 --                         Copyright (C) 2000-2001                          --
@@ -31,9 +31,7 @@
 --  $Id$
 
 with Ada.Strings.Unbounded;
---  with Ada.Strings.Fixed;
 with Ada.Exceptions;
---  with Ada.Calendar;
 
 with Input_Sources.Strings;
 with Unicode.CES.Basic_8bit;
@@ -49,7 +47,6 @@ with SOAP.Types;
 
 package body SOAP.Message.XML is
 
-   use Ada;
    use Ada.Strings.Unbounded;
    use DOM.Core.Nodes;
    use SOAP.Message.Reader;
@@ -89,10 +86,13 @@ package body SOAP.Message.XML is
       A_UByte, A_Float, A_Double, A_String, A_AnyURI,
       A_Boolean, A_Time_Instant, A_Base64);
 
+   type Message_Kind is (Payload, Response);
+
    type State is record
-      Wrapper_Name : Unbounded_String;
-      Parameters   : SOAP.Parameters.List;
-      A_State      : Array_State := Void;
+      Wrapper_Name  : Unbounded_String;
+      Parameters    : SOAP.Parameters.List;
+      Kind          : Message_Kind;
+      A_State       : Array_State := Void;
    end record;
 
    procedure Parse_Envelope (N : in DOM.Core.Node; S : in out State);
@@ -103,33 +103,56 @@ package body SOAP.Message.XML is
 
    procedure Parse_Wrapper  (N : in DOM.Core.Node; S : in out State);
 
-   function Parse_Int       (N : in DOM.Core.Node)
-     return PolyORB.Any.NamedValue;
-   function Parse_Short     (N : in DOM.Core.Node)
-     return PolyORB.Any.NamedValue;
-   function Parse_UInt      (N : in DOM.Core.Node)
-     return PolyORB.Any.NamedValue;
-   function Parse_UShort    (N : in DOM.Core.Node)
-     return PolyORB.Any.NamedValue;
-   function Parse_UByte     (N : in DOM.Core.Node)
-     return PolyORB.Any.NamedValue;
+   --------------------------------------
+   -- Elementary data parsing routines --
+   --------------------------------------
 
-   function Parse_Float     (N : in DOM.Core.Node)
-     return PolyORB.Any.NamedValue;
-   function Parse_Double    (N : in DOM.Core.Node)
-     return PolyORB.Any.NamedValue;
+   procedure Parse_Int
+     (N  : in DOM.Core.Node;
+      NV : in out NamedValue);
 
-   function Parse_String    (N : in DOM.Core.Node)
-     return PolyORB.Any.NamedValue;
+   procedure Parse_Short
+     (N : in     DOM.Core.Node;
+      NV : in out PolyORB.Any.NamedValue);
 
-   function Parse_AnyURI    (N : in DOM.Core.Node)
-     return PolyORB.Any.NamedValue;
+   procedure Parse_UInt
+     (N  : in     DOM.Core.Node;
+      NV : in out PolyORB.Any.NamedValue);
 
-   function Parse_Boolean   (N : in DOM.Core.Node)
-     return PolyORB.Any.NamedValue;
+   procedure Parse_UShort
+     (N  : in     DOM.Core.Node;
+      NV : in out PolyORB.Any.NamedValue);
 
-   function Parse_Null      (N : in DOM.Core.Node)
-     return PolyORB.Any.NamedValue;
+   procedure Parse_UByte
+     (N  : in     DOM.Core.Node;
+      NV : in out PolyORB.Any.NamedValue);
+
+   procedure Parse_Float
+     (N  : in     DOM.Core.Node;
+      NV : in out PolyORB.Any.NamedValue);
+   procedure Parse_Double
+     (N  : in     DOM.Core.Node;
+      NV : in out PolyORB.Any.NamedValue);
+
+   procedure Parse_String
+     (N  : in     DOM.Core.Node;
+      NV : in out PolyORB.Any.NamedValue);
+
+   procedure Parse_AnyURI
+     (N  : in     DOM.Core.Node;
+      NV : in out PolyORB.Any.NamedValue);
+
+   procedure Parse_Boolean
+     (N  : in     DOM.Core.Node;
+      NV : in out PolyORB.Any.NamedValue);
+
+   procedure Parse_Null
+     (N  : in     DOM.Core.Node;
+      NV : in out PolyORB.Any.NamedValue);
+
+   procedure Parse_Enum
+     (N  : in     DOM.Core.Node;
+      NV : in out PolyORB.Any.NamedValue);
 
 --    function Parse_Base64    (N : in DOM.Core.Node)
 --      return PolyORB.Any.NamedValue;
@@ -138,9 +161,14 @@ package body SOAP.Message.XML is
 --      (N : in DOM.Core.Node)
 --      return PolyORB.Any.NamedValue;
 
+   --------------------------------------------------------
+   -- Aggregates and data containers parsing subprograms --
+   --------------------------------------------------------
+
    function Parse_Param
      (N        : in DOM.Core.Node;
-      S        : in State)
+      S        : in State;
+      Expected_Type : in PolyORB.Any.TypeCode.Object)
      return PolyORB.Any.NamedValue;
 
 --    function Parse_Array
@@ -150,7 +178,8 @@ package body SOAP.Message.XML is
 
    function Parse_Record
      (N : in DOM.Core.Node;
-      S : in State)
+      S : in State;
+      Expected_Type : in PolyORB.Any.TypeCode.Object)
      return PolyORB.Any.NamedValue;
 
    procedure Error (Node : in DOM.Core.Node; Message : in String);
@@ -198,7 +227,11 @@ package body SOAP.Message.XML is
    -- Load_Payload --
    ------------------
 
-   function Load_Payload (XML : in String) return Message.Payload.Object is
+   function Load_Payload
+     (XML  : in String;
+      Args : in PolyORB.Any.NVList.Ref)
+     return Message.Payload.Object
+   is
       use Input_Sources.Strings;
 
       Str     : aliased String := XML;
@@ -222,7 +255,8 @@ package body SOAP.Message.XML is
 
       Doc := Get_Tree (Reader);
 
-      SOAP.Parameters.Create (S.Parameters);
+      S.Parameters := SOAP.Parameters.List'(Args with null record);
+      S.Kind := Payload;
       Parse_Document (Doc, S);
 
       Free (Doc);
@@ -235,7 +269,8 @@ package body SOAP.Message.XML is
    -------------------
 
    function Load_Response
-     (XML : in String)
+     (XML  : in String;
+      Args : in PolyORB.Any.NVList.Ref)
      return Message.Response.Object'Class
    is
       use Input_Sources.Strings;
@@ -262,6 +297,8 @@ package body SOAP.Message.XML is
       Doc := Get_Tree (Reader);
 
       SOAP.Parameters.Create (S.Parameters);
+      S.Parameters := SOAP.Parameters.List'(Args with null record);
+      S.Kind := Response;
       Parse_Document (Doc, S);
 
       Free (Doc);
@@ -282,7 +319,7 @@ package body SOAP.Message.XML is
       when E : others =>
          return Message.Response.Error.Build
            (Faultcode   => Message.Response.Error.Client,
-            Faultstring => Exceptions.Exception_Message (E));
+            Faultstring => Ada.Exceptions.Exception_Message (E));
    end Load_Response;
 
    -----------------
@@ -383,32 +420,66 @@ package body SOAP.Message.XML is
    -- Parse_Boolean --
    -------------------
 
-   function Parse_Boolean
-     (N : in DOM.Core.Node)
-     return PolyORB.Any.NamedValue
+   procedure Parse_Boolean
+     (N  : in     DOM.Core.Node;
+      NV : in out PolyORB.Any.NamedValue)
    is
-      Name  : constant PolyORB.Types.Identifier
-        := To_PolyORB_String (Local_Name (N));
       Value : constant DOM.Core.Node := First_Child (N);
    begin
-      return NamedValue'
-        (Name => Name,
-         Argument => To_Any (Node_Value (Value) = "1"),
-         Arg_Modes => ARG_IN);
+      Set_Any_Value (NV.Argument, Node_Value (Value) = "1");
    end Parse_Boolean;
 
-   function Parse_Null
-     (N : in DOM.Core.Node)
-     return PolyORB.Any.NamedValue
+   procedure Parse_Null
+     (N  : in     DOM.Core.Node;
+      NV : in out PolyORB.Any.NamedValue)
    is
-      Name  : constant PolyORB.Types.Identifier
-        := To_PolyORB_String (Local_Name (N));
    begin
-      return NamedValue'
-        (Name => Name,
-         Argument => Get_Empty_Any (TC_Void),
-         Arg_Modes => ARG_IN);
+      null;
    end Parse_Null;
+
+   procedure Parse_Enum
+     (N  : in     DOM.Core.Node;
+      NV : in out PolyORB.Any.NamedValue)
+   is
+      use PolyORB.Any.TypeCode;
+      use type DOM.Core.Node;
+
+   begin
+      declare
+         TC : constant PolyORB.Any.TypeCode.Object
+           := Get_Precise_Type (NV.Argument);
+         A : PolyORB.Any.Any
+           := Get_Empty_Any_Aggregate (Get_Type (NV.Argument));
+
+         Atts : constant DOM.Core.Named_Node_Map := Attributes (N);
+         Value : constant DOM.Core.Node := First_Child (N);
+
+         Enumerator_Id_Node : constant DOM.Core.Node
+           := Get_Named_Item (Atts, "id");
+         Enumerator_Literal : constant String := Node_Value (Value);
+      begin
+         if Enumerator_Id_Node /= null then
+            Add_Aggregate_Element
+              (A, To_Any (Unsigned_Long'Value
+                          (Node_Value (Enumerator_Id_Node)) - 1));
+         else
+            for I in 1 .. Member_Count (TC) loop
+               declare
+                  Enumerator : constant PolyORB.Types.String
+                    := From_Any (Get_Parameter (TC, I + 1));
+               begin
+                  if Enumerator_Literal = To_Standard_String
+                    (Enumerator)
+                  then
+                     Add_Aggregate_Element (A, To_Any (I - 1));
+                     exit;
+                  end if;
+               end;
+            end loop;
+         end if;
+         Copy_Any_Value (NV.Argument, A);
+      end;
+   end Parse_Enum;
 
    --------------------
    -- Parse_Document --
@@ -444,300 +515,114 @@ package body SOAP.Message.XML is
    -- Parse_Float --
    -----------------
 
-   function Parse_Float (N : in DOM.Core.Node)
-     return PolyORB.Any.NamedValue
+   procedure Parse_Float
+     (N  : in     DOM.Core.Node;
+      NV : in out PolyORB.Any.NamedValue)
    is
-      Name  : constant PolyORB.Types.Identifier
-        := To_PolyORB_String (Local_Name (N));
       Value : constant DOM.Core.Node := First_Child (N);
    begin
-      return NamedValue'
-        (Name => Name,
-         Argument => To_Any
-         (PolyORB.Types.Float'Value (Node_Value (Value))),
-         Arg_Modes => ARG_IN);
+      Set_Any_Value
+        (NV.Argument,
+         PolyORB.Types.Float'Value
+         (Node_Value (Value)));
    end Parse_Float;
 
-   function Parse_Double (N : in DOM.Core.Node)
-     return PolyORB.Any.NamedValue
+   procedure Parse_Double
+     (N  : in     DOM.Core.Node;
+      NV : in out PolyORB.Any.NamedValue)
    is
-      Name  : constant PolyORB.Types.Identifier
-        := To_PolyORB_String (Local_Name (N));
       Value : constant DOM.Core.Node := First_Child (N);
    begin
-      return NamedValue'
-        (Name => Name,
-         Argument => To_Any
-         (PolyORB.Types.Double'Value (Node_Value (Value))),
-         Arg_Modes => ARG_IN);
+      Set_Any_Value
+        (NV.Argument,
+         PolyORB.Types.Double'Value
+         (Node_Value (Value)));
    end Parse_Double;
 
    ---------------
    -- Parse_Int --
    ---------------
 
-   function Parse_Int (N : in DOM.Core.Node) return PolyORB.Any.NamedValue is
-      Name  : constant PolyORB.Types.Identifier
-        := To_PolyORB_String (Local_Name (N));
+   procedure Parse_Int
+     (N  : in     DOM.Core.Node;
+      NV : in out PolyORB.Any.NamedValue)
+   is
       Value : constant DOM.Core.Node := First_Child (N);
    begin
-      return NamedValue'
-        (Name => Name,
-         Argument => To_Any (Long'Value (Node_Value (Value))),
-         Arg_Modes => ARG_IN);
+      Set_Any_Value
+        (NV.Argument,
+         PolyORB.Types.Long'Value
+         (Node_Value (Value)));
    end Parse_Int;
 
-   function Parse_Short (N : in DOM.Core.Node) return PolyORB.Any.NamedValue is
-      Name  : constant PolyORB.Types.Identifier
-        := To_PolyORB_String (Local_Name (N));
+   procedure Parse_Short
+     (N  : in     DOM.Core.Node;
+      NV : in out PolyORB.Any.NamedValue)
+   is
       Value : constant DOM.Core.Node := First_Child (N);
    begin
-      return NamedValue'
-        (Name => Name,
-         Argument => To_Any (Short'Value (Node_Value (Value))),
-         Arg_Modes => ARG_IN);
+      Set_Any_Value
+        (NV.Argument,
+         PolyORB.Types.Short'Value
+         (Node_Value (Value)));
    end Parse_Short;
 
-   function Parse_UInt (N : in DOM.Core.Node) return PolyORB.Any.NamedValue is
-      Name  : constant PolyORB.Types.Identifier
-        := To_PolyORB_String (Local_Name (N));
+   procedure Parse_UInt
+     (N  : in     DOM.Core.Node;
+      NV : in out PolyORB.Any.NamedValue)
+   is
       Value : constant DOM.Core.Node := First_Child (N);
    begin
-      return NamedValue'
-        (Name => Name,
-         Argument => To_Any (Unsigned_Long'Value (Node_Value (Value))),
-         Arg_Modes => ARG_IN);
+      Set_Any_Value
+        (NV.Argument,
+         PolyORB.Types.Unsigned_Long'Value
+         (Node_Value (Value)));
    end Parse_UInt;
 
-   function Parse_UShort (N : in DOM.Core.Node)
-     return PolyORB.Any.NamedValue is
-      Name  : constant PolyORB.Types.Identifier
-        := To_PolyORB_String (Local_Name (N));
+   procedure Parse_UShort
+     (N  : in     DOM.Core.Node;
+      NV : in out PolyORB.Any.NamedValue)
+   is
       Value : constant DOM.Core.Node := First_Child (N);
    begin
-      return NamedValue'
-        (Name => Name,
-         Argument =>
-           To_Any (Unsigned_Short'Value (Node_Value (Value))),
-         Arg_Modes => ARG_IN);
+      Set_Any_Value
+        (NV.Argument,
+         PolyORB.Types.Unsigned_Short'Value
+         (Node_Value (Value)));
    end Parse_UShort;
 
-   function Parse_UByte (N : in DOM.Core.Node)
-     return PolyORB.Any.NamedValue is
-      Name  : constant PolyORB.Types.Identifier
-        := To_PolyORB_String (Local_Name (N));
+   procedure Parse_UByte
+     (N  : in     DOM.Core.Node;
+      NV : in out PolyORB.Any.NamedValue)
+   is
       Value : constant DOM.Core.Node := First_Child (N);
    begin
-      return NamedValue'
-        (Name => Name,
-         Argument =>
-           To_Any (Octet'Value (Node_Value (Value))),
-         Arg_Modes => ARG_IN);
+      Set_Any_Value
+        (NV.Argument,
+         PolyORB.Types.Octet'Value
+         (Node_Value (Value)));
    end Parse_UByte;
-
-   -----------------
-   -- Parse_Param --
-   -----------------
-
-   function Parse_Param
-     (N        : in DOM.Core.Node;
-      S        : in State)
-     return PolyORB.Any.NamedValue
-   is
-      use type DOM.Core.Node;
-
-      --  Name : constant PolyORB.Types.Identifier
-      --    := To_PolyORB_String (Local_Name (N));
-      Atts : constant DOM.Core.Named_Node_Map := Attributes (N);
-   begin
-      if To_String (S.Wrapper_Name) = "Fault" then
-         return Parse_String (N);
-
-      else
-         if Length (Atts) = 0 and then S.A_State = Void then
-            --  No attributes, this is a SOAP record since we are not parsing
-            --  arrays entries.
-
-            return Parse_Record (N, S);
-
-         else
-            case S.A_State is
-               when A_Int =>
-                  return Parse_Int (N);
-               when A_Short =>
-                  return Parse_Short (N);
-
-               when A_UInt =>
-                  return Parse_UInt (N);
-               when A_UShort =>
-                  return Parse_UShort (N);
-               when A_UByte =>
-                  return Parse_UByte (N);
-
-               when A_Float =>
-                  return Parse_Float (N);
-               when A_Double =>
-                  return Parse_Double (N);
-
-               when A_String =>
-                  return Parse_String (N);
-
-               when A_AnyURI =>
-                  return Parse_AnyURI (N);
-
-               when A_Boolean =>
-                  return Parse_Boolean (N);
-
-               when A_Time_Instant =>
-                  --  XXX return Parse_Time_Instant (N);
-                  raise PolyORB.Not_Implemented;
-
-               when A_Base64 =>
-                  --  XXX return Parse_Base64 (N);
-                  raise PolyORB.Not_Implemented;
-
-               when Void | A_Undefined =>
-
-                  declare
-                     XSI_Type : constant DOM.Core.Node
-                       := Get_Named_Item (Atts, "xsi:type");
-                  begin
-                     if XSI_Type = null then
-                        declare
-                           N : constant DOM.Core.Node
-                             := Get_Named_Item (Atts, "xsi:null");
-                        begin
-                           if N = null then
-                              Error (N, "Wrong or not supported type");
-                           else
-                              return Parse_Null (N);
-                           end if;
-                        end;
-
-                     else
-
-                        declare
-                           xsd : constant String := Node_Value (XSI_Type);
-                        begin
-                           if xsd = Types.XML_Int then
-                              return Parse_Int (N);
-                           elsif xsd = Types.XML_Short then
-                              return Parse_Short (N);
-
-                           elsif xsd = Types.XML_UInt then
-                              return Parse_UInt (N);
-                           elsif xsd = Types.XML_UShort then
-                              return Parse_UShort (N);
-                           elsif xsd = Types.XML_UByte then
-                              return Parse_UByte (N);
-
-                           elsif xsd = Types.XML_Float then
-                              return Parse_Float (N);
-                           elsif xsd = Types.XML_Double then
-                              return Parse_Double (N);
-
-                           elsif xsd = Types.XML_String then
-                              return Parse_String (N);
-                           elsif xsd = Types.XML_AnyURI then
-                              return Parse_AnyURI (N);
-
-                           elsif xsd = Types.XML_Boolean then
-                              return Parse_Boolean (N);
-
---                            elsif xsd = Types.XML_Time_Instant then
---                               return Parse_Time_Instant (N);
-
---                            elsif xsd = Types.XML_Base64 then
---                               return Parse_Base64 (N);
-
---                            elsif xsd = Types.XML_Array then
---                               return Parse_Array (N, S);
-
-                           else
-                              Error (N, "Wrong or not supported type");
-                           end if;
-                        end;
-                     end if;
-                  end;
-            end case;
-         end if;
-      end if;
-   end Parse_Param;
-
-   ------------------
-   -- Parse_Record --
-   ------------------
-
-   function Parse_Record
-     (N : in DOM.Core.Node;
-      S : in State)
-     return PolyORB.Any.NamedValue
-   is
-      use type DOM.Core.Node;
-      use SOAP.Types;
-      use PolyORB.Any.TypeCode;
-
-      Name  : constant PolyORB.Types.Identifier
-        := To_PolyORB_String (Local_Name (N));
-      TC_Record : TypeCode.Object;
-      Any_Record : Any := Get_Empty_Any_Aggregate (TC_Record);
-
-      Field : DOM.Core.Node;
-   begin
-      TC_Record := TC_Struct;
-      Add_Parameter (TC_Record, To_Any
-                     (PolyORB.Types.String (Name)));
-      Add_Parameter (TC_Record, To_Any
-                     (PolyORB.Types.String ("IDL:" & Name & ":1.0")));
-
-      Field := First_Child (N);
-
-      while Field /= null loop
-         declare
-            Field_Value : constant NamedValue
-              := Parse_Param (Field, S);
-         begin
-            Add_Parameter (TC_Record, To_Any
-                           (Get_Type (Field_Value.Argument)));
-            Add_Parameter (TC_Record, To_Any
-                           (PolyORB.Types.String (Field_Value.Name)));
-
-            Add_Aggregate_Element (Any_Record, Field_Value.Argument);
-         end;
-         Field := Next_Sibling (Field);
-      end loop;
-      Set_Type (Any_Record, TC_Record);
-
-      return NamedValue'
-        (Name => Name,
-         Argument => Any_Record,
-         Arg_Modes => ARG_IN);
-   end Parse_Record;
 
    ------------------
    -- Parse_String --
    ------------------
 
-   function Parse_String (N : in DOM.Core.Node)
-     return PolyORB.Any.NamedValue
+   procedure Parse_String
+     (N  : in     DOM.Core.Node;
+      NV : in out PolyORB.Any.NamedValue)
    is
-      Name  : constant PolyORB.Types.Identifier
-        := To_PolyORB_String (Local_Name (N));
       Value : DOM.Core.Node;
    begin
       Normalize (N);
       Value := First_Child (N);
-      return NamedValue'(Name => Name,
-                         Argument => To_Any
-                         (To_PolyORB_String (Node_Value (Value))),
-                         Arg_Modes => ARG_IN);
+      Set_Any_Value
+        (NV.Argument, To_PolyORB_String (Node_Value (Value)));
    end Parse_String;
 
-   function Parse_AnyURI (N : in DOM.Core.Node)
-     return PolyORB.Any.NamedValue
+   procedure Parse_AnyURI
+     (N  : in     DOM.Core.Node;
+      NV : in out PolyORB.Any.NamedValue)
    is
-      Name  : constant PolyORB.Types.Identifier
-        := To_PolyORB_String (Local_Name (N));
       Value : DOM.Core.Node;
    begin
       Normalize (N);
@@ -747,9 +632,7 @@ package body SOAP.Message.XML is
            := Get_Empty_Any (PolyORB.Any.TypeCode.TC_Object);
          --  := To_Any (URI_To_Ref (Node_Value (Value)));
       begin
-         return NamedValue'(Name => Name,
-                            Argument => A,
-                            Arg_Modes => ARG_IN);
+         Copy_Any_Value (NV.Argument, A);
       end;
    end Parse_AnyURI;
 
@@ -779,20 +662,222 @@ package body SOAP.Message.XML is
 --          Types.TZ'Value (TI (20 .. 22)));
 --    end Parse_Time_Instant;
 
+   -----------------
+   -- Parse_Param --
+   -----------------
+
+   function Parse_Param
+     (N        : in DOM.Core.Node;
+      S        : in State;
+      Expected_Type : in PolyORB.Any.TypeCode.Object)
+     return PolyORB.Any.NamedValue
+   is
+      use type DOM.Core.Node;
+
+      Atts : constant DOM.Core.Named_Node_Map := Attributes (N);
+      NV : PolyORB.Any.NamedValue;
+   begin
+      if To_String (S.Wrapper_Name) = "Fault" then
+         NV.Name := To_PolyORB_String (Local_Name (N));
+         NV.Argument := Get_Empty_Any (TC_String);
+         Parse_String (N, NV);
+         return NV;
+      end if;
+
+      if Length (Atts) = 0 and then S.A_State = Void then
+         --  No attributes, this is a SOAP record since we are not parsing
+         --  arrays entries.
+
+         return Parse_Record (N, S, Expected_Type);
+      end if;
+
+      case S.A_State is
+            --  XXX PARSING ARRAYS: not implemened.
+--                when A_Int =>
+--                   return Parse_Int (N);
+--                when A_Short =>
+--                   return Parse_Short (N);
+
+--                when A_UInt =>
+--                   return Parse_UInt (N);
+--                when A_UShort =>
+--                   return Parse_UShort (N);
+--                when A_UByte =>
+--                   return Parse_UByte (N);
+
+--                when A_Float =>
+--                   return Parse_Float (N);
+--                when A_Double =>
+--                   return Parse_Double (N);
+
+--                when A_String =>
+--                   return Parse_String (N);
+
+--                when A_AnyURI =>
+--                   return Parse_AnyURI (N);
+
+--                when A_Boolean =>
+--                   return Parse_Boolean (N);
+
+--                when A_Time_Instant =>
+--                   --  XXX return Parse_Time_Instant (N);
+--                   raise PolyORB.Not_Implemented;
+
+--                when A_Base64 =>
+--                   --  XXX return Parse_Base64 (N);
+--                   raise PolyORB.Not_Implemented;
+
+         when Void | A_Undefined =>
+
+            declare
+               XSI_Type : constant DOM.Core.Node
+                 := Get_Named_Item (Atts, "xsi:type");
+            begin
+               if XSI_Type = null then
+
+                  if Get_Named_Item (Atts, "xsi:null") /= null then
+                     NV.Name := To_PolyORB_String (Local_Name (N));
+                     NV.Argument := Get_Empty_Any (TC_Void);
+                  elsif PolyORB.Any.TypeCode.Kind
+                    (Expected_Type) = Tk_Enum
+                  then
+                     NV.Name := To_PolyORB_String (Local_Name (N));
+                     NV.Argument := Get_Empty_Any (Expected_Type);
+                     Parse_Enum (N, NV);
+                  else
+                     Error (N, "Wrong or not supported type");
+                     --  Error has raised an exception.
+                  end if;
+                  return NV;
+
+               else
+
+                  declare
+                     xsd : constant String := Node_Value (XSI_Type);
+                  begin
+
+                     NV.Name := To_PolyORB_String (Local_Name (N));
+                     NV.Argument := Get_Empty_Any (Expected_Type);
+
+                     if xsd = Types.XML_Int then
+                        Parse_Int (N, NV);
+                     elsif xsd = Types.XML_Short then
+                        Parse_Short (N, NV);
+
+                     elsif xsd = Types.XML_UInt then
+                        Parse_UInt (N, NV);
+                     elsif xsd = Types.XML_UShort then
+                        Parse_UShort (N, NV);
+                     elsif xsd = Types.XML_UByte then
+                        Parse_UByte (N, NV);
+
+                     elsif xsd = Types.XML_Float then
+                        Parse_Float (N, NV);
+                     elsif xsd = Types.XML_Double then
+                        Parse_Double (N, NV);
+
+                     elsif xsd = Types.XML_String then
+                        Parse_String (N, NV);
+                     elsif xsd = Types.XML_AnyURI then
+                        Parse_AnyURI (N, NV);
+
+                     elsif xsd = Types.XML_Boolean then
+                        Parse_Boolean (N, NV);
+
+                     else
+                        Error (N, "Wrong or not supported type");
+                     end if;
+                  end;
+               end if;
+            end;
+         when others =>
+            raise PolyORB.Not_Implemented;
+      end case;
+
+      return NV;
+   end Parse_Param;
+
+   ------------------
+   -- Parse_Record --
+   ------------------
+
+   function Parse_Record
+     (N : in DOM.Core.Node;
+      S : in State;
+      Expected_Type : in PolyORB.Any.TypeCode.Object)
+     return PolyORB.Any.NamedValue
+   is
+      use type DOM.Core.Node;
+      use SOAP.Types;
+      use PolyORB.Any.TypeCode;
+
+      Name  : constant PolyORB.Types.Identifier
+        := To_PolyORB_String (Local_Name (N));
+
+      Any_Record : Any
+        := Get_Empty_Any_Aggregate (Expected_Type);
+
+      Field : DOM.Core.Node;
+      I : Unsigned_Long := 1;
+   begin
+      Field := First_Child (N);
+
+      while Field /= null loop
+         declare
+            Field_TC : constant PolyORB.Any.TypeCode.Object
+              := Member_Type (Expected_Type, I);
+            Field_Value : constant NamedValue
+              := Parse_Param (Field, S, Field_TC);
+         begin
+            Add_Aggregate_Element (Any_Record, Field_Value.Argument);
+         end;
+         I := I + 1;
+         Field := Next_Sibling (Field);
+      end loop;
+
+      return NamedValue'
+        (Name => Name,
+         Argument => Any_Record,
+         Arg_Modes => ARG_IN);
+   end Parse_Record;
+
    -------------------
    -- Parse_Wrapper --
    -------------------
 
    procedure Parse_Wrapper (N : in DOM.Core.Node; S : in out State) is
       use type SOAP.Parameters.List;
+      use PolyORB.Any.NVList.Internals;
+      use PolyORB.Any.NVList.Internals.NV_Sequence;
 
       NL   : constant DOM.Core.Node_List := Child_Nodes (N);
       Name : constant String := Local_Name (N);
+
+      Args_Index : Integer := 0;
+      Args_List : constant NV_Sequence_Access
+        := List_Of (PolyORB.Any.NVList.Ref (S.Parameters));
+      NV : PolyORB.Any.NamedValue;
    begin
       S.Wrapper_Name := To_Unbounded_String (Name);
 
       for K in 0 .. Length (NL) - 1 loop
-         S.Parameters := S.Parameters & Parse_Param (Item (NL, K), S);
+         Args_Index := Args_Index + 1;
+         loop
+            --  Ignore any element in S.Args that is not of the
+            --  proper mode (i.e. OUT elements when parsing a
+            --  request, IN elements when parsing a response;
+            --  INOUT elements are never skipped.)
+
+            NV := Element_Of (Args_List.all, Args_Index);
+            exit when NV.Arg_Modes = ARG_INOUT
+              or else (S.Kind = Payload xor NV.Arg_Modes = ARG_OUT);
+            Args_Index := Args_Index + 1;
+         end loop;
+
+         Copy_Any_Value
+           (NV.Argument,
+            Parse_Param
+            (Item (NL, K), S, Get_Type (NV.Argument)).Argument);
       end loop;
    end Parse_Wrapper;
 
@@ -803,7 +888,8 @@ package body SOAP.Message.XML is
    procedure Error (Node : in DOM.Core.Node; Message : in String) is
       Name : constant String := Local_Name (Node);
    begin
-      Exceptions.Raise_Exception (SOAP_Error'Identity, Name & " - " & Message);
+      Ada.Exceptions.Raise_Exception
+        (SOAP_Error'Identity, Name & " - " & Message);
    end Error;
 
 end SOAP.Message.XML;

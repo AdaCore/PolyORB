@@ -264,6 +264,8 @@ package body SOAP.Types is
 --    -----------
 
    function Image (O : NamedValue) return String is
+      TC : constant TypeCode.Object
+        := Get_Precise_Type (O.Argument);
       K : constant TCKind := TCK (O.Argument);
    begin
       case K is
@@ -299,6 +301,20 @@ package body SOAP.Types is
             else
                return "0";
             end if;
+
+         when Tk_Enum =>
+            declare
+               use PolyORB.Any;
+
+               Pos : constant PolyORB.Types.Unsigned_Long
+                 := From_Any
+                 (Get_Aggregate_Element
+                  (O.Argument, TC_Unsigned_Long, 0));
+               Enumerator : constant PolyORB.Types.String
+                 := From_Any (TypeCode.Get_Parameter (TC, Pos + 2));
+            begin
+               return To_Standard_String (Enumerator);
+            end;
 
          when Tk_Void =>
             return "";
@@ -508,6 +524,7 @@ package body SOAP.Types is
    ---------------
 
    function XML_Record_Image (O : in NamedValue) return String;
+   function XML_Enum_Image (O : in NamedValue) return String;
 
    function XML_Image (O : in NamedValue) return String is
    begin
@@ -518,6 +535,9 @@ package body SOAP.Types is
 
          when Tk_Struct =>
             return XML_Record_Image (O);
+
+         when Tk_Enum =>
+            return XML_Enum_Image (O);
 
          when Tk_Void =>
             return "<" & To_Standard_String (O.Name)
@@ -594,6 +614,20 @@ package body SOAP.Types is
 
 --       return To_String (Result);
 --    end XML_Image;
+
+   function XML_Enum_Image (O : in NamedValue) return String is
+      Tag_Name : constant Standard.String
+        := To_Standard_String (O.Name);
+      Pos : constant PolyORB.Types.Unsigned_Long
+        := 1 + From_Any
+        (Get_Aggregate_Element (O.Argument, TC_Unsigned_Long, 0));
+   begin
+      return "<" & Tag_Name
+        & " id="""
+        & PolyORB.Utils.Trimmed_Image (Integer (Pos)) & """>"
+        & Image (O)
+        & "</" & Tag_Name & ">";
+   end XML_Enum_Image;
 
    function XML_Record_Image (O : in NamedValue) return String is
       use Ada.Strings.Unbounded;

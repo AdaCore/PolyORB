@@ -32,19 +32,30 @@
 
 with SOAP.Message.Payload;
 with SOAP.Message.Response;
+with PolyORB.Any.NVList;
 
 package SOAP.Message.XML is
 
    function Load_Payload
-     (XML : in String)
+     (XML  : in String;
+      Args : in PolyORB.Any.NVList.Ref)
      return Message.Payload.Object;
    --  Build a Payload object by parsing the XML payload string.
+   --  Args is expected to designate a list of empty Any's,
+   --  whose typecodes are used to determine how to decode the
+   --  XML elements into typed data. On return, the values
+   --  of these Any's are set according to the decoded XML
+   --  elements.
 
    function Load_Response
-     (XML : in String)
+     (XML  : in String;
+      Args : in PolyORB.Any.NVList.Ref)
      return Message.Response.Object'Class;
    --  Build a Response object (either a standard response or an error
    --  response) by parsing the XML response string.
+   --  Args are used as above (for returned arguments).
+   --  XXX warning, return value vs. out args? Does the return
+   --  value need to be the first OUT element of the Args list?
 
    function Image (O : in Object'Class) return String;
    --  Returns XML representation of object O.

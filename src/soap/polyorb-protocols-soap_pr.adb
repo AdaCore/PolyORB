@@ -203,32 +203,33 @@ package body PolyORB.Protocols.SOAP_Pr is
       use PolyORB.Any.NVList.Internals;
       use PolyORB.Any.NVList.Internals.NV_Sequence;
 
-      M : constant Standard.SOAP.Message.Response.Object'Class
-        := Standard.SOAP.Message.XML.Load_Response (Entity);
-      Return_Args : constant Any.NVList.Ref
-        := Any.NVList.Ref (Message.Parameters (M));
-
       R : constant Requests.Request_Access := S.Pending_Rq;
+
+      Return_Args : PolyORB.Any.NVList.Ref := R.Args;
 
    begin
       if R = null then
          raise Protocol_Error;
          --  Received a reply with no pending request.
       end if;
+      R.Result.Arg_Modes := ARG_OUT;
+      --  Ensure proper mode for Result.
+      List_Of (Return_Args).all := R.Result & List_Of (Return_Args).all;
 
-      --  XXX BAD BAD this subprogram does not take into account
-      --  the case where a FAULT or EXCEPTION has been received
-      --  instead of a normal reply!!
-
-      S.Pending_Rq := null;
       declare
-         Result_Any : Any.Any
-           := Element_Of (List_Of (Return_Args).all, 1).Argument;
+         pragma Warnings (Off);
+         M : constant Standard.SOAP.Message.Response.Object'Class
+           := Standard.SOAP.Message.XML.Load_Response (Entity, Return_Args);
+         pragma Unreferenced (M);
+         --  Not referenced. Evalurate the side effects of Load_Response.
+         pragma Warnings (On);
       begin
-         Copy_Any_Value (R.Result.Argument, Result_Any);
+         --  XXX BAD BAD this subprogram does not take into account
+         --  the case where a FAULT or EXCEPTION has been received
+         --  instead of a normal reply!!
+
+         S.Pending_Rq := null;
       end;
-      Delete (List_Of (Return_Args).all, 1, 1);
-      --  XXX assumes that method result is arg #1.
 
       PolyORB.Requests.Pump_Up_Arguments
         (Dst_Args => R.Args, Src_Args => Return_Args,
@@ -238,7 +239,6 @@ package body PolyORB.Protocols.SOAP_Pr is
       Components.Emit_No_Reply
         (S.Server,
          Objects.Interface.Executed_Request'(Req => R));
-
    end Process_Reply;
 
    procedure Handle_Unmarshall_Arguments
@@ -249,7 +249,6 @@ package body PolyORB.Protocols.SOAP_Pr is
 
       Entity : String (1 .. Integer (S.Entity_Length));
       XML_Payload : Message.Payload.Object;
-      EArgs : PolyORB.Any.NVList.Ref;
    begin
       pragma Assert (Entity'Length > 0);
       PolyORB.Utils.Text_Buffers.Unmarshall_String
@@ -258,13 +257,7 @@ package body PolyORB.Protocols.SOAP_Pr is
         (O ("Getting arguments from XML Entity:" & Entity));
 
       S.Entity_Length := 0;
-      XML_Payload := Message.XML.Load_Payload (Entity);
-      EArgs := Any.NVList.Ref
-        (Standard.SOAP.Message.Parameters (XML_Payload));
-
-      PolyORB.Requests.Pump_Up_Arguments
-        (Dst_Args => Args, Src_Args => EArgs,
-         Direction => ARG_IN, Ignore_Src_Mode => True);
+      XML_Payload := Message.XML.Load_Payload (Entity, Args);
       S.Current_SOAP_Req := XML_Payload;
    end Handle_Unmarshall_Arguments;
 
