@@ -667,7 +667,9 @@ package body Backend.BE_Ada.Stubs is
       Append_Node_To_List
         (Make_Defining_Identifier (VN (V_Self_Ref)), P);
       Set_Actual_Parameter_Part (C, P);
-      N := Make_If_Statement (C, S, No_List);
+      N := Make_If_Statement
+        (Condition => C,
+         Then_Statements => S);
       Append_Node_To_List (N, Statements);
 
       --  Create argument list.
@@ -835,7 +837,9 @@ package body Backend.BE_Ada.Stubs is
       Append_Node_To_List (N, P);
       N := Make_Subprogram_Call
         (RE (RE_Is_Empty),
-         Make_List_Id (C));
+         Make_List_Id (Make_Designator
+         (Designator => PN (P_Exception_Info),
+          Parent     => VN (V_Request))));
       N := Make_Expression (N, Op_Not);
       N := Make_If_Statement
         (N, P, No_List);
