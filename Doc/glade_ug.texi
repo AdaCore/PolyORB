@@ -80,7 +80,7 @@ Distributed System Annex.
 
 @end itemize
 
-@node   Introduction to Distributed Systems, The Distributed Systems Annex, About This Guide, Top
+@node Introduction to Distributed Systems, The Distributed Systems Annex, About This Guide, Top
 @chapter Introduction to Distributed Systems
 
 A distributed system architecture comprises a network of computers and the
@@ -249,7 +249,7 @@ shared variables should be forbidden. To ensure such restrictions, the
 DSA provides several categorization pragmas in order to reduce the set
 of entities one can declare in a given unit.
 
-Of course, you can develop the non-distributed application with your
+Of course, the user can develop the non-distributed application with his
 usual software engineering environment. This is very important to note
 that the user needs no specialized tools to develop his/her distributed
 application. For instance, he can debug his/her application with his/her
@@ -678,7 +678,7 @@ packages cannot be withed in categorized package declarations.
 
 In RT or RCI package declarations, variables are forbidden and general
 access types are allowed as long as their marshaling subprograms are
-provided (see section @ref{Transmitting Dynamic Structure}).. 
+provided (see @ref{Transmitting Dynamic Structure}).. 
 
 @node RPC Failures, Exceptions, Variables and Non-Remote Access Types, More About Categorization Pragmas
 @subsection RPC Failures
@@ -872,7 +872,7 @@ The language forces the user to provide read and write opertions for non
 remote access types. Transmitting an access value by dumping its content
 into astream makes no sense when it is going to be transmitted to
 another partition (different memory spaces). To transmit non remote
-access types see section @ref{Transmitting Dynamic Structure}.
+access types see @ref{Transmitting Dynamic Structure}.
  
 @node Most Features in One Example,  , Marshalling and Unmarshalling Operations, The Distributed Systems Annex
 @section Most Features in One Example
@@ -940,19 +940,19 @@ distributed programs.
 
 @menu
 * Introduction to GLADE::       
+* Architecture of GLADE PCS::   
 * How to Configure a Distributed Application with Gnatdist::  
 * Gnatdist Command Line Options::  
 * Gnatdist Behind the Scenes::  
 * The Configuration Language::  
-* Tracing Facilities::          
-* Remote Shell Notes::          
-* Filtering::                   
-* Trace/Replay Debugging::      
-* Glade File Hierarchy::        
+* Partition Command Line Options::  
+* Debugging Facilities::        
+* GLADE File Hierarchy::        
 * GLADE Internals::             
+* Remote Shell Notes::          
 @end menu
 
-@node Introduction to GLADE, How to Configure a Distributed Application with Gnatdist, Getting Started With GLADE, Getting Started With GLADE
+@node Introduction to GLADE, Architecture of GLADE PCS, Getting Started With GLADE, Getting Started With GLADE
 @section Introduction to GLADE
 
 An Ada 95 distributed application comprises a number of partitions
@@ -971,15 +971,50 @@ are the partitions in his program and on which machines they should be
 executed.
 
 The tool gnatdist and its configuration language have been purposely
-designed to allow you to partition your program and specify the
+designed to allow the user to partition his program and specify the
 machines where the individual partitions are to execute on.
 
-gnatdist reads a configuration file (whose syntax is described below)
-and builds several executables, one for each partition. It also takes
-care of launching the different partitions (default) and to pass
-arguments specific to each partition.
+gnatdist reads a configuration file (whose syntax is described in
+section @ref{The Configuration Language}) and builds several
+executables, one for each partition. It also takes care of launching the
+different partitions (default) and to pass arguments specific to each
+partition.
 
-@node How to Configure a Distributed Application with Gnatdist, Gnatdist Command Line Options, Introduction to GLADE, Getting Started With GLADE
+@node Architecture of GLADE PCS, How to Configure a Distributed Application with Gnatdist, Introduction to GLADE, Getting Started With GLADE
+@section Architecture of GLADE PCS
+
+When a partition starts executing, one of the first steps of elaboration
+consists in a registration to a partition id server and possibly to a
+RCI name server. These two servers are located on a boot server.
+
+The partition id server is used to allocate an unique partition id when
+a new partition registers. It also replies to information queries from
+other partition ids on a given partition. This information includes the
+ip address, the port on which the partition is waiting for requests and
+all its configuration parameters (termination policy, reconnection
+policy, filters, ...).
+
+The RCI name server is used to register newly elaborated RCI
+packages. This occurs once the partition has been allocated a partition
+id. The partition registers its RCI packages with their names, their
+version ids, etc.
+
+These servers can be replicated on boot mirrors in order to prevent this
+single point of failure. But a partition has always to connect to a boot
+server or a boot mirror to get a minimal information on the other
+existing partition.
+
+The boot server is the first boot mirror of the system. A new partition
+declared as a boot mirror joins the group of boot mirrors. The group of
+boot mirrors consists in a ring and any request from a new partition to
+a boot mirror is sent on the ring through a token. A request can turn
+one or two times in the ring before being approved.
+
+When the boot server dies, a new boot server is elected among the
+remaining boot mirrors. A boot server is responsible for the global
+termination detection. That's why a new boot server has to be elected.
+
+@node How to Configure a Distributed Application with Gnatdist, Gnatdist Command Line Options, Architecture of GLADE PCS, Getting Started With GLADE
 @section How to Configure a Distributed Application with Gnatdist
 
 @itemize @bullet
@@ -993,15 +1028,15 @@ categorization pragmas are.
 
 @item
 When this non-distributed application is working, write a configuration
-file that maps your categorized packages onto partitions. Don't forget
-to specify the main procedure of your distributed application (see
+file that maps the user categorized packages onto partitions. Don't forget
+to specify the main procedure of his distributed application (see
 below).
 
 @item
 Type `gnatdist configuration-file'.
 
 @item
-Start your distributed application by invoking the start-up shell script
+Start the distributed application by invoking the start-up shell script
 or Ada program (depending on the "pragma Starter" option, see below).
 
 @end itemize
@@ -1020,13 +1055,13 @@ report and the actions performed. The switch -n allows gnatdist to skip
 the first stage of recompilation of the non-distributed application.
 
 All configuration files should end with the `.cfg' suffix. There may be
-several configuration files for the same distributed application, as you
-may want to use different distributed configurations according to your
-computing environment.
+several configuration files for the same distributed application, as the
+user may want to use different distributed configurations according to
+his computing environment.
 
-If a list  of  partitions is provided  on the  command line,  only these
-partitions will be  build. In the  following  configuration example, you
-can type : gnatdist configuration partition_2 partition_3.
+If a list of partitions is provided on the command line, only these
+partitions will be build. In the following configuration example, the
+user can type : gnatdist configuration partition_2 partition_3.
 
 @node Gnatdist Behind the Scenes, The Configuration Language, Gnatdist Command Line Options, Getting Started With GLADE
 @section Gnatdist Behind the Scenes
@@ -1064,32 +1099,56 @@ the number of instances of the partition is unknown.
 
 @end itemize
 
-@node The Configuration Language, Tracing Facilities, Gnatdist Behind the Scenes, Getting Started With GLADE
+@node The Configuration Language, Partition Command Line Options, Gnatdist Behind the Scenes, Getting Started With GLADE
 @section The Configuration Language
 
-The configuration language is "Ada-like". Because of its simplicity,
-it is described by means of an example. As the capabilities of GLADE
-will evolve, so will this configuration language.
-
-
+The configuration language is "Ada-like". Because of its simplicity, it
+is described by means of an example. As the capabilities of GLADE will
+evolve, so will this configuration language. Most of the attributes and
+pragmas can be overloaded at run-time by command line arguments or
+environment variables.
 
 @menu
+* Language Keywords::           
 * Configuration Declaration::   
 * Partition Declaration::       
-* Partition Main Procedure::    
-* Physical Nodes::              
-* Boot Server::                 
-* Executable Location::         
-* Partition Termination::       
-* Partition Reconnection::      
+* Partition Attribute Main::    
+* Pragma Starter::              
+* Partition Attribute Host::    
+* Pragma Boot_Server::          
+* Partition Attribute Storage_Dir::  
+* Partition Attribute Command_Line::  
+* Partition Attribute Termination::  
+* Partition Attribute Reconnection::  
 * Channel Declaration::         
-* Channel and Partition Filter::  
-* Version Consistency::         
-* Anonymous Tasks Pool::        
+* Partition and Channel Attribute Filter::  
+* Pragma Version::              
+* Partition Attribute Task_Pool::  
 * An Example with Most of the Configuration Language Features::  
 @end menu
 
-@node Configuration Declaration, Partition Declaration, The Configuration Language, The Configuration Language
+@node Language Keywords, Configuration Declaration, The Configuration Language, The Configuration Language
+@subsection Language Keywords
+
+All the Ada keywords are reserved keywords of the GLADE configuration
+language. As gnatdist generates full Ada code in order to build the
+different executables, all the Ada keywords have been reserved even if
+they are not used in the configuration language.
+
+There are three other keywords:
+
+@itemize @bullet
+
+@item @i{configuration} to encapsulate a configuration
+
+@item @i{Partition} that is a predefined type to declare partitions
+
+@item @i{Channel} that is a predefined type to declare channels between
+partitions
+
+@end itemize
+
+@node Configuration Declaration, Partition Declaration, Language Keywords, The Configuration Language
 @subsection Configuration Declaration
 
 The distribution of an Ada program is described by a single
@@ -1107,7 +1166,7 @@ CONFIGURATION_UNIT ::=
    @b{end} [IDENTIFIER];
 @end smallexample
 
-@node Partition Declaration, Partition Main Procedure, Configuration Declaration, The Configuration Language
+@node Partition Declaration, Partition Attribute Main, Configuration Declaration, The Configuration Language
 @subsection Partition Declaration
 
 In the declarative part, the user declares his partitions and can change
@@ -1150,12 +1209,8 @@ occur in the declarative part as well as in the body part.
 ENUMERATION_OF_ADA_UNITS ::= (@{ADA_UNIT @{, ADA_UNIT@}@});
 @end smallexample
 
-As gnatdist generates full Ada code in order to build the different
-executables, all the Ada keywords have been reserved even if they are
-not used in the configuration language.
-
-@node Partition Main Procedure, Physical Nodes, Partition Declaration, The Configuration Language
-@subsection Partition Main Procedure
+@node Partition Attribute Main, Pragma Starter, Partition Declaration, The Configuration Language
+@subsection Partition Attribute Main
 
 Basically, the distributed system annex helps a user in building a
 distributed application from a non-distributed application. The user
@@ -1190,10 +1245,12 @@ starting the entire distributed application. For this reason, the user
 can start his application the same way he used to do in the
 non-distributed case.
 
-As a default, the main executable is a shell script that starts
-one at a time the different partitions on the appropriate remote
-machines. But the user may ask for a full Ada starter procedure. The
-pragma Starter allows the user to ask for one starter or another.  
+@node Pragma Starter, Partition Attribute Host, Partition Attribute Main, The Configuration Language
+@subsection Pragma Starter
+
+As a default, the main executable is a full Ada starter procedure. That
+means it launches all the other partitions from an Ada program. The
+pragma Starter allows the user to ask for one starter or another.
 
 @smallexample
 @b{type} Method_Type @b{is} (Ada, Shell, None);
@@ -1201,8 +1258,29 @@ pragma Starter allows the user to ask for one starter or another.
 @b{pragma} Starter (Method => Method_Type);
 @end smallexample
 
-@node Physical Nodes, Boot Server, Partition Main Procedure, The Configuration Language
-@subsection Physical Nodes
+@itemize @bullet
+
+@item
+The default method consists in launching partitions from the main
+partition Ada procedure using a remote shell.
+
+@item
+The user may ask for a Shell script that starts one at a time the
+different partitions on the appropriate remote machines using a remote
+shell. This allows an user to edit the shell script and to modify it
+easily.
+
+@item 
+The user may ask for a None starter. In this case, it is up to the user
+to launch the different partitions. The user may have to provide on the
+command line the boot server location. This occurs when the boot server
+is not connected on the default location computed during GLADE
+installation.
+
+@end itemize
+
+@node Partition Attribute Host, Pragma Boot_Server, Pragma Starter, The Configuration Language
+@subsection Partition Attribute Host
 
 Logical nodes (or partitions) can be mapped onto physical
 nodes. gnatdist default behavior is to ask for themi nteractively. It is
@@ -1238,8 +1316,11 @@ This function is called before launching the partition. Therefore, in
 case of load balancing, the function can return the most appropriate
 host from among a set of hosts.
 
-@node Boot Server, Executable Location, Physical Nodes, The Configuration Language
-@subsection Boot Server
+@node Pragma Boot_Server, Partition Attribute Storage_Dir, Partition Attribute Host, The Configuration Language
+@subsection Pragma Boot_Server
+
+When a partition starts executing, one of the first steps consists in a
+connection to a boot server (see @ref{Architecture of GLADE PCS}).
 
 @smallexample
 PRAGMA ::=
@@ -1248,8 +1329,8 @@ PRAGMA ::=
       Protocol_Data => String);
 @end smallexample
 
-@node Executable Location, Partition Termination, Boot Server, The Configuration Language
-@subsection Executable Location
+@node Partition Attribute Storage_Dir, Partition Attribute Command_Line, Pragma Boot_Server, The Configuration Language
+@subsection Partition Attribute Storage_Dir
 
 There are several other attributes that can be applied to a
 partition. Storage_Dir allows the user to specify in which directory
@@ -1267,8 +1348,16 @@ REPRESENTATION_CLAUSE ::=
    @b{for} IDENTIFIER'Storage_Dir @b{use} STRING_LITERAL;
 @end smallexample
 
-@node Partition Termination, Partition Reconnection, Executable Location, The Configuration Language
-@subsection Partition Termination
+@node Partition Attribute Command_Line, Partition Attribute Termination, Partition Attribute Storage_Dir, The Configuration Language
+@subsection Partition Attribute Command_Line
+
+@smallexample
+REPRESENTATION_CLAUSE ::=
+   @b{for} IDENTIFIER'Command_Line @b{use} STRING_LITERAL;
+@end smallexample
+
+@node Partition Attribute Termination, Partition Attribute Reconnection, Partition Attribute Command_Line, The Configuration Language
+@subsection Partition Attribute Termination
 
 @smallexample
 TERMINATION_LITTERAL ::= Global_Termination |
@@ -1306,8 +1395,8 @@ termination request of the main boot server.
 
 @end itemize
 
-@node Partition Reconnection, Channel Declaration, Partition Termination, The Configuration Language
-@subsection Partition Reconnection
+@node Partition Attribute Reconnection, Channel Declaration, Partition Attribute Termination, The Configuration Language
+@subsection Partition Attribute Reconnection
 
 @smallexample
 RECONNECTION_LITTERAL ::= Rejected_On_Restart  |
@@ -1356,7 +1445,7 @@ calls to this partition are resumed.
 
 @end itemize
 
-@node Channel Declaration, Channel and Partition Filter, Partition Reconnection, The Configuration Language
+@node Channel Declaration, Partition and Channel Attribute Filter, Partition Attribute Reconnection, The Configuration Language
 @subsection Channel Declaration
 
 @smallexample
@@ -1367,251 +1456,8 @@ CHANNEL_DECLARATION ::=
 PARTITION_PEER ::= (IDENTIFIER, IDENTIFIER);
 @end smallexample
 
-@node Channel and Partition Filter, Version Consistency, Channel Declaration, The Configuration Language
-@subsection Channel and Partition Filter
-
-@smallexample
-REPRESENTATION_CLAUSE ::=
-   @b{for} CHANNEL_IDENTIFIER'Filter @b{use} STRING_LITERAL;
- | @b{for} PARTITION_IDENTIFIER'Filter @b{use} STRING_LITERAL;
- | @b{for} Channel'Filter @b{use} STRING_LITERAL;
- | @b{for} Partition'Filter @b{use} STRING_LITERAL;
-@end smallexample
-
-@node Version Consistency, Anonymous Tasks Pool, Channel and Partition Filter, The Configuration Language
-@subsection Version Consistency
-
-@smallexample
-pragma Version (True | False);
-@end smallexample
-
-@node Anonymous Tasks Pool, An Example with Most of the Configuration Language Features, Version Consistency, The Configuration Language
-@subsection Anonymous Tasks Pool
-
-@smallexample
-REPRESENTATION_CLAUSE ::=
-   @b{for} PARTITION_IDENTIFIER'Filter @b{use} TASK_POOL_SIZE_ARRAY;
- | @b{for} Partition'Filter @b{use} TASK_POOL_SIZE_ARRAY;
-TASK_POOL_SIZE_ARRAY := (POOL_MIN_SIZE, POOL_HIGH_SIZE, POOL_MAX_SIZE);
-@end smallexample
-
-@node An Example with Most of the Configuration Language Features,  , Anonymous Tasks Pool, The Configuration Language
-@subsection An Example with Most of the Configuration Language Features
-
-Every keyword and construct defined in the configuration language have
-been used in the following sample configuration file.
-
-@include myconfig.cfg.texi
-
-@enumerate
-
-@item @b{Line 1}
-Typically after having created the following configuration file you
-would type:
-
-@smallexample
-gnatdist myconfig.cfg
-@end smallexample
-
-If you wish to build only certain partitions then list the partitions to
-build on the gnatdist command line as follows:
-
-@smallexample
-gnatdist myconfig.cfg   partition_2 partition_3
-@end smallexample
-
-@item @b{Line 2}
-The name of the file prefix must be the same as the name of the
-configuration unit, in this example `myconfig.cfg'. The file suffix must
-be `cfg'. For a given distributed application you can have as many
-configuration files as you wish.
-
-@item @b{Line 5}
-Partition 1 contains no RCI package. However, it will contain the main
-procedure of the distributed application, called `Master_Procedure' in
-this example. If the line `procedure Master_Procedure is in
-Partition_1;' was missing Partition 1 would be completely empty. This is
-forbidden, a partition has to contain at least one library unit.
-
-gnatdist produces an executable with the name of Master_Procedure
-which will starts the various partitions on their host machines in
-the background.  The main partition is launched in the foreground.
-Note that by killing this main procedure the whole distributed
-application is halted.
-
-@item @b{Line 9}
-Specify the host on which to run partition 2.
-
-@item @b{Line 13}
-Use the value returned by an a program to figure out at execution
-time the name of the host on which partition 3 should execute.  For
-instance, execute the shell script `best-node' which takes the
-partition name as parameter and returns a string giving the name of
-the machine on which partition_3 should be launched.
-
-@item @b{Line 15}
-Partition 4 contains one RCI package RCI_B5 No host is specified for
-this partition. The startup script will ask for it interactively when it
-is executed.
-
-@item @b{Line 17}
-Specify the directory in which the executables in each partition will be
-stored.
-
-@item @b{Line 18}
-Specify the directory in which all the partition executables will be
-stored. Default is the current directory.
-
-@item @b{Line 21}
-Specify the partition main subprogram to use in a given partition.
-
-@item @b{Line 23}
-Specify a reconnection policy on Partition_3 crash. Any attempt to
-reconnect to Partition_3 when this partition is dead will be kept
-blocking until Partition_3 restart. As a default, any restart is
-rejected (Rejected_ON_Restart). Another policy is to raise
-Communication_Error on any reconnection attempt until Partition_3 has
-been restarted.
-
-@item @b{Line 24}
-Specify additional arguments to pass on the command line when a given
-partition is launched.
-
-@item @b{Line 25}
-Specify a termination mechanism for partition_4. The default is to
-compute a global distributed termination. When Local_Termination is
-specified then a partition terminates when the local termination is
-detected (standard ada termination).
-
-@item @b{Line 27}
-Specify the kind of startup method you would like. There are 3
-possibilities: Shell, Ada and None. Specifying `Shell' builds a shell
-script. All the partitions will be launched from a shell script.  If
-`Ada' is chosen, then the main Ada procedure itself is used to launch
-the various partitions. If method `None' is chosen, then no launch
-method is used and you have to start each partition manually.
-
-If no starter is given, then an Ada starter will be used.
-
-In this example, Partition_2, Partitions_3 and Partition_4 will be
-started from Partition_1 (ie from the Ada procedure Master_Procedure).
-
-@item @b{Line 31}
-Specify the use of a particular boot server. It is especially useful
-when the default port 5555 used by GARLIC is already assigned.
-
-@item @b{Line 33}
-It is a bounded error to elaborate a partition of a distributed
-program that contains a compilation unit that depends on a different
-version of the declaration of RCI library unit than that included in
-the partition to which the RCI library unit was assigned. When the
-pragma Version is set to False, no consistency check is performed.
-
-@item Lien 36
-Declare two channels. Other channels between partitions remain
-unknown.
-
-@item @b{Line 38}
-Use transparent compression/decompression for the arguments and
-results of any remote calls on channel "Channel_1", i.e. between
-"Partition_1" and "Partition_4".
- 
-@item @b{Line 39}
-Use filter "My_Own_Filter" on "Channel_2". This filter must be
-implemented in a package "System.Garlic.Filters.My_Own_Filter".
-
-@item @b{Line 40}
-For all data exchanged between partitions, use the filter "ZIP". (I.e.
-for both arriving remote calls as well as for calls made by a
-partition.)
-
-@item @b{Line 42}
-"Some_Filter" will be used to exchange a filter's parameters between two
-partitions. "Some_Filter" itself must be an algorithm that doesn't need
-its own parameters to be filtered again!
-
-On all other channels (i.e., for remote calls between partitions
-where no channel was declared), filtering is not used.
-
-@item @b{Line 44}
-The configuration body is optional. You may have fully described your
-configuration in the declaration part.
-
-@item @b{Line 45}
-Partition 2 contains two RCI packages RCI_B2 and RCI_B4 and a normal
-package. A normal package is not categorized.
-
-@item @b{Line 46}
-Partition 3 contains one RCI package RCI_B3
-
-@end enumerate
-
-@node Tracing Facilities, Remote Shell Notes, The Configuration Language, Getting Started With GLADE
-@section Tracing Facilities
-
-To trace your application, you can set two environment variables to
-true. The variable S_RPC will provide info on what is going on the
-execution of remote procedure calls (resolved in System.RPC -
-s-rpc.adb). The variable S_PARINT will provide info on partitions and
-units status (resolved in System.Partition_Interface -
-s-parint.adb). For instance, using sh, bash or zsh, type:
-
-@smallexample
-S_RPC=true;    export S_RPC
-S_PARINT=true; export S_PARINT
-@end smallexample
-
-@node Remote Shell Notes, Filtering, Tracing Facilities, Getting Started With GLADE
-@section Remote Shell Notes
-
-To start a partition, the main partition executable executes a remote
-shell. Thus you have to make sure that you are authorized to execute a
-remote shell on the remote machine. In this case, a first step would
-be to add into your $HOME/.rhosts file a line like :
-<remote-machine> <your-username>
-
-If you are not authorized at all, you can bypass this problem. All you
-have to do is:
-
-@itemize @bullet
-
-@item
-Open a session on each machine listed in your configuration file.
-
-@item
-If MAIN_PART is the partition that includes the main procedure and if
-you want to start MAIN_PART on host MAIN_HOST:
-
-@itemize @bullet
-
-@item
-Choose a TCP port number PORT_NUM (gnatdist default is 5555 when using a
-shell starter, randomly chosen when using an Ada starter).
-
-@item
-Then for each partition PART, start manually the corresponding
-executable on the corresponding host as follows
-
-@smallexample
-% PART [--nolaunch] [--slave]\
-    --boot_server tcp://MAIN_HOST:PORT_NUM
-@end smallexample
-
-The --nolaunch parameter must be included for the main partition, it
-means that this partition is not in charge of launching others. The
---slave parameter must be included for other partitions, meaning that in
-no case the name server is located on them.
-
-@end itemize
-
-@item
-If you want to kill the distributed application before it terminates,
-kill MAIN_PART.
-
-@end itemize
-
-@node Filtering, Trace/Replay Debugging, Remote Shell Notes, Getting Started With GLADE
-@section Filtering
+@node Partition and Channel Attribute Filter, Pragma Version, Channel Declaration, The Configuration Language
+@subsection Partition and Channel Attribute Filter
 
 GLADE contains a transparent extensible filtering mechanism allowing the
 user to define various data transformations to be performed on the arguments
@@ -1624,16 +1470,8 @@ transformations. Instead, users can write their own data transformations and
 hook them into GLADE so that they are automatically and transparently applied
 depending on the configuration of the distributed application.
 
-@menu
-* Configuring Filtering::       
-* Implementing Your Own Filters::  
-@end menu
-
-@node Configuring Filtering, Implementing Your Own Filters, Filtering, Filtering
-@subsection Configuring Filtering
-
 As a default, no filtering is performed by GLADE. As a default, the
-compression filter is available. Therefore, you can configure your
+compression filter is available. Therefore, the user can configure his
 distributed application in order to use this filter.
 
 The configuration language not only knows about partitions, it also
@@ -1707,63 +1545,299 @@ Gnatdist takes care of consistency checking of a filter definition. By
 default, no filtering is done. Filtering is only active if specified
 explicitly in the configuration file.
  
-@node Implementing Your Own Filters,  , Configuring Filtering, Filtering
-@subsection Implementing Your Own Filters
+@smallexample
+REPRESENTATION_CLAUSE ::=
+   @b{for} CHANNEL_IDENTIFIER'Filter @b{use} STRING_LITERAL;
+ | @b{for} PARTITION_IDENTIFIER'Filter @b{use} STRING_LITERAL;
+ | @b{for} Channel'Filter @b{use} STRING_LITERAL;
+ | @b{for} Partition'Filter @b{use} STRING_LITERAL;
+@end smallexample
 
-As has been briefly mentioned above, a filter with a name "NAME" must be
-implemented in a package called 'System.Garlic.Filters.Name'. You may
-write your own filters, which must implement their filtering of data in
-the primitive operations of a type derived from the type
-'System.Garlic.Filters.Filter_Type'. Your filter package must then
-register an instance of your newly derived type with GLADE by calling
-'System.Garlic.Filters.Register'. From that on, your filter is ready to
-be used.
+@node Pragma Version, Partition Attribute Task_Pool, Partition and Channel Attribute Filter, The Configuration Language
+@subsection Pragma Version
 
-For more information on how to write your own filter packages see the
-sample implementation of a ZIP filter in files 's-gafizi.ad[bs]' in the
-distribution. You might also want to look at the example in the
-'Filtering' directory of the GLADE distribution.
+@smallexample
+pragma Version (True | False);
+@end smallexample
+
+@node Partition Attribute Task_Pool, An Example with Most of the Configuration Language Features, Pragma Version, The Configuration Language
+@subsection Partition Attribute Task_Pool
+
+@smallexample
+REPRESENTATION_CLAUSE ::=
+   @b{for} PARTITION_IDENTIFIER'Filter @b{use} TASK_POOL_SIZE_ARRAY;
+ | @b{for} Partition'Filter @b{use} TASK_POOL_SIZE_ARRAY;
+TASK_POOL_SIZE_ARRAY := (POOL_MIN_SIZE, POOL_HIGH_SIZE, POOL_MAX_SIZE);
+@end smallexample
+
+@node An Example with Most of the Configuration Language Features,  , Partition Attribute Task_Pool, The Configuration Language
+@subsection An Example with Most of the Configuration Language Features
+
+Every keyword and construct defined in the configuration language have
+been used in the following sample configuration file.
+
+@include myconfig.cfg.texi
+
+@enumerate
+
+@item @b{Line 1}
+Typically after having created the following configuration file the user
+would type:
+
+@smallexample
+gnatdist myconfig.cfg
+@end smallexample
+
+If the user wants to build only certain partitions then list the
+partitions to build on the gnatdist command line as follows:
+
+@smallexample
+gnatdist myconfig.cfg   partition_2 partition_3
+@end smallexample
+
+@item @b{Line 2}
+The name of the file prefix must be the same as the name of the
+configuration unit, in this example `myconfig.cfg'. The file suffix must
+be `cfg'. For a given distributed application the user can have as many
+configuration files as the user wishes.
+
+@item @b{Line 5}
+Partition 1 contains no RCI package. However, it will contain the main
+procedure of the distributed application, called `Master_Procedure' in
+this example. If the line `procedure Master_Procedure is in
+Partition_1;' was missing Partition 1 would be completely empty. This is
+forbidden, a partition has to contain at least one library unit.
+
+gnatdist produces an executable with the name of Master_Procedure
+which will starts the various partitions on their host machines in
+the background.  The main partition is launched in the foreground.
+Note that by killing this main procedure the whole distributed
+application is halted.
+
+@item @b{Line 9}
+Specify the host on which to run partition 2.
+
+@item @b{Line 13}
+Use the value returned by an a program to figure out at execution
+time the name of the host on which partition 3 should execute.  For
+instance, execute the shell script `best-node' which takes the
+partition name as parameter and returns a string giving the name of
+the machine on which partition_3 should be launched.
+
+@item @b{Line 15}
+Partition 4 contains one RCI package RCI_B5 No host is specified for
+this partition. The startup script will ask for it interactively when it
+is executed.
+
+@item @b{Line 17}
+Specify the directory in which the executables in each partition will be
+stored.
+
+@item @b{Line 18}
+Specify the directory in which all the partition executables will be
+stored. Default is the current directory.
+
+@item @b{Line 21}
+Specify the partition main subprogram to use in a given partition.
+
+@item @b{Line 23}
+Specify a reconnection policy on Partition_3 crash. Any attempt to
+reconnect to Partition_3 when this partition is dead will be kept
+blocking until Partition_3 restart. As a default, any restart is
+rejected (Rejected_ON_Restart). Another policy is to raise
+Communication_Error on any reconnection attempt until Partition_3 has
+been restarted.
+
+@item @b{Line 24}
+Specify additional arguments to pass on the command line when a given
+partition is launched.
+
+@item @b{Line 25}
+Specify a termination mechanism for partition_4. The default is to
+compute a global distributed termination. When Local_Termination is
+specified then a partition terminates when the local termination is
+detected (standard ada termination).
+
+@item @b{Line 27}
+Specify the kind of startup method the user would like. There are 3
+possibilities: Shell, Ada and None. Specifying `Shell' builds a shell
+script. All the partitions will be launched from a shell script.  If
+`Ada' is chosen, then the main Ada procedure itself is used to launch
+the various partitions. If method `None' is chosen, then no launch
+method is used and the user has to start each partition manually.
+
+If no starter is given, then an Ada starter will be used.
+
+In this example, Partition_2, Partitions_3 and Partition_4 will be
+started from Partition_1 (ie from the Ada procedure Master_Procedure).
+
+@item @b{Line 31}
+Specify the use of a particular boot server. It is especially useful
+when the default port 5555 used by GARLIC is already assigned.
+
+@item @b{Line 33}
+It is a bounded error to elaborate a partition of a distributed
+program that contains a compilation unit that depends on a different
+version of the declaration of RCI library unit than that included in
+the partition to which the RCI library unit was assigned. When the
+pragma Version is set to False, no consistency check is performed.
+
+@item Lien 36
+Declare two channels. Other channels between partitions remain
+unknown.
+
+@item @b{Line 38}
+Use transparent compression/decompression for the arguments and
+results of any remote calls on channel "Channel_1", i.e. between
+"Partition_1" and "Partition_4".
+ 
+@item @b{Line 39}
+Use filter "My_Own_Filter" on "Channel_2". This filter must be
+implemented in a package "System.Garlic.Filters.My_Own_Filter".
+
+@item @b{Line 40}
+For all data exchanged between partitions, use the filter "ZIP". (I.e.
+for both arriving remote calls as well as for calls made by a
+partition.)
+
+@item @b{Line 42}
+"Some_Filter" will be used to exchange a filter's parameters between two
+partitions. "Some_Filter" itself must be an algorithm that doesn't need
+its own parameters to be filtered again!
+
+On all other channels (i.e., for remote calls between partitions
+where no channel was declared), filtering is not used.
+
+@item @b{Line 44}
+The configuration body is optional. The user may have fully described
+his configuration in the declaration part.
+
+@item @b{Line 45}
+Partition 2 contains two RCI packages RCI_B2 and RCI_B4 and a normal
+package. A normal package is not categorized.
+
+@item @b{Line 46}
+Partition 3 contains one RCI package RCI_B3
+
+@end enumerate
+
+@node Partition Command Line Options, Debugging Facilities, The Configuration Language, Getting Started With GLADE
+@section Partition Command Line Options
+
+Most of the previous attributes and pragmas can be modified at
+run-time. The user can redefine some of the configuration options by
+defining shell environment variables or by passing arguments on the
+command line to the partition executable.
+
+@menu
+* Boot_Server Command Line Option::  
+* Reconnection Command Line Option::  
+* Termination Command Line Option::  
+* Trace Command Line Option::   
+* Replay Command Line Option::  
+@end menu
+
+@node Boot_Server Command Line Option, Reconnection Command Line Option, Partition Command Line Options, Partition Command Line Options
+@subsection Boot_Server Command Line Option
+
+This allows to set the boot server (see @ref{Pragma Boot_Server}
+for details).
+
+A shell environment variable BOOT_SERVER can be set to a string
+conforming to the protocol data convention (see @ref{Pragma
+Boot_Server}). When a partition is executed from such a shell, the value
+assigned in the configuration file is replaced by the value of the
+environment variable.
+
+When the partition is launched with a command line argument
+@code{--}boot_server=<x> where <x> is a string conforming to the protocol
+data convention (see @ref{Pragma Boot_Server}), the value
+assigned in the configuration file or by the shell environment variable
+is replaced by <x>.
+
+@node  Reconnection Command Line Option, Termination Command Line Option, Boot_Server Command Line Option, Partition Command Line Options
+@subsection Reconnection Command Line Option
+
+This allows to set the reconnection policy (see @ref{Partition
+Attribute Reconnection} for details).
+
+A shell environment variable RECONNECTION can be set to one of the three
+possible reconnection policies. When a partition is executed from such a
+shell, the value assigned in the configuration file is replaced by the
+value of the shell environment variable.
+
+When the partition is launched with a command line argument
+@code{--}reconnection=<x> where <x> is one of the three possible
+reconnection policies, the value assigned in the configuration file or
+by the shell environment variable is replaced by <x>.
+
+@node Termination Command Line Option, Trace Command Line Option, Reconnection Command Line Option, Partition Command Line Options
+@subsection Termination Command Line Option
+
+This allows to set the termination policy (see @ref{Partition
+Attribute Termination} for details).
+
+A shell environment variable TERMINATION can be set to one of the three
+possible termination policies. When a partition is executed from such a
+shell, the value assigned in the configuration file is replaced by the
+value of the shell environment variable.
+
+When the partition is launched with a command line argument
+@code{--}termination=<x> where <x> is one of the three possible
+termination policies, the value assigned in the configuration file or by
+the shell environment variable is replaced by <x>.
 
 
-@node Trace/Replay Debugging, Glade File Hierarchy, Filtering, Getting Started With GLADE
-@section Trace/Replay Debugging
+@c @item @tab CONNECTION_HITS @tab
+@c @item @tab DETACH @tab --detach
+@c @item @tab SELF_LOCATION @tab --self_location
+@c @item @tab BOOT_MIRROR @tab --boot_mirror
+@c @item @tab MIRROR_EXCEPTED @tab
+@c @item @tab SLAVE @tab --slave
+@c @item @tab NOLAUNCH @tab --nolaunch
+@c @end multitable
 
-GLADE has a facility for trace/replay based debugging. If trace mode
+@node Trace Command Line Option, Replay Command Line Option, Termination Command Line Option, Partition Command Line Options
+@subsection Trace Command Line Option
+
+GLADE has a facility for trace / replay based debugging. If trace mode
 is turned on, GLADE will record all messages received by a partition
 into a trace file. The trace file can then be used to replay the
 execution of the partition, in isolation.
 
 To get a partition to generate a trace file, it has to be passed the
-command line argument "--trace". This is most easily done by using the
+command line argument @code{--}trace. This is most easily done by using the
 "for Partition'Command_Line use..." construct (described above) in the
-configuration file to add "--trace" to the command lines of the
+configuration file to add @code{--}trace to the command lines of the
 partitions whose executions are to be replayed. When the application
 has been built, starting it using the starter, as usual, will then
 result in the trace files being generated.
 
 By default, the file name of the trace file is the name of the
 partition's executable (i.e. the string returned by the standard
-procedure Ada.Command_Line.Command_Name) with a trailing
-".trace". This can be changed with the "--trace_file othername"
-command line argument. Note that since the remote partitions are
-launched with rsh under Unix, the current directory during execution
-will be the user's home directory. This is no problem when using the
-default trace file name, because the executable's name will include
-the absolute path. When using the "--trace_file" option, on the other
-hand, if you don't want the trace file to be created/read in the home
-directory, the absolute path will have to be included in the desired
-name.
+procedure Ada.Command_Line.Command_Name) with a trailing ".trace". This
+can be changed with the @code{--}trace_file <othername> command line
+argument. Note that since the remote partitions are launched with rsh
+under Unix, the current directory during execution will be the user's
+home directory. This is no problem when using the default trace file
+name, because the executable's name will include the absolute path. When
+using the @code{--}trace_file option, on the other hand, if the user doesn't
+want the trace file to be created/read in the home directory, the
+absolute path will have to be included in the desired name.
+
+@node Replay Command Line Option,  , Trace Command Line Option, Partition Command Line Options
+@subsection Replay Command Line Option
 
 In order to replay a partition whose execution has been previously
-traced, the command line argument "--replay" is required. In addition,
+traced, the command line argument @code{--}replay is required. In addition,
 the special boot server location "replay://" has to be specified,
-i.e. by using the "--boot_server replay://" command line argument.
+i.e. by using the @code{--}boot_server replay:// command line argument.
 
 Example: To replay a traced execution of partition whose executable is
-named PART, you would start it with the command
+named PART, he would start it with the command
 
 @smallexample
-% PART [--nolaunch] [--slave] --replay --boot_server replay://
+% PART [@code{--}nolaunch] [@code{--}slave] @code{--}replay @code{--}boot_server replay://
 @end smallexample
 
 possibly under the control of a debugger, such as gdb.
@@ -1778,15 +1852,30 @@ N.B. It is important that the same executable is used for replay as
 when the trace file was generated, otherwise strange behavior can be
 expected.
 
-@node Glade File Hierarchy, GLADE Internals, Trace/Replay Debugging, Getting Started With GLADE
-@section Glade File Hierarchy
+@node Debugging Facilities, GLADE File Hierarchy, Partition Command Line Options, Getting Started With GLADE
+@section Debugging Facilities
+
+To trace his application, the user can set two environment variables to
+true. The variable S_RPC will provide info on what is going on the
+execution of remote procedure calls (resolved in System.RPC -
+s-rpc.adb). The variable S_PARINT will provide info on partitions and
+units status (resolved in System.Partition_Interface -
+s-parint.adb). For instance, using sh, bash or zsh, type:
+
+@smallexample
+S_RPC=true;    export S_RPC
+S_PARINT=true; export S_PARINT
+@end smallexample
+
+@node GLADE File Hierarchy, GLADE Internals, Debugging Facilities, Getting Started With GLADE
+@section GLADE File Hierarchy
 
 All GLADE intermediate files (object files, etc) are stored under a
-common directory named "dsa". You may remove this whole directory and
-its content when you do not intend to rebuild your distributed
+common directory named "dsa". The user may remove this whole directory and
+its content when he does not intend to rebuild his distributed
 applications.
 
-@node GLADE Internals,  , Glade File Hierarchy, Getting Started With GLADE
+@node GLADE Internals, Remote Shell Notes, GLADE File Hierarchy, Getting Started With GLADE
 @section GLADE Internals
 
 The GLADE PCS is called GARLIC which stands for Generic Ada Reusable
@@ -1800,13 +1889,14 @@ features. Some of these features are not configurable by the user.
 * Multiple Requests::           
 * Priority Inheritance::        
 * Remote Procedure Call Abortion::  
+* User Filter Implementation::  
 @end menu
 
 @node Heterogeneous Systems, Multiple Requests, GLADE Internals, GLADE Internals
 @subsection Heterogeneous Systems
 
 The GNAT environment provides default attributes except for non remote
-access types (see section @ref{Transmitting Dynamic Structure} and
+access types (see @ref{Transmitting Dynamic Structure} and
 @ref{}). The implementation of the default attributes of predefined
 types can be found in @t{System.Stream_Attributes}.
 
@@ -1822,18 +1912,20 @@ implementation.
 
 @node Multiple Requests, Priority Inheritance, Heterogeneous Systems, GLADE Internals
 @subsection Multiple Requests
+
 When multiple remote procedure calls occur on the same partition, they
 are handled by several anonymous tasks. The number of tasks in the
-anonymous tasks pool can be configured by three figures (see section
-@ref{Anonymous Tasks Pool}). Therefore, the user may have to synchronize 
-global data in the Remote_Call_Interface or Remote_Types unit to
-preserve concurrent access on data. If the user want to suppress the
-multiple requests features, he can force the configuration of the
+anonymous tasks pool can be configured by three figures (see
+@ref{Partition Attribute Task_Pool}). Therefore, the user may have to
+synchronize global data in the Remote_Call_Interface or Remote_Types
+unit to preserve concurrent access on data. If the user want to suppress
+the multiple requests features, he can force the configuration of the
 anonymous tasks pool to (0 | 1, 0 | 1, 1). That means that there is at
 most one anonymous task running at a time.
 
 @node Priority Inheritance, Remote Procedure Call Abortion, Multiple Requests, GLADE Internals
 @subsection Priority Inheritance
+
 It is compiler-dependent to preserve the caller priority during a remote
 procedure call. In fact, it can be unsafe because two partitions may
 have different priority range and policy. Nevertheless, GLADE preserves
@@ -1841,12 +1933,79 @@ the caller priority. This priority is marshalled and unmarshalled during
 the remote procedure call and the anonymous task is set to the caller
 priority. There is no way yet to suppress this feature.
 
-@node Remote Procedure Call Abortion,  , Priority Inheritance, GLADE Internals
+@node Remote Procedure Call Abortion, User Filter Implementation, Priority Inheritance, GLADE Internals
 @subsection Remote Procedure Call Abortion
+
 When a remote procedure call is aborted, GLADE will abort the calling
 task on the caller side. But it will also try to abort the remote
 anonymous task performing the remote call. This task will be aborted
 without being requeued in the anonymous tasks pool.
+
+@node User Filter Implementation,  , Remote Procedure Call Abortion, GLADE Internals
+@subsection User Filter Implementation
+
+As has been briefly mentioned above, a filter with a name "NAME" must be
+implemented in a package called 'System.Garlic.Filters.Name'. The user
+may write his own filters, which must implement their filtering of data
+in the primitive operations of a type derived from the type
+'System.Garlic.Filters.Filter_Type'. His filter package must then
+register an instance of his newly derived type with GLADE by calling
+'System.Garlic.Filters.Register'. From that on, his filter is ready to
+be used.
+
+For more information on how to write his own filter packages see the
+sample implementation of a ZIP filter in files 's-gafizi.ad[bs]' in the
+distribution. The user might also want to look at the example in the
+'Filtering' directory of the GLADE distribution.
+
+@node Remote Shell Notes,  , GLADE Internals, Getting Started With GLADE
+@section Remote Shell Notes
+
+To start a partition, the main partition executable executes a remote
+shell. Thus the user has to make sure that he is authorized to execute a
+remote shell on the remote machine. In this case, a first step would
+be to add into his $HOME/.rhosts file a line like :
+<remote-machine> <user-name>
+
+If he is not authorized at all, he can bypass this problem. All he has
+to do is:
+
+@itemize @bullet
+
+@item
+Open a session on each machine listed in his configuration file.
+
+@item
+If MAIN_PART is the partition that includes the main procedure and if
+he wants to start MAIN_PART on host MAIN_HOST:
+
+@itemize @bullet
+
+@item
+Choose a TCP port number PORT_NUM (gnatdist default is 5555 when using a
+shell starter, randomly chosen when using an Ada starter).
+
+@item
+Then for each partition PART, start manually the corresponding
+executable on the corresponding host as follows
+
+@smallexample
+% PART [--nolaunch] [--slave]\
+    --boot_server tcp://MAIN_HOST:PORT_NUM
+@end smallexample
+
+The --nolaunch parameter must be included for the main partition, it
+means that this partition is not in charge of launching others. The
+--slave parameter must be included for other partitions, meaning that in
+no case the name server is located on them.
+
+@end itemize
+
+@item
+If he wants to kill the distributed application before it terminates,
+kill MAIN_PART.
+
+@end itemize
 
 @c @node
 @c @section Restrictions
@@ -1865,8 +2024,6 @@ without being requeued in the anonymous tasks pool.
 
 @node DSA and CORBA,  , Getting Started With GLADE, Top
 @appendix DSA and CORBA
-
-
 
 @menu
 * CORBA Architecture::          
