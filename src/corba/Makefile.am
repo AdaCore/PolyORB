@@ -1,4 +1,4 @@
-SUBDIRS = . portableinterceptor rtcorba
+SUBDIRS = . messaging portableinterceptor rtcorba
 
 include $(srcdir)/../Makefile.common
 
