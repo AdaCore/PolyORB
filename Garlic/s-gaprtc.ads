@@ -34,17 +34,20 @@
 ------------------------------------------------------------------------------
 
 with Ada.Streams;
-with System.Garlic.Protocols;
+
+with Interfaces.C;
+
+with System.Garlic.Exceptions;
 with System.Garlic.Types;
 with System.Garlic.Utils;
 
-package System.Garlic.Tcp is
+package System.Garlic.Protocols.Tcp is
 
    --  This package needs documentation ???
 
-   type TCP_Protocol is new System.Garlic.Protocols.Protocol_Type with private;
+   type TCP_Protocol is new Protocol_Type with private;
 
-   function Create return System.Garlic.Protocols.Protocol_Access;
+   function Create return Protocol_Access;
 
    function Get_Data
      (Protocol  : access TCP_Protocol)
@@ -54,31 +57,53 @@ package System.Garlic.Tcp is
      (Protocol : access TCP_Protocol)
      return String;
 
+   function Receive
+     (Protocol : access TCP_Protocol;
+      Timeout  : Milliseconds)
+     return Boolean;
+
    procedure Initialize
      (Protocol  : access TCP_Protocol;
-      Self_Data : in Utils.String_Access;
+      Self_Data : in String;
       Required  : in Boolean;
       Performed : out Boolean;
-      Error     : in out Utils.Error_Type);
+      Error     : in out Exceptions.Error_Type);
 
    procedure Send
      (Protocol  : access TCP_Protocol;
       Partition : in Types.Partition_ID;
       Data      : access Ada.Streams.Stream_Element_Array;
-      Error     : in out Utils.Error_Type);
+      Error     : in out Exceptions.Error_Type);
 
    procedure Set_Boot_Data
      (Protocol  : access TCP_Protocol;
-      Boot_Data : in Utils.String_Access;
-      Error     : in out Utils.Error_Type);
+      Boot_Data : in String;
+      Error     : in out Exceptions.Error_Type);
 
    procedure Shutdown (Protocol : access TCP_Protocol);
 
    Shutdown_Completed : Boolean := False;
 
+   procedure Accept_Until_Closed
+     (Incoming : in Natural);
+
+   procedure Receive_Until_Closed
+     (Peer : in Interfaces.C.int;
+      PID  : in out Types.Partition_ID);
+
+   type Allocate_Acceptor_Procedure is access procedure
+     (Incoming : in Natural);
+
+   type Allocate_Connector_Procedure is access procedure
+     (Peer : in Interfaces.C.int;
+      PID  : in Types.Partition_ID);
+
+   procedure Register_Task_Pool
+     (Allocate_Acceptor  : in Allocate_Acceptor_Procedure;
+      Allocate_Connector : in Allocate_Connector_Procedure);
+
 private
 
-   type TCP_Protocol is new System.Garlic.Protocols.Protocol_Type
-     with null record;
+   type TCP_Protocol is new Protocol_Type with null record;
 
-end System.Garlic.Tcp;
+end System.Garlic.Protocols.Tcp;
