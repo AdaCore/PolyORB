@@ -33,7 +33,7 @@
 --  Management of binding data, i. e. the elements of information
 --  that designate a remote middleware TSAP.
 
---  $Id: //droopi/main/src/polyorb-binding_data.ads#6 $
+--  $Id: //droopi/main/src/polyorb-binding_data.ads#7 $
 
 with Ada.Finalization;
 

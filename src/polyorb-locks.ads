@@ -32,7 +32,7 @@
 
 --  Inter-process synchronisation objects.
 
---  $Id: //droopi/main/src/polyorb-locks.ads#3 $
+--  $Id: //droopi/main/src/polyorb-locks.ads#4 $
 
 with PolyORB.Soft_Links;
 

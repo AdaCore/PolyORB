@@ -52,7 +52,7 @@ package PolyORB.POA_Manager is
    type POAManager_Access is access all POAManager'Class;
 
    subtype POAManager_Object_Ptr is POAManager_Access;
-   --  XXX for easier portability of legacy AdaBroker code.
+   --  XXX for easier portability of legacy PolyORB code.
 
    Invalid_Obj_Adapter : exception;
 

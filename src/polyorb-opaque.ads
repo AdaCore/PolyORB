@@ -32,7 +32,7 @@
 
 --  Storage of opaque data.
 
---  $Id: //droopi/main/src/polyorb-opaque.ads#3 $
+--  $Id: //droopi/main/src/polyorb-opaque.ads#4 $
 
 with Ada.Streams; use Ada.Streams;
 with Ada.Unchecked_Deallocation;
