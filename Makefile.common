@@ -7,6 +7,8 @@ LINKER=		$(top_builddir)/support/linker
 IDLAC_dir=	$(top_builddir)/compilers/idlac
 IDLAC=		$(IDLAC_dir)/idlac
 
+LINK=		$(LINKER) -o $(lib_LTLIBRARIES)
+
 .c.lo:
 	$(LTCOMPILE) -c $<
 

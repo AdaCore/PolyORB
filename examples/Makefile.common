@@ -1,6 +1,3 @@
-IDLAC = $(top_builddir)/compilers/idlac/idlac
-LINKER = $(top_builddir)/support/linker
-
 corba_lib=-I$(EXAMPLES_ROOT)/../src/corba/libpolyorb-corba.la -I$(EXAMPLES_ROOT)/../src/corba/rtcorba/libpolyorb-corba-rtcorba.la
 aws_lib=-I$(EXAMPLES_ROOT)/../src/aws/libpolyorb-aws.la
 giop_lib=-I$(EXAMPLES_ROOT)/../src/giop/libpolyorb-giop.la -I$(EXAMPLES_ROOT)/../src/giop/iiop/libpolyorb-giop-iiop.la -I$(EXAMPLES_ROOT)/../src/giop/diop/libpolyorb-giop-diop.la -I$(EXAMPLES_ROOT)/../src/giop/miop/libpolyorb-giop-miop.la
@@ -8,7 +5,6 @@ moma_lib=-I$(EXAMPLES_ROOT)/../src/moma/libpolyorb-moma.la
 soap_lib=-I$(EXAMPLES_ROOT)/../src/soap/libpolyorb-soap.la
 srp_lib=-I$(EXAMPLES_ROOT)/../src/srp/libpolyorb-srp.la
 web_common_lib=-I$(EXAMPLES_ROOT)/../src/web_common/libpolyorb-web_common.la
-
 
 POLYORB_LIBS = -I$(EXAMPLES_ROOT)/../src/libpolyorb.la @PROTO_LIBS@ @APPLI_LIBS@ @LIBS_LIBS@
 

@@ -5,8 +5,6 @@
 
 GNATFLAGS+=	-gnatg
 
-LINK=		$(LIBTOOL) $(LIBTOOL_TAG) --mode=link $(ADA) -o $(lib_LTLIBRARIES)
-
 depend:
 	for d in $(SUBDIRS);do \
 		(cd $$d; \

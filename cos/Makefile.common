@@ -70,12 +70,6 @@ ADA_ALIS = $(ADA_SPECS:.ads=.ali)
 ADA_LIBADD = $(ADA_SPECS:.ads=.lo)
 
 #
-# How to build a library
-#
-
-LINK = $(LIBTOOL) $(ADA) -o $(lib_LTLIBRARIES)
-
-#
 # File to be cleaned
 #
 

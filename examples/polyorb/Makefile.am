@@ -5,8 +5,6 @@ TESTS=  polyorb-test-no_tasking \
 
 poly_exe=$(TESTS)
 
-LINKER=	../../support/linker
-
 CLEANFILES= *.o *.ali
 
 DISTCLEANFILES = $(TESTS)
