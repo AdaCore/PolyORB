@@ -166,6 +166,10 @@ package body XE_IO is
          end if;
       end loop;
       Make_Dir (Name_Buffer (1 .. Name_Len));
+
+   exception when others =>
+      Message ("cannot create directory", Dname);
+      raise;
    end Create_Dir;
 
    -----------------
