@@ -11,14 +11,14 @@
 
 @title GLADE User's Guide
 @subtitle GLADE, GNAT Library for Ada Distributed Environment
-@subtitle GLADE Version glade-3.15a1
+@subtitle GLADE Version glade-3.16a
 @subtitle @today
 @author Laurent Pautet, Samuel Tardieu
 
 @page
 @vskip 0pt plus 1filll
 
-@copyright{} Copyright 1997-2002, Free Soft Foundation.
+@copyright{} Copyright 1997-2003, Free Soft Foundation.
 
 GLADE is free software; you can redistribute it and/or modify it under
 terms of the GNU General Public License as published by the Free
@@ -280,7 +280,7 @@ non-distributed versions. These differences are discussed in subsequent
 sections (see @ref{Pragma Asynchronous} and @ref{Pragma
 All_Calls_Remote}).
 
-Developping a non-distributed application in order to distribute it
+Developing a non-distributed application in order to distribute it
 later is the natural approach for a novice. Of course, it is not always
 possible to write a distributed application as a non-distributed
 application. For instance, a client/server application does not belong
@@ -395,7 +395,7 @@ application. Such a unit is duplicated on any partition in which it is
 mentioned.
 
 A parenthetical remark: to avoid the need for specific run-time
-libraries for the DSA, the notion of remote rendez-vous has not been
+libraries for the DSA, the notion of remote rendezvous has not been
 introduced in Ada95: tasks cannot be invoked directly from one partition
 to another. Therefore, declarations of task types and general protected types
 with entries are not allowed in categorized Ada library units.
@@ -469,7 +469,7 @@ system.
 @subsection Regular Remote Subprograms (RCI)
 
 In the following example, a RCIBank offers several remote services:
-Balance, Transfert, Deposit and Withdraw. On the caller side, the bank
+Balance, Transfer, Deposit and Withdraw. On the caller side, the bank
 client uses the stub files of unit RCIBank. On the receiver side,
 the bank receiver uses the skeleton files of unit RCIBank including
 the body of this package.
@@ -484,7 +484,7 @@ the body of this package.
 In the following example, several mirroring banks offer their services
 through the same database. Each bank registers a reference to each of
 its services with a central bank. A client of the central bank requests
-a service from one of the mirroring banks. To satisfiy requests, the RCI
+a service from one of the mirroring banks. To satisfy requests, the RCI
 unit RASBank defines Balance_Type, a remote access to subprogram (Recall
 that an access type declared in a remote unit has to be either remote
 access to subprogram or remote access to class wide type).
@@ -616,13 +616,13 @@ takes place on the partition on which the distributed object resides.
 
 Non-remote access types cannot be declared in the public part of a
 remote types unit. However, it is possible to define private non-remote
-access types as long as the user provides its marshalling procedures,
+access types as long as the user provides its marshaling procedures,
 that is to say the mechanism needed to place a value of the type into a
 communication stream.  The code below describes how to transmit a linked
 structure.
 
 The package declaration provides a type definition of single-linked
-lists of unbounded strings. An implementation of the marshalling
+lists of unbounded strings. An implementation of the marshaling
 operations could be the following:
 
 @include stringarraystream.adb.texi
@@ -641,7 +641,7 @@ Support the definition of distributed objects
 Allow dynamically bound remote calls (via remote access types)
 
 @item
-Allow non-remote access type (with marshalling subprograms)
+Allow non-remote access type (with marshaling subprograms)
 
 @item
 Cannot have a specification that depends on normal units
@@ -763,7 +763,7 @@ preserved.
 
 By default, a remote call is blocking: the caller waits until the remote
 call is complete and the output stream is received. By contrast.  a
-remote subprogram labelled with pragma Asynchronous allows statically
+remote subprogram labeled with pragma Asynchronous allows statically
 and dynamically bound remote calls to it to be executed
 asynchronously. A call to an asynchronous procedure doesn't wait for the
 completion of the remote call, and lets the caller continue its
@@ -829,7 +829,7 @@ calls Node1.Send which remotely calls Node2.Send which sets V to
 Now, let us assume that both Send procedures are asynchronous and that
 the connection between Partition_1 and Partition_2 is very slow. The
 following scenario can very well occur. Main remotely calls Node1.Send
-and is unblocked. Immediatly after this call, Main remotely calls
+and is unblocked. Immediately after this call, Main remotely calls
 Node2.Send and sets V to 2. Once this is done, the remote call to
 Node1.Send completes on Partition_1 and it remotely calls Node2.Send
 which sets V to 1.
@@ -841,14 +841,14 @@ A pragma All_Calls_Remote in a RCI unit forces remote procedure
 calls to be routed through the communication subsystem even for a local
 call. This eases the debugging of an application in a non-distributed
 situation that is very close to the distributed one, because the communication
-subsystem (including marshalling and unmarshalling procedures) can be
+subsystem (including marshaling and unmarshaling procedures) can be
 exercised on a single node.
 
 In some circumstances, a non-distributed application can behave
 differently than an application distributed on only one partition. This
 can happen when both All_Calls_Remote and Asynchronous features are used
 at the same time (see @ref{Pragma Asynchronous} for an example). Another
-circumstance occur when the marshalling operations raise an
+circumstance occur when the marshaling operations raise an
 exception. In the following example, when unit ACRRCI is a
 All_@-Calls_@-Remote package, the program raises Program_Error. When
 unit ACRRCI is no longer a All_Calls_Remote package, then the program
@@ -888,7 +888,7 @@ and Pure units.
 @section Partition Communication Subsystem
 
 @menu
-* Marshalling and Unmarshalling Operations::  
+* Marshaling and Unmarshaling Operations::  
 * Incorrect Remote Dispatching::  
 * Partition Ids::               
 * Concurrent Remote Calls::     
@@ -896,10 +896,10 @@ and Pure units.
 * Abortion and Termination::    
 @end menu
 
-@node Marshalling and Unmarshalling Operations, Incorrect Remote Dispatching, Partition Communication Subsystem, Partition Communication Subsystem
-@subsection Marshalling and Unmarshalling Operations
+@node Marshaling and Unmarshaling Operations, Incorrect Remote Dispatching, Partition Communication Subsystem, Partition Communication Subsystem
+@subsection Marshaling and Unmarshaling Operations
 
-The Partition Communication Subsystem  (PCS) marshalls and unmarshalls
+The Partition Communication Subsystem  (PCS) marshals and unmarshals
 caller and server data into a stream of type
 @i{System.@-RPC.@-Params_Stream_Type}:
 
@@ -946,13 +946,13 @@ Annex).
 @include new_integers.ads.texi
 @include new_integers.adb.texi
 
-The language forces the user to provide read and write opertions for
+The language forces the user to provide read and write operations for
 non-remote access types. Transmitting an access value by dumping its
 content into a stream makes no sense when it is going to be transmitted
 to another partition (different memory spaces). To transmit non-remote
 access types see @ref{Transmitting Dynamic Structure}.
 
-@node Incorrect Remote Dispatching, Partition Ids, Marshalling and Unmarshalling Operations, Partition Communication Subsystem
+@node Incorrect Remote Dispatching, Partition Ids, Marshaling and Unmarshaling Operations, Partition Communication Subsystem
 @subsection Incorrect Remote Dispatching
 
 When a remote subprogram takes a class wide argument, there is a risk of
@@ -1189,7 +1189,7 @@ gnatdist [switches] configuration-file [list-of-partitions]
 @end smallexample
 
 @c We should add some explanations of the gnatdist specific flags
-@c -n, -M and on some peticular mechanism (a spec without a body).
+@c -n, -M and on some particular mechanism (a spec without a body).
 
 The switches of @t{gnatdist} are, for the time being, exactly the same
 as those of gnatmake. By default @t{gnatdist} outputs a configuration
@@ -1226,8 +1226,8 @@ Each compilation unit in the program is compiled into an object module
 gnatmake on the sources of the various partitions.
 
 @item
-Stubs and skeletons are compiled into object modules (these are piece of
-cade that allow a partition running on machine A to communicate with a
+Stubs and skeletons are compiled into object modules (these are pieces of
+code that allow a partition running on machine A to communicate with a
 partition running on machine B). Several timestamp checks are performed
 to avoid useless code recompilation and stub generation.
 
@@ -1308,7 +1308,7 @@ partitions.
 @node Pragmas and Representation Clauses, Configuration Declaration, Language Keywords, The Configuration Language
 @subsection Pragmas and Representation Clauses
 
-It is possible to modify the default behaviour of the configuration via
+It is possible to modify the default behavior of the configuration via
 a pragma definition.
 
 @smallexample
@@ -1447,8 +1447,8 @@ Distributed File System) and a storage support data like a directory
 
 @smallexample
 
-LOCATION      ::= ([Support_Name =>] STRING_LITTERAL,
-                   [Support_Data =>] STRING_LITTERAL)
+LOCATION      ::= ([Support_Name =>] STRING_LITERAL,
+                   [Support_Data =>] STRING_LITERAL)
 
 LOCATION_LIST ::= (LOCATION [,LOCATION)])
 
@@ -1480,7 +1480,7 @@ a distributed application from a non-distributed application (Of course,
 this is not the only possible model offered by DSA). The user can
 design, implement and test his application in a non-distributed
 environment, and then should be able to switch from the non-distributed
-case to a distributed case. As mentionned before, this two-phase design
+case to a distributed case. As mentioned before, this two-phase design
 approach has several advantages.
 
 In a non-distributed case, the user executes only one main executable
@@ -1497,7 +1497,7 @@ the main procedure of the non-distributed application.
 @smallexample
 
 MAIN_PROCEDURE_DECLARATION ::=
-   @b{procedure} MAIN_PROCEDURE_IDENTIFER @b{is in} PARTITION_IDENTIFIER;
+   @b{procedure} MAIN_PROCEDURE_IDENTIFIER @b{is in} PARTITION_IDENTIFIER;
 
 @end smallexample
 
@@ -1691,7 +1691,7 @@ On some circumstances, GLADE can detect that a partition does not need
 the full PCS functionalities. This occurs in particular when the
 partition does use any task, any RCI unit or any RACW object. Therefore,
 the partition does not receive any message that is not a reply to a
-previous request. In this case, the PCS does not dragg the tasking
+previous request. In this case, the PCS does not drag in the tasking
 library and a light PCS is linked in the partition executable.
 This specific configuration is automatically determined by GNATDIST with
 the ALI file information.
@@ -1814,7 +1814,7 @@ advantage of the following attribute.
 @smallexample
 
 REPRESENTATION_CLAUSE ::=
-   @b{for} PARTIITON_IDENTIFIER'Command_Line @b{use} STRING_LITERAL;
+   @b{for} PARTITION_IDENTIFIER'Command_Line @b{use} STRING_LITERAL;
 
 @end smallexample
 
@@ -1832,12 +1832,12 @@ periodically by the main boot server.
 
 @smallexample
 
-TERMINATION_LITTERAL ::= Global_Termination |
+TERMINATION_LITERAL ::= Global_Termination |
                          Local_Termination  |
-                         Defered_Termination
+                         Deferred_Termination
 
 REPRESENTATION_CLAUSE ::=
-   @b{for} PARTIITON_IDENTIFIER'Termination @b{use} TERMINATION_LITERAL;
+   @b{for} PARTITION_IDENTIFIER'Termination @b{use} TERMINATION_LITERAL;
 
 @end smallexample
 
@@ -1892,12 +1892,12 @@ policies can be selected:
 
 @smallexample
 
-RECONNECTION_LITTERAL ::= Reject_On_Restart  |
+RECONNECTION_LITERAL ::= Reject_On_Restart  |
                           Fail_Until_Restart |
                           Wait_Until_Restart
 
 REPRESENTATION_CLAUSE ::=
-   @b{for} PARTITION_IDENTIFIER'Reconnection @b{use} RECONNECTION_LITTERAL;
+   @b{for} PARTITION_IDENTIFIER'Reconnection @b{use} RECONNECTION_LITERAL;
 
 @end smallexample
 
@@ -2301,7 +2301,7 @@ Most of the previous attributes and pragmas can be modified at
 run-time. The user can redefine some of the configuration options by
 defining shell environment variables or by passing arguments on the
 command line of a partition executable. In general, for a given feature
-(Aa_Bb_Cc), there is a corresponding environmnent variable (AA_BB_CC)
+(Aa_Bb_Cc), there is a corresponding environment variable (AA_BB_CC)
 and a corresponding command line option (@code{--}aa_bb_cc).
 
 The environment variable (AA_BB_CC) can be set to a value of the
@@ -2669,18 +2669,18 @@ termination detection. That is why a new boot server has to be elected.
 
 The GNAT environment provides default stream attributes, except for non-remote
 access types (see @ref{Transmitting Dynamic Structure} and
-@ref{Marshalling and Unmarshalling Operations}). The implementation of
+@ref{Marshaling and Unmarshaling Operations}). The implementation of
 the default attributes of predefined types can be found in
 @i{System.Stream_Attributes} (s-stratt.adb).
 
-The GLADE implementation overloads the GNAT default marshalling and
-unmarshalling subprograms with its own subprograms, which format data
+The GLADE implementation overloads the GNAT default marshaling and
+unmarshaling subprograms with its own subprograms, which format data
 according to a @i{XDR}-like protocol. Therefore, any GLADE application
-will work in an heterogeous environment.
+will work in an heterogeneous environment.
 
 If the user wants to keep using the GNAT default attributes for
-performance purposes, or to use another protocol to marshall and
-unmarshall predefined types, he can replace @t{s-stratt.adb} by a more
+performance purposes, or to use another protocol to marshal and
+unmarshal predefined types, he can replace @t{s-stratt.adb} by a more
 appropriate implementation.
 
 @node Allocating Partition Ids, Executing Concurrent Remote Calls, Heterogeneous System, GLADE Internals
@@ -2715,7 +2715,7 @@ It is compiler-dependent whether the caller priority is preserved during
 a remote procedure call. In fact, it can be unsafe to rely on
 priorities, because two partitions may have different priority ranges
 and policies. Nevertheless, GLADE preserves the caller priority. This
-priority is marshalled and unmarshalled during the remote procedure call
+priority is marshaled and unmarshaled during the remote procedure call
 and the priority of the anonymous task on the server is set to the
 caller priority. There is no way currently to disable this feature.
 
@@ -2941,7 +2941,7 @@ packages.  This can result in a very non-intuitive situation where the
 client stub does not ``with'' its usual interface packages but
 withs ``forward'' packages instead.
 
-When developping a distributed application with CORBA, two situations
+When developing a distributed application with CORBA, two situations
 can arise. On the server side, the programmer is responsible for the
 IDL file. He has to understand the Ada95 language mapping in order to
 avoid structures with a non-trivial implementation whenever possible,
@@ -3148,7 +3148,7 @@ SP). The distributed boundaries are more transparent as the application
 is not split into IDL and host language sources.
 
 In DSA, any Ada type can be used except access types, but this can be
-solved by providing the marshalling operations for such a type. The
+solved by providing the marshaling operations for such a type. The
 exception model is entirely preserved. Overloading is allowed in DSA
 (not in CORBA). The user can also define generic packages and use mixin
 mechanism to obtain some kind of multiple inheritance.
@@ -3167,7 +3167,7 @@ like @t{C++}. An Ada programmer should avoid using forward declaration
 or multiple inheritance (and in some respects, sequence).
 
 The CORBA user has to re-adapt his code to the code generated by the
-translator from the IDL file anytime the latter is modified. He also has
+translator from the IDL file any time the latter is modified. He also has
 to use the predefined CORBA types instead of Ada standard types; he has
 to call ORB functions or a naming service to obtain remote object
 references.
@@ -3179,12 +3179,12 @@ system automatically provides some naming functions like declaring RCI
 services. It also takes care of aborting remote procedure calls,
 detecting distributed termination, checking version consistency between
 clients and servers, and preserving and propagating any remote
-exception. Note that none of these features are immediatly available in
+exception. Note that none of these features are immediately available in
 CORBA.
 
 The RM does not require a DSA implementation to work on heterogeneous
 systems but GLADE, like any reasonable implementation, provides default
-XDR-like marshalling operations. This feature can be inhibited for
+XDR-like marshaling operations. This feature can be inhibited for
 performance reasons. An ORB is required to implement a Common Data
 Representation (CDR) to ensure safe communications between heterogeneous
 systems.
@@ -3214,7 +3214,7 @@ Implementing CORBA services as native Ada95 distributed objects, taking
 advantage of the standard language features, yields a simpler, easy to
 understand and use specification. We have already implemented the Naming
 service, the Events service and a service close to the Concurrency one
-with DSA. Developping the CORBA services was an interesting experience.
+with DSA. Developing the CORBA services was an interesting experience.
 We realized that although those services are nicely specified by an IDL
 file, their semantics is quite vague in such a way portability is
 dramatically broken. This work will be described in a future paper.
