@@ -236,4 +236,27 @@ package body Ada_Be.Mappings.CORBA is
       end case;
    end Map_Type_Name;
 
+   function Calling_Stubs_Type
+     (Self : access CORBA_Mapping_Type;
+      Node : Idl_Fe.Types.Node_Id)
+     return String is
+   begin
+      if Abst (Node) then
+         return "Abstract_Ref";
+      else
+         return "Ref";
+      end if;
+   end Calling_Stubs_Type;
+
+   function Generate_Scope_In_Child_Package
+     (Self : access CORBA_Mapping_Type;
+      Node : Idl_Fe.Types.Node_Id)
+     return Boolean is
+   begin
+      pragma Assert (Is_Gen_Scope (Node));
+      return True;
+      --  For CORBA, all Gen_Scopes are generated in
+      --  separate child packages.
+   end Generate_Scope_In_Child_Package;
+
 end Ada_Be.Mappings.CORBA;

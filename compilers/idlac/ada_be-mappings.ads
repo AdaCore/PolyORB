@@ -92,6 +92,23 @@ package Ada_Be.Mappings is
    --  resolves to denote a type declaration within Unit
    --  which declares the type that maps Node.
 
+   function Calling_Stubs_Type
+     (Self : access Mapping_Type;
+      Node : Idl_Fe.Types.Node_Id)
+     return String
+      is abstract;
+   --  Return the defining name for the calling stubs type
+   --  corresponding to Node.
+
+   function Generate_Scope_In_Child_Package
+     (Self : access Mapping_Type;
+      Node : Idl_Fe.Types.Node_Id)
+     return Boolean
+      is abstract;
+   --  Given a Gen_Scope Node, return True if, and only if,
+   --  the code generation for Node needs to occur in a new
+   --  child unit.
+
 private
 
    type Mapping_Type is abstract tagged null record;

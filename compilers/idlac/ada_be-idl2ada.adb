@@ -35,6 +35,7 @@
 
 with Ada.Characters.Handling;
 with Ada.Strings.Unbounded;
+with Ada.Unchecked_Deallocation;
 
 with Idl_Fe.Types;          use Idl_Fe.Types;
 with Idl_Fe.Tree;           use Idl_Fe.Tree;
@@ -67,18 +68,38 @@ package body Ada_Be.Idl2Ada is
    Flag : constant Natural := Ada_Be.Debug.Is_Active ("ada_be.idl2ada");
    procedure O is new Ada_Be.Debug.Output (Flag);
 
+   ------------------------------------------
+   -- The current language mapping variant --
+   ------------------------------------------
+
    type Mapping_Access is access Ada_Be.Mappings.Mapping_Type'Class;
    Mapping : Mapping_Access;
+
+   ---------------------------------------------
+   -- The current state of the code generator --
+   ---------------------------------------------
+
+   type Library_Unit_Data is array (Unit_Kind) of Compilation_Unit;
+
+   type Scope_State is record
+      Stubs, Skel, Helper, IR_Info, Impl,
+        Value_Skel, Delegate : Library_Unit_Data;
+   end record;
+
+   type Scope_State_Access is access Scope_State;
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Scope_State, Scope_State_Access);
 
    -------------------------------------------------
    -- General purpose code generation subprograms --
    -------------------------------------------------
 
    procedure Gen_Scope
-     (Node      : Node_Id;
-      Implement : Boolean;
-      Intf_Repo : Boolean;
-      To_Stdout : Boolean);
+     (Node          : Node_Id;
+      Implement     : Boolean;
+      Intf_Repo     : Boolean;
+      To_Stdout     : Boolean;
+      Current_Scope : Scope_State_Access);
    --  Generate all the files for scope Node.
    --  The implementation templates for interfaces is
    --  generated only if Implement is true.
@@ -87,13 +108,15 @@ package body Ada_Be.Idl2Ada is
      (Node      : Node_Id;
       Implement : Boolean;
       Intf_Repo : Boolean;
-      To_Stdout : Boolean);
+      To_Stdout : Boolean;
+      In_Scope  : Scope_State_Access);
 
    procedure Gen_Interface_Module_Scope
      (Node      : Node_Id;
       Implement : Boolean;
       Intf_Repo : Boolean;
-      To_Stdout : Boolean);
+      To_Stdout : Boolean;
+      In_Scope  : Scope_State_Access);
 
    procedure Gen_ValueType_Stubs_Body
      (CU : in out Compilation_Unit;
@@ -140,33 +163,13 @@ package body Ada_Be.Idl2Ada is
    --  declaration, else it is an extension declaration
    --  with an empty extension.
 
---    procedure Gen_Operation_Body_Prologue
---      (CU : in out Compilation_Unit;
---       Response_Expected : Boolean;
---       Operation_Id_Expr : String);
---    --  Generate the prologue of an operation stub
---    --  body (from common variable declarations to
---    --  marshalling of request body, inclusive.)
-
---    procedure Gen_Operation_Send_Request
---      (CU : in out Compilation_Unit;
---       Response_Expected : Boolean);
---    --  Generate a call to Send_Request_Send for
---    --  an operation stub body, and the Sr_Forward
---    --  and Sr_No_Reply alternatives of the subsequent
---    --  case on the returned status.
-
-
-   --  interface dynamique
    procedure Gen_Node_Stubs_Body_Dyn
      (CU   : in out Compilation_Unit;
       Node : Node_Id);
-   --  interface dynamique
+
    function TC_Name
      (Node : Node_Id)
       return String;
-   --  interface dynamique
-   --  interface dynamique
 
    procedure Gen_Convert_Forward_Declaration
      (CU : in out Compilation_Unit;
@@ -194,7 +197,9 @@ package body Ada_Be.Idl2Ada is
       Init (It, Contents (Node));
       while not Is_End (It) loop
          Get_Next_Node (It, S_Node);
-         Gen_Scope (S_Node, Implement, Intf_Repo, To_Stdout);
+         Gen_Scope
+           (S_Node, Implement, Intf_Repo, To_Stdout,
+            Current_Scope => null);
       end loop;
 
    end Generate;
@@ -204,33 +209,35 @@ package body Ada_Be.Idl2Ada is
    ---------------
 
    procedure Gen_Scope
-     (Node      : Node_Id;
-      Implement : Boolean;
-      Intf_Repo : Boolean;
-      To_Stdout : Boolean) is
+     (Node          : Node_Id;
+      Implement     : Boolean;
+      Intf_Repo     : Boolean;
+      To_Stdout     : Boolean;
+      Current_Scope : Scope_State_Access)
+   is
+      In_Scope : Scope_State_Access := null;
    begin
+      if not Generate_Scope_In_Child_Package (Mapping, Node) then
+         In_Scope := Current_Scope;
+      end if;
+
       case Kind (Node) is
          when K_ValueType =>
-            Gen_Value_Scope (Node, Implement, Intf_Repo, To_Stdout);
+            Gen_Value_Scope
+              (Node, Implement, Intf_Repo, To_Stdout, In_Scope);
 
          when
            K_Ben_Idl_File |
            K_Module       |
            K_Interface    =>
-            Gen_Interface_Module_Scope (Node, Implement, Intf_Repo, To_Stdout);
+            Gen_Interface_Module_Scope
+              (Node, Implement, Intf_Repo, To_Stdout, In_Scope);
 
          when others =>
             raise Program_Error;
             --  Should never happen
       end case;
    end Gen_Scope;
-
-   type Library_Unit_Data is array (Unit_Kind) of Compilation_Unit;
-
-   type Scope_State is record
-      Stubs, Skel, Helper, IR_Info, Impl,
-        Value_Skel, Delegate : Library_Unit_Data;
-   end record;
 
    procedure Initialize_Scope_State
      (Stubs_Name      :     String;
@@ -285,7 +292,8 @@ package body Ada_Be.Idl2Ada is
      (Node      : Node_Id;
       Implement : Boolean;
       Intf_Repo : Boolean;
-      To_Stdout : Boolean)
+      To_Stdout : Boolean;
+      In_Scope  : Scope_State_Access)
    is
       Stubs_Name : constant String
         := Client_Stubs_Unit_Name (Mapping, Node);
@@ -301,18 +309,38 @@ package body Ada_Be.Idl2Ada is
       Value_Skel_Name : constant String
         := Stubs_Name & Value_Skel.Suffix;
 
-      S : Scope_State;
+      S : Scope_State_Access;
    begin
+      if In_Scope = null then
+         S := new Scope_State;
 
-      Initialize_Scope_State
-        (Stubs_Name,
-         Skel_Name,
-         Helper_Name,
-         IR_Info_Name,
-         Impl_Name,
-         Value_Skel_Name => Value_Skel_Name,
-         Delegate_Name   => "",
-         St              => S);
+         Initialize_Scope_State
+           (Stubs_Name,
+            Skel_Name,
+            Helper_Name,
+            IR_Info_Name,
+            Impl_Name,
+            Value_Skel_Name => Value_Skel_Name,
+            Delegate_Name   => "",
+            St              => S.all);
+      else
+         S := In_Scope;
+      end if;
+
+      if In_Scope = null then
+         Add_With
+           (S.Helper (Unit_Spec), "PolyORB.Any",
+            Elab_Control => Elaborate_All,
+            No_Warnings => True);
+         --  Work-around for GNAT bug 9530-011.
+
+         Helper.Gen_Body_Prelude (S.Helper (Unit_Body));
+
+         if Intf_Repo then
+            IR_Info.Gen_Spec_Prelude (S.IR_Info (Unit_Spec));
+            IR_Info.Gen_Body_Prelude (S.IR_Info (Unit_Body));
+         end if;
+      end if;
 
       --  ValueType reference type
 
@@ -344,20 +372,10 @@ package body Ada_Be.Idl2Ada is
          Value_Skel.Gen_Node_Body (S.Value_Skel (Unit_Body), Node);
       end if;
 
-      --  Helper package
-      Add_With
-        (S.Helper (Unit_Spec), "PolyORB.Any",
-         Elab_Control => Elaborate_All,
-         No_Warnings => True);
-      --  Work-around for GNAT bug 9530-011.
-
-      Helper.Gen_Body_Prelude (S.Helper (Unit_Body));
       Helper.Gen_Node_Spec (S.Helper (Unit_Spec), Node);
       Helper.Gen_Node_Body (S.Helper (Unit_Body), Node);
 
       if Intf_Repo then
-         IR_Info.Gen_Spec_Prelude (S.IR_Info (Unit_Spec));
-         IR_Info.Gen_Body_Prelude (S.IR_Info (Unit_Body));
          IR_Info.Gen_Node_Spec (S.IR_Info (Unit_Spec), Node);
          IR_Info.Gen_Node_Body (S.IR_Info (Unit_Body), Node);
       end if;
@@ -381,7 +399,9 @@ package body Ada_Be.Idl2Ada is
                              & Node_Kind'Image (Kind (Export_Node))));
 
             if Is_Gen_Scope (Export_Node) then
-               Gen_Scope (Export_Node, Implement, Intf_Repo, To_Stdout);
+               Gen_Scope
+                 (Export_Node, Implement, Intf_Repo, To_Stdout,
+                  Current_Scope => S);
             else
                Gen_Node_Stubs_Spec (S.Stubs (Unit_Spec), Export_Node);
                Gen_ValueType_Stubs_Body (S.Stubs (Unit_Body), Export_Node);
@@ -422,6 +442,10 @@ package body Ada_Be.Idl2Ada is
 
       Gen_Convert_Forward_Declaration (S.Stubs (Unit_Spec), Node);
 
+      if In_Scope /= null then
+         return;
+      end if;
+
       Helper.Gen_Spec_Postlude (S.Helper (Unit_Spec));
       Helper.Gen_Body_Postlude (S.Helper (Unit_Body));
       if Intf_Repo then
@@ -451,6 +475,9 @@ package body Ada_Be.Idl2Ada is
          Generate (S.Skel (Unit_Body), False, To_Stdout);
       end if;
 
+      if In_Scope = null then
+         Free (S);
+      end if;
    end Gen_Value_Scope;
 
    ------------------------------
@@ -629,7 +656,8 @@ package body Ada_Be.Idl2Ada is
      (Node      : Node_Id;
       Implement : Boolean;
       Intf_Repo : Boolean;
-      To_Stdout : Boolean)
+      To_Stdout : Boolean;
+      In_Scope  : Scope_State_Access)
    is
       Stubs_Name    : constant String
         := Client_Stubs_Unit_Name (Mapping, Node);
@@ -643,29 +671,39 @@ package body Ada_Be.Idl2Ada is
         := Stubs_Name & Skel.Suffix (Is_Delegate => True);
       IR_Info_Name  : constant String := Stubs_Name & IR_Info.Suffix;
 
-      S : Scope_State;
+      S : Scope_State_Access;
 
    begin
-      Initialize_Scope_State
-        (Stubs_Name,
-         Skel_Name,
-         Helper_Name,
-         IR_Info_Name,
-         Impl_Name,
-         Value_Skel_Name => "",
-         Delegate_Name   => Delegate_Name,
-         St              => S);
+      if In_Scope = null then
+         S := new Scope_State;
 
-      Add_With
-        (S.Helper (Unit_Spec), "PolyORB.Any",
-         Elab_Control => Elaborate_All,
-         No_Warnings => True);
-      --  Work-around for GNAT bug 9530-011.
+         Initialize_Scope_State
+           (Stubs_Name,
+            Skel_Name,
+            Helper_Name,
+            IR_Info_Name,
+            Impl_Name,
+            Value_Skel_Name => "",
+            Delegate_Name   => Delegate_Name,
+            St              => S.all);
+      else
+         S := In_Scope;
+      end if;
 
-      Helper.Gen_Body_Prelude (S.Helper (Unit_Body));
-      if Intf_Repo then
-         IR_Info.Gen_Spec_Prelude (S.IR_Info (Unit_Spec));
-         IR_Info.Gen_Body_Prelude (S.IR_Info (Unit_Body));
+      if In_Scope = null then
+         --  Really starting a new gen scope
+
+         Add_With
+           (S.Helper (Unit_Spec), "PolyORB.Any",
+            Elab_Control => Elaborate_All,
+            No_Warnings => True);
+         --  Work-around for GNAT bug 9530-011.
+
+         Helper.Gen_Body_Prelude (S.Helper (Unit_Body));
+         if Intf_Repo then
+            IR_Info.Gen_Spec_Prelude (S.IR_Info (Unit_Spec));
+            IR_Info.Gen_Body_Prelude (S.IR_Info (Unit_Body));
+         end if;
       end if;
 
       case Kind (Node) is
@@ -702,11 +740,12 @@ package body Ada_Be.Idl2Ada is
                               --  Does not happen.
                               raise Program_Error;
                         end case;
-                        PL (S.Stubs (Unit_Spec), Name (Decl_Node)
-                            & " is defined in a child unit.");
-
+                        PL (S.Stubs (Unit_Spec), Name (Decl_Node));
                      end if;
-                     Gen_Scope (Decl_Node, Implement, Intf_Repo, To_Stdout);
+
+                     Gen_Scope
+                       (Decl_Node, Implement, Intf_Repo, To_Stdout,
+                        Current_Scope => S);
                   else
                      if Kind (Decl_Node) = K_Forward_Interface then
                         --  in case of a forward declaration
@@ -832,7 +871,9 @@ package body Ada_Be.Idl2Ada is
                while not Is_End (It) loop
                   Get_Next_Node (It, Export_Node);
                   if Is_Gen_Scope (Export_Node) then
-                     Gen_Scope (Export_Node, Implement, Intf_Repo, To_Stdout);
+                     Gen_Scope
+                       (Export_Node, Implement, Intf_Repo,
+                        To_Stdout, Current_Scope => S);
                   else
                      Gen_Node_Stubs_Spec
                        (S.Stubs (Unit_Spec), Export_Node);
@@ -919,6 +960,10 @@ package body Ada_Be.Idl2Ada is
             null;
       end case;
 
+      if In_Scope /= null then
+         return;
+      end if;
+
       Helper.Gen_Spec_Postlude (S.Helper (Unit_Spec));
       Helper.Gen_Body_Postlude (S.Helper (Unit_Body));
       if Intf_Repo then
@@ -967,6 +1012,8 @@ package body Ada_Be.Idl2Ada is
             end if;
          end if;
       end;
+
+      Free (S);
    end Gen_Interface_Module_Scope;
 
    -------------------------
@@ -2534,14 +2581,7 @@ package body Ada_Be.Idl2Ada is
          when
            K_Interface         |
            K_Forward_Interface =>
-
-            if Abst (Node) then
-               return "Abstract_Ref";
-            --  elsif Local (Node) then
-            --   return "Local_Ref";
-            else
-               return "Ref";
-            end if;
+            return Calling_Stubs_Type (Mapping, Node);
 
          when
            K_ValueType         |
@@ -2845,82 +2885,6 @@ package body Ada_Be.Idl2Ada is
    begin
       return Ada_Name (Repository_Id_Identifier (Node));
    end Repository_Id_Name;
-
---    procedure Gen_Operation_Body_Prologue
---      (CU : in out Compilation_Unit;
---       Response_Expected : Boolean;
---       Operation_Id_Expr : String) is
---    begin
---       PL (CU, T_Self_Ref & " : CORBA.Object.Ref");
---       PL (CU, "  := CORBA.Object.Ref (Self);");
---       PL (CU, T_Handler & " : Broca.GIOP.Request_Handler;");
---       PL (CU, T_Send_Request_Result & " : "
---           & "Broca.GIOP.Send_Request_Result_Type;");
-
---       DI (CU);
---       PL (CU, "begin");
---       II (CU);
-
---       NL (CU);
---       PL (CU, "--  Invoke the operation on the object.");
---       PL (CU, "--  The invocation may return a Location_Forward");
---       PL (CU, "--  in which case it is retried.");
---       NL (CU);
---       PL (CU, "loop");
---       II (CU);
---       NL (CU);
---       PL (CU, "--  Check whether we are attempting to make a");
---       PL (CU, "--  call on a nil object.");
---       NL (CU);
---       PL (CU, "if CORBA.Object.Is_Nil (" & T_Self_Ref & ") then");
---       II (CU);
---       PL (CU, "PolyORB.CORBA_P.Exceptions.Raise_Inv_Objref;");
---       DI (CU);
---       PL (CU, "end if;");
---       NL (CU);
---       PL (CU, "Broca.GIOP.Send_Request_Marshall");
---       PL (CU, "  (" & T_Handler & ", " & T_Self_Ref & ",");
---       PL (CU, Img (Response_Expected)
---           & ", " & Operation_Id_Expr & ");");
---    end Gen_Operation_Body_Prologue;
-
-
---    procedure Gen_Operation_Send_Request
---      (CU : in out Compilation_Unit;
---       Response_Expected : Boolean) is
---    begin
---       Add_With (CU, "Broca.GIOP");
-
---       NL (CU);
---       PL (CU, "Broca.GIOP.Send_Request_Send");
---       PL (CU, "  (" & T_Handler & ", " & T_Self_Ref & ",");
---       PL (CU, Img (Response_Expected)
---           & ", " & T_Send_Request_Result & ");");
---       PL (CU, "case " & T_Send_Request_Result & " is");
---       II (CU);
---       PL (CU, "when Broca.GIOP.Sr_No_Reply =>");
---       II (CU);
---       PL (CU, "Broca.GIOP.Release (" & T_Handler & ");");
-
---       if Response_Expected then
---          PL (CU, "Broca.GIOP.Release (" & T_Handler & ");");
---          --  FIXME: Got no reply when one is expected.
---          --    What to do? (see also similar comment in
---          --    Gen_Node_Stubs_Body / K_Operation for
---          --    the opposed problem: got a reply when
---          --    none is expected.)
---          PL (CU, "raise Program_Error;");
---       else
---          PL (CU, "Broca.GIOP.Release (" & T_Handler & ");");
---          PL (CU, "return;");
---       end if;
---       DI (CU);
---       PL (CU, "when Broca.GIOP.Sr_Forward =>");
---       II (CU);
---       PL (CU, "null;");
---       DI (CU);
-
---    end Gen_Operation_Send_Request;
 
    procedure Gen_Constant_Value
      (CU : in out Compilation_Unit;

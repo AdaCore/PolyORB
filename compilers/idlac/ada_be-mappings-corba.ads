@@ -60,6 +60,16 @@ package Ada_Be.Mappings.CORBA is
       Unit : out ASU.Unbounded_String;
       Typ  : out ASU.Unbounded_String);
 
+   function Calling_Stubs_Type
+     (Self : access CORBA_Mapping_Type;
+      Node : Idl_Fe.Types.Node_Id)
+     return String;
+
+   function Generate_Scope_In_Child_Package
+     (Self : access CORBA_Mapping_Type;
+      Node : Idl_Fe.Types.Node_Id)
+     return Boolean;
+
    The_CORBA_Mapping : constant CORBA_Mapping_Type;
 
 private

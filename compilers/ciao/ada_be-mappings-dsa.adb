@@ -295,4 +295,39 @@ package body Ada_Be.Mappings.DSA is
       return Ada_Name (Node) & "_RPC_Receiver";
    end Server_Skel_Unit_Name;
 
+   -------------------------------------
+   -- Generate_Scope_In_Child_Package --
+   -------------------------------------
+
+   function Generate_Scope_In_Child_Package
+     (Self : access DSA_Mapping_Type;
+      Node : Idl_Fe.Types.Node_Id)
+     return Boolean is
+   begin
+      pragma Assert (Is_Gen_Scope (Node));
+      if Kind (Node) = K_Module then
+         declare
+            E : constant Asis.Element := Get_Origin (Node);
+         begin
+            return Is_Equal
+              (E, Unit_Declaration (Enclosing_Compilation_Unit (E)));
+            --  True only if E is a library unit declaration.
+         end;
+      end if;
+      return False;
+   end Generate_Scope_In_Child_Package;
+
+   ------------------------
+   -- Calling_Stubs_Type --
+   ------------------------
+
+   function Calling_Stubs_Type
+     (Self : access DSA_Mapping_Type;
+      Node : Idl_Fe.Types.Node_Id)
+     return String
+   is
+   begin
+      return Name (Node) & "_Calling_Stubs";
+   end Calling_Stubs_Type;
+
 end Ada_Be.Mappings.DSA;

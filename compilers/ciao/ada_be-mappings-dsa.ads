@@ -60,6 +60,16 @@ package Ada_Be.Mappings.DSA is
       Unit : out ASU.Unbounded_String;
       Typ  : out ASU.Unbounded_String);
 
+   function Calling_Stubs_Type
+     (Self : access DSA_Mapping_Type;
+      Node : Idl_Fe.Types.Node_Id)
+     return String;
+
+   function Generate_Scope_In_Child_Package
+     (Self : access DSA_Mapping_Type;
+      Node : Idl_Fe.Types.Node_Id)
+     return Boolean;
+
    The_DSA_Mapping : constant DSA_Mapping_Type;
 
 private
