@@ -38,6 +38,101 @@ with Interfaces;
 
 package body PolyORB.Utils.HTTP is
 
+   -------------------
+   -- Base64_Decode --
+   -------------------
+
+   function Base64_Decode
+     (B64_Data : in String)
+     return Stream_Element_Array
+   is
+      use Ada.Streams;
+      use Interfaces;
+
+      function Base64 (C : in Character)
+        return Interfaces.Unsigned_32;
+      pragma Inline (Base64);
+      --  Returns the base64 stream element given a character
+
+      Base64_Values : constant array (Character) of Interfaces.Unsigned_32
+        := ('A' => 0, 'B' => 1, 'C' => 2, 'D' => 3, 'E' => 4, 'F' => 5,
+            'G' => 6, 'H' => 7, 'I' => 8, 'J' => 9, 'K' => 10, 'L' => 11,
+            'M' => 12, 'N' => 13, 'O' => 14, 'P' => 15, 'Q' => 16, 'R' => 17,
+            'S' => 18, 'T' => 19, 'U' => 20, 'V' => 21, 'W' => 22, 'X' => 23,
+            'Y' => 24, 'Z' => 25,
+
+            'a' => 26, 'b' => 27, 'c' => 28, 'd' => 29, 'e' => 30, 'f' => 31,
+            'g' => 32, 'h' => 33, 'i' => 34, 'j' => 35, 'k' => 36, 'l' => 37,
+            'm' => 38, 'n' => 39, 'o' => 40, 'p' => 41, 'q' => 42, 'r' => 43,
+            's' => 44, 't' => 45, 'u' => 46, 'v' => 47, 'w' => 48, 'x' => 49,
+            'y' => 50, 'z' => 51,
+
+            '0' => 52, '1' => 53, '2' => 54, '3' => 55, '4' => 56,
+            '5' => 57, '6' => 58, '7' => 59, '8' => 60, '9' => 61,
+
+            '+' => 62,
+            '/' => 63,
+            others => 16#ffffffff#);
+
+      function Shift_Left (Value  : in Interfaces.Unsigned_32;
+                           Amount : in Natural) return Interfaces.Unsigned_32;
+      pragma Import (Intrinsic, Shift_Left);
+
+      function Shift_Right (Value  : in Interfaces.Unsigned_32;
+                            Amount : in Natural) return Interfaces.Unsigned_32;
+      pragma Import (Intrinsic, Shift_Right);
+
+      Result : Stream_Element_Array
+        (Stream_Element_Offset range 1 .. B64_Data'Length);
+      R      : Stream_Element_Offset := 1;
+
+      Group  : Interfaces.Unsigned_32 := 0;
+      J      : Integer := 18;
+
+      Pad    : Stream_Element_Offset := 0;
+
+      function Base64 (C : in Character)
+        return Interfaces.Unsigned_32 is
+      begin
+         pragma Assert (Base64_Values (C) < 64);
+         return Base64_Values (C);
+      end Base64;
+
+   begin
+      for C in B64_Data'Range loop
+
+         if B64_Data (C) = ASCII.LF or else B64_Data (C) = ASCII.CR then
+            null;
+
+         else
+            case B64_Data (C) is
+               when '=' =>
+                  Pad := Pad + 1;
+
+               when others =>
+                  Group := Group or Shift_Left (Base64 (B64_Data (C)), J);
+            end case;
+
+            J := J - 6;
+
+            if J < 0 then
+               Result (R .. R + 2) :=
+                 (Stream_Element (Shift_Right (Group and 16#FF0000#, 16)),
+                  Stream_Element (Shift_Right (Group and 16#00FF00#, 8)),
+                  Stream_Element (Group and 16#0000FF#));
+
+               R := R + 3;
+
+               Group := 0;
+               J     := 18;
+            end if;
+
+         end if;
+      end loop;
+
+      return Result (1 .. R - 1 - Pad);
+   end Base64_Decode;
+
    --------------------
    -- Base 64 Encode --
    --------------------
@@ -46,7 +141,6 @@ package body PolyORB.Utils.HTTP is
      return String
    is
       use Ada.Streams;
-      use type Stream_Element;
 
       function Shift_Left
         (Value  : in Stream_Element;
@@ -141,100 +235,5 @@ package body PolyORB.Utils.HTTP is
       end loop;
       return Base64_Encode (Stream_Data);
    end Base64_Encode;
-
-   -------------------
-   -- Base64_Decode --
-   -------------------
-
-   function Base64_Decode (B64_Data : in String)
-                          return Stream_Element_Array
-   is
-      use Ada.Streams;
-      use Interfaces;
-
-      function Base64 (C : in Character)
-        return Interfaces.Unsigned_32;
-      pragma Inline (Base64);
-      --  Returns the base64 stream element given a character
-
-      Base64_Values : constant array (Character) of Interfaces.Unsigned_32
-        := ('A' => 0, 'B' => 1, 'C' => 2, 'D' => 3, 'E' => 4, 'F' => 5,
-            'G' => 6, 'H' => 7, 'I' => 8, 'J' => 9, 'K' => 10, 'L' => 11,
-            'M' => 12, 'N' => 13, 'O' => 14, 'P' => 15, 'Q' => 16, 'R' => 17,
-            'S' => 18, 'T' => 19, 'U' => 20, 'V' => 21, 'W' => 22, 'X' => 23,
-            'Y' => 24, 'Z' => 25,
-
-            'a' => 26, 'b' => 27, 'c' => 28, 'd' => 29, 'e' => 30, 'f' => 31,
-            'g' => 32, 'h' => 33, 'i' => 34, 'j' => 35, 'k' => 36, 'l' => 37,
-            'm' => 38, 'n' => 39, 'o' => 40, 'p' => 41, 'q' => 42, 'r' => 43,
-            's' => 44, 't' => 45, 'u' => 46, 'v' => 47, 'w' => 48, 'x' => 49,
-            'y' => 50, 'z' => 51,
-
-            '0' => 52, '1' => 53, '2' => 54, '3' => 55, '4' => 56,
-            '5' => 57, '6' => 58, '7' => 59, '8' => 60, '9' => 61,
-
-            '+' => 62,
-            '/' => 63,
-            others => 16#ffffffff#);
-
-      function Shift_Left (Value  : in Interfaces.Unsigned_32;
-                           Amount : in Natural) return Interfaces.Unsigned_32;
-      pragma Import (Intrinsic, Shift_Left);
-
-      function Shift_Right (Value  : in Interfaces.Unsigned_32;
-                            Amount : in Natural) return Interfaces.Unsigned_32;
-      pragma Import (Intrinsic, Shift_Right);
-
-      Result : Stream_Element_Array
-        (Stream_Element_Offset range 1 .. B64_Data'Length);
-      R      : Stream_Element_Offset := 1;
-
-      Group  : Interfaces.Unsigned_32 := 0;
-      J      : Integer := 18;
-
-      Pad    : Stream_Element_Offset := 0;
-
-      function Base64 (C : in Character)
-        return Interfaces.Unsigned_32 is
-      begin
-         pragma Assert (Base64_Values (C) < 64);
-         return Base64_Values (C);
-      end Base64;
-
-   begin
-      for C in B64_Data'Range loop
-
-         if B64_Data (C) = ASCII.LF or else B64_Data (C) = ASCII.CR then
-            null;
-
-         else
-            case B64_Data (C) is
-               when '=' =>
-                  Pad := Pad + 1;
-
-               when others =>
-                  Group := Group or Shift_Left (Base64 (B64_Data (C)), J);
-            end case;
-
-            J := J - 6;
-
-            if J < 0 then
-               Result (R .. R + 2) :=
-                 (Stream_Element (Shift_Right (Group and 16#FF0000#, 16)),
-                  Stream_Element (Shift_Right (Group and 16#00FF00#, 8)),
-                  Stream_Element (Group and 16#0000FF#));
-
-               R := R + 3;
-
-               Group := 0;
-               J     := 18;
-            end if;
-
-         end if;
-      end loop;
-
-      return Result (1 .. R - 1 - Pad);
-   end Base64_Decode;
-
 
 end PolyORB.Utils.HTTP;
