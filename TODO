@@ -1,8 +1,6 @@
 Here are the main points to fit in the AdaBroker project in
 order of increasing importance (in terms of work) :
 
-- Installation : create an unit to include linker options automatically.
-
 - The naming service example does not use contexts.
   It could be interessant to add them. You will maybe
   find some bug to correct...
