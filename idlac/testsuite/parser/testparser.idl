@@ -1,9 +1,14 @@
+/********************************************************
+        This file is meant to try every error
+     message that the idl front-end can generate.
+        These errors are tested rule by rule.
+*********************************************************/
+
 /***  Outside any rule  ***/
 module module1 {
   valuetype valuetype1;
   interface interface1;
 };
-
 
 /***  Test of rule 2 ***/
 

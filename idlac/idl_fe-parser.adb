@@ -289,6 +289,7 @@ package body Idl_Fe.Parser is
    procedure Release_All_Used_Values is
       Old_Used_Values : Set_Ptr;
    begin
+      pragma Debug (O ("Release_All_Used_Values : enter"));
       while Used_Values /= null loop
          Old_Used_Values := Used_Values;
          Used_Values := Used_Values.Next;
@@ -336,6 +337,7 @@ package body Idl_Fe.Parser is
    procedure Parse_Definition (Result : out N_Root_Acc;
                                Success : out Boolean) is
    begin
+      pragma Debug (O ("Parse_Definition : enter"));
       case Get_Token is
          when T_Typedef
            | T_Struct
@@ -469,6 +471,7 @@ package body Idl_Fe.Parser is
    procedure Parse_Module (Result : out N_Module_Acc;
                            Success : out Boolean) is
    begin
+      pragma Debug (O ("Parse_Module : enter"));
       --  Is there an identifier ?
       Next_Token;
       case Get_Token is
@@ -504,7 +507,11 @@ package body Idl_Fe.Parser is
                      Definition : N_Root_Acc;
                      Definition_Result : Boolean;
                   begin
+                     pragma Debug (O ("Parse_Interface : parse body"));
                      Push_Scope (Result);
+                     pragma Debug (O ("parse_module : after push_scope, " &
+                                      "current scope is : " &
+                                      Get_Name (Get_Current_Scope.all)));
                      while Get_Token /= T_Right_Cbracket loop
                         --  try to parse a definition
                         Parse_Definition (Definition, Definition_Result);
@@ -518,6 +525,9 @@ package body Idl_Fe.Parser is
                         end if;
                      end loop;
                      Pop_Scope;
+                     pragma Debug (O ("parse_module : after pop_scope, " &
+                                      "current scope is : " &
+                                      Get_Name (Get_Current_Scope.all)));
                      --  consume the T_Right_Cbracket token
                      Next_Token;
                   end;
@@ -2302,6 +2312,7 @@ package body Idl_Fe.Parser is
       Loc : Idl_Fe.Errors.Location;
       C_Type : Const_Type_Ptr;
    begin
+      pragma Debug (O ("Parse_Const_Exp : enter"));
       Loc := Get_Token_Location;
       case Get_Kind (Constant_Type.all) is
          when K_Short
@@ -2338,6 +2349,46 @@ package body Idl_Fe.Parser is
             C_Type := new Const_Type (Kind => C_Octet);
          when K_Enum =>
             C_Type := new Const_Type (Kind => C_Enum);
+         when K_Scoped_Name =>
+            case Get_Kind (N_Scoped_Name_Acc
+                            (Constant_Type).Value.all) is
+               when K_Short
+                 | K_Unsigned_Short =>
+                  C_Type := new Const_Type (Kind => C_Short);
+               when K_Long
+                 | K_Unsigned_Long =>
+                  C_Type := new Const_Type (Kind => C_Long);
+               when K_Long_Long =>
+                  C_Type := new Const_Type (Kind => C_LongLong);
+               when K_Unsigned_Long_Long =>
+                  C_Type := new Const_Type (Kind => C_ULongLong);
+               when K_Char =>
+                  C_Type := new Const_Type (Kind => C_Char);
+               when K_Wide_Char =>
+                  C_Type := new Const_Type (Kind => C_WChar);
+               when K_Boolean =>
+                  C_Type := new Const_Type (Kind => C_Boolean);
+               when K_Float =>
+                  C_Type := new Const_Type (Kind => C_Float);
+               when K_Double =>
+                  C_Type := new Const_Type (Kind => C_Double);
+               when K_Long_Double =>
+                  C_Type := new Const_Type (Kind => C_LongDouble);
+               when K_Fixed =>
+                  C_Type := new Const_Type (Kind => C_Fixed);
+                  C_Type.Digits_Nb := 0;
+                  C_Type.Scale := 0;
+               when K_String =>
+                  C_Type := new Const_Type (Kind => C_String);
+               when K_Wide_String =>
+                  C_Type := new Const_Type (Kind => C_WString);
+               when K_Octet =>
+                  C_Type := new Const_Type (Kind => C_Octet);
+               when K_Enum =>
+                  C_Type := new Const_Type (Kind => C_Enum);
+               when others =>
+                  raise Idl_Fe.Errors.Internal_Error;
+            end case;
          when others =>
             raise Idl_Fe.Errors.Internal_Error;
       end case;
@@ -3110,8 +3161,7 @@ package body Idl_Fe.Parser is
    procedure Parse_Positive_Int_Const (Result : out N_Expr_Acc;
                                        Success : out Boolean) is
    begin
-      Result := null;
-      Success := False;
+      Parse_Or_Expr (Result, Success, new Const_Type (Kind => C_ULongLong));
    end Parse_Positive_Int_Const;
 
    ----------------------
@@ -3120,6 +3170,7 @@ package body Idl_Fe.Parser is
    procedure Parse_Type_Dcl (Result : out N_Root_Acc;
                              Success : out Boolean) is
    begin
+      pragma Debug (O ("Parse_Type_Dcl : enter"));
       Result := null;
       Success := False;
       case Get_Token is
@@ -3169,6 +3220,7 @@ package body Idl_Fe.Parser is
          when others =>
             raise Idl_Fe.Errors.Internal_Error;
       end case;
+      pragma Debug (O ("Parse_Type_Dcl : end"));
       return;
    end Parse_Type_Dcl;
 
@@ -3196,6 +3248,7 @@ package body Idl_Fe.Parser is
    procedure Parse_Type_Spec (Result : out N_Root_Acc;
                               Success : out Boolean) is
    begin
+      pragma Debug (O ("Parse_Type_Spec : enter"));
       case Get_Token is
          when T_Float
            | T_Double
@@ -3227,6 +3280,7 @@ package body Idl_Fe.Parser is
             Success := False;
             Result := null;
       end case;
+      pragma Debug (O ("Parse_Type_Spec : end"));
       return;
    end  Parse_Type_Spec;
 
@@ -3237,6 +3291,7 @@ package body Idl_Fe.Parser is
    procedure Parse_Simple_Type_Spec (Result : out N_Root_Acc;
                                      Success : out Boolean) is
    begin
+      pragma Debug (O ("Parse_Simple_Type_Spec : enter"));
       case Get_Token is
          when T_Float
            | T_Double
@@ -3273,6 +3328,7 @@ package body Idl_Fe.Parser is
             Result := null;
             Success := False;
       end case;
+      pragma Debug (O ("Parse_Simple_Type_Spec : end"));
       return;
    end Parse_Simple_Type_Spec;
 
@@ -3282,6 +3338,7 @@ package body Idl_Fe.Parser is
    procedure Parse_Base_Type_Spec (Result : out N_Root_Acc;
                                    Success : out Boolean) is
    begin
+      pragma Debug (O ("Parse_Base_Type_Spec : enter"));
       case Get_Token is
          when T_Float
            | T_Double =>
@@ -3348,76 +3405,8 @@ package body Idl_Fe.Parser is
             raise Idl_Fe.Errors.Internal_Error;
       end case;
       return;
+      pragma Debug (O ("Parse_Base_Type_Spec : end"));
    end Parse_Base_Type_Spec;
-
---       case Token is
---          when T_Float =>
---             Next_Token;
---             return N_Root_Acc'(new N_Float);
---          when T_Double =>
---             Next_Token;
---             return N_Root_Acc'(new N_Double);
---          when T_Short =>
---             Next_Token;
---             return N_Root_Acc'(new N_Short);
---          when T_Long =>
---             Next_Token;
---             case Token is
---                when T_Double =>
---                   Next_Token;
---                   return N_Root_Acc'(new N_Long_Double);
---                when T_Long =>
---                   Next_Token;
---                   return N_Root_Acc'(new N_Long_Long);
---                when others =>
---                   return N_Root_Acc'(new N_Long);
---             end case;
---          when T_Unsigned =>
---             Next_Token;
---             case Token is
---                when T_Short =>
---                   Next_Token;
---                   return N_Root_Acc'(new N_Unsigned_Short);
---                when T_Long =>
---                   Next_Token;
---                   if Token = T_Long then
---                      Next_Token;
---                      return N_Root_Acc'(new N_Unsigned_Long_Long);
---                   else
---                      return N_Root_Acc'(new N_Unsigned_Long);
---                   end if;
---                when others =>
---                   Idl_Fe.Errors.Parser_Error
---                     ("`unsigned' must be followed either "
---                                        & "by `short' or `long'",
---                                        Idl_Fe.Errors.Error);
---                   Idl_Fe.Errors.Parser_Error ("`unsigned long' assumed",
---                                        Idl_Fe.Errors.Error);
---                   return N_Root_Acc'(new N_Unsigned_Long);
---             end case;
---          when T_Char =>
---             Next_Token;
---             return N_Root_Acc'(new N_Char);
---          when T_Wchar =>
---             Next_Token;
---             return N_Root_Acc'(new N_Wchar);
---          when T_Boolean =>
---             Next_Token;
---             return N_Root_Acc'(new N_Boolean);
---          when T_Octet =>
---             Next_Token;
---             return N_Root_Acc'(new N_Octet);
---          when T_Any =>
---             Next_Token;
---             return N_Root_Acc'(new N_Any);
---          when T_Object =>
---             Next_Token;
---             return N_Root_Acc'(new N_Object);
---          when others =>
---             Idl_Fe.Errors.Parser_Error ("base type expected",
---                                  Idl_Fe.Errors.Error);
---             raise Idl_Fe.Errors.Internal_Error;
---       end case;
 
    --------------------------------
    --  Parse_Template_Type_Spec  --
@@ -3532,6 +3521,7 @@ package body Idl_Fe.Parser is
    procedure Parse_Declarator (Result : out N_Declarator_Acc;
                                Success : out Boolean) is
    begin
+      pragma Debug (O ("parse_declarator : enter"));
       if Get_Token /= T_Identifier then
          Idl_Fe.Errors.Parser_Error ("Identifier expected.",
                               Idl_Fe.Errors.Error,
@@ -3544,6 +3534,7 @@ package body Idl_Fe.Parser is
             pragma Debug (O ("Parse_Declarator : Array"));
             Parse_Complex_Declarator (Result, Success);
          else
+            pragma Debug (O ("Parse_Declarator : Simple"));
             Parse_Simple_Declarator (Result, Success);
          end if;
       end if;
@@ -3852,8 +3843,11 @@ package body Idl_Fe.Parser is
    procedure Parse_Object_Type (Result : in out N_Object_Acc;
                                 Success : out Boolean) is
    begin
-      Result := null;
-      Success := False;
+      Result := new N_Object;
+      Set_Location (Result.all, Get_Token_Location);
+      Success := True;
+      Next_Token;
+      return;
    end Parse_Object_Type;
 
    -------------------------
@@ -4019,6 +4013,7 @@ package body Idl_Fe.Parser is
                                Success : out Boolean) is
       Name : String_Ptr;
    begin
+      pragma Debug (O ("Parse_Union_Type : enter"));
       Next_Token;
       if Get_Token /= T_Identifier then
          declare
@@ -4153,6 +4148,7 @@ package body Idl_Fe.Parser is
       end if;
       Next_Token;
       return;
+      pragma Debug (O ("Parse_Union_Type : end"));
    end Parse_Union_Type;
 
    ------------------------------
@@ -4238,6 +4234,7 @@ package body Idl_Fe.Parser is
                                 Success : out Boolean) is
       Default_Clause : Boolean := False;
    begin
+      pragma Debug (O ("Parse_Switch_Body : enter"));
       Result := Nil_List;
       if Get_Token = T_Right_Cbracket then
          Idl_Fe.Errors.Parser_Error
@@ -4252,6 +4249,7 @@ package body Idl_Fe.Parser is
             Case_Success : Boolean;
             Loc : Idl_Fe.Errors.Location;
          begin
+            pragma Debug (O ("Parse_Switch_Body : new case clause"));
             Loc := Get_Token_Location;
             Parse_Case (Case_Clause,
                         Switch_Type,
@@ -4285,6 +4283,7 @@ package body Idl_Fe.Parser is
       Release_All_Used_Values;
       Success := True;
       return;
+      pragma Debug (O ("Parse_Switch_Body : end"));
    end Parse_Switch_Body;
 
    ------------------
@@ -4294,7 +4293,7 @@ package body Idl_Fe.Parser is
                          Switch_Type : in N_Root_Acc;
                          Success : out Boolean) is
    begin
-      pragma Debug (O ("Parse_case : enter"));
+      pragma Debug (O ("Parse_Case : enter"));
       case Get_Token is
          when T_Case
            | T_Default =>
@@ -4348,6 +4347,7 @@ package body Idl_Fe.Parser is
       else
          Next_Token;
       end if;
+      pragma Debug (O ("Parse_Case : end"));
       return;
    end Parse_Case;
 
@@ -4405,11 +4405,13 @@ package body Idl_Fe.Parser is
                                  Element_Decl : out N_Declarator_Acc;
                                  Success : out Boolean) is
    begin
+      pragma Debug (O ("Parse_Element_Spec : enter"));
       Parse_Type_Spec (Element_Type, Success);
       if not Success then
          return;
       end if;
       Parse_Declarator (Element_Decl, Success);
+      pragma Debug (O ("Parse_Element_Spec : end"));
       return;
    end Parse_Element_Spec;
 
@@ -4730,7 +4732,7 @@ package body Idl_Fe.Parser is
          end if;
       end if;
       Result.Array_Bounds := Nil_List;
-      --  eat the identifier
+      --  consumes the identifier
       Next_Token;
       while Get_Token = T_Left_Sbracket loop
          declare
@@ -6324,6 +6326,7 @@ package body Idl_Fe.Parser is
    procedure Go_To_Next_Definition is
       Num : Natural := 0;
    begin
+      pragma Debug (O ("Go_To_Next_Definition : enter"));
       while Get_Token /= T_Eof loop
          if Num = 0 then
             case Get_Token is
@@ -6351,6 +6354,8 @@ package body Idl_Fe.Parser is
          Next_Token;
       end loop;
       if Get_Current_Scope /= Get_Root_Scope then
+         pragma Debug (O ("Go_To_Next_Definition : current scope is : " &
+                          Get_Name (Get_Current_Scope.all)));
          raise Errors.Internal_Error;
       end if;
    end Go_To_Next_Definition;
