@@ -2781,6 +2781,8 @@ package body Exp_Dist is
 
       Subp_Info_List : constant List_Id := New_List;
 
+      Register_Pkg_Actuals : constant List_Id := New_List;
+
       Dummy_Register_Name : Name_Id;
       Dummy_Register_Spec : Node_Id;
       Dummy_Register_Decl : Node_Id;
@@ -3100,12 +3102,17 @@ package body Exp_Dist is
           Constant_Present    => True,
           Aliased_Present     => True,
           Object_Definition   =>
---              Make_Unconstrained_Array_Definition (Loc,
---                Subtype_Marks => New_List (
---                  New_Occurrence_Of (Standard_Integer, Loc)),
---                Subtype_Indication =>
---                  New_Occurrence_Of (RTE (RE_RCI_Subp_Info), Loc)),
-            New_Occurrence_Of (RTE (RE_RCI_Subp_Info_Array), Loc),
+            Make_Subtype_Indication (Loc,
+              Subtype_Mark =>
+                New_Occurrence_Of (RTE (RE_RCI_Subp_Info_Array), Loc),
+              Constraint =>
+                Make_Index_Or_Discriminant_Constraint (Loc,
+                  New_List (
+                    Make_Range (Loc,
+                      Low_Bound  => Make_Integer_Literal (Loc, 0),
+                      High_Bound =>
+                        Make_Integer_Literal (Loc,
+                          List_Length (Subp_Info_List) - 1))))),
           Expression          =>
             Make_Aggregate (Loc,
               Component_Associations => Subp_Info_List)));
@@ -3150,6 +3157,56 @@ package body Exp_Dist is
          All_Calls_Remote_E := Standard_False;
       end if;
 
+      Append_To (Register_Pkg_Actuals,
+         --  Name
+        Make_String_Literal (Loc,
+          Strval => Get_Pkg_Name_String_Id (Pkg_Spec)));
+
+      Append_To (Register_Pkg_Actuals,
+         --  Version
+        Make_Attribute_Reference (Loc,
+          Prefix         =>
+            New_Occurrence_Of
+              (Defining_Entity (Pkg_Spec), Loc),
+          Attribute_Name =>
+            Name_Version));
+
+      Append_To (Register_Pkg_Actuals,
+         --  Handler
+        Make_Attribute_Reference (Loc,
+          Prefix          =>
+            New_Occurrence_Of (Pkg_RPC_Receiver, Loc),
+          Attribute_Name  => Name_Access));
+
+      Append_To (Register_Pkg_Actuals,
+         --  Receiver
+        Make_Attribute_Reference (Loc,
+          Prefix         =>
+            New_Occurrence_Of (
+              Defining_Identifier (
+                Pkg_RPC_Receiver_Object), Loc),
+          Attribute_Name =>
+            Name_Access));
+
+      Append_To (Register_Pkg_Actuals,
+         --  Subp_Info
+        Make_Attribute_Reference (Loc,
+          Prefix         =>
+            New_Occurrence_Of (Subp_Info_Array, Loc),
+          Attribute_Name =>
+            Name_Address));
+
+      Append_To (Register_Pkg_Actuals,
+         --  Subp_Info_Len
+        Make_Attribute_Reference (Loc,
+          Prefix         =>
+            New_Occurrence_Of (Subp_Info_Array, Loc),
+          Attribute_Name =>
+            Name_Length));
+      Append_To (Register_Pkg_Actuals,
+         --  Is_All_Calls_Remote
+        New_Occurrence_Of (All_Calls_Remote_E, Loc));
+
       Dummy_Register_Body :=
         Make_Package_Body (Loc,
           Defining_Unit_Name         =>
@@ -3163,44 +3220,7 @@ package body Exp_Dist is
                   Name                   =>
                     New_Occurrence_Of
                        (RTE (RE_Register_Pkg_Receiving_Stub), Loc),
-                  Parameter_Associations => New_List (
-
-                     --  Name
-                    Make_String_Literal (Loc,
-                      Strval => Get_Pkg_Name_String_Id (Pkg_Spec)),
-
-                     --  Version
-                    Make_Attribute_Reference (Loc,
-                      Prefix         =>
-                        New_Occurrence_Of
-                           (Defining_Entity (Pkg_Spec), Loc),
-                      Attribute_Name =>
-                        Name_Version),
-
-                     --  Handler
-                    Make_Attribute_Reference (Loc,
-                      Prefix          =>
-                        New_Occurrence_Of (Pkg_RPC_Receiver, Loc),
-                      Attribute_Name  => Name_Access),
-
-                     --  Receiver
-                    Make_Attribute_Reference (Loc,
-                      Prefix         =>
-                        New_Occurrence_Of (
-                          Defining_Identifier (
-                            Pkg_RPC_Receiver_Object), Loc),
-                      Attribute_Name =>
-                        Name_Access),
-
-                     --  Subp_Info
-                    Make_Attribute_Reference (Loc,
-                      Prefix         =>
-                        New_Occurrence_Of (Subp_Info_Array, Loc),
-                      Attribute_Name =>
-                        Name_Access),
-
-                     --  Is_All_Calls_Remote
-                    New_Occurrence_Of (All_Calls_Remote_E, Loc))))));
+                  Parameter_Associations => Register_Pkg_Actuals))));
 
       Append_To (Decls, Dummy_Register_Body);
       Analyze (Dummy_Register_Body);
