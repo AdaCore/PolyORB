@@ -127,14 +127,24 @@ package body PortableServer is
             PolyORB.CORBA_P.Interceptors_Hooks.Server_Invoke
               (DynamicImplementation'Class (Self.all)'Access, R);
 
-            pragma Debug
-              (O ("Execute_Servant: executed, setting out args"));
-            Set_Out_Args (R, Error);
+            if R.Arguments_Called then
 
-            if Found (Error) then
-               raise PolyORB.Unknown;
-               --  XXX We should do something if we find a PolyORB exception
+               --  Implementation Note: As part of PortableInterceptors
+               --  specifications, an interception point may raise an
+               --  exception before Arguments is called.
+               --
+               --  As a consequence, set out arguments iff the
+               --  skeleton called Arguments.
 
+               pragma Debug
+                 (O ("Execute_Servant: executed, setting out args"));
+               Set_Out_Args (R, Error);
+
+               if Found (Error) then
+                  raise PolyORB.Unknown;
+                  --  XXX We should do something if we find a PolyORB exception
+
+               end if;
             end if;
 
             pragma Debug (O ("Execute_Servant: leave"));
