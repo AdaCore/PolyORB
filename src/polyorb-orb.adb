@@ -889,28 +889,29 @@ package body PolyORB.ORB is
          --  has been created, a servant manager has been reached.
          --  We are about to send the request to the target.
 
-         declare
-            Profiles : constant Profile_Array
-              := Profiles_Of (J.Request.Target);
+         --  If we are on the server side then we can send an
+         --  'Executed_Request' Message.
 
-         begin
-            --  If we are on the server side then we can send an
-            --  'Executed_Request' Message.
+         --  XXX this test is dubious, to be investigated ..
 
-            --  XXX this test is dubious, to be investigated ..
+         if Is_Set (Sync_With_Server, J.Request.Req_Flags) then
+            declare
+               Profiles : constant Profile_Array
+                 := Profiles_Of (J.Request.Target);
 
-            if Is_Set (Sync_With_Server, J.Request.Req_Flags)
-              and then Get_Profile_Tag (Profiles (Profiles'First).all)
-              = Tag_Local
-            then
-               pragma Debug (O ("With_Server completed, sending incomplete"
-                             & " Executed_Request message"));
+            begin
+               if Get_Profile_Tag (Profiles (Profiles'First).all)
+                 = Tag_Local
+               then
+                  pragma Debug (O ("With_Server completed, sending incomplete"
+                                   & " Executed_Request message"));
 
-               Emit_No_Reply (J.Requestor,
-                              Servants.Interface.Executed_Request'
-                              (Req => J.Request));
-            end if;
-         end;
+                  Emit_No_Reply (J.Requestor,
+                                 Servants.Interface.Executed_Request'
+                                 (Req => J.Request));
+               end if;
+            end;
+         end if;
 
          --  Setup_Environment (Oid);
          --  XXX for 'Current' (applicative personality API for access
