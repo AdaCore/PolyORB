@@ -76,8 +76,7 @@ package body IOP.CodecFactory.Impl is
             null;
       end case;
 
-      Helper.Raise_UnknownEncoding_From_Any
-        (CORBA.Internals.To_PolyORB_Any (Helper.To_Any ((null record))));
+      Helper.Raise_UnknownEncoding ((null record));
    end Create_Codec;
 
    ----------

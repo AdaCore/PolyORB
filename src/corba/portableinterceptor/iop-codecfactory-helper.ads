@@ -55,7 +55,7 @@ package IOP.CodecFactory.Helper is
 
    function To_Any (Item : in UnknownEncoding_Members) return CORBA.Any;
 
-   procedure Raise_UnknownEncoding_From_Any (Item : in PolyORB.Any.Any);
-   pragma No_Return (Raise_UnknownEncoding_From_Any);
+   procedure Raise_UnknownEncoding (Members : in UnknownEncoding_Members);
+   pragma No_Return (Raise_UnknownEncoding);
 
 end IOP.CodecFactory.Helper;

@@ -39,6 +39,9 @@ package body IOP.CodecFactory.Helper is
 
    procedure Deferred_Initialization;
 
+   procedure Raise_UnknownEncoding_From_Any (Item : in PolyORB.Any.Any);
+   pragma No_Return (Raise_UnknownEncoding_From_Any);
+
    -----------------------------
    -- Deferred_Initialization --
    -----------------------------
@@ -71,6 +74,17 @@ package body IOP.CodecFactory.Helper is
    begin
       return Result;
    end From_Any;
+
+   ---------------------------
+   -- Raise_UnknownEncoding --
+   ---------------------------
+
+   procedure Raise_UnknownEncoding (Members : in UnknownEncoding_Members) is
+   begin
+      PolyORB.Exceptions.User_Raise_Exception
+        (UnknownEncoding'Identity,
+         Members);
+   end Raise_UnknownEncoding;
 
    ------------------------------------
    -- Raise_UnknownEncoding_From_Any --
