@@ -79,7 +79,7 @@ procedure Run_Script is
 
       Mounts_Keys_Base : constant String
         := "SOFTWARE\Cygnus Solutions\Cygwin\mounts v2\";
-   
+
       Split : Integer := Filename'Last;
    begin
       loop
@@ -98,10 +98,10 @@ procedure Run_Script is
             begin
                --  Key found!
                return Native_Path & Filename (Split + 1 .. Filename'Last);
-            end; 
+            end;
          exception
             when Registry_Error =>
-               null;   
+               null;
          end;
       end loop;
       return Filename;
