@@ -8,7 +8,7 @@ ab_names=/infres/shalmaneser/quinot/projects/droopi/cos/naming/ab_names
 serverp=/infres/shalmaneser/quinot/projects/droopi/examples/bbs/serverp
 serverp_conf=/infres/shalmaneser/quinot/projects/droopi/examples/bbs/serverp.conf
 evolutedp=/infres/ir10/astre/quinot/polyorb-sparc/build/examples/bbs/evolutedp
-evolutedp_conf=/infres/ir10/astre/quinot/polyorb-sparc/build/examples/bbs/evolutedp.conf
+evolutedp_conf=/infres/shalmaneser/quinot/projects/droopi/examples/bbs/evolutedp.conf
 output=/infres/shalmaneser/quinot/polyorb-output
 
 Revolutedp_pids=""
@@ -43,9 +43,10 @@ if $kill; then
     if [ "$h" != "" ]; then
       echo $h
       rsh $h "/usr/ucb/ps axw|grep 'quinot.*evolutedp' | grep -v grep \
-         | awk '{print \$1}' | xargs kill -9"
+         | awk '{print \$1}' | xargs kill -9 2> /dev/null || echo ---"
     fi
   done
+  ps axw|grep "tail -f /tmp/cli"|awk '{print $1}'|xargs kill 2> /dev/null
   exit 0
 fi
 
@@ -61,14 +62,15 @@ echo "nmax=$nmax" >> $output/00PARAMETERS
 echo "000 init"
 sed "s/^/    /" $output/00PARAMETERS
 cp $ab_names_conf $serverp_conf $evolutedp_conf $output 2> /dev/null || true
-trap 'kill $ab_names_pid $serverp_pid $Revoluted_pids' 0 2 15
+trap 'echo kill $ab_names_pid $serverp_pid $Revolutedp_pids;
+           kill $ab_names_pid $serverp_pid $Revolutedp_pids;
+           exit' 0 2 15
 
 echo "001 Starting name server..."
 
-POLYORB_CONF=$ab_names_conf $ab_names > $output/ab_names.out &
+POLYORB_CONF=$ab_names_conf $ab_names > $output/ab_names.out 2> /dev/null &
 ab_names_pid=$!
 sleep 1
-sed "s/^/    /" $output/ab_names.out
 . $output/ab_names.out
 export POLYORB_CORBA_NAMING_IOR
 
@@ -89,12 +91,12 @@ while [ "$clinumber" -lt "$nmax" ]; do
   touch $cliout
   cliouts="$cliouts $cliout"
   echo `expr 100 + $clinumber`" Starting client on $host"
-  tail -f $ctl | rsh $host "TERM=dumb \
+  sh -c "tail -f $ctl | rsh $host \"TERM=dumb \
     POLYORB_CORBA_NAMING_IOR=$POLYORB_CORBA_NAMING_IOR \
     POLYORB_CONF=$evolutedp_conf \
     LD_LIBRARY_PATH=/usr/local/lib \
-    $evolutedp -n $nmax -c $count -s $size TEST_$clinumber" \
-      >> $cliout 2>&1 &
+    $evolutedp -n $nmax -c $count -s $size TEST_$clinumber 2>&1 \" \
+      >> $cliout" &
   Revolutedp_pids="$Revolutedp_pids $!"
   eval "cli_host_$clinumber=$h"
   clinumber=`expr $clinumber + 1`
@@ -118,18 +120,17 @@ echo "202 Waiting for clients to complete."
 while true; do
   if [ "`grep -L 'Elapsed :' $cliouts`" = "" ]; then
      echo "555 Success."
-     echo OK > $output/99STATUS
+     echo OK > $output/98STATUS
      break
   fi
 
   if egrep -i 'Raised|STORAGE|ASSERT' $cliouts > /dev/null; then
     echo "666 Exception."
-    echo FAIL > $output/99STATUS
+    echo FAIL > $output/98STATUS
     break
   fi
   sleep 5
 done
 date
 echo "888 Completed, cleaning up."
-exec $0 -k
-exit 0
+$0 -k
