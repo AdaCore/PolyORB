@@ -150,15 +150,17 @@ package body Droopi.References.IOR is
 
       pragma Debug (O ("Object to string : Enter"));
 
+      Start_Encapsulation (Buf);
       Marshall (Buf, IOR);
 
       declare
-            Octets : Encapsulation := Encapsulate (Buf);
-            S      : String :=  To_String (Stream_Element_Array (Octets));
-            Str    : String := "IOR:" & S;
+            Octets : constant Encapsulation := Encapsulate (Buf);
+            S      : constant String :=  "IOR:"
+              & To_String (Stream_Element_Array (Octets));
       begin
          pragma Debug (O ("Object to string : Leave"));
-         return To_CORBA_String (Str);
+         Release (Buf);
+         return To_CORBA_String (S);
       end;
 
 
