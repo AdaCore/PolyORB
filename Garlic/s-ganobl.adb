@@ -56,7 +56,7 @@ package body System.Garlic.Non_Blocking is
 
    use C, Strings;
 
-   Safety_Delay : constant Duration := 30.0;
+   Safety_Delay : constant Duration := 0.5;
    --  A SIGIO will be simulated every Safety_Delay seconds, to make
    --  sure we do not get stuned because we have missed one of them.
 
