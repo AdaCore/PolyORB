@@ -12,6 +12,14 @@ package body Droopi.References is
 
    function Bind (R : Ref) return Objects.Servant_Access is
    begin
+--        P := Find_Best_Profile (R);
+--        if Tag (P) = Tag_Local then
+--           return P.Object;
+--        else
+--           S := Find_Session (P.Address);
+--           return Make_Surrogate (S);
+--        end if;
+
       --  XXX TODO!
       raise Not_Implemented;
       pragma Warnings (Off, Bind);
