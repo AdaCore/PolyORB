@@ -39,6 +39,7 @@ interface titi{}
 abstract interface to;
 interface to{};
 abstract interface tu{};
+interface tirli : to, to {};
 
 /* test of rule 11 */
 interface int1 : toto {};
@@ -117,6 +118,8 @@ valuetype value23 supports valueinterface1, valueinterface2 {};
 valuetype value24 supports valueinterface1, value4 {};
 valuetype value25 supports valueinterface1, {};
 valuetype value26 : value1, value1 Error {};
+abstract interface valueinterface4 {};
+valuetype value27 : value1, value1 supports valueinterface4, valueinterface4 {};
 
 /* Test of rule 20 */
 valuetype value27 : toto {};
@@ -410,3 +413,59 @@ module moduleB {
   };
 };
 
+// multiple inheritance management
+// in case of interfaces
+interface i1 {
+  typedef long type1;
+  const long const1 = 5;
+  exception e {};
+};
+interface i2 {
+  typedef short type1;
+  const long const1 = 7;
+  exception e {};
+};
+interface i3 : i1, i2 {
+  typedef type1 type2;
+  const long const2 = const1;
+  void echo () raises (e);
+};
+interface i4 {
+  attribute long l;
+  void echo ();
+};
+interface i5 : i4 {
+  attribute long l;
+  void echo (long arg);
+};
+interface i6 {
+  attribute long l;
+  void echo ();
+};
+interface i7 : i4, i6 {};
+
+// multiple inheritance management
+// in case of valuetypes
+valuetype v1 {
+  typedef long type1;
+  const long const1 = 5;
+  exception e {};
+};
+abstract valuetype v2 {
+  typedef short type1;
+  const long const1 = 7;
+  exception e {};
+};
+valuetype v3 : v1, v2 {
+  typedef type1 type2;
+  const long const2 = const1;
+  void echo () raises (e);
+};
+valuetype v4 {
+  attribute long l;
+  void echo ();
+};
+valuetype v5 : v4 {
+  attribute long l;
+  void echo (long arg);
+};
