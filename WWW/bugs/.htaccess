@@ -4,3 +4,5 @@ order deny,allow
 deny from all
 
 </Files>
+
+DirectoryIndex RT-submit-pr.cgi
