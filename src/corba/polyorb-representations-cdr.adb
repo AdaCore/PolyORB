@@ -1669,7 +1669,7 @@ package body PolyORB.Representations.CDR is
                Nb := PolyORB.Any.TypeCode.Member_Count_With_Label (Tc, Label);
                pragma Debug (O ("Now unmarshalling"
                                 & Unsigned_Long'Image (Nb) & " elements"));
-               if I /= 0 then
+               if Nb /= 0 then
                   for I in 0 .. Nb - 1 loop
                      Val := Get_Empty_Any
                        (TypeCode.Member_Type_With_Label
