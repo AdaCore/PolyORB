@@ -59,13 +59,13 @@ package body Broca.Server is
 
    type POA_Entry_Array is array (Broca.POA.POA_Index_Type range <>)
      of POA_Entry_Type;
-   type POA_Entry_Array_Acc is access POA_Entry_Array;
+   type POA_Entry_Array_Ptr is access POA_Entry_Array;
 
    procedure Free is new Ada.Unchecked_Deallocation
-     (Object => POA_Entry_Array, Name => POA_Entry_Array_Acc);
+     (Object => POA_Entry_Array, Name => POA_Entry_Array_Ptr);
 
    --  This is the variable containing an access to the table of objects.
-   All_POAs : POA_Entry_Array_Acc := null;
+   All_POAs : POA_Entry_Array_Ptr := null;
 
    --  Find a free entry in the table of objects or expand it.
    procedure Register_POA (POA : Broca.POA.POA_Object_Access) is
@@ -93,8 +93,8 @@ package body Broca.Server is
          --  Expand the table.
          declare
             use Broca.POA;
-            N_Ao : POA_Entry_Array_Acc;
-            O_Ao : POA_Entry_Array_Acc;
+            N_Ao : POA_Entry_Array_Ptr;
+            O_Ao : POA_Entry_Array_Ptr;
             Slot : POA_Index_Type;
          begin
             N_Ao := new POA_Entry_Array (1 .. 2 * All_POAs.all'Last);
@@ -362,14 +362,14 @@ package body Broca.Server is
 
    --------------------------------------------------------------------------
 
-   procedure Handle_Request (Stream : Broca.Stream.Stream_Acc;
+   procedure Handle_Request (Stream : Broca.Stream.Stream_Ptr;
                              Buffer : in out Buffer_Descriptor);
 
    --  Internal type for server_table.
    --  It defines the server for an identifier.
    type Cell is
       record
-         Server : Server_Acc := null;
+         Server : Server_Ptr := null;
          --  Number of requests that can be delivered by the server.
          Count : Natural := 0;
       end record;
@@ -377,16 +377,16 @@ package body Broca.Server is
 
    protected Server_Table is
       --  Add (register) a server in the table.
-      procedure Register (Server : Server_Acc; Id : out Server_Id_Type);
+      procedure Register (Server : Server_Ptr; Id : out Server_Id_Type);
 
       --  Called by server ID to inform it has a new request (or work)
       --  to be processed.
       procedure New_Request (Id : Server_Id_Type);
 
       --  Get a server having a work to be performed.
-      entry Get_Server (Server : out Server_Acc);
+      entry Get_Server (Server : out Server_Ptr);
 
-      function Get_Server_By_Id (Id : Server_Id_Type) return Server_Acc;
+      function Get_Server_By_Id (Id : Server_Id_Type) return Server_Ptr;
    private
       Cells : Cell_Array (0 .. 3);
       --  NBR_SERVERS is also the id for the next server to be registered.
@@ -410,7 +410,7 @@ package body Broca.Server is
       --  returned or deferenced.
       --  It is just used by unqueu_by_poa.
       type Request_Cell_Type is private;
-      type Request_Cell_Acc is access Request_Cell_Type;
+      type Request_Call_Ptr is access Request_Cell_Type;
 
       protected Wait_Queue is
          --  The Wait_queue contains all requests that can be processed now.
@@ -419,28 +419,28 @@ package body Broca.Server is
          --  This queue is FIFO.
 
          --  Append (put) a request to the queue.
-         procedure Append (Stream : Broca.Stream.Stream_Acc;
+         procedure Append (Stream : Broca.Stream.Stream_Ptr;
                            Buffer : Buffer_Descriptor;
                            POA : Broca.POA.POA_Object_Access);
 
          --  Form used by HOLD_QUEUE.
          --  Note: cell.next must be null.
-         procedure Append (Cell : Request_Cell_Acc);
+         procedure Append (Cell : Request_Call_Ptr);
 
          --  Fetch the first request, and remove it from the queue.
-         entry Fetch (Stream : out Broca.Stream.Stream_Acc;
+         entry Fetch (Stream : out Broca.Stream.Stream_Ptr;
                       Buffer : in out Buffer_Descriptor;
                       POA : out Broca.POA.POA_Object_Access);
 
          --  Internal use only.
---          procedure Try_Fetch (Stream: out Broca.Stream.Stream_Acc;
+--          procedure Try_Fetch (Stream: out Broca.Stream.Stream_Ptr;
 --                               Buffer: in out Buffer_Descriptor;
 --                               POA : out Broca.POA.POA_Object_Access;
 --                               Success: out Boolean);
       private
          --  The queue is a single linked list, with an head and a tail.
-         Head : Request_Cell_Acc := null;
-         Tail : Request_Cell_Acc := null;
+         Head : Request_Call_Ptr := null;
+         Tail : Request_Call_Ptr := null;
       end Wait_Queue;
 
       protected Hold_Queue is
@@ -460,7 +460,7 @@ package body Broca.Server is
          --  for each POA.
 
          --  Append a request. Make a copy of buffer.
-         procedure Append (Stream : Broca.Stream.Stream_Acc;
+         procedure Append (Stream : Broca.Stream.Stream_Ptr;
                            Buffer : Buffer_Descriptor;
                            POA : Broca.POA.POA_Object_Access);
 
@@ -469,8 +469,8 @@ package body Broca.Server is
            (POA : Broca.POA.POA_Object_Access);
       private
          --  The queue is a single linked list, with an head and a tail.
-         Head : Request_Cell_Acc := null;
-         Tail : Request_Cell_Acc := null;
+         Head : Request_Call_Ptr := null;
+         Tail : Request_Call_Ptr := null;
       end Hold_Queue;
 
    private
@@ -478,14 +478,14 @@ package body Broca.Server is
       type Request_Cell_Type is
          record
             POA : Broca.POA.POA_Object_Access;
-            Stream : Broca.Stream.Stream_Acc;
+            Stream : Broca.Stream.Stream_Ptr;
             Bd : Broca.Buffers.Buffer_Descriptor;
-            Next : Request_Cell_Acc;
+            Next : Request_Call_Ptr;
          end record;
    end Queues;
 
    protected body Server_Table is
-      procedure Register (Server : Server_Acc; Id : out Server_Id_Type) is
+      procedure Register (Server : Server_Ptr; Id : out Server_Id_Type) is
       begin
          Cells (Nbr_Servers) := (Server, 0);
          Id := Nbr_Servers;
@@ -498,7 +498,7 @@ package body Broca.Server is
          Total_Count := Total_Count + 1;
       end New_Request;
 
-      entry Get_Server (Server : out Server_Acc)
+      entry Get_Server (Server : out Server_Ptr)
       when Total_Count > 0 is
       begin
          --  Avoid wait queue getting all the servers.
@@ -514,7 +514,7 @@ package body Broca.Server is
          raise Program_Error;
       end Get_Server;
 
-      function Get_Server_By_Id (Id : Server_Id_Type) return Server_Acc is
+      function Get_Server_By_Id (Id : Server_Id_Type) return Server_Ptr is
       begin
          if Id not in Cells'Range then
             return null;
@@ -526,7 +526,7 @@ package body Broca.Server is
 
    package body Queues is
       procedure Free is new Ada.Unchecked_Deallocation
-        (Object => Request_Cell_Type, Name => Request_Cell_Acc);
+        (Object => Request_Cell_Type, Name => Request_Call_Ptr);
 
       Wait_Server_Id : Server_Id_Type;
 
@@ -536,7 +536,7 @@ package body Broca.Server is
             return Head = null;
          end Is_Empty;
 
-         procedure Append (Cell : Request_Cell_Acc) is
+         procedure Append (Cell : Request_Call_Ptr) is
          begin
             if Cell.Next /= null then
                --  internal consistency
@@ -556,7 +556,7 @@ package body Broca.Server is
             Server_Table.New_Request (Wait_Server_Id);
          end Append;
 
-         procedure Append (Stream : Broca.Stream.Stream_Acc;
+         procedure Append (Stream : Broca.Stream.Stream_Ptr;
                            Buffer : Buffer_Descriptor;
                            POA : Broca.POA.POA_Object_Access) is
          begin
@@ -568,12 +568,12 @@ package body Broca.Server is
                      Next => null));
          end Append;
 
-         procedure Try_Fetch (Stream : out Broca.Stream.Stream_Acc;
+         procedure Try_Fetch (Stream : out Broca.Stream.Stream_Ptr;
                               Buffer : in out Buffer_Descriptor;
                               POA : out Broca.POA.POA_Object_Access;
                               Success : out Boolean)
          is
-            Cell : Request_Cell_Acc;
+            Cell : Request_Call_Ptr;
          begin
             if Head = null then
                Success := False;
@@ -598,7 +598,7 @@ package body Broca.Server is
             Free (Cell);
          end Try_Fetch;
 
-         entry Fetch (Stream : out Broca.Stream.Stream_Acc;
+         entry Fetch (Stream : out Broca.Stream.Stream_Ptr;
                       Buffer : in out Buffer_Descriptor;
                       POA : out Broca.POA.POA_Object_Access)
          when Head /= null is
@@ -634,7 +634,7 @@ package body Broca.Server is
          Buffer : in out Broca.Buffers.Buffer_Descriptor)
       is
          use Broca.POA;
-         Stream : Broca.Stream.Stream_Acc;
+         Stream : Broca.Stream.Stream_Ptr;
          POA : Broca.POA.POA_Object_Access;
       begin
          pragma Debug (O ("Perform_Work : enter"));
@@ -665,11 +665,11 @@ package body Broca.Server is
       end Marshall_Profile;
 
       protected body Hold_Queue is
-         procedure Append (Stream : Broca.Stream.Stream_Acc;
+         procedure Append (Stream : Broca.Stream.Stream_Ptr;
                            Buffer : Buffer_Descriptor;
                            POA : Broca.POA.POA_Object_Access)
          is
-            Cell  : Request_Cell_Acc;
+            Cell  : Request_Call_Ptr;
             Local : Buffer_Descriptor;
          begin
             Copy (Buffer, Local);
@@ -694,7 +694,7 @@ package body Broca.Server is
          procedure Unqueue_By_POA (POA : Broca.POA.POA_Object_Access)
          is
             use Broca.POA;
-            Cell, Prev_Cell : Request_Cell_Acc;
+            Cell, Prev_Cell : Request_Call_Ptr;
          begin
             --  Unqueue messages.
 
@@ -743,7 +743,7 @@ package body Broca.Server is
 
    --  Process a GIOP request.
    --  the current position of buffer must be a GIOP RequestHeader.
-   procedure Handle_Request (Stream : Broca.Stream.Stream_Acc;
+   procedure Handle_Request (Stream : Broca.Stream.Stream_Ptr;
                              Buffer : in out Buffer_Descriptor) is
       use Broca.POA;
       use Broca.Marshalling;
@@ -885,7 +885,7 @@ package body Broca.Server is
    --  Handle A GIOP message coming from stream STREAM.
    --  BUFFER must contain an unprocessed message header.
    procedure Handle_Message
-     (Stream : in Broca.Stream.Stream_Acc;
+     (Stream : in Broca.Stream.Stream_Ptr;
       Buffer : in out Buffer_Descriptor)
    is
       use Broca.POA;
@@ -952,7 +952,7 @@ package body Broca.Server is
       Server_Table.New_Request (Id);
    end New_Request;
 
-   procedure Register (Server : Server_Acc; Id : out Server_Id_Type) is
+   procedure Register (Server : Server_Ptr; Id : out Server_Id_Type) is
    begin
       Server_Table.Register (Server, Id);
    end Register;
@@ -965,7 +965,7 @@ package body Broca.Server is
       IOR : Buffer_Descriptor;
       Object_Key : Broca.Buffers.Buffer_Descriptor;
       Nbr_Profiles : CORBA.Unsigned_Long;
-      Server : Server_Acc;
+      Server : Server_Ptr;
       Length : CORBA.Unsigned_Long;
       Old_Size : Buffer_Index_Type;
    begin
@@ -1041,7 +1041,7 @@ package body Broca.Server is
 
    procedure Serv is
       Buffer : Buffer_Descriptor;
-      Server : Server_Acc;
+      Server : Server_Ptr;
    begin
       loop
          Server_Table.Get_Server (Server);

@@ -224,11 +224,11 @@ package body Broca.Rootpoa is
       return Self.State.Get_State = Inactive;
    end Is_Inactive;
 
-   type Poa_Manager_Acc is access all Poa_Manager_Type;
+   type POA_Manager_Ptr is access all Poa_Manager_Type;
 
    --  The default POA manager is the POAManager used by the RootPOA, and
    --  created during the elaboration.
-   Default_Poa_Manager : Poa_Manager_Acc;
+   Default_Poa_Manager : POA_Manager_Ptr;
 
    --  The ghost POA manager is used by ghost POA, ie poa created by
    --  find_POA before calling an AdapterActivator.
@@ -271,10 +271,10 @@ package body Broca.Rootpoa is
 
    type Slot_Index_Type is new CORBA.Unsigned_Long;
    Bad_Slot_Index : constant Slot_Index_Type := -1;
-   type Servant_Cell_Acc is access Servant_Cell_Type;
-   type Servant_Cell_Acc_Array is array (Slot_Index_Type range <>)
-     of Servant_Cell_Acc;
-   type Servant_Cell_Acc_Array_Acc is access Servant_Cell_Acc_Array;
+   type Servant_Cell_Ptr is access Servant_Cell_Type;
+   type Servant_Cell_Ptr_Array is array (Slot_Index_Type range <>)
+     of Servant_Cell_Ptr;
+   type Servant_Cell_Ptr_Array_Ptr is access Servant_Cell_Ptr_Array;
 
    type Object is new Broca.POA.POA_Object with
       record
@@ -289,7 +289,7 @@ package body Broca.Rootpoa is
 
          --  The object map.
          --  It is valid only if the servant retention policy is RETAIN.
-         Object_Map : Servant_Cell_Acc_Array_Acc := null;
+         Object_Map : Servant_Cell_Ptr_Array_Ptr := null;
 
          --  Only used if NON_RETAIN and SYSTEM_ID to allocate uniq oid.
          Last_Slot : Slot_Index_Type := Bad_Slot_Index;
@@ -367,7 +367,7 @@ package body Broca.Rootpoa is
      (Source => Objectid_Type, Target => Slot_Index_Type);
 
    procedure Unchecked_Deallocation is new Ada.Unchecked_Deallocation
-     (Object => Servant_Cell_Acc_Array, Name => Servant_Cell_Acc_Array_Acc);
+     (Object => Servant_Cell_Ptr_Array, Name => Servant_Cell_Ptr_Array_Ptr);
 
    --  Disable "should be in package spec" warning.
    pragma Warnings (Off);
@@ -465,8 +465,8 @@ package body Broca.Rootpoa is
      (Self : access Object)
      return Slot_Index_Type
    is
-      New_Object_Map : Servant_Cell_Acc_Array_Acc;
-      Old_Object_Map : Servant_Cell_Acc_Array_Acc;
+      New_Object_Map : Servant_Cell_Ptr_Array_Ptr;
+      Old_Object_Map : Servant_Cell_Ptr_Array_Ptr;
       Slot           : Slot_Index_Type;
       Found          : Boolean;
    begin
@@ -480,7 +480,7 @@ package body Broca.Rootpoa is
          when RETAIN =>
             --  Find a slot.
             if Self.Object_Map = null then
-               Self.Object_Map := new Servant_Cell_Acc_Array'(1 .. 8 => null);
+               Self.Object_Map := new Servant_Cell_Ptr_Array'(1 .. 8 => null);
                Slot := 1;
             else
                Found := False;
@@ -494,7 +494,7 @@ package body Broca.Rootpoa is
                   end if;
                end loop;
                if not Found then
-                  New_Object_Map := new Servant_Cell_Acc_Array'
+                  New_Object_Map := new Servant_Cell_Ptr_Array'
                     (1 .. 2 * Self.Object_Map.all'Last => null);
                   Slot := Self.Object_Map.all'Last + 1;
                   New_Object_Map (Self.Object_Map.all'Range) :=
@@ -1130,7 +1130,7 @@ package body Broca.Rootpoa is
             Self.Object_Map (Slot).Requests_Lock.Unlock_R;
          end if;
          Self.Requests_Lock.Unlock_R;
-         Poa_Manager_Acc (Self.POA_Manager).State.Dec_Usage;
+         POA_Manager_Ptr (Self.POA_Manager).State.Dec_Usage;
          return;
       exception
          when others =>
@@ -1142,7 +1142,7 @@ package body Broca.Rootpoa is
    exception
       when others =>
          Self.Requests_Lock.Unlock_R;
-         Poa_Manager_Acc (Self.POA_Manager).State.Dec_Usage;
+         POA_Manager_Ptr (Self.POA_Manager).State.Dec_Usage;
          raise;
    end Giop_Invoke;
 

@@ -13,7 +13,7 @@ package body Broca.Exceptions is
    --  primitives such as Save_Occurence.
    package Exception_Attribute is
      new Ada.Task_Attributes
-     (Attribute => IDL_Exception_Members_Acc,
+     (Attribute => IDL_Exception_Members_Ptr,
       Initial_Value => null);
 
    To_Unsigned_Long :
@@ -33,7 +33,7 @@ package body Broca.Exceptions is
    end User_Get_Members;
 
    procedure User_Raise_Exception
-     (Id : Ada.Exceptions.Exception_Id; Members : IDL_Exception_Members_Acc) is
+     (Id : Ada.Exceptions.Exception_Id; Members : IDL_Exception_Members_Ptr) is
    begin
       --  FIXME: free previous member.
       Exception_Attribute.Set_Value (Members);

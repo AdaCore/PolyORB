@@ -46,7 +46,7 @@ package Broca.Server is
       Object_Key : Broca.Buffers.Buffer_Descriptor)
       is abstract;
 
-   type Server_Acc is access all Server_Type'Class;
+   type Server_Ptr is access all Server_Type'Class;
 
    --  This private type is identify a server.  It acts like a cookie for
    --  a server.
@@ -54,7 +54,7 @@ package Broca.Server is
 
    --  A server, in order to be active, must register itself with this
    --  procedure.
-   procedure Register (Server : Server_Acc; Id : out Server_Id_Type);
+   procedure Register (Server : Server_Ptr; Id : out Server_Id_Type);
 
    --  This procedure is called by a POA to request a server task to perform
    --  arbitrary work, such as cleaning the POA up.
@@ -67,7 +67,7 @@ package Broca.Server is
 
    --  This procedure is designed to be called by perform_work primitive to
    --  process a message.
-   procedure Handle_Message (Stream : Broca.Stream.Stream_Acc;
+   procedure Handle_Message (Stream : Broca.Stream.Stream_Ptr;
                              Buffer : in out Buffer_Descriptor);
 
    --  Register a POA.

@@ -42,11 +42,11 @@ package Broca.Stream is
    procedure Lock_Receive (Stream : access Stream_Type);
    procedure Unlock_Receive (Stream : access Stream_Type);
 
-   type Stream_Acc is access all Stream_Type'Class;
+   type Stream_Ptr is access all Stream_Type'Class;
    procedure Unchecked_Deallocation is new Ada.Unchecked_Deallocation
-     (Object => Stream_Type'Class, Name => Stream_Acc);
+     (Object => Stream_Type'Class, Name => Stream_Ptr);
 
-   type Stream_Acc_Array is array (Natural range <>) of Stream_Acc;
+   type Stream_Ptr_Array is array (Natural range <>) of Stream_Ptr;
 
    --  A stream for a socket.
    type Fd_Stream_Type is new Stream_Type with
@@ -62,6 +62,6 @@ package Broca.Stream is
      (Stream : access Fd_Stream_Type;
       Buffer : in out Buffer_Descriptor);
 
-   function Create_Fd_Stream (Fd : Interfaces.C.int) return Stream_Acc;
+   function Create_Fd_Stream (Fd : Interfaces.C.int) return Stream_Ptr;
 
 end Broca.Stream;

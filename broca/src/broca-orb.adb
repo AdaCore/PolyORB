@@ -55,7 +55,7 @@ package body Broca.ORB is
          Unmarshall (IOR, Nbr_Profiles);
 
          Obj.Profiles :=
-          new Broca.Object.Profile_Acc_Array (1 .. Nbr_Profiles);
+          new Broca.Object.Profile_Ptr_Array (1 .. Nbr_Profiles);
          for I in 1 .. Nbr_Profiles loop
             Unmarshall (IOR, Tag);
             case Tag is

@@ -8,7 +8,7 @@ package Broca.Exceptions is
    --  Declarations for user exceptions.  --
    -----------------------------------------
 
-   type IDL_Exception_Members_Acc is
+   type IDL_Exception_Members_Ptr is
       access all CORBA.IDL_Exception_Members'Class;
 
    --  Extract members from an exception occurence.
@@ -18,7 +18,7 @@ package Broca.Exceptions is
 
    --  Raise an user exception.
    procedure User_Raise_Exception
-     (Id : Ada.Exceptions.Exception_Id; Members : IDL_Exception_Members_Acc);
+     (Id : Ada.Exceptions.Exception_Id; Members : IDL_Exception_Members_Ptr);
 
    -------------------------------------------
    --  Declarations for system exceptions.  --

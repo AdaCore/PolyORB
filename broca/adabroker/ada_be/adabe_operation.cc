@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.11 $
+//                            $Revision: 1.12 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -270,7 +270,7 @@ adabe_operation::produce_adb (dep_list & with,
     "   begin\n"
     "      loop\n"
     "         Broca.Giop.Send_Request_Size\n"
-    "           (Handler, Broca.Object.Object_Acc (Get (Self)),\n"
+    "           (Handler, Broca.Object.Object_Ptr (Get (Self)),\n"
     "           " + operation_name + ");\n"
     "\n"
     "         --  In and inout parameter.\n";
@@ -284,7 +284,7 @@ adabe_operation::produce_adb (dep_list & with,
   body += marshall;
   body +=
     "         Broca.Giop.Send_Request_Send\n"
-    "           (Handler, Broca.Object.Object_Acc (Get (Self)), ";
+    "           (Handler, Broca.Object.Object_Ptr (Get (Self)), ";
   body += oneway ? "False" : "True";
   body += ", Sr_Res);\n"
     "         case Sr_Res is\n"
@@ -512,7 +512,7 @@ adabe_operation::produce_skel_adb (dep_list & with,
   // if it's a function, Return will take the value of return
   if (is_function ()) body += "Returns := ";
   body += get_ada_local_name ();
-  body += " (Object_Acc (Obj)";
+  body += " (Object_Ptr (Obj)";
   body += call_args;
   body += ");\n";
 

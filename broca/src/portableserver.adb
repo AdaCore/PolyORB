@@ -30,9 +30,9 @@ package body PortableServer is
          (Broca.ORB.Resolve_Initial_References (Broca.ORB.Root_Poa_Objectid)));
    end Get_Default_POA;
 
-   package Address_To_Ref_Acc_Conversions is
+   package Address_To_Ref_Ptr_Conversions is
      new System.Address_To_Access_Conversions (Broca.Refs.Ref_Type);
-   use Address_To_Ref_Acc_Conversions;
+   use Address_To_Ref_Ptr_Conversions;
 
    procedure Raise_Forward_Request (Reference : CORBA.Object.Ref) is
    begin

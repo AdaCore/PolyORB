@@ -108,7 +108,7 @@ package Broca.GIOP is
          Buffer : Buffer_Descriptor;
          Request_Id : CORBA.Unsigned_Long;
          Profile : Broca.Object.Profile_Ptr;
-         Connection : Broca.Object.Connection_Acc;
+         Connection : Broca.Object.Connection_Ptr;
          Nbr_Tries : Natural := 0;
       end record;
 

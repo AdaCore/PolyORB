@@ -1,3 +1,7 @@
+1999-08-26  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* broca-inet_server.adb: Reformat *_Acc in *_Ptr.
+
 1999-08-25  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* broca-inet_server.adb: Fix wrong length computation in

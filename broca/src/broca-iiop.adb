@@ -54,7 +54,7 @@ package body Broca.IIOP is
    is
       use Broca.Marshalling;
 
-      Res : Profile_Iiop_Acc;
+      Res : Profile_IIOP_Ptr;
       Nbr_Seq : CORBA.Unsigned_Long;
       Profile_Length : CORBA.Unsigned_Long;
       Old_Endian : CORBA.Boolean;
@@ -121,11 +121,11 @@ package body Broca.IIOP is
    end Create_Socket_Address;
 
    function Create_Strand (Profile : access Profile_Iiop_Type)
-                           return Strand_Acc;
+                           return Strand_Ptr;
 
    function Create_Strand (Profile : access Profile_Iiop_Type)
-                           return Strand_Acc is
-      Res : Strand_Acc;
+                           return Strand_Ptr is
+      Res : Strand_Ptr;
    begin
       Res := new Strand_Type;
       Res.Next := null;
@@ -135,10 +135,10 @@ package body Broca.IIOP is
    end Create_Strand;
 
    procedure Open_Strand
-     (Profile : access Profile_Iiop_Type; Strand : Strand_Acc);
+     (Profile : access Profile_Iiop_Type; Strand : Strand_Ptr);
 
    procedure Open_Strand (Profile : access Profile_Iiop_Type;
-                          Strand : Strand_Acc)
+                          Strand : Strand_Ptr)
    is
       use Sockets.Naming;
       use Sockets.Constants;
@@ -161,7 +161,7 @@ package body Broca.IIOP is
 
    type Strand_Connection_Type is new Broca.Object.Connection_Type with
       record
-         Strand : Strand_Acc;
+         Strand : Strand_Ptr;
       end record;
    function Get_Request_Id (Connection : access Strand_Connection_Type)
                             return CORBA.Unsigned_Long;
@@ -245,10 +245,10 @@ package body Broca.IIOP is
    --  Find a free connection (or create a new one) for a message to an
    --  OBJECT via PROFILE.
    function Find_Connection (Profile : access Profile_Iiop_Type)
-                             return Broca.Object.Connection_Acc
+                             return Broca.Object.Connection_Ptr
    is
       use Interfaces.C;
-      Strand : Strand_Acc;
+      Strand : Strand_Ptr;
       Success : Boolean;
    begin
       Strand := Profile.Strands;

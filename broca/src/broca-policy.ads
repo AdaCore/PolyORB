@@ -8,7 +8,7 @@ package Broca.Policy is
         Policy : CORBA.Policytype;
      end record;
 
-   type Policy_Object_Acc is access all Policy_Object_Type'Class;
+   type Policy_Object_Ptr is access all Policy_Object_Type'Class;
 
    function Get_Policy_Type
      (Self : Policy_Object_Type)
@@ -16,6 +16,6 @@ package Broca.Policy is
 
    function Copy
      (Self : Policy_Object_Type)
-     return Policy_Object_Acc is abstract;
+     return Policy_Object_Ptr is abstract;
 
 end Broca.Policy;

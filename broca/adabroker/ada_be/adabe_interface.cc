@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.7 $
+//                            $Revision: 1.8 $
 //                                                                          //
 //         Copyright (C) 1999 ENST Paris University, France.                //
 //                                                                          //
@@ -521,7 +521,7 @@ adabe_interface::produce_adb (dep_list& with,
     "      return Res;\n"
     "   end Create_Object;\n"
     "\n"
-    "   " + factory_name + " : constant Broca.Repository.Object_Class_Acc :=\n"
+    "   " + factory_name + " : constant Broca.Repository.Object_Class_Ptr :=\n"
     "      new " + factory_type + "'\n"
     "        (Next => null, Type_Id => CORBA.RepositoryId (Repository_Id));\n"
     "begin\n"
@@ -706,7 +706,7 @@ adabe_interface::produce_skel_adb (dep_list & with,
   // This is used for redispatching.
   // FIXME: not very elegant.
   body +=
-    "   type Object_Acc is access all Object'Class;\n"
+    "   type Object_Ptr is access all Object'Class;\n"
     "\n";
 
   // Primitive Get_Type_Id

@@ -6,7 +6,7 @@ with Broca.Sequences;
 package Broca.Object is
    --  Contains data for a connection.
    type Connection_Type is abstract tagged null record;
-   type Connection_Acc is access all Connection_Type'Class;
+   type Connection_Ptr is access all Connection_Type'Class;
    function Get_Request_Id (Connection : access Connection_Type)
                             return CORBA.Unsigned_Long is abstract;
    --  Release a previously acquired connection.
@@ -31,17 +31,17 @@ package Broca.Object is
    --  Find a free connection (or create a new one) for a message to an
    --  OBJECT via PROFILE and reserve it.
    function Find_Connection (Profile : access Profile_Type)
-                             return Connection_Acc is abstract;
+                             return Connection_Ptr is abstract;
 
    type Profile_Ptr is access all Profile_Type'Class;
-   type Profile_Acc_Array is
+   type Profile_Ptr_Array is
       array (CORBA.Unsigned_Long range <>) of Profile_Ptr;
-   type Profile_Acc_Array_Acc is access Profile_Acc_Array;
+   type Profile_Ptr_Array_Ptr is access Profile_Ptr_Array;
 
    type Object_Type is new Broca.Refs.Ref_Type with
       record
          Type_Id : CORBA.String;
-         Profiles : Profile_Acc_Array_Acc;
+         Profiles : Profile_Ptr_Array_Ptr;
       end record;
 
    type Object_Ptr is access all Object_Type;

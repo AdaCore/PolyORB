@@ -17,10 +17,10 @@ package Broca.IIOP is
    --  Simply linked list of strands.
    --  A strand is simply a connection with associated data.
    type Strand_Type;
-   type Strand_Acc is access Strand_Type;
+   type Strand_Ptr is access Strand_Type;
    type Strand_Type is
       record
-         Next : Strand_Acc;
+         Next : Strand_Ptr;
          --  File descriptor for the connection.
          Fd : Interfaces.C.int;
          --  Request id for the next request.
@@ -43,18 +43,18 @@ package Broca.IIOP is
          Socket_Address : Sockets.Thin.Sockaddr_In;
 
          --  List of strands.
-         Strands : Strand_Acc := null;
+         Strands : Strand_Ptr := null;
 
          --  Lock on the list of strands.
          Lock : Broca.Locks.Rw_Lock_Type;
       end record;
-   type Profile_Iiop_Acc is access Profile_Iiop_Type;
+   type Profile_IIOP_Ptr is access Profile_Iiop_Type;
 
    --  Find a free connection (or create a new one) for a message to an
    --  OBJECT via PROFILE.
    function Find_Connection
      (Profile : access Profile_Iiop_Type)
-      return Broca.Object.Connection_Acc;
+      return Broca.Object.Connection_Ptr;
 
    procedure Create_Profile
      (Buffer : in out Buffer_Descriptor;

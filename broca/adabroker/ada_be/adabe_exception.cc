@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.8 $
+//                            $Revision: 1.9 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -321,7 +321,7 @@ adabe_exception::produce_stream_adb (dep_list & with,
 	"   procedure Unmarshall_And_Raise_" + get_ada_local_name () + "\n"
 	"      (Stream : in out Broca.Buffers.Buffer_Descriptor)\n"
 	"   is\n"
-	"      Bod : Broca.Exceptions.IDL_Exception_Members_Acc;\n"
+	"      Bod : Broca.Exceptions.IDL_Exception_Members_Ptr;\n"
 	"   begin\n"
 	"      Bod := new " + get_ada_local_name () + "_Members;\n"
 	"      Broca.Marshalling.Unmarshall_Skip_String (Stream);\n"
@@ -334,7 +334,7 @@ adabe_exception::produce_stream_adb (dep_list & with,
 	"   procedure Raise_" + get_ada_local_name () + "\n"
 	"      (Bod : " + get_ada_local_name () + "_Members)\n"
 	"   is\n"
-	"      Members : Broca.Exceptions.IDL_Exception_Members_Acc;\n"
+	"      Members : Broca.Exceptions.IDL_Exception_Members_Ptr;\n"
 	"   begin\n"
 	"      Members := new " + get_ada_local_name () + "_Members'(Bod);\n"
 	"      Broca.Exceptions.User_Raise_Exception\n"

@@ -129,7 +129,7 @@ package body Broca.Inet_Server is
    Signal_Fd_Read : Interfaces.C.int renames Signal_Fds (0);
    Signal_Fd_Write : Interfaces.C.int renames Signal_Fds (1);
 
-   Streams : Stream_Acc_Array (2 .. 10) := (others => null);
+   Streams : Stream_Ptr_Array (2 .. 10) := (others => null);
    Nbr_Fd : Integer := 0;
    Fd_Server_Id : Broca.Server.Server_Id_Type;
    Fd_Pos : Integer;
@@ -438,14 +438,14 @@ package body Broca.Inet_Server is
       Append_Buffer (IOR, Object_Key);
    end Marshall_Profile;
 
-   type Fd_Server_Acc is access Fd_Server_Type;
-   The_Fd_Server : Fd_Server_Acc;
+   type Fd_Server_Ptr is access Fd_Server_Type;
+   The_Fd_Server : Fd_Server_Ptr;
 begin
    Initialize;
 
    The_Fd_Server := new Fd_Server_Type;
    Broca.Server.Register
-     (Broca.Server.Server_Acc (The_Fd_Server), Fd_Server_Id);
+     (Broca.Server.Server_Ptr (The_Fd_Server), Fd_Server_Id);
 
    --  There is always one request to handle: accepting a connection.
    Broca.Server.New_Request (Fd_Server_Id);

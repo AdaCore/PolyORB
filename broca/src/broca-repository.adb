@@ -8,10 +8,10 @@ package body Broca.Repository is
    procedure O is new Broca.Debug.Output (Flag);
 
    --  Single linked list of all classes.
-   Classes : Object_Class_Acc;
+   Classes : Object_Class_Ptr;
 
    --  Add a new class to the repository.
-   procedure Register (Class : Object_Class_Acc) is
+   procedure Register (Class : Object_Class_Ptr) is
    begin
       pragma Debug (O ("Register : enter"));
       pragma Debug
@@ -30,7 +30,7 @@ package body Broca.Repository is
      (Type_Id : CORBA.RepositoryId)
      return CORBA.Object.Ref'Class
    is
-      El : Object_Class_Acc;
+      El : Object_Class_Ptr;
       Res : CORBA.Object.Ref;
    begin
       pragma Debug (O ("Create_Ref : enter"));

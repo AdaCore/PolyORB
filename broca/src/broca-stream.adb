@@ -76,8 +76,8 @@ package body Broca.Stream is
       Broca.Buffers.Dump (Bytes);
    end Receive;
 
-   function Create_Fd_Stream (Fd : Interfaces.C.int) return Stream_Acc is
-      Res : Stream_Acc;
+   function Create_Fd_Stream (Fd : Interfaces.C.int) return Stream_Ptr is
+      Res : Stream_Ptr;
    begin
       Res := new Fd_Stream_Type;
       Fd_Stream_Type (Res.all).Fd := Fd;
