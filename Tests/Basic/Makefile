@@ -8,12 +8,12 @@ all:: test_basic
 
 never::
 
-test_basic: never test_basic.cfg
-	gnatdist -v -g test_basic.cfg -cargs -gnato -gnata
+test_basic: never t_b.cfg
+	gnatdist -v -g t_b.cfg -cargs -gnato -gnata
 
-test_basic.cfg: test_basic.cfg.in
-	p=`pwd`; h=`hostname`; sed -e "s,XXXXX,$$p," -e "s,YYYYY,$$h," \
-		< test_basic.cfg.in > test_basic.cfg
+t_b.cfg: t_b.cfg.in
+	p=`pwd`; h=`hostname`; sed -e "s,YYYYY,$$h," \
+		< t_b.cfg.in > t_b.cfg
 
 clean: 
 	${RM} -r *.o *.ali dsa test_basic.cfg

@@ -1,9 +1,9 @@
-configuration Test_Basic is
+configuration T_B is
    part1, part2 : Partition;
    pragma Starter (Method => Ada);
-   for part2'host use YYYYY;
+   for part2'host use "YYYYY";
    procedure Test_Basic is in part1;
 begin
    part1:=();
    part2:=(Remote);
-end Test_Basic;
+end T_B;
