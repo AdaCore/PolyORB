@@ -181,7 +181,7 @@
 
 	* backend-be_ada-generator.adb: Minor reformatting.
 
-2004-06-30  Saber Saber Souli <souli@enst.fr>
+2004-06-30  Saber Souli <souli@enst.fr>
 
 	* backend-be_ada.adb : Generate assignment statement, and record
 	aggregate.
@@ -200,7 +200,7 @@
 	* backend-be_ada-runtime.adb: Remove 6619 as it causes RE_X_Y to
 	be output X_Y instead of X.Y as done previously.
 
-2004-06-29  Saber Saber Souli   <souli@enst.fr>
+2004-06-29  Saber Souli   <souli@enst.fr>
 
 	* backend-be_ada_nutils.adb : In To_Ada, insert "IDL_" string
 	when identifier collides with an Ada reserved word.
@@ -254,7 +254,7 @@
 	* backend-be_ada.adb: Use the RTE mechanism for parameters and
 	variables.
 
-2004-06-28  Saber Saber Souli  <souli@enst.fr>
+2004-06-28  Saber Souli  <souli@enst.fr>
 	
 	* iac.adb : Fix bug introduced when the path name of the IDL file
 	contain a leading dot.
@@ -265,7 +265,7 @@
 	* backend-be_ada-generator.adb : Minor change in the generated
 	code to produce exactly the same output as idlac.
 	
-2004-06-28  Saber Saber Souli   <souli@enst.fr>
+2004-06-28  Saber Souli   <souli@enst.fr>
 
 	* backend-be_ada.adb: Declare PolyORB and CORBA objects. Generate
 	marshaller declaration code. Use Copy_Designator in object
@@ -361,7 +361,7 @@
 	Make_Fully_Qualified_Identifier in order not to have specification
 	identifier as a prefix.
 
-2004-06-23  Saber Saber Souli   <souli@enst.fr>
+2004-06-23  Saber Souli   <souli@enst.fr>
 	* backend-be_ada.adb : Fixed void operation handling bug.
 	Add an empty body for subprograms. Handle nested blocs. 
 
@@ -422,7 +422,7 @@
 	Clarification between nodes and entities. Clarification of
 	Mode_Id.
 
-2004-06-21  Saber Saber Souli <souli@enst.fr>
+2004-06-21  Saber Souli <souli@enst.fr>
 	* backend-be_ada.adb : Handle complex declarator. Now the backend
 	map all the list of declarators. Generate library file (IDL). Add
 	append_type_to_package_spec (T:Node_Id ; P : node_id): a function
@@ -440,7 +440,7 @@
 	* scopes.adb, parser.adb, backend-be_idl.adb, frontend-nodes.idl:
 	Clarification between nodes and entities.
 
-2004-06-15  Saber Saber Souli   <souli@enst.fr>
+2004-06-15  Saber Souli   <souli@enst.fr>
   	* output.ads, output.adb 
 	Add procedure Set_Space_Increment (Value : Natural); to change the
 	Space_Increment and so enable dealling with different
@@ -530,7 +530,7 @@
 	order to retrieve respectively the Union_Type and the
 	Switch_Alternative of these entities.
 
-2004-06-08  Saber Saber Souli <souli@enst.fr>
+2004-06-08  Saber Souli <souli@enst.fr>
 	
 	* backend-be_ada.adb: Add Visit_Enumeration_Type function and
 	handle Enumeration_Type declaration. Add
@@ -547,7 +547,7 @@
 	Enumeration_Type declaration.  - Add Generate_Identifier procedure
 	: Output Identifier Name.
 	    
-2004-06-07  Saber Saber Souli <souli@enst.fr>
+2004-06-07  Saber Souli <souli@enst.fr>
 	
 	* backend-be_ada.adb: Handle interface operations and generate
 	the appropriate Ada function or procedure. Handle the Declarators
@@ -606,7 +606,7 @@
 	* backend-config.adb: Initialize configure procedure for backends
 	IDL and Ada.
 
-2004-05-31  Saber Saber Souli <souli@enst.fr>
+2004-05-31  Saber Souli <souli@enst.fr>
 	
 	* backend-be_ada.adb : This package Visit IDL tree nodes, and
 	generate the appropriate Ada node following the Ada Language
