@@ -154,8 +154,8 @@ begin
          elsif Match (A, "DEFPROTOCOLNAME") then
             DEF_PROTOCOL_NAME := new String'(Remove (A, "DEFPROTOCOLDATA"));
 
-         elsif Match (A, "PCS_NAME") then
-            PCS_NAME := new String'(Remove (A, "PCS_NAME"));
+         elsif Match (A, "PCSNAME") then
+            PCS_NAME := new String'(Remove (A, "PCSNAME"));
 
          elsif Match (A, "PSNAME") then
             Windows_NT := (Remove (A, "PSNAME") = "Windows/NT");
