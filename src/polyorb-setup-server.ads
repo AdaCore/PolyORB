@@ -36,7 +36,7 @@
 
 --  $Id$
 
-with PolyORB.Smart_Pointers;
+with PolyORB.Smart_Pointers;  --  WAG:3.15
 pragma Elaborate_All (PolyORB.Smart_Pointers);
 pragma Warnings (Off, PolyORB.Smart_Pointers);
 --  The dependency and pragma above should not be necessary
