@@ -108,7 +108,7 @@ package PolyORB.POA_Types is
          Creator          : Types.String;
          Id               : Types.String;
          System_Generated : Boolean;
-         Persistency_Flag : Time_Stamp;
+         Persistency_Flag : Lifespan_Cookie;
      end record;
    type Unmarshalled_Oid_Access is access Unmarshalled_Oid;
    for Unmarshalled_Oid_Access'Storage_Pool use Storage_Pools.Debug_Pool;
