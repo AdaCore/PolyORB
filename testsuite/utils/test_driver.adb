@@ -107,6 +107,9 @@ procedure Test_Driver is
                 & Ada.Exceptions.Exception_Name (E)
                 & ", "
                 & Ada.Exceptions.Exception_Message (E));
+         Error (Test_Suite_Output'Class (Output.all),
+                " with information: "
+                & Ada.Exceptions.Exception_Information (E));
          Close (Test_Suite_Output'Class (Output.all));
    end Run;
 
