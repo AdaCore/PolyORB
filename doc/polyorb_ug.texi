@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#13 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#14 $
 
 @setfilename polyorb_ug.info
 @settitle PolyORB User's Guide
@@ -1038,20 +1038,47 @@ OPTIONS
 @c -------------------------------------------------------------------
 @node CORBA
 @chapter CORBA
+@cindex CORBA
 @c -------------------------------------------------------------------
 
+@menu
+* What you should know before Reading this section::
+* Installing CORBA application personality::
+* Usage of idlac::
+* Resolving names in a CORBA application::
+* Building a CORBA application with PolyORB::
+* Configuring a CORBA application::
+* PolyORB specific APIs::
+@end menu
+
+
+@c -------------------------------------------------------------------
+@node What you should know before Reading this section
+@section What you should know before Reading this section
+@c -------------------------------------------------------------------
+
+@noindent
+This section assumes that the reader is familiar with the CORBA
+specifications described in @cite{[OMG02a]} and the @emph{IDL-to-Ada}
+mapping defined in @cite{[OMG01]}.
+
+@c -------------------------------------------------------------------
+@node Installing CORBA application personality
 @section Installing CORBA application personality
+@c -------------------------------------------------------------------
 
 @noindent
 Ensure PolyORB has been configured and then compiled with CORBA
 application personality. See @ref{Building an application with PolyORB}
 for more details on how to check installed personalities.
 
-To enable the configuration of the CORBA application personality,
-@pxref{Installation}.
+To build the CORBA application personality, @pxref{Installation}.
 
+@c -------------------------------------------------------------------
+@node Usage of idlac
 @section Usage of @command{idlac}
 @cindex @command{idlac}
+@c -------------------------------------------------------------------
 
 @noindent
 @command{idlac} is PolyORB's IDL-to-Ada 95 compiler.
@@ -1122,23 +1149,55 @@ OPTIONS
 
 @end itemize
 
-@section Using CORBA Naming Service
-
-@subsection @command{ab_names}
-@cindex @command{ab_names}
+@c -------------------------------------------------------------------
+@node Resolving names in a CORBA application
+@section Resolving names in a CORBA application
+@c -------------------------------------------------------------------
 
 @noindent
-@command{ab_names} is an implementation of CORBA CosNaming service built
-on top of PolyORB.
+PolyORB implements the CORBA COS Naming service.
 
-@command{ab_names} is a stand alone server. When launched, it returns
-its @code{IOR} that can then be used by other CORBA applications. In
-compliance with @command{corbaloc} default port, @command{ab_names}
-listens on the standard port @code{2809/tcp}.
+@menu
+* po_cos_naming::
+* Using the COS Naming::
+@end menu
 
-@section Building a simple CORBA application with PolyORB
+@c -------------------------------------------------------------------
+@node po_cos_naming
+@subsection @command{po_cos_naming}
+@cindex @command{po_cos_naming}
+@cindex @command{CORBA COS Naming}
+@c -------------------------------------------------------------------
 
+@noindent
+@command{po_cos_naming} is a stand alone server that supports CORBA
+COS Naming specification. When launched, it returns its @code{IOR}
+that can then be used by other CORBA applications.
+
+@c -------------------------------------------------------------------
+@node Using the COS Naming
+@subsection Using the COS Naming
+@c -------------------------------------------------------------------
+
+@noindent
+PolyORB provides a helper package to manipulate the COS Naming in your
+applications. See @ref{PolyORB specific APIs} for more details.
+
+@c -------------------------------------------------------------------
+@node Building a CORBA application with PolyORB
+@section Building a CORBA application with PolyORB
+@c -------------------------------------------------------------------
+
+@menu
+* echo example::
+* Other examples::
+@end menu
+
+@c -------------------------------------------------------------------
+@node echo example
 @subsection @code{echo} example
+@c -------------------------------------------------------------------
+
 
 @noindent 
 We consider building a simple ``Echo'' CORBA server and client. This
@@ -1147,11 +1206,70 @@ located in @file{examples/corba/echo} directory in PolyORB
 distribution. This applications uses only basic elements of CORBA.
 
 To build this application, you need the following pieces of code:
-@itemize @bullet
+
+@enumerate
 @item IDL definition of an @code{echo} object
 @item Implentation code for the @code{echo} object
-@item Test code for client and server nodes
+@item Code for client and server nodes
+@end enumerate
+
+@c -------------------------------------------------------------------
+@subsubsection IDL definition of an @code{echo} object
+@c -------------------------------------------------------------------
+
+@noindent
+This interface defines an @code{echo} object with a unique method
+@code{echoString}. Per construction, this method returns its argument.
+
+@include echo.texi
+
+@c -------------------------------------------------------------------
+@subsubsection Implentation code for the @code{echo} object
+@c -------------------------------------------------------------------
+
+@noindent 
+Package @code{Echo.Impl} is an implementation of this interface. This
+implementation follows the @emph{IDL-to-Ada} mapping.
+
+@include echo-impl-spec.texi
+@include echo-impl-body.texi
+
+@noindent
+@i{Note: @code{Echo.Impl} body requires a dependency on
+@code{Echo.Skel} to ensure the elaboration of skeleton code and the
+correct setup of PolyORB's internals.}
+
+@c -------------------------------------------------------------------
+@subsubsection Test code for client and server nodes
+@c -------------------------------------------------------------------
+
+@noindent
+Client and server code demonstrate how to make a remote invocation on
+a CORBA object, and how to setup an objet on a server node.
+
+@emph{Note: the dependency on @code{PolyORB.Setup.Client} or
+@code{PolyORB.Setup.No_Tasking_Server} enforces compile-time
+configuration.}
+
+@itemize @bullet
+@item Client code tests a simple remote invocation on
+object. It is a no tasking client. Reference to object is built from
+stringified reference (or @code{IOR}), which is passed through command
+line.
+
+@include client.texi
+
+@item Server code setups a no tasking node. Object is registered to
+the @code{RootPOA}. Then an @code{IOR} reference is built to enable
+interaction with other nodes.
+
+@include server.texi
+
 @end itemize
+
+@c -------------------------------------------------------------------
+@subsubsection Compilation and execution
+@c -------------------------------------------------------------------
 
 @noindent
 To compile this demo, 
@@ -1179,11 +1297,11 @@ Note the use of backticks (`). This means that
 is replaced with the output of the script, setting up library and
 include paths and library names.
 
-To run this demo
+To run this demo:
 
 @itemize @bullet
-@item run @file{server}, the server outputs its IOR. Its is an
-hexadecimal string with the <IOR:> prefix.
+@item run @file{server}, the server outputs its IOR, an hexadecimal
+string with the <IOR:> prefix.
 @smallexample
 $ ./server                     
 Loading configuration from polyorb.conf
@@ -1200,52 +1318,102 @@ The object answered : Hello Ada !
 @end smallexample
 @end itemize
 
-@section PolyORB's specific APIs
+@c -------------------------------------------------------------------
+@node Other examples
+@subsection Other examples
+@c -------------------------------------------------------------------
 
+@noindent
+PolyORB proposes other examples to test other CORBA features. These
+examples are located in @file{example/corba} directory in PolyORB
+distribution.
+
+@itemize @bullet
+@item @file{all_functions} tests CORBA parameters passing mode
+(@code{in}, @code{out}, ..);
+@item @file{all_types} tests CORBA types;
+@item @file{echo} is a simple CORBA demo;
+@item @file{random} is a random number generator;
+@item @file{send} tests MIOP specific API.
+@end itemize
+
+@c -------------------------------------------------------------------
+@node Configuring a CORBA application
+@section Configuring a CORBA application
+@cindex Configuration, CORBA
+@c -------------------------------------------------------------------
+
+@menu
+* Configuring PolyORB::
+* Configuring GIOP protocol stack for PolyORB::
+@end menu
+
+@noindent
+To configure a CORBA application, you need to separately configure
+PolyORB and the GIOP protocol (or any other protocol personality you
+wish to use).
+
+@c -------------------------------------------------------------------
+@node Configuring PolyORB
+@subsection Configuring PolyORB
+@c -------------------------------------------------------------------
+
+@noindent
+Please, refer to @ref{Building an application with PolyORB} for more
+information on PolyORB's configuration.
+
+@c -------------------------------------------------------------------
+@node Configuring GIOP protocol stack for PolyORB
+@subsection Configuring GIOP protocol stack for PolyORB
+@c -------------------------------------------------------------------
+
+@noindent
+The GIOP protocol is separated from the CORBA application
+personality. See @ref{Configuring the GIOP personality} for more
+information on GIOP's configuration.
+
+@c -------------------------------------------------------------------
+@node PolyORB specific APIs
+@section PolyORB's specific APIs
+@c -------------------------------------------------------------------
+
+@menu
+* PolyORB.CORBA_P.Naming_Tools::
+* PolyORB.CORBA_P.Server_Tools::
+@end menu
 
 @noindent
 PolyORB defines packages to help in the developpment of CORBA programs.
 
 @itemize @bullet
 
-@item @code{PolyORB.CORBA_P.Naming_Tools}: this package defines helper 
-functions to ease interaction with CORBA COS Naming.
+@item @ref{PolyORB.CORBA_P.Naming_Tools}: 
 
-@item  @code{PolyORB.CORBA_P.Server_Tools}: this package defines
-helper functions to ease set up of a simple CORBA Server.
+This package defines helper functions to ease interaction with CORBA
+COS Naming.
+
+@item @ref{PolyORB.CORBA_P.Server_Tools}: 
+
+This package defines helper functions to ease set up of a simple CORBA
+Server.
 
 @end itemize
 
+
+@page
+@node PolyORB.CORBA_P.Naming_Tools
 @subsection @code{PolyORB.CORBA_P.Naming_Tools}
+@cindex @code{PolyORB.CORBA_P.Naming_Tools}
 
 @include polyorb-corba_p-naming_tools.texi
 
+@page
+@node PolyORB.CORBA_P.Server_Tools
 @subsection @code{PolyORB.CORBA_P.Server_Tools}
+@cindex @code{PolyORB.CORBA_P.Server_Tools}
 
 @include polyorb-corba_p-server_tools.texi
 
-
-@section Configuring GIOP protocol stack for PolyORB
-
-
-@section Compatiblity notes
-
-@noindent
-When using the CORBA application personality, please note that
-
-@itemize @bullet
-
-@item CORBA personality can be used with most PolyORB
-components, including all tasking runtimes (no tasking, full tasking,
-Ravenscar)
-
-@item PolyORB cannot be used with a Simple Object Adapter (SOA).
-
-@item SOAP personality does not implement all types defined
-in CORBA IDL specification.
-
-
-@end itemize
 @c -------------------------------------------------------------------
 @node GIOP
 @chapter GIOP

@@ -1,14 +1,19 @@
 info_TEXINFOS = polyorb_ug.texi polyorb_dg.texi
 man_MANS = ab_names.1 idlac.1 polyorb-config.1 polyorb.7
 
-SUFFIXES = .ads .texi
+SUFFIXES = .idl .ads .adb .texi .sed
 
 polyorb_ug_TEXINFOS = polyorb_ug_ref.texi \
-	../src/corba/polyorb-corba_p-server_tools.texi \
-	../cos/naming/polyorb-corba_p-naming_tools.texi
+	../src/corba/polyorb-corba_p-server_tools.ads.texi \
+	../cos/naming/polyorb-corba_p-naming_tools.ads.texi \
+	echo.texi \
+	echo-impl-spec.ads.texi \
+	echo-impl-body.adb.texi \
+	server.adb.texi \
+	client.adb.texi
 
 polyorb_ug.html: ${srcdir}/polyorb_ug.texi
-	-${TEXI2HTML} -menu -split_chapter -number $<
+	-${TEXI2HTML} -menu -split section -number $<
 
 polyorb_ug.pdf: ${srcdir}/polyorb_ug.texi
 	-${TEXI2DVI} --pdf $<
@@ -38,10 +43,9 @@ polyorb_ug_ref.texi: polyorb_ug_ref.bbl
 polyorb_ug_ref.bbl: polyorb_ug_ref.aux
 	-bibtex polyorb_ug_ref
 
-polyorb_ug_ref.aux: polyorb_ug_ref.tex
+polyorb_ug_ref.aux: polyorb_ug.bib
 	rm -f polyorb_ug_ref.bbl
 	tex '\nonstopmode \input polyorb_ug_ref'
-
 
 polyorb_dg.html: ${srcdir}/polyorb_dg.texi
 	-${TEXI2HTML} -menu -split_chapter -number $<
@@ -52,13 +56,21 @@ polyorb_dg.pdf: ${srcdir}/polyorb_dg.texi
 polyorb_dg.txt: ${srcdir}/polyorb_dg.texi
 	-${MAKEINFO} -o $@ --number-sections $<
 
+#
+# Texi generation from .ads files
+#
 
 ADA_KW    = use package is in out exception function with type constant \
 		private of return range procedure begin end array record \
 		subtype generic limited access all
 
-.ads.texi: ada.sed ../support/gentexifile
+%.ads.texi: %.ads ada.sed ../support/gentexifile
 	../support/gentexifile $< .ads
+	-@${RM} genout
+
+%.adb.texi: %.adb ada.sed ../support/gentexifile
+	../support/gentexifile $< .adb
+	-@${RM} genout
 
 ada.sed:
 	echo "s/\([^@]\)@\([^@]\)/\1@@\2/g" > ada.sed
@@ -75,12 +87,35 @@ ada.sed:
 all-local: polyorb_ug.html polyorb_ug.pdf polyorb_ug.ps polyorb_ug.txt \
 	polyorb_dg.html polyorb_dg.pdf polyorb_dg.txt polyorb_dg.ps
 
+#
+# Texi generation from .idl files
+#
+
+IDL_KW = module typedef struct sequence enum interface exception void in out raises
+
+%.texi: %.idl idl.sed ../support/gentexifile
+	../support/gentexifile $< .idl
+	-@${RM} genout
+
+idl.sed:
+	echo "s/{/\@{/g" > idl.sed
+	echo "s/}/\@}/g" >> idl.sed
+	for kw in $(IDL_KW); do \
+		echo "s/^\([^-]* \)$$kw/\1@b{$$kw}/g" >> idl.sed; \
+		echo "s/^\( *\)$$kw /\1@b{$$kw} /g" >> idl.sed; \
+		echo "s/^$$kw$$/@b{$$kw}/g" >> idl.sed; \
+	done
+
+
+all-local: polyorb_ug.html polyorb_ug.pdf polyorb_ug.ps polyorb_ug.txt
+
 clean-local:
 	-@${RM} polyorb_ug.pdf polyorb_ug.txt polyorb_ug.info polyorb_ug*.html 
 	-@${RM} polyorb_ug_ref.aux polyorb_ug_ref.bbl polyorb_ug_ref.blg 
-	-@${RM} polyorb_ug_ref.dvi polyorb_ug_ref.log polyorb_ug_ref.texi
+	-@${RM} polyorb_ug_ref.dvi polyorb_ug_ref.log
 	-@${RM} ${polyorb_ug_TEXINFOS}
 	-@${RM} polyorb_dg.pdf polyorb_dg.txt polyorb_dg.info polyorb_dg.html
+	-@${RM} idl.sed ada.sed
 
 install-data-local:
 	$(INSTALL) -d $(prefix)/doc/polyorb

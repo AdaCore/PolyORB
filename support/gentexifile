@@ -7,6 +7,18 @@ fi
 SOURCE=$1
 SUFFIX=$2
 
+case ${SOURCE} in
+  *.idl)
+    SEDFILE=idl.sed;;
+  *.adb)
+    SEDFILE=ada.sed;;
+  *.ads)
+    SEDFILE=ada.sed;;
+  *)
+    echo "Cannot translate file";
+    exit 1;;
+esac
+
 TARGET=`basename ${SOURCE} ${SUFFIX}`.texi
 TMPTAR=${TARGET}.tmp
 
@@ -18,7 +30,7 @@ echo "@cartouche"        >>${TMPTAR}
 echo "@group"            >>${TMPTAR}
 fi
 echo ""                  >>${TMPTAR}
-sed -f ada.sed genout    >>${TMPTAR}
+sed -f ${SEDFILE} genout    >>${TMPTAR}
 echo ""                  >>${TMPTAR}
 if [ $# = 1 ]; then
 echo "@end group"        >>${TMPTAR}
