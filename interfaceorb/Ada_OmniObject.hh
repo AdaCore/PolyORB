@@ -22,13 +22,16 @@
 #include "omniObject_C2Ada.hh"
 #endif
 
-class omniObject_C2Ada;
+class omniObject_C2Ada ;
 
 class Ada_OmniObject {
 
 public:
 
-  Ada_OmniObject ();
+  Ada_OmniObject (void)
+    {
+      Init_Ok = false;
+    };
   // default constructor
   
   void Init (omniObjectManager *p);

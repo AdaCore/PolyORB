@@ -34,7 +34,7 @@ package OmniObjectManager is
    -- just to give a name to pointers on Object
 
    function C_Nil_Object_Manager return System.Address ;
-   pragma Import (C,C_Nil_Object_Manager,"_nilObjectManager") ;
+   pragma Import (C,C_Nil_Object_Manager,"nilObjectManager__10omniObject") ;
    -- wrapper around static omniObjectManager* nilObjectManager();
    -- (see omniInternal.h L 514)
 

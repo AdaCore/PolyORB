@@ -35,7 +35,7 @@ with OmniRopeAndKey ;
 
 package OmniObject is
 
-   type Object is abstract new Ada.Finalization.Controlled with record
+   type Object is abstract tagged record
       Table : Interfaces.CPP.Vtable_Ptr ;
    end record ;
 
@@ -174,20 +174,6 @@ private
    pragma CPP_Constructor (Constructor);
    pragma Import (CPP,Constructor,"__14Ada_OmniObject");
    -- wrapped around the C constructor of Ada_OmniObject
-
-
---  procedure Initialize (Self: in out Object);
---  pragma CPP_Virtual (Initialize) ;
-   -- called each time a Ref object is created
-
---   procedure Adjust (Self: in out Object);
---   pragma CPP_Virtual (Adjust) ;
-   -- called each time you duplicate a Ref object using :=
-
---   procedure Finalize (Self: in out Object);
---   pragma CPP_Virtual (Finalize) ;
-   -- called each time a Ref object must be trashed
-
 
 end OmniObject ;
 

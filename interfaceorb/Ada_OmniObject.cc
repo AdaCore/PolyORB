@@ -19,11 +19,6 @@
 
 #include "Ada_OmniObject.hh"
 
-Ada_OmniObject::Ada_OmniObject ()
-{
-  Init_Ok = false;
-};
-// default constructor
 
 void
 Ada_OmniObject::Init (omniObjectManager *p)

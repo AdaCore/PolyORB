@@ -57,7 +57,7 @@ package Giop_S is
    procedure C_Initialize_Reply (Self : in Object'Class ;
                                  Status : in Interfaces.C.int ;
                                  MsgSize : in Interfaces.C.Unsigned_Long);
-   pragma Import (C,C_Initialize_Reply,"InitialiseReply__10Ada_Giop_sUlUi") ;
+   pragma Import (C,C_Initialize_Reply,"InitialiseReply__10Ada_Giop_siUi") ;
    -- wrapper around  Ada_Giop_s procedure InitialiseReply
    -- (see Ada_Giop_s.hh)
 

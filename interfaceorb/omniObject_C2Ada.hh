@@ -23,11 +23,11 @@
 #include "Ada_OmniObject.hh"
 #endif
 
-class Ada_OmniObject;
+class Ada_OmniObject ;
 
 class omniObject_C2Ada : public omniObject
 {
-protected:
+public:
   omniObject_C2Ada(omniObjectManager *p,
 		   Ada_OmniObject* Ada_Ptr);
   // constructor for local objects
@@ -48,12 +48,14 @@ protected:
   // overwrites omniObject::dispatch
   // calls dispatch on Ada_Omniobject
 
-  friend Ada_OmniObject;
-  // Ada_OmniObject must have full acces to this class
   
 private:
   Ada_OmniObject* Ada_OmniObject_Pointer;
-  // pointer on a Ada_Omniobject which contains the real dispatch function
+  // pointer on a Ada_OmniObject which contains the real dispatch function
+
+friend class Ada_OmniObject;
+  // Ada_OmniObject must have full acces to this class
+
 };
 
 

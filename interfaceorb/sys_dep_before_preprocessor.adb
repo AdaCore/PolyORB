@@ -60,14 +60,19 @@ begin
       -- and Ada definitions of the Corba type Octet
    end if ;
 
-#If HAS_Cplusplus_Bool
-#else
-   Ada.Text_IO.Put_Line ("Error in package Sys_Dep :");
-   Ada.Text_IO.Put_Line ("   The system variable Has_Cplusplus_Bool does not") ;
-   Ada.Text_IO.Put_Line ("   exist. Unable to compile. You have to change.") ;
-   Ada.Text_IO.Put_Line ("   the definition of C_Boolean in Sys_Dep.ads.") ;
-   raise System_Dependant_Error ;
-#end if ;
+--#If HAS_Cplusplus_Bool
+--#else
+--   Ada.Text_IO.Put_Line ("Error in package Sys_Dep :");
+--   Ada.Text_IO.Put_Line ("   The system variable Has_Cplusplus_Bool does not") ;
+--   Ada.Text_IO.Put_Line ("   exist. Unable to compile. You have to change.") ;
+--   Ada.Text_IO.Put_Line ("   the definition of C_Boolean in Sys_Dep.ads.") ;
+--   raise System_Dependant_Error ;
+--#end if ;
 
 end Sys_Dep ;
+
+
+
+
+
 
