@@ -29,41 +29,23 @@ package body OmniObject is
 
 
    -----------------------------------------------
+   -----------------------------------------------
+   -----------------------------------------------
    --         Implemented_Object                --
    --       this is the type of local           --
    --      implementations of objects           --
    -- it is the root of all XXX.Impl.Object     --
+   -----------------------------------------------
+   -----------------------------------------------
    -----------------------------------------------
 
    -- Is_Nil
    ---------
    function Is_Nil(Self : in Implemented_Object) return Corba.Boolean is
    begin
-      if Self.Omniobj = null then
-         return True ;
-      else return Is_Nil(Self.Omniobj.all) ;
-      end if ;
+      return Self.Omniobj = null ;
    end ;
 
-
-
-   -- Set_Repository_Id
-   --------------------
-   procedure Set_Repository_Id(Self : in out Implemented_Object ;
-                               Repo_Id : in Corba.String) is
-      Ex_Mb : Corba.System_Exception_Members := (0, Corba.COMPLETED_NO) ;
-   begin
-      if Is_Nil(Self) then
-         Corba.Raise_Corba_Exception(Corba.Inv_Objref'Identity, Ex_Mb) ;
-      end if ;
-
-      if Is_Proxy(Self.Omniobj.all) then
-         Corba.Raise_Corba_Exception(Corba.Inv_Objref'Identity, Ex_mb) ;
-      end if ;
-
-      Set_Repository_Id(Self.Omniobj.all, Repo_Id) ;
-
-   end ;
 
 
    -- Initialize
@@ -72,10 +54,12 @@ package body OmniObject is
       type Ptr is access all Implemented_Object ;
       function To_Implemented_Object_Object_Ptr is
         new Ada.Unchecked_Conversion (Ptr, Implemented_Object_Ptr);
+      Tmp : Object_Ptr := Object_Ptr_Constructor ;
    begin
-      Self.Omniobj := new Object ;
-      Self.Omniobj.all.Implobj := To_Implemented_Object_Object_Ptr(Self'Access) ;
+      Tmp.all.Implobj := To_Implemented_Object_Object_Ptr(Self'Access) ;
+      Self.Omniobj := Tmp ;
    end ;
+
 
 
    -- Adjust
@@ -87,7 +71,7 @@ package body OmniObject is
             RepoId : Corba.String := Get_Repository_Id(Self.Omniobj.all) ;
          begin
             Initialize(Self) ;
-            Set_Repository_Id(Self, RepoID) ;
+            Set_Repository_Id(Self.Omniobj.all, RepoID) ;
          end ;
       end if ;
    end ;
@@ -97,8 +81,8 @@ package body OmniObject is
    procedure Finalize (Self: in out Implemented_Object) is
    begin
       if not Is_Nil(Self) then
-         Self.Omniobj.Implobj := null ;
-         Release(Self.Omniobj.all) ;
+         Self.Omniobj.all.Implobj := null ;
+         --Object_Destructor(Self.Omniobj.all) ;
          Self.Omniobj := null ;
       end if ;
    end ;
@@ -106,50 +90,85 @@ package body OmniObject is
 
 
    -----------------------------------------------
+   -----------------------------------------------
+   -----------------------------------------------
    --             Omniobject                    --
    --     this type is imported from C++        --
    --   it is the equivalent of omniObject      --
    -----------------------------------------------
+   -----------------------------------------------
+   -----------------------------------------------
 
 
-    -- Is_Nil
-   ---------
-   function Is_Nil(Self : in Object'class) return Corba.Boolean is
-   begin
-      return True ;
-      -- call the C++ is_nil
-   end ;
+   -- C_Set_Repository_Id
+   ----------------------
+   procedure C_Set_Repository_Id(Self : in out Object'Class ;
+                                 Repo_Id : Interfaces.C.Strings.Chars_Ptr) ;
+   pragma Import (C, C_Set_Repository_Id, "setRepositoryID__14Ada_OmniObjectPCc") ;
+   -- corresponds to Ada_OmniObject::setRepositoryID
 
    -- Set_Repository_Id
    --------------------
    procedure Set_Repository_Id(Self : in out Object'class ;
                                Repo_Id : in Corba.String) is
+      C_Repo_Id : Interfaces.C.Strings.Chars_Ptr ;
    begin
-      -- calls PR_IRRepositoryId in C++
-      null ;
+      if Is_Proxy(Self) then
+         Ada.Exceptions.Raise_Exception(Corba.AdaBroker_Fatal_Error'Identity,
+                                        "Omniobject.Set_Repository_Id(Object'class)"
+                                        & Corba.CRLF
+                                        & "Cannot be called on proxy objects") ;
+      end if ;
+      C_Repo_Id :=
+        Interfaces.C.Strings.New_String(Corba.To_Standard_String(Repo_Id)) ;
+      C_Set_Repository_Id(Self, C_Repo_Id) ;
    end ;
+
+
+
+   -- C_Get_Repository_Id
+   ----------------------
+   function C_Get_Repository_Id(Self : in Object'class)
+                                return Interfaces.C.Strings.Chars_Ptr ;
+   pragma Import (C, C_Get_Repository_Id, "getRepositoryID__14Ada_OmniObject") ;
+   -- corresponds to Ada_OmniObject::getRepositoryID
 
    -- Get_Repository_Id
    --------------------
    function Get_Repository_Id(Self : in Object'class)
                               return Corba.String is
+      C_Result : Interfaces.C.Strings.Chars_Ptr ;
    begin
-      -- calls NP_IRrepositoryId in C++
-      return Corba.To_Corba_String("") ;
+      C_Result := C_Get_Repository_Id(Self) ;
+      return Corba.To_Corba_String(Interfaces.C.Strings.Value(C_Result)) ;
    end ;
 
 
+
+   -- C_Init
+   ---------
+   procedure C_Init (Self : in out Object'Class) ;
+   pragma Import (C,C_Init,"Init__14Ada_OmniObject") ;
+   -- wrapper around Ada_OmniObject function Init
+   -- (see Ada_OmniObject.hh)
+
    -- Init
    -------
-   procedure Init (Self : in out Object'Class ;
-                   Manager : in OmniObjectManager.Object) is
-      C_Manager : System.Address ;
+   procedure Init (Self : in out Implemented_Object ;
+                   Repo_Id : in Corba.String) is
    begin
-      -- transforms the arguments into a C type ...
-      C_Manager := Manager'Address ;
-      -- ... and calls the C procedure
-      C_Init (Self, C_Manager) ;
+      if not Is_Nil(Self) then
+         C_Init (Self.Omniobj.all) ;
+         Set_Repository_Id(Self.Omniobj.all,Repo_Id) ;
+      else
+         Ada.Exceptions.Raise_Exception(Corba.AdaBroker_Fatal_Error'Identity,
+                                        "Omniobject.Init(Implemented_Object, Corba.String"
+                                        & Corba.CRLF
+                                        & "Cannot be called on a nil object") ;
+      end if ;
    end;
+
+
 
 
    -- Ada_To_C_Unsigned_Long
@@ -160,6 +179,22 @@ package body OmniObject is
    -- needed to change ada type Corba.Unsigned_Long
    -- into C type Interfaces.C.Unsigned_Long
 
+
+
+   -- C_Init2
+   ----------
+   procedure C_Init2 (Self : in out Object'Class ;
+                      RepoId : in Interfaces.C.Strings.Chars_Ptr ;
+                      R : in System.Address ;
+                      Key : in System.Address ;
+                      Keysize : in Interfaces.C.Unsigned_Long ;
+                      Profiles : in System.Address ;
+                      Release : Sys_Dep.C_Boolean) ;
+   pragma Import (C,C_Init2,
+                  "Init__14Ada_OmniObjectPCcP4RopePUcUiPt25_CORBA_Unbounded_Sequence1ZQ23IOP13TaggedProfileb") ;
+   -- wrapper around Ada_OmniObject function Init
+   -- the name was changed to avoid conflict
+   -- (see Ada_OmniObject.hh)
 
    -- Init
    -------
@@ -194,18 +229,6 @@ package body OmniObject is
                C_Release) ;
    end;
 
-
-   -- PR_IRRepositoryId
-   --------------------
-   procedure PR_IRRepositoryId(Self : in Object'Class ;
-                               RepositoryId : in String ) is
-      C_RepositoryId : Interfaces.C.Strings.Chars_Ptr;
-   begin
-      -- transforms the arguments into a C type ...
-      C_RepositoryId := Interfaces.C.Strings.New_String(RepositoryId) ;
-      -- ... and calls the C procedure
-      C_PR_IRRepositoryId (Self,C_RepositoryId) ;
-   end ;
 
 
    -- Set_Rope_And_Key
@@ -245,12 +268,8 @@ package body OmniObject is
    -----------
    function Is_Proxy (Self : in Object'Class)
                       return Boolean is
-      C_Result : Sys_Dep.C_Boolean ;
    begin
-      -- calls the C function ...
-      C_Result := C_Is_Proxy(Self) ;
-      -- ... and transforms the result into an Ada type
-      return Sys_Dep.Boolean_C_To_Ada (C_Result) ;
+      return Self.Implobj = null ;
    end ;
 
 
@@ -317,6 +336,25 @@ package body OmniObject is
       -- to be implemented
    end ;
 
+
+
+   -- Object_Ptr_Constructor
+   -------------------------
+   function Object_Ptr_Constructor return Object_Ptr is
+      -- to convert the system.Address to access to Object
+      package Address_To_Object_ptr is
+        new System.Address_To_Access_Conversions (Object) ;
+      -- to convert access to object to Object_Ptr
+      function To_Object_Ptr is
+        new Ada.Unchecked_Conversion (Address_To_Object_ptr.Object_Pointer,
+                                      Object_Ptr);
+      C_Result : System.Address ;
+      Result : Address_To_Object_ptr.Object_Pointer ;
+   begin
+      C_Result := C_Object_Ptr_Constructor ;
+      Result := Address_To_Object_Ptr.To_Pointer(C_Result) ;
+      return To_Object_Ptr(Result) ;
+   end ;
 
 
 end OmniObject ;

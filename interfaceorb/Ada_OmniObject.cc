@@ -19,12 +19,21 @@
 
 #include "Ada_OmniObject.hh"
 
+Ada_OmniObject::Ada_OmniObject()
+{
+  Init_Ok = false;
+};
+
+Ada_OmniObject::~Ada_OmniObject()
+{
+  delete C_OmniObject ;
+} ;
 
 void
-Ada_OmniObject::Init (omniObjectManager *p)
+Ada_OmniObject::Init ()
 {
   // Creation of the underlining omniobject_C2Ada object
-  C_OmniObject = new omniObject_C2Ada (p,this);
+  C_OmniObject = new omniObject_C2Ada (this);
   // updating of Init_OK flag
   Init_Ok = true;
   return;
@@ -59,19 +68,6 @@ Ada_OmniObject::Init (omniObject_C2Ada *omniobj)
   return;
 }
 
-void
-Ada_OmniObject::PR_IRRepositoryId(const char* s) {
-  if (Init_Ok) {
-    // if Initialisation was made then call the corresponding
-    // function on C_OmniObject
-    C_OmniObject->PR_IRRepositoryId(s);
-    return;
-  } else {
-    // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_OmniObject::PR_IRRepositoryId without initialising object.");
-  }
-};
-      
  
 void
 Ada_OmniObject::setRopeAndKey(const omniRopeAndKey& l,_CORBA_Boolean keepIOP=1)
@@ -135,3 +131,34 @@ omniObject_C2Ada *
 Ada_OmniObject::getOmniObject() {
   return C_OmniObject ;
 }
+
+
+
+void
+Ada_OmniObject::setRepositoryID(const char* repoId) {
+  if (Init_Ok) {
+    // if Initialisation was made then call the corresponding
+    // function on C_OmniObject
+    C_OmniObject->PR_IRRepositoryId(repoId);
+    return;
+  } else {
+    // else raise an Ada Exception
+    raise_ada_exception ("Call of Ada_OmniObject::setRepositoryId without initialising object.");
+  }
+}
+
+
+
+const char*
+Ada_OmniObject::getRepositoryID() {
+  if (Init_Ok) {
+    // if Initialisation was made then call the corresponding
+    // function on C_OmniObject
+    return C_OmniObject->NP_IRRepositoryId();
+  } else {
+    // else raise an Ada Exception
+    raise_ada_exception ("Call of Ada_OmniObject::getRepositoryId without initialising object.");
+  }
+}
+ 
+

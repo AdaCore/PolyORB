@@ -28,9 +28,11 @@ class Ada_OmniObject ;
 class omniObject_C2Ada : public omniObject
 {
 public:
-  omniObject_C2Ada(omniObjectManager *p,
-		   Ada_OmniObject* Ada_Ptr);
+
+  
+  omniObject_C2Ada(Ada_OmniObject* Ada_Ptr);
   // constructor for local objects
+  // omniObjectManager is not needed
   
   
   omniObject_C2Ada(const char *repoId,
@@ -42,6 +44,7 @@ public:
 		   Ada_OmniObject *Ada_Ptr);
   // constructor for proxy objects
 
+  ~omniObject_C2Ada() {}
   
   static omniObject_C2Ada *get_omniObject_C2Ada (omniObject *omniobj) ;
   // makes an omniObject_C2Ada out of an omniObject

@@ -18,12 +18,12 @@
 
 #include "omniObject_C2Ada.hh"
 
-omniObject_C2Ada::omniObject_C2Ada (omniObjectManager *p,
-				    Ada_OmniObject *Ada_Ptr) : omniObject (p)
+omniObject_C2Ada::omniObject_C2Ada (Ada_OmniObject *Ada_Ptr) : omniObject ()
 {
   // calls the omniObject constructor and initialise the pointer
   // on the Ada_OmniObject Ada_OmniObject_Pointer ;
   Ada_OmniObject_Pointer = Ada_Ptr;
+  cerr << "I am in the ctor of omniObject_C2Ada" << endl ;
 };
 
 

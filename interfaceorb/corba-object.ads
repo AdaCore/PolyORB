@@ -199,8 +199,8 @@ private
    procedure Finalize (Self: in out Ref);
    -- release th underlying omniobject
 
-   Nil_Ref : constant Ref := (Ada.Finalization.Controlled with
-                              Omniobj => null,
+   Nil_Ref : constant Ref := (Ada.Finalization.Controlled
+                              with Omniobj => null,
                               Dynamic_Type => null);
 
 

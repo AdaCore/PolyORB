@@ -57,8 +57,10 @@ package OmniObject is
    --            TYPE DEFINITION                --
    -----------------------------------------------
    type Object is tagged limited record
+      Implobj : Implemented_Object_Ptr  := null ;
+      Cptr : System.Address ;
+      -- this field is only used by the C++ side of the object
       Table : Interfaces.CPP.Vtable_Ptr ;
-      Implobj : Implemented_Object_Ptr := null ;
    end record ;
    -- the pointer implobj is null for proxy object
 
@@ -79,10 +81,12 @@ package OmniObject is
    --        SUBPROGRAMS DECLARATION            --
    -----------------------------------------------
 
-   function Is_Nil(Self : in Implemented_Object) return Corba.Boolean ;
+   procedure Init (Self : in out Implemented_Object ;
+                   Repo_Id : in Corba.String) ;
+   -- calls the C++ Init to set the init_ok boolean to true
+   -- and sets the repoID of this object
 
-   procedure Set_Repository_Id(Self : in out Implemented_Object ;
-                               Repo_Id : in Corba.String) ;
+   function Is_Nil(Self : in Implemented_Object) return Corba.Boolean ;
 
 
    -----------------------------------------------
@@ -93,15 +97,16 @@ package OmniObject is
    --        SUBPROGRAMS DECLARATION            --
    -----------------------------------------------
 
-   function Is_Nil(Self : in Object'Class) return Corba.Boolean ;
-
    procedure Duplicate(Self : in Object'Class) ;
    -- calls the C++ equivalent :
    -- omni::objectDuplicate(omniObject*)
+   -- it increments the reference count by one
 
    procedure Release(Self : in Object'Class) ;
    -- calls the C++ equivalent :
    -- omni::objectRelease(omniObject*)
+   -- it decrements the reference count by one
+   -- and releases the resources if it comes to 0
 
 private
 
@@ -145,7 +150,6 @@ private
 
 
 
-
    procedure Set_Repository_Id(Self : in out Object'class ;
                                Repo_Id : in Corba.String) ;
 
@@ -153,29 +157,8 @@ private
                               return Corba.String ;
 
 
-   procedure C_Init (Self : in out Object'Class ;
-                     Manager : in System.Address) ;
-   pragma Import (C,C_Init,"Init__14Ada_OmniObjectP17omniObjectManager") ;
-   -- wrapper around Ada_OmniObject function Init
-   -- (see Ada_OmniObject.hh)
-
-   procedure Init (Self : in out Object'Class ;
-                   Manager : in OmniObjectManager.Object) ;
-   -- Ada equivalent of C procedure C_Init
 
 
-   procedure C_Init2 (Self : in out Object'Class ;
-                      RepoId : in Interfaces.C.Strings.Chars_Ptr ;
-                      R : in System.Address ;
-                      Key : in System.Address ;
-                      Keysize : in Interfaces.C.Unsigned_Long ;
-                      Profiles : in System.Address ;
-                      Release : Sys_Dep.C_Boolean) ;
-   pragma Import (C,C_Init2,
-                  "Init__14Ada_OmniObjectPCcP4RopePUcUiPt25_CORBA_Unbounded_Sequence1ZQ23IOP13TaggedProfileb") ;
-   -- wrapper around Ada_OmniObject function Init
-   -- the name was changed to avoid conflict
-   -- (see Ada_OmniObject.hh)
 
    procedure Init (Self : in out Object'Class ;
                    RepoId : in String ;
@@ -184,19 +167,8 @@ private
                    Keysize : in Corba.Unsigned_Long ;
                    Profiles : in Iop.Tagged_Profile_List ;
                    Release : Corba.Boolean ) ;
-   -- Ada equivalent of C procedure C_init2
+   -- initialization of proxy objects
 
-
-   procedure C_PR_IRRepositoryId(Self : in Object'Class;
-                                 RepositoryId : in Interfaces.C.Strings.Chars_Ptr ) ;
-   pragma Import (C,C_PR_IRRepositoryId,
-                  "PR_IRRepositoryId__14Ada_OmniObjectPCc") ;
-   -- wrapper around  Ada_OmniObject function PR_IRRepositoryId
-   -- (see Ada_OmniObject.hh)
-
-   procedure PR_IRRepositoryId(Self : in Object'Class;
-                               RepositoryId : in String ) ;
-   -- Ada equivalent of C procedure C_PR_IRRepositoryId
 
 
 
@@ -236,15 +208,11 @@ private
    -- no Ada equivalent since there is no arguments
 
 
-   function C_Is_Proxy (Self : in Object'Class)
-                        return Sys_Dep.C_Boolean ;
-   pragma Import (C,C_Is_Proxy,"is_proxy__14Ada_OmniObject") ;
-   -- wrapper around Ada_OmniObject function is_proxy
-   -- (see Ada_OmniObject.hh)
-
    function Is_Proxy (Self : in Object'Class)
                       return Boolean ;
-   -- Ada equivalent of C function C_Is_Proxy
+   -- returns true if this is a proxy object
+   -- there is no need to call the C++ function
+   -- To Know It Because We Have The Information in Ada
 
 
    function C_Dispatch (Self : in Object'Class ;
@@ -253,7 +221,7 @@ private
                         Orl_Response_Expected : in Sys_Dep.C_Boolean)
                         return Sys_Dep.C_Boolean ;
    pragma Export (CPP,C_Dispatch,
-                  "dispatch__10omniObjectR6GIOP_SPCcb");
+                  "dispatch__14Ada_OmniObjectR6GIOP_SPCcb");
    -- wrapper around Ada_OmniObject function dispatch
    -- (see Ada_OmniObject.hh)
    -- This function is implemented in Ada and exported to C
@@ -275,14 +243,28 @@ private
 
 
 
+
    function Constructor return Object'Class;
-   pragma CPP_Constructor (Constructor);
    pragma Import (CPP,Constructor,"__14Ada_OmniObject");
+   pragma CPP_Constructor (Constructor);
    -- wrapped around the C constructor of Ada_OmniObject
+
+   -- This is a workaround for gnat 3.11p
+   -- we cannot write
+   -- toto : Object_Ptr := new Object
+   -- we have to call the C++ constructor to create objects
+   function C_Object_Ptr_Constructor return System.Address ;
+   pragma Import (CPP,C_Object_Ptr_Constructor,"__14Ada_OmniObject") ;
+
+   function Object_Ptr_Constructor return Object_Ptr ;
+   -- corresponding Ada function ;
+
+   procedure Object_Destructor(Self : in out Object'Class) ;
+   pragma Import (CPP,Object_Destructor,"_._14Ada_OmniObject") ;
+   -- C++ destructor of Ada_omniObject
 
 
 end OmniObject ;
-
 
 
 

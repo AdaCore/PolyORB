@@ -26,10 +26,7 @@ package body Corba.Object is
    ---------
    function Is_Nil(Self: in Ref'Class) return Boolean is
    begin
-      if Self.Omniobj = null then
-         return True ;
-      else return Is_Nil(Self.Omniobj) ;
-      end if ;
+      return  Self.Omniobj = null ;
    end ;
 
 
@@ -37,7 +34,7 @@ package body Corba.Object is
    ----------
    procedure Release (Self : in out Ref'class) is
    begin
-      Omniobject.Release(Self.Omniobj) ;
+      Omniobject.Release(Self.Omniobj.all) ;
       Self.Omniobj := null ;
       Self.Dynamic_Type := null ;
    end ;
@@ -277,7 +274,7 @@ package body Corba.Object is
    procedure Adjust (Self: in out Ref) is
    begin
       if not Is_Nil(Self) then
-         Omniobject.Duplicate(Self.Omniobj) ;
+         Omniobject.Duplicate(Self.Omniobj.all) ;
       end if ;
    end ;
 
@@ -286,7 +283,7 @@ package body Corba.Object is
    procedure Finalize (Self: in out Ref) is
    begin
       if not Is_Nil(Self) then
-         Omniobject.Release(Self.Omniobj) ;
+         Omniobject.Release(Self.Omniobj.all) ;
       end if ;
    end ;
 

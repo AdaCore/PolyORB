@@ -28,13 +28,12 @@ class Ada_OmniObject {
 
 public:
 
-  Ada_OmniObject (void)
-    {
-      Init_Ok = false;
-    };
+  Ada_OmniObject (void) ;
   // default constructor
   
-  void Init (omniObjectManager *p);
+  virtual ~Ada_OmniObject() ;
+
+  void Init ();
   // Initialisation of a local object via call to the
   // omniObject_C2Ada constructor on C_OmniObject
   
@@ -50,9 +49,6 @@ public:
   void Init (omniObject_C2Ada *omniobj);
   //Initialisation by giving the underlying omniObject_C2Ada pointer
   
-  void  PR_IRRepositoryId(const char* s);
-  // calls the PR_IRRepositoryId function of C_OmniObject
-
   void setRopeAndKey(const omniRopeAndKey& l,_CORBA_Boolean keepIOP=1);
   // calls the setRopeAndKey function of C_OmniObject
   
@@ -71,12 +67,20 @@ public:
   // default dispatch function for all the hierarchie of
   // Ada Objects. The implementation is made in Ada.
   // (see omniobject.adb)
+
+  void setRepositoryID(const char* repoId) ;
+  // call the PR_IRRepositoryId of omniObject
   
+  const char* getRepositoryID() ;
+  // calls th NP_repositoryId of omniObject
   
   omniObject_C2Ada *getOmniObject() ;
   // returns the underlying omniObject_C2Ada
   
 private:
+  void* ada_pointer ;
+  // This pointer is only used by the Ada side of this object
+  
   omniObject_C2Ada *C_OmniObject;
   // Pointer on the underlying omniObject_C2Ada object
   
@@ -85,7 +89,7 @@ private:
 
 };
 
-extern void raise_ada_exception (const char *msg);
+extern void raise_ada_exception (const char *msg) ;
   // this function allows C code to raise Ada exception
   // It is implemented in Ada and only raise a No_Initialisation
   // exception with the message msg. (see corba.ads)

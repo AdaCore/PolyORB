@@ -148,7 +148,7 @@ netbufferedstream.ali
 
 corba.ali: corba.ads corba.adb
 
-corba-object.ali: corba-object.ads corba-object.adb
+corba-object.ali: corba-object.ads corba-object.adb omniobject.ali
 
 giop_s.ali: giop_s.ads giop_s.adb
 
