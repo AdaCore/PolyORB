@@ -34,8 +34,6 @@
 
 --  $Id$
 
-with Ada.Streams;
-
 with PolyORB.Buffers;
 
 with Input_Sources;
@@ -60,7 +58,6 @@ private
 
    type Input_Source is new Input_Sources.Input_Source with record
       Buf : PolyORB.Buffers.Buffer_Access;
-      Final_Position : Ada.Streams.Stream_Element_Offset;
    end record;
 
 end PolyORB.Buffer_Sources;

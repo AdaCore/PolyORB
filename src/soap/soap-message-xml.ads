@@ -32,15 +32,17 @@
 
 with SOAP.Message.Payload;
 with SOAP.Message.Response;
+with Input_Sources;
+
 with PolyORB.Any.NVList;
 
 package SOAP.Message.XML is
 
    function Load_Payload
-     (XML  : in String;
-      Args : in PolyORB.Any.NVList.Ref)
+     (Source : access Input_Sources.Input_Source'Class;
+      Args   : in     PolyORB.Any.NVList.Ref)
      return Message.Payload.Object;
-   --  Build a Payload object by parsing the XML payload string.
+   --  Build a Payload object by parsing an XML payload from source.
    --  Args is expected to designate a list of empty Any's,
    --  whose typecodes are used to determine how to decode the
    --  XML elements into typed data. On return, the values
@@ -48,11 +50,11 @@ package SOAP.Message.XML is
    --  elements.
 
    function Load_Response
-     (XML  : in String;
-      Args : in PolyORB.Any.NVList.Ref)
+     (Source : access Input_Sources.Input_Source'Class;
+      Args   : in     PolyORB.Any.NVList.Ref)
      return Message.Response.Object'Class;
    --  Build a Response object (either a standard response or an error
-   --  response) by parsing the XML response string.
+   --  response) by parsing an XML response from Source.
    --  Args are used as above (for returned arguments).
    --  XXX warning, return value vs. out args? Does the return
    --  value need to be the first OUT element of the Args list?

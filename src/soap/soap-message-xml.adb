@@ -33,8 +33,6 @@
 with Ada.Strings.Unbounded;
 with Ada.Exceptions;
 
-with Input_Sources.Strings;
-with Unicode.CES.Basic_8bit;
 with DOM.Core.Nodes;
 with Sax.Readers;
 
@@ -228,30 +226,19 @@ package body SOAP.Message.XML is
    ------------------
 
    function Load_Payload
-     (XML  : in String;
-      Args : in PolyORB.Any.NVList.Ref)
+     (Source : access Input_Sources.Input_Source'Class;
+      Args   : in     PolyORB.Any.NVList.Ref)
      return Message.Payload.Object
    is
-      use Input_Sources.Strings;
-
-      Str     : aliased String := XML;
-
-      Source  : String_Input;
       Reader  : Tree_Reader;
       S       : State;
       Doc     : DOM.Core.Document;
-
    begin
-      Open (Str'Unchecked_Access,
-            Unicode.CES.Basic_8bit.Basic_8bit_Encoding,
-            Source);
-
       --  If True, xmlns:* attributes will be reported in Start_Element
       Set_Feature (Reader, Sax.Readers.Namespace_Prefixes_Feature, True);
       Set_Feature (Reader, Sax.Readers.Validation_Feature, False);
 
-      Parse (Reader, Source);
-      Close (Source);
+      Parse (Reader, Source.all);
 
       Doc := Get_Tree (Reader);
 
@@ -269,30 +256,19 @@ package body SOAP.Message.XML is
    -------------------
 
    function Load_Response
-     (XML  : in String;
-      Args : in PolyORB.Any.NVList.Ref)
+     (Source : access Input_Sources.Input_Source'Class;
+      Args   : in     PolyORB.Any.NVList.Ref)
      return Message.Response.Object'Class
    is
-      use Input_Sources.Strings;
-
-      Str     : aliased String := XML;
-
-      Source  : String_Input;
       Reader  : Tree_Reader;
       S       : State;
       Doc     : DOM.Core.Document;
-
    begin
-      Open (Str'Unchecked_Access,
-            Unicode.CES.Basic_8bit.Basic_8bit_Encoding,
-            Source);
-
       --  If True, xmlns:* attributes will be reported in Start_Element
       Set_Feature (Reader, Sax.Readers.Namespace_Prefixes_Feature, True);
       Set_Feature (Reader, Sax.Readers.Validation_Feature, False);
 
-      Parse (Reader, Source);
-      Close (Source);
+      Parse (Reader, Source.all);
 
       Doc := Get_Tree (Reader);
 

@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-buffers.adb#9 $
+--  $Id: //droopi/main/src/polyorb-buffers.adb#10 $
 
 with Ada.Unchecked_Deallocation;
 --  For Iovec_Pools.Free.
@@ -367,12 +367,19 @@ package body PolyORB.Buffers is
       return Buffer.CDR_Position;
    end CDR_Position;
 
-   procedure Rewind
-     (Buffer : access Buffer_Type)
-   is
+   procedure Rewind (Buffer : access Buffer_Type) is
    begin
       Buffer.CDR_Position := Buffer.Initial_CDR_Position;
    end Rewind;
+
+   function Remaining
+     (Buffer : access Buffer_Type)
+     return Stream_Element_Count
+   is
+   begin
+      return Buffer.Initial_CDR_Position + Buffer.Length
+        - Buffer.CDR_Position;
+   end Remaining;
 
    ---------------------------------------
    -- The input/output view of a buffer --

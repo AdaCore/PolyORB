@@ -34,6 +34,8 @@
 
 --  $Id$
 
+with Ada.Streams;
+
 with PolyORB.Utils.Text_Buffers;
 
 package body PolyORB.Buffer_Sources is
@@ -48,7 +50,6 @@ package body PolyORB.Buffer_Sources is
    is
    begin
       S.Buf := B;
-      S.Final_Position := CDR_Position (B) + Length (B);
    end Set_Buffer;
 
    procedure Next_Char
@@ -63,7 +64,7 @@ package body PolyORB.Buffer_Sources is
      return Boolean
    is
    begin
-      return CDR_Position (From.Buf) = From.Final_Position;
+      return Remaining (From.Buf) = 0;
    end Eof;
 
 end PolyORB.Buffer_Sources;

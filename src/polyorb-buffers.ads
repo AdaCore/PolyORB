@@ -32,7 +32,7 @@
 
 --  Buffer management
 
---  $Id: //droopi/main/src/polyorb-buffers.ads#9 $
+--  $Id: //droopi/main/src/polyorb-buffers.ads#10 $
 
 with System;
 --  For bit-order information.
@@ -162,45 +162,6 @@ package PolyORB.Buffers is
    --  by the size of the data effectively marshalled or
    --  unmarshalled.
 
-   --  For any type T, the following subprograms shall
-   --  be generated:
-
-   --     procedure Marshall_By_Copy
-   --       (Buffer    : access Buffer_Type;
-   --        Data      : in T);
-   --     --  Marshall data of type T.
-   --
-   --     function Unmarshall_By_Copy
-   --       (Buffer    : access Buffer_Type)
-   --       return T;
-   --     --  Unmarshall data of type T.
-
-   --     procedure Marshall_By_Reference
-   --       (Buffer    : access Buffer_Type;
-   --        Data      : access T);
-   --     --  Marshall data of type T by reference.
-   --     --  The lifespan of Data shall be no less
-   --     --  than the lifespan of Buffer.
-   --
-   --     function Unmarshall_By_Reference
-   --       (Buffer    : access Buffer_Type)
-   --       return T_Access;
-   --     --  Unmarshall data of type T by reference.
-   --     --  The returned pointer is valid until
-   --     --  Buffer is released.
-
-   --  The marshall-by-copy routines shall allocate
-   --  memory from the buffer's chunk pool, store the
-   --  data in CDR format with Buffer's endianness in
-   --  that memory chunk, and insert the chunk at Buffer's
-   --  current CDR position, with proper alignment.
-
-   --  The marshall-by-reference routines shall be called
-   --  only when the native representation of type T is
-   --  fully compatible with the CDR representation for Buffer.
-   --  It shall insert a reference to the object's data at
-   --  the current CDR position.
-
    procedure Set_Initial_Position
      (Buffer   : access Buffer_Type;
       Position : Stream_Element_Offset);
@@ -268,6 +229,11 @@ package PolyORB.Buffers is
      return Stream_Element_Offset;
    --  Return the current CDR position of the buffer
    --  in the marshalling stream.
+
+   function Remaining (Buffer : access Buffer_Type)
+     return Stream_Element_Count;
+   --  Return the number of bytes available from Buffer,
+   --  from the current position to the end of data.
 
    procedure Rewind (Buffer : access Buffer_Type);
    --  Reset the current position in Buffer to the initial

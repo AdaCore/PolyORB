@@ -47,6 +47,7 @@ with PolyORB.Any.NVList;
 with PolyORB.Binding_Data;
 with PolyORB.Binding_Data.Local;
 with PolyORB.Binding_Data.SOAP;
+with PolyORB.Buffer_Sources;
 with PolyORB.Filters.AWS_Interface;
 with PolyORB.Filters.Interface;
 with PolyORB.HTTP_Methods;
@@ -56,7 +57,6 @@ with PolyORB.Objects;
 with PolyORB.Objects.Interface;
 with PolyORB.ORB.Interface;
 with PolyORB.References;
-with PolyORB.Utils.Text_Buffers;
 
 package body PolyORB.Protocols.SOAP_Pr is
 
@@ -190,13 +190,9 @@ package body PolyORB.Protocols.SOAP_Pr is
       end;
    end Send_Reply;
 
-   procedure Process_Reply
-     (S : access SOAP_Session;
-      Entity : String);
+   procedure Process_Reply (S   : access SOAP_Session);
 
-   procedure Process_Reply
-     (S : access SOAP_Session;
-      Entity : String)
+   procedure Process_Reply (S   : access SOAP_Session)
    is
       use PolyORB.Any;
       use PolyORB.Any.NVList;
@@ -206,6 +202,7 @@ package body PolyORB.Protocols.SOAP_Pr is
       R : constant Requests.Request_Access := S.Pending_Rq;
 
       Return_Args : PolyORB.Any.NVList.Ref := R.Args;
+      Src : aliased Buffer_Sources.Input_Source;
 
    begin
       if R = null then
@@ -216,10 +213,12 @@ package body PolyORB.Protocols.SOAP_Pr is
       --  Ensure proper mode for Result.
       List_Of (Return_Args).all := R.Result & List_Of (Return_Args).all;
 
+      Buffer_Sources.Set_Buffer (Src, S.In_Buf);
       declare
          pragma Warnings (Off);
          M : constant Standard.SOAP.Message.Response.Object'Class
-           := Standard.SOAP.Message.XML.Load_Response (Entity, Return_Args);
+           := Standard.SOAP.Message.XML.Load_Response
+           (Src'Access, Return_Args);
          pragma Unreferenced (M);
          --  Not referenced. Evalurate the side effects of Load_Response.
          pragma Warnings (On);
@@ -230,6 +229,7 @@ package body PolyORB.Protocols.SOAP_Pr is
 
          S.Pending_Rq := null;
       end;
+      Buffers.Release_Contents (S.In_Buf.all);
 
       PolyORB.Requests.Pump_Up_Arguments
         (Dst_Args => R.Args, Src_Args => Return_Args,
@@ -245,20 +245,12 @@ package body PolyORB.Protocols.SOAP_Pr is
      (S : access SOAP_Session;
       Args : in out PolyORB.Any.NVList.Ref)
    is
-      use PolyORB.Any;
-
-      Entity : String (1 .. Integer (S.Entity_Length));
-      XML_Payload : Message.Payload.Object;
+      Src : aliased Buffer_Sources.Input_Source;
    begin
-      pragma Assert (Entity'Length > 0);
-      PolyORB.Utils.Text_Buffers.Unmarshall_String
-        (S.In_Buf, Entity);
-      pragma Debug
-        (O ("Getting arguments from XML Entity:" & Entity));
-
-      S.Entity_Length := 0;
-      XML_Payload := Message.XML.Load_Payload (Entity, Args);
-      S.Current_SOAP_Req := XML_Payload;
+      Buffer_Sources.Set_Buffer (Src, S.In_Buf);
+      S.Current_SOAP_Req
+        := Message.XML.Load_Payload (Src'Access, Args);
+      Buffers.Release_Contents (S.In_Buf.all);
    end Handle_Unmarshall_Arguments;
 
    procedure Handle_Data_Indication
@@ -343,15 +335,7 @@ package body PolyORB.Protocols.SOAP_Pr is
                 Requestor => Components.Component_Access (S)));
          end;
       else
-         declare
-            Entity : String (1 .. Integer (Data_Amount));
-            --  XXX BAD BAD should be a Types.String so as not to
-            --  overflow the stack.
-         begin
-            Utils.Text_Buffers.Unmarshall_String
-              (S.In_Buf, Entity);
-            Process_Reply (S, Entity);
-         end;
+         Process_Reply (S);
       end if;
    end Handle_Data_Indication;
 
