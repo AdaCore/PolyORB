@@ -76,14 +76,14 @@ begin
 
    Listen_Socket (Server);
 
-   Insert_Socket
-     (The_ORB, Active_Socket'
-      (The_ORB => The_ORB,
-       Kind => Listening_Sk,
-       Socket => Server,
-       Chain => new Filters.Factory_Chain'
-       (This => new Protocols.Echo.Echo_Protocol,
-        Upper => null)));
+--     Insert_Socket
+--       (The_ORB, Active_Socket'
+--        (The_ORB => The_ORB,
+--         Kind => Listening_Sk,
+--         Socket => Server,
+--         Chain => new Filters.Factory_Chain'
+--         (This => new Protocols.Echo.Echo_Protocol,
+--          Upper => null)));
 
    --  Register socket with ORB object, associating a protocol
    --  to the transport service access point.

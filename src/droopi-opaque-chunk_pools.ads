@@ -1,6 +1,6 @@
 --  Pools of memory chunks, with associated client metadata.
 
---  $Id: //droopi/main/src/droopi-opaque-chunk_pools.ads#2 $
+--  $Id: //droopi/main/src/droopi-opaque-chunk_pools.ads#3 $
 
 with Ada.Finalization;
 
@@ -76,15 +76,15 @@ private
 
    type Chunk (Size : Stream_Element_Count) is
      new Ada.Finalization.Limited_Controlled with record
-      Next     : Chunk_Access;
-      --  The next chunk in the pool.
+        Next     : Chunk_Access;
+         --  The next chunk in the pool.
 
-      Metadata : aliased Chunk_Metadata;
-      --  Metadata associated by a client to this chunk.
+        Metadata : aliased Chunk_Metadata;
+         --  Metadata associated by a client to this chunk.
 
-      Data     : Zone_Access;
-      --  The storage space of the chunk.
-   end record;
+        Data     : Zone_Access;
+         --  The storage space of the chunk.
+     end record;
 
    procedure Initialize (X : in out Chunk);
    procedure Finalize (X : in out Chunk);

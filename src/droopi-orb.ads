@@ -4,13 +4,12 @@
 
 with Sequences.Unbounded;
 
+with Droopi.Asynchronous_Events;
 with Droopi.Filters;
 with Droopi.Jobs;
---  with Droopi.Protocols;
 with Droopi.Requests;
 with Droopi.Schedulers;
 with Droopi.Soft_Links;
-with Droopi.Sockets;
 
 package Droopi.ORB is
 
@@ -39,41 +38,12 @@ package Droopi.ORB is
       is new Droopi.Schedulers.Server_Type with private;
    type ORB_Access is access all ORB_Type;
 
-   ------------------------
-   -- A decorated socket --
-   ------------------------
+   package Monitor_Seqs is new Sequences.Unbounded
+     (Asynchronous_Events.Asynchronous_Event_Monitor_Access);
+   subtype Monitor_Seq is Monitor_Seqs.Sequence;
 
-   type Socket_Kind is
-     (Invalid_Sk,
-      Listening_Sk,
-      Communication_Sk);
-
-   type Active_Socket (Kind : Socket_Kind := Invalid_Sk) is record
-      The_ORB  : ORB_Access;
-      Socket   : Sockets.Socket_Type;
-      --  Protocol : Protocols.Protocol_Access;
-
-      case Kind is
-         when Communication_Sk =>
-            Channel  : Filters.Filter_Access;
-         when Listening_Sk =>
-            Chain : Filters.Factory_Chain_Access;
-         when others =>
-            null;
-      end case;
-   end record;
-
-   type Event_Status is (No_Status, Connection_Closed);
-
-   function Handle_Event
-     (ORB : access ORB_Type;
-      AS : Active_Socket)
-     return Event_Status;
-   --  Process events that have occurred on active socket AS, managed
-   --  by server ORB.
-
-   package Sock_Seqs is new Sequences.Unbounded (Active_Socket);
-   subtype Sock_Seq is Sock_Seqs.Sequence;
+   --  XXX dummy!
+   type Active_Socket is new Integer;
 
    procedure Handle_New_Connection
      (P   : access Tasking_Policy_Type;
@@ -143,6 +113,10 @@ package Droopi.ORB is
       AS  : Active_Socket);
    --  Delete socket S from the set of sockets monitored by ORB.
 
+   procedure Queue_Job
+     (ORB : access ORB_Type;
+      J   : Droopi.Jobs.Job_Access);
+
    procedure Queue_Request
      (ORB : access ORB_Type;
       R   : Droopi.Requests.Request_Access);
@@ -168,17 +142,15 @@ private
       Idle_Tasks : Soft_Links.Watcher_Access;
       --  Idle ORB task wait on this watcher.
 
-      ORB_Sockets : Sock_Seq;
-      --  The set of transport endpoints to be monitored
+      Monitors : Monitor_Seq;
+      --  The set of asynchronous event monitors to be watched
       --  by ORB tasks.
 
       Polling : Boolean;
       --  True if, and only if, one task is blocked waiting
       --  for external events on ORB_Sockets.
 
-      Selector : Sockets.Selector_Access;
-      --  The selector object used to wait for an external event.
-
+      Selector : Asynchronous_Events.Asynchronous_Event_Monitor_Access;
    end record;
 
 end Droopi.ORB;

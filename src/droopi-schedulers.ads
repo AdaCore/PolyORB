@@ -1,5 +1,6 @@
 --  Abstract interface to a middleware's work scheduling facility.
 
+with Droopi.Jobs;
 with Droopi.Requests;
 
 package Droopi.Schedulers is
@@ -8,6 +9,12 @@ package Droopi.Schedulers is
 
    type Server_Type is abstract tagged limited private;
    type Server_Access is access all Server_Type'Class;
+
+   procedure Queue_Job
+     (Server : access Server_Type;
+      Job    : Droopi.Jobs.Job_Access)
+      is abstract;
+   --  Queue any job for execution by Server.
 
    procedure Queue_Request
      (Server : access Server_Type;
