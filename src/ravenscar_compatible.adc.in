@@ -18,4 +18,4 @@
 --  full-tasking applications, so the same set of compiled objects can
 --  be used in both cases.
 
-@DISABLE_PROFILE_WARNINGS@pragma Profile_Warnings (Ravenscar);
+--  @DISABLE_PROFILE_WARNINGS@pragma Profile_Warnings (Ravenscar);
