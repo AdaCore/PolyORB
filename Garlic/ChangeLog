@@ -1,3 +1,10 @@
+1998-12-15  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* s-gartcp.adb: Add comments in Initialize.
+
+	* s-garnam.adb, s-garnam.ads: Fix a problem on DecAlpha because
+ 	host entry names are not always in lower case on this system.
+
 1998-12-13  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-garuni.adb: Discard definition of an unit mapped on a

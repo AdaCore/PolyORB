@@ -563,9 +563,13 @@ package body System.Garlic.TCP is
          if Self_Data /= null
            and then Self_Data.all /= ""
          then
+            --  When there is a self location to bind on, check that
+            --  this location concerns the current host. Otherwise,
+            --  there is a real problem.
+
             Self.Location := Split_Data (Self_Data.all);
             declare
-               Name : constant String := Name_Of (Image (Self.Location.Addr));
+               Name : String := Name_Of (Image (Self.Location.Addr));
             begin
                if Name /= "localhost"
                  and then Name /= Name_Of (Image (Current_Host.Addr))

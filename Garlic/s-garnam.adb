@@ -298,6 +298,7 @@ package body System.Garlic.Naming is
          Ada.Exceptions.Raise_Exception (Naming_Error'Identity,
                                          "No name for " & Something);
       end if;
+      To_Lower (Hostent.Name.all);
       return Hostent.Name.all;
    end Name_Of;
 

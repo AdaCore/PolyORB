@@ -95,6 +95,7 @@ package System.Garlic.Naming is
 
    function Name_Of (Something : String) return String;
    --  Return the official name of an IP name or a dotted form
+   --  DNS is case insensitive. Fix the case on some systems.
 
    function To_In_Addr (Addr : Address) return Thin.In_Addr;
    --  Convert an IP address to a In_Addr structure
