@@ -738,11 +738,11 @@ package body OmniObject is
       else
        pragma Debug(Output(Omniobject,
                           "Omniobject.Dispatch : making dispatching call")) ;
-        Dispatch(Self.Implobj,
-                  Orls,
-                  Orl_Op,
-                  Orl_Response_Expected,
-                  success) ;
+       Dispatch(Self.Implobj,
+                Orls,
+                Orl_Op,
+                Orl_Response_Expected,
+                success) ;
       end if ;
    end ;
 

@@ -78,8 +78,17 @@ package body Corba.Exceptions is
    -- Actually, the string is the image of ID_Number that is incremented
    -- each time an exception is raised.
 
-   Member_List : Cell_Ptr := null ;
+   protected Member_List is
+      procedure Put (V : in Idl_Exception_Members'Class ;
+                     ID_V : in Standard.String) ;
+      procedure Get (From : in Ada.Exceptions.Exception_Occurrence ;
+                     Result : out Idl_Exception_Members'Class) ;
+   private
+      List : Cell_Ptr := null ;
+   end Member_List;
    -- list of members
+   -- The list is declared protected to avoid conflict between several
+   -- threads.
 
 
    -- Free : free the memory
@@ -87,59 +96,62 @@ package body Corba.Exceptions is
    procedure Free is new Ada.Unchecked_Deallocation(Cell, Cell_Ptr) ;
 
 
-   -- Put : add a member to the list
-   ---------------------------------
-   procedure Put (V : in Idl_Exception_Members'Class ;
-                  ID_V : in Standard.String) is
-      Temp : Cell_Ptr ;
-   begin
-      -- makes a new cell ...
-      Temp := new Cell'(N => ID_V'Length,
-                        Value => new Idl_Exception_Members'Class'(V),
-                        ID => ID_V,
-                        Next => Member_List) ;
-      -- ... and add it in front of the list
-      Member_List := Temp ;
-   end ;
+   protected body Member_List is
+
+      -- Put : add a member to the list
+      ---------------------------------
+      procedure Put (V : in Idl_Exception_Members'Class ;
+                     ID_V : in Standard.String) is
+         Temp : Cell_Ptr ;
+      begin
+         -- makes a new cell ...
+         Temp := new Cell'(N => ID_V'Length,
+                           Value => new Idl_Exception_Members'Class'(V),
+                           ID => ID_V,
+                           Next => List) ;
+         -- ... and add it in front of the list
+         List := Temp ;
+      end ;
 
 
-   -- Get : get a member from the list
-   ------------------------------------
-   function Get (From : in Ada.Exceptions.Exception_Occurrence)
-                 return Idl_Exception_Members'Class is
-      Temp, Old_Temp : Cell_Ptr ;
-      -- pointers on the cell which is beeing process and on the previous cell
-      ID : Standard.String := Ada.Exceptions.Exception_Message (From) ;
-      -- reference of the searched member
-   begin
-      Old_Temp := null ;
-      Temp := Member_List ;
-      loop
-         if Temp.all.ID = ID
-         then
-            declare
-               -- we found the member associated to From
-               Member : Idl_Exception_Members'Class := Temp.all.Value.all ;
-            begin
-               -- we can suppress the correponding cell
-               if Old_Temp = null
-               then
-                  -- temp was the first cell
-                  Member_List := Temp.all.Next ;
-               else
-                  -- temp was not the first cell
-                  Old_Temp.all.Next := Temp.all.Next ;
-               end if ;
-               -- and free the memory
-               Free (Ex_Body_Ptr (Temp.all.Value)) ;
-               Free (Temp) ;
-               -- at last, return the result
-               return Member ;
-            end ;
-         else
-            -- if the end of list is reached
-            if Temp.all.Next = null
+      -- Get : get a member from the list
+      ------------------------------------
+      procedure Get (From : in Ada.Exceptions.Exception_Occurrence ;
+                     Result : out Idl_Exception_Members'Class) is
+         Temp, Old_Temp : Cell_Ptr ;
+         -- pointers on the cell which is beeing process and on the previous cell
+         ID : Standard.String := Ada.Exceptions.Exception_Message (From) ;
+         -- reference of the searched member
+      begin
+         Old_Temp := null ;
+         Temp := List ;
+         loop
+            if Temp.all.ID = ID
             then
+               declare
+                  -- we found the member associated to From
+                  Member : Idl_Exception_Members'Class := Temp.all.Value.all ;
+               begin
+                  -- we can suppress the correponding cell
+                  if Old_Temp = null
+                  then
+                     -- temp was the first cell
+                     List := Temp.all.Next ;
+                  else
+                     -- temp was not the first cell
+                     Old_Temp.all.Next := Temp.all.Next ;
+                  end if ;
+                  -- and free the memory
+                  Free (Ex_Body_Ptr (Temp.all.Value)) ;
+                  Free (Temp) ;
+                  -- at last, return the result
+                  Result := Member ;
+                  return ;
+               end ;
+            else
+               -- if the end of list is reached
+               if Temp.all.Next = null
+               then
                -- raise an Ada Exception AdaBroker_Fatal_Error
                Ada.Exceptions.Raise_Exception (AdaBroker_Fatal_Error'Identity,
                                                "Corba.exceptions.Get (Standard.String)"
@@ -147,22 +159,23 @@ package body Corba.Exceptions is
                                                & "Member associated to exception "
                                                & Ada.Exceptions.Exception_Name (From)
                                                & " not found.") ;
-            else
-               -- else go to the next element of the list
-               Old_Temp := Temp ;
-               Temp := Temp.all.Next ;
+               else
+                  -- else go to the next element of the list
+                  Old_Temp := Temp ;
+                  Temp := Temp.all.Next ;
+               end if ;
             end if ;
-         end if ;
-      end loop ;
-   end ;
+         end loop ;
+      end ;
 
+   end Member_List ;
 
    -- Get_Members
    --------------
    procedure Get_Members (From : in Ada.Exceptions.Exception_Occurrence;
                           To : out Idl_Exception_Members'Class) is
    begin
-      To := Get (From) ;
+      Member_List.Get (From, To) ;
    end ;
 
 
@@ -173,7 +186,7 @@ package body Corba.Exceptions is
       ID : Standard.String := ID_Num'Image(ID_Number) ;
    begin
       -- stores the member object
-      Put (Excp_Memb,ID) ;
+      Member_List.Put (Excp_Memb,ID) ;
       -- raises the Ada exception with the ID String as message
       Ada.Exceptions.Raise_Exception (Excp,ID) ;
    end ;
