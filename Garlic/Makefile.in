@@ -68,7 +68,7 @@ SED     = @SED@
 CONSTANTS_SH = ${srcdir}/constants.sh
 CP           = cp
 GARLIC       = ${prefix}/lib/garlic
-GNATFLAGS    = -gnatg @GNATFLAGS@
+GNATFLAGS    = -gnatg -gnatdj @GNATFLAGS@
 INCFLAGS           = -I. -I${srcdir}
 
 PLATFORM           = @PLATFORM_SPECIFIC@

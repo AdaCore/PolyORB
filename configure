@@ -1344,7 +1344,7 @@ fi
 #
 echo $ac_n "checking if gnatmake supports -s""... $ac_c" 1>&6
 echo "configure:1347: checking if gnatmake supports -s" >&5
-if gnatmake -s -a -gnatg ada > /dev/null 2>&1; then
+if gnatmake -s -a -gnatg -gnatdj ada > /dev/null 2>&1; then
    GNATMAKE="gnatmake -s"
    echo "$ac_t""yes" 1>&6
 else
