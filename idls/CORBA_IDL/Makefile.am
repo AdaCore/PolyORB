@@ -2,6 +2,7 @@ IDLdir = $(includedir)/polyorb/corba/idls
 
 IDL =	$(srcdir)/orb.idl \
 	$(srcdir)/CORBA_Current.idl \
+	$(srcdir)/CORBA_DomainManager.idl \
 	$(srcdir)/CORBA_InterfaceRepository.idl \
 	$(srcdir)/CORBA_Policy.idl \
 	$(srcdir)/CORBA_StandardExceptions.idl \
