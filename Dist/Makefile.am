@@ -36,7 +36,7 @@ xe_sysdep.adb: xe_sysdep-std.adb xe_sysdep-nt.adb
 
 xe_defs.adb: Makefile
 	@echo Generating xe_defs.adb
-	@$(RM) xe_defs.adb
+	@$(RM) -f xe_defs.adb
 	@if [ "$(PSNAME)" = "Windows NT" ]; then \
 	   echo "with XE_Reg;" >>xe_defs.adb;\
 	fi
