@@ -11,7 +11,7 @@
 #include "testparser_include.idl"
 #line 500
 #line 14
-//#pragma toto
+#pragma toto
 
 // Rule 1
 const short const1 = 4;
