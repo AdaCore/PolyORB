@@ -316,14 +316,15 @@ package body Idl_Fe.Types is
    ---------------------------------
    procedure Add_Identifier_Definition
      (Scope : Node_Id;
-      Identifier : in Identifier_Definition)
+      Identifier : in Identifier_Definition_Acc)
    is
       List : Identifier_Definition_List;
    begin
       List := new Identifier_Definition_Cell'
-        (Definition => Identifier,
+        (Definition => Identifier.all,
          Next => Identifier_List (Scope));
       Set_Identifier_List (Scope, List);
+      Add_Definition_To_Storage (Identifier);
    end Add_Identifier_Definition;
 
    ----------------------------
@@ -594,10 +595,14 @@ package body Idl_Fe.Types is
    is
       Stack : Scope_Stack_Acc;
    begin
+      pragma Debug (O ("Push_scope : enter"));
       Stack := new Scope_Stack;
       Stack.Parent := Current_Scope;
       Stack.Scope := Scope;
       if Current_Scope = null then
+         pragma Debug (O ("Push_scope : current_scope is null"));
+         pragma Debug (O ("Push_scope : root scope is"
+                          & Get_Name (Scope)));
          Root_Scope := Stack;
       end if;
       Current_Scope := Stack;
@@ -622,11 +627,8 @@ package body Idl_Fe.Types is
       --  Add these definition to the identifier_table of the current_scope
       Definition_List := Identifier_List (Current_Scope.Scope);
       while Definition_List /= null loop
-         Add_Definition_To_Storage
-           (Id_Table.Table (Definition_List.Definition.Id).Definition);
          Id_Table.Table (Definition_List.Definition.Id).Definition :=
            Definition_List.Definition.Previous_Definition;
-         --  memory leak
          if Definition_List.Definition.Previous_Definition = null then
             Hash_Index := Hash (Definition_List.Definition.Name.all)
               mod Hash_Mod;
@@ -892,7 +894,7 @@ package body Idl_Fe.Types is
       Definition.Previous_Definition := Id_Table.Table (Index).Definition;
       Definition.Parent_Scope := Current_Scope.Scope;
       Id_Table.Table (Index).Definition := Definition;
-      Add_Identifier_Definition (Current_Scope.Scope, Definition.all);
+      Add_Identifier_Definition (Current_Scope.Scope, Definition);
       Set_Definition (Node, Definition);
       pragma Debug (O ("Add_Identifier : end"));
       return True;
@@ -913,6 +915,7 @@ package body Idl_Fe.Types is
         := Hash (Identifier) mod Hash_Mod;
       Index : Uniq_Id;
    begin
+      pragma Debug (O ("Check_Identifier_In_Storage : enter"));
       Index := Identifier_Table (Scope).Hash_Table (Hash_Index);
       if Index /= Nil_Uniq_Id then
          while Identifier_Table (Scope).Content_Table.Table (Index).
@@ -921,6 +924,7 @@ package body Idl_Fe.Types is
               (Identifier_Table (Scope).Content_Table.Table (Index).
                Definition.Name.all, Identifier) /= Differ
             then
+               pragma Debug (O ("Check_Identifier_In_Storage : end"));
                return Index;
             end if;
             if Identifier_Table (Scope).Content_Table.Table (Index).Next =
@@ -930,6 +934,7 @@ package body Idl_Fe.Types is
             Index := Identifier_Table (Scope).Content_Table.Table (Index).Next;
          end loop;
       end if;
+      pragma Debug (O ("Check_Identifier_In_Storage : end"));
       return  Nil_Uniq_Id;
    end Check_Identifier_In_Storage;
 
@@ -944,6 +949,7 @@ package body Idl_Fe.Types is
    is
       Index : Uniq_Id;
    begin
+      pragma Debug (O ("Find_Identifier_In_Storage : enter"));
       Index := Check_Identifier_In_Storage (Scope, Name);
       if Index /= Nil_Uniq_Id then
          return Identifier_Table (Scope).
@@ -1154,10 +1160,9 @@ package body Idl_Fe.Types is
       Definition_Test : Identifier_Definition_Acc;
    begin
       --  check if we are in value type or interfaces (we should be);
-
-      --  if all (Scope) not in N_Imports'Class then
-      --     return;
-      --  end if;
+      if not Is_Imports (Scope) then
+         return;
+      end if;
       pragma Assert (Kind (Scope) = K_Interface
              or else Kind (Scope) = K_ValueType);
 

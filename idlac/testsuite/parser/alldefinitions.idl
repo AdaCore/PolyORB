@@ -70,7 +70,7 @@ interface interface15 : interface6, interface12, interface13 {};
 module module6 {
   interface inter {};
 };
-//interface interface16 : ::module6::inter {};
+interface interface16 : ::module6::inter {};
 
 // Rule 12
 module module7 {
@@ -78,8 +78,9 @@ module module7 {
 };
 typedef long type1;
 typedef type1 type2;
-//typedef module7::type1 type4;
-//typedef ::module7::type1 type3;
+typedef type2 type3;
+typedef module7::type1 type4;
+typedef ::module7::type1 type5;
 
 // Rule 13
 valuetype value1{};
@@ -137,7 +138,7 @@ valuetype value35 : truncatable value17 supports interface6, interface5, interfa
 module module8 {
    valuetype value {};
 };
-//valuetype value36 : ::module8::value {};
+valuetype value36 : ::module8::value {};
 
 // Rule 21
 valuetype value37 {
@@ -187,10 +188,10 @@ const float const8 = 3.14;
 const string const9 = "string";
 const wstring const10 = L"wstring";
 const fixed<5,3> const11 = 3.141d;
-typedef long type4;
-const type4 const12 = 5;
-typedef type4 type5;
-const type5 const13 = 5;
+typedef long type6;
+const type6 const12 = 5;
+typedef type6 type7;
+const type7 const13 = 5;
 const octet const14 = 2;
 
 // Rule 29
@@ -254,87 +255,42 @@ module module9 {
 //const short const48 = ( 1 | 3 ^ 20 >> 1 & 7 << 2 + -9 - +11 * 13 / 15 % ~17);
 
 // Rule 39
-const short const49 = 0;
-const short const50 = 12;
-const short const51 = 014;
-const short const52 = 0xC;
-const string const53 = "a string";
-const string const54 = "a more"" complicated"" one";
-const string const55 = "two" "strings";
-const string const56 = "very """ """complicated""";
-const string const57 = "with a \\ inside";
-const string const58 = "with a \""" inside";
-const string const59 = "with an octal char : \123";
-const string const60 = "with an octal char : \12345";
-const string const61 = "with an octal char : \03";
-const string const62 = "with an hexa char : \xab";
-const string const63 = "with an hexa char : \xabcd";
-const string const64 = "with a unicode char : \uabcd";
-const string const65 = "with a unicode char : \uabcdef";
-const string const66 = " a
-                   multiline 
-                             string";
-const wstring const67 = L"a string";
-const wstring const68 = L"a more"" complicated"" one";
-const wstring const69 = L"two" "strings";
-const wstring const70 = L"very """ """complicated""";
-const char const71 = 'r';
-const char const72 = '\n';
-const char const73 = '\'';
-const char const74 = '\\';
-const char const75 = '\1';
-const char const76 = '\12';
-const char const77 = '\123';
-const char const78 = '\xa';
-const char const79 = '\xab';
-const char const80 = '\ua';
-const char const81 = '\uab';
-const char const82 = '\uabc';
-const char const83 = '\uabcd';
-const wchar const84 = L'r';
-const wchar const85 = L'\n';
-const wchar const86 = L'\'';
-const wchar const87 = L'\\';
-const wchar const88 = L'\1';
-const wchar const89 = L'\12';
-const wchar const90 = L'\123';
-const wchar const91 = L'\xa';
-const wchar const92 = L'\xab';
-const wchar const93 = L'\ua';
-const wchar const94 = L'\uab';
-const wchar const95 = L'\uabc';
-const wchar const96 = L'\uabcd';
-
-
-
-
-
-
-
-
-
-
-
-
-const float const100 = 1.45;
-const float const101 = 0.2;
-const float const102 = .3;
-const float const103 = 3.;
-const float const104 = 5e3;
-const float const105 = 3E4;
-const float const106 = .3e4;
-const float const107 = 2d;
-const float const108 = 5D;
-const float const109 = 3.4d;
-const float const110 = .5d; 
-const boolean const111 = TRUE;
-const boolean const112 = FALSE;
-
-
+const short const49 = 12;
+const short const50 = 014;
+const short const51 = 0xC;
+const string const52 = "a string";
+const string const53 = L"a wide string";
+const char const54 = 'r';
+const char const55 = '\n';
+const char const56 = '\12';
+const char const57 = '\xab';
+const char const58 = '\uabc';
+const wchar const59 = L'r';
+const wchar const60 = L'\n';
+const wchar const61 = L'\12';
+const wchar const62 = L'\xab';
+const wchar const63 = L'\uabc';
+const fixed<2,3> const64 = 12d;
+const fixed<3,4> const65 = 3.4d;
+const float const66 = 1.45;
+const float const67 = 5e3;
+const float const68 = 3E4;
+const boolean const69 = TRUE;
 
 // Rule 40
+const boolean const70 = TRUE;
+const boolean const71 = FALSE;
+
 // Rule 41
+const fixed<2,3> const72 = 12d;
+
 // Rule 42
+typedef long type8;
+struct struct1 { long l; };
+union union1 switch (boolean) { default : long l; };
+enum enum1 { blue, red, green };
+//native native1;
+
 // Rule 43
 // Rule 44
 // Rule 45
@@ -398,4 +354,21 @@ const boolean const112 = FALSE;
 /*  point of the Idl langage   */
 /*******************************/
 
+// scoped names
+module moduleA {
+  typedef short typeA;
+  interface interfaceA {
+    typedef long typeA;
+    typedef moduleA::typeA typeB;
+    typedef moduleA::interfaceA::typeA typeC;
+    typedef moduleA::interfaceA typeD;
+  };
+};
 
+// recursive structs
+struct structA {
+  structA s;
+};
+
+// module as type
+typedef moduleA typeD;

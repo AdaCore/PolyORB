@@ -507,7 +507,7 @@ private
    --  Adds an identifier definition to a scope
    procedure Add_Identifier_Definition
      (Scope : Node_Id;
-      Identifier : in Identifier_Definition);
+      Identifier : in Identifier_Definition_Acc);
 
    --  The hashing function. Takes an identifier and return its hash
    --  value

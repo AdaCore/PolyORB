@@ -235,11 +235,10 @@ L'\uabcde'
 "with an hexa char : \xabcd"
 "with a unicode char : \uabcd"
 "with a unicode char : \uabcdef"
-" a
-                 multiline 
-                           string"
 
 /* bad strings */
+" a multiline 
+              string"
 "with a null octal char : \0"
 "with a bad hexa char : \xk"
 "with a bad unicode char : \uk"
@@ -266,7 +265,7 @@ L"with a unicode char : \uabcdef"
 
 /* bad wide strings */
 L" a multiline 
-                           string"
+               string"
 L"with a null octal char : \0"
 L"with a bad hexa char : \xk"
 L"with a bad unicode char : \uk"
