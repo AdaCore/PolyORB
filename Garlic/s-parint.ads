@@ -88,12 +88,15 @@ package System.Partition_Interface is
    --  RCI package information caching
 
    type RACW_Stub_Type is tagged record
-      Origin   : System.RPC.Partition_ID;
-      Receiver : System.RPC.RPC_Receiver;
-      Addr     : System.Address;
+      Origin       : System.RPC.Partition_ID;
+      Receiver     : System.RPC.RPC_Receiver;
+      Addr         : System.Address;
+      Asynchronous : Boolean;
    end record;
    type RACW_Stub_Type_Access is access RACW_Stub_Type;
-   --  This type is used by the expansion to implement distributed objects
+   --  This type is used by the expansion to implement distributed objects.
+   --  Do not change its definition or its layout without updating
+   --  exp_dist.adb.
 
    procedure Get_Unique_Remote_Pointer
      (Handler : in out RACW_Stub_Type_Access);
