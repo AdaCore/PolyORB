@@ -863,7 +863,7 @@ package body XE_Stubs is
          if Default_Starter = Ada_Import and
             Partitions.First + 1 /= Partitions.Last then
             Dwrite_Str (FD, "   if not system.garlic.options");
-            Dwrite_Str (FD, ".get_nolaunch then");
+            Dwrite_Str (FD, ".nolaunch then");
             Dwrite_Eol (FD);
             for Partition in Partitions.First + 1 .. Partitions.Last loop
                if Partition /= Main_Partition then
