@@ -5,28 +5,30 @@ CMD = ${GNATMAKE} ${GNATFLAGS} ${INCLUDE}
 
 all: axil
 
-axil: lexer parser
+axil: lexer parser FORCE
 	${CMD} axil
 
-parser:
+parser: FORCE
 	${CMD} parser
 
-lexer:
+lexer: FORCE
 	${CMD} lexer
 
-nutils:
+nutils: FORCE
 	${CMD} nutils
 
-nodes: debug
+nodes: debug FORCE
 	${CMD} nodes
 
-debug:
+debug: FORCE
 	${CMD} debug
 
-clean:
+clean: FORCE
 	-rm -f *.ali *.o
 	-rm -f *~
 	-rm -f b~axil.ad*
 
-realclean: clean
+allclean: clean
 	-rm -f axil
+
+FORCE:

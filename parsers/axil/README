@@ -1,4 +1,4 @@
-This is the README file for AADL Parser
+This is the README file for Axil, an AADL parser
 
 What is AADL Parser?
 --------------------
@@ -23,7 +23,7 @@ INSTALL      : Detail AADL Parser installation process.
 README       : This file, first instructions.
 testsuite/*  : Tests
 
-Usage of AADL Parser
---------------------
+Usage of Axil
+-------------
 
-Type './aadl' for usage.
+Type './axil' for usage.
