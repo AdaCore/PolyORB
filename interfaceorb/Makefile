@@ -72,7 +72,8 @@ Ada_memBufferedStream.o : Ada_memBufferedStream.hh Ada_memBufferedStream.cc
 
 Ada_netBufferedStream.o : Ada_netBufferedStream.hh Ada_netBufferedStream.cc
 
-Ada_OmniObject.o : Ada_OmniObject.hh Ada_OmniObject.cc
+Ada_OmniObject.o : Ada_OmniObject.hh Ada_OmniObject.cc omniObject_C2Ada.o \
+omniobject.ads omniobject.adb
 
 Ada_OmniRopeAndKey.o : Ada_OmniRopeAndKey.hh Ada_OmniRopeAndKey.cc
 
@@ -81,7 +82,8 @@ omniObject_C2Ada.o : omniObject_C2Ada.hh omniObject_C2Ada.cc
 proxyObjectFactory_C2Ada.o: proxyObjectFactory_C2Ada.hh \
 proxyObjectFactory_C2Ada.cc omniObject_C2Ada.o
 
-Ada_exceptions.o : Ada_exceptions.cc Ada_exceptions.hh
+Ada_exceptions.o : Ada_exceptions.cc Ada_exceptions.hh exceptions.ads \
+exceptions.adb
 
 
 
@@ -149,10 +151,10 @@ iop.ali : iop.ads iop.adb netbufferedstream.ali membufferedstream.ali \
 corba.ali
 
 membufferedstream.ali : membufferedstream.ads membufferedstream.adb \
-corba.ali sys_dep.ali
+corba.ali sys_dep.ali Ada_memBufferedStream.o
 
 netbufferedstream.ali : netbufferedstream.ads netbufferedstream.adb \
-corba.ali sys_dep.ali rope.ali
+corba.ali sys_dep.ali rope.ali Ada_netBufferedStream.o
 
 omni.ali: omni.ads omni.adb corba.ali
 
@@ -169,7 +171,8 @@ omniproxycallwrapper.ali: omniproxycallwrapper.ads omniproxycallwrapper.adb \
 omniproxycalldesc.ali corba-object.ali corba.ali corba-object.ali \
 omniropeandkey.ali giop_c.ali netbufferedstream.ali 
 
-omniropeandkey.ali : omniropeandkey.ads omniropeandkey.adb corba.ali rope.ali
+omniropeandkey.ali : omniropeandkey.ads omniropeandkey.adb corba.ali \
+rope.ali Ada_OmniRopeAndKey.o
 
 rope.ali : rope.ads
 
