@@ -1,8 +1,0 @@
-data any
-provides
-  
-end any;
-
-data implementation any.others
-  
-end any.others;
