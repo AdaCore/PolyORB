@@ -423,7 +423,13 @@ package body PolyORB.POA.Basic_POA is
    ----------------
 
    procedure Destroy_OA
-     (OA : in out Basic_Obj_Adapter_Access) is
+     (OA : in out Basic_Obj_Adapter_Access)
+   is
+      use PolyORB.Object_Maps;
+
+      procedure Free is new Ada.Unchecked_Deallocation
+        (Object_Map'Class, Object_Map_Access);
+
    begin
       pragma Debug (O ("Destroy_OA: enter"));
 
@@ -433,6 +439,7 @@ package body PolyORB.POA.Basic_POA is
             POA_Types.Obj_Adapter_Access (OA));
          Set (OA.POA_Manager, null);
       end if;
+
       --  Destroy_Policies (OA.all);
       --  XXX Cannot destroy_policies here because another
       --  POA initialised from the default configuration could
@@ -459,6 +466,11 @@ package body PolyORB.POA.Basic_POA is
       end if;
 
       --  These members may be null, test before freeing
+
+      if OA.Active_Object_Map /= null then
+         PolyORB.Object_Maps.Finalize (OA.Active_Object_Map.all);
+         Free (OA.Active_Object_Map);
+      end if;
 
       if OA.Adapter_Activator /= null then
          Free (OA.Adapter_Activator);

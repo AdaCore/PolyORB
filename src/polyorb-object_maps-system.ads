@@ -46,6 +46,12 @@ package PolyORB.Object_Maps.System is
 
    type System_Object_Map is new Object_Map with private;
 
+   procedure Initialize (O_Map : in out System_Object_Map);
+   --  Initialize object map O_Map private structures
+
+   procedure Finalize (O_Map : in out System_Object_Map);
+   --  Finalize object map O_Map private structures
+
    function Add
      (O_Map : access System_Object_Map;
       Obj   : in     Object_Map_Entry_Access)
@@ -88,7 +94,6 @@ private
 
    type System_Object_Map is new Object_Map with record
       System_Map  : Map_Entry_Tables.Instance;
-      Initialized : Boolean := False;
    end record;
 
 end PolyORB.Object_Maps.System;

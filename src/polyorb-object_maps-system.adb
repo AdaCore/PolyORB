@@ -48,25 +48,23 @@ package body PolyORB.Object_Maps.System is
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
-   ---------------------------
-   -- Ensure_Initialization --
-   ---------------------------
+   ----------------
+   -- Initialize --
+   ----------------
 
-   procedure Ensure_Initialization
-     (O_Map : access System_Object_Map);
-   pragma Inline (Ensure_Initialization);
-
-   procedure Ensure_Initialization
-     (O_Map : access System_Object_Map) is
+   procedure Initialize (O_Map : in out System_Object_Map) is
    begin
-      if O_Map.Initialized then
-         pragma Debug (O ("Already initialized"));
-         return;
-      end if;
-      pragma Debug (O ("Initializing"));
       Initialize (O_Map.System_Map);
-      O_Map.Initialized := True;
-   end Ensure_Initialization;
+   end Initialize;
+
+   --------------
+   -- Finalize --
+   --------------
+
+   procedure Finalize (O_Map : in out System_Object_Map) is
+   begin
+      Deallocate (O_Map.System_Map);
+   end Finalize;
 
    ---------
    -- Add --
@@ -82,8 +80,6 @@ package body PolyORB.Object_Maps.System is
       if Obj.Oid /= null then
          raise Program_Error;
       end if;
-
-      Ensure_Initialization (O_Map);
 
       --  First try to reuse one slice in object map
 
@@ -116,8 +112,6 @@ package body PolyORB.Object_Maps.System is
 
    begin
       pragma Debug (O ("Add: enter"));
-
-      Ensure_Initialization (O_Map);
 
       if False
         or else not Obj.Oid.System_Generated
@@ -158,8 +152,7 @@ package body PolyORB.Object_Maps.System is
       pragma Debug (O ("Get_By_Id: enter"));
       pragma Debug (O ("Looking for: " & To_Standard_String (Item.Id)));
 
-      if not Item.System_Generated
-        or else not O_Map.Initialized then
+      if not Item.System_Generated then
          raise Program_Error;
       end if;
 
@@ -181,10 +174,6 @@ package body PolyORB.Object_Maps.System is
 
    begin
       pragma Debug (O ("Get_By_Servant: enter"));
-
-      if not O_Map.Initialized then
-         raise Program_Error;
-      end if;
 
       for J in First (O_Map.System_Map) .. Last (O_Map.System_Map) loop
          if not Is_Null (O_Map.System_Map.Table (J)) then
@@ -219,8 +208,7 @@ package body PolyORB.Object_Maps.System is
       pragma Debug (O ("Remove_By_Id: enter"));
       pragma Debug (O ("Looking for: " & To_Standard_String (Item.Id)));
 
-      if not Item.System_Generated
-        or else not O_Map.Initialized then
+      if not Item.System_Generated then
          raise Program_Error;
       end if;
 
