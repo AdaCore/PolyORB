@@ -306,7 +306,7 @@ package body ALI.Util is
                  Scan_ALI
                    (F         => Afile,
                     T         => Text,
-                    Ignore_ED => Full_Elaboration_Semantics,
+                    Ignore_ED => Force_RM_Elaboration_Order,
                     Err       => False);
 
                Free (Text);

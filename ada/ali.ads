@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-2000 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2001 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -351,6 +351,11 @@ package ALI is
    --  Set to blank by Initialize_ALI. Set to the appropriate queuing policy
    --  character if an ali file contains a P line setting the queuing policy.
 
+   Static_Elaboration_Model_Used : Boolean := False;
+   --  Set to False by Initialize_ALI. Set to True if any ALI file for a
+   --  non-internal unit compiled with the static elaboration model is
+   --  encountered.
+
    Task_Dispatching_Policy_Specified : Character := ' ';
    --  Set to blank by Initialize_ALI. Set to the appropriate task dispatching
    --  policy character if an ali file contains a P line setting the
@@ -507,6 +512,16 @@ package ALI is
 
       Subunit_Name : Name_Id;
       --  Name_Id for subunit name if present, else No_Name
+
+      Rfile : File_Name_Type;
+      --  Reference file name. Same as Sfile unless a Source_Reference
+      --  pragma was used, in which case it reflects the name used in
+      --  the pragma.
+
+      Start_Line : Nat;
+      --  Starting line number in file. Always 1, unless a Source_Reference
+      --  pragma was used, in which case it reflects the line number value
+      --  given in the pragma.
 
    end record;
 

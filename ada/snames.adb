@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                            --
 --                                                                          --
---          Copyright (C) 1992-2000, Free Software Foundation, Inc.         --
+--          Copyright (C) 1992-2001, Free Software Foundation, Inc.         --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -457,6 +457,7 @@ package body Snames is
      "base#" &
      "class#" &
      "ceiling_locking#" &
+     "inheritance_locking#" &
      "fifo_queuing#" &
      "priority_queuing#" &
      "fifo_within_priorities#" &
@@ -568,6 +569,7 @@ package body Snames is
      "body_append#" &
      "separate_append#" &
      "source_files#" &
+     "source_list_file#" &
      "switches#" &
      "gnatmake#" &
      "gnatls#" &

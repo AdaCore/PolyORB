@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-2000, Free Software Foundation, Inc.         --
+--          Copyright (C) 1992-2001, Free Software Foundation, Inc.         --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -293,7 +293,7 @@ package body Switch is
             elsif Program = Make then
                Force_Compilations := True;
             elsif Program = Binder then
-               Full_Elaboration_Semantics := True;
+               Force_RM_Elaboration_Order := True;
             else
                raise Bad_Switch;
             end if;
@@ -778,6 +778,7 @@ package body Switch is
                         Check_Unreferenced           := True;
                         Check_Withs                  := True;
                         Implementation_Unit_Warnings := True;
+                        Ineffective_Inline_Warnings  := True;
                         Warn_On_Redundant_Constructs := True;
 
                      when 'A' =>
@@ -788,6 +789,7 @@ package body Switch is
                         Implementation_Unit_Warnings := False;
                         Warn_On_Hiding               := False;
                         Warn_On_Redundant_Constructs := False;
+                        Ineffective_Inline_Warnings  := False;
 
                      when 'c' =>
                         Constant_Condition_Warnings := True;
@@ -821,6 +823,12 @@ package body Switch is
 
                      when 'O' =>
                         Address_Clause_Overlay_Warnings := False;
+
+                     when 'p' =>
+                        Ineffective_Inline_Warnings := True;
+
+                     when 'P' =>
+                        Ineffective_Inline_Warnings := False;
 
                      when 'r' =>
                         Warn_On_Redundant_Constructs := True;

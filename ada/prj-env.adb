@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---             Copyright (C) 2000 Free Software Foundation, Inc.            --
+--             Copyright (C) 2001 Free Software Foundation, Inc.            --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -40,7 +40,11 @@ package body Prj.Env is
    No_Naming : constant Naming_Id := 0;
 
    Ada_Path_Buffer : String_Access := new String (1 .. 1_000);
+   --  A buffer where values for ADA_INCLUDE_PATH
+   --  and ADA_OBJECTS_PATH are stored.
+
    Ada_Path_Length : Natural := 0;
+   --  Index of the last valid character in Ada_Path_Buffer.
 
    package Namings is new Table.Table (
      Table_Component_Type => Naming_Data,
@@ -64,24 +68,37 @@ package body Prj.Env is
    -----------------------
 
    function Body_Path_Name_Of (Unit : Unit_Id) return String;
-   --  ??? comment needed
+   --  Returns the path name of the body of a unit.
+   --  Compute it first, if necessary.
 
    function Spec_Path_Name_Of (Unit : Unit_Id) return String;
-   --  ??? comment needed
+   --  Returns the path name of the spec of a unit.
+   --  Compute it first, if necessary.
 
    procedure Add_To_Path (Path : String);
+   --  Add Path to global variable Ada_Path_Buffer
+   --  Increment Ada_Path_Length
 
    ----------------------
    -- Ada_Include_Path --
    ----------------------
 
-   function Ada_Include_Path (Project : Project_Id) return String is
+   function Ada_Include_Path (Project : Project_Id) return String_Access is
       Seen   : Project_List := Empty_Project_List;
 
       procedure Add (Project : Project_Id);
+      --  Add all the source directories of a project to the path,
+      --  only if this project has not been visited.
+      --  Call itself recursively for projects being modified,
+      --  and imported projects.
+      --  Add the project to the list Seen if this is the first time
+      --  we call Add for this project.
 
       procedure Add (Project : Project_Id) is
       begin
+         --  If Seen is empty, then the project cannot have been
+         --  visited.
+
          if Seen = Empty_Project_List then
             Project_Lists.Increment_Last;
             Seen := Project_Lists.Last;
@@ -92,7 +109,11 @@ package body Prj.Env is
                Current : Project_Element := Project_Lists.Table (Seen);
 
             begin
+               --  For each project in Seen
+
                loop
+                  --  If it is the same project, then nothing to do
+
                   if Current.Project = Project then
                      return;
                   end if;
@@ -100,6 +121,8 @@ package body Prj.Env is
                   exit when Current.Next = Empty_Project_List;
                   Current := Project_Lists.Table (Current.Next);
                end loop;
+
+               --  The project is not in Seen, add it
 
                Project_Lists.Increment_Last;
                Current.Next := Project_Lists.Last;
@@ -116,6 +139,8 @@ package body Prj.Env is
             Source_Dir : String_Element;
 
          begin
+            --  Add to path all source directories of this project
+
             while Current /= Nil_String loop
                if Ada_Path_Length > 0 then
                   Add_To_Path (Path => (1 => Path_Separator));
@@ -123,13 +148,22 @@ package body Prj.Env is
 
                Source_Dir := String_Elements.Table (Current);
                String_To_Name_Buffer (Source_Dir.Value);
-               Add_To_Path (Name_Buffer (1 .. Name_Len));
+               declare
+                  New_Path : constant String :=
+                    Name_Buffer (1 .. Name_Len);
+               begin
+                  Add_To_Path (New_Path);
+               end;
                Current := Source_Dir.Next;
             end loop;
+
+            --  Call Add to the project being modified, if any
 
             if Data.Modifies /= No_Project then
                Add (Data.Modifies);
             end if;
+
+            --  Call Add for each imported project, if any
 
             while List /= Empty_Project_List loop
                Add (Project_Lists.Table (List).Project);
@@ -141,29 +175,39 @@ package body Prj.Env is
    --  Start of processing for Ada_Include_Path
 
    begin
-      if Projects.Table (Project).Include_Path = No_String then
+      --  If it is the first time we call this function for
+      --  this project, compute the source path
+
+      if Projects.Table (Project).Include_Path = null then
          Ada_Path_Length := 0;
          Add (Project);
-         Start_String;
-         Store_String_Chars (Ada_Path_Buffer (1 .. Ada_Path_Length));
-         Projects.Table (Project).Include_Path := End_String;
+         Projects.Table (Project).Include_Path :=
+           new String'(Ada_Path_Buffer (1 .. Ada_Path_Length));
       end if;
 
-      String_To_Name_Buffer (Projects.Table (Project).Include_Path);
-      return Name_Buffer (1 .. Name_Len);
+      return Projects.Table (Project).Include_Path;
    end Ada_Include_Path;
 
    ----------------------
    -- Ada_Objects_Path --
    ----------------------
 
-   function Ada_Objects_Path (Project : Project_Id) return String is
+   function Ada_Objects_Path (Project : Project_Id) return String_Access is
       Seen   : Project_List := Empty_Project_List;
 
       procedure Add (Project : Project_Id);
+      --  Add all the object directory of a project to the path,
+      --  only if this project has not been visited.
+      --  Call itself recursively for projects being modified,
+      --  and imported projects.
+      --  Add the project to the list Seen if this is the first time
+      --  we call Add for this project.
 
       procedure Add (Project : Project_Id) is
       begin
+         --  If Seen is empty, then the project cannot have been
+         --  visited.
+
          if Seen = Empty_Project_List then
             Project_Lists.Increment_Last;
             Seen := Project_Lists.Last;
@@ -175,7 +219,11 @@ package body Prj.Env is
                Current : Project_Element := Project_Lists.Table (Seen);
 
             begin
+               --  For each project in Seen
+
                loop
+                  --  If it is the same project, then nothing to do
+
                   if Current.Project = Project then
                      return;
                   end if;
@@ -183,6 +231,8 @@ package body Prj.Env is
                   exit when Current.Next = Empty_Project_List;
                   Current := Project_Lists.Table (Current.Next);
                end loop;
+
+               --  The project is not in Seen, add it
 
                Project_Lists.Increment_Last;
                Current.Next := Project_Lists.Last;
@@ -196,17 +246,28 @@ package body Prj.Env is
             List : Project_List := Data.Imported_Projects;
 
          begin
+            --  Add to path the object directory of this project
+
             if Data.Object_Directory /= No_Name then
                if Ada_Path_Length > 0 then
                   Add_To_Path (Path => (1 => Path_Separator));
                end if;
 
-               Add_To_Path (Get_Name_String (Data.Object_Directory));
+               declare
+                  New_Path : constant String :=
+                    Get_Name_String (Data.Object_Directory);
+               begin
+                  Add_To_Path (New_Path);
+               end;
             end if;
+
+            --  Call Add to the project being modified, if any
 
             if Data.Modifies /= No_Project then
                Add (Data.Modifies);
             end if;
+
+            --  Call Add for each imported project, if any
 
             while List /= Empty_Project_List loop
                Add (Project_Lists.Table (List).Project);
@@ -218,16 +279,17 @@ package body Prj.Env is
    --  Start of processing for Ada_Objects_Path
 
    begin
-      if Projects.Table (Project).Objects_Path = No_String then
+      --  If it is the first time we call this function for
+      --  this project, compute the objects path
+
+      if Projects.Table (Project).Objects_Path = null then
          Ada_Path_Length := 0;
          Add (Project);
-         Start_String;
-         Store_String_Chars (Ada_Path_Buffer (1 .. Ada_Path_Length));
-         Projects.Table (Project).Objects_Path := End_String;
+         Projects.Table (Project).Objects_Path :=
+           new String'(Ada_Path_Buffer (1 .. Ada_Path_Length));
       end if;
 
-      String_To_Name_Buffer (Projects.Table (Project).Objects_Path);
-      return Name_Buffer (1 .. Name_Len);
+      return Projects.Table (Project).Objects_Path;
    end Ada_Objects_Path;
 
    -----------------
@@ -236,6 +298,8 @@ package body Prj.Env is
 
    procedure Add_To_Path (Path : String) is
    begin
+      --  If Ada_Path_Buffer is too small, double it
+
       if Ada_Path_Length + Path'Length > Ada_Path_Buffer'Last then
          declare
             New_Ada_Path_Buffer : constant String_Access :=
@@ -263,6 +327,9 @@ package body Prj.Env is
       Data : Unit_Data := Units.Table (Unit);
 
    begin
+      --  If we don't know the path name of the body of this unit,
+      --  we compute it, and we store it.
+
       if Data.File_Names (Body_Part).Path = No_Name then
          declare
             Current_Source : String_List_Id :=
@@ -270,8 +337,12 @@ package body Prj.Env is
             Path : GNAT.OS_Lib.String_Access;
 
          begin
+            --  By default, put the file name
+
             Data.File_Names (Body_Part).Path :=
               Data.File_Names (Body_Part).Name;
+
+            --  For each source directory
 
             while Current_Source /= Nil_String loop
                String_To_Name_Buffer
@@ -281,6 +352,9 @@ package body Prj.Env is
                  (Namet.Get_Name_String
                   (Data.File_Names (Body_Part).Name),
                   Name_Buffer (1 .. Name_Len));
+
+               --  If the file is in this directory,
+               --  then we store the path, and we are done.
 
                if Path /= null then
                   Name_Len := Path'Length;
@@ -297,6 +371,8 @@ package body Prj.Env is
             Units.Table (Unit) := Data;
          end;
       end if;
+
+      --  Returned the value stored
 
       return Namet.Get_Name_String (Data.File_Names (Body_Part).Path);
    end Body_Path_Name_Of;
@@ -315,21 +391,27 @@ package body Prj.Env is
       Current_Naming  : Naming_Id;
 
       procedure Check (Project : Project_Id);
+      --  Check the naming scheme and add pattern SFN pragmas if it is
+      --  a new naming scheme. Recursively check an eventual modified
+      --  project and imported projects. Remember what projects have
+      --  been visited, and do not revisit them.
 
       procedure Check_Gnat_Adc;
+      --  Check that a new gnat.adc has been created.
+      --  If not, then save an eventual existing gnat.adc to another file,
+      --  create a new gnat.adc, and copy the previously saved one, if any.
 
       procedure Put
-        (Unit_Name : in Name_Id;
-         File_Name : in Name_Id;
-         Unit_Kind : in Spec_Or_Body);
+        (Unit_Name : Name_Id;
+         File_Name : Name_Id;
+         Unit_Kind : Spec_Or_Body);
+      --  Put a single pragma Source_File_Name in gnat.adc
 
-      procedure Put
-        (File : in File_Descriptor;
-         S    : in String);
+      procedure Put (File : File_Descriptor; S : String);
+      --  Put a string to a file
 
-      procedure Put_Line
-        (File : in File_Descriptor;
-         S    : in String);
+      procedure Put_Line (File : in File_Descriptor; S : in String);
+      --  Put a string followed by end of line to a file
 
       --------------------
       -- Check_Gnat_Adc --
@@ -337,6 +419,8 @@ package body Prj.Env is
 
       procedure Check_Gnat_Adc is
       begin
+         --  Nothing to do if gnat.adc has been created
+
          if not Gnat_Adc_Created then
             declare
                Saved_File : File_Descriptor;
@@ -346,10 +430,17 @@ package body Prj.Env is
                Dummy      : Boolean;
 
             begin
+               --  Try to read an already existing gnat.adc
+
                File := Open_Read (Gnat_Adc_File_Name'Address,
                                   GNAT.OS_Lib.Text);
 
+               --  If there is an existing gnat.adc
+
                if File /= Invalid_FD then
+
+                  --  Create a new file to save it
+
                   loop
                      Saved_File := Create_New_File
                        (Saved_Gnat_Adc_File_Name'Address,
@@ -366,6 +457,8 @@ package body Prj.Env is
                      Write_Line (".adc");
                   end if;
 
+                  --  And copy gnat.adc into this new file
+
                   loop
                      Last_In := Read (File, Buffer'Address, Buffer'Length);
                      Last_Out := Write (Saved_File, Buffer'Address, Last_In);
@@ -377,15 +470,21 @@ package body Prj.Env is
                      exit when Last_In /= Buffer'Length;
                   end loop;
 
+                  --  Close the open files, and delete the existing gnat.adc
+
                   Close (File);
                   Close (Saved_File);
                   Delete_File (Gnat_Adc_File_Name'Address, Dummy);
                   Gnat_Adc_Saved := True;
                end if;
 
+               --  Now, create a new gnat.adc
+
                File := Create_New_File
                  (Gnat_Adc_File_Name'Address,
                   GNAT.OS_Lib.Text);
+
+               --  If we just saved an existing one
 
                if Gnat_Adc_Saved then
                   declare
@@ -395,6 +494,8 @@ package body Prj.Env is
                      Last_Out   : Natural;
 
                   begin
+                     --  Copy it in the new gnat.adc
+
                      Saved_File :=
                        Open_Read (Saved_Gnat_Adc_File_Name'Address,
                                   GNAT.OS_Lib.Text);
@@ -411,9 +512,15 @@ package body Prj.Env is
                         exit when Last_In /= Buffer'Length;
                      end loop;
 
+                     --  Close the saved gnat.adc, but keep the new one
+                     --  open, of course.
+
                      Close (Saved_File);
                   end;
                end if;
+
+               --  Indicate that gnat.adc has been create,
+               --  so that we don't do it again
 
                Gnat_Adc_Created := True;
             end;
@@ -426,6 +533,7 @@ package body Prj.Env is
 
       procedure Check (Project : Project_Id) is
          Data : constant Project_Data := Projects.Table (Project);
+
       begin
          if Current_Verbosity = High then
             Write_Str ("Checking project file """);
@@ -434,6 +542,8 @@ package body Prj.Env is
             Write_Eol;
          end if;
 
+         --  Is this project in the list of the visited project?
+
          Current_Project := First_Project;
          while Current_Project /= Empty_Project_List
            and then Project_Lists.Table (Current_Project).Project /= Project
@@ -441,11 +551,15 @@ package body Prj.Env is
             Current_Project := Project_Lists.Table (Current_Project).Next;
          end loop;
 
+         --  If it is not, put it in the list, and visit it
+
          if Current_Project = Empty_Project_List then
             Project_Lists.Increment_Last;
             Project_Lists.Table (Project_Lists.Last) :=
               (Project => Project, Next => First_Project);
             First_Project := Project_Lists.Last;
+
+            --  Is the naming scheme of this project one that we know?
 
             Current_Naming := Default_Naming;
             while Current_Naming <= Namings.Last and then
@@ -455,11 +569,20 @@ package body Prj.Env is
                Current_Naming := Current_Naming + 1;
             end loop;
 
+            --  If we don't know it, add it
+
             if Current_Naming > Namings.Last then
                Namings.Increment_Last;
                Namings.Table (Namings.Last) := Data.Naming;
 
+               --  We need gnat.adc to be created
+
                Check_Gnat_Adc;
+
+               --  Put the SFN pragmas for the naming scheme
+
+               --  Spec
+
                Put_Line
                  (File, "pragma Source_File_Name");
                Put_Line
@@ -473,6 +596,9 @@ package body Prj.Env is
                  (File, "   Dot_Replacement => """ &
                  Namet.Get_Name_String (Data.Naming.Dot_Replacement) &
                   """);");
+
+               --  and body
+
                Put_Line
                  (File, "pragma Source_File_Name");
                Put_Line
@@ -486,6 +612,8 @@ package body Prj.Env is
                  (File, "   Dot_Replacement => """ &
                   Namet.Get_Name_String (Data.Naming.Dot_Replacement) &
                   """);");
+
+               --  and maybe separate
 
                if Data.Naming.Body_Append /= Data.Naming.Separate_Append then
                   Put_Line
@@ -526,12 +654,17 @@ package body Prj.Env is
       ---------
 
       procedure Put
-        (Unit_Name : in Name_Id;
-         File_Name : in Name_Id;
-         Unit_Kind : in Spec_Or_Body)
+        (Unit_Name : Name_Id;
+         File_Name : Name_Id;
+         Unit_Kind : Spec_Or_Body)
       is
       begin
+         --  gnat.adc needs to be open
+
          Check_Gnat_Adc;
+
+         --  Put the pragma SFN for the unit kind (spec or body)
+
          Put (File, "pragma Source_File_Name (");
          Put (File, Namet.Get_Name_String (Unit_Name));
 
@@ -545,10 +678,7 @@ package body Prj.Env is
          Put_Line (File, """);");
       end Put;
 
-      procedure Put
-        (File : in File_Descriptor;
-         S    : in String)
-      is
+      procedure Put (File : File_Descriptor; S : String) is
          Last : Natural;
 
       begin
@@ -567,14 +697,19 @@ package body Prj.Env is
       -- Put_Line --
       --------------
 
-      procedure Put_Line
-        (File : in File_Descriptor;
-         S    : in String)
-      is
+      procedure Put_Line (File : File_Descriptor; S : String) is
          S0   : String (1 .. S'Length + 1);
          Last : Natural;
 
       begin
+         --  Add an ASCII.LF to the string. As this gnat.adc
+         --  is supposed to be used only by the compiler, we don't
+         --  care about the characters for the end of line.
+         --  The truth is we could have put a space, but it is
+         --  more convenient to be able to read gnat.adc during
+         --  development. And the development was done under UNIX.
+         --  Hence the ASCII.LF.
+
          S0 (1 .. S'Length) := S;
          S0 (S0'Last) := ASCII.LF;
          Last := Write (File, S0'Address, S0'Length);
@@ -598,9 +733,15 @@ package body Prj.Env is
          Write_Eol;
       end if;
 
+      --  Remove any memory of processed naming schemes, if any
+
       Namings.Set_Last (Default_Naming);
 
+      --  Check the naming schemes
+
       Check (Project);
+
+      --  Visit all the units and process those that need an SFN pragma
 
       while Current_Unit <= Units.Last loop
          declare
@@ -625,6 +766,8 @@ package body Prj.Env is
 
       end loop;
 
+      --  If we have created a gnat.adc, close it
+
       if Gnat_Adc_Created then
          Close (File);
       end if;
@@ -632,7 +775,6 @@ package body Prj.Env is
       if Current_Verbosity > Default then
          Write_Line ("End of creation of gnat.adc.");
       end if;
-
    end Create_Gnat_Adc;
 
    ------------------------------------
@@ -642,21 +784,23 @@ package body Prj.Env is
    function File_Name_Of_Library_Unit_Body
      (Name    : String;
       Project : Project_Id)
-      return String
+      return    String
    is
-      Data : constant Project_Data := Projects.Table (Project);
-      Original_Name      : String := Name;
+      Data          : constant Project_Data := Projects.Table (Project);
+      Original_Name : String := Name;
 
       Extended_Spec_Name : String :=
-        Name & Namet.Get_Name_String (Data.Naming.Specification_Append);
+                             Name & Namet.Get_Name_String
+                                      (Data.Naming.Specification_Append);
       Extended_Body_Name : String :=
-        Name & Namet.Get_Name_String (Data.Naming.Body_Append);
+                             Name & Namet.Get_Name_String
+                                      (Data.Naming.Body_Append);
 
-      Unit    : Unit_Data;
+      Unit : Unit_Data;
 
       The_Original_Name : Name_Id;
-      The_Spec_Name : Name_Id;
-      The_Body_Name : Name_Id;
+      The_Spec_Name     : Name_Id;
+      The_Body_Name     : Name_Id;
 
    begin
       Canonical_Case_File_Name (Original_Name);
@@ -689,8 +833,12 @@ package body Prj.Env is
          Write_Eol;
       end if;
 
+      --  For every unit
+
       for Current in reverse Units.First .. Units.Last loop
          Unit := Units.Table (Current);
+
+         --  If it is a unit of the same project
 
          if Unit.File_Names (Body_Part).Project = Project then
             declare
@@ -698,6 +846,8 @@ package body Prj.Env is
                                 Unit.File_Names (Body_Part).Name;
 
             begin
+               --  If there is a body
+
                if Current_Name /= No_Name then
                   if Current_Verbosity = High then
                      Write_Str  ("   Comparing with """);
@@ -706,12 +856,18 @@ package body Prj.Env is
                      Write_Eol;
                   end if;
 
+                  --  If it has the name of the original name,
+                  --  return the original name
+
                   if Current_Name = The_Original_Name then
                      if Current_Verbosity = High then
                         Write_Line ("   OK");
                      end if;
 
                      return Original_Name;
+
+                  --  If it has the name of the extended body name,
+                  --  return the extended body name
 
                   elsif Current_Name = The_Body_Name then
                      if Current_Verbosity = High then
@@ -729,6 +885,8 @@ package body Prj.Env is
             end;
          end if;
 
+         --  If it is a unit of the same project
+
          if Units.Table (Current).File_Names (Specification).Project =
                                                                  Project
          then
@@ -737,6 +895,8 @@ package body Prj.Env is
                                 Unit.File_Names (Specification).Name;
 
             begin
+               --  If there is a spec
+
                if Current_Name /= No_Name then
                   if Current_Verbosity = High then
                      Write_Str  ("   Comparing with """);
@@ -745,12 +905,18 @@ package body Prj.Env is
                      Write_Eol;
                   end if;
 
+                  --  If it has the same name as the original name,
+                  --  return the original name
+
                   if Current_Name = The_Original_Name then
                      if Current_Verbosity = High then
                         Write_Line ("   OK");
                      end if;
 
                      return Original_Name;
+
+                  --  If it has the same name as the extended spec name,
+                  --  return the extended spec name
 
                   elsif Current_Name = The_Spec_Name then
                      if Current_Verbosity = High then
@@ -770,6 +936,8 @@ package body Prj.Env is
 
       end loop;
 
+      --  We don't know this file name, return an empty string
+
       return "";
    end File_Name_Of_Library_Unit_Body;
 
@@ -781,6 +949,9 @@ package body Prj.Env is
       Seen : Project_List := Empty_Project_List;
 
       procedure Add (Project : Project_Id);
+      --  Process a project. Remember the processes visited to avoid
+      --  processing a project twice. Recursively process an eventual
+      --  modified project, and all imported projects.
 
       ---------
       -- Add --
@@ -791,6 +962,9 @@ package body Prj.Env is
          List : Project_List := Data.Imported_Projects;
 
       begin
+         --  If the list of visited project is empty, then
+         --  for sure we never visited this project.
+
          if Seen = Empty_Project_List then
             Project_Lists.Increment_Last;
             Seen := Project_Lists.Last;
@@ -798,11 +972,15 @@ package body Prj.Env is
               (Project => Project, Next => Empty_Project_List);
 
          else
+            --  Check if the project is in the list
+
             declare
                Current : Project_List := Seen;
 
             begin
                loop
+                  --  If it is, then there is nothing else to do
+
                   if Project_Lists.Table (Current).Project = Project then
                      return;
                   end if;
@@ -812,6 +990,9 @@ package body Prj.Env is
                   Current := Project_Lists.Table (Current).Next;
                end loop;
 
+               --  This project has never been visited, add it
+               --  to the list.
+
                Project_Lists.Increment_Last;
                Project_Lists.Table (Current).Next := Project_Lists.Last;
                Project_Lists.Table (Project_Lists.Last) :=
@@ -819,14 +1000,21 @@ package body Prj.Env is
             end;
          end if;
 
+         --  If there is an object directory, call Action
+         --  with its name
+
          if Data.Object_Directory /= No_Name then
             Get_Name_String (Data.Object_Directory);
             Action (Name_Buffer (1 .. Name_Len));
          end if;
 
+         --  If we are modifying a project, visit it
+
          if Data.Modifies /= No_Project then
             Add (Data.Modifies);
          end if;
+
+         --  And visit all imported projects
 
          while List /= Empty_Project_List loop
             Add (Project_Lists.Table (List).Project);
@@ -837,6 +1025,9 @@ package body Prj.Env is
    --  Start of processing for For_All_Object_Dirs
 
    begin
+      --  Visit this project, and its imported projects,
+      --  recursively
+
       Add (Project);
    end For_All_Object_Dirs;
 
@@ -848,6 +1039,9 @@ package body Prj.Env is
       Seen : Project_List := Empty_Project_List;
 
       procedure Add (Project : Project_Id);
+      --  Process a project. Remember the processes visited to avoid
+      --  processing a project twice. Recursively process an eventual
+      --  modified project, and all imported projects.
 
       ---------
       -- Add --
@@ -858,17 +1052,25 @@ package body Prj.Env is
          List : Project_List := Data.Imported_Projects;
 
       begin
+         --  If the list of visited project is empty, then
+         --  for sure we never visited this project.
+
          if Seen = Empty_Project_List then
             Project_Lists.Increment_Last;
             Seen := Project_Lists.Last;
             Project_Lists.Table (Seen) :=
               (Project => Project, Next => Empty_Project_List);
+
          else
+            --  Check if the project is in the list
+
             declare
                Current : Project_List := Seen;
 
             begin
                loop
+                  --  If it is, then there is nothing else to do
+
                   if Project_Lists.Table (Current).Project = Project then
                      return;
                   end if;
@@ -878,6 +1080,9 @@ package body Prj.Env is
                   Current := Project_Lists.Table (Current).Next;
                end loop;
 
+               --  This project has never been visited, add it
+               --  to the list.
+
                Project_Lists.Increment_Last;
                Project_Lists.Table (Current).Next := Project_Lists.Last;
                Project_Lists.Table (Project_Lists.Last) :=
@@ -886,9 +1091,12 @@ package body Prj.Env is
          end if;
 
          declare
-            Current : String_List_Id := Data.Source_Dirs;
+            Current    : String_List_Id := Data.Source_Dirs;
             The_String : String_Element;
+
          begin
+            --  Call action with the name of every source directorie
+
             while Current /= Nil_String loop
                The_String := String_Elements.Table (Current);
                String_To_Name_Buffer (The_String.Value);
@@ -897,9 +1105,13 @@ package body Prj.Env is
             end loop;
          end;
 
+         --  If we are modifying a project, visit it
+
          if Data.Modifies /= No_Project then
             Add (Data.Modifies);
          end if;
+
+         --  And visit all imported projects
 
          while List /= Empty_Project_List loop
             Add (Project_Lists.Table (List).Project);
@@ -910,6 +1122,8 @@ package body Prj.Env is
    --  Start of processing for For_All_Source_Dirs
 
    begin
+      --  Visit this project, and its imported projects recursively
+
       Add (Project);
    end For_All_Source_Dirs;
 
@@ -997,6 +1211,8 @@ package body Prj.Env is
 
    procedure Initialize is
    begin
+      --  Put the standard GNAT naming scheme in the Namings table
+
       Namings.Increment_Last;
       Namings.Table (Namings.Last) := Standard_Naming_Data;
    end Initialize;
@@ -1014,9 +1230,11 @@ package body Prj.Env is
       Original_Name : String := Name;
 
       Extended_Spec_Name : String :=
-        Name & Namet.Get_Name_String (Data.Naming.Specification_Append);
+                             Name & Namet.Get_Name_String
+                                     (Data.Naming.Specification_Append);
       Extended_Body_Name : String :=
-        Name & Namet.Get_Name_String (Data.Naming.Body_Append);
+                             Name & Namet.Get_Name_String
+                                     (Data.Naming.Body_Append);
 
       First   : Unit_Id := Units.First;
       Current : Unit_Id;
@@ -1123,7 +1341,7 @@ package body Prj.Env is
                end if;
             end;
          end if;
-
+         Current := Current + 1;
       end loop;
 
       return "";

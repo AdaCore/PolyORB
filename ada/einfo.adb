@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-2000 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2001 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -380,8 +380,8 @@ package body Einfo is
    --    Is_Known_Valid                 Flag170
    --    Is_Hidden_Open_Scope           Flag171
    --    Has_Object_Size_Clause         Flag172
+   --    Has_Fully_Qualified_Name       Flag173
 
-   --    (unused)                       Flag173
    --    (unused)                       Flag174
    --    (unused)                       Flag175
    --    (unused)                       Flag176
@@ -983,6 +983,11 @@ package body Einfo is
       pragma Assert (Is_Tagged_Type (Id));
       return Flag110 (Id);
    end Has_External_Tag_Rep_Clause;
+
+   function Has_Fully_Qualified_Name (Id : E) return B is
+   begin
+      return Flag173 (Id);
+   end Has_Fully_Qualified_Name;
 
    function Has_Gigi_Rep_Item (Id : E) return B is
    begin
@@ -2750,6 +2755,11 @@ package body Einfo is
       pragma Assert (Is_Tagged_Type (Id));
       Set_Flag110 (Id, V);
    end Set_Has_External_Tag_Rep_Clause;
+
+   procedure Set_Has_Fully_Qualified_Name (Id : E; V : B := True) is
+   begin
+      Set_Flag173 (Id, V);
+   end Set_Has_Fully_Qualified_Name;
 
    procedure Set_Has_Gigi_Rep_Item (Id : E; V : B := True) is
    begin
@@ -5527,6 +5537,7 @@ package body Einfo is
       W ("Elaborate_All_Desirable",       Flag146 (Id));
       W ("Entry_Accepted",                Flag152 (Id));
       W ("Finalize_Storage_Only",         Flag158 (Id));
+      W ("From_With_Type",                Flag159 (Id));
       W ("Function_Returns_With_DSP",     Flag169 (Id));
       W ("Has_Aliased_Components",        Flag135 (Id));
       W ("Has_Alignment_Clause",          Flag46  (Id));
@@ -5545,9 +5556,9 @@ package body Einfo is
       W ("Has_Enumeration_Rep_Clause",    Flag66  (Id));
       W ("Has_Exit",                      Flag47  (Id));
       W ("Has_External_Tag_Rep_Clause",   Flag110 (Id));
+      W ("Has_Fully_Qualified_Name",      Flag173 (Id));
       W ("Has_Gigi_Rep_Item",             Flag82  (Id));
       W ("Has_Homonym",                   Flag56  (Id));
-      W ("From_With_Type",                Flag159 (Id));
       W ("Has_Machine_Radix_Clause",      Flag83  (Id));
       W ("Has_Master_Entity",             Flag21  (Id));
       W ("Has_Missing_Return",            Flag142 (Id));

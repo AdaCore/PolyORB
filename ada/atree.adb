@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-2000, Free Software Foundation, Inc.         --
+--          Copyright (C) 1992-2001, Free Software Foundation, Inc.         --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -43,6 +43,8 @@ with Elists;  use Elists;
 with Output;  use Output;
 with Sinput;  use Sinput;
 with Tree_IO; use Tree_IO;
+
+with GNAT.HTable; use GNAT.HTable;
 
 package body Atree is
 
@@ -931,6 +933,70 @@ package body Atree is
    --  phase, the tree is copied, using the replacement map to replace any
    --  Itype references within the copied tree.
 
+   --  The following hash tables are used if the Map supplied has more
+   --  than hash threshhold entries to speed up access to the map. If
+   --  there are fewer entries, then the map is searched sequentially
+   --  (because setting up a hash table for only a few entries takes
+   --  more time than it saves.
+
+   --  Global variables are safe for this purpose, since there is no case
+   --  of a recursive call from the processing inside New_Copy_Tree.
+
+   NCT_Hash_Threshhold : constant := 20;
+   --  If there are more than this number of pairs of entries in the
+   --  map, then Hash_Tables_Used will be set, and the hash tables will
+   --  be initialized and used for the searches.
+
+   NCT_Hash_Tables_Used : Boolean := False;
+   --  Set to True if hash tables are in use
+
+   NCT_Table_Entries : Nat;
+   --  Count entries in table to see if threshhold is reached
+
+   NCT_Hash_Table_Setup : Boolean := False;
+   --  Set to True if hash table contains data. We set this True if we
+   --  setup the hash table with data, and leave it set permanently
+   --  from then on, this is a signal that second and subsequent users
+   --  of the hash table must clear the old entries before reuse.
+
+   subtype NCT_Header_Num is Int range 0 .. 511;
+   --  Defines range of headers in hash tables (512 headers)
+
+   function New_Copy_Hash (E : Entity_Id) return NCT_Header_Num;
+   --  Hash function used for hash operations
+
+   function New_Copy_Hash (E : Entity_Id) return NCT_Header_Num is
+   begin
+      return Nat (E) mod (NCT_Header_Num'Last + 1);
+   end New_Copy_Hash;
+
+   --  The hash table NCT_Assoc associates old entities in the table
+   --  with their corresponding new entities (i.e. the pairs of entries
+   --  presented in the original Map argument are Key-Element pairs).
+
+   package NCT_Assoc is new Simple_HTable (
+     Header_Num => NCT_Header_Num,
+     Element    => Entity_Id,
+     No_Element => Empty,
+     Key        => Entity_Id,
+     Hash       => New_Copy_Hash,
+     Equal      => Types."=");
+
+   --  The hash table NCT_Itype_Assoc contains entries only for those
+   --  old nodes which have a non-empty Associated_Node_For_Itype set.
+   --  The key is the associated node, and the element is the new node
+   --  itself (NOT the associated node for the new node).
+
+   package NCT_Itype_Assoc is new Simple_HTable (
+     Header_Num => NCT_Header_Num,
+     Element    => Entity_Id,
+     No_Element => Empty,
+     Key        => Entity_Id,
+     Hash       => New_Copy_Hash,
+     Equal      => Types."=");
+
+   --  Start of New_Copy_Tree function
+
    function New_Copy_Tree
      (Source    : Node_Id;
       Map       : Elist_Id := No_Elist;
@@ -951,6 +1017,9 @@ package body Atree is
       --  Called during second phase to map entities into their corresponding
       --  copies using Actual_Map. If the argument is not an entity, or is not
       --  in Actual_Map, then it is returned unchanged.
+
+      procedure Build_NCT_Hash_Tables;
+      --  Builds hash tables (number of elements >= threshold value)
 
       function Copy_Elist_With_Replacement
         (Old_Elist : Elist_Id)
@@ -993,11 +1062,23 @@ package body Atree is
       -----------
 
       function Assoc (N : Node_Or_Entity_Id) return Node_Id is
-         E : Elmt_Id;
+         E   : Elmt_Id;
+         Ent : Entity_Id;
 
       begin
          if not Has_Extension (N) or else No (Actual_Map) then
             return N;
+
+         elsif NCT_Hash_Tables_Used then
+            Ent := NCT_Assoc.Get (Entity_Id (N));
+
+            if Present (Ent) then
+               return Ent;
+            else
+               return N;
+            end if;
+
+         --  No hash table used, do serial search
 
          else
             E := First_Elmt (Actual_Map);
@@ -1012,6 +1093,43 @@ package body Atree is
 
          return N;
       end Assoc;
+
+      ---------------------------
+      -- Build_NCT_Hash_Tables --
+      ---------------------------
+
+      procedure Build_NCT_Hash_Tables is
+         Elmt : Elmt_Id;
+         Ent  : Entity_Id;
+      begin
+         if NCT_Hash_Table_Setup then
+            NCT_Assoc.Reset;
+            NCT_Itype_Assoc.Reset;
+         end if;
+
+         Elmt := First_Elmt (Actual_Map);
+         while Present (Elmt) loop
+            Ent := Node (Elmt);
+            Next_Elmt (Elmt);
+            NCT_Assoc.Set (Ent, Node (Elmt));
+            Next_Elmt (Elmt);
+
+            if Is_Type (Ent) then
+               declare
+                  Anode : constant Entity_Id :=
+                            Associated_Node_For_Itype (Ent);
+
+               begin
+                  if Present (Anode) then
+                     NCT_Itype_Assoc.Set (Anode, Node (Elmt));
+                  end if;
+               end;
+            end if;
+         end loop;
+
+         NCT_Hash_Tables_Used := True;
+         NCT_Hash_Table_Setup := True;
+      end Build_NCT_Hash_Tables;
 
       ---------------------------------
       -- Copy_Elist_With_Replacement --
@@ -1229,18 +1347,32 @@ package body Atree is
 
             if Present (Actual_Map) then
                declare
-                  E : Elmt_Id;
+                  E   : Elmt_Id;
+                  Ent : Entity_Id;
 
                begin
-                  E := First_Elmt (Actual_Map);
-                  while Present (E) loop
-                     if Old_Node = Associated_Node_For_Itype (Node (E)) then
-                        Set_Associated_Node_For_Itype
-                          (Node (Next_Elmt (E)), New_Node);
+                  --  Case of hash table used
+
+                  if NCT_Hash_Tables_Used then
+                     Ent := NCT_Itype_Assoc.Get (Old_Node);
+
+                     if Present (Ent) then
+                        Set_Associated_Node_For_Itype (Ent, New_Node);
                      end if;
 
-                     E := Next_Elmt (Next_Elmt (E));
-                  end loop;
+                  --  Case of no hash table used
+
+                  else
+                     E := First_Elmt (Actual_Map);
+                     while Present (E) loop
+                        if Old_Node = Associated_Node_For_Itype (Node (E)) then
+                           Set_Associated_Node_For_Itype
+                             (Node (Next_Elmt (E)), New_Node);
+                        end if;
+
+                        E := Next_Elmt (Next_Elmt (E));
+                     end loop;
+                  end if;
                end;
             end if;
 
@@ -1314,7 +1446,7 @@ package body Atree is
          Elmt : Elmt_Id;
 
       begin
-         if E /= No_Elist then
+         if Present (E) then
             Elmt := First_Elmt (E);
 
             while Elmt /= No_Elmt loop
@@ -1325,7 +1457,7 @@ package body Atree is
       end Visit_Elist;
 
       -----------------
-      -- Visit Field --
+      -- Visit_Field --
       -----------------
 
       procedure Visit_Field (F : Union_Id; N : Node_Id) is
@@ -1402,6 +1534,7 @@ package body Atree is
       procedure Visit_Itype (Old_Itype : Entity_Id) is
          New_Itype : Entity_Id;
          E         : Elmt_Id;
+         Ent       : Entity_Id;
 
       begin
          --  Itypes that describe the designated type of access to subprograms
@@ -1424,20 +1557,39 @@ package body Atree is
          --  pointer in the other direction.
 
          if Present (Actual_Map) then
-            E := First_Elmt (Actual_Map);
-            while Present (E) loop
-               if Associated_Node_For_Itype (Old_Itype) = Node (E) then
-                  Set_Associated_Node_For_Itype
-                    (New_Itype, Node (Next_Elmt (E)));
+
+            --  Case of hash tables used
+
+            if NCT_Hash_Tables_Used then
+
+               Ent := NCT_Assoc.Get (Associated_Node_For_Itype (Old_Itype));
+               if Present (Ent) then
+                  Set_Associated_Node_For_Itype (New_Itype, Ent);
                end if;
 
-               if Old_Itype = Associated_Node_For_Itype (Node (E)) then
-                  Set_Associated_Node_For_Itype
-                    (Node (Next_Elmt (E)), New_Itype);
+               Ent := NCT_Itype_Assoc.Get (Old_Itype);
+               if Present (Ent) then
+                  Set_Associated_Node_For_Itype (Ent, New_Itype);
                end if;
 
-               E := Next_Elmt (Next_Elmt (E));
-            end loop;
+            --  Csae of hash tables not used
+
+            else
+               E := First_Elmt (Actual_Map);
+               while Present (E) loop
+                  if Associated_Node_For_Itype (Old_Itype) = Node (E) then
+                     Set_Associated_Node_For_Itype
+                       (New_Itype, Node (Next_Elmt (E)));
+                  end if;
+
+                  if Old_Itype = Associated_Node_For_Itype (Node (E)) then
+                     Set_Associated_Node_For_Itype
+                       (Node (Next_Elmt (E)), New_Itype);
+                  end if;
+
+                  E := Next_Elmt (Next_Elmt (E));
+               end loop;
+            end if;
          end if;
 
          if Present (Freeze_Node (New_Itype)) then
@@ -1447,12 +1599,23 @@ package body Atree is
 
          --  Add new association to map
 
-         if Actual_Map = No_Elist then
+         if No (Actual_Map) then
             Actual_Map := New_Elmt_List;
          end if;
 
          Append_Elmt (Old_Itype, Actual_Map);
          Append_Elmt (New_Itype, Actual_Map);
+
+         if NCT_Hash_Tables_Used then
+            NCT_Assoc.Set (Old_Itype, New_Itype);
+
+         else
+            NCT_Table_Entries := NCT_Table_Entries + 1;
+
+            if NCT_Table_Entries > NCT_Hash_Threshhold then
+               Build_NCT_Hash_Tables;
+            end if;
+         end if;
 
          --  If a record subtype is simply copied, the entity list will be
          --  shared. Thus cloned_Subtype must be set to indicate the sharing.
@@ -1524,21 +1687,32 @@ package body Atree is
             --  Itype entity that appears more than once in the tree.
             --  Note that we do not want to visit descendents in this case.
 
-            declare
-               E : Elmt_Id;
+            --  Test for already in list when hash table is used
 
-            begin
-               if Present (Actual_Map) then
-                  E := First_Elmt (Actual_Map);
-                  while Present (E) loop
-                     if Node (E) = N then
-                        return;
-                     else
-                        E := Next_Elmt (Next_Elmt (E));
-                     end if;
-                  end loop;
+            if NCT_Hash_Tables_Used then
+               if Present (NCT_Assoc.Get (Entity_Id (N))) then
+                  return;
                end if;
-            end;
+
+            --  Test for already in list when hash table not used
+
+            else
+               declare
+                  E : Elmt_Id;
+
+               begin
+                  if Present (Actual_Map) then
+                     E := First_Elmt (Actual_Map);
+                     while Present (E) loop
+                        if Node (E) = N then
+                           return;
+                        else
+                           E := Next_Elmt (Next_Elmt (E));
+                        end if;
+                     end loop;
+                  end if;
+               end;
+            end if;
 
             Visit_Itype (N);
          end if;
@@ -1556,6 +1730,36 @@ package body Atree is
 
    begin
       Actual_Map := Map;
+
+      --  See if we should use hash table
+
+      if No (Actual_Map) then
+         NCT_Hash_Tables_Used := False;
+
+      else
+         declare
+            Elmt : Elmt_Id;
+
+         begin
+            NCT_Table_Entries := 0;
+            Elmt := First_Elmt (Actual_Map);
+            while Present (Elmt) loop
+               NCT_Table_Entries := NCT_Table_Entries + 1;
+               Next_Elmt (Elmt);
+               Next_Elmt (Elmt);
+            end loop;
+
+            if NCT_Table_Entries > NCT_Hash_Threshhold then
+               Build_NCT_Hash_Tables;
+            else
+               NCT_Hash_Tables_Used := False;
+            end if;
+         end;
+      end if;
+
+      --  Hash table set up if required, now start phase one by visiting
+      --  top node (we will recursively visit the descendents).
+
       Visit_Node (Source);
 
       --  Now the second phase of the copy can start. First we process

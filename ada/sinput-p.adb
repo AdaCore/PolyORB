@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-2000 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2001 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -36,6 +36,9 @@ with System;      use System;
 package body Sinput.P is
 
    First : Boolean := True;
+   --  Flag used when Load_Project_File is called the first time,
+   --  to set Main_Source_File.
+   --  The flag is reset to False at the first call to Load_Project_File
 
    -----------------------
    -- Load_Project_File --
@@ -57,6 +60,7 @@ package body Sinput.P is
       Actual_Len : Integer;
 
       Path_Id : Name_Id;
+      File_Id : Name_Id;
 
    begin
       if Path = "" then
@@ -149,31 +153,50 @@ package body Sinput.P is
 
       Close (Source_File_FD);
 
+      --  Get the file name, without path information
+
+      declare
+         Index : Positive := Path'Last;
+
+      begin
+         while Index > Path'First loop
+            exit when Path (Index - 1) = '/';
+            exit when Path (Index - 1) = Directory_Separator;
+            Index := Index - 1;
+         end loop;
+
+         Name_Len := Path'Last - Index + 1;
+         Name_Buffer (1 .. Name_Len) := Path (Index .. Path'Last);
+         File_Id := Name_Find;
+      end;
+
       declare
          S : Source_File_Record renames Source_File.Table (X);
 
       begin
-         S.File_Name         := Path_Id;
-         S.Reference_Name    := Path_Id;
-         S.Full_File_Name    := Path_Id;
-         S.Full_Ref_Name     := Path_Id;
-         S.Debug_Source_Name := Path_Id;
-         S.Line_Offset       := 0;
-         S.Has_Line_Offset   := False;
-         S.Source_Text       := Src;
-         S.Source_First      := Lo;
-         S.Source_Last       := Hi;
-         S.Time_Stamp        := Empty_Time_Stamp;
-         S.Source_Checksum   := 0;
-         S.Lines_Table       := null;
-         S.Num_Source_Lines  := 1;
-         S.Keyword_Casing    := Unknown;
-         S.Identifier_Casing := Unknown;
-         S.Instantiation     := No_Location;
-         S.Template          := No_Source_File;
-         S.Sloc_Adjust       := 0;
+         S := (Debug_Source_Name   => Path_Id,
+               File_Name           => File_Id,
+               First_Mapped_Line   => No_Line_Number,
+               Full_File_Name      => Path_Id,
+               Full_Ref_Name       => Path_Id,
+               Identifier_Casing   => Unknown,
+               Instantiation       => No_Location,
+               Keyword_Casing      => Unknown,
+               Last_Source_Line    => 1,
+               Lines_Table         => null,
+               Lines_Table_Max     => 1,
+               Logical_Lines_Table => null,
+               Num_SRef_Pragmas    => 0,
+               Reference_Name      => File_Id,
+               Sloc_Adjust         => 0,
+               Source_Checksum     => 0,
+               Source_First        => Lo,
+               Source_Last         => Hi,
+               Source_Text         => Src,
+               Template            => No_Source_File,
+               Time_Stamp          => Empty_Time_Stamp);
 
-         Alloc_Lines_Table (S, Opt.Table_Factor * Alloc.Lines_Initial);
+         Alloc_Line_Tables (S, Opt.Table_Factor * Alloc.Lines_Initial);
          S.Lines_Table (1) := Lo;
       end;
 

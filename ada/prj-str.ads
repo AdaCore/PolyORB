@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---             Copyright (C) 2000 Free Software Foundation, Inc.            --
+--             Copyright (C) 2001 Free Software Foundation, Inc.            --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -33,6 +33,13 @@ with Types;  use Types;
 private package Prj.Str is
 
    function Value
+     (Project     : Project_Data;
+      Pkg         : Package_Id;
+      Do_Not_Skip : Boolean)
+     return       Variable_Value;
+   --  Parse a single string or string list expression
+
+   function Value
      (Project    : Project_Data;
       Pkg        : Package_Id)
       return       Name_Id;
@@ -46,7 +53,7 @@ private package Prj.Str is
      (Project    : Project_Data;
       Pkg        : Package_Id)
       return       String_Id;
-   --  Parse a String Expression:
+   --  Parse a Single String Expression:
    --
    --   string_expression ::=
    --     string_term {& string_term}

@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-2000 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2001 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -86,6 +86,14 @@ package body Uintp is
    -- Local Subprograms --
    -----------------------
 
+   function Direct (U : Uint) return Boolean;
+   pragma Inline (Direct);
+   --  Returns True if U is represented directly
+
+   function Direct_Val (U : Uint) return Int;
+   --  U is a Uint for is represented directly. The returned result
+   --  is the value represented.
+
    function GCD (Jin, Kin : Int) return Int;
    --  Compute GCD of two integers. Assumes that Jin >= Kin >= 0
 
@@ -99,9 +107,12 @@ package body Uintp is
 
    procedure Init_Operand (UI : Uint; Vec : out UI_Vector);
    pragma Inline (Init_Operand);
-   --  This procedure copies the digits from UI or the table into the
-   --  vector parameter. The parameter should be of the correct size
-   --  as determined by a previous call to N_Digits with UI.
+   --  This procedure puts the value of UI into the vector in canonical
+   --  multiple precision format. The parameter should be of the correct
+   --  size as determined by a previous call to N_Digits (UI). The first
+   --  digit of Vec contains the sign, all other digits are always non-
+   --  negative. Note that the input may be directly represented, and in
+   --  this case Vec will contain the corresponding one or two digit value.
 
    function Least_Sig_Digit (Arg : Uint) return Int;
    pragma Inline (Least_Sig_Digit);
@@ -113,8 +124,10 @@ package body Uintp is
    --  long as it is a power of two.
 
    procedure Most_Sig_2_Digits
-     (Left,     Right     : Uint;
-      Left_Hat, Right_Hat : out Int);
+     (Left      : Uint;
+      Right     : Uint;
+      Left_Hat  : out Int;
+      Right_Hat : out Int);
    --  Returns leading two significant digits from the given pair of Uint's.
    --  Mathematically: returns Left / (Base ** K) and Right / (Base ** K)
    --  where K is as small as possible S.T. Right_Hat < Base * Base.
@@ -136,7 +149,36 @@ package body Uintp is
       Negative : Boolean)
       return     Uint;
    --  Functions that calculate values in UI_Vectors, call this function
-   --  to create and return the Uint value.
+   --  to create and return the Uint value. In_Vec contains the multiple
+   --  precision (Base) representation of a non-negative value. Leading
+   --  zeroes are permitted. Negative is set if the desired result is
+   --  the negative of the given value. The result will be either the
+   --  appropriate directly represented value, or a table entry in the
+   --  proper canonical format is created and returned.
+   --
+   --  Note that Init_Operand puts a signed value in the result vector,
+   --  but Vector_To_Uint is always presented with a non-negative value.
+   --  The processing of signs is something that is done by the caller
+   --  before calling Vector_To_Uint.
+
+   ------------
+   -- Direct --
+   ------------
+
+   function Direct (U : Uint) return Boolean is
+   begin
+      return Int (U) <= Int (Uint_Direct_Last);
+   end Direct;
+
+   ----------------
+   -- Direct_Val --
+   ----------------
+
+   function Direct_Val (U : Uint) return Int is
+   begin
+      pragma Assert (Direct (U));
+      return Int (U) - Int (Uint_Direct_Bias);
+   end Direct_Val;
 
    ---------
    -- GCD --
@@ -147,7 +189,7 @@ package body Uintp is
 
    begin
       pragma Assert (Jin >= Kin);
-      pragma Assert (Kin >= Uint_0);
+      pragma Assert (Kin >= Int_0);
 
       J := Jin;
       K := Kin;
@@ -373,8 +415,14 @@ package body Uintp is
       Loc : Int;
 
    begin
-      if Int (UI) <= Int (Uint_Direct_Last) then
-         Vec (1) := Int (UI) - Int (Uint_Direct_Bias);
+      if Direct (UI) then
+         Vec (1) := Direct_Val (UI);
+
+         if Vec (1) >= Base then
+            Vec (2) := Vec (1) rem Base;
+            Vec (1) := Vec (1) / Base;
+         end if;
+
       else
          Loc := Uints.Table (UI).Loc;
 
@@ -389,16 +437,23 @@ package body Uintp is
    ---------------------
 
    function Least_Sig_Digit (Arg : Uint) return Int is
+      V : Int;
+
    begin
-      if Int (Arg) <= Int (Uint_Direct_Last) then
+      if Direct (Arg) then
+         V := Direct_Val (Arg);
 
-         --  This is a bit more then the "Least Significant Digit"
-         --  and might be negative.
+         if V >= Base then
+            V := V mod Base;
+         end if;
 
-         return Int (Arg) - Int (Uint_Direct_Bias);
+         --  Note that this result may be negative
+
+         return V;
 
       else
-         return Udigits.Table
+         return
+           Udigits.Table
             (Uints.Table (Arg).Loc + Uints.Table (Arg).Length - 1);
       end if;
    end Least_Sig_Digit;
@@ -416,15 +471,20 @@ package body Uintp is
    -- Most_Sig_2_Digits --
    -----------------------
 
-   procedure Most_Sig_2_Digits (Left, Right : Uint;
-      Left_Hat, Right_Hat : out Int) is
-
+   procedure Most_Sig_2_Digits
+     (Left      : Uint;
+      Right     : Uint;
+      Left_Hat  : out Int;
+      Right_Hat : out Int)
+   is
    begin
       pragma Assert (Left >= Right);
-      if (Int (Left) <= Int (Uint_Direct_Last)) then
-         Left_Hat := (Int (Left) - Int (Uint_Direct_Bias));
-         Right_Hat := (Int (Right) - Int (Uint_Direct_Bias));
+
+      if Direct (Left) then
+         Left_Hat  := Direct_Val (Left);
+         Right_Hat := Direct_Val (Right);
          return;
+
       else
          declare
             L1 : constant Int :=
@@ -447,8 +507,8 @@ package body Uintp is
          T  : Int;
 
       begin
-         if (Int (Right) <= Int (Uint_Direct_Last)) then
-            T := (Int (Left) - Int (Uint_Direct_Bias));
+         if Direct (Right) then
+            T := Direct_Val (Left);
             R1 := abs (T / Base);
             R2 := T rem Base;
             Length_R := 2;
@@ -477,8 +537,13 @@ package body Uintp is
 
    function N_Digits (Input : Uint) return Int is
    begin
-      if Int (Input) <= Int (Uint_Direct_Last) then
-         return 1;
+      if Direct (Input) then
+         if Direct_Val (Input) >= Base then
+            return 2;
+         else
+            return 1;
+         end if;
+
       else
          return Uints.Table (Input).Length;
       end if;
@@ -509,6 +574,7 @@ package body Uintp is
 
       return Bits;
    end Num_Bits;
+
    ---------
    -- pid --
    ---------
@@ -545,7 +611,7 @@ package body Uintp is
 
    procedure Release_And_Save (M : Save_Mark; UI : in out Uint) is
    begin
-      if Int (UI) <= Int (Uint_Direct_Last) then
+      if Direct (UI) then
          Release (M);
 
       else
@@ -574,10 +640,10 @@ package body Uintp is
 
    procedure Release_And_Save (M : Save_Mark; UI1, UI2 : in out Uint) is
    begin
-      if Int (UI1) <= Int (Uint_Direct_Last) then
+      if Direct (UI1) then
          Release_And_Save (M, UI2);
 
-      elsif Int (UI2) <= Int (Uint_Direct_Last) then
+      elsif Direct (UI2) then
          Release_And_Save (M, UI1);
 
       else
@@ -650,13 +716,11 @@ package body Uintp is
 
       --  First try simple case;
 
-      if Int (Left) <= Int (Uint_Direct_Last) then
+      if Direct (Left) then
          declare
-            Tmp_Int : Int;
+            Tmp_Int : Int := Direct_Val (Left);
 
          begin
-            Tmp_Int := Int (Left) - Int (Uint_Direct_Bias);
-
             if Tmp_Int >= Base then
                Tmp_Int := (Tmp_Int / Base) +
                   Sign * (Tmp_Int rem Base);
@@ -695,8 +759,8 @@ package body Uintp is
             Carry := 0;
             Alt := 1;
 
-            for I in reverse 1 .. L_Length loop
-               Tmp_Int := Tmp_Int + Alt * (L_Vec (I) + Carry);
+            for J in reverse 1 .. L_Length loop
+               Tmp_Int := Tmp_Int + Alt * (L_Vec (J) + Carry);
 
                --  Tmp_Int is now between [-2 * Base + 1 .. 2 * Base - 1],
                --  since old Tmp_Int is between [-(Base - 1) .. Base - 1]
@@ -749,31 +813,11 @@ package body Uintp is
 
       pragma Assert (Sign = Int_1 or Sign = Int (-1));
 
-      if Int (Left) <= Int (Uint_Direct_Last) then
-         declare
-            Tmp_Int  : Int;
-            Base_Sqr : constant Int := Base * Base;
-
-         begin
-            Tmp_Int := Int (Left) - Int (Uint_Direct_Bias);
-            if Tmp_Int >= Base_Sqr then
-               Tmp_Int := (Tmp_Int / Base_Sqr) +
-                            Sign * (Tmp_Int rem Base_Sqr);
-
-               --  Tmp_Int is now in [-(Base_Sqr - 1) . . 2 * (Base_Sqr - 1)]
-
-               if Tmp_Int >= Base_Sqr then
-
-                  --  Sign must be 1.
-
-                  Tmp_Int := (Tmp_Int - Base_Sqr) + 1;
-               end if;
-            end if;
-
-            return Tmp_Int;
-         end;
+      if Direct (Left) then
+         return Direct_Val (Left);
 
       --  Otherwise full circuit is needed
+
       else
          declare
             L_Length      : Int := N_Digits (Left);
@@ -781,7 +825,7 @@ package body Uintp is
             Most_Sig_Int  : Int;
             Least_Sig_Int : Int;
             Carry         : Int;
-            I             : Int;
+            J             : Int;
             Alt           : Int;
 
          begin
@@ -791,11 +835,11 @@ package body Uintp is
             Least_Sig_Int := 0;
             Carry := 0;
             Alt := 1;
-            I := L_Length;
+            J := L_Length;
 
-            while I > Int_1 loop
+            while J > Int_1 loop
 
-               Least_Sig_Int := Least_Sig_Int + Alt * (L_Vec (I) + Carry);
+               Least_Sig_Int := Least_Sig_Int + Alt * (L_Vec (J) + Carry);
 
                --  Least is in [-2 Base + 1 .. 2 * Base - 1]
                --  Since L_Vec in [0 .. Base - 1] and Carry in [-1 .. 1]
@@ -815,7 +859,7 @@ package body Uintp is
 
                --  Least is now in [-Base + 1 .. Base - 1]
 
-               Most_Sig_Int := Most_Sig_Int + Alt * (L_Vec (I - 1) + Carry);
+               Most_Sig_Int := Most_Sig_Int + Alt * (L_Vec (J - 1) + Carry);
 
                --  Most is in [-2 Base + 1 .. 2 * Base - 1]
                --  Since L_Vec in [0 ..  Base - 1] and Carry in  [-1 .. 1]
@@ -834,12 +878,12 @@ package body Uintp is
 
                --  Most is now in [-Base + 1 .. Base - 1]
 
-               I := I - 2;
+               J := J - 2;
                Alt := Alt * Sign;
             end loop;
 
-            if I = Int_1 then
-               Least_Sig_Int := Least_Sig_Int + Alt * (L_Vec (I) + Carry);
+            if J = Int_1 then
+               Least_Sig_Int := Least_Sig_Int + Alt * (L_Vec (J) + Carry);
             else
                Least_Sig_Int := Least_Sig_Int + Alt * Carry;
             end if;
@@ -952,157 +996,161 @@ package body Uintp is
 
    function UI_Add (Left : Uint; Right : Uint) return Uint is
    begin
-      --  First try simple case where Int "+" can be used;
+      --  Simple cases of direct operands and addition of zero
 
-      if Int (Left) <= Int (Uint_Direct_Last)
-        and then Int (Right) <= Int (Uint_Direct_Last)
-      then
-         return
-           UI_From_Int
-             ((Int (Left)  - Int (Uint_Direct_Bias)) +
-              (Int (Right) - Int (Uint_Direct_Bias)));
+      if Direct (Left) then
+         if Direct (Right) then
+            return UI_From_Int (Direct_Val (Left) + Direct_Val (Right));
+
+         elsif Int (Left) = Int (Uint_0) then
+            return Right;
+         end if;
+
+      elsif Direct (Right) and then Int (Right) = Int (Uint_0) then
+         return Left;
+      end if;
 
       --  Otherwise full circuit is needed
 
-      else
+      declare
+         L_Length   : Int := N_Digits (Left);
+         R_Length   : Int := N_Digits (Right);
+         L_Vec      : UI_Vector (1 .. L_Length);
+         R_Vec      : UI_Vector (1 .. R_Length);
+         Sum_Length : Int;
+         Tmp_Int    : Int;
+         Carry      : Int;
+         Borrow     : Int;
+         X_Bigger   : Boolean := False;
+         Y_Bigger   : Boolean := False;
+         Result_Neg : Boolean := False;
+
+      begin
+         Init_Operand (Left, L_Vec);
+         Init_Operand (Right, R_Vec);
+
+         --  At least one of the two operands is in multi-digit form.
+         --  Calculate the number of digits sufficient to hold result.
+
+         if L_Length > R_Length then
+            Sum_Length := L_Length + 1;
+            X_Bigger := True;
+         else
+            Sum_Length := R_Length + 1;
+            if R_Length > L_Length then Y_Bigger := True; end if;
+         end if;
+
+         --  Make copies of the absolute values of L_Vec and R_Vec into
+         --  X and Y both with lengths equal to the maximum possibly
+         --  needed. This makes looping over the digits much simpler.
+
          declare
-            L_Length   : Int := N_Digits (Left);
-            R_Length   : Int := N_Digits (Right);
-            L_Vec      : UI_Vector (1 .. L_Length);
-            R_Vec      : UI_Vector (1 .. R_Length);
-            Sum_Length : Int;
-            Tmp_Int    : Int;
-            Carry      : Int;
-            Borrow     : Int;
-            X_Bigger   : Boolean := False;
-            Y_Bigger   : Boolean := False;
-            Result_Neg : Boolean := False;
+            X      : UI_Vector (1 .. Sum_Length);
+            Y      : UI_Vector (1 .. Sum_Length);
+            Tmp_UI : UI_Vector (1 .. Sum_Length);
 
          begin
-            Init_Operand (Left, L_Vec);
-            Init_Operand (Right, R_Vec);
+            for J in 1 .. Sum_Length - L_Length loop
+               X (J) := 0;
+            end loop;
 
-            --  At least one more than 1 digit, so calculation is needed. First
-            --  calculate the number of digits sufficient to hold result.
+            X (Sum_Length - L_Length + 1) := abs L_Vec (1);
 
-            if L_Length > R_Length then
-               Sum_Length := L_Length + 1;
-               X_Bigger := True;
+            for J in 2 .. L_Length loop
+               X (J + (Sum_Length - L_Length)) := L_Vec (J);
+            end loop;
+
+            for J in 1 .. Sum_Length - R_Length loop
+               Y (J) := 0;
+            end loop;
+
+            Y (Sum_Length - R_Length + 1) := abs R_Vec (1);
+
+            for J in 2 .. R_Length loop
+               Y (J + (Sum_Length - R_Length)) := R_Vec (J);
+            end loop;
+
+            if (L_Vec (1) < Int_0) = (R_Vec (1) < Int_0) then
+
+               --  Same sign so just add
+
+               Carry := 0;
+               for J in reverse 1 .. Sum_Length loop
+                  Tmp_Int := X (J) + Y (J) + Carry;
+
+                  if Tmp_Int >= Base then
+                     Tmp_Int := Tmp_Int - Base;
+                     Carry := 1;
+                  else
+                     Carry := 0;
+                  end if;
+
+                  X (J) := Tmp_Int;
+               end loop;
+
+               return Vector_To_Uint (X, L_Vec (1) < Int_0);
+
             else
-               Sum_Length := R_Length + 1;
-               if R_Length > L_Length then Y_Bigger := True; end if;
-            end if;
+               --  Find which one has bigger magnitude
 
-            --  Make copies of the absolute values of L_Vec and R_Vec into
-            --  X and Y both with lengths equal to the maximum possibly
-            --  needed. This makes looping over the digits much simpler.
-
-            declare
-               X      : UI_Vector (1 .. Sum_Length);
-               Y      : UI_Vector (1 .. Sum_Length);
-               Tmp_UI : UI_Vector (1 .. Sum_Length);
-
-            begin
-               for I in 1 .. Sum_Length - L_Length loop
-                  X (I) := 0;
-               end loop;
-
-               X (Sum_Length - L_Length + 1) := abs L_Vec (1);
-
-               for I in 2 .. L_Length loop
-                  X (I + (Sum_Length - L_Length)) := L_Vec (I);
-               end loop;
-
-               for I in 1 .. Sum_Length - R_Length loop
-                  Y (I) := 0;
-               end loop;
-
-               Y (Sum_Length - R_Length + 1) := abs R_Vec (1);
-
-               for I in 2 .. R_Length loop
-                  Y (I + (Sum_Length - R_Length)) := R_Vec (I);
-               end loop;
-
-               if (L_Vec (1) < Int_0) = (R_Vec (1) < Int_0) then
-
-                  --  Same sign so just add
-
-                  Carry := 0;
-                  for I in reverse 1 .. Sum_Length loop
-                     Tmp_Int := X (I) + Y (I) + Carry;
-                     if Tmp_Int >= Base then
-                        Tmp_Int := Tmp_Int - Base;
-                        Carry := 1;
-                     else
-                        Carry := 0;
+               if not (X_Bigger or Y_Bigger) then
+                  for J in L_Vec'Range loop
+                     if abs L_Vec (J) > abs R_Vec (J) then
+                        X_Bigger := True;
+                        exit;
+                     elsif abs R_Vec (J) > abs L_Vec (J) then
+                        Y_Bigger := True;
+                        exit;
                      end if;
-                     X (I) := Tmp_Int;
                   end loop;
+               end if;
 
-                  return Vector_To_Uint (X, L_Vec (1) < Int_0);
+               --  If they have identical magnitude, just return 0, else
+               --  swap if necessary so that X had the bigger magnitude.
+               --  Determine if result is negative at this time.
+
+               Result_Neg := False;
+
+               if not (X_Bigger or Y_Bigger) then
+                  return Uint_0;
+
+               elsif Y_Bigger then
+                  if R_Vec (1) < Int_0 then
+                     Result_Neg := True;
+                  end if;
+
+                  Tmp_UI := X;
+                  X := Y;
+                  Y := Tmp_UI;
 
                else
-                  --  Find which one has bigger magnitude
-
-                  if not (X_Bigger or Y_Bigger) then
-                     for I in L_Vec'Range loop
-                        if abs L_Vec (I) > abs R_Vec (I) then
-                           X_Bigger := True;
-                           exit;
-                        elsif abs R_Vec (I) > abs L_Vec (I) then
-                           Y_Bigger := True;
-                           exit;
-                        end if;
-                     end loop;
+                  if L_Vec (1) < Int_0 then
+                     Result_Neg := True;
                   end if;
-
-                  --  If they have identical magnitude, just return 0, else
-                  --  swap if necessary so that X had the bigger magnitude.
-                  --  Determine if result is negative at this time.
-
-                  Result_Neg := False;
-
-                  if not (X_Bigger or Y_Bigger) then
-                     return Uint_0;
-
-                  elsif Y_Bigger then
-                     if R_Vec (1) < Int_0 then
-                        Result_Neg := True;
-                     end if;
-
-                     Tmp_UI := X;
-                     X := Y;
-                     Y := Tmp_UI;
-
-                  else
-                     if L_Vec (1) < Int_0 then
-                        Result_Neg := True;
-                     end if;
-                  end if;
-
-                  --  Subtract Y from the bigger X
-
-                  Borrow := 0;
-
-                  for J in reverse 1 .. Sum_Length loop
-                     Tmp_Int := X (J) - Y (J) + Borrow;
-
-                     if Tmp_Int < Int_0 then
-                        Tmp_Int := Tmp_Int + Base;
-                        Borrow := -1;
-                     else
-                        Borrow := 0;
-                     end if;
-
-                     X (J) := Tmp_Int;
-                  end loop;
-
-                  return Vector_To_Uint (X, Result_Neg);
-
                end if;
-            end;
+
+               --  Subtract Y from the bigger X
+
+               Borrow := 0;
+
+               for J in reverse 1 .. Sum_Length loop
+                  Tmp_Int := X (J) - Y (J) + Borrow;
+
+                  if Tmp_Int < Int_0 then
+                     Tmp_Int := Tmp_Int + Base;
+                     Borrow := -1;
+                  else
+                     Borrow := 0;
+                  end if;
+
+                  X (J) := Tmp_Int;
+               end loop;
+
+               return Vector_To_Uint (X, Result_Neg);
+
+            end if;
          end;
-      end if;
+      end;
    end UI_Add;
 
    --------------------------
@@ -1149,199 +1197,203 @@ package body Uintp is
    end UI_Div;
 
    function UI_Div (Left, Right : Uint) return Uint is
-      L_Length    : constant Int := N_Digits (Left);
-      R_Length    : constant Int := N_Digits (Right);
-      Q_Length    : constant Int := L_Length - R_Length + 1;
-      L_Vec       : UI_Vector (1 .. L_Length);
-      R_Vec       : UI_Vector (1 .. R_Length);
-      D           : Int;
-      Remainder   : Int;
-      Tmp_Divisor : Int;
-      Carry       : Int;
-      Tmp_Int     : Int;
-      Tmp_Dig     : Int;
-
    begin
       pragma Assert (Right /= Uint_0);
 
-      --  Some special cases that are simpler to compute than the general
-      --  case are treated first.
+      --  Cases where both operands are represented directly
 
-      if L_Length = Int_1 and then R_Length = Int_1 then
-         return UI_From_Int (UI_To_Int (Left) / UI_To_Int (Right));
-      elsif  L_Length < R_Length then
-         return Uint_0;
+      if Direct (Left) and then Direct (Right) then
+         return UI_From_Int (Direct_Val (Left) / Direct_Val (Right));
       end if;
 
-      Init_Operand (Left, L_Vec);
-      Init_Operand (Right, R_Vec);
-
-      --  Case of right operand is single digit. Here we can simply divide
-      --  each digit of the left operand by the divisor, from most to least
-      --  significant, carrying the remainder to the next digit (just like
-      --  ordinary long division by hand).
-
-      if R_Length = Int_1 then
-         Remainder := 0;
-         Tmp_Divisor := abs R_Vec (1);
-
-         declare
-            Quotient : UI_Vector (1 .. L_Length);
-
-         begin
-            for J in L_Vec'Range loop
-               Tmp_Int      := Remainder * Base + abs L_Vec (J);
-               Quotient (J) := Tmp_Int / Tmp_Divisor;
-               Remainder    := Tmp_Int rem Tmp_Divisor;
-            end loop;
-
-            return
-              Vector_To_Uint
-                (Quotient, (L_Vec (1) < Int_0 xor R_Vec (1) < Int_0));
-         end;
-      end if;
-
-      --  The possible simple cases have been exhausted. Now turn to the
-      --  algorithm D from the section of Knuth mentioned at the top of
-      --  this package.
-
-      Algorithm_D : declare
-         Dividend     : UI_Vector (1 .. L_Length + 1);
-         Divisor      : UI_Vector (1 .. R_Length);
-         Quotient     : UI_Vector (1 .. Q_Length);
-         Divisor_Dig1 : Int;
-         Divisor_Dig2 : Int;
-         Q_Guess      : Int;
+      declare
+         L_Length    : constant Int := N_Digits (Left);
+         R_Length    : constant Int := N_Digits (Right);
+         Q_Length    : constant Int := L_Length - R_Length + 1;
+         L_Vec       : UI_Vector (1 .. L_Length);
+         R_Vec       : UI_Vector (1 .. R_Length);
+         D           : Int;
+         Remainder   : Int;
+         Tmp_Divisor : Int;
+         Carry       : Int;
+         Tmp_Int     : Int;
+         Tmp_Dig     : Int;
 
       begin
-         --  [ NORMALIZE ] (step D1 in the algorithm). First calculate the
-         --  scale d, and then multiply Left and Right (u and v in the book)
-         --  by d to get the dividend and divisor to work with.
+         --  Result is zero if left operand is shorter than right
 
-         D := Base / (abs R_Vec (1) + 1);
-
-         Dividend (1) := 0;
-         Dividend (2) := abs L_Vec (1);
-
-         for J in 3 .. L_Length + Int_1 loop
-            Dividend (J) := L_Vec (J - 1);
-         end loop;
-
-         Divisor (1) := abs R_Vec (1);
-
-         for J in Int_2 .. R_Length loop
-            Divisor (J) := R_Vec (J);
-         end loop;
-
-         if D > Int_1 then
-
-            --  Multiply Dividend by D
-
-            Carry := 0;
-            for J in reverse Dividend'Range loop
-               Tmp_Int      := Dividend (J) * D + Carry;
-               Dividend (J) := Tmp_Int rem Base;
-               Carry        := Tmp_Int / Base;
-            end loop;
-
-            --  Multiply Divisor by d.
-
-            Carry := 0;
-            for J in reverse Divisor'Range loop
-               Tmp_Int      := Divisor (J) * D + Carry;
-               Divisor (J)  := Tmp_Int rem Base;
-               Carry        := Tmp_Int / Base;
-            end loop;
-
+         if L_Length < R_Length then
+            return Uint_0;
          end if;
 
-         --  Main loop of long division algorithm.
+         Init_Operand (Left, L_Vec);
+         Init_Operand (Right, R_Vec);
 
-         Divisor_Dig1 := Divisor (1);
-         Divisor_Dig2 := Divisor (2);
+         --  Case of right operand is single digit. Here we can simply divide
+         --  each digit of the left operand by the divisor, from most to least
+         --  significant, carrying the remainder to the next digit (just like
+         --  ordinary long division by hand).
 
-         for J in Quotient'Range loop
+         if R_Length = Int_1 then
+            Remainder := 0;
+            Tmp_Divisor := abs R_Vec (1);
 
-            --  [ CALCULATE Q (hat) ] (step D3 in the algorithm).
+            declare
+               Quotient : UI_Vector (1 .. L_Length);
 
-            Tmp_Int := Dividend (J) * Base + Dividend (J + 1);
+            begin
+               for J in L_Vec'Range loop
+                  Tmp_Int      := Remainder * Base + abs L_Vec (J);
+                  Quotient (J) := Tmp_Int / Tmp_Divisor;
+                  Remainder    := Tmp_Int rem Tmp_Divisor;
+               end loop;
 
-            --  Initial guess
+               return
+                 Vector_To_Uint
+                   (Quotient, (L_Vec (1) < Int_0 xor R_Vec (1) < Int_0));
+            end;
+         end if;
 
-            if Dividend (J) = Divisor_Dig1 then
-               Q_Guess := Base - 1;
-            else
-               Q_Guess := Tmp_Int / Divisor_Dig1;
+         --  The possible simple cases have been exhausted. Now turn to the
+         --  algorithm D from the section of Knuth mentioned at the top of
+         --  this package.
+
+         Algorithm_D : declare
+            Dividend     : UI_Vector (1 .. L_Length + 1);
+            Divisor      : UI_Vector (1 .. R_Length);
+            Quotient     : UI_Vector (1 .. Q_Length);
+            Divisor_Dig1 : Int;
+            Divisor_Dig2 : Int;
+            Q_Guess      : Int;
+
+         begin
+            --  [ NORMALIZE ] (step D1 in the algorithm). First calculate the
+            --  scale d, and then multiply Left and Right (u and v in the book)
+            --  by d to get the dividend and divisor to work with.
+
+            D := Base / (abs R_Vec (1) + 1);
+
+            Dividend (1) := 0;
+            Dividend (2) := abs L_Vec (1);
+
+            for J in 3 .. L_Length + Int_1 loop
+               Dividend (J) := L_Vec (J - 1);
+            end loop;
+
+            Divisor (1) := abs R_Vec (1);
+
+            for J in Int_2 .. R_Length loop
+               Divisor (J) := R_Vec (J);
+            end loop;
+
+            if D > Int_1 then
+
+               --  Multiply Dividend by D
+
+               Carry := 0;
+               for J in reverse Dividend'Range loop
+                  Tmp_Int      := Dividend (J) * D + Carry;
+                  Dividend (J) := Tmp_Int rem Base;
+                  Carry        := Tmp_Int / Base;
+               end loop;
+
+               --  Multiply Divisor by d.
+
+               Carry := 0;
+               for J in reverse Divisor'Range loop
+                  Tmp_Int      := Divisor (J) * D + Carry;
+                  Divisor (J)  := Tmp_Int rem Base;
+                  Carry        := Tmp_Int / Base;
+               end loop;
             end if;
 
-            --  Refine the guess
+            --  Main loop of long division algorithm.
 
-            while Divisor_Dig2 * Q_Guess >
-                  (Tmp_Int - Q_Guess * Divisor_Dig1) * Base + Dividend (J + 2)
-            loop
-               Q_Guess := Q_Guess - 1;
-            end loop;
+            Divisor_Dig1 := Divisor (1);
+            Divisor_Dig2 := Divisor (2);
 
-            --  [ MULTIPLY & SUBTRACT] (step D4). Q_Guess * Divisor is
-            --  subtracted from the remaining dividend.
+            for J in Quotient'Range loop
 
-            Carry := 0;
-            for K in reverse Divisor'Range loop
-               Tmp_Int := Dividend (J + K) - Q_Guess * Divisor (K) + Carry;
-               Tmp_Dig := Tmp_Int rem Base;
-               Carry   := Tmp_Int / Base;
+               --  [ CALCULATE Q (hat) ] (step D3 in the algorithm).
 
-               if Tmp_Dig < Int_0 then
-                  Tmp_Dig := Tmp_Dig + Base;
-                  Carry   := Carry - 1;
+               Tmp_Int := Dividend (J) * Base + Dividend (J + 1);
+
+               --  Initial guess
+
+               if Dividend (J) = Divisor_Dig1 then
+                  Q_Guess := Base - 1;
+               else
+                  Q_Guess := Tmp_Int / Divisor_Dig1;
                end if;
 
-               Dividend (J + K) := Tmp_Dig;
-            end loop;
+               --  Refine the guess
 
-            Dividend (J) := Dividend (J) + Carry;
+               while Divisor_Dig2 * Q_Guess >
+                     (Tmp_Int - Q_Guess * Divisor_Dig1) * Base +
+                                                          Dividend (J + 2)
+               loop
+                  Q_Guess := Q_Guess - 1;
+               end loop;
 
-            --  [ TEST REMAINDER ] & [ ADD BACK ] (steps D5 and D6)
-            --  Here there is a slight difference from the book: the last
-            --  carry is always added in above and below (cancelling each
-            --  other). In fact the dividend going negative is used as
-            --  the test.
-
-            --  If the Dividend went negative, then Q_Guess was off by
-            --  one, so it is decremented, and the divisor is added back
-            --  into the relevant portion of the dividend.
-
-            if Dividend (J) < Int_0 then
-               Q_Guess := Q_Guess - 1;
+               --  [ MULTIPLY & SUBTRACT] (step D4). Q_Guess * Divisor is
+               --  subtracted from the remaining dividend.
 
                Carry := 0;
                for K in reverse Divisor'Range loop
-                  Tmp_Int := Dividend (J + K) + Divisor (K) + Carry;
+                  Tmp_Int := Dividend (J + K) - Q_Guess * Divisor (K) + Carry;
+                  Tmp_Dig := Tmp_Int rem Base;
+                  Carry   := Tmp_Int / Base;
 
-                  if Tmp_Int >= Base then
-                     Tmp_Int := Tmp_Int - Base;
-                     Carry := 1;
-                  else
-                     Carry := 0;
+                  if Tmp_Dig < Int_0 then
+                     Tmp_Dig := Tmp_Dig + Base;
+                     Carry   := Carry - 1;
                   end if;
 
-                  Dividend (J + K) := Tmp_Int;
+                  Dividend (J + K) := Tmp_Dig;
                end loop;
 
                Dividend (J) := Dividend (J) + Carry;
-            end if;
 
-            --  Finally we can get the next quotient digit
+               --  [ TEST REMAINDER ] & [ ADD BACK ] (steps D5 and D6)
+               --  Here there is a slight difference from the book: the last
+               --  carry is always added in above and below (cancelling each
+               --  other). In fact the dividend going negative is used as
+               --  the test.
 
-            Quotient (J) := Q_Guess;
+               --  If the Dividend went negative, then Q_Guess was off by
+               --  one, so it is decremented, and the divisor is added back
+               --  into the relevant portion of the dividend.
 
-         end loop;
+               if Dividend (J) < Int_0 then
+                  Q_Guess := Q_Guess - 1;
 
-         return Vector_To_Uint
-           (Quotient, (L_Vec (1) < Int_0 xor R_Vec (1) < Int_0));
+                  Carry := 0;
+                  for K in reverse Divisor'Range loop
+                     Tmp_Int := Dividend (J + K) + Divisor (K) + Carry;
 
-      end Algorithm_D;
+                     if Tmp_Int >= Base then
+                        Tmp_Int := Tmp_Int - Base;
+                        Carry := 1;
+                     else
+                        Carry := 0;
+                     end if;
 
+                     Dividend (J + K) := Tmp_Int;
+                  end loop;
+
+                  Dividend (J) := Dividend (J) + Carry;
+               end if;
+
+               --  Finally we can get the next quotient digit
+
+               Quotient (J) := Q_Guess;
+            end loop;
+
+            return Vector_To_Uint
+              (Quotient, (L_Vec (1) < Int_0 xor R_Vec (1) < Int_0));
+
+         end Algorithm_D;
+      end;
    end UI_Div;
 
    ------------
@@ -1414,8 +1466,7 @@ package body Uintp is
 
          if Left = Uint_2 then
             declare
-               Right_Int : constant Int :=
-                             Int (Right) - Int (Uint_Direct_Bias);
+               Right_Int : constant Int := Direct_Val (Right);
 
             begin
                if Right_Int > UI_Power_2_Set then
@@ -1435,8 +1486,7 @@ package body Uintp is
 
          elsif Left = Uint_10 then
             declare
-               Right_Int : constant Int :=
-                             Int (Right) - Int (Uint_Direct_Bias);
+               Right_Int : constant Int := Direct_Val (Right);
 
             begin
                if Right_Int > UI_Power_10_Set then
@@ -1479,14 +1529,53 @@ package body Uintp is
    end UI_Expon;
 
    ------------------
-   -- UI_From_Int --
+   -- UI_From_Dint --
    ------------------
+
+   function UI_From_Dint (Input : Dint) return Uint is
+   begin
+
+      if Dint (Min_Direct) <= Input and then Input <= Dint (Max_Direct) then
+         return Uint (Dint (Uint_Direct_Bias) + Input);
+
+      --  For values of larger magnitude, compute digits into a vector and
+      --  call Vector_To_Uint.
+
+      else
+         declare
+            Max_For_Dint : constant := 5;
+            --  Base is defined so that 5 Uint digits is sufficient
+            --  to hold the largest possible Dint value.
+
+            V : UI_Vector (1 .. Max_For_Dint);
+
+            Temp_Integer : Dint;
+
+         begin
+            for J in V'Range loop
+               V (J) := 0;
+            end loop;
+
+            Temp_Integer := Input;
+
+            for J in reverse V'Range loop
+               V (J) := Int (abs (Temp_Integer rem Dint (Base)));
+               Temp_Integer := Temp_Integer / Dint (Base);
+            end loop;
+
+            return Vector_To_Uint (V, Input < Dint'(0));
+         end;
+      end if;
+   end UI_From_Dint;
+
+   -----------------
+   -- UI_From_Int --
+   -----------------
 
    function UI_From_Int (Input : Int) return Uint is
    begin
-      --  The case -Base < Input < Base is the usual and simple case.
 
-      if -Base < Input and then Input < Base then
+      if Min_Direct <= Input and then Input <= Max_Direct then
          return Uint (Int (Uint_Direct_Bias) + Input);
 
       --  For values of larger magnitude, compute digits into a vector and
@@ -1494,8 +1583,8 @@ package body Uintp is
 
       else
          declare
-            Max_For_Int : constant := 4;
-            --  Base is defined so that 4 Uint digits is sufficient
+            Max_For_Int : constant := 3;
+            --  Base is defined so that 3 Uint digits is sufficient
             --  to hold the largest possible Int value.
 
             V : UI_Vector (1 .. Max_For_Int);
@@ -1503,14 +1592,14 @@ package body Uintp is
             Temp_Integer : Int;
 
          begin
-            for I in V'Range loop
-               V (I) := 0;
+            for J in V'Range loop
+               V (J) := 0;
             end loop;
 
             Temp_Integer := Input;
 
-            for I in reverse V'Range loop
-               V (I) := abs (Temp_Integer rem Base);
+            for J in reverse V'Range loop
+               V (J) := abs (Temp_Integer rem Base);
                Temp_Integer := Temp_Integer / Base;
             end loop;
 
@@ -1554,11 +1643,12 @@ package body Uintp is
       loop
          Iterations := Iterations + 1;
 
-         if Int (V) <= Int (Uint_Direct_Last) then
+         if Direct (V) then
             if V = Uint_0 then
                return U;
             else
-               return UI_From_Int (GCD (UI_To_Int (V), UI_To_Int (U rem V)));
+               return
+                 UI_From_Int (GCD (Direct_Val (V), UI_To_Int (U rem V)));
             end if;
          end if;
 
@@ -1687,6 +1777,7 @@ package body Uintp is
 
    begin
       pragma Assert (False); -- ???
+
       if Int (Arg) <= Int (Uint_Direct_Last) then
          return Uint (
             (Int (Arg) - Int (Uint_Direct_Bias)) / Int_2 +
@@ -1780,8 +1871,12 @@ package body Uintp is
 
       pragma Assert (Uint_Int_First /= Uint_0);
 
-      return Input >= Uint_Int_First
-        and then Input <= Uint_Int_Last;
+      if Direct (Input) then
+         return True;
+      else
+         return Input >= Uint_Int_First
+           and then Input <= Uint_Int_Last;
+      end if;
    end UI_Is_In_Int_Range;
 
    ------------
@@ -1818,24 +1913,24 @@ package body Uintp is
    end UI_Lt;
 
    function UI_Lt (Left : Uint; Right : Uint) return Boolean is
-      L_Length : constant Int := N_Digits (Left);
-      R_Length : constant Int := N_Digits (Right);
-
    begin
       --  Quick processing for identical arguments
 
       if Int (Left) = Int (Right) then
          return False;
 
-      --  Quick processing for both arguments one digit long
+      --  Quick processing for both arguments directly represented
 
-      elsif L_Length = Int_1 and then R_Length = Int_1 then
+      elsif Direct (Left) and then Direct (Right) then
          return Int (Left) < Int (Right);
 
       --  At least one argument is more than one digit long
 
       else
          declare
+            L_Length : constant Int := N_Digits (Left);
+            R_Length : constant Int := N_Digits (Right);
+
             L_Vec : UI_Vector (1 .. L_Length);
             R_Vec : UI_Vector (1 .. R_Length);
 
@@ -1984,54 +2079,56 @@ package body Uintp is
    end UI_Mul;
 
    function UI_Mul (Left : Uint; Right : Uint) return Uint is
-      L_Length : constant Int := N_Digits (Left);
-      R_Length : constant Int := N_Digits (Right);
-      L_Vec    : UI_Vector (1 .. L_Length);
-      R_Vec    : UI_Vector (1 .. R_Length);
-      Neg      : Boolean;
-
    begin
-      --  Simple case of single length operands. Note that we chose our base
-      --  precisely to make this simple (the product always fits in Int range)
+      --  Simple case of single length operands
 
-      if L_Length = Int_1 and then R_Length = Int_1 then
-         return UI_From_Int
-           ((Int (Left)  - Int (Uint_Direct_Bias)) *
-            (Int (Right) - Int (Uint_Direct_Bias)));
+      if Direct (Left) and then Direct (Right) then
+         return
+           UI_From_Dint
+             (Dint (Direct_Val (Left)) * Dint (Direct_Val (Right)));
       end if;
 
       --  Otherwise we have the general case (Algorithm M in Knuth)
 
-      Init_Operand (Left, L_Vec);
-      Init_Operand (Right, R_Vec);
-      Neg := (L_Vec (1) < Int_0) xor (R_Vec (1) < Int_0);
-      L_Vec (1) := abs (L_Vec (1));
-      R_Vec (1) := abs (R_Vec (1));
-
-      Algorithm_M : declare
-         Product : UI_Vector (1 .. L_Length + R_Length);
-         Tmp_Sum : Int;
-         Carry   : Int;
+      declare
+         L_Length : constant Int := N_Digits (Left);
+         R_Length : constant Int := N_Digits (Right);
+         L_Vec    : UI_Vector (1 .. L_Length);
+         R_Vec    : UI_Vector (1 .. R_Length);
+         Neg      : Boolean;
 
       begin
-         for J in Product'Range loop
-            Product (J) := 0;
-         end loop;
+         Init_Operand (Left, L_Vec);
+         Init_Operand (Right, R_Vec);
+         Neg := (L_Vec (1) < Int_0) xor (R_Vec (1) < Int_0);
+         L_Vec (1) := abs (L_Vec (1));
+         R_Vec (1) := abs (R_Vec (1));
 
-         for J in reverse R_Vec'Range loop
-            Carry := 0;
-            for K in reverse L_Vec'Range loop
-               Tmp_Sum :=
-                 L_Vec (K) * R_Vec (J) + Product (J + K) + Carry;
-               Product (J + K) := Tmp_Sum rem Base;
-               Carry := Tmp_Sum / Base;
+         Algorithm_M : declare
+            Product : UI_Vector (1 .. L_Length + R_Length);
+            Tmp_Sum : Int;
+            Carry   : Int;
+
+         begin
+            for J in Product'Range loop
+               Product (J) := 0;
             end loop;
 
-            Product (J) := Carry;
-         end loop;
+            for J in reverse R_Vec'Range loop
+               Carry := 0;
+               for K in reverse L_Vec'Range loop
+                  Tmp_Sum :=
+                    L_Vec (K) * R_Vec (J) + Product (J + K) + Carry;
+                  Product (J + K) := Tmp_Sum rem Base;
+                  Carry := Tmp_Sum / Base;
+               end loop;
 
-         return Vector_To_Uint (Product, Neg);
-      end Algorithm_M;
+               Product (J) := Carry;
+            end loop;
+
+            return Vector_To_Uint (Product, Neg);
+         end Algorithm_M;
+      end;
    end UI_Mul;
 
    ------------
@@ -2049,31 +2146,47 @@ package body Uintp is
    end UI_Ne;
 
    function UI_Ne (Left : Uint; Right : Uint) return Boolean is
-      Size      : constant Int := N_Digits (Left);
-      Left_Loc  : Int;
-      Right_Loc : Int;
-
    begin
       --  Quick processing for identical arguments. Note that this takes
       --  care of the case of two No_Uint arguments.
 
       if Int (Left) = Int (Right) then
          return False;
+      end if;
 
-      --  Certainly not equal if sizes are different
+      --  See if left operand directly represented
 
-      elsif Size /= N_Digits (Right) then
+      if Direct (Left) then
+
+         --  If right operand directly represented then compare
+
+         if Direct (Right) then
+            return Int (Left) /= Int (Right);
+
+         --  Left operand directly represented, right not, must be unequal
+
+         else
+            return True;
+         end if;
+
+      --  Right operand directly represented, left not, must be unequal
+
+      elsif Direct (Right) then
          return True;
+      end if;
 
-      --  Quick processing for one digit case. Note that this takes care
-      --  of when one operand is No_Uint and the other is not.
+      --  Otherwise both multi-word, do comparison
 
-      elsif Size = Int_1 then
-         return Int (Left) /= Int (Right);
+      declare
+         Size      : constant Int := N_Digits (Left);
+         Left_Loc  : Int;
+         Right_Loc : Int;
 
-      --  Otherwise do comparison
+      begin
+         if Size /= N_Digits (Right) then
+            return True;
+         end if;
 
-      else
          Left_Loc  := Uints.Table (Left).Loc;
          Right_Loc := Uints.Table (Right).Loc;
 
@@ -2086,7 +2199,7 @@ package body Uintp is
          end loop;
 
          return False;
-      end if;
+      end;
    end UI_Ne;
 
    ----------------
@@ -2095,35 +2208,30 @@ package body Uintp is
 
    function UI_Negate (Right : Uint) return Uint is
    begin
-      --  Quick processing for single digit case. Note that the negative of
-      --  a single digit value always fits in a single digit, because the
-      --  range is symmetrical.
+      --  Case where input is directly represented. Note that since the
+      --  range of Direct values is non-symmetrical, the result may not
+      --  be directly represented, this is taken care of in UI_From_Int.
 
-      if Int (Right) <= Int (Uint_Direct_Last) then
-         return Uint (Int (Uint_Direct_Bias) -
-                     (Int (Right) - Int (Uint_Direct_Bias)));
+      if Direct (Right) then
+         return UI_From_Int (-Direct_Val (Right));
 
-      --  Else copy the value to the end of the table, negating 1st digit
+      --  Full processing for multi-digit case. Note that we cannot just
+      --  copy the value to the end of the table negating the first digit,
+      --  since the range of Direct values is non-symmetrical, so we can
+      --  have a negative value that is not Direct whose negation can be
+      --  represented directly.
 
       else
          declare
-            Length : Int := Uints.Table (Right).Length;
-            Loc    : Int := Uints.Table (Right).Loc;
+            R_Length : constant Int := N_Digits (Right);
+            R_Vec    : UI_Vector (1 .. R_Length);
+            Neg      : Boolean;
 
          begin
-            Uints.Increment_Last;
-            Uints.Table (Uints.Last).Length := Length;
-            Uints.Table (Uints.Last).Loc := Udigits.Last + 1;
-
-            Udigits.Increment_Last;
-            Udigits.Table (Udigits.Last) := -Udigits.Table (Loc);
-
-            for Idx in 2 .. Length loop
-               Udigits.Increment_Last;
-               Udigits.Table (Udigits.Last) := Udigits.Table (Loc + Idx - 1);
-            end loop;
-
-            return Uints.Last;
+            Init_Operand (Right, R_Vec);
+            Neg := R_Vec (1) > Int_0;
+            R_Vec (1) := abs R_Vec (1);
+            return Vector_To_Uint (R_Vec, Neg);
          end;
       end if;
    end UI_Negate;
@@ -2146,14 +2254,14 @@ package body Uintp is
       Sign : Int;
       Tmp  : Int;
 
+      subtype Int1_12 is Integer range 1 .. 12;
+
    begin
       pragma Assert (Right /= Uint_0);
 
-      if N_Digits (Right) = Int_1 then
-         if N_Digits (Left) = Int_1 then
-            return
-              UI_From_Int ((Int (Left) - Int (Uint_Direct_Bias)) rem
-                            (Int (Right) - Int (Uint_Direct_Bias)));
+      if Direct (Right) then
+         if Direct (Left) then
+            return UI_From_Int (Direct_Val (Left) rem Direct_Val (Right));
 
          else
             --  Special cases when Right is less than 13 and Left is larger
@@ -2173,7 +2281,7 @@ package body Uintp is
                --  It is not inefficient to do have this case list out
                --  of order since GCC sorts the cases we list.
 
-               case UI_To_Int (UI_Abs (Right)) is
+               case Int1_12 (abs (Direct_Val (Right))) is
 
                   when 1 =>
                      return Uint_0;
@@ -2182,21 +2290,25 @@ package body Uintp is
                   --  GCC will recognise these constants as powers of 2
                   --  and replace the rem with simpler operations where
                   --  possible.
+
                   --  Least_Sig_Digit might return Negative numbers.
 
                   when 2 =>
                      return UI_From_Int (
                         Sign * (Least_Sig_Digit (Left) mod 2));
+
                   when 4 =>
                      return UI_From_Int (
                         Sign * (Least_Sig_Digit (Left) mod 4));
+
                   when 8 =>
                      return UI_From_Int (
                         Sign * (Least_Sig_Digit (Left) mod 8));
 
-                  --  Some number theoretic tricks:
-                  --  If B Rem Right = 1 then
-                  --  Left Rem Right = Sum_Of_Digits_Base_B (Left) Rem Right
+                  --  Some number theoretical tricks:
+
+                  --    If B Rem Right = 1 then
+                  --    Left Rem Right = Sum_Of_Digits_Base_B (Left) Rem Right
 
                   --  Note: 2^32 mod 3 = 1
 
@@ -2236,8 +2348,10 @@ package body Uintp is
 
                   --  Now resort to Chinese Remainder theorem
                   --  to reduce 6, 10, 12 to previous special cases
+
                   --  There is no reason we could not add more cases
                   --  like these if it proves useful.
+
                   --  Perhaps we should go up to 16, however
                   --  I have no "trick" for 13.
 
@@ -2256,29 +2370,23 @@ package body Uintp is
                   --  m1 = 2; m2 = 3; M1 = 3; M2 = 4;
 
                   when 6  =>
-                     Tmp := 3 * (Least_Sig_Digit (Left) rem 2)
-                        + 4 * (Sum_Double_Digits (Left, 1) rem 3);
+                     Tmp := 3 * (Least_Sig_Digit (Left) rem 2) +
+                              4 * (Sum_Double_Digits (Left, 1) rem 3);
                      return UI_From_Int (Sign * (Tmp rem 6));
 
                   --  m1 = 2; m2 = 5; M1 = 5; M2 = 6;
 
                   when 10 =>
-                     Tmp := 5 * (Least_Sig_Digit (Left) rem 2)
-                        + 6 * (Sum_Double_Digits (Left, -1) mod 5);
+                     Tmp := 5 * (Least_Sig_Digit (Left) rem 2) +
+                              6 * (Sum_Double_Digits (Left, -1) mod 5);
                      return UI_From_Int (Sign * (Tmp rem 10));
 
                   --  m1 = 3; m2 = 4; M1 = 4; M2 = 9;
 
                   when 12 =>
-                     Tmp := 4 * (Sum_Double_Digits (Left, 1) rem 3)
-                        + 9 * (Least_Sig_Digit (Left) rem 4);
+                     Tmp := 4 * (Sum_Double_Digits (Left, 1) rem 3) +
+                              9 * (Least_Sig_Digit (Left) rem 4);
                      return UI_From_Int (Sign * (Tmp rem 12));
-
-                  --  We can't reach this because of enclosing if statement
-
-                  when others =>
-                     pragma Assert (False);
-                     raise Program_Error;
                end case;
 
             end if;
@@ -2312,7 +2420,11 @@ package body Uintp is
 
    function UI_Sub (Left : Uint; Right : Uint) return Uint is
    begin
-      return UI_Add (Left, -Right);
+      if Direct (Left) and then Direct (Right) then
+         return UI_From_Int (Direct_Val (Left) - Direct_Val (Right));
+      else
+         return UI_Add (Left, -Right);
+      end if;
    end UI_Sub;
 
    ----------------
@@ -2321,8 +2433,8 @@ package body Uintp is
 
    function UI_To_Int (Input : Uint) return Int is
    begin
-      if Int (Input) <= Int (Uint_Direct_Last) then
-         return Int (Input) - Int (Uint_Direct_Bias);
+      if Direct (Input) then
+         return Direct_Val (Input);
 
       --  Case of input is more than one digit
 
@@ -2380,6 +2492,7 @@ package body Uintp is
       return     Uint
    is
       Size : Int;
+      Val  : Int;
 
    begin
       --  The vector can contain leading zeros. These are not stored in the
@@ -2392,17 +2505,29 @@ package body Uintp is
 
             Size := In_Vec'Last - J + 1;
 
+            --  One digit value can always be represented directly
+
             if Size = Int_1 then
                if Negative then
                   return Uint (Int (Uint_Direct_Bias) - In_Vec (J));
                else
                   return Uint (Int (Uint_Direct_Bias) + In_Vec (J));
                end if;
+
+            --  Positive two digit values may be in direct representation range
+
+            elsif Size = Int_2 and then not Negative then
+               Val := In_Vec (J) * Base + In_Vec (J + 1);
+
+               if Val <= Max_Direct then
+                  return Uint (Int (Uint_Direct_Bias) + Val);
+               end if;
             end if;
 
-            --  The value takes more than one digit, so it is stored in the
-            --  table. Expand the table to contain the count and digits.
-            --  the index of the first new location is the return value.
+            --  The value is outside the direct representation range and
+            --  must therefore be stored in the table. Expand the table
+            --  to contain the count and tigis. The index of the new table
+            --  entry will be returned as the result.
 
             Uints.Increment_Last;
             Uints.Table (Uints.Last).Length := Size;

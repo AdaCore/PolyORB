@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-2000 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2001 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -20,13 +20,6 @@
 -- Public License  distributed with GNAT;  see file COPYING.  If not, write --
 -- to  the Free Software Foundation,  59 Temple Place - Suite 330,  Boston, --
 -- MA 02111-1307, USA.                                                      --
---                                                                          --
--- As a special exception,  if other files  instantiate  generics from this --
--- unit, or you link  this unit with other files  to produce an executable, --
--- this  unit  does not  by itself cause  the resulting  executable  to  be --
--- covered  by the  GNU  General  Public  License.  This exception does not --
--- however invalidate  any other reasons why  the executable file  might be --
--- covered by the  GNU Public License.                                      --
 --                                                                          --
 -- GNAT was originally developed  by the GNAT team at  New York University. --
 -- It is now maintained by Ada Core Technologies Inc (http://www.gnat.com). --
@@ -162,9 +155,12 @@ package body Osint is
    --  No_File, that indicates that the file whose name was returned by the
    --  last call to Next_Main_Source (and stored here) is to be read.
 
-   Current_Main_Has_Dir : Boolean := False;
-   --  Used to record that the Current_Main has directory
-   --  information in it since it affects gnatmake behavior.
+   Look_In_Primary_Directory_For_Current_Main : Boolean := False;
+   --  When this variable is True, Find_File will only look in
+   --  the Primary_Directory for the Current_Main file.
+   --  This variable is always True for the compiler.
+   --  It is also True for gnatmake, when the soucr name given
+   --  on the command line has directory information.
 
    Current_Full_Source_Name  : File_Name_Type  := No_File;
    Current_Full_Source_Stamp : Time_Stamp_Type := Empty_Time_Stamp;
@@ -790,14 +786,19 @@ package body Osint is
          if File_Name = "gnat.adc"
            or else (Debug_Generated_Code
                       and then Name_Len > 3
-                      and then Name_Buffer (Name_Len - 2 .. Name_Len) = ".dg")
+                      and then
+                      (Name_Buffer (Name_Len - 2 .. Name_Len) = ".dg"
+                       or else
+                       (Hostparm.OpenVMS and then
+                        Name_Buffer (Name_Len - 2 .. Name_Len) = "_dg")))
          then
             return N;
 
          --  If we are trying to find the current main file just look in the
          --  directory where the user said it was.
 
-         elsif Current_Main_Has_Dir and then Current_Main = N then
+         elsif Look_In_Primary_Directory_For_Current_Main
+           and then Current_Main = N then
             return Locate_File (N, T, Primary_Directory, File_Name);
 
          --  Otherwise do standard search for source file
@@ -1695,11 +1696,12 @@ package body Osint is
 
       if In_Compiler then
          Src_Search_Directories.Table (Primary_Directory) := Dir_Name;
+         Look_In_Primary_Directory_For_Current_Main := True;
 
       elsif In_Make then
          Src_Search_Directories.Table (Primary_Directory) := Dir_Name;
          if Fptr > File_Name'First then
-            Current_Main_Has_Dir := True;
+            Look_In_Primary_Directory_For_Current_Main := True;
          end if;
 
       elsif In_Binder then

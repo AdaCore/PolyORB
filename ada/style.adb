@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-2000 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2001 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -389,7 +389,7 @@ package body Style is
    -- Check_HT --
    --------------
 
-   --  In check horizontal tan mode (-gnatyh), tab characters are not allowed
+   --  In check horizontal tab mode (-gnatyh), tab characters are not allowed
 
    procedure Check_HT is
    begin
@@ -405,7 +405,10 @@ package body Style is
    --  In check references mode (-gnatyr), identifier uses must be cased
    --  the same way as the corresponding identifier declaration.
 
-   procedure Check_Identifier (Ref : Node_Id; Def : Node_Id) is
+   procedure Check_Identifier
+     (Ref : Node_Or_Entity_Id;
+      Def : Node_Or_Entity_Id)
+   is
       SRef : Source_Ptr := Sloc (Ref);
       SDef : Source_Ptr := Sloc (Def);
       TRef : Source_Buffer_Ptr;
@@ -682,7 +685,9 @@ package body Style is
    procedure Check_Then (If_Loc : Source_Ptr) is
    begin
       if Style_Check_If_Then_Layout then
-         if Get_Line_Number (Token_Ptr) = Get_Line_Number (If_Loc) + 1 then
+         if Get_Physical_Line_Number (Token_Ptr) =
+            Get_Physical_Line_Number (If_Loc) + 1
+         then
             Error_Msg_SC ("(style) misplaced THEN");
          end if;
       end if;

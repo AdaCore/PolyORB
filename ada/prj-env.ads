@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---             Copyright (C) 2000 Free Software Foundation, Inc.            --
+--             Copyright (C) 2001 Free Software Foundation, Inc.            --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -26,8 +26,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  The following implements services for Project-aware tools, related
+--  This package implements services for Project-aware tools, related
 --  to the environment (gnat.adc, ADA_INCLUDE_PATH, ADA_OBJECTS_PATH)
+
+with GNAT.OS_Lib; use GNAT.OS_Lib;
 
 package Prj.Env is
 
@@ -48,23 +50,30 @@ package Prj.Env is
    --  Delete the dynamically created gnat.adc (created by
    --  Create_Gnat_Adc), and restore the one that existed before, if any.
 
-   function Ada_Include_Path (Project : Project_Id) return String;
-   --  Compute (and cache) the ADA_INCLUDE_PATH of a Project file.
+   function Ada_Include_Path (Project : Project_Id) return String_Access;
+   --  Get the ADA_INCLUDE_PATH of a Project file.
+   --  For the first call, compute it and chache it.
 
-   function Ada_Objects_Path (Project : Project_Id) return String;
-   --  Compute (and cache) the ADA_OBJECTS_PATH of a Project file.
+   function Ada_Objects_Path (Project : Project_Id) return String_Access;
+   --  Get the ADA_OBJECTS_PATH of a Project file.
+   --  For the first call, compute it and chache it.
 
    function Path_Name_Of_Library_Unit_Body
      (Name    : String;
       Project : Project_Id)
-      return String;
+      return    String;
    --  Returns the Path of a library unit.
 
    function File_Name_Of_Library_Unit_Body
      (Name    : String;
       Project : Project_Id)
-      return String;
-   --  Returns the file name of a library unit.
+      return    String;
+   --  Returns the file name of a library unit, in canonical case.
+   --  Name may or may not have an extension (corresponding to
+   --  the naming scheme of the project).
+   --  If there is no body with this name, but there is a spec,
+   --  the name of the spec is returned.
+   --  If neither a body or a spec can be found, return an empty string.
 
    procedure Get_Reference
      (Source_File_Name : String;

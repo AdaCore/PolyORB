@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-2000 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2001 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -102,17 +102,13 @@ package Sinput is
    --    Only processing in Sprint that generates this file is permitted to
    --    set this field.
 
-   --  Line_Offset : Int;
-   --    Line number value to be added to physical line numbers in file to
-   --    get logical line number for error messages. Normally zero unless
-   --    reset by pragma Source_Reference. This value is seldom referenced by
-   --    clients who should use Logical_To_Physical and Physical_To_Logical
-   --    instead, but it is set by pragma Source_Reference processing. Note
-   --    that this value is signed (it is set to -1 for the first file in the
-   --    original file, to allow for the added Source_Reference pragma line).
+   --  Num_SRef_Pragmas : Nat;
+   --    Number of source reference pragmas present in source file
 
-   --  Has_Line_Offset : Boolean
-   --    Set True if Source_Reference pragma is present
+   --  First_Mapped_Line : Logical_Line_Number;
+   --    This field stores logical line number of the first line in the
+   --    file that is not a Source_Reference pragma. If no source reference
+   --    pragmas are used, then the value is set to No_Line_Number.
 
    --  Source_Text : Source_Buffer_Ptr
    --    Text of source file. Note that every source file has a distinct set
@@ -141,9 +137,11 @@ package Sinput is
    --    Computed checksum for contents of source file. See separate section
    --    later on in this spec for a description of the checksum algorithm.
 
-   --  Num_Source_Lines : Nat
-   --    Number of source lines in the file. While a file is being read,
-   --    it is the number of lines so far scanned. Read only for clients.
+   --  Last_Source_Line : Physical_Line_Number;
+   --    Physical line number of last source line. Whlie a file is being
+   --    read, this refers to the last line scanned. Once a file has been
+   --    completely scanned, it is the number of the last line in the file,
+   --    and hence also gives the number of source lines in the file.
 
    --  Keyword_Casing : Casing_Type;
    --    Casing style used in file for keyword casing. This is initialized
@@ -172,35 +170,28 @@ package Sinput is
    --  The source file table is accessed by clients using the following
    --  subprogram interface:
 
-   function Debug_Source_Name (S : Source_File_Index) return File_Name_Type;
-   function File_Name         (S : Source_File_Index) return File_Name_Type;
-   function Full_File_Name    (S : Source_File_Index) return File_Name_Type;
-   function Full_Ref_Name     (S : Source_File_Index) return File_Name_Type;
-   function Has_Line_Offset   (S : Source_File_Index) return Boolean;
-   function Identifier_Casing (S : Source_File_Index) return Casing_Type;
-   function Instantiation     (S : Source_File_Index) return Source_Ptr;
-   function Keyword_Casing    (S : Source_File_Index) return Casing_Type;
-   function Line_Offset       (S : Source_File_Index) return Int;
-   function Num_Source_Lines  (S : Source_File_Index) return Nat;
-   function Reference_Name    (S : Source_File_Index) return File_Name_Type;
-   function Source_Checksum   (S : Source_File_Index) return Word;
-   function Source_First      (S : Source_File_Index) return Source_Ptr;
-   function Source_Last       (S : Source_File_Index) return Source_Ptr;
-   function Source_Text       (S : Source_File_Index) return Source_Buffer_Ptr;
-   function Template          (S : Source_File_Index) return Source_File_Index;
-   function Time_Stamp        (S : Source_File_Index) return Time_Stamp_Type;
+   subtype SFI is Source_File_Index;
 
-   procedure Set_Keyword_Casing    (S : Source_File_Index; C : Casing_Type);
-   procedure Set_Identifier_Casing (S : Source_File_Index; C : Casing_Type);
+   function Debug_Source_Name (S : SFI) return File_Name_Type;
+   function File_Name         (S : SFI) return File_Name_Type;
+   function First_Mapped_Line (S : SFI) return Logical_Line_Number;
+   function Full_File_Name    (S : SFI) return File_Name_Type;
+   function Full_Ref_Name     (S : SFI) return File_Name_Type;
+   function Identifier_Casing (S : SFI) return Casing_Type;
+   function Instantiation     (S : SFI) return Source_Ptr;
+   function Keyword_Casing    (S : SFI) return Casing_Type;
+   function Last_Source_Line  (S : SFI) return Physical_Line_Number;
+   function Num_SRef_Pragmas  (S : SFI) return Nat;
+   function Reference_Name    (S : SFI) return File_Name_Type;
+   function Source_Checksum   (S : SFI) return Word;
+   function Source_First      (S : SFI) return Source_Ptr;
+   function Source_Last       (S : SFI) return Source_Ptr;
+   function Source_Text       (S : SFI) return Source_Buffer_Ptr;
+   function Template          (S : SFI) return Source_File_Index;
+   function Time_Stamp        (S : SFI) return Time_Stamp_Type;
 
-   --  The following routines may be used only by the processing for
-   --  the Source_Reference pragma, and by no other client.
-
-   procedure Set_Debug_Source_Name (S : Source_File_Index; N : File_Name_Type);
-   procedure Set_Reference_Name    (S : Source_File_Index; N : File_Name_Type);
-   procedure Set_Full_Ref_Name     (S : Source_File_Index; N : File_Name_Type);
-   procedure Set_Has_Line_Offset   (S : Source_File_Index; V : Boolean);
-   procedure Set_Line_Offset       (S : Source_File_Index; V : Int);
+   procedure Set_Keyword_Casing    (S : SFI; C : Casing_Type);
+   procedure Set_Identifier_Casing (S : SFI; C : Casing_Type);
 
    function Last_Source_File return Source_File_Index;
    --  Index of last source file table entry
@@ -339,11 +330,25 @@ package Sinput is
    --  determined and returned. Tab characters if present are assumed to
    --  represent the standard 1,9,17.. spacing pattern.
 
-   function Get_Line_Number (P : Source_Ptr) return Logical_Line_Number;
+   function Get_Logical_Line_Number
+     (P    : Source_Ptr)
+      return Logical_Line_Number;
    --  The line number of the specified source position is obtained by
    --  doing a binary search on the source positions in the lines table
    --  for the unit containing the given source position. The returned
-   --  value has already been adjusted by adding the Line_Offset value.
+   --  value is the logical line number, already adjusted for the effect
+   --  of source reference pragmas. If P refers to the line of a source
+   --  reference pragma itself, then No_Line is returned. If no source
+   --  reference pragmas have been encountered, the value returned is
+   --  the same as the physical line number.
+
+   function Get_Physical_Line_Number
+     (P    : Source_Ptr)
+      return Physical_Line_Number;
+   --  The line number of the specified source position is obtained by
+   --  doing a binary search on the source positions in the lines table
+   --  for the unit containing the given source position. The returned
+   --  value is the physical line number in the source being compiled.
 
    function Get_Source_File_Index (S : Source_Ptr) return Source_File_Index;
    --  Return file table index of file identified by given source pointer
@@ -359,19 +364,30 @@ package Sinput is
    --  given source location.
 
    function Line_Start
-     (L    : Logical_Line_Number;
+     (L    : Physical_Line_Number;
       S    : Source_File_Index)
       return Source_Ptr;
    --  Finds the source position of the start of the given line in the
-   --  given source file, using a logical line number to identify the line.
+   --  given source file, using a physical line number to identify the line.
 
-   function Logical_To_Physical
-     (Line : Logical_Line_Number;
-      S    : Source_File_Index)
-      return Nat;
-   --  Given a logical line number in source file whose source index is S,
-   --  return the corresponding physical line number. Note that if a source
-   --  reference pragma is present, its logical line number is zero.
+   function Num_Source_Lines (S : Source_File_Index) return Nat;
+   --  Returns the number of source lines (this is equivalent to reading
+   --  the value of Last_Source_Line, but returns Nat rathern than a
+   --  physical line number.
+
+   procedure Register_Source_Ref_Pragma
+     (File_Name          : Name_Id;
+      Stripped_File_Name : Name_Id;
+      Mapped_Line        : Nat;
+      Line_After_Pragma  : Physical_Line_Number);
+   --  Register a source reference pragma, the parameter File_Name is the
+   --  file name from the pragma, and Stripped_File_Name is this name with
+   --  the directory information stripped. Both these parameters are set
+   --  to No_Name if no file name parameter was given in the pragma.
+   --  (which can only happen for the second and subsequent pragmas).
+   --  Mapped_Line is the line number parameter from the pragma, and
+   --  Line_After_Pragma is the physical line number of the line that
+   --  follows the line containing the Source_Reference pragma.
 
    function Original_Location (S : Source_Ptr) return Source_Ptr;
    --  Given a source pointer S, returns the corresponding source pointer
@@ -394,12 +410,13 @@ package Sinput is
    --  instantiation in the nested case.
 
    function Physical_To_Logical
-     (Line : Nat;
+     (Line : Physical_Line_Number;
       S    : Source_File_Index)
       return Logical_Line_Number;
    --  Given a physical line number in source file whose source index is S,
-   --  return the corresponding logical line number. Note that if a source
-   --  reference pragma is present, its logical line number is zero.
+   --  return the corresponding logical line number. If the physical line
+   --  number is one containing a Source_Reference pragma, the result will
+   --  be No_Line_Number.
 
    procedure Skip_Line_Terminators
      (P        : in out Source_Ptr;
@@ -427,8 +444,11 @@ package Sinput is
    --  <no location> and <standard location>. If the location is within an
    --  instantiation, then the instance location is appended, enclosed in
    --  square brackets (which can nest if necessary). Note that this routine
-   --  is used only for internal compiler debugging output purposes (which is
-   --  why the somewhat cryptic use of brackets is acceptable).
+   --  is used only for internal compiler debugging output purposes (which
+   --  is why the somewhat cryptic use of brackets is acceptable).
+
+   procedure wl (P : Source_Ptr);
+   --  Equivalent to Write_Location (P); Write_Eol; for calls from GDB
 
    procedure Write_Time_Stamp (S : Source_File_Index);
    --  Writes time stamp of specified file in YY-MM-DD HH:MM.SS format
@@ -441,21 +461,19 @@ package Sinput is
 
 private
    pragma Inline (File_Name);
+   pragma Inline (First_Mapped_Line);
    pragma Inline (Full_File_Name);
    pragma Inline (Identifier_Casing);
    pragma Inline (Instantiation);
    pragma Inline (Keyword_Casing);
+   pragma Inline (Last_Source_Line);
    pragma Inline (Last_Source_File);
-   pragma Inline (Line_Offset);
-   pragma Inline (Has_Line_Offset);
+   pragma Inline (Num_SRef_Pragmas);
    pragma Inline (Num_Source_Files);
    pragma Inline (Num_Source_Lines);
    pragma Inline (Reference_Name);
    pragma Inline (Set_Keyword_Casing);
    pragma Inline (Set_Identifier_Casing);
-   pragma Inline (Set_Line_Offset);
-   pragma Inline (Set_Has_Line_Offset);
-   pragma Inline (Set_Reference_Name);
    pragma Inline (Source_First);
    pragma Inline (Source_Last);
    pragma Inline (Source_Text);
@@ -466,95 +484,53 @@ private
    -- Source_Lines Tables --
    -------------------------
 
-   type Lines_Table_Type is array (Pos) of Source_Ptr;
+   type Lines_Table_Type is
+     array (Physical_Line_Number) of Source_Ptr;
    --  Type used for lines table. The entries are indexed by physical line
    --  numbers. The values are the starting Source_Ptr values for the start
    --  of the corresponding physical line. Note that we make this a bogus
    --  big array, sized as required, so that we avoid the use of fat pointers.
-   --  This type is also used for logical lines (source reference pragma).
 
    type Lines_Table_Ptr is access all Lines_Table_Type;
    --  Type used for pointers to line tables
+
+   type Logical_Lines_Table_Type is
+     array (Physical_Line_Number) of Logical_Line_Number;
+   --  Type used for logical lines table. This table is used if a source
+   --  reference pragma is present. It is indexed by physical line numbers,
+   --  and contains the corresponding logical line numbers. An entry that
+   --  corresponds to a source reference pragma is set to No_Line_Number.
+   --  Note that we make this a bogus big array, sized as required, so that
+   --  we avoid the use of fat pointers.
+
+   type Logical_Lines_Table_Ptr is access all Logical_Lines_Table_Type;
+   --  Type used for pointers to logical line tables.
 
    -----------------------
    -- Source_File Table --
    -----------------------
 
+   --  See earlier descriptions for meanings of public fields
+
    type Source_File_Record is record
 
-      File_Name : File_Name_Type;
-      --  Source file name (simple name with no directory info)
-
-      Reference_Name : File_Name_Type;
-      --  File name used for error messages (same as File_Name unless
-      --  reset by use of pragma Source_Reference).
-
+      File_Name         : File_Name_Type;
+      Reference_Name    : File_Name_Type;
       Debug_Source_Name : File_Name_Type;
-      --  File name used for debug information (same as Reference_Name
-      --  unless Debug_Generated_Code is set).
-
-      Full_File_Name : File_Name_Type;
-      --  Full file name (full name with directory info)
-
-      Full_Ref_Name : File_Name_Type;
-      --  Full file name used for error messages (same as Full_File_Name
-      --  unless reset by use of pragma Source_Reference).
-
-      Line_Offset : Int;
-      --  Offset value for line number references, to be added to physical
-      --  line numbers to obtain logical line numbers. Normally set to zero
-      --  but can be reset by use of pragma Source_Reference.
-
-      Has_Line_Offset : Boolean;
-      --  Set to True, if Line_Offset set by Source_Reference pragma
-
-      Source_Text : Source_Buffer_Ptr;
-      --  Text of source file. Note that every source file has a distinct set
-      --  of non-overlapping bounds, so it is possible to determine which file
-      --  is referenced from a given subscript (Source_Ptr) value.
-
-      Source_First : Source_Ptr;
-      --  Subscript of first character in Source_Text. Note that this cannot
-      --  be obtained as Source_Text'First, because we use virtual origin
-      --  addressing, so this value is always zero.
-
-      Source_Last : Source_Ptr;
-      --  Subscript of last character in Source_Text. Note that this cannot
-      --  be obtained as Source_Text'Last, because we use virtual origin
-      --  addressing, so this value is always Source_Ptr'Last.
-
-      Time_Stamp : Time_Stamp_Type;
-      --  Time stamp of the source file
-
-      Source_Checksum : Word;
-      --  Computed checksum for source file
-
-      Num_Source_Lines : Nat;
-      --  Number of entries in Lines_Table, i.e. the subscript of the last
-      --  entry stored in this table. On completion of compilation of a unit
-      --  (status = loaded), this is the number of source lines in the file.
-
-      Keyword_Casing : Casing_Type;
-      --  Casing style used in file for keyword casing. Initialized to
-      --  Unknown, and then set from the first occurrence of a keyword.
-      --  This value is used only for formatting of error messages.
-
+      Full_File_Name    : File_Name_Type;
+      Full_Ref_Name     : File_Name_Type;
+      Num_SRef_Pragmas  : Nat;
+      First_Mapped_Line : Logical_Line_Number;
+      Source_Text       : Source_Buffer_Ptr;
+      Source_First      : Source_Ptr;
+      Source_Last       : Source_Ptr;
+      Time_Stamp        : Time_Stamp_Type;
+      Source_Checksum   : Word;
+      Last_Source_Line  : Physical_Line_Number;
+      Keyword_Casing    : Casing_Type;
       Identifier_Casing : Casing_Type;
-      --  Casing style used in file for identifier casing. Initialized to
-      --  Unknown, and then set from an identifier in the program as soon as
-      --  one is found whose casing is sufficiently clear to make a decision.
-      --  This value is used for formatting of error messages, and also is
-      --  used in the detection of keywords misused as identifiers.
-
-      Instantiation : Source_Ptr;
-      --  Source file location of the instantiation if this source file entry
-      --  represents a generic instantiation. Set to No_Location for the case
-      --  of a normal non-instantiation entry. See Sinput-L for details.
-
-      Template : Source_File_Index;
-      --  Source file index of the source file containing the template if
-      --  this is a generic instantiation. Set to No_Source_File for the
-      --  normal case of a non-instantiation entry. See Sinput-L for details.
+      Instantiation     : Source_Ptr;
+      Template          : Source_File_Index;
 
       --  The following fields are for internal use only (i.e. only in the
       --  body of Sinput or its children, with no direct access by clients).
@@ -571,8 +547,16 @@ private
       --  Note: the lines table for an instantiation entry refers to the
       --  original line numbers of the template see Sinput-L for details.
 
-      Lines_Table_Max : Pos;
-      --  Maximum subscript currently allocated in Lines_Table
+      Logical_Lines_Table : Logical_Lines_Table_Ptr;
+      --  Pointer to logical lines table for this source. Non-null only if
+      --  a source reference pragma has been processed. Updated as lines
+      --  are accessed using the Skip_Line_Terminators procedure.
+
+      Lines_Table_Max : Physical_Line_Number;
+      --  Maximum subscript values for currently allocated Lines_Table
+      --  and (if present) the allocated Logical_Lines_Table. The value
+      --  Max_Source_Line gives the maximum used value, this gives the
+      --  maximum allocated value.
 
    end record;
 
@@ -588,15 +572,20 @@ private
    -- Subprograms --
    -----------------
 
-   procedure Alloc_Lines_Table (S : in out Source_File_Record; New_Max : Pos);
-   --  Allocate or reallocate the lines table for the given source
-   --  file so that it can accomodate at least New_Max lines.
+   procedure Alloc_Line_Tables
+     (S       : in out Source_File_Record;
+      New_Max : Nat);
+   --  Allocate or reallocate the lines table for the given source file so
+   --  that it can accomodate at least New_Max lines. Also allocates or
+   --  reallocates logical lines table if source ref pragmas are present.
 
-   procedure Increment_Line_Table_Size
+   procedure Add_Line_Tables_Entry
      (S : in out Source_File_Record;
       P : Source_Ptr);
    --  Increment line table size by one (reallocating the lines table if
-   --  needed, and set the new entry to contain the value P. Also bumps
-   --  the Source_Line_Count field.
+   --  needed) and set the new entry to contain the value P. Also bumps
+   --  the Source_Line_Count field. If source reference pragmas are
+   --  present, also increments logical lines table size by one, and
+   --  sets new entry.
 
 end Sinput;

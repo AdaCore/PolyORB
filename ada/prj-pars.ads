@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---             Copyright (C) 2000 Free Software Foundation, Inc.            --
+--          Copyright (C) 2000-2001 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -39,5 +39,10 @@ package Prj.Pars is
       Package_Name      : String := "");
    --  Parse a project files and all its imported project files.
    --  Package_Name is the name of the tool currently in use.
+   --  If Package_Name is not empty, then all packages at the
+   --  project level that are not "Naming" or Package_Name are
+   --  not included in the project data.
+   --  If Package_Name is the empty string, then all packages are
+   --  included in the project data.
 
 end Prj.Pars;

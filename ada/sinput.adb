@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-2000 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2001 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -35,6 +35,7 @@
 
 with Debug;   use Debug;
 with Namet;   use Namet;
+with Opt;     use Opt;
 with Output;  use Output;
 with Tree_IO; use Tree_IO;
 with System;  use System;
@@ -49,26 +50,89 @@ package body Sinput is
 
    First_Time_Around : Boolean := True;
 
+   ---------------------------
+   -- Add_Line_Tables_Entry --
+   ---------------------------
+
+   procedure Add_Line_Tables_Entry
+     (S : in out Source_File_Record;
+      P : Source_Ptr)
+   is
+      LL : Physical_Line_Number;
+
+   begin
+      --  Reallocate the lines tables if necessary.
+
+      --  Note: the reason we do not use the normal Table package
+      --  mechanism is that we have several of these tables. We could
+      --  use the new GNAT.Dynamic_Tables package and that would probably
+      --  be a good idea ???
+
+      if S.Last_Source_Line = S.Lines_Table_Max then
+         Alloc_Line_Tables
+           (S,
+            Int (S.Last_Source_Line) *
+              ((100 + Alloc.Lines_Increment) / 100));
+
+         if Debug_Flag_D then
+            Write_Str ("--> Reallocating lines table, size = ");
+            Write_Int (Int (S.Lines_Table_Max));
+            Write_Eol;
+         end if;
+      end if;
+
+      S.Last_Source_Line := S.Last_Source_Line + 1;
+      LL := S.Last_Source_Line;
+
+      S.Lines_Table (LL) := P;
+
+      --  Deal with setting new entry in logical lines table if one is
+      --  present. Note that there is always space (because the call to
+      --  Alloc_Line_Tables makes sure both tables are the same length),
+
+      if S.Logical_Lines_Table /= null then
+
+         --  We can always set the entry from the previous one, because
+         --  the processing for a Source_Reference pragma ensures that
+         --  at least one entry following the pragma is set up correctly.
+
+         S.Logical_Lines_Table (LL) := S.Logical_Lines_Table (LL - 1) + 1;
+      end if;
+   end Add_Line_Tables_Entry;
+
    -----------------------
-   -- Alloc_Lines_Table --
+   -- Alloc_Line_Tables --
    -----------------------
 
-   procedure Alloc_Lines_Table
+   procedure Alloc_Line_Tables
      (S       : in out Source_File_Record;
-      New_Max : Pos)
+      New_Max : Nat)
    is
       function realloc
         (memblock : Lines_Table_Ptr;
          size     : size_t)
          return     Lines_Table_Ptr;
-      pragma Import (C, realloc);
+      pragma Import (C, realloc, "realloc");
+
+      function reallocl
+        (memblock : Logical_Lines_Table_Ptr;
+         size     : size_t)
+         return     Logical_Lines_Table_Ptr;
+      pragma Import (C, reallocl, "realloc");
 
       function malloc
-        (size     : size_t)
-         return     Lines_Table_Ptr;
-      pragma Import (C, malloc);
+        (size   : size_t)
+         return Lines_Table_Ptr;
+      pragma Import (C, malloc, "malloc");
+
+      function mallocl
+        (size   : size_t)
+         return Logical_Lines_Table_Ptr;
+      pragma Import (C, mallocl, "malloc");
 
       New_Table : Lines_Table_Ptr;
+
+      New_Logical_Table : Logical_Lines_Table_Ptr;
 
       New_Size : constant size_t :=
                    size_t (New_Max * Lines_Table_Type'Component_Size /
@@ -79,16 +143,32 @@ package body Sinput is
          New_Table := malloc (New_Size);
 
       else
-         New_Table := realloc (memblock => S.Lines_Table, size => New_Size);
+         New_Table :=
+           realloc (memblock => S.Lines_Table, size => New_Size);
       end if;
 
       if New_Table = null then
          raise Storage_Error;
       else
          S.Lines_Table     := New_Table;
-         S.Lines_Table_Max := New_Max;
+         S.Lines_Table_Max := Physical_Line_Number (New_Max);
       end if;
-   end Alloc_Lines_Table;
+
+      if S.Num_SRef_Pragmas /= 0 then
+         if S.Logical_Lines_Table = null then
+            New_Logical_Table := mallocl (New_Size);
+         else
+            New_Logical_Table :=
+              reallocl (memblock => S.Logical_Lines_Table, size => New_Size);
+         end if;
+
+         if New_Logical_Table = null then
+            raise Storage_Error;
+         else
+            S.Logical_Lines_Table := New_Logical_Table;
+         end if;
+      end if;
+   end Alloc_Line_Tables;
 
    -----------------
    -- Backup_Line --
@@ -146,7 +226,8 @@ package body Sinput is
          Get_Name_String_And_Append
            (Reference_Name (Get_Source_File_Index (Ptr)));
          Add_Char_To_Name_Buffer (':');
-         Add_Nat_To_Name_Buffer (Nat (Get_Line_Number (Ptr)));
+         Add_Nat_To_Name_Buffer
+           (Nat (Get_Logical_Line_Number (Ptr)));
 
          Ptr := Instantiation_Location (Ptr);
          exit when Ptr = No_Location;
@@ -156,34 +237,6 @@ package body Sinput is
       Name_Buffer (Name_Len + 1) := NUL;
       return;
    end Build_Location_String;
-
-   -------------------------------
-   -- Increment_Line_Table_Size --
-   -------------------------------
-
-   procedure Increment_Line_Table_Size
-     (S : in out Source_File_Record;
-      P : Source_Ptr)
-   is
-   begin
-      --  Reallocate the lines table if it has got too large. Note that
-      --  we don't use the normal Table package mechanism because we
-      --  have several of these tables, one for each source file.
-
-      if S.Num_Source_Lines = S.Lines_Table_Max then
-         Alloc_Lines_Table
-           (S, S.Num_Source_Lines * ((100 + Alloc.Lines_Increment) / 100));
-
-         if Debug_Flag_D then
-            Write_Str ("--> Reallocating lines table, size = ");
-            Write_Int (S.Lines_Table_Max);
-            Write_Eol;
-         end if;
-      end if;
-
-      S.Num_Source_Lines := S.Num_Source_Lines + 1;
-      S.Lines_Table (S.Num_Source_Lines) := P;
-   end Increment_Line_Table_Size;
 
    -----------------------
    -- Get_Column_Number --
@@ -225,16 +278,40 @@ package body Sinput is
       end if;
    end Get_Column_Number;
 
-   ---------------------
-   -- Get_Line_Number --
-   ---------------------
+   -----------------------------
+   -- Get_Logical_Line_Number --
+   -----------------------------
 
-   function Get_Line_Number (P : Source_Ptr) return Logical_Line_Number is
+   function Get_Logical_Line_Number
+     (P    : Source_Ptr)
+      return Logical_Line_Number
+   is
+      SFR : Source_File_Record
+              renames Source_File.Table (Get_Source_File_Index (P));
+
+      L : constant Physical_Line_Number := Get_Physical_Line_Number (P);
+
+   begin
+      if SFR.Num_SRef_Pragmas = 0 then
+         return Logical_Line_Number (L);
+      else
+         return SFR.Logical_Lines_Table (L);
+      end if;
+   end Get_Logical_Line_Number;
+
+   ------------------------------
+   -- Get_Physical_Line_Number --
+   ------------------------------
+
+   function Get_Physical_Line_Number
+     (P    : Source_Ptr)
+      return Physical_Line_Number
+   is
       Sfile : Source_File_Index;
       Table : Lines_Table_Ptr;
-      Lo    : Nat;
-      Hi    : Nat;
-      Mid   : Nat;
+      Lo    : Physical_Line_Number;
+      Hi    : Physical_Line_Number;
+      Mid   : Physical_Line_Number;
       Loc   : Source_Ptr;
 
    begin
@@ -254,7 +331,7 @@ package body Sinput is
          Loc   := P + Source_File.Table (Sfile).Sloc_Adjust;
          Table := Source_File.Table (Sfile).Lines_Table;
          Lo    := 1;
-         Hi    := Source_File.Table (Sfile).Num_Source_Lines;
+         Hi    := Source_File.Table (Sfile).Last_Source_Line;
 
          loop
             Mid := (Lo + Hi) / 2;
@@ -267,7 +344,7 @@ package body Sinput is
                if Mid = Hi or else
                   Loc < Table (Mid + 1)
                then
-                  return Logical_Line_Number (Mid + Line_Offset (Sfile));
+                  return Mid;
                else
                   Lo := Mid + 1;
                end if;
@@ -276,7 +353,7 @@ package body Sinput is
 
          end loop;
       end if;
-   end Get_Line_Number;
+   end Get_Physical_Line_Number;
 
    ---------------------------
    -- Get_Source_File_Index --
@@ -360,16 +437,6 @@ package body Sinput is
       return Instantiation (Get_Source_File_Index (S));
    end Instantiation_Location;
 
-   ----------
-   -- Lock --
-   ----------
-
-   procedure Lock is
-   begin
-      Source_File.Locked := True;
-      Source_File.Release;
-   end Lock;
-
    ----------------------
    -- Last_Source_File --
    ----------------------
@@ -405,32 +472,23 @@ package body Sinput is
    end Line_Start;
 
    function Line_Start
-     (L    : Logical_Line_Number;
+     (L    : Physical_Line_Number;
       S    : Source_File_Index)
       return Source_Ptr
    is
    begin
-      return Source_File.Table (S).Lines_Table (Logical_To_Physical (L, S));
+      return Source_File.Table (S).Lines_Table (L);
    end Line_Start;
 
-   -------------------------
-   -- Logical_To_Physical --
-   -------------------------
+   ----------
+   -- Lock --
+   ----------
 
-   function Logical_To_Physical
-     (Line : Logical_Line_Number;
-      S    : Source_File_Index)
-      return Nat
-   is
+   procedure Lock is
    begin
-      --  Line zero is the source reference pragma itself
-
-      if Line = 0 then
-         return 1;
-      else
-         return Nat (Line) - Line_Offset (S);
-      end if;
-   end Logical_To_Physical;
+      Source_File.Locked := True;
+      Source_File.Release;
+   end Lock;
 
    ----------------------
    -- Num_Source_Files --
@@ -440,6 +498,15 @@ package body Sinput is
    begin
       return Int (Source_File.Last) - Int (Source_File.First) + 1;
    end Num_Source_Files;
+
+   ----------------------
+   -- Num_Source_Lines --
+   ----------------------
+
+   function Num_Source_Lines (S : Source_File_Index) return Nat is
+   begin
+      return Nat (Source_File.Table (S).Last_Source_Line);
+   end Num_Source_Lines;
 
    -----------------------
    -- Original_Location --
@@ -475,21 +542,71 @@ package body Sinput is
    -------------------------
 
    function Physical_To_Logical
-     (Line : Nat;
+     (Line : Physical_Line_Number;
       S    : Source_File_Index)
       return Logical_Line_Number
    is
+      SFR : Source_File_Record renames Source_File.Table (S);
+
    begin
-      if not Has_Line_Offset (S) then
+      if SFR.Num_SRef_Pragmas = 0 then
          return Logical_Line_Number (Line);
-
-      elsif Line = 1 then
-         return 0;
-
       else
-         return Logical_Line_Number (Line + Line_Offset (S));
+         return SFR.Logical_Lines_Table (Line);
       end if;
    end Physical_To_Logical;
+
+   --------------------------------
+   -- Register_Source_Ref_Pragma --
+   --------------------------------
+
+   procedure Register_Source_Ref_Pragma
+     (File_Name          : Name_Id;
+      Stripped_File_Name : Name_Id;
+      Mapped_Line        : Nat;
+      Line_After_Pragma  : Physical_Line_Number)
+   is
+      SFR : Source_File_Record renames Source_File.Table (Current_Source_File);
+
+      function malloc
+        (size     : size_t)
+         return     Logical_Lines_Table_Ptr;
+      pragma Import (C, malloc);
+
+      ML : Logical_Line_Number;
+
+   begin
+      if File_Name /= No_Name then
+         SFR.Full_Ref_Name := File_Name;
+
+         if not Debug_Generated_Code then
+            SFR.Debug_Source_Name := File_Name;
+         end if;
+
+         SFR.Reference_Name   := Stripped_File_Name;
+         SFR.Num_SRef_Pragmas := SFR.Num_SRef_Pragmas + 1;
+      end if;
+
+      if SFR.Num_SRef_Pragmas = 1 then
+         SFR.First_Mapped_Line := Logical_Line_Number (Mapped_Line);
+      end if;
+
+      if SFR.Logical_Lines_Table = null then
+         SFR.Logical_Lines_Table :=
+           malloc
+             (size_t (SFR.Lines_Table_Max *
+                        Logical_Lines_Table_Type'Component_Size /
+                                                        Storage_Unit));
+      end if;
+
+      SFR.Logical_Lines_Table (Line_After_Pragma - 1) := No_Line_Number;
+
+      ML := Logical_Line_Number (Mapped_Line);
+      for J in Line_After_Pragma .. SFR.Last_Source_Line loop
+         SFR.Logical_Lines_Table (J) := ML;
+         ML := ML + 1;
+      end loop;
+   end Register_Source_Ref_Pragma;
 
    ---------------------------
    -- Skip_Line_Terminators --
@@ -562,9 +679,9 @@ package body Sinput is
          --  entry may have already been made on the previous forward scan).
 
          if Source (P) /= EOF
-           and then P > S.Lines_Table (S.Num_Source_Lines)
+           and then P > S.Lines_Table (S.Last_Source_Line)
          then
-            Increment_Line_Table_Size (S, P);
+            Add_Line_Tables_Entry (S, P);
          end if;
       end;
    end Skip_Line_Terminators;
@@ -617,8 +734,15 @@ package body Sinput is
                procedure Free_Ptr is new Unchecked_Deallocation
                  (Big_Source_Buffer, Source_Buffer_Ptr);
 
+               --  Note: we are using free here, because we used malloc
+               --  or realloc directly to allocate the tables. That is
+               --  because we were playing the big array trick.
+
                procedure free (X : Lines_Table_Ptr);
-               pragma Import (C, free);
+               pragma Import (C, free, "free");
+
+               procedure freel (X : Logical_Lines_Table_Ptr);
+               pragma Import (C, freel, "free");
 
                function To_Source_Buffer_Ptr is new
                  Unchecked_Conversion (Address, Source_Buffer_Ptr);
@@ -641,6 +765,11 @@ package body Sinput is
                   if S.Lines_Table /= null then
                      free (S.Lines_Table);
                      S.Lines_Table := null;
+                  end if;
+
+                  if S.Logical_Lines_Table /= null then
+                     freel (S.Logical_Lines_Table);
+                     S.Logical_Lines_Table := null;
                   end if;
                end if;
             end;
@@ -675,9 +804,12 @@ package body Sinput is
                          Source_File.Table (S.Template);
 
                begin
-                  --  The lines table is simply copied from the template entry
+                  --  The lines tables are copied from the template entry
 
-                  S.Lines_Table := Source_File.Table (S.Template).Lines_Table;
+                  S.Lines_Table :=
+                    Source_File.Table (S.Template).Lines_Table;
+                  S.Logical_Lines_Table :=
+                    Source_File.Table (S.Template).Logical_Lines_Table;
 
                   --  In the case of the source table pointer, we share the
                   --  same data as the generic template, but the virtual origin
@@ -705,11 +837,18 @@ package body Sinput is
             else
                First_Time_Around := False;
                S.Lines_Table := null;
-               Alloc_Lines_Table (S, S.Num_Source_Lines);
+               S.Logical_Lines_Table := null;
+               Alloc_Line_Tables (S, Int (S.Last_Source_Line));
 
-               for J in 1 .. S.Num_Source_Lines loop
+               for J in 1 .. S.Last_Source_Line loop
                   Tree_Read_Int (Int (S.Lines_Table (J)));
                end loop;
+
+               if S.Num_SRef_Pragmas /= 0 then
+                  for J in 1 .. S.Last_Source_Line loop
+                     Tree_Read_Int (Int (S.Logical_Lines_Table (J)));
+                  end loop;
+               end if;
 
                --  Allocate source buffer and read in the data and then set the
                --  virtual origin to point to the logical zero'th element. This
@@ -762,12 +901,24 @@ package body Sinput is
             if S.Instantiation /= No_Location then
                null;
 
-            --  For the normal case, write out the data of the two tables
+            --  For the normal case, write out the data of the tables
 
             else
-               for J in 1 .. S.Num_Source_Lines loop
+               --  Lines table
+
+               for J in 1 .. S.Last_Source_Line loop
                   Tree_Write_Int (Int (S.Lines_Table (J)));
                end loop;
+
+               --  Logical lines table if present
+
+               if S.Num_SRef_Pragmas /= 0 then
+                  for J in 1 .. S.Last_Source_Line loop
+                     Tree_Write_Int (Int (S.Logical_Lines_Table (J)));
+                  end loop;
+               end if;
+
+               --  Source buffer
 
                Tree_Write_Data
                  (S.Source_Text (S.Source_First)'Address,
@@ -796,7 +947,7 @@ package body Sinput is
          begin
             Write_Name (Debug_Source_Name (SI));
             Write_Char (':');
-            Write_Int (Int (Get_Line_Number (P)));
+            Write_Int (Int (Get_Logical_Line_Number (P)));
             Write_Char (':');
             Write_Int (Int (Get_Column_Number (P)));
 
@@ -855,87 +1006,87 @@ package body Sinput is
    -- Access Subprograms for Source File Table --
    ----------------------------------------------
 
-   function File_Name (S : Source_File_Index) return File_Name_Type is
-   begin
-      return Source_File.Table (S).File_Name;
-   end File_Name;
-
-   function Debug_Source_Name (S : Source_File_Index) return File_Name_Type is
+   function Debug_Source_Name (S : SFI) return File_Name_Type is
    begin
       return Source_File.Table (S).Debug_Source_Name;
    end Debug_Source_Name;
 
-   function Full_File_Name (S : Source_File_Index) return File_Name_Type is
+   function File_Name (S : SFI) return File_Name_Type is
+   begin
+      return Source_File.Table (S).File_Name;
+   end File_Name;
+
+   function First_Mapped_Line (S : SFI) return Logical_Line_Number is
+   begin
+      return Source_File.Table (S).First_Mapped_Line;
+   end First_Mapped_Line;
+
+   function Full_File_Name (S : SFI) return File_Name_Type is
    begin
       return Source_File.Table (S).Full_File_Name;
    end Full_File_Name;
 
-   function Full_Ref_Name (S : Source_File_Index) return File_Name_Type is
+   function Full_Ref_Name (S : SFI) return File_Name_Type is
    begin
       return Source_File.Table (S).Full_Ref_Name;
    end Full_Ref_Name;
 
-   function Has_Line_Offset (S : Source_File_Index) return Boolean is
-   begin
-      return Source_File.Table (S).Has_Line_Offset;
-   end Has_Line_Offset;
-
-   function Identifier_Casing (S : Source_File_Index) return Casing_Type is
+   function Identifier_Casing (S : SFI) return Casing_Type is
    begin
       return Source_File.Table (S).Identifier_Casing;
    end Identifier_Casing;
 
-   function Instantiation (S : Source_File_Index) return Source_Ptr is
+   function Instantiation (S : SFI) return Source_Ptr is
    begin
       return Source_File.Table (S).Instantiation;
    end Instantiation;
 
-   function Keyword_Casing (S : Source_File_Index) return Casing_Type is
+   function Keyword_Casing (S : SFI) return Casing_Type is
    begin
       return Source_File.Table (S).Keyword_Casing;
    end Keyword_Casing;
 
-   function Line_Offset (S : Source_File_Index) return Int is
+   function Last_Source_Line (S : SFI) return Physical_Line_Number is
    begin
-      return Source_File.Table (S).Line_Offset;
-   end Line_Offset;
+      return Source_File.Table (S).Last_Source_Line;
+   end Last_Source_Line;
 
-   function Num_Source_Lines (S : Source_File_Index) return Nat is
+   function Num_SRef_Pragmas (S : SFI) return Nat is
    begin
-      return Source_File.Table (S).Num_Source_Lines;
-   end Num_Source_Lines;
+      return Source_File.Table (S).Num_SRef_Pragmas;
+   end Num_SRef_Pragmas;
 
-   function Reference_Name (S : Source_File_Index) return File_Name_Type is
+   function Reference_Name (S : SFI) return File_Name_Type is
    begin
       return Source_File.Table (S).Reference_Name;
    end Reference_Name;
 
-   function Source_Checksum (S : Source_File_Index) return Word is
+   function Source_Checksum (S : SFI) return Word is
    begin
       return Source_File.Table (S).Source_Checksum;
    end Source_Checksum;
 
-   function Source_First (S : Source_File_Index) return Source_Ptr is
+   function Source_First (S : SFI) return Source_Ptr is
    begin
       return Source_File.Table (S).Source_First;
    end Source_First;
 
-   function Source_Last (S : Source_File_Index) return Source_Ptr is
+   function Source_Last (S : SFI) return Source_Ptr is
    begin
       return Source_File.Table (S).Source_Last;
    end Source_Last;
 
-   function Source_Text (S : Source_File_Index) return Source_Buffer_Ptr is
+   function Source_Text (S : SFI) return Source_Buffer_Ptr is
    begin
       return Source_File.Table (S).Source_Text;
    end Source_Text;
 
-   function Template (S : Source_File_Index) return Source_File_Index is
+   function Template (S : SFI) return SFI is
    begin
       return Source_File.Table (S).Template;
    end Template;
 
-   function Time_Stamp (S : Source_File_Index) return Time_Stamp_Type is
+   function Time_Stamp (S : SFI) return Time_Stamp_Type is
    begin
       return Source_File.Table (S).Time_Stamp;
    end Time_Stamp;
@@ -944,39 +1095,24 @@ package body Sinput is
    -- Set Procedures for Source File Table --
    ------------------------------------------
 
-   procedure Set_Keyword_Casing (S : Source_File_Index; C : Casing_Type) is
-   begin
-      Source_File.Table (S).Keyword_Casing := C;
-   end Set_Keyword_Casing;
-
-   procedure Set_Has_Line_Offset (S : Source_File_Index; V : Boolean) is
-   begin
-      Source_File.Table (S).Has_Line_Offset := V;
-   end Set_Has_Line_Offset;
-
-   procedure Set_Identifier_Casing (S : Source_File_Index; C : Casing_Type) is
+   procedure Set_Identifier_Casing (S : SFI; C : Casing_Type) is
    begin
       Source_File.Table (S).Identifier_Casing := C;
    end Set_Identifier_Casing;
 
-   procedure Set_Line_Offset (S : Source_File_Index; V : Int) is
+   procedure Set_Keyword_Casing (S : SFI; C : Casing_Type) is
    begin
-      Source_File.Table (S).Line_Offset := V;
-   end Set_Line_Offset;
+      Source_File.Table (S).Keyword_Casing := C;
+   end Set_Keyword_Casing;
 
-   procedure Set_Reference_Name (S : Source_File_Index; N : Name_Id) is
-   begin
-      Source_File.Table (S).Reference_Name := N;
-   end Set_Reference_Name;
+   --------
+   -- wl --
+   --------
 
-   procedure Set_Full_Ref_Name (S : Source_File_Index; N : Name_Id) is
+   procedure wl (P : Source_Ptr) is
    begin
-      Source_File.Table (S).Full_Ref_Name := N;
-   end Set_Full_Ref_Name;
-
-   procedure Set_Debug_Source_Name (S : Source_File_Index; N : Name_Id) is
-   begin
-      Source_File.Table (S).Debug_Source_Name := N;
-   end Set_Debug_Source_Name;
+      Write_Location (P);
+      Write_Eol;
+   end wl;
 
 end Sinput;

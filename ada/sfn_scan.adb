@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---             Copyright (C) 2000 Free Software Foundation, Inc.            --
+--          Copyright (C) 2000-2001 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -73,8 +73,8 @@ package body SFN_Scan is
 
    procedure Check_Not_At_EOF;
    pragma Inline (Check_Not_At_EOF);
-   --  Skips past white space if any, and then raises Error if at end
-   --  of file. Otherwise returns with P skipped past whitespace.
+   --  Skips past white space if any, and then raises Error if at
+   --  end of file. Otherwise returns with P skipped past whitespace.
 
    function Check_File_Type return Character;
    --  Skips white space if any, and then looks for any of the tokens

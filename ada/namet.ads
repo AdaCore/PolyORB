@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-2000 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2001 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -218,6 +218,15 @@ package Namet is
    --  Return starting address of name characters table (used in Back_End
    --  call to Gigi).
 
+   function Name_Find return Name_Id;
+   --  Name_Find is called with a string stored in Name_Buffer whose length
+   --  is in Name_Len (i.e. the characters of the name are in subscript
+   --  positions 1 to Name_Len in Name_Buffer). It searches the names
+   --  table to see if the string has already been stored. If so the Id of
+   --  the existing entry is returned. Otherwise a new entry is created with
+   --  its Name_Table_Info field set to zero. The contents of Name_Buffer
+   --  and Name_Len are not modified by this call.
+
    function Name_Enter return Name_Id;
    --  Name_Enter has the same calling interface as Name_Find. The difference
    --  is that it does not search the table for an existing match, and also
@@ -230,18 +239,10 @@ package Namet is
    --  hashing by Name_Find in any case.
 
    function Name_Entries_Address return System.Address;
-   --  Return starting address of names table. Used in Back_End call to Gigi.
+   --  Return starting address of Names table. Used in Back_End call to Gigi.
 
    function Name_Entries_Count return Nat;
    --  Return current number of entries in the names table
-
-   function Name_Find return Name_Id;
-   --  Name_Find is called with a string stored in Name_Buffer whose length
-   --  is in Name_Len (i.e. the characters of the name are in subscript
-   --  positions 1 to Name_Len in Name_Buffer). It searches the names
-   --  table to see if the string has already been stored. If so the Id of
-   --  the existing entry is returned. Otherwise a new entry is created with
-   --  its Name_Table_Info field set to zero.
 
    function Is_OK_Internal_Letter (C : Character) return Boolean;
    pragma Inline (Is_OK_Internal_Letter);
@@ -256,6 +257,17 @@ package Namet is
    --  for which Is_OK_Internal_Letter is true, or if the name starts or ends
    --  with an underscore. This call destroys the value of Name_Len and
    --  Name_Buffer (it loads these as for Get_Name_String).
+   --
+   --  Note: if the name is qualified (has a double underscore), then
+   --  only the final entity name is considered, not the qualifying
+   --  names. Consider for example that the name:
+   --
+   --    pkg__B_1__xyz
+   --
+   --  is not an internal name, because the B comes from the internal
+   --  name of a qualifying block, but the xyz means that this was
+   --  indeed a declared identifier called "xyz" within this block
+   --  and there is nothing internal about that name.
 
    function Is_Internal_Name return Boolean;
    --  Like the form with an Id argument, except that the name to be tested is

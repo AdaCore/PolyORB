@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-2000, Free Software Foundation, Inc.         --
+--          Copyright (C) 1992-2001, Free Software Foundation, Inc.         --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -49,7 +49,7 @@ package Sinput.P is
    --  Source and Current_Source_File.
 
    procedure Restore_Project_Scan_State
-     (Saved_State : in Saved_Project_Scan_State);
+     (Saved_State : Saved_Project_Scan_State);
    pragma Inline (Restore_Project_Scan_State);
    --  Restore the Scans state and the values of
    --  Source and Current_Source_File.

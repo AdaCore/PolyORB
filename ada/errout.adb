@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-2000 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2001 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -152,7 +152,7 @@ package body Errout is
       --  is the original flag location value. This may refer to an instance
       --  when the actual message (and hence Sptr) references the template.
 
-      Line : Logical_Line_Number;
+      Line : Physical_Line_Number;
       --  Line number for error message
 
       Col : Column_Number;
@@ -284,9 +284,9 @@ package body Errout is
    procedure Output_Line_Number (L : Logical_Line_Number);
    --  Output a line number as six digits (with leading zeroes suppressed),
    --  followed by a period and a blank (note that this is 8 characters which
-   --  means that tabs in the source line will not get messed up). A line
-   --  number of zero is output as eight blanks (this is the way we list the
-   --  line number of a Source_Reference pragma at the start of the file).
+   --  means that tabs in the source line will not get messed up). Line numbers
+   --  that match or are less than the last Source_Reference pragma are listed
+   --  as all blanks, avoiding output of junk line numbers.
 
    procedure Output_Msg_Text (E : Error_Msg_Id);
    --  Outputs characters of text in the text of the error message E, excluding
@@ -294,7 +294,7 @@ package body Errout is
    --  caller is responsible for adding the end of line.
 
    procedure Output_Source_Line
-     (L     : Logical_Line_Number;
+     (L     : Physical_Line_Number;
       Sfile : Source_File_Index;
       Errs  : Boolean);
    --  Outputs text of source line L, in file S, together with preceding line
@@ -887,6 +887,10 @@ package body Errout is
    --  Start of processing for Error_Msg_Internal
 
    begin
+      if Raise_Exception_On_Error /= 0 then
+         raise Error_Msg_Exception;
+      end if;
+
       Continuation := Msg_Cont;
       Suppress_Message := False;
       Kill_Message := False;
@@ -951,7 +955,7 @@ package body Errout is
       Errors.Table (Cur_Msg).Sptr     := Orig_Loc;
       Errors.Table (Cur_Msg).Fptr     := Flag_Location;
       Errors.Table (Cur_Msg).Sfile    := Get_Source_File_Index (Orig_Loc);
-      Errors.Table (Cur_Msg).Line     := Get_Line_Number (Orig_Loc);
+      Errors.Table (Cur_Msg).Line     := Get_Physical_Line_Number (Orig_Loc);
       Errors.Table (Cur_Msg).Col      := Get_Column_Number (Orig_Loc);
       Errors.Table (Cur_Msg).Warn     := Is_Warning_Msg;
       Errors.Table (Cur_Msg).Uncond   := Is_Unconditional_Msg;
@@ -1296,14 +1300,13 @@ package body Errout is
       Nxt      : Error_Msg_Id;
       E, F     : Error_Msg_Id;
       Err_Flag : Boolean;
-      L        : Logical_Line_Number;
 
    begin
       --  Reset current error source file if the main unit has a pragma
       --  Source_Reference. This ensures outputting the proper name of
       --  the source file in this situation.
 
-      if Has_Line_Offset (Main_Source_File) then
+      if Num_SRef_Pragmas (Main_Source_File) /= 0 then
          Current_Error_Source_File := No_Source_File;
       end if;
 
@@ -1335,7 +1338,9 @@ package body Errout is
             if not Errors.Table (E).Deleted then
                Write_Name (Reference_Name (Errors.Table (E).Sfile));
                Write_Char (':');
-               Write_Int (Int (Errors.Table (E).Line));
+               Write_Int (Int (Physical_To_Logical
+                                (Errors.Table (E).Line,
+                                 Errors.Table (E).Sfile)));
                Write_Char (':');
 
                if Errors.Table (E).Col < 10 then
@@ -1364,15 +1369,13 @@ package body Errout is
 
          --  First list initial main source file with its error messages
 
-         for N in 1 .. Num_Source_Lines (Main_Source_File) loop
-            L := Physical_To_Logical (N, Main_Source_File);
-
+         for N in 1 .. Last_Source_Line (Main_Source_File) loop
             Err_Flag :=
               E /= No_Error_Msg
-                and then Errors.Table (E).Line = L
+                and then Errors.Table (E).Line = N
                 and then Errors.Table (E).Sfile = Main_Source_File;
 
-            Output_Source_Line (L, Main_Source_File, Err_Flag);
+            Output_Source_Line (N, Main_Source_File, Err_Flag);
 
             if Err_Flag then
                Output_Error_Msgs (E);
@@ -1723,7 +1726,7 @@ package body Errout is
       N, M  : Int;       -- temporaries
 
    begin
-      if L = 0 then
+      if L = No_Line_Number then
          Write_Str ("        ");
 
       else
@@ -1779,7 +1782,7 @@ package body Errout is
    ------------------------
 
    procedure Output_Source_Line
-     (L     : Logical_Line_Number;
+     (L     : Physical_Line_Number;
       Sfile : Source_File_Index;
       Errs  : Boolean)
    is
@@ -1795,11 +1798,16 @@ package body Errout is
          Write_Name (Full_File_Name (Sfile));
          Write_Eol;
 
-         if Has_Line_Offset (Sfile) then
+         if Num_SRef_Pragmas (Sfile) > 0 then
             Write_Str ("--------------Line numbers from file: ");
             Write_Name (Full_Ref_Name (Sfile));
+
+            --  Write starting line, except do not write it if we had more
+            --  than one source reference pragma, since in this case there
+            --  is no very useful number to write.
+
             Write_Str (" (starting at line ");
-            Write_Int (Line_Offset (Sfile) + 2);
+            Write_Int (Int (First_Mapped_Line (Sfile)));
             Write_Char (')');
             Write_Eol;
          end if;
@@ -1808,7 +1816,7 @@ package body Errout is
       end if;
 
       if Errs or List_Pragmas_Mode then
-         Output_Line_Number (L);
+         Output_Line_Number (Physical_To_Logical (L, Sfile));
          Line_Number_Output := True;
       end if;
 
@@ -1840,7 +1848,7 @@ package body Errout is
                   List_Pragmas_Mode := True;
 
                   if not Line_Number_Output then
-                     Output_Line_Number (L);
+                     Output_Line_Number (Physical_To_Logical (L, Sfile));
                      Line_Number_Output := True;
                   end if;
 
@@ -2148,7 +2156,7 @@ package body Errout is
 
          --  Output line number for reference
 
-         Set_Msg_Int (Int (Get_Line_Number (Loc)));
+         Set_Msg_Int (Int (Get_Logical_Line_Number (Loc)));
 
          --  Deal with the instantiation case. We may have a reference to,
          --  e.g. a type, that is declared within a generic template, and

@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-2000 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2001 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -78,6 +78,7 @@ package body ALI is
       Normalize_Scalars_Specified          := False;
       No_Run_Time_Specified                := False;
       Queuing_Policy_Specified             := ' ';
+      Static_Elaboration_Model_Used        := False;
       Task_Dispatching_Policy_Specified    := ' ';
       Unreserve_All_Interrupts_Specified   := False;
       Zero_Cost_Exceptions_Specified       := False;
@@ -908,6 +909,14 @@ package body ALI is
 
          Skip_Eol;
 
+         --  Check if static elaboration model used
+
+         if not Units.Table (Units.Last).Dynamic_Elab
+           and then not Units.Table (Units.Last).Internal
+         then
+            Static_Elaboration_Model_Used := True;
+         end if;
+
          --  Scan out With lines for this unit
 
          C := Getc;
@@ -1147,21 +1156,44 @@ package body ALI is
             end if;
          end;
 
-         --  Acquire subunit name if present
+         --  Acquire subunit and reference file name entries
 
-         if At_Eol then
-            Sdep.Table (Sdep.Last).Subunit_Name := No_Name;
+         Sdep.Table (Sdep.Last).Subunit_Name := No_Name;
+         Sdep.Table (Sdep.Last).Rfile        := Sdep.Table (Sdep.Last).Sfile;
+         Sdep.Table (Sdep.Last).Start_Line   := 1;
 
-         else
-            Name_Len := 0;
+         if not At_Eol then
             Skip_Space;
 
-            while not At_Eol loop
-               Name_Len := Name_Len + 1;
-               Name_Buffer (Name_Len) := Getc;
-            end loop;
+            --  Here for subunit name
 
-            Sdep.Table (Sdep.Last).Subunit_Name := Name_Enter;
+            if Nextc not in '0' .. '9' then
+               Name_Len := 0;
+
+               while not At_End_Of_Field loop
+                  Name_Len := Name_Len + 1;
+                  Name_Buffer (Name_Len) := Getc;
+               end loop;
+
+               Sdep.Table (Sdep.Last).Subunit_Name := Name_Enter;
+               Skip_Space;
+            end if;
+
+            --  Here for reference file name entry
+
+            if Nextc in '0' .. '9' then
+               Sdep.Table (Sdep.Last).Start_Line := Get_Nat;
+               Checkc (':');
+
+               Name_Len := 0;
+
+               while not At_End_Of_Field loop
+                  Name_Len := Name_Len + 1;
+                  Name_Buffer (Name_Len) := Getc;
+               end loop;
+
+               Sdep.Table (Sdep.Last).Rfile := Name_Enter;
+            end if;
          end if;
 
          Skip_Eol;
@@ -1181,10 +1213,16 @@ package body ALI is
          declare
             XS : Xref_Section_Record renames
                    Xref_Section.Table (Xref_Section.Last);
+
+            Current_File_Num : Sdep_Id;
+            --  Keeps track of the current file number (changed by nn|)
+
          begin
             XS.File_Num     := Sdep_Id (Get_Nat) + (First_Sdep_Entry - 1);
             XS.File_Name    := Get_Name;
             XS.First_Entity := Xref_Entity.Last + 1;
+
+            Current_File_Num := XS.File_Num;
 
             Skip_Eol;
             C := Nextc;
@@ -1216,11 +1254,13 @@ package body ALI is
                      if Nextc = '|' then
                         XE.Ptype_File_Num := Sdep_Id (N) +
                                                (First_Sdep_Entry - 1);
+
+                        Current_File_Num := XE.Ptype_File_Num;
                         P := P + 1;
                         N := Get_Nat;
 
                      else
-                        XE.Ptype_File_Num := XS.File_Num;
+                        XE.Ptype_File_Num := Current_File_Num;
                      end if;
 
                      XE.Ptype_Line := N;
@@ -1237,6 +1277,8 @@ package body ALI is
                   XE.First_Xref := Xref.Last + 1;
 
                   --  Loop through cross-references for this entity
+
+                  Current_File_Num := XS.File_Num;
 
                   loop
                      Skip_Space;
@@ -1258,11 +1300,12 @@ package body ALI is
                         if Nextc = '|' then
                            XR.File_Num := Sdep_Id (N) +
                                             (First_Sdep_Entry - 1);
+                           Current_File_Num := XR.File_Num;
                            P := P + 1;
                            N := Get_Nat;
 
                         else
-                           XR.File_Num := XS.File_Num;
+                           XR.File_Num := Current_File_Num;
                         end if;
 
                         XR.Line  := N;

@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-2000, Free Software Foundation, Inc.         --
+--          Copyright (C) 1992-2001, Free Software Foundation, Inc.         --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -181,11 +181,6 @@ package body Fname is
                   Name_Buffer (1) = 'i' or else
                   Name_Buffer (1) = 's')
       then
-         return True;
-
-      --  Definitely predefined if first character is digit
-
-      elsif Name_Buffer (1) in '0' .. '9' then
          return True;
       end if;
 

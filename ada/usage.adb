@@ -8,7 +8,7 @@
 --                                                                          --
 --                           $Revision$
 --                                                                          --
---          Copyright (C) 1992-2000, Free Software Foundation, Inc.         --
+--          Copyright (C) 1992-2001, Free Software Foundation, Inc.         --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -297,6 +297,8 @@ begin
    Write_Line ("        L*   turn off elaboration warnings");
    Write_Line ("        o*   turn on address clause overlay warnings");
    Write_Line ("        O    turn off address clause overlay warnings");
+   Write_Line ("        p    turn on warnings for ineffective pragma inline");
+   Write_Line ("        P*   turn off warnings for ineffective pragma inline");
    Write_Line ("        r    turn on redundant assign/convert warnings");
    Write_Line ("        R*   turn off redundant assign/convert warnings");
    Write_Line ("        s    suppress all warnings");

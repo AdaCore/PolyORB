@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-2000 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2001 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -60,6 +60,9 @@ pragma Preelaborate (Types);
 
    type Int is range -2 ** 31 .. +2 ** 31 - 1;
    --  Signed 32-bit integer
+
+   type Dint is range -2 ** 63 .. +2 ** 63 - 1;
+   --  Double length (64-bit) integer
 
    subtype Nat is Int range 0 .. Int'Last;
    --  Non-negative Int values
@@ -152,12 +155,18 @@ pragma Preelaborate (Types);
    type Logical_Line_Number is range 0 .. Int'Last;
    for Logical_Line_Number'Size use 32;
    --  Line number type, used for storing logical line numbers (i.e. line
-   --  numbers that include the line offset from pragma Source_Reference)
-   --  Logical line number zero is reserved for the line containing the
-   --  Source_Reference pragma at the start of the file.
+   --  numbers that include effects of any Source_Reference pragmas in the
+   --  source file). The value zero indicates a line containing a source
+   --  reference pragma.
 
    No_Line_Number : constant Logical_Line_Number := 0;
    --  Special value used to indicate no line number
+
+   type Physical_Line_Number is range 1 .. Int'Last;
+   for Physical_Line_Number'Size use 32;
+   --  Line number type, used for storing physical line numbers (i.e.
+   --  line numbers in the physical file being compiled, unaffected by
+   --  the presence of source reference pragmas.
 
    type Column_Number is range 0 .. 32767;
    for Column_Number'Size use 16;
@@ -293,21 +302,25 @@ pragma Preelaborate (Types);
    --  Maximum number of strings that can be allocated is 100 million, which
    --  is in practice infinite and there is no need to check the range.
 
-   Uint_Low_Bound : constant := 500_000_000;
-   --  Low bound for Uint values.
-
-   Uint_High_Bound : constant := 599_999_999;
-   --  Maximum number of Uint values stored is 100_000_000 which is in
-   --  practice infinite so that no check is required.
-
-   Ureal_Low_Bound : constant := 600_000_000;
+   Ureal_Low_Bound : constant := 500_000_000;
    --  Low bound for Ureal values.
 
-   Ureal_High_Bound : constant := 699_999_999;
+   Ureal_High_Bound : constant := 599_999_999;
    --  Maximum number of Ureal values stored is 100_000_000 which is in
    --  practice infinite so that no check is required.
 
-   Char_Code_Bias : constant := 700_000_000;
+   Uint_Low_Bound : constant := 600_000_000;
+   --  Low bound for Uint values.
+
+   Uint_Table_Start : constant := 2_000_000_000;
+   --  Location where table entries for universal integers start (see
+   --  Uintp spec for details of the representation of Uint values).
+
+   Uint_High_Bound : constant := 2_099_999_999;
+   --  The range of Uint values is very large, since a substantial part
+   --  of this range is used to store direct values, see Uintp for details.
+
+   Char_Code_Bias : constant := 2_100_000_000;
    --  A bias value added to character code values stored in the tree which
    --  ensures that they have different values from any of the above types.
 
@@ -410,8 +423,8 @@ pragma Preelaborate (Types);
 
    Empty_Or_Error : constant Node_Id := Error;
    --  Since Empty and Error are the first two Node_Id values, the test for
-   --  N <= Error tests to see if N is Empty or Error. This definition provides
-   --  convenient self-documentation for such tests.
+   --  N <= Empty_Or_Error tests to see if N is Empty or Error. This definition
+   --  provides convenient self-documentation for such tests.
 
    First_Node_Id  : constant Node_Id := Node_Low_Bound;
    --  Subscript of first allocated node. Note that Empty and Error are both

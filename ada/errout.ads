@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-2000 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2001 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -57,6 +57,17 @@ package Errout is
    --  other than the main unit. However, if the main unit has a pragma
    --  Source_Reference line, then this is initialized to No_Source_File,
    --  to force an initial reference to the real source file name.
+
+   Raise_Exception_On_Error : Nat := 0;
+   --  If this value is non-zero, then any attempt to generate an error
+   --  message raises the exception Error_Msg_Exception, and the error
+   --  message is not output. This is used for defending against junk
+   --  resulting from illegalities, and also for substitution of more
+   --  appropriate error messages from higher semantic levels. It is
+   --  a counter so that the increment/decrement protocol nests neatly.
+
+   Error_Msg_Exception : exception;
+   --  Exception raised if Raise_Exception_On_Error is true
 
    -----------------------------------
    -- Suppression of Error Messages --
@@ -115,8 +126,8 @@ package Errout is
    --      the string <error> is inserted. A second and third % may appear
    --      in a single message, similarly replaced by the names which are
    --      specified by the Name_Id values stored in Error_Msg_Name_2 and
-   --      Error_Msg_Name_3. The names are cased according to the current
-   --      identifier casing mode.
+   --      Error_Msg_Name_3. The names are decoded and cased according to
+   --      the current identifier casing mode.
 
    --    Insertion character $ (Dollar: insert unit name from Names table)
    --      The character $ is treated similarly to %, except that the name
@@ -126,10 +137,11 @@ package Errout is
    --      or (body) strings. If this postfix is not required, use the
    --      normal % insertion for the unit name.
 
-   --    Insertion character { (Left brace: insert file name from names table)
+   --    Insertion character { (Left brace: insert literally from names table)
    --      The character { is treated similarly to %, except that the
    --      name is output literally as stored in the names table without
-   --      adjusting the casing.
+   --      adjusting the casing. This can be used for file names and in
+   --      other situations where the name string is to be output unchanged.
 
    --    Insertion character * (Asterisk, insert reserved word name)
    --      The insertion character * is treated exactly like % except that

@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-2000, Free Software Foundation, Inc.         --
+--          Copyright (C) 1992-2001, Free Software Foundation, Inc.         --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -451,8 +451,6 @@ package Sinfo is
    --  code is being generated, since they involved expander actions that
    --  destroy the tree.
 
-   --  The list of notes is by no means complete ???
-
    ------------------------
    -- Common Flag Fields --
    ------------------------
@@ -584,7 +582,10 @@ package Sinfo is
    --  Body_To_Inline (Node3-Sem)
    --    present in subprogram declarations. Denotes analyzed but unexpanded
    --    body of subprogram, to be used when inlining calls. Present when the
-   --    subprogram has an Inline pragma and inlining is enabled.
+   --    subprogram has an Inline pragma and inlining is enabled. If the
+   --    declaration is completed by a renaming_as_body, and the renamed en-
+   --    tity is a subprogram, the Body_To_Inline is the name of that entity,
+   --    which is used directly in later calls to the original subprogram.
 
    --  Body_Required (Flag13-Sem)
    --    A flag that appears in the N_Compilation_Unit node indicating that
@@ -1213,14 +1214,13 @@ package Sinfo is
    --    to generate the proper message (see Sem_Util.Check_Unused_Withs for
    --    full details)
 
-   --  No_Initialization (Flag7-Sem)
+   --  No_Initialization (Flag13-Sem)
    --    Present in N_Object_Declaration & N_Allocator to indicate
    --    that the object must not be initialized (by Initialize or a
-   --    call to _init_proc). This is needed for controlled
-   --    aggregates. When the Object declaration has an expression, this
-   --    flag means that this expression should not be taken into
-   --    account (needed for in place initialization with aggregates)
-
+   --    call to _init_proc). This is needed for controlled aggregates.
+   --    When the Object declaration has an expression, this flag means
+   --    that this expression should not be taken into account (needed
+   --    for in place initialization with aggregates)
 
    --  OK_For_Stream (Flag4-Sem)
    --    Present in N_Attribute_Definition clauses for stream attributes. If
@@ -1435,6 +1435,41 @@ package Sinfo is
    --    needs to do for such a handler is simply to put the code in the
    --    handler somewhere. The front end has generated all necessary labels.
 
+   ------------------------------------
+   -- Note on Use of End_Label Field --
+   ------------------------------------
+
+   --  Several constructs have end lines with an optional label, as follows
+
+   --    Loop Statement             end loop [loop_IDENTIFIER];
+   --    Package Specification      end [[PARENT_UNIT_NAME .] IDENTIFIER]
+   --    Task Definition            end [task_IDENTIFIER]
+   --    Protected Definition       end [protected_IDENTIFIER]
+   --    Protected Body             end [protected_IDENTIFIER]
+
+   --    Block Statement            end [block_IDENTIFIER];
+   --    Subprogram Body            end [DESIGNATOR];
+   --    Package Body               end [[PARENT_UNIT_NAME .] IDENTIFIER];
+   --    Task Body                  end [task_IDENTIFIER];
+   --    Accept Statement           end [entry_IDENTIFIER]];
+   --    Entry Body                 end [entry_IDENTIFIER];
+
+   --  For the corresponding nodes, the End_Label field is used to point to
+   --  the label construct. In the case where this is omitted in the source,
+   --  the parser supplies a dummy identifier (with Comes_From_Source set to
+   --  False). One function of this End_Label field is to provide the source
+   --  location for the end of the construct.
+
+   --  Note that in the second group above (Block Statement through Entry
+   --  Body), the End_Label field is actually in the node for the Handled
+   --  Sequence of Statements (this is just because there is no room in the
+   --  parent node in several cases).
+
+   --  One final use of End_Label is for record definitions, which although
+   --  they never have a label, still need a source location to mark the
+   --  end of the record (so the referenced identifier in this case will
+   --  always have Comes_From_Source set to False).
+
    ---------------------
    -- Syntactic Nodes --
    ---------------------
@@ -1476,7 +1511,7 @@ package Sinfo is
       --  Original_Discriminant (Node2-Sem)
       --  Redundant_Use (Flag13-Sem)
       --  Is_Lvalue (Flag18-Sem)
-      --  Has_Private_View (Flag11-Sem) set in generic units.
+      --  Has_Private_View (Flag11-Sem) (set in generic units)
       --  plus fields for expression
 
       --------------------------
@@ -1819,7 +1854,7 @@ package Sinfo is
       --  Corresponding_Generic_Association (Node5-Sem)
       --  More_Ids (Flag5) (set to False if no more identifiers in list)
       --  Prev_Ids (Flag6) (set to False if no previous identifiers in list)
-      --  No_Initialization (Flag7)
+      --  No_Initialization (Flag13-Sem)
       --  Assignment_OK (Flag15-Sem)
       --  Exception_Junk (Flag11-Sem)
       --  Delay_Finalize_Attach (Flag14-Sem)
@@ -2311,6 +2346,7 @@ package Sinfo is
 
       --  N_Record_Definition
       --  Sloc points to RECORD or NULL
+      --  End_Label (Node4) (set to Empty for internally generated records)
       --  Abstract_Present (Flag4)
       --  Tagged_Present (Flag15)
       --  Limited_Present (Flag17)
@@ -3293,7 +3329,7 @@ package Sinfo is
       --  Expression (Node3) subtype indication or qualified expression
       --  Storage_Pool (Node1-Sem)
       --  Procedure_To_Call (Node4-Sem)
-      --  No_Initialization (Flag7)
+      --  No_Initialization (Flag13-Sem)
       --  Do_Storage_Check (Flag17-Sem)
       --  plus fields for expression
 
@@ -3498,6 +3534,7 @@ package Sinfo is
       --  Identifier (Node1) loop identifier (set to Empty if no identifier)
       --  Iteration_Scheme (Node2) (set to Empty if no iteration scheme)
       --  Statements (List3)
+      --  End_Label (Node4)
       --  Has_Created_Identifier (Flag15)
 
       --------------------------
@@ -3663,6 +3700,8 @@ package Sinfo is
       --   parent library unit package name is present.
       --  Identifier (Node1)
 
+      --  Note that the identifier can also be an operator symbol here.
+
       ------------------------------
       -- 6.1  Defining Designator --
       ------------------------------
@@ -3730,10 +3769,11 @@ package Sinfo is
       --  in package Einfo.
 
       --  Note: N_Defining_Operator_Symbol is an extended node whose fields
-      --  are deliberate layed out to match the layout of fields in an ordinary
-      --  N_Operator_Symbol node allowing for easy alteration of an operator
-      --  symbol node into a defining operator symbol node. For details, see
-      --  Sinfo.CN.Change_Operator_Symbol_To_Defining_Operator_Symbol.
+      --  are deliberately layed out to match the layout of fields in an
+      --  ordinary N_Operator_Symbol node allowing for easy alteration of
+      --  an operator symbol node into a defining operator symbol node.
+      --  See Sinfo.CN.Change_Operator_Symbol_To_Defining_Operator_Symbol
+      --  for further details.
 
       --  N_Defining_Operator_Symbol
       --  Sloc points to literal
@@ -3967,8 +4007,9 @@ package Sinfo is
       --  Sloc points to PACKAGE
       --  Defining_Unit_Name (Node1)
       --  Visible_Declarations (List2)
-      --  Private_Declarations (List4) (set to No_List if no private
+      --  Private_Declarations (List3) (set to No_List if no private
       --   part present)
+      --  End_Label (Node4)
       --  Generic_Parent (Node5-Sem)
 
       -----------------------
@@ -3986,9 +4027,15 @@ package Sinfo is
       --  Sloc points to PACKAGE
       --  Defining_Unit_Name (Node1)
       --  Declarations (List2)
-      --  Handled_Statement_Sequence (Node4) (set to Empty if not present)
+      --  Handled_Statement_Sequence (Node4) (set to Empty if no HSS present)
       --  Corresponding_Spec (Node5-Sem)
       --  Was_Originally_Stub (Flag13-Sem)
+
+      --  Note: if a source level package does not contain a handled sequence
+      --  of statements, then the parser supplies a dummy one with a null
+      --  sequence of statements. Comes_From_Source will be False in this
+      --  constructed sequence. The reason we need this is for the End_Label
+      --  field in the HSS.
 
       -----------------------------------
       -- 7.4  Private Type Declaration --
@@ -4200,7 +4247,8 @@ package Sinfo is
       --  N_Task_Definition
       --  Sloc points to first token of task definition
       --  Visible_Declarations (List2)
-      --  Private_Declarations (List4) (set to No_List if no private part)
+      --  Private_Declarations (List3) (set to No_List if no private part)
+      --  End_Label (Node4)
       --  Has_Priority_Pragma (Flag6-Sem)
       --  Has_Storage_Size_Pragma (Flag5-Sem)
       --  Has_Task_Info_Pragma (Flag7-Sem)
@@ -4280,7 +4328,8 @@ package Sinfo is
       --  N_Protected_Definition
       --  Sloc points to first token of protected definition
       --  Visible_Declarations (List2)
-      --  Private_Declarations (List4) (set to No_List if no private part)
+      --  Private_Declarations (List3) (set to No_List if no private part)
+      --  End_Label (Node4)
       --  Has_Priority_Pragma (Flag6-Sem)
 
       ------------------------------------------
@@ -4316,6 +4365,7 @@ package Sinfo is
       --  Sloc points to PROTECTED
       --  Defining_Identifier (Node1)
       --  Declarations (List2) protected operation items (and pragmas)
+      --  End_Label (Node4)
       --  Corresponding_Spec (Node5-Sem)
       --  Was_Originally_Stub (Flag13-Sem)
 
@@ -5049,7 +5099,8 @@ package Sinfo is
       --  N_Handled_Sequence_Of_Statements
       --  Sloc points to first token of first statement
       --  Statements (List3)
-      --  Exception_Handlers (List4) (set to No_List if none present)
+      --  End_Label (Node4) (set to Empty if no label)
+      --  Exception_Handlers (List5) (set to No_List if none present)
       --  At_End_Proc (Node1) (set to Empty if no clean up procedure)
       --  First_Real_Statement (Node2-Sem)
       --  Zero_Cost_Handling (Flag5-Sem)
@@ -5058,6 +5109,8 @@ package Sinfo is
       --  declarations associated with the handled sequence of statements. This
       --  is true even in the case of an accept statement (see description of
       --  the N_Accept_Statement node).
+
+      --  End_Label refers to the containing construct.
 
       -----------------------------
       -- 11.2  Exception Handler --
@@ -6156,7 +6209,6 @@ package Sinfo is
       N_Record_Representation_Clause,
 
       --  N_Representation_Clause, N_Has_Chars
-
       N_Attribute_Definition_Clause,
 
       --  N_Has_Chars
@@ -6173,12 +6225,17 @@ package Sinfo is
       --  N_Subexpr, N_Has_Etype, N_Has_Chars, N_Has_Entity
       N_Expanded_Name,
 
-      --  N_Direct_Name, N_Subexpr, N_Has_Etype, N_Has_Chars, N_Has_Entity
+      --  N_Direct_Name, N_Subexpr, N_Has_Etype,
+      --  N_Has_Chars, N_Has_Entity
       N_Identifier,
-      N_Character_Literal,
       N_Operator_Symbol,
 
-      --  N_Binary_Op, N_Op, N_Subexpr, N_Has_Etype, N_Has_Chars, N_Has_Entity
+      --  N_Direct_Name, N_Subexpr, N_Has_Etype,
+      --  N_Has_Chars, N_Has_Entity
+      N_Character_Literal,
+
+      --  N_Binary_Op, N_Op, N_Subexpr,
+      --  N_Has_Etype, N_Has_Chars, N_Has_Entity
       N_Op_Add,
       N_Op_Concat,
       N_Op_Divide,
@@ -6208,7 +6265,8 @@ package Sinfo is
       N_Op_Shift_Right,
       N_Op_Shift_Right_Arithmetic,
 
-      --  N_Unary_Op, N_Op, N_Subexpr, N_Has_Etype, N_Has_Chars, N_Has_Entity
+      --  N_Unary_Op, N_Op, N_Subexpr, N_Has_Etype,
+      --  N_Has_Chars, N_Has_Entity
       N_Op_Abs,
       N_Op_Minus,
       N_Op_Not,
@@ -6458,7 +6516,7 @@ package Sinfo is
 
    subtype N_Direct_Name is Node_Kind range
      N_Identifier ..
-     N_Operator_Symbol;
+     N_Character_Literal;
 
    subtype N_Entity is Node_Kind range
      N_Defining_Character_Literal ..
@@ -6484,8 +6542,7 @@ package Sinfo is
      N_Expanded_Name ..
      N_Attribute_Reference;
    --  Nodes that have Entity fields
-   --  Warning: DOES NOT INCLUDE N_Freeze_Entity! This needs cleaning
-   --  up sometime ???
+   --  Warning: DOES NOT INCLUDE N_Freeze_Entity!
 
    subtype N_Has_Etype is Node_Kind range
      N_Defining_Character_Literal ..
@@ -6827,6 +6884,9 @@ package Sinfo is
    function Enclosing_Variant
      (N : Node_Id) return Node_Id;    -- Node2
 
+   function End_Label
+     (N : Node_Id) return Node_Id;    -- Node4
+
    function Entity
      (N : Node_Id) return Node_Id;    -- Node4
 
@@ -6858,7 +6918,7 @@ package Sinfo is
      (N : Node_Id) return Boolean;    -- Flag11
 
    function Exception_Handlers
-     (N : Node_Id) return List_Id;    -- List4
+     (N : Node_Id) return List_Id;    -- List5
 
    function Explicit_Actual_Parameter
      (N : Node_Id) return Node_Id;    -- Node3
@@ -7089,7 +7149,7 @@ package Sinfo is
      (N : Node_Id) return Boolean;    -- Flag8
 
    function No_Initialization
-     (N : Node_Id) return Boolean;    -- Flag7
+     (N : Node_Id) return Boolean;    -- Flag13
 
    function Null_Present
      (N : Node_Id) return Boolean;    -- Flag13
@@ -7152,7 +7212,7 @@ package Sinfo is
      (N : Node_Id) return Boolean;    -- Flag13
 
    function Private_Declarations
-     (N : Node_Id) return List_Id;    -- List4
+     (N : Node_Id) return List_Id;    -- List3
 
    function Private_Present
      (N : Node_Id) return Boolean;    -- Flag15
@@ -7565,6 +7625,9 @@ package Sinfo is
    procedure Set_Enclosing_Variant
      (N : Node_Id; Val : Node_Id);            -- Node2
 
+   procedure Set_End_Label
+     (N : Node_Id; Val : Node_Id);            -- Node4
+
    procedure Set_Entity
      (N : Node_Id; Val : Node_Id);            -- Node4
 
@@ -7596,7 +7659,7 @@ package Sinfo is
      (N : Node_Id; Val : Boolean := True);    -- Flag11
 
    procedure Set_Exception_Handlers
-     (N : Node_Id; Val : List_Id);            -- List4
+     (N : Node_Id; Val : List_Id);            -- List5
 
    procedure Set_Expansion_Delayed
      (N : Node_Id; Val : Boolean := True);    -- Flag11
@@ -7827,7 +7890,7 @@ package Sinfo is
      (N : Node_Id; Val : Boolean := True);    -- Flag8
 
    procedure Set_No_Initialization
-     (N : Node_Id; Val : Boolean := True);    -- Flag7
+     (N : Node_Id; Val : Boolean := True);    -- Flag13
 
    procedure Set_Null_Present
      (N : Node_Id; Val : Boolean := True);    -- Flag13
@@ -7890,7 +7953,7 @@ package Sinfo is
      (N : Node_Id; Val : Boolean := True);    -- Flag13
 
    procedure Set_Private_Declarations
-     (N : Node_Id; Val : List_Id);            -- List4
+     (N : Node_Id; Val : List_Id);            -- List3
 
    procedure Set_Private_Present
      (N : Node_Id; Val : Boolean := True);    -- Flag15
@@ -8138,6 +8201,7 @@ package Sinfo is
    pragma Inline (Else_Statements);
    pragma Inline (Elsif_Parts);
    pragma Inline (Enclosing_Variant);
+   pragma Inline (End_Label);
    pragma Inline (Entity);
    pragma Inline (Entry_Body_Formal_Part);
    pragma Inline (Entry_Call_Alternative);
@@ -8381,6 +8445,7 @@ package Sinfo is
    pragma Inline (Set_Else_Statements);
    pragma Inline (Set_Elsif_Parts);
    pragma Inline (Set_Enclosing_Variant);
+   pragma Inline (Set_End_Label);
    pragma Inline (Set_Entity);
    pragma Inline (Set_Entry_Body_Formal_Part);
    pragma Inline (Set_Entry_Call_Alternative);

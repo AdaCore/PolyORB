@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-2000, Free Software Foundation, Inc.         --
+--          Copyright (C) 1992-2001, Free Software Foundation, Inc.         --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -267,9 +267,9 @@ package Opt is
    --  GNATMAKE
    --  Set to force recompilations even when the objects are up-to-date.
 
-   Full_Elaboration_Semantics : Boolean := False;
+   Force_RM_Elaboration_Order : Boolean := False;
    --  GNATBIND
-   --  True if binding with full Ada elaboration semantics (-f switch set)
+   --  True if binding with forced RM elaboration order (-f switch set)
 
    Full_List : Boolean := False;
    --  GNAT
@@ -312,6 +312,12 @@ package Opt is
    --  coding in the source program. This variable is initialized to the
    --  default value appropriate to the system (in Osint.Initialize), and then
    --  reset if a command line switch is used to change the setting.
+
+   Ineffective_Inline_Warnings : Boolean := False;
+   --  GNAT
+   --  Set True to activate warnings if front-end inlining (-gnatN) is not
+   --  able to actually inline a particular call (or all calls). Can be
+   --  controlled by use of -gnatwp/-gnatwP.
 
    Inline_Active : Boolean := False;
    --  GNAT

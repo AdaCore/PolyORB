@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-1999, Free Software Foundation, Inc.         --
+--          Copyright (C) 1992-2001, Free Software Foundation, Inc.         --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -102,7 +102,7 @@ package Uintp is
    --  Tree_Read includes all necessary initialization.
 
    procedure Tree_Write;
-   --  Writes out internal tables to current tree file using Tree_Write
+   --  Writes out internal tables to current tree file using Tree_Write.
 
    function UI_Abs (Right : Uint) return Uint;
    pragma Inline (UI_Abs);
@@ -220,6 +220,9 @@ package Uintp is
    function UI_Sub (Left : Uint; Right : Int)  return Uint;
    pragma Inline (UI_Sub);
    --  Returns difference of two integer values
+
+   function UI_From_Dint (Input : Dint) return Uint;
+   --  Converts Dint value to universal integer form.
 
    function UI_From_Int (Input : Int) return Uint;
    --  Converts Int value to universal integer form.
@@ -371,40 +374,41 @@ private
    type Uint is new Int range Uint_Low_Bound .. Uint_High_Bound;
    for Uint'Size use 32;
 
+   No_Uint : constant Uint := Uint (Uint_Low_Bound);
+
    --  Uint values are represented as multiple precision integers stored in
    --  a multi-digit format using Base as the base. This value is chosen so
    --  that the product Base*Base is within the range of allowed Int values.
+
+   --  Base is defined to allow efficient execution of the primitive
+   --  operations (a0, b0, c0) defined in the section "The Classical
+   --  Algorithms" (sec. 4.3.1) of Donald Knuth's "The Art of Computer
+   --  Programming", Vol. 2. These algorithms are used in this package.
 
    Base_Bits : constant := 15;
    --  Number of bits in base value
 
    Base : constant Int := 2 ** Base_Bits;
-   --  Base is defined to allow the primitive operations (a0, b0, c0)
-   --  defined in the section "The Classical Algorithms" (sec. 4.3.1)
-   --  of Knuth's "The Art of Computer Programming", Vol. 2. It is these
-   --  algorithms that are used in this package.
 
-   --  Values in the range -(Base-1)..+(Base-1), i.e. one-digit values,
-   --  are encoded directly as Uint values by adding a bias value.
+   --  Values in the range -(Base+1) .. maxdirect are encoded directly as
+   --  Uint values by adding a bias value. The value of maxdirect is chosen
+   --  so that a directly represented number always fits in two digits when
+   --  represented in base format.
 
-   --  The following  values define the bias used to store Uint values which
-   --  are in the range -(Base-1)..+(Base-1), as well as the biased values
-   --  for the first and last values in this range. We use a new derived type
-   --  for these constants to avoid accidental use of Uint arithmetic on
-   --  these values, which is never correct.
+   Min_Direct : constant Int := -(Base - 1);
+   Max_Direct : constant Int := (Base - 1) * (Base - 1);
 
-   type Ctrl is new Int;
+   --  The following values define the bias used to store Uint values which
+   --  are in this range, as well as the biased values for the first and
+   --  last values in this range. We use a new derived type for these
+   --  constants to avoid accidental use of Uint arithmetic on these
+   --  values, which is never correct.
 
-   Uint_Direct_Bias  : constant Ctrl :=
-                         Ctrl (Int (Uint_Low_Bound) + Base);
+   type Ctrl is range Int'First .. Int'Last;
 
-   Uint_Direct_First : constant Ctrl :=
-                         Ctrl (Int (Uint_Direct_Bias) - (Base - Int (1)));
-
-   Uint_Direct_Last  : constant Ctrl :=
-                         Ctrl (Int (Uint_Direct_Bias) + (Base - Int (1)));
-
-   No_Uint : constant Uint := Uint (Uint_Low_Bound);
+   Uint_Direct_Bias  : constant Ctrl := Ctrl (Uint_Low_Bound) + Ctrl (Base);
+   Uint_Direct_First : constant Ctrl := Uint_Direct_Bias + Ctrl (Min_Direct);
+   Uint_Direct_Last  : constant Ctrl := Uint_Direct_Bias + Ctrl (Max_Direct);
 
    Uint_0   : constant Uint := Uint (Uint_Direct_Bias);
    Uint_1   : constant Uint := Uint (Uint_Direct_Bias + 1);
@@ -446,14 +450,14 @@ private
    --  Values outside the range that is represented directly are stored
    --  using two tables. The secondary table Udigits contains sequences of
    --  Int values consisting of the digits of the number in a radix Base
-   --  system. The digits are stored from most significant to least significant
-   --  with the first digit only carrying the sign.
+   --  system. The digits are stored from most significant to least
+   --  significant with the first digit only carrying the sign.
 
    --  There is one entry in the primary Uints table for each distinct Uint
    --  value. This table entry contains the length (number of digits) and
    --  a starting offset of the value in the Udigits table.
 
-   Uint_First_Entry : constant Uint := Uint (Uint_Direct_Last + 1);
+   Uint_First_Entry : constant Uint := Uint (Uint_Table_Start);
 
    --  Some subprograms defined in this package manipulate the Udigits
    --  table directly, while for others it is more convenient to work with

@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---             Copyright (C) 2000 Free Software Foundation, Inc.            --
+--             Copyright (C) 2001 Free Software Foundation, Inc.            --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -32,10 +32,11 @@
 --  Children of these package implements various services on these data types.
 --  See in particular Prj.Pars and Prj.Env.
 
-with Casing; use Casing;
-with Scans;  use Scans;
+with Casing;      use Casing;
+with GNAT.OS_Lib; use GNAT.OS_Lib;
+with Scans;       use Scans;
 with Table;
-with Types;  use Types;
+with Types;       use Types;
 
 package Prj is
 
@@ -244,8 +245,8 @@ package Prj is
       Naming             : Naming_Data    := Standard_Naming_Data;
       Decl               : Declarations   := No_Declarations;
       Imported_Projects  : Project_List   := Empty_Project_List;
-      Include_Path       : String_Id      := No_String;
-      Objects_Path       : String_Id      := No_String;
+      Include_Path       : String_Access  := null;
+      Objects_Path       : String_Access  := null;
       Gnat_Adc_Generated : Boolean        := False;
    end record;
    --  Project File representation.

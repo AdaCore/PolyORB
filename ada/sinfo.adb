@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-2000, Free Software Foundation, Inc.         --
+--          Copyright (C) 1992-2001, Free Software Foundation, Inc.         --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -864,6 +864,20 @@ package body Sinfo is
       return Node2 (N);
    end Enclosing_Variant;
 
+   function End_Label
+      (N : Node_Id) return Node_Id is
+   begin
+      pragma Assert (False
+          or else NT (N).Nkind = N_Handled_Sequence_Of_Statements
+          or else NT (N).Nkind = N_Loop_Statement
+          or else NT (N).Nkind = N_Package_Specification
+          or else NT (N).Nkind = N_Protected_Body
+          or else NT (N).Nkind = N_Protected_Definition
+          or else NT (N).Nkind = N_Record_Definition
+          or else NT (N).Nkind = N_Task_Definition);
+      return Node4 (N);
+   end End_Label;
+
    function Entity
       (N : Node_Id) return Node_Id is
    begin
@@ -954,7 +968,7 @@ package body Sinfo is
    begin
       pragma Assert (False
           or else NT (N).Nkind = N_Handled_Sequence_Of_Statements);
-      return List4 (N);
+      return List5 (N);
    end Exception_Handlers;
 
    function Expansion_Delayed
@@ -1688,9 +1702,9 @@ package body Sinfo is
       (N : Node_Id) return Boolean is
    begin
       pragma Assert (False
-          or else NT (N).Nkind = N_Object_Declaration
-          or else NT (N).Nkind = N_Allocator);
-      return Flag7 (N);
+          or else NT (N).Nkind = N_Allocator
+          or else NT (N).Nkind = N_Object_Declaration);
+      return Flag13 (N);
    end No_Initialization;
 
    function Null_Present
@@ -1901,7 +1915,7 @@ package body Sinfo is
           or else NT (N).Nkind = N_Package_Specification
           or else NT (N).Nkind = N_Protected_Definition
           or else NT (N).Nkind = N_Task_Definition);
-      return List4 (N);
+      return List3 (N);
    end Private_Declarations;
 
    function Private_Present
@@ -3182,6 +3196,20 @@ package body Sinfo is
       Set_Node2 (N, Val); -- semantic field, no parent set
    end Set_Enclosing_Variant;
 
+   procedure Set_End_Label
+      (N : Node_Id; Val : Node_Id) is
+   begin
+      pragma Assert (False
+          or else NT (N).Nkind = N_Handled_Sequence_Of_Statements
+          or else NT (N).Nkind = N_Loop_Statement
+          or else NT (N).Nkind = N_Package_Specification
+          or else NT (N).Nkind = N_Protected_Body
+          or else NT (N).Nkind = N_Protected_Definition
+          or else NT (N).Nkind = N_Record_Definition
+          or else NT (N).Nkind = N_Task_Definition);
+      Set_Node4_With_Parent (N, Val);
+   end Set_End_Label;
+
    procedure Set_Entity
       (N : Node_Id; Val : Node_Id) is
    begin
@@ -3272,7 +3300,7 @@ package body Sinfo is
    begin
       pragma Assert (False
           or else NT (N).Nkind = N_Handled_Sequence_Of_Statements);
-      Set_List4_With_Parent (N, Val);
+      Set_List5_With_Parent (N, Val);
    end Set_Exception_Handlers;
 
    procedure Set_Expansion_Delayed
@@ -4006,9 +4034,9 @@ package body Sinfo is
       (N : Node_Id; Val : Boolean := True) is
    begin
       pragma Assert (False
-          or else NT (N).Nkind = N_Object_Declaration
-          or else NT (N).Nkind = N_Allocator);
-      Set_Flag7 (N, Val);
+          or else NT (N).Nkind = N_Allocator
+          or else NT (N).Nkind = N_Object_Declaration);
+      Set_Flag13 (N, Val);
    end Set_No_Initialization;
 
    procedure Set_Null_Present
@@ -4219,7 +4247,7 @@ package body Sinfo is
           or else NT (N).Nkind = N_Package_Specification
           or else NT (N).Nkind = N_Protected_Definition
           or else NT (N).Nkind = N_Task_Definition);
-      Set_List4_With_Parent (N, Val);
+      Set_List3_With_Parent (N, Val);
    end Set_Private_Declarations;
 
    procedure Set_Private_Present

@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-2000 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2001 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -26,6 +26,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Exceptions;   use Ada.Exceptions;
 with Ada.Command_Line; use Ada.Command_Line;
 with GNAT.OS_Lib;      use GNAT.OS_Lib;
 
@@ -230,6 +231,8 @@ package body Make is
                                  Getenv ("ADA_INCLUDE_PATH");
    Original_Ada_Objects_Path : constant String_Access :=
                                  Getenv ("ADA_OBJECTS_PATH");
+   Current_Ada_Include_Path  : String_Access := null;
+   Current_Ada_Objects_Path  : String_Access := null;
 
    ----------------------
    -- Marking Routines --
@@ -1676,6 +1679,84 @@ package body Make is
                --  We now know the project of the current source.
 
                else
+               --  Set ADA_INCLUDE_PATH and ADA_OBJECTS_PATH if the project
+               --  has changed.
+
+               --  Note: this will modify these environment variables only
+               --  for the current gnatmake process and all of its children
+               --  (invocations of the compiler, the binder and the linker).
+
+               --  The caller's ADA_INCLUDE_PATH and ADA_OBJECTS_PATH are
+               --  not affected.
+
+                  declare
+                     New_Ada_Include_Path : constant String_Access :=
+                                              Prj.Env.Ada_Include_Path
+                                                (Current_Project);
+                     New_Ada_Objects_Path : constant String_Access :=
+                                              Prj.Env.Ada_Objects_Path
+                                                (Current_Project);
+
+                  --  Comments needed in following code ???
+
+                  begin
+                     if New_Ada_Include_Path /= Current_Ada_Include_Path then
+                        Current_Ada_Include_Path := New_Ada_Include_Path;
+
+                        if Original_Ada_Include_Path'Length = 0 then
+                           Setenv ("ADA_INCLUDE_PATH",
+                                   New_Ada_Include_Path.all);
+
+                        else
+                           Setenv ("ADA_INCLUDE_PATH",
+                                   Original_Ada_Include_Path.all &
+                                   Path_Separator &
+                                   New_Ada_Include_Path.all);
+                        end if;
+
+                        if Opt.Verbose_Mode then
+                           declare
+                              Include_Path : constant String_Access :=
+                                              Getenv ("ADA_INCLUDE_PATH");
+
+                           begin
+                              Write_Str ("ADA_INCLUDE_PATH = """);
+                              Write_Str (Include_Path.all);
+                              Write_Str ("""");
+                              Write_Eol;
+                           end;
+                        end if;
+                     end if;
+
+                     if New_Ada_Objects_Path /= Current_Ada_Objects_Path then
+                        Current_Ada_Objects_Path := New_Ada_Objects_Path;
+
+                        if Original_Ada_Objects_Path'Length = 0 then
+                           Setenv ("ADA_OBJECTS_PATH",
+                                   New_Ada_Objects_Path.all);
+
+                        else
+                           Setenv ("ADA_OBJECTS_PATH",
+                                   Original_Ada_Objects_Path.all &
+                                   Path_Separator &
+                                   New_Ada_Objects_Path.all);
+                        end if;
+
+                        if Opt.Verbose_Mode then
+                           declare
+                              Objects_Path : constant String_Access :=
+                                               Getenv ("ADA_OBJECTS_PATH");
+
+                           begin
+                              Write_Str ("ADA_OBJECTS_PATH = """);
+                              Write_Str (Objects_Path.all);
+                              Write_Str ("""");
+                              Write_Eol;
+                           end;
+                        end if;
+                     end if;
+                  end;
+
                   Data := Projects.Table (Current_Project);
                   Object_File :=
                     new String'
@@ -2253,7 +2334,7 @@ package body Make is
          Write_Eol;
          Write_Str ("GNATMAKE ");
          Write_Str (Gnatvsn.Gnat_Version_String);
-         Write_Str (" Copyright 1995-2000 Free Software Foundation, Inc.");
+         Write_Str (" Copyright 1995-2001 Free Software Foundation, Inc.");
          Write_Eol;
       end if;
 
@@ -2331,9 +2412,8 @@ package body Make is
             Package_Name      => "gnatmake");
 
          if Main_Project = No_Project then
-            Fail ("could not parse project file """ &
-                  Project_File_Name.all &
-                  """.");
+            Fail ("""" & Project_File_Name.all &
+                  """ processing failed");
          end if;
 
          if Opt.Verbose_Mode then
@@ -2464,86 +2544,6 @@ package body Make is
          --  Generate (if necessary) gnat.adc
 
          Prj.Env.Create_Gnat_Adc (Main_Project);
-
-         --  Set ADA_INCLUDE_PATH and ADA_OBJECTS_PATH.
-         --  Note: this will modify these environment variables only
-         --  for the current gnatmake process and all of its children
-         --  (invocations of the compiler, the binder and the linker).
-         --  The caller's ADA_INCLUDE_PATH and ADA_OBJECTS_PATH are
-         --  not affected.
-
-         if Opt.Verbose_Mode then
-            Write_Str ("Setting ADA_INCLUDE_PATH.");
-            Write_Eol;
-         end if;
-
-         declare
-            New_Include_Path : constant String :=
-                                 Prj.Env.Ada_Include_Path (Main_Project);
-
-         begin
-            if Opt.Verbose_Mode then
-               Write_Str ("Additional Include Path = """);
-               Write_Str (New_Include_Path);
-               Write_Str ("""");
-               Write_Eol;
-            end if;
-
-            if Original_Ada_Include_Path'Length = 0 then
-               Setenv ("ADA_INCLUDE_PATH", New_Include_Path);
-            else
-               Setenv ("ADA_INCLUDE_PATH",
-                       Original_Ada_Include_Path.all &
-                       Path_Separator &
-                       New_Include_Path);
-            end if;
-         end;
-
-         if Opt.Verbose_Mode then
-            Write_Str ("Setting ADA_OBJECTS_PATH.");
-            Write_Eol;
-         end if;
-
-         declare
-            New_Objects_Path : constant String :=
-                                 Prj.Env.Ada_Objects_Path (Main_Project);
-
-         begin
-            if Opt.Verbose_Mode then
-               Write_Str ("Additional Objects Path = """);
-               Write_Str (New_Objects_Path);
-               Write_Str ("""");
-               Write_Eol;
-            end if;
-
-            if Original_Ada_Objects_Path'Length = 0 then
-               Setenv ("ADA_OBJECTS_PATH", New_Objects_Path);
-            else
-               Setenv
-                 ("ADA_OBJECTS_PATH",
-                  Original_Ada_Objects_Path.all &
-                  Path_Separator &
-                  New_Objects_Path);
-            end if;
-         end;
-
-         if Opt.Verbose_Mode then
-            declare
-               Include_Path : constant String_Access :=
-                 Getenv ("ADA_INCLUDE_PATH");
-               Objects_Path : constant String_Access :=
-                 Getenv ("ADA_OBJECTS_PATH");
-            begin
-               Write_Str ("ADA_INCLUDE_PATH = """);
-               Write_Str (Include_Path.all);
-               Write_Str ("""");
-               Write_Eol;
-               Write_Str ("ADA_OBJECTS_PATH = """);
-               Write_Str (Objects_Path.all);
-               Write_Str ("""");
-               Write_Eol;
-            end;
-         end if;
 
       end if;
 
@@ -2857,7 +2857,8 @@ package body Make is
       when Link_Failed =>
          Osint.Fail ("*** link failed.");
 
-      when others =>
+      when X : others =>
+         Write_Line (Exception_Information (X));
          Osint.Fail ("INTERNAL ERROR. Please report.");
 
    end Gnatmake;

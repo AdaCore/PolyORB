@@ -815,9 +815,23 @@ package body Namet is
          return True;
 
       else
-         for J in 1 .. Name_Len loop
+         --  Test backwards, because we only want to test the last entity
+         --  name if the name we have is qualified with other entities.
+
+         for J in reverse 1 .. Name_Len loop
             if Is_OK_Internal_Letter (Name_Buffer (J)) then
                return True;
+
+            --  Quit if we come to terminating double underscore (note that
+            --  if the current character is an underscore, we know that
+            --  there is a previous character present, since we already
+            --  filtered out the case of Name_Buffer (1) = '_' above.
+
+            elsif Name_Buffer (J) = '_'
+              and then Name_Buffer (J - 1) = '_'
+              and then Name_Buffer (J - 2) /= '_'
+            then
+               return False;
             end if;
          end loop;
       end if;

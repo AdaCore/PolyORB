@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-2000 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2001 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -1216,6 +1216,12 @@ package Einfo is
 --       entity is a foreign convention (i.e. is other than Convention_Ada,
 --       Convention_Intrinsic, Convention_Entry or Convention_Protected).
 
+--    Has_Fully_Qualified_Name (Flag173)
+--       Present in all entities. Set True if the name in the Chars field
+--       has been replaced by the fully qualified name, as used for debug
+--       output. See Exp_Dbug for a full description of the use of this
+--       flag and also the related flag Has_Qualified_Name.
+
 --    Has_Gigi_Rep_Item (Flag82)
 --       This flag is set if the rep item chain (referenced by First_Rep_Item
 --       and linked through the Next_Rep_Item chain contains a representation
@@ -1324,9 +1330,13 @@ package Einfo is
 
 --    Has_Qualified_Name (Flag161)
 --       Present in all entities. Set True if the name in the Chars field
---       has been replaced by its fully qualified name, as used for debug
---       output, See Exp_Dbug for a full description of the encoding scheme
---       that is used for fully qualified names.
+--       has been replaced by its qualified name, as used for debug output.
+--       See Exp_Dbug for a full description of qualification requirements.
+--       For some entities, the name is the fully qualified name, but there
+--       are exceptions. In particular, for local variables in procedures,
+--       we do not include the procedure itself or higher scopes. See also
+--       the flag Has_Fully_Qualified_Name, which is set if the name does
+--       indeed include the fully qualified name.
 
 --    Has_Record_Rep_Clause (Flag65)
 --       Present in record types. Set if a record representation clause has
@@ -3536,6 +3546,7 @@ package Einfo is
    --    Debug_Info_Off                (Flag166)
    --    Has_Convention_Pragma         (Flag119)
    --    Has_Delayed_Freeze            (Flag18)
+   --    Has_Fully_Qualified_Name      (Flag173)
    --    Has_Gigi_Rep_Item             (Flag82)
    --    Has_Homonym                   (Flag56)
    --    Has_Pragma_Elaborate_Body     (Flag150)
@@ -4682,6 +4693,7 @@ package Einfo is
    function Has_Enumeration_Rep_Clause         (Id : E) return B;
    function Has_Exit                           (Id : E) return B;
    function Has_External_Tag_Rep_Clause        (Id : E) return B;
+   function Has_Fully_Qualified_Name           (Id : E) return B;
    function Has_Gigi_Rep_Item                  (Id : E) return B;
    function Has_Homonym                        (Id : E) return B;
    function Has_Interrupt_Handler              (Id : E) return B;
@@ -5101,6 +5113,7 @@ package Einfo is
    procedure Set_Has_Enumeration_Rep_Clause    (Id : E; V : B := True);
    procedure Set_Has_Exit                      (Id : E; V : B := True);
    procedure Set_Has_External_Tag_Rep_Clause   (Id : E; V : B := True);
+   procedure Set_Has_Fully_Qualified_Name      (Id : E; V : B := True);
    procedure Set_Has_Gigi_Rep_Item             (Id : E; V : B := True);
    procedure Set_Has_Homonym                   (Id : E; V : B := True);
    procedure Set_Has_Machine_Radix_Clause      (Id : E; V : B := True);
@@ -5532,6 +5545,7 @@ package Einfo is
    pragma Inline (Has_Enumeration_Rep_Clause);
    pragma Inline (Has_Exit);
    pragma Inline (Has_External_Tag_Rep_Clause);
+   pragma Inline (Has_Fully_Qualified_Name);
    pragma Inline (Has_Gigi_Rep_Item);
    pragma Inline (Has_Homonym);
    pragma Inline (Has_Machine_Radix_Clause);
@@ -5867,6 +5881,7 @@ package Einfo is
    pragma Inline (Set_Has_Enumeration_Rep_Clause);
    pragma Inline (Set_Has_Exit);
    pragma Inline (Set_Has_External_Tag_Rep_Clause);
+   pragma Inline (Set_Has_Fully_Qualified_Name);
    pragma Inline (Set_Has_Gigi_Rep_Item);
    pragma Inline (Set_Has_Homonym);
    pragma Inline (Set_Has_Machine_Radix_Clause);

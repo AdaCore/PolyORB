@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---             Copyright (C) 2000 Free Software Foundation, Inc.            --
+--             Copyright (C) 2001 Free Software Foundation, Inc.            --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -48,6 +48,9 @@ package body Prj.Pars is
 
    Project_Error : exception;
    Project_File_Extension : String := ".apr";
+
+   Project_Path : String_Access;
+   Ada_Project_Path : constant String := "ADA_PROJECT_PATH";
 
    ------------------------------------
    -- Local Packages and Subprograms --
@@ -122,11 +125,31 @@ package body Prj.Pars is
       Package_Name      : String := "")
    is
       Current_Directory : constant String := Get_Current_Dir;
+      Prj_Path : constant String_Access := Getenv (Ada_Project_Path);
 
    begin
+
+      --  Fist, establish Project_Path
+
+      if Prj_Path.all = "" then
+         Project_Path := new String'(".");
+
+      else
+         Project_Path := new String'(Prj_Path.all & Path_Separator & ".");
+      end if;
+
+      if Current_Verbosity >= Medium then
+         Write_Str ("ADA_PROJECT_PATH=""");
+         Write_Str (Project_Path.all);
+         Write_Line ("""");
+      end if;
+
       --  Establish the Tool_Name, if any
 
-      if Package_Name /= "" then
+      if Package_Name = "" then
+         Tool_Name := No_Name;
+
+      else
          Name_Len := Package_Name'Length;
          Name_Buffer (1 .. Name_Len) := Package_Name;
          Tool_Name := Name_Find;
@@ -151,6 +174,9 @@ package body Prj.Pars is
            (Project         => Project,
             Modified_By     => No_Project,
             Path_Name       => Path_Name);
+
+         Errout.Finalize;
+
       end;
 
    exception
@@ -160,15 +186,22 @@ package body Prj.Pars is
          --  Output the errors and return No_Project to the calling tool.
 
          Project := No_Project;
-         Errout.Finalize;
+
+         begin
+            Errout.Finalize;
+         exception
+            --  Any exception can be ignored
+            when others =>
+               null;
+         end;
 
       when X : others =>
 
          --  Internal error
-
+         Write_Line (Exception_Information (X));
          Write_Str  ("Exception ");
          Write_Str  (Exception_Name (X));
-         Write_Line (" raised, while parsing project file");
+         Write_Line (" raised, while processing project file");
          Project := No_Project;
    end Parse;
 
@@ -514,7 +547,7 @@ package body Prj.Pars is
       Result :=
         Locate_Regular_File
           (File_Name => Project_File_Name,
-           Path      => "");
+           Path      => Project_Path.all);
 
       --  Then we try <file_name>.apr
 
@@ -528,7 +561,7 @@ package body Prj.Pars is
          Result :=
            Locate_Regular_File
            (File_Name => Project_File_Name & Project_File_Extension,
-            Path      => "");
+            Path      => Project_Path.all);
 
          --  The we try <directory>/<file_name>
 
@@ -542,7 +575,7 @@ package body Prj.Pars is
             Result :=
               Locate_Regular_File
               (File_Name => Directory & Project_File_Name,
-               Path      => "");
+               Path      => Project_Path.all);
 
             --  Then we try <directory>/<file_name>.apr
 
@@ -558,7 +591,7 @@ package body Prj.Pars is
                  Locate_Regular_File
                  (File_Name => Directory & Project_File_Name &
                   Project_File_Extension,
-                  Path      => "");
+                  Path      => Project_Path.all);
             end if;
          end if;
       end if;

@@ -81,7 +81,9 @@ package Style is
    procedure Check_HT;
    --  Called with Scan_Ptr pointing to a horizontal tab character
 
-   procedure Check_Identifier (Ref : Node_Id; Def : Node_Id);
+   procedure Check_Identifier
+     (Ref : Node_Or_Entity_Id;
+      Def : Node_Or_Entity_Id);
    --  Check style of identifier occurrence. Ref is an N_Identifier node whose
    --  spelling is to be checked against the Chars spelling in identifier node
    --  Def (which may be either an N_Identifier, or N_Defining_Identifier node)

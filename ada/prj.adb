@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---             Copyright (C) 2000 Free Software Foundation, Inc.            --
+--             Copyright (C) 2001 Free Software Foundation, Inc.            --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -78,8 +78,8 @@ package body Prj is
       Naming             => Std_Naming_Data,
       Decl               => No_Declarations,
       Imported_Projects  => Empty_Project_List,
-      Include_Path       => No_String,
-      Objects_Path       => No_String,
+      Include_Path       => null,
+      Objects_Path       => null,
       Gnat_Adc_Generated => False);
 
    function Image (Casing : Casing_Type) return String is
