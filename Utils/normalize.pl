@@ -33,7 +33,7 @@ foreach $i (@ARGV) {
       }
       $rev = $1;
       $free = ($fl - 4) - length($rev);
-      $left = $free / 2;
+      $left = int($free / 2);
       $str = "--" . (" " x $left) . $rev . (" " x ($free-$left)) . "--\n";
       print temp $str;
       if (!($str eq $save)) {
