@@ -93,7 +93,7 @@ package XE is
 
    -- Pragma_Type --
 
-   type Pragma_Type is new Types.Int range 300 .. 305;
+   type Pragma_Type is new Types.Int range 300 .. 306;
 
    Pragma_Unknown         : constant Pragma_Type := 300;
    Pragma_Starter         : constant Pragma_Type := 301;
@@ -101,6 +101,7 @@ package XE is
    Pragma_Boot_Server     : constant Pragma_Type := 303;
    Pragma_Version         : constant Pragma_Type := 304;
    Pragma_Reg_Filter      : constant Pragma_Type := 305;
+   Pragma_Priority        : constant Pragma_Type := 306;
 
 
    -- Import_Method_Type --
@@ -202,6 +203,7 @@ package XE is
    Pragma_Boot_Server_Node  : Subprogram_Id;
    Pragma_Version_Node      : Subprogram_Id;
    Pragma_Reg_Filter_Node   : Subprogram_Id;
+   Pragma_Priority_Node     : Subprogram_Id;
 
 
    -- Internal System Names --

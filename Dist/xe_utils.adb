@@ -699,10 +699,13 @@ package body XE_Utils is
          if Argument (I)(1) = Switch_Character
            or else Argument (I)(1) = '-'
          then
-            if Argument (I)(2 .. Argument (I)'Last) = "cargs"
-              or else Argument (I)(2 .. Argument (I)'Last) = "bargs"
+            if Argument (I)(2 .. Argument (I)'Last) = "bargs"
               or else Argument (I)(2 .. Argument (I)'Last) = "largs"
             then
+               if Optimization_Mode then
+                  Scan_Make_Arg ("-O2");
+                  Optimization_Mode := False;
+               end if;
                Scan_Make_Arg (I_GARLIC_Dir.all);
                GARLIC_Included := True;
             elsif Argument (I)'Length = 2

@@ -1400,6 +1400,9 @@ package body XE_Back is
             Value := Get_Variable_Value (Variable_Id (Parameter));
             Default_Registration_Filter := Get_Node_Name (XE.Node_Id (Value));
 
+         when Pragma_Priority =>
+            raise Program_Error;
+
          when Pragma_Unknown =>
             null;
 

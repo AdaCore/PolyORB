@@ -375,7 +375,7 @@ package body XE_Stdcnf is
 
       --  pragma starter ... or
       --  procedure pragma__starter
-      --    (method : starter__type);
+      --    (convention : type__convention);
 
       Declare_Subprogram
         (Pragma_Prefix & "starter",
@@ -391,11 +391,29 @@ package body XE_Stdcnf is
          Null_Location,
          Parameter_Node);
 
+      --  pragma priority ... or
+      --  procedure pragma__priority
+      --    (propagate : type__boolean);
+
+      Declare_Subprogram
+        (Pragma_Prefix & "priority",
+         Pragma_Priority,
+         True,
+         Null_Location,
+         Pragma_Priority_Node);
+
+      Declare_Subprogram_Parameter
+        (Str_To_Id ("propagate"),
+         Boolean_Type_Node,
+         Pragma_Priority_Node,
+         Null_Location,
+         Parameter_Node);
+
       --  pragma Import ... or
       --  procedure pragma__import
-      --    (convention    : convention__type;
-      --     entity        : procedure;
-      --     external_name : string);
+      --    (convention    : type__convention;
+      --     entity        : type__procedure;
+      --     external_name : type__string);
 
       Declare_Subprogram
         (Pragma_Prefix & "import",
@@ -426,8 +444,9 @@ package body XE_Stdcnf is
          Parameter_Node);
 
       --  pragma boot_server ... or
-      --  procedure pragma__starter
-      --    (method : starter__type);
+      --  procedure pragma__boot_server
+      --    (protocol_name : type__string;
+      --     protocol_data : type__string);
 
       Declare_Subprogram
         (Pragma_Prefix & "boot_server",
@@ -450,9 +469,9 @@ package body XE_Stdcnf is
          Null_Location,
          Parameter_Node);
 
-      --  pragma boot_server ... or
-      --  procedure pragma__starter
-      --    (check : starter__type);
+      --  pragma version ... or
+      --  procedure pragma__version
+      --    (check : boolean__type);
 
       Declare_Subprogram
         (Pragma_Prefix & "version",
@@ -468,9 +487,9 @@ package body XE_Stdcnf is
          Null_Location,
          Parameter_Node);
 
-      --  pragma boot_server ... or
-      --  procedure pragma__starter
-      --    (check : starter__type);
+      --  pragma registration_filter ... or
+      --  procedure registration_filter
+      --    (filter : type__string);
 
       Declare_Subprogram
         (Pragma_Prefix & "registration_filter",

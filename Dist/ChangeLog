@@ -1,3 +1,11 @@
+1999-07-07  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* xe_utils.adb: When -bargs and -largs are passed on the command
+ 	line, Scan_Make_Arg switches into Binder or Linker mode. It is not
+ 	possible to add glade internal compiler arguments. Fix this
+ 	bug. This bug was detected in several regression tests in which
+ 	-bargs -f (ask gnatbind to follow ada rules) is needed.
+
 1999-07-01  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* xe_stdcnf.adb: Change Link_Name into External_Name for pragma
