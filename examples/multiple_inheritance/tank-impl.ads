@@ -9,7 +9,7 @@
 ----                                                                    ----
 ----------------------------------------------------------------------------
 
-with Giop_S, Corba.Object, OmniORB ;
+with Giop_S, Corba.Object, OmniORB, Vehicle.Impl, Weapon.Impl ;
 
 package Tank.Impl is
 
@@ -22,8 +22,6 @@ package Tank.Impl is
 
 
    -- Added from weapon for multiple inheritance
-   type Name is new Corba.String ;
-
    procedure Shoot (Self: in access Object ;
                     Weapon_Name: in Name) ;
 

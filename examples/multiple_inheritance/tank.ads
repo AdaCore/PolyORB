@@ -9,9 +9,7 @@
 ----                                                                    ----
 ----------------------------------------------------------------------------
 
-with Corba;
-with Omniproxycalldesc;
-with Giop_C;
+with Corba, Omniproxycalldesc, Giop_C, Vehicle, Weapon;
 
 
 package Tank is
@@ -24,7 +22,7 @@ package Tank is
    type Ref is new Vehicle.Ref with private;
 
    -- Added from weapon for multiple inheritance
-   type Name is new Corba.String ;
+   subtype Name is new Weapon.Name ;
 
    procedure Shoot (Self: in Ref; Weapon_Name: in Name) ;
 

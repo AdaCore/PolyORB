@@ -14,7 +14,7 @@ with Omniproxycalldesc;
 with Giop_C;
 
 
-package Waepon is
+package Weapon is
 
    --------------------------------------------------
    ----                spec                      ----
