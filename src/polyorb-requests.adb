@@ -163,14 +163,18 @@ package body PolyORB.Requests is
       use PolyORB.Any.NVList.Internals.NV_Lists;
       use PolyORB.Exceptions;
 
-      function Name_Exists (Iter : Iterator; Name : Types.Identifier)
-                           return Boolean;
+      function Name_Exists
+        (Name : Types.Identifier; From : Iterator)
+         return Boolean;
+      --  Ture iff the list on which From iterates contains
+      --  a namedvalue whose name is Name between the position
+      --  denoted by From and the end of the list.
 
-
-      function Name_Exists (Iter : Iterator; Name : Types.Identifier)
-                           return Boolean
+      function Name_Exists
+        (Name : Types.Identifier; From : Iterator)
+         return Boolean
       is
-         It    : Iterator := Iter;
+         It : Iterator := From;
       begin
          while not Last (It) loop
             if Value (It).Name = Name then
@@ -284,7 +288,8 @@ package body PolyORB.Requests is
 
 
                            elsif Identification_By_Name
-                             and then Name_Exists (Src_It, Value (Dst_It).Name)
+                             and then Name_Exists
+                               (Value (Dst_It).Name, From => Src_It)
                            then
                               Identification_By_Position := False;
                               Copy_Argument := False;
@@ -334,7 +339,7 @@ package body PolyORB.Requests is
 
                         if Identification_By_Name then
                            if not Name_Exists
-                             (Src_It, Value (Dst_It).Name)
+                             (Value (Dst_It).Name, From => Src_It)
                            then
                               --  If the name does not exist, this
                               --  means that we will never be able to
