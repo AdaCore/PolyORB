@@ -641,6 +641,8 @@ src/polyorb-exceptions-stack.adb
 src/polyorb-exceptions-stack.ads
 src/polyorb-exceptions.adb
 src/polyorb-exceptions.ads
+src/polyorb-filters-fragmenter.adb
+src/polyorb-filters-fragmenter.ads
 src/polyorb-filters-interface.adb
 src/polyorb-filters-interface.ads
 src/polyorb-filters-slicers.adb
