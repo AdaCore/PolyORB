@@ -5,17 +5,20 @@ include $(srcdir)/../../Makefile.common
 alidir = $(libdir)/polyorb-rtcorba
 
 ADA_SPECS_WITH_BODY = \
+		polyorb-rtcorba_p-prioritymodelpolicy.ads \
 		polyorb-rtcorba_p-setup.ads \
+		rtcorba.ads \
 		rtcorba-current.ads \
+		rtcorba-rtorb.ads \
 		rtcorba-prioritymapping.ads \
+		rtcorba-prioritymodelpolicy.ads \
 		rtcorba-prioritytransform.ads
-		rtcorba-threadpoolpolicy.ads
+		rtcorba-threadpoolpolicy.ads \
+		rtportableserver-poa.ads
  
 ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
-		rtcorba.ads \
 		rtcorba-mutex.ads \
-		rtcorba-prioritymodelpolicy.ads \
-		rtcorba-rtorb.ads
+		rtportableserver.ads
 
 ADA_BODIES = $(ADA_SPECS_WITH_BODY:.ads=.adb)
 

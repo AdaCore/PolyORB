@@ -455,6 +455,7 @@ AC_OUTPUT([
 	doc/Makefile
 	src/Makefile
 	src/corba/Makefile
+	src/corba/rtcorba/Makefile
 	src/dsa/Makefile
 	src/giop/Makefile
 	src/giop/iiop/Makefile
@@ -484,6 +485,8 @@ AC_OUTPUT([
 	examples/corba/all_functions/Makefile
 	examples/corba/echo/Makefile
 	examples/corba/random/Makefile
+	examples/corba/rtcorba/Makefile
+	examples/corba/rtcorba/rtcurrent/Makefile
 	examples/corba/send/Makefile
 	examples/dsa/Makefile
 	examples/bbs/Makefile

@@ -1,4 +1,4 @@
-SUBDIRS = .
+SUBDIRS = . rtcorba
 
 include $(srcdir)/../Makefile.common
 
@@ -86,8 +86,13 @@ install-data-local:
 	$(INSTALL) -d $(DESTDIR)$(alidir)
 	for f in $(srcdir)/*.ad[bs] *.ali; do $(INSTALL) -m 444 $$f $(DESTDIR)$(alidir); done
 
-depend-local: all
-	$(srcdir)/../../support/mkdep -I$(srcdir)/.. $(srcdir)
+depend-local:
+	for d in $(SUBDIRS);do \
+		(cd $$d && ${MAKE} depend-local-local); \
+	done
+
+depend-local-local: all
+	$(srcdir)/../../support/mkdep $(srcdir)
 
 ### DO NOT REMOVE THIS LINE, IT IS USED BY MAKEDEPEND ###
 corba-abstractbase.lo:corba-abstractbase.adb corba-abstractbase.ads corba.ads corba-impl.ads ./../polyorb.ads ./../polyorb-annotations.ads ./../polyorb-any.ads ./../polyorb-components.ads ./../polyorb-exceptions.ads ./../polyorb-poa_policies.ads ./../polyorb-poa_policies-thread_policy.ads ./../polyorb-sequences.ads ./../polyorb-sequences-unbounded.adb ./../polyorb-sequences-unbounded.ads ./../polyorb-servants.ads ./../polyorb-smart_pointers.ads ./../polyorb-types.ads ./../polyorb-utils.ads ./../polyorb-utils-chained_lists.adb ./../polyorb-utils-chained_lists.ads 
