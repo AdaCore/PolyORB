@@ -1,3 +1,8 @@
+2001-01-16  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* configure.in: Look for sys/param.h in addition to sys/conf.h.
+	Needed on some systems.
+
 2000-12-04  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* configure.in: Remove useless -Wall compilation for gnat. Update

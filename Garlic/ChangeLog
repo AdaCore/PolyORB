@@ -1,3 +1,8 @@
+2001-01-16  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* constants.c: string.h is not needed. sys/param.h and sys/conf.h
+	do not mix well on some platforms.
+
 2001-01-05  Pascal Obry <obry@gnat.com>
 
 	* Makefile.in: put back s-garthi.ad[sb] rules removed in 1.174.
