@@ -47,7 +47,7 @@ in Doc/install_guide.txt.
 
    configuration parameters can be used to define the
    build/host/target machines, installation locations and other
-   cutomizations (see Doc/install_guide.txt for details). By default,
+   customizations (see Doc/install_guide.txt for details). By default,
    when no parameters are specified, the build machine is used as host
    and target and installation is done in /usr/local. It is advised to
    install GLADE first in a private directory for testing purposes.
@@ -56,14 +56,15 @@ in Doc/install_guide.txt.
       ./configure --prefix=$HOME/glade
 
 3. Build & install GLADE
-      this can be achieved simpy by doing 
+      this can be achieved simply by doing 
          make install
       in the main GLADE directory. Be careful, you usually need root
       privileges to install software in /usr/local
 
 4. Test your installation by running the Examples
-   go in the Example directory and run simply 'make' then go in each 
-   example directory and start the applications. Check the README in
+   Go in the Example directory and run simply 'make'. Then, go in each
+   example directory and start the applications. Check also the README
+   in each example directory.
 
 5.  Example of complete build (assuming csh syntax):
 
@@ -77,5 +78,5 @@ in Doc/install_guide.txt.
 % set path=(`pwd`/bin $path)     <--- add this directory in your PATH
 % cd Examples                    <--- go in the Example directory
 % make                           <--- build all the examples
-$ cd Eratho/absolute             <--- go in the first example directory
-$ ./mainloop                     <--- run the distributed application
+% cd Eratho/absolute             <--- go in the first example directory
+% ./mainloop                     <--- run the distributed application
