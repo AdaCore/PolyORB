@@ -83,14 +83,13 @@ This release is fully supported on:
   - Sparc/Solaris (2.4 and above)
   - PC/Linux
   - Alpha/Decunix
-  - SGI
   - Windows NT
-
-This release has also been reported to work on:
   - HP/HP-UX
+    * HPUX-11 with PThreads
+    * HPUX-10 and above with DCEThreads using starters None and Shell
 
 Please contact ACT Europe (sales@act-europe.fr) for support
-information  and future platforms availibility.
+information and future platforms availibility.
 
 Downloading GLADE.
 ------------------
