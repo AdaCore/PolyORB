@@ -24,6 +24,43 @@ répartis interopérables}
 \maketitle
 
 \section{Introduction}
+
+L'utilisation d'intergiciels (middlewares) pour la réalisation
+de systèmes répartis permet au concepteur d'applications de
+s'affranchir de certaines contraintes, telles que la gestion de
+la communication entre n{\oe}uds, ou l'hétérogénéité des architectures
+matérielles et logicielles des n{\oe}uds. Il peut ainsi concentrer
+ses ressources sur l'application proprement dite. En revanche, l'existence
+de plusieurs plates-formes de répartition différentes introduit
+un nouveau point d'incompatibilité potentiel. En effet, les
+divers systèmes existants, tels que CORBA, l'annexe des systèmes
+répartis d'\ada{} et Java/RMI utilisent des variantes distinctes
+du modèle ``objets répartis'', et des protocoles différents pour
+la communication entre n{\oe}uds. D'autres intergiciels, tels
+que les MOM, ne sont pas basés sur les objets répartis, mais sur
+le passage de message
+
+Ainsi, dans le cas d'un système d'objets répartis, un objet
+créé à l'aide d'une plate-forme de répartition
+donnée ne sera accessible qu'à l'intérieur de cette plate-forme.
+Pourtant, on pourrait souhaiter que le service rendu par cet
+objet soit disponible pour des clients utilisant d'autres
+plates-formes de répartition. Symétriquement, un client désirant
+utiliser un service particulier aurait avantage à pouvoir
+obtenir ce service de tout objet qui peut le lui fournir, quel
+que soit le modèle de répartition utilisé par chacun.
+
+Se pose donc la question des mécanismes que l'intergiciel peut
+offrir pour permettre l'interopération entre des objets, clients
+et serveurs, existant au sein de plates-formes de répartition
+différentes.
+
+\subsection{Passerelles}
+
+Une première solution au problème de l'interopérabilité est
+l'établissement de passerelles entre plates-formes, c'est-à-dire
+d'objets recevant des appels de méthodes par une plate-forme,
+et les répercutant dans une autre.
 % les middlewares, les plates-formes à objets répartis
 % Préliminaires sur la question de l'interopérabilité.
 % Deux solutions possibles pour l'interopérabilité :
