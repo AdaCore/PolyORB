@@ -161,16 +161,13 @@ package body Ada_Be.Idl2Ada.Helper is
    --  generate lines to fill in an array typecode
    --  only used in the type_declarator part of gen_node_body
 
-   function Ada_TC_Name (Node : Node_Id)
-                         return String;
+   function Ada_TC_Name (Node : Node_Id) return String;
    --  The name of the typecode corresponding to an Ada type
 
-   function Ada_Full_TC_Name (Node : Node_Id)
-                              return String;
+   function Ada_Full_TC_Name (Node : Node_Id) return String;
    --  The full name of the typecode corresponding to an Ada type
 
-   function Ada_Helper_Name (Node : in Node_Id)
-                             return String;
+   function Ada_Helper_Name (Node : in Node_Id) return String;
    --  returns the name of the helper package where the TypeCode
    --  corresponding to Node is defined
 
@@ -358,7 +355,7 @@ package body Ada_Be.Idl2Ada.Helper is
          NL (CU);
          Add_With (CU, "CORBA");
          PL (CU, Ada_TC_Name (Node)
-             & " : CORBA.TypeCode.Object := ");
+             & " : CORBA.TypeCode.Object :=");
          II (CU);
          PL (CU, "CORBA.TypeCode.TC_Object;");
          DI (CU);
@@ -408,7 +405,7 @@ package body Ada_Be.Idl2Ada.Helper is
          NL (CU);
          Add_With (CU, "CORBA");
          PL (CU, Ada_TC_Name (Node)
-             & " : CORBA.TypeCode.Object := ");
+             & " : CORBA.TypeCode.Object :=");
          II (CU);
          PL (CU, "CORBA.TypeCode.TC_Object;");
          DI (CU);
@@ -439,6 +436,10 @@ package body Ada_Be.Idl2Ada.Helper is
    procedure Gen_Body_Prelude
      (CU : in out Compilation_Unit) is
    begin
+      NL (CU);
+      PL (CU, "pragma Warnings (Off);");
+      PL (CU, "--  Constructing typecodes tends to yield long lines.");
+
       Divert (CU, Deferred_Initialization);
       PL (CU, "procedure Deferred_Initialization is");
       PL (CU, "begin");
@@ -859,7 +860,7 @@ package body Ada_Be.Idl2Ada.Helper is
          NL (CU);
          Add_With (CU, "CORBA");
          PL (CU, Ada_TC_Name (Node)
-             & " : CORBA.TypeCode.Object := ");
+             & " : CORBA.TypeCode.Object :=");
          II (CU);
          PL (CU, "CORBA.TypeCode.TC_Enum;");
          DI (CU);
@@ -922,7 +923,7 @@ package body Ada_Be.Idl2Ada.Helper is
          PL (CU, " is");
          II (CU);
          Add_With (CU, "CORBA");
-         PL (CU, "Result : CORBA.Any := ");
+         PL (CU, "Result : CORBA.Any :=");
          II (CU);
          PL (CU, "CORBA.Get_Empty_Any_Aggregate ("
              & Ada_TC_Name (Node)
@@ -1012,7 +1013,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
          NL (CU);
          PL (CU, Ada_TC_Name (Node)
-             & " : CORBA.TypeCode.Object := ");
+             & " : CORBA.TypeCode.Object :=");
          II (CU);
          if Kind (Node) = K_Struct then
             PL (CU, "CORBA.TypeCode.TC_Struct;");
@@ -1056,7 +1057,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
          NL (CU);
          PL (CU, Ada_TC_Name (Node)
-             & " : CORBA.TypeCode.Object := ");
+             & " : CORBA.TypeCode.Object :=");
          II (CU);
          PL (CU, "CORBA.TypeCode.TC_String;");
          DI (CU);
@@ -1228,7 +1229,7 @@ package body Ada_Be.Idl2Ada.Helper is
          PL (CU, " is");
          II (CU);
          Add_With (CU, "CORBA");
-         PL (CU, "Result : CORBA.Any := ");
+         PL (CU, "Result : CORBA.Any :=");
          II (CU);
          PL (CU, "CORBA.Get_Empty_Any_Aggregate ("
              & Ada_TC_Name (Node)
@@ -1423,7 +1424,7 @@ package body Ada_Be.Idl2Ada.Helper is
          NL (CU);
          Add_With (CU, "CORBA");
          PL (CU, Ada_TC_Name (Node)
-             & " : CORBA.TypeCode.Object := ");
+             & " : CORBA.TypeCode.Object :=");
          II (CU);
          PL (CU, "CORBA.TypeCode.TC_Union;");
          DI (CU);
@@ -1558,7 +1559,7 @@ package body Ada_Be.Idl2Ada.Helper is
          PL (CU, " is");
          II (CU);
          Add_With (CU, "CORBA");
-         PL (CU, "Result : CORBA.Any := ");
+         PL (CU, "Result : CORBA.Any :=");
          II (CU);
          PL (CU, "CORBA.Get_Empty_Any_Aggregate ("
              & Ada_TC_Name (Node)
@@ -1769,7 +1770,7 @@ package body Ada_Be.Idl2Ada.Helper is
          --  TypeCode
 
          NL (CU);
-         Add_With (CU, "CORBA");
+         Add_With (CU, "CORBA", Elab_Control => Elaborate_All);
 
          Put (CU, Ada_TC_Name (Node)
               & " : CORBA.TypeCode.Object := CORBA.TypeCode.");
@@ -1935,12 +1936,8 @@ package body Ada_Be.Idl2Ada.Helper is
          if Is_Array then
 
             Add_With (CU, "CORBA");
-            PL (CU, "Result : CORBA.Any := ");
-            II (CU);
-            PL (CU, "CORBA.Get_Empty_Any_Aggregate ("
-                & Ada_TC_Name (Node)
-                & ");");
-            DI (CU);
+            PL (CU, "Result : CORBA.Any := CORBA.Get_Empty_Any_Aggregate");
+            PL (CU, "  (" & Ada_TC_Name (Node) & ");");
             DI (CU);
             PL (CU, "begin");
             II (CU);
@@ -2066,10 +2063,8 @@ package body Ada_Be.Idl2Ada.Helper is
          NL (CU);
          Add_With (CU, "CORBA");
          PL (CU, Ada_TC_Name (Node)
-             & " : CORBA.TypeCode.Object := ");
-         II (CU);
-         PL (CU, "CORBA.TypeCode.TC_Sequence;");
-         DI (CU);
+             & " : CORBA.TypeCode.Object");
+         PL (CU, "  := CORBA.TypeCode.TC_Sequence;");
 
          --  From_Any
 
@@ -2164,29 +2159,32 @@ package body Ada_Be.Idl2Ada.Helper is
          PL (CU, "use " & Ada_Name (Node) & ";");
          PL (CU, "Array_Item : Element_Array := To_Element_Array (Item);");
          Add_With (CU, "CORBA");
-         PL (CU, "Result : CORBA.Any := ");
-         II (CU);
-         PL (CU, "CORBA.Get_Empty_Any_Aggregate ("
+         PL (CU, "Result : CORBA.Any := CORBA.Get_Empty_Any_Aggregate");
+         PL (CU, "  ("
              & Ada_TC_Name (Node)
              & ");");
-         DI (CU);
          DI (CU);
 
          PL (CU, "begin");
          II (CU);
          PL (CU, "CORBA.Add_Aggregate_Element");
+         PL (CU, "  (Result,");
          II (CU);
-         PL (CU, "(Result,");
-         Add_With (CU, "CORBA");
          PL (CU, " CORBA.To_Any (CORBA.Unsigned_Long (Length (Item))));");
          DI (CU);
          PL (CU, "for I in Array_Item'Range loop");
          II (CU);
-         PL (CU, "CORBA.Add_Aggregate_Element (Result,");
-         Add_With (CU, Ada_Helper_Name (Sequence_Type (Sequence (Node))));
-         PL (CU, "                             "
-             & Ada_Helper_Name (Sequence_Type (Sequence (Node)))
-             & ".To_Any (Array_Item (I)));");
+         PL (CU, "CORBA.Add_Aggregate_Element");
+         PL (CU, "  (Result,");
+         II (CU);
+         declare
+            Helper : constant String
+              := Ada_Helper_Name (Sequence_Type (Sequence (Node)));
+         begin
+            Add_With (CU, Helper);
+            PL (CU, Helper & ".To_Any (Array_Item (I)));");
+         end;
+         DI (CU);
          DI (CU);
          PL (CU, "end loop;");
          PL (CU, "return Result;");
@@ -2261,7 +2259,9 @@ package body Ada_Be.Idl2Ada.Helper is
          Add_With (CU, "CORBA");
          PL (CU, "package CDR_"
              & Type_Name & " is");
-         Add_With (CU, "CORBA.Fixed_Point");
+         Add_With
+           (CU, "CORBA.Fixed_Point",
+            Elab_Control => Elaborate_All);
          PL (CU, "  new CORBA.Fixed_Point ("
              & Ada_Full_Name (Decl_Node) & ");");
          --  From_Any

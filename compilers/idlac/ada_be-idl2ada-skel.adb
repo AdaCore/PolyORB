@@ -479,6 +479,7 @@ package body Ada_Be.Idl2Ada.Skel is
                    & " : CORBA.Context.Ref := CORBA.Context.Nil_Ref;");
                PL (CU, Justify (T_Arg_List, Max_Len) & " : CORBA.NVList.Ref;");
                if Raise_Something then
+                  Add_With (CU, "CORBA.ExceptionList");
                   PL (CU, Justify (T_Excp_List, Max_Len)
                     & " : CORBA.ExceptionList.Ref;");
                end if;

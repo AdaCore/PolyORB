@@ -144,18 +144,19 @@ package body CORBA.ORB is
    -- Create_List --
    -----------------
 
+   pragma Warnings (Off);
+   --  Parameter 'Count' below is only a hint.
+   --  In this implementation, it is ignored.
    procedure Create_List
      (Count    : in     CORBA.Long;
       New_List :    out CORBA.NVList.Ref)
    is
    begin
-      if Count /= 0 then
-         raise PolyORB.Not_Implemented;
-         --  XXX How should the list be populated?
-      else
-         CORBA.NVList.Create (New_List);
-      end if;
+      CORBA.NVList.Create (New_List);
    end Create_List;
+
+   procedure Create_List (New_List : out CORBA.ExceptionList.Ref)
+     renames CORBA.ExceptionList.Create_List;
 
    ----------------------
    -- create_native_tc --

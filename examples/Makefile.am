@@ -1,4 +1,4 @@
-SUBDIRS=	echo
+SUBDIRS=	echo all_types
 
 LINKER=	../support/linker
 

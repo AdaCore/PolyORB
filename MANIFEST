@@ -113,6 +113,16 @@ doc/architecture.ps
 examples/Makefile.am
 examples/Makefile.common
 examples/Makefile.in
+examples/all_types/Makefile.am
+examples/all_types/Makefile.in
+examples/all_types/all_types-impl.adb
+examples/all_types/all_types-impl.ads
+examples/all_types/all_types.idl
+examples/all_types/client.adb
+examples/all_types/dynclient.adb
+examples/all_types/interop/client.cc
+examples/all_types/interop/server.cc
+examples/all_types/server.adb
 examples/echo.ads
 examples/echo/Makefile.am
 examples/echo/client.adb

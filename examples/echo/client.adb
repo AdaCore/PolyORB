@@ -30,9 +30,10 @@
 with Ada.Command_Line; use Ada.Command_Line;
 with Ada.Text_IO;      use Ada.Text_IO;
 with CORBA.ORB;
-with Echo.Helper;
 --  with Broca.Naming_Tools; use Broca.Naming_Tools;
 with PolyORB.Setup.CORBA_Client;
+
+with Echo;
 
 pragma Warnings (Off, PolyORB.Setup.CORBA_Client);
 --  Just elaborate it.

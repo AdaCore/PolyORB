@@ -36,6 +36,7 @@ with Sequences.Unbounded.Search;
 
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
+with PolyORB.Smart_Pointers;
 
 package body CORBA.ExceptionList is
 
@@ -108,17 +109,27 @@ package body CORBA.ExceptionList is
       Exception_Sequence.Delete (Obj.List, Positive (Index), 1);
    end Remove;
 
-   ---------------------
-   --  Create_Object  --
-   ---------------------
+   -------------------
+   -- Create_Object --
+   -------------------
+
+   function Create_Object return Object_Ptr;
+
    function Create_Object return Object_Ptr
    is
-      Actual_Ref : constant CORBA.ExceptionList.Object_Ptr
+      Result : constant CORBA.ExceptionList.Object_Ptr
         := new Object;
    begin
-      Actual_Ref.List := Exception_Sequence.Null_Sequence;
-      return Actual_Ref;
+      Result.List := Exception_Sequence.Null_Sequence;
+      return Result;
    end Create_Object;
+
+   procedure Create_List (Self : out Ref) is
+      Result : Ref;
+   begin
+      Set (Result, PolyORB.Smart_Pointers.Entity_Ptr (Create_Object));
+      Self := Result;
+   end Create_List;
 
    ---------------------------
    --  Search_Exception_Id  --

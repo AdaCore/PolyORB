@@ -294,6 +294,12 @@ package body Ada_Be.Idl2Ada is
       end if;
 
       --  Helper package
+      Add_With
+        (Helper_Spec, "PolyORB.Any",
+         Elab_Control => Elaborate_All,
+         No_Warnings => True);
+      --  Work-around for GNAT bug 9530-011.
+
       Helper.Gen_Body_Prelude (Helper_Body);
       Helper.Gen_Node_Spec (Helper_Spec, Node);
       Helper.Gen_Node_Body (Helper_Body, Node);
@@ -363,7 +369,7 @@ package body Ada_Be.Idl2Ada is
       Helper.Gen_Spec_Postlude (Helper_Spec);
       Helper.Gen_Body_Postlude (Helper_Body);
 
-      if Supports (Node) /= Nil_List then
+      if not Is_Empty (Supports (Node)) then
          Skel.Gen_Body_Common_End (Skel_Body, Skeleton, Node);
       end if;
 
@@ -586,6 +592,12 @@ package body Ada_Be.Idl2Ada is
         New_Package (Delegate_Name, Unit_Body);
 
    begin
+      Add_With
+        (Helper_Spec, "PolyORB.Any",
+         Elab_Control => Elaborate_All,
+         No_Warnings => True);
+      --  Work-around for GNAT bug 9530-011.
+
       Helper.Gen_Body_Prelude (Helper_Body);
 
       case Kind (Node) is
@@ -1358,7 +1370,7 @@ package body Ada_Be.Idl2Ada is
          when K_Exception =>
 
             Add_With (CU, "Ada.Exceptions");
-            Add_With (CU, "CORBA");
+            Add_With (CU, "CORBA", Elab_Control => Elaborate_All);
             NL (CU);
             PL (CU, Ada_Name (Node) & " : exception;");
             PL (CU, Repository_Id_Name (Node)
@@ -1491,12 +1503,16 @@ package body Ada_Be.Idl2Ada is
 
          when K_Union =>
             NL (CU);
-            Put (CU, "type " & Ada_Name (Node)
-                      & " (Switch : ");
+            PL (CU, "type " & Ada_Name (Node));
+            Put (CU, "  (Switch : ");
             Gen_Node_Stubs_Spec (CU, Switch_Type (Node));
-            Put (CU, " := ");
+            NL (CU);
+            II (CU);
+            Put (CU, "  := ");
             Gen_Node_Stubs_Spec (CU, Switch_Type (Node));
-            PL (CU, "'First) is record");
+            PL (CU, "'First)");
+            DI (CU);
+            PL (CU, "is record");
             II (CU);
             PL (CU, "case Switch is");
             II (CU);
@@ -1705,9 +1721,7 @@ package body Ada_Be.Idl2Ada is
                --  Is this operation mapped as an Ada function?
 
             begin
-               Add_With (CU, "CORBA",
-                         Use_It    => False,
-                         Elab_Control => Elaborate_All);
+               Add_With (CU, "CORBA", Elab_Control => Elaborate_All);
                Add_With (CU, "Broca.Object");
                Add_With (CU, "PolyORB.CORBA_P.Exceptions");
 
@@ -2043,7 +2057,7 @@ package body Ada_Be.Idl2Ada is
                Is_Function : constant Boolean
                  := Kind (O_Type) /= K_Void;
                Raise_Something : constant Boolean
-                 := not (Raises (Node) = Nil_List);
+                 := not Is_Empty (Raises (Node));
 
                Max_Len : Integer := T_Result_Name'Length;
             begin
@@ -2057,8 +2071,6 @@ package body Ada_Be.Idl2Ada is
                Add_With (CU, "CORBA.Context");
                Add_With (CU, "CORBA.Request");
                Add_With (CU, "CORBA.NVList");
-               Add_With (CU, "CORBA.ContextList");
-               Add_With (CU, "CORBA.ExceptionList");
                Add_With (CU, "CORBA.ORB");
                --  Add_With (CU, "Broca.Naming_Tools", Use_It    => True);
 
@@ -2153,6 +2165,7 @@ package body Ada_Be.Idl2Ada is
 
                PL (CU, Justify (T_Arg_List, Max_Len) & " : CORBA.NVList.Ref;");
                if Raise_Something then
+                  Add_With (CU, "CORBA.ExceptionList");
                   PL (CU, Justify (T_Excp_List, Max_Len)
                     & " : CORBA.ExceptionList.Ref;");
                end if;
@@ -2244,8 +2257,8 @@ package body Ada_Be.Idl2Ada is
                      if First then
                         NL (CU);
                         PL (CU, "--  creating the exceptions list.");
-                        PL (CU, "CORBA.ORB.Create_List ("
-                          & T_Excp_List & ");");
+                        PL (CU, "CORBA.ExceptionList.Create_List ("
+                            & T_Excp_List & ");");
                         First := False;
                      end if;
 
@@ -2262,26 +2275,30 @@ package body Ada_Be.Idl2Ada is
                PL (CU, "--  setting the result type");
                PL (CU, T_Result & " := (Name => Identifier ("
                  & T_Result_Name & "),");
-               PL (CU, "      Argument => Get_Empty_Any ("
-                       & TC_Name (Original_Operation_Type (Node)) & "),");
-               PL (CU, "      Arg_Modes => 0);");
+               PL (CU, "      Argument => Get_Empty_Any");
+               PL (CU, "  ("
+                   & TC_Name (Original_Operation_Type (Node)) & "),");
+               II (CU);
+               PL (CU, "Arg_Modes => 0);");
+               DI (CU);
                PL (CU, "--  creating a request");
-               PL (CU, "CORBA.Object.Create_Request (" & T_Self_Ref & ",");
-               PL (CU, "                             " & T_Ctx & ",");
-               PL (CU, "                             "
-                 & T_Operation_Name & ",");
-               PL (CU, "                             " & T_Arg_List & ",");
-               PL (CU, "                             " & T_Result & ",");
+               PL (CU, "CORBA.Object.Create_Request");
+               PL (CU, "  (" & T_Self_Ref & ",");
+               II (CU);
+               PL (CU, T_Ctx & ",");
+               PL (CU, T_Operation_Name & ",");
+               PL (CU, T_Arg_List & ",");
+               PL (CU, T_Result & ",");
 
                if Raise_Something then
-                  PL (CU, "                             " & T_Excp_List & ",");
-                  PL (CU, "                             "
-                    & "CORBA.ContextList.Nil_Ref" & ",");
+                  Add_With (CU, "CORBA.ContextList");
+                  PL (CU, T_Excp_List & ",");
+                  PL (CU, "CORBA.ContextList.Nil_Ref" & ",");
                end if;
 
-               PL (CU, "                             " & T_Request & ",");
-               PL (CU, "                             0);");
-
+               PL (CU, T_Request & ",");
+               PL (CU, "0);");
+               DI (CU);
 
                PL (CU, "--  sending message");
                PL (CU, "CORBA.Request.Invoke (" & T_Request & ", 0);");
