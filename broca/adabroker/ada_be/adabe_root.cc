@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.5 $
+//                            $Revision: 1.6 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -458,7 +458,7 @@ void adabe_root::produce () {
 		    module->produce_stream_ads
 		      (module_withlist,
 		       module_maincode,
-			module_prologue);
+		       module_prologue);
 
 		    if (module_maincode == "") break;
 
@@ -582,11 +582,13 @@ void adabe_root::produce () {
 		      (module_withlist,
 		       module_maincode,
 		       module_prologue);
+
+		    if ((module_maincode == "") &&
+			(module_prologue == "")) break;
+
 		    module_withcode = *module_withlist.produce ("with ");
 		    module_usecode  = *module_withlist.produce ("use ");
 		    
-		    if (module_maincode == "") break;
-
 		    produce_file
 		      (module->get_ada_full_name (),
 		       is_stream_body,
@@ -610,7 +612,6 @@ void adabe_root::produce () {
 
 		    interface_withlist.add ("Broca.Marshalling");
 
-
 		    interface->produce_stream_adb 
 		      (interface_withlist,
 		       interface_maincode,
@@ -618,7 +619,8 @@ void adabe_root::produce () {
 		    interface_withcode = *interface_withlist.produce ("with ");
 		    interface_usecode  = *interface_withlist.produce ("use ");
 
-		    if (interface_maincode == "") break;
+		    if ((interface_maincode == "") &&
+			(interface_prologue == "")) break;
 		    
 		    produce_file 
 		      (interface->get_ada_full_name (),

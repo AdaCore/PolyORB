@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.13 $
+//                            $Revision: 1.14 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -413,7 +413,8 @@ adabe_module::produce_stream_ads (dep_list & withlist,
   compute_ada_name ();
   D (D_MODULE, "produce module stream spec for " + get_ada_full_name ());
   
-  bool first = true;
+  // bool empty = true;
+  // Produce stream spec anyway.
 
   maincode += "use type CORBA.Unsigned_Long; \n";
 
@@ -447,7 +448,8 @@ adabe_module::produce_stream_ads (dep_list & withlist,
 	       entity_maincode,
 	       entity_prologue);
 
-	    if (entity_maincode != "") first = false;
+	    // if (entity_maincode != "") first = false;
+	    // Produce stream spec anyway.
 
 	    maincode += entity_maincode;
 	    // And what do we do with entity_prologue ???
@@ -510,8 +512,9 @@ adabe_module::produce_stream_ads (dep_list & withlist,
       iterator.next ();
     }
 
-  if (!first) maincode += "end " + get_ada_full_name () + ".Stream;";
-  else maincode = "";
+  // if (!first) maincode += "end " + get_ada_full_name () + ".Stream;";
+  // else maincode = "";
+  maincode += "end " + get_ada_full_name () + ".Stream;";
 }
 
 //----------------------------------//
@@ -526,7 +529,7 @@ adabe_module::produce_stream_adb (dep_list & withlist,
   compute_ada_name ();
   D (D_MODULE, "produce module stream body for " + get_ada_full_name ());
   
-  bool first = true;
+  bool empty = true;
 
   UTL_ScopeActiveIterator iterator (this, UTL_Scope::IK_decls);
 
@@ -558,7 +561,7 @@ adabe_module::produce_stream_adb (dep_list & withlist,
 	       entity_maincode,
 	       entity_prologue);
 
-	    if (entity_maincode != "") first = false;
+	    if (entity_maincode != "") empty = false;
 	    maincode += entity_maincode;
 	  }
 	  break;
@@ -629,7 +632,7 @@ adabe_module::produce_stream_adb (dep_list & withlist,
       iterator.next ();
     }
 
-  if (!first) maincode += "end " + get_ada_full_name () + ".Stream;";
+  if (!empty) maincode += "end " + get_ada_full_name () + ".Stream;";
   else maincode = "";
 }
 
