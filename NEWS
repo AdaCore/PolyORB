@@ -33,6 +33,10 @@
 New features
 ------------
 
+Support or CORBA Policy management, including Domain policy management.
+A domain policy manager can be specified using configuration variable
+policy_domain_manager in section [corba]
+
 idlac now returns an exit status of 2 in the case of an illegal
 IDL specification. (9213)
 
