@@ -94,7 +94,7 @@ package body Test_Servant is
    begin
       if Msg in Execute_Request then
          declare
-            Req : Request_Access
+            Req : constant Request_Access
               := Execute_Request (Msg).Req;
          begin
 
