@@ -415,6 +415,7 @@ package body PolyORB.CORBA_P.Interceptors is
       Flags   : in PolyORB.Requests.Flags)
    is
       use ClientRequestInterceptor_Lists;
+      use PolyORB.Requests.Unsigned_Long_Flags;
       use type PolyORB.Any.TypeCode.Object;
       use type PolyORB.Requests.Request_Access;
 
@@ -512,11 +513,18 @@ package body PolyORB.CORBA_P.Interceptors is
                end if;
 
             else
-               Call_Receive_Reply
-                 (Element (All_Client_Interceptors, J).all,
-                  Create_Client_Request_Info (Cur_Req, Receive_Reply, Target),
-                  False,
-                  Cur_Req.Exception_Info);
+               --  Call Receive_Reply iff a reply is expected
+
+               if Is_Set (Requests.Sync_With_Server, Request.Req_Flags)
+                 or else Is_Set (Requests.Sync_With_Target, Request.Req_Flags)
+               then
+                  Call_Receive_Reply
+                    (Element (All_Client_Interceptors, J).all,
+                     Create_Client_Request_Info
+                      (Cur_Req, Receive_Reply, Target),
+                     False,
+                     Cur_Req.Exception_Info);
+               end if;
             end if;
          end loop;
 
@@ -526,6 +534,10 @@ package body PolyORB.CORBA_P.Interceptors is
 
          --  Reinvocation. Extract object reference from ForwardRequest
          --  exception and reinitialize request.
+
+         --  XXX Reinvocation is possible iff request sync_scope is
+         --  Sync_With_Server or Sync_With_Target. May be we add
+         --  pragma Assert here?
 
          declare
             Members : constant PolyORB.Exceptions.ForwardRequest_Members
