@@ -86,7 +86,7 @@ package CORBA.ExceptionList is
 private
 
    Nil_Ref : constant Ref
-     := (CORBA.AbstractBase.Nil_Ref with null record);
+     := (CORBA.AbstractBase.Ref with null record);
 
    pragma Inline
      (Get_Count,
