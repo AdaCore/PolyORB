@@ -136,7 +136,7 @@ AC_SUBST($1)])
 dnl Usage: AM_PROG_GNAT
 dnl Look for an Ada compiler (gnatmake)
 
-AC_DEFUN(AM_PROG_GNAT,
+AC_DEFUN([AM_PROG_GNAT],
 [AC_BEFORE([$0], [AM_TRY_GNAT])
 AC_CHECK_PROGS(GNAT, gnatmake)
 ])
@@ -144,7 +144,7 @@ AC_CHECK_PROGS(GNAT, gnatmake)
 dnl Usage: AM_TRY_GNAT(filename, content, success, failure)
 dnl Compile an Ada program and report its success or failure
 
-AC_DEFUN(AM_TRY_GNAT,
+AC_DEFUN([AM_TRY_GNAT],
 [AC_REQUIRE([AM_PROG_GNAT])
 mkdir conftest
 cat > conftest/[$1] <<EOF
@@ -164,7 +164,7 @@ dnl Usage: AM_PROG_GNAT_FOR_HOST
 dnl Try to compile a simple Ada program to test the compiler installation
 dnl (especially the standard libraries such as Ada.Text_IO)
 
-AC_DEFUN(AM_PROG_GNAT_FOR_HOST,
+AC_DEFUN([AM_PROG_GNAT_FOR_HOST],
 [AC_REQUIRE([AM_PROG_GNAT])
 AC_MSG_CHECKING([if the Ada compiler works])
 AM_TRY_GNAT([check.adb],
@@ -184,7 +184,7 @@ AC_MSG_ERROR([Ada compiler is not working])])])
 dnl Usage: AM_GNAT_PREREQ(date, version)
 dnl Check that GNAT is at least as recent as date (YYMMDD)
 
-AC_DEFUN(AM_GNAT_PREREQ,
+AC_DEFUN([AM_GNAT_PREREQ],
 [AC_REQUIRE([AM_PROG_GNAT_FOR_HOST])
 AC_CHECK_PROG(GNATLS, gnatls, gnatls)
 AC_CHECK_PROG(SED, sed, sed)
@@ -203,7 +203,7 @@ dnl Usage: AM_PROG_GNAT_FOR_TARGET
 dnl Look for an Ada compiler for the target (same as the host one if host and
 dnl target are equal)
 
-AC_DEFUN(AM_PROG_GNAT_FOR_TARGET,
+AC_DEFUN([AM_PROG_GNAT_FOR_TARGET],
 [AC_REQUIRE([AM_PROG_GNAT_FOR_HOST])
  if test $host = $target; then
    GNAT_FOR_TARGET=$GNAT_FOR_HOST
@@ -221,7 +221,7 @@ dnl except when user really wants it to be enabled. When we can provide
 dnl this feature with SJLJ exception model and when the user really wants
 dnl it, then build GLADE with SJLJ model being the default.
 
-AC_DEFUN(AM_SUPPORT_RPC_ABORTION,
+AC_DEFUN([AM_SUPPORT_RPC_ABORTION],
 [AC_REQUIRE([AM_PROG_GNAT_FOR_HOST])
 AC_CHECK_PROG(GNATLS, gnatls, gnatls)
 GNAT_RTS_FLAG="";

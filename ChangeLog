@@ -1,3 +1,9 @@
+2003-11-22  Samuel Tardieu  <sam@rfc1149.net>
+
+	* support/ada.m4: Quote name of macros as recommended by autoconf
+	and automake maintainers. Future versions of autoconf/automake will
+	issue a warning when this is not the case.
+
 2003-11-03  Laurent Pautet  <pautet@enst.fr>
 
 	* MANIFEST: Add Dist/b_xe_defs.adb which builds a specific version
