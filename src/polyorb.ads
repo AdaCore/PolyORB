@@ -37,6 +37,7 @@
 package PolyORB is
 
    pragma Pure;
+   pragma Linker_Options ("-lpolyorb");
 
    Not_Implemented : exception;
    --  Raised when a non-implemented feature is called.

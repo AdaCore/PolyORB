@@ -36,5 +36,6 @@
 package PolyORB.DSA_P is
 
    pragma Pure;
+   pragma Linker_Options ("-lpolyorb-dsa_p");
 
 end PolyORB.DSA_P;

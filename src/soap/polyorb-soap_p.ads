@@ -32,6 +32,8 @@
 
 package PolyORB.SOAP_P is
 
+   pragma Linker_Options ("-lpolyorb-soap_p");
+
    SOAP_Error : exception;
    --  Will be raised when an error occurs in the SOAP implementation. The
    --  exception message will described the problem.

@@ -39,5 +39,6 @@
 package PolyORB.CORBA_P is
 
    pragma Pure;
+   pragma Linker_Options ("-lpolyorb-corba_p");
 
 end PolyORB.CORBA_P;

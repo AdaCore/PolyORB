@@ -39,5 +39,6 @@
 package PolyORB.GIOP_P is
 
    pragma Pure;
+   pragma Linker_Options ("-lpolyorb-giop_p");
 
 end PolyORB.GIOP_P;
