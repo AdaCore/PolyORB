@@ -68,6 +68,8 @@ package body MirrorBank is
    end Balance;
 
 begin
+   --  Register a dynamically bound remote subprogram (Balance)
+   --  through a statically bound remote subprogram (Register)
    Register (Balance'Access);
    --  [...] Register other services
 end MirrorBank;
@@ -87,6 +89,9 @@ procedure BankClient is
    C : Customer_Type := "rich";
    P : Password_Type := "xxxx";
 begin
+   --  Through a statically bound remote subprogram (Get_Balance), get
+   --  a dynamically bound remote subprogram. Dereference it to
+   --  perform a dynamic invocation.
    B := Get_Balance.all (C, P);
 end BankClient;
 with Types; use Types;
@@ -137,7 +142,7 @@ procedure Term1Client is
    Password : Password_Type := "yyyy";
 begin
    Register (MyTerm, Customer, Password);
-   --  [...] Do other things
+   --  [...] Execute other things
 end Term1Client;
 with NewTerminal, RACWBank, Types; use NewTerminal, RACWBank, Types;
 procedure Term2Client is
@@ -165,14 +170,14 @@ package body RACWBank is
       Amount   : in Positive;
       Customer : in Customer_Type)
    is
-      -- Find Customer terminal.
+      --  Find Customer terminal.
       Term : Term_Access
         := Find_In_Local_Table (Customer);
    begin
       Withdraw (Donator, Amount);
       Deposit  (Customer, Amount);
       if Term /= null then
-         -- Notify on Customer terminal.
+         --  Notify on Customer terminal.
          Notify (Term, Donator, Amount);
       end if;
    end Transfer;
@@ -269,7 +274,7 @@ package Storage is
         (Q : in Integer;
          R : out Integer);
    private
-      -- Declaration not shown
+      --  Other declarations
    end Queue;
 end Storage;
 with Storage; use Storage;
@@ -482,7 +487,6 @@ private
 
 end Pure;
 package body New_Integers is
-
    procedure Read
      (S : access Root_Stream_Type'Class;
       V : out New_Integer)
@@ -491,7 +495,7 @@ package body New_Integers is
    begin
       V := New_Integer'Value (B);
    end Read;
-   
+
    procedure Write
      (S : access Root_Stream_Type'Class;
       V : in New_Integer)
@@ -499,7 +503,6 @@ package body New_Integers is
    begin
       String'Output (S, New_Integer'Image (V));
    end Write;
-
 end New_Integers;
 with Ada.Streams; use Ada.Streams;
 package New_Integers is
@@ -516,5 +519,53 @@ package New_Integers is
 
    for New_Integer'Read  use Read;
    for New_Integer'Write use Write;
-
 end New_Integers;
+with ACRRT; use ACRRT;
+package ACRRCI is
+   pragma Remote_Call_Interface;
+   pragma All_Calls_Remote;
+
+   procedure P (X : T);
+end ACRRCI;
+package body ACRRCI is
+   procedure P (X : T) is
+   begin
+      null;
+   end P;
+end ACRRCI;
+with Ada.Streams; use Ada.Streams;
+package ACRRT is
+   pragma Remote_Types;
+   type T is private;
+private
+   type T is new Integer;
+   procedure Read
+     (S : access Root_Stream_Type'Class;
+      X : out T);
+   procedure Write
+     (S : access Root_Stream_Type'Class;
+      X : in T);
+   for T'Read  use Read;
+   for T'Write use Write;
+end ACRRT;
+package body ACRRT is
+   procedure Read
+     (S : access Root_Stream_Type'Class;
+      X : out T) is
+   begin
+      raise Program_Error;
+   end Read;
+
+   procedure Write
+     (S : access Root_Stream_Type'Class;
+      X : in T) is
+   begin
+      raise Program_Error;
+   end Write;
+end ACRRT;
+with ACRRCI, ACRRT;
+procedure ACRMain is
+   X : ACRRT.T;
+begin
+   ACRRCI.P (X);
+end ACRMain;

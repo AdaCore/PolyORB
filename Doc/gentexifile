@@ -1,11 +1,15 @@
 #!/bin/sh
-if [ $# != 2 ]; then
+if [ $# = 0 ]; then
   echo "Usage: $0 <file to translate>"
   exit 0
 fi
 
 SOURCE=$1
-TARGET=${SOURCE}.texi
+if [ $# = 2 ]; then
+   TARGET=$2
+else
+   TARGET=${SOURCE}.texi
+fi
 case ${SOURCE} in
   *.idl)
     SEDFILE=idl.sed;;
