@@ -115,6 +115,7 @@ package body Test_Suite.Scenarios is
       Separator (Output);
 
       Close_Scenario_Output_Context (Output, Result);
+      PolyORB.Parameters.Reset;
    end Run_Scenario;
 
    -----------------------
