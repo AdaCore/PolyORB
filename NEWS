@@ -58,7 +58,7 @@ generic middleware. In addition to the 1.0 release, it includes:
 - the DIOP protocol stack, Datagram-based Inter-ORB Protocol, a
   specialization of GIOP for oneway requests.
 
-* PolyORB 1.O (released 2003-06-16)
+* PolyORB 1.0 (released 2003-06-16)
 
 This release contains a CORBA-compliant instantiation of the PolyORB
 generic middleware. It includes:
