@@ -37,10 +37,12 @@ with Ada.Exceptions;                      use Ada.Exceptions;
 with Ada.Unchecked_Conversion;
 with Ada.Unchecked_Deallocation;
 with Interfaces.C.Strings;
+pragma Warnings (Off, Interfaces.C.Strings);
 with System.Garlic.Constants;             use System.Garlic.Constants;
 with System.Garlic.Debug;                 use System.Garlic.Debug;
 with System.Garlic.Heart;                 use System.Garlic.Heart;
 with System.Garlic.Naming;                use System.Garlic.Naming;
+with System.Garlic.Network_Utilities;     use System.Garlic.Network_Utilities;
 with System.Garlic.Options;
 with System.Garlic.Physical_Location;     use System.Garlic.Physical_Location;
 with System.Garlic.Priorities;
@@ -78,18 +80,6 @@ package body System.Garlic.TCP is
    --  Shortcuts
 
    package Net renames Platform_Specific.Net;
-
-   function Port_To_Network (Port : C.unsigned_short)
-     return C.unsigned_short;
-   pragma Inline (Port_To_Network);
-   --  Convert a port number into a network port number
-
-   function Network_To_Port (Net_Port : C.unsigned_short)
-     return C.unsigned_short
-     renames Port_To_Network;
-   pragma Inline (Network_To_Port);
-   --  Symetric operation. Since this is an endianness conversion, the reverse
-   --  operation is exactly the same.
 
    In_Address_Any : constant Naming.Address := Any_Address;
 
@@ -158,9 +148,6 @@ package body System.Garlic.TCP is
    procedure Establish_Listening_Socket;
    --  Establish a socket according to the information in Self_Host (and
    --  complete it if needed).
-
-   function To_Sockaddr_Access is
-      new Ada.Unchecked_Conversion (Sockaddr_In_Access, Sockaddr_Access);
 
    procedure Free is
      new Ada.Unchecked_Deallocation (Sockaddr_In, Sockaddr_In_Access);
@@ -694,29 +681,6 @@ package body System.Garlic.TCP is
 
    end Partition_Map_Type;
 
-   ---------------------
-   -- Port_To_Network --
-   ---------------------
-
-   function Port_To_Network (Port : C.unsigned_short)
-     return C.unsigned_short
-   is
-   begin
-      if System.Default_Bit_Order = High_Order_First then
-
-         --  No conversion needed. On these platforms, htons() defaults
-         --  to a null procedure.
-
-         return Port;
-      else
-
-         --  We need to swap the high and low byte on this short to make
-         --  the port number network compliant.
-
-         return (Port / 256) + (Port mod 256) * 256;
-      end if;
-   end Port_To_Network;
-
    ----------------------
    -- Physical_Receive --
    ----------------------
@@ -724,8 +688,6 @@ package body System.Garlic.TCP is
    procedure Physical_Receive
      (FD : in C.int; Data : out Stream_Element_Array)
    is
-      function To_Chars_Ptr is
-         new Ada.Unchecked_Conversion (System.Address, Strings.chars_ptr);
       Current : System.Address := Data (Data'First) 'Address;
       Rest    : C.int          := Data'Length;
       Code    : C.int;
@@ -749,8 +711,6 @@ package body System.Garlic.TCP is
 
    procedure Physical_Send (FD : in C.int; Data : in Stream_Element_Array)
    is
-      function To_Chars_Ptr is
-         new Ada.Unchecked_Conversion (System.Address, Strings.chars_ptr);
       Current : System.Address := Data (Data'First) 'Address;
       Rest    : C.int          := Data'Length;
       Code    : C.int;
