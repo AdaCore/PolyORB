@@ -38,9 +38,6 @@
 --                                                                         --
 -----------------------------------------------------------------------------
 
-with Sockets.Link;
-pragma Warnings (Off, Sockets.Link);
-
 with Interfaces.C.Pointers;
 with Interfaces.C.Strings;
 with System.Storage_Elements;

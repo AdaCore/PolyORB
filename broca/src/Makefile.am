@@ -69,14 +69,7 @@ ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
 
 ADA_BODIES = $(ADA_SPECS_WITH_BODY:.ads=.adb)
 
-ADA_LIBADD = $(ADA_SPECS:.ads=.lo) $(ADASOCKET_OBJECTS:.o=.lo)
-
-ADASOCKET_OBJECTS = \
-	sockets-constants.o \
-	sockets-link.o \
-	sockets-naming.o \
-	sockets-thin.o \
-	sockets.o
+ADA_LIBADD = $(ADA_SPECS:.ads=.lo)
 
 bin_SCRIPTS = adabroker-config
 lib_LTLIBRARIES = libbroca.la
@@ -89,11 +82,9 @@ CLEANFILES = *.ali
 LINK = $(LIBTOOL) $(ADA) -o libbroca.la
 
 ADAFLAGS = $(GNATFLAGS) \
-	-I. -I$(srcdir) -I../adasockets/src -I$(srcdir)/../adasockets/src
+	-I. -I$(srcdir) $(ADASOCKETS_INCLUDE)
 
 ADACOMPILER = ../support/adacompiler
-
-VPATH = $(srcdir):../adasockets/src:$(srcdir)/../adasockets/src
 
 SUFFIXES = .adb .ads .lo .ali
 
@@ -105,16 +96,10 @@ SUFFIXES = .adb .ads .lo .ali
 	@chmod a+x $(ADACOMPILER)
 	$(LIBTOOL) --mode=compile $(ADACOMPILER) -c $(ADAFLAGS) $<
 
-$(ADA_LIBADD): ../adasockets/src/sockets-constants.ads
-
 install-data-local:
 	$(INSTALL) -d $(DESTDIR)$(alidir)
-	$(INSTALL) -m 444 ../adasockets/src/*.ad[bs] $(DESTDIR)$(alidir)
-	$(INSTALL) -m 444 $(srcdir)/*.ad[bs] $(srcdir)/../adasockets/src/*.ad[bs] $(DESTDIR)$(alidir)
+	$(INSTALL) -m 444 $(srcdir)/*.ad[bs] $(DESTDIR)$(alidir)
 	$(INSTALL) -m 444 *.ali $(DESTDIR)$(alidir)
-
-../adasockets/src/sockets-constants.ads:
-	cd ../adasockets/src && $(MAKE) sockets-constants.ads
 
 depend: all
 	$(srcdir)/../support/mkdep $(srcdir)

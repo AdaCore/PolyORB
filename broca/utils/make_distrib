@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: //depot/adabroker/main/broca/utils/make_distrib#2 $
+# $Id: //depot/adabroker/main/broca/utils/make_distrib#3 $
 #
 # This script builds a compressed archive suitable for distribution.
 #
@@ -101,7 +101,7 @@ fi
 #    ${prev}/utils/normalize.pl `cat MANIFEST`
 #fi
 echo Generating auto-generated files
-make -f Makefile.am autoconf
+sh -e -x support/reconfig
 echo Doing the necessary date modifications
 find . -name configure.in -exec touch {} \;
 sleep 1

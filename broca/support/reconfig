@@ -1,0 +1,14 @@
+#! /bin/sh -e -x
+aclocal -I support
+autoconf
+automake
+cd adasockets
+aclocal -I ../support
+autoconf
+automake
+autoheader
+cd ..
+cd idlac
+python make_nodes.py nodes.txt > xxx
+gnatchop -w xxx
+rm -f xxx
