@@ -328,6 +328,8 @@ package body PolyORB.Filters.HTTP is
       -- Process received data --
       ---------------------------
 
+      Show (F.In_Buf.all);
+
       <<Process_Received_Data>>
 
       if F.State in Line_By_Line then
@@ -428,6 +430,8 @@ package body PolyORB.Filters.HTTP is
          -- Not in a line-by-line state: transferring entity --
          ------------------------------------------------------
 
+         pragma Debug (O ("Transferring entity"));
+
          declare
             use PolyORB.Types;
 
@@ -449,6 +453,9 @@ package body PolyORB.Filters.HTTP is
             end;
 
             F.Transfer_Length := F.Transfer_Length - Data_Processed;
+
+            pragma Debug (O ("F.State:" & F.State'Img));
+            pragma Debug (O ("F.Transfer_Length:" & F.Transfer_Length'Img));
 
             if F.Transfer_Length = 0 then
                if F.Chunked then
@@ -490,6 +497,9 @@ package body PolyORB.Filters.HTTP is
       --  according to the current state information (which
       --  may have been modified by the above processing.
 
+      pragma Debug (O ("F.State:" & F.State'Img));
+      pragma Debug (O ("F.Transfer_Length:" & F.Transfer_Length'Img));
+
       case F.Transfer_Length is
          when -1 =>
             --  Either state is Start_Line, Header, Chunk_Size
@@ -522,6 +532,7 @@ package body PolyORB.Filters.HTTP is
             (PolyORB.Buffers.CDR_Position (F.In_Buf))));
       PolyORB.Buffers.Extract_Data
         (F.In_Buf, Data, Line_Length, Use_Current => True);
+
       declare
          S : String (1 .. Integer (Line_Length) - 2);
          --  Ignore last 2 characters (CR/LF).
@@ -591,6 +602,7 @@ package body PolyORB.Filters.HTTP is
                      F.State := Entity;
                   end if;
                end if;
+               pragma Debug (O ("F.State: " & F.State'Img));
 
             when others =>
                raise Program_Error;
