@@ -1,669 +1,669 @@
-Thu Nov 27 15:13:27 1997  Laurent Pautet  <pautet@esmeralda.enst.fr>
-
-	* xe_stubs.adb: When an exception is raised from the user code,
- 	some finalization code has to executed (for instance, local
- 	termination). Catch exception, execute finalization code and
-	re-raise exception. Fix partially 4827-G01.
-
-Tue Nov 18 19:55:03 1997  Laurent Pautet  <pautet@esmeralda.enst.fr>
-
-	* xe_check.adb: Fix incorrect test concerning configuration of
-	generic unit.
-
-	* xe_stubs.adb: Fix incorrect caller object filename. Should be
- 	computed from source spec file name (gnat.adc).
-
-Mon Nov 17 17:26:40 1997  Laurent Pautet  <pautet@esmeralda.enst.fr>
-
-	* xe_stubs.adb: Fix incorrect test which skipped a debugging
- 	message.
-
-	* xe_check.adb: Search through unit U hierarchy to find a RCI
- 	parent and check whether this unit is configured on its child
- 	partition. Fix 4814-G01.
-
-	* xe_back.adb: Change Get_Parent to return No_Name when there is
-	no parent.
-
-Thu Oct 30 15:52:37 1997  Samuel Tardieu  <sam@inf.enst.fr>
-
-	* xe_check.adb: Pass the value of -jN flag to Compile_Sources.
-
-Wed Oct 29 19:28:51 1997  Samuel Tardieu  <sam@inf.enst.fr>
-
-	* gnatdist.in: Use EXTRA_LIBS from configure.
-
-Wed Oct 29 19:11:39 1997  Laurent Pautet  <pautet@scapin.enst.fr>
-
-	* xe_utils.adb, xe_utils.ads: Remove unused subprograms (basically
- 	xe-gcc stuff). Change function Strip_Uname_Suffix into U_To_N.
-
-	* xe_stubs.adb: Change to new stub generation. Handle generic
- 	packages.
-
-Fri Oct 24 17:49:16 1997  Laurent Pautet  <pautet@esmeralda.enst.fr>
-
-	* xe_utils.ads: Add a procedure Free (to deallocate a
- 	string_access variable). Add Configuration parameter in procedure
- 	Produce_Partition_Executable (compilation, binding and linking are
- 	executed in current directory and no longer in
- 	dsa/<conf>/<part>). Add Object parameter in Compile_RCI_Receiver
- 	and Compile_RCI_Caller for same reason.
-
-	* xe_utils.adb: Add -x ada systematically. Add -o <object>
- 	systematically to save object file in place. Compile, bind and
- 	link in current directory to honor gnat.adc.
-
-	* xe_stubs.adb: Use previous changes and honor gnat.adc. Fix
- 	4617-G02.
-
-Thu Oct 23 09:58:06 1997  Laurent Pautet  <pautet@esmeralda.enst.fr>
-
-	* xe_stubs.adb: Bad command order. Fix a problem with 0003-G00.
-
-	* xe_back.adb, xe_back.ads: Add new procedure Get_Parent
-	which extracts the root parent from a unit name.
-
-	* xe_check.adb: Check that a RCI package and its children are on
- 	the same partition. Fix 0002-G09.
-
-Fri Oct 17 18:37:08 1997  Laurent Pautet  <pautet@esmeralda.enst.fr>
-
-	* xe_stubs.adb: Change s-garela.adb generation. Move s-garela
-	generation code into a procedure Initialize.
-
-Thu Oct 16 16:38:04 1997  Laurent Pautet  <pautet@scapin.enst.fr>
-
-	* xe_stubs.adb: Update caused by System.Garlic.Options changes.
-
-Wed Sep 17 18:15:37 1997  Laurent Pautet  <pautet@scapin.enst.fr>
-
-	* xe_lead.adb: Pipe standard error and output to /dev/null for
-	a pragma Starter (Shell) because some systems output the pid of
-	the background process.
-
-	* xe_stubs.adb: Fix Mark_Unit_On_Partition when unit is generic.
-	
-Sat Sep 13 14:32:15 1997  Samuel Tardieu  <sam@inf.enst.fr>
-
-	* config.sdefault: Use output of gnatls to find the right include
-	and object directories. Also output the path to libgnat.a when
-	used with the 'pathtolib' argument. Make it work with a
-	non-standard or cross installation.
-
-Fri Sep 12 18:52:20 1997  Laurent Pautet  <pautet@scapin.enst.fr>
-
-	* xe_utils.adb, xe_scan.adb, xe_lead.adb, xe_build.adb,
-	xe_back.adb, xe_stubs.adb, xe_check.adb: Fix output message.
-
-Wed Sep  3 20:19:31 1997  Laurent Pautet  <pautet@esmeralda.enst.fr>
-
-	* xe_utils.ads, xe_utils.adb: Add Message procedure and remove
- 	Write_Message (more general). Add Strip_Unit_Suffix to remove
-	%[bs] suffixes in a unit name.
-
-	* xe_back.ads, xe_back.adb: Change More_Recent_Stamp into
- 	Most_Recent_Stamp. Add a boolean parameter to Set_Light_PCS. Use
- 	new Message procedure to reduce code.
-
-	* xe_build.adb, xe_lead.adb, xe_scan.adb, xe_check.adb: Use new
- 	Message procedure.
-
-	* xe_stubs.adb, xe_stubs.adb: Use new Message
- 	procedure. Optimization of recompilation due to stamp
- 	inconsistency. Add procedure Mark_Units_On_Partition.
-
-Fri Aug 29 21:45:27 1997  Laurent Pautet  <pautet@quasimodo.enst.fr>
-
-	* xe_stubs.adb, xe_back.adb, xe_back.ads, xe_check.adb,
-	xe_stubs.ads: Move the code such a way that gnatdist output
-	indicates that a light PCS is used.
-
-Fri Aug 29 20:14:48 1997  Laurent Pautet  <pautet@inf.enst.fr>
-
-	* xe_stubs.adb: Detect if a partition includes a RCI package or
- 	may declare a RACW variable. If this is not the case, then set
-	Has_RCI_Pkg_Or_RACW_Var to false.
-
-Tue Aug 12 17:54:28 1997  Laurent Pautet  <pautet@scapin.enst.fr>
-
-	* xe_back.ads, xe_back.adb: Remove Default_Host which was not
- 	initialized but still used.
-
-	* xe_lead.adb, xe_stubs.adb: Suppress useless function calls.
-
-	* xe_parse.adb: Add some tree debugging information.
-
-Tue Aug 12 13:08:02 1997  Samuel Tardieu  <sam@inf.enst.fr>
-
-	* config.sdefault: libgnat.a is now located under adalib.
-
-	* Makefile.am: gnatdist is now generated from gnatdist.in.
-
-Wed Jun  4 19:34:41 1997  Laurent Pautet  <pautet@quasimodo.enst.fr>
-
-	* xe_back.adb: Fix problems in Set_Partition_Attribute due to
- 	switch from Null_PID to Default_Partition as predefined partition
- 	PID.
-
-Tue May 20 17:15:04 1997  Laurent Pautet  <pautet@dorine.enst.fr>
-
-	* xe_back.adb: Use first slot of tables to store the default type
- 	attributes.
-
-Wed May 14 14:33:02 1997  Laurent Pautet  <pautet@quasimodo.enst.fr>
-
-	* xe_stubs.adb: Generate task pool bounds
- 	assignment. Part of Task_Pool attribute implementation.
-
-Mon May  5 21:30:25 1997  Samuel Tardieu  <sam@inf.enst.fr>
-
-	* xe_utils.adb: Changed "delete" into "deleting" and format output
-	correctly.
-
-Fri May  2 13:45:06 1997  Laurent Pautet  <pautet@dorine.enst.fr>
-
-	* xe.ads: Add numeric literal token.
-
-	* xe_back.adb: Use Default_Partition = Partitions.Table
- 	(Partitions.First) to store Partition_Type default values. Same
- 	thing for Channels. Add new procedure Initialize to initialize
- 	these defaults. Handle Attribute_Task_Pool in
- 	Set_Partition_Attribute.
-
-	* xe_build.adb: Invoke XE_Back.Initialize;
-
-	* xe_check.adb, xe_lead.adb: Change loop range for Partitions
- 	(resp. Channels) to skip the first as it corresponds to the
- 	default values for the type Partition_Type (resp. Channel_Type).
-  	Use Default_Partition (resp. Default_Channel) to get the default
- 	of Partition_Type (resp. Channel_Type).
-
-	* xe_stdcnf.adb: Add new type declaration _task_pool (internal use
- 	only) defined as an array of 3 integers (low, high, max). Declare
- 	an attribute task_pool for partition_type.
-
-	* xe_scan.adb: Scan numeric literals.
-
-	* xe_parse.adb: Allow a representation clause to have an aggregate
- 	as right operand. Add new function Tmp_Name to generate internal
- 	temporary names.
- 	
-Wed Apr 30 18:39:31 1997  Laurent Pautet  <pautet@quasimodo.enst.fr>
-
-	* xe_back.adb, xe.ads, xe_stdcnf.adb: Hooks to be able to specify
- 	task pool marks (low, high, max). These three integers would
- 	specify the low, high and max bounds of anonymous tasks in Garlic.
-
-Tue Apr 29 10:24:53 1997  Laurent Pautet  <pautet@dorine.enst.fr>
-
-	* xe_utils.ads, xe_utils.adb: Change More_Recent into ">" to avoid
- 	confusion.
-
-	* xe_stubs.adb, xe_back.adb: Fix a problem with file stamp on very
- 	fast machines (stamp (.o) = stamp (.adb)).
-
-Wed Apr 23 14:38:20 1997  Laurent Pautet  <pautet@esmeralda.enst.fr>
-
-	* xe_stubs.adb: Corrected major typo in procedure
- 	Create_Elaboration_File: condition to generate calls to
- 	Set_Channel_Filter was inverted. Bug reported and fixed by T. Wolf
-
-Tue Apr 22 19:06:32 1997  Laurent Pautet  <pautet@scapin.enst.fr>
-
-	* xe_check.adb: Use Check_Internal_Files in Compile_Sources as a
- 	workaround to gnatmake -a bug on Linux platform (no object file
- 	present with the shared library)
-
-Mon Apr  7 16:27:47 1997  Samuel Tardieu  <sam@inf.enst.fr>
-
-	* xe_utils.adb: Removed references to xe-gcc.
-
-	* Makefile.am: Ditto.
-
-Tue Apr  1 17:22:41 1997  Laurent Pautet  <pautet@esmeralda.enst.fr>
-
-	* Makefile.am, Makefile.in: Add GNATSRC dependency for xe_defs.adb
-
-Fri Mar 28 18:17:59 1997  Laurent Pautet  <pautet@scapin.enst.fr>
-
-	* xe.adb, xe_back.ads: Adapt to new Table package.
-
-Thu Mar 27 16:33:18 1997  Laurent Pautet  <pautet@marvin.enst.fr>
-
-	* xe_utils.ads: Fix bad renaming that was not detected before.
-
-Fri Mar 21 14:20:39 1997  Laurent Pautet  <pautet@esmeralda.enst.fr>
-
-	* xe_check.adb: Always load internal files. Otherwise, a partition
-	containing explicitly only predefined units are detected as empty.
-
-Fri Mar 21 11:44:08 1997  Samuel Tardieu  <sam@zaphod.enst.fr>
-
-	* Makefile.am: Make xe_defs.adb and sdefault.adb depend from the
-	  Makefile.
-
-Sat Mar  8 16:50:27 1997  Laurent Pautet  <pautet@inf.enst.fr>
-
-	* xe_lead.adb: Use Get_Rsh_Command to build shell script.
-
-Fri Mar  7 18:48:50 1997  Laurent Pautet  <pautet@inf.enst.fr>
-
-	* xe_defs.ads, Makefile.am, Makefile.in: Add function
- 	Get_Rsh_Command which is determined at configuration time and set
- 	in the body of xe_defs.adb.
-
-	* xe_stubs.adb: Use the previous new feature.
-
-Thu Feb 27 11:07:05 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
-
-	* xe_check.adb: Check that a channel has not been declared twice
- 	(wuth a different name like (C1, C2 : Channel := (P1, P2)). Check
- 	that the pair of partitions is a real pair, and not twice the same
- 	partition.
-
-	* xe_stubs.adb: Predefined type partition filer was incorrectly
- 	generated. The peer partition name was also incorrect.  Forgot to
- 	check that the default filter was not null => illegal with.
-
-	xe.ads, xe.adb: Add Get_Filter for a partition.
-
-Wed Feb 26 22:03:43 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
-
-	* xe.ads: Change attribute filter into CFilter (Channel) and add a
- 	new one PFilter (Partition). When this attribute applies to
- 	predefined type Partition, then a partition always communicates
- 	with another one using the given filter. When this attribute
- 	applies to predefined channel type, any communication channel
- 	declared in the configuration language uses the given filter. At
- 	last, when this attributeapplies to a communication channel, the
- 	filter used is the filter given.
-
-	* xe_stdcnf.adb: Propagate changes mentionned above.
-	
-	* xe.ads: Add pragma Registration_Filter. When a partition
- 	registers its filters (and data) to the lead partition or when a
- 	partition queries filters (and data) of another partition, then a
- 	default filter can be used. In some way, it is similar to the
- 	Boot_Server pragma. This feature is usefull for encryption when
- 	two partitions have to exchange (for instance) a DES key encrypted
- 	with public and private keys.
-
-	* xe_back.adb: Channels table has been redefined. In Partitions
- 	table, First_Channel and Last_Channel are head and tail of a
- 	linked list of channels. In Channels, a channel is a peer (L, R)
- 	of Channel Partition, which contains the partition P and the next
- 	channel of this partition P.
-
-	* xe_back.adb: P'Filter has been forbidden. I can't see the
- 	possible usage of this feature. Only Partition'Filter is
- 	meaningul.
-
-	* xe_back.adb: Change error messsages ("type bla" -> "predefined
- 	type bla").
-
-	* xe_back.ads: Add several default variables and define Channel
- 	Partition Type.
-
-	* xe_build.adb: Fix a bug concerning ".cfg" suffix.
-
-	* xe_check.adb: Filenames were not properly translated from unit
- 	names. Call to the wrong routine. Write_Compile_Command was
- 	invoked with the wrong parameter.
-
-	* xe_lead.adb, xe_utils.ads, xe_utils.adb, xe_scan.ads: Reorganize
- 	code (alphabetical order).
-
-Mon Feb 24 09:18:50 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
-
-	* xe_parse.adb: Add a general Write_Error_Message procedure.
-	Update Declare_Subprogram to handle new subprogram definition.
-
-	* xe.ads, xe.adb: Add function Is_Variable_Initialized and include
-	is Set_Variable_* Variable_Is_Initialized.
-
-	* xe_parse.adb, xe_parse.ads: Rewrite tree output. Remove junk
- 	code. 
-	
-	* xe_scan.adb: Fix a bug (string without end delimiter).
-
-	* xe.ads, xe.adb: Change xxx_Parameter_Mark into
- 	xxx_Parameter_Initialized.
-
-	* xe.ads, xe.adb: Remove Starter_Method_Type and use
- 	Import_Method_Type instead (Ada and Shell were both used).
-
-	* xe_parse.ads, xe_parse.adb, xe_stdcnf.ads, xe_stdcnf.adb: Export
- 	xe_parse internal subprograms and move standard configuration into
- 	xe_stdcnf. Reorganize code.
-
-	* xe_utils.ads: Fix a bug due to a typo (">" was "=")
-	
-	* xe_back.adb: Fix bugs (concerning 'host and 'main) due to the
- 	new way subprograms are handled (pragma and ada subprogram). The
- 	non dist. main procedure is converted into a P'main and
- 	P'_leader. _leader is an internal attribute to signal a main
- 	partition.
-
-	* xe_back.ads: Remove some unused stuff.
-	
-	* xe_lead.adb, xe_check.adb, xe_stubs.adb: Same as above
- 	(concerning 'host and 'main).
-	
-Sat Feb 22 12:58:07 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
-
-	* xe_check.adb, xe_utils.ads, xe_utils.adb: Change partition
- 	subprogram main name from partition name to "partition". Suppress
- 	checks of conflicts.
-
-	* xe_utils.ads: Fix a bug due to a bad renaming.
-
-	* xe.ads, xe.adb, xe_parse.adb, xe_back.adb: Cleaner organisation
- 	of configuration language predefined types.
-
-	* xe_stubs.adb: A Change_Dir was mislocated. Don't generate
- 	Set_Default_Filter when Default_Filter is null string.
-
-Fri Feb 21 09:28:54 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
-
-	* xe_back.ads: Add tree node in configuration table items to
- 	report error messages.
-
-Thu Feb 20 14:49:39 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
-
-	* xe_stubs.adb: Integration of filtering.
-
-	* xe_build.adb, xe_lead.adb, xe_stubs.adb, xe.adb, xe_check.adb,
- 	xe_parse.adb, xe_usage.adb, xe_back.adb, xe_defs.adb, xe_scan.adb,
- 	xe_utils.adb: Reorganize code.
-
-	* xe_utils.ads: Include all kind of renamaing of GNAT entities.
-
-Mon Feb 17 10:25:00 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
-
+1997-11-27  Laurent Pautet <pautet@esmeralda.enst.fr>
+        
+        * xe_stubs.adb: When an exception is raised from the user code,
+        some finalization code has to executed (for instance, local
+        termination). Catch exception, execute finalization code and
+        re-raise exception. Fix partially 4827-G01.
+        
+1997-11-18  Laurent Pautet <pautet@esmeralda.enst.fr>
+        
+        * xe_check.adb: Fix incorrect test concerning configuration of
+        generic unit.
+        
+        * xe_stubs.adb: Fix incorrect caller object filename. Should be
+        computed from source spec file name (gnat.adc).
+        
+1997-11-17  Laurent Pautet <pautet@esmeralda.enst.fr>
+        
+        * xe_stubs.adb: Fix incorrect test which skipped a debugging
+        message.
+        
+        * xe_check.adb: Search through unit U hierarchy to find a RCI
+        parent and check whether this unit is configured on its child
+        partition. Fix 4814-G01.
+        
+        * xe_back.adb: Change Get_Parent to return No_Name when there is
+        no parent.
+        
+1997-10-30  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * xe_check.adb: Pass the value of -jN flag to Compile_Sources.
+        
+1997-10-29  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * gnatdist.in: Use EXTRA_LIBS from configure.
+        
+1997-10-29  Laurent Pautet <pautet@scapin.enst.fr>
+        
+        * xe_utils.adb, xe_utils.ads: Remove unused subprograms (basically
+        xe-gcc stuff). Change function Strip_Uname_Suffix into U_To_N.
+        
+        * xe_stubs.adb: Change to new stub generation. Handle generic
+        packages.
+        
+1997-10-24  Laurent Pautet <pautet@esmeralda.enst.fr>
+        
+        * xe_utils.ads: Add a procedure Free (to deallocate a
+        string_access variable). Add Configuration parameter in procedure
+        Produce_Partition_Executable (compilation, binding and linking are
+        executed in current directory and no longer in
+        dsa/<conf>/<part>). Add Object parameter in Compile_RCI_Receiver
+        and Compile_RCI_Caller for same reason.
+        
+        * xe_utils.adb: Add -x ada systematically. Add -o <object>
+        systematically to save object file in place. Compile, bind and
+        link in current directory to honor gnat.adc.
+        
+        * xe_stubs.adb: Use previous changes and honor gnat.adc. Fix
+        4617-G02.
+        
+1997-10-23  Laurent Pautet <pautet@esmeralda.enst.fr>
+        
+        * xe_stubs.adb: Bad command order. Fix a problem with 0003-G00.
+        
+        * xe_back.adb, xe_back.ads: Add new procedure Get_Parent
+        which extracts the root parent from a unit name.
+        
+        * xe_check.adb: Check that a RCI package and its children are on
+        the same partition. Fix 0002-G09.
+        
+1997-10-17  Laurent Pautet <pautet@esmeralda.enst.fr>
+        
+        * xe_stubs.adb: Change s-garela.adb generation. Move s-garela
+        generation code into a procedure Initialize.
+        
+1997-10-16  Laurent Pautet <pautet@scapin.enst.fr>
+        
+        * xe_stubs.adb: Update caused by System.Garlic.Options changes.
+        
+1997-09-17  Laurent Pautet <pautet@scapin.enst.fr>
+        
+        * xe_lead.adb: Pipe standard error and output to /dev/null for
+        a pragma Starter (Shell) because some systems output the pid of
+        the background process.
+        
+        * xe_stubs.adb: Fix Mark_Unit_On_Partition when unit is generic.
+        
+1997-09-13  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * config.sdefault: Use output of gnatls to find the right include
+        and object directories. Also output the path to libgnat.a when
+        used with the 'pathtolib' argument. Make it work with a
+        non-standard or cross installation.
+        
+1997-09-12  Laurent Pautet <pautet@scapin.enst.fr>
+        
+        * xe_utils.adb, xe_scan.adb, xe_lead.adb, xe_build.adb,
+        xe_back.adb, xe_stubs.adb, xe_check.adb: Fix output message.
+        
+1997-09-03  Laurent Pautet <pautet@esmeralda.enst.fr>
+        
+        * xe_utils.ads, xe_utils.adb: Add Message procedure and remove
+        Write_Message (more general). Add Strip_Unit_Suffix to remove
+        %[bs] suffixes in a unit name.
+        
+        * xe_back.ads, xe_back.adb: Change More_Recent_Stamp into
+        Most_Recent_Stamp. Add a boolean parameter to Set_Light_PCS. Use
+        new Message procedure to reduce code.
+        
+        * xe_build.adb, xe_lead.adb, xe_scan.adb, xe_check.adb: Use new
+        Message procedure.
+        
+        * xe_stubs.adb, xe_stubs.adb: Use new Message
+        procedure. Optimization of recompilation due to stamp
+        inconsistency. Add procedure Mark_Units_On_Partition.
+        
+1997-08-29  Laurent Pautet <pautet@quasimodo.enst.fr>
+        
+        * xe_stubs.adb, xe_back.adb, xe_back.ads, xe_check.adb,
+        xe_stubs.ads: Move the code such a way that gnatdist output
+        indicates that a light PCS is used.
+        
+1997-08-29  Laurent Pautet <pautet@inf.enst.fr>
+        
+        * xe_stubs.adb: Detect if a partition includes a RCI package or
+        may declare a RACW variable. If this is not the case, then set
+        Has_RCI_Pkg_Or_RACW_Var to false.
+        
+1997-08-12  Laurent Pautet <pautet@scapin.enst.fr>
+        
+        * xe_back.ads, xe_back.adb: Remove Default_Host which was not
+        initialized but still used.
+        
+        * xe_lead.adb, xe_stubs.adb: Suppress useless function calls.
+        
+        * xe_parse.adb: Add some tree debugging information.
+        
+1997-08-12  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * config.sdefault: libgnat.a is now located under adalib.
+        
+        * Makefile.am: gnatdist is now generated from gnatdist.in.
+        
+1997-06-04  Laurent Pautet <pautet@quasimodo.enst.fr>
+        
+        * xe_back.adb: Fix problems in Set_Partition_Attribute due to
+        switch from Null_PID to Default_Partition as predefined partition
+        PID.
+        
+1997-05-20  Laurent Pautet <pautet@dorine.enst.fr>
+        
+        * xe_back.adb: Use first slot of tables to store the default type
+        attributes.
+        
+1997-05-14  Laurent Pautet <pautet@quasimodo.enst.fr>
+        
+        * xe_stubs.adb: Generate task pool bounds
+        assignment. Part of Task_Pool attribute implementation.
+        
+1997-05-05  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * xe_utils.adb: Changed "delete" into "deleting" and format output
+        correctly.
+        
+1997-05-02  Laurent Pautet <pautet@dorine.enst.fr>
+        
+        * xe.ads: Add numeric literal token.
+        
+        * xe_back.adb: Use Default_Partition = Partitions.Table
+        (Partitions.First) to store Partition_Type default values. Same
+        thing for Channels. Add new procedure Initialize to initialize
+        these defaults. Handle Attribute_Task_Pool in
+        Set_Partition_Attribute.
+        
+        * xe_build.adb: Invoke XE_Back.Initialize;
+        
+        * xe_check.adb, xe_lead.adb: Change loop range for Partitions
+        (resp. Channels) to skip the first as it corresponds to the
+        default values for the type Partition_Type (resp. Channel_Type).
+        Use Default_Partition (resp. Default_Channel) to get the default
+        of Partition_Type (resp. Channel_Type).
+        
+        * xe_stdcnf.adb: Add new type declaration _task_pool (internal use
+        only) defined as an array of 3 integers (low, high, max). Declare
+        an attribute task_pool for partition_type.
+        
+        * xe_scan.adb: Scan numeric literals.
+        
+        * xe_parse.adb: Allow a representation clause to have an aggregate
+        as right operand. Add new function Tmp_Name to generate internal
+        temporary names.
+        
+1997-04-30  Laurent Pautet <pautet@quasimodo.enst.fr>
+        
+        * xe_back.adb, xe.ads, xe_stdcnf.adb: Hooks to be able to specify
+        task pool marks (low, high, max). These three integers would
+        specify the low, high and max bounds of anonymous tasks in Garlic.
+        
+1997-04-29  Laurent Pautet <pautet@dorine.enst.fr>
+        
+        * xe_utils.ads, xe_utils.adb: Change More_Recent into ">" to avoid
+        confusion.
+        
+        * xe_stubs.adb, xe_back.adb: Fix a problem with file stamp on very
+        fast machines (stamp (.o) = stamp (.adb)).
+        
+1997-04-23  Laurent Pautet <pautet@esmeralda.enst.fr>
+        
+        * xe_stubs.adb: Corrected major typo in procedure
+        Create_Elaboration_File: condition to generate calls to
+        Set_Channel_Filter was inverted. Bug reported and fixed by T. Wolf
+        
+1997-04-22  Laurent Pautet <pautet@scapin.enst.fr>
+        
+        * xe_check.adb: Use Check_Internal_Files in Compile_Sources as a
+        workaround to gnatmake -a bug on Linux platform (no object file
+        present with the shared library)
+        
+1997-04-07  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * xe_utils.adb: Removed references to xe-gcc.
+        
+        * Makefile.am: Ditto.
+        
+1997-04-01  Laurent Pautet <pautet@esmeralda.enst.fr>
+        
+        * Makefile.am, Makefile.in: Add GNATSRC dependency for xe_defs.adb
+        
+1997-03-28  Laurent Pautet <pautet@scapin.enst.fr>
+        
+        * xe.adb, xe_back.ads: Adapt to new Table package.
+        
+1997-03-27  Laurent Pautet <pautet@marvin.enst.fr>
+        
+        * xe_utils.ads: Fix bad renaming that was not detected before.
+        
+1997-03-21  Laurent Pautet <pautet@esmeralda.enst.fr>
+        
+        * xe_check.adb: Always load internal files. Otherwise, a partition
+        containing explicitly only predefined units are detected as empty.
+        
+1997-03-21  Samuel Tardieu <sam@zaphod.enst.fr>
+        
+        * Makefile.am: Make xe_defs.adb and sdefault.adb depend from the
+        Makefile.
+        
+1997-03-08  Laurent Pautet <pautet@inf.enst.fr>
+        
+        * xe_lead.adb: Use Get_Rsh_Command to build shell script.
+        
+1997-03-07  Laurent Pautet <pautet@inf.enst.fr>
+        
+        * xe_defs.ads, Makefile.am, Makefile.in: Add function
+        Get_Rsh_Command which is determined at configuration time and set
+        in the body of xe_defs.adb.
+        
+        * xe_stubs.adb: Use the previous new feature.
+        
+1997-02-27  Laurent Pautet <pautet@lglsun11.epfl.ch>
+        
+        * xe_check.adb: Check that a channel has not been declared twice
+        (wuth a different name like (C1, C2 : Channel := (P1, P2)). Check
+        that the pair of partitions is a real pair, and not twice the same
+        partition.
+        
+        * xe_stubs.adb: Predefined type partition filer was incorrectly
+        generated. The peer partition name was also incorrect.  Forgot to
+        check that the default filter was not null => illegal with.
+        
+        xe.ads, xe.adb: Add Get_Filter for a partition.
+        
+1997-02-26  Laurent Pautet <pautet@lglsun11.epfl.ch>
+        
+        * xe.ads: Change attribute filter into CFilter (Channel) and add a
+        new one PFilter (Partition). When this attribute applies to
+        predefined type Partition, then a partition always communicates
+        with another one using the given filter. When this attribute
+        applies to predefined channel type, any communication channel
+        declared in the configuration language uses the given filter. At
+        last, when this attributeapplies to a communication channel, the
+        filter used is the filter given.
+        
+        * xe_stdcnf.adb: Propagate changes mentionned above.
+        
+        * xe.ads: Add pragma Registration_Filter. When a partition
+        registers its filters (and data) to the lead partition or when a
+        partition queries filters (and data) of another partition, then a
+        default filter can be used. In some way, it is similar to the
+        Boot_Server pragma. This feature is usefull for encryption when
+        two partitions have to exchange (for instance) a DES key encrypted
+        with public and private keys.
+        
+        * xe_back.adb: Channels table has been redefined. In Partitions
+        table, First_Channel and Last_Channel are head and tail of a
+        linked list of channels. In Channels, a channel is a peer (L, R)
+        of Channel Partition, which contains the partition P and the next
+        channel of this partition P.
+        
+        * xe_back.adb: P'Filter has been forbidden. I can't see the
+        possible usage of this feature. Only Partition'Filter is
+        meaningul.
+        
+        * xe_back.adb: Change error messsages ("type bla" -> "predefined
+        type bla").
+        
+        * xe_back.ads: Add several default variables and define Channel
+        Partition Type.
+        
+        * xe_build.adb: Fix a bug concerning ".cfg" suffix.
+        
+        * xe_check.adb: Filenames were not properly translated from unit
+        names. Call to the wrong routine. Write_Compile_Command was
+        invoked with the wrong parameter.
+        
+        * xe_lead.adb, xe_utils.ads, xe_utils.adb, xe_scan.ads: Reorganize
+        code (alphabetical order).
+        
+1997-02-24  Laurent Pautet <pautet@lglsun11.epfl.ch>
+        
+        * xe_parse.adb: Add a general Write_Error_Message procedure.
+        Update Declare_Subprogram to handle new subprogram definition.
+        
+        * xe.ads, xe.adb: Add function Is_Variable_Initialized and include
+        is Set_Variable_* Variable_Is_Initialized.
+        
+        * xe_parse.adb, xe_parse.ads: Rewrite tree output. Remove junk
+        code.
+        
+        * xe_scan.adb: Fix a bug (string without end delimiter).
+        
+        * xe.ads, xe.adb: Change xxx_Parameter_Mark into
+        xxx_Parameter_Initialized.
+        
+        * xe.ads, xe.adb: Remove Starter_Method_Type and use
+        Import_Method_Type instead (Ada and Shell were both used).
+        
+        * xe_parse.ads, xe_parse.adb, xe_stdcnf.ads, xe_stdcnf.adb: Export
+        xe_parse internal subprograms and move standard configuration into
+        xe_stdcnf. Reorganize code.
+        
+        * xe_utils.ads: Fix a bug due to a typo (">" was "=")
+        
+        * xe_back.adb: Fix bugs (concerning 'host and 'main) due to the
+        new way subprograms are handled (pragma and ada subprogram). The
+        non dist. main procedure is converted into a P'main and
+        P'_leader. _leader is an internal attribute to signal a main
+        partition.
+        
+        * xe_back.ads: Remove some unused stuff.
+        
+        * xe_lead.adb, xe_check.adb, xe_stubs.adb: Same as above
+        (concerning 'host and 'main).
+        
+1997-02-22  Laurent Pautet <pautet@lglsun11.epfl.ch>
+        
+        * xe_check.adb, xe_utils.ads, xe_utils.adb: Change partition
+        subprogram main name from partition name to "partition". Suppress
+        checks of conflicts.
+        
+        * xe_utils.ads: Fix a bug due to a bad renaming.
+        
+        * xe.ads, xe.adb, xe_parse.adb, xe_back.adb: Cleaner organisation
+        of configuration language predefined types.
+        
+        * xe_stubs.adb: A Change_Dir was mislocated. Don't generate
+        Set_Default_Filter when Default_Filter is null string.
+        
+1997-02-21  Laurent Pautet <pautet@lglsun11.epfl.ch>
+        
+        * xe_back.ads: Add tree node in configuration table items to
+        report error messages.
+        
+1997-02-20  Laurent Pautet <pautet@lglsun11.epfl.ch>
+        
+        * xe_stubs.adb: Integration of filtering.
+        
+        * xe_build.adb, xe_lead.adb, xe_stubs.adb, xe.adb, xe_check.adb,
+        xe_parse.adb, xe_usage.adb, xe_back.adb, xe_defs.adb, xe_scan.adb,
+        xe_utils.adb: Reorganize code.
+        
+        * xe_utils.ads: Include all kind of renamaing of GNAT entities.
+        
+1997-02-17  Laurent Pautet <pautet@lglsun11.epfl.ch>
+        
         * xe_back.adb: Fixed a bug in Set_Attribute_Type.
-
+        
         * xe.adb, xe.ads, xe_back.adb, xe_parse.adb, xe_parse.ads,
         xe_scan.adb: Move all enumeration types into int constants. Add
         comments into xe spec.
-
-Sat Feb 15 15:18:03 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
-
+        
+1997-02-15  Laurent Pautet <pautet@lglsun11.epfl.ch>
+        
         * xe.adb: Add function Get_Filter.
-
+        
         * xe_build.adb: Add information on channels in configuration
         report.
-
+        
         * xe_back.adb: Channels table is now generated from tree.
-
+        
         * xe_parse.adb: Several changes when procedures were dedicated to
         Ada units. They need to be generalized to at least Ada units and
         channels.
         
-	* xe.adb, xe.ads, xe_parse.adb: Definition of Arrays and Lists (ie
- 	Channel and Partition). Definition of extensible enumeration type
- 	(sets) (Ada units).
-
-	* xe_back.adb: Definition of all channel stuff.
-
-	* xe_build.adb: Add a new error message when file cannot be
- 	found. Use package xe_stubs (was a procedure).
-
-	* xe_parse.adb: Change termination variable from X to
- 	X_Termination to avoid conflicts. Change some error messages.
-
-	* xe_build.adb, xe_lead.adb, xe_stubs.adb, xe.adb, xe_check.adb,
- 	xe_parse.adb, xe_usage.adb, xe_back.adb, xe_defs.adb, xe_scan.adb,
- 	xe_utils.adb: Reorganize all code (alphabetical order).
-
-	* xe.ads: Reorganize specification and change
- 	Update_Partition_Stamp into More_Recent_Stamp.
-	
-Thu Feb 13 15:21:57 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
-
-	* xe.adb: Minor reformating
-
-	* xe_stubs.adb, xe_back.adb, xe_parse.adb, xe.ads, xe.adb: Move
- 	Permanent into Termination. Three modes are allowed : Local (Don't
- 	bother with other partitions), Global (Default), Deferred (Same as
- 	Global but at the end, do not terminate).
-
-	* xe_stubs.adb: When Local_Termination, once we exit the main
- 	subprogram
-
-Thu Feb 13 11:42:17 1997  Samuel Tardieu  <sam@inf.enst.fr>
-
-	* xe.adb: Recognize '/' as well as the system's default separator.
-
-	* xe_utils.adb: Ditto.
-
-Wed Feb 12 12:26:01 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
-
-	* xe_utils.adb: Fix bug in Is_Relative_Dir with No_Name.
-	Try to suppress '/' occurrences to futur port to Windows.
-
-	* xe_stubs.adb: Fix bug that occurs when building executable file
- 	name with No_Storage_Dir. String "../../.." appended twice.
-
-	* xe_check.adb, xe_util.adb: Clean error message. Use
- 	All_Lower_Case in Write_Unit_Name.
-
-	* xe.ads: Minor reformatting.
-
-	* xe_back.adb: Reorganize code (alphabetical order).
-
-Tue Feb 11 16:27:04 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
-
-	* xe_check.adb: Do not try to recompile internal units. This code
- 	was taken from an old version of gnatmake.
-
-Tue Feb 11 11:38:48 1997  Laurent Pautet  <pautet@lglsun2.epfl.ch>
-
-	* xe.adb, xe_stubs.adb: Use of Write_Missing_File.
-
-Mon Feb 10 21:10:20 1997  Laurent Pautet  <pautet@lglsun2.epfl.ch>
-
-	* xe_stubs.adb: Reorganize code (alphabetical order) and change
- 	some parameter names.
-
-	* xe_stubs.adb: Use the two new procedures of XE.
-
-	* xe_stubs.adb: Improve recompilation and time stamp
- 	operations. Fix a bug as well. Now, Mark_RCI_Callers has a new
- 	capability which allows to compute the most recent ali file in the
- 	partition sub-tree.
-
-	* xe_check.adb: Add some debugging messages.
-
-	* xe_utils.ads, xe_utils.adb: Reorganize code (alphabetical order)
- 	and change some parameter names.
-
-	* xe_utils.ads, xe_utils.adb : Add two new procedures :
- 	Write_Stamp_Comparison and Write_Missing_File (Debugging messages).
-
-	* xe.ads, xe.adb, xe_parse.adb: Add a new configuration language
- 	type : Channel.
-
-	* xe.ads, xe.adb: Add a new procedure Get_Partition_Dir which
- 	returns the directory where all the partition sources are stored.
-
-	* xe.ads, xe.adb: Add a new field in Partition_Type : Most_Recent
- 	which denotes the most recent file of a partition. 
-
-	* xe.ads, xe.adb: Add a new procedure Update_Partition_Stamp to
- 	have more informations to decide when to rebuild a partition. Get
- 	rid of Maybe_Most_Recent_Stamp which was not precise enough.
-
-Mon Feb 10 19:48:58 1997  Samuel Tardieu  <sam@inf.enst.fr>
-
-	* Makefile.am: Add support for gnatmake -s
-
-Fri Feb  7 09:53:09 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
-
-	* xe.ads: Add a new parameter File in Maybe_Most_Recent_Stamp to
- 	save the file that causes the update of Most_Recent_Stamp.
-
-	* xe.adb, xe_utils.adb, xe_check.adb, xe.adb, xe_parse.adb :
- 	Update the calls to Maybe_Most_Recent_Stamp.
-
-	* config.sdefault: Break S1, S2 and S3 declaration lines.
-
-	* xe_usage.adb: gnatmake -l has been changed into -M. Propagates
- 	this change to gnatdist.
-
-Wed Feb  5 17:32:57 1997  Samuel Tardieu  <sam@inf.enst.fr>
-
-	* make-ada-dir: New file used to track what's needed in dist1.
-
-	* Makefile.am: Added -a to gnatmake flags to allow the use of our
-	  own library.
-
-Wed Jan 22 16:18:13 1997  Laurent Pautet  <pautet@scapin.enst.fr>
-
-	* xe_check.adb: Get rid of debugging information.
-
-	* xe_build.adb : Use of new version of Gnatmake.
-
-	* xe_back.adb: Fix a bug that didn't occur until 3.09w.
-	  The first host used to be a dummy host, but was no longer
-	  used. This incorrect host was causing the current bug.
-	
-Thu Dec 19 23:12:41 1996  Laurent Pautet  <pautet@scapin.enst.fr>
-
-	* xe-gcc-filter.in: Get rid of some generated pieces of
-	code in client stubs.
-
-Thu Dec 19 13:46:57 1996  Samuel Tardieu  <sam@inf.enst.fr>
-
-	* xe-gcc-filter.in: Changed bogus test.
-	Changed RCI_Info into System.Partition_Interface.RCI_Info.
-
-Mon Dec 16 16:45:08 1996  Laurent Pautet  <pautet@scapin.enst.fr>
-
-	* xe-gcc-filter.in: Compatibility test (do we use gnat >= 3.09w).
-
-Sat Nov 30 20:21:47 1996  Laurent Pautet  <pautet@quasimodo.enst.fr>
-
-	* xe_stubs.adb, xe_utils.ads, xe_utils.adb: Change DSA
- 	hierarchy. dsa/private contains stubs (as caller and receiver can
- 	designate a configuration name or a partition
- 	name). dsa/<configuration>/<partition> contains all the files (or
- 	links) to build a partition. Move compilation of s-garela into
-	Build_Partition to keep consistent. Check that s-garela is
-	up-to-date and recompile when Force_Compilation is set.
-
-Fri Nov 29 16:13:41 1996  Laurent Pautet  <pautet@quasimodo.enst.fr>
-
-	* xe_parse.adb: Incorrect Cut/Paste.
-
-Fri Nov 29 12:40:47 1996  Laurent Pautet  <pautet@scapin.enst.fr>
-
-	* xe.ads, xe.adb, xe_parse.adb, xe_stubs.adb, xe_back.adb: Add a
- 	new partition attribute Permanent and all the needed operations.
-
-	* xe.ads, xe.adb, xe_build.adb: Use XE subprograms to build
-	GNATDIST report.
-
-Fri Nov 29 11:47:57 1996  Samuel Tardieu  <sam@inf.enst.fr>
-
-	* xe_stubs.adb: Generate a call to Set_Boot_Server in elaboration
-	  file if protocol has been specified in configuration file.
-
-	* xe.ads: Default starter is now Ada instead of Shell.
-
-Thu Nov 28 23:56:12 1996  Samuel Tardieu  <sam@inf.enst.fr>
-
-	* xe_utils.ads: New flags.
-
-	* xe_utils.adb: Compile with -gnatg.
-
-	* xe_stubs.adb: Generation and compilation of new elaboration file.
-
-Wed Nov 27 18:07:17 1996  Samuel Tardieu  <sam@inf.enst.fr>
-
-	* xe_utils.ads: New argument to Write_* functions with file
-	  descriptors to allow duplicate output when generating scripts.
-
-	* xe_utils.adb: Fixed the way script output was handled.
-
-	* xe_stubs.adb: Write on standard out (if needed) as well as in
-	  generated file.
-
-	* xe_lead.adb: Use "__EOF__" instead of "EOF" and do not
-	  unconditionnally close output.
-
-	* xe_check.adb: Generates "gnatmake -c ..." commands.
-
-	* xe_build.adb: Add "#! /bin/sh" at the beginning of the script.
-
-Wed Nov 20 12:39:57 1996  Laurent Pautet  <pautet@quasimodo.enst.fr>
-
-	* xe.ads: Move Write_SLOC from xe_back.adb to xe.ads.
-
-	* xe_check.adb: Fix an error message.
-
-	* xe_back.adb: Use SLOC to print a more usefull error message.
-
-	* xe_parse.adb: Check in P_Configuration_End that the
-	configuration name is known before checking that it matches.
-
-	* xe_stubs.adb: Create_Main_Unit rebuilds the partition main
-	subprogram when Most_Recent_Stamp is more recent than the current
-	partition main subprogram file stamp.
-
-Fri Nov  8 16:35:19 1996  Laurent Pautet  <pautet@quasimodo.enst.fr>
-
-	* xe_check.adb: Check that partition name does not conflict with
- 	any other ada units (not present in the configuration file).
-	
-
-	* xe_parse.adb, xe.ads, xe.adb: Add some stuff to store SLOC on a
-	GNATDIST node.
-
-Tue Oct 22 10:24:14 1996  Samuel Tardieu  <sam@inf.enst.fr>
-
-	* Makefile.am: Changed gnatmake into ${GNATMAKE} to allow gnatmake
-	  redefinition (for example: make GNATMAKE="gnatmake -j2")
-
-Fri Oct 18 14:09:23 1996  Laurent Pautet  <pautet@quasimodo.enst.fr>
-
-	* xe.ads, xe_stubs.adb, xe_back.adb, xe_parse.adb: Add pragma
- 	Version (Checks => [False | True])
-
-Mon Oct  7 13:30:30 1996  Laurent Pautet  <pautet@inf.enst.fr>
-
-	* xe_stubs.adb, xe.adb, xe.ads: Fix some problems with child units
-	and file naming (a.b was translated in to a.b.adb rather than
-	a-b.adb). There are still problems due to a.b'version.
-
-Mon Sep 30 11:43:01 1996  Laurent Pautet  <pautet@quasimodo.enst.fr>
-
-	* xe_stubs.adb, xe_utils.adb: Use configuration name as partition
- 	main subprogram. File stamp checking has been a little bit
- 	improved.
-
-Sun Sep 29 18:33:58 1996  Laurent Pautet  <pautet@quasimodo.enst.fr>
-
-	* xe_utils.adb: Later has been changed to More_Recent.
-
-Mon Sep 23 18:23:05 1996  Laurent Pautet  <pautet@scapin.enst.fr>
-
-	* xe.adb: Get_Host, Get_Command_Line, Get_Absolute_Exec,
-	Get_Relative_Exec and Get_Main_Subprogram return default values
-	when no specific value has been specified.
-
-Wed Sep 11 19:26:16 1996  Samuel Tardieu  <sam@inf.enst.fr>
-
-	* xe_parse.adb: Give proper error message on undeclared variable.
-
-Wed Sep 11 15:57:44 1996  Laurent Pautet  <pautet@quasimodo.enst.fr>
-
-	* xe_scan.adb, xe.ads : Don't tolerate reserved keywords anymore.
-
-	* xe_back.adb: New error message when no main program has been
- 	defined in the configuration file.
-
-Wed Sep 11 14:39:58 1996  Samuel Tardieu  <sam@inf.enst.fr>
-
-	* config.sdefault: Replaced which by type.
-
+        * xe.adb, xe.ads, xe_parse.adb: Definition of Arrays and Lists (ie
+        Channel and Partition). Definition of extensible enumeration type
+        (sets) (Ada units).
+        
+        * xe_back.adb: Definition of all channel stuff.
+        
+        * xe_build.adb: Add a new error message when file cannot be
+        found. Use package xe_stubs (was a procedure).
+        
+        * xe_parse.adb: Change termination variable from X to
+        X_Termination to avoid conflicts. Change some error messages.
+        
+        * xe_build.adb, xe_lead.adb, xe_stubs.adb, xe.adb, xe_check.adb,
+        xe_parse.adb, xe_usage.adb, xe_back.adb, xe_defs.adb, xe_scan.adb,
+        xe_utils.adb: Reorganize all code (alphabetical order).
+        
+        * xe.ads: Reorganize specification and change
+        Update_Partition_Stamp into More_Recent_Stamp.
+        
+1997-02-13  Laurent Pautet <pautet@lglsun11.epfl.ch>
+        
+        * xe.adb: Minor reformating
+        
+        * xe_stubs.adb, xe_back.adb, xe_parse.adb, xe.ads, xe.adb: Move
+        Permanent into Termination. Three modes are allowed : Local (Don't
+        bother with other partitions), Global (Default), Deferred (Same as
+        Global but at the end, do not terminate).
+        
+        * xe_stubs.adb: When Local_Termination, once we exit the main
+        subprogram
+        
+1997-02-13  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * xe.adb: Recognize '/' as well as the system's default separator.
+        
+        * xe_utils.adb: Ditto.
+        
+1997-02-12  Laurent Pautet <pautet@lglsun11.epfl.ch>
+        
+        * xe_utils.adb: Fix bug in Is_Relative_Dir with No_Name.
+        Try to suppress '/' occurrences to futur port to Windows.
+        
+        * xe_stubs.adb: Fix bug that occurs when building executable file
+        name with No_Storage_Dir. String "../../.." appended twice.
+        
+        * xe_check.adb, xe_util.adb: Clean error message. Use
+        All_Lower_Case in Write_Unit_Name.
+        
+        * xe.ads: Minor reformatting.
+        
+        * xe_back.adb: Reorganize code (alphabetical order).
+        
+1997-02-11  Laurent Pautet <pautet@lglsun11.epfl.ch>
+        
+        * xe_check.adb: Do not try to recompile internal units. This code
+        was taken from an old version of gnatmake.
+        
+1997-02-11  Laurent Pautet <pautet@lglsun2.epfl.ch>
+        
+        * xe.adb, xe_stubs.adb: Use of Write_Missing_File.
+        
+1997-02-10  Laurent Pautet <pautet@lglsun2.epfl.ch>
+        
+        * xe_stubs.adb: Reorganize code (alphabetical order) and change
+        some parameter names.
+        
+        * xe_stubs.adb: Use the two new procedures of XE.
+        
+        * xe_stubs.adb: Improve recompilation and time stamp
+        operations. Fix a bug as well. Now, Mark_RCI_Callers has a new
+        capability which allows to compute the most recent ali file in the
+        partition sub-tree.
+        
+        * xe_check.adb: Add some debugging messages.
+        
+        * xe_utils.ads, xe_utils.adb: Reorganize code (alphabetical order)
+        and change some parameter names.
+        
+        * xe_utils.ads, xe_utils.adb : Add two new procedures :
+        Write_Stamp_Comparison and Write_Missing_File (Debugging messages).
+        
+        * xe.ads, xe.adb, xe_parse.adb: Add a new configuration language
+        type : Channel.
+        
+        * xe.ads, xe.adb: Add a new procedure Get_Partition_Dir which
+        returns the directory where all the partition sources are stored.
+        
+        * xe.ads, xe.adb: Add a new field in Partition_Type : Most_Recent
+        which denotes the most recent file of a partition.
+        
+        * xe.ads, xe.adb: Add a new procedure Update_Partition_Stamp to
+        have more informations to decide when to rebuild a partition. Get
+        rid of Maybe_Most_Recent_Stamp which was not precise enough.
+        
+1997-02-10  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * Makefile.am: Add support for gnatmake -s
+        
+1997-02-07  Laurent Pautet <pautet@lglsun11.epfl.ch>
+        
+        * xe.ads: Add a new parameter File in Maybe_Most_Recent_Stamp to
+        save the file that causes the update of Most_Recent_Stamp.
+        
+        * xe.adb, xe_utils.adb, xe_check.adb, xe.adb, xe_parse.adb :
+        Update the calls to Maybe_Most_Recent_Stamp.
+        
+        * config.sdefault: Break S1, S2 and S3 declaration lines.
+        
+        * xe_usage.adb: gnatmake -l has been changed into -M. Propagates
+        this change to gnatdist.
+        
+1997-02-05  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * make-ada-dir: New file used to track what's needed in dist1.
+        
+        * Makefile.am: Added -a to gnatmake flags to allow the use of our
+        own library.
+        
+1997-01-22  Laurent Pautet <pautet@scapin.enst.fr>
+        
+        * xe_check.adb: Get rid of debugging information.
+        
+        * xe_build.adb : Use of new version of Gnatmake.
+        
+        * xe_back.adb: Fix a bug that didn't occur until 3.09w.
+        The first host used to be a dummy host, but was no longer
+        used. This incorrect host was causing the current bug.
+        
+1996-12-19  Laurent Pautet <pautet@scapin.enst.fr>
+        
+        * xe-gcc-filter.in: Get rid of some generated pieces of
+        code in client stubs.
+        
+1996-12-19  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * xe-gcc-filter.in: Changed bogus test.
+        Changed RCI_Info into System.Partition_Interface.RCI_Info.
+        
+1996-12-16  Laurent Pautet <pautet@scapin.enst.fr>
+        
+        * xe-gcc-filter.in: Compatibility test (do we use gnat >= 3.09w).
+        
+1996-11-30  Laurent Pautet <pautet@quasimodo.enst.fr>
+        
+        * xe_stubs.adb, xe_utils.ads, xe_utils.adb: Change DSA
+        hierarchy. dsa/private contains stubs (as caller and receiver can
+        designate a configuration name or a partition
+        name). dsa/<configuration>/<partition> contains all the files (or
+        links) to build a partition. Move compilation of s-garela into
+        Build_Partition to keep consistent. Check that s-garela is
+        up-to-date and recompile when Force_Compilation is set.
+        
+1996-11-29  Laurent Pautet <pautet@quasimodo.enst.fr>
+        
+        * xe_parse.adb: Incorrect Cut/Paste.
+        
+1996-11-29  Laurent Pautet <pautet@scapin.enst.fr>
+        
+        * xe.ads, xe.adb, xe_parse.adb, xe_stubs.adb, xe_back.adb: Add a
+        new partition attribute Permanent and all the needed operations.
+        
+        * xe.ads, xe.adb, xe_build.adb: Use XE subprograms to build
+        GNATDIST report.
+        
+1996-11-29  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * xe_stubs.adb: Generate a call to Set_Boot_Server in elaboration
+        file if protocol has been specified in configuration file.
+        
+        * xe.ads: Default starter is now Ada instead of Shell.
+        
+1996-11-28  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * xe_utils.ads: New flags.
+        
+        * xe_utils.adb: Compile with -gnatg.
+        
+        * xe_stubs.adb: Generation and compilation of new elaboration file.
+        
+1996-11-27  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * xe_utils.ads: New argument to Write_* functions with file
+        descriptors to allow duplicate output when generating scripts.
+        
+        * xe_utils.adb: Fixed the way script output was handled.
+        
+        * xe_stubs.adb: Write on standard out (if needed) as well as in
+        generated file.
+        
+        * xe_lead.adb: Use "__EOF__" instead of "EOF" and do not
+        unconditionnally close output.
+        
+        * xe_check.adb: Generates "gnatmake -c ..." commands.
+        
+        * xe_build.adb: Add "#! /bin/sh" at the beginning of the script.
+        
+1996-11-20  Laurent Pautet <pautet@quasimodo.enst.fr>
+        
+        * xe.ads: Move Write_SLOC from xe_back.adb to xe.ads.
+        
+        * xe_check.adb: Fix an error message.
+        
+        * xe_back.adb: Use SLOC to print a more usefull error message.
+        
+        * xe_parse.adb: Check in P_Configuration_End that the
+        configuration name is known before checking that it matches.
+        
+        * xe_stubs.adb: Create_Main_Unit rebuilds the partition main
+        subprogram when Most_Recent_Stamp is more recent than the current
+        partition main subprogram file stamp.
+        
+1996-11-08  Laurent Pautet <pautet@quasimodo.enst.fr>
+        
+        * xe_check.adb: Check that partition name does not conflict with
+        any other ada units (not present in the configuration file).
+        
+        
+        * xe_parse.adb, xe.ads, xe.adb: Add some stuff to store SLOC on a
+        GNATDIST node.
+        
+1996-10-22  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * Makefile.am: Changed gnatmake into ${GNATMAKE} to allow gnatmake
+        redefinition (for example: make GNATMAKE="gnatmake -j2")
+        
+1996-10-18  Laurent Pautet <pautet@quasimodo.enst.fr>
+        
+        * xe.ads, xe_stubs.adb, xe_back.adb, xe_parse.adb: Add pragma
+        Version (Checks => [False | True])
+        
+1996-10-07  Laurent Pautet <pautet@inf.enst.fr>
+        
+        * xe_stubs.adb, xe.adb, xe.ads: Fix some problems with child units
+        and file naming (a.b was translated in to a.b.adb rather than
+        a-b.adb). There are still problems due to a.b'version.
+        
+1996-09-30  Laurent Pautet <pautet@quasimodo.enst.fr>
+        
+        * xe_stubs.adb, xe_utils.adb: Use configuration name as partition
+        main subprogram. File stamp checking has been a little bit
+        improved.
+        
+1996-09-29  Laurent Pautet <pautet@quasimodo.enst.fr>
+        
+        * xe_utils.adb: Later has been changed to More_Recent.
+        
+1996-09-23  Laurent Pautet <pautet@scapin.enst.fr>
+        
+        * xe.adb: Get_Host, Get_Command_Line, Get_Absolute_Exec,
+        Get_Relative_Exec and Get_Main_Subprogram return default values
+        when no specific value has been specified.
+        
+1996-09-11  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * xe_parse.adb: Give proper error message on undeclared variable.
+        
+1996-09-11  Laurent Pautet <pautet@quasimodo.enst.fr>
+        
+        * xe_scan.adb, xe.ads : Don't tolerate reserved keywords anymore.
+        
+        * xe_back.adb: New error message when no main program has been
+        defined in the configuration file.
+        
+1996-09-11  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * config.sdefault: Replaced which by type.
+        
