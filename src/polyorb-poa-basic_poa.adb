@@ -247,8 +247,8 @@ package body PolyORB.POA.Basic_POA is
                         & " using last one"));
                   null;
                end if;
-               OA.Servant_Retention_Policy
-                 := ServantRetentionPolicy_Access (A_Policy);
+               OA.Servant_Retention_Policy :=
+                 ServantRetentionPolicy_Access (A_Policy);
             end if;
 
          elsif A_Policy.all in RequestProcessingPolicy'Class then
@@ -259,8 +259,8 @@ package body PolyORB.POA.Basic_POA is
                         & " using last one"));
                   null;
                end if;
-               OA.Request_Processing_Policy
-                 := RequestProcessingPolicy_Access (A_Policy);
+               OA.Request_Processing_Policy :=
+                 RequestProcessingPolicy_Access (A_Policy);
             end if;
 
          elsif A_Policy.all in ImplicitActivationPolicy'Class then
@@ -271,8 +271,8 @@ package body PolyORB.POA.Basic_POA is
                         & "using last one"));
                   null;
                end if;
-               OA.Implicit_Activation_Policy
-                 := ImplicitActivationPolicy_Access (A_Policy);
+               OA.Implicit_Activation_Policy :=
+                 ImplicitActivationPolicy_Access (A_Policy);
             end if;
 
          else
@@ -614,8 +614,9 @@ package body PolyORB.POA.Basic_POA is
          New_Obj_Adapter.Absolute_Address := Self.Absolute_Address
            & To_PolyORB_String ((1 => POA_Path_Separator)) & Adapter_Name;
       else
-         New_Obj_Adapter.Absolute_Address
-           := Self.Absolute_Address & Adapter_Name;
+         New_Obj_Adapter.Absolute_Address :=
+           Self.Absolute_Address & Adapter_Name;
+
       end if;
 
       pragma Debug
@@ -822,6 +823,40 @@ package body PolyORB.POA.Basic_POA is
          return;
       end if;
 
+      if Self.Servant_Manager /= null
+        and then Self.Servant_Manager.all in ServantActivator'Class
+      then
+         pragma Debug (O ("Call POA Servant Manager's etherealize"));
+
+         declare
+            Activator : aliased ServantActivator'Class :=
+              ServantActivator (Self.Servant_Manager.all);
+
+            Servant : Servants.Servant_Access;
+
+         begin
+            Id_To_Servant
+              (Self,
+               U_Oid_To_Oid (U_Oid),
+               Servant,
+               Error);
+
+            if Found (Error) then
+               return;
+            end if;
+
+            Etherealize
+              (Activator'Access,
+               Oid,
+               Self,
+               Servant,
+               Cleanup_In_Progress => True,
+               Remaining_Activations => True
+               );
+            --  XXX should compute Remaining_Activations value ..
+         end;
+      end if;
+
       Etherealize_All
         (Self.Request_Processing_Policy.all,
          POA_Types.Obj_Adapter_Access (Self),
@@ -903,8 +938,7 @@ package body PolyORB.POA.Basic_POA is
    is
       A_Oid : aliased Object_Id := Oid;
 
-      U_Oid : Unmarshalled_Oid
-        := Oid_To_U_Oid (A_Oid'Access);
+      U_Oid : Unmarshalled_Oid := Oid_To_U_Oid (A_Oid'Access);
 
    begin
       Ensure_Lifespan
@@ -959,11 +993,10 @@ package body PolyORB.POA.Basic_POA is
          POA         :    out Obj_Adapter_Access;
          Error       : in out PolyORB.Exceptions.Error_Container)
       is
-
          A_Child     : Obj_Adapter_Access;
-         Split_Point : constant Integer
-           := PolyORB.Utils.Find (Name, Name'First, POA_Path_Separator);
-         Result : Boolean;
+         Result      : Boolean;
+         Split_Point : constant Integer :=
+           PolyORB.Utils.Find (Name, Name'First, POA_Path_Separator);
 
       begin
          if Found (Error) then
@@ -972,12 +1005,16 @@ package body PolyORB.POA.Basic_POA is
 
          pragma Debug (O ("Find_POA_Recursively: enter, Name = " & Name));
 
+         --  Name is null => return Self
+
          if Name'Length = 0 then
             POA := Obj_Adapter_Access (Self);
             return;
          end if;
 
          pragma Assert (Split_Point /= Name'First);
+
+         --  Check Self's children
 
          if Self.Children /= null then
             A_Child := PolyORB.POA.Obj_Adapter_Access
@@ -986,6 +1023,9 @@ package body PolyORB.POA.Basic_POA is
          end if;
 
          if A_Child /= null then
+
+            --  A child corresponds to partial name, follow search
+
             Find_POA
               (Basic_Obj_Adapter (A_Child.all)'Access,
                Name (Split_Point + 1 .. Name'Last),
@@ -994,6 +1034,9 @@ package body PolyORB.POA.Basic_POA is
                Error);
 
          else
+
+            --  No child corresponds, activate one POA if requested
+
             if Activate_It
               and then Self.Adapter_Activator /= null
             then
@@ -1249,7 +1292,7 @@ package body PolyORB.POA.Basic_POA is
       --  association for this servant.
 
       --  NOTE: Per construction, we can retain an Id iff we are using
-      --  'unique' Id_Uniqueness policy and 'retain' Servant_Retention
+      --  UNIQUE Id_Uniqueness policy and RETAIN Servant_Retention
       --  policy. Thus, a non null Oid implies we are using this two
       --  policies. There is no need to test them.
 
@@ -1441,7 +1484,9 @@ package body PolyORB.POA.Basic_POA is
       if Do_Check then
          case Get_State (POA_Manager_Of (Basic_OA).all) is
             when DISCARDING | INACTIVE =>
+
                --  XXX Do we have to do something special for INACTIVE ???
+
                Throw (Error,
                       Transient_E,
                       System_Exception_Members'(Minor => 0,
@@ -1477,6 +1522,23 @@ package body PolyORB.POA.Basic_POA is
 
       if Found (Error) then
          return;
+      end if;
+
+      --  Servant not found, we try to activate one, if POA policies allow it
+
+      if Servant = null
+        and then Basic_OA.Servant_Manager /= null
+        and then Basic_OA.Servant_Manager.all in ServantActivator'Class
+      then
+         declare
+            Activator : aliased ServantActivator'Class :=
+              ServantActivator (Basic_OA.Servant_Manager.all);
+         begin
+            Servant := Incarnate
+              (Activator'Access,
+               Id.all,
+               Basic_OA);
+         end;
       end if;
 
       if Servant = null then
@@ -1607,8 +1669,6 @@ package body PolyORB.POA.Basic_POA is
       pragma Warnings (Off);
       pragma Unreferenced (OA);
       pragma Warnings (On);
-
-      use Ada.Streams;
 
       Oid_Data : aliased Object_Id := Objects.To_Oid
         (To_Standard_String (Oid_To_U_Oid (Oid).Id));

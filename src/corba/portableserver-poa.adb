@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poa.adb#43 $
+--  $Id: //droopi/main/src/corba/portableserver-poa.adb#44 $
 
 with Ada.Exceptions;
 
@@ -502,39 +502,32 @@ package body PortableServer.POA is
       Result : PortableServer.ServantManager.Ref;
    begin
 
-      --  XXX Use of servant managers require some works in PolyORB's
-      --  internals. The following code is left for latter use.
+      PolyORB.POA.Get_Servant_Manager
+        (POA,
+         Manager,
+         Error);
 
-      if False then
+      if Found (Error) then
+         PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
+      end if;
 
-         PolyORB.POA.Get_Servant_Manager
-           (POA,
-            Manager,
-            Error);
+      if Manager = null then
+         return Result;
 
-         if Found (Error) then
-            PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
-         end if;
+      else
+         if Manager.all in CORBA_ServantActivator'Class then
+            return Get_Servant_Manager
+              (CORBA_ServantActivator (Manager.all));
 
-         if Manager = null then
-            return Result;
+         elsif Manager.all in CORBA_ServantLocator'Class then
+            return Get_Servant_Manager
+              (CORBA_ServantLocator (Manager.all));
 
          else
-            if Manager.all in CORBA_ServantActivator'Class then
-               return Get_Servant_Manager
-                 (CORBA_ServantActivator (Manager.all));
-
-            elsif Manager.all in CORBA_ServantLocator'Class then
-               return Get_Servant_Manager
-                 (CORBA_ServantLocator (Manager.all));
-
-            else
-               raise Program_Error;
-            end if;
+            raise Program_Error;
          end if;
       end if;
 
-      raise PolyORB.Not_Implemented;
    end Get_Servant_Manager;
 
    -------------------------
@@ -553,63 +546,56 @@ package body PortableServer.POA is
 
       Error : Error_Container;
    begin
-      --  XXX Use of servant managers require some works in PolyORB's
-      --  internals. The following code is left for latter use.
-
-      if False then
-
-         if POA.Servant_Manager /= null then
-            CORBA.Raise_Bad_Inv_Order
-              (CORBA.System_Exception_Members'
-               (Minor     => 6,
-                Completed => CORBA.Completed_No));
-         end if;
-
-         if Imgr.all in PortableServer.ServantActivator.Ref'Class then
-            declare
-               CORBA_Servant_Manager : ServantActivator_Access;
-            begin
-               PolyORB.CORBA_P.ServantActivator.Create
-                 (CORBA_Servant_Manager,
-                  PortableServer.ServantActivator.Ref (Imgr.all)'Access);
-
-               PolyORB.POA.Set_Servant_Manager
-                 (POA,
-                  ServantManager_Access (CORBA_Servant_Manager),
-                  Error);
-
-               if Found (Error) then
-                  PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
-               end if;
-            end;
-
-         elsif Imgr.all in PortableServer.ServantLocator.Ref'Class then
-            declare
-               CORBA_Servant_Manager : ServantLocator_Access;
-            begin
-               Create
-                 (CORBA_Servant_Manager,
-                  PortableServer.ServantLocator.Ref'Class (Imgr.all)'Access);
-
-               PolyORB.POA.Set_Servant_Manager
-                 (POA,
-                  ServantManager_Access (CORBA_Servant_Manager),
-                  Error);
-
-               if Found (Error) then
-                  PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
-               end if;
-            end;
-
-         else
-            CORBA.Raise_Obj_Adapter
-              (CORBA.System_Exception_Members'
-               (Minor     => 4,
-                Completed => CORBA.Completed_No));
-         end if;
+      if POA.Servant_Manager /= null then
+         CORBA.Raise_Bad_Inv_Order
+           (CORBA.System_Exception_Members'
+            (Minor     => 6,
+             Completed => CORBA.Completed_No));
       end if;
 
-      raise PolyORB.Not_Implemented;
+      if Imgr.all in PortableServer.ServantActivator.Ref'Class then
+         declare
+            CORBA_Servant_Manager : ServantActivator_Access;
+         begin
+            PolyORB.CORBA_P.ServantActivator.Create
+              (CORBA_Servant_Manager,
+               PortableServer.ServantActivator.Ref (Imgr.all)'Access);
+
+            PolyORB.POA.Set_Servant_Manager
+              (POA,
+               ServantManager_Access (CORBA_Servant_Manager),
+               Error);
+
+            if Found (Error) then
+               PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
+            end if;
+         end;
+
+      elsif Imgr.all in PortableServer.ServantLocator.Ref'Class then
+         declare
+            CORBA_Servant_Manager : ServantLocator_Access;
+         begin
+            Create
+              (CORBA_Servant_Manager,
+               PortableServer.ServantLocator.Ref'Class (Imgr.all)'Access);
+
+            PolyORB.POA.Set_Servant_Manager
+              (POA,
+               ServantManager_Access (CORBA_Servant_Manager),
+               Error);
+
+            if Found (Error) then
+               PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
+            end if;
+         end;
+
+      else
+         CORBA.Raise_Obj_Adapter
+           (CORBA.System_Exception_Members'
+            (Minor     => 4,
+             Completed => CORBA.Completed_No));
+      end if;
+
    end Set_Servant_Manager;
 
    -----------------
