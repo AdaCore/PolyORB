@@ -1,6 +1,10 @@
 // file adabe_generator
 
 
+#include  <idl.hh>
+#include  <idl_extern.hh>
+#include  <adabe.h>
+
 
 AST_Root  *
 adabe_generator::create_root(UTL_ScopedName *n,UTL_StrList *p)

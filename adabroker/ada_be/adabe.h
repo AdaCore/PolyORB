@@ -1,3 +1,4 @@
+
 #ifndef _ADABE_CLASSES_H_
 #define _ADABE_CLASSES_H_
 
@@ -49,26 +50,8 @@ private:
   // determines if the name of the node is an ADA reserved name
 };
 
-
-class adabe_typedef;
-class adabe_sequence;
-class adabe_sequence_chain : public virtual AST_Decl {
-public:
-  adabe_sequence_chain(AST_Decl::NodeType t,UTL_ScopedName* n, UTL_StrList* p) :
-    AST_Decl(t,n,p) { pd_seq_decl = 0; }
-  virtual ~adabe_sequence_chain() {}
-  void set_seq_decl(adabe_sequence *d);
-  adabe_sequence *get_seq_decl()  { return pd_seq_decl; }
-  void produce_seq_hdr_if_defined(std::fstream& s);
-private:
-  adabe_sequence_chain();
-  adabe_sequence *pd_seq_decl;
-};
-
-
 class adabe_predefined_type : public virtual AST_PredefinedType,
-			     public virtual adabe_name,
-			     public virtual adabe_sequence_chain
+			     public virtual adabe_name
 {
 public:
 
@@ -116,8 +99,7 @@ private:
 
 
 class adabe_enum : public virtual AST_Enum,
-		  public virtual adabe_name,
-		  public virtual adabe_sequence_chain
+		  public virtual adabe_name
 {
 public:
 
@@ -195,7 +177,6 @@ public:
 
 class adabe_union : public virtual AST_Union,
 		   public virtual adabe_name,
-		   public virtual adabe_sequence_chain
 {
 public:
 
@@ -242,8 +223,7 @@ private:
 
 
 class adabe_structure : public virtual AST_Structure,
-		       public virtual adabe_name,
-		       public virtual adabe_sequence_chain
+		       public virtual adabe_name
 {
 public:
 
@@ -311,8 +291,7 @@ private:
 
 
 class adabe_sequence : public virtual AST_Sequence,
-		      public virtual adabe_name,
-		      public virtual adabe_sequence_chain
+		      public virtual adabe_name
 {
 public:
 
@@ -374,7 +353,7 @@ public:
   //produce an attribute in the implementation header
   void produce_impl_adb(dep_list with,string &String, string &previousdefinition);
   //produce an attribute in the implementation body
-  void produce_proxies_ads(dep_list with,string &String, string &previousdefinition);
+  void produce_proxies_ads(dep_list with,string &String, string &privatedefinition);
   //produce the attribute and the necessary functions in the proxy header
 
 
@@ -405,7 +384,7 @@ public:
   //produce an operation in the implementation header
   void produce_impl_adb(dep_list with,string &String, string &previousdefinition);
   //produce an operation in the implementation body
-  void produce_proxies_ads(dep_list with,string &String, string &previousdefinition);
+  void produce_proxies_ads(dep_list with,string &String, string &privatedefinition);
   //produce the operation and the necessary functions in the proxy header
 
 
@@ -416,8 +395,7 @@ private:
 
 
 class adabe_typedef : public virtual AST_Typedef,
-		     public virtual adabe_name,
-		     public virtual adabe_sequence_chain
+		     public virtual adabe_name
 {
 public:
 
@@ -438,8 +416,7 @@ public:
 
 
 class adabe_interface : public virtual AST_Interface,
-		       public virtual adabe_name,
-		       public virtual adabe_sequence_chain
+		       public virtual adabe_name
 {
 public:
 
@@ -460,7 +437,7 @@ public:
   //produce an interface in the implementation body
   void produce_skel_ads(dep_list with,string &String, string &previousdefinition);
   //produce the necessary functions in the skeleton header
-  void produce_proxies_ads(dep_list with,string &String, string &previousdefinition);
+  void produce_proxies_ads(dep_list with,string &String, string &privatedefinition);
   //produce the necessary functions in the proxies header
 };
 
@@ -595,7 +572,7 @@ public:
 };
 
 
-#define INC_INDENT_LEVEL()  idl_global->indent()->increase();
+#define INC_INDENT_LEVEL()  idl_global->indent()->increase(); ////// modifier le type d'entree
 #define DEC_INDENT_LEVEL()  idl_global->indent()->decrease();
 #define IND(s) idl_global->indent()->skip_to(s);
 

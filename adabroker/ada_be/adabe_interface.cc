@@ -1,20 +1,26 @@
 // file adabe_interface 
+#include <idl.hh>
+#include <idl_extern.hh>
+#include <adabe.h>
 
 adabe_interface::adabe_interface(UTL_ScopedName *n, AST_Interface **ih, long nih,
-	       UTL_StrList *p);
+	       UTL_StrList *p)
+            : AST_Interface(n, ih, nih, p),
+	      AST_Decl(AST_Decl::NT_interface, n, p),
+	      UTL_Scope(AST_Decl::NT_interface),
+	      ada_name(AST_Decl::NT_interface,n,p)
+{
 //constructor
 /*
 if (nih == -1) pd_is_forwarded = true else pd_is_forwarded = false;
 
  */
-
-IMPL_NARROW_METHODS1(adabe_interface, AST_Interface);
-IMPL_NARROW_FROM_DECL(adabe_interface);
-IMPL_NARROW_FROM_SCOPE(adabe_interface);
+}
 
 void
 adabe_interface::produce_ads(dep_list with,string &String, string &previousdefinition);
-/*
+{
+  /*
 string Previous = ""
 string tmp = ""
 
@@ -90,10 +96,12 @@ scan du UTL_Scope de this
 String += "\n end " + get_ada_full_name() + "\n"    
 
 */
-
+}
+  
 void
-adabe_interface::produce_adb(dep_list with,string &String, string &previousdefinition);
-/*
+adabe_interface::produce_adb(dep_list with,string &String, string &previousdefinition)
+{
+  /*
 string Previous = ""
 string tmp = ""
 
@@ -125,9 +133,11 @@ scan du UTL_Scope de this
 String += "\n end " + get_ada_full_name() + "\n"    
 
 */
+}
 
 void
-adabe_interface::produce_impl_ads(dep_list with,string &String, string &previousdefinition);
+adabe_interface::produce_impl_ads(dep_list with,string &String, string &previousdefinition)
+{
 /*
 string Previous = ""
 string tmp = ""
@@ -204,11 +214,12 @@ scan du UTL_Scope de this
 String += "\n end " + get_ada_full_name() + "\n"    
 
 */
-
+}
 
 void
-adabe_interface::produce_impl_adb(dep_list with,string &String, string &previousdefinition);
-/*
+adabe_interface::produce_impl_adb(dep_list with,string &String, string &previousdefinition)
+{
+  /*
 
 /////////////with.add("Ada.Tags");
 /////////////with.add("Ada.exceptions");
@@ -232,11 +243,12 @@ scan du UTL_Scope de this
 String += "\n end " + get_ada_full_name() + "\n"    
 
 */
-
+}
 
 void
-adabe_interface::produce_skel_ads(dep_list with,string &String, string &previousdefinition);
-/*
+adabe_interface::produce_skel_ads(dep_list with,string &String, string &previousdefinition)
+{
+  /*
   with.add("Omniorb");
   with.add("Giop_S");
   with.add(get_ada_full_name() + ".impl");
@@ -249,11 +261,12 @@ adabe_interface::produce_skel_ads(dep_list with,string &String, string &previous
   String += "end " + get_ada_full_name() + ".Skeleton ;\n";
     
  */
-
+}
 
 void
-adabe_interface::produce_proxies_ads(dep_list with ; string &String ;string &previousdefinition);
-/*
+adabe_interface::produce_proxies_ads(dep_list with ; string &String ;string &previousdefinition)
+{
+  /*
   with.add("Giop_C");
   with.add("Omniproxycalldesc");
   with.add("Proxyobject factory");
@@ -279,8 +292,11 @@ adabe_interface::produce_proxies_ads(dep_list with ; string &String ;string &pre
   String += Sprivate;
   String += "end " + get_ada_full_name() + ".Skeleton ;\n";
 */
+}
 
-
+IMPL_NARROW_METHODS1(adabe_interface, AST_Interface)
+IMPL_NARROW_FROM_DECL(adabe_interface)
+IMPL_NARROW_FROM_SCOPE(adabe_interface)
 
 
 

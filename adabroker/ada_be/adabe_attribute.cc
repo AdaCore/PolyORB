@@ -1,14 +1,21 @@
 // adabe_attribute 
+#include <idl.hh>
+#include <idl_extern.hh>
+#include <adabe.h>
 
-adabe_attribute::adabe_attribute(idl_bool ro, AST_Type *ft, UTL_ScopedName *n, UTL_StrList *p);
+
+adabe_attribute::adabe_attribute(idl_bool ro, AST_Type *ft, UTL_ScopedName *n, UTL_StrList *p)
+  : AST_Attribute(ro,ft,n,p),
+    AST_Field(AST_Decl::NT_attr,ft,n,p),
+    AST_Decl(AST_Decl::NT_attr,n,p),
+    adabe_name(AST_Decl::NT_attr,n,p)
+{  
 // constructor
-
-IMPL_NARROW_METHODS1(adabe_attribute, AST_Attribute);
-IMPL_NARROW_FROM_DECL(adabe_attribute);
-IMPL_NARROW_FROM_SCOPE(adabe_attribute);
+}
 
 void
-adabe_attribute::produce_ads(dep_list with,string &String, string &previousdefinition);
+adabe_attribute::produce_ads(dep_list with,string &String, string &previousdefinition)
+{
 /*
   name = ada_name.compute();
   cast le field_type en NT
@@ -20,11 +27,12 @@ adabe_attribute::produce_ads(dep_list with,string &String, string &previousdefin
     String += NT.dump_name(dep_list with,string &String, string &previousdefinition);
     String += ");";
   }
-
-
 */
+}
+
 void
-adabe_operation::produce_adb(dep_list with,string &String, string &previousdefinition);
+adabe_operation::produce_adb(dep_list with,string &String, string &previousdefinition)
+{
 /*
   
   cast le field_type en NT
@@ -57,12 +65,12 @@ adabe_operation::produce_adb(dep_list with,string &String, string &previousdefin
     String += "return ;";
     String += "end;";    
   }
-
-
 */
+}
 
 void
-adabe_attribute::produce_impl_ads(dep_list with,string &String, string &previousdefinition);
+adabe_attribute::produce_impl_ads(dep_list with,string &String, string &previousdefinition)
+{
 /*
   cast le field_type en NT
   String += "function get_" + get_ada_name() +"(Self : access Object) return " 
@@ -73,12 +81,12 @@ adabe_attribute::produce_impl_ads(dep_list with,string &String, string &previous
     String += NT.dump_name(dep_list with,string &String, string &previousdefinition);
     String += ");";
   }
-
-
 */
+}
 
 void
-adabe_attribute::produce_impl_adb(dep_list with,string &String, string &previousdefinition);
+adabe_attribute::produce_impl_adb(dep_list with,string &String, string &previousdefinition)
+{
 /*
   cast le field_type en NT
   String += "function get_" + get_ada_name() +"(Self : access Object) return " 
@@ -92,9 +100,11 @@ adabe_attribute::produce_impl_adb(dep_list with,string &String, string &previous
     String += "begin\n\n\n end; \n"; 
   } 
 */
+}
 
 void
-adabe_attribute::produce_proxies_ads(dep_list with,string &String, string &privatedefinition);
+adabe_attribute::produce_proxies_ads(dep_list with,string &String, string &privatedefinition)
+{
 /*
   cast le field_type en NT;
   the_type = NT.dump_name(dep_list with,string &String, string &previousdefinition);
@@ -129,8 +139,12 @@ if (!pd_readonly)
     privatedefinition += "end record ;\n";
   }  
 */
+}
 
 
+IMPL_NARROW_METHODS1(adabe_attribute, AST_Attribute)
+IMPL_NARROW_FROM_DECL(adabe_attribute)
+IMPL_NARROW_FROM_SCOPE(adabe_attribute)
 
 
 
