@@ -1,3 +1,31 @@
+Fri May  2 13:45:06 1997  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* xe.ads: Add numeric literal token.
+
+	* xe_back.adb: Use Default_Partition = Partitions.Table
+ 	(Partitions.First) to store Partition_Type default values. Same
+ 	thing for Channels. Add new procedure Initialize to initialize
+ 	these defaults. Handle Attribute_Task_Pool in
+ 	Set_Partition_Attribute.
+
+	* xe_build.adb: Invoke XE_Back.Initialize;
+
+	* xe_check.adb, xe_lead.adb: Change loop range for Partitions
+ 	(resp. Channels) to skip the first as it corresponds to the
+ 	default values for the type Partition_Type (resp. Channel_Type).
+  	Use Default_Partition (resp. Default_Channel) to get the default
+ 	of Partition_Type (resp. Channel_Type).
+
+	* xe_stdcnf.adb: Add new type declaration _task_pool (internal use
+ 	only) defined as an array of 3 integers (low, high, max). Declare
+ 	an attribute task_pool for partition_type.
+
+	* xe_scan.adb: Scan numeric literals.
+
+	* xe_parse.adb: Allow a representation clause to have an aggregate
+ 	as right operand. Add new function Tmp_Name to generate internal
+ 	temporary names.
+ 	
 Wed Apr 30 18:39:31 1997  Laurent Pautet  <pautet@quasimodo.enst.fr>
 
 	* xe_back.adb, xe.ads, xe_stdcnf.adb: Hooks to be able to specify

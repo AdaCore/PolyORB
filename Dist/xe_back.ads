@@ -32,7 +32,7 @@ with XE;        use XE;
 package XE_Back is
 
 
-   -- CID_Type --
+   --  CID_Type : channel id type
 
    type CID_Type is new Int range 100_000 .. 199_999;
 
@@ -41,7 +41,7 @@ package XE_Back is
    Last_CID  : constant CID_Type := 199_999;
 
 
-   -- CUID_Type --
+   --  CUID_Type : configuration unit id type
 
    type CUID_Type is new Int range 200_000 .. 299_999;
    --  CUID = Configure Unit ID to differentiate from Unit_Id. Such units
@@ -53,7 +53,7 @@ package XE_Back is
    Last_CUID  : constant CUID_Type := 299_999;
 
 
-   -- HID_Type --
+   --  HID_Type : host id type
 
    type HID_Type is new Int range 300_000 .. 399_999;
 
@@ -62,7 +62,7 @@ package XE_Back is
    Last_HID  : constant HID_Type := 399_999;
 
 
-   -- PID_Type --
+   --  PID_Type : partition id type
 
    type PID_Type is new Int range 400_000 .. 499_999;
 
@@ -80,32 +80,32 @@ package XE_Back is
    No_Channel_Name : constant Channel_Name_Type := No_Name;
 
    subtype Filter_Name_Type is Name_Id;
-   No_Filter_Name : constant Filter_Name_Type := No_Name;
+   No_Filter_Name  : constant Filter_Name_Type := No_Name;
 
    subtype CUnit_Name_Type is Name_Id;
-   No_CUnit_Name     : constant CUnit_Name_Type := No_Name;
+   No_CUnit_Name   : constant CUnit_Name_Type := No_Name;
 
    subtype Host_Name_Type is Name_Id;
-   No_Host_Name      : constant Host_Name_Type := No_Name;
+   No_Host_Name    : constant Host_Name_Type := No_Name;
 
    subtype Main_Subprogram_Type is Name_Id;
    No_Main_Subprogram : constant Main_Subprogram_Type := No_Name;
 
    subtype Command_Line_Type is Name_Id;
-   No_Command_Line   : constant Command_Line_Type := No_Name;
+   No_Command_Line : constant Command_Line_Type := No_Name;
 
    subtype Storage_Dir_Name_Type is Name_Id;
-   No_Storage_Dir    : constant Storage_Dir_Name_Type := No_Name;
+   No_Storage_Dir  : constant Storage_Dir_Name_Type := No_Name;
+
+   type Task_Pool_Type is array (1 .. 3) of Name_Id;
+   No_Task_Pool    : Task_Pool_Type;
 
    -- Defaults --
 
-   Default_Main                : Main_Subprogram_Type  := No_Main_Subprogram;
+   Default_Partition           : PID_Type;
+   Default_Channel             : CID_Type;
    Default_Host                : HID_Type              := Null_HID;
-   Default_Storage_Dir         : Storage_Dir_Name_Type := No_Storage_Dir;
-   Default_Command_Line        : Command_Line_Type     := No_Command_Line;
-   Default_Termination         : Termination_Type      := Unknown_Termination;
-   Default_Channel_Filter      : Filter_Name_Type      := No_Filter_Name;
-   Default_Partition_Filter    : Filter_Name_Type      := No_Filter_Name;
+
    Default_Registration_Filter : Filter_Name_Type      := No_Filter_Name;
    Default_Protocol_Name       : Name_Id               := No_Name;
    Default_Protocol_Data       : Name_Id               := No_Name;
@@ -161,6 +161,7 @@ package XE_Back is
       To_Build        : Boolean;
       Most_Recent     : File_Name_Type;
       Filter          : Filter_Name_Type;
+      Task_Pool       : Task_Pool_Type;
    end record;
 
    -- Tables --
@@ -279,6 +280,9 @@ package XE_Back is
    function Get_Storage_Dir     (P : PID_Type) return Storage_Dir_Name_Type;
    --  Look for storage_dir into partitions. If null, return default.
 
+   function Get_Task_Pool       (P : PID_Type) return Task_Pool_Type;
+   --  Look for task_pool into partitions. If null, return default.
+
    function Get_Termination     (P : PID_Type) return Termination_Type;
    --  Look for termination into partitions. If null, return default.
 
@@ -288,6 +292,9 @@ package XE_Back is
 
    function Get_Unit_Sfile      (U : Unit_Id)  return File_Name_Type;
    --  Look for sfile into unit.
+
+   procedure Initialize;
+   --  Initialize the first item of each table to use them as default.
 
    function Is_Set (Partition : PID_Type) return Boolean;
    --  Some units have already been assigned to this partition.

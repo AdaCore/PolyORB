@@ -38,6 +38,10 @@ with XE_Stdcnf;        use XE_Stdcnf;
 package body XE_Parse is
 
    Indent : constant String := "   ";
+   Seed   : String (1 .. 3) := "AAA";
+
+   function Tmp_Name (P : String := "XXX") return Name_Id;
+   --  Return a name with P as prefix and a suffix based on the location.
 
    procedure Write_Conflict_Error
      (SLOC  : in Location_Type;
@@ -638,7 +642,8 @@ package body XE_Parse is
 
       loop
 
-         Take_Token ((Tok_Identifier, Tok_Right_Paren));
+         Take_Token ((Tok_Identifier, Tok_Right_Paren, Tok_Numeric_Literal));
+
          exit when Token = Tok_Right_Paren;
 
          Expression_Sloc := Get_Token_Location;
@@ -655,12 +660,28 @@ package body XE_Parse is
             List_Element_Type := Get_Component_Type (List_Element_Node);
          end if;
 
-         --  Ada unit names are allowed.
+         --  Tok_String_Literal
 
-         P_Full_Ada_Identifier;
-         Expression_Name := Token_Name;
+         if Token = Tok_Identifier then
 
-         Search_Variable (Expression_Name, Expression_Node);
+            --  Ada unit names are allowed.
+
+            P_Full_Ada_Identifier;
+            Expression_Name := Token_Name;
+
+            Search_Variable (Expression_Name, Expression_Node);
+
+         --  Tok_Numeric_Literal.
+
+         else
+
+            Declare_Literal
+              (Token_Name,
+               Integer_Type_Node,
+               Expression_Sloc,
+               Expression_Node);
+
+         end if;
 
          --  Has this variable already been declared.
 
@@ -708,8 +729,6 @@ package body XE_Parse is
 
       end loop;
 
-      T_Semicolon;
-
    end P_Aggregate_Assignement;
 
    --------------------------
@@ -739,6 +758,7 @@ package body XE_Parse is
                --  Read the ada units aggregate.
 
                P_Aggregate_Assignement (Variable_Node);
+               T_Semicolon;
 
             end;
          elsif Token = Tok_End  then
@@ -1126,15 +1146,31 @@ package body XE_Parse is
       Attr_Name := Attribute_Prefix & Attr_Name;
 
       T_Use;
-      Take_Token ((Tok_Identifier, Tok_String_Literal));
+      Take_Token ((Tok_Identifier, Tok_String_Literal, Tok_Left_Paren));
       Expr_Name := Token_Name;
       Expr_Sloc := Get_Token_Location;
+
+      Attr_Type := Get_Component_Type (Attr_Node);
 
       --  If string literal, declare an anonymous variable.
 
       if Token = Tok_String_Literal then
          Declare_Literal
            (Expr_Name, String_Type_Node, Expr_Sloc, Variable_Id (Expr_Node));
+
+      --  If aggregate literal, declare an anonymous variable.
+
+      elsif Token = Tok_Left_Paren then
+
+         if Get_Component_List_Size (Attr_Type) = 0 then
+            Write_Type_Error (Expr_Sloc, Expr_Name);
+         end if;
+
+         Expr_Name := Tmp_Name;
+         Declare_Variable
+           (Expr_Name, Attr_Type, Expr_Sloc, Variable_Id (Expr_Node));
+         Set_Token_Location (Expr_Sloc);
+         P_Aggregate_Assignement (Expr_Node);
 
       --  Otherwise, retrieve the declaration.
 
@@ -1144,8 +1180,6 @@ package body XE_Parse is
             Write_Declaration_Error (Expr_Sloc, Expr_Name);
          end if;
       end if;
-
-      Attr_Type := Get_Component_Type (Attr_Node);
 
       --  Check that the expression has the correct type.
       Expr_Type := Get_Variable_Type (Expr_Node);
@@ -1278,6 +1312,7 @@ package body XE_Parse is
 
          if Token = Tok_Colon_Equal then
             P_Aggregate_Assignement (Previous_Node);
+            T_Semicolon;
          end if;
 
       end if;
@@ -2098,6 +2133,30 @@ package body XE_Parse is
       Write_Eol;
       Exit_On_Parsing_Error;
    end Take_Token;
+
+   --------------
+   -- Tmp_Name --
+   --------------
+
+   function Tmp_Name (P : String := "XXX") return Name_Id is
+   begin
+      Name_Buffer (1 .. P'Length) := P;
+      Name_Len := P'Length;
+
+      for I in Seed'Range loop
+         if Seed (I) = 'Z' then
+            Seed (I) := 'A';
+         else
+            Seed (I) := Character'Succ (Seed (I));
+            exit;
+         end if;
+      end loop;
+      Name_Buffer (Name_Len + 1 .. Name_Len + Seed'Length) := Seed;
+      Name_Len := Name_Len + Seed'Length;
+
+      return Name_Find;
+
+   end Tmp_Name;
 
    --------------------------
    -- Write_Conflict_Error --

@@ -193,7 +193,7 @@ package body XE_Check is
          Write_Message ("set partition name key to Null_PID");
       end if;
 
-      for P in Partitions.First .. Partitions.Last loop
+      for P in Partitions.First + 1 .. Partitions.Last loop
          Set_PID (Partitions.Table (P).Name, Null_PID);
       end loop;
 
@@ -299,7 +299,7 @@ package body XE_Check is
          Write_Message ("check that no partition is empty");
       end if;
 
-      for P in Partitions.First .. Partitions.Last loop
+      for P in Partitions.First + 1 .. Partitions.Last loop
          PID := Get_PID (Partitions.Table (P).Name);
          if PID = Null_PID and then
            Partitions.Table (P).Main_Subprogram = No_Name then
@@ -337,7 +337,7 @@ package body XE_Check is
       declare
          Upper, Lower : Name_Id;
       begin
-         for C in Channels.First .. Channels.Last loop
+         for C in Channels.First + 1 .. Channels.Last loop
             if Channels.Table (C).Upper.My_Partition =
               Channels.Table (C).Lower.My_Partition then
                Write_Program_Name;
@@ -353,7 +353,7 @@ package body XE_Check is
               Partitions.Table (Channels.Table (C).Upper.My_Partition).Name;
             Set_CID (Lower & Parent_Dir & Upper, Null_CID);
          end loop;
-         for C in Channels.First .. Channels.Last loop
+         for C in Channels.First + 1 .. Channels.Last loop
             Lower :=
               Partitions.Table (Channels.Table (C).Lower.My_Partition).Name;
             Upper :=

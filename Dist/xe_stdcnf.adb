@@ -201,6 +201,27 @@ package body XE_Stdcnf is
          Type_Sloc    => Null_Location,
          Type_Node    => Task_Pool_Type_Node);
 
+      Declare_Type_Component
+        (Type_Node        => Task_Pool_Type_Node,
+         Component_Name   => Str_To_Id ("low_mark"),
+         Comp_Type_Node   => Integer_Type_Node,
+         Component_Sloc   => Null_Location,
+         Component_Node   => Component_Node);
+
+      Declare_Type_Component
+        (Type_Node        => Task_Pool_Type_Node,
+         Component_Name   => Str_To_Id ("high_mark"),
+         Comp_Type_Node   => Integer_Type_Node,
+         Component_Sloc   => Null_Location,
+         Component_Node   => Component_Node);
+
+      Declare_Type_Component
+        (Type_Node        => Task_Pool_Type_Node,
+         Component_Name   => Str_To_Id ("max_mark"),
+         Comp_Type_Node   => Integer_Type_Node,
+         Component_Sloc   => Null_Location,
+         Component_Node   => Component_Node);
+
       --  Legal attribute : 'Main
       --  Legal attribute : 'Host
       --  Legal attribute : 'Filter

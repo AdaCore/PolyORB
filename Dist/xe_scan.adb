@@ -359,6 +359,23 @@ package body XE_Scan is
                   Token := Tok_Unknown;
                end if;
 
+            when '0' .. '9' =>
+
+               Name_Len := 0;
+               Char     := Buffer (Scan_Ptr);
+
+               while Char in '0' .. '9' loop
+
+                  Name_Len := Name_Len + 1;
+                  Name_Buffer (Name_Len) := Char;
+                  Scan_Ptr := Scan_Ptr + 1;
+                  Char := Buffer (Scan_Ptr);
+
+               end loop;
+
+               Token      := Tok_Numeric_Literal;
+               Token_Name := Name_Find;
+
             when others =>
 
                Token := Tok_Unknown;
@@ -440,6 +457,8 @@ package body XE_Scan is
       case T is
          when Tok_String_Literal =>
             Write_Str ("string literal");
+         when Tok_Numeric_Literal =>
+            Write_Str ("numeric literal");
          when Tok_Identifier =>
             Write_Str ("identifier");
          when Tok_Dot =>

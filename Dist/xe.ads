@@ -41,34 +41,35 @@ package XE is
 
    --  Keyword --
 
-   type Token_Type is new Int range 100 .. 125;
+   type Token_Type is new Int range 100 .. 126;
 
-   Tok_Unknown        : constant Token_Type := 100;  -- (0)  Identifier
-   Tok_String_Literal : constant Token_Type := 101;  -- (1)  string literal
-   Tok_Identifier     : constant Token_Type := 102;  -- (2)  identifer
-   Tok_Dot            : constant Token_Type := 103;  -- (3)  .
-   Tok_Apostrophe     : constant Token_Type := 104;  -- (4)  '
-   Tok_Left_Paren     : constant Token_Type := 105;  -- (5)  (
-   Tok_Right_Paren    : constant Token_Type := 106;  -- (6)  )
-   Tok_Comma          : constant Token_Type := 107;  -- (7)  ,
-   Tok_Colon_Equal    : constant Token_Type := 108;  -- (8)  :=
-   Tok_Colon          : constant Token_Type := 109;  -- (9)  :
-   Tok_Configuration  : constant Token_Type := 110;  -- (10) CONFIGURATION
-   Tok_Pragma         : constant Token_Type := 111;  -- (11) PRAGMA
-   Tok_Procedure      : constant Token_Type := 112;  -- (12) PROCEDURE
-   Tok_Is             : constant Token_Type := 113;  -- (13) IS
-   Tok_In             : constant Token_Type := 114;  -- (14) IN
-   Tok_For            : constant Token_Type := 115;  -- (15) FOR
-   Tok_Use            : constant Token_Type := 116;  -- (16) USE
-   Tok_Function       : constant Token_Type := 117;  -- (17) FUNCTION
-   Tok_End            : constant Token_Type := 118;  -- (18) END
-   Tok_Begin          : constant Token_Type := 119;  -- (19) BEGIN
-   Tok_Null           : constant Token_Type := 120;  -- (20) NULL
-   Tok_Semicolon      : constant Token_Type := 121;  -- (21) ;
-   Tok_Arrow          : constant Token_Type := 122;  -- (22) =>
-   Tok_Return         : constant Token_Type := 123;  -- (23) return
-   Tok_EOF            : constant Token_Type := 124;  -- (24) end of file
-   Tok_Reserved       : constant Token_Type := 125;  -- (25) Ada keywords
+   Tok_Unknown         : constant Token_Type := 100;  -- (0)  Identifier
+   Tok_String_Literal  : constant Token_Type := 101;  -- (1)  string literal
+   Tok_Numeric_Literal : constant Token_Type := 102;  -- (2)  numeric literal
+   Tok_Identifier      : constant Token_Type := 103;  -- (3)  identifer
+   Tok_Dot             : constant Token_Type := 104;  -- (4)  .
+   Tok_Apostrophe      : constant Token_Type := 105;  -- (5)  '
+   Tok_Left_Paren      : constant Token_Type := 106;  -- (6)  (
+   Tok_Right_Paren     : constant Token_Type := 107;  -- (7)  )
+   Tok_Comma           : constant Token_Type := 108;  -- (8)  ,
+   Tok_Colon_Equal     : constant Token_Type := 109;  -- (9)  :=
+   Tok_Colon           : constant Token_Type := 110;  -- (10) :
+   Tok_Configuration   : constant Token_Type := 111;  -- (11) CONFIGURATION
+   Tok_Pragma          : constant Token_Type := 112;  -- (12) PRAGMA
+   Tok_Procedure       : constant Token_Type := 113;  -- (13) PROCEDURE
+   Tok_Is              : constant Token_Type := 114;  -- (14) IS
+   Tok_In              : constant Token_Type := 115;  -- (15) IN
+   Tok_For             : constant Token_Type := 116;  -- (16) FOR
+   Tok_Use             : constant Token_Type := 117;  -- (17) USE
+   Tok_Function        : constant Token_Type := 118;  -- (18) FUNCTION
+   Tok_End             : constant Token_Type := 119;  -- (19) END
+   Tok_Begin           : constant Token_Type := 120;  -- (20) BEGIN
+   Tok_Null            : constant Token_Type := 121;  -- (21) NULL
+   Tok_Semicolon       : constant Token_Type := 122;  -- (22) ;
+   Tok_Arrow           : constant Token_Type := 123;  -- (23) =>
+   Tok_Return          : constant Token_Type := 124;  -- (24) return
+   Tok_EOF             : constant Token_Type := 125;  -- (25) end of file
+   Tok_Reserved        : constant Token_Type := 126;  -- (26) Ada keywords
 
    type Token_List_Type is array (Positive range <>) of Token_Type;
 

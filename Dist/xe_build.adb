@@ -79,6 +79,7 @@ begin
       XE_Utils.Initialize;
       XE_Scan.Initialize;
       XE_Parse.Initialize;
+      XE_Back.Initialize;
       XE_Check.Initialize;
 
       --  Look for the configuration file :
@@ -154,7 +155,7 @@ begin
       --  given, then generate all of them.
 
       if More_Source_Files then
-         for P in Partitions.First .. Partitions.Last loop
+         for P in Partitions.First + 1 .. Partitions.Last loop
             Partitions.Table (P).To_Build := False;
          end loop;
          while More_Source_Files loop

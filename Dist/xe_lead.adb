@@ -145,14 +145,14 @@ begin
          Write_Str (FD, "PATH=/usr/ucb:${PATH}");
          Write_Eol (FD);
 
-         for Partition in Partitions.First .. Partitions.Last loop
+         for Partition in Partitions.First + 1 .. Partitions.Last loop
             if Partition /= Main_Partition then
                Set_Host (Partition => Partition);
             end if;
          end loop;
 
          Set_Boot_Server (Main_Partition);
-         for Partition in Partitions.First .. Partitions.Last loop
+         for Partition in Partitions.First + 1 .. Partitions.Last loop
             if Partition /= Main_Partition then
                Set_Launcher (Partition  => Partition);
             end if;
@@ -168,7 +168,7 @@ begin
 
       when Ada_Import =>
 
-         for PID in Partitions.First .. Partitions.Last loop
+         for PID in Partitions.First + 1 .. Partitions.Last loop
             if PID = Main_Partition then
                declare
                   PName : constant Partition_Name_Type :=
@@ -177,7 +177,7 @@ begin
                begin
                   Dir := Partitions.Table (PID).Storage_Dir;
                   if Dir = No_Storage_Dir then
-                     Dir := Default_Storage_Dir;
+                     Dir := Partitions.Table (Default_Partition).Storage_Dir;
                   end if;
                   if Dir = No_Storage_Dir then
                      Copy_With_File_Stamp

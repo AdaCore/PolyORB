@@ -153,7 +153,7 @@ package body XE_Stubs is
       end loop;
 
       --  Create and fill partition directories.
-      for PID in Partitions.First .. Partitions.Last loop
+      for PID in Partitions.First + 1 .. Partitions.Last loop
 
          if Partitions.Table (PID).To_Build then
 
@@ -201,7 +201,7 @@ package body XE_Stubs is
             Executable := Partitions.Table (PID).Name;
 
             if Partitions.Table (PID).Storage_Dir = No_Storage_Dir then
-               Directory := Default_Storage_Dir;
+               Directory := Partitions.Table (Default_Partition).Storage_Dir;
             else
                Directory := Partitions.Table (PID).Storage_Dir;
             end if;
@@ -641,9 +641,9 @@ package body XE_Stubs is
          Dwrite_Eol     (FD);
       end if;
 
-      if Default_Partition_Filter /= No_Filter_Name then
+      if Partitions.Table (Default_Partition).Filter /= No_Filter_Name then
          Dwrite_Str     (FD, "   Set_Default_Filter (""");
-         Dwrite_Name    (FD, Default_Partition_Filter);
+         Dwrite_Name    (FD, Partitions.Table (Default_Partition).Filter);
          Dwrite_Str     (FD, """);");
          Dwrite_Eol     (FD);
       end if;
@@ -815,11 +815,11 @@ package body XE_Stubs is
 
       if PID = Main_Partition then
          if Default_Starter = Ada_Import and
-            Partitions.First /= Partitions.Last then
+            Partitions.First + 1 /= Partitions.Last then
             Dwrite_Str (FD, "   if not system.garlic.options");
             Dwrite_Str (FD, ".get_nolaunch then");
             Dwrite_Eol (FD);
-            for Partition in Partitions.First .. Partitions.Last loop
+            for Partition in Partitions.First + 1 .. Partitions.Last loop
                if Partition /= Main_Partition then
                   Dwrite_Str  (FD, "      system.garlic.remote.full_launch");
                   Dwrite_Eol  (FD);
@@ -917,7 +917,7 @@ package body XE_Stubs is
       else
          Main := Partitions.Table (PID).Main_Subprogram;
          if Main = No_Main_Subprogram then
-            Main := Default_Main;
+            Main := Partitions.Table (Default_Partition).Main_Subprogram;
          end if;
          if Main /= No_Name then
             Dwrite_Str  (FD, "   ");

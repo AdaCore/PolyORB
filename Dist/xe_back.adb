@@ -459,6 +459,7 @@ package body XE_Back is
       Partitions.Table (Partition).Last_Channel    := Null_CID;
       Partitions.Table (Partition).To_Build        := True;
       Partitions.Table (Partition).Most_Recent     := Configuration_File;
+      Partitions.Table (Partition).Task_Pool       := No_Task_Pool;
       PID := Partition;
    end Create_Partition;
 
@@ -472,7 +473,7 @@ package body XE_Back is
    begin
 
       if Dir = No_Storage_Dir then
-         Dir := Default_Storage_Dir;
+         Dir := Partitions.Table (Default_Partition).Storage_Dir;
       end if;
 
       if Dir = No_Storage_Dir then
@@ -541,7 +542,7 @@ package body XE_Back is
    begin
 
       if Cmd = No_Command_Line then
-         Cmd := Default_Command_Line;
+         Cmd := Partitions.Table (Default_Partition).Command_Line;
       end if;
 
       return Cmd;
@@ -572,7 +573,7 @@ package body XE_Back is
    begin
 
       if F = No_Filter_Name then
-         F := Default_Channel_Filter;
+         F := Channels.Table (Default_Channel).Filter;
       end if;
       return F;
 
@@ -587,7 +588,7 @@ package body XE_Back is
    begin
 
       if F = No_Filter_Name then
-         F := Default_Partition_Filter;
+         F := Partitions.Table (Default_Partition).Filter;
       end if;
       return F;
 
@@ -659,7 +660,7 @@ package body XE_Back is
    begin
 
       if Main = No_Main_Subprogram then
-         Main := Default_Main;
+         Main := Partitions.Table (Default_Partition).Main_Subprogram;
       end if;
 
       return Main;
@@ -702,7 +703,7 @@ package body XE_Back is
    begin
 
       if Dir = No_Storage_Dir then
-         Dir := Default_Storage_Dir;
+         Dir := Partitions.Table (Default_Partition).Storage_Dir;
       end if;
 
       if Dir = No_Storage_Dir then
@@ -730,12 +731,28 @@ package body XE_Back is
    begin
 
       if Storage_Dir = No_Storage_Dir then
-         Storage_Dir := Default_Storage_Dir;
+         Storage_Dir := Partitions.Table (Default_Partition).Storage_Dir;
       end if;
 
       return Storage_Dir;
 
    end Get_Storage_Dir;
+
+   -------------------
+   -- Get_Task_Pool --
+   -------------------
+
+   function Get_Task_Pool (P : PID_Type) return Task_Pool_Type is
+      Task_Pool : Task_Pool_Type := Partitions.Table (P).Task_Pool;
+   begin
+
+      if Task_Pool = No_Task_Pool then
+         Task_Pool := Partitions.Table (Default_Partition).Task_Pool;
+      end if;
+
+      return Task_Pool;
+
+   end Get_Task_Pool;
 
    ---------------------
    -- Get_Termination --
@@ -775,6 +792,45 @@ package body XE_Back is
       Name_Len := Name_Len - 4;
       return Name_Find;
    end Get_Unit_Sfile;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize is
+      P : PID_Type;
+      C : CID_Type;
+   begin
+      Partitions.Increment_Last;
+      P := Partitions.Last;
+      Partitions.Table (P).Main_Subprogram  := No_Main_Subprogram;
+      Partitions.Table (P).Host             := Null_HID;
+      Partitions.Table (P).Storage_Dir      := No_Storage_Dir;
+      Partitions.Table (P).Command_Line     := No_Command_Line;
+      Partitions.Table (P).Termination      := Unknown_Termination;
+      Partitions.Table (P).Filter           := No_Filter_Name;
+
+      Name_Len := 1;
+
+      Name_Buffer (1 .. 1) := "3";
+      No_Task_Pool (1)  := Name_Find;
+
+      Name_Buffer (1 .. 1) := "6";
+      No_Task_Pool (2)  := Name_Find;
+
+      Name_Buffer (1 .. 1) := "9";
+      No_Task_Pool (3)  := Name_Find;
+
+      Partitions.Table (P).Task_Pool := No_Task_Pool;
+
+      Default_Partition := P;
+
+      Channels.Increment_Last;
+      C := Channels.Last;
+      Channels.Table (C).Filter             := No_Filter_Name;
+      Default_Channel := C;
+
+   end Initialize;
 
    ------------
    -- Is_Set --
@@ -900,8 +956,9 @@ package body XE_Back is
             --  that this has not already been done.
 
             if Channel = Null_CID and then
-               Default_Channel_Filter = No_Filter_Name then
-               Default_Channel_Filter := Get_Node_Name (Attr_Item);
+               Channels.Table (Default_Channel).Filter = No_Filter_Name then
+               Channels.Table (Default_Channel).Filter
+                 := Get_Node_Name (Attr_Item);
 
             --  Apply to one channel. Check that it has not already
             --  been done.
@@ -971,6 +1028,7 @@ package body XE_Back is
       Attr_Item : Node_Id;
       Attr_Kind : Attribute_Type;
       Item_Type : Type_Id;
+      Comp_Node : Component_Id;
       Ada_Unit  : Name_Id;
 
       Host      : HID_Type;
@@ -1016,8 +1074,10 @@ package body XE_Back is
             --  that this has not already been done.
 
             if Partition = Null_PID and then
-               Default_Partition_Filter = No_Filter_Name then
-               Default_Partition_Filter := Get_Node_Name (Attr_Item);
+               Partitions.Table (Default_Partition).Filter = No_Filter_Name
+            then
+               Partitions.Table (Default_Partition).Filter
+                 := Get_Node_Name (Attr_Item);
 
             --  Apply to one partition. Check that it has not already
             --  been done.
@@ -1064,8 +1124,10 @@ package body XE_Back is
             --  that this has not already been done.
 
             if Partition = Null_PID and then
-               Default_Storage_Dir = No_Storage_Dir then
-               Default_Storage_Dir := Get_Node_Name (Attr_Item);
+              Partitions.Table (Default_Partition).Storage_Dir = No_Storage_Dir
+            then
+               Partitions.Table (Default_Partition).Storage_Dir
+                 := Get_Node_Name (Attr_Item);
 
             --  Apply to one partition. Check that it has not already
             --  been done.
@@ -1143,8 +1205,11 @@ package body XE_Back is
             --  that this has not already been done.
 
             if Partition = Null_PID and then
-              Default_Main = No_Main_Subprogram then
-               Default_Main := Get_Node_Name (Node_Id (Attr_Item));
+              Partitions.Table (Default_Partition).Main_Subprogram =
+              No_Main_Subprogram
+            then
+               Partitions.Table (Default_Partition).Main_Subprogram
+                 := Get_Node_Name (Node_Id (Attr_Item));
 
             --  Apply to one partition. Check that it has not already
             --  been done.
@@ -1191,8 +1256,9 @@ package body XE_Back is
             --  that this has not already been done.
 
             if Partition = Null_PID and then
-              Default_Command_Line = No_Command_Line then
-               Default_Command_Line
+              Partitions.Table (Default_Partition).Command_Line =
+              No_Command_Line then
+               Partitions.Table (Default_Partition).Command_Line
                  := Get_Node_Name (Node_Id (Attr_Item));
 
             --  Apply to one partition. Check that it has not already
@@ -1234,10 +1300,10 @@ package body XE_Back is
             --  that this has not already been done.
 
             if Partition = Null_PID and then
-              Default_Termination = Unknown_Termination then
-               Default_Termination :=
-                 Termination_Type
-                 (Get_Scalar_Value (Variable_Id (Attr_Item)));
+              Partitions.Table (Default_Partition).Termination =
+              Unknown_Termination then
+               Partitions.Table (Default_Partition).Termination :=
+                 Termination_Type (Get_Scalar_Value (Variable_Id (Attr_Item)));
 
             --  Apply to one partition. Check that it has not already
             --  been done.
@@ -1269,7 +1335,25 @@ package body XE_Back is
                Main_Partition := Partition;
             end if;
 
-         when Attribute_CFilter | Attribute_Unknown | Attribute_Task_Pool =>
+         when Attribute_Task_Pool =>
+
+            First_Variable_Component (Variable_Id (Attr_Item), Comp_Node);
+            declare
+               P : PID_Type;
+            begin
+               if Partition = Null_PID then
+                  P := Default_Partition;
+               else
+                  P := Partition;
+               end if;
+               for B in Partitions.Table (P).Task_Pool'Range loop
+                  Partitions.Table (P).Task_Pool (B)
+                    := Get_Node_Name (Get_Component_Value (Comp_Node));
+                  Next_Variable_Component (Comp_Node);
+               end loop;
+            end;
+
+         when Attribute_CFilter | Attribute_Unknown =>
             raise Fatal_Error;
 
       end case;
@@ -1406,6 +1490,7 @@ package body XE_Back is
       Host         : HID_Type;
       Storage_Dir  : Storage_Dir_Name_Type;
       Command_Line : Command_Line_Type;
+      Task_Pool    : Task_Pool_Type;
 
    begin
       Write_Str (" ------------------------------");
@@ -1444,7 +1529,7 @@ package body XE_Back is
       end if;
       Write_Eol;
 
-      for P in Partitions.First .. Partitions.Last loop
+      for P in Partitions.First + 1 .. Partitions.Last loop
          declare
             I : Partition_Type renames Partitions.Table (P);
             U : CUID_Type;
@@ -1498,6 +1583,16 @@ package body XE_Back is
                Write_Eol;
             end if;
 
+            Task_Pool := Get_Task_Pool (P);
+            if Task_Pool /= No_Task_Pool then
+               Write_Str ("   Task Pool   : ");
+               for B in Task_Pool'Range loop
+                  Write_Name (Task_Pool (B));
+                  Write_Str (" ");
+               end loop;
+               Write_Eol;
+            end if;
+
             if Get_Termination (P) /= Unknown_Termination then
                Write_Str ("   Termination : ");
                case Get_Termination (P) is
@@ -1534,13 +1629,13 @@ package body XE_Back is
       end loop;
       Write_Str (" -------------------------------");
       Write_Eol;
-      if Channels.First <= Channels.Last then
+      if Channels.First + 1 <= Channels.Last then
          Write_Eol;
          declare
             P : PID_Type;
             F : Name_Id;
          begin
-            for C in Channels.First .. Channels.Last loop
+            for C in Channels.First + 1 .. Channels.Last loop
                Write_Str  ("Channel ");
                Write_Name (Channels.Table (C).Name);
                Write_Eol;
