@@ -48,13 +48,13 @@ package MOMA.Connections is
    procedure Close;
    --  Close the connection.
 
-   --  Accessors to Connection internal data.
-
    function Create_Session (Self             : Connection;
                             Transacted       : Boolean;
                             Acknowledge_Mode : MOMA.Types.Acknowledge_Type)
                             return MOMA.Sessions.Session;
    --  Create a session from a Connection.
+
+   --  Accessors to Connection internal data.
 
    function Get_Client_Id (Self : Connection)
                            return MOMA.Types.String;
@@ -81,17 +81,6 @@ package MOMA.Connections is
    --  XXX check the conformance and pertinence of the above spec.
 
    function Get_Meta_Data return MOMA.Types.Meta_Data;
-
-   ---------------------------------------
-   -- Abstract Create_Session Function --
-   ---------------------------------------
-
-   --  function Create_Session (Self : Connection;
-   --                         Transacted : Boolean;
-   --                         Ackowledge_Mode : Acknowledge_Type)
-   --                        return Sessions.Session
-   --  is abstract;
-
 
 private
    type Connection is record

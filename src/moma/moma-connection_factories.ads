@@ -59,6 +59,7 @@ package MOMA.Connection_Factories is
                                return MOMA.Connections.Connection;
    --  Create a new connection using this connection factory
    --  and providing a username/password.
+   --  XXX Not implemented.
 
 private
 
