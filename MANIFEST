@@ -110,7 +110,7 @@ compilers/idlac/testsuite/parser/testparser_include.idl
 compilers/idlac/utils.adb
 compilers/idlac/utils.ads
 configure
-configure.in
+configure.ac
 cos/Makefile.am
 cos/Makefile.common
 cos/Makefile.in

@@ -14,7 +14,7 @@ set -e
 
 usage() {
   echo "$0 [-w]"
-  echo "  -w  edit configure.in to remove files not available according to MANIFEST"
+  echo "  -w  edit configure.ac to remove files not available according to MANIFEST"
   exit 1
 }
 
@@ -32,8 +32,8 @@ done
 
 if ${EDIT_CONFIGURE_IN}
 then
-  echo "Editing configure.in"
-  mv configure.in configure.in.orig
+  echo "Editing configure.ac"
+  mv configure.ac configure.ac.orig
   ${NAWK} '
     BEGIN { st = 0; nf = 0; }
     FILENAME == "MANIFEST" {
@@ -57,8 +57,8 @@ then
       }
       next;
     }
-    { print; }' MANIFEST configure.in.orig > configure.in
-  rm -f configure.in.orig
+    { print; }' MANIFEST configure.ac.orig > configure.ac
+  rm -f configure.ac.orig
 fi
 
 rm -f aclocal.m4 support/libtool.m4 configure
@@ -88,7 +88,7 @@ echo "Generating IDL tree accessors"
 
 echo "Doing the necessary date modifications"
 for f in \
-  configure.in	\
+  configure.ac	\
   aclocal.m4	\
   Makefile.in	\
   configure	\
