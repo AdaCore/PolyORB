@@ -30,7 +30,11 @@ begin
 
    MyEcho := Echo.To_Ref (MyImpl);
 
-   Bind (Root_Context, Object_Name, CORBA.Object.Ref (MyEcho));
+   begin
+      Bind (Root_Context, Object_Name, CORBA.Object.Ref (MyEcho));
+   exception when AlreadyBound =>
+      Rebind (Root_Context, Object_Name, CORBA.Object.Ref (MyEcho));
+   end;
    BOA.Impl_Is_Ready;
 end Server;
 

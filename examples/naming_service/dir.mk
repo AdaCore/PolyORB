@@ -20,7 +20,6 @@ GENERATED_FILES += cosnaming-namingcontext-proxy.ad*
 GENERATED_FILES += cosnaming-namingcontext-stream.ad*
 GENERATED_FILES += cosnaming-namingcontext-skel.ad*
 GENERATED_FILES += cosnaming-namingcontext_forward.ads
-GENERATED_FILES += bootstrap_idl_file.ads
 GENERATED_FILES += naming_idl_file.ads
 GENERATED_FILES += echo_idl_file.ads
 GENERATED_FILES += cosnaming.ads
