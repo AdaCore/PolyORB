@@ -320,9 +320,7 @@ package body System.Garlic.Filters is
 
       if not Channel.Installed then
          pragma Debug
-           (D (D_Debug,
-               "Partition " & Name (Partition) &
-               " filter initialized"));
+           (D (D_Debug, "Install filter of partition" & Partition'Img));
 
          Channel.Filter    := Get_Partition_Filter (Partition);
          Channel.Installed := True;
@@ -338,7 +336,7 @@ package body System.Garlic.Filters is
       if not Channel.Incoming.Ready then
          pragma Debug
            (D (D_Debug,
-               "Generate params for partition " & Name (Partition) &
+               "Generate params for partition" & Partition'Img &
                " incoming filter"));
 
          --  Always generate params. An incoming channel will always use
@@ -506,13 +504,16 @@ package body System.Garlic.Filters is
          Request : Request_Type;
          Filter  : Filter_Access;
 
+         --  This is a hack to force partition_data update.
+         PName   : String := Name (Partition);
+
       begin
          Request_Id'Read (P, Request.Command);
 
          pragma Debug
            (D (D_Debug,
                "Recv "  & Request.Command'Img &
-               " from " & Partition'Img));
+               " from " & PName & " -" & Partition'Img));
 
          if Request.Command = Set_Params then
             Filter := Get_Partition_Filter (Partition);
@@ -530,7 +531,7 @@ package body System.Garlic.Filters is
             if Request.Command = Get_Params then
                pragma Debug
                  (D (D_Debug,
-                     "Provide params for partition " & Name (Partition) &
+                     "Provide params for partition " & PName &
                      " incoming filter"));
 
                Send_Message (Partition, Set_Params,

@@ -1,3 +1,8 @@
+1998-08-31  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* s-garfil.adb: Fix the same problem as below which appears in
+	another tricky situation.
+
 1998-08-28  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-garfil.adb: send reply to a Get_Params query outside from
