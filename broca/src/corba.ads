@@ -264,6 +264,8 @@ package CORBA is
 
 private
 
+   pragma Linker_Options ("-lbroca");
+
    --  Null_String : constant CORBA.String :=
    --  CORBA.String (Ada.Strings.Unbounded.Null_Unbounded_String);
 
