@@ -6,7 +6,7 @@ DEL = rm -f
 #######################################################################
 # C/C++ compiler to use
 
-CXX = g++
+CXX = g++ -D__USE_OMNIORB__
 LD  = g++
 
 #######################################################################
@@ -30,7 +30,7 @@ CXXFLAGS = -c -Wall -I$(OMNIORB_INC) -g
 LD_FLAGS = -g
 LIBS = -L$(OMNIORB_LIBPATH) $(OMNIORB_LIB) -pthread
 
-PROG= client server dynclient dynserver
+PROG= dynclient dynserver
 
 all: $(PROG)
 
