@@ -431,57 +431,60 @@ package body Ada_Be.Idl2Ada.Helper is
       Add_Elaborate_Body (CU);
    end Gen_Interface_Spec;
 
-   --------------------------
-   --  Gen_ValueType_Spec  --
-   --------------------------
+   ------------------------
+   -- Gen_ValueType_Spec --
+   ------------------------
+
    procedure Gen_ValueType_Spec
-     (CU : in out Compilation_Unit;
-      Node : in Node_Id) is
-      NK : constant Node_Kind := Kind (Node);
-      Short_Type_Name : constant String
-        := Ada_Type_Defining_Name (Node);
+     (CU   : in out Compilation_Unit;
+      Node : in Node_Id)
+   is
       Type_Name : constant String
+        := Ada_Type_Defining_Name (Node);
+
+      Type_Full_Name : constant String
         := Ada_Type_Name (Node);
    begin
-      pragma Assert (NK = K_ValueType);
+      pragma Assert (Kind (Node) = K_ValueType);
+
       NL (CU);
-      PL (CU, "function To_" & Short_Type_Name);
+      PL (CU, "function To_" & Type_Name);
       PL (CU, "  (The_Ref : in CORBA.Value.Base'Class)");
-      PL (CU, "  return " & Type_Name & ";");
+      PL (CU, "  return " & Type_Full_Name & ";");
 
    end Gen_ValueType_Spec;
 
-   --------------------------
-   --  Gen_ValueType_Body  --
-   --------------------------
+   ------------------------
+   -- Gen_ValueType_Body --
+   ------------------------
+
    procedure Gen_ValueType_Body
-     (CU : in out Compilation_Unit;
+     (CU   : in out Compilation_Unit;
       Node : in Node_Id) is
-      NK : constant Node_Kind := Kind (Node);
-      Short_Type_Name : constant String
-        := Ada_Type_Defining_Name (Node);
+
       Type_Name : constant String
+        := Ada_Type_Defining_Name (Node);
+
+      Type_Full_Name : constant String
         := Ada_Type_Name (Node);
    begin
-      pragma Assert (NK = K_ValueType);
-      NL (CU);
-      PL (CU, "function To_" & Short_Type_Name);
-      PL (CU, "  (The_Ref : in CORBA.Value.Base'Class)");
-      PL (CU, "  return " & Type_Name & " is");
+      pragma Assert (Kind (Node) = K_ValueType);
+
       Add_With (CU, "Broca.Exceptions");
-      Add_With (CU, "CORBA.AbstractBase");
+
+      NL (CU);
+      PL (CU, "function To_" & Type_Name);
+      PL (CU, "  (The_Ref : in CORBA.Value.Base'Class)");
+      PL (CU, "  return " & Type_Full_Name & " is");
       II (CU);
-      PL (CU, "Result : " & Type_Name & ";");
-      PL (CU, "use CORBA.Value;");
+      PL (CU, "Result : " & Type_Full_Name & ";");
       DI (CU);
       PL (CU, "begin");
       II (CU);
-      PL (CU, "if Is_A (The_Ref, "
+      PL (CU, "if CORBA.Value.Is_A (The_Ref, "
           & T_Repository_Id & ") then");
       II (CU);
-      PL (CU, "Set (Result,");
-      PL (CU,
-          "     CORBA.Value.Object_Of (The_Ref));");
+      PL (CU, "Set (Result, CORBA.Value.Object_Of (The_Ref));");
       PL (CU, "return Result;");
       DI (CU);
       PL (CU, "else");
@@ -490,16 +493,14 @@ package body Ada_Be.Idl2Ada.Helper is
       DI (CU);
       PL (CU, "end if;");
       DI (CU);
-      PL (CU, "end To_" & Short_Type_Name & ";");
-
+      PL (CU, "end To_" & Type_Name & ";");
 
    end Gen_ValueType_Body;
 
+   ------------------------
+   -- Gen_Interface_Body --
+   ------------------------
 
-
-   --------------------------
-   --  Gen_Interface_Body  --
-   --------------------------
    procedure Gen_Interface_Body
      (CU        : in out Compilation_Unit;
       Node      : in     Node_Id) is
@@ -516,7 +517,6 @@ package body Ada_Be.Idl2Ada.Helper is
          Add_With (CU, "Broca.Exceptions");
 
          NL (CU);
-         Add_With (CU, "CORBA.AbstractBase");
          PL (CU, "function Unchecked_To_" & Short_Type_Name);
          Add_With (CU, "CORBA.Object");
          PL (CU, "  (The_Ref : in CORBA.Object.Ref'Class)");
@@ -541,19 +541,63 @@ package body Ada_Be.Idl2Ada.Helper is
          PL (CU, "  return " & Type_Name);
          PL (CU, "is");
          II (CU);
-         PL (CU, "use CORBA.Object;");
+         PL (CU, "use CORBA;");
          DI (CU);
          PL (CU, "begin");
          II (CU);
-         PL (CU, "if Is_A (The_Ref, "
+         PL (CU, "if CORBA.Object.Is_A (The_Ref, "
              & T_Repository_Id & ") then");
          II (CU);
+         PL (CU, "--  Widening an instance of a derived ref type");
          PL (CU, "return Unchecked_To_"
              & Short_Type_Name
              & " (The_Ref);");
          DI (CU);
          PL (CU, "else");
          II (CU);
+         PL (CU, "--  Narrowing an ancestor ref type,");
+         PL (CU, "--  with relationship checking.");
+
+         --  FIXME:
+         --    The standard mandates type checking during narrowing
+         --    (4.6.2 Narrowing Object References).
+         --    Doing the check properly would imply either
+         --       1. querying the interface repository
+         --          (not implemented yet);
+         --    or 2. calling Is_A (T_Repository_Id) on an
+         --          object reference whose type maps the actual
+         --          (i. e. most derived) interface of The_Ref.
+         --          (which is impossible if that type is not
+         --          known on the partition where To_Ref is called;
+         --    or 3. a remote invokation of an Is_A method of
+         --          the object.
+         --
+         --    The most general and correct solution to this
+         --    problem is 3. When a remote call is not desired,
+         --    the user should use Unchecked_To_Ref, whose purpose
+         --    is precisely that.
+         --
+         --    For now this is not implemented, and we only
+         --    generate a crude place holder that checks whether
+         --    the actual interface implemented by The_Ref is
+         --    /exactly/ the one we're trying to narrow to.
+         --
+         --    This will FAIL to comply with the standard if
+         --    we try to narrow a general reference to an
+         --    ancestor of its actual type.
+
+         Add_With (CU, "Broca.Object");
+         PL (CU, "if CORBA.RepositoryId");
+         PL (CU, "    (Broca.Object.Object_Ptr");
+         PL (CU, "     (CORBA.Object.Object_Of (The_Ref)).Type_Id)");
+         PL (CU, "      = " & T_Repository_Id);
+         PL (CU, "then");
+         II (CU);
+         PL (CU, "return Unchecked_To_"
+             & Short_Type_Name
+             & " (The_Ref);");
+         DI (CU);
+         PL (CU, "end if;");
          PL (CU, "Broca.Exceptions.Raise_Bad_Param;");
          DI (CU);
          PL (CU, "end if;");
@@ -587,7 +631,7 @@ package body Ada_Be.Idl2Ada.Helper is
       DI (CU);
       PL (CU, "end To_Any;");
 
-      --  to fill in the typecode TC_<name of the type>
+      --  Fill in the typecode TC_<name of the type>
       Divert (CU, Elaboration);
       NL (CU);
       PL (CU, "declare");
@@ -613,9 +657,10 @@ package body Ada_Be.Idl2Ada.Helper is
       Divert (CU, Visible_Declarations);
    end Gen_Interface_Body;
 
-   ---------------------
-   --  Gen_Enum_Spec  --
-   ---------------------
+   -------------------
+   -- Gen_Enum_Spec --
+   -------------------
+
    procedure Gen_Enum_Spec
      (CU        : in out Compilation_Unit;
       Node      : in     Node_Id) is
@@ -643,9 +688,10 @@ package body Ada_Be.Idl2Ada.Helper is
       Add_Elaborate_Body (CU);
    end Gen_Enum_Spec;
 
-   ---------------------
-   --  Gen_Enum_body  --
-   ---------------------
+   -------------------
+   -- Gen_Enum_body --
+   -------------------
+
    procedure Gen_Enum_Body
      (CU        : in out Compilation_Unit;
       Node      : in     Node_Id) is
@@ -1820,9 +1866,10 @@ package body Ada_Be.Idl2Ada.Helper is
       Rec_Gen_Array_TC (CU, Bounds_It, True, 0, Type_Node, Decl_Node);
    end Gen_Array_TC;
 
-   -------------------
-   --  Ada_TC_Name  --
-   -------------------
+   -----------------
+   -- Ada_TC_Name --
+   -----------------
+
    function Ada_TC_Name (Node : Node_Id)
                          return String is
       NK : constant Node_Kind := Kind (Node);
@@ -1904,9 +1951,7 @@ package body Ada_Be.Idl2Ada.Helper is
             --  mapped to an Ada type.
 
             Error
-              ("A " & NK'Img
-               & " does not denote a type. So there's no TypeCode"
-               & " associated with it.",
+              ("No TypeCode for " & NK'Img & " nodes.",
                Fatal, Get_Location (Node));
 
             --  Keep the compiler happy.
@@ -1915,78 +1960,10 @@ package body Ada_Be.Idl2Ada.Helper is
       end case;
    end Ada_TC_Name;
 
-   ------------------------
-   --  Ada_Full_TC_Name  --
-   ------------------------
-   function Ada_Full_TC_Name (Node : Node_Id)
-                              return String is
---       NK : constant Node_Kind := Kind (Node);
-   begin
-      return Ada_Helper_Name (Node) & "." & Ada_TC_Name (Node);
---       case NK is
---          when
---            K_Interface         |
---            K_Forward_Interface =>
---             --          K_ValueType         |
---             --          K_Forward_ValueType |
---             return Ada_Full_Name (Node)
---               & ".Helper."
---               & Ada_TC_Name (Node);
+   ---------------------
+   -- Ada_Helper_Name --
+   ---------------------
 
---          when
---            K_Sequence_Instance |
---            K_Enum              |
---            K_Union             |
---            K_Struct            |
---            K_Exception         |
---            K_Declarator        =>
---             return Parent_Scope_Name (Node)
---               & ".Helper."
---               & Ada_TC_Name (Node);
-
---  --          when K_String_Instance =>
---  --             return Ada_Full_Name (Node) & ".Bounded_String";
-
---          when K_Scoped_Name =>
---             return Ada_Full_TC_Name (Value (Node));
-
---          when K_Short           |
---            K_Long               |
---            K_Long_Long          |
---            K_Unsigned_Short     |
---            K_Unsigned_Long      |
---            K_Unsigned_Long_Long |
---            K_Char               |
---            K_Wide_Char          |
---            K_Boolean            |
---            K_Float              |
---            K_Double             |
---            K_Long_Double        |
---            K_String             |
---            K_Wide_String        |
---            K_Octet              |
---            K_Object             |
---            K_Any                =>
---             return Ada_TC_Name (Node);
-
---          when others =>
---             --  Improper use: node N is not
---             --  mapped to an Ada type.
-
---             Error
---               ("A " & NK'Img
---                & " does not denote a type. So there's no full TypeCode"
---                & " associated with it.",
---                Fatal, Get_Location (Node));
-
---             --  Keep the compiler happy.
---             raise Program_Error;
---       end case;
-   end Ada_Full_TC_Name;
-
-   -----------------------
-   --  Ada_Helper_Name  --
-   -----------------------
    function Ada_Helper_Name (Node : in     Node_Id)
                              return String is
       NK : constant Node_Kind := Kind (Node);
@@ -2035,14 +2012,23 @@ package body Ada_Be.Idl2Ada.Helper is
             --  mapped to an Ada type.
 
             Error
-              ("A " & NK'Img
-               & " does not denote a type. So there's no full TypeCode"
-               & " associated with it.",
+              ("No helpers for " & NK'Img & " nodes.",
                Fatal, Get_Location (Node));
 
             --  Keep the compiler happy.
             raise Program_Error;
       end case;
    end Ada_Helper_Name;
+
+   ----------------------
+   -- Ada_Full_TC_Name --
+   ----------------------
+
+   function Ada_Full_TC_Name
+     (Node : Node_Id)
+     return String is
+   begin
+      return Ada_Helper_Name (Node) & "." & Ada_TC_Name (Node);
+   end Ada_Full_TC_Name;
 
 end Ada_Be.Idl2Ada.Helper;
