@@ -38,25 +38,24 @@ with Ada.Tags;
 with PolyORB.Any.NVList;
 with PolyORB.Components;
 with PolyORB.Exceptions;
+with PolyORB.Log;
 with PolyORB.Objects;
-with PolyORB.Servants.Interface;
 with PolyORB.ORB.Interface;
 with PolyORB.Protocols.Interface;
-with PolyORB.References.IOR;
+with PolyORB.References;
 with PolyORB.Requests;
+with PolyORB.Servants.Interface;
 with PolyORB.Setup;
 with PolyORB.Types;
 
-with PolyORB.Log;
-
 package body PolyORB.Servants.Group_Servants is
 
-   use PolyORB.Exceptions;
-   use PolyORB.Types;
-   use PolyORB.Setup;
-   use PolyORB.Components;
-   use PolyORB.Tasking.Mutexes;
    use PolyORB.Any.NVList;
+   use PolyORB.Components;
+   use PolyORB.Exceptions;
+   use PolyORB.Setup;
+   use PolyORB.Tasking.Mutexes;
+   use PolyORB.Types;
 
    package TPL renames Target_List_Package;
 
@@ -108,8 +107,10 @@ package body PolyORB.Servants.Group_Servants is
                   if Value (It).Arg_Modes = ARG_OUT
                     or else Value (It).Arg_Modes = ARG_INOUT
                   then
+                     Leave (Self.Mutex);
                      raise Not_Oneway_Request;
                   end if;
+
                   Next (It);
                end loop;
             end;
@@ -176,6 +177,7 @@ package body PolyORB.Servants.Group_Servants is
                   Next (It1);
                   Next (It2);
                end loop;
+
                Leave (Self.Mutex);
                return Unmarshalled_Arguments'(Args => Req_Args);
             end;
@@ -202,6 +204,9 @@ package body PolyORB.Servants.Group_Servants is
 
       Request : Request_Access;
       It : TPL.Iterator;
+
+      Res : PolyORB.Components.Null_Message;
+
    begin
       pragma Assert (Msg in Execute_Request);
 
@@ -247,10 +252,10 @@ package body PolyORB.Servants.Group_Servants is
          declare
             Req  : Request_Access;
             Args : Ref;
+
          begin
             pragma Debug (O ("Forward to : "
-                             & PolyORB.References.IOR.Object_To_String
-                                (TPL.Value (It).all)));
+                             & PolyORB.References.Image (TPL.Value (It).all)));
 
             Create_Request
               (Target                     =>
@@ -274,15 +279,16 @@ package body PolyORB.Servants.Group_Servants is
                 Requestor =>
                   PolyORB.Components.Component_Access (Self)));
 
-            pragma Debug (O ("Request sent."));
+            pragma Debug (O ("Request sent"));
             TPL.Next (It);
          end;
-
-         Leave (Self.Mutex);
       end loop;
 
-      pragma Debug (O ("Request dispatched."));
-      return Executed_Request'(Req => Request);
+      Leave (Self.Mutex);
+
+      pragma Debug (O ("Request dispatched to all servants in group"));
+
+      return Res;
    end Execute_Servant;
 
    --------------------
@@ -300,6 +306,9 @@ package body PolyORB.Servants.Group_Servants is
       Res : PolyORB.Components.Null_Message;
 
    begin
+      pragma Debug (O ("Handling message of type "
+                       & Ada.Tags.External_Tag (Msg'Tag)));
+
       if Msg in Unmarshall_Arguments then
          return Handle_Unmarshall_Arguments (Self, Msg);
 
@@ -311,6 +320,7 @@ package body PolyORB.Servants.Group_Servants is
             Req : Request_Access := Executed_Request (Msg).Req;
 
          begin
+            pragma Debug (O ("Destroy request"));
             Destroy_Request (Req);
          end;
 
@@ -321,12 +331,10 @@ package body PolyORB.Servants.Group_Servants is
          end if;
 
          Leave (Self.Mutex);
+
          return Res;
 
       else
-         pragma Debug (O ("Handling message of type "
-                          & Ada.Tags.External_Tag (Msg'Tag)));
-
          --  Dispatch
 
          return PolyORB.Servants.Handle_Message
@@ -344,12 +352,13 @@ package body PolyORB.Servants.Group_Servants is
    begin
       pragma Debug (O ("Register on group servant : "
                        & PolyORB.Objects.Image (Self.Oid.all)));
-      pragma Debug (O ("Ref : "
-                       & PolyORB.References.IOR.Object_To_String (Ref)));
+      pragma Debug (O ("Ref : " & PolyORB.References.Image (Ref)));
 
       Enter (Self.Group_Lock);
+
       TPL.Append (Self.Target_List, Ref);
       pragma Debug (O ("Group Length :" & TPL.Length (Self.Target_List)'Img));
+
       Leave (Self.Group_Lock);
    end Register;
 
@@ -366,12 +375,13 @@ package body PolyORB.Servants.Group_Servants is
    begin
       pragma Debug (O ("Unregister on group servant : "
                        & PolyORB.Objects.Image (Self.Oid.all)));
-      pragma Debug (O ("Ref : "
-                       & PolyORB.References.IOR.Object_To_String (Ref)));
+      pragma Debug (O ("Ref : " & PolyORB.References.Image (Ref)));
 
       Enter (Self.Group_Lock);
+
       TPL.Remove (Self.Target_List, Ref);
       pragma Debug (O ("Group Length :" & TPL.Length (Self.Target_List)'Img));
+
       Leave (Self.Group_Lock);
    end Unregister;
 
