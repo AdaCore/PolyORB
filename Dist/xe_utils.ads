@@ -45,6 +45,7 @@ package XE_Utils is
 
    subtype File_Descriptor     is GNAT.OS_Lib.File_Descriptor;
    subtype String_Access       is GNAT.OS_Lib.String_Access;
+   subtype Argument_List       is GNAT.OS_Lib.Argument_List;
 
    subtype ALI_Id              is ALI.ALI_Id;
    subtype Unit_Id             is ALI.Unit_Id;
@@ -100,6 +101,29 @@ package XE_Utils is
    Parent_Dir   : File_Name_Type;
    Original_Dir : File_Name_Type;
 
+   Inc_Path_Flag         : Name_Id;
+   Lib_Path_Flag         : Name_Id;
+
+   I_Current_Dir    : String_Access;
+   --  := new String' ("-I.");
+   I_Caller_Dir     : String_Access;
+   --  := new String' ("-I../../private/caller/");
+   I_DSA_Caller_Dir : String_Access;
+   --  := new String' ("-Idsa/private/caller/");
+   I_Original_Dir   : String_Access;
+   --  := new String' ("-I../../../");
+
+   L_Current_Dir    : String_Access;
+   --  := new String' ("-L.");
+   L_Caller_Dir     : String_Access;
+   --  := new String' ("-L../../private/caller");
+   L_DSA_Caller_Dir : String_Access;
+   --  := new String' ("-Ldsa/private/caller");
+   L_Original_Dir   : String_Access;
+   --  := new String' ("-L../../../");
+
+   GNATLib_Compile_Flag  : String_Access;
+
    PWD_Id       : File_Name_Type;
 
    Build_Stamp_File      : File_Name_Type;
@@ -107,6 +131,10 @@ package XE_Utils is
    Elaboration_Name      : File_Name_Type;
    Partition_Main_File   : File_Name_Type;
    Partition_Main_Name   : File_Name_Type;
+
+   A_GARLIC_Dir          : String_Access;
+   I_GARLIC_Dir          : String_Access;
+   L_GARLIC_Dir          : String_Access;
 
    Separator : Character renames Directory_Separator;
 
@@ -135,6 +163,7 @@ package XE_Utils is
    function "=" (X, Y : Text_Ptr) return Boolean renames Types."=";
    function "=" (X, Y : Text_Buffer_Ptr) return Boolean renames Types."=";
    function "=" (X, Y : Source_Buffer_Ptr) return Boolean renames Types."=";
+   function "=" (X, Y : Time_Stamp_Type) return Boolean renames Types."=";
 
    function "=" (X, Y : Main_Program_Type) return Boolean renames ALI."=";
    function "=" (X, Y : Unit_Type) return Boolean renames ALI."=";
@@ -169,6 +198,26 @@ package XE_Utils is
    procedure Delete
      (File : in File_Name_Type);
 
+   procedure Execute (Prog : String_Access; Args : Argument_List);
+   --  Execute the command and raise Fatal Error if not successful
+
+   procedure Execute_Bind
+     (Lib  : in File_Name_Type;
+      Args : in Argument_List);
+   --  Execute gnatbind and add gnatdist flags
+
+   procedure Execute_Gcc
+     (File   : in File_Name_Type;
+      Object : in File_Name_Type;
+      Args   : in Argument_List);
+   --  Execute gcc and add gnatdist compilation flags
+
+   procedure Execute_Link
+     (Lib  : in File_Name_Type;
+      Exec : in File_Name_Type;
+      Args : in Argument_List);
+   --  Execute gnatlink and add gnatdist flags
+
    function  GNAT_Style (N : Name_Id) return String;
    --  Return a string that approx. follows GNAT style.
 
@@ -187,13 +236,6 @@ package XE_Utils is
       S3 : in String  := "";
       S4 : in Name_Id := No_Name;
       S5 : in String  := "");
-
-   procedure Produce_Partition_Executable
-     (Partition     : in Name_Id;
-      Configuration : in Name_Id;
-      Executable    : in File_Name_Type);
-   --  Generates the partition ada main subprogram (compilation, bind and
-   --  link).
 
    procedure Read_ALI
      (Id : ALI_Id) renames ALI.Read_ALI;

@@ -1,3 +1,8 @@
+1998-03-16  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* xe_stubs.adb, ...: Change way of handling time stamps. Store
+	configuration and executable file stamps into glade.sta.
+
 1998-03-11  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* xe_check.adb: Some units are explicitly loaded (comes from

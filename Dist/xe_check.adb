@@ -27,7 +27,6 @@
 ------------------------------------------------------------------------------
 
 with Fname;            use Fname;
-with GNAT.OS_Lib;      use GNAT.OS_Lib;
 with Make;             use Make;
 with Namet;            use Namet;
 with Opt;
@@ -72,9 +71,13 @@ package body XE_Check is
       Args        : Argument_List (Gcc_Switches.First .. Gcc_Switches.Last);
       Main        : Boolean;
 
-      procedure Recompile (Unit : Name_Id);
+      procedure Recompile
+        (Unit        : in Name_Id;
+         Most_Recent : out File_Name_Type);
 
-      procedure Recompile (Unit : Name_Id) is
+      procedure Recompile
+        (Unit        : in Name_Id;
+         Most_Recent : out File_Name_Type) is
          File_Name     : Name_Id;
          Missing_Alis  : Boolean;
          Object        : Name_Id;
@@ -106,6 +109,7 @@ package body XE_Check is
               Is_Readonly_Library (Full_Lib_File) then
                Text := Read_Library_Info (Lib_File);
                ALI := Scan_ALI (Lib_File, Text);
+               Most_Recent := No_File;
 
             else
                Compile_Sources
@@ -122,6 +126,12 @@ package body XE_Check is
                   In_Place_Mode         => Opt.In_Place_Mode,
                   Initialize_Ali_Data   => False,
                   Max_Process           => Opt.Maximum_Processes);
+
+               if Compiled = No_File then
+                  Most_Recent := Object;
+               else
+                  Most_Recent := Compiled;
+               end if;
 
                if Building_Script then
                   Write_Compile_Command (File_Name);
@@ -177,7 +187,7 @@ package body XE_Check is
          --  Recompile all the configured units to check that
          --  they are present. It is also a way to load the ali files
          --  in the ALIs table.
-         Recompile (CUnit.Table (U).CUname);
+         Recompile (CUnit.Table (U).CUname, CUnit.Table (U).Most_Recent);
 
       end loop;
 
@@ -189,7 +199,7 @@ package body XE_Check is
 
          if not Hosts.Table (H).Static and then
             Hosts.Table (H).Import = Ada_Import then
-            Recompile (Hosts.Table (H).External);
+            Recompile (Hosts.Table (H).External, Hosts.Table (H).Most_Recent);
          end if;
       end loop;
 
@@ -333,6 +343,11 @@ package body XE_Check is
 
       begin
          for U in CUnit.First .. CUnit.Last loop
+
+            --  Update most_recent stamp of the partition on which this
+            --  unit is configured.
+            Most_Recent_Stamp
+              (CUnit.Table (U).Partition, CUnit.Table (U).Most_Recent);
 
             --  This check applies to a RCI package.
             if Unit.Table (CUnit.Table (U).My_Unit).RCI then

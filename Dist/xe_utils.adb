@@ -42,6 +42,8 @@ with XE_Defs;        use XE_Defs;
 
 with Ada.Command_Line; use Ada.Command_Line;
 
+pragma Elaborate_All (Csets, Debug, Make, Namet, Opt, Osint, Output);
+
 package body XE_Utils is
 
    Path         : constant String_Access := GNAT.OS_Lib.Getenv ("PATH");
@@ -69,44 +71,19 @@ package body XE_Utils is
    Exclude_File_Flag     : constant String_Access := new String' ("-x");
    Receiver_Compile_Flag : constant String_Access := new String' ("-gnatzr");
    Caller_Compile_Flag   : constant String_Access := new String' ("-gnatzc");
-   GNATLib_Compile_Flag  : constant String_Access := new String' ("-gnatg");
 
    Special_File_Flag     : constant String_Access := new String' ("-x");
    Ada_File_Flag         : constant String_Access := new String' ("ada");
 
-   Object_Suffix         : constant String_Access := Get_Object_Suffix;
-   Executable_Suffix     : constant String_Access := Get_Executable_Suffix;
+   Object_Suffix         : String_Access;
+   Executable_Suffix     : String_Access;
 
-   A_GARLIC_Dir          : String_Access;
-   I_GARLIC_Dir          : String_Access;
-   L_GARLIC_Dir          : String_Access;
-
-   Inc_Path_Flag         : Name_Id;
-   Lib_Path_Flag         : Name_Id;
    Private_Id            : Name_Id;
    Caller_Id             : Name_Id;
    Receiver_Id           : Name_Id;
 
    Sem_Only_Flag    : constant String_Access := new String' ("-gnatc");
    --  Workaround : bad object file generated during stub generation
-
-   I_Current_Dir    : String_Access;
-   --  := new String' ("-I.");
-   I_Caller_Dir     : String_Access;
-   --  := new String' ("-I../../private/caller/");
-   I_DSA_Caller_Dir : String_Access;
-   --  := new String' ("-Idsa/private/caller/");
-   I_Original_Dir   : String_Access;
-   --  := new String' ("-I../../../");
-
-   L_Current_Dir    : String_Access;
-   --  := new String' ("-L.");
-   L_Caller_Dir     : String_Access;
-   --  := new String' ("-L../../private/caller");
-   L_DSA_Caller_Dir : String_Access;
-   --  := new String' ("-Ldsa/private/caller");
-   L_Original_Dir   : String_Access;
-   --  := new String' ("-L../../../");
 
    No_Args          : constant Argument_List (1 .. 0) := (others => null);
 
@@ -115,38 +92,16 @@ package body XE_Utils is
    ---------
 
    function "&" (Prefix, Suffix : Name_Id) return Name_Id is
-      Length : Natural := Strlen (Prefix) + Strlen (Suffix);
-      Name   : String (1 .. Length);
    begin
+      if Prefix = No_Name then
+         return Suffix;
+      elsif Suffix = No_Name then
+         return Prefix;
+      end if;
       Get_Name_String (Prefix);
-      Name (1 .. Name_Len) := Name_Buffer (1 .. Name_Len);
-      Length := Name_Len;
-      Get_Name_String (Suffix);
-      Name (Length + 1 .. Length + Name_Len) := Name_Buffer (1 .. Name_Len);
-      Name_Len := Name'Length;
-      Name_Buffer (1 .. Name_Len) := Name;
+      Get_Name_String_And_Append (Suffix);
       return Name_Find;
    end "&";
-
-   procedure Execute (Prog : String_Access; Args : Argument_List);
-   --  Execute the command and raise Fatal Error if not successful
-
-   procedure Execute_Bind
-     (Lib  : in File_Name_Type;
-      Args : in Argument_List);
-   --  Execute gnatbind and add gnatdist flags
-
-   procedure Execute_Gcc
-     (File   : in File_Name_Type;
-      Object : in File_Name_Type;
-      Args   : in Argument_List);
-   --  Execute gcc and add gnatdist compilation flags
-
-   procedure Execute_Link
-     (Lib  : in File_Name_Type;
-      Exec : in File_Name_Type;
-      Args : in Argument_List);
-   --  Execute gnatlink and add gnatdist flags
 
    function Locate
      (Exec_Name  : String;
@@ -604,6 +559,10 @@ package body XE_Utils is
       Gnatlink        := Locate ("gnatlink");
       Gnatmake        := Locate ("gnatmake");
 
+      GNATLib_Compile_Flag := new String'("-gnatg");
+      Object_Suffix        := Get_Object_Suffix;
+      Executable_Suffix    := Get_Executable_Suffix;
+
       Inc_Path_Flag  := Str_To_Id ("-I");
       Lib_Path_Flag  := Str_To_Id ("-L");
       Private_Id     := Str_To_Id ("private");
@@ -709,7 +668,7 @@ package body XE_Utils is
          --  Source file lookups should be cached for efficiency.
          --  Source files are not supposed to change.
 
-         Osint.Source_File_Data (Cache => True);
+         --  Osint.Source_File_Data (Cache => True);
 
          Linker_Switches.Increment_Last;
          Linker_Switches.Table (Linker_Switches.Last)
@@ -840,88 +799,15 @@ package body XE_Utils is
       Write_Eol;
    end Message;
 
-   ----------------------------------
-   -- Produce_Partition_Executable --
-   ----------------------------------
-
-   procedure Produce_Partition_Executable
-     (Partition     : in Name_Id;
-      Configuration : in Name_Id;
-      Executable    : in File_Name_Type) is
-
-      FD : File_Descriptor;
-
-      D1 : File_Name_Type;
-      D2 : File_Name_Type;
-
-      I1 : String_Access;
-      I2 : String_Access;
-
-      L1 : String_Access;
-      L2 : String_Access;
-
-   begin
-
-      D1 := DSA_Dir &
-            Dir_Sep_Id & Configuration &
-            Dir_Sep_Id & Partition;
-      Get_Name_String (Inc_Path_Flag & D1);
-      I1 := new String'(Name_Buffer (1 .. Name_Len));
-      Get_Name_String (Lib_Path_Flag & D1);
-      L1 := new String'(Name_Buffer (1 .. Name_Len));
-
-      D2 := DSA_Dir &
-            Dir_Sep_Id & Private_Id &
-            Dir_Sep_Id & Caller_Id;
-      Get_Name_String (Inc_Path_Flag & D2);
-      I2 := new String'(Name_Buffer (1 .. Name_Len));
-      Get_Name_String (Lib_Path_Flag & D2);
-      L2 := new String'(Name_Buffer (1 .. Name_Len));
-
-      Execute_Gcc
-        (D1 & Dir_Sep_Id & Elaboration_File & ADB_Suffix,
-         D1 & Dir_Sep_Id & Elaboration_File & Obj_Suffix,
-         (GNATLib_Compile_Flag,
-          I_GARLIC_Dir)
-         );
-
-      Execute_Gcc
-        (D1 & Dir_Sep_Id & Partition_Main_File & ADB_Suffix,
-         D1 & Dir_Sep_Id & Partition_Main_File & Obj_Suffix,
-         (I1, I2, I_Current_Dir)
-         );
-
-      --  I_Garlic_Dir is not included here because it was added by the
-      --  gnatdist shell script.
-
-
-      Execute_Bind
-        (D1 & Dir_Sep_Id & Partition_Main_File & ALI_Suffix,
-         (I1, I2, I_Current_Dir)
-         );
-
-      Execute_Link
-        (D1 & Dir_Sep_Id & Partition_Main_File & ALI_Suffix,
-         Executable,
-         (L1, L2, L_Current_Dir)
-         );
-
-      Free (I1);
-      Free (I2);
-      Free (L1);
-      Free (L2);
-
-      Create (FD, D1 & Dir_Sep_Id & Build_Stamp_File);
-      Close  (FD);
-
-   end Produce_Partition_Executable;
-
    ---------------
    -- Str_To_Id --
    ---------------
 
    function Str_To_Id (S : String) return Name_Id is
    begin
+      if S'Length = 0 then
+         return No_Name;
+      end if;
       Name_Buffer (1 .. S'Length) := S;
       Name_Len := S'Length;
       return Name_Find;

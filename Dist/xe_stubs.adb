@@ -40,17 +40,6 @@ package body XE_Stubs is
    Root_Dir     : String_Access;
    Root_Dir_Len : Natural;
 
-   Directory    : File_Name_Type;
-   --  Where partition files are stored.
-
-   Executable : File_Name_Type;
-
-   procedure Build_Partition
-     (Partition  : in PID_Type;
-      Executable : in File_Name_Type);
-   --  Generates the partition ada main subprogram (generation
-   --  of Ada code, compilation, bind and link).
-
    procedure Build_Stub (A : in ALI_Id);
    --  Create the caller stub and the receiver stub for a RCI unit.
 
@@ -65,6 +54,8 @@ package body XE_Stubs is
    procedure Create_Partition_Main_File (PID : in PID_Type);
    --  Create a procedure which "withes" all the RCI receivers
    --  of the partition and insert the main procedure if needed.
+
+   procedure Create_Stamp_File (PID : in PID_Type);
 
    procedure Deallocate is new Unchecked_Deallocation (String, String_Access);
 
@@ -89,6 +80,12 @@ package body XE_Stubs is
      renames Write_Str;
    --  Changed default parameter.
 
+   procedure Produce_Executable_File (PID : in PID_Type);
+   --  Bind and link partition to produce executable.
+
+   function Rebuild_Partition (PID : in PID_Type) return Boolean;
+   --  Check various file stamps.
+
    procedure Update_Switch (S : in out String_Access);
    --  For a given '-I' switch (or equivalent -L -a*), update it
    --  if it is a relative path and add ../../.. at the beginning.
@@ -99,7 +96,8 @@ package body XE_Stubs is
 
    procedure Build is
 
-      CUID  : CUID_Type;
+      CUID : CUID_Type;
+      Dir  : File_Name_Type;
 
    begin
 
@@ -132,10 +130,21 @@ package body XE_Stubs is
 
          if Partitions.Table (PID).To_Build then
 
-            Directory := Get_Partition_Dir (PID);
+            Partitions.Table (PID).Executable_File :=
+              Partitions.Table (PID).Name & Exe_Suffix;
+            Dir  := Get_Storage_Dir (PID);
+            if Dir /= No_Storage_Dir then
+               if not Is_Directory (Dir) then
+                  Create_Dir (Dir);
+               end if;
+               Partitions.Table (PID).Executable_File :=
+                 Dir & Dir_Sep_Id & Partitions.Table (PID).Executable_File;
+            end if;
 
-            if not Is_Directory (Directory) then
-               Create_Dir (Directory);
+            Dir := Get_Partition_Dir (PID);
+            Partitions.Table (PID).Partition_Dir := Dir;
+            if not Is_Directory (Dir) then
+               Create_Dir (Dir);
             end if;
 
             --  Mark all units present on this partition.
@@ -162,13 +171,10 @@ package body XE_Stubs is
                      --  not needed because GNATDIST add the caller directory
                      --  in its include path.
 
-                     Copy_Stub
-                       (Receiver_Dir,
-                        Directory,
-                        Unit.Table (U).My_ALI);
+                     Copy_Stub (Receiver_Dir, Dir, Unit.Table (U).My_ALI);
 
                      Most_Recent_Stamp
-                       (PID, Directory & Dir_Sep_Id &
+                       (PID, Dir & Dir_Sep_Id &
                              Receiver_Dir & Dir_Sep_Id &
                              Lib_File_Name (Unit.Table (U).Sfile));
 
@@ -176,12 +182,10 @@ package body XE_Stubs is
 
                   else
 
-                     Delete_Stub
-                       (Directory,
-                        Unit.Table (U).Sfile);
+                     Delete_Stub (Dir, Unit.Table (U).Sfile);
 
                      Most_Recent_Stamp
-                       (PID, Directory & Dir_Sep_Id &
+                       (PID, Dir & Dir_Sep_Id &
                              Caller_Dir & Dir_Sep_Id &
                              Lib_File_Name (Unit.Table (U).Sfile));
 
@@ -195,27 +199,16 @@ package body XE_Stubs is
 
             end loop;
 
-            Create_Partition_Main_File (PID);
-            Create_Elaboration_File (PID);
-
-            --  Bind and link each partition.
-
-            Executable := Partitions.Table (PID).Name & Exe_Suffix;
-
-            if Partitions.Table (PID).Storage_Dir = No_Storage_Dir then
-               Directory := Partitions.Table (Default_Partition).Storage_Dir;
-            else
-               Directory := Partitions.Table (PID).Storage_Dir;
-            end if;
-
-            if Directory  /= No_Storage_Dir then
-               if not Is_Directory (Directory) then
-                  Create_Dir (Directory);
+            if Rebuild_Partition (PID) then
+               if not Quiet_Output then
+                  Message ("building partition ", Partitions.Table (PID).Name);
                end if;
-               Executable := Directory & Dir_Sep_Id & Executable;
-            end if;
 
-            Build_Partition (PID, Executable);
+               Create_Partition_Main_File (PID);
+               Create_Elaboration_File (PID);
+               Produce_Executable_File (PID);
+               Create_Stamp_File (PID);
+            end if;
 
          elsif Verbose_Mode then
 
@@ -226,58 +219,6 @@ package body XE_Stubs is
       end loop;
 
    end Build;
-
-   ---------------------
-   -- Build_Partition --
-   ---------------------
-
-   procedure Build_Partition
-     (Partition  : in PID_Type;
-      Executable : in File_Name_Type) is
-
-      Part_Name  : Name_Id := Partitions.Table (Partition).Name;
-      Exec_File  : File_Name_Type := Executable;
-
-      Directory  : File_Name_Type
-        := DSA_Dir & Dir_Sep_Id & Configuration & Dir_Sep_Id & Part_Name;
-
-      Stamp_File : File_Name_Type
-        := Directory & Dir_Sep_Id & Build_Stamp_File;
-
-   begin
-
-      if not Is_Regular_File (Executable) then
-         if Verbose_Mode then
-            Message ("", Executable, " doesn't exist");
-         end if;
-
-      elsif not Is_Regular_File (Stamp_File) then
-         if Verbose_Mode then
-            Message ("", Stamp_File, " doesn't exist");
-         end if;
-
-      elsif Partitions.Table (Partition).Most_Recent > Executable then
-         if Verbose_Mode then
-            Write_Stamp_Comparison
-              (Partitions.Table (Partition).Most_Recent, Executable);
-         end if;
-
-      elsif Executable > Stamp_File then
-         if Verbose_Mode then
-            Write_Stamp_Comparison (Executable, Stamp_File);
-         end if;
-
-      else
-         return;
-      end if;
-
-      if not Quiet_Output then
-         Message ("building partition ", Part_Name);
-      end if;
-
-      Produce_Partition_Executable (Part_Name, Configuration, Exec_File);
-
-   end Build_Partition;
 
    ----------------
    -- Build_Stub --
@@ -479,8 +420,6 @@ package body XE_Stubs is
 
       Partition   : Partition_Name_Type;
       Elaboration : File_Name_Type;
-      Most_Recent : File_Name_Type;
-
       Task_Pool   : Task_Pool_Type;
 
       CID : CID_Type;
@@ -489,20 +428,9 @@ package body XE_Stubs is
    begin
 
       Partition   := Partitions.Table (PID) .Name;
-      Elaboration := Directory & Dir_Sep_Id & Elaboration_File & ADB_Suffix;
-      Most_Recent := Partitions.Table (PID).Most_Recent;
-
-      if not Is_Regular_File (Elaboration) then
-         if Verbose_Mode then
-            Write_Missing_File (Elaboration);
-         end if;
-      elsif Most_Recent > Elaboration then
-         if Verbose_Mode then
-            Write_Stamp_Comparison (Most_Recent, Elaboration);
-         end if;
-      else
-         return;
-      end if;
+      Elaboration :=
+        Partitions.Table (PID).Partition_Dir &
+        Dir_Sep_Id & Elaboration_File & ADB_Suffix;
 
       if Building_Script then
          Write_Str  (Standout, "cat >");
@@ -705,9 +633,7 @@ package body XE_Stubs is
 
    procedure Create_Partition_Main_File (PID : in PID_Type) is
 
-      Partition   : Partition_Name_Type;
       Main_File   : File_Name_Type;
-      Most_Recent : File_Name_Type;
 
       UID   : CUID_Type;
       Host  : Name_Id;
@@ -717,21 +643,9 @@ package body XE_Stubs is
 
    begin
 
-      Partition   := Partitions.Table (PID).Name;
-      Main_File   := Directory & Dir_Sep_Id & Partition_Main_File & ADB_Suffix;
-      Most_Recent := Partitions.Table (PID).Most_Recent;
-
-      if not Is_Regular_File (Main_File) then
-         if Verbose_Mode then
-            Write_Missing_File (Main_File);
-         end if;
-      elsif Most_Recent > Main_File then
-         if Verbose_Mode then
-            Write_Stamp_Comparison (Most_Recent, Main_File);
-         end if;
-      else
-         return;
-      end if;
+      Main_File   :=
+        Partitions.Table (PID).Partition_Dir &
+        Dir_Sep_Id & Partition_Main_File & ADB_Suffix;
 
       if Building_Script then
          Write_Str  (Standout, "cat >");
@@ -968,6 +882,27 @@ package body XE_Stubs is
 
    end Create_Partition_Main_File;
 
+   -----------------------
+   -- Create_Stamp_File --
+   -----------------------
+
+   procedure Create_Stamp_File (PID : in PID_Type) is
+      Stamp_File : File_Name_Type;
+      Executable : File_Name_Type;
+      FD         : File_Descriptor;
+
+   begin
+      Stamp_File := Partitions.Table (PID).Partition_Dir;
+      Stamp_File := Stamp_File & Dir_Sep_Id & Build_Stamp_File;
+      Executable := Partitions.Table (PID).Executable_File;
+      Create    (FD, Stamp_File);
+      Write_Str (FD, String (Source_File_Stamp (Configuration_File)));
+      Write_Eol (FD);
+      Write_Str (FD, String (Source_File_Stamp (Executable)));
+      Write_Eol (FD);
+      Close     (FD);
+   end Create_Stamp_File;
+
    -----------------
    -- Delete_Stub --
    -----------------
@@ -1081,6 +1016,129 @@ package body XE_Stubs is
       end loop;
 
    end Mark_Units_On_Partition;
+
+   procedure Produce_Executable_File (PID : in PID_Type) is
+      Dir : File_Name_Type;
+      Inc : String_Access;
+      Lib : String_Access;
+
+   begin
+
+      Dir := Partitions.Table (PID).Partition_Dir;
+
+      Get_Name_String (Inc_Path_Flag & Dir);
+      Inc := new String'(Name_Buffer (1 .. Name_Len));
+      Get_Name_String (Lib_Path_Flag & Dir);
+      Lib := new String'(Name_Buffer (1 .. Name_Len));
+
+      Execute_Gcc
+        (Dir & Dir_Sep_Id & Elaboration_File & ADB_Suffix,
+         Dir & Dir_Sep_Id & Elaboration_File & Obj_Suffix,
+         (GNATLib_Compile_Flag,
+          I_GARLIC_Dir)
+         );
+
+      Execute_Gcc
+        (Dir & Dir_Sep_Id & Partition_Main_File & ADB_Suffix,
+         Dir & Dir_Sep_Id & Partition_Main_File & Obj_Suffix,
+         (Inc, I_Caller_Dir, I_Current_Dir)
+         );
+
+      --  I_Garlic_Dir is not included here because it was added by the
+      --  gnatdist shell script.
+
+
+      Execute_Bind
+        (Dir & Dir_Sep_Id & Partition_Main_File & ALI_Suffix,
+         (Inc, I_Caller_Dir, I_Current_Dir)
+         );
+
+      Execute_Link
+        (Dir & Dir_Sep_Id & Partition_Main_File & ALI_Suffix,
+         Partitions.Table (PID).Executable_File,
+         (Lib, L_Caller_Dir, L_Current_Dir)
+         );
+
+      Free (Inc);
+      Free (Lib);
+
+   end Produce_Executable_File;
+
+   -----------------------
+   -- Rebuild_Partition --
+   -----------------------
+
+   function Rebuild_Partition (PID : in PID_Type) return Boolean is
+      Executable  : File_Name_Type
+        renames Partitions.Table (PID).Executable_File;
+      Most_Recent : File_Name_Type
+        renames Partitions.Table (PID).Most_Recent;
+      Stamp_File  : File_Name_Type;
+
+      Ptr         : Source_Ptr;
+      Buffer      : Source_Buffer_Ptr;
+      Exec_Stamp1 : Time_Stamp_Type;
+      Exec_Stamp2 : Time_Stamp_Type;
+      Conf_Stamp1 : Time_Stamp_Type;
+      Conf_Stamp2 : Time_Stamp_Type;
+
+   begin
+      if not Is_Regular_File (Executable) then
+         if Verbose_Mode then
+            Write_Missing_File (Executable);
+         end if;
+         return True;
+      elsif Most_Recent > Executable then
+         if Verbose_Mode then
+            Write_Stamp_Comparison (Most_Recent, Executable);
+         end if;
+         return True;
+      end if;
+      Stamp_File :=
+        Partitions.Table (PID).Partition_Dir &
+        Dir_Sep_Id & Build_Stamp_File;
+      if not Is_Regular_File (Stamp_File) then
+         if Verbose_Mode then
+            Write_Missing_File (Stamp_File);
+         end if;
+         return True;
+      end if;
+      Read_Source_File (Stamp_File, First_Source_Ptr, Ptr, Buffer);
+      Ptr := Buffer.all'First;
+      for I in Conf_Stamp1'Range loop
+         if Buffer (Ptr) not in '0' .. '9' then
+            return True;
+         end if;
+         Conf_Stamp1 (I) := Buffer (Ptr);
+         Ptr := Ptr + 1;
+      end loop;
+      Conf_Stamp2 := Source_File_Stamp (Configuration_File);
+      if Conf_Stamp1 /= Conf_Stamp2 then
+         if Verbose_Mode then
+            Message ("Configuration file is obsolete");
+         end if;
+         return True;
+      end if;
+      if Buffer (Ptr) /= Ascii.LF then
+         return True;
+      end if;
+      Ptr := Ptr + 1;
+      for I in Exec_Stamp1'Range loop
+         if Buffer (Ptr) not in '0' .. '9' then
+            return True;
+         end if;
+         Exec_Stamp1 (I) := Buffer (Ptr);
+         Ptr := Ptr + 1;
+      end loop;
+      Exec_Stamp2 := Source_File_Stamp (Executable);
+      if Exec_Stamp1 /= Exec_Stamp2 then
+         if Verbose_Mode then
+            Message ("Executable file is obsolete");
+         end if;
+         return True;
+      end if;
+      return False;
+  end Rebuild_Partition;
 
    -------------------
    -- Update_Switch --

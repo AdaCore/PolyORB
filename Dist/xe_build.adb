@@ -26,7 +26,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Make;             use Make;
 with Namet;            use Namet;
 with Osint;            use Osint;
 with XE;               use XE;
@@ -37,8 +36,6 @@ with XE_Scan;          use XE_Scan;
 with XE_Stubs;         use XE_Stubs;
 with XE_Utils;         use XE_Utils;
 
-with Debug;
-with Opt;
 with XE_Lead;
 with XE_Usage;
 

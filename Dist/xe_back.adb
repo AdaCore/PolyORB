@@ -146,11 +146,12 @@ package body XE_Back is
       --  The same unit can be multiply declared especially if
       --  this unit is a normal package.
       CUnit.Increment_Last;
-      CUnit.Table (CUnit.Last).Partition := To;
-      CUnit.Table (CUnit.Last).CUname    := CU;
-      CUnit.Table (CUnit.Last).My_ALI    := No_ALI_Id;
-      CUnit.Table (CUnit.Last).My_Unit   := No_Unit_Id;
-      CUnit.Table (CUnit.Last).Next      := Null_CUID;
+      CUnit.Table (CUnit.Last).Partition   := To;
+      CUnit.Table (CUnit.Last).CUname      := CU;
+      CUnit.Table (CUnit.Last).My_ALI      := No_ALI_Id;
+      CUnit.Table (CUnit.Last).My_Unit     := No_Unit_Id;
+      CUnit.Table (CUnit.Last).Most_Recent := No_File;
+      CUnit.Table (CUnit.Last).Next        := Null_CUID;
 
       --  Update partition single linked list of configured units.
       if Partitions.Table (To).First_Unit = Null_CUID then
@@ -281,9 +282,9 @@ package body XE_Back is
       if Host = Null_HID then
          Name := Get_Node_Name (Node);
          Create_Host (Name, Node, Host);
-         Hosts.Table (Host).Static   := False;
-         Hosts.Table (Host).Import   := Ada_Import;
-         Hosts.Table (Host).External := Name;
+         Hosts.Table (Host).Static      := False;
+         Hosts.Table (Host).Import      := Ada_Import;
+         Hosts.Table (Host).External    := Name;
       end if;
 
       Host_Entry := Host;
@@ -407,6 +408,7 @@ package body XE_Back is
       Hosts.Table (Host).Static          := True;
       Hosts.Table (Host).Import          := None_Import;
       Hosts.Table (Host).External        := No_Name;
+      Hosts.Table (Host).Most_Recent     := No_File;
       Set_HID (Name, Host);
       HID := Host;
    end Create_Host;
@@ -441,7 +443,7 @@ package body XE_Back is
       Partitions.Table (Partition).First_Channel   := Null_CID;
       Partitions.Table (Partition).Last_Channel    := Null_CID;
       Partitions.Table (Partition).To_Build        := True;
-      Partitions.Table (Partition).Most_Recent     := Configuration_File;
+      Partitions.Table (Partition).Most_Recent     := No_File;
       Partitions.Table (Partition).Task_Pool       := No_Task_Pool;
       Partitions.Table (Partition).Light_PCS       := True;
       PID := Partition;
@@ -885,9 +887,12 @@ package body XE_Back is
    -----------------------
 
    procedure Most_Recent_Stamp (P : in PID_Type; F : in File_Name_Type) is
+      Most_Recent : File_Name_Type;
    begin
-      if Partitions.Table (P).Most_Recent = No_Name
-        or else F > Partitions.Table (P).Most_Recent then
+      Most_Recent := Partitions.Table (P).Most_Recent;
+      if Most_Recent = No_Name then
+         Partitions.Table (P).Most_Recent := F;
+      elsif F > Most_Recent then
          Partitions.Table (P).Most_Recent := F;
       end if;
    end Most_Recent_Stamp;

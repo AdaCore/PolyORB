@@ -129,20 +129,22 @@ package XE_Back is
    end record;
 
    type Conf_Unit_Type is record
-      CUname    : CUnit_Name_Type;
-      Node      : Node_Id;
-      My_ALI    : ALI_Id;
-      My_Unit   : Unit_Id;
-      Partition : PID_Type;
-      Next      : CUID_Type;
+      CUname      : CUnit_Name_Type;
+      Node        : Node_Id;
+      My_ALI      : ALI_Id;
+      My_Unit     : Unit_Id;
+      Partition   : PID_Type;
+      Next        : CUID_Type;
+      Most_Recent : File_Name_Type;
    end record;
 
    type Host_Type is record
-      Name     : Host_Name_Type;
-      Node     : Node_Id;
-      Static   : Boolean            := True;
-      Import   : Import_Method_Type := None_Import;
-      External : Host_Name_Type     := No_Name;
+      Name        : Host_Name_Type;
+      Node        : Node_Id;
+      Static      : Boolean            := True;
+      Import      : Import_Method_Type := None_Import;
+      External    : Host_Name_Type     := No_Name;
+      Most_Recent : File_Name_Type     := No_File;
    end record;
 
    type Partition_Type is record
@@ -162,6 +164,8 @@ package XE_Back is
       Filter          : Filter_Name_Type;
       Task_Pool       : Task_Pool_Type;
       Light_PCS       : Boolean;
+      Executable_File : File_Name_Type;
+      Partition_Dir   : File_Name_Type;
    end record;
 
    -- Tables --
