@@ -589,7 +589,15 @@ package body Idl_Fe.Parser is
             Go_To_Next_Definition;
          elsif Definition /= No_Node then
             Def_Nb := Def_Nb + 1;
-            Set_Imported (Definition, Called_From_Import);
+
+            --  Avoid to setup Imported flag on forward declaration nodes.
+
+            if Kind (Definition) /= K_Forward_Interface
+              and then Kind (Definition) /= K_Forward_ValueType
+            then
+               Set_Imported (Definition, Called_From_Import);
+            end if;
+
             Append_Node_To_Contents (Repository, Definition);
          end if;
       end loop;

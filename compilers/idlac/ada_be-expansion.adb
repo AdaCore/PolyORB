@@ -520,7 +520,10 @@ package body Ada_Be.Expansion is
                --  Enable code generation for Idl_File only if its
                --  content is not imported to another file
 
-               if Imported (Current) then
+               if Kind (Current) /= K_Forward_Interface
+                 and then Kind (Current) /= K_Forward_ValueType
+                 and then Imported (Current)
+               then
                   Set_Generate_Code (Idl_File_Node, False);
                end if;
 
