@@ -32,6 +32,7 @@ with Ada_Be.Identifiers;    use Ada_Be.Identifiers;
 with Ada_Be.Debug;
 
 with Ada_Be.Idl2Ada.Impl;
+with Ada_Be.Idl2Ada.Skel;
 
 package body Ada_Be.Idl2Ada.Value_Impl is
 
@@ -143,6 +144,14 @@ package body Ada_Be.Idl2Ada.Value_Impl is
       Node : Node_Id) is
    begin
       case Kind (Node) is
+
+         when K_ValueType =>
+            if Supports (Node) /= Nil_List then
+               Add_With (CU,
+                         Ada_Full_Name (Node)
+                         & Ada_Be.Idl2Ada.Skel.Suffix);
+
+            end if;
 
          when K_Operation =>
             --  for public state members, the operation body is

@@ -99,6 +99,19 @@ package body Ada_Be.Idl2Ada.Skel is
             if Supports (Node) /= Nil_List then
                Gen_Body_Common_Start (CU, Node);
                Gen_Is_A (CU, Node);
+
+               declare
+                  It : Node_Iterator;
+                  P_Node : Node_Id;
+               begin
+                  Init (It, Supports (Node));
+                  while not Is_End (It) loop
+                     Get_Next_Node (It, P_Node);
+                     Add_With (CU,
+                               Ada_Full_Name (P_Node) & ".Skel",
+                               Elab_Control => Elaborate);
+                  end loop;
+               end;
             end if;
 
          when K_Interface =>
@@ -278,7 +291,11 @@ package body Ada_Be.Idl2Ada.Skel is
                if Is_Supported then
                   PL (CU, Ada_Be.Temporaries.T_Value_Operation);
                   Add_With (CU, "CORBA.Impl");
-                  Put (CU, "  (CORBA.Impl.Object_Ptr (Obj)");
+                  PL (CU, "  (CORBA.Impl.Object_Ptr");
+                  Put (CU, "   ("
+                       & Ada_Full_Name (I_Node)
+                       & Ada_Be.Idl2Ada.Helper.Suffix
+                       & ".Servant_Ref (Obj).Value)");
                else
                   PL (CU, Ada_Full_Name (I_Node) & Impl.Suffix
                       & "." & Ada_Name (Node));

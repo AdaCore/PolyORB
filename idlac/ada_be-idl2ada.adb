@@ -269,6 +269,7 @@ package body Ada_Be.Idl2Ada is
       if not Abst (Node) then
          --  Value_Impl type
          Value_Impl.Gen_Node_Spec (Value_Impl_Spec, Node);
+         Value_Impl.Gen_Node_Body (Value_Impl_Body, Node);
          Suppress_Warning_Message (Value_Impl_Body);
 
          --  value_skel package
