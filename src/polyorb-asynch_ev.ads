@@ -153,7 +153,7 @@ package PolyORB.Asynch_Ev is
    type AES_Event_Handler is abstract new PolyORB.Jobs.Job with record
       AES : Asynch_Ev_Source_Access;
    end record;
-   type AES_Event_Handler_Access is access AES_Event_Handler'Class;
+   type AES_Event_Handler_Access is access all AES_Event_Handler'Class;
 
    procedure Handle_Event
      (H : access AES_Event_Handler)

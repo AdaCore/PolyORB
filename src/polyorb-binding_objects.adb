@@ -59,12 +59,14 @@ package body PolyORB.Binding_Objects is
    procedure Finalize (X : in out Binding_Object) is
       use PolyORB.Components;
 
-      M : Filters.Interface.Disconnect_Indication;
-      Reply : constant Message'Class
-        := Emit (Component_Access (X.Transport_Endpoint), M);
    begin
-      pragma Assert (Reply in Filters.Interface.Disconnect_Confirmation);
-      null;
+      pragma Debug (O ("Finalizing binding object."));
+      Emit_No_Reply (Component_Access (X.Transport_Endpoint),
+                     Filters.Interface.Disconnect_Indication'(null record));
+      pragma Debug (O ("Destroying protocol stack"));
+      Destroy (Component_Access (X.Transport_Endpoint));
+      --  This will recursively destroy all the protocol stack.
+      pragma Debug (O ("RIP."));
    exception
       when E : others =>
          pragma Debug (O ("Finalization of binding object raised: "

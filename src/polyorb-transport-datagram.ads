@@ -73,11 +73,9 @@ package PolyORB.Transport.Datagram is
 
 private
 
-   type Datagram_Transport_Access_Point is
-     abstract new Transport_Access_Point with null record;
-
-   type Datagram_Transport_Endpoint
-      is abstract new Transport_Endpoint with null record;
+   ----------------------------------------------------
+   -- Connectionless transport service access points --
+   ----------------------------------------------------
 
    type Datagram_TAP_AES_Event_Handler is
      new Handlers.TAP_AES_Event_Handler with null record;
@@ -85,7 +83,20 @@ private
    procedure Handle_Event
      (H : access Datagram_TAP_AES_Event_Handler);
 
+   type Datagram_Transport_Access_Point is
+     abstract new Transport_Access_Point with record
+        Handler : aliased Datagram_TAP_AES_Event_Handler;
+     end record;
+
+   ----------------------------------------
+   -- Connectionless transport endpoints --
+   ----------------------------------------
+
    subtype Datagram_TE_AES_Event_Handler is
      Handlers.TE_AES_Event_Handler;
+
+   type Datagram_Transport_Endpoint is
+      abstract new Transport_Endpoint with null record;
+   --  Only datagram in endpoints have a Handler.
 
 end PolyORB.Transport.Datagram;

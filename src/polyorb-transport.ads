@@ -71,7 +71,7 @@ package PolyORB.Transport is
    --  This functions returns an access to TAP's Notepad component.
 
    function Create_Event_Source
-     (TAP : Transport_Access_Point)
+     (TAP : access Transport_Access_Point)
      return Asynch_Ev.Asynch_Ev_Source_Access
       is abstract;
    --  Create a view of TAP as an asyncrhonous event source.
@@ -105,9 +105,6 @@ package PolyORB.Transport is
      return Annotations.Notepad_Access;
    pragma Inline (Notepad_Of);
 
-   procedure Destroy (TE : in out Transport_Endpoint_Access);
-   --  Destroy a transport endpoint and the associated protocol stack.
-
    function Handle_Message
      (TE  : access Transport_Endpoint;
       Msg :        Components.Message'Class)
@@ -129,7 +126,7 @@ package PolyORB.Transport is
    --  threads, and /must not/ be blocking.
 
    function Create_Event_Source
-     (TE : Transport_Endpoint)
+     (TE : access Transport_Endpoint)
      return Asynch_Ev.Asynch_Ev_Source_Access
       is abstract;
    --  Create a view of TE as an asyncrhonous event source.
@@ -157,6 +154,9 @@ package PolyORB.Transport is
    --  Dissociate the transport endpoint from any communication
    --  resource.
 
+   procedure Destroy (TE : in out Transport_Endpoint);
+   --  Destroy any resources allocated to TE.
+
 private
 
    type Transport_Access_Point
@@ -178,6 +178,9 @@ private
          --  For server-side transport endpoints, keep a reference
          --  to the associated binding object as long as the
          --  transport endpoint is alive.
+
+         Closed : Boolean := False;
+         --  Set to True once Close has been called on this endpoint.
 
          In_Buf : Buffers.Buffer_Access;
          Max    : Ada.Streams.Stream_Element_Count;

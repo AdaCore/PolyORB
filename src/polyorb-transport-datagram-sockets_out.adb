@@ -55,15 +55,15 @@ package body PolyORB.Transport.Datagram.Sockets_Out is
    -------------------------
 
    function Create_Event_Source
-     (TE : Socket_Out_Endpoint)
+     (TE : access Socket_Out_Endpoint)
      return Asynch_Ev_Source_Access
    is
       pragma Warnings (Off);
       pragma Unreferenced (TE);
       pragma Warnings (On);
    begin
-      pragma Debug (O ("Return null event source for datagram out end point"));
       return null;
+      --  No event source for datagram out endpoint.
    end Create_Event_Source;
 
    ------------
@@ -138,11 +138,15 @@ package body PolyORB.Transport.Datagram.Sockets_Out is
    procedure Close (TE : access Socket_Out_Endpoint) is
    begin
       pragma Debug (O ("Closing UDP socket"));
+      if TE.Closed then
+         return;
+      end if;
+
       Enter (TE.Mutex);
-      PolyORB.Transport.Datagram.Close
-        (Datagram_Transport_Endpoint (TE.all)'Access);
       TE.Socket := No_Socket;
       Leave (TE.Mutex);
+      PolyORB.Transport.Datagram.Close
+        (Datagram_Transport_Endpoint (TE.all)'Access);
    end Close;
 
    -------------
@@ -152,6 +156,7 @@ package body PolyORB.Transport.Datagram.Sockets_Out is
    procedure Destroy (TE : in out Socket_Out_Endpoint) is
    begin
       Destroy (TE.Mutex);
+      Datagram.Destroy (Datagram_Transport_Endpoint (TE));
    end Destroy;
 
 end PolyORB.Transport.Datagram.Sockets_Out;

@@ -266,7 +266,6 @@ package body PolyORB.References.Binding is
 
          declare
             use PolyORB.Binding_Objects;
-            --  use PolyORB.Components;
 
             RI : constant Reference_Info_Access := Ref_Info_Of (R);
          begin

@@ -575,7 +575,7 @@ package body PolyORB.ORB is
       PF    :        PBD.Profile_Factory_Access)
    is
       New_AES : constant Asynch_Ev_Source_Access
-        := Create_Event_Source (TAP.all);
+        := Create_Event_Source (TAP);
       A_Note  : AES_Note;
       ORB_Acc : constant ORB_Access := ORB_Access (ORB);
 
@@ -655,8 +655,8 @@ package body PolyORB.ORB is
       Role         :        Endpoint_Role)
    is
       New_AES    : constant Asynch_Ev_Source_Access
-        := Create_Event_Source (TE.all);
-      --  New_AES is set to null for write only Endpoint
+        := Create_Event_Source (TE);
+      --  New_AES is null for output-only endpoints
 
       A_Note     : AES_Note;
       ORB_Acc    : constant ORB_Access := ORB_Access (ORB);
@@ -818,9 +818,8 @@ package body PolyORB.ORB is
    begin
 
       --  Delete_Source is called only during the processing of
-      --  an Unregister_Endpoint message by the ORB, in response
-      --  to a Disconnect_Request on AES. Consequently, it is
-      --  safe to assume that AES has already been removed from
+      --  an Unregister_Endpoint message by the ORB. Consequently,
+      --  it is safe to assume that AES has already been removed from
       --  the corresponding AEM.
 
       Enter (ORB.ORB_Lock);

@@ -36,8 +36,6 @@
 
 --  $Id$
 
-with Ada.Unchecked_Deallocation;
-
 with PolyORB.ORB.Interface;
 
 package body PolyORB.Transport is
@@ -83,10 +81,13 @@ package body PolyORB.Transport is
 
    procedure Close (TE : access Transport_Endpoint) is
    begin
+      if TE.Closed then
+         return;
+      end if;
       Emit_No_Reply
         (TE.Server, ORB.Interface.Unregister_Endpoint'
          (TE => Transport_Endpoint_Access (TE)));
-      PolyORB.Smart_Pointers.Set (TE.Dependent_Binding_Object, null);
+      TE.Closed := True;
    end Close;
 
    -------------------
@@ -100,6 +101,18 @@ package body PolyORB.Transport is
       Components.Connect (TE.Upper, Upper);
    end Connect_Upper;
 
+   -------------
+   -- Destroy --
+   -------------
+
+   procedure Destroy
+     (TE : in out Transport_Endpoint)
+   is
+   begin
+      Annotations.Destroy (TE.Notepad);
+      Destroy (TE.Upper);
+   end Destroy;
+
    ----------------
    -- Notepad_Of --
    ----------------
@@ -110,20 +123,6 @@ package body PolyORB.Transport is
    begin
       return TE.Notepad'Access;
    end Notepad_Of;
-
-   -------------
-   -- Destroy --
-   -------------
-
-   procedure Destroy
-     (TE : in out Transport_Endpoint_Access)
-   is
-      procedure Free is new Ada.Unchecked_Deallocation
-        (Transport_Endpoint'Class, Transport_Endpoint_Access);
-   begin
-      Destroy (TE.Upper);
-      Free (TE);
-   end Destroy;
 
    -----------
    -- Upper --

@@ -83,6 +83,7 @@ package body PolyORB.Transport.Datagram is
         (Create_Endpoint (Datagram_Transport_Access_Point_Access (H.TAP)));
       New_BO : Smart_Pointers.Ref;
    begin
+      Set_Allocation_Class (New_TE.all, Dynamic);
       if New_TE /= null then
          pragma Debug (O ("Create and register Endpoint"));
 
@@ -173,9 +174,11 @@ package body PolyORB.Transport.Datagram is
          TE.Server := Set_Server (Msg).Server;
          return Emit (TE.Upper, Msg);
 
-      elsif Msg in Connect_Confirmation
-        or else Msg in Disconnect_Indication
-      then
+      elsif Msg in Connect_Confirmation then
+         return Emit (TE.Upper, Msg);
+
+      elsif Msg in Disconnect_Indication then
+         Close (Transport_Endpoint'Class (TE.all)'Access);
          return Emit (TE.Upper, Msg);
 
       elsif Msg in Disconnect_Request then

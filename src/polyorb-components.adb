@@ -120,6 +120,8 @@ package body PolyORB.Components is
          new Ada.Unchecked_Deallocation
         (Component'Class, Component_Access);
    begin
+      pragma Debug
+        (O ("Destroying component " & Ada.Tags.External_Tag (C'Tag)));
       pragma Assert (C /= null);
       pragma Assert (C.Allocation_Class = Dynamic);
       --  Thou shalt not attempt to dynamically destroy a
@@ -137,7 +139,6 @@ package body PolyORB.Components is
      (C   : in out Component'Class;
       CAC :        Component_Allocation_Class) is
    begin
-      pragma Assert (C.Allocation_Class = Auto);
       C.Allocation_Class := CAC;
    end Set_Allocation_Class;
 

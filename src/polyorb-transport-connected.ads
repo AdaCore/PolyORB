@@ -86,11 +86,9 @@ package PolyORB.Transport.Connected is
 
 private
 
-   type Connected_Transport_Access_Point is
-     abstract new Transport_Access_Point with null record;
-
-   type Connected_Transport_Endpoint is
-     abstract new Transport_Endpoint with null record;
+   -----------------------------------------------
+   -- Connected transport service access points --
+   -----------------------------------------------
 
    type Connected_TAP_AES_Event_Handler is
      new Handlers.TAP_AES_Event_Handler with null record;
@@ -98,7 +96,21 @@ private
    procedure Handle_Event
      (H : access Connected_TAP_AES_Event_Handler);
 
+   type Connected_Transport_Access_Point is
+     abstract new Transport_Access_Point with record
+        Handler : aliased Connected_TAP_AES_Event_Handler;
+     end record;
+
+   -----------------------------------
+   -- Connected transport endpoints --
+   -----------------------------------
+
    subtype Connected_TE_AES_Event_Handler is
      Handlers.TE_AES_Event_Handler;
+
+   type Connected_Transport_Endpoint is
+     abstract new Transport_Endpoint with record
+        Handler : aliased Connected_TE_AES_Event_Handler;
+     end record;
 
 end PolyORB.Transport.Connected;

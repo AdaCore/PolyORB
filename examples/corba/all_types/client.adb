@@ -33,7 +33,7 @@
 
 --  All_Types client.
 
---  $Id: //droopi/main/examples/corba/all_types/client.adb#14 $
+--  $Id: //droopi/main/examples/corba/all_types/client.adb#15 $
 
 with Ada.Characters.Handling;
 with Ada.Command_Line; use Ada.Command_Line;
@@ -219,7 +219,7 @@ begin
          X := echoRef (Myall_types, Myall_types);
          Output ("test self reference", True);
 
-         for I in 1 .. 15 loop
+         for I in 1 .. 47 loop
             X := echoRef (X, X);
          end loop;
          Output ("test self reference consistency",

@@ -59,7 +59,7 @@ package PolyORB.Transport.Connected.Sockets is
    --  Address is always set to the actual address used.
 
    function Create_Event_Source
-     (TAP : Socket_Access_Point)
+     (TAP : access Socket_Access_Point)
       return Asynch_Ev.Asynch_Ev_Source_Access;
 
    procedure Accept_Connection
@@ -79,7 +79,7 @@ package PolyORB.Transport.Connected.Sockets is
       S  : Socket_Type);
 
    function Create_Event_Source
-     (TE : Socket_Endpoint)
+     (TE : access Socket_Endpoint)
       return Asynch_Ev.Asynch_Ev_Source_Access;
 
    function Is_Data_Available

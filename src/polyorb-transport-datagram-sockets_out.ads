@@ -60,7 +60,7 @@ package PolyORB.Transport.Datagram.Sockets_Out is
       Addr :        Sock_Addr_Type);
 
    function Create_Event_Source
-     (TE : Socket_Out_Endpoint)
+     (TE : access Socket_Out_Endpoint)
       return Asynch_Ev.Asynch_Ev_Source_Access;
 
    procedure Read

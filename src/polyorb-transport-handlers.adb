@@ -67,10 +67,13 @@ package body PolyORB.Transport.Handlers is
            (H.ORB.Tasking_Policy, H.TE);
          --  Notify the tasking policy that an endpoint is being destroyed.
 
-         PolyORB.Transport.Close (H.TE);
-         --  Close the transport endpoint. A disconnect indication
-         --  will be propagated through the protocol stack just before
-         --  it is dismantled.
+         Emit_No_Reply
+           (Component_Access (H.TE),
+            Filters.Interface.Disconnect_Indication'(null record));
+         --  Close the endpoint.
+
+         Smart_Pointers.Set (H.TE.Dependent_Binding_Object, null);
+         --  Possibly finalize it.
       else
          null;
       end if;

@@ -80,7 +80,7 @@ package body PolyORB.Transport.Datagram.Sockets_In is
    -------------------------
 
    function Create_Event_Source
-     (TAP : Socket_In_Access_Point)
+     (TAP : access Socket_In_Access_Point)
      return Asynch_Ev_Source_Access
    is
       use PolyORB.Annotations;
@@ -90,7 +90,7 @@ package body PolyORB.Transport.Datagram.Sockets_In is
    begin
       Set_Note (Notepad_Of (Ev_Src).all,
                 AES_Note'(Annotations.Note with Handler =>
-                            new Datagram_TAP_AES_Event_Handler));
+                            TAP.Handler'Access));
       return Ev_Src;
    end Create_Event_Source;
 
@@ -122,7 +122,7 @@ package body PolyORB.Transport.Datagram.Sockets_In is
    -------------------------
 
    function Create_Event_Source
-     (TE : Socket_In_Endpoint)
+     (TE : access Socket_In_Endpoint)
      return Asynch_Ev_Source_Access
    is
       use PolyORB.Annotations;
@@ -132,7 +132,7 @@ package body PolyORB.Transport.Datagram.Sockets_In is
    begin
       Set_Note (Notepad_Of (Ev_Src).all,
                 AES_Note'(Annotations.Note with Handler =>
-                            new Datagram_TE_AES_Event_Handler));
+                            TE.Handler'Access));
       return Ev_Src;
    end Create_Event_Source;
 
@@ -196,6 +196,10 @@ package body PolyORB.Transport.Datagram.Sockets_In is
    procedure Close (TE : access Socket_In_Endpoint) is
    begin
       pragma Debug (O ("Closing udp socket"));
+      if TE.Closed then
+         return;
+      end if;
+
       PolyORB.Transport.Datagram.Close
         (Datagram_Transport_Endpoint (TE.all)'Access);
       TE.Socket := No_Socket;

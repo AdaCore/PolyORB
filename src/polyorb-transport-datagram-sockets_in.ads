@@ -63,7 +63,7 @@ package PolyORB.Transport.Datagram.Sockets_In is
    --  For multicast sockets, it will remove multicast address
 
    function Create_Event_Source
-     (TAP : Socket_In_Access_Point)
+     (TAP : access Socket_In_Access_Point)
       return Asynch_Ev.Asynch_Ev_Source_Access;
 
    function Address_Of (SAP : Socket_In_Access_Point)
@@ -83,7 +83,7 @@ package PolyORB.Transport.Datagram.Sockets_In is
       Addr :        Sock_Addr_Type);
 
    function Create_Event_Source
-     (TE : Socket_In_Endpoint)
+     (TE : access Socket_In_Endpoint)
       return Asynch_Ev.Asynch_Ev_Source_Access;
 
    procedure Read
@@ -119,6 +119,7 @@ private
 
    type Socket_In_Endpoint is new Datagram_Transport_Endpoint
      with record
+        Handler : aliased Datagram_TE_AES_Event_Handler;
         Socket : Socket_Type := No_Socket;
         Addr   : Sock_Addr_Type;
      end record;

@@ -83,10 +83,6 @@ package PolyORB.Filters.Interface is
    --    condition occured, causing the ORB to determine that the
    --    protocol layer must be dismantled.
 
-   type Disconnect_Confirmation is new Root_Data_Unit with null record;
-   --  Direction: from upper to lower
-   --  Semantics: a disconnect indication has been acted upon.
-
    type Disconnect_Request is new Root_Data_Unit with null record;
    --  Direction: from upper to lower.
    --  Semantics: the application requests that the whole

@@ -102,6 +102,7 @@ package body PolyORB.Filters is
    begin
       for J in Factories'Range loop
          Create (Fact => Factories (J), Filt => F);
+         Set_Allocation_Class (F.all, Dynamic);
          pragma Debug (O ("Created filter of type "
                           & Ada.Tags.External_Tag (F'Tag)));
          --  Create new filter.

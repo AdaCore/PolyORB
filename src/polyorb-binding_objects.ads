@@ -44,7 +44,8 @@ with PolyORB.Transport;
 
 package PolyORB.Binding_Objects is
 
-   type Binding_Object is new Smart_Pointers.Entity with private;
+   type Binding_Object is
+     new Smart_Pointers.Non_Controlled_Entity with private;
    type Binding_Object_Access is access all Binding_Object'Class;
    --  A protocol session and associated transport and filter stack,
    --  seen globally as a reference-counted entity.
@@ -66,10 +67,11 @@ package PolyORB.Binding_Objects is
 
 private
 
-   type Binding_Object is new Smart_Pointers.Entity with record
-      Transport_Endpoint : Transport.Transport_Endpoint_Access;
-      Top : Filters.Filter_Access;
-   end record;
+   type Binding_Object is
+     new Smart_Pointers.Non_Controlled_Entity with record
+        Transport_Endpoint : Transport.Transport_Endpoint_Access;
+        Top : Filters.Filter_Access;
+     end record;
 
    procedure Finalize (X : in out Binding_Object);
 
