@@ -5,7 +5,6 @@ with Values;    use Values;
 with Frontend.Nutils;
 with Frontend.Nodes;            use Frontend.Nodes;
 
-with Backend.BE_Ada.Expand;     use Backend.BE_Ada.Expand;
 with Backend.BE_Ada.IDL_To_Ada; use Backend.BE_Ada.IDL_To_Ada;
 with Backend.BE_Ada.Nodes;      use Backend.BE_Ada.Nodes;
 with Backend.BE_Ada.Nutils;     use Backend.BE_Ada.Nutils;
@@ -645,20 +644,21 @@ package body Backend.BE_Ada.Stubs is
       elsif Is_Base_Type
         (FE_Node (Defining_Identifier (Return_T)))
       then
-         Get_Name_String_And_Append
-           (BEN.Name (Defining_Identifier (Return_T)));
-         Param := Expand_Designator
-           (Identifier => Make_Defining_Identifier (Name_Find),
-            Unit_Name => RU (RU_CORBA));
-         I := RE (RE_Get_Empty_Any_0);
+         --  Get_Name_String_And_Append
+         --  (BEN.Name (Defining_Identifier (Return_T)));
+         --  Param := Expand_Designator
+         --  (Identifier => Make_Defining_Identifier (Name_Find),
+         --   Unit_Name => RU (RU_CORBA));
+         --  I := RE (RE_Get_Empty_Any_0);
+         null;
       else
          Get_Name_String_And_Append
            (BEN.Name (Defining_Identifier (Return_T)));
-         Param := Expand_Designator
-           (Identifier => Make_Defining_Identifier (Name_Find),
-            Unit_Name =>
-              Qualified_Designator
-            (Defining_Identifier ((Helper_Package (Current_Entity)))));
+         --  Param := Expand_Designator
+         --  (Identifier => Make_Defining_Identifier (Name_Find),
+         --   Unit_Name =>
+         --     Qualified_Designator
+         --   (Defining_Identifier ((Helper_Package (Current_Entity)))));
          I := RE (RE_Get_Empty_Any_0);
       end if;
       C := Make_Subprogram_Call
