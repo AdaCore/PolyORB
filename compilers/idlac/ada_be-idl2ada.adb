@@ -1657,6 +1657,7 @@ package body Ada_Be.Idl2Ada is
                               Put (CU, " - 1");
                            end loop;
                            PL (CU, ") of");
+                           II (CU);
                         else
                            Put (CU, "  ");
                            if not (Is_Ref or else Is_Fixed) then
@@ -1666,6 +1667,10 @@ package body Ada_Be.Idl2Ada is
 
                         Gen_Node_Stubs_Spec (CU, T_Type (Node));
                         PL (CU, ";");
+
+                        if Is_Array then
+                           DI (CU);
+                        end if;
                      end;
 
                      if Original_Node (Decl_Node) = No_Node then
@@ -1990,27 +1995,36 @@ package body Ada_Be.Idl2Ada is
                         declare
                            Arg_Name : constant String
                              := Ada_Name (Declarator (P_Node));
-                           Prefix   : constant String
-                             := Helper_Unit (Param_Type (P_Node));
+                           P_Typ : constant Node_Id := Param_Type (P_Node);
+                           Helper_Name : constant String
+                             := Helper_Unit (P_Typ);
                         begin
+                           Add_With (CU, Helper_Name);
                            PL (CU, T_Arg_Name & Arg_Name
                                & " : PolyORB.Types.Identifier");
                            PL (CU, "  := PolyORB.Types.To_PolyORB_String ("""
                                & Arg_Name & """);");
 
-                           Add_With (CU, Prefix);
-
-                           PL (CU, "pragma Warnings (Off);");
-                           --  Argument of To_Any may be referenced before it
-                           --  has a value.
                            PL (CU, T_Argument & Arg_Name & " : CORBA.Any");
-                           PL (CU, "  := " & Prefix & ".To_Any");
-                           Put (CU, "  (");
-                           Gen_Forward_Conversion
-                             (CU, Param_Type (P_Node),
-                              "From_Forward", Arg_Name);
-                           PL (CU, ");");
-                           PL (CU, "pragma Warnings (On);");
+                           if Mode (P_Node) /= Mode_Out then
+                              PL (CU, "  := " & Helper_Name & ".To_Any");
+                              Put (CU, "  (");
+                              Gen_Forward_Conversion
+                                (CU, P_Typ, "From_Forward", Arg_Name);
+                              PL (CU, ");");
+                           else
+                              declare
+                                 TC_Helper_Name   : constant String
+                                   := Ada_Helper_Name (P_Typ);
+                              begin
+                                 Add_With (CU, TC_Helper_Name);
+                                 PL (CU, "  := CORBA.Get_Empty_Any");
+                                 II (CU);
+                                 PL (CU, "("
+                                   & Ada_Full_TC_Name (P_Typ) & ");");
+                                 DI (CU);
+                              end;
+                           end if;
                         end;
                      end if;
                   end loop;
