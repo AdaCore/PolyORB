@@ -20,7 +20,7 @@ gnatdist_DEPENDENCIES = xe_defs.o xe_sysdep.adb sdefault.adb
 gnatdist_SOURCES =
 gnatdist_LDADD =
 
-CLEANFILES = b~*.ad[bs] *.ali gnatdist$(EXEEXT)\
+CLEANFILES = b~*.ad[bs] *.ali gnatdist$(EXEEXT) b_xe_defs$(EXEEXT) \
              xe_defs.adb xe_sysdep.adb sdefault.adb
 
 force: 
@@ -52,7 +52,7 @@ xe_defs.adb: Makefile b_xe_defs$(EXEEXT)
 	   DEFSTORAGENAME="$(DEFSTORAGENAME)" \
 	   DEFPROTOCOLDATA="$(DEFPROTOCOLDATA)" \
 	   DEFPROTOCOLNAME="$(DEFPROTOCOLNAME)" \
-	   "$(PSNAME)=" >xe_defs.adb
+	   PSNAME="$(PSNAME)" >xe_defs.adb
 
 xe_defs.o: xe_defs.ads xe_defs.adb
 	$(GNAT_FOR_HOST) $(COMPILE) $(GNATFLAGS) -I$(srcdir) -I$(GNATSRC) \
