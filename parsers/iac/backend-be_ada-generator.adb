@@ -641,6 +641,7 @@ package body Backend.BE_Ada.Generator is
       D := Declarations (N);
       S := Statements (N);
       Generate_Subprogram_Specification (Specification (N));
+      Write_Space;
       Write (Tok_Is);
       Write_Eol;
       if not Is_Empty (D)  then
@@ -650,12 +651,19 @@ package body Backend.BE_Ada.Generator is
       Write (Tok_Begin);
       Write_Eol;
 
-      if not Is_Empty (S) then
-         null; -- Generate statements
+      Increment_Indentation;
+      if Is_Empty (S) then
+         Write_Indentation;
+         Write (Tok_Null);
+         Write (Tok_Semicolon);
+         Write_Eol;
       end if;
+      Decrement_Indentation;
+
       Write_Indentation;
       Write (Tok_End);
       Write_Space;
+      Write_Name (Name (Defining_Identifier (Specification (N))));
    end Generate_Subprogram_Implementation;
 
    ---------------------------------------

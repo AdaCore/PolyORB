@@ -2,6 +2,7 @@ with GNAT.Table;
 
 with Locations; use Locations;
 with Namet;     use Namet;
+with Output;    use Output;
 with Utils;     use Utils;
 with Values;    use Values;
 
@@ -23,9 +24,60 @@ package body Backend.BE_Ada.Nutils is
 
    use Entity_Stack;
 
-   function Make_Withed_Package (N : Node_Id) return Node_Id;
+   procedure Add_With_Package (P : Node_Id);
 
    CORBA_Type : array (FEN.K_Float .. FEN.K_Value_Base) of Name_Id;
+
+   ----------------------
+   -- Add_With_Package --
+   ----------------------
+
+   procedure Add_With_Package (P : Node_Id) is
+      W : Node_Id;
+
+      procedure Get_Defining_Identifier_Name (N : Node_Id);
+
+      ----------------------------------
+      -- Get_Defining_Identifier_Name --
+      ----------------------------------
+
+      procedure Get_Defining_Identifier_Name (N : Node_Id) is
+         P : constant Node_Id := Parent_Unit_Name (N);
+
+      begin
+         if Present (P) then
+            Get_Defining_Identifier_Name (P);
+            Add_Char_To_Name_Buffer ('.');
+         end if;
+         Get_Name_String_And_Append (Name (N));
+      end Get_Defining_Identifier_Name;
+
+      B : Byte;
+      N : Name_Id;
+
+   begin
+      Name_Len := 0;
+      Get_Defining_Identifier_Name
+        (Defining_Identifier (Package_Declaration (Current_Package)));
+      Add_Char_To_Name_Buffer (' ');
+      Get_Defining_Identifier_Name
+        (Defining_Identifier (P));
+      Add_Char_To_Name_Buffer ('%');
+      if Kind (Current_Package) = K_Package_Specification then
+         Add_Char_To_Name_Buffer ('s');
+      else
+         Add_Char_To_Name_Buffer ('b');
+      end if;
+      N := To_Lower (Name_Find);
+      B := Get_Name_Table_Byte (N);
+      if B /= 0 then
+         return;
+      end if;
+      Set_Name_Table_Byte (N, 1);
+      W := New_Node (K_Withed_Package);
+      Set_Defining_Identifier (W, P);
+      Append_Node_To_List (W, Withed_Packages (Current_Package));
+   end Add_With_Package;
 
    -------------------------
    -- Append_Node_To_List --
@@ -47,6 +99,28 @@ package body Backend.BE_Ada.Nutils is
          Last := Next_Node (Last);
       end loop;
    end Append_Node_To_List;
+
+   ---------------------
+   -- Copy_Designator --
+   ---------------------
+
+   function Copy_Designator
+     (Designator : Node_Id)
+     return Node_Id
+   is
+      D : Node_Id;
+      P : Node_Id := Parent_Unit_Name (Designator);
+
+   begin
+      D := Copy_Node (Designator);
+      if Present (P) then
+         P := Copy_Designator (P);
+         Set_Parent_Unit_Name (D, P);
+         Add_With_Package (P);
+      end if;
+      return D;
+   end Copy_Designator;
+
 
    ---------------
    -- Copy_Node --
@@ -250,8 +324,7 @@ package body Backend.BE_Ada.Nutils is
 
       P := Parent_Unit_Name (N);
       if Present (P) then
-         Append_Node_To_List
-           (Make_Withed_Package (P), Withed_Packages (Current_Package));
+         Add_With_Package (P);
       end if;
 
       return N;
@@ -481,19 +554,6 @@ package body Backend.BE_Ada.Nutils is
       Set_Return_Type          (N, Return_Type);
       return N;
    end Make_Subprogram_Specification;
-
-   -------------------------
-   -- Make_Withed_Package --
-   -------------------------
-
-   function Make_Withed_Package (N : Node_Id) return Node_Id is
-      W : Node_Id;
-
-   begin
-      W := New_Node (K_Withed_Package);
-      Set_Defining_Identifier (W, Copy_Node (Defining_Identifier (N)));
-      return W;
-   end Make_Withed_Package;
 
    --------------
    -- New_List --

@@ -47,6 +47,10 @@ package Backend.BE_Ada.Nutils is
 
    function To_Ada_Name (N : Name_Id) return Name_Id;
 
+   function Copy_Designator
+     (Designator : Node_Id)
+     return Node_Id;
+
    function Make_Array_Type_Definition
      (Range_Constraints    : List_Id;
       Component_Definition : Node_Id)

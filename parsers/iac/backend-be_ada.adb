@@ -21,12 +21,18 @@ package body Backend.BE_Ada is
    CORBA_Designator            : Node_Id;
    CORBA_Object_Designator     : Node_Id;
    CORBA_Object_Ref_Designator : Node_Id;
+   Standard_Designator         : Node_Id;
+   Standard_String_Designator  : Node_Id;
 
    Returns_Parameter_Name : Name_Id;
    Self_Parameter_Name    : Name_Id;
    To_Parameter_Name      : Name_Id;
 
    package FEN renames Frontend.Nodes;
+   package BEN renames Backend.BE_Ada.Nodes;
+
+   Getter : constant Character := 'G';
+   Setter : constant Character := 'S';
 
    procedure Visit (E : Node_Id);
    procedure Visit_Attribute_Declaration (E : Node_Id);
@@ -39,12 +45,11 @@ package body Backend.BE_Ada is
    procedure Visit_Structure_Type (E : Node_Id);
    procedure Visit_Type_Declaration (E : Node_Id);
 
-   function Make_Attribute_Getter_Spec
-     (Name : Name_Id; Type_Definition : Node_Id) return Node_Id;
-   function Make_Attribute_Setter_Spec
-     (Name : Name_Id; Type_Definition : Node_Id) return Node_Id;
+   function Make_Accessor_Declaration
+     (Accessor : Character; Attribute : Node_Id) return Node_Id;
    function Make_IDL_Unit (E : Node_Id) return Node_Id;
    function Make_Package_Declaration (E : Node_Id) return Node_Id;
+   function Make_Repository_Declaration (N : Node_Id) return Node_Id;
 
    ---------------
    -- Configure --
@@ -115,6 +120,18 @@ package body Backend.BE_Ada is
       Set_Parent_Unit_Name
         (CORBA_Object_Ref_Designator, CORBA_Object_Designator);
 
+      Standard_Designator := New_Node (K_Designator);
+      Set_Str_To_Name_Buffer ("Standard");
+      Set_Defining_Identifier
+        (Standard_Designator, Make_Defining_Identifier (Name_Find));
+
+      Standard_String_Designator := New_Node (K_Designator);
+      Set_Str_To_Name_Buffer ("String");
+      Set_Defining_Identifier
+        (Standard_String_Designator, Make_Defining_Identifier (Name_Find));
+      Set_Parent_Unit_Name
+        (Standard_String_Designator, Standard_Designator);
+
       Set_Str_To_Name_Buffer ("Returns");
       Returns_Parameter_Name := Name_Find;
       Set_Str_To_Name_Buffer ("Self");
@@ -133,33 +150,41 @@ package body Backend.BE_Ada is
       Generator.Generate (BE_Node (E));
    end Generate;
 
-   --------------------------------
-   -- Make_Attribute_Getter_Spec --
-   --------------------------------
+   ---------------------------------
+   -- Make_Accessor_Specification --
+   ---------------------------------
 
-   function Make_Attribute_Getter_Spec
-     (Name      : Name_Id;
-      Type_Definition : Node_Id)
+   function Make_Accessor_Declaration
+     (Accessor  : Character;
+      Attribute : Node_Id)
      return Node_Id is
-      S : Node_Id;
-      N : Name_Id;
       P : Node_Id;
-      T : Node_Id;
       L : List_Id;
+      T : Node_Id;
+      N : Name_Id;
+
    begin
-      N := To_Ada_Name (Name);
-      Set_Str_To_Name_Buffer ("Get_");
-      Get_Name_String_And_Append (N);
-      S := Make_Defining_Identifier (Name_Find);
       L := New_List (K_Parameter_Profile);
       P := Make_Parameter_Specification
         (Make_Defining_Identifier (Self_Parameter_Name),
          Interface_Ref_Designator);
       Append_Node_To_List (P, L);
-      T := Make_Designator (Type_Definition);
-      S := Make_Subprogram_Specification (S, L, T);
-      return S;
-   end Make_Attribute_Getter_Spec;
+      if Accessor = Setter then
+         P := Make_Parameter_Specification
+           (Make_Defining_Identifier (To_Parameter_Name),
+            Make_Designator (Type_Spec (Declaration (Attribute))));
+         Append_Node_To_List (P, L);
+         T := No_Node;
+      else
+         T := Make_Designator (Type_Spec (Declaration (Attribute)));
+      end if;
+      N := To_Ada_Name (IDL_Name (FEN.Identifier (Attribute)));
+      Set_Str_To_Name_Buffer ("Set_");
+      Name_Buffer (1) := Accessor;
+      Get_Name_String_And_Append (N);
+      return Make_Subprogram_Specification
+        (Make_Defining_Identifier (Name_Find), L, T);
+   end Make_Accessor_Declaration;
 
    -------------------
    -- Make_IDL_Unit --
@@ -252,36 +277,28 @@ package body Backend.BE_Ada is
       return D;
    end Make_Package_Declaration;
 
-   --------------------------------
-   -- Make_Attribute_Setter_Spec --
-   --------------------------------
+   ---------------------------------
+   -- Make_Repository_Declaration --
+   ---------------------------------
 
-   function Make_Attribute_Setter_Spec
-     (Name             : Name_Id;
-      Type_Definition  : Node_Id)
-     return Node_Id is
-      S      : Node_Id;
-      N      : Name_Id;
-      P      : Node_Id;
-      L      : List_Id;
+   function Make_Repository_Declaration (N : Node_Id) return Node_Id is
+      I : Name_Id;
+      V : Value_Id;
 
    begin
-      N := To_Ada_Name (Name);
-      Set_Str_To_Name_Buffer ("Set_");
-      Get_Name_String_And_Append (N);
-      S := Make_Defining_Identifier (Name_Find);
-      L := New_List (K_Parameter_Profile);
-      P := Make_Parameter_Specification
-        (Make_Defining_Identifier (Self_Parameter_Name),
-         Interface_Ref_Designator);
-      Append_Node_To_List (P, L);
-      P := Make_Parameter_Specification
-        (Make_Defining_Identifier (To_Parameter_Name),
-         Make_Designator (Type_Definition));
-      Append_Node_To_List (P, L);
-      S := Make_Subprogram_Specification (S, L);
-      return S;
-   end Make_Attribute_Setter_Spec;
+      Get_Name_String (BEN.Name (Defining_Identifier (N)));
+      Add_Str_To_Name_Buffer ("_Repository_Id");
+      I := Name_Find;
+      Set_Str_To_Name_Buffer ("IDL:");
+      Get_Name_String_And_Append (BEN.Name (Defining_Identifier (N)));
+      Add_Str_To_Name_Buffer (":1.0");
+      V := New_String_Value (Name_Find, False);
+      return Make_Object_Declaration
+        (Defining_Identifier => Make_Defining_Identifier (I),
+         Constant_Present    => True,
+         Object_Definition   => Copy_Designator (Standard_String_Designator),
+         Expression          => Make_Literal (V));
+   end Make_Repository_Declaration;
 
    -----------
    -- Usage --
@@ -348,9 +365,8 @@ package body Backend.BE_Ada is
       A := First_Entity (Declarators (E));
       while Present (A) loop
          Set_Main_Spec;
-         N := Make_Attribute_Getter_Spec
-           (Name => IDL_Name (FEN.Identifier (A)),
-            Type_Definition => Type_Spec (E));
+         N := Make_Accessor_Declaration
+           (Accessor => Getter, Attribute => A);
          Append_Node_To_List (N, Visible_Part (Current_Package));
 
          Set_Main_Body;
@@ -360,9 +376,8 @@ package body Backend.BE_Ada is
 
          if not Is_Readonly (E) then
             Set_Main_Spec;
-            N := Make_Attribute_Setter_Spec
-              (Name => IDL_Name (FEN.Identifier (A)),
-               Type_Definition  => Type_Spec (E));
+            N := Make_Accessor_Declaration
+              (Accessor => Setter, Attribute => A);
             Append_Node_To_List (N, Visible_Part (Current_Package));
 
             Set_Main_Body;
@@ -418,7 +433,12 @@ package body Backend.BE_Ada is
            Make_Enumeration_Type_Definition (Enum_Literals));
 
       Set_BE_Node (E, Enum_Type_Decl);
-      Append_Node_To_List (Enum_Type_Decl, Visible_Part (Current_Package));
+      Append_Node_To_List
+        (Enum_Type_Decl,
+         Visible_Part (Current_Package));
+      Append_Node_To_List
+        (Make_Repository_Declaration (Enum_Type_Decl),
+         Visible_Part (Current_Package));
    end Visit_Enumeration_Type;
 
    ---------------------------------
@@ -437,7 +457,7 @@ package body Backend.BE_Ada is
       Set_Main_Spec;
       L := Interface_Spec (E);
       if Is_Empty (L) then
-         N := Copy_Node (CORBA_Object_Ref_Designator);
+         N := Copy_Designator (CORBA_Object_Ref_Designator);
       else
          N := Make_Designator (First_Entity (L));
       end if;
@@ -449,7 +469,10 @@ package body Backend.BE_Ada is
               Record_Extension_Part =>
                 Make_Record_Type_Definition
                   (Record_Definition => Make_Record_Definition (No_List))));
-      Append_Node_To_List (N, Visible_Part (Current_Package));
+      Append_Node_To_List
+        (N, Visible_Part (Current_Package));
+      Append_Node_To_List
+        (Make_Repository_Declaration (N), Visible_Part (Current_Package));
 
       N := First_Entity (Interface_Body (E));
       while Present (N) loop
@@ -499,7 +522,7 @@ package body Backend.BE_Ada is
 
       Ada_Param := Make_Parameter_Specification
         (Make_Defining_Identifier (Self_Parameter_Name),
-         Copy_Node (Interface_Ref_Designator));
+         Copy_Designator (Interface_Ref_Designator));
       Append_Node_To_List (Ada_Param, Profile);
 
       --  Create an Ada subprogram parameter for each IDL subprogram
@@ -617,7 +640,10 @@ package body Backend.BE_Ada is
         (Make_Defining_Identifier (E),
          Make_Record_Type_Definition
            (Make_Record_Definition (L)));
-      Append_Node_To_List (N, Visible_Part (Current_Package));
+      Append_Node_To_List
+        (N, Visible_Part (Current_Package));
+      Append_Node_To_List
+        (Make_Repository_Declaration (N), Visible_Part (Current_Package));
    end Visit_Structure_Type;
 
    ----------------------------
@@ -646,7 +672,10 @@ package body Backend.BE_Ada is
                  (Subtype_Indication    => T,
                   Record_Extension_Part => No_Node));
          end if;
-         Append_Node_To_List (N, Visible_Part (Current_Package));
+         Append_Node_To_List
+           (N, Visible_Part (Current_Package));
+         Append_Node_To_List
+           (Make_Repository_Declaration (N), Visible_Part (Current_Package));
          D := Next_Entity (D);
       end loop;
    end Visit_Type_Declaration;

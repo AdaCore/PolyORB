@@ -1,9 +1,23 @@
 2004-06-26  Laurent Pautet  <pautet@dorine.enst.fr>
 
-	* backend-be_ada-generator.adb, backend-be_ada-nutils.adb,
-	backend-be_ada-nodes.idl, backend-be_ada-nutils.ads,
-	backend-be_ada.adb: Generate object declaration and in particular
-	constant declaration.
+	* backend-be_ada-generator.adb: Generate object declaration and in
+	particular constant declaration. Fix few typos output in subrogram
+	body.
+	
+	* backend-be_ada-nutils.adb, backend-be_ada-nutils.ads: Generate
+	object declaration and in particular constant declaration. Fix
+	automatic "with" for designator (no replication, less
+	bugs). Define a function Copy_Designator which copies a designator
+	like CORBA.Object.Ref and also with the parent unit of designator
+	like CORBA.Object.
+	
+	* backend-be_ada.adb: Generate object declaration and in
+	particular constant declaration. Generate
+	repository_id. Reorganize Getter and Setter subprograms.
+	
+	* backend-be_ada-nodes.idl: Generate object declaration and in
+	particular constant declaration.
+	
 
 2004-06-26  Laurent Pautet  <pautet@dorine.enst.fr>
 	
