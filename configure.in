@@ -591,6 +591,11 @@ ${RM} ${PO_CATREF_WITHS}
 # Copy files
 ##########################################
 
+if test ! -f support/move-if-change; then
+  rm -f support/move-if-change
+  cp ${ac_top_srcdir}/support/move_if_change support/move-if-change
+fi
+
 for a in linker adacompiler move-if-change
 do
   chmod a+x support/$a
