@@ -314,7 +314,7 @@ package body PolyORB.GIOP_P.Tagged_Components is
       C2   :        Tagged_Component_Access)
    is
    begin
-      pragma Assert (C1.Tag /= C2.Tag);
+      pragma Assert (C1.Tag = C2.Tag);
 
       for J in 1 .. Length (List) loop
          if Get_Component (List, Tag_Value (J)) = C1 then
