@@ -113,4 +113,10 @@ package body Droopi.Binding_Data.Test is
         and then Test_Profile_Type (P.all).Address = PF.Address;
    end Is_Local_Profile;
 
+   function Image (Prof : Test_Profile_Type) return String is
+   begin
+      return "Address : " & Image (Prof.Address) &
+        ", Object_Id : " & Droopi.Objects.Image (Prof.Object_Id.all);
+   end Image;
+
 end Droopi.Binding_Data.Test;

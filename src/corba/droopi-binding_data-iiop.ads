@@ -60,6 +60,8 @@ package Droopi.Binding_Data.IIOP is
      (Buffer   : access Buffer_Type)
     return  Profile_Access;
 
+   function Image (Prof : IIOP_Profile_Type) return String;
+
 private
 
    type IIOP_Profile_Type is new Profile_Type with record

@@ -48,6 +48,8 @@ package Droopi.Binding_Data.Test is
       P : Profile_Access)
      return Boolean;
 
+   function Image (Prof : Test_Profile_Type) return String;
+
 private
 
    type Test_Profile_Type is new Profile_Type with record

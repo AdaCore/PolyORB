@@ -72,4 +72,9 @@ package body Droopi.Binding_Data.Local is
       --  A local profile is always preferred to any other.
    end Get_Profile_Preference;
 
+   function Image (Prof : Local_Profile_Type) return String is
+   begin
+      return "Object_Id : " & Droopi.Objects.Image (Prof.Object_Id.all);
+   end Image;
+
 end Droopi.Binding_Data.Local;

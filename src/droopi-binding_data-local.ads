@@ -38,6 +38,8 @@ package Droopi.Binding_Data.Local is
      return Profile_Preference;
    pragma Inline (Get_Profile_Preference);
 
+   function Image (Prof : Local_Profile_Type) return String;
+
    --  Since Local profiles are not associated with any
    --  transport endpoint, there is no need to define
    --  an associated Profile_Factory.

@@ -277,7 +277,13 @@ package body Droopi.Binding_Data.IIOP is
    end Unmarshall_Socket;
 
 
+   -----------
+   -- Image --
+   -----------
 
-
+   function Image (Prof : IIOP_Profile_Type) return String is
+   begin
+      return "Not Implemented";
+   end Image;
 
 end Droopi.Binding_Data.IIOP;

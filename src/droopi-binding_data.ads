@@ -1,7 +1,7 @@
 --  Management of binding data, i. e. the elements of information
 --  that designate a remote middleware TSAP.
 
---  $Id: //droopi/main/src/droopi-binding_data.ads#10 $
+--  $Id: //droopi/main/src/droopi-binding_data.ads#11 $
 
 with Ada.Finalization;
 
@@ -38,6 +38,7 @@ package Droopi.Binding_Data is
    Tag_Multiple_Components : constant Profile_Tag;
    Tag_Local               : constant Profile_Tag;
    Tag_Test                : constant Profile_Tag;
+   Tag_SRP                 : constant Profile_Tag;
 
    type Profile_Preference is new Integer range 0 .. Integer'Last;
    --  Profile_Preference'First means "unsupported profile type"
@@ -106,6 +107,9 @@ package Droopi.Binding_Data is
    --  True iff P designates an object that can be contacted
    --  at the access point associated with PF.
 
+   function Image (Prof : Profile_Type) return String is abstract;
+   --  Used for debugging purposes
+
 private
 
    --  Standard tags defined by CORBA
@@ -117,6 +121,7 @@ private
 
    Tag_Local               : constant Profile_Tag := 16#7fffff00#;
    Tag_Test                : constant Profile_Tag := 16#7fffff01#;
+   Tag_SRP                 : constant Profile_Tag := 16#7fffff02#;
 
    Preference_Default : constant Profile_Preference
      := (Profile_Preference'First + Profile_Preference'Last) / 2;
