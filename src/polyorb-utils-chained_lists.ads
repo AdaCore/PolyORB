@@ -45,10 +45,7 @@ package PolyORB.Utils.Chained_Lists is
    type Element_Access is access all T;
 
    function Length (L : List) return Natural;
-   function Element
-     (L : List;
-      Index : Natural)
-     return Element_Access;
+   function Element (L : List; Index : Natural) return Element_Access;
 
    function First (L : List) return Iterator;
    function Value (I : Iterator) return Element_Access;

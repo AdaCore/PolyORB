@@ -49,10 +49,7 @@ package body PolyORB.Utils.Chained_Lists is
       return C;
    end Length;
 
-   function Element
-     (L : List;
-      Index : Natural)
-     return Element_Access
+   function Element (L : List; Index : Natural) return Element_Access
    is
       N : Node_Access := L.First;
       C : Natural := 0;
