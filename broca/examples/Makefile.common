@@ -1,6 +1,7 @@
 IDLAC = ../../idlac/idlac
 
-EXAMPLES_GNATMAKE_FLAGS = -I$(srcdir)/../generic \
+EXAMPLES_GNATMAKE_FLAGS = -I$(srcdir) \
+                          -I$(srcdir)/../generic \
                           -I../../src \
                           -I$(srcdir)/../../src \
                           -I../../adasockets/src \
