@@ -237,9 +237,7 @@ package body XE_Back is
    procedure Back is
       Node : Node_Id;
       HID  : HID_Type;
-
    begin
-
       First_Configuration_Declaration (Configuration_Node, Node);
       while Node /= Null_Node loop
          if Is_Variable (Node) then
@@ -1356,6 +1354,13 @@ package body XE_Back is
             --  Internal attribute. Don't check anything.
 
             if Partition /= Null_PID then
+               if Main_Partition /= Null_PID then
+                  Write_SLOC (Node_Id (Attribute));
+                  Write_Str  ("multiple definitions of ");
+                  Write_Str  ("application main subprogram not allowed");
+                  Write_Eol;
+                  raise Parsing_Error;
+               end if;
                Main_Partition := Partition;
             end if;
 

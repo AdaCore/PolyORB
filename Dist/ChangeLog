@@ -1,3 +1,8 @@
+1999-12-21  Laurent Pautet  <pautet@inf.enst.fr>
+
+	* xe_back.adb: Do not allow nultiple definitions of application
+	main subprogram. Fix part of 7221-002.
+
 1999-12-01  Laurent Pautet  <pautet@inf.enst.fr>
 
 	* xe.adb, xe.ads: Revisit configuration node structure. Revisit
