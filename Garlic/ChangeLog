@@ -1,3 +1,10 @@
+2004-04-03  Pascal Obry  <obry@gnat.com>
+
+	* s-rpstio.adb: Make a variable constant.
+	Fix build failures.
+	Minor reformatting.
+	Update copyright notice.
+
 2004-04-02  Laurent Pautet  <pautet@dorine.enst.fr>
 
 	* s-gastdf.adb: Make some variables constant.
