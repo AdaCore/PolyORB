@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -192,8 +192,7 @@ package body System.Garlic.Protocols.Tcp is
    -- Accept_Until_Closed --
    -------------------------
 
-   procedure Accept_Until_Closed
-     (Incoming : in Natural) is
+   procedure Accept_Until_Closed (Incoming : in Natural) is
    begin
       loop
          declare
@@ -322,8 +321,7 @@ package body System.Garlic.Protocols.Tcp is
    -- Do_Connect --
    ----------------
 
-   function Do_Connect (Sock_Addr : Sock_Addr_Type) return Socket_Type
-   is
+   function Do_Connect (Sock_Addr : Sock_Addr_Type) return Socket_Type is
       Peer : Socket_Type    := No_Socket;
       Addr : Sock_Addr_Type := Sock_Addr;
 
@@ -399,8 +397,7 @@ package body System.Garlic.Protocols.Tcp is
    --------------
 
    function Get_Data
-     (Protocol : access TCP_Protocol)
-     return String_List_Access
+     (Protocol : access TCP_Protocol) return String_List_Access
    is
       pragma Unreferenced (Protocol);
       Result : String_List_Access;
@@ -421,10 +418,7 @@ package body System.Garlic.Protocols.Tcp is
    -- Get_Name --
    --------------
 
-   function Get_Name
-     (Protocol : access TCP_Protocol)
-     return String
-   is
+   function Get_Name (Protocol : access TCP_Protocol) return String is
       pragma Unreferenced (Protocol);
    begin
       return "tcp";
@@ -858,9 +852,8 @@ package body System.Garlic.Protocols.Tcp is
 
       Process_Stream (PID, Opcode, Unfiltered, Error);
 
-      if Filtered /= null then
-         Free (Filtered);
-      end if;
+      Free (Filtered);
+
       if Unfiltered /= null then
          Free (Unfiltered);
       end if;
@@ -874,7 +867,7 @@ package body System.Garlic.Protocols.Tcp is
      (Peer : in Socket_Type;
       PID  : in out Partition_ID)
    is
-      Error      : Error_Type;
+      Error : Error_Type;
 
    begin
       while not Found (Error) loop
@@ -899,7 +892,7 @@ package body System.Garlic.Protocols.Tcp is
       --  the wrong partition.
 
       declare
-         Info  : Socket_Info;
+         Info : Socket_Info;
       begin
          Outgoings.Enter;
          Info := Outgoings.Get_Component (PID);
@@ -971,9 +964,7 @@ package body System.Garlic.Protocols.Tcp is
             Hits := Options.Connection_Hits;
          end if;
 
-         while not Shutdown_Activated
-           and then Hits > 0
-         loop
+         while not Shutdown_Activated and then Hits > 0 loop
             Info.Socket := Do_Connect (Info.Sock_Addr);
             exit when Info.Socket /= No_Socket;
 
@@ -1126,9 +1117,7 @@ package body System.Garlic.Protocols.Tcp is
    -- Shutdown --
    --------------
 
-   procedure Shutdown
-     (Protocol : access TCP_Protocol)
-   is
+   procedure Shutdown (Protocol : access TCP_Protocol) is
       pragma Unreferenced (Protocol);
 
       Count   : Natural;
