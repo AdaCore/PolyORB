@@ -4,10 +4,11 @@
 #
 # This script builds a compressed archive suitable for distribution.
 #
-# Usage: make_distrib [-k?|-prcs] tag dir
+# Usage: make_distrib [-k?|-prcs|-n] tag dir
 #
 #   -k?   : override CVS keywords expansion
 #   -prcs : use prcs to extract files
+#   -n    : assume a checkout has already been done in dir
 #   tag   : CVS or prcs tag or branch
 #   dir   : the distribution will unpack in directory <dir> and will be
 #           named <dir>.tar.gz
@@ -20,16 +21,18 @@
 #
 
 if [ $# = 0 ]; then
-   echo "Usage: $0 [-k|-prcs] tag dir";
+   echo "Usage: $0 [-k|-prcs|-n] tag dir";
    exit 0;
 fi;
 
 prcs=false
 kk=
+nocheckout=false
 
 case $1 in
   -k*)   kk=$1; shift;;
   -prcs) prcs=true; shift;;
+  -n)    nocheckout=true; shift;;
   *)     ;;
 esac
 tag=$1
@@ -44,6 +47,8 @@ if $prcs; then
   mkdir ${dir}
   cd ${dir}
   prcs checkout -r${tag} ${name}
+elif $nocheckout; then
+  cd ${dir}
 else
   root=`cat CVS/Root`
   name=`sed -e "s,${root}/,," < CVS/Repository`
