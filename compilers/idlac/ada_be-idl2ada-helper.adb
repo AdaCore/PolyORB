@@ -2860,7 +2860,7 @@ package body Ada_Be.Idl2Ada.Helper is
                  & "CORBA.To_Any ("
                  & Ada_Full_TC_Name (Element_Type_Node));
          else
-            Put (CU, ", To_Any (TC_"
+            Put (CU, ", CORBA.To_Any (TC_"
                  & Img (Index + 1));
          end if;
          PL (CU, "));");
