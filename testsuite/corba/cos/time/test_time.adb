@@ -35,6 +35,7 @@
 
 with Ada.Text_IO;
 
+with CORBA.Impl;
 with CORBA.ORB;
 pragma Elaborate_All (CORBA.ORB);  -- WAG:3.15
 
@@ -62,7 +63,7 @@ pragma Warnings (Off, PolyORB.Setup.Thread_Pool_Server);
 
 with PolyORB.Utils.Report;
 
-package body Test_Time is
+procedure Test_Time is
 
    use Ada.Text_IO;
 
@@ -73,8 +74,6 @@ package body Test_Time is
    use TimeBase;
 
    use PolyORB.Utils.Report;
-
-   type TimeService_Ptr is access CosTime.TimeService.Impl.Object;
 
    Ref : CosTime.TimeService.Ref;
 
@@ -114,10 +113,14 @@ begin
 
    PolyORB.CORBA_P.Server_Tools.Initiate_Server (True);
 
-   PolyORB.CORBA_P.Server_Tools.Initiate_Servant
-     (PortableServer.Servant
-      (TimeService_Ptr'(new CosTime.TimeService.Impl.Object)),
-      Ref);
+   declare
+      Obj : constant CORBA.Impl.Object_Ptr
+        := new CosTime.TimeService.Impl.Object;
+
+   begin
+      PolyORB.CORBA_P.Server_Tools.Initiate_Servant
+        (PortableServer.Servant (Obj), Ref);
+   end;
 
    UTO1 := universal_time (Ref);
    Display (UTO1);

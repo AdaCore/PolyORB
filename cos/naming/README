@@ -11,5 +11,4 @@ ab_names : It is a stand alone excutable that runs an implementation
 
 ir_ab_names : XXX to be written
 
-test_naming_corba   : test program to interact with ab_names  
 test_naming_corba_i : provide a shell to test ab_names.

@@ -9,7 +9,7 @@ giop_dir  =
 soap_dir  =
 srp_dir   =
 
-SUBDIRS = cos local portableserver
+SUBDIRS = naming time
 
 CLEANFILES = config-stamp
 

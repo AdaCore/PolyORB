@@ -9,7 +9,7 @@ COS_GNATMAKE_FLAGS = -z -I$(srcdir) \
 	-I../../src \
 	-I$(srcdir)/../../src
 
-corba_exe=test_time
+corba_exe=
 
 PROGS = @APPLI_EXES@
 

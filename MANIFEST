@@ -246,7 +246,6 @@ cos/naming/menu.ads
 cos/naming/po_names.adb
 cos/naming/polyorb-corba_p-naming_tools.adb
 cos/naming/polyorb-corba_p-naming_tools.ads
-cos/naming/test_naming_corba.adb
 cos/naming/test_naming_corba_i.adb
 cos/time/Makefile.am
 cos/time/Makefile.in
@@ -256,8 +255,6 @@ cos/time/costime-tio-impl.adb
 cos/time/costime-tio-impl.ads
 cos/time/costime-uto-impl.adb
 cos/time/costime-uto-impl.ads
-cos/time/test_time.adb
-cos/time/test_time.ads
 cos/time/time_utils.adb
 cos/time/time_utils.ads
 doc/CODING_GUIDELINES

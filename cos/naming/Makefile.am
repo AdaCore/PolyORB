@@ -4,7 +4,7 @@ include $(srcdir)/../Makefile.common
 
 alidir = $(includedir)/polyorb/corba/cos
 
-corba_exe=ab_names test_naming_corba_i test_naming_corba
+corba_exe=ab_names test_naming_corba_i
 ir_exe=ir_ab_names
 
 PROGS= @APPLI_EXES@ @SERVICE_EXES@
