@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            1.6                             --
+--                            $Revision$                             --
 --                                                                          --
 --           Copyright (C) 1996 Free Software Foundation, Inc.              --
 --                                                                          --
@@ -38,7 +38,7 @@ with System.RPC;
 
 generic
 
-   RCI_Name : System.Partition_Interface.Unit_Name_Access;
+   RCI_Name : String;
 
 package RCI_Info is
 

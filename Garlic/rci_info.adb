@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            1.7                             --
+--                            $Revision$                             --
 --                                                                          --
 --           Copyright (C) 1996 Free Software Foundation, Inc.              --
 --                                                                          --
@@ -35,11 +35,12 @@
 
 with System.RPC;
 with System.Partition_Interface;
+use  System.Partition_Interface;
 
 package body RCI_Info is
 
-   Elaboration : constant System.Partition_Interface.Elaboration_Access
-               := new System.Partition_Interface.Elaboration_Type;
+   Elaboration : System.Partition_Interface.Elaboration_Access;
+   RCI_Access  : System.Partition_Interface.Unit_Name_Access;
 
    -----------------------------
    -- Get_Active_Partition_Id --
@@ -47,8 +48,12 @@ package body RCI_Info is
 
    function Get_Active_Partition_Id return System.Rpc.Partition_Id is
    begin
+      if Elaboration = null then
+         Elaboration := new System.Partition_Interface.Elaboration_Type;
+         RCI_Access  := new system.partition_interface.unit_name'(RCI_Name);
+      end if;
       return System.Partition_Interface.Get_Active_Partition_Id
-        (RCI_Name, Elaboration);
+        (RCI_Access, Elaboration);
    end Get_Active_Partition_Id;
 
    ------------------------------
@@ -57,8 +62,12 @@ package body RCI_Info is
 
    function Get_Rci_Package_Receiver return System.Rpc.Rpc_Receiver is
    begin
+      if Elaboration = null then
+         Elaboration := new System.Partition_Interface.Elaboration_Type;
+         RCI_Access  := new system.partition_interface.unit_name'(RCI_Name);
+      end if;
       return System.Partition_Interface.Get_Rci_Package_Receiver
-        (RCI_Name, Elaboration);
+        (RCI_Access, Elaboration);
    end Get_Rci_Package_Receiver;
 
 end RCI_Info;
