@@ -1,4 +1,0 @@
-const long c1 = "a";
-const long c2 = 1 + "a";
-const octet c3 = -1;
-const unsigned long c4 = (4294967295 * 2) / 2;

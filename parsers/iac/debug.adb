@@ -153,9 +153,9 @@ package body Debug is
       if A = "Next_Node"
         or else A = "Homonym"
         or else A = "Name"
+        or else A = "Explicitely_Visible"
+        or else A = "Implicitely_Visible"
         or else A = "Scoped_Identifiers"
---          or else A = "Explicitely_Visible"
---          or else A = "Implicitely_Visible"
         or else A = "Next_Identifier"
       then
          return;
@@ -186,6 +186,7 @@ package body Debug is
 
       if A /= "Node"
         and then A /= "Scope"
+        and then A /= "Potential_Scope"
         and then A /= "Reference"
         and then A /= "Base_Interface"
         and then A /= "Declaration"

@@ -74,6 +74,9 @@ package body Utils is
 
    function To_Lower (N : Name_Id) return Name_Id is
    begin
+      if N = No_Name then
+         return No_Name;
+      end if;
       Get_Name_String (N);
       To_Lower (Name_Buffer (1 .. Name_Len));
       return Name_Find;

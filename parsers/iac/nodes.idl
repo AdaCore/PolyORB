@@ -44,6 +44,7 @@ module Nodes {
     Node_Id    Homonym;
     Node_Id    Node;
     Node_Id    Scope;
+    Node_Id    Potential_Scope;
     boolean    Explicitely_Visible;
     boolean    Implicitely_Visible;
     Node_Id    Next_Identifier;
@@ -76,6 +77,7 @@ module Nodes {
      (51) <simple_declarator> ::= <identifier> 
   */
 
+  interface Array_Size_List : List_Id {};
   interface Simple_Declarator : Definition {
     Node_Id    Declaration;
   };
@@ -86,7 +88,6 @@ module Nodes {
      (84) <fixed_array_size> ::= "[" <positive_int_const> "]" 
   */
 
-  interface Array_Size_List : List_Id {};
   interface Complex_Declarator : Simple_Declarator {
     List_Id      Array_Sizes;
   };

@@ -4,10 +4,10 @@ with Types;     use Types;
 package Errors is
 
    Internal_Error : exception;
-   --  Raised when the program reaches an internal inconsistent state
+   --  Raised when idlac reaches an internal inconsistent state
 
    Fatal_Error : exception;
-   --  Raised when the program has detected an external inconsistent state
+   --  Raised when idlac has detected an external inconsistent state
 
    type Error_Kind is (K_Error, K_Warning, K_None);
 

@@ -22,6 +22,7 @@ package Nutils is
    function Is_A_Type (E : Node_Id) return Boolean;
    function Is_Attribute_Or_Operation (E : Node_Id) return Boolean;
    function Is_Interface_Redefinable_Node (E : Node_Id) return Boolean;
+   function Is_A_Non_Module (E : Node_Id) return Boolean;
 
    function New_Node (Kind : Node_Kind; Loc : Location) return Node_Id;
    function New_List (Kind : Node_Kind; Loc : Location) return List_Id;
@@ -35,14 +36,16 @@ package Nutils is
    function Make_Scoped_Name
      (Loc        : Location;
       Identifier : Node_Id;
-      Parent     : Node_Id)
+      Parent     : Node_Id;
+      Reference  : Node_Id)
      return Node_Id;
    --  Return a scoped name
 
    function Make_Identifier
-     (Loc        : Location;
-      IDL_Name   : Name_Id;
-      Scope      : Node_Id)
+     (Loc      : Location;
+      IDL_Name : Name_Id;
+      Node     : Node_Id;
+      Scope    : Node_Id)
      return Node_Id;
    --  return identifier
 

@@ -16,6 +16,7 @@
 SHELL = /bin/sh
 
 srcdir = .
+common_dir= ../common_files
 top_srcdir = ../..
 prefix = /home/pautet/p4/polyorb
 exec_prefix = ${prefix}
@@ -32,6 +33,8 @@ infodir = ${prefix}/info
 mandir = ${prefix}/man
 includedir = ${prefix}/include
 oldincludedir = /usr/include
+
+includes = -I. -I$(srcdir) -I../common_files
 
 DESTDIR =
 
@@ -348,11 +351,11 @@ all-local: $(PROG)
 	gnatchop -w $@
 
 mknodes : force 
-	$(GNATMAKE) -m -gnata -I. -I$(srcdir) $@\
+	$(GNATMAKE) -m -gnata $(includes) $@\
 		-cargs $(GNATFLAGS) -bargs $(BARGS)
 
 $(PROG): force mknodes $(PROG_FILES)
-	$(GNATMAKE) -m -gnata -I. -I$(srcdir) $@\
+	$(GNATMAKE) -m -gnata $(includes) $@\
 		-cargs $(GNATFLAGS) -bargs $(BARGS)
 
 tests: $(PROG)

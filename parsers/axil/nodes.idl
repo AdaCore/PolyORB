@@ -1,0 +1,125 @@
+module Nodes {
+
+    /******************/
+    /* Internal types */
+    /******************/
+
+  typedef long Name_Id;
+
+    /******************/
+    /* Internal nodes */
+    /******************/
+
+  interface Node_Id {
+    Node_Id    Next_Node;
+    // Link nodes together
+  };
+
+  interface List_Id {
+    Node_Id    First_Node;
+    Node_Id    Last_Node;
+  };
+
+  interface Identifier : Node_Id {
+    Name_Id    Name;
+  };
+
+    /***********************/
+    /* AADL Specifications */
+    /***********************/
+
+    // AADL_specification ::= { AADL_declaration } +
+
+  interface AADL_Specification : Node_Id {
+    List_Id    Declarations;
+  };
+
+    // AADL_declaration ::= component_classifier | package_spec | 
+    //                      port_group_type | port_group_type_extension |
+    //                      system_instance | property_set
+
+  interface AADL_Declaration : Node_Id {};
+  interface AADL_Declaration_List : List_Id {};
+
+    // component_classifier ::= component_type | component_type_extension | 
+    //                          component_implementation |
+    //                          component_implementation_extension
+
+
+    /************/
+    /* Packages */
+    /************/
+
+    // package_items ::=
+    //   { component_type | component_type_extension | component_implementation
+    //     | component_implementation_extension | port_group_type
+    //     | port_group_type_extension | annex_specification } +
+    //   [ properties
+    //     ( property_association { property_association } | none_statement ) ]
+
+  interface Package_Items : Node_Id {
+    List_Id  Items;
+    List_Id  Properties;
+  };
+
+    // package_name ::= { package_identifier . } * package_identifier
+
+  interface Package_Name : List_Id { };
+
+    // package_spec ::= 
+    //    package defining_package_name 
+    //     ( public package_items [ private package_items ]
+    //        | private package_items )
+    //    end defining_package_name;
+
+  interface Package_Spec : Node_Id {
+    List_Id  Full_Name;
+    Node_Id  Public_Package_Items;
+    Node_Id  Private_Package_Items;
+  };
+
+
+    /*******************/
+    /* Component Types */
+    /*******************/
+
+    // component_type ::= 
+    //    component_category defining_component_type_identifier 
+    //    [ provides ( { feature } + | none_statement ) ]
+    //    [ requires ( { required_subcomponent_access } + | none_statement ) ]
+    //    [ parameters ( { parameter } + | none_statement ) ]
+    //    [ properties ( { component_type_property_association } +
+    //                   | none_statement ) ]
+    //    { annex_subclause } *
+    // end defining_component_type_identifier ;
+
+  typedef octet Component_Category;
+
+  interface Component_Type : Node_Id {
+    Name_Id  Name;
+    octet    Category;
+    List_Id  Provides;
+    List_Id  Requires;
+    List_Id  Parameters;
+    List_Id  Properties;
+    List_Id  Annexes;
+  };
+
+    // component_type_extension ::= 
+    //    component_category defining_component_type_identifier 
+    //    extends unique_component_type_identifier
+    //    [ provides ( { feature | feature_refinement } + | none_statement ) ]
+    //    [ requires ( { required_subcomponent_access 
+    //                 | required_subcomponent_access_refinement } +
+    //               | none_statement ) ]
+    //    [ parameters ( { parameter | parameter_refinement } +
+    //               | none_statement ) ]
+    //    [ properties ( { component_type_property_association } +
+    //               | none_statement ) ]
+    //    { annex_subclause } *
+    //  end defining_component_type_identifier ;
+
+  interface Component_Type_Ext : Component_Type {
+    Node_Id   Parent;
+  };
+};

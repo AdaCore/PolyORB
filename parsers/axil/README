@@ -1,0 +1,29 @@
+This is the README file for Axil, an AADL parser
+
+What is AADL Parser?
+--------------------
+
+AADL Architecture Analysis & Design Language is an architecture
+description language (ADL) aimed to embedded real-time systems.
+Its standardization at an international level is in progress.
+
+This tool parse an AADL source file to represent the described
+system in a internal structure (in tree).
+
+Installation
+------------
+
+See INSTALL file for more details on supported platforms and
+installation process.
+
+Documentation overview
+----------------------
+
+INSTALL      : Detail AADL Parser installation process.
+README       : This file, first instructions.
+testsuite/*  : Tests
+
+Usage of Axil
+-------------
+
+Type './axil' for usage.

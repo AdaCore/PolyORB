@@ -1,0 +1,17 @@
+This file details the compilation and installation of Axil.
+
+Supported Platforms
+-------------------
+
+Axil has been compiled and successfully tested on the following platforms:
+
+- FreeBSD
+- Linux
+
+
+Build instructions
+------------------
+
+To compile Axil, execute:
+
+make

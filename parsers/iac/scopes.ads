@@ -4,6 +4,24 @@ with Types; use Types;
 
 package Scopes is
 
+   --  Scope and Visibility:
+   --  ---------------------
+   --
+   --  To handle scope, iac uses two dedicated node attributes : Scope
+   --  and Potential_Scope. Scope designates the regular scope of the
+   --  corresponding entity when Potential_Scope designates the scope
+   --  in which the entity has been imported. Imports occur for type
+   --  names and inherited interfaces.
+   --
+   --  To handle visibility, iac uses two dedicated node attributes :
+   --  Explicitely_Visible and Implicitely_Visible. The normal
+   --  visibility rules are handled by Explicitely_Visible when
+   --  Implicitely_Visible is used only in the context of inherited
+   --  interfaces. In the scope of an inherited interface, entities
+   --  like attributes and operations are inherited (scoped and
+   --  explicitely visible) when other entities are just made visible
+   --  (implicitely visible).
+
    type Scope_Stack_Entry is record
       Node : Node_Id;
    end record;
@@ -15,6 +33,7 @@ package Scopes is
    procedure Initialize;
 
    procedure Push_Scope (S : Node_Id);
+
    procedure Pop_Scope;
    --  Handle special scoping rules for types names (see 3.15.3). The
    --  potential scope of a type name extends over all its enclosing
@@ -29,23 +48,25 @@ package Scopes is
    --  S. This node must be explicitly declared in S and not imported
    --  because of special scoping rules.
 
-   function Node_Implicitly_In_Scope (N : Node_Id; S : Node_Id) return Node_Id;
-   --  Find whether there is a definition for identifier N in scope
-   --  S. This node can be implicitly declared in S that is explicitly
-   --  declared or imported because of special scoping rules.
+   function Node_In_Current_Scope (N : Node_Id) return Node_Id;
+   --  Find whether there is a definition for identifier N in current
+   --  scope. This node can be implicitly declared that is explicitly
+   --  or potentially declared because of special scoping rules.
 
    function Visible_Node (N : Node_Id) return Node_Id;
    --  Find the currently visible definition for a given identifier,
    --  that is to say the first entry in the visibility chain
    --  (implemented using the homonyms chain).
 
-   procedure Make_Node_Visible
-     (E : Node_Id; Visible : Boolean; Explicitely : Boolean);
-
-   procedure Make_Enclosed_Nodes_Visible
-     (E : Node_Id; Visible : Boolean; Explicitely : Boolean);
+   procedure Make_Implicitely_Visible (N : Node_Id; Visible : Boolean);
+   --  When an interface inherits from other interfaces, the entities
+   --  from these interfaces become visibible. This procedure is
+   --  intended to fullfil this task. Note that scoped names which are
+   --  present in the scopes of these interfaces are not made visible.
 
    procedure Enter_Name_In_Scope (N : Node_Id);
+   --  Detect naming conflict with N. In case of success, add N to the
+   --  current scope.
 
    Root      : Node_Id;
    Root_Name : Name_Id;

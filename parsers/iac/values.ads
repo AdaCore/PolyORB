@@ -8,6 +8,7 @@ package Values is
          case K is
             when K_Short .. K_Unsigned_Long_Long
               | K_Octet
+              | K_Boolean
               | K_Fixed_Point_Type =>
                IVal : Unsigned_Long_Long;
                Sign : Short_Short;
@@ -27,9 +28,6 @@ package Values is
 
             when K_String .. K_Wide_String =>
                SVal : Name_Id;
-
-            when K_Boolean =>
-               BVal : Boolean;
 
             when K_Void =>
                null;

@@ -6,15 +6,37 @@ with Output;  use Output;
 package body Backend is
 
    type Backend_Record is record
-      Language : String_Access;
-      Comments : String_Access;
-      Generate : Generate_Procedure;
+      Language  : String_Access;
+      Comments  : String_Access;
+      Generate  : Generate_Procedure;
+      Configure : Configure_Procedure;
+      Usage     : Usage_Procedure;
    end record;
 
    Table   : array (1 .. 8) of Backend_Record;
    First   : constant Natural := Table'First;
    Last    : Natural := 0;
    Current : Natural := 0;
+
+   ---------------
+   -- Configure --
+   ---------------
+
+   procedure Configure is
+   begin
+      if Current /= 0 then
+         Table (Current).Configure.all;
+      end if;
+   end Configure;
+
+   ----------------------
+   -- Current_Language --
+   ----------------------
+
+   function Current_Language return String is
+   begin
+      return Table (Current).Language.all;
+   end Current_Language;
 
    --------------
    -- Generate --
@@ -27,14 +49,30 @@ package body Backend is
       end if;
    end Generate;
 
+   -----------------------
+   -- Is_Valid_Language --
+   -----------------------
+
+   function Is_Valid_Language (L : String) return Boolean is
+   begin
+      for N in First .. Last loop
+         if Table (N).Language.all = L then
+            return True;
+         end if;
+      end loop;
+      return False;
+   end Is_Valid_Language;
+
    --------------
    -- Register --
    --------------
 
    procedure Register
-     (Generate : Generate_Procedure;
-      Language : String;
-      Comments : String)
+     (Generate  : Generate_Procedure;
+      Configure : Configure_Procedure;
+      Usage     : Usage_Procedure;
+      Language  : String;
+      Comments  : String)
    is
    begin
       if Last >= Table'Last then
@@ -47,18 +85,18 @@ package body Backend is
          end if;
       end loop;
       Last := Last + 1;
-      Table (Last).Generate := Generate;
-      Table (Last).Language := new String'(Language);
-      Table (Last).Comments := new String'(Comments);
+      Table (Last).Generate  := Generate;
+      Table (Last).Usage     := Usage;
+      Table (Last).Configure := Configure;
+      Table (Last).Language  := new String'(Language);
+      Table (Last).Comments  := new String'(Comments);
    end Register;
 
-   ------------------
-   -- Set_Language --
-   ------------------
+   --------------------------
+   -- Set_Current_Language --
+   --------------------------
 
-   procedure Set_Language
-     (Language : String)
-   is
+   procedure Set_Current_Language (Language : String) is
    begin
       Current := 0;
       for I in First .. Last loop
@@ -71,7 +109,7 @@ package body Backend is
          DE ("unknown target language");
          raise Fatal_Error;
       end if;
-   end Set_Language;
+   end Set_Current_Language;
 
    ---------------------
    -- Write_Languages --
@@ -87,10 +125,13 @@ package body Backend is
          declare
             Language : constant String := Table (I).Language.all;
             Comments : constant String := Table (I).Comments.all;
+            Usage    : constant Usage_Procedure := Table (I).Usage;
          begin
             S (L .. L + Language'Length - 1) := Language;
             S (C .. C + Comments'Length - 1) := Comments;
             Write_Line (S (1 .. C + Comments'Length - 1));
+            Usage (C);
+            Write_Eol;
          end;
       end loop;
    end Write_Languages;

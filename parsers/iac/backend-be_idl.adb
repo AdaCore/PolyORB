@@ -1,3 +1,5 @@
+with GNAT.Command_Line; use GNAT.Command_Line;
+
 with Lexer;     use Lexer;
 with Namet;     use Namet;
 with Nodes;     use Nodes;
@@ -10,6 +12,8 @@ package body Backend.BE_IDL is
 
    Space_Increment : constant := 2;
    N_Space         : Natural  := 0;
+
+   Default_Base : Natural := 0;
 
    procedure Decrement_Indentation;
    procedure Increment_Indentation;
@@ -24,6 +28,7 @@ package body Backend.BE_IDL is
    procedure Generate_Base_Type (E : Node_Id);
    procedure Generate_Complex_Declarator (E : Node_Id);
    procedure Generate_Constant_Declaration (E : Node_Id);
+   procedure Generate_Element (E : Node_Id);
    procedure Generate_Enumeration_Type (E : Node_Id);
    procedure Generate_Enumerator (E : Node_Id);
    procedure Generate_Exception_Declaration (E : Node_Id);
@@ -35,7 +40,6 @@ package body Backend.BE_IDL is
    procedure Generate_Identifier (E : Node_Id);
    procedure Generate_Initializer_Declaration (E : Node_Id);
    procedure Generate_Interface_Declaration (E : Node_Id);
-   procedure Generate_Literal (E : Node_Id);
    procedure Generate_Member (E : Node_Id);
    procedure Generate_Module (E : Node_Id);
    procedure Generate_Operation_Declaration (E : Node_Id);
@@ -47,11 +51,32 @@ package body Backend.BE_IDL is
    procedure Generate_State_Member (E : Node_Id);
    procedure Generate_String (E : Node_Id);
    procedure Generate_Structure_Type (E : Node_Id);
+   procedure Generate_Switch_Alternative (E : Node_Id);
    procedure Generate_Type_Declaration (E : Node_Id);
    procedure Generate_Union_Type (E : Node_Id);
    procedure Generate_Value_Declaration (E : Node_Id);
    procedure Generate_Value_Box_Declaration (E : Node_Id);
    procedure Generate_Value_Forward_Declaration (E : Node_Id);
+
+   ---------------
+   -- Configure --
+   ---------------
+
+   procedure Configure is
+   begin
+      loop
+         case Getopt ("b:") is
+            when 'b' =>
+               Default_Base := Natural'Value (Parameter);
+
+            when ASCII.NUL =>
+               exit;
+
+            when others =>
+               raise Program_Error;
+         end case;
+      end loop;
+   end Configure;
 
    ---------------------------
    -- Decrement_Indentation --
@@ -90,6 +115,9 @@ package body Backend.BE_IDL is
          when K_Constant_Declaration =>
             Generate_Constant_Declaration (E);
 
+         when K_Element =>
+            Generate_Element (E);
+
          when K_Enumerator =>
             Generate_Enumerator (E);
 
@@ -119,9 +147,6 @@ package body Backend.BE_IDL is
 
          when K_Interface_Declaration =>
             Generate_Interface_Declaration (E);
-
-         when K_Literal .. K_Wide_String_Literal =>
-            Generate_Literal (E);
 
          when K_Member =>
             Generate_Member (E);
@@ -158,6 +183,9 @@ package body Backend.BE_IDL is
 
          when K_Structure_Type =>
             Generate_Structure_Type (E);
+
+         when K_Switch_Alternative =>
+            Generate_Switch_Alternative (E);
 
          when K_Type_Declaration =>
             Generate_Type_Declaration (E);
@@ -203,6 +231,12 @@ package body Backend.BE_IDL is
       D : Node_Id := First_Node (Declarators (E));
    begin
       Write_Indentation;
+      if Is_Readonly (E) then
+         Write (T_Readonly);
+         Write_Space;
+      end if;
+      Write (T_Attribute);
+      Write_Space;
       Generate (Type_Spec (E));
       Write_Space;
       loop
@@ -271,9 +305,43 @@ package body Backend.BE_IDL is
          end loop;
          Write_Name (IDL_Name (Identifier (Enu)));
       else
-         Write_Str (Image (Val));
+         --  Switch to base 10 to have a common output with other
+         --  CORBA environments.
+
+         declare
+            Data : Value_Type := Value (Val);
+            Base : Unsigned_Short_Short := 0;
+         begin
+            if Data.K in K_Short .. K_Unsigned_Long_Long
+              or else Data.K = K_Octet
+            then
+               Base := Data.Base;
+               if Default_Base /= 0 then
+                  Data.Base := Unsigned_Short_Short (Default_Base);
+               end if;
+               Set_Value (Val, Data);
+            end if;
+            Write_Str (Image (Val));
+            if Base /= 0 then
+               Data.Base := Base;
+               Set_Value (Val, Data);
+            end if;
+         end;
       end if;
    end Generate_Constant_Declaration;
+
+   ----------------------
+   -- Generate_Element --
+   ----------------------
+
+   procedure Generate_Element (E : Node_Id) is
+      pragma Unreferenced (E);
+   begin
+      Write_Indentation;
+      Write_Str ("xxx");
+      Write (T_Colon);
+      Write_Eol;
+   end Generate_Element;
 
    -------------------------
    -- Generate_Enumerator --
@@ -310,7 +378,7 @@ package body Backend.BE_IDL is
       Write_Eol;
       Decrement_Indentation;
       Write_Indentation;
-      Write      (T_Right_Brace);
+      Write (T_Right_Brace);
    end Generate_Enumeration_Type;
 
    -----------------------------------
@@ -489,15 +557,6 @@ package body Backend.BE_IDL is
       Write      (T_Right_Brace);
    end Generate_Interface_Declaration;
 
-   ----------------------
-   -- Generate_Literal --
-   ----------------------
-
-   procedure Generate_Literal (E : Node_Id) is
-   begin
-      Write_Str (Image (Value (E)));
-   end Generate_Literal;
-
    ---------------------
    -- Generate_Member --
    ---------------------
@@ -576,12 +635,33 @@ package body Backend.BE_IDL is
       L : List_Id;
    begin
       Write_Indentation;
+      if Is_Oneway (E) then
+         Write (T_Oneway);
+         Write_Space;
+      end if;
       Generate (Type_Spec (E));
       Write_Space;
       Generate (Identifier (E));
+      Write (T_Left_Paren);
 
       L := Parameters (E);
       if not Is_Empty (L) then
+         C := First_Node (L);
+         loop
+            Generate (C);
+            C := Next_Node (C);
+            exit when No (C);
+            Write (T_Comma);
+            Write_Space;
+         end loop;
+      end if;
+      Write (T_Right_Paren);
+
+      L := Exceptions (E);
+      if not Is_Empty (L) then
+         Write_Space;
+         Write (T_Raises);
+         Write_Space;
          Write (T_Left_Paren);
          C := First_Node (L);
          loop
@@ -594,21 +674,6 @@ package body Backend.BE_IDL is
          Write (T_Right_Paren);
       end if;
 
-      L := Exceptions (E);
-      if not Is_Empty (L) then
-         Write_Space;
-         Write (T_Raises);
-         Write_Space;
-         C := First_Node (L);
-         loop
-            Generate (C);
-            C := Next_Node (C);
-            exit when No (C);
-            Write (T_Comma);
-            Write_Space;
-         end loop;
-      end if;
-
       L := Contexts (E);
       if not Is_Empty (L) then
          Write_Space;
@@ -617,7 +682,7 @@ package body Backend.BE_IDL is
          Write (T_Left_Paren);
          C := First_Node (L);
          loop
-            Generate (C);
+            Write_Str (Image (Value (C)));
             C := Next_Node (C);
             exit when No (C);
             Write (T_Comma);
@@ -749,8 +814,27 @@ package body Backend.BE_IDL is
          Decrement_Indentation;
          Write_Indentation;
       end if;
-      Write      (T_Right_Brace);
+      Write (T_Right_Brace);
    end Generate_Structure_Type;
+
+   ---------------------------------
+   -- Generate_Switch_Alternative --
+   ---------------------------------
+
+   procedure Generate_Switch_Alternative (E : Node_Id)
+   is
+      L : Node_Id := First_Node (Labels (E));
+      C : constant Node_Id := Element (E);
+   begin
+      while Present (L) loop
+         Generate (L);
+         L := Next_Node (L);
+      end loop;
+      Write_Indentation;
+      Generate (Type_Spec (C));
+      Write_Space;
+      Generate (Identifier (Declarator (E)));
+   end Generate_Switch_Alternative;
 
    ------------------------------
    -- Generate_Type_Declaration --
@@ -778,9 +862,30 @@ package body Backend.BE_IDL is
    -- Generate_Union_Type --
    ------------------------
 
-   procedure Generate_Union_Type (E : Node_Id) is
+   procedure Generate_Union_Type (E : Node_Id)
+   is
+      N : Node_Id := First_Node (Switch_Type_Body (E));
    begin
-      Dummy (E);
+      Write_Indentation;
+      Write (T_Union);
+      Write_Space;
+      Generate (Identifier (E));
+      Write_Space;
+      Write (T_Switch);
+      Write_Space;
+      Write (T_Left_Paren);
+      Generate (Switch_Type_Spec (E));
+      Write (T_Right_Paren);
+      Write_Space;
+      Write (T_Left_Brace);
+      Increment_Indentation;
+      while Present (N) loop
+         Generate (N);
+         N := Next_Node (N);
+      end loop;
+      Decrement_Indentation;
+      Write_Indentation;
+      Write (T_Right_Brace);
    end Generate_Union_Type;
 
    -----------------------------------
@@ -811,10 +916,25 @@ package body Backend.BE_IDL is
    end Generate_Value_Forward_Declaration;
 
    -----------
+   -- Usage --
+   -----------
+
+   procedure Usage (Indent : Natural) is
+      Hdr : constant String (1 .. Indent - 1) := (others => ' ');
+   begin
+      Write_Str (Hdr);
+      Write_Str ("-b n     Base to output integer literal");
+      Write_Eol;
+      Write_Str (Hdr);
+      Write_Str ("         As a default (zero) use base from input");
+      Write_Eol;
+   end Usage;
+
+   -----------
    -- Write --
    -----------
 
-   procedure Write      (T : Token_Type) is
+   procedure Write (T : Token_Type) is
    begin
       Write_Str (Image (T));
    end Write;
