@@ -22,6 +22,7 @@ with Ada.Characters.Latin_1; use Ada.Characters.Latin_1;
 with Gnat.Case_Util;
 with Types; use Types;
 with Idents;
+with Errors;
 
 package body Tokens is
    type State_Type is record
@@ -64,24 +65,6 @@ package body Tokens is
       Replacement_Token := T_Error;
       Read_Line;
    end Initialize;
-
-   function Nat_To_String (Val : Natural) return String is
-      Res : String := Natural'Image (Val);
-   begin
-      return Res (2 .. Res'Last);
-   end Nat_To_String;
-
-   procedure Scan_Error (Msg : String) is
-      use Ada.Text_Io;
-   begin
-      Put ("stdin");
-      Put (':');
-      Put (Nat_To_String (Current_State.Line_Number));
-      Put (':');
-      Put (Nat_To_String (Token_Col));
-      Put (": ");
-      Put_Line (Msg);
-   end Scan_Error;
 
    procedure Set_Replacement_Token (Tok : Idl_Token) is
    begin
@@ -225,14 +208,22 @@ package body Tokens is
               or else Line (S .. E) = "undef" or else Line (S .. E) = "include"
               or else Line (S .. E) = "assert"
             then
-               Scan_Error ("cannot handle preprocessor directive, use -p");
+               Errors.Display_Error
+                 ("cannot handle preprocessor directive, use -p",
+                  Current_State.Line_Number,
+                  Col,
+                  Errors.Error);
                raise Fatal_Error;
             elsif Line (S .. E) = "pragma" then
                --  Currently ignored.
                --  FIXME
                Col := Current_State.Line_Len;
             else
-               Scan_Error ("unknow preprocessor directive.  -p can help");
+               Errors.Display_Error
+                 ("unknow preprocessor directive.  -p can help",
+                  Current_State.Line_Number,
+                  Col,
+                  Errors.Error);
             end if;
          when '0' .. '9' =>
             --  This is line directive
@@ -243,7 +234,10 @@ package body Tokens is
             --  This is an end of line.
             null;
          when others =>
-            Scan_Error ("bad preprocessor line");
+            Errors.Display_Error ("bad preprocessor line",
+                                  Current_State.Line_Number,
+                                  Col,
+                                  Errors.Error);
       end case;
    end Scan_Preprocessor;
 
@@ -372,10 +366,17 @@ package body Tokens is
             return;
          when others =>
             if Line (Col) >= ' ' then
-               Scan_Error ("bad characater `" & Line (Col) & "'");
+               Errors.Display_Error ("bad characater `" & Line (Col) & "'",
+                                     Current_State.Line_Number,
+                                     Col,
+                                     Errors.Error);
             else
-               Scan_Error ("bad character "
-                           & Nat_To_String (Character'Pos (Line (Col))));
+               Errors.Display_Error
+                 ("bad character "
+                  & Natural'Image (Character'Pos (Line (Col))),
+                  Current_State.Line_Number,
+                  Col,
+                  Errors.Error);
             end if;
             Current_Token := T_Error;
             return;

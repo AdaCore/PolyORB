@@ -134,9 +134,6 @@ package Tokens is
    --  string.
    function Get_Literal return String;
 
-   --  Disp a message for a lexical error.
-   procedure Scan_Error (Msg : String);
-
    --  Make function TOKEN returns TOK at it next call, without performing
    --  any other action.
    --  The purpose is to handle some errors, such as '>>' instead of '> >'.
