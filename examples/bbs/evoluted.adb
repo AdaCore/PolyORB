@@ -23,8 +23,7 @@ procedure Evoluted is
    procedure Usage;
    --  Print usage
 
-   package Penpals_Cache is new PolyORB.Dynamic_Dict
-     (Penpal_Pointer, null);
+   package Penpals_Cache is new PolyORB.Dynamic_Dict (Penpal_Pointer);
 
    function Cache_Get_Penpal (P : String) return Penpal_Pointer;
    function Cache_Get_Penpal (P : String) return Penpal_Pointer is
