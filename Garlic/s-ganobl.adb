@@ -206,6 +206,7 @@ package body System.Garlic.Non_Blocking is
                Dummy  := Thin.C_Recv (RRFD, Buf, Len, Flags);
             end if;
             Empty := not R_Mask;
+
          else
             Dummy  := Thin.C_Recv (RRFD, Buf, Len, Flags);
             pragma Debug (D ("length = " & Len'Img));
@@ -219,14 +220,8 @@ package body System.Garlic.Non_Blocking is
             else
                Empty := False;
             end if;
---             if Dummy > 0 then
---                Empty := False;
---             elsif Dummy < 0 then
---                Empty := Errno = Ewouldblock or else Errno = Eintr;
---             else
---                Empty := True;
---             end if;
          end if;
+
          if Empty then
             Recv_Mask (RRFD) := True;
             if RRFD > Max_FD then
@@ -234,6 +229,7 @@ package body System.Garlic.Non_Blocking is
             end if;
             Ready_Recv_Mask (RRFD) := False;
             requeue Recv_Requeue (RRFD) with abort;
+
          else
             Result := Dummy;
          end if;
@@ -260,6 +256,7 @@ package body System.Garlic.Non_Blocking is
          if Len = 0 then
             Dummy  := Thin.C_Recv (RRFD, Buf, Len, Flags);
             Empty  := False;
+
          else
             Dummy  := Thin.C_Recv (RRFD, Buf, Len, Flags);
             pragma Debug (D ("length = " & Len'Img));
@@ -273,17 +270,12 @@ package body System.Garlic.Non_Blocking is
             else
                Empty := False;
             end if;
---             if Dummy > 0 then
---                Empty := False;
---             elsif Dummy < 0 then
---                Empty := Errno = Ewouldblock or else Errno = Eintr;
---             else
---                Empty := True;
---             end if;
          end if;
+
          Ready_Recv_Mask (RRFD) := False;
          if Empty then
             requeue Recv_Requeue (RRFD) with abort;
+
          else
             Result := Dummy;
             Recv_Mask (RRFD) := False;
@@ -444,10 +436,16 @@ package body System.Garlic.Non_Blocking is
       Return_FD : int;
    begin
       Set_Asynchronous_Non_Blocking (S);
-      pragma Debug (D ("Blocking until something to accept"));
-      Asynchronous.Recv (S) (Dummy_CP, 0, 0, Dummy);
-      pragma Debug (D ("There is something to accept"));
-      Return_FD := Thin.C_Accept (S, Addr, Addrlen);
+      loop
+         pragma Debug (D ("Blocking until something to accept"));
+         Asynchronous.Recv (S) (Dummy_CP, 0, 0, Dummy);
+         pragma Debug (D ("There is something to accept"));
+         Return_FD := Thin.C_Accept (S, Addr, Addrlen);
+         exit when Return_FD /= Failure or else Errno /= Eagain;
+         pragma Debug (D ("Cannot accept connection on " & S'Img));
+         pragma Debug (D ("because of errno " & Errno'Img));
+         delay 0.2;
+      end loop;
       Set_Asynchronous_Non_Blocking (Return_FD);
       return Return_FD;
    end C_Accept;

@@ -1,4 +1,4 @@
-##
+#
 ## Makefile.am,v 1.11 1996/05/19 14:03:21 tardieu Exp
 ##
 
@@ -275,6 +275,13 @@ inlining: all-local
 linktest: ${srcdir}/linktest.adb ${OBJECTS}
 	${GNATMAKE} -c -a -m -I${srcdir} -I. ${srcdir}/linktest.adb
 	${GNATBIND} ${srcdir}/linktest.ali -I. -I${srcdir}
+	@${GNATBIND} -l ${srcdir}/linktest.ali -I. -I${srcdir} \
+	   | grep 'system.garlic.*body' | sed -n '1,1p' \
+	   | ${SED} 's/^.*garlic.\(.*\) .*$$/\1/g' > first;
+	@if test `cat first` != "debug"; then\
+	   echo "system.garlic.debug should be elaborted first";\
+	   exit 1;\
+	fi
 
 install-extra-libs: ${FILTERINSTALL} inlining
 

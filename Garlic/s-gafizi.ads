@@ -47,7 +47,8 @@ private
    function Filter_Incoming
       (Filter : in Compress_Filter_Type;
        Params : in Filter_Params_Access;
-       Stream : in Ada.Streams.Stream_Element_Array)
+       Stream : in Streams.Stream_Element_Access;
+       Offset : in Ada.Streams.Stream_Element_Offset)
       return Streams.Stream_Element_Access;
 
    function Filter_Outgoing

@@ -185,6 +185,7 @@ package body System.Partition_Interface is
             System.Garlic.Soft_Links.Global_Termination;
          when others => null;
       end case;
+      Delete_Termination_Sanity_File;
    end Complete_Termination;
 
    ---------------

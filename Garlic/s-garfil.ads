@@ -47,7 +47,8 @@ package System.Garlic.Filters is
    procedure Filter_Incoming
       (Partition : in Types.Partition_ID;
        Opcode    : in System.Garlic.Heart.Any_Opcode;
-       Stream    : in Ada.Streams.Stream_Element_Array;
+       Stream    : in Streams.Stream_Element_Access;
+       Offset    : in Ada.Streams.Stream_Element_Offset;
        Result    : out Streams.Stream_Element_Access;
        Error     : in out Utils.Error_Type);
 
@@ -84,7 +85,8 @@ private
    function Filter_Incoming
       (Filter : in Filter_Type;
        Params : in Filter_Params_Access;
-       Stream : in Ada.Streams.Stream_Element_Array)
+       Stream : in Streams.Stream_Element_Access;
+       Offset : in Ada.Streams.Stream_Element_Offset)
       return Streams.Stream_Element_Access is abstract;
 
    function Filter_Outgoing

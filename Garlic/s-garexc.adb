@@ -33,11 +33,20 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with GNAT.OS_Lib; use GNAT.OS_Lib;
+with GNAT.OS_Lib;         use GNAT.OS_Lib;
+with System.Garlic.Debug; use System.Garlic.Debug;
 
 package body System.Garlic.Exceptions is
 
    use Ada.Exceptions;
+
+   Private_Debug_Key : constant Debug_Key :=
+     Debug_Initialize ("S_GAREXC", "(s-garexc): ");
+
+   procedure D
+     (Message : in String;
+      Key     : in Debug_Key := Private_Debug_Key)
+     renames Print_Debug_Info;
 
    -------------------------------
    -- Raise_Communication_Error --

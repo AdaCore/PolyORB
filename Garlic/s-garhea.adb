@@ -135,14 +135,12 @@ package body System.Garlic.Heart is
       Opcode     : out Any_Opcode;
       Unfiltered : out Stream_Element_Access;
       Filtered   : in  Stream_Element_Access;
-      Offset     : in  Ada.Streams.Stream_Element_Count;
+      Offset     : in  Ada.Streams.Stream_Element_Offset;
       Error      : in out Error_Type)
    is
       PID   : Partition_ID;
       Code  : Any_Opcode;
-      First : constant Stream_Element_Count := Filtered'First + Offset;
-      Last  : constant Stream_Element_Count := Filtered'Last;
-      Data  : Stream_Element_Array renames Filtered (First + 2 .. Last);
+      First : constant Stream_Element_Offset := Filtered'First + Offset;
    begin
       --  Dump the stream for debugging purpose
 
@@ -204,7 +202,7 @@ package body System.Garlic.Heart is
 
          --  Unfilter the data and put it in a stream
 
-         Filter_Incoming (PID, Code, Data, Unfiltered, Error);
+         Filter_Incoming (PID, Code, Filtered, Offset + 2, Unfiltered, Error);
       end if;
 
       Partition  := PID;
@@ -746,7 +744,6 @@ package body System.Garlic.Heart is
       Partitions.Update;
 
       Destroy (Self_PID_Barrier);
-      Delete_Termination_Sanity_File;
    end Shutdown;
 
    -------------------

@@ -75,7 +75,8 @@ package body System.Garlic.Filters.Zip is
    function Filter_Incoming
       (Filter : in Compress_Filter_Type;
        Params : in Filter_Params_Access;
-       Stream : in Ada.Streams.Stream_Element_Array)
+       Stream : in Streams.Stream_Element_Access;
+       Offset : in Ada.Streams.Stream_Element_Offset)
       return Stream_Element_Access is
       Target_Length : Stream_Element_Offset := 0;
       Target_Buffer : Stream_Element_Access;
@@ -83,18 +84,20 @@ package body System.Garlic.Filters.Zip is
       source_bytes  : C.long;
       result        : C.int;
 
+      F : constant Stream_Element_Offset := Stream'First + Offset;
+      L : constant Stream_Element_Offset := Stream'Last;
    begin
-      for I in reverse Stream'First .. Stream'First + 3 loop
+      for I in reverse F .. F + 3 loop
          Target_Length :=
            Target_Length * 256 + Stream_Element_Offset (Stream (I));
       end loop;
       target_bytes := C.long (Target_Length);
       Target_Buffer := new Stream_Element_Array (1 .. Target_Length);
       if Target_Length > 0 then
-         source_bytes := Stream'Length - 4;
+         source_bytes := C.long (L - F - 3 - Offset);
          result := Decompress
            (Target_Buffer (Target_Buffer'First)'Address, target_bytes'Address,
-            Stream (Stream'First + 4)'Address, source_bytes);
+            Stream (F + 4)'Address, source_bytes);
       end if;
       return Target_Buffer;
    end Filter_Incoming;

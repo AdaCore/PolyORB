@@ -1,3 +1,19 @@
+1999-02-08  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* Makefile.am, Makefile.in: Check that system.garlic.debug is
+	the first garlic elaborated package.
+
+	* s-garexc.adb: Add visibility on system.garlic.debug.
+
+	* s-parint.adb: Move Delete_Termination_Sanity_File to the very
+	last shutdown step.
+	
+	* s-ganobl.adb (C_Accept): When Thin.C_Accept fails and Errno is
+	Eagain, try again later.
+
+	* s-garfil.adb, s-garfil.ads, s-gafizi.adb, s-gafizi.ads,
+ 	s-garhea.adb: Remove a copy of stream element array.
+
 1999-02-01  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-garuti.adb: Avoid recursion in "<" operator by converting

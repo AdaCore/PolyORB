@@ -170,7 +170,7 @@ package System.Garlic.Heart is
       Opcode     : out Any_Opcode;
       Unfiltered : out Streams.Stream_Element_Access;
       Filtered   : in  Streams.Stream_Element_Access;
-      Offset     : in Ada.Streams.Stream_Element_Count;
+      Offset     : in Ada.Streams.Stream_Element_Offset;
       Error      : in out Utils.Error_Type);
    --  Called by a protocol to signal that something has arrived. Filtered
    --  has not been unfiltered yet. Offset represents the number of bytes

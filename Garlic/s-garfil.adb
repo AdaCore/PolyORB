@@ -195,10 +195,13 @@ package body System.Garlic.Filters is
    procedure Filter_Incoming
       (Partition : in Partition_ID;
        Opcode    : in Any_Opcode;
-       Stream    : in Stream_Element_Array;
+       Stream    : in Stream_Element_Access;
+       Offset    : in Stream_Element_Offset;
        Result    : out Stream_Element_Access;
        Error     : in out Error_Type)
    is
+      F : constant Stream_Element_Offset := Stream'First + Offset;
+      L : constant Stream_Element_Offset := Stream'Last;
    begin
       --  Only remote calls are filtered
 
@@ -223,14 +226,15 @@ package body System.Garlic.Filters is
             Result := Filter_Incoming
               (Channels.Table (Partition).Filter.all,
                Channels.Table (Partition).Incoming.Local,
-               Stream);
+               Stream,
+               Offset);
             return;
          end if;
       end if;
 
       --  When possible, avoid unnecessary buffer copies
 
-      Result := new Stream_Element_Array'(Stream);
+      Result := new Stream_Element_Array'(Stream (F .. L));
    end Filter_Incoming;
 
    ---------------------
@@ -524,9 +528,7 @@ package body System.Garlic.Filters is
       if Register.Filter /= null then
          S1 := To_Stream_Element_Access (Query);
          S2 := Filter_Incoming
-           (Register.Filter.all,
-            Register.Incoming.Local,
-            S1.all);
+           (Register.Filter.all, Register.Incoming.Local, S1, 0);
          declare
             Params : aliased Params_Stream_Type (S2'Length);
          begin
