@@ -184,32 +184,14 @@ procedure Dynclient is
    procedure Out_Proc (Self : in CORBA.Object.Ref;
                        A, B, C : out CORBA.Short) is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("out_proc");
-      Arg_Name_A : CORBA.Identifier := To_CORBA_String ("a");
-      Arg_Name_B : CORBA.Identifier := To_CORBA_String ("b");
-      Arg_Name_C : CORBA.Identifier := To_CORBA_String ("c");
       Request : CORBA.Request.Object;
       Ctx : CORBA.Context.Ref;
-      Argument_A : CORBA.Any := CORBA.To_Any (A);
-      Argument_B : CORBA.Any := CORBA.To_Any (B);
-      Argument_C : CORBA.Any := CORBA.To_Any (C);
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
-      --  creating the argument list
+      --  creating an empty argument list
       CORBA.ORB.Create_List (0, Arg_List);
-      CORBA.NVList.Add_Item (Arg_List,
-                             Arg_Name_A,
-                             Argument_A,
-                             CORBA.ARG_OUT);
-      CORBA.NVList.Add_Item (Arg_List,
-                             Arg_Name_B,
-                             Argument_B,
-                             CORBA.ARG_OUT);
-      CORBA.NVList.Add_Item (Arg_List,
-                             Arg_Name_C,
-                             Argument_C,
-                             CORBA.ARG_OUT);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
                  Argument => Get_Empty_Any (CORBA.TC_Void),
@@ -222,12 +204,24 @@ procedure Dynclient is
                                    Result,
                                    Request,
                                    0);
+      --  adding some arguments to the request
+      CORBA.Request.Add_Arg (Request,
+                             CORBA.TC_Short,
+                             A'address,
+                             CORBA.Short'Size,
+                             CORBA.ARG_OUT);
+      CORBA.Request.Add_Arg (Request,
+                             CORBA.TC_Short,
+                             B'address,
+                             CORBA.Short'Size,
+                             CORBA.ARG_OUT);
+      CORBA.Request.Add_Arg (Request,
+                             CORBA.TC_Short,
+                             C'address,
+                             CORBA.Short'Size,
+                             CORBA.ARG_OUT);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  get out arguments
-      A := CORBA.From_Any (Argument_A);
-      B := CORBA.From_Any (Argument_B);
-      C := CORBA.From_Any (Argument_C);
    end Out_Proc;
 
    procedure Inout_Proc (Self : in CORBA.Object.Ref;
@@ -237,8 +231,6 @@ procedure Dynclient is
       Arg_Name_B : CORBA.Identifier := To_CORBA_String ("b");
       Request : CORBA.Request.Object;
       Ctx : CORBA.Context.Ref;
-      Argument_A : CORBA.Any := CORBA.To_Any (A);
-      Argument_B : CORBA.Any := CORBA.To_Any (B);
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
       Result_Name : CORBA.String := To_CORBA_String ("Result");
@@ -247,11 +239,15 @@ procedure Dynclient is
       CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name_A,
-                             Argument_A,
+                             CORBA.TC_Short,
+                             A'address,
+                             CORBA.Short'Size,
                              CORBA.ARG_INOUT);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name_B,
-                             Argument_B,
+                             CORBA.TC_Short,
+                             B'address,
+                             CORBA.Short'Size,
                              CORBA.ARG_INOUT);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
@@ -267,9 +263,6 @@ procedure Dynclient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  get out arguments
-      A := CORBA.From_Any (Argument_A);
-      B := CORBA.From_Any (Argument_B);
    end Inout_Proc;
 
    procedure In_Out_Proc (Self : in CORBA.Object.Ref;
@@ -396,10 +389,6 @@ procedure Dynclient is
       Arg_Name_D : CORBA.Identifier := To_CORBA_String ("d");
       Request : CORBA.Request.Object;
       Ctx : CORBA.Context.Ref;
-      Argument_A : CORBA.Any := CORBA.To_Any (A);
-      Argument_B : CORBA.Any := CORBA.To_Any (B);
-      Argument_C : CORBA.Any := CORBA.To_Any (C);
-      Argument_D : CORBA.Any := CORBA.To_Any (D);
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
       Result_Name : CORBA.String := To_CORBA_String ("Result");
@@ -408,19 +397,27 @@ procedure Dynclient is
       CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name_A,
-                             Argument_A,
+                             CORBA.TC_Short,
+                             A'address,
+                             CORBA.Short'Size,
                              CORBA.ARG_OUT);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name_B,
-                             Argument_B,
+                             CORBA.TC_Short,
+                             B'address,
+                             CORBA.Short'Size,
                              CORBA.ARG_INOUT);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name_C,
-                             Argument_C,
+                             CORBA.TC_Short,
+                             C'address,
+                             CORBA.Short'Size,
                              CORBA.ARG_INOUT);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name_D,
-                             Argument_D,
+                             CORBA.TC_Short,
+                             D'address,
+                             CORBA.Short'Size,
                              CORBA.ARG_OUT);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
@@ -436,11 +433,6 @@ procedure Dynclient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  get out arguments
-      A := CORBA.From_Any (Argument_A);
-      B := CORBA.From_Any (Argument_B);
-      C := CORBA.From_Any (Argument_C);
-      D := CORBA.From_Any (Argument_D);
    end Out_Inout_Proc;
 
    procedure In_Out_Inout_Proc (Self : in CORBA.Object.Ref;

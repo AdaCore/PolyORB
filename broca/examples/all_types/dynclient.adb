@@ -61,17 +61,17 @@ procedure DynClient is
       Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
       Request : CORBA.Request.Object;
       Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
-      Argument : CORBA.Any;
       Arg_List : CORBA.NVList.Ref;
       Result_Name : CORBA.String := To_CORBA_String ("Result");
       Result : CORBA.NamedValue;
    begin
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
-      Argument := CORBA.To_Any (Arg);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
-                             Argument,
+                             CORBA.TC_Boolean,
+                             Arg'Address,
+                             CORBA.Boolean'Size,
                              CORBA.ARG_IN);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),

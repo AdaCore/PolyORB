@@ -44,6 +44,21 @@ package body CORBA.Request is
    procedure O is new Broca.Debug.Output (Flag);
 
    procedure Add_Arg
+     (Self      : in out Object;
+      Arg_Type  : in     CORBA.TypeCode.Object;
+      Value     : in     System.Address;
+      Len       : in     Long;
+      Arg_Flags : in     Flags) is
+   begin
+      CORBA.NVList.Add_Item (Self.Args_List,
+                             CORBA.Null_Identifier,
+                             Arg_Type,
+                             Value,
+                             Len,
+                             Arg_Flags);
+   end Add_Arg;
+
+   procedure Add_Arg
      (Self : in out Object;
       Arg  : in     NamedValue) is
    begin

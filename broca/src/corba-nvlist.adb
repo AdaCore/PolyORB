@@ -36,6 +36,7 @@ with Ada.Tags;
 with Broca.CDR;
 with Broca.Debug;
 with Broca.Locks; use Broca.Locks;
+with System;
 
 package body CORBA.NVList is
 
@@ -55,6 +56,25 @@ package body CORBA.NVList is
                           NV_Sequence.Length (Obj.List));
       pragma Debug (O ("Finalize: end"));
    end Finalize;
+
+   --------------
+   -- Add_Item --
+   --------------
+
+   procedure Add_Item
+     (Self       :    Ref;
+      Item_Name  : in Identifier;
+      Item_Type  : in CORBA.TypeCode.Object;
+      Value      : in System.Address;
+      Len        : in Long;
+      Item_Flags : in Flags) is
+   begin
+      Add_Item (Self,
+                Item_Name,
+                CORBA.Build_Any (Item_Type, Value),
+                Item_Flags);
+      pragma Debug (O ("Add_Item (6 params) : end"));
+   end Add_Item;
 
    --------------
    -- Add_Item --

@@ -38,6 +38,7 @@ with Ada.Strings.Wide_Unbounded;
 with Ada.Unchecked_Deallocation;
 with Interfaces;
 with Broca.Locks;
+with System;
 
 package CORBA is
 
@@ -821,6 +822,15 @@ package CORBA is
    function From_Any (Item : in Any) return TypeCode.Object;
    function From_Any (Item : in Any) return CORBA.String;
    function From_Any (Item : in Any) return CORBA.Wide_String;
+
+   --  not in spec
+   --  this builds an any from a pointer on an ada value given as a system
+   --  address and its type given as a typecode
+   --  The new any has a reference semantic
+   function Build_Any
+     (Any_Type  : in CORBA.TypeCode.Object;
+      Any_Value : in System.Address)
+     return CORBA.Any;
 
    function Get_Type (The_Any : in Any) return TypeCode.Object;
 

@@ -32,10 +32,12 @@
 ------------------------------------------------------------------------------
 
 with Ada.Tags;
+with System.Address_To_Access_Conversions;
 
 with Broca.Exceptions;
 with Broca.Debug;
 with Broca.Locks; use Broca.Locks;
+with System;
 
 with Broca.Configuration;
 pragma Elaborate (Broca.Configuration);
@@ -2993,6 +2995,229 @@ package body CORBA is
       Dec_Usage (Object);
       pragma Debug (O2 ("Finalize : end"));
    end Finalize;
+
+   -----------------
+   --  Build_Any  --
+   -----------------
+   function Build_Any
+     (Any_Type  : in CORBA.TypeCode.Object;
+      Any_Value : in System.Address)
+     return CORBA.Any is
+      use System;
+      Result    : CORBA.Any;
+      The_Value : Any_Content_Ptr;
+      The_Type  : TypeCode.Object;
+   begin
+      pragma Debug (O ("Build_Any : enter"));
+      --  cheks Any_Value is not null
+      if Any_Value = System.Null_Address then
+         pragma Debug (O ("Build_Any : the system address was null"));
+         if TypeCode.Kind (Any_Type) = Tk_Null then
+            --  creates a any with null value
+            The_Value := null;
+            The_Type := TypeCode.TC_Null;
+         else
+            Broca.Exceptions.Raise_Bad_TypeCode;
+         end if;
+      else
+         pragma Debug (O ("Build_Any : the system address was not null"));
+         --  the structure of the content of Any_Value is described by Any_Type
+         case TypeCode.Kind (Any_Type) is
+            when Tk_Null =>
+               --  since the Any_Value is not null, raises an exception
+               Broca.Exceptions.Raise_Bad_TypeCode;
+            when Tk_Void =>
+               --  there's no sense in building a void any from a value
+               Broca.Exceptions.Raise_Bad_TypeCode;
+            when Tk_Short =>
+               declare
+                  package Address_To_Short is
+                     new System.Address_To_Access_Conversions (CORBA.Short);
+               begin
+                  The_Type := TypeCode.TC_Short;
+                  The_Value := new Content_Short'
+                    (Value => Address_To_Short.To_Pointer
+                     (Any_Value).all'Unchecked_Access);
+               end;
+            when Tk_Long =>
+               declare
+                  package Address_To_Long is
+                     new System.Address_To_Access_Conversions (CORBA.Long);
+               begin
+                  The_Type := TypeCode.TC_Long;
+                  The_Value := new Content_Long'
+                    (Value => Address_To_Long.To_Pointer
+                     (Any_Value).all'Unchecked_Access);
+               end;
+            when Tk_Ushort =>
+               declare
+                  package Address_To_Ushort is
+                     new System.Address_To_Access_Conversions
+                    (CORBA.Unsigned_Short);
+               begin
+                  The_Type := TypeCode.TC_Unsigned_Short;
+                  The_Value := new Content_UShort'
+                    (Value => Address_To_Ushort.To_Pointer
+                     (Any_Value).all'Unchecked_Access);
+               end;
+            when Tk_Ulong =>
+               declare
+                  package Address_To_Ulong is
+                     new System.Address_To_Access_Conversions
+                    (CORBA.Unsigned_Long);
+               begin
+                  The_Type := TypeCode.TC_Unsigned_Long;
+                  The_Value := new Content_ULong'
+                    (Value => Address_To_Ulong.To_Pointer
+                     (Any_Value).all'Unchecked_Access);
+               end;
+            when Tk_Float =>
+               declare
+                  package Address_To_Float is
+                     new System.Address_To_Access_Conversions (CORBA.Float);
+               begin
+                  The_Type := TypeCode.TC_Float;
+                  The_Value := new Content_Float'
+                    (Value => Address_To_Float.To_Pointer
+                     (Any_Value).all'Unchecked_Access);
+               end;
+            when Tk_Double =>
+               declare
+                  package Address_To_Double is
+                     new System.Address_To_Access_Conversions (CORBA.Double);
+               begin
+                  The_Type := TypeCode.TC_Double;
+                  The_Value := new Content_Double'
+                    (Value => Address_To_Double.To_Pointer
+                     (Any_Value).all'Unchecked_Access);
+               end;
+            when Tk_Boolean =>
+               declare
+                  package Address_To_Boolean is
+                     new System.Address_To_Access_Conversions (CORBA.Boolean);
+               begin
+                  The_Type := TypeCode.TC_Boolean;
+                  The_Value := new Content_Boolean'
+                    (Value => Address_To_Boolean.To_Pointer
+                     (Any_Value).all'Unchecked_Access);
+               end;
+            when Tk_Char =>
+               declare
+                  package Address_To_Char is
+                     new System.Address_To_Access_Conversions (CORBA.Char);
+               begin
+                  The_Type := TypeCode.TC_Char;
+                  The_Value := new Content_Char'
+                    (Value => Address_To_Char.To_Pointer
+                     (Any_Value).all'Unchecked_Access);
+               end;
+            when Tk_Octet =>
+               declare
+                  package Address_To_Octet is
+                     new System.Address_To_Access_Conversions (CORBA.Octet);
+               begin
+                  The_Type := TypeCode.TC_Octet;
+                  The_Value := new Content_Octet'
+                    (Value => Address_To_Octet.To_Pointer
+                     (Any_Value).all'Unchecked_Access);
+               end;
+            when Tk_Any =>
+               Broca.Exceptions.Raise_Bad_TypeCode;
+            when Tk_TypeCode =>
+               Broca.Exceptions.Raise_Bad_TypeCode;
+            when Tk_Principal =>
+               Broca.Exceptions.Raise_Bad_TypeCode;
+            when Tk_Objref =>
+               Broca.Exceptions.Raise_Bad_TypeCode;
+            when Tk_Struct =>
+               Broca.Exceptions.Raise_Bad_TypeCode;
+            when Tk_Union =>
+               Broca.Exceptions.Raise_Bad_TypeCode;
+            when Tk_Enum =>
+               Broca.Exceptions.Raise_Bad_TypeCode;
+            when Tk_String =>
+               Broca.Exceptions.Raise_Bad_TypeCode;
+            when Tk_Sequence =>
+               Broca.Exceptions.Raise_Bad_TypeCode;
+            when Tk_Array =>
+               Broca.Exceptions.Raise_Bad_TypeCode;
+            when Tk_Alias =>
+               Broca.Exceptions.Raise_Bad_TypeCode;
+            when Tk_Except =>
+               Broca.Exceptions.Raise_Bad_TypeCode;
+            when Tk_Longlong =>
+               declare
+                  package Address_To_Longlong is
+                     new System.Address_To_Access_Conversions
+                    (CORBA.Long_Long);
+               begin
+                  The_Type := TypeCode.TC_Long_Long;
+                  The_Value := new Content_Long_Long'
+                    (Value => Address_To_Longlong.To_Pointer
+                     (Any_Value).all'Unchecked_Access);
+               end;
+            when Tk_Ulonglong =>
+               declare
+                  package Address_To_Ulonglong is
+                     new System.Address_To_Access_Conversions
+                    (CORBA.Unsigned_Long_Long);
+               begin
+                  The_Type := TypeCode.TC_Unsigned_Long_Long;
+                  The_Value := new Content_ULong_Long'
+                    (Value => Address_To_Ulonglong.To_Pointer
+                     (Any_Value).all'Unchecked_Access);
+               end;
+            when Tk_Longdouble =>
+               declare
+                  package Address_To_Longdouble is
+                     new System.Address_To_Access_Conversions
+                    (CORBA.Long_Double);
+               begin
+                  The_Type := TypeCode.TC_Long_Double;
+                  The_Value := new Content_Long_Double'
+                    (Value => Address_To_Longdouble.To_Pointer
+                     (Any_Value).all'Unchecked_Access);
+               end;
+            when Tk_Widechar =>
+               declare
+                  package Address_To_Widechar is
+                     new System.Address_To_Access_Conversions (CORBA.Wchar);
+               begin
+                  The_Type := TypeCode.TC_Wchar;
+                  The_Value := new Content_Wchar'
+                    (Value => Address_To_Widechar.To_Pointer
+                     (Any_Value).all'Unchecked_Access);
+               end;
+            when Tk_Wstring =>
+               declare
+                  package Address_To_Wstring is
+                     new System.Address_To_Access_Conversions
+                    (CORBA.Wide_String);
+               begin
+                  The_Type := TypeCode.TC_Wide_String;
+                  The_Value := new Content_Wide_String'
+                    (Value => Address_To_Wstring.To_Pointer
+                     (Any_Value).all'Unchecked_Access);
+               end;
+            when Tk_Fixed =>
+               Broca.Exceptions.Raise_Bad_TypeCode;
+            when Tk_Value =>
+               Broca.Exceptions.Raise_Bad_TypeCode;
+            when Tk_Valuebox =>
+               Broca.Exceptions.Raise_Bad_TypeCode;
+            when Tk_Native =>
+               Broca.Exceptions.Raise_Bad_TypeCode;
+            when Tk_Abstract_Interface =>
+               Broca.Exceptions.Raise_Bad_TypeCode;
+         end case;
+      end if;
+      CORBA.Set_Value (Result, The_Value);
+      CORBA.Set_Type (Result, Any_Type);
+      CORBA.Inc_Usage (Result);
+      Result.As_Reference := True;
+      pragma Debug (O ("Build_Any : end"));
+      return Result;
+   end Build_Any;
 
    -----------------
    --  Set_Value  --
