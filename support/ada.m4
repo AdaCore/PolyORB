@@ -158,3 +158,27 @@ HAVE_GNAT_SOCKETS_COPY="--  "])
 ADA=$OLDADA
 AC_SUBST(MISS_GNAT_SOCKETS_COPY)dnl
 AC_SUBST(HAVE_GNAT_SOCKETS_COPY)])
+
+dnl Usage: AM_HAS_GNAT_OS_LIB_CLOSE_WITH_STATUS
+dnl Determine whether GNAT.OS_Lib has a Close operation with status report.
+
+AC_DEFUN(AM_HAS_GNAT_OS_LIB_CLOSE_WITH_STATUS,
+[AC_REQUIRE([AM_PROG_ADA])
+AC_MSG_CHECKING([whether you have GNAT.OS_Lib.Close (FD : File_Descriptor; Status : out Boolean)])
+OLDADA=$ADA
+ADA=$ADA_FOR_TARGET
+AM_TRY_ADA([check.adb],
+[with GNAT.OS_Lib;
+procedure Check is
+   FD : GNAT.OS_Lib.File_Descriptor;
+   Status : boolean;
+begin
+   GNAT.OS_Lib.Close (FD, Status);
+end Check;
+], [AC_MSG_RESULT(yes)
+MISS_GNAT_OS_LIB_CLOSE_WITH_STATUS="--  "],
+[AC_MSG_RESULT(no)
+HAVE_GNAT_OS_LIB_CLOSE_WITH_STATUS="--  "])
+ADA=$OLDADA
+AC_SUBST(MISS_GNAT_OS_LIB_CLOSE_WITH_STATUS)dnl
+AC_SUBST(HAVE_GNAT_OS_LIB_CLOSE_WITH_STATUS)])

@@ -11,6 +11,8 @@ compilers/Makefile.common
 compilers/Makefile.in
 compilers/gnatprfh/Makefile.am
 compilers/gnatprfh/Makefile.in
+compilers/gnatprfh/g-oslicl.adb.in
+compilers/gnatprfh/g-oslicl.ads
 compilers/gnatprfh/g-pehage.adb
 compilers/gnatprfh/g-pehage.ads
 compilers/gnatprfh/g-pehama.adb

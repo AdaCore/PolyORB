@@ -38,6 +38,9 @@ with GNAT.Heap_Sort_A; use GNAT.Heap_Sort_A;
 with GNAT.OS_Lib;      use GNAT.OS_Lib;
 with GNAT.Table;
 
+with GNAT.OS_Lib_Close;
+--  WAG:3.16
+
 package body GNAT.Perfect_Hash.Generators is
 
    --  We are using the algorithm of J. Czech as described in Zbigniew
@@ -1433,7 +1436,8 @@ package body GNAT.Perfect_Hash.Generators is
       Put      (File, Pkg_Name);
       Put      (File, ";");
       New_Line (File);
-      Close    (File, Status);
+      GNAT.OS_Lib_Close (File, Status);
+      --  WAG:3.16
 
       if not Status then
          raise Device_Error;
@@ -1610,7 +1614,8 @@ package body GNAT.Perfect_Hash.Generators is
       Put      (File, Pkg_Name);
       Put      (File, ";");
       New_Line (File);
-      Close    (File, Status);
+      GNAT.OS_Lib_Close (File, Status);
+      --  WAG:3.16
 
       if not Status then
          raise Device_Error;
