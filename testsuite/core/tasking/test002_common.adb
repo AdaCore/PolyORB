@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -72,6 +72,9 @@ package body Test002_Common is
    --  CV shared by different threads.
    --  XXX Check thread safety !
 
+   Task_Waiting : Natural := 0;
+   --  Number of tasks waiting
+
    ---------------------
    -- Initialize_Test --
    ---------------------
@@ -98,16 +101,22 @@ package body Test002_Common is
    procedure Wait_Task;
 
    procedure Wait_Task is
-
       My_Mutex : Mutex_Access;
+
    begin
       Create (My_Mutex);
       Enter (My_Mutex);
+
+      Task_Waiting := Task_Waiting + 1;
+
       Wait (Global_CV, My_Mutex);
+
       Output ("End task: "
               & Image
               (Get_Current_Thread_Id (My_Thread_Factory)),
               True);
+
+      Task_Waiting := Task_Waiting - 1;
       Leave (My_Mutex);
    end Wait_Task;
 
@@ -122,6 +131,8 @@ package body Test002_Common is
       RA : Runnable_Access;
       C  : constant Runnable_Controller_Access := new Do_Nothing_Controller;
    begin
+      New_Test ("Condition Variables");
+
       for J in Task_Index'Range loop
          R (J).P := Wait_Task'Access;
          RA := R (J)'Access;
@@ -137,18 +148,24 @@ package body Test002_Common is
             null;
          end;
       end loop;
-      Output ("Wait before signal", True);
-      delay 4.0;
-      Signal (Global_CV);
-      delay 4.0;
-      Output ("Wait before signal", True);
-      delay 4.0;
-      Signal (Global_CV);
-      delay 4.0;
-      Output ("End signals", True);
-      Broadcast (Global_CV);
-      Output ("Broadcast", True);
 
+      Output ("Wait before testing", True);
+      delay 4.0;
+      Output ("All task waiting", Task_Waiting = Task_Index'Last);
+
+      Signal (Global_CV);
+      delay 4.0;
+      Output ("One task awaken", Task_Waiting = Task_Index'Last - 1);
+
+      Signal (Global_CV);
+      delay 4.0;
+      Output ("Another task awaken", Task_Waiting = Task_Index'Last - 2);
+
+      Broadcast (Global_CV);
+      delay 4.0;
+      Output ("Broadcast: all tasks are awaken", Task_Waiting = 0);
+
+      End_Report;
    end Test_CV;
 
 end Test002_Common;
