@@ -1,5 +1,7 @@
 SUBDIRS=	echo
 
+LINKER=	../support/linker
+
 TESTS=  polyorb-test-no_tasking \
         polyorb-test-thread_pool \
         polyorb-test-no_tasking_poa \
