@@ -1497,7 +1497,7 @@ package body PolyORB.Protocols.GIOP is
 
       Reply_Status  : Reply_Status_Type;
       Request_Id    : Types.Unsigned_Long;
-      Current_Req   : Pending_Request := null;
+      Current_Req   : Pending_Request;
       N             : Request_Note;
       ORB           : constant ORB_Access
         := ORB_Access (Ses.Server);
@@ -1551,7 +1551,7 @@ package body PolyORB.Protocols.GIOP is
             end if;
          end loop;
 
-         if Current_Req = null then
+         if Current_Req.Req = null then
             raise GIOP_Error;
          end if;
       end;
