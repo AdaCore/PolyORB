@@ -2,9 +2,9 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                               S E R V E R                                --
+--                   M O M A . C O N F I G U R A T I O N                    --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
 --             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
@@ -30,44 +30,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Dummy MOMA server.
-
 --  $Id$
 
-with Ada.Text_IO; use Ada.Text_IO;
+package MOMA.Configuration is
 
-with PolyORB.References;
-with PolyORB.References.IOR;
-with PolyORB.Types;
+   pragma Pure (MOMA.Configuration);
 
-with PolyORB.Setup.No_Tasking_Server;
-pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
-pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
-
-with MOMA.Configuration.Server;
-with PolyORB.MOMA_P.Tools;
-
-procedure Server is
-
-   use MOMA.Configuration.Server;
-   use PolyORB.MOMA_P.Tools;
-
-   MOMA_Ref : PolyORB.References.Ref;
-   Info : Message_Pool_Info;
-begin
-   --  Load Configuration File
-   Load_Configuration_File ("destinations.conf");
-
-   Info := Get_Message_Pool_Info (1);
-
-   --  Create one message pool.
-   Create_Message_Pool ("queue1", MOMA_Ref);
-
-   --  Outputs its reference.
-   Put_Line (PolyORB.Types.To_Standard_String
-             (PolyORB.References.IOR.Object_To_String (MOMA_Ref)));
-
-   --  Run the server.
-   Run_Server;
-
-end Server;
+end MOMA.Configuration;

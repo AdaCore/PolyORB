@@ -43,4 +43,6 @@ package PolyORB.MOMA_P.Tools is
       If_Desc : in  PolyORB.Obj_Adapters.Simple.Interface_Description;
       Ref     : out PolyORB.References.Ref);
 
+   procedure Run_Server;
+
 end PolyORB.MOMA_P.Tools;

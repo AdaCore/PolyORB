@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                               S E R V E R                                --
+--            M O M A . C O N F I G U R A T I O N . S E R V E R             --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -30,44 +30,72 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Dummy MOMA server.
-
 --  $Id$
 
-with Ada.Text_IO; use Ada.Text_IO;
-
-with PolyORB.References;
-with PolyORB.References.IOR;
-with PolyORB.Types;
-
-with PolyORB.Setup.No_Tasking_Server;
-pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
-pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
-
-with MOMA.Configuration.Server;
+with MOMA.Provider.Message_Pool;
+with MOMA.Types;
+with PolyORB.Configuration;
+with PolyORB.Log;
 with PolyORB.MOMA_P.Tools;
 
-procedure Server is
+package body MOMA.Configuration.Server is
 
-   use MOMA.Configuration.Server;
+   use MOMA.Types;
+   use PolyORB.Configuration;
    use PolyORB.MOMA_P.Tools;
+   use PolyORB.Log;
 
-   MOMA_Ref : PolyORB.References.Ref;
-   Info : Message_Pool_Info;
-begin
-   --  Load Configuration File
-   Load_Configuration_File ("destinations.conf");
+   package L is new PolyORB.Log.Facility_Log ("moma.configuration.server");
+   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+     renames L.Output;
 
-   Info := Get_Message_Pool_Info (1);
+   -------------------------
+   -- Create_Message_Pool --
+   -------------------------
 
-   --  Create one message pool.
-   Create_Message_Pool ("queue1", MOMA_Ref);
+   procedure Create_Message_Pool (Name : in String;
+                                  Ref  : out PolyORB.References.Ref)
+   is
+      MOMA_Obj : constant MOMA.Provider.Message_Pool.Object_Acc
+       := new MOMA.Provider.Message_Pool.Object;
 
-   --  Outputs its reference.
-   Put_Line (PolyORB.Types.To_Standard_String
-             (PolyORB.References.IOR.Object_To_String (MOMA_Ref)));
+   begin
+      pragma Debug (O ("Creating Message Pool " & Name));
+      Initiate_Servant (MOMA_Obj,
+                        MOMA.Provider.Message_Pool.If_Desc,
+                        Ref);
+   end Create_Message_Pool;
 
-   --  Run the server.
-   Run_Server;
+   ---------------------------
+   -- Get_Message_Pool_Info --
+   ---------------------------
 
-end Server;
+   function Get_Message_Pool_Info (Number : Natural)
+                                   return Message_Pool_Info
+   is
+      Section : constant String
+        := "destination" & Natural'Image (Number);
+
+      Pool_Type : constant String := Get_Conf (Section, "type");
+
+      Result : Message_Pool_Info;
+   begin
+      Result.Name := To_MOMA_String (Get_Conf (Section, "name"));
+
+      pragma Debug (O ("Pool #" & Natural'Image (Number) & " : "
+                       & "Name : " & To_Standard_String (Result.Name)
+                       & ", Type : " & Pool_Type));
+
+      if Pool_Type = "queue" then
+         Result.Pool_Type := Queue;
+      elsif Pool_Type = "topic" then
+         Result.Pool_Type := Topic;
+      else
+         raise Program_Error;
+         --  XXX should raise something else ...
+      end if;
+
+      return Result;
+   end Get_Message_Pool_Info;
+
+end MOMA.Configuration.Server;

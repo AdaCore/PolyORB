@@ -117,4 +117,13 @@ package body PolyORB.MOMA_P.Tools is
       end;
    end Initiate_Servant;
 
+   ----------------
+   -- Run_Server --
+   ----------------
+
+   procedure Run_Server is
+   begin
+      PolyORB.ORB.Run (PolyORB.Setup.The_ORB, May_Poll => True);
+   end Run_Server;
+
 end PolyORB.MOMA_P.Tools;

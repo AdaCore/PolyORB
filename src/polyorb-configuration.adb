@@ -69,9 +69,6 @@ package body PolyORB.Configuration is
    package Variables is
       new PolyORB.Dynamic_Dict (Value => String_Ptr, No_Value => null);
 
-   procedure Load_Configuration_File;
-   --  Load the configuration file.
-
    procedure Set_Variable
      (Section : String;
       Key     : String;
@@ -89,13 +86,28 @@ package body PolyORB.Configuration is
    --  environment variables, returning Default if not found.
 
    function Make_Global_Key (Section, Key : String) return String;
+   --  Build Dynamic Dict key from (Section, Key) tuple.
 
    function Make_Env_Name (Section, Key : String) return String;
+   --  Build environment variable from (Section, Key) tuple.
+
+   function To_Boolean (V : String) return Boolean;
+   --  Convert a String value to a Boolean value according
+   --  to the rules indicated in the spec for boolean configuration
+   --  variables.
+
+   ---------------------
+   -- Make_Global_Key --
+   ---------------------
 
    function Make_Global_Key (Section, Key : String) return String is
    begin
       return "[" & Section & "]" & Key;
    end Make_Global_Key;
+
+   -------------------
+   -- Make_Env_Name --
+   -------------------
 
    function Make_Env_Name (Section, Key : String) return String is
       Result : String := "POLYORB_"
@@ -147,11 +159,6 @@ package body PolyORB.Configuration is
    ----------------
    -- To_Boolean --
    ----------------
-
-   function To_Boolean (V : String) return Boolean;
-   --  Convert a String value to a Boolean value according
-   --  to the rules indicated in the spec for boolean configuration
-   --  variables.
 
    function To_Boolean (V : String) return Boolean is
       VV : constant String := To_Lower (V);
@@ -249,6 +256,10 @@ package body PolyORB.Configuration is
       end if;
    end Get_Env;
 
+   ------------------
+   -- Set_Variable --
+   ------------------
+
    procedure Set_Variable
      (Section : String;
       Key     : String;
@@ -264,7 +275,11 @@ package body PolyORB.Configuration is
       Variables.Register (K, +Value);
    end Set_Variable;
 
-   procedure Load_Configuration_File
+   -----------------------------
+   -- Load_Configuration_File --
+   -----------------------------
+
+   procedure Load_Configuration_File (Conf_File_Name : String)
    is
       Current_Section : String_Ptr
         := +Environment_Configuration_Section;
@@ -280,8 +295,6 @@ package body PolyORB.Configuration is
       end Set_Current_Section;
 
       Conf_File : File_Type;
-      Conf_File_Name : constant String
-        := Get_Env (Filename_Variable, Default_Filename);
 
       Line : String (1 .. 1_024);
       Last : Integer;
@@ -299,7 +312,7 @@ package body PolyORB.Configuration is
       exception
          when Name_Error =>
             --  No configuration file.
-            pragma Debug (O ("No configuration file."));
+            pragma Debug (O ("No " & Conf_File_Name & " configuration file."));
             null;
          when others =>
             raise;
@@ -356,6 +369,9 @@ package body PolyORB.Configuration is
    end Load_Configuration_File;
 
 begin
-   Load_Configuration_File;
+   Load_Configuration_File (Get_Env (PolyORB_Conf_Filename_Variable,
+                                     PolyORB_Conf_Default_Filename));
+   --  Read 'polyorb.conf' file.
+
    PolyORB.Log.Get_Conf_Hook := Get_Conf'Access;
 end PolyORB.Configuration;

@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                 P O L Y O R B . D Y N A M I C _ D I C T                  --
+--                  MOMA.PROVIDER.MESSAGE_POOL.WAREHOUSE                    --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
