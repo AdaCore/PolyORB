@@ -36,9 +36,17 @@
 
 with PolyORB.Any;
 with PolyORB.Any.NVList;
+with PolyORB.Log;
+pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Types;
 
 package body CORBA.ServerRequest is
+
+   use PolyORB.Log;
+
+   package L is new PolyORB.Log.Facility_Log ("corba.serverrequest");
+   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+     renames L.Output;
 
    function Operation (O : Object) return Identifier is
    begin
@@ -68,8 +76,10 @@ package body CORBA.ServerRequest is
       end if;
    end Set_Result;
 
-   procedure Set_Exception (O : Object; Val : Any) is
+   procedure Set_Exception (Obj : Object; Val : Any) is
    begin
+      pragma Debug
+        (O ("Server notifies exception: " & Image (Val)));
       --  O.Exception_Info := Val;
       raise PolyORB.Not_Implemented;
    end Set_Exception;

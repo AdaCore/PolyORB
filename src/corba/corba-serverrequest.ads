@@ -42,7 +42,6 @@ package CORBA.ServerRequest is
 
    pragma Elaborate_Body;
 
-
 --     interface ServerRequest { // PIDL
 --         readonly attribute  Identifier operation;
 --         void                arguments    (inout NVList nv);
@@ -58,7 +57,7 @@ package CORBA.ServerRequest is
    procedure Arguments (O : access Object; NV : in out NVList.Ref);
    --  function Ctx return Context;
    procedure Set_Result (O : access Object; Val : Any);
-   procedure Set_Exception (O : Object; Val : Any);
+   procedure Set_Exception (Obj : Object; Val : Any);
 
    --------------------------------------
    -- The following is PolyORB-specific --
