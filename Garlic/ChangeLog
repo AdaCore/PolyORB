@@ -1,3 +1,7 @@
+1999-07-22  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* Makefile.am, Makefile.in: Directory separator missing.
+
 1999-07-21  Laurent Pautet  <pautet@dorine.enst.fr>
 
         * s-gargro.adb: Remove visibility on Partitions.Table. Rename

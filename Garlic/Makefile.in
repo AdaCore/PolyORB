@@ -445,15 +445,15 @@ install-data-local: all-local install-dirs-local install-extra-libs
 	  pathtolib=`$(srcdir)/../Dist/config.sdefault pathtolib`;\
 	  if test -f $$pathtolib$$lib; then \
 	    echo Replacing inlined subprograms in $$lib;\
-	    $(CP)  $$pathtolib$$lib $(GARLIC)$$lib;\
-	    chmod u+w $(GARLIC)$$lib;\
-	    $(AR) d $(GARLIC)$$lib s-stratt.o s-rpc.o s-parint.o;\
+	    $(CP)  $$pathtolib$$lib $(GARLIC)/$$lib;\
+	    chmod u+w $(GARLIC)/$$lib;\
+	    $(AR) d $(GARLIC)/$$lib s-stratt.o s-rpc.o s-parint.o;\
 	    if test `cat inlining` = "yes"; then\
 	      (cd gnatlib;\
-	       $(AR) d $(GARLIC)$$lib `cat rebuild`;\
-	       $(AR) cq $(GARLIC)$$lib `cat rebuild`);\
+	       $(AR) d $(GARLIC)/$$lib `cat rebuild`;\
+	       $(AR) cq $(GARLIC)/$$lib `cat rebuild`);\
 	    fi;\
-	    $(RANLIB) $(GARLIC)$$lib;\
+	    $(RANLIB) $(GARLIC)/$$lib;\
 	  fi;\
 	done
 	@if test `cat inlining` = "yes"; then\
