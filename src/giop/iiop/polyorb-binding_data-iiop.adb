@@ -79,8 +79,7 @@ package body PolyORB.Binding_Data.IIOP is
    -- Release --
    -------------
 
-   procedure Release (P : in out IIOP_Profile_Type)
-   is
+   procedure Release (P : in out IIOP_Profile_Type) is
    begin
       Free (P.Object_Id);
       Release_Contents (P.Components);
@@ -198,15 +197,22 @@ package body PolyORB.Binding_Data.IIOP is
       Oid :        Objects.Object_Id)
      return Profile_Access
    is
+      use PolyORB.GIOP_P.Tagged_Components;
+
       Result : constant Profile_Access
         := new IIOP_Profile_Type;
 
       TResult : IIOP_Profile_Type
         renames IIOP_Profile_Type (Result.all);
+
    begin
       TResult.Object_Id  := new Object_Id'(Oid);
       TResult.Address    := PF.Address;
-      TResult.Components := Null_Tagged_Component_List;
+
+      --  Fetch tagged components for Oid
+
+      TResult.Components := Fetch_Components (TResult.Object_Id);
+
       return Result;
    end Create_Profile;
 
