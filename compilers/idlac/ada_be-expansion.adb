@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/ada_be-expansion.adb#16 $
+--  $Id: //droopi/main/compilers/idlac/ada_be-expansion.adb#17 $
 
 with Idl_Fe.Types;          use Idl_Fe.Types;
 with Idl_Fe.Tree;           use Idl_Fe.Tree;
@@ -1056,14 +1056,29 @@ package body Ada_Be.Expansion is
          Set_Initial_Current_Prefix (Members_Struct);
          Set_Members (Members_Struct, Members (Node));
          Set_Is_Exception_Members (Members_Struct, True);
-         Expand_Node (Members_Struct);
+         Set_Members_Type (Node, Members_Struct);
+
+         --  Members_Struct must be expanded as though it was
+         --  encountered during the traversal of the Enclosing_List,
+         --  for the necessary ancillary types (arrays, sequences...)
+         --  to be declared correctly before it. We thus need to
+         --  insert it at the proper position, and then temporarily
+         --  fake Current_Position_In_List.
 
          Insert_Before
            (List => Enclosing_List,
             Node => Members_Struct,
             Before => Node);
          Set_Contents (Enclosing_Scope, Enclosing_List);
-         Set_Members_Type (Node, Members_Struct);
+
+         pragma Assert (Current_Position_In_List = Node);
+         --  If this were not the case we would need to save
+         --  Current_Position_In_List in a temporary variable
+         --  so we can restore it after expanding Member_Struct.
+
+         Current_Position_In_List := Members_Struct;
+         Expand_Node (Members_Struct);
+         Current_Position_In_List := Node;
       end;
    end Expand_Exception;
 
