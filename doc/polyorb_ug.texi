@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#14 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#15 $
 
 @setfilename polyorb_ug.info
 @settitle PolyORB User's Guide
@@ -126,6 +126,61 @@ About This Guide
 * What This Guide Contains::
 * Conventions::
 
+Introduction to PolyORB
+
+* Distributed applications and middleware::
+* PolyORB a generic middleware with an instance per distribution model::
+
+Installation
+
+* Supported Platforms::
+* Build requirements::
+* Build instructions::
+* Platform notes::
+
+Overview of PolyORB personalities
+
+* Application personalities::
+
+* CORBAoverview::
+* DSAoverview::
+* MOMAoverview::
+* AWSoverview::
+
+* Protocol personalities::
+
+* GIOPoverview::
+* SOAPoverview::
+
+Configuration
+
+* Compile-time configuration::
+* Run-time configuration::
+* Setting up protocol personalities::
+* Activating debug information::
+* Tracing exceptions::
+* polyorb-config::
+
+CORBA
+
+* What you should know before Reading this section::
+* Installing CORBA application personality::
+* Usage of idlac::
+* Resolving names in a CORBA application::
+* Building a CORBA application with PolyORB::
+* Configuring a CORBA application::
+
+GIOP
+
+* Installing GIOP protocol personality::
+* GIOP Instances::
+* Configuring the GIOP personality::
+
+SOAP
+
+* Installing SOAP protocol personality::
+* Configuring the SOAP personality::
+
 @end detailmenu
 @end menu
 
@@ -168,6 +223,13 @@ on your system.
 
 @item @ref{Overview of PolyORB personalities} enumerates the different
 personalities, or distribution mechanisms, provided by PolyORB.
+
+@item @ref{CORBA} describes PolyORB's implementation of OMG's CORBA.
+
+@item @ref{GIOP} describes PolyORB's implementation of GIOP, the
+protocol defined as part of CORBA.
+
+@item @ref{SOAP} describes PolyORB's implementation of SOAP.
 
 @item
 @ref{GNU Free Documentation License}, contains the text of the license
