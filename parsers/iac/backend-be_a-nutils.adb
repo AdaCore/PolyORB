@@ -3,6 +3,7 @@ with GNAT.Table;
 with Lexer;     use Lexer;
 with Locations; use Locations;
 with Namet;     use Namet;
+with Utils;     use Utils;
 
 with Backend.BE_A.Nodes; use Backend.BE_A.Nodes;
 with Frontend.Nodes;
@@ -10,7 +11,6 @@ with Frontend.Nodes;
 package body Backend.BE_A.Nutils is
 
    package BEN renames Backend.BE_A.Nodes;
-   package FEN renames Frontend.Nodes;
 
    type Entity_Stack_Entry is record
       Current_Package : Node_Id;
@@ -22,6 +22,8 @@ package body Backend.BE_A.Nutils is
       new GNAT.Table (Entity_Stack_Entry, Int, No_Depth + 1, 10, 10);
 
    use Entity_Stack;
+
+   CORBA_Type : array (FEN.K_Float .. FEN.K_Value_Base) of Name_Id;
 
    -------------------------
    -- Append_Node_To_List --
@@ -70,26 +72,223 @@ package body Backend.BE_A.Nutils is
       end if;
    end Current_Package;
 
-   -----------------
-   -- Push_Entity --
-   -----------------
+   ------------------------
+   -- Declare_CORBA_Type --
+   ------------------------
 
-   procedure Push_Entity (E : Node_Id) is
+   procedure Declare_CORBA_Type (K : FEN.Node_Kind; S : String := "") is
    begin
-      Increment_Last;
-      Table (Last).Current_Entity := E;
-   end Push_Entity;
-
-   ----------------
-   -- Pop_Entity --
-   ----------------
-
-   procedure Pop_Entity is
-   begin
-      if Last > No_Depth then
-         Decrement_Last;
+      if S'Length = 0 then
+         Name_Len := 4;
+         Add_Str_To_Name_Buffer (FEN.Node_Kind'Image (K));
+      else
+         Name_Len := 6;
+         Add_Str_To_Name_Buffer (S);
       end if;
-   end Pop_Entity;
+      Name_Buffer (1 .. 6) := "CORBA.";
+      Capitalize (Name_Buffer (7 .. Name_Len));
+      CORBA_Type (K) := Name_Find;
+   end Declare_CORBA_Type;
+
+   --------------
+   -- Is_Empty --
+   --------------
+
+   function Is_Empty (L : List_Id) return Boolean is
+   begin
+      return L = No_List or else No (First_Node (L));
+   end Is_Empty;
+
+   ------------------------------
+   -- Make_Defining_Identifier --
+   ------------------------------
+
+   function Make_Defining_Identifier (Node : Node_Id) return Node_Id is
+      use FEN;
+
+      N : Name_Id;
+      K : constant FEN.Node_Kind := FEN.Kind (Node);
+
+   begin
+      if K = FEN.K_Identifier then
+         N := FEN.IDL_Name (Node);
+
+      elsif K in FEN.K_Float .. FEN.K_Value_Base then
+         N := CORBA_Type (K);
+
+      else
+         N := FEN.IDL_Name (FEN.Identifier (Node));
+      end if;
+      return Make_Defining_Identifier (N);
+   end Make_Defining_Identifier;
+
+   ------------------------------
+   -- Make_Defining_Identifier --
+   ------------------------------
+
+   function Make_Defining_Identifier (Name : Name_Id) return Node_Id is
+      N : Node_Id;
+
+   begin
+      N := New_Node (K_Defining_Identifier);
+      Set_Name (N, To_Ada_Name (Name));
+      return N;
+   end Make_Defining_Identifier;
+
+   ----------------------------------
+   -- Make_Derived_Type_Definition --
+   ----------------------------------
+
+   function Make_Derived_Type_Definition
+     (Is_Abstract_Type      : Boolean;
+      Subtype_Indication    : Node_Id;
+      Record_Extension_Part : Node_Id)
+     return Node_Id
+   is
+      N : Node_Id;
+
+   begin
+      N := New_Node (K_Derived_Type_Definition);
+      Set_Is_Abstract_Type (N, Is_Abstract_Type);
+      Set_Subtype_Indication (N, Subtype_Indication);
+      Set_Record_Extension_Part (N, Record_Extension_Part);
+      return N;
+   end Make_Derived_Type_Definition;
+
+   --------------------------------------
+   -- Make_Enumeration_Type_Definition --
+   --------------------------------------
+
+   function Make_Enumeration_Type_Definition
+     (Enumeration_Literals : List_Id)
+     return Node_Id
+   is
+      N : Node_Id;
+
+   begin
+      N := New_Node (K_Enumeration_Type_Definition);
+      Set_Enumeration_Literals (N, Enumeration_Literals);
+      return N;
+   end Make_Enumeration_Type_Definition;
+
+   --------------------------------
+   -- Make_Full_Type_Declaration --
+   --------------------------------
+
+   function Make_Full_Type_Declaration
+     (Defining_Identifier : Node_Id;
+      Type_Definition     : Node_Id)
+     return Node_Id
+   is
+      N : Node_Id;
+
+   begin
+      N := New_Node (K_Full_Type_Declaration);
+      Set_Defining_Identifier (N, Defining_Identifier);
+      Set_Type_Definition (N, Type_Definition);
+      return N;
+   end Make_Full_Type_Declaration;
+
+   ----------------------------------
+   -- Make_Parameter_Specification --
+   ----------------------------------
+
+   function Make_Parameter_Specification
+     (Defining_Identifier : Node_Id;
+      Subtype_Mark        : Node_Id;
+      Parameter_Mode      : Mode_Id := 0)
+      return                Node_Id
+   is
+      P : Node_Id;
+
+   begin
+      P := New_Node (K_Parameter_Specification);
+      Set_Defining_Identifier (P, Defining_Identifier);
+      Set_Parameter_Type (P, Subtype_Mark);
+      if Parameter_Mode = 0 then
+         Set_Parameter_Mode (P, Token_Type'Pos (T_In));
+      else
+         Set_Parameter_Mode (P, Parameter_Mode);
+      end if;
+      return P;
+   end Make_Parameter_Specification;
+
+   ----------------------------
+   -- Make_Record_Definition --
+   ----------------------------
+
+   function Make_Record_Definition
+     (Component_List : List_Id)
+     return Node_Id is
+      pragma Unreferenced (Component_List);
+   begin
+      return No_Node;
+   end Make_Record_Definition;
+
+   ---------------------------------
+   -- Make_Record_Type_Definition --
+   ---------------------------------
+
+   function Make_Record_Type_Definition
+     (Is_Abstract_Type  : Boolean;
+      Is_Tagged_Type    : Boolean;
+      Is_Limited_Type   : Boolean;
+      Record_Definition : Node_Id)
+     return Node_Id is
+      N : Node_Id;
+
+   begin
+      N := New_Node (K_Record_Type_Definition);
+      Set_Is_Abstract_Type (N, Is_Abstract_Type);
+      Set_Is_Tagged_Type (N, Is_Tagged_Type);
+      Set_Is_Limited_Type (N, Is_Limited_Type);
+      Set_Record_Definition (N, Record_Definition);
+      return N;
+   end Make_Record_Type_Definition;
+
+   -----------------------------------
+   -- Make_Subprogram_Specification --
+   -----------------------------------
+
+   function Make_Subprogram_Specification
+     (Defining_Identifier : Node_Id;
+      Parameter_Profile   : List_Id;
+      Return_Type         : Node_Id := No_Node)
+     return Node_Id
+   is
+      N : Node_Id;
+
+   begin
+      N := New_Node (K_Subprogram_Specification);
+      Set_Defining_Identifier  (N, Defining_Identifier);
+      Set_Parameter_Profile    (N, Parameter_Profile);
+      Set_Return_Type          (N, Return_Type);
+      return N;
+   end Make_Subprogram_Specification;
+
+   --------------
+   -- New_List --
+   --------------
+
+   function New_List
+     (Kind : Node_Kind;
+      From : Node_Id := No_Node)
+     return List_Id is
+      N : Node_Id;
+
+   begin
+      Entries.Increment_Last;
+      N := Entries.Last;
+      Entries.Table (N) := Default_Node;
+      Set_Kind (N, Kind);
+      if Present (From) then
+         Set_Loc  (N, Loc (From));
+      else
+         Set_Loc  (N, No_Location);
+      end if;
+
+      return List_Id (N);
+   end New_List;
 
    --------------
    -- New_Node --
@@ -118,38 +317,38 @@ package body Backend.BE_A.Nutils is
       return N;
    end New_Node;
 
-   --------------
-   -- New_List --
-   --------------
+   --------------------
+   -- Parameter_Mode --
+   --------------------
 
-   function New_List
-     (Kind : Node_Kind;
-      From : Node_Id := No_Node)
-     return List_Id is
-      N : Node_Id;
+   function Parameter_Mode (E : Node_Id) return Mode_Type is
+      M : Mode_Id;
 
    begin
-      Entries.Increment_Last;
-      N := Entries.Last;
-      Entries.Table (N) := Default_Node;
-      Set_Kind (N, Kind);
-      if Present (From) then
-         Set_Loc  (N, Loc (From));
-      else
-         Set_Loc  (N, No_Location);
+      M := Nodes.Parameter_Mode (E);
+      return Mode_Type'Val (M);
+   end Parameter_Mode;
+
+   ----------------
+   -- Pop_Entity --
+   ----------------
+
+   procedure Pop_Entity is
+   begin
+      if Last > No_Depth then
+         Decrement_Last;
       end if;
+   end Pop_Entity;
 
-      return List_Id (N);
-   end New_List;
+   -----------------
+   -- Push_Entity --
+   -----------------
 
-   --------------
-   -- Is_Empty --
-   --------------
-
-   function Is_Empty (L : List_Id) return Boolean is
+   procedure Push_Entity (E : Node_Id) is
    begin
-      return L = No_List or else No (First_Node (L));
-   end Is_Empty;
+      Increment_Last;
+      Table (Last).Current_Entity := E;
+   end Push_Entity;
 
    ---------------------------
    -- Remove_Node_From_List --
@@ -235,6 +434,18 @@ package body Backend.BE_A.Nutils is
         Package_Specification (Main_Package (X));
    end Set_Main_Spec;
 
+   ------------------------
+   -- Set_Parameter_Mode --
+   ------------------------
+
+   procedure Set_Parameter_Mode (E : Node_Id; M : Mode_Type) is
+      B : Byte;
+
+   begin
+      B := Mode_Type'Pos (M);
+      Nodes.Set_Parameter_Mode (E, Mode_Id (B));
+   end Set_Parameter_Mode;
+
    -----------------
    -- To_Ada_Name --
    -----------------
@@ -265,196 +476,5 @@ package body Backend.BE_A.Nutils is
 
       return Name_Find;
    end To_Ada_Name;
-
-   ----------------------------------
-   -- Make_Parameter_Specification --
-   ----------------------------------
-
-   function Make_Parameter_Specification
-     (Defining_Identifier : Node_Id;
-      Subtype_Mark        : Node_Id;
-      Parameter_Mode      : Mode_Id := 0)
-      return                Node_Id
-   is
-      P : Node_Id;
-
-   begin
-      P := New_Node (K_Parameter_Specification);
-      Set_Defining_Identifier (P, Defining_Identifier);
-      Set_Parameter_Type (P, Subtype_Mark);
-      if Parameter_Mode = 0 then
-         Set_Parameter_Mode (P, Token_Type'Pos (T_In));
-      else
-         Set_Parameter_Mode (P, Parameter_Mode);
-      end if;
-      return P;
-   end Make_Parameter_Specification;
-
-   ------------------------------
-   -- Make_Defining_Identifier --
-   ------------------------------
-
-   function Make_Defining_Identifier (Node : Node_Id) return Node_Id is
-      use FEN;
-
-      N : Name_Id;
-      K : constant FEN.Node_Kind := FEN.Kind (Node);
-
-   begin
-      if K = FEN.K_Identifier then
-         N := FEN.IDL_Name (Node);
-
-      elsif K in FEN.K_Float .. FEN.K_Value_Base then
-         N := FEN.Image (Base_Type (Node));
-
-      else
-         N := FEN.IDL_Name (FEN.Identifier (Node));
-      end if;
-      return Make_Defining_Identifier (N);
-   end Make_Defining_Identifier;
-
-   ------------------------------
-   -- Make_Defining_Identifier --
-   ------------------------------
-
-   function Make_Defining_Identifier (Name : Name_Id) return Node_Id is
-      N : Node_Id;
-
-   begin
-      N := New_Node (K_Defining_Identifier);
-      Set_Name (N, To_Ada_Name (Name));
-      return N;
-   end Make_Defining_Identifier;
-
-   -----------------------------------
-   -- Make_Subprogram_Specification --
-   -----------------------------------
-
-   function Make_Subprogram_Specification
-     (Defining_Identifier : Node_Id;
-      Parameter_Profile   : List_Id;
-      Return_Type         : Node_Id := No_Node)
-     return Node_Id
-   is
-      N : Node_Id;
-
-   begin
-      N := New_Node (K_Subprogram_Specification);
-      Set_Defining_Identifier  (N, Defining_Identifier);
-      Set_Parameter_Profile    (N, Parameter_Profile);
-      Set_Return_Type          (N, Return_Type);
-      return N;
-   end Make_Subprogram_Specification;
-
-   --------------------------------
-   -- Make_Full_Type_Declaration --
-   --------------------------------
-
-   function Make_Full_Type_Declaration
-     (Defining_Identifier : Node_Id;
-      Type_Definition     : Node_Id)
-     return Node_Id
-   is
-      N : Node_Id;
-
-   begin
-      N := New_Node (K_Full_Type_Declaration);
-      Set_Defining_Identifier (N, Defining_Identifier);
-      Set_Type_Definition (N, Type_Definition);
-      return N;
-   end Make_Full_Type_Declaration;
-
-   --------------------------------------
-   -- Make_Enumeration_Type_Definition --
-   --------------------------------------
-
-   function Make_Enumeration_Type_Definition
-     (Enumeration_Literals : List_Id)
-     return Node_Id
-   is
-      N : Node_Id;
-
-   begin
-      N := New_Node (K_Enumeration_Type_Definition);
-      Set_Enumeration_Literals (N, Enumeration_Literals);
-      return N;
-   end Make_Enumeration_Type_Definition;
-
-   ----------------------------------
-   -- Make_Derived_Type_Definition --
-   ----------------------------------
-
-   function Make_Derived_Type_Definition
-     (Is_Abstract_Type      : Boolean;
-      Subtype_Indication    : Node_Id;
-      Record_Extension_Part : Node_Id)
-     return Node_Id
-   is
-      N : Node_Id;
-
-   begin
-      N := New_Node (K_Derived_Type_Definition);
-      Set_Is_Abstract_Type (N, Is_Abstract_Type);
-      Set_Subtype_Indication (N, Subtype_Indication);
-      Set_Record_Extension_Part (N, Record_Extension_Part);
-      return N;
-   end Make_Derived_Type_Definition;
-
-   ---------------------------------
-   -- Make_Record_Type_Definition --
-   ---------------------------------
-
-   function Make_Record_Type_Definition
-     (Is_Abstract_Type  : Boolean;
-      Is_Tagged_Type    : Boolean;
-      Is_Limited_Type   : Boolean;
-      Record_Definition : Node_Id)
-     return Node_Id is
-      N : Node_Id;
-
-   begin
-      N := New_Node (K_Record_Type_Definition);
-      Set_Is_Abstract_Type (N, Is_Abstract_Type);
-      Set_Is_Tagged_Type (N, Is_Tagged_Type);
-      Set_Is_Limited_Type (N, Is_Limited_Type);
-      Set_Record_Definition (N, Record_Definition);
-      return N;
-   end Make_Record_Type_Definition;
-
-   ----------------------------
-   -- Make_Record_Definition --
-   ----------------------------
-
-   function Make_Record_Definition
-     (Component_List : List_Id)
-     return Node_Id is
-      pragma Unreferenced (Component_List);
-   begin
-      return No_Node;
-   end Make_Record_Definition;
-
-   --------------------
-   -- Parameter_Mode --
-   --------------------
-
-   function Parameter_Mode (E : Node_Id) return Mode_Type is
-      M : Mode_Id;
-
-   begin
-      M := Nodes.Parameter_Mode (E);
-      return Mode_Type'Val (M);
-   end Parameter_Mode;
-
-   ------------------------
-   -- Set_Parameter_Mode --
-   ------------------------
-
-   procedure Set_Parameter_Mode (E : Node_Id; M : Mode_Type) is
-      B : Byte;
-
-   begin
-      B := Mode_Type'Pos (M);
-      Nodes.Set_Parameter_Mode (E, Mode_Id (B));
-   end Set_Parameter_Mode;
 
 end Backend.BE_A.Nutils;
