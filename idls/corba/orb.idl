@@ -4,17 +4,19 @@
 // PolyORB Notes:
 //   NI - Not Implemented
 //   IL - Implementation Limitation
-//   AB - Addon Begin
-//   AE - Addon End
 
 #ifndef _ORB_IDL_
 #define _ORB_IDL_
 
-#ifdef _PRE_3_0_COMPILER_
-#pragma prefix "omg.org"
-#else
-//PolyORB:IL:typeprefix CORBA "omg.org"
-#endif
+//PolyORB:WAidlac: For now, idlac supports typeprefix statement only
+//inside a scoped_name. This definition has been moved inside the
+//CORBA module.
+//#ifdef _PRE_3_0_COMPILER_
+//#pragma prefix "omg.org"
+//#else
+//typeprefix CORBA "omg.org"
+//#endif
+//PolyORB:WAidlac:end
 
 #ifdef _PRE_3_0_COMPILER_ 
 #ifdef _NO_LOCAL_
@@ -32,13 +34,16 @@
 
 module CORBA {
 
-//PolyORB:AB:
+//PolyORB:WAidlac: For now, idlac supports typeprefix statement only
+//inside a scoped_name. This definition has been moved inside the
+//CORBA module.
 #ifdef _PRE_3_0_COMPILER_
 #pragma prefix "omg.org"
 #else
 typeprefix CORBA "omg.org"
 #endif
-//PolyORB:AE:
+//PolyORB:WAidlac:end
+
 
 // The following forward references list *all* the interfaces and valuetypes
 //   defined in the CORBA module. This serves two purposes: documentation
