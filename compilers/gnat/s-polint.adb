@@ -1,4 +1,5 @@
 with Ada.Characters.Handling;
+with Ada.Exceptions;
 with Ada.Streams;
 with Ada.Unchecked_Conversion;
 with Ada.Unchecked_Deallocation;
@@ -15,6 +16,7 @@ with PolyORB.Initialization;
 with PolyORB.Log;
 with PolyORB.Setup;
 with PolyORB.Obj_Adapters;
+with PolyORB.Objects.Interface;
 with PolyORB.ORB;
 with PolyORB.POA;
 with PolyORB.POA_Config;
@@ -252,9 +254,21 @@ package body System.PolyORB_Interface is
       Msg  : PolyORB.Components.Message'Class)
       return PolyORB.Components.Message'Class
    is
+      use PolyORB.Objects.Interface;
+
+      Result : PolyORB.Components.Null_Message;
    begin
-      pragma Assert (Self.Handler /= null);
-      return Self.Handler.all (Msg);
+      if Msg in Execute_Request then
+         declare
+            EMsg : Execute_Request renames Execute_Request (Msg);
+         begin
+            pragma Assert (Self.Handler /= null);
+            Self.Handler.all (EMsg.Req);
+
+            return Executed_Request'(Req => EMsg.Req);
+         end;
+      end if;
+      return Result;
    end Handle_Message;
 
    ----------------
@@ -401,6 +415,7 @@ package body System.PolyORB_Interface is
       end loop;
 
       Is_Local := False;
+      Addr := Null_Address;
    end Get_Local_Address;
 
    -------------------
@@ -434,6 +449,14 @@ package body System.PolyORB_Interface is
                "DSA:" & Typ (Typ'First .. Typ'Last - 1), Ref);
          end;
       end if;
+   exception
+      when E : others =>
+         pragma Debug
+           (O ("Get_Reference: got exception "
+                 & Ada.Exceptions.Exception_Information (E)));
+         pragma Debug (O ("returning a nil ref."));
+         null;
+
    end Get_Reference;
 
    -------------------------------
@@ -465,7 +488,7 @@ package body System.PolyORB_Interface is
 
    procedure Register_Obj_Receiving_Stub
      (Name          : in String;
-      Handler       : in Message_Handler_Access;
+      Handler       : in Request_Handler_Access;
       Receiver      : in Servant_Access)
    is
       use Receiving_Stub_Lists;
@@ -489,7 +512,7 @@ package body System.PolyORB_Interface is
    procedure Register_Pkg_Receiving_Stub
      (Name     : in String;
       Version  : in String;
-      Handler  : in Message_Handler_Access;
+      Handler  : in Request_Handler_Access;
       Receiver : in Servant_Access)
    is
       use Receiving_Stub_Lists;
@@ -518,8 +541,21 @@ package body System.PolyORB_Interface is
 
       POA : Obj_Adapter_Access;
       PName : constant PolyORB.Types.String
-        := To_PolyORB_String (Name);
+        := PolyORB.Types.String (To_PolyORB_String (Name));
    begin
+      --  NOTE: Actually this does more than set up an RPC
+      --  receiver. A TypeCode corresponding to the RACW is
+      --  also constructed (and this is vital also on the
+      --  client side.)
+
+      Default_Servant.Obj_TypeCode := PolyORB.Any.TC_Object;
+      PolyORB.Any.TypeCode.Add_Parameter
+        (Default_Servant.Obj_TypeCode,
+         To_Any (PName));
+      PolyORB.Any.TypeCode.Add_Parameter
+        (Default_Servant.Obj_TypeCode,
+         TA_String ("DSA:" & Name & ":1.0"));
+
       if RACW_POA_Config = null then
          return;
       end if;
@@ -535,12 +571,6 @@ package body System.PolyORB_Interface is
 
       Default_Servant.Object_Adapter :=
         PolyORB.Obj_Adapters.Obj_Adapter_Access (POA);
-
-      Default_Servant.TypeCode := PolyORB.Any.TypeCode.TC_ObjRef;
-      PolyORB.Any.TypeCode.Add_Parameter
-        (Default_Servant.TypeCode, To_Any (PName))
-      PolyORB.Any.TypeCode.Add_Parameter
-        (Default_Servant.TypeCode, TA_String ("DSA:" & Name & ":1.0"));
 
       Activate (POAManager_Access (Entity_Of (POA.POA_Manager)));
    end Setup_Object_RPC_Receiver;

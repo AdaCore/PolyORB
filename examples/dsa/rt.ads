@@ -5,6 +5,7 @@ package RT is
    procedure Method (Self : Obj) is abstract;
    procedure Method2 (Self : Obj; N : Integer) is abstract;
    procedure Method3 (Self : Obj; Other : Obj) is abstract;
+   function Tekitoa (Self : Obj) return String is abstract;
    type RACW is access all Obj'Class;
 
 private

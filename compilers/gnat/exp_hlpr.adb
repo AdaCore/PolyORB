@@ -549,6 +549,8 @@ package body Exp_Hlpr is
       --  P_Size  : constant Uint       := Esize (FST);
 
       Fnam : Entity_Id := Empty;
+      Tnam : Entity_Id := Empty;
+      Args : List_Id := Empty_List;
       Lib_RE  : RE_Id := RE_Null;
 
    begin
@@ -565,7 +567,32 @@ package body Exp_Hlpr is
       --  any other enumeration type.
 
       if Present (Fnam) then
-         null;
+         --  When a TypeCode TSS exists, it has a single parameter
+         --  that is an anonymous access to the corresponding type.
+         --  This parameter is not used in any way; its purpose is
+         --  solely to provide overloading of the TSS.
+
+         Tnam := Make_Defining_Identifier (Loc,
+                   New_Internal_Name ('T'));
+
+         Append_To (Decls,
+           Make_Full_Type_Declaration (Loc,
+             Defining_Identifier => Tnam,
+             Type_Definition =>
+               Make_Access_To_Object_Definition (Loc,
+                 Subtype_Indication =>
+                   New_Occurrence_Of (U_Type, Loc))));
+
+         Args := New_List (
+           Make_Qualified_Expression (Loc,
+             Subtype_Mark =>
+               New_Occurrence_Of (Tnam, Loc),
+             Expression =>
+                Make_Null (Loc)));
+         --  Normally, calling _TypeCode with a null access parameter
+         --  should raise Constraint_Error, but this check is suppressed
+         --  for expanded code, and we do not care anyway because we do not
+         --  actually ever use this value.
 
       elsif U_Type = Standard_Boolean then
          Lib_RE := RE_TC_B;
@@ -643,7 +670,6 @@ package body Exp_Hlpr is
             Decl : Entity_Id;
          begin
             Build_TypeCode_Function (Loc, U_Type, Decl, Fnam);
-            --  Insert_Action (Declaration_Node (Typ), Decl);
             Append_To (Decls, Decl);
          end;
       end if;
@@ -658,7 +684,7 @@ package body Exp_Hlpr is
       return
           Make_Function_Call (Loc,
             Name => New_Occurrence_Of (Fnam, Loc),
-            Parameter_Associations => Empty_List);
+            Parameter_Associations => Args);
 
    end Build_TypeCode_Call;
 
@@ -722,7 +748,8 @@ package body Exp_Hlpr is
       Repo_Id_String : String_Id;
 
    begin
-      Fnam := Make_Stream_Procedure_Function_Name (Loc, Typ, Name_uTypeCode);
+      Fnam := Make_Stream_Procedure_Function_Name
+        (Loc, Typ, Name_uTypeCode);
 
       Spec :=
         Make_Function_Specification (Loc,

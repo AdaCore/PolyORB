@@ -8,7 +8,6 @@ with PolyORB.Any.ObjRef;
 with PolyORB.Components;
 with PolyORB.Obj_Adapters;
 with PolyORB.Objects;
-with PolyORB.Objects.Interface;
 with PolyORB.POA_Config;
 with PolyORB.References;
 with PolyORB.Requests;
@@ -27,13 +26,6 @@ package System.PolyORB_Interface is
    --  i.e. one for each RCI library unit, and one for each
    --  type that is the designated type of one or more RACW type.
 
-   subtype Message is PolyORB.Components.Message;
-   subtype Null_Message is PolyORB.Components.Null_Message;
-   subtype Execute_Request is
-     PolyORB.Objects.Interface.Execute_Request;
-   subtype Executed_Request is
-     PolyORB.Objects.Interface.Executed_Request;
-
    function Caseless_String_Eq (S1, S2 : String) return Boolean;
    --  Case-less equality of S1 and S2.
 
@@ -44,12 +36,13 @@ package System.PolyORB_Interface is
         return PolyORB.References.Ref;
    end RCI_Info;
 
-   type Message_Handler_Access is access
-     function (M : PolyORB.Components.Message'Class)
-               return PolyORB.Components.Message'Class;
+   subtype Request_Access is PolyORB.Requests.Request_Access;
+
+   type Request_Handler_Access is access
+     procedure (R : Request_Access);
 
    type Servant is new PolyORB.Objects.Servant with record
-      Handler        : Message_Handler_Access;
+      Handler        : Request_Handler_Access;
       --  The dispatching routine.
 
       Object_Adapter : PolyORB.Obj_Adapters.Obj_Adapter_Access;
@@ -62,14 +55,9 @@ package System.PolyORB_Interface is
    end record;
    type Servant_Access is access all Servant'Class;
 
-   function Handle_Message
-     (Self : access Servant;
-      Msg  : PolyORB.Components.Message'Class)
-      return PolyORB.Components.Message'Class;
-
    procedure Register_Obj_Receiving_Stub
      (Name          : in String;
-      Handler       : in Message_Handler_Access;
+      Handler       : in Request_Handler_Access;
       Receiver      : in Servant_Access);
    --  Register Receiver as the RPC servant for distributed objects
    --  of type Name, at elaboration time.
@@ -77,7 +65,7 @@ package System.PolyORB_Interface is
    procedure Register_Pkg_Receiving_Stub
      (Name     : in String;
       Version  : in String;
-      Handler  : in Message_Handler_Access;
+      Handler  : in Request_Handler_Access;
       Receiver : in Servant_Access);
    --  Register the fact that the Name receiving stub is now elaborated.
    --  Register the access value to the package RPC_Receiver procedure.
@@ -165,7 +153,8 @@ package System.PolyORB_Interface is
    -- Any and associated types --
    ------------------------------
 
-   Result_Name : constant PolyORB.Types.Identifier
+   subtype Identifier is PolyORB.Types.Identifier;
+   Result_Name : constant Identifier
      := PolyORB.Types.To_PolyORB_String ("Result");
 
    subtype Any is PolyORB.Any.Any;
@@ -175,13 +164,13 @@ package System.PolyORB_Interface is
    subtype NamedValue is PolyORB.Any.NamedValue;
    subtype TypeCode is PolyORB.Any.TypeCode.Object;
    procedure Set_TC
-     (A : in out PolyORB.Any.Any;
+     (A : in out Any;
       T : PolyORB.Any.TypeCode.Object)
       renames PolyORB.Any.Set_Type;
 
    function Get_Empty_Any
      (Tc : PolyORB.Any.TypeCode.Object)
-      return PolyORB.Any.Any
+      return Any
      renames PolyORB.Any.Get_Empty_Any;
 
    subtype NVList_Ref is PolyORB.Any.NVList.Ref;
@@ -190,67 +179,67 @@ package System.PolyORB_Interface is
    procedure NVList_Add_Item
      (Self       :    PolyORB.Any.NVList.Ref;
       Item_Name  : in PolyORB.Types.Identifier;
-      Item       : in PolyORB.Any.Any;
+      Item       : in Any;
       Item_Flags : in PolyORB.Any.Flags)
      renames PolyORB.Any.NVList.Add_Item;
 
 
    --  Elementary From_Any and To_Any operations
 
---       function FA_AD (Item : PolyORB.Any.Any) return X;
---       function FA_AS (Item : PolyORB.Any.Any) return X;
-   function FA_B (Item : PolyORB.Any.Any) return Boolean;
-   function FA_C (Item : PolyORB.Any.Any) return Character;
-   function FA_F (Item : PolyORB.Any.Any) return Float;
-   function FA_I (Item : PolyORB.Any.Any) return Integer;
-   function FA_LF (Item : PolyORB.Any.Any) return Long_Float;
-   function FA_LI (Item : PolyORB.Any.Any) return Long_Integer;
-   function FA_LLF (Item : PolyORB.Any.Any) return Long_Long_Float;
-   function FA_LLI (Item : PolyORB.Any.Any) return Long_Long_Integer;
---       function FA_LLU (Item : PolyORB.Any.Any) return X;
---       function FA_LU (Item : PolyORB.Any.Any) return X;
-   function FA_SF (Item : PolyORB.Any.Any) return Short_Float;
-   function FA_SI (Item : PolyORB.Any.Any) return Short_Integer;
-   function FA_SSI (Item : PolyORB.Any.Any) return Short_Short_Integer;
---       function FA_SSU (Item : PolyORB.Any.Any) return X;
---       function FA_SU (Item : PolyORB.Any.Any) return X;
---       function FA_U (Item : PolyORB.Any.Any) return X;
-   function FA_WC (Item : PolyORB.Any.Any) return Wide_Character;
+--       function FA_AD (Item : Any) return X;
+--       function FA_AS (Item : Any) return X;
+   function FA_B (Item : Any) return Boolean;
+   function FA_C (Item : Any) return Character;
+   function FA_F (Item : Any) return Float;
+   function FA_I (Item : Any) return Integer;
+   function FA_LF (Item : Any) return Long_Float;
+   function FA_LI (Item : Any) return Long_Integer;
+   function FA_LLF (Item : Any) return Long_Long_Float;
+   function FA_LLI (Item : Any) return Long_Long_Integer;
+--       function FA_LLU (Item : Any) return X;
+--       function FA_LU (Item : Any) return X;
+   function FA_SF (Item : Any) return Short_Float;
+   function FA_SI (Item : Any) return Short_Integer;
+   function FA_SSI (Item : Any) return Short_Short_Integer;
+--       function FA_SSU (Item : Any) return X;
+--       function FA_SU (Item : Any) return X;
+--       function FA_U (Item : Any) return X;
+   function FA_WC (Item : Any) return Wide_Character;
 
-   function FA_String (Item : PolyORB.Any.Any) return String;
+   function FA_String (Item : Any) return String;
 
    function FA_ObjRef
-     (Item : PolyORB.Any.Any)
+     (Item : Any)
       return PolyORB.References.Ref
      renames PolyORB.Any.ObjRef.From_Any;
 
---     function TA_AD (X) return PolyORB.Any.Any;
---     function TA_AS (X) return PolyORB.Any.Any;
-   function TA_B (Item : Boolean) return PolyORB.Any.Any;
-   function TA_C (Item : Character) return PolyORB.Any.Any;
-   function TA_F (Item : Float) return PolyORB.Any.Any;
-   function TA_I (Item : Integer) return PolyORB.Any.Any;
-   function TA_LF (Item : Long_Float) return PolyORB.Any.Any;
-   function TA_LI (Item : Long_Integer) return PolyORB.Any.Any;
-   function TA_LLF (Item : Long_Long_Float) return PolyORB.Any.Any;
-   function TA_LLI (Item : Long_Long_Integer) return PolyORB.Any.Any;
---     function TA_LLU (X) return PolyORB.Any.Any;
---     function TA_LU (X) return PolyORB.Any.Any;
-   function TA_SF (Item : Short_Float) return PolyORB.Any.Any;
-   function TA_SI (Item : Short_Integer) return PolyORB.Any.Any;
-   function TA_SSI (Item : Short_Short_Integer) return PolyORB.Any.Any;
---     function TA_SSU (X) return PolyORB.Any.Any;
---     function TA_SU (X) return PolyORB.Any.Any;
---     function TA_U (X) return PolyORB.Any.Any;
-   function TA_WC (Item : Wide_Character) return PolyORB.Any.Any;
+--     function TA_AD (X) return Any;
+--     function TA_AS (X) return Any;
+   function TA_B (Item : Boolean) return Any;
+   function TA_C (Item : Character) return Any;
+   function TA_F (Item : Float) return Any;
+   function TA_I (Item : Integer) return Any;
+   function TA_LF (Item : Long_Float) return Any;
+   function TA_LI (Item : Long_Integer) return Any;
+   function TA_LLF (Item : Long_Long_Float) return Any;
+   function TA_LLI (Item : Long_Long_Integer) return Any;
+--     function TA_LLU (X) return Any;
+--     function TA_LU (X) return Any;
+   function TA_SF (Item : Short_Float) return Any;
+   function TA_SI (Item : Short_Integer) return Any;
+   function TA_SSI (Item : Short_Short_Integer) return Any;
+--     function TA_SSU (X) return Any;
+--     function TA_SU (X) return Any;
+--     function TA_U (X) return Any;
+   function TA_WC (Item : Wide_Character) return Any;
 
-   function TA_String (S : String) return PolyORB.Any.Any;
+   function TA_String (S : String) return Any;
 
    function TA_ObjRef (R : PolyORB.References.Ref)
-     return PolyORB.Any.Any
+     return Any
      renames PolyORB.Any.ObjRef.To_Any;
 
-   function TA_TC (TC : PolyORB.Any.TypeCode.Object) return PolyORB.Any.Any
+   function TA_TC (TC : PolyORB.Any.TypeCode.Object) return Any
      renames PolyORB.Any.To_Any;
    --       function TC_AD return PolyORB.Any.TypeCode.Object
    --       renames PolyORB.Any.TC_X;
@@ -312,21 +301,20 @@ package System.PolyORB_Interface is
      renames PolyORB.Any.TypeCode.TC_Alias;
    --  Empty Tk_Alias typecode.
 
-   type Any_Array is array (Natural range <>) of PolyORB.Any.Any;
+   type Any_Array is array (Natural range <>) of Any;
 
    function TC_Build
      (Base       : PolyORB.Any.TypeCode.Object;
       Parameters : Any_Array)
       return PolyORB.Any.TypeCode.Object;
 
-   procedure Copy_Any_Value (Dest, Src : PolyORB.Any.Any)
+   procedure Copy_Any_Value (Dest, Src : Any)
      renames PolyORB.Any.Copy_Any_Value;
 
    --------------
    -- Requests --
    --------------
 
-   subtype Request_Access is PolyORB.Requests.Request_Access;
    Nil_Exc_List : PolyORB.Any.ExceptionList.Ref
       renames PolyORB.Any.ExceptionList.Nil_Ref;
 
@@ -359,7 +347,7 @@ package System.PolyORB_Interface is
 
    procedure Set_Result
      (Self : PolyORB.Requests.Request_Access;
-      Val  : PolyORB.Any.Any)
+      Val  : Any)
      renames PolyORB.Requests.Set_Result;
 
 private
@@ -372,5 +360,11 @@ private
       TA_SF, TA_SI, TA_SSI, TA_WC, TA_String);
 
    pragma Inline (Caseless_String_Eq);
+
+   function Handle_Message
+     (Self : access Servant;
+      Msg  : PolyORB.Components.Message'Class)
+      return PolyORB.Components.Message'Class;
+   pragma Inline (Handle_Message);
 
 end System.PolyORB_Interface;

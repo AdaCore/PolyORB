@@ -151,7 +151,7 @@ package body Exp_Dist is
 
    function Build_RPC_Receiver_Specification
      (RPC_Receiver      : Entity_Id;
-      Message_Parameter : Entity_Id)
+      Request_Parameter : Entity_Id)
       return Node_Id;
    --  Make a subprogram specification for an RPC receiver,
    --  with the given defining unit name and formal parameters.
@@ -164,8 +164,6 @@ package body Exp_Dist is
       Decl         : out Node_Id);
    --  Make a subprogram body for an RPC receiver, with the given
    --  defining unit name. On return:
-   --    - Request is the variable that contains the request
-   --      to be handled,
    --    - Subp_Id is the Standard.String variable that contains
    --      the identifier of the desired subprogram,
    --    - Stmts is the place where the request dispatching
@@ -404,6 +402,14 @@ package body Exp_Dist is
       Stub_Type_Access : in Entity_Id;
       Declarations     : in List_Id);
    --  Add the To_Any TSS for this RACW type.
+
+   procedure Add_RACW_TypeCode
+     (Designated_Type  : in Entity_Id;
+      RACW_Type        : in Entity_Id;
+      Stub_Type        : in Entity_Id;
+      Stub_Type_Access : in Entity_Id;
+      Declarations     : in List_Id);
+   --  Add the TypeCode TSS for this RACW type.
 
    function RCI_Package_Locator
      (Loc          : Source_Ptr;
@@ -656,6 +662,13 @@ package body Exp_Dist is
          Stub_Type_Access    => Stub_Type_Access,
          Declarations        => Decls);
 
+      Add_RACW_TypeCode
+        (Designated_Type     => Desig,
+         RACW_Type           => RACW_Type,
+         Stub_Type           => Stub_Type,
+         Stub_Type_Access    => Stub_Type_Access,
+         Declarations        => Decls);
+
       if not Same_Scope and then not Existing then
 
          --  The RACW has been declared in another scope than the designated
@@ -687,18 +700,17 @@ package body Exp_Dist is
       Loc : constant Source_Ptr := Sloc (RACW_Type);
 
       Fnam : constant Entity_Id
-        := Make_Defining_Identifier (Loc, Name_uFrom_Any);
+        := Make_Defining_Identifier (Loc, New_Internal_Name ('F'));
 
       Func_Spec : Node_Id;
-      --  Specification and body of the currently built function
-
-      Body_Node : Node_Id;
+      Func_Decl : Node_Id;
+      Func_Body : Node_Id;
 
       Decls             : List_Id;
       Statements        : List_Id;
       Local_Statements  : List_Id;
       Remote_Statements : List_Id;
-      --  Various parts of the procedure
+      --  Various parts of the subprogram
 
       Any_Parameter : constant Entity_Id
         := Make_Defining_Identifier (Loc, Name_A);
@@ -861,24 +873,24 @@ package body Exp_Dist is
                 New_Occurrence_Of (RTE (RE_Any), Loc))),
           Subtype_Mark => New_Occurrence_Of (RACW_Type, Loc));
 
-      Body_Node :=
+      Func_Decl := Make_Subprogram_Declaration (Loc, Func_Spec);
+      --  NOTE: The usage occurrences of RACW_Parameter must
+      --  refer to the entity in the declaration spec, not those
+      --  of the body spec.
+
+      Func_Body :=
         Make_Subprogram_Body (Loc,
-          Specification              => Func_Spec,
+          Specification              =>
+            Copy_Specification (Loc, Func_Spec),
           Declarations               => Decls,
           Handled_Statement_Sequence =>
             Make_Handled_Sequence_Of_Statements (Loc,
               Statements => Statements));
 
---        Attr_Decl :=
---          Make_Attribute_Definition_Clause (Loc,
---            Name       => New_Occurrence_Of (RACW_Type, Loc),
---            Chars      => Name_Read,
---            Expression =>
---              New_Occurrence_Of (Defining_Unit_Name (Proc_Spec), Loc));
+      Insert_After (Declaration_Node (RACW_Type), Func_Decl);
+      Append_To (Declarations, Func_Body);
 
-      Set_Ekind (Fnam, E_Function);
-      Set_Etype (Fnam, RACW_Type);
-      Set_TSS (RACW_Type, Defining_Unit_Name (Func_Spec));
+      Set_Renaming_TSS (RACW_Type, Fnam, Name_uFrom_Any);
    end Add_RACW_From_Any;
 
    ------------------------------------------------
@@ -1408,9 +1420,9 @@ package body Exp_Dist is
          Declarations     => Declarations);
    end Add_RACW_Read_Write_Attributes;
 
-   -----------------------
+   ---------------------
    -- Add_RACW_To_Any --
-   -----------------------
+   ---------------------
 
    procedure Add_RACW_To_Any
      (Designated_Type  : in Entity_Id;
@@ -1428,17 +1440,15 @@ package body Exp_Dist is
       pragma Assert (Stub_Elements /= Empty_Stub_Structure);
 
       Func_Spec : Node_Id;
-      --  Specification and body of the currently built function
-
       Func_Decl : Node_Id;
-      Body_Node : Node_Id;
+      Func_Body : Node_Id;
 
       Decls             : List_Id;
       Statements        : List_Id;
       Null_Statements   : List_Id;
       Local_Statements  : List_Id;
       Remote_Statements : List_Id;
-      --  Various parts of the procedure
+      --  Various parts of the subprogram
 
       RACW_Parameter : constant Entity_Id
         := Make_Defining_Identifier (Loc, Name_R);
@@ -1578,7 +1588,7 @@ package body Exp_Dist is
       --  refer to the entity in the declaration spec, not those
       --  of the body spec.
 
-      Body_Node :=
+      Func_Body :=
         Make_Subprogram_Body (Loc,
           Specification              =>
             Copy_Specification (Loc, Func_Spec),
@@ -1588,10 +1598,83 @@ package body Exp_Dist is
               Statements => Statements));
 
       Insert_After (Declaration_Node (RACW_Type), Func_Decl);
-      Append_To (Declarations, Body_Node);
+      Append_To (Declarations, Func_Body);
 
       Set_Renaming_TSS (RACW_Type, Fnam, Name_uTo_Any);
    end Add_RACW_To_Any;
+
+   ---------------------
+   -- Add_RACW_To_Any --
+   ---------------------
+
+   procedure Add_RACW_TypeCode
+     (Designated_Type  : in Entity_Id;
+      RACW_Type        : in Entity_Id;
+      Stub_Type        : in Entity_Id;
+      Stub_Type_Access : in Entity_Id;
+      Declarations     : in List_Id)
+   is
+      Loc : constant Source_Ptr := Sloc (RACW_Type);
+
+      Fnam : Entity_Id;
+
+      Stub_Elements : constant Stub_Structure :=
+        Stubs_Table.Get (Designated_Type);
+      pragma Assert (Stub_Elements /= Empty_Stub_Structure);
+
+      Func_Spec : Node_Id;
+      Func_Decl : Node_Id;
+      Func_Body : Node_Id;
+
+      RACW_Parameter : constant Entity_Id
+        := Make_Defining_Identifier (Loc, Name_R);
+
+   begin
+
+      Fnam := Make_Defining_Identifier (
+        Loc, New_Internal_Name ('T'));
+
+      Func_Spec :=
+        Make_Function_Specification (Loc,
+          Defining_Unit_Name =>
+            Fnam,
+          Parameter_Specifications => New_List (
+            Make_Parameter_Specification (Loc,
+              Defining_Identifier =>
+                RACW_Parameter,
+              Parameter_Type =>
+                Make_Access_Definition (Loc,
+                  New_Occurrence_Of (RACW_Type, Loc)))),
+          Subtype_Mark => New_Occurrence_Of (RTE (RE_TypeCode), Loc));
+      --  Dummy 'access RACW' argument, just over overload.
+
+      Func_Decl := Make_Subprogram_Declaration (Loc, Func_Spec);
+      --  NOTE: The usage occurrences of RACW_Parameter must
+      --  refer to the entity in the declaration spec, not those
+      --  of the body spec.
+
+      Func_Body :=
+        Make_Subprogram_Body (Loc,
+          Specification              =>
+            Copy_Specification (Loc, Func_Spec),
+          Declarations               => Empty_List,
+          Handled_Statement_Sequence =>
+            Make_Handled_Sequence_Of_Statements (Loc,
+              Statements => New_List (
+                Make_Return_Statement (Loc,
+                  Expression =>
+                    Make_Selected_Component (Loc,
+                      Prefix =>
+                        New_Occurrence_Of (
+                          Stub_Elements.Object_RPC_Receiver, Loc),
+                      Selector_Name =>
+                        Make_Identifier (Loc, Name_Obj_TypeCode))))));
+
+      Insert_After (Declaration_Node (RACW_Type), Func_Decl);
+      Append_To (Declarations, Func_Body);
+
+      Set_Renaming_TSS (RACW_Type, Fnam, Name_uTypeCode);
+   end Add_RACW_TypeCode;
 
    ------------------------------
    -- Add_RACW_Write_Attribute --
@@ -2178,8 +2261,6 @@ package body Exp_Dist is
    is
       Loc : constant Source_Ptr := Sloc (Pkg_Spec);
 
-      --  Message_Parameter : Node_Id;
-
       Pkg_RPC_Receiver             : Node_Id;
       Pkg_RPC_Receiver_Object      : Node_Id;
 
@@ -2194,9 +2275,6 @@ package body Exp_Dist is
 
       Subp_Id                     : Node_Id;
       --  Subprogram_Id as read from the incoming stream
-
-      --  Null_Message                : Node_Id;
-      --  Empty message
 
       Current_Declaration       : Node_Id;
       Current_Subprogram_Number : Int := 0;
@@ -2312,20 +2390,7 @@ package body Exp_Dist is
                    not Is_Asynchronous (
                      Defining_Entity (Specification (Current_Declaration)))
                then
-                  Append_To (Case_Stmts,
-                    Make_Return_Statement (Loc,
-                      Expression =>
-                        Make_Qualified_Expression (Loc,
-                          Subtype_Mark =>
-                            New_Occurrence_Of (RTE (RE_Executed_Request), Loc),
-                          Expression =>
-                            Make_Aggregate (Loc,
-                              Component_Associations => New_List (
-                                Make_Component_Association (Loc,
-                                  Choices => New_List (
-                                    Make_Identifier (Loc, Name_Req)),
-                                  Expression =>
-                                    New_Occurrence_Of (Request, Loc)))))));
+                  Append_To (Case_Stmts, Make_Return_Statement (Loc));
                end if;
 
                Get_Name_String (Chars (
@@ -3242,58 +3307,19 @@ package body Exp_Dist is
    is
       Loc : constant Source_Ptr := Sloc (RPC_Receiver);
 
-      Message_Parameter : constant Entity_Id
-        := Make_Defining_Identifier (Loc, Name_M);
-
-      Null_Message : constant Entity_Id
-        := Make_Defining_Identifier (Loc, Name_N);
-
       Pkg_RPC_Receiver_Spec : Node_Id;
-      Pkg_RPC_Receiver_Outer_Decls : List_Id;
-      Pkg_RPC_Receiver_Outer_Stmts : List_Id;
-
       Pkg_RPC_Receiver_Decls       : List_Id;
    begin
+      Request := Make_Defining_Identifier (Loc, Name_R);
+
       Pkg_RPC_Receiver_Spec :=
         Build_RPC_Receiver_Specification (
           RPC_Receiver      => RPC_Receiver,
-          Message_Parameter => Message_Parameter);
+          Request_Parameter => Request);
 
-      Pkg_RPC_Receiver_Outer_Decls := New_List (
-        Make_Object_Declaration (Loc,
-          Defining_Identifier => Null_Message,
-          Object_Definition   =>
-            New_Occurrence_Of (RTE (RE_Null_Message), Loc)));
-
-      Pkg_RPC_Receiver_Outer_Stmts := New_List (
-        Make_Implicit_If_Statement (RPC_Receiver,
-          Condition =>
-            Make_Not_In (Loc,
-              Left_Opnd =>
-                New_Occurrence_Of (Message_Parameter, Loc),
-              Right_Opnd =>
-                New_Occurrence_Of (RTE (RE_Execute_Request), Loc)),
-          Then_Statements => New_List (
-              Make_Return_Statement (Loc,
-                Expression => New_Occurrence_Of (Null_Message, Loc)))));
-
-      Request := Make_Defining_Identifier (Loc, Name_R);
       Subp_Id := Make_Defining_Identifier (Loc, Name_P);
 
       Pkg_RPC_Receiver_Decls := New_List (
-        Make_Object_Declaration (Loc,
-          Defining_Identifier => Request,
-          Constant_Present    => True,
-          Object_Definition   =>
-            New_Occurrence_Of (RTE (RE_Request_Access), Loc),
-          Expression          =>
-            Make_Selected_Component (Loc,
-              Prefix => Unchecked_Convert_To (
-                RTE (RE_Execute_Request),
-                New_Occurrence_Of (Message_Parameter, Loc)),
-              Selector_Name =>
-                Make_Identifier (Loc, Name_Req))),
-
         Make_Object_Declaration (Loc,
           Defining_Identifier => Subp_Id,
           Constant_Present    => True,
@@ -3312,24 +3338,13 @@ package body Exp_Dist is
 
       Stmts := New_List;
 
-      Append_To (Pkg_RPC_Receiver_Outer_Stmts,
-        Make_Block_Statement (Loc,
-          Declarations => Pkg_RPC_Receiver_Decls,
-          Handled_Statement_Sequence =>
-            Make_Handled_Sequence_Of_Statements (Loc,
-              Statements => Stmts)));
-      Append_To (Pkg_RPC_Receiver_Outer_Stmts,
-        Make_Return_Statement (Loc,
-          Expression =>
-            New_Occurrence_Of (Null_Message, Loc)));
-
       Decl :=
         Make_Subprogram_Body (Loc,
           Specification              => Pkg_RPC_Receiver_Spec,
-          Declarations               => Pkg_RPC_Receiver_Outer_Decls,
+          Declarations               => Pkg_RPC_Receiver_Decls,
           Handled_Statement_Sequence =>
             Make_Handled_Sequence_Of_Statements (Loc,
-              Statements => Pkg_RPC_Receiver_Outer_Stmts));
+              Statements => Stmts));
 
    end Build_RPC_Receiver_Body;
 
@@ -3339,23 +3354,20 @@ package body Exp_Dist is
 
    function Build_RPC_Receiver_Specification
      (RPC_Receiver      : Entity_Id;
-      Message_Parameter : Entity_Id)
+      Request_Parameter : Entity_Id)
       return Node_Id
    is
       Loc : constant Source_Ptr := Sloc (RPC_Receiver);
    begin
       return
-        Make_Function_Specification (Loc,
+        Make_Procedure_Specification (Loc,
           Defining_Unit_Name       => RPC_Receiver,
           Parameter_Specifications => New_List (
             Make_Parameter_Specification (Loc,
-              Defining_Identifier => Message_Parameter,
+              Defining_Identifier => Request_Parameter,
               Parameter_Type      =>
                 New_Occurrence_Of (
-                  Class_Wide_Type (RTE (RE_Message)), Loc))),
-          Subtype_Mark =>
-                New_Occurrence_Of (
-                  Class_Wide_Type (RTE (RE_Message)), Loc));
+                  RTE (RE_Request_Access), Loc))));
 
 --          Make_Parameter_Specification (Loc,
 --                Defining_Identifier => Stream_Parameter,

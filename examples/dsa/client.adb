@@ -25,7 +25,7 @@ procedure Client is
       if Obj = null then
          Put_Line ("Got null!");
       else
-         Put_Line ("Got not null!");
+         Put_Line ("Got not null: " & RT.Tekitoa (Obj.all) & " is alive!");
       end if;
    end Try_RACW;
 
@@ -34,4 +34,5 @@ begin
    Put_Line ("The server replied: "
      & RCI.echoString (S));
    Try_RACW ("");
+   Try_RACW ("Elvis");
 end Client;
