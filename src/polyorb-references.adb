@@ -39,6 +39,7 @@ with Ada.Tags;
 
 with PolyORB.Filters.Interface;
 with PolyORB.Log;
+with PolyORB.Objects;
 
 package body PolyORB.References is
 
@@ -198,13 +199,37 @@ package body PolyORB.References is
 
    function Is_Same_Object (Left, Right : Ref) return Boolean
    is
-      use type Profile_Seqs.Sequence;
+      use Profile_Seqs;
+      use PolyORB.Binding_Data;
+      use PolyORB.Objects;
 
       Left_RI : constant Reference_Info_Access := Ref_Info_Of (Left);
       Right_RI : constant Reference_Info_Access := Ref_Info_Of (Right);
+
+      I_Result : constant Boolean := Left_RI.Type_Id.all = Right_RI.Type_Id.all
+        and then Length (Left_RI.Profiles) = Length (Right_RI.Profiles);
+
+      Left_Profiles : constant Profile_Array := Profiles_Of (Left);
+      Right_Profiles : constant Profile_Array := Profiles_Of (Right);
+
+      Result : Boolean := True;
    begin
-      return Left_RI.Type_Id.all = Right_RI.Type_Id.all
-        and then Left_RI.Profiles = Right_RI.Profiles;
+      if I_Result then
+         for J in Left_Profiles'Range loop
+            Result := Result and
+              Get_Object_Key (Left_Profiles (J).all).all =
+              Get_Object_Key (Right_Profiles (J).all).all;
+            --  XXX is this sufficient ??
+
+            --  XXX We cannot compare directly profiles sequence as it
+            --  contains pointers to actual profiles, and thus has no
+            --  meaning.
+
+         end loop;
+         return Result;
+      else
+         return False;
+      end if;
    end Is_Same_Object;
 
    -----------------
