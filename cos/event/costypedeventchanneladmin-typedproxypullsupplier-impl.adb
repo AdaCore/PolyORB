@@ -230,12 +230,17 @@ package body CosTypedEventChannelAdmin.TypedProxyPullSupplier.Impl is
       Returns   : out    CORBA.Any)
    is
       pragma Warnings (Off); --  WAG:3.14
-      pragma Unreferenced (Self, Has_Event, Returns);
+      pragma Unreferenced (Self);
       pragma Warnings (On);  --  WAG:3.14
+
+      Null_Any : CORBA.Any; --  WAG:3.15
    begin
       pragma Debug (O ("try to pull new data from typedproxypull supplier"));
       pragma Debug (O ("no need to use try_pull in typed pullsupplier"));
       Ensure_Initialization;
+
+      Has_Event := False; --  WAG:3.15
+      Returns := Null_Any; --  WAG:3.15
 
       --  No need to implement generic try_pull in Typed ProxyPullSupplier
       raise PolyORB.Not_Implemented;
