@@ -210,7 +210,7 @@ package System.Garlic.Thin is
       Namelen : C.int)
       return C.int;
 
-   function C_Dup2 (Fildes, Fildes2 : C.int) return C.int;
+   procedure C_Dup2 (Fildes, Fildes2 : in C.int);
 
    function C_Fcntl
      (Fildes : C.int;
@@ -301,7 +301,7 @@ package System.Garlic.Thin is
      return C.int;
 
    function C_Open
-     (Path  : Strings.chars_ptr;
+     (Path  : C.char_array;
       Oflag : C.int;
       Mode  : mode_t := 0)
      return C.int;
@@ -378,7 +378,7 @@ package System.Garlic.Thin is
       Tolen : C.int)
      return C.int;
 
-   function C_Setsid return pid_t;
+   procedure C_Setsid;
 
    function C_Setsockopt
      (S       : C.int;
@@ -396,6 +396,8 @@ package System.Garlic.Thin is
    function C_Socket (Domain, Typ, Protocol : C.int) return C.int;
 
    function C_Strerror (Errnum : C.int) return Strings.chars_ptr;
+
+   function C_System (Command : System.Address) return C.int;
 
    function C_Write
      (Fildes : C.int;
@@ -456,6 +458,7 @@ private
    pragma Import (C, C_Shutdown, "shutdown");
    pragma Import (C, C_Socket, "socket");
    pragma Import (C, C_Strerror, "strerror");
+   pragma Import (C, C_System, "system");
    pragma Import (C, C_Write, "write");
    pragma Import (C, C_Writev, "writev");
 
