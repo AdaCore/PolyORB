@@ -53,8 +53,16 @@ package PolyORB.Requests is
 
    type Flags is new Types.Unsigned_Long;
 
+   type Arguments_Identification is array (1 .. 2) of Boolean;
+   pragma Pack (Arguments_Identification);
+
    package Unsigned_Long_Flags is
       new PolyORB.Utils.Simple_Flags (Flags, Shift_Left);
+
+   Ident_By_Position : constant Arguments_Identification;
+   Ident_By_Name     : constant Arguments_Identification;
+   Ident_Unspecified : constant Arguments_Identification;
+   Ident_Both        : constant Arguments_Identification;
 
    ------------------------------------------
    -- Synchronisation of request execution --
@@ -95,6 +103,10 @@ package PolyORB.Requests is
       --  Ctx        : CORBA.Context.Ref;
       Target    : References.Ref;
       Operation : Types.Identifier;
+
+      Args_Ident : Arguments_Identification := Ident_By_Position;
+      --  To optimize the handling of Args, we can provide a hint
+      --  about the structure of the NV_List.
 
       Args      : Any.NVList.Ref;
       --  The arguments to the request, for transmission
@@ -197,7 +209,8 @@ package PolyORB.Requests is
       --  Ctxt_List : in     ContextList.Ref;
       Req       :    out Request_Access;
       Req_Flags : in     Flags := 0;
-      Deferred_Arguments_Session : in Components.Component_Access := null
+      Deferred_Arguments_Session : in Components.Component_Access := null;
+      Identification : in Arguments_Identification := Ident_By_Position
      );
 
    procedure Invoke
@@ -206,22 +219,20 @@ package PolyORB.Requests is
    --  Run Self.
 
    procedure Arguments
-     (Self  :        Request_Access;
-      Args  : in out Any.NVList.Ref;
-      Error : in out Error_Container);
-   --  Retrieve the invocation's arguments into Args.
-   --  Call back the protocol layer to do the unmarshalling,
-   --  if necessary. Should be called exactly once from within
-   --  a servant's Invoke primitive. Args MUST be a correctly
-   --  typed NVList for the signature of the method being invoked.
-
-   procedure Arguments
-     (Self       :        Request_Access;
-      Args       : in out Any.NVList.Ref;
-      Error      : in out Error_Container;
-      Can_Extend :        Boolean);
-   --  If Can_Extend is set to True and Self contains extra arguments
-   --  that are not required by Args, they are appended.
+     (Self           :        Request_Access;
+      Args           : in out Any.NVList.Ref;
+      Error          : in out Error_Container;
+      Identification :        Arguments_Identification := Ident_By_Position;
+      Can_Extend     :        Boolean := False);
+      --  Retrieve the invocation's arguments into Args.  Call back
+      --  the protocol layer to do the unmarshalling, if
+      --  necessary. Should be called exactly once from within a
+      --  servant's Invoke primitive. Args MUST be a correctly typed
+      --  NVList for the signature of the method being invoked.  If
+      --  Can_Extend is set to True and Self contains extra arguments
+      --  that are not required by Args, they are
+      --  appended. Identification is used to specify the capailities
+      --  of the server personality.
 
    procedure Set_Result
      (Self : Request_Access;
@@ -229,26 +240,16 @@ package PolyORB.Requests is
    --  Set the value of Self's result to Val.
 
    procedure Set_Out_Args
-     (Self  :        Request_Access;
-      Error : in out Error_Container);
-   --  Copy back the values of out and inout arguments
-   --  from Out_Args to Args.
+     (Self           :        Request_Access;
+      Error          : in out Error_Container;
+      Identification : Arguments_Identification := Ident_By_Position);
+   --  Copy back the values of out and inout arguments from Out_Args
+   --  to Args.  Identification is used to specify the
+   --  capailities of the server personality.
+
 
    procedure Destroy_Request
      (R : in out Request_Access);
-
-   procedure Pump_Up_Arguments
-     (Dst_Args        : in out Any.NVList.Ref;
-      Src_Args        :        Any.NVList.Ref;
-      Direction       :        Any.Flags;
-      Ignore_Src_Mode :        Boolean        := True;
-      Error           : in out Error_Container;
-      Can_Extend      :        Boolean        := False);
-   --  True arguments of direction Direction (or INOUT) from received
-   --  protocol arguments list P_Args (either from a request, on
-   --  server side, or for a reply, on client side) into A_Args.  If
-   --  Can_Extend is set to True and Src_Args contains extra arguments
-   --  that are not required by Dst_Args, then they are appended.
 
    function Image
      (Req : Request)
@@ -263,5 +264,10 @@ private
    Sync_With_Target    : constant Flags := 8;
    Sync_Call_Back      : constant Flags := 16;
    Default_Flags       : constant Flags := Sync_With_Target;
+
+   Ident_By_Position : constant Arguments_Identification := (True, False);
+   Ident_By_Name     : constant Arguments_Identification := (False, True);
+   Ident_Unspecified : constant Arguments_Identification := (False, False);
+   Ident_Both        : constant Arguments_Identification := (True, True);
 
 end PolyORB.Requests;
