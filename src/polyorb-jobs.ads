@@ -35,6 +35,8 @@
 
 --  $Id$
 
+with PolyORB.Utils.Chained_Lists;
+
 package PolyORB.Jobs is
 
    pragma Preelaborate;
@@ -44,6 +46,7 @@ package PolyORB.Jobs is
    ---------
 
    type Job is abstract tagged limited private;
+
    type Job_Access is access all Job'Class;
    --  A Job is any elementary activity that may
    --  be assigned to an ORB task to be entirely
@@ -69,6 +72,7 @@ package PolyORB.Jobs is
    --  A job selector that is always true.
 
    type Job_Queue is limited private;
+
    type Job_Queue_Access is access all Job_Queue;
    --  A queue of pending jobs.
 
@@ -77,7 +81,7 @@ package PolyORB.Jobs is
 
    procedure Queue_Job
      (Q : access Job_Queue;
-      J : Job_Access);
+      J :        Job_Access);
    --  Enter a pending Job into Q.
 
    function Is_Empty (Q : access Job_Queue) return Boolean;
@@ -99,34 +103,15 @@ private
 
    pragma Inline (Fetch_Job);
 
-   ---------
-   -- Job --
-   ---------
-
    type Job is abstract tagged limited null record;
 
-   ----------------------------------------------
-   -- Job_Queue, implemented as a simple FIFO. --
-   ----------------------------------------------
+   package Job_Queues is new PolyORB.Utils.Chained_Lists (Job_Access);
 
-   --  XXX should be reimplemented in terms of
-   --  PolyORB.Utils.Chained_Lists.
-
-   type Queue_Element;
-   type Queue_Element_Access is access Queue_Element;
-
-   type Queue_Element is record
-      Next : Queue_Element_Access;
-      Job  : Job_Access;
-   end record;
+   subtype Job_Queue_Internal is Job_Queues.List;
 
    type Job_Queue is limited record
-      First, Last : Queue_Element_Access;
+     Content : Job_Queue_Internal;
    end record;
-
-   ------------------
-   -- Job_Selector --
-   ------------------
 
    Any_Job : constant Job_Selector := null;
 
