@@ -113,7 +113,6 @@ omniObject_C2Ada::dispatch(GIOP_S &giop_s,
   } else {
     cerr << "omniObject_C2Ada::dispatch : Ada_OmniObject_Pointer *IS* null" << endl ;
   }
-
   cerr << "omniObject_C2Ada::dispatch is_proxy ? " << is_proxy() << endl ;
 #endif
 
@@ -125,6 +124,7 @@ omniObject_C2Ada::dispatch(GIOP_S &giop_s,
 #ifdef DEBUG
   cerr << "omniObject_C2Ada::dispatch : returning successfully from Ada code" << endl ;
 #endif
+  
   return success ;
   // calls dispatch on the Ada_OmniObject pointed by Ada_OmniObject_Pointer
   // This function allows the C code to call the Ada function dispatch

@@ -143,9 +143,7 @@ ADABROKER_TRY
 #ifdef DEBUG
     cerr << "Ada_Giop_c::ReceiveReply : call the omniORB function" << endl ;
 #endif
-    try {
       result = ((GIOP_C *) C_Object)->ReceiveReply();
-    } catch (CORBA::BAD_PARAM) {cerr << "tototototoototototototoo" << endl ;} ;
 #ifdef DEBUG
     cerr << "Ada_Giop_c::ReceiveReply : the omniORB function returned successfull" << endl ;
 #endif
