@@ -58,18 +58,6 @@ package body PolyORB.ORB_Controller.Basic is
    procedure O2 (Message : in String; Level : Log_Level := Debug)
      renames L2.Output;
 
-   function Allocate_CV
-     (O : access ORB_Controller_Basic)
-     return Condition_Access;
-   --  Return one CV
-
-   procedure Release_All_Tasks (O : access ORB_Controller_Basic);
-   --  Release all tasks in ORB_Controller O: awake idle tasks,
-   --  unblock polling taks.
-
-   procedure Awake_One_Idle_Task (O : access ORB_Controller_Basic);
-   --  Awake one idle task, if any. Else raise Program_Error
-
    procedure Try_Allocate_One_Task (O : access ORB_Controller_Basic);
    --  Awake one idle task, if any. Else do nothing
 
@@ -225,7 +213,19 @@ package body PolyORB.ORB_Controller.Basic is
 
             O.Shutdown := True;
 
-            Release_All_Tasks (O);
+            --  Awake all idle tasks
+
+            for J in 1 .. O.Counters (Idle) loop
+               Awake_One_Idle_Task (O.Idle_Tasks);
+            end loop;
+
+            --  Unblock blocked tasks
+
+            if O.Counters (Blocked) > 0 then
+               PTI.Request_Abort_Polling (O.Blocked_Task_Info.all);
+               PolyORB.Asynch_Ev.Abort_Check_Sources
+                 (Selector (O.Blocked_Task_Info.all).all);
+            end if;
 
          when Queue_Event_Job =>
 
@@ -249,6 +249,7 @@ package body PolyORB.ORB_Controller.Basic is
 
                O.Number_Of_Pending_Jobs := O.Number_Of_Pending_Jobs + 1;
                PJ.Queue_Job (O.Job_Queue, E.Request_Job);
+
                Try_Allocate_One_Task (O);
             end if;
 
@@ -315,7 +316,7 @@ package body PolyORB.ORB_Controller.Basic is
 
             --  A task has left Idle state
 
-            List_Detach (E.Awakened_Task.all, O.Idle_Task_List);
+            Remove_Idle_Task (O.Idle_Tasks, E.Awakened_Task);
 
       end case;
 
@@ -385,14 +386,14 @@ package body PolyORB.ORB_Controller.Basic is
          pragma Debug (O2 (Status (O)));
 
       else
-
          O.Counters (Unscheduled) := O.Counters (Unscheduled) - 1;
          O.Counters (Idle) := O.Counters (Idle) + 1;
          pragma Assert (ORB_Controller_Counters_Valid (O));
 
-         Set_State_Idle (TI.all, Allocate_CV (O), O.ORB_Lock);
-         Task_Lists.Prepend (O.Idle_Task_List, TI);
-         List_Attach (TI.all, Task_Lists.First (O.Idle_Task_List));
+         Set_State_Idle
+           (TI.all,
+            Insert_Idle_Task (O.Idle_Tasks, TI),
+            O.ORB_Lock);
 
          pragma Debug (O1 ("Task is now idle"));
          pragma Debug (O2 (Status (O)));
@@ -421,78 +422,6 @@ package body PolyORB.ORB_Controller.Basic is
       pragma Debug (O1 ("Unregister_Task: leave"));
    end Unregister_Task;
 
-   -----------------
-   -- Allocate_CV --
-   -----------------
-
-   function Allocate_CV
-     (O : access ORB_Controller_Basic)
-     return Condition_Access
-   is
-      use type CV_Lists.List;
-
-      Result : Condition_Access;
-
-   begin
-      if O.Free_CV /= CV_Lists.Empty then
-
-         --  Use an existing CV, from Free_CV list
-
-         CV_Lists.Extract_First (O.Free_CV, Result);
-      else
-         --  else allocate a new one
-
-         Create (Result);
-      end if;
-
-      return Result;
-   end Allocate_CV;
-
-   -----------------------
-   -- Release_All_Tasks --
-   -----------------------
-
-   procedure Release_All_Tasks (O : access ORB_Controller_Basic) is
-   begin
-      --  Awake all idle tasks
-
-      for J in 1 .. O.Counters (Idle) loop
-         Awake_One_Idle_Task (O);
-      end loop;
-
-      --  Unblock blocked tasks
-
-      if O.Counters (Blocked) > 0 then
-
-         PTI.Request_Abort_Polling (O.Blocked_Task_Info.all);
-         PolyORB.Asynch_Ev.Abort_Check_Sources
-           (Selector (O.Blocked_Task_Info.all).all);
-
-      end if;
-   end Release_All_Tasks;
-
-   -------------------------
-   -- Awake_One_Idle_Task --
-   -------------------------
-
-   procedure Awake_One_Idle_Task (O : access ORB_Controller_Basic) is
-      use type Task_Lists.List;
-
-      Task_To_Awake : Task_Info_Access;
-
-   begin
-      if O.Idle_Task_List /= Task_Lists.Empty then
-         pragma Debug (O1 ("Awake one idle task"));
-
-         --  Signal one idle task, and puts its CV in Free_CV list
-
-         Task_Lists.Extract_First (O.Idle_Task_List, Task_To_Awake);
-         List_Attach (Task_To_Awake.all, Task_Lists.Last (O.Idle_Task_List));
-         Signal (Condition (Task_To_Awake.all));
-         CV_Lists.Append (O.Free_CV, Condition (Task_To_Awake.all));
-      end if;
-   end Awake_One_Idle_Task;
-
    ---------------------------
    -- Try_Allocate_One_Task --
    ---------------------------
@@ -512,7 +441,7 @@ package body PolyORB.ORB_Controller.Basic is
 
       elsif O.Counters (Idle) > 0 then
 
-         Awake_One_Idle_Task (O);
+         Awake_One_Idle_Task (O.Idle_Tasks);
 
       else
          pragma Debug (O1 ("No idle tasks"));
@@ -616,6 +545,8 @@ package body PolyORB.ORB_Controller.Basic is
    begin
       PRS.Create (RS);
       OC := new ORB_Controller_Basic (RS);
+
+      OC.Idle_Tasks := new Idle_Tasks_Manager;
 
       Create (OC.ORB_Lock);
       Create (OC.Polling_Completed);

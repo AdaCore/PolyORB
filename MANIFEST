@@ -1037,6 +1037,8 @@ src/polyorb-tasking-advanced_mutexes.adb
 src/polyorb-tasking-advanced_mutexes.ads
 src/polyorb-tasking-condition_variables.adb
 src/polyorb-tasking-condition_variables.ads
+src/polyorb-tasking-idle_tasks_managers.adb
+src/polyorb-tasking-idle_tasks_managers.ads
 src/polyorb-tasking-mutexes.adb
 src/polyorb-tasking-mutexes.ads
 src/polyorb-tasking-priorities.ads

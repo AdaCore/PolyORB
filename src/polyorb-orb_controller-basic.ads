@@ -42,8 +42,8 @@
 --  $Id$
 
 with PolyORB.Tasking.Condition_Variables;
+with PolyORB.Tasking.Idle_Tasks_Managers;
 with PolyORB.Tasking.Mutexes;
-with PolyORB.Utils.Chained_Lists;
 
 package PolyORB.ORB_Controller.Basic is
 
@@ -98,11 +98,7 @@ private
 
    package PTM renames PolyORB.Tasking.Mutexes;
    package PTCV renames PolyORB.Tasking.Condition_Variables;
-
-   package Task_Lists renames PTI.Task_Lists;
-
-   package CV_Lists is
-     new PolyORB.Utils.Chained_Lists (PTCV.Condition_Access, PTCV."=");
+   use PolyORB.Tasking.Idle_Tasks_Managers;
 
    type ORB_Controller_Basic is new ORB_Controller with record
 
@@ -115,18 +111,7 @@ private
       Monitors : Monitor_Array (1 .. 1) := (others => null);
       --  Monitors to be polled
 
-      ----------------
-      -- Idle tasks --
-      ----------------
-
-      Idle_Task_List : Task_Lists.List;
-      --  List of idle tasks
-
-      Free_CV : CV_Lists.List;
-      --  Free_CV is the list of pre-allocated CV. When scheduling a task
-      --  to idle state, the ORB controller first looks for an availble
-      --  CV in this list; or else allocates one new CV. When a task
-      --  leaves idle state, the ORB controller puts its CV in Free_CV.
+      Idle_Tasks : Idle_Tasks_Manager_Access;
 
       ------------------
       -- Blocked Task --

@@ -58,18 +58,9 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
    procedure O2 (Message : in String; Level : Log_Level := Debug)
      renames L2.Output;
 
-   function Allocate_CV
-     (O : access ORB_Controller_Half_Sync_Half_Async)
-     return Condition_Access;
-   --  Return one CV.
-
-   procedure Awake_One_Idle_Task
-     (O : access ORB_Controller_Half_Sync_Half_Async);
-   --  Awake one idle task, if any. Else raise Program_Error.
-
    procedure Try_Allocate_One_Task
      (O : access ORB_Controller_Half_Sync_Half_Async);
-   --  Awake one idle task, if any. Else do nothing.
+   --  Awake one idle task, if any. Else do nothing
 
    -------------------
    -- Register_Task --
@@ -241,7 +232,7 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
             --  Awake all idle tasks
 
             for J in 1 .. O.Counters (Idle) loop
-               Awake_One_Idle_Task (O);
+               Awake_One_Idle_Task (O.Idle_Tasks);
             end loop;
 
             --  Unblock blocked tasks
@@ -335,6 +326,10 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
             O.Counters (Idle) := O.Counters (Idle) - 1;
             O.Counters (Unscheduled) := O.Counters (Unscheduled) + 1;
             pragma Assert (ORB_Controller_Counters_Valid (O));
+
+            --  A task has left Idle state
+
+            Remove_Idle_Task (O.Idle_Tasks, E.Awakened_Task);
 
       end case;
 
@@ -443,7 +438,10 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
                O.Counters (Idle) := O.Counters (Idle) + 1;
                pragma Assert (ORB_Controller_Counters_Valid (O));
 
-               Set_State_Idle (TI.all, Allocate_CV (O), O.ORB_Lock);
+               Set_State_Idle
+                 (TI.all,
+                  Insert_Idle_Task (O.Idle_Tasks, TI),
+                  O.ORB_Lock);
 
                pragma Debug (O1 ("Task is now idle"));
                pragma Debug (O2 (Status (O)));
@@ -474,60 +472,6 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
       pragma Debug (O1 ("Unregister_Task: leave"));
    end Unregister_Task;
 
-   -----------------
-   -- Allocate_CV --
-   -----------------
-
-   function Allocate_CV
-     (O : access ORB_Controller_Half_Sync_Half_Async)
-     return Condition_Access
-   is
-      use type CV_Lists.List;
-
-      Result : Condition_Access;
-
-   begin
-      if O.Free_CV /= CV_Lists.Empty then
-         --  Use an existing CV, from Free_CV list
-
-         CV_Lists.Extract_First (O.Free_CV, Result);
-      else
-         --  else allocate a new one
-
-         Create (Result);
-      end if;
-
-      --  CV is now used by O
-
-      CV_Lists.Append (O.Used_CV, Result);
-
-      return Result;
-   end Allocate_CV;
-
-   -------------------------
-   -- Awake_One_Idle_Task --
-   -------------------------
-
-   procedure Awake_One_Idle_Task
-     (O : access ORB_Controller_Half_Sync_Half_Async)
-   is
-      use CV_Lists;
-
-      Idle_Task_CV : Condition_Access;
-
-   begin
-      if O.Used_CV /= Empty then
-         pragma Debug (O1 ("Awake one idle task"));
-
-         --  Signal one idle task, and puts its CV in Free_CV
-
-         CV_Lists.Extract_First (O.Used_CV, Idle_Task_CV);
-         Signal (Idle_Task_CV);
-         CV_Lists.Append (O.Free_CV, Idle_Task_CV);
-
-      end if;
-   end Awake_One_Idle_Task;
-
    ---------------------------
    -- Try_Allocate_One_Task --
    ---------------------------
@@ -547,7 +491,7 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
          null;
 
       elsif O.Counters (Idle) > 0 then
-         Awake_One_Idle_Task (O);
+         Awake_One_Idle_Task (O.Idle_Tasks);
 
       else
          pragma Debug (O1 ("No idle tasks"));
@@ -656,8 +600,9 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
       PRS.Create (RS);
       OC := new ORB_Controller_Half_Sync_Half_Async (RS);
 
-      Create (OC.ORB_Lock);
+      OC.Idle_Tasks := new Idle_Tasks_Manager;
 
+      Create (OC.ORB_Lock);
       Create (OC.Internal_ORB_Lock);
 
       Create (OC.Polling_Completed);

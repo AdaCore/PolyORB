@@ -130,6 +130,7 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-tasking-advanced_mutexes.ads \
 		polyorb-tasking-mutexes.ads \
 		polyorb-tasking-condition_variables.ads \
+		polyorb-tasking-idle_tasks_managers.ads \
 		polyorb-tasking-profiles-full_tasking-condition_variables.ads \
 		polyorb-tasking-profiles-full_tasking-mutexes.ads \
 		polyorb-tasking-profiles-full_tasking-threads.ads \
