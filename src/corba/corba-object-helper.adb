@@ -31,39 +31,35 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with PolyORB.Any.ObjRef;
 with PolyORB.CORBA_P.Exceptions;
 with PolyORB.Locks; use PolyORB.Locks;
 
 package body CORBA.Object.Helper is
 
    use PolyORB.Any;
-   use PolyORB.Any.Internals;
 
-   --------------
-   --  To_Any  --
-   --------------
+   ------------
+   -- To_Any --
+   ------------
 
    function To_Any (Item : in CORBA.Object.Ref) return Any is
-      Result : Any;
    begin
-      Set_Value (Result, new Content_ObjRef'
-                 (Content with Value =>
-                    new PolyORB.References.Ref'(To_PolyORB_Ref (Item))));
-      Set_Type (Result, TC_Object);
-      Inc_Usage (Result);
-      return Result;
+      return PolyORB.Any.ObjRef.To_Any (To_PolyORB_Ref (Item));
    end To_Any;
 
-   ----------------
-   --  From_Any  --
-   ----------------
-   function From_Any (Item : in Any) return CORBA.Object.Ref is
+   --------------
+   -- From_Any --
+   --------------
+
+   function From_Any (Item : in Any) return CORBA.Object.Ref
+   is
+      Result : CORBA.Object.Ref;
    begin
-      if (TypeCode.Kind (Get_Type (Item)) /= Tk_Objref) then
-         raise Bad_TypeCode;
-      end if;
-      return To_CORBA_Ref
-        (Content_ObjRef_Ptr (Get_Value (Item)).Value.all);
+      Convert_To_CORBA_Ref
+        (PolyORB.Any.ObjRef.From_Any (Item),
+         Result);
+      return Result;
    end From_Any;
 
    ---------------------
@@ -73,20 +69,9 @@ package body CORBA.Object.Helper is
    procedure Set_Any_Value
      (Any_Value : in out CORBA.Any;
       Value : in CORBA.Object.Ref) is
-      use CORBA.TypeCode;
    begin
-      if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Objref then
-         PolyORB.CORBA_P.Exceptions.Raise_Bad_TypeCode;
-      end if;
-      Lock_W (Any_Value.Any_Lock);
-      if Any_Value.The_Value.all /= Null_Content_Ptr then
-         Content_ObjRef_Ptr (Any_Value.The_Value.all).Value.all
-           := PolyORB.References.Ref'Class (To_PolyORB_Ref (Value));
-      else
-         Any_Value.The_Value.all := new Content_ObjRef'
-           (Value => new PolyORB.References.Ref'(To_PolyORB_Ref (Value)));
-      end if;
-      Unlock_W (Any_Value.Any_Lock);
+      PolyORB.Any.ObjRef.Set_Any_Value
+        (Any_Value, To_PolyORB_Ref (Value));
    end Set_Any_Value;
 
 end CORBA.Object.Helper;
