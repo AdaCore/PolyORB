@@ -80,14 +80,6 @@ package body Ada_Be.Idl2Ada is
       Implement : Boolean;
       To_Stdout : Boolean);
 
-   procedure Gen_Node_Stubs_Spec
-     (CU   : in out Compilation_Unit;
-      Node : Node_Id);
-   procedure Gen_Node_Stubs_Body
-     (CU   : in out Compilation_Unit;
-      Node : Node_Id);
-   --  Generate the stubs code for a node.
-
    procedure Gen_Operation_Stubs_Body_For_ValueTypes
      (CU : in out Compilation_Unit;
       Node : in Node_Id);

@@ -533,6 +533,95 @@ procedure DynClient is
         (CORBA.Request.Return_Value (Request).Argument);
    end EchoColor;
 
+   function EchoArray
+     (Self : in CORBA.Object.Ref;
+      Arg : in All_Types.Simple_Array)
+     return All_Types.Simple_Array is
+      Operation_Name : CORBA.Identifier := To_CORBA_String ("echoArray");
+      Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
+      Request : CORBA.Request.Object;
+      Ctx : CORBA.Context.Ref;
+      Argument : CORBA.Any;
+      Arg_List : CORBA.NVList.Ref;
+      Result : CORBA.NamedValue;
+      Result_Name : CORBA.String := To_CORBA_String ("Result");
+      Result_Value : All_Types.Simple_Array := (0 ,0 ,0 ,0, 0);
+   begin
+      Ada.Text_Io.Put_Line ("echoArray : enter");
+      --  creating the argument list
+      Argument := All_Types.Helper.To_Any (Arg);
+      Ada.Text_Io.Put_Line ("echoArray : after to_any");
+      CORBA.NVList.Add_Item (Arg_List,
+                             Arg_Name,
+                             Argument,
+                             CORBA.ARG_IN);
+      Ada.Text_Io.Put_Line ("echoArray : nvlist created");
+      --  setting the result type
+      Result := (Name => Identifier (Result_Name),
+                 Argument => All_Types.Helper.To_Any (Result_Value),
+                 Arg_Modes => 0);
+      Ada.Text_Io.Put_Line ("echoArray : result type set");
+      --  creating a request
+      CORBA.Object.Create_Request (Myall_Types,
+                                   Ctx,
+                                   Operation_Name,
+                                   Arg_List,
+                                   Result,
+                                   Request,
+                                   0);
+      Ada.Text_Io.Put_Line ("echoArray : request created");
+      --  sending message
+      CORBA.Request.Invoke (Request, 0);
+      Ada.Text_Io.Put_Line ("echoArray : message sent");
+      --  FIXME : not logical
+      CORBA.NVList.Free (Arg_List);
+      Ada.Text_Io.Put_Line ("echoArray : NVList freed");
+      --  getting the answer
+      return All_Types.Helper.From_Any
+        (CORBA.Request.Return_Value (Request).Argument);
+   end EchoArray;
+
+   function EchoMatrix
+     (Self : in CORBA.Object.Ref;
+      Arg : in All_Types.Matrix)
+     return All_Types.Matrix is
+      Operation_Name : CORBA.Identifier := To_CORBA_String ("echoMatrix");
+      Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
+      Request : CORBA.Request.Object;
+      Ctx : CORBA.Context.Ref;
+      Argument : CORBA.Any;
+      Arg_List : CORBA.NVList.Ref;
+      Result : CORBA.NamedValue;
+      Result_Name : CORBA.String := To_CORBA_String ("Result");
+      Result_Value : All_Types.Matrix := ((0 ,0 ,0) ,(0, 0, 0), (0, 0, 0));
+   begin
+      --  creating the argument list
+      Argument := All_Types.Helper.To_Any (Arg);
+      CORBA.NVList.Add_Item (Arg_List,
+                             Arg_Name,
+                             Argument,
+                             CORBA.ARG_IN);
+      --  setting the result type
+      Result := (Name => Identifier (Result_Name),
+                 Argument => All_Types.Helper.To_Any (Result_Value),
+                 Arg_Modes => 0);
+      --  creating a request
+      CORBA.Object.Create_Request (Myall_Types,
+                                   Ctx,
+                                   Operation_Name,
+                                   Arg_List,
+                                   Result,
+                                   Request,
+                                   0);
+      --  sending message
+      CORBA.Request.Invoke (Request, 0);
+      --  FIXME : not logical
+      CORBA.NVList.Free (Arg_List);
+      --  getting the answer
+      return All_Types.Helper.From_Any
+        (CORBA.Request.Return_Value (Request).Argument);
+   end EchoMatrix;
+
 --    function EchoStruct
 --      (Self : in CORBA.Object.Ref;
 --       Arg : in All_Types.Simple_Struct)
@@ -622,6 +711,18 @@ begin
       Output ("test enum", echoColor (Myall_types, All_Types.Blue) =
               All_Types.Blue);
       Output ("test fixed point", False);
+      --  array
+      declare
+         X : All_Types.simple_array := (2, 3, 5, 7, 11);
+      begin
+         Output ("test simple array", echoArray (Myall_types, X) = X);
+      end;
+      declare
+         M : All_Types.Matrix := ((165, 252, 375), (377, 145, 222), (202, 477, 147));
+      begin
+         Output ("test multi-dimensional array",
+                 echoMatrix (Myall_types, M) = M);
+      end;
       --  struct
 --       declare
 --          Test_Struct : constant All_Types.simple_struct

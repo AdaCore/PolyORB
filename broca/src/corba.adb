@@ -1394,11 +1394,15 @@ package body CORBA is
    end From_Any;
 
    function From_Any (Item : in Any) return Long is
+      Result : Any_Content_Ptr;
+      Result2 : Content_Long_Ptr;
    begin
       if (TypeCode.Kind (Item.The_Type) /= Tk_Long) then
          raise Bad_Typecode;
       end if;
-      return Content_Long_Ptr (Item.The_Value).Value;
+      Result := Item.The_Value;
+      Result2 := Content_Long_Ptr (Result);
+      return Result2.Value;
    end From_Any;
 
    function From_Any (Item : in Any) return Long_Long is
@@ -1580,15 +1584,19 @@ package body CORBA is
       Cl : Content_List := Content_Aggregate_Ptr (Value.The_Value).Value;
    begin
       pragma Debug (O ("Add_Aggregate_Element : enter"));
+      pragma Debug (O ("Add_Aggregate_Element : element kind is "
+                       & CORBA.TCKind'Image
+                       (CORBA.TypeCode.Kind
+                        (CORBA.Get_Type (Element)))));
       if Cl = Null_Content_List then
          Content_Aggregate_Ptr (Value.The_Value).Value
            := new Content_Cell' (Element.The_Value,
                                  Null_Content_List);
       else
-         while Cl.Next /= null loop
+         while Cl.Next /= Null_Content_List loop
             Cl := Cl.Next;
          end loop;
-         Cl.Next := new Content_Cell' (Value.The_Value,
+         Cl.Next := new Content_Cell' (Element.The_Value,
                                        Null_Content_List);
       end if;
       pragma Debug (O ("Add_Aggregate_Element : end"));
@@ -1603,7 +1611,7 @@ package body CORBA is
                                    return Any is
       Ptr : Content_List := Content_Aggregate_Ptr (Value.The_Value).Value;
    begin
-      pragma Debug (O ("Get_Aggregate_Element : end"));
+      pragma Debug (O ("Get_Aggregate_Element : enter"));
       pragma Assert (Get_Aggregate_Count (Value) > Index);
       if Index > 0 then
          for I in 0 .. Index - 1 loop

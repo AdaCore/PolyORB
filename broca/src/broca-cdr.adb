@@ -405,6 +405,7 @@ package body Broca.CDR is
             declare
                L : CORBA.Long := From_Any (Data);
             begin
+               pragma Debug (O ("Marshall_From_Any : dealing with a long"));
                Marshall (Buffer, L);
             end;
          when Tk_Ushort =>
@@ -543,12 +544,23 @@ package body Broca.CDR is
                Nb : CORBA.Unsigned_Long :=
                  CORBA.Get_Aggregate_Count (Data);
                Value : CORBA.Any;
+               Content_True_Type : CORBA.TypeCode.Object :=
+                 CORBA.TypeCode.Content_Type (Data_Type);
             begin
+               pragma Debug (O ("Marshall_From_Any : dealing with an array"));
+               while CORBA.TypeCode.Kind (Content_True_Type) = Tk_Array loop
+                  Content_True_Type :=
+                    CORBA.TypeCode.Content_Type (Content_True_Type);
+               end loop;
                for I in 0 .. Nb - 1 loop
                   Value := CORBA.Get_Aggregate_Element
                     (Data,
-                     CORBA.TypeCode.Content_Type (Data_Type),
+                     Content_True_Type,
                      I);
+                  pragma Debug (O ("Marshall_From_Any : value kind is "
+                                   & CORBA.TCKind'Image
+                                   (CORBA.TypeCode.Kind
+                                    (CORBA.Get_Type (Value)))));
                   Marshall_From_Any (Buffer, Value);
                end loop;
             end;
@@ -1433,13 +1445,20 @@ package body Broca.CDR is
          when Tk_Array =>
             declare
                Nb : Unsigned_Long := TypeCode.Length (Tc);
+               Content_True_Type : CORBA.TypeCode.Object :=
+                 TypeCode.Content_Type (Tc);
             begin
+               while CORBA.TypeCode.Kind (Content_True_Type) = Tk_Array loop
+                  Nb := Nb * TypeCode.Length (Content_True_Type);
+                  Content_True_Type :=
+                    TypeCode.Content_Type (Content_True_Type);
+               end loop;
                Result := Get_Empty_Any_Aggregate (Any_Type);
                for I in 0 .. Nb - 1 loop
                   Add_Aggregate_Element
                     (Result,
                      Unmarshall_To_Any (Buffer,
-                                        TypeCode.Content_Type (Tc)));
+                                        Content_True_Type));
                end loop;
             end;
          when Tk_Alias =>

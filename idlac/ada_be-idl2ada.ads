@@ -92,6 +92,14 @@ private
    --  with the Self formal parameter mode and type taken
    --  from the Object_Type string.
 
+   procedure Gen_Node_Stubs_Spec
+     (CU   : in out Compilation_Unit;
+      Node : Node_Id);
+   procedure Gen_Node_Stubs_Body
+     (CU   : in out Compilation_Unit;
+      Node : Node_Id);
+   --  Generate the stubs code for a node.
+
    ---------------
    -- Shortcuts --
    ---------------

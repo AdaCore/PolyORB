@@ -30,10 +30,15 @@ with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree.Synthetic;
 
 with Ada_Be.Identifiers;    use Ada_Be.Identifiers;
 with Ada_Be.Temporaries;    use Ada_Be.Temporaries;
+with Ada_Be.Debug;
 
+with Utils;                 use Utils;
 with Errors;                use Errors;
 
 package body Ada_Be.Idl2Ada.Helper is
+
+   Flag : constant Natural := Ada_Be.Debug.Is_Active ("ada_be.idl2ada.helper");
+   procedure O is new Ada_Be.Debug.Output (Flag);
 
    ----------------------------------------
    -- Specialised generation subprograms --
@@ -48,6 +53,13 @@ package body Ada_Be.Idl2Ada.Helper is
      (CU        : in out Compilation_Unit;
       Type_Node : in     Node_Id);
    --  Generate the profile for the To_Any function of a type
+
+   procedure Gen_Array_TC
+     (CU        : in out Compilation_Unit;
+      Node      : in     Node_Id;
+      Decl_Node : in     Node_Id);
+   --  generate lines to fill in an array typecode
+   --  only used in the type_declarator part of gen_node_body
 
    function Ada_TC_Name (Node : Node_Id)
                          return String;
@@ -116,6 +128,46 @@ package body Ada_Be.Idl2Ada.Helper is
             --  to fill in the typecode TC_<name of the type>
             Add_Elaborate_Body (CU);
             Add_With (CU, "CORBA");
+
+         when K_Type_Declarator =>
+            declare
+               It   : Node_Iterator;
+               Decl_Node : Node_Id;
+            begin
+               Init (It, Declarators (Node));
+               --  get the first node of the list
+               Get_Next_Node (It, Decl_Node);
+               --  if it's an array, its the only one. If not, there's
+               --  no array declaration in the list.
+               if Is_Empty (Array_Bounds (Decl_Node)) then
+                  return;
+               end if;
+
+               --  TypeCode
+               NL (CU);
+               pragma Debug (O ("gen_node_spec : about to call Ada_TC_Name"));
+               PL (CU, Ada_TC_Name (Decl_Node)
+                   & " : CORBA.TypeCode.Object := ");
+               pragma Debug (O ("gen_node_spec : Ada_TC_Name "
+                                & "successfully called"));
+               II (CU);
+               PL (CU, "CORBA.TypeCode.TC_Array;");
+               DI (CU);
+
+               --  From_Any
+               NL (CU);
+               Gen_From_Any_Profile (CU, Decl_Node);
+               PL (CU, ";");
+
+               --  To_Any
+               NL (CU);
+               Gen_To_Any_Profile (CU, Decl_Node);
+               PL (CU, ";");
+
+               --  to fill in the typecode TC_<name of the type>
+               Add_Elaborate_Body (CU);
+               Add_With (CU, "CORBA");
+            end;
 
 --          when K_Struct =>
 --             --  typecode generation
@@ -322,6 +374,187 @@ package body Ada_Be.Idl2Ada.Helper is
             DI (CU);
             PL (CU, "end;");
             Divert (CU, Visible_Declarations);
+
+         when K_Type_Declarator =>
+            declare
+               It   : Node_Iterator;
+               Decl_Node : Node_Id;
+            begin
+               Add_With (CU, "CORBA", Use_It => True);
+               Init (It, Declarators (Node));
+               --  get the first node of the list
+               Get_Next_Node (It, Decl_Node);
+               --  if it's an array, its the only one. If not, there's
+               --  no array declaration in the list.
+               if Is_Empty (Array_Bounds (Decl_Node)) then
+                  return;
+               end if;
+               pragma Assert (Is_End (It));
+
+               --  From_Any
+               NL (CU);
+               Gen_From_Any_Profile (CU, Decl_Node);
+               PL (CU, " is");
+               II (CU);
+--                declare
+--                   Bounds_It : Node_Iterator;
+--                   Bound_Node : Node_Id;
+--                   First_Bound : Boolean := True;
+--                begin
+--                   Init (Bounds_It, Array_Bounds (Decl_Node));
+--                   while not Is_End (Bounds_It) loop
+--                      Get_Next_Node (Bounds_It, Bound_Node);
+--                      if First_Bound then
+--                         Put (CU, "Result : array (0 .. ");
+--                         First_Bound := False;
+--                      else
+--                         Put (CU, ", 0 .. ");
+--                      end if;
+--                      Gen_Node_Stubs_Spec (CU, Bound_Node);
+--                      Put (CU, " - 1");
+--                   end loop;
+--                   pragma Debug (O ("gen_node_spec : about to "
+--                                    & "call Ada_Type_Name"));
+--                   PL (CU, ") of "
+--                       & Ada_Type_Name (Decl_Node)
+--                       & ";");
+--                   pragma Debug (O ("gen_node_spec : Ada_Type_Name "
+--                                    & "successfully called"));
+--                end;
+               PL (CU, "Result : "
+                   & Ada_Type_Name (Decl_Node)
+                   & ";");
+               DI (CU);
+               PL (CU, "begin");
+               II (CU);
+               declare
+                  Bounds_It : Node_Iterator;
+                  Bound_Node : Node_Id;
+                  Number : Natural := 0;
+               begin
+                  Init (Bounds_It, Array_Bounds (Decl_Node));
+                  while not Is_End (Bounds_It) loop
+                     Get_Next_Node (Bounds_It, Bound_Node);
+                     Put (CU, "for I"
+                         & Img (Number)
+                         & " in 0 .. ");
+                     Gen_Node_Stubs_Spec (CU, Bound_Node);
+                     PL (CU, " - 1 loop");
+                     Number := Number + 1;
+                     II (CU);
+                  end loop;
+                  Put (CU, "Result (I0");
+                  for I in 1 .. Number - 1 loop
+                     Put (CU, ", I" & Img (I));
+                  end loop;
+                  PL (CU, ") := From_Any");
+                  II (CU);
+                  PL (CU, "(CORBA.Get_Aggregate_Element (Item,");
+                  PL (CU, "                              "
+                      & Ada_TC_Name (T_Type (Node))
+                      & ",");
+                  Put (CU, "                             "
+                       & " CORBA.Unsigned_Long (");
+                  declare
+                     Index : Natural := 0;
+                     First_Bound : Boolean := True;
+                  begin
+                     Init (Bounds_It, Array_Bounds (Decl_Node));
+                     while not Is_End (Bounds_It) loop
+                        Get_Next_Node (Bounds_It, Bound_Node);
+                        if First_Bound then
+                           First_Bound := False;
+                        else
+                           Put (CU, " + ");
+                        end if;
+                        Put (CU, "I" & Img (Index));
+                        for J in Index + 1 .. Number - 1 loop
+                           Put (CU, " * ");
+                           Gen_Node_Stubs_Spec (CU, Bound_Node);
+                        end loop;
+                        Index := Index + 1;
+                     end loop;
+                  end;
+                  PL (CU, ")));");
+                  DI (CU);
+                  for I in 1 .. Number loop
+                     DI (CU);
+                     PL (CU, "end loop;");
+                  end loop;
+               end;
+               PL (CU, "return Result;");
+               DI (CU);
+               PL (CU, "end From_Any;");
+
+               --  To_Any
+               NL (CU);
+               Gen_To_Any_Profile (CU, Decl_Node);
+               PL (CU, " is");
+               II (CU);
+               PL (CU, "Result : CORBA.Any := ");
+               II (CU);
+               PL (CU, "CORBA.Get_Empty_Any_Aggregate ("
+                   & Ada_TC_Name (Decl_Node)
+                   & ");");
+               DI (CU);
+               DI (CU);
+               PL (CU, "begin");
+               II (CU);
+               declare
+                  Bounds_It : Node_Iterator;
+                  Bound_Node : Node_Id;
+                  Number : Natural := 0;
+               begin
+                  Init (Bounds_It, Array_Bounds (Decl_Node));
+                  while not Is_End (Bounds_It) loop
+                     Get_Next_Node (Bounds_It, Bound_Node);
+                     Put (CU, "for I"
+                         & Img (Number)
+                         & " in 0 .. ");
+                     Gen_Node_Stubs_Spec (CU, Bound_Node);
+                     PL (CU, " - 1 loop");
+                     Number := Number + 1;
+                     II (CU);
+                  end loop;
+                  PL (CU, "CORBA.Add_Aggregate_Element (Result,");
+                  Put (CU, "                             "
+                      & "To_Any (Item (I0");
+                  for I in 1 .. Number - 1 loop
+                     Put (CU, ", I" & Img (I));
+                  end loop;
+                  PL (CU, ")));");
+                  for I in 1 .. Number loop
+                     DI (CU);
+                     PL (CU, "end loop;");
+                  end loop;
+               end;
+               PL (CU, "return Result;");
+               DI (CU);
+               PL (CU, "end To_Any;");
+
+               --  to fill in the typecode TC_<name of the type>
+               Divert (CU, Elaboration);
+               NL (CU);
+               if Length (Array_Bounds (Decl_Node)) > 1 then
+                  PL (CU, "declare");
+                  II (CU);
+                  for I in 1 .. Length (Array_Bounds (Decl_Node)) - 1 loop
+                     PL (CU, "TC_"
+                         & Img (I)
+                         & " : CORBA.TypeCode.Object := "
+                         & "CORBA.TypeCode.TC_Array;");
+                  end loop;
+                  DI (CU);
+                  PL (CU, "begin");
+                  II (CU);
+               end if;
+               Gen_Array_TC (CU, Node, Decl_Node);
+               if Length (Array_Bounds (Decl_Node)) > 1 then
+                  DI (CU);
+                  PL (CU, "end;");
+               end if;
+               Divert (CU, Visible_Declarations);
+            end;
 
 --          when K_Struct =>
 --             --  from_any function
@@ -544,6 +777,69 @@ package body Ada_Be.Idl2Ada.Helper is
       Put (CU, "return CORBA.Any");
       DI (CU);
    end Gen_To_Any_Profile;
+
+   -------------------
+   --  Gen_Array_TC --
+   -------------------
+
+   procedure Gen_Array_TC
+     (CU        : in out Compilation_Unit;
+      Node      : in     Node_Id;
+      Decl_Node : in     Node_Id) is
+
+      procedure Rec_Gen_Array_TC
+        (CU             : in out Compilation_Unit;
+         It             : in out Node_Iterator;
+         First_Bound    : in     Boolean;
+         Index          : in     Integer;
+         Node           : in     Node_Id;
+         Decl_Node      : in     Node_Id);
+
+      procedure Rec_Gen_Array_TC
+        (CU             : in out Compilation_Unit;
+         It             : in out Node_Iterator;
+         First_Bound    : in     Boolean;
+         Index          : in     Integer;
+         Node           : in     Node_Id;
+         Decl_Node      : in     Node_Id) is
+         Bound_Node : Node_Id;
+         Last_Bound : Boolean := False;
+      begin
+         Get_Next_Node (It, Bound_Node);
+         if not Is_End (It) then
+            Rec_Gen_Array_TC (CU, It, False, Index + 1, Node, Decl_Node);
+         else
+            Last_Bound := True;
+         end if;
+         Put (CU, "CORBA.TypeCode.Add_Parameter (");
+         if First_Bound then
+            Put (CU, Ada_TC_Name (Decl_Node));
+         else
+            Put (CU, "TC_" & Img (Index));
+         end if;
+         Put (CU, ", To_Any (Unsigned_Long (");
+         Gen_Node_Stubs_Spec (CU, Bound_Node);
+         PL (CU, ")));");
+         Put (CU, "CORBA.TypeCode.Add_Parameter (");
+         if First_Bound then
+            Put (CU, Ada_TC_Name (Decl_Node));
+         else
+            Put (CU, "TC_" & Img (Index));
+         end if;
+         Put (CU, ", To_Any (");
+         if Last_Bound then
+            Put (CU, Ada_TC_Name (T_Type (Node)));
+         else
+            Put (CU, "TC_" & Img (Index + 1));
+         end if;
+         PL (CU, "));");
+      end Rec_Gen_Array_TC;
+
+      Bounds_It : Node_Iterator;
+   begin
+      Init (Bounds_It, Array_Bounds (Decl_Node));
+      Rec_Gen_Array_TC (CU, Bounds_It, True, 0, Node, Decl_Node);
+   end Gen_Array_TC;
 
    ------------------
    --  Ada_TC_Name --
