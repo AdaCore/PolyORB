@@ -1,7 +1,7 @@
 
 FLAGS = $(ADABROKER_FLAGS) $(CORBA_LIB) $(IMPORT_LIBRARY_FLAGS)
 
-all:: $(CORBA_LIB_DEPEND) $(ADABROKER_LIB_DEPEND)
+all:: $(CORBA_LIB_DEPEND) $(ADABROKER_LIB_DEPEND) ada
 	gnatmake -gnatf -gnata -m -i client $(FLAGS)
 	gnatmake -gnatf -gnata -m -i server $(FLAGS)
 

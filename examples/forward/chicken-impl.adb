@@ -2,8 +2,8 @@ with Chicken.Skeleton ;
 with Egg_forward ;
 with Egg.Impl ;
 with Egg ;
-with Corba ;
-use type Corba.Unsigned_Short ;
+with CORBA ;
+use type CORBA.Unsigned_Short ;
 
 
 package body Chicken.Impl is
@@ -16,12 +16,12 @@ package body Chicken.Impl is
    --  lay
    -------------------------------
    procedure lay(Self : access Object;
-                 number : out Corba.Unsigned_Short;
+                 number : out CORBA.Unsigned_Short;
                  Returns : out Egg_forward.Ref) is
       Myegg : Egg.Impl.Object_Ptr := new Egg.Impl.Object ;
    begin
       Egg.Impl.Set_Boa(Myegg.all, Self.all.Boa) ;
-      Corba.Boa.Object_Is_Ready(Self.all.Boa, Myegg.all) ;
+      CORBA.Boa.Object_Is_Ready(Self.all.Boa, Myegg.all) ;
       Self.all.Number := Self.all.Number + 1 ;
       Number := Self.all.Number ;
       Returns := Egg.Convert_Forward.To_Forward(Egg.To_Ref(Myegg.all)) ;
@@ -32,7 +32,7 @@ package body Chicken.Impl is
    -- Set_Boa
    ----------
    procedure Set_Boa(Self : in out Object ;
-                     Boa : Corba.Boa.Object) is
+                     Boa : CORBA.Boa.Object) is
    begin
       Self.Boa := Boa ;
    end ;
@@ -49,7 +49,7 @@ package body Chicken.Impl is
    -------------
    procedure Initialize(Self : in out Object) is
    begin
-      Omniobject.Initialize(Omniobject.Implemented_Object(Self)) ;
+      AdaBroker.OmniObject.Initialize(AdaBroker.OmniObject.Implemented_Object(Self)) ;
       Init_Local_Object(Self,
                         Repository_Id,
                         Chicken.Skeleton.Dispatch'Access,
@@ -63,7 +63,7 @@ package body Chicken.Impl is
    ---------
    procedure Adjust(Self: in out Object) is
    begin
-   Omniobject.Adjust(Omniobject.Implemented_Object(Self)) ;
+   AdaBroker.OmniObject.Adjust(AdaBroker.OmniObject.Implemented_Object(Self)) ;
       -- You can add things *BELOW* this line
 
    end Adjust ;
@@ -75,7 +75,7 @@ package body Chicken.Impl is
    begin
 
       -- You can add things *BEFORE* this line
-   Omniobject.Finalize(Omniobject.Implemented_Object(Self)) ;
+   AdaBroker.OmniObject.Finalize(AdaBroker.OmniObject.Implemented_Object(Self)) ;
    end Finalize ;
 
 

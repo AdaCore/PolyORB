@@ -2,7 +2,7 @@ with Egg.Skeleton ;
 with Chicken_forward ;
 with Chicken ;
 with Chicken.Impl ;
-with Corba.Boa ;
+with CORBA.Boa ;
 
 package body Egg.Impl is
 
@@ -23,7 +23,7 @@ package body Egg.Impl is
       begin
          Self.all.Already := True ;
          Chicken.Impl.Set_Boa(Mychicken.all, Self.all.Boa) ;
-         Corba.Boa.Object_Is_Ready(Self.all.Boa, Mychicken.all) ;
+         CORBA.Boa.Object_Is_Ready(Self.all.Boa, Mychicken.all) ;
          return Chicken.Convert_Forward.To_Forward(Chicken.To_Ref(Mychicken.all)) ;
       end ;
    end ;
@@ -32,7 +32,7 @@ package body Egg.Impl is
    -- Set_Boa
    ----------
    procedure Set_Boa(Self : in out Object ;
-                     Boa : Corba.Boa.Object) is
+                     Boa : CORBA.Boa.Object) is
    begin
       Self.Boa := Boa ;
    end ;
@@ -49,7 +49,7 @@ package body Egg.Impl is
    -------------
    procedure Initialize(Self : in out Object) is
    begin
-      Omniobject.Initialize(Omniobject.Implemented_Object(Self)) ;
+      AdaBroker.OmniObject.Initialize(AdaBroker.OmniObject.Implemented_Object(Self)) ;
       Init_Local_Object(Self,
                         Repository_Id,
                         Egg.Skeleton.Dispatch'Access,
@@ -63,7 +63,7 @@ package body Egg.Impl is
    ---------
    procedure Adjust(Self: in out Object) is
    begin
-   Omniobject.Adjust(Omniobject.Implemented_Object(Self)) ;
+   AdaBroker.OmniObject.Adjust(AdaBroker.OmniObject.Implemented_Object(Self)) ;
       -- You can add things *BELOW* this line
 
    end Adjust ;
@@ -75,7 +75,7 @@ package body Egg.Impl is
    begin
 
       -- You can add things *BEFORE* this line
-   Omniobject.Finalize(Omniobject.Implemented_Object(Self)) ;
+   AdaBroker.OmniObject.Finalize(AdaBroker.OmniObject.Implemented_Object(Self)) ;
    end Finalize ;
 
 

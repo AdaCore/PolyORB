@@ -1,10 +1,9 @@
 with Ada.Finalization;
 with Ada.Unchecked_Deallocation;
 
-with OmniObject;
-
-with NetBufferedStream;
-with MemBufferedStream;
+with AdaBroker.OmniObject;
+with AdaBroker.NetBufferedStream;
+with AdaBroker.MemBufferedStream;
 
 --  with CORBA.ImplementationDef;
 --  with CORBA.InterfaceDef;
@@ -105,7 +104,7 @@ package CORBA.Object is
    function Get_OmniObject_Ptr
      (Self : in Ref'Class)
       return OmniObject.Object_Ptr;
-   --  Returns the underlying Omniobject.Object used in
+   --  Returns the underlying OmniObject.Object used in
    --  omniproxycallwrapper
 
    type Ref_Ptr is access all Ref;
@@ -125,22 +124,6 @@ package CORBA.Object is
       To       : in out Ref'Class);
    --  This function is used to create a proxy object (Ref) pointing on a
    --  local object
-
-   --------------------
-   -- object <-> IOR --
-   --------------------
-
-   function Object_To_String
-     (Self : in CORBA.Object.Ref'class)
-      return CORBA.String;
-   --  Returns the IOR corresponding to this object it is called by
-   --  CORBA.ORB.Object_To_String see CORBA specification for details
-
-   procedure String_To_Object
-     (From : in CORBA.String;
-      To   : out Ref'class);
-   --  Returns a Ref'Class out of an IOR it is called by
-   --  CORBA.ORB.String_To_Object see CORBA specification for details
 
    ---------------------------------------------
    -- registering new interfaces into the ORB --
@@ -227,7 +210,7 @@ package CORBA.Object is
 private
 
    type Ref is new Ada.Finalization.Controlled with record
-      Omniobj      : OmniObject.Object_Ptr := null;
+      OmniObj      : OmniObject.Object_Ptr := null;
       Dynamic_Type : Constant_Ref_Ptr      := null;
    end record;
 
@@ -236,7 +219,7 @@ private
    ---------------------------
 
    procedure Initialize (Self : in out Ref);
-   --  Sets Omniobj and Dynamic_Type to null;
+   --  Sets OmniObj and Dynamic_Type to null;
 
    procedure Adjust (Self : in out Ref);
    --  Duplicate the underlying omniobject
@@ -249,8 +232,12 @@ private
      new Ada.Unchecked_Deallocation (Ref, Ref_Ptr);
 
 
+   function Get_Dynamic_Type_From_Repository_Id
+     (Repoid : in CORBA.String)
+      return CORBA.Object.Constant_Ref_Ptr;
+
    Nil_Ref : aliased constant Ref
-     := (Ada.Finalization.Controlled with Omniobj => null,
+     := (Ada.Finalization.Controlled with OmniObj => null,
          Dynamic_Type                             => null);
 
 end CORBA.Object;

@@ -1,4 +1,4 @@
-with Omniobject ;
+with AdaBroker.OmniObject ;
 with vehicle.Impl ;
 with weapon.Impl ;
 with Corba ;

@@ -16,17 +16,17 @@
 
 with Ada.Command_Line ;
 with Text_Io ; use Text_Io ;
-with Corba, Corba.Orb, Corba.Boa, Corba.Object ;
+with CORBA, CORBA.Orb, CORBA.Boa, CORBA.Object ;
 with All_Exceptions ; use All_Exceptions ;
-use Corba.Object ;
-use Corba;
+use CORBA.Object ;
+use CORBA;
 
 procedure Client is
 
-   Orb : Corba.Orb.Object := Corba.Orb.Orb_Init("omniORB2");
-   Boa : Corba.Boa.Object := Corba.Orb.Boa_Init(Orb, "omniORB2_BOA") ;
+   Orb : CORBA.Orb.Object := CORBA.Orb.Orb_Init("omniORB2");
+   Boa : CORBA.Boa.Object := CORBA.Orb.Boa_Init(Orb, "omniORB2_BOA") ;
 
-   IOR : Corba.String ;
+   IOR : CORBA.String ;
    IOR_Arg : Standard.String := Ada.Command_Line.Argument(1) ;
    MyAll_Exceptions : All_Exceptions.Ref ;
 
@@ -39,19 +39,19 @@ begin
       return ;
    end if ;
 
-   -- transforms the Ada string into Corba.String
-   IOR := Corba.To_Corba_String(IOR_Arg) ;
+   -- transforms the Ada string into CORBA.String
+   IOR := CORBA.To_Corba_String(IOR_Arg) ;
 
-   -- getting the Corba.Object
-   Corba.Orb.String_To_Object(IOR, MyAll_Exceptions) ;
-   Put_Line("main : Got the Corba.Object") ;
+   -- getting the CORBA.Object
+   CORBA.Orb.String_To_Object(IOR, MyAll_Exceptions) ;
+   Put_Line("main : Got the CORBA.Object") ;
 
    -- checking if it worked
    if All_Exceptions.Is_Nil(MyAll_Exceptions) then
       Put_Line("main : cannot invoke on a nil reference") ;
       return ;
    end if ;
-   Put_Line("main : Ok : Corba.Object is not nil") ;
+   Put_Line("main : Ok : CORBA.Object is not nil") ;
 
    -------------------
    -- Exceptions tests --
@@ -67,9 +67,9 @@ begin
    exception
       when E : Unknown =>
          Put_Line ("A Unknown exception has just been catched !!!") ;
-         Corba.Get_Members (E ,Member) ;
+         CORBA.Get_Members (E ,Member) ;
          Put_Line ("It has a member whose value is : " &
-                   Corba.Unsigned_Long'Image(Member.Minor)) ;
+                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
    end ;
 
    Put_Line ("") ;
@@ -85,9 +85,9 @@ begin
    exception
       when E : Bad_param =>
          Put_Line ("A bad_param exception has just been catched !!!") ;
-         Corba.Get_Members (E ,Member) ;
+         CORBA.Get_Members (E ,Member) ;
          Put_Line ("It has a member whose value is : " &
-                   Corba.Unsigned_Long'Image(Member.Minor)) ;
+                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
    end ;
 
    Put_Line ("") ;
@@ -105,14 +105,14 @@ begin
    exception
       when E : No_memory =>
          Put_Line ("A No_Memory exception has just been catched !!!") ;
-         Corba.Get_Members (E ,Member) ;
+         CORBA.Get_Members (E ,Member) ;
          Put_Line ("It has a member whose value is : " &
-                   Corba.Unsigned_Long'Image(Member.Minor)) ;
+                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
       when E : Unknown =>
          Put_Line ("A Unknown exception has just been catched !!! It seems to be normal for omniORB_2.7.0") ;
-         Corba.Get_Members (E ,Member2) ;
+         CORBA.Get_Members (E ,Member2) ;
          Put_Line ("It has a member whose value is : " &
-                   Corba.Unsigned_Long'Image(Member2.Minor)) ;
+                   CORBA.Unsigned_Long'Image(Member2.Minor)) ;
    end ;
 
    Put_Line ("") ;
@@ -128,9 +128,9 @@ begin
    exception
       when E : Imp_Limit =>
          Put_Line ("A Imp_Limit exception has just been catched !!!") ;
-         Corba.Get_Members (E ,Member) ;
+         CORBA.Get_Members (E ,Member) ;
          Put_Line ("It has a member whose value is : " &
-                   Corba.Unsigned_Long'Image(Member.Minor)) ;
+                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
    end ;
 
    Put_Line ("") ;
@@ -147,9 +147,9 @@ begin
    exception
       when E : Comm_Failure =>
          Put_Line ("A Comm_Failure exception has just been catched !!!") ;
-         Corba.Get_Members (E ,Member) ;
+         CORBA.Get_Members (E ,Member) ;
          Put_Line ("It has a member whose value is : " &
-                   Corba.Unsigned_Long'Image(Member.Minor)) ;
+                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
    end ;
 
    Put_Line ("") ;
@@ -165,9 +165,9 @@ begin
    exception
       when E : Inv_Objref =>
          Put_Line ("A Inv_Objref exception has just been catched !!!") ;
-         Corba.Get_Members (E ,Member) ;
+         CORBA.Get_Members (E ,Member) ;
          Put_Line ("It has a member whose value is : " &
-                   Corba.Unsigned_Long'Image(Member.Minor)) ;
+                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
    end ;
 
    Put_Line ("") ;
@@ -183,9 +183,9 @@ begin
    exception
       when E : No_Permission =>
          Put_Line ("A No_Permission exception has just been catched !!!") ;
-         Corba.Get_Members (E ,Member) ;
+         CORBA.Get_Members (E ,Member) ;
          Put_Line ("It has a member whose value is : " &
-                   Corba.Unsigned_Long'Image(Member.Minor)) ;
+                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
    end ;
 
    Put_Line ("") ;
@@ -201,9 +201,9 @@ begin
    exception
       when E : Internal =>
          Put_Line ("A Internal exception has just been catched !!!") ;
-         Corba.Get_Members (E ,Member) ;
+         CORBA.Get_Members (E ,Member) ;
          Put_Line ("It has a member whose value is : " &
-                   Corba.Unsigned_Long'Image(Member.Minor)) ;
+                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
    end ;
 
    Put_Line ("") ;
@@ -220,14 +220,14 @@ begin
    exception
       when E : Marshal =>
          Put_Line ("A Marshal exception has just been catched !!!") ;
-         Corba.Get_Members (E ,Member) ;
+         CORBA.Get_Members (E ,Member) ;
          Put_Line ("It has a member whose value is : " &
-                   Corba.Unsigned_Long'Image(Member.Minor)) ;
+                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
       when E : Unknown =>
          Put_Line ("A Unknown exception has just been catched !!! It seems to be normal for omniORB_2.7.0") ;
-         Corba.Get_Members (E ,Member2) ;
+         CORBA.Get_Members (E ,Member2) ;
          Put_Line ("It has a member whose value is : " &
-                   Corba.Unsigned_Long'Image(Member2.Minor)) ;
+                   CORBA.Unsigned_Long'Image(Member2.Minor)) ;
    end ;
 
    Put_Line ("") ;
@@ -243,9 +243,9 @@ begin
    exception
       when E : Initialization_Failure =>
          Put_Line ("A Initialization_Failure exception has just been catched !!!") ;
-         Corba.Get_Members (E ,Member) ;
+         CORBA.Get_Members (E ,Member) ;
          Put_Line ("It has a member whose value is : " &
-                   Corba.Unsigned_Long'Image(Member.Minor)) ;
+                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
    end ;
 
    Put_Line ("") ;
@@ -261,9 +261,9 @@ begin
    exception
       when E : No_Implement =>
          Put_Line ("A No_Implement exception has just been catched !!!") ;
-         Corba.Get_Members (E ,Member) ;
+         CORBA.Get_Members (E ,Member) ;
          Put_Line ("It has a member whose value is : " &
-                   Corba.Unsigned_Long'Image(Member.Minor)) ;
+                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
    end ;
 
    Put_Line ("") ;
@@ -279,9 +279,9 @@ begin
    exception
       when E : Bad_Typecode =>
          Put_Line ("A Bad_Typecode exception has just been catched !!!") ;
-         Corba.Get_Members (E ,Member) ;
+         CORBA.Get_Members (E ,Member) ;
          Put_Line ("It has a member whose value is : " &
-                   Corba.Unsigned_Long'Image(Member.Minor)) ;
+                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
    end ;
 
    Put_Line ("") ;
@@ -297,9 +297,9 @@ begin
    exception
       when E : Bad_Operation =>
          Put_Line ("A Bad_Operation exception has just been catched !!!") ;
-         Corba.Get_Members (E ,Member) ;
+         CORBA.Get_Members (E ,Member) ;
          Put_Line ("It has a member whose value is : " &
-                   Corba.Unsigned_Long'Image(Member.Minor)) ;
+                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
    end ;
 
    Put_Line ("") ;
@@ -316,14 +316,14 @@ begin
    exception
       when E : No_Resources =>
          Put_Line ("A No_Resources exception has just been catched !!!") ;
-         Corba.Get_Members (E ,Member) ;
+         CORBA.Get_Members (E ,Member) ;
          Put_Line ("It has a member whose value is : " &
-                   Corba.Unsigned_Long'Image(Member.Minor)) ;
+                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
       when E : Unknown =>
          Put_Line ("A Unknown exception has just been catched !!! It seems to be normal for omniORB_2.7.0") ;
-         Corba.Get_Members (E ,Member2) ;
+         CORBA.Get_Members (E ,Member2) ;
          Put_Line ("It has a member whose value is : " &
-                   Corba.Unsigned_Long'Image(Member2.Minor)) ;
+                   CORBA.Unsigned_Long'Image(Member2.Minor)) ;
    end ;
 
    Put_Line ("") ;
@@ -340,14 +340,14 @@ begin
    exception
       when E : No_Response =>
          Put_Line ("A No_Response exception has just been catched !!!") ;
-         Corba.Get_Members (E ,Member) ;
+         CORBA.Get_Members (E ,Member) ;
          Put_Line ("It has a member whose value is : " &
-                   Corba.Unsigned_Long'Image(Member.Minor)) ;
+                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
       when E : Unknown =>
          Put_Line ("A Unknown exception has just been catched !!! It seems to be normal for omniORB_2.7.0") ;
-         Corba.Get_Members (E ,Member2) ;
+         CORBA.Get_Members (E ,Member2) ;
          Put_Line ("It has a member whose value is : " &
-                   Corba.Unsigned_Long'Image(Member2.Minor)) ;
+                   CORBA.Unsigned_Long'Image(Member2.Minor)) ;
    end ;
 
    Put_Line ("") ;
@@ -363,9 +363,9 @@ begin
    exception
       when E : Persist_Store =>
          Put_Line ("A Persist_Store exception has just been catched !!!") ;
-         Corba.Get_Members (E ,Member) ;
+         CORBA.Get_Members (E ,Member) ;
          Put_Line ("It has a member whose value is : " &
-                   Corba.Unsigned_Long'Image(Member.Minor)) ;
+                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
    end ;
 
    Put_Line ("") ;
@@ -381,9 +381,9 @@ begin
    exception
       when E : Bad_Inv_Order =>
          Put_Line ("A Bad_Inv_Order exception has just been catched !!!") ;
-         Corba.Get_Members (E ,Member) ;
+         CORBA.Get_Members (E ,Member) ;
          Put_Line ("It has a member whose value is : " &
-                   Corba.Unsigned_Long'Image(Member.Minor)) ;
+                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
    end ;
 
    Put_Line ("") ;
@@ -400,9 +400,9 @@ begin
    exception
       when E : Transient =>
          Put_Line ("A Transient exception has just been catched !!!") ;
-         Corba.Get_Members (E ,Member) ;
+         CORBA.Get_Members (E ,Member) ;
          Put_Line ("It has a member whose value is : " &
-                   Corba.Unsigned_Long'Image(Member.Minor)) ;
+                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
    end ;
 
    Put_Line ("") ;
@@ -418,9 +418,9 @@ begin
    exception
       when E : Free_Mem =>
          Put_Line ("A Free_Mem exception has just been catched !!!") ;
-         Corba.Get_Members (E ,Member) ;
+         CORBA.Get_Members (E ,Member) ;
          Put_Line ("It has a member whose value is : " &
-                   Corba.Unsigned_Long'Image(Member.Minor)) ;
+                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
    end ;
 
    Put_Line ("") ;
@@ -436,9 +436,9 @@ begin
    exception
       when E : Inv_Ident =>
          Put_Line ("A Inv_Ident exception has just been catched !!!") ;
-         Corba.Get_Members (E ,Member) ;
+         CORBA.Get_Members (E ,Member) ;
          Put_Line ("It has a member whose value is : " &
-                   Corba.Unsigned_Long'Image(Member.Minor)) ;
+                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
    end ;
 
    Put_Line ("") ;
@@ -455,9 +455,9 @@ begin
    exception
       when E : Inv_Flag =>
          Put_Line ("A Inv_Flag exception has just been catched !!!") ;
-         Corba.Get_Members (E ,Member) ;
+         CORBA.Get_Members (E ,Member) ;
          Put_Line ("It has a member whose value is : " &
-                   Corba.Unsigned_Long'Image(Member.Minor)) ;
+                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
    end ;
 
    Put_Line ("") ;
@@ -473,9 +473,9 @@ begin
    exception
       when E : Intf_Repos =>
          Put_Line ("A Intf_Repos exception has just been catched !!!") ;
-         Corba.Get_Members (E ,Member) ;
+         CORBA.Get_Members (E ,Member) ;
          Put_Line ("It has a member whose value is : " &
-                   Corba.Unsigned_Long'Image(Member.Minor)) ;
+                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
    end ;
 
    Put_Line ("") ;
@@ -491,9 +491,9 @@ begin
    exception
       when E : Bad_Context =>
          Put_Line ("A Bad_Context exception has just been catched !!!") ;
-         Corba.Get_Members (E ,Member) ;
+         CORBA.Get_Members (E ,Member) ;
          Put_Line ("It has a member whose value is : " &
-                   Corba.Unsigned_Long'Image(Member.Minor)) ;
+                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
    end ;
 
    Put_Line ("") ;
@@ -509,9 +509,9 @@ begin
    exception
       when E : Obj_Adapter =>
          Put_Line ("A Obj_Adapter exception has just been catched !!!") ;
-         Corba.Get_Members (E ,Member) ;
+         CORBA.Get_Members (E ,Member) ;
          Put_Line ("It has a member whose value is : " &
-                   Corba.Unsigned_Long'Image(Member.Minor)) ;
+                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
    end ;
 
    Put_Line ("") ;
@@ -527,9 +527,9 @@ begin
    exception
       when E : Data_Conversion =>
          Put_Line ("A Data_Conversion exception has just been catched !!!") ;
-         Corba.Get_Members (E ,Member) ;
+         CORBA.Get_Members (E ,Member) ;
          Put_Line ("It has a member whose value is : " &
-                   Corba.Unsigned_Long'Image(Member.Minor)) ;
+                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
    end ;
 
    Put_Line ("") ;
@@ -619,9 +619,9 @@ begin
    exception
       when E : Object_Not_Exist =>
          Put_Line ("A Object_Not_Exist exception has just been catched !!!") ;
-         Corba.Get_Members (E ,Member) ;
+         CORBA.Get_Members (E ,Member) ;
          Put_Line ("It has a member whose value is : " &
-                   Corba.Unsigned_Long'Image(Member.Minor)) ;
+                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
    end ;
    Put_Line ("") ;
    Put_Line ("") ;
@@ -636,9 +636,9 @@ begin
    exception
       when E : Transaction_Required =>
          Put_Line ("A Transaction_Required exception has just been catched !!!") ;
-         Corba.Get_Members (E ,Member) ;
+         CORBA.Get_Members (E ,Member) ;
          Put_Line ("It has a member whose value is : " &
-                   Corba.Unsigned_Long'Image(Member.Minor)) ;
+                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
    end ;
    Put_Line ("") ;
    Put_Line ("") ;
@@ -653,9 +653,9 @@ begin
    exception
       when E : Transaction_Rolledback =>
          Put_Line ("A Transaction_Rolledback exception has just been catched !!!") ;
-         Corba.Get_Members (E ,Member) ;
+         CORBA.Get_Members (E ,Member) ;
          Put_Line ("It has a member whose value is : " &
-                   Corba.Unsigned_Long'Image(Member.Minor)) ;
+                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
    end ;
    Put_Line ("") ;
    Put_Line ("") ;
@@ -671,14 +671,14 @@ begin
    exception
       when E : Invalid_Transaction =>
          Put_Line ("A Invalid_Transaction exception has just been catched !!!") ;
-         Corba.Get_Members (E ,Member) ;
+         CORBA.Get_Members (E ,Member) ;
          Put_Line ("It has a member whose value is : " &
-                   Corba.Unsigned_Long'Image(Member.Minor)) ;
+                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
       when E : Unknown =>
          Put_Line ("A Unknown exception has just been catched !!! It seems to be normal for omniORB_2.7.0") ;
-         Corba.Get_Members (E ,Member2) ;
+         CORBA.Get_Members (E ,Member2) ;
          Put_Line ("It has a member whose value is : " &
-                   Corba.Unsigned_Long'Image(Member2.Minor)) ;
+                   CORBA.Unsigned_Long'Image(Member2.Minor)) ;
    end ;
    Put_Line ("") ;
    Put_Line ("") ;
@@ -693,9 +693,9 @@ begin
    exception
       when E : Wrong_Transaction =>
          Put_Line ("A Wrong_Transaction exception has just been catched !!!") ;
-         Corba.Get_Members (E ,Member) ;
+         CORBA.Get_Members (E ,Member) ;
          Put_Line ("It has a member whose value is : " &
-                   Corba.Unsigned_Long'Image(Member.Minor)) ;
+                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
    end ;
 
 

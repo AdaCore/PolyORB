@@ -11,10 +11,11 @@
 
 
 with Ada.Command_Line ;
-with Text_Io ; use Text_Io ;
+with Text_IO ; use Text_IO ;
 with Corba, Corba.Orb, Corba.Boa, Corba.Object ;
 with Echo ;
 
+with AdaBroker.Exceptions;
 
 procedure Client is
    -- Initialisation of The ORB
@@ -55,7 +56,3 @@ begin
    Put_Line("The object answered : " & Corba.To_Standard_String(Rcvd_Msg)) ;
 
 end Client ;
-
-
-
-

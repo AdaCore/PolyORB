@@ -5,7 +5,8 @@ with Ada.Unchecked_Deallocation;
 
 with Interfaces;
 
-with Constants;
+with AdaBroker; use AdaBroker;
+with AdaBroker.Constants;
 
 package CORBA is
 

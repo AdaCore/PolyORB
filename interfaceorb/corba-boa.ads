@@ -1,5 +1,5 @@
 with System;
-with OmniObject;
+with AdaBroker.OmniObject;
 
 package CORBA.BOA is
 

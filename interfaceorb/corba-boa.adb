@@ -4,7 +4,7 @@
 --  the BOA class and their equivalent in Ada. (the first ones have a C_
 --  prefix.)
 
-with Sys_Dep;
+with AdaBroker.Sysdep; use AdaBroker.Sysdep;
 
 package body CORBA.BOA is
 
@@ -15,7 +15,7 @@ package body CORBA.BOA is
    procedure C_Implementation_Is_Ready
      (Self                  : in Object;
       ImplementationDef_Ptr : in System.Address;
-      Non_Blocking          : in Sys_Dep.C_Boolean);
+      Non_Blocking          : in Bool);
    pragma Import
      (CPP, C_Implementation_Is_Ready,
       "impl_is_ready__FPQ25CORBA3BOAPQ25CORBA17ImplementationDefb");
@@ -30,7 +30,7 @@ package body CORBA.BOA is
       Non_Blocking : in Boolean := False)
    is
       Tmp : System.Address    := System.Null_Address;
-      NB  : Sys_Dep.C_Boolean := Sys_Dep.Boolean_Ada_To_C (Non_Blocking);
+      NB  : Bool := To_Bool (Non_Blocking);
    begin
       C_Implementation_Is_Ready (Self, Tmp, NB);
    end Implementation_Is_Ready;

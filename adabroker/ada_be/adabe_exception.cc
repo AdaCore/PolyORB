@@ -36,7 +36,7 @@ adabe_exception::produce_ads (dep_list& with,string &body, string &previous)
 {
   // Adding two packages needed for
   // the gestion of the exceptions
-  with.add ("Corba.Exceptions");
+  with.add ("CORBA.Exceptions");
   with.add ("Ada.Exceptions");
 
   // first is used to determine if
@@ -47,7 +47,7 @@ adabe_exception::produce_ads (dep_list& with,string &body, string &previous)
   // beginning of the exception declaration
 
   body+=  "   " + get_ada_local_name() + " : exception ;\n";
-  body += "   type " + get_ada_local_name() +"_Members is new Corba.IDL_Exception_Members with ";
+  body += "   type " + get_ada_local_name() +"_Members is new CORBA.IDL_Exception_Members with ";
   
   // We must now map the members of
   // this exception
@@ -95,7 +95,7 @@ adabe_exception::produce_ads (dep_list& with,string &body, string &previous)
   // designate it
   body += "   ";
   body += get_ada_local_name();
-  body += "_Repository_Id : Corba.String := Corba.To_Corba_String(Standard.String'(\"";
+  body += "_Repository_Id : CORBA.String := CORBA.To_Corba_String(Standard.String'(\"";
   body += repositoryID();
   body += "\")) ;\n";
 
@@ -116,7 +116,7 @@ adabe_exception::produce_adb (dep_list& with,string &body, string &previous)
   body += "   procedure Get_Members(From: in Ada.Exceptions.Exception_Occurrence ;\n";
   body += "                         To: out " + get_ada_local_name() + "_Members) is\n";
   body += "   begin\n";
-  body += "      Corba.Exceptions.Get_Members (From,To) ;\n";
+  body += "      CORBA.Exceptions.Get_Members (From,To) ;\n";
   body += "   end ;\n\n\n";
 }
 
@@ -144,10 +144,10 @@ adabe_exception::produce_skel_adb (dep_list &with, string &body)
   body += get_ada_local_name ();
   body += " =>\n";
   body += "               declare\n";
-  body += "                  Repo_Id : Corba.String := ";
+  body += "                  Repo_Id : CORBA.String := ";
   body += get_ada_local_name ();
   body += "_Repository_Id ;\n";
-  body += "                  Mesg_Size : Corba.Unsigned_Long ;\n";
+  body += "                  Mesg_Size : CORBA.Unsigned_Long ;\n";
 
   
   if (has_member) {
@@ -163,14 +163,14 @@ adabe_exception::produce_skel_adb (dep_list &with, string &body)
     body += ".Get_Members(except,Member) ;\n";
   }
   body += "                  -- compute the size of the replied message\n";
-  body += "                  Mesg_Size := Giop_S.Reply_Header_Size ;\n";
+  body += "                  Mesg_Size := AdaBroker.GIOP_S.Reply_Header_Size ;\n";
   body += "                  Mesg_Size := Align_Size (Repo_Id, Mesg_Size) ;\n";
   if (has_member) {
     // if there are members, we must add them when computing the size
     body += "                  Mesg_Size := Align_Size (Member, Mesg_Size) ;\n";
   }  
   body += "                  -- Initialisation of the reply\n";
-  body += "                  Giop_S.Initialize_Reply (Orls, Giop.USER_EXCEPTION, Mesg_Size) ;\n";
+  body += "                  AdaBroker.GIOP_S.Initialize_Reply (Orls, AdaBroker.GIOP.USER_EXCEPTION, Mesg_Size) ;\n";
 
   body += "                  -- Marshall the exception\n";
 
@@ -179,7 +179,7 @@ adabe_exception::produce_skel_adb (dep_list &with, string &body)
     body += "                  Marshall(Member, Orls) ;\n";
   }
   body += "                  -- inform the orb\n";
-  body += "                  Giop_S.Reply_Completed (Orls) ;\n";
+  body += "                  AdaBroker.GIOP_S.Reply_Completed (Orls) ;\n";
 
   body += "                  Dispatch_Returns := True ;\n";
   body += "                  return ;\n";
@@ -214,8 +214,8 @@ adabe_exception::produce_proxies_adb (dep_list &with, string &body)
       // we need to raise a special exception:
       // it can't be mapped directly into an
       // ADA exception
-      body += "            UnMarshall(member,Giop_Client) ;\n";
-      body += "            Corba.Raise_Corba_Exception(";
+      body += "            UnMarshall(member,GIOP_Client) ;\n";
+      body += "            CORBA.Raise_Corba_Exception(";
       body += get_ada_local_name ();
       body += "'Identity,\n";
       body += "                                        member) ;\n";
@@ -246,19 +246,19 @@ adabe_exception::produce_marshal_ads (dep_list& with,string &body, string &previ
       body += "   procedure Marshall (A : in ";
       body += get_ada_local_name();
       body += "_Members ;\n";
-      body += "                       S : in out Netbufferedstream.Object'Class) ;\n\n";
+      body += "                       S : in out AdaBroker.NetBufferedStream.Object'Class) ;\n\n";
       
       body += "   procedure UnMarshall (A : out ";
       body += get_ada_local_name();
       body += "_Members ;\n";
-      body += "                         S : in out Netbufferedstream.Object'Class) ;\n\n";
+      body += "                         S : in out AdaBroker.NetBufferedStream.Object'Class) ;\n\n";
       
       body += "   function Align_Size (A : in ";
       body += get_ada_local_name();
       body += "_Members ;\n";
-      body += "                        Initial_Offset : in Corba.Unsigned_Long ;\n";
-      body += "                        N : in Corba.Unsigned_Long := 1)\n";
-      body += "                        return Corba.Unsigned_Long ;\n\n\n";
+      body += "                        Initial_Offset : in CORBA.Unsigned_Long ;\n";
+      body += "                        N : in CORBA.Unsigned_Long := 1)\n";
+      body += "                        return CORBA.Unsigned_Long ;\n\n\n";
     }
   set_already_defined ();
 }
@@ -285,24 +285,24 @@ adabe_exception::produce_marshal_adb (dep_list& with,string &body, string &previ
       marshall += "   procedure Marshall(A : in ";
       marshall += get_ada_local_name();
       marshall += "_Members ;\n";
-      marshall += "                      S : in out Netbufferedstream.Object'Class) is\n";
+      marshall += "                      S : in out AdaBroker.NetBufferedStream.Object'Class) is\n";
       marshall += "   begin\n";
 
       // declaration of the function unmarshall
       unmarshall += "   procedure UnMarshall(A : out ";
       unmarshall += get_ada_local_name();
       unmarshall += "_Members ;\n";
-      unmarshall += "                        S : in out Netbufferedstream.Object'Class) is\n";
+      unmarshall += "                        S : in out AdaBroker.NetBufferedStream.Object'Class) is\n";
       unmarshall += "   begin\n";
 
       // declaration of the function align_size
       align_size += "   function Align_Size (A : in ";
       align_size += get_ada_local_name();
       align_size += "_Members ;\n";
-      align_size += "                        Initial_Offset : in Corba.Unsigned_Long ;\n";
-      align_size += "                        N : in Corba.Unsigned_Long := 1)\n";
-      align_size += "                        return Corba.Unsigned_Long is\n";
-      align_size += "      Tmp : Corba.Unsigned_Long := Initial_Offset ;\n";
+      align_size += "                        Initial_Offset : in CORBA.Unsigned_Long ;\n";
+      align_size += "                        N : in CORBA.Unsigned_Long := 1)\n";
+      align_size += "                        return CORBA.Unsigned_Long is\n";
+      align_size += "      Tmp : CORBA.Unsigned_Long := Initial_Offset ;\n";
       align_size += "   begin\n";
       align_size += "      for I in 1..N loop\n";
       

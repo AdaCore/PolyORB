@@ -3,7 +3,7 @@
 --  Get_Members. These functions allows the programmer to associate to each
 --  exception a "memmber" structure with all kinds of datas he needs.
 
-package Corba.Exceptions is
+package CORBA.Exceptions is
 
    procedure Get_Members
      (From : in Ada.Exceptions.Exception_Occurrence;
@@ -16,4 +16,4 @@ package Corba.Exceptions is
    --  This method raises a Corba exception associated to the member object
    --  Excp_Memb.
 
-end Corba.Exceptions;
+end CORBA.Exceptions;

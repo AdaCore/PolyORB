@@ -136,7 +136,7 @@ adabe_operation::produce_adb(dep_list& with,string &body, string &previous)
   // previous contains the local definition of complexe types in the operation
 {
   // add some usefull package to the dep-list
-  with.add("OmniProxyCallWrapper");
+  with.add("AdaBroker.OmniProxyCallWrapper");
 
   // this boolean is set to determine if the operation is oneway or not
   bool oneway = false ;
@@ -235,7 +235,7 @@ adabe_operation::produce_adb(dep_list& with,string &body, string &previous)
   body += in_args;
 	  
 
-  body += "      OmniProxyCallWrapper." ;
+  body += "      AdaBroker.OmniProxyCallWrapper." ;
 
   // the oneway needs a specific invoke call
   if (oneway)
@@ -481,19 +481,19 @@ adabe_operation::produce_proxies_ads(dep_list& with,string &body, string &privat
   if (oneway)
     body += "   ---                 --    oneway   --\n" ;
   body += "   -----------------------------------------------------------\n\n" ;
-  body += "   type " + get_ada_local_name() + "_Proxy is new OmniProxyCallDesc.Object with private ;\n\n";
+  body += "   type " + get_ada_local_name() + "_Proxy is new AdaBroker.OmniProxyCallDesc.Object with private ;\n\n";
   body += "   procedure Init(Self : in out " + get_ada_local_name() + "_Proxy";
   body += in_decls;  
   body += "   function Operation(Self : in " + get_ada_local_name() + "_Proxy )\n";
-  body += "                      return Corba.String ;\n\n" ;
+  body += "                      return CORBA.String ;\n\n" ;
 
   // without in arguments there is no marshal are align_size methods
   if (!no_in) {
       body += "   function Align_Size(Self : in " + get_ada_local_name() + "_Proxy ;\n";
-      body += "                       Size_In : in Corba.Unsigned_Long)\n";
-      body += "                       return Corba.Unsigned_Long ;\n\n";
+      body += "                       Size_In : in CORBA.Unsigned_Long)\n";
+      body += "                       return CORBA.Unsigned_Long ;\n\n";
       body += "   procedure Marshal_Arguments(Self : in " + get_ada_local_name() + "_Proxy ;\n";
-      body += "                               Giop_Client : in out Giop_C.Object) ;\n\n";
+      body += "                               GIOP_Client : in out AdaBroker.GIOP_C.Object) ;\n\n";
   }
   
   // with out arguments, we need an unmarshal methods
@@ -501,7 +501,7 @@ adabe_operation::produce_proxies_ads(dep_list& with,string &body, string &privat
     {
       body += "   procedure Unmarshal_Returned_Values(Self : in out " ;
       body +=  get_ada_local_name() + "_Proxy ;\n";
-      body += "                                       Giop_Client : in out Giop_C.Object) ;\n\n";
+      body += "                                       GIOP_Client : in out AdaBroker.GIOP_C.Object) ;\n\n";
     }
 
   // if there is an out argument, we need a get_result ...
@@ -525,12 +525,12 @@ adabe_operation::produce_proxies_ads(dep_list& with,string &body, string &privat
   // this is the dispatch procedure for the exception
   if (user_exceptions) {
     body += "   procedure User_Exception (Self : in " + get_ada_local_name() + "_Proxy ;\n";
-    body += "                             Giop_Client : in out Giop_C.Object ;\n";
+    body += "                             GIOP_Client : in out AdaBroker.GIOP_C.Object ;\n";
     body += "                             RepoId : in CORBA.String) ;\n\n\n";
   }
 
   // the private_definition contains the private part of the definition 
-  private_definition += "   type " + get_ada_local_name() + "_Proxy is new OmniProxyCallDesc.Object with record \n";
+  private_definition += "   type " + get_ada_local_name() + "_Proxy is new AdaBroker.OmniProxyCallDesc.Object with record \n";
 
   // without arguments, the private definitions is null
   if ((fields == "") && (!is_function()))
@@ -607,7 +607,7 @@ adabe_operation::produce_proxies_adb(dep_list& with,string &body,
       unmarshall_decls += "      Returns : ";
       unmarshall_decls += tmp;
       unmarshall_decls += " ;\n";
-      unmarshall += "      Unmarshall(Returns ,Giop_Client) ;\n";
+      unmarshall += "      Unmarshall(Returns ,GIOP_Client) ;\n";
       unmarshall += "      Self.Returns := new ";
       unmarshall += tmp;
       unmarshall += "'(Returns) ;\n";
@@ -647,9 +647,9 @@ adabe_operation::produce_proxies_adb(dep_list& with,string &body,
   body += "   -- Operation\n" ;
   body += "   ------------\n" ;
   body += "   function Operation(Self : in " + get_ada_local_name() + "_Proxy )\n";
-  body += "                      return Corba.String is\n";
+  body += "                      return CORBA.String is\n";
   body += "   begin\n";
-  body += "      return Corba.To_Corba_String(Standard.String'(\"" + get_ada_local_name() + "\")) ;\n";
+  body += "      return CORBA.To_Corba_String(Standard.String'(\"" + get_ada_local_name() + "\")) ;\n";
   body += "   end ;\n\n\n";
 
   // if there is an argument in
@@ -657,9 +657,9 @@ adabe_operation::produce_proxies_adb(dep_list& with,string &body,
     body += "   -- Align_Size\n" ;
     body += "   -------------\n" ;
     body += "   function Align_Size(Self : in " + get_ada_local_name() + "_Proxy ;\n";
-    body += "                       Size_In : in Corba.Unsigned_Long)\n";
-    body += "                       return Corba.Unsigned_Long is\n";
-    body += "      Tmp : Corba.Unsigned_Long := Size_In ;\n";
+    body += "                       Size_In : in CORBA.Unsigned_Long)\n";
+    body += "                       return CORBA.Unsigned_Long is\n";
+    body += "      Tmp : CORBA.Unsigned_Long := Size_In ;\n";
     body += "   begin\n";
     body += align_size;
     body += "      return Tmp ;\n";
@@ -669,7 +669,7 @@ adabe_operation::produce_proxies_adb(dep_list& with,string &body,
     body += "   --------------------\n" ;
     body += "   procedure Marshal_Arguments(Self : in " ;
     body += get_ada_local_name() + "_Proxy ;\n";
-    body += "                               Giop_Client : in out Giop_C.Object) is\n";
+    body += "                               GIOP_Client : in out AdaBroker.GIOP_C.Object) is\n";
     body += "   begin\n";
     body += marshall;
     body += "   end ;\n\n\n";      
@@ -681,7 +681,7 @@ adabe_operation::produce_proxies_adb(dep_list& with,string &body,
       body += "   ----------------------------\n" ;
       body += "   procedure Unmarshal_Returned_Values(Self : in out " ;
       body += get_ada_local_name() + "_Proxy ;\n";
-      body += "                                       Giop_Client : in out Giop_C.Object) is\n";
+      body += "                                       GIOP_Client : in out AdaBroker.GIOP_C.Object) is\n";
       body += unmarshall_decls;
       // if it's a function there's a return type to add
       if (is_function())
@@ -697,7 +697,7 @@ adabe_operation::produce_proxies_adb(dep_list& with,string &body,
       // if it's a function there's a return type to add
       if (is_function())
 	{
-	  body += "      Unmarshall(Returns, Giop_client) ;\n";
+	  body += "      Unmarshall(Returns, GIOP_client) ;\n";
 	  body += "      Self.Private_Result := new " + result_name + "'(Returns) ;\n";
 	}
       body += "   end ;\n\n\n";      
@@ -734,7 +734,7 @@ adabe_operation::produce_proxies_adb(dep_list& with,string &body,
     body += "   -- User_Exception\n" ;
     body += "   -----------------\n" ;
     body += "   procedure User_Exception (Self : in " + get_ada_local_name() + "_Proxy ;\n";
-    body += "                             Giop_Client : in out Giop_C.Object ;\n";
+    body += "                             GIOP_Client : in out AdaBroker.GIOP_C.Object ;\n";
     body += "                             RepoId : in CORBA.String) is\n";
     body += "   begin\n";
 
@@ -751,7 +751,7 @@ adabe_operation::produce_proxies_adb(dep_list& with,string &body,
 	except_iterator.next();
       }
     // when there's an other exception raised, AdaBroker_Fatal_Error will be raised
-    body += "      Ada.Exceptions.Raise_Exception(Corba.AdaBroker_Fatal_Error'Identity,\n";
+    body += "      Ada.Exceptions.Raise_Exception(CORBA.AdaBroker_Fatal_Error'Identity,\n";
     body += "                                     \"In ";
     body += get_ada_local_name();
     body += "_Proxy.User_Exception, unknown exception.\") ;\n";
@@ -849,7 +849,7 @@ adabe_operation::produce_skel_adb(dep_list& with,string &body, string &private_d
       body += result_name;
       body += " ;\n";
     }
-  body += "            Mesg_Size : Corba.Unsigned_Long ;\n";
+  body += "            Mesg_Size : CORBA.Unsigned_Long ;\n";
 
   body += "         begin\n";
 
@@ -858,9 +858,9 @@ adabe_operation::produce_skel_adb(dep_list& with,string &body, string &private_d
     body += "            -- check that the client does not expect any reply\n" ;
     body += "            if Orl_Response_Expected then\n" ;
     body += "               declare\n" ;
-    body += "                  Exmb : Corba.Bad_Operation_Members := (0, COMPLETED_NO) ;\n" ;
+    body += "                  Exmb : CORBA.Bad_Operation_Members := (0, COMPLETED_NO) ;\n" ;
     body += "               begin\n" ;
-    body += "                  Corba.Raise_Corba_Exception( Corba.Bad_Operation'Identity,\n" ;
+    body += "                  CORBA.Raise_Corba_Exception( CORBA.Bad_Operation'Identity,\n" ;
     body += "                                               Exmb);\n" ;
     body += "               end ;\n" ;
     body += "            end if ;\n" ;
@@ -871,7 +871,7 @@ adabe_operation::produce_skel_adb(dep_list& with,string &body, string &private_d
     body += unmarshall;
   }
   body += "            -- change state\n";
-  body += "            Giop_S.Request_Received(Orls) ;\n";
+  body += "            AdaBroker.GIOP_S.Request_Received(Orls) ;\n";
 
   body += "            -- call the implementation\n";
   body += "            ";
@@ -889,7 +889,7 @@ adabe_operation::produce_skel_adb(dep_list& with,string &body, string &private_d
   if (!oneway)
     {
       body += "            -- compute the size of the replied message\n";
-      body += "            Mesg_Size := Giop_S.Reply_Header_Size ;\n";
+      body += "            Mesg_Size := AdaBroker.GIOP_S.Reply_Header_Size ;\n";
       body += align_size ;
       // align the Return
       if (!return_is_void())
@@ -897,7 +897,7 @@ adabe_operation::produce_skel_adb(dep_list& with,string &body, string &private_d
 	  body += "            Mesg_Size := Align_Size (Returns, Mesg_Size) ;\n";
 	}
       body += "            -- Initialisation of the reply\n";
-      body += "            Giop_S.Initialize_Reply (Orls, Giop.NO_EXCEPTION, Mesg_Size) ;\n";
+      body += "            AdaBroker.GIOP_S.Initialize_Reply (Orls, AdaBroker.GIOP.NO_EXCEPTION, Mesg_Size) ;\n";
       
       body += "            -- Marshall the arguments\n";
       body += marshall;
@@ -907,7 +907,7 @@ adabe_operation::produce_skel_adb(dep_list& with,string &body, string &private_d
       
     }
   body += "            -- inform the orb\n";
-  body += "            Giop_S.Reply_Completed (Orls) ;\n";
+  body += "            AdaBroker.GIOP_S.Reply_Completed (Orls) ;\n";
 
   body += "            Dispatch_Returns := True ;\n";
   body += "            return ;\n";

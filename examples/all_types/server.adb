@@ -12,17 +12,17 @@
 ----                                                                    ----
 ----------------------------------------------------------------------------
 
-with Corba ; use Corba ;
-with Corba.Orb ; use Corba.Orb ;
-with Corba.Boa ; use Corba.Boa ;
+with CORBA ; use CORBA ;
+with CORBA.Orb ; use CORBA.Orb ;
+with CORBA.Boa ; use CORBA.Boa ;
 with Text_IO ; use Text_IO ;
 with All_types.Impl ;
 
 procedure server is
-   Orb : Corba.Orb.Object := Corba.Orb.Orb_Init("omniORB2") ;
-   Boa : Corba.Boa.Object := Corba.Orb.Boa_Init(Orb, "omniORB2_BOA") ;
+   Orb : CORBA.Orb.Object := CORBA.Orb.Orb_Init("omniORB2") ;
+   Boa : CORBA.Boa.Object := CORBA.Orb.Boa_Init(Orb, "omniORB2_BOA") ;
    MyAll_Types : All_Types.Impl.Object ;
-   Ior : Corba.String ;
+   Ior : CORBA.String ;
 begin
    Put_Line("main: starting server") ;
 

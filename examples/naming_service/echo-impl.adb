@@ -24,7 +24,7 @@ package body Echo.Impl is
    -------------
    procedure Initialize(Self : in Out Object) is
    begin
-      Omniobject.Initialize(Omniobject.Implemented_Object(Self)) ;
+      AdaBroker.Omniobject.Initialize(AdaBroker.Omniobject.Implemented_Object(Self)) ;
       Init_Local_Object(Self,
                         Repository_Id,
                         Echo.Skeleton.Dispatch'Access,
@@ -38,7 +38,7 @@ package body Echo.Impl is
    ---------
    procedure Adjust(Self: in out Object) is
    begin
-      Omniobject.Adjust(Omniobject.Implemented_Object(Self)) ;
+      AdaBroker.Omniobject.Adjust(AdaBroker.Omniobject.Implemented_Object(Self)) ;
       -- You can add things *BELOW* this line
 
    end Adjust ;
@@ -50,7 +50,7 @@ package body Echo.Impl is
    begin
 
       -- You can add things *BEFORE* this line
-      Omniobject.Finalize(Omniobject.Implemented_Object(Self)) ;
+      AdaBroker.Omniobject.Finalize(AdaBroker.Omniobject.Implemented_Object(Self)) ;
    end Finalize ;
 
 

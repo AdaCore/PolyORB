@@ -1,16 +1,6 @@
 with CORBA.Exceptions;
 
-with Adabroker_Debug;
-use  Adabroker_Debug;
-pragma Elaborate (Adabroker_Debug);
-
 package body CORBA is
-
-   Debug : constant Boolean := Adabroker_Debug.Is_Active ("corba");
-
-   ------------------------
-   -- Exceptions in spec --
-   ------------------------
 
    ----------------
    -- GetMembers --
@@ -22,9 +12,7 @@ package body CORBA is
    is
    begin
       --  Calls the correponding procedure in CORBA.Exception
-      pragma Debug (Output (Debug, "corba.get_members enter"));
       CORBA.Exceptions.Get_Members (From, To);
-      pragma Debug (Output (Debug, "corba.get_members leave"));
    end Get_Members;
 
    ---------------------------
@@ -39,10 +27,6 @@ package body CORBA is
       --  Calls the correponding procedure in CORBA.Exception
       CORBA.Exceptions.Raise_CORBA_Exception (Excp, Excp_Memb);
    end Raise_CORBA_Exception;
-
-   ------------------------
-   -- AdaBroker specific --
-   ------------------------
 
    ---------------------
    -- To_CORBA_String --

@@ -55,23 +55,23 @@ string adabe_predefined_type::get_ada_predefined_type()
   switch(pt()) 
     { 
     case AST_PredefinedType::PT_long:
-      name = "Corba.Long"; 
+      name = "CORBA.Long"; 
       break; 
-    case AST_PredefinedType::PT_ulong: name = "Corba.Unsigned_Long";
+    case AST_PredefinedType::PT_ulong: name = "CORBA.Unsigned_Long";
       break; 
-    case AST_PredefinedType::PT_short: name = "Corba.Short";
+    case AST_PredefinedType::PT_short: name = "CORBA.Short";
       break; 
-    case AST_PredefinedType::PT_ushort: name = "Corba.Unsigned_Short";
+    case AST_PredefinedType::PT_ushort: name = "CORBA.Unsigned_Short";
       break; 
-    case AST_PredefinedType::PT_float: name = "Corba.Float"; 
+    case AST_PredefinedType::PT_float: name = "CORBA.Float"; 
       break; 
-    case AST_PredefinedType::PT_double: name = "Corba.Double"; 
+    case AST_PredefinedType::PT_double: name = "CORBA.Double"; 
       break; 
-    case AST_PredefinedType::PT_char: name = "Corba.Char"; 
+    case AST_PredefinedType::PT_char: name = "CORBA.Char"; 
       break;
-    case AST_PredefinedType::PT_boolean: name = "Corba.Boolean"; 
+    case AST_PredefinedType::PT_boolean: name = "CORBA.Boolean"; 
       break; 
-    case AST_PredefinedType::PT_octet: name = "Corba.Octet"; 
+    case AST_PredefinedType::PT_octet: name = "CORBA.Octet"; 
       break; 
     case AST_PredefinedType::PT_void: name = "<void>"; 
       break;

@@ -14,6 +14,7 @@ with Corba.Orb ; use Corba.Orb ;
 with Corba.Boa ; use Corba.Boa ;
 with Text_IO ; use Text_Io ;
 with Echo.Impl ;
+with AdaBroker.Exceptions;
 
 procedure server is
    -- Initialisation of The ORB

@@ -1,9 +1,9 @@
-with Omniobject ;
+with AdaBroker.OmniObject ;
 with Chicken_forward ;
-with Corba.Boa ;
+with CORBA.Boa ;
 package Egg.Impl is
 
-   type Object is new Omniobject.Implemented_Object with private ;
+   type Object is new AdaBroker.OmniObject.Implemented_Object with private ;
    type Object_Ptr is access all Object ;
 
 
@@ -17,15 +17,15 @@ package Egg.Impl is
    -- user-defined stuff   --
    --------------------------
    procedure Set_Boa(Self : in out Object ;
-                     Boa : Corba.Boa.Object) ;
+                     Boa : CORBA.Boa.Object) ;
 
 
 private
 
    -- You may add fields to this record
-   type Object is new Omniobject.Implemented_Object with record
+   type Object is new AdaBroker.OmniObject.Implemented_Object with record
       Already : Boolean := False ;
-      Boa : Corba.Boa.Object ;
+      Boa : CORBA.Boa.Object ;
    end record ;
 
    --------------------------------------------------

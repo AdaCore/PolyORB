@@ -1,9 +1,9 @@
-with Omniobject ;
+with AdaBroker.OmniObject ;
 with Egg_forward ;
-with Corba.Boa ;
+with CORBA.Boa ;
 package Chicken.Impl is
 
-   type Object is new Omniobject.Implemented_Object with private ;
+   type Object is new AdaBroker.OmniObject.Implemented_Object with private ;
    type Object_Ptr is access all Object ;
 
 
@@ -11,23 +11,23 @@ package Chicken.Impl is
    -- IDL definitions   --
    -----------------------
 
-   procedure lay(Self : access Object; number : out Corba.Unsigned_Short; Returns : out Egg_forward.Ref ) ;
+   procedure lay(Self : access Object; number : out CORBA.Unsigned_Short; Returns : out Egg_forward.Ref ) ;
 
 
    --------------------------
    -- user-defined stuff   --
    --------------------------
    procedure Set_Boa(Self : in out Object ;
-                     Boa : Corba.Boa.Object) ;
+                     Boa : CORBA.Boa.Object) ;
 
 
 
 private
 
    -- You may add fields to this record
-   type Object is new Omniobject.Implemented_Object with record
-      Number : Corba.Unsigned_Short := 0 ;
-      Boa : Corba.Boa.Object ;
+   type Object is new AdaBroker.OmniObject.Implemented_Object with record
+      Number : CORBA.Unsigned_Short := 0 ;
+      Boa : CORBA.Boa.Object ;
    end record ;
 
    --------------------------------------------------

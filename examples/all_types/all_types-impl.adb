@@ -1,6 +1,6 @@
 with all_types.Skeleton ;
-with Corba ;
-with Corba.Object ;
+with CORBA ;
+with CORBA.Object ;
 
 
 package body all_types.Impl is
@@ -10,61 +10,61 @@ package body all_types.Impl is
    -- IDL definitions   --
    -----------------------
 
-   function echoBoolean(Self : access Object; arg : in Corba.Boolean) return Corba.Boolean is
+   function echoBoolean(Self : access Object; arg : in CORBA.Boolean) return CORBA.Boolean is
    begin
       return Arg ;
    end ;
 
 
-   function echoShort(Self : access Object; arg : in Corba.Short) return Corba.Short is
+   function echoShort(Self : access Object; arg : in CORBA.Short) return CORBA.Short is
    begin
       return Arg ;
    end ;
 
 
-   function echoLong(Self : access Object; arg : in Corba.Long) return Corba.Long is
+   function echoLong(Self : access Object; arg : in CORBA.Long) return CORBA.Long is
    begin
       return Arg ;
    end ;
 
 
-   function echoUShort(Self : access Object; arg : in Corba.Unsigned_Short) return Corba.Unsigned_Short is
+   function echoUShort(Self : access Object; arg : in CORBA.Unsigned_Short) return CORBA.Unsigned_Short is
    begin
       return Arg ;
    end ;
 
 
-   function echoULong(Self : access Object; arg : in Corba.Unsigned_Long) return Corba.Unsigned_Long is
+   function echoULong(Self : access Object; arg : in CORBA.Unsigned_Long) return CORBA.Unsigned_Long is
    begin
       return Arg ;
    end ;
 
 
-   function echoFloat(Self : access Object; arg : in Corba.Float) return Corba.Float is
+   function echoFloat(Self : access Object; arg : in CORBA.Float) return CORBA.Float is
    begin
       return Arg ;
    end ;
 
 
-   function echoDouble(Self : access Object; arg : in Corba.Double) return Corba.Double is
+   function echoDouble(Self : access Object; arg : in CORBA.Double) return CORBA.Double is
    begin
       return Arg ;
    end ;
 
 
-   function echoChar(Self : access Object; arg : in Corba.Char) return Corba.Char is
+   function echoChar(Self : access Object; arg : in CORBA.Char) return CORBA.Char is
    begin
       return Arg ;
    end ;
 
 
-   function echoOctet(Self : access Object; arg : in Corba.Octet) return Corba.Octet is
+   function echoOctet(Self : access Object; arg : in CORBA.Octet) return CORBA.Octet is
    begin
       return Arg ;
    end ;
 
 
-   function echoString(Self : access Object; arg : in Corba.String) return Corba.String is
+   function echoString(Self : access Object; arg : in CORBA.String) return CORBA.String is
    begin
       return Arg ;
    end ;
@@ -80,7 +80,7 @@ package body all_types.Impl is
       Member : Complexe_Exception_Members ;
    begin
       Member.Excep := 21 ;
-      Corba.Raise_Corba_Exception (Complexe_Exception'Identity,
+      CORBA.Raise_Corba_Exception (Complexe_Exception'Identity,
                                    Member) ;
    end;
 
@@ -163,7 +163,7 @@ package body all_types.Impl is
    end ;
 
 
-   function echo12(Self : access Object; arg : in Corba.Object.Ref) return Corba.Object.Ref is
+   function echo12(Self : access Object; arg : in CORBA.Object.Ref) return CORBA.Object.Ref is
    begin
       return Arg ;
    end ;
@@ -185,7 +185,7 @@ package body all_types.Impl is
    -------------
    procedure Initialize(Self : in out Object) is
    begin
-      Omniobject.Initialize(Omniobject.Implemented_Object(Self)) ;
+      AdaBroker.OmniObject.Initialize(AdaBroker.OmniObject.Implemented_Object(Self)) ;
       Init_Local_Object(Self,
                         Repository_Id,
                         all_types.Skeleton.Dispatch'Access,
@@ -199,7 +199,7 @@ package body all_types.Impl is
    ---------
    procedure Adjust(Self: in out Object) is
    begin
-   Omniobject.Adjust(Omniobject.Implemented_Object(Self)) ;
+   AdaBroker.OmniObject.Adjust(AdaBroker.OmniObject.Implemented_Object(Self)) ;
       -- You can add things *BELOW* this line
 
    end Adjust ;
@@ -211,7 +211,7 @@ package body all_types.Impl is
    begin
 
       -- You can add things *BEFORE* this line
-   Omniobject.Finalize(Omniobject.Implemented_Object(Self)) ;
+   AdaBroker.OmniObject.Finalize(AdaBroker.OmniObject.Implemented_Object(Self)) ;
    end Finalize ;
 
 

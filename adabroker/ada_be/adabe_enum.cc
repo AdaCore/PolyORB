@@ -79,19 +79,19 @@ adabe_enum::produce_marshal_ads(dep_list& with, string &body, string &previous)
   body += "   procedure Marshall (A : in ";
   body += get_ada_local_name();
   body += " ;\n";
-  body += "                       S : in out Netbufferedstream.Object'Class) ;\n\n";
+  body += "                       S : in out AdaBroker.NetBufferedStream.Object'Class) ;\n\n";
 
   body += "   procedure UnMarshall (A : out ";
   body += get_ada_local_name();
   body += " ;\n";
-  body += "                       S : in out Netbufferedstream.Object'Class) ;\n\n";
+  body += "                       S : in out AdaBroker.NetBufferedStream.Object'Class) ;\n\n";
 
   body += "   function Align_Size (A : in ";
   body += get_ada_local_name();
   body += " ;\n";
-  body += "                        Initial_Offset : in Corba.Unsigned_Long ;\n";
-  body += "                        N : in Corba.Unsigned_Long := 1)\n";
-  body += "                        return Corba.Unsigned_Long ;\n\n\n";
+  body += "                        Initial_Offset : in CORBA.Unsigned_Long ;\n";
+  body += "                        N : in CORBA.Unsigned_Long := 1)\n";
+  body += "                        return CORBA.Unsigned_Long ;\n\n\n";
 
   set_already_defined();
 }
@@ -103,16 +103,16 @@ adabe_enum::produce_marshal_adb(dep_list& with, string &body, string &previous)
   body += "   procedure Marshall (A : in ";
   body += get_ada_local_name();
   body += " ;\n";
-  body += "                       S : in out Netbufferedstream.Object'Class) is\n";
+  body += "                       S : in out AdaBroker.NetBufferedStream.Object'Class) is\n";
   body += "   begin\n";
-  body += "      Marshall (Corba.Unsigned_Long("+get_ada_local_name()+"'Pos(A)), S) ;\n";
+  body += "      Marshall (CORBA.Unsigned_Long("+get_ada_local_name()+"'Pos(A)), S) ;\n";
   body += "   end Marshall ;\n\n";
 
   body += "   procedure UnMarshall (A : out ";
   body += get_ada_local_name();
   body += " ;\n";
-  body += "                         S : in out Netbufferedstream.Object'Class) is \n";
-  body += "      Tmp : Corba.Unsigned_Long ;\n";
+  body += "                         S : in out AdaBroker.NetBufferedStream.Object'Class) is \n";
+  body += "      Tmp : CORBA.Unsigned_Long ;\n";
   body += "   begin\n";
   body += "      UnMarshall (Tmp,S) ;\n";
   body += "      A := ";
@@ -123,11 +123,11 @@ adabe_enum::produce_marshal_adb(dep_list& with, string &body, string &previous)
   body += "   function Align_Size (A : in ";
   body += get_ada_local_name();
   body += " ;\n";
-  body += "                        Initial_Offset : in Corba.Unsigned_Long ;\n";
-  body += "                        N : in Corba.Unsigned_Long := 1)\n";
-  body += "                        return Corba.Unsigned_Long is\n";
+  body += "                        Initial_Offset : in CORBA.Unsigned_Long ;\n";
+  body += "                        N : in CORBA.Unsigned_Long := 1)\n";
+  body += "                        return CORBA.Unsigned_Long is\n";
   body += "   begin\n";
-  body += "      return Align_Size (Corba.Unsigned_Long(0), Initial_Offset ,N) ;\n";
+  body += "      return Align_Size (CORBA.Unsigned_Long(0), Initial_Offset ,N) ;\n";
   body += "   end Align_Size ;\n\n\n";
 
   set_already_defined();

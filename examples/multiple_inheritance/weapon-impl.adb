@@ -27,7 +27,7 @@ package body weapon.Impl is
    -------------
    procedure Initialize(Self : in out Object) is
    begin
-      Omniobject.Initialize(Omniobject.Implemented_Object(Self)) ;
+      AdaBroker.OmniObject.Initialize(AdaBroker.OmniObject.Implemented_Object(Self)) ;
       Init_Local_Object(Self,
                         Repository_Id,
                         weapon.Skeleton.Dispatch'Access,
@@ -41,7 +41,7 @@ package body weapon.Impl is
    ---------
    procedure Adjust(Self: in out Object) is
    begin
-   Omniobject.Adjust(Omniobject.Implemented_Object(Self)) ;
+   AdaBroker.OmniObject.Adjust(AdaBroker.OmniObject.Implemented_Object(Self)) ;
       -- You can add things *BELOW* this line
 
    end Adjust ;
@@ -53,7 +53,7 @@ package body weapon.Impl is
    begin
 
       -- You can add things *BEFORE* this line
-   Omniobject.Finalize(Omniobject.Implemented_Object(Self)) ;
+   AdaBroker.OmniObject.Finalize(AdaBroker.OmniObject.Implemented_Object(Self)) ;
    end Finalize ;
 
 

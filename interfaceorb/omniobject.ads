@@ -58,7 +58,7 @@ package OmniObject is
    type Object is tagged limited record
       Implobj  : Implemented_Object_Ptr := null;
       C_Object : System.Address;
-      Init_Ok  : Sys_Dep.C_Boolean;
+      Init_Ok  : Sys_Dep.Bool;
       Table    : Interfaces.CPP.Vtable_Ptr;
    end record;
    --  Implobj  (Ada) : the pointer implobj is null for proxy object
@@ -306,7 +306,7 @@ private
 
    type Implemented_Object is
      abstract new Ada.Finalization.Limited_Controlled with record
-        Omniobj  : Object_Ptr;
+        OmniObj  : Object_Ptr;
         Dispatch : Dispatch_Procedure;
         Is_A     : Is_A_Function;
      end record;
@@ -340,8 +340,8 @@ private
      (Self                  : in Object'Class;
       Orls                  : in out GIOP_S.Object;
       Orl_Op                : in Interfaces.C.Strings.chars_ptr;
-      Orl_Response_Expected : in Sys_Dep.C_Boolean;
-      Success               : out Sys_Dep.C_Boolean);
+      Orl_Response_Expected : in Sys_Dep.Bool;
+      Success               : out Sys_Dep.Bool);
 
    pragma Export
      (CPP, C_Dispatch, "dispatch__14Ada_OmniObjectR10Ada_Giop_sPCcbRb");
@@ -352,7 +352,7 @@ private
    function  C_Is_A
      (Self   : in Object'Class;
       Repoid : in Interfaces.C.Strings.chars_ptr)
-      return  Sys_Dep.C_Boolean;
+      return  Sys_Dep.Bool;
 
    pragma Export (CPP, C_Is_A, "Ada_Is_A__14Ada_OmniObjectPCc");
    --  Returns true if self is in repoID, or one of its descendant

@@ -55,11 +55,9 @@ Ada_Sys_Dep: Ada_Sys_Dep.cc
 	$(CXX) $(DIR_CPPFLAGS) Ada_Sys_Dep.cc -o Ada_Sys_Dep 
 
 
-adaobjs: sys_dep.ads
-	gnatmake -gnata -m -i adabroker.ads
+adaobjs: adabroker-sysdep.ads
+	gnatmake -gnata -m -i main.ads -gnatg
 
-
-sys_dep.ads : sys_dep_before_preprocessor.ads
-	gnatprep sys_dep_before_preprocessor.ads sys_dep.ads \
-$(ADABROKER_BOOLEANTYPE_DIR)/$(platform)
+adabroker-sysdep.ads : sysdep.tpl
+	sed -f $(ADABROKER_BOOL_DIR)/$(platform) sysdep.tpl >adabroker-sysdep.ads
 

@@ -46,7 +46,7 @@ adabe_module::produce_ads(dep_list& with,string &body, string &previousdefinitio
   
   compute_ada_name(); 
   with.add("Ada.Unchecked_Deallocation") ;
-  with.add("Corba");
+  with.add("CORBA");
   with.add("AdaBroker") ;
   body = "Package " + get_ada_full_name()+ " is\n";
   
@@ -581,11 +581,11 @@ void
 adabe_module::produce_marshal_ads(dep_list& with,string &body, string &previousdefinition)
 {
   bool first = true;
-  body += "use type Corba.Unsigned_Long; \n";
-  with.add ("Giop_C");
-  with.add ("Corba");
-  with.add("Netbufferedstream");
-  with.add("Membufferedstream");
+  body += "use type CORBA.Unsigned_Long; \n";
+  with.add ("AdaBroker.GIOP_C");
+  with.add ("CORBA");
+  with.add("AdaBroker.NetBufferedStream");
+  with.add("AdaBroker.MemBufferedStream");
   body += "Package " + get_ada_full_name() + ".marshal is\n";
   
   // For each declaration in the node produce the code
@@ -675,8 +675,8 @@ adabe_module::produce_marshal_adb(dep_list& with,string &body, string &previousd
 {
 
   bool first = true;
-  with.add("NetbufferedStream");
-  with.add("MembufferedStream");
+  with.add("AdaBroker.NetBufferedStream");
+  with.add("AdaBroker.MemBufferedStream");
   UTL_ScopeActiveIterator module_activator(this,UTL_Scope::IK_decls);
   body += "Package body " + get_ada_full_name() + ".marshal is \n";
   while (!module_activator.is_done())

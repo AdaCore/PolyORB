@@ -84,7 +84,7 @@ adabe_sequence::produce_ads(dep_list& with, string &body,
   else
     is_bounded = "Unbounded";
 
-  with.add("Corba.Sequences." + is_bounded);
+  with.add("CORBA.Sequences." + is_bounded);
 
   // Writing the header :
 
@@ -111,7 +111,7 @@ adabe_sequence::produce_ads(dep_list& with, string &body,
   //    body += "array (Integer range <>) of " + type_name +" ;\n";
   //  body += "\n";
   body += "\n   package IDL_SEQUENCE_" + short_type_name + " is new ";
-  body += "Corba.Sequences." + is_bounded;
+  body += "CORBA.Sequences." + is_bounded;
   if (bounded) {
     body += "(" + type_name + ", ";
     body += seq_size_st + ") ;\n\n";
@@ -126,19 +126,19 @@ adabe_sequence::produce_marshal_ads(dep_list& with, string &body,string &previou
   body += "   procedure Marshall (A : in ";
   body += get_ada_local_name();
   body += " ;\n";
-  body += "                       S : in out Netbufferedstream.Object'Class) ;\n\n";
+  body += "                       S : in out AdaBroker.NetBufferedStream.Object'Class) ;\n\n";
 
   body += "   procedure UnMarshall (A : out ";
   body += get_ada_local_name();
   body += " ;\n";
-  body += "                         S : in out Netbufferedstream.Object'Class) ;\n\n";
+  body += "                         S : in out AdaBroker.NetBufferedStream.Object'Class) ;\n\n";
 
   body += "   function Align_Size (A : in ";
   body += get_ada_local_name();
   body += " ;\n";
-  body += "                        Initial_Offset : in Corba.Unsigned_Long ;\n";
-  body += "                        N : in Corba.Unsigned_Long := 1)\n";
-  body += "                        return Corba.Unsigned_Long ;\n\n\n";
+  body += "                        Initial_Offset : in CORBA.Unsigned_Long ;\n";
+  body += "                        N : in CORBA.Unsigned_Long := 1)\n";
+  body += "                        return CORBA.Unsigned_Long ;\n\n\n";
   set_already_defined();
 }
 
@@ -152,8 +152,8 @@ adabe_sequence::produce_marshal_adb(dep_list& with, string &body, string &previo
   body += "   procedure Marshall (A : in ";
   body += type_name;
   body += " ;\n"; 
-  body += "                       S : in out Netbufferedstream.Object'Class) is\n";
-  body += "      Len : Corba.Unsigned_Long := Corba.Unsigned_Long (";
+  body += "                       S : in out AdaBroker.NetBufferedStream.Object'Class) is\n";
+  body += "      Len : CORBA.Unsigned_Long := CORBA.Unsigned_Long (";
   body += inter_name;
   body += ".Length(A)) ;\n";
   body += "   begin\n";
@@ -168,8 +168,8 @@ adabe_sequence::produce_marshal_adb(dep_list& with, string &body, string &previo
   body += "   procedure UnMarshall (A : out ";
   body += type_name;
   body += " ;\n"; 
-  body += "                         S : in out Netbufferedstream.Object'Class) is\n";
-  body += "      Len : Corba.Unsigned_Long ;\n";
+  body += "                         S : in out AdaBroker.NetBufferedStream.Object'Class) is\n";
+  body += "      Len : CORBA.Unsigned_Long ;\n";
   body += "   begin\n";
   body += "      UnMarshall (Len,S);\n";
   body += "      declare\n";
@@ -189,13 +189,13 @@ adabe_sequence::produce_marshal_adb(dep_list& with, string &body, string &previo
   body += "   function Align_Size (A : in ";
   body += type_name;
   body += " ;\n"; 
-  body += "                        Initial_Offset : in Corba.Unsigned_Long ;\n";
-  body += "                        N : in Corba.Unsigned_Long := 1)\n";
-  body += "                        return Corba.Unsigned_Long is\n";
-  body += "      Len : Corba.Unsigned_Long := Corba.Unsigned_Long (";
+  body += "                        Initial_Offset : in CORBA.Unsigned_Long ;\n";
+  body += "                        N : in CORBA.Unsigned_Long := 1)\n";
+  body += "                        return CORBA.Unsigned_Long is\n";
+  body += "      Len : CORBA.Unsigned_Long := CORBA.Unsigned_Long (";
   body += inter_name;
   body += ".Length(A)) ;\n";
-  body += "      Tmp : Corba.Unsigned_Long := Initial_Offset ;\n";
+  body += "      Tmp : CORBA.Unsigned_Long := Initial_Offset ;\n";
   body += "   begin\n";
   body += "      for I in 1..N loop\n";
   body += "         Tmp := Align_Size (Len,Tmp) ;\n";

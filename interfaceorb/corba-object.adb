@@ -6,17 +6,19 @@ with Ada.Exceptions;
 
 with Interfaces.C.Strings;
 
-with IOP;
-with OmniObject;
-with OmniRopeAndKey; use OmniRopeAndKey;
+with AdaBroker.IOP;
+with AdaBroker.OmniObject;
+with AdaBroker.OmniRopeAndKey;
 
-with Adabroker_Debug;
-use Adabroker_Debug;
-pragma Elaborate (Adabroker_Debug);
+with AdaBroker.Debug;
+pragma Elaborate (AdaBroker.Debug);
+
+use AdaBroker.OmniRopeAndKey;
 
 package body CORBA.Object is
 
-   Debug : constant Boolean := Adabroker_Debug.Is_Active ("corba.object");
+   Flag : constant Natural := AdaBroker.Debug.Is_Active ("corba.object");
+   procedure O is new AdaBroker.Debug.Output (Flag);
 
    use type OmniObject.Object_Ptr;
 
@@ -25,10 +27,6 @@ package body CORBA.Object is
       Profiles            : in IOP.Tagged_Profile_List;
       Release             : in CORBA.Boolean;
       To                  : in out Ref'Class);
-
-   function Get_Dynamic_Type_From_Repository_Id
-     (Repoid : in CORBA.String)
-      return CORBA.Object.Constant_Ref_Ptr;
 
    function Get_Profile_List
      (Obj : in Ref'Class)
@@ -40,7 +38,7 @@ package body CORBA.Object is
 
    function Is_Nil (Self : in Ref) return Boolean is
    begin
-      return  Self.Omniobj = null;
+      return  Self.OmniObj = null;
    end Is_Nil;
 
    -------------
@@ -84,7 +82,7 @@ package body CORBA.Object is
       if Is_Nil (Self) then
          return True;
       end if;
-      return OmniObject.Non_Existent (Self.Omniobj.all);
+      return OmniObject.Non_Existent (Self.OmniObj.all);
    end Non_Existent;
 
    -------------------
@@ -102,8 +100,8 @@ package body CORBA.Object is
    begin
       --  This is copied from corbaObject.cc L160. Here, Refs are proxy
       --  objects
-      OmniObject.Get_Rope_And_Key (Self.Omniobj.all,  Rak.Real, S1);
-      OmniObject.Get_Rope_And_Key (Other.Omniobj.all, Other_Rak.Real, S2);
+      OmniObject.Get_Rope_And_Key (Self.OmniObj.all,  Rak.Real, S1);
+      OmniObject.Get_Rope_And_Key (Other.OmniObj.all, Other_Rak.Real, S2);
 
       return S1 and S2 and (Rak.Real = Other_Rak.Real);
    end Is_Equivalent;
@@ -123,7 +121,7 @@ package body CORBA.Object is
            (Constraint_Error'Identity,
             "Cannot call function hash on a nil reference");
       end if;
-      return OmniObject.Hash (Self.Omniobj.all, Maximum);
+      return OmniObject.Hash (Self.OmniObj.all, Maximum);
    end Hash;
 
    -----------
@@ -163,10 +161,8 @@ package body CORBA.Object is
    is
       Tmp : Cell_Ptr;
    begin
-      pragma Debug
-        (Output (Debug,
-          "Registering " & To_Standard_String (Repoid) &
-                 " in the dynamic type list"));
+      pragma Debug (O ("Registering " & To_Standard_String (Repoid) &
+                       " in the dynamic type list"));
 
       Tmp  := new Cell'(Repoid, Dyn_Type, List);
       List := Tmp;
@@ -231,7 +227,7 @@ package body CORBA.Object is
       return OmniObject.Object_Ptr
    is
    begin
-      return Self.Omniobj;
+      return Self.OmniObj;
    end Get_OmniObject_Ptr;
 
    ----------------------
@@ -261,20 +257,17 @@ package body CORBA.Object is
      (From : in Ref'Class;
       To   : in out Ref'Class) is
    begin
-      pragma Debug
-        (Output (Debug, "CORBA.Object.Internal_Copy(Ref) : entering ..."));
+      pragma Debug (O ("Internal_Copy (Ref) : enter"));
 
       Finalize (To);
-      To.Omniobj      := From.Omniobj;
+      To.OmniObj      := From.OmniObj;
       To.Dynamic_Type := From.Dynamic_Type;
 
-      pragma Debug
-        (Output (Debug, "CORBA.Object.Internal_Copy(Ref) : adjusting ..."));
+      pragma Debug (O ("Internal_Copy (Ref) : adjust"));
 
       Adjust (To);
 
-      pragma Debug
-        (Output (Debug, "CORBA.Object.Internal_Copy(Ref) : exiting ... OK"));
+      pragma Debug (O ("Internal_Copy (Ref) : leave"));
    end Internal_Copy;
 
    -------------------
@@ -287,20 +280,17 @@ package body CORBA.Object is
       To       : in out Ref'Class)
    is
    begin
-      pragma Debug
-        (Output (Debug, "CORBA.Object.Internal_Copy(Impl) : entering ..."));
+      pragma Debug (O ("Internal_Copy (Impl) : enter"));
 
       Finalize (To);
-      To.Omniobj      := OmniObject.Get_Object_Ptr (From);
+      To.OmniObj      := OmniObject.Get_Object_Ptr (From);
       To.Dynamic_Type := Dyn_Type;
 
-      pragma Debug
-        (Output (Debug, "CORBA.Object.Internal_Copy(Impl) : adjusting ..."));
+      pragma Debug (O ("Internal_Copy (Impl) : adjust"));
 
       Adjust (To);
 
-      pragma Debug
-        (Output (Debug, "CORBA.Object.Internal_Copy(Impl) : exiting ... OK"));
+      pragma Debug (O ("Internal_Copy (Impl) : leave"));
    end Internal_Copy;
 
    ---------------------------------------------
@@ -363,13 +353,13 @@ package body CORBA.Object is
       if Is_A (Most_Derived_Type.all, Get_Repository_Id (To)) then
 
          --  Get the OmniObject
-         To.Omniobj := OmniObject.Create_OmniObject
+         To.OmniObj := OmniObject.Create_OmniObject
            (Most_Derived_Repoid,
             Profiles,
             Release);
 
          --  If the result is correct
-         if To.Omniobj /= null then
+         if To.OmniObj /= null then
             To.Dynamic_Type :=
               Get_Dynamic_Type_From_Repository_Id (Most_Derived_Repoid);
             return;
@@ -377,12 +367,11 @@ package body CORBA.Object is
       end if;
 
       --  The operation is illegal return Nil_Ref in the right class
-      pragma Debug
-        (Output (Debug,
-                 "CORBA.Object.Create_Ref : cannot put a " &
-                 CORBA.To_Standard_String (Most_Derived_Repoid) &
-                 "In a " & CORBA.To_Standard_String (Get_Repository_Id (To))));
-      To.Omniobj      := null;
+      pragma Debug (O ("Create_Ref : cannot put a " &
+                       CORBA.To_Standard_String (Most_Derived_Repoid) &
+                       " in a " &
+                       CORBA.To_Standard_String (Get_Repository_Id (To))));
+      To.OmniObj      := null;
       To.Dynamic_Type := null;
    end Create_Ref;
 
@@ -395,7 +384,7 @@ package body CORBA.Object is
       return IOP.Tagged_Profile_List
    is
    begin
-      return OmniObject.Get_Profile_List (Obj.Omniobj.all);
+      return OmniObject.Get_Profile_List (Obj.OmniObj.all);
       --  Calls the corresponding function on the underlying omniobject
    end Get_Profile_List;
 
@@ -410,7 +399,7 @@ package body CORBA.Object is
    is
    begin
       --  Calls the corresponding function on the underlying omniobject
-      return OmniObject.Align_Size (Obj.Omniobj, Initial_Offset);
+      return OmniObject.Align_Size (Obj.OmniObj, Initial_Offset);
    end Align_Size;
 
    --------------
@@ -422,7 +411,7 @@ package body CORBA.Object is
       S   : in out NetBufferedStream.Object'Class) is
    begin
       --  Calls the corresponding function on the underlying omniobject
-      OmniObject.Marshall (Obj.Omniobj, S);
+      OmniObject.Marshall (Obj.OmniObj, S);
    end Marshall;
 
    --------------
@@ -435,7 +424,7 @@ package body CORBA.Object is
    is
    begin
       --  Calls the corresponding function on the underlying omniobject
-      OmniObject.Marshall (Obj.Omniobj, S);
+      OmniObject.Marshall (Obj.OmniObj, S);
    end Marshall;
 
    ----------------
@@ -450,47 +439,36 @@ package body CORBA.Object is
       List   : IOP.Tagged_Profile_List;
       Tmp    : Ref'Class := CORBA.Object.Nil_Ref;
    begin
-      pragma Debug
-        (Output (Debug,
-                 "CORBA.Object.Unmarshall : unmarshalling " &
-                 To_Standard_String (Get_Repository_Id (Obj))));
+      pragma Debug (O ("Unmarshall : unmarshalling " &
+                       To_Standard_String (Get_Repository_Id (Obj))));
 
       --  First unmarshall the Repoid
       NetBufferedStream.Unmarshall (Repoid, S);
 
-      pragma Debug
-        (Output (Debug,
-                 "CORBA.Object.Unmarshall : found " &
-                 To_Standard_String (Repoid)));
+      pragma Debug (O ("Unmarshall : found " & To_Standard_String (Repoid)));
 
       --  Then the profile list
       IOP.Unmarshall (List, S);
-      pragma Debug
-        (Output (Debug,
-                 "CORBA.Object.Unmarshall : IOP_List unmarshalled"));
+      pragma Debug (O ("Unmarshall : IOP_List unmarshalled"));
 
       --  And at last create the object reference to be returned
       if IOP.Length (List) = CORBA.Unsigned_Long (0)
         and then CORBA.Length (Repoid) = CORBA.Unsigned_Long (0)
       then
-         pragma Debug (Output (Debug,
-                               "CORBA.Object.Unmarshall : Nil Ref created"));
+         pragma Debug (O ("Unmarshall : Nil Ref created"));
 
          --  Either a nil object reference
          Obj := Tmp;
       else
-         pragma Debug (Output (Debug,
-                               "CORBA.Object.Unmarshall : Creating Ref"));
+         pragma Debug (O ("Unmarshall : create Ref enter"));
 
          --  Or a real object reference
          CORBA.Object.Create_Ref (Repoid, List, True, Obj);
 
-         pragma Debug (Output (Debug,
-                               "CORBA.Object.Unmarshall : Ref created"));
+         pragma Debug (O ("Unmarshall : create Ref leave"));
+
          if Is_Nil (Obj) then
-            pragma Debug
-              (Output (Debug,
-                       "CORBA.Object.Unmarshall : WARNING : Created Nil Ref"));
+            pragma Debug (O ("Unmarshall : Nil Ref created"));
             null;
          end if;
       end if;
@@ -531,8 +509,8 @@ package body CORBA.Object is
 
    procedure Initialize (Self : in out Ref) is
    begin
-      pragma Debug (Output (Debug, "CORBA.Object.Initialize"));
-      Self.Omniobj      := null;
+      pragma Debug (O ("CORBA.Object.Initialize"));
+      Self.OmniObj      := null;
       Self.Dynamic_Type := null;
    end Initialize;
 
@@ -542,14 +520,13 @@ package body CORBA.Object is
 
    procedure Adjust (Self : in out Ref) is
    begin
-      pragma Debug (Output (Debug, "CORBA.Object.Adjust : entering ..."));
+      pragma Debug (O ("adjust : enter"));
       if not Is_Nil (Self) then
-         pragma Debug
-           (Output (Debug, "CORBA.Object.Adjust : not nil -> duplicating"));
+         pragma Debug (O ("adjust : not nil -> duplicating"));
 
-         Self.Omniobj := OmniObject.OmniObject_Duplicate (Self.Omniobj);
+         Self.OmniObj := OmniObject.OmniObject_Duplicate (Self.OmniObj);
       end if;
-      pragma Debug (Output (Debug, "CORBA.Object.Adjust : exiting ... OK"));
+      pragma Debug (O ("adjust : leave"));
    end Adjust;
 
    --------------
@@ -558,102 +535,21 @@ package body CORBA.Object is
 
    procedure Finalize (Self : in out Ref) is
    begin
-      pragma Debug (Output (Debug, "CORBA.Object.Finalize : start"));
+      pragma Debug (O ("finalize : enter"));
 
       if not Is_Nil (Self) then
-         pragma Debug
-           (Output (Debug,
-                    "CORBA.Object.Finalize : finalizing non nil Ref"));
+         pragma Debug (O ("finalize : finalize non nil Ref"));
 
-         OmniObject.OmniObject_Destructor (Self.Omniobj);
+         OmniObject.OmniObject_Destructor (Self.OmniObj);
 
-         Self.Omniobj      := null;
+         Self.OmniObj      := null;
          Self.Dynamic_Type := null;
       else
-         pragma Debug
-           (Output (Debug,
-                    "CORBA.Object.Finalize : cannot finalize nil ref"));
+         pragma Debug (O ("finalize : cannot finalize nil ref"));
          null;
       end if;
-      pragma Debug (Output (Debug, "CORBA.Object.Finalize : done"));
+      pragma Debug (O ("finalize : leave"));
    end Finalize;
-
-   ----------------------
-   -- Object_To_String --
-   ----------------------
-
-   function Object_To_String
-     (Self : in Ref'Class)
-      return CORBA.String is
-   begin
-      if Is_Nil (Self) then
-         return OmniObject.Object_To_String (null);
-      else
-         return OmniObject.Object_To_String (Self.Omniobj);
-      end if;
-   end Object_To_String;
-
-   ----------------------
-   -- String_To_Object --
-   ----------------------
-
-   procedure String_To_Object
-     (From : in CORBA.String;
-      To   : out CORBA.Object.Ref'class)
-   is
-      Repoid            : CORBA.String;
-      Most_Derived_Type : Constant_Ref_Ptr;
-   begin
-      --  Get the omniobject
-      To.Omniobj := OmniObject.String_To_Object (From);
-
-      --  If the result is correct
-      if To.Omniobj /= null then
-
-         --  Just print a message to tell if the C++ object is a proxy or a
-         --  local object
-
-         if  OmniObject.Is_Proxy (To.Omniobj.all) then
-            pragma Debug
-              (Output (Debug,
-                       "CORBA.Object.String_To_Object :" &
-                       " creating Ref with local object inside"));
-            null;
-         else
-            pragma Debug
-              (Output (Debug,
-                       "CORBA.Object.String_To_Object :" &
-                       " creating Ref with local object inside"));
-            null;
-         end if;
-
-         --  Check if the omniobject we got can be put into To (type
-         --  implied the repoId)
-         Repoid := OmniObject.Get_Repository_Id (To.Omniobj.all);
-
-         pragma Debug
-           (Output (Debug,
-                    "CORBA.Object.String_To_Object : repoid = "
-                    & CORBA.To_Standard_String (Repoid)));
-
-         Most_Derived_Type :=
-           Get_Dynamic_Type_From_Repository_Id (Repoid);
-
-         --  Dyn_type is now an object of the most derived type of the new
-         --  created object
-
-         if Is_A (Most_Derived_Type.all, Get_Repository_Id (To)) then
-            To.Dynamic_Type := Most_Derived_Type;
-            return;
-         end if;
-      end if;
-
-      --  Otherwise, the operation is illegal return Nil_Ref in the right
-      --  class
-
-      To.Omniobj      := null;
-      To.Dynamic_Type := null;
-   end String_To_Object;
 
 begin
 

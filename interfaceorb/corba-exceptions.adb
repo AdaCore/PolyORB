@@ -7,13 +7,17 @@
 with Ada.Unchecked_Deallocation;
 with Ada.Tags;
 
-with Constants;
-
-with Adabroker_Debug; use Adabroker_Debug;
+with AdaBroker; use AdaBroker;
+with AdaBroker.Exceptions;
+pragma Warnings (Off, AdaBroker.Exceptions);
+with AdaBroker.Constants;
+with AdaBroker.Debug;
+pragma Elaborate (AdaBroker.Debug);
 
 package body CORBA.Exceptions is
 
-   Debug : constant Boolean := Is_Active ("corba-exceptions");
+   Flag : constant Natural := AdaBroker.Debug.Is_Active ("corba-exceptions");
+   procedure O is new AdaBroker.Debug.Output (Flag);
 
    use type Constants.Exception_Id;
 
@@ -66,9 +70,7 @@ package body CORBA.Exceptions is
    is
       Tmp : Cell_Ptr;
    begin
-      pragma Debug
-        (Output (Debug, "corba-exception put, member type : " &
-                 Ada.Tags.External_Tag (V'Tag)));
+      pragma Debug (O ("put member type : " & Ada.Tags.External_Tag (V'Tag)));
       Tmp := new Cell'(N     => ID_V'Length,
                        Value => new IDL_Exception_Members'Class'(V),
                        ID    => ID_V,
@@ -90,8 +92,7 @@ package body CORBA.Exceptions is
    begin
       if Tmp = null then
          --  Raise an Ada Exception AdaBroker_Fatal_Error
-         pragma Debug
-           (Output (Debug, "corba.exceptions.get temp = null ****"));
+         pragma Debug (O ("get **** tmp = null ****"));
 
          Ada.Exceptions.Raise_Exception
            (AdaBroker_Fatal_Error'Identity,
@@ -101,16 +102,13 @@ package body CORBA.Exceptions is
 
       else
          loop
-            pragma Debug
-              (Output (Debug, "corba.exceptions.get another loop"));
+            pragma Debug (O ("get another loop"));
 
             if Tmp.all.ID = ID then
                declare
                   Member : IDL_Exception_Members'Class := Tmp.all.Value.all;
                begin
-                  pragma Debug
-                    (Output (Debug,
-                             "corba.exceptions.get found the right member"));
+                  pragma Debug (O ("get found the right member"));
                   --  We can suppress the correponding cell
                   if Old = null then
                      List := Tmp.all.Next;
@@ -118,27 +116,21 @@ package body CORBA.Exceptions is
                      Old.all.Next := Tmp.all.Next;
                   end if;
 
-                  pragma Debug
-                    (Output (Debug, "corba.exceptions.get free memory"));
+                  pragma Debug (O ("get free memory"));
 
                   Free (Tmp.all.Value);
                   Free (Tmp);
 
-                  pragma Debug
-                    (Output (Debug,
-                             "result type : " &
-                             Ada.Tags.External_Tag (Result'Tag)));
+                  pragma Debug (O ("result type " &
+                                   Ada.Tags.External_Tag (Result'Tag)));
 
-                  pragma Debug
-                    (Output (Debug,
-                             "member type : " &
-                             Ada.Tags.External_Tag (Member'Tag)));
+                  pragma Debug (O ("member type " &
+                                   Ada.Tags.External_Tag (Member'Tag)));
 
                   --  At last, return the result
                   Result := Member;
 
-                  pragma Debug
-                    (Output (Debug, "corba.exceptions.get goes out"));
+                  pragma Debug (O ("get leave"));
                   return;
                end;
 
@@ -147,9 +139,7 @@ package body CORBA.Exceptions is
                if Tmp.all.Next = null then
 
                --  Raise an Ada Exception AdaBroker_Fatal_Error
-                  pragma Debug
-                    (Output (Debug,
-                             "corba.exceptions.get member not found ****"));
+                  pragma Debug (O ("get member * not found *"));
 
                   Ada.Exceptions.Raise_Exception
                     (AdaBroker_Fatal_Error'Identity,
@@ -176,9 +166,9 @@ package body CORBA.Exceptions is
       To   : out IDL_Exception_Members'Class)
    is
    begin
-      pragma Debug (Output (Debug, "corba.exceptions.get_member calls get"));
+      pragma Debug (O ("get_member enter"));
       Get (From, To);
-      pragma Debug (Output (Debug, "corba.exceptions.get_member goes out"));
+      pragma Debug (O ("get_member leave"));
    end Get_Members;
 
    ---------------------------

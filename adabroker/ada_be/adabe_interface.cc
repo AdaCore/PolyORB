@@ -39,11 +39,11 @@ adabe_interface::adabe_interface(UTL_ScopedName *n, AST_Interface **ih, long nih
   else pd_is_forwarded = false;  
 
   // Test the local name. If it is Object, then we have
-  // a Corba reserved word.
+  // a CORBA reserved word.
   if ((string) local_name()->get_string() == "Object") 
     {
       set_ada_local_name ("Object");
-      set_ada_full_name ("Corba.Object");
+      set_ada_full_name ("CORBA.Object");
     }
 }
 
@@ -69,10 +69,10 @@ adabe_interface::produce_ads(dep_list &with, string &body, string &previous)
 #endif
 
   // Add some with declarations for usefull files
-  with.add("Corba.Object");
-  with.add("Corba");
+  with.add("CORBA.Object");
+  with.add("CORBA");
   with.add("AdaBroker") ;
-  with.add("Omniobject") ;
+  with.add("AdaBroker.OmniObject") ;
   with.add("Ada.Unchecked_Deallocation") ;
   
 #ifdef DEBUG_INTERFACE
@@ -94,12 +94,12 @@ adabe_interface::produce_ads(dep_list &with, string &body, string &previous)
   body += "   --         The Spec        --\n";
   body += "   -----------------------------\n\n";
 
-  // If the package has no ancestor, Corba.Object.Ref inherits directly
-  // from Corba.Object.Ref
+  // If the package has no ancestor, CORBA.Object.Ref inherits directly
+  // from CORBA.Object.Ref
   if (n_inherits() == 0) 
     {
-      corps = "Corba.Object";
-      body += "   type Ref is new Corba.Object.Ref with null record;\n";
+      corps = "CORBA.Object";
+      body += "   type Ref is new CORBA.Object.Ref with null record;\n";
     }
 
   // If the package has ancester(s)
@@ -223,8 +223,8 @@ adabe_interface::produce_ads(dep_list &with, string &body, string &previous)
 
   // cast operator. Allows to cast a Ref Object into one of its ancestors
   // or children (if posible)
-  body += "   function To_Ref(The_Ref : in Corba.Object.Ref'Class) return Ref ;\n";
-  body += "   function To_Ref(The_Ref : in Omniobject.Implemented_Object'Class) " ;
+  body += "   function To_Ref(The_Ref : in CORBA.Object.Ref'Class) return Ref ;\n";
+  body += "   function To_Ref(The_Ref : in AdaBroker.OmniObject.Implemented_Object'Class) " ;
   body += "return Ref ;\n\n\n" ;
   
   // add all multiple inheritance declarations to the body
@@ -270,20 +270,20 @@ adabe_interface::produce_ads(dep_list &with, string &body, string &previous)
   body += "   -----------------------------\n\n";
   
   // Repository ID : it is string that designate this interface
-  body += "   Repository_Id : constant Corba.String := Corba.To_Corba_String(Standard.String'(\"";
+  body += "   Repository_Id : constant CORBA.String := CORBA.To_Corba_String(Standard.String'(\"";
   body += repositoryID();
   body += "\")) ;\n\n";
 
   // function Get_Repository_ID : return the repository ID
   body += "   function Get_Repository_Id(Self : in Ref)\n";
-  body += "                              return Corba.String ;\n\n";
+  body += "                              return CORBA.String ;\n\n";
 
   // function is_a : return true if the object is a Ref object
   body += "   function Is_A(The_Ref : in Ref ;\n";
-  body += "                 Repo_Id : in Corba.String)\n";
-  body += "                 return Corba.Boolean ;\n\n";
-  body += "   function Is_A(Repo_Id : in Corba.String)\n";
-  body += "                 return Corba.Boolean ;\n\n";
+  body += "                 Repo_Id : in CORBA.String)\n";
+  body += "                 return CORBA.Boolean ;\n\n";
+  body += "   function Is_A(Repo_Id : in CORBA.String)\n";
+  body += "                 return CORBA.Boolean ;\n\n";
 
   // Free : deallocate the memory used by a Ref_Ptr
   body += "   procedure Free is new Ada.Unchecked_Deallocation(Ref, Ref_Ptr) ;\n\n\n" ;
@@ -302,7 +302,7 @@ adabe_interface::produce_ads(dep_list &with, string &body, string &previous)
   body += "private\n\n";
 
   // definition of the nil reference
-  body += "   Nil_Ref : aliased constant Ref := ( Corba.Object.Nil_Ref with null record) ;\n";
+  body += "   Nil_Ref : aliased constant Ref := ( CORBA.Object.Nil_Ref with null record) ;\n";
 
   // end of package
   body += "end " + get_ada_full_name() + " ;\n";
@@ -325,14 +325,14 @@ adabe_interface::produce_adb(dep_list& with, string &body, string &previous)
   // add the corresponding proxies file to the with clauses
   with.add (get_ada_full_name () + ".Proxies");
 
-  // add packages Ada.Exceptions and Corba.Object to the with clauses
+  // add packages Ada.Exceptions and CORBA.Object to the with clauses
   with.add("Ada.Exceptions");
-  with.add("Corba.Object");
-  with.add("Omniobject") ;
+  with.add("CORBA.Object");
+  with.add("AdaBroker.OmniObject") ;
   
-  // add Corba.Object and type Corba.String to the use clauses
-  body += "use Corba.Object ;\n";
-  body += "use type Corba.String ;\n";
+  // add CORBA.Object and type CORBA.String to the use clauses
+  body += "use CORBA.Object ;\n";
+  body += "use type CORBA.String ;\n";
 
   // header of the package
   body += "package body " + get_ada_full_name() + " is \n\n";
@@ -345,11 +345,11 @@ adabe_interface::produce_adb(dep_list& with, string &body, string &previous)
   // To_Ref cast operator
   body += "   -- To_Ref\n" ;
   body += "   ---------\n" ;
-  body += "   function To_Ref(The_Ref : in Corba.Object.ref'Class)\n";
+  body += "   function To_Ref(The_Ref : in CORBA.Object.ref'Class)\n";
   body += "                   return Ref is\n";
-  body += "      Dynamic_Type : Corba.Object.Ref'Class := Get_Dynamic_Type(The_Ref) ;\n";
+  body += "      Dynamic_Type : CORBA.Object.Ref'Class := Get_Dynamic_Type(The_Ref) ;\n";
   body += "      Result : Ref ;\n";
-  body += "      Repo_Id : Corba.String := Get_Repository_Id(Result) ;\n";
+  body += "      Repo_Id : CORBA.String := Get_Repository_Id(Result) ;\n";
   body += "   begin\n";
   body += "      if Is_A(Dynamic_Type, Repo_Id) then\n";
   body += "         corba.Object.Internal_Copy(The_Ref, Result) ;\n"; 
@@ -357,24 +357,24 @@ adabe_interface::produce_adb(dep_list& with, string &body, string &previous)
   body += "      end if ;\n\n";
   body += "      Ada.Exceptions.Raise_Exception(Constraint_Error'Identity,\n";
   body += "                                     \"Cannot cast \"\n";
-  body += "                                     & Corba.To_Standard_String(Get_Repository_Id(The_Ref))\n"; 
-  body += "                                     & Corba.CRLF\n";
-  body += "                                     & Corba.To_Standard_String(Repo_Id)) ;\n";
+  body += "                                     & CORBA.To_Standard_String(Get_Repository_Id(The_Ref))\n"; 
+  body += "                                     & CORBA.CRLF\n";
+  body += "                                     & CORBA.To_Standard_String(Repo_Id)) ;\n";
   body += "   end ;\n\n\n"; 
 
   body += "   -- To_Ref\n" ;
   body += "   ---------\n" ;
-  body += "   function To_Ref(The_Ref : in Omniobject.Implemented_Object'Class) return Ref is\n" ;
+  body += "   function To_Ref(The_Ref : in AdaBroker.OmniObject.Implemented_Object'Class) return Ref is\n" ;
   body += "      Result : Ref ;\n" ;
   body += "   begin\n" ;
-  body += "      if Omniobject.Get_Repository_Id(The_Ref) = Repository_Id then\n";
-  body += "         Corba.Object.Internal_Copy(The_Ref, Nil_Ref'Access, Result) ;\n";
+  body += "      if AdaBroker.OmniObject.Get_Repository_Id(The_Ref) = Repository_Id then\n";
+  body += "         CORBA.Object.Internal_Copy(The_Ref, Nil_Ref'Access, Result) ;\n";
   body += "         return Result ;\n";
   body += "      end if ;\n\n";
   body += "      Ada.Exceptions.Raise_Exception(Constraint_Error'Identity,\n";
-  body += "                                     Corba.CRLF\n" ;
+  body += "                                     CORBA.CRLF\n" ;
   body += "                                     & \"Can *only* call To_Ref to create a Ref from an Impl.Object\"\n";
-  body += "                                     & Corba.CRLF\n" ;
+  body += "                                     & CORBA.CRLF\n" ;
   body += "                                     & \"When they represent the same IDL interface\");\n";
   body += "   end ;\n\n\n";
 
@@ -479,7 +479,7 @@ adabe_interface::produce_adb(dep_list& with, string &body, string &previous)
   body += "   -- Get_Repository_Id\n" ;
   body += "   --------------------\n" ;
   body += "   function Get_Repository_Id(Self : in Ref)\n";
-  body += "                              return Corba.String is\n";
+  body += "                              return CORBA.String is\n";
   body += "   begin\n";
   body += "      return Repository_Id ;\n";
   body += "   end ;\n\n\n";
@@ -488,8 +488,8 @@ adabe_interface::produce_adb(dep_list& with, string &body, string &previous)
   body += "   -- Is_A\n" ;
   body += "   -------\n" ;
   body += "   function Is_A(The_Ref : in Ref ;\n"; 
-  body += "                 Repo_Id : in Corba.String)\n";
-  body += "                 return Corba.Boolean is\n";
+  body += "                 Repo_Id : in CORBA.String)\n";
+  body += "                 return CORBA.Boolean is\n";
   body += "   begin\n";
   body += "      return Is_A(Repo_Id) ;\n";
   body += "   end ;\n\n\n";
@@ -497,14 +497,14 @@ adabe_interface::produce_adb(dep_list& with, string &body, string &previous)
   // function Is_A
   body += "   -- Is_A\n" ;
   body += "   -------\n" ;
-  body += "   function Is_A(Repo_Id : in Corba.String)\n";
-  body += "                 return Corba.Boolean is\n";
+  body += "   function Is_A(Repo_Id : in CORBA.String)\n";
+  body += "                 return CORBA.Boolean is\n";
   body += "   begin\n";
   body += "      return (Repository_Id = Repo_Id";
   if (n_inherits()==0) {
     // if there is no specified inheritance,
-    // it means that we inherit from Corba.Object.Ref
-      body += "\n              or Corba.Object.Is_A(Repo_Id)";
+    // it means that we inherit from CORBA.Object.Ref
+      body += "\n              or CORBA.Object.Is_A(Repo_Id)";
   } else {
     // else we can inherit from several interfaces
     for(int i = 0; i < n_inherits(); i++)
@@ -520,8 +520,8 @@ adabe_interface::produce_adb(dep_list& with, string &body, string &previous)
 
   // last part of the ads file : the directly excuted code
   body += "begin\n";
-  body += "   Corba.Object.Register(Repository_Id, Nil_Ref'Access) ;\n";
-  body += "   Corba.Object.Create_Proxy_Object_Factory(Repository_Id) ;\n";
+  body += "   CORBA.Object.Register(Repository_Id, Nil_Ref'Access) ;\n";
+  body += "   CORBA.Object.Create_Proxy_Object_Factory(Repository_Id) ;\n";
 
   // end of the package
   body += "end " + get_ada_full_name() + " ;\n";  
@@ -539,7 +539,7 @@ adabe_interface::produce_impl_ads(dep_list& with, string &body, string &previous
   adabe_global::set_adabe_current_file(this);
 
   // add OmniObject to the with clauses
-  with.add("Omniobject");
+  with.add("AdaBroker.OmniObject");
 
   // header of the package
   body += "package " + get_ada_full_name() + ".Impl is\n\n";
@@ -552,7 +552,7 @@ adabe_interface::produce_impl_ads(dep_list& with, string &body, string &previous
   string tmp = "";
 
   if (n_inherits() == 0) {
-    body += "   type Object is new Omniobject.Implemented_Object with private ;\n";
+    body += "   type Object is new AdaBroker.OmniObject.Implemented_Object with private ;\n";
   } else {
 
     // find the direct ancestor of this interface. The direct ancestor
@@ -656,7 +656,7 @@ adabe_interface::produce_impl_ads(dep_list& with, string &body, string &previous
   // private definition of the Object type (empty but may be completed 
   // by user)
   if (n_inherits() == 0) {
-    body += "   type Object is new Omniobject.Implemented_Object with record\n";
+    body += "   type Object is new AdaBroker.OmniObject.Implemented_Object with record\n";
     body += "      Null ;\n" ;
     body += "   end record ;\n\n" ;
   }
@@ -805,7 +805,7 @@ adabe_interface::produce_impl_adb(dep_list& with, string &body, string &previous
   if(n_inherits()) {
     body += ancestor + ".Impl.Initialize(" + ancestor + ".Impl.Object(" ;
   } else {
-    body += "Omniobject.Initialize(Omniobject.Implemented_Object(" ;
+    body += "AdaBroker.OmniObject.Initialize(AdaBroker.OmniObject.Implemented_Object(" ;
   }
   body += "Self)) ;\n" ;
   body += "      Init_Local_Object(Self,\n" ;
@@ -826,7 +826,7 @@ adabe_interface::produce_impl_adb(dep_list& with, string &body, string &previous
   if(n_inherits()) {
     body += ancestor + ".Impl.Adjust(" + ancestor + ".Impl.Object(" ;
   } else {
-    body += "Omniobject.Adjust(Omniobject.Implemented_Object(" ;
+    body += "AdaBroker.OmniObject.Adjust(AdaBroker.OmniObject.Implemented_Object(" ;
   }
   body += "Self)) ;\n" ;
   body += "      -- You can add things *BELOW* this line\n\n" ;
@@ -842,7 +842,7 @@ adabe_interface::produce_impl_adb(dep_list& with, string &body, string &previous
   if(n_inherits()) {
     body += ancestor + ".Impl.Finalize(" + ancestor + ".Impl.Object(" ;
   } else {
-    body += "Omniobject.Finalize(Omniobject.Implemented_Object(" ;
+    body += "AdaBroker.OmniObject.Finalize(AdaBroker.OmniObject.Implemented_Object(" ;
   }
   body += "Self)) ;\n" ;
   body += "   end Finalize ;\n\n\n" ;
@@ -863,17 +863,17 @@ adabe_interface::produce_skel_ads(dep_list& with, string &body, string &previous
   adabe_global::set_adabe_current_file(this);
 
   // add the packages omniobject and giop_s to the with clauses
-  with.add("Omniobject");
-  with.add("Giop_S");
+  with.add("AdaBroker.OmniObject");
+  with.add("AdaBroker.GIOP_S");
   // header of the package
   body += "package " + get_ada_full_name() + ".Skeleton is\n\n";
 
   // procedure dispatch
-  body += "   procedure Dispatch (Myself : in Omniobject.Implemented_Object_Ptr ;\n";
-  body += "                       Orls : in out Giop_S.Object ;\n";
+  body += "   procedure Dispatch (Myself : in AdaBroker.OmniObject.Implemented_Object_Ptr ;\n";
+  body += "                       Orls : in out AdaBroker.GIOP_S.Object ;\n";
   body += "                       Orl_Op : in Standard.String ;\n";
-  body += "                       Orl_Response_Expected : in Corba.Boolean ;\n";
-  body += "                       Dispatch_Returns : out Corba.Boolean) ;\n\n";
+  body += "                       Orl_Response_Expected : in CORBA.Boolean ;\n";
+  body += "                       Dispatch_Returns : out CORBA.Boolean) ;\n\n";
 
   // end of the package
   body += "end " + get_ada_full_name() + ".Skeleton  ;\n";
@@ -886,10 +886,10 @@ void
 adabe_interface::produce_proxies_ads(dep_list& with, string &body, string &previous)
 {
   adabe_global::set_adabe_current_file(this);
-  with.add("Giop_C");
-  with.add("Omniproxycalldesc");
-  with.add("Rope");
-  with.add("Iop");
+  with.add("AdaBroker.GIOP_C");
+  with.add("AdaBroker.OmniProxyCallDesc");
+  with.add("AdaBroker.Rope");
+  with.add("AdaBroker.IOP");
   body += "package " + get_ada_full_name() + ".Proxies is \n";
  
   ////////////////////////////// Mapping the object factory ////////////////////////
@@ -993,22 +993,22 @@ adabe_interface::produce_skel_adb(dep_list& with, string &body, string &previous
   with.add(get_ada_full_name() + ".Marshal");
 
   // add some usefull packages to the with clauses
-  with.add("Netbufferedstream");
-  with.add("Membufferedstream");
-  with.add("Omniropeandkey") ;
-  with.add("Giop") ;
-  with.add("Corba") ;
-  with.add("Corba.Object");
+  with.add("AdaBroker.NetBufferedStream");
+  with.add("AdaBroker.MemBufferedStream");
+  with.add("AdaBroker.OmniRopeAndKey") ;
+  with.add("AdaBroker.GIOP") ;
+  with.add("CORBA") ;
+  with.add("CORBA.Object");
 
   // header of the package
   body += "package body " + get_ada_full_name() + ".Skeleton is\n\n";
 
   // procedure dispatch
-  body += "   procedure Dispatch (Myself : in Omniobject.Implemented_Object_Ptr ;\n";
-  body += "                       Orls : in out Giop_S.Object ;\n";
+  body += "   procedure Dispatch (Myself : in AdaBroker.OmniObject.Implemented_Object_Ptr ;\n";
+  body += "                       Orls : in out AdaBroker.GIOP_S.Object ;\n";
   body += "                       Orl_Op : in Standard.String ;\n";
-  body += "                       Orl_Response_Expected : in Corba.Boolean ;\n";
-  body += "                       Dispatch_Returns : out Corba.Boolean) is\n";
+  body += "                       Orl_Response_Expected : in CORBA.Boolean ;\n";
+  body += "                       Dispatch_Returns : out CORBA.Boolean) is\n";
   body += "      Self : ";
   body += get_ada_local_name();
   body += ".Impl.Object_Ptr := ";
@@ -1128,10 +1128,10 @@ adabe_interface::produce_proxies_adb(dep_list& with, string &body, string &previ
   adabe_global::set_adabe_current_file(this);
 
   // add some usefull package to the with clauses
-  with.add("Netbufferedstream");
-  with.add("Membufferedstream");
-  with.add("Corba");
-  with.add("Corba.Object");
+  with.add("AdaBroker.NetBufferedStream");
+  with.add("AdaBroker.MemBufferedStream");
+  with.add("CORBA");
+  with.add("CORBA.Object");
 
   // add the corresponding marshal package to the with clauses
   with.add( get_ada_full_name() + ".marshal") ;
@@ -1245,13 +1245,13 @@ adabe_interface::produce_marshal_ads(dep_list& with, string &body, string &previ
   adabe_global::set_adabe_current_file(this);
 
   // add some usefull packages to the with clauses
-  with.add ("Giop_C");
-  with.add ("Corba");
-  with.add("Netbufferedstream");
-  with.add("Membufferedstream");
+  with.add ("AdaBroker.GIOP_C");
+  with.add ("CORBA");
+  with.add("AdaBroker.NetBufferedStream");
+  with.add("AdaBroker.MemBufferedStream");
 
   // add some usefull packages and a type to the use clauses
-  body += "use type Corba.Unsigned_Long; \n";
+  body += "use type CORBA.Unsigned_Long; \n";
 
   // header of the package
   body += "package ";
@@ -1317,9 +1317,9 @@ adabe_interface::produce_marshal_adb(dep_list& with, string &body, string &previ
   adabe_global::set_adabe_current_file(this);
 
   // add some packages corba.object to the with clauses
-  with.add("Corba.Object");
-  with.add ("NetbufferedStream");
-  with.add ("MembufferedStream");
+  with.add("CORBA.Object");
+  with.add ("AdaBroker.NetBufferedStream");
+  with.add ("AdaBroker.MemBufferedStream");
 
   // header of the package
   body += "package body ";

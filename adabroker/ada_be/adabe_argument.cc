@@ -247,7 +247,7 @@ adabe_argument::produce_proxies_adb(dep_list &with, string &in_decls, bool &no_i
 
     marshall += "      Marshall(Self.";
     marshall += get_ada_local_name ();
-    marshall += ".all,Giop_Client) ;\n";
+    marshall += ".all,GIOP_Client) ;\n";
   }
   if ((direction() == AST_Argument::dir_OUT) || (direction() == AST_Argument::dir_INOUT)) {
     dynamic_cast<adabe_name *>(d)->is_marshal_imported(with);
@@ -265,7 +265,7 @@ adabe_argument::produce_proxies_adb(dep_list &with, string &in_decls, bool &no_i
 }
     unmarshall += "      Unmarshall(";
     unmarshall += get_ada_local_name ();
-    unmarshall += ",Giop_Client) ;\n";
+    unmarshall += ",GIOP_Client) ;\n";
     unmarshall += "      Self.";
     unmarshall += get_ada_local_name ();
     unmarshall += " := new ";

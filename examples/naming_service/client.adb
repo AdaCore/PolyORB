@@ -1,12 +1,10 @@
-with Ada.Text_Io;            use Ada.Text_Io ;
-with Corba;                  use Corba;
-with Corba.Orb;
-with Corba.Boa;
-with Corba.Object;
+with Text_Io ; use Text_Io ;
+with Corba, Corba.Orb, Corba.Boa, Corba.Object ;
 with Echo ;
-with Cosnaming;               use Cosnaming ;
-with Corba_Initialreferences; use Corba_Initialreferences ;
-with Cosnaming.Namingcontext;
+with Cosnaming ; use Cosnaming ;
+with Corba_Initialreferences ; use Corba_Initialreferences ;
+with Cosnaming.Namingcontext ;
+use Corba ;
 
 procedure Client is
 
@@ -23,8 +21,7 @@ procedure Client is
       & "3133372e3139342e31342e333000d1070c0000003703ee7d00cb167700000002") ;
 
    Root_context : Cosnaming.Namingcontext.Ref ;
-   ObjName : Cosnaming.Name
-     := Cosnaming.Name (Cosnaming.IDL_SEQUENCE_NameComponent.Null_Sequence) ;
+   ObjName : Cosnaming.Name := Cosnaming.Name (Cosnaming.IDL_SEQUENCE_NameComponent.Null_Sequence) ;
    El : NameComponent ;
 
    Myecho : Echo.Ref ;

@@ -8,35 +8,21 @@ with CORBA.BOA;
 --  with CORBA.Context;
 --  with CORBA.Sequences;
 
-with OmniObject;
+with AdaBroker.OmniObject;
 
 package CORBA.ORB is
 
-   ------------------------------
-   -- CORBA 2.2 28 February 99 --
-   ------------------------------
-
    function Object_To_String
-     (Obj : in CORBA.Object.Ref'class)
-      return CORBA.String
-     renames CORBA.Object.Object_To_String;
+     (Obj : in CORBA.Object.Ref'Class)
+      return CORBA.String;
+   --  Returns the IOR corresponding to this object it is called by
+   --  CORBA.ORB.Object_To_String see CORBA specification for details
 
    procedure String_To_Object
      (From : in  CORBA.String;
-      To   : out CORBA.Object.Ref'class)
-     renames CORBA.Object.String_To_Object;
-
-   --  not yet implemented
-   --
-   --    procedure Create_List
-   --      (Count    : in     CORBA.Long;
-   --       New_List :    out CORBA.NVList.Object);
-   --
-   --    procedure Create_Operation_List
-   --      (Oper     : in     CORBA.OperationDef.Ref;
-   --       New_List :    out CORBA.NVList.Object);
-   --
-   --    function Get_Default_Context return CORBA.Context.Object;
+      To   : out CORBA.Object.Ref'Class);
+   --  Returns a Ref'Class out of an IOR it is called by
+   --  CORBA.ORB.String_To_Object see CORBA specification for details
 
    ---------------
    -- AdaBroker --

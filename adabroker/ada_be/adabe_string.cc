@@ -122,20 +122,20 @@ adabe_string::local_type()
 
 void adabe_string::produce_ads (dep_list &with,string &body, string &previous)
 {
-  //  with.add ("Corba.Bounded_Strings");
+  //  with.add ("CORBA.Bounded_Strings");
   
   if (evaluate(max_size()->ev())==0)
     {
-      body+= "   type " + get_ada_local_name() + " is new Corba.String ;\n";
+      body+= "   type " + get_ada_local_name() + " is new CORBA.String ;\n";
     }
   else
     {
       // PROBLEM TO SOLVE
-      body += "   package Corba.Bounded_Strings_" + to_string(max_size()->ev());
-      body += " is new Corba.Bounded_Strings(";
+      body += "   package CORBA.Bounded_Strings_" + to_string(max_size()->ev());
+      body += " is new CORBA.Bounded_Strings(";
       body +=  to_string(max_size()->ev());
       body += ") ;\n\n";
-      body += "   type "+ get_ada_local_name() + " is new Corba.Bounded_Strings_";
+      body += "   type "+ get_ada_local_name() + " is new CORBA.Bounded_Strings_";
       body += to_string(max_size()->ev());
       body += ".Bounded_String ;\n";
     }
@@ -156,19 +156,19 @@ adabe_string::produce_marshal_ads(dep_list& with, string &body, string &previous
   body += "   procedure Marshall (A : in ";
   body += get_ada_local_name();
   body += " ;\n";
-  body += "                       S : in out Netbufferedstream.Object'Class) ;\n\n";
+  body += "                       S : in out AdaBroker.NetBufferedStream.Object'Class) ;\n\n";
 
   body += "   procedure UnMarshall (A : out ";
   body += get_ada_local_name();
   body += " ;\n";
-  body += "                       S : in out Netbufferedstream.Object'Class) ;\n\n";
+  body += "                       S : in out AdaBroker.NetBufferedStream.Object'Class) ;\n\n";
 
   body += "   function Align_Size (A : in ";
   body += get_ada_local_name();
   body += " ;\n";
-  body += "                        Initial_Offset : in Corba.Unsigned_Long ;\n";
-  body += "                        N : in Corba.Unsigned_Long := 1)\n";
-  body += "                        return Corba.Unsigned_Long ;\n\n\n";
+  body += "                        Initial_Offset : in CORBA.Unsigned_Long ;\n";
+  body += "                        N : in CORBA.Unsigned_Long := 1)\n";
+  body += "                        return CORBA.Unsigned_Long ;\n\n\n";
 
   set_already_defined();
 }
@@ -182,27 +182,27 @@ adabe_string::produce_marshal_adb(dep_list& with, string &body, string &previous
   body += "   procedure Marshall (A : in ";
   body += get_ada_local_name();
   body += " ;\n";
-  body += "                       S : in out Netbufferedstream.Object'Class) is\n";
+  body += "                       S : in out AdaBroker.NetBufferedStream.Object'Class) is\n";
   body += "   begin\n";
-  body += "      Marshall (Corba.String(A), S) ;\n";
+  body += "      Marshall (CORBA.String(A), S) ;\n";
   body += "   end Marshall ;\n\n";
 
   body += "   procedure UnMarshall (A : out ";
   body += get_ada_local_name();
   body += " ;\n";
-  body += "                         S : in out Netbufferedstream.Object'Class) is \n\n";
+  body += "                         S : in out AdaBroker.NetBufferedStream.Object'Class) is \n\n";
   body += "   begin\n";
-  body += "      UnMarshall (Corba.String(A), S) ;\n";
+  body += "      UnMarshall (CORBA.String(A), S) ;\n";
   body += "   end UnMarshall ;\n\n";
 
   body += "   function Align_Size (A : in ";
   body += get_ada_local_name();
   body += " ;\n";
-  body += "                        Initial_Offset : in Corba.Unsigned_Long ;\n";
-  body += "                        N : in Corba.Unsigned_Long := 1)\n";
-  body += "                        return Corba.Unsigned_Long is \n";
+  body += "                        Initial_Offset : in CORBA.Unsigned_Long ;\n";
+  body += "                        N : in CORBA.Unsigned_Long := 1)\n";
+  body += "                        return CORBA.Unsigned_Long is \n";
   body += "   begin\n";
-  body += "      return Align_Size (Corba.String(A), Initial_Offset, N) ;\n";
+  body += "      return Align_Size (CORBA.String(A), Initial_Offset, N) ;\n";
   body += "   end Align_Size ;\n\n\n";
 
   set_already_defined();
@@ -220,8 +220,8 @@ adabe_string::dump_name (dep_list &with, string &previous)
 					 != AST_Decl::NT_typedef))
 	    {
 	      set_already_defined();
-	      with.add("Corba");
-	      return "Corba.String";
+	      with.add("CORBA");
+	      return "CORBA.String";
 	    }
 	}
       if (!is_already_defined())
@@ -245,8 +245,8 @@ string adabe_string::marshal_name (dep_list &with, string &previous)
 					 != AST_Decl::NT_typedef))
 	    {
 	      set_already_defined();
-	      with.add("Corba");
-	      return "Corba.String";
+	      with.add("CORBA");
+	      return "CORBA.String";
 	    }
 	}
       if (!is_already_defined())

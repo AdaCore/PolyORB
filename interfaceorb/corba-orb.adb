@@ -2,18 +2,21 @@ with Interfaces.C.Strings;
 
 with System;
 
-with Adabroker_Debug; use Adabroker_Debug;
+with AdaBroker; use AdaBroker;
+with AdaBroker.OmniObject;
+with AdaBroker.Debug;
+pragma Elaborate (AdaBroker.Debug);
 
 with CORBA.Command_Line;
-with CORBA.Object;    use CORBA.Object;
-
-with OmniObject;
+with CORBA.Object;
+with CORBA.Object.OmniORB;
 
 package body CORBA.ORB is
 
    use type OmniObject.Object_Ptr;
 
-   Debug : constant Boolean := Adabroker_Debug.Is_Active ("corba.orb");
+   Flag : constant Natural := AdaBroker.Debug.Is_Active ("corba.orb");
+   procedure O is new AdaBroker.Debug.Output (Flag);
 
    function C_ORB_Init
      (Argc    : in Interfaces.C.int;
@@ -35,20 +38,19 @@ package body CORBA.ORB is
       C_ORB_Name : Interfaces.C.Strings.chars_ptr;
       Result     : Object;
    begin
-      pragma Debug (Output (Debug, "-- CORBA.ORB.ORB_Init --"));
-      pragma Debug (Output (Debug, ORB_Name));
+      pragma Debug (O ("-- CORBA.ORB.ORB_Init --"));
+      pragma Debug (O (ORB_Name));
 
       C_ORB_Name := Interfaces.C.Strings.New_String (ORB_Name);
       --  Deallocated 4 lines further
 
-      pragma Debug
-        (Output (Debug, "CORBA.ORB.ORB_Init : calling CORBA::ORB_init"));
+      pragma Debug (O ("ORB_Init : calling CORBA::ORB_init"));
 
       Result := C_ORB_Init (CORBA.Command_Line.Argc,
                             CORBA.Command_Line.Argv,
                             C_ORB_Name);
 
-      pragma Debug (Output (Debug, "CORBA.ORB.ORB_Init : ORB initialized !"));
+      pragma Debug (O ("ORB_Init : ORB initialized"));
 
       Interfaces.C.Strings.Free (C_ORB_Name);
       return Result;
@@ -93,15 +95,28 @@ package body CORBA.ORB is
       return Result;
    end BOA_Init;
 
-   ----------------------------------
-   -- C_Resolve_Initial_References --
-   ----------------------------------
+   ----------------------
+   -- Object_To_String --
+   ----------------------
 
-   function C_Resolve_Initial_References
-     (Self       : in Object;
-      Identifier : in Interfaces.C.Strings.chars_ptr)
-      return Object;
-   pragma Import (CPP, C_Resolve_Initial_References, "Ada_ORB_init__FiPPcPCc");
-   --  Wrapper around Ada_Resolve_Initial_References Ada_CORBA_ORB.hh
+   function Object_To_String
+     (Obj : in CORBA.Object.Ref'Class)
+      return CORBA.String
+   is
+   begin
+      return CORBA.Object.OmniORB.Object_To_String (Obj);
+   end Object_To_String;
+
+   ----------------------
+   -- String_To_Object --
+   ----------------------
+
+   procedure String_To_Object
+     (From : in  CORBA.String;
+      To   : out CORBA.Object.Ref'Class)
+   is
+   begin
+      CORBA.Object.OmniORB.String_To_Object (From, To);
+   end String_To_Object;
 
 end CORBA.ORB;

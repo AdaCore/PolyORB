@@ -74,7 +74,7 @@ adabe_attribute::produce_ads(dep_list& with, string &body, string &previous)
 void
 adabe_attribute::produce_adb(dep_list& with, string &body, string &previous)
 {
-  with.add ("OmniProxyCallWrapper");
+  with.add ("AdaBroker.OmniProxyCallWrapper");
 
   // computing an empty string with
   // the same length  as the attribute name
@@ -91,7 +91,7 @@ adabe_attribute::produce_adb(dep_list& with, string &body, string &previous)
   body += "      Opcd : " + name_of_the_package + ".Proxies.Get_" + get_ada_local_name() + "_Proxy ;\n";
   body += "   begin \n";
   body += "      " + name_of_the_package + ".Proxies.Init(Opcd) ;\n";
-  body += "      OmniProxyCallWrapper.Invoke(Self, Opcd) ;\n";
+  body += "      AdaBroker.OmniProxyCallWrapper.Invoke(Self, Opcd) ;\n";
   body += "      return " + name_of_the_package + ".Proxies.Get_Result(Opcd) ;\n";
   body += "   end ;\n\n\n";
 
@@ -112,7 +112,7 @@ adabe_attribute::produce_adb(dep_list& with, string &body, string &previous)
       body += "_Proxy ;\n";
       body += "   begin \n";
       body += "      " + name_of_the_package + ".Proxies.Init(Opcd, To) ;\n";
-      body += "      OmniProxyCallWrapper.Invoke(Self, Opcd) ;\n";
+      body += "      AdaBroker.OmniProxyCallWrapper.Invoke(Self, Opcd) ;\n";
       body += "   end ;\n\n\n";    
     }
 }
@@ -189,17 +189,17 @@ adabe_attribute::produce_proxies_ads(dep_list& with, string &body, string &priva
   body += "   -----------------------------------------------------------\n" ;
   body += "   ---               Get_" + get_ada_local_name() + "\n" ; 
   body += "   -----------------------------------------------------------\n\n" ;
-  body += "   type Get_" + get_ada_local_name() +"_Proxy is new OmniProxyCallDesc.Object with private;\n\n";
+  body += "   type Get_" + get_ada_local_name() +"_Proxy is new AdaBroker.OmniProxyCallDesc.Object with private;\n\n";
   body += "   procedure Init(Self : in out Get_" + get_ada_local_name() + "_Proxy) ;\n\n";
   body += "   function Operation(Self : in Get_" + get_ada_local_name() + "_Proxy)\n";
-  body += "                      return Corba.String ;\n\n" ;
+  body += "                      return CORBA.String ;\n\n" ;
   body += "   procedure Unmarshal_Returned_Values(Self : in out Get_" + get_ada_local_name() + "_Proxy ;\n";
-  body += "                                       Giop_Client : in out Giop_C.Object);\n\n";
+  body += "                                       Giop_Client : in out AdaBroker.GIOP_C.Object);\n\n";
   body += "   function Get_Result (Self : in Get_" + get_ada_local_name() + "_Proxy )\n";
   body += "                        return " +  name + "; \n\n\n";
 
   // next the private part
-  private_definition += "   type Get_" + get_ada_local_name() + "_Proxy is new OmniProxyCallDesc.Object with record \n";
+  private_definition += "   type Get_" + get_ada_local_name() + "_Proxy is new AdaBroker.OmniProxyCallDesc.Object with record \n";
   private_definition += "      Private_Result : " + name + "_Ptr := null;\n";
   private_definition += "   end record ;\n";
   private_definition += "   procedure Finalize (Self : in out Get_" + get_ada_local_name() + "_Proxy) ;\n\n";
@@ -211,19 +211,19 @@ adabe_attribute::produce_proxies_ads(dep_list& with, string &body, string &priva
       body += "   -----------------------------------------------------------\n" ;
       body += "   ---               Set_" + get_ada_local_name() + "\n" ; 
       body += "   -----------------------------------------------------------\n\n" ;
-      body += "   type Set_" + get_ada_local_name() +"_Proxy is new OmniProxyCallDesc.Object with private ;\n\n";
+      body += "   type Set_" + get_ada_local_name() +"_Proxy is new AdaBroker.OmniProxyCallDesc.Object with private ;\n\n";
       body += "   procedure Init(Self : in out Set_" + get_ada_local_name() + "_Proxy ;\n";
       body += "                  Arg : in " + name + ") ;\n\n";
       body += "   function Operation(Self : in Set_" + get_ada_local_name() + "_Proxy)\n";
-      body += "                      return Corba.String ;\n\n" ;
+      body += "                      return CORBA.String ;\n\n" ;
       body += "   function Align_Size(Self : in Set_" + get_ada_local_name() + "_Proxy ;\n";
-      body += "                       Size_In : in Corba.Unsigned_Long)\n";
-      body += "                       return Corba.Unsigned_Long ;\n\n";
+      body += "                       Size_In : in CORBA.Unsigned_Long)\n";
+      body += "                       return CORBA.Unsigned_Long ;\n\n";
       body += "   procedure Marshal_Arguments(Self : in Set_" + get_ada_local_name() + "_Proxy ;\n";
-      body += "                               Giop_Client : in out Giop_C.Object);\n\n";
+      body += "                               Giop_Client : in out AdaBroker.GIOP_C.Object);\n\n";
 
       // the private part
-      private_definition += "   type Set_" + get_ada_local_name() + "_Proxy is new OmniProxyCallDesc.Object with record \n";
+      private_definition += "   type Set_" + get_ada_local_name() + "_Proxy is new AdaBroker.OmniProxyCallDesc.Object with record \n";
       private_definition += "      Arg : " + name + "_Ptr := null;\n";
       private_definition += "   end record ;\n";
       private_definition += "   procedure Finalize (Self : in out Set_" + get_ada_local_name() + "_Proxy) ;\n\n";
@@ -243,7 +243,7 @@ adabe_attribute::produce_proxies_adb(dep_list &with, string &body, string &priva
 
   // adding the two needed libraries :
   att->is_marshal_imported(with);
-  with.add("Netbufferedstream") ;
+  with.add("AdaBroker.NetBufferedStream") ;
 
   // body of the functions defined in
   // the -proxies.ads file
@@ -259,14 +259,14 @@ adabe_attribute::produce_proxies_adb(dep_list &with, string &body, string &priva
   body += "   -- Operation\n" ;
   body += "   ------------\n" ;
   body += "   function Operation(Self : in Get_" + get_ada_local_name() + "_Proxy)\n";
-  body += "                      return Corba.String is\n";
+  body += "                      return CORBA.String is\n";
   body += "   begin\n";
-  body += "      return Corba.To_Corba_String(Standard.String'(\"_get_" + get_ada_local_name() + "\")) ;\n";
+  body += "      return CORBA.To_Corba_String(Standard.String'(\"_get_" + get_ada_local_name() + "\")) ;\n";
   body += "   end ;\n\n\n";
   body += "   -- Unmarshal_Returned_Values\n" ;
   body += "   ----------------------------\n" ;
   body += "   procedure Unmarshal_Returned_Values(Self : in out Get_" + get_ada_local_name() + "_Proxy ;\n";
-  body += "                                       Giop_Client : in out Giop_C.Object) is\n";
+  body += "                                       Giop_Client : in out AdaBroker.GIOP_C.Object) is\n";
   body += "      Result : " + name + " ;\n";
   body += "   begin\n";
   body += "      Unmarshall(Result, Giop_client) ;\n";
@@ -303,22 +303,22 @@ adabe_attribute::produce_proxies_adb(dep_list &with, string &body, string &priva
       body += "   -- Operation\n" ;
       body += "   ------------\n" ;
       body += "   function Operation(Self : in Set_" + get_ada_local_name() + "_Proxy)\n";
-      body += "                      return Corba.String is\n";
+      body += "                      return CORBA.String is\n";
       body += "   begin\n";
-      body += "      return Corba.To_Corba_String(Standard.String'(\"_set_" + get_ada_local_name() + "\")) ;\n";
+      body += "      return CORBA.To_Corba_String(Standard.String'(\"_set_" + get_ada_local_name() + "\")) ;\n";
       body += "   end ;\n\n\n";
       body += "   -- Align_Size\n" ;
       body += "   -------------\n" ;
       body += "   function Align_Size(Self : in Set_" + get_ada_local_name() + "_Proxy ;\n";
-      body += "                       Size_In : in Corba.Unsigned_Long)\n";
-      body += "                       return Corba.Unsigned_Long is\n";
+      body += "                       Size_In : in CORBA.Unsigned_Long)\n";
+      body += "                       return CORBA.Unsigned_Long is\n";
       body += "   begin\n";
       body += "      return Align_Size(Self.Arg.all, Size_In) ;\n";
       body += "   end ;\n\n\n";
       body += "   -- Marshall_Arguments\n" ;
       body += "   ---------------------\n" ;
       body += "   procedure Marshal_Arguments(Self : in Set_" +	get_ada_local_name() + "_Proxy ;\n";
-      body += "                               Giop_Client : in out Giop_C.Object) is\n";
+      body += "                               Giop_Client : in out AdaBroker.GIOP_C.Object) is\n";
       body += "   begin\n";
       body += "      Marshall(Self.Arg.all, Giop_client) ;\n";
       body += "   end ;\n\n\n";
@@ -353,11 +353,11 @@ adabe_attribute::produce_skel_adb(dep_list& with, string &body, string &private_
   body += "            Result : ";
   body += type_name;
   body += " ;\n";
-  body += "            Mesg_Size : Corba.Unsigned_Long ;\n";
+  body += "            Mesg_Size : CORBA.Unsigned_Long ;\n";
   body += "         begin\n";
 
   body += "            -- change state\n";
-  body += "            Giop_S.Request_Received(Orls) ;\n";
+  body += "            AdaBroker.GIOP_S.Request_Received(Orls) ;\n";
 
   body += "            -- call the implementation\n";
   body += "            Result := ";
@@ -367,17 +367,17 @@ adabe_attribute::produce_skel_adb(dep_list& with, string &body, string &private_
   body += "(Self) ;\n";
 
   body += "            -- compute the size of the replied message\n";
-  body += "            Mesg_Size := Giop_S.Reply_Header_Size ;\n";
+  body += "            Mesg_Size := AdaBroker.GIOP_S.Reply_Header_Size ;\n";
   body += "            Mesg_Size := Align_Size (Result, Mesg_Size) ;\n";
 
   body += "            -- Initialisation of the reply\n";
-  body += "            Giop_S.Initialize_Reply (Orls, Giop.NO_EXCEPTION, Mesg_Size) ;\n";
+  body += "            AdaBroker.GIOP_S.Initialize_Reply (Orls, AdaBroker.GIOP.NO_EXCEPTION, Mesg_Size) ;\n";
 
   body += "            -- Marshall the arguments\n";
   body += "            Marshall (Result, Orls) ;\n";
 
   body += "            -- inform the orb\n";
-  body += "            Giop_S.Reply_Completed (Orls) ;\n";
+  body += "            AdaBroker.GIOP_S.Reply_Completed (Orls) ;\n";
 
   body += "            Dispatch_Returns := True ;\n";
   body += "            return ;\n";
@@ -393,14 +393,14 @@ adabe_attribute::produce_skel_adb(dep_list& with, string &body, string &private_
       body += "            Mesg : ";
       body += type_name;
       body += " ;\n";
-      body += "            Mesg_Size : Corba.Unsigned_Long ;\n";
+      body += "            Mesg_Size : CORBA.Unsigned_Long ;\n";
       body += "         begin\n";
       
       body += "            -- unmarshalls arguments\n";
       body += "            Unmarshall (Mesg,Orls) ;\n";
       
       body += "            -- change state\n";
-      body += "            Giop_S.Request_Received(Orls) ;\n";
+      body += "            AdaBroker.GIOP_S.Request_Received(Orls) ;\n";
       
       body += "            -- call the implementation\n";
       body += "            ";
@@ -410,11 +410,11 @@ adabe_attribute::produce_skel_adb(dep_list& with, string &body, string &private_
       body += "(Self,Mesg) ;\n";
       
       body += "            -- compute the size of the replied message\n";
-      body += "            Mesg_Size := Giop_S.Reply_Header_Size ;\n";
+      body += "            Mesg_Size := AdaBroker.GIOP_S.Reply_Header_Size ;\n";
       body += "            -- Initialisation of the reply\n";
-      body += "            Giop_S.Initialize_Reply (Orls, Giop.NO_EXCEPTION, Mesg_Size) ;\n";
+      body += "            AdaBroker.GIOP_S.Initialize_Reply (Orls, AdaBroker.GIOP.NO_EXCEPTION, Mesg_Size) ;\n";
       body += "            -- inform the orb\n";
-      body += "            Giop_S.Reply_Completed (Orls) ;\n";
+      body += "            AdaBroker.GIOP_S.Reply_Completed (Orls) ;\n";
       
       body += "            Dispatch_Returns := True ;\n";
       body += "            return ;\n";

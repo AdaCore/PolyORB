@@ -16,16 +16,16 @@
 
 with Ada.Command_Line ;
 with Text_Io ; use Text_Io ;
-with Corba, Corba.Orb, Corba.Boa, Corba.Object ;
+with CORBA, CORBA.Orb, CORBA.Boa, CORBA.Object ;
 with All_Types ; use All_Types ;
-use Corba.Object ;
+use CORBA.Object ;
 
 procedure Client is
 
    -- initialization of the ORB
-   Orb : Corba.Orb.Object := Corba.Orb.Orb_Init("omniORB2");
+   Orb : CORBA.Orb.Object := CORBA.Orb.Orb_Init("omniORB2");
 
-   IOR : Corba.String ;
+   IOR : CORBA.String ;
    MyAll_Types : All_Types.Ref ;
 
    ----------------------------
@@ -34,23 +34,23 @@ procedure Client is
 
    procedure Put (Str : in Simple_Struct) is
    begin
-      Put ("( a = (" & Corba.Long'Image(Str.A(0)));
+      Put ("( a = (" & CORBA.Long'Image(Str.A(0)));
       for I in 1 .. 9 loop
-         Put ("," & Corba.Long'Image(Str.A(I))) ;
+         Put ("," & CORBA.Long'Image(Str.A(I))) ;
       end loop ;
-      Put (" ) and b = " & Corba.Long'Image(Str.B)) ;
+      Put (" ) and b = " & CORBA.Long'Image(Str.B)) ;
       Put (" )") ;
    end;
 
    procedure Put (Ex : in Example) is
    begin
       Put ("( switch = " &
-           Corba.Long'Image(Ex.Switch) &
+           CORBA.Long'Image(Ex.Switch) &
            " and") ;
       case Ex.Switch is
-         when 1 => Put (" Counter = " & Corba.Long'Image(Ex.Counter)) ;
-         when 2 => Put (" Flags = " & Corba.Boolean'Image(Ex.Flags)) ;
-         when others => Put (" Unknown = " & Corba.Long'Image(Ex.Unknown)) ;
+         when 1 => Put (" Counter = " & CORBA.Long'Image(Ex.Counter)) ;
+         when 2 => Put (" Flags = " & CORBA.Boolean'Image(Ex.Flags)) ;
+         when others => Put (" Unknown = " & CORBA.Long'Image(Ex.Unknown)) ;
       end case ;
       Put (" )") ;
    end;
@@ -58,20 +58,20 @@ procedure Client is
    procedure Put (Seq : in U_Sequence) is
    begin
       for I in 1..Length(Seq) loop
-         Put (" " & Corba.Short'Image(Element_Of(Seq,I))) ;
+         Put (" " & CORBA.Short'Image(Element_Of(Seq,I))) ;
       end loop ;
    end ;
 
    procedure Put (Seq : in B_Sequence) is
    begin
       for I in 1..Length(Seq) loop
-         Put (" " & Corba.Long'Image(Element_Of(Seq,I))) ;
+         Put (" " & CORBA.Long'Image(Element_Of(Seq,I))) ;
       end loop ;
    end ;
 
-   procedure Put (St : in Corba.String) is
+   procedure Put (St : in CORBA.String) is
    begin
-      Put (Corba.To_Standard_String(St)) ;
+      Put (CORBA.To_Standard_String(St)) ;
    end ;
 
 
@@ -84,19 +84,19 @@ begin
       return ;
    end if ;
 
-   -- transforms the Ada string into Corba.String
-   IOR := Corba.To_Corba_String(Ada.Command_Line.Argument(1))  ;
+   -- transforms the Ada string into CORBA.String
+   IOR := CORBA.To_Corba_String(Ada.Command_Line.Argument(1))  ;
 
-   -- getting the Corba.Object
-   Corba.Orb.String_To_Object(IOR, MyAll_Types) ;
-   Put_Line("main : Got the Corba.Object") ;
+   -- getting the CORBA.Object
+   CORBA.Orb.String_To_Object(IOR, MyAll_Types) ;
+   Put_Line("main : Got the CORBA.Object") ;
 
    -- checking if it worked
    if All_Types.Is_Nil(MyAll_Types) then
       Put_Line("main : cannot invoke on a nil reference") ;
       return ;
    end if ;
-   Put_Line("main : Ok : Corba.Object is not nil") ;
+   Put_Line("main : Ok : CORBA.Object is not nil") ;
 
 
    ----------------------
@@ -113,120 +113,120 @@ begin
 
    -- Boolean
    declare
-      Arg : Corba.Boolean := True ;
+      Arg : CORBA.Boolean := True ;
    begin
    Put_Line ("####### Test of Boolean #######") ;
-   Put_Line("I sent : " & Corba.Boolean'Image(Arg)) ;
+   Put_Line("I sent : " & CORBA.Boolean'Image(Arg)) ;
    Arg := EchoBoolean(MyAll_Types, Arg) ;
-   Put_Line("I received : " & Corba.Boolean'Image(Arg)) ;
+   Put_Line("I received : " & CORBA.Boolean'Image(Arg)) ;
    Put_Line("") ;
    Put_Line("") ;
    end ;
 
    -- Short
    declare
-      Arg : Corba.Short := 123 ;
+      Arg : CORBA.Short := 123 ;
    begin
    Put_Line ("####### Test of Short #######") ;
-   Put_Line("I sent : " & Corba.Short'Image(Arg)) ;
+   Put_Line("I sent : " & CORBA.Short'Image(Arg)) ;
    Arg := EchoShort(MyAll_Types, Arg) ;
-   Put_Line("I received : " & Corba.Short'Image(Arg)) ;
+   Put_Line("I received : " & CORBA.Short'Image(Arg)) ;
    Put_Line("") ;
    Put_Line("") ;
    end ;
 
    -- Long
    declare
-      Arg : Corba.Long := 456 ;
+      Arg : CORBA.Long := 456 ;
    begin
    Put_Line ("####### Test of Long #######") ;
-   Put_Line("I sent : " & Corba.Long'Image(Arg)) ;
+   Put_Line("I sent : " & CORBA.Long'Image(Arg)) ;
    Arg := EchoLong(MyAll_Types, Arg) ;
-   Put_Line("I received : " & Corba.Long'Image(Arg)) ;
+   Put_Line("I received : " & CORBA.Long'Image(Arg)) ;
    Put_Line("") ;
    Put_Line("") ;
    end ;
 
    -- unsigned_short
    declare
-      Arg : Corba.Unsigned_Short := 123 ;
+      Arg : CORBA.Unsigned_Short := 123 ;
    begin
    Put_Line ("####### Test of Unsigned_Short #######") ;
-   Put_Line("I sent : " & Corba.Unsigned_Short'Image(Arg)) ;
+   Put_Line("I sent : " & CORBA.Unsigned_Short'Image(Arg)) ;
    Arg := EchoUShort(MyAll_Types, Arg) ;
-   Put_Line("I received : " & Corba.Unsigned_Short'Image(Arg)) ;
+   Put_Line("I received : " & CORBA.Unsigned_Short'Image(Arg)) ;
    Put_Line("") ;
    Put_Line("") ;
    end ;
 
    -- unsigned_long
    declare
-      Arg : Corba.Unsigned_Long := 123 ;
+      Arg : CORBA.Unsigned_Long := 123 ;
    begin
    Put_Line ("####### Test of Unsigned_Long #######") ;
-   Put_Line("I sent : " & Corba.Unsigned_Long'Image(Arg)) ;
+   Put_Line("I sent : " & CORBA.Unsigned_Long'Image(Arg)) ;
    Arg := EchoULong(MyAll_Types, Arg) ;
-   Put_Line("I received : " & Corba.Unsigned_Long'Image(Arg)) ;
+   Put_Line("I received : " & CORBA.Unsigned_Long'Image(Arg)) ;
    Put_Line("") ;
    Put_Line("") ;
    end ;
 
    -- float
    declare
-      Arg : Corba.Float := 1.5 ;
+      Arg : CORBA.Float := 1.5 ;
    begin
    Put_Line ("####### Test of Float #######") ;
-   Put_Line("I sent : " & Corba.Float'Image(Arg)) ;
+   Put_Line("I sent : " & CORBA.Float'Image(Arg)) ;
    Arg := EchoFloat(MyAll_Types, Arg) ;
-   Put_Line("I received : " & Corba.Float'Image(Arg)) ;
+   Put_Line("I received : " & CORBA.Float'Image(Arg)) ;
    Put_Line("") ;
    Put_Line("") ;
    end ;
 
    -- double
    declare
-      Arg : Corba.Double := 3.14 ;
+      Arg : CORBA.Double := 3.14 ;
    begin
    Put_Line ("####### Test of Double #######") ;
-   Put_Line("I sent : " & Corba.Double'Image(Arg)) ;
+   Put_Line("I sent : " & CORBA.Double'Image(Arg)) ;
    Arg := EchoDouble(MyAll_Types, Arg) ;
-   Put_Line("I received : " & Corba.Double'Image(Arg)) ;
+   Put_Line("I received : " & CORBA.Double'Image(Arg)) ;
    Put_Line("") ;
    Put_Line("") ;
    end ;
 
    -- char
    declare
-      Arg : Corba.Char := 'A' ;
+      Arg : CORBA.Char := 'A' ;
    begin
    Put_Line ("####### Test of Char #######") ;
-   Put_Line("I sent : " & Corba.Char'Image(Arg)) ;
+   Put_Line("I sent : " & CORBA.Char'Image(Arg)) ;
    Arg := EchoChar(MyAll_Types, Arg) ;
-   Put_Line("I received : " & Corba.Char'Image(Arg)) ;
+   Put_Line("I received : " & CORBA.Char'Image(Arg)) ;
    Put_Line("") ;
    Put_Line("") ;
    end ;
 
    -- octet
    declare
-      Arg : Corba.Octet := Corba.Octet(5) ;
+      Arg : CORBA.Octet := CORBA.Octet(5) ;
    begin
    Put_Line ("####### Test of Octet #######") ;
-   Put_Line("I sent : " & Corba.Octet'Image(Arg)) ;
+   Put_Line("I sent : " & CORBA.Octet'Image(Arg)) ;
    Arg := EchoOctet(MyAll_Types, Arg) ;
-   Put_Line("I received : " & Corba.Octet'Image(Arg)) ;
+   Put_Line("I received : " & CORBA.Octet'Image(Arg)) ;
    Put_Line("") ;
    Put_Line("") ;
    end ;
 
    -- string
    declare
-      Arg : Corba.String := Corba.To_Corba_String(Standard.String'("Hello world"));
+      Arg : CORBA.String := CORBA.To_Corba_String(Standard.String'("Hello world"));
    begin
    Put_Line ("####### Test of String #######") ;
-   Put_Line("I sent : " & Corba.To_Standard_String(Arg)) ;
+   Put_Line("I sent : " & CORBA.To_Standard_String(Arg)) ;
    Arg := EchoString(MyAll_Types, Arg) ;
-   Put_Line("I received : " & Corba.To_Standard_String(Arg)) ;
+   Put_Line("I received : " & CORBA.To_Standard_String(Arg)) ;
    Put_Line("") ;
    Put_Line("") ;
    end ;
@@ -263,7 +263,7 @@ begin
          Put_Line ("A complexe exception has just been catched !!!") ;
          Get_Members (E,Member) ;
          Put_Line ("It has a member whose value is : " &
-                   Corba.Long'Image(Member.Excep)) ;
+                   CORBA.Long'Image(Member.Excep)) ;
    end ;
 
    Put_Line ("") ;
@@ -318,14 +318,14 @@ begin
 
    -- unbounded strings
    declare
-      Str,Str2 : U_String := U_String(Corba.To_Corba_String(Standard.String'("Hello Adabroker !!!"))) ;
+      Str,Str2 : U_String := U_String(CORBA.To_Corba_String(Standard.String'("Hello Adabroker !!!"))) ;
    begin
       Put_Line ("####### Test of unbounded strings #######") ;
       Put_Line ("I send the unbounded string " &
-                Corba.To_Standard_String(Corba.String(Str))) ;
+                CORBA.To_Standard_String(CORBA.String(Str))) ;
       Str2 := Echo4 (MyAll_Types,Str) ;
       Put_Line ("I received the unbounded string " &
-                Corba.To_Standard_String(Corba.String(Str2))) ;
+                CORBA.To_Standard_String(CORBA.String(Str2))) ;
    end ;
 
    Put_Line ("") ;
@@ -477,14 +477,14 @@ begin
 
    -- arrays (3)
    declare
-      S1 : Corba.string := Corba.To_Corba_String(Standard.String'("case1")) ;
-      S2 : Corba.string := Corba.To_Corba_String(Standard.String'("case2")) ;
-      S3 : Corba.string := Corba.To_Corba_String(Standard.String'("case3")) ;
-      S4 : Corba.string := Corba.To_Corba_String(Standard.String'("case4")) ;
-      S5 : Corba.string := Corba.To_Corba_String(Standard.String'("case5")) ;
-      S6 : Corba.string := Corba.To_Corba_String(Standard.String'("case6")) ;
-      S7 : Corba.string := Corba.To_Corba_String(Standard.String'("case7")) ;
-      S8 : Corba.string := Corba.To_Corba_String(Standard.String'("case8")) ;
+      S1 : CORBA.string := CORBA.To_Corba_String(Standard.String'("case1")) ;
+      S2 : CORBA.string := CORBA.To_Corba_String(Standard.String'("case2")) ;
+      S3 : CORBA.string := CORBA.To_Corba_String(Standard.String'("case3")) ;
+      S4 : CORBA.string := CORBA.To_Corba_String(Standard.String'("case4")) ;
+      S5 : CORBA.string := CORBA.To_Corba_String(Standard.String'("case5")) ;
+      S6 : CORBA.string := CORBA.To_Corba_String(Standard.String'("case6")) ;
+      S7 : CORBA.string := CORBA.To_Corba_String(Standard.String'("case7")) ;
+      S8 : CORBA.string := CORBA.To_Corba_String(Standard.String'("case8")) ;
       Ar1 : cube := (((S1, S2), (S3, S4)), ((S5, S6), (S7, S8))) ;
       Ar2 : cube ;
 
@@ -554,13 +554,13 @@ begin
 
    -- object.ref
    declare
-      O,O1 : Corba.Object.Ref ;
+      O,O1 : CORBA.Object.Ref ;
    begin
-      Put_Line ("####### Test of Corba.Object.Ref #######") ;
-      Put_Line ("I send the Corba.Object ") ;
+      Put_Line ("####### Test of CORBA.Object.Ref #######") ;
+      Put_Line ("I send the CORBA.Object ") ;
       O1 := To_Ref(Myall_Types);
       O := Echo12 (MyAll_Types, O1) ;
-      Put_Line ("I received the Corba.Object ") ;
+      Put_Line ("I received the CORBA.Object ") ;
    end ;
 
    Put_Line ("") ;

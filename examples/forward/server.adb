@@ -1,10 +1,10 @@
 with Ada.Command_Line ;
 with Text_Io ; use Text_Io ;
-with Corba ; use Corba ;
-with Corba.Object ;
-with Corba.Orb ; use Corba.Orb ;
-with Corba.Boa ; use Corba.Boa ;
-with Exceptions ;
+with CORBA ; use CORBA ;
+with CORBA.Object ;
+with CORBA.Orb ; use CORBA.Orb ;
+with CORBA.Boa ; use CORBA.Boa ;
+with AdaBroker.Exceptions ;
 with Chicken ;
 with Chicken_Forward ;
 with Egg ;
@@ -13,11 +13,11 @@ with Egg.Impl ;
 with Chicken.Impl ;
 
 procedure Server is
-   Orb : Corba.Orb.Object := Corba.Orb.Orb_Init("omniORB2") ;
-   Boa : Corba.Boa.Object := Corba.Orb.Boa_Init(Orb, "omniORB2_BOA") ;
+   Orb : CORBA.Orb.Object := CORBA.Orb.Orb_Init("omniORB2") ;
+   Boa : CORBA.Boa.Object := CORBA.Orb.Boa_Init(Orb, "omniORB2_BOA") ;
    Myegg : Egg.Impl.Object ;
    Mychicken : Chicken.Impl.Object ;
-   Ior : Corba.String ;
+   Ior : CORBA.String ;
 begin
 
    Put_Line("MAIN : Starting server") ;

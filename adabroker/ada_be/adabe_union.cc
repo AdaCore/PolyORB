@@ -142,18 +142,18 @@ adabe_union::produce_marshal_ads(dep_list& with, string &body, string &previous)
   body += "   procedure Marshall (A : in ";
   body += get_ada_local_name();
   body += " ;\n";
-  body += "                       S : in out Netbufferedstream.Object'Class) ;\n\n";
+  body += "                       S : in out AdaBroker.NetBufferedStream.Object'Class) ;\n\n";
 
   body += "   procedure UnMarshall (A : out ";
   body += get_ada_local_name();
   body += " ;\n";
-  body += "                         S : in out Netbufferedstream.Object'Class) ;\n\n";
+  body += "                         S : in out AdaBroker.NetBufferedStream.Object'Class) ;\n\n";
 
   body += "   function Align_Size (A : in ";
   body += get_ada_local_name();
   body += " ;\n";
-  body += "                        Initial_Offset : in Corba.Unsigned_Long)\n";
-  body += "                        return Corba.Unsigned_Long ;\n\n\n";
+  body += "                        Initial_Offset : in CORBA.Unsigned_Long)\n";
+  body += "                        return CORBA.Unsigned_Long ;\n\n\n";
 
   // the marshall function have been defined
   set_already_defined ();
@@ -171,7 +171,7 @@ adabe_union::produce_marshal_adb(dep_list& with, string &body, string &previous)
   // serve )
   string default_case = "";
   default_case += "         when others =>\n";
-  default_case += "            Ada.Exceptions.Raise_Exception(Corba.Dummy_User'Identity,\n";
+  default_case += "            Ada.Exceptions.Raise_Exception(CORBA.Dummy_User'Identity,\n";
   default_case += "                                            \"Unchecked case is used in the union\") ;\n";
 
   // defining the marshall, unmarshall
@@ -185,7 +185,7 @@ adabe_union::produce_marshal_adb(dep_list& with, string &body, string &previous)
   marshall += "   procedure Marshall(A : in ";
   marshall += get_ada_local_name();
   marshall += " ;\n";
-  marshall += "                      S : in out Netbufferedstream.Object'Class) is\n";
+  marshall += "                      S : in out AdaBroker.NetBufferedStream.Object'Class) is\n";
   marshall += "   begin\n";
   marshall += "      Marshall (A.Switch,S) ;\n";
   marshall += "      case A.Switch is\n";
@@ -193,7 +193,7 @@ adabe_union::produce_marshal_adb(dep_list& with, string &body, string &previous)
   unmarshall += "   procedure UnMarshall(A : out ";
   unmarshall += get_ada_local_name();
   unmarshall += " ;\n";
-  unmarshall += "                        S : in out Netbufferedstream.Object'Class) is\n";
+  unmarshall += "                        S : in out AdaBroker.NetBufferedStream.Object'Class) is\n";
   unmarshall += "      Switch : ";
   unmarshall += disc_name;
   unmarshall += " ;\n";
@@ -209,9 +209,9 @@ adabe_union::produce_marshal_adb(dep_list& with, string &body, string &previous)
   align_size += "   function Align_Size (A : in ";
   align_size += get_ada_local_name();
   align_size += " ;\n";
-  align_size += "                        Initial_Offset : in Corba.Unsigned_Long)\n";
-  align_size += "                        return Corba.Unsigned_Long is\n";
-  align_size += "      Tmp : Corba.Unsigned_Long := 0 ;\n";
+  align_size += "                        Initial_Offset : in CORBA.Unsigned_Long)\n";
+  align_size += "                        return CORBA.Unsigned_Long is\n";
+  align_size += "      Tmp : CORBA.Unsigned_Long := 0 ;\n";
   align_size += "   begin\n";
   align_size += "      Tmp := Align_Size (A.Switch,Initial_Offset) ;\n";
   align_size += "      case A.Switch is\n";
@@ -236,10 +236,10 @@ adabe_union::produce_marshal_adb(dep_list& with, string &body, string &previous)
       marshall += default_case;
       align_size += default_case;
       unmarshall += "            when others =>\n";
-      unmarshall += "               Ada.Exceptions.Raise_Exception(Corba.Dummy_User'Identity,\n";
+      unmarshall += "               Ada.Exceptions.Raise_Exception(CORBA.Dummy_User'Identity,\n";
       unmarshall += "                                               \"Unchecked case is used in the union\") ;\n";
 
-      with.add("Corba");
+      with.add("CORBA");
       with.add("Ada.Exceptions");
     }
 

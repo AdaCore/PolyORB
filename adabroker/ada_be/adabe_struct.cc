@@ -82,17 +82,17 @@ adabe_structure::produce_marshal_ads(dep_list &with, string &body, string &previ
   body += "   procedure Marshall (A : in ";
   body += get_ada_local_name();
   body += " ;\n";
-  body += "                       S : in out Netbufferedstream.Object'Class) ;\n\n";
+  body += "                       S : in out AdaBroker.NetBufferedStream.Object'Class) ;\n\n";
   body += "   procedure UnMarshall (A : out ";
   body += get_ada_local_name();
   body += " ;\n";
-  body += "                         S : in out Netbufferedstream.Object'Class) ;\n\n";
+  body += "                         S : in out AdaBroker.NetBufferedStream.Object'Class) ;\n\n";
   body += "   function Align_Size (A : in ";
   body += get_ada_local_name();
   body += " ;\n";
-  body += "                        Initial_Offset : in Corba.Unsigned_Long ;\n";
-  body += "                        N : in Corba.Unsigned_Long := 1)\n";
-  body += "                        return Corba.Unsigned_Long ;\n\n\n";
+  body += "                        Initial_Offset : in CORBA.Unsigned_Long ;\n";
+  body += "                        N : in CORBA.Unsigned_Long := 1)\n";
+  body += "                        return CORBA.Unsigned_Long ;\n\n\n";
 
   set_already_defined();
 }
@@ -110,22 +110,22 @@ adabe_structure::produce_marshal_adb(dep_list &with, string &body, string &previ
   marshall += "   procedure Marshall(A : in ";
   marshall += get_ada_local_name();
   marshall += " ;\n";
-  marshall += "                      S : in out Netbufferedstream.Object'Class) is\n";
+  marshall += "                      S : in out AdaBroker.NetBufferedStream.Object'Class) is\n";
   marshall += "   begin\n";
   
   unmarshall += "   procedure UnMarshall(A : out ";
   unmarshall += get_ada_local_name();
   unmarshall += " ;\n";
-  unmarshall += "                        S : in out Netbufferedstream.Object'Class) is\n";
+  unmarshall += "                        S : in out AdaBroker.NetBufferedStream.Object'Class) is\n";
   unmarshall += "   begin\n";
   
   align_size += "   function Align_Size (A : in ";
   align_size += get_ada_local_name();
   align_size += " ;\n";
-  align_size += "                        Initial_Offset : in Corba.Unsigned_Long ;\n";
-  align_size += "                        N : in Corba.Unsigned_Long := 1)\n";
-  align_size += "                        return Corba.Unsigned_Long is\n";
-  align_size += "      Tmp : Corba.Unsigned_Long := Initial_Offset ;\n";
+  align_size += "                        Initial_Offset : in CORBA.Unsigned_Long ;\n";
+  align_size += "                        N : in CORBA.Unsigned_Long := 1)\n";
+  align_size += "                        return CORBA.Unsigned_Long is\n";
+  align_size += "      Tmp : CORBA.Unsigned_Long := Initial_Offset ;\n";
   align_size += "   begin\n";
   align_size += "      for I in 1..N loop\n";
 

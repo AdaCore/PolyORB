@@ -1,8 +1,8 @@
-with Omniobject ;
+with AdaBroker.Omniobject ;
 with Corba ;
 package Echo.Impl is
 
-   type Object is new Omniobject.Implemented_Object with private ;
+   type Object is new AdaBroker.Omniobject.Implemented_Object with private ;
    type Object_Ptr is access all Object ;
 
 
@@ -18,7 +18,7 @@ package Echo.Impl is
 private
 
    -- You may add fields to this record
-   type Object is new Omniobject.Implemented_Object with record
+   type Object is new AdaBroker.Omniobject.Implemented_Object with record
       Null ;
    end record ;
 

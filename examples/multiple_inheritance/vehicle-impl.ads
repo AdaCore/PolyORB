@@ -1,8 +1,8 @@
-with Omniobject ;
+with AdaBroker.OmniObject ;
 with Corba ;
 package vehicle.Impl is
 
-   type Object is new Omniobject.Implemented_Object with private ;
+   type Object is new AdaBroker.OmniObject.Implemented_Object with private ;
    type Object_Ptr is access all Object ;
 
 
@@ -23,7 +23,7 @@ package vehicle.Impl is
 private
 
    -- You may add fields to this record
-   type Object is new Omniobject.Implemented_Object with record
+   type Object is new AdaBroker.OmniObject.Implemented_Object with record
       Null ;
    end record ;
 

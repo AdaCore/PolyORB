@@ -1,11 +1,13 @@
 with Ada.Exceptions;
 with CORBA.Object;
 
-with Adabroker_Debug; use Adabroker_Debug;
+with AdaBroker.Debug;
+pragma Elaborate (AdaBroker.Debug);
 
 package body CORBA.Forward is
 
-   Debug : constant Boolean := Adabroker_Debug.Is_Active ("corba.forward");
+   Flag : constant Natural := AdaBroker.Debug.Is_Active ("corba.forward");
+   procedure O is new AdaBroker.Debug.Output (Flag);
 
    ------------
    -- To_Ref --
@@ -39,8 +41,7 @@ package body CORBA.Forward is
          return Ref_Type
       is
       begin
-         pragma Debug
-           (Output (Debug, "CORBA.Forward.From_Forward : entering"));
+         pragma Debug (O ("CORBA.Forward.From_Forward : entering"));
          return To_Ref (The_Forward);
       end From_Forward;
 
@@ -54,9 +55,9 @@ package body CORBA.Forward is
       is
          Result : Ref;
       begin
-         pragma Debug (Output (Debug, "CORBA.Forward.To_Forward : enter"));
+         pragma Debug (O ("CORBA.Forward.To_Forward : enter"));
          CORBA.Object.Internal_Copy (The_Ref, Result);
-         pragma Debug (Output (Debug, "CORBA.Forward.To_Forward : leave"));
+         pragma Debug (O ("CORBA.Forward.To_Forward : leave"));
          return Result;
       end To_Forward;
 

@@ -1,9 +1,9 @@
-with Omniobject ;
-with Corba ;
-with Corba.Object ;
+with AdaBroker.OmniObject ;
+with CORBA ;
+with CORBA.Object ;
 package all_types.Impl is
 
-   type Object is new Omniobject.Implemented_Object with private ;
+   type Object is new AdaBroker.OmniObject.Implemented_Object with private ;
    type Object_Ptr is access all Object ;
 
 
@@ -11,25 +11,25 @@ package all_types.Impl is
    -- IDL definitions   --
    -----------------------
 
-   function echoBoolean(Self : access Object; arg : in Corba.Boolean) return Corba.Boolean ;
+   function echoBoolean(Self : access Object; arg : in CORBA.Boolean) return CORBA.Boolean ;
 
-   function echoShort(Self : access Object; arg : in Corba.Short) return Corba.Short ;
+   function echoShort(Self : access Object; arg : in CORBA.Short) return CORBA.Short ;
 
-   function echoLong(Self : access Object; arg : in Corba.Long) return Corba.Long ;
+   function echoLong(Self : access Object; arg : in CORBA.Long) return CORBA.Long ;
 
-   function echoUShort(Self : access Object; arg : in Corba.Unsigned_Short) return Corba.Unsigned_Short ;
+   function echoUShort(Self : access Object; arg : in CORBA.Unsigned_Short) return CORBA.Unsigned_Short ;
 
-   function echoULong(Self : access Object; arg : in Corba.Unsigned_Long) return Corba.Unsigned_Long ;
+   function echoULong(Self : access Object; arg : in CORBA.Unsigned_Long) return CORBA.Unsigned_Long ;
 
-   function echoFloat(Self : access Object; arg : in Corba.Float) return Corba.Float ;
+   function echoFloat(Self : access Object; arg : in CORBA.Float) return CORBA.Float ;
 
-   function echoDouble(Self : access Object; arg : in Corba.Double) return Corba.Double ;
+   function echoDouble(Self : access Object; arg : in CORBA.Double) return CORBA.Double ;
 
-   function echoChar(Self : access Object; arg : in Corba.Char) return Corba.Char ;
+   function echoChar(Self : access Object; arg : in CORBA.Char) return CORBA.Char ;
 
-   function echoOctet(Self : access Object; arg : in Corba.Octet) return Corba.Octet ;
+   function echoOctet(Self : access Object; arg : in CORBA.Octet) return CORBA.Octet ;
 
-   function echoString(Self : access Object; arg : in Corba.String) return Corba.String ;
+   function echoString(Self : access Object; arg : in CORBA.String) return CORBA.String ;
 
    procedure simple_exception_test(Self : access Object ) ;
    procedure complexe_exception_test(Self : access Object ) ;
@@ -60,7 +60,7 @@ package all_types.Impl is
 
    function echo11(Self : access Object; arg : in Ref) return Ref ;
 
-   function echo12(Self : access Object; arg : in Corba.Object.Ref) return Corba.Object.Ref ;
+   function echo12(Self : access Object; arg : in CORBA.Object.Ref) return CORBA.Object.Ref ;
 
    function Get_Myself(Self : access Object) return Ref ;
 
@@ -68,7 +68,7 @@ package all_types.Impl is
 private
 
    -- You may add fields to this record
-   type Object is new Omniobject.Implemented_Object with record
+   type Object is new AdaBroker.OmniObject.Implemented_Object with record
       Pd_Col : Color := Blue ;
       Pd_Ex : Example := (Switch => 1, Counter => 23) ;
    end record ;

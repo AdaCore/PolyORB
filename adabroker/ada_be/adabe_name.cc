@@ -577,7 +577,7 @@ adabe_name::is_imported (dep_list& with)
       adabe_interface *inter = dynamic_cast<adabe_interface *>(this);
       if ((string) local_name()->get_string() == "Object") 
 	{
-	  with.add ("Corba.Object");
+	  with.add ("CORBA.Object");
 	}
       else
 	if (inter->is_forwarded())

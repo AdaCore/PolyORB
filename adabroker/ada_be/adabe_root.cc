@@ -75,7 +75,7 @@ adabe_root::produce() {
       
       // addition of some usefull file 
       header_with.add("Ada.Unchecked_Deallocation") ;
-      header_with.add("Corba");
+      header_with.add("CORBA");
       header_with.add("AdaBroker") ;
       
       UTL_ScopeActiveIterator header_activator(this,UTL_Scope::IK_decls);
@@ -770,11 +770,11 @@ adabe_root::produce() {
       bool first = true;
       
       // some files must be added : !!!!!
-      marshal_header_previous += "use type Corba.Unsigned_Long; \n";
-      marshal_header_with.add ("Giop_C");
-      marshal_header_with.add ("Corba");
-      marshal_header_with.add("Netbufferedstream");
-      marshal_header_with.add("Membufferedstream");
+      marshal_header_previous += "use type CORBA.Unsigned_Long; \n";
+      marshal_header_with.add ("AdaBroker.GIOP_C");
+      marshal_header_with.add ("CORBA");
+      marshal_header_with.add("AdaBroker.NetBufferedStream");
+      marshal_header_with.add("AdaBroker.MemBufferedStream");
 
       marshal_header_previous += "Package " + get_ada_full_name() + ".marshal is\n";
 		  
@@ -915,8 +915,8 @@ adabe_root::produce() {
       string marshal_body_body          = "";
       dep_list marshal_body_with;
     
-      marshal_body_with.add("NetbufferedStream");
-      marshal_body_with.add ("MembufferedStream");
+      marshal_body_with.add("AdaBroker.NetBufferedStream");
+      marshal_body_with.add ("AdaBroker.MemBufferedStream");
       marshal_body_previous = "Package body " + get_ada_full_name() + ".marshal is \n";
 
       while (!marshal_body_activator.is_done())

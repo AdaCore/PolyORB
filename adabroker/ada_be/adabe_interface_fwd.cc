@@ -46,8 +46,8 @@ adabe_interface_fwd::produce_ads(dep_list& with, string &body, string &previous)
   char *lower_case_name = lower(file_name.c_str());
   ofstream file(lower_case_name);
   delete[] lower_case_name;
-  file << "with Corba.Forward ;\n";
-  file << "package " + get_ada_full_name() + "_Forward is new Corba.Forward ;\n";
+  file << "with CORBA.Forward ;\n";
+  file << "package " + get_ada_full_name() + "_Forward is new CORBA.Forward ;\n";
   file.close();  
 }
 
