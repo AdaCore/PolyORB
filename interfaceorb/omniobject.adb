@@ -179,46 +179,6 @@ package body OmniObject is
    end ;
 
 
-   -- Dispatch
-   -----------
-   function Dispatch (Self : in Object'Class ;
-                      Orls : in Giop_S.Object ;
-                      Orl_Op : in String ;
-                      Orl_Response_Expected : in Boolean)
-                      return Boolean is
-   begin
-      return False ;
-   end;
-
-
-   --------------------------------------------------
-   ---        Adaobject is the root of            ---
-   --- Corba.Object.Ref and Corba.Object.Object   ---
-   --------------------------------------------------
-
-   -- Initialize
-   -------------
-   procedure Initialize(Self : in out AdaObject) is
-   begin
-      Self.Omniobj := null ;
-   end ;
-
-
-   -- Adjust
-   ---------
-   procedure Adjust(Self : in out AdaObject) is
-   begin
-      null ;
-   end ;
-
-
-   -- Finalize
-   -----------
-   procedure Finalize(Self : in out AdaObject) is
-   begin
-      null ;
-   end ;
-
 
 end OmniObject ;
 

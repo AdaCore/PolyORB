@@ -35,26 +35,14 @@ with OmniRopeAndKey ;
 
 package OmniObject is
 
-   type AdaObject is tagged private ;
-
-private
-
-
-   type AdaObject_Ptr is access all AdaObject ;
-  --------------------------------------------------
-   ---              Object is the                 ---
-   ---        equivalent of the C++ class         ---
-   --------------------------------------------------
-
-   type Object is tagged limited record
+   type Object is abstract tagged limited record
       Table : Interfaces.CPP.Vtable_Ptr ;
-      Adaobj : AdaObject_Ptr ;
    end record ;
 
    type Object_Ptr is access all Object ;
 
    pragma CPP_Class (Object);
-   pragma CPP_Vtable (Object,Table,1);
+   pragma CPP_Vtable (Object,Table,2);
    -- This object is wrapped around Ada_OmniObject (see Ada_OmniObject.hh)
 
    procedure C_Init (Self : in out Object'Class ;
@@ -163,11 +151,12 @@ private
    -- This function is implemented in Ada and exported to C
    -- it calls th Ada function Dispatch
 
-   function Dispatch (Self : in Object'Class ;
+   function Dispatch (Self : in Object ;
                       Orls : in Giop_S.Object ;
                       Orl_Op : in String ;
                       Orl_Response_Expected : in Boolean)
-                      return Boolean ;
+                      return Boolean is abstract ;
+   pragma CPP_Virtual(Dispatch) ;
    -- Ada equivalent of C function C_Dispatch
    -- this function is called by the C one
    -- It is not implemented here but in the sub-classes of omniObject
@@ -179,30 +168,12 @@ private
 
 
 
---private
+private
 
    function Constructor return Object'Class;
    pragma CPP_Constructor (Constructor);
    pragma Import (CPP,Constructor,"__14Ada_OmniObject");
    -- wrapped around the C constructor of Ada_OmniObject
-
-
-
-   --------------------------------------------------
-   ---        Adaobject is the root of            ---
-   --- Corba.Object.Ref and Corba.Object.Object   ---
-   --------------------------------------------------
-
-   type AdaObject is new Ada.Finalization.Controlled with record
-      Omniobj : Object_Ptr ;
-   end record ;
-
-
-   procedure Initialize(Self : in out AdaObject) ;
-   procedure Adjust(Self : in out AdaObject) ;
-   procedure Finalize(Self : in out AdaObject) ;
-
-
 
 
 
