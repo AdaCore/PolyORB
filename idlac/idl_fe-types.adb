@@ -217,15 +217,42 @@ package body Idl_Fe.Types is
       Node : Node_Id)
      return Boolean is
    begin
+      pragma Debug (O2 ("Is_In_List : enter"));
       if List = Nil_List then
+         pragma Debug (O2 ("Is_In_List : enter"));
+         pragma Debug (O ("Is_In_List : nil_list"));
          return False;
       end if;
       if List.Car = Node then
+         pragma Debug (O2 ("Is_In_List : enter"));
+         pragma Debug (O ("Is_In_List : found"));
          return True;
       else
+         pragma Debug (O2 ("Is_In_List : enter"));
+         pragma Debug (O ("Is_In_List : searching further"));
          return Is_In_List (List.Cdr, Node);
       end if;
    end Is_In_List;
+
+   -------------------------
+   --  Is_In_Parent_List  --
+   -------------------------
+
+   function Is_In_Parent_List
+     (List : Node_List;
+      Node : Node_Id)
+      return Boolean is
+   begin
+      if List = Nil_List then
+         return False;
+      end if;
+      pragma Assert (Kind (List.Car) = K_Scoped_Name);
+      if Value (List.Car) = Value (Node) then
+         return True;
+      else
+         return Is_In_Parent_List (List.Cdr, Node);
+      end if;
+   end Is_In_Parent_List;
 
    -------------------
    --  Remove_Node  --
@@ -769,7 +796,7 @@ package body Idl_Fe.Types is
 
       pragma Debug (O ("Push_Scope : putting the old definition " &
                        "in the id_table."));
-      --  Qdd all definition of the new scope into the hash table,
+      --  Add all definition of the new scope into the hash table,
       --  in case there are some. Useful when a scoped is reopened.
       Reenter_Definition_List (Identifier_List (Scope));
       pragma Debug (O2 ("Push_Scope : end"));
@@ -1339,16 +1366,13 @@ package body Idl_Fe.Types is
       Definition : Identifier_Definition_Acc;
       Parent : Node_List;
    begin
-
+      pragma Debug (O2 ("Find_Identifier_In_Inheritance : enter"));
       Parent :=  Parents (Scope);
       Init (It, Parent);
       --  loop for all the Parent of the scope
       while not Is_End (It) loop
          Get_Next_Node (It, Node);
-
-         if Kind (Node) /= K_Scoped_Name then
-            raise Idl_Fe.Errors.Internal_Error;
-         end if;
+         pragma Assert (Kind (Node) = K_Scoped_Name);
          pragma Debug (O ("Find_Identifier_In_Inheritance : " &
                           Node_Kind'Image (Kind (Node))));
          Definition := Find_Identifier_In_Storage
@@ -1362,6 +1386,7 @@ package body Idl_Fe.Types is
                List);
          end if;
       end loop;
+      pragma Debug (O2 ("Find_Identifier_In_Inheritance : end"));
       return;
    end Find_Identifier_In_Inheritance;
 
@@ -1373,8 +1398,8 @@ package body Idl_Fe.Types is
      (Name : String)
      return Identifier_Definition_Acc
    is
-      Result_List : Node_List := null;
-      First_List : Node_List := null;
+      Result_List : Node_List := Nil_List;
+      First_List : Node_List := Nil_List;
    begin
       pragma Debug (O2 ("Find_Inherited_Identifier_Definition : enter"));
       --  There are no imports in modules.
@@ -1416,7 +1441,8 @@ package body Idl_Fe.Types is
                              "Many definitions found in inheritance"));
 
             Idl_Fe.Errors.Parser_Error ("Multiple definitions found" &
-                                        " in inheritance.",
+                                        " in inheritance : ambiguous " &
+                                        "referance",
                                         Idl_Fe.Errors.Error,
                                         Idl_Fe.Lexer.Get_Lexer_Location);
 
