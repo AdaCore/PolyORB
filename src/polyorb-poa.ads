@@ -72,7 +72,14 @@ package PolyORB.POA is
          POA_Manager                : PolyORB.POA_Manager.Ref;
          Boot_Time                  : Time_Stamp;
          Absolute_Address           : Types.String;
+
          Active_Object_Map          : PolyORB.Object_Maps.Object_Map_Access;
+         --  The active object map (NULL if the policies used for this POA
+         --  do not require one).
+
+         Default_Servant            : Servant_Access;
+         --  The default servant (NULL if the policies used for this POA
+         --  do not require one).
 
          --  Policies (one of each is required)
          Thread_Policy              : ThreadPolicy_Access             := null;

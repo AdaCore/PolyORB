@@ -56,6 +56,7 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-poa_policies-lifespan_policy-transient.ads \
 		polyorb-poa_policies-lifespan_policy-persistent.ads \
 		polyorb-poa_policies-request_processing_policy-active_object_map_only.ads \
+		polyorb-poa_policies-request_processing_policy-use_default_servant.ads \
 		polyorb-poa_policies-servant_retention_policy-retain.ads \
 		polyorb-poa_policies-thread_policy-orb_ctrl.ads \
 		polyorb-poa_types.ads \
