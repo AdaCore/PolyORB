@@ -907,6 +907,11 @@ package body System.Garlic.Heart is
 
       Filtered := Filter_Outgoing (Partition, Operation, Params);
 
+      --  Workaround: XXXXX (Bad code generation on Solaris)
+      if Filtered = null then
+         raise Program_Error;
+      end if;
+
       --  Compute the length of the packet: this is the length of the
       --  unused space that will be used by the protocol to stick its own
       --  data at the beginning + 1 for the opcode + 1 for partition id +
