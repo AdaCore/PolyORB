@@ -90,8 +90,6 @@ with Auto_Print;
 with Menu;
 --  From COS Naming, provide text interface.
 
-with GNAT.OS_Lib;
-
 procedure Test_Event is
 
    use Ada.Exceptions;
@@ -559,7 +557,7 @@ procedure Test_Event is
 
    procedure Exit_All is
    begin
-      GNAT.OS_Lib.OS_Exit (1);
+      CORBA.ORB.Shutdown (False);
    end Exit_All;
 
    ---------------
@@ -587,6 +585,7 @@ procedure Test_Event is
 
                   when Quit =>
                      Exit_All;
+                     exit;
 
                   when Create =>
                      if Argc /= 3 then
