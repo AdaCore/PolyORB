@@ -339,7 +339,7 @@ package body Ada_Be.Idl2Ada is
 
                   --  The controlling formal parameter
 
-                  Put (CU, "(Self.Ptr.all");
+                  Put (CU, "( Value_Impl.Object_Ptr (Self.Ptr)");
 
                   --  The remaining formals
 

@@ -37,7 +37,7 @@ with CORBA.Impl;
 package CORBA.Value is
 
    type Base is abstract new CORBA.AbstractBase.Ref with null record;
-   
+
    type Impl_Base is abstract new CORBA.Impl.Object with null record;
    --  ambiguous spec, does it inherit from nothing or from
    --  CORBA.Impl.Object ? CORBA.Impl.Object seems better, to provide

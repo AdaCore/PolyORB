@@ -46,19 +46,6 @@ package body Ada_Be.Idl2Ada.Impl is
 
          when K_Operation =>
 
-            --  No operation profile is generated for expanded
-            --  state members.
-
-            declare
-               Old : Node_Id := Original_Node (Node);
-            begin
-               if Old /= No_Node then
-                  if Kind (Old) = K_State_Member then
-                     return;
-                  end if;
-               end if;
-            end;
-
             if not Is_Implicit_Inherited (Node) then
                Gen_Operation_Profile (CU, "access Object", Node);
                PL (CU, ";");
