@@ -31,9 +31,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/examples/corba/echo/echo-impl.adb#2 $
+--  $Id: //droopi/main/examples/corba/echo/echo-impl.adb#3 $
 
 with Ada.Text_IO;
+
 with Echo.Skel;
 pragma Elaborate (Echo.Skel);
 pragma Warnings (Off, Echo.Skel);
@@ -41,8 +42,13 @@ pragma Warnings (Off, Echo.Skel);
 
 package body Echo.Impl is
 
+   ----------------
+   -- EchoString --
+   ----------------
+
    function EchoString
-     (Self : access Object; Mesg : in CORBA.String)
+     (Self : access Object;
+      Mesg : in     CORBA.String)
      return CORBA.String
    is
       pragma Warnings (Off);

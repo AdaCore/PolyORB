@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,77 +34,57 @@
 --  $Id$
 
 with Ada.Text_IO;
-with GNAT.Command_Line;  use GNAT.Command_Line;
 
-with PolyORB.CORBA_P.Server_Tools;
+with CORBA.Impl;
+with CORBA.Object;
+with CORBA.ORB;
+
+with PortableServer.POA;
+with PortableServer.POAManager;
+
+with Echo.Impl;
+
+--  Setup server node: use no tasking default configuration
 
 with PolyORB.Setup.No_Tasking_Server;
 pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
 pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
 
-with CORBA;
-with CORBA.Object;
-with CORBA.ORB;
-with CORBA.Impl;
-with PortableServer;
-
-with Echo.Impl;
-
 procedure Server is
-   use PolyORB.CORBA_P.Server_Tools;
-
-   Ref             : CORBA.Object.Ref;
-   --  Register_Server : Boolean := False;
-   --  Use_Delegate    : Boolean := False;
-
 begin
    CORBA.ORB.Initialize ("ORB");
 
-   --  Parse command line
-
-   loop
-      case Getopt ("d s") is
-         when ASCII.NUL => exit;
-         --  when 'd'       => Use_Delegate := True;
-         --  when 's'       => Register_Server := True;
-         when others    => raise Program_Error;
-      end case;
-   end loop;
-
-   --  Should we use the Delegate or the regular version?
-
    declare
---       use CORBA.Impl;
+      Root_POA : PortableServer.POA.Ref;
 
-      Obj : constant CORBA.Impl.Object_Ptr
-        := new Echo.Impl.Object;
+      Ref : CORBA.Object.Ref;
+
+      Obj : constant CORBA.Impl.Object_Ptr := new Echo.Impl.Object;
+
    begin
-      Initiate_Servant (PortableServer.Servant (Obj), Ref);
-      --  Note that Ref is a smart pointer to a Reference_Info, *not*
-      --  to a CORBA.Impl.Object.
+      --  Retrieve Root POA
+
+      Root_POA := PortableServer.POA.To_Ref
+        (CORBA.ORB.Resolve_Initial_References
+         (CORBA.ORB.To_CORBA_String ("RootPOA")));
+
+      PortableServer.POAManager.Activate
+        (PortableServer.POA.Get_The_POAManager (Root_POA));
+
+      --  Set up new object
+
+      Ref := PortableServer.POA.Servant_To_Reference
+        (Root_POA, PortableServer.Servant (Obj));
+
+      --  Output IOR
+
+      Ada.Text_IO.Put_Line
+        ("'"
+         & CORBA.To_Standard_String (CORBA.Object.Object_To_String (Ref))
+         & "'");
+
+      --  Launch the server
+
+      CORBA.ORB.Run;
    end;
-
-   --  If the server is to be registered, check whether there is a name
-   --  given on the command line, use "echo" otherwise.
-
---   if Register_Server then
---      declare
---         Name : constant String := Get_Argument;
---      begin
---         if Name = "" then
---            Register ("echo", Ref);
---         else
---            Register (Name, Ref);
---         end if;
---      end;
---   end if;
-
-   --  Print IOR so that we can give it to a client
-
-   Ada.Text_IO.Put_Line
-     ("'" & CORBA.To_Standard_String (CORBA.Object.Object_To_String (Ref)) &
-      "'");
-
-   --  Launch the server
-   Initiate_Server;
 end Server;
