@@ -16,7 +16,7 @@ with Utils;                           use Utils;
 
 procedure Local is
 
-   Buffer : constant T := (others => 1);
+   Buffer    : T := (others => 1);
 
    OneBuffer : Stream_Element_Access;
    SBuffer   : Stream_Element_Access;

@@ -111,7 +111,7 @@ package body Remote is
    -- Synchronous_Test --
    ----------------------
 
-   procedure Synchronous_Test (A : in T) is
+   procedure Synchronous_Test (A : in out T) is
    begin
       null;
    end Synchronous_Test;

@@ -13,7 +13,7 @@ package Remote is
 
    type T is array (1 .. 1_000) of Natural;
 
-   procedure Synchronous_Test (A : in T);
+   procedure Synchronous_Test (A : in out T);
 
    procedure Asynchronous_Test (A : in T);
    pragma Asynchronous (Asynchronous_Test);
