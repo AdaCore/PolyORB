@@ -9,7 +9,7 @@ package body Droopi.Filters is
       return F.Lower;
    end Lower;
 
-   function Server_Of (F : access Filter) return Servers.Server_Access is
+   function Server_Of (F : access Filter) return Schedulers.Server_Access is
    begin
       return F.Server;
    end Server_Of;

@@ -8,13 +8,13 @@ with Droopi.Filters;
 with Droopi.Jobs;
 --  with Droopi.Protocols;
 with Droopi.Requests;
-with Droopi.Servers;
+with Droopi.Schedulers;
 with Droopi.Soft_Links;
 with Droopi.Sockets;
 
 package Droopi.ORB is
 
-   use Droopi.Servers;
+   use Droopi.Schedulers;
 
    ----------------------------------
    -- Abstract tasking policy type --
@@ -36,7 +36,7 @@ package Droopi.ORB is
    ---------------------
 
    type ORB_Type (Tasking_Policy : access Tasking_Policy_Type'Class)
-      is new Droopi.Servers.Server_Type with private;
+      is new Droopi.Schedulers.Server_Type with private;
    type ORB_Access is access all ORB_Type;
 
    ------------------------
@@ -153,7 +153,7 @@ private
    type Tasking_Policy_Type is abstract tagged limited null record;
 
    type ORB_Type (Tasking_Policy : access Tasking_Policy_Type'Class)
-   is new Droopi.Servers.Server_Type with record
+   is new Droopi.Schedulers.Server_Type with record
 
       ------------------
       -- Server state --

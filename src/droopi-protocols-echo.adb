@@ -6,7 +6,7 @@ with Ada.Exceptions;
 
 with Droopi.Buffers;
 with Droopi.Log;
-with Droopi.Servers;
+with Droopi.Schedulers;
 with Droopi.Requests; use Droopi.Requests;
 
 with Droopi.Representations.Test; use Droopi.Representations.Test;
@@ -52,7 +52,7 @@ package body Droopi.Protocols.Echo is
       --  Send_String ("Hello, please type data." & ASCII.LF);
       pragma Debug (O ("Received new connection to echo service..."));
       Expect_Data (S, S.Buffer, 1024
-                   --  Exact => False
+      --  Exact => False
                    );
    end Handle_Connect;
 
@@ -114,7 +114,7 @@ package body Droopi.Protocols.Echo is
 --                 Operation => Argv (1).all,
 --                 Args      => Argv (3).all);
 --
-            Servers.Queue_Request (Server_Of (S), Req);
+            Schedulers.Queue_Request (Server_Of (S), Req);
          exception
             when E : others =>
                O ("Got exception: "

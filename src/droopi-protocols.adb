@@ -6,6 +6,8 @@ with Ada.Unchecked_Deallocation;
 
 package body Droopi.Protocols is
 
+   use Droopi.Filters.Data_Units;
+
    procedure Free is new Ada.Unchecked_Deallocation
      (Session'Class, Session_Access);
 
@@ -16,18 +18,16 @@ package body Droopi.Protocols is
 
    procedure Handle_Data_Unit (Sess : access Session; S : Data_Unit) is
    begin
-      case S.Kind is
-         when Connect_Indication =>
-            Handle_Connect (Session_Access (Sess));
-         when Disconnect_Indication =>
-            Handle_Disconnect (Session_Access (Sess));
-         when Data_Indication =>
-            Handle_Data_Indication (Session_Access (Sess));
-
-         when others =>
-            pragma Assert (False);
-            null;
-      end case;
+      if S in Connect_Indication then
+         Handle_Connect (Session_Access (Sess));
+      elsif S in Disconnect_Indication then
+         Handle_Disconnect (Session_Access (Sess));
+      elsif S in Data_Indication then
+         Handle_Data_Indication (Session_Access (Sess));
+      else
+         pragma Assert (False);
+         null;
+      end if;
    end Handle_Data_Unit;
 
    procedure Expect_Data
@@ -36,8 +36,7 @@ package body Droopi.Protocols is
       Max    : Ada.Streams.Stream_Element_Count) is
    begin
       Filters.Handle_Data_Unit
-        (Lower (S), Data_Unit'(Kind => Data_Expected,
-                         In_Buf => In_Buf, Max => 1024));
+        (Lower (S), Data_Expected'(In_Buf => In_Buf, Max => 1024));
    end Expect_Data;
 
 

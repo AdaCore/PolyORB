@@ -101,7 +101,7 @@ private
 
    --  XXX remove
 --     with record
---       Server  : Servers.Server_Access;
+--       Server  : Schedulers.Server_Access;
 --       Channel : Channels.Channel_Access;
 --     end record;
 

@@ -5,7 +5,7 @@
 with Ada.Streams; use Ada.Streams;
 
 with Droopi.Buffers; use Droopi.Buffers;
-with Droopi.Servers;
+with Droopi.Schedulers;
 
 package Droopi.Filters is
 
@@ -21,53 +21,50 @@ package Droopi.Filters is
    type Filter_Access is access all Filter'Class;
 
    function Lower (F : access Filter) return Filter_Access;
-   function Server_Of (F : access Filter) return Servers.Server_Access;
+   function Server_Of (F : access Filter) return Schedulers.Server_Access;
 
-   -------------------------------------------------
-   -- Filters exchange service data units (Data_Units). --
-   -------------------------------------------------
+   --------------------------------------------------
+   -- Filters communicate by exchanging Data_Units --
+   --------------------------------------------------
 
-   type Data_Unit_Kind is
-     (Connect_Indication,
+   type Root_Data_Unit is abstract tagged null record;
+   subtype Data_Unit is Root_Data_Unit'Class;
+
+   package Data_Units is
+
+      type Connect_Indication is new Root_Data_Unit with null record;
       --  Direction: from lower to upper.
       --  Semantics: a new incoming transport connection is
       --  being initiated.
 
-      Disconnect_Indication,
+      type Disconnect_Indication is new Root_Data_Unit with null record;
       --  Direction: from lower to upper.
-      --  Semantices: a transport endpoint has been closed.
+      --  Semantics: a transport endpoint has been closed.
       --    upper layers must release all associated resources.
 
-      Data_Indication,
+      type Data_Indication is new Root_Data_Unit with null record;
       --  Direction: from lower to upper.
       --  Semantics: data has been received and must be handled.
 
-      Data_Expected,
+      type Data_Expected is new Root_Data_Unit
       --  Direction: from upper to lower.
       --  Semantics: prepare for reception of a message.
+        with record
+           In_Buf : Buffer_Access;
+           --  Where to store the data when it arrives.
 
-      Data_Out
+           Max : Stream_Element_Count;
+           --  The maximum amount of data to be received.
+        end record;
+
+      type Data_Out is new Root_Data_Unit
       --  Direction: from upper to lower.
       --  Semantics: send data out.
-      );
-
-   type Data_Unit (Kind : Data_Unit_Kind) is record
-      case Kind is
-         when Data_Expected =>
-            In_Buf : Buffer_Access;
-            --  Where to store the data when it arrives.
-
-            Max : Stream_Element_Count;
-            --  The maximum amount of data to be received.
-
-         when Data_Out =>
-            Out_Buf : Buffer_Access;
-            --  The data to be sent down.
-
-         when others =>
-            null;
-      end case;
-   end record;
+        with record
+           Out_Buf : Buffer_Access;
+           --  The data to be sent down.
+        end record;
+   end Data_Units;
 
    ---------------------------------------------------
    -- Filter primitives (interface to upper layer) --
@@ -106,7 +103,7 @@ package Droopi.Filters is
 private
 
    type Filter is abstract tagged limited record
-      Server : Servers.Server_Access;
+      Server : Schedulers.Server_Access;
       Lower  : Filter_Access;
       Upper  : Filter_Access;
    end record;

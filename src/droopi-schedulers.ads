@@ -1,6 +1,8 @@
+--  Abstract interface to a middleware's work scheduling facility.
+
 with Droopi.Requests;
 
-package Droopi.Servers is
+package Droopi.Schedulers is
 
    type Exit_Condition_Access is access all Boolean;
 
@@ -11,11 +13,12 @@ package Droopi.Servers is
      (Server : access Server_Type;
       Req    : Requests.Request_Access)
      is abstract;
-   --  An ORB can execute requests on behalf of callers.
-   --  The ORB Destroys Req after executing it.
+   --  Queue method invocation request Req for execution by Server
+   --  on behalf of a remote caller.
+   --  Server destroys Req after executing it.
 
 private
 
    type Server_Type is abstract tagged limited null record;
 
-end Droopi.Servers;
+end Droopi.Schedulers;

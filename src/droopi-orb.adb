@@ -132,13 +132,16 @@ package body Droopi.ORB is
             --  since they may depend upon the particular messages
             --  received.
 
+            declare
+               use Filters.Data_Units;
             begin
-               Filters.Handle_Data_Unit (AS.Channel, Data_Unit'(Kind => Data_Indication));
+               Filters.Handle_Data_Unit
+                 (AS.Channel, Data_Indication'(null record));
             exception
                when E : others =>
 
                   pragma Debug (O ("Handle_Event: Got "
-                                   & Ada.Exceptions.Exception_Information (E)));
+                    & Ada.Exceptions.Exception_Information (E)));
 
                   begin
                      Close_Socket (AS.Socket);
