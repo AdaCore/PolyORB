@@ -51,7 +51,7 @@ package body System.Garlic.Options is
 
    type String_Access is access String;
 
-   Boot_Server_Default     : String_Access := new String'("serial");
+   Boot_Server_Default     : String_Access := new String'("tcp");
    Connection_Hits_Default : Natural := 128;
    Detach_Default          : Boolean := False;
    Is_Slave_Default        : Boolean := False;
