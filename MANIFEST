@@ -676,6 +676,7 @@ src/polyorb-binding_data-local.adb
 src/polyorb-binding_data-local.ads
 src/polyorb-binding_data.adb
 src/polyorb-binding_data.ads
+src/polyorb-binding_data_base.ads
 src/polyorb-buffers.adb
 src/polyorb-buffers.ads
 src/polyorb-call_back.adb
