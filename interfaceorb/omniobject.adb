@@ -404,7 +404,7 @@ package body OmniObject is
       C_Arg : System.Address ;
       Result : Object_Ptr ;
    begin
-      pragma Debug(Output(Omniobject,"Omniobject.Omniobject_Duplicate"))
+      pragma Debug(Output(Omniobject,"Omniobject.Omniobject_Duplicate")) ;
       C_Arg := Address_To_Object.To_Address(From_Object_Ptr(Self)) ;
       C_Result := C_Omniobject_Duplicate(C_Arg) ;
       Result := To_Object_Ptr(Address_To_Object.To_Pointer(C_Result)) ;
