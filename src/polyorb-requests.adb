@@ -49,6 +49,10 @@ package body PolyORB.Requests is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
+   --------------------
+   -- Create_Request --
+   --------------------
+
    procedure Create_Request
      (Target    : in     References.Ref;
       --  May or may not be local!
@@ -78,6 +82,10 @@ package body PolyORB.Requests is
       Req := Res;
    end Create_Request;
 
+   ------------
+   -- Invoke --
+   ------------
+
    procedure Invoke
      (Self         : Request_Access;
       Invoke_Flags : Flags := 0)
@@ -106,6 +114,10 @@ package body PolyORB.Requests is
          May_Poll => True);
 
    end Invoke;
+
+   -----------------------
+   -- Pump_Up_Arguments --
+   -----------------------
 
    procedure Pump_Up_Arguments
      (Dst_Args        : in out Any.NVList.Ref;
@@ -210,6 +222,10 @@ package body PolyORB.Requests is
 
    end Pump_Up_Arguments;
 
+   ---------------
+   -- Arguments --
+   ---------------
+
    procedure Arguments
      (Self : Request_Access;
       Args : in out Any.NVList.Ref)
@@ -255,6 +271,10 @@ package body PolyORB.Requests is
       Self.Out_Args := Args;
    end Arguments;
 
+   -----------
+   -- Image --
+   -----------
+
    function Image (Req : Request) return String
    is
       S1 : constant String
@@ -272,6 +292,10 @@ package body PolyORB.Requests is
          return S1 & " with non-representable arguments";
    end Image;
 
+   ----------------
+   -- Set_Result --
+   ----------------
+
    procedure Set_Result
      (Self : Request_Access;
       Val  : Any.Any)
@@ -287,6 +311,10 @@ package body PolyORB.Requests is
          PolyORB.Any.Copy_Any_Value (Self.Result.Argument, Val);
       end if;
    end Set_Result;
+
+   ------------------
+   -- Set_Out_Args --
+   ------------------
 
    procedure Set_Out_Args (Self : Request_Access) is
    begin

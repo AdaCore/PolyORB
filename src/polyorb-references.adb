@@ -52,6 +52,10 @@ package body PolyORB.References is
 
    type Reference_Info_Access is access all Reference_Info'Class;
 
+   -----------------
+   -- Ref_Info_Of --
+   -----------------
+
    function Ref_Info_Of (R : Ref) return Reference_Info_Access;
 
    function Ref_Info_Of (R : Ref) return Reference_Info_Access is
@@ -71,6 +75,10 @@ package body PolyORB.References is
       end if;
       return null;
    end Ref_Info_Of;
+
+   ----------------------
+   -- Create_Reference --
+   ----------------------
 
    procedure Create_Reference
      (Profiles : Profile_Array;
@@ -96,6 +104,10 @@ package body PolyORB.References is
       end if;
    end Create_Reference;
 
+   -----------------
+   -- Profiles_Of --
+   -----------------
+
    function Profiles_Of (R : Ref) return Profile_Array is
       RI : constant Reference_Info_Access
         := Ref_Info_Of (R);
@@ -111,12 +123,20 @@ package body PolyORB.References is
       end if;
    end Profiles_Of;
 
+   ----------------
+   -- Type_Id_Of --
+   ----------------
+
    function Type_Id_Of (R : Ref) return String is
    begin
       return Ref_Info_Of (R).Type_Id.all;
       --  XXX Perhaps some cases of R not designating
       --  a ref_info should be supported here?
    end Type_Id_Of;
+
+   -----------
+   -- Image --
+   -----------
 
    function Image (R : Ref) return String
    is
@@ -138,6 +158,10 @@ package body PolyORB.References is
 
       return To_String (Res);
    end Image;
+
+   --------------
+   -- Finalize --
+   --------------
 
    procedure Finalize (RI : in out Reference_Info)
    is
@@ -170,6 +194,10 @@ package body PolyORB.References is
         (X.BO_Component, M);
    end Finalize;
 
+   ----------------------
+   -- Get_Binding_Info --
+   ----------------------
+
    use type Components.Component_Access;
 
    procedure Get_Binding_Info
@@ -195,6 +223,10 @@ package body PolyORB.References is
       end if;
    end Get_Binding_Info;
 
+   ----------------------
+   -- Set_Binding_Info --
+   ----------------------
+
    procedure Set_Binding_Info
      (R   : Ref;
       BOC : Components.Component_Access;
@@ -210,6 +242,10 @@ package body PolyORB.References is
       Set (RI.Binding_Object_Ref, BOP);
       RI.Binding_Object_Profile := Pro;
    end Set_Binding_Info;
+
+   ------------------------
+   -- Share_Binding_Info --
+   ------------------------
 
    procedure Share_Binding_Info
      (Dest   : Ref;

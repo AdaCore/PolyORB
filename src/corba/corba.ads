@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/corba.ads#20 $
+--  $Id: //droopi/main/src/corba/corba.ads#21 $
 
 with Ada.Exceptions;
 with Ada.Strings.Unbounded;
@@ -612,9 +612,9 @@ package CORBA is
      (Tc : CORBA.TypeCode.Object)
       return Any;
 
-   -----------------
-   --  NamedValue --
-   -----------------
+   ----------------
+   -- NamedValue --
+   ----------------
 
    type Flags is new CORBA.Unsigned_Long;
    --  subtype Flags is PolyORB.Any.Flags;
