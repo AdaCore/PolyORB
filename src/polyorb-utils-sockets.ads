@@ -46,7 +46,7 @@ package PolyORB.Utils.Sockets is
      return PolyORB.Sockets.Inet_Addr_Type;
    --  Convert a string to an inet address
    --  String can be a numerical IP (eg: 127.0.0.1)
-   --  or a string addess (eg: localhost)
+   --  or a stringified address (eg: localhost)
 
    procedure Marshall_Socket
      (Buffer : access PolyORB.Buffers.Buffer_Type;
