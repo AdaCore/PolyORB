@@ -30,7 +30,7 @@ with ALI;              use ALI;
 with ALI.Util;         use ALI.Util;
 with GNAT.OS_Lib;      use GNAT.OS_Lib;
 with Namet;            use Namet;
-with Osint;            use Osint;
+with Osint;
 with Output;           use Output;
 with Types;            use Types;
 with XE;               use XE;
@@ -917,13 +917,13 @@ package body XE_Back is
          Has_Changed := True;
       end if;
       if Debug_Mode and Has_Changed then
-         Write_Program_Name;
+         Osint.Write_Program_Name;
          Write_Str  (": ");
          Write_Name (Partitions.Table (P).Name);
          Write_Str  ("'s most recent stamp is ");
          Write_Str  (Stamp (Partitions.Table (P).Most_Recent));
          Write_Eol;
-         Write_Program_Name;
+         Osint.Write_Program_Name;
          Write_Str  (":    with file ");
          Write_Name (Partitions.Table (P).Most_Recent);
          Write_Eol;
