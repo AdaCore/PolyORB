@@ -34,8 +34,6 @@
 --  This package provides glue codee between PolyORB's
 --  AdapterActivator and CORBA specific AdapterActivator.
 
---  $Id$
-
 with PortableServer.AdapterActivator;
 
 with PolyORB.Exceptions;

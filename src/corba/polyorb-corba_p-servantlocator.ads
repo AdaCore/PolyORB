@@ -34,8 +34,6 @@
 --  This package provides glue codee between PolyORB's
 --  ServantLocator and CORBA specific ServantLocator.
 
---  $Id$
-
 with PortableServer.ServantLocator;
 
 with PolyORB.POA_Types;
