@@ -150,6 +150,58 @@ package body System.Garlic.Physical_Location is
       return L.Data;
    end Get_Data;
 
+   --------------
+   -- Get_Data --
+   --------------
+
+   function Get_Support_Data
+     (L : String)
+     return String
+   is
+      Name  : constant String  := Get_Support_Name (L);
+      First : constant Natural := L'First + Name'Length;
+      Last  : constant Natural := L'Last;
+
+   begin
+      if Name'Length = 0
+        or else L (First) /= ':'
+        or else First + 2 > Last
+        or else L (First + 1 .. First + 2) /= "//"
+      then
+         return Null_String;
+      end if;
+
+      return  L (First + 3 .. Last);
+   end Get_Support_Data;
+
+   ----------------------
+   -- Get_Support_Name --
+   ----------------------
+
+   function Get_Support_Name
+     (L : String)
+     return String
+   is
+      First : constant Natural := L'First;
+      Last  : constant Natural := L'Last;
+
+   begin
+      for I in L'Range loop
+         if L (I) = ':' then
+            if I = Last then
+               return L (First .. I - 1);
+            end if;
+            if I + 2 > Last
+              or else L (I + 1 .. I + 2) /= "//"
+            then
+               return "";
+            end if;
+            return L (First .. I - 1);
+         end if;
+      end loop;
+      return "";
+   end Get_Support_Name;
+
    ------------------
    -- Get_Protocol --
    ------------------

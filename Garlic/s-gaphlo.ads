@@ -78,6 +78,16 @@ package System.Garlic.Physical_Location is
      return Utils.String_Access;
    --  Return the additionnal data (used by protocols)
 
+   function Get_Support_Data
+     (L : String)
+     return String;
+   --  Return the additionnal support data.
+
+   function Get_Support_Name
+     (L : String)
+     return String;
+   --  Return the support name.
+
    function To_Location
      (L : String)
       return Location_Type;
