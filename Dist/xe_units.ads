@@ -228,6 +228,12 @@ package XE_Units is
       Sfile : File_Name_Type;
       --  Name of source file
 
+      First_With : With_Id;
+      --  Id of first withs table entry for this file
+
+      Last_With : With_Id;
+      --  Id of last withs table entry for this file
+
       Has_RACW : Boolean;
       --  Indicates presence of RA parameter for a package that declares
       --  at least one Remote Access to Class_Wide (RACW) object.
@@ -276,6 +282,8 @@ package XE_Units is
       My_ALI         => No_ALI_Id,
       Uname          => No_Unit_Name,
       Sfile          => No_File_Name,
+      First_With     => First_With_Id,
+      Last_With      => No_With_Id,
       Has_RACW       => False,
       Remote_Types   => False,
       Shared_Passive => False,
@@ -287,6 +295,36 @@ package XE_Units is
       Utype          => Is_Spec_Only,
       Is_Generic     => False,
       Unit_Kind      => 'p');
+
+   ----------------
+   -- With Table --
+   ----------------
+
+   --  Each with within an ALI file generates an entry in the Withs table
+
+   type With_Record is record
+
+      Uname : Unit_Name_Type;
+      --  Name of Unit
+
+      Sfile : File_Name_Type;
+      --  Name of source file, set to No_File in generic case
+
+      Afile : File_Name_Type;
+      --  Name of ALI file, set to No_File in generic case
+   end record;
+
+   package Withs is new GNAT.Table (
+     Table_Component_Type => With_Record,
+     Table_Index_Type     => With_Id,
+     Table_Low_Bound      => First_With_Id,
+     Table_Initial        => 100,
+     Table_Increment      => 200);
+
+   Default_With : constant With_Record := (
+      Uname          => No_Unit_Name,
+      Afile          => No_File_Name,
+      Sfile          => No_File_Name);
 
    ------------------------------------
    -- Sdep (Source Dependency) Table --
@@ -416,7 +454,7 @@ package XE_Units is
       First_Unit         => No_Conf_Unit_Id,
       Last_Unit          => No_Conf_Unit_Id,
       Main_Subprogram    => No_Unit_Name,
-      First_Stub         => No_Stub_Id,
+      First_Stub         => First_Stub_Id,
       Last_Stub          => No_Stub_Id,
       First_Channel      => No_Channel_Id,
       Last_Channel       => No_Channel_Id,
