@@ -39,4 +39,4 @@ stamp-gen: $(CosNaming_IDL) $(IDLAC)
 
 install-data-local:
 	$(INSTALL) -d $(DESTDIR)$(alidir)
-	for f in $(srcdir)/*.ad[bs] *.ali *.idl; do $(INSTALL) -m 444 $$f $(DESTDIR)$(alidir); done
+	for f in *.ad[bs] *.ali *.idl; do $(INSTALL) -m 444 $$f $(DESTDIR)$(alidir); done
