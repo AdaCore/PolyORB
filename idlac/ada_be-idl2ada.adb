@@ -736,6 +736,8 @@ package body Ada_Be.Idl2Ada is
                   PL (Stubs_Spec, "  new "
                       & Ada_Full_Name (Forward_Node)
                       & ".Convert (Ref_Type => Ref);");
+                  Add_With (Stubs_Spec, Ada_Full_Name
+                            (Definition (Node).Parent_Scope));
                end if;
             end;
 
