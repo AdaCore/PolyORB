@@ -68,10 +68,6 @@ package PolyORB.ORB.Thread_Pool is
       ORB : ORB_Access;
       Msg : Message'Class);
 
-   procedure Initialize
-     (Number_Of_Threads : Positive;
-      ORB               : ORB_Access);
-
 private
 
    type Thread_Pool_Policy is new Tasking_Policy_Type with null record;

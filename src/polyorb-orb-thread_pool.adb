@@ -58,18 +58,9 @@ package body PolyORB.ORB.Thread_Pool is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-   --  A_ORB : ORB_Access := null;
-   --  global variables for thread initialisation
-
-   --  Thread_Init_Watcher    : Watcher_Access := null;
-   --  Thread_Init_Version_Id : Version_Id;
-   --  used at thread initialisation
-
    Thread_Idle_Mutex      : Mutex_Access := null;
-
-   --  Initialized : Boolean := False;
-   --  indicates if initialisation has been done yet
-
+   --  Needed in order not to have all threads leaving idle state
+   --  at the same time
    Default_Threads : constant := 4;
    --  default number of threads in thread pool
    --  XXX should check compatibility with ravenscar, which also defines
@@ -84,10 +75,7 @@ package body PolyORB.ORB.Thread_Pool is
 
    procedure Main_Thread_Pool
    is
-      --  ORB : ORB_Access := null;
    begin
-      --  ORB := A_ORB;
-      --  Update (Thread_Init_Watcher);
       pragma Debug (O ("Thread "
                        & Image (Current_Task)
                        & " is initialized"));
@@ -227,17 +215,13 @@ package body PolyORB.ORB.Thread_Pool is
       Number_Of_Threads : Positive;
    begin
       pragma Debug (O ("Initialize_threads : enter"));
-      --  Create (Thread_Init_Watcher);
-      --  Lookup (Thread_Init_Watcher, Thread_Init_Version_Id);
       Create (Thread_Idle_Mutex);
-      Number_Of_Threads = Get_Conf
+      Number_Of_Threads := Get_Conf
         ("tasking",
          "polyorb.orb.thread_pool.threads",
-         Default_Threads),
+         Default_Threads);
       for J in 1 .. Number_Of_Threads loop
          Create_Task (Main_Thread_Pool'Access);
-         --  Differ (Thread_Init_Watcher, Thread_Init_Version_Id);
-         --  Lookup (Thread_Init_Watcher, Thread_Init_Version_Id);
       end loop;
       pragma Debug (O ("Initialize_threads : leave"));
    end Initialize_Threads;
@@ -257,10 +241,16 @@ begin
 
    Register_Module
      (Module_Info'
-      (Name => +"orb.thread_pool2",
+      (Name => +"orb.threads_init",
        Conflicts => +"no_tasking",
        Depends => +"orb",
        Provides => +"orb.tasking_policy_init",
        Init => Initialize_Threads'Access));
+
+   --  two Register_Module are needed because, on one hand, the variable
+   --  Setup.The_Tasking_Policy must be initialized before ORB creation
+   --  and on the other hand, the variable Setup.The_ORB must be initialized
+   --  in order to run threads from the thread_pool. This breaks the
+   --  circular dependecy at initialisation
 
 end PolyORB.ORB.Thread_Pool;
