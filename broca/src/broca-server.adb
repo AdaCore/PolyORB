@@ -325,7 +325,7 @@ package body Broca.Server is
                Poa := Current_Poa;
                Poa_State := Tmp_Poa_State;
                Key.Pos := 0;
-               goto Restore_Endianness_And_Return
+               goto Restore_Endianness_And_Return;
             end if;
             Dec_Usage (Get_The_POAManager (Current_Poa).all);
             Unmarshall (Buffer, Name);
