@@ -15,7 +15,13 @@ def get_subdirs (dir):
       if len (m.group (2)) > 0:
         vars[m.group (1)] = m.group (2)
 
-      if m.group (1) != 'corba_dir' and m.group (1) != 'giop_dir' and m.group (1) != 'dsa_dir' and m.group (1) != 'moma_dir' and m.group (1) != 'soap_dir' and m.group (1) != 'srp_dir':
+      if m.group (1) != 'corba_dir' \
+             and m.group (1) != 'dsa_dir' \
+             and m.group (1) != 'giop_dir' \
+             and m.group (1) != 'moma_dir' \
+             and m.group (1) != 'soap_dir' \
+             and m.group (1) != 'srp_dir' \
+             and m.group (1) != 'SUBDIRS':
         continue
 
       dirs = map (lambda s, d=dir: d + "/" + s,
@@ -24,12 +30,17 @@ def get_subdirs (dir):
       for d in dirs:
         if re.match (dir + "/\.?$", d):
           continue
+
+        if re.match (dir + "/\@", d):
+          continue
+
         d = re.sub("\\$\\(([^)]*)\\)", lambda mm, v=vars: v[mm.group (1)], d)
 
         sub = get_subdirs (d)
         for dd in sub:
           if not (dd in res):
             res = res + [dd]
+            
   return res
 
 def read_MANIFEST (dir):
@@ -136,7 +147,9 @@ for d in subdirs:
   compare_lists ("files", "Makefile", 1)
 
 subdirs = get_subdirs ("compilers") \
-  + get_subdirs ("examples") + get_subdirs ("cos") 
+  + get_subdirs ("examples") + get_subdirs ("cos") \
+  + get_subdirs ("testsuite")
+
 for d in subdirs:
   print "Checking " + d + "/...\n"
   
