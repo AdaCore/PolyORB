@@ -24,6 +24,7 @@ ADA_SPECS_WITH_BODY = \
 	moma-message_producers.ads \
 	moma-messages-manys.ads \
 	moma-messages-mbytes.ads \
+	moma-messages-mexecutes.ads \
 	moma-messages-mmaps.ads \
 	moma-messages-mtexts.ads \
 	moma-messages.ads \

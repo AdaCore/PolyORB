@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                 P O L Y O R B . S E T U P . S E R V E R                  --
+--                  POLYORB.SETUP.TCP_ACCESS_POINTS.SOAP                    --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,75 +30,27 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Set up a simple ORB to act as a server.
---  The user must take care of also setting up a tasking policy.
+--  Setup for SOAP access point.
 
 --  $Id$
 
-with PolyORB.Initialization;
-with PolyORB.Configuration;
-with PolyORB.Filters;
-with PolyORB.Filters.Slicers;
-with PolyORB.Protocols;
-with PolyORB.Smart_Pointers;
-
---  A transport mechanism: sockets.
-
-with PolyORB.Sockets;
-with PolyORB.Transport.Sockets;
-
---  Some protocol personalities:
-
---  GIOP
-with PolyORB.Binding_Data.IIOP;
-with PolyORB.Protocols.GIOP;
-
---  SRP
-with PolyORB.Binding_Data.SRP;
-with PolyORB.Protocols.SRP;
-
---  SOAP
 with PolyORB.Binding_Data.SOAP;
 with PolyORB.Filters.HTTP;
 with PolyORB.Protocols.SOAP_Pr;
 
---  Transport subsystem: TCP sockets
-with PolyORB.Setup.TCP_Access_Points;
-pragma Elaborate_All (PolyORB.Setup.TCP_Access_Points);
-
---  Utility.
+with PolyORB.Configuration;
+with PolyORB.Filters;
+with PolyORB.Initialization;
+with PolyORB.ORB;
+with PolyORB.Protocols;
+with PolyORB.Transport.Sockets;
 with PolyORB.Utils.Strings;
 
-package body PolyORB.Setup.Server is
+package body PolyORB.Setup.TCP_Access_Points.SOAP is
 
-   use PolyORB.Binding_Data;
    use PolyORB.Filters;
    use PolyORB.ORB;
-   use PolyORB.Sockets;
-   use PolyORB.Transport;
    use PolyORB.Transport.Sockets;
-   use PolyORB.Setup.TCP_Access_Points;
-
-   --  The 'GIOP' access point.
-
-   GIOP_Access_Point : Access_Point_Info
-     := (Socket  => No_Socket,
-         Address => No_Sock_Addr,
-         SAP     => new Socket_Access_Point,
-         PF      => new Binding_Data.IIOP.IIOP_Profile_Factory);
-
-   GIOP_Protocol  : aliased Protocols.GIOP.GIOP_Protocol;
-   Slicer_Factory : aliased Filters.Slicers.Slicer_Factory;
-
-   --  The 'SRP' access point.
-
-   SRP_Access_Point : Access_Point_Info
-     := (Socket  => No_Socket,
-         Address => No_Sock_Addr,
-         SAP     => new Socket_Access_Point,
-         PF      => new Binding_Data.SRP.SRP_Profile_Factory);
-
-   SRP_Protocol  : aliased Protocols.SRP.SRP_Protocol;
 
    --  The 'SOAP' access point.
 
@@ -119,46 +71,17 @@ package body PolyORB.Setup.Server is
    --  the corresponding server-side primitive (eg as a constant
    --  filter chain created at initialisation.)
 
+   ------------------------------
+   -- Initialize_Access_Points --
+   ------------------------------
+
    procedure Initialize_Access_Points;
 
    procedure Initialize_Access_Points
    is
       use PolyORB.Configuration;
    begin
-      if Get_Conf ("access_points", "iiop", True) then
-         ---------------------------------------------
-         -- Create server (listening) socket - GIOP --
-         ---------------------------------------------
-
-         Initialize_Socket (GIOP_Access_Point, Any_Port);
-         Chain_Factories ((0 => Slicer_Factory'Unchecked_Access,
-                           1 => GIOP_Protocol'Unchecked_Access));
-         Register_Access_Point
-           (ORB    => The_ORB,
-            TAP    => GIOP_Access_Point.SAP,
-            Chain  => Slicer_Factory'Unchecked_Access,
-            PF     => GIOP_Access_Point.PF);
-      end if;
-
-      if Get_Conf ("access_points", "srp", True) then
-         --------------------------------------------
-         -- Create server (listening) socket - SRP --
-         --------------------------------------------
-
-         Initialize_Socket (SRP_Access_Point, Any_Port);
-         Register_Access_Point
-           (ORB    => The_ORB,
-            TAP    => SRP_Access_Point.SAP,
-            Chain  => SRP_Protocol'Unchecked_Access,
-            PF     => SRP_Access_Point.PF);
-         --  Register socket with ORB object, associating a protocol
-         --  to the transport service access point.
-      end if;
-
       if Get_Conf ("access_points", "soap", True) then
-         ---------------------------------------------
-         -- Create server (listening) socket - SOAP --
-         ---------------------------------------------
 
          Initialize_Socket (SOAP_Access_Point, 8080);
          Chain_Factories
@@ -181,9 +104,10 @@ package body PolyORB.Setup.Server is
 begin
    Register_Module
      (Module_Info'
-      (Name => +"access_points",
+      (Name => +"tcp_access_points.soap",
        Conflicts => String_Lists.Empty,
        Depends => +"orb",
        Provides => String_Lists.Empty,
        Init => Initialize_Access_Points'Access));
-end PolyORB.Setup.Server;
+
+end PolyORB.Setup.TCP_Access_Points.SOAP;

@@ -435,6 +435,8 @@ src/corba/polyorb-corba_p-names.ads
 src/corba/polyorb-corba_p-server_tools.adb
 src/corba/polyorb-corba_p-server_tools.ads
 src/corba/polyorb-corba_p.ads
+src/corba/polyorb-if_descriptors-corba_ir.adb
+src/corba/polyorb-if_descriptors-corba_ir.ads
 src/corba/polyorb-protocols-giop-giop_1_0.adb
 src/corba/polyorb-protocols-giop-giop_1_0.ads
 src/corba/polyorb-protocols-giop-giop_1_1.adb
@@ -443,6 +445,8 @@ src/corba/polyorb-protocols-giop-giop_1_2.adb
 src/corba/polyorb-protocols-giop-giop_1_2.ads
 src/corba/polyorb-protocols-giop.adb
 src/corba/polyorb-protocols-giop.ads
+src/corba/polyorb-setup-tcp_access_points-iiop.adb
+src/corba/polyorb-setup-tcp_access_points-iiop.ads
 src/corba/portableserver-adapteractivator-impl.ads
 src/corba/portableserver-adapteractivator.adb
 src/corba/portableserver-adapteractivator.ads
@@ -577,8 +581,6 @@ src/polyorb-full_tasking-threads.adb
 src/polyorb-full_tasking-monitors.ads
 src/polyorb-full_tasking-monitors.adb
 src/polyorb-full_tasking.ads
-src/polyorb-if_descriptors-corba_ir.adb
-src/polyorb-if_descriptors-corba_ir.ads
 src/polyorb-if_descriptors.ads
 src/polyorb-initialization.adb
 src/polyorb-initialization.ads
@@ -709,12 +711,13 @@ src/polyorb-sequences-unbounded.ads
 src/polyorb-sequences.ads
 src/polyorb-servants.adb
 src/polyorb-servants.ads
-src/polyorb-setup-corba_client.adb
-src/polyorb-setup-corba_client.ads
+src/polyorb-setup-client.ads
 src/polyorb-setup-no_tasking_server.adb
 src/polyorb-setup-no_tasking_server.ads
 src/polyorb-setup-server.adb
 src/polyorb-setup-server.ads
+src/polyorb-setup-tcp_access_points-srp.ads
+src/polyorb-setup-tcp_access_points-srp.adb
 src/polyorb-setup-tcp_access_points.adb
 src/polyorb-setup-tcp_access_points.ads
 src/polyorb-setup-thread_per_request_server.adb
@@ -806,6 +809,8 @@ src/soap/polyorb-http_headers.ads
 src/soap/polyorb-http_methods.ads
 src/soap/polyorb-protocols-soap_pr.adb
 src/soap/polyorb-protocols-soap_pr.ads
+src/soap/polyorb-setup-tcp_access_points-soap.adb
+src/soap/polyorb-setup-tcp_access_points-soap.ads
 src/soap/soap-message-payload.adb
 src/soap/soap-message-payload.ads
 src/soap/soap-message-reader.adb

@@ -10,7 +10,7 @@ with PolyORB.No_Tasking;
 
 with PolyORB.ORB;
 with PolyORB.Setup;
-with PolyORB.Setup.CORBA_Client;
+with PolyORB.Setup.Client;
 pragma Warnings (On);
 
 procedure Client is

@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---           P O L Y O R B . S E T U P . C O R B A _ C L I E N T            --
+--                 P O L Y O R B . S E T U P . C L I E N T                  --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,29 +30,12 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Set up a test ORB.
+--  Set up all ORB objects for a non-tasked CORBA client.
 
 --  $Id$
 
-with PolyORB.Initialization;
+package PolyORB.Setup.Client is
 
-with PolyORB.ORB;
-with PolyORB.ORB.No_Tasking;
-with PolyORB.Binding_Data.IIOP;
-with PolyORB.Binding_Data.SOAP;
+   pragma Elaborate_Body;
 
-pragma Elaborate_All (PolyORB.ORB);
-pragma Elaborate_All (PolyORB.ORB.No_Tasking);
-pragma Elaborate_All (PolyORB.Binding_Data.IIOP);
-pragma Elaborate_All (PolyORB.Binding_Data.SOAP);
-
-pragma Warnings (Off, PolyORB.ORB);
-pragma Warnings (Off, PolyORB.ORB.No_Tasking);
-pragma Warnings (Off, PolyORB.Binding_Data.IIOP);
-pragma Warnings (Off, PolyORB.Binding_Data.SOAP);
-
-package body PolyORB.Setup.CORBA_Client is
-
-begin
-   PolyORB.Initialization.Initialize_World;
-end PolyORB.Setup.CORBA_Client;
+end PolyORB.Setup.Client;

@@ -83,11 +83,19 @@ who need to rebuild the configure and Makefile.in files should
 use the script support/reconfig for this purpose.
 
 Available options for the 'configure' script include:
-  --enable-xmlada: set if you have XmlAda and you want to build the
-                   SOAP protocol personality.
-  --enable-shared: build shared libraries.
-  --enable-debug:  enable debugging information generation and supplementary
-                   runtime checks.
+  --enable-corba  : set if you want to build the CORBA application personality
+                    and the GIOP protocol personality
+  --enable-ir     : set if you want to build the CORBA interface repository.
+  --enable-dsa    : set if you want to use the Ada95 Distributed System Annex.
+                    (experimental)
+  --enable-moma   : set if you want to build the MOMA application personality.
+  --enable-soap   : set if you have XmlAda and you want to build the
+                    SOAP protocol personality.
+  --enable-shared : build shared libraries.
+  --enable-debug  : enable debugging information generation and supplementary
+                    runtime checks.
+
+By default, only the CORBA and GIOP personalities are built.
 
 Documentation overview
 ----------------------

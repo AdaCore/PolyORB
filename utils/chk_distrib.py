@@ -9,13 +9,13 @@ def get_subdirs (dir):
   res = [dir]
   vars = {}
   for l in open (dir + "/Makefile.am", "r").readlines ():
-    m = re.match ("^([A-Z]*)\s*=\s*(.*)$", l)
+    m = re.match ("^([A-Z_]*)\s*=\s*(.*)$", l)
     
     if m:
       if len (m.group (2)) > 0:
         vars[m.group (1)] = m.group (2)
 
-      if m.group (1) != 'SUBDIRS':
+      if m.group (1) != 'CORBA_DIR' and m.group (1) != 'DSA_DIR' and m.group (1) != 'MOMA_DIR' and m.group (1) != 'SOAP_DIR':
         continue
 
       dirs = map (lambda s, d=dir: d + "/" + s,
@@ -50,10 +50,10 @@ def read_files (dir):
 #  Makefile.am
 #  allsrc
 
-def read_Makefile ():
+def read_Makefile (dir):
   Makefile = []
   st = 0
-  for l in open ("src/Makefile.am", "r").readlines ():
+  for l in open (dir + "/Makefile.am", "r").readlines ():
     if re.match ("^ADA_SPECS_WITH_BODY =", l):
       st = 2
       continue
@@ -66,9 +66,9 @@ def read_Makefile ():
     if st > 0:
       m = re.match ("^\s*(\S*\.ad)[sb]", l)
       if m:
-        Makefile.append ("src/" + m.group (1) + 's')
+        Makefile.append (dir + "/" + m.group (1) + 's')
         if st > 1:
-          Makefile.append ("src/" + m.group (1) + 'b')
+          Makefile.append (dir + "/" + m.group (1) + 'b')
           
   return Makefile
 
@@ -120,20 +120,22 @@ def compare_lists (l1, l2, reverse):
     print ("  " + string.join (not_in_ll1, "\n  "))
     print ""
     
-print "Checking src/...\n"
-
-MANIFEST = read_MANIFEST ("src")
-files = read_files ("src")
-Makefile = read_Makefile ()
-
-compare_lists ("files", "MANIFEST", 1)
-compare_lists ("files", "Makefile", 1)
-
 if len (sys.argv) > 1:
   allsrc = read_allsrc (sys.argv[1])
   compare_lists ("files", "allsrc", 0)
 
-subdirs = get_subdirs ("src") + get_subdirs ("compilers") \
+subdirs = get_subdirs ("src")
+for d in subdirs:
+  print "Checking " + d + "/...\n"
+  
+  MANIFEST = read_MANIFEST (d)
+  files = read_files (d)
+  Makefile = read_Makefile (d)
+
+  compare_lists ("files", "MANIFEST", 1)
+  compare_lists ("files", "Makefile", 1)
+
+subdirs = get_subdirs ("compilers") \
   + get_subdirs ("examples") + get_subdirs ("cos") 
 for d in subdirs:
   print "Checking " + d + "/...\n"

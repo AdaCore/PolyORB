@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---           P O L Y O R B . S E T U P . C O R B A _ C L I E N T            --
+--                  POLYORB.SETUP.TCP_ACCESS_POINTS.SOAP                    --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,12 +30,12 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Set up all ORB objects for a non-tasked CORBA client.
+--  Set up SOAP TCP Access points.
 
 --  $Id$
 
-package PolyORB.Setup.CORBA_Client is
+package PolyORB.Setup.TCP_Access_Points.SOAP is
 
    pragma Elaborate_Body;
 
-end PolyORB.Setup.CORBA_Client;
+end PolyORB.Setup.TCP_Access_Points.SOAP;

@@ -29,6 +29,7 @@ ADA_SPECS_WITH_BODY = \
 	polyorb-protocols-giop-giop_1_1.ads \
 	polyorb-protocols-giop-giop_1_2.ads \
 	polyorb-protocols-giop.ads \
+	polyorb-setup-tcp_access_points-iiop.ads \
 	portableserver-adapteractivator.ads \
 	portableserver-poa.ads \
 	portableserver-poamanager.ads \

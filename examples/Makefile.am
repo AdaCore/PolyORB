@@ -1,13 +1,38 @@
-SUBDIRS=	echo all_types all_functions moma
-
-LINKER=	../support/linker
+if ENABLE_CORBA
+CORBA_DIR = echo all_types all_functions
+CORBA_LIB="../src/corba/libpolyorb-corba.la"
 
 TESTS=  polyorb-test-no_tasking \
         polyorb-test-thread_pool \
         polyorb-test-no_tasking_poa \
         polyorb-test-thread_pool_poa
+COS=cos
+endif
 
-CLEANFILES=	*.o *.ali
+if ENABLE_MOMA
+MOMA_DIR = moma
+MOMA_LIB="../src/moma/libpolyorb-moma.la"
+endif
+
+if ENABLE_DSA
+DSA_DIR = dsa
+endif
+
+if ENABLE_SOAP
+SOAP_LIB="../src/soap/libpolyorb-soap.la"
+endif
+
+SUBDIRS = . $(CORBA_DIR) $(DSA_DIR) $(MOMA_DIR)
+
+POLYORB_LIBS = \
+../src/libpolyorb.la \
+$(CORBA_LIB) \
+$(MOMA_LIB) \
+$(SOAP_LIB)
+
+LINKER=	../support/linker
+
+CLEANFILES= *.o *.ali
 
 all: orb $(TESTS)
 
@@ -26,10 +51,7 @@ $(TESTS): force
 	-m $@ \
 	-cargs $(GNATFLAGS) -bargs $(BARGS) \
 	-largs $(LDFLAGS) --LINK=$(LINKER) \
-	../src/libpolyorb.la \
-	../src/corba/libpolyorb-corba.la \
-	../src/soap/libpolyorb-soap.la \
-	$(XMLADA_LIBS)
+	$(POLYORB_LIBS) $(XMLADA_LIBS)
 
 orb:	force
 	(cd ../src && $(MAKE) all)

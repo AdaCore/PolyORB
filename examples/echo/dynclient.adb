@@ -43,8 +43,8 @@ with CORBA.NVList;
 with CORBA.ORB;
 --  with Broca.Naming_Tools; use Broca.Naming_Tools;
 
-with PolyORB.Setup.CORBA_Client;
-pragma Warnings (Off, PolyORB.Setup.CORBA_Client);
+with PolyORB.Setup.Client;
+pragma Warnings (Off, PolyORB.Setup.Client);
 
 procedure DynClient is
    Sent_Msg : CORBA.String := To_CORBA_String ("Hello Dynamic World");

@@ -1,8 +1,16 @@
-if HAS_XMLADA
-SUBDIRS=	. corba moma soap
-else
-SUBDIRS=	. corba moma
+if ENABLE_CORBA
+CORBA_DIR = corba 
 endif
+
+if ENABLE_MOMA
+MOMA_DIR = moma
+endif
+
+if ENABLE_SOAP
+SOAP_DIR = soap
+endif
+
+SUBDIRS = . $(CORBA_DIR) $(MOMA_DIR) $(SOAP_DIR)
 
 include $(srcdir)/Makefile.common
 
@@ -85,6 +93,7 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-sequences-unbounded-search.ads \
 		polyorb-servants.ads \
 		polyorb-setup-tcp_access_points.ads \
+		polyorb-setup-tcp_access_points-srp.ads \
 		polyorb-smart_pointers.ads \
 		polyorb-soft_links.ads \
 		polyorb-static_dict.ads \

@@ -15,6 +15,7 @@ ADA_SPECS_WITH_BODY = \
 	polyorb-buffer_sources.ads \
 	polyorb-filters-http.ads \
 	polyorb-protocols-soap_pr.ads \
+	polyorb-setup-tcp_access_points-soap.ads \
 	aws-mime.ads \
 	aws-response.ads \
 	aws-url.ads \
