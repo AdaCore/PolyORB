@@ -35,18 +35,9 @@
 
 with Ada.Unchecked_Deallocation;
 with System.Garlic.Utils;        use System.Garlic.Utils;
-with System.Garlic.Debug;        use System.Garlic.Debug;
 with System.Garlic.Name_Table;   use System.Garlic.Name_Table;
 
 package body System.Garlic.Table is
-
-   Private_Debug_Key : constant Debug_Key :=
-     Debug_Initialize ("TABLE", "(s-gartab): ");
-   procedure D
-     (Level   : in Debug_Level;
-      Message : in String;
-      Key     : in Debug_Key := Private_Debug_Key)
-     renames Print_Debug_Info;
 
    -------------
    -- Complex --
@@ -113,8 +104,6 @@ package body System.Garlic.Table is
 
          if N /= Null_Index then
             if Max < N or else N < Min then
-               pragma Debug (D (D_Debug, "Erroneous index" & N'Img));
-
                return Null_Index;
             end if;
 
@@ -122,8 +111,6 @@ package body System.Garlic.Table is
             --  client.
 
             if Usage (N).Free then
-               pragma Debug (D (D_Debug, "Allocate exact index" & N'Img));
-
                Usage (N).Free := False;
             end if;
 
@@ -135,13 +122,9 @@ package body System.Garlic.Table is
          for Index in Min .. Max loop
             if Usage (Index).Free then
                Usage (Index).Free := False;
-               pragma Debug (D (D_Debug, "Allocate new index" & Index'Img));
-
                return Index;
             end if;
          end loop;
-
-         pragma Debug (D (D_Debug, "Extend table"));
 
          --  Allocate new table
 
@@ -187,8 +170,6 @@ package body System.Garlic.Table is
       begin
          pragma Abort_Defer;
 
-         pragma Debug (D (D_Debug, "Apply request on component" & N'Img));
-
          Check (N);
          loop
             Local_Mutex.Enter;
@@ -228,8 +209,6 @@ package body System.Garlic.Table is
       begin
          pragma Abort_Defer;
 
-         pragma Debug (D (D_Debug, "Get component" & N'Img));
-
          Check (N);
          Enter (Global_Mutex);
          Component := Table (N);
@@ -266,9 +245,6 @@ package body System.Garlic.Table is
          end if;
          Leave (Global_Mutex);
 
-         pragma Debug
-           (D (D_Debug, "Get index" & Index'Img & " for component " & S));
-
          return Index;
       end Get_Index;
 
@@ -288,9 +264,6 @@ package body System.Garlic.Table is
             Name := Usage (N).Name;
          end if;
          Leave (Global_Mutex);
-
-         pragma Debug
-           (D (D_Debug, "Get name " & Get (Name) & " for component" & N'Img));
 
          return Get (Name);
       end Get_Name;
@@ -316,8 +289,6 @@ package body System.Garlic.Table is
       procedure Set_Name (N : Index_Type; S : String) is
       begin
          pragma Abort_Defer;
-
-         pragma Debug (D (D_Debug, "Set name " & S & " to component" & N'Img));
 
          Check (N);
          Enter (Global_Mutex);
@@ -389,8 +360,6 @@ package body System.Garlic.Table is
 
          if N /= Null_Index then
             if Max < N or else N < Min then
-               pragma Debug (D (D_Debug, "Erroneous index" & N'Img));
-
                return Null_Index;
             end if;
 
@@ -398,8 +367,6 @@ package body System.Garlic.Table is
             --  client.
 
             if Usage (N).Free then
-               pragma Debug (D (D_Debug, "Allocate exact index" & N'Img));
-
                Usage (N).Free := False;
             end if;
 
@@ -411,13 +378,9 @@ package body System.Garlic.Table is
          for Index in Min .. Max loop
             if Usage (Index).Free then
                Usage (Index).Free := False;
-               pragma Debug (D (D_Debug, "Allocate new index" & Index'Img));
-
                return Index;
             end if;
          end loop;
-
-         pragma Debug (D (D_Debug, "Extend table"));
 
          --  Allocate new table
 
@@ -475,8 +438,6 @@ package body System.Garlic.Table is
       begin
          pragma Abort_Defer;
 
-         pragma Debug (D (D_Debug, "Get component" & N'Img));
-
          Check (N);
          Enter (Global_Mutex);
          Component := Table (N);
@@ -513,9 +474,6 @@ package body System.Garlic.Table is
          end if;
          Leave (Global_Mutex);
 
-         pragma Debug
-           (D (D_Debug, "Get index" & Index'Img & " for component " & S));
-
          return Index;
       end Get_Index;
 
@@ -535,9 +493,6 @@ package body System.Garlic.Table is
             Name := Usage (N).Name;
          end if;
          Leave (Global_Mutex);
-
-         pragma Debug
-           (D (D_Debug, "Get name " & Get (Name) & " for component" & N'Img));
 
          return Get (Name);
       end Get_Name;
@@ -563,8 +518,6 @@ package body System.Garlic.Table is
       procedure Set_Name (N : Index_Type; S : String) is
       begin
          pragma Abort_Defer;
-
-         pragma Debug (D (D_Debug, "Set name " & S & " to component" & N'Img));
 
          Check (N);
          Enter (Global_Mutex);

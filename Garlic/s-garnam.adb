@@ -44,7 +44,7 @@ with Unchecked_Deallocation;
 
 package body System.Garlic.Naming is
 
-   use System.Garlic.Types, System.Garlic.Thin;
+   use System.Garlic.Thin;
 
    Default_Buffer_Size : constant := 16384;
 

@@ -37,6 +37,7 @@ with Ada.Command_Line;         use Ada.Command_Line;
 with System.Garlic.Debug;      use System.Garlic.Debug;
 with System.Garlic.Heart;      use System.Garlic.Heart;
 with System.Garlic.Types;      use System.Garlic.Types;
+with System.Garlic.Utils;      use System.Garlic.Utils;
 with GNAT.OS_Lib;
 with Unchecked_Deallocation;
 

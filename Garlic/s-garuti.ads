@@ -40,6 +40,11 @@ package System.Garlic.Utils is
 
    pragma Elaborate_Body;
 
+   type String_Access is access String;
+   procedure Free is
+      new Ada.Unchecked_Deallocation (String, String_Access);
+   --  Access on string and deallocation procedure
+
    procedure To_Lower (Item : in out String);
    pragma Inline (To_Lower);
    --  In place transformation of a string with all the upper-case letters

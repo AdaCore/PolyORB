@@ -33,8 +33,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Unchecked_Deallocation;
-
 package System.Garlic.Types is
 
    pragma Preelaborate;
@@ -47,11 +45,6 @@ package System.Garlic.Types is
 
    --  This package defines basic types that are used throughout Garlic
    --  as well as commonly used deallocation and conversion subprograms.
-
-   type String_Access is access String;
-   procedure Free is
-      new Ada.Unchecked_Deallocation (String, String_Access);
-   --  Access on string and deallocation procedure
 
    type Word is mod 2 ** 32;
    --  Unsigned 32-bit integer

@@ -37,6 +37,7 @@ with System.Garlic.Table;
 with System.Garlic.Heart;
 with System.Garlic.Streams;
 with System.Garlic.Types;
+with System.Garlic.Utils;
 
 package System.Garlic.Units is
 
@@ -76,7 +77,7 @@ package System.Garlic.Units is
       record
          Partition : Types.Partition_ID;
          Receiver  : Streams.RPC_Receiver;
-         Version   : Types.String_Access;
+         Version   : Utils.String_Access;
          Cache     : Cache_Access;
          Status    : Unit_Status;
          Pending   : Boolean;
@@ -97,7 +98,7 @@ package System.Garlic.Units is
          Command   : Request_Id;
          Partition : Types.Partition_ID;
          Receiver  : Streams.RPC_Receiver;
-         Version   : Types.String_Access;
+         Version   : Utils.String_Access;
          Cache     : Cache_Access;
       end record;
 

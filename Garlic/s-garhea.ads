@@ -39,6 +39,7 @@ with System.Garlic.Name_Table;
 with System.Garlic.Physical_Location;
 with System.Garlic.Streams;
 with System.Garlic.Types;
+with System.Garlic.Utils;
 
 --  These ones should not be needed, but the binder needs them to get a
 --  correct dependencies order ???
@@ -156,13 +157,13 @@ package System.Garlic.Heart is
    protected Fatal_Error is
       entry Occurred
         (What    : out Ada.Exceptions.Exception_Id;
-         Message : out Types.String_Access);
+         Message : out Utils.String_Access);
       procedure Signal
         (What    : in Ada.Exceptions.Exception_Id;
          Message : in String := "");
    private
       Exc : Ada.Exceptions.Exception_Id := Ada.Exceptions.Null_Id;
-      Msg : Types.String_Access := null;
+      Msg : Utils.String_Access := null;
    end Fatal_Error;
    --  This protected object is a keeper to cancel the main procedure if
    --  needed.
