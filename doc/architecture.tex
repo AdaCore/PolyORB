@@ -121,7 +121,7 @@ CORBA et de client de l'annexe~; ce composant permettra d'utiliser les services
 Cette approche a l'intérêt d'avoir été prototypée avec succès.
 Elle présente cependant certaines limitations, qui sont de deux
 ordres. Les unes sont spécifiques de notre implémentation~:
-\begin{description}
+\begin{itemize}
 \item telle que nous l'avons réalisée, elle ne traduit pas certaines
   constructions évoluées de l'annexe qui ne se projettent pas
   naturellement dans le modèle de CORBA~;
@@ -836,7 +836,7 @@ Ce service est réalisé en concrétisant un certain nombre de classes abstraites~:
 Cf. figure \ref{fig:func-binding}.}
 
 Étant donnée une référence désignant un objet distant, le service
-de liaison (\empg{binding}) a pour rôle de créer, sur un client, une structure qui
+de liaison (\emph{binding}) a pour rôle de créer, sur un client, une structure qui
 représente l'objet désigné, et qui est capable de traiter des appels
 de méthode (en les transmettant à l'objet réel). Cette structure,
 appelée \emph{subrogé} de l'objet réel, encapsule l'association de
@@ -994,6 +994,7 @@ sont bien délimitées. Cette section présente ces mécanismes de base en
 tentant de les décrire comme des patterns.
 
 \subsubsection{Composants}
+\label{sec:components}
 
 \paragraph{Contexte~:}\mbox{}\\
   Un ORB est un système composé d'entités communiquant
@@ -1041,6 +1042,7 @@ méthode d'objet.
 \end{figure}
 
 \subsubsection{Annotations}
+\label{sec:annotations}
 
 \paragraph{Contexte~:}\mbox{}\\
   Les clients d'un objet désirent associer à cet objet des informations
@@ -1322,8 +1324,252 @@ est défini comme un moyen d'associer une session et une représentation à un TE.
   Extension possible~: verrou avec priority ceiling.
 \end{description}
 
-% XXX à compléter !
+\subsubsection{Composants}
 
+Le mécanisme de composants flexibles décrit dans la section
+\ref{sec:components} est implémenté au moyen de plusieurs paquetages~:
+
+\begin{description}
+\item[Droopi.Components] Cette unité définit les types abstraits «~Component~» et
+  «~Message~»~;
+\item[Droopi.*.Interface] Chacun de ces paquetages déclare les types de messages
+  correspondant aux composants déclarés dans leur paquetage père.
+\end{description}
+
+\subsubsection{Manipulation des données utilisateurs}
+
+Le paquetage Droopi.Any permet de manipuler toute donnée
+de l'utilisateur (argument d'un appel de méthode, valeur de
+retour ou exception) sous forme d'un type conteneur universel.
+Le middleware peut ainsi stocker et transporter des données
+de types arbitraires sans connaître le détail de leur structure
+et de leur sens.
+
+\subsection{Transport}
+
+\droopi{} fournit une couche d'abstraction des services de
+transport de données.
+
+\begin{description}
+\item[Droopi.Transports] contient les types abstraits représentant
+  un point d'accès du service de transport (i.e. une entité possédant
+  une adresse, qui peut être contactée par un client) et un point
+  de terminaison du service de transport (une entité permettant
+  de dialoguer avec un point d'accès distant).
+\item[Droopi.Asynch\_Ev] Les événements liés aux entités de transport
+  sont gérées de manière asynchrone par le noyau de répartition.
+  Chaque point d'accès et chaque point de terminaison du service
+  de transport est associé à un objet «~source d'événements asynchrones~».
+  Le paquetage Asynch\_Ev contient la définition du type abstrait dont
+  ces objets sont dérivés.
+\end{description}
+
+Des implémentations de ces deux paquetages basées sur les sockets
+TCP ont été réalisées.
+
+Une application particulière des «~Components~» de \droopi{} est utilisée
+pour créer des piles de filtres.
+
+\begin{description}
+\item[Droopi.Filters] Le type abstrait «~Filter~» correspond à une
+  couche d'une pile de transport, qui communique uniquement avec
+  les couches situées immédiatement au-dessus et en-dessous.
+\item[Droopi.Filters.Slicer] Un filtre ayant pour tâche de découper
+  un flot d'octets en blocs de taille connue, utilisé notamment pour
+  délimiter les messages GIOP.
+\end{description}
+
+\subsection{Protocole}
+
+Le service de protocole d'appel de méthodes est basé sur un type
+abstrait central~: «~Session~», qui représente l'association entre
+un canal de transport établi entre deux n\oe{}uds et la convention
+d'utiliser sur ce canal un protocole donné. Les objets concrets de
+types dérivés de Session sont créés par des «~usines~» qui sont
+les objets de type «~Protocol~».
+
+\begin{description}
+\item[Droopi.Protocols] contient les déclarations des types abstraits
+  Protocol et Session~;
+\item[Droopi.Protocols.GIOP] déclare les types concrets correspondants
+  à toutes les versions du protocole GIOP de CORBA, indépendemment
+  du type de canal de transport utilisé.
+\end{description}
+
+\subsection{Représentation}
+
+La fonction de représentation consiste à traduire une donnée utilisateur
+quelconque (sous forme de conteneur Any) en un flot d'octets, selon
+une convention données.
+
+\begin{description}
+\item[Droopi.Representations] Interface abstraite implémentée
+  par toutes les réalisations de la fonction de représentation.
+\item[Droopi.Representations.SOAP] Réalisation pour la convention
+  de représentation de SOAP.
+\item[Droopi.Representations.CDR] La représentation commune CDR
+  de CORBA.
+\item[Droopi.Representations.SRP] Représentation simpliste pour
+  SRP, un prototype de protocole.
+\end{description}
+
+\subsection{Activation et aiguillage}
+
+Les fonctions d'activation et d'aiguillage sont assurées
+par les adaptateurs d'objets.
+
+\begin{description}
+\item[Droopi.Obj\_Adapters] définit le type abstrait dont tout
+  adaptateur doit dériver.
+\item[Droopi.Obj\_Adapters.Simple] implémente un adaptateur
+  trivial, rappelant le Basic Object Adapter (BOA) des premières
+  versions de CORBA.
+\item[Droopi.POA] définit l'interface d'un adaptateur plus
+  flexible, permettant d'établir une hiérarchie d'organisation
+  des objets. Il offre à l'utilisateur de nombreuses possibilités
+  de contrôle sur différents aspects des fonctions d'activation
+  et d'aiguillage au moyen de «~politiques~». Le POA de Droopi
+  est directement basé sur l'organisation du Portable Object
+  Adapter de CORBA. Une implémentation en est réalisée dans
+  Droopi.POA.Basic\_POA.
+\item[Droopi.POA\_Policies] À chaque aspect de personnalisation
+  du POA correspond un type de politique défini dans une unité
+  fille de Droopi.POA\_Policies. Les aspects existants sont~:
+  \begin{itemize}
+  \item Droopi.POA\_Policies.Id\_Assignment\_Policy
+  \item Droopi.POA\_Policies.Id\_Uniqueness\_Policy
+  \item Droopi.POA\_Policies.Implicit\_Activation\_Policy
+  \item Droopi.POA\_Policies.Lifespan\_Policy
+  \item Droopi.POA\_Policies.Request\_Processing\_Policy
+  \item Droopi.POA\_Policies.Servant\_Retention\_Policy
+  \item Droopi.POA\_Policies.Thread\_Policy
+  \end{itemize}
+\item[Droopi.POA\_Config] L'utilisateur peut manipuler des
+  ensembles de politiques cohérents pour un POA de manière
+  encapsulée~: des configurations complètes peuvent être définies
+  au moyen du paquetage POA\_Config. Une configuration minimale
+  est proposée dans Droopi.POA\_Config.Minimum.
+\end{description}
+
+%%  ./droopi-annotations.ads
+
+%%  ./droopi-binding_data-local.ads
+%%  ./droopi-binding_data-srp.ads
+%%  ./droopi-binding_data-test.ads
+%%  ./droopi-binding_data.ads
+
+%%  ./droopi-buffers.ads
+%%  ./droopi-constants.ads
+%%  ./droopi-dict.ads
+%%  ./droopi-dynamic_dict.ads
+
+
+%%  ./droopi-jobs.ads
+%%  ./droopi-orb-interface.ads
+%%  ./droopi-orb-task_policies.ads
+%%  ./droopi-orb-thread_per_session.ads
+%%  ./droopi-orb-thread_pool.ads
+%%  ./droopi-orb.ads
+%%  ./droopi-log.ads
+
+
+%%  ./droopi-object_map.ads
+%%  ./droopi-objects-interface.ads
+%%  ./droopi-objects.ads
+%%  ./droopi-opaque-chunk_pools.ads
+%%  ./droopi-opaque.ads
+%%  
+%%  ./droopi-poa_manager-basic_manager.ads
+%%  ./droopi-poa_manager.ads
+%%  
+%%  ./droopi-poa_policies-id_assignment_policy-system.ads
+%%  ./droopi-poa_policies-id_uniqueness_policy-unique.ads
+%%  ./droopi-poa_policies-implicit_activation_policy-no_activation.ads
+%%  ./droopi-poa_policies-lifespan_policy-transient.ads
+%%  ./droopi-poa_policies-request_processing_policy-active_object_map_only.ads
+%%  ./droopi-poa_policies-servant_retention_policy-retain.ads
+%%  ./droopi-poa_policies-thread_policy-orb_ctrl.ads
+%%  
+%%  ./droopi-poa_types.ads
+
+%%  ./droopi-protocols-echo.ads
+%%  ./droopi-protocols-soap.ads
+%%  ./droopi-protocols-srp.ads
+%%  ./droopi-protocols.ads
+
+%%  ./droopi-references-binding.ads
+%%  ./droopi-references.ads
+
+%%  ./droopi-requests.ads
+%%  ./droopi-setup-corba_client.ads
+%%  ./droopi-setup-test.ads
+%%  ./droopi-setup-test_corba.ads
+%%  ./droopi-setup.ads
+%%  ./droopi-smart_pointers.ads
+%%  ./droopi-static_dict.ads
+%%  ./droopi-storage_pools.ads
+%%  ./droopi-task_info.ads
+%%  ./droopi-test-task_attributes.ads
+%%  ./droopi-test.ads
+%%  ./droopi-test_object.ads
+%%  ./droopi-types.ads
+%%  ./droopi-utils-srp.ads
+%%  ./droopi-utils.ads
+%%  ./droopi.ads
+%%  
+%%  
+%%  ./corba-test_object.ads
+%%  ./corba-test_poa.ads
+%%  ./corba/corba-abstractbase.ads
+%%  ./corba/corba-context.ads
+%%  ./corba/corba-contextlist.ads
+%%  ./corba/corba-exceptionlist.ads
+%%  ./corba/corba-forward.ads
+%%  ./corba/corba-impl.ads
+%%  ./corba/corba-nvlist.ads
+%%  ./corba/corba-object.ads
+%%  ./corba/corba-object_map-sequence_map.ads
+%%  ./corba/corba-object_map.ads
+%%  ./corba/corba-orb.ads
+%%  ./corba/corba-policy_types.ads
+%%  ./corba/corba-policy_values.ads
+%%  ./corba/corba-request.ads
+%%  ./corba/corba-serverrequest.ads
+%%  ./corba/corba.ads
+%%  ./corba/droopi-binding_data-iiop.ads
+%%  ./corba/droopi-corba_p-exceptions-stack.ads
+%%  ./corba/droopi-corba_p-exceptions.ads
+%%  ./corba/droopi-corba_p-names.ads
+%%  ./corba/droopi-corba_p-server_tools.ads
+%%  ./corba/droopi-corba_p.ads
+%%  ./corba/droopi-protocols-giop-giop_1_0.ads
+%%  ./corba/droopi-protocols-giop-giop_1_1.ads
+%%  ./corba/droopi-protocols-giop-giop_1_2.ads
+%%  ./corba/droopi-protocols-giop.ads
+%%  ./corba/droopi-references-ior.ads
+%%  ./corba/portableserver-adapteractivator-impl.ads
+%%  ./corba/portableserver-adapteractivator.ads
+%%  ./corba/portableserver-current.ads
+%%  ./corba/portableserver-poa.ads
+%%  ./corba/portableserver-poamanager.ads
+%%  ./corba/portableserver-servantactivator-impl.ads
+%%  ./corba/portableserver-servantactivator.ads
+%%  ./corba/portableserver-servantlocator-impl.ads
+%%  ./corba/portableserver-servantlocator.ads
+%%  ./corba/portableserver-servantmanager-impl.ads
+%%  ./corba/portableserver-servantmanager.ads
+%%  ./corba/portableserver-servantretentionpolicy.ads
+%%  ./corba/portableserver-threadpolicy.ads
+%%  ./corba/portableserver.ads
+%%  
+%%  ./echo-impl.ads
+%%  ./echo.ads
+%%  ./locked_queue.ads
+%%  ./sequences-bounded.ads
+%%  ./sequences-unbounded-search.ads
+%%  ./sequences-unbounded.ads
+%%  ./sequences.ads
+%%  
 \section{Perspectives}
 
 Parallèles et relations avec d'autres systèmes de répartition basés
