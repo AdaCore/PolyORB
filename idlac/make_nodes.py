@@ -21,8 +21,8 @@ class Node:
                 Node.children[self.parent] = [self.name]
         Node.nodes [name] = self
 
-    def add_field (self, name, type):
-        self.fields.append ((name, type))
+    def add_field (self, name, type, init):
+        self.fields.append ((name, type, init))
 
 def get_words (l):
     return string.split (l [0:-1])
@@ -59,8 +59,11 @@ for i in input:
             continue
         continue
     if words == ['END']: break
-    if len (words) == 3 and words [1] == ':':
-        current.add_field (words [0], words [2])
+    if len (words) >= 3 and words [1] == ':':
+        if len (words) == 5 and words [3] == ':=':
+            current.add_field (words [0], words [2], words [4])
+        else:
+            current.add_field (words [0], words [2], None)
     elif len (words) > 0:
         if len (words) == 3 and words [1] == '<--':
             current = Node (words [0], words [2])
@@ -84,7 +87,7 @@ for n in nodes:
     spec.append ("   --")
     spec.append ("   --  %s" % n)
     spec.append ("   --")
-    for (name, type) in get_fields (i):
+    for (name, type, init) in get_fields (i):
         append (n, name, type)
         spec.append ("   --     %-25s : %s" % (name, type))
     spec.append ("   --")
@@ -97,6 +100,9 @@ for n in nodes:
     body.append ("      Index : constant Node_Id     := Nodes_Table.Allocate;")
     body.append ("   begin")
     body.append ("      Node.Kind := K_%s;" % n)
+    for (name, type, init) in get_fields (i):
+        if init:
+            body.append ("      Node.%s := %s;" % (name, init))
     body.append ("      Nodes_Table.Table (Index) := Node;")
     body.append ("      return Index;")
     body.append ("   end Make_%s;" % n)

@@ -44,10 +44,25 @@ package Idl_Fe.Tree.Synthetic is
      return String;
    --  The name of a K_Named node.
 
+   function Original_Parent_Scope
+     (Node : in Node_Id)
+     return Node_Id;
+   --  The scope wherein a K_Named node was initially
+   --  declared. This property never changes once it
+   --  is set by the parser.
+
    function Parent_Scope
      (Node : in Node_Id)
      return Node_Id;
-   --  The scope wherein a K_Named node was declared.
+   --  The scope wherein a K_Named node was declared. This
+   --  property may be set explicitly by the expander
+   --  using Set_Parent_Scope.
+
+   procedure Set_Parent_Scope
+     (Node : in Node_Id;
+      To   : in Node_Id);
+   --  Explicitly change the parent scope of Node to To.
+   --  Intended for use only by the expander.
 
    function Idl_Repository_Id
      (Node : in Node_Id)

@@ -704,8 +704,10 @@ package body Ada_Be.Idl2Ada is
 
          when K_Operation =>
 
-            Gen_Operation_Profile (CU, "in Ref", Node);
-            PL (CU, ";");
+            if not Is_Implicit_Inherited (Node) then
+               Gen_Operation_Profile (CU, "in Ref", Node);
+               PL (CU, ";");
+            end if;
 
             --        when K_Attribute =>
             --  null;
@@ -989,8 +991,10 @@ package body Ada_Be.Idl2Ada is
 
          when K_Operation =>
 
-            Gen_Operation_Profile (CU, "access Object", Node);
-            PL (CU, ";");
+            if not Is_Implicit_Inherited (Node) then
+               Gen_Operation_Profile (CU, "access Object", Node);
+               PL (CU, ";");
+            end if;
 
             --        when K_Attribute =>
             --  null;
@@ -1040,6 +1044,10 @@ package body Ada_Be.Idl2Ada is
 
          when K_Operation =>
 
+            if Is_Implicit_Inherited (Node) then
+               return;
+            end if;
+
             declare
                Is_Function : constant Boolean
                  := Kind (Operation_Type (Node)) /= K_Void;
@@ -1067,9 +1075,6 @@ package body Ada_Be.Idl2Ada is
                DI (CU);
                PL (CU, "end " & Ada_Operation_Name (Node) & ";");
             end;
-
-            --        when K_Attribute =>
-            --  null;
 
          when others =>
             null;
@@ -1370,6 +1375,10 @@ package body Ada_Be.Idl2Ada is
 
          when K_Operation =>
 
+            if Is_Implicit_Inherited (Node) then
+               return;
+            end if;
+
             declare
                O_Name : constant String
                  := Ada_Operation_Name (Node);
@@ -1386,9 +1395,9 @@ package body Ada_Be.Idl2Ada is
 
                NL (CU);
                PL (CU, O_Name
-                         & "_Operation : constant CORBA.Identifier");
+                   & "_Operation : constant CORBA.Identifier");
                PL (CU, "  := CORBA.To_CORBA_String ("""
-                         & Idl_Operation_Id (Node) & """);");
+                   & Idl_Operation_Id (Node) & """);");
 
                Gen_Operation_Profile (CU, "in Ref", Node);
                NL (CU);
@@ -1396,7 +1405,7 @@ package body Ada_Be.Idl2Ada is
                II (CU);
                PL (CU, T_Handler & " : Broca.GIOP.Request_Handler;");
                PL (CU, T_Send_Request_Result & " : "
-                         & "Broca.GIOP.Send_Request_Result_Type;");
+                   & "Broca.GIOP.Send_Request_Result_Type;");
                if Kind (O_Type) /= K_Void then
                   Add_With_Stream (CU, O_Type);
                   PL (CU, T_Returns & " : " & Ada_Type_Name (O_Type) & ";");
@@ -1409,8 +1418,8 @@ package body Ada_Be.Idl2Ada is
                PL (CU, "Broca.GIOP.Send_Request_Marshall");
                PL (CU, "  (" & T_Handler & ", Broca.Object.Object_Ptr");
                PL (CU, "   (Get (Self)), "
-                         & Img (Response_Expected)
-                         & ", " & O_Name & "_Operation);");
+                   & Img (Response_Expected)
+                   & ", " & O_Name & "_Operation);");
 
                declare
                   It   : Node_Iterator;
@@ -1456,8 +1465,8 @@ package body Ada_Be.Idl2Ada is
                PL (CU, "Broca.GIOP.Send_Request_Send");
                PL (CU, "  (" & T_Handler & ", Broca.Object.Object_Ptr");
                PL (CU, "   (Get (Self)), "
-                         & Img (Response_Expected)
-                         & ", " & T_Send_Request_Result & ");");
+                   & Img (Response_Expected)
+                   & ", " & T_Send_Request_Result & ");");
                PL (CU, "case " & T_Send_Request_Result & " is");
                II (CU);
                PL (CU, "when Broca.GIOP.Sr_Reply =>");
@@ -1548,7 +1557,7 @@ package body Ada_Be.Idl2Ada is
                      NL (CU);
                      PL (CU, "if " & T_Exception_Repo_Id);
                      PL (CU, "  = """
-                         & "XXXexcRepIdXXX" & """ then");
+                         & Idl_Repository_Id (E_Node) & """ then");
                      II (CU);
                      PL (CU, "declare");
                      II (CU);
