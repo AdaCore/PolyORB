@@ -64,7 +64,7 @@ package body System.RPC.Stream_IO is
       end record;
    type Partition_Stream_Access is access Partition_Stream_Record;
 
-   Msgcode : constant Opcode := User_Message;
+   Msgcode : constant Any_Opcode := User_Message;
 
    Streams : array (Partition_ID'Range) of Partition_Stream_Access;
 
@@ -77,9 +77,9 @@ package body System.RPC.Stream_IO is
      (Partition : in Partition_ID)
      return Partition_Stream_Access;
 
-   procedure Receive
+   procedure Handle_Request
      (Partition : in Types.Partition_ID;
-      Operation : in Public_Opcode;
+      Opcode    : in Public_Opcode;
       Params    : access Garlic.Streams.Params_Stream_Type);
 
    -----------
@@ -141,7 +141,7 @@ package body System.RPC.Stream_IO is
       Streams (Any_Partition) := new Partition_Stream_Record;
       Streams (Any_Partition).Available := Create;
       Streams (Any_Partition).Critical  := Create;
-      Receive (Msgcode, Receive'Access);
+      Register_Handler (Msgcode, Handle_Request'Access);
    end Initialize;
 
    ----------
@@ -230,13 +230,13 @@ package body System.RPC.Stream_IO is
       Last := Len;
    end Read;
 
-   -------------
-   -- Receive --
-   -------------
+   --------------------
+   -- Handle_Request --
+   --------------------
 
-   procedure Receive
+   procedure Handle_Request
      (Partition : in Types.Partition_ID;
-      Operation : in Public_Opcode;
+      Opcode    : in Public_Opcode;
       Params    : access Garlic.Streams.Params_Stream_Type) is
       SEA : Stream_Element_Array (1 .. Params.Count);
       Len : Stream_Element_Offset;
@@ -255,7 +255,7 @@ package body System.RPC.Stream_IO is
       pragma Debug (D (D_Debug, "Signal to all streams"));
       Str.Consumer.Signal;
       Any.Consumer.Signal;
-   end Receive;
+   end Handle_Request;
 
    -----------
    -- Write --

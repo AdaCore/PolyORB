@@ -95,35 +95,32 @@ package body System.Garlic.TCP is
    Socket_Table : array (Boot_PID .. Last_PID) of Socket_Type;
    Socket_Table_Mutex : Mutex_Access := Create;
 
-   type Operation_Code is (Junk_Code, Data_Code, Quit_Code);
-   --  Various operations that can be performed on a communication link
+   type Banner_Kind is (Junk_Banner, Data_Banner, Quit_Banner);
+   --  Various headers that can be performed on a communication link
 
-   Operation_Code_Length : constant := 4;
-   --  Size of an operation code when it is encoded as a stream
+   Banner_Size : constant := 4;
+   --  Size of a header when it is encoded as a stream
 
-   subtype Operation_Code_Array is
-     Stream_Element_Array (1 .. Operation_Code_Length);
-   --  Constrained subtype for operation codes
+   subtype Banner_Stream is Stream_Element_Array (1 .. Banner_Size);
+   --  Constrained subtype for headers
 
-   function Read_Code (Peer : C.int) return Operation_Code;
-   pragma Inline (Read_Code);
-   --  Read an operation code from a file descriptor or return Unknown_Code
-   --  if the code is not understood.
+   function Read_Banner (Peer : C.int) return Banner_Kind;
+   pragma Inline (Read_Banner);
+   --  Read header from a file descriptor or return Junk_Banner if the
+   --  header is not understood.
 
-   Stream_Element_Count_Length : constant := 4;
+   SEC_Size : constant := 4;
    --  Size of a Stream_Element_Count when it is encoded as a stream
 
-   subtype Stream_Element_Count_Array is
-     Stream_Element_Array (1 .. Stream_Element_Count_Length);
+   subtype SEC_Stream is Stream_Element_Array (1 .. SEC_Size);
    --  Constrained subtype for stream element counts
 
-   function Read_Stream_Element_Count (Peer : C.int)
-     return Stream_Element_Count;
+   function Read_SEC (Peer : C.int)  return Stream_Element_Count;
    --  Read a stream element count from a file descriptor and check that
    --  it is valid. Raise Communication_Error otherwise.
 
    function To_Stream_Element_Array (Count : Stream_Element_Count)
-     return Stream_Element_Count_Array;
+     return SEC_Stream;
    --  Return the stream element array corresponding to this count
 
    function Do_Connect (Location : Host_Location) return C.int;
@@ -153,10 +150,10 @@ package body System.Garlic.TCP is
    --  sent.
 
    Data_Stream : aliased Stream_Element_Array
-     :=  (1 .. Operation_Code_Length => Operation_Code'Pos (Data_Code));
+     :=  (1 .. Banner_Size => Banner_Kind'Pos (Data_Banner));
 
    Quit_Stream : aliased Stream_Element_Array
-     := (1 .. Operation_Code_Length => Operation_Code'Pos (Quit_Code));
+     := (1 .. Banner_Size => Banner_Kind'Pos (Quit_Banner));
 
    task type Accept_Handler is
       pragma Priority (Priorities.RPC_Priority);
@@ -190,7 +187,7 @@ package body System.Garlic.TCP is
             Length  : aliased C.int := Sin.all'Size / 8;
             Peer    : C.int;
             Handler : Connection_Handler_Access;
-            Code    : Operation_Code;
+            Banner  : Banner_Kind;
             Result  : C.int;
          begin
             Sin.Sin_Family := Constants.Af_Inet;
@@ -207,22 +204,22 @@ package body System.Garlic.TCP is
             --  Read a code from the file descriptor to know what to do
             --  next.
 
-            pragma Debug (D (D_Debug, "Reading code"));
-            Code := Read_Code (Peer);
-            case Code is
+            pragma Debug (D (D_Debug, "Reading header"));
+            Banner := Read_Banner (Peer);
+            case Banner is
 
-               when Junk_Code =>
+               when Junk_Banner =>
                   pragma Debug (D (D_Debug,
-                                   "Unknown code received, closing socket"));
+                                   "Unknown header received, closing socket"));
                   Result := Net.C_Close (Peer);
 
-               when Data_Code =>
-                  pragma Debug (D (D_Debug, "Data code received"));
+               when Data_Banner =>
+                  pragma Debug (D (D_Debug, "Data header received"));
                   --  Create a new task to handle this new connection
 
                   Handler := new Connection_Handler (Peer, Null_PID);
 
-               when Quit_Code =>
+               when Quit_Banner =>
                   pragma Debug (D (D_Debug, "Quitting accept handler"));
                   Result := Net.C_Close (Peer);
                   exit Accept_Loop;
@@ -386,36 +383,36 @@ package body System.Garlic.TCP is
       Length     : Stream_Element_Count;
       Filtered   : Stream_Element_Access;
       Unfiltered : Stream_Element_Access;
-      Operation  : Opcode;
-      Code       : Operation_Code;
+      Opcode     : Any_Opcode;
+      Banner     : Banner_Kind;
    begin
       pragma Debug (D (D_Communication, "New communication task started"));
 
       loop
          if Partition /= Null_PID then
-            pragma Debug (D (D_Debug, "Reading operation code"));
+            pragma Debug (D (D_Debug, "Reading header"));
 
             Add_Non_Terminating_Task;
-            Code := Read_Code (Peer);
+            Banner := Read_Banner (Peer);
             Sub_Non_Terminating_Task;
 
-            case Code is
-               when Junk_Code =>
-                  pragma Debug (D (D_Debug, "Unknown code received"));
-                  Raise_Communication_Error ("Received an bad code");
+            case Banner is
+               when Junk_Banner =>
+                  pragma Debug (D (D_Debug, "Unknown header received"));
+                  Raise_Communication_Error ("Received a bad header");
 
-               when Data_Code =>
-                  pragma Debug (D (D_Debug, "Received a data code"));
+               when Data_Banner =>
+                  pragma Debug (D (D_Debug, "Received a data header"));
                   null;
 
-               when Quit_Code =>
+               when Quit_Banner =>
                   pragma Debug (D (D_Debug, "Quitting incoming handler"));
-                  Raise_Communication_Error ("Received a quit code");
+                  Raise_Communication_Error ("Received a quit header");
 
             end case;
          end if;
 
-         Length := Read_Stream_Element_Count (Peer);
+         Length := Read_SEC (Peer);
 
          pragma Debug (D (D_Debug, "Receive a packet of length" & Length'Img));
 
@@ -426,7 +423,7 @@ package body System.Garlic.TCP is
          Physical_Receive (Peer, Filtered.all);
 
          pragma Debug (D (D_Debug, "Analyse stream"));
-         Analyze_Stream (Partition, Operation, Unfiltered, Filtered);
+         Analyze_Stream (Partition, Opcode, Unfiltered, Filtered);
 
          if Unknown then
             Activity_Detected;
@@ -443,7 +440,7 @@ package body System.Garlic.TCP is
          end if;
 
          pragma Debug (D (D_Debug, "Process stream"));
-         Process_Stream (Partition, Operation, Unfiltered);
+         Process_Stream (Partition, Opcode, Unfiltered);
 
          pragma Debug (D (D_Debug, "Deallocate streams"));
          Free (Filtered);
@@ -567,25 +564,25 @@ package body System.Garlic.TCP is
       end loop;
    end Physical_Send;
 
-   ---------------
-   -- Read_Code --
-   ---------------
+   -----------------
+   -- Read_Banner --
+   -----------------
 
-   function Read_Code (Peer : C.int)
-     return Operation_Code
+   function Read_Banner (Peer : C.int)
+     return Banner_Kind
    is
-      Stream : Operation_Code_Array;
-      Result : Operation_Code;
+      Stream : Banner_Stream;
+      Result : Banner_Kind;
    begin
       pragma Debug (D (D_Debug, "Will receive code from peer" & Peer'Img));
       Physical_Receive (Peer, Stream);
-      Result := Operation_Code'Val (Stream (1));
+      Result := Banner_Kind'Val (Stream (1));
       if not Result'Valid then
-         Result := Junk_Code;
+         Result := Junk_Banner;
       end if;
       for I in 2 .. Stream'Last loop
          if Stream (I) /= Stream (1) then
-            Result := Junk_Code;
+            Result := Junk_Banner;
             exit;
          end if;
       end loop;
@@ -593,17 +590,16 @@ package body System.Garlic.TCP is
       return Result;
    exception
       when Constraint_Error =>
-         return Junk_Code;
-   end Read_Code;
+         return Junk_Banner;
+   end Read_Banner;
 
-   -------------------------------
-   -- Read_Stream_Element_Count --
-   -------------------------------
+   --------------
+   -- Read_SEC --
+   --------------
 
-   function Read_Stream_Element_Count (Peer : C.int)
-     return Stream_Element_Count
+   function Read_SEC (Peer : C.int) return Stream_Element_Count
    is
-      Stream : Stream_Element_Count_Array;
+      Stream : SEC_Stream;
    begin
       Physical_Receive (Peer, Stream);
       return
@@ -611,7 +607,7 @@ package body System.Garlic.TCP is
         Stream_Element_Count (Stream (2)) * 256 ** 2 +
         Stream_Element_Count (Stream (3)) * 256 +
         Stream_Element_Count (Stream (4));
-   end Read_Stream_Element_Count;
+   end Read_SEC;
 
    ----------
    -- Send --
@@ -679,14 +675,14 @@ package body System.Garlic.TCP is
 
       end if;
 
-      --  Write length at the beginning of the data, then the operation code.
+      --  Write length at the beginning of the data, then the header.
 
-      Count := Stream_Element_Count_Length;
+      Count := Banner_Size;
       First := First - Count;
       Data (First .. First + Count - 1)
         := To_Stream_Element_Array (Data'Length - Unused_Space);
 
-      Count := Operation_Code_Length;
+      Count := Banner_Size;
       First := First - Count;
       Data (First .. First + Count - 1) := Data_Stream;
 
@@ -820,7 +816,7 @@ package body System.Garlic.TCP is
    -----------------------------
 
    function To_Stream_Element_Array (Count : Stream_Element_Count)
-     return Stream_Element_Count_Array
+     return SEC_Stream
    is
    begin
       return (1 => Stream_Element (Count / 256 ** 3),

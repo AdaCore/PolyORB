@@ -45,13 +45,13 @@ package System.Garlic.Filters is
 
    function Filter_Incoming
       (Partition : in Types.Partition_ID;
-       Operation : in System.Garlic.Heart.Opcode;
+       Opcode    : in System.Garlic.Heart.Any_Opcode;
        Stream    : in Ada.Streams.Stream_Element_Array)
       return Streams.Stream_Element_Access;
 
    function Filter_Outgoing
       (Partition : in     Types.Partition_ID;
-       Operation : in     System.Garlic.Heart.Opcode;
+       Opcode    : in     System.Garlic.Heart.Any_Opcode;
        Stream    : access Streams.Params_Stream_Type)
       return Streams.Stream_Element_Access;
 

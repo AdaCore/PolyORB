@@ -114,9 +114,9 @@ package body System.RPC is
       RPC : in RPC_Id);
    --  Send an abort message for a request
 
-   procedure Public_RPC_Receiver
+   procedure Handle_Request
      (Partition : in Types.Partition_ID;
-      Operation : in Public_Opcode;
+      Opcode    : in Public_Opcode;
       Params    : access Streams.Params_Stream_Type);
    --  Receive data
 
@@ -326,13 +326,13 @@ package body System.RPC is
       Raise_Partition_Error (Partition);
    end Partition_Error_Notification;
 
-   -------------------------
-   -- Public_RPC_Receiver --
-   -------------------------
+   --------------------
+   -- Handle_Request --
+   --------------------
 
-   procedure Public_RPC_Receiver
+   procedure Handle_Request
      (Partition : in Types.Partition_ID;
-      Operation : in Public_Opcode;
+      Opcode    : in Public_Opcode;
       Params    : access Streams.Params_Stream_Type)
    is
       Header : constant RPC_Header := RPC_Header'Input (Params);
@@ -392,7 +392,7 @@ package body System.RPC is
             Leave (Callers_Mutex, Modified);
 
       end case;
-   end Public_RPC_Receiver;
+   end Handle_Request;
 
    ---------------------------
    -- Raise_Partition_Error --
@@ -506,7 +506,7 @@ package body System.RPC is
    end Write;
 
 begin
-   Receive (Remote_Call, Public_RPC_Receiver'Access);
+   Register_Handler (Remote_Call, Handle_Request'Access);
    Pool.Initialize;
    Stream_IO.Initialize;
    Register_RPC_Shutdown (Shutdown'Access);

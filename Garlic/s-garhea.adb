@@ -81,13 +81,13 @@ package body System.Garlic.Heart is
 
    procedure Handle_Internal
      (Partition : in Partition_ID;
-      Operation : in Internal_Opcode;
+      Opcode    : in Internal_Opcode;
       Params    : access Params_Stream_Type);
    --  Internal operations
 
    procedure Handle_Public
      (Partition : in Partition_ID;
-      Operation : in Public_Opcode;
+      Opcode    : in Public_Opcode;
       Params    : access Params_Stream_Type);
    --  Public operations
 
@@ -104,13 +104,13 @@ package body System.Garlic.Heart is
    --  Same as above. But for boot partition, then get protocol from
    --  boot server option.
 
-   function Opcode_Read (Operation : Stream_Element) return Opcode;
+   function Opcode_Read (Opcode : Stream_Element) return Any_Opcode;
    pragma Inline (Opcode_Read);
-   function Opcode_Write (Operation : Opcode) return Stream_Element;
+   function Opcode_Write (Opcode : Any_Opcode) return Stream_Element;
    pragma Inline (Opcode_Write);
    --  Read and write opcode on one byte
 
-   procedure Partition_Info_Receiver
+   procedure Partition_Info_Handler
      (Partition : in Partition_ID;
       Params    : access Params_Stream_Type);
    --  Handle Partition_Service operations
@@ -134,8 +134,8 @@ package body System.Garlic.Heart is
    Self_PID_Barrier : Barrier_Access := new Barrier_Type;
    --  Block any task until Self_PID is different from Null_PID
 
-   Receiver_Map : array (Public_Opcode) of Public_Receiver;
-   --  Receiver callbacks table
+   Handlers : array (Public_Opcode) of Request_Handler;
+   --  Handler callbacks table
 
    procedure Shutdown;
    --  Generates a local shutdown
@@ -185,13 +185,13 @@ package body System.Garlic.Heart is
 
    procedure Analyze_Stream
      (Partition  : out Partition_ID;
-      Operation  : out Opcode;
+      Opcode     : out Any_Opcode;
       Unfiltered : out Stream_Element_Access;
       Filtered   : in  Stream_Element_Access;
       Offset     : in  Ada.Streams.Stream_Element_Count := 0)
    is
       PID   : Partition_ID;
-      Code  : Opcode;
+      Code  : Any_Opcode;
       First : constant Stream_Element_Count := Filtered'First + Offset;
       Last  : constant Stream_Element_Count := Filtered'Last;
       Data  : Stream_Element_Array renames Filtered (First + 2 .. Last);
@@ -241,7 +241,7 @@ package body System.Garlic.Heart is
 
       Unfiltered := Filter_Incoming (PID, Code, Data);
       Partition  := PID;
-      Operation  := Code;
+      Opcode     := Code;
 
    exception when others =>
       pragma Debug (D (D_Debug, "Exception in block Analyze_Stream"));
@@ -440,20 +440,20 @@ package body System.Garlic.Heart is
 
    procedure Handle_Internal
      (Partition : in Partition_ID;
-      Operation : in Internal_Opcode;
+      Opcode    : in Internal_Opcode;
       Params    : access Params_Stream_Type)
    is
    begin
       Soft_Links.Activity_Detected;
 
-      case Operation is
+      case Opcode is
          when No_Operation =>
             null;
 
-         when Partition_Service =>
-            Partition_Info_Receiver (Partition, Params);
+         when Partition_Operation =>
+            Partition_Info_Handler (Partition, Params);
 
-         when Shutdown =>
+         when Shutdown_Operation =>
             pragma Debug
               (D (D_Garlic,
                   "Receive shutdown request from partition" & Partition'Img));
@@ -476,21 +476,21 @@ package body System.Garlic.Heart is
 
    procedure Handle_Public
      (Partition : in Partition_ID;
-      Operation : in Public_Opcode;
+      Opcode    : in Public_Opcode;
       Params    : access Params_Stream_Type)
    is
-      Receiver : Public_Receiver;
+      Handle : Request_Handler;
    begin
       pragma Assert (Self_PID /= Null_PID);
 
-      if Operation /= Shutdown_Synchronization then
+      if Opcode /= Shutdown_Service then
          Soft_Links.Activity_Detected;
       end if;
 
-      Receiver := Receiver_Map (Operation);
-      pragma Assert (Receiver /= null);
+      Handle := Handlers (Opcode);
+      pragma Assert (Handle /= null);
 
-      Receiver (Partition, Operation, Params);
+      Handle (Partition, Opcode, Params);
    exception
       when E : others =>
          pragma Warnings (Off, E);
@@ -562,18 +562,18 @@ package body System.Garlic.Heart is
    -- Opcode_Read --
    -----------------
 
-   function Opcode_Read (Operation : Stream_Element) return Opcode is
+   function Opcode_Read (Opcode : Stream_Element) return Any_Opcode is
    begin
-      return Opcode'Val (Operation);
+      return Any_Opcode'Val (Opcode);
    end Opcode_Read;
 
    ------------------
    -- Opcode_Write --
    ------------------
 
-   function Opcode_Write (Operation : Opcode) return Stream_Element is
+   function Opcode_Write (Opcode : Any_Opcode) return Stream_Element is
    begin
-      return Opcode'Pos (Operation);
+      return Any_Opcode'Pos (Opcode);
    end Opcode_Write;
 
    --------------
@@ -595,10 +595,10 @@ package body System.Garlic.Heart is
    end PID_Write;
 
    -----------------------------
-   -- Partition_Info_Receiver --
+   -- Partition_Info_Handler --
    -----------------------------
 
-   procedure Partition_Info_Receiver
+   procedure Partition_Info_Handler
      (Partition : in Partition_ID;
       Params    : access Params_Stream_Type)
    is
@@ -682,7 +682,7 @@ package body System.Garlic.Heart is
       then
          Set_My_Partition_ID (PID);
       end if;
-   end Partition_Info_Receiver;
+   end Partition_Info_Handler;
 
    ----------------------------
    -- Partition_RPC_Receiver --
@@ -710,7 +710,8 @@ package body System.Garlic.Heart is
    begin
       pragma Debug
         (D (D_Warning,
-            "Process " & Request.Kind'Img & " on partition" & PID'Img));
+            "Process " & Request.Kind'Img &
+            " on partition" & PID'Img));
       pragma Debug
         (D (D_Warning,
             "Partition status " & Partition.Status'Img));
@@ -801,7 +802,7 @@ package body System.Garlic.Heart is
 
    procedure Process_Stream
      (Partition  : in Partition_ID;
-      Operation  : in Opcode;
+      Opcode     : in Any_Opcode;
       Unfiltered : in Stream_Element_Access)
    is
       Stream : aliased Params_Stream_Type (Unfiltered.all'Length);
@@ -815,11 +816,11 @@ package body System.Garlic.Heart is
 
       --  Depending on the opcode, dispatch to the public or internal routines.
 
-      case Operation is
+      case Opcode is
          when Internal_Opcode =>
-            Handle_Internal (Partition, Operation, Stream'Access);
+            Handle_Internal (Partition, Opcode, Stream'Access);
          when Public_Opcode   =>
-            Handle_Public (Partition, Operation, Stream'Access);
+            Handle_Public (Partition, Opcode, Stream'Access);
          when Invalid_Operation =>
             raise Program_Error;
       end case;
@@ -829,18 +830,21 @@ package body System.Garlic.Heart is
       raise;
    end Process_Stream;
 
-   -------------
-   -- Receive --
-   -------------
+   ----------------------
+   -- Register_Handler --
+   ----------------------
 
-   procedure Receive (Operation : in Opcode; Receiver : in Public_Receiver) is
+   procedure Register_Handler
+     (Opcode  : in Any_Opcode;
+      Handler : in Request_Handler) is
    begin
       pragma Debug
         (D (D_Garlic,
-            "Receiver for operation " & Operation'Img & " is now registered"));
+            "Handler for operation " & Opcode'Img &
+            " is now registered"));
 
-      Receiver_Map (Operation) := Receiver;
-   end Receive;
+      Handlers (Opcode) := Handler;
+   end Register_Handler;
 
    -------------------------
    -- Reconnection_Policy --
@@ -901,7 +905,7 @@ package body System.Garlic.Heart is
 
    procedure Send
      (Partition : in Partition_ID;
-      Operation : in Opcode;
+      Opcode    : in Any_Opcode;
       Params    : access Params_Stream_Type)
    is
       Filtered : Stream_Element_Access;
@@ -909,11 +913,11 @@ package body System.Garlic.Heart is
       Stream   : Stream_Element_Access;
    begin
       pragma Debug
-        (D (D_Debug, "Send " & Operation'Img & " message to" & Partition'Img));
+        (D (D_Debug, "Send " & Opcode'Img & " message to" & Partition'Img));
 
       --  Filter the data according to the remote partition and the opcode
 
-      Filtered := Filter_Outgoing (Partition, Operation, Params);
+      Filtered := Filter_Outgoing (Partition, Opcode, Params);
 
       --  Workaround: XXXXX (Bad code generation on Solaris)
       if Filtered = null then
@@ -934,7 +938,7 @@ package body System.Garlic.Heart is
       --  be deallocated.
 
       Stream (Unused_Space + 1) := PID_Write (Self_PID);
-      Stream (Unused_Space + 2) := Opcode_Write (Operation);
+      Stream (Unused_Space + 2) := Opcode_Write (Opcode);
       Stream (Unused_Space + 3 .. Stream'Last) := Filtered.all;
       Free (Filtered);
 
@@ -946,7 +950,7 @@ package body System.Garlic.Heart is
          pragma Debug (D (D_Debug, "Handling a All_Calls_Remote case"));
          declare
             PID        : Partition_ID;
-            Code       : Opcode;
+            Code       : Any_Opcode;
             Unfiltered : Stream_Element_Access;
          begin
             Analyze_Stream (PID, Code, Unfiltered, Stream, Unused_Space);
@@ -988,7 +992,7 @@ package body System.Garlic.Heart is
             " on partition" & Partition'Img));
       Partition_ID'Write (Params'Access, Partition);
       Request_Type'Output (Params'Access, Request);
-      Send (Target, Partition_Service, Params'Access);
+      Send (Target, Partition_Operation, Params'Access);
    end Send;
 
    -----------------------
@@ -1097,7 +1101,7 @@ package body System.Garlic.Heart is
                declare
                   Empty : aliased Params_Stream_Type (0);
                begin
-                  Send (Partition, Shutdown, Empty'Access);
+                  Send (Partition, Shutdown_Operation, Empty'Access);
                exception
                   when Communication_Error => null;
                end;

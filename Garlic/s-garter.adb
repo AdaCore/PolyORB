@@ -122,9 +122,9 @@ package body System.Garlic.Termination is
    --      This will unblock Termination_Accepted, set to True only
    --      if no Activity_Detected was called.
 
-   procedure Receive_Message
+   procedure Handle_Request
      (Partition : in Partition_ID;
-      Operation : in Public_Opcode;
+      Opcode : in Public_Opcode;
       Params    : access Params_Stream_Type);
    --  Receive a message from Garlic
 
@@ -239,7 +239,7 @@ package body System.Garlic.Termination is
                      "Sending shutdown query to partition" & Partition'Img));
                Termination_Code'Write (Params'Access, Set_Stamp);
                Stamp'Write (Params'Access, Id);
-               Send (Partition, Shutdown_Synchronization, Params'Access);
+               Send (Partition, Shutdown_Service, Params'Access);
                Count := Count + 1;
             exception
                when Communication_Error => null;
@@ -255,7 +255,7 @@ package body System.Garlic.Termination is
             begin
                Termination_Code'Write (Params'Access, Check_Stamp);
                Stamp'Write (Params'Access, Id);
-               Send (Partition, Shutdown_Synchronization, Params'Access);
+               Send (Partition, Shutdown_Service, Params'Access);
             exception
                when Communication_Error => null;
             end;
@@ -270,7 +270,7 @@ package body System.Garlic.Termination is
    procedure Initialize is
    begin
       if Options.Termination /= Local_Termination then
-         Receive (Shutdown_Synchronization, Receive_Message'Access);
+         Register_Handler (Shutdown_Service, Handle_Request'Access);
       end if;
    end Initialize;
 
@@ -293,13 +293,13 @@ package body System.Garlic.Termination is
       Heart.Soft_Shutdown;
    end Local_Termination;
 
-   ---------------------
-   -- Receive_Message --
-   ---------------------
+   --------------------
+   -- Handle_Request --
+   --------------------
 
-   procedure Receive_Message
+   procedure Handle_Request
      (Partition : in Partition_ID;
-      Operation : in Public_Opcode;
+      Opcode    : in Public_Opcode;
       Params    : access Params_Stream_Type)
    is
       Termination_Operation : Termination_Code;
@@ -351,7 +351,7 @@ package body System.Garlic.Termination is
                   Termination_Code'Write (Answer'Access, Negative_Ack);
                end if;
                Stamp'Write (Answer'Access, Id);
-               Send (Partition, Shutdown_Synchronization, Answer'Access);
+               Send (Partition, Shutdown_Service, Answer'Access);
             end;
 
          when Positive_Ack =>
@@ -361,7 +361,7 @@ package body System.Garlic.Termination is
             Termination_Watcher.Negative_Ack_Received (Id);
 
       end case;
-   end Receive_Message;
+   end Handle_Request;
 
    --------------
    -- Shutdown --

@@ -80,7 +80,7 @@ package body System.Garlic.Replay is
 
    task body Engine_Type is
       PID  : Partition_ID;
-      Code : Opcode;
+      Code : Any_Opcode;
       Data : Stream_Element_Access;
    begin
       pragma Debug (D (D_Debug, "Replay engine started"));

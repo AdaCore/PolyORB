@@ -1,3 +1,12 @@
+1998-09-17  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* s-garfil.adb, s-garfil.ads, s-garhea.adb, s-garhea.ads,
+ 	s-garrep.adb, s-gartcp.adb, s-garter.adb, s-parint.adb, s-rpc.adb,
+ 	s-rpstio.adb: Reformatting. Rename Public_Receiver into
+ 	Request_Handler to avoid confusion with RPC_Receiver. Renames
+ 	Opcode into Any_Opcode (like Public_Opcode and Internal_Opcode) to
+ 	be able to declare Opcode variable.
+
 1998-09-15  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* Makefile.am, Makefile.in: Update dependencies

@@ -85,9 +85,9 @@ package body System.Partition_Interface is
    --  Compare two version ids. If one of these version ids is a string
    --  of blank characters then they will be considered as identical.
 
-   procedure Public_Message_Receiver
+   procedure Handle_Request
      (Partition : in Partition_ID;
-      Operation : in Public_Opcode;
+      Opcode    : in Public_Opcode;
       Params    : access Params_Stream_Type);
    --  Global message receiver
 
@@ -339,18 +339,17 @@ package body System.Partition_Interface is
       end if;
    end Launch;
 
-   -----------------------------
-   -- Public_Message_Receiver --
-   -----------------------------
+   --------------------
+   -- Handle_Request --
+   --------------------
 
-   procedure Public_Message_Receiver
+   procedure Handle_Request
      (Partition : in Partition_ID;
-      Operation : in Public_Opcode;
+      Opcode    : in Public_Opcode;
       Params    : access Params_Stream_Type)
    is
       R : Request_Type;
       U : Unit_Id;
-
    begin
       Request_Id'Read (Params, R.Command);
 
@@ -390,7 +389,7 @@ package body System.Partition_Interface is
       end case;
 
       Apply (U, R, Process'Access);
-   end Public_Message_Receiver;
+   end Handle_Request;
 
    ------------------------------------
    -- Raise_Program_Error_For_E_4_18 --
@@ -579,5 +578,5 @@ package body System.Partition_Interface is
    end Run;
 
 begin
-   Receive (Unit_Name_Service, Public_Message_Receiver'Access);
+   Register_Handler (Unit_Name_Service, Handle_Request'Access);
 end System.Partition_Interface;

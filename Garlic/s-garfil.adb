@@ -148,6 +148,13 @@ package body System.Garlic.Filters is
    --  the naming convention. Info of name "partition name" + "'filter" is
    --  the name of the filter to apply on the channel.
 
+   procedure Handle_Request
+     (Partition : in Partition_ID;
+      Opcode    : in Public_Opcode;
+      Params    : access Params_Stream_Type);
+   --  Handle a remote request Get_Params and Set_Params. When needed, use
+   --  registration filter.
+
    procedure Incoming
      (Partition : in Partition_ID;
       Request   : in Request_Type;
@@ -166,14 +173,7 @@ package body System.Garlic.Filters is
    --  a request in a protected manner. Basically, this procedure
    --  initializes the half outgoing channel.
 
-   procedure Receive_Message
-     (Partition : in Partition_ID;
-      Operation : in Public_Opcode;
-      Params    : access Params_Stream_Type);
-   --  Handle a remote request Get_Params and Set_Params. When needed, use
-   --  registration filter.
-
-   procedure Send_Message
+   procedure Send
      (Partition : in Partition_ID;
       Request   : in Request_Id;
       Channel   : in Channel_Type);
@@ -186,13 +186,13 @@ package body System.Garlic.Filters is
 
    function Filter_Incoming
       (Partition : in Types.Partition_ID;
-       Operation : in System.Garlic.Heart.Opcode;
+       Opcode    : in System.Garlic.Heart.Any_Opcode;
        Stream    : in Ada.Streams.Stream_Element_Array)
       return Streams.Stream_Element_Access is
    begin
       --  Only remote calls are filtered
 
-      if Operation = Remote_Call then
+      if Opcode = Remote_Call then
 
          --  Check that this half channel is initialized
 
@@ -231,13 +231,13 @@ package body System.Garlic.Filters is
 
    function Filter_Outgoing
       (Partition : in     Types.Partition_ID;
-       Operation : in     System.Garlic.Heart.Opcode;
+       Opcode    : in     System.Garlic.Heart.Any_Opcode;
        Stream    : access Streams.Params_Stream_Type)
       return Streams.Stream_Element_Access is
    begin
       --  Only remote calls are filtered
 
-      if Operation = Remote_Call then
+      if Opcode = Remote_Call then
 
          --  Check  that this half channel is initialized
 
@@ -303,6 +303,88 @@ package body System.Garlic.Filters is
 
       return Default;
    end Get_Partition_Filter;
+
+   --------------------
+   -- Handle_Request --
+   --------------------
+
+   procedure Handle_Request
+     (Partition : in Partition_ID;
+      Opcode    : in Public_Opcode;
+      Params    : access Params_Stream_Type)
+   is
+      --  We may have to filter the original stream. We will interpret the
+      --  message once the stream has been filtered. That's why the job is
+      --  done in Internal_Receive.
+
+      S1, S2 : Stream_Element_Access;
+
+      procedure Internal_Handler (P : access Params_Stream_Type);
+
+      procedure Internal_Handler (P : access Params_Stream_Type) is
+         Request : Request_Type;
+         Filter  : Filter_Access;
+
+         pragma Warnings (Off);
+
+         --  This is a hack to force partition_data update.
+         PName   : String := Name (Partition);
+
+         pragma Warnings (On);
+
+      begin
+         Request_Id'Read (P, Request.Command);
+
+         pragma Debug
+           (D (D_Debug,
+               "Recv "  & Request.Command'Img &
+               " from " & PName & " -" & Partition'Img));
+
+         if Request.Command = Set_Params then
+            Filter := Get_Partition_Filter (Partition);
+            Request.Parameter :=
+              Filter_Params_Read (Filter.all, To_Stream_Element_Array (P));
+            Channels.Apply (Partition, Request, Outgoing'Access);
+
+         else
+            Channels.Apply (Partition, Request, Incoming'Access);
+
+            --  If this was a remote query, then provide the remote part to
+            --  the other partition ouside from critical section because
+            --  Send can also require to enter in a critical section.
+
+            if Request.Command = Get_Params then
+               pragma Debug
+                 (D (D_Debug,
+                     "Provide params for partition " & PName &
+                     " incoming filter"));
+
+               Send (Partition, Set_Params,
+                     Channels.Get_Component (Partition));
+            end if;
+         end if;
+      end Internal_Handler;
+
+   begin
+      if Register.Filter /= null then
+         S1 := To_Stream_Element_Access (Params);
+         S2 := Filter_Incoming
+           (Register.Filter.all,
+            Register.Incoming.Local,
+            S1.all);
+         declare
+            Params : aliased Params_Stream_Type (S2'Length);
+         begin
+            Write (Params, S2.all);
+            Free (S1);
+            Free (S2);
+            Internal_Handler (Params'Access);
+         end;
+
+      else
+         Internal_Handler (Params);
+      end if;
+   end Handle_Request;
 
    --------------
    -- Incoming --
@@ -389,7 +471,7 @@ package body System.Garlic.Filters is
          end if;
       end if;
 
-      Receive (Filtering, Receive_Message'Access);
+      Register_Handler (Filtering_Service, Handle_Request'Access);
    end Initialize;
 
    --------------
@@ -475,94 +557,12 @@ package body System.Garlic.Filters is
                      "Query params for partition " & Name (Partition) &
                      " outgoing filter"));
 
-               Send_Message (Partition, Get_Params, Channel);
+               Send (Partition, Get_Params, Channel);
                Status := Postponed;
             end if;
          end if;
       end if;
    end Outgoing;
-
-   ---------------------
-   -- Receive_Message --
-   ---------------------
-
-   procedure Receive_Message
-     (Partition : in Partition_ID;
-      Operation : in Public_Opcode;
-      Params    : access Params_Stream_Type)
-   is
-      --  We may have to filter the original stream. We will interpret the
-      --  message once the stream has been filtered. That's why the job is
-      --  done in Internal_Receive.
-
-      S1, S2 : Stream_Element_Access;
-
-      procedure Internal_Receive (P : access Params_Stream_Type);
-
-      procedure Internal_Receive (P : access Params_Stream_Type) is
-         Request : Request_Type;
-         Filter  : Filter_Access;
-
-         pragma Warnings (Off);
-
-         --  This is a hack to force partition_data update.
-         PName   : String := Name (Partition);
-
-         pragma Warnings (On);
-
-      begin
-         Request_Id'Read (P, Request.Command);
-
-         pragma Debug
-           (D (D_Debug,
-               "Recv "  & Request.Command'Img &
-               " from " & PName & " -" & Partition'Img));
-
-         if Request.Command = Set_Params then
-            Filter := Get_Partition_Filter (Partition);
-            Request.Parameter :=
-              Filter_Params_Read (Filter.all, To_Stream_Element_Array (P));
-            Channels.Apply (Partition, Request, Outgoing'Access);
-
-         else
-            Channels.Apply (Partition, Request, Incoming'Access);
-
-            --  If this was a remote query, then provide the remote part to
-            --  the other partition ouside from critical section because
-            --  Send can also require to enter in a critical section.
-
-            if Request.Command = Get_Params then
-               pragma Debug
-                 (D (D_Debug,
-                     "Provide params for partition " & PName &
-                     " incoming filter"));
-
-               Send_Message (Partition, Set_Params,
-                             Channels.Get_Component (Partition));
-            end if;
-         end if;
-      end Internal_Receive;
-
-   begin
-      if Register.Filter /= null then
-         S1 := To_Stream_Element_Access (Params);
-         S2 := Filter_Incoming
-           (Register.Filter.all,
-            Register.Incoming.Local,
-            S1.all);
-         declare
-            Params : aliased Params_Stream_Type (S2'Length);
-         begin
-            Write (Params, S2.all);
-            Free (S1);
-            Free (S2);
-            Internal_Receive (Params'Access);
-         end;
-
-      else
-         Internal_Receive (Params);
-      end if;
-   end Receive_Message;
 
    ---------------------
    -- Register_Filter --
@@ -575,11 +575,11 @@ package body System.Garlic.Filters is
       Filters.Set_Component (Filters.Get_Index (Name), Filter);
    end Register_Filter;
 
-   ------------------
-   -- Send_Message --
-   ------------------
+   ----------
+   -- Send --
+   ----------
 
-   procedure Send_Message
+   procedure Send
      (Partition : in Partition_ID;
       Request   : in Request_Id;
       Channel   : in Channel_Type)
@@ -613,8 +613,8 @@ package body System.Garlic.Filters is
 
       end if;
 
-      Send (Partition, Filtering, Stream'Access);
-   end Send_Message;
+      Send (Partition, Filtering_Service, Stream'Access);
+   end Send;
 
    ------------------------
    -- Set_Channel_Filter --

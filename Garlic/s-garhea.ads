@@ -157,19 +157,20 @@ package System.Garlic.Heart is
    --  Register a procedure that will be called whenever a communication
    --  error occurs during a remote call.
 
-   type Opcode is (Invalid_Operation,
-                   No_Operation,             -- First Internal Opcode
-                   Partition_Service,
-                   Shutdown,                 -- Last Internal Opcode
-                   Remote_Call,              -- First Public Opcode
-                   Shutdown_Synchronization,
-                   Unit_Name_Service,
-                   User_Message,
-                   Filtering);               -- Last Public Opcode
-   subtype Internal_Opcode is Opcode
-     range No_Operation .. Shutdown;
-   subtype Public_Opcode is Opcode
-     range Remote_Call .. Filtering;
+   type Any_Opcode is
+      (Invalid_Operation,
+       No_Operation,             -- First Internal Opcode
+       Partition_Operation,
+       Shutdown_Operation,       -- Last Internal Opcode
+       Remote_Call,              -- First Public Opcode
+       User_Message,
+       Shutdown_Service,
+       Unit_Name_Service,
+       Filtering_Service);       -- Last Public Opcode
+   subtype Internal_Opcode is Any_Opcode
+     range No_Operation .. Shutdown_Operation;
+   subtype Public_Opcode is Any_Opcode
+     range Remote_Call .. Filtering_Service;
    --  Type of the current operation. Note that Invalid_Operation is here
    --  to catch the trivial case where zeros are sent instead of a real
    --  request. These types *must* be updated as soon as Opcode is updated.
@@ -177,22 +178,23 @@ package System.Garlic.Heart is
    --  an external module, while an internal opcode will be handled by this
    --  package.
 
-   type Public_Receiver is
-      access procedure (Partition : in Types.Partition_ID;
-                        Operation : in Public_Opcode;
-                        Params    : access Streams.Params_Stream_Type);
+   type Request_Handler is
+      access procedure
+     (Partition : in Types.Partition_ID;
+      Opcode    : in Public_Opcode;
+      Params    : access Streams.Params_Stream_Type);
    --  A procedure which will get the requests
 
    procedure Send
      (Partition : in Types.Partition_ID;
-      Operation : in Opcode;
+      Opcode    : in Any_Opcode;
       Params    : access Streams.Params_Stream_Type);
    --  Send something to a remote partition after calling the appropriate
    --  filter.
 
-   procedure Receive
-     (Operation : in Opcode;
-      Receiver  : in Public_Receiver);
+   procedure Register_Handler
+     (Opcode  : in Any_Opcode;
+      Handler : in Request_Handler);
    --  Receive something from a remote partition given the Opcode. The
    --  receiver will have to read the Params_Stream_Type before returning.
 
@@ -201,7 +203,7 @@ package System.Garlic.Heart is
 
    procedure Analyze_Stream
      (Partition  : out Types.Partition_ID;
-      Operation  : out Opcode;
+      Opcode     : out Any_Opcode;
       Unfiltered : out Streams.Stream_Element_Access;
       Filtered   : in  Streams.Stream_Element_Access;
       Offset     : in Ada.Streams.Stream_Element_Count := 0);
@@ -211,7 +213,7 @@ package System.Garlic.Heart is
 
    procedure Process_Stream
      (Partition  : in Types.Partition_ID;
-      Operation  : in Opcode;
+      Opcode     : in Any_Opcode;
       Unfiltered : in Streams.Stream_Element_Access);
 
    ----------------
