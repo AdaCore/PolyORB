@@ -85,7 +85,7 @@ package PolyORB.Lanes is
       Max_Buffered_Requests     : PolyORB.Types.Unsigned_Long;
       Max_Buffer_Size           : PolyORB.Types.Unsigned_Long)
    is new Lane_Root with private;
-   --  XXX missing: dynamic thread allocation, stack size
+   --  XXX missing: request buffering using Max_Buffer_Size
 
    type Lane_Access is access all Lane'Class;
 
@@ -139,6 +139,7 @@ private
    type Lane_Runnable is new PolyORB.Tasking.Threads.Runnable with record
       L : Lane_Access;
       J : Job_Access;
+      Dynamically_Allocated : Boolean;
    end record;
 
    type Lane_Runnable_Access is access all Lane_Runnable;
@@ -181,8 +182,8 @@ private
       Max_Buffer_Size           : PolyORB.Types.Unsigned_Long)
    is new Lane_Root with record
       Lock      : PTM.Mutex_Access;
-      Threads   : Thread_Array (1 .. Base_Number_Of_Threads);
       Job_Queue : Job_Queue_Access;
+      Dynamic_Threads_Created : Natural := 0;
 
       Idle_Task_List : Idle_Task_Lists.List;
       --  List of idle tasks
