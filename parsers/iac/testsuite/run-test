@@ -23,8 +23,7 @@ else
 fi
 CODE=$?
 if [ $CODE != 0 ]; then
-  OUT=FAILED;
-  echo "$DIR $OUT" | awk '{printf ("%-20s%20s\n", $1, $2)}'
+  echo "$DIR FAILED" | awk '{printf ("%-20s%20s\n", $1, $2)}'
   echo "--------------- expected output ------------------"
   if [ -f test.out ]; then
      cat test.out
@@ -33,4 +32,5 @@ if [ $CODE != 0 ]; then
   cat $LOG
   echo "--------------------------------------------------"
 fi;
+rm $LOG 
 exit $CODE
