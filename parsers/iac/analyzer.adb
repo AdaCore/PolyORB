@@ -927,11 +927,11 @@ package body Analyzer is
    -- Analyze_Union_Type --
    ------------------------
 
-   procedure Analyze_Union_Type (E : Node_Id)
-   is
+   procedure Analyze_Union_Type (E : Node_Id) is
       Alternative : Node_Id;
       Label       : Node_Id;
       Switch_Type : Node_Id := Switch_Type_Spec (E);
+
    begin
       Enter_Name_In_Scope (Identifier (E));
 
@@ -943,9 +943,8 @@ package body Analyzer is
       Switch_Type := Resolve_Type (Switch_Type);
       case Kind (Switch_Type) is
          when K_Short .. K_Wide_Char
-           |  K_Boolean
-           |  K_Octet
-           |  K_Enumeration_Type =>
+           | K_Boolean
+           | K_Octet =>
             null;
 
          when others =>
@@ -982,15 +981,17 @@ package body Analyzer is
       end loop;
 
       GNAT.Bubble_Sort.Sort (LT.Last, Exchange'Access, Less_Than'Access);
-
       for I in 1 .. LT.Last - 1 loop
 
          --  If this comparison is false once sorted, it means that
-         --  the two nodes are equal. This is not an issue when these
-         --  nodes are already incorrect (No_Value).
+         --  the two nodes are equal. Take care of duplicated default
+         --  case. Having two incorrect nodes equal is not a problem.
 
-         if not Less_Than (I, I + 1)
-           and then Value (LT.Table (I)) /= No_Value
+         if (No (Expression (LT.Table (I)))
+             and then No (Expression (LT.Table (I + 1))))
+           or else
+            (Value (LT.Table (I)) /= No_Value
+             and then not Less_Than (I, I + 1))
          then
 
             --  Reorder nodes in order to output the error message on
@@ -1226,8 +1227,7 @@ package body Analyzer is
    -- Less_Than --
    ---------------
 
-   function  Less_Than (Op1, Op2 : Natural) return Boolean
-   is
+   function  Less_Than (Op1, Op2 : Natural) return Boolean is
       N1, N2 : Node_Id;
       V1, V2 : Value_Id;
 
@@ -1236,7 +1236,7 @@ package body Analyzer is
       --  N1 is default
 
       N1 := LT.Table (Op1);
-      if No (N1) then
+      if No (Expression (N1)) then
          return False;
       end if;
       V1 := Value (N1);
@@ -1244,7 +1244,7 @@ package body Analyzer is
       --  N2 is default
 
       N2 := LT.Table (Op2);
-      if No (N2) then
+      if No (Expression (N2)) then
          return True;
       end if;
       V2 := Value (N2);

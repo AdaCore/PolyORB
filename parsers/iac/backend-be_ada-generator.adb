@@ -33,6 +33,7 @@ package body Backend.BE_Ada.Generator is
    procedure Generate_Subprogram_Call (N : Node_Id);
    procedure Generate_Subprogram_Implementation (N : Node_Id);
    procedure Generate_Subprogram_Specification (N : Node_Id);
+   procedure Generate_Variant_Part (N : Node_Id);
    procedure Generate_Withed_Package (N : Node_Id);
 
 
@@ -115,6 +116,9 @@ package body Backend.BE_Ada.Generator is
          when K_Subprogram_Implementation =>
             Generate_Subprogram_Implementation (N);
 
+         when K_Variant_Part =>
+            Generate_Variant_Part (N);
+
          when K_Withed_Package =>
             Generate_Withed_Package (N);
 
@@ -192,12 +196,20 @@ package body Backend.BE_Ada.Generator is
    ------------------------------------
 
    procedure Generate_Component_Declaration (N : Node_Id) is
+      E : constant Node_Id := Expression (N);
+
    begin
       Generate (Defining_Identifier (N));
       Write_Space;
       Write (Tok_Colon);
       Write_Space;
       Generate (Subtype_Indication (N));
+      if Present (E) then
+         Write_Space;
+         Write (Tok_Colon_Equal);
+         Write_Space;
+         Generate (E);
+      end if;
    end Generate_Component_Declaration;
 
    ----------------------------------
@@ -294,11 +306,19 @@ package body Backend.BE_Ada.Generator is
    ------------------------------------
 
    procedure Generate_Full_Type_Declaration (N : Node_Id) is
+      D : constant Node_Id := Discriminant_Spec (N);
+
    begin
       Write (Tok_Type);
       Write_Space;
       Write_Name (Name (Defining_Identifier (N)));
       Write_Space;
+      if Present (D) then
+         Write (Tok_Left_Paren);
+         Generate (D);
+         Write (Tok_Right_Paren);
+         Write_Space;
+      end if;
       Write (Tok_Is);
       Write_Eol;
       Increment_Indentation;
@@ -780,6 +800,84 @@ package body Backend.BE_Ada.Generator is
          Decrement_Indentation;
       end if;
    end Generate_Subprogram_Specification;
+
+   ---------------------------
+   -- Generate_Variant_Part --
+   ---------------------------
+
+   procedure Generate_Variant_Part (N : Node_Id) is
+      V : Node_Id;
+      C : Node_Id;
+      O : Node_Id := No_Node;
+
+   begin
+      Write (Tok_Case);
+      Write_Space;
+      Generate (Discriminant (N));
+      Write_Space;
+      Write (Tok_Is);
+      Write_Eol;
+
+      V := First_Node (Variants (N));
+      Increment_Indentation;
+      while Present (V) loop
+         C := First_Node (Discrete_Choices (V));
+         if Value (C) = No_Value then
+            O := V;
+         else
+            Write_Indentation;
+            Write (Tok_When);
+            Write_Space;
+            Increment_Indentation;
+            loop
+               Generate (C);
+               C := Next_Node (C);
+               if No (C) then
+                  Write_Space;
+                  Write (Tok_Arrow);
+                  Write_Eol;
+                  exit;
+               end if;
+               Write_Eol;
+               Write_Indentation (-1);
+               Write (Tok_Vertical_Bar);
+               Write_Space;
+            end loop;
+            Write_Indentation;
+            Generate (Component (V));
+            Write (Tok_Semicolon);
+            Write_Eol;
+            Decrement_Indentation;
+         end if;
+         V := Next_Node (V);
+      end loop;
+
+      --  Add a "when others" clause either based on the "default"
+      --  label or a null one.
+
+      Write_Indentation;
+      Write (Tok_When);
+      Write_Space;
+      Write (Tok_Others);
+      Write_Space;
+      Write (Tok_Arrow);
+      Write_Eol;
+      Increment_Indentation;
+      Write_Indentation;
+      if Present (O) then
+         Generate (Component (O));
+      else
+         Write (Tok_Null);
+      end if;
+      Write (Tok_Semicolon);
+      Write_Eol;
+      Decrement_Indentation;
+      Decrement_Indentation;
+      Write_Indentation;
+      Write (Tok_End);
+      Write_Space;
+      Write (Tok_Case);
+   end Generate_Variant_Part;
 
    -----------------------------
    -- Generate_Withed_Package --

@@ -116,6 +116,56 @@ package Backend.BE_Ada.Nutils is
    subtype Keyword_Type is Token_Type
      range Tok_Mod .. Tok_Separate;
 
+   type Parameter_Id is
+     (P_Arg_Modes,
+      P_Argument,
+      P_From,
+      P_Name,
+      P_Result,
+      P_Returns,
+      P_Self,
+      P_To);
+
+   PN : array (Parameter_Id) of Name_Id;
+
+   type Variable_Id is
+     (V_Argument,
+      V_Argument_List,
+      V_Argument_Name,
+      V_Context,
+      V_Def_Sys_Member,
+      V_Exception_List,
+      V_Handler,
+      V_Impl_Object_Ptr,
+      V_Members,
+      V_Name,
+      V_Operation_Name,
+      V_Request,
+      V_Result,
+      V_Result_Name,
+      V_Returns,
+      V_Self_Ref,
+      V_Send_Request_Result,
+      V_Value_Operation);
+
+   VN : array (Variable_Id) of Name_Id;
+
+   type Subprogram_Id is
+     (S_Get_Members);
+
+   SN : array (Subprogram_Id) of Name_Id;
+
+   type Component_Id is
+     (C_Switch);
+
+   CN : array (Component_Id) of Name_Id;
+
+   type Attribute_Id is
+     (A_First);
+
+   AN : array (Attribute_Id) of Name_Id;
+
+
    procedure Append_Node_To_List (E : Node_Id; L : List_Id);
 
    procedure Push_Entity (E : Node_Id);
@@ -177,6 +227,11 @@ package Backend.BE_Ada.Nutils is
       Expression          : Node_Id)
      return Node_Id;
 
+   function Make_Type_Attribute
+     (Designator : Node_Id;
+      Attribute  : Attribute_Id)
+     return Node_Id;
+
    function Make_Component_Association
      (Selector_Name : Node_Id;
       Expression    : Node_Id)
@@ -184,7 +239,8 @@ package Backend.BE_Ada.Nutils is
 
    function Make_Component_Declaration
      (Defining_Identifier : Node_Id;
-      Subtype_Indication  : Node_Id)
+      Subtype_Indication  : Node_Id;
+      Expression          : Node_Id := No_Node)
      return Node_Id;
 
    function Make_Defining_Identifier
@@ -215,7 +271,8 @@ package Backend.BE_Ada.Nutils is
 
    function Make_Full_Type_Declaration
      (Defining_Identifier : Node_Id;
-      Type_Definition     : Node_Id)
+      Type_Definition     : Node_Id;
+      Discriminant_Spec   : Node_Id := No_Node)
      return Node_Id;
 
    function Make_Fully_Qualified_Identifier
@@ -284,6 +341,11 @@ package Backend.BE_Ada.Nutils is
      (Defining_Identifier : Node_Id;
       Parameter_Profile   : List_Id;
       Return_Type         : Node_Id := No_Node)
+      return                Node_Id;
+
+   function Make_Variant_Part
+     (Discriminant        : Node_Id;
+      Variant_List        : List_Id)
       return                Node_Id;
 
 end Backend.BE_Ada.Nutils;

@@ -121,6 +121,7 @@ module Backend::BE_Ada::Nodes {
 
   interface Full_Type_Declaration : Definition {
     Node_Id    Type_Definition;
+    Node_Id    Discriminant_Spec;
   };
 
   interface Enumeration_Literals : List_Id {};
@@ -128,7 +129,6 @@ module Backend::BE_Ada::Nodes {
   interface Enumeration_Type_Definition : Node_Id {
     List_Id    Enumeration_Literals;
   };
-
 
   /**************/
   /* Aggregates */
@@ -191,6 +191,7 @@ module Backend::BE_Ada::Nodes {
 
   interface Component_Declaration : Definition {
     Node_Id      Subtype_Indication;
+    Node_Id      Expression;
   };
 
   interface Component_List : List_Id {};
@@ -207,6 +208,18 @@ module Backend::BE_Ada::Nodes {
   interface Range_Constraint : Node_Id {
     Value_Id     First;
     Value_Id     Last;
+  };
+
+  interface Variant_List : List_Id {};
+  interface Variant_Part : Node_Id {
+    List_Id    Variants;
+    Node_Id    Discriminant;
+  };
+
+  interface Discrete_Choice_List : List_Id {};
+  interface Variant : Node_Id {
+    List_Id    Discrete_Choices;
+    Node_Id    Component;
   };
 
 

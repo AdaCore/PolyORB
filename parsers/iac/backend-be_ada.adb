@@ -2,7 +2,6 @@ with GNAT.Command_Line; use GNAT.Command_Line;
 
 with Namet;     use Namet;
 with Output;    use Output;
-with Utils;     use Utils;
 with Types;     use Types;
 with Values;    use Values;
 
@@ -19,43 +18,8 @@ package body Backend.BE_Ada is
 
    Print_Ada_Tree : Boolean := False;
 
-   type Parameter_Id is
-     (P_Returns,
-      P_Self,
-      P_To,
-      P_From,
-      P_Name,
-      P_Argument,
-      P_Arg_Modes,
-      P_Result);
-
-   PN : array (Parameter_Id) of Name_Id;
-
-   type Variable_Id is
-     (V_Handler,
-      V_Returns,
-      V_Get_Members,
-      V_Self_Ref,
-      V_Send_Request_Result,
-      V_Members,
-      V_Impl_Object_Ptr,
-      V_Value_Operation,
-      V_Request,
-      V_Context,
-      V_Argument,
-      V_Argument_Name,
-      V_Argument_List,
-      V_Exception_List,
-      V_Result,
-      V_Result_Name,
-      V_Operation_Name,
-      V_Def_Sys_Member,
-      V_Name);
-
-   VN : array (Variable_Id) of Name_Id;
-
    package FEN renames Frontend.Nodes;
-   package FENU renames Frontend.Nutils;
+   package FEU renames Frontend.Nutils;
    package BEN renames Backend.BE_Ada.Nodes;
 
    procedure Bind_FE_To_BE (F : Node_Id; B : Node_Id);
@@ -76,13 +40,37 @@ package body Backend.BE_Ada is
    procedure Visit_Specification (E : Node_Id);
    procedure Visit_Structure_Type (E : Node_Id);
    procedure Visit_Type_Declaration (E : Node_Id);
+   procedure Visit_Union_Type (E : Node_Id);
 
    function Make_Accessor_Declaration
-     (Accessor : Character; Attribute : Node_Id) return Node_Id;
-   function Make_IDL_Unit (E : Node_Id) return Node_Id;
-   function Make_Member_Definition_List (Members : List_Id) return List_Id;
-   function Make_Package_Declaration (E : Node_Id) return Node_Id;
-   function Make_Repository_Declaration (E : Node_Id) return Node_Id;
+     (Accessor  : Character;
+      Attribute : Node_Id)
+      return      Node_Id;
+
+   function Make_IDL_Unit
+     (Entity : Node_Id)
+      return   Node_Id;
+
+   function Make_Declarator_Type_Designator
+     (Type_Decl  : Node_Id;
+      Declarator : Node_Id)
+      return       Node_Id;
+
+   function Make_Members_Definition
+     (Members : List_Id)
+      return    List_Id;
+
+   function Make_Package_Declaration
+     (Identifier : Node_Id)
+      return   Node_Id;
+
+   function Make_Repository_Declaration
+     (Entity : Node_Id)
+      return   Node_Id;
+
+   function Make_Variant_List
+     (Alternatives : List_Id)
+      return         List_Id;
 
    function Marshaller_Body
      (Subp_Spec : Node_Id; Local_Variables : List_Id) return List_Id;
@@ -147,22 +135,7 @@ package body Backend.BE_Ada is
 
    procedure Initialize is
    begin
-      for P in Parameter_Id loop
-         Set_Str_To_Name_Buffer (Parameter_Id'Image (P));
-         Set_Str_To_Name_Buffer (Name_Buffer (3 .. Name_Len));
-         Capitalize (Name_Buffer (1 .. Name_Len));
-         PN (P) := Name_Find;
-      end loop;
-      for V in Variable_Id loop
-         Set_Str_To_Name_Buffer (Variable_Id'Image (V));
-         Set_Str_To_Name_Buffer (Name_Buffer (3 .. Name_Len));
-         Add_Str_To_Name_Buffer ("_U");
-         Capitalize (Name_Buffer (1 .. Name_Len));
-         VN (V) := Name_Find;
-      end loop;
-
       Runtime.Initialize;
-
       Set_Space_Increment (3);
       Int0_Val := New_Integer_Value (0, 1, 10);
       Nutils.Initialize;
@@ -175,45 +148,95 @@ package body Backend.BE_Ada is
    function Make_Accessor_Declaration
      (Accessor  : Character;
       Attribute : Node_Id)
-     return Node_Id is
-      P : Node_Id;
-      L : List_Id;
-      T : Node_Id;
-      N : Name_Id;
+     return Node_Id
+   is
+      Parameter  : Node_Id;
+      Parameters : List_Id;
+      Param_Type : Node_Id;
+      Attr_Name  : Name_Id;
 
    begin
-      L := New_List (K_Parameter_Profile);
-      P := Make_Parameter_Specification
-        (Make_Defining_Identifier (PN (P_Self)),
-         RE (RE_Ref_0));
-      Append_Node_To_List (P, L);
+      Parameters := New_List (K_Parameter_Profile);
+
+      --  Add the dispatching parameter to the parameter profile
+
+      Parameter  := Make_Parameter_Specification
+        (Make_Defining_Identifier (PN (P_Self)), RE (RE_Ref_0));
+      Append_Node_To_List (Parameter, Parameters);
+
+      --  XXX LP I don't get this.
+
       if Is_Base_Type (Type_Spec (Declaration (Attribute))) then
-         T := Make_Designator
+         Param_Type := Make_Designator
            (Type_Spec (Declaration (Attribute)));
 
       else
-            T := Make_Fully_Qualified_Identifier
-              (Type_Spec (Declaration (Attribute)));
+         Param_Type := Make_Fully_Qualified_Identifier
+           (Type_Spec (Declaration (Attribute)));
       end if;
+
+      --  For the setter subprogram, add the second parameter To. T
+
       if Accessor = Setter then
-         P := Make_Parameter_Specification
-           (Make_Defining_Identifier (PN (P_To)), T);
-         Append_Node_To_List (P, L);
-         T := No_Node;
+         Parameter := Make_Parameter_Specification
+           (Make_Defining_Identifier (PN (P_To)), Param_Type);
+         Append_Node_To_List (Parameter, Parameters);
+         Param_Type := No_Node;
       end if;
-      N := To_Ada_Name (IDL_Name (FEN.Identifier (Attribute)));
+
+      --  At this point, Param_Type is the returned type. No_Node
+      --  stands for the setter. Otherwise it is the getter.
+
+      Attr_Name := To_Ada_Name (IDL_Name (FEN.Identifier (Attribute)));
       Set_Str_To_Name_Buffer ("Set_");
       Name_Buffer (1) := Accessor;
-      Get_Name_String_And_Append (N);
+      Get_Name_String_And_Append (Attr_Name);
       return Make_Subprogram_Specification
-        (Make_Defining_Identifier (Name_Find), L, T);
+        (Make_Defining_Identifier (Name_Find), Parameters, Param_Type);
    end Make_Accessor_Declaration;
+
+   -------------------------------------
+   -- Make_Declarator_Type_Designator --
+   -------------------------------------
+
+   function Make_Declarator_Type_Designator
+     (Type_Decl  : Node_Id;
+      Declarator : Node_Id)
+     return Node_Id
+   is
+      Designator : Node_Id;
+      Decl_Name  : Name_Id;
+
+   begin
+      Designator := Make_Designator (Type_Decl);
+
+      --  When the declarator is complex, the component type is an
+      --  array type.
+
+      if Kind (Declarator) = K_Complex_Declarator then
+         Decl_Name := To_Ada_Name (IDL_Name (FEN.Identifier (Declarator)));
+         Get_Name_String (Decl_Name);
+         Add_Str_To_Name_Buffer ("_Array");
+         Decl_Name := Name_Find;
+         Append_Node_To_List
+           (Make_Full_Type_Declaration
+              (Defining_Identifier => Make_Defining_Identifier (Decl_Name),
+               Type_Definition     => Make_Array_Type_Definition
+                 (Make_Range_Constraints
+                    (FEN.Array_Sizes (Declarator)), Designator)),
+            Visible_Part (Current_Package));
+         Designator := New_Node (K_Designator);
+         Set_Defining_Identifier
+           (Designator, Make_Defining_Identifier (Decl_Name));
+      end if;
+      return Designator;
+   end Make_Declarator_Type_Designator;
 
    -------------------
    -- Make_IDL_Unit --
    -------------------
 
-   function Make_IDL_Unit (E : Node_Id) return Node_Id is
+   function Make_IDL_Unit (Entity : Node_Id) return Node_Id is
       P : Node_Id;
       N : Node_Id;
       M : Node_Id;  -- Main Package;
@@ -222,12 +245,12 @@ package body Backend.BE_Ada is
       I : Node_Id;
 
    begin
-      P := New_Node (K_IDL_Unit, E);
+      P := New_Node (K_IDL_Unit, Entity);
 
       L := New_List (K_Packages);
       Set_Packages (P, L);
 
-      I := Make_Fully_Qualified_Identifier (E);
+      I := Make_Fully_Qualified_Identifier (Entity);
 
       --  Main package
 
@@ -245,7 +268,7 @@ package body Backend.BE_Ada is
       Set_Helper_Package (P, D);
       Append_Node_To_List (D, L);
 
-      if Kind (E) = K_Interface_Declaration then
+      if Kind (Entity) = K_Interface_Declaration then
 
          --  Skeleton package
 
@@ -271,95 +294,82 @@ package body Backend.BE_Ada is
       return P;
    end Make_IDL_Unit;
 
-   ---------------------------------
-   -- Make_Member_Definition_List --
-   ---------------------------------
+   -----------------------------
+   -- Make_Members_Definition --
+   -----------------------------
 
-   function Make_Member_Definition_List (Members : List_Id) return List_Id is
-      L : List_Id;
-      M : Node_Id;
-      D : Node_Id;
-      T : Node_Id;
-      N : Node_Id;
+   function Make_Members_Definition (Members : List_Id) return List_Id is
+      Components  : List_Id;
+      Member      : Node_Id;
+      Declarator  : Node_Id;
+      Member_Type : Node_Id;
 
    begin
-      L := New_List (K_Component_List);
-      M := First_Entity (Members);
-      while Present (M) loop
-         D := First_Entity (Declarators (M));
-         while Present (D) loop
-            T := Make_Designator (Type_Spec (M));
-            if Kind (D) = K_Complex_Declarator then
-               Get_Name_String (To_Ada_Name (IDL_Name (FEN.Identifier (D))));
-               Add_Str_To_Name_Buffer ("_Array");
-               T := Make_Full_Type_Declaration
-                 (Defining_Identifier => Make_Defining_Identifier (Name_Find),
-                  Type_Definition     => Make_Array_Type_Definition
-                    (Make_Range_Constraints (FEN.Array_Sizes (D)), T));
-               Append_Node_To_List (T, Visible_Part (Current_Package));
-               Get_Name_String (To_Ada_Name (IDL_Name (FEN.Identifier (D))));
-               Add_Str_To_Name_Buffer ("_Array");
-               T := New_Node (K_Designator);
-               Set_Defining_Identifier
-                 (T, Make_Defining_Identifier (Name_Find));
-            end if;
-            N := Make_Component_Declaration
-              (Make_Defining_Identifier (D), T);
-            Append_Node_To_List (N, L);
-            D := Next_Entity (D);
+      Components := New_List (K_Component_List);
+      Member := First_Entity (Members);
+      while Present (Member) loop
+         Declarator := First_Entity (Declarators (Member));
+         Member_Type := Type_Spec (Member);
+         while Present (Declarator) loop
+            Append_Node_To_List
+              (Make_Component_Declaration
+               (Make_Defining_Identifier (FEN.Identifier (Declarator)),
+                Make_Declarator_Type_Designator (Member_Type, Declarator)),
+               Components);
+            Declarator := Next_Entity (Declarator);
          end loop;
-         M := Next_Entity (M);
+         Member := Next_Entity (Member);
       end loop;
-      return L;
-   end Make_Member_Definition_List;
+      return Components;
+   end Make_Members_Definition;
 
    ------------------------------
    -- Make_Package_Declaration --
    ------------------------------
 
-   function Make_Package_Declaration (E : Node_Id) return Node_Id is
-      D : Node_Id;
-      P : Node_Id;
+   function Make_Package_Declaration (Identifier : Node_Id) return Node_Id is
+      Pkg  : Node_Id;
+      Unit : Node_Id;
 
    begin
-      D := New_Node (K_Package_Declaration);
-      Set_Defining_Identifier (D, E);
+      Unit := New_Node (K_Package_Declaration);
+      Set_Defining_Identifier (Unit, Identifier);
       if Present (Current_Entity) then
-         Set_Parent (D, Main_Package (Current_Entity));
+         Set_Parent (Unit, Main_Package (Current_Entity));
       end if;
-      P := New_Node (K_Package_Specification);
-      Set_Withed_Packages (P, New_List (K_Withed_Packages));
-      Set_Visible_Part (P, New_List (K_Declaration_List));
-      Set_Private_Part (P, New_List (K_Declaration_List));
-      Set_Package_Declaration (P, D);
-      Set_Package_Specification (D, P);
-      P := New_Node (K_Package_Implementation);
-      Set_Withed_Packages (P, New_List (K_Withed_Packages));
-      Set_Declarations (P, New_List (K_Declaration_List));
-      Set_Statements (P, New_List (K_Statement_List));
-      Set_Package_Declaration (P, D);
-      Set_Package_Implementation (D, P);
-      return D;
+      Pkg := New_Node (K_Package_Specification);
+      Set_Withed_Packages (Pkg, New_List (K_Withed_Packages));
+      Set_Visible_Part (Pkg, New_List (K_Declaration_List));
+      Set_Private_Part (Pkg, New_List (K_Declaration_List));
+      Set_Package_Declaration (Pkg, Unit);
+      Set_Package_Specification (Unit, Pkg);
+      Pkg := New_Node (K_Package_Implementation);
+      Set_Withed_Packages (Pkg, New_List (K_Withed_Packages));
+      Set_Declarations (Pkg, New_List (K_Declaration_List));
+      Set_Statements (Pkg, New_List (K_Statement_List));
+      Set_Package_Declaration (Pkg, Unit);
+      Set_Package_Implementation (Unit, Pkg);
+      return Unit;
    end Make_Package_Declaration;
 
    ---------------------------------
    -- Make_Repository_Declaration --
    ---------------------------------
 
-   function Make_Repository_Declaration (E : Node_Id) return Node_Id is
+   function Make_Repository_Declaration (Entity : Node_Id) return Node_Id is
 
-      procedure Get_Repository_String (E : Node_Id);
+      procedure Get_Repository_String (Entity : Node_Id);
 
       ---------------------------
       -- Get_Repository_String --
       ---------------------------
 
-      procedure Get_Repository_String (E : Node_Id) is
+      procedure Get_Repository_String (Entity : Node_Id) is
          I : Node_Id;
          S : Node_Id;
 
       begin
-         I := FEN.Identifier (E);
+         I := FEN.Identifier (Entity);
          S := Scope_Entity (I);
          if Present (S)
            and then FEN.Kind (S) /= FEN.K_Specification
@@ -376,7 +386,7 @@ package body Backend.BE_Ada is
 
    begin
       Name_Len := 0;
-      case FEN.Kind (E) is
+      case FEN.Kind (Entity) is
          when FEN.K_Interface_Declaration
            | FEN.K_Module =>
             null;
@@ -387,7 +397,8 @@ package body Backend.BE_Ada is
            | FEN.K_Complex_Declarator
            | FEN.K_Enumeration_Type
            | FEN.K_Union_Type =>
-            Get_Name_String (To_Ada_Name (FEN.IDL_Name (FEN.Identifier (E))));
+            Get_Name_String
+              (To_Ada_Name (FEN.IDL_Name (FEN.Identifier (Entity))));
             Add_Char_To_Name_Buffer ('_');
 
          when others =>
@@ -396,7 +407,7 @@ package body Backend.BE_Ada is
       Add_Str_To_Name_Buffer ("Repository_Id");
       I := Name_Find;
       Set_Str_To_Name_Buffer ("IDL:");
-      Get_Repository_String (E);
+      Get_Repository_String (Entity);
       Add_Str_To_Name_Buffer (":1.0");
       V := New_String_Value (Name_Find, False);
       return Make_Object_Declaration
@@ -405,6 +416,51 @@ package body Backend.BE_Ada is
          Object_Definition   => RE (RE_String_2),
          Expression          => Make_Literal (V));
    end Make_Repository_Declaration;
+
+   -----------------------
+   -- Make_Variant_List --
+   -----------------------
+
+   function Make_Variant_List (Alternatives : List_Id) return List_Id is
+      Alternative : Node_Id;
+      Variants    : List_Id;
+      Variant     : Node_Id;
+      Choices     : List_Id;
+      Choice      : Node_Id;
+      Label       : Node_Id;
+      Element     : Node_Id;
+      Identifier  : Node_Id;
+
+   begin
+      Variants := New_List (K_Variant_List);
+      Alternative := First_Entity (Alternatives);
+      while Present (Alternative) loop
+         Variant := New_Node (K_Variant);
+         Choices := New_List (K_Discrete_Choice_List);
+         Set_Discrete_Choices (Variant, Choices);
+         Label   := First_Entity (Labels (Alternative));
+         Element := FEN.Element (Alternative);
+         while Present (Label) loop
+
+            --  XXX LP this does not work for enumeration type. We
+            --  need a fully qualified notation.
+
+            Choice := Make_Literal (FEN.Value (Label));
+            Append_Node_To_List (Choice, Choices);
+            Label := Next_Entity (Label);
+         end loop;
+         Identifier := FEN.Identifier (FEN.Declarator (Element));
+         Set_Component
+           (Variant,
+            Make_Component_Declaration
+              (Make_Defining_Identifier (Identifier),
+               Make_Declarator_Type_Designator
+                 (Type_Spec (Element), Identifier)));
+         Append_Node_To_List (Variant, Variants);
+         Alternative := Next_Entity (Alternative);
+      end loop;
+      return Variants;
+   end Make_Variant_List;
 
    ---------------------
    -- Marshaller_Body --
@@ -681,6 +737,9 @@ package body Backend.BE_Ada is
          when K_Structure_Type =>
             Visit_Structure_Type (E);
 
+         when K_Union_Type =>
+            Visit_Union_Type (E);
+
          when K_Attribute_Declaration =>
             Visit_Attribute_Declaration (E);
 
@@ -816,7 +875,7 @@ package body Backend.BE_Ada is
         (Make_Full_Type_Declaration
            (Defining_Identifier => Identifier,
             Type_Definition     => Make_Record_Definition
-              (Make_Member_Definition_List (Members (E)))),
+              (Make_Members_Definition (Members (E)))),
          Visible_Part (Current_Package));
 
       Profile  := New_List (K_Parameter_Profile);
@@ -832,7 +891,7 @@ package body Backend.BE_Ada is
 
       Append_Node_To_List
         (Make_Subprogram_Specification
-           (Make_Defining_Identifier (VN (V_Get_Members)), Profile, No_Node),
+           (Make_Defining_Identifier (SN (S_Get_Members)), Profile, No_Node),
          Visible_Part (Current_Package));
    end Visit_Exception_Declaration;
 
@@ -851,15 +910,14 @@ package body Backend.BE_Ada is
       Push_Entity (P);
       Set_Main_Spec;
       L := Interface_Spec (E);
-      if FENU.Is_Empty (L) then
+      if FEU.Is_Empty (L) then
          N := RE (RE_Ref_2);
       else
          N := Make_Designator (First_Entity (L));
       end if;
-      Set_Str_To_Name_Buffer ("Ref");
       N :=
         Make_Full_Type_Declaration
-        (Make_Defining_Identifier (Name_Find),
+        (RE (RE_Ref_0),
          Make_Derived_Type_Definition
              (Subtype_Indication    => N,
               Record_Extension_Part =>
@@ -974,6 +1032,7 @@ package body Backend.BE_Ada is
         (Make_Defining_Identifier (E), Profile, Returns);
       Append_Node_To_List (Subp_Spec, Visible_Part (Current_Package));
       Bind_FE_To_BE (E, Subp_Spec);
+
       --  Add subprogram to main implementation
 
       Set_Main_Body;
@@ -989,16 +1048,14 @@ package body Backend.BE_Ada is
    -------------------------
 
    procedure Visit_Specification (E : Node_Id) is
-      D : Node_Id;
-      S : Node_Id;
+      Definition : Node_Id;
 
    begin
-      S := Make_IDL_Unit (E);
-      Push_Entity (S);
-      D := First_Entity (Definitions (E));
-      while Present (D) loop
-         Visit (D);
-         D := Next_Entity (D);
+      Push_Entity (Make_IDL_Unit (E));
+      Definition := First_Entity (Definitions (E));
+      while Present (Definition) loop
+         Visit (Definition);
+         Definition := Next_Entity (Definition);
       end loop;
       Pop_Entity;
    end Visit_Specification;
@@ -1016,7 +1073,7 @@ package body Backend.BE_Ada is
         (Make_Defining_Identifier (E),
          Make_Record_Type_Definition
          (Make_Record_Definition
-            (Make_Member_Definition_List (Members (E)))));
+            (Make_Members_Definition (Members (E)))));
       Bind_FE_To_BE (E, N);
       Append_Node_To_List
         (N, Visible_Part (Current_Package));
@@ -1058,5 +1115,38 @@ package body Backend.BE_Ada is
          D := Next_Entity (D);
       end loop;
    end Visit_Type_Declaration;
+
+   ----------------------
+   -- Visit_Union_Type --
+   ----------------------
+
+   procedure Visit_Union_Type (E : Node_Id) is
+      N : Node_Id;
+      S : constant Node_Id := Switch_Type_Spec (E);
+      T : Node_Id;
+      L : List_Id;
+
+   begin
+      Set_Main_Spec;
+      T := Make_Designator (S);
+      L := New_List (K_Component_List);
+      Append_Node_To_List
+        (Make_Variant_Part
+           (Make_Defining_Identifier (CN (C_Switch)),
+            Make_Variant_List (Switch_Type_Body (E))),
+         L);
+      N := Make_Full_Type_Declaration
+        (Make_Defining_Identifier (E),
+         Make_Record_Type_Definition
+           (Make_Record_Definition (L)),
+         Make_Component_Declaration
+           (Make_Defining_Identifier (CN (C_Switch)), T,
+            Make_Type_Attribute (T, A_First)));
+      Bind_FE_To_BE (E, N);
+      Append_Node_To_List
+        (N, Visible_Part (Current_Package));
+      Append_Node_To_List
+        (Make_Repository_Declaration (E), Visible_Part (Current_Package));
+   end Visit_Union_Type;
 
 end Backend.BE_Ada;

@@ -264,6 +264,44 @@ package body Backend.BE_Ada.Nutils is
       New_Token (Tok_Arrow, "=>");
       New_Token (Tok_Vertical_Bar, "|");
       New_Token (Tok_Dot_Dot, "..");
+
+      for P in Parameter_Id loop
+         Set_Str_To_Name_Buffer (Parameter_Id'Image (P));
+         Set_Str_To_Name_Buffer (Name_Buffer (3 .. Name_Len));
+         Capitalize (Name_Buffer (1 .. Name_Len));
+         PN (P) := Name_Find;
+      end loop;
+
+      for C in Component_Id loop
+         Set_Str_To_Name_Buffer (Component_Id'Image (C));
+         Set_Str_To_Name_Buffer (Name_Buffer (3 .. Name_Len));
+         Capitalize (Name_Buffer (1 .. Name_Len));
+         CN (C) := Name_Find;
+      end loop;
+
+      for A in Attribute_Id loop
+         Set_Str_To_Name_Buffer (Attribute_Id'Image (A));
+         Set_Str_To_Name_Buffer (Name_Buffer (3 .. Name_Len));
+         Capitalize (Name_Buffer (1 .. Name_Len));
+         AN (A) := Name_Find;
+      end loop;
+
+      for S in Subprogram_Id loop
+         Set_Str_To_Name_Buffer (Subprogram_Id'Image (S));
+         Set_Str_To_Name_Buffer (Name_Buffer (3 .. Name_Len));
+         Capitalize (Name_Buffer (1 .. Name_Len));
+         SN (S) := Name_Find;
+      end loop;
+
+      for V in Variable_Id loop
+         Set_Str_To_Name_Buffer (Variable_Id'Image (V));
+         Set_Str_To_Name_Buffer (Name_Buffer (3 .. Name_Len));
+         Add_Str_To_Name_Buffer ("_U");
+         Capitalize (Name_Buffer (1 .. Name_Len));
+         VN (V) := Name_Find;
+      end loop;
+
+
    end Initialize;
 
    ------------------
@@ -371,7 +409,8 @@ package body Backend.BE_Ada.Nutils is
 
    function Make_Component_Declaration
      (Defining_Identifier : Node_Id;
-      Subtype_Indication  : Node_Id)
+      Subtype_Indication  : Node_Id;
+      Expression          : Node_Id := No_Node)
      return Node_Id is
       N : Node_Id;
 
@@ -379,6 +418,7 @@ package body Backend.BE_Ada.Nutils is
       N := New_Node (K_Component_Declaration);
       Set_Defining_Identifier (N, Defining_Identifier);
       Set_Subtype_Indication (N, Subtype_Indication);
+      Set_Expression (N, Expression);
       return N;
    end Make_Component_Declaration;
 
@@ -460,7 +500,8 @@ package body Backend.BE_Ada.Nutils is
          N := RE (Convert (K));
 
       else
-         raise Program_Error;
+         N := New_Node (K_Designator);
+         Set_Defining_Identifier (N, Make_Defining_Identifier (Entity));
       end if;
 
       P := Parent_Unit_Name (N);
@@ -509,7 +550,8 @@ package body Backend.BE_Ada.Nutils is
 
    function Make_Full_Type_Declaration
      (Defining_Identifier : Node_Id;
-      Type_Definition     : Node_Id)
+      Type_Definition     : Node_Id;
+      Discriminant_Spec   : Node_Id := No_Node)
      return Node_Id
    is
       N : Node_Id;
@@ -518,6 +560,7 @@ package body Backend.BE_Ada.Nutils is
       N := New_Node (K_Full_Type_Declaration);
       Set_Defining_Identifier (N, Defining_Identifier);
       Set_Type_Definition (N, Type_Definition);
+      Set_Discriminant_Spec (N, Discriminant_Spec);
       return N;
    end Make_Full_Type_Declaration;
 
@@ -785,6 +828,59 @@ package body Backend.BE_Ada.Nutils is
       Set_Return_Type          (N, Return_Type);
       return N;
    end Make_Subprogram_Specification;
+
+   -------------------------
+   -- Make_Type_Attribute --
+   -------------------------
+
+   function Make_Type_Attribute
+     (Designator : Node_Id;
+      Attribute  : Attribute_Id)
+     return Node_Id
+   is
+      procedure Get_Scoped_Name_String (S : Node_Id);
+
+      ----------------------------
+      -- Get_Scoped_Name_String --
+      ----------------------------
+
+      procedure Get_Scoped_Name_String (S : Node_Id) is
+         P : Node_Id;
+
+      begin
+         P := Parent_Unit_Name (S);
+         if Present (P) then
+            Get_Scoped_Name_String (P);
+            Add_Char_To_Name_Buffer ('.');
+         end if;
+         Get_Name_String_And_Append (Name (Defining_Identifier (S)));
+      end Get_Scoped_Name_String;
+
+   begin
+      Name_Len := 0;
+      Get_Scoped_Name_String (Designator);
+      Add_Char_To_Name_Buffer (''');
+      Get_Name_String_And_Append (AN (Attribute));
+      return Make_Defining_Identifier (Name_Find);
+   end Make_Type_Attribute;
+
+   -----------------------
+   -- Make_Variant_Part --
+   -----------------------
+
+   function Make_Variant_Part
+     (Discriminant        : Node_Id;
+      Variant_List        : List_Id)
+     return                Node_Id
+   is
+      N : Node_Id;
+
+   begin
+      N := New_Node (K_Variant_Part);
+      Set_Variants (N, Variant_List);
+      Set_Discriminant (N, Discriminant);
+      return N;
+   end Make_Variant_Part;
 
    --------------
    -- New_List --
