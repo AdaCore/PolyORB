@@ -146,13 +146,15 @@ package XE_Utils is
    procedure Build
      (Library    : File_Name_Type;
       Arguments  : Argument_List;
-      Fatal      : Boolean := True);
+      Fatal      : Boolean := True;
+      Silent     : Boolean := True);
    --  Execute gnat make and add gnatdist link flags
 
    procedure Compile
      (Source    : File_Name_Type;
       Arguments : Argument_List;
-      Fatal     : Boolean := True);
+      Fatal     : Boolean := True;
+      Silent    : Boolean := True);
    --  Execute gnat compile and add gnatdist gcc flags
 
    procedure List

@@ -165,7 +165,8 @@ package body XE_Utils is
    procedure Build
      (Library    : File_Name_Type;
       Arguments  : Argument_List;
-      Fatal      : Boolean := True)
+      Fatal      : Boolean := True;
+      Silent     : Boolean := True)
    is
       Length : constant Positive :=
         Arguments'Length + 4
@@ -176,6 +177,13 @@ package body XE_Utils is
       Success : Boolean;
       Has_Prj : Boolean := False;
       Index   : Natural;
+
+      --  Files to deal with error messages
+
+      File           : File_Descriptor;
+      Output         : File_Name_Type := No_File_Name;
+      Saved_Standout : File_Descriptor;
+      Saved_Standerr : File_Descriptor;
 
    begin
       --  gnat make
@@ -224,9 +232,25 @@ package body XE_Utils is
          Index := Index + 1;
       end loop;
 
+      if not Verbose_Mode and then Silent then
+         Register_Temp_File (File, Output);
+         Saved_Standout := Dup (Standout);
+         Saved_Standerr := Dup (Standerr);
+         Dup2 (File, Standout);
+         Dup2 (File, Standerr);
+      end if;
+
       --  Call gnat make
 
       Execute (GNAT_Driver, Flags (1 .. N_Flags), Success);
+
+      if Present (Output) then
+         Dup2 (Saved_Standout, Standout);
+         Dup2 (Saved_Standerr, Standerr);
+         Close (Saved_Standout);
+         Close (Saved_Standerr);
+         Remove_Temp_File (Output);
+      end if;
 
       --  Free library filename argument
 
@@ -293,7 +317,8 @@ package body XE_Utils is
    procedure Compile
      (Source    : File_Name_Type;
       Arguments : Argument_List;
-      Fatal     : Boolean := True)
+      Fatal     : Boolean := True;
+      Silent    : Boolean := True)
    is
       Length  : constant Natural :=
         Arguments'Length + 5
@@ -305,8 +330,7 @@ package body XE_Utils is
       Has_Prj : Boolean := False;
       Index   : Natural;
 
-      --  Ugly workaround to keep gnatmake silent during stub
-      --  generation.
+      --  Files to deal with error messages
 
       File           : File_Descriptor;
       Output         : File_Name_Type := No_File_Name;
@@ -348,17 +372,9 @@ package body XE_Utils is
          N_Flags := N_Flags + 1;
          Flags (N_Flags) := Arguments (I);
 
-         --  Ugly workaround to keep gnatmake silent
-
-         if not Debug_Mode
-             and then
-           (Arguments (I) = Stub_Flag or else  Arguments (I) = Skel_Flag)
-         then
-            Register_Temp_File (File, Output);
-
          --  Detect any project file
 
-         elsif Arguments (I).all = Project_File_Flag.all then
+         if Arguments (I).all = Project_File_Flag.all then
             Has_Prj := True;
          end if;
       end loop;
@@ -382,10 +398,8 @@ package body XE_Utils is
          Index := Index + 1;
       end loop;
 
-      --  gnatmake detects an error during stub generation. This is
-      --  erroneous and can be safely ignored.
-
-      if not Debug_Mode and then Present (Output) then
+      if not Verbose_Mode and then Silent then
+         Register_Temp_File (File, Output);
          Saved_Standout := Dup (Standout);
          Saved_Standerr := Dup (Standerr);
          Dup2 (File, Standout);
