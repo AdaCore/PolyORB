@@ -57,7 +57,7 @@ package System.Garlic.Sockets.Selectors is
 
    function Create_Selector return Selector_Access;
 
-   type Selector_Status is (Completed, Timeout, Aborted);
+   type Selector_Status is (Completed, Expired, Aborted);
 
    procedure Select_Socket
      (Selector     : access Selector_Type;
