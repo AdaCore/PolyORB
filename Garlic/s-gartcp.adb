@@ -47,8 +47,8 @@ with System.Garlic.Network_Utilities;     use System.Garlic.Network_Utilities;
 with System.Garlic.Options;
 with System.Garlic.Physical_Location;     use System.Garlic.Physical_Location;
 with System.Garlic.Priorities;
+with System.Garlic.Soft_Links;            use System.Garlic.Soft_Links;
 with System.Garlic.Streams;               use System.Garlic.Streams;
-with System.Garlic.Termination;           use System.Garlic.Termination;
 with System.Garlic.Thin;                  use System.Garlic.Thin;
 with System.Garlic.TCP.Platform_Specific;
 with System.Storage_Elements;             use System.Storage_Elements;
@@ -186,10 +186,11 @@ package body System.Garlic.TCP is
    pragma Inline (Stream_Element_Count_Length);
    --  Idem for a stream element count
 
-   task Accept_Handler is
+   task type Accept_Handler is
       pragma Priority (Priorities.RPC_Priority);
-      entry Start;
    end Accept_Handler;
+   type Accept_Handler_Access is access Accept_Handler;
+   Acceptor : Accept_Handler_Access;
    --  The task which will accept new connections
 
    task type Incoming_Connection_Handler (FD        : C.int;
@@ -217,14 +218,6 @@ package body System.Garlic.TCP is
 
    task body Accept_Handler is
    begin
-      --  Wait for start or terminate
-
-      select
-         accept Start;
-      or
-         terminate;
-      end select;
-
       --  Infinite loop on C_Accept
 
       loop
@@ -397,8 +390,12 @@ package body System.Garlic.TCP is
       Port : constant String :=
         C.unsigned_short'Image (Self_Host.Location.Port);
    begin
-      return Name_Of (Image (Self_Host.Location.Addr)) &
-        ":" & Port (2 .. Port'Last);
+      if Can_Have_A_Light_Runtime then
+         return "";
+      else
+         return Name_Of (Image (Self_Host.Location.Addr)) &
+           ":" & Port (2 .. Port'Last);
+      end if;
    end Get_Info;
 
    --------------
@@ -788,8 +785,7 @@ package body System.Garlic.TCP is
             declare
                Temp : Host_Location;
             begin
-               Temp := Split_Data
-                 (Get_Data (Get_Partition_Data (Partition).Location));
+               Temp := Split_Data (Get_Data (Location (Partition)));
                Partition_Map.Lock (Partition);
                Remote_Data := Partition_Map.Get_Immediate (Partition);
                Remote_Data.Location := Temp;
@@ -927,8 +923,14 @@ package body System.Garlic.TCP is
             Self_Host.Location.Port := Boot_Host.Location.Port;
          end if;
       end if;
-      Establish_Listening_Socket;
-      Accept_Handler.Start;
+      if not Can_Have_A_Light_Runtime then
+         pragma Debug (D (D_Debug, "Starting an acceptor task"));
+         Establish_Listening_Socket;
+         Acceptor := new Accept_Handler;
+      else
+         pragma Debug (D (D_Debug, "No acceptor task, light runtime"));
+         null;
+      end if;
    end Set_Boot_Data;
 
    --------------
