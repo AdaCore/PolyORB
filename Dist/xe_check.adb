@@ -27,7 +27,7 @@
 ------------------------------------------------------------------------------
 
 with Fname;            use Fname;
-with GNAT.Os_Lib;      use GNAT.Os_Lib;
+with GNAT.OS_Lib;      use GNAT.OS_Lib;
 with Make;             use Make;
 with Namet;            use Namet;
 with Opt;

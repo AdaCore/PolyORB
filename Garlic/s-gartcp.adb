@@ -206,7 +206,7 @@ package body System.Garlic.TCP is
    end Accept_Handler;
    --  The task which will accept new connections
 
-   task type Incoming_Connection_Handler (FD        : C.Int;
+   task type Incoming_Connection_Handler (FD        : C.int;
                                           Receiving : Boolean;
                                           Remote    : Partition_ID) is
       pragma Priority (Priorities.RPC_Priority);
@@ -1000,7 +1000,7 @@ package body System.Garlic.TCP is
       --  so that the accept gets the message.
 
       declare
-         FD : C.Int;
+         FD : C.int;
       begin
          FD := Establish_Connection (Self_Host.Location, Quit_Code);
       exception

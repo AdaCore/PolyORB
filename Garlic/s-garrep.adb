@@ -200,7 +200,7 @@ package body System.Garlic.Replay is
          if not Is_Master then
             pragma Debug
               (D (D_Debug, "Force partition ID read from trace file"));
-            System.RPC.Partition_Id'Read (Stream (Trace_File), Partition);
+            System.RPC.Partition_ID'Read (Stream (Trace_File), Partition);
             Set_My_Partition_ID (Partition);
          end if;
 

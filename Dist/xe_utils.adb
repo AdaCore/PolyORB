@@ -29,7 +29,7 @@
 with System;
 with Unchecked_Deallocation;
 
-with GNAT.Os_Lib;    use GNAT.Os_Lib;
+with GNAT.OS_Lib;    use GNAT.OS_Lib;
 with Namet;          use Namet;
 with Osint;          use Osint;
 with Output;         use Output;
@@ -38,7 +38,7 @@ with XE_Defs;        use XE_Defs;
 
 package body XE_Utils is
 
-   Path         : constant String_Access := GNAT.Os_Lib.Getenv ("PATH");
+   Path         : constant String_Access := GNAT.OS_Lib.Getenv ("PATH");
 
    GNAT_Verbose   : String_Access;
    Gcc            : String_Access;
@@ -665,7 +665,7 @@ package body XE_Utils is
    function Is_Regular_File (File : File_Name_Type) return Boolean is
    begin
       Get_Name_String (File);
-      return GNAT.Os_Lib.Is_Regular_File (Name_Buffer (1 .. Name_Len));
+      return GNAT.OS_Lib.Is_Regular_File (Name_Buffer (1 .. Name_Len));
    end Is_Regular_File;
 
    ---------------------

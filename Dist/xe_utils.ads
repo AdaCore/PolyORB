@@ -43,8 +43,8 @@ package XE_Utils is
    subtype Text_Buffer_Ptr     is Types.Text_Buffer_Ptr;
    subtype Time_Stamp_Type     is Types.Time_Stamp_Type;
 
-   subtype File_Descriptor     is GNAT.Os_Lib.File_Descriptor;
-   subtype String_Access       is GNAT.Os_Lib.String_Access;
+   subtype File_Descriptor     is GNAT.OS_Lib.File_Descriptor;
+   subtype String_Access       is GNAT.OS_Lib.String_Access;
 
    subtype ALI_Id              is ALI.ALI_Id;
    subtype Unit_Id             is ALI.Unit_Id;
@@ -56,7 +56,7 @@ package XE_Utils is
    No_Name    : constant Name_Id           := Types.No_Name;
    No_File    : constant File_Name_Type    := Types.No_File;
 
-   Standout   : constant File_Descriptor   := GNAT.Os_Lib.Standout;
+   Standout   : constant File_Descriptor   := GNAT.OS_Lib.Standout;
 
    No_ALI_Id  : constant ALI_Id            := ALI.No_ALI_Id;
    None       : constant Main_Program_Type := ALI.None;
@@ -73,7 +73,7 @@ package XE_Utils is
    package ALIs  renames ALI.ALIs;
    package Withs renames ALI.Withs;
 
-   Directory_Separator : constant Character := GNAT.Os_Lib.Directory_Separator;
+   Directory_Separator : constant Character := GNAT.OS_Lib.Directory_Separator;
 
    First_Source_Ptr : constant Source_Ptr   := Types.First_Source_Ptr;
    EOF              : constant Character    := Types.EOF;
@@ -144,7 +144,7 @@ package XE_Utils is
    function ">" (X, Y : Time_Stamp_Type) return Boolean renames Types.">";
 
    procedure Change_Dir (To : in File_Name_Type);
-   procedure Close (FD : File_Descriptor) renames GNAT.Os_Lib.Close;
+   procedure Close (FD : File_Descriptor) renames GNAT.OS_Lib.Close;
 
    procedure Compile_RCI_Caller
      (Source, Object : in File_Name_Type);

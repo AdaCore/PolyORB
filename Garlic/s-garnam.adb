@@ -34,7 +34,7 @@
 ------------------------------------------------------------------------------
 
 with Ada.Exceptions;
-with GNAT.OS_Lib;             use GNAT.Os_Lib;
+with GNAT.OS_Lib;             use GNAT.OS_Lib;
 with Interfaces.C;            use Interfaces.C;
 with Interfaces.C.Strings;    use Interfaces.C.Strings;
 with System.Garlic.Constants; use System.Garlic.Constants;
@@ -225,7 +225,7 @@ package body System.Garlic.Naming is
    begin
       Get_Host_Mutex.Enter;
       Res := C_Gethostbyaddr (C_Addr,
-                              C.Int (Temp'Size / CHAR_BIT),
+                              C.int (Temp'Size / CHAR_BIT),
                               Af_Inet);
       if Res = null then
          Get_Host_Mutex.Leave;

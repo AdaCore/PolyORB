@@ -71,7 +71,7 @@ package System.Garlic.Thin is
    --  Arrays of C (char *)
 
    type In_Addr is record
-      S_B1, S_B2, S_B3, S_B4 : C.Unsigned_Char;
+      S_B1, S_B2, S_B3, S_B4 : C.unsigned_char;
    end record;
    pragma Convention (C, In_Addr);
    --  Internet address
@@ -92,8 +92,8 @@ package System.Garlic.Thin is
    --  Array of internet addresses
 
    type Sockaddr is record
-      Sa_Family : C.Unsigned_Short;
-      Sa_Data   : C.Char_Array (1 .. 14);
+      Sa_Family : C.unsigned_short;
+      Sa_Data   : C.char_array (1 .. 14);
    end record;
    pragma Convention (C, Sockaddr);
    --  Socket address
@@ -103,10 +103,10 @@ package System.Garlic.Thin is
    --  Access to socket address
 
    type Sockaddr_In is record
-      Sin_Family : C.Unsigned_Short;
-      Sin_Port   : C.Unsigned_Short      := 0;
+      Sin_Family : C.unsigned_short;
+      Sin_Port   : C.unsigned_short      := 0;
       Sin_Addr   : In_Addr               := Inaddr_Any;
-      Sin_Zero   : C.Char_Array (1 .. 8) := (others => C.Char'Val (0));
+      Sin_Zero   : C.char_array (1 .. 8) := (others => C.char'Val (0));
    end record;
    pragma Convention (C, Sockaddr_In);
    --  Internet socket address
@@ -164,8 +164,8 @@ package System.Garlic.Thin is
 
    type Pollfd is record
       Fd      : C.int;
-      Events  : C.Short;
-      Revents : C.Short;
+      Events  : C.short;
+      Revents : C.short;
    end record;
    pragma Convention (C, Pollfd);
 
@@ -274,14 +274,14 @@ package System.Garlic.Thin is
       Msgp   : Strings.chars_ptr;
       Msgsz  : C.int;
       Msgtyp : C.long;
-      Msgflg : C.Int)
+      Msgflg : C.int)
      return C.int;
 
    function C_Msgsnd
      (Msqid  : C.int;
       Msgp   : Strings.chars_ptr;
       Msgsz  : C.int;
-      Msgflg : C.Int)
+      Msgflg : C.int)
      return C.int;
 
    function C_Open
