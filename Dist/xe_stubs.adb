@@ -499,6 +499,8 @@ package body XE_Stubs is
       Elaboration : File_Name_Type;
       Most_Recent : File_Name_Type;
 
+      Task_Pool   : Task_Pool_Type;
+
       CID : CID_Type;
       FD  : File_Descriptor;
 
@@ -626,6 +628,22 @@ package body XE_Stubs is
             Dwrite_Name (FD, Default_Protocol_Data);
          end if;
          Dwrite_Str  (FD, """);");
+         Dwrite_Eol  (FD);
+      end if;
+
+      Task_Pool := Get_Task_Pool (PID);
+      if Task_Pool /= No_Task_Pool then
+         Dwrite_Str  (FD, "   Task_Pool_Low_Bound := ");
+         Dwrite_Name (FD, Task_Pool (1));
+         Dwrite_Str  (FD, ";");
+         Dwrite_Eol  (FD);
+         Dwrite_Str  (FD, "   Task_Pool_High_Bound := ");
+         Dwrite_Name (FD, Task_Pool (2));
+         Dwrite_Str  (FD, ";");
+         Dwrite_Eol  (FD);
+         Dwrite_Str  (FD, "   Task_Pool_Max_Bound := ");
+         Dwrite_Name (FD, Task_Pool (3));
+         Dwrite_Str  (FD, ";");
          Dwrite_Eol  (FD);
       end if;
 
