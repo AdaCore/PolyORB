@@ -34,6 +34,7 @@ with GNAT.Directory_Operations;  use GNAT.Directory_Operations;
 with Csets;                      use Csets;
 with Debug;                      use Debug;
 with Fname;                      use Fname;
+with Fname.SF;
 with Fname.UF;
 with Hostparm;                   use Hostparm;
 with Make;                       use Make;
@@ -41,6 +42,9 @@ with Namet;                      use Namet;
 with Opt;
 with Osint;                      use Osint;
 with Output;                     use Output;
+with Prj;
+with SFN_Scan;
+with Snames;
 with Types;                      use Types;
 with XE;                         use XE;
 with XE_Defs;                    use XE_Defs;
@@ -841,6 +845,10 @@ package body XE_Utils is
       Csets.Initialize;
       Namet.Initialize;
 
+      Snames.Initialize;
+
+      Prj.Initialize;
+
       GNATLib_Compile_Flag := new String'("-gnatg");
       Cfg_Suffix           := Str_To_Id (Get_Conf_Suffix);
       Obj_Suffix           := Str_To_Id (Get_Object_Suffix.all);
@@ -1005,6 +1013,16 @@ package body XE_Utils is
       else
          GNAT_Verbose := new String' ("-q");
       end if;
+
+      --  Read gnat.adc file to initialize Fname.UF
+
+      Fname.UF.Initialize;
+      begin
+         Fname.SF.Read_Source_File_Name_Pragmas;
+      exception
+         when SFN_Scan.Syntax_Error_In_GNAT_ADC =>
+            Osint.Fail ("syntax error in gnat.adc.");
+      end;
 
       if Debug_Mode then
          Print_Flags;
