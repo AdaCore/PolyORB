@@ -1,399 +1,265 @@
-with all_types.Stream;
-with CORBA;
-with Broca.Marshalling;
-with Broca.Giop;
-with Broca.Exceptions;
 package body all_types.Impl is
 
-   type Object_Acc is access all Object'Class;
-
-   function Get_Type_Id (Obj : Object) return CORBA.RepositoryId is
-   begin
-      return CORBA.To_CORBA_String ("IDL:all_types:1.0");
-   end Get_Type_Id;
-
-   procedure Giop_Dispatch
-     (Obj : access Object;
-      Operation : String;
-      Request_Id : CORBA.Unsigned_Long;
-      Reponse_Expected : CORBA.Boolean;
-      Stream : in out Broca.Types.Buffer_Descriptor)
+   function echoBoolean
+     (Self : access Object;
+      arg : in CORBA.Boolean)
+      return CORBA.Boolean
    is
-      use Broca.Marshalling;
-      use Broca.Types;
-      Reply_Size : Broca.Types.Buffer_Index_Type;
    begin
-      if Operation = "echoBoolean" then
-         declare
-            arg : CORBA.Boolean;
-            Returns : CORBA.Boolean;
-         begin
-            --  Unmarshalls arguments
-            Unmarshall (Stream, arg);
-            --  Call implementation
-            Returns := echoBoolean (Object_Acc (Obj), arg);
-            Stream.Pos := Broca.Giop.Message_Header_Size;
-            --  service context
-            Marshall_Size_Unsigned_Long (Stream);
-            --  Request_id
-            Marshall_Size_Unsigned_Long (Stream);
-            --  reply_status
-            Marshall_Size_Unsigned_Long (Stream);
-            --  return value
-            Marshall_Size (Stream, Returns);
-            Reply_Size := Stream.Pos - Broca.Giop.Message_Header_Size;
-            Increase_Buffer_And_Clear_Pos (Stream, Stream.Pos);
+      return arg;
+   end echoBoolean;
 
-            Broca.Giop.Create_Giop_Header
-              (Stream, Broca.Giop.Reply,
-               CORBA.Unsigned_Long (Reply_Size));
+   function echoShort
+     (Self : access Object;
+      arg : in CORBA.Short)
+      return CORBA.Short
+   is
+   begin
+      return arg;
+   end echoShort;
 
-            --  service context
-            Marshall (Stream, CORBA.Unsigned_Long (0));
-            --  request id
-            Marshall (Stream, Request_Id);
-            --  reply status
-            Marshall (Stream, Broca.Giop.No_Exception);
-            --  return value
-            Marshall (Stream, Returns);
-            return;
-         end;
-      end if;
+   function echoLong
+     (Self : access Object;
+      arg : in CORBA.Long)
+      return CORBA.Long
+   is
+   begin
+      return arg;
+   end echoLong;
 
-      if Operation = "echoShort" then
-         declare
-            arg : CORBA.Short;
-            Returns : CORBA.Short;
-         begin
-            --  Unmarshalls arguments
-            Unmarshall (Stream, arg);
-            --  Call implementation
-            Returns := echoShort (Object_Acc (Obj), arg);
-            Stream.Pos := Broca.Giop.Message_Header_Size;
-            --  service context
-            Marshall_Size_Unsigned_Long (Stream);
-            --  Request_id
-            Marshall_Size_Unsigned_Long (Stream);
-            --  reply_status
-            Marshall_Size_Unsigned_Long (Stream);
-            --  return value
-            Marshall_Size (Stream, Returns);
-            Reply_Size := Stream.Pos - Broca.Giop.Message_Header_Size;
-            Increase_Buffer_And_Clear_Pos (Stream, Stream.Pos);
+   function echoUShort
+     (Self : access Object;
+      arg : in CORBA.Unsigned_Short)
+      return CORBA.Unsigned_Short
+   is
+   begin
+      return arg;
+   end echoUShort;
 
-            Broca.Giop.Create_Giop_Header
-              (Stream, Broca.Giop.Reply,
-               CORBA.Unsigned_Long (Reply_Size));
+   function echoULong
+     (Self : access Object;
+      arg : in CORBA.Unsigned_Long)
+      return CORBA.Unsigned_Long
+   is
+   begin
+      return arg;
+   end echoULong;
 
-            --  service context
-            Marshall (Stream, CORBA.Unsigned_Long (0));
-            --  request id
-            Marshall (Stream, Request_Id);
-            --  reply status
-            Marshall (Stream, Broca.Giop.No_Exception);
-            --  return value
-            Marshall (Stream, Returns);
-            return;
-         end;
-      end if;
+   function echoFloat
+     (Self : access Object;
+      arg : in CORBA.Float)
+      return CORBA.Float
+   is
+   begin
+      return arg;
+   end echoFloat;
 
-      if Operation = "echoLong" then
-         declare
-            arg : CORBA.Long;
-            Returns : CORBA.Long;
-         begin
-            --  Unmarshalls arguments
-            Unmarshall (Stream, arg);
-            --  Call implementation
-            Returns := echoLong (Object_Acc (Obj), arg);
-            Stream.Pos := Broca.Giop.Message_Header_Size;
-            --  service context
-            Marshall_Size_Unsigned_Long (Stream);
-            --  Request_id
-            Marshall_Size_Unsigned_Long (Stream);
-            --  reply_status
-            Marshall_Size_Unsigned_Long (Stream);
-            --  return value
-            Marshall_Size (Stream, Returns);
-            Reply_Size := Stream.Pos - Broca.Giop.Message_Header_Size;
-            Increase_Buffer_And_Clear_Pos (Stream, Stream.Pos);
+   function echoDouble
+     (Self : access Object;
+      arg : in CORBA.Double)
+      return CORBA.Double
+   is
+   begin
+      return arg;
+   end echoDouble;
 
-            Broca.Giop.Create_Giop_Header
-              (Stream, Broca.Giop.Reply,
-               CORBA.Unsigned_Long (Reply_Size));
+   function echoChar
+     (Self : access Object;
+      arg : in CORBA.Char)
+      return CORBA.Char
+   is
+   begin
+      return arg;
+   end echoChar;
 
-            --  service context
-            Marshall (Stream, CORBA.Unsigned_Long (0));
-            --  request id
-            Marshall (Stream, Request_Id);
-            --  reply status
-            Marshall (Stream, Broca.Giop.No_Exception);
-            --  return value
-            Marshall (Stream, Returns);
-            return;
-         end;
-      end if;
+   function echoOctet
+     (Self : access Object;
+      arg : in CORBA.Octet)
+      return CORBA.Octet
+   is
+   begin
+      return arg;
+   end echoOctet;
 
-      if Operation = "echoUShort" then
-         declare
-            arg : CORBA.Unsigned_Short;
-            Returns : CORBA.Unsigned_Short;
-         begin
-            --  Unmarshalls arguments
-            Unmarshall (Stream, arg);
-            --  Call implementation
-            Returns := echoUShort (Object_Acc (Obj), arg);
-            Stream.Pos := Broca.Giop.Message_Header_Size;
-            --  service context
-            Marshall_Size_Unsigned_Long (Stream);
-            --  Request_id
-            Marshall_Size_Unsigned_Long (Stream);
-            --  reply_status
-            Marshall_Size_Unsigned_Long (Stream);
-            --  return value
-            Marshall_Size (Stream, Returns);
-            Reply_Size := Stream.Pos - Broca.Giop.Message_Header_Size;
-            Increase_Buffer_And_Clear_Pos (Stream, Stream.Pos);
+   function echoString
+     (Self : access Object;
+      arg : in CORBA.String)
+      return CORBA.String
+   is
+   begin
+      return arg;
+   end echoString;
 
-            Broca.Giop.Create_Giop_Header
-              (Stream, Broca.Giop.Reply,
-               CORBA.Unsigned_Long (Reply_Size));
-
-            --  service context
-            Marshall (Stream, CORBA.Unsigned_Long (0));
-            --  request id
-            Marshall (Stream, Request_Id);
-            --  reply status
-            Marshall (Stream, Broca.Giop.No_Exception);
-            --  return value
-            Marshall (Stream, Returns);
-            return;
-         end;
-      end if;
-
-      if Operation = "echoULong" then
-         declare
-            arg : CORBA.Unsigned_Long;
-            Returns : CORBA.Unsigned_Long;
-         begin
-            --  Unmarshalls arguments
-            Unmarshall (Stream, arg);
-            --  Call implementation
-            Returns := echoULong (Object_Acc (Obj), arg);
-            Stream.Pos := Broca.Giop.Message_Header_Size;
-            --  service context
-            Marshall_Size_Unsigned_Long (Stream);
-            --  Request_id
-            Marshall_Size_Unsigned_Long (Stream);
-            --  reply_status
-            Marshall_Size_Unsigned_Long (Stream);
-            --  return value
-            Marshall_Size (Stream, Returns);
-            Reply_Size := Stream.Pos - Broca.Giop.Message_Header_Size;
-            Increase_Buffer_And_Clear_Pos (Stream, Stream.Pos);
-
-            Broca.Giop.Create_Giop_Header
-              (Stream, Broca.Giop.Reply,
-               CORBA.Unsigned_Long (Reply_Size));
-
-            --  service context
-            Marshall (Stream, CORBA.Unsigned_Long (0));
-            --  request id
-            Marshall (Stream, Request_Id);
-            --  reply status
-            Marshall (Stream, Broca.Giop.No_Exception);
-            --  return value
-            Marshall (Stream, Returns);
-            return;
-         end;
-      end if;
-
-      if Operation = "echoFloat" then
-         declare
-            arg : CORBA.Float;
-            Returns : CORBA.Float;
-         begin
-            --  Unmarshalls arguments
-            Unmarshall (Stream, arg);
-            --  Call implementation
-            Returns := echoFloat (Object_Acc (Obj), arg);
-            Stream.Pos := Broca.Giop.Message_Header_Size;
-            --  service context
-            Marshall_Size_Unsigned_Long (Stream);
-            --  Request_id
-            Marshall_Size_Unsigned_Long (Stream);
-            --  reply_status
-            Marshall_Size_Unsigned_Long (Stream);
-            --  return value
-            Marshall_Size (Stream, Returns);
-            Reply_Size := Stream.Pos - Broca.Giop.Message_Header_Size;
-            Increase_Buffer_And_Clear_Pos (Stream, Stream.Pos);
-
-            Broca.Giop.Create_Giop_Header
-              (Stream, Broca.Giop.Reply,
-               CORBA.Unsigned_Long (Reply_Size));
-
-            --  service context
-            Marshall (Stream, CORBA.Unsigned_Long (0));
-            --  request id
-            Marshall (Stream, Request_Id);
-            --  reply status
-            Marshall (Stream, Broca.Giop.No_Exception);
-            --  return value
-            Marshall (Stream, Returns);
-            return;
-         end;
-      end if;
-
-      if Operation = "echoDouble" then
-         declare
-            arg : CORBA.Double;
-            Returns : CORBA.Double;
-         begin
-            --  Unmarshalls arguments
-            Unmarshall (Stream, arg);
-            --  Call implementation
-            Returns := echoDouble (Object_Acc (Obj), arg);
-            Stream.Pos := Broca.Giop.Message_Header_Size;
-            --  service context
-            Marshall_Size_Unsigned_Long (Stream);
-            --  Request_id
-            Marshall_Size_Unsigned_Long (Stream);
-            --  reply_status
-            Marshall_Size_Unsigned_Long (Stream);
-            --  return value
-            Marshall_Size (Stream, Returns);
-            Reply_Size := Stream.Pos - Broca.Giop.Message_Header_Size;
-            Increase_Buffer_And_Clear_Pos (Stream, Stream.Pos);
-
-            Broca.Giop.Create_Giop_Header
-              (Stream, Broca.Giop.Reply,
-               CORBA.Unsigned_Long (Reply_Size));
-
-            --  service context
-            Marshall (Stream, CORBA.Unsigned_Long (0));
-            --  request id
-            Marshall (Stream, Request_Id);
-            --  reply status
-            Marshall (Stream, Broca.Giop.No_Exception);
-            --  return value
-            Marshall (Stream, Returns);
-            return;
-         end;
-      end if;
-
-      if Operation = "echoChar" then
-         declare
-            arg : CORBA.Char;
-            Returns : CORBA.Char;
-         begin
-            --  Unmarshalls arguments
-            Unmarshall (Stream, arg);
-            --  Call implementation
-            Returns := echoChar (Object_Acc (Obj), arg);
-            Stream.Pos := Broca.Giop.Message_Header_Size;
-            --  service context
-            Marshall_Size_Unsigned_Long (Stream);
-            --  Request_id
-            Marshall_Size_Unsigned_Long (Stream);
-            --  reply_status
-            Marshall_Size_Unsigned_Long (Stream);
-            --  return value
-            Marshall_Size (Stream, Returns);
-            Reply_Size := Stream.Pos - Broca.Giop.Message_Header_Size;
-            Increase_Buffer_And_Clear_Pos (Stream, Stream.Pos);
-
-            Broca.Giop.Create_Giop_Header
-              (Stream, Broca.Giop.Reply,
-               CORBA.Unsigned_Long (Reply_Size));
-
-            --  service context
-            Marshall (Stream, CORBA.Unsigned_Long (0));
-            --  request id
-            Marshall (Stream, Request_Id);
-            --  reply status
-            Marshall (Stream, Broca.Giop.No_Exception);
-            --  return value
-            Marshall (Stream, Returns);
-            return;
-         end;
-      end if;
-
-      if Operation = "echoOctet" then
-         declare
-            arg : CORBA.Octet;
-            Returns : CORBA.Octet;
-         begin
-            --  Unmarshalls arguments
-            Unmarshall (Stream, arg);
-            --  Call implementation
-            Returns := echoOctet (Object_Acc (Obj), arg);
-            Stream.Pos := Broca.Giop.Message_Header_Size;
-            --  service context
-            Marshall_Size_Unsigned_Long (Stream);
-            --  Request_id
-            Marshall_Size_Unsigned_Long (Stream);
-            --  reply_status
-            Marshall_Size_Unsigned_Long (Stream);
-            --  return value
-            Marshall_Size (Stream, Returns);
-            Reply_Size := Stream.Pos - Broca.Giop.Message_Header_Size;
-            Increase_Buffer_And_Clear_Pos (Stream, Stream.Pos);
-
-            Broca.Giop.Create_Giop_Header
-              (Stream, Broca.Giop.Reply,
-               CORBA.Unsigned_Long (Reply_Size));
-
-            --  service context
-            Marshall (Stream, CORBA.Unsigned_Long (0));
-            --  request id
-            Marshall (Stream, Request_Id);
-            --  reply status
-            Marshall (Stream, Broca.Giop.No_Exception);
-            --  return value
-            Marshall (Stream, Returns);
-            return;
-         end;
-      end if;
-
-      if Operation = "echoString" then
-         declare
-            arg : CORBA.String;
-            Returns : CORBA.String;
-         begin
-            --  Unmarshalls arguments
-            Unmarshall (Stream, arg);
-            --  Call implementation
-            Returns := echoString (Object_Acc (Obj), arg);
-            Stream.Pos := Broca.Giop.Message_Header_Size;
-            --  service context
-            Marshall_Size_Unsigned_Long (Stream);
-            --  Request_id
-            Marshall_Size_Unsigned_Long (Stream);
-            --  reply_status
-            Marshall_Size_Unsigned_Long (Stream);
-            --  return value
-            Marshall_Size (Stream, Returns);
-            Reply_Size := Stream.Pos - Broca.Giop.Message_Header_Size;
-            Increase_Buffer_And_Clear_Pos (Stream, Stream.Pos);
-
-            Broca.Giop.Create_Giop_Header
-              (Stream, Broca.Giop.Reply,
-               CORBA.Unsigned_Long (Reply_Size));
-
-            --  service context
-            Marshall (Stream, CORBA.Unsigned_Long (0));
-            --  request id
-            Marshall (Stream, Request_Id);
-            --  reply status
-            Marshall (Stream, Broca.Giop.No_Exception);
-            --  return value
-            Marshall (Stream, Returns);
-            return;
-         end;
-      end if;
-
-      Broca.Exceptions.Raise_Bad_Operation;
-   end Giop_Dispatch;
+--   procedure simple_exception_test
+--     (Self : access Object)
+--   is
+--   begin
+--      raise simple_exception;
+--   end simple_exception_test;
+--
+--   procedure complexe_exception_test
+--     (Self : access Object)
+--   is
+--      Member : Complexe_Exception_Members;
+--   begin
+--      Member.Excep := 21;
+--      AdaBroker.Exceptions.Raise_Corba_Exception
+--        (Complexe_Exception'Identity, Member);
+--   end complexe_exception_test;
+--
+--   function echo1
+--     (Self : access Object;
+--      arg : in example)
+--      return example
+--   is
+--   begin
+--      return arg;
+--   end echo1;
+--
+--   function echo2
+--     (Self : access Object;
+--      arg : in simple_struct)
+--      return simple_struct
+--   is
+--   begin
+--      return arg;
+--   end echo2;
+--
+--   function InverseStruct
+--     (Self : access Object;
+--      Arg : in Manu_Struct)
+--      return Manu_Struct
+--   is
+--      Res : Manu_Struct;
+--   begin
+--      Res.A := not Arg.A;
+--      Res.B := - Arg.B;
+--      return Res;
+--   end InverseStruct;
+--
+--   function echo3
+--     (Self : access Object;
+--      arg : in Color)
+--      return Color
+--   is
+--   begin
+--      return arg;
+--   end echo3;
+--
+--   function echo4
+--     (Self : access Object;
+--      arg : in U_string)
+--      return U_string
+--   is
+--   begin
+--      return arg;
+--   end echo4;
+--
+--   function echo6
+--     (Self : access Object;
+--      arg : in U_sequence)
+--      return U_sequence
+--   is
+--   begin
+--      return arg;
+--   end echo6;
+--
+--   function echo7
+--     (Self : access Object;
+--      arg : in B_sequence)
+--      return B_sequence
+--   is
+--   begin
+--      return arg;
+--   end echo7;
+--
+--   function Get_R_attribute
+--     (Self : access Object)
+--      return Color
+--   is
+--   begin
+--      return Self.all.Pd_Col;
+--   end Get_R_attribute;
+--
+--   function Get_N_attribute
+--     (Self : access Object)
+--      return example
+--   is
+--   begin
+--      return Self.all.Pd_Ex;
+--   end Get_N_attribute;
+--
+--   procedure Set_N_attribute
+--     (Self : access Object;
+--      To   : in example)
+--   is
+--   begin
+--      Self.all.Pd_Ex := To;
+--   end Set_N_attribute;
+--
+--   function echo8
+--     (Self : access Object;
+--      arg : in line)
+--      return line
+--   is
+--   begin
+--      return arg;
+--   end echo8;
+--
+--   function echo9
+--     (Self : access Object;
+--      arg : in square)
+--      return square
+--   is
+--   begin
+--      return arg;
+--   end echo9;
+--
+--   function echo10
+--     (Self : access Object;
+--      arg : in cube)
+--      return cube
+--   is
+--   begin
+--      return arg;
+--   end echo10;
+--
+--   function echo11
+--     (Self : access Object;
+--      arg : in Ref)
+--      return Ref
+--   is
+--   begin
+--      return arg;
+--   end echo11;
+--
+--   function echo12
+--     (Self : access Object;
+--      arg : in CORBA.Object.Ref)
+--      return CORBA.Object.Ref
+--   is
+--   begin
+--      return arg;
+--   end echo12;
+--
+--   function get_myself
+--     (Self : access Object)
+--      return Ref
+--   is
+--      Result : Ref;
+--   begin
+--      CORBA.Object.Ref (Result) :=
+--         CORBA.Object.OmniORB.To_Ref (Self.all, Repository_Id);
+--      return Result;
+--   end get_myself;
+--
+--   function EchoArray
+--     (Self : access Object;
+--      Arg : in Simple_Array)
+--      return Simple_Array
+--   is
+--   begin
+--      return Arg;
+--   end EchoArray;
 
 end all_types.Impl;
