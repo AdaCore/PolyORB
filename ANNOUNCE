@@ -1,3 +1,32 @@
+Announcing the release of PolyORB 1.0a
+======================================
+
+Ada Core Technologies and ACT Europe announce the first supported
+release of PolyORB, PolyORB 1.0a.
+
+This contains a CORBA-compliant instantiation of the PolyORB generic
+middleware. It includes:
+- an IDL to Ada 95 compiler,
+- Portable Object Adapter (POA),
+Dynamic Skeleton Interface (DSI),
+Dynamic Invocation Interface (DII), and
+Interface Repository (IR) implementations,
+- COS Naming, COS Event and COS Time services implementations,
+- GIOP 1.0, 1.1, and 1.2 implementations.
+
+This CORBA implementation can be configured for full tasking,
+Ravenscar tasking or no tasking runtime, depending on the level
+of desired functionality for the application, and on the resource
+constraints for the target.
+
+This release should be considered as a stable implementation of
+CORBA middleware over PolyORB.
+
+----------------------------------------------------------------------
+
+Announcing the release of PolyORB 0.1
+=====================================
+
 We have the pleasure to announce the first public release of our
 schizophrenic object-oriented middleware:
 
