@@ -62,6 +62,7 @@ package body PolyORB.CORBA_P.Interceptors is
 
    use PolyORB.Annotations;
    use PolyORB.CORBA_P.Interceptors_Slots;
+   use PolyORB.Requests.Unsigned_Long_Flags;
    use PolyORB.Request_QoS.Service_Contexts;
    use PolyORB.Tasking.Threads.Annotations;
 
@@ -415,7 +416,6 @@ package body PolyORB.CORBA_P.Interceptors is
       Flags   : in PolyORB.Requests.Flags)
    is
       use ClientRequestInterceptor_Lists;
-      use PolyORB.Requests.Unsigned_Long_Flags;
       use type PolyORB.Any.TypeCode.Object;
       use type PolyORB.Requests.Request_Access;
 
@@ -513,16 +513,23 @@ package body PolyORB.CORBA_P.Interceptors is
                end if;
 
             else
-               --  Call Receive_Reply iff a reply is expected
-
                if Is_Set (Requests.Sync_With_Server, Request.Req_Flags)
                  or else Is_Set (Requests.Sync_With_Target, Request.Req_Flags)
                then
+                  --  A reply is expected
+
                   Call_Receive_Reply
                     (Element (All_Client_Interceptors, J).all,
                      Create_Client_Request_Info
                       (Cur_Req, Receive_Reply, Target),
                      False,
+                     Cur_Req.Exception_Info);
+               else
+                  Call_Receive_Other
+                    (Element (All_Client_Interceptors, J).all,
+                     Create_Client_Request_Info
+                      (Cur_Req, Receive_Other, Target),
+                     True,
                      Cur_Req.Exception_Info);
                end if;
             end if;
@@ -875,11 +882,25 @@ package body PolyORB.CORBA_P.Interceptors is
             end if;
 
          else
-            Call_Send_Reply
-              (Element (All_Server_Interceptors, J).all,
-               Create_Server_Request_Info (Request, Profile, Send_Reply, True),
-               False,
-               Request.Exception_Info);
+            if Is_Set (Requests.Sync_With_Server, Request.Req_Flags)
+              or else Is_Set (Requests.Sync_With_Target, Request.Req_Flags)
+            then
+               --  A reply is expected
+
+               Call_Send_Reply
+                 (Element (All_Server_Interceptors, J).all,
+                  Create_Server_Request_Info
+                   (Request, Profile, Send_Reply, True),
+                  False,
+                  Request.Exception_Info);
+            else
+               Call_Send_Other
+                 (Element (All_Server_Interceptors, J).all,
+                  Create_Server_Request_Info
+                   (Request, Profile, Send_Other, True),
+                  True,
+                  Request.Exception_Info);
+            end if;
          end if;
       end loop;
 
