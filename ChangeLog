@@ -1,3 +1,7 @@
+1998-10-10  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* NEWS: Remove old reference to 2.01 that is no longer justified.
+
 1998-10-07  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* NEWS: Remove mention of Windows NT launch.
