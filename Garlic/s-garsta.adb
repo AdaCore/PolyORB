@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---         Copyright (C) 1996,1997 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-1998 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -125,7 +125,7 @@ begin
          exit when Config.Protocol_Table (I) = null;
          if Config.Protocol_Table (I) = Boot_Protocol then
             Set_Boot_Data (Boot_Protocol, True, Boot_Data, Is_Master);
-            Is_Boot_Partition (Is_Master);
+            Set_Is_Boot_Partition (Is_Master);
             Set_My_Location
               (To_Location (Boot_Protocol, Get_Info (Boot_Protocol)));
             if Is_Master then
@@ -157,12 +157,13 @@ begin
    --  Phase (8) (see s-garlic.ads)
 
    declare
-      --  First, let boot server know about this partition.
+      --  First, let boot server know about this partition
+
       P : constant System.RPC.Partition_ID := Get_My_Partition_ID;
 
-      --  Then, let this partition know about boot server.
-      D : constant Partition_Data := Get_Partition_Data (Get_Boot_Server);
+      --  Then, let this partition know about boot server
 
+      D : constant Partition_Data := Get_Partition_Data (Get_Boot_Server);
    begin
       null;
    end;
