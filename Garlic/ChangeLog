@@ -1,3 +1,9 @@
+2000-02-09  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-parint.ads: Add pragma No_Return to the two procedures dedicated
+	to raising an exception, so that GNAT knows for sure that they won't
+	return. Fix for 7409-001.
+
 2000-02-08  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-parint.ads, s-parint.adb: Add new procedure for fixing 7313-009,
