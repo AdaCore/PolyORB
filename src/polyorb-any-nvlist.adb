@@ -38,8 +38,6 @@ with Ada.Tags;
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
 
-with PolyORB.Locks; use PolyORB.Locks;
-
 package body PolyORB.Any.NVList is
 
    use PolyORB.Log;
@@ -58,30 +56,17 @@ package body PolyORB.Any.NVList is
       Item       : in Any;
       Item_Flags : in Flags)
    is
-      Argument :  Any;
-      The_Value : Any_Content_Ptr_Ptr;
-      The_Counter : Natural_Ptr;
    begin
       pragma Debug (O ("Add_Item (4 params) : enter"));
       pragma Debug (O ("Add_Item (4 params) : Item type is "
                        & Ada.Tags.External_Tag (Get_Value (Item).all'Tag)));
       pragma Debug (O ("Add_Item (4 params) : ref_counter = "
                        & Positive'Image (Get_Counter (Item))));
-      Lock_W (Item.Any_Lock);
-      The_Value := Item.The_Value;
-      The_Counter := Item.Ref_Counter;
-      Item.Ref_Counter.all := Item.Ref_Counter.all + 1;
-      Unlock_W (Item.Any_Lock);
 
-      Argument := (Ada.Finalization.Controlled with
-                   The_Value => The_Value,
-                   The_Type => Item.The_Type,
-                   As_Reference => True,
-                   Ref_Counter => The_Counter,
-                   Any_Lock => Item.Any_Lock);
       Add_Item (Self, (Name => Item_Name,
-                       Argument => Argument,
+                       Argument => Item,
                        Arg_Modes => Item_Flags));
+
       pragma Debug (O ("Add_Item (4 params) : ref_counter = "
                        & Positive'Image (Get_Counter (Item))));
       pragma Debug (O ("Add_Item (4 params) : end"));
@@ -188,73 +173,6 @@ package body PolyORB.Any.NVList is
          return ("(null list)");
       end if;
    end Image;
-
---     --------------
---     -- Marshall --
---     --------------
---
---     procedure Marshall
---       (Buffer : access PolyORB.Buffers.Buffer_Type;
---        Data   : Ref) is
---        Actual_Ref : constant Object_Ptr
---          := Object_Ptr (Entity_Of (Data));
---        List : NV_Sequence.Element_Array :=
---          NV_Sequence.To_Element_Array (Actual_Ref.List);
---     begin
---        pragma Debug (O ("Marshall : enter"));
---        for Index in List'Range loop
---           pragma Debug (O ("Marshall : dealing with a named value"));
---           if List (Index).Arg_Modes = CORBA.ARG_IN or
---             List (Index).Arg_Modes = CORBA.ARG_INOUT then
---              pragma Debug (O ("Marshall : marshalling a named value"));
---              pragma Debug
---                (O ("Marshall : NV type is "
---                    & Ada.Tags.External_Tag
---                    (Get_Value (List (Index).Argument).all'Tag)));
---              PolyORB.CDR.Marshall (Buffer, List (Index));
---           end if;
---        end loop;
---        pragma Debug (O ("Marshall : end"));
---     end Marshall;
---
---     ----------------
---     -- Unmarshall --
---     ----------------
---
---     procedure Unmarshall
---       (Buffer : access PolyORB.Buffers.Buffer_Type;
---        Data : in out Ref)
---     is
---        Actual_Ref : constant Object_Ptr
---          := Object_Ptr (Entity_Of (Data));
---        List : NV_Sequence.Element_Array :=
---          NV_Sequence.To_Element_Array (Actual_Ref.List);
---     begin
---        pragma Debug (O ("Unmarshall : enter"));
---        for Index in List'Range loop
---           if List (Index).Arg_Modes = CORBA.ARG_OUT or
---             List (Index).Arg_Modes = CORBA.ARG_INOUT then
---              pragma Debug (O
---                ("Unmarshall : about to unmarshall a NamedValue"));
---              pragma Debug (O ("Unmarshall : is_empty := "
---                               & Boolean'Image (CORBA.Is_Empty
---                                   (List (Index).Argument))));
---              PolyORB.CDR.Unmarshall (Buffer, List (Index));
---              pragma Debug (O ("Unmarshall : is_empty := "
---                               & Boolean'Image (CORBA.Is_Empty
---                                                (List (Index).Argument))));
---              pragma Debug (O ("Unmarshall : kind is "
---                               & CORBA.TCKind'Image
---                               (CORBA.TypeCode.Kind
---                                (CORBA.Get_Type (List (Index).Argument)))));
---              pragma Debug (O ("Unmarshall : value kind is "
---                               & Ada.Tags.External_Tag
---                                (Get_Value (List
---                                  (Index).Argument).all'Tag)));
---           end if;
---        end loop;
---        pragma Debug (O ("Unmarshall : end"));
---     end Unmarshall;
 
    package body Internals is
 

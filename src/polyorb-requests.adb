@@ -66,16 +66,14 @@ package body PolyORB.Requests is
      )
    is
       Res : constant Request_Access := new Request;
-      Result_Any : PolyORB.Any.Any := Any.Get_By_Ref (Result.Argument);
+      --  Result_Any : PolyORB.Any.Any := Any.Get_By_Ref (Result.Argument);
    begin
       Res.Target    := Target;
       Res.Operation := To_PolyORB_String (Operation);
       Res.Args      := Arg_List;
       Res.Deferred_Arguments_Session := Deferred_Arguments_Session;
-      Res.Result    :=
-        (Name      => Result.Name,
-         Argument  => Result_Any,
-         Arg_Modes => Result.Arg_Modes);
+      Res.Result    := Result;
+      Res.Result.Arg_Modes := Any.ARG_OUT;
       Res.Exc_List  := Exc_List;
 
       Req := Res;

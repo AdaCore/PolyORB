@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.ads#14 $
+--  $Id: //droopi/main/src/polyorb-any.ads#15 $
 
 with Ada.Finalization;
 with Ada.Unchecked_Deallocation;
@@ -642,12 +642,6 @@ package PolyORB.Any is
    --  sets the value of Dest (an Any which a Tk_Any type code)
    --  to be Src (not the /value/ of Src).
 
-   function Get_By_Ref
-     (A : in Any)
-     return Any;
-   --  Return an Any with the same contents as A
-   --  but by-reference semantics (instead of by-value).
-
    -----------------
    --  NamedValue --
    -----------------
@@ -942,19 +936,24 @@ private
    procedure Deallocate is new Ada.Unchecked_Deallocation
      (Natural, Natural_Ptr);
 
-   --  The actual Any type
-
-   --  The first two fields are clear, the third one tells whether
-   --  the Any has a semantic of reference or of value, the fourth
-   --  one counts the number of references on the field The_Value
-   --  and the last one is a lock to manage thread safe features.
+   ------------------
+   -- The Any type --
+   ------------------
 
    type Any is new Ada.Finalization.Controlled with record
-      The_Value    : Any_Content_Ptr_Ptr;
       The_Type     : TypeCode.Object;
-      As_Reference : Boolean := False;
+      --  TypeCode describing the data.
+
+      The_Value    : Any_Content_Ptr_Ptr;
+      --  Pointer to the actual value contained.
+
       Ref_Counter  : Natural_Ptr;
+      --  Reference counter associated with the
+      --  designated container.
+
       Any_Lock     : PolyORB.Locks.Rw_Lock_Access;
+      --  Lock to guarantee consistent concurrent access
+      --  to Ref_Counter.
    end record;
 
    --  Some methods to deal with the Any fields.

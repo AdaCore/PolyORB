@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.adb#26 $
+--  $Id: //droopi/main/src/polyorb-any.adb#27 $
 
 with Ada.Exceptions;
 with Ada.Tags;
@@ -2343,26 +2343,6 @@ package body PolyORB.Any is
       return Result;
    end Get_Empty_Any_Aggregate;
 
-   function Get_By_Ref (A : Any) return Any
-   is
-      The_Value   : Any_Content_Ptr_Ptr;
-      The_Counter : Natural_Ptr;
-   begin
-      pragma Assert (not A.As_Reference);
-      Lock_W (A.Any_Lock);
-      The_Value   := A.The_Value;
-      The_Counter := A.Ref_Counter;
-      A.Ref_Counter.all := A.Ref_Counter.all + 1;
-      Unlock_W (A.Any_Lock);
-
-      return (Ada.Finalization.Controlled with
-              The_Value    => A.The_Value,
-              The_Type     => A.The_Type,
-              As_Reference => True,
-              Ref_Counter  => The_Counter,
-              Any_Lock     => A.Any_Lock);
-   end Get_By_Ref;
-
    procedure Copy_Any_Value (Dest : Any; Src : Any)
    is
    begin
@@ -2918,7 +2898,6 @@ package body PolyORB.Any is
    --  Adjust  --
    --------------
    procedure Adjust (Object : in out Any) is
-      Value : Any_Content_Ptr;
    begin
       pragma Debug (O2 ("Adjust : enter, Object = "
                         & System.Address_Image (Object'Address)));
@@ -2927,24 +2906,8 @@ package body PolyORB.Any is
       pragma Debug (O2 ("  Lck = "
                         & System.Address_Image
                         (Object.Any_Lock.all'Address)));
-      if Object.As_Reference then
-         Inc_Usage (Object);
-      else
-         pragma Assert (Object.Any_Lock /= null);
-         Value := Get_Value (Object);
-         if Value /= null then
-            pragma Debug (O2 ("Adjust : object type is "
-                              & Ada.Tags.External_Tag
-                              (Value.all'Tag)));
-            Object.The_Value :=
-             new Any_Content_Ptr'(Duplicate (Value));
-         else
-            Object.The_Value := new Any_Content_Ptr'(null);
-         end if;
-         pragma Debug (O2 ("Adjust : Duplication processed"));
-         Object.Ref_Counter := new Natural'(1);
-         PolyORB.Locks.Create (Object.Any_Lock);
-      end if;
+
+      Inc_Usage (Object);
       pragma Debug (O2 ("Adjust : end"));
    end Adjust;
 
