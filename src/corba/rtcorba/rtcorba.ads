@@ -51,6 +51,8 @@ package RTCORBA is
    MinPriority : constant RTCORBA.Priority := 0;
    MaxPriority : constant RTCORBA.Priority := 32767;
 
+   --  Threadpool types
+
    type ThreadpoolId is new CORBA.Unsigned_Long;
 
    type ThreadpoolLane is record
