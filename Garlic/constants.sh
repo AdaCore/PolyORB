@@ -24,8 +24,8 @@ debug=$1
 
 # Look for any header file found
 
-tmph=/tmp/tmph$$.c
-tmpe=/tmp/tmpe$$
+tmph=./tmph$$.c
+tmpe=./tmpe$$
 trap "rm -f ${tmpe} ${tmph}" 0 1 2 3 15
 for i in ${incfiles}; do
   if [ -f "/usr/include/$i" ]; then

@@ -1,3 +1,9 @@
+Wed Jan 22 17:32:39 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* constants.sh: Use the current build directory instead of /tmp as
+	a temporary dir to prevent blow up due to /tmp being full (shit
+	happens!).
+
 Tue Jan 14 18:34:50 1997  Laurent Pautet  <pautet@quasimodo.enst.fr>
 
 	* s-parint.adb: Get rid of Htable (overkilling).
