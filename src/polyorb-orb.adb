@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -97,6 +97,7 @@ package body PolyORB.ORB is
       TRJ : Request_Job renames Request_Job (RJ.all);
       NJ  : constant Job_Access := new Request_Job;
       TNJ : Request_Job renames Request_Job (NJ.all);
+
    begin
       TNJ.ORB       := TRJ.ORB;
       TNJ.Requestor := TRJ.Requestor;
@@ -267,6 +268,8 @@ package body PolyORB.ORB is
 
       Timeout : Duration;
 
+      --  Start of processing for Try_Check_Sources
+
    begin
 
       --  ORB.ORB_Lock is held.
@@ -282,8 +285,8 @@ package body PolyORB.ORB is
 
       while not Last (It) loop
          declare
-            Monitor : constant Asynch_Ev_Monitor_Access :=
-              Value (It).all;
+            Monitor : constant Asynch_Ev_Monitor_Access := Value (It).all;
+
          begin
             Set_State_Blocked (This_Task, Monitor);
 
@@ -324,8 +327,8 @@ package body PolyORB.ORB is
                Set_State_Blocked (This_Task, null);
 
                if Task_Info.Exit_Condition (This_Task)
-                 or else Abort_Polling (This_Task) then
-
+                 or else Abort_Polling (This_Task)
+               then
                   --  This task has met its exit condition or must
                   --  abort polling. We leave immediately.
 
@@ -476,8 +479,7 @@ package body PolyORB.ORB is
    -- Work_Pending --
    ------------------
 
-   function Work_Pending (ORB : access ORB_Type) return Boolean
-   is
+   function Work_Pending (ORB : access ORB_Type) return Boolean is
       Result : Boolean;
 
    begin
@@ -492,8 +494,7 @@ package body PolyORB.ORB is
    -- Perform_Work --
    ------------------
 
-   procedure Perform_Work (ORB : access ORB_Type)
-   is
+   procedure Perform_Work (ORB : access ORB_Type) is
       One_Job_Done : Boolean;
 
    begin
@@ -512,7 +513,8 @@ package body PolyORB.ORB is
 
    procedure Shutdown
      (ORB                 : access ORB_Type;
-      Wait_For_Completion :        Boolean := True) is
+      Wait_For_Completion :        Boolean := True)
+   is
    begin
 
       pragma Debug (O ("Shutdown: enter"));
@@ -574,6 +576,7 @@ package body PolyORB.ORB is
         := Create_Event_Source (TAP.all);
       A_Note  : AES_Note;
       ORB_Acc : constant ORB_Access := ORB_Access (ORB);
+
    begin
       pragma Debug (O ("Register_Access_Point: enter"));
 
@@ -581,8 +584,7 @@ package body PolyORB.ORB is
 
       Get_Note (Notepad_Of (New_AES).all, A_Note);
       declare
-         Handler : constant AES_Event_Handler_Access :=
-           A_Note.Handler;
+         Handler : constant AES_Event_Handler_Access := A_Note.Handler;
          TAP_Handler : TAP_AES_Event_Handler
            renames TAP_AES_Event_Handler (Handler.all);
       begin
@@ -615,7 +617,8 @@ package body PolyORB.ORB is
    function Is_Profile_Local
      (ORB : access ORB_Type;
       P   : access Binding_Data.Profile_Type'Class)
-     return Boolean is
+     return Boolean
+   is
    begin
       if P.all in Binding_Data.Local.Local_Profile_Type then
          return True;
@@ -649,11 +652,13 @@ package body PolyORB.ORB is
       Filter_Stack :        PF.Filter_Access;
       Role         :        Endpoint_Role)
    is
-      New_AES    : constant Asynch_Ev_Source_Access :=
-        Create_Event_Source (TE.all);
+      New_AES    : constant Asynch_Ev_Source_Access
+        := Create_Event_Source (TE.all);
+      --  New_AES is set to null for write only Endpoint
 
       A_Note     : AES_Note;
       ORB_Acc    : constant ORB_Access := ORB_Access (ORB);
+
    begin
       pragma Debug (O ("Register_Endpoint: enter"));
 
@@ -666,15 +671,18 @@ package body PolyORB.ORB is
          Filters.Interface.Set_Server'
          (Server => Component_Access (ORB)));
 
-      --  Notes.AES is null for write only Endpoint
       if New_AES /= null then
+         --  This is not a write only Endpoint.
+
          Get_Note (Notepad_Of (New_AES).all, A_Note);
          declare
-            Handler : constant AES_Event_Handler_Access :=
-              A_Note.Handler;
+            Handler : constant AES_Event_Handler_Access
+              := A_Note.Handler;
             TE_Handler : TE_AES_Event_Handler
               renames TE_AES_Event_Handler (Handler.all);
          begin
+            --  Register link from AES to TE.
+
             Handler.ORB := Component_Access (ORB);
             Handler.AES := New_AES;
 
@@ -682,12 +690,11 @@ package body PolyORB.ORB is
          end;
       end if;
 
-      --  Register link from AES to TE.
+      --  Register link from TE to AES.
 
       Set_Note
         (Notepad_Of (TE).all,
          TE_Note'(Annotations.Note with AES => New_AES));
-      --  Register link from TE to AES.
 
       --  Assign execution resources to the newly-created connection.
 
@@ -739,7 +746,8 @@ package body PolyORB.ORB is
 
    procedure Insert_Source
      (ORB : access ORB_Type;
-      AES :        Asynch_Ev_Source_Access) is
+      AES :        Asynch_Ev_Source_Access)
+   is
    begin
       Enter (ORB.ORB_Lock);
 
@@ -763,12 +771,16 @@ package body PolyORB.ORB is
       begin
 
          while not Last (It) loop
+            --  Try to register the source to an existing monitor
+
             Register_Source (Value (It).all, AES, Success);
             exit when Success;
             Next (It);
          end loop;
 
          if not Success then
+            --  Create a new monitor and register the source
+
             declare
                New_AEM : constant Asynch_Ev_Monitor_Access
                  := AEM_Factory_Of (AES.all).all;
@@ -800,10 +812,14 @@ package body PolyORB.ORB is
 
    procedure Delete_Source
      (ORB : access ORB_Type;
-      AES : in out Asynch_Ev_Source_Access) is
+      AES : in out Asynch_Ev_Source_Access)
+   is
    begin
-      --  XXX should contemplate suppressing monitor from ORB.Monitors
-      --  if neccessary .. where is it done?
+      --  XXX It is implicit that Delete_Source has been called after
+      --  an Unregister_Endpoint message has been sent to the ORB, in
+      --  response to a Disconnect_Request on AES. Consequently, AE
+      --  source has already been removed from the corresponding AE
+      --  Monitor.
 
       Enter (ORB.ORB_Lock);
 
@@ -843,8 +859,7 @@ package body PolyORB.ORB is
    -- Run --
    ---------
 
-   procedure Run (J : access Request_Job)
-   is
+   procedure Run (J : access Request_Job) is
       AJ : Job_Access := Job_Access (J);
 
    begin
@@ -903,8 +918,8 @@ package body PolyORB.ORB is
                --  problem within the object adapter. We bounce the
                --  exception to the user for further processing.
 
-               J.Request.Exception_Info :=
-                 PolyORB.Exceptions.Error_To_Any (Error);
+               J.Request.Exception_Info
+                 := PolyORB.Exceptions.Error_To_Any (Error);
 
                Catch (Error);
 
@@ -915,22 +930,21 @@ package body PolyORB.ORB is
             end if;
          end;
 
-         --  XXX May be a point to synchronize on With_Server ...
          --  At this point, the server has been contacted, a binding
-         --  has been created, a servant manager has been reached,
-         --  we are _before_ invoking the request to the target
-         --  if we are on the _server_ side, we can send an
-         --  'Executed_Request' Message
-
-         --  ==> does this comply with CORBA 22.2.2.1 definition
-         --      of SYNC_WITH_SERVER ?
+         --  has been created, a servant manager has been reached.
+         --  We are before sending the request to the target.
 
          declare
-            Profiles : constant Profile_Array :=
-              Profiles_Of (J.Request.Target);
+            Profiles : constant Profile_Array
+              := Profiles_Of (J.Request.Target);
+
          begin
-            if Is_Set (Sync_With_Server, J.Request.Req_Flags) and then
-              Get_Profile_Tag (Profiles (Profiles'First).all) = Tag_Local
+            --  If we are on the server side then we can send an
+            --  'Executed_Request' Message
+
+            if Is_Set (Sync_With_Server, J.Request.Req_Flags)
+              and then Get_Profile_Tag (Profiles (Profiles'First).all)
+              = Tag_Local
             then
                pragma Debug (O ("With_Server completed, sending incomplete"
                              & " Executed_Request message"));
@@ -945,11 +959,11 @@ package body PolyORB.ORB is
          --  XXX for 'Current'
 
          declare
-            Result : constant Components.Message'Class :=
-              Emit (Surrogate,
-                    Servants.Interface.Execute_Request'
-                    (Req => J.Request,
-                     Pro => Pro));
+            Result : constant Components.Message'Class
+              := Emit (Surrogate,
+                       Servants.Interface.Execute_Request'
+                       (Req => J.Request,
+                        Pro => Pro));
          begin
             --  Unsetup_Environment ();
             --  Unbind (J.Req.Target, J.ORB, Servant);
@@ -967,7 +981,6 @@ package body PolyORB.ORB is
          end;
          pragma Debug (O ("Run_Request: executed request"));
       end;
-
    end Run_Request;
 
    ----------------------
@@ -978,9 +991,11 @@ package body PolyORB.ORB is
      (ORB : access ORB_Type;
       Oid : access Objects.Object_Id;
       Typ : in     String;
-      Ref :    out References.Ref) is
+      Ref :    out References.Ref)
+   is
    begin
       Enter (ORB.ORB_Lock);
+
       declare
          use PolyORB.Binding_Data;
          use PolyORB.Binding_Data.Local;
@@ -994,8 +1009,9 @@ package body PolyORB.ORB is
       begin
          while not Last (It) loop
             declare
-               PF : constant Profile_Factory_Access :=
-                 Profile_Factory_Of (Value (It).all);
+               PF : constant Profile_Factory_Access
+                 := Profile_Factory_Of (Value (It).all);
+
             begin
                if PF /= null then
 
@@ -1004,8 +1020,9 @@ package body PolyORB.ORB is
                   --  data information.
 
                   declare
-                     P : constant Profile_Access :=
-                       Create_Profile (PF, Oid.all);
+                     P : constant Profile_Access
+                       := Create_Profile (PF, Oid.all);
+
                   begin
                      if P /= null then
                         Last_Profile := Last_Profile + 1;
@@ -1064,14 +1081,13 @@ package body PolyORB.ORB is
               renames Interface.Queue_Request (Msg);
             Req : Requests.Request_Access renames QR.Request;
 
-            QJ : constant Interface.Queue_Job :=
-              (Job => new Request_Job);
+            QJ : constant Interface.Queue_Job := (Job => new Request_Job);
             J  : Job_Access renames QJ.Job;
          begin
             pragma Debug (O ("Queue_Request: enter"));
 
-            Request_Job (J.all).ORB       := ORB_Access (ORB);
-            Request_Job (J.all).Request   := Req;
+            Request_Job (J.all).ORB := ORB_Access (ORB);
+            Request_Job (J.all).Request := Req;
 
             if QR.Requestor = null then
 
@@ -1095,7 +1111,6 @@ package body PolyORB.ORB is
          end;
 
       elsif Msg in Executed_Request then
-
          declare
             use PolyORB.Task_Info;
 
@@ -1169,10 +1184,11 @@ package body PolyORB.ORB is
             Note : TE_Note;
          begin
             Get_Note (Notepad_Of (TE).all, Note);
-
             --  Notes.AES is null for write only Endpoint
 
             if Note.AES /= null then
+               --  Monitor only read/write or read only Endpoint
+
                pragma Debug (O ("Inserting source: Monitor_Endpoint"));
                Insert_Source (ORB, Note.AES);
             end if;
@@ -1188,21 +1204,18 @@ package body PolyORB.ORB is
 
             pragma Debug (O ("Inserting source: Monitor_Access_Point"));
             Insert_Source (ORB, Note.AES);
-
          end;
 
       elsif Msg in Interface.Unregister_Endpoint then
          declare
             TE : Transport_Endpoint_Access
               := Interface.Unregister_Endpoint (Msg).TE;
-            AES : Asynch_Ev_Source_Access;
             Note : TE_Note;
          begin
             Get_Note (Notepad_Of (TE).all, Note);
-            AES := Note.AES;
 
-            if AES /= null then
-               Delete_Source (ORB, AES);
+            if Note.AES /= null then
+               Delete_Source (ORB, Note.AES);
             end if;
             Destroy (TE);
          end;
