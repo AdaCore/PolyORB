@@ -543,8 +543,7 @@ package body Broca.RootPOA is
    begin
       if Self.Object_Map /= null then
          for I in Self.Object_Map.all'Range loop
-            if True
-              and then Self.Object_Map (I).Skeleton /= null
+            if Self.Object_Map (I).Skeleton /= null
               and then Self.Object_Map (I).Skeleton.P_Servant = P_Servant
             then
                Res := Res + 1;
@@ -590,8 +589,7 @@ package body Broca.RootPOA is
    begin
       if Self.Object_Map /= null then
          for I in Self.Object_Map.all'Range loop
-            if True
-              and then Self.Object_Map (I).Skeleton /= null
+            if Self.Object_Map (I).Skeleton /= null
               and then Self.Object_Map (I).Skeleton.Object_Id = Oid
             then
                return I;
@@ -612,8 +610,7 @@ package body Broca.RootPOA is
    begin
       if Self.Object_Map /= null then
          for I in Self.Object_Map.all'Range loop
-            if True
-              and then Self.Object_Map (I).Skeleton /= null
+            if Self.Object_Map (I).Skeleton /= null
               and then Self.Object_Map (I).Skeleton.P_Servant = P_Servant
             then
                return I;
@@ -634,8 +631,7 @@ package body Broca.RootPOA is
    begin
       if Self.Object_Map /= null then
          for I in Self.Object_Map.all'Range loop
-            if True
-              and then Self.Object_Map (I).Skeleton = Skeleton then
+            if Self.Object_Map (I).Skeleton = Skeleton then
                return I;
             end if;
          end loop;
@@ -767,8 +763,7 @@ package body Broca.RootPOA is
          Date : constant CORBA.Unsigned_Long
            := Unmarshall (Key);
       begin
-         if True
-           and then Self.Object_Map /= null
+         if Self.Object_Map /= null
            and then Res in Self.Object_Map.all'Range
            and then Self.Object_Map (Res).Date = Natural (Date)
            and then Self.Object_Map (Res).State = Active
@@ -949,8 +944,7 @@ package body Broca.RootPOA is
       Slot : Slot_Index;
       Obj : Broca.POA.Skeleton_Ptr;
    begin
-      if True
-        and then Self.Servant_Policy = RETAIN
+      if Self.Servant_Policy = RETAIN
         and then Self.Uniqueness_Policy = UNIQUE_ID
       then
          Slot := Slot_By_Servant (Self, P_Servant);
@@ -960,8 +954,7 @@ package body Broca.RootPOA is
          end if;
       end if;
 
-      if True
-        and then Self.Servant_Policy = RETAIN
+      if Self.Servant_Policy = RETAIN
         and then Self.Activation_Policy = IMPLICIT_ACTIVATION
         and then (Self.Uniqueness_Policy = MULTIPLE_ID
                   or else Nbr_Slots_For_Servant (Self, P_Servant) = 0)
