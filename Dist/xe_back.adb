@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2000 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2001 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -544,6 +544,7 @@ package body XE_Back is
          Termination     => Unknown_Termination,
          Reconnection    => Unknown_Reconnection,
          Task_Pool       => No_Task_Pool,
+         Priority        => No_Priority,
          RCI_Or_RACW     => False,
          Use_Tasking     => False,
          Passive         => Bunknown,
@@ -854,6 +855,21 @@ package body XE_Back is
       end if;
    end Get_PID;
 
+   ----------------------
+   -- Get_Reconnection --
+   ----------------------
+
+   function Get_Priority (P : PID_Type) return Priority_Type is
+      Priority : Priority_Type;
+
+   begin
+      Priority := Partitions.Table (P).Priority;
+      if Priority = No_Priority then
+         Priority := Partitions.Table (Default_Partition).Priority;
+      end if;
+      return Priority;
+   end Get_Priority;
+
    ------------------
    -- Get_Protocol --
    ------------------
@@ -1053,6 +1069,14 @@ package body XE_Back is
       No_Task_Pool (3)  := Name_Find;
 
       Partitions.Table (P).Task_Pool := No_Task_Pool;
+
+      --  Default_Priority * Max_Global_Priority / Max_Interrupt_Priority = 120
+
+      Name_Len := 3;
+      Name_Buffer (1 .. 3) := "120";
+      No_Priority := Name_Find;
+
+      Partitions.Table (P).Priority := No_Priority;
 
       Default_Partition := P;
 
@@ -1482,7 +1506,6 @@ package body XE_Back is
             end if;
 
          when Attribute_Task_Pool =>
-
             First_Variable_Component (Attr_Item, Comp_Node);
             for B in Partitions.Table (PID).Task_Pool'Range loop
                Partitions.Table (PID).Task_Pool (B)
@@ -1556,6 +1579,19 @@ package body XE_Back is
 
             else
                Write_Attr_Init_Error ("location");
+            end if;
+
+         when Attribute_Priority =>
+            if Get_Variable_Type (Attr_Item) /= Integer_Type_Node then
+               Write_Attr_Kind_Error ("priority", "of priority type");
+            end if;
+
+            --  Check that it has not already been assigned.
+
+            if Partitions.Table (PID).Priority = No_Priority then
+               Set_Priority (PID, Get_Variable_Name (Attr_Item));
+            else
+               Write_Attr_Init_Error ("priority");
             end if;
 
          when Attribute_CFilter | Attribute_Unknown =>
@@ -1723,13 +1759,25 @@ package body XE_Back is
             Default_Registration_Filter := Get_Variable_Name (Value);
 
          when Pragma_Priority =>
-            raise Program_Error;
+            Value := Get_Parameter_Value (Parameter);
+            Default_Priority_Policy := Convert (Get_Scalar_Value (Value));
 
          when Pragma_Unknown =>
             raise Program_Error;
 
       end case;
    end Set_Pragma_Statement;
+
+   ------------------
+   -- Set_Priority --
+   ------------------
+
+   procedure Set_Priority
+     (P : in PID_Type;
+      X : in Priority_Type) is
+   begin
+      Partitions.Table (P).Priority := X;
+   end Set_Priority;
 
    ----------------------
    -- Set_Reconnection --

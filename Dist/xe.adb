@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2000 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2001 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -448,6 +448,28 @@ package body XE is
          Int (Termination_Type'First) ..
          Int (Termination_Type'Last));
       return Termination_Type (Item);
+   end Convert;
+
+   -------------
+   -- Convert --
+   -------------
+
+   function Convert (Item : Priority_Policy_Type) return Int is
+   begin
+      return Int (Item);
+   end Convert;
+
+   -------------
+   -- Convert --
+   -------------
+
+   function Convert (Item : Int) return Priority_Policy_Type is
+   begin
+      pragma Assert
+        (Item in
+         Int (Priority_Policy_Type'First) ..
+         Int (Priority_Policy_Type'Last));
+      return Priority_Policy_Type (Item);
    end Convert;
 
    ----------------------
@@ -934,6 +956,11 @@ package body XE is
 
    procedure Initialize is
    begin
+      Priority_Policy_Img
+        := (Unknown_Priority_Policy => Str_To_Id ("Undefined Priority Policy"),
+            Server_Declared         => Str_To_Id ("Server_Declared"),
+            Client_Propagated       => Str_To_Id ("Client_Propagated"));
+
       Termination_Img
         := (Unknown_Termination  => Str_To_Id ("Undefined Termination"),
             Local_Termination    => Str_To_Id ("Local_Termination"),

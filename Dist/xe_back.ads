@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2000 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2001 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -111,19 +111,24 @@ package XE_Back is
    type Task_Pool_Type is array (1 .. 3) of Types.Name_Id;
    No_Task_Pool    : Task_Pool_Type;
 
+   subtype Priority_Type is Types.Name_Id;
+   No_Priority     : Priority_Type;
+
    -- Defaults --
 
    Default_Partition           : PID_Type;
    Default_Channel             : CID_Type;
 
-   Default_Registration_Filter : Filter_Name_Type      := No_Filter_Name;
-   Def_Boot_Location_First     : LID_Type              := Null_LID;
-   Def_Boot_Location_Last      : LID_Type              := Null_LID;
-   Def_Data_Location           : LID_Type              := Null_LID;
-   Default_Starter             : XE.Import_Method_Type := XE.Ada_Import;
-   Default_Version_Check       : Boolean               := True;
-   Default_Rsh_Command         : Types.Name_Id         := Types.No_Name;
-   Default_Rsh_Options         : Types.Name_Id         := Types.No_Name;
+   Default_Registration_Filter : Filter_Name_Type        := No_Filter_Name;
+   Def_Boot_Location_First     : LID_Type                := Null_LID;
+   Def_Boot_Location_Last      : LID_Type                := Null_LID;
+   Def_Data_Location           : LID_Type                := Null_LID;
+   Default_Starter             : XE.Import_Method_Type   := XE.Ada_Import;
+   Default_Version_Check       : Boolean                 := True;
+   Default_Rsh_Command         : Types.Name_Id           := Types.No_Name;
+   Default_Rsh_Options         : Types.Name_Id           := Types.No_Name;
+
+   Default_Priority_Policy : XE.Priority_Policy_Type := XE.Client_Propagated;
 
    -- Table element types --
 
@@ -171,7 +176,7 @@ package XE_Back is
       Name            : Partition_Name_Type;
       Node            : XE.Node_Id;
       Host            : HID_Type;
-      Directory     : Directory_Name_Type;
+      Directory       : Directory_Name_Type;
       Command_Line    : Command_Line_Type;
       Main_Subprogram : Types.Unit_Name_Type;
       Termination     : XE.Termination_Type;
@@ -181,6 +186,7 @@ package XE_Back is
       RCI_Or_RACW     : Boolean;
       Use_Tasking     : Boolean;
       Passive         : XE.Boolean_Type;
+      Priority        : Priority_Type;
       Executable_File : Types.File_Name_Type;
       Partition_Dir   : Types.File_Name_Type;
       First_Unit      : CUID_Type;
@@ -345,6 +351,8 @@ package XE_Back is
 
    function Get_PID             (N : Types.Name_Id) return PID_Type;
 
+   function Get_Priority (P : PID_Type) return Priority_Type;
+
    function Get_Relative_Exec   (P : PID_Type) return Types.File_Name_Type;
    --  Look for directory into partitions and compute relative executable
    --  name into partitions. If null, return default.
@@ -412,6 +420,9 @@ package XE_Back is
 
    procedure Set_PID
      (N : in Types.Name_Id; P : in PID_Type);
+
+   procedure Set_Priority
+     (P : in PID_Type; X : in Priority_Type);
 
    procedure Set_Reconnection
      (P : in PID_Type; R : in XE.Reconnection_Type);

@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2000 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2001 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -443,6 +443,7 @@ package body XE_Stubs is
       Dwrite_With_Clause (File, True, SG ("Name_Table"));
       Dwrite_With_Clause (File, True, SG ("Remote"));
       Dwrite_With_Clause (File, True, SG ("Types"));
+      Dwrite_With_Clause (File, True, SG ("Priorities"));
 
       if Light_PCS then
          Dwrite_With_Clause (File, False, SG ("No_Tasking"));
@@ -485,6 +486,14 @@ package body XE_Stubs is
       Dwrite_Line (File, 0, "package body ", Elaboration_Name, " is");
       Dwrite_Line (File, 1, "procedure Initialize is");
       Dwrite_Line (File, 1, "begin");
+
+      Dwrite_Call
+        (File, 2, "Set_RPC_Handler_Priority", Get_Priority (PID));
+
+      Dwrite_Call
+        (File, 2,
+         "Set_RPC_Handler_Priority_Policy",
+         Priority_Policy_Img (Default_Priority_Policy));
 
       Dwrite_Call
         (File, 2, "Set_Rsh_Command", Quote (Get_Rsh_Command));

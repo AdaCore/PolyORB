@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2000 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2001 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -76,7 +76,7 @@ package XE is
 
    -- Attribute_Type --
 
-   type Attribute_Type is new Types.Int range 200 .. 213;
+   type Attribute_Type is new Types.Int range 200 .. 214;
 
    Attribute_Unknown       : constant Attribute_Type := 200;
    Attribute_Host          : constant Attribute_Type := 201;
@@ -92,6 +92,7 @@ package XE is
    Attribute_Protocol      : constant Attribute_Type := 211;
    Attribute_Storage       : constant Attribute_Type := 212;
    Attribute_Passive       : constant Attribute_Type := 213;
+   Attribute_Priority      : constant Attribute_Type := 214;
 
 
    -- Pragma_Type --
@@ -164,6 +165,14 @@ package XE is
    Block_Until_Restart  : constant Reconnection_Type := 702;
    Fail_Until_Restart   : constant Reconnection_Type := 703;
 
+   -- Priority_Policy_Type --
+
+   type Priority_Policy_Type is new Types.Int range 800 .. 802;
+
+   Unknown_Priority_Policy : constant Priority_Policy_Type := 800;
+   Server_Declared         : constant Priority_Policy_Type := 801;
+   Client_Propagated       : constant Priority_Policy_Type := 802;
+
 
    -- Node_Id --
 
@@ -191,21 +200,22 @@ package XE is
 
    -- Standard nodes --
 
-   Configuration_Node       : Configuration_Id;
+   Configuration_Node        : Configuration_Id;
 
-   Partition_Type_Node      : Type_Id;
-   Channel_Type_Node        : Type_Id;
-   Boolean_Type_Node        : Type_Id;
-   Integer_Type_Node        : Type_Id;
-   String_Type_Node         : Type_Id;
-   Convention_Type_Node     : Type_Id;
-   Ada_Unit_Type_Node       : Type_Id;
-   Subprogram_Type_Node     : Type_Id;
-   Main_Procedure_Type_Node : Type_Id;
-   Host_Function_Type_Node  : Type_Id;
-   Task_Pool_Type_Node      : Type_Id;
-   Location_Type_Node       : Type_Id;
-   Locations_Type_Node      : Type_Id;
+   Partition_Type_Node       : Type_Id;
+   Channel_Type_Node         : Type_Id;
+   Boolean_Type_Node         : Type_Id;
+   Integer_Type_Node         : Type_Id;
+   String_Type_Node          : Type_Id;
+   Convention_Type_Node      : Type_Id;
+   Ada_Unit_Type_Node        : Type_Id;
+   Subprogram_Type_Node      : Type_Id;
+   Main_Procedure_Type_Node  : Type_Id;
+   Host_Function_Type_Node   : Type_Id;
+   Task_Pool_Type_Node       : Type_Id;
+   Location_Type_Node        : Type_Id;
+   Locations_Type_Node       : Type_Id;
+   Priority_Policy_Type_Node : Type_Id;
 
    Pragma_Starter_Node       : Subprogram_Id;
    Pragma_Import_Node        : Subprogram_Id;
@@ -245,9 +255,10 @@ package XE is
    No_Recompilation   : Boolean;
    Building_Script    : Boolean;
 
-   Reconnection_Img : array (Reconnection_Type) of Types.Name_Id;
-   Termination_Img  : array (Termination_Type) of Types.Name_Id;
-   Boolean_Img      : array (Boolean_Type) of Types.Name_Id;
+   Priority_Policy_Img : array (Priority_Policy_Type) of Types.Name_Id;
+   Reconnection_Img    : array (Reconnection_Type) of Types.Name_Id;
+   Termination_Img     : array (Termination_Type) of Types.Name_Id;
+   Boolean_Img         : array (Boolean_Type) of Types.Name_Id;
 
    procedure Add_Configuration_Declaration
      (Configuration_Node : in Configuration_Id;
@@ -313,6 +324,12 @@ package XE is
    pragma Inline (Convert);
 
    function Convert (Item : Types.Int) return Termination_Type;
+   pragma Inline (Convert);
+
+   function Convert (Item : Priority_Policy_Type) return Types.Int;
+   pragma Inline (Convert);
+
+   function Convert (Item : Types.Int) return Priority_Policy_Type;
    pragma Inline (Convert);
 
    procedure Create_Component
