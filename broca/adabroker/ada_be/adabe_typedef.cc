@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.4 $
+//                            $Revision: 1.5 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -76,10 +76,6 @@ adabe_typedef::produce_ads (dep_list & with,
           }
 	default:
           {
-            char c[2] = { ('a' + (unsigned) b->node_type ()), '\0' };
-            body += "   -- base type kind: ";
-            body += ((char*)&c);
-            body += "\n";
 	    body += "   type " + get_ada_local_name () + " is new ";
 	    string name = 
 	      dynamic_cast<adabe_name *>(b)->dump_name (with, previous);
@@ -105,10 +101,6 @@ adabe_typedef::produce_ads (dep_list & with,
           }
 	default:
           {
-            char c[2] = { ('a' + (unsigned) b->node_type ()), '\0' };
-            body += "   -- 2 base type kind: ";
-            body += ((char*)&c);
-            body += "\n";
 	    body += "   type " + get_ada_local_name () + " is new ";
 	    string name = 
 	      dynamic_cast<adabe_name *>(b)->dump_name (with, previous);
@@ -139,9 +131,17 @@ adabe_typedef::produce_stream_ads (dep_list & with,
 				   string   & previous)
 {
   AST_Decl *b = base_type ();
+  AST_Decl::NodeType base_node_type = b->node_type ();
+
+  if (base_node_type == NT_interface
+   || base_node_type == NT_interface_fwd) {
+    set_already_defined ();
+    return;
+  }
+
   if (((string) b->local_name ()->get_string ()) == "local type")
     {
-      switch (b->node_type ())
+      switch (base_node_type)
 	{
 	case AST_Decl::NT_array:
 	case AST_Decl::NT_string:
@@ -151,9 +151,9 @@ adabe_typedef::produce_stream_ads (dep_list & with,
 	    adabe_name *c = dynamic_cast<adabe_name *>(b);
 	    c->produce_stream_ads (with, body, arg2);
 	    body += arg2;
-	    set_already_defined ();
-	    return;
-	  }
+            set_already_defined ();
+            return;
+          }
 	default : {}
 	}
     }
@@ -170,9 +170,17 @@ adabe_typedef::produce_stream_adb (dep_list & with,
 {
   string arg2 = "";
   AST_Decl *b = base_type ();
+  AST_Decl::NodeType base_node_type = b->node_type ();
+
+  if (base_node_type == NT_interface
+   || base_node_type == NT_interface_fwd) {
+    set_already_defined ();
+    return;
+  }
+
   if (((string) b->local_name ()->get_string ()) == "local type")
     {
-      switch (b->node_type ())
+      switch (base_node_type)
 	{
 	case AST_Decl::NT_array:
 	case AST_Decl::NT_string:
@@ -181,9 +189,9 @@ adabe_typedef::produce_stream_adb (dep_list & with,
 	    adabe_name *c = dynamic_cast<adabe_name *>(b);
 	    c->produce_stream_adb (with, body, arg2);
 	    body += arg2;
-	    set_already_defined ();
-	    return;
-	  }
+            set_already_defined ();
+            return;
+          }
 	  default : {}
 	}
     }
