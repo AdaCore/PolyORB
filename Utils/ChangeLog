@@ -1,3 +1,11 @@
+2002-02-13  Laurent Pautet  <pautet@arlequin.enst.fr>
+
+	* VERSION.INFO: Look for Gnat_Version_String and not only
+	Gnat_Version. Get only the string between '-' when we try to guess
+	the glade version from the dir release.
+
+	* make_distrib: Call VERSION.INFO with /bin/sh.
+
 2000-03-01  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* VERSION.INFO: Replace @gnat_version@ and @glade_version@ with
