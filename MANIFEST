@@ -386,8 +386,8 @@ ada/osint.adb
 ada/osint.ads
 ada/output.adb
 ada/output.ads
-ada/prj.attr.adb
 ada/prj-attr.adb
+ada/prj-attr.ads
 ada/prj-com.adb
 ada/prj-com.ads
 ada/prj-dect.adb
