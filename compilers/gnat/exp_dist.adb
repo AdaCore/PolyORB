@@ -517,12 +517,12 @@ package body Exp_Dist is
    --  bodies are inserted at the end of Decls. PCS-specific ancillary
    --  subprogram for Add_RAST_Features.
 
-   procedure Specific_Add_Stub_Type
-     (Decls     : List_Id;
-      RACW_Type : Entity_Id;
+   procedure Specific_Build_Stub_Type
+     (RACW_Type : Entity_Id;
       Stub_Type : Entity_Id;
-     RPC_Receiver_Decl : out Node_Id);
-   --  Add a type declaration for the stub type associated with an RACW
+      Stub_Type_Decl    : out Node_Id;
+      RPC_Receiver_Decl : out Node_Id);
+   --  Build a type declaration for the stub type associated with an RACW
    --  type, and the necessary RPC receiver, if applicable. PCS-specific
    --  ancillary subprogram for Add_Stub_Type. If no RPC receiver declaration
    --  is generated, then RPC_Receiver_Decl is set to Empty.
@@ -543,10 +543,10 @@ package body Exp_Dist is
          RAS_Type : Entity_Id;
          Decls    : List_Id);
 
-      procedure Add_Stub_Type
-        (Decls     : List_Id;
-         RACW_Type : Entity_Id;
+      procedure Build_Stub_Type
+        (RACW_Type : Entity_Id;
          Stub_Type : Entity_Id;
+         Stub_Type_Decl    : out Node_Id;
          RPC_Receiver_Decl : out Node_Id);
 
       function Build_RPC_Receiver_Specification
@@ -575,10 +575,10 @@ package body Exp_Dist is
          RAS_Type : Entity_Id;
          Decls    : List_Id);
 
-      procedure Add_Stub_Type
-        (Decls     : List_Id;
-         RACW_Type : Entity_Id;
+      procedure Build_Stub_Type
+        (RACW_Type : Entity_Id;
          Stub_Type : Entity_Id;
+         Stub_Type_Decl    : out Node_Id;
          RPC_Receiver_Decl : out Node_Id);
 
       function Build_RPC_Receiver_Specification
@@ -1953,8 +1953,8 @@ package body Exp_Dist is
 
       Stub_Elements : constant Stub_Structure :=
                         Stubs_Table.Get (Designated_Type);
-
-      Stub_Type_Access_Declaration : Node_Id;
+      Stub_Type_Decl        : Node_Id;
+      Stub_Type_Access_Decl : Node_Id;
 
    begin
       if Stub_Elements /= Empty_Stub_Structure then
@@ -1974,18 +1974,22 @@ package body Exp_Dist is
             Related_Id => Chars (Stub_Type),
             Suffix     => 'A'));
 
-      Specific_Add_Stub_Type (Decls, RACW_Type, Stub_Type, RPC_Receiver_Decl);
+      Specific_Build_Stub_Type (
+        RACW_Type, Stub_Type,
+        Stub_Type_Decl, RPC_Receiver_Decl);
 
-      Stub_Type_Access_Declaration :=
+      Stub_Type_Access_Decl :=
         Make_Full_Type_Declaration (Loc,
           Defining_Identifier => Stub_Type_Access,
           Type_Definition     =>
             Make_Access_To_Object_Definition (Loc,
               All_Present        => True,
               Subtype_Indication => New_Occurrence_Of (Stub_Type, Loc)));
-      Insert_After (Parent (Stub_Type), Stub_Type_Access_Declaration);
-      Analyze (Parent (Stub_Type));
-      Analyze (Stub_Type_Access_Declaration);
+
+      Append_To (Decls, Stub_Type_Decl);
+      Analyze (Last (Decls));
+      Append_To (Decls, Stub_Type_Access_Decl);
+      Analyze (Last (Decls));
 
       --  This is in no way a type derivation, but we fake it to make
       --  sure that the dispatching table gets built with the corresponding
@@ -1994,7 +1998,9 @@ package body Exp_Dist is
       Derive_Subprograms (Parent_Type  => Designated_Type,
                           Derived_Type => Stub_Type);
 
-      if No (RPC_Receiver_Decl) then
+      if Present (RPC_Receiver_Decl) then
+         Append_To (Decls, RPC_Receiver_Decl);
+      else
          RPC_Receiver_Decl := Last (Decls);
       end if;
 
@@ -4465,20 +4471,20 @@ package body Exp_Dist is
          Add_RAS_Access_TSS (Vis_Decl);
       end Add_RAST_Features;
 
-      -------------------
-      -- Add_Stub_Type --
-      -------------------
+      ---------------------
+      -- Build_Stub_Type --
+      ---------------------
 
-      procedure Add_Stub_Type
-        (Decls     : List_Id;
-         RACW_Type : Entity_Id;
+      procedure Build_Stub_Type
+        (RACW_Type : Entity_Id;
          Stub_Type : Entity_Id;
+         Stub_Type_Decl    : out Node_Id;
          RPC_Receiver_Decl : out Node_Id)
       is
          Loc : constant Source_Ptr := Sloc (Stub_Type);
          Is_RAS : constant Boolean := not Comes_From_Source (RACW_Type);
       begin
-         Append_To (Decls,
+         Stub_Type_Decl :=
            Make_Full_Type_Declaration (Loc,
              Defining_Identifier => Stub_Type,
              Type_Definition     =>
@@ -4525,7 +4531,7 @@ package body Exp_Dist is
                              Aliased_Present    => False,
                              Subtype_Indication =>
                                New_Occurrence_Of (
-                                 Standard_Boolean, Loc))))))));
+                                 Standard_Boolean, Loc)))))));
 
          if Is_RAS then
             RPC_Receiver_Decl := Empty;
@@ -4536,17 +4542,16 @@ package body Exp_Dist is
                RPC_Receiver_Result : constant Entity_Id :=
                                        Make_Defining_Identifier (Loc, Name_R);
             begin
-               Append_To (Decls,
+               RPC_Receiver_Decl :=
                  Make_Subprogram_Declaration (Loc,
                    Build_RPC_Receiver_Specification (
                      RPC_Receiver     => Make_Defining_Identifier (Loc,
                                       New_Internal_Name ('R')),
                      Stream_Parameter => RPC_Receiver_Stream,
-                     Result_Parameter => RPC_Receiver_Result)));
+                     Result_Parameter => RPC_Receiver_Result));
             end;
-            RPC_Receiver_Decl := Last (Decls);
          end if;
-      end Add_Stub_Type;
+      end Build_Stub_Type;
 
       --------------------------------------
       -- Build_RPC_Receiver_Specification --
@@ -6331,20 +6336,20 @@ package body Exp_Dist is
          Set_Renaming_TSS (RAS_Type, Fnam, Name_uTypeCode);
       end Add_RAS_TypeCode;
 
-      -------------------
-      -- Add_Stub_Type --
-      -------------------
+      ---------------------
+      -- Build_Stub_Type --
+      ---------------------
 
-      procedure Add_Stub_Type
-        (Decls     : List_Id;
-         RACW_Type : Entity_Id;
+      procedure Build_Stub_Type
+        (RACW_Type : Entity_Id;
          Stub_Type : Entity_Id;
+         Stub_Type_Decl    : out Node_Id;
          RPC_Receiver_Decl : out Node_Id)
       is
          Loc : constant Source_Ptr := Sloc (Stub_Type);
          pragma Unreferenced (RACW_Type);
       begin
-         Append_To (Decls,
+         Stub_Type_Decl :=
            Make_Full_Type_Declaration (Loc,
              Defining_Identifier => Stub_Type,
              Type_Definition     =>
@@ -6373,17 +6378,16 @@ package body Exp_Dist is
                              Aliased_Present    => False,
                              Subtype_Indication =>
                                New_Occurrence_Of (
-                                 Standard_Boolean, Loc))))))));
+                                 Standard_Boolean, Loc)))))));
 
-         Append_To (Decls,
+         RPC_Receiver_Decl :=
            Make_Object_Declaration (Loc,
              Defining_Identifier => Make_Defining_Identifier (Loc,
                                       New_Internal_Name ('R')),
              Aliased_Present     => True,
              Object_Definition   =>
-               New_Occurrence_Of (RTE (RE_Servant), Loc)));
-         RPC_Receiver_Decl := Last (Decls);
-      end Add_Stub_Type;
+               New_Occurrence_Of (RTE (RE_Servant), Loc));
+      end  Build_Stub_Type;
 
       --------------------------------------
       -- Build_RPC_Receiver_Specification --
@@ -6586,25 +6590,28 @@ package body Exp_Dist is
       end case;
    end Specific_Add_RAST_Features;
 
-   ----------------------------
-   -- Specific_Add_Stub_Type --
-   ----------------------------
+   ------------------------------
+   -- Specific_Build_Stub_Type --
+   ------------------------------
 
-   procedure Specific_Add_Stub_Type
-     (Decls     : List_Id;
-      RACW_Type : Entity_Id;
+   procedure Specific_Build_Stub_Type
+     (RACW_Type : Entity_Id;
       Stub_Type : Entity_Id;
-      RPC_Receiver_Decl : out Node_Id) is
+      Stub_Type_Decl    : out Node_Id;
+      RPC_Receiver_Decl : out Node_Id)
+   is
    begin
       case Get_PCS_Name is
          when Name_PolyORB_DSA =>
-            PolyORB_Support.Add_Stub_Type (Decls,
-              RACW_Type, Stub_Type, RPC_Receiver_Decl);
+            PolyORB_Support.Build_Stub_Type (
+              RACW_Type, Stub_Type,
+              Stub_Type_Decl, RPC_Receiver_Decl);
          when others =>
-            GARLIC_Support.Add_Stub_Type (Decls,
-              RACW_Type, Stub_Type, RPC_Receiver_Decl);
+            GARLIC_Support.Build_Stub_Type (
+              RACW_Type, Stub_Type,
+              Stub_Type_Decl, RPC_Receiver_Decl);
       end case;
-   end Specific_Add_Stub_Type;
+   end Specific_Build_Stub_Type;
 
    --------------------------
    -- Underlying_RACW_Type --
