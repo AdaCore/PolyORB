@@ -27,6 +27,9 @@
 
 /*
   $Log: cfe_interface.cc,v $
+  Revision 1.3  1999/03/01 23:27:54  niebel
+  modification to allow different BE (the adabroker and the omniidl2 back-end)
+
   Revision 1.2  1999/03/01 19:48:01  niebel
   modification of the mapping of expressions in the union
 
@@ -87,6 +90,7 @@
 #include <idl.hh>
 #include <idl_extern.hh>
 #include <o2be.h>
+#include <adabe.h>   /////////////////////////
 
 #ifdef HAS_pch
 #pragma hdrstop
@@ -163,6 +167,7 @@ getopt(int num_args, char* const* args, const char* optstring)
 
 
 o2be_root* o2be_global::myself = NULL;
+adabe_root* adabe_global::myself = NULL; /////////////////
 char* o2be_global::pd_hdrsuffix = DEFAULT_IDL_HDR_SUFFIX;
 char* o2be_global::pd_skelsuffix = DEFAULT_IDL_SKEL_SUFFIX;
 char* o2be_global::pd_dynskelsuffix = DEFAULT_IDL_DYNSKEL_SUFFIX;
@@ -182,8 +187,9 @@ int o2be_global::pd_mflag = 1;
 AST_Generator*
 BE_init()
 {
-  AST_Generator	*g = new o2be_generator();	
-  return g;
+  if (strcmp(idl_global::be(),"c")==0) AST_Generator *g = new o2be_generator()
+  else if (strcmp(idl_global::be(),"ada")==0) AST_Generator *g = new adabe_generator();
+  return g;/////////////////////////////////////
 }
 
 //
@@ -198,10 +204,11 @@ BE_version()
 // Do the work of this BE.
 //
 void
-BE_produce()
+BE_produce() //////////////////// revoir les catchs a cause des o2be 
 {
   try {
-    o2be_global::root()->produce();
+    if (strcmp(idl_global::be(),"c")==0) o2be_global::root()->produce()
+    else if (strcmp(idl_global::be(),"ada")==0) adabe_global::root()->produce();
   }
   catch (o2be_fe_error &ex) {
     std::cerr << "Error: " << ex.errmsg() << std::endl;
@@ -257,9 +264,9 @@ usage()
   std::cerr << GTDEVEL(" -s suffix\t\tspecify suffix for the generated stub file(s)\n");
   std::cerr << GTDEVEL(" -t\t\t\tgenerate 'tie' implementation skeleton\n");
   std::cerr << GTDEVEL(" -u\t\t\tprints usage message and exits\n");
-
   std::cerr << GTDEVEL(" -v\t\t\ttraces compilation stages\n");
   std::cerr << GTDEVEL(" -w\t\t\tsuppresses IDL compiler warning messages\n");
+  std::cerr << GTDEVEL(" -bback_end\t\tcauses specified back end to be used\n");
 
   return;
 }
@@ -279,7 +286,9 @@ void
 BE_parse_args(int argc, char **argv)
 {
   int c;
+  int be_defined = 0;
   char *buffer;
+  char *buffer1;
 
 #ifdef __WIN32__
   o2be_global::set_skelsuffix("SK.cpp");
@@ -294,7 +303,7 @@ BE_parse_args(int argc, char **argv)
 
   DRV_cpp_init();
   idl_global->set_prog_name(argv[0]);
-  while ((c = getopt(argc,argv,"D:EI:U:Vuvwh:s:lamt")) != EOF) /////////// rajouter :b 
+  while ((c = getopt(argc,argv,"D:EI:U:Vuvwh:s:lamtb:")) != EOF) //////////////
     {
       switch (c) 
 	{
@@ -361,6 +370,12 @@ BE_parse_args(int argc, char **argv)
 					IDL_BE_GENERATE_TIE);
 	  break;
 
+	case 'b':                    ///////////////////////////////
+       	  if ((strcmp(optarg,"ada")==0)||(strcmp(optarg,"c")==0))  idl_global->set_be(optarg)
+	  else exit(99) ;
+	  be_defined = 1;   
+	  break;
+	  
 	case '?':
 	  usage();
 	  idl_global->set_compile_flags(idl_global->compile_flags() |
@@ -368,6 +383,7 @@ BE_parse_args(int argc, char **argv)
 	  return;
 	}
     }
+  if (be_defined==0)  idl_global->set_be("c");  //////////////////////
   for (; optind < argc; optind++)
     {
       DRV_files[DRV_nfiles++] = argv[optind];
@@ -383,3 +399,19 @@ BE_parse_args(int argc, char **argv)
     }
   return;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
