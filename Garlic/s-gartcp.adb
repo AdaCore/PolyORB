@@ -207,6 +207,17 @@ package body System.Garlic.TCP is
    --  not been filled and Physical_Send as long as everything has not been
    --  sent.
 
+   procedure Physical_Send
+     (FD   : in C.int;
+      Data : in System.Address;
+      Len  : in C.int);
+   procedure Physical_Receive
+     (FD   : in C.int;
+      Data : in System.Address;
+      Len  : in C.int);
+   --  Same procedures as above, at a lower level (and does not require a
+   --  copy on the stack).
+
    procedure Send_My_Partition_ID (FD : in C.int);
    --  Transmit my partition ID to the remote end
 
@@ -661,11 +672,23 @@ package body System.Garlic.TCP is
    -- Physical_Receive --
    ----------------------
 
-   procedure Physical_Receive
-     (FD : in C.int; Data : out Stream_Element_Array)
+   procedure Physical_Receive (FD : in C.int; Data : out Stream_Element_Array)
    is
-      Current : System.Address := Data (Data'First) 'Address;
-      Rest    : C.int          := Data'Length;
+   begin
+      Physical_Receive (FD, Data'Address, Data'Length);
+   end Physical_Receive;
+
+   ----------------------
+   -- Physical_Receive --
+   ----------------------
+
+   procedure Physical_Receive
+     (FD   : in C.int;
+      Data : in System.Address;
+      Len  : in C.int)
+   is
+      Current : System.Address := Data;
+      Rest    : C.int          := Len;
       Code    : C.int;
    begin
       while Rest > 0 loop
@@ -687,8 +710,21 @@ package body System.Garlic.TCP is
 
    procedure Physical_Send (FD : in C.int; Data : in Stream_Element_Array)
    is
-      Current : System.Address := Data (Data'First) 'Address;
-      Rest    : C.int          := Data'Length;
+   begin
+      Physical_Send (FD, Data'Address, Data'Length);
+   end Physical_Send;
+
+   -------------------
+   -- Physical_Send --
+   -------------------
+
+   procedure Physical_Send
+     (FD   : in C.int;
+      Data : in System.Address;
+      Len  : in C.int)
+   is
+      Current : System.Address := Data;
+      Rest    : C.int          := Len;
       Code    : C.int;
    begin
       while Rest > 0 loop
@@ -777,7 +813,7 @@ package body System.Garlic.TCP is
       pragma Debug (D (D_Debug, "Creating buffer"));
       Buffer := new Stream_Element_Array (1 .. Length);
       pragma Debug (D (D_Debug, "Calling Physical_Receive"));
-      Physical_Receive (FD, Buffer.all);
+      Physical_Receive (FD, Buffer.all'Address, C.int (Length));
       pragma Debug (D (D_Debug, "Calling Has_Arrived"));
       Has_Arrived (Partition, Buffer);
       pragma Debug (D (D_Debug, "Freeing buffer"));
@@ -895,7 +931,8 @@ package body System.Garlic.TCP is
                   " (content of" &
                   Stream_Element_Count'Image (Data'Length - Unused_Space) &
                   ")"));
-            Physical_Send (Remote_Data.FD, Data (Code .. Data'Last));
+            Physical_Send (Remote_Data.FD, Data (Code) 'Address,
+                           C.int (Data'Last - Code + 1));
          end;
          Partition_Map.Unlock (Partition);
       exception

@@ -1,3 +1,10 @@
+1998-09-07  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-gartcp.adb: Do not pass data array to Physical_Send to prevent
+ 	later stack blowup in signal handling for FSU threads. Fix for
+ 	4628-G01 on Solaris/FSU (intermittent failure). Likewise for
+ 	Physical_Receive.
+
 1998-09-06  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-ganobl.adb, s-rpcpoo.adb, s-garhea.ads, s-garhea.adb,
