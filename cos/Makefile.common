@@ -19,8 +19,10 @@ giop_inc=-I$(srcdir)/$(COS_ROOT)/../src/giop -I$(COS_ROOT)/../src/giop
 soap_inc=-I$(srcdir)/$(COS_ROOT)/../src/soap -I$(COS_ROOT)/../src/soap
 srp_inc=-I$(srcdir)/$(COS_ROOT)/../src/srp -I$(COS_ROOT)/../src/srp
 
+ir_inc=-I$(COS_ROOT)/ir -I$(srcdir)/$(COS_ROOT)/ir
+
 POLYORB_INCS=-I$(srcdir) -I$(srcdir)/$(COS_ROOT)/../src -I$(COS_ROOT)/../src \
-             @PROTO_INCS@ @APPLI_INCS@
+             @PROTO_INCS@ @APPLI_INCS@ @SERVICE_INCS@
 
 GNATMAKE_FLAGS = \
 	$(POLYORB_INCS) \
@@ -33,7 +35,9 @@ GNATMAKE_FLAGS = \
 
 CLEANFILES = b~*.* *.o *.ali
 
-DISTCLEANFILES = $(PROGS)
+PROGS= @APPLI_EXES@ @SERVICE_EXES@
+
+DISTCLEANFILES =  $(PROGS)
 
 SUFFIXES = .idl .ads .adb
 
@@ -46,6 +50,9 @@ all-local:: $(PROGS) $(EXTRA)
 
 $(IDLAC): force
 	cd $(IDLAC_DIR) && $(MAKE)
+
+$(PROGS): $(FORCE) $(GEN)
+	$(GNATMAKE_FOR_TARGET) $@ $(GNATMAKE_FLAGS)
 
 force::
 	cd ../../src && $(MAKE)
