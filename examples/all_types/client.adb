@@ -18,7 +18,7 @@ with Ada.Command_Line ;
 with Text_Io ; use Text_Io ;
 with Corba, Corba.Orb, Corba.Boa, Corba.Object ;
 with All_Types ; use All_Types ;
-
+use Corba.Object ;
 
 procedure Client is
 
@@ -526,5 +526,43 @@ begin
       Put_Line ("I received the array :");
       Put (Ar2) ;
    end ;
+   Put_Line ("") ;
+   Put_Line ("") ;
+   -- all_types.ref
+   declare
+      all1 : All_Types.Ref ;
+      Ex2 : Example ;
+      Ex3 : Example := (Switch => 2, Flags => False) ;
+   begin
+      Put_Line ("####### Test of Ref #######") ;
+      Set_N_Attribute (Myall_Types, Ex3) ;
+      Put ("The value of an attribute of th ref is ");
+      Put (Ex3) ;
+      Put_Line ("");
+      Put_Line ("I send the All_types.Ref :") ;
+      Put_Line (Corba.To_Standard_String(Corba.Orb.Object_To_String(Myall_types))) ;
+--      all1 := Echo11 (MyAll_Types, Myall_Types) ;
+      Put_Line ("I receive the object : ") ;
+--      Put_Line (Corba.To_Standard_String(Corba.Orb.Object_To_String(all1))) ;
+      Put ("Now, the value of this attribute is ") ;
+--      Ex2 := Get_N_Attribute (all1) ;
+--      Put(Ex2) ;
+   end ;
+
+   Put_Line ("") ;
+   Put_Line ("") ;
+   -- object.ref
+   declare
+      O,O1 : Corba.Object.Ref ;
+   begin
+      Put_Line ("####### Test of Corba.Object.Ref #######") ;
+      Put_Line ("I send the Corba.Object ") ;
+--      O1 := To_Ref(Myall_Types);
+--      O := Echo12 (MyAll_Types, O1) ;
+      Put_Line ("I received the Corba.Object ") ;
+   end ;
+
+   Put_Line ("") ;
+   Put_Line ("") ;
 
 end Client ;

@@ -1,12 +1,10 @@
 with all_types.Skeleton ;
+with Corba ;
+with Corba.Object ;
 
 
 package body all_types.Impl is
 
-
-   -----------------------
-   -- IDL definitions   --
-   -----------------------
 
    -----------------------
    -- IDL definitions   --
@@ -159,6 +157,18 @@ package body all_types.Impl is
    end ;
 
 
+   function echo11(Self : access Object; arg : in Ref) return Ref is
+   begin
+      return Arg ;
+   end ;
+
+
+   function echo12(Self : access Object; arg : in Corba.Object.Ref) return Corba.Object.Ref is
+   begin
+      return Arg ;
+   end ;
+
+
 
 
 
@@ -202,6 +212,3 @@ package body all_types.Impl is
 
 
 end all_types.Impl ;
-
-
-

@@ -1,5 +1,9 @@
 with Corba.Object ;
+with NetbufferedStream ;
+with MembufferedStream ;
 use Corba.Object ;
+use NetbufferedStream ;
+use MembufferedStream ;
 package body weapon.Marshal is
 
    procedure Marshall (A : in name ;

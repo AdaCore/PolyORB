@@ -15,7 +15,7 @@ package body tank.Impl is
 
    procedure shoot(Self : access Object; ranges : in Dist) is
    begin
-      Put_Line(" #####BOOM##### tank");
+      null;
    end;
 
 
@@ -28,7 +28,6 @@ package body tank.Impl is
 
    function move(Self : access Object; fast : in Weapon.dist) return Corba.String is
    begin
-      Put_Line("I turn left !");
       return (Corba.To_Corba_String("I turn left !"));
    end ;
 

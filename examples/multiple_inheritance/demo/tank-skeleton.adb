@@ -6,6 +6,7 @@ with Membufferedstream ;
 with Omniropeandkey ;
 with Giop ;
 with Corba ;
+with Corba.Object ;
 with weapon ;
 with weapon.marshal ;
 use vehicle.Skeleton ;
@@ -16,12 +17,9 @@ use Membufferedstream ;
 use Omniropeandkey ;
 use Giop ;
 use Corba ;
+use Corba.Object ;
 use weapon ;
 use weapon.marshal ;
-use Netbufferedstream ;
-use Membufferedstream ;
-use type Corba.Unsigned_Long ;
-
 package body tank.Skeleton is
 
    procedure Dispatch (Myself : in Omniobject.Implemented_Object_Ptr ;
@@ -35,6 +33,8 @@ package body tank.Skeleton is
    -- IDL definitions   --
    -----------------------
 
+      -- tank.move
+      -----------------------
       if Orl_Op = "move" then
          declare
             wide : weapon.dist ;
@@ -67,6 +67,8 @@ package body tank.Skeleton is
    -- inheritance from weapon
    -----------------------------
 
+      -- weapon.shoot
+      -----------------------
       if Orl_Op = "shoot" then
          declare
             ranges : weapon.dist ;

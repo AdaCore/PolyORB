@@ -1,5 +1,9 @@
 with Corba.Object ;
+with NetbufferedStream ;
+with MembufferedStream ;
 use Corba.Object ;
+use NetbufferedStream ;
+use MembufferedStream ;
 package body vehicle.Marshal is
 
    procedure Marshall (A : in longueur_Array ;

@@ -1,4 +1,6 @@
 with Omniobject ;
+with Corba ;
+with Corba.Object ;
 package all_types.Impl is
 
    type Object is new Omniobject.Implemented_Object with private ;
@@ -8,7 +10,6 @@ package all_types.Impl is
    -----------------------
    -- IDL definitions   --
    -----------------------
-
 
    function echoBoolean(Self : access Object; arg : in Corba.Boolean) return Corba.Boolean ;
 
@@ -29,7 +30,6 @@ package all_types.Impl is
    function echoOctet(Self : access Object; arg : in Corba.Octet) return Corba.Octet ;
 
    function echoString(Self : access Object; arg : in Corba.String) return Corba.String ;
-
 
    procedure simple_exception_test(Self : access Object ) ;
    procedure complexe_exception_test(Self : access Object ) ;
@@ -57,6 +57,10 @@ package all_types.Impl is
    function echo9(Self : access Object; arg : in square) return square ;
 
    function echo10(Self : access Object; arg : in cube) return cube ;
+
+   function echo11(Self : access Object; arg : in Ref) return Ref ;
+
+   function echo12(Self : access Object; arg : in Corba.Object.Ref) return Corba.Object.Ref ;
 
 
 

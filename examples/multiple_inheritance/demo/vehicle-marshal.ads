@@ -1,9 +1,7 @@
-with NetbufferedStream ;
-with MembufferedStream ;
 with Giop_C ;
 with Corba ;
-use NetbufferedStream ;
-use MembufferedStream ;
+with Netbufferedstream ;
+with Membufferedstream ;
 use type Corba.Unsigned_Long; 
 package vehicle.Marshal is
 

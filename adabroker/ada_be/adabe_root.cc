@@ -767,12 +767,15 @@ adabe_root::produce() {
       string marshal_header_body          = "";
       dep_list marshal_header_with;
 
+      bool first = true;
+      
       // some files must be added : !!!!!
       marshal_header_previous += "use type Corba.Unsigned_Long; \n";
-      marshal_header_previous += "with NetbufferedStream ; use NetbufferedStream ;\n";
-      marshal_header_previous += "with MembufferedStream ; use MembufferedStream ;\n";
       marshal_header_with.add ("Giop_C");
       marshal_header_with.add ("Corba");
+      marshal_header_with.add("Netbufferedstream");
+      marshal_header_with.add("Membufferedstream");
+
       marshal_header_previous += "Package " + get_ada_full_name() + ".marshal is\n";
 		  
       UTL_ScopeActiveIterator marshal_header_activator(this,UTL_Scope::IK_decls);
@@ -795,13 +798,12 @@ adabe_root::produce() {
 		case AST_Decl::NT_typedef:
 		  {
 		    // preparing the mapping of the mapping of the node
-		    marshal_header_previous += marshal_header_body;
-		    marshal_header_body = "";
-
+		    string tmp1 = "";
+		    string tmp2 = ""; 
 		    // mapping the node
-		    dynamic_cast<adabe_name *>(d)->produce_marshal_ads(marshal_header_with,
-								       marshal_header_body,
-								       marshal_header_previous);
+		    dynamic_cast<adabe_name *>(d)->produce_marshal_ads(marshal_header_with, tmp1, tmp2);
+		    if (tmp1 != "") first = false;
+		    marshal_header_body += tmp1;
 		  }
 		  break;
 		  
@@ -818,6 +820,11 @@ adabe_root::produce() {
 		    // computing the mapping of the module
 		    module->produce_marshal_ads(marshal_module_with,marshal_module_body,
 						marshal_module_previous);
+
+		    if (marshal_module_body == "")
+		      // if the mapping of the module is empty, nothing must be written
+		      break;
+
 		    marshal_module_with_string = *marshal_module_with.produce("with ");
 
 		    // computing the name of the module file
@@ -872,19 +879,23 @@ adabe_root::produce() {
 	  marshal_header_activator.next();
 	} // end of the loop
 
-      // computing the file name
-      string marshal_ada_file_name = idl_file_name+"-marshal.ads";
-      char *lower_case_name = lower(marshal_ada_file_name.c_str());
-      ofstream marshal_header(lower_case_name); 
-      delete[] lower_case_name;
+      if (!first)
+	{
 
-      // writing in the file
-      marshal_header_includes = *marshal_header_with.produce ("with ");
-      marshal_header << marshal_header_includes;
-      marshal_header << marshal_header_previous;
-      marshal_header << marshal_header_body;
-      marshal_header << "end " << get_ada_full_name() << ".marshal ;" << endl;
-      marshal_header.close();
+	  // computing the file name
+	  string marshal_ada_file_name = idl_file_name+"-marshal.ads";
+	  char *lower_case_name = lower(marshal_ada_file_name.c_str());
+	  ofstream marshal_header(lower_case_name); 
+	  delete[] lower_case_name;
+	  
+	  // writing in the file
+	  marshal_header_includes = *marshal_header_with.produce ("with ");
+	  marshal_header << marshal_header_includes;
+	  marshal_header << marshal_header_previous;
+	  marshal_header << marshal_header_body;
+	  marshal_header << "end " << get_ada_full_name() << ".marshal ;" << endl;
+	  marshal_header.close();
+	}
     }
     
     // once more, all the nodes must be set to "undefined"
@@ -904,6 +915,10 @@ adabe_root::produce() {
       string marshal_body_body          = "";
       dep_list marshal_body_with;
     
+      marshal_body_with.add("NetbufferedStream");
+      marshal_body_with.add ("MembufferedStream");
+      marshal_body_previous = "Package body " + get_ada_full_name() + ".marshal is \n";
+
       while (!marshal_body_activator.is_done())
 	{
 	  AST_Decl *d = marshal_body_activator.item();
@@ -922,17 +937,13 @@ adabe_root::produce() {
 		case AST_Decl::NT_enum:
 		case AST_Decl::NT_typedef:
 		  {
-		    if (first) {
-		      // if it is the first node, writes the beginning
-		      marshal_body_previous = "Package body " + get_ada_full_name() + ".marshal is \n";
-		      first = false;    
-		    }
-
 		    // computing the mapping of the node
-		    marshal_body_previous += marshal_body_body;
-		    marshal_body_body ="";
+		    string tmp1 = "";
+		    string tmp2 = ""; 
 		    dynamic_cast<adabe_name *>(d)->produce_marshal_adb
-		      (marshal_body_with, marshal_body_body, marshal_body_previous);
+		      (marshal_body_with, tmp1, tmp2);
+		    if (tmp1 != "") first = false;
+		    marshal_body_body += tmp1;
 		  }
 		  break;
 		  
@@ -986,11 +997,10 @@ adabe_root::produce() {
 		    string marshal_interface_with_string = *marshal_interface_with.produce("with ");
 		    string marshal_interface_use_string = *marshal_interface_with.produce("use ");
 
-		    
 		    if (marshal_interface_body == "")
-		      // if the string is empty, no file is created
+		      // if the mapping of the interface is empty, nothing must be written
 		      break;
-
+		    
 		    // computing the file name
 		    string marshal_interface_file_name =
 		      remove_dot(interface->get_ada_full_name())+"-marshal.adb";
@@ -1046,5 +1056,10 @@ adabe_root::produce() {
 IMPL_NARROW_METHODS1(adabe_root, AST_Root)
 IMPL_NARROW_FROM_DECL(adabe_root)
 IMPL_NARROW_FROM_SCOPE(adabe_root)
+
+
+
+
+
 
 

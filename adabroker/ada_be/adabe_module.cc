@@ -579,12 +579,13 @@ adabe_module::produce_skel_adb(dep_list& with,string &body, string &previousdefi
 
 void
 adabe_module::produce_marshal_ads(dep_list& with,string &body, string &previousdefinition)
-{ 
+{
+  bool first = true;
   body += "use type Corba.Unsigned_Long; \n";
-  body += "with NetbufferedStream ; use NetbufferedStream ;\n";
-  body += "with MembufferedStream ; use MembufferedStream ;\n";
   with.add ("Giop_C");
   with.add ("Corba");
+  with.add("Netbufferedstream");
+  with.add("Membufferedstream");
   body += "Package " + get_ada_full_name() + ".marshal is\n";
   
   // For each declaration in the node produce the code
@@ -604,8 +605,14 @@ adabe_module::produce_marshal_ads(dep_list& with,string &body, string &previousd
 	case AST_Decl::NT_enum:
 	case AST_Decl::NT_typedef:
 	case AST_Decl::NT_string:
-	  dynamic_cast<adabe_name *>(d)->produce_marshal_ads(with, body, previousdefinition);
-	  break;
+	  {
+	    string tmp1 = "";
+	    string tmp2 = "";
+	    dynamic_cast<adabe_name *>(d)->produce_marshal_ads(with, tmp1, tmp2);
+	    if (tmp1 != "") first = false;
+	    body += tmp1;
+	    break;
+	  }
 	case AST_Decl::NT_module:
 	  {
 	    adabe_module *module = adabe_module::narrow_from_decl(d);
@@ -656,7 +663,9 @@ adabe_module::produce_marshal_ads(dep_list& with,string &body, string &previousd
 	  break;
 	}
     }
-  body += "end " + get_ada_full_name() + ".marshal ;";
+  if (!first)
+    body += "end " + get_ada_full_name() + ".marshal ;";
+  else body = "";
 
 }
 
@@ -666,8 +675,10 @@ adabe_module::produce_marshal_adb(dep_list& with,string &body, string &previousd
 {
 
   bool first = true;
-
+  with.add("NetbufferedStream");
+  with.add("MembufferedStream");
   UTL_ScopeActiveIterator module_activator(this,UTL_Scope::IK_decls);
+  body += "Package body " + get_ada_full_name() + ".marshal is \n";
   while (!module_activator.is_done())
     {
       AST_Decl *d = module_activator.item();
@@ -682,16 +693,14 @@ adabe_module::produce_marshal_adb(dep_list& with,string &body, string &previousd
 	case AST_Decl::NT_enum:
 	case AST_Decl::NT_typedef:
 	case AST_Decl::NT_string:
-	  if (first == true)
-	    {
-	      body += "Package body " + get_ada_full_name() + ".marshal is \n";
-	      first = false;
-	    }
-	  previousdefinition += body;
-	  body = "";
-	  dynamic_cast<adabe_name *>(d)->produce_marshal_adb(with, body, previousdefinition);
-	  break;
-	    
+	  {
+	    string tmp1 = "";
+	    string tmp2 = "";
+	    dynamic_cast<adabe_name *>(d)->produce_marshal_adb(with, tmp1, tmp2);
+	    if (tmp1 != "") first = false;
+	    body += tmp1;
+	    break;
+	  }
 	case AST_Decl::NT_module:
 	  {
 	    adabe_module *module = adabe_module::narrow_from_decl(d);

@@ -5,6 +5,7 @@ with Membufferedstream ;
 with Omniropeandkey ;
 with Giop ;
 with Corba ;
+with Corba.Object ;
 use weapon.Impl ;
 use weapon.Marshal ;
 use Netbufferedstream ;
@@ -12,10 +13,7 @@ use Membufferedstream ;
 use Omniropeandkey ;
 use Giop ;
 use Corba ;
-use Netbufferedstream ;
-use Membufferedstream ;
-use type Corba.Unsigned_Long ;
-
+use Corba.Object ;
 package body weapon.Skeleton is
 
    procedure Dispatch (Myself : in Omniobject.Implemented_Object_Ptr ;
@@ -29,6 +27,8 @@ package body weapon.Skeleton is
    -- IDL definitions   --
    -----------------------
 
+      -- weapon.shoot
+      -----------------------
       if Orl_Op = "shoot" then
          declare
             ranges : dist ;

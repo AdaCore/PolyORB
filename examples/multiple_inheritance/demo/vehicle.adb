@@ -54,6 +54,8 @@ package body vehicle is
    end ;
 
 
+   -- can_drive
+   ---------------------------
    function can_drive(Self : in Ref;
                        age : in Corba.Unsigned_Short)
                       return Corba.Boolean is

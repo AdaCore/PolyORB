@@ -854,7 +854,6 @@ adabe_interface::produce_skel_ads(dep_list& with, string &body, string &previous
   // add the packages omniobject and giop_s to the with clauses
   with.add("Omniobject");
   with.add("Giop_S");
-
   // header of the package
   body += "package " + get_ada_full_name() + ".Skeleton is\n\n";
 
@@ -988,11 +987,7 @@ adabe_interface::produce_skel_adb(dep_list& with, string &body, string &previous
   with.add("Omniropeandkey") ;
   with.add("Giop") ;
   with.add("Corba") ;
-
-  // add some usefull packages and a type to the use clauses
-  body += "use Netbufferedstream ;\n";
-  body += "use Membufferedstream ;\n";
-  body += "use type Corba.Unsigned_Long ;\n\n" ;
+  with.add("Corba.Object");
 
   // header of the package
   body += "package body " + get_ada_full_name() + ".Skeleton is\n\n";
@@ -1239,14 +1234,12 @@ adabe_interface::produce_marshal_ads(dep_list& with, string &body, string &previ
   adabe_global::set_adabe_current_file(this);
 
   // add some usefull packages to the with clauses
-  with.add ("NetbufferedStream");
-  with.add ("MembufferedStream");
   with.add ("Giop_C");
   with.add ("Corba");
+  with.add("Netbufferedstream");
+  with.add("Membufferedstream");
 
   // add some usefull packages and a type to the use clauses
-  body += "use NetbufferedStream ;\n";
-  body += "use MembufferedStream ;\n";
   body += "use type Corba.Unsigned_Long; \n";
 
   // header of the package
@@ -1314,6 +1307,8 @@ adabe_interface::produce_marshal_adb(dep_list& with, string &body, string &previ
 
   // add some packages corba.object to the with clauses
   with.add("Corba.Object");
+  with.add ("NetbufferedStream");
+  with.add ("MembufferedStream");
 
   // header of the package
   body += "package body ";
@@ -1343,14 +1338,14 @@ adabe_interface::produce_marshal_adb(dep_list& with, string &body, string &previ
 	case AST_Decl::NT_typedef:
 	  {
 	    // if we got here, the package will not be empty
-	    empty = false;
-
 	    string tmp1 = "";
 	    string tmp2 = "";	    
 
 	    // get the current object as an adabe_name object and produces
 	    // the correponding code
 	    dynamic_cast<adabe_name *>(d)->produce_marshal_adb(with, tmp1, tmp2);
+	    if (tmp1 != "") empty = false;
+
 
 	    // add the code to the file
 	    body += tmp1;

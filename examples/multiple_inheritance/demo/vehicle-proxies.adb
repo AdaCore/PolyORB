@@ -3,13 +3,11 @@ with Membufferedstream ;
 with Corba ;
 with Corba.Object ;
 with vehicle.marshal ;
-with classes_IDL_FILE.marshal ;
 use Netbufferedstream ;
 use Membufferedstream ;
 use Corba ;
 use Corba.Object ;
 use vehicle.marshal ;
-use classes_IDL_FILE.marshal ;
 package body vehicle.Proxies is 
    -----------------------------------------------------------
    ---               Get_mark

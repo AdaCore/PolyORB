@@ -31,22 +31,34 @@ static UTL_String* internal_search_pragma(AST_Decl* decl,char* p);
 adabe_name::adabe_name(AST_Decl::NodeType t,UTL_ScopedName* n, UTL_StrList* up)
   : AST_Decl(t,n,up)
 {
+  // Initialisation of the variables
   pd_ada_local_name = "";
   pd_ada_full_name  = "";
+
+  // initialise the flag
   pd_defined_type   = 0;
+  
   switch (node_type())
     {
+      // if the size of the type may vary, put the
+      // fixed_false to false
     case AST_Decl::NT_string :
     case AST_Decl::NT_sequence :
     case AST_Decl::NT_union :
       pd_fixed_size = false;
       break;
     default:
+      // else put it to true
       pd_fixed_size = true;
       break;
     }
 
+  // compute the repository ID name (it is based on the IDL
+  // name and not on the ADA name)
   pd_repositoryID = internal_produce_repositoryID(this,this);
+
+  // when the initialisation is complete, compute the
+  // ada name
   compute_ada_name();
 };
 
@@ -74,6 +86,8 @@ adabe_name::set_ada_full_name(string s)
   pd_ada_full_name = s;
 }
 
+// The following function are here to ensure that no function will be
+// called on a type that must not be mapped.
 void 
 adabe_name::produce_ads(dep_list&, string&, string&)
 {
@@ -164,55 +178,89 @@ adabe_name::marshal_name(dep_list&, string&)
   throw adabe_internal_error(__FILE__,__LINE__,"marshal_name called in adabe_name");
 }
 
+
+/////////////////////////////////////////
+//////// compute_ada_name      //////////
+/////////////////////////////////////////
+
 void
 adabe_name::compute_ada_name()
 {
   if (node_type() == AST_Decl::NT_root) 
     {
+      // if the node is the root, the name is given
+      // with the IDL file name
+      
       string name      = idl_global->stripped_filename()->get_string();
+      // it is the file name
+      
       int end_of_name = name.find(".idl");
       if (end_of_name > 0) name = name.substr(0, end_of_name);
       string idl_file_name = "";
       idl_file_name =  name + "_IDL_FILE";
+
+      // compute the ada name
       set_ada_local_name (idl_file_name);
       set_ada_full_name (idl_file_name);
+
+      // then exit the function
       return;
     }
-  string loc_value = local_name()->get_string();
-  if ((get_ada_local_name() == "") || (loc_value ==  "local type"))
+  
+  string temp_name = local_name()->get_string();
+  // it is the idl name
+  
+  if ((get_ada_local_name() == "") || (temp_name ==  "local type"))
     {
+      // the following must be done only if there's no local name
+      // or if the name is local type (the compute name can have
+      // given a wrong name in the initialisation
+
+      // initialisation of the variables
       pd_ada_full_name = "";
       int already_used;
       int loop = 0;
-      string temp_name = local_name()->get_string();
+      
 #ifdef DEBUG_NAME
       cout << "in adabe_name, befor convert" << endl;
 #endif
+      // if the type is a local type, a special
+      // function is applied if the node type
+      // is string or array. (sequences can
+      // also be local type, but they don't are
+      // a problem).
       if (temp_name == "local type")
 	switch(node_type())
 	  {
 	  case AST_Decl::NT_array:
-	  case AST_Decl::NT_string:	    
+	  case AST_Decl::NT_string:
 	    temp_name = local_type();
 	    break;
 	  default:
 	    break;
 	  }
-      convert(temp_name);
-      // which must be the ada_name ?
+
 #ifdef DEBUG_NAME
-      cout << "in adabe_name, after convert" << endl;
-      cout << temp_name << endl;
+      cout << "in adabe_name. The idl name is" << temp_name;
 #endif
+      convert(temp_name);
+      // Looks if the name is valid in ADA, and
+      // if not, convert it to an acceptable name
+      
+#ifdef DEBUG_NAME
+      cout << " and the ada name is " << temp_name <<endl;
+#endif
+
+      // set the local to temp_name before checking for
+      // conflicts
       
       pd_ada_local_name = temp_name;
+
+      // we now must look in the containing scope
+      // to verify that the name does not conflict
       UTL_Scope *parent_scope = defined_in();
       if (parent_scope != NULL) 
 	do {
-	  // is this name already used ?
-#ifdef DEBUG_NAME
-	  cout << "in adabe_name, node type of the parent in compute :" <<  parent_scope->scope_node_type() << endl;
-#endif
 	  switch (parent_scope->scope_node_type())
 	    {
 	    case AST_Decl::NT_op:
@@ -223,23 +271,38 @@ adabe_name::compute_ada_name()
 	    case AST_Decl::NT_interface:
 	    case AST_Decl::NT_module:
 	    case AST_Decl::NT_root:
+	      // list of node that can have nodes declared
+	      // inside
+	      
 	      pd_ada_full_name =  (dynamic_cast<adabe_name *>(parent_scope))->get_ada_full_name();
+
+	      // is this name already used ?
 	      already_used = is_name_already_used(pd_ada_local_name, parent_scope);
 	      break;
+	      
 	    default:
+	      // if the node type is none of the previous ones throw an exception
 	      throw adabe_internal_error(__FILE__,__LINE__,"unexpected contening scope");
 	    }
-#ifdef DEBUG_NAME
-	  cout << "In adabe_name, in compute_ada_name after the switch\n";
-#endif
+
+	  // if the name is already used add a string at the
+	  // end of the name
 	  if (already_used == 1)
 	    {
-	      if (loop>999)
+	      // no name can be found:
+	      // bailling out
+	      if (loop > INT_MAX)
 		throw adabe_internal_error(__FILE__,__LINE__,"too many name conflicts");
-	      char extension[4];
+	      char extension[10];
+
+	      // adding an extension to the name,
+	      // before continuing
 	      sprintf (extension, "_%d",loop++);
 	      pd_ada_local_name = temp_name + extension;
 	    }
+
+	  // if the node is an interface or a Module or an InterfaceFwd
+	  // (all the typed that are mapped in individual files)
 	  if ((node_type() != AST_Decl::NT_module) && (node_type() != AST_Decl::NT_interface)
 	      && (node_type() != AST_Decl::NT_interface_fwd))
 	    if (pd_ada_full_name != "")                          //////////////  perhaps useless
@@ -248,75 +311,73 @@ adabe_name::compute_ada_name()
 	      {
 		pd_ada_full_name = pd_ada_local_name;            ////////////////// perhaps useless
 	      }
-	  else  
+	  else
+	    // the nodes contained in the root does not need to have a full-name
 	    if (parent_scope->scope_node_type() != AST_Decl::NT_root)
 	      pd_ada_full_name = pd_ada_full_name + "." + pd_ada_local_name;
 	    else  pd_ada_full_name = pd_ada_local_name;
-	  /*  try to go to the root of the tree, and, each step, try to find 
-	      a node with the same name. If such a node if found
-	      try with another name */
-	} 
-	while (already_used == 1);
-      
-#ifdef DEBUG_NAME
-      cout << "End of compute_ada_name from "<< pd_ada_local_name <<" full name is "
-	   << pd_ada_full_name <<endl;
-#endif
-    }
-  pd_repositoryID = internal_produce_repositoryID(this,this);
-}
 
-void 
-adabe_name::add_number_to_type_name(adabe_name *type)
-{
+	} 
+	while (already_used == 1);      
+    }
+}
+/*
+  void 
+  adabe_name::add_number_to_type_name(adabe_name *type)
+  {
   int loop = 0;
   bool already_used;
   string temp_name = type->get_ada_local_name();
   UTL_Scope *parent_scope = defined_in();
   if (parent_scope != NULL) 
-    do {
-      switch (parent_scope->scope_node_type())
-	{
-	case AST_Decl::NT_op:
-	case AST_Decl::NT_enum:
-	case AST_Decl::NT_except:
-	case AST_Decl::NT_struct:
-	case AST_Decl::NT_union:
-	  dynamic_cast<adabe_name *>(parent_scope)->add_number_to_type_name (type);
-	  return;
-	  break;
-	case AST_Decl::NT_root:
-	case AST_Decl::NT_interface:
-	case AST_Decl::NT_module:
-	  pd_ada_full_name =  (dynamic_cast<adabe_name *>(parent_scope))->get_ada_full_name();
-	  already_used = is_name_already_used(type->get_ada_local_name(), parent_scope);
-	  break;
-	default:
-	  throw adabe_internal_error(__FILE__,__LINE__,"unexpected contening scope");
-	}
-      
-      if (already_used == 1)
-	{
-	  if (loop>999)
-	    throw adabe_internal_error(__FILE__,__LINE__,"too many name conflicts");
-	  char extension[4];
-	  sprintf (extension, "_%d",loop++);
-	  type->set_ada_local_name(temp_name + extension);
-	}
-      type->set_ada_full_name (type->get_ada_local_name());
-      /*  try to go the to the root of teh tree, and, each step, try to find 
-	  a node with the same name. If such a node if found
-	  try with another name */
-    }
-    while (already_used == 1);
-}
+  do {
+  switch (parent_scope->scope_node_type())
+  {
+  case AST_Decl::NT_op:
+  case AST_Decl::NT_enum:
+  case AST_Decl::NT_except:
+  case AST_Decl::NT_struct:
+  case AST_Decl::NT_union:
+  dynamic_cast<adabe_name *>(parent_scope)->add_number_to_type_name (type);
+  return;
+  break;
+  case AST_Decl::NT_root:
+  case AST_Decl::NT_interface:
+  case AST_Decl::NT_module:
+  pd_ada_full_name =  (dynamic_cast<adabe_name *>(parent_scope))->get_ada_full_name();
+  already_used = is_name_already_used(type->get_ada_local_name(), parent_scope);
+  break;
+  default:
+  throw adabe_internal_error(__FILE__,__LINE__,"unexpected contening scope");
+  }
+  
+  if (already_used == 1)
+  {
+  if (loop>999)
+  throw adabe_internal_error(__FILE__,__LINE__,"too many name conflicts");
+  char extension[4];
+  sprintf (extension, "_%d",loop++);
+  type->set_ada_local_name(temp_name + extension);
+  }
+  type->set_ada_full_name (type->get_ada_local_name());
+  /*  try to go the to the root of teh tree, and, each step, try to find 
+      a node with the same name. If such a node if found
+	  try with another name 
+	  }
+	  while (already_used == 1);
+	  }
+*/
+
+
+/////////////////////////////////
+///// is_name_already_used //////
+/////////////////////////////////
 
 int
 adabe_name::is_name_already_used(string name, UTL_Scope *in_scope)
 {
-#ifdef DEBUG_NAME
-  cout << "in adabe_name, called on an "  << node_type() <<endl;
-#endif
+  // this function looks in the scope in_scope a node that has the
+  // same name
   UTL_ScopeActiveIterator i(in_scope ,UTL_Scope::IK_decls);
   while (!i.is_done())
     {
@@ -325,22 +386,20 @@ adabe_name::is_name_already_used(string name, UTL_Scope *in_scope)
       i.next();
       if (d->in_main_file())
 	{
-	  adabe_name *ada = dynamic_cast<adabe_name *>(d);;
-	  temp = (ada->get_ada_local_name());
-	      
-#ifdef DEBUG_NAME
-	  cout << "in adabe_name, in is_name_already_used, after get_ada_local_name"  << endl;
-	  cout << "this vaut " << (int) this << "et ada vaut " << (int) ada << endl;
-#endif
-	  
-	  	  if ((this != ada) && (temp  != "") && (temp == name)) return 1;
+	  // for all the file in the node compares the ADA names
+	  adabe_name *adanode = dynamic_cast<adabe_name *>(d);;
+	  temp = (adanode->get_ada_local_name());
+
+	  // if there's a node other than this one which has the
+	  // same name, the function returns 1
+	  if ((this != adanode) && (temp  != "")
+	      && (temp == name))
+	    return 1;
 	}
     }
-#ifdef DEBUG_NAME
-  cout << "in adabe_name, in is_name_already_used, after the first scope" << endl;
-#endif
-  
-      return 0;
+  // no problem has been found
+  // returns 0
+  return 0;
 } 
 
 bool
@@ -355,20 +414,38 @@ adabe_name::set_already_defined()
   pd_defined_type = true;
 }
 
+
+/////////////////////////////
+///////// convert ///////////
+/////////////////////////////
+
 void
 adabe_name::convert(string &name)
 {
-
+  // first we must remove the '_' at the beginning
+  // of the name
   while (name[0]=='_')
     {
       string temp = name.substr(1,name.length());
       name = temp;
     }
+  
+  int c;
+  // to '_' that follow each other must be transformed
+  // into "_U"
+  while ((c = name.find("__")) != -1) 
+    name[c+1]='U';
+  // Eliminates the '__'
+
+  // then, the '_' at the end of the name is
+  // transformed in a U
   if (name[name.length()-1]=='_')
       name += 'U';
 
-  // All the '_' at the end or at the beginning of the names are removed
-
+  // since now, ther isn't any '_' at the end or at the
+  // beginning of the name. We must now verify that the
+  // name isn't an ADA95 keyword
+  
   if ((name == "abort") || (name == "abs") ||
       (name == "abstract") || (name == "accept") ||
       (name == "access") || (name == "aliased") ||
@@ -405,25 +482,24 @@ adabe_name::convert(string &name)
       (name == "while") || (name == "with") || 
       (name == "xor"))
     name +="_IDL";
-  // changes the name if the name is an ADA95 Keyword
-  
-  int c;
-  while ((c = name.find("__")) != -1) 
-    name[c+1]='U';
-  // Eliminates the '__'
+  // if so, the suffix _IDL is added
+
+  // we are now sure that the name is valid in ADA
 };
+
+///////////////////////////////
+//////// set_undefined ////////
+///////////////////////////////
 
 void
 adabe_name::set_undefined()
 {
+  // this function set the pd_defined_type flag to false
+  // and do the same for all node into it (recursively)
   pd_defined_type = 0;
-#ifdef DEBUG_NAME
-  cout << "set_undifined  node_type : " << node_type() << endl;
-#endif
 
   switch (node_type())
     {
-      // if it's a complexe type does the same to each type in the node ...
     case AST_Decl::NT_op:
       {
 	UTL_ScopeActiveIterator i(adabe_operation::narrow_from_decl(this), UTL_Scope::IK_both);
@@ -511,58 +587,97 @@ adabe_name::set_undefined()
     }
 }
 
+////////////////////////
+///// is_imported //////
+////////////////////////
+
 bool
 adabe_name::is_imported (dep_list& with)
 {
-  if (this == adabe_global::adabe_current_file()) 
+  if (!in_main_file())
+    {
+    if ((string) local_name()->get_string() == "Object") 
+      {
+	with.add ("Corba.Object");
+	return 1;
+      }
+   else return 0;
+    }
+    // the predefined type are not in main file
+    // but they are declared in th root and not imported
+    // so the root must not be included in those cases
+    // the type "object" is imported
+  
+  if (this == adabe_global::adabe_current_file())
+    // we are in athe scope that has defined the type
+    // this type isn't imported
     return 0;
+  
   AST_Decl::NodeType NT = node_type();
+
+  // if the node type is an interface, a module
+  // or the root, the type is imported
   if (NT == AST_Decl::NT_interface)
     {
       bool temp;
       adabe_interface *inter = dynamic_cast<adabe_interface *>(this);
-      if (inter->get_ada_full_name() == "Corba.Object")
+      if (inter->is_forwarded())
 	{
-	  with.add ("Corba.Object");	  
+	  // if the interface is forwarded, the full
+	  // name of the file is the interface
+	  // name+"_forward"
+	  with.add (get_ada_full_name() + "_forward");
 	}
       else
-	if (inter->is_forwarded())
-	  {
-	    with.add (get_ada_full_name() + "_forward");
-	  }
-	else
-	  {
-	    with.add (get_ada_full_name());
-	  }
+	{
+	  // else simply add the interface file
+	  with.add (get_ada_full_name());
+	}
       return 1;
     }
   if (NT == AST_Decl::NT_module)
     {
+      // add the module file name to the dependency list
       with.add (get_ada_full_name());
       return 1;
     }
   if (NT == AST_Decl::NT_root)
     {
+      // add the root file name to the dependency list      
       with.add (get_ada_full_name());
       return 1;
     }
-  if (defined_in() == NULL) return 0;
+  
+  if (defined_in() == NULL)
+    // this node is a predefined type and does not
+    // need to be included
+    return 0;
+
+  // else go to the containing scope
   return (dynamic_cast<adabe_name *>(defined_in()))->is_imported (with); 
 
 }
 
+//////////////////////////////////
+////// is_marshal_imported ///////
+//////////////////////////////////
 bool
 adabe_name::is_marshal_imported (dep_list& with)
 {
+  // this function is the same as the previous one
+  // except, that the added file is the same
+  // with a ".marshal" at the end
+  if (!in_main_file())
+    {
+    if ((string) local_name()->get_string() == "Object") 
+      return 1;
+    else return 0;
+    }
   if (this == adabe_global::adabe_current_file()) 
     return 0;
   AST_Decl::NodeType NT = node_type();
   if (NT == AST_Decl::NT_interface)
     {
-      if (get_ada_full_name() == "Corba.Object")
-	{
-	  return 1;
-	}
       with.add (get_ada_full_name()+".marshal");
       return 1;
     }
@@ -579,6 +694,10 @@ adabe_name::is_marshal_imported (dep_list& with)
    if (defined_in() == NULL) return 0;
    return (dynamic_cast<adabe_name *>(defined_in()))->is_marshal_imported (with); 
 }
+
+///////////////////////////////////////
+////// Output for the node_type ///////
+///////////////////////////////////////
 
 ostream& operator<<(ostream &s, AST_Decl::NodeType x)
 {
@@ -654,20 +773,21 @@ ostream& operator<<(ostream &s, AST_Decl::NodeType x)
 bool
 adabe_name::has_fixed_size()
 {
+  // return true if the size of this element is fixed
   return pd_fixed_size;
 };
-  // return true if the size of this element is fixed
 
 void
 adabe_name::no_fixed_size()
 {
+  // set fixed size to False
   pd_fixed_size = false;
 };
-  // set fixed size to False and calls no_fixed_size of the parent
 
 
-
-// Functions used to provide the repository ID
+/////////////////////////////////////////////
+///////// repository ID functions ///////////
+/////////////////////////////////////////////
 
 static
 char*

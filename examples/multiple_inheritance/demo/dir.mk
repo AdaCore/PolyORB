@@ -2,12 +2,16 @@
 FLAGS = $(ADABROKER_FLAGS) $(CORBA_LIB) $(IMPORT_LIBRARY_FLAGS)
 
 all:: $(CORBA_LIB_DEPEND) $(ADABROKER_LIB_DEPEND)
-	gnatmake -gnatf -gnata -m -i client $(FLAGS)
-	gnatmake -gnatf -gnata -m -i server $(FLAGS)
-
+	gnatmake -gnatf -gnata -i client.adb $(FLAGS)
+	gnatmake -gnatf -gnata -i server.adb $(FLAGS)
 
 clean::
-	rm *.o *.ali *~ server client vehicle.ad* tank.a* weapon.a* \
-*-skeleton* *-marshal* *-proxies* chicken.ad* egg.ad* *_forward* \
-classes.hh classesSK.cc
+	rm *.o *.ali *~ server client server $(GENERATED_FILES)
+
+ada:
+	omniidl2 -b ada classes.idl
+
+
+
+
 

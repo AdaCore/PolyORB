@@ -37,6 +37,8 @@ package body tank is
    -- inheritance from weapon
    --------------------------------------
 
+   -- shoot
+   ---------------------------
    procedure shoot(Self : in Ref;
                    ranges : in weapon.dist) is
       Opcd : weapon.Proxies.shoot_Proxy ;
@@ -49,6 +51,8 @@ package body tank is
    --          IDL declarations                    --
    --------------------------------------------------
 
+   -- move
+   ---------------------------
    function move(Self : in Ref;
                   wide : in weapon.dist)
                  return Corba.String is

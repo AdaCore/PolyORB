@@ -34,6 +34,8 @@ package body weapon is
    --          IDL declarations                    --
    --------------------------------------------------
 
+   -- shoot
+   ---------------------------
    procedure shoot(Self : in Ref;
                    ranges : in dist) is
       Opcd : weapon.Proxies.shoot_Proxy ;

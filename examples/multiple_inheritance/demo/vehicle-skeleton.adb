@@ -5,7 +5,7 @@ with Membufferedstream ;
 with Omniropeandkey ;
 with Giop ;
 with Corba ;
-with classes_IDL_FILE.marshal ;
+with Corba.Object ;
 use vehicle.Impl ;
 use vehicle.Marshal ;
 use Netbufferedstream ;
@@ -13,11 +13,7 @@ use Membufferedstream ;
 use Omniropeandkey ;
 use Giop ;
 use Corba ;
-use classes_IDL_FILE.marshal ;
-use Netbufferedstream ;
-use Membufferedstream ;
-use type Corba.Unsigned_Long ;
-
+use Corba.Object ;
 package body vehicle.Skeleton is
 
    procedure Dispatch (Myself : in Omniobject.Implemented_Object_Ptr ;
@@ -76,6 +72,8 @@ package body vehicle.Skeleton is
          end ;
       end if ;
 
+      -- vehicle.can_drive
+      -----------------------
       if Orl_Op = "can_drive" then
          declare
             age : Corba.Unsigned_Short ;

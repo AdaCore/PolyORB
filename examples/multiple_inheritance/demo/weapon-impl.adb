@@ -11,7 +11,7 @@ package body weapon.Impl is
 
    procedure shoot(Self : access Object; ranges : in Dist) is
    begin
-      Put_Line(" #####BOOM##### weapon");
+      null;
    end;
 
 

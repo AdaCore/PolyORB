@@ -3,7 +3,7 @@ with Corba ; use Corba;
 with Text_IO; use Text_IO;
 
 package body vehicle.Impl is
-   Marque : Corba.String ;
+   Mark : Corba.String ;
 
 
    -----------------------
@@ -14,8 +14,7 @@ package body vehicle.Impl is
    --------------------------
    function Get_mark(Self : access Object) return Corba.String is
    begin
-      Put_Line("Envoie de la marque : " & Corba.To_Standard_String(Marque));
-      return (Marque);
+      return (Mark);
    end;
 
 
@@ -23,15 +22,13 @@ package body vehicle.Impl is
    --------------------------
    procedure Set_mark(Self : access Object ; To : in Corba.String) is
    begin
-      Marque := To;
-      Put_Line("Marque vaut desormais : " & Corba.To_Standard_String(Marque));
+      Mark := To;
    end;
 
 
    function can_drive(Self : access Object; age : in Corba.Unsigned_Short) return Corba.Boolean is
    begin
-      Put_Line("Age est :" & Corba.Unsigned_Short'Image(Age));
-      if (Age > 17) then return true;
+      if (Age > 17) then return True;
       else return False;
       end if;
    end ;
