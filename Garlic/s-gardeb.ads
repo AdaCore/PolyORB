@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-1999 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2000 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -58,7 +58,8 @@ package System.Garlic.Debug is
    type Debug_Key is private;
    --  The key used for further references to the variable
 
-   Always : constant Debug_Key;
+   Null_Key : constant Debug_Key;
+   Always   : constant Debug_Key;
 
    function Debug_Initialize
      (Variable : String;
@@ -68,6 +69,9 @@ package System.Garlic.Debug is
    --  Debug_Initialize is called with two strings. The first one is the name
    --  of the environment variable to look for, the second one is the
    --  banner to use when printing debugging information
+
+   procedure Debug_All;
+   --  Force debugging for every module.
 
    procedure Print_Debug_Info
      (Message : in String;
@@ -90,6 +94,7 @@ package System.Garlic.Debug is
 private
 
    type Debug_Key is range 0 .. 50;
-   Always : constant Debug_Key := 1;
+   Null_Key : constant Debug_Key := 0;
+   Always   : constant Debug_Key := 1;
 
 end System.Garlic.Debug;

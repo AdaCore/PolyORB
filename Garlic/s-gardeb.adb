@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-1999 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2000 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -45,14 +45,16 @@ pragma Elaborate_All (System.Tasking.Debug);
 
 package body System.Garlic.Debug is
 
-   Not_Debugging : constant Debug_Key := 0;
-   --  This value is used when we are not debugging
+   type Debug_Info is
+      record
+         Banner : String_Access;
+         Active : Boolean := False;
+      end record;
 
    Current : Debug_Key := Always;
    --  The current debug key
 
-   Banner_Map : array (Debug_Key) of String_Access;
-   --  Map of banners
+   Debug_Table : array (Debug_Key) of Debug_Info;
 
    protected Semaphore is
       entry P;
@@ -130,6 +132,19 @@ package body System.Garlic.Debug is
       Close (Termination_Sanity_FD);
    end Create_Termination_Sanity_File;
 
+   ---------------
+   -- Debug_All --
+   ---------------
+
+   procedure Debug_All is
+   begin
+      for I in Null_Key .. Current loop
+         if Debug_Table (I).Banner /= null then
+            Debug_Table (I).Active := True;
+         end if;
+      end loop;
+   end Debug_All;
+
    ----------------------
    -- Debug_Initialize --
    ----------------------
@@ -139,16 +154,13 @@ package body System.Garlic.Debug is
       Banner   : String)
       return Debug_Key
    is
-      Value        : String_Access    := Getenv (Variable);
-      Value_Not_OK : constant Boolean :=
-        Value'Length = 0
-          or else (Value (Value'First) /= 't'
-                   and then Value (Value'First) /= 'T');
+      Value    : String_Access    := Getenv (Variable);
+      Value_OK : constant Boolean :=
+        Value'Length /= 0
+          and then (Value (Value'First) /= 't'
+                   or else Value (Value'First) /= 'T');
    begin
       Free (Value);
-      if Value_Not_OK then
-         return Not_Debugging;
-      end if;
       if Current >= Debug_Key'Last then
          Semaphore.P;
          GNAT.IO.Put_Line ("Change Debug_Key range in s-gardeb.ads");
@@ -156,7 +168,10 @@ package body System.Garlic.Debug is
          raise Program_Error;
       end if;
       Current := Current + 1;
-      Banner_Map (Current) := new String'(Banner);
+      Debug_Table (Current).Banner := new String'(Banner);
+      if Value_OK then
+         Debug_Table (Current).Active := True;
+      end if;
       return Current;
    end Debug_Initialize;
 
@@ -169,7 +184,7 @@ package body System.Garlic.Debug is
       return Boolean
    is
    begin
-      return Key /= Not_Debugging and then Banner_Map (Key) /= null;
+      return Debug_Table (Key).Active;
    end Debug_Mode;
 
    ------------------------------------
@@ -194,7 +209,7 @@ package body System.Garlic.Debug is
       Key     : in Debug_Key) is
       use System.Tasking.Debug;
    begin
-      if Key /= Not_Debugging then
+      if Debug_Table (Key).Active then
          Semaphore.P;
          if Tasking_Flag then
             declare
@@ -203,7 +218,7 @@ package body System.Garlic.Debug is
                GNAT.IO.Put ("[" & B (11 .. B'Last) & "] ");
             end;
          end if;
-         GNAT.IO.Put_Line (Banner_Map (Key).all & Message);
+         GNAT.IO.Put_Line (Debug_Table (Key).Banner.all & Message);
          Semaphore.V;
       end if;
    end Print_Debug_Info;
@@ -239,7 +254,7 @@ begin
    if Termination_Directory.all /= "" then
       Create_Termination_Sanity_File;
    end if;
-   Banner_Map (Always) := new String'("");
+   Debug_Table (Always) := (Active => True, Banner => new String'(""));
    declare
       Debug_Option : String_Access := Getenv ("S_GARDEB");
    begin
