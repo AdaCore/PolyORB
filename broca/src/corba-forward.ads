@@ -39,12 +39,12 @@ package CORBA.Forward is
    type Ref is new CORBA.Object.Ref with null record;
 
    generic
-      type Entity is new CORBA.Object.Ref with private;
+      type Ref_Type is new CORBA.Object.Ref with private;
    package Convert is
-      function From_Forward (The_Forward : in Ref)  return Entity;
-      function To_Ref (The_Forward : in Ref) return Entity
+      function From_Forward (The_Forward : in Ref)  return Ref_Type;
+      function To_Ref (The_Forward : in Ref) return Ref_Type
         renames From_Forward;
-      function To_Forward   (The_Ref : in Entity) return Ref;
+      function To_Forward   (The_Ref : in Ref_Type) return Ref;
    end Convert;
 
 end CORBA.Forward;

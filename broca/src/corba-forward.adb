@@ -35,14 +35,14 @@ package body CORBA.Forward is
 
    package body Convert is
       --  FIXME: minimal implementation.
-      function From_Forward (The_Forward : in Ref)  return Entity is
-         Res : Entity;
+      function From_Forward (The_Forward : in Ref)  return Ref_Type is
+         Res : Ref_Type;
       begin
          Set (Res, Get (The_Forward));
          return Res;
       end From_Forward;
 
-      function To_Forward (The_Ref : in Entity) return Ref is
+      function To_Forward (The_Ref : in Ref_Type) return Ref is
          Res : Ref;
       begin
          Set (Res, Get (The_Ref));
