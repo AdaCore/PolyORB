@@ -49,7 +49,6 @@ with Snames;      use Snames;
 with Stand;       use Stand;
 with Stringt;     use Stringt;
 with Tbuild;      use Tbuild;
-with Uintp;       use Uintp;
 with Uname;       use Uname;
 
 package body Exp_Dist is
@@ -167,10 +166,10 @@ package body Exp_Dist is
    --    Is_Known_Non_A... : True if we know that this is not asynchronous
    --    Spec              : a node with a Parameter_Specifications and
    --                        a Subtype_Mark if applicable
-   --    Object_Type       : in case of a RACW, parameters of type access to
-   --                        Object_Type will be marshalled using the
-   --                        address of this object (the addr field) rather
-   --                        than using the 'Write on the object itself
+   --    Stub_Type         : in case of RACW stubs, parameters of type access
+   --                        to Stub_Type will be marshalled using the
+   --                        address of the object (the addr field) rather
+   --                        than using the 'Write on the stub itself
    --    Nod               : used to provide sloc for generated code
 
    function Build_Subprogram_Calling_Stubs
@@ -349,7 +348,7 @@ package body Exp_Dist is
    Empty_Stub_Structure : constant Stub_Structure :=
      (Empty, Empty, Empty, Empty);
 
-   type Hash_Index is range 0 .. 46;
+   type Hash_Index is range 0 .. 50;
    function Hash (F : Entity_Id) return Hash_Index;
    function Hash (F : Name_Id) return Hash_Index;
 
@@ -623,12 +622,12 @@ package body Exp_Dist is
 
             Append_To (Decls, Subp_Stubs);
             Analyze (Subp_Stubs);
+
             Current_Subprogram_Number := Current_Subprogram_Number + 1;
          end if;
 
          Next (Current_Declaration);
       end loop;
-
    end Add_Calling_Stubs_To_Declarations;
 
    -----------------------------
@@ -688,9 +687,10 @@ package body Exp_Dist is
      (Declarations : List_Id;
       RACW_Type    : Entity_Id)
    is
-      Loc : constant Source_Location := Sloc (RACW_Type);
+      Loc : constant Source_Ptr := Sloc (RACW_Type);
       Asynchronous_Flag : constant Entity_Id :=
-        make_defining_identifier (Loc, New_External_Name (RACW_Type, 'A'));
+        Make_Defining_Identifier (Loc,
+          New_External_Name (Chars (RACW_Type), 'A'));
    begin
       --  Declare the asynchronous flag. This flag will be changed to True
       --  whenever it is known that the RACW type is asynchronous.
@@ -766,13 +766,6 @@ package body Exp_Dist is
         (Declarations        => Decls,
          RACW_Type           => RACW_Type);
 
-      Add_RACW_Read_Write_Attributes
-        (RACW_Type           => RACW_Type,
-         Stub_Type           => Stub_Type,
-         Stub_Type_Access    => Stub_Type_Access,
-         Object_RPC_Receiver => Object_RPC_Receiver,
-         Declarations        => Decls);
-
       Add_RACW_From_Any
         (RACW_Type           => RACW_Type,
          Stub_Type           => Stub_Type,
@@ -784,6 +777,17 @@ package body Exp_Dist is
          RACW_Type           => RACW_Type,
          Stub_Type           => Stub_Type,
          Stub_Type_Access    => Stub_Type_Access,
+         Declarations        => Decls);
+
+      --  In the PolyORB case, the RACW 'Read and 'Write attributes
+      --  are implemented in terms of the From_Any and To_Any TSSs,
+      --  so these TSSs must be expanded before 'Read and 'Write.
+
+      Add_RACW_Read_Write_Attributes
+        (RACW_Type           => RACW_Type,
+         Stub_Type           => Stub_Type,
+         Stub_Type_Access    => Stub_Type_Access,
+         Object_RPC_Receiver => Object_RPC_Receiver,
          Declarations        => Decls);
 
       Add_RACW_TypeCode
@@ -867,7 +871,7 @@ package body Exp_Dist is
 
       Asynchronous_Flag : constant Entity_Id :=
         Asynchronous_Flags_Table.Get (RACW_Type);
-      --  The asynchronous flag object declared in Add_RACW_Read_Attribute.
+      --  The asynchronous flag object declared in Add_RACW_Asynchronous_Flag.
    begin
 
       --  Object declarations
@@ -1126,9 +1130,7 @@ package body Exp_Dist is
 
          Current_Primitive_Elmt :=
            First_Elmt (Primitive_Operations (Designated_Type));
-
          while Current_Primitive_Elmt /= No_Elmt loop
-
             Current_Primitive := Node (Current_Primitive_Elmt);
 
             --  Copy the primitive of all the parents, except predefined
@@ -1203,13 +1205,14 @@ package body Exp_Dist is
                        RACW_Type                => Stub_Elements.RACW_Type,
                        Parent_Primitive         => Current_Primitive);
 
+                  Current_Receiver :=
+                    Defining_Unit_Name (
+                      Specification (Current_Receiver_Body));
+
                   Append_To (Decls, Current_Receiver_Body);
 
                   --  Add a case alternative to the receiver
 
-                  Current_Receiver :=
-                     Defining_Unit_Name (
-                       Specification (Current_Receiver_Body));
                   Append_To (RPC_Receiver_Case_Alternatives,
                     Make_Implicit_If_Statement (Designated_Type,
                       Condition =>
@@ -1291,6 +1294,7 @@ package body Exp_Dist is
       Stub_Type_Access    : Entity_Id;
       Declarations        : List_Id)
    is
+      pragma Unreferenced (Stub_Type, Stub_Type_Access);
       Loc : constant Source_Ptr := Sloc (RACW_Type);
 
       Proc_Decl : Node_Id;
@@ -1300,27 +1304,13 @@ package body Exp_Dist is
 
       Decls             : List_Id;
       Statements        : List_Id;
-      Local_Statements  : List_Id;
-      Remote_Statements : List_Id;
       --  Various parts of the procedure
 
       Procedure_Name    : constant Name_Id   :=
                             New_Internal_Name ('R');
-      Source_Partition  : constant Entity_Id :=
+      Source_Ref        : constant Entity_Id :=
                             Make_Defining_Identifier
-                              (Loc, New_Internal_Name ('P'));
-      Source_Receiver   : constant Entity_Id :=
-                            Make_Defining_Identifier
-                              (Loc, New_Internal_Name ('S'));
-      Source_Address    : constant Entity_Id :=
-                            Make_Defining_Identifier
-                              (Loc, New_Internal_Name ('P'));
-      Local_Stub        : constant Entity_Id  :=
-                            Make_Defining_Identifier
-                              (Loc, New_Internal_Name ('L'));
-      Stubbed_Result    : constant Entity_Id  :=
-                            Make_Defining_Identifier
-                              (Loc, New_Internal_Name ('S'));
+                              (Loc, New_Internal_Name ('R'));
       Asynchronous_Flag : constant Entity_Id :=
                             Asynchronous_Flags_Table.Get (RACW_Type);
       pragma Assert (Present (Asynchronous_Flag));
@@ -1329,9 +1319,6 @@ package body Exp_Dist is
       --  parameter names.
 
       function Stream_Parameter return Node_Id;
-      pragma Warnings (Off);
-      pragma Unreferenced (Stream_Parameter);
-      pragma Warnings (On);
       function Result return Node_Id;
 
       function Stream_Parameter return Node_Id is
@@ -1345,150 +1332,32 @@ package body Exp_Dist is
       end Result;
 
    begin
-      --  Object declarations
-
       Decls := New_List (
         Make_Object_Declaration (Loc,
-          Defining_Identifier => Source_Partition,
+          Defining_Identifier => Source_Ref,
           Object_Definition   =>
-            New_Occurrence_Of (RTE (RE_Partition_ID), Loc)),
+            New_Occurrence_Of (RTE (RE_Object_Ref), Loc)));
 
-        Make_Object_Declaration (Loc,
-          Defining_Identifier => Source_Receiver,
-          Object_Definition   =>
-            New_Occurrence_Of (RTE (RE_Unsigned_64), Loc)),
-
-        Make_Object_Declaration (Loc,
-          Defining_Identifier => Source_Address,
-          Object_Definition   =>
-            New_Occurrence_Of (RTE (RE_Unsigned_64), Loc)),
-
-        Make_Object_Declaration (Loc,
-          Defining_Identifier => Local_Stub,
-          Aliased_Present     => True,
-          Object_Definition   =>
-            New_Occurrence_Of (Stub_Type, Loc)),
-
-        Make_Object_Declaration (Loc,
-          Defining_Identifier => Stubbed_Result,
-          Object_Definition   =>
-            New_Occurrence_Of (Stub_Type_Access, Loc),
-          Expression          =>
-            Make_Attribute_Reference (Loc,
-              Prefix =>
-                New_Occurrence_Of (Local_Stub, Loc),
-              Attribute_Name =>
-                Name_Unchecked_Access)));
-      Set_Etype (Stubbed_Result, Stub_Type_Access);
-      --  Build_Get_Unique_RP_Call needs this information.
-
-      --  Read the source Partition_ID and RPC_Receiver from incoming stream
-
---       Statements := New_List (
---         Make_Attribute_Reference (Loc,
---           Prefix         =>
---             New_Occurrence_Of (RTE (RE_Partition_ID), Loc),
---           Attribute_Name => Name_Read,
---           Expressions    => New_List (
---             Stream_Parameter,
---             New_Occurrence_Of (Source_Partition, Loc))),
-
---         Make_Attribute_Reference (Loc,
---           Prefix         =>
---             New_Occurrence_Of (RTE (RE_Unsigned_64), Loc),
---           Attribute_Name =>
---             Name_Read,
---           Expressions    => New_List (
---             Stream_Parameter,
---             New_Occurrence_Of (Source_Receiver, Loc))),
-
---         Make_Attribute_Reference (Loc,
---           Prefix         =>
---             New_Occurrence_Of (RTE (RE_Unsigned_64), Loc),
---           Attribute_Name =>
---             Name_Read,
---           Expressions    => New_List (
---             Stream_Parameter,
---             New_Occurrence_Of (Source_Address, Loc))));
-
-      Statements := New_List (Make_Null_Statement (Loc));
-      --  XXX Should read an IOR
-
-      --  If the Address is Null_Address, then return a null object
-
-      Append_To (Statements,
-        Make_Implicit_If_Statement (RACW_Type,
-          Condition       =>
-            Make_Op_Eq (Loc,
-              Left_Opnd  => New_Occurrence_Of (Source_Address, Loc),
-              Right_Opnd => Make_Integer_Literal (Loc, Uint_0)),
-          Then_Statements => New_List (
-            Make_Assignment_Statement (Loc,
-              Name       => Result,
-              Expression => Make_Null (Loc)),
-            Make_Return_Statement (Loc))));
-
-      --  If the RACW denotes an object created on the current partition, then
-      --  Local_Statements will be executed. The real object will be used.
-
-      Local_Statements := New_List (
+      Statements := New_List (
+        Make_Attribute_Reference (Loc,
+          Prefix         =>
+            New_Occurrence_Of (RTE (RE_Object_Ref), Loc),
+          Attribute_Name => Name_Read,
+          Expressions    => New_List (
+            Stream_Parameter,
+            New_Occurrence_Of (Source_Ref, Loc))),
         Make_Assignment_Statement (Loc,
-          Name       => Result,
+          Name =>
+            Result,
           Expression =>
-            Unchecked_Convert_To (RACW_Type,
-              OK_Convert_To (RTE (RE_Address),
-                New_Occurrence_Of (Source_Address, Loc)))));
-
-      --  If the object is located on another partition, then a stub object
-      --  will be created with all the information needed to rebuild the
-      --  real object at the other end.
-
-      Remote_Statements := New_List (Make_Null_Statement (Loc));
-      --  XXX should rebuild Stubbed_Result.Target from the IOR
-      --  we have just read.
-
-      Append_To (Remote_Statements,
-        Make_Assignment_Statement (Loc,
-          Name       => Make_Selected_Component (Loc,
-            Prefix        => New_Occurrence_Of (Stubbed_Result, Loc),
-            Selector_Name => Make_Identifier (Loc, Name_Asynchronous)),
-          Expression =>
-            New_Occurrence_Of (Asynchronous_Flag, Loc)));
-
-      Append_List_To (Remote_Statements,
-        Build_Get_Unique_RP_Call (Loc, Stubbed_Result, Stub_Type));
-      --  ??? Issue with asynchronous calls here: the Asynchronous
-      --  flag is set on the stub type if, and only if, the RACW type
-      --  has a pragma Asynchronous. This is incorrect for RACWs that
-      --  implement RAS types, because in that case the /designated
-      --  subprogram/ (not the type) might be asynchronous, and
-      --  that causes the stub to need to be asynchronous too.
-      --  A solution is to transport a RAS as a struct containing
-      --  a RACW and an asynchronous flag, and to properly alter
-      --  the Asynchronous component in the stub type in the RAS's
-      --  Input TSS.
-
-      Append_To (Remote_Statements,
-        Make_Assignment_Statement (Loc,
-          Name       => Result,
-          Expression => Unchecked_Convert_To (RACW_Type,
-            New_Occurrence_Of (Stubbed_Result, Loc))));
-
-      --  Distinguish between the local and remote cases, and execute the
-      --  appropriate piece of code.
-
-      Append_To (Statements,
-        Make_Implicit_If_Statement (RACW_Type,
-          Condition       =>
-            Make_Op_Eq (Loc,
-              Left_Opnd  =>
-                Make_Function_Call (Loc,
-                  Name =>
-                    New_Occurrence_Of (RTE (RE_Get_Local_Partition_Id), Loc)),
-              Right_Opnd => New_Occurrence_Of (Source_Partition, Loc)),
-          Then_Statements => Local_Statements,
-          Else_Statements => Remote_Statements));
-      --  XXX should rewrite locality test to test locality of received IOR.
+            Build_From_Any_Call (
+              RACW_Type,
+              Make_Function_Call (Loc,
+                Name =>
+                  New_Occurrence_Of (RTE (RE_TA_ObjRef), Loc),
+                Parameter_Associations => New_List (
+                  New_Occurrence_Of (Source_Ref, Loc))),
+              Decls)));
 
       Build_Stream_Procedure
         (Loc, RACW_Type, Body_Node,
@@ -1827,7 +1696,7 @@ package body Exp_Dist is
       Declarations        : List_Id)
    is
       pragma Warnings (Off);
-      pragma Unreferenced (Stub_Type_Access, Object_RPC_Receiver);
+      pragma Unreferenced (Stub_Type, Stub_Type_Access, Object_RPC_Receiver);
       pragma Warnings (On);
       Loc : constant Source_Ptr := Sloc (RACW_Type);
 
@@ -1839,9 +1708,6 @@ package body Exp_Dist is
       Attr_Decl : Node_Id;
 
       Statements        : List_Id;
-      Local_Statements  : List_Id;
-      Remote_Statements : List_Id;
-      Null_Statements   : List_Id;
 
       Procedure_Name    : constant Name_Id := New_Internal_Name ('R');
 
@@ -1849,9 +1715,6 @@ package body Exp_Dist is
       --  parameter names.
 
       function Stream_Parameter return Node_Id;
-      pragma Warnings (Off);
-      pragma Unreferenced (Stream_Parameter);
-      pragma Warnings (On);
       function Object return Node_Id;
 
       function Stream_Parameter return Node_Id is
@@ -1860,50 +1723,26 @@ package body Exp_Dist is
       end Stream_Parameter;
 
       function Object return Node_Id is
+         Object_Ref : constant Node_Id :=
+           Make_Identifier (Loc, Name_V);
       begin
-         return Make_Identifier (Loc, Name_V);
+         Set_Etype (Object_Ref, RACW_Type);
+         --  Needed for Build_To_Any_Call
+         return Object_Ref;
       end Object;
 
    begin
-      --  Build the code fragment corresponding to the marshalling of a
-      --  local object.
-
-      Local_Statements := New_List (Make_Null_Statement (Loc));
-      --  XXX pack an IOR for local object into stream
-
-      --  Build the code fragment corresponding to the marshalling of
-      --  a remote object.
-
-      Remote_Statements := New_List (Make_Null_Statement (Loc));
-      --  XXX pack IOR from stub.Target into stream
-
-      --  Build the code fragment corresponding to the marshalling of a null
-      --  object.
-
-      Null_Statements := New_List (Make_Null_Statement (Loc));
-      --  XXX pack nil IOR into stream
 
       Statements := New_List (
-        Make_Implicit_If_Statement (RACW_Type,
-          Condition       =>
-            Make_Op_Eq (Loc,
-              Left_Opnd  => Object,
-              Right_Opnd => Make_Null (Loc)),
-          Then_Statements => Null_Statements,
-          Elsif_Parts     => New_List (
-            Make_Elsif_Part (Loc,
-              Condition       =>
-                Make_Op_Eq (Loc,
-                  Left_Opnd  =>
-                    Make_Attribute_Reference (Loc,
-                      Prefix         => Object,
-                      Attribute_Name => Name_Tag),
-                  Right_Opnd =>
-                    Make_Attribute_Reference (Loc,
-                      Prefix         => New_Occurrence_Of (Stub_Type, Loc),
-                      Attribute_Name => Name_Tag)),
-              Then_Statements => Remote_Statements)),
-          Else_Statements => Local_Statements));
+        Pack_Node_Into_Stream_Access (Loc,
+          Stream => Stream_Parameter,
+          Object =>
+            Make_Function_Call (Loc,
+              Name =>
+                New_Occurrence_Of (RTE (RE_FA_ObjRef), Loc),
+              Parameter_Associations => New_List (
+                Build_To_Any_Call (Object, Declarations))),
+          Etyp => RTE (RE_Object_Ref)));
 
       Build_Stream_Procedure
         (Loc, RACW_Type, Body_Node,
@@ -2761,7 +2600,6 @@ package body Exp_Dist is
       --  full view when freezing the public view.
 
       Set_Comes_From_Source (Proxy_Type_Full_View, True);
-
 
       --  procedure Call
       --    (Self : access O;
@@ -5752,9 +5590,7 @@ package body Exp_Dist is
 
    procedure RACW_Type_Is_Asynchronous (RACW_Type : Entity_Id) is
       Asynchronous_Flag : constant Entity_Id :=
-        Asynchronous_Flags_Table.Get (RACW_Type);
-      pragma Assert (Present (Asynchronous_Flag));
-
+                           Asynchronous_Flags_Table.Get (RACW_Type);
    begin
       Replace (Expression (Parent (Asynchronous_Flag)),
         New_Occurrence_Of (Standard_True, Sloc (Asynchronous_Flag)));
