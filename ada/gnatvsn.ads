@@ -31,9 +31,7 @@
 
 package Gnatvsn is
 
-   subtype Version_Type is String (1 .. 19);
-
-   Gnat_Version_String : constant Version_Type := "3.12w (980810)";
+   Gnat_Version_String : constant String := "3.12w (980814)";
    --  Version output when GNAT (compiler), or its related tools, including
    --  GNATBIND, GNATCHOP, GNATFIND, GNATLINK, GNATMAKE, GNATXREF, are run
    --  (with appropriate verbose option switch set).
@@ -42,9 +40,14 @@ package Gnatvsn is
    --  the format of this string. Any change must be coordinated with
    --  a gnatmail maintainer.
 
-   subtype Library_Version_Type is String (1 .. 16);
+   Ver_Len_Max : constant := 32;
+   --  Longest possible length for Gnat_Version_String in this or any
+   --  other version of GNAT. This is used by the binder to establish
+   --  space to store any possible version string value for checks. This
+   --  value should never be decreased in the future, but it would be
+   --  OK to increase it if absolutely necessary.
 
-   Library_Version : constant Library_Version_Type := "GNAT Lib v3.11b ";
+   Library_Version : constant String := "GNAT Lib v3.11b ";
    --  Library version. This value must be updated whenever any change to the
    --  compiler affects the library formats in such a way as to obsolete
    --  previously compiled library modules.

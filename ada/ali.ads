@@ -101,8 +101,11 @@ package ALI is
       --  to the name of the source file in the first unit table entry for
       --  this ALI file, since the body if present is always first).
 
-      Ver : Library_Version_Type;
+      Ver : String (1 .. Ver_Len_Max);
       --  Value of library version (V line in ALI file)
+
+      Ver_Len : Natural;
+      --  Length of characters stored in Ver
 
       First_Unit : Unit_Id;
       --  Id of first Unit table entry for this file

@@ -690,6 +690,7 @@ package body ALI is
         WC_Encoding             => '8',
         Unit_Exception_Table    => False,
         Ver                     => (others => ' '),
+        Ver_Len                 => 0,
         Zero_Cost_Exceptions    => False);
 
       --  Acquire library version
@@ -699,11 +700,13 @@ package body ALI is
       Skip_Space;
       Checkc ('"');
 
-      for J in ALIs.Table (Id).Ver'Range loop
-         ALIs.Table (Id).Ver (J) := Getc;
+      for J in 1 .. Ver_Len_Max loop
+         C := Getc;
+         exit when C = '"';
+         ALIs.Table (Id).Ver (J) := C;
+         ALIs.Table (Id).Ver_Len := J;
       end loop;
 
-      Checkc ('"');
       Skip_Eol;
 
       --  Acquire main program line if present
