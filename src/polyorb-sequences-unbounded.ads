@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                  S E Q U E N C E S . U N B O U N D E D                   --
+--          P O L Y O R B . S E Q U E N C E S . U N B O U N D E D           --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -62,9 +62,9 @@ generic
 
     type Element is private;
 
-package Sequences.Unbounded is
+package PolyORB.Sequences.Unbounded is
 
-   pragma Elaborate_Body;
+   pragma Preelaborate;
 
    type Element_Array is array (Integer range <>) of Element;
 
@@ -240,5 +240,5 @@ private
 
    procedure Finalize (Object : in out Sequence);
 
-end Sequences.Unbounded;
+end PolyORB.Sequences.Unbounded;
 

@@ -37,7 +37,7 @@
 
 --  $Id$
 
-with Sequences.Unbounded;
+with PolyORB.Sequences.Unbounded;
 
 with PolyORB.Requests;
 with PolyORB.Asynch_Ev;
@@ -246,11 +246,11 @@ private
 
    type Tasking_Policy_Type is abstract tagged limited null record;
 
-   package Monitor_Seqs is new Sequences.Unbounded
+   package Monitor_Seqs is new PolyORB.Sequences.Unbounded
      (Asynch_Ev.Asynch_Ev_Monitor_Access);
    subtype Monitor_Seq is Monitor_Seqs.Sequence;
 
-   package TAP_Seqs is new Sequences.Unbounded
+   package TAP_Seqs is new PolyORB.Sequences.Unbounded
      (Transport.Transport_Access_Point_Access);
    subtype TAP_Seq is TAP_Seqs.Sequence;
 

@@ -35,7 +35,7 @@
 
 --  $Id$
 
-with Sequences.Unbounded;
+with PolyORB.Sequences.Unbounded;
 
 generic
 
@@ -77,7 +77,7 @@ private
       V : Value;
    end record;
 
-   package Dict_Entry_Seqs is new Sequences.Unbounded (Dict_Entry);
+   package Dict_Entry_Seqs is new PolyORB.Sequences.Unbounded (Dict_Entry);
 
    type Dict is record
       Entries : Dict_Entry_Seqs.Sequence;

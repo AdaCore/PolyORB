@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                    S E Q U E N C E S . B O U N D E D                     --
+--            P O L Y O R B . S E Q U E N C E S . B O U N D E D             --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -55,7 +55,7 @@ generic
     type Element is private;
     Max : Positive;    -- Maximum length of the bounded sequence
 
-package Sequences.Bounded is
+package PolyORB.Sequences.Bounded is
 
    pragma Elaborate_Body;
 
@@ -304,5 +304,5 @@ private
 
    Null_Sequence : constant Sequence := Default;
 
-end Sequences.Bounded;
+end PolyORB.Sequences.Bounded;
 

@@ -36,7 +36,7 @@
 
 --  $Id$
 
-with Sequences.Unbounded;
+with PolyORB.Sequences.Unbounded;
 
 with PolyORB.POA_Types;
 with PolyORB.Dynamic_Dict;
@@ -49,7 +49,7 @@ package PolyORB.POA_Policies is
    type Policy is abstract tagged limited private;
    type Policy_Access is access all Policy'Class;
 
-   package Policy_Sequences is new Sequences.Unbounded (Policy_Access);
+   package Policy_Sequences is new PolyORB.Sequences.Unbounded (Policy_Access);
    subtype PolicyList is Policy_Sequences.Sequence;
    --  type PolicyList_Access is access all PolicyList;
 

@@ -37,8 +37,8 @@ with PolyORB.Smart_Pointers;
 pragma Elaborate_All (PolyORB.Smart_Pointers);
 with PolyORB.Types;
 
-with Sequences.Unbounded;
-pragma Elaborate (Sequences.Unbounded);
+with PolyORB.Sequences.Unbounded;
+pragma Elaborate (PolyORB.Sequences.Unbounded);
 
 package PolyORB.Any.ExceptionList is
 
@@ -78,18 +78,16 @@ package PolyORB.Any.ExceptionList is
 
 private
 
+   Nil_Ref : constant Ref := (PolyORB.Smart_Pointers.Ref with null record);
+
    --  The actual implementation of an ExceptionList:
    --  a list of TypeCode
 
-   package Exception_Sequences is new Sequences.Unbounded
+   package Exception_Sequences is new PolyORB.Sequences.Unbounded
      (PolyORB.Any.TypeCode.Object);
 
    type Object is new PolyORB.Smart_Pointers.Entity with record
-      List : Exception_Sequences.Sequence
-        := Exception_Sequences.Null_Sequence;
+      List : Exception_Sequences.Sequence;
    end record;
-
-   Nil_Ref : constant Ref
-     := (PolyORB.Smart_Pointers.Ref with null record);
 
 end PolyORB.Any.ExceptionList;

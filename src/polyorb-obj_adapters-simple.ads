@@ -35,7 +35,7 @@
 
 --  $Id$
 
-with Sequences.Unbounded;
+with PolyORB.Sequences.Unbounded;
 
 with PolyORB.Soft_Links;
 
@@ -114,7 +114,7 @@ private
       If_Desc : Interface_Description;
    end record;
 
-   package Object_Map_Entry_Seqs is new Sequences.Unbounded
+   package Object_Map_Entry_Seqs is new PolyORB.Sequences.Unbounded
      (Object_Map_Entry);
    subtype Object_Map_Entry_Seq is Object_Map_Entry_Seqs.Sequence;
 

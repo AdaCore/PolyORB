@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                            S E Q U E N C E S                             --
+--                    P O L Y O R B . S E Q U E N C E S                     --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  CORBA.Sequences is the parent of the bounded and unbounded sequence
+--  CORBA.PolyORB.Sequences is the parent of the bounded and unbounded sequence
 --  packages.  Some exceptions and types common to both are declared here
 --  (following the structure of Ada.Strings).
 --
@@ -40,9 +40,9 @@
 
 --  $Id$
 
-package Sequences is
+package PolyORB.Sequences is
 
-   pragma Pure (Sequences);
+   pragma Pure;
 
    Length_Error, Pattern_Error, Index_Error : exception;
 
@@ -53,4 +53,4 @@ package Sequences is
 
    type Trim_End is (Left, Right, Both);
 
-end Sequences;
+end PolyORB.Sequences;

@@ -44,7 +44,7 @@ with PolyORB.Requests;
 with PolyORB.Storage_Pools;
 with PolyORB.Types; use PolyORB.Types;
 
-with Sequences.Unbounded;
+with PolyORB.Sequences.Unbounded;
 
 package PolyORB.POA_Types is
 
@@ -94,7 +94,8 @@ package PolyORB.POA_Types is
       end record;
    type Servant_Access is access all Servant'Class;
 
-   package POA_Sequences is new Sequences.Unbounded (Obj_Adapter_Access);
+   package POA_Sequences is new PolyORB.Sequences.Unbounded
+     (Obj_Adapter_Access);
    subtype POAList is POA_Sequences.Sequence;
    type POAList_Access is access all POAList;
 

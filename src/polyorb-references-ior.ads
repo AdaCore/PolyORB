@@ -46,7 +46,7 @@ with Ada.Streams;
 with PolyORB.Buffers;      use PolyORB.Buffers;
 with PolyORB.Types;
 
-with Sequences.Unbounded;
+with PolyORB.Sequences.Unbounded;
 
 package PolyORB.References.IOR is
 
@@ -66,7 +66,7 @@ package PolyORB.References.IOR is
    end record;
 
    package Profile_Record_Seq is
-      new Sequences.Unbounded (Profile_Record);
+      new PolyORB.Sequences.Unbounded (Profile_Record);
 
    --  An object reference (whose supported interface is not
    --  reflected by its Ada type) and the associated type information

@@ -1740,19 +1740,19 @@ package body Ada_Be.Idl2Ada is
                               Unit, Typ);
                Add_With (CU, -Unit);
                if B_Node /= No_Node then
-                  Add_With (CU, "Sequences.Bounded",
+                  Add_With (CU, "PolyORB.Sequences.Bounded",
                             Use_It => False,
                             Elab_Control => Elaborate_All);
-                  PL (CU, "  new Sequences.Bounded");
+                  PL (CU, "  new PolyORB.Sequences.Bounded");
                   PL (CU, "    ("
                       & (-Typ)
                       & ", " & Img (Integer_Value (B_Node))
                       & ");");
                else
-                  Add_With (CU, "Sequences.Unbounded",
+                  Add_With (CU, "PolyORB.Sequences.Unbounded",
                             Use_It => False,
                             Elab_Control => Elaborate_All);
-                  PL (CU, "  new Sequences.Unbounded");
+                  PL (CU, "  new PolyORB.Sequences.Unbounded");
                   PL (CU, "    ("
                       & (-Typ)
                       & ");");

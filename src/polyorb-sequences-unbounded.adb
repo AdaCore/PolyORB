@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                  S E Q U E N C E S . U N B O U N D E D                   --
+--          P O L Y O R B . S E Q U E N C E S . U N B O U N D E D           --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,35 +30,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  This package provides the definitions required by the IDL-to-Ada
---  mapping specification for unbounded sequences.  This package is
---  instantiated for each IDL unbounded sequence type.  This package
---  defines the sequence type and the operations upon it.  This package is
---  modelled after Ada.Strings.Unbounded
---
---  Most query operations are not usable until the sequence object has been
---  initialized through an assignment.
---
---  Value semantics apply to assignment, that is, assignment of a sequence
---  value to a sequence object yields a copy of the value.
---
---  The user should not assume safety under tasking, i.e. the
---  implementation only support sequential semantics.
---
---  Indices of elements of sequences are from 1 .. n, i.e.  they follow the
---  normal Ada convention.
---
---  The exception INDEX_ERROR is raised when indexes are not in the range
---  of the object being manipulated.
---
---  Sequences are automatically initialized to zero length, so users should
---  not see Constraint_Error raised.
-
 --  $Id$
 
 with Ada.Unchecked_Deallocation;
 
-package body Sequences.Unbounded is
+package body PolyORB.Sequences.Unbounded is
 
    Initial_Size   : constant Natural := 3;
    Increment_Size : constant Natural := 2;
@@ -994,5 +970,5 @@ package body Sequences.Unbounded is
       Source := Tail (Source, Count, Pad);
    end Tail;
 
-end Sequences.Unbounded;
+end PolyORB.Sequences.Unbounded;
 

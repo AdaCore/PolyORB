@@ -38,7 +38,7 @@
 
 with Ada.Unchecked_Deallocation;
 
-with Sequences.Unbounded;
+with PolyORB.Sequences.Unbounded;
 with PolyORB.POA_Types;
 
 package PolyORB.Object_Maps is
@@ -124,7 +124,7 @@ package PolyORB.Object_Maps is
 
 private
 
-   package Map_Entry_Seqs is new Sequences.Unbounded
+   package Map_Entry_Seqs is new PolyORB.Sequences.Unbounded
      (Object_Map_Entry_Access);
 
    type Object_Map is limited record

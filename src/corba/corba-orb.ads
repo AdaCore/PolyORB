@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,21 +34,20 @@
 
 --  $Id$
 
-with Sequences.Unbounded;
-
 with CORBA.Context;
 with CORBA.ExceptionList;
 with CORBA.NVList;
 with CORBA.Object;
 
 with PolyORB.References;
+with PolyORB.Sequences.Unbounded;
 
 package CORBA.ORB is
 
    pragma Elaborate_Body;
 
    package Octet_Sequence is
-      new Sequences.Unbounded (Octet);
+      new PolyORB.Sequences.Unbounded (Octet);
 
    type ServiceDetail is record
       Service_Detail_Type : ServiceDetailType;
@@ -56,10 +55,10 @@ package CORBA.ORB is
    end record;
 
    package IDL_Sequence_ServiceOption is new
-     Sequences.Unbounded (ServiceOption);
+     PolyORB.Sequences.Unbounded (ServiceOption);
 
    package IDL_Sequence_ServiceDetail is new
-     Sequences.Unbounded (ServiceDetail);
+     PolyORB.Sequences.Unbounded (ServiceDetail);
 
    type ServiceInformation is record
       service_options : IDL_Sequence_ServiceOption.Sequence;
@@ -69,7 +68,7 @@ package CORBA.ORB is
    type ObjectId is new CORBA.String;
 
    package IDL_Sequence_ObjectId is new
-     Sequences.Unbounded (ObjectId);
+     PolyORB.Sequences.Unbounded (ObjectId);
 
    type ObjectIdList is new IDL_Sequence_ObjectId.Sequence;
 

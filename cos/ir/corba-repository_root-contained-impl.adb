@@ -41,8 +41,6 @@ with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
 with PolyORB.CORBA_P.Server_Tools;
 with PortableServer;
-with Sequences;
-
 
 package body CORBA.Repository_Root.Contained.Impl is
 
@@ -733,7 +731,7 @@ package body CORBA.Repository_Root.Contained.Impl is
                   Ind := Contained_For_Seq.Index
                     (Contained_For_Seq.Sequence (In_Seq),
                      Del_Array,
-                     Sequences.Backward);
+                     PolyORB.Sequences.Backward);
                   Contained_For_Seq.Delete (Contained_For_Seq.Sequence (In_Seq),
                                             Ind,
                                             Ind);

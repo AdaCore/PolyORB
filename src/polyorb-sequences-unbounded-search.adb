@@ -32,7 +32,7 @@
 
 --  $Id$
 
-package body Sequences.Unbounded.Search is
+package body PolyORB.Sequences.Unbounded.Search is
 
    -----------
    -- Count --
@@ -60,7 +60,7 @@ package body Sequences.Unbounded.Search is
    -----------
 
    function Index
-     (Haystack : Sequences.Unbounded.Sequence;
+     (Haystack : PolyORB.Sequences.Unbounded.Sequence;
       Needle   : Needle_Type;
       Going    : Direction := Forward)
      return Natural
@@ -115,4 +115,4 @@ package body Sequences.Unbounded.Search is
 
       return Result;
    end Sub_Sequence;
-end Sequences.Unbounded.Search;
+end PolyORB.Sequences.Unbounded.Search;

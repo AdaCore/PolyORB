@@ -37,8 +37,8 @@
 
 --  $Id$
 
-with Sequences.Unbounded;
-pragma Elaborate_All (Sequences.Unbounded);
+with PolyORB.Sequences.Unbounded;
+pragma Elaborate_All (PolyORB.Sequences.Unbounded);
 
 package PolyORB.Annotations is
 
@@ -69,7 +69,7 @@ private
    type Note is abstract tagged null record;
    type Note_Access is access all Note'Class;
 
-   package Note_Seqs is new Sequences.Unbounded (Note_Access);
+   package Note_Seqs is new PolyORB.Sequences.Unbounded (Note_Access);
    subtype Note_Seq is Note_Seqs.Sequence;
 
    type Notepad is new Note_Seqs.Sequence;

@@ -32,8 +32,8 @@
 
 --  $Id$
 
-with Sequences.Unbounded;
-pragma Elaborate_All (Sequences.Unbounded);
+with PolyORB.Sequences.Unbounded;
+pragma Elaborate_All (PolyORB.Sequences.Unbounded);
 
 with PolyORB.Any;
 with PolyORB.Types;
@@ -77,7 +77,7 @@ package PolyORB.Any.NVList is
       --  The actual implementation of an NVList:
       --  a sequence of NamedValues.
 
-      package NV_Sequence is new Sequences.Unbounded (NamedValue);
+      package NV_Sequence is new PolyORB.Sequences.Unbounded (NamedValue);
       type NV_Sequence_Access is access all NV_Sequence.Sequence;
 
       function List_Of (NVList : Ref) return NV_Sequence_Access;

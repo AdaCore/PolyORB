@@ -36,8 +36,8 @@
 
 with Ada.Finalization;
 
-with Sequences.Unbounded;
-pragma Elaborate_All (Sequences.Unbounded);
+with PolyORB.Sequences.Unbounded;
+pragma Elaborate_All (PolyORB.Sequences.Unbounded);
 
 package PolyORB.Components is
 
@@ -150,7 +150,7 @@ private
         Allocation_Class : Component_Allocation_Class := Auto;
      end record;
 
-   package Component_Seqs is new Sequences.Unbounded
+   package Component_Seqs is new PolyORB.Sequences.Unbounded
      (Component_Access);
 
    subtype Component_Seq is Component_Seqs.Sequence;

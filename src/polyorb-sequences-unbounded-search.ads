@@ -35,7 +35,7 @@
 generic
    type Needle_Type is private;
    with function Match (Item : Element; Needle : Needle_Type) return Boolean;
-package Sequences.Unbounded.Search is
+package PolyORB.Sequences.Unbounded.Search is
 
    function Index
      (Haystack : Sequence;
@@ -53,4 +53,4 @@ package Sequences.Unbounded.Search is
       Needle   : in Needle_Type)
       return Natural;
 
-end Sequences.Unbounded.Search;
+end PolyORB.Sequences.Unbounded.Search;

@@ -34,7 +34,7 @@
 
 with Ada.Streams; use Ada.Streams;
 
-with Sequences.Unbounded;
+with PolyORB.Sequences.Unbounded;
 
 with PolyORB.Binding_Data;
 with PolyORB.Buffers; use PolyORB.Buffers;

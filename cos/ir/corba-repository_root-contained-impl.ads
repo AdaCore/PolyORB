@@ -101,7 +101,7 @@ package CORBA.Repository_Root.Contained.Impl is
    --  This package is used to store the content of the container.
    --  It is better to store the Objct_ptr instead of the ref_forward
    --  as it is declared in the corba.Repository_Root module.
-   package Contained_Seq is new Sequences.Unbounded (Object_Ptr);
+   package Contained_Seq is new PolyORB.Sequences.Unbounded (Object_Ptr);
 
    --  return null if RepId not found in In_Seq
    function Lookup_Id (In_Seq : Contained_Seq.Sequence;

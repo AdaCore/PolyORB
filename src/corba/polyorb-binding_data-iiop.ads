@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -37,11 +37,10 @@
 with Ada.Streams; use Ada.Streams;
 
 with PolyORB.Buffers; use PolyORB.Buffers;
+with PolyORB.Sequences.Unbounded;
 with PolyORB.Sockets;
 with PolyORB.Storage_Pools;
 with PolyORB.Types;
-
-with Sequences.Unbounded;
 
 package PolyORB.Binding_Data.IIOP is
 
@@ -57,7 +56,7 @@ package PolyORB.Binding_Data.IIOP is
       Component_Data : Octets_Access;
    end record;
 
-   package Component_Seq is new Sequences.Unbounded (Tagged_Component);
+   package Component_Seq is new PolyORB.Sequences.Unbounded (Tagged_Component);
 
    procedure Initialize;
 
