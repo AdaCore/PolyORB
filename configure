@@ -1924,7 +1924,16 @@ if test -z "$TCP_INCLUDED"; then
     TCP_PLATFORM_SOURCES="s-gtplsp.ads"
   fi;
   
-  
+  if test -f $srcdir/Garlic/5${PLATFORM_SPECIFIC}garthi.ads; then
+    S_GARTHI_ADS="5${PLATFORM_SPECIFIC}garthi.ads";
+  else
+    S_GARTHI_ADS=""
+  fi
+  if test -f $srcdir/Garlic/5${PLATFORM_SPECIFIC}garthi.adb; then
+    S_GARTHI_ADB="5${PLATFORM_SPECIFIC}garthi.adb";
+  else
+    S_GARTHI_ADB=""
+  fi
   
   # Check whether --with-thread-blocking-io or --without-thread-blocking-io was given.
 if test "${with_thread_blocking_io+set}" = set; then
@@ -2593,6 +2602,8 @@ s%@RSH_CMD@%$RSH_CMD%g
 s%@RSH_OPT@%$RSH_OPT%g
 s%@S_GTPLSP_ADS@%$S_GTPLSP_ADS%g
 s%@S_GTPLSP_ADB@%$S_GTPLSP_ADB%g
+s%@S_GARTHI_ADS@%$S_GARTHI_ADS%g
+s%@S_GARTHI_ADB@%$S_GARTHI_ADB%g
 s%@TCP_PLATFORM_SOURCES@%$TCP_PLATFORM_SOURCES%g
 s%@PROTOCOLSSOURCES@%$PROTOCOLSSOURCES%g
 s%@PROTOCOLSOBJECTS@%$PROTOCOLSOBJECTS%g

@@ -223,8 +223,20 @@ if test -z "$TCP_INCLUDED"; then
     S_GTPLSP_ADB=""
     TCP_PLATFORM_SOURCES="s-gtplsp.ads"
   fi;
+  if test -f $srcdir/Garlic/5${PLATFORM_SPECIFIC}garthi.ads; then
+    S_GARTHI_ADS="5${PLATFORM_SPECIFIC}garthi.ads";
+  else
+    S_GARTHI_ADS=""
+  fi
+  if test -f $srcdir/Garlic/5${PLATFORM_SPECIFIC}garthi.adb; then
+    S_GARTHI_ADB="5${PLATFORM_SPECIFIC}garthi.adb";
+  else
+    S_GARTHI_ADB=""
+  fi
   AC_SUBST(S_GTPLSP_ADS)
   AC_SUBST(S_GTPLSP_ADB)
+  AC_SUBST(S_GARTHI_ADS)
+  AC_SUBST(S_GARTHI_ADB)
   AC_SUBST(TCP_PLATFORM_SOURCES)
   AC_ARG_WITH(thread-blocking-io,
   [  --with-thread-blocking-io
