@@ -5,13 +5,12 @@ ERR = $(error PolyORB not configured to generate CORBA applications !)
 
 if ENABLE_CORBA
    ERR=  
+   COS=cos
 endif
 
 if ENABLE_MOMA
    CLIENT_MOMA = client_moma
 endif
-
-
 
 EXTRA = dynclient $(CLIENT_MOMA) $(IR_SERVER)
 

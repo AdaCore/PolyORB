@@ -5,6 +5,7 @@ ERR = $(error PolyORB not configured to generate CORBA applications !)
 
 if ENABLE_CORBA
    ERR=  
+   COS=cos
 endif
 
 EXTRA=		dynclient

@@ -9,7 +9,7 @@ if ENABLE_DSA
    ERR=  
 endif
 
-EXAMPLE_GNATMAKE_FLAGS=-I$(srcdir) -I$(GNAT_SRC) -gnatD
+EXAMPLE_GNATMAKE_FLAGS=-I$(srcdir) -I$(GNAT_SRC) -f -gnatD
 server_FLAGS=	-Aserver.stubs
 client_FLAGS=	-Aclient.stubs
 
