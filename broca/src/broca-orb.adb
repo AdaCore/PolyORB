@@ -42,6 +42,7 @@ package body Broca.Orb is
             --  FIXME:
             --  No classes for the string was found.
             --  What can be done ?
+	    pragma Debug (O ("Ior_To_Object : A_Ref is nil"));
             Broca.Refs.Set (Broca.Refs.Ref (Res), null);
             return;
          end if;

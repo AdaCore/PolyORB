@@ -5,9 +5,13 @@ with Broca.Marshalling;
 with Broca.Sequences;
 with Sockets.Constants;
 with Sockets.Naming;
-with Ada.Text_IO;
+
+with Broca.Debug;
+pragma Elaborate_All (Broca.Debug);
 
 package body Broca.Iiop is
+   Flag : constant Natural := Broca.Debug.Is_Active ("broca.iiop");
+   procedure O is new Broca.Debug.Output (Flag);
 
    function Get_Object_Key (Profile : Profile_Iiop_Type)
                             return Broca.Sequences.Octet is
@@ -61,8 +65,8 @@ package body Broca.Iiop is
 
       Unmarshall (Buffer, Res.Host);
       Unmarshall (Buffer, Res.Port);
-      Ada.Text_IO.Put_Line ("host: " & To_String (Res.Host));
-      Ada.Text_IO.Put_Line ("port: " & CORBA.Unsigned_Short'Image (Res.Port));
+      pragma Debug (O ("host: " & To_String (Res.Host)));
+      pragma Debug (O ("port: " & CORBA.Unsigned_Short'Image (Res.Port)));
       Res.Network_Port := Port_To_Network_Port (Res.Port);
       Broca.Sequences.Unmarshall (Buffer, Res.Object_Key);
 

@@ -4,7 +4,13 @@ with Ada.Tags;
 with Broca.Locks;
 with Broca.Exceptions;
 
+with Broca.Debug;
+pragma Elaborate_All (Broca.Debug);
+
 package body Broca.Refs is
+   Flag : constant Natural := Broca.Debug.Is_Active ("broca.orb");
+   procedure O is new Broca.Debug.Output (Flag);
+
    procedure Disable_Usage (Obj : in out Ref_Type) is
    begin
       if Obj.Counter /= 0 then

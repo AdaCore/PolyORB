@@ -19,7 +19,13 @@ pragma Elaborate_All (Broca.Exceptions);
 pragma Elaborate_All (Broca.Server);
 pragma Elaborate_All (CORBA);
 
+with Broca.Debug;
+pragma Elaborate_All (Broca.Debug);
+
 package body Broca.Inet_Server is
+   Flag : constant Natural := Broca.Debug.Is_Active ("broca.orb");
+   procedure O is new Broca.Debug.Output (Flag);
+
    My_Addr : Sockets.Thin.In_Addr;
    Iiop_Host : CORBA.String;
    Iiop_Port : CORBA.Unsigned_Short;

@@ -2,6 +2,10 @@ with Broca.Types; use Broca.Types;
 with Broca.Ior;
 with Broca.Orb;
 
+with Corba.Object;
+
+with Ada.Text_Io;
+
 with Broca.Debug;
 pragma Elaborate_All (Broca.Debug);
 
@@ -17,6 +21,10 @@ package body CORBA.Orb is
       pragma Debug (O ("String_To_Object : enter"));
       Buffer.Buffer := Broca.Ior.Ior_String_To_Buffer (From);
       Broca.Orb.IOR_To_Object (Buffer, To);
+      if Corba.Object.Is_Nil(To) then
+	 pragma Debug (O ("String_To_Object : null object returned"));
+	 null;
+      end if;
       Unchecked_Deallocation (Buffer.Buffer);
    end String_To_Object;
 
@@ -29,3 +37,6 @@ package body CORBA.Orb is
 
    procedure Run renames Broca.Orb.Run;
 end CORBA.Orb;
+
+
+

@@ -65,3 +65,4 @@ allsrc: $(ADA_SPECS) $(ADA_IMPLS)
 clean::
 	$(RM) *.o *.ali *~ *.c
 	$(RM) allsrc
+	$(RM) $(lib)
