@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,7 +33,7 @@
 
 --  $Id$
 
-with AB_Names;
+with PO_COS_Naming;
 with PolyORB.CORBA_P.Server_Tools;
 with PolyORB.If_Descriptors;
 with PolyORB.If_Descriptors.CORBA_IR;
@@ -48,5 +48,5 @@ procedure IR_AB_Names is
 begin
    PolyORB.CORBA_P.Server_Tools.Initiate_Server_Hook
      := IR_AB_Names_Setup'Unrestricted_Access;
-   AB_Names;
+   PO_COS_Naming;
 end IR_AB_Names;
