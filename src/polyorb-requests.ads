@@ -51,18 +51,23 @@ package PolyORB.Requests is
 
    use PolyORB.Exceptions;
 
-   type Flags is new Types.Unsigned_Long;
-
    type Arguments_Identification is array (1 .. 2) of Boolean;
    pragma Pack (Arguments_Identification);
-
-   package Unsigned_Long_Flags is
-      new PolyORB.Utils.Simple_Flags (Flags, Shift_Left);
 
    Ident_By_Position : constant Arguments_Identification;
    Ident_By_Name     : constant Arguments_Identification;
    Ident_Unspecified : constant Arguments_Identification;
    Ident_Both        : constant Arguments_Identification;
+   --  These constants are used to indicate how the arguments are
+   --  handled by the personalities (both client and
+   --  server). Ident_Unspecified is not supposed to be used directly
+   --  by a personality, as it means that we do not know how the
+   --  arguments are identified. It is used by the internal mechanisms.
+
+   type Flags is new Types.Unsigned_Long;
+
+   package Unsigned_Long_Flags is
+      new PolyORB.Utils.Simple_Flags (Flags, Shift_Left);
 
    ------------------------------------------
    -- Synchronisation of request execution --
