@@ -106,7 +106,7 @@ adabe_operation::produce_adb(dep_list& with,string &body, string &previous)
       body += "      Opcd : " + name_of_the_package + ".Proxies." + get_ada_local_name() + "_Proxy ;\n";
       body += "      Result : " + name +";\n";
       body += "   begin \n";
-      body += "      Opcd := " + name_of_the_package + ".Proxies.Create(";
+      body += "      " + name_of_the_package + ".Proxies.Init(Opcd, ";
       UTL_ScopeActiveIterator j(this,UTL_Scope::IK_decls);
       while (!j.is_done())
 	{
@@ -114,7 +114,7 @@ adabe_operation::produce_adb(dep_list& with,string &body, string &previous)
 	  if (e->node_type() == AST_Decl::NT_argument) body += e->get_ada_local_name();
 	  else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in operation");
 	  j.next();
-	  if (!j.is_done()) body += "; ";
+	  if (!j.is_done()) body += ", ";
 	}
 	  
       body += ") ;\n";
@@ -151,7 +151,7 @@ adabe_operation::produce_adb(dep_list& with,string &body, string &previous)
 	  body += "   Result : " + name + ";\n";
 	}
       body += "   begin \n";
-      body += "      Opcd := " + name_of_the_package + ".Proxies.Create(";
+      body += "      Opcd := " + name_of_the_package + ".Proxies.Init(Opcd, ";
       UTL_ScopeActiveIterator j(this,UTL_Scope::IK_decls);
       while (!j.is_done())
 	{

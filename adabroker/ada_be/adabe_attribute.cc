@@ -45,7 +45,7 @@ adabe_attribute::produce_adb(dep_list& with, string &body, string &previous)
   body += "      Opcd : " + name_of_the_package + ".Proxies.Get_" + get_ada_local_name() + "_Proxy ;\n";
   body += "      Result : " + name +" ;\n";
   body += "   begin \n";
-  body += "      Opcd := " + name_of_the_package + ".Proxies.Create ;\n";
+  body += "      " + name_of_the_package + ".Proxies.Init(Opcd) ;\n";
   body += "      OmniProxyCallWrapper.Invoke(Self, Opcd) ;\n";
   body += "      Result := " + name_of_the_package + ".Proxies.Get_Result(Opcd) ;\n";
   body += "      " + name_of_the_package + ".Proxies.Free(Opcd) ;\n";
@@ -65,7 +65,7 @@ adabe_attribute::produce_adb(dep_list& with, string &body, string &previous)
       body += get_ada_local_name();
       body += "_Proxy ;\n";
       body += "   begin \n";
-      body += "      Opcd := " + name_of_the_package + ".Proxies.Create(To) ;\n";
+      body += "      " + name_of_the_package + ".Proxies.Init(Opcd, To) ;\n";
       body += "      OmniProxyCallWrapper.Invoke(Self, Opcd) ;\n";
       body += "      " + name_of_the_package + ".Proxies.Free(Opcd) ;\n";
       body += "   end ;\n\n\n";    

@@ -83,8 +83,9 @@ adabe_interface::produce_ads(dep_list &with, string &body, string &previous)
 	    {
 	      inher = adabe_interface::narrow_from_decl(inherits()[i]);
 	      with.add(inher->get_ada_full_name());
+	      tmp += "   -------------------------------------\n";
 	      tmp += "   -- inheritance from " + inher->get_ada_full_name() + "\n";
-	      tmp += "   --------------------------------------------------\n";
+	      tmp += "   -------------------------------------\n";
 	      {
 		UTL_ScopeActiveIterator j(inher,UTL_Scope::IK_decls);
 		while (!j.is_done())
@@ -118,14 +119,14 @@ adabe_interface::produce_ads(dep_list &with, string &body, string &previous)
 		      }
 		    j.next();
 		  }
+		tmp += "\n\n" ;
 	      }
-	      tmp += "\n\n" ;
 	    }
 	}
     }
   body += "   type Ref_Ptr is access all Ref ;\n\n";
   body += "   Nil_Ref : aliased constant Ref ;\n";
-  body += "   function To_Ref(The_Ref : in Corba.Object.Ref'Class) return Ref ;\n";
+  body += "   function To_Ref(The_Ref : in Corba.Object.Ref'Class) return Ref ;\n\n\n";
   body += tmp;
 
   // instructions
@@ -228,8 +229,9 @@ adabe_interface::produce_adb(dep_list& with, string &body, string &previous)
     {
       inher = adabe_interface::narrow_from_decl(inherits()[i]);
       with.add(inher->get_ada_full_name() + ".Proxies");
+      body += "   --------------------------------------\n";
       body += "   -- inheritance from " + inher->get_ada_full_name() + "\n";
-      body += "   --------------------------------------------------\n";
+      body += "   --------------------------------------\n";
       {
 	UTL_ScopeActiveIterator j(inher,UTL_Scope::IK_decls);
 	while (!j.is_done())
