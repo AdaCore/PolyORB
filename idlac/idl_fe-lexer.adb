@@ -38,6 +38,8 @@ with GNAT.OS_Lib;
 
 with Idl_Fe.Debug;
 
+with Idl_Fe.Types; use Idl_Fe.Types;
+
 with Platform;
 
 package body Idl_Fe.Lexer is
@@ -48,6 +50,57 @@ package body Idl_Fe.Lexer is
 
    Flag : constant Natural := Idl_Fe.Debug.Is_Active ("idl_fe.lexer");
    procedure O is new Idl_Fe.Debug.Output (Flag);
+
+   subtype Idl_Token_Keyword is Idl_Token range T_Abstract .. T_Wstring;
+
+   All_Idl_Keywords : array (Idl_Token_Keyword) of String_Cacc :=
+     (T_Abstract    => new String'("abstract"),
+      T_Any         => new String'("any"),
+      T_Attribute   => new String'("attribute"),
+      T_Boolean     => new String'("boolean"),
+      T_Case        => new String'("case"),
+      T_Char        => new String'("char"),
+      T_Const       => new String'("const"),
+      T_Context     => new String'("context"),
+      T_Custom      => new String'("custom"),
+      T_Default     => new String'("default"),
+      T_Double      => new String'("double"),
+      T_Enum        => new String'("enum"),
+      T_Exception   => new String'("exception"),
+      T_Factory     => new String'("factory"),
+      T_False       => new String'("FALSE"),
+      T_Fixed       => new String'("fixed"),
+      T_Float       => new String'("float"),
+      T_In          => new String'("in"),
+      T_Inout       => new String'("inout"),
+      T_Interface   => new String'("interface"),
+      T_Long        => new String'("long"),
+      T_Module      => new String'("module"),
+      T_Native      => new String'("native"),
+      T_Object      => new String'("Object"),
+      T_Octet       => new String'("octet"),
+      T_Oneway      => new String'("oneway"),
+      T_Out         => new String'("out"),
+      T_Private     => new String'("private"),
+      T_Public      => new String'("public"),
+      T_Raises      => new String'("raises"),
+      T_Readonly    => new String'("readonly"),
+      T_Sequence    => new String'("sequence"),
+      T_Short       => new String'("short"),
+      T_String      => new String'("string"),
+      T_Struct      => new String'("struct"),
+      T_Supports    => new String'("supports"),
+      T_Switch      => new String'("switch"),
+      T_True        => new String'("TRUE"),
+      T_Truncatable => new String'("truncatable"),
+      T_Typedef     => new String'("typedef"),
+      T_Unsigned    => new String'("unsigned"),
+      T_Union       => new String'("union"),
+      T_ValueBase   => new String'("ValueBase"),
+      T_ValueType   => new String'("valuetype"),
+      T_Void        => new String'("void"),
+      T_Wchar       => new String'("wchar"),
+      T_Wstring     => new String'("wstring"));
 
    -----------------------------------
    --  A state for pragma scanning  --
@@ -430,10 +483,8 @@ package body Idl_Fe.Lexer is
                              Is_A_Keyword : out Idl_Keyword_State;
                              Tok : out Idl_Token) is
       Result : Ident_Equality;
-      Pos : Natural := 0;
    begin
       for I in All_Idl_Keywords'Range loop
-         Pos := Pos + 1;
          Result := Idl_Identifier_Equal (S, All_Idl_Keywords (I).all);
          case Result is
             when Differ =>
@@ -445,7 +496,7 @@ package body Idl_Fe.Lexer is
                   return;
                else
                   Is_A_Keyword := Idl_Keyword_State (Bad_Case);
-                  Tok := Idl_Token'Val (Pos);
+                  Tok := I;
                   return;
                end if;
             when Equal =>
@@ -455,7 +506,7 @@ package body Idl_Fe.Lexer is
                   return;
                else
                   Is_A_Keyword := Idl_Keyword_State (Is_Keyword);
-                  Tok := Idl_Token'Val (Pos);
+                  Tok := I;
                   return;
                end if;
          end case;
