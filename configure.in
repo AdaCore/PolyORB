@@ -210,7 +210,7 @@ AC_SUBST(EXTRA_LIBS)
 # Check if gnatmake -s is ok (smart recompilation)
 #
 AC_MSG_CHECKING(if gnatmake supports -s)
-if gnatmake -s -a -gnatg ada > /dev/null 2>&1; then
+if gnatmake -s -a -gnatg -gnatdj ada > /dev/null 2>&1; then
    GNATMAKE="gnatmake -s"
    AC_MSG_RESULT(yes)
 else
