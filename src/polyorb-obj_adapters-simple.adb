@@ -146,13 +146,13 @@ package body PolyORB.Obj_Adapters.Simple is
          New_Id : Integer := M'Last + 1;
       begin
          Map :
-         for I in M'Range loop
-            if M (I).Servant = null then
+         for J in M'Range loop
+            if M (J).Servant = null then
                Replace_Element
-                 (OA.Object_Map, 1 + I - M'First,
+                 (OA.Object_Map, 1 + J - M'First,
                   Object_Map_Entry'
                     (Servant => Obj, If_Desc => (null, null)));
-               New_Id := I;
+               New_Id := J;
                exit Map;
             end if;
          end loop Map;
@@ -209,12 +209,12 @@ package body PolyORB.Obj_Adapters.Simple is
       return Objects.Object_Id is
    begin
       raise Invalid_Object_Id;
+      --  An SOA object identifier cannot contain a user-defined
+      --  object key.
 
       pragma Warnings (Off);
       return Object_Key (OA, Id);
       pragma Warnings (On);
-      --  An SOA object identifier cannot contain a user-defined
-      --  object key.
    end Object_Key;
 
    -------------------------------
