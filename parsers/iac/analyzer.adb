@@ -1016,6 +1016,7 @@ package body Analyzer is
    procedure Analyze_Value_Box_Declaration (E : Node_Id) is
    begin
       Enter_Name_In_Scope (Identifier (E));
+      Analyze (Type_Spec (E));
    end Analyze_Value_Box_Declaration;
 
    -------------------------------

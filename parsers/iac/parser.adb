@@ -2617,6 +2617,7 @@ package body Parser is
       if Token = T_Abstract then
          Value_Abs := True;
          Scan_Token; --  past "valuetype"
+
       elsif Token = T_Custom then
          Scan_Token; --  past "valuetype"
       end if;

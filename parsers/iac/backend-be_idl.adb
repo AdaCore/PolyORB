@@ -227,7 +227,9 @@ package body Backend.BE_IDL is
 
    procedure Generate_Abstract_Value_Declaration (E : Node_Id) is
    begin
-      Dummy (E);
+      Write (T_Abstract);
+      Write_Space;
+      Generate_Value_Declaration (E);
    end Generate_Abstract_Value_Declaration;
 
    -----------------------------------
@@ -915,7 +917,11 @@ package body Backend.BE_IDL is
 
    procedure Generate_Value_Box_Declaration (E : Node_Id) is
    begin
-      Dummy (E);
+      Write (T_Value_Type);
+      Write_Space;
+      Generate (Identifier (E));
+      Write_Space;
+      Generate (Type_Spec (E));
    end Generate_Value_Box_Declaration;
 
    --------------------------------
@@ -950,6 +956,7 @@ package body Backend.BE_IDL is
       end if;
       L := Interface_Names (S);
       if not Is_Empty (L) then
+         Write_Space;
          Write (T_Supports);
          N := First_Entity (L);
          loop
