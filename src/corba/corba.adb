@@ -33,7 +33,7 @@
 
 with Ada.Tags;
 
-with Broca.Exceptions;
+with Droopi.CORBA_P.Exceptions;
 
 with Droopi.Locks;
 with Droopi.Log;
@@ -91,7 +91,7 @@ package body CORBA is
    procedure Get_Members
      (From : in Ada.Exceptions.Exception_Occurrence;
       To   : out System_Exception_Members)
-     renames Broca.Exceptions.Get_Members;
+     renames Droopi.CORBA_P.Exceptions.Get_Members;
 
 
    ----------------------
@@ -127,7 +127,7 @@ package body CORBA is
       To : out PolicyError_Members)
    is
    begin
-      Broca.Exceptions.User_Get_Members (From, To);
+      Droopi.CORBA_P.Exceptions.User_Get_Members (From, To);
    end Get_Members;
 
 
@@ -144,7 +144,7 @@ package body CORBA is
         (From : in Ada.Exceptions.Exception_Occurrence;
          To   : out Bounds_Members) is
       begin
-         Broca.Exceptions.User_Get_Members (From, To);
+         Droopi.CORBA_P.Exceptions.User_Get_Members (From, To);
       end Get_Members;
 
       ------------------
@@ -154,7 +154,7 @@ package body CORBA is
         (From : in Ada.Exceptions.Exception_Occurrence;
          To   : out BadKind_Members) is
       begin
-         Broca.Exceptions.User_Get_Members (From, To);
+         Droopi.CORBA_P.Exceptions.User_Get_Members (From, To);
       end Get_Members;
 
       -----------
@@ -410,8 +410,8 @@ package body CORBA is
                declare
                   Member : Bounds_Members;
                begin
-                  Broca.Exceptions.User_Raise_Exception (BadKind'Identity,
-                                                         Member);
+                  Droopi.CORBA_P.Exceptions.User_Raise_Exception
+                    (BadKind'Identity, Member);
                end;
          end case;
       end Id;
@@ -443,8 +443,8 @@ package body CORBA is
                declare
                   Member : BadKind_Members;
                begin
-                  Broca.Exceptions.User_Raise_Exception (BadKind'Identity,
-                                                         Member);
+                  Droopi.CORBA_P.Exceptions.User_Raise_Exception
+                    (BadKind'Identity, Member);
                end;
          end case;
       end Name;
@@ -473,8 +473,8 @@ package body CORBA is
                declare
                   Member : BadKind_Members;
                begin
-                  Broca.Exceptions.User_Raise_Exception (BadKind'Identity,
-                                                         Member);
+                  Droopi.CORBA_P.Exceptions.User_Raise_Exception
+                    (BadKind'Identity, Member);
                end;
          end case;
       end Member_Count;
@@ -496,29 +496,29 @@ package body CORBA is
             when Tk_Struct
               | Tk_Except =>
                if Param_Nb < 2 * Index + 4 then
-                  Broca.Exceptions.User_Raise_Exception (Bounds'Identity,
-                                                         Member);
+                  Droopi.CORBA_P.Exceptions.User_Raise_Exception
+                    (Bounds'Identity, Member);
                end if;
                Res := From_Any (Get_Parameter (Self, 2 * Index + 3));
                return Identifier (Res);
             when Tk_Union =>
                if Param_Nb < 3 * Index + 7 then
-                  Broca.Exceptions.User_Raise_Exception (Bounds'Identity,
-                                                         Member);
+                  Droopi.CORBA_P.Exceptions.User_Raise_Exception
+                    (Bounds'Identity, Member);
                end if;
                Res := From_Any (Get_Parameter (Self, 3 * Index + 6));
                return Identifier (Res);
             when Tk_Enum =>
                if Param_Nb < Index + 3 then
-                  Broca.Exceptions.User_Raise_Exception (Bounds'Identity,
-                                                         Member);
+                  Droopi.CORBA_P.Exceptions.User_Raise_Exception
+                    (Bounds'Identity, Member);
                end if;
                Res := From_Any (Get_Parameter (Self, Index + 2));
                return Identifier (Res);
             when Tk_Value =>
                if Param_Nb < 3 * Index + 7 then
-                  Broca.Exceptions.User_Raise_Exception (Bounds'Identity,
-                                                         Member);
+                  Droopi.CORBA_P.Exceptions.User_Raise_Exception
+                    (Bounds'Identity, Member);
                end if;
                Res := From_Any (Get_Parameter (Self, 3 * Index + 6));
                return Identifier (Res);
@@ -526,8 +526,8 @@ package body CORBA is
                declare
                   Member : BadKind_Members;
                begin
-                  Broca.Exceptions.User_Raise_Exception (BadKind'Identity,
-                                                         Member);
+                  Droopi.CORBA_P.Exceptions.User_Raise_Exception
+                    (BadKind'Identity, Member);
                end;
          end case;
       end Member_Name;
@@ -551,28 +551,28 @@ package body CORBA is
                pragma Debug (O ("member_type : dealing with a struct "
                                 & "or an exception"));
                if Param_Nb < 2 * Index + 4 then
-                  Broca.Exceptions.User_Raise_Exception (Bounds'Identity,
-                                                         Member);
+                  Droopi.CORBA_P.Exceptions.User_Raise_Exception
+                    (Bounds'Identity, Member);
                end if;
                return From_Any (Get_Parameter (Self, 2 * Index + 2));
             when Tk_Union =>
                if Param_Nb < 3 * Index + 7 then
-                  Broca.Exceptions.User_Raise_Exception (Bounds'Identity,
-                                                         Member);
+                  Droopi.CORBA_P.Exceptions.User_Raise_Exception
+                    (Bounds'Identity, Member);
                end if;
                return From_Any (Get_Parameter (Self, 3 * Index + 5));
             when Tk_Value =>
                if Param_Nb < 3 * Index + 7 then
-                  Broca.Exceptions.User_Raise_Exception (Bounds'Identity,
-                                                         Member);
+                  Droopi.CORBA_P.Exceptions.User_Raise_Exception
+                    (Bounds'Identity, Member);
                end if;
                return From_Any (Get_Parameter (Self, 3 * Index + 5));
             when others =>
                declare
                   Member : BadKind_Members;
                begin
-                  Broca.Exceptions.User_Raise_Exception (BadKind'Identity,
-                                                         Member);
+                  Droopi.CORBA_P.Exceptions.User_Raise_Exception
+                    (BadKind'Identity, Member);
                end;
          end case;
       end Member_Type;
@@ -592,16 +592,16 @@ package body CORBA is
          case Kind (Self) is
             when Tk_Union =>
                if Param_Nb < 3 * Index + 7 then
-                  Broca.Exceptions.User_Raise_Exception (Bounds'Identity,
-                                                         Member);
+                  Droopi.CORBA_P.Exceptions.User_Raise_Exception
+                    (Bounds'Identity, Member);
                end if;
                return From_Any (Get_Parameter (Self, 3 * Index + 4));
             when others =>
                declare
                   Member : BadKind_Members;
                begin
-                  Broca.Exceptions.User_Raise_Exception (BadKind'Identity,
-                                                         Member);
+                  Droopi.CORBA_P.Exceptions.User_Raise_Exception
+                    (BadKind'Identity, Member);
                end;
          end case;
       end Member_Label;
@@ -622,8 +622,8 @@ package body CORBA is
                declare
                   Member : BadKind_Members;
                begin
-                  Broca.Exceptions.User_Raise_Exception (BadKind'Identity,
-                                                         Member);
+                  Droopi.CORBA_P.Exceptions.User_Raise_Exception
+                    (BadKind'Identity, Member);
                end;
          end case;
       end Discriminator_Type;
@@ -644,8 +644,8 @@ package body CORBA is
                declare
                   Member : BadKind_Members;
                begin
-                  Broca.Exceptions.User_Raise_Exception (BadKind'Identity,
-                                                         Member);
+                  Droopi.CORBA_P.Exceptions.User_Raise_Exception
+                    (BadKind'Identity, Member);
                end;
          end case;
       end Default_Index;
@@ -667,8 +667,8 @@ package body CORBA is
                declare
                   Member : BadKind_Members;
                begin
-                  Broca.Exceptions.User_Raise_Exception (BadKind'Identity,
-                                                         Member);
+                  Droopi.CORBA_P.Exceptions.User_Raise_Exception
+                    (BadKind'Identity, Member);
                end;
          end case;
       end Length;
@@ -689,8 +689,8 @@ package body CORBA is
                declare
                   Member : BadKind_Members;
                begin
-                  Broca.Exceptions.User_Raise_Exception (BadKind'Identity,
-                                                         Member);
+                  Droopi.CORBA_P.Exceptions.User_Raise_Exception
+                    (BadKind'Identity, Member);
                end;
          end case;
       end Content_Type;
@@ -708,8 +708,8 @@ package body CORBA is
                declare
                   Member : BadKind_Members;
                begin
-                  Broca.Exceptions.User_Raise_Exception (BadKind'Identity,
-                                                         Member);
+                  Droopi.CORBA_P.Exceptions.User_Raise_Exception
+                    (BadKind'Identity, Member);
                end;
          end case;
       end Fixed_Digits;
@@ -727,8 +727,8 @@ package body CORBA is
                declare
                   Member : BadKind_Members;
                begin
-                  Broca.Exceptions.User_Raise_Exception (BadKind'Identity,
-                                                         Member);
+                  Droopi.CORBA_P.Exceptions.User_Raise_Exception
+                    (BadKind'Identity, Member);
                end;
          end case;
       end Fixed_Scale;
@@ -751,7 +751,7 @@ package body CORBA is
                   Res : Short;
                begin
                   if Param_Nb < 3 * Index + 7 then
-                     Broca.Exceptions.User_Raise_Exception
+                     Droopi.CORBA_P.Exceptions.User_Raise_Exception
                        (Bounds'Identity, Member);
                   end if;
                   Res := From_Any (Get_Parameter (Self, 3 * Index + 3));
@@ -761,8 +761,8 @@ package body CORBA is
                declare
                   Member : BadKind_Members;
                begin
-                  Broca.Exceptions.User_Raise_Exception (BadKind'Identity,
-                                                         Member);
+                  Droopi.CORBA_P.Exceptions.User_Raise_Exception
+                    (BadKind'Identity, Member);
                end;
          end case;
       end Member_Visibility;
@@ -785,8 +785,8 @@ package body CORBA is
                declare
                   Member : BadKind_Members;
                begin
-                  Broca.Exceptions.User_Raise_Exception (BadKind'Identity,
-                                                         Member);
+                  Droopi.CORBA_P.Exceptions.User_Raise_Exception
+                    (BadKind'Identity, Member);
                end;
          end case;
       end Type_Modifier;
@@ -804,8 +804,8 @@ package body CORBA is
                declare
                   Member : BadKind_Members;
                begin
-                  Broca.Exceptions.User_Raise_Exception (BadKind'Identity,
-                                                         Member);
+                  Droopi.CORBA_P.Exceptions.User_Raise_Exception
+                    (BadKind'Identity, Member);
                end;
          end case;
       end Concrete_Base_Type;
@@ -881,7 +881,7 @@ package body CORBA is
                begin
                   pragma Debug (O ("Member_Type_With_Label : "
                                    & "end with exception"));
-                  Broca.Exceptions.User_Raise_Exception
+                  Droopi.CORBA_P.Exceptions.User_Raise_Exception
                     (Bounds'Identity, Member);
                end;
             end if;
@@ -891,7 +891,7 @@ package body CORBA is
             begin
                pragma Debug (O ("Member_Type_With_Label : "
                                 & "end with exception"));
-               Broca.Exceptions.User_Raise_Exception
+               Droopi.CORBA_P.Exceptions.User_Raise_Exception
                  (BadKind'Identity, Member);
             end;
          end if;
@@ -935,8 +935,8 @@ package body CORBA is
             begin
                pragma Debug (O ("Member_Count_With_Label : end "
                                 & "with exception"));
-               Broca.Exceptions.User_Raise_Exception (BadKind'Identity,
-                                                      Member);
+               Droopi.CORBA_P.Exceptions.User_Raise_Exception
+                 (BadKind'Identity, Member);
             end;
          end if;
       end Member_Count_With_Label;
@@ -1294,7 +1294,7 @@ package body CORBA is
      (From : Ada.Exceptions.Exception_Occurrence;
       To   : out UnknownUserException_Members) is
    begin
-      Broca.Exceptions.User_Get_Members (From, To);
+      Droopi.CORBA_P.Exceptions.User_Get_Members (From, To);
    end Get_Members;
 
    -----------
@@ -1521,7 +1521,7 @@ package body CORBA is
             --  we should never be here, since the case statement uses the
             --  precise type of the anys, that is an unaliased type
             pragma Debug (O ("Equal (Any, Alias) : end with exception"));
-            Broca.Exceptions.Raise_Internal;
+            Droopi.CORBA_P.Exceptions.Raise_Internal;
          when Tk_Longlong =>
             declare
                L : Long_Long := From_Any (Left);
@@ -1988,7 +1988,7 @@ package body CORBA is
       use TypeCode;
    begin
       if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Octet then
-         Broca.Exceptions.Raise_Bad_TypeCode;
+         Droopi.CORBA_P.Exceptions.Raise_Bad_TypeCode;
       end if;
       Lock_W (Any_Value.Any_Lock);
       if Any_Value.The_Value.all /= Null_Content_Ptr then
@@ -2008,7 +2008,7 @@ package body CORBA is
       use TypeCode;
    begin
       if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Short then
-         Broca.Exceptions.Raise_Bad_TypeCode;
+         Droopi.CORBA_P.Exceptions.Raise_Bad_TypeCode;
       end if;
       Lock_W (Any_Value.Any_Lock);
       if Any_Value.The_Value.all /= Null_Content_Ptr then
@@ -2032,7 +2032,7 @@ package body CORBA is
       use TypeCode;
    begin
       if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Long then
-         Broca.Exceptions.Raise_Bad_TypeCode;
+         Droopi.CORBA_P.Exceptions.Raise_Bad_TypeCode;
       end if;
       Lock_W (Any_Value.Any_Lock);
       if Any_Value.The_Value.all /= Null_Content_Ptr then
@@ -2052,7 +2052,7 @@ package body CORBA is
       use TypeCode;
    begin
       if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Longlong then
-         Broca.Exceptions.Raise_Bad_TypeCode;
+         Droopi.CORBA_P.Exceptions.Raise_Bad_TypeCode;
       end if;
       Lock_W (Any_Value.Any_Lock);
       if Any_Value.The_Value.all /= Null_Content_Ptr then
@@ -2072,7 +2072,7 @@ package body CORBA is
       use TypeCode;
    begin
       if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Ushort then
-         Broca.Exceptions.Raise_Bad_TypeCode;
+         Droopi.CORBA_P.Exceptions.Raise_Bad_TypeCode;
       end if;
       Lock_W (Any_Value.Any_Lock);
       if Any_Value.The_Value.all /= Null_Content_Ptr then
@@ -2092,7 +2092,7 @@ package body CORBA is
       use TypeCode;
    begin
       if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Ulong then
-         Broca.Exceptions.Raise_Bad_TypeCode;
+         Droopi.CORBA_P.Exceptions.Raise_Bad_TypeCode;
       end if;
       Lock_W (Any_Value.Any_Lock);
       if Any_Value.The_Value.all /= Null_Content_Ptr then
@@ -2113,7 +2113,7 @@ package body CORBA is
    begin
       if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /=
         Tk_Ulonglong then
-         Broca.Exceptions.Raise_Bad_TypeCode;
+         Droopi.CORBA_P.Exceptions.Raise_Bad_TypeCode;
       end if;
       Lock_W (Any_Value.Any_Lock);
       if Any_Value.The_Value.all /= Null_Content_Ptr then
@@ -2134,7 +2134,7 @@ package body CORBA is
       use TypeCode;
    begin
       if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Boolean then
-         Broca.Exceptions.Raise_Bad_TypeCode;
+         Droopi.CORBA_P.Exceptions.Raise_Bad_TypeCode;
       end if;
       Lock_W (Any_Value.Any_Lock);
       if Any_Value.The_Value.all /= Null_Content_Ptr then
@@ -2154,7 +2154,7 @@ package body CORBA is
       use TypeCode;
    begin
       if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Char then
-         Broca.Exceptions.Raise_Bad_TypeCode;
+         Droopi.CORBA_P.Exceptions.Raise_Bad_TypeCode;
       end if;
       Lock_W (Any_Value.Any_Lock);
       if Any_Value.The_Value.all /= Null_Content_Ptr then
@@ -2174,7 +2174,7 @@ package body CORBA is
       use TypeCode;
    begin
       if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Widechar then
-         Broca.Exceptions.Raise_Bad_TypeCode;
+         Droopi.CORBA_P.Exceptions.Raise_Bad_TypeCode;
       end if;
       Lock_W (Any_Value.Any_Lock);
       if Any_Value.The_Value.all /= Null_Content_Ptr then
@@ -2194,7 +2194,7 @@ package body CORBA is
       use TypeCode;
    begin
       if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_String then
-         Broca.Exceptions.Raise_Bad_TypeCode;
+         Droopi.CORBA_P.Exceptions.Raise_Bad_TypeCode;
       end if;
       Lock_W (Any_Value.Any_Lock);
       if Any_Value.The_Value.all /= Null_Content_Ptr then
@@ -2214,7 +2214,7 @@ package body CORBA is
       use TypeCode;
    begin
       if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Wstring then
-         Broca.Exceptions.Raise_Bad_TypeCode;
+         Droopi.CORBA_P.Exceptions.Raise_Bad_TypeCode;
       end if;
       Lock_W (Any_Value.Any_Lock);
       if Any_Value.The_Value.all /= Null_Content_Ptr then
@@ -2234,7 +2234,7 @@ package body CORBA is
       use TypeCode;
    begin
       if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Float then
-         Broca.Exceptions.Raise_Bad_TypeCode;
+         Droopi.CORBA_P.Exceptions.Raise_Bad_TypeCode;
       end if;
       Lock_W (Any_Value.Any_Lock);
       if Any_Value.The_Value.all /= Null_Content_Ptr then
@@ -2254,7 +2254,7 @@ package body CORBA is
       use TypeCode;
    begin
       if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Double then
-         Broca.Exceptions.Raise_Bad_TypeCode;
+         Droopi.CORBA_P.Exceptions.Raise_Bad_TypeCode;
       end if;
       Lock_W (Any_Value.Any_Lock);
       if Any_Value.The_Value.all /= Null_Content_Ptr then
@@ -2275,7 +2275,7 @@ package body CORBA is
    begin
       if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /=
         Tk_Longdouble then
-         Broca.Exceptions.Raise_Bad_TypeCode;
+         Droopi.CORBA_P.Exceptions.Raise_Bad_TypeCode;
       end if;
       Lock_W (Any_Value.Any_Lock);
       if Any_Value.The_Value.all /= Null_Content_Ptr then
@@ -2295,7 +2295,7 @@ package body CORBA is
       use TypeCode;
    begin
       if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_TypeCode then
-         Broca.Exceptions.Raise_Bad_TypeCode;
+         Droopi.CORBA_P.Exceptions.Raise_Bad_TypeCode;
       end if;
       Lock_W (Any_Value.Any_Lock);
       if Any_Value.The_Value.all /= Null_Content_Ptr then
@@ -2315,7 +2315,7 @@ package body CORBA is
       use TypeCode;
    begin
       if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Any then
-         Broca.Exceptions.Raise_Bad_TypeCode;
+         Droopi.CORBA_P.Exceptions.Raise_Bad_TypeCode;
       end if;
       Lock_W (Any_Value.Any_Lock);
       if Any_Value.The_Value.all /= Null_Content_Ptr then
@@ -2341,7 +2341,7 @@ package body CORBA is
         and CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Array
         and CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Except
       then
-         Broca.Exceptions.Raise_Bad_TypeCode;
+         Droopi.CORBA_P.Exceptions.Raise_Bad_TypeCode;
       end if;
       pragma Debug (O ("Set_Any_Aggregate_Value : no exception raised"));
       Lock_W (Any_Value.Any_Lock);
@@ -2498,7 +2498,7 @@ package body CORBA is
       --  we should never be here since Any_Content_Ptr should
       --  never be the real type of a variable
       pragma Debug (O2 ("Duplicate (generic) : enter & end"));
-      Broca.Exceptions.Raise_Internal;
+      Droopi.CORBA_P.Exceptions.Raise_Internal;
       return null;
    end Duplicate;
 
@@ -2510,7 +2510,7 @@ package body CORBA is
       pragma Debug (O2 ("Deallocate (generic) : enter & end"));
       --  we should never be here since Any_Content_Ptr should
       --  never be the real type of a variable
-      Broca.Exceptions.Raise_Internal;
+      Droopi.CORBA_P.Exceptions.Raise_Internal;
    end Deallocate;
 
    ------------------

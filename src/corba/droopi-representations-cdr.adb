@@ -16,14 +16,14 @@ with Droopi.Opaque;  use Droopi.Opaque;
 with Droopi.Log;
 
 with CORBA;
-with Broca.Exceptions;
-with Broca.Exceptions.Stack;
+with Droopi.CORBA_P.Exceptions;
+with Droopi.CORBA_P.Exceptions.Stack;
 
 package body Droopi.Representations.CDR is
 
    use Droopi.Log;
-   use Broca.Exceptions;
-   use Broca.Exceptions.Stack;
+   use Droopi.CORBA_P.Exceptions;
+   use Droopi.CORBA_P.Exceptions.Stack;
 
    package L is new Droopi.Log.Facility_Log ("droopi.representations.cdr");
    procedure O (Message : in String; Level : Log_Level := Debug)
@@ -1385,7 +1385,7 @@ package body Droopi.Representations.CDR is
 
       if Character'Val (CORBA.Char'Pos (Unmarshall (Buffer)))
         /= ASCII.Nul then
-         Broca.Exceptions.Raise_Marshal;
+         Droopi.CORBA_P.Exceptions.Raise_Marshal;
       end if;
 
       pragma Debug (O ("Unmarshall (String): -> " & Equiv));
@@ -1674,7 +1674,7 @@ package body Droopi.Representations.CDR is
                pragma Debug
                  (O ("Unmarshall_To_Any : dealing with a sequence"));
                if Max_Nb > 0 and then Nb > Max_Nb then
-                  Broca.Exceptions.Raise_Marshal;
+                  Droopi.CORBA_P.Exceptions.Raise_Marshal;
                end if;
                Set_Any_Aggregate_Value (Result);
                pragma Debug (O ("Unmarshall_To_Any : aggregate value set"));
@@ -2255,7 +2255,7 @@ package body Droopi.Representations.CDR is
                  (Result, To_Any (Id));
             end;
          when others =>
-            Broca.Exceptions.Raise_Marshal;
+            Droopi.CORBA_P.Exceptions.Raise_Marshal;
       end case;
       pragma Debug (O ("Unmarshall (TypeCode) : end"));
       return Result;
@@ -2491,19 +2491,19 @@ package body Droopi.Representations.CDR is
 
       --  1. if Data is a valuetype, call the valuetype marshalling function
 --    if Data in CORBA.Value.Base'Class then
---       Broca.Value.Stream.Marshall (Buffer,
+--       Droopi.CORBA_P.Value.Stream.Marshall (Buffer,
 --                                    CORBA.Value.Base'Class (Data));
 
          --  2. check if Data is a nil ref, raise marshall if true
 --    elsif CORBA.AbstractBase.Is_Nil (Data) then
---       Broca.Exceptions.Raise_Marshal;
+--       Droopi.CORBA_P.Exceptions.Raise_Marshal;
 
          --  3. If Data is an abstract interface and the referenced object is
          --     a valuetype, then call the valuetype marshalling function.
          --  In practice, just check if the referenced object is a valuetype.
 --    elsif CORBA.AbstractBase.Object_Of (Data).all
 --   in CORBA.Value.Impl_Base'Class then
-         --  Broca.Value.Stream.Marshall (Buffer,
+         --  Droopi.CORBA_P.Value.Stream.Marshall (Buffer,
          --                             Data);
 --       null;
          --  Not implemented yet
@@ -2530,11 +2530,11 @@ package body Droopi.Representations.CDR is
 --   procedure Unmarshall
 --     (Buffer : access Buffer_Type;
 --      Data : in out CORBA.AbstractBase.Ref'Class) is
---      Obj : constant Broca.Object.Object_Ptr
---        := new Broca.Object.Object_Type (Local_Object => False);
+--      Obj : constant Droopi.CORBA_P.Object.Object_Ptr
+--        := new Droopi.CORBA_P.Object.Object_Type (Local_Object => False);
 --   begin
---      Broca.Object.Unmarshall
---        (Buffer, Broca.Object.Object_Type (Obj.all));
+--      Droopi.CORBA_P.Object.Unmarshall
+--        (Buffer, Droopi.CORBA_P.Object.Object_Type (Obj.all));
 --      CORBA.AbstractBase.Set (Data, CORBA.Impl.Object_Ptr (Obj));
 --   end Unmarshall;
 
@@ -2561,12 +2561,14 @@ package body Droopi.Representations.CDR is
    is
       Members : CORBA.System_Exception_Members;
    begin
-      Broca.Exceptions.Get_Members (Excpt, Members);
+      Droopi.CORBA_P.Exceptions.Get_Members (Excpt, Members);
       Marshall
-        (Buffer, CORBA.String (Broca.Exceptions.Occurrence_To_Name (Excpt)));
+        (Buffer, CORBA.String
+         (Droopi.CORBA_P.Exceptions.Occurrence_To_Name (Excpt)));
       Marshall (Buffer, Members.Minor);
       Marshall
-        (Buffer, Broca.Exceptions.To_Unsigned_Long (Members.Completed));
+        (Buffer, Droopi.CORBA_P.Exceptions.To_Unsigned_Long
+         (Members.Completed));
    end Marshall;
 
    procedure Unmarshall_And_Raise
@@ -2581,7 +2583,7 @@ package body Droopi.Representations.CDR is
 
    begin
       Repository := Unmarshall (Buffer);
-      Identity := Broca.Exceptions.Get_ExcepId_By_RepositoryId
+      Identity := Droopi.CORBA_P.Exceptions.Get_ExcepId_By_RepositoryId
         (CORBA.To_Standard_String (Repository));
 
       if Identity = Null_Id then
@@ -2596,11 +2598,11 @@ package body Droopi.Representations.CDR is
 
       --  Raise the exception
 
-      Broca.Exceptions.Stack.Raise_Exception
+      Droopi.CORBA_P.Exceptions.Stack.Raise_Exception
         (Identity,
          CORBA.System_Exception_Members'
          (Minor,
-          Broca.Exceptions.To_Completion_Status (Status)));
+          Droopi.CORBA_P.Exceptions.To_Completion_Status (Status)));
    end Unmarshall_And_Raise;
 
 
@@ -2793,7 +2795,7 @@ package body Droopi.Representations.CDR is
                and then O mod 16 /= CORBA.Octet (Fixed_Positive_Zero)
                and then O mod 16 /= CORBA.Octet (Fixed_Negative))
             then
-               Broca.Exceptions.Raise_Marshal;
+               Droopi.CORBA_P.Exceptions.Raise_Marshal;
             end if;
 
             Result := Result * 10 + F (O / 16) * F'Delta;

@@ -1,4 +1,4 @@
---  $Id: //droopi/main/src/corba/broca-exceptions-stack.adb#4 $
+--  $Id: //droopi/main/src/corba/droopi-corba_p-exceptions-stack.adb#1 $
 
 with Ada.Unchecked_Deallocation;
 
@@ -7,7 +7,7 @@ pragma Elaborate_All (Droopi.Log);
 
 with Droopi.Soft_Links;
 
-package body Broca.Exceptions.Stack is
+package body Droopi.CORBA_P.Exceptions.Stack is
 
    use Droopi.Log;
    use Droopi.Soft_Links;
@@ -151,7 +151,7 @@ package body Broca.Exceptions.Stack is
          --  Too many exceptions were raised and this member is no
          --  longer available.
 
-         Broca.Exceptions.Raise_Imp_Limit;
+         Droopi.CORBA_P.Exceptions.Raise_Imp_Limit;
       end if;
 
       --  Remove member from list.
@@ -326,4 +326,4 @@ package body Broca.Exceptions.Stack is
       return V;
    end Value;
 
-end Broca.Exceptions.Stack;
+end Droopi.CORBA_P.Exceptions.Stack;

@@ -44,7 +44,7 @@
 with Ada.Exceptions;
 with CORBA; use CORBA;
 
-package Broca.Exceptions is
+package Droopi.CORBA_P.Exceptions is
 
    -----------------------------------------
    --  Declarations for user exceptions.  --
@@ -168,7 +168,7 @@ package Broca.Exceptions is
       Status : Completion_Status := Completed_No);
    pragma No_Return (Raise_Bad_TypeCode);
 
-end Broca.Exceptions;
+end Droopi.CORBA_P.Exceptions;
 
 
 
