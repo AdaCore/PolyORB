@@ -30,6 +30,11 @@
 * PolyORB 1.3 (not released yet)
 ================================
 
+New features
+------------
+
+idlac now supports typeid declarations. (9212)
+
 Incompatible changes
 --------------------
 

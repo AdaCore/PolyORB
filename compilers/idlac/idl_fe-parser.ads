@@ -175,7 +175,7 @@ private
    --               |   <interface> ";"
    --               |   <module> ";"
    --               |   <value> ";"
-   --               |   <type_id_dcl> ";"      -- not implemented
+   --               |   <type_id_dcl> ";"
    --               |   <type_prefix_dcl> ";"
    --               |   <event> ";"            -- not implemented
    --               |   <component> ";"        -- not implemented
@@ -908,7 +908,7 @@ private
 
    --  Rule 102
    --  <type_id_dcl> ::= "typeid" <scoped_name> <string_literal>
-   --  Not implemented
+   procedure Parse_Type_Id_Dcl (Success : out Boolean);
 
    --  Rule 103
    --  <type_prefix_dcl> ::= "typeprefix" <scoped_name> <string_literal>
