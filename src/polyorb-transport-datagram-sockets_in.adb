@@ -2,13 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---           P O L Y O R B . T R A N S P O R T . D A T A G R A M            --
---                                                                          --
---                            S O C K E T S _ I N                           --
+--                  POLYORB.TRANSPORT.DATAGRAM.SOCKETS_IN                   --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--            Copyright (C) 2003 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,6 +32,8 @@
 ------------------------------------------------------------------------------
 
 --  Datagram Socket Access Point and End Point to recieve data from network
+
+--  $Id$
 
 with PolyORB.Asynch_Ev.Sockets;
 with PolyORB.Log;

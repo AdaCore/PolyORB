@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--            Copyright (C) 2003 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,7 +31,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Abstract connected transport service access points and transport endpoints.
+--  Abstract connected transport service access points and transport
+--  endpoints.
+
+--  $Id$
 
 with Ada.Exceptions;
 
@@ -77,7 +80,7 @@ package body PolyORB.Transport.Connected is
       Register_Endpoint (ORB_Access (H.ORB),
                          New_TE,
                          New_Filter, Server);
-      --  Register end poitn to ORB
+      --  Register end point to ORB
 
       Emit_No_Reply
         (H.ORB,

@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---          P O L Y O R B . T R A N S P O R T . D A T A G R A M             --
+--           P O L Y O R B . T R A N S P O R T . D A T A G R A M            --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--            Copyright (C) 2003 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,6 +30,8 @@
 --                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+--  $Id$
 
 with Ada.Exceptions;
 
@@ -74,7 +76,7 @@ package body PolyORB.Transport.Datagram is
       use PolyORB.ORB.Interface;
       use PolyORB.Filters;
 
-      --  Create associted Endpoint
+      --  Create associated Endpoint
       New_TE : constant Transport_Endpoint_Access
         := Transport_Endpoint_Access
         (Create_Endpoint (Datagram_Transport_Access_Point_Access (H.TAP)));
