@@ -1,4 +1,22 @@
 #!/bin/sh
+
+# gen_http_body
+# $Id$
+
+# Generate a perfect hash function in an Ada body from a specially
+# formatted Ada spec that defines an enumerated type and a list
+# of corresponding strings.
+
+usage() {
+	echo "Usage: $0 <path-to-gnatprfh> <src-dir> <unit-name>"
+	exit 1
+}
+
+if [ $# != 3 ]
+then
+	usage
+fi
+
 GNATPRFH=$1
 SRCDIR=$2
 NAME=$3
@@ -15,7 +33,9 @@ BEGIN{FS="\"";enum=0}
 /--  >>/{if (enum == 1) {print $2}}
 ' ${SPEC} | ${GNATPRFH} -
 
+rm -f ${BODY}
 cat >${BODY} <<EOF
+--  THIS IS A GENERATED FILE, DO NOT EDIT!
 with Interfaces; use Interfaces;
 
 with PolyORB.Initialization;
@@ -28,6 +48,7 @@ package body ${UNIT} is
    Table : array (${NAME}) of String_Access;
 
    function Hash (S : String) return Natural;
+   pragma Inline (Hash);
 
    procedure Initialize;
 
@@ -89,3 +110,4 @@ begin
        Init => Initialize'Access));
 end ${UNIT};
 EOF
+chmod -w ${BODY}

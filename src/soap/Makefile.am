@@ -7,7 +7,6 @@ alidir = $(libdir)/polyorb-soap
 GPERF_SPECS = \
 	polyorb-http_headers.ads \
 	polyorb-http_methods.ads
-
 GPERF_BODY = $(GPERF_SPECS:.ads=.adb)
 
 ADA_SPECS_WITH_BODY = \
@@ -59,10 +58,10 @@ GEN_HTTP_BODY = $(srcdir)/gen_http_body
 
 SUFFIXES = .adb .ads .lo .ali .c
 
-polyorb-http_methods.adb: $(srcdir)/$(GEN_HTTP_BODY) polyorb-http_methods.ads
+polyorb-http_methods.adb: $(srcdir)/$(GEN_HTTP_BODY) $(srcdir)/polyorb-http_methods.ads
 	$(srcdir)/$(GEN_HTTP_BODY) $(GNATPRFH) $(srcdir) Method
 
-polyorb-http_headers.adb: $(srcdir)/$(GEN_HTTP_BODY) polyorb-http_headers.ads
+polyorb-http_headers.adb: $(srcdir)/$(GEN_HTTP_BODY) $(srcdir)/polyorb-http_headers.ads
 	$(srcdir)/$(GEN_HTTP_BODY) $(GNATPRFH) $(srcdir) Header
 
 .adb.lo:
