@@ -18,7 +18,6 @@ if test "x$1" != x; then
 else
   #gnat_version=`sed -n -e '/Gnat_Vers/s/[^"]*"\([^" ]*\).*/\1/p' ada/gnatvsn.ads`
   adabroker_version=`cat VERSION`
-  exit 1
 fi
 
 #
