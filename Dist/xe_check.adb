@@ -29,6 +29,7 @@
 with ALI;              use ALI;
 with ALI.Util;         use ALI.Util;
 with Fname;            use Fname;
+with Fname.UF;
 with GNAT.OS_Lib;      use GNAT.OS_Lib;
 with Make;             use Make;
 with Namet;            use Namet;
@@ -596,7 +597,7 @@ package body XE_Check is
 
       --  Any withed unit has to be checked
       for W in Units.Table (R).First_With .. Units.Table (R).Last_With loop
-         Source := Get_File_Name (Withs.Table (W).Uname, Subunit => False);
+         Source := UF.Get_File_Name (Withs.Table (W).Uname, Subunit => False);
          Push (Withs.Table (W).Uname, False);
       end loop;
 
