@@ -667,13 +667,14 @@ package body XE_Back is
    function Get_Parent (N : Name_Id) return Name_Id is
    begin
       Get_Name_String (N);
-      for Index in 1 .. Name_Len loop
+      pragma Assert (Name_Len > 0 and then Name_Buffer (1) /= '.');
+      for Index in reverse 1 .. Name_Len loop
          if Name_Buffer (Index) = '.' then
             Name_Len := Index - 1;
             return Name_Find;
          end if;
       end loop;
-      return N;
+      return No_Name;
    end Get_Parent;
 
    -----------------------

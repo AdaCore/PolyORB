@@ -1,3 +1,12 @@
+1997-11-17  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* xe_check.adb: Search through unit U hierarchy to find a RCI
+ 	parent and check whether this unit is configured on its child
+ 	partition. Fix 4814-G01.
+
+	* xe_back.adb: Change Get_Parent to return No_Name when there is
+	no parent.
+
 Thu Oct 30 15:52:37 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* xe_check.adb: Pass the value of -jN flag to Compile_Sources.

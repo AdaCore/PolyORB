@@ -57,14 +57,14 @@ package body XE_Check is
 
       --  Once this procedure called, we have the following properties:
       --
-      --  * Key of CUnit.Table (U).CUname corresponds to its ALI_Id ie ali
+      --  * Info of CUnit.Table (U).CUname corresponds to its ALI_Id ie ali
       --  index corresponding to ada unit CUnit.Table (U).CUname.
       --
-      --  * Key of Unit.Table (U).Uname corresponds to its CUID_Id ie
+      --  * Info of Unit.Table (U).Uname corresponds to its CUID_Id ie
       --  mapped unit index corresponding to ada unit Unit.Table (U).Uname
       --  if this unit has been mapped.
       --
-      --  * Key of Partitions.Table (P).Name corresponds to its PID.
+      --  * Info of Partitions.Table (P).Name corresponds to its PID.
 
       Inconsistent : Boolean := False;
       PID  : PID_Type;
@@ -280,7 +280,6 @@ package body XE_Check is
       end if;
 
       for U in Unit.First .. Unit.Last loop
-         --  and then not Unit.Table (U).Is_Generic
          if Unit.Table (U).RCI
            and then not Unit.Table (U).Is_Generic
            and then Get_CUID (Unit.Table (U).Uname) = Null_CUID
@@ -303,30 +302,35 @@ package body XE_Check is
          Child  : Name_Id;
          PPID   : PID_Type;
          CPID   : PID_Type;
+         CUID   : CUID_Type;
 
       begin
          for U in CUnit.First .. CUnit.Last loop
 
-            --  First, this check applies to a RCI package
+            --  This check applies to a RCI package.
             if Unit.Table (CUnit.Table (U).My_Unit).RCI then
-               Child  := CUnit.Table (U).CUname;
-               Parent := Get_Parent (Child);
+               Child := CUnit.Table (U).CUname;
+               CPID  := CUnit.Table (U).Partition;
 
-               --  Second, this ckeck applies to a child.
-               if Parent /= Child then
-                  PPID :=
-                    CUnit.Table (Get_CUID (Parent & Spec_Suffix)).Partition;
-                  CPID :=
-                    CUnit.Table (U).Partition;
+               loop
+                  Parent := Get_Parent (Child);
+                  exit when Parent = No_Name;
 
-                  --  Then the child has to be on its parent partition.
-                  if PPID /= CPID then
-                     Message ("""", Parent, """ and """, Child,
-                              """ are not on the same partition");
-                     Inconsistent := True;
+                  CUID := Get_CUID (Parent & Spec_Suffix);
+                  if CUID /= Null_CUID then
+
+                     --  The child has to be on its parent partition.
+                     PPID := CUnit.Table (CUID).Partition;
+                     if PPID /= CPID then
+                        Message ("""", Parent, """ and """, Child,
+                                 """ are not on the same partition");
+                        Inconsistent := True;
+                     end if;
+
                   end if;
 
-               end if;
+                  Child := Parent;
+               end loop;
 
             end if;
          end loop;
