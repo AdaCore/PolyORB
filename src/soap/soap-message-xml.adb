@@ -84,7 +84,8 @@ package body SOAP.Message.XML is
    Start_Fault_Env : constant String := "<SOAP-ENV:Fault>";
 
    type Array_State is
-     (Void, A_Undefined, A_Int, A_Short, A_Float, A_String,
+     (Void, A_Undefined, A_Int, A_Short, A_UInt, A_UShort,
+      A_Float, A_String,
       A_Boolean, A_Time_Instant, A_Base64);
 
    type State is record
@@ -103,8 +104,11 @@ package body SOAP.Message.XML is
 
    function Parse_Int       (N : in DOM.Core.Node)
      return PolyORB.Any.NamedValue;
-
    function Parse_Short     (N : in DOM.Core.Node)
+     return PolyORB.Any.NamedValue;
+   function Parse_UInt      (N : in DOM.Core.Node)
+     return PolyORB.Any.NamedValue;
+   function Parse_UShort    (N : in DOM.Core.Node)
      return PolyORB.Any.NamedValue;
 
    function Parse_Float     (N : in DOM.Core.Node)
@@ -470,6 +474,30 @@ package body SOAP.Message.XML is
          Arg_Modes => ARG_IN);
    end Parse_Short;
 
+   function Parse_UInt (N : in DOM.Core.Node) return PolyORB.Any.NamedValue is
+      Name  : constant PolyORB.Types.Identifier
+        := To_PolyORB_String (Local_Name (N));
+      Value : constant DOM.Core.Node := First_Child (N);
+   begin
+      return NamedValue'
+        (Name => Name,
+         Argument => To_Any (Unsigned_Long'Value (Node_Value (Value))),
+         Arg_Modes => ARG_IN);
+   end Parse_UInt;
+
+   function Parse_UShort (N : in DOM.Core.Node)
+     return PolyORB.Any.NamedValue is
+      Name  : constant PolyORB.Types.Identifier
+        := To_PolyORB_String (Local_Name (N));
+      Value : constant DOM.Core.Node := First_Child (N);
+   begin
+      return NamedValue'
+        (Name => Name,
+         Argument =>
+           To_Any (Unsigned_Short'Value (Node_Value (Value))),
+         Arg_Modes => ARG_IN);
+   end Parse_UShort;
+
    -----------------
    -- Parse_Param --
    -----------------
@@ -499,9 +527,13 @@ package body SOAP.Message.XML is
             case S.A_State is
                when A_Int =>
                   return Parse_Int (N);
-
                when A_Short =>
                   return Parse_Short (N);
+
+               when A_UInt =>
+                  return Parse_UInt (N);
+               when A_UShort =>
+                  return Parse_UShort (N);
 
                when A_Float =>
                   return Parse_Float (N);
@@ -545,9 +577,13 @@ package body SOAP.Message.XML is
                         begin
                            if xsd = Types.XML_Int then
                               return Parse_Int (N);
-
                            elsif xsd = Types.XML_Short then
                               return Parse_Short (N);
+
+                           elsif xsd = Types.XML_UInt then
+                              return Parse_UInt (N);
+                           elsif xsd = Types.XML_UShort then
+                              return Parse_UShort (N);
 
                            elsif xsd = Types.XML_Float then
                               return Parse_Float (N);

@@ -77,8 +77,23 @@ package SOAP.Types is
    -- Integer --
    -------------
 
+   XML_Long : constant String := "xsd:long";
+   --  -9_223_372_036_854_775_808 .. 9_223_372_036_854_775_807
+
+   XML_ULong : constant String := "xsd:unsignedLong";
+   --  0 .. 18_446_744_073_709_551_615
+
    XML_Int : constant String := "xsd:int";
+   --  -2_147_483_648 .. 2_147_483_647
+
+   XML_UInt : constant String := "xsd:unsignedInt";
+   --  0 .. 4_294_967_295
+
    XML_Short : constant String := "xsd:short";
+   --  -32_768 .. 32_767
+
+   XML_UShort : constant String := "xsd:unsignedShort";
+   --  0 .. 65535
 
 --    type XSD_Integer is new Scalar with private;
 

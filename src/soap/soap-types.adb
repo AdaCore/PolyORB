@@ -160,14 +160,16 @@ package body SOAP.Types is
    function Get (O : in NamedValue) return Integer is
    begin
       case TCK (O.Argument) is
-         when Tk_Long =>
-            return Integer (Long'(From_Any (O.Argument)));
          when Tk_Short =>
             return Integer (Short'(From_Any (O.Argument)));
-         when Tk_Ulong =>
-            return Integer (Unsigned_Long'(From_Any (O.Argument)));
+         when Tk_Long =>
+            return Integer (Long'(From_Any (O.Argument)));
+
          when Tk_Ushort =>
             return Integer (Unsigned_Short'(From_Any (O.Argument)));
+         when Tk_Ulong =>
+            return Integer (Unsigned_Long'(From_Any (O.Argument)));
+
          when others =>
             Exceptions.Raise_Exception
               (Data_Error'Identity,
@@ -595,13 +597,20 @@ package body SOAP.Types is
    -- XML_Type --
    --------------
 
-   function XML_Type (O : in NamedValue) return String is
+   function XML_Type (O : in NamedValue) return String
+   is
+      K : constant TCKind := TCK (O.Argument);
    begin
-      case TCK (O.Argument) is
+      case K is
          when Tk_Long =>
             return XML_Int;
          when Tk_Short =>
             return XML_Short;
+         when Tk_Ulong =>
+            return XML_UInt;
+         when Tk_Ushort =>
+            return XML_UShort;
+
          when Tk_Double =>
             return XML_Double;
          when Tk_String =>
