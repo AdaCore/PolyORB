@@ -180,8 +180,9 @@ package body CosEventChannelAdmin.EventChannel.Impl is
       Servant_To_Reference (Servant (Self.X.Consumer), R);
       if Self.X.Engine = null then
          Self.X.Engine := new Priority_Queue_Engine;
+            Self.X.Engine.Connect (Self.X.This);
       end if;
-      Self.X.Engine.Connect (Self.X.This);
+
       return R;
    end For_Consumers;
 
