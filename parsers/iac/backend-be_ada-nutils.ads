@@ -42,10 +42,9 @@ package Backend.BE_Ada.Nutils is
    procedure Set_Parameter_Mode (E : Node_Id; M : Mode_Type);
 
    function Make_Ada_Parameter
-     (N : Node_Id; T : Node_Id; M : Mode_Id := 0) return Node_Id;
+     (N : Node_Id; T : Node_Id; M : Mode_Id := Mode_In) return Node_Id;
    --  Return a node representing : <N> : <M> <T> where N is a
-   --  parameter name, M a parameter mode and T a parameter type. When
-   --  M = 0 then use default Ada mode that is "in" mode.
+   --  parameter name, M a parameter mode and T a parameter type.
 
    function Make_Ada_Identifier (N : Name_Id) return Node_Id;
    function Make_Ada_Identifier (S : String) return Node_Id;

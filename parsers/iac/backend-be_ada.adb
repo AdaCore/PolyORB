@@ -2,7 +2,6 @@ with GNAT.Command_Line; use GNAT.Command_Line;
 
 with Charset;   use Charset;
 with Errors;    use Errors;
-with Lexer;     use Lexer;
 with Locations; use Locations;
 with Namet;     use Namet;
 with Output;    use Output;
@@ -621,7 +620,7 @@ package body Backend.BE_Ada is
       --   Argument Type
       Param_Type := Make_Ada_Identifier ("Ref");
       --   Argument Mode
-      Param_Mode := Mode_Id (Lexer.Token_Type'Pos (Lexer.T_In));
+      Param_Mode := Mode_In;
       Ada_Argument := Make_Ada_Parameter (Param_Id, Param_Type, Param_Mode);
       --   Argument List
       Append_Node_To_List (Ada_Argument, Ada_Argument_List);
@@ -637,9 +636,7 @@ package body Backend.BE_Ada is
               Make_Ada_Parameter (Param_Id, Param_Type, Param_Mode);
             Append_Node_To_List (Ada_Argument, Ada_Argument_List);
             N := Next_Entity (N);
-            if Is_Oneway (E) and
-              Param_Mode /= Mode_Id (Lexer.Token_Type'Pos (Lexer.T_In))
-            then
+            if Is_Oneway (E) and then Param_Mode /= Mode_In then
                raise Fatal_Error; --  Validity check of the IDL Tree.
             end if;
          end loop;

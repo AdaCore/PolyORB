@@ -186,8 +186,8 @@ package body Frontend.Debug is
          Write_Line (V);
       end if;
 
-      if A /= "Node"
-        and then A /= "Scope"
+      if A /= "Corresponding_Entity"
+        and then A /= "Scope_Entity"
         and then A /= "Potential_Scope"
         and then A /= "Reference"
         and then A /= "Base_Interface"

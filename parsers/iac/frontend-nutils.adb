@@ -301,7 +301,7 @@ package body Frontend.Nutils is
      (Loc      : Location;
       IDL_Name : Name_Id;
       Node     : Node_Id;
-      Scope    : Node_Id)
+      Scope_Entity    : Node_Id)
      return Node_Id
    is
       N : constant Node_Id := New_Node (K_Identifier, Loc);
@@ -309,8 +309,8 @@ package body Frontend.Nutils is
       Set_Name                 (N, To_Lower (IDL_Name));
       Set_IDL_Name             (N, IDL_Name);
       Set_Corresponding_Entity (N, Node);
-      Set_Scope                (N, Scope);
-      Set_Potential_Scope      (N, Scope);
+      Set_Scope_Entity                (N, Scope_Entity);
+      Set_Potential_Scope      (N, Scope_Entity);
       return N;
    end Make_Identifier;
 
@@ -401,11 +401,9 @@ package body Frontend.Nutils is
    -- Parameter_Mode --
    --------------------
 
-   function Parameter_Mode (E : Node_Id) return Mode_Type is
-      M : Mode_Id;
+   function Parameter_Mode (T : Token_Type) return Mode_Id is
    begin
-      M := Nodes.Parameter_Mode (E);
-      return Mode_Type'Val (M);
+      return Token_Type'Pos (T) - Token_Type'Pos (T_In);
    end Parameter_Mode;
 
    ---------------------------
@@ -445,16 +443,5 @@ package body Frontend.Nutils is
       B := Operator_Type'Pos (O);
       Set_Operator (E, Operator_Id (B));
    end Set_Operator;
-
-   ------------------------
-   -- Set_Parameter_Mode --
-   ------------------------
-
-   procedure Set_Parameter_Mode (E : Node_Id; M : Mode_Type) is
-      B : Byte;
-   begin
-      B := Mode_Type'Pos (M);
-      Nodes.Set_Parameter_Mode (E, Mode_Id (B));
-   end Set_Parameter_Mode;
 
 end Frontend.Nutils;

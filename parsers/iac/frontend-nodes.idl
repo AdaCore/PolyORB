@@ -44,7 +44,7 @@ module Frontend::Nodes {
     Name_Id    IDL_Name;
     Node_Id    Homonym;
     Node_Id    Corresponding_Entity;
-    Node_Id    Scope;
+    Node_Id    Scope_Entity;
     Node_Id    Potential_Scope;
     boolean    Explicitely_Visible;
     boolean    Implicitely_Visible;

@@ -1723,7 +1723,7 @@ package body Parser is
       Param_Declaration : Node_Id;
       Param_Declarator  : Node_Id;
       Param_Type_Spec   : Node_Id;
-      Param_Mode        : Token_Type;
+      Param_Mode        : Mode_Id;
       Param_Location    : Location;
 
    begin
@@ -1732,7 +1732,7 @@ package body Parser is
       if Token = T_Error then
          return No_Node;
       end if;
-      Param_Mode := Token;
+      Param_Mode := Parameter_Mode (Token);
 
       Param_Type_Spec := P_Simple_Type_Spec;
       if not Is_Param_Type_Spec (Param_Type_Spec) then

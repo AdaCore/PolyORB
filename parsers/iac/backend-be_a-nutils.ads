@@ -1,4 +1,3 @@
-with Lexer;     use Lexer;
 with Types;     use Types;
 
 with Backend.BE_A.Nodes; use Backend.BE_A.Nodes;
@@ -18,6 +17,10 @@ package Backend.BE_A.Nutils is
    procedure Declare_CORBA_Type (K : FEN.Node_Kind; S : String := "");
    --  Declare CORBA type as predefined Ada type.
 
+   function Copy_Node
+     (N : Node_Id)
+     return Node_Id;
+
    function New_Node
      (Kind : Node_Kind;
       From : Node_Id := No_Node)
@@ -30,9 +33,6 @@ package Backend.BE_A.Nutils is
    procedure Remove_Node_From_List (E : Node_Id; L : List_Id);
    --  Remove node N to list L.
 
-   function Parameter_Mode (E : Node_Id) return Mode_Type;
-   procedure Set_Parameter_Mode (E : Node_Id; M : Mode_Type);
-
    function Is_Empty (L : List_Id) return Boolean;
    pragma Inline (Is_Empty);
    --  Return true when L is empty
@@ -43,19 +43,12 @@ package Backend.BE_A.Nutils is
    procedure Set_Main_Body (N : Node_Id := No_Node);
    procedure Set_Main_Spec (N : Node_Id := No_Node);
 
-   function Make_Parameter_Specification
-     (Defining_Identifier : Node_Id;
-      Subtype_Mark        : Node_Id;
-      Parameter_Mode      : Mode_Id := 0)
-      return                Node_Id;
-
-   function Make_Subprogram_Specification
-     (Defining_Identifier : Node_Id;
-      Parameter_Profile   : List_Id;
-      Return_Type         : Node_Id := No_Node)
-     return Node_Id;
-
    function To_Ada_Name (N : Name_Id) return Name_Id;
+
+   function Make_Component_Declaration
+     (Defining_Identifier : Node_Id;
+      Subtype_Indication  : Node_Id)
+     return Node_Id;
 
    function Make_Defining_Identifier
      (Entity : Node_Id)
@@ -65,8 +58,18 @@ package Backend.BE_A.Nutils is
      (Name : Name_Id)
      return  Node_Id;
 
+   function Make_Derived_Type_Definition
+     (Subtype_Indication    : Node_Id;
+      Record_Extension_Part : Node_Id;
+      Is_Abstract_Type      : Boolean := False)
+     return Node_Id;
+
    function Make_Designator
      (Entity : Node_Id)
+     return Node_Id;
+
+   function Make_Enumeration_Type_Definition
+     (Enumeration_Literals : List_Id)
      return Node_Id;
 
    function Make_Full_Type_Declaration
@@ -74,25 +77,31 @@ package Backend.BE_A.Nutils is
       Type_Definition     : Node_Id)
      return Node_Id;
 
-   function Make_Enumeration_Type_Definition
-     (Enumeration_Literals : List_Id)
-     return Node_Id;
+   function Make_Fully_Qualified_Identifier
+     (Entity : Node_Id)
+      return Node_Id;
 
-   function Make_Derived_Type_Definition
-     (Is_Abstract_Type      : Boolean := False;
-      Subtype_Indication    : Node_Id;
-      Record_Extension_Part : Node_Id)
-     return Node_Id;
-
-   function Make_Record_Type_Definition
-     (Is_Abstract_Type  : Boolean := False;
-      Is_Tagged_Type    : Boolean := False;
-      Is_Limited_Type   : Boolean := False;
-      Record_Definition : Node_Id)
-     return Node_Id;
+   function Make_Parameter_Specification
+     (Defining_Identifier : Node_Id;
+      Subtype_Mark        : Node_Id;
+      Parameter_Mode      : Mode_Id := Mode_In)
+      return                Node_Id;
 
    function Make_Record_Definition
      (Component_List : List_Id)
+     return Node_Id;
+
+   function Make_Record_Type_Definition
+     (Record_Definition : Node_Id;
+      Is_Abstract_Type  : Boolean := False;
+      Is_Tagged_Type    : Boolean := False;
+      Is_Limited_Type   : Boolean := False)
+     return Node_Id;
+
+   function Make_Subprogram_Specification
+     (Defining_Identifier : Node_Id;
+      Parameter_Profile   : List_Id;
+      Return_Type         : Node_Id := No_Node)
      return Node_Id;
 
 end Backend.BE_A.Nutils;

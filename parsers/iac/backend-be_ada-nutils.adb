@@ -1,4 +1,3 @@
-with Lexer;     use Lexer;
 with Locations; use Locations;
 with Namet;     use Namet;
 
@@ -83,18 +82,14 @@ package body Backend.BE_Ada.Nutils is
    ------------------------
 
    function Make_Ada_Parameter
-     (N : Node_Id; T : Node_Id; M : Mode_Id := 0) return Node_Id
+     (N : Node_Id; T : Node_Id; M : Mode_Id := Mode_In) return Node_Id
    is
       P : Node_Id;
    begin
       P := New_Node (K_Ada_Parameter, No_Location);
       Set_Identifier (P, N);
       Set_Type_Spec  (P, T);
-      if M = 0 then
-         Set_Parameter_Mode (P, Token_Type'Pos (T_In));
-      else
-         Set_Parameter_Mode (P, M);
-      end if;
+      Set_Parameter_Mode (P, M);
       return P;
    end Make_Ada_Parameter;
 
@@ -321,7 +316,7 @@ package body Backend.BE_Ada.Nutils is
       M : Mode_Id;
    begin
       M := Nodes.Parameter_Mode (E);
-      return Mode_Type'Val (M);
+      return Mode_Type'Val (M + Mode_Type'Pos (T_In));
    end Parameter_Mode;
 
    ------------------

@@ -3,7 +3,6 @@ with Backend.BE_A.Nodes;  use Backend.BE_A.Nodes;
 with Backend.BE_A.Nutils; use Backend.BE_A.Nutils;
 
 with Errors; use Errors;
-with Lexer;  use Lexer;
 with Namet;  use Namet;
 with Output; use Output;
 with Types;  use Types;
@@ -13,6 +12,7 @@ package body Backend.BE_A.Generator is
    procedure Generate_Component_Declaration (N : Node_Id);
    procedure Generate_Defining_Identifier (E : Node_Id);
    procedure Generate_Derived_Type_Definition (N : Node_Id);
+   procedure Generate_Designator (N : Node_Id);
    procedure Generate_Enumeration_Type (E : Node_Id);
    procedure Generate_Enumeration_Type_Definition (N : Node_Id);
    procedure Generate_Full_Type_Declaration (N : Node_Id);
@@ -20,12 +20,13 @@ package body Backend.BE_A.Generator is
    procedure Generate_Package_Declaration (N : Node_Id);
    procedure Generate_Package_Implementation (N : Node_Id);
    procedure Generate_Package_Specification (N : Node_Id);
-   procedure Generate_Parameter (E : Node_Id);
+   procedure Generate_Parameter (N : Node_Id);
    procedure Generate_Parameter_List (L : List_Id);
    procedure Generate_Record_Definition (N : Node_Id);
    procedure Generate_Record_Type_Definition (N : Node_Id);
    procedure Generate_Subprogram_Specification (N : Node_Id);
-   procedure Generate_Type_Spec (E : Node_Id);
+   procedure Generate_Type_Spec (N : Node_Id);
+   procedure Generate_Withed_Package (N : Node_Id);
 
    --------------
    -- Generate --
@@ -34,41 +35,47 @@ package body Backend.BE_A.Generator is
    procedure Generate (N : Node_Id) is
    begin
       case Kind (N) is
+         when K_Component_Declaration =>
+            Generate_Component_Declaration (N);
+
+         when K_Defining_Identifier =>
+            Generate_Defining_Identifier (N);
+
+         when K_Derived_Type_Definition =>
+            Generate_Derived_Type_Definition (N);
+
+         when K_Designator =>
+            Generate_Designator (N);
+
+         when K_Enumeration_Type_Definition =>
+            Generate_Enumeration_Type_Definition (N);
+
+         when K_Full_Type_Declaration =>
+            Generate_Full_Type_Declaration (N);
+
          when K_IDL_Unit =>
             Generate_IDL_Unit_Packages (N);
 
          when K_Package_Declaration =>
             Generate_Package_Declaration (N);
 
-         when K_Package_Specification =>
-            Generate_Package_Specification (N);
-
          when K_Package_Implementation =>
             Generate_Package_Implementation (N);
 
-         when K_Full_Type_Declaration =>
-            Generate_Full_Type_Declaration (N);
-
-         when K_Enumeration_Type_Definition =>
-            Generate_Enumeration_Type_Definition (N);
-
-         when K_Derived_Type_Definition =>
-            Generate_Derived_Type_Definition (N);
-
-         when K_Record_Type_Definition =>
-            Generate_Record_Type_Definition (N);
+         when K_Package_Specification =>
+            Generate_Package_Specification (N);
 
          when K_Record_Definition =>
             Generate_Record_Definition (N);
 
-         when K_Component_Declaration =>
-            Generate_Component_Declaration (N);
+         when K_Record_Type_Definition =>
+            Generate_Record_Type_Definition (N);
 
          when K_Subprogram_Specification =>
             Generate_Subprogram_Specification (N);
 
-         when K_Defining_Identifier =>
-            Generate_Defining_Identifier (N);
+         when K_Withed_Package =>
+            Generate_Withed_Package (N);
 
          when K_Float .. K_Octet =>
             Write_Name (Image (Base_Type (N)));
@@ -96,9 +103,32 @@ package body Backend.BE_A.Generator is
    ----------------------------------
 
    procedure Generate_Defining_Identifier (E : Node_Id) is
+      P : Node_Id;
+
    begin
+      P := Parent_Unit_Name (E);
+      if Present (P) then
+         Generate (P);
+         Write_Char ('.');
+      end if;
       Write_Name (Name (E));
    end Generate_Defining_Identifier;
+
+   -------------------------
+   -- Generate_Designator --
+   -------------------------
+
+   procedure Generate_Designator (N : Node_Id) is
+      P : Node_Id;
+
+   begin
+      P := Parent_Unit_Name (N);
+      if Present (P) then
+         Generate (P);
+         Write_Char ('.');
+      end if;
+      Write_Name (Name (Defining_Identifier (N)));
+   end Generate_Designator;
 
    --------------------------------------
    -- Generate_Derived_Type_Definition --
@@ -109,9 +139,9 @@ package body Backend.BE_A.Generator is
 
    begin
       if Is_Abstract_Type (N) then
-         Write_Str ("abstract ");
+         Write_Str (" abstract");
       end if;
-      Write_Str ("new ");
+      Write_Str (" new ");
       Generate (Subtype_Indication (N));
       R := Record_Extension_Part (N);
       if Present (R) then
@@ -170,7 +200,7 @@ package body Backend.BE_A.Generator is
       Write_Indentation;
       Write_Str ("type ");
       Write_Name (Name (Defining_Identifier (N)));
-      Write_Str (" is ");
+      Write_Str (" is");
       Generate  (Type_Definition (N));
    end Generate_Full_Type_Declaration;
 
@@ -252,19 +282,19 @@ package body Backend.BE_A.Generator is
    -- Generate_Parameter --
    ------------------------
 
-   procedure Generate_Parameter (E : Node_Id) is
+   procedure Generate_Parameter (N : Node_Id) is
    begin
-      Write_Name (Name (Defining_Identifier (E)));
+      Write_Name (Name (Defining_Identifier (N)));
       Write_Str  (" : ");
-      case Nutils.Parameter_Mode (E) is
-         when T_In =>
+      case Parameter_Mode (N) is
+         when Mode_In =>
             Write_Str ("in ");
-         when T_Out =>
+         when Mode_Out =>
             Write_Str ("out ");
-         when T_Inout =>
+         when Mode_Inout =>
             Write_Str ("in out ");
       end case;
-      Generate_Type_Spec (Parameter_Type (E));
+      Generate_Type_Spec (Parameter_Type (N));
    end Generate_Parameter;
 
    -----------------------------
@@ -303,9 +333,7 @@ package body Backend.BE_A.Generator is
       if Is_Empty (L) then
          Write_Str ("null record");
       else
-         Increment_Indentation;
-         Write_Indentation;
-         Write_Line ("record");
+         Write_Line (" record");
          Increment_Indentation;
          C := First_Node (L);
          while Present (C) loop
@@ -314,8 +342,7 @@ package body Backend.BE_A.Generator is
          end loop;
          Decrement_Indentation;
          Write_Indentation;
-         Write_Line ("end record");
-         Decrement_Indentation;
+         Write_Str ("end record");
       end if;
    end Generate_Record_Definition;
 
@@ -379,24 +406,38 @@ package body Backend.BE_A.Generator is
    -- Generate_Type_Spec --
    ------------------------
 
-   procedure Generate_Type_Spec (E : Node_Id) is
+   procedure Generate_Type_Spec (N : Node_Id) is
    begin
-      case Kind (E) is
+      case Kind (N) is
          when K_Derived_Type_Definition =>
-            Generate_Derived_Type_Definition (E);
+            Generate_Derived_Type_Definition (N);
 
          when K_Defining_Identifier =>
-            Generate_Defining_Identifier (E);
+            Generate_Defining_Identifier (N);
 
          when K_Full_Type_Declaration =>
-            Write_Name (Name (Defining_Identifier (E)));
+            Write_Name (Name (Defining_Identifier (N)));
 
          when K_Enumeration_Type =>
-            Generate_Enumeration_Type (E);
+            Generate_Enumeration_Type (N);
+
+         when K_Designator =>
+            Generate_Designator (N);
 
          when others =>
-            DE (Image (Kind (E)) & " not supported");
+            DE (Image (Kind (N)) & " not supported");
       end case;
    end Generate_Type_Spec;
+
+   -----------------------------
+   -- Generate_Withed_Package --
+   -----------------------------
+
+   procedure Generate_Withed_Package (N : Node_Id) is
+   begin
+      Write_Str ("with ");
+      Generate (Defining_Identifier (N));
+      Write_Line (";");
+   end Generate_Withed_Package;
 
 end Backend.BE_A.Generator;

@@ -715,7 +715,7 @@ package body Backend.BE_IDL is
 
       procedure Generate_Reference_Name (E : Node_Id)
       is
-         S : constant Node_Id := Scope (E);
+         S : constant Node_Id := Scope_Entity (E);
       begin
          if Kind (S) /= K_Specification then
             Generate_Reference_Name (Identifier (S));

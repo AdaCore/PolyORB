@@ -165,7 +165,7 @@ package body Backend.BE_A.Debug is
         and then Present (C)
       then
          case Kind (C) is
-            when K_Float .. K_Value_Base =>
+            when K_Float .. K_Any =>
                Write_Line ('(' & Image (Kind (Node_Id (N))) & ')');
             when others =>
                Write_Line (V);

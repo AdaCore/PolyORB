@@ -29,7 +29,12 @@ module Backend::BE_A::Nodes {
   interface Defining_Identifier : Node_Id {
     Name_Id    Name;
     Node_Id    Corresponding_Node;
-    Node_Id    Parent_Node;
+    Node_Id    Parent_Unit_Name;
+  };
+
+  interface Designator : Node_Id {
+    Node_Id    Defining_Identifier;
+    Node_Id    Parent_Unit_Name;
   };
 
 
@@ -197,6 +202,4 @@ module Backend::BE_A::Nodes {
   interface _Octet : Base_Type {};
   interface _Object : Base_Type {};
   interface _Any : Base_Type {};
-  interface _Void : Base_Type {};
-  interface Value_Base : Base_Type {};
 };

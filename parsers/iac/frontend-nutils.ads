@@ -44,8 +44,7 @@ package Frontend.Nutils is
    function Operator (E : Node_Id) return Operator_Type;
    procedure Set_Operator (E : Node_Id; O : Operator_Type);
 
-   function Parameter_Mode (E : Node_Id) return Mode_Type;
-   procedure Set_Parameter_Mode (E : Node_Id; M : Mode_Type);
+   function Parameter_Mode (T : Token_Type) return Mode_Id;
 
    function Make_Scoped_Name
      (Loc        : Location;
@@ -59,7 +58,7 @@ package Frontend.Nutils is
      (Loc      : Location;
       IDL_Name : Name_Id;
       Node     : Node_Id;
-      Scope    : Node_Id)
+      Scope_Entity    : Node_Id)
      return Node_Id;
    --  return identifier
 

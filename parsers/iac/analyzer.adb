@@ -431,7 +431,7 @@ package body Analyzer is
 
             if Present (E) then
                E := Make_Identifier
-                 (Loc (E), IDL_Name (N), E, Scope (N));
+                 (Loc (E), IDL_Name (N), E, Scope_Entity (N));
                Enter_Name_In_Scope (E);
 
             else
@@ -599,7 +599,7 @@ package body Analyzer is
          Node := First_Entity (List);
          while Present (Node) loop
             Analyze (Node);
-            if Oneway and then Parameter_Mode (Node) /= T_In then
+            if Oneway and then Parameter_Mode (Node) /= Mode_In then
                Oneway := False;
                Error_Loc (1) := Loc (Node);
                DE ("oneway operation can only have ""in"" parameters");

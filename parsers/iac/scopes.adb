@@ -72,7 +72,7 @@ package body Scopes is
          elsif Is_A_Forward_Of (C, E) then
             if Kind (C) = K_Forward_Interface_Declaration then
                Set_Forward             (C, E);
-               Set_Scope               (H, No_Node);
+               Set_Scope_Entity        (H, No_Node);
                Set_Potential_Scope     (H, No_Node);
                Set_Explicitely_Visible (H, False);
                Set_Implicitely_Visible (H, False);
@@ -93,8 +93,8 @@ package body Scopes is
       end if;
 
       Insert_Into_Homonyms    (N);
-      if No (Scope (N)) then
-         Set_Scope (N, S);
+      if No (Scope_Entity (N)) then
+         Set_Scope_Entity (N, S);
       end if;
       Set_Potential_Scope     (N, S);
       Set_Explicitely_Visible (N, True);
@@ -191,7 +191,7 @@ package body Scopes is
       --  always present in the homonyms chain.
 
       while Present (C) loop
-         if Scope (C) = S
+         if Scope_Entity (C) = S
            and then Name (C) = X
          then
             return Corresponding_Entity (C);
@@ -295,7 +295,9 @@ package body Scopes is
                if Kind (E) = K_Scoped_Name then
                   N := Identifier (E);
                   N := Make_Identifier
-                    (Loc (N), Name (N), Corresponding_Entity (N), Scope (N));
+                    (Loc (N), Name (N),
+                     Corresponding_Entity (N),
+                     Scope_Entity (N));
                   Set_Potential_Scope  (N, S);
                   Enter_Name_In_Scope  (N);
                end if;

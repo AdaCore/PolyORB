@@ -49,8 +49,8 @@ procedure Mknodes is
       function Type_Spec (N : Node_Id) return Node_Id;
       procedure Set_Type_Spec (N : Node_Id; V : Node_Id);
 
-      function Scope (N : Node_Id) return Node_Id;
-      procedure Set_Scope (N : Node_Id; V : Node_Id);
+      function Scope_Entity (N : Node_Id) return Node_Id;
+      procedure Set_Scope_Entity (N : Node_Id; V : Node_Id);
 
       function First_Entity (N : Node_Id) return Node_Id;
       procedure Set_First_Entity (N : Node_Id; V : Node_Id);
@@ -68,7 +68,7 @@ procedure Mknodes is
          Loc        : Location;
          Identifier : Name_Id;
          Type_Spec  : Node_Id;
-         Scope      : Node_Id;
+         Scope_Entity      : Node_Id;
          First_Entity : Node_Id;
          Last_Entity  : Node_Id;
          Next_Entity  : Node_Id;
@@ -290,13 +290,13 @@ procedure Mknodes is
       end New_Node;
 
       -----------
-      -- Scope --
+      -- Scope_Entity --
       -----------
 
-      function Scope (N : Node_Id) return Node_Id is
+      function Scope_Entity (N : Node_Id) return Node_Id is
       begin
-         return Table (N).Scope;
-      end Scope;
+         return Table (N).Scope_Entity;
+      end Scope_Entity;
 
       ----------------------
       -- Set_First_Entity --
@@ -326,13 +326,13 @@ procedure Mknodes is
       end Set_Last_Entity;
 
       ---------------
-      -- Set_Scope --
+      -- Set_Scope_Entity --
       ---------------
 
-      procedure Set_Scope (N : Node_Id; V : Node_Id) is
+      procedure Set_Scope_Entity (N : Node_Id; V : Node_Id) is
       begin
-         Table (N).Scope := V;
-      end Set_Scope;
+         Table (N).Scope_Entity := V;
+      end Set_Scope_Entity;
 
       ---------------------
       -- Set_Next_Entity --
@@ -401,7 +401,7 @@ procedure Mknodes is
       Attr := First_Attribute;
       while Attr /= No_Node loop
          if Identifier (Attr) = Name then
-            Intf := Scope (Attr);
+            Intf := Scope_Entity (Attr);
             if Debug then
                Write_Str ("--  find attribute in ");
                Write_Name (Identifier (Intf));
@@ -772,7 +772,7 @@ procedure Mknodes is
                   DE ("attribute already defined");
                   return No_Node;
                end if;
-               Set_Scope (Attribute, Interface);
+               Set_Scope_Entity (Attribute, Interface);
                Add_Attribute_To_Interface (Attribute, Interface);
 
             when T_Right_Brace =>
@@ -926,7 +926,7 @@ procedure Mknodes is
       K  : Node_Kind;
       NS : Node_Id;
    begin
-      NS := Scope (A);
+      NS := Scope_Entity (A);
       while Type_Spec (NS) /= No_Node loop
          NS := Type_Spec (NS);
       end loop;
@@ -996,7 +996,7 @@ procedure Mknodes is
    procedure W_Attribute_Spec (A : Node_Id) is
       NS   : Node_Id;
    begin
-      NS := Scope (A);
+      NS := Scope_Entity (A);
       while Type_Spec (NS) /= No_Node loop
          NS := Type_Spec (NS);
       end loop;
