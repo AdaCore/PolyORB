@@ -520,6 +520,7 @@ AC_OUTPUT([
 	testsuite/corba/Makefile
 	testsuite/corba/all_exceptions/Makefile
 	testsuite/corba/cos/Makefile
+	testsuite/corba/cos/event/Makefile
 	testsuite/corba/cos/naming/Makefile
 	testsuite/corba/cos/time/Makefile
 	testsuite/corba/harness/Makefile

@@ -121,9 +121,6 @@ cos/Makefile.common
 cos/Makefile.in
 cos/event/Makefile.am
 cos/event/Makefile.in
-cos/event/auto_print.adb
-cos/event/auto_print.ads
-cos/event/consumer.cmd
 cos/event/coseventchanneladmin-consumeradmin-impl.adb
 cos/event/coseventchanneladmin-consumeradmin-impl.ads
 cos/event/coseventchanneladmin-eventchannel-impl.adb
@@ -160,14 +157,6 @@ cos/event/costypedeventcomm-typedpullsupplier-impl.adb
 cos/event/costypedeventcomm-typedpullsupplier-impl.ads
 cos/event/costypedeventcomm-typedpushconsumer-impl.adb
 cos/event/costypedeventcomm-typedpushconsumer-impl.ads
-cos/event/supplier.cmd
-cos/event/test_event.adb
-cos/event/typedevent_multipleclient.cmd
-cos/event/typedevent_singleclient.cmd
-cos/event/typedtest_event.adb
-cos/event/typedtest_interface-impl.adb
-cos/event/typedtest_interface-impl.ads
-cos/event/typedtest_interface.idl
 cos/ir/Makefile.am
 cos/ir/Makefile.in
 cos/ir/client.adb
