@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#17 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#18 $
 
 @setfilename polyorb_ug.info
 @settitle PolyORB User's Guide
@@ -866,6 +866,13 @@ build with PolyORB. Middleware tasking policies is
 
 @end itemize
 
+@noindent
+To enforce one of these configurations, add a dependency on one of
+these packages. The elaboration of the application (based on Ada
+rules) and the initialization of the partition (based on the
+application personalities mechanisms) will set up properly your
+application.
+
 @c -------------------------------------------------------------------
 @node Run-time configuration
 @section Run-time configuration
@@ -1317,7 +1324,7 @@ a CORBA object, and how to setup an object on a server node.
 
 @emph{Note: the dependency on @code{PolyORB.Setup.Client} or
 @code{PolyORB.Setup.No_Tasking_Server} enforces compile-time
-configuration.}
+configuration, @pxref{Sample files}.}
 
 @itemize @bullet
 @item Client code tests a simple remote invocation on
