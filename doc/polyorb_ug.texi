@@ -56,7 +56,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#5 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#6 $
 
 @setfilename polyorb_ug.info
 @settitle PolyORB User's Guide
@@ -607,6 +607,68 @@ compliance with @command{corbaloc} default port, @command{ab_names}
 listens on the standard port @code{2809/tcp}.
 
 @section Building a simple CORBA application with PolyORB
+
+@subsection @code{echo} example
+
+@noindent 
+We consider building a simple ``Echo'' CORBA server and client. This
+application echoes a string. The source code for this example is
+located in @file{examples/corba/echo} directory in PolyORB
+distribution. This applications uses only basic elements of CORBA.
+
+To build this application, you need the following pieces of code:
+@itemize @bullet
+@item IDL definition of an @code{echo} object
+@item Implentation code for the @code{echo} object
+@item Test code for client and server nodes
+@end itemize
+
+@noindent
+To compile this demo, 
+@enumerate
+@item Process the IDL file with @code{idlac}
+@smallexample
+ $ idlac echo.idl
+@end smallexample
+
+@item Compile the client node
+@smallexample
+ $ gnatmake client.adb `polyorb-config`
+@end smallexample
+
+@item Compile the server node
+@smallexample
+ $ gnatmake server.adb `polyorb-config`
+@end smallexample
+
+@end enumerate
+
+@noindent 
+Note the use of backticks (`). This means that
+@command{polyorb-config} is first executed, and then the command line
+is replaced with the output of the script, setting up library and
+include paths and library names.
+
+To run this demo
+
+@itemize @bullet
+@item run @file{server}, the server outputs its IOR. Its is an
+hexadecimal string with the <IOR:> prefix.
+@smallexample
+$ ./server                     
+Loading configuration from polyorb.conf
+No polyorb.conf configuration file.
+'IOR:01534f410d00000049444c3[..]'
+@end smallexample
+
+@item run @file{client}, passing the complete IOR on the command line
+@smallexample
+$ ./client 'IOR:01534f410d00000049444c3[..]'
+Echoing string: « Hello Ada ! »
+I said : Hello Ada !
+The object answered : Hello Ada !
+@end smallexample
+@end itemize
 
 @section PolyORB's specific APIs
 
