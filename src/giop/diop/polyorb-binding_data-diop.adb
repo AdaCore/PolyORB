@@ -98,13 +98,15 @@ package body PolyORB.Binding_Data.DIOP is
       Servant : out Components.Component_Access;
       Error   : out Exceptions.Error_Container)
    is
-      use PolyORB.ORB;
       use PolyORB.Components;
+      use PolyORB.Exceptions;
+      use PolyORB.Filters;
       use PolyORB.Protocols;
       use PolyORB.Protocols.GIOP;
       use PolyORB.Protocols.GIOP.DIOP;
+      use PolyORB.ORB;
       use PolyORB.Sockets;
-      use PolyORB.Filters;
+
 
       Sock        : Socket_Type;
       Remote_Addr : constant Sock_Addr_Type := Profile.Address;
@@ -112,10 +114,6 @@ package body PolyORB.Binding_Data.DIOP is
         new Socket_Out_Endpoint;
       Pro         : aliased DIOP_Protocol;
       Filter      : Filters.Filter_Access;
-
-      pragma Warnings (Off); --  WAG:3.15
-      pragma Unreferenced (Error);
-      pragma Warnings (On); --  WAG:3.15
 
    begin
       pragma Debug (O ("Bind DIOP profile: enter"));
@@ -145,6 +143,11 @@ package body PolyORB.Binding_Data.DIOP is
          pragma Debug (O ("Bind DIOP profile: leave"));
          Servant := S'Access;
       end;
+
+   exception
+      when Sockets.Socket_Error =>
+         Throw (Error, Comm_Failure_E, System_Exception_Members'
+                (Minor => 0, Completed => Completed_Maybe));
    end Bind_Profile;
 
    ---------------------

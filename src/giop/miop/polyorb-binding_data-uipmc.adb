@@ -104,6 +104,7 @@ package body PolyORB.Binding_Data.UIPMC is
       Error   : out Exceptions.Error_Container)
    is
       use PolyORB.Components;
+      use PolyORB.Exceptions;
       use PolyORB.Filters;
       use PolyORB.Filters.MIOP.MIOP_Out;
       use PolyORB.ORB;
@@ -122,10 +123,6 @@ package body PolyORB.Binding_Data.UIPMC is
       Pro         : aliased UIPMC_Protocol;
       M_Fact      : aliased MIOP_Out_Factory;
       Filter      : Filters.Filter_Access;
-
-      pragma Warnings (Off); --  WAG:3.15
-      pragma Unreferenced (Error);
-      pragma Warnings (On); --  WAG:3.15
 
    begin
       pragma Debug (O ("Bind UIPMC profile: enter"));
@@ -163,6 +160,11 @@ package body PolyORB.Binding_Data.UIPMC is
          pragma Debug (O ("Bind UIPMC profile: leave"));
          Servant := C'Access;
       end;
+
+   exception
+      when Sockets.Socket_Error =>
+         Throw (Error, Comm_Failure_E, System_Exception_Members'
+                (Minor => 0, Completed => Completed_Maybe));
    end Bind_Profile;
 
    ---------------------
