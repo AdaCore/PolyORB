@@ -74,18 +74,18 @@ typeprefix CORBA "omg.org"
     interface ValueDef;
     typedef sequence <ValueDef> ValueDefSeq;
     interface ValueBoxDef;
-//PolyORB:NI:    interface AbstractInterfaceDef;
-//PolyORB:NI:    typedef sequence <AbstractInterfaceDef> AbstractInterfaceDefSeq; 
-//PolyORB:NI:    interface LocalInterfaceDef;
-//PolyORB:NI:    typedef sequence <LocalInterfaceDef> LocalInterfaceDefSeq; 
-//PolyORB:NI:    interface ExtInterfaceDef;
-//PolyORB:NI:    typedef sequence <ExtInterfaceDef> ExtInterfaceDefSeq;
+    interface AbstractInterfaceDef;
+    typedef sequence <AbstractInterfaceDef> AbstractInterfaceDefSeq; 
+    interface LocalInterfaceDef;
+    typedef sequence <LocalInterfaceDef> LocalInterfaceDefSeq; 
+    interface ExtInterfaceDef;
+    typedef sequence <ExtInterfaceDef> ExtInterfaceDefSeq;
 //PolyORB:NI:    interface ExtValueDef;
 //PolyORB:NI:    typedef sequence <ExtValueDef> ExtValueDefSeq;
-//PolyORB:NI:    interface ExtAbstractInterfaceDef;
-//PolyORB:NI:    typedef sequence <ExtAbstractInterfaceDef> ExtAbstractInterfaceDefSeq;
-//PolyORB:NI:    interface ExtLocalInterfaceDef;
-//PolyORB:NI:    typedef sequence <ExtLocalInterfaceDef> ExtLocalInterfaceDefSeq;
+    interface ExtAbstractInterfaceDef;
+    typedef sequence <ExtAbstractInterfaceDef> ExtAbstractInterfaceDefSeq;
+    interface ExtLocalInterfaceDef;
+    typedef sequence <ExtLocalInterfaceDef> ExtLocalInterfaceDefSeq;
     typedef sequence <Contained> ContainedSeq;
     
     struct StructMember {
@@ -225,18 +225,18 @@ typeprefix CORBA "omg.org"
             in Identifier                   name,
             in VersionSpec                  version
         );
-//PolyORB:NI:        AbstractInterfaceDef create_abstract_interface (
-//PolyORB:NI:            in RepositoryId                 id,
-//PolyORB:NI:            in Identifier                   name,
-//PolyORB:NI:            in VersionSpec                  version,
-//PolyORB:NI:            in AbstractInterfaceDefSeq      base_interfaces
-//PolyORB:NI:        );
-//PolyORB:NI:        LocalInterfaceDef create_local_interface (
-//PolyORB:NI:            in RepositoryId                 id,
-//PolyORB:NI:            in Identifier                   name,
-//PolyORB:NI:            in VersionSpec                  version,
-//PolyORB:NI:            in InterfaceDefSeq              base_interfaces
-//PolyORB:NI:        );
+        AbstractInterfaceDef create_abstract_interface (
+            in RepositoryId                 id,
+            in Identifier                   name,
+            in VersionSpec                  version,
+            in AbstractInterfaceDefSeq      base_interfaces
+        );
+        LocalInterfaceDef create_local_interface (
+            in RepositoryId                 id,
+            in Identifier                   name,
+            in VersionSpec                  version,
+            in InterfaceDefSeq              base_interfaces
+        );
 //PolyORB:NI:        ExtValueDef create_ext_value (
 //PolyORB:NI:	    in RepositoryId id,
 //PolyORB:NI:	    in Identifier name,
@@ -384,13 +384,13 @@ typeprefix CORBA "omg.org"
       ExcDescriptionSeq get_exceptions;
       ExcDescriptionSeq put_exceptions;
     };
-//PolyORB:NI:    interface ExtAttributeDef : AttributeDef {
-//PolyORB:NI:      // read/write interface
-//PolyORB:NI:      attribute ExcDescriptionSeq get_exceptions;
-//PolyORB:NI:      attribute ExcDescriptionSeq set_exceptions;
-//PolyORB:NI:      // read interface
-//PolyORB:NI:      ExtAttributeDescription describe_attribute ();
-//PolyORB:NI:    };
+    interface ExtAttributeDef : AttributeDef {
+      // read/write interface
+      attribute ExcDescriptionSeq get_exceptions;
+      attribute ExcDescriptionSeq set_exceptions;
+      // read interface
+      ExtAttributeDescription describe_attribute ();
+    };
     enum OperationMode {OP_NORMAL, OP_ONEWAY};
     enum ParameterMode {PARAM_IN, PARAM_OUT, PARAM_INOUT};
     struct ParameterDescription {
@@ -476,32 +476,32 @@ typeprefix CORBA "omg.org"
         boolean                         is_abstract;
     };
 
-//PolyORB:NI:    interface InterfaceAttrExtension {
-//PolyORB:NI:      // read interface
-//PolyORB:NI:      struct ExtFullInterfaceDescription {
-//PolyORB:NI:	Identifier name;
-//PolyORB:NI:	RepositoryId id;
-//PolyORB:NI:	RepositoryId defined_in;
-//PolyORB:NI:	VersionSpec version;
-//PolyORB:NI:	OpDescriptionSeq operations;
-//PolyORB:NI:	ExtAttrDescriptionSeq attributes;
-//PolyORB:NI:	RepositoryIdSeq base_interfaces;
-//PolyORB:NI:	TypeCode type;
-//PolyORB:NI:      };
-//PolyORB:NI:      ExtFullInterfaceDescription describe_ext_interface ();
-//PolyORB:NI:      // write interface
-//PolyORB:NI:      ExtAttributeDef create_ext_attribute (
-//PolyORB:NI:        in RepositoryId id,
-//PolyORB:NI:	in Identifier name,
-//PolyORB:NI:	in VersionSpec version,
-//PolyORB:NI:	in IDLType type,
-//PolyORB:NI:	in AttributeMode mode,
-//PolyORB:NI:	in ExceptionDefSeq get_exceptions,
-//PolyORB:NI:	in ExceptionDefSeq set_exceptions
-//PolyORB:NI:      );
-//PolyORB:NI:    };
-//PolyORB:NI:
-//PolyORB:NI:    interface ExtInterfaceDef : InterfaceDef, InterfaceAttrExtension {};
+    interface InterfaceAttrExtension {
+      // read interface
+      struct ExtFullInterfaceDescription {
+	Identifier name;
+	RepositoryId id;
+	RepositoryId defined_in;
+	VersionSpec version;
+	OpDescriptionSeq operations;
+	ExtAttrDescriptionSeq attributes;
+	RepositoryIdSeq base_interfaces;
+	TypeCode type;
+      };
+      ExtFullInterfaceDescription describe_ext_interface ();
+      // write interface
+      ExtAttributeDef create_ext_attribute (
+        in RepositoryId id,
+	in Identifier name,
+	in VersionSpec version,
+	in IDLType type,
+	in AttributeMode mode,
+	in ExceptionDefSeq get_exceptions,
+	in ExceptionDefSeq set_exceptions
+      );
+    };
+
+    interface ExtInterfaceDef : InterfaceDef, InterfaceAttrExtension {};
 
     typedef short Visibility;
     const Visibility PRIVATE_MEMBER = 0;
@@ -588,54 +588,60 @@ typeprefix CORBA "omg.org"
         boolean                         is_truncatable;
         RepositoryId                    base_value; 
     };
-//PolyORB:NI:
-//PolyORB:NI:    interface ExtValueDef : ValueDef {
-//PolyORB:NI:      // read/write interface
-//PolyORB:NI:      attribute ExtInitializerSeq ext_initializers;
-//PolyORB:NI:      // read interface
-//PolyORB:NI:      struct ExtFullValueDescription {
-//PolyORB:NI:	Identifier name;
-//PolyORB:NI:	RepositoryId id;
-//PolyORB:NI:	boolean is_abstract;
-//PolyORB:NI:	boolean is_custom;
-//PolyORB:NI:	RepositoryId defined_in;
-//PolyORB:NI:	VersionSpec version;
-//PolyORB:NI:	OpDescriptionSeq operations;
-//PolyORB:NI:	ExtAttrDescriptionSeq attributes;
-//PolyORB:NI:	ValueMemberSeq members;
-//PolyORB:NI:	ExtInitializerSeq initializers;
-//PolyORB:NI:	RepositoryIdSeq supported_interfaces;
-//PolyORB:NI:	RepositoryIdSeq abstract_base_values;
-//PolyORB:NI:	boolean is_truncatable;
-//PolyORB:NI:	RepositoryId base_value;
-//PolyORB:NI:	TypeCode type;
-//PolyORB:NI:      };
-//PolyORB:NI:      ExtFullValueDescription describe_ext_value ();
-//PolyORB:NI:      // write interface
-//PolyORB:NI:      ExtAttributeDef create_ext_attribute (
-//PolyORB:NI:        in RepositoryId id,
-//PolyORB:NI:	in Identifier name,
-//PolyORB:NI:	in VersionSpec version,
-//PolyORB:NI:	in IDLType type,
-//PolyORB:NI:	in AttributeMode mode,
-//PolyORB:NI:	in ExceptionDefSeq get_exceptions,
-//PolyORB:NI:	in ExceptionDefSeq set_exceptions
-//PolyORB:NI:      );
-//PolyORB:NI:    };
+
+//PolyORB:WAidlac: idlac/ALM for interface function which return interface
+//                 itself generates an Ada function which return Ref.
+//                 By Ada rules this function is a primitive operation
+//                 of Ref and should be overridden for each child type.
+//                 idlac doesn't generate this override function, so
+//                 code generated for ExtValueDef is wrong.
+//PolyORB:IL:    interface ExtValueDef : ValueDef {
+//PolyORB:IL:      // read/write interface
+//PolyORB:IL:      attribute ExtInitializerSeq ext_initializers;
+//PolyORB:IL:      // read interface
+//PolyORB:IL:      struct ExtFullValueDescription {
+//PolyORB:IL:	Identifier name;
+//PolyORB:IL:	RepositoryId id;
+//PolyORB:IL:	boolean is_abstract;
+//PolyORB:IL:	boolean is_custom;
+//PolyORB:IL:	RepositoryId defined_in;
+//PolyORB:IL:	VersionSpec version;
+//PolyORB:IL:	OpDescriptionSeq operations;
+//PolyORB:IL:	ExtAttrDescriptionSeq attributes;
+//PolyORB:IL:	ValueMemberSeq members;
+//PolyORB:IL:	ExtInitializerSeq initializers;
+//PolyORB:IL:	RepositoryIdSeq supported_interfaces;
+//PolyORB:IL:	RepositoryIdSeq abstract_base_values;
+//PolyORB:IL:	boolean is_truncatable;
+//PolyORB:IL:	RepositoryId base_value;
+//PolyORB:IL:	TypeCode type;
+//PolyORB:IL:      };
+//PolyORB:IL:      ExtFullValueDescription describe_ext_value ();
+//PolyORB:IL:      // write interface
+//PolyORB:IL:      ExtAttributeDef create_ext_attribute (
+//PolyORB:IL:        in RepositoryId id,
+//PolyORB:IL:	in Identifier name,
+//PolyORB:IL:	in VersionSpec version,
+//PolyORB:IL:	in IDLType type,
+//PolyORB:IL:	in AttributeMode mode,
+//PolyORB:IL:	in ExceptionDefSeq get_exceptions,
+//PolyORB:IL:	in ExceptionDefSeq set_exceptions
+//PolyORB:IL:      );
+//PolyORB:IL:    };
 
     interface ValueBoxDef : TypedefDef {
         attribute IDLType original_type_def;
     };
-//PolyORB:NI:    interface AbstractInterfaceDef : InterfaceDef {
-//PolyORB:NI:    };
-//PolyORB:NI:    interface ExtAbstractInterfaceDef : AbstractInterfaceDef,
-//PolyORB:NI:      InterfaceAttrExtension {
-//PolyORB:NI:    };
-//PolyORB:NI:    interface LocalInterfaceDef : InterfaceDef {
-//PolyORB:NI:    };
-//PolyORB:NI:    interface ExtLocalInterfaceDef : LocalInterfaceDef,
-//PolyORB:NI:      InterfaceAttrExtension {
-//PolyORB:NI:    };   
+    interface AbstractInterfaceDef : InterfaceDef {
+    };
+    interface ExtAbstractInterfaceDef : AbstractInterfaceDef,
+      InterfaceAttrExtension {
+    };
+    interface LocalInterfaceDef : InterfaceDef {
+    };
+    interface ExtLocalInterfaceDef : LocalInterfaceDef,
+      InterfaceAttrExtension {
+    };   
  
 #ifdef _COMPONENT_REPOSITORY_
 

@@ -2,33 +2,29 @@ pragma Style_Checks (Off);
 
 with Ada.Strings.Unbounded;
 
-with CORBA.Repository_Root; use CORBA.Repository_Root;
+with CORBA.Repository_Root.AbstractInterfaceDef;
+with CORBA.Repository_Root.AliasDef.Impl;
+with CORBA.Repository_Root.ConstantDef.Impl;
 with CORBA.Repository_Root.Contained;
 with CORBA.Repository_Root.Container.Helper;
 with CORBA.Repository_Root.Container.Skel;
 pragma Warnings (Off, CORBA.Repository_Root.Container.Skel);
+with CORBA.Repository_Root.EnumDef.Impl;
+with CORBA.Repository_Root.ExceptionDef.Impl;
+with CORBA.Repository_Root.ExtAbstractInterfaceDef.Impl;
+with CORBA.Repository_Root.ExtInterfaceDef.Impl;
+with CORBA.Repository_Root.ExtLocalInterfaceDef.Impl;
+with CORBA.Repository_Root.IDLType.Impl;
+with CORBA.Repository_Root.InterfaceAttrExtension.Impl;
+with CORBA.Repository_Root.InterfaceDef.Impl;
+with CORBA.Repository_Root.LocalInterfaceDef;
+with CORBA.Repository_Root.ModuleDef.Impl;
+with CORBA.Repository_Root.NativeDef.Impl;
+with CORBA.Repository_Root.Repository.Impl;
 with CORBA.Repository_Root.StructDef.Impl;
 with CORBA.Repository_Root.UnionDef.Impl;
-with CORBA.Repository_Root.EnumDef.Impl;
-with CORBA.Repository_Root.AliasDef.Impl;
-with CORBA.Repository_Root.NativeDef.Impl;
-with CORBA.Repository_Root.ExceptionDef.Impl;
 with CORBA.Repository_Root.ValueBoxDef.Impl;
-with CORBA.Repository_Root.Repository.Impl;
-with CORBA.Repository_Root.InterfaceDef.Impl;
 with CORBA.Repository_Root.ValueDef.Impl;
-with CORBA.Repository_Root.ModuleDef.Impl;
-with CORBA.Repository_Root.IDLType;
-with CORBA.Repository_Root.IDLType.Impl;
-with CORBA.Repository_Root.ConstantDef.Impl;
-
-with CORBA.Repository_Root.ModuleDef;
-with CORBA.Repository_Root.ExceptionDef;
-with CORBA.Repository_Root.InterfaceDef;
-with CORBA.Repository_Root.ValueDef;
-with CORBA.Repository_Root.StructDef;
-with CORBA.Repository_Root.UnionDef;
-with CORBA.Repository_Root.Repository;
 
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
@@ -1132,53 +1128,63 @@ package body CORBA.Repository_Root.Container.Impl is
       end;
    end create_alias;
 
+   ----------------------
+   -- create_interface --
+   ----------------------
 
    function create_interface
-     (Self : access Object;
-      id : in CORBA.RepositoryId;
-      name : in CORBA.Identifier;
-      version : in CORBA.Repository_Root.VersionSpec;
-      base_interfaces : in CORBA.Repository_Root.InterfaceDefSeq;
-      is_abstract : in CORBA.Boolean)
-     return CORBA.Repository_Root.InterfaceDef_Forward.Ref
+     (Self            : access Object;
+      id              : in     RepositoryId;
+      name            : in     Identifier;
+      version         : in     VersionSpec;
+      base_interfaces : in     InterfaceDefSeq;
+      is_abstract     : in     CORBA.Boolean)
+      return InterfaceDef_Forward.Ref
    is
    begin
       pragma Debug (O2 ("Create_interface (container)"));
-      --  is the new structure allowed?
+
+      --  Is the new structure allowed?
+
       Check_Structure (Self, dk_Interface);
       Check_Id (Self, id);
       Check_Name (Self, name);
 
       declare
-         Res : CORBA.Repository_Root.InterfaceDef_Forward.Ref;
-         Obj : constant InterfaceDef.Impl.Object_Ptr := new InterfaceDef.Impl.Object;
-         Cont_Obj : constant Contained.Impl.Object_Ptr := new Contained.Impl.Object;
-         IDLType_Obj : constant IDLType.Impl.Object_Ptr := new IDLType.Impl.Object;
+         Obj         : constant ExtInterfaceDef.Impl.Object_Ptr
+           := new ExtInterfaceDef.Impl.Object;
+         Cont_Obj    : constant Contained.Impl.Object_Ptr
+           := new Contained.Impl.Object;
+         IDLType_Obj : constant IDLType.Impl.Object_Ptr
+           := new IDLType.Impl.Object;
+         InterfaceAttrExtension_Obj : constant
+           InterfaceAttrExtension.Impl.Object_Ptr
+           := new InterfaceAttrExtension.Impl.Object;
       begin
          pragma Debug (O ("Create_interface : before init"));
          --  initialization of the object
-         InterfaceDef.Impl.Init (Obj,
-                                 IRObject.Impl.Object_Ptr (Obj),
-                                 dk_Interface,
-                                 id,
-                                 name,
-                                 version,
-                                 To_Forward (Object_Ptr (Self)),
-                                 Contained.Impl.Contained_Seq.Null_Sequence,
-                                 Cont_Obj,
-                                 IDLType_Obj,
-                                 base_interfaces,
-                                 is_abstract);
+         ExtInterfaceDef.Impl.Internals.Init
+           (Obj,
+            IRObject.Impl.Object_Ptr (Obj),
+            dk_Interface,
+            id,
+            name,
+            version,
+            To_Forward (Object_Ptr (Self)),
+            Contained.Impl.Contained_Seq.Null_Sequence,
+            Cont_Obj,
+            IDLType_Obj,
+            base_interfaces,
+            is_abstract,
+            InterfaceAttrExtension_Obj);
          pragma Debug (O ("Create_interface : before append"));
          --  add it to the contents field of this container
          Append_To_Contents
            (Self,
             Contained.Impl.To_Contained (IRObject.Impl.Object_Ptr (Obj)));
 
-         pragma Debug (O ("Create_interface : before to_forward"));
-         Res := InterfaceDef.Impl.To_Forward (Obj);
-         pragma Debug (O ("Create_interface : end"));
-         return Res;
+         return
+           InterfaceDef.Impl.To_Forward (InterfaceDef.Impl.Object_Ptr (Obj));
       end;
    end create_interface;
 
@@ -1360,6 +1366,120 @@ package body CORBA.Repository_Root.Container.Impl is
       end;
    end create_native;
 
+   -------------------------------
+   -- create_abstract_interface --
+   -------------------------------
+
+   function create_abstract_interface
+     (Self            : access Object;
+      id              : in     RepositoryId;
+      name            : in     Identifier;
+      version         : in     VersionSpec;
+      base_interfaces : in     AbstractInterfaceDefSeq)
+      return AbstractInterfaceDef_Forward.Ref
+   is
+   begin
+      --  Is the new structure allowed?
+
+      Check_Structure (Self, dk_AbstractInterface);
+      Check_Id (Self, id);
+      Check_Name (Self, name);
+
+      declare
+         Ref            : AbstractInterfaceDef.Ref;
+         Obj            : constant ExtAbstractInterfaceDef.Impl.Object_Ptr
+           := new ExtAbstractInterfaceDef.Impl.Object;
+         Cont_Obj       : constant Contained.Impl.Object_Ptr
+           := new Contained.Impl.Object;
+         IDLType_Obj    : constant IDLType.Impl.Object_Ptr
+           := new IDLType.Impl.Object;
+         IntAttrExt_Obj : constant InterfaceAttrExtension.Impl.Object_Ptr
+           := new InterfaceAttrExtension.Impl.Object;
+      begin
+         --  Initialization and activation of the servant
+
+         ExtAbstractInterfaceDef.Impl.Internals.Init
+           (Obj,
+            IRObject.Impl.Object_Ptr (Obj),
+            dk_Interface,
+            id,
+            name,
+            version,
+            To_Forward (Object_Ptr (Self)),
+            Contained.Impl.Contained_Seq.Null_Sequence,
+            Cont_Obj,
+            IDLType_Obj,
+            base_interfaces,
+            IntAttrExt_Obj);
+         PolyORB.CORBA_P.Server_Tools.Initiate_Servant
+           (PortableServer.Servant (Obj), Ref);
+
+         --  Add it to the contents field of this container
+
+         Append_To_Contents
+           (Self,
+            Contained.Impl.To_Contained (IRObject.Impl.Object_Ptr (Obj)));
+
+         return AbstractInterfaceDef.Convert_Forward.To_Forward (Ref);
+      end;
+   end create_abstract_interface;
+
+   ----------------------------
+   -- create_local_interface --
+   ----------------------------
+
+   function create_local_interface
+     (Self            : access Object;
+      id              : in     RepositoryId;
+      name            : in     Identifier;
+      version         : in     VersionSpec;
+      base_interfaces : in     InterfaceDefSeq)
+      return LocalInterfaceDef_Forward.Ref
+   is
+   begin
+      --  Is the new structure allowed?
+
+      Check_Structure (Self, dk_LocalInterface);
+      Check_Id (Self, id);
+      Check_Name (Self, name);
+
+      declare
+         Ref            : LocalInterfaceDef.Ref;
+         Obj            : constant ExtLocalInterfaceDef.Impl.Object_Ptr
+           := new ExtLocalInterfaceDef.Impl.Object;
+         Cont_Obj       : constant Contained.Impl.Object_Ptr
+           := new Contained.Impl.Object;
+         IDLType_Obj    : constant IDLType.Impl.Object_Ptr
+           := new IDLType.Impl.Object;
+         IntAttrExt_Obj : constant InterfaceAttrExtension.Impl.Object_Ptr
+           := new InterfaceAttrExtension.Impl.Object;
+      begin
+         --  Initialization and activation of the servant
+
+         ExtLocalInterfaceDef.Impl.Internals.Init
+           (Obj,
+            IRObject.Impl.Object_Ptr (Obj),
+            dk_Interface,
+            id,
+            name,
+            version,
+            To_Forward (Object_Ptr (Self)),
+            Contained.Impl.Contained_Seq.Null_Sequence,
+            Cont_Obj,
+            IDLType_Obj,
+            base_interfaces,
+            IntAttrExt_Obj);
+         PolyORB.CORBA_P.Server_Tools.Initiate_Servant
+           (PortableServer.Servant (Obj), Ref);
+
+         --  Add it to the contents field of this container
+
+         Append_To_Contents
+           (Self,
+            Contained.Impl.To_Contained (IRObject.Impl.Object_Ptr (Obj)));
+
+         return LocalInterfaceDef.Convert_Forward.To_Forward (Ref);
+      end;
+   end create_local_interface;
+
 end CORBA.Repository_Root.Container.Impl;
-
-
