@@ -31,43 +31,68 @@ package body Tokens is
    --  low level string processing  --
    -----------------------------------
 
-   type State_Type is record
-      File_Name : Errors.File_Name_Ptr;
-      Line_Number : Natural;
-      Line_Len : Natural;
-   end record;
-
-   Current_State : State_Type := (File_Name => new String'(""),
-                                  Line_Number => 0,
-                                  Line_Len => 0);
-   Line : String (1 .. 2047);
-   Col : Natural := 2048;
-   Col_Offset : Natural;
-   Token_Col : Natural;
-   Mark_Pos : Natural;
-
    --  The current token, set by next_token.
    Current_Token : Idl_Token := T_Error;
+
+   --  The current location in the parsed file
+   Current_Location : Errors.Location;
+
+   --  The current_token location
+   Current_Token_Location : Errors.Location;
+
+   --  The length of the current line
+   Current_Line_Len : Natural;
+
+   --  The current line in the parsed file
+   Line : String (1 .. 2047);
+
+   --  The current offset on the line. (The offset is due to
+   --  tabulations)
+   Offset : Natural;
+
+   --  The current position of the mark in the line. The mark
+   --  is used to memorize the begining of an identifier for
+   --  example.
+   Mark_Pos : Natural;
+
+
+   --  sets the location of the current token
+   --  actually only sets the line and column number
+   procedure Set_Token_Location is
+   begin
+      Current_Token_Location.Filename := Current_Location.Filename;
+      Current_Token_Location.Line := Current_Location.Line;
+      Current_Token_Location.Col := Current_Location.Col + Offset - Line'First;
+   end set_token_location;
+
+   --  returns the real location in the parsed file. The word real
+   --  means that the column number was changed to take the
+   --  tabulations into account
+   function Get_Real_Location return Errors.Location is
+   begin
+      return (Filename => Current_Location.Filename,
+              Line => Current_Location.Line,
+              Col => Current_Location.Col + Offset - Line'First);
+   end Get_Real_Location;
 
    --  Reads the next line
    procedure Read_Line is
    begin
       --  Get next line and append a LF at the end.
-      Ada.Text_Io.Get_Line (Line, Current_State.Line_Len);
-      Current_State.Line_Len := Current_State.Line_Len + 1;
-      Line (Current_State.Line_Len) := Lf;
-      Current_State.Line_Number := Current_State.Line_Number + 1;
-      Col := Line'First;
-      Col_Offset := 0;
-      Token_Col := Col;
-      Mark_Pos := Col;
+      Ada.Text_Io.Get_Line (Line, Current_Line_Len);
+      Current_Line_Len := Current_Line_Len + 1;
+      Line (Current_Line_Len) := Lf;
+      Current_Location.Line := Current_Location.Line + 1;
+      current_location.Col := Line'First;
+      Offset := 0;
+      Mark_Pos := current_location.col;
    end Read_Line;
 
    --  skips current char
    procedure Skip_Char is
    begin
-      Col := Col + 1;
-      if Col > Current_State.Line_Len then
+      current_location.col := current_location.col + 1;
+      if current_location.col > Current_Line_Len then
          Read_Line;
       end if;
    end Skip_Char;
@@ -76,14 +101,14 @@ package body Tokens is
    procedure Skip_Line is
    begin
       Read_Line;
-      Col := Col - 1;
+      current_location.col := current_location.col - 1;
    end Skip_Line;
 
    --  Gets the next char and consume it
    function Next_Char return Character is
    begin
       Skip_Char;
-      return Line (Col);
+      return Line (current_location.col);
    end Next_Char;
 
    --  returns the next char without consuming it
@@ -91,10 +116,10 @@ package body Tokens is
    --  LF and not the first char of the next line
    function View_Next_Char return Character is
    begin
-      if Col = Current_State.Line_Len then
+      if current_location.col = Current_Line_Len then
          return Lf;
       else
-         return Line (Col + 1);
+         return Line (current_location.col + 1);
       end if;
    end View_Next_Char;
 
@@ -103,24 +128,24 @@ package body Tokens is
    --  LF and not the first or second char of the next line
    function View_Next_Next_Char return Character is
    begin
-      if Col > Current_State.Line_Len - 2 then
+      if current_location.col > Current_Line_Len - 2 then
          return Lf;
       else
-         return Line (Col + 2);
+         return Line (current_location.col + 2);
       end if;
    end View_Next_Next_Char;
 
    --  returns the current char
    function Get_Current_Char return Character is
    begin
-      return Line (Col);
+      return Line (current_location.col);
    end Get_Current_Char;
 
    --  calculates the new offset of the column when a tabulation
-   --  occurs
+   --  occurs.
    procedure Refresh_Offset is
    begin
-      Col_Offset := Col_Offset + 8 - (Col + Col_Offset) mod 8;
+      Offset := Offset + 8 - (current_location.col + Offset) mod 8;
    end Refresh_Offset;
 
    --  Skips all spaces.
@@ -155,13 +180,13 @@ package body Tokens is
    --  of the new line
    procedure Set_Mark is
    begin
-      Mark_Pos := Col;
+      Mark_Pos := current_location.col;
    end Set_Mark;
 
    --  gets the text from the mark to the current position
    function Get_Marked_Text return String is
    begin
-      return Line (Mark_Pos .. Col);
+      return Line (Mark_Pos .. current_location.col);
    end Get_Marked_Text;
 
    --  skips the characters until the next ' or the end of the line
@@ -370,8 +395,8 @@ package body Tokens is
    --  'u', followed by one, two, three or four hexadecimal digits.
    function Scan_Char return Idl_Token is
    begin
-      Set_Mark;
       if Next_Char = '\' then
+         Set_Mark;
          case View_Next_Char is
             when 'n' | 't' | 'v' | 'b' | 'r' | 'f'
               | 'a' | '\' | '?' | Quotation =>
@@ -381,7 +406,8 @@ package body Tokens is
                if View_Next_Next_Char /= ''' then
                   Errors.Lexer_Error ("Invalid character : '\', "
                                       & "it should probably be '\\'",
-                                      Errors.Error);
+                                      Errors.Error,
+                                      Get_Real_Location);
                   return T_Error;
                else
                   Skip_Char;
@@ -400,9 +426,12 @@ package body Tokens is
                   Errors.Lexer_Error ("Too much octal digits in "
                                       & "character "
                                       & Get_Marked_Text
-                                      & "', maximum is 3 in a char "
+                                      & ", maximum is 3 in a char "
                                       & "definition",
-                                      Errors.Error);
+                                      Errors.Error,
+                                      Get_Real_Location);
+                  --  skip the '
+                  Skip_Char;
                   return T_Error;
                else
                   return T_Lit_Octal_Char;
@@ -418,9 +447,12 @@ package body Tokens is
                      Errors.Lexer_Error ("Too much hexadecimal digits in "
                                          & "character "
                                          & Get_Marked_Text
-                                         & "', maximum is 2 in a char "
+                                         & ", maximum is 2 in a char "
                                          & "definition",
-                                         Errors.Error);
+                                         Errors.Error,
+                                         Get_Real_Location);
+                     --  skip the '
+                     Skip_Char;
                      return T_Error;
                   else
                      return T_Lit_Hexa_Char;
@@ -428,9 +460,11 @@ package body Tokens is
                else
                   Go_To_End_Of_Char;
                   Errors.Lexer_Error ("Invalid hexadecimal character code : "
-                                      & Get_Marked_Text
-                                      & "'",
-                                      Errors.Error);
+                                      & Get_Marked_Text,
+                                      Errors.Error,
+                                      Get_Real_Location);
+                  --  skip the '
+                  Skip_Char;
                   return T_Error;
                end if;
             when 'u' =>
@@ -450,9 +484,12 @@ package body Tokens is
                      Errors.Lexer_Error ("Too much hexadecimal digits in "
                                          & "character "
                                          & Get_Marked_Text
-                                         & "', maximum is 4 in a unicode "
+                                         & ", maximum is 4 in a unicode "
                                          & "char definition",
-                                         Errors.Error);
+                                         Errors.Error,
+                                         Get_Real_Location);
+                     --  skip the '
+                     Skip_Char;
                      return T_Error;
                   else
                      return T_Lit_Unicode_Char;
@@ -460,43 +497,56 @@ package body Tokens is
                else
                   Go_To_End_Of_Char;
                   Errors.Lexer_Error ("Invalid unicode character code : "
-                                        & Get_Marked_Text
-                                        & "'",
-                                        Errors.Error);
+                                      & Get_Marked_Text,
+                                      Errors.Error,
+                                      Get_Real_Location);
+                  --  skip the '
+                  Skip_Char;
                   return T_Error;
                end if;
             when '8' | '9' | 'A' .. 'F' | LC_C .. LC_e =>
                Go_To_End_Of_Char;
                Errors.Lexer_Error ("Invalid octal character code : "
                                    & Get_Marked_Text
-                                   & "'. For hexadecimal codes, use \xhh",
-                                   Errors.Error);
+                                   & ". For hexadecimal codes, use \xhh",
+                                   Errors.Error,
+                                   Get_Real_Location);
+               --  skip the '
+               Skip_Char;
                return T_Error;
             when others =>
                Go_To_End_Of_Char;
                Errors.Lexer_Error ("Invalid definition of character : "
-                                   & Get_Marked_Text
-                                   & "'",
-                                   Errors.Error);
+                                   & Get_Marked_Text,
+                                   Errors.Error,
+                                   Get_Real_Location);
+               --  skip the '
+               Skip_Char;
                return T_Error;
          end case;
       elsif Get_Current_Char = ''' then
+         Set_Mark;
          if View_Next_Char = ''' then
             Errors.Lexer_Error ("Invalid character : ''', "
                                 & "it should probably be '\''",
-                                Errors.Error);
+                                Errors.Error,
+                                Get_Real_Location);
             return T_Error;
          else
             return T_Lit_Simple_Char;
          end if;
       else
+         Set_Mark;
          return T_Lit_Simple_Char;
       end if;
       if Next_Char /= ''' then
          Go_To_End_Of_Char;
          Errors.Lexer_Error ("Invalid character : "
                              & Get_Marked_Text,
-                             Errors.Error);
+                             Errors.Error,
+                             Get_Real_Location);
+         --  skip the '
+         Skip_Char;
          return T_Error;
       end if;
       raise Errors.Internal_Error;
@@ -545,7 +595,8 @@ package body Tokens is
                         Errors.Lexer_Error
                           ("A string literal may not contain"
                            & " the character '\0'",
-                           Errors.Error);
+                           Errors.Error,
+                           Get_Real_Location);
                         return T_Error;
                      end if;
                   when '1' .. '7' =>
@@ -558,7 +609,8 @@ package body Tokens is
                         Go_To_End_Of_String;
                         Errors.Lexer_Error
                           ("bad hexadecimal character in string",
-                           Errors.Error);
+                           Errors.Error,
+                           Get_Real_Location);
                         return T_Error;
                      end if;
                   when LC_U =>
@@ -569,21 +621,24 @@ package body Tokens is
                         Go_To_End_Of_String;
                         Errors.Lexer_Error
                           ("bad unicode character in string",
-                           Errors.Error);
+                           Errors.Error,
+                           Get_Real_Location);
                         return T_Error;
                      end if;
                   when others =>
                      Go_To_End_Of_String;
                      Errors.Lexer_Error
                        ("bad escape sequence in string",
-                        Errors.Error);
+                        Errors.Error,
+                        Get_Real_Location);
                      return T_Error;
                end case;
             when Lf =>
                if Several_Lines = False then
                   Errors.Lexer_Error
                     ("This String goes over several lines",
-                     Errors.Warning);
+                     Errors.Warning,
+                     Get_Real_Location);
                   Several_Lines := True;
                end if;
             when others =>
@@ -596,7 +651,8 @@ package body Tokens is
                              & "of a string, you probably forgot the "
                              & Quotation
                              & " at the end of a string",
-                             Errors.Fatal);
+                             Errors.Fatal,
+                             Get_Real_Location);
          --  This last line will never be reached
          raise Errors.Fatal_Error;
    end Scan_String;
@@ -680,7 +736,8 @@ package body Tokens is
                Errors.Lexer_Error ("Bad identifier or bad case"
                                    & "for idl keyword."
                                    & " I Supposed you meant the keyword.",
-                                   Errors.Error);
+                                   Errors.Error,
+                                   Get_Real_Location);
                return Tok;
          end case;
       end if;
@@ -802,14 +859,16 @@ package body Tokens is
             Errors.Lexer_Error
               ("Invalid identifier name. An identifier cannot begin" &
                " with '_', except if the end is an idl keyword",
-               Errors.Error);
+               Errors.Error,
+               Get_Real_Location);
             return T_Error;
          else
             return T_Identifier;
          end if;
       else
          Errors.Lexer_Error ("Invalid character '_'",
-                             Errors.Error);
+                             Errors.Error,
+                             Get_Real_Location);
          return T_Error;
       end if;
    end Scan_Underscore;
@@ -858,7 +917,8 @@ package body Tokens is
                Errors.Lexer_Error
                  ("cannot handle preprocessor directive in "
                   & "lexer, use -p",  --  FIXME : -p ???
-                  Errors.Error);
+                  Errors.Error,
+                  Get_Real_Location);
                Skip_Line;
             elsif To_Lower (Get_Marked_Text) = "pragma" then
                Skip_Spaces;
@@ -872,7 +932,8 @@ package body Tokens is
                Errors.Lexer_Error
                  ("unknow preprocessor directive : "
                   & Get_Marked_Text & ".",
-                  Errors.Error);
+                  Errors.Error,
+                  Get_Real_Location);
                Skip_Line;
             end if;
          when  '0' .. '9' =>
@@ -882,11 +943,11 @@ package body Tokens is
                Last : Positive;
                package Natural_IO is new Ada.Text_IO.Integer_IO (Natural);
             begin
-               Natural_IO.Get (Line (Col .. Line'Last),
+               Natural_IO.Get (Line (current_location.col .. Line'Last),
                                New_Line_Number,
                                Last);
-               Col := Last;
-               Current_State.Line_Number := New_Line_Number - 1;
+               current_location.col := Last;
+               Current_Location.Line := New_Line_Number - 1;
                Skip_Spaces;
                case View_Next_Char is
                   when Quotation =>
@@ -894,8 +955,8 @@ package body Tokens is
                      Skip_Char;
                      Set_Mark;
                      Go_To_End_Of_String;
-                     Errors.Free (Current_State.File_Name);
-                     Current_State.File_Name
+                     Errors.Free (Current_Location.Filename);
+                     Current_Location.Filename
                        := new String'(Get_Marked_Text);
                      Skip_Spaces;
                      while View_Next_Char /= Lf loop
@@ -924,7 +985,8 @@ package body Tokens is
             return False;
          when others =>
             Errors.Lexer_Error ("bad preprocessor line",
-                                Errors.Error);
+                                Errors.Error,
+                                Get_Real_Location);
             Skip_Line;
       end case;
       return False;
@@ -967,7 +1029,8 @@ package body Tokens is
    begin
       if Filename'Length = 0 then
          Errors.Lexer_Error ("Missing idl file as argument",
-                             Errors.Fatal);
+                             Errors.Fatal,
+                             Get_Real_Location);
       end if;
       Tokens.Keep_Temporary_Files := Keep_Temporary_Files;
       if Preprocess then
@@ -989,7 +1052,8 @@ package body Tokens is
             if Fd = Invalid_FD then
                Errors.Lexer_Error (Ada.Command_Line.Command_Name &
                                    ": cannot create temporary file name",
-                                   Errors.Fatal);
+                                   Errors.Fatal,
+                                   Get_Real_Location);
             end if;
             --  We don't need the fd.
             Close (Fd);
@@ -1002,8 +1066,9 @@ package body Tokens is
                    Spawn_Result);
             if not Spawn_Result then
                Errors.Lexer_Error (Ada.Command_Line.Command_Name &
-                             ": preprocessor failed",
-                             Errors.Fatal);
+                                   ": preprocessor failed",
+                                   Errors.Fatal,
+                                   Get_Real_Location);
             end if;
             Ada.Text_Io.Open (Idl_File,
                               Ada.Text_Io.In_File,
@@ -1026,14 +1091,17 @@ package body Tokens is
                null;
             when Ht =>
                Refresh_Offset;
-               Token_Col := Col + Col_offset;
             when ';' =>
+               Set_Token_Location;
                return T_Semi_Colon;
             when '{' =>
+               Set_Token_Location;
                return T_Left_Cbracket;
             when '}' =>
+               Set_Token_Location;
                return T_Right_Cbracket;
             when ':' =>
+               Set_Token_Location;
                if view_next_char = ':' then
                   Skip_Char;
                   return T_Colon_Colon;
@@ -1041,20 +1109,28 @@ package body Tokens is
                   return T_Colon;
                end if;
             when ',' =>
+               Set_Token_Location;
                return T_Comma;
             when '(' =>
+               Set_Token_Location;
                return T_Left_Paren;
             when ')' =>
+               Set_Token_Location;
                return T_Right_Paren;
             when '=' =>
+               Set_Token_Location;
                return T_Equal;
             when '|' =>
+               Set_Token_Location;
                return T_Bar;
             when '^' =>
+               Set_Token_Location;
                return T_Circumflex;
             when '&' =>
+               Set_Token_Location;
                return T_Ampersand;
             when '<' =>
+               Set_Token_Location;
                if View_Next_Char = '<' then
                   Skip_Char;
                   return T_Less_Less;
@@ -1062,6 +1138,7 @@ package body Tokens is
                   return T_Less;
                end if;
             when '>' =>
+               Set_Token_Location;
                if View_Next_Char = '>' then
                   Skip_Char;
                   return T_Greater_Greater;
@@ -1069,10 +1146,13 @@ package body Tokens is
                   return T_Greater;
                end if;
             when '+' =>
+               Set_Token_Location;
                return T_Plus;
             when '-' =>
+               Set_Token_Location;
                return T_Minus;
             when '*' =>
+               Set_Token_Location;
                return T_Star;
             when '/' =>
                if View_Next_Char = '/' then
@@ -1086,16 +1166,22 @@ package body Tokens is
                   return T_Slash;
                end if;
             when '%' =>
+               Set_Token_Location;
                return T_Percent;
             when '~' =>
+               Set_Token_Location;
                return T_Tilde;
             when '[' =>
+               Set_Token_Location;
                return T_Left_Sbracket;
             when ']' =>
+               Set_Token_Location;
                return T_Right_Sbracket;
             when '0' .. '9' =>
+               Set_Token_Location;
                return Scan_Numeric;
             when '.' =>
+               Set_Token_Location;
                return Scan_Numeric;
             when 'A' .. 'Z'
               | LC_A .. LC_Z
@@ -1107,14 +1193,19 @@ package body Tokens is
               | LC_O_Oblique_Stroke .. LC_U_Diaeresis
               | LC_German_Sharp_S
               | LC_Y_Diaeresis =>
+               Set_Token_Location;
                return Scan_Identifier;
             when '_' =>
+               Set_Token_Location;
                return Scan_Underscore;
             when ''' =>
+               Set_Token_Location;
                return Scan_Char;
             when Quotation =>
+               Set_Token_Location;
                return Scan_String;
             when Number_Sign =>
+               Set_Token_Location;
                if Scan_Preprocessor then
                   return T_Pragma;
                end if;
@@ -1123,12 +1214,14 @@ package body Tokens is
                   Errors.Lexer_Error ("Invalid character '"
                                       & Get_Current_Char
                                       & "'",
-                                      Errors.Error);
+                                      Errors.Error,
+                                      Get_Real_Location);
                else
                   Errors.Lexer_Error
                     ("Invalid character, ASCII code "
                      & Natural'Image (Character'Pos (Get_Current_Char)),
-                     Errors.Error);
+                     Errors.Error,
+                     Get_Real_Location);
                end if;
                return T_Error;
          end case;
@@ -1151,26 +1244,14 @@ package body Tokens is
    --  methods useful for the parser  --
    -------------------------------------
 
-   --  returns the current location
-   function Get_Location return Errors.Location is
+   --  returns the location of the current token
+   function Get_Lexer_Location return Errors.Location is
    begin
-      return Errors.Location'(Filename => Current_State.File_Name,
-                              Line => Current_State.Line_Number,
-                              Col => Token_Col + Col - Line'First);
-   end Get_Location;
+      return Current_Token_Location;
+   end Get_Lexer_Location;
 
    --  returns the name of the current identifier
-   function Get_Identifier return String is
-   begin
-      return Get_Marked_Text;
-   end Get_Identifier;
-
-   --  returns a literal as a string
-   function Get_Literal return String renames Get_Identifier;
-
-   --  returns the value of the current pragma
-   function Get_Pragma return String renames Get_Identifier;
-
+   function Get_Lexer_String return String renames Get_Marked_Text;
 
    -------------------------
    --  Maybe useless ???  --

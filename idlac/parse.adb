@@ -16,6 +16,7 @@
 --  MA 02111-1307, USA.
 --
 
+with Ada.Unchecked_Deallocation;
 with Tokens; use Tokens;
 with Types; use Types;
 with Errors;
@@ -40,6 +41,9 @@ package body Parse is
 
    --  This is a little buffer to put tokens if we have
    --  to look a bit further than the current_token.
+   --  A second buffer is used to keep the location of each token,
+   --  and a third one for their string value (usefull in case of
+   --  an identifier ou a literal)
 
    --  buffer length
    Buffer_Length : constant Natural := 3;
@@ -47,9 +51,20 @@ package body Parse is
    --  a type for indexes on the buffer
    type Buffer_Index is mod Buffer_Length;
 
-   --  the buffer itself
+   --  definition of a pointer on a string and the associated
+   --  deallocation
+   type String_Ptr is access String;
+   procedure Free_String_Ptr is new Ada.Unchecked_Deallocation
+     (Object => String,
+      Name => String_Ptr);
+
+   --  the buffers themself
    Token_Buffer : array (Buffer_Index) of Idl_Token
      := (others => T_Error);
+   Location_Buffer : array (Buffer_Index) of Errors.location
+     := (others => (Filename => null, Line => 0, Col => 0));
+   String_Buffer : array (Buffer_Index) of String_Ptr
+     := (others => null);
 
    --  index of the current token in the buffer
    Current_Index : Buffer_Index := 0;
@@ -64,14 +79,55 @@ package body Parse is
       return Token_Buffer (Current_Index);
    end Get_Token;
 
+   --  This procedure gets the next token from the lexer and put it
+   --  into the token_buffer. It also gets its location and
+   --  eventually its string representation and put them in the
+   --  corresponding buffers
+   procedure Get_Token_From_Lexer is
+   begin
+      Newest_Index := Newest_Index + 1;
+      Token_Buffer (Newest_Index) := Tokens.Get_Next_Token;
+      Location_Buffer (Newest_Index) := Tokens.Get_Lexer_Location;
+      if String_Buffer (Newest_Index) /= null then
+         Free_String_Ptr (String_Buffer (Newest_Index));
+      end if;
+      case Token_Buffer (Newest_Index) is
+         when T_Lit_Decimal_Integer |
+           T_Lit_Octal_Integer |
+           T_Lit_Hexa_Integer |
+           T_Lit_Simple_Char |
+           T_Lit_Escape_Char |
+           T_Lit_Octal_Char |
+           T_Lit_Hexa_Char |
+           T_Lit_Unicode_Char |
+           T_Lit_Wide_Simple_Char |
+           T_Lit_Wide_Escape_Char |
+           T_Lit_Wide_Octal_Char |
+           T_Lit_Wide_Hexa_Char |
+           T_Lit_Wide_Unicode_Char |
+           T_Lit_Simple_Floating_Point |
+           T_Lit_Exponent_Floating_Point |
+           T_Lit_Pure_Exponent_Floating_Point |
+           T_Lit_String |
+           T_Lit_Wide_String |
+           T_Lit_Simple_Fixed_Point |
+           T_Lit_Floating_Fixed_Point |
+           T_Identifier |
+           T_Pragma =>
+            String_Buffer (Newest_Index) :=
+             new String'(Tokens.Get_Lexer_String);
+         when others =>
+            null;
+      end case;
+   end Get_Token_From_lexer;
+
    --  This procedure consumes a token. If the token was already
    --  in the buffer, it just increases the index. Else, it gets
    --  the next token from the lexer.
    procedure Next_Token is
    begin
       if Current_Index = Newest_Index then
-         Newest_Index := Newest_Index + 1;
-         Token_Buffer (Newest_Index) := Tokens.Get_Next_Token;
+         Get_Token_From_Lexer;
       end if;
       Current_Index := Current_Index + 1;
    end Next_token;
@@ -80,10 +136,51 @@ package body Parse is
    --  lexer without consuming it. It places it in the buffer
    function View_Next_Token return Idl_Token is
    begin
-      Newest_Index := Newest_Index + 1;
-      Token_Buffer (Newest_Index) := Tokens.Get_Next_Token;
+      Get_Token_From_Lexer;
       return Token_Buffer (Newest_Index);
    end View_Next_Token;
+
+   --  Returns the location of the current_token
+   function Get_Token_Location return Errors.Location is
+   begin
+      return Location_Buffer (Current_Index);
+   end Get_Token_Location;
+
+   --  Returns the location of the previous token
+   function Get_Previous_Token_Location return Errors.Location is
+   begin
+      return Location_Buffer (Current_Index - 1);
+   end Get_Previous_Token_Location;
+
+   --  Returns the location of the current_token
+   function Get_Next_Token_Location return Errors.Location is
+   begin
+      return Location_Buffer (Current_Index + 1);
+   end Get_Next_Token_Location;
+
+   --  The next three methods unreference a pointer without any
+   --  verification. that's because the verification is useless
+   --  in this case if this package is correctly written.
+   --  Since these methods are not exported...
+
+   --  Returns the location of the current_token
+   function Get_Token_String return String is
+   begin
+      return String_Buffer (Current_Index).all;
+   end Get_Token_String;
+
+   --  Returns the string of the previous token
+   function Get_Previous_Token_String return String is
+   begin
+      return String_Buffer (Current_Index - 1).all;
+   end Get_Previous_Token_String;
+
+   --  Returns the string of the current_token
+   function Get_Next_Token_String return String is
+   begin
+      return String_Buffer (Current_Index + 1).all;
+   end Get_Next_Token_String;
+
 
    --------------------------
    --  Parsing of the idl  --
@@ -161,7 +258,7 @@ package body Parse is
 --                Res : N_Lit_Integer_Acc;
 --             begin
 --                Res := new N_Lit_Integer;
---                Res.Lit := new String'(Get_Literal);
+--                Res.Lit := new String'(Tokens.Get_Token_String);
 --                Next_Token;
 --                return N_Root_Acc (Res);
 --             end;
@@ -170,7 +267,7 @@ package body Parse is
 --                Res : N_Lit_Floating_Point_Acc;
 --             begin
 --                Res := new N_Lit_Floating_Point;
---                Res.Lit := new String'(Get_Literal);
+--                Res.Lit := new String'(Tokens.Get_Token_String);
 --                Next_Token;
 --                return N_Root_Acc (Res);
 --             end;
@@ -1204,7 +1301,8 @@ package body Parse is
       else
          Errors.Parser_Error
            ("you should have a bracket on the beginning of an interface",
-            Errors.Error);
+            Errors.Error,
+            Get_Token_Location);
       end if;
       --  Create a scope for the interface.
       Push_Scope (Res);
@@ -1260,7 +1358,7 @@ package body Parse is
       else
          Res.Abst := False;
       end if;
-      Set_Location (Res.all, Get_Location);
+      Set_Location (Res.all, Get_Token_Location);
       Next_Token;
       --  Expect an identifier
       if Get_Token = T_Identifier then
@@ -1278,7 +1376,8 @@ package body Parse is
                Errors.Parser_Error
                  ("The identifier used for the interface is already "
                   & "defined in the same scope",
-                  Errors.Error);
+                  Errors.Error,
+                  Get_Token_Location);
                Fd_Res := null;
             end if;
          else
@@ -1292,7 +1391,8 @@ package body Parse is
       else
          Errors.Parser_Error
            ("you should have an identifier after 'interface'",
-            Errors.Error);
+            Errors.Error,
+            Get_Token_Location);
       end if;
       Next_Token;
       --  Hups, this was just a forward declaration.
@@ -1300,7 +1400,8 @@ package body Parse is
          if Fd_Res /= null then
             Errors.Parser_Error
               ("forward declaration after another one",
-               Errors.Error);
+               Errors.Error,
+               Get_Token_Location);
             return null;
          else
             Fd_Res := new N_Forward_Interface;
@@ -1372,9 +1473,19 @@ package body Parse is
    procedure Parse_Definition (Result : out N_Root_Acc;
                                Success : out Boolean);
 
+   --  Tries to reach the beginning of the next definition.
+   --  Called when the parser encounters an error during the
+   --  parsing of a definition in order to try to continue the
+   --  parsing after the bad definition.
    procedure Go_To_Next_Definition is
    begin
-      null;
+      case Get_Token is
+         when T_Module |
+           T_Interface =>
+            return;
+         when others =>
+            Next_Token;
+      end case;
    end Go_To_Next_Definition;
 
 
@@ -1382,9 +1493,7 @@ package body Parse is
    --  <module> ::= "module" <identifier> "{" <definition>+ "}"
    procedure Parse_Module (Result : out N_Module_Acc;
                            Success : out Boolean) is
-      Location : Errors.Location;
    begin
-      Location := Get_Location;
       --  Is there an identifier ?
       Next_Token;
       case Get_Token is
@@ -1393,7 +1502,8 @@ package body Parse is
                when T_Left_Cbracket =>
                   --  Creation of the node
                   Result := new N_Module;
-                  Types.Set_Location (Result.all, Location);
+                  Types.Set_Location (Result.all,
+                                      Get_Previous_Token_Location);
                   --  try to add the identifier to the scope
                   if not Types.Add_Identifier (Result) then
                      --  there is a name collision with the module name
@@ -1405,7 +1515,8 @@ package body Parse is
                           ("This module name is already defined in" &
                            " this scope : " &
                            Errors.Display_Location (Loc),
-                           Errors.Error);
+                           Errors.Error,
+                           Get_Token_Location);
                      end;
                   end if;
                   --  create a new scope
@@ -1436,18 +1547,32 @@ package body Parse is
                   Pop_Scope;
                   Success := True;
                when others =>
-                  Errors.Parser_Error ("'{' expected. " &
-                                       "This module definition " &
-                                       "will be skipped",
-                                       Errors.Error);
+                  declare
+                     Loc : Errors.Location;
+                  begin
+                     Loc := Get_Token_Location;
+                     Loc.Col := Loc.Col + Get_Token_String'Length + 1;
+                     Errors.Parser_Error ("'{' expected. " &
+                                          "This module definition " &
+                                          "will be skipped",
+                                          Errors.Error,
+                                          Loc);
+                  end;
                   Result := null;
                   Success := False;
             end case;
          when others =>
-            Errors.Parser_Error ("Identifier expected. " &
-                                 "This module definition " &
-                                 "will be skipped",
-                                 Errors.Error);
+            declare
+               Loc : Errors.Location;
+            begin
+               Loc := Get_Previous_Token_Location;
+               Loc.Col := Loc.Col + 7;
+               Errors.Parser_Error ("Identifier expected. " &
+                                    "This module definition " &
+                                    "will be skipped",
+                                    Errors.Error,
+                                    Loc);
+            end;
             Result := null;
             Success := False;
       end case;
@@ -1486,15 +1611,20 @@ package body Parse is
                else
                   Result := null;
                   Success := False;
+                  return;
                end if;
             end;
          when others =>
             Errors.Parser_Error ("definition expected",
-                                 Errors.Fatal);
+                                 Errors.Fatal,
+                                 Get_Token_Location);
             Success := False;
       end case;
       if Get_Token /= T_Semi_Colon then
-         Errors.Parser_Error ("; expected", Errors.Error);
+         Errors.Parser_Error ("';' expected",
+                              Errors.Error,
+                              Get_Token_Location);
+         Success := False;
       else
          Next_Token;
       end if;
@@ -1507,7 +1637,7 @@ package body Parse is
       Result : N_Repository_Acc;
    begin
       Result := new N_Repository;
-      Set_Location (Result.all, Get_Location);
+      Set_Location (Result.all, Get_Token_Location);
       --  The repository is the root scope.
       Push_Scope (Result);
       Next_Token;
@@ -1517,11 +1647,11 @@ package body Parse is
             Definition_Result : Boolean;
          begin
             Parse_Definition (Definition, Definition_Result);
-            if Definition_Result then
-               Append_Node (Result.Contents, Definition);
-               Next_token;
-            else
+            if not Definition_Result then
                Go_To_Next_Definition;
+            end if;
+            if Definition /= null then
+               Append_Node (Result.Contents, Definition);
             end if;
          end;
       end loop;

@@ -32,12 +32,10 @@ begin
            T_Lit_String |
            T_Lit_Wide_String |
            T_Lit_Simple_Fixed_Point |
-           T_Lit_Floating_Fixed_Point =>
-            Ada.Text_Io.Put (" : " & Get_Literal);
-         when T_Identifier =>
-            Ada.Text_Io.Put (" : " & Get_Identifier);
-         when T_Pragma =>
-            Ada.Text_Io.Put (" : " & Get_Pragma);
+           T_Lit_Floating_Fixed_Point |
+           T_Identifier |
+           T_Pragma =>
+            Ada.Text_Io.Put (" : " & Get_Lexer_String & ".");
          when others =>
             null;
       end case;

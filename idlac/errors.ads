@@ -29,11 +29,13 @@ package Errors is
 
    --  deals with a Lexer error, raise it if level is fatal
    procedure Lexer_Error (Message : in String;
-                          Level : in Error_Kind);
+                          Level : in Error_Kind;
+                          Loc : Location);
 
    --  deals with a Parser error, raise it if level is fatal
    procedure Parser_Error (Message : in String;
-                          Level : in Error_Kind);
+                           Level : in Error_Kind;
+                           Loc : in Location);
 
    --  was there any errors ?
    function Is_Error return Boolean;

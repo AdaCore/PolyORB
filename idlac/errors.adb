@@ -1,5 +1,4 @@
 with Ada.Text_Io;
-with Tokens;
 
 package body Errors is
 
@@ -37,10 +36,9 @@ package body Errors is
 
    --  displays an error
    procedure Display_Error (Message : in String;
-                            Level : in Error_Kind) is
-      Loc : Location;
+                            Level : in Error_Kind;
+                            Loc : Location) is
    begin
-      Loc := Tokens.Get_Location;
       case Level is
          when Fatal =>
             Ada.Text_Io.Put ("FATAL ERROR occured");
@@ -66,7 +64,8 @@ package body Errors is
    --  deals with a lexer error
    --  displays the error and, depending of its level, raise it
    procedure Lexer_Error (Message : in String;
-                          Level : in Error_Kind)is
+                          Level : in Error_Kind;
+                          Loc : Errors.Location)is
    begin
       case Level is
          when Fatal =>
@@ -76,7 +75,7 @@ package body Errors is
          when Warning =>
             Warning_Count := Warning_Count + 1;
       end case;
-      Display_Error (Message, Level);
+      Display_Error (Message, Level, Loc);
       if Level = Fatal then
          raise Fatal_Error;
       end if;
@@ -85,7 +84,8 @@ package body Errors is
    --  deals with a parser error
    --  displays the error and, depending of its level, raise it
    procedure Parser_Error (Message : in String;
-                          Level : in Error_Kind)is
+                           Level : in Error_Kind;
+                           Loc : in location)is
    begin
       case Level is
          when Fatal =>
@@ -95,7 +95,7 @@ package body Errors is
          when Warning =>
             Warning_Count := Warning_Count + 1;
       end case;
-      Display_Error (Message, Level);
+      Display_Error (Message, Level, Loc);
       if Level = Fatal then
          raise Fatal_Error;
       end if;

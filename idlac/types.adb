@@ -146,7 +146,7 @@ package body Types is
    function Get_Name (Node : in N_Named'Class) return String is
    begin
       if Node.Definition /= null then
-         return Id_Table.Table (Node.Definition.Id).Definition.Name.all;
+         return Node.Definition.Name.all;
       else
          return "*null*";
       end if;
@@ -254,7 +254,7 @@ package body Types is
    function Find_Identifier_Definition return Identifier_Definition_Acc is
       Index : Uniq_Id;
    begin
-      Index := Get_Identifier (Tokens.Get_Identifier);
+      Index := Get_Identifier (Tokens.Get_Lexer_String);
       return Id_Table.Table (Index).Definition;
    end Find_Identifier_Definition;
 
@@ -304,7 +304,7 @@ package body Types is
       Definition : Identifier_Definition_Acc;
       Index : Uniq_Id;
    begin
-      Index := Get_Identifier (Tokens.Get_Identifier);
+      Index := Get_Identifier (Tokens.Get_Lexer_String);
       Definition := Id_Table.Table (Index).Definition;
       --  Checks if the identifier is not being redefined in the same
       --  scope.
@@ -314,7 +314,7 @@ package body Types is
       end if;
       --  Creates a new definition.
       Definition := new Identifier_Definition;
-      Definition.Name := new String'(Tokens.Get_Identifier);
+      Definition.Name := new String'(Tokens.Get_Lexer_String);
       Definition.Id := Index;
       Definition.Node := N_Named_Acc (Node);
       Definition.Previous_Definition := Id_Table.Table (Index).Definition;

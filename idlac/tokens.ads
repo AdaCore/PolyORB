@@ -203,21 +203,12 @@ package Tokens is
    --  methods useful for the parser  --
    -------------------------------------
 
-   --  Return the location of the current token.
-   function Get_Location return Errors.Location;
+   --  Returns the location of the current_token
+   function Get_Lexer_Location return Errors.Location;
 
-   --  If the current token is an identifier (t_identifier), then return
-   --  its value as a string.
-   function Get_Identifier return String;
-
-   --  If the current token is a literal, returns its value as a
-   --  string.
-   function Get_Literal return String;
-
-   --  If the current token is a pragma, returns its value as a
-   --  string.
-   function Get_Pragma return String;
-
+   --  If the current token is an identifier, a literal or a pragma,
+   --  returns its string value
+   function Get_Lexer_string return String;
 
 
    -----------------------------
