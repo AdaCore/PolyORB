@@ -229,7 +229,7 @@ package PolyORB.Requests is
    --  Set the value of Self's result to Val.
 
    procedure Set_Out_Args
-     (Self  : Request_Access;
+     (Self  :        Request_Access;
       Error : in out Error_Container);
    --  Copy back the values of out and inout arguments
    --  from Out_Args to Args.
@@ -249,7 +249,6 @@ package PolyORB.Requests is
    --  server side, or for a reply, on client side) into A_Args.  If
    --  Can_Extend is set to True and Src_Args contains extra arguments
    --  that are not required by Dst_Args, then they are appended.
-
 
    function Image
      (Req : Request)
