@@ -1,4 +1,4 @@
-SUBDIRS = poa
+SUBDIRS = echo all_types
 
 all::
 	@$(MakeSubdirs)
@@ -8,4 +8,6 @@ export::
 
 clean::
 	@$(MakeSubdirs)
+	$(RM) generic/*.ali generic/*.o generic/*~
+	$(RM) *.ali *.o
 
