@@ -42,7 +42,7 @@ adabe_operation::produce_ads(dep_list& with,string &body, string &previous)
       body += ")\n";
       body += "             " + space + "return "; 
       AST_Decl *b = return_type();
-      body += dynamic_cast<adabe_name *>(b)->dump_name(with, previous) + ";\n";
+      body += dynamic_cast<adabe_name *>(b)->dump_name(with, previous) + " ;\n";
     }
   else
     {
@@ -452,6 +452,42 @@ adabe_operation::return_is_void()
     return true;
   else
     return false;
+}
+
+void
+adabe_operation::produce_marshal_adb(dep_list &with, string &body, string &previous)
+{
+  AST_Decl *res = return_type();
+  adabe_name *result = dynamic_cast<adabe_name *>(res); 
+  if (!result->is_marshal_imported(with))
+    {
+      if (!result->is_already_defined())
+	{
+	  string tmp = "";
+	  result->produce_marshal_adb(with, tmp, previous);
+	  previous += tmp;
+	}
+    }
+
+  UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
+  while (!i.is_done())
+    {
+      AST_Decl *d = i.item();
+      if (d->node_type() == AST_Decl::NT_argument) {
+	adabe_name *dd = dynamic_cast<adabe_argument *>(d);
+	if (!dd->is_marshal_imported(with))
+	  {
+	    if (!dd->is_already_defined())
+	      {
+		string tmp = "";
+		dd->produce_marshal_adb(with, tmp, previous);
+		previous += tmp;
+	      }
+	  }	
+      }
+      else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in operation");
+      i.next();
+    }
 }
 
 

@@ -22,12 +22,12 @@ adabe_union_branch::produce_ads(dep_list& with, string &body, string &previous, 
   if (label()->label_kind() != AST_UnionLabel::UL_default)
     {
       body += produce_disc_value(concrete, label()->label_val());
-      body += " => \n";
+      body += " => \n   ";
     }
   else if (label()->label_kind() == AST_UnionLabel::UL_default)
     {
       body += "others ";
-      body += "=> \n";
+      body += "=> \n   ";
     }
   adabe_field::produce_ads(with, body, previous);   
 }

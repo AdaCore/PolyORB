@@ -24,7 +24,7 @@ adabe_attribute::produce_ads(dep_list& with, string &body, string &previous)
     {
       body += "   procedure Set_" + get_ada_local_name();
       body += "(Self : in Ref ;\n";
-      body += "                  " + space + "To : in ";
+      body += "                   " + space + "To : in ";
       body += name;
       body += ") ;\n";
     }
@@ -215,6 +215,22 @@ adabe_attribute::produce_proxies_adb(dep_list &with, string &body, string &priva
 void
 adabe_attribute::produce_skeleton_adb(dep_list& with, string &body, string &private_definition)
 {
+}
+
+void
+adabe_attribute::produce_marshal_adb(dep_list &with, string &body, string &previous)
+{
+  AST_Decl *d = field_type();
+  adabe_name *e = dynamic_cast<adabe_name *>(d);
+  if (!e->is_marshal_imported(with))
+    {
+      if (!e->is_already_defined())
+	{
+	  string tmp = "";
+	  e->produce_marshal_adb(with, tmp, previous);
+	  previous += tmp;
+	}
+    }
 }
 
 IMPL_NARROW_METHODS1(adabe_attribute, AST_Attribute)

@@ -183,15 +183,7 @@ adabe_union::marshal_name(dep_list& with, string &previous)
     }
   return get_ada_full_name();	   
 }
+
 IMPL_NARROW_METHODS1(adabe_union, AST_Union)
 IMPL_NARROW_FROM_DECL(adabe_union)
 IMPL_NARROW_FROM_SCOPE(adabe_union)
-
-
-
-
-
-
-
-
-
