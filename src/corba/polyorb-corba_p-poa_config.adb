@@ -125,7 +125,7 @@ package body PolyORB.CORBA_P.POA_Config is
 
    begin
       for J in CORBA_Policy_Array'Range loop
-         Policy := CORBA.Policy.Get_Policy_Type (CORBA_Policy_Array (J).all);
+         Policy := CORBA.Policy.Get_Policy_Type (CORBA_Policy_Array (J));
 
          case Policy is
 
@@ -134,7 +134,7 @@ package body PolyORB.CORBA_P.POA_Config is
                   PolicyValue : constant ThreadPolicyValue
                     := Get_Value
                     (PortableServer.ThreadPolicy.To_Ref
-                     (CORBA_Policy_Array (J).all));
+                     (CORBA_Policy_Array (J)));
                begin
                   case PolicyValue is
                      when ORB_CTRL_MODEL =>
@@ -159,7 +159,7 @@ package body PolyORB.CORBA_P.POA_Config is
                   PolicyValue : constant LifespanPolicyValue
                     := Get_Value
                     (PortableServer.LifespanPolicy.To_Ref
-                     (CORBA_Policy_Array (J).all));
+                     (CORBA_Policy_Array (J)));
                begin
                   case PolicyValue is
                      when PortableServer.TRANSIENT =>
@@ -180,7 +180,7 @@ package body PolyORB.CORBA_P.POA_Config is
                   PolicyValue : constant IdUniquenessPolicyValue
                     := Get_Value
                     (PortableServer.IdUniquenessPolicy.To_Ref
-                     (CORBA_Policy_Array (J).all));
+                     (CORBA_Policy_Array (J)));
                begin
                   case PolicyValue is
                      when UNIQUE_ID =>
@@ -201,7 +201,7 @@ package body PolyORB.CORBA_P.POA_Config is
                   PolicyValue : constant IdAssignmentPolicyValue
                     := Get_Value
                     (PortableServer.IdAssignmentPolicy.To_Ref
-                     (CORBA_Policy_Array (J).all));
+                     (CORBA_Policy_Array (J)));
                begin
                   case PolicyValue is
                      when USER_ID =>
@@ -221,7 +221,7 @@ package body PolyORB.CORBA_P.POA_Config is
                   PolicyValue : constant ImplicitActivationPolicyValue
                     := Get_Value
                     (PortableServer.ImplicitActivationPolicy.To_Ref
-                     (CORBA_Policy_Array (J).all));
+                     (CORBA_Policy_Array (J)));
                begin
                   case PolicyValue is
                      when IMPLICIT_ACTIVATION =>
@@ -243,7 +243,7 @@ package body PolyORB.CORBA_P.POA_Config is
                   PolicyValue : constant ServantRetentionPolicyValue
                     := Get_Value
                     (PortableServer.ServantRetentionPolicy.To_Ref
-                     (CORBA_Policy_Array (J).all));
+                     (CORBA_Policy_Array (J)));
                begin
                   case PolicyValue is
                      when RETAIN =>
@@ -265,7 +265,7 @@ package body PolyORB.CORBA_P.POA_Config is
                   PolicyValue : constant RequestProcessingPolicyValue
                     := Get_Value
                     (PortableServer.RequestProcessingPolicy.To_Ref
-                     (CORBA_Policy_Array (J).all));
+                     (CORBA_Policy_Array (J)));
                begin
                   case PolicyValue is
 

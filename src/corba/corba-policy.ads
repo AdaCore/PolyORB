@@ -36,9 +36,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Note: this package specification has been adapted to work around
---  Ada semantics errors present in OMG Ada mapping (version 1.2).
-
 --  $Id$
 
 with CORBA.Object;
@@ -58,8 +55,6 @@ package CORBA.Policy is
    end record;
    --  XXX should be private
 
-   type Ref_Access is access all Ref'Class;
-
    function Get_Policy_Type
      (Self : Ref)
      return PolicyType;
@@ -71,11 +66,12 @@ package CORBA.Policy is
    --  Destroy unneeded
    --    procedure Destroy (Self : Ref);
 
-   --  XXX these two Sequence types should be defined in
-   --  package CORBA !
+   --  Implementation note: these two Sequence types should be defined
+   --  in package CORBA. Yet, this would create circular dependencies
+   --  between CORBA and CORBA.Sequences.
 
    package IDL_Sequence_Policy is new
-     CORBA.Sequences.Unbounded (Ref_Access);
+     CORBA.Sequences.Unbounded (Ref);
 
    subtype PolicyList is IDL_Sequence_Policy.Sequence;
 
