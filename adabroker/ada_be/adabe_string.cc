@@ -231,4 +231,39 @@ string adabe_string::marshal_name (dep_list &with, string &previous)
 
 
 
->>>>>>> 1.8
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
