@@ -1689,8 +1689,8 @@ if test "${with_remsh+set}" = set; then
   RSH="${withval}"
 else
   case "${target}" in
-   hppa*-hp-hpux*)      RSH=remsh;;
-   *)                   RSH=rsh;;
+   hppa*-hp-hpux*)      RSH="remsh -n";;
+   *)                   RSH="rsh -n";;
   esac
 fi
 

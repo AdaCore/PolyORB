@@ -1,11 +1,18 @@
 1998-08-04  Samuel Tardieu  <sam@inf.enst.fr>
 
+	* NEWS: Document the default optimization for gnatdist, as well as 
+	the fact that -n is no longer added onto the command line if
+	--with-remsh is used.
+
 	* configure.in: Use $(ADA) and $(GNATMAKE) instead of "gcc" and
 	"gnatmake" since the user can have selected different programs.
 	Use -O when compiling isthrbio.
 	Build s-gatcop.ads in the current Garlic subdirectory instead of
 	$(srcdir)/Garlic to make it work when using VPATH and multiple
 	architectures sharing the same source directory.
+	Use "rsh -n" and "remsh -n" as default choices, instead of "rsh"
+	and "remsh" (the "-n" is no longer added by System.Garlic.Remote
+	to allow use of other launchers).
 
 1998-08-04  Laurent Pautet  <pautet@scapin.enst.fr>
 

@@ -55,6 +55,11 @@ New Functionnalities
     chunk of memory, while big streams are created on the heap to
     prevent stack blowups.
 
+  * New default flags
+    When no optimization level (-O flag) and no debugging information (-g)
+    are selected, gnatdist defaults to -O2 to get smaller and more
+    efficient executables.
+
 Bug fixes
 ---------
 
@@ -73,6 +78,9 @@ Bug fixes
 
   * GNATDIST now checks that RCI children of a RCI package are configured
     on the same partition.
+
+  * No more "-n" will be added on the command line if --with-remsh has 
+    been chosen at configuration time.
 
 Misc
 ----
