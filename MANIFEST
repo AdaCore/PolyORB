@@ -1104,8 +1104,6 @@ src/polyorb-smart_pointers-initialization.ads
 src/polyorb-smart_pointers.adb
 src/polyorb-smart_pointers.ads
 src/polyorb-sockets.ads
-src/polyorb-sockets_copy.adb.in
-src/polyorb-sockets_copy.ads
 src/polyorb-sockets_initialization.adb
 src/polyorb-sockets_initialization.ads
 src/polyorb-storage_pools.ads

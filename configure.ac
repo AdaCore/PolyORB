@@ -34,8 +34,6 @@ AM_PROG_WORKING_ADA
 AM_CROSS_PROG_WORKING_ADA
 AM_PROG_GNATMAKE
 AM_CROSS_PROG_GNATMAKE
-AM_HAS_GNAT_SOCKETS_COPY
-AM_HAS_GNAT_OS_LIB_CLOSE_WITH_STATUS
 AM_HAS_GNAT_PERFECT_HASH_GENERATORS
 AM_HAS_PRAGMA_PROFILE_RAVENSCAR
 AM_HAS_PRAGMA_PROFILE_WARNINGS
@@ -498,9 +496,8 @@ AC_OUTPUT([
 	src/srp/Makefile
 	src/polyorb-setup-client.adb
 	src/polyorb-setup-server.adb
-	src/polyorb-sockets_copy.adb
-        src/ravenscar.adc
-        src/ravenscar_compatible.adc
+	src/ravenscar.adc
+	src/ravenscar_compatible.adc
 	idls/Makefile
 	idls/cos/Makefile
 	idls/cos/event/Makefile
