@@ -1,5 +1,11 @@
 Fri Feb  7 09:53:09 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
 
+	* xe.ads: Add a new parameter File in Maybe_Most_Recent_Stamp to
+ 	save the file that causes the update of Most_Recent_Stamp.
+
+	* xe.adb, xe_utils.adb, xe_check.adb, xe.adb, xe_parse.adb :
+ 	Update the calls to Maybe_Most_Recent_Stamp.
+
 	* config.sdefault: Break S1, S2 and S3 declaration lines.
 
 	* xe_usage.adb: gnatmake -l has been changed into -M. Propagates

@@ -717,6 +717,7 @@ package XE is
    Main_Source_File   : File_Name_Type := No_Name;
    Main_ALI           : ALI_Id;
    Most_Recent_Stamp  : Time_Stamp_Type;
+   Most_Recent_File   : File_Name_Type;
    --  Several variables related to the main procedure.
 
    Protocol_Name      : Name_Id        := No_Name;
@@ -726,7 +727,9 @@ package XE is
    procedure Write_SLOC (Node : Node_Id);
    --  See Write_Location.
 
-   procedure Maybe_Most_Recent_Stamp (Stamp : Time_Stamp_Type);
+   procedure Maybe_Most_Recent_Stamp
+     (Stamp : Time_Stamp_Type;
+      File  : File_Name_Type);
    --  Maybe set Most_Recent_Stamp.
 
    Verbose_Mode       : Boolean;

@@ -1519,7 +1519,8 @@ package body XE_Parse is
    procedure Parse is
    begin  --  Parse
 
-      Maybe_Most_Recent_Stamp (Source_File_Stamp (Configuration_File));
+      Maybe_Most_Recent_Stamp
+        (Source_File_Stamp (Configuration_File), Configuration_File);
 
       Load_File (Configuration_File);
 

@@ -111,7 +111,7 @@ package body XE_Check is
             --  Use later on to avoid unnecessary bind + link phases.
 
             if Compiled = No_File then
-               Maybe_Most_Recent_Stamp (Stamp);
+               Maybe_Most_Recent_Stamp (Stamp, Compiled);
             end if;
 
          end if;
@@ -132,7 +132,8 @@ package body XE_Check is
 
       if not No_Recompilation then
 
-         Maybe_Most_Recent_Stamp (Source_File_Stamp (Configuration_File));
+         Maybe_Most_Recent_Stamp
+           (Source_File_Stamp (Configuration_File), Configuration_File);
 
          Display_Commands (Verbose_Mode or Building_Script);
          for Switch in Gcc_Switches.First .. Gcc_Switches.Last loop

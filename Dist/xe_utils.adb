@@ -733,7 +733,8 @@ package body XE_Utils is
       Change_Dir (Cache_Dir);
 
       Maybe_Most_Recent_Stamp
-        (Source_File_Stamp (Elaboration_Name & ADB_Suffix));
+        (Source_File_Stamp (Elaboration_Name & ADB_Suffix),
+         Elaboration_Name & ADB_Suffix);
 
       if Opt.Force_Compilations or else
         More_Recent (Elaboration_Name & ADB_Suffix,
@@ -748,7 +749,7 @@ package body XE_Utils is
       end if;
 
       Maybe_Most_Recent_Stamp
-        (Source_File_Stamp (Partition & ADB_Suffix));
+        (Source_File_Stamp (Partition & ADB_Suffix), Partition & ADB_Suffix);
 
       if Opt.Force_Compilations or else
         More_Recent (Partition & ADB_Suffix,
@@ -798,7 +799,8 @@ package body XE_Utils is
 
    procedure Compile_RCI_Caller (Source : File_Name_Type) is
    begin
-      Maybe_Most_Recent_Stamp (Source_File_Stamp (Source));
+      Maybe_Most_Recent_Stamp
+        (Source_File_Stamp (Source), Source);
       Execute_Gcc
         (Source,
          (Caller_Compile_Flag,
@@ -813,7 +815,8 @@ package body XE_Utils is
 
    procedure Compile_RCI_Receiver (Source : File_Name_Type) is
    begin
-      Maybe_Most_Recent_Stamp (Source_File_Stamp (Source));
+      Maybe_Most_Recent_Stamp
+        (Source_File_Stamp (Source), Source);
       Execute_Gcc
         (Source,
          (Receiver_Compile_Flag,
