@@ -82,6 +82,10 @@ package PolyORB.Binding_Data.SOAP is
       Oid : Objects.Object_Id)
      return Profile_Access;
 
+   function Create_Profile
+     (URI : Types.String)
+     return Profile_Access;
+
    function Is_Local_Profile
      (PF : access SOAP_Profile_Factory;
       P : Profile_Access) return Boolean;
@@ -95,6 +99,7 @@ package PolyORB.Binding_Data.SOAP is
     return  Profile_Access;
 
    function Image (Prof : SOAP_Profile_Type) return String;
+   function To_URI (Prof : SOAP_Profile_Type) return String;
 
 private
 

@@ -41,10 +41,10 @@ with PolyORB.Components;
 with PolyORB.Filters;
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
-
 with PolyORB.Obj_Adapters;
 with PolyORB.ORB;
 with PolyORB.Transport;
+with PolyORB.Types;
 
 package body PolyORB.References.Binding is
 
@@ -182,5 +182,25 @@ package body PolyORB.References.Binding is
          end;
       end;
    end Bind;
+
+   function Get_Tagged_Profile
+     (R   : Ref;
+      Tag : Binding_Data.Profile_Tag)
+     return Binding_Data.Profile_Access
+   is
+      use type PolyORB.Types.Unsigned_Long;
+
+      Profiles : constant Profile_Array := Profiles_Of (R);
+   begin
+      for I in Profiles'Range loop
+         if Tag = Get_Profile_Tag (Profiles (I).all) then
+            return Profiles (I);
+         end if;
+      end loop;
+
+      --  XXX here: no matching profile, create a proxy profile.
+
+      return null;
+   end Get_Tagged_Profile;
 
 end PolyORB.References.Binding;

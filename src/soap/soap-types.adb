@@ -35,6 +35,10 @@ with Ada.Exceptions;
 with Ada.Strings.Fixed;
 with Ada.Strings.Unbounded;
 
+with PolyORB.Any.ObjRef;
+with PolyORB.References;
+with PolyORB.References.Binding;
+with PolyORB.Binding_Data.SOAP;
 with PolyORB.Types;
 with PolyORB.Utils;
 
@@ -525,19 +529,20 @@ package body SOAP.Types is
 
    function XML_Record_Image (O : in NamedValue) return String;
    function XML_Enum_Image (O : in NamedValue) return String;
+   function XML_ObjRef_Image (O : in NamedValue) return String;
 
    function XML_Image (O : in NamedValue) return String is
    begin
       case TCK (O.Argument) is
-         --  when Tk_Array =>
-         --  when Tk_Null =>
-         --  XXX see code below.
 
          when Tk_Struct =>
             return XML_Record_Image (O);
 
          when Tk_Enum =>
             return XML_Enum_Image (O);
+
+         when Tk_Objref =>
+            return XML_ObjRef_Image (O);
 
          when Tk_Void =>
             return "<" & To_Standard_String (O.Name)
@@ -629,6 +634,27 @@ package body SOAP.Types is
         & "</" & Tag_Name & ">";
    end XML_Enum_Image;
 
+   function XML_ObjRef_Image (O : in NamedValue) return String is
+      Tag_Name : constant Standard.String
+        := To_Standard_String (O.Name);
+      Ref : constant PolyORB.References.Ref
+        := PolyORB.Any.ObjRef.From_Any (O.Argument);
+      SOAP_Profile : constant PolyORB.Binding_Data.Profile_Access
+        := PolyORB.References.Binding.Get_Tagged_Profile
+        (Ref, PolyORB.Binding_Data.Tag_SOAP);
+
+      use PolyORB.Any;
+      use PolyORB.Binding_Data.SOAP;
+
+   begin
+      return "<" & Tag_Name
+        & " xsi:type="""
+        & To_Standard_String (TypeCode.Id (Get_Type (O.Argument)))
+        & """>"
+        & To_URI (SOAP_Profile_Type (SOAP_Profile.all))
+        & "</" & Tag_Name & ">";
+   end XML_ObjRef_Image;
+
    function XML_Record_Image (O : in NamedValue) return String is
       use Ada.Strings.Unbounded;
 
@@ -698,8 +724,6 @@ package body SOAP.Types is
             return XML_Boolean;
          when Tk_Array =>
             return XML_Array;
-         when Tk_Objref =>
-            return XML_AnyURI;
 
          when others =>
             return "";

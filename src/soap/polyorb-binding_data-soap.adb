@@ -56,6 +56,8 @@ with PolyORB.Representations.CDR;
 with PolyORB.Transport.Sockets;
 with PolyORB.Utils.Strings;
 
+with AWS.URL;
+
 package body PolyORB.Binding_Data.SOAP is
 
    use PolyORB.Buffers;
@@ -195,6 +197,7 @@ package body PolyORB.Binding_Data.SOAP is
 
       TResult : SOAP_Profile_Type
         renames SOAP_Profile_Type (Result.all);
+
    begin
       TResult.Object_Id := new Object_Id'(Oid);
       TResult.Address   := Address_Of
@@ -211,6 +214,39 @@ package body PolyORB.Binding_Data.SOAP is
       end;
 
       return  Result;
+   end Create_Profile;
+
+   function Create_Profile
+     (URI : Types.String)
+     return Profile_Access
+   is
+      use AWS.URL;
+      use Sockets;
+
+      URL : AWS.URL.Object
+        := Parse (To_Standard_String (URI));
+
+      Result : constant Profile_Access
+        := new SOAP_Profile_Type;
+
+      TResult : SOAP_Profile_Type
+        renames SOAP_Profile_Type (Result.all);
+   begin
+      Normalize (URL);
+      begin
+         TResult.Address.Addr := Inet_Addr (Server_Name (URL));
+      exception
+         when Socket_Error =>
+            TResult.Address.Addr
+              := Addresses (Get_Host_By_Name (Server_Name (URL)), 1);
+      end;
+
+      TResult.Address.Port := Port_Type (Positive'(Port (URL)));
+
+      TResult.URI_Path := To_PolyORB_String (AWS.URL.URI (URL));
+      --  XXX do we need to fill in TResult.Oid ?
+
+      return Result;
    end Create_Profile;
 
    function Is_Local_Profile
@@ -370,10 +406,25 @@ package body PolyORB.Binding_Data.SOAP is
    -----------
 
    function Image (Prof : SOAP_Profile_Type) return String is
+      Result : PolyORB.Types.String := To_PolyORB_String
+        ("Address: " & Sockets.Image (Prof.Address));
    begin
-      return "Address : " & Sockets.Image (Prof.Address) &
-        ", Object_Id : " & PolyORB.Objects.Image (Prof.Object_Id.all);
+      if Prof.Object_Id /= null then
+         Append
+           (Result,
+            ", Object_Id : " & PolyORB.Objects.Image
+            (Prof.Object_Id.all));
+      else
+         Append (Result, ", object id not available.");
+      end if;
+      return To_Standard_String (Result);
    end Image;
+
+   function To_URI (Prof : SOAP_Profile_Type) return String is
+   begin
+      return "http://" & Sockets.Image (Prof.Address)
+        & To_Standard_String (Prof.URI_Path);
+   end To_URI;
 
    use PolyORB.Initialization;
    use PolyORB.Initialization.String_Lists;

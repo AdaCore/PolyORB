@@ -37,6 +37,10 @@ with DOM.Core.Nodes;
 with Sax.Readers;
 
 with PolyORB.Any;
+with PolyORB.Any.ObjRef;
+with PolyORB.Binding_Data;
+with PolyORB.Binding_Data.SOAP;
+with PolyORB.References;
 with PolyORB.Types;
 
 with SOAP.Message.Reader;
@@ -81,7 +85,7 @@ package body SOAP.Message.XML is
 
    type Array_State is
      (Void, A_Undefined, A_Int, A_Short, A_UInt, A_UShort,
-      A_UByte, A_Float, A_Double, A_String, A_AnyURI,
+      A_UByte, A_Float, A_Double, A_String,
       A_Boolean, A_Time_Instant, A_Base64);
 
    type Message_Kind is (Payload, Response);
@@ -136,7 +140,7 @@ package body SOAP.Message.XML is
      (N  : in     DOM.Core.Node;
       NV : in out PolyORB.Any.NamedValue);
 
-   procedure Parse_AnyURI
+   procedure Parse_ObjRef
      (N  : in     DOM.Core.Node;
       NV : in out PolyORB.Any.NamedValue);
 
@@ -595,22 +599,24 @@ package body SOAP.Message.XML is
         (NV.Argument, To_PolyORB_String (Node_Value (Value)));
    end Parse_String;
 
-   procedure Parse_AnyURI
+   procedure Parse_ObjRef
      (N  : in     DOM.Core.Node;
       NV : in out PolyORB.Any.NamedValue)
    is
-      Value : DOM.Core.Node;
+      P : PolyORB.Binding_Data.Profile_Access;
+      R : PolyORB.References.Ref;
+      use PolyORB.Any;
    begin
       Normalize (N);
-      Value := First_Child (N);
-      declare
-         A : PolyORB.Any.Any
-           := Get_Empty_Any (PolyORB.Any.TypeCode.TC_Object);
-         --  := To_Any (URI_To_Ref (Node_Value (Value)));
-      begin
-         Copy_Any_Value (NV.Argument, A);
-      end;
-   end Parse_AnyURI;
+      P := PolyORB.Binding_Data.SOAP.Create_Profile
+        (To_PolyORB_String (Node_Value (First_Child (N))));
+      PolyORB.References.Create_Reference
+        (Profiles => (1 => P),
+         Type_Id  => To_Standard_String
+         (TypeCode.Id (Get_Type (NV.Argument))),
+         R        => R);
+      PolyORB.Any.ObjRef.Set_Any_Value (NV.Argument, R);
+   end Parse_ObjRef;
 
    ------------------------
    -- Parse_Time_Instant --
@@ -754,12 +760,14 @@ package body SOAP.Message.XML is
 
                      elsif xsd = Types.XML_String then
                         Parse_String (N, NV);
-                     elsif xsd = Types.XML_AnyURI then
-                        Parse_AnyURI (N, NV);
 
                      elsif xsd = Types.XML_Boolean then
                         Parse_Boolean (N, NV);
-
+                     elsif TypeCode.Kind (Expected_Type) = Tk_Objref
+                       and then xsd
+                       = To_Standard_String (TypeCode.Id (Expected_Type))
+                     then
+                        Parse_ObjRef (N, NV);
                      else
                         Error (N, "Wrong or not supported type");
                      end if;

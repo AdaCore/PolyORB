@@ -584,6 +584,8 @@ src/soap/aws-mime.adb
 src/soap/aws-mime.ads
 src/soap/aws-response.adb
 src/soap/aws-response.ads
+src/soap/aws-url.adb
+src/soap/aws-url.ads
 src/soap/aws.ads
 src/soap/gen_keywords
 src/soap/polyorb-binding_data-soap.adb

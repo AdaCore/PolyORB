@@ -62,4 +62,16 @@ package PolyORB.References.Binding is
    --  Raised when an attempt is made to bind a reference
    --  that is null or has no supported profile.
 
+   function Get_Tagged_Profile
+     (R : Ref;
+      Tag : Binding_Data.Profile_Tag)
+     return Binding_Data.Profile_Access;
+   --  Find a profile in R that matches Tag, and return it.
+   --  If R has no profile with a matching tag, create a
+   --  proxy profile that designates R using this ORB as
+   --  a proxy. If R has no profile matching Tag, and this
+   --  ORB cannot behave as a proxy either, null is returned.
+
+   --  XXX proxy profile creation is not implemented yet.
+
 end PolyORB.References.Binding;
