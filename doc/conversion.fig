@@ -1,0 +1,31 @@
+#FIG 3.2
+Landscape
+Center
+Metric
+A4      
+100.00
+Single
+-2
+1200 2
+2 2 0 1 0 7 0 0 -1 4.000 0 0 -1 0 0 5
+	 5400 5400 9675 5400 9675 8100 5400 8100 5400 5400
+3 2 0 1 0 7 0 0 -1 4.000 0 1 0 3
+	0 0 1.00 60.00 120.00
+	 2475 5400 3150 6750 5175 6750
+	 0.000 -1.000 0.000
+3 2 0 1 0 7 0 0 -1 4.000 0 1 0 5
+	0 0 1.00 60.00 120.00
+	 3375 5175 3375 4500 10800 4500 10800 5850 9900 6075
+	 0.000 -1.000 -1.000 -1.000 0.000
+4 0 0 0 0 0 24 0.0000 4 270 2340 3600 675 Les conversions\001
+4 0 0 0 0 0 24 0.0000 4 315 7785 900 1800 Convertir des r\351f\351rences tout en s'assurant du typage.\001
+4 0 0 0 0 0 18 0.0000 4 240 10200 900 2475 Exemple: convertir une r\351f\351rence g\351n\351rique (obtenue du serveur de nom) dans le type souhait\351.\001
+4 0 0 0 0 0 18 0.0000 4 240 8445 900 3150 V\351rification du typage par l'op\351ration Is_A, qui est g\351n\351r\351e par le compilateur.\001
+4 0 0 0 0 0 18 0.0000 4 240 7650 900 3825 Celle-ci contient la liste de tous les types possibles applicable \340 l'objet.\001
+4 0 0 0 0 0 18 0.0000 4 240 2745 1575 5400 Is_A (Ref, RepositoryID)\001
+4 0 0 0 0 0 18 0.0000 4 240 1635 5625 6075 IDL:ellipse:1.0\001
+4 0 0 0 0 0 18 0.0000 4 180 1575 5625 6525 IDL:cercle:1.0\001
+4 0 0 0 0 0 18 0.0000 4 240 1485 5625 6975 IDL:point:1.0\001
+4 0 0 0 0 0 18 0.0000 4 240 1500 5625 7425 IDL:grobj:1.0\001
+4 0 0 0 0 0 18 0.0000 4 240 3900 5625 7875 IDL:omg.org/CORBA/OBJECT:1.0\001
+4 0 0 0 0 0 18 0.0000 4 240 2715 900 8775 Optimisations \340 pr\351voir...\001

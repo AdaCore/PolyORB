@@ -1,11 +1,19 @@
-with AdaBroker.OmniORB;
+with All_Functions.Skel;
 with CORBA; use CORBA;
 
 package all_functions.Impl is
+   --  My own implementation of echo all_functions object.
+   --  This is simply used to define the operations.
 
-   type Object is new AdaBroker.OmniORB.ImplObject with private;
+   type Object is new All_Functions.Skel.Object with private;
 
-   type Object_Ptr is access all Object;
+   type Object_Acc is access all Object;
+
+private
+
+   type Object is new All_Functions.Skel.Object with record
+      Attribute : Corba.Short ;
+   end record;
 
    function Get_the_attribute
      (Self : access Object)
@@ -129,15 +137,5 @@ package all_functions.Impl is
       a : in CORBA.Short;
       b : in CORBA.Short;
       c : in CORBA.Short);
-
-private
-
-   type Object is new AdaBroker.OmniORB.ImplObject with record
-      Attribute : Corba.Short ;
-   end record;
-
-   procedure Initialize (Self : in out Object);
-   procedure Adjust     (Self : in out Object);
-   procedure Finalize   (Self : in out Object);
 
 end all_functions.Impl;

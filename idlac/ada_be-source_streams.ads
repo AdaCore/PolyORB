@@ -1,5 +1,5 @@
 --  A stream type suitable for generation of Ada source code.
---  $Id: //depot/adabroker/main/idlac/ada_be-source_streams.ads#4 $
+--  $Id: //depot/adabroker/release-1/idlac/ada_be-source_streams.ads#1 $
 
 with Ada.Unchecked_Deallocation;
 with Ada.Finalization;
