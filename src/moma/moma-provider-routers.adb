@@ -297,8 +297,12 @@ package body MOMA.Provider.Routers is
      (Self : access Router;
       Req  : PolyORB.Requests.Request_Access)
    is
-      Args        : PolyORB.Any.NVList.Ref;
-      Operation   : constant String := To_Standard_String (Req.all.Operation);
+      use PolyORB.Any.NVList.Internals;
+      use PolyORB.Any.NVList.Internals.NV_Lists;
+
+      Args      : PolyORB.Any.NVList.Ref;
+      It        : Iterator := First (List_Of (Args).all);
+      Operation : constant String := To_Standard_String (Req.all.Operation);
    begin
       pragma Debug (O ("The router is executing the request:"
                     & PolyORB.Requests.Image (Req.all)));
@@ -311,29 +315,18 @@ package body MOMA.Provider.Routers is
       if Operation = "Publish" then
 
          --  Publish
-
-         declare
-            use PolyORB.Any.NVList.Internals;
-            Args_Sequence  : constant NV_Sequence_Access := List_Of (Args);
-            Message        : PolyORB.Any.Any :=
-              NV_Sequence.Element_Of (Args_Sequence.all, 1).Argument;
-         begin
-            Publish (Self, Message);
-         end;
+         Publish (Self, Value (It).Argument);
 
       elsif Operation = "Register" then
 
          --  Register
 
          declare
-            use PolyORB.Any.NVList.Internals;
-            Args_Sequence  : constant NV_Sequence_Access := List_Of (Args);
-            Router         : constant MOMA.Destinations.Destination :=
-               MOMA.Destinations.From_Any
-                  (NV_Sequence.Element_Of (Args_Sequence.all, 1).Argument);
          begin
-            Req.Result.Argument := To_Any (Create_Destination (Self.all));
-            Add_Router (Self.all, Router);
+            Req.Result.Argument := To_Any
+              (Create_Destination (Self.all));
+            Add_Router (Self.all, MOMA.Destinations.From_Any
+                        (Value (It).Argument));
          end;
 
       elsif Operation = "Route" then
@@ -341,36 +334,38 @@ package body MOMA.Provider.Routers is
          --  Route
 
          declare
-            use PolyORB.Any.NVList.Internals;
-            Args_Sequence  : constant NV_Sequence_Access := List_Of (Args);
-            Message        : constant PolyORB.Any.Any :=
-              NV_Sequence.Element_Of (Args_Sequence.all, 1).Argument;
-            From_Router_Id : constant MOMA.Types.String :=
-              From_Any (NV_Sequence.Element_Of
-                        (Args_Sequence.all, 2).Argument);
+            Message, From_Router_Id : Element_Access;
          begin
-            Publish (Self, Message, From_Router_Id);
+            Message := Value (It);
+            Next (It);
+            From_Router_Id := Value (It);
+            Publish
+              (Self, Message.Argument, From_Any (From_Router_Id.Argument));
          end;
 
       elsif Operation = "Subscribe"
-      or else  Operation = "Unsubscribe" then
+        or else  Operation = "Unsubscribe"
+      then
 
          --  Subscribe / Unsubscribe
 
          declare
-            use PolyORB.Any.NVList.Internals;
-            Args_Sequence  : constant NV_Sequence_Access := List_Of (Args);
-            Topic          : constant MOMA.Destinations.Destination :=
-               MOMA.Destinations.From_Any
-                  (NV_Sequence.Element_Of (Args_Sequence.all, 1).Argument);
-            Pool           : constant MOMA.Destinations.Destination :=
-               MOMA.Destinations.From_Any
-                  (NV_Sequence.Element_Of (Args_Sequence.all, 2).Argument);
+            Topic, Pool : Element_Access;
          begin
+            Topic := Value (It);
+            Next (It);
+            Pool := Value (It);
+
             if Operation = "Subscribe" then
-               Subscribe (Self, Topic, Pool);
+               Subscribe
+                 (Self,
+                  MOMA.Destinations.From_Any (Topic.Argument),
+                  MOMA.Destinations.From_Any (Pool.Argument));
             else
-               Unsubscribe (Self, Topic, Pool);
+               Unsubscribe
+                 (Self,
+                  MOMA.Destinations.From_Any (Topic.Argument),
+                  MOMA.Destinations.From_Any (Pool.Argument));
             end if;
          end;
 

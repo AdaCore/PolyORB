@@ -33,9 +33,9 @@
 --  $Id$
 
 with PolyORB.Any;
-with PolyORB.Sequences.Unbounded;
 with PolyORB.Smart_Pointers;
 with PolyORB.Types;
+with PolyORB.Utils.Chained_Lists;
 
 package PolyORB.Any.NVList is
 
@@ -72,22 +72,19 @@ package PolyORB.Any.NVList is
 
    package Internals is
 
-      --  The actual implementation of an NVList:
-      --  a sequence of NamedValues.
+      --  The actual implementation of an NVList: a chained list of
+      --  NamedValues.
 
-      package NV_Sequence is new PolyORB.Sequences.Unbounded (NamedValue);
-      type NV_Sequence_Access is access all NV_Sequence.Sequence;
-
-      function List_Of (NVList : Ref) return NV_Sequence_Access;
+      package NV_Lists is new PolyORB.Utils.Chained_Lists (NamedValue);
+      type NV_List_Access is access all NV_Lists.List;
+      function List_Of (NVList : Ref) return NV_List_Access;
 
    end Internals;
 
 private
 
-   package NV_Sequence renames Internals.NV_Sequence;
-
    type Object is new PolyORB.Smart_Pointers.Entity with record
-      List : aliased NV_Sequence.Sequence;
+      List : aliased Internals.NV_Lists.List;
    end record;
 
    type Object_Ptr is access all Object;

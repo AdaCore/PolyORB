@@ -113,11 +113,9 @@ package body MOMA.Provider.Message_Handler is
       elsif Operation = "Handle" then
          declare
             use PolyORB.Any.NVList.Internals;
-            Args_Sequence  : constant NV_Sequence_Access := List_Of (Args);
-            Message        : PolyORB.Any.Any :=
-              NV_Sequence.Element_Of (Args_Sequence.all, 1).Argument;
+            use PolyORB.Any.NVList.Internals.NV_Lists;
          begin
-            Handle (Self, Message);
+            Handle (Self, Value (First (List_Of (Args).all)).Argument);
          end;
       end if;
    end Invoke;

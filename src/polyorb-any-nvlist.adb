@@ -40,6 +40,7 @@ package body PolyORB.Any.NVList is
 
    use PolyORB.Log;
    use PolyORB.Types;
+   use Internals;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.any.nvlist");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
@@ -64,8 +65,8 @@ package body PolyORB.Any.NVList is
       pragma Debug (O ("Add_Item (4 params) : ref_counter = "
                        & Positive'Image (Get_Counter (Item))));
 
-      Add_Item (Self, (Name => Item_Name,
-                       Argument => Item,
+      Add_Item (Self, (Name      => Item_Name,
+                       Argument  => Item,
                        Arg_Modes => Item_Flags));
 
       pragma Debug (O ("Add_Item (4 params) : ref_counter = "
@@ -86,7 +87,7 @@ package body PolyORB.Any.NVList is
       pragma Debug (O ("Add_Item (2 params) : enter"));
       pragma Debug (O ("Add_Item (2 params) : ref_counter = "
                        & Positive'Image (Item.Argument.Ref_Counter.all)));
-      NV_Sequence.Append (Obj.List, Item);
+      NV_Lists.Append (Obj.List, Item);
       pragma Debug (O ("Add_Item (2 params) : ref_counter = "
                        & Positive'Image (Item.Argument.Ref_Counter.all)));
       pragma Debug (O ("Add_Item (2 params) : end"));
@@ -116,11 +117,7 @@ package body PolyORB.Any.NVList is
       if Is_Null (Self) then
          return 0;
       else
-         declare
-            Obj : constant Object_Ptr := Object_Ptr (Entity_Of (Self));
-         begin
-            return Types.Long (NV_Sequence.Length (Obj.List));
-         end;
+         return Types.Long (NV_Lists.Length (List_Of (Self).all));
       end if;
    end Get_Count;
 
@@ -139,18 +136,19 @@ package body PolyORB.Any.NVList is
 
    function Image (NVList : Ref) return Standard.String
    is
-      use NV_Sequence;
+      use NV_Lists;
 
       Obj : constant Object_Ptr := Object_Ptr (Entity_Of (NVList));
       Result : Ada.Strings.Unbounded.Unbounded_String;
    begin
       if Obj /= null then
          declare
-            NVs : constant Element_Array := To_Element_Array (Obj.List);
+            It : Iterator := First (Obj.List);
          begin
-            for I in NVs'Range loop
-               Ada.Strings.Unbounded.Append (Result, Image (NVs (I)));
-               if I /= NVs'Last then
+            while not Last (It) loop
+               Ada.Strings.Unbounded.Append (Result, Image (Value (It).all));
+               Next (It);
+               if not Last (It) then
                   Ada.Strings.Unbounded.Append (Result, ' ');
                end if;
             end loop;
@@ -168,7 +166,7 @@ package body PolyORB.Any.NVList is
 
    package body Internals is
 
-      function List_Of (NVList : Ref) return NV_Sequence_Access
+      function List_Of (NVList : Ref) return NV_List_Access
       is
          use type PolyORB.Smart_Pointers.Entity_Ptr;
          Entity : constant PolyORB.Smart_Pointers.Entity_Ptr

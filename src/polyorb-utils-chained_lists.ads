@@ -55,9 +55,11 @@ package PolyORB.Utils.Chained_Lists is
    --  and remove it from the list.
 
    function First (L : List) return Iterator;
+   function First (I : Iterator) return Boolean;
    function Value (I : Iterator) return Element_Access;
-   function Last (I : Iterator) return Boolean;
    procedure Next (I : in out Iterator);
+   function Last (L : List) return Iterator;
+   function Last (I : Iterator) return Boolean;
 
    procedure Prepend (L : in out List; I : T);
    procedure Append (L : in out List; I : T);

@@ -580,8 +580,6 @@ package body PolyORB.Protocols.GIOP is
       Fragment_Next          : out Boolean;
       Sync_Type              : in Sync_Scope)
    is
-      use Internals;
-      use Internals.NV_Sequence;
       use PolyORB.Objects;
       use type PolyORB.Binding_Data.Profile_Access;
 
@@ -1305,17 +1303,17 @@ package body PolyORB.Protocols.GIOP is
    is
       use PolyORB.Any;
       use PolyORB.Any.NVList.Internals;
-      use PolyORB.Any.NVList.Internals.NV_Sequence;
+      use PolyORB.Any.NVList.Internals.NV_Lists;
 
-      List : constant NV_Sequence_Access := List_Of (Args);
-      Arg  : PolyORB.Any.NamedValue;
-      First : Boolean := True;
+      It  : Iterator := First (List_Of (Args).all);
+      Arg : Element_Access;
+
    begin
       pragma Assert
         (Direction = ARG_IN or else Direction = ARG_OUT);
 
-      for I in 1 ..  Get_Count (Args) loop
-         Arg := NV_Sequence.Element_Of (List.all, Positive (I));
+      while not Last (It) loop
+         Arg := Value (It);
          if False
            or else Arg.Arg_Modes = Direction
            or else Arg.Arg_Modes = ARG_INOUT
@@ -1323,12 +1321,12 @@ package body PolyORB.Protocols.GIOP is
             pragma Debug (O ("Marshalling argument "
                              & Types.To_Standard_String (Arg.Name)
                                & " = " & Image (Arg.Argument)));
-            if First then
-               First := False;
+            if First (It) then
                Pad_Align (Buf, First_Arg_Alignment);
             end if;
-            Marshall (Buf, Arg);
+            Marshall (Buf, Arg.all);
          end if;
+         Next (It);
       end loop;
    end Marshall_Argument_List;
 
@@ -1344,38 +1342,26 @@ package body PolyORB.Protocols.GIOP is
    is
       use PolyORB.Any;
       use PolyORB.Any.NVList.Internals;
-      use PolyORB.Any.NVList.Internals.NV_Sequence;
+      use PolyORB.Any.NVList.Internals.NV_Lists;
 
-      List     : constant NV_Sequence_Access := List_Of (Args);
-      Temp_Arg : Any.NamedValue;
-      First : Boolean := True;
+      It  : Iterator := First (List_Of (Args).all);
+      Arg : Element_Access;
    begin
       pragma Assert
         (Direction = ARG_IN or else Direction = ARG_OUT);
 
-      for I in 1 .. Get_Count (Args) loop
-         Temp_Arg :=  NV_Sequence.Element_Of
-           (List.all, Positive (I));
+      while not Last (It) loop
+         Arg := Value (It);
          if False
-           or else Temp_Arg.Arg_Modes = Direction
-           or else Temp_Arg.Arg_Modes = ARG_INOUT
+           or else Arg.Arg_Modes = Direction
+           or else Arg.Arg_Modes = ARG_INOUT
          then
-            if First then
-               First := False;
+            if First (It) then
                Align_Position (Ses.Buffer_In, First_Arg_Alignment);
             end if;
-            Unmarshall_To_Any (Ses.Buffer_In, Temp_Arg.Argument);
+            Unmarshall_To_Any (Ses.Buffer_In, Arg.Argument);
          end if;
-         Copy_Any_Value
-           (NV_Sequence.Element_Of (List.all, Positive (I)).Argument,
-            Temp_Arg.Argument);
-         --          NV_Sequence.Replace_Element
-         --            (List.all, Positive (I), Temp_Arg);
-
-         --  XXX This is very inefficient because of multiple
-         --    copies of an Any. The Unmarshall_To_Any should
-         --    be done in-place on the actual Element_Array
-         --    deep within List...
+         Next (It);
       end loop;
    end Unmarshall_Argument_List;
 

@@ -161,7 +161,7 @@ package body PolyORB.Protocols.SOAP_Pr is
          use PolyORB.Any;
          use PolyORB.Any.NVList;
          use PolyORB.Any.NVList.Internals;
-         use PolyORB.Any.NVList.Internals.NV_Sequence;
+         use PolyORB.Any.NVList.Internals.NV_Lists;
 
          use SOAP.Parameters;
 
@@ -170,20 +170,20 @@ package body PolyORB.Protocols.SOAP_Pr is
            (SOAP.Message.Payload.Object (S.Current_SOAP_Req.all));
          RP : SOAP.Parameters.List;
 
-         Args : constant NV_Sequence_Access
-           := List_Of (R.Args);
-         A : Any.NamedValue;
+         It  : Iterator := First (List_Of (R.Args).all);
+         Arg : Element_Access;
       begin
          SOAP.Message.Payload.Free (S.Current_SOAP_Req);
          RP := +R.Result;
-         for I in 1 .. Get_Count (R.Args) loop
-            A :=  NV_Sequence.Element_Of (Args.all, Positive (I));
+         while not Last (It) loop
+            Arg := Value (It);
             if False
-              or else A.Arg_Modes = ARG_INOUT
-              or else A.Arg_Modes = ARG_OUT
+              or else Arg.Arg_Modes = ARG_INOUT
+              or else Arg.Arg_Modes = ARG_OUT
             then
-               RP := RP & A;
+               RP := RP & Arg.all;
             end if;
+            Next (It);
          end loop;
 
          SOAP.Message.Set_Parameters (RO, RP);
@@ -212,7 +212,7 @@ package body PolyORB.Protocols.SOAP_Pr is
       use PolyORB.Any;
       use PolyORB.Any.NVList;
       use PolyORB.Any.NVList.Internals;
-      use PolyORB.Any.NVList.Internals.NV_Sequence;
+      use PolyORB.Any.NVList.Internals.NV_Lists;
 
       R : constant Requests.Request_Access := S.Pending_Rq;
 

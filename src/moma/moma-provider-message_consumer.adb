@@ -229,7 +229,11 @@ package body MOMA.Provider.Message_Consumer is
      (Self : access Object;
       Req  : in     PolyORB.Requests.Request_Access)
    is
+      use PolyORB.Any.NVList.Internals;
+      use PolyORB.Any.NVList.Internals.NV_Lists;
+
       Args : PolyORB.Any.NVList.Ref;
+      It   : Iterator := First (List_Of (Args).all);
    begin
       pragma Debug (O ("The server is executing the request:"
                        & PolyORB.Requests.Image (Req.all)));
@@ -245,18 +249,9 @@ package body MOMA.Provider.Message_Consumer is
              Arg_Modes => PolyORB.Any.ARG_IN));
          Arguments (Req, Args);
 
-         declare
-            use PolyORB.Any.NVList.Internals;
-            Args_Sequence : constant NV_Sequence_Access
-              := List_Of (Args);
-            Get_Arg : PolyORB.Types.String :=
-              From_Any (NV_Sequence.Element_Of
-                        (Args_Sequence.all, 1).Argument);
-         begin
-            Set_Result (Req, Get (Self.Remote_Ref, Get_Arg));
-
-            pragma Debug (O ("Result: " & Image (Req.Result)));
-         end;
+         Set_Result
+           (Req, Get (Self.Remote_Ref, From_Any (Value (It).Argument)));
+         pragma Debug (O ("Result: " & Image (Req.Result)));
 
       elsif Req.Operation = To_PolyORB_String ("Register_Handler") then
 
@@ -268,25 +263,18 @@ package body MOMA.Provider.Message_Consumer is
          PolyORB.Requests.Arguments (Req, Args);
 
          declare
-            use PolyORB.Any.NVList.Internals;
-            Args_Sequence  : constant NV_Sequence_Access := List_Of (Args);
-
-            Handler_Dest   : constant MOMA.Destinations.Destination :=
-              MOMA.Destinations.From_Any
-              (NV_Sequence.Element_Of (Args_Sequence.all, 1).Argument);
-
-            Handler_Ref    : constant PolyORB.References.Ref :=
-              MOMA.Destinations.Get_Ref (Handler_Dest);
-
-            Behavior_Image : constant PolyORB.Types.String :=
-              From_Any (NV_Sequence.Element_Of
-                        (Args_Sequence.all, 2).Argument);
-
-            Behavior       : constant MOMA.Types.Call_Back_Behavior :=
-              MOMA.Types.Call_Back_Behavior'Value
-              (MOMA.Types.To_Standard_String (Behavior_Image));
+            Handler_Dest, Behavior : Element_Access;
          begin
-            Register_Handler (Self, Handler_Ref, Behavior);
+            Handler_Dest := Value (It);
+            Next (It);
+            Behavior := Value (It);
+            Register_Handler
+              (Self,
+               MOMA.Destinations.Get_Ref
+               (MOMA.Destinations.From_Any (Handler_Dest.Argument)),
+              MOMA.Types.Call_Back_Behavior'Value
+               (MOMA.Types.To_Standard_String
+                (From_Any (Behavior.Argument))));
             pragma Debug (O ("Handler registered"));
          end;
 

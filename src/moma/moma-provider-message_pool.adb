@@ -91,6 +91,8 @@ package body MOMA.Provider.Message_Pool is
       Req  : in     PolyORB.Requests.Request_Access)
    is
       Args : PolyORB.Any.NVList.Ref;
+      use PolyORB.Any.NVList.Internals;
+      use PolyORB.Any.NVList.Internals.NV_Lists;
    begin
       pragma Debug (O ("The server is executing the request:"
                        & PolyORB.Requests.Image (Req.all)));
@@ -106,16 +108,7 @@ package body MOMA.Provider.Message_Pool is
                     Argument  => Get_Empty_Any (TC_MOMA_Message),
                     Arg_Modes => PolyORB.Any.ARG_IN));
          Arguments (Req, Args);
-
-         declare
-            use PolyORB.Any.NVList.Internals;
-            Args_Sequence : constant NV_Sequence_Access
-              := List_Of (Args);
-            Publish_Arg : PolyORB.Any.Any :=
-              NV_Sequence.Element_Of (Args_Sequence.all, 1).Argument;
-         begin
-            Publish (Self, Publish_Arg);
-         end;
+         Publish (Self, Value (First (List_Of (Args).all)).Argument);
 
       elsif Req.Operation = To_PolyORB_String ("Get") then
 
@@ -127,18 +120,9 @@ package body MOMA.Provider.Message_Pool is
                     Arg_Modes => PolyORB.Any.ARG_IN));
          Arguments (Req, Args);
 
-         declare
-            use PolyORB.Any.NVList.Internals;
-            Args_Sequence : constant NV_Sequence_Access
-              := List_Of (Args);
-            Get_Arg : PolyORB.Types.String :=
-              From_Any (NV_Sequence.Element_Of
-                        (Args_Sequence.all, 1).Argument);
-         begin
-            Req.Result.Argument := Get (Self, Get_Arg);
-
-            pragma Debug (O ("Result: " & Image (Req.Result)));
-         end;
+         Req.Result.Argument := Get
+           (Self, From_Any (Value (First (List_Of (Args).all)).Argument));
+         pragma Debug (O ("Result: " & Image (Req.Result)));
 
       elsif Req.Operation = To_PolyORB_String ("Register_Handler") then
 
@@ -150,28 +134,23 @@ package body MOMA.Provider.Message_Pool is
          PolyORB.Requests.Arguments (Req, Args);
 
          declare
-            use PolyORB.Any.NVList.Internals;
-            Args_Sequence  : constant NV_Sequence_Access := List_Of (Args);
+            It : Iterator := First (List_Of (Args).all);
 
-            Handler_Dest   : constant MOMA.Destinations.Destination :=
-              MOMA.Destinations.From_Any
-              (NV_Sequence.Element_Of (Args_Sequence.all, 1).Argument);
-
-            Handler_Ref    : constant PolyORB.References.Ref :=
-              MOMA.Destinations.Get_Ref (Handler_Dest);
-
-            Behavior_Image : constant PolyORB.Types.String :=
-              From_Any (NV_Sequence.Element_Of
-                        (Args_Sequence.all, 2).Argument);
-
-            Behavior       : constant MOMA.Types.Call_Back_Behavior :=
-              MOMA.Types.Call_Back_Behavior'Value
-              (MOMA.Types.To_Standard_String (Behavior_Image));
+            Handler_Dest, Behavior : Element_Access;
          begin
-            Register_Handler (Self, Handler_Ref, Behavior);
-            pragma Debug (O ("Registered message handler, behavior is " &
-                             MOMA.Types.Call_Back_Behavior'Image
-                             (Self.Behavior)));
+            Handler_Dest := Value (It);
+            Next (It);
+            Behavior     := Value (It);
+
+            Register_Handler
+              (Self,
+               MOMA.Destinations.Get_Ref
+               (MOMA.Destinations.From_Any (Handler_Dest.Argument)),
+               MOMA.Types.Call_Back_Behavior'Value
+               (MOMA.Types.To_Standard_String
+                (From_Any (Behavior.Argument))));
+
+            pragma Debug (O ("Registered message handler"));
          end;
       else
          pragma Debug (O ("Unrecognized request "

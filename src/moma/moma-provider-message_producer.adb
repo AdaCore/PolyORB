@@ -173,12 +173,11 @@ package body MOMA.Provider.Message_Producer is
 
          declare
             use PolyORB.Any.NVList.Internals;
-            Args_Sequence : constant NV_Sequence_Access
-              := List_Of (Args);
-            Publish_Arg : PolyORB.Any.Any :=
-              NV_Sequence.Element_Of (Args_Sequence.all, 1).Argument;
+            use PolyORB.Any.NVList.Internals.NV_Lists;
          begin
-            Publish (Self.Remote_Ref, Publish_Arg);
+            Publish
+              (Self.Remote_Ref,
+               Value (First (List_Of (Args).all)).Argument);
          end;
 
       end if;

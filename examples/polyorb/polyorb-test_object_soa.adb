@@ -119,26 +119,26 @@ package body PolyORB.Test_Object_SOA is
    function Execute_Servant
      (Obj : access My_Object;
       Msg : Components.Message'Class)
-     return Components.Message'Class is
+     return Components.Message'Class
+   is
       use PolyORB.Any.NVList;
       use PolyORB.Any.NVList.Internals;
+      use PolyORB.Any.NVList.Internals.NV_Lists;
+
    begin
       pragma Debug (O ("Handle Message : enter"));
       if Msg in Execute_Request then
          declare
-            Req : Request_Access
-              := Execute_Request (Msg).Req;
-            Args_Sequence :
-              constant PolyORB.Any.NVList.Internals.NV_Sequence_Access
-              := PolyORB.Any.NVList.Internals.List_Of (Req.all.Args);
+            Req : Request_Access renames Execute_Request (Msg).Req;
+            It  : Iterator := First (List_Of (Req.Args).all);
          begin
             pragma Debug (O ("The server is executing the request:"
                              & PolyORB.Requests.Image (Req.all)));
-            if Req.all.Operation = To_PolyORB_String ("echoString") then
+
+            if Req.Operation = To_PolyORB_String ("echoString") then
                declare
-                  echoString_Arg : Types.String :=
-                    From_Any (NV_Sequence.Element_Of
-                              (Args_Sequence.all, 1).Argument);
+                  echoString_Arg : constant Types.String
+                    := From_Any (Value (It).Argument);
                begin
                   pragma Debug (O ("Echoing in task "
                     & PolyORB.Tasking.Threads.Image
@@ -148,27 +148,25 @@ package body PolyORB.Test_Object_SOA is
                   pragma Debug (O ("Result: " & Image (Req.Result)));
                end;
             elsif
-              Req.all.Operation = To_PolyORB_String ("waitAndEchoString")
+              Req.Operation = To_PolyORB_String ("waitAndEchoString")
             then
                declare
-                  waitAndEchoString_Arg1 : Types.String :=
-                    From_Any (NV_Sequence.Element_Of
-                              (Args_Sequence.all, 1).Argument);
-                  waitAndEchoString_Arg2 : constant Types.Long :=
-                    From_Any (NV_Sequence.Element_Of
-                              (Args_Sequence.all, 2).Argument);
+                  Arg1, Arg2 : Element_Access;
                begin
+                  Arg1 := Value (It);
+                  Next (It);
+                  Arg2 := Value (It);
+
                   Req.Result.Argument := To_Any
                     (waitAndEchoString (Obj.all,
-                                        waitAndEchoString_Arg1,
-                                        waitAndEchoString_Arg2));
+                                        From_Any (Arg1.Argument),
+                                        From_Any (Arg2.Argument)));
                   pragma Debug (O ("Result: " & Image (Req.Result)));
                end;
-            elsif Req.all.Operation = "echoInteger" then
+            elsif Req.Operation = "echoInteger" then
                declare
-                  echoInteger_Arg : constant Types.Long :=
-                    From_Any (NV_Sequence.Element_Of
-                              (Args_Sequence.all, 1).Argument);
+                  echoInteger_Arg : constant Types.Long
+                     := From_Any (Value (It).Argument);
                begin
                   Req.Result.Argument := To_Any
                     (echoInteger (Obj.all, echoInteger_Arg));

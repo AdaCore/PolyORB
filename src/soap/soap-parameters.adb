@@ -40,7 +40,7 @@ package body SOAP.Parameters is
    use PolyORB.Any;
    use PolyORB.Any.NVList;
    use PolyORB.Any.NVList.Internals;
-   use PolyORB.Any.NVList.Internals.NV_Sequence;
+   use PolyORB.Any.NVList.Internals.NV_Lists;
 
    function Argument_Count (P : in List) return Natural is
    begin
@@ -53,13 +53,13 @@ package body SOAP.Parameters is
       use PolyORB.Types;
 
       Arg_Id : constant Identifier := To_PolyORB_String (Name);
-      Args : constant Element_Array := To_Element_Array
-        (List_Of (Ref (P)).all);
+      It : Iterator := First (List_Of (Ref (P)).all);
    begin
-      for I in Args'Range loop
-         if Args (I).Name = Arg_Id then
-            return Args (I);
+      while not Last (It) loop
+         if Value (It).Name = Arg_Id then
+            return Value (It).all;
          end if;
+         Next (It);
       end loop;
 
       raise SOAP.Types.Data_Error;
@@ -68,7 +68,7 @@ package body SOAP.Parameters is
    function Argument (P : in List; N : in Positive)
      return NamedValue is
    begin
-      return Element_Of (List_Of (Ref (P)).all, N);
+      return Element (List_Of (Ref (P)).all, N).all;
    exception
       when others =>
          raise SOAP.Types.Data_Error;

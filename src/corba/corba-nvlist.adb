@@ -97,12 +97,12 @@ package body CORBA.NVList is
      return CORBA.NamedValue
    is
       use PolyORB.Any.NVList.Internals;
-      use PolyORB.Any.NVList.Internals.NV_Sequence;
+      use PolyORB.Any.NVList.Internals.NV_Lists;
    begin
       return
         To_CORBA_NV
-        (Element_Of
-         (List_Of (To_PolyORB_Ref (Self)).all, Integer (Index)));
+        (Element
+         (List_Of (To_PolyORB_Ref (Self)).all, Integer (Index)).all);
    end Item;
 
 end CORBA.NVList;

@@ -92,15 +92,18 @@ package body PolyORB.Test_Object_POA is
    function Execute_Servant
      (Obj : access My_Object;
       Msg : PolyORB.Components.Message'Class)
-     return PolyORB.Components.Message'Class is
+     return PolyORB.Components.Message'Class
+   is
       use PolyORB.Any.NVList;
-      use PolyORB.Any.NVList.Internals;
       use PolyORB.Types;
    begin
       pragma Debug (Output ("Handle Message : enter"));
 
       if Msg in Execute_Request then
          declare
+            use PolyORB.Any.NVList.Internals;
+            use PolyORB.Any.NVList.Internals.NV_Lists;
+
             Req : Request_Access
               := Execute_Request (Msg).Req;
             Args : PolyORB.Any.NVList.Ref;
@@ -115,35 +118,24 @@ package body PolyORB.Test_Object_POA is
                           Arg_Modes => PolyORB.Any.ARG_IN));
                Arguments (Req, Args);
 
-               declare
-                  use PolyORB.Any.NVList.Internals;
-                  Args_Sequence : constant NV_Sequence_Access
-                    := List_Of (Args);
-                  echoString_Arg : PolyORB.Types.String :=
-                    From_Any (NV_Sequence.Element_Of
-                              (Args_Sequence.all, 1).Argument);
-               begin
-                  Req.Result.Argument := To_Any
-                    (echoString (Obj.all, echoString_Arg));
-                  pragma Debug (Output ("Result: " & Image (Req.Result)));
-               end;
+               Req.Result.Argument := To_Any
+                 (echoString
+                  (Obj.all,
+                   From_Any
+                   (Value (First (List_Of (Args).all)).Argument)));
+               pragma Debug (Output ("Result: " & Image (Req.Result)));
+
             elsif Req.all.Operation = "echoInteger" then
                Add_Item (Args, (Name => To_PolyORB_String ("I"),
                                 Argument => Get_Empty_Any (TypeCode.TC_Long),
                                 Arg_Modes => PolyORB.Any.ARG_IN));
                Arguments (Req, Args);
-               declare
-                  use PolyORB.Any.NVList.Internals;
-                  Args_Sequence : constant NV_Sequence_Access
-                    := List_Of (Args);
-                  echoInteger_Arg : constant PolyORB.Types.Long :=
-                    From_Any (NV_Sequence.Element_Of
-                              (Args_Sequence.all, 1).Argument);
-               begin
-                  Req.Result.Argument := To_Any
-                    (echoInteger (Obj.all, echoInteger_Arg));
+
+               Req.Result.Argument := To_Any
+                 (echoInteger
+                  (Obj.all,
+                   From_Any (Value (First (List_Of (Args).all)).Argument)));
                   pragma Debug (Output ("Result: " & Image (Req.Result)));
-               end;
             else
                raise PolyORB.Components.Unhandled_Message;
             end if;

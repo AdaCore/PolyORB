@@ -48,9 +48,9 @@ package body PolyORB.Utils.Chained_Lists is
    ------------
 
    procedure Append (L : in out List; I : T) is
-      End_Of_L : Iterator := (Current => null, Previous => L.Last);
+      L_Last : Iterator := Last (L);
    begin
-      Insert (L, I, Before => End_Of_L);
+      Insert (L, I, Before => L_Last);
    end Append;
 
    ----------------
@@ -148,6 +148,15 @@ package body PolyORB.Utils.Chained_Lists is
       return Iterator'(Current => L.First, Previous => null);
    end First;
 
+   -----------
+   -- First --
+   -----------
+
+   function First (I : Iterator) return Boolean is
+   begin
+      return I.Previous = null;
+   end First;
+
    ------------
    -- Insert --
    ------------
@@ -168,6 +177,15 @@ package body PolyORB.Utils.Chained_Lists is
          L.Last := N;
       end if;
    end Insert;
+
+   ----------
+   -- Last --
+   ----------
+
+   function Last (L : List) return Iterator is
+   begin
+      return Iterator'(Current => null, Previous => L.Last);
+   end Last;
 
    ----------
    -- Last --
@@ -208,9 +226,9 @@ package body PolyORB.Utils.Chained_Lists is
    -------------
 
    procedure Prepend (L : in out List; I : T) is
-      Beginning_Of_L : Iterator := First (L);
+      L_First : Iterator := First (L);
    begin
-      Insert (L, I, Before => Beginning_Of_L);
+      Insert (L, I, Before => L_First);
    end Prepend;
 
    ------------

@@ -152,11 +152,11 @@ package body PolyORB.Requests is
       use PolyORB.Any;
       use PolyORB.Any.NVList;
       use PolyORB.Any.NVList.Internals;
-      use PolyORB.Any.NVList.Internals.NV_Sequence;
+      use PolyORB.Any.NVList.Internals.NV_Lists;
 
-      Src_Arg_Index : Integer := 1;
-      Src_Arg_Count : constant Integer
-        := Integer (Get_Count (Src_Args));
+      Src_It : Iterator := First (List_Of (Src_Args).all);
+      Dst_It : Iterator := First (List_Of (Dst_Args).all);
+
    begin
       pragma Assert (Direction = ARG_IN or else Direction = ARG_OUT);
 
@@ -197,12 +197,11 @@ package body PolyORB.Requests is
       --  (tricky. See how Ada compilers do parameter reconciliation with
       --  support for both named and positional parameter associations.)
 
-      for Dst_Arg_Index in 1 .. Get_Count (Dst_Args) loop
-         --  Index in Args (application layer arguments)
+      while not Last (Dst_It) loop
+
          declare
-            Dst_Arg : NamedValue
-              := Element_Of (List_Of (Dst_Args).all,
-                             Integer (Dst_Arg_Index));
+            Dst_Arg : constant Element_Access := Value (Dst_It);
+
          begin
             if Dst_Arg.Arg_Modes = ARG_INOUT
               or else Dst_Arg.Arg_Modes = Direction
@@ -217,20 +216,19 @@ package body PolyORB.Requests is
 
                loop
                   declare
-                     Src_Arg : constant NamedValue
-                       := Element_Of (List_Of (Src_Args).all, Src_Arg_Index);
+                     Src_Arg : constant Element_Access := Value (Src_It);
                   begin
                      if Ignore_Src_Mode
                        or else Src_Arg.Arg_Modes = ARG_INOUT
                        or else Src_Arg.Arg_Modes = Direction
                      then
                         Copy_Any_Value (Dst_Arg.Argument, Src_Arg.Argument);
-                        Src_Arg_Index := Src_Arg_Index + 1;
+                        Next (Src_It);
                         --  These MUST be type-compatible!
                         exit;
                      else
-                        Src_Arg_Index := Src_Arg_Index + 1;
-                        if Src_Arg_Index > Src_Arg_Count then
+                        Next (Src_It);
+                        if Last (Src_It) then
                            raise Program_Error;
                         end if;
                      end if;
@@ -238,6 +236,7 @@ package body PolyORB.Requests is
 
                end loop;
             end if;
+            Next (Dst_It);
          end;
       end loop;
 

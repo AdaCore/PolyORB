@@ -431,11 +431,13 @@ package body PolyORB.ORB is
 
          if May_Poll
            and then not ORB.Polling
-           and then Monitor_Seqs.Length (ORB.Monitors) > 0
+           and then Monitor_Lists.Length (ORB.Monitors) > 0
          then
             declare
-               Monitors : constant Monitor_Seqs.Element_Array
-                 := Monitor_Seqs.To_Element_Array (ORB.Monitors);
+               use Monitor_Lists;
+
+               It : Monitor_Lists.Iterator := First (ORB.Monitors);
+               Len : constant Integer := Length (ORB.Monitors);
 
                Poll_Interval : constant Duration := 0.1;
                --  XXX Poll_Interval should be configurable.
@@ -443,11 +445,9 @@ package body PolyORB.ORB is
                Timeout : Duration;
 
             begin
-               pragma Debug (O ("# of monitors:"
-                                & Integer'Image
-                                (Monitor_Seqs.Length (ORB.Monitors))));
+               pragma Debug (O ("# of monitors:" & Integer'Image (Len)));
 
-               if Monitors'Length = 1 then
+               if Len = 1 then
                   Timeout := PolyORB.Constants.Forever;
                else
                   Timeout := Poll_Interval;
@@ -455,48 +455,52 @@ package body PolyORB.ORB is
 
                --  ORB.ORB_Lock is held.
 
-               for I in Monitors'Range loop
-                  Set_Status_Blocked (This_Task, Monitors (I));
-
-                  <<Retry>>
-                  ORB.Selector := Monitors (I);
-                  ORB.Polling := True;
-                  ORB.Source_Deleted := False;
-                  Leave (ORB.ORB_Lock);
-
-                  pragma Debug (O ("Run: task " & Image (Current_Task)
-                                        & " about to Check_Sources."));
+               while not Last (It) loop
                   declare
-                     Events : AES_Array
-                       := Check_Sources (Monitors (I), Timeout);
+                     Monitor : constant Asynch_Ev_Monitor_Access
+                       := Value (It).all;
                   begin
+                     Set_Status_Blocked (This_Task, Monitor);
+
+                     <<Retry>>
+                     ORB.Selector := Monitor;
+                     ORB.Polling := True;
+                     ORB.Source_Deleted := False;
+                     Leave (ORB.ORB_Lock);
+
                      pragma Debug (O ("Run: task " & Image (Current_Task)
-                                        & " returned from Check_Sources."));
-                     Enter (ORB.ORB_Lock);
-                     Broadcast (ORB.Polling_Completed);
+                                      & " about to Check_Sources."));
+                     declare
+                        Events : AES_Array
+                          := Check_Sources (Monitor, Timeout);
+                     begin
+                        pragma Debug
+                          (O ("Run: task " & Image (Current_Task)
+                              & " returned from Check_Sources."));
+                        Enter (ORB.ORB_Lock);
+                        Broadcast (ORB.Polling_Completed);
 
-                     ORB.Polling := False;
-                     ORB.Selector := null;
+                        ORB.Polling := False;
+                        ORB.Selector := null;
 
-                     exit Main_Loop when Exit_Now;
+                        exit Main_Loop when Exit_Now;
 
-                     if ORB.Source_Deleted then
-                        --  An asynchronous event source was unregistered while
-                        --  we were blocking, and may now have been destroyed.
-                        goto Retry;
-                     end if;
+                        if ORB.Source_Deleted then
+                           --  An asynchronous event source was
+                           --  unregistered while we were blocking,
+                           --  and may now have been destroyed.
+                           goto Retry;
+                        end if;
 
-                     for J in Events'Range loop
-                        Unregister_Source (Monitors (I).all, Events (J));
-                     end loop;
+                        for J in Events'Range loop
+                           Queue_Event (ORB, Events (J));
+                        end loop;
 
-                     for J in Events'Range loop
-                        Queue_Event (ORB, Events (J));
-                     end loop;
+                        Set_Status_Running (This_Task);
 
-                     Set_Status_Running (This_Task);
-
+                     end;
                   end;
+                  Next (It);
                end loop;
 
                --  ORB.ORB_Lock is held.
@@ -774,16 +778,15 @@ package body PolyORB.ORB is
       pragma Assert (AES /= null);
 
       declare
-         use Monitor_Seqs;
-
-         Monitors : constant Element_Array
-           := To_Element_Array (ORB.Monitors);
+         use Monitor_Lists;
+         It : Iterator := First (ORB.Monitors);
          Success : Boolean;
       begin
          Success := False;
-         for I in Monitors'Range loop
-            Register_Source (Monitors (I), AES, Success);
+         while not Last (It) loop
+            Register_Source (Value (It).all, AES, Success);
             exit when Success;
+            Next (It);
          end loop;
 
          if not Success then

@@ -52,6 +52,7 @@ with PolyORB.Tasking.Condition_Variables;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Task_Info;
 with PolyORB.Transport;
+with PolyORB.Utils.Chained_Lists;
 
 package PolyORB.ORB is
 
@@ -326,9 +327,9 @@ private
 
    type Tasking_Policy_Type is abstract tagged limited null record;
 
-   package Monitor_Seqs is new PolyORB.Sequences.Unbounded
-     (PAE.Asynch_Ev_Monitor_Access);
-   subtype Monitor_Seq is Monitor_Seqs.Sequence;
+   package Monitor_Lists is new PolyORB.Utils.Chained_Lists
+     (PAE.Asynch_Ev_Monitor_Access, PAE."=");
+   subtype Monitor_List is Monitor_Lists.List;
 
    package TAP_Seqs is new PolyORB.Sequences.Unbounded
      (PT.Transport_Access_Point_Access);
@@ -360,7 +361,7 @@ private
       Idle_Counter : Natural;
       --  Number of thread in the Idle State
 
-      Monitors : Monitor_Seq;
+      Monitors : Monitor_List;
       --  The set of asynchronous event monitors to be watched
       --  by ORB tasks.
 
