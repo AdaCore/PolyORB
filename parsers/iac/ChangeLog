@@ -1,5 +1,11 @@
 2004-07-19  Saber Souli  <souli@neraka.enst.fr>
 
+	* backend-be_ada-helpers.adb: Reflecting changes to helper
+	TypeCodes generation introduced by the recent modified API in
+	PolyORB. 
+
+2004-07-19  Saber Souli  <souli@neraka.enst.fr>
+
 	* backend-be_ada-helpers.adb: Generate helpers body. (functions
 	are now empty).  
 
