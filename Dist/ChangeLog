@@ -1,3 +1,26 @@
+2004-02-12  Pascal Obry  <obry@gnat.com>
+
+	* Makefile.in, Makefile.am:
+	(xe_sysdep.adb): Fix typo in Windows/NT reference.
+	(xe_defs.adb): Properly pass $(PSNAME) to b_xe_defs as
+	 expected. This is needed to check for the running platform.
+	Part of work for D211-003.
+
+	* b_xe_defs.adb:
+	Properly generate the code on Windows to look for the registry
+	 information.
+	Minor reformatting.
+	Part of work for D211-003.
+
+	* xe_reg.adb:
+	(Get_GNAT_Version): New routine, returns the GNAT version.
+	(Get_Garlic_Dir): Fix the registry key.
+	Part of work for D211-003.
+
+	* xe_reg.ads:
+	Fix registry key reference in comment.
+	Part of work for D211-003.
+
 2004-02-11  Pascal Obry  <obry@gnat.com>
 
 	* xe_check.adb:
