@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.adb#39 $
+--  $Id: //droopi/main/src/polyorb-any.adb#40 $
 
 with Ada.Exceptions;
 with Ada.Tags;
@@ -1411,6 +1411,9 @@ package body PolyORB.Any is
          when Tk_Value =>
             return "<Any:" & Image (A.The_Type) & ":"
                    & System.Address_Image (A.The_Value.all'Address) & ">";
+         when Tk_Any =>
+            return "<Any:" & Image (Content_Any_Ptr (Get_Value (A)).Value.all)
+                    & ">";
          when others =>
             return "<Any:" & Image (A.The_Type) & ">";
       end case;
