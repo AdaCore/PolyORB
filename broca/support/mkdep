@@ -3,7 +3,8 @@
 # mkdep,v 1.3 1996/04/10 15:41:58 tardieu Exp
 #
 
-FNAME=${1:-Makefile.am}
+PREFIX=$1
+FNAME=${PREFIX}/Makefile.am
 MKDEP="### DO NOT REMOVE THIS LINE, IT IS USED BY MAKEDEPEND ###"
 cp $FNAME $FNAME.bak
 (sed -e "/$MKDEP/,\$d" < $FNAME.bak
@@ -12,7 +13,7 @@ for k in *.ali; do
   i=`echo $k | sed -e 's/\.ali$//'`
   withlist=
   for j in `sed -n -e '/^D /p' $k | awk '{print $2}'`; do
-    if [ -f $j ]; then
+    if [ -f ${PREFIX}/$j ]; then
       withlist="$withlist $j"
     fi
   done
