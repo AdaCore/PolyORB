@@ -45,7 +45,7 @@ with PolyORB.CORBA_P.Naming_Tools; use PolyORB.CORBA_P.Naming_Tools;
 procedure Client is
    Myall_types : all_types.Ref;
    Ok : Boolean;
-   One_Shot : Boolean := Ada.Command_Line.Argument_Count /= 2
+   One_Shot : constant Boolean := Ada.Command_Line.Argument_Count /= 2
                  or else Boolean'Value (Ada.Command_Line.Argument (2));
 begin
    CORBA.ORB.Initialize ("ORB");
@@ -194,12 +194,14 @@ begin
 
       --  Arrays
       declare
-         X : simple_array := (2, 3, 5, 7, 11);
+         X : constant simple_array := (2, 3, 5, 7, 11);
       begin
          Output ("test simple array", echoArray (Myall_types, X) = X);
       end;
       declare
-         M : matrix := ((165, 252, 375), (377, 145, 222), (202, 477, 147));
+         M : constant matrix := ((165, 252, 375),
+                                 (377, 145, 222),
+                                 (202, 477, 147));
       begin
          Output ("test multi-dimensional array",
                  echoMatrix (Myall_types, M) = M);
@@ -217,15 +219,16 @@ begin
          --      echoBigMatrix (Myall_types, B) = B);
       end;
       Output ("test big multi-dimensional array", False);
+
       --  Test bigmatrix produces a server stack overflow.
 
       --  Attributes
       set_myColor (Myall_types, Green);
       Output ("test attribute", get_myColor (Myall_types) = Green);
       declare
-         Counter_First_Value : CORBA.Long
+         Counter_First_Value : constant CORBA.Long
            := get_Counter (Myall_types);
-         Counter_Second_Value : CORBA.Long
+         Counter_Second_Value : constant CORBA.Long
            := get_Counter (Myall_types);
       begin
          Output ("test read-only attribute",
@@ -259,6 +262,7 @@ begin
             null;
       end;
       Output ("test unknown exception", Ok);
+
       --  XXX not implemented.
 
       exit when One_Shot;
