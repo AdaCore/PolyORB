@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.27 $
+//                            $Revision: 1.28 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -272,24 +272,29 @@ adabe_module::produce_impl_ads (dep_list & with,
 	case AST_Decl::NT_interface:
 	  {
 	    adabe_interface *interface = adabe_interface::narrow_from_decl (d);
-	    string interface_previous = "";
-	    string interface_body = "";
-	    string interface_with_string;
-	    dep_list interface_with;
-
-	    interface->produce_impl_ads
-	      (interface_with, interface_body, interface_previous);
-	    interface_with_string = *interface_with.produce ("with ");
-	    
 	    string interface_file_name =
 	      remove_dot (interface->get_ada_full_name ()) + "-impl.ads";
 	    char *lower_case_name = lower (interface_file_name.c_str ());
-	    ofstream interface_file (lower_case_name); 
+
+	    // should I create the impl
+	    if (adabe_global::must_create_impl(lower_case_name))
+	      {	    
+		string interface_previous = "";
+		string interface_body = "";
+		string interface_with_string;
+		dep_list interface_with;
+		
+		interface->produce_impl_ads
+		  (interface_with, interface_body, interface_previous);
+		interface_with_string = *interface_with.produce ("with ");
+		
+		ofstream interface_file (lower_case_name); 
+		interface_file << interface_with_string;
+		interface_file << interface_previous;       
+		interface_file << interface_body;
+		interface_file.close ();
+	      }
 	    delete[] lower_case_name;
-	    interface_file << interface_with_string;
-	    interface_file << interface_previous;       
-	    interface_file << interface_body;
-	    interface_file.close ();
 	  }
 	  
 	  break;
@@ -337,24 +342,29 @@ adabe_module::produce_impl_adb (dep_list & with,
 	case AST_Decl::NT_interface:
 	  {
 	    adabe_interface *interface = adabe_interface::narrow_from_decl (d);
-	    string interface_previous = "";
-	    string interface_body = "";
-	    string interface_with_string;
-	    dep_list interface_with;
-
-	    interface->produce_impl_adb
-	      (interface_with, interface_body, interface_previous);
-	    interface_with_string = *interface_with.produce ("with ");
-	    
 	    string interface_file_name =
 	      remove_dot (interface->get_ada_full_name ()) + "-impl.adb";
 	    char *lower_case_name = lower (interface_file_name.c_str ());
-	    ofstream interface_file (lower_case_name); 
+	    
+	    // should I create the impl
+	    if (adabe_global::must_create_impl(lower_case_name))
+	      {
+		string interface_previous = "";
+		string interface_body = "";
+		string interface_with_string;
+		dep_list interface_with;
+		
+		interface->produce_impl_adb
+		  (interface_with, interface_body, interface_previous);
+		interface_with_string = *interface_with.produce ("with ");
+		
+		ofstream interface_file (lower_case_name); 
+		interface_file << interface_with_string;
+		interface_file << interface_previous;       
+		interface_file << interface_body;
+		interface_file.close ();
+	      }
 	    delete[] lower_case_name;
-	    interface_file << interface_with_string;
-	    interface_file << interface_previous;       
-	    interface_file << interface_body;
-	    interface_file.close ();
 	  }
 	  
 	  break;
@@ -539,26 +549,28 @@ adabe_module::produce_skel_ads (dep_list & with,
 	case AST_Decl::NT_interface:
 	  {
 	    adabe_interface *interface = adabe_interface::narrow_from_decl (d);
-	    string interface_previous = "";
-	    string interface_body = "";
-	    string interface_with_string;
-	    dep_list interface_with;
-
-	    interface->produce_skel_ads 
-	      (interface_with, interface_body, interface_previous);
-	    interface_with_string = *interface_with.produce ("with ");
-	    
 	    string interface_file_name =
 	      remove_dot (interface->get_ada_full_name ()) + "-skel.ads";
 	    char *lower_case_name = lower (interface_file_name.c_str ());
-	    ofstream interface_file (lower_case_name); 
+	    if (adabe_global::must_create_impl(lower_case_name))
+	      {
+		string interface_previous = "";
+		string interface_body = "";
+		string interface_with_string;
+		dep_list interface_with;
+		
+		interface->produce_skel_ads 
+		  (interface_with, interface_body, interface_previous);
+		interface_with_string = *interface_with.produce ("with ");
+		
+		ofstream interface_file (lower_case_name); 
+		interface_file << interface_with_string;
+		interface_file << interface_previous;       
+		interface_file << interface_body;
+		interface_file.close ();
+	      }
 	    delete[] lower_case_name;
-	    interface_file << interface_with_string;
-	    interface_file << interface_previous;       
-	    interface_file << interface_body;
-	    interface_file.close ();
-	  }
-	  
+	  }	
 	  break;
 	default:
 	  break;
@@ -608,36 +620,35 @@ adabe_module::produce_skel_adb (dep_list & with,
 	case AST_Decl::NT_interface:
 	  {
 	    adabe_interface *interface = adabe_interface::narrow_from_decl (d);
-	    string interface_previous = "";
-	    string interface_body = "";
-	    string interface_with_string;
-	    string interface_use_string;
-	    dep_list interface_with;
-
-	    interface->produce_skel_adb
-	      (interface_with, interface_body, interface_previous);
-	    interface_with_string = *interface_with.produce ("with ");
-	    interface_use_string = *interface_with.produce ("use ");
-	    
 	    string interface_file_name =
 	      remove_dot (interface->get_ada_full_name ()) + "-skel.adb";
 	    char *lower_case_name = lower (interface_file_name.c_str ());
-	    ofstream interface_file (lower_case_name); 
+	    if (adabe_global::must_create_impl(lower_case_name))
+	      {
+		string interface_previous = "";
+		string interface_body = "";
+		string interface_with_string;
+		string interface_use_string;
+		dep_list interface_with;
+		
+		interface->produce_skel_adb
+		  (interface_with, interface_body, interface_previous);
+		interface_with_string = *interface_with.produce ("with ");
+		interface_use_string = *interface_with.produce ("use ");
+		
+		ofstream interface_file (lower_case_name); 
+		interface_file << interface_with_string;
+		interface_file << interface_use_string;
+		interface_file << interface_previous;       
+		interface_file << interface_body;
+		interface_file.close ();
+	      }
 	    delete[] lower_case_name;
-	    interface_file << interface_with_string;
-	    interface_file << interface_use_string;
-	    interface_file << interface_previous;       
-	    interface_file << interface_body;
-	    interface_file.close ();
 	  }
-	  
 	  break;
 	default:
 	  break;
 	}
-      if (!true) {
-	body += "end " + get_ada_full_name () + ";";
-      }
     }
 }
 

@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.57 $
+//                            $Revision: 1.58 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -641,26 +641,37 @@ private:
   static adabe_name* pd_adabe_current_file;
   static bool pd_impl_flags;
   // should we produce the implementation files? (true == yes)
-  
+  static bool pd_force_flags;
+  // force the production of stub if impl is true
+
+
 public :
-  static void set_adabe_current_file(adabe_name *new_file) { pd_adabe_current_file = new_file; };
+  static void set_adabe_current_file(adabe_name *new_file);
   // to set the current file which is produced 
 
-  static void set_root(adabe_root *v) { myself = v; };
+  static void set_root(adabe_root *v);
   // set the root from the AST
   
-  static adabe_root *root() { return myself; };
+  static adabe_root *root();
   // which is the root ?
 
-  static adabe_name *adabe_current_file() { return pd_adabe_current_file; };
+  static adabe_name *adabe_current_file();
   // which file is the current file which is produced ?
 
-  static bool impl_flags() { return pd_impl_flags; };
+  static bool impl_flags();
   // to produce the implementation files if true
 
-  static void set_impl_flags(bool set_impl) { pd_impl_flags = set_impl; };
+  static void set_impl_flags(bool set_impl);
   // to set this flags at the parsing (produce the impl?)
-  
+
+  static bool force_flags();
+  // to force the production of the implementation files if true
+
+  static void set_force_flags(bool set_force);
+  // to set this flags at the parsing (produce the impl?)
+
+  static bool must_create_impl(char *file_name); 
+  // must we create the file the file_name as name ?
 };
 
 

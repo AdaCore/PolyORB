@@ -114,6 +114,7 @@ getopt(int num_args, char* const* args, const char* optstring)
 adabe_name* adabe_global::pd_adabe_current_file = NULL;
 adabe_root* adabe_global::myself = NULL; 
 bool adabe_global::pd_impl_flags = false;
+bool adabe_global::pd_force_flags = false;
 
 
 //
@@ -206,7 +207,8 @@ usage()
   std::cerr << GTDEVEL(" -V\t\t\tprints version info then exits\n");
   //  std::cerr << GTDEVEL(" -a\t\t\tgenerates code required by type any\n");
   // std::cerr << GTDEVEL(" -h suffix\t\tspecify suffix for the generated header file(s)\n");
-  std::cerr << GTDEVEL(" -i\t\t\tgenerates empty stubs for the server side (*-impl files)\n");
+  std::cerr << GTDEVEL(" -f\t\t\tassociated to -i flag, force the generation of server side files\n");
+  std::cerr << GTDEVEL(" -i\t\t\tgenerates the server side specific files if they don't exist (*-impl *-skel files)\n");
   //  std::cerr << GTDEVEL(" -l\t\t\tgenerates code required by LifeCycle service\n");
   std::cerr << GTDEVEL(" -m\t\t\tallow modules to be reopened\n");
   //  std::cerr << GTDEVEL(" -s suffix\t\tspecify suffix for the generated stub file(s)\n");
@@ -251,7 +253,7 @@ BE_parse_args(int argc, char **argv)
 
   DRV_cpp_init();
   idl_global->set_prog_name(argv[0]);
-  while ((c = getopt(argc,argv,"D:EI:U:Vuvwmi" /*atlb:*/)) != EOF)
+  while ((c = getopt(argc,argv,"D:EI:U:Vuvwmif" /*atlb:*/)) != EOF)
   // add "b:" if you want to select your back-end
     { 
       switch (c) 
@@ -337,14 +339,18 @@ BE_parse_args(int argc, char **argv)
 	case 'i':
 	  adabe_global::set_impl_flags(true);
 	  break;
+	case 'f':
+	  adabe_global::set_force_flags(true);
+	  break;
 	}
     }
   //  if (be_defined==0)  idl_global->set_be("c"); 
+
   for (; optind < argc; optind++)
     {
       DRV_files[DRV_nfiles++] = argv[optind];
     }
-
+  
 
   if (DRV_nfiles == 0)
     {
