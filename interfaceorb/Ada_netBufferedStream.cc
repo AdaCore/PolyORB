@@ -272,9 +272,3 @@ Ada_netBufferedStream::isReUsingExistingConnection()
     raise_ada_exception ("Call of isReUsingExistingConnection without initialising object.");
   }
 };
-
-
-extern void
-Ada_netBufferedStream::raise_ada_exception (const char *msg);
-// See implementation in omniobject.adb
-

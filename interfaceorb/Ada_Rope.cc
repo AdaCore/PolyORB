@@ -24,7 +24,4 @@ Ada_Rope::Ada_Rope ()
 };
 // default constructor
 
-extern void
-Ada_Rope::raise_ada_exception (const char *msg);
-// See implementation in omniobject.adb
 

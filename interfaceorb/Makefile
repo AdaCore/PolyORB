@@ -102,8 +102,8 @@ Ada_netBufferedStream.o : Ada_netBufferedStream.hh Ada_netBufferedStream.cc
 netbufferedstream.o : netbufferedstream.ads netbufferedstream.adb
 	$(ADA_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) netbufferedstream.adb
 
-corba-object.o : corba-object.ads #corba-object.adb
-	$(ADA_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) corba-object.ads
+corba-object.o : corba-object.ads corba-object.adb
+	$(ADA_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) corba-object.adb
 
 corba-boa.o : corba-boa.ads corba-boa.adb
 	$(ADA_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) corba-boa.adb

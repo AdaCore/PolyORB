@@ -56,11 +56,11 @@ private:
 
   bool Init_Ok;
   // This flag tells whether an init function was called or not
-  
-  void raise_ada_exception (const char *msg);
-  // this function allows C code to raise Ada exception
-  // It is implemented in Ada and only raise a No_Initialisation
-  // exception with the message msg. (see omniropeandkey.ads)
 
 };
+
+extern void raise_ada_exception (const char *msg);
+// this function allows C code to raise Ada exception
+// It is implemented in Ada and only raise a No_Initialisation
+// exception with the message msg. (see corba.ads)
 

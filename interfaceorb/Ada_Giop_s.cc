@@ -69,7 +69,3 @@ Ada_Giop_s::ReplyCompleted()
     raise_ada_exception ("Call of Ada_Giop_s::ReplyCompleted without initialising object.");
   }
 };
-  
-extern void
-Ada_Giop_s::raise_ada_exception (const char *msg);
-// See implementation in giop_s.adb

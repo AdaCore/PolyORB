@@ -189,17 +189,6 @@ private
    -- called each time a Ref object must be trashed
 
 
-   procedure C_Raise_Ada_Exception (Self : in Object'Class ;
-                                    Msg : in Interfaces.C.Strings.Chars_Ptr) ;
-   pragma Export (CPP,C_Raise_Ada_Exception,"raise_ada_exception__14Ada_OmniObjectPCc") ;
-   -- This function allows C code to raise Ada exception
-   -- (see Ada_OmniObject.hh)
-
-   procedure Raise_Ada_Exception (Self : in Object'Class ;
-                                  Msg : in String) ;
-   -- Ada equivalent of C function C_Raise_Ada_Exception
-
-
 end OmniObject ;
 
 

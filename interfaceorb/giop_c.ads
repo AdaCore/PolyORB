@@ -116,16 +116,5 @@ private
    pragma Import (CPP,Constructor,"__10Ada_Giop_c");
    -- wrapped around the C constructor of Ada_Giop_c
 
-
-   procedure C_Raise_Ada_Exception (Self : in Object'Class ;
-                                    Msg : in Interfaces.C.Strings.Chars_Ptr) ;
-   pragma Export (CPP,C_Raise_Ada_Exception,"raise_ada_exception__10Ada_Giop_cPCc") ;
-   -- This function allows C code to raise Ada exception
-   -- (see Ada_Giop_c.hh)
-
-   procedure Raise_Ada_Exception (Self : in Object'Class ;
-                                  Msg : in String) ;
-   -- Ada equivalent of C function C_Raise_Ada_Exception
-
 end Giop_C ;
 

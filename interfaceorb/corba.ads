@@ -16,6 +16,7 @@ with Ada.Exceptions ;
 with Ada.Strings.Unbounded ;
 with Interfaces ;
 with Ada.Unchecked_Deallocation ;
+with Interfaces.C.Strings ;
 
 --I module CORBA {
 package Corba is
@@ -184,6 +185,16 @@ package Corba is
     -- raises the corresponding exception
     -- and stores the Except_Member so
     -- that it can be retrieved with Get_Members
+
+
+    procedure C_Raise_Ada_Exception (Msg : in Interfaces.C.Strings.Chars_Ptr) ;
+    pragma Export (CPP,C_Raise_Ada_Exception,"raise_ada_exception__FPCc") ;
+    -- This function allows C code to raise Ada exception
+    -- (see Ada_Giop_c.hh, Ada_Giop_s.hh, Ada_OmniObject.hh,
+    --  Ada_OmniRopeAndKey.hh, Ada_netBufferedStream.hh)
+
+    procedure Raise_Ada_Exception (Msg : in String) ;
+    -- Ada equivalent of C function C_Raise_Ada_Exception
 
     function To_Corba_String(S: in Standard.String) return Corba.String ;
 

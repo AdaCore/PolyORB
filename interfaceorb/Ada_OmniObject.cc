@@ -129,10 +129,3 @@ extern _CORBA_Boolean dispatch(GIOP_S &,
 			       _CORBA_Boolean response_expected);
 // See implementation in omniobject.adb
   
-extern void
-Ada_OmniObject::raise_ada_exception (const char *msg);
-// See implementation in omniobject.adb
-
-
-
-

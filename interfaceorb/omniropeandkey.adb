@@ -126,35 +126,4 @@ package body OmniRopeAndKey is
       return C_To_Ada_Unsigned_Long (C_Result) ;
    end;
 
-   -- C_Raise_Ada_Exception
-   ------------------------
-   procedure C_Raise_Ada_Exception (Self : in Object'Class ;
-                                    Msg : in Interfaces.C.Strings.Chars_Ptr) is
-      Ada_Msg : String := Interfaces.C.Strings.Value (Msg) ;
-   begin
-      -- argument already tranformed in a Ada type ...
-      -- ... so calls the Ada procedure
-      Raise_Ada_Exception (Self,Ada_Msg) ;
-   end ;
-
-
-   -- Raise_Ada_Exception
-   ----------------------
-   procedure Raise_Ada_Exception (Self : in Object'Class ;
-                                  Msg : in String) is
-   begin
-      Ada.Exceptions.Raise_Exception (Corba.No_Initialisation_Error'Identity,Msg) ;
-   end ;
-
 end OmniRopeAndKey ;
-
-
-
-
-
-
-
-
-
-
-

@@ -43,6 +43,25 @@ package body Corba is
    ----        not in spec, AdaBroker specific             ---
    -----------------------------------------------------------
 
+   -- C_Raise_Ada_Exception
+   ------------------------
+   procedure C_Raise_Ada_Exception (Msg : in Interfaces.C.Strings.Chars_Ptr) is
+      Ada_Msg : String := Interfaces.C.Strings.Value (Msg) ;
+   begin
+      -- argument already tranformed in a Ada type ...
+      -- ... so calls the Ada procedure
+      Raise_Ada_Exception (Ada_Msg) ;
+   end ;
+
+
+   -- Raise_Ada_Exception
+   ----------------------
+   procedure Raise_Ada_Exception (Msg : in String) is
+   begin
+      Ada.Exceptions.Raise_Exception (Corba.No_Initialisation_Error'Identity,Msg) ;
+   end ;
+
+
    -- To_Corba_String
    ------------------
     function To_Corba_String(S: in Standard.String) return Corba.String is

@@ -82,8 +82,3 @@ Ada_Giop_c::RequestCompleted(_CORBA_Boolean skip)
     raise_ada_exception ("Call of Ada_Giop_c::RequestCompleted without initialising object.");
   }
 };
-
-
-extern void
-Ada_Giop_c::raise_ada_exception (const char *msg);
-// See implementation in giop_s.adb

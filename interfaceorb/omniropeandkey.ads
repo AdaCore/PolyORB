@@ -101,16 +101,6 @@ private
    pragma Import (CPP,Constructor,"__14omniRopeAndKey");
    -- wrapped around the C constructor of Rope
 
-   procedure C_Raise_Ada_Exception (Self : in Object'Class ;
-                                    Msg : in Interfaces.C.Strings.Chars_Ptr) ;
-   pragma Export (CPP,C_Raise_Ada_Exception,"raise_ada_exception") ;
-   -- This function allows C code to raise Ada exception
-   -- (see Ada_OmniRopeAndKey.hh)
-
-   procedure Raise_Ada_Exception (Self : in Object'Class ;
-                                  Msg : in String) ;
-   -- Ada equivalent of C function C_Raise_Ada_Exception
-
 end OmniRopeAndKey ;
 
 
