@@ -294,7 +294,7 @@ package body PolyORB.Full_Tasking.Threads is
 begin
    Register_Module
      (Module_Info'
-      (Name => +"full_tasking-threads",
+      (Name => +"full_tasking.threads",
        Conflicts => Empty,
        Depends => Empty,
        Provides => +"tasking.threads",

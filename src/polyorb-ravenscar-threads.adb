@@ -559,7 +559,7 @@ package body PolyORB.Ravenscar.Threads is
 begin
    Register_Module
      (Module_Info'
-      (Name => +"ravenscar-threads",
+      (Name => +"ravenscar.threads",
        Conflicts => Empty,
        Depends => Empty,
        Provides => +"tasking.threads",

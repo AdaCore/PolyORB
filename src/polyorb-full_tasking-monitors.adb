@@ -266,7 +266,7 @@ package body PolyORB.Full_Tasking.Monitors is
 begin
    Register_Module
      (Module_Info'
-      (Name => +"full_tasking-monitors",
+      (Name => +"full_tasking.monitors",
        Conflicts => Empty,
        Depends => Empty,
        Provides => +"tasking.monitors",

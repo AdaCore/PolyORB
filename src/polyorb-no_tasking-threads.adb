@@ -121,7 +121,7 @@ package body PolyORB.No_Tasking.Threads is
       pragma Unreferenced (T);
       pragma Warnings (On);
    begin
-      return "task_id";
+      return "main_task";
    end Image;
 
    -----------------
@@ -186,7 +186,7 @@ package body PolyORB.No_Tasking.Threads is
 begin
    Register_Module
      (Module_Info'
-      (Name => +"no_tasking-threads",
+      (Name => +"no_tasking.threads",
        Conflicts => Empty,
        Depends => Empty,
        Provides => +"tasking.threads",

@@ -396,7 +396,7 @@ package body PolyORB.Ravenscar.Monitors is
 begin
    Register_Module
      (Module_Info'
-      (Name => +"ravenscar-monitors",
+      (Name => +"ravenscar.monitors",
        Conflicts => Empty,
        Depends => Empty,
        Provides => +"tasking.monitors",
