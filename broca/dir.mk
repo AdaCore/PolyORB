@@ -1,4 +1,4 @@
-SUBDIRS = adabroker src examples
+SUBDIRS = adabroker adasockets src examples
 
 all::
 	@$(MakeSubdirs)
