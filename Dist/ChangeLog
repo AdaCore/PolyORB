@@ -1,3 +1,8 @@
+2000-03-25  Laurent Pautet  <pautet@inf.enst.fr>
+
+	* Makefile.am: Fix the previous fix. Makefile.in is automatically
+	built so the fix should appear in Makefile.am.
+
 2000-03-24  Pascal Obry  <obry@gnat.com>
 
 	* Makefile.in: Do not check for build directory for NT version
