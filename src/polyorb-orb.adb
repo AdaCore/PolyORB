@@ -776,7 +776,6 @@ package body PolyORB.ORB is
    is
       Polling : Boolean;
       Polling_Version : Soft_Links.Version_Id;
-      --  True if the
    begin
       Enter (ORB.ORB_Lock.all);
 
