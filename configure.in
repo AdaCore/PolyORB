@@ -76,7 +76,7 @@ AC_ARG_WITH(appli-perso,
   APPLI_LIST=""
   for P in ${withval}
   do
-     if test -d src/${P} -o ${P} = "dsa"
+     if test -d ${srcdir}/src/${P} -o ${P} = "dsa"
      then
         APPLI_LIST="${APPLI_LIST} $P "
      else
