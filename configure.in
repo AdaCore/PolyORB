@@ -97,6 +97,20 @@ AC_ARG_WITH(appli-perso,
 AC_MSG_RESULT(${APPLI_LIST})
 AC_SUBST(APPLI_LIST)
 
+############################################
+# Internal configuration of the IDL compiler
+############################################
+
+AC_ARG_WITH(idl-compiler,
+[  --with-idl-compiler=x  Internal configuration flag],
+[
+  IDLAC=${withval}
+],
+[
+  IDLAC=idlac
+])
+AC_SUBST(IDLAC)
+
 ##########################################
 # Services list.
 ##########################################
@@ -316,10 +330,9 @@ AC_OUTPUT([
 	support/Makefile
 	compilers/Makefile
 	compilers/gnatprfh/Makefile
-	compilers/ciao/Makefile
-	compilers/idlac/Makefile
-	compilers/idlac/testsuite/Makefile
-	compilers/idlac/platform.ads
+	compilers/${IDLAC}/Makefile
+	compilers/${IDLAC}/testsuite/Makefile
+	compilers/${IDLAC}/platform.ads
 	src/Makefile
 	src/corba/Makefile
 	src/dsa/Makefile
