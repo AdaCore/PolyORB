@@ -1,11 +1,12 @@
 *.ali
 *.o
+.gdb_history
 Makefile
 b_*.c
+s-gaosli.ads
+s-gaprco.adb
 s-garcon.ads
+s-garser.adb
 s-gtplsp.ads
 test_startup
-.gdb_history
-s-garser.adb
-s-gaprco.adb
-s-gaosli.ads
+test_threads

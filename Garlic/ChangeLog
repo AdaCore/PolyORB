@@ -1,3 +1,8 @@
+Mon Feb 10 15:11:20 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* test_threads.adb: New file which tries to determine if 
+	  thread-blocking IOs are available on the current target.
+
 Fri Feb  7 17:29:15 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
 
 	* s-parint.ads: Force body elaboration. Workaround to be removed
