@@ -1363,25 +1363,27 @@ package body Idl_Fe.Lexer is
          return T_Eof;
    end Get_Next_Token;
 
-   -------------------------------------
-   --  methods useful for the parser  --
-   -------------------------------------
+   package body Lexer_State is
 
-   --------------------------
-   --  Get_Lexer_Location  --
-   --------------------------
-   function Get_Lexer_Location return Errors.Location is
-   begin
-      pragma Debug (O ("Get_Lexer_Location: filename is " &
-                       Current_Token_Location.Filename.all));
-      return Current_Token_Location;
-   end Get_Lexer_Location;
+      ------------------------
+      -- Get_Lexer_Location --
+      ------------------------
 
-   ------------------------
-   --  Get_Lexer_String  --
-   ------------------------
-   function Get_Lexer_String return String renames Get_Marked_Text;
+      function Get_Lexer_Location return Errors.Location is
+      begin
+         pragma Debug (O ("Get_Lexer_Location: filename is " &
+                          Current_Token_Location.Filename.all));
+         return Current_Token_Location;
+      end Get_Lexer_Location;
 
+      ----------------------
+      -- Get_Lexer_String --
+      ----------------------
+
+      function Get_Lexer_String return String
+        renames Get_Marked_Text;
+
+   end Lexer_State;
 
    ----------------
    -- Preprocess --

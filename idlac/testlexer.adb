@@ -30,6 +30,9 @@ with Idl_Fe.Lexer; use Idl_Fe.Lexer;
 with Errors;
 
 procedure testlexer is
+
+   use Idl_Fe.Lexer.Lexer_State;
+
    Token : Idl_Fe.Lexer.Idl_Token;
 begin
    Idl_Fe.Lexer.Initialize (GNAT.Command_Line.Get_Argument,

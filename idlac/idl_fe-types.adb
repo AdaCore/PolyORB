@@ -64,6 +64,13 @@ package body Idl_Fe.Types is
       Definition : in Identifier_Definition_Acc);
    --  Add an identifier definition to a scope.
 
+   function Find_Inherited_Identifier_Definition
+     (Name : String;
+      Loc  : Errors.Location)
+     return Identifier_Definition_Acc;
+   --  Find the identifier definition in the inherited interface.
+   --  If this identifier is not defined, returns a null pointer.
+
    --------------------------------------
    -- Root of the tree parsed from IDL --
    --------------------------------------
@@ -1029,6 +1036,7 @@ package body Idl_Fe.Types is
 
    function Is_Redefinable
      (Name  : String;
+      Loc   : Errors.Location;
       Scope : Node_Id := No_Node)
      return Boolean is
       A_Definition : Identifier_Definition_Acc;
@@ -1051,7 +1059,7 @@ package body Idl_Fe.Types is
          return False;
       end if;
 
-      A_Definition := Find_Identifier_Definition (Name);
+      A_Definition := Find_Identifier_Definition (Name, Loc);
       if A_Definition /= null then
          pragma Debug (O ("Is_Redefinable: " &
                           "Definition found is " &
@@ -1226,7 +1234,8 @@ package body Idl_Fe.Types is
    --------------------------------
 
    function Find_Identifier_Definition
-     (Name : String)
+     (Name : String;
+      Loc  : Errors.Location)
      return Identifier_Definition_Acc
    is
       Index : Uniq_Id;
@@ -1263,7 +1272,8 @@ package body Idl_Fe.Types is
 
       --  Is the definition inherited?
 
-      Inherited_Definition := Find_Inherited_Identifier_Definition (Name);
+      Inherited_Definition
+        := Find_Inherited_Identifier_Definition (Name, Loc);
       if Inherited_Definition /= null then
          pragma Debug (O ("Find_Identifier_Definition: " &
                           "Inherited definition is of type " &
@@ -1283,10 +1293,13 @@ package body Idl_Fe.Types is
    -- Find_Identifier_Node --
    --------------------------
 
-   function Find_Identifier_Node (Name : String) return Node_Id is
+   function Find_Identifier_Node
+     (Name : String;
+      Loc  : Errors.Location)
+     return Node_Id is
       Definition : Identifier_Definition_Acc;
    begin
-      Definition := Find_Identifier_Definition (Name);
+      Definition := Find_Identifier_Definition (Name, Loc);
       if Definition = null then
          return No_Node;
       else
@@ -1328,6 +1341,8 @@ package body Idl_Fe.Types is
       Definition : Identifier_Definition_Acc;
       Index      : Uniq_Id;
       Scop       : Node_Id;
+      Loc        : constant Errors.Location
+        := Get_Location (Node);
    begin
       if Scope = No_Node then
          Scop := Current_Scope.Scope;
@@ -1339,7 +1354,7 @@ package body Idl_Fe.Types is
 
       --  Check whether the identifier is redefinable
 
-      if not Is_Redefinable (Name, Scop) then
+      if not Is_Redefinable (Name, Loc, Scop) then
          pragma Debug (O ("Add_Identifier: identifier not redefinable"));
          pragma Debug (O2 ("Add_Identifier: end"));
          return False;
@@ -1583,7 +1598,8 @@ package body Idl_Fe.Types is
    --------------------------------------------
 
    function Find_Inherited_Identifier_Definition
-     (Name : String)
+     (Name : String;
+      Loc  : Errors.Location)
      return Identifier_Definition_Acc
    is
       Temp_List   : Node_List := Nil_List;
@@ -1627,7 +1643,7 @@ package body Idl_Fe.Types is
                           " in inheritance: ambiguous " &
                           "reference",
                           Errors.Error,
-                          Idl_Fe.Lexer.Get_Lexer_Location);
+                          Loc);
 
             Result := Definition (Head (Result_List));
       end case;

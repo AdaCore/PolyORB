@@ -1213,7 +1213,7 @@ package body Ada_Be.Expansion is
         & "_" & Img (Integer_Value (Scale (Node)));
 
       Definition : constant Identifier_Definition_Acc
-        := Find_Identifier_Definition (Identifier);
+        := Find_Identifier_Definition (Identifier, Loc);
       Success : Boolean;
 
    begin

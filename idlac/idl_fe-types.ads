@@ -384,22 +384,28 @@ package Idl_Fe.Types is
 
    function Is_Redefinable
      (Name  : String;
+      Loc   : Errors.Location;
       Scope : Node_Id := No_Node)
      return Boolean;
    --  Check if the name is redefinable in Scope or in the current scope
    --  (default). If result is false, means that Find_Identifier_Definition
    --  has a NOT NULL result!
+   --  Loc is the location of the attempted redefinition.
 
    function Find_Identifier_Definition
-     (Name : String)
+     (Name : String;
+      Loc  : Errors.Location)
      return Identifier_Definition_Acc;
-   --  Find the current identifier definition.
-   --  The current identifier is the one just scanned by the lexer
+   --  Find the definition associated with the usage occurence of
+   --  identifier Name located at Loc.
    --  If this identifier is not defined, returns a null pointer.
 
-   function Find_Identifier_Node (Name : String) return Node_Id;
-   --  Find the node corresponding to the current identifier.
-   --  The current identifier is the one just scanned by the lexer
+   function Find_Identifier_Node
+     (Name : String;
+      Loc  : Errors.Location)
+     return Node_Id;
+   --  Find the node associated with the usage occurence of
+   --  identifier Name located at Loc.
    --  If this identifier is not defined, returns a null pointer.
 
    procedure Redefine_Identifier
@@ -443,12 +449,6 @@ package Idl_Fe.Types is
    --  Find the identifier in the scope's parents (in each one recursively)
    --  add the different definitions to the node list
    --  it is useful for looking in the inherited interfaces or value types
-
-   function Find_Inherited_Identifier_Definition
-     (Name : String)
-     return Identifier_Definition_Acc;
-   --  Find the identifier definition in the inherited interface.
-   --  If this identifier is not defined, returns a null pointer.
 
    -----------------------
    -- Identifiers table --

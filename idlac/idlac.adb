@@ -171,12 +171,11 @@ begin
       Rep := Idl_Fe.Parser.Parse_Specification;
 
       if Errors.Is_Error then
-
          Put (Current_Error,
               Natural'Image (Errors.Error_Number)
               & " error(s)");
          if Errors.Is_Warning then
-            Put_Line
+            Put
               (Current_Error,
                " and "
                & Natural'Image (Errors.Warning_Number)
@@ -197,8 +196,9 @@ begin
          end if;
       end if;
 
-      --  Expand tree
+      --  Expand tree. This should not cause any errors!
       Ada_Be.Expansion.Expand_Repository (Rep);
+      pragma Assert (not Errors.Is_Error);
 
       --  Generate code
       Ada_Be.Idl2Ada.Generate

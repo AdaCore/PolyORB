@@ -42,6 +42,10 @@ with Interfaces;
 
 package body Idl_Fe.Parser is
 
+   use Idl_Fe.Lexer.Lexer_State;
+   --  Only the parser may access the current state
+   --  of the lexer.
+
    -----------
    -- Debug --
    -----------
@@ -116,18 +120,18 @@ package body Idl_Fe.Parser is
       return Token_Buffer (Current_Index);
    end Get_Token;
 
-   ----------------------------
-   --  Get_Token_From_Lexer  --
-   ----------------------------
+   --------------------------
+   -- Get_Token_From_Lexer --
+   --------------------------
 
    procedure Get_Token_From_Lexer is
    begin
-      pragma Debug (O ("Get_Token_From_Lexer : enter"));
+      pragma Debug (O ("Get_Token_From_Lexer: enter"));
       Newest_Index := Newest_Index + 1;
       Token_Buffer (Newest_Index) := Idl_Fe.Lexer.Get_Next_Token;
       pragma Debug (O ("Get_Token_From_Lexer : location file is " &
-                       Idl_Fe.Lexer.Get_Lexer_Location.Filename.all));
-      Location_Buffer (Newest_Index) := Idl_Fe.Lexer.Get_Lexer_Location;
+                       Get_Lexer_Location.Filename.all));
+      Location_Buffer (Newest_Index) := Get_Lexer_Location;
       if String_Buffer (Newest_Index) /= null then
          Free_String_Ptr (String_Buffer (Newest_Index));
       end if;
@@ -147,11 +151,11 @@ package body Idl_Fe.Parser is
            T_Identifier |
            T_Pragma =>
             String_Buffer (Newest_Index) :=
-             new String'(Idl_Fe.Lexer.Get_Lexer_String);
+             new String'(Get_Lexer_String);
          when others =>
             String_Buffer (Newest_Index) := null;
       end case;
-      pragma Debug (O ("Get_Token_From_Lexer : end"));
+      pragma Debug (O ("Get_Token_From_Lexer: end"));
    end Get_Token_From_Lexer;
 
    ------------------
@@ -406,7 +410,7 @@ package body Idl_Fe.Parser is
 --    procedure Release_All_Used_Values is
 --       Old_Used_Values : Set_Ptr;
 --    begin
---       pragma Debug (O ("Release_All_Used_Values : enter"));
+--       pragma Debug (O ("Release_All_Used_Values: enter"));
 --       while Used_Values /= null loop
 --          Old_Used_Values := Used_Values;
 --          Used_Values := Used_Values.Next;
@@ -425,7 +429,7 @@ package body Idl_Fe.Parser is
    function Parse_Specification return Node_Id is
       Result : Node_Id;
    begin
-      pragma Debug (O2 ("Parse_Specification : enter"));
+      pragma Debug (O2 ("Parse_Specification: enter"));
       --  first call next_token in order to initialize the location
       Next_Token;
       Result := Make_Repository (Get_Token_Location);
@@ -472,7 +476,7 @@ package body Idl_Fe.Parser is
          end if;
       end;
       Pop_Scope;
-      pragma Debug (O2 ("Parse_Specification : end"));
+      pragma Debug (O2 ("Parse_Specification: end"));
       return Result;
    end Parse_Specification;
 
@@ -483,7 +487,7 @@ package body Idl_Fe.Parser is
      (Result : out Node_Id;
       Success : out Boolean) is
    begin
-      pragma Debug (O2 ("Parse_Definition : enter"));
+      pragma Debug (O2 ("Parse_Definition: enter"));
       case Get_Token is
          when T_Typedef
            | T_Struct
@@ -492,20 +496,20 @@ package body Idl_Fe.Parser is
            | T_Native =>
             Parse_Type_Dcl (Result, Success);
             if not Success then
-               pragma Debug (O2 ("Parse_Definition : end"));
+               pragma Debug (O2 ("Parse_Definition: end"));
                return;
             end if;
          when T_Const =>
             Parse_Const_Dcl (Result, Success);
             if not Success then
-               pragma Debug (O2 ("Parse_Definition : end"));
+               pragma Debug (O2 ("Parse_Definition: end"));
                return;
             end if;
 
          when T_Exception =>
             Parse_Except_Dcl (Result, Success);
             if not Success then
-               pragma Debug (O2 ("Parse_Definition : end"));
+               pragma Debug (O2 ("Parse_Definition: end"));
                return;
             end if;
 
@@ -514,14 +518,14 @@ package body Idl_Fe.Parser is
                when T_Interface =>
                   Parse_Interface (Result, Success);
                   if not Success then
-                     pragma Debug (O2 ("Parse_Definition : end"));
+                     pragma Debug (O2 ("Parse_Definition: end"));
                      return;
                   end if;
 
                when T_ValueType  =>
                   Parse_Value (Result, Success);
                   if not Success then
-                     pragma Debug (O2 ("Parse_Definition : end"));
+                     pragma Debug (O2 ("Parse_Definition: end"));
                      return;
                   end if;
 
@@ -546,7 +550,7 @@ package body Idl_Fe.Parser is
                      Result := No_Node;
                      --  consumes T_Abstract
                      Next_Token;
-                     pragma Debug (O2 ("Parse_Definition : end"));
+                     pragma Debug (O2 ("Parse_Definition: end"));
                      return;
                   end;
             end case;
@@ -554,7 +558,7 @@ package body Idl_Fe.Parser is
          when T_Interface =>
             Parse_Interface (Result, Success);
             if not Success then
-               pragma Debug (O2 ("Parse_Definition : end"));
+               pragma Debug (O2 ("Parse_Definition: end"));
                return;
             end if;
 
@@ -564,7 +568,7 @@ package body Idl_Fe.Parser is
             begin
                Parse_Module (Result, Success, Reopen);
                if not Success then
-                  pragma Debug (O2 ("Parse_Definition : end"));
+                  pragma Debug (O2 ("Parse_Definition: end"));
                   return;
                end if;
                --  if the module was reopened then we don't want its node to
@@ -581,7 +585,7 @@ package body Idl_Fe.Parser is
            T_Custom    =>
             Parse_Value (Result, Success);
             if not Success then
-               pragma Debug (O2 ("Parse_Definition : end"));
+               pragma Debug (O2 ("Parse_Definition: end"));
                return;
             end if;
 
@@ -595,14 +599,14 @@ package body Idl_Fe.Parser is
                                 Idl_Token'Image (Get_Token)));
                Parse_Definition (Result, Success);
             end  if;
-            pragma Debug (O2 ("Parse_Definition : end"));
+            pragma Debug (O2 ("Parse_Definition: end"));
             return;
 
          when T_Eof
            | T_Right_Cbracket =>
             Result := No_Node;
             Success := False;
-            pragma Debug (O2 ("Parse_Definition : end"));
+            pragma Debug (O2 ("Parse_Definition: end"));
             return;
 
          when others =>
@@ -611,7 +615,7 @@ package body Idl_Fe.Parser is
                                  Get_Token_Location);
             Result := No_Node;
             Success := False;
-            pragma Debug (O2 ("Parse_Definition : end"));
+            pragma Debug (O2 ("Parse_Definition: end"));
             return;
       end case;
       if Get_Token /= T_Semi_Colon then
@@ -623,7 +627,7 @@ package body Idl_Fe.Parser is
       else
          Next_Token;
       end if;
-      pragma Debug (O2 ("Parse_Definition : end"));
+      pragma Debug (O2 ("Parse_Definition: end"));
       return;
    end Parse_Definition;
 
@@ -649,29 +653,40 @@ package body Idl_Fe.Parser is
                      Build_Module : Boolean := True;
                   begin
                      --  See if the identifier is not already used
-                     if not Is_Redefinable (Get_Token_String) then
-                        --  there is a name collision with the module name
+                     if not Is_Redefinable
+                       (Get_Token_String, Get_Lexer_Location)
+                     then
+
+                        --  There is a name collision with the module name
+
                         declare
                            Def : Identifier_Definition_Acc;
                         begin
                            Def := Find_Identifier_Definition
-                             (Get_Token_String);
-                           if Kind (Def.Node) = K_Module and then
-                             Def.Parent_Scope = Get_Current_Scope then
-                              --  if the previous definition was a module in
-                              --  the same scope then reopen it.
+                             (Get_Token_String, Get_Lexer_Location);
+
+                           if Kind (Def.Node) = K_Module
+                             and then Def.Parent_Scope = Get_Current_Scope
+                           then
+
+                              --  If the previous definition was a module in
+                              --  the same scope, then reopen it...
+
                               pragma Debug (O ("Parse_Module: reopening a " &
                                                "module"));
                               Reopen := True;
                               Result := Def.Node;
                               Build_Module := False;
                            else
-                              --  else raise an error
+
+                              --  ... else raise an error
+
                               declare
                                  Loc : Errors.Location;
                               begin
                                  Loc := Types.Get_Location
-                                   (Find_Identifier_Node (Get_Token_String));
+                                   (Find_Identifier_Node
+                                    (Get_Token_String, Get_Lexer_Location));
                                  Errors.Error
                                    ("This module name is already defined in" &
                                     " this scope : " &
@@ -682,6 +697,7 @@ package body Idl_Fe.Parser is
                            end if;
                         end;
                      end if;
+
                      if Build_Module then
                         declare
                            Ok : Boolean;
@@ -799,9 +815,10 @@ package body Idl_Fe.Parser is
       Next_Token;
       --  Expect an identifier
       if Get_Token = T_Identifier then
-         Definition := Find_Identifier_Definition (Get_Token_String);
+         Definition := Find_Identifier_Definition
+           (Get_Token_String, Get_Lexer_Location);
          --  Is there a previous definition and in the same scope !
-         if not Is_Redefinable (Get_Token_String) then
+         if not Is_Redefinable (Get_Token_String, Get_Lexer_Location) then
             --  is it a forward declaration
             if Definition.Parent_Scope = Get_Current_Scope and
               Kind (Definition.Node) = K_Forward_Interface then
@@ -834,7 +851,8 @@ package body Idl_Fe.Parser is
                   Loc : Errors.Location;
                begin
                   Loc := Types.Get_Location
-                    (Find_Identifier_Node (Get_Token_String));
+                    (Find_Identifier_Node
+                     (Get_Token_String, Get_Lexer_Location));
                   Errors.Error
                     ("This interface name is already declared in" &
                      " this scope : " &
@@ -855,7 +873,8 @@ package body Idl_Fe.Parser is
                raise Errors.Internal_Error;
             end if;
             Set_Default_Repository_Id (Res);
-            Definition := Find_Identifier_Definition (Get_Token_String);
+            Definition := Find_Identifier_Definition
+              (Get_Token_String, Get_Lexer_Location);
          end if;
       else
          declare
@@ -927,7 +946,7 @@ package body Idl_Fe.Parser is
          return;
       end if;
       return;
-      pragma Debug (O2 ("Parse_Interface : end"));
+      pragma Debug (O2 ("Parse_Interface: end"));
    end Parse_Interface;
 
    --------------------
@@ -995,7 +1014,7 @@ package body Idl_Fe.Parser is
                --  so we parse the next export (if it exists)
                Parse_Export (Result, Success);
             end if;
-            pragma Debug (O2 ("Parse_Export : end"));
+            pragma Debug (O2 ("Parse_Export: end"));
             return;
          when T_Right_Cbracket =>
             --  here we just parsed a pragma but it was the last export of the
@@ -1035,7 +1054,7 @@ package body Idl_Fe.Parser is
       Success : out Boolean) is
       Body_Success : Boolean;
    begin
-      pragma Debug (O2 ("Parse_Interface_Dcl_End : enter"));
+      pragma Debug (O2 ("Parse_Interface_Dcl_End: enter"));
       --  interface header.
       if Get_Token = T_Colon then
          --  inheritance_spec
@@ -1138,7 +1157,7 @@ package body Idl_Fe.Parser is
       end if;
       Success := True;
       return;
-      pragma Debug (O2 ("Parse_Interface_Dcl_End : end"));
+      pragma Debug (O2 ("Parse_Interface_Dcl_End: end"));
    end Parse_Interface_Dcl_End;
 
 
@@ -1230,7 +1249,7 @@ package body Idl_Fe.Parser is
                Get_Token_Location);
             Success := False;
             Result := No_Node;
-            pragma Debug (O2 ("Parse_Scoped_Name : end"));
+            pragma Debug (O2 ("Parse_Scoped_Name: end"));
             return;
          end if;
 
@@ -1252,7 +1271,8 @@ package body Idl_Fe.Parser is
                   The_Scope : Node_Id := Get_Current_Scope;
                begin
                   Pop_Scope;
-                  A_Name := Find_Identifier_Node (Get_Token_String);
+                  A_Name := Find_Identifier_Node
+                    (Get_Token_String, Get_Lexer_Location);
                   Push_Scope (The_Scope);
                end;
             when K_Union =>
@@ -1266,7 +1286,8 @@ package body Idl_Fe.Parser is
                   --  for this purpose, we look in the current_scope
                   --  and check if the result is in the switch or not
                   --  if not, we just skip because of 3.15.3 (see above)
-                  A_Name := Find_Identifier_Node (Get_Token_String);
+                  A_Name := Find_Identifier_Node
+                    (Get_Token_String, Get_Lexer_Location);
                   if A_Name /= No_Node and then
                     Switch_Type (Get_Current_Scope) /= No_Node and then
                     Kind (Switch_Type (Get_Current_Scope)) = K_Enum and then
@@ -1288,13 +1309,15 @@ package body Idl_Fe.Parser is
                                        & "the parent scope"));
                      --  else look at the parent scope
                      Pop_Scope;
-                     A_Name := Find_Identifier_Node (Get_Token_String);
+                     A_Name := Find_Identifier_Node
+                       (Get_Token_String, Get_Lexer_Location);
                      --  this reopens the union scope.
                      Push_Scope (The_Scope);
                   end if;
                end;
             when others =>
-               A_Name := Find_Identifier_Node (Get_Token_String);
+               A_Name := Find_Identifier_Node
+                 (Get_Token_String, Get_Lexer_Location);
          end case;
          --  If it does not correspond to a previously defined scope
          if A_Name = No_Node then
@@ -1306,7 +1329,7 @@ package body Idl_Fe.Parser is
                Get_Token_Location);
             Go_To_End_Of_Scoped_Name;
             Success := True;
-            pragma Debug (O2 ("Parse_Scoped_Name : end"));
+            pragma Debug (O2 ("Parse_Scoped_Name: end"));
             return;
          end if;
 
@@ -1341,7 +1364,8 @@ package body Idl_Fe.Parser is
                    /= Get_Token_String
                then
                   pragma Debug (O ("Parse_Scoped_Name: importing """
-                                   & Get_Token_String & """ into Current_Scope"));
+                                   & Get_Token_String
+                                   & """ into Current_Scope"));
                   Add_Definition_To_Imported
                     (Definition (A_Name),
                      Get_Current_Scope);
@@ -1355,7 +1379,8 @@ package body Idl_Fe.Parser is
                  /= Get_Token_String
                then
                   pragma Debug (O ("Parse_Scoped_Name: importing """
-                                   & Get_Token_String & """ into Previous_Scope"));
+                                   & Get_Token_String
+                                   & """ into Previous_Scope"));
                   Add_Definition_To_Imported
                     (Definition (A_Name),
                      Get_Previous_Scope);
@@ -1375,7 +1400,7 @@ package body Idl_Fe.Parser is
                   Get_Token_Location);
                Go_To_End_Of_Scoped_Name;
                Success := True;
-               pragma Debug (O2 ("Parse_Scoped_Name : end"));
+               pragma Debug (O2 ("Parse_Scoped_Name: end"));
                return;
             else
                Scope := A_Name;
@@ -1400,7 +1425,7 @@ package body Idl_Fe.Parser is
                   Get_Token_Location);
                Success := False;
                Result := No_Node;
-               pragma Debug (O2 ("Parse_Scoped_Name : end"));
+               pragma Debug (O2 ("Parse_Scoped_Name: end"));
                return;
             end if;
             --  Find the identifier in the reference scope
@@ -1416,7 +1441,7 @@ package body Idl_Fe.Parser is
                   Get_Token_Location);
                Go_To_End_Of_Scoped_Name;
                Success := True;
-               pragma Debug (O2 ("Parse_Scoped_Name : end"));
+               pragma Debug (O2 ("Parse_Scoped_Name: end"));
                return;
             end if;
             A_Name := Def.Node;
@@ -1432,7 +1457,7 @@ package body Idl_Fe.Parser is
                      Get_Token_Location);
                   Go_To_End_Of_Scoped_Name;
                   Success := True;
-                  pragma Debug (O2 ("Parse_Scoped_Name : end"));
+                  pragma Debug (O2 ("Parse_Scoped_Name: end"));
                   return;
                else
                   Scope := A_Name;
@@ -1489,7 +1514,7 @@ package body Idl_Fe.Parser is
                   Get_Token_Location);
                Success := False;
                Result := No_Node;
-               pragma Debug (O2 ("Parse_Scoped_Name : end"));
+               pragma Debug (O2 ("Parse_Scoped_Name: end"));
                return;
             end if;
          end if;
@@ -1500,7 +1525,7 @@ package body Idl_Fe.Parser is
       Result := Res;
       pragma Debug (O ("Parse_Scoped_Name : " &
                        "end if simple identifier"));
-      pragma Debug (O2 ("Parse_Scoped_Name : end"));
+      pragma Debug (O2 ("Parse_Scoped_Name: end"));
       return;
    end Parse_Scoped_Name;
 
@@ -1510,7 +1535,7 @@ package body Idl_Fe.Parser is
    procedure Parse_Value (Result : out Node_Id;
                           Success : out Boolean) is
    begin
-      pragma Debug (O2 ("Initialize_Local_Object : enter"));
+      pragma Debug (O2 ("Initialize_Local_Object: enter"));
       case Get_Token is
          when T_Custom =>
             Next_Token;
@@ -1528,7 +1553,7 @@ package body Idl_Fe.Parser is
          when others =>
             raise Errors.Internal_Error;
       end case;
-      pragma Debug (O2 ("Initialize_Local_Object : end"));
+      pragma Debug (O2 ("Initialize_Local_Object: end"));
       return;
    end Parse_Value;
 
@@ -1538,7 +1563,7 @@ package body Idl_Fe.Parser is
    procedure Parse_Custom_Value (Result : out Node_Id;
                                  Success : out Boolean) is
    begin
-      pragma Debug (O2 ("Parse_Custom_Value : enter"));
+      pragma Debug (O2 ("Parse_Custom_Value: enter"));
       if Get_Token /= T_ValueType then
          declare
             Loc : Errors.Location;
@@ -1572,7 +1597,7 @@ package body Idl_Fe.Parser is
             Parse_End_Value_Dcl (Result, Success, True, False);
          end if;
       end if;
-      pragma Debug (O2 ("Parse_Custom_Value : enter"));
+      pragma Debug (O2 ("Parse_Custom_Value: enter"));
       return;
    end Parse_Custom_Value;
 
@@ -1582,7 +1607,7 @@ package body Idl_Fe.Parser is
    procedure Parse_Abstract_Value (Result : out Node_Id;
                                    Success : out Boolean) is
    begin
-      pragma Debug (O2 ("Parse_Abstract_Value : enter"));
+      pragma Debug (O2 ("Parse_Abstract_Value: enter"));
       if Get_Token /= T_ValueType then
          declare
             Loc : Errors.Location;
@@ -1648,7 +1673,7 @@ package body Idl_Fe.Parser is
             end case;
          end if;
       end if;
-      pragma Debug (O2 ("Parse_Abstract_Value : end"));
+      pragma Debug (O2 ("Parse_Abstract_Value: end"));
       return;
    end Parse_Abstract_Value;
 
@@ -1658,7 +1683,7 @@ package body Idl_Fe.Parser is
    procedure Parse_Direct_Value (Result : out Node_Id;
                                  Success : out Boolean) is
    begin
-      pragma Debug (O2 ("Parse_Direct_Value : enter"));
+      pragma Debug (O2 ("Parse_Direct_Value: enter"));
       Next_Token;
       if Get_Token /= T_Identifier then
          declare
@@ -1733,7 +1758,7 @@ package body Idl_Fe.Parser is
                Success := False;
          end case;
       end if;
-      pragma Debug (O2 ("Parse_Direct_Value : end"));
+      pragma Debug (O2 ("Parse_Direct_Value: end"));
       return;
    end Parse_Direct_Value;
 
@@ -1746,7 +1771,7 @@ package body Idl_Fe.Parser is
                                   Abst : in Boolean) is
       Definition : Identifier_Definition_Acc;
    begin
-      pragma Debug (O2 ("Parse_End_Value_Dcl : enter"));
+      pragma Debug (O2 ("Parse_End_Value_Dcl: enter"));
       Result := Make_ValueType (Get_Previous_Token_Location);
       Set_Abst (Result, Abst);
       Set_Custom (Result, Custom);
@@ -1756,13 +1781,21 @@ package body Idl_Fe.Parser is
          Set_Location (Result, Get_Previous_Token_Location);
       end if;
       Set_Initial_Current_Prefix (Result);
-      --  try to find a previous definition
-      Definition := Find_Identifier_Definition (Get_Token_String);
-      --  Is there a previous definition and in the same scope ?
-      if not Is_Redefinable (Get_Token_String) then
-         --  is it a forward ?
-         if  Definition.Parent_Scope = Get_Current_Scope and
-           Kind (Definition.Node) = K_Forward_ValueType then
+
+      --  Try to find a previous definition
+
+      Definition := Find_Identifier_Definition
+        (Get_Token_String, Get_Lexer_Location);
+
+      --  Is there a previous definition and in the same scope?
+
+      if not Is_Redefinable (Get_Token_String, Get_Lexer_Location) then
+
+         --  Is it a forward declaration?
+
+         if  Definition.Parent_Scope = Get_Current_Scope
+           and then Kind (Definition.Node) = K_Forward_ValueType
+         then
             declare
                Fd_Decl : Node_Id;
             begin
@@ -1777,26 +1810,30 @@ package body Idl_Fe.Parser is
          else
             Errors.Error
             ("The identifier used for this valuetype is already "
-             & "defined in the same scope : " &
-             Errors.Location_To_String
-             (Get_Location (Definition.Node)),
-             Errors.Error,
-             Get_Token_Location);
+             & "defined in the same scope : "
+             & Errors.Location_To_String
+                 (Get_Location (Definition.Node)),
+                  Errors.Error,
+                  Get_Token_Location);
             Set_Forward (Result, No_Node);
          end if;
       else
-         --  no previous definition
+
+         --  No previous definition
+
          Set_Forward (Result, No_Node);
          if not Add_Identifier (Result, Get_Token_String) then
             raise Errors.Internal_Error;
          end if;
          Set_Default_Repository_Id (Result);
-
       end if;
+
       Next_Token;
       if Get_Token = T_Colon
         or else Get_Token = T_Supports then
-         --  there is some inheritance specification here
+
+         --  An inheritance specification is present
+
          declare
             Inherit_Success : Boolean;
          begin
@@ -1810,23 +1847,27 @@ package body Idl_Fe.Parser is
             end if;
          end;
       end if;
+
       if Get_Token /= T_Left_Cbracket then
-         --  only possible after some inheritance specification
-         --  else, it was already tested before
-         --  Then, the previous token is an identifier
+
          declare
             Loc : Errors.Location;
          begin
             Loc := Get_Token_Location;
+
+            --  At this point, this is only possible after an
+            --  inheritance specification.
+            --  The previous token is therefore an identifier.
+
             Loc.Col := Loc.Col + Get_Previous_Token_String'Length;
-                  Errors.Error ("Bad value definition. " &
-                                       "'{' expected.",
-                                       Errors.Error,
-                                       Loc);
+            Errors.Error
+              ("Bad value definition: '{' expected.",
+               Errors.Error, Loc);
          end;
          Success := False;
          return;
       end if;
+
       Next_Token;
       Push_Scope (Result);
       while Get_Token /= T_Right_Cbracket loop
@@ -1853,10 +1894,12 @@ package body Idl_Fe.Parser is
          end;
       end loop;
       Pop_Scope;
-      --  consumes the right Cbracket
+
+      --  Consume the right Cbracket
+
       Next_Token;
       Success := True;
-      pragma Debug (O2 ("Parse_End_Value_Dcl : end"));
+      pragma Debug (O2 ("Parse_End_Value_Dcl: end"));
       return;
    end Parse_End_Value_Dcl;
 
@@ -1876,9 +1919,10 @@ package body Idl_Fe.Parser is
          Set_Location (Result, Get_Previous_Token_Location);
       end if;
       --  try to find a previous definition
-      Definition := Find_Identifier_Definition (Get_Token_String);
+      Definition := Find_Identifier_Definition
+        (Get_Token_String, Get_Lexer_Location);
       --  Is there a previous definition and in the same scope ?
-      if not Is_Redefinable (Get_Token_String) then
+      if not Is_Redefinable (Get_Token_String, Get_Lexer_Location) then
          --  is it a forward
          if Definition.Parent_Scope = Get_Current_Scope and
            Kind (Definition.Node) = K_Forward_ValueType then
@@ -1923,9 +1967,10 @@ package body Idl_Fe.Parser is
    begin
       Result := Make_Boxed_ValueType (Get_Previous_Token_Location);
       --  try to find a previous definition
-      Definition := Find_Identifier_Definition (Get_Token_String);
+      Definition := Find_Identifier_Definition
+        (Get_Token_String, Get_Lexer_Location);
       --  Is there a previous definition and in the same scope ?
-      if not Is_Redefinable (Get_Token_String) then
+      if not Is_Redefinable (Get_Token_String, Get_Lexer_Location) then
          --  is it a forward
          if Definition.Parent_Scope = Get_Current_Scope and
            Kind (Definition.Node) = K_Forward_ValueType then
@@ -1995,7 +2040,7 @@ package body Idl_Fe.Parser is
    procedure Parse_Value_Inheritance_Spec (Result : in out Node_Id;
                                            Success : out Boolean) is
    begin
-      pragma Debug (O2 ("Parse_Value_Inheritance_Spec : enter"));
+      pragma Debug (O2 ("Parse_Value_Inheritance_Spec: enter"));
       Success := True;
       if Get_Token = T_Colon then
          Next_Token;
@@ -2308,7 +2353,7 @@ package body Idl_Fe.Parser is
                Success := False;
             end;
       end case;
-      pragma Debug (O2 ("Parse_Value_Inheritance_Spec : end"));
+      pragma Debug (O2 ("Parse_Value_Inheritance_Spec: end"));
    end Parse_Value_Inheritance_Spec;
 
    ------------------------
@@ -2470,10 +2515,11 @@ package body Idl_Fe.Parser is
       --  consume T_Factory
       Next_Token;
       --  Is there a previous definition
-      if not Is_Redefinable (Get_Token_String) then
+      if not Is_Redefinable (Get_Token_String, Get_Lexer_Location) then
          declare
             Definition : Identifier_Definition_Acc :=
-              Find_Identifier_Definition (Get_Token_String);
+              Find_Identifier_Definition
+              (Get_Token_String, Get_Lexer_Location);
          begin
             Errors.Error
               ("The identifier used for this initializer is already "
@@ -2681,7 +2727,7 @@ package body Idl_Fe.Parser is
    procedure Parse_Const_Dcl (Result : out Node_Id;
                               Success : out Boolean) is
    begin
-      pragma Debug (O2 ("Parse_Const_Dcl : enter"));
+      pragma Debug (O2 ("Parse_Const_Dcl: enter"));
       Next_Token;
       Result := Make_Const_Dcl (Get_Previous_Token_Location);
       declare
@@ -2702,10 +2748,11 @@ package body Idl_Fe.Parser is
          return;
       else
          --  Is there a previous definition
-         if not Is_Redefinable (Get_Token_String) then
+         if not Is_Redefinable (Get_Token_String, Get_Lexer_Location) then
             declare
-               Definition : Identifier_Definition_Acc :=
-                 Find_Identifier_Definition (Get_Token_String);
+               Definition : Identifier_Definition_Acc
+                 := Find_Identifier_Definition
+                 (Get_Token_String, Get_Lexer_Location);
             begin
                Errors.Error
                  ("This identifier is already defined in this scope : " &
@@ -2771,7 +2818,7 @@ package body Idl_Fe.Parser is
          Set_Expression (Result, Node);
       end;
       return;
-      pragma Debug (O2 ("Parse_Const_Dcl : end"));
+      pragma Debug (O2 ("Parse_Const_Dcl: end"));
    end Parse_Const_Dcl;
 
    ------------------------
@@ -2780,7 +2827,7 @@ package body Idl_Fe.Parser is
    procedure Parse_Const_Type (Result : out Node_Id;
                                Success : out Boolean) is
    begin
-      pragma Debug (O2 ("Parse_Const_Type : enter"));
+      pragma Debug (O2 ("Parse_Const_Type: enter"));
       case Get_Token is
          when T_Long =>
             if View_Next_Token = T_Double then
@@ -2815,7 +2862,7 @@ package body Idl_Fe.Parser is
             --  or enum type.
             if not Success then
                Result := No_Node;
-               pragma Debug (O2 ("Parse_Const_Type : end"));
+               pragma Debug (O2 ("Parse_Const_Type: end"));
                return;
             end if;
             if Result /= No_Node then
@@ -2873,7 +2920,7 @@ package body Idl_Fe.Parser is
             Success := False;
             Result := No_Node;
       end case;
-      pragma Debug (O2 ("Parse_Const_Type : end"));
+      pragma Debug (O2 ("Parse_Const_Type: end"));
       return;
    end Parse_Const_Type;
 
@@ -2886,7 +2933,7 @@ package body Idl_Fe.Parser is
       Loc : Errors.Location;
       C_Type : Constant_Value_Ptr;
    begin
-      pragma Debug (O2 ("Parse_Const_Exp : enter"));
+      pragma Debug (O2 ("Parse_Const_Exp: enter"));
       Loc := Get_Token_Location;
       if Constant_Type /= No_Node then
          case Kind (Constant_Type) is
@@ -3014,7 +3061,7 @@ package body Idl_Fe.Parser is
          Check_Value_Range (Result, True);
       end if;
       Free (C_Type);
-      pragma Debug (O2 ("Parse_Const_Exp : end"));
+      pragma Debug (O2 ("Parse_Const_Exp: end"));
    end Parse_Const_Exp;
 
    ---------------------
@@ -3024,7 +3071,7 @@ package body Idl_Fe.Parser is
                             Success : out Boolean;
                             Expr_Type : in Constant_Value_Ptr) is
    begin
-      pragma Debug (O2 ("Parse_Or_Expr : enter"));
+      pragma Debug (O2 ("Parse_Or_Expr: enter"));
       Parse_Xor_Expr (Result, Success, Expr_Type);
       if not Success then
          return;
@@ -3099,7 +3146,7 @@ package body Idl_Fe.Parser is
             Result := Res;
          end;
       end loop;
-      pragma Debug (O2 ("Parse_Or_Expr : end"));
+      pragma Debug (O2 ("Parse_Or_Expr: end"));
       return;
    end Parse_Or_Expr;
 
@@ -3110,7 +3157,7 @@ package body Idl_Fe.Parser is
                              Success : out Boolean;
                              Expr_Type : in Constant_Value_Ptr) is
    begin
-      pragma Debug (O2 ("Parse_Xor_Expr : enter"));
+      pragma Debug (O2 ("Parse_Xor_Expr: enter"));
       Parse_And_Expr (Result, Success, Expr_Type);
       if not Success then
          return;
@@ -3181,7 +3228,7 @@ package body Idl_Fe.Parser is
             Result := Res;
          end;
       end loop;
-      pragma Debug (O2 ("Parse_Xor_Expr : end"));
+      pragma Debug (O2 ("Parse_Xor_Expr: end"));
       return;
    end Parse_Xor_Expr;
 
@@ -3192,7 +3239,7 @@ package body Idl_Fe.Parser is
                              Success : out Boolean;
                              Expr_Type : in Constant_Value_Ptr) is
    begin
-      pragma Debug (O2 ("Parse_And_Expr : enter"));
+      pragma Debug (O2 ("Parse_And_Expr: enter"));
       Parse_Shift_Expr (Result, Success, Expr_Type);
       if not Success then
          return;
@@ -3263,7 +3310,7 @@ package body Idl_Fe.Parser is
             Result := Res;
          end;
       end loop;
-      pragma Debug (O2 ("Parse_And_Expr : end"));
+      pragma Debug (O2 ("Parse_And_Expr: end"));
       return;
    end Parse_And_Expr;
 
@@ -3274,7 +3321,7 @@ package body Idl_Fe.Parser is
                                Success : out Boolean;
                                Expr_Type : in Constant_Value_Ptr) is
    begin
-      pragma Debug (O2 ("Parse_Shift_Expr : enter"));
+      pragma Debug (O2 ("Parse_Shift_Expr: enter"));
       Parse_Add_Expr (Result, Success, Expr_Type);
       if not Success then
          return;
@@ -3403,7 +3450,7 @@ package body Idl_Fe.Parser is
             Result := Res;
          end;
       end loop While_Loop;
-      pragma Debug (O2 ("Parse_Shift_Expr : end"));
+      pragma Debug (O2 ("Parse_Shift_Expr: end"));
       return;
    end Parse_Shift_Expr;
 
@@ -3414,7 +3461,7 @@ package body Idl_Fe.Parser is
                              Success : out Boolean;
                              Expr_Type : in Constant_Value_Ptr) is
    begin
-      pragma Debug (O2 ("Parse_Add_Expr : enter"));
+      pragma Debug (O2 ("Parse_Add_Expr: enter"));
       Parse_Mult_Expr (Result, Success, Expr_Type);
       if not Success then
          return;
@@ -3583,7 +3630,7 @@ package body Idl_Fe.Parser is
             Result := Res;
          end;
       end loop;
-      pragma Debug (O2 ("Parse_Add_Expr : end"));
+      pragma Debug (O2 ("Parse_Add_Expr: end"));
       return;
    end Parse_Add_Expr;
 
@@ -3594,7 +3641,7 @@ package body Idl_Fe.Parser is
                               Success : out Boolean;
                               Expr_Type : in Constant_Value_Ptr) is
    begin
-      pragma Debug (O2 ("Parse_Mult_Expr : enter"));
+      pragma Debug (O2 ("Parse_Mult_Expr: enter"));
       Parse_Unary_Expr (Result, Success, Expr_Type);
       if not Success then
          return;
@@ -3819,7 +3866,7 @@ package body Idl_Fe.Parser is
             Result := Res;
          end;
       end loop;
-      pragma Debug (O2 ("Parse_Mult_Expr : end"));
+      pragma Debug (O2 ("Parse_Mult_Expr: end"));
       return;
    end Parse_Mult_Expr;
 
@@ -3834,7 +3881,7 @@ package body Idl_Fe.Parser is
       Op : Operator_Type;
       Loc : Errors.Location;
    begin
-      pragma Debug (O2 ("Parse_Unary_Expr : enter"));
+      pragma Debug (O2 ("Parse_Unary_Expr: enter"));
       case Get_Token is
          when T_Plus
            | T_Minus
@@ -3859,7 +3906,7 @@ package body Idl_Fe.Parser is
                   Set_Operand (Result, No_Node);
                   Set_Expr_Value
                     (Result, new Constant_Value (Kind => C_No_Kind));
-                  pragma Debug (O2 ("Parse_Unary_Expr : end"));
+                  pragma Debug (O2 ("Parse_Unary_Expr: end"));
                   return;
                end if;
                Set_Operand (Result, Operand);
@@ -3975,7 +4022,7 @@ package body Idl_Fe.Parser is
          when others =>
             Parse_Primary_Expr (Result, Success, Expr_Type);
       end case;
-      pragma Debug (O2 ("Parse_Unary_Expr : end"));
+      pragma Debug (O2 ("Parse_Unary_Expr: end"));
       return;
    end Parse_Unary_Expr;
 
@@ -3987,7 +4034,7 @@ package body Idl_Fe.Parser is
                                  Success : out Boolean;
                                  Expr_Type : in Constant_Value_Ptr) is
    begin
-      pragma Debug (O2 ("Parse_Primary_Expr : enter"));
+      pragma Debug (O2 ("Parse_Primary_Expr: enter"));
       case Get_Token is
          when  T_Colon_Colon
            | T_Identifier =>
@@ -4079,7 +4126,7 @@ package body Idl_Fe.Parser is
             Next_Token;
             Parse_Or_Expr (Result, Success, Expr_Type);
             if not Success then
-               pragma Debug (O2 ("Parse_Primary_Expr : end"));
+               pragma Debug (O2 ("Parse_Primary_Expr: end"));
                return;
             end if;
             if Get_Token /= T_Right_Paren then
@@ -4088,7 +4135,7 @@ package body Idl_Fe.Parser is
                                            Errors.Error,
                                            Get_Token_Location);
                Success := False;
-               pragma Debug (O2 ("Parse_Primary_Expr : end"));
+               pragma Debug (O2 ("Parse_Primary_Expr: end"));
                return;
             end if;
             Next_Token;
@@ -4098,10 +4145,10 @@ package body Idl_Fe.Parser is
                                  Get_Token_Location);
             Result := No_Node;
             Success := False;
-            pragma Debug (O2 ("Parse_Primary_Expr : end"));
+            pragma Debug (O2 ("Parse_Primary_Expr: end"));
             return;
       end case;
-      pragma Debug (O2 ("Parse_Primary_Expr : end"));
+      pragma Debug (O2 ("Parse_Primary_Expr: end"));
       return;
    end Parse_Primary_Expr;
 
@@ -4112,7 +4159,7 @@ package body Idl_Fe.Parser is
                             Success : out Boolean;
                             Expr_Type : in Constant_Value_Ptr) is
    begin
-      pragma Debug (O2 ("Parse_Literal : enter"));
+      pragma Debug (O2 ("Parse_Literal: enter"));
       case Get_Token is
          when T_Lit_Decimal_Integer
               | T_Lit_Octal_Integer
@@ -4182,7 +4229,7 @@ package body Idl_Fe.Parser is
          when others =>
             raise Errors.Internal_Error;
       end case;
-      pragma Debug (O2 ("Parse_Literal : end"));
+      pragma Debug (O2 ("Parse_Literal: end"));
    end Parse_Literal;
 
    -----------------------------
@@ -4768,7 +4815,7 @@ package body Idl_Fe.Parser is
                                Parent : in Node_Id;
                                Success : out Boolean) is
    begin
-      pragma Debug (O2 ("parse_declarator : enter"));
+      pragma Debug (O2 ("parse_declarator: enter"));
       if Get_Token /= T_Identifier then
          Errors.Error ("Identifier expected.",
                               Errors.Error,
@@ -4785,7 +4832,7 @@ package body Idl_Fe.Parser is
             Parse_Simple_Declarator (Result, Parent, Success);
          end if;
       end if;
-      pragma Debug (O2 ("parse_declarator : end"));
+      pragma Debug (O2 ("parse_declarator: end"));
       return;
    end Parse_Declarator;
 
@@ -4806,15 +4853,12 @@ package body Idl_Fe.Parser is
          pragma Debug (O ("Parse_Simple_Declarator : the scope is " &
                           Img (Kind (Get_Current_Scope))));
          --  Is there a previous definition
-         if not Is_Redefinable (Get_Token_String) then
+         if not Is_Redefinable (Get_Token_String, Get_Lexer_Location) then
             declare
-               Definition : Identifier_Definition_Acc; --  :=
-               --  Find_Identifier_Definition (Get_Token_String);
+               Definition : constant Identifier_Definition_Acc
+                 := Find_Identifier_Definition
+                 (Get_Token_String, Get_Lexer_Location);
             begin
-               pragma Debug (O ("Parse_Simple_Declarator : not redefinable"));
-               Definition := Find_Identifier_Definition (Get_Token_String);
-               pragma Debug (O ("Parse_Simple_Declarator : not redefinable " &
-                                " after definition"));
                Errors.Error
                  ("This identifier is already defined in this scope : " &
                   Errors.Location_To_String
@@ -5088,7 +5132,7 @@ package body Idl_Fe.Parser is
    procedure Parse_Struct_Type (Result : out Node_Id;
                                 Success : out Boolean) is
    begin
-      pragma Debug (O2 ("Parse_Struct_Type : enter"));
+      pragma Debug (O2 ("Parse_Struct_Type: enter"));
       Next_Token;
       if Get_Token /= T_Identifier then
          declare
@@ -5106,10 +5150,11 @@ package body Idl_Fe.Parser is
          end;
       end if;
       --  Is there a previous definition
-      if not Is_Redefinable (Get_Token_String) then
+      if not Is_Redefinable (Get_Token_String, Get_Lexer_Location) then
          declare
-            Definition : Identifier_Definition_Acc :=
-              Find_Identifier_Definition (Get_Token_String);
+            Definition : constant Identifier_Definition_Acc
+              := Find_Identifier_Definition
+              (Get_Token_String, Get_Lexer_Location);
          begin
             Errors.Error
               ("This identifier is already defined in this scope : " &
@@ -5165,7 +5210,7 @@ package body Idl_Fe.Parser is
          return;
       end if;
       Next_Token;
-      pragma Debug (O2 ("Parse_Struct_Type : end"));
+      pragma Debug (O2 ("Parse_Struct_Type: end"));
       return;
    end Parse_Struct_Type;
 
@@ -5177,7 +5222,7 @@ package body Idl_Fe.Parser is
                                 Success : out Boolean) is
       Empty : Boolean := True;
    begin
-      pragma Debug (O2 ("Parse_Member_List : enter"));
+      pragma Debug (O2 ("Parse_Member_List: enter"));
       Result := Nil_List;
       loop
          declare
@@ -5203,7 +5248,7 @@ package body Idl_Fe.Parser is
             Get_Token_Location);
       end if;
       Success := True;
-      pragma Debug (O2 ("Parse_Member_List : end"));
+      pragma Debug (O2 ("Parse_Member_List: end"));
       return;
    end Parse_Member_List;
 
@@ -5215,7 +5260,7 @@ package body Idl_Fe.Parser is
       Type_Spec : Node_Id;
       Loc : Errors.Location;
    begin
-      pragma Debug (O2 ("Parse_Member : enter"));
+      pragma Debug (O2 ("Parse_Member: enter"));
       if Get_Token = T_Pragma then
          Parse_Pragma (Result, Success);
          if not Success then
@@ -5263,7 +5308,7 @@ package body Idl_Fe.Parser is
       end if;
       --  to eat the semi-colon
       Next_Token;
-      pragma Debug (O2 ("Parse_Member : end"));
+      pragma Debug (O2 ("Parse_Member: end"));
       return;
    end Parse_Member;
 
@@ -5273,7 +5318,7 @@ package body Idl_Fe.Parser is
    procedure Parse_Union_Type (Result : out Node_Id;
                                Success : out Boolean) is
    begin
-      pragma Debug (O2 ("Parse_Union_Type : enter"));
+      pragma Debug (O2 ("Parse_Union_Type: enter"));
       Next_Token;
       if Get_Token /= T_Identifier then
          declare
@@ -5291,10 +5336,11 @@ package body Idl_Fe.Parser is
          end;
       end if;
       --  Is there a previous definition
-      if not Is_Redefinable (Get_Token_String) then
+      if not Is_Redefinable (Get_Token_String, Get_Lexer_Location) then
          declare
-            Definition : Identifier_Definition_Acc :=
-              Find_Identifier_Definition (Get_Token_String);
+            Definition : constant Identifier_Definition_Acc
+              := Find_Identifier_Definition
+              (Get_Token_String, Get_Lexer_Location);
          begin
             Errors.Error
               ("This identifier is already defined in this scope : " &
@@ -5417,7 +5463,7 @@ package body Idl_Fe.Parser is
       end if;
       Next_Token;
       return;
-      pragma Debug (O2 ("Parse_Union_Type : end"));
+      pragma Debug (O2 ("Parse_Union_Type: end"));
    end Parse_Union_Type;
 
    ------------------------------
@@ -5426,7 +5472,7 @@ package body Idl_Fe.Parser is
    procedure Parse_Switch_Type_Spec (Result : out Node_Id;
                                      Success : out Boolean) is
    begin
-      pragma Debug (O2 ("Parse_Switch_Type_Spec : enter"));
+      pragma Debug (O2 ("Parse_Switch_Type_Spec: enter"));
       case Get_Token is
          when T_Long
            | T_Short
@@ -5489,7 +5535,7 @@ package body Idl_Fe.Parser is
             Success := False;
             Result := No_Node;
       end case;
-      pragma Debug (O2 ("Parse_Switch_Type_Spec : end"));
+      pragma Debug (O2 ("Parse_Switch_Type_Spec: end"));
       return;
    end Parse_Switch_Type_Spec;
 
@@ -5503,7 +5549,7 @@ package body Idl_Fe.Parser is
       Empty : Boolean := True;
       I : Long_Integer := -1;
    begin
-      pragma Debug (O2 ("Parse_Switch_Body : enter"));
+      pragma Debug (O2 ("Parse_Switch_Body: enter"));
       Result := Nil_List;
       Default_Index := -1;
       loop
@@ -5551,7 +5597,7 @@ package body Idl_Fe.Parser is
 --      Release_All_Used_Values;
       Success := True;
       return;
-      pragma Debug (O2 ("Parse_Switch_Body : end"));
+      pragma Debug (O2 ("Parse_Switch_Body: end"));
    end Parse_Switch_Body;
 
    ------------------
@@ -5563,7 +5609,7 @@ package body Idl_Fe.Parser is
       Default_Label : Boolean := False;
       Loc : Errors.Location;
    begin
-      pragma Debug (O2 ("Parse_Case : enter"));
+      pragma Debug (O2 ("Parse_Case: enter"));
       Loc := Get_Token_Location;
       case Get_Token is
          when T_Case
@@ -5576,7 +5622,7 @@ package body Idl_Fe.Parser is
                --  so we parse the next case (if it exists)
                Parse_Case (Result, Switch_Type, Success);
             end  if;
-            pragma Debug (O2 ("Parse_Case : end"));
+            pragma Debug (O2 ("Parse_Case: end"));
             return;
          when T_Right_Cbracket =>
             --  here we just parsed a pragma but it was the last case of the
@@ -5584,7 +5630,7 @@ package body Idl_Fe.Parser is
             --  without an error message
             Result := No_Node;
             Success := False;
-            pragma Debug (O2 ("Parse_Case : end"));
+            pragma Debug (O2 ("Parse_Case: end"));
             return;
          when others =>
             Errors.Error ("invalid case label : " &
@@ -5652,7 +5698,7 @@ package body Idl_Fe.Parser is
       else
          Next_Token;
       end if;
-      pragma Debug (O2 ("Parse_Case : end"));
+      pragma Debug (O2 ("Parse_Case: end"));
       return;
    end Parse_Case;
 
@@ -5663,7 +5709,7 @@ package body Idl_Fe.Parser is
                                Switch_Type : in Node_Id;
                                Success : out Boolean) is
    begin
-      pragma Debug (O2 ("Parse_case_label : enter"));
+      pragma Debug (O2 ("Parse_case_label: enter"));
       case Get_Token is
          when T_Case =>
             declare
@@ -5700,7 +5746,7 @@ package body Idl_Fe.Parser is
          Next_Token;
       end if;
       return;
-      pragma Debug (O2 ("Parse_case_label : end"));
+      pragma Debug (O2 ("Parse_case_label: end"));
    end Parse_Case_Label;
 
    --------------------------
@@ -5711,13 +5757,13 @@ package body Idl_Fe.Parser is
                                  Parent : in Node_Id;
                                  Success : out Boolean) is
    begin
-      pragma Debug (O2 ("Parse_Element_Spec : enter"));
+      pragma Debug (O2 ("Parse_Element_Spec: enter"));
       Parse_Type_Spec (Element_Type, Success);
       if not Success then
          return;
       end if;
       Parse_Declarator (Element_Decl, Parent, Success);
-      pragma Debug (O2 ("Parse_Element_Spec : end"));
+      pragma Debug (O2 ("Parse_Element_Spec: end"));
       return;
    end Parse_Element_Spec;
 
@@ -5747,10 +5793,11 @@ package body Idl_Fe.Parser is
       Result := Make_Enum (Get_Token_Location);
       Set_Enumerators (Result, Nil_List);
       --  Is there a previous definition
-      if not Is_Redefinable (Get_Token_String) then
+      if not Is_Redefinable (Get_Token_String, Get_Lexer_Location) then
          declare
-            Definition : Identifier_Definition_Acc :=
-              Find_Identifier_Definition (Get_Token_String);
+            Definition : constant Identifier_Definition_Acc
+              := Find_Identifier_Definition
+              (Get_Token_String, Get_Lexer_Location);
          begin
             Errors.Error
               ("This identifier is already defined in this scope : " &
@@ -5891,10 +5938,11 @@ package body Idl_Fe.Parser is
       else
          Result := Make_Enumerator (Get_Token_Location);
          --  Is there a previous definition
-         if not Is_Redefinable (Get_Token_String) then
+         if not Is_Redefinable (Get_Token_String, Get_Lexer_Location) then
             declare
-               Definition : Identifier_Definition_Acc :=
-                 Find_Identifier_Definition (Get_Token_String);
+               Definition : constant Identifier_Definition_Acc
+                 := Find_Identifier_Definition
+                 (Get_Token_String, Get_Lexer_Location);
             begin
                Errors.Error
                  ("This identifier is already defined in this scope : " &
@@ -5924,7 +5972,7 @@ package body Idl_Fe.Parser is
    procedure Parse_Sequence_Type (Result : out Node_Id;
                                   Success : out Boolean) is
    begin
-      pragma Debug (O2 ("Parse_Sequence_Type : Enter"));
+      pragma Debug (O2 ("Parse_Sequence_Type: enter"));
       Next_Token;
       if Get_Token /= T_Less then
          Errors.Error
@@ -6006,7 +6054,7 @@ package body Idl_Fe.Parser is
             Success := False;
             return;
       end case;
-      pragma Debug (O2 ("Parse_Sequence_Type : End"));
+      pragma Debug (O2 ("Parse_Sequence_Type: end"));
       return;
    end Parse_Sequence_Type;
 
@@ -6089,14 +6137,15 @@ package body Idl_Fe.Parser is
                                      Parent : in Node_Id;
                                      Success : out Boolean) is
    begin
-      pragma Debug (O2 ("Parse_Array_Declarator : enter"));
+      pragma Debug (O2 ("Parse_Array_Declarator: enter"));
       Result := Make_Declarator (Get_Token_Location);
       Set_Parent (Result, Parent);
       --  Is there a previous definition
-      if not Is_Redefinable (Get_Token_String) then
+      if not Is_Redefinable (Get_Token_String, Get_Lexer_Location) then
          declare
-            Definition : Identifier_Definition_Acc :=
-              Find_Identifier_Definition (Get_Token_String);
+            Definition : constant Identifier_Definition_Acc
+              := Find_Identifier_Definition
+              (Get_Token_String, Get_Lexer_Location);
          begin
             Errors.Error
               ("This identifier is already defined in this scope : " &
@@ -6124,7 +6173,7 @@ package body Idl_Fe.Parser is
             if not Success then
                pragma Debug (O ("Parse_Array_Declarator : " &
                                 "Parse_Fixed_Array_Size returned false"));
-               pragma Debug (O2 ("Parse_Array_Declarator : end"));
+               pragma Debug (O2 ("Parse_Array_Declarator: end"));
                return;
             end if;
             Set_Array_Bounds (Result,
@@ -6132,7 +6181,7 @@ package body Idl_Fe.Parser is
                                            Expr));
          end;
       end loop;
-      pragma Debug (O2 ("Parse_Array_Declarator : end"));
+      pragma Debug (O2 ("Parse_Array_Declarator: end"));
       return;
    end Parse_Array_Declarator;
 
@@ -6142,7 +6191,7 @@ package body Idl_Fe.Parser is
    procedure Parse_Fixed_Array_Size (Result : out Node_Id;
                                      Success : out Boolean) is
    begin
-      pragma Debug (O2 ("Parse_Fixed_Array_Size : enter"));
+      pragma Debug (O2 ("Parse_Fixed_Array_Size: enter"));
       Next_Token;
       Parse_Positive_Int_Const (Result, Success);
       if not Success then
@@ -6165,7 +6214,7 @@ package body Idl_Fe.Parser is
          return;
       end if;
       Next_Token;
-      pragma Debug (O2 ("Parse_Fixed_Array_Size : end"));
+      pragma Debug (O2 ("Parse_Fixed_Array_Size: end"));
       return;
    end Parse_Fixed_Array_Size;
 
@@ -6251,7 +6300,7 @@ package body Idl_Fe.Parser is
    procedure Parse_Except_Dcl (Result : out Node_Id;
                                Success : out Boolean) is
    begin
-      pragma Debug (O2 ("Parse_Except_Dcl : enter"));
+      pragma Debug (O2 ("Parse_Except_Dcl: enter"));
       pragma Debug (O ("Parse_Except_Dcl : first token " &
                        Idl_Token'Image (Get_Token)));
       if Get_Token /= T_Exception then
@@ -6278,8 +6327,9 @@ package body Idl_Fe.Parser is
                        Idl_Token'Image (Get_Token)));
       if not Add_Identifier (Result, Get_Token_String) then
          declare
-            Definition : Identifier_Definition_Acc :=
-              Find_Identifier_Definition (Get_Token_String);
+            Definition : constant Identifier_Definition_Acc
+              := Find_Identifier_Definition
+              (Get_Token_String, Get_Lexer_Location);
          begin
             Errors.Error
               ("This identifier is already defined in this scope : " &
@@ -6330,7 +6380,7 @@ package body Idl_Fe.Parser is
       Next_Token;
       Success := True;
       return;
-      pragma Debug (O2 ("Parse_Except_Dcl : end"));
+      pragma Debug (O2 ("Parse_Except_Dcl: end"));
    end Parse_Except_Dcl;
 
    --------------------
@@ -6366,18 +6416,19 @@ package body Idl_Fe.Parser is
          return;
       else
          --  Is there a previous definition
-         if not Is_Redefinable (Get_Token_String) then
+         if not Is_Redefinable (Get_Token_String, Get_Lexer_Location) then
             declare
-               Definition : Identifier_Definition_Acc :=
-                 Find_Identifier_Definition (Get_Token_String);
+               Definition : constant Identifier_Definition_Acc
+                 := Find_Identifier_Definition
+                 (Get_Token_String, Get_Lexer_Location);
             begin
                Errors.Error
-                 ("This identifier is already defined in this scope : " &
+                 ("This identifier is already defined in this scope: " &
                   Errors.Location_To_String
                   (Get_Location (Definition.Node)),
                   Errors.Error,
                   Get_Token_Location);
-               pragma Debug (O ("Parse_op_dcl : bad identifier"));
+               pragma Debug (O ("Parse_Op_Dcl: bad identifier"));
                Result := No_Node;
                Success := False;
                return;
@@ -6541,7 +6592,7 @@ package body Idl_Fe.Parser is
                               Success : out Boolean) is
       Attr_Success : Boolean;
    begin
-      pragma Debug (O2 ("Parse_Param_Dcl : enter"));
+      pragma Debug (O2 ("Parse_Param_Dcl: enter"));
       Result := Make_Param (Get_Token_Location);
       declare
          Node : Param_Mode;
@@ -6590,7 +6641,7 @@ package body Idl_Fe.Parser is
          Parse_Simple_Declarator (Node, Result, Success);
          Set_Declarator (Result, Node);
       end;
-      pragma Debug (O2 ("Parse_Param_Dcl : end"));
+      pragma Debug (O2 ("Parse_Param_Dcl: end"));
       return;
    end Parse_Param_Dcl;
 
@@ -7075,7 +7126,7 @@ package body Idl_Fe.Parser is
       end Call_Find_Identifier_In_Inheritance;
 
    begin
-      pragma Debug (O2 ("Interface_Is_Importable : enter"));
+      pragma Debug (O2 ("Interface_Is_Importable: enter"));
       pragma Assert (Int /= No_Node);
       pragma Assert (Kind (Int) = K_Scoped_Name);
       pragma Assert (Kind (Value (Int)) = K_Interface);
@@ -7098,7 +7149,7 @@ package body Idl_Fe.Parser is
             end loop;
          end if;
       end loop;
-      pragma Debug (O2 ("Interface_Is_Importable : end"));
+      pragma Debug (O2 ("Interface_Is_Importable: end"));
       return Result;
    end Interface_Is_Importable;
 
@@ -7533,7 +7584,7 @@ package body Idl_Fe.Parser is
       Result : Idl_Integer := 0;
       I : Natural := 0;
    begin
-      pragma Debug (O2 ("Get_Integer_Literal : enter"));
+      pragma Debug (O2 ("Get_Integer_Literal: enter"));
       case Get_Token is
          when T_Lit_Decimal_Integer =>
             while I < S'Length loop
@@ -7558,7 +7609,7 @@ package body Idl_Fe.Parser is
          when others =>
             return Result;
       end case;
-      pragma Debug (O2 ("Get_Integer_Literal : end"));
+      pragma Debug (O2 ("Get_Integer_Literal: end"));
          return Result;
    end Get_Integer_Literal;
 
@@ -7610,7 +7661,7 @@ package body Idl_Fe.Parser is
                                     Success : out Boolean;
                                     Expr_Type : in Constant_Value_Ptr) is
    begin
-      pragma Debug (O2 ("Parse_Integer_Literal : enter"));
+      pragma Debug (O2 ("Parse_Integer_Literal: enter"));
       Result := Make_Lit_Integer (Get_Token_Location);
       case Expr_Type.Kind is
          when C_Octet
@@ -7636,7 +7687,7 @@ package body Idl_Fe.Parser is
       end case;
       Next_Token;
       Success := True;
-      pragma Debug (O2 ("Parse_Integer_Literal : end"));
+      pragma Debug (O2 ("Parse_Integer_Literal: end"));
       return;
    end Parse_Integer_Literal;
 
@@ -7684,7 +7735,7 @@ package body Idl_Fe.Parser is
       end Get_String_Literal;
 
    begin
-      pragma Debug (O2 ("Parse_String_Literal : enter"));
+      pragma Debug (O2 ("Parse_String_Literal: enter"));
       if Get_Token /= T_Lit_String then
          Errors.Error
            ("String literal expected here.",
@@ -7692,7 +7743,7 @@ package body Idl_Fe.Parser is
             Get_Token_Location);
          Result := No_Node;
          Success := False;
-         pragma Debug (O2 ("Parse_String_Literal : end"));
+         pragma Debug (O2 ("Parse_String_Literal: end"));
          return;
       end if;
       Result := Make_Lit_String (Get_Token_Location);
@@ -7711,7 +7762,7 @@ package body Idl_Fe.Parser is
       end if;
       Next_Token;
       Success := True;
-      pragma Debug (O2 ("Parse_String_Literal : end"));
+      pragma Debug (O2 ("Parse_String_Literal: end"));
       return;
    end Parse_String_Literal;
 
@@ -8043,7 +8094,7 @@ package body Idl_Fe.Parser is
       procedure Integer_Precision_Exceeded is
          Old_Value : Constant_Value_Ptr := Expr_Value (Node);
       begin
-         pragma Debug (O2 ("Integer_Precision_Exceeded : enter"));
+         pragma Debug (O2 ("Integer_Precision_Exceeded: enter"));
          Errors.Error
            ("The specified type for this integer constant " &
             "does not allow this value",
@@ -8054,13 +8105,13 @@ package body Idl_Fe.Parser is
             new Constant_Value (Kind => C_General_Integer));
          Expr_Value (Node).Integer_Value := Old_Value.Integer_Value;
          Free (Old_Value);
-         pragma Debug (O2 ("Integer_Precision_Exceeded : end"));
+         pragma Debug (O2 ("Integer_Precision_Exceeded: end"));
       end Integer_Precision_Exceeded;
 
       procedure Float_Precision_Exceeded is
          Old_Value : Constant_Value_Ptr := Expr_Value (Node);
       begin
-         pragma Debug (O2 ("Float_Precision_Exceeded : enter"));
+         pragma Debug (O2 ("Float_Precision_Exceeded: enter"));
          Errors.Error
            ("The specified type for this floating point constant " &
             "does not allow this value",
@@ -8071,13 +8122,13 @@ package body Idl_Fe.Parser is
             new Constant_Value (Kind => C_General_Float));
          Expr_Value (Node).Float_Value := Old_Value.Float_Value;
          Free (Old_Value);
-         pragma Debug (O2 ("Float_Precision_Exceeded : end"));
+         pragma Debug (O2 ("Float_Precision_Exceeded: end"));
       end Float_Precision_Exceeded;
 
       procedure Fixed_Precision_Exceeded is
          Old_Value : Constant_Value_Ptr := Expr_Value (Node);
       begin
-         pragma Debug (O2 ("Fixed_Precision_Exceeded : enter"));
+         pragma Debug (O2 ("Fixed_Precision_Exceeded: enter"));
          Errors.Error
            ("invalid number of digits in fixed point " &
             "type definition : it should be in range " &
@@ -8091,11 +8142,11 @@ package body Idl_Fe.Parser is
          Expr_Value (Node).Digits_Nb := Old_Value.Digits_Nb;
          Expr_Value (Node).Scale := Old_Value.Scale;
          Free (Old_Value);
-         pragma Debug (O2 ("Float_Precision_Exceeded : end"));
+         pragma Debug (O2 ("Float_Precision_Exceeded: end"));
       end Fixed_Precision_Exceeded;
 
    begin
-      pragma Debug (O2 ("Check_Value_Range : enter"));
+      pragma Debug (O2 ("Check_Value_Range: enter"));
       pragma Debug (O ("Check_Value_Range : Kind (Node) is " &
                        Node_Kind'Image (Kind (Node)) &
                        ", Full = " & Boolean'Image (Full)));
@@ -8245,7 +8296,7 @@ package body Idl_Fe.Parser is
          when others =>
             null;
       end case;
-      pragma Debug (O2 ("Check_Value_Range : end"));
+      pragma Debug (O2 ("Check_Value_Range: end"));
    end Check_Value_Range;
 
    ------------------------
@@ -8257,7 +8308,7 @@ package body Idl_Fe.Parser is
       Value_Type : in Constant_Value_Ptr) is
       Types_Ok : Boolean := True;
    begin
-      pragma Debug (O2 ("Check_Expr_Value : enter"));
+      pragma Debug (O2 ("Check_Expr_Value: enter"));
       case Value.Kind is
          when C_General_Integer =>
             pragma Debug (O ("Check_Expr_Value : "
@@ -8359,7 +8410,7 @@ package body Idl_Fe.Parser is
             Get_Token_Location);
       end if;
       null;
-      pragma Debug (O2 ("Check_Expr_Value : end"));
+      pragma Debug (O2 ("Check_Expr_Value: end"));
    end Check_Expr_Value;
 
    ----------------------------
@@ -8696,7 +8747,7 @@ package body Idl_Fe.Parser is
    procedure Go_To_Next_Definition is
       Num : Natural := 0;
    begin
-      pragma Debug (O2 ("Go_To_Next_Definition : enter"));
+      pragma Debug (O2 ("Go_To_Next_Definition: enter"));
       while Get_Token /= T_Eof loop
          if Num = 0 then
             case Get_Token is
@@ -8712,7 +8763,7 @@ package body Idl_Fe.Parser is
                  | T_ValueType
                  | T_Const
                  | T_Right_Cbracket =>
-                  pragma Debug (O2 ("Go_To_Next_Definition : end"));
+                  pragma Debug (O2 ("Go_To_Next_Definition: end"));
                   return;
                when others =>
                   null;
@@ -8726,7 +8777,7 @@ package body Idl_Fe.Parser is
          end if;
          Next_Token;
       end loop;
-      pragma Debug (O2 ("Go_To_Next_Definition : end"));
+      pragma Debug (O2 ("Go_To_Next_Definition: end"));
    end Go_To_Next_Definition;
 
    -------------------------
@@ -8741,7 +8792,7 @@ package body Idl_Fe.Parser is
    procedure Go_To_End_Of_Export is
       Num : Natural := 0;
    begin
-      pragma Debug (O2 ("Go_To_Next_Definition : enter"));
+      pragma Debug (O2 ("Go_To_Next_Definition: enter"));
       while Get_Token /= T_Eof loop
          if Num = 0 then
             case Get_Token is
@@ -8787,7 +8838,7 @@ package body Idl_Fe.Parser is
          end if;
          Next_Token;
       end loop;
-      pragma Debug (O2 ("Go_To_Next_Definition : end"));
+      pragma Debug (O2 ("Go_To_Next_Definition: end"));
    end Go_To_End_Of_Export;
 
    ------------------------------
@@ -8796,11 +8847,11 @@ package body Idl_Fe.Parser is
 
    procedure Go_To_Next_Left_Cbracket is
    begin
-      pragma Debug (O2 ("Go_To_Next_Left_CBracket : enter"));
+      pragma Debug (O2 ("Go_To_Next_Left_CBracket: enter"));
       while Get_Token /= T_Eof and Get_Token /= T_Left_Cbracket loop
          Next_Token;
       end loop;
-      pragma Debug (O2 ("Go_To_Next_Left_CBracket : end"));
+      pragma Debug (O2 ("Go_To_Next_Left_CBracket: end"));
    end Go_To_Next_Left_Cbracket;
 
    -------------------------------
@@ -8809,11 +8860,11 @@ package body Idl_Fe.Parser is
 
    procedure Go_To_Next_Right_Cbracket is
    begin
-      pragma Debug (O2 ("Go_To_Next_Right_CBracket : enter"));
+      pragma Debug (O2 ("Go_To_Next_Right_CBracket: enter"));
       while Get_Token /= T_Eof and Get_Token /= T_Right_Cbracket loop
          Next_Token;
       end loop;
-      pragma Debug (O2 ("Go_To_Next_Right_CBracket : end"));
+      pragma Debug (O2 ("Go_To_Next_Right_CBracket: end"));
    end Go_To_Next_Right_Cbracket;
 
    -----------------------
@@ -8823,7 +8874,7 @@ package body Idl_Fe.Parser is
    procedure Go_To_Next_Export is
       Num : Natural := 0;
    begin
-      pragma Debug (O2 ("Go_To_Next_Export : enter"));
+      pragma Debug (O2 ("Go_To_Next_Export: enter"));
       While_Loop :
       while Get_Token /= T_Eof loop
          if Num = 0 then
@@ -8847,7 +8898,7 @@ package body Idl_Fe.Parser is
       if Get_Token = T_Semi_Colon then
          Next_Token;
       end if;
-      pragma Debug (O2 ("Go_To_Next_Export : end"));
+      pragma Debug (O2 ("Go_To_Next_Export: end"));
    end Go_To_Next_Export;
 
    ------------------------------
@@ -8857,7 +8908,7 @@ package body Idl_Fe.Parser is
    procedure Go_To_Next_Value_Element is
       Num : Natural := 0;
    begin
-      pragma Debug (O2 ("Go_To_Next_Value_Element : enter"));
+      pragma Debug (O2 ("Go_To_Next_Value_Element: enter"));
       While_Loop :
       while Get_Token /= T_Eof loop
          if Num = 0 then
@@ -8881,7 +8932,7 @@ package body Idl_Fe.Parser is
       if Get_Token = T_Semi_Colon then
          Next_Token;
       end if;
-      pragma Debug (O2 ("Go_To_Next_Value_Element : end"));
+      pragma Debug (O2 ("Go_To_Next_Value_Element: end"));
    end Go_To_Next_Value_Element;
 
    -------------------------------
@@ -8890,7 +8941,7 @@ package body Idl_Fe.Parser is
 
    procedure Go_To_End_Of_State_Member is
    begin
-      pragma Debug (O2 ("Go_To_End_Of_State_Member : enter"));
+      pragma Debug (O2 ("Go_To_End_Of_State_Member: enter"));
       while Get_Token /= T_Eof and Get_Token /= T_Semi_Colon loop
          Next_Token;
       end loop;
@@ -8899,7 +8950,7 @@ package body Idl_Fe.Parser is
       else
          null;
       end if;
-      pragma Debug (O2 ("Go_To_End_Of_State_Member : end"));
+      pragma Debug (O2 ("Go_To_End_Of_State_Member: end"));
    end Go_To_End_Of_State_Member;
 
    ----------------------------
@@ -8908,11 +8959,11 @@ package body Idl_Fe.Parser is
 
    procedure Go_To_Next_Right_Paren is
    begin
-      pragma Debug (O2 ("Go_To_Next_Right_Paren : enter"));
+      pragma Debug (O2 ("Go_To_Next_Right_Paren: enter"));
       while Get_Token /= T_Eof and Get_Token /= T_Right_Paren loop
          Next_Token;
       end loop;
-      pragma Debug (O2 ("Go_To_Next_Right_Paren : end"));
+      pragma Debug (O2 ("Go_To_Next_Right_Paren: end"));
    end Go_To_Next_Right_Paren;
 
    -----------------------
@@ -8921,7 +8972,7 @@ package body Idl_Fe.Parser is
 
    procedure Go_To_Next_Member is
    begin
-      pragma Debug (O2 ("Go_To_Next_Right_Paren : enter"));
+      pragma Debug (O2 ("Go_To_Next_Right_Paren: enter"));
       while Get_Token /= T_Eof and Get_Token /= T_Semi_Colon
         and Get_Token /= T_Right_Cbracket loop
          Next_Token;
@@ -8931,7 +8982,7 @@ package body Idl_Fe.Parser is
       else
          null;
       end if;
-      pragma Debug (O2 ("Go_To_Next_Right_Paren : end"));
+      pragma Debug (O2 ("Go_To_Next_Right_Paren: end"));
    end Go_To_Next_Member;
 
    -----------------------
@@ -8941,8 +8992,10 @@ package body Idl_Fe.Parser is
    procedure Go_To_End_Of_Case is
       Num : Natural := 0;
    begin
-      --  goes to the next clause (T_Case or T_Default) or
-      --  to the next right cbracket (if it was the last clause)
+
+      --  Go to the next clause (T_Case or T_Default) or to
+      --  the next right cbracket (if this was the last clause).
+
       While_Loop :
       while Get_Token /= T_Eof loop
          if Num = 0 then
@@ -8971,7 +9024,9 @@ package body Idl_Fe.Parser is
 
    procedure Go_To_End_Of_Case_Label is
    begin
-      --  basically goes to the next colon and consumes it
+
+      --  Go to the next colon and consume it
+
       while Get_Token /= T_Colon loop
          Next_Token;
       end loop;
@@ -8984,9 +9039,13 @@ package body Idl_Fe.Parser is
 
    procedure Go_To_End_Of_Scoped_Name is
    begin
-      --  skip the current token : an identifier
+      --  Skip the current token (an identifier)
+
       Next_Token;
-      --  while there are '::', skip them and the next identifier
+
+      --  While there are '::' tokens, skip them,
+      --  and skip the following identifier.
+
       while Get_Token = T_Colon_Colon loop
          Next_Token;
          if Get_Token = T_Identifier then
