@@ -139,13 +139,22 @@ package body all_types.Impl is
         (My_Exception'Identity, Members);
    end testException;
 
-   function echoStruct  
+   function echoStruct
      (Self : access Object;
       arg  : in Simple_Struct)
       return Simple_Struct is
    begin
       return arg;
    end echoStruct;
+
+   function echoUnion
+     (Self : access Object;
+      arg : in myUnion)
+     return MyUnion is
+   begin
+      return Arg;
+   end EchoUnion;
+
 
 --   procedure simple_exception_test
 --     (Self : access Object)

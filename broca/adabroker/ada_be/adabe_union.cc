@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.2 $
+//                            $Revision: 1.3 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -154,22 +154,26 @@ adabe_union::produce_stream_ads (dep_list & with,
 				 string   & body,
 				 string   & previous)
 {
-  // The three functions neede fore the net
-  // transfert:
-  body += "   procedure Marshall\n";
-  body += "     (A : in " + get_ada_local_name () + ";\n";
-  body += "      S : in out AdaBroker.NetBufferedStream.Object'Class);\n\n";
 
-  body += "   procedure Unmarshall\n";
-  body += "     (A : out " + get_ada_local_name () + ";\n";
-  body += "      S : in out AdaBroker.NetBufferedStream.Object'Class);\n\n";
+  // This code is duplicated from adabe_struct.
 
-  body += "   function Align_Size\n";
-  body += "     (A              : in " + get_ada_local_name () + ";\n";
-  body += "      Initial_Offset : in CORBA.Unsigned_Long)\n";
-  body += "      return CORBA.Unsigned_Long;\n\n";
+  gen_marshalling_declarations (body, get_ada_local_name ());
 
-  // the marshall function have been defined
+  // for all of the field we must lauch his
+  // produce_marshall_ads
+  UTL_ScopeActiveIterator i (this, UTL_Scope::IK_decls);
+  while (!i.is_done ())
+    {
+      AST_Decl *d = i.item ();
+      if (d->node_type () == AST_Decl::NT_union_branch) {
+	dynamic_cast<adabe_field *>(d)->produce_stream_ads
+	  (with, body);
+      }
+      else throw adabe_internal_error
+	     (__FILE__,__LINE__,"Unexpected node in union");
+      i.next ();
+    }
+
   set_already_defined ();
 }
 
@@ -185,12 +189,13 @@ adabe_union::produce_stream_adb (dep_list & with,
     (dynamic_cast<adabe_name *>(disc_type ()))->marshal_name (with, previous); 
 
   // preparing the default case (it MUST NOT
-  // serve )
+  // serve)
   string default_case = "";
-  default_case += "         when others =>\n";
-  default_case += "            Ada.Exceptions.Raise_Exception\n";
-  default_case += "              (CORBA.Dummy_User'Identity,\n";
-  default_case += "               \"Unchecked union case used\");\n";
+  default_case +=
+    "         when others =>\n"
+    "            Ada.Exceptions.Raise_Exception\n"
+    "              (CORBA.Dummy_User'Identity,\n"
+    "               \"Unchecked union case used\");\n";
 
   // defining the marshall, unmarshall
   // and align size function
@@ -199,81 +204,90 @@ adabe_union::produce_stream_adb (dep_list & with,
   // adjusted
   string marshall = "";
   string unmarshall = "";
-  string align_size = "";
-  marshall += "   procedure Marshall\n";
-  marshall += "     (A : in " + get_ada_local_name () + ";\n";
-  marshall += "      S : in out AdaBroker.NetBufferedStream.Object'Class)\n";
-  marshall += "   is\n";
-  marshall += "   begin\n";
-  marshall += "      Marshall (A.Switch, S);\n";
-  marshall += "      case A.Switch is\n";
-  
-  unmarshall += "   procedure Unmarshall\n";
-  unmarshall += "     (A : out " + get_ada_local_name () + ";\n";
-  unmarshall += "      S : in out AdaBroker.NetBufferedStream.Object'Class)\n";
-  unmarshall += "   is\n";
-  unmarshall += "      Switch : " + disc_name + ";\n";
-  unmarshall += "   begin\n";
-  unmarshall += "      Unmarshall (Switch, S);\n";
-  unmarshall += "      declare\n";
-  unmarshall += "         Tmp : " + get_ada_local_name () + "(Switch);\n";
-  unmarshall += "      begin\n";
-  unmarshall += "         case Switch is\n";
-  
-  align_size += "   function Align_Size\n";
-  align_size += "     (A              : in " + get_ada_local_name () + ";\n";
-  align_size += "      Initial_Offset : in CORBA.Unsigned_Long)\n";
-  align_size += "      return CORBA.Unsigned_Long\n";
-  align_size += "   is\n";
-  align_size += "      Tmp : CORBA.Unsigned_Long := 0;\n";
-  align_size += "   begin\n";
-  align_size += "      Tmp := Align_Size (A.Switch, Initial_Offset);\n";
-  align_size += "      case A.Switch is\n";
+  string marshall_size = "";
 
+
+  marshall += 
+    "   procedure Marshall\n"
+    "      (Stream : in out Broca.Buffers.Buffer_descriptor;\n"
+    "       Val : " + get_ada_local_name () + ")\n"
+    "   is\n"
+    "   begin\n"
+    "      Marshall (Stream, Val.Switch);\n"
+    "      case Val.Switch is\n";
+  
+  unmarshall += 
+    "   procedure Unmarshall\n"
+    "      (Stream : in out Broca.Buffers.Buffer_descriptor;\n"
+    "       Res : out " + get_ada_local_name () + ")\n"
+    "   is\n"
+    "      Switch : " + disc_name + ";\n"
+    "   begin\n"
+    "      Unmarshall (Stream, Switch);\n"
+    "      declare\n"
+    "         Tmp : " + get_ada_local_name () + "(Switch);\n"
+    "      begin\n"
+    "         case Switch is\n";
+  
+
+  marshall_size +=
+    "   procedure Compute_New_Size\n"
+    "      (Stream : in out Broca.Buffers.Buffer_descriptor;\n"
+    "       Val : " + get_ada_local_name () + ")\n"
+    "   is\n"
+    "   begin\n"
+    "      Compute_New_Size (Stream, Val.Switch);\n"
+    "      case Val.Switch is\n";
+  
   UTL_ScopeActiveIterator i (this, UTL_Scope::IK_decls);
   while (!i.is_done ())
     {
       AST_Decl *d = i.item ();
       if (d->node_type () == AST_Decl::NT_union_branch) {
 	dynamic_cast<adabe_union_branch *>(d)->produce_stream_adb
-	  (with, marshall, unmarshall, align_size, disc_type ());
+	  (with, marshall, unmarshall, marshall_size, disc_type ());
       }
       else throw adabe_internal_error 
 	     (__FILE__,__LINE__,"Unexpected node in union");
       i.next ();
     }
 
-  // if the defqult case is called
-  // evenif it has not been defined in IDL
-  // an exception is thrown
+  // if the default case is called,
+  // even if it has not been defined in IDL
+  // an exception is raised.
+
   if (get_default_case ())
     {
       marshall += default_case;
-      align_size += default_case;
-      unmarshall += "            when others =>\n";
-      unmarshall += "               Ada.Exceptions.Raise_Exception\n";
-      unmarshall += "                 (CORBA.Dummy_User'Identity,\n";
-      unmarshall += "                  \"Unchecked union case used\");\n";
+      marshall_size += default_case;
 
       with.add ("CORBA");
       with.add ("Ada.Exceptions");
+
+      unmarshall +=
+	"            when others =>\n"
+	"               Ada.Exceptions.Raise_Exception\n"
+	"                 (CORBA.Dummy_User'Identity,\n"
+	"                  \"Unchecked union case used\");\n";
     }
 
-  marshall += "      end case;\n";
-  marshall += "   end Marshall;\n\n";
+  marshall += 
+    "      end case;\n"
+    "   end Marshall;\n\n";
 
-  unmarshall += "         end case;\n";
-  unmarshall += "      A := Tmp;\n";
-  unmarshall += "      end;\n";
-  unmarshall += "   end Unmarshall;\n\n";
+  unmarshall +=
+    "         end case;\n"
+    "         Res := Tmp;\n"
+    "      end;\n"
+    "   end Unmarshall;\n\n";
   
-  align_size += "      end case;\n";
-  align_size += "      return Tmp;\n";
-  align_size += "   end Align_Size;\n\n";
+  marshall_size +=
+    "      end case;\n"
+    "   end Compute_New_Size;\n\n";
 
   body += marshall;
   body += unmarshall;
-  body += align_size;
+  body += marshall_size;
 
   // the marshall function has been written
   set_already_defined ();

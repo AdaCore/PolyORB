@@ -51,6 +51,22 @@ begin
       Output ("test struct", EchoStruct (MyAll_Types, Test_Struct) = Test_Struct);
    end;
 
+   declare
+      Test_Unions : constant array (0 .. 3) of MyUnion
+        := ((Switch => 0, Unknown => 987),
+            (Switch => 1, Counter => 1212),
+            (Switch => 2, Flag => True),
+            (Switch => 3, Hue => Green));
+      Pass : Boolean := True;
+   begin
+      for I in Test_Unions'Range loop
+         Pass := Pass and then EchoUnion (MyAll_Types, Test_Unions (I))
+           = Test_Unions (I);
+         exit when not Pass;
+      end loop;
+      Output ("test union", Pass);
+   end;
+
 --   begin
 --      Ok := False;
 --      Simple_Exception_Test (MyAll_Types);

@@ -96,6 +96,12 @@ private
       arg  : in Simple_Struct)
       return Simple_Struct;
 
+
+   function echoUnion
+     (Self : access Object;
+      arg : in myUnion)
+     return myUnion;
+
 --   procedure simple_exception_test
 --     (Self : access Object);
 --

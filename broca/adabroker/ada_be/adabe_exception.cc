@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.12 $
+//                            $Revision: 1.13 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -290,7 +290,6 @@ adabe_exception::produce_stream_ads (dep_list & with,
 
   with.add (pack);
   with.add ("Broca.Marshalling");
-  with.add ("Broca.Refs");
   with.add ("Broca.Buffers");
 
   UTL_ScopeActiveIterator activator (this, UTL_Scope::IK_decls);
@@ -334,7 +333,6 @@ adabe_exception::produce_stream_adb (dep_list & with,
 	"      Val : in " + get_ada_local_name () + "_Members)\n"
 	"   is\n"
 	"      use Broca.Marshalling;\n"
-	"      use Broca.Refs;\n"
 	"   begin\n";
 
       // Declaration of the function unmarshall.
@@ -344,7 +342,6 @@ adabe_exception::produce_stream_adb (dep_list & with,
 	"      Res : out " + get_ada_local_name () + "_Members)\n"
 	"   is\n"
 	"      use Broca.Marshalling;\n"
-	"      use Broca.Refs;\n"
 	"   begin\n";
 
       // Declaration of the function align_size.
@@ -354,7 +351,6 @@ adabe_exception::produce_stream_adb (dep_list & with,
 	"      Val : in " + get_ada_local_name () + "_Members)\n"
 	"   is\n"
 	"      use Broca.Marshalling;\n"
-	"      use Broca.Refs;\n"
 	"   begin\n";
       
       // We must now call the function over each field in the scope.
@@ -408,7 +404,7 @@ adabe_exception::produce_stream_adb (dep_list & with,
 	"      Members := new " + get_ada_local_name () + "_Members'(Bod);\n"
 	"      Broca.Exceptions.User_Raise_Exception\n"
 	"         (" + get_ada_local_name () + "'Identity, Members);\n"
-	"   end Raise_" +  get_ada_local_name () + ";\n";
+	"   end Raise_" +  get_ada_local_name () + ";\n\n";
     }
   set_already_defined ();
 }

@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.2 $
+//                            $Revision: 1.3 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -101,7 +101,7 @@ adabe_union_branch::produce_stream_adb (dep_list         & with,
   // Produce code for a given union branch.  Produce simultaneously 3
   // functions code : marshall, unmarshall and align_size
 {
-  string tmp = "      when "; // local temporary string
+  string tmp = "         when "; // local temporary string
 
   // First, produce the when statement.
   if (label ()->label_kind () != AST_UnionLabel::UL_default)
@@ -118,19 +118,14 @@ adabe_union_branch::produce_stream_adb (dep_list         & with,
   // Then, create the body of the statement for the 3 functions :
   // marshall, unmarshall and align_size.
   marshall += tmp;
-  marshall += "Marshall (A.";
-  marshall += get_ada_local_name ();
-  marshall += ", S);\n";
+  marshall += "Marshall (Stream, Val." + get_ada_local_name () + ");\n";
   
-  unmarshall += tmp;
-  unmarshall += "Unmarshall (Tmp.";
-  unmarshall += get_ada_local_name ();
-  unmarshall += ", S);   \n";
+  unmarshall += "   " + tmp;
+  unmarshall += "Unmarshall (Stream, Tmp." + get_ada_local_name () + ");\n";
   
   align_size += tmp;
-  align_size += "Tmp := Align_Size (A.";
-  align_size += get_ada_local_name ();
-  align_size += ", Tmp);\n";
+  align_size += "Compute_New_Size (Stream, Val."
+    + get_ada_local_name () + ");\n";
 }
 
 

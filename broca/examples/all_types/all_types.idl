@@ -32,14 +32,14 @@ interface all_types {
 
   // Unions
   //-------
-//  union example switch (long) {
-//    case 1: long Counter;
-//    case 2: boolean Flags;
-//    default: long Unknown;
-//  };
+  union myUnion switch (long) {
+    case 1: long    Counter;
+    case 2: boolean Flag;
+    case 3: Color   Hue;
+    default: long Unknown;
+  };
 
-//  example echo1 (in example arg);
-
+  myUnion echoUnion (in myUnion arg);
 
   // Arrays
   typedef long simple_array[5];
