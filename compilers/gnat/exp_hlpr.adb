@@ -37,6 +37,7 @@ with Sinfo;    use Sinfo;
 with Einfo;    use Einfo;
 with Sem_Ch7;  use Sem_Ch7;
 with Sem_Ch8;  use Sem_Ch8;
+with Sem_Eval; use Sem_Eval;
 with Sem_Util; use Sem_Util;
 with Snames;   use Snames;
 with Stand;    use Stand;
@@ -1807,18 +1808,52 @@ package body Exp_Hlpr is
             --  A variant part.
 
             declare
+               Discriminant_Type : constant Entity_Id
+                 := Etype (Name (Field));
+               Is_Enum : constant Boolean
+                 := Is_Enumeration_Type (Discriminant_Type);
+
                Union_TC_Params  : List_Id;
                U_Name : constant Name_Id
                  := New_External_Name (Chars (Typ), 'U', -1);
                Name_Str : String_Id;
 
-               S_Name : Name_Id;
                Struct_TC_Params : List_Id;
 
                Variant : Node_Id;
                Choice  : Node_Id;
                Default : constant Node_Id := Make_Integer_Literal (Loc, -1);
                Dummy_Counter : Int := 0;
+
+               procedure Add_Params_For_Variant_Components;
+               --  Add a struct TypeCode and a corresponding member name
+               --  to the union parameter list.
+
+               procedure Add_Params_For_Variant_Components
+               is
+                  S_Name : constant Name_Id
+                    := New_External_Name (U_Name, 'S', -1);
+               begin
+                  Get_Name_String (S_Name);
+                  Name_Str := String_From_Name_Buffer;
+                  Initialize_Parameter_List
+                    (Name_Str, Name_Str, Struct_TC_Params);
+
+                  --  Build struct parameters
+
+                  TC_Append_Record_Traversal (Struct_TC_Params,
+                    Component_List (Variant),
+                    Empty,
+                    Dummy_Counter);
+
+                  Add_TypeCode_Parameter
+                    (Make_Constructed_TypeCode
+                     (RTE (RE_TC_Struct), Struct_TC_Params),
+                     Union_TC_Params);
+
+                  Add_String_Parameter (Name_Str, Union_TC_Params);
+               end Add_Params_For_Variant_Components;
+
             begin
                Get_Name_String (U_Name);
                Name_Str := String_From_Name_Buffer;
@@ -1835,43 +1870,54 @@ package body Exp_Hlpr is
 
                --  Build union parameters
 
-               Add_TypeCode_Parameter (
-                 Etype (Name (Field)),
-                 Union_TC_Params);
+               Add_TypeCode_Parameter (Discriminant_Type, Union_TC_Params);
                Add_Long_Parameter (Default, Union_TC_Params);
 
                Variant := First_Non_Pragma (Variants (Field));
                while Present (Variant) loop
                   Choice := First (Discrete_Choices (Variant));
                   while Present (Choice) loop
-                     if Nkind (Choice) = N_Others_Choice then
-                        Add_Long_Parameter (
-                          Make_Integer_Literal (Loc, 0),
-                          Union_TC_Params);
-                     else
-                        Append_To (Union_TC_Params,
-                          Build_To_Any_Call (Choice, Decls));
-                     end if;
+                     case Nkind (Choice) is
+                        when N_Range =>
+                           declare
+                              L : constant Uint
+                                := Expr_Value (Low_Bound (Choice));
+                              H : constant Uint
+                                := Expr_Value (High_Bound (Choice));
+                              J : Uint := L;
+                              --  3.8.1(8) guarantees that the bounds of
+                              --  this range are static.
 
-                     S_Name := New_External_Name (U_Name, 'S', -1);
-                     Get_Name_String (S_Name);
-                     Name_Str := String_From_Name_Buffer;
-                     Initialize_Parameter_List
-                       (Name_Str, Name_Str, Struct_TC_Params);
+                              Expr : Node_Id;
+                           begin
+                              while J <= H loop
+                                 if Is_Enum then
+                                    Expr := New_Occurrence_Of (
+                                      Get_Enum_Lit_From_Pos (
+                                        Discriminant_Type, J, Loc), Loc);
+                                 else
+                                    Expr := Make_Integer_Literal (Loc, J);
+                                 end if;
+                                 Append_To (Union_TC_Params,
+                                   Build_To_Any_Call (Expr, Decls));
+                                 Add_Params_For_Variant_Components;
+                                 J := J + Uint_1;
+                              end loop;
+                           end;
 
-                     --  Build struct parameters
+                        when N_Others_Choice =>
+                           Add_Long_Parameter (
+                             Make_Integer_Literal (Loc, 0),
+                             Union_TC_Params);
+                           Add_Params_For_Variant_Components;
 
-                     TC_Append_Record_Traversal (Struct_TC_Params,
-                       Component_List (Variant),
-                       Empty,
-                       Dummy_Counter);
+                        when others =>
+                           Append_To (Union_TC_Params,
+                             Build_To_Any_Call (Choice, Decls));
+                           Add_Params_For_Variant_Components;
 
-                     Add_TypeCode_Parameter
-                       (Make_Constructed_TypeCode
-                        (RTE (RE_TC_Struct), Struct_TC_Params),
-                        Union_TC_Params);
+                     end case;
 
-                     Add_String_Parameter (Name_Str, Union_TC_Params);
                   end loop;
 
                   Next_Non_Pragma (Variant);
