@@ -35,13 +35,14 @@
 --  $Id$
 
 with Ada.Characters.Handling; use Ada.Characters.Handling;
-with Ada.Text_IO;          use Ada.Text_IO;
+with Ada.Text_IO; use Ada.Text_IO;
 
 with Interfaces.C.Strings; use Interfaces.C, Interfaces.C.Strings;
 with System;
 
 with PolyORB.Dynamic_Dict;
 pragma Elaborate_All (PolyORB.Dynamic_Dict);
+with PolyORB.Log;
 with PolyORB.Utils;
 with PolyORB.Utils.Strings;
 
@@ -56,10 +57,9 @@ package body PolyORB.Configuration is
    --  Output a diagnostic or error message.
 
    procedure O (S : String) is
-      use Ada.Text_IO;
    begin
       if Debug then
-         Put_Line (Standard_Error, S);
+         Ada.Text_IO.Put_Line (Standard_Error, S);
       end if;
    end O;
 
@@ -352,4 +352,5 @@ package body PolyORB.Configuration is
 
 begin
    Load_Configuration_File;
+   PolyORB.Log.Get_Conf_Hook := Get_Conf'Access;
 end PolyORB.Configuration;

@@ -32,14 +32,13 @@
 
 --  $Id$
 
-with Ada.Characters.Handling;
 pragma Warnings (Off);
 with System.IO; use System.IO;
 --  Package System.IO is GNAT-specific; for other compilers use
 --  Ada.Text_IO instead.
 pragma Warnings (On);
 
-with PolyORB.Configuration;
+--  with PolyORB.Configuration;
 
 package body PolyORB.Log is
 
@@ -53,19 +52,16 @@ package body PolyORB.Log is
 
    function Get_Log_Level (Facility : in String) return Log_Level
    is
-      Log_Level_Name : constant String
-        := Ada.Characters.Handling.To_Upper
-        (PolyORB.Configuration.Get_Conf
-         (Section => Log_Section,
-          Key     => Facility,
-          Default => Log_Level'Image (Default_Log_Level)));
    begin
-      for Level in Log_Level'Range loop
-         if Log_Level_Name = Log_Level'Image (Level) then
-            return Level;
-         end if;
-      end loop;
-      return Default_Log_Level;
+      if Get_Conf_Hook /= null then
+         return Log_Level'Value
+           (Get_Conf_Hook
+              (Section => Log_Section,
+               Key     => Facility,
+               Default => Log_Level'Image (Default_Log_Level)));
+      else
+         return Default_Log_Level;
+      end if;
    end Get_Log_Level;
 
    -------------------------------

@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-smart_pointers.ads#4 $
+--  $Id: //droopi/main/src/polyorb-smart_pointers.ads#5 $
 
 with Ada.Finalization;
 
@@ -89,8 +89,6 @@ package PolyORB.Smart_Pointers is
 
    function Entity_Of (The_Ref : Ref) return Entity_Ptr;
 
-   Nil_Ref : constant Ref;
-
 private
 
    procedure Inc_Usage (Obj : Entity_Ptr);
@@ -106,8 +104,5 @@ private
       record
          A_Ref : Entity_Ptr := null;
       end record;
-
-   Nil_Ref : constant Ref := (Ada.Finalization.Controlled
-                              with A_Ref => null);
 
 end PolyORB.Smart_Pointers;
