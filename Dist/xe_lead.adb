@@ -112,7 +112,7 @@ procedure XE_Lead is
          Write_Name (FD, Partitions.Table (Partition).Name);
          Write_Str  (FD, "_HOST ");
          Write_Str  (FD, Get_Rsh_Options);
-         Write_Str  (FD, " """);
+         Write_Str  (FD, " ");
       end if;
 
       Write_Name (FD, Get_Absolute_Exec (Partition));
@@ -120,7 +120,7 @@ procedure XE_Lead is
       Write_Str  (FD, " --boot_location ${BOOT_SERVER}");
       Write_Name (FD, Get_Command_Line (Partition));
       if Partition /= Main_Partition then
-         Write_Str (FD, " --detach --slave &"" >/dev/null 2>&1");
+         Write_Str (FD, " --detach --slave >/dev/null 2>&1");
       end if;
 
       Write_Eol (FD);

@@ -134,8 +134,8 @@ package body System.Garlic.Remote is
       Command     : in String)
    is
       Full_Command : constant String :=
-        Command & " " & "--detach --boot_location """ &
-        Get_Boot_Locations & """";
+        Command & " --boot_location """ &
+        Get_Boot_Locations & """ --detach --slave";
    begin
       pragma Debug (D ("Launch Command: " & Full_Command));
 
@@ -229,8 +229,8 @@ package body System.Garlic.Remote is
       Rsh_Full_Command : constant String     :=
         Rsh_Command & " " &
         Host        & " " &
-        Rsh_Options & " """ &
-        Command     & " &"" < /dev/null > /dev/null";
+        Rsh_Options & " " &
+        Command     & " < /dev/null > /dev/null";
       C_Command        : aliased char_array := To_C (Rsh_Full_Command);
    begin
       pragma Debug (D ("Run System: " & Rsh_Full_Command));
