@@ -249,17 +249,25 @@ package body Droopi.Soft_Links is
    -- Task identification --
    -------------------------
 
-   Get_Current_Task : Current_Task_Function;
+   Get_Current_Task : Task_Id_Function;
+   Get_Null_Task    : Task_Id_Function;
 
-   procedure Register_Current_Task
-     (F : in Current_Task_Function) is
+   procedure Register_Task_Identification
+     (CT : in Task_Id_Function;
+      NT : in Task_Id_Function) is
    begin
-      Get_Current_Task := F;
-   end Register_Current_Task;
+      Get_Current_Task := CT;
+      Get_Null_Task    := NT;
+   end Register_Task_Identification;
 
    function Current_Task return Task_Id'Class is
    begin
       return Get_Current_Task.all;
    end Current_Task;
+
+   function Null_Task return Task_Id'Class is
+   begin
+      return Get_Null_Task.all;
+   end Null_Task;
 
 end Droopi.Soft_Links;

@@ -207,8 +207,9 @@ package body Droopi.No_Tasking is
       Register_Barrier_Creation_Function (Create'Access);
       Register_Mutex_Creation_Function (Create'Access);
       Register_Adv_Mutex_Creation_Function (Create'Access);
-      Register_Current_Task
-        (Current_Task_Function'(Get_Current_Task'Access));
+      Register_Task_Identification
+        (Get_Current_Task'Access,
+         Get_Null_Task'Access);
    end Initialize;
 
    -----------
@@ -257,12 +258,21 @@ package body Droopi.No_Tasking is
 
    function Get_Current_Task return Soft_Links.Task_Id'Class is
    begin
-      return No_Task_Id'(null record);
+      return No_Task_Id'(Is_Null => False);
    end Get_Current_Task;
+
+   function Get_Null_Task return Soft_Links.Task_Id'Class is
+   begin
+      return No_Task_Id'(Is_Null => True);
+   end Get_Null_Task;
 
    function Image (T : No_Task_Id) return String is
    begin
-      return "main_task";
+      if T.Is_Null then
+         return "null_task";
+      else
+         return "environment_task";
+      end if;
    end Image;
 
 end Droopi.No_Tasking;

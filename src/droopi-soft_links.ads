@@ -205,12 +205,14 @@ package Droopi.Soft_Links is
 
    type Task_Id is abstract tagged null record;
 
-   type Current_Task_Function is access function
+   type Task_Id_Function is access function
      return Task_Id'Class;
 
-   procedure Register_Current_Task
-     (F : in Current_Task_Function);
+   procedure Register_Task_Identification
+     (CT : in Task_Id_Function;
+      NT : in Task_Id_Function);
    function Current_Task return Task_Id'Class;
+   function Null_Task return Task_Id'Class;
 
    function Image (T : Task_Id) return String is abstract;
 

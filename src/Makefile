@@ -6,10 +6,10 @@
 
 GNATMAKE=gnatmake
 
-CFLAGS=-O2 -gnatfy -gnatwae -Icorba
+CFLAGS=		-O2 -gnatfy -gnatwae -Icorba $(COPTS)
 
 # Development
-CFLAGS+=-g -gnatao
+CFLAGS+=	-g -gnatao
 
 all: droopi-setup-test
 

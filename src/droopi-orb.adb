@@ -658,10 +658,11 @@ package body Droopi.ORB is
             J : constant Job_Access := new Request_Job;
             QR : Interface.Queue_Request
               renames Interface.Queue_Request (Msg);
+            Req : Requests.Request_Access renames QR.Request;
          begin
             pragma Debug (O ("Queue_Request: enter"));
             Request_Job (J.all).ORB       := ORB_Access (ORB);
-            Request_Job (J.all).Request   := QR.Request;
+            Request_Job (J.all).Request   := Req;
 
             if QR.Requestor = null then
                --  If the request was queued directly by a client,
@@ -670,6 +671,10 @@ package body Droopi.ORB is
                --  object.
                Request_Job (J.all).Requestor
                  := Component_Access (ORB);
+               --  XXX Annotate Req with a pointer to the requesting
+               --  task's Task_Info.
+               --  Set_Note (Req.Notepad, Request_Note'
+               --        (Requesting_ORB_Task => This_Task));
             else
                Request_Job (J.all).Requestor := QR.Requestor;
             end if;
@@ -681,11 +686,21 @@ package body Droopi.ORB is
 
          --  XXX NOTIFY ALL SLEEPING ORB TASKS THAT
          --  A WAIT CONDITION HAS BEEN UPDATED!
-         --  or only notify the correct task.
-         --  The ORB should perhaps maintain a list of all tasks
-         --  that are currently executing ORB code, of their
-         --  origin, of their exit conditions, and of their status
-         --  (blocked/idle/...)
+         --  If Request is annotated with a pointer
+         --  to a task_info, this means that the corresponding
+         --  task is a transient one that must be waked up
+         --  because its exit condition may have changed.
+
+         --  Get_Note (req, request_note)
+         --  if Task_Info /= null then
+         --     case Status (Task_Info) is
+         --        when Running => null;
+         --        when Blocked => Abort (Selector (Task_Info));
+         --        when Idle => Update (Watcher (Task_Info));
+         --     end case;
+         --  end if;
+
+         --  Must also ensure that proper locking is performed.
 
       else
          raise Components.Unhandled_Message;

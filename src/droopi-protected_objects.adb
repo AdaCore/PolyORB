@@ -2,7 +2,10 @@
 
 with Ada.Unchecked_Deallocation;
 
-with System.Soft_Links;  use System.Soft_Links;
+pragma Warnings (Off);
+with System.Soft_Links;
+pragma Warnings (On);
+--  Internal GNAT unit.
 
 with Droopi.Soft_Links;  use Droopi.Soft_Links;
 
@@ -210,7 +213,7 @@ package body Droopi.Protected_Objects is
    procedure Enter (M : in Protected_Mutex_Type) is
    begin
       pragma Assert (M.X /= null);
-      Abort_Defer.all;
+      System.Soft_Links.Abort_Defer.all;
       M.X.Enter;
    end Enter;
 
@@ -258,8 +261,9 @@ package body Droopi.Protected_Objects is
       Register_Watcher_Creation_Function (Create'Access);
       Register_Mutex_Creation_Function (Create'Access);
       Register_Adv_Mutex_Creation_Function (Create'Access);
-      Register_Current_Task
-        (Current_Task_Function'(Get_Current_Task'Access));
+      Register_Task_Identification
+        (Task_Id_Function'(Get_Current_Task'Access),
+         Task_Id_Function'(Get_Null_Task'Access));
    end Initialize;
 
    -----------
@@ -286,7 +290,7 @@ package body Droopi.Protected_Objects is
    procedure Leave (M : in Protected_Mutex_Type) is
    begin
       pragma Assert (M.X /= null);
-      Abort_Undefer.all;
+      System.Soft_Links.Abort_Undefer.all;
       M.X.Leave;
    end Leave;
 
@@ -442,6 +446,11 @@ package body Droopi.Protected_Objects is
    begin
       return PO_Task_Id'(X => Ada.Task_Identification.Current_Task);
    end Get_Current_Task;
+
+   function Get_Null_Task return Soft_Links.Task_Id'Class is
+   begin
+      return PO_Task_Id'(X => Ada.Task_Identification.Null_Task_Id);
+   end Get_Null_Task;
 
    function Image (T : PO_Task_Id) return String is
    begin

@@ -92,6 +92,7 @@ package Droopi.No_Tasking is
    type No_Task_Id is new Soft_Links.Task_Id with private;
 
    function Get_Current_Task return Soft_Links.Task_Id'Class;
+   function Get_Null_Task return Soft_Links.Task_Id'Class;
 
    function Image (T : No_Task_Id) return String;
    pragma Inline (Image);
@@ -131,6 +132,8 @@ private
          X : Unprotected_Watcher_Data_Access;
       end record;
 
-   type No_Task_Id is new Soft_Links.Task_Id with null record;
+   type No_Task_Id is new Soft_Links.Task_Id with record
+      Is_Null : Boolean := True;
+   end record;
 
 end Droopi.No_Tasking;

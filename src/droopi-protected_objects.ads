@@ -93,6 +93,7 @@ package Droopi.Protected_Objects is
    type PO_Task_Id is new Soft_Links.Task_Id with private;
 
    function Get_Current_Task return Soft_Links.Task_Id'Class;
+   function Get_Null_Task return Soft_Links.Task_Id'Class;
 
    function Image (T : PO_Task_Id) return String;
    pragma Inline (Image);
