@@ -60,7 +60,8 @@ package body PolyORB.POA_Manager.Basic_Manager is
    --  (in case a Servant Manager is used with a RETAIN policy)
 
    procedure Reemit_Requests (Self : access Basic_POA_Manager);
-   --  Reemit requests stored by the Hold Servant attached to Self
+   --  Reemit requests stored by the Hold Servant attached to
+   --  Self. Note: this function assumes Self.Lock is held.
 
    --------------
    -- Activate --
@@ -88,13 +89,11 @@ package body PolyORB.POA_Manager.Basic_Manager is
                 Null_Members'(Null_Member));
          Leave (Self.Lock);
          return;
-      else
-
-         --  else set the POAManager state to ACTIVE
-
-         Self.Current_State := ACTIVE;
-         Leave (Self.Lock);
       end if;
+
+      --  else set the POAManager state to ACTIVE
+
+      Self.Current_State := ACTIVE;
 
       --  If we were holding requests, reemit them
 
@@ -104,6 +103,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
          Reemit_Requests (Self);
       end if;
 
+      Leave (Self.Lock);
       pragma Debug (O ("Activate POAManager: leave"));
    end Activate;
 
@@ -132,18 +132,16 @@ package body PolyORB.POA_Manager.Basic_Manager is
 
          --  If the POAManager state is INACTIVE, raise an exception
 
-         Leave (Self.Lock);
          Throw (Error,
                 AdapterInactive_E,
                 Null_Members'(Null_Member));
-         return;
       else
-
          --  else set the POAManager state to HOLDING
 
          Self.Current_State := HOLDING;
-         Leave (Self.Lock);
       end if;
+
+      Leave (Self.Lock);
    end Hold_Requests;
 
    ----------------------
@@ -168,20 +166,19 @@ package body PolyORB.POA_Manager.Basic_Manager is
       --  Test invocation validity
 
       if Self.Current_State = INACTIVE then
+
          --  If the POAManager state is INACTIVE, raise an exception
 
-         Leave (Self.Lock);
          Throw (Error,
                 AdapterInactive_E,
                 Null_Members'(Null_Member));
-         return;
-
       else
          --  else set the POAManager state to DISCARDING
 
          Self.Current_State := DISCARDING;
-         Leave (Self.Lock);
       end if;
+
+      Leave (Self.Lock);
    end Discard_Requests;
 
    ----------------
@@ -221,8 +218,14 @@ package body PolyORB.POA_Manager.Basic_Manager is
    ---------------
 
    function Get_State (Self : Basic_POA_Manager) return State is
+      Result : State;
+
    begin
-      return Self.Current_State;
+      Enter (Self.Lock);
+      Result := Self.Current_State;
+      Leave (Self.Lock);
+
+      return Result;
    end Get_State;
 
    ------------
@@ -405,8 +408,6 @@ package body PolyORB.POA_Manager.Basic_Manager is
       pragma Debug (O ("Number of requests to reemit"
                        & Integer'Image (Length (Self.Held_Requests))));
 
-      Enter (Self.Lock);
-
       while Self.Held_Requests /= Empty loop
          Extract_First (Self.Held_Requests, R);
          Emit_No_Reply (Component_Access (PolyORB.Setup.The_ORB),
@@ -414,8 +415,6 @@ package body PolyORB.POA_Manager.Basic_Manager is
                         (Request   => R.Req,
                          Requestor => R.Req.Requesting_Component));
       end loop;
-
-      Leave (Self.Lock);
    end Reemit_Requests;
 
    ---------------------
