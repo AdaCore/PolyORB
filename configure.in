@@ -556,6 +556,7 @@ AC_OUTPUT([
 
 ${RM} ${PROTO_CLIENT_WITHS}
 ${RM} ${PROTO_SERVER_WITHS}
+${RM} ${PO_CATREF_WITHS}
 
 ##########################################
 # Copy files
