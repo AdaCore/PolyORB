@@ -518,13 +518,12 @@ package body PolyORB.Representations.CDR is
          when Tk_Principal =>
             --  FIXME : to be done
             pragma Debug (O ("Marshall_From_Any : dealing with a principal"));
-            null;
+            raise PolyORB.Not_Implemented;
 
          when Tk_Objref =>
             pragma Debug (O ("Marshall_From_Any : dealing with an objRef"));
             --  Marshall (Buffer, PolyORB.Types.Object.Helper.From_Any (Data));
-            null;
-
+            raise PolyORB.Not_Implemented;
 
          when Tk_Struct =>
             declare
@@ -704,7 +703,7 @@ package body PolyORB.Representations.CDR is
             --            PolyORB.Types.Unsigned_Long(1));
             --   Marshall_From_Any(Buffer,Scale);
             --   end;
-            null;
+            raise PolyORB.Not_Implemented;
 
          when Tk_Value =>
             --  declare
@@ -739,7 +738,7 @@ package body PolyORB.Representations.CDR is
             --     end loop;
             --    end if;
             --   end;
-            null;
+            raise PolyORB.Not_Implemented;
 
 
          when Tk_Valuebox =>
@@ -754,7 +753,7 @@ package body PolyORB.Representations.CDR is
             --  FIXME : to be done
             --  pragma Debug (O ("Marshall_From_Any : dealing with a native"));
 
-            null;
+            raise PolyORB.Not_Implemented;
 
          when Tk_Abstract_Interface =>
             pragma Debug (O
@@ -762,7 +761,7 @@ package body PolyORB.Representations.CDR is
             --  FIXME : to be done
             --  pragma Debug (O ("Marshall_From_Any : dealing with "
             --                 & "an abstract interface"));
-            null;
+            raise PolyORB.Not_Implemented;
       end case;
       pragma Debug (O ("Marshall_From_Any : end"));
    end Marshall_From_Any;
@@ -1624,14 +1623,14 @@ package body PolyORB.Representations.CDR is
             end;
          when Tk_Principal =>
             --  FIXME : to be done
-            null;
+            raise PolyORB.Not_Implemented;
          when Tk_Objref =>
             --  declare
             --     O : PolyORB.Types.Object.Ref := Unmarshall (Buffer);
             --  begin
             --     PolyORB.Types.Object.Helper.Set_Any_Value (Result, O);
             --  end;
-            null;
+            raise PolyORB.Not_Implemented;
          when Tk_Struct =>
             declare
                Nb : Unsigned_Long :=
@@ -1799,7 +1798,7 @@ package body PolyORB.Representations.CDR is
                end if;
             end;
          when Tk_Alias =>
-            --  we should never reach this point
+            --  We should never reach this point
             raise Program_Error;
          when Tk_Except =>
             declare
@@ -1889,8 +1888,7 @@ package body PolyORB.Representations.CDR is
             --      Add_Aggregate_Element(Result,Arg2);
             --    end if;
             --   end;
-            null;
-
+            raise PolyORB.Not_Implemented;
 
          when Tk_Value =>
 
@@ -1931,7 +1929,7 @@ package body PolyORB.Representations.CDR is
             --    end loop;
             --   end if;
             --   end;
-            null;
+            raise PolyORB.Not_Implemented;
 
          when Tk_Valuebox =>
             --  declare
@@ -1952,15 +1950,15 @@ package body PolyORB.Representations.CDR is
             --       Add_Aggregate_Element(Result, Arg);
             --     end if;
             --  end;
-            null;
+            raise PolyORB.Not_Implemented;
          when Tk_Native =>
             --  FIXME : to be done
-            null;
+            raise PolyORB.Not_Implemented;
          when Tk_Abstract_Interface =>
             --  FIXME : to be done
-            null;
+            raise PolyORB.Not_Implemented;
       end case;
-      pragma Debug (O ("Unmarshall_To_Any : end"));
+      pragma Debug (O ("Unmarshall_To_Any: end"));
    end Unmarshall_To_Any;
 
    function Unmarshall
