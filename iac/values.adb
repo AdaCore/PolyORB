@@ -14,7 +14,6 @@ package body Values is
    subtype ULL is Unsigned_Long_Long;
 
    procedure Add_ULL_To_Name_Buffer (U : ULL; B : ULL);
-   procedure Normalize_Fixed_Point_Value (V : in out Value_Type);
 
    Max : constant Unsigned_Long_Long := LULL / 10;
 
@@ -65,6 +64,13 @@ package body Values is
             Add_ULL_To_Name_Buffer (V.IVal, ULL (V.Base));
 
          when T_Fixed_Point_Literal =>
+            Add_Char_To_Name_Buffer ('[');
+            Add_Dnat_To_Name_Buffer (Dint (V.IVal));
+            Add_Char_To_Name_Buffer (',');
+            Add_Dnat_To_Name_Buffer (Dint (V.Total));
+            Add_Char_To_Name_Buffer (',');
+            Add_Dnat_To_Name_Buffer (Dint (V.Scale));
+            Add_Char_To_Name_Buffer (']');
             if V.Sign < 0 then
                Add_Char_To_Name_Buffer ('-');
             end if;
@@ -168,10 +174,15 @@ package body Values is
       Sign  : Short_Short;
       Total : Unsigned_Short_Short;
       Scale : Unsigned_Short_Short)
-     return Value_Id is
+     return Value_Id
+   is
+      V : Value_Id;
    begin
-      return New_Value
+      V := New_Value
         (Value_Type'(T_Fixed_Point_Literal, Value, Sign, Total, Scale));
+      Normalize_Fixed_Point_Value (V);
+      Write_Str (Image (V)); Write_Eol;
+      return V;
    end New_Fixed_Point_Value;
 
    ------------------------------
@@ -223,6 +234,17 @@ package body Values is
       VT.Table (V) := Value;
       return V;
    end New_Value;
+
+   ---------------------------------
+   -- Normalize_Fixed_Point_Value --
+   ---------------------------------
+
+   procedure Normalize_Fixed_Point_Value (V : Value_Id) is
+      Val : Value_Type := Value (V);
+   begin
+      Normalize_Fixed_Point_Value (Val);
+      Set_Value (V, Val);
+   end Normalize_Fixed_Point_Value;
 
    ---------------------------------
    -- Normalize_Fixed_Point_Value --
@@ -406,8 +428,6 @@ package body Values is
                NL.Total := NL.Total + 1;
                NL.Scale := NL.Scale + 1;
             end loop;
-            Write_Str ("NL.Total "); Write_Int (Int (NL.Total)); Write_Eol;
-            Write_Str ("NL.Scale "); Write_Int (Int (NL.Scale)); Write_Eol;
             V.Sign   := L.Sign * R.Sign;
             V.IVal   := NL.IVal / R.IVal;
             declare
@@ -420,16 +440,7 @@ package body Values is
                end loop;
             end;
             V.Scale := NL.Scale - R.Scale;
-            --  Write_Str ("Value "); Write_Int (Int (V.IVal));
-            Write_Str ("L.Total "); Write_Int (Int (L.Total)); Write_Eol;
-            Write_Str ("L.Scale "); Write_Int (Int (L.Scale)); Write_Eol;
-            Write_Str ("R.Total "); Write_Int (Int (R.Total)); Write_Eol;
-            Write_Str ("R.Scale "); Write_Int (Int (R.Scale)); Write_Eol;
-            Write_Str ("V.Total "); Write_Int (Int (V.Total)); Write_Eol;
-            Write_Str ("V.Scale "); Write_Int (Int (V.Scale)); Write_Eol;
             Normalize_Fixed_Point_Value (V);
-            Write_Str ("V.Total "); Write_Int (Int (V.Total)); Write_Eol;
-            Write_Str ("V.Scale "); Write_Int (Int (V.Scale)); Write_Eol;
 
          when others =>
             return Void;

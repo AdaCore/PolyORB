@@ -1,5 +1,9 @@
 2004-05-13  Laurent Pautet  <pautet@dorine.enst.fr>
 
+	* iac-cpp: read env. variable CPPEXEC to redirect command either
+	to cpp or mico-cpp. Note that cpp (GNU CPP) removes all
+	unnecessary blanks and makes iac to incorrectly locate errors.
+
 	* lexer.adb, lexer.ads: Scan string literals but on minor errors
 	like having a string which appears to be a wide string, do not
 	produce token T_Error. Instead, produce token T_String with

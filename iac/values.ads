@@ -80,6 +80,9 @@ package Values is
      (Value : Value_Type)
      return Value_Id;
 
+   procedure Normalize_Fixed_Point_Value (V : Value_Id);
+   procedure Normalize_Fixed_Point_Value (V : in out Value_Type);
+
    function Value (V : Value_Id) return Value_Type;
    procedure Set_Value (V : Value_Id; X : Value_Type);
 
