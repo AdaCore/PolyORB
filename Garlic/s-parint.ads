@@ -42,8 +42,8 @@ package System.Partition_Interface is
 
    pragma Elaborate_Body;
 
-   type DSA_Implementation_Name is (No_DSA, GLADE_DSA, PolyORB_DSA);
-   DSA_Implementation : constant DSA_Implementation_Name := GLADE_DSA;
+   type DSA_Implementation_Name is (No_DSA, GARLIC_DSA, PolyORB_DSA);
+   DSA_Implementation : constant DSA_Implementation_Name := GARLIC_DSA;
 
    subtype Subprogram_Id is System.Garlic.Units.Subprogram_Id;
 
