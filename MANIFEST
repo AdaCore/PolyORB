@@ -370,6 +370,8 @@ ada/debug.adb
 ada/debug.ads
 ada/fname.adb
 ada/fname.ads
+ada/fname-uf.adb
+ada/fname-uf.ads
 ada/gnatvsn.ads
 ada/hostparm.ads
 ada/krunch.adb
