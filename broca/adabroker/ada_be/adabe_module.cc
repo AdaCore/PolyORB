@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.8 $
+//                            $Revision: 1.9 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -30,16 +30,12 @@
 //                     (email: broker@inf.enst.fr)                          //
 //                                                                          //
 //--------------------------------------------------------------------------//
-#include <adabe.h>
- 
-static string remove_dot (string  name)
-{
-  char c;
-  while ((c = name.find (".")) != -1) 
-    name[c]='-';
-  return name;
 
-}
+#include <adabe.h>
+
+//-----------------------------//
+//  adabe_module::adabe_module //
+//-----------------------------//
 
 adabe_module::adabe_module (UTL_ScopedName *n,
 			    UTL_StrList    *p)
@@ -48,28 +44,33 @@ adabe_module::adabe_module (UTL_ScopedName *n,
     adabe_name (AST_Decl::NT_module, n, p) 
 {
 }
+
+//---------------------------//
+// adabe_module::produce_ads //
+//---------------------------//
+
 void
-adabe_module::produce_ads (dep_list & with,
-			   string   & body,
-			   string   & previousdefinition)
+adabe_module::produce_ads (dep_list & withlist,
+			   string   & maincode,
+			   string   & prologue)
 {
-  
-  // before doing anything compute the ada name
+  // Before doing anything compute the ada name (of what ???).
   
   compute_ada_name (); 
-  // with.add ("Ada.Unchecked_Deallocation");
-  with.add ("CORBA");
-  with.add ("Broca");
-  body = "package " + get_ada_full_name ()+ " is\n";
+
+  withlist.add ("CORBA");
+  withlist.add ("Broca");
+  maincode = "package " + get_ada_full_name ()+ " is\n";
   
-  // For each declaration in the node produce the code
-  
-  UTL_ScopeActiveIterator module_activator (this, UTL_Scope::IK_decls);
-  while (!module_activator.is_done ())
+  // For each declaration, produce spec.
+  UTL_ScopeActiveIterator iterator (this, UTL_Scope::IK_decls);
+
+  while (!iterator.is_done ())
     {
-      AST_Decl *d = module_activator.item ();
-      module_activator.next ();
       adabe_global::set_adabe_current_file (this);
+
+      AST_Decl *d = iterator.item ();
+
       switch (d->node_type ())
 	{
 	case AST_Decl::NT_array:
@@ -80,58 +81,67 @@ adabe_module::produce_ads (dep_list & with,
 	case AST_Decl::NT_struct:
 	case AST_Decl::NT_enum:
 	case AST_Decl::NT_typedef:
-	  previousdefinition += body;
-	  body ="";
+	  prologue += maincode;
+	  maincode = "";
+	  // No break (sure ???)
+
 	case AST_Decl::NT_interface_fwd:
 	  dynamic_cast<adabe_name *>(d)->produce_ads
-	    (with, body, previousdefinition);
+	    (withlist,
+	     maincode,
+	     prologue);
 	  break;
+
 	case AST_Decl::NT_module:
 	  {
-	    adabe_module *module = adabe_module::narrow_from_decl (d);
-	    string module_previous = "";
-	    string module_body = "";
-	    string module_with_string;
-	    dep_list module_with;
+	    adabe_module *module =
+	      adabe_module::narrow_from_decl (d);
+
+	    string module_prologue = "";
+	    string module_maincode = "";
+	    string module_withcode = "";
+	    dep_list module_withlist;
 	    
-	    module->produce_ads (module_with, module_body, module_previous);
-	    module_with_string = *module_with.produce ("with ");
+	    module->produce_ads
+	      (module_withlist,
+	       module_maincode,
+	       module_prologue);
+	    module_withcode = *module_withlist.produce ("with ");
 	    
-	    string module_file_name =
-	      remove_dot (module->get_ada_full_name ()) + ".ads";
-	    char *lower_case_name = lower (module_file_name.c_str ());
-	    ofstream module_file (lower_case_name); 
-	    delete[] lower_case_name;
-	    module_file << module_with_string;
-	    module_file << module_previous;
-	    module_file << module_body;
-	    module_file.close ();
+	    produce_file
+	      (module->get_ada_full_name (),
+	       is_spec,
+	       module_withcode
+	       + module_prologue
+	       + module_maincode);
 	  }
 	  break;
 	  
 	case AST_Decl::NT_interface:
 	  {
-	    adabe_interface *interface = adabe_interface::narrow_from_decl (d);
-	    string interface_previous = "";
-	    string interface_body = "";
-	    string interface_with_string;
-	    dep_list interface_with;
+	    adabe_interface *interface = 
+	      adabe_interface::narrow_from_decl (d);
+
+	    string interface_prologue = "";
+	    string interface_maincode = "";
+	    string interface_withcode = "";
+	    dep_list interface_withlist;
 
 	    interface->produce_ads
-	      (interface_with, interface_body, interface_previous);
-	    interface_with_string = *interface_with.produce ("with ");
+	      (interface_withlist,
+	       interface_maincode,
+	       interface_prologue);
+	    interface_withcode = *interface_withlist.produce ("with ");
 	    
-	    string interface_file_name =
-	      remove_dot (interface->get_ada_full_name ())+ ".ads";
-	    char *lower_case_name = lower (interface_file_name.c_str ());
-	    ofstream interface_file (lower_case_name); 
-	    delete[] lower_case_name;
-	    interface_file << interface_with_string;
-	    interface_file << interface_previous;       
-	    interface_file << interface_body;
-	    interface_file.close ();
+	    produce_file
+	      (interface->get_ada_full_name (),
+	       is_spec,
+	       interface_withcode
+	       + interface_prologue
+	       + interface_maincode);
 	  }
 	  break;
+
 	case AST_Decl::NT_enum_val:
 	  break;
 
@@ -140,91 +150,103 @@ adabe_module::produce_ads (dep_list & with,
 	    (__FILE__,__LINE__,"unexpected contening scope");
 	  break;
 	}
+      iterator.next ();
     }
-  body += "end " + get_ada_full_name () + ";";
 
+  maincode += "end " + get_ada_full_name () + ";";
 }
 
 void
-adabe_module::produce_adb (dep_list & with,
-			   string   & body,
-			   string   & previousdefinition)
-  // does nothing except lauching produce adb for the interfaces
+adabe_module::produce_adb (dep_list & withlist,
+			   string   & maincode,
+			   string   & prologue)
 {
-   UTL_ScopeActiveIterator module_activator (this, UTL_Scope::IK_decls);
-  while (!module_activator.is_done ())
-    {
-      AST_Decl *d = module_activator.item ();
-      module_activator.next ();
-      adabe_global::set_adabe_current_file (this);
-      switch (d->node_type ())
-	{
-	case AST_Decl::NT_array:
-	case AST_Decl::NT_interface_fwd:
-	case AST_Decl::NT_pre_defined:
-	case AST_Decl::NT_const:
-	case AST_Decl::NT_except:
-	case AST_Decl::NT_union:
-	case AST_Decl::NT_struct:
-	case AST_Decl::NT_enum:
-	case AST_Decl::NT_typedef:
-	  break;
-	    
-	case AST_Decl::NT_module:
+   UTL_ScopeActiveIterator iterator (this, UTL_Scope::IK_decls);
+   
+   while (!iterator.is_done ())
+     {
+       adabe_global::set_adabe_current_file (this);
+
+       AST_Decl *d = iterator.item ();
+
+       switch (d->node_type ())
+	 {
+	 case AST_Decl::NT_array:
+	 case AST_Decl::NT_interface_fwd:
+	 case AST_Decl::NT_pre_defined:
+	 case AST_Decl::NT_const:
+	 case AST_Decl::NT_except:
+	 case AST_Decl::NT_union:
+	 case AST_Decl::NT_struct:
+	 case AST_Decl::NT_enum:
+	 case AST_Decl::NT_typedef:
+	   break;
+	   
+	 case AST_Decl::NT_module:
 	  {
-	    adabe_module *module = adabe_module::narrow_from_decl (d);
-	    string module_previous = "";
-	    string module_body = "";
-	    dep_list module_with;
+	    adabe_module *module =
+	      adabe_module::narrow_from_decl (d);
+
+	    string module_prologue = "";
+	    string module_maincode = "";
+	    dep_list module_withlist;
 	    
-	    module->produce_adb (module_with, module_body, module_previous);
+	    module->produce_adb
+	      (module_withlist,
+	       module_maincode,
+	       module_prologue);
 	  }
 	  break;
 	  
 	case AST_Decl::NT_interface:
 	  {
-	    adabe_interface *interface = adabe_interface::narrow_from_decl (d);
-	    string interface_previous = "";
-	    string interface_body = "";
-	    string interface_with_string;
-	    string interface_use_string;
-	    dep_list interface_with;
+	    adabe_interface *interface =
+	      adabe_interface::narrow_from_decl (d);
+
+	    string interface_prologue = "";
+	    string interface_maincode = "";
+	    string interface_withcode = "";
+	    string interface_usecode  = "";
+	    dep_list interface_withlist;
 
 	    interface->produce_adb
-	      (interface_with, interface_body, interface_previous);
-	    interface_with_string = *interface_with.produce ("with ");
-	    interface_use_string = *interface_with.produce ("use ");
+	      (interface_withlist,
+	       interface_maincode,
+	       interface_prologue);
+	    interface_withcode = *interface_withlist.produce ("with ");
+	    interface_usecode  = *interface_withlist.produce ("use ");
 	    
-	    string interface_file_name =
-	      remove_dot (interface->get_ada_full_name ()) + ".adb";
-	    char *lower_case_name = lower (interface_file_name.c_str ());
-	    ofstream interface_file (lower_case_name); 
-	    delete[] lower_case_name;
-	    interface_file << interface_with_string;
-	    interface_file << interface_use_string;
-	    interface_file << interface_previous;       
-	    interface_file << interface_body;
-	    interface_file.close ();
+	    produce_file
+	      (interface->get_ada_full_name (),
+	       is_body,
+	       interface_withcode
+	       + interface_usecode
+	       + interface_prologue
+	       + interface_maincode);
 	  }
-	  
 	  break;
+
 	default:
 	  break;
 	}
+       iterator.next ();
     }
 }
 
+//--------------------------------//
+// adabe_module::produce_skel_ads //
+//--------------------------------//
+
 void
-adabe_module::produce_skel_ads (dep_list & with,
-				string   & body,
-				string   & previousdefinition)
-  // does nothing except lauching produce imp_ads for the interfaces
+adabe_module::produce_skel_ads (dep_list & withlist,
+				string   & maincode,
+				string   & prologuedefinition)
 {
-  UTL_ScopeActiveIterator module_activator (this, UTL_Scope::IK_decls);
-  while (!module_activator.is_done ())
+  UTL_ScopeActiveIterator iterator (this, UTL_Scope::IK_decls);
+
+  while (!iterator.is_done ())
     {
-      AST_Decl *d = module_activator.item ();
-      module_activator.next ();
+      AST_Decl *d = iterator.item ();
       adabe_global::set_adabe_current_file (this);
       switch (d->node_type ())
 	{
@@ -240,134 +262,158 @@ adabe_module::produce_skel_ads (dep_list & with,
 	  break;
 	case AST_Decl::NT_module:
 	  {
-	    adabe_module *module = adabe_module::narrow_from_decl (d);
-	    string module_previous = "";
-	    string module_body = "";
-	    dep_list module_with;
+	    adabe_module *module =
+	      adabe_module::narrow_from_decl (d);
+
+	    string module_prologue = "";
+	    string module_maincode = "";
+	    dep_list module_withlist;
 	    
 	    module->produce_skel_ads
-	      (module_with, module_body, module_previous);
+	      (module_withlist,
+	       module_maincode, 
+	       module_prologue);
 	  }
 	  break;
 	  
 	case AST_Decl::NT_interface:
 	  {
-	    adabe_interface *interface = adabe_interface::narrow_from_decl (d);
-	    string interface_previous = "";
-	    string interface_body = "";
-	    string interface_with_string;
-	    dep_list interface_with;
+	    adabe_interface *interface =
+	      adabe_interface::narrow_from_decl (d);
+
+	    string interface_prologue = "";
+	    string interface_maincode = "";
+	    string interface_withcode = "";
+	    dep_list interface_withlist;
 
 	    interface->produce_skel_ads
-	      (interface_with, interface_body, interface_previous);
-	    interface_with_string = *interface_with.produce ("with ");
+	      (interface_withlist,
+	       interface_maincode, 
+	       interface_prologue);
+	    interface_withcode = *interface_withlist.produce ("with ");
 	    
-	    string interface_file_name =
-	      remove_dot (interface->get_ada_full_name ()) + "-skel.ads";
-	    char *lower_case_name = lower (interface_file_name.c_str ());
-	    ofstream interface_file (lower_case_name); 
-	    delete[] lower_case_name;
-	    interface_file << interface_with_string;
-	    interface_file << interface_previous;       
-	    interface_file << interface_body;
-	    interface_file.close ();
+	    produce_file
+	      (interface->get_ada_full_name (),
+	       is_skel_spec,
+	       interface_withcode
+	       + interface_prologue
+	       + interface_maincode);
 	  }
-	  
 	  break;
+
 	default:
 	  break;
 	}
+      iterator.next ();
     }
 }
+
+//--------------------------------//
+// adabe_module::produce_skel_adb //
+//--------------------------------//
+
 void
-adabe_module::produce_skel_adb (dep_list & with,
-				string   & body,
-				string   & previousdefinition)
-  // does nothing except lauching produce adb for the interfaces
+adabe_module::produce_skel_adb (dep_list & withlist,
+				string   & maincode,
+				string   & prologue)
 {
-   UTL_ScopeActiveIterator module_activator (this, UTL_Scope::IK_decls);
-  while (!module_activator.is_done ())
-    {
-      AST_Decl *d = module_activator.item ();
-      module_activator.next ();
-      adabe_global::set_adabe_current_file (this);
-      switch (d->node_type ())
-	{
-	case AST_Decl::NT_array:
-	case AST_Decl::NT_interface_fwd:
-	case AST_Decl::NT_pre_defined:
-	case AST_Decl::NT_const:
-	case AST_Decl::NT_except:
-	case AST_Decl::NT_union:
-	case AST_Decl::NT_struct:
-	case AST_Decl::NT_enum:
-	case AST_Decl::NT_typedef:
-	  break;
-	case AST_Decl::NT_module:
-	  {
-	    adabe_module *module = adabe_module::narrow_from_decl (d);
-	    string module_previous = "";
-	    string module_body = "";
-	    dep_list module_with;
+   UTL_ScopeActiveIterator iterator (this, UTL_Scope::IK_decls);
+
+   while (!iterator.is_done ())
+     {
+       adabe_global::set_adabe_current_file (this);
+
+       AST_Decl *d = iterator.item ();
+       
+       switch (d->node_type ())
+	 {
+	 case AST_Decl::NT_array:
+	 case AST_Decl::NT_interface_fwd:
+	 case AST_Decl::NT_pre_defined:
+	 case AST_Decl::NT_const:
+	 case AST_Decl::NT_except:
+	 case AST_Decl::NT_union:
+	 case AST_Decl::NT_struct:
+	 case AST_Decl::NT_enum:
+	 case AST_Decl::NT_typedef:
+	   break;
+
+	 case AST_Decl::NT_module:
+	   {
+	     adabe_module *module =
+	       adabe_module::narrow_from_decl (d);
+
+	     string module_prologue = "";
+	     string module_maincode = "";
+	    dep_list module_withlist;
 	    
 	    module->produce_skel_adb
-	      (module_with, module_body, module_previous);
-	  }
-	  break;
-	  
-	case AST_Decl::NT_interface:
-	  {
-	    adabe_interface *interface = adabe_interface::narrow_from_decl (d);
-	    string interface_previous = "";
-	    string interface_body = "";
-	    string interface_with_string;
-	    string interface_use_string;
-	    dep_list interface_with;
+	      (module_withlist,
+	       module_maincode,
+	       module_prologue);
+	   }
+	   break;
+	   
+	 case AST_Decl::NT_interface:
+	   {
+	     adabe_interface *interface =
+	       adabe_interface::narrow_from_decl (d);
 
-	    interface->produce_skel_adb
-	      (interface_with, interface_body, interface_previous);
-	    interface_with_string = *interface_with.produce ("with ");
-	    interface_use_string = *interface_with.produce ("use ");
-	    
-	    string interface_file_name =
-	      remove_dot (interface->get_ada_full_name ()) + "-skel.adb";
-	    char *lower_case_name = lower (interface_file_name.c_str ());
-	    ofstream interface_file (lower_case_name); 
-	    delete[] lower_case_name;
-	    interface_file << interface_with_string;
-	    interface_file << interface_use_string;
-	    interface_file << interface_previous;       
-	    interface_file << interface_body;
-	    interface_file.close ();
-	  }
-	  
-	  break;
-	default:
-	  break;
-	}
-    }
+	     string interface_prologue = "";
+	     string interface_maincode = "";
+	     string interface_withcode = "";
+	     string interface_usecode  = "";
+	     dep_list interface_withlist;
+	     
+	     interface->produce_skel_adb
+	       (interface_withlist,
+		interface_maincode,
+		interface_prologue);
+	     interface_withcode = *interface_withlist.produce ("with ");
+	     interface_usecode = *interface_withlist.produce ("use ");
+
+	     produce_file
+	       (interface->get_ada_full_name (),
+		is_skel_body,
+		interface_withcode
+		+ interface_usecode
+		+ interface_prologue
+		+ interface_maincode);
+	   }
+	   break;
+
+	 default:
+	   break;
+	 }
+       iterator.next ();
+     }
 }
 
+//----------------------------------//
+// adabe_module::produce_stream_ads //
+//----------------------------------//
+
 void
-adabe_module::produce_stream_ads (dep_list & with,
-				   string   & body,
-				   string   & previousdefinition)
+adabe_module::produce_stream_ads (dep_list & withlist,
+				  string   & maincode,
+				  string   & prologue)
 {
   bool first = true;
-  body += "use type CORBA.Unsigned_Long; \n";
-  with.add ("CORBA");
-  with.add ("Broca.Types"); // XXX Needed!
 
-  body += "package " + get_ada_full_name () + ".Stream is\n";
+  maincode += "use type CORBA.Unsigned_Long; \n";
+
+  withlist.add ("CORBA");
+  withlist.add ("Broca.Types");
+
+  maincode += "package " + get_ada_full_name () + ".Stream is\n";
   
-  // For each declaration in the node produce the code
-  
-  UTL_ScopeActiveIterator module_activator (this, UTL_Scope::IK_decls);
-  while (!module_activator.is_done ())
+  UTL_ScopeActiveIterator iterator (this, UTL_Scope::IK_decls);
+
+  while (!iterator.is_done ())
     {
-      AST_Decl *d = module_activator.item ();
-      module_activator.next ();
       adabe_global::set_adabe_current_file (this);
+
+      AST_Decl *d = iterator.item ();
       switch (d->node_type ())
 	{
 	case AST_Decl::NT_array:
@@ -378,91 +424,105 @@ adabe_module::produce_stream_ads (dep_list & with,
 	case AST_Decl::NT_typedef:
 	case AST_Decl::NT_string:
 	  {
-	    string tmp1 = "";
-	    string tmp2 = "";
+	    string entity_maincode = "";
+	    string entity_prologue = "";
+
 	    dynamic_cast<adabe_name *>(d)->produce_stream_ads
-	      (with, tmp1, tmp2);
-	    if (tmp1 != "") first = false;
-	    body += tmp1;
-	    break;
+	      (withlist,
+	       maincode,
+	       prologue);
+
+	    if (entity_maincode != "") first = false;
+
+	    maincode += entity_maincode;
+	    // And what do we do with entity_prologue ???
 	  }
+	  break;
+
 	case AST_Decl::NT_module:
 	  {
-	    adabe_module *module = adabe_module::narrow_from_decl (d);
-	    string module_previous = "";
-	    string module_body = "";
-	    string module_with_string;
-	    dep_list module_with;
+	    adabe_module *module =
+	      adabe_module::narrow_from_decl (d);
+
+	    string module_prologue = "";
+	    string module_maincode = "";
+	    string module_withcode = ""; 
+	    dep_list module_withlist;
 	    
 	    module->produce_stream_ads 
-	      (module_with, module_body, module_previous);
-	    module_with_string = *module_with.produce ("with ");
+	      (module_withlist,
+	       module_maincode,
+	       module_prologue);
+	    module_withcode = *module_withlist.produce ("with ");
 	    
-	    string module_file_name =
-	      remove_dot (module->get_ada_full_name ()) + "-stream.ads";
-	    char *lower_case_name = lower (module_file_name.c_str ());
-	    ofstream module_file (lower_case_name); 
-	    delete[] lower_case_name;
-	    module_file << module_with_string;
-	    module_file << module_previous;
-	    module_file << module_body;
-	    module_file.close ();
+	    produce_file
+	      (module->get_ada_full_name (),
+	       is_stream_spec,
+	       module_withcode
+	       + module_prologue
+	       + module_maincode);
 	  }
 	  break;
 	  
 	case AST_Decl::NT_interface:
 	  {
-	    adabe_interface *interface = adabe_interface::narrow_from_decl (d);
-	    string interface_previous = "";
-	    string interface_body = "";
-	    string interface_with_string;
-	    dep_list interface_with;
+	    adabe_interface *interface =
+	      adabe_interface::narrow_from_decl (d);
+
+	    string interface_prologue = "";
+	    string interface_maincode = "";
+	    string interface_withcode = "";
+	    dep_list interface_withlist;
 
 	    interface->produce_stream_ads
-	      (interface_with, interface_body, interface_previous);
-	    interface_with_string = *interface_with.produce ("with ");
+	      (interface_withlist,
+	       interface_maincode,
+	       interface_prologue);
+	    interface_withcode = *interface_withlist.produce ("with ");
 	    
-	    string interface_file_name =
-	      remove_dot (interface->get_ada_full_name ()) + "-stream.ads";
-	    char *lower_case_name = lower (interface_file_name.c_str ());
-	    ofstream interface_file (lower_case_name); 
-	    delete[] lower_case_name;
-	    interface_file << interface_with_string;
-	    interface_file << interface_previous;       
-	    interface_file << interface_body;
-	    interface_file.close ();
+	    produce_file
+	      (interface->get_ada_full_name (),
+	       is_stream_spec,
+	       interface_withcode
+	       + interface_prologue
+	       + interface_maincode);
 	  }
 	  break;
 
 	default:
 	  break;
 	}
+      iterator.next ();
     }
-  if (!first)
-    body += "end " + get_ada_full_name () + ".Stream;";
-  else body = "";
 
+  if (!first) maincode += "end " + get_ada_full_name () + ".Stream;";
+  else maincode = "";
 }
 
-void
-adabe_module::produce_stream_adb (dep_list & with,
-				   string   & body,
-				   string   & previousdefinition)
-  // does nothing except lauching produce adb for the interfaces
-{
+//----------------------------------//
+// adabe_module::produce_stream_adb //
+//----------------------------------//
 
+void
+adabe_module::produce_stream_adb (dep_list & withlist,
+				  string   & maincode,
+				  string   & prologue)
+{
   bool first = true;
 
-  UTL_ScopeActiveIterator module_activator (this, UTL_Scope::IK_decls);
-  with.add ("Broca.Marshalling");
-  with.add ("Broca.Marshalling.Refs");
+  UTL_ScopeActiveIterator iterator (this, UTL_Scope::IK_decls);
 
-  body += "package body " + get_ada_full_name () + ".Stream is\n";
-  while (!module_activator.is_done ())
+  withlist.add ("Broca.Marshalling");
+  withlist.add ("Broca.Marshalling.Refs");
+
+  maincode += "package body " + get_ada_full_name () + ".Stream is\n";
+
+  while (!iterator.is_done ())
     {
-      AST_Decl *d = module_activator.item ();
       adabe_global::set_adabe_current_file (this);
-      module_activator.next ();
+
+      AST_Decl *d = iterator.item ();
+
       switch (d->node_type ())
 	{
 	case AST_Decl::NT_array:
@@ -473,76 +533,87 @@ adabe_module::produce_stream_adb (dep_list & with,
 	case AST_Decl::NT_typedef:
 	case AST_Decl::NT_string:
 	  {
-	    string tmp1 = "";
-	    string tmp2 = "";
+	    string entity_maincode = "";
+	    string entity_prologue = "";
+
 	    dynamic_cast<adabe_name *>(d)->produce_stream_adb 
-	      (with, tmp1, tmp2);
-	    if (tmp1 != "") first = false;
-	    body += tmp1;
-	    break;
+	      (withlist,
+	       entity_maincode,
+	       entity_prologue);
+
+	    if (entity_maincode != "") first = false;
+	    maincode += entity_maincode;
 	  }
+	  break;
+
 	case AST_Decl::NT_module:
 	  {
-	    adabe_module *module = adabe_module::narrow_from_decl (d);
-	    string module_previous     = "";
-	    string module_body         = "";
-	    dep_list module_with;
+	    adabe_module *module =
+	      adabe_module::narrow_from_decl (d);
+
+	    string module_prologue = "";
+	    string module_maincode = "";
+	    string module_withcode = "";
+	    string module_usecode  = "";
+	    dep_list module_withlist;
 	    
 	    module->produce_stream_adb
-	      (module_with, module_body, module_previous);
-	    string module_with_string = *module_with.produce ("with ");
-	    string module_use_string = *module_with.produce ("use ");
+	      (module_withlist,
+	       module_maincode,
+	       module_prologue);
+	    module_withcode = *module_withlist.produce ("with ");
+	    module_usecode  = *module_withlist.produce ("use ");
 
-	    if (module_body != "")
-	      {
-		string module_file_name =
-		  remove_dot (module->get_ada_full_name ()) + "-stream.adb";
-		char *lower_case_name = lower (module_file_name.c_str ());
-		ofstream module_file (lower_case_name); 
-		delete[] lower_case_name;
-		module_file << module_with_string;
-		module_file << module_use_string;
-		module_file << module_previous;
-		module_file << module_body;
-		module_file.close ();
-	      }
+	    if (module_maincode == "") break;
+
+	    produce_file
+	      (module->get_ada_full_name (),
+	       is_stream_body,
+	       module_withcode
+	       + module_usecode
+	       + module_prologue
+	       + module_maincode);
 	  }
 	  break;
 	  
 	case AST_Decl::NT_interface:
 	  {
-	    adabe_interface *interface = adabe_interface::narrow_from_decl (d);
-	    string interface_previous = "";
-	    string interface_body = "";
-	    dep_list interface_with;
+	    adabe_interface *interface =
+	      adabe_interface::narrow_from_decl (d);
+
+	    string interface_prologue = "";
+	    string interface_maincode = "";
+	    string interface_withcode = "";
+	    string interface_usecode  = "";
+	    dep_list interface_withlist;
 
 	    interface->produce_stream_adb
-	      (interface_with, interface_body, interface_previous);
-	    string interface_with_string = *interface_with.produce ("with ");
-	    string interface_use_string = *interface_with.produce ("use ");
+	      (interface_withlist,
+	       interface_maincode,
+	       interface_prologue);
+	    interface_withcode = *interface_withlist.produce ("with ");
+	    interface_usecode  = *interface_withlist.produce ("use ");
 	    
-	    if (interface_body == "") break;
-	    string interface_file_name =
-	      remove_dot (interface->get_ada_full_name ()) +"-stream.adb";
-	    char *lower_case_name = lower (interface_file_name.c_str ());
-	    ofstream interface_file (lower_case_name); 
-	    delete[] lower_case_name;
-	    interface_file << interface_with_string;
-	    interface_file << interface_use_string;
-	    interface_file << interface_previous;       
-	    interface_file << interface_body;
-	    interface_file.close ();
+	    if (interface_maincode == "") break;
+
+	    produce_file
+	      (interface->get_ada_full_name (),
+	       is_stream_body,
+	       interface_withcode
+	       + interface_usecode
+	       + interface_prologue
+	       + interface_maincode);
 	  }
-	  
 	  break;
+
 	default:
 	  break;
 	}
+      iterator.next ();
     }
-  if (!first) {
-    body += "end " + get_ada_full_name () + ".Stream;";
-  }
-  else body = "";
+
+  if (!first) maincode += "end " + get_ada_full_name () + ".Stream;";
+  else maincode = "";
 }
 
 IMPL_NARROW_METHODS3 (adabe_module, AST_Module, adabe_name, UTL_Scope);

@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.4 $
+//                            $Revision: 1.5 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -32,14 +32,10 @@
 //--------------------------------------------------------------------------//
 
 #include <adabe.h>
- 
-static string remove_dot (string  name)
-{
-  char c;
-  while ((c = name.find (".")) != -1) 
-    name[c]='-';
-  return name;
-}
+
+//-------------------------//
+//  adabe_root::adabe_root //
+//-------------------------//
 
 adabe_root::adabe_root (UTL_ScopedName *n, UTL_StrList *p)
   : AST_Root (n, p),
@@ -53,60 +49,49 @@ adabe_root::adabe_root (UTL_ScopedName *n, UTL_StrList *p)
   return;
 }
 
-void
-adabe_root::produce () {
+//---------------------//
+// adabe_root::produce //
+//---------------------//
+
+void adabe_root::produce () {
   try {    
-    // get the name of the IDL file 
-    string name      = idl_global->stripped_filename ()->get_string ();
+    // Name of IDL file 
+    string name = idl_global->stripped_filename ()->get_string ();
     
-    // find the string .idl in the file name, and remove the end of the file
-    // name
-    int end_of_name = name.find (".idl");
-    if (end_of_name > 0) name = name.substr (0, end_of_name);
+    // Remove .idl from filename
+    int suffix = name.find (".idl");
+    if (suffix > 0) name = name.substr (0, suffix);
 
-    // then add _IDL_FILE at the end of the file name
-    string idl_file_name = name + "_IDL_FILE";
+    string root_name = name + "_IDL_FILE";
 
-    /////////////////////////////
-    // CREATION OF THE MAIN FILES
-    /////////////////////////////
-    
-    /////////////////////////////////////////////
-    // generation of the main file of the package
-
+    // Produce root spec.
     {
-      // definition of the variables used in the production of
-      // the main ads file
-      string header_includes      = ""; // string containing the list of dependencies
-      string header_previous      = ""; // string in which the node can put the definition needed 
-      string header_body          = ""; // string containing the body of node declared
-      dep_list header_with;             // list of dependencies
+      string root_withcode = "";
+      string root_prologue = "";
+      string root_maincode = "";
+      dep_list root_withlist;            
       
-      // addition of some usefull file 
-      // header_with.add ("Ada.Unchecked_Deallocation");
-      header_with.add ("CORBA");
-      //header_with.add ("AdaBroker");
+      root_withlist.add ("CORBA");
       
-      UTL_ScopeActiveIterator header_activator (this, UTL_Scope::IK_decls);
-      header_body = "package " + get_ada_full_name ()+" is\n";
-      
-      // loop over the scope to find the node to output
-      while (!header_activator.is_done ())
-	{
-	  AST_Decl *d = header_activator.item ();
+      UTL_ScopeActiveIterator iterator (this, UTL_Scope::IK_decls);
 
-	  // that the pointer   to the active file to this one (the root file)
+      root_maincode = "package " + get_ada_full_name ()+" is\n";
+      
+      // Loop over the scope to find the node to output.
+      while (!iterator.is_done ())
+	{
 	  adabe_global::set_adabe_current_file (this);
 
-	  // only to take the node issue from the idl file
-	  // (no imported definition, or predefined type will be produced)
+	  AST_Decl *d = iterator.item ();
+
+	  //  Just take the node concerning the idl file.
 	  if (d->in_main_file ())    
 	    {
 #ifdef DEBUG_ROOT
 	      cout << "In root, node type encountered :" <<  d->node_type () << endl;
 #endif 
 
-	      // this switch is here to ensure that no unexpected node is in the root
+	      // Ensure that no unexpected node is in the root.
 	      switch (d->node_type ()) {
 	      case AST_Decl::NT_const:
 	      case AST_Decl::NT_sequence:
@@ -119,140 +104,115 @@ adabe_root::produce () {
 	      case AST_Decl::NT_typedef:
 	      case AST_Decl::NT_interface_fwd:
 		{
-		  // for a simple node :
-		  // it will be put in the body file, and his local types will be
-		  // stroed in the previous string
-		  header_previous += header_body;   
-		  header_body ="";
-		  dynamic_cast<adabe_name *>(d)->produce_ads (header_with, header_body,
-							     header_previous);
+		  // For a simple node : it will be put in the body
+		  // file, and his local types will be stored in the
+		  // prologue string.
+
+		  root_prologue += root_maincode;   
+		  root_maincode = "";
+		  dynamic_cast<adabe_name *>(d)->produce_ads
+		    (root_withlist,
+		     root_maincode,
+		     root_prologue);
 		}
 		break;
 		
 	      case AST_Decl::NT_module:	    
 		{
-		  adabe_module *module = adabe_module::narrow_from_decl (d);
-		  // if the node is a module, it must be defined in a new file
+		  adabe_module *module =
+		    adabe_module::narrow_from_decl (d);
 
-		  // Variables used for the new file
-		  string module_previous = "";
-		  string module_body = "";
-		  string module_with_string;
-		  dep_list module_with;
+		  string module_prologue = "";
+		  string module_maincode = "";
+		  string module_withcode = "";
+		  dep_list module_withlist;
 
-		  // Production of the strings that must be found in the
-		  // module file
-		  module->produce_ads (module_with, module_body, module_previous);
-		  module_with_string = *module_with.produce ("with ");
+		  module->produce_ads 
+		    (module_withlist,
+		     module_maincode,
+		     module_prologue);
+		  module_withcode = *module_withlist.produce ("with ");
 
-
-		  // computing of the module file name:
-		  string module_file_name =
-		    remove_dot (module->get_ada_full_name ())+".ads";
-
-		  // the name must be in lower case in order to be found by the
-		  // ADA compiler
-		  char *lower_case_name = lower (module_file_name.c_str ());
-		  ofstream module_file (lower_case_name); 	
-		  delete[] lower_case_name;
-
-		  // writing in the file 
-		  module_file << module_with_string;
-		  module_file << module_previous; 
-		  module_file << module_body;
-		  module_file.close ();
+		  produce_file
+		    (module->get_ada_full_name (),
+		     is_spec,
+		     module_withcode
+		     + module_prologue
+		     + module_maincode);
 		}
 		break;
+
 	      case AST_Decl::NT_interface:	    
 		{
-		  adabe_interface *interface = adabe_interface::narrow_from_decl (d);
+		  adabe_interface *interface =
+		    adabe_interface::narrow_from_decl (d);
 		  
-		  // as for the module, a new file is created
-		  // new variables needed for the interface file
-		  string interface_previous = "";
-		  string interface_body = "";
-		  string interface_with_string;
-		  dep_list interface_with;
-		  
-		  // production of the strings that must be found in the interface file
-		  interface->produce_ads (interface_with, interface_body,
-					 interface_previous);
-		  interface_with_string = *interface_with.produce ("with ");
+		  string interface_prologue = "";
+		  string interface_maincode = "";
+		  string interface_withcode;
+		  dep_list interface_withlist;
 
-		  // computing of the interface file name
-		  string interface_file_name =
-		    remove_dot (interface->get_ada_full_name ())+".ads";
+		  interface->produce_ads 
+		    (interface_withlist,
+		     interface_maincode,
+		     interface_prologue);
+		  interface_withcode = *interface_withlist.produce ("with ");
 
-		  
-		  // he must be in lower case
-		  char *lower_case_name = lower (interface_file_name.c_str ());
-		  ofstream interface_file (lower_case_name); 
-		  delete[] lower_case_name;
-
-		  // The strings are writed to the file :
-		  interface_file << interface_with_string;
-		  interface_file << interface_previous;    
-		  interface_file << interface_body;
-		  interface_file.close ();
+		  produce_file
+		    (interface->get_ada_full_name (),
+		     is_spec,
+		     interface_withcode
+		     + interface_prologue
+		     + interface_maincode);
 		}
-		
 		break;
+
 	      case AST_Decl::NT_enum_val:
-		// the enumeration values of an enumeration type can
-		// be found in the root, but they shall not be mapped here
+		// Enumeration values of an enumeration type can be
+		// found in root, but they shall not be mapped here.
 		break;
 		
 	      default:
-		// if another node type is found, an exception is raised
-		// no further verification will be made in the root in
-		// for the other files (marshall ...).
+		// If another node type is found, an exception is
+		// raised no further check will be made in root.
 #ifdef DEBUG_ROOT
-7		cerr << "A node type of the type : " << d->node_type ();
-		cerr << " and named : " <<  idl_global->stripped_filename ()->get_string ();
+7		cerr << "A node type of the type : ";
+                cerr << d->node_type ();
+		cerr << " and named : ";
+                cerr << <<  idl_global->stripped_filename ()->get_string ();
 		cerr << " has been found in the root" << endl;		
 #endif
-		throw adabe_internal_error (__FILE__,__LINE__,"unexpected contained node in the root");
+		throw adabe_internal_error
+		  (__FILE__,__LINE__,"unexpected contained node in the root");
 		break;
 	      }
 	    
 	    }
-	  header_activator.next (); 
+	  iterator.next (); 
 	}
-      
-      // Opening of the header file
 
-      // computing the file name:
-      string ada_file_name = idl_file_name+".ads";
-      char *lower_case_name = lower (ada_file_name.c_str ());
+      root_maincode += "end " + get_ada_full_name () + ";\n";
 
-      ofstream header (lower_case_name); 
-      delete[] lower_case_name;
-
-      // and writing in the file :
-      header_includes = *header_with.produce ("with ");
-      header << header_includes;
-      header << header_previous;
-      header << header_body;
-      header << "end " << get_ada_full_name () << ";" << endl;
-      header.close ();
-
-      // Note: even if the file is empty, it will be produced.
+      produce_file
+	(root_name,
+	 is_spec,
+	 root_withcode
+	 + root_prologue
+	 + root_maincode);
     }
     
 
-    /////////////////////////////////////////////
-    // generation of the main body of the package
-
-    // this time, only interface file will be created
+    // Produce root body (in fact, produce interfaces).
     {
-      UTL_ScopeActiveIterator body_activator (this, UTL_Scope::IK_decls);
+      UTL_ScopeActiveIterator iterator (this, UTL_Scope::IK_decls);
 
-      // loop over the scope to find the interface (a module  may
-      // contain an interface)
-      while (!body_activator.is_done ())
+      // Loop over the scope to find an interface (a module may
+      // contain an interface).
+      while (!iterator.is_done ())
 	{
 	  adabe_global::set_adabe_current_file (this);
-	  AST_Decl *d = body_activator.item ();
+
+	  AST_Decl *d = iterator.item ();
 	  
 	  if (d->in_main_file ())
 	    {
@@ -260,237 +220,203 @@ adabe_root::produce () {
 		{
 		case AST_Decl::NT_module:
 		  {
-		    adabe_module *module = adabe_module::narrow_from_decl (d);
+		    adabe_module *module =
+		      adabe_module::narrow_from_decl (d);
 
-		    // dummy variables given to the produce adb from the module :
-		    // they won't be modified (can be suppressed in future version)
-		    string body_module_previous = "";
-		    string body_module_body = "";
-		    dep_list body_module_with;
+		    string module_prologue = "";
+		    string module_maincode = "";
+		    dep_list module_withlist;
 		    
-		    module->produce_adb (body_module_with, body_module_body,
-					body_module_previous);
-		    
+		    module->produce_adb
+		      (module_withlist,
+		       module_maincode,
+		       module_prologue);
 		  }
 		  break;
 		  
 		case AST_Decl::NT_interface:
 		  {
-		    adabe_interface *interface = adabe_interface::narrow_from_decl (d);
+		    adabe_interface *interface =
+		      adabe_interface::narrow_from_decl (d);
 
-		    // variables used in the interface file
-		    string interface_previous = "";
-		    string interface_body = "";
-		    string interface_with_string;
-		    dep_list interface_with;
+		    string interface_prologue = "";
+		    string interface_maincode = "";
+		    string interface_withcode = "";
+		    dep_list interface_withlist;
 
-		    // production of the interface body
-		    interface->produce_adb (interface_with, interface_body,
-					   interface_previous);
-		    interface_with_string = *interface_with.produce ("with ");
+		    interface->produce_adb
+		      (interface_withlist,
+		       interface_maincode,
+		       interface_prologue);
+		    interface_withcode = *interface_withlist.produce ("with ");
 
-		    // computing the file name
-		    string interface_file_name =
-		      remove_dot (interface->get_ada_full_name ())+".adb";
-		    char *lower_case_name = lower (interface_file_name.c_str ());
-		    ofstream interface_file (lower_case_name); 
-		    delete[] lower_case_name;
-
-		    // writing in the file
-		    interface_file << interface_with_string;
-		    interface_file << interface_previous;    
-		    interface_file << interface_body;
-		    interface_file.close ();
+		    produce_file
+		      (interface->get_ada_full_name (),
+		       is_body,
+		       interface_withcode
+		       + interface_prologue
+		       + interface_maincode);
 		  }
-		  
-		default:
-		  // nothing to be done in the other cases
 		  break;
 		  
-		} // end of the switch
+		default:
+		  // Nothing to be done.
+		  break;
+		}
 	    } 
-	  body_activator.next ();
-	} //end of the loop in the scope 
+	  iterator.next ();
+	}
     }
     
-    // Preparing for a second scan
-    
-    ///////////////////////////////////////
-    // CREATION OF THE IMPLEMENTATION FILES
-    ///////////////////////////////////////
-
-    
-    ////////////////////////////////////
-    // header of the implementation file
-    
+    // Produce root skeleton spec.
     {
-      
-      // Once more, only the interfaces will be mapped
-      UTL_ScopeActiveIterator impl_head_activator (this, UTL_Scope::IK_decls);
-      while (!impl_head_activator.is_done ())
+      UTL_ScopeActiveIterator iterator (this, UTL_Scope::IK_decls);
+
+      while (!iterator.is_done ())
 	{
-	  AST_Decl *d = impl_head_activator.item ();
+	  AST_Decl *d = iterator.item ();
 	  
-	  if (d->in_main_file ())     // only to take the node issue from the idl file
+	  if (d->in_main_file ())
 	    {
 	      switch (d->node_type ())
 		{
-		  
 		case AST_Decl::NT_module:                      
 		  {
-		    // dummy variables (can be suppressed)
-		    string impl_header_module_previous = ""; 
-		    string impl_header_module_body     = "";
-		    string impl_header_module_with_string;
-		    dep_list impl_header_module_with;
+		    adabe_module *module =
+		      adabe_module::narrow_from_decl (d);
+
+		    string module_prologue = ""; 
+		    string module_maincode = "";
+		    dep_list module_withlist;
 		    
-		    // tries to find interface in the module
-		    adabe_module *module = adabe_module::narrow_from_decl (d);
-		    module->produce_skel_ads (impl_header_module_with, impl_header_module_body,
-					      impl_header_module_previous);
+		    module->produce_skel_ads
+		      (module_withlist,
+		       module_maincode,
+		       module_prologue);
 		  }
 		  break;
 		  
 		case AST_Decl::NT_interface:
 		  {
-		    adabe_interface *interface = adabe_interface::narrow_from_decl (d);
+		    adabe_interface *interface =
+		      adabe_interface::narrow_from_decl (d);
 		    
-		    // Initialisation of the variables used in
-		    // the interface file
-		    string impl_header_interface_previous = "";
-		    string impl_header_interface_body = "";
-		    string impl_header_interface_with_string;
-		    dep_list impl_header_interface_with;
+		    string interface_prologue = "";
+		    string interface_maincode = "";
+		    string interface_withcode = "";
+		    dep_list interface_withlist;
 		    
-		    // Computing the interface output
-		    interface->produce_skel_ads (impl_header_interface_with,
-						 impl_header_interface_body,
-						 impl_header_interface_previous);
-		    impl_header_interface_with_string = *impl_header_interface_with.produce ("with ");
+
+		    interface->produce_skel_ads
+		      (interface_withlist,
+		       interface_maincode,
+		       interface_prologue);
+		    interface_withcode = *interface_withlist.produce ("with ");
 		    
-		    // computing the interface file name
-		    string impl_header_interface_file_name =
-		      remove_dot (interface->get_ada_full_name ())+"-skel.ads";
-		    char *lower_case_name = lower (impl_header_interface_file_name.c_str ());
-		    ofstream impl_header_interface_file (lower_case_name); 
-		    delete[] lower_case_name;
-		    
-		    // writing the strings in the file
-		    impl_header_interface_file << impl_header_interface_with_string;
-		    impl_header_interface_file << impl_header_interface_previous;    
-		    impl_header_interface_file << impl_header_interface_body;
-		    impl_header_interface_file.close ();
+		    produce_file
+		      (interface->get_ada_full_name (),
+		       is_skel_spec,
+		       interface_withcode
+		       + interface_prologue
+		       + interface_maincode);
 		  }
+		  break;
 		  
 		default:
 		  break;
-		} // end of the switch
+		}
 	    }
-	  
-	  impl_head_activator.next ();
-	} // end of the loop
+	  iterator.next ();
+	}
     }
     
-    //////////////////////////////////
-    // body of the implementation file
-    
+    // Produce skeleton body.
     {
-      UTL_ScopeActiveIterator impl_body_activator (this, UTL_Scope::IK_decls);
+      UTL_ScopeActiveIterator iterator (this, UTL_Scope::IK_decls);
       
-      while (!impl_body_activator.is_done ())
+      while (!iterator.is_done ())
 	{
-	  AST_Decl *d = impl_body_activator.item ();
+	  AST_Decl *d = iterator.item ();
 	  
-	  if (d->in_main_file ())     // only to take the node issue from the idl file
+	  if (d->in_main_file ())
 	    {
 	      switch (d->node_type ())
 		{
 		case AST_Decl::NT_module:
 		  {
-		    adabe_module *module = adabe_module::narrow_from_decl (d);
+		    adabe_module *module =
+		      adabe_module::narrow_from_decl (d);
 		    
-		    // dummy variables that maybe suppressed
-		    string impl_body_module_previous = "";
-		    string impl_body_module_body     = "";
-		    string impl_body_module_with_string;
-		    dep_list impl_body_module_with;
+		    string module_prologue = "";
+		    string module_maincode = "";
+		    string module_withcode = "";
+		    dep_list module_withlist;
 		    
-		    // tries to find interface in the module
-		    module->produce_skel_adb (impl_body_module_with, impl_body_module_body,
-					      impl_body_module_previous);
+		    module->produce_skel_adb
+		      (module_withlist, 
+		       module_maincode,
+		       module_prologue);
 		  }
 		  break;
 		  
 		case AST_Decl::NT_interface:
 		  {
-		    // Initialisation of the variables used in the interface file
-		    adabe_interface *interface = adabe_interface::narrow_from_decl (d);
-		    string impl_body_interface_previous = "";
-		    string impl_body_interface_body = "";
-		    string impl_body_interface_with_string;
-		    dep_list impl_body_interface_with;
+		    adabe_interface *interface =
+		      adabe_interface::narrow_from_decl (d);
+
+		    string interface_prologue = "";
+		    string interface_maincode = "";
+		    string interface_withcode = "";
+		    dep_list interface_withlist;
 		    
-		    // computing the interface string
-		    interface->produce_skel_adb (impl_body_interface_with, impl_body_interface_body,
-						 impl_body_interface_previous);
-		    impl_body_interface_with_string = *impl_body_interface_with.produce ("with ");
+		    interface->produce_skel_adb
+		      (interface_withlist,
+		       interface_maincode,
+		       interface_prologue);
+		    interface_withcode = *interface_withlist.produce ("with ");
 		    
-		    // computing the file name
-		    string impl_body_interface_file_name =
-			  remove_dot (interface->get_ada_full_name ())+"-skel.adb";
-		    char *lower_case_name = lower (impl_body_interface_file_name.c_str ());
-		    ofstream impl_body_interface_file (lower_case_name); 
-		    delete[] lower_case_name;
-		    
-		    // writing in the file
-		    impl_body_interface_file << impl_body_interface_with_string;
-		    impl_body_interface_file << impl_body_interface_previous;    
-		    impl_body_interface_file << impl_body_interface_body;
-		    impl_body_interface_file.close ();
+		    produce_file
+		      (interface->get_ada_full_name (),
+		       is_skel_body,
+		       interface_withcode
+		       + interface_prologue
+		       + interface_maincode);
 		  }
+		  break;
 		  
 		default:
 		  break;
-		} // end of the switch
+		}
 	    }
-	  impl_body_activator.next ();
-	} // end of the loop
+	  iterator.next ();
+	} 
     }
     
+    // Mark all nodes to "undefined". There where set to "defined"
+    // during the production of the root file.
     set_undefined ();
-    // Put the mark in all of the nodes to "undefined"
-    // (there where set as "defined" during the production
-    // of the main ads
     
-    /////////////////////////////////
-    // CREATION OF THE MARSHALL FILES
-    /////////////////////////////////
-
-    /////////////////////////////////////////
-    // generation of the marshall header file
-
+    // Produce root stream spec.
     {
-      // initialisation of the root mapping variables
-      string marshal_header_includes      = "";
-      string marshal_header_previous      = "";
-      string marshal_header_body          = "";
-      dep_list marshal_header_with;
+      string root_withcode = "";
+      string root_prologue = "";
+      string root_maincode = "";
+      dep_list root_withlist;
 
       bool first = true;
       
-      // some files must be added : !!!!!
-      marshal_header_previous += "use type CORBA.Unsigned_Long; \n";
-      marshal_header_with.add ("CORBA");
+      root_prologue += "use type CORBA.Unsigned_Long; \n";
+      root_withlist.add ("CORBA");
 
-      marshal_header_previous += "package " + get_ada_full_name () + ".Marshal is\n";
+      root_prologue += "package " + get_ada_full_name () + ".Stream is\n";
 		  
-      UTL_ScopeActiveIterator marshal_header_activator (this, UTL_Scope::IK_decls);
-      while (!marshal_header_activator.is_done ())
+      UTL_ScopeActiveIterator iterator (this, UTL_Scope::IK_decls);
+      while (!iterator.is_done ())
 	{
-	  AST_Decl *d = marshal_header_activator.item ();
+	  AST_Decl *d = iterator.item ();
 	  adabe_global::set_adabe_current_file (this);
 
-	  if (d->in_main_file ())     // only to take the node issue from the idl file
+	  if (d->in_main_file ())
 	    {
 	      switch (d->node_type ()) 
 		{
@@ -503,132 +429,119 @@ adabe_root::produce () {
 		case AST_Decl::NT_enum:
 		case AST_Decl::NT_typedef:
 		  {
-		    // preparing the mapping of the mapping of the node
-		    string tmp1 = "";
-		    string tmp2 = ""; 
-		    // mapping the node
-		    dynamic_cast<adabe_name *>(d)->produce_stream_ads (marshal_header_with, tmp1, tmp2);
-		    if (tmp1 != "") first = false;
-		    marshal_header_body += tmp1;
+		    string entity_prologue = "";
+		    string entity_maincode = ""; 
+
+		    dynamic_cast<adabe_name *>(d)->produce_stream_ads
+		      (root_withlist,
+		       entity_maincode,
+		       entity_prologue);
+
+		    if (entity_maincode != "") first = false;
+		    root_maincode += entity_maincode;
+
+		    // WARNING: what are we supposed to do with
+		    // entity_prologue.
 		  }
 		  break;
 		  
 		case AST_Decl::NT_module:	    
 		  {
-		    adabe_module *module = adabe_module::narrow_from_decl (d);
+		    adabe_module *module =
+		      adabe_module::narrow_from_decl (d);
 
-		    // initialisation of the variables for the module
-		    string marshal_module_previous = "";
-		    string marshal_module_body = "";
-		    string marshal_module_with_string;
-		    dep_list marshal_module_with;
+		    string module_prologue = "";
+		    string module_maincode = "";
+		    string module_withcode;
+		    dep_list module_withlist;
 
-		    // computing the mapping of the module
-		    module->produce_stream_ads (marshal_module_with, marshal_module_body,
-						marshal_module_previous);
+		    module->produce_stream_ads
+		      (module_withlist,
+		       module_maincode,
+			module_prologue);
 
-		    if (marshal_module_body == "")
-		      // if the mapping of the module is empty, nothing must be written
-		      break;
+		    if (module_maincode == "") break;
 
-		    marshal_module_with_string = *marshal_module_with.produce ("with ");
+		    module_withcode = *module_withlist.produce ("with ");
 
-		    // computing the name of the module file
-		    string marshal_module_file_name =
-		      remove_dot (module->get_ada_full_name ())+"-stream.ads";
-		    char *lower_case_name = lower (marshal_module_file_name.c_str ());
-		    ofstream marshal_module_file (lower_case_name);
-		    delete[] lower_case_name;
-
-		    // writing in the module file
-		    marshal_module_file << marshal_module_with_string;
-		    marshal_module_file << marshal_module_previous; 
-		    marshal_module_file << marshal_module_body;
-		    marshal_module_file.close ();
+		    produce_file
+		      (module->get_ada_full_name (),
+		       is_stream_spec,
+		       module_withcode
+		       + module_prologue
+		       + module_maincode);
 		  }
 		  break;		  
 		  
 		case AST_Decl::NT_interface:	    
 		  {
-		    adabe_interface *interface = adabe_interface::narrow_from_decl (d);
+		    adabe_interface *interface =
+		      adabe_interface::narrow_from_decl (d);
 
-		    // initilisation of the variables for the interface
-		    string marshal_interface_previous = "";
-		    string marshal_interface_body = "";
-		    string marshal_interface_with_string;
-		    dep_list marshal_interface_with;
+		    string interface_prologue = "";
+		    string interface_maincode = "";
+		    string interface_withcode;
+		    dep_list interface_withlist;
 
-		    // mapping the interface
-		    interface->produce_stream_ads (marshal_interface_with, marshal_interface_body,
-						   marshal_interface_previous);
-		    marshal_interface_with_string = *marshal_interface_with.produce ("with ");
+		    interface->produce_stream_ads
+		      (interface_withlist,
+		       interface_maincode,
+		       interface_prologue);
+		    interface_withcode = *interface_withlist.produce ("with ");
 
-		    // computing the interface file name
-		    string marshal_interface_file_name =
-		      remove_dot (interface->get_ada_full_name ())+"-stream.ads";
-		    char *lower_case_name = lower (marshal_interface_file_name.c_str ());
-		    ofstream marshal_interface_file (lower_case_name); 
-		    delete[] lower_case_name;
-
-		    // writing in the main file
-		    marshal_interface_file << marshal_interface_with_string;
-		    marshal_interface_file << marshal_interface_previous;    
-		    marshal_interface_file << marshal_interface_body;
-		    marshal_interface_file.close ();
+		    produce_file 
+		      (interface->get_ada_full_name (),
+		       is_stream_spec,
+		       interface_withcode
+		       + interface_prologue
+		       + interface_maincode);
 		  }
-		  
 		  break;
+
 		default:
 		  break;
-		} // end of the switch
+		}
 	    }
-	  marshal_header_activator.next ();
-	} // end of the loop
+	  iterator.next ();
+	}
 
       if (!first)
 	{
+	  root_withcode = *root_withlist.produce ("with ");
+	  root_maincode = "end " + get_ada_full_name () + ".Stream;";
 
-	  // computing the file name
-	  string marshal_ada_file_name = idl_file_name+"-stream.ads";
-	  char *lower_case_name = lower (marshal_ada_file_name.c_str ());
-	  ofstream marshal_header (lower_case_name); 
-	  delete[] lower_case_name;
-	  
-	  // writing in the file
-	  marshal_header_includes = *marshal_header_with.produce ("with ");
-	  marshal_header << marshal_header_includes;
-	  marshal_header << marshal_header_previous;
-	  marshal_header << marshal_header_body;
-	  marshal_header << "end " << get_ada_full_name () << ".Marshal;" << endl;
-	  marshal_header.close ();
+	  produce_file
+	    (root_name,
+	     is_stream_spec,
+	     root_withcode
+	     + root_prologue
+	     + root_maincode);
 	}
     }
     
-    // once more, all the nodes must be set to "undefined"
     set_undefined ();
 
-    //////////////////////////////////
-    // generation of marshal body file
-    
+    // Produce root stream body.
     {
-      UTL_ScopeActiveIterator marshal_body_activator (this, UTL_Scope::IK_decls);
+      UTL_ScopeActiveIterator iterator (this, UTL_Scope::IK_decls);
 
-      // initialisation of the variables
-      bool   first = true;                    // is it the first node encountered in the scope ?
-      string marshal_body_includes      = "";
-      string marshal_body_use           = "";
-      string marshal_body_previous      = "";
-      string marshal_body_body          = "";
-      dep_list marshal_body_with;
+      bool   first = true;
+
+      string root_withcode = "";
+      string root_usecode  = "";
+      string root_prologue = "";
+      string root_maincode = "";
+      dep_list root_withlist;
     
-      marshal_body_previous = "package body " + get_ada_full_name () + ".Marshal is \n";
+      root_prologue = "package body " + get_ada_full_name () + ".Stream is \n";
 
-      while (!marshal_body_activator.is_done ())
+      while (!iterator.is_done ())
 	{
-	  AST_Decl *d = marshal_body_activator.item ();
+	  AST_Decl *d = iterator.item ();
+
 	  adabe_global::set_adabe_current_file (this);
 
-	  if (d->in_main_file ())     // only to take the node issue from the idl file
+	  if (d->in_main_file ())
 	    {
 	      switch (d->node_type ())
 		{
@@ -641,121 +554,119 @@ adabe_root::produce () {
 		case AST_Decl::NT_enum:
 		case AST_Decl::NT_typedef:
 		  {
-		    // computing the mapping of the node
-		    string tmp1 = "";
-		    string tmp2 = ""; 
+		    string entity_maincode = "";
+		    string entity_prologue = ""; 
+
 		    dynamic_cast<adabe_name *>(d)->produce_stream_adb
-		      (marshal_body_with, tmp1, tmp2);
-		    if (tmp1 != "") first = false;
-		    marshal_body_body += tmp1;
+		      (root_withlist,
+		       entity_maincode,
+		       entity_prologue);
+
+		    if (entity_maincode != "") first = false;
+		    root_maincode += entity_maincode;
 		  }
 		  break;
 		  
 		case AST_Decl::NT_module:
 		  {
-		    adabe_module *module = adabe_module::narrow_from_decl (d);
+		    adabe_module *module =
+		      adabe_module::narrow_from_decl (d);
 
-		    // variables used for the mapping of the module
-		    string marshal_body_module_previous    = "";
-		    string marshal_body_module_body        = "";
-		    dep_list marshal_body_module_with;
+		    string module_prologue = "";
+		    string module_maincode = "";
+		    string module_withcode = "";
+		    string module_usecode  = "";
+		    dep_list module_withlist;
 
-		    // Computing the module mapping
-		    module->produce_stream_adb (marshal_body_module_with, marshal_body_module_body,
-						marshal_body_module_previous);
-		    string marshal_body_module_with_string = *marshal_body_module_with.produce ("with ");
-		    string marshal_body_module_use_string = *marshal_body_module_with.produce ("use ");
+		    module->produce_stream_adb
+		      (module_withlist,
+		       module_maincode,
+		       module_prologue);
+		    module_withcode = *module_withlist.produce ("with ");
+		    module_usecode  = *module_withlist.produce ("use ");
 		    
-		    if (marshal_body_module_body == "")
-		      // if the mapping of the module is empty, nothing must be written
-		      break;
+		    if (module_maincode == "") break;
 
-		    // comuting the file name
-		    string marshal_module_file_name =
-		      remove_dot (module->get_ada_full_name ())+"-stream.adb";
-		    char *lower_case_name = lower (marshal_module_file_name.c_str ());
-		    ofstream marshal_module_file (lower_case_name);
-		    delete[] lower_case_name;
-
-		    // writing the module to his file 
-		    marshal_module_file << marshal_body_module_with_string;
-		    marshal_module_file << marshal_body_module_use_string;
-		    marshal_module_file << marshal_body_module_previous; 
-		    marshal_module_file << marshal_body_module_body;
-		    marshal_module_file.close ();
+		    produce_file
+		      (module->get_ada_full_name (),
+		       is_stream_body,
+		       module_withcode
+		       + module_usecode
+		       + module_prologue
+		       + module_maincode);
 		  }
 		  break;
 		  
 		case AST_Decl::NT_interface:
 		  {
-		    adabe_interface *interface = adabe_interface::narrow_from_decl (d);
+		    adabe_interface *interface =
+		      adabe_interface::narrow_from_decl (d);
 
-		    // initialisation of the variables for the interface file
-		    string marshal_interface_previous = "";
-		    string marshal_interface_body = "";
-		    dep_list marshal_interface_with;
+		    string interface_prologue = "";
+		    string interface_maincode = "";
+		    string interface_withcode = "";
+		    string interface_usecode  = "";
+		    dep_list interface_withlist;
 
-		    marshal_interface_with.add ("Broca.Marshalling");
+		    interface_withlist.add ("Broca.Marshalling");
 
-		    // computing the mapping of the interface
-		    interface->produce_stream_adb (marshal_interface_with, marshal_interface_body,
-						   marshal_interface_previous);
-		    string marshal_interface_with_string = *marshal_interface_with.produce ("with ");
-		    string marshal_interface_use_string = *marshal_interface_with.produce ("use ");
 
-		    if (marshal_interface_body == "")
-		      // if the mapping of the interface is empty, nothing must be written
-		      break;
+		    interface->produce_stream_adb 
+		      (interface_withlist,
+		       interface_maincode,
+		       interface_prologue);
+		    interface_withcode = *interface_withlist.produce ("with ");
+		    interface_usecode  = *interface_withlist.produce ("use ");
+
+		    if (interface_maincode == "") break;
 		    
-		    // computing the file name
-		    string marshal_interface_file_name =
-		      remove_dot (interface->get_ada_full_name ())+"-stream.adb";
-		    char *lower_case_name = lower (marshal_interface_file_name.c_str ());
-		    ofstream marshal_interface_file (lower_case_name); 
-		    delete[] lower_case_name;
-
-		    // writing in the file
-		    marshal_interface_file << marshal_interface_with_string;
-		    marshal_interface_file << marshal_interface_use_string;
-		    marshal_interface_file << marshal_interface_previous;    
-		    marshal_interface_file << marshal_interface_body;
-		    marshal_interface_file.close ();
+		    produce_file 
+		      (interface->get_ada_full_name (),
+		       is_stream_body,
+		       interface_withcode
+		       + interface_usecode 
+		       + interface_prologue
+		       + interface_maincode);
 		  }
+		  break;
+
 		default:
 		  break;
-		} // end of the switch
+		}
 	    }
-	  marshal_body_activator.next ();
-	} // end of the loop
+	  iterator.next ();
+	}
 
       if (!first)
 	{
-	  // if a node other than a module or an interface
-	  // has been found, creates a file:
+	  // If a node other than a module or an interface has been
+	  // found, create file.
 
-	  // computing of the file name
-	  string marshal_ada_file_name =
-	    remove_dot (idl_file_name)+"-stream.adb";
-	  char *lower_case_name = lower (marshal_ada_file_name.c_str ());
-	  ofstream marshal_body (lower_case_name); 
-	  delete[] lower_case_name;
+	  root_withcode = *root_withlist.produce ("with ");
+	  root_usecode  = *root_withlist.produce ("use ");
+	  
+	  root_maincode += "end " + get_ada_full_name () + ".Stream;\n";
 
-	  // writing in the file
-	  marshal_body_includes = *marshal_body_with.produce ("with ");
-	  marshal_body_use = *marshal_body_with.produce ("use ");
-	  marshal_body << marshal_body_includes;	  
-	  marshal_body << marshal_body_use;
-	  marshal_body << marshal_body_previous;
-	  marshal_body << marshal_body_body;
-	  marshal_body << "end " << get_ada_full_name () << ".Marshal;" << endl;
-	  marshal_body.close ();
+	  produce_file
+	    (root_name,
+	     is_stream_body,
+	     root_withcode
+	     + root_usecode
+	     + root_prologue
+	     + root_maincode);
 	}
     }
 
   }
   catch (adabe_internal_error &e)
     {
-      cout << "in : " << e.file () << "   Line : "<< e.line () << endl << e.errmsg () << endl;
+      cout << "in : "
+	   << e.file ()
+	   << "   Line : "
+	   << e.line ()
+	   << endl
+	   << e.errmsg ()
+	   << endl;
     };
 }
 

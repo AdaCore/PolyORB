@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.6 $
+//                            $Revision: 1.7 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -37,18 +37,20 @@
 #include <idl_extern.hh>
 #include <string>
 #include "debug.h"
+#include "adabe_types.h"
 
 // Defined in adabe_misc.cc
-void
-gen_marshalling_declarations (string &body, const string type_name);
+void gen_marshalling_declarations (string &body, const string type_name);
 // Generate declaration of all marshalling procedures for type TYPE_NAME. 
 
-string spaces (int n, char d);
-// return a string of n identical d chars
-// used for indentation
+void produce_file (string name, source_type type, string code);
+// Create new file Name with suffix given by Type and save Text in it.
 
-char *lower (const char *str);
+char * lower (const char * s);
 // Used to removed the upper case in a string
+
+string spaces (int n, char d);
+// Return a string of n identical d chars used for indentation
 
 class adabe_string_list
 {

@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.9 $
+//                            $Revision: 1.10 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -963,18 +963,6 @@ internal_search_pragma (AST_Decl* decl, char* p)
   return result;
 }
 
-char *lower (const char *str)
-{
-  char *new_str = new char[strlen (str)+1];
-  strcpy (new_str, str);
-  for (unsigned int i = 0; i < strlen (str); i++) 
-    {
-      if ((str[i] > 64) && ( str[i] < 91))
-	new_str[i] = new_str[i] + 32;
-    }
-  return new_str;
-}
-
 string spaces (int n, char d)
 {
   string tmp = "";
@@ -985,8 +973,6 @@ string spaces (int n, char d)
 
 IMPL_NARROW_FROM_DECL (adabe_name)
 IMPL_NARROW_FROM_SCOPE (adabe_name)
-
-
 
 #undef MAX_NUMBER_OF_EXTENSIONS
 
