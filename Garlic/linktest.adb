@@ -51,8 +51,6 @@ with System.Garlic.Termination;
 pragma Warnings (Off, System.Garlic.Termination);
 with System.Partition_Interface;
 pragma Warnings (Off, System.Partition_Interface);
-with System.Garlic.Non_Blocking;
-pragma Warnings (Off, System.Garlic.Non_Blocking);
 with System.RPC.Stream_IO;
 pragma Warnings (Off, System.RPC.Stream_IO);
 
