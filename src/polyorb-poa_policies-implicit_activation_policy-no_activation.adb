@@ -95,12 +95,13 @@ package body PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation is
       pragma Unreferenced (OA);
       pragma Unreferenced (P_Servant);
       pragma Unreferenced (Hint);
-      pragma Unreferenced (Oid);
       pragma Warnings (On);  --  WAG:3.15
 
       use PolyORB.Exceptions;
 
    begin
+      Oid := null;
+
       Throw
         (Error,
          ServantNotActive_E,
