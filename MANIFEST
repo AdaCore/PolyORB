@@ -180,7 +180,8 @@ Garlic/5lgarcon.ads
 Garlic/5sgarcon.ads
 Garlic/5sgtplsp.ads
 Garlic/5wgarcon.ads
-Garlic/5wgtplsp.adb
+Garlic/5wgarthi.ads
+Garlic/5wgarthi.adb
 Garlic/5wgtplsp.ads
 Garlic/DALL
 Garlic/Makefile.am
