@@ -1,3 +1,7 @@
+Wed Nov  6 18:34:57 1996  Laurent Pautet  <pautet@inf.enst.fr>
+
+	* s-gartcp.adb: sin_family was no longer initialized AF_INET.
+
 Tue Oct 29 12:58:51 1996  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-ganobl.adb: Use s-gaosli's C_Errno.
