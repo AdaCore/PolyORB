@@ -386,5 +386,6 @@ for a in linker adacompiler
 do
   chmod a+x support/$a
 done
+rm -f support/native-adacompiler
 ln -f support/adacompiler support/native-adacompiler
 
