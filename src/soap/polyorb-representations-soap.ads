@@ -34,9 +34,11 @@
 
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
-with PolyORB.Types;
-with PolyORB.Any;
 with Sequences.Unbounded;
+
+with PolyORB.Any;
+with PolyORB.Storage_Pools;
+with PolyORB.Types;
 
 package PolyORB.Representations.SOAP is
 
@@ -54,19 +56,26 @@ package PolyORB.Representations.SOAP is
 
    type XML_Component is tagged private;
    type XML_Component_Access is access all XML_Component'Class;
+   for XML_Component_Access'Storage_Pool use PolyORB.Storage_Pools.Debug_Pool;
 
    type Child_List_Record is private;
    type Child_List_Access is access all Child_List_Record;
+   for Child_List_Access'Storage_Pool use PolyORB.Storage_Pools.Debug_Pool;
 
    type Attributes_Record is private;
    type Attributes_Record_Access is access all Attributes_Record;
+   for Attributes_Record_Access'Storage_Pool
+     use PolyORB.Storage_Pools.Debug_Pool;
 
    package Attributes_Seq is new Sequences.Unbounded
        (Attributes_Record_Access);
    type Attributes_Seq_Access is access all Attributes_Seq.Sequence;
+   for Attributes_Seq_Access'Storage_Pool use PolyORB.Storage_Pools.Debug_Pool;
 
    type Container_Element is private;
    type Container_Element_Access is access all Container_Element;
+   for Container_Element_Access'Storage_Pool
+     use PolyORB.Storage_Pools.Debug_Pool;
 
    type Stream_Char is record
       Current_Pos   : Integer := 0;
@@ -74,9 +83,11 @@ package PolyORB.Representations.SOAP is
    end record;
 
    type Stream_Char_Access is access all Stream_Char;
+   for Stream_Char_Access'Storage_Pool use PolyORB.Storage_Pools.Debug_Pool;
 
    type Name_Array is array (Positive range <>) of XML_String;
    type Name_Array_Access is access Name_Array;
+   for Name_Array_Access'Storage_Pool use PolyORB.Storage_Pools.Debug_Pool;
 
    type Xsd_Types is (Xsd_Simple, Xsd_Struct, Xsd_Array);
 
@@ -84,8 +95,6 @@ package PolyORB.Representations.SOAP is
         Xsd_Unsigned_Int, Xsd_Unsigned_Long, Xsd_Float, Xsd_Double,
         Xsd_Boolean, Xsd_Char, Xsd_Byte, Xsd_String, Xsd_Array, Xsd_Struct,
         Xsd_Undefined);
-
-
 
    PolyORB_Types_To_XML_Types :
       constant array (TCKind'Range) of Xsd_Kind
@@ -122,10 +131,9 @@ package PolyORB.Representations.SOAP is
    SOAP_Syntax_Fault : exception;
    Unexpected_Token : exception;
 
-   --------------------------------
-   ---    Utility functions
-   ----------------------------
-
+   -----------------------
+   -- Utility functions --
+   -----------------------
 
    function Split_Name (Name : XML_String)
       return Name_Array_Access;

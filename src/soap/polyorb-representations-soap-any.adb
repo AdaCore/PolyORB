@@ -379,7 +379,7 @@ package body PolyORB.Representations.SOAP.Any  is
             end;
 
          when others =>
-            null;
+            raise Program_Error;
       end case;
 
 

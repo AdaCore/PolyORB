@@ -32,8 +32,11 @@
 
 --  $Id$
 
-with Ada.Strings.Unbounded;    use Ada.Strings.Unbounded;
 with Ada.Characters.Handling;  use Ada.Characters.Handling;
+with Ada.Exceptions;
+pragma Warnings (Off, Ada.Exceptions);
+--  Only referenced in a pragma Debug.
+with Ada.Strings.Unbounded;    use Ada.Strings.Unbounded;
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Types;
@@ -53,35 +56,24 @@ package body PolyORB.Representations.SOAP is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-   function Get (Str : Stream_Char_Access)
-       return Character
-   is
+   function Get (Str : Stream_Char_Access) return Character is
       use Ada.Strings.Unbounded;
    begin
       Str.Current_Pos := Str.Current_Pos + 1;
-      return Element (Str.Chars, Str.Current_Pos - 1);
+      return Element (Str.Chars, Str.Current_Pos);
    end Get;
 
-   function Peek (Str : Stream_Char_Access)
-       return Character
-   is
+   function Peek (Str : Stream_Char_Access) return Character is
       use Ada.Strings.Unbounded;
    begin
-      return Element (Str.Chars, Str.Current_Pos);
+      return Element (Str.Chars, Str.Current_Pos + 1);
    end Peek;
 
-   function End_Of_Input (Str : Stream_Char_Access)
-       return Boolean
-   is
+   function End_Of_Input (Str : Stream_Char_Access) return Boolean is
       use Ada.Strings.Unbounded;
    begin
-      if Str.Current_Pos > Length (Str.Chars) then
-         return True;
-      else
-         return False;
-      end if;
+      return Str.Current_Pos >= Length (Str.Chars);
    end End_Of_Input;
-
 
    --------------------------------
    --- Utility functions
@@ -673,8 +665,6 @@ package body PolyORB.Representations.SOAP is
          declare
             ch  : Character := Get (Str);
          begin
-            pragma Debug (O ("ch = " & ch));
-            pragma Debug (O ("State = " & State'Img));
             case State is
                when None =>
                   if ch = Character'Val (34)  then
@@ -787,10 +777,16 @@ package body PolyORB.Representations.SOAP is
 
          Token := Next_Token (Str);
          if Token /= XML_Comp.Tag then
+            pragma Debug
+              (O ("Unexpected token: " & To_Standard_String (Token)));
+            pragma Debug
+              (O ("expected " & To_Standard_String (XML_Comp.Tag)));
             raise Unexpected_Token;
          end if;
          Token := Next_Token (Str);
          if Token /= ">" then
+            pragma Debug
+              (O ("Unexpected token: " & To_Standard_String (Token)));
             raise Unexpected_Token;
          end if;
       end if;
@@ -804,6 +800,7 @@ package body PolyORB.Representations.SOAP is
    is
    begin
       if Next_Token (Str) /= To_PolyORB_String ("<") then
+         pragma Debug (O ("Unexpected token"));
          raise Unexpected_Token;
       end if;
       Parse_Component (XML_Comp, Str);

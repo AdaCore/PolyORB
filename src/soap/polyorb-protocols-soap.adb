@@ -671,6 +671,7 @@ package body PolyORB.Protocols.SOAP  is
               renames S.HTTP_Session.Request;
             Succ : Boolean;
          begin
+            Release_Contents (S.Buffer.all);
             for I in  Octets_List'Range loop
                Append (Header, Character'Val (Natural (Octets_List (I))));
             end loop;

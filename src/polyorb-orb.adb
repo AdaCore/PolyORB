@@ -218,19 +218,21 @@ package body PolyORB.ORB is
                   --  now be destroyed.
 
                   Destroy (Note.D.TE);
+                  --  Destroy the transport endpoint and the associated
+                  --  protocol stack.
+
                   Destroy (AES);
                   --  No need to Unregister_Source, because the AES
                   --  is already unregistered while an event is being
                   --  processed.
 
-                  --  XXX
-                  --  the associated filter stack must be destroyed as well.
-
                when E : others =>
-                  O ("Got exception while sending Data_Indication:");
-                  O (Ada.Exceptions.Exception_Information (E));
-                  --  XXX What to do?
-                  --  raise; ???
+                  O ("Got exception while sending Data_Indication:", Error);
+                  O (Ada.Exceptions.Exception_Information (E), Error);
+                  Close (Note.D.TE.all);
+
+                  Destroy (Note.D.TE);
+                  Destroy (AES);
             end;
       end case;
    end Handle_Event;
@@ -529,8 +531,8 @@ package body PolyORB.ORB is
       Set_Note
         (Notepad_Of (New_AES).all,
          AES_Note'(Annotations.Note with D =>
-                     (Kind   => A_TE_AES,
-                      TE     => TE)));
+                     (Kind => A_TE_AES,
+                      TE   => TE)));
       --  Register link from AES to TE.
 
       --  Assign execution resources to the newly-created connection.
