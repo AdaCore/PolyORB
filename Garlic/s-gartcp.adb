@@ -76,11 +76,22 @@ package body System.Garlic.TCP is
 
    package Net renames Platform_Specific.Net;
 
+   function Port_To_Network (Port : C.unsigned_short)
+     return C.unsigned_short;
+   pragma Inline (Port_To_Network);
+   --  Convert a port number to a network port number.
+
+   function Network_To_Port (Net_Port : C.unsigned_short)
+     return C.unsigned_short
+     renames Port_To_Network;
+   pragma Inline (Network_To_Port);
+   --  Symetric operation.
+
    In_Address_Any : constant Naming.Address := Any_Address;
 
    type Host_Location is record
       Addr : Naming.Address   := In_Address_Any;
-      Port : C.Unsigned_short := 0;
+      Port : C.unsigned_short := 0;
    end record;
 
    function Split_Data (Data : String) return Host_Location;
@@ -311,7 +322,7 @@ package body System.Garlic.TCP is
       end if;
       Sin.Sin_Family := Constants.Af_Inet;
       Sin.Sin_Addr := To_In_Addr (Location.Addr);
-      Sin.Sin_Port := Location.Port;
+      Sin.Sin_Port := Port_To_Network (Location.Port);
       Code := Net.C_Connect (FD,
                              To_Sockaddr_Access (Sin), Sin.all'Size / 8);
       if Code = Failure then
@@ -353,7 +364,7 @@ package body System.Garlic.TCP is
                                 One'Size / 8);
       end;
       Sin.Sin_Family := Constants.Af_Inet;
-      Sin.Sin_Port := Port;
+      Sin.Sin_Port := Port_To_Network (Port);
       if C_Bind (FD,
                  To_Sockaddr_Access (Sin),
                  Sin.all'Size / 8) = Failure then
@@ -372,7 +383,7 @@ package body System.Garlic.TCP is
             Free (Check);
             raise Communication_Error;
          end if;
-         Port := Check.Sin_Port;
+         Port := Network_To_Port (Check.Sin_Port);
       end if;
       Free (Check);
       Self_Host.Connected := True;
@@ -661,6 +672,29 @@ package body System.Garlic.TCP is
       end Unlock;
 
    end Partition_Map_Type;
+
+   ---------------------
+   -- Port_To_Network --
+   ---------------------
+
+   function Port_To_Network (Port : C.unsigned_short)
+     return C.unsigned_short
+   is
+   begin
+      if System.Default_Bit_Order = High_Order_First then
+
+         --  No conversion needed. On these platforms, htons() defaults
+         --  to a null procedure.
+
+         return Port;
+      else
+
+         --  We need to swap the high and low byte on this short to make
+         --  the port number network compliant.
+
+         return (Port / 256) + (Port mod 256) * 256;
+      end if;
+   end Port_To_Network;
 
    ----------------------
    -- Physical_Receive --
