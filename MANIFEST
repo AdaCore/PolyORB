@@ -910,7 +910,6 @@ support/config.sub
 support/gnatsrc.m4
 support/install-sh
 support/linker.in
-support/ltconfig
 support/ltmain.sh
 support/missing
 support/mkdep
