@@ -507,7 +507,7 @@ package body Broca.Inet_Server is
       --  found.
       Sock_Name.Sin_Family := Af_Inet;
       Sock_Name.Sin_Port := Htons (Used_Port);
-      Sock_Name.Sin_Addr := My_Addr;
+      Sock_Name.Sin_Addr := Inaddr_Any;
       Result := C_Bind (Sock, Sock_Name'Address, Sock_Name'Size / 8);
       if Result = Failure then
          C_Close (Sock);
