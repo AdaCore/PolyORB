@@ -44,5 +44,10 @@ package PolyORB.Tasking.Profiles.Ravenscar is
 
    Storage_Size : constant := 262_144;
    --  Stack size of the tasks of the pool.
+   --  WAG:3.15
+   --  In 3.15, the pragma Ravenscar implies the restriction
+   --  Static_Storage_Size, so we cannot make Storage_Size a formal
+   --  generic parameter of PTPR.Threads.
+   --  This restriction has been removed in 3.16,
 
 end PolyORB.Tasking.Profiles.Ravenscar;
