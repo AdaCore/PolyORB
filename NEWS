@@ -1,8 +1,20 @@
 Changes since GLADE 3.13a
 =========================
 
-New Functionalities
--------------------
+New Functionnalities
+--------------------
+
+*   The multi data storages feature is now available. It is now
+    possible to define several data storage supports for shared
+    passive units. Therefore, in the future, the file storage support
+    will not be the only support available. Note that to do so, some
+    configuration parameters have been changed. Boot_Server is now
+    obsolete and replaced with Boot_Location. Storage_Dir is now
+    obsolete and replaced with Directory in order not to be confused
+    with the directory used by a file storage support. 
+
+*   Passive partitions are now supported. It is now possible to define
+    partitions on storage node and not only on processing nodes.
 
 *   It is now possible to specify the default optimization level used
     by GNATDIST when no -O or -g flag is used on its command line at
