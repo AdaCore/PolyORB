@@ -442,7 +442,8 @@ package body Broca.RootPOA is
      return Broca.POA.Skeleton_Ptr;
 
    function Id_To_Skeleton
-     (Self : access Object; Oid : ObjectId)
+     (Self : access Object;
+      Oid  : ObjectId)
      return Skeleton_Ptr;
 
    function Key_To_Skeleton
@@ -867,7 +868,6 @@ package body Broca.RootPOA is
       Intf : CORBA.RepositoryId)
       return CORBA.Object.Ref
    is
-      Res : CORBA.Object.Ref;
       Slot : Slot_Index;
 
    begin
@@ -882,12 +882,27 @@ package body Broca.RootPOA is
          Slot := Bad_Slot;
       end if;
 
-      CORBA.Object.Set
-        (Res,
-         CORBA.Impl.Object_Ptr
-         (Create_Skeleton (Self, Slot, null, Intf, Oid)));
+      declare
+         Skel : constant Broca.POA.Skeleton_Ptr
+           := Create_Skeleton (Self, Slot, null, Intf, Oid);
+      begin
+         return Broca.POA.Skeleton_To_Ref (Skel.all);
+      end;
 
-      return Res;
+      --  Cannot simply set the resulting Ref to point to Skel as in:
+      --
+      --  CORBA.Object.Set
+      --    (Res,
+      --     CORBA.Impl.Object_Ptr
+      --     (Create_Skeleton (Self, Slot, null, Intf, Oid)));
+      --
+      --  because Create_Reference_With_Id must produce an /externalised/
+      --  reference (it must be suitable for narrowing using To_Ref, which
+      --  may call Is_A, which currently requires the reference to be
+      --  externalised.)
+      --
+      --  Thomas, 2000-08-29
+
    end Create_Reference_With_Id;
 
    function Servant_To_Skeleton
@@ -897,7 +912,10 @@ package body Broca.RootPOA is
      return Broca.POA.Skeleton_Ptr
    is
       Slot : Slot_Index;
-      Obj  : Broca.POA.Skeleton_Ptr;
+      --  XXX remove
+      --  Obj  : Broca.POA.Skeleton_Ptr;
+      Type_Id : constant CORBA.RepositoryId
+        := Get_Type_Id (P_Servant);
    begin
       if Self.Servant_Policy = RETAIN
         and then Self.Uniqueness_Policy = UNIQUE_ID
@@ -916,17 +934,24 @@ package body Broca.RootPOA is
       then
          Slot := Reserve_A_Slot (Self);
 
-         Obj := Create_Skeleton
-           (Self, Slot, P_Servant, Get_Type_Id (P_Servant),
-            Slot_Index_To_ObjectId (Slot));
-
-         return Self.Object_Map (Slot).Skeleton;
+         --  XXX remove
+         --  Obj := Create_Skeleton
+         --    (Self, Slot, P_Servant, Type_Id, Slot_Index_To_ObjectId (Slot));
+         --  return Self.Object_Map (Slot).Skeleton;
+         return Create_Skeleton
+           (Self, Slot, P_Servant, Type_Id, Slot_Index_To_ObjectId (Slot));
       end if;
 
       if Called_From_Servant_To_Reference
         or else Self.Request_Policy = USE_DEFAULT_SERVANT
       then
-         return Id_To_Skeleton (Self, Task_Attributes.Current_Object);
+         if Self.Servant_Policy = RETAIN then
+            return Id_To_Skeleton (Self, Task_Attributes.Current_Object);
+         else
+            return Create_Skeleton
+              (Self, Bad_Slot, P_Servant, Type_Id,
+               Task_Attributes.Current_Object);
+         end if;
       end if;
 
       raise PortableServer.POA.ServantNotActive;
@@ -955,7 +980,7 @@ package body Broca.RootPOA is
 
    function Id_To_Skeleton
      (Self : access Object;
-      Oid : ObjectId)
+      Oid  : ObjectId)
      return Skeleton_Ptr
    is
       Slot : Slot_Index;
@@ -964,7 +989,6 @@ package body Broca.RootPOA is
       if Slot = Bad_Slot then
          raise PortableServer.POA.ObjectNotActive;
       end if;
-
       return Self.Object_Map (Slot).Skeleton;
    end Id_To_Skeleton;
 
@@ -1191,9 +1215,7 @@ package body Broca.RootPOA is
       pragma Debug (O ("GIOP_Invoke: Servant Policy is "
                        & Self.Servant_Policy'Img));
 
-      pragma Debug (O ("Reading the key"));
       Decapsulate (Key, Key_Buffer'Access);
-      pragma Debug (O ("The key has been read"));
 
       --  Find the ObjectId in the Active Map if RETAIN Policy.
       if Self.Servant_Policy = RETAIN then
@@ -1217,7 +1239,6 @@ package body Broca.RootPOA is
                Broca.Exceptions.Raise_Object_Not_Exist;
 
             when USE_DEFAULT_SERVANT =>
-               Release (Key_Buffer);
                pragma Debug
                  (O ("GIOP_Invoke: USE_DEFAULT_SERVANT policy"));
 
@@ -1227,11 +1248,18 @@ package body Broca.RootPOA is
                end if;
 
                A_Servant := Self.Default_Servant;
-               if Self.Servant_Policy = RETAIN
-                 and then Slot /= Bad_Slot
-               then
-                  --  FIXME: persistent
-                  Self.Object_Map (Slot).Skeleton.P_Servant := A_Servant;
+               if Self.Servant_Policy = RETAIN then
+                  if Slot /= Bad_Slot then
+                     --  FIXME: persistent
+                     Self.Object_Map (Slot).Skeleton.P_Servant := A_Servant;
+                  end if;
+               else
+                  pragma Debug (O ("Converting key to object id"));
+                  Broca.Buffers.Show (Key_Buffer);
+                  Oid := Key_To_ObjectId (Key_Buffer'Access);
+
+                  pragma Debug (O ("Releasing key"));
+                  Release (Key_Buffer);
                end if;
 
             when USE_SERVANT_MANAGER =>
