@@ -212,7 +212,6 @@ begin
 
    Send_MByte (MOMA_Producer, 3);
    --  Message 3 is notified and not received.
-   Wait;
 
    Set_Notifier (MOMA_Handler_Acc, Notify_Then_Handle'Access);
 
