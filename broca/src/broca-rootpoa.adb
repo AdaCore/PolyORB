@@ -1087,7 +1087,7 @@ package body Broca.Rootpoa is
 	    pragma Debug (O ("Giop_Invoke : RETAIN policy"));
 	    Self.Object_Map (Slot).Requests_Lock.Lock_R;
          end if;
-	 pragma Debug (O ("Giop_Invoke : call giop_dispatch"));
+	 pragma Debug (O ("Giop_Invoke : call giop_dispatch for " & CORBA.To_Standard_String (Operation)));
          Giop_Dispatch
            (A_Servant, CORBA.To_Standard_String (Operation), Request_Id,
             Reponse_Expected, Message);

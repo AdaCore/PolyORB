@@ -6,7 +6,7 @@ with CORBA; use CORBA;
 with CORBA.Iop;
 with Sockets.Thin;
 with Sockets.Constants;
-with Interfaces.C;
+with Interfaces.C; use Interfaces.C;
 with Interfaces.C.Strings;
 with Broca.Exceptions;
 with Broca.Marshalling;
@@ -23,7 +23,7 @@ with Broca.Debug;
 pragma Elaborate_All (Broca.Debug);
 
 package body Broca.Inet_Server is
-   Flag : constant Natural := Broca.Debug.Is_Active ("broca.orb");
+   Flag : constant Natural := Broca.Debug.Is_Active ("broca.inet_server");
    procedure O is new Broca.Debug.Output (Flag);
 
    My_Addr : Sockets.Thin.In_Addr;
@@ -112,10 +112,35 @@ package body Broca.Inet_Server is
    use Broca.Stream;
 
    Polls : Pollfd_Array (1 .. 10);
+   Signal_Fds : aliased Two_Int;
+   Signal_Fd_Read : Interfaces.C.int renames Signal_Fds (0);
+   Signal_Fd_Write : Interfaces.C.int renames Signal_Fds (1);
+
    Streams : Stream_Acc_Array (2 .. 10) := (others => null);
    Nbr_Fd : Integer := 0;
    Fd_Server_Id : Broca.Server.Server_Id_Type;
    Fd_Pos : Integer;
+
+   procedure Signal_Poll_Set_Change is
+      C : aliased constant Character
+        := Character'Val (0);
+   begin
+      pragma Debug (O ("Signalling poll set change."));
+      if C_Send (Signal_Fd_Write, C'Address, 1, 0) = Failure then
+         pragma Debug (O ("--> failed!"));
+         null;
+      end if;
+   end Signal_Poll_Set_Change;
+
+   procedure Accept_Poll_Set_Change is
+      C : aliased Character;
+   begin
+      pragma Debug (O ("Accepting poll set change."));
+      if C_Recv (Signal_Fd_Read, C'Address, 1, 0) = Failure then
+         pragma Debug (O ("--> failed!"));
+         null;
+      end if;
+   end Accept_Poll_Set_Change;
 
    --  Create a listening socket.
    procedure Initialize is
@@ -161,7 +186,8 @@ package body Broca.Inet_Server is
          Broca.Exceptions.Raise_Comm_Failure;
       end if;
       Iiop_Port := CORBA.Unsigned_Short (Sock_Name.Sin_Port);
-      --  Network to host byte order convertion.
+
+      --  Network to host byte order conversion.
       if Broca.Marshalling.Is_Little_Endian then
          Iiop_Port := (Iiop_Port / 256) + (Iiop_Port mod 256) * 256;
       end if;
@@ -182,9 +208,17 @@ package body Broca.Inet_Server is
          end if;
       end;
 
+      --  Create signalling socket pair.
+      if C_Socketpair (Af_Unix, Sock_Stream, 0, Signal_Fds'Address) = Failure then
+         C_Close (Sock);
+         Broca.Exceptions.Raise_Comm_Failure;
+      end if;
+
       Polls (1).Fd := Listening_Socket;
       Polls (1).Events := Pollin;
-      Nbr_Fd := 1;
+      Polls (2).Fd := Signal_Fd_Read;
+      Polls (2).Events := Pollin;
+      Nbr_Fd := 2;
       Fd_Pos := 1;
    end Initialize;
 
@@ -201,7 +235,7 @@ package body Broca.Inet_Server is
       Size : aliased C.int;
       The_Fd_Pos : Integer;
    begin
-      Broca.Server.Log ("poll on fd");
+      Broca.Server.Log ("polling");
       << Again >> null;
 
       if Fd_Pos > Nbr_Fd then
@@ -247,6 +281,11 @@ package body Broca.Inet_Server is
       end loop;
 
       Sock := Polls (Fd_Pos).Fd;
+      if Sock = Signal_Fd_Read then
+         Accept_Poll_Set_Change;
+         Fd_Pos := Nbr_Fd + 1;
+         goto Again;
+      end if;
 
       --  Receive a message header
       Increase_Buffer_And_Clear_Pos
@@ -285,12 +324,14 @@ package body Broca.Inet_Server is
       --  locked.
       --  It is locked because data was not yet read.
       Polls (The_Fd_Pos).Events := 0;
+
       Broca.Server.New_Request (Fd_Server_Id);
       Broca.Server.Log
         ("message received from fd" & Interfaces.C.int'Image (Sock));
       Broca.Stream.Lock_Receive (Streams (The_Fd_Pos));
       Broca.Server.Handle_Message (Streams (The_Fd_Pos), Buffer);
       Polls (The_Fd_Pos).Events := Pollin;
+      Signal_Poll_Set_Change;
       return;
    end Wait_Fd_Request;
 
@@ -370,10 +411,14 @@ package body Broca.Inet_Server is
    The_Fd_Server : Fd_Server_Acc;
 begin
    Initialize;
+
    The_Fd_Server := new Fd_Server_Type;
    Broca.Server.Register
      (Broca.Server.Server_Acc (The_Fd_Server), Fd_Server_Id);
 
    --  There is always one request to handle: accepting a connection.
    Broca.Server.New_Request (Fd_Server_Id);
+exception
+   when CORBA.Comm_Failure =>
+      Broca.Server.Log ("Failed to initialize Inet server.");
 end Broca.Inet_Server;

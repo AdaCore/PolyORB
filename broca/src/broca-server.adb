@@ -21,7 +21,7 @@ pragma Elaborate_All (Broca.Debug);
 package body Broca.Server is
    Flag : constant Natural := Broca.Debug.Is_Active ("broca.server");
    procedure O is new Broca.Debug.Output (Flag);
-   
+
    --  Just disp a string as a log message.
    --  FIXME: should go somewhere else.
    procedure Log (S : String) is
@@ -215,8 +215,9 @@ package body Broca.Server is
       use Broca.Marshalling;
       use PortableServer;
    begin
+      pragma Debug (O ("Marshall_Object_Key : enter"));
       if Poa.Lifespan_Policy = PortableServer.TRANSIENT then
-         Marshall (Buffer, CORBA.Unsigned_Long (0));
+         Marshall (Buffer, CORBA.Unsigned_Long'(0));
       else
          Marshall (Buffer, Broca.Flags.Boot_Time);
       end if;
@@ -246,25 +247,34 @@ package body Broca.Server is
       Old_Poa : Broca.Poa.POA_Object_Access;
       Name : CORBA.String;
       Tmp_Poa_State : Broca.Poa.Processing_State_Type;
+      Saved_Endianness : CORBA.Boolean;
    begin
-      pragma Debug (O ("Unmarshall_Object_Key : Enter"));
+      pragma Debug (O ("Unmarshall_Object_Key : enter"));
       --  Length of the sequence.
       Unmarshall (Buffer, A_Long);
       Length := Buffer_Index_Type (A_Long);
       Pos := Buffer.Pos;
 
+      --  The contents of an object key must be interpreted
+      --  with the endianness of its creator.
+      Saved_Endianness := Buffer.Little_Endian;
+      Buffer.Little_Endian := Is_Little_Endian;
+
       --  Unmarshall boot time.
       Unmarshall (Buffer, A_Long);
       if A_Long /= 0 and then A_Long /= Broca.Flags.Boot_Time then
+         pragma Debug (O ("Not my boot time: " & CORBA.Unsigned_Long'Image (A_Long) & " (expected " & CORBA.Unsigned_Long'Image (Broca.Flags.Boot_Time) & ")"));
          Broca.Exceptions.Raise_Object_Not_Exist;
       end if;
 
       --  Unmarshall POA index.
       Unmarshall (Buffer, A_Long);
       Index := Broca.Poa.Poa_Index_Type (Natural (A_Long));
+      pragma Debug (O ("index =" & Broca.Poa.Poa_Index_Type'Image (Index)));
 
       --  Unmarshall index date.
       Unmarshall (Buffer, A_Long);
+      pragma Debug (O ("date =" & CORBA.Unsigned_Long'Image (A_Long)));
 
       --  Lock the table, so that we are sure the poa won't be destroyed.
       Broca.Poa.All_POAs_Lock.Lock_R;
@@ -296,6 +306,8 @@ package body Broca.Server is
             Poa := null;
             Buffer.Pos := Pos + Length;
             Broca.Poa.All_POAs_Lock.Unlock_R;
+
+            Buffer.Little_Endian := Saved_Endianness;
             return;
          end if;
 
@@ -310,6 +322,7 @@ package body Broca.Server is
                Poa := Current_Poa;
                Poa_State := Tmp_Poa_State;
                Key.Pos := 0;
+               Buffer.Little_Endian := Saved_Endianness;
                return;
             end if;
             Dec_Usage (Get_The_POAManager (Current_Poa).all);
@@ -318,6 +331,7 @@ package body Broca.Server is
             Current_Poa := Broca.Poa.Find_POA (Current_Poa, Name, True);
             if Current_Poa = null then
                Old_Poa.Link_Lock.Unlock_R;
+               Buffer.Little_Endian := Saved_Endianness;
                Broca.Exceptions.Raise_Object_Not_Exist;
                --  Dummy return, because never reached.
                return;
@@ -336,6 +350,7 @@ package body Broca.Server is
       Key_Length := Length - (Buffer.Pos - Pos);
       Increase_Buffer_And_Clear_Pos (Key, Key_Length);
       Unmarshall_Extract (Key, Buffer, Key_Length);
+      Buffer.Little_Endian := Saved_Endianness;
       return;
    end Unmarshall_Object_Key;
 
@@ -730,6 +745,7 @@ package body Broca.Server is
       Key : Buffer_Descriptor;
    begin
       pragma Debug (O ("Handle_Request : enter"));
+
       Pos := Buffer.Pos;
       --  service_context
       Unmarshall (Buffer, A_Long);
@@ -740,31 +756,31 @@ package body Broca.Server is
       --  request id
       pragma Debug (O ("Handle_Request : unmarshalling request_id"));
       Unmarshall (Buffer, Request_Id);
-      
+
       --  reponse expected
       pragma Debug (O ("Handle_Request : unmarshalling reponse_expected"));
       Unmarshall (Buffer, Reponse_Expected);
-      
+
       --  Object key
       pragma Debug (O ("Handle_Request : unmarshalling key"));
       Unmarshall_Object_Key (Buffer, Poa, Poa_State, Key);
-      
+
       case Poa_State is
          when Active =>
-	    pragma Debug (O ("Handle_Request : Poa is active"));
+            pragma Debug (O ("Handle_Request : Poa is active"));
             Log ("invoke method");
 
-	    --  Operation
-	    pragma Debug (O ("Handle_Request : unmarshalling operation"));
+            --  Operation
+            pragma Debug (O ("Handle_Request : unmarshalling operation"));
             Unmarshall (Buffer, Operation);
 
             --  principal
-	    pragma Debug (O ("Handle_Request : unmarshalling principal"));
+            pragma Debug (O ("Handle_Request : unmarshalling principal"));
             Unmarshall (Buffer, Principal);
 
             begin
                --  This unlock_R the POA.
-	       pragma Debug (O ("Handle_Request : invoking"));
+               pragma Debug (O ("Handle_Request : invoking"));
                Broca.Poa.Giop_Invoke
                  (Poa, Key, CORBA.Identifier (Operation),
                   Request_Id, Reponse_Expected, Buffer);
@@ -780,12 +796,12 @@ package body Broca.Server is
                      Broca.Giop.Create_Reply_Location_Forward
                        (Buffer, Request_Id, Fr_M.Forward_Reference);
                   end;
-	    end;
-   
+            end;
+
             pragma Debug (O ("Handle_Request : locking before send"));
-	    Lock_Send (Stream);
-	    pragma Debug (O ("Handle_Request : sending"));
-	    Send (Stream, Buffer);
+            Lock_Send (Stream);
+            pragma Debug (O ("Handle_Request : sending"));
+            Send (Stream, Buffer);
             Unlock_Send (Stream);
 
          when Discarding =>

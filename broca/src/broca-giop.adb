@@ -11,7 +11,7 @@ pragma Elaborate_All (Broca.Debug);
 package body Broca.Giop is
    Flag : constant Natural := Broca.Debug.Is_Active ("broca.giop");
    procedure O is new Broca.Debug.Output (Flag);
-   
+
    procedure Create_Giop_Header
      (Stream : in out Buffer_Descriptor;
       Message_Type : CORBA.Unsigned_Long;
@@ -44,7 +44,7 @@ package body Broca.Giop is
 
       --  align header
       Marshall_Align_16 (Stream);
-      
+
       --  Internal check.
       if Stream.Pos /= Message_Header_Size then
          Broca.Exceptions.Raise_Internal (2000, CORBA.Completed_No);
@@ -169,7 +169,7 @@ package body Broca.Giop is
       pragma Debug (O ("Send_Request_Marshall : enter"));
       Message_Size := CORBA.Unsigned_Long
         (Handler.Buffer.Pos - Broca.Giop.Message_Header_Size);
-      pragma Debug (O ("Send_Request_Marshall : Message_Siae = " & Message_Size'Img));
+      pragma Debug (O ("Send_Request_Marshall : Message_Size = " & Message_Size'Img));
       Allocate_Buffer (Handler.Buffer);
 
       --  1.2 marshall the request.
