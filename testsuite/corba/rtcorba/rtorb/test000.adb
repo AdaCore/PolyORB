@@ -158,6 +158,9 @@ begin
       declare
          Thread_Pool_Id : RTCORBA.ThreadpoolId;
          Thread_Pool_Policy : RTCORBA.ThreadpoolPolicy.Local_Ref;
+         --  pragma Unreferenced (Thread_Pool_Policy);
+         pragma Warnings (Off, Thread_Pool_Policy); --  WAG:5.02 DB08-008
+         --  Assigned but never read
 
       begin
          Thread_Pool_Id := RTCORBA.RTORB.Create_Threadpool
@@ -186,6 +189,10 @@ begin
 
          declare
             Thread_Pool_2 : RTCORBA.ThreadpoolPolicy.Local_Ref;
+            --  pragma Unreferenced (Thread_Pool_2);
+            pragma Warnings (Off, Thread_Pool_2); --  WAG:5.02 DB08-008
+            --  Assigned but never read
+
 
          begin
             Thread_Pool_2 := RTCORBA.RTORB.Create_Threadpool_Policy
@@ -219,6 +226,9 @@ begin
 
          Thread_Pool_Id : RTCORBA.ThreadpoolId;
          Thread_Pool_Policy : RTCORBA.ThreadpoolPolicy.Local_Ref;
+         --  pragma Unreferenced (Thread_Pool_Policy);
+         pragma Warnings (Off, Thread_Pool_Policy); --  WAG:5.02 DB08-008
+         --  Assigned but never read
 
       begin
          Append (Lanes, Lane1);

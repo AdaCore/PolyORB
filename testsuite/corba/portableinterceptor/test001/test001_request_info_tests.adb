@@ -128,6 +128,9 @@ package body Test001_Request_Info_Tests is
         := Point /= Send_Poll
              and then Point /= Receive_Request_Service_Contexts;
       Cont      : ContextList;
+      --  pragma Unreferenced (Cont);
+      pragma Warnings (Off, Cont); --  WAG:5.02 DB08-008
+      --  Assigned but never read
 
    begin
       --  XXX Functionality test not implemented
@@ -417,6 +420,9 @@ package body Test001_Request_Info_Tests is
    is
       Operation : constant String := "get_slot";
       Val       : Any;
+      --  pragma Unreferenced (Val);
+      pragma Warnings (Off, Val); --  WAG:5.02 DB08-008
+      --  Assigned but never read
 
    begin
       Val := Get_Slot (Info, 100);
@@ -468,6 +474,9 @@ package body Test001_Request_Info_Tests is
         := Point /= Send_Poll
              and then (Point = Receive_Request or Point = Send_Reply);
       Cont      : RequestContext;
+      --  pragma Unreferenced (Cont);
+      pragma Warnings (Off, Cont); --  WAG:5.02 DB08-008
+      --  Assigned but never read
 
    begin
       --  XXX Functionality test not implemented

@@ -62,6 +62,9 @@ package body Test_AdapterActivator is
    end Unknown_Adapter;
 
    Meta_Child_POA : PortableServer.POA.Ref;
+   --  pragma Unreferenced (Meta_Child_POA);
+   pragma Warnings (Off, Meta_Child_POA); --  WAG:5.02 DB08-008
+   --  Assigned but never read
 
    Simple_Activator_Called : Boolean := False;
 
@@ -112,6 +115,9 @@ package body Test_AdapterActivator is
 
       Child_POA : PortableServer.POA.Ref;
       Foo_POA : PortableServer.POA.Ref;
+      --  pragma Unreferenced (Foo_POA);
+      pragma Warnings (Off, Foo_POA); --  WAG:5.02 DB08-008
+      --  Assigned but never read
 
    begin
       New_Test ("Adapter Activator");

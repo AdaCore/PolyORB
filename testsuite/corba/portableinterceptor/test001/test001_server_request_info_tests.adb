@@ -109,6 +109,9 @@ package body Test001_Server_Request_Info_Tests is
    is
       Operation : constant String := "get_server_policy";
       Pol       : CORBA.Policy.Ref;
+      --  pragma Unreferenced (Pol);
+      pragma Warnings (Off, Pol); --  WAG:5.02 DB08-008
+      --  Assigned but never read
 
    begin
       --  XXX Functionality test not implemented
@@ -205,6 +208,9 @@ package body Test001_Server_Request_Info_Tests is
       Valid     : constant Boolean
         := Point /= Receive_Request_Service_Contexts;
       Aux       : ORBId;
+      --  pragma Unreferenced (Aux);
+      pragma Warnings (Off, Aux); --  WAG:5.02 DB08-008
+      --  Assigned but never read
 
    begin
       --  XXX Functionality test not implemented
@@ -282,6 +288,9 @@ package body Test001_Server_Request_Info_Tests is
       Valid     : constant Boolean
         := Point /= Receive_Request_Service_Contexts;
       Aux       : ServerId;
+      --  pragma Unreferenced (Aux);
+      pragma Warnings (Off, Aux); --  WAG:5.02 DB08-008
+      --  Assigned but never read
 
    begin
       --  XXX Functionality test not implemented

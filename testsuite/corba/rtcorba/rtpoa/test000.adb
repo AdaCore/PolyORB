@@ -612,6 +612,9 @@ begin
          Child_POA_Client : RTPortableServer.POA.Local_Ref;
          Policies_Client : CORBA.Policy.PolicyList;
          Ref_Client : CORBA.Object.Ref;
+         --  pragma Unreferenced (Ref_Client);
+         pragma Warnings (Off, Ref_Client); --  WAG:5.02 DB08-008
+         --  Assigned but never read
 
          No_Implicit_Activation_Policy : CORBA.Policy.Ref
            := CORBA.Policy.Ref

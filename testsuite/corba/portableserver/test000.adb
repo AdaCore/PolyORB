@@ -1601,6 +1601,10 @@ procedure Test000 is
 
       Child_POA : PortableServer.POA.Ref;
       Huey_POA, Dewey_POA, Louie_POA : PortableServer.POA.Ref;
+      --  pragma Unreferenced (Huey_POA, Louie_POA);
+      pragma Warnings (Off, Huey_POA);  --  WAG:5.02 DB08-008
+      pragma Warnings (Off, Louie_POA); --  WAG:5.02 DB08-008
+      --  Assigned but never read
 
    begin
       New_Test ("POA Hierarchy");
@@ -1641,6 +1645,9 @@ procedure Test000 is
 
       declare
          Huey_2 : PortableServer.POA.Ref;
+         --  pragma Unreferenced (Huey_2);
+         pragma Warnings (Off, Huey_2); --  WAG:5.02 DB08-008
+         --  Assigned but never read
       begin
          Huey_2 := PortableServer.POA.Ref
            (PortableServer.POA.Find_POA
@@ -1652,6 +1659,10 @@ procedure Test000 is
 
       declare
          Donald : PortableServer.POA.Ref;
+         --  pragma Unreferenced (Donald);
+         pragma Warnings (Off, Donald); --  WAG:5.02 DB08-008
+         --  Assigned but never read
+
       begin
          Donald := PortableServer.POA.Ref
            (PortableServer.POA.Find_POA
