@@ -24,8 +24,11 @@ procedure Evoluted is
 
 begin
    if Argument_Count = 1 then
+      Put ("Initializing local penpal...");
       Initialize (Penpal, Argument (1));
+      Put (" registering...");
       Register (Penpal'Access);
+      Put_Line (" done.");
       Mainloop;
    else
       Usage;

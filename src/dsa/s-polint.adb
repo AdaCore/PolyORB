@@ -703,19 +703,23 @@ package body System.PolyORB_Interface is
       Ref      :    out PolyORB.References.Ref)
    is
       Last : Integer := Typ'Last;
+      use type PolyORB.Obj_Adapters.Obj_Adapter_Access;
+
    begin
       if Last in Typ'Range and then Typ (Last) = ASCII.NUL then
          Last := Last - 1;
       end if;
 
       if Addr /= Null_Address then
+         pragma Assert (Receiver.Object_Adapter /= null);
+
          declare
             Key : aliased PolyORB.Objects.Object_Id
               := To_Local_Oid (Addr);
 
             Oid : aliased PolyORB.Objects.Object_Id
               := PolyORB.Obj_Adapters.Export
-              (OA  => Servant_Access (Receiver).Object_Adapter,
+              (OA  => Receiver.Object_Adapter,
                Obj => null,
                Key => Key'Unchecked_Access);
 
@@ -879,6 +883,7 @@ package body System.PolyORB_Interface is
       use PolyORB.POA;
       use PolyORB.POA_Config;
       use PolyORB.POA_Manager;
+      use type PolyORB.Obj_Adapters.Obj_Adapter_Access;
 
       POA : Obj_Adapter_Access;
       PName : constant PolyORB.Types.String
@@ -912,6 +917,7 @@ package body System.PolyORB_Interface is
 
       Default_Servant.Object_Adapter :=
         PolyORB.Obj_Adapters.Obj_Adapter_Access (POA);
+      pragma Assert (Default_Servant.Object_Adapter /= null);
 
       Activate (POAManager_Access (Entity_Of (POA.POA_Manager)));
    end Setup_Object_RPC_Receiver;

@@ -3,14 +3,15 @@ EXAMPLE = dsa-dummy
 
 DSA_SRC=$(srcdir)/../../src/dsa
 
+#corba_exe=evolutedp_corba
 corba_exe=
-dsa_exe=simplep evoluted serverp
+dsa_exe=simplep evolutedp serverp
 moma_exe=
 
-EXAMPLE_GNATMAKE_FLAGS=-I$(srcdir) -I$(DSA_SRC)
-simplep_FLAGS=	-Aclient.stubs
-evoluted_FLAGS=	-Aclient.stubs
-serverp_FLAGS=	-Aserver.stubs -gnatD
+EXAMPLE_GNATMAKE_FLAGS=-I$(srcdir) -I$(DSA_SRC) -gnatD -O0
+simplep_FLAGS=		-Aclient.stubs
+evolutedp_FLAGS=	-Aclient.stubs
+serverp_FLAGS=		-Aserver.stubs
 
 s-polint.ali: $(DSA_SRC)/s-polint.ads $(DSA_SRC)/s-polint.adb
 	$(GNATMAKE_FOR_TARGET) -a -c $(DSA_SRC)/s-polint.adb $(GNATMAKE_FLAGS)
@@ -28,10 +29,8 @@ client.stubs/server.ali: $(srcdir)/server.ads common.ali s-polint.ali
 	@-mkdir client.stubs
 	$(GNATMAKE_FOR_TARGET) -c $(srcdir)/server.ads $(simplep_FLAGS) $(GNATMAKE_FLAGS) -cargs -gnatzc -o client.stubs/server.o
 
-serverp simplep evoluted: s-polint.ali
 serverp: server.stubs/server.ali
-
-simplep evoluted: client.stubs/server.ali
+simplep evolutedp: client.stubs/server.ali
 
 clean: clean-stubs
 clean-stubs:
