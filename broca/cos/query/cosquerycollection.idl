@@ -1,0 +1,100 @@
+//File: CosQueryCollection.idl
+//Part of the Query Service
+// Note: if your IDL compiler does not yet support the 
+//   CORBA 2.3 Feature "Escaped Identifiers" (which provides 
+//   for the addition of new keywords to IDL, compile this 
+//   module with the preprocessor definition 
+//   "NO_ESCAPED_IDENTIFIERS". With many compilers this 
+//   would be done a qualifier on the command line, 
+//   something like -DNO_ESCAPED_IDENTIFIERS
+
+#ifndef _COS_QUERY_COLLECTION_IDL_
+#define _COS_QUERY_COLLECTION_IDL_
+#pragma prefix "omg.org"
+
+module CosQueryCollection {
+
+	exception ElementInvalid {};
+	exception IteratorInvalid {};
+	exception PositionInvalid {};
+
+#ifdef NO_ESCAPED_IDENTIFIERS
+	enum ValueType {TypeBoolean, TypeChar, TypeOctet, TypeShort, TypeUShort, TypeLong, TypeULong, TypeFloat, TypeDouble, TypeString, TypeObject, TypeAny, TypeSmallInt, TypeInteger, TypeReal, TypeDoublePrecision, TypeCharacter, TypeDecimal, TypeNumeric};
+#else
+	enum _ValueType {TypeBoolean, TypeChar, TypeOctet, TypeShort, TypeUShort, TypeLong, TypeULong, TypeFloat, TypeDouble, TypeString, TypeObject, TypeAny, TypeSmallInt, TypeInteger, TypeReal, TypeDoublePrecision, TypeCharacter, TypeDecimal, TypeNumeric};
+#endif
+	struct Decimal {
+		long precision; 
+		long scale; 
+		sequence<octet> value;
+	};
+
+#ifdef NO_ESCAPED_IDENTIFIERS
+	union Value switch(ValueType) {
+#else
+	union _Value switch(ValueType) {
+#endif
+		case TypeBoolean : boolean b;
+		case TypeChar	 : char c;
+		case TypeOctet   : octet o;
+		case TypeShort   : short s;
+		case TypeUShort  : unsigned short us;
+		case TypeLong    : long l;
+		case TypeULong   : unsigned long ul;
+		case TypeFloat   : float f;
+		case TypeDouble  : double d;
+		case TypeString  : string str;
+		case TypeObject  : Object obj;
+		case TypeAny     : any a;
+		case TypeSmallInt : short si;
+		case TypeInteger : long i;
+		case TypeReal    : float r;
+		case TypeDoublePrecision : double dp;
+		case TypeCharacter : string ch;
+		case TypeDecimal  : Decimal dec;
+		case TypeNumeric  : Decimal n;
+	};
+	typedef boolean Null;
+	union FieldValue switch(Null) {
+		case FALSE : Value v;
+	};
+	typedef sequence<FieldValue> Record;
+	
+	typedef string Istring;
+	struct NVPair {Istring name; any value;};
+	typedef sequence<NVPair> ParameterList;
+
+	interface Collection;
+	interface Iterator;
+
+	interface CollectionFactory {
+		Collection create (in ParameterList params);
+	};
+
+	interface Collection {
+		readonly attribute long cardinality;
+	
+		void add_element (in any element) raises(ElementInvalid);
+		void add_all_elements (in Collection elements) raises(ElementInvalid);
+
+		void insert_element_at (in any element, in Iterator where) raises(IteratorInvalid, ElementInvalid);
+
+		void replace_element_at (in any element, in Iterator where) raises(IteratorInvalid, PositionInvalid, ElementInvalid);
+
+		void remove_element_at (in Iterator where) raises(IteratorInvalid, PositionInvalid);
+		void remove_all_elements ();
+
+		any retrieve_element_at (in Iterator where) raises(IteratorInvalid, PositionInvalid);
+
+		Iterator create_iterator ();
+	};
+
+
+	interface Iterator {
+		any next () raises(IteratorInvalid, PositionInvalid);
+
+		void reset ();
+		boolean more ();
+	};
+};
+#endif /* ifndef _COS_QUERY_COLLECTION_IDL_ */

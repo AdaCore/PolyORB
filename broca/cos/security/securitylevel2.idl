@@ -1,0 +1,209 @@
+//File: SecurityLevel2.idl
+//Part of the Security Service
+
+#ifndef _SECURITY_LEVEL_2_IDL
+#define _SECURITY_LEVEL_2_IDL
+
+#include <SecurityLevel1.idl>
+
+#pragma prefix "omg.org"
+
+module SecurityLevel2 {
+
+    // Forward declaration of interfaces
+    interface PrincipalAuthenticator;
+    interface Credentials;
+    interface Current;
+
+    // Interface PrincipalAuthenticator
+    interface PrincipalAuthenticator {    // Locality Constrained
+
+        Security::AuthenticationStatus authenticate (
+            in   Security::AuthenticationMethod    method,
+            in   Security::SecurityName            security_name,
+            in   Security::Opaque                  auth_data,
+            in   Security::AttributeList           privileges,
+            out  Credentials                       creds,
+            out  Security::Opaque                  continuation_data,
+            out  Security::Opaque                  auth_specific_data
+        );
+
+        Security::AuthenticationStatus continue_authentication (
+            in   Security::Opaque                  response_data,
+            in   Credentials                       creds,
+            out  Security::Opaque                  continuation_data,
+            out  Security::Opaque                  auth_specific_data
+        );
+    };
+
+
+    // Interface Credentials
+    interface Credentials {     // Locality Constrained
+
+        Credentials copy ();
+
+        void destroy();
+ 
+        void set_security_features (                
+            in   Security::CommunicationDirection   direction,
+            in   Security::SecurityFeatureValueList security_features
+        );
+
+        Security::SecurityFeatureValueList get_security_features (
+            in   Security::CommunicationDirection   direction
+        );
+
+        boolean set_privileges (
+            in   boolean                            force_commit,
+            in   Security::AttributeList            requested_privileges,
+            out  Security::AttributeList            actual_privileges
+        );
+
+        Security::AttributeList get_attributes (
+            in   Security::AttributeTypeList        attributes
+        );
+
+        boolean is_valid (
+            out  Security::UtcT                     expiry_time
+        );
+
+        boolean refresh();
+    };
+
+    typedef sequence <Credentials>  CredentialsList;
+
+
+    // RequiredRights Interface
+    interface RequiredRights{
+
+        void get_required_rights(
+            in   Object                             obj,
+            in   CORBA::Identifier                  operation_name,
+            in   CORBA::RepositoryId                interface_name,
+            out  Security::RightsList               rights,
+            out  Security::RightsCombinator         rights_combinator
+        );
+
+        void set_required_rights(
+            in   string                             operation_name,
+            in   CORBA::RepositoryId                interface_name,
+            in   Security::RightsList               rights,
+            in   Security::RightsCombinator         rights_combinator
+        );
+    };
+
+
+    // interface audit channel
+    interface AuditChannel {  // Locality Constrained
+
+        void audit_write (
+            in   Security::AuditEventType            event_type,
+            in   CredentialsList                     creds,  
+            in   Security::UtcT                      time,
+            in   Security::SelectorValueList         descriptors,
+            in   Security::Opaque                    event_specific_data
+        );
+
+        readonly attribute Security::AuditChannelId audit_channel_id;
+    };
+
+
+    // interface for Audit Decision 
+    interface AuditDecision {  // Locality Constrained
+
+        boolean audit_needed (
+            in   Security::AuditEventType            event_type,
+            in   Security::SelectorValueList         value_list
+        );
+
+        readonly attribute AuditChannel audit_channel;
+    };
+
+
+    interface AccessDecision {  // Locality Constrained
+
+        boolean access_allowed (
+            in   SecurityLevel2::CredentialsList     cred_list,
+            in   Object                              target,
+            in   CORBA::Identifier                   operation_name,
+            in   CORBA::Identifier                   target_interface_name
+        );
+    };
+
+
+    // Policy interfaces to control bindings
+
+    interface QOPPolicy : CORBA::Policy {  // Locality Constrained
+        readonly attribute Security::QOP qop;
+    };
+
+    interface MechanismPolicy : CORBA::Policy {   // Locality Constrained
+        readonly attribute Security::MechanismTypeList mechanisms;
+    };
+
+    interface SecurityFeaturesPolicy : CORBA::Policy {// Locality Constrained
+        readonly attribute Security::SecurityFeatureValueList features;
+    };
+
+    interface InvocationCredentialsPolicy : CORBA::Policy {
+                                                      // Locality Constrained
+        readonly attribute CredentialsList creds;
+    };
+
+    enum DelegationMode {Delegate, NoDelegate};
+
+
+    // Interface Current derived from SecurityLevel1::Current
+    // providing additional operations on Current at this
+    // security level. This is implemented by the ORB
+
+    interface Current : SecurityLevel1::Current {  // Locality Constrained
+
+    // Thread specific operations
+
+        readonly attribute CredentialsList received_credentials;
+        readonly attribute CredentialsList own_credentials;
+        readonly attribute Security::SecurityFeatureValueList
+                                        received_security_features;
+        void set_credentials (
+            in   Security::CredentialType          cred_type,
+            in   CredentialsList                   creds,
+            in   DelegationMode                    del
+        );
+
+        CredentialsList get_credentials (
+            in   Security::CredentialType          cred_type
+        );
+
+        CORBA::Policy get_policy (
+            in   CORBA::PolicyType                 policy_type
+        );
+
+    // Process/Capsule/ORB Instance specific operations
+
+        readonly attribute RequiredRights required_rights_object;
+        readonly attribute PrincipalAuthenticator principal_authenticator;
+        readonly attribute AccessDecision access_decision;
+        readonly attribute AuditDecision audit_decision;
+
+        // security names for given target
+        Security::SecurityMechandNameList get_security_names (
+            in   Object                            obj_ref
+        );
+
+        // Factory operations for local policies controlling bindings
+        QOPPolicy create_qop_policy(
+            in   Security::QOP                     qop
+        );
+
+        MechanismPolicy create_mechanism_policy(
+            in   Security::MechanismTypeList       mechanisms
+        );
+
+        InvocationCredentialsPolicy create_invoc_creds_policy(
+            in   CredentialsList                   creds
+        );
+    };
+};
+
+#endif /* _SECURITY_LEVEL_2_IDL */

@@ -1,0 +1,36 @@
+//File: CosPersistenceDDO.idl
+//Part of the Persistence Service
+
+#ifndef _COS_PERSISTENCE_DDO_IDL_
+#define _COS_PERSISTENCE_DDO_IDL_
+
+#include <CosPersistencePID.idl>
+
+#pragma prefix "omg.org"
+
+module CosPersistenceDDO {
+
+	interface DDO {
+		attribute string object_type;
+		attribute CosPersistencePID::PID p;
+		short add_data();
+		short add_data_property (in short data_id);
+		short get_data_count();
+		short get_data_property_count (in short data_id);
+		void get_data_property (in short data_id,
+			in short property_id,
+			out string property_name,
+			out any property_value);
+		void set_data_property (in short data_id,
+			in short property_id,
+			in string property_name,
+			in any property_value);
+		void get_data (in short data_id,
+			out string data_name,
+			out any data_value);
+		void set_data (in short data_id,
+			in string data_name,
+			in any data_value);
+	};
+};
+#endif /* ifndef _COS_PERSISTENCE_DDO_IDL_ */
