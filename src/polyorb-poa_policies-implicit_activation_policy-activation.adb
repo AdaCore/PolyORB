@@ -30,9 +30,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain;
-with PolyORB.POA_Policies.Id_Assignment_Policy.System;
+with Ada.Tags;
+
 with PolyORB.POA;
+with PolyORB.POA_Policies.Id_Assignment_Policy.System;
+with PolyORB.POA_Policies.Servant_Retention_Policy.Retain;
 
 package body PolyORB.POA_Policies.Implicit_Activation_Policy.Activation is
 
@@ -57,27 +59,29 @@ package body PolyORB.POA_Policies.Implicit_Activation_Policy.Activation is
       pragma Unreferenced (Self);
       pragma Warnings (On);
 
-      use PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain;
+      use Ada.Tags;
+
+      use PolyORB.POA_Policies.Servant_Retention_Policy;
+      use PolyORB.POA_Policies.Servant_Retention_Policy.Retain;
+
+      use PolyORB.POA_Policies.Id_Assignment_Policy;
       use PolyORB.POA_Policies.Id_Assignment_Policy.System;
 
    begin
       --  Implcit activation requires System_ID and Retain Policies.
 
-      for I in Other_Policies'Range loop
-         if Other_Policies (I).all in
-           POA_Policies.Servant_Retention_Policy.Servant_Retention_Policy
-         and then not (Other_Policies (I).all in Non_Retain_Policy) then
+      for J in Other_Policies'Range loop
+         if Other_Policies (J).all in ServantRetentionPolicy'Class
+           and then Other_Policies (J).all'Tag /= Retain_Policy'Tag then
             raise PolyORB.POA.Invalid_Policy;
             --  XXX we may raise an exception, but should we ?
          end if;
 
-         if Other_Policies (I).all in
-           POA_Policies.Id_Assignment_Policy.Id_Assignment_Policy
-         and then not (Other_Policies (I).all in System_Id_Policy) then
+         if Other_Policies (J).all in IdAssignmentPolicy'Class
+           and then Other_Policies (J).all'Tag /= System_Id_Policy'Tag then
             raise PolyORB.POA.Invalid_Policy;
             --  XXX we may raise an exception, but should we ?
          end if;
-
 
       end loop;
 

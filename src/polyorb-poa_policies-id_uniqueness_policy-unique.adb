@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Tags;
+
 with PolyORB.Object_Maps;
 with PolyORB.POA;
 with PolyORB.POA_Policies.Implicit_Activation_Policy;
@@ -63,20 +65,20 @@ package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique is
       pragma Unreferenced (Self);
       pragma Warnings (On);
 
+      use PolyORB.POA_Policies.Servant_Retention_Policy;
       use PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain;
 
-      --  See CORBA 3.0, 11.3.8.1 for more details.
+      use Ada.Tags;
 
-      --  Unique_Id and Non_Retain policies are not compatible.
    begin
-      for I in Other_Policies'Range loop
-         if Other_Policies (I).all in
-           POA_Policies.Servant_Retention_Policy.ServantRetentionPolicy
+      --  Unique_Id and Non_Retain policies are not compatible.
+
+      for J in Other_Policies'Range loop
+         if Other_Policies (J).all in ServantRetentionPolicy'Class
+           and then Other_Policies (J).all'Tag = Non_Retain_Policy'Tag
          then
-            if Other_Policies (I).all in Non_Retain_Policy then
-               raise PolyORB.POA.Invalid_Policy;
-               --  XXX we may raise an exception, but should we ?
-            end if;
+            raise PolyORB.POA.Invalid_Policy;
+            --  XXX we may raise an exception, but should we ?
          end if;
       end loop;
 

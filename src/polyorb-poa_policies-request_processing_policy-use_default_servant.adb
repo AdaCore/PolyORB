@@ -27,7 +27,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Tags;
+
 with PolyORB.POA;
+with PolyORB.POA_Policies.Id_Uniqueness_Policy.Multiple;
 
 package body
   PolyORB.POA_Policies.Request_Processing_Policy.Use_Default_Servant
@@ -51,11 +54,25 @@ is
       Other_Policies   : AllPolicies)
    is
       pragma Warnings (Off);
-      pragma Unreferenced (Self, Other_Policies);
+      pragma Unreferenced (Self);
       pragma Warnings (On);
+
+      use Ada.Tags;
+
+      use PolyORB.POA_Policies.Id_Uniqueness_Policy;
+      use PolyORB.POA_Policies.Id_Uniqueness_Policy.Multiple;
+
    begin
-      null;
-      --  No rule to test.
+      --  Use_Default_Servant requires Multiple_Id
+
+      for J in Other_Policies'Range loop
+         if Other_Policies (J).all in IdUniquenessPolicy'Class
+           and then Other_Policies (J).all'Tag
+           /= Multiple_Id_Policy'Tag then
+               raise PolyORB.POA.Invalid_Policy;
+               --  XXX we may raise an exception, but should we ?
+         end if;
+      end loop;
 
    end Check_Compatibility;
 

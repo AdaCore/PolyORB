@@ -30,9 +30,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.POA_Policies.Servant_Retention_Policy;
-with PolyORB.POA_Policies.Servant_Retention_Policy.Retain;
+with Ada.Tags;
+
 with PolyORB.POA;
+with PolyORB.POA_Policies.Servant_Retention_Policy.Retain;
 
 package body
   PolyORB.POA_Policies.Request_Processing_Policy.Active_Object_Map_Only
@@ -53,21 +54,27 @@ is
 
    procedure Check_Compatibility
      (Self : Active_Map_Only_Policy;
-      Other_Policies   : AllPolicies) is
-   begin
+      Other_Policies   : AllPolicies)
+   is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
-      for I in Other_Policies'Range loop
-         if Other_Policies (I).all in
-           POA_Policies.Servant_Retention_Policy.ServantRetentionPolicy
+
+      use Ada.Tags;
+
+      use PolyORB.POA_Policies.Servant_Retention_Policy;
+      use PolyORB.POA_Policies.Servant_Retention_Policy.Retain;
+
+   begin
+
+      --  Active_Object_Map_Only requires Retain policy
+
+      for J in Other_Policies'Range loop
+         if Other_Policies (J).all in ServantRetentionPolicy'Class
+         and then Other_Policies (J).all'Tag /= Retain_Policy'Tag
          then
-            if not
-              (Other_Policies (I).all in
-               POA_Policies.Servant_Retention_Policy.Retain.Retain_Policy)
-            then
-               raise PolyORB.POA.Invalid_Policy;
-            end if;
+            raise PolyORB.POA.Invalid_Policy;
+            --  XXX we may raise an exception, but should we ?
          end if;
       end loop;
    end Check_Compatibility;

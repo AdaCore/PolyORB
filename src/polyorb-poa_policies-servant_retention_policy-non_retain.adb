@@ -30,8 +30,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.POA_Policies.Request_Processing_Policy.Use_Default_Servant;
+with Ada.Tags;
+
 with PolyORB.POA;
+with PolyORB.POA_Policies.Request_Processing_Policy.Use_Default_Servant;
 
 package body PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
 
@@ -49,14 +51,17 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
    -------------------------
 
    procedure Check_Compatibility
-     (Self : Non_Retain_Policy;
-      Other_Policies   : AllPolicies)
+     (Self           : Non_Retain_Policy;
+      Other_Policies : AllPolicies)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
 
       use PolyORB.POA_Policies.Request_Processing_Policy.Use_Default_Servant;
+      use PolyORB.POA_Policies.Request_Processing_Policy;
+
+      use Ada.Tags;
 
    begin
       --  Compatiblity between Non_Retain and Id_Uniqueness done in
@@ -67,17 +72,14 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
 
       --  XXX Use_Servant_Manager not implemented !!! Test incomplete.
 
-      for I in Other_Policies'Range loop
-         if Other_Policies (I).all in
-           POA_Policies.Request_Processing_Policy.RequestProcessingPolicy
-         then
-            if not (Other_Policies (I).all in Use_Default_Servant_Policy) then
+      for J in Other_Policies'Range loop
+         if Other_Policies (J).all in RequestProcessingPolicy'Class
+           and then Other_Policies (J).all'Tag
+           /= Use_Default_Servant_Policy'Tag then
                raise PolyORB.POA.Invalid_Policy;
                --  XXX we may raise an exception, but should we ?
-            end if;
          end if;
       end loop;
-
 
    end Check_Compatibility;
 
@@ -87,7 +89,8 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
 
    function Policy_Id
      (Self : Non_Retain_Policy)
-     return String is
+     return String
+   is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
@@ -111,9 +114,10 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
       pragma Warnings (On);
 
    begin
-      null;
       --  NON_RETAIN: No active object map, nothing to retain,
       --  no way of checking ID uniqueness.
+
+      null;
    end Retain_Servant_Association;
 
    --------------------------------
@@ -130,8 +134,9 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
       pragma Warnings (On);
 
    begin
-      null;
       --  NON_RETAIN: Nothing to do.
+
+      null;
    end Forget_Servant_Association;
 
    ----------------------------
@@ -150,6 +155,7 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
 
    begin
       --  NON_RETAIN: No retained object id available.
+
       return null;
    end Retained_Servant_To_Id;
 
@@ -169,6 +175,7 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
 
    begin
       --  NON_RETAIN: No retained servant available.
+
       return null;
    end Retained_Id_To_Servant;
 

@@ -132,6 +132,44 @@ procedure Test000 is
      return PortableServer.POA.Ref;
    --  Regiter a Child POA of the RootPOA with the given policies.
 
+   function Create_And_Destroy_POA
+     (Tp : ThreadPolicyValue;
+      Lp : LifespanPolicyValue;
+      Up : IdUniquenessPolicyValue;
+      Ap : IdAssignmentPolicyValue;
+      Ip : ImplicitActivationPolicyValue;
+      Sp : ServantRetentionPolicyValue;
+      Rp : RequestProcessingPolicyValue)
+     return Boolean;
+   --  Create and destroy a POA, return 'True' if the operation was
+   --  succesful.
+
+   function Policies_Image
+     (Tp : ThreadPolicyValue;
+      Lp : LifespanPolicyValue;
+      Up : IdUniquenessPolicyValue;
+      Ap : IdAssignmentPolicyValue;
+      Ip : ImplicitActivationPolicyValue;
+      Sp : ServantRetentionPolicyValue;
+      Rp : RequestProcessingPolicyValue)
+     return String;
+   --  Image of this policies list.
+
+   function Are_Policies_Valid
+     (Tp : ThreadPolicyValue;
+      Lp : LifespanPolicyValue;
+      Up : IdUniquenessPolicyValue;
+      Ap : IdAssignmentPolicyValue;
+      Ip : ImplicitActivationPolicyValue;
+      Sp : ServantRetentionPolicyValue;
+      Rp : RequestProcessingPolicyValue)
+     return Boolean;
+   --  Return 'True' iff this policies list is an acceptable
+   --  configuration for a CORBA POA.
+
+   procedure Test_POA_Creation;
+   --  Test PolyORB accepts only valid POA policies combination,
+
    ---------------
    -- Test_Init --
    ---------------
@@ -151,19 +189,19 @@ procedure Test000 is
    -- Attach_Servant --
    --------------------
 
-   procedure Attach_Servant (To_POA : PortableServer.POA.Ref;
-                             Obj_Ref : out Echo.Ref)
+   procedure Attach_Servant
+     (To_POA  : PortableServer.POA.Ref;
+      Obj_Ref : out Echo.Ref)
    is
-      Obj     : constant CORBA.Impl.Object_Ptr := new Echo.Impl.Object;
+      Obj : constant CORBA.Impl.Object_Ptr := new Echo.Impl.Object;
 
    begin
       Obj_Ref := Echo.Helper.To_Ref
         (PortableServer.POA.Servant_To_Reference
-         (To_POA,
-          PortableServer.Servant (Obj)));
+         (To_POA, PortableServer.Servant (Obj)));
 
-      PolyORB.Report.Output ("Attach servant to POA " &
-                             To_Standard_String (Get_The_Name (To_POA)),
+      PolyORB.Report.Output ("Attach servant to POA "
+                             & To_Standard_String (Get_The_Name (To_POA)),
                              True);
    end Attach_Servant;
 
@@ -171,8 +209,9 @@ procedure Test000 is
    -- Invoke_On_Servant --
    -----------------------
 
-   procedure Invoke_On_Servant (Obj_Ref : Echo.Ref;
-                                Reentrant : Boolean := False) is
+   procedure Invoke_On_Servant
+     (Obj_Ref : Echo.Ref;
+      Reentrant : Boolean := False) is
    begin
       if Reentrant then
          declare
@@ -359,7 +398,7 @@ procedure Test000 is
       --  details.
 
       Attach_Servant (Child_POA, Obj_Ref);
-      --      Invoke_On_Servant (Obj_Ref, True);
+      --  Invoke_On_Servant (Obj_Ref, True);
 
       --  Test multiple calls on the same servant.
       Test_Job.Global_Obj_Ref := Obj_Ref;
@@ -680,6 +719,134 @@ procedure Test000 is
       return Child_POA;
    end Create_POA_With_Policies;
 
+   --------------------
+   -- Policies_Image --
+   --------------------
+
+   function Policies_Image
+     (Tp : ThreadPolicyValue;
+      Lp : LifespanPolicyValue;
+      Up : IdUniquenessPolicyValue;
+      Ap : IdAssignmentPolicyValue;
+      Ip : ImplicitActivationPolicyValue;
+      Sp : ServantRetentionPolicyValue;
+      Rp : RequestProcessingPolicyValue)
+     return String is
+   begin
+      return " "
+        & Tp'Img & " " & Lp'Img & " " & Up'Img & " "
+        & Ap'Img & " " & Ip'Img & " " & Sp'Img & " " & Rp'Img & " ";
+   end Policies_Image;
+
+   ------------------------
+   -- Are_Policies_Valid --
+   ------------------------
+
+   function Are_Policies_Valid
+     (Tp : ThreadPolicyValue;
+      Lp : LifespanPolicyValue;
+      Up : IdUniquenessPolicyValue;
+      Ap : IdAssignmentPolicyValue;
+      Ip : ImplicitActivationPolicyValue;
+      Sp : ServantRetentionPolicyValue;
+      Rp : RequestProcessingPolicyValue)
+     return Boolean is
+   begin
+      if (Up = UNIQUE_ID and then Sp = NON_RETAIN)
+        or else (Sp = NON_RETAIN
+                 and then not (Rp = USE_DEFAULT_SERVANT
+                               or Rp = USE_SERVANT_MANAGER))
+        or else (Ip = IMPLICIT_ACTIVATION
+                 and then not (Ap = SYSTEM_ID and Sp = RETAIN))
+        or else (Rp = USE_ACTIVE_OBJECT_MAP_ONLY and then Sp /= RETAIN)
+        or else (Rp = USE_DEFAULT_SERVANT and then Up /= MULTIPLE_ID)
+      then
+         return False;
+      else
+         return True;
+      end if;
+   end Are_Policies_Valid;
+
+   ----------------------------
+   -- Create_And_Destroy_POA --
+   ----------------------------
+
+   function Create_And_Destroy_POA
+     (Tp : ThreadPolicyValue;
+      Lp : LifespanPolicyValue;
+      Up : IdUniquenessPolicyValue;
+      Ap : IdAssignmentPolicyValue;
+      Ip : ImplicitActivationPolicyValue;
+      Sp : ServantRetentionPolicyValue;
+      Rp : RequestProcessingPolicyValue)
+     return Boolean
+   is
+      Test_POA : PortableServer.POA.Ref;
+   begin
+      Test_POA := Create_POA_With_Policies
+        (Tp, Lp, Up, Ap, Ip, Sp, Rp);
+      PortableServer.POA.Destroy
+        (Test_POA, False, False);
+
+      return Are_Policies_Valid (Tp, Lp, Up, Ap, Ip, Sp, Rp);
+
+   exception
+      when PolyORB.Not_Implemented => return True;
+
+      when E : others =>
+         if Are_Policies_Valid (Tp, Lp, Up, Ap, Ip, Sp, Rp) then
+            --  If policies are valid, then there is a problem.
+
+            New_Line;
+            Put_Line ("Got exception "
+                      & Exception_Name (E)
+                      & " : "
+                      & Exception_Message (E));
+            Put_Line ("Valid ? "
+                      & Boolean'Image
+                      (Are_Policies_Valid (Tp, Lp, Up, Ap, Ip, Sp, Rp)));
+            Put_Line (Policies_Image (Tp, Lp, Up, Ap, Ip, Sp, Rp));
+         end if;
+
+         return not Are_Policies_Valid (Tp, Lp, Up, Ap, Ip, Sp, Rp);
+
+   end Create_And_Destroy_POA;
+
+   -----------------------
+   -- Test_POA_Creation --
+   -----------------------
+
+   procedure Test_POA_Creation
+   is
+      Result : Boolean := True;
+      Temp : Boolean;
+
+   begin
+      for Tp in ThreadPolicyValue'Range loop
+         for Lp in LifespanPolicyValue'Range loop
+            for Up in IdUniquenessPolicyValue'Range loop
+               for Ap in IdAssignmentPolicyValue'Range loop
+                  for Ip in ImplicitActivationPolicyValue'Range loop
+                     for Sp in ServantRetentionPolicyValue'Range loop
+                        for Rp in RequestProcessingPolicyValue'Range loop
+                           Temp := Create_And_Destroy_POA
+                             (Tp, Lp, Up, Ap, Ip, Sp, Rp);
+                           if not Temp then
+                              Put_Line
+                                (Policies_Image (Tp, Lp, Up, Ap, Ip, Sp, Rp));
+                           end if;
+                           Result := Result and Temp;
+                        end loop;
+                     end loop;
+                  end loop;
+               end loop;
+            end loop;
+         end loop;
+      end loop;
+
+      PolyORB.Report.Output ("Test_POA_Creation", Result);
+   end Test_POA_Creation;
+
 begin
    Test_Init;
    Test_Root_POA;
@@ -688,7 +855,7 @@ begin
    Test_Main_Thread_Policy;
    Test_POA_Activation_Policies (Get_Root_POA);
    Test_Conversion (Get_Root_POA);
-
+   Test_POA_Creation;
    PolyORB.Report.End_Report;
 
    GNAT.OS_Lib.OS_Exit (1);
