@@ -2,11 +2,11 @@
 --                                                                          --
 --                          ADABROKER COMPONENTS                            --
 --                                                                          --
---                            E C H O . I M P L                             --
+--                               S E R V E R                                --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.4 $
+--                            $LastChangedRevision$
 --                                                                          --
 --            Copyright (C) 1999 ENST Paris University, France.             --
 --                                                                          --
@@ -26,20 +26,14 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA;
-with PortableServer;
+with Random.Impl;
+with GenericServer; use GenericServer;
 
-package Echo.Impl is
-   --  My own implementation of echo object.
-   --  This is simply used to define the operations.
+procedure Server is
+begin
 
-   type Object is new PortableServer.Servant_Base with record
-      Msg : CORBA.String;
-   end record;
+   Repository_Id := new String'("IDL:Random:1.0");
+   My_Obj := new Random.Impl.Object;
+   GenericServer.Main (My_Obj);
 
-   type Object_Acc is access Object;
-
-   function EchoString (Self : access Object; Mesg : in CORBA.String)
-                        return CORBA.String;
-
-end Echo.Impl;
+end Server;

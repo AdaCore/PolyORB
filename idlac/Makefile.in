@@ -250,7 +250,7 @@ install-data: install-data-recursive
 install-am: all-am
 	@$(MAKE) $(AM_MAKEFLAGS) install-exec-am install-data-am
 install: install-recursive
-uninstall-am: uninstall-local
+uninstall-am:
 uninstall: uninstall-recursive
 all-am: Makefile all-local
 all-redirect: all-recursive
@@ -300,10 +300,10 @@ maintainer-clean-recursive tags tags-recursive mostlyclean-tags \
 distclean-tags clean-tags maintainer-clean-tags distdir info-am info \
 dvi-am dvi check check-am installcheck-am installcheck \
 install-exec-local install-exec-am install-exec install-data-am \
-install-data install-am install uninstall-local uninstall-am uninstall \
-all-local all-redirect all-am all installdirs-am installdirs \
-mostlyclean-generic distclean-generic clean-generic \
-maintainer-clean-generic clean mostlyclean distclean maintainer-clean
+install-data install-am install uninstall-am uninstall all-local \
+all-redirect all-am all installdirs-am installdirs mostlyclean-generic \
+distclean-generic clean-generic maintainer-clean-generic clean \
+mostlyclean distclean maintainer-clean
 
 
 all-local: testparser testlexer testexpansion testgen idlac
@@ -316,14 +316,16 @@ $(TREE_FILES): $(srcdir)/nodes.txt $(srcdir)/make_nodes.py
 	$(GNATCHOP) -w idl_fe-tree.ada
 	$(RM) idl_fe-tree.ada
 
+autoconf:
+	python make_nodes.py nodes.txt > xxx
+	gnatchop -w xxx
+	rm -f xxx
+
 force::
 
 install-exec-local:
-	$(INSTALL) -d $(exec_prefix)/bin
-	$(INSTALL_PROGRAM) idlac $(exec_prefix)/bin/idlac
-
-uninstall-local:
-	$(RM) $(exec_prefix)/bin/idlac
+	$(INSTALL) -d $(DESTDIR)$(exec_prefix)/bin
+	$(INSTALL_PROGRAM) idlac $(DESTDIR)$(exec_prefix)/bin/idlac
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

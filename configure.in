@@ -1,4 +1,4 @@
-AC_INIT(MANIFEST)
+AC_INIT(src/portableserver.ads)
 AC_CONFIG_AUX_DIR(support)
 AC_CONFIG_SUBDIRS(adasockets)
 #

@@ -338,7 +338,8 @@ maintainer-clean-generic clean mostlyclean distclean maintainer-clean
 
 autoconf::
 	aclocal -I support && autoconf && automake
-	cd adasockets && (aclocal -I ../support && autoconf && automake)
+	cd adasockets && aclocal -I ../support && autoconf && automake
+	cd idlac && $(MAKE) -f Makefile.am autoconf
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

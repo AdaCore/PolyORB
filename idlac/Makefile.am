@@ -15,6 +15,11 @@ $(TREE_FILES): $(srcdir)/nodes.txt $(srcdir)/make_nodes.py
 	$(GNATCHOP) -w idl_fe-tree.ada
 	$(RM) idl_fe-tree.ada
 
+autoconf:
+	python make_nodes.py nodes.txt > xxx
+	gnatchop -w xxx
+	rm -f xxx
+
 CLEANFILES = *.o *.ali b~*.ads b~*.adb
 
 DISTCLEANFILES = $(TREE_FILES) testparser testlexer testexpansion testgen idlac
@@ -22,8 +27,5 @@ DISTCLEANFILES = $(TREE_FILES) testparser testlexer testexpansion testgen idlac
 force::
 
 install-exec-local:
-	$(INSTALL) -d $(exec_prefix)/bin
-	$(INSTALL_PROGRAM) idlac $(exec_prefix)/bin/idlac
-
-uninstall-local:
-	$(RM) $(exec_prefix)/bin/idlac
+	$(INSTALL) -d $(DESTDIR)$(exec_prefix)/bin
+	$(INSTALL_PROGRAM) idlac $(DESTDIR)$(exec_prefix)/bin/idlac
