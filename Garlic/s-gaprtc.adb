@@ -186,7 +186,7 @@ package body System.Garlic.Protocols.Tcp is
 
    function Value (Image : String) return Sock_Addr_Type;
 
-   Data_Stream : aliased Stream_Element_Array
+   Data_Stream : aliased constant Stream_Element_Array
      := (1 .. Banner_Size => Banner_Kind'Pos (Data_Banner));
 
    Quit_Stream : aliased Stream_Element_Array
