@@ -112,17 +112,36 @@ CORBA AdaBroker & 4 & 7 & 2 & 1  \\\hline
 
 Un client DROOPI dispose d'une description de service dans une
 personnalité donnée. Cette description de service va permettre
-de générer~:\begin{itemize}
+de générer~:
+\begin{itemize}
 \item des stubs génériques~;
-\item des stubs spécifiques, si la personnalité le requiert
-  (cas de CORBA mais pas de DSA)~;
-\item du code inséré au moment des appels
-  (cas de DSA mais pas de CORBA).
+\item des stubs spécifiques (par ex. fonction de sérialisation
+  d'un objet de type «~requête~»)~;
+\item des fonctions de représentation des types de données
+  manipulées.
 \end{itemize}
 
 \subsection{Serveur}
 
-\section{Base objects}
+Un serveur DROOPI dispose d'une description de service dans une
+personnalité donnée. Cette description de service va permettre
+de générer~:
+\begin{itemize}
+\item un squelette génériques~;
+\item un squelette spécifique (fonction de désérialisation
+  des objets requêtes)~;
+\item des fonctions de représentation des types de données
+  manipulées.
+\end{itemize}
+
+\subsection{Mécanisme d'interopérabilité}
+
+Par un moyen à définir, l'utilisateur peut traduire des descriptions
+de service d'une personnalité en descriptions de services d'une autre
+personnalité. À partir des deux descriptions, un client de l'une
+peut attaquer un serveur de l'autre.
+
+\subsection{Objets communs de l'ORB}
 
 \subsection{Communication objects}
 \subsubsection{Transport channel termination point}
@@ -133,6 +152,8 @@ Primitives: read/write/close
 Must be capable of participating in poll (asynchronous
 i/o).
 
+Un point de terminaison connecté est associé à un seul protocole.
+
 \subsubsection{Transport service access point}
 
 <-> a listening socket.
@@ -141,14 +162,29 @@ Must be capable of participating in poll.
 Primitives: bind/accept
 Acts as a factory of transport channel termination points.
 
-\subsection{Protocol implementations}
+Un TSAP est rattaché à un seul protocole.
+
+\subsection{Protocoles}
+
 \subsubsection{GIOP}
 
 It must be possible to stack GIOP over any transport channel kind
 (eg TCP/IP, serial line).
 
-The glue between GIOP and TCP/IP is IIOP.
+\subsubsection{Autres protocols}
 
-The glue between GIOP and serial line shall be defined.
+Question~: supporte-t-on d'autres protocoles que GIOP (qui peut
+éventuellement être instancié sur d'autres moyens de communication
+que TCP~: SSL/TLS, ligne série)~? \emph{(protocole GLADE, SunRPC)}
+
+Supporte-t-on un protocole similaire sur un autre support que connecté~?
+\emph{(UDP, multicast)}
+
+Si on se limite à la seule famille de protocoles dérivée de GIOP (et
+au modèle de types de CORBA, sachant que l'annexe peut s'y réduire,
+cf. CIAO)~: la description d'un service en IDL fait office de
+description «~de référence~» => simplification du problème des traductions
+de services (les mécanismes de traduction doivent être idempotents à
+défaut d'être bijectifs).
 
 \end{document}
