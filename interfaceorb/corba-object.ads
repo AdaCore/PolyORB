@@ -10,7 +10,8 @@
 ----                                                               ----
 -----------------------------------------------------------------------
 
- with Omniobject ;
+-- with Omniobject ;
+-- removed because circular dependency
 
 with Omniobjectmanager, Omniropeandkey ;
 
@@ -151,7 +152,8 @@ private
 
    type Ref is new Ada.Finalization.Controlled with record
       Dynamic_Object : Dynamic_Type := null ;
-      Wrapped_Omniobject : Omniobject.Object ;
+      -- Wrapped_Omniobject : Omniobject.Object ;
+      -- removed because circular dependency
    end record ;
 
    procedure Initialize (Self: in out Ref'Class);
