@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/idl_fe-lexer.adb#16 $
+--  $Id: //droopi/main/compilers/idlac/idl_fe-lexer.adb#17 $
 
 with Ada.Command_Line;
 with Ada.Text_IO;
@@ -61,6 +61,8 @@ package body Idl_Fe.Lexer is
 
    Flag : constant Natural := Idl_Fe.Debug.Is_Active ("idl_fe.lexer");
    procedure O is new Idl_Fe.Debug.Output (Flag);
+
+   Idl_File : Ada.Text_IO.File_Type;
 
    subtype Idl_Token_Keyword is Idl_Token range T_Abstract .. T_Wstring;
 
@@ -1168,8 +1170,11 @@ package body Idl_Fe.Lexer is
    -- Tools and constants for preprocessor execution --
    ----------------------------------------------------
 
-   Tmp_File_Name : GNAT.OS_Lib.Temp_File_Name;
-   --  Name of the temporary file to which preprocessor output is sent
+   Tmp_File_Name_NUL : GNAT.OS_Lib.Temp_File_Name;
+   --  Name of the temporary file to which preprocessor output
+   --  is sent (NUL-terminated).
+
+   Tmp_File_Name : GNAT.OS_Lib.String_Access;
 
    Args : GNAT.OS_Lib.Argument_List (1 .. 128);
    Arg_Count : Natural := Args'First - 1;
@@ -1419,9 +1424,8 @@ package body Idl_Fe.Lexer is
       use GNAT.Command_Line;
       use GNAT.OS_Lib;
 
-      Spawn_Result : Boolean;
       Fd           : File_Descriptor;
-      Idl_File     : Ada.Text_IO.File_Type;
+      Spawn_Result : Boolean;
 
       CPP_Arg_List : constant Argument_List_Access
         := Argument_String_To_List
@@ -1444,7 +1448,7 @@ package body Idl_Fe.Lexer is
       Add_Argument ("-I");
       Add_Argument (".");
 
-      Create_Temp_File (Fd, Tmp_File_Name);
+      Create_Temp_File (Fd, Tmp_File_Name_NUL);
       if Fd = Invalid_FD then
          Errors.Error
            (Ada.Command_Line.Command_Name &
@@ -1453,13 +1457,17 @@ package body Idl_Fe.Lexer is
             Errors.Fatal,
             Get_Real_Location);
       end if;
+      Tmp_File_Name := new String'(
+        Tmp_File_Name_NUL (Tmp_File_Name_NUL'First
+                        .. Tmp_File_Name_NUL'Last - 1)
+        & Platform.CXX_Preprocessor_Suffix);
 
       --  We don't need the file descriptor
 
       Close (Fd);
 
       Add_Argument ("-o");
-      Add_Argument (Tmp_File_Name & Platform.CXX_Preprocessor_Suffix);
+      Add_Argument (Tmp_File_Name.all);
       Add_Argument (Filename);
 
       declare
@@ -1488,7 +1496,7 @@ package body Idl_Fe.Lexer is
             Errors.Fatal,
             Errors.No_Location);
       end if;
-      Ada.Text_IO.Open (Idl_File, Ada.Text_IO.In_File, Tmp_File_Name);
+      Ada.Text_IO.Open (Idl_File, Ada.Text_IO.In_File, Tmp_File_Name.all);
       Ada.Text_IO.Set_Input (Idl_File);
    end Preprocess_File;
 
@@ -1497,9 +1505,8 @@ package body Idl_Fe.Lexer is
    ----------------------------
 
    procedure Remove_Temporary_Files is
-      Spawn_Result : Boolean;
    begin
-      GNAT.OS_Lib.Delete_File (Tmp_File_Name'Address, Spawn_Result);
+      Ada.Text_IO.Delete (Idl_File);
    end Remove_Temporary_Files;
 
 end Idl_Fe.Lexer;
