@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2001 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2002 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -28,36 +28,7 @@
 
 --  this is the NT version of this package.
 
-with GNAT.OS_Lib;  use GNAT.OS_Lib;
-
 package body XE_Sysdep is
-
-   ------------------
-   -- Force_Remove --
-   ------------------
-
-   --  A file with read-only attribute can't be removed by calling unlink like
-   --  under UNIX. Therefore it is needed to set the file write attribute
-   --  before removing it.
-
-   procedure Force_Remove (File : String) is
-
-      C_File  : constant String := File & ASCII.NUL;
-      Success : Boolean;
-
-      Std_Read_Write : constant := 16#8180#;
-      --  regular file with read/write attribute
-
-      function Chmod (File : String; Mode : Integer) return Integer;
-      pragma Import (C, Chmod);
-
-   begin
-      if Chmod (C_File, Std_Read_Write) /= 0 then
-         null;
-      end if;
-
-      Delete_File (C_File'Address, Success);
-   end Force_Remove;
 
    ------------------------------
    -- Set_Executable_Attribute --

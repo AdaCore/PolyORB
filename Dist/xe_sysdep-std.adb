@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2001 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2002 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -40,17 +40,6 @@ with XE_Utils;     use XE_Utils;
 package body XE_Sysdep is
 
    Chmod : String_Access;
-
-   ------------------
-   -- Force_Remove --
-   ------------------
-
-   procedure Force_Remove (File : String) is
-      C_File  : constant String := File & ASCII.NUL;
-      Success : Boolean;
-   begin
-      Delete_File (C_File'Address, Success);
-   end Force_Remove;
 
    ------------------------------
    -- Set_Executable_Attribute --

@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2001 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2002 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -30,11 +30,6 @@
 --  files. The package body is selected at configuration time.
 
 package XE_Sysdep is
-
-   procedure Force_Remove (File : String);
-   --  Remove file even if it is read-only. After this call File must have
-   --  been removed from the file system.
-   --  Raises XE_Utils.Fatal_Error if it fails.
 
    procedure Set_Executable_Attribute (File : String);
    --  Set Executable attribute on File. After this operation it must be
