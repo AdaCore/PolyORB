@@ -17,18 +17,8 @@ adabe_structure::produce_ads(dep_list with,string &String, string &previousdefin
     temp += "end record"
     previousdefinition += temp;
   */
-}
-string
-adabe_structure::dump_name(dep_list with,string &String, string &previousdefinition) {
-  /*
-      if (!is_imported(with))
-      {
-          if (!is_already_defined)
-                     &previousdefinition += produce_ads( with, String, previousdefinition);
-           return get_ada_name();}
-      return get_ada_full_name();	   
-  */
-}
+
+void
 adabe_structure::produce_adb(dep_list with,string &String, string &previousdefinition) {
   /*
  if (!is_imported(with)) return get_ada_name()
@@ -40,7 +30,25 @@ adabe_structure::produce_impl_ads(dep_list with,string &String, string &previous
   /*
   produce_ads(with, &String, &previousdefinition);
   */
-    
+
+void  
+adabe_structure::produce_impl_adb(dep_list with,string &String, string &previousdefinition) {
+  /*
+ if (!is_imported(with)) return get_ada_name()
+ else return get_ada_full_name();
+   */  
+  
+string
+adabe_structure::dump_name(dep_list with,string &String, string &previousdefinition) {
+  /*
+      if (!is_imported(with))
+      {
+          if (!is_already_defined)
+                     &previousdefinition += produce_ads( with, String, previousdefinition);
+           return get_ada_name();}
+      return get_ada_full_name();	   
+  */
+
   
 IMPL_NARROW_METHODS1(adabe_structure, AST_Structure);
 IMPL_NARROW_FROM_DECL(adabe_structure);

@@ -77,11 +77,25 @@ adabe_attribute::produce_impl_ads(dep_list with,string &String, string &previous
 
 */
 
+void
+adabe_operation::produce_impl_adb(dep_list with,string &String, string &previousdefinition);
+/*
+  cast le field_type en NT
+  String += "function get_" + name +"(Self : access Object) return " 
+  String += NT.dump_name(dep_list with,string &String, string &previousdefinition) + "is\n";
+  String += "begin\n\n\n end; \n"; 
+  if (pd_readonly)
+  {
+    String += "procedure set_" + name +"(Self : access Object, To : in "
+    String += NT.dump_name(dep_list with,string &String, string &previousdefinition);
+    String += ") is\n";
+    String += "begin\n\n\n end; \n"; 
+  }
+  
+ 
+*/
 
 
-//  void produce_adb(std::fstream& s);
-//  void produce_impl_ads(std::fstream& s);
-//  void produce_impl_adb(std::fstream& s, adabe_typedef* tdef);
 
 
 

@@ -82,6 +82,7 @@ public:
   void produce_ads (dep_list with,string &String, string &previousdefinition);
   void produce_adb (dep_list with,string &String, string &previousdefinition);
   void produce_impl_ads (dep_list with,string &String, string &previousdefinition);
+  void produce_impl_adb (dep_list with,string &String, string &previousdefinition);
   //produce the ada name of the type
   
 private:
@@ -184,6 +185,8 @@ public:
   //produce a field in the body
   produce_impl_ads (dep_list with,string &String, string &previousdefinition); /////useless
   //produce a field in the implementation header
+  produce_impl_adb (dep_list with,string &String, string &previousdefinition); ////// useless   
+  //produce a field in the implementation body
 
   DEF_NARROW_METHODS1(adabe_field, AST_Field);
   DEF_NARROW_FROM_DECL(adabe_field);
@@ -211,6 +214,8 @@ public:
   //produce the name of the union in the body
   void produce_impl_ads(dep_list with,string &String, string &previousdefinition);
   //produce an union in the implementation header
+  void produce_adb(dep_list with,string &String, string &previousdefinition); 
+  //produce the name of the union in the implementation body
   
   //  void produce_adb(std::fstream& s);
   //  void produce_impl_ads(std::fstream& s);
@@ -257,12 +262,14 @@ public:
 
   void produce_ads(dep_list with,string &String, string &previousdefinition);
   //produce the structure in the header
-  string dump_name(dep_list with,string &String, string &previousdefinition);
-  //produce the name of the structure
   void produce_adb(dep_list with,string &String, string &previousdefinition);
   //produce the name of the structure in the body
   void produce_impl_ads(dep_list with,string &String, string &previousdefinition);
   //produce the structure in the implementation header
+  void produce_impl_adb(dep_list with,string &String, string &previousdefinition);
+  //produce the name of the structure in the implementation body
+  string dump_name(dep_list with,string &String, string &previousdefinition);
+  //produce the name of the structure
 
 };
 
@@ -346,8 +353,10 @@ public:
   //produce an argument of an operation in the header
   produce_adb(dep_list with,string &String, string &previousdefinition);
   //produce an argument of an operation in the body
-  produce_impl_ads(dep_list with,string &String, string &previousdefinition); /////////useless
+  produce_impl_ads(dep_list with,string &String, string &previousdefinition); 
   //produce an argument of an operation in the implementation header
+  produce_impl_adb(dep_list with,string &String, string &previousdefinition);
+  //produce an argument of an operation in the implementation body
 
   DEF_NARROW_METHODS1(adabe_argument, AST_Argument);
   DEF_NARROW_FROM_DECL(adabe_argument);
@@ -373,6 +382,8 @@ public:
   //produce an attribute in the body
   void produce_impl_ads(dep_list with,string &String, string &previousdefinition);
   //produce an attribute in the implementation header
+  void produce_impl_adb(dep_list with,string &String, string &previousdefinition);
+  //produce an attribute in the implementation body
 
   //  void produce_adb(std::fstream& s);
   //  void produce_impl_ads(std::fstream& s);
@@ -402,6 +413,8 @@ public:
   //produce an operation in the body
   void produce_impl_ads(dep_list with,string &String, string &previousdefinition);
   //produce an operation in the implementation header
+  void produce_impl_adb(dep_list with,string &String, string &previousdefinition);
+  //produce an operation in the implementation body
 
   //  void produce_adb(std::fstream& s);
   //  void produce_impl_ads(std::fstream& s);
@@ -456,6 +469,8 @@ public:
   //produce an interface in the body
   void produce_impl_ads(dep_list with,string &String, string &previousdefinition);
   //produce an interface in the implementation header
+  void produce_impl_adb(dep_list with,string &String, string &previousdefinition);
+  //produce an interface in the implementation body
   
   //  void produce_adb(std::fstream& s);
   //  void produce_impl_ads(std::fstream& s);

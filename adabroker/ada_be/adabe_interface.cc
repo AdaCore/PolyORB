@@ -91,7 +91,7 @@ String += "\n end " + get_ada_name() + "\n"
 
 */
 
-
+void
 adabe_interface::produce_adb(dep_list with,string &String, string &previousdefinition);
 /*
 string Previous = ""
@@ -112,7 +112,7 @@ String += "function To_Ref(The_Ref : in Corba.Object.ref'CLASS) return Ref \n"
 
 scan du UTL_Scope de this
    {
-   cast du NT en son veritable type et
+   cast du NT en son veritable type et si c'est un attribut ou une operation faire
        {
        string tmp1 = "";
        string tmp2 = "";
@@ -204,10 +204,34 @@ String += "\n end " + get_ada_name() + "\n"
 */
 
 
+void
+adabe_interface::produce_impl_adb(dep_list with,string &String, string &previousdefinition);
+/*
 
-//  void produce_adb(std::fstream& s);
-//  void produce_impl_ads(std::fstream& s);
-//  void produce_impl_adb(std::fstream& s, adabe_typedef* tdef);
+/////////////with.add("Ada.Tags");
+/////////////with.add("Ada.exceptions");
+/////////////with.add("Ada.Omniproxycallwrapper");
+/////////////with.add("Ada.Proxies");
+/////////////with.add("Ada.Object");
+String += "pakage body" + get_ada_name() + " is /n"
+
+// instructions
+
+scan du UTL_Scope de this
+   {
+   cast du NT en son veritable type et si c'est un attribut ou une operation faire
+       {
+       string tmp1 = "";
+       string tmp2 = "";
+       NT.produce_ads(with,tmp1,tmp2);
+       String += tmp2 + tmp1;  
+       }   
+   }
+String += "\n end " + get_ada_name() + "\n"    
+
+*/
+
+
 
 
 

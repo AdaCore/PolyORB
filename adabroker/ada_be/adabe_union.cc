@@ -29,16 +29,7 @@ adabe_union::produce_ads(dep_list with,string &String, string &previousdefinitio
   
 */
 
-string
-adabe_union::dump_name(dep_list with,string &String, string &previousdefinition) {
-  /*
-      if (!is_imported(with))
-      {
-          if (!is_already_defined())
-                      produce_ads( with, String, previousdefinition);
-           return get_ada_name();}
-      return get_ada_full_name();	   
-  */
+
 void
 adabe_union::produce_adb(dep_list with,string &String, string &previousdefinition) {
   /*
@@ -51,15 +42,28 @@ adabe_union::produce_impl_ads(dep_list with,string &String, string &previousdefi
 /*
 produce_ads(with, &String, &previousdefinition);
  */
+
+void
+adabe_union::produce_impl_adb(dep_list with,string &String, string &previousdefinition) {
+  /*
+      if (!is_imported(with)) return get_ada_name();}
+      return get_ada_full_name();	   
+  */
+
+ string
+adabe_union::dump_name(dep_list with,string &String, string &previousdefinition) {
+  /*
+      if (!is_imported(with))
+      {
+          if (!is_already_defined())
+                      produce_ads( with, String, previousdefinition);
+           return get_ada_name();}
+      return get_ada_full_name();	   
+  */
   
 IMPL_NARROW_METHODS1(adabe_union, AST_Union);
 IMPL_NARROW_FROM_DECL(adabe_union);
 IMPL_NARROW_FROM_SCOPE(adabe_union);
-
-
-//void produce_adb(std::fstream& s);
-//void produce_impl_ads(std::fstream& s);
-//void produce_impl_adb(std::fstream& s);
 
 
 

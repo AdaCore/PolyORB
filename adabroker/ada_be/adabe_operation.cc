@@ -174,6 +174,48 @@ adabe_operation::produce_impl_ads(dep_list with,string &String, string &previous
   }
 */
 
+void
+adabe_operation::produce_impl_adb(dep_list with,string &String, string &previousdefinition);
+/*
+  String += (case of the Flags)              //oneway ...
+  cast the return_type() in his NT if not null;
+  if (is_function())
+  {
+    String += " function" + get_ada_name() + "(Self : access Object ";
+    while the UTL_Scope is not empty (make a copy)              
+    {
+       String += ","
+       cast the node into his NT type
+       if it is an argument
+       argument.produce_ads(with, &String, &previousdefinition);
+    }
+    name = return_type_cast.dump_name( with, &String, &previousdefinition);
+    name_of_the_package = (cast of 'defined_in()' in an ast_interface).get_ada_name()
+    String += ") return " + name +" is \n";
+    String += "begin \n\n";
+    String += "end;";
+  }
+  else
+  {
+    String += " procedure" + ada.name + "(Self : access Object ";
+    while the UTL_Scope is not empty               //this
+    {
+       String += ","
+       cast the node into his NT type
+       if it is an argument
+       argument.produce_ads(dep_list with,string &String, string &previousdefinition);
+    }
+    if return_type not null {
+           name =  return_type_cast.dump_name(dep_list with,string &String, string &previousdefinition);
+           String += ", Result : out " + name + ") is\n";
+	   }
+    else   String += ") is \n";
+    String += "begin \n\n";
+    String += "end;";
+    
+  }
+
+*/
 
 
 
