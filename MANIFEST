@@ -591,10 +591,8 @@ src/giop/miop/polyorb-miop_p-tagged_components.adb
 src/giop/miop/polyorb-miop_p-tagged_components.ads
 src/giop/miop/polyorb-protocols-giop-uipmc.adb
 src/giop/miop/polyorb-protocols-giop-uipmc.ads
-src/giop/miop/polyorb-setup-udp_access_points-mcast.adb
-src/giop/miop/polyorb-setup-udp_access_points-mcast.ads
-src/giop/miop/polyorb-setup-udp_access_points-mcast-uipmc.adb
-src/giop/miop/polyorb-setup-udp_access_points-mcast-uipmc.ads
+src/giop/miop/polyorb-setup-access_points-uipmc.adb
+src/giop/miop/polyorb-setup-access_points-uipmc.ads
 src/giop/miop/polyorb-setup-uipmc.adb
 src/giop/miop/polyorb-setup-uipmc.ads
 src/gnat.adc
