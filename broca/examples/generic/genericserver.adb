@@ -334,10 +334,10 @@ package body GenericServer is
       --  Find the Root POA.
       declare
          Root_Poa : PortableServer.POA.Ref;
-         Object_Ref : CORBA.Object.Ref;
+         Object_Ref : constant CORBA.Object.Ref'Class :=
+           Resolve_Initial_References
+             (To_CORBA_String ("RootPOA"));
       begin
-         Object_Ref := Resolve_Initial_References
-           (To_CORBA_String ("RootPOA"));
          Root_Poa := PortableServer.POA.To_Ref (Object_Ref);
          Poa := Build_Poa_Tree (Root_Poa);
          Poa_Manager := PortableServer.POA.Get_The_POAManager (Root_Poa);
