@@ -330,4 +330,40 @@ package body Idl_Fe.Tree.Synthetic is
       end if;
    end Default_Repository_Id;
 
+   function S_Type (Node : Node_Id) return Node_Id is
+      A_Name : constant Node_Id := Value (Node);
+   begin
+      if Kind (A_Name) = K_Declarator then
+         if Kind (Parent (A_Name)) = K_Type_Declarator then
+            --  if the declaration was a typedef, we have to
+            --  use the type of it
+            pragma Debug (O ("S_Type: the scoped" &
+                             " name is defined in a typedef"));
+            if Parent (A_Name) /= No_Node and then
+              T_Type (Parent (A_Name)) /= No_Node then
+               if Kind (T_Type (Parent (A_Name))) = K_Scoped_Name then
+                  return S_Type (T_Type (Parent (A_Name)));
+               else
+                  return T_Type (Parent (A_Name));
+               end if;
+            end if;
+         elsif Kind (Parent (A_Name)) = K_Native then
+            return Parent (A_Name);
+         end if;
+      elsif Kind (A_Name) = K_Struct
+        or else Kind (A_Name) = K_Union
+        or else Kind (A_Name) = K_Enum
+        or else Kind (A_Name) = K_Interface
+        or else Kind (A_Name) = K_ValueType
+        or else Kind (A_Name) = K_Forward_Interface
+        or else Kind (A_Name) = K_Boxed_ValueType
+        or else Kind (A_Name) = K_Forward_ValueType then
+         return A_Name;
+      end if;
+
+      pragma Debug (O ("S_Type: the scoped" &
+                       " name does not denote a type"));
+      return No_Node;
+   end S_Type;
+
 end Idl_Fe.Tree.Synthetic;

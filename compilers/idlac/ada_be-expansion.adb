@@ -1148,7 +1148,6 @@ package body Ada_Be.Expansion is
       Insert_Before_Current (Seq_Inst_Node);
 
       Set_Value (Seq_Ref_Node, Seq_Inst_Node);
-      Set_S_Type (Seq_Ref_Node, Seq_Inst_Node);
 
       Replace_Node (Sequence_Node, Seq_Ref_Node);
       Set_Sequence (Seq_Inst_Node, Sequence_Node);
@@ -1193,7 +1192,6 @@ package body Ada_Be.Expansion is
          Insert_Before_Current (String_Inst_Node);
 
          Set_Value (String_Ref_Node, String_Inst_Node);
-         Set_S_Type (String_Ref_Node, String_Inst_Node);
 
          Replace_Node (String_Node, String_Ref_Node);
       end;
@@ -1243,7 +1241,6 @@ package body Ada_Be.Expansion is
             Insert_Before_Current (Typedef_Node);
 
             Set_T_Type (Typedef_Node, Fixed_Node);
-            Set_S_Type (Fixed_Ref_Node, Fixed_Node);
             Set_Declarators
               (Typedef_Node, Append_Node (Nil_List, Declarator_Node));
             Set_Parent (Declarator_Node, Typedef_Node);
@@ -1320,7 +1317,6 @@ package body Ada_Be.Expansion is
          end if;
 
          Set_Value (Constr_Type_Ref_Node, Constr_Type_Node);
-         Set_S_Type (Constr_Type_Ref_Node, Constr_Type_Node);
          Replacement_Node := Constr_Type_Ref_Node;
       end;
    end Expand_Constructed_Type;
@@ -1412,7 +1408,6 @@ package body Ada_Be.Expansion is
          end case;
 
          Set_Value (Array_Ref_Node, Array_Node);
-         Set_S_Type (Array_Ref_Node, Array_Node);
 
          case Kind (Parent_Node) is
             when K_Member =>

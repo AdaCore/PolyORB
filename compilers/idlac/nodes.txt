@@ -104,8 +104,8 @@ Initializer <-- Scope
   Param_Decls : Node_List
 
 Scoped_Name
-  S_Type : Node_Id
   Value : Node_Id
+  --  The Named node that this scoped name resolves to.
 
 Operation <-- Scope
   Is_Oneway : Boolean

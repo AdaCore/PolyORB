@@ -34,6 +34,10 @@ package Idl_Fe.Tree.Synthetic is
    -- Synthetic attributes of IDL nodes --
    ---------------------------------------
 
+   function S_Type (Node : Node_Id) return Node_Id;
+   --  If Node is a Scoped_Name whose Value declares a type,
+   --  then S_Type denotes that type, else S_Type is No_Node.
+
    function Default_Repository_Id
      (Node : Node_Id)
      return String;

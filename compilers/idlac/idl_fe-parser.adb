@@ -1470,39 +1470,7 @@ package body Idl_Fe.Parser is
          end loop;
          pragma Debug (O ("Parse_Scoped_Name : end of loop"));
          Set_Value (Res, A_Name);
-         --  sets the S_Type field of the scoped-name node
-         --  to the type of the declaration pointed to
-         if Kind (A_Name) = K_Declarator then
-            if Kind (Parent (A_Name)) = K_Type_Declarator then
-               --  if the declaration was a typedef, we have to
-               --  use the type of it
-               pragma Debug (O ("Parse_Scoped_Name : the scoped" &
-                                " name is defined in a typedef"));
-               if Parent (A_Name) /= No_Node and then
-                 T_Type (Parent (A_Name)) /= No_Node then
-                  if Kind (T_Type (Parent (A_Name))) = K_Scoped_Name then
-                     Set_S_Type (Res, S_Type (T_Type (Parent (A_Name))));
-                  else
-                     Set_S_Type (Res, T_Type (Parent (A_Name)));
-                  end if;
-               end if;
-            elsif Kind (Parent (A_Name)) = K_Native then
-               Set_S_Type (Res, Parent (A_Name));
-            end if;
-         elsif Kind (A_Name) = K_Struct
-           or else Kind (A_Name) = K_Union
-           or else Kind (A_Name) = K_Enum
-           or else Kind (A_Name) = K_Interface
-           or else Kind (A_Name) = K_ValueType
-           or else Kind (A_Name) = K_Forward_Interface
-           or else Kind (A_Name) = K_Boxed_ValueType
-           or else Kind (A_Name) = K_Forward_ValueType then
-            Set_S_Type (Res, A_Name);
-         else
-            pragma Debug (O ("Parse_Scoped_Name : the scoped" &
-                             " name does not denote a type"));
-            Set_S_Type (Res, No_Node);
-         end if;
+
          --  Here we try to avoid recursivity in structs and unions
          if (Kind (Get_Current_Scope) = K_Struct
              or Kind (Get_Current_Scope) = K_Union)
