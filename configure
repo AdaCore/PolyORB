@@ -1551,7 +1551,7 @@ echo "configure:1551: checking thread-blocking I/O" >&5
     if grep Non_Blocking $srcdir/Garlic/5${PLATFORM_SPECIFIC}gtplsp.ads \
       > /dev/null 2>&1; then
 	echo "$ac_t""no" 1>&6
-	PROTOCOLSOURCES="${PROTOCOLSOURCES} \$(NOBLTCPSOURCES)"
+	PROTOCOLSSOURCES="${PROTOCOLSSOURCES} \$(NOBLTCPSOURCES)"
 	PROTOCOLSOBJECTS="${PROTOCOLSOBJECTS} \$(NOBLTCPOBJECTS)"
     else
 	echo "$ac_t""yes" 1>&6
