@@ -40,6 +40,19 @@ abstract interface to;
 interface to{};
 abstract interface tu{};
 
+/* test of rule 12 */
+interface i : { const long a = 5;};
+typedef does_not_exist a1;
+const long not_a_scope = 5;
+typedef not_a_scope::l a2;
+interface ii { const long a = 5;};
+typedef ii:: ;
+typedef ii::does_not_exist a3;
+typedef ii::a::b a4;
+struct structA {
+  structA s;
+};
+
 /***  Test of rule 13 through 26 ***/
 
 /* Test of rule Value2 */
@@ -212,7 +225,9 @@ valuetype value48 {
 };
 
 /* Test of Rule 45 */
-typedef sequence <Error>;
+typedef sequence <>;
+interface not_a_type { void echo (); };
+typedef not_a_type type1;
 
 /* Test of rule 50 */
 union union1 switch (boolean) {
@@ -356,14 +371,16 @@ boolean op6 (boolean b);
 boolean op7 () raises;
 boolean op8 () raises ();
 boolean op9 raises (;
+const long const27 = 5;
+boolean op10 raises (const27);
 
 /* Test of rule 94 */
-boolean op10 () context;
-boolean op11 () context ();
-boolean op12 context (;
+boolean op11 () context;
+boolean op12 () context ();
+boolean op13 context (;
 
 /* Test of rule 95 */
-boolean op13 (inout error);
+boolean op14 (inout error);
 
 /* Test of rule 96 */
 typedef fixed fixed1;
@@ -372,10 +389,10 @@ typedef fixed <6,7 fixed3;
 
 
 /* Test of check_context_string */
-boolean op14 () context ("0error");
-boolean op15 () context ("eréror");
-boolean op16 () context ("err*or");
-boolean op17 () context ("erroré");
+boolean op15 () context ("0error");
+boolean op16 () context ("eréror");
+boolean op17 () context ("err*or");
+boolean op18 () context ("erroré");
 
 /* Test of eval_or_expr */
 const integer c1 = TRUE | 2;
@@ -396,14 +413,11 @@ module moduleA {
 };
 
 // recursive structures
-module moduleB {  typedef short typeA;
+module moduleB {  
+  typedef short typeA;
   interface interfaceA {
-    typedef moduleB::interfaceA typeD;
+    typedef short typeC;
+    typedef moduleB::interfaceA::typeC typeD;
   };
-};
-
-// recursive structs
-struct structA {
-  structA s;
 };
 

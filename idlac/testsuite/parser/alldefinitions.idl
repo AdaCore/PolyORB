@@ -641,5 +641,11 @@ module moduleA {
   };
 };
 
-// module as type
-typedef moduleA typeD;
+// sequences of sequences
+typedef sequence<long> sequenceA;
+typedef sequence<sequence<long> > sequenceB;
+typedef sequence<sequence<long>> sequenceC;
+typedef sequence<sequence<long,8>> sequenceD;
+//typedef sequence<sequence<long,8>>1>> sequenceE;
+//typedef sequence<sequence<long,8>>1>,5>>1> sequenceF;
+typedef sequence<sequence<sequence<long>>> sequenceG;
