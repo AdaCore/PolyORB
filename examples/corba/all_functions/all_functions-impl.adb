@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/examples/corba/all_functions/all_functions-impl.adb#2 $
-
 with all_functions.Skel;
 pragma Elaborate (all_functions.Skel);
 pragma Warnings (Off, all_functions.Skel);

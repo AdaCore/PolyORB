@@ -31,13 +31,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/examples/corba/all_functions/all_functions-impl.ads#2 $
-
 with CORBA; use CORBA;
 with PortableServer;
 
 package all_functions.Impl is
-   --  My own implementation of echo all_functions object.
+   --  My own implementation of all_functions object.
    --  This is simply used to define the operations.
 
    type Object is new PortableServer.Servant_Base with private;
