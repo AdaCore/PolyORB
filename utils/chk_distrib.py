@@ -9,13 +9,13 @@ def get_subdirs (dir):
   res = [dir]
   vars = {}
   for l in open (dir + "/Makefile.am", "r").readlines ():
-    m = re.match ("^([A-Z_]*)\s*=\s*(.*)$", l)
+    m = re.match ("^([A-Za-z_]*)\s*=\s*(.*)$", l)
     
     if m:
       if len (m.group (2)) > 0:
         vars[m.group (1)] = m.group (2)
 
-      if m.group (1) != 'CORBA_DIR' and m.group (1) != 'GIOP_DIR' and m.group (1) != 'DSA_DIR' and m.group (1) != 'MOMA_DIR' and m.group (1) != 'SOAP_DIR' and m.group (1) != 'SRP_DIR':
+      if m.group (1) != 'corba_dir' and m.group (1) != 'giop_dir' and m.group (1) != 'dsa_dir' and m.group (1) != 'moma_dir' and m.group (1) != 'soap_dir' and m.group (1) != 'srp_dir':
         continue
 
       dirs = map (lambda s, d=dir: d + "/" + s,

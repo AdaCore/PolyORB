@@ -241,7 +241,7 @@ doc/CODING_GUIDELINES
 doc/NOTES
 examples/Makefile.am
 examples/Makefile.common
-examples/Makefile.in 
+examples/Makefile.in
 examples/common/report.adb
 examples/common/report.ads
 examples/corba/Makefile.am
@@ -452,6 +452,7 @@ src/corba/portableserver-threadpolicy.ads
 src/corba/portableserver.adb
 src/corba/portableserver.ads
 src/giop/Makefile.am
+src/giop/Makefile.in
 src/giop/polyorb-binding_data-iiop.adb
 src/giop/polyorb-binding_data-iiop.ads
 src/giop/polyorb-protocols-giop-giop_1_0.adb
@@ -837,6 +838,7 @@ src/soap/soap-utils.adb
 src/soap/soap-utils.ads
 src/soap/soap.ads
 src/srp/Makefile.am
+src/srp/Makefile.in
 src/srp/polyorb-binding_data-srp.adb
 src/srp/polyorb-binding_data-srp.ads
 src/srp/polyorb-protocols-srp.ads

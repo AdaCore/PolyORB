@@ -69,9 +69,9 @@ PROTO_DIRS=""
 PROTO_LIBS=""
 
 PROTO_CLIENT_WITHS=${srcdir}/proto_client_withs.adb
-${RM} ${PROTO_CLIENT_WITHS}
+echo "" > ${PROTO_CLIENT_WITHS}
 PROTO_SERVER_WITHS=${srcdir}/proto_server_withs.adb
-${RM} ${PROTO_SERVER_WITHS}
+echo "" > ${PROTO_SERVER_WITHS}
 
 for P in ${PROTO_LIST}
 do
@@ -274,6 +274,12 @@ AC_OUTPUT([Makefile
 	   support/adacompiler support/native-adacompiler
            support/linker polyorb-config])
 
+##########################################
+# Clean up
+##########################################
+
+${RM} ${PROTO_CLIENT_WITHS}
+${RM} ${PROTO_SERVER_WITHS}
 
 ##########################################
 # Copy files
