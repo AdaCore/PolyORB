@@ -96,7 +96,7 @@ ADA_BODIES = $(ADA_FULL:.ads=.adb)
 
 ADA_LIBADD = $(ADA_SPECS:.ads=.lo) $(ADASOCKET_OBJECTS:.o=.lo)
 
-ADASOCKET_OBJECTS =  	sockets-constants.o 	sockets-link.o 	sockets-multicast.o 	sockets-naming.o 	sockets-thin.o 	sockets-utils.o 	sockets.o
+ADASOCKET_OBJECTS =  	sockets-constants.o 	sockets-link.o 	sockets-naming.o 	sockets-thin.o 	sockets.o
 
 
 bin_SCRIPTS = adabroker-config
@@ -137,8 +137,8 @@ portableserver-servantlocator.lo portableserver-servantmanager-impl.lo \
 portableserver.lo broca.lo broca-opaque.lo broca-iop.lo \
 corba-sequences.lo portableserver-servantactivator-impl.lo \
 portableserver-servantlocator-impl.lo portableserver-servantmanager.lo \
-sockets-constants.lo sockets-link.lo sockets-multicast.lo \
-sockets-naming.lo sockets-thin.lo sockets-utils.lo sockets.lo
+sockets-constants.lo sockets-link.lo sockets-naming.lo sockets-thin.lo \
+sockets.lo
 libbroca_la_OBJECTS = 
 SCRIPTS =  $(bin_SCRIPTS)
 
@@ -260,7 +260,7 @@ distdir: $(DISTFILES)
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  if test -d $$d/$$file; then \
-	    cp -pr $$/$$file $(distdir)/$$file; \
+	    cp -pr $$d/$$file $(distdir)/$$file; \
 	  else \
 	    test -f $(distdir)/$$file \
 	    || ln $$d/$$file $(distdir)/$$file 2> /dev/null \

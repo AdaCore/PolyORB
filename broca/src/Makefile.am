@@ -55,10 +55,8 @@ ADA_LIBADD = $(ADA_SPECS:.ads=.lo) $(ADASOCKET_OBJECTS:.o=.lo)
 ADASOCKET_OBJECTS = \
 	sockets-constants.o \
 	sockets-link.o \
-	sockets-multicast.o \
 	sockets-naming.o \
 	sockets-thin.o \
-	sockets-utils.o \
 	sockets.o
 
 bin_SCRIPTS = adabroker-config
