@@ -4,16 +4,16 @@ LINKER = $(top_builddir)/support/linker
 corba_lib=-I$(top_builddir)/src/corba/libpolyorb-corba.la
 giop_lib=-I$(top_builddir)/src/giop/libpolyorb-giop.la -I$(top_builddir)/src/giop/iiop/libpolyorb-iiop.la -I$(top_builddir)/src/giop/diop/libpolyorb-diop.la -I$(top_builddir)/src/giop/miop/libpolyorb-miop.la
 moma_lib=-I$(top_builddir)/src/moma/libpolyorb-moma.la
-soap_lib=-I$(top_builddir)/src/soap/libpolyorb-soap.la -I$(top_builddir)/src/soap/libpolyorb-web_common.la
+soap_lib=-I$(top_builddir)/src/soap/libpolyorb-soap.la 
 srp_lib=-I$(top_builddir)/src/srp/libpolyorb-srp.la
-web_common_lib=-I$(top_builddir)/src/soap/libpolyorb-web_common.la
+web_common_lib=-I$(top_builddir)/src/web_common/libpolyorb-web_common.la
 
 POLYORB_LIBS = -I$(top_builddir)/src/libpolyorb.la @PROTO_LIBS@ @APPLI_LIBS@ @LIBS_LIBS@
 
 corba_inc=-I$(top_srcdir)/src/corba -I$(top_builddir)/src/corba
 giop_inc=-I$(top_srcdir)/src/giop -I$(top_builddir)/src/giop -I$(top_srcdir)/src/giop/iiop -I$(top_builddir)/src/giop/iiop -I$(top_srcdir)/src/giop/diop -I$(top_builddir)/src/giop/diop -I$(top_builddir)/src/giop/iiop -I$(top_srcdir)/src/giop/miop -I$(top_builddir)/src/giop/miop
 moma_inc=-I$(top_srcdir)/src/moma -I$(top_builddir)/src/moma
-soap_inc=-I$(top_srcdir)/src/soap -I$(top_builddir)/src/soap -I$(top_srcdir)/src/web_common -I$(top_builddir)/src/web_common
+soap_inc=-I$(top_srcdir)/src/soap -I$(top_builddir)/src/soap
 srp_inc=-I$(top_srcdir)/src/srp -I$(top_builddir)/src/srp
 web_common_inc=-I$(top_srcdir)/src/web_common -I$(top_builddir)/src/web_common
 naming_inc=-I$(top_srcdir)/cos/naming -I$(top_builddir)/cos/naming \
