@@ -37,7 +37,7 @@ in Doc/install_guide.txt.
 1. Check your environment
    - verify that GNAT @gnat_version@ has been installed and is on your path
    - verify that GLADE has been ported to your system (see README)
-   - GLADE is usually build with GNU make. It may or may not be built 
+   - GLADE is usually built with GNU make. It may or may not be built 
      with other versions of make. If you have problems building GLADE
      with your local make tool, switch to GNU make.
    - verify that you will be able to run distributed applications

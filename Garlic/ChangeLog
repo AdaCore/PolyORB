@@ -1,3 +1,26 @@
+1998-08-10  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-garuni.ads: Make Cache_Type into a limited type whose
+	primitive use the global lock instead of a protected type.
+
+	* s-garuni.adb: Likewise.
+
+	* s-parint.adb: Use new primitives for Cache_Type objects.
+	Do not Fatal_Error anymore, and remove select then abort statement 
+	that can be avoided.
+
+	* s-garhea.ads: Replace protected object Shutdown_Keeper by an
+	inline function Is_Shutdown_In_Progress, which does the very same
+	job but is very light weight.
+	Remove Fatal_Error which was useless.
+
+	* s-garhea.adb: Likewise.
+
+	* s-gartcp.adb: Use new Shutdown_In_Progress function instead of
+	Shutdown_Keeper.
+
+	* s-garter.adb: Likewise.
+
 1998-08-06  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* 5wgtplsp.ads: Fix typo in unit name.
