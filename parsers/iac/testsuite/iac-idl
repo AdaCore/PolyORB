@@ -1,1 +1,1 @@
-iac -x idl $1 | pp-idl
+iac -idl $1 | pp-idl
