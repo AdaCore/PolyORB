@@ -84,7 +84,7 @@ package XE_Utils is
    function "+" (X, Y : Text_Ptr) return Text_Ptr renames Types."+";
    function "-" (X, Y : Text_Ptr) return Text_Ptr renames Types."-";
 
-   function ">" (X, Y : Time_Stamp_Type) return Boolean renames Types."=";
+   function ">" (X, Y : Time_Stamp_Type) return Boolean renames Types.">";
    function "=" (X, Y : Main_Program_Type) return Boolean renames Types."=";
    function "=" (X, Y : Unit_Type) return Boolean renames Types."=";
    function "=" (X, Y : ALI_Id) return Boolean renames Types."=";

@@ -141,9 +141,9 @@ package body XE_Stubs is
 
          Produce_Partition_Executable (Part_Name, Exec_File);
 
-      end if;
+         Change_Dir (Original_Dir);
 
-      Change_Dir (Original_Dir);
+      end if;
 
    end Build_Partition;
 
@@ -481,10 +481,12 @@ package body XE_Stubs is
       Dwrite_Str     (FD, """);");
       Dwrite_Eol     (FD);
 
-      Dwrite_Str     (FD, "   Set_Default_Filter (""");
-      Dwrite_Name    (FD, Default_Filter);
-      Dwrite_Str     (FD, """);");
-      Dwrite_Eol     (FD);
+      if Default_Filter /= No_Filter_Name then
+         Dwrite_Str     (FD, "   Set_Default_Filter (""");
+         Dwrite_Name    (FD, Default_Filter);
+         Dwrite_Str     (FD, """);");
+         Dwrite_Eol     (FD);
+      end if;
 
       for C in Channels.First .. Channels.Last loop
          Part_Peer := Null_PID;

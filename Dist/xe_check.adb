@@ -258,8 +258,8 @@ package body XE_Check is
             --  This unit is not an ada unit
             --  as no ali file has been found.
 
-            Write_Program_Name;
-            Write_Str (": unit from configuration file """);
+            Write_SLOC (CUnit.Table (U).Node);
+            Write_Str (": configured unit """);
             Write_Name (CUnit.Table (U).CUname);
             Write_Str (""" is not an Ada unit");
             Write_Eol;

@@ -221,6 +221,13 @@ package body XE_Utils is
 
    begin
 
+      if Debug_Mode then
+         Write_Program_Name;
+         Write_Str  (": change to dir ");
+         Write_Name (To);
+         Write_Eol;
+      end if;
+
       Get_Name_String (To);
       C_Path (1 .. Name_Len) := Name_Buffer (1 .. Name_Len);
       C_Path (Name_Len + 1) := Ascii.Nul;
@@ -782,7 +789,17 @@ package body XE_Utils is
 
    function More_Recent (File1, File2 : Name_Id) return Boolean is
    begin
-      return Source_File_Stamp (File1) > Source_File_Stamp (File2);
+      if Source_File_Stamp (File1) > Source_File_Stamp (File2) then
+         if Debug_Mode then
+            Write_Stamp_Comparison (File1, File2);
+         end if;
+         return True;
+      else
+         if Debug_Mode then
+            Write_Stamp_Comparison (File2, File1);
+         end if;
+         return False;
+      end if;
    end More_Recent;
 
    ----------------------------------

@@ -191,14 +191,15 @@ package XE is
    Pragma_Version_Node      : Subprogram_Id;
 
 
-   -- Internal names --
+   -- Internal System Names --
 
-   Component_Unit : Name_Id;
-   Part_Main_Unit : Name_Id;
-   Returned_Param : Name_Id;
-   Procedure_Unit : Name_Id;
-   Sub_Prog_Param : Name_Id;
-   Procedure_Call : Name_Id;
+   ISN_List_Comp  : Name_Id;
+   ISN_Array_Comp : Name_Id;
+   ISN_Proc_Main  : Name_Id;
+   ISN_Appl_Main  : Name_Id;
+   ISN_Return_Par : Name_Id;
+   ISN_Subpro_Par : Name_Id;
+   ISN_Proc_Call  : Name_Id;
 
 
    Configuration_File  : File_Name_Type  := No_File;
@@ -233,27 +234,32 @@ package XE is
       Component_Node  : in Component_Id);
    --  Add a component to the variable component list.
 
-   procedure Set_Attribute_Kind
+   procedure Component_Is_Initialized
      (Component_Node : in Component_Id;
-      Attribute_Kind : in Attribute_Type);
-   --  A type or a variable is a set of components and of attributes.
+      Is_Initialized : in Boolean);
 
    function Convert (Item : Attribute_Type) return Int;
+
    function Convert (Item : Int) return Attribute_Type;
 
    function Convert (Item : Pragma_Type) return Int;
+
    function Convert (Item : Int) return Pragma_Type;
 
    function Convert (Item : Starter_Method_Type) return Int;
+
    function Convert (Item : Int) return Starter_Method_Type;
 
    function Convert (Item : Import_Method_Type) return Int;
+
    function Convert (Item : Int) return Import_Method_Type;
 
    function Convert (Item : Predefined_Type) return Int;
+
    function Convert (Item : Int) return Predefined_Type;
 
    function Convert (Item : Termination_Type) return Int;
+
    function Convert (Item : Int) return Termination_Type;
 
    procedure Create_Component
@@ -313,17 +319,23 @@ package XE is
    --  could be different from the type component list (ex :
    --  partition_type).
 
-   function Get_Array_Element_Type
-     (Array_Type_Node : Type_Id)
+   function Get_Array_Component_Type
+     (Type_Node : Type_Id)
      return Type_Id;
-   --  When the type is an array or a list, this function returns the type
-   --  of an element. Otherwise, it returns null_type (neither a list nor
-   --  an array).
+   --  When the type is a component array, this function returns the type
+   --  of a component. Otherwise, it returns null_type.
 
-   function Is_Component_Initialized
+   function Get_Component_List_Size
+     (Type_Node : Type_Id)
+     return Int;
+   --  When the type is an array or a list, this function returns the size
+   --  of the array or the list. Otherwise, it returns 0 (neither a list
+   --  nor an array).
+
+   function Get_Attribute_Kind
      (Component_Node : Component_Id)
-      return Boolean;
-   --  Is this an attribute.
+     return Attribute_Type;
+   --  A type or a variable is a set of components and of attributes.
 
    function Get_Component_Type
      (Component_Node : Component_Id)
@@ -363,20 +375,21 @@ package XE is
       return Subprogram_Id;
    --  Not use.
 
-   function  Get_Subprogram_Mark
+   function  Get_Pragma_Kind
      (Subprogram_Node : Subprogram_Id)
-      return Int;
+      return Pragma_Type;
    --  The subprogram mark is used to easily retrieve a pragma kind, for
    --  instance.
 
    function  Get_Token (N : Name_Id) return Token_Type;
-   function  Get_Type_Mark
+
+   function  Get_Type_Kind
      (Type_Node : Type_Id)
-      return Int;
+      return Predefined_Type;
    --  The type mark is used to easily retrieve a predefined_type id, for
    --  instance.
 
-   function  Get_Variable_Mark
+   function  Get_Scalar_Value
      (Variable_Node : Variable_Id)
       return Int;
    --  This mark is used when the variable is of scalar type.
@@ -391,20 +404,15 @@ package XE is
      return Variable_Id;
    --  This value is in fact a variable itself.
 
-   function Is_Array_A_List
-     (Array_Type_Node : Type_Id)
-      return Boolean;
-   --  Is constrained or not.
-
    function  Is_Component
      (Node : Node_Id)
       return Boolean;
    pragma Inline (Is_Component);
 
-   function Get_Attribute_Kind
+   function Is_Component_Initialized
      (Component_Node : Component_Id)
-     return Attribute_Type;
-   --  A type or a variable is a set of components and of attributes.
+      return Boolean;
+   --  Has this component a value.
 
    function  Is_Configuration
      (Node : Node_Id)
@@ -457,17 +465,22 @@ package XE is
      (Component_Node  : in out Component_Id);
    --  Set to the next component in the variable component list.
 
-   procedure Set_Array_Type
-     (Array_Type_Node   : in Type_Id;
-      Element_Type_Node : in Type_Id;
-      Array_Is_A_List   : in Boolean);
-   --  This type becomes an array type. Each element is of type
-   --  element_type_node. array_is_a_list indicates whether it is a
-   --  constrained array or not.
+   procedure Set_Array_Component_Type
+     (Type_Node : in Type_Id;
+      Comp_Type : in Type_Id);
+   --  This type becomes an component list type. Each element is of type
+   --  element_type.
 
-   procedure Component_Is_Initialized
+   procedure Set_Component_List_Size
+     (Type_Node : in Type_Id;
+      List_Size : in Int);
+   --  This type becomes an component list type. List_size indicates
+   --  whether it is a constrained array or not.
+
+   procedure Set_Attribute_Kind
      (Component_Node : in Component_Id;
-      Is_Initialized : in Boolean);
+      Attribute_Kind : in Attribute_Type);
+   --  A type or a variable is a set of components and of attributes.
 
    procedure Set_Component_Type
      (Component_Node : in Component_Id;
@@ -501,23 +514,23 @@ package XE is
       Subprogram_Node : in Subprogram_Id);
    --  Duplicate subprogram node.
 
-   procedure Set_Subprogram_Mark
+   procedure Set_Pragma_Kind
      (Subprogram_Node : in Subprogram_Id;
-      Subprogram_Mark : in Int);
+      Pragma_Kind     : in Pragma_Type);
    --  The subprogram mark is used to easily retrieve a pragma_type id, for
    --  instance.
 
    procedure Set_Token (N : String; T : Token_Type);
 
-   procedure Set_Type_Mark
+   procedure Set_Type_Kind
      (Type_Node : in Type_Id;
-      Type_Mark : in Int);
+      Type_Kind : in Predefined_Type);
    --  The type mark is used to easily retrieve a predefined_type id, for
    --  instance.
 
-   procedure Set_Variable_Mark
+   procedure Set_Scalar_Value
      (Variable_Node : in Variable_Id;
-      Variable_Mark : in Int);
+      Scalar_Value  : in Int);
    --  This mark is used when the variable is of scalar type.
 
    procedure Set_Variable_Type

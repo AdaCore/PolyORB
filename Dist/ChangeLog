@@ -1,6 +1,20 @@
+Sat Feb 22 12:58:07 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
+
+	* xe_utils.ads: Fix a bug due to a bad renaming.
+
+	* xe.ads, xe.adb, xe_parse.adb, xe_back.adb: Cleaner organisation
+ 	of configuration language predefined types.
+
+	* xe_stubs.adb: A Change_Dir was mislocated. Don't generate
+ 	Set_Default_Filter when Default_Filter is null string.
+
+Fri Feb 21 09:28:54 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
+
+	* xe_back.ads: Add SLOC in table items to report error messages.
+
 Thu Feb 20 14:49:39 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
 
-	* xe_stubs.adb: Add filtering.
+	* xe_stubs.adb: Integration of filtering.
 
 	* xe_build.adb, xe_lead.adb, xe_stubs.adb, xe.adb, xe_check.adb,
  	xe_parse.adb, xe_usage.adb, xe_back.adb, xe_defs.adb, xe_scan.adb,

@@ -52,11 +52,7 @@ package body XE_Parse is
    Unique     : constant Boolean := True;
    Not_Unique : constant Boolean := False;
 
-   procedure Append_Declaration
-     (Configuration_Node : in Configuration_Id;
-      Declaration_Node   : in Node_Id)
-     renames XE.Add_Configuration_Declaration;
-   --  Shorcut.
+   Unbounded    : constant Int     := Int'Last;
 
    procedure Associate_Actual_To_Formal
      (Subprogram_Node : in Subprogram_Id);
@@ -97,14 +93,14 @@ package body XE_Parse is
      (Conf_Node : in  Configuration_Id;
       Type_Name : in  Name_Id;
       Type_Kind : in  Predefined_Type;
-      Elmt_Type : in  Type_Id;
-      Is_A_List : in  Boolean;
+      List_Size : in  Int;
+      Comp_Type : in  Type_Id;
       Is_Frozen : in  Boolean;
       Type_Sloc : in  Location_Type;
       Type_Node : out Type_Id);
-   --  Declare a new type into the configuration context. If a non null
-   --  element type is provided, then it is an array. If Is_A_List is set,
-   --  then this array is unbounded.
+   --  Declare a new type into the configuration context. If List_Size is
+   --  zero, it is non component list type. If List_Size is Unbounded, then
+   --  it is an unbounded array. Otherwise, it is a component list.
 
    procedure Declare_Type_Attribute
      (Type_Node          : in Type_Id;
@@ -557,16 +553,16 @@ package body XE_Parse is
 
       Create_Statement
         (New_Statement,
-         Procedure_Call);
+         ISN_Proc_Call);
 
       --  Make a entire copy of subprogram node.
 
       Create_Subprogram
         (New_Subprogram,
          Get_Node_Name (Node_Id (Old_Subprogram)));
-      Set_Subprogram_Mark
+      Set_Pragma_Kind
         (New_Subprogram,
-         Get_Subprogram_Mark (Old_Subprogram));
+         Get_Pragma_Kind (Old_Subprogram));
       Subprogram_Is_A_Procedure
         (New_Subprogram,
          Is_Subprogram_A_Procedure (Old_Subprogram));
@@ -601,7 +597,7 @@ package body XE_Parse is
 
       Set_Subprogram_Call (New_Statement, New_Subprogram);
 
-      Append_Declaration
+      Add_Configuration_Declaration
         (Configuration_Node,
          Node_Id (New_Statement));
 
@@ -627,7 +623,7 @@ package body XE_Parse is
       Create_Subprogram         (Node, Subprogram_Name);
       Set_Node_Location         (Node_Id (Node), Subprogram_Sloc);
       Subprogram_Is_A_Procedure (Node, Is_A_Procedure);
-      Append_Declaration        (Configuration_Node, Node_Id (Node));
+      Add_Configuration_Declaration (Configuration_Node, Node_Id (Node));
       Subprogram_Node := Node;
 
       --  We create a variable of type Ada_Unit_Type_Node to handle
@@ -676,8 +672,8 @@ package body XE_Parse is
      (Conf_Node : in  Configuration_Id;
       Type_Name : in  Name_Id;
       Type_Kind : in  Predefined_Type;
-      Elmt_Type : in  Type_Id;
-      Is_A_List : in  Boolean;
+      List_Size : in  Int;
+      Comp_Type : in  Type_Id;
       Is_Frozen : in  Boolean;
       Type_Sloc : in  Location_Type;
       Type_Node : out Type_Id) is
@@ -685,13 +681,16 @@ package body XE_Parse is
    begin
 
       Has_Not_Been_Already_Declared (Type_Name, Get_Token_Location);
-      Create_Type         (T, Type_Name);
-      if Elmt_Type /= Null_Type then
-         Set_Array_Type (T, Elmt_Type, Is_A_List);
+      Create_Type (T, Type_Name);
+      if Comp_Type /= Null_Type then
+         Set_Array_Component_Type (T, Comp_Type);
+      end if;
+      if 0 /= List_Size then
+         Set_Component_List_Size (T, List_Size);
       end if;
       Type_Is_Frozen      (T, Is_Frozen);
-      Set_Type_Mark       (T, Convert (Type_Kind));
-      Append_Declaration  (Conf_Node, Node_Id (T));
+      Set_Type_Kind       (T, Type_Kind);
+      Add_Configuration_Declaration  (Conf_Node, Node_Id (T));
       Set_Node_Location   (Node_Id (T), Type_Sloc);
       Type_Node := T;
 
@@ -761,6 +760,7 @@ package body XE_Parse is
       V : Variable_Id;
       C : Component_Id;
       X : Component_Id;
+      S : Int;
    begin
 
       if Is_Unique then
@@ -768,20 +768,24 @@ package body XE_Parse is
       end if;
 
       Create_Variable    (V, Variable_Name);
-      Append_Declaration (Conf_Node, Node_Id (V));
+      Add_Configuration_Declaration (Conf_Node, Node_Id (V));
       Set_Variable_Type  (V, Variable_Type);
 
-      --  This type is structured, duplicate the structure.
-      if Get_Array_Element_Type (Variable_Type) /= Null_Type and then
-        not Is_Array_A_List (Variable_Type) then
+      --  This type is a structure, duplicate the structure.
+      S := Get_Component_List_Size (Variable_Type);
+      if S /= 0 and then S /= Unbounded then
          First_Type_Component (Variable_Type, C);
          while C /= Null_Component loop
             if Get_Attribute_Kind (C) = Attribute_Unknown then
                Duplicate_Component (C, X);
                Add_Variable_Component (V, X);
+               S := S - 1;
             end if;
             Next_Type_Component (C);
          end loop;
+         if S /= 0 then
+            raise Fatal_Error;
+         end if;
       end if;
 
       Set_Node_Location  (Node_Id (V), Variable_Sloc);
@@ -854,7 +858,7 @@ package body XE_Parse is
 
       --  Do we need to assign a element list or a single element ?
 
-      if Get_Array_Element_Type (T) /= Null_Type then
+      if Get_Array_Component_Type (T) /= Null_Type then
          First_Variable_Component (Source, C);
          while C /= Null_Component loop
             if Get_Attribute_Kind (C) = Attribute_Unknown then
@@ -924,12 +928,14 @@ package body XE_Parse is
       Pragma_Prefix    := Str_To_Id ("pragma__");
       Type_Prefix      := Str_To_Id ("type__");
 
-      Component_Unit := Str_To_Id ("_component_unit");
-      Part_Main_Unit := Str_To_Id ("_main_procedure");
-      Procedure_Unit := Str_To_Id ("_appl_procedure");
-      Returned_Param := Str_To_Id ("_returned_param");
-      Sub_Prog_Param := Str_To_Id ("_sub_prog_param");
-      Procedure_Call := Str_To_Id ("_procedure_call");
+      ISN_List_Comp  := Str_To_Id ("_list_component");
+      ISN_Array_Comp := Str_To_Id ("array_component");
+      ISN_Proc_Main  := Str_To_Id ("_main_procedure");
+      ISN_Appl_Main  := Str_To_Id ("_appl_main_proc");
+      ISN_Return_Par := Str_To_Id ("_returned_param");
+      ISN_Subpro_Par := Str_To_Id ("_sub_prog_param");
+      ISN_Proc_Call  := Str_To_Id ("_procedure_call");
+      ISN_Proc_Call  := Str_To_Id ("_procedure_unit");
 
       --  As a naming convention, we use the reserved keyword "private"
       --  for the standard configuration name.
@@ -944,8 +950,8 @@ package body XE_Parse is
         (Conf_Node    => Configuration_Node,
          Type_Name    => Str_To_Id ("boolean"),
          Type_Kind    => Pre_Type_Boolean,
-         Elmt_Type    => Null_Type,
-         Is_A_List    => False,
+         Comp_Type    => Null_Type,
+         List_Size    => 0,
          Is_Frozen    => True,
          Type_Sloc    => Null_Location,
          Type_Node    => Boolean_Type_Node);
@@ -959,7 +965,7 @@ package body XE_Parse is
          Variable_Node);
 
       --  To easily retrieve the enumeration literal.
-      Set_Variable_Mark (Variable_Node, 1);
+      Set_Scalar_Value (Variable_Node, 1);
 
       Declare_Variable
         (Configuration_Node,
@@ -970,7 +976,7 @@ package body XE_Parse is
          Variable_Node);
 
       --  To easily retrieve the enumeration literal.
-      Set_Variable_Mark (Variable_Node, 0);
+      Set_Scalar_Value (Variable_Node, 0);
 
       --  type string (standard)
 
@@ -978,8 +984,8 @@ package body XE_Parse is
         (Conf_Node    => Configuration_Node,
          Type_Name    => Str_To_Id ("string"),
          Type_Kind    => Pre_Type_String,
-         Elmt_Type    => Null_Type,
-         Is_A_List    => False,
+         Comp_Type    => Null_Type,
+         List_Size    => 0,
          Is_Frozen    => True,
          Type_Sloc    => Null_Location,
          Type_Node    => String_Type_Node);
@@ -990,8 +996,8 @@ package body XE_Parse is
         (Conf_Node    => Configuration_Node,
          Type_Name    => Str_To_Id ("integer"),
          Type_Kind    => Pre_Type_Integer,
-         Elmt_Type    => Null_Type,
-         Is_A_List    => False,
+         Comp_Type    => Null_Type,
+         List_Size    => 0,
          Is_Frozen    => True,
          Type_Sloc    => Null_Location,
          Type_Node    => Integer_Type_Node);
@@ -1005,7 +1011,7 @@ package body XE_Parse is
          Variable_Node);
 
       --  To easily retrieve the enumeration literal.
-      Set_Variable_Mark (Variable_Node, Int (Local_Termination));
+      Set_Scalar_Value (Variable_Node, Int (Local_Termination));
 
       Declare_Variable
         (Configuration_Node,
@@ -1016,7 +1022,7 @@ package body XE_Parse is
          Variable_Node);
 
       --  To easily retrieve the enumeration literal.
-      Set_Variable_Mark (Variable_Node, Int (Global_Termination));
+      Set_Scalar_Value (Variable_Node, Int (Global_Termination));
 
       Declare_Variable
         (Configuration_Node,
@@ -1027,7 +1033,7 @@ package body XE_Parse is
          Variable_Node);
 
       --  To easily retrieve the enumeration literal.
-      Set_Variable_Mark (Variable_Node, Int (Deferred_Termination));
+      Set_Scalar_Value (Variable_Node, Int (Deferred_Termination));
 
       --  type type__host_function (standard)
       --     function F (...: String) return String;
@@ -1036,22 +1042,22 @@ package body XE_Parse is
         (Conf_Node    => Configuration_Node,
          Type_Name    => Type_Prefix & Str_To_Id ("host_function"),
          Type_Kind    => Pre_Type_Function,
-         Elmt_Type    => String_Type_Node,
-         Is_A_List    => False,
+         Comp_Type    => String_Type_Node,
+         List_Size    => 0,
          Is_Frozen    => True,
          Type_Sloc    => Null_Location,
          Type_Node    => Host_Function_Type_Node);
 
       Declare_Type_Component
         (Type_Node        => Host_Function_Type_Node,
-         Component_Name   => Sub_Prog_Param,
+         Component_Name   => ISN_Subpro_Par,
          Comp_Type_Node   => String_Type_Node,
          Component_Sloc   => Null_Location,
          Component_Node   => Component_Node);
 
       Declare_Type_Component
         (Type_Node        => Host_Function_Type_Node,
-         Component_Name   => Returned_Param,
+         Component_Name   => ISN_Return_Par,
          Comp_Type_Node   => String_Type_Node,
          Component_Sloc   => Null_Location,
          Component_Node   => Component_Node);
@@ -1063,8 +1069,8 @@ package body XE_Parse is
         (Conf_Node    => Configuration_Node,
          Type_Name    => Type_Prefix & Str_To_Id ("main_procedure"),
          Type_Kind    => Pre_Type_Procedure,
-         Elmt_Type    => Null_Type,
-         Is_A_List    => False,
+         Comp_Type    => Null_Type,
+         List_Size    => 0,
          Is_Frozen    => True,
          Type_Sloc    => Null_Location,
          Type_Node    => Main_Procedure_Type_Node);
@@ -1075,8 +1081,8 @@ package body XE_Parse is
         (Conf_Node    => Configuration_Node,
          Type_Name    => Type_Prefix & Str_To_Id ("ada_unit"),
          Type_Kind    => Pre_Type_Ada_Unit,
-         Elmt_Type    => Null_Type,
-         Is_A_List    => False,
+         Comp_Type    => Null_Type,
+         List_Size    => 0,
          Is_Frozen    => False,
          Type_Sloc    => Null_Location,
          Type_Node    => Ada_Unit_Type_Node);
@@ -1087,8 +1093,8 @@ package body XE_Parse is
         (Conf_Node    => Configuration_Node,
          Type_Name    => Str_To_Id ("partition"),
          Type_Kind    => Pre_Type_Partition,
-         Elmt_Type    => Ada_Unit_Type_Node,
-         Is_A_List    => True,
+         Comp_Type    => Ada_Unit_Type_Node,
+         List_Size    => Unbounded,
          Is_Frozen    => True,
          Type_Sloc    => Null_Location,
          Type_Node    => Partition_Type_Node);
@@ -1144,8 +1150,8 @@ package body XE_Parse is
         (Conf_Node    => Configuration_Node,
          Type_Name    => Str_To_Id ("channel"),
          Type_Kind    => Pre_Type_Channel,
-         Elmt_Type    => Partition_Type_Node,
-         Is_A_List    => False,
+         Comp_Type    => Null_Type,
+         List_Size    => 2,
          Is_Frozen    => True,
          Type_Sloc    => Null_Location,
          Type_Node    => Channel_Type_Node);
@@ -1177,8 +1183,8 @@ package body XE_Parse is
         (Conf_Node    => Configuration_Node,
          Type_Name    => Type_Prefix & Str_To_Id ("starter"),
          Type_Kind    => Pre_Type_Starter,
-         Elmt_Type    => Null_Type,
-         Is_A_List    => False,
+         Comp_Type    => Null_Type,
+         List_Size    => 0,
          Is_Frozen    => True,
          Type_Sloc    => Null_Location,
          Type_Node    => Starter_Type_Node);
@@ -1192,7 +1198,7 @@ package body XE_Parse is
          Variable_Node);
 
       --  To easily retrieve the enumeration literal.
-      Set_Variable_Mark (Variable_Node, Convert (Ada_Starter));
+      Set_Scalar_Value (Variable_Node, Convert (Ada_Starter));
 
       Declare_Variable
         (Configuration_Node,
@@ -1203,7 +1209,7 @@ package body XE_Parse is
          Variable_Node);
 
       --  To easily retrieve the enumeration literal.
-      Set_Variable_Mark (Variable_Node, Convert (Shell_Starter));
+      Set_Scalar_Value (Variable_Node, Convert (Shell_Starter));
 
       Declare_Variable
         (Configuration_Node,
@@ -1214,7 +1220,7 @@ package body XE_Parse is
          Variable_Node);
 
       --  To easily retrieve the enumeration literal.
-      Set_Variable_Mark (Variable_Node, Convert (None_Starter));
+      Set_Scalar_Value (Variable_Node, Convert (None_Starter));
 
 
       --  type Convention_Type is (Ada, Shell); (standard)
@@ -1223,8 +1229,8 @@ package body XE_Parse is
         (Conf_Node    => Configuration_Node,
          Type_Name    => Type_Prefix & Str_To_Id ("convention"),
          Type_Kind    => Pre_Type_Convention,
-         Elmt_Type    => Null_Type,
-         Is_A_List    => False,
+         Comp_Type    => Null_Type,
+         List_Size    => 0,
          Is_Frozen    => True,
          Type_Sloc    => Null_Location,
          Type_Node    => Convention_Type_Node);
@@ -1238,7 +1244,7 @@ package body XE_Parse is
          Variable_Node);
 
       --  To easily retrieve the enumeration literal.
-      Set_Variable_Mark (Variable_Node, Convert (Ada_Import));
+      Set_Scalar_Value (Variable_Node, Convert (Ada_Import));
 
       Declare_Variable
         (Configuration_Node,
@@ -1249,7 +1255,7 @@ package body XE_Parse is
          Variable_Node);
 
       --  To easily retrieve the enumeration literal.
-      Set_Variable_Mark (Variable_Node, Convert (Shell_Import));
+      Set_Scalar_Value (Variable_Node, Convert (Shell_Import));
 
       --  pragma starter ... or
       --  procedure pragma__starter
@@ -1262,7 +1268,7 @@ package body XE_Parse is
          Pragma_Starter_Node);
 
       --  To easily retrieve the enumeration literal.
-      Set_Subprogram_Mark (Pragma_Starter_Node, Convert (Pragma_Starter));
+      Set_Pragma_Kind (Pragma_Starter_Node, Pragma_Starter);
 
       Declare_Subprogram_Parameter
         (Str_To_Id ("method"),
@@ -1284,7 +1290,7 @@ package body XE_Parse is
          Pragma_Import_Node);
 
       --  To easily retrieve the enumeration literal.
-      Set_Subprogram_Mark (Pragma_Import_Node, Convert (Pragma_Import));
+      Set_Pragma_Kind (Pragma_Import_Node, Pragma_Import);
 
       Declare_Subprogram_Parameter
         (Str_To_Id ("convention"),
@@ -1318,9 +1324,7 @@ package body XE_Parse is
          Pragma_Boot_Server_Node);
 
       --  To easily retrieve the enumeration literal.
-      Set_Subprogram_Mark
-        (Pragma_Boot_Server_Node,
-         Convert (Pragma_Boot_Server));
+      Set_Pragma_Kind (Pragma_Boot_Server_Node, Pragma_Boot_Server);
 
       Declare_Subprogram_Parameter
         (Str_To_Id ("protocol_name"),
@@ -1347,9 +1351,7 @@ package body XE_Parse is
          Pragma_Version_Node);
 
       --  To easily retrieve the enumeration literal.
-      Set_Subprogram_Mark
-        (Pragma_Version_Node,
-         Convert (Pragma_Version));
+      Set_Pragma_Kind (Pragma_Version_Node, Pragma_Version);
 
       Declare_Subprogram_Parameter
         (Str_To_Id ("check"),
@@ -1384,7 +1386,7 @@ package body XE_Parse is
          --  If Expr_Node is a function, check returned parameter.
 
          if not Is_Subprogram_A_Procedure (Subprogram_Id (Expr_Node)) and then
-           Convert (Get_Type_Mark (Type_Node)) /= Pre_Type_Function then
+           Get_Type_Kind (Type_Node) /= Pre_Type_Function then
             Search_Function_Returned_Parameter (Subprogram_Id (Expr_Node), P);
             return Get_Parameter_Type (P) = Type_Node;
 
@@ -1394,13 +1396,13 @@ package body XE_Parse is
          --  or a procedure when the type is a procedure type ?
 
          if (Is_Subprogram_A_Procedure (Subprogram_Id (Expr_Node)) and then
-             Convert (Get_Type_Mark (Type_Node)) /= Pre_Type_Procedure) or else
+             Get_Type_Kind (Type_Node) /= Pre_Type_Procedure) or else
             (not Is_Subprogram_A_Procedure (Subprogram_Id (Expr_Node)) and then
-             Convert (Get_Type_Mark (Type_Node)) /= Pre_Type_Function) then
+             Get_Type_Kind (Type_Node) /= Pre_Type_Function) then
             return False;
          end if;
 
-         if Get_Array_Element_Type (Type_Node) /= Null_Type then
+         if Get_Array_Component_Type (Type_Node) /= Null_Type then
 
             --  Check also type of parameters ...
 
@@ -1484,17 +1486,48 @@ package body XE_Parse is
       Variable_Type     : Type_Id;
       List_Element_Node : Component_Id;
       List_Element_Type : Type_Id;
+      Comp_List_Size    : Int;
    begin
+
+      --  Only aggregates are allowed at this point.
+      Variable_Type  := Get_Variable_Type (Variable_Node);
+      Comp_List_Size := Get_Component_List_Size (Variable_Type);
       T_Left_Paren;
-      Variable_Type     := Get_Variable_Type (Variable_Node);
-      List_Element_Type := Get_Array_Element_Type (Variable_Type);
+
+      if Comp_List_Size = 0 then
+         Write_Location (Get_Token_Location);
+         Write_Str  ("only aggregate are allowed");
+         Write_Eol;
+         Exit_On_Parsing_Error;
+      end if;
+
+      if Comp_List_Size = Unbounded then
+         List_Element_Type := Get_Array_Component_Type (Variable_Type);
+      end if;
+
       loop
+
          Take_Token ((Tok_Identifier, Tok_Right_Paren));
          exit when Token = Tok_Right_Paren;
 
+         Expression_Sloc := Get_Token_Location;
+
+         if Comp_List_Size /= Unbounded then
+
+            Search_Uninitialized_Component
+              (Variable_Node, Null_Type, List_Element_Node);
+            if List_Element_Node = Null_Component then
+               Write_Location (Expression_Sloc);
+               Write_Str  ("too many components for record aggregate");
+               Write_Eol;
+               Exit_On_Parsing_Error;
+            end if;
+
+            List_Element_Type := Get_Component_Type (List_Element_Node);
+         end if;
+
          --  Ada unit names are allowed.
 
-         Expression_Sloc := Get_Token_Location;
          P_Full_Ada_Identifier;
          Expression_Name := Token_Name;
 
@@ -1536,14 +1569,14 @@ package body XE_Parse is
 
          end if;
 
-         if Is_Array_A_List (Variable_Type) then
+         if Get_Component_List_Size (Variable_Type) = Unbounded then
 
             --  As a naming convention, we use the keyword Component_Unit
             --  as a anonymous component name.
 
             Declare_Variable_Component
               (Variable_Node      => Variable_Node,
-               Component_Name     => Component_Unit,
+               Component_Name     => ISN_Array_Comp,
                Component_Type     => List_Element_Type,
                Component_Value    => Expression_Node,
                Attribute_Kind     => Attribute_Unknown,
@@ -1551,18 +1584,6 @@ package body XE_Parse is
                Component_Node     => List_Element_Node);
 
          else
-
-            Search_Uninitialized_Component
-              (Variable_Node,
-               List_Element_Type,
-               List_Element_Node);
-
-            if List_Element_Node = Null_Component then
-               Write_Location (Expression_Sloc);
-               Write_Str  ("too many components for record aggregate");
-               Write_Eol;
-               Exit_On_Parsing_Error;
-            end if;
 
             Set_Component_Value
               (List_Element_Node,
@@ -1653,7 +1674,7 @@ package body XE_Parse is
 
       --  Append the "standard" root configuration to the new one.
 
-      Append_Declaration   (Conf_Node, Node_Id (Configuration_Node));
+      Add_Configuration_Declaration (Conf_Node, Node_Id (Configuration_Node));
 
       --  Now, the new configuration is the root configuration.
 
@@ -1817,7 +1838,7 @@ package body XE_Parse is
       --  we use keyword Returned_Param as the anonymous parameter.
 
       Declare_Subprogram_Parameter
-        (Returned_Param,
+        (ISN_Return_Par,
          Para_Type_Node,
          Function_Node,
          Null_Location,
@@ -1957,7 +1978,7 @@ package body XE_Parse is
 
             Declare_Variable_Component
               (Variable_Node      => Partition_Node,
-               Component_Name     => Procedure_Unit,
+               Component_Name     => ISN_Appl_Main,
                Component_Type     => Ada_Unit_Type_Node,
                Component_Value    => Unit_Node,
                Attribute_Kind     => Attribute_Unknown,
@@ -2307,6 +2328,7 @@ package body XE_Parse is
      (Node : in Variable_Id;
       Head : in String) is
       T : Type_Id;
+      S : Int;
       C : Component_Id;
       H : String (1 .. Head'Length + 6) := (others => ' ');
    begin
@@ -2316,12 +2338,29 @@ package body XE_Parse is
       Write_Name (Get_Node_Name (Node_Id (T)));
       Write_Eol;
       Write_Str  (Head);
-      Write_Str  ("Mark : ");
-      Write_Int (Get_Variable_Mark (Node));
-      Write_Eol;
-      if Get_Array_Element_Type (T) /= Null_Type then
+      S := Get_Component_List_Size (T);
+      if S = 0 then
+         if Get_Variable_Value (Node) /= Null_Variable then
+            Write_Str  (Head);
+            Write_Str  ("    Data :");
+            Write_Eol;
+            Write_Str  (Head);
+            Write_Str  ("       ");
+            Write_Name (Get_Node_Name (Node_Id (Get_Variable_Value (Node))));
+            Write_Eol;
+         else
+            Write_Str  (Head);
+            Write_Str  ("Val  : ");
+            Write_Int (Get_Scalar_Value (Node));
+            Write_Eol;
+         end if;
+      else
          Write_Str  (Head);
-         Write_Str  ("    Data :");
+         if Get_Array_Component_Type (T) /= Null_Type then
+            Write_Str  ("   Array :");
+         else
+            Write_Str  ("   Record :");
+         end if;
          Write_Eol;
          First_Variable_Component (Node, C);
          while C /= Null_Component loop
@@ -2336,14 +2375,6 @@ package body XE_Parse is
             Print (C, H, True);
             Next_Variable_Component (C);
          end loop;
-      elsif Get_Variable_Value (Node) /= Null_Variable then
-         Write_Str  (Head);
-         Write_Str  ("    Data :");
-         Write_Eol;
-         Write_Str  (Head);
-         Write_Str  ("       ");
-         Write_Name (Get_Node_Name (Node_Id (Get_Variable_Value (Node))));
-         Write_Eol;
       end if;
    end Print;
 
@@ -2355,19 +2386,36 @@ package body XE_Parse is
      (Node : in Type_Id;
       Head : in String) is
       C : Component_Id;
+      S : Int;
+      T : Type_Id;
       H : String (1 .. Head'Length + 6) := (others => ' ');
    begin
-      Write_Str  ("Mark : ");
-      Write_Int (Get_Type_Mark (Node));
-      Write_Eol;
-      if Get_Array_Element_Type (Node) /= Null_Type then
-         Write_Str  ("List : ");
-         if Is_Array_A_List (Node) then
-            Write_Str  ("true");
+      S := Get_Component_List_Size (Node);
+      if S /= 0 then
+         if S = Unbounded then
+            Write_Str  (Head);
+            Write_Str  ("    Size : unbounded");
+            Write_Eol;
+            T := Get_Array_Component_Type (Node);
+            Write_Str  ("    Kind : ");
+            Write_Int  (Convert (Get_Type_Kind (T)));
+            Write_Eol;
          else
-            Write_Str ("false");
+            Write_Str  (Head);
+            Write_Str  ("    Size : ");
+            Write_Int  (S);
+            Write_Eol;
+            First_Type_Component (Node, C);
+            if C /= Null_Component then
+               Write_Str  (Head);
+               Write_Str  ("   Data : ");
+               Write_Eol;
+               while C /= Null_Component loop
+                  Print (C, H, False);
+                  Next_Type_Component (C);
+               end loop;
+            end if;
          end if;
-         Write_Eol;
          First_Type_Component (Node, C);
          if C /= Null_Component then
             Write_Str  (Head);
@@ -2375,16 +2423,6 @@ package body XE_Parse is
             Write_Eol;
             while C /= Null_Component loop
                Print (C, H, True);
-               Next_Type_Component (C);
-            end loop;
-         end if;
-         First_Type_Component (Node, C);
-         if C /= Null_Component then
-            Write_Str  (Head);
-            Write_Str  ("   Data : ");
-            Write_Eol;
-            while C /= Null_Component loop
-               Print (C, H, False);
                Next_Type_Component (C);
             end loop;
          end if;
@@ -2414,6 +2452,9 @@ package body XE_Parse is
             Write_Str (Head);
             Write_Str ("   = ");
             Write_Name (Get_Node_Name (Node_Id (Value)));
+         else
+            Write_Str (Head);
+            Write_Str ("   = ???");
          end if;
          Write_Eol;
       end if;
@@ -2458,9 +2499,9 @@ package body XE_Parse is
    begin
       Write_Str (Head);
       Write_Str  ("    Mark : ");
-      Write_Int (Get_Subprogram_Mark (Node));
+      Write_Int  (Int (Get_Pragma_Kind (Node)));
       Write_Eol;
-      Write_Str (Head);
+      Write_Str  (Head);
       Write_Str  ("    Proc : ");
       if Is_Subprogram_A_Procedure (Node) then
          Write_Str ("true");
@@ -2520,7 +2561,7 @@ package body XE_Parse is
       Write_Name (Get_Node_Name (Node));
       Write_Eol;
       Write_Str (Head);
-      Write_Str ("Kind : ");
+      Write_Str ("Node : ");
       if Is_Variable (Node) then
          Write_Str ("variable");
          Write_Eol;
@@ -2741,7 +2782,7 @@ package body XE_Parse is
 
       Search_Subprogram (Pragma_Name, Node);
       if Node /= Null_Subprogram then
-         Pragma_Kind := Convert (Get_Subprogram_Mark (Node));
+         Pragma_Kind := Get_Pragma_Kind (Node);
       end if;
       Pragma_Node := Node;
 
@@ -2784,7 +2825,7 @@ package body XE_Parse is
       end if;
       Type_Node := Type_Id (Node);
       if Node /= Null_Node then
-         Type_Kind := Convert (Get_Type_Mark (Type_Id (Node)));
+         Type_Kind := Get_Type_Kind (Type_Id (Node));
       end if;
 
    end Search_Type;
@@ -2804,8 +2845,8 @@ package body XE_Parse is
       First_Variable_Component (Variable_Node, C);
       while C /= Null_Component loop
          T := Get_Component_Type (C);
-         exit when T = Component_Type and then
-           not Is_Component_Initialized (C);
+         exit when (Component_Type = T or else Component_Type = Null_Type)
+           and then not Is_Component_Initialized (C);
          Next_Variable_Component (C);
       end loop;
       Component_Node := C;

@@ -53,13 +53,13 @@ package XE_Back is
    Last_CUID  : constant CUID_Type := 299_999;
 
 
-   -- Host_Id --
+   -- HID_Type --
 
-   type Host_Id is new Int range 300_000 .. 399_999;
+   type HID_Type is new Int range 300_000 .. 399_999;
 
-   Null_Host  : constant Host_Id := 300_000;
-   First_Host : constant Host_Id := 300_001;
-   Last_Host  : constant Host_Id := 399_999;
+   Null_HID  : constant HID_Type := 300_000;
+   First_HID : constant HID_Type := 300_001;
+   Last_HID  : constant HID_Type := 399_999;
 
 
    -- PID_Type --
@@ -100,7 +100,7 @@ package XE_Back is
    -- Defaults --
 
    Default_Main          : Main_Subprogram_Type  := No_Main_Subprogram;
-   Default_Host          : Host_Id               := Null_Host;
+   Default_Host          : HID_Type              := Null_HID;
    Default_Storage_Dir   : Storage_Dir_Name_Type := No_Storage_Dir;
    Default_Command_Line  : Command_Line_Type     := No_Command_Line;
    Default_Termination   : Termination_Type      := Unknown_Termination;
@@ -114,6 +114,7 @@ package XE_Back is
 
    type Channel_Type is record
       Name   : Channel_Name_Type;
+      Node   : Node_Id;
       Lower  : PID_Type;
       Upper  : PID_Type;
       Filter : Filter_Name_Type;
@@ -121,23 +122,25 @@ package XE_Back is
 
    type Conf_Unit_Type is record
       CUname    : CUnit_Name_Type;
+      Node      : Node_Id;
       My_ALI    : ALI_Id;
       My_Unit   : Unit_Id;
       Partition : PID_Type;
       Next      : CUID_Type;
    end record;
 
-   type Host_Type is
-      record
-         Static   : Boolean            := True;
-         Import   : Import_Method_Type := None_Import;
-         Name     : Host_Name_Type     := No_Name;
-         External : Host_Name_Type     := No_Name;
-      end record;
+   type Host_Type is record
+      Name     : Host_Name_Type;
+      Node     : Node_Id;
+      Static   : Boolean            := True;
+      Import   : Import_Method_Type := None_Import;
+      External : Host_Name_Type     := No_Name;
+   end record;
 
    type Partition_Type is record
       Name            : Partition_Name_Type;
-      Host            : Host_Id;
+      Node            : Node_Id;
+      Host            : HID_Type;
       Storage_Dir     : Storage_Dir_Name_Type;
       Command_Line    : Command_Line_Type;
       Main_Subprogram : Unit_Name_Type;
@@ -160,8 +163,8 @@ package XE_Back is
 
    package Hosts  is new Table
      (Table_Component_Type => Host_Type,
-      Table_Index_Type     => Host_Id,
-      Table_Low_Bound      => First_Host,
+      Table_Index_Type     => HID_Type,
+      Table_Low_Bound      => First_HID,
       Table_Initial        => 20,
       Table_Increment      => 100,
       Table_Name           => "Host");
@@ -207,23 +210,21 @@ package XE_Back is
 
    procedure Back;
 
-   procedure Copy_Channel
-     (Name : in Channel_Name_Type;
-      Many : in Int);
-   --  Create Many successive copies of channel Name.
-
-   procedure Copy_Partition
-     (Name : in Partition_Name_Type;
-      Many : in Int);
-   --  Create Many successive copies of partition Name.
-
    procedure Create_Channel
-     (Name : in  Channel_Name_Type;
+     (Name : in Channel_Name_Type;
+      Node : in Node_Id;
       CID  : out CID_Type);
    --  Create a new channel and store its CID in its name key.
 
+   procedure Create_Host
+     (Name : in  Host_Name_Type;
+      Node : in Node_Id;
+      HID  : out HID_Type);
+   --  Create a new host and store its HID in its name key.
+
    procedure Create_Partition
      (Name : in  Partition_Name_Type;
+      Node : in Node_Id;
       PID  : out PID_Type);
    --  Create a new partition and store its PID in its name key.
 
@@ -231,18 +232,19 @@ package XE_Back is
    --  Look for storage_dir into partitions and compute absolute executable
    --  name. If null, return default.
 
-   function  Get_ALI_Id (N : Name_Id) return ALI_Id;
+   function Get_ALI_Id (N : Name_Id) return ALI_Id;
    --  Return N name key if its value is in ALI_Id range, otherwise
    --  return No_ALI_Id.
 
-   function Get_CID  (N : Name_Id) return CID_Type;
-   function Get_Command_Line (P : PID_Type) return Command_Line_Type;
+   function Get_CID             (N : Name_Id) return CID_Type;
+   function Get_Command_Line    (P : PID_Type) return Command_Line_Type;
    --  Look for conammd_line into partitions. If null, return default.
 
-   function  Get_CUID  (N : Name_Id) return CUID_Type;
+   function Get_CUID            (N : Name_Id) return CUID_Type;
    function Get_Filter          (C : CID_Type) return Name_Id;
    --  Look for filter in channels. If null, return default.
 
+   function Get_HID             (N : Name_Id) return HID_Type;
    function Get_Host            (P : PID_Type) return Name_Id;
    --  Look for host into partitions. If null, return default.
 
@@ -252,7 +254,7 @@ package XE_Back is
    function Get_Partition_Dir   (P : PID_Type) return File_Name_Type;
    --  Look for partition_dir into partitions. If null, return default.
 
-   function Get_PID  (N : Name_Id) return PID_Type;
+   function Get_PID             (N : Name_Id) return PID_Type;
    function Get_Relative_Exec   (P : PID_Type) return File_Name_Type;
    --  Look for storage_dir into partitions and compute relative executable
    --  name into partitions. If null, return default.
@@ -263,7 +265,7 @@ package XE_Back is
    function Get_Termination     (P : PID_Type) return Termination_Type;
    --  Look for termination into partitions. If null, return default.
 
-   function  Get_Unit_Id (N : Name_Id) return Unit_Id;
+   function Get_Unit_Id (N : Name_Id) return Unit_Id;
    --  Return N name key if its value is in Unit_Id range, otherwise
    --  return No_Unit_Id.
 
@@ -287,6 +289,8 @@ package XE_Back is
    procedure Set_CID  (N : Name_Id; C : CID_Type);
 
    procedure Set_CUID  (N : Name_Id; U : CUID_Type);
+
+   procedure Set_HID  (N : Name_Id; H : HID_Type);
 
    procedure Set_PID  (N : Name_Id; P : PID_Type);
 

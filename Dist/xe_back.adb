@@ -36,7 +36,7 @@ package body XE_Back is
 
    procedure Build_New_Host
      (Subprogram : in Subprogram_Id;
-      Host_Entry : out Host_Id);
+      Host_Entry : out HID_Type);
 
    procedure Build_New_Variable
      (Variable : in Variable_Id);
@@ -50,16 +50,6 @@ package body XE_Back is
      (Channel   : in Variable_Id);
    --  Retrieve the two partitions and attributes previously parsed in
    --  order to build the channel.
-
-   function Get_Host
-     (Node : Node_Id)
-     return Host_Id;
-   --  Retrieve Node Mark component.
-
-   procedure Set_Host
-     (Node : in Node_Id;
-      Host : in Host_Id);
-   --  Set Node Mark component to Host.
 
    procedure Set_Channel_Attribute
      (Attribute : in Attribute_Id;
@@ -177,7 +167,7 @@ package body XE_Back is
 
    procedure Back is
       Node : Node_Id;
-      Host : Host_Id;
+      Host : HID_Type;
    begin
 
       First_Configuration_Declaration (Configuration_Node, Node);
@@ -225,7 +215,7 @@ package body XE_Back is
 
       --  Create a new entry in Channels.Table.
 
-      Create_Channel (Channel_Name, Channel_ID);
+      Create_Channel (Channel_Name, Node_Id (Channel), Channel_ID);
 
       --  Scan Channel_Name partition pair and Channel_Name attributes.
 
@@ -258,22 +248,21 @@ package body XE_Back is
 
    procedure Build_New_Host
      (Subprogram : in Subprogram_Id;
-      Host_Entry : out Host_Id) is
-      Host : Host_Id;
+      Host_Entry : out HID_Type) is
+      Host : HID_Type;
       Name : Name_Id;
+      Node : Node_Id;
    begin
 
-      Host := Get_Host (Node_Id (Subprogram));
+      Node := Node_Id (Subprogram);
+      Name := Get_Node_Name (Node);
+      Host := Get_HID (Name);
 
-      if Host = Null_Host then
-         Hosts.Increment_Last;
-         Host := Hosts.Last;
-         Name := Get_Node_Name (Node_Id (Subprogram));
-         Hosts.Table (Host).Name     := Name;
+      if Host = Null_HID then
+         Name := Get_Node_Name (Node);
+         Create_Host (Name, Node, Host);
          Hosts.Table (Host).Static   := False;
-         Hosts.Table (Host).Import   := None_Import;
          Hosts.Table (Host).External := Name;
-         Set_Host (Node_Id (Subprogram), Host);
       end if;
 
       Host_Entry := Host;
@@ -297,7 +286,7 @@ package body XE_Back is
 
       --  Create a new entry into Partitions.Table.
 
-      Create_Partition (Partition_Name, Partition_ID);
+      Create_Partition (Partition_Name, Node_Id (Partition), Partition_ID);
 
       --  Scan Partition_Name ada unit list and Partition_Name attributes.
 
@@ -315,14 +304,14 @@ package body XE_Back is
 
             --  Is this ada unit a main procedure or THE main program ?
             Parser_Naming := Get_Node_Name (Node_Id (Component_Node));
-            if Parser_Naming /= Component_Unit then
+            if Parser_Naming /= ISN_Array_Comp then
 
                --  Is it at least a main procedure ?
                Partitions.Table (Partition_ID).Main_Subprogram
                  := Ada_Unit_Name;
 
                --  Is it also a main program ?
-               if Parser_Naming = Procedure_Unit then
+               if Parser_Naming = ISN_Appl_Main then
 
                   --  Has the main program already been declared ?
                   if Main_Partition /= Null_PID then
@@ -365,7 +354,7 @@ package body XE_Back is
       Pre_Type : Predefined_Type;
    begin
       Var_Type := Get_Variable_Type (Variable);
-      Pre_Type := Convert (Get_Type_Mark (Var_Type));
+      Pre_Type := Get_Type_Kind (Var_Type);
       case Pre_Type is
 
          when Pre_Type_Partition =>
@@ -380,88 +369,13 @@ package body XE_Back is
       end case;
    end Build_New_Variable;
 
-   ------------------
-   -- Copy_Channel --
-   ------------------
-
-   procedure Copy_Channel
-     (Name : in Channel_Name_Type;
-      Many : in Int) is
-      CID  : CID_Type;
-      CCID : CID_Type;
-   begin
-      if Verbose_Mode then
-         Write_Program_Name;
-         Write_Str  (": create Channel ");
-         Write_Name (Name);
-         Write_Str  (" (");
-         Write_Int  (Many);
-         if Many > 1 then
-            Write_Str (" copies)");
-         else
-            Write_Str (" copy)");
-         end if;
-         Write_Eol;
-      end if;
-
-      CCID := Get_CID (Name);
-      for I in 1 .. Many loop
-         Channels.Increment_Last;
-         CID := Channels.Last;
-         Set_CID (Name, CID);
-         Channels.Table (CID).Name  := Channels.Table (CID).Name;
-
-         --  This is stupid, but let's do it.
-         Channels.Table (CID).Lower := Channels.Table (CID).Lower;
-         Channels.Table (CID).Upper := Channels.Table (CID).Upper;
-      end loop;
-   end Copy_Channel;
-
-   --------------------
-   -- Copy_Partition --
-   --------------------
-
-   procedure Copy_Partition
-     (Name : in Partition_Name_Type;
-      Many : in Int) is
-      PID  : PID_Type;
-      CPID : PID_Type;
-      CUID : CUID_Type;
-   begin
-      if Verbose_Mode then
-         Write_Program_Name;
-         Write_Str  (": create partition ");
-         Write_Name (Name);
-         Write_Str  (" (");
-         Write_Int  (Many);
-         if Many > 1 then
-            Write_Str (" copies)");
-         else
-            Write_Str (" copy)");
-         end if;
-         Write_Eol;
-      end if;
-
-      CPID := Get_PID (Name);
-      for I in 1 .. Many loop
-         Partitions.Increment_Last;
-         PID := Partitions.Last;
-         Set_PID (Name, PID);
-         Partitions.Table (PID).Name := Name;
-         CUID := Partitions.Table (CPID).First_Unit;
-         while CUID /= Null_CUID loop
-            Add_Conf_Unit (CUnit.Table (CUID).CUname, PID);
-            CUID := CUnit.Table (CUID).Next;
-         end loop;
-      end loop;
-   end Copy_Partition;
-
    --------------------
    -- Create_Channel --
    --------------------
 
    procedure Create_Channel
      (Name : in Channel_Name_Type;
+      Node : in Node_Id;
       CID  : out CID_Type) is
       Channel : CID_Type;
    begin
@@ -476,11 +390,40 @@ package body XE_Back is
       Channel := Channels.Last;
       Set_CID (Name, Channel);
       Channels.Table (Channel).Name            := Name;
+      Channels.Table (Channel).Node            := Node;
       Channels.Table (Channel).Lower           := Null_PID;
       Channels.Table (Channel).Upper           := Null_PID;
       Channels.Table (Channel).Filter          := No_Filter_Name;
       CID := Channel;
    end Create_Channel;
+
+   -----------------
+   -- Create_Host --
+   -----------------
+
+   procedure Create_Host
+     (Name : in Host_Name_Type;
+      Node : in Node_Id;
+      HID  : out HID_Type) is
+      Host : HID_Type;
+   begin
+      if Verbose_Mode then
+         Write_Program_Name;
+         Write_Str  (": create channel ");
+         Write_Name (Name);
+         Write_Eol;
+      end if;
+
+      Hosts.Increment_Last;
+      Host := Hosts.Last;
+      Hosts.Table (Host).Name            := Name;
+      Hosts.Table (Host).Node            := Node;
+      Hosts.Table (Host).Static          := True;
+      Hosts.Table (Host).Import          := None_Import;
+      Hosts.Table (Host).External        := No_Name;
+      Set_HID (Name, Host);
+      HID := Host;
+   end Create_Host;
 
    ----------------------
    -- Create_Partition --
@@ -488,6 +431,7 @@ package body XE_Back is
 
    procedure Create_Partition
      (Name : in Partition_Name_Type;
+      Node : in Node_Id;
       PID  : out PID_Type) is
       Partition : PID_Type;
    begin
@@ -502,7 +446,8 @@ package body XE_Back is
       Partition := Partitions.Last;
       Set_PID (Name, Partition);
       Partitions.Table (Partition).Name            := Name;
-      Partitions.Table (Partition).Host            := Null_Host;
+      Partitions.Table (Partition).Node            := Node;
+      Partitions.Table (Partition).Host            := Null_HID;
       Partitions.Table (Partition).Storage_Dir     := No_Storage_Dir;
       Partitions.Table (Partition).Command_Line    := No_Command_Line;
       Partitions.Table (Partition).Main_Subprogram := No_Name;
@@ -635,14 +580,14 @@ package body XE_Back is
    --------------
 
    function Get_Host            (P : in PID_Type) return Name_Id is
-      H : Host_Id := Partitions.Table (P).Host;
+      H : HID_Type := Partitions.Table (P).Host;
    begin
 
-      if H = Null_Host then
+      if H = Null_HID then
          H := Default_Host;
       end if;
 
-      if H /= Null_Host then
+      if H /= Null_HID then
          if not Hosts.Table (H).Static then
             if Hosts.Table (H).Import = Shell_Import then
                return  Str_To_Id ("""`") &
@@ -670,26 +615,20 @@ package body XE_Back is
 
    end Get_Host;
 
-   --------------
-   -- Get_Host --
-   --------------
+   -------------
+   -- Get_HID --
+   -------------
 
-   function Get_Host (Node : Node_Id) return Host_Id is
+   function Get_HID (N : Name_Id) return HID_Type is
       Info : Int;
    begin
-      if Is_Subprogram (Node) then
-         Info := Get_Subprogram_Mark (Subprogram_Id (Node));
-      elsif Is_Variable (Node) then
-         Info := Get_Variable_Mark (Variable_Id (Node));
+      Info := Get_Name_Table_Info (N);
+      if Info in Int (HID_Type'First) .. Int (HID_Type'Last) then
+         return HID_Type (Info);
       else
-         raise Parsing_Error;
+         return Null_HID;
       end if;
-      if Info in Int (Host_Id'First) .. Int (Host_Id'Last) then
-         return Host_Id (Info);
-      else
-         return Null_Host;
-      end if;
-   end Get_Host;
+   end Get_HID;
 
    -------------------------
    -- Get_Main_Subprogram --
@@ -908,7 +847,6 @@ package body XE_Back is
 
       --  Could be a variable or a subprogram.
       Attribute_Item : Node_Id;
-
       Attribute_Kind : Attribute_Type;
 
    begin
@@ -916,8 +854,7 @@ package body XE_Back is
       --  Apply attribute to a channel.
 
       Attribute_Kind := Get_Attribute_Kind (Component_Id (Attribute));
-      Attribute_Item :=
-        Get_Component_Value (Component_Id (Attribute));
+      Attribute_Item := Get_Component_Value (Component_Id (Attribute));
 
       --  No attribute was really assigned.
 
@@ -928,7 +865,7 @@ package body XE_Back is
       case Attribute_Kind is
          when Attribute_Filter =>
 
-            --  Only strings are allowed here.
+            --  Only string literals are allowed here.
 
             if not Is_Variable (Attribute_Item) or else
               Get_Variable_Type (Variable_Id (Attribute_Item)) /=
@@ -936,7 +873,7 @@ package body XE_Back is
                Write_SLOC (Node_Id (Attribute));
                Write_Name (Channels.Table (Channel).Name);
                Write_Str ("'s filter attribute must be ");
-               Write_Str ("a string litteral");
+               Write_Str ("a string literal");
                Write_Eol;
                raise Parsing_Error;
             end if;
@@ -999,18 +936,10 @@ package body XE_Back is
    -- Set_Host --
    --------------
 
-   procedure Set_Host
-     (Node : in Node_Id;
-      Host : in Host_Id) is
+   procedure Set_HID (N : in Name_Id; H : in HID_Type) is
    begin
-      if Is_Subprogram (Node) then
-         Set_Subprogram_Mark (Subprogram_Id (Node), Int (Host));
-      elsif Is_Variable (Node) then
-         Set_Variable_Mark (Variable_Id (Node), Int (Host));
-      else
-         raise Parsing_Error;
-      end if;
-   end Set_Host;
+      Set_Name_Table_Info (N, Int (H));
+   end Set_HID;
 
    -----------------------------
    -- Set_Partition_Attribute --
@@ -1095,7 +1024,7 @@ package body XE_Back is
          when Attribute_Host =>
 
             declare
-               Host : Host_Id;
+               Host : HID_Type;
             begin
 
                if Is_Subprogram (Attribute_Item) then
@@ -1122,14 +1051,14 @@ package body XE_Back is
                --  Does it apply to all partitions ? Therefore, check
                --  that this has not already been done.
 
-               if Partition = Null_PID and then Default_Host = Null_Host then
+               if Partition = Null_PID and then Default_Host = Null_HID then
                   Default_Host := Host;
 
                --  Apply to one partition. Check that it has not already
                --  been done.
 
                elsif Partition /= Null_PID and then
-                 Partitions.Table (Partition).Host = Null_Host then
+                 Partitions.Table (Partition).Host = Null_HID then
                   Partitions.Table (Partition).Host := Host;
 
                else
@@ -1246,7 +1175,7 @@ package body XE_Back is
               Default_Termination = Unknown_Termination then
                Default_Termination :=
                  Termination_Type
-                 (Get_Variable_Mark (Variable_Id (Attribute_Item)));
+                 (Get_Scalar_Value (Variable_Id (Attribute_Item)));
 
             --  Apply to one partition. Check that it has not already
             --  been done.
@@ -1256,7 +1185,7 @@ package body XE_Back is
             then
                Partitions.Table (Partition).Termination :=
                  Termination_Type
-                 (Get_Variable_Mark (Variable_Id (Attribute_Item)));
+                 (Get_Scalar_Value (Variable_Id (Attribute_Item)));
 
             else
                Write_SLOC (Node_Id (Attribute));
@@ -1297,20 +1226,20 @@ package body XE_Back is
       Parameter   : Parameter_Id;
       Method      : Import_Method_Type;
       Value       : Variable_Id;
-      Host        : Host_Id;
+      Host        : HID_Type;
 
    begin
 
       --  Apply pragma statement.
 
-      Pragma_Kind := Convert (Get_Subprogram_Mark (Subprogram));
+      Pragma_Kind := Get_Pragma_Kind (Subprogram);
       First_Subprogram_Parameter (Subprogram, Parameter);
 
       case Pragma_Kind is
 
          when Pragma_Import =>
             Value := Get_Variable_Value (Variable_Id (Parameter));
-            Method := Convert (Get_Variable_Mark (Value));
+            Method := Convert (Get_Scalar_Value (Value));
             Next_Subprogram_Parameter (Parameter);
             Value := Get_Variable_Value (Variable_Id (Parameter));
             Value := Get_Variable_Value (Variable_Id (Value));
@@ -1329,7 +1258,7 @@ package body XE_Back is
 
          when Pragma_Starter =>
             Value := Get_Variable_Value (Variable_Id (Parameter));
-            Default_Starter := Convert (Get_Variable_Mark (Value));
+            Default_Starter := Convert (Get_Scalar_Value (Value));
 
          when Pragma_Boot_Server =>
             Value := Get_Variable_Value (Variable_Id (Parameter));
@@ -1340,7 +1269,7 @@ package body XE_Back is
 
          when Pragma_Version =>
             Value := Get_Variable_Value (Variable_Id (Parameter));
-            Default_Version_Check := (Get_Variable_Mark (Value) /= 0);
+            Default_Version_Check := (Get_Scalar_Value (Value) /= 0);
 
          when Pragma_Filter =>
             Value := Get_Variable_Value (Variable_Id (Parameter));
@@ -1360,8 +1289,8 @@ package body XE_Back is
       Pre_Type_Id    : Predefined_Type;
    begin
 
-      if Get_Array_Element_Type (Pre_Type) /= Null_Type then
-         Pre_Type_Id := Convert (Get_Type_Mark (Pre_Type));
+      if Get_Component_List_Size (Pre_Type) /= 0 then
+         Pre_Type_Id := Get_Type_Kind (Pre_Type);
          First_Type_Component (Pre_Type, Component_Node);
          while Component_Node /= Null_Component loop
             if Get_Attribute_Kind (Component_Node) /= Attribute_Unknown
@@ -1401,7 +1330,7 @@ package body XE_Back is
    procedure Show_Configuration is
 
       Main         : Main_Subprogram_Type;
-      Host         : Host_Id;
+      Host         : HID_Type;
       Storage_Dir  : Storage_Dir_Name_Type;
       Command_Line : Command_Line_Type;
 
@@ -1459,11 +1388,11 @@ package body XE_Back is
             end if;
 
             Host := I.Host;
-            if Host = Null_Host then
+            if Host = Null_HID then
                Host := Default_Host;
             end if;
 
-            if Host /= Null_Host then
+            if Host /= Null_HID then
                Write_Str ("   Host        : ");
                if Hosts.Table (Host).Static then
                   Write_Name (Hosts.Table (Host).Name);

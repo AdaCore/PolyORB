@@ -55,11 +55,11 @@ package body XE is
       end record;
 
    --  list
-   --     node_1 : next declaration
-   --     node_2 : list head
-   --     node_3 : list tail
-   --     flag_1 : list or array
-   --     value  : declaration list | parameter list | component list
+   --     node_1 : list head
+   --     node_2 : list tail
+   --     node_3 : component type
+   --     flag_1 : unbounded
+   --     value  : length
    --  subprogram
    --     node_1 : next declaration
    --     node_2 : unused
@@ -68,7 +68,7 @@ package body XE is
    --     value  : used when pragma
    --  type
    --     node_1 : next declaration
-   --     node_2 : array element type when type is a list
+   --     node_2 : unused
    --     node_3 : component list
    --     flag_1 : auto. allocation
    --     value  : predefined_type'pos
@@ -131,7 +131,7 @@ package body XE is
       pragma Assert (Is_Subprogram (Node));
       List := Nodes.Table (Node).Node_3;
       pragma Assert (Is_List (List));
-      if Nodes.Table (List).Node_2 = Null_Node then
+      if Nodes.Table (List).Node_1 = Null_Node then
          Nodes.Table (List).Node_1 := Value;
          Nodes.Table (List).Node_2 := Value;
       else
@@ -154,7 +154,7 @@ package body XE is
       pragma Assert (Is_Type (Node));
       List := Nodes.Table (Node).Node_3;
       pragma Assert (Is_List (List));
-      if Nodes.Table (List).Node_2 = Null_Node then
+      if Nodes.Table (List).Node_1 = Null_Node then
          Nodes.Table (List).Node_1 := Value;
          Nodes.Table (List).Node_2 := Value;
       else
@@ -177,7 +177,7 @@ package body XE is
       pragma Assert (Is_Variable (Node));
       List := Nodes.Table (Node).Node_3;
       pragma Assert (Is_List (List));
-      if Nodes.Table (List).Node_2 = Null_Node then
+      if Nodes.Table (List).Node_1 = Null_Node then
          Nodes.Table (List).Node_1 := Value;
          Nodes.Table (List).Node_2 := Value;
       else
@@ -418,10 +418,8 @@ package body XE is
    procedure Create_Statement
      (Statement_Node : out Statement_Id;
       Statement_Name : in  Name_Id) is
-      Node : Node_Id;
    begin
-      Create_Node (Node, Statement_Name, K_Statement);
-      Statement_Node := Statement_Id (Node);
+      Create_Node (Node_Id (Statement_Node), Statement_Name, K_Statement);
    end Create_Statement;
 
    -----------------------
@@ -435,7 +433,7 @@ package body XE is
       List : Node_Id;
    begin
       Create_Node (Node, Subprogram_Name, K_Subprogram);
-      Create_Node (List, Str_To_Id ("parameter__list"), K_List);
+      Create_Node (List, No_Name, K_List);
       Nodes.Table (Node).Node_3 := List;
       Subprogram_Node := Subprogram_Id (Node);
    end Create_Subprogram;
@@ -523,18 +521,43 @@ package body XE is
       Component_Node := Component_Id (Nodes.Table (List).Node_1);
    end First_Variable_Component;
 
-   ----------------------------
-   -- Get_Array_Element_Type --
-   ----------------------------
+   ------------------------------
+   -- Get_Array_Component_Type --
+   ------------------------------
 
-   function Get_Array_Element_Type
-     (Array_Type_Node   : in Type_Id)
+   function Get_Array_Component_Type
+     (Type_Node   : in Type_Id)
       return Type_Id is
-      Node : Node_Id := Node_Id (Array_Type_Node);
+      Node : Node_Id := Node_Id (Type_Node);
+      List : Node_Id;
    begin
       pragma Assert (Is_Type (Node));
-      return Type_Id (Nodes.Table (Node).Node_2);
-   end Get_Array_Element_Type;
+      List := Nodes.Table (Node).Node_3;
+      if List = Null_Node then
+         return Null_Type;
+      end if;
+      pragma Assert (Is_List (List));
+      return Type_Id (Nodes.Table (List).Node_3);
+   end Get_Array_Component_Type;
+
+   -----------------------------
+   -- Get_Component_List_Size --
+   -----------------------------
+
+   function Get_Component_List_Size
+     (Type_Node : Type_Id)
+      return Int is
+      Node : Node_Id := Node_Id (Type_Node);
+      List : Node_Id;
+   begin
+      pragma Assert (Is_Type (Node));
+      List := Nodes.Table (Node).Node_3;
+      if List = Null_Node then
+         return 0;
+      end if;
+      pragma Assert (Is_List (List));
+      return Nodes.Table (List).Value;
+   end Get_Component_List_Size;
 
    ------------------------------
    -- Is_Component_Initialized --
@@ -612,9 +635,9 @@ package body XE is
       Loc_Y := Nodes.Table (Node).Loc_Y;
    end Get_Node_SLOC;
 
-   -------------------------
+   ------------------------
    -- Get_Parameter_Mark --
-   -------------------------
+   ------------------------
 
    function  Get_Parameter_Mark
      (Parameter_Node : in Parameter_Id)
@@ -636,9 +659,9 @@ package body XE is
       return Get_Variable_Type (Variable_Id (Parameter_Node));
    end Get_Parameter_Type;
 
-   ------------------------
+   -------------------------
    -- Get_Subprogram_Call --
-   ------------------------
+   -------------------------
 
    function  Get_Subprogram_Call
      (Statement_Node  : in Statement_Id)
@@ -649,18 +672,18 @@ package body XE is
       return Subprogram_Id (Nodes.Table (Node).Node_2);
    end Get_Subprogram_Call;
 
-   -------------------------
-   -- Get_Subprogram_Mark --
-   -------------------------
+   ---------------------
+   -- Get_Pragma_Kind --
+   ---------------------
 
-   function  Get_Subprogram_Mark
+   function  Get_Pragma_Kind
      (Subprogram_Node : in Subprogram_Id)
-     return Int is
+     return Pragma_Type is
       Node : Node_Id := Node_Id (Subprogram_Node);
    begin
       pragma Assert (Is_Subprogram (Node));
-      return Nodes.Table (Node).Value;
-   end Get_Subprogram_Mark;
+      return Convert (Nodes.Table (Node).Value);
+   end Get_Pragma_Kind;
 
    ---------------
    -- Get_Token --
@@ -678,30 +701,33 @@ package body XE is
    end Get_Token;
 
    -------------------
-   -- Get_Type_Mark --
+   -- Get_Type_Kind --
    -------------------
 
-   function  Get_Type_Mark
+   function  Get_Type_Kind
      (Type_Node : in Type_Id)
-     return Int is
+     return Predefined_Type is
       Node : Node_Id := Node_Id (Type_Node);
    begin
       pragma Assert (Is_Type (Node));
-      return Nodes.Table (Node).Value;
-   end Get_Type_Mark;
+      return Convert (Nodes.Table (Node).Value);
+   end Get_Type_Kind;
 
-   -----------------------
-   -- Get_Variable_Mark --
-   -----------------------
+   ----------------------
+   -- Get_Scalar_Value --
+   ----------------------
 
-   function  Get_Variable_Mark
+   function  Get_Scalar_Value
      (Variable_Node : Variable_Id)
       return Int is
-      Node : Node_Id := Node_Id (Variable_Node);
+      Node  : Node_Id := Node_Id (Variable_Node);
+      Ntype : Type_Id;
    begin
       pragma Assert (Is_Variable (Node));
+      Ntype := Get_Variable_Type (Variable_Node);
+      pragma Assert (Get_Component_List_Size (Ntype) = 0);
       return Nodes.Table (Node).Value;
-   end Get_Variable_Mark;
+   end Get_Scalar_Value;
 
    -----------------------
    -- Get_Variable_Type --
@@ -727,23 +753,6 @@ package body XE is
    begin
       return Variable_Id (Nodes.Table (Node).Node_3);
    end Get_Variable_Value;
-
-   ---------------------
-   -- Is_Array_A_List --
-   ---------------------
-
-   function Is_Array_A_List
-     (Array_Type_Node   : in Type_Id)
-      return Boolean is
-      Node : Node_Id := Node_Id (Array_Type_Node);
-      List : Node_Id;
-   begin
-      pragma Assert (Is_Type (Node));
-      pragma Assert (Get_Array_Element_Type (Array_Type_Node) /= Null_Type);
-      List := Nodes.Table (Node).Node_3;
-      pragma Assert (Is_List (List));
-      return Nodes.Table (List).Flag_1;
-   end Is_Array_A_List;
 
    ------------------
    -- Is_Component --
@@ -905,23 +914,44 @@ package body XE is
       Component_Node := Component_Id (Nodes.Table (Node).Node_1);
    end Next_Variable_Component;
 
-   --------------------
-   -- Set_Array_Type --
-   --------------------
+   ------------------------------
+   -- Set_Array_Component_Type --
+   ------------------------------
 
-   procedure Set_Array_Type
-     (Array_Type_Node   : in Type_Id;
-      Element_Type_Node : in Type_Id;
-      Array_Is_A_List   : in Boolean) is
-      Node : Node_Id := Node_Id (Array_Type_Node);
+   procedure Set_Array_Component_Type
+     (Type_Node : in Type_Id;
+      Comp_Type : in Type_Id) is
+      Node : Node_Id := Node_Id (Type_Node);
       List : Node_Id;
    begin
       pragma Assert (Is_Type (Node));
-      Nodes.Table (Node).Node_2 := Node_Id (Element_Type_Node);
-      Create_Node (List, Str_To_Id ("pragma__n__array"), K_List);
-      Nodes.Table (List).Flag_1 := Array_Is_A_List;
-      Nodes.Table (Node).Node_3 := List;
-   end Set_Array_Type;
+      List := Nodes.Table (Node).Node_3;
+      if List = Null_Node then
+         Create_Node (List, No_Name, K_List);
+         Nodes.Table (Node).Node_3 := List;
+      end if;
+      Nodes.Table (List).Node_3 := Node_Id (Comp_Type);
+   end Set_Array_Component_Type;
+
+   -----------------------------
+   -- Set_Component_List_Size --
+   -----------------------------
+
+   procedure Set_Component_List_Size
+     (Type_Node : in Type_Id;
+      List_Size : in Int) is
+      Node : Node_Id := Node_Id (Type_Node);
+      List : Node_Id;
+   begin
+      pragma Assert (Is_Type (Node));
+      List := Nodes.Table (Node).Node_3;
+      if List = Null_Node then
+         Create_Node (List, No_Name, K_List);
+         Nodes.Table (Node).Node_3 := List;
+      end if;
+      pragma Assert (Is_List (List));
+      Nodes.Table (List).Value := List_Size;
+   end Set_Component_List_Size;
 
    ------------------------------
    -- Component_Is_Initialized --
@@ -1004,18 +1034,18 @@ package body XE is
       Nodes.Table (Statement).Node_2 := Subprogram;
    end Set_Subprogram_Call;
 
-   -------------------------
-   -- Set_Subprogram_Mark --
-   -------------------------
+   ---------------------
+   -- Set_Pragma_Kind --
+   ---------------------
 
-   procedure Set_Subprogram_Mark
+   procedure Set_Pragma_Kind
      (Subprogram_Node : in Subprogram_Id;
-      Subprogram_Mark : in Int) is
+      Pragma_Kind     : in Pragma_Type) is
       Node : Node_Id := Node_Id (Subprogram_Node);
    begin
       pragma Assert (Is_Subprogram (Node));
-      Nodes.Table (Node).Value := Subprogram_Mark;
-   end Set_Subprogram_Mark;
+      Nodes.Table (Node).Value := Convert (Pragma_Kind);
+   end Set_Pragma_Kind;
 
    ---------------
    -- Set_Token --
@@ -1032,30 +1062,30 @@ package body XE is
    end Set_Token;
 
    -------------------
-   -- Set_Type_Mark --
+   -- Set_Type_Kind --
    -------------------
 
-   procedure Set_Type_Mark
+   procedure Set_Type_Kind
      (Type_Node : in Type_Id;
-      Type_Mark : in Int) is
+      Type_Kind : in Predefined_Type) is
       Node : Node_Id := Node_Id (Type_Node);
    begin
       pragma Assert (Is_Type (Node));
-      Nodes.Table (Node).Value := Type_Mark;
-   end Set_Type_Mark;
+      Nodes.Table (Node).Value := Convert (Type_Kind);
+   end Set_Type_Kind;
 
-   -----------------------
-   -- Set_Variable_Mark --
+   ----------------------
+   -- Set_Scalar_Value --
    -----------------------
 
-   procedure Set_Variable_Mark
+   procedure Set_Scalar_Value
      (Variable_Node : in Variable_Id;
-      Variable_Mark : in Int) is
+      Scalar_Value  : in Int) is
       Node : Node_Id := Node_Id (Variable_Node);
    begin
       pragma Assert (Is_Variable (Node));
-      Nodes.Table (Node).Value := Variable_Mark;
-   end Set_Variable_Mark;
+      Nodes.Table (Node).Value := Scalar_Value;
+   end Set_Scalar_Value;
 
    -----------------------
    -- Set_Variable_Type --
@@ -1070,8 +1100,8 @@ package body XE is
       pragma Assert (Is_Variable (Node));
       pragma Assert (Is_Type (Node_Id (Variable_Type)));
       Nodes.Table (Node).Node_2 := Node_Id (Variable_Type);
-      if Get_Array_Element_Type (Variable_Type) /= Null_Type then
-         Create_Node (List, Str_To_Id ("record"), K_List);
+      if Get_Component_List_Size (Variable_Type) /= 0 then
+         Create_Node (List, No_Name, K_List);
          Nodes.Table (Node).Node_3 := List;
       end if;
    end Set_Variable_Type;
