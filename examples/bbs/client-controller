@@ -13,7 +13,7 @@ output=/infres/shalmaneser/quinot/polyorb-output
 
 Revolutedp_pids=""
 
-hosts=valjean:cyrano:esmeralda2:lantier:donjuan:candide:gavroche:elvire:cosette:folcoche:roland:quasimodo:chimene:arsene:isengrin:fracasse:
+hosts=valjean:esmeralda2:lantier:donjuan:candide:gavroche:elvire:cosette:folcoche:roland:quasimodo:chimene:arsene:isengrin:fracasse:
 #nadja:goriot:esmeralda:javert:fracasse:blizzard:aurelien:
 
 nmax=`echo $hosts | tr -cd : | wc -c`
@@ -43,8 +43,8 @@ if $kill; then
   for h in $hosts; do
     if [ "$h" != "" ]; then
       echo $h
-      rsh $h "/usr/ucb/ps axw|grep 'quinot.*$evolutedp' | grep -v grep \
-         | awk '{print \$1}' | xargs kill -9 2> /dev/null || echo ---"
+      rsh $h "/usr/ucb/ps axuw|grep 'quinot.*$evolutedp' | grep -v grep \
+         | awk '{print \$2}' | xargs kill -9 2> /dev/null || echo ---"
     fi
   done
   ps axw|grep "tail -f /tmp/cli"|awk '{print $1}'|xargs kill 2> /dev/null
