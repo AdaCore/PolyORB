@@ -43,10 +43,9 @@ all::
 export::
 	@(target=all; $(MakeSubdirs))
 
-prog = $(patsubst %,$(BinPattern),omniidl2)
+prog = $(patsubst %,$(BinPattern),adabroker)
 
-all::$(prog)
-	mv omniidl2 ../bin/omniidl2
+all:: export
 
 $(prog): $(DRV_OBJS) $(OBJ_LIBS) 
 	@(libs="$(LIBS) $(LIBS)"; $(CXXExecutable))
