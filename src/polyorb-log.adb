@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -39,6 +39,7 @@
 --  pragma Warnings (On);
 --  XXX we do not use System.IO because we need atomic write.
 
+with GNAT.OS_Lib;
 with Interfaces.C;
 with System;
 
@@ -141,21 +142,12 @@ package body PolyORB.Log is
 
       procedure Put_Line (S : String)
       is
+         use GNAT.OS_Lib;
          SS : aliased String := S & ASCII.LF;
-
-         procedure C_Write
-           (Fd  : Interfaces.C.int;
-            P   : System.Address;
-            Len : Interfaces.C.int);
-         pragma Import (C, C_Write, "write");
       begin
-         C_Write (2, SS (SS'First)'Address, SS'Length);
-         --  '2' is STDERR, see 'unistd.h' standard include C file
-         --  for more details about standard file descriptors.
-
+         Write (Standerr, SS (SS'First)'Address, SS'Length);
       end Put_Line;
 
    end Internals;
-
 
 end PolyORB.Log;
