@@ -1,3 +1,8 @@
+2000-06-09  Laurent Pautet  <pautet@inf.enst.fr>
+
+	* s-gastha.adb: Protect increment operation on a shared variable
+ 	against concurrent access. Final fix for 7731-010.
+
 2000-06-06  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-gastha.adb: Use thread safe malloc and free instead of
