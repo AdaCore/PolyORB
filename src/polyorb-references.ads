@@ -108,8 +108,9 @@ private
 
    subtype Profile_Seq is Profile_Seqs.Sequence;
 
-   type Reference_Info is new PolyORB.Smart_Pointers.Entity with
-      record
+   type Reference_Info is
+     new PolyORB.Smart_Pointers.Non_Controlled_Entity
+     with record
          Type_Id  : Utils.Strings.String_Ptr;
          Profiles : Profile_Seq;
          --  The collection of tagged profiles that designate
@@ -134,8 +135,13 @@ private
          --  than in the designated Binding_Object to allow sharing
          --  of Binding_Objects among references to different objects
          --  residing on the same node.
-      end record;
+     end record;
 
    procedure Finalize (RI : in out Reference_Info);
+
+   --  Note that Reference_Info must not be an Entity, because the
+   --  Finalize operation would then be called *after* (not *before*)
+   --  the controlled components of Reference_Info (including
+   --  Profiles and Binding_Object_Ref) have been finalized.
 
 end PolyORB.References;

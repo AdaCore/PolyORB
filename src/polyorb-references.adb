@@ -34,6 +34,7 @@
 
 --  $Id$
 
+with Ada.Exceptions;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Tags;
 
@@ -114,16 +115,21 @@ package body PolyORB.References is
 
    procedure Finalize (RI : in out Reference_Info)
    is
-      Profiles : Profile_Array
-        := Profile_Seqs.To_Element_Array (RI.Profiles);
    begin
-      Free (RI.Type_Id);
-      for I in Profiles'Range loop
-         pragma Debug
-           (O ("Destroying profile of type "
-               & Ada.Tags.External_Tag (Profiles (I)'Tag)));
-         Binding_Data.Destroy_Profile (Profiles (I));
-      end loop;
+      pragma Debug (O ("Finalize (Reference_Info): enter"));
+      declare
+         Profiles : Profile_Array
+           := Profile_Seqs.To_Element_Array (RI.Profiles);
+      begin
+         Free (RI.Type_Id);
+         for I in Profiles'Range loop
+            pragma Debug
+              (O ("Destroying profile of type "
+                  & Ada.Tags.External_Tag (Profiles (I)'Tag)));
+            Binding_Data.Destroy_Profile (Profiles (I));
+         end loop;
+      end;
+      pragma Debug (O ("Finalize (Reference_Info): leave"));
    end Finalize;
 
    --------------
