@@ -893,7 +893,8 @@ package body PolyORB.ORB is
                --  iff it is required.
 
                if Is_Set (Sync_With_Target, J.Request.Req_Flags)
-                 or Is_Set (Sync_Call_Back, J.Request.Req_Flags) then
+                 or else Is_Set (Sync_Call_Back, J.Request.Req_Flags)
+               then
                   Emit_No_Reply (J.Requestor, Result);
                end if;
             end if;

@@ -55,9 +55,9 @@ package body PolyORB.References.IOR is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-   --------------
-   -- Marshall --
-   --------------
+   ------------------
+   -- Marshall_IOR --
+   ------------------
 
    procedure Marshall_IOR
      (Buffer : access Buffer_Type;
@@ -141,9 +141,9 @@ package body PolyORB.References.IOR is
       pragma Debug (O ("Marshall: Leave"));
    end Marshall_IOR;
 
-   ----------------
-   -- Unmarshall --
-   ----------------
+   --------------------
+   -- Unmarshall_IOR --
+   --------------------
 
    function Unmarshall_IOR
      (Buffer : access Buffer_Type)
@@ -154,10 +154,10 @@ package body PolyORB.References.IOR is
 
       Result     : IOR_Type;
 
-      CORBA_Type_Id : constant Types.String
+      PolyORB_Type_Id : constant Types.String
         := Types.String (Types.String'(Unmarshall (Buffer)));
       Type_Id : constant String
-        := To_Standard_String (CORBA_Type_Id);
+        := To_Standard_String (PolyORB_Type_Id);
 
       N_Profiles : constant Types.Unsigned_Long
         := Unmarshall (Buffer);
@@ -228,6 +228,10 @@ package body PolyORB.References.IOR is
       return Result;
    end Unmarshall_IOR;
 
+   ----------------------
+   -- Object_To_Opaque --
+   ----------------------
+
    function Object_To_Opaque (IOR : IOR_Type)
      return Stream_Element_Array
    is
@@ -244,6 +248,10 @@ package body PolyORB.References.IOR is
       end;
    end Object_To_Opaque;
 
+   ----------------------
+   -- Opaque_To_Object --
+   ----------------------
+
    function Opaque_To_Object
      (Opaque : access Ada.Streams.Stream_Element_Array)
      return IOR_Type
@@ -254,12 +262,20 @@ package body PolyORB.References.IOR is
       return Unmarshall (Buf'Access);
    end Opaque_To_Object;
 
+   ----------------------
+   -- Object_To_String --
+   ----------------------
+
    function Object_To_String (IOR : IOR_Type)
      return Types.String is
    begin
       return Types.To_PolyORB_String
         ("IOR:" & To_String (Object_To_Opaque (IOR)));
    end Object_To_String;
+
+   ----------------------
+   -- String_To_Object --
+   ----------------------
 
    function String_To_Object (Str : Types.String)
      return IOR_Type

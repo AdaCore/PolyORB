@@ -177,8 +177,9 @@ package body PolyORB.Protocols is
          --  At this point, the request has been sent to the server
          --  'With_Transport' synchronisation policy has been completed.
 
-         if Is_Set (Sync_With_Transport, Req.Req_Flags) or
-           Is_Set (Sync_Call_Back, Req.Req_Flags) then
+         if Is_Set (Sync_With_Transport, Req.Req_Flags)
+           or else Is_Set (Sync_Call_Back, Req.Req_Flags)
+         then
             Req.Completed := True;
          end if;
 

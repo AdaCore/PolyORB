@@ -183,25 +183,25 @@ package body MOMA.Provider.Message_Producer is
       pragma Debug (O ("Publishing Message " & Image (Message)));
 
       PolyORB.Any.NVList.Create (Arg_List);
-      pragma Debug (O ("plop1"));
+
       PolyORB.Any.NVList.Add_Item (Arg_List,
                                    To_PolyORB_String ("Message"),
                                    Message,
                                    PolyORB.Any.ARG_IN);
-      pragma Debug (O ("plop2"));
+
       Result := (Name      => To_PolyORB_String ("Result"),
                  Argument  => PolyORB.Any.Get_Empty_Any (PolyORB.Any.TC_Void),
                  Arg_Modes => 0);
-      pragma Debug (O ("plop3"));
+
       PolyORB.Requests.Create_Request
         (Target    => Self,
          Operation => "Publish",
          Arg_List  => Arg_List,
          Result    => Result,
          Req       => Request);
-      pragma Debug (O ("plop4" & PolyORB.Requests.Image (Request.all)));
+
       PolyORB.Requests.Invoke (Request);
-      pragma Debug (O ("plop5"));
+
       PolyORB.Requests.Destroy_Request (Request);
    end Publish;
 end MOMA.Provider.Message_Producer;
