@@ -125,7 +125,8 @@ package body Broca.CDR is
    -------------------------------------------
 
    subtype Double_Buf is Octet_Array (1 .. 8);
-   subtype Long_Double_Buf is Octet_Array (1 .. 12);
+   --  FIXME LONG DOUBLE
+--   subtype Long_Double_Buf is Octet_Array (1 .. 12);
 
    function To_Unsigned_Long is
       new Ada.Unchecked_Conversion
@@ -139,12 +140,13 @@ package body Broca.CDR is
    function To_Double is
       new Ada.Unchecked_Conversion
      (Double_Buf, CORBA.Double);
-   function To_Long_Double_Buf is
-      new Ada.Unchecked_Conversion
-     (CORBA.Long_Double, Long_Double_Buf);
-   function To_Long_Double is
-      new Ada.Unchecked_Conversion
-     (Long_Double_Buf, CORBA.Long_Double);
+   --  FIXME LONG DOUBLE
+--    function To_Long_Double_Buf is
+--       new Ada.Unchecked_Conversion
+--      (CORBA.Long_Double, Long_Double_Buf);
+--    function To_Long_Double is
+--       new Ada.Unchecked_Conversion
+--      (Long_Double_Buf, CORBA.Long_Double);
 
    ----------------------------------
    -- Marshall-by-copy subprograms --
@@ -257,7 +259,6 @@ package body Broca.CDR is
       Data   : in CORBA.Double)
    is
       Buf : Double_Buf := To_Double_Buf (Data);
-
    begin
       Align_Marshall_Host_Endian_Copy (Buffer, Buf, 8);
    end Marshall;
@@ -266,10 +267,11 @@ package body Broca.CDR is
      (Buffer : access Buffer_Type;
       Data   : in CORBA.Long_Double)
    is
-      Buf : Long_Double_Buf := To_Long_Double_Buf (Data);
-
+   --  FIXME LONG DOUBLE
+--      Buf : Long_Double_Buf := To_Long_Double_Buf (Data);
    begin
-      Align_Marshall_Host_Endian_Copy (Buffer, Buf, 8);
+--      Align_Marshall_Host_Endian_Copy (Buffer, Buf, 8);
+      null;
    end Marshall;
 
    procedure Marshall
@@ -277,7 +279,6 @@ package body Broca.CDR is
       Data   : in CORBA.String)
    is
       Equiv : constant String := CORBA.To_String (Data) & ASCII.Nul;
-
    begin
       Marshall (Buffer, CORBA.Unsigned_Long'(Equiv'Length));
       for I in Equiv'Range loop
@@ -1098,10 +1099,12 @@ package body Broca.CDR is
 
    function Unmarshall (Buffer : access Buffer_Type)
      return CORBA.Long_Double is
-      Octets : constant Octet_Array :=
-        Align_Unmarshall_Host_Endian_Copy (Buffer, 12, 8);
+      --  FIXME LONG DOUBLE
+--      Octets : constant Octet_Array :=
+--        Align_Unmarshall_Host_Endian_Copy (Buffer, 12, 8);
    begin
-      return To_Long_Double (Long_Double_Buf (Octets));
+--      return To_Long_Double (Long_Double_Buf (Octets));
+      return CORBA.Long_Double (0);
    end Unmarshall;
 
    function Unmarshall (Buffer : access Buffer_Type)
