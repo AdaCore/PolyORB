@@ -34,10 +34,12 @@
 ------------------------------------------------------------------------------
 
 with Ada.Unchecked_Deallocation;
+with Interfaces.C;               use Interfaces.C;
+with System.Garlic.OS_Lib;       use System.Garlic.OS_Lib;
 
 package body System.Garlic.Utils is
 
-   use Ada.Streams;
+   use Ada.Streams, Ada.Exceptions, System.RPC;
 
    Node_Size : constant Stream_Element_Count := 4096;
 
@@ -97,6 +99,28 @@ package body System.Garlic.Utils is
       end Wait;
 
    end Barrier_Type;
+
+   -------------------------------
+   -- Raise_Communication_Error --
+   -------------------------------
+
+   procedure Raise_Communication_Error (Msg : in String := "") is
+   begin
+      if Msg = "" then
+         Raise_With_Errno (System.RPC.Communication_Error'Identity);
+      else
+         Raise_Exception (System.RPC.Communication_Error'Identity, Msg);
+      end if;
+   end Raise_Communication_Error;
+
+   ----------------------
+   -- Raise_With_Errno --
+   ----------------------
+
+   procedure Raise_With_Errno (Id : in Exception_Id) is
+   begin
+      Raise_Exception (Id, "Error" & int'Image (C_Errno));
+   end Raise_With_Errno;
 
    --------------------
    -- Semaphore_Type --

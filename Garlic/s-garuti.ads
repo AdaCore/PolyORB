@@ -33,6 +33,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Exceptions;
 with Ada.Unchecked_Deallocation;
 with Ada.Streams;
 with System.RPC;
@@ -85,5 +86,14 @@ package System.Garlic.Utils is
       Params  : access System.RPC.Params_Stream_Type);
    pragma Inline (To_Params_Stream_Type);
    --  Other way.
+
+   procedure Raise_With_Errno (Id : in Ada.Exceptions.Exception_Id);
+   pragma Inline (Raise_With_Errno);
+   --  Raise an exception with a message corresponding to errno.
+
+   procedure Raise_Communication_Error (Msg : in String := "");
+   pragma Inline (Raise_Communication_Error);
+   --  Idem, but with the specific exception System.RPC.Communication_Error.
+   --  If an alternate message is given, it will be used instead.
 
 end System.Garlic.Utils;

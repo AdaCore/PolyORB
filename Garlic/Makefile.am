@@ -42,7 +42,7 @@ s-ganobl.o
 NOBLTCPSOURCES = \
 ${srcdir}/s-ganobl.ads ${srcdir}/s-ganobl.adb
 
-Makefile.in: Makefile.fil
+Makefile: Makefile.fil
 
 @FILTERFILE@
 
@@ -121,7 +121,7 @@ SOURCES = \
 $(FILTERSSOURCES) \
 $(COMMONSOURCES)
 
-CLEANFILES = *.ali s-garcon.ads *.o s-gtplsp.ads s-gaosli.ads s-gaprco.adb \
+CLEANFILES = -r *.ali s-garcon.ads *.o s-gtplsp.ads s-gaosli.ads s-gaprco.adb \
 	s-garser.adb $(FILTERSOBJECTS) split *.lo *.la .libs
 
 SUFFIXES = .adb .ads .ali .o .xrb

@@ -33,6 +33,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Exceptions; use Ada.Exceptions;
 with Ada.Unchecked_Conversion;
 with Ada.Unchecked_Deallocation;
 with Interfaces.C.Strings;
@@ -247,7 +248,7 @@ package body System.Garlic.TCP is
             pragma Debug (D (D_Debug, "After Net.C_Accept"));
             Sub_Non_Terminating_Task;
             if FD = Failure then
-               raise Communication_Error;
+               Raise_Communication_Error;
             end if;
             pragma Debug (D (D_Debug, "Reading code"));
             Code := Read_Code (FD);
@@ -256,11 +257,11 @@ package body System.Garlic.TCP is
                null;
             elsif Code = Quit_Code then
                pragma Debug (D (D_Debug, "Quit code received"));
-               raise Communication_Error;
+               Raise_Communication_Error ("Quit code received");
             else
                pragma Debug (D (D_Debug,
                                 "Unknown code received: " & Code));
-               raise Communication_Error;
+               Raise_Communication_Error ("Unkown code received: " & Code);
             end if;
             NT :=
              new Incoming_Connection_Handler (FD,
@@ -288,7 +289,7 @@ package body System.Garlic.TCP is
       Partition_ID'Read (Result'Access, Partition);
       if not Partition'Valid then
          pragma Debug (D (D_Garlic, "Invalid partition ID"));
-         raise Constraint_Error;
+         Raise_Exception (Constraint_Error'Identity, "Invalid partition ID");
       end if;
       pragma Debug (D (D_Garlic, "My Partition_ID is" & Partition'Img));
       return Partition;
@@ -319,7 +320,7 @@ package body System.Garlic.TCP is
       FD := C_Socket (Af_Inet, Sock_Stream, 0);
       if FD = Failure then
          Free (Sin);
-         raise Communication_Error;
+         Raise_Communication_Error;
       end if;
       Sin.Sin_Family := Constants.Af_Inet;
       Sin.Sin_Addr := To_In_Addr (Location.Addr);
@@ -329,7 +330,7 @@ package body System.Garlic.TCP is
       if Code = Failure then
          Code := C_Close (FD);
          Free (Sin);
-         raise Communication_Error;
+         Raise_Communication_Error;
       end if;
       Physical_Send (FD, To_Stream_Element_Array (Operation));
       return FD;
@@ -351,7 +352,7 @@ package body System.Garlic.TCP is
       if FD = Failure then
          Free (Sin);
          Free (Check);
-         raise Communication_Error;
+         Raise_Communication_Error;
       end if;
       declare
          One   : aliased C.int := 1;
@@ -371,10 +372,10 @@ package body System.Garlic.TCP is
                  Sin.all'Size / 8) = Failure then
          Free (Sin);
          Free (Check);
-         raise Communication_Error;
+         Raise_Communication_Error;
       end if;
       if C_Listen (FD, 15) = Failure then
-         raise Communication_Error;
+         Raise_Communication_Error;
       end if;
       if Port = 0 then
          if C_Getsockname (FD,
@@ -382,7 +383,7 @@ package body System.Garlic.TCP is
                            Dummy'Access) =  Failure then
             Free (Sin);
             Free (Check);
-            raise Communication_Error;
+            Raise_Communication_Error;
          end if;
          Port := Network_To_Port (Check.Sin_Port);
       end if;
@@ -446,7 +447,8 @@ package body System.Garlic.TCP is
             Partition_ID'Read (Stream'Access, Partition);
             if not Partition'Valid then
                pragma Debug (D (D_Debug, "Invalid partition ID"));
-               raise Constraint_Error;
+               Raise_Exception (Constraint_Error'Identity,
+                                "Invalid partition ID");
             end if;
             if Partition = Null_Partition_ID then
                declare
@@ -461,7 +463,7 @@ package body System.Garlic.TCP is
                   exception
                      when Communication_Error =>
                         Sub_Non_Terminating_Task;
-                        raise Communication_Error;
+                        raise;
                   end;
                   Sub_Non_Terminating_Task;
                end;
@@ -509,11 +511,12 @@ package body System.Garlic.TCP is
                   null;
                elsif Code = Quit_Code then
                   pragma Debug (D (D_Debug, "Received a quit code"));
-                  raise Communication_Error;
+                  Raise_Communication_Error ("Received a quit code");
                else
                   pragma Debug (D (D_Debug, "Received unknown code: " &
                                    Code));
-                  raise Communication_Error;
+                  Raise_Communication_Error ("Received unknown code: " &
+                                             Code);
                end if;
                pragma Debug
                  (D (D_Debug, "Physical receive will be called"));
@@ -523,14 +526,14 @@ package body System.Garlic.TCP is
             exception
                when Communication_Error =>
                   Sub_Non_Terminating_Task;
-                  raise Communication_Error;
+                  raise;
             end;
             Sub_Non_Terminating_Task;
             To_Params_Stream_Type (Header_P, Header'Access);
             Stream_Element_Count'Read (Header'Access, Length);
             if not Length'Valid then
-               pragma Debug (D (D_Debug, "Invalid Length"));
-               raise Constraint_Error;
+               pragma Debug (D (D_Debug, "Invalid length"));
+               Raise_Exception (Constraint_Error'Identity, "Invalid length");
             end if;
             pragma Debug
               (D (D_Debug,
@@ -724,7 +727,7 @@ package body System.Garlic.TCP is
          Code := Net.C_Read (FD, To_Chars_Ptr (Current), Rest);
 
          if Code <= 0 then
-            raise Communication_Error;
+            Raise_Communication_Error ("Read error");
          end if;
          Current := Current + Storage_Offset (Code);
          Rest := Rest - Code;
@@ -746,7 +749,7 @@ package body System.Garlic.TCP is
       while Rest > 0 loop
          Code := Net.C_Write (FD, To_Chars_Ptr (Current), Rest);
          if Code <= 0 then
-            raise Communication_Error;
+            Raise_Communication_Error ("Write error");
          end if;
          Current := Current + Storage_Offset (Code);
          Rest := Rest - Code;
@@ -840,7 +843,9 @@ package body System.Garlic.TCP is
                                 (D (D_Communication,
                                     "Cannot connect to partition" &
                                     Partition'Img));
-                              raise Communication_Error;
+                              Raise_Communication_Error
+                                ("Cannot connect to partition" &
+                                 Partition_ID'Image (Partition));
                            else
                               delay 2.0;
                            end if;
@@ -894,7 +899,7 @@ package body System.Garlic.TCP is
             when Communication_Error =>
                pragma Debug (D (D_Debug, "Error detected in Send"));
                Partition_Map.Unlock (Partition);
-               raise Communication_Error;
+               raise;
          end;
       --  XXXXX Should be end select (see above)
       end;
