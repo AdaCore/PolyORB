@@ -2,7 +2,7 @@
 --                                                                          --
 --                          ADABROKER COMPONENTS                            --
 --                                                                          --
---                        C O R B A . R E Q U E S T                         --
+--                 C O R B A . E X C E P T I O N L I S T                    --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -31,79 +31,55 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with System;
 with CORBA.AbstractBase;
-with CORBA.NVList;
-with CORBA.ExceptionList;
-with CORBA.ContextList;
-with CORBA.Context;
+with CORBA.Impl;
+with Sequences.Unbounded;
+pragma Elaborate_All (Sequences.Unbounded);
 
-package CORBA.Request is
+package CORBA.ExceptionList is
 
-   type Object is private;
+   type Ref is new CORBA.AbstractBase.Ref with null record;
+   Nil_Ref : constant Ref;
 
-   procedure Add_Arg
-     (Self      : in out Object;
-      Arg_Type  : in     CORBA.TypeCode.Object;
-      Value     : in     System.Address;
-      Len       : in     Long;
-      Arg_Flags : in     Flags);
+   type Object is new CORBA.Impl.Object with private;
+   type Object_Ptr is access all Object;
 
-   procedure Add_Arg
-     (Self : in out Object;
-      Arg  : in     NamedValue);
+   procedure Finalize (Obj : in out Object);
 
-   procedure Invoke
-     (Self         : in out Object;
-      Invoke_Flags : in     Flags  := 0);
+   function Get_Count
+     (Self : in Ref)
+     return CORBA.Unsigned_Long;
 
-   procedure Delete (Self : in out Object);
+   procedure Add
+     (Self : in Ref;
+      Exc : in CORBA.TypeCode.Object);
 
-   procedure Send
-     (Self         : in out Object;
-      Invoke_Flags : in     Flags  := 0);
+   function Item
+     (Self : in Ref;
+      Index : in CORBA.Unsigned_Long)
+     return CORBA.TypeCode.Object;
 
-   procedure Get_Response
-     (Self         : in out Object;
-      Invoke_Flags : in     Flags  := 0);
+   procedure Remove
+     (Self : in Ref;
+      Index : in CORBA.Unsigned_Long);
 
-   function Poll_Response (Self : in Object) return Boolean;
+   function Create_Object return Object_Ptr;
 
-   procedure Create_Request
-     (Self      : in     CORBA.AbstractBase.Ref;
-      Ctx       : in     CORBA.Context.Ref;
-      Operation : in     Identifier;
-      Arg_List  : in     CORBA.NVList.Ref;
-      Result    : in out NamedValue;
-      Request   :    out CORBA.Request.Object;
-      Req_Flags : in     Flags);
-
-   procedure Create_Request
-     (Self      : in     CORBA.AbstractBase.Ref;
-      Ctx       : in     CORBA.Context.Ref;
-      Operation : in     Identifier;
-      Arg_List  : in     CORBA.NVList.Ref;
-      Result    : in out NamedValue;
-      Exc_List  : in     ExceptionList.Ref;
-      Ctxt_List : in     ContextList.Ref;
-      Request   :    out CORBA.Request.Object;
-      Req_Flags : in     Flags);
-
-   --  returns the return value corresponding to a request
-   function Return_Value (Self : Object) return NamedValue;
+   function Search_Exception_Id
+     (Self : in Ref;
+      Name : in CORBA.RepositoryId)
+     return CORBA.Unsigned_Long;
 
 private
+   --  The actual implementation of an ExceptionList:
+   --  a list of TypeCode
+   package Exception_Sequence is new Sequences.Unbounded
+     (CORBA.TypeCode.Object);
 
-   type Object is
-      record
-         Ctx        : CORBA.Context.Ref;
-         Target     : CORBA.AbstractBase.Ref;
-         Operation  : CORBA.Identifier;
-         Args_List  : CORBA.NVList.Ref;
-         Result     : CORBA.NamedValue;
-         Exc_List   : CORBA.ExceptionList.Ref;
-         Ctxt_List  : CORBA.ContextList.Ref;
-         Req_Flags  : CORBA.Flags;
-      end record;
+   type Object is new CORBA.Impl.Object with record
+     List : Exception_Sequence.Sequence := Exception_Sequence.Null_Sequence;
+   end record;
 
-end CORBA.Request;
+   Nil_Ref : constant Ref
+     := (CORBA.AbstractBase.Ref with null record);
+end CORBA.ExceptionList;

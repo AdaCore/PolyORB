@@ -41,6 +41,8 @@ ADA_SPECS_WITH_BODY = \
 	   corba-object-helper.ads \
 	   corba-orb.ads \
 	   corba-nvlist.ads \
+	   corba-exceptionlist.ads \
+	   corba-contextlist.ads \
 	   corba-request.ads \
 	   corba-context.ads \
 	   corba.ads \

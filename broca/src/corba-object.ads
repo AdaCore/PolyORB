@@ -33,6 +33,8 @@
 
 with CORBA.Context;
 with CORBA.NVList;
+with CORBA.ContextList;
+with CORBA.ExceptionList;
 with CORBA.Request;
 
 with CORBA.AbstractBase;
@@ -81,6 +83,17 @@ package CORBA.Object is
       Operation : in     Identifier;
       Arg_List  : in     CORBA.NVList.Ref;
       Result    : in out NamedValue;
+      Request   :    out CORBA.Request.Object;
+      Req_Flags : in     Flags);
+
+   procedure Create_Request
+     (Self      : in     Ref;
+      Ctx       : in     CORBA.Context.Ref;
+      Operation : in     Identifier;
+      Arg_List  : in     CORBA.NVList.Ref;
+      Result    : in out NamedValue;
+      Exc_List  : in     ExceptionList.Ref;
+      Ctxt_List : in     ContextList.Ref;
       Request   :    out CORBA.Request.Object;
       Req_Flags : in     Flags);
 

@@ -714,6 +714,17 @@ package CORBA is
    --  Any  --
    -----------
 
+   --  This is the returned exception in case of dynamic invocation
+   UserUnknownException : exception;
+   type UserUnknownException_Members is
+     new CORBA.IDL_Exception_Members with record
+        IDL_Exception : Any;
+     end record;
+
+   procedure Get_Members
+     (From : Ada.Exceptions.Exception_Occurrence;
+      To   : out UserUnknownException_Members);
+
    function "=" (Left, Right : in Any) return Boolean;
 
    function Equal (Left, Right : in Any) return Boolean

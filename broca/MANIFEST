@@ -328,6 +328,10 @@ src/corba-impl.ads
 src/corba-local.ads
 src/corba-nvlist.adb
 src/corba-nvlist.ads
+src/corba-contextlist.adb
+src/corba-contextlist.ads
+src/corba-exceptionlist.adb
+src/corba-exceptionlist.ads
 src/corba-object-helper.adb
 src/corba-object-helper.ads
 src/corba-object.adb

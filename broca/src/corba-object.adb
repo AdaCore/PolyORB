@@ -176,6 +176,32 @@ package body CORBA.Object is
                                     Req_Flags);
    end Create_Request;
 
+   --------------------
+   -- Create_Request --
+   --------------------
+
+   procedure Create_Request
+     (Self      : in     Ref;
+      Ctx       : in     CORBA.Context.Ref;
+      Operation : in     Identifier;
+      Arg_List  : in     CORBA.NVList.Ref;
+      Result    : in out NamedValue;
+      Exc_List  : in     ExceptionList.Ref;
+      Ctxt_List : in     ContextList.Ref;
+      Request   :    out CORBA.Request.Object;
+      Req_Flags : in     Flags) is
+   begin
+      CORBA.Request.Create_Request (CORBA.AbstractBase.Ref (Self),
+                                    Ctx,
+                                    Operation,
+                                    Arg_List,
+                                    Result,
+                                    Exc_List,
+                                    Ctxt_List,
+                                    Request,
+                                    Req_Flags);
+   end Create_Request;
+
    -----------------
    --  Duplicate  --
    -----------------

@@ -35,6 +35,7 @@ with CORBA.Object;
 
 with Broca.GIOP;
 with Broca.CDR;
+with Broca.Exceptions;
 with Broca.Debug;
 
 package body CORBA.Request is
@@ -109,9 +110,43 @@ package body CORBA.Request is
                pragma Debug (O ("Invoke : end"));
                raise Program_Error;
             when Broca.GIOP.Sr_User_Exception =>
-               Broca.GIOP.Release (Handler);
-               pragma Debug (O ("Invoke : end"));
-               raise Program_Error;
+               --  try to find the returned exception in the exception
+               --  list of the request
+               pragma Debug (O ("Invoke : Exc_List length is " &
+                                CORBA.Unsigned_Long'Image
+                                (CORBA.ExceptionList.Get_Count
+                                 (Self.Exc_List))));
+               declare
+                  Exception_Repo_Id : CORBA.RepositoryId
+                    := Broca.CDR.Unmarshall (Handler.Buffer'Access);
+                  Index : CORBA.Unsigned_Long
+                    := CORBA.ExceptionList.Search_Exception_Id
+                    (Self.Exc_List, Exception_Repo_Id);
+               begin
+                  pragma Debug (O ("Invoke : Index = " &
+                                   CORBA.Unsigned_Long'Image (Index)));
+                  if Index > 0 then
+                     declare
+                        Member : UserUnknownException_Members;
+                     begin
+                        Member.IDL_Exception := CORBA.Get_Empty_Any
+                          (CORBA.ExceptionList.Item (Self.Exc_List,
+                                                     Index));
+                        Broca.CDR.Unmarshall_To_Any
+                          (Handler.Buffer'Access,
+                           Member.IDL_Exception);
+                        pragma Debug (O ("Invoke : end"));
+                        Broca.GIOP.Release (Handler);
+                        Broca.Exceptions.User_Raise_Exception
+                          (UserUnknownException'Identity,
+                           Member);
+                     end;
+                  else
+                     Broca.GIOP.Release (Handler);
+                     pragma Debug (O ("Invoke : end"));
+                     raise Program_Error;
+                  end if;
+               end;
             when Broca.GIOP.Sr_Forward =>
                null;
          end case;
@@ -156,7 +191,30 @@ package body CORBA.Request is
                   Target    => Self,
                   Operation => Operation,
                   Args_List => Arg_List,
-                  Result    => Result,
+                  Result => Result,
+                  Exc_List  => CORBA.ExceptionList.Nil_Ref,
+                  Ctxt_List => CORBA.ContextList.Nil_Ref,
+                  Req_Flags => Req_Flags);
+   end Create_Request;
+
+   procedure Create_Request
+     (Self      : in     CORBA.AbstractBase.Ref;
+      Ctx       : in     CORBA.Context.Ref;
+      Operation : in     Identifier;
+      Arg_List  : in     CORBA.NVList.Ref;
+      Result    : in out NamedValue;
+      Exc_List  : in     ExceptionList.Ref;
+      Ctxt_List : in     ContextList.Ref;
+      Request   :    out CORBA.Request.Object;
+      Req_Flags : in     Flags) is
+   begin
+      Request := (Ctx => Ctx,
+                  Target => Self,
+                  Operation => Operation,
+                  Args_List => Arg_List,
+                  Result => Result,
+                  Exc_List  => Exc_List,
+                  Ctxt_List => Ctxt_List,
                   Req_Flags => Req_Flags);
    end Create_Request;
 

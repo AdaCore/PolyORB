@@ -2,7 +2,7 @@
 --                                                                          --
 --                          ADABROKER COMPONENTS                            --
 --                                                                          --
---                        C O R B A . R E Q U E S T                         --
+--                 C O R B A . E X C E P T I O N L I S T                    --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -31,79 +31,73 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with System;
-with CORBA.AbstractBase;
-with CORBA.NVList;
-with CORBA.ExceptionList;
-with CORBA.ContextList;
-with CORBA.Context;
+package body CORBA.ContextList is
 
-package CORBA.Request is
+   ----------------
+   --  Finalize  --
+   ----------------
+   procedure Finalize (Obj : in out Object) is
+   begin
+      Context_Sequence.Delete (Obj.List,
+                               1,
+                               Context_Sequence.Length (Obj.List));
+   end Finalize;
 
-   type Object is private;
+   -----------------
+   --  Get_Count  --
+   -----------------
+   function Get_Count
+     (Self : in Ref)
+      return CORBA.Unsigned_Long is
+      Obj : Object_Ptr := Object_Ptr (Object_Of (Self));
+   begin
+      return CORBA.Unsigned_Long (Context_Sequence.Length (Obj.List));
+   end Get_Count;
 
-   procedure Add_Arg
-     (Self      : in out Object;
-      Arg_Type  : in     CORBA.TypeCode.Object;
-      Value     : in     System.Address;
-      Len       : in     Long;
-      Arg_Flags : in     Flags);
+   -----------
+   --  Add  --
+   -----------
+   procedure Add
+     (Self : in Ref;
+      Exc : in CORBA.String) is
+      Obj : Object_Ptr := Object_Ptr (Object_Of (Self));
+   begin
+      Context_Sequence.Append (Obj.List, Exc);
+   end Add;
 
-   procedure Add_Arg
-     (Self : in out Object;
-      Arg  : in     NamedValue);
+   ----------
+   -- Item --
+   ----------
+   function Item
+     (Self : in Ref;
+      Index : in CORBA.Unsigned_Long)
+      return CORBA.String is
+      Obj : Object_Ptr := Object_Ptr (Object_Of (Self));
+   begin
+      return Context_Sequence.Element_Of (Obj.List, Positive (Index));
+   end Item;
 
-   procedure Invoke
-     (Self         : in out Object;
-      Invoke_Flags : in     Flags  := 0);
+   --------------
+   --  Remove  --
+   --------------
+   procedure Remove
+     (Self : in Ref;
+      Index : in CORBA.Unsigned_Long) is
+      Obj : Object_Ptr := Object_Ptr (Object_Of (Self));
+   begin
+      Context_Sequence.Delete (Obj.List, Positive (Index), 1);
+   end Remove;
 
-   procedure Delete (Self : in out Object);
+   -------------------
+   -- Create_Object --
+   -------------------
+   function Create_Object return Object_Ptr
+   is
+      Actual_Ref : constant CORBA.ContextList.Object_Ptr
+        := new Object;
+   begin
+      Actual_Ref.List := Context_Sequence.Null_Sequence;
+      return Actual_Ref;
+   end Create_Object;
 
-   procedure Send
-     (Self         : in out Object;
-      Invoke_Flags : in     Flags  := 0);
-
-   procedure Get_Response
-     (Self         : in out Object;
-      Invoke_Flags : in     Flags  := 0);
-
-   function Poll_Response (Self : in Object) return Boolean;
-
-   procedure Create_Request
-     (Self      : in     CORBA.AbstractBase.Ref;
-      Ctx       : in     CORBA.Context.Ref;
-      Operation : in     Identifier;
-      Arg_List  : in     CORBA.NVList.Ref;
-      Result    : in out NamedValue;
-      Request   :    out CORBA.Request.Object;
-      Req_Flags : in     Flags);
-
-   procedure Create_Request
-     (Self      : in     CORBA.AbstractBase.Ref;
-      Ctx       : in     CORBA.Context.Ref;
-      Operation : in     Identifier;
-      Arg_List  : in     CORBA.NVList.Ref;
-      Result    : in out NamedValue;
-      Exc_List  : in     ExceptionList.Ref;
-      Ctxt_List : in     ContextList.Ref;
-      Request   :    out CORBA.Request.Object;
-      Req_Flags : in     Flags);
-
-   --  returns the return value corresponding to a request
-   function Return_Value (Self : Object) return NamedValue;
-
-private
-
-   type Object is
-      record
-         Ctx        : CORBA.Context.Ref;
-         Target     : CORBA.AbstractBase.Ref;
-         Operation  : CORBA.Identifier;
-         Args_List  : CORBA.NVList.Ref;
-         Result     : CORBA.NamedValue;
-         Exc_List   : CORBA.ExceptionList.Ref;
-         Ctxt_List  : CORBA.ContextList.Ref;
-         Req_Flags  : CORBA.Flags;
-      end record;
-
-end CORBA.Request;
+end CORBA.ContextList;

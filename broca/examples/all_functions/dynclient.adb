@@ -1208,8 +1208,8 @@ begin
          delay 5.0;
          Ok := Oneway_Checker (Myall_Functions) = 2;
       end if;
-   exception when others =>
-      Ok := False;
+--   exception when others =>
+--      Ok := False;
    end;
     Output ("test void one way procedure", Ok);
 
