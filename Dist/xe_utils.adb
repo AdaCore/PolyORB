@@ -96,12 +96,13 @@ package body XE_Utils is
       N2 : Types.File_Name_Type)
       return Types.File_Name_Type is
    begin
-      pragma Assert (N1 /= No_File);
-      if N2 = No_File then
-         return N1;
+      Name_Len := 0;
+      if N1 /= No_Name then
+         Get_Name_String_And_Append (N1);
       end if;
-      Get_Name_String (N1);
-      Get_Name_String_And_Append (N2);
+      if N2 /= No_Name then
+         Get_Name_String_And_Append (N2);
+      end if;
       return Name_Find;
    end "&";
 
@@ -114,11 +115,27 @@ package body XE_Utils is
       N2 : String)
       return Types.File_Name_Type is
    begin
-      pragma Assert (N1 /= No_File);
-      Get_Name_String (N1);
+      Name_Len := 0;
+      if N1 /= No_Name then
+         Get_Name_String_And_Append (N1);
+      end if;
       Add_Str_To_Name_Buffer (N2);
       return Name_Find;
    end "&";
+
+   -------
+   -- C --
+   -------
+
+   function C (S : String) return Name_Id is
+   begin
+      for F in S'Range loop
+         if S (F) /= ' ' then
+            return C (Str_To_Id (S (F .. S'Last)));
+         end if;
+      end loop;
+      return No_Name;
+   end C;
 
    ----------------
    -- Change_Dir --
@@ -335,6 +352,108 @@ package body XE_Utils is
       Get_Name_String_And_Append (D4);
       return Name_Find;
    end Dir;
+
+   -----------------
+   -- Dwrite_Call --
+   -----------------
+
+   procedure Dwrite_Call
+     (File   : in File_Descriptor;
+      Ind    : in Int;
+      S1     : in String;
+      N1     : in Name_Id := No_Name;
+      S2     : in String  := No_Str;
+      N2     : in Name_Id := No_Name;
+      S3     : in String  := No_Str;
+      N3     : in Name_Id := No_Name)
+   is
+      Id   : Integer := 0;
+
+      procedure Dwrite_Separator (New_Id : Boolean);
+      procedure Dwrite_Separator (New_Id : Boolean) is
+      begin
+         if New_Id then
+            Id := Id + 1;
+            if Id = 2 then
+               Dwrite_Str (File, " (");
+            elsif Id > 2 then
+               Dwrite_Str (File, ", ");
+            end if;
+         end if;
+      end Dwrite_Separator;
+
+   begin
+      for I in 1 .. Ind loop
+         Dwrite_Str (File, "   ");
+      end loop;
+      Dwrite_Separator (S1 /= No_Str);
+      Dwrite_Str  (File, S1);
+      Dwrite_Separator (N1 /= No_Name);
+      Dwrite_Name (File, N1);
+      Dwrite_Separator (S2 /= No_Str);
+      Dwrite_Str  (File, S2);
+      Dwrite_Separator (N2 /= No_Name);
+      Dwrite_Name (File, N2);
+      Dwrite_Separator (S3 /= No_Str);
+      Dwrite_Str  (File, S3);
+      Dwrite_Separator (N3 /= No_Name);
+      Dwrite_Name (File, N3);
+      pragma Assert (Id /= 0);
+      if Id /= 1 then
+         Dwrite_Str (File, ")");
+      end if;
+      Dwrite_Str (File, ";");
+      Dwrite_Eol (File);
+   end Dwrite_Call;
+
+   -----------------
+   -- Dwrite_Line --
+   -----------------
+
+   procedure Dwrite_Line
+     (File  : in File_Descriptor;
+      Ind : in Int;
+      S1  : in String;
+      N1  : in Name_Id := No_Name;
+      S2  : in String  := No_Str;
+      N2  : in Name_Id := No_Name;
+      S3  : in String  := No_Str;
+      N3  : in Name_Id := No_Name) is
+   begin
+      for I in 1 .. Ind loop
+         Dwrite_Str (File, "   ");
+      end loop;
+      Dwrite_Str  (File, S1);
+      Dwrite_Name (File, N1);
+      Dwrite_Str  (File, S2);
+      Dwrite_Name (File, N2);
+      Dwrite_Str  (File, S3);
+      Dwrite_Name (File, N3);
+      Dwrite_Eol  (File);
+   end Dwrite_Line;
+
+   ------------------------
+   -- Dwrite_With_Clause --
+   ------------------------
+
+   procedure Dwrite_With_Clause
+     (File : in File_Descriptor;
+      Used : in Boolean;
+      Unit : in Name_Id) is
+   begin
+      Name_Len := 0;
+      Add_Str_To_Name_Buffer ("with ");
+      Get_Name_String_And_Append (Unit);
+      Add_Char_To_Name_Buffer (';');
+      Dwrite_Str (File, Name_Buffer (1 .. Name_Len));
+      Dwrite_Eol (File);
+
+      if Used then
+         Name_Buffer (1 .. 5) := "use  ";
+         Dwrite_Str (File, Name_Buffer (1 .. Name_Len));
+         Dwrite_Eol (File);
+      end if;
+   end Dwrite_With_Clause;
 
    -------------
    -- Execute --
@@ -553,6 +672,81 @@ package body XE_Utils is
 
    end Execute_Link;
 
+   -----------------
+   -- Find_Source --
+   -----------------
+
+   function Find_Source
+     (Uname : Unit_Name_Type;
+      Fatal : Boolean := False)
+      return File_Name_Type
+   is
+      Info : Int;
+      File : File_Name_Type;
+      Name : Unit_Name_Type;
+      Spec : Boolean;
+   begin
+      Get_Name_String (Uname);
+      if Name_Len < 3 or else Name_Buffer (Name_Len - 1) /= '%' then
+         Name_Len := Name_Len + 1;
+         Name_Buffer (Name_Len) := '%';
+         Name_Len := Name_Len + 1;
+         Name_Buffer (Name_Len) := 'b';
+      end if;
+
+      --  If Info /= 0, then this unit is already in table Units. Info
+      --  corresponds to the index in this table. Check body first.
+      --  When the unit source file does not follow GNAT convention,
+      --  we shall find it anyway as long as this unit is already loaded.
+
+      Info := Get_Name_Table_Info (Name_Find);
+      if Info /= 0 then
+         return Units.Table (Unit_Id (Info)).Sfile;
+      else
+         --  If Info /= 0, then this unit is already in table Units. Info
+         --  corresponds to the index in this table. Then check spec.
+
+         Name_Buffer (Name_Len) := 's';
+         Info := Get_Name_Table_Info (Name_Find);
+         if Info /= 0 then
+            return Units.Table (Unit_Id (Info)).Sfile;
+         end if;
+
+         Name := U_To_N (Uname);
+
+         --  Find a regular source file. If Uname is a spec name,
+         --  then try to find the spec source first. Otherwise,
+         --  try to find the body source, then the spec one.
+
+         Spec := Is_Spec_Name (Uname);
+
+         if Spec then
+            File := File_Name_Of_Spec (Name);
+            if Full_Source_Name (File) /= No_File then
+               return File;
+            end if;
+         end if;
+
+         File := File_Name_Of_Body (Name);
+         if Full_Source_Name (File) /= No_File then
+            return File;
+         end if;
+
+         if not Spec then
+            File := File_Name_Of_Spec (Name);
+            if Full_Source_Name (File) /= No_File then
+               return File;
+            end if;
+         end if;
+
+         if Fatal then
+            Source_File_Error (Uname);
+         end if;
+
+         return No_File;
+      end if;
+   end Find_Source;
+
    ----------------
    -- GNAT_Style --
    ----------------
@@ -664,6 +858,8 @@ package body XE_Utils is
       Partition_Main_Name  := Str_To_Id ("Partition");
       Protocol_Config_File := Str_To_Id ("s-gaprco");
       Protocol_Config_Name := Str_To_Id ("System.Garlic.Protocols.Config");
+      Storage_Config_File  := Str_To_Id ("s-gastco");
+      Storage_Config_Name  := Str_To_Id ("System.Garlic.Storages.Config");
 
       GARLIC := Getenv ("GLADE_LIBRARY_DIR");
       if GARLIC = null
@@ -801,18 +997,6 @@ package body XE_Utils is
    end Is_Body_Name;
 
    ------------------
-   -- Is_Spec_Name --
-   ------------------
-
-   function Is_Spec_Name (U : Unit_Name_Type) return Boolean is
-   begin
-      Get_Name_String (U);
-      return Name_Len > 2
-        and then Name_Buffer (Name_Len - 1) = '%'
-        and then Name_Buffer (Name_Len) = 's';
-   end Is_Spec_Name;
-
-   ------------------
    -- Is_Directory --
    ------------------
 
@@ -844,80 +1028,17 @@ package body XE_Utils is
          and then Name_Buffer (1) /= '/');
    end Is_Relative_Dir;
 
-   -----------------
-   -- Find_Source --
-   -----------------
+   ------------------
+   -- Is_Spec_Name --
+   ------------------
 
-   function Find_Source
-     (Uname : Unit_Name_Type;
-      Fatal : Boolean := False)
-      return File_Name_Type
-   is
-      Info : Int;
-      File : File_Name_Type;
-      Name : Unit_Name_Type;
-      Spec : Boolean;
+   function Is_Spec_Name (U : Unit_Name_Type) return Boolean is
    begin
-      Get_Name_String (Uname);
-      if Name_Len < 3 or else Name_Buffer (Name_Len - 1) /= '%' then
-         Name_Len := Name_Len + 1;
-         Name_Buffer (Name_Len) := '%';
-         Name_Len := Name_Len + 1;
-         Name_Buffer (Name_Len) := 'b';
-      end if;
-
-      --  If Info /= 0, then this unit is already in table Units. Info
-      --  corresponds to the index in this table. Check body first.
-      --  When the unit source file does not follow GNAT convention,
-      --  we shall find it anyway as long as this unit is already loaded.
-
-      Info := Get_Name_Table_Info (Name_Find);
-      if Info /= 0 then
-         return Units.Table (Unit_Id (Info)).Sfile;
-      else
-         --  If Info /= 0, then this unit is already in table Units. Info
-         --  corresponds to the index in this table. Then check spec.
-
-         Name_Buffer (Name_Len) := 's';
-         Info := Get_Name_Table_Info (Name_Find);
-         if Info /= 0 then
-            return Units.Table (Unit_Id (Info)).Sfile;
-         end if;
-
-         Name := U_To_N (Uname);
-
-         --  Find a regular source file. If Uname is a spec name,
-         --  then try to find the spec source first. Otherwise,
-         --  try to find the body source, then the spec one.
-
-         Spec := Is_Spec_Name (Uname);
-
-         if Spec then
-            File := File_Name_Of_Spec (Name);
-            if Full_Source_Name (File) /= No_File then
-               return File;
-            end if;
-         end if;
-
-         File := File_Name_Of_Body (Name);
-         if Full_Source_Name (File) /= No_File then
-            return File;
-         end if;
-
-         if not Spec then
-            File := File_Name_Of_Spec (Name);
-            if Full_Source_Name (File) /= No_File then
-               return File;
-            end if;
-         end if;
-
-         if Fatal then
-            Source_File_Error (Uname);
-         end if;
-
-         return No_File;
-      end if;
-   end Find_Source;
+      Get_Name_String (U);
+      return Name_Len > 2
+        and then Name_Buffer (Name_Len - 1) = '%'
+        and then Name_Buffer (Name_Len) = 's';
+   end Is_Spec_Name;
 
    ------------
    -- Locate --
@@ -980,6 +1101,21 @@ package body XE_Utils is
       Write_Eol;
    end Message;
 
+   -----------
+   -- Quote --
+   -----------
+
+   function Quote (N : Name_Id) return Name_Id is
+   begin
+      Name_Len := 0;
+      Add_Char_To_Name_Buffer ('"'); -- "
+      if N /= No_Name then
+         Get_Name_String_And_Append (N);
+      end if;
+      Add_Char_To_Name_Buffer ('"'); -- "
+      return Name_Find;
+   end Quote;
+
    ----------------------
    -- Remove_GNAT_Flag --
    ----------------------
@@ -1010,13 +1146,56 @@ package body XE_Utils is
       end loop;
    end Remove_GNAT_Flag;
 
+   -------
+   -- S --
+   -------
+
+   function S (X : String) return Name_Id is
+   begin
+      return S (Str_To_Id (X));
+   end S;
+
+   -------
+   -- S --
+   -------
+
+   function S (N : Name_Id) return Name_Id is
+   begin
+      Name_Len := 0;
+      Add_Str_To_Name_Buffer ("System.");
+      Get_Name_String_And_Append (N);
+      return Name_Find;
+   end S;
+
+   --------
+   -- SG --
+   --------
+
+   function SG (X : String) return Name_Id is
+   begin
+      return SG (Str_To_Id (X));
+   end SG;
+
+   --------
+   -- SG --
+   --------
+
+   function SG (N : Name_Id) return Name_Id is
+      CN : Name_Id := C (N);
+   begin
+      Name_Len := 0;
+      Add_Str_To_Name_Buffer ("Garlic.");
+      Get_Name_String_And_Append (CN);
+      return S (Name_Find);
+   end SG;
+
    -----------------------
    -- Source_File_Error --
    -----------------------
 
    procedure Source_File_Error (Uname : Unit_Name_Type) is
    begin
-      Message ("no source file for unit", To_String (U_To_N (Uname)));
+      Message ("no source file for unit", Quote (U_To_N (Uname)));
       raise Compilation_Failed;
    end Source_File_Error;
 
@@ -1108,19 +1287,6 @@ package body XE_Utils is
       return Name_Find;
    end To_Spec;
 
-   ---------------
-   -- To_String --
-   ---------------
-
-   function To_String (N : Name_Id) return Name_Id is
-   begin
-      Name_Len := 0;
-      Add_Char_To_Name_Buffer ('"');
-      Get_Name_String_And_Append (N);
-      Add_Char_To_Name_Buffer ('"');
-      return Name_Find;
-   end To_String;
-
    ------------
    -- U_To_N --
    ------------
@@ -1172,7 +1338,6 @@ package body XE_Utils is
      (File   : in File_Descriptor;
       Stdout : in Boolean := False) is
    begin
-
       if File = Invalid_FD then
          raise Usage_Error;
       end if;
@@ -1186,7 +1351,6 @@ package body XE_Utils is
       if Stdout then
          Write_Eol (Standout);
       end if;
-
    end Write_Eol;
 
    ----------------------
@@ -1211,9 +1375,9 @@ package body XE_Utils is
       Message ("", File, "does not exist");
    end Write_Missing_File;
 
-   -------------------
-   -- Uname_To_Name --
-   -------------------
+   ----------------
+   -- Write_Name --
+   ----------------
 
    procedure Write_Name
      (File   : in File_Descriptor;

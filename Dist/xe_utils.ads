@@ -29,6 +29,7 @@
 with Unchecked_Deallocation;
 with GNAT.OS_Lib;
 with Types;
+with XE;
 
 package XE_Utils is
 
@@ -65,6 +66,8 @@ package XE_Utils is
    Partition_Main_Name   : Types.File_Name_Type;
    Protocol_Config_File  : Types.File_Name_Type;
    Protocol_Config_Name  : Types.File_Name_Type;
+   Storage_Config_File   : Types.File_Name_Type;
+   Storage_Config_Name   : Types.File_Name_Type;
 
    A_GARLIC_Dir          : GNAT.OS_Lib.String_Access;
    I_GARLIC_Dir          : GNAT.OS_Lib.String_Access;
@@ -82,18 +85,18 @@ package XE_Utils is
    Usage_Error         : exception;   --  Command line error
    Not_Yet_Implemented : exception;
 
-   function "&" (N1, N2 : Types.File_Name_Type)
-                 return Types.File_Name_Type;
-   function "&" (N1 : Types.File_Name_Type; N2 : String)
-                 return Types.File_Name_Type;
+   function "&" (N1, N2 : Types.Name_Id) return Types.Name_Id;
+   function "&" (N1 : Types.Name_Id; N2 : String) return Types.Name_Id;
 
-   function Dir
-     (D1 : Types.File_Name_Type;
-      D2 : Types.File_Name_Type := Types.No_File;
-      D3 : Types.File_Name_Type := Types.No_File;
-      D4 : Types.File_Name_Type := Types.No_File)
-      return Types.File_Name_Type;
-   --  Concatenate several names and insert a directory separator between them.
+   function  GNAT_Style (N : Types.Name_Id) return Types.Name_Id;
+   --  Return a string that approx. follows GNAT style.
+
+   function C  (N : Types.Name_Id) return Types.Name_Id renames GNAT_Style;
+   function C  (S : String) return Types.Name_Id;
+   function S  (X : String) return Types.Name_Id;
+   function SG (X : String) return Types.Name_Id;
+   function S  (N : Types.Name_Id) return Types.Name_Id;
+   function SG (N : Types.Name_Id) return Types.Name_Id;
 
    procedure Change_Dir (To : in Types.File_Name_Type);
    --  Changes the working directory of the current execution environment
@@ -130,6 +133,14 @@ package XE_Utils is
    procedure Delete
      (File : in Types.File_Name_Type);
 
+   function Dir
+     (D1 : Types.File_Name_Type;
+      D2 : Types.File_Name_Type := Types.No_File;
+      D3 : Types.File_Name_Type := Types.No_File;
+      D4 : Types.File_Name_Type := Types.No_File)
+      return Types.File_Name_Type;
+   --  Concatenate several names and insert a directory separator between them.
+
    procedure Execute
      (Prog  : in GNAT.OS_Lib.String_Access;
       Args  : in GNAT.OS_Lib.Argument_List;
@@ -165,9 +176,6 @@ package XE_Utils is
    procedure Free is
      new Unchecked_Deallocation (String, GNAT.OS_Lib.String_Access);
 
-   function  GNAT_Style (N : Types.Name_Id) return Types.Name_Id;
-   --  Return a string that approx. follows GNAT style.
-
    procedure Initialize;
    --  Must be called before any other calls in this package
 
@@ -187,18 +195,9 @@ package XE_Utils is
    --  Returns the unit name of a spec from a given name (i.e. it ends
    --  with the characters %s).
 
-   function To_String (N : Types.Name_Id) return Types.Name_Id;
-   --  Make a string containing N and return it as a Name_Id
 
-   procedure Message
-     (S1 : in String        := "";
-      S2 : in Types.Name_Id := Types.No_Name;
-      S3 : in String        := "";
-      S4 : in Types.Name_Id := Types.No_Name;
-      S5 : in String        := "");
-   --  Display a message to the standard output. The message is the
-   --  concatenation of S1 to S5. Parameters with default values are not
-   --  displayed.
+   function Quote (N : Types.Name_Id) return Types.Name_Id;
+   --  Make a string containing N and return it as a Name_Id
 
    procedure Remove_GNAT_Flag (Flag : in String);
    --  Remove from command line any gnat flag beginning with string
@@ -225,6 +224,16 @@ package XE_Utils is
    --  Strip %[bs] from U.
 
    procedure Unlink_File (File : in Types.File_Name_Type);
+
+   procedure Message
+     (S1 : in String        := "";
+      S2 : in Types.Name_Id := Types.No_Name;
+      S3 : in String        := "";
+      S4 : in Types.Name_Id := Types.No_Name;
+      S5 : in String        := "");
+   --  Display a message to the standard output. The message is the
+   --  concatenation of S1 to S5. Parameters with default values are not
+   --  displayed.
 
    procedure Write_Compile_Command (Name : in Types.File_Name_Type);
    --  Generates on standard-out the command needed to compile
@@ -255,5 +264,54 @@ package XE_Utils is
 
    procedure Write_Unit_Name
      (U : in Types.Unit_Name_Type);
+
+   procedure Dwrite_Call
+     (File   : in GNAT.OS_Lib.File_Descriptor;
+      Ind    : in Types.Int;
+      S1     : in String;
+      N1     : in Types.Name_Id := Types.No_Name;
+      S2     : in String        := No_Str;
+      N2     : in Types.Name_Id := Types.No_Name;
+      S3     : in String        := No_Str;
+      N3     : in Types.Name_Id := Types.No_Name);
+   --  Insert a procedure call. The first non-null parameter
+   --  is supposed to be the procedure name. The next parameters
+   --  are parameters for this procedure call.
+
+   procedure Dwrite_Eol
+     (File   : in GNAT.OS_Lib.File_Descriptor;
+      Stdout : in Boolean := XE.Building_Script)
+     renames Write_Eol;
+   --  Changed default parameter.
+
+   procedure Dwrite_Line
+     (File : in GNAT.OS_Lib.File_Descriptor;
+      Ind  : in Types.Int;
+      S1   : in String;
+      N1   : in Types.Name_Id := Types.No_Name;
+      S2   : in String        := No_Str;
+      N2   : in Types.Name_Id := Types.No_Name;
+      S3   : in String        := No_Str;
+      N3   : in Types.Name_Id := Types.No_Name);
+
+   procedure Dwrite_Name
+     (File   : in GNAT.OS_Lib.File_Descriptor;
+      Name   : in Types.Name_Id;
+      Stdout : in Boolean := XE.Building_Script)
+     renames Write_Name;
+   --  Changed default parameter.
+
+   procedure Dwrite_Str
+     (File   : in GNAT.OS_Lib.File_Descriptor;
+      Line   : in String;
+      Stdout : in Boolean := XE.Building_Script)
+     renames Write_Str;
+   --  Changed default parameter.
+
+   procedure Dwrite_With_Clause
+     (File : in GNAT.OS_Lib.File_Descriptor;
+      Used : in Boolean;
+      Unit : in Types.Name_Id);
+   --  Add a with clause and possibly a use clause as well.
 
 end XE_Utils;
