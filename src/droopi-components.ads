@@ -29,11 +29,13 @@ package Droopi.Components is
       M : Message'Class)
      return Message'Class
       is abstract;
-   --  Called when component C is to receive message M.
+   --  Called internally when component C is to receive message M.
    --  Return True if M has been handled, false otherwise.
    --  Each component type overloads this primitive, and
    --  thus defines its behaviour in terms of replies to
    --  a set of external stimuli (messages).
+   --  This subprogram must not be called directly. To send a message
+   --  to a component, Emit or Emit_No_Reply must be used.
 
    procedure Connect
      (Port : out Component_Access;
