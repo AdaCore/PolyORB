@@ -139,6 +139,8 @@ CLEANFILES = *.ali s-garcon.ads *.o s-gtplsp.ads s-gaprco.adb s-galiop.ads\
 	s-garser.adb s-gaplsp.ads $(FILTERSOBJECTS) split s-rpcdum.ads\
 	inlining inline* gnatlib/* constants_nodef ${TCP_PLATFORM_SOURCE}
 
+DISTCLEANFILES = config.h
+
 SUFFIXES = .adb .ads .ali .o .xrb
 
 s-gtplsp.o: ${TCP_PLATFORM_SOURCE}
