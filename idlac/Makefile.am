@@ -24,3 +24,6 @@ force::
 install-exec-local:
 	$(INSTALL) -d $(exec_prefix)/bin
 	$(INSTALL_PROGRAM) idlac $(exec_prefix)/bin/idlac
+
+uninstall-local:
+	$(RM) $(exec_prefix)/bin/idlac

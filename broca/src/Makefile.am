@@ -1,4 +1,4 @@
-alidir = $(libdir)/adabroker/adalib
+alidir = $(libdir)/adabroker
 
 ADA_FULL = \
 	   broca-debug.ads \
