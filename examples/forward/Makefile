@@ -25,18 +25,18 @@ main:
 	make server
 
 clean:
-	rm *.ali *.o *~
+	rm *.ali *.o *~ server client chicken_egg.hh chicken_eggSK.cc
 
 server.o: server.cc chicken_egg.hh
-	/usr/local/egcs/bin/g++ -c -O2  -Wall -Wno-unused -D__OMNIORB2__ \
+	g++ -c -O2  -Wall -Wno-unused -D__OMNIORB2__ \
 $(OMNIORB_SYSDEP_FLAGS) -D_REENTRANT -I.  -I../../omniORB_2.7.0/include  -o server.o server.cc
 
 chicken_eggSK.o: chicken_egg.hh chicken_eggSK.cc 
-	/usr/local/egcs/bin/g++ -c -O2  -Wall -Wno-unused -D__OMNIORB2__ \
+	g++ -c -O2  -Wall -Wno-unused -D__OMNIORB2__ \
 $(OMNIORB_SYSDEP_FLAGS) -D_REENTRANT -I.  -I../../omniORB_2.7.0/include  -o chicken_eggSK.o chicken_eggSK.cc
 
 server: server.o chicken_eggSK.o
-	/usr/local/egcs/bin/g++ -o server -O2 -Wall -Wno-unused \
+	g++ -o server -O2 -Wall -Wno-unused \
 server.o chicken_eggSK.o $(OMNIORB_LIBS)
 
 chicken_egg.hh: chicken_egg.idl
