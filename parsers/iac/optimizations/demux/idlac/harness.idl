@@ -1,0 +1,22 @@
+interface Harness {
+  unsigned long echoULong1(in unsigned long arg);
+  unsigned long echoULong2(in unsigned long arg);
+  unsigned long echoULong3(in unsigned long arg);
+  unsigned long echoULong4(in unsigned long arg);
+  unsigned long echoULong5(in unsigned long arg);
+  unsigned long echoULong6(in unsigned long arg);
+  unsigned long echoULong7(in unsigned long arg);
+  unsigned long echoULong8(in unsigned long arg);
+  unsigned long echoULong9(in unsigned long arg);
+  unsigned long echoULong10(in unsigned long arg);
+  unsigned long echoULong11(in unsigned long arg);
+  unsigned long echoULong12(in unsigned long arg);
+  unsigned long echoULong13(in unsigned long arg);
+  unsigned long echoULong14(in unsigned long arg);
+  unsigned long echoULong15(in unsigned long arg);
+  unsigned long echoULong16(in unsigned long arg);
+  unsigned long echoULong17(in unsigned long arg);
+  unsigned long echoULong18(in unsigned long arg);
+  unsigned long echoULong19(in unsigned long arg);
+  unsigned long echoULong20(in unsigned long arg);
+};

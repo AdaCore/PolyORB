@@ -87,7 +87,7 @@ package body Harness.Skel is
          begin
             CORBA.NVList.Add_Item
               (Argument_List_ü,
-               Arg_Name_U_arg,
+               Arg_Name_U_Arg,
                Argument_U_arg,
                CORBA.ARG_IN);
             CORBA.ServerRequest.Arguments

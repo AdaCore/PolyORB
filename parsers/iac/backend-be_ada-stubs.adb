@@ -645,22 +645,22 @@ package body Backend.BE_Ada.Stubs is
      (Subp_Spec       : Node_Id)
       return            List_Id
    is
-      Statements     : List_Id;
-      N              : Node_Id;
-      C              : Node_Id;
-      P              : List_Id;
-      S              : List_Id;
-      Count          : Natural;
-      Return_T       : Node_Id;
-      I              : Node_Id;
-      Param          : Node_Id;
-      R              : Name_Id;
-      Operation_Name : constant Name_Id
+      Marshaller_Statements     : List_Id;
+      N                         : Node_Id;
+      C                         : Node_Id;
+      P                         : List_Id;
+      S                         : List_Id;
+      Count                     : Natural;
+      Return_T                  : Node_Id;
+      I                         : Node_Id;
+      Param                     : Node_Id;
+      R                         : Name_Id;
+      Operation_Name            : constant Name_Id
         := BEN.Name (Defining_Identifier (Subp_Spec));
 
    begin
       Return_T := Return_Type (Subp_Spec);
-      Statements := New_List (BEN.K_List_Id);
+      Marshaller_Statements := New_List (BEN.K_List_Id);
 
       --  Test if the Self_Ref_U is nil, if it's nil raise exception.
 
@@ -683,7 +683,7 @@ package body Backend.BE_Ada.Stubs is
       N := Make_If_Statement
         (Condition => C,
          Then_Statements => S);
-      Append_Node_To_List (N, Statements);
+      Append_Node_To_List (N, Marshaller_Statements);
 
       --  Create argument list.
 
@@ -694,7 +694,7 @@ package body Backend.BE_Ada.Stubs is
       Append_Node_To_List
         (Make_Defining_Identifier (VN (V_Argument_List)), P);
       Set_Actual_Parameter_Part (C, P);
-      Append_Node_To_List (C, Statements);
+      Append_Node_To_List (C, Marshaller_Statements);
       Count := Length (Parameter_Profile (Subp_Spec));
 
       --  Add arguments  to argument  list
@@ -730,7 +730,7 @@ package body Backend.BE_Ada.Stubs is
             N := Make_Subprogram_Call
               (RE (RE_Add_Item_1),
                P);
-            Append_Node_To_List (N, Statements);
+            Append_Node_To_List (N, Marshaller_Statements);
             I := Next_Node (I);
             exit when No (I);
          end loop;
@@ -792,13 +792,24 @@ package body Backend.BE_Ada.Stubs is
       Append_Node_To_List (N, P);
 
       N := Make_Record_Aggregate (P);
+      N := Make_Return_Statement (N);
+      Get_Name_String (Operation_Name);
+      Add_Char_To_Name_Buffer ('_');
+      Get_Name_String_And_Append (VN (V_Result));
+      R := Name_Find;
 
-      N := Make_Assignment_Statement
-        (Variable_Identifier =>
-           Make_Defining_Identifier (VN (V_Result)),
-         Expression => N);
-      Append_Node_To_List (N, Statements);
-
+      I := Make_Subprogram_Call
+           (Make_Defining_Identifier (GN (Pragma_Inline)),
+            Make_List_Id (Make_Designator (R)));
+      C := Make_Subprogram_Specification
+        (Make_Defining_Identifier (R),
+         No_List,
+         RE (RE_NamedValue));
+      N := Make_Subprogram_Implementation
+        (C,
+         Make_List_Id (Make_Pragma_Statement (I)),
+         Make_List_Id (N));
+      Append_Node_To_List (N, Statements (Current_Package));
       N := Make_Subprogram_Call
         (RE (RE_Ref_2),
          Make_List_Id (Make_Defining_Identifier (PN (P_Self))));
@@ -832,7 +843,7 @@ package body Backend.BE_Ada.Stubs is
       N := Make_Subprogram_Call
         (RE (RE_Create_Request),
          P);
-      Append_Node_To_List (N, Statements);
+      Append_Node_To_List (N, Marshaller_Statements);
       N := Make_Subprogram_Call
         (RE (RE_Flags),
          Make_List_Id (Make_Literal (Int0_Val)));
@@ -841,7 +852,7 @@ package body Backend.BE_Ada.Stubs is
          Make_List_Id
          (Make_Defining_Identifier (VN (V_Request)),
           N));
-      Append_Node_To_List (N, Statements);
+      Append_Node_To_List (N, Marshaller_Statements);
 
       --  ???
 
@@ -872,11 +883,11 @@ package body Backend.BE_Ada.Stubs is
       N := Make_Expression (N, Op_Not);
       N := Make_If_Statement
         (N, P, No_List);
-      Append_Node_To_List (N, Statements);
+      Append_Node_To_List (N, Marshaller_Statements);
       N := Make_Subprogram_Call
         (RE (RE_Destroy_Request),
          Make_List_Id (Make_Designator (VN (V_Request))));
-      Append_Node_To_List (N, Statements);
+      Append_Node_To_List (N, Marshaller_Statements);
 
       --  Retrieve return value
 
@@ -902,10 +913,10 @@ package body Backend.BE_Ada.Stubs is
             Make_List_Id (Copy_Node (C)));
          N := Make_Return_Statement
            (Make_Subprogram_Call (N, Make_List_Id (C)));
-         Append_Node_To_List (N, Statements);
+         Append_Node_To_List (N, Marshaller_Statements);
       end if;
 
-      return Statements;
+      return Marshaller_Statements;
    end Marshaller_Body;
 
    -----------------------------
@@ -1064,14 +1075,20 @@ package body Backend.BE_Ada.Stubs is
       Append_Node_To_List (N, L);
 
       --  Result_U declaration
-      --  Result_U : PolyORB.Any.NamedValue;
+      --  Result_U : PolyORB.Any.NamedValue := [Operation_Name]_Result_V;
 
+      Get_Name_String (Operation_Name);
+      Add_Char_To_Name_Buffer ('_');
+      Get_Name_String_And_Append (VN (V_Result));
+      R := Name_Find;
       N := Make_Object_Declaration
         (Defining_Identifier =>
            Make_Defining_Identifier (VN (V_Result)),
          Constant_Present    => False,
          Object_Definition   => RE (RE_NamedValue),
-         Expression          => No_Node);
+         Expression          =>
+           Make_Subprogram_Call
+         (Make_Designator (R), No_List));
       Append_Node_To_List (N, L);
 
       --  Result_Name_U declaration :

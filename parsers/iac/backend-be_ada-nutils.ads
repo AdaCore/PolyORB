@@ -245,7 +245,8 @@ package Backend.BE_Ada.Nutils is
    TN : array (Type_Id) of Name_Id;
 
    type Pragma_Id is
-     (Pragma_Elaborate_Body);
+     (Pragma_Elaborate_Body,
+      Pragma_Inline);
 
    GN : array (Pragma_Id) of Name_Id;
 
