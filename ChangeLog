@@ -1,3 +1,7 @@
+2004-08-12  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* MANIFEST: Change xe_load into xe_list.
+
 2004-08-11  Laurent Pautet  <pautet@dorine.enst.fr>
 
 	* configure.in, configure: do not take care of the presence of
