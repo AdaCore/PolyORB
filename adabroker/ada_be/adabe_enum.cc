@@ -36,10 +36,14 @@ adabe_enum::adabe_enum(UTL_ScopedName *n, UTL_StrList *p)
 	 UTL_Scope(AST_Decl::NT_enum),
 	 adabe_name(AST_Decl::NT_enum, n, p)
 {
+  pd_number_value = 0;
 }
 
 void
 adabe_enum::produce_ads(dep_list& with,string &body, string &previous) {
+  
+  int numb = 0;
+  // number of enum values
   
   compute_ada_name ();
   body += "   type " + get_ada_local_name() + " is ( ";
@@ -51,6 +55,7 @@ adabe_enum::produce_ads(dep_list& with,string &body, string &previous) {
       switch (d->node_type())
 	{
 	case AST_Decl::NT_enum_val:
+	  numb++;
 	  body+=adabe_enum_val::narrow_from_decl(d)->dump_name(with, previous);
 	  break;
 	default:
@@ -58,6 +63,8 @@ adabe_enum::produce_ads(dep_list& with,string &body, string &previous) {
 	}
       if (!activator.is_done()) body += ", ";
     }
+  set_number_value(numb);
+  // set the number of enum values
   body +=" ) ;\n";
   body += "   type " + get_ada_local_name() + "_Ptr is access ";
   body += get_ada_local_name() + " ;\n\n";

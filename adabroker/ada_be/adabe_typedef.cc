@@ -29,6 +29,7 @@ adabe_typedef::adabe_typedef(AST_Type *bt, UTL_ScopedName *n, UTL_StrList *p)
 	    adabe_name(AST_Decl::NT_typedef, n, p)
 
 {
+  pd_number_value = 0;
 }
 
 void
@@ -74,6 +75,17 @@ adabe_typedef::produce_ads(dep_list& with, string &body, string &previous)
       body += get_ada_local_name() + ", " + get_ada_local_name ()+ "_Ptr) ;\n\n\n";
     }
   if (!c->has_fixed_size()) no_fixed_size();
+  switch (b->node_type())
+    {
+    case AST_Decl::NT_typedef:
+      set_number_value(dynamic_cast<adabe_typedef *>(b)->get_number_value());
+      break;
+    case AST_Decl::NT_enum:
+      set_number_value(dynamic_cast<adabe_enum *>(b)->get_number_value());
+      break;
+    default:
+      break;      
+    }  
   set_already_defined ();
 }
 

@@ -260,6 +260,8 @@ package Corba is
     C_Out_Of_Range : exception ;
     -- a C Value was to be converted into an Ada Value but was out of range
 
+    Dummy_User : exception ;
+    -- the user tried to call an unchecked case in an union
 
     function To_Corba_String(S: in Standard.String) return Corba.String ;
     -- transforms a standard string into the correponding corba string

@@ -239,7 +239,12 @@ public:
   virtual void produce_marshal_adb(dep_list &with, string &body, string &previous);
   virtual string dump_name(dep_list &with, string &previous);
   virtual string marshal_name(dep_list &with, string &previous);
-    
+
+  void set_number_value(int number) { pd_number_value = number; };
+  int get_number_value(){ return pd_number_value; };
+private:
+  int pd_number_value;
+  // count the number of enum values
 };
 
 
@@ -313,6 +318,13 @@ public:
   virtual string dump_name(dep_list &with, string &previous);
   virtual string marshal_name(dep_list &with, string &previous);
 
+  void set_default_case(bool def) { pd_have_default_case = def; };
+  bool get_default_case(){ return pd_have_default_case; };
+private:
+  bool pd_have_default_case;
+  // should we add a default case "Null" (if all the possibilities are not checked)
+  // true means yes
+  
 };
 
 
@@ -510,6 +522,12 @@ public:
   virtual void produce_marshal_adb(dep_list &with, string &body, string &previous);
   virtual string dump_name(dep_list &with, string &previous);
   virtual string marshal_name(dep_list &with, string &previous);
+
+  void set_number_value(int number) { pd_number_value = number; };
+  int get_number_value(){ return pd_number_value; };
+private:
+  int pd_number_value;
+  // count the number of enum values
 
 };
 

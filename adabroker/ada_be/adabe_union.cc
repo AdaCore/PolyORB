@@ -30,11 +30,23 @@ adabe_union::adabe_union(AST_ConcreteType *dt, UTL_ScopedName *n, UTL_StrList *p
 	  UTL_Scope(AST_Decl::NT_union),
 	  adabe_name(AST_Decl::NT_union, n, p)
 {
+  pd_have_default_case = false;
 }
 
 void
 adabe_union::produce_ads(dep_list& with, string &body, string &previous)
 {
+  int count = 0;
+  // to count the number of case when the discriminant type is an enum
+  
+  bool has_default_case = false;
+  // to check if there is a default case
+
+  string default_case = "";
+  default_case += "         when others =>\n";
+  default_case += "            Null;\n";
+  // it is the default case
+  
   compute_ada_name();
   body += "   type " + get_ada_local_name();
   adabe_name *b = dynamic_cast<adabe_name *>(disc_type());
@@ -48,11 +60,37 @@ adabe_union::produce_ads(dep_list& with, string &body, string &previous)
     {
       AST_Decl *d = i.item();
       if (d->node_type() == AST_Decl::NT_union_branch)
-	//adabe_union_branch::narrow_from_decl(d)->produce_ads(with, body, previous, disc_type());
-	dynamic_cast<adabe_union_branch *>(d)->produce_ads(with, body, previous, disc_type()); 
+	{
+	  adabe_union_branch *unionbr = dynamic_cast<adabe_union_branch *>(d);
+	  unionbr->produce_ads(with, body, previous, disc_type());
+	  if (unionbr->label()->label_kind() == AST_UnionLabel::UL_default)
+	    has_default_case = true;
+	  count++;
+	}
       else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in union");
       i.next ();
     }
+
+  if (!has_default_case)
+    {
+      switch (disc_type()->node_type())
+	{
+	case AST_Decl::NT_enum:
+	  if (count != (dynamic_cast<adabe_enum *>(b)->get_number_value()))
+	    set_default_case(true);
+	  break;
+	case AST_Decl::NT_typedef:
+	  if ((count != (dynamic_cast<adabe_typedef *>(b)->get_number_value()))
+	      && ((dynamic_cast<adabe_typedef *>(b)->get_number_value()) > 0))
+	    set_default_case(true);
+	  break;
+	default:
+	  set_default_case(true);
+	  break;
+	}
+  // case to check if we should add a default case (if it is int, long or char, it's automatically added)
+    }
+  if (get_default_case()) body += default_case;
   body += "      end case ;\n";
   body += "   end record ;\n";
   body += "   type " + get_ada_local_name() + "_Ptr is access ";
@@ -61,28 +99,6 @@ adabe_union::produce_ads(dep_list& with, string &body, string &previous)
   body += get_ada_local_name() + ", " + get_ada_local_name ()+ "_Ptr) ;\n\n\n";  
   set_already_defined();
 }
-
-/*
-  void
-  adabe_union::produce_adb(dep_list& with,string &body, string &previous)
-  {
-  if (!is_imported(with)) return get_ada_local_name();
-  return get_ada_full_name();	   
-  }
-  
-  void
-  adabe_union::produce_impl_ads(dep_list& with,string &body, string &previous)
-  {
-  produce_ads(with, body, previous);
-  }
-  
-  void
-  adabe_union::produce_impl_adb(dep_list& with,string &body, string &previous)
-  {
-  if (!is_imported(with)) return get_ada_local_name();
-  return get_ada_full_name();	   
-  }
-*/
 
 void
 adabe_union::produce_marshal_ads(dep_list& with, string &body, string &previous)
@@ -111,6 +127,11 @@ adabe_union::produce_marshal_adb(dep_list& with, string &body, string &previous)
 {
   string disc_name = (dynamic_cast<adabe_name *>(disc_type()))->marshal_name(with, previous); 
 
+  string default_case = "";
+  default_case += "         when others =>\n";
+  default_case += "            Ada.Exceptions.Raise_Exception(Corba.Dummy_User'Identity,\n";
+  default_case += "                                            \"Unchecked case is used in the union\") ;\n";
+ 
   string marshall = "";
   string unmarshall = "";
   string align_size = "";
@@ -158,7 +179,18 @@ adabe_union::produce_marshal_adb(dep_list& with, string &body, string &previous)
       else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in union");
       i.next();
     }
+  if (get_default_case())
+    {
+      marshall += default_case;
+      align_size += default_case;
+      unmarshall += "            when others =>\n";
+      unmarshall += "               Ada.Exceptions.Raise_Exception(Corba.Dummy_User'Identity,\n";
+      unmarshall += "                                               \"Unchecked case is used in the union\") ;\n";
 
+      with.add("Corba");
+      with.add("Ada.Exceptions");
+    }
+  // we had to add a default case, if called we will raise an exception
   marshall += "      end case ;\n";
   marshall += "   end Marshall ;\n\n";
 
@@ -213,3 +245,8 @@ adabe_union::marshal_name(dep_list& with, string &previous)
 IMPL_NARROW_METHODS1(adabe_union, AST_Union)
 IMPL_NARROW_FROM_DECL(adabe_union)
 IMPL_NARROW_FROM_SCOPE(adabe_union)
+
+
+
+
+
