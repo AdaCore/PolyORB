@@ -89,9 +89,6 @@ package CORBA.Request is
       Request   :    out CORBA.Request.Object;
       Req_Flags : in     Flags);
 
-   --  returns the return value corresponding to a request
-   function Return_Value (Self : Object) return NamedValue;
-
 private
 
    type Object is

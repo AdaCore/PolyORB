@@ -212,7 +212,7 @@ package body CORBA.Request is
       Req_Flags : in     Flags)
    is
       Argument : CORBA.Any;
-      The_Value : Any_Content_Ptr;
+      The_Value : Any_Content_Ptr_Ptr;
       The_Counter : Natural_Ptr;
    begin
       Result.Argument.Any_Lock.Lock_W;
@@ -237,10 +237,5 @@ package body CORBA.Request is
                   Ctxt_List => Ctxt_List,
                   Req_Flags => Req_Flags);
    end Create_Request;
-
-   function Return_Value (Self : Object) return NamedValue is
-   begin
-      return Self.Result;
-   end Return_Value;
 
 end CORBA.Request;

@@ -69,10 +69,10 @@ package body CORBA.Object.Helper is
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
       Any_Value.Any_Lock.Lock_W;
-      if Any_Value.The_Value /= null then
-         Content_ObjRef_Ptr (Any_Value.The_Value).Value := Value;
+      if Any_Value.The_Value.all /= Null_Content_Ptr then
+         Content_ObjRef_Ptr (Any_Value.The_Value.all).Value := Value;
       else
-         Any_Value.The_Value := new Content_ObjRef'(Value => Value);
+         Any_Value.The_Value.all := new Content_ObjRef'(Value => Value);
       end if;
       Any_Value.Any_Lock.Unlock_W;
    end Set_Any_Value;

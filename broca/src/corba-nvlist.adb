@@ -80,7 +80,7 @@ package body CORBA.NVList is
       Item       : in CORBA.Any;
       Item_Flags : in Flags) is
       Argument :  CORBA.Any;
-      The_Value : Any_Content_Ptr;
+      The_Value : Any_Content_Ptr_Ptr;
       The_Counter : Natural_Ptr;
    begin
       pragma Debug (O ("Add_Item (4 params) : enter"));

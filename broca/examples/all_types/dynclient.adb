@@ -74,7 +74,7 @@ procedure DynClient is
                              CORBA.ARG_IN);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => To_Any (CORBA.Boolean (True)),
+                 Argument => Get_Empty_Any (CORBA.TC_Boolean),
                  Arg_Modes => 0);
       --  creating a request
       CORBA.Object.Create_Request (Myall_Types,
@@ -125,7 +125,7 @@ procedure DynClient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
-      return From_Any (CORBA.Request.Return_Value (Request).Argument);
+      return From_Any (Result.Argument);
    end EchoShort;
 
    function EchoLong
@@ -163,7 +163,7 @@ procedure DynClient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
-      return From_Any (CORBA.Request.Return_Value (Request).Argument);
+      return From_Any (Result.Argument);
    end EchoLong;
 
    function EchoUShort
@@ -201,7 +201,7 @@ procedure DynClient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
-      return From_Any (CORBA.Request.Return_Value (Request).Argument);
+      return From_Any (Result.Argument);
    end EchoUShort;
 
    function EchoULong
@@ -239,7 +239,7 @@ procedure DynClient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
-      return From_Any (CORBA.Request.Return_Value (Request).Argument);
+      return From_Any (Result.Argument);
    end EchoULong;
 
    function EchoFloat
@@ -277,7 +277,7 @@ procedure DynClient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
-      return From_Any (CORBA.Request.Return_Value (Request).Argument);
+      return From_Any (Result.Argument);
    end EchoFloat;
 
    function EchoDouble
@@ -315,7 +315,7 @@ procedure DynClient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
-      return From_Any (CORBA.Request.Return_Value (Request).Argument);
+      return From_Any (Result.Argument);
    end EchoDouble;
 
    function EchoChar
@@ -353,7 +353,7 @@ procedure DynClient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
-      return From_Any (CORBA.Request.Return_Value (Request).Argument);
+      return From_Any (Result.Argument);
    end EchoChar;
 
    function EchoOctet
@@ -391,7 +391,7 @@ procedure DynClient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
-      return From_Any (CORBA.Request.Return_Value (Request).Argument);
+      return From_Any (Result.Argument);
    end EchoOctet;
 
    function EchoString
@@ -429,7 +429,7 @@ procedure DynClient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
-      return From_Any (CORBA.Request.Return_Value (Request).Argument);
+      return From_Any (Result.Argument);
    end EchoString;
 
    function EchoRef
@@ -468,7 +468,7 @@ procedure DynClient is
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
       return CORBA.Object.Helper.From_Any
-        (CORBA.Request.Return_Value (Request).Argument);
+        (Result.Argument);
    end EchoRef;
 
    function EchoColor
@@ -507,7 +507,7 @@ procedure DynClient is
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
       return All_Types.Helper.From_Any
-        (CORBA.Request.Return_Value (Request).Argument);
+        (Result.Argument);
    end EchoColor;
 
    function EchoArray
@@ -546,7 +546,7 @@ procedure DynClient is
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
       return All_Types.Helper.From_Any
-        (CORBA.Request.Return_Value (Request).Argument);
+        (Result.Argument);
    end EchoArray;
 
    function EchoMatrix
@@ -585,7 +585,7 @@ procedure DynClient is
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
       return All_Types.Helper.From_Any
-        (CORBA.Request.Return_Value (Request).Argument);
+        (Result.Argument);
    end EchoMatrix;
 
    function EchoBigMatrix
@@ -624,7 +624,7 @@ procedure DynClient is
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
       return All_Types.Helper.From_Any
-        (CORBA.Request.Return_Value (Request).Argument);
+        (Result.Argument);
    end EchoBigMatrix;
 
    function EchoStruct
@@ -663,7 +663,7 @@ procedure DynClient is
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
       return All_Types.Helper.From_Any
-        (CORBA.Request.Return_Value (Request).Argument);
+        (Result.Argument);
    end EchoStruct;
 
    function EchoArrayStruct
@@ -702,7 +702,7 @@ procedure DynClient is
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
       return All_Types.Helper.From_Any
-        (CORBA.Request.Return_Value (Request).Argument);
+        (Result.Argument);
    end EchoArrayStruct;
 
    function EchoUnion
@@ -741,7 +741,7 @@ procedure DynClient is
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
       return All_Types.Helper.From_Any
-        (CORBA.Request.Return_Value (Request).Argument);
+        (Result.Argument);
    end EchoUnion;
 
    function EchoUsequence
@@ -780,7 +780,7 @@ procedure DynClient is
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
       return All_Types.Helper.From_Any
-        (CORBA.Request.Return_Value (Request).Argument);
+        (Result.Argument);
    end EchoUsequence;
 
    function EchoBsequence
@@ -819,7 +819,7 @@ procedure DynClient is
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
       return All_Types.Helper.From_Any
-        (CORBA.Request.Return_Value (Request).Argument);
+        (Result.Argument);
    end EchoBsequence;
 
    procedure Set_MyColor
@@ -884,7 +884,7 @@ procedure DynClient is
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
       return All_Types.Helper.From_Any
-        (CORBA.Request.Return_Value (Request).Argument);
+        (Result.Argument);
    end Get_MyColor;
 
    function Get_Counter (Self : in CORBA.Object.Ref)
@@ -913,8 +913,7 @@ procedure DynClient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
-      return CORBA.From_Any
-        (CORBA.Request.Return_Value (Request).Argument);
+      return From_Any (Result.Argument);
    end Get_Counter;
 
    procedure TestException
