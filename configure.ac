@@ -515,10 +515,12 @@ AC_OUTPUT([
 	idls/cos/Makefile
 	idls/cos/event/Makefile
 	idls/cos/naming/Makefile
+	idls/cos/notification/Makefile
 	idls/cos/time/Makefile
 	cos/Makefile
 	cos/event/Makefile
 	cos/naming/Makefile
+	cos/notification/Makefile
 	cos/time/Makefile
 	cos/ir/Makefile
 	examples/Makefile
