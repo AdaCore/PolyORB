@@ -11,7 +11,7 @@ JAVA  = java
 JAVAC = javac
 
 CLASSPATH_FLAG = -classpath
-CLASSPATH      = $(ORB_CLASSPATH):.
+CLASSPATH      = $(ORB_CLASSPATH):.:./..
 
 COMPILE = $(JAVAC)  $(CLASSPATH_FLAG) $(CLASSPATH)
 RUN     = $(JAVA) $(CLASSPATH_FLAG) $(CLASSPATH)
@@ -51,8 +51,8 @@ ORB_CLASSPATH = $(OPENORB_CLASSPATH)
 
 #######################################################################
 
-IDL_FILE    = ../../all_types.idl
-CLASS_FILES = DynSkeleton.class DynServer.class DynClient.class
+IDL_FILE    = all_types.idl
+CLASS_FILES = DynSkeleton.class DynServer.class DynClient.class Client.class
 
 all: class idl
 
