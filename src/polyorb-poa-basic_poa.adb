@@ -961,7 +961,9 @@ package body PolyORB.POA.Basic_POA is
       Id :        Objects.Object_Id_Access)
       return Objects.Object_Id
    is
+      pragma Warnings (Off);
       pragma Unreferenced (OA);
+      pragma Warnings (On);
 
       U_Oid : constant Unmarshalled_Oid
         := Oid_To_U_Oid (Id);

@@ -99,7 +99,9 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
       OA    : PolyORB.POA_Types.Obj_Adapter_Access;
       U_Oid : Unmarshalled_Oid)
    is
+      pragma Warnings (Off);
       pragma Unreferenced (Self, OA, U_Oid);
+      pragma Warnings (On);
    begin
       null;
       --  NON_RETAIN: Nothing to do.
@@ -115,7 +117,9 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
       P_Servant : Objects.Servant_Access)
      return Object_Id_Access
    is
+      pragma Warnings (Off);
       pragma Unreferenced (Self, OA, P_Servant);
+      pragma Warnings (On);
    begin
       --  NON_RETAIN: No retained object id available.
       return null;
@@ -131,7 +135,9 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
       U_Oid : Unmarshalled_Oid)
      return Objects.Servant_Access
    is
+      pragma Warnings (Off);
       pragma Unreferenced (Self, OA, U_Oid);
+      pragma Warnings (On);
    begin
       --  NON_RETAIN: No retained servant available.
       return null;
