@@ -22,8 +22,8 @@ CPP_LINK_FILES += $(ADABROKER_PATH)/Ada_Corba_Exceptions.o
 
 main:
 	make -C ../../InterfaceORB main
-	make client
-#	make server
+#	make client
+	make server
 
 client: echo.o echo-proxies.o client.o  $(ADABROKER_PATH)
 	$(BIND) -I$(ADABROKER_PATH) client.ali
@@ -33,7 +33,7 @@ client: echo.o echo-proxies.o client.o  $(ADABROKER_PATH)
 client.ali $(CPP_LINK_FILES) \
 -lomniORB2 -lomniDynamic2 -lomnithread -lpthread -ltcpwrapGK
 
-server: echo.o echo-skeleton.o server.o
+server: echo.o echo-skeleton.o echo-impl.o echo-proxies.o server.o
 	$(BIND) -I$(ADABROKER_PATH) server.ali
 	$(LINK)  \
 -Wl,-rpath,../../omniORB_2.7.0/lib/i586_linux_2.0_glibc \

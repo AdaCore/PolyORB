@@ -8,3 +8,4 @@
 #corba.orb
 #corba.object
 echo
+echo.impl

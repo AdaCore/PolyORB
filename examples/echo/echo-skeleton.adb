@@ -10,7 +10,8 @@
 ----------------------------------------------------------------------------
 
 with Omniropeandkey ;
-with Giop_S ; use Gipo_S ;
+with Netbufferedstream ; use Netbufferedstream ;
+with Giop_S ; use Giop_S ;
 
 package body Echo.Skeleton is
 
@@ -18,7 +19,7 @@ package body Echo.Skeleton is
    -- Dipatch
    ----------
    procedure Dispatch (Self : in out Echo.Impl.Object ;
-                       Orls : in Giop_S.Object ;
+                       Orls : in out Giop_S.Object ;
                        Orl_Op : in Corba.String ;
                        Orl_Response_Expected : in Corba.Boolean ;
                        Returns : out Corba.Boolean ) is
@@ -31,7 +32,7 @@ package body Echo.Skeleton is
             Result : Corba.String ;
             Mesg_Size : Corba.Unsigned_Long ;
          begin
-            Mesg := Unmarshal(Orls) ;
+            Unmarshall(Mesg, Orls) ;
 
             -- change state
             Request_Received(Orls) ;

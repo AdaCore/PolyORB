@@ -17,7 +17,7 @@ package Echo.Skeleton is
 
 
    procedure Dispatch (Self : in out Echo.Impl.Object ;
-                       Orls : in Giop_S.Object ;
+                       Orls : in out Giop_S.Object ;
                        Orl_Op : in Corba.String ;
                        Orl_Response_Expected : in Corba.Boolean ;
                        Returns : out Corba.Boolean ) ;

@@ -11,7 +11,12 @@
 
 with Omniobject ;
 
+with Adabroker_Debug ;
+pragma Elaborate(Adabroker_Debug) ;
+
 package Echo.Impl is
+
+   Echo_Impl : constant Boolean := Adabroker_Debug.Is_Active("echo.impl") ;
 
    --------------------------------------------------
    ----                spec                      ----
@@ -29,6 +34,7 @@ private
 
    type Object is new Omniobject.Implemented_Object with null record ;
 
+   procedure Initialize(Self : in out Object) ;
 
 End Echo.Impl ;
 

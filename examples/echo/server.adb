@@ -9,21 +9,34 @@
 ----                                                                    ----
 ----------------------------------------------------------------------------
 
-with Corba, Corba.Orb, Corba.Boa ;
+with Corba ; use Corba ;
+with Corba.Orb ; use Corba.Orb ;
+with Corba.Boa ; use Corba.Boa ;
 with Text_IO ; use Text_Io ;
+with Echo.Impl ;
 
 procedure server is
    Orb : Corba.Orb.Object  ;
    Boa : Corba.Boa.Object ;
+   Myecho : Echo.Impl.Object ;
+   Ior : Corba.String ;
 begin
-   Put_Line("starting server") ;
+   Put_Line("main: starting server") ;
 
    Orb := Corba.Orb.Orb_Init("omniORB2") ;
-   Put_Line("main : ORB initialized") ;
+   Put_Line("main: ORB initialized") ;
 
    Boa := Corba.Orb.Boa_Init(Orb, "omniORB2_BOA") ;
-   Put_Line("main : BOA initialized") ;
+   Put_Line("main: BOA initialized") ;
 
+   Object_Is_Ready(Boa, Myecho) ;
+   Put_Line("main: Object is ready !") ;
 
+   Ior := Object_To_String(Myecho) ;
+   Put_Line("'" & To_Standard_String(Ior) & "'") ;
+
+   Implementation_Is_Ready(Boa) ;
+
+   Put_Line("I Should not print that !!!") ;
 
 end ;
