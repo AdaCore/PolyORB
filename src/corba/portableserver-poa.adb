@@ -571,6 +571,7 @@ package body PortableServer.POA is
       --  *if* Servant was a Droopi.POA_Types.Servant. Unfortunately, Servant
       --  is a PortableServer.Servant_Base'Class, which has nothing in common
       --  with Droopi.POA_Types.Servant.
+      --  -> should use Servant.Neutral_View.If_Desc.External_Name.
 
       CORBA.Object.Set (Result, The_Ref_Info);
       return Result;

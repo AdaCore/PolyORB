@@ -26,7 +26,7 @@ package body CORBA.Impl is
    function To_Droopi_Servant (S : access Object)
      return Droopi.Objects.Servant_Access is
    begin
-      return S.As_Component'Access;
+      return S.Neutral_View'Access;
    end To_Droopi_Servant;
 
    function "=" (X, Y : Implementation) return Boolean

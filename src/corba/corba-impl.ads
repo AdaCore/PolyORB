@@ -43,9 +43,10 @@ private
       Msg  : Droopi.Components.Message'Class)
      return Droopi.Components.Message'Class;
 
-   type Object is abstract new Droopi.Smart_Pointers.Entity
-     with record
-        As_Component : aliased Implementation (Object'Access);
-     end record;
+   type Object is abstract new Droopi.Smart_Pointers.Entity with
+   record
+      Neutral_View : aliased Implementation (Object'Access);
+      --  The Droopi (personality-neutral) view of this servant.
+   end record;
 
 end CORBA.Impl;
