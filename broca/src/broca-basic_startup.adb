@@ -58,16 +58,12 @@ package body Broca.Basic_Startup is
 
    procedure Initiate_Servant
      (S : in PortableServer.Servant;
-      R : out CORBA.Object.Ref)
-   is
-      O : PortableServer.ObjectId;
-
+      R : out CORBA.Object.Ref) is
    begin
       if CORBA.Object.Is_Null (CORBA.Object.Ref (Root_POA)) then
          Initiate_RootPOA;
       end if;
 
-      O := PortableServer.POA.Activate_Object (Root_POA, S);
       R := PortableServer.POA.Servant_To_Reference (Root_POA, S);
    end Initiate_Servant;
 
