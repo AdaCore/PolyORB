@@ -125,14 +125,7 @@ package body PolyORB.Binding_Data.DIOP is
       TE          : constant Transport.Transport_Endpoint_Access :=
         new Socket_Out_Endpoint;
       Pro         : aliased DIOP_Protocol;
-      Prof        : constant Profile_Access := new DIOP_Profile_Type;
-      --  This Profile_Access is stored in the created
-      --  GIOP_Session, and free'd when the session is finalized.
-
-      Filter : Filters.Filter_Access;
-
-      TProf : DIOP_Profile_Type
-        renames DIOP_Profile_Type (Prof.all);
+      Filter      : Filters.Filter_Access;
 
    begin
       pragma Debug (O ("Bind DIOP profile: enter"));
@@ -153,10 +146,6 @@ package body PolyORB.Binding_Data.DIOP is
          Filter,
          ORB.Client);
       --  Register the endpoint and lowest filter with the ORB.
-
-      pragma Debug (O ("Preparing local copy of profile"));
-      Duplicate (Profile, TProf);
-      pragma Debug (O ("Adjusted local copy of profile"));
 
       declare
          S : GIOP_Session

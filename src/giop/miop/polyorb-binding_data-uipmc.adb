@@ -135,13 +135,7 @@ package body PolyORB.Binding_Data.UIPMC is
         := new Socket_Out_Endpoint;
       Pro         : aliased UIPMC_Protocol;
       M_Fact      : aliased MIOP_Out_Factory;
-      Prof        : constant Profile_Access := new UIPMC_Profile_Type;
-      --  This Profile_Access is stored in the created
-      --  GIOP_Session, and free'd when the session is finalized.
-
-      Filter : Filters.Filter_Access;
-
-      TProf : UIPMC_Profile_Type renames UIPMC_Profile_Type (Prof.all);
+      Filter      : Filters.Filter_Access;
 
    begin
       pragma Debug (O ("Bind UIPMC profile: enter"));
@@ -172,10 +166,6 @@ package body PolyORB.Binding_Data.UIPMC is
          TE,
          Filter,
          ORB.Client);
-
-      pragma Debug (O ("Preparing local copy of profile"));
-      Duplicate (Profile, TProf);
-      pragma Debug (O ("Adjusted local copy of profile"));
 
       declare
          C : Component renames Component (Upper (Filter).all);

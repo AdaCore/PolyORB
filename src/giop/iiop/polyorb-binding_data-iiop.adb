@@ -125,14 +125,7 @@ package body PolyORB.Binding_Data.IIOP is
         new Socket_Endpoint;
       Pro         : aliased IIOP_Protocol;
       Sli         : aliased Slicer_Factory;
-      Prof        : constant Profile_Access := new IIOP_Profile_Type;
-      --  This Profile_Access is stored in the created
-      --  GIOP_Session, and free'd when the session is finalized.
-
-      Filter : Filters.Filter_Access;
-
-      TProf : IIOP_Profile_Type
-        renames IIOP_Profile_Type (Prof.all);
+      Filter      : Filters.Filter_Access;
 
    begin
       pragma Debug (O ("Bind IIOP profile: enter"));
@@ -157,10 +150,6 @@ package body PolyORB.Binding_Data.IIOP is
          Filter,
          ORB.Client);
       --  Register the endpoint and lowest filter with the ORB.
-
-      pragma Debug (O ("Preparing local copy of profile"));
-      Duplicate (Profile, TProf);
-      pragma Debug (O ("Adjusted local copy of profile"));
 
       declare
          S : GIOP_Session
