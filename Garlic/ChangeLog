@@ -1,5 +1,7 @@
 1999-07-22  Laurent Pautet  <pautet@scapin.enst.fr>
 
+	* s-garuni.adb: Iterator missing in Insert.
+
 	* Makefile.am, Makefile.in: Directory separator missing.
 
 1999-07-21  Laurent Pautet  <pautet@dorine.enst.fr>

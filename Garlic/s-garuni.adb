@@ -717,6 +717,7 @@ package body System.Garlic.Units is
          if Info.PID = PID then
             return;
          end if;
+         Request := Info.Next;
       end loop;
 
       Last    := Requests.Last + 1;
