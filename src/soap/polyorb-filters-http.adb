@@ -54,6 +54,7 @@ package body PolyORB.Filters.HTTP is
 
    use Ada.Streams;
 
+   use PolyORB.Buffers;
    use PolyORB.Filters.AWS_Interface;
    use PolyORB.Filters.Interface;
    use PolyORB.Log;
@@ -96,19 +97,22 @@ package body PolyORB.Filters.HTTP is
      renames PolyORB.Utils.Trimmed_Image;
 
    procedure Prepare_Request
-     (F  : access HTTP_Filter;
+     (Buf : access Buffer_Type;
+      Version : HTTP_Version;
       RO : PolyORB.Filters.AWS_Interface.AWS_Request_Out);
 
    procedure Prepare_Header_Only
-     (F  : access HTTP_Filter;
+     (Buf : access Buffer_Type;
+      Version : HTTP_Version;
       RD : AWS.Response.Data);
 
    procedure Prepare_General_Header
-     (F  : access HTTP_Filter;
+     (Buf : access Buffer_Type;
       RD : AWS.Response.Data);
 
    procedure Prepare_Message
-     (F  : access HTTP_Filter;
+     (Buf  : access Buffer_Type;
+      Version : HTTP_Version;
       RD : AWS.Response.Data);
 
    procedure Error
@@ -185,7 +189,6 @@ package body PolyORB.Filters.HTTP is
          F.State := Start_Line;
          F.Data_Received := 0;
          F.In_Buf := new PolyORB.Buffers.Buffer_Type;
-         F.Out_Buf := new PolyORB.Buffers.Buffer_Type;
          --  HTTP has its own buffer for protocol stuff;
          --  the upper layer provides another buffer for
          --  message payload.
@@ -201,25 +204,32 @@ package body PolyORB.Filters.HTTP is
          Handle_Data_Indication (F, Data_Indication (S));
 
       elsif S in AWS_Request_Out then
-         Release_Contents (F.Out_Buf.all);
-         Prepare_Request (F, AWS_Request_Out (S));
-         Emit_No_Reply (Lower (F), Data_Out'(Out_Buf => F.Out_Buf));
+         declare
+            Buf : Buffer_Access := new Buffer_Type;
+         begin
+            Prepare_Request (Buf, F.Version, AWS_Request_Out (S));
+            Emit_No_Reply
+              (Lower (F), Data_Out'(Out_Buf => Buf));
+            Release (Buf);
+         end;
 
       elsif S in AWS_Response_Out then
 
          declare
+            Buf : Buffer_Access := new Buffer_Type;
             RD : constant AWS.Response.Data
               := AWS_Response_Out (S).Data;
          begin
-            Release_Contents (F.Out_Buf.all);
             case AWS.Response.Mode (RD) is
                when AWS.Response.Header =>
-                  Prepare_Header_Only (F, RD);
+                  Prepare_Header_Only (Buf, F.Version, RD);
                when AWS.Response.Message =>
-                  Prepare_Message (F, RD);
+                  Prepare_Message (Buf, F.Version, RD);
             end case;
+            Emit_No_Reply
+              (Lower (F), Data_Out'(Out_Buf => Buf));
+            Release (Buf);
          end;
-         Emit_No_Reply (Lower (F), Data_Out'(Out_Buf => F.Out_Buf));
 
       elsif S in Set_Server then
          Emit_No_Reply (F.Upper, S);
@@ -959,16 +969,18 @@ package body PolyORB.Filters.HTTP is
    -- Preparation of outgoing messages --
    --------------------------------------
 
-   procedure Put (F : access HTTP_Filter; S : String);
-   procedure New_Line (F : access HTTP_Filter);
-   procedure Put_Line (F : access HTTP_Filter; S : String);
+   procedure Put (Buf : access Buffer_Type; S : String);
+   procedure New_Line (Buf : access Buffer_Type);
+   procedure Put_Line (Buf : access Buffer_Type; S : String);
 
    function Header
      (H : PolyORB.HTTP_Headers.Header; Value : String)
      return String;
 
    procedure Put_Status_Line
-     (F : access HTTP_Filter; Status : HTTP_Status_Code);
+     (Buf : access Buffer_Type;
+      Version : HTTP_Version;
+      Status : HTTP_Status_Code);
 
    function Header
      (H : PolyORB.HTTP_Headers.Header; Value : String)
@@ -978,41 +990,47 @@ package body PolyORB.Filters.HTTP is
    end Header;
 
    procedure Put_Status_Line
-     (F : access HTTP_Filter; Status : HTTP_Status_Code)
+     (Buf : access Buffer_Type;
+      Version : HTTP_Version;
+      Status : HTTP_Status_Code)
    is
    begin
       Put_Line
-        (F,
-         Image (F.Version)
+        (Buf,
+         Image (Version)
          --  XXX Should we reply with that version?
          & Integer'Image (To_Integer (Status)) & " "
          & HTTP_Status_Code'Image (Status));
    end Put_Status_Line;
 
-   procedure Error (F : access HTTP_Filter; Status : HTTP_Status_Code) is
+   procedure Error
+     (F : access HTTP_Filter; Status : HTTP_Status_Code)
+   is
+      Buf : Buffer_Access := new Buffer_Type;
    begin
-      Put_Status_Line (F, Status);
+      Put_Status_Line (Buf, F.Version, Status);
       Clear_Message_State (F.all);
-      Emit_No_Reply (Lower (F), Data_Out'(Out_Buf => F.Out_Buf));
+      Emit_No_Reply (Lower (F), Data_Out'(Out_Buf => Buf));
+      Release (Buf);
    end Error;
 
-   procedure Put (F : access HTTP_Filter; S : String) is
+   procedure Put (Buf : access Buffer_Type; S : String) is
    begin
-      PolyORB.Utils.Text_Buffers.Marshall_String (F.Out_Buf, S);
+      PolyORB.Utils.Text_Buffers.Marshall_String (Buf, S);
    end Put;
 
-   procedure New_Line (F : access HTTP_Filter)
+   procedure New_Line (Buf : access Buffer_Type)
    is
       use PolyORB.Utils.Text_Buffers;
    begin
-      Marshall_Char (F.Out_Buf, ASCII.CR);
-      Marshall_Char (F.Out_Buf, ASCII.LF);
+      Marshall_Char (Buf, ASCII.CR);
+      Marshall_Char (Buf, ASCII.LF);
    end New_Line;
 
-   procedure Put_Line (F : access HTTP_Filter; S : String) is
+   procedure Put_Line (Buf : access Buffer_Type; S : String) is
    begin
-      Put (F, S);
-      New_Line (F);
+      Put (Buf, S);
+      New_Line (Buf);
    end Put_Line;
 
    use PolyORB.HTTP_Headers;
@@ -1021,7 +1039,8 @@ package body PolyORB.Filters.HTTP is
    --  AWS.Server.Protocol_Handler and AWS.Client.
 
    procedure Prepare_Request
-     (F  : access HTTP_Filter;
+     (Buf : access Buffer_Type;
+      Version : HTTP_Version;
       RO : PolyORB.Filters.AWS_Interface.AWS_Request_Out)
    is
       use PolyORB.HTTP_Methods;
@@ -1031,9 +1050,9 @@ package body PolyORB.Filters.HTTP is
         := To_Standard_String (RO.SOAP_Action);
    begin
       Put_Line
-        (F, To_String (RO.Request_Method)
+        (Buf, To_String (RO.Request_Method)
          & " " & Types.To_Standard_String (RO.Relative_URI)
-         & " " & Image (F.Version));
+         & " " & Image (Version));
 
       --  Put_Line (F, H_Host (Host_Address));
       --  XXX When binding an HTTP profile, the Host
@@ -1043,39 +1062,41 @@ package body PolyORB.Filters.HTTP is
 
       --  XXX Cookie??
 
-      --  Put_Line (F, H_Accept_Type ("text/html, */*"));
-      Put_Line (F, Header (H_Accept_Language, "fr, us"));
-      Put_Line (F, Header (H_User_Agent, "PolyORB"));
+      --  Put_Line (Buf, H_Accept_Type ("text/html, */*"));
+      Put_Line (Buf, Header (H_Accept_Language, "fr, us"));
+      Put_Line (Buf, Header (H_User_Agent, "PolyORB"));
       --  XXX BAD BAD too much hardcoded stuff.
 
       if False then
-         Put_Line (F, Header (H_Connection, "Keep-Alive"));
+         Put_Line (Buf, Header (H_Connection, "Keep-Alive"));
          --  XXX should provide keepalive mechanism!
          --  (it should even be the default).
       else
-         Put_Line (F, Header (H_Connection, "Close"));
+         Put_Line (Buf, Header (H_Connection, "Close"));
       end if;
 
       --  XXX Authentication??
 
       if SOAP_Action'Length /= 0 then
-         Put_Line (F, Header (H_SOAPAction, SOAP_Action));
+         Put_Line (Buf, Header (H_SOAPAction, SOAP_Action));
       end if;
 
       case RO.Request_Method is
          when GET =>
-            New_Line (F);
+            New_Line (Buf);
 
          when POST =>
             if SOAP_Action'Length /= 0 then
-               Put_Line (F, Header (H_Content_Type, AWS.MIME.Text_XML));
+               Put_Line
+                 (Buf, Header (H_Content_Type, AWS.MIME.Text_XML));
             else
-               Put_Line (F, Header (H_Content_Type, AWS.MIME.Appl_Form_Data));
+               Put_Line
+                 (Buf, Header (H_Content_Type, AWS.MIME.Appl_Form_Data));
             end if;
             Put_Line
-              (F, Header (H_Content_Length, Image (Length (RO.Data))));
-            New_Line (F);
-            Put (F, To_Standard_String (RO.Data));
+              (Buf, Header (H_Content_Length, Image (Length (RO.Data))));
+            New_Line (Buf);
+            Put (Buf, To_Standard_String (RO.Data));
             --  XXX bad bad passing complete SOAP request
             --  on the stack!! Would be better off inserting
             --  it directly as a chunk!! (Marshall-by-address
@@ -1088,15 +1109,15 @@ package body PolyORB.Filters.HTTP is
    end Prepare_Request;
 
    procedure Prepare_General_Header
-     (F : access HTTP_Filter;
+     (Buf : access Buffer_Type;
       RD : AWS.Response.Data)
    is
       pragma Warnings (Off);
       pragma Unreferenced (RD);
       pragma Warnings (On);
    begin
-      --  Put_Line (F, Header (H_Date, To_HTTP_Date (OS_Lib.GMT_Clock)));
-      Put_Line (F, Header (H_Server, "PolyORB"));
+      --  Put_Line (Buf, Header (H_Date, To_HTTP_Date (OS_Lib.GMT_Clock)));
+      Put_Line (Buf, Header (H_Server, "PolyORB"));
 
       --  Connection
 
@@ -1104,9 +1125,9 @@ package body PolyORB.Filters.HTTP is
 --          --  If there is no connection received we assume a non
 --          --  Keep-Alive connection.
 
---          Put_Line (F, Header (H_Connection, "close"));
+--          Put_Line (Buf, Header (H_Connection, "close"));
 --       else
---       Put_Line (F, Messages.Connection
+--       Put_Line (Buf, Messages.Connection
 --         (AWS.Status.Connection (C_Stat)));
 --       end if;
       --  XXX What should we truly do here?
@@ -1114,63 +1135,65 @@ package body PolyORB.Filters.HTTP is
    end Prepare_General_Header;
 
    procedure Prepare_Header_Only
-     (F : access HTTP_Filter;
+     (Buf : access Buffer_Type;
+      Version : HTTP_Version;
       RD : AWS.Response.Data)
    is
       Status : constant HTTP_Status_Code
         := AWS.Response.Status_Code (RD);
    begin
-      Put_Status_Line (F, Status);
-      Prepare_General_Header (F, RD);
+      Put_Status_Line (Buf, Version, Status);
+      Prepare_General_Header (Buf, RD);
 
       --  There is no content
-      Put_Line (F, Header (H_Content_Length, "0"));
+      Put_Line (Buf, Header (H_Content_Length, "0"));
 
       if Status = S_401_Unauthorized then
          Put_Line
-           (F, Header (H_WWW_Authenticate,
+           (Buf, Header (H_WWW_Authenticate,
                        "Basic realm="""
                        & AWS.Response.Realm (RD) & """"));
       end if;
 
       --  End of header
-      New_Line (F);
+      New_Line (Buf);
    end Prepare_Header_Only;
 
    procedure Prepare_Message
-     (F : access HTTP_Filter;
+     (Buf : access Buffer_Type;
+      Version : HTTP_Version;
       RD : AWS.Response.Data)
    is
       Status : constant HTTP_Status_Code
         := AWS.Response.Status_Code (RD);
    begin
-      Put_Status_Line (F, Status);
+      Put_Status_Line (Buf, Version, Status);
       if Status = S_301_Moved_Permanently then
          Put_Line
-           (F, Header (H_Location, AWS.Response.Location (RD)));
+           (Buf, Header (H_Location, AWS.Response.Location (RD)));
       end if;
-      Prepare_General_Header (F, RD);
+      Prepare_General_Header (Buf, RD);
 
-      Put_Line (F, Header
+      Put_Line (Buf, Header
                   (H_Content_Length,
                    Image (AWS.Response.Content_Length (RD))));
 
-      Put_Line (F, Header
+      Put_Line (Buf, Header
                   (H_Content_Type,
                    AWS.Response.Content_Type (RD)));
 
       if Status = S_401_Unauthorized then
          Put_Line
-           (F, Header (H_WWW_Authenticate,
+           (Buf, Header (H_WWW_Authenticate,
                        "Basic realm="""
                        & AWS.Response.Realm (RD) & """"));
       end if;
 
       --  End of headers.
 
-      New_Line (F);
+      New_Line (Buf);
 
-      Put (F, AWS.Response.Message_Body (RD));
+      Put (Buf, AWS.Response.Message_Body (RD));
       --  XXX could be more clever and send it chunked...
    end Prepare_Message;
 

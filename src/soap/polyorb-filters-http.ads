@@ -241,10 +241,6 @@ private
       --  This buffer is used for communication of complete
       --  received message bodies to the upper layer.
 
-      Out_Buf : PolyORB.Buffers.Buffer_Access;
-      --  Buffer used to prepare outbound messages.
-      --  XXX could this not be the same as In_Buf?
-
       ----------------------------------------------------------
       -- Parameters concerning the HTTP message               --
       -- currently being processed.                           --
