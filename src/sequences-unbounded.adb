@@ -699,6 +699,21 @@ package body Sequences.Unbounded is
       end if;
    end Insert;
 
+   -------------------
+   -- Null_Sequence --
+   -------------------
+
+   function Null_Sequence return Sequence
+   is
+      Null_Element : Element;
+      pragma Warnings (Off, Null_Element);
+      --  Not explicitly initialised.
+   begin
+      return (Ada.Finalization.Controlled with
+              Length  => 0,
+              Content => new Element_Array (1 .. 0));
+   end Null_Sequence;
+
    ------------
    -- Length --
    ------------

@@ -71,7 +71,7 @@ package Sequences.Unbounded is
 
    type Sequence is private;
 
-   Null_Sequence : constant Sequence;
+   function Null_Sequence return Sequence;
 
    function Length (Source : in Sequence) return Natural;
 
@@ -225,6 +225,10 @@ package Sequences.Unbounded is
 
 private
 
+   pragma Inline (Null_Sequence);
+
+   Prealloc_Length : constant := 5;
+
    type Sequence is new Ada.Finalization.Controlled with
       record
          Length  : Natural;
@@ -236,9 +240,6 @@ private
    procedure Adjust (Object : in out Sequence);
 
    procedure Finalize (Object : in out Sequence);
-
-   Null_Sequence : constant Sequence :=
-     (Ada.Finalization.Controlled with 0, new Element_Array (1 .. 0));
 
 end Sequences.Unbounded;
 
