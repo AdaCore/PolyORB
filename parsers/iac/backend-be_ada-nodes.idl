@@ -150,7 +150,19 @@ module Backend::BE_Ada::Nodes {
   /****************/
   /* Statetements */
   /****************/
-  
+
+   /* block_statement ::= 
+       [ statement_identifier ":" ] 
+         [ "declare" declarative_part ] 
+         "begin" 
+         handled_sequence_of_statements 
+         "end" [ statement_identifier ] ";"   */
+
+  interface Block_Statement : Definition {
+    List_Id    Declarative_Part; 
+    List_Id    Statements;
+  };
+
   interface Elsif_Statement : Node_Id {
     Node_Id    Condition; 
     List_Id    Then_Statements;

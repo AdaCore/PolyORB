@@ -529,6 +529,25 @@ package body Backend.BE_Ada.Nutils is
       return N;
    end Make_Assignment_Statement;
 
+   --------------------------
+   -- Make_Block_Statement --
+   --------------------------
+
+   function Make_Block_Statement
+     (Statement_Identifier : Node_Id := No_Node;
+      Declarative_Part     : List_Id;
+      Statements           : List_Id)
+     return Node_Id
+   is
+      N : Node_Id;
+   begin
+      N := New_Node (K_Block_Statement);
+      Set_Defining_Identifier (N, Statement_Identifier);
+      Set_Declarative_Part (N, Declarative_Part);
+      Set_Statements (N, Statements);
+      return N;
+   end Make_Block_Statement;
+
    ---------------------
    -- Make_Case_Label --
    ---------------------
@@ -674,6 +693,19 @@ package body Backend.BE_Ada.Nutils is
 
       return N;
    end Make_Designator;
+
+   function Make_Elsif_Statement
+     (Condition       : Node_Id;
+      Then_Statements : List_Id)
+     return Node_Id
+   is
+      N : Node_Id;
+   begin
+      N := New_Node (K_Elsif_Statement);
+      Set_Condition (N, Condition);
+      Set_Then_Statements (N, Then_Statements);
+      return N;
+   end Make_Elsif_Statement;
 
    --------------------------------------
    -- Make_Enumeration_Type_Definition --

@@ -1,3 +1,29 @@
+2004-08-09  Saber Souli  <souli@neraka.enst.fr>
+
+	* backend-be_ada-impls.adb: Link the Setter spec node to the
+	Frontend node. 
+
+	* backend-be_ada-stubs.adb: Use the modified runtime entities
+	names. 
+
+	* backend-be_ada-runtime.ads: Add runtime entities used in skels
+	bodies. Modify some entities names.    
+
+	* backend-be_ada-generator.adb: Generate block statements and
+	elsif statements. 
+
+	* backend-be_ada-idl_to_ada.adb: Add Link_BE_To_FE subprogram to
+	 just link a Backend node to Frontend one. (Used when  multiple
+	 backend nodes are linked to one Frontend node).  
+
+	* backend-be_ada-nodes.idl: Add Block_Statements. 
+
+	* backend-be_ada-nutils.adb: Add subprograms to generate a block
+	statements and elsif_statement.   
+
+	* backend-be_ada-skels.adb: Generate invokation parts in invoke
+	body. (Not complete yet. Need to fix a bug).	
+
 2004-08-06  Saber Souli  <souli@neraka.enst.fr>
 
 	* backend-be_ada-generator.adb: Add '.All' to Designators

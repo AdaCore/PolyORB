@@ -11,6 +11,7 @@ package Backend.BE_Ada.Runtime is
       RU_CORBA,
       RU_CORBA_AbstractBase,
       RU_CORBA_Internals,
+      RU_CORBA_NVList,
       RU_CORBA_Object,
       RU_CORBA_Object_Helper,
       RU_CORBA_ORB,
@@ -39,11 +40,15 @@ package Backend.BE_Ada.Runtime is
       RE_False,                     --  False
       RE_True,                      --  True
       RE_Exception_Occurrence,      --  Ada.Exceptions.Exception_Occurrence
+      RE_ARG_IN_0,                    --  CORBA.ARG_IN
+      RE_ARG_OUT_0,                   --  CORBA.ARG_OUT
+      RE_ARG_INOUT_0,                 --  CORBA.ARG_INOUT
       RE_TC_Void,                   --  CORBA.TC_Void
       RE_Any,                       --  CORBA.Any
       RE_To_Any_0,                  --  CORBA.To_Any
       RE_From_Any_0,                --  CORBA.From_Any
       RE_Get_Empty_Any_0,           --  CORBA.Get_Empty_Any
+      RE_Identifier_0,              --  CORBA.Identifier
       RE_Is_Equivalent,             --  CORBA.Is_Equivalent
       RE_Float,                     --  CORBA.Float
       RE_Double,                    --  CORBA.Double
@@ -86,6 +91,7 @@ package Backend.BE_Ada.Runtime is
       RE_Set_Type,                  --  CORBA.Set_Type
       RE_Get_Empty_Any_Aggregate,   --  CORBA.Get_Empty_Any_Agregate
       RE_Add_Aggregate_Element,     --  CORBA.Add_Aggregate_Element
+      RE_Add_Item_0,                --  CORBA.NVList.Add_Item
       RE_Is_Nil,                    --  CORBA.Object.Is_Nil
       RE_Ref_2,                     --  CORBA.Object.Ref
       RE_Object_Of,                 --  CORBA.Object.Object_Of
@@ -94,20 +100,21 @@ package Backend.BE_Ada.Runtime is
       RE_From_Any_1,                --  CORBA.Object.Helper.From_Any
       RE_Create_List,               --  CORBA.ORB.Create_List,
       RE_Object,                    --  CORBA.TypeCode.Object
-      RE_Object_Ptr,                --  CORBA.ServerRequest.Object_ptr
       RE_To_CORBA_Object,           --  CORBA.TypeCode.
                                     --     Internals.To_CORBA_Object
       RE_To_CORBA_Any,              --  CORBA.Internals.To_CORBA_Any
       RE_To_PolyORB_Any,            --  CORBA.Internals.To_PolyORB_Any
+      RE_Arguments,                 --  CORBA.ServerRequest.Arguments
+      RE_Object_Ptr,                --  CORBA.ServerRequest.Object_ptr
       RE_Operation,                 --  CORBA.ServerRequest.Operation
       RE_NamedValue,                --  PolyORB.Any.NamedValue
       RE_Is_Empty,                  --  PolyORB.Any.Is_Empty
-      RE_ARG_IN,                    --  PolyORB.Any.ARG_IN
-      RE_ARG_OUT,                   --  PolyORB.Any.ARG_OUT
-      RE_ARG_INOUT,                 --  PolyORB.Any.ARG_INOUT
+      RE_ARG_IN_1,                    --  PolyORB.Any.ARG_IN
+      RE_ARG_OUT_1,                   --  PolyORB.Any.ARG_OUT
+      RE_ARG_INOUT_1,                 --  PolyORB.Any.ARG_INOUT
       RE_Ref_3,                     --  PolyORB.Any.NVList.Ref
       RE_Create,                    --  PolyORB.Any.NVList.Create
-      RE_Add_Item,                  --  PolyORB.Any.NVList.Add_Item
+      RE_Add_Item_1,                  --  PolyORB.Any.NVList.Add_Item
       RE_TC_Object,                 --  PolyORB.Any.TypeCode.TC_Object
       RE_TC_Alias,                  --  PolyORB.Any.TypeCode.TC_Alias
       RE_TC_Enum,                   --  PolyORB.Any.TypeCode.TC_Enum
@@ -134,11 +141,15 @@ package Backend.BE_Ada.Runtime is
          RE_False                   => RU_Null,
          RE_True                    => RU_Null,
          RE_Exception_Occurrence    => RU_Ada_Exceptions,
+         RE_ARG_IN_0                => RU_CORBA,
+         RE_ARG_OUT_0               => RU_CORBA,
+         RE_ARG_INOUT_0             => RU_CORBA,
          RE_TC_Void                 => RU_CORBA,
          RE_Any                     => RU_CORBA,
          RE_To_Any_0                => RU_CORBA,
          RE_From_Any_0              => RU_CORBA,
          RE_Get_Empty_Any_0         => RU_CORBA,
+         RE_Identifier_0            => RU_CORBA,
          RE_Is_Equivalent           => RU_CORBA,
          RE_Float                   => RU_CORBA,
          RE_Double                  => RU_CORBA,
@@ -183,6 +194,7 @@ package Backend.BE_Ada.Runtime is
          RE_Ref_1                   => RU_CORBA_AbstractBase,
          RE_To_CORBA_Any            => RU_CORBA_Internals,
          RE_To_PolyORB_Any          => RU_CORBA_Internals,
+         RE_Add_Item_0              => RU_CORBA_NVList,
          RE_Ref_2                   => RU_CORBA_Object,
          RE_Object_Of               => RU_CORBA_Object,
          RE_Is_A                    => RU_CORBA_Object,
@@ -190,18 +202,19 @@ package Backend.BE_Ada.Runtime is
          RE_To_Any_3                => RU_CORBA_Object_Helper,
          RE_From_Any_1              => RU_CORBA_Object_Helper,
          RE_Create_List             => RU_CORBA_ORB,
+         RE_Arguments               => RU_CORBA_ServerRequest,
          RE_Object_Ptr              => RU_CORBA_ServerRequest,
          RE_Operation               => RU_CORBA_ServerRequest,
          RE_Object                  => RU_CORBA_TypeCode,
          RE_To_CORBA_Object         => RU_CORBA_TypeCode_Internals,
          RE_Is_Empty                => RU_PolyORB_Any,
          RE_NamedValue              => RU_PolyORB_Any,
-         RE_ARG_IN                  => RU_PolyORB_Any,
-         RE_ARG_OUT                 => RU_PolyORB_Any,
-         RE_ARG_INOUT               => RU_PolyORB_Any,
+         RE_ARG_IN_1                => RU_PolyORB_Any,
+         RE_ARG_OUT_1               => RU_PolyORB_Any,
+         RE_ARG_INOUT_1             => RU_PolyORB_Any,
          RE_Ref_3                   => RU_PolyORB_Any_NVList,
          RE_Create                  => RU_PolyORB_Any_NVList,
-         RE_Add_Item                => RU_PolyORB_Any_NVList,
+         RE_Add_Item_1              => RU_PolyORB_Any_NVList,
          RE_TC_Alias                => RU_PolyORB_Any_TypeCode,
          RE_TC_Array                => RU_PolyORB_Any_TypeCode,
          RE_TC_Enum                 => RU_PolyORB_Any_TypeCode,

@@ -297,6 +297,12 @@ package Backend.BE_Ada.Nutils is
       Expression          : Node_Id)
      return Node_Id;
 
+   function Make_Block_Statement
+     (Statement_Identifier : Node_Id := No_Node;
+      Declarative_Part     : List_Id;
+      Statements           : List_Id)
+     return Node_Id;
+
    function Make_Case_Label (Value : Value_Id) return Node_Id;
 
    function Make_Case_Statement
@@ -335,6 +341,11 @@ package Backend.BE_Ada.Nutils is
      (Designator : Name_Id;
       Parent     : Name_Id := No_Name;
       Is_All     : Boolean := False)
+     return Node_Id;
+
+   function Make_Elsif_Statement
+     (Condition       : Node_Id;
+      Then_Statements : List_Id)
      return Node_Id;
 
    function Make_Enumeration_Type_Definition

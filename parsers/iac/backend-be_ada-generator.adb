@@ -12,12 +12,14 @@ package body Backend.BE_Ada.Generator is
    procedure Generate_Access_Type_Definition (N : Node_Id);
    procedure Generate_Array_Type_Definition (N : Node_Id);
    procedure Generate_Assignment_Statement (N : Node_Id);
+   procedure Generate_Block_Statement (N : Node_Id);
    procedure Generate_Case_Statement (N : Node_Id);
    procedure Generate_Component_Association (N : Node_Id);
    procedure Generate_Component_Declaration (N : Node_Id);
    procedure Generate_Defining_Identifier (N : Node_Id);
    procedure Generate_Derived_Type_Definition (N : Node_Id);
    procedure Generate_Designator (N : Node_Id);
+   procedure Generate_Elsif_Statement (N : Node_Id);
    procedure Generate_Enumeration_Type_Definition (N : Node_Id);
    procedure Generate_Exception_Declaration (N : Node_Id);
    procedure Generate_Expression (N : Node_Id);
@@ -64,6 +66,9 @@ package body Backend.BE_Ada.Generator is
          when K_Assignment_Statement =>
             Generate_Assignment_Statement (N);
 
+         when K_Block_Statement =>
+            Generate_Block_Statement (N);
+
          when K_Case_Statement =>
             Generate_Case_Statement (N);
 
@@ -81,6 +86,9 @@ package body Backend.BE_Ada.Generator is
 
          when K_Designator =>
             Generate_Designator (N);
+
+         when K_Elsif_Statement =>
+            Generate_Elsif_Statement (N);
 
          when K_Enumeration_Type_Definition =>
             Generate_Enumeration_Type_Definition (N);
@@ -227,6 +235,54 @@ package body Backend.BE_Ada.Generator is
       Generate (Expression (N));
       Decrement_Indentation;
    end Generate_Assignment_Statement;
+
+   ------------------------------
+   -- Generate_Block_Statement --
+   ------------------------------
+
+   procedure Generate_Block_Statement (N : Node_Id) is
+      D : Node_Id;
+   begin
+      if Present (Defining_Identifier (N)) then
+         Write_Eol;
+         Decrement_Indentation;
+         Write_Indentation (-1);
+         Increment_Indentation;
+         Generate (Defining_Identifier (N));
+         Write_Line (Tok_Colon);
+         Write_Indentation;
+      end if;
+
+      if not Is_Empty (Declarative_Part (N)) then
+         Write (Tok_Declare);
+         Write_Eol;
+         Increment_Indentation;
+         D := First_Node (Declarative_Part (N));
+         loop
+            Write_Indentation;
+            Generate (D);
+            D := Next_Node (D);
+            Write_Line (Tok_Semicolon);
+            exit when No (D);
+         end loop;
+         Decrement_Indentation;
+         Write_Indentation;
+      end if;
+      Write (Tok_Begin);
+      Write_Eol;
+      Increment_Indentation;
+      D := First_Node (Statements (N));
+      loop
+         Write_Indentation;
+         Generate (D);
+         Write_Line (Tok_Semicolon);
+         D := Next_Node (D);
+         exit when No (D);
+      end loop;
+      Decrement_Indentation;
+      Write_Indentation;
+      Write (Tok_End);
+   end Generate_Block_Statement;
 
    -----------------------------
    -- Generate_Case_Statement --
@@ -385,6 +441,31 @@ package body Backend.BE_Ada.Generator is
          Write (Tok_All);
       end if;
    end Generate_Designator;
+
+   ------------------------------
+   -- Generate_Elsif_Statement --
+   ------------------------------
+
+   procedure Generate_Elsif_Statement (N : Node_Id) is
+      D : Node_Id;
+   begin
+      Write (Tok_Elsif);
+      Write_Space;
+      Generate (Condition (N));
+      Write_Eol;
+      Write_Indentation;
+      Write_Line (Tok_Then);
+      Increment_Indentation;
+      D := First_Node (Then_Statements (N));
+      loop
+         Write_Indentation;
+         Generate (D);
+         D := Next_Node (D);
+         Write_Line (Tok_Semicolon);
+         exit when No (D);
+      end loop;
+      Decrement_Indentation;
+   end Generate_Elsif_Statement;
 
    ------------------------------------------
    -- Generate_Enumeration_Type_Definition --
@@ -562,6 +643,19 @@ package body Backend.BE_Ada.Generator is
          I := Next_Node (I);
       end loop;
       Decrement_Indentation;
+
+      --  Elsif_Statements
+
+      if not Is_Empty (Elsif_Statements (N)) then
+         I := First_Node (Elsif_Statements (N));
+         loop
+            Write_Indentation;
+            Generate (I);
+            I := Next_Node (I);
+            exit when No (I);
+         end loop;
+         Write (Tok_Semicolon);
+      end if;
 
       --  Else_Statement can be empty
 

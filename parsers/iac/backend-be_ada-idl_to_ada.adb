@@ -174,6 +174,18 @@ package body Backend.BE_Ada.IDL_To_Ada is
       end if;
    end Is_N_Parent_Of_M;
 
+   -------------------
+   -- Link_BE_To_FE --
+   -------------------
+
+   procedure Link_BE_To_FE
+     (BE : Node_Id;
+      FE : Node_Id)
+   is
+   begin
+      Set_FE_Node (BE, FE);
+   end Link_BE_To_FE;
+
    ------------------------------
    -- Map_Accessor_Declaration --
    ------------------------------

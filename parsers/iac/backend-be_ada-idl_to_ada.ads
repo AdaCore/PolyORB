@@ -35,6 +35,10 @@ package Backend.BE_Ada.IDL_To_Ada is
       M : Node_Id)
      return Boolean;
 
+   procedure Link_BE_To_FE
+     (BE : Node_Id;
+      FE : Node_Id);
+
    function Map_Accessor_Declaration
      (Accessor  : Character;
       Attribute : Node_Id)

@@ -165,9 +165,9 @@ package body Backend.BE_Ada is
       Stubs.Package_Body.Visit (E);
       Helpers.Package_Body.Visit (E);
       Skels.Package_Body.Visit (E);
+      Impls.Package_Spec.Visit (E);
 
       if Impl_Packages_Gen then
-         Impls.Package_Spec.Visit (E);
          Impls.Package_Body.Visit (E);
       end if;
    end Visit;

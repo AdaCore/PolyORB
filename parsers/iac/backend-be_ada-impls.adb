@@ -96,6 +96,7 @@ package body Backend.BE_Ada.Impls is
                R := Make_Subprogram_Specification
                  (R, Parameters, No_Node);
                Append_Node_To_List (R, Visible_Part (Current_Package));
+               Link_BE_To_FE (R, Identifier (A));
             end if;
 
             A := Next_Entity (A);
