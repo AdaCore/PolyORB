@@ -334,6 +334,12 @@ adabe_interface::produce_adb(dep_list& with, string &body, string &previous)
 void
 adabe_interface::produce_impl_ads(dep_list& with, string &body, string &previous)
 {
+  if (n_inherits() > 1) 
+    {
+      cerr << "No files will be generated for the skeletons and the implementation of "<< get_ada_full_name() <<",\n";
+      cerr <<" because there's multiple inheritance (the server side shouldn't contain multiple inheritance)\n";
+      return ;
+    }
   adabe_global::set_adabe_current_file(this);
   string prev = "";
   string tmp = "";
@@ -402,6 +408,7 @@ adabe_interface::produce_impl_ads(dep_list& with, string &body, string &previous
 void
 adabe_interface::produce_impl_adb(dep_list& with, string &body, string &previous)
 {
+  if (n_inherits() > 1) return ;
   adabe_global::set_adabe_current_file(this);
   with.add(get_ada_full_name() + ".Skeleton") ;
   body += "\n\n" ;
@@ -466,6 +473,7 @@ adabe_interface::produce_impl_adb(dep_list& with, string &body, string &previous
 void
 adabe_interface::produce_skel_ads(dep_list& with, string &body, string &previous)
 {
+  if (n_inherits() > 1) return ;
   adabe_global::set_adabe_current_file(this);
   with.add("Omniobject");
   with.add("Giop_S");
@@ -519,6 +527,7 @@ adabe_interface::produce_proxies_ads(dep_list& with, string &body, string &previ
 void
 adabe_interface::produce_skel_adb(dep_list& with, string &body, string &previous)
 {
+  if (n_inherits() > 1) return ;
   adabe_global::set_adabe_current_file(this);
   with.add(get_ada_full_name() + ".Impl");
   with.add(get_ada_full_name() + ".Marshal");
