@@ -121,12 +121,13 @@ package XE is
       (Pragma_Unknown,
        Pragma_Starter,            --  (1) Starter
        Pragma_Import,             --  (2) Import
-       Pragma_Invocation          --  (3) Invocation
+       Pragma_Invocation,         --  (3) Invocation
+       Pragma_Heterogeneous       --  (4) Heterogeneous
        );
 
    Prag_Wrong : constant Int := 300;
    Prag_First : constant Int := Prag_Wrong + 1;
-   Prag_Last  : constant Int := Prag_Wrong + 3;
+   Prag_Last  : constant Int := Prag_Wrong + 4;
    --  Should match Pragma_Type length
 
    type Pragma_Id is new Int range Prag_Wrong .. Prag_Last;
@@ -225,9 +226,10 @@ package XE is
    Main_Procedure_Type_Node : Type_Id;
    Host_Function_Type_Node  : Type_Id;
 
-   Pragma_Starter_Node    : Subprogram_Id;
-   Pragma_Import_Node     : Subprogram_Id;
-   Pragma_Invocation_Node : Subprogram_Id;
+   Pragma_Starter_Node       : Subprogram_Id;
+   Pragma_Import_Node        : Subprogram_Id;
+   Pragma_Invocation_Node    : Subprogram_Id;
+   Pragma_Heterogeneous_Node : Subprogram_Id;
 
    function Get_Node_Name
      (Node : in Node_Id)

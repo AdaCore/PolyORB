@@ -697,8 +697,9 @@ procedure XE_Stubs is
             Write_Eol;
          end if;
 
-         Build_RCI_Caller (Caller_Body, Full_RCI_Spec);
          Change_Dir (Caller_Dir);
+         Build_RCI_Caller (RCI_Body,
+                           G_Parent_Dir & Dir_Sep_Id & Full_RCI_Spec);
          Compile_RCI_Caller (RCI_Body);
          Change_Dir (G_Parent_Dir);
 
@@ -809,8 +810,9 @@ procedure XE_Stubs is
             Write_Eol;
          end if;
 
-         Build_RCI_Receiver (Receiver_Body, Full_RCI_Body);
          Change_Dir (Receiver_Dir);
+         Build_RCI_Receiver (RCI_Body,
+                             G_Parent_Dir & Dir_Sep_Id & Full_RCI_Body);
          Compile_RCI_Receiver (RCI_Body);
          Change_Dir (G_Parent_Dir);
 
@@ -876,6 +878,21 @@ begin
       Create_Dir (Receiver_Dir);
    end if;
 
+   --  At this point, everything is performed in dsa/<dir>. We update
+   --  all the relative paths (-I and -L).
+
+   for S in Gcc_Switches.First .. Gcc_Switches.Last loop
+      Update_Switch (Gcc_Switches.Table (S));
+   end loop;
+
+   for S in Linker_Switches.First .. Linker_Switches.Last loop
+      Update_Switch (Linker_Switches.Table (S));
+   end loop;
+
+   for S in Binder_Switches.First .. Binder_Switches.Last loop
+      Update_Switch (Binder_Switches.Table (S));
+   end loop;
+
    --  Generate all the stubs (bodies, objects and alis). At this level,
    --  we ensure that all conf. units are ada units.
    for CUID in CUnit.First .. CUnit.Last loop
@@ -889,18 +906,6 @@ begin
          end if;
          Build_Stub (CUID);
       end if;
-   end loop;
-
-   for S in Gcc_Switches.First .. Gcc_Switches.Last loop
-      Update_Switch (Gcc_Switches.Table (S));
-   end loop;
-
-   for S in Linker_Switches.First .. Linker_Switches.Last loop
-      Update_Switch (Linker_Switches.Table (S));
-   end loop;
-
-   for S in Binder_Switches.First .. Binder_Switches.Last loop
-      Update_Switch (Binder_Switches.Table (S));
    end loop;
 
    --  Create and fill partition directories.

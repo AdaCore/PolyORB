@@ -291,8 +291,8 @@ package body XE_Back is
             --  Apply to one partition. Check that it has not already
             --  been done.
 
-            elsif Default_Storage_Dir = No_Storage_Dir and then
-               Partitions.Table (Partition).Storage_Dir = No_Storage_Dir then
+            elsif Partition /= Null_PID and then
+              Partitions.Table (Partition).Storage_Dir = No_Storage_Dir then
                Partitions.Table (Partition).Storage_Dir
                  := Get_Node_Name (Node_Id (Attribute_Item));
 
@@ -347,7 +347,7 @@ package body XE_Back is
                --  Apply to one partition. Check that it has not already
                --  been done.
 
-               elsif Default_Host = Null_Host and then
+               elsif Partition /= Null_PID and then
                  Partitions.Table (Partition).Host = Null_Host then
                   Partitions.Table (Partition).Host := Host;
 
@@ -377,7 +377,7 @@ package body XE_Back is
             --  Apply to one partition. Check that it has not already
             --  been done.
 
-            elsif Default_Main = No_Main_Subprogram and then
+            elsif Partition /= Null_PID and then
               Partitions.Table (Partition).Main_Subprogram =
               No_Main_Subprogram then
                Partitions.Table (Partition).Main_Subprogram
@@ -426,7 +426,7 @@ package body XE_Back is
             --  Apply to one partition. Check that it has not already
             --  been done.
 
-            elsif Default_Command_Line = No_Command_Line and then
+            elsif Partition /= Null_PID and then
               Partitions.Table (Partition).Command_Line = No_Command_Line then
                Partitions.Table (Partition).Command_Line
                  := Get_Node_Name (Node_Id (Attribute_Item));
@@ -500,6 +500,9 @@ package body XE_Back is
             Next_Subprogram_Parameter (Parameter);
             Value := Get_Variable_Value (Variable_Id (Parameter));
             Protocol_Data := Get_Node_Name (Node_Id (Value));
+
+         when Pragma_Heterogeneous =>
+            null;
 
          when Pragma_Unknown =>
             null;

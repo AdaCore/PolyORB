@@ -15,10 +15,7 @@ BEGIN {wait = 0; skipline = 0}
 /^package body/{
   print "with rci_info;"
   print $0;
-  print "   package RCI_Cache is new RCI_Info ("
-  print "      new system.partition_interface.unit_name__quote__";
-  print "         (\""$3"\")";
-  print "      );";
+  print "   package RCI_Cache is new RCI_Info (\""$3"\");";
   next}
 /protected body when_elaborated is/{skipline = 1; next}
 /protected when_elaborated is/{skipline = 1; next}

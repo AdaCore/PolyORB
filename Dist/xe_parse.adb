@@ -53,6 +53,9 @@ package body XE_Parse is
    Unique     : constant Boolean := True;
    Not_Unique : constant Boolean := False;
 
+   procedure Exit_On_Parsing_Error;
+   --  Print configuration if verbose_mode and then raise Parsing_Error.
+
    procedure Print_Configuration;
    --  Print node tree for debugging purpose. The global variable
    --  Configuration_Node is used as tree root.
@@ -355,7 +358,7 @@ package body XE_Parse is
       end loop;
       Write_Str (" was expected");
       Write_Eol;
-      raise Parsing_Error;
+      Exit_On_Parsing_Error;
    end No_Match;
 
    --------------
@@ -368,7 +371,7 @@ package body XE_Parse is
       Write_Token (T);
       Write_Str (" was expected");
       Write_Eol;
-      raise Parsing_Error;
+      Exit_On_Parsing_Error;
    end No_Match;
 
    -----------
@@ -662,7 +665,7 @@ package body XE_Parse is
          Write_Name (Para_Type_Name);
          Write_Str  (" is not an expected type");
          Write_Eol;
-         raise Parsing_Error;
+         Exit_On_Parsing_Error;
       end if;
 
       --  Declare <X> as a formal parameter.
@@ -691,7 +694,7 @@ package body XE_Parse is
          Write_Name (Para_Type_Name);
          Write_Str  (" is not an expected type");
          Write_Eol;
-         raise Parsing_Error;
+         Exit_On_Parsing_Error;
       end if;
 
       --  Declare returned parameter type. As a naming convention
@@ -725,7 +728,7 @@ package body XE_Parse is
             Write_Location (Get_Token_Location);
             Write_Str ("name mismatch");
             Write_Eol;
-            raise Parsing_Error;
+            Exit_On_Parsing_Error;
          end if;
          T_Semicolon;
       end if;
@@ -759,7 +762,7 @@ package body XE_Parse is
          Write_Name (Token_Name);
          Write_Str  (" not supported");
          Write_Eol;
-         raise Parsing_Error;
+         Exit_On_Parsing_Error;
       end if;
 
       --  Parse a pragma as a procedure call.
@@ -804,7 +807,7 @@ package body XE_Parse is
             Write_Location (Get_Token_Location);
             Write_Str  (": variable is not declared as an Ada unit");
             Write_Eol;
-            raise Parsing_Error;
+            Exit_On_Parsing_Error;
          end if;
 
       end if;
@@ -843,7 +846,7 @@ package body XE_Parse is
                Write_Location (Get_Token_Location);
                Write_Str  ("variable has not been declared as a partition");
                Write_Eol;
-               raise Parsing_Error;
+               Exit_On_Parsing_Error;
             end if;
 
             --  Partition_Type_Node is an unconstraint array type. In this
@@ -921,14 +924,14 @@ package body XE_Parse is
             Write_Str (": identifier is neither a variable");
             Write_Str (" nor a predefined type");
             Write_Eol;
-            raise Parsing_Error;
+            Exit_On_Parsing_Error;
          end if;
 
       else
          Write_Location (Get_Token_Location);
          Write_Str (": identifier is undefined");
          Write_Eol;
-         raise Parsing_Error;
+         Exit_On_Parsing_Error;
       end if;
 
       T_Apostrophe;
@@ -952,7 +955,7 @@ package body XE_Parse is
          Write_Location (Get_Token_Location);
          Write_Str  ("no such attribute");
          Write_Eol;
-         raise Parsing_Error;
+         Exit_On_Parsing_Error;
       end if;
 
       --  If variable, duplicate attribute for the variable only.
@@ -995,7 +998,7 @@ package body XE_Parse is
          Write_Name (Get_Node_Name (Node_Id (Expr_Node)));
          Write_Str (" is an invalid expression here");
          Write_Eol;
-         raise Parsing_Error;
+         Exit_On_Parsing_Error;
       end if;
 
       --  Set attribute to the given value.
@@ -1154,7 +1157,7 @@ package body XE_Parse is
             Write_Location (Get_Token_Location);
             Write_Str ("unexpected type");
             Write_Eol;
-            raise Parsing_Error;
+            Exit_On_Parsing_Error;
          end if;
 
          --  Declare this new variable of type Var_Type_Node.
@@ -1206,7 +1209,7 @@ package body XE_Parse is
                      Write_Name (Name);
                      Write_Str (" has not been declared");
                      Write_Eol;
-                     raise Parsing_Error;
+                     Exit_On_Parsing_Error;
                   end if;
                   T_Colon_Equal;
 
@@ -1364,7 +1367,7 @@ package body XE_Parse is
                Write_Location (Param_Location);
                Write_Str ("formal parameter mismatch");
                Write_Eol;
-               raise Parsing_Error;
+               Exit_On_Parsing_Error;
             end if;
 
             --  Does this actual parameter really exist ?
@@ -1378,7 +1381,7 @@ package body XE_Parse is
                Write_Location (Param_Location);
                Write_Str ("actual parameter mismatch");
                Write_Eol;
-               raise Parsing_Error;
+               Exit_On_Parsing_Error;
             end if;
 
             --  Mark the matching parameter and set its value to actual
@@ -1396,7 +1399,7 @@ package body XE_Parse is
                Write_Location (Get_Token_Location);
                Write_Str (": missing parameters");
                Write_Eol;
-               raise Parsing_Error;
+               Exit_On_Parsing_Error;
             end if;
 
          end loop;
@@ -1493,9 +1496,7 @@ package body XE_Parse is
 
       T_EOF;
 
-      if Debug_Mode then
-         Print_Configuration;
-      end if;
+      Print_Configuration;
 
    end Parse;
 
@@ -1712,6 +1713,26 @@ package body XE_Parse is
       --  To easily retrieve the enumeration literal.
       Set_Variable_Mark (Variable_Node, Convert (Shell_Import));
 
+      --  pragma heterogeneous ... or
+      --  procedure pragma__heterogeneous
+      --    (method : boolean);
+
+      Declare_Subprogram
+        (Pragma_Prefix & Str_To_Id ("heterogeneous"),
+         True,
+         Pragma_Heterogeneous_Node);
+
+      --  To easily retrieve the enumeration literal.
+      Set_Subprogram_Mark
+        (Pragma_Heterogeneous_Node,
+         Convert (Pragma_Heterogeneous));
+
+      Declare_Subprogram_Parameter
+        (Str_To_Id ("method"),
+         Boolean_Type_Node,
+         Pragma_Heterogeneous_Node,
+         Parameter_Node);
+
       --  pragma starter ... or
       --  procedure pragma__starter
       --    (method : starter__type);
@@ -1752,7 +1773,7 @@ package body XE_Parse is
 
       Declare_Subprogram_Parameter
         (Str_To_Id ("entity"),
-         Subprogram_Type_Node,
+         Ada_Unit_Type_Node,
          Pragma_Import_Node,
          Parameter_Node);
 
@@ -1788,9 +1809,7 @@ package body XE_Parse is
          Pragma_Invocation_Node,
          Parameter_Node);
 
-      if Debug_Mode then
-         Print_Configuration;
-      end if;
+      Print_Configuration;
 
    end Initialize;
 
@@ -1831,7 +1850,7 @@ package body XE_Parse is
       Append_Declaration        (Configuration_Node, Node_Id (Node));
       Subprogram_Node := Node;
 
-      --  We create a variable of type Subprogram_Type_Node to handle
+      --  We create a variable of type Ada_Unit_Type_Node to handle
       --  a pragma statement like a procedure call. The variable value is
       --  a reference to the previous subprogram node. It is an ada unit
       --  in order to allow further configuration operations.
@@ -1937,7 +1956,7 @@ package body XE_Parse is
          Write_Location (Get_Token_Location);
          Write_Str ("no such attribute for variable");
          Write_Eol;
-         raise Parsing_Error;
+         Exit_On_Parsing_Error;
       end if;
 
       --  Make a copy of the type attribute.
@@ -2205,7 +2224,7 @@ package body XE_Parse is
       Write_Name (Declaration_Name);
       Write_Str (" conflicts with a previous declaration");
       Write_Eol;
-      raise Parsing_Error;
+      Exit_On_Parsing_Error;
    end Has_Not_Been_Already_Declared;
 
    ----------------------------------------
@@ -2260,7 +2279,7 @@ package body XE_Parse is
       Write_Name (Actual_Name);
       Write_Str  (" is undefined");
       Write_Eol;
-      raise Parsing_Error;
+      Exit_On_Parsing_Error;
 
    end Search_Actual_Parameter;
 
@@ -2456,7 +2475,7 @@ package body XE_Parse is
                end if;
 
             when Unknown =>
-               raise Parsing_Error;
+               Exit_On_Parsing_Error;
          end case;
          Next_Subprogram_Parameter (Parameter_Node);
       end loop;
@@ -2464,9 +2483,19 @@ package body XE_Parse is
       Write_Location (Get_Token_Location);
       Write_Str  (": no matching parameter");
       Write_Eol;
-      raise Parsing_Error;
+      Exit_On_Parsing_Error;
 
    end Search_Matching_Parameter;
+
+   ---------------------------
+   -- Exit_On_Parsing_Error --
+   ---------------------------
+
+   procedure Exit_On_Parsing_Error is
+   begin
+      Print_Configuration;
+      raise Parsing_Error;
+   end Exit_On_Parsing_Error;
 
    -------------------------
    -- Print_Configuration --
@@ -2475,14 +2504,16 @@ package body XE_Parse is
    procedure Print_Configuration is
       Node : Node_Id;
    begin
-      Write_Eol;
-      Write_Str ("configuration");
-      Write_Eol;
-      Write_Str ("=============");
-      Write_Eol;
-      Write_Eol;
-      First_Configuration_Declaration (Configuration_Node, Node);
-      Print (Node, "");
+      if Debug_Mode then
+         Write_Eol;
+         Write_Str ("configuration");
+         Write_Eol;
+         Write_Str ("=============");
+         Write_Eol;
+         Write_Eol;
+         First_Configuration_Declaration (Configuration_Node, Node);
+         Print (Node, "");
+      end if;
    end Print_Configuration;
 
    -----------

@@ -49,7 +49,7 @@ procedure XE_Lead is
       if Host = Null_Host then
          Host := Default_Host;
       end if;
-      if Hosts.Table (Host).Name = No_Name then
+      if Host = Null_Host or else Hosts.Table (Host).Name = No_Name then
          Write_Str  (FD, "echo '");
          Write_Name (FD, Partitions.Table (Partition).Name);
          Write_Str  (FD, " host: '");

@@ -169,9 +169,9 @@ package body XE is
          Write_Name (From);
          Write_Eol;
       end if;
-      File := From & ADB_Suffix;
-      if Full_Source_Name (From) = No_Name then
-         File := From & ADS_Suffix;
+      File := Get_File_Name (From & ADB_Suffix);
+      if Full_Source_Name (File) = No_Name then
+         File := Get_File_Name (From & ADS_Suffix);
          if Full_Source_Name (File) = No_Name then
             Write_Program_Name;
             Write_Str (": no spec or body found for unit ");
