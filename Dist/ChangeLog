@@ -1,3 +1,7 @@
+Thu Mar 27 16:33:18 1997  Laurent Pautet  <pautet@marvin.enst.fr>
+
+	* xe_utils.ads: Fix bad renaming that was not detected before.
+
 Fri Mar 21 14:20:39 1997  Laurent Pautet  <pautet@esmeralda.enst.fr>
 
 	* xe_check.adb: Always load internal files. Otherwise, a partition

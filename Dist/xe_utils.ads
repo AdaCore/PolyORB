@@ -131,9 +131,9 @@ package XE_Utils is
    function "=" (X, Y : Text_Buffer_Ptr) return Boolean renames Types."=";
    function "=" (X, Y : Source_Buffer_Ptr) return Boolean renames Types."=";
 
-   function "=" (X, Y : Main_Program_Type) return Boolean renames Types."=";
-   function "=" (X, Y : Unit_Type) return Boolean renames Types."=";
-   function "=" (X, Y : ALI_Id) return Boolean renames Types."=";
+   function "=" (X, Y : Main_Program_Type) return Boolean renames ALI."=";
+   function "=" (X, Y : Unit_Type) return Boolean renames ALI."=";
+   function "=" (X, Y : ALI_Id) return Boolean renames ALI."=";
 
    function ">" (X, Y : Int) return Boolean renames Types.">";
    function ">" (X, Y : Time_Stamp_Type) return Boolean renames Types.">";
