@@ -88,6 +88,14 @@ begin
    Try_RACW ("");
    Try_RACW ("Elvis");
 
+   declare
+      use type RCI.Vector;
+
+      V : constant RCI.Vector := (3 => 111, 4 => 222, 5 => 333);
+   begin
+      Put_Line ("V passed? " & Boolean'Image (V = RCI.echoVector (V)));
+   end;
+
    Put_Line ("|2 + 3i|^2 = " & Float'Image (RCI.Modulus2 (Z)));
 
    declare

@@ -492,7 +492,7 @@ package body Exp_Hlpr is
             end;
          end if;
 
-      elsif (Is_Array_Type (Typ) and then Is_Constrained (Typ)) then
+      elsif Is_Array_Type (Typ) then
 
          declare
 
@@ -1104,13 +1104,14 @@ package body Exp_Hlpr is
                    Parameter_Associations => New_List (
                      New_Occurrence_Of (Any, Loc),
                      Build_To_Any_Call (
-                       Make_Attribute_Reference (Loc,
-                         Prefix =>
-                           New_Occurrence_Of (Expr_Parameter, Loc),
-                         Attribute_Name =>
-                           Name_Length,
-                         Expressions => New_List (
-                           Make_Integer_Literal (Loc, Dimen))),
+                       OK_Convert_To (RTE (RE_Long_Unsigned),
+                         Make_Attribute_Reference (Loc,
+                           Prefix =>
+                             New_Occurrence_Of (Expr_Parameter, Loc),
+                           Attribute_Name =>
+                             Name_Length,
+                           Expressions => New_List (
+                             Make_Integer_Literal (Loc, Dimen)))),
                        Decls))));
             end To_Any_Start_Dimen;
 
@@ -1119,6 +1120,7 @@ package body Exp_Hlpr is
 
             Indices : constant List_Id := New_List;
             Component : Node_Id;
+            Index : Node_Id;
          begin
             Set_Expression (Any_Decl,
               Make_Function_Call (Loc,
@@ -1133,6 +1135,7 @@ package body Exp_Hlpr is
             Set_Etype (Component, Component_Type (Typ));
 
             if not Constrained then
+               Index := First_Index (Typ);
                for J in 1 .. Number_Dimensions (Typ) loop
                   Append_To (Stms,
                     Make_Procedure_Call_Statement (Loc,
@@ -1142,13 +1145,15 @@ package body Exp_Hlpr is
                       Parameter_Associations => New_List (
                         New_Occurrence_Of (Any, Loc),
                         Build_To_Any_Call (
-                          Make_Attribute_Reference (Loc,
-                            Prefix         =>
-                              New_Occurrence_Of (Expr_Parameter, Loc),
-                            Attribute_Name => Name_First,
-                            Expressions    => New_List (
-                              Make_Integer_Literal (Loc, J))),
+                          OK_Convert_To (Etype (Index),
+                            Make_Attribute_Reference (Loc,
+                              Prefix         =>
+                                New_Occurrence_Of (Expr_Parameter, Loc),
+                              Attribute_Name => Name_First,
+                              Expressions    => New_List (
+                                Make_Integer_Literal (Loc, J)))),
                           Decls))));
+                  Next_Index (Index);
                end loop;
             end if;
 
@@ -1610,10 +1615,10 @@ package body Exp_Hlpr is
 
                   --  Unconstrained case: add low bound for each dimension.
 
-                  Get_Name_String (New_External_Name ('L', J));
-                  Add_String_Parameter (String_From_Name_Buffer);
                   Add_TypeCode_Parameter
                     (Build_TypeCode_Call (Loc, Etype (Indx), Decls));
+                  Get_Name_String (New_External_Name ('L', J));
+                  Add_String_Parameter (String_From_Name_Buffer);
                   Next_Index (Indx);
 
                   Inner_TypeCode := Make_Constructed_TypeCode
@@ -1629,10 +1634,10 @@ package body Exp_Hlpr is
             if Constrained then
                Return_Alias_TypeCode (Inner_TypeCode);
             else
+               Add_TypeCode_Parameter (Inner_TypeCode);
                Start_String;
                Store_String_Char ('V');
                Add_String_Parameter (End_String);
-               Add_TypeCode_Parameter (Inner_TypeCode);
                Return_Constructed_TypeCode (RTE (RE_TC_Struct));
             end if;
          end;
