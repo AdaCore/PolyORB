@@ -1,0 +1,81 @@
+Expansion should be done
+------------------------
+
+- <fixed_type_specs>
+  a simple typedef:
+
+  typedef fixed<8,2> Megabucks[3];
+->
+  {fixed(8,2,Fixed_8_2)}
+{fixed(DIGITS,SCALE,NAME)} is a new node kind for fixed type declarations.
+It is mapped to "type NAME is delta 10 ** -SCALE digits DIGITS;"
+
+  typedef fixed<8,2>{Fixed_8_2} Megabucks[3];
+  // The N_Fixed_Type node has a new attribute which is
+  // a pointer to the expanded {fixed} node.
+
+  typedef sequence<sequence<foo>> SeqSeqFoo;
+->
+  {instantiate(CORBA.Sequences.Unbounded,Foo,IDL_SEQUENCE_foo}
+  {instantiate(CORBA.Sequences.Unbounded,
+               sequence<foo>{IDL_SEQUENCE_foo},
+               IDL_SEQUENCE_SEQUENCE_foo}
+  typedef sequence<Sequence_Foo> SeqSeqFoo;
+
+{instantiate} is a new node kind for generic package instanciations.
+Its attributes are: generic package to instanciate, generic formal
+parameters, name of the instance.
+After expansion, N_Sequence nodes have a new attribute which is a pointer
+to the corresponding {instanciate} node.
+
+- For complex_declarators in struct members
+
+- <constr_type_specs> -> <type_dcl>
+
+eg
+  typedef enum Color {Red, Green, Blue} RGB
+->
+  enum Color {Red, Green, Blue};
+  typedef enum Color RGB;
+
+- In a union, the default label shall be the only
+  element in its label_list:
+  own case:
+
+  union U switch (long) {
+    case 1: long foo;
+    case 2: long bar;
+    case 3: default: long baz;
+  }
+->
+  union U switch(long) {
+    case 1: long foo;
+    case 2: long bar;
+    default: long baz; // Covers the 3 case as well anyway.
+  }
+
+- A usage occurence of an interface name within its parent scope
+  must resolve to denote a forward declaration of this interface:
+
+  module M {
+    interface I { ... };
+    typedef I J;
+  }
+->
+  module M {
+    interface I;
+    interface I { ... };
+    typedef I J;
+  }
+(where the N_Scoped_Name "I" in the typedef shall have a Value
+that designates the newly-inserted N_Forward_Interface node.).
+
+- Exception members:
+
+  exception E { members... };
+->
+  struct E_Members {
+    members...
+  };
+  exception E { members... };
+

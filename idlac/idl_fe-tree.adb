@@ -557,7 +557,7 @@ package body Idl_Fe.Tree is
    ----------------
    function Get_Kind (N : N_Primary_Expr) return Types.Node_Kind is
    begin
-      return Types.K_Primary;
+      return Types.K_Primary_Expr;
    end Get_Kind;
 
    ----------------

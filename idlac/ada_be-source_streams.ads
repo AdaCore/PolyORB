@@ -1,5 +1,5 @@
 --  A stream type suitable for generation of Ada source code.
---  $Id: //depot/adabroker/main/idlac/ada_be-source_streams.ads#1 $
+--  $Id: //depot/adabroker/main/idlac/ada_be-source_streams.ads#2 $
 
 with Ada.Unchecked_Deallocation;
 with Ada.Finalization;
@@ -55,8 +55,13 @@ package Ada_BE.Source_Streams is
      return Compilation_Unit;
    --  Prepare to generate a new compilation unit.
 
-   procedure Generate (Unit : Compilation_Unit);
+   procedure Generate
+     (Unit : Compilation_Unit;
+      Is_Generic_Instanciation : Boolean := False);
    --  Produce the source code for Unit.
+   --  If Is_Generic_Instanciation, then Unit's Kind must
+   --  be Unit_Spec, and Unit must be a library-level
+   --  instanciation of a generic package.
 
 private
 
@@ -79,7 +84,7 @@ private
       Library_Item   : Unbounded_String;
       Empty          : Boolean
         := True;
-      Indent_Level   : Positive
+      Indent_Level   : Natural
         := 1;
       At_BOL         : Boolean := True;
       --  True if a line has just been ended, and the

@@ -358,7 +358,7 @@ package body Idl_Fe.Display_Tree is
          when K_Id =>
             Disp_Unary (N_Unary_Expr (N), N_Indent + Offset, Full, "id");
 
-         when K_Primary =>
+         when K_Primary_Expr =>
             Put_Line ("primary expression, value = ");
             Disp_Tree (N_Primary_Expr (N).Operand.all,
                        N_Indent + Offset,

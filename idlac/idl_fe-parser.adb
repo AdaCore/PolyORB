@@ -2728,6 +2728,12 @@ package body Idl_Fe.Parser is
                      Loc);
             end case;
          when others =>
+            Idl_Fe.Errors.Parser_Error
+              ("constraint error : this value is "
+               & "not a constant expression ("
+               & Get_Kind (Constant_Type.all)'Img & ")",
+               Idl_Fe.Errors.Error,
+               Loc);
             raise Idl_Fe.Errors.Internal_Error;
       end case;
    end Parse_Const_Exp;

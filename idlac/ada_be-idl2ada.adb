@@ -1,17 +1,16 @@
 with Idl_Fe.Types; use Idl_Fe.Types;
 with Idl_Fe.Tree;  use Idl_Fe.Tree;
-with Idl_Fe.Tree.Traversal; use Idl_Fe.Tree.Traversal;
+with Idl_Fe.Tree.Accessors; use Idl_Fe.Tree.Accessors;
+with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree.Synthetic;
 
 --  with Ada_Be.Identifiers; use Ada_Be.Identifiers;
 with Ada_Be.Source_Streams; use Ada_Be.Source_Streams;
 
 package body Ada_Be.Idl2Ada is
 
-   function Is_Scope
-     (Node : N_Root_Acc)
-     return Boolean;
-   --  True iff Node is a Scope (ie N_Repository,
-   --  N_Module, N_Interface or N_ValueType).
+   -------------------------------------------------
+   -- General purpose code generation subprograms --
+   -------------------------------------------------
 
    procedure Generate_Scope_Stubs
      (Node : N_Root_Acc);
@@ -23,30 +22,27 @@ package body Ada_Be.Idl2Ada is
    --    (Node : N_Root_Acc);
 
    procedure Generate_Node_Stubs_Spec
-     (Node : N_Root_Acc;
-      CU   : in out Compilation_Unit);
+     (CU   : in out Compilation_Unit;
+      Node : N_Root_Acc);
    --  Generate the package declaration for the
    --  stubs of a node.
 
    procedure Generate_Node_Default
-     (Node : N_Root_Acc;
-      CU   : in out Compilation_Unit);
+     (CU   : in out Compilation_Unit;
+      Node : N_Root_Acc);
    --  Generate the text for a node whose mapping is
    --  common to all generated files.
 
-   function Is_Scope
-     (Node : N_Root_Acc)
-     return Boolean
-   is
-      K : constant Node_Kind
-        := Get_Kind (Node.all);
-   begin
-      return (False
-        or else K = K_Repository
-        or else K = K_Module
-        or else K = K_Interface
-        or else K = K_ValueType);
-   end Is_Scope;
+   ----------------------------------------
+   -- Specialised generation subprograms --
+   ----------------------------------------
+
+   procedure Generate_Object_Reference_Declaration
+     (CU   : in out Compilation_Unit;
+      Node : N_Root_Acc;
+      Full_View : Boolean);
+   --  Generate the declaration of an object reference
+   --  type.
 
    procedure Generate
      (Node : in N_Root_Acc) is
@@ -93,6 +89,10 @@ package body Ada_Be.Idl2Ada is
 
    begin
       case Get_Kind (Node.all) is
+         when K_ValueType =>
+            --  Not implemented yet.
+            raise Program_Error;
+
          when
            K_Repository |
            K_Module     =>
@@ -104,22 +104,37 @@ package body Ada_Be.Idl2Ada is
                Init (It, Contents (Node));
                while not Is_End (It) loop
                   Decl_Node := Get_Node (It);
-                  Generate_Node_Stubs_Spec (Decl_Node, Stubs_Spec);
-                  --  No stubs body for a module or repository.
 
                   if Is_Scope (Decl_Node) then
                      Generate_Scope_Stubs (Decl_Node);
+                  else
+                     Generate_Node_Stubs_Spec (Stubs_Spec, Decl_Node);
                   end if;
+
+                  --  No stubs body for a module or repository.
 
                   Next (It);
                end loop;
             end;
 
-         when
-           K_Interface |
-           K_ValueType =>
+         when K_Interface =>
 
-            Generate_Node_Stubs_Spec (Node, Stubs_Spec);
+            Generate_Object_Reference_Declaration
+              (Stubs_Spec, Node, Full_View => False);
+
+            declare
+               Forward_Node : constant N_Root_Acc
+                 := N_Root_Acc (N_Forward_Interface_Acc'(Forward (Node)));
+            begin
+               if Forward_Node /= null then
+                  --  This interface has a forward declaration.
+
+                  Put_Line (Stubs_Spec, "package Convert_Forward is");
+                  Put_Line (Stubs_Spec, "  new "
+                       & Ada_Full_Name (Forward_Node)
+                       & ".Convert (Ref_Type => Ref);");
+               end if;
+            end;
 
             declare
                IT   : Node_Iterator;
@@ -128,8 +143,8 @@ package body Ada_Be.Idl2Ada is
                Init (IT, Contents (Node));
                while not Is_End (IT) loop
                   Export_Node := Get_Node (IT);
-                  Generate_Node_Stubs_Spec (Export_Node, Stubs_Spec);
-                  --  Generate_Node_Stubs_Body (Export_Node, Stubs_Body);
+                  Generate_Node_Stubs_Spec (Stubs_Spec, Export_Node);
+                  --  Generate_Node_Stubs_Body (Stubs_Body, Export_Node);
 
                   if Is_Scope (Export_Node) then
                      Generate_Scope_Stubs (Export_Node);
@@ -138,6 +153,14 @@ package body Ada_Be.Idl2Ada is
                   Next (IT);
                end loop;
             end;
+
+            New_Line (Stubs_Spec);
+            Dec_Indent (Stubs_Spec);
+            Put_Line (Stubs_Spec, "private");
+            Inc_Indent (Stubs_Spec);
+
+            Generate_Object_Reference_Declaration
+              (Stubs_Spec, Node, Full_View => True);
 
          when others =>
             pragma Assert (False);
@@ -150,9 +173,10 @@ package body Ada_Be.Idl2Ada is
       Generate (Stubs_Body);
    end Generate_Scope_Stubs;
 
-   procedure Generate_Node_Stubs_Spec
-     (Node : N_Root_Acc;
-      CU   : in out Compilation_Unit) is
+   procedure Generate_Object_Reference_Declaration
+     (CU   : in out Compilation_Unit;
+      Node : N_Root_Acc;
+      Full_View : Boolean) is
    begin
       case Get_Kind (Node.all) is
 
@@ -166,25 +190,65 @@ package body Ada_Be.Idl2Ada is
 
                if Parents (Node) = Nil_List then
                   Add_With (CU, "CORBA");
-
-                  Put_Line (CU,
-                          "type Ref is new CORBA.Object.Ref with private;");
+                  Put (CU, "type Ref is new CORBA.Object.Ref with ");
                else
                   declare
                      First_Parent_Name : constant String
                        := Ada_Full_Name (Head (Parents (Node)));
                   begin
                      Add_With (CU, First_Parent_Name);
-
-                     Put_Line (CU,
-                             "type Ref is new "
-                             & First_Parent_Name
-                             & ".Ref with Private;");
+                     Put (CU,
+                          "type Ref is new "
+                          & First_Parent_Name
+                          & ".Ref with ");
                   end;
                end if;
 
-         when K_Forward_Interface =>
+               if Full_View then
+                  Put_Line (CU, "null record;");
+               else
+                  Put_Line (CU, "private;");
+               end if;
+               New_Line (CU);
+
+               --  when K_ValueType =>...
+
+         when others =>
+            raise Program_Error;
+
+      end case;
+   end Generate_Object_Reference_Declaration;
+
+   procedure Generate_Node_Stubs_Spec
+     (CU   : in out Compilation_Unit;
+      Node : N_Root_Acc) is
+   begin
+      case Get_Kind (Node.all) is
+
+         --  Scopes
+
+         when
+           K_Repository |
+           K_Module     |
+           K_Interface  =>
             null;
+
+         when K_Forward_Interface =>
+            declare
+               Forward_Instanciation : Compilation_Unit
+                 := New_Package (Ada_Full_Name (Node), Unit_Spec);
+            begin
+               Dec_Indent (Forward_Instanciation);
+               Put_Line (Forward_Instanciation, "  new CORBA.Forward;");
+               Generate
+                 (Forward_Instanciation,
+                  Is_Generic_Instanciation => True);
+            end;
+
+         -----------------
+         -- Value types --
+         -----------------
+
          when K_ValueType =>
             null;
          when K_Forward_ValueType =>
@@ -195,14 +259,84 @@ package body Ada_Be.Idl2Ada is
             null;
          when K_Initializer =>
             null;
+
+         ----------------
+         -- Operations --
+         ----------------
+
          when K_Operation =>
-            null;
+
+            --  Subprogram name
+
+            New_Line (CU);
+            if Get_Kind (Operation_Type (Node).all) = K_Void then
+               Put (CU, "procedure ");
+            else
+               Put (CU, "function ");
+            end if;
+
+            Put (CU, Ada_Name (Node));
+
+            --  Formals
+
+            declare
+               First_Parameter : Boolean := True;
+               It   : Node_Iterator;
+               P_Node : N_Root_Acc;
+            begin
+
+               Init (It, Parameters (Node));
+               while not Is_End (It) loop
+                  if First_Parameter then
+                     New_Line (CU);
+                     Put (CU, "  (");
+                     Inc_Indent (CU);
+                  end if;
+
+                  P_Node := Get_Node (It);
+
+                  Generate_Node_Stubs_Spec (CU, P_Node);
+
+                  Next (It);
+                  if Is_End (It) then
+                     Put (CU, ")");
+                     Dec_Indent (CU);
+                  else
+                     Put_Line (CU, ";");
+                  end if;
+               end loop;
+            end;
+
+            --  Return type
+
+            if Get_Kind (Operation_Type (Node).all) /= K_Void then
+               New_Line (CU);
+               Put (CU, "  return ");
+               Generate_Node_Stubs_Spec (CU, Operation_Type (Node));
+            end if;
+
+            Put_Line (CU, ";");
+
             --        when K_Attribute =>
             --  null;
+
          when K_Param =>
-            null;
+
+            Generate_Node_Stubs_Spec (CU, N_Root_Acc (Declarator (Node)));
+            case Mode (Node) is
+               when Mode_In =>
+                  Put (CU, " : in ");
+               when Mode_Out =>
+                  Put (CU, " : out ");
+               when Mode_Inout =>
+                  Put (CU, " : in out ");
+            end case;
+            Generate_Node_Stubs_Spec (CU, N_Root_Acc (Param_Type (Node)));
+
          when K_Exception =>
-            null;
+
+            Put_Line (CU, Ada_Name (Node) & " : exception;");
+
          when K_Member =>
 
             declare
@@ -213,32 +347,199 @@ package body Ada_Be.Idl2Ada is
                while not Is_End (It) loop
                   Decl_Node := Get_Node (It);
 
-                  Generate_Node_Stubs_Spec (Decl_Node, CU);
+                  Generate_Node_Stubs_Spec (CU, Decl_Node);
                   Put (CU, " : ");
-                  Generate_Node_Stubs_Spec (M_Type (Node), CU);
+                  Generate_Node_Stubs_Spec (CU, M_Type (Node));
                   Put_Line (CU, ";");
 
                   Next (It);
                end loop;
             end;
 
+         when K_Enum =>
+            Put_Line (CU, "type " & Ada_Name (Node) & " is");
 
-         when K_Declarator =>
+            declare
+               First_Enumerator : Boolean := True;
+               It   : Node_Iterator;
+               E_Node : N_Root_Acc;
+            begin
 
-            Put (CU, Ada_Name (Node));
+               Init (It, Enumerators (Node));
+               while not Is_End (It) loop
+                  if First_Enumerator then
+                     First_Enumerator := False;
+                     Put (CU, "  (");
+                     Inc_Indent (CU);
+                  end if;
+
+                  E_Node := Get_Node (It);
+
+                  Generate_Node_Stubs_Spec (CU, E_Node);
+
+                  Next (It);
+                  if Is_End (It) then
+                     Put_Line (CU, ");");
+                     Dec_Indent (CU);
+                  else
+                     Put_Line (CU, ",");
+                  end if;
+               end loop;
+            end;
 
          when K_Type_Declarator =>
-            null;
+            declare
+               Is_Interface : constant Boolean
+                 := Is_Interface_Type (T_Type (Node));
+            begin
+               declare
+                  It   : Node_Iterator;
+                  Decl_Node : N_Root_Acc;
+               begin
+                  Init (It, Declarators (Node));
+                  while not Is_End (It) loop
+                     Decl_Node := Get_Node (It);
+
+                     declare
+                        Bounds_It : Node_Iterator;
+                        Bound_Node : N_Root_Acc;
+                        First_Bound : Boolean := True;
+                        Is_Array : constant Boolean
+                          := not Is_Empty (Array_Bounds (Decl_Node));
+                     begin
+                        Init (Bounds_It, Array_Bounds (Decl_Node));
+
+                        if Is_Interface
+                          and then not Is_Array then
+                           --  A typedef where the <type_spec>
+                           --  denotes an interface type, and
+                           --  which is not an array declaration.
+                           Put (CU, "subtype ");
+                        else
+                           Put (CU, "type ");
+                        end if;
+
+                        Generate_Node_Stubs_Spec (CU, Decl_Node);
+
+                        Put (CU, " is ");
+
+                        if Is_Array then
+                           while not Is_End (Bounds_It) loop
+                              Bound_Node := Get_Node (Bounds_It);
+                              if First_Bound then
+                                 Put (CU, "array (");
+                                 First_Bound := False;
+                              else
+                                 Put (CU, ", ");
+                              end if;
+
+                              Put (CU, "0 .. ");
+                              Generate_Node_Stubs_Spec (CU, Bound_Node);
+                              Put (CU, " - 1");
+                           end loop;
+                           Put (CU, ") of ");
+                        else
+                           if not Is_Interface then
+                              Put (CU, "new ");
+                           end if;
+                        end if;
+
+                        Generate_Node_Stubs_Spec (CU, T_Type (Node));
+
+                        Put_Line (CU, ";");
+                        Next (It);
+                     end;
+                  end loop;
+               end;
+            end;
+
          when K_Const_Dcl =>
             null;
+
          when K_Union =>
-            null;
+            Put_Line (CU, "type " & Ada_Name (Node)
+                      & "(Switch : ");
+            Generate_Node_Stubs_Spec (CU, Switch_Type (Node));
+            Put (CU, " := ");
+            Generate_Node_Stubs_Spec (CU, Switch_Type (Node));
+            Put_Line (CU, "'First) is record");
+            Inc_Indent (CU);
+            Put_Line (CU, "case Switch is");
+            Inc_Indent (CU);
+
+            declare
+               It   : Node_Iterator;
+               Case_Node : N_Root_Acc;
+            begin
+               Init (It, Cases (Node));
+               while not Is_End (It) loop
+                  Case_Node := Get_Node (It);
+                  Generate_Node_Stubs_Spec (CU, Case_Node);
+
+                  Next (It);
+               end loop;
+            end;
+
+            Dec_Indent (CU);
+            Put_Line (CU, "end case;");
+            Dec_Indent (CU);
+            Put_Line (CU, "end record;");
+
          when K_Case =>
-            null;
+            declare
+               It   : Node_Iterator;
+               Label_Node : N_Root_Acc;
+               First_Label : Boolean := True;
+               Multiple_Labels : Boolean;
+            begin
+               Init (It, Labels (Node));
+               while not Is_End (It) loop
+                  Label_Node := Get_Node (It);
+                  Next (It);
+
+                  Multiple_Labels := not Is_End (It);
+
+                  if First_Label then
+                     Put (CU, "when");
+                  end if;
+
+                  if Multiple_Labels then
+                     pragma Assert (Label_Node /= null);
+                     --  The null label is the "default:"
+                     --  one, and must have its own case.
+
+                     if not First_Label then
+                        Put_Line (CU, " |");
+                     else
+                        New_Line (CU);
+                     end if;
+                  end if;
+
+                  if Label_Node /= null then
+                     Generate_Node_Stubs_Spec (CU, Label_Node);
+                  else
+                     Put (CU, "others");
+                  end if;
+
+                  First_Label := False;
+               end loop;
+            end;
+            Put_Line (CU, " =>");
+            Inc_Indent (CU);
+
+            Generate_Node_Stubs_Spec (CU, N_Root_Acc (Case_Decl (Node)));
+            Put (CU, " : ");
+            Generate_Node_Stubs_Spec (CU, N_Root_Acc (Case_Type (Node)));
+            Put_Line (CU, ";");
+
+            Dec_Indent (CU);
+
          when K_Sequence =>
             null;
+
          when K_Struct =>
-            Put_Line (CU, "type " & Ada_Name (Node) & " is record");
+            Put_Line (CU, "type " & Ada_Name (Node)
+                      & " is record");
             Inc_Indent (CU);
 
             declare
@@ -248,7 +549,7 @@ package body Ada_Be.Idl2Ada is
                Init (It, Members (Node));
                while not Is_End (It) loop
                   Decl_Node := Get_Node (It);
-                  Generate_Node_Stubs_Spec (Decl_Node, CU);
+                  Generate_Node_Stubs_Spec (CU, Decl_Node);
 
                   Next (It);
                end loop;
@@ -259,13 +560,8 @@ package body Ada_Be.Idl2Ada is
 
          when K_ValueBase =>
             null;
-         when K_Enumerator =>
-            null;
          when K_Native =>
             null;
-         when K_Scoped_Name =>
-
-            Put (CU, Ada_Full_Name (Node));
 
          when K_Object =>
             null;
@@ -273,22 +569,56 @@ package body Ada_Be.Idl2Ada is
             null;
          when K_Void =>
             null;
+
          when K_Fixed =>
-            null;
 
+            raise Program_Error;
 
+            --  XXX This mapping shall be used for a
+            --  {fixed} note created by the expander, NOT
+            --  for the original (anonymous) <fixed_type_spec>.
+
+            --  Put (CU, "delta 10 ** -(");
+            --  Generate_Node_Stubs_Spec (CU, N_Root_Acc (Scale (Node)));
+            --  Put (CU, ") digits ");
+            --  Generate_Node_Stubs_Spec (CU, N_Root_Acc (Digits_Nb (Node)));
 
          when others =>
-            Generate_Node_Default (Node, CU);
+            Generate_Node_Default (CU, Node);
       end case;
 
    end Generate_Node_Stubs_Spec;
 
    procedure Generate_Node_Default
-     (Node : N_Root_Acc;
-      CU   : in out Compilation_Unit) is
+     (CU   : in out Compilation_Unit;
+      Node : N_Root_Acc) is
    begin
       case Get_Kind (Node.all) is
+
+         when K_Scoped_Name =>
+            declare
+               FN : constant String
+                 :=  Ada_Full_Name
+                 (N_Root_Acc (N_Named_Acc'(Value (Node))));
+               VK : constant Node_Kind
+                 := Get_Kind (Value (Node).all);
+            begin
+               Put (CU, FN);
+               if VK = K_Interface
+                 or else VK = K_Forward_Interface then
+                  --  A usage occurence of an interface
+                  --  denotes an object reference.
+                  Put (CU, ".Ref");
+
+                  --  The object reference type is declared in
+                  --  the package that maps the interface.
+                  Add_With (CU, FN);
+               end if;
+            end;
+
+         when K_Declarator =>
+            Put (CU, Ada_Name (Node));
+            --  A simple or complex (array) declarator.
 
          --  Base types
          when K_Short =>
@@ -352,8 +682,9 @@ package body Ada_Be.Idl2Ada is
             Put (CU, "CORBA.Octet");
 
 
-         when K_Enum =>
-            null;
+         when K_Enumerator =>
+            Put (CU, Ada_Name (Node));
+
          when K_Or =>                   --  Binary operators.
             null;
          when K_Xor =>

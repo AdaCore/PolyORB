@@ -1,5 +1,5 @@
 --  A stream type suitable for generation of Ada source code.
---  $Id: //depot/adabroker/main/idlac/ada_be-source_streams.adb#1 $
+--  $Id: //depot/adabroker/main/idlac/ada_be-source_streams.adb#2 $
 
 with Ada.Characters.Handling; use Ada.Characters.Handling;
 with Ada.Characters.Latin_1; use Ada.Characters.Latin_1;
@@ -85,10 +85,9 @@ package body Ada_Be.Source_Streams is
    end New_Package;
 
    procedure Generate
-     (Unit : Compilation_Unit)
+     (Unit : Compilation_Unit;
+      Is_Generic_Instanciation : Boolean := False)
    is
-      use Ada.Text_IO;
-
       function Ada_File_Name
         (Full_Name : String;
          Part      : Unit_Kind := Unit_Spec)
@@ -115,6 +114,8 @@ package body Ada_Be.Source_Streams is
          Result (Result'Last) := Extension (Part);
          return Result;
       end Ada_File_Name;
+
+      use Ada.Text_IO;
 
       File : File_Type;
       File_Name : String
@@ -144,7 +145,10 @@ package body Ada_Be.Source_Streams is
       end if;
       Put_Line (File, Unit.Library_Unit_Name.all & " is");
       Put (File, To_String (Unit.Library_Item));
-      Put_Line (File, "end " & Unit.Library_Unit_Name.all & ";");
+
+      if not Is_Generic_Instanciation then
+         Put_Line (File, "end " & Unit.Library_Unit_Name.all & ";");
+      end if;
 
       Close (File);
    end Generate;

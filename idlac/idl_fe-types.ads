@@ -73,7 +73,7 @@ package Idl_Fe.Types is
        K_Id,                   --  Unary operators.
        K_Neg,
        K_Not,
-       K_Primary,              --  Primary expression
+       K_Primary_Expr,              --  Primary expression
 --        K_Lit_Integer,          --  Literals.
 --        K_Lit_Floating_Point,
 --        K_Lit_Fixed_Point,
@@ -154,9 +154,9 @@ package Idl_Fe.Types is
    function Get_Location (N : N_Root'Class) return Idl_Fe.Errors.Location;
 
 
-   ------------------------------------
-   --  A usefull list of root nodes  --
-   ------------------------------------
+   ---------------------------------
+   -- A useful list of root nodes --
+   ---------------------------------
 
    --  Simple list type for a node list.
    --  The Nil atom is Nil_List.

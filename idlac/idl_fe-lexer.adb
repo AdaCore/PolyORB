@@ -674,12 +674,11 @@ package body Idl_Fe.Lexer is
             when Idl_Keyword_State (Is_Identifier) =>
                return T_Identifier;
             when Idl_Keyword_State (Bad_Case) =>
-               Idl_Fe.Errors.Lexer_Error ("Bad identifier or bad case"
-                                          & "for idl keyword."
-                                          & " I Supposed you meant "
-                                          & "the keyword.",
-                                          Idl_Fe.Errors.Error,
-                                          Get_Real_Location);
+               Idl_Fe.Errors.Lexer_Error
+                 ("Bad identifier or bad case for IDL keyword."
+                  & " I Supposed you meant the keyword.",
+                  Idl_Fe.Errors.Error,
+                  Get_Real_Location);
                return Tok;
          end case;
       end if;
