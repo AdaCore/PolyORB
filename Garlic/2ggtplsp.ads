@@ -1,6 +1,6 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                           GARLIC COMPONENTS                              --
+--                            GLADE COMPONENTS                              --
 --                                                                          --
 -- S Y S T E M . G A R L I C . T C P . P L A T F O R M _ S P E C I F I C    --
 --                                                                          --
@@ -28,7 +28,7 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---               GARLIC is maintained by ACT Europe.                        --
+--               GLADE  is maintained by ACT Europe.                        --
 --            (email:distribution@act-europe.gnat.com).                     --
 --                                                                          --
 ------------------------------------------------------------------------------

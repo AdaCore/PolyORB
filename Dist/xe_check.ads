@@ -1,6 +1,6 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                          GNATDIST COMPONENTS                             --
+--                            GLADE COMPONENTS                              --
 --                                                                          --
 --                            X E _ C H E C K                               --
 --                                                                          --
@@ -21,7 +21,7 @@
 -- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
 -- Boston, MA 02111-1307, USA.                                              --
 --                                                                          --
---              GNATDIST is maintained by ACT Europe.                       --
+--                 GLADE is maintained by ACT Europe.                       --
 --            (email:distribution@act-europe.gnat.com).                     --
 --                                                                          --
 ------------------------------------------------------------------------------
