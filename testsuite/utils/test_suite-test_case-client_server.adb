@@ -56,143 +56,200 @@ package body Test_Suite.Test_Case.Client_Server is
       Output      : Test_Suite_Output'Class)
      return Boolean
    is
-      Result : Expect_Match;
+      Test_Result : Boolean := True;
 
-      Fd_Server : Process_Descriptor;
-      Fd_Client : Process_Descriptor;
+      -----------------
+      -- Client_Task --
+      -----------------
 
-      IOR_String : Unbounded_String;
+      task type Client_Task is
+         entry Initialize (IOR : String);
+      end Client_Task;
 
-      Test_Result : Boolean;
+      Client_T : Client_Task;
 
-   begin
-      Log (Output, "Launching test: " & To_String (Test_To_Run.Id));
-      Separator (Output);
-
-      --  Launch Server.
-
-      declare
-         Server_Command : constant String
-           := "./" & To_String (Test_To_Run.Server.Command);
-
-         Match  : Match_Array (0 .. 2);
-         Env    : constant String := To_String (Test_To_Run.Server.Conf);
-      begin
-         --  Setting environment.
-         if Env = "" then
-            Log (Output, "No environment to set.");
-            Setenv ("POLYORB_CONF", Env);
-         else
-            Log (Output, "Setting environment: " & Env);
-            Setenv ("POLYORB_CONF", Env);
-         end if;
-
-         --  Spawn Server.
-         Log (Output, "Running server: " & Server_Command);
-         Separator (Output);
-
-         Non_Blocking_Spawn (Fd_Server, Server_Command, Null_Argument_List);
-
-         --  Match Server IOR.
-         Initialize_Filter (Output);
-         Add_Filter (Fd_Server, Output_Filter'Access, GNAT.Expect.Output);
-         Expect (Fd_Server, Result, "IOR:([a-z0-9]*)", Match, -1);
-
-         case Result is
-            when 1 =>
-               IOR_String := To_Unbounded_String
-                 (Expect_Out (Fd_Server)
-                  (Match (0).First .. Match (0).Last));
-            when others =>
-               Log (Output, "Error when parsing server IOR");
-               raise Program_Error;
-
-         end case;
-      end;
-
-      Separator (Output);
-
-      --  Launch Client.
-
-      declare
-         Client_Argument_List : constant Argument_List
-           := (1 => new String'(To_String (IOR_String)));
+      task body Client_Task
+      is
+         Fd_Client : Process_Descriptor;
 
          Client_Command : constant String
            := "./" & To_String (Test_To_Run.Client.Command);
 
          Env    : constant String := To_String (Test_To_Run.Client.Conf);
+
+         Result : Expect_Match;
+
       begin
-         --  Setting environment.
-         if Env = "" then
-            Log (Output, "No environment to set.");
-            Setenv ("POLYORB_CONF", Env);
-         else
-            Log (Output, "Setting environment: " & Env);
-            Setenv ("POLYORB_CONF", Env);
-         end if;
 
-         --  Spawn Client.
-         Log (Output, "Running client: " & Client_Command);
-         Log (Output, "  with timeout: "
-              & Integer'Image (Test_To_Run.Timeout));
-         Log (Output, "           IOR:");
-         Log (Output, "'" & To_String ((IOR_String) & "'"));
-         Separator (Output);
+         --  Launch Client
 
-         Non_Blocking_Spawn (Fd_Client,
-                             Client_Command,
-                             Client_Argument_List);
+         accept Initialize (IOR : String) do
 
-         --  Redirect Output.
-         Initialize_Filter (Output);
-         Add_Filter (Fd_Client, Output_Filter'Access, GNAT.Expect.Output);
+            declare
+               Client_Argument_List : constant Argument_List
+                 := (1 => new String'(IOR));
 
-         --  Parse output.
-         Expect (Fd_Client, Result, Item_To_Match, Test_To_Run.Timeout);
-         case Result is
-            when 1 =>
-               Log (Output, "==> Test failed <==");
-               Test_Result := False;
+            begin
 
-            when 2 =>
-               Log (Output, "==> Test finished <==");
-               Test_Result := True;
+               --  Setting environment
 
-            when Expect_Timeout =>
-               Log (Output, "==> Time Out ! <==");
-               Test_Result := False;
+               if Env = "" then
+                  Log (Output, "No environment to set.");
+                  Setenv ("POLYORB_CONF", Env);
+               else
+                  Log (Output, "Setting environment: " & Env);
+                  Setenv ("POLYORB_CONF", Env);
+               end if;
+
+               --  Spawn Client
+
+               Log (Output, "Running client: " & Client_Command);
+               Log (Output, "  with timeout: "
+                    & Integer'Image (Test_To_Run.Timeout));
+               Log (Output, "           IOR:");
+               Log (Output, "'" & IOR & "'");
+               Separator (Output);
+
+               Non_Blocking_Spawn (Fd_Client,
+                                   Client_Command,
+                                   Client_Argument_List);
+
+               --  Redirect Output
+
+               Initialize_Filter (Output);
+               Add_Filter (Fd_Client,
+                           Output_Filter'Access,
+                           GNAT.Expect.Output);
+
+               --  Parse output
+               Expect (Fd_Client, Result, Item_To_Match, Test_To_Run.Timeout);
+
+               case Result is
+                  when 1 =>
+                     Log (Output, "==> Test failed <==");
+                     Test_Result := False;
+
+                  when 2 =>
+                     Log (Output, "==> Test finished <==");
+                     Test_Result := True;
+
+                  when Expect_Timeout =>
+                     Log (Output, "==> Time Out ! <==");
+                     Test_Result := False;
+
+                  when others =>
+                     Log (Output, "==> Unexpected output ! <==");
+                     Test_Result := False;
+               end case;
+
+               Close (Fd_Client);
+               Close_Test_Output_Context (Output, Test_Result);
+
+            exception
+               when GNAT.Expect.Process_Died =>
+
+                  Log (Output, "==> Process Terminated <==");
+
+                  Close (Fd_Client);
+                  Close_Test_Output_Context (Output, Test_Result);
+
+               when others =>
+                  Close (Fd_Client);
+                  raise;
+            end;
+         end Initialize;
+      end Client_Task;
+
+      -----------------
+      -- Server_Task --
+      -----------------
+
+      task type Server_Task is
+         entry Initialize;
+      end Server_Task;
+
+      Server_T : Server_Task;
+
+      task body Server_Task
+      is
+         Fd_Server : Process_Descriptor;
+
+         Server_Command : constant String
+           := "./" & To_String (Test_To_Run.Server.Command);
+
+         Match  : Match_Array (0 .. 2);
+         Env    : constant String := To_String (Test_To_Run.Server.Conf);
+
+         Result : Expect_Match;
+
+      begin
+
+         --  Launch Server task
+
+         accept Initialize do
+
+            --  Setting environment
+
+            if Env = "" then
+               Log (Output, "No environment to set.");
+               Setenv ("POLYORB_CONF", Env);
+            else
+               Log (Output, "Setting environment: " & Env);
+               Setenv ("POLYORB_CONF", Env);
+            end if;
+
+            --  Spawn Server
+
+            Log (Output, "Running server: " & Server_Command);
+            Separator (Output);
+
+            Non_Blocking_Spawn (Fd_Server, Server_Command, Null_Argument_List);
+
+            --  Match Server IOR
+
+            Initialize_Filter (Output);
+            Add_Filter (Fd_Server, Output_Filter'Access, GNAT.Expect.Output);
+            Expect (Fd_Server, Result, "IOR:([a-z0-9]*)", Match, -1);
+
+            case Result is
+               when 1 =>
+                  Client_T.Initialize
+                    (Expect_Out (Fd_Server)
+                     (Match (0).First .. Match (0).Last));
+               when others =>
+                  Log (Output, "Error when parsing server IOR");
+
+            end case;
+
+            Separator (Output);
+
+            Close (Fd_Server);
+
+         exception
+            when GNAT.Expect.Process_Died =>
+
+               --  The process may normally exit, or die because of an
+               --  internal error. We cannot judge at this stage.
+
+               Log (Output, "==> Process Terminated <==");
+
+               Close (Fd_Server);
+               Close_Test_Output_Context (Output, Test_Result);
 
             when others =>
-               Log (Output, "==> Unexpected output ! <==");
-               Test_Result := False;
-         end case;
+               Close (Fd_Server);
+               raise;
 
-         Close (Fd_Client);
-      end;
+         end Initialize;
+      end Server_Task;
 
-      Close (Fd_Server);
-      Close_Test_Output_Context (Output, Test_Result);
+   begin
+      Log (Output, "Launching test: " & To_String (Test_To_Run.Id));
+      Separator (Output);
+
+      Server_T.Initialize;
 
       return Test_Result;
-
-   exception
-      when GNAT.Expect.Process_Died =>
-         --  The process may normally exit, or die because of an internal
-         --  error. We cannot judge at this stage.
-
-         Log (Output, "==> Process Terminated <==");
-         Test_Result := True;
-
-         Close (Fd_Server);
-         Close_Test_Output_Context (Output, Test_Result);
-
-         return Test_Result;
-
-      when others =>
-         Close (Fd_Server);
-         raise;
-
    end Run_Test;
 
 end Test_Suite.Test_Case.Client_Server;
