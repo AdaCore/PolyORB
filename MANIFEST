@@ -309,6 +309,7 @@ examples/corba/random/Makefile.in
 examples/corba/random/client.adb
 examples/corba/random/random-impl.adb
 examples/corba/random/random-impl.ads
+examples/corba/random/random.idl
 examples/corba/random/server.adb
 examples/moma/Makefile.am
 examples/moma/Makefile.in
