@@ -105,7 +105,6 @@ getopt(int num_args, char* const* args, const char* optstring)
 
 
 o2be_root* o2be_global::myself = NULL;
-adabe_root* adabe_global::myself = NULL; 
 char* o2be_global::pd_hdrsuffix = DEFAULT_IDL_HDR_SUFFIX;
 char* o2be_global::pd_skelsuffix = DEFAULT_IDL_SKEL_SUFFIX;
 char* o2be_global::pd_dynskelsuffix = DEFAULT_IDL_DYNSKEL_SUFFIX;
@@ -114,6 +113,11 @@ int o2be_global::pd_fflag = 0;
 int o2be_global::pd_aflag = 0;
 int o2be_global::pd_qflag = 0;
 int o2be_global::pd_mflag = 1;
+
+adabe_name* adabe_global::pd_adabe_current_file = NULL;
+adabe_root* adabe_global::myself = NULL; 
+bool adabe_global::pd_impl_flags = false;
+
 
 //
 // Initialize the BE. The protocol requires only that this routine
@@ -295,6 +299,7 @@ BE_parse_args(int argc, char **argv)
 	  break;
 	case 'l':
 	  // XXX -Life cycle compiler flag
+	  adabe_global::set_impl_flags(true);
 	  idl_global->set_compile_flags(idl_global->compile_flags() |
 					IDL_CF_LIFECYCLE);
 	  break;

@@ -61,7 +61,7 @@ string *string_list::produce (string repeat) {
     (*output) += repeat + *str_list[i] +" ;"; 
     string substring =str_list[i]->substr(str_list[i]->find_last_of('.') + 1);
     string lower_string = lower(substring.c_str());
-    if (lower_string ==  "marshal")      
+    if ((lower_string ==  "marshal") && (repeat != "use "))      
       (*output) += " use " + *str_list[i] +" ;\n";
     else  (*output) += "\n";
   }

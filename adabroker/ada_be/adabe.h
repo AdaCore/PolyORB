@@ -606,24 +606,29 @@ class adabe_global {
 
 private:
   static adabe_root* myself;
- public:
   static adabe_name* pd_adabe_current_file;
-
-
+  static bool pd_impl_flags;
+  // should we produce the implementation files? (true == yes)
+  
+public :
   static void set_adabe_current_file(adabe_name *new_file) { pd_adabe_current_file = new_file; };
- 
+  // to set the current file which is produced 
+
   static void set_root(adabe_root *v) { myself = v; };
   // set the root from the AST
   
   static adabe_root *root() { return myself; };
-  
-  static adabe_name *adabe_current_file() {
-    return pd_adabe_current_file;
-  };
-  
-  
   // which is the root ?
 
+  static adabe_name *adabe_current_file() { return pd_adabe_current_file; };
+  // which file is the current file which is produced ?
+
+  static bool impl_flags() { return pd_impl_flags; };
+  // to produce the implementation files if true
+
+  static void set_impl_flags(bool set_impl) { pd_impl_flags = set_impl; };
+  // to set this flags at the parsing (produce the impl?)
+  
 };
 
 
