@@ -152,7 +152,7 @@ package PolyORB.Utils.Dynamic_Tables is
    --  storage that is allocated, but is not logically part of the current
    --  array value. Current array values are not affected by this call.
 
-   procedure Allocate (T   : in out Instance; Num :  Integer := 1);
+   procedure Allocate (T : in out Instance; Num : Integer := 1);
    pragma Inline (Allocate);
    --  Allocate room for Num Table_Component_Type in table T,
    --  eventually reallocate T.
