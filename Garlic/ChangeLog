@@ -1,3 +1,10 @@
+1998-08-14  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-garhea.adb (Send): Use a Stream_Element_Access rather than a
+	Stream_Element_Array to prevent a stack blowup for large data.
+	Do not initialize the packet to zero since this is of no use and
+	can only cause stack because of a huge aggregate.
+
 1998-08-10  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-garuni.ads: Make Cache_Type into a limited type whose

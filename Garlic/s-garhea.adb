@@ -1067,9 +1067,10 @@ package body System.Garlic.Heart is
    ----------
 
    procedure Send
-     (Partition : in     Partition_ID;
-      Operation : in     Opcode;
-      Params    : access Streams.Params_Stream_Type) is
+     (Partition : in Partition_ID;
+      Operation : in Opcode;
+      Params    : access Streams.Params_Stream_Type)
+   is
       Protocol  : constant Protocols.Protocol_Access :=
         Get_Protocol (Partition);
       Op_Params : aliased Params_Stream_Type (Opcode_Size);
@@ -1086,10 +1087,11 @@ package body System.Garlic.Heart is
            To_Stream_Element_Array (Op_Params'Access);
          Length : constant Ada.Streams.Stream_Element_Offset :=
            Protocols.Unused_Space + Header'Length + Filtered_Data'Length;
-         Packet : aliased Ada.Streams.Stream_Element_Array :=
-           (1 .. Length => 0);
+         Packet : Stream_Element_Access :=
+           new Ada.Streams.Stream_Element_Array (1 .. Length);
       begin
          --  Stuff the opcode (unfiltered) in front of the data
+
          Packet
            (Packet'First + Protocols.Unused_Space ..
             Packet'First + Protocols.Unused_Space + Header'Length - 1) :=
@@ -1102,15 +1104,20 @@ package body System.Garlic.Heart is
          pragma Debug
            (D (D_Debug, "Sending an operation with opcode " & Operation'Img));
          pragma Debug (D (D_Dump, "Dumping outgoing stream"));
-         pragma Debug (Dump (D_Dump, Packet, Private_Debug_Key));
+         pragma Debug (Dump (D_Dump, Packet.all, Private_Debug_Key));
          if Partition /= Get_My_Partition_ID_Immediately then
-            Protocols.Send (Protocol, Partition, Packet'Access);
+            Protocols.Send (Protocol, Partition, Packet);
          else
             pragma Debug (D (D_Debug, "Handling All_Calls_Remote case"));
             Has_Arrived (Partition,
                          Packet (Packet'First + Protocols.Unused_Space ..
                                  Packet'Last));
          end if;
+         Free (Packet);
+      exception
+         when others =>
+            Free (Packet);
+            raise;
       end;
    end Send;
 
