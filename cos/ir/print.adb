@@ -28,7 +28,6 @@ pragma Warnings (Off);
 ------------------------------------------------------------------------------
 
 --   echo client.
-with Ada.Command_Line;
 with Ada.Text_IO; use Ada.Text_IO;
 with CORBA; --  use CORBA;
 with CORBA.ORB;
@@ -37,15 +36,14 @@ with CORBA.Repository_Root.Helper;
 with CORBA.Repository_Root.Repository;
 with CORBA.Repository_Root.Repository.Helper;
 with CORBA.Repository_Root.Container;
-with CORBA.Repository_Root.IDLType;
 with CORBA.Repository_Root.Container.Helper;
 with CORBA.Repository_Root.Contained;
-with CORBA.Repository_Root.Moduledef.Helper;
 with CORBA.Repository_Root.UnionDef.Helper;
 with CORBA.Repository_Root.StructDef.Helper;
 with CORBA.Repository_Root.InterfaceDef.Helper;
 with CORBA.Repository_Root.ExceptionDef.Helper;
 with CORBA.Repository_Root.ValueDef.Helper;
+with CORBA.Repository_Root.ModuleDef.Helper;
 with PolyORB.CORBA_P.Naming_Tools;
 with PolyORB.Types;
 use PolyORB.Types;
@@ -57,6 +55,18 @@ pragma Elaborate_All (PolyORB.Setup.CORBA_Client);
 pragma Warnings (Off, PolyORB.Setup.CORBA_Client);
 
 procedure Print is
+
+   procedure Print_TypeCode
+     (TC  : CORBA.TypeCode.Object;
+      Inc : Standard.String);
+
+   procedure Print_ParDescriptionSeq
+     (Des : ParDescriptionSeq;
+      Inc : Standard.String);
+
+   procedure Print_Contents
+     (In_Seq : ContainedSeq;
+      Inc : Standard.String);
 
    procedure Print_TypeCode (TC  : CORBA.TypeCode.Object;
                             Inc : Standard.String)
@@ -178,10 +188,10 @@ procedure Print is
             Put ("Wstring");
          when Tk_Fixed =>
             Put ("Fixed");
-         when Tk_Value =>
-            Put ("Value");
-         when Tk_Valuebox =>
-            Put ("ValueBox");
+         when Tk_value =>
+            Put ("value");
+         when Tk_valuebox =>
+            Put ("valueBox");
             Print_TypeCode (CORBA.TypeCode.Content_Type (TC),
                             Inc & "    ");
             Put (")");
@@ -219,22 +229,22 @@ procedure Print is
    begin
       case Des.Kind is
          when
-           Dk_Repository |
-           Dk_Primitive  |
-           Dk_String     |
-           Dk_Sequence   |
-           Dk_Array      |
-           Dk_Wstring    |
-           Dk_Fixed      |
-           Dk_Typedef    |
-           Dk_All        |
-           Dk_None       =>
+           dk_Repository |
+           dk_Primitive  |
+           dk_String     |
+           dk_Sequence   |
+           dk_Array      |
+           dk_Wstring    |
+           dk_Fixed      |
+           dk_Typedef    |
+           dk_all        |
+           dk_None       =>
             null;
          when
-           Dk_Attribute  =>
+           dk_Attribute  =>
             declare
                D : AttributeDescription :=
-                 Helper.From_Any (Des.Value);
+                 Helper.From_Any (Des.value);
             begin
                Put (Inc & "Type     :");
                Print_TypeCode (D.IDL_Type, Inc & "    ");
@@ -244,14 +254,14 @@ procedure Print is
             end;
 
          when
-           Dk_Constant   |
-           Dk_ValueMember =>
+           dk_Constant   |
+           dk_valueMember =>
             null;
          when
-           Dk_Operation =>
+           dk_Operation =>
             declare
                D : OperationDescription :=
-                 Helper.From_Any (Des.Value);
+                 Helper.From_Any (Des.value);
             begin
                Put (Inc & "Result_type : ");
                Print_TypeCode (D.Result, Inc & "    ");
@@ -259,60 +269,61 @@ procedure Print is
                Print_ParDescriptionSeq (D.Parameters, Inc);
             end;
          when
-           Dk_Alias      |
-           Dk_Struct     |
-           Dk_Union      |
-           Dk_Enum       |
-           Dk_ValueBox   |
+           dk_Alias      |
+           dk_Struct     |
+           dk_Union      |
+           dk_Enum       |
+           dk_valueBox   |
            dk_Native =>
             declare
                D : TypeDescription :=
-                 Helper.From_Any (Des.Value);
+                 Helper.From_Any (Des.value);
             begin
                Put_Line (Inc & "TC_Type : " &
                          TCKind'Image
                          (TypeCode.Kind (D.IDL_Type)));
             end;
          when
-           Dk_Exception  =>
+           dk_Exception  =>
             declare
                D : ExceptionDescription :=
-                 Helper.From_Any (Des.Value);
+                 Helper.From_Any (Des.value);
             begin
                null;
             end;
          when
-           Dk_Module     =>
+           dk_Module     =>
             declare
                D : ModuleDescription :=
-                 Helper.From_Any (Des.Value);
+                 Helper.From_Any (Des.value);
             begin
                null;
             end;
          when
-           Dk_Value      =>
+           dk_value      =>
             declare
-               D : ValueDescription :=
-                 Helper.From_Any (Des.Value);
+               D : valueDescription :=
+                 Helper.From_Any (Des.value);
             begin
                null;
             end;
          when
-           Dk_Interface  =>
+           dk_Interface  =>
             declare
                D : InterfaceDescription :=
-                 Helper.From_Any (Des.Value);
+                 Helper.From_Any (Des.value);
             begin
                null;
             end;
       end case;
    end Print_Description;
 
-   procedure Print_Content (In_Seq : ContainedSeq;
+   procedure Print_Contents (In_Seq : ContainedSeq;
                             Inc : Standard.String) is
 
-      Package Contained_For_Seq renames
-        CORBA.Repository_Root.IDL_SEQUENCE_CORBA_Repository_Root_Contained_Forward;
+      package Contained_For_Seq renames
+      CORBA.Repository_Root.
+        IDL_SEQUENCE_CORBA_Repository_Root_Contained_Forward;
       Cont_Array : Contained_For_Seq.Element_Array
         := Contained_For_Seq.To_Element_Array
         (Contained_For_Seq.Sequence (In_Seq));
@@ -324,91 +335,79 @@ procedure Print is
          begin
             Put_Line (Inc & "Node     : " &
                       DefinitionKind'Image
-                      (Get_Def_Kind (The_Ref)));
+                      (get_def_kind (The_Ref)));
             Put_Line (Inc & "Name     : " &
                       CORBA.To_Standard_String
-                      (CORBA.String (Get_Name (The_Ref))));
+                      (CORBA.String (get_name (The_Ref))));
             Put_Line (Inc & "Id       : " &
                       CORBA.To_Standard_String
-                      (CORBA.String (Get_Id (The_Ref))));
+                      (CORBA.String (get_id (The_Ref))));
             Put_Line (Inc & "Vers     : " &
                       CORBA.To_Standard_String
-                      (CORBA.String (Get_Version (The_Ref))));
+                      (CORBA.String (get_version (The_Ref))));
             Put_Line (Inc & "Abs-Name : " &
                       CORBA.To_Standard_String
                       (CORBA.String
-                       (Get_Absolute_Name (The_Ref))));
-            Print_Description (Contained.Describe (The_Ref), Inc);
+                       (get_absolute_name (The_Ref))));
+            Print_Description (Contained.describe (The_Ref), Inc);
             Put_Line (" ");
 
             --  recursivity
-            case Contained.Get_Def_Kind (The_Ref) is
-               when Dk_Module =>
+            case Contained.get_def_kind (The_Ref) is
+               when dk_Module =>
                   declare
                      R : Container.Ref := Container.Helper.To_Ref
                        (ModuleDef.Helper.To_Ref (The_Ref));
                   begin
-                     Print_Content (Container.Contents (R,
-                                                        Dk_All,
-                                                        True),
-                                    Inc & "    ");
+                     Print_Contents
+                       (Container.contents (R, dk_all, True), Inc & "    ");
                   end;
-               when Dk_Exception =>
+               when dk_Exception =>
                   declare
                      R : Container.Ref := Container.Helper.To_Ref
-                       (Exceptiondef.Helper.To_Ref (The_Ref));
+                       (ExceptionDef.Helper.To_Ref (The_Ref));
                   begin
-                     Print_Content (Container.Contents (R,
-                                                        Dk_All,
-                                                        True),
-                                    Inc & "     ");
+                     Print_Contents
+                       (Container.contents (R, dk_all, True), Inc & "     ");
                   end;
-               when Dk_Interface =>
+               when dk_Interface =>
                   declare
                      R : Container.Ref := Container.Helper.To_Ref
                        (InterfaceDef.Helper.To_Ref (The_Ref));
                   begin
-                     Print_Content (Container.Contents (R,
-                                                        Dk_All,
-                                                        True),
-                                    Inc & "     ");
+                     Print_Contents
+                       (Container.contents (R, dk_all, True), Inc & "     ");
                   end;
-               when Dk_Value =>
+               when dk_value =>
                   declare
                      R : Container.Ref := Container.Helper.To_Ref
                        (ValueDef.Helper.To_Ref (The_Ref));
                   begin
-                     Print_Content (Container.Contents (R,
-                                                        Dk_All,
-                                                        True),
-                                    Inc & "    ");
+                     Print_Contents
+                       (Container.contents (R, dk_all, True), Inc & "    ");
                   end;
-               when Dk_Struct =>
+               when dk_Struct =>
                   declare
                      R : Container.Ref := Container.Helper.To_Ref
                        (StructDef.Helper.To_Ref (The_Ref));
                   begin
-                     Print_Content (Container.Contents (R,
-                                                        Dk_All,
-                                                        True),
-                                    Inc & "    ");
+                     Print_Contents
+                       (Container.contents (R, dk_all, True), Inc & "    ");
                   end;
-               when Dk_Union =>
+               when dk_Union =>
                   declare
                      R : Container.Ref := Container.Helper.To_Ref
                        (UnionDef.Helper.To_Ref (The_Ref));
                   begin
-                     Print_Content (Container.Contents (R,
-                                                        Dk_All,
-                                                        True),
-                                    Inc & "    ");
+                     Print_Contents
+                       (Container.contents (R, dk_all, True), Inc & "    ");
                   end;
                when others =>
                   null;
             end case;
          end;
       end loop;
-   end Print_Content;
+   end Print_Contents;
 
    Myrep : Repository.Ref;
 
@@ -435,10 +434,7 @@ begin
    end if;
 
    Put_Line ("Start IR dump");
-   Print_Content (Repository.Contents (Myrep,
-                                       Dk_All,
-                                       True),
-                  " ");
+   Print_Contents (Repository.contents (Myrep, dk_all, True), " ");
    New_Line;
    Put_Line ("End of Print Interface Repository client!");
 
