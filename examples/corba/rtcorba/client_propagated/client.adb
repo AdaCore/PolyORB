@@ -55,9 +55,9 @@ with PolyORB.Setup.Server;
 pragma Elaborate_All (PolyORB.Setup.Server);
 pragma Warnings (Off, PolyORB.Setup.Server);
 
-with PolyORB.ORB_Controller.Basic;
-pragma Warnings (Off, PolyORB.ORB_Controller.Basic);
-pragma Elaborate_All (PolyORB.ORB_Controller.Basic);
+with PolyORB.ORB_Controller.Half_Sync_Half_Async;
+pragma Warnings (Off, PolyORB.ORB_Controller.Half_Sync_Half_Async);
+pragma Elaborate_All (PolyORB.ORB_Controller.Half_Sync_Half_Async);
 
 with PolyORB.Tasking.Profiles.Full_Tasking.Threads.Dynamic_Priorities;
 pragma Elaborate_All
