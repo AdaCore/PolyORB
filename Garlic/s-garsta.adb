@@ -51,8 +51,8 @@ pragma Elaborate_All (System.Garlic.Physical_Location);
 with System.Garlic.Heart; use System.Garlic.Heart;
 pragma Elaborate_All (System.Garlic.Heart);
 
-with System.Garlic.Termination; use System.Garlic.Termination;
-pragma Elaborate_All (System.Garlic.Termination);
+with System.Garlic.Soft_Links;
+pragma Elaborate_All (System.Garlic.Soft_Links);
 
 with System.Garlic.Types; use System.Garlic.Types;
 pragma Elaborate_All (System.Garlic.Types);
@@ -144,7 +144,7 @@ begin
 
       --  Phase (7) (see s-garlic.ads)
 
-      Termination.Initialize;
+      Soft_Links.Termination_Initialize;
 
       --  Phase (8) (see s-garlic.ads)
 
@@ -158,7 +158,7 @@ begin
          --  Then, let this partition know about boot server
 
          pragma Warnings (Off);
-         D : constant Partition_Data := Get_Partition_Data (Get_Boot_Server);
+         D : constant String := Heart.Name (Get_Boot_Server);
          pragma Warnings (On);
       begin
          null;
