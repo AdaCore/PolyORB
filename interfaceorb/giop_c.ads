@@ -24,12 +24,13 @@ package Giop_C is
 
 
    function Request_Header_Size (Objkeysize : in Corba.Unsigned_long ;
-                              Opnamesize : in Integer ) return Corba.Unsigned_long ;
+                                 Opnamesize : in Integer )
+                                 return Corba.Unsigned_long ;
    -- wrapper around   static size_t RequestHeaderSize(const size_t objkeysize,
    --                                                  const size_t opnamesize);
    -- in giopDriver.h L 220
 
-   procedure Initialize_Request (Self : in Object'Class ;
+   procedure Initialize_Request (Self : in Object ;
                                  Objkey : in Corba.Octet ;
                                  Objkeysize : in Corba.Unsigned_Long ;
                                  Opname : in CORBA.STRING ;
@@ -43,7 +44,8 @@ package Giop_C is
    --                     const CORBA::Boolean oneway)
    -- in giopClient.cc L 119
 
-   function Receive_Reply (Self : in Object) return Giop.ReplyStatusType ;
+   function Receive_Reply (Self : in Object)
+                           return Giop.ReplyStatusType ;
    -- wrapper around GIOP::ReplyStatusType GIOP_C::ReceiveReply()
    -- in giopClient L174
 
@@ -57,7 +59,7 @@ private
 
    type Object is new NetBufferedStream.Object with record
       CPP_Object : System.Address ;
-   end ;
+   end record ;
 
 
 end Giop_C ;

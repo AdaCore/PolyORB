@@ -33,7 +33,7 @@ package Giop_S is
    -- in giopServer.cc L 219
 
 
-   procedure Reply_Completed (Self : in Object'Class);
+   procedure Reply_Completed (Self : in Object);
    -- wrapper around void GIOP_S::ReplyCompleted()
    -- In giopServer.cc L 264
 

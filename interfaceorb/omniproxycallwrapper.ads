@@ -27,7 +27,7 @@ package omniProxyCallWrapper is
 
 
    procedure One_Way(The_Obj : in Corba.Object.Ref'Class ;
-                     Call_Desc : in out OmniProxyCallDesc.Object) ;
+                     Call_Desc : in out OmniProxyCallDesc.Object'Class) ;
    -- reimplemented in Ada to call the C++ ORB
    -- see proxyCall.cc L181
 

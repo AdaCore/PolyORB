@@ -197,7 +197,7 @@ package body omniProxyCallWrapper is
    -- One_Way
    ----------
    procedure One_Way(The_Obj : in Corba.Object.Ref'Class ;
-                     Call_Desc : in out OmniProxyCallDesc.Object) is
+                     Call_Desc : in out OmniProxyCallDesc.Object'Class) is
    begin
       return ;
    end ;
