@@ -3,9 +3,6 @@ order of increasing importance (in terms of work) :
 
 - Installation : create an unit to include linker options automatically.
 
-- omniowproxycalldesc are not used, we always use omniproxycalldesc.
-  The generated code compiles with warnings. But it works !
-
 - The naming service example does not use contexts.
   It could be interessant to add them. You will maybe
   find some bug to correct...
