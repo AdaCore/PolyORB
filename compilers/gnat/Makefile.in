@@ -437,9 +437,9 @@ GNATMAKE_OBJS = a-except.o ctrl_c.o ali.o ali-util.o s-casuti.o \
  gnatmake.o gnatvsn.o hostparm.o interfac.o i-c.o i-cstrin.o krunch.o lib.o \
  make.o makeusg.o makeutl.o mlib.o mlib-fil.o mlib-prj.o mlib-tgt.o mlib-utl.o \
  namet.o nlists.o opt.o osint.o osint-m.o output.o \
- prj.o prj-attr.o prj-com.o prj-dect.o prj-env.o prj-err.o prj-ext.o prj-nmsc.o \
- prj-pars.o prj-part.o prj-proc.o prj-strt.o prj-tree.o prj-util.o \
- rident.o s-addope.o s-exctab.o s-secsta.o s-stalib.o s-stoele.o \
+ prj.o prj-attr.o prj-attr-pm.o prj-com.o prj-dect.o prj-env.o prj-err.o \
+ prj-ext.o prj-nmsc.o prj-pars.o prj-part.o prj-proc.o prj-strt.o prj-tree.o \
+ prj-util.o rident.o s-addope.o s-exctab.o s-secsta.o s-stalib.o s-stoele.o \
  scans.o scng.o sdefault.o sfn_scan.o s-purexc.o s-htable.o \
  sinfo.o sinput.o sinput-c.o sinput-p.o \
  snames.o stand.o stringt.o styleg.o stylesw.o system.o validsw.o switch.o switch-m.o \
@@ -2424,18 +2424,17 @@ cstand.o : ada.ads a-except.ads alloc.ads atree.ads atree.adb casing.ads \
    exp_util.ads fname.ads freeze.ads get_targ.ads gnat.ads g-htable.ads \
    g-os_lib.ads g-string.ads gnatvsn.ads hostparm.ads interfac.ads \
    layout.ads lib.ads lib-xref.ads namet.ads namet.adb nlists.ads \
-   nlists.adb nmake.ads nmake.adb opt.ads output.ads restrict.ads \
-   rident.ads rtsfind.ads scans.ads scn.ads scng.ads scng.adb sem.ads \
-   sem_ch8.ads sem_eval.ads sem_mech.ads sem_res.ads sem_type.ads \
-   sem_util.ads sem_util.adb sinfo.ads sinfo.adb sinput.ads sinput.adb \
-   snames.ads stand.ads stringt.ads style.ads styleg.ads styleg.adb \
-   styleg-c.ads stylesw.ads system.ads s-crc32.ads s-crc32.adb \
-   s-exctab.ads s-htable.ads s-imgenu.ads s-memory.ads s-rident.ads \
-   s-secsta.ads s-soflin.ads s-stache.ads s-stalib.ads s-stoele.ads \
-   s-stoele.adb s-traent.ads s-unstyp.ads s-wchcon.ads table.ads table.adb \
-   targparm.ads tbuild.ads tree_io.ads ttypef.ads ttypes.ads types.ads \
-   uintp.ads uintp.adb unchconv.ads unchdeal.ads urealp.ads urealp.adb \
-   widechar.ads 
+   nlists.adb nmake.ads nmake.adb opt.ads output.ads rident.ads \
+   rtsfind.ads scans.ads scn.ads scng.ads scng.adb sem.ads sem_ch8.ads \
+   sem_eval.ads sem_mech.ads sem_res.ads sem_type.ads sem_util.ads \
+   sem_util.adb sinfo.ads sinfo.adb sinput.ads sinput.adb snames.ads \
+   stand.ads stringt.ads style.ads styleg.ads styleg.adb styleg-c.ads \
+   stylesw.ads system.ads s-crc32.ads s-crc32.adb s-exctab.ads \
+   s-htable.ads s-imgenu.ads s-memory.ads s-rident.ads s-secsta.ads \
+   s-soflin.ads s-stache.ads s-stalib.ads s-stoele.ads s-stoele.adb \
+   s-traent.ads s-unstyp.ads s-wchcon.ads table.ads table.adb targparm.ads \
+   tbuild.ads tree_io.ads ttypef.ads ttypes.ads types.ads uintp.ads \
+   uintp.adb unchconv.ads unchdeal.ads urealp.ads urealp.adb widechar.ads 
 
 debug.o : debug.ads debug.adb system.ads 
 
@@ -2755,18 +2754,17 @@ exp_code.o : ada.ads a-except.ads alloc.ads atree.ads atree.adb casing.ads \
    gnat.ads g-hesora.ads g-htable.ads g-os_lib.ads g-string.ads \
    gnatvsn.ads hostparm.ads interfac.ads lib.ads lib.adb lib-list.adb \
    lib-sort.adb lib-xref.ads namet.ads namet.adb nlists.ads nlists.adb \
-   nmake.ads nmake.adb opt.ads output.ads restrict.ads rident.ads \
-   rtsfind.ads scans.ads scn.ads scng.ads scng.adb sem.ads sem_cat.ads \
-   sem_ch8.ads sem_eval.ads sem_eval.adb sem_res.ads sem_type.ads \
-   sem_util.ads sem_util.adb sem_warn.ads sinfo.ads sinfo.adb sinput.ads \
-   snames.ads stand.ads stringt.ads stringt.adb style.ads styleg.ads \
-   styleg.adb styleg-c.ads stylesw.ads system.ads s-carun8.ads s-crc32.ads \
-   s-exctab.ads s-htable.ads s-imgenu.ads s-memory.ads s-rident.ads \
-   s-secsta.ads s-soflin.ads s-stache.ads s-stalib.ads s-stoele.ads \
-   s-stoele.adb s-traent.ads s-unstyp.ads s-wchcon.ads table.ads table.adb \
-   targparm.ads tbuild.ads tree_io.ads ttypes.ads types.ads types.adb \
-   uintp.ads uintp.adb uname.ads unchconv.ads unchdeal.ads urealp.ads \
-   widechar.ads 
+   nmake.ads nmake.adb opt.ads output.ads rident.ads rtsfind.ads scans.ads \
+   scn.ads scng.ads scng.adb sem.ads sem_cat.ads sem_ch8.ads sem_eval.ads \
+   sem_eval.adb sem_res.ads sem_type.ads sem_util.ads sem_util.adb \
+   sem_warn.ads sinfo.ads sinfo.adb sinput.ads snames.ads stand.ads \
+   stringt.ads stringt.adb style.ads styleg.ads styleg.adb styleg-c.ads \
+   stylesw.ads system.ads s-carun8.ads s-crc32.ads s-exctab.ads \
+   s-htable.ads s-imgenu.ads s-memory.ads s-rident.ads s-secsta.ads \
+   s-soflin.ads s-stache.ads s-stalib.ads s-stoele.ads s-stoele.adb \
+   s-traent.ads s-unstyp.ads s-wchcon.ads table.ads table.adb targparm.ads \
+   tbuild.ads tree_io.ads ttypes.ads types.ads types.adb uintp.ads \
+   uintp.adb uname.ads unchconv.ads unchdeal.ads urealp.ads widechar.ads 
 
 exp_dbug.o : ada.ads a-except.ads alloc.ads atree.ads atree.adb casing.ads \
    debug.ads einfo.ads einfo.adb elists.ads exp_dbug.ads exp_dbug.adb \
@@ -3771,19 +3769,18 @@ sem_ch7.o : ada.ads a-except.ads alloc.ads atree.ads atree.adb casing.ads \
    gnat.ads g-hesora.ads g-htable.ads g-os_lib.ads g-string.ads \
    gnatvsn.ads hostparm.ads inline.ads interfac.ads lib.ads lib.adb \
    lib-list.adb lib-sort.adb lib-xref.ads namet.ads namet.adb nlists.ads \
-   nlists.adb nmake.ads nmake.adb opt.ads output.ads restrict.ads \
-   rident.ads rtsfind.ads scans.ads scn.ads scng.ads scng.adb sem.ads \
-   sem_cat.ads sem_ch10.ads sem_ch12.ads sem_ch3.ads sem_ch6.ads \
-   sem_ch7.ads sem_ch7.adb sem_ch8.ads sem_eval.ads sem_res.ads \
-   sem_type.ads sem_util.ads sem_util.adb sem_warn.ads sinfo.ads sinfo.adb \
-   sinput.ads sinput.adb snames.ads snames.adb stand.ads stringt.ads \
-   style.ads styleg.ads styleg.adb styleg-c.ads stylesw.ads system.ads \
-   s-crc32.ads s-exctab.ads s-htable.ads s-imgenu.ads s-memory.ads \
-   s-rident.ads s-secsta.ads s-soflin.ads s-stache.ads s-stalib.ads \
-   s-stoele.ads s-stoele.adb s-traent.ads s-unstyp.ads s-wchcon.ads \
-   table.ads table.adb targparm.ads tbuild.ads tree_io.ads ttypes.ads \
-   types.ads uintp.ads uintp.adb uname.ads unchconv.ads unchdeal.ads \
-   urealp.ads widechar.ads 
+   nlists.adb nmake.ads nmake.adb opt.ads output.ads rident.ads \
+   rtsfind.ads scans.ads scn.ads scng.ads scng.adb sem.ads sem_cat.ads \
+   sem_ch10.ads sem_ch12.ads sem_ch3.ads sem_ch6.ads sem_ch7.ads \
+   sem_ch7.adb sem_ch8.ads sem_eval.ads sem_res.ads sem_type.ads \
+   sem_util.ads sem_util.adb sem_warn.ads sinfo.ads sinfo.adb sinput.ads \
+   sinput.adb snames.ads snames.adb stand.ads stringt.ads style.ads \
+   styleg.ads styleg.adb styleg-c.ads stylesw.ads system.ads s-crc32.ads \
+   s-exctab.ads s-htable.ads s-imgenu.ads s-memory.ads s-rident.ads \
+   s-secsta.ads s-soflin.ads s-stache.ads s-stalib.ads s-stoele.ads \
+   s-stoele.adb s-traent.ads s-unstyp.ads s-wchcon.ads table.ads table.adb \
+   targparm.ads tbuild.ads tree_io.ads ttypes.ads types.ads uintp.ads \
+   uintp.adb uname.ads unchconv.ads unchdeal.ads urealp.ads widechar.ads 
 
 sem_ch8.o : ada.ads a-except.ads alloc.ads atree.ads atree.adb casing.ads \
    checks.ads csets.ads debug.ads debug_a.ads einfo.ads einfo.adb \
@@ -3835,17 +3832,17 @@ sem_disp.o : ada.ads a-except.ads alloc.ads atree.ads atree.adb casing.ads \
    exp_tss.ads exp_util.ads fname.ads freeze.ads get_targ.ads gnat.ads \
    g-htable.ads g-os_lib.ads g-string.ads gnatvsn.ads hostparm.ads \
    interfac.ads lib.ads lib-xref.ads namet.ads namet.adb nlists.ads \
-   nlists.adb nmake.ads opt.ads output.ads restrict.ads rident.ads \
-   rtsfind.ads scans.ads scn.ads scng.ads scng.adb sem.ads sem_ch6.ads \
-   sem_ch8.ads sem_disp.ads sem_disp.adb sem_eval.ads sem_res.ads \
-   sem_type.ads sem_util.ads sem_util.adb sinfo.ads sinfo.adb sinput.ads \
-   snames.ads stand.ads stringt.ads style.ads styleg.ads styleg.adb \
-   styleg-c.ads stylesw.ads system.ads s-crc32.ads s-exctab.ads \
-   s-htable.ads s-imgenu.ads s-memory.ads s-rident.ads s-secsta.ads \
-   s-soflin.ads s-stache.ads s-stalib.ads s-stoele.ads s-stoele.adb \
-   s-traent.ads s-unstyp.ads s-wchcon.ads table.ads table.adb targparm.ads \
-   tbuild.ads tree_io.ads ttypes.ads types.ads uintp.ads uintp.adb \
-   unchconv.ads unchdeal.ads urealp.ads widechar.ads 
+   nlists.adb nmake.ads opt.ads output.ads rident.ads rtsfind.ads \
+   scans.ads scn.ads scng.ads scng.adb sem.ads sem_ch6.ads sem_ch8.ads \
+   sem_disp.ads sem_disp.adb sem_eval.ads sem_res.ads sem_type.ads \
+   sem_util.ads sem_util.adb sinfo.ads sinfo.adb sinput.ads snames.ads \
+   stand.ads stringt.ads style.ads styleg.ads styleg.adb styleg-c.ads \
+   stylesw.ads system.ads s-crc32.ads s-exctab.ads s-htable.ads \
+   s-imgenu.ads s-memory.ads s-rident.ads s-secsta.ads s-soflin.ads \
+   s-stache.ads s-stalib.ads s-stoele.ads s-stoele.adb s-traent.ads \
+   s-unstyp.ads s-wchcon.ads table.ads table.adb targparm.ads tbuild.ads \
+   tree_io.ads ttypes.ads types.ads uintp.ads uintp.adb unchconv.ads \
+   unchdeal.ads urealp.ads widechar.ads 
 
 sem_dist.o : ada.ads a-except.ads alloc.ads atree.ads atree.adb casing.ads \
    debug.ads einfo.ads einfo.adb elists.ads err_vars.ads errout.ads \
@@ -3971,9 +3968,9 @@ sem_prag.o : ada.ads a-except.ads alloc.ads atree.ads atree.adb casing.ads \
    s-imgenu.ads s-memory.ads s-rident.ads s-secsta.ads s-soflin.ads \
    s-stache.ads s-stalib.ads s-stoele.ads s-stoele.adb s-traent.ads \
    s-unstyp.ads s-wchcon.ads table.ads table.adb targparm.ads tbuild.ads \
-   tree_io.ads ttypes.ads types.ads types.adb uintp.ads uintp.adb \
-   uname.ads unchconv.ads unchdeal.ads urealp.ads urealp.adb validsw.ads \
-   widechar.ads 
+   tbuild.adb tree_io.ads ttypes.ads types.ads types.adb uintp.ads \
+   uintp.adb uname.ads unchconv.ads unchdeal.ads urealp.ads urealp.adb \
+   validsw.ads widechar.ads 
 
 sem_res.o : ada.ads a-except.ads alloc.ads atree.ads atree.adb casing.ads \
    checks.ads checks.adb csets.ads debug.ads debug_a.ads debug_a.adb \
@@ -4016,17 +4013,17 @@ sem_type.o : ada.ads a-except.ads alloc.ads atree.ads atree.adb casing.ads \
    freeze.ads get_targ.ads gnat.ads g-hesora.ads g-htable.ads g-os_lib.ads \
    g-string.ads gnatvsn.ads hostparm.ads interfac.ads lib.ads lib.adb \
    lib-list.adb lib-sort.adb lib-xref.ads namet.ads namet.adb nlists.ads \
-   nlists.adb nmake.ads opt.ads output.ads restrict.ads rident.ads \
-   rtsfind.ads scans.ads scn.ads scng.ads scng.adb sem.ads sem_ch6.ads \
-   sem_ch8.ads sem_eval.ads sem_res.ads sem_type.ads sem_type.adb \
-   sem_util.ads sem_util.adb sinfo.ads sinfo.adb sinput.ads snames.ads \
-   stand.ads stringt.ads style.ads styleg.ads styleg.adb styleg-c.ads \
-   stylesw.ads system.ads s-crc32.ads s-exctab.ads s-htable.ads \
-   s-imgenu.ads s-memory.ads s-rident.ads s-secsta.ads s-soflin.ads \
-   s-stache.ads s-stalib.ads s-stoele.ads s-stoele.adb s-traent.ads \
-   s-unstyp.ads s-wchcon.ads table.ads table.adb targparm.ads tbuild.ads \
-   tree_io.ads ttypes.ads types.ads uintp.ads uintp.adb uname.ads \
-   unchconv.ads unchdeal.ads urealp.ads widechar.ads 
+   nlists.adb nmake.ads opt.ads output.ads rident.ads rtsfind.ads \
+   scans.ads scn.ads scng.ads scng.adb sem.ads sem_ch6.ads sem_ch8.ads \
+   sem_eval.ads sem_res.ads sem_type.ads sem_type.adb sem_util.ads \
+   sem_util.adb sinfo.ads sinfo.adb sinput.ads snames.ads stand.ads \
+   stringt.ads style.ads styleg.ads styleg.adb styleg-c.ads stylesw.ads \
+   system.ads s-crc32.ads s-exctab.ads s-htable.ads s-imgenu.ads \
+   s-memory.ads s-rident.ads s-secsta.ads s-soflin.ads s-stache.ads \
+   s-stalib.ads s-stoele.ads s-stoele.adb s-traent.ads s-unstyp.ads \
+   s-wchcon.ads table.ads table.adb targparm.ads tbuild.ads tree_io.ads \
+   ttypes.ads types.ads uintp.ads uintp.adb uname.ads unchconv.ads \
+   unchdeal.ads urealp.ads widechar.ads 
 
 sem_util.o : ada.ads a-except.ads alloc.ads atree.ads atree.adb casing.ads \
    casing.adb checks.ads csets.ads debug.ads einfo.ads einfo.adb \
@@ -4066,17 +4063,17 @@ sem_warn.o : ada.ads a-except.ads alloc.ads atree.ads atree.adb casing.ads \
    freeze.ads get_targ.ads gnat.ads g-hesora.ads g-htable.ads g-os_lib.ads \
    g-string.ads gnatvsn.ads hostparm.ads interfac.ads lib.ads lib.adb \
    lib-list.adb lib-sort.adb lib-xref.ads namet.ads namet.adb nlists.ads \
-   nlists.adb nmake.ads opt.ads output.ads restrict.ads rident.ads \
-   rtsfind.ads scans.ads scn.ads scng.ads scng.adb sem.ads sem_ch8.ads \
-   sem_eval.ads sem_res.ads sem_type.ads sem_util.ads sem_util.adb \
-   sem_warn.ads sem_warn.adb sinfo.ads sinfo.adb sinput.ads sinput.adb \
-   snames.ads stand.ads stringt.ads style.ads styleg.ads styleg.adb \
-   styleg-c.ads stylesw.ads system.ads s-crc32.ads s-exctab.ads \
-   s-htable.ads s-imgenu.ads s-memory.ads s-rident.ads s-secsta.ads \
-   s-soflin.ads s-stache.ads s-stalib.ads s-stoele.ads s-stoele.adb \
-   s-traent.ads s-unstyp.ads s-wchcon.ads table.ads table.adb targparm.ads \
-   tbuild.ads tree_io.ads ttypes.ads types.ads uintp.ads uintp.adb \
-   uname.ads unchconv.ads unchdeal.ads urealp.ads widechar.ads 
+   nlists.adb nmake.ads opt.ads output.ads rident.ads rtsfind.ads \
+   scans.ads scn.ads scng.ads scng.adb sem.ads sem_ch8.ads sem_eval.ads \
+   sem_res.ads sem_type.ads sem_util.ads sem_util.adb sem_warn.ads \
+   sem_warn.adb sinfo.ads sinfo.adb sinput.ads sinput.adb snames.ads \
+   stand.ads stringt.ads style.ads styleg.ads styleg.adb styleg-c.ads \
+   stylesw.ads system.ads s-crc32.ads s-exctab.ads s-htable.ads \
+   s-imgenu.ads s-memory.ads s-rident.ads s-secsta.ads s-soflin.ads \
+   s-stache.ads s-stalib.ads s-stoele.ads s-stoele.adb s-traent.ads \
+   s-unstyp.ads s-wchcon.ads table.ads table.adb targparm.ads tbuild.ads \
+   tree_io.ads ttypes.ads types.ads uintp.ads uintp.adb uname.ads \
+   unchconv.ads unchdeal.ads urealp.ads widechar.ads 
 
 sinfo-cn.o : ada.ads a-except.ads alloc.ads atree.ads atree.adb casing.ads \
    debug.ads einfo.ads elists.ads gnat.ads g-htable.ads g-os_lib.ads \

@@ -2060,11 +2060,6 @@ package body Exp_Dist is
 
       --  Formal parameters
 
-      Local_Address    : constant Entity_Id :=
-        Make_Defining_Identifier (Loc, Name_Address);
-      --  Address of local subprogram (not used in this
-      --  implementation, used for GLADE).
-
       Package_Name     : constant Entity_Id :=
         Make_Defining_Identifier (Loc, Name_P);
       --  Target package
@@ -2309,12 +2304,6 @@ package body Exp_Dist is
         Make_Function_Specification (Loc,
           Defining_Unit_Name       => Proc,
           Parameter_Specifications => New_List (
-
-            Make_Parameter_Specification (Loc,
-              Defining_Identifier => Local_Address,
-              Parameter_Type      =>
-                New_Occurrence_Of (RTE (RE_Address), Loc)),
-
             Make_Parameter_Specification (Loc,
               Defining_Identifier => Package_Name,
               Parameter_Type      =>
@@ -2381,7 +2370,8 @@ package body Exp_Dist is
       Proc_Spec : Node_Id;
 
       Param_Specs : List_Id;
-      Param_Assoc : List_Id;
+      Param_Assoc : constant List_Id := New_List;
+      Stmts       : constant List_Id := New_List;
 
       RAS_Parameter : constant Entity_Id :=
         Make_Defining_Identifier (Loc, New_Internal_Name ('P'));
@@ -2389,7 +2379,9 @@ package body Exp_Dist is
       Is_Function : constant Boolean :=
         Nkind (Type_Def) = N_Access_Function_Definition;
 
-      Perform_Call : Node_Id;
+      Is_Degenerate : Boolean;
+      --  Set to True if the subprogram_specification for this RAS has
+      --  an anonymous access parameter (see Process_Remote_AST_Declaration).
 
       Spec : constant Node_Id := Type_Def;
 
@@ -2403,11 +2395,14 @@ package body Exp_Dist is
           Parameter_Type      =>
             New_Occurrence_Of (Fat_Type, Loc)));
 
-      Param_Assoc := New_List (Unchecked_Convert_To (RACW_Type,
-        New_Occurrence_Of (RAS_Parameter, Loc)));
-
+      Is_Degenerate := False;
       Current_Parameter := First (Parameter_Specifications (Type_Def));
-      while Current_Parameter /= Empty loop
+      Parameters : while Current_Parameter /= Empty loop
+         if Nkind (Parameter_Type (Current_Parameter))
+           = N_Access_Definition
+         then
+            Is_Degenerate := True;
+         end if;
          Append_To (Param_Specs,
            Make_Parameter_Specification (Loc,
              Defining_Identifier =>
@@ -2416,8 +2411,7 @@ package body Exp_Dist is
              In_Present        => In_Present (Current_Parameter),
              Out_Present       => Out_Present (Current_Parameter),
              Parameter_Type    =>
-               New_Occurrence_Of
-                 (Etype (Parameter_Type (Current_Parameter)), Loc),
+               New_Copy_Tree (Parameter_Type (Current_Parameter)),
              Expression        =>
                New_Copy_Tree (Expression (Current_Parameter))));
 
@@ -2426,30 +2420,46 @@ package body Exp_Dist is
              Chars => Chars (Defining_Identifier (Current_Parameter))));
 
          Next (Current_Parameter);
-      end loop;
+      end loop Parameters;
 
-      RACW_Primitive_Name :=
-        Make_Selected_Component (Loc,
-          Prefix =>
-            New_Occurrence_Of (Scope (RACW_Type), Loc),
-          Selector_Name =>
-            Make_Identifier (Loc, Name_Call));
+      if Is_Degenerate then
+         Prepend_To (Param_Assoc, New_Occurrence_Of (RAS_Parameter, Loc));
 
-      if Is_Function then
-         Perform_Call :=
-           Make_Return_Statement (Loc,
-             Expression =>
-               Make_Function_Call (Loc,
-                 Name                   =>
-                   RACW_Primitive_Name,
-                 Parameter_Associations => Param_Assoc));
+         --  Generate a dummy body recursing on the Dereference TSS, since
+         --  actually it will never be executed.
+
+         Append_To (Stmts,
+           Make_Raise_Program_Error (Loc, Reason => PE_Explicit_Raise));
+         RACW_Primitive_Name := New_Occurrence_Of (Proc, Loc);
 
       else
-         Perform_Call :=
+         Prepend_To (Param_Assoc,
+           Unchecked_Convert_To (RACW_Type,
+             New_Occurrence_Of (RAS_Parameter, Loc)));
+
+         RACW_Primitive_Name :=
+           Make_Selected_Component (Loc,
+             Prefix =>
+               New_Occurrence_Of (Scope (RACW_Type), Loc),
+             Selector_Name =>
+               Make_Identifier (Loc, Name_Call));
+      end if;
+
+      if Is_Function then
+         Append_To (Stmts,
+            Make_Return_Statement (Loc,
+              Expression =>
+                Make_Function_Call (Loc,
+              Name                   =>
+                RACW_Primitive_Name,
+              Parameter_Associations => Param_Assoc)));
+
+      else
+         Append_To (Stmts,
            Make_Procedure_Call_Statement (Loc,
              Name                   =>
                RACW_Primitive_Name,
-             Parameter_Associations => Param_Assoc);
+             Parameter_Associations => Param_Assoc));
       end if;
 
       --  Build the complete subprogram.
@@ -2483,10 +2493,14 @@ package body Exp_Dist is
           Declarations               => New_List,
           Handled_Statement_Sequence =>
             Make_Handled_Sequence_Of_Statements (Loc,
-              Statements => New_List (Perform_Call))));
+              Statements => Stmts)));
 
       Set_TSS (Fat_Type, Proc);
    end Add_RAS_Dereference_TSS;
+
+   ----------------------
+   -- Add_RAS_From_Any --
+   ----------------------
 
    procedure Add_RAS_From_Any
      (RAS_Type     : in Entity_Id;
@@ -4185,15 +4199,7 @@ package body Exp_Dist is
                   Make_Component_Definition (Loc,
                     Subtype_Indication =>
                       New_Occurrence_Of (Standard_Boolean, Loc)),
-                  ACR_Expression),
-
-                Make_Component_Declaration (Loc,
-                  Make_Defining_Identifier (Loc,
-                    Name_Stub),
-                  Make_Component_Definition (Loc,
-                    Subtype_Indication =>
-                      New_Occurrence_Of (RTE (RE_Address), Loc)),
-                  New_Occurrence_Of (RTE (RE_Null_Address), Loc)))));
+                  ACR_Expression))));
    end Build_Remote_Subprogram_Proxy_Type;
 
    -----------------------------
