@@ -49,7 +49,25 @@ package body PolyORB.Configuration is
 
    use PolyORB.Utils.Strings;
 
-   package Environment_Variables is
+   Debug : constant Boolean := True;
+
+   procedure O (S : String);
+   pragma Inline (O);
+   --  Output a diagnostic or error message.
+
+   procedure O (S : String) is
+      use Ada.Text_IO;
+   begin
+      if Debug then
+         Put_Line (Standard_Error, S);
+      end if;
+   end O;
+
+   --------------------------------------------
+   -- The configuration variables dictionary --
+   --------------------------------------------
+
+   package Variables is
       new PolyORB.Dynamic_Dict (String_Ptr);
 
    procedure Load_Configuration_File;
@@ -61,11 +79,6 @@ package body PolyORB.Configuration is
       Value   : String);
    --  Set a variable in a section from the configuration file.
 
-   procedure Set_Environment_Variable
-     (Key, Value : String);
-   --  Record a value for a variable in the [environment]
-   --  section from the configuration file.
-
    function Fetch (Key : String) return String;
    --  Get the string from a file (if Key starts with file: and the file
    --  exists, otherwise it is an empty string), or the string itself
@@ -75,6 +88,34 @@ package body PolyORB.Configuration is
      return String;
    --  Get the value of variable Key from the system
    --  environment variables, returning Default if not found.
+
+   function Make_Global_Key (Section, Key : String) return String;
+
+   function Make_Env_Name (Section, Key : String) return String;
+
+   function Make_Global_Key (Section, Key : String) return String is
+   begin
+      return "[" & Section & "]" & Key;
+   end Make_Global_Key;
+
+   function Make_Env_Name (Section, Key : String) return String is
+      Result : String := "POLYORB_"
+        & To_Upper (Section & "_" & Key);
+   begin
+      for I in Result'Range loop
+         case Result (I) is
+            when
+              '0' .. '9' |
+              'A' .. 'Z' |
+              'a' .. 'z' |
+              '_'        =>
+               null;
+            when others =>
+               Result (I) := '_';
+         end case;
+      end loop;
+      return Result;
+   end Make_Env_Name;
 
    -----------
    -- Fetch --
@@ -108,18 +149,21 @@ package body PolyORB.Configuration is
    -- Get_Conf --
    --------------
 
-   function Get_Conf (Key : String; Default : String := "")
+   function Get_Conf
+     (Section, Key : String; Default : String := "")
      return String
    is
-      From_Env : constant String := Get_Env (Key);
+      From_Env : constant String
+        := Get_Env (Make_Env_Name (Section, Key));
       Default_Value : aliased String := Default;
    begin
       if From_Env /= "" then
          return Fetch (From_Env);
       else
          return Fetch
-           (Environment_Variables.Lookup
-            (Key, String_Ptr'(Default_Value'Unchecked_Access)).all);
+           (Variables.Lookup
+            (Make_Global_Key (Section, Key),
+             String_Ptr'(Default_Value'Unchecked_Access)).all);
       end if;
    end Get_Conf;
 
@@ -142,26 +186,19 @@ package body PolyORB.Configuration is
       end if;
    end Get_Env;
 
-   procedure Set_Environment_Variable
-     (Key, Value : String)
-   is
-      P : String_Ptr := Environment_Variables.Lookup (Key, null);
-   begin
-      if P /= null then
-         Free (P);
-      end if;
-      P := +Value;
-      Environment_Variables.Register (Key, P);
-   end Set_Environment_Variable;
-
    procedure Set_Variable
      (Section : String;
       Key     : String;
       Value   : String)
    is
+      K : constant String := Make_Global_Key (Section, Key);
+      P : String_Ptr := Variables.Lookup (K, null);
    begin
-      Configuration_Sections.Lookup (To_Lower (Section)).all
-        (To_Lower (Key), Value);
+      pragma Debug (O (K & "=" & Value));
+      if P /= null then
+         Free (P);
+      end if;
+      Variables.Register (K, +Value);
    end Set_Variable;
 
    procedure Load_Configuration_File
@@ -186,11 +223,26 @@ package body PolyORB.Configuration is
       Line : String (1 .. 1_024);
       Last : Integer;
 
+      Success : Boolean := False;
+
       use PolyORB.Utils;
 
    begin
-      Open (Conf_File, In_File, Conf_File_Name);
-      while not End_Of_File (Conf_File) loop
+      pragma Debug (O ("Loading configuration from " & Conf_File_Name));
+
+      begin
+         Open (Conf_File, In_File, Conf_File_Name);
+         Success := True;
+      exception
+         when Name_Error =>
+            --  No configuration file.
+            pragma Debug (O ("No configuration file."));
+            null;
+         when others =>
+            raise;
+      end;
+
+      while Success and then not End_Of_File (Conf_File) loop
          Get_Line (Conf_File, Line, Last);
          Current_Line := Current_Line + 1;
          if Last - Line'First >= 0 then
@@ -235,8 +287,5 @@ package body PolyORB.Configuration is
    end Load_Configuration_File;
 
 begin
-   Configuration_Sections.Register
-     (Environment_Configuration_Section,
-      Set_Environment_Variable'Access);
    Load_Configuration_File;
 end PolyORB.Configuration;

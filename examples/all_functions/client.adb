@@ -16,6 +16,7 @@ procedure Client is
    I, J, K, L, M : CORBA.Short;
    Ok : Boolean;
 begin
+   CORBA.ORB.Initialize ("ORB");
 
    if Ada.Command_Line.Argument_Count < 1 then
       Ada.Text_IO.Put_Line ("usage : client <IOR_string_from_server>");

@@ -154,7 +154,6 @@ cos/naming/menu.adb
 cos/naming/menu.ads
 cos/naming/polyorb-corba_p-naming_tools.adb
 cos/naming/polyorb-corba_p-naming_tools.ads
-cos/naming/polyorb_log.conf
 cos/naming/test_naming
 cos/naming/test_naming.adb
 cos/time/Makefile.am
@@ -569,7 +568,7 @@ src/polyorb-utils-text_buffers.ads
 src/polyorb-utils.adb
 src/polyorb-utils.ads
 src/polyorb.ads
-src/polyorb_log.conf
+src/polyorb.conf
 src/sequences-bounded.adb
 src/sequences-bounded.ads
 src/sequences-unbounded-search.adb

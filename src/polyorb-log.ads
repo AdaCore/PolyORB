@@ -65,9 +65,6 @@ package PolyORB.Log is
       --  to resume normal operation.
       );
 
-   procedure Set_Log_Level (Facility : in String; Level : Log_Level);
-   --  Set the log level for Facility to the specified value.
-
    function Get_Log_Level (Facility : in String) return Log_Level;
    --  Returns the user-requested log level for facility Flag.
 
@@ -82,10 +79,5 @@ package PolyORB.Log is
       --  level for Facility.
 
    end Facility_Log;
-
-private
-
-   procedure Initialize;
-   --  Initialize the logging subsystem.
 
 end PolyORB.Log;

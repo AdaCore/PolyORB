@@ -37,8 +37,9 @@ pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
 with PolyORB.CORBA_P.Naming_Tools; use PolyORB.CORBA_P.Naming_Tools;
 
 with CORBA;
-with CORBA.Object;
 with CORBA.Impl;
+with CORBA.Object;
+with CORBA.ORB;
 with PortableServer;
 
 with all_types.Impl;
@@ -52,12 +53,15 @@ procedure Server is
 
 begin
 
+   Ada.Text_IO.Put_Line ("Server starting.");
+   CORBA.ORB.Initialize ("ORB");
+
    --  Parse command line
 
    loop
       case Getopt ("d s") is
          when ASCII.NUL => exit;
-         --  when 'd'       => Use_Delegate := True;
+            --  when 'd'       => Use_Delegate := True;
          when 's'       => Register_Server := True;
          when others    => raise Program_Error;
       end case;

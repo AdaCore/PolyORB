@@ -47,7 +47,6 @@
 -- Get_Service_Information --
 -- List_Initial_Services --
 -- Perform_Work --
--- Resolve_Initial_References --
 -- Shutdown --
 -- Work_Pending --
 
@@ -57,8 +56,7 @@ with Ada.Exceptions;
 
 with Sequences.Unbounded;
 
-with PolyORB.Initialization;
-
+with PolyORB.Configuration;
 with PolyORB.Dynamic_Dict;
 pragma Elaborate_All (PolyORB.Dynamic_Dict);
 with PolyORB.Log;
@@ -297,6 +295,22 @@ package body CORBA.ORB is
         (To_Standard_String (Identifier), Ref);
    end Register_Initial_Reference;
 
+   procedure Register_Initial_Reference
+     (Identifier : ObjectId;
+      IOR        : String);
+   --  Register an initial reference from an IOR given
+   --  through the configuration subsystem.
+
+   procedure Register_Initial_Reference
+     (Identifier : ObjectId;
+      IOR        : String)
+   is
+      Ref : CORBA.Object.Ref;
+   begin
+      CORBA.ORB.String_To_Object (IOR, Ref);
+      Register_Initial_Reference (Identifier, Ref);
+   end Register_Initial_Reference;
+
    --------------------------------
    -- Resolve_Initial_References --
    --------------------------------
@@ -380,16 +394,21 @@ package body CORBA.ORB is
    procedure Initialize (ORB_Name : in Standard.String) is
       RootPOA : CORBA.Object.Ref;
    begin
-      PolyORB.Initialization.Initialize_World;
       CORBA.Object.Set
         (RootPOA, PolyORB.Smart_Pointers.Entity_Ptr
          (Object_Adapter (The_ORB)));
       Referenced_Objects.Register ("RootPOA", RootPOA);
-   exception
-      when PolyORB.Initialization.Already_Initialized =>
-         raise Initialization_Failure;
-      when others =>
-         raise;
+      declare
+         Naming_IOR : constant Standard.String
+           := PolyORB.Configuration.Get_Conf
+           (Section => "corba", Key => "naming_ior", Default => "");
+      begin
+         if Naming_IOR /= "" then
+            Register_Initial_Reference
+              (To_CORBA_String ("NamingService"),
+               To_CORBA_String (Naming_IOR));
+         end if;
+      end;
    end Initialize;
 
    ----------------------

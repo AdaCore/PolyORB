@@ -46,7 +46,8 @@ with Report;    use Report;
 with all_types; use all_types;
 with all_types.Helper;
 
---  with Broca.Naming_Tools; use Broca.Naming_Tools;
+with PolyORB.CORBA_P.Naming_Tools;
+use PolyORB.CORBA_P.Naming_Tools;
 
 with PolyORB.Setup.CORBA_Client;
 pragma Warnings (Off, PolyORB.Setup.CORBA_Client);
@@ -57,7 +58,7 @@ procedure DynClient is
 
    Myall_Types : CORBA.Object.Ref;
    One_Shot : Boolean := Ada.Command_Line.Argument_Count /= 2
-                 or else Boolean'Value (Ada.Command_Line.Argument (2));
+     or else Boolean'Value (Ada.Command_Line.Argument (2));
 
    function EchoBoolean
      (Self : in CORBA.Object.Ref;
@@ -1085,20 +1086,18 @@ procedure DynClient is
    end TestUnknownException;
 
 begin
+   CORBA.ORB.Initialize ("ORB");
    if Ada.Command_Line.Argument_Count < 1 then
       Ada.Text_IO.Put_Line
          ("usage : client <IOR_string_from_server|name|-i> [oneshot]");
       return;
    end if;
 
-   --  transforms the Ada string into CORBA.String
-   --  if Ada.Command_Line.Argument (1) = "-i" then
-   --     Myall_types := Locate ("all_types");
-   --  else
-   --     Myall_types := Locate (Ada.Command_Line.Argument (1));
-   --  end if;
-   CORBA.ORB.String_To_Object
-     (To_CORBA_String (Ada.Command_Line.Argument (1)), myall_types);
+   if Ada.Command_Line.Argument (1) = "-i" then
+      Myall_types := Locate ("all_types");
+   else
+      Myall_types := Locate (Ada.Command_Line.Argument (1));
+   end if;
 
    loop
       --  boolean

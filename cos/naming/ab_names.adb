@@ -31,8 +31,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Text_IO;
 with CORBA.Object;
 with PortableServer;
+
+with CORBA.ORB;
 
 with PolyORB.CORBA_P.Server_Tools;
 
@@ -57,8 +60,13 @@ procedure AB_Names is
    use PolyORB.CORBA_P.Server_Tools;
 
 begin
-   --  Broca.Inet_Server.Start (Natural'Value (Port_Str));
-   --  Broca.Server_Tools.Initiate_Server;
+   CORBA.ORB.Initialize ("ORB");
    Initiate_Servant (PortableServer.Servant (Root_NC), Ref);
+
    --  Register_Initial_Reference (Name_Service_ObjectId, Ref);
+   Ada.Text_IO.Put_Line
+     ("POLYORB_CORBA_NAMING_IOR="
+      & CORBA.To_Standard_String (CORBA.Object.Object_To_String (Ref)));
+
+   Initiate_Server;
 end AB_Names;

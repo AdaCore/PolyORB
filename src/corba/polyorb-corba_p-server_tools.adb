@@ -80,7 +80,6 @@ package body PolyORB.CORBA_P.Server_Tools is
    ----------------------
 
    procedure Initiate_RootPOA is
-      --  RootPOAStr  : CORBA.String;
       Obj_Adapter : PolyORB.POA.Obj_Adapter_Access;
    begin
       pragma Debug (O ("Initializing OA configuration... "));
@@ -99,12 +98,6 @@ package body PolyORB.CORBA_P.Server_Tools is
 
       PortableServer.POA.Set
         (Root_POA, PolyORB.Smart_Pointers.Entity_Ptr (Obj_Adapter));
-
---       RootPOAStr := CORBA.To_CORBA_String ("RootPOA");
---       Root_POA   := PortableServer.POA.To_Ref
---         (CORBA.ORB.Resolve_Initial_References
---          (CORBA.ORB.ObjectId (RootPOAStr)));
-      --  XXX Should REGISTER initial ref for the root POA.
    end Initiate_RootPOA;
 
    ---------------------

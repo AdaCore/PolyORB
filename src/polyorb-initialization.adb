@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Automatic configurator
+--  Automatic initialization of PolyORB subsystems.
 
 --  $Id$
 
@@ -45,7 +45,7 @@ package body PolyORB.Initialization is
 
    use PolyORB.Log;
 
-   package L is new PolyORB.Log.Facility_Log ("polyorb.configurator");
+   package L is new PolyORB.Log.Facility_Log ("polyorb.initialization");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 

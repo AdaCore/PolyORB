@@ -34,14 +34,11 @@
 
 --  $Id$
 
-with PolyORB.Dynamic_Dict;
-pragma Elaborate_All (PolyORB.Dynamic_Dict);
-
 package PolyORB.Configuration is
 
    pragma Elaborate_Body;
 
-   Default_Filename  : constant String := "/usr/local/etc/polyorb.conf";
+   Default_Filename  : constant String := "polyorb.conf";
    Filename_Variable : constant String := "POLYORB_CONF";
    Syntax_Error      : exception;
 
@@ -63,21 +60,13 @@ package PolyORB.Configuration is
    --  Any variable assignment is local to a section.
    --  Assignments that occur before the first section declaration
    --  are relative to section [environment].
-   --  Section and variable names are case-insensitive.
+   --  Section and variable names are case sensitive.
 
-   --  Variables in section [environment] can be overridden by setting
-   --  environment variables by the same name. Furthermore, each
-   --  time a resolved in that section value starts with 'file:',
-   --  the contents of the file is used instead.
-
-   type Configuration_Function is
-     access procedure (Key, Value : String);
-   --  A function that sets variable Key to value Value within
-   --  a given configuration section.
-
-   package Configuration_Sections is
-      new PolyORB.Dynamic_Dict (Configuration_Function);
-   --  All known configuration sections.
+   --  A variable Var.Iable in section [Sec] can be overridden by
+   --  setting environment variable "POLYORB_SEC_VAR_IABLE"
+   --  (see Make_Env_Name in body).
+   --  Furthermore, each time a resolved in that section value
+   --  starts with "file:", the contents of the file is used instead.
 
    ---------------------------------------------
    -- Operations related to the [environment] --
@@ -87,32 +76,9 @@ package PolyORB.Configuration is
    Environment_Configuration_Section : constant String
      := "environment";
 
-   function Get_Conf (Key : String; Default : String := "")
+   function Get_Conf (Section, Key : String; Default : String := "")
      return String;
    --  Return the value of the global variable Key or Default if this
    --  variable is not defined.
-
-   Naming_Host         : constant String := "POLYORB_NAMING_HOST";
-   Naming_Port         : constant String := "POLYORB_NAMING_PORT";
-   Naming_IOR          : constant String := "POLYORB_NAMING_IOR";
-
-   Naming_Host_Default : constant String := "localhost";
-   Naming_Port_Default : constant String := "4161";
-   Naming_IOR_Default  : constant String := "";
-   --  Naming_Host is used to locate the COSNaming service from within
-   --  Resolve_Initial_Reference. Naming_Port is used for creating and
-   --  locating the COSNaming service from Register_Initial_Reference and
-   --  Resolve_Initial_Reference. Naming_Host_Default and Naming_Port_Default
-   --  can be used as a default when no explicit information is given.
-
-   Port                : constant String := "POLYORB_PORT";
-   Port_Default        : constant String := "0";
-   --  Port to use for an internet server. If none is specified, Port_Default
-   --  is used unless it is "0", in which case an system-assigned
-   --  one will be used.
-
-   Requesting_Principal         : constant String := "POLYORB_PRINCIPAL";
-   Requesting_Principal_Default : constant String := "nobody";
-   --  Default principle file to use. Useful for GNOME.
 
 end PolyORB.Configuration;

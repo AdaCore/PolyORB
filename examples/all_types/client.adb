@@ -50,6 +50,7 @@ procedure Client is
    One_Shot : Boolean := Ada.Command_Line.Argument_Count /= 2
                  or else Boolean'Value (Ada.Command_Line.Argument (2));
 begin
+   CORBA.ORB.Initialize ("ORB");
    if Ada.Command_Line.Argument_Count < 1 then
       Ada.Text_IO.Put_Line
          ("usage : client <IOR_string_from_server|name|-i> [oneshot]");
