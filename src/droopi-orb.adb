@@ -74,6 +74,7 @@ package body Droopi.ORB is
    procedure Start (O : access ORB) is
    begin
       --  Start accepting incoming connections.
+      --  XXX TBD
       raise Not_Implemented;
    end Start;
 
@@ -167,6 +168,7 @@ package body Droopi.ORB is
             --  It should first ask for persmission to
             --  do so from the tasking policy object.
 
+            --  XX TBD
             raise Not_Implemented;
 
          end if;
@@ -197,9 +199,11 @@ package body Droopi.ORB is
    begin
 
       --  Stop accepting incoming connections.
+      --  XX TBD
       raise Not_Implemented;
 
       if Wait_For_Completion then
+         --  XX TBD
          raise Not_Implemented;
       end if;
 

@@ -1,0 +1,12 @@
+2001-01-15  Thomas Quinot  <quinot@inf.enst.fr>
+
+	* Droopi.Opaque, Droopi.Buffers: Imported from Broca.
+	Must change from System.Address-based implementation to portable
+	code that can run on the JVM, possibly giving up some theoretical
+	optimisation possibilities for now.
+
+	* Droopi.Tasking_Policies: The implementation of the task-per-session
+	policy depends on ORB, because the policy needs to create a task that
+	executes the ORB => risk of circular dependency between ORB and
+	Tasking_Policies.
+

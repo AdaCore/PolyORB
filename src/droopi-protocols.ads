@@ -16,7 +16,7 @@ package Droopi.Protocols is
    type Protocol is abstract tagged limited private;
 
    function Create_Session
-     (P : Protocol; C : Channel)
+     (P : Protocol)
      return Session_Access is abstract;
 
    -----------------------------------------------------
@@ -30,9 +30,8 @@ package Droopi.Protocols is
    -- Callback point (interface to lower layers) --
    ------------------------------------------------
 
-   procedure Handle_Data (S : Session; C : Channel) is abstract;
-   --  Invoked when some data are present on channel C, to be handled
-   --  by protocol session S.
+   procedure Handle_Data (S : Session) is abstract;
+   --  Invoked when some data arrives for session S.
 
 private
 
