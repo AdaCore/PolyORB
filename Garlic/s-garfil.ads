@@ -35,10 +35,10 @@
 
 with Ada.Streams;
 with Ada.Unchecked_Deallocation;
+with System.Garlic.Exceptions;
 with System.Garlic.Heart;
 with System.Garlic.Streams;
 with System.Garlic.Types;
-with System.Garlic.Utils;
 
 package System.Garlic.Filters is
 
@@ -50,14 +50,14 @@ package System.Garlic.Filters is
        Stream    : in Streams.Stream_Element_Access;
        Offset    : in Ada.Streams.Stream_Element_Offset;
        Result    : out Streams.Stream_Element_Access;
-       Error     : in out Utils.Error_Type);
+       Error     : in out Exceptions.Error_Type);
 
    procedure Filter_Outgoing
       (Partition : in     Types.Partition_ID;
        Opcode    : in     System.Garlic.Heart.Any_Opcode;
        Stream    : access Streams.Params_Stream_Type;
        Result    : out    Streams.Stream_Element_Access;
-       Error     : in out Utils.Error_Type);
+       Error     : in out Exceptions.Error_Type);
 
    procedure Initialize;
    --  Elaboration code

@@ -36,6 +36,7 @@
 with Ada.Streams;              use Ada.Streams;
 with Ada.Unchecked_Deallocation;
 with System.Garlic.Debug;      use System.Garlic.Debug;
+with System.Garlic.Exceptions; use System.Garlic.Exceptions;
 with System.Garlic.Heart;      use System.Garlic.Heart;
 with System.Garlic.Name_Table; use System.Garlic.Name_Table;
 with System.Garlic.Partitions; use System.Garlic.Partitions;
@@ -92,7 +93,7 @@ package body System.Garlic.Filters is
    type Channel_Type is record
       Partition : Partition_ID;
       Filter    : Filter_Access;
-      Installed : Boolean;
+      Status    : Status_Type;
       Exchange  : Boolean;
       Incoming  : Half_Channel_Type;
       Outgoing  : Half_Channel_Type;
@@ -101,7 +102,7 @@ package body System.Garlic.Filters is
    Null_Channel : constant Channel_Type :=
      (Partition => Null_PID,
       Filter    => null,
-      Installed => False,
+      Status    => None,
       Exchange  => False,
       Incoming  => Null_Half_Channel,
       Outgoing  => Null_Half_Channel);
@@ -164,13 +165,6 @@ package body System.Garlic.Filters is
       Error     : in out Error_Type);
    --  This procedure initializes and extracts the half outgoing channel.
 
-   procedure Get_Partition_Filter
-     (Partition : in Partition_ID;
-      Filter    : out Filter_Access;
-      Error     : in out Error_Type);
-   --  Retrieve the filter to apply on this channel. This procedure uses
-   --  the naming convention. Info of name "partition name" + "'filter" is
-   --  the name of the filter to apply on the channel.
 
    procedure Handle_Request
      (Partition : in Partition_ID;
@@ -183,10 +177,12 @@ package body System.Garlic.Filters is
 
    procedure Install_Channel
      (Partition : in Partition_ID;
-      Channel   : in out Channel_Type;
       Error     : in out Error_Type);
-   --  Find which filter to use and install it (but not the local and
-   --  remote data for incoming and outgoing).
+   --  Find which filter to use and install it (but do not install the
+   --  local and remote data for incoming and outgoing). Retrieve the
+   --  filter to apply on this channel / partition. This procedure
+   --  uses the naming convention. Info of name "partition name" +
+   --  "'filter" is the name of the filter to apply on the channel.
 
    function Name (P : Partition_ID) return String;
 
@@ -317,22 +313,24 @@ package body System.Garlic.Filters is
       Error     : in out Error_Type)
    is
       Channel : Channel_Type;
+
    begin
       pragma Debug
         (D ("Get params for partition" & Partition'Img &
             " incoming filter"));
 
-      Channels.Enter;
+      loop
+         Channels.Enter;
+         Channel := Channels.Get_Component (Partition);
 
-      Channel := Channels.Get_Component (Partition);
+         exit when Channel.Status = Done;
+         Channels.Leave;
 
-      if not Channel.Installed then
-         Install_Channel (Partition, Channel, Error);
+         Install_Channel (Partition, Error);
          if Found (Error) then
-            Channels.Leave;
             return;
          end if;
-      end if;
+      end loop;
 
       if Channel.Incoming.Status = None then
          pragma Debug
@@ -368,20 +366,23 @@ package body System.Garlic.Filters is
       Channel : Channel_Type;
       Version : Version_Id;
       Waiting : Boolean;
+
    begin
       loop
          Waiting := False;
 
-         Channels.Enter;
-         Channel := Channels.Get_Component (Partition);
+         loop
+            Channels.Enter;
+            Channel := Channels.Get_Component (Partition);
 
-         if not Channel.Installed then
-            Install_Channel (Partition, Channel, Error);
+            exit when Channel.Status = Done;
+            Channels.Leave (Version);
+
+            Install_Channel (Partition, Error);
             if Found (Error) then
-               Channels.Leave;
                return;
             end if;
-         end if;
+         end loop;
 
          if Channel.Outgoing.Status = None then
 
@@ -437,42 +438,6 @@ package body System.Garlic.Filters is
       end loop;
    end Get_Params_For_Outgoing;
 
-   --------------------------
-   -- Get_Partition_Filter --
-   --------------------------
-
-   procedure Get_Partition_Filter
-     (Partition : in Partition_ID;
-      Filter    : out Filter_Access;
-      Error     : in out Error_Type)
-   is
-      P : Name_Id;
-      F : Name_Id;
-   begin
-      Get_Name (Partition, P, Error);
-
-      if Found (Error) then
-         return;
-      end if;
-
-      --  Info of "partition name" + "'filter" corresponds to the name of
-      --  the filter to apply on this channel.
-
-      F := To_Name_Id (Get_Info (Get (Get (P) & Filter_Attribute_Name)));
-      if F /= Null_Name then
-         pragma Debug
-           (D ("Use filter " & Get (F) & " with partition " & Get (P)));
-
-         Filter := Filters.Get_Component (Filters.Get_Index (Get (F)));
-
-      else
-         pragma Debug
-           (D ("Use default filter with partition " & Get (P)));
-
-         Filter := Default;
-      end if;
-   end Get_Partition_Filter;
-
    --------------------
    -- Handle_Request --
    --------------------
@@ -499,7 +464,7 @@ package body System.Garlic.Filters is
          Error  : in out Error_Type)
       is
          Request : Request_Type;
-         Filter  : Filter_Access;
+         Channel : Channel_Type;
 
          pragma Warnings (Off);
 
@@ -516,13 +481,15 @@ package body System.Garlic.Filters is
                " from " & PName & " -" & Partition'Img));
 
          if Request.Command = Set_Params then
-            Get_Partition_Filter (Partition, Filter, Error);
+            Install_Channel (Partition, Error);
             if Found (Error) then
                return;
             end if;
 
+            Channel := Channels.Get_Component (Partition);
+
             Request.Parameter :=
-              Filter_Params_Read (Filter.all,
+              Filter_Params_Read (Channel.Filter.all,
                                   To_Stream_Element_Array (Stream));
             Set_Params_For_Outgoing (Partition, Request, Error);
             if Found (Error) then
@@ -635,27 +602,55 @@ package body System.Garlic.Filters is
 
    procedure Install_Channel
      (Partition : in Partition_ID;
-      Channel   : in out Channel_Type;
       Error     : in out Error_Type)
    is
-   begin
-      pragma Debug
-        (D ("Partition " & Name (Partition) &
-            " filter installed"));
+      PName   : String_Access;
+      FName   : Name_Id;
+      Channel : Channel_Type;
 
-      Get_Partition_Filter (Partition, Channel.Filter, Error);
+   begin
+      Get_Name (Partition, PName, Error);
+
       if Found (Error) then
          return;
       end if;
 
-      Channel.Installed := True;
+      Channels.Enter;
+      Channel := Channels.Get_Component (Partition);
+      if Channel.Status /= None then
+         Channels.Leave;
+         return;
+      end if;
 
+      pragma Debug (D ("Partition " & PName.all & " filter installed"));
+
+      --  Info of "partition name" + "'filter" corresponds to the name of
+      --  the filter to apply on this channel.
+
+      FName := To_Name_Id (Get_Info (Get (PName.all & Filter_Attribute_Name)));
+      if FName /= Null_Name then
+         pragma Debug
+           (D ("Use filter " & Get (FName) & " with partition " & PName.all));
+
+         Channel.Filter
+           := Filters.Get_Component (Filters.Get_Index (Get (FName)));
+
+      else
+         pragma Debug
+           (D ("Use default filter with partition " & PName.all));
+
+         Channel.Filter := Default;
+      end if;
+
+      Channel.Status := Done;
       if Channel.Filter = null then
          Channel.Incoming.Status := Done;
          Channel.Outgoing.Status := Done;
       end if;
 
       Channels.Set_Component (Partition, Channel);
+      Channels.Update;
+      Channels.Leave;
    end Install_Channel;
 
    ----------
@@ -765,16 +760,18 @@ package body System.Garlic.Filters is
       pragma Debug
         (D ("Set params for partition" & Partition'Img & " outgoing filter"));
 
-      Channels.Enter;
-      Channel := Channels.Get_Component (Partition);
+      loop
+         Channels.Enter;
+         Channel := Channels.Get_Component (Partition);
 
-      if not Channel.Installed then
-         Install_Channel (Partition, Channel, Error);
+         exit when Channel.Status = Done;
+         Channels.Leave;
+
+         Install_Channel (Partition, Error);
          if Found (Error) then
-            Channels.Leave;
             return;
          end if;
-      end if;
+      end loop;
 
       --  If this request (Set_Params) is the answer to a remote
       --  request from this partition (Get_Params), then save the
