@@ -39,10 +39,7 @@ with PolyORB.Protocols.HTTP; use PolyORB.Protocols.HTTP;
 
 package PolyORB.Binding_Data.SOAP is
 
-   pragma Elaborate_Body;
-
    Default_Port : constant := 80;
-
 
    type SOAP_Profile_Type is new Profile_Type with private;
    type SOAP_Profile_Factory is new Profile_Factory with private;

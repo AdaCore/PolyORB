@@ -43,33 +43,48 @@ with CORBA;
 
 with PolyORB.Any;
 with PolyORB.Any.NVList;
+with PolyORB.Components;
 with PolyORB.Filters;
 with PolyORB.Filters.Slicers;
 with PolyORB.Obj_Adapters.Simple;
 with PolyORB.Objects;
 with PolyORB.ORB.Interface;
-
-with PolyORB.Binding_Data.Test;
-with PolyORB.Binding_Data.IIOP;
-with PolyORB.Binding_Data.SRP;
-
-with PolyORB.Components;
-
 with PolyORB.Protocols;
+with PolyORB.References;
+with PolyORB.Requests;
+with PolyORB.Smart_Pointers;
+with PolyORB.Types;
+
+--  A transport mechanism: sockets.
+
+with PolyORB.Sockets;
+with PolyORB.Transport.Sockets;
+
+--  Some protocol personalities:
+
+--  Stupid test protocol
+with PolyORB.Binding_Data.Test;
 with PolyORB.Protocols.Echo;
+
+--  GIOP
+with PolyORB.Binding_Data.IIOP;
 with PolyORB.Protocols.GIOP;
+
+--  SRP
+with PolyORB.Binding_Data.SRP;
 with PolyORB.Protocols.SRP;
 
-with PolyORB.References;
+--  SOAP (not yet);
+with PolyORB.Binding_Data.SOAP;
+with PolyORB.Protocols.SOAP;
+pragma Warnings (Off, PolyORB.Binding_Data.SOAP);
+pragma Warnings (Off, PolyORB.Protocols.SOAP);
+
+--  Utility.
 with PolyORB.References.IOR;
 
-with PolyORB.Requests;
-
-with PolyORB.Smart_Pointers;
-with PolyORB.Sockets;
+--  Our application object.
 with PolyORB.Test_Object;
-with PolyORB.Transport.Sockets;
-with PolyORB.Types;
 
 package body PolyORB.Setup.Test is
 
