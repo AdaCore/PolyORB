@@ -53,7 +53,7 @@ package System.Garlic.Types is
    Boot_PID  : Partition_ID := First_PID;
    Self_PID  : Partition_ID := Null_PID;
 
-   subtype Valid_Partition_ID is Partition_ID range First_PID .. Last_ID;
+   subtype Valid_Partition_ID is Partition_ID range First_PID .. Last_PID;
    --  A partition whose ID fits in Valid_Partition_ID is a real partition
 
    Partition_ID_Increment : constant Valid_Partition_ID := 10;
