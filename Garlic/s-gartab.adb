@@ -348,7 +348,6 @@ package body System.Garlic.Table is
       type Usage_Table_Access is access Usage_Table_Type;
 
       Usage : Usage_Table_Access;
-      Mutex : Mutex_Access;
 
       function Allocate return Index_Type;
       --  Allocate a new component.
