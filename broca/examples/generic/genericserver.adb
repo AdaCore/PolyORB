@@ -18,7 +18,7 @@ pragma Elaborate_All (PortableServer.AdapterActivator.Impl);
 
 package body GenericServer is
    Object_Ref : CORBA.Object.Ref;
-
+   
    procedure Decode_Options is
       use Ada.Command_Line;
       use Ada.Text_IO;
@@ -97,7 +97,6 @@ package body GenericServer is
       The_Cookie : out PortableServer.ServantLocator.Cookie;
       Returns : out PortableServer.Servant) is
    begin
-      Ada.Text_IO.Put_Line ("preinvoke: forward request");
       PortableServer.Raise_Forward_Request (Object_Ref);
       The_Cookie := null;
       Returns := null;
@@ -152,7 +151,7 @@ package body GenericServer is
          Set_Servant_Manager
            (Res, ServantManager.Impl.To_Ref (new My_Sl_Object));
          Obj := Create_Reference
-           (Res, CORBA.To_CORBA_String ("IDL:Echo:1.0"));
+           (Res, CORBA.To_CORBA_String (Repository_Id.all));
 
          PortableServer.POAManager.Activate
            (PortableServer.POA.Get_The_POAManager (Res));
@@ -245,7 +244,7 @@ package body GenericServer is
       case Flag_Servant_Policy is
          when PortableServer.USE_DEFAULT_SERVANT =>
             A_Ref := PortableServer.POA.Create_Reference
-              (Poa, CORBA.To_CORBA_String ("IDL:Echo:1.0"));
+              (Poa, CORBA.To_CORBA_String (Repository_Id.all));
             PortableServer.POA.Set_Servant
               (Poa, PortableServer.Servant (My_Obj));
          when PortableServer.USE_ACTIVE_OBJECT_MAP_ONLY =>
@@ -255,7 +254,7 @@ package body GenericServer is
               (Poa, PortableServer.Servant (My_Obj));
          when PortableServer.USE_SERVANT_MANAGER =>
             A_Ref := PortableServer.POA.Create_Reference
-              (Poa, CORBA.To_CORBA_String ("IDL:Echo:1.0"));
+              (Poa, CORBA.To_CORBA_String (Repository_Id.all));
             PortableServer.POA.Set_Servant_Manager (Poa, My_Servant_Manager);
       end case;
 

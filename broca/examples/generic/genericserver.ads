@@ -24,12 +24,10 @@ package GenericServer is
    Flag_Serial : Boolean := False;
 
    Bad_Option : exception;
-
    My_Obj : PortableServer.Servant;
-
    My_Servant_Manager : PortableServer.ServantManager.Ref;
-
    Ref_To_Export : CORBA.Object.Ref;
+   Repository_Id : String_Acc;
 
    procedure Decode_Options;
 
