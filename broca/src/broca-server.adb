@@ -257,6 +257,10 @@ package body Broca.Server is
 
       --  The contents of an object key must be interpreted
       --  with the endianness of its creator.
+      --  The endianness of the message must be restored
+      --  when leaving Unmarshall_Object_Key. To exit
+      --  this function, use
+      --    goto Restore_Endianness_And_Return;
       Saved_Endianness := Buffer.Little_Endian;
       Buffer.Little_Endian := Is_Little_Endian;
 
@@ -307,8 +311,7 @@ package body Broca.Server is
             Buffer.Pos := Pos + Length;
             Broca.Poa.All_POAs_Lock.Unlock_R;
 
-            Buffer.Little_Endian := Saved_Endianness;
-            return;
+            goto Restore_Endianness_And_Return;
          end if;
 
          Current_Poa := All_POAs (Broca.Poa.Root_Poa_Index).Poa;
@@ -322,8 +325,7 @@ package body Broca.Server is
                Poa := Current_Poa;
                Poa_State := Tmp_Poa_State;
                Key.Pos := 0;
-               Buffer.Little_Endian := Saved_Endianness;
-               return;
+               goto Restore_Endianness_And_Return
             end if;
             Dec_Usage (Get_The_POAManager (Current_Poa).all);
             Unmarshall (Buffer, Name);
@@ -350,7 +352,9 @@ package body Broca.Server is
       Key_Length := Length - (Buffer.Pos - Pos);
       Increase_Buffer_And_Clear_Pos (Key, Key_Length);
       Unmarshall_Extract (Key, Buffer, Key_Length);
-      Buffer.Little_Endian := Saved_Endianness;
+
+      <<Restore_Endianness_And_Return>>
+        Buffer.Little_Endian := Saved_Endianness;
       return;
    end Unmarshall_Object_Key;
 
