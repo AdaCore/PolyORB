@@ -82,6 +82,8 @@ package body System.Garlic.Heart is
    Handlers : array (External_Opcode) of Request_Handler;
    --  Handler callbacks table
 
+   Handlers_Watcher : Soft_Links.Watcher_Access;
+
    Notify_Partition_RPC_Error : RPC_Error_Notifier_Type;
    --  Call this procedure when a partition dies.
 
@@ -394,14 +396,20 @@ package body System.Garlic.Heart is
       Reply     : access Params_Stream_Type;
       Error     : in out Error_Type)
    is
-      Handle : Request_Handler;
+      Version : Version_Id;
+
    begin
       pragma Assert (Self_PID /= Null_PID);
 
-      Handle := Handlers (Opcode);
-      pragma Assert (Handle /= null);
+      if Handlers (Opcode) /= null then
+         loop
+            Soft_Links.Lookup (Handlers_Watcher, Version);
+            exit when Handlers (Opcode) /= null;
+            Soft_Links.Differ (Handlers_Watcher, Version);
+         end loop;
+      end if;
 
-      Handle (Partition, Opcode, Query, Reply, Error);
+      Handlers (Opcode) (Partition, Opcode, Query, Reply, Error);
 
    exception when E : others =>
       Throw (Error, "Handle_External: " & Exception_Information (E));
@@ -441,6 +449,7 @@ package body System.Garlic.Heart is
    begin
       Soft_Links.Create (Elaboration_Watcher, No_Version);
       Soft_Links.Create (Self_PID_Watcher, No_Version);
+      Soft_Links.Create (Handlers_Watcher, No_Version);
    end Initialize;
 
    ----------------------------
@@ -556,6 +565,7 @@ package body System.Garlic.Heart is
       pragma Debug (D ("Register request handler for opcode " & Opcode'Img));
 
       Handlers (Opcode) := Handler;
+      Soft_Links.Update (Handlers_Watcher);
    end Register_Handler;
 
    ---------------------------------
